@@ -1,7 +1,8 @@
 'use client'
 import Image from 'next/image'
 import { useRef } from 'react'
-import { TimelineContent } from 'src/components/ui/timeline-animation'
+import { TimelineContent } from '@/components/ui/timeline-animation'
+
 
 function ClientFeedback() {
 	const testimonialRef = useRef<HTMLDivElement>(null)

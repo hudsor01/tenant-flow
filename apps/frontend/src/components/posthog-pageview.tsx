@@ -31,3 +31,5 @@ export default function PostHogPageView() {
 		</Suspense>
 	)
 }
+
+export { PostHogPageView }

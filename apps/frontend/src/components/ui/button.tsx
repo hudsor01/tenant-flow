@@ -20,6 +20,10 @@ const buttonVariants = cva(
         ghost:
           "tw-:hover:bg-accent tw-:hover:text-accent-foreground tw-:dark:hover:bg-accent/50",
         link: "tw-:text-primary tw-:underline-offset-4 tw-:hover:underline",
+        success:
+          "tw-:bg-success tw-:text-success-foreground tw-:shadow-xs tw-:hover:bg-success/90",
+        warning:
+          "tw-:bg-warning tw-:text-warning-foreground tw-:shadow-xs tw-:hover:bg-warning/90",
       },
       size: {
         default: "tw-:h-9 tw-:px-4 tw-:py-2 tw-:has-[>svg]:px-3",

@@ -1,14 +1,14 @@
 'use client'
 
+import { LoginForm } from '@/components/auth/login-form'
+import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text'
+import { BlurFade } from '@/components/magicui/blur-fade'
+import { BorderBeam } from '@/components/magicui/border-beam'
+import { Particles } from '@/components/magicui/particles'
+import { Button } from '@/components/ui/button'
 import { ArrowLeft, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { LoginForm } from 'src/components/auth/login-form'
-import { AnimatedGradientText } from 'src/components/magicui/animated-gradient-text'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { BorderBeam } from 'src/components/magicui/border-beam'
-import { Particles } from 'src/components/magicui/particles'
-import { Button } from 'src/components/ui/button'
 
 export default function RegisterPage() {
 	return (

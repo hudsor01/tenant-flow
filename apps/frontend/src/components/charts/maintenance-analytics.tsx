@@ -1,5 +1,22 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import {
 	APPLE_DURATIONS,
@@ -44,23 +61,6 @@ import {
 	XAxis,
 	YAxis
 } from 'recharts'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import { Progress } from 'src/components/ui/progress'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from 'src/components/ui/select'
 
 // =============================================================================
 // MOCK DATA - REALISTIC MAINTENANCE ANALYTICS

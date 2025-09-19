@@ -1,5 +1,6 @@
 'use client'
 
+import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
 	ChevronDownIcon,
@@ -9,7 +10,6 @@ import {
 import * as React from 'react'
 import type { DayButton } from 'react-day-picker'
 import { DayPicker, getDefaultClassNames } from 'react-day-picker'
-import { Button, buttonVariants } from 'src/components/ui/button'
 
 function Calendar({
 	className,
@@ -130,7 +130,7 @@ function Calendar({
 					return (
 						<div
 							data-slot="calendar"
-							ref={rootRef}
+							ref={rootRef as React.RefObject<HTMLDivElement>}
 							className={cn(className)}
 							{...props}
 						/>

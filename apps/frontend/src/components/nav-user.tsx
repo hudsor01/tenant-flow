@@ -3,8 +3,7 @@
 import { Bell, CreditCard, LogOut, MoreVertical, User } from 'lucide-react'
 import * as React from 'react'
 
-import { cn } from '@/lib/utils'
-import { Avatar, AvatarFallback, AvatarImage } from 'src/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -13,13 +12,14 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
-} from 'src/components/ui/dropdown-menu'
+} from '@/components/ui/dropdown-menu'
 import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar
-} from 'src/components/ui/sidebar'
+} from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 
 interface NavUserProps extends React.ComponentProps<'div'> {
 	user: {

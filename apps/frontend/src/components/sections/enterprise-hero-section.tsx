@@ -1,5 +1,9 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Table } from '@/components/ui/table'
+import { BlurFade } from '@/components/magicui/blur-fade'
 import {
 	useDashboardFinancialStatsFormatted,
 	useFinancialOverviewFormatted
@@ -13,9 +17,7 @@ import { cn, formatCurrency } from '@/lib/utils'
 import type { FinancialOverviewResponse } from '@repo/shared'
 import { ArrowRight, Loader2, Shield, TrendingUp } from 'lucide-react'
 import { useMemo } from 'react'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
+
 
 interface EnterpriseHeroSectionProps {
 	className?: string

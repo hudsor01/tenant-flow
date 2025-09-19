@@ -1,27 +1,19 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { PasswordStrength } from '@/components/ui/password-strength'
 import { cn } from '@/lib/utils'
+import {
+	loginZodSchema,
+	registerZodSchema,
+	type AuthFormProps
+} from '@repo/shared'
+import { Check } from 'lucide-react'
 import React, { useState } from 'react'
-import { Button } from 'src/components/ui/button'
-import { Input } from 'src/components/ui/input'
-import { Label } from 'src/components/ui/label'
-
-interface AuthFormProps {
-	className?: string
-	mode?: 'login' | 'signup'
-	onSubmit?: (data: {
-		email: string
-		password: string
-		firstName?: string
-		lastName?: string
-		company?: string
-	}) => void
-	onForgotPassword?: () => void
-	onSignUp?: () => void
-	onGoogleLogin?: () => void
-	isLoading?: boolean
-	isGoogleLoading?: boolean
-}
+import { toast } from 'sonner'
+import type { ZodError } from 'zod'
 
 export function LoginForm({
 	className,
@@ -29,6 +21,7 @@ export function LoginForm({
 	onSubmit,
 	onForgotPassword,
 	onSignUp,
+	onLogin: _onLogin,
 	onGoogleLogin,
 	isLoading,
 	isGoogleLoading
@@ -39,15 +32,170 @@ export function LoginForm({
 		lastName: '',
 		company: '',
 		email: '',
-		password: ''
+		password: '',
+		confirmPassword: ''
 	})
 
+	// Field validation states
+	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+	const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>(
+		{}
+	)
+	const [validFields, setValidFields] = useState<Record<string, boolean>>({})
+
+	const validateField = (name: string, value: string) => {
+		const _schema = isLogin ? loginZodSchema : registerZodSchema
+		const tempForm = { ...form, [name]: value }
+
+		try {
+			// For login, only validate email and password
+			if (isLogin) {
+				const partialSchema = loginZodSchema.pick({
+					email: true,
+					password: true
+				})
+				partialSchema.parse({
+					email: tempForm.email,
+					password: tempForm.password
+				})
+			} else {
+				// For signup, validate based on field
+				if (name === 'email') {
+					registerZodSchema.pick({ email: true }).parse({ email: value })
+				} else if (name === 'password') {
+					registerZodSchema.pick({ password: true }).parse({ password: value })
+				} else if (name === 'confirmPassword' && tempForm.password) {
+					if (value !== tempForm.password) {
+						throw new Error("Passwords don't match")
+					}
+				} else if (name === 'firstName') {
+					if (value.length < 2)
+						throw new Error('First name must be at least 2 characters')
+					if (!/^[a-zA-Z\s-']+$/.test(value))
+						throw new Error('Please enter a valid first name')
+				} else if (name === 'lastName') {
+					if (value.length < 2)
+						throw new Error('Last name must be at least 2 characters')
+					if (!/^[a-zA-Z\s-']+$/.test(value))
+						throw new Error('Please enter a valid last name')
+				} else if (name === 'company') {
+					if (value.length < 2)
+						throw new Error('Company name must be at least 2 characters')
+				}
+			}
+
+			// Field is valid
+			setFieldErrors(prev => ({ ...prev, [name]: '' }))
+			setValidFields(prev => ({ ...prev, [name]: true }))
+		} catch (error) {
+			// Field has error
+			let message = ''
+			if (error instanceof Error) {
+				message = error.message
+			} else if (error && typeof error === 'object' && 'issues' in error) {
+				const zodError = error as ZodError
+				if (zodError.issues && zodError.issues[0]) {
+					message = zodError.issues[0].message
+				}
+			}
+			setFieldErrors(prev => ({ ...prev, [name]: message }))
+			setValidFields(prev => ({ ...prev, [name]: false }))
+		}
+	}
+
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+		const { name, value } = e.target
+		setForm(prev => ({ ...prev, [name]: value }))
+
+		// Validate field if it has been touched
+		if (touchedFields[name]) {
+			validateField(name, value)
+		}
+	}
+
+	const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+		const { name, value } = e.target
+		setTouchedFields(prev => ({ ...prev, [name]: true }))
+		validateField(name, value)
+	}
+
+	const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+		const { name } = e.target
+		// Clear error on focus
+		setFieldErrors(prev => ({ ...prev, [name]: '' }))
 	}
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
+
+		// Validate all fields before submission
+		const fieldsToValidate = isLogin
+			? ['email', 'password']
+			: [
+					'firstName',
+					'lastName',
+					'company',
+					'email',
+					'password',
+					'confirmPassword'
+				]
+
+		let hasErrors = false
+		const errors: Record<string, string> = {}
+
+		// Mark all fields as touched
+		const newTouchedFields: Record<string, boolean> = {}
+		fieldsToValidate.forEach(field => {
+			newTouchedFields[field] = true
+		})
+		setTouchedFields(newTouchedFields)
+
+		// Validate form based on mode
+		try {
+			if (isLogin) {
+				loginZodSchema.parse({
+					email: form.email,
+					password: form.password
+				})
+			} else {
+				registerZodSchema.parse(form)
+			}
+		} catch (error) {
+			hasErrors = true
+			if ((error as ZodError).issues) {
+				;(error as ZodError).issues.forEach(issue => {
+					const field = issue.path[0] as string
+					errors[field] = issue.message
+				})
+			}
+		}
+
+		// Additional validation for signup
+		if (!isLogin) {
+			if (form.firstName.length < 2) {
+				errors.firstName = 'First name must be at least 2 characters'
+				hasErrors = true
+			}
+			if (form.lastName.length < 2) {
+				errors.lastName = 'Last name must be at least 2 characters'
+				hasErrors = true
+			}
+			if (form.company.length < 2) {
+				errors.company = 'Company name must be at least 2 characters'
+				hasErrors = true
+			}
+		}
+
+		if (hasErrors) {
+			setFieldErrors(errors)
+			// Show first error as toast
+			const firstError = Object.values(errors)[0]
+			toast.error('Validation Error', {
+				description: firstError
+			})
+			return
+		}
+
 		onSubmit?.(form)
 	}
 
@@ -56,27 +204,65 @@ export function LoginForm({
 			<form className="space-y-5" onSubmit={handleSubmit}>
 				{!isLogin && (
 					<div className="grid grid-cols-2 gap-4">
-						<div>
+						<div className="relative">
 							<Label htmlFor="firstName">First name</Label>
-							<Input
-								id="firstName"
-								name="firstName"
-								required
-								autoComplete="given-name"
-								value={form.firstName}
-								onChange={handleChange}
-							/>
+							<div className="relative">
+								<Input
+									id="firstName"
+									name="firstName"
+									required
+									autoComplete="given-name"
+									value={form.firstName}
+									onChange={handleChange}
+									onBlur={handleBlur}
+									onFocus={handleFocus}
+									className={cn(
+										fieldErrors.firstName && touchedFields.firstName
+											? 'border-destructive focus:ring-destructive'
+											: validFields.firstName && touchedFields.firstName
+												? 'border-green-500 focus:ring-green-500'
+												: ''
+									)}
+								/>
+								{validFields.firstName && touchedFields.firstName && (
+									<Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+								)}
+							</div>
+							{fieldErrors.firstName && touchedFields.firstName && (
+								<p className="text-xs text-destructive mt-1">
+									{fieldErrors.firstName}
+								</p>
+							)}
 						</div>
-						<div>
+						<div className="relative">
 							<Label htmlFor="lastName">Last name</Label>
-							<Input
-								id="lastName"
-								name="lastName"
-								required
-								autoComplete="family-name"
-								value={form.lastName}
-								onChange={handleChange}
-							/>
+							<div className="relative">
+								<Input
+									id="lastName"
+									name="lastName"
+									required
+									autoComplete="family-name"
+									value={form.lastName}
+									onChange={handleChange}
+									onBlur={handleBlur}
+									onFocus={handleFocus}
+									className={cn(
+										fieldErrors.lastName && touchedFields.lastName
+											? 'border-destructive focus:ring-destructive'
+											: validFields.lastName && touchedFields.lastName
+												? 'border-green-500 focus:ring-green-500'
+												: ''
+									)}
+								/>
+								{validFields.lastName && touchedFields.lastName && (
+									<Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+								)}
+							</div>
+							{fieldErrors.lastName && touchedFields.lastName && (
+								<p className="text-xs text-destructive mt-1">
+									{fieldErrors.lastName}
+								</p>
+							)}
 						</div>
 					</div>
 				)}
@@ -84,32 +270,68 @@ export function LoginForm({
 				{!isLogin && (
 					<div>
 						<Label htmlFor="company">Company</Label>
-						<Input
-							id="company"
-							name="company"
-							required
-							autoComplete="organization"
-							value={form.company}
-							onChange={handleChange}
-						/>
+						<div className="relative">
+							<Input
+								id="company"
+								name="company"
+								required
+								autoComplete="organization"
+								value={form.company}
+								onChange={handleChange}
+								onBlur={handleBlur}
+								onFocus={handleFocus}
+								className={cn(
+									fieldErrors.company && touchedFields.company
+										? 'border-destructive focus:ring-destructive'
+										: validFields.company && touchedFields.company
+											? 'border-green-500 focus:ring-green-500'
+											: ''
+								)}
+							/>
+							{validFields.company && touchedFields.company && (
+								<Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+							)}
+						</div>
+						{fieldErrors.company && touchedFields.company && (
+							<p className="text-xs text-destructive mt-1">
+								{fieldErrors.company}
+							</p>
+						)}
 					</div>
 				)}
 
 				<div>
 					<Label htmlFor="email">Email address</Label>
-					<Input
-						id="email"
-						name="email"
-						type="email"
-						required
-						autoComplete="email"
-						value={form.email}
-						onChange={handleChange}
-						placeholder="Enter your email"
-						className="h-11"
-						aria-describedby={isLogin ? undefined : 'email-hint'}
-					/>
-					{!isLogin && (
+					<div className="relative">
+						<Input
+							id="email"
+							name="email"
+							type="email"
+							required
+							autoComplete="email"
+							value={form.email}
+							onChange={handleChange}
+							onBlur={handleBlur}
+							onFocus={handleFocus}
+							placeholder="Enter your email"
+							className={cn(
+								'h-11',
+								fieldErrors.email && touchedFields.email
+									? 'border-destructive focus:ring-destructive'
+									: validFields.email && touchedFields.email
+										? 'border-green-500 focus:ring-green-500'
+										: ''
+							)}
+							aria-describedby={isLogin ? undefined : 'email-hint'}
+						/>
+						{validFields.email && touchedFields.email && (
+							<Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+						)}
+					</div>
+					{fieldErrors.email && touchedFields.email && (
+						<p className="text-xs text-destructive mt-1">{fieldErrors.email}</p>
+					)}
+					{!isLogin && !fieldErrors.email && (
 						<p id="email-hint" className="text-xs text-muted-foreground mt-1">
 							We'll use this to send you important updates
 						</p>
@@ -117,27 +339,60 @@ export function LoginForm({
 				</div>
 
 				<div>
-					<Label htmlFor="password">Password</Label>
-					<Input
-						id="password"
-						name="password"
-						type="password"
-						required
-						autoComplete={isLogin ? 'current-password' : 'new-password'}
-						value={form.password}
-						onChange={handleChange}
-						placeholder={
-							isLogin ? 'Enter your password' : 'Create a secure password'
-						}
-						className="h-11"
-						aria-describedby={isLogin ? undefined : 'password-hint'}
-					/>
-					{!isLogin && (
-						<p
-							id="password-hint"
-							className="text-xs text-muted-foreground mt-1"
-						>
-							Must be at least 8 characters with letters and numbers
+					{isLogin ? (
+						<>
+							<Label htmlFor="password">Password</Label>
+							<div className="relative">
+								<Input
+									id="password"
+									name="password"
+									type="password"
+									required
+									autoComplete="current-password"
+									value={form.password}
+									onChange={handleChange}
+									onBlur={handleBlur}
+									onFocus={handleFocus}
+									placeholder="Enter your password"
+									className={cn(
+										'h-11',
+										fieldErrors.password && touchedFields.password
+											? 'border-destructive focus:ring-destructive'
+											: ''
+									)}
+								/>
+							</div>
+							{fieldErrors.password && touchedFields.password && (
+								<p className="text-xs text-destructive mt-1">
+									{fieldErrors.password}
+								</p>
+							)}
+						</>
+					) : (
+						<PasswordStrength
+							label="Password"
+							id="password"
+							name="password"
+							required
+							autoComplete="new-password"
+							value={form.password}
+							onChange={handleChange}
+							onBlur={handleBlur}
+							onFocus={handleFocus}
+							placeholder="Create a secure password"
+							className={cn(
+								'h-11',
+								fieldErrors.password && touchedFields.password
+									? 'border-destructive focus:ring-destructive'
+									: ''
+							)}
+							showStrengthIndicator={true}
+							minLength={8}
+						/>
+					)}
+					{!isLogin && fieldErrors.password && touchedFields.password && (
+						<p className="text-xs text-destructive mt-1">
+							{fieldErrors.password}
 						</p>
 					)}
 				</div>
@@ -145,13 +400,40 @@ export function LoginForm({
 				{!isLogin && (
 					<div>
 						<Label htmlFor="confirmPassword">Confirm password</Label>
-						<Input
-							id="confirmPassword"
-							name="confirmPassword"
-							type="password"
-							required
-							autoComplete="new-password"
-						/>
+						<div className="relative">
+							<Input
+								id="confirmPassword"
+								name="confirmPassword"
+								type="password"
+								required
+								autoComplete="new-password"
+								value={form.confirmPassword}
+								onChange={handleChange}
+								onBlur={handleBlur}
+								onFocus={handleFocus}
+								placeholder="Re-enter your password"
+								className={cn(
+									'h-11',
+									fieldErrors.confirmPassword && touchedFields.confirmPassword
+										? 'border-destructive focus:ring-destructive'
+										: validFields.confirmPassword &&
+											  touchedFields.confirmPassword &&
+											  form.confirmPassword
+											? 'border-green-500 focus:ring-green-500'
+											: ''
+								)}
+							/>
+							{validFields.confirmPassword &&
+								touchedFields.confirmPassword &&
+								form.confirmPassword && (
+									<Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+								)}
+						</div>
+						{fieldErrors.confirmPassword && touchedFields.confirmPassword && (
+							<p className="text-xs text-destructive mt-1">
+								{fieldErrors.confirmPassword}
+							</p>
+						)}
 					</div>
 				)}
 

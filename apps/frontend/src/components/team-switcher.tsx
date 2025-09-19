@@ -1,5 +1,7 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import { ChevronsUpDown, Plus } from 'lucide-react'
 import * as React from 'react'
 
@@ -12,13 +14,13 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuShortcut,
 	DropdownMenuTrigger
-} from 'src/components/ui/dropdown-menu'
+} from '@/components/ui/dropdown-menu'
 import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar
-} from 'src/components/ui/sidebar'
+} from '@/components/ui/sidebar'
 
 interface TeamSwitcherProps extends React.ComponentProps<'div'> {
 	teams: {

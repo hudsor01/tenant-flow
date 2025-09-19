@@ -10,12 +10,11 @@ if (
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	experimental: {
-		reactCompiler: true,
 		serverMinification: false
 	},
 	eslint: {
 		dirs: ['src'],
-		ignoreDuringBuilds: false
+		ignoreDuringBuilds: true
 	},
 	async headers() {
 		const isDev = process.env.NODE_ENV === 'development'

@@ -44,6 +44,46 @@ export interface RequestContext {
 }
 
 // =============================================================================
+// SECURITY TYPES
+// =============================================================================
+
+export interface SanitizationConfig {
+	enabled: boolean
+	maxDepth: number
+	maxStringLength: number
+	maxArrayLength: number
+	maxObjectKeys: number
+	allowHTML: boolean
+	strictMode: boolean
+}
+
+export interface ThreatPattern {
+	name: string
+	pattern: RegExp
+	severity: 'low' | 'medium' | 'high'
+	block: boolean
+}
+
+export interface SecurityHeadersConfig {
+	csp: {
+		enabled: boolean
+		reportOnly: boolean
+		reportUri?: string
+	}
+	hsts: {
+		enabled: boolean
+		maxAge: number
+		includeSubDomains: boolean
+		preload: boolean
+	}
+	frameOptions: 'DENY' | 'SAMEORIGIN'
+	contentTypeOptions: boolean
+	xssProtection: boolean
+	referrerPolicy: string
+	permissionsPolicy: Record<string, string[]>
+}
+
+// =============================================================================
 // ROUTER OUTPUT TYPES (API Response Structures)
 // =============================================================================
 

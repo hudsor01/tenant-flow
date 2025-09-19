@@ -1,62 +1,62 @@
 {
-  "name": "@repo/shared",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Shared types and utilities for TenantFlow monorepo",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "./lib/supabase-client": {
-      "types": "./dist/lib/supabase-client.d.ts",
-      "default": "./dist/lib/supabase-client.js"
-    },
-    "./lib/frontend-logger": {
-      "types": "./dist/lib/frontend-logger.d.ts",
-      "default": "./dist/lib/frontend-logger.js"
-    },
-    "./utils/api-client": {
-      "types": "./dist/utils/api-client.d.ts",
-      "default": "./dist/utils/api-client.js"
-    },
-    "./config/pricing": {
-      "types": "./dist/config/pricing.d.ts",
-      "default": "./dist/config/pricing.js"
-    },
-    "./config/dynamic-pricing": {
-      "types": "./dist/config/dynamic-pricing.d.ts",
-      "default": "./dist/config/dynamic-pricing.js"
-    }
-  },
-  "files": [
-    "dist/**"
-  ],
-  "scripts": {
-    "build": "pnpm run clean && tsc -p tsconfig.build.json",
-    "build:cjs": "echo 'CJS build already exists'",
-    "build:esm": "echo 'ESM build skipped'",
-    "typecheck": "tsc --noEmit",
-    "check-types": "tsc --noEmit",
-    "claude:check": "pnpm run lint && pnpm run typecheck",
-    "lint": "eslint . --no-warn-ignored",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\"",
-    "clean": "tsc --build --clean && rm -rf dist"
-  },
-  "dependencies": {
-    "@supabase/ssr": "^0.7.0",
-    "@supabase/supabase-js": "^2.57.4",
-    "posthog-js": "^1.264.2",
-    "zod": "^4.1.8"
-  },
-  "devDependencies": {
-    "@types/node": "^24.3.1",
-    "@types/react": "^19.1.12",
-    "@types/react-dom": "19.1.9",
-    "typescript": "^5.9.2"
-  }
+	"name": "@repo/shared",
+	"version": "0.1.0",
+	"private": true,
+	"description": "Shared types and utilities for TenantFlow monorepo",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./lib/supabase-client": {
+			"types": "./dist/lib/supabase-client.d.ts",
+			"default": "./dist/lib/supabase-client.js"
+		},
+		"./lib/frontend-logger": {
+			"types": "./dist/lib/frontend-logger.d.ts",
+			"default": "./dist/lib/frontend-logger.js"
+		},
+		"./utils/api-client": {
+			"types": "./dist/utils/api-client.d.ts",
+			"default": "./dist/utils/api-client.js"
+		},
+		"./config/pricing": {
+			"types": "./dist/config/pricing.d.ts",
+			"default": "./dist/config/pricing.js"
+		},
+		"./config/dynamic-pricing": {
+			"types": "./dist/config/dynamic-pricing.d.ts",
+			"default": "./dist/config/dynamic-pricing.js"
+		}
+	},
+	"files": [
+		"dist/**"
+	],
+	"scripts": {
+		"build": "pnpm run clean && tsc -p tsconfig.build.json",
+		"build:cjs": "echo 'CJS build already exists'",
+		"build:esm": "echo 'ESM build skipped'",
+		"typecheck": "tsc --noEmit",
+		"check-types": "tsc --noEmit",
+		"claude:check": "pnpm run lint && pnpm run typecheck",
+		"lint": "eslint . --no-warn-ignored",
+		"lint:fix": "eslint . --fix",
+		"format": "prettier --write \"src/**/*.ts\"",
+		"format:check": "prettier --check \"src/**/*.ts\"",
+		"clean": "tsc --build --clean && rm -rf dist"
+	},
+	"dependencies": {
+		"@supabase/ssr": "^0.7.0",
+		"@supabase/supabase-js": "^2.57.4",
+		"posthog-js": "^1.266.2",
+		"zod": "^4.1.9"
+	},
+	"devDependencies": {
+		"@types/node": "^24.5.2",
+		"@types/react": "^19.1.13",
+		"@types/react-dom": "19.1.9",
+		"typescript": "^5.9.2"
+	}
 }
