@@ -1,3 +1,8 @@
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Navbar } from '@/components/navbar'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { FooterMinimal } from '@/components/sections/footer-minimal'
 import {
 	ArrowRight,
 	BarChart3,

@@ -1,5 +1,10 @@
 'use client'
 
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { Card } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { MetricsCard } from '@/components/metrics-card'
+import { ChartAreaInteractive } from '@/components/chart-area-interactive'
 import { useTenants, useTenantStats } from '@/hooks/api/tenants'
 import { formatCurrency } from '@/lib/utils'
 import type { TenantWithLeaseInfo } from '@repo/shared'

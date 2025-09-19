@@ -1,3 +1,4 @@
+import { Card, CardContent } from '@/components/ui/card'
 "use client"
 
 import * as React from "react"

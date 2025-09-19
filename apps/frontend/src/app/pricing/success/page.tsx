@@ -1,5 +1,13 @@
 'use client'
 
+import { Navbar } from '@/components/navbar'
+import { HeroAuthority } from '@/components/hero-authority'
+import { FooterMinimal } from '@/components/footer-minimal'
+import { CustomerPortalButton } from '@/components/pricing/customer-portal'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { API_BASE_URL } from '@/lib/api-client'
 import type { SubscriptionData } from '@/types/stripe'
 import { CheckCircle, Home } from 'lucide-react'

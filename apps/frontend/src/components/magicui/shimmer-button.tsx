@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 "use client"
 
 import type { CSSProperties } from "react";

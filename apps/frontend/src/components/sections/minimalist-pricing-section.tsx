@@ -1,5 +1,11 @@
 'use client'
 
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import BlurFade from '@/components/magicui/blur-fade'
+import ShimmerButton from '@/components/magicui/shimmer-button'
+import BorderBeam from '@/components/magicui/border-beam'
+import MagicCard from '@/components/magicui/magic-card'
 import { cn } from '@/lib/utils'
 import { useSpring } from '@react-spring/core'
 import { animated } from '@react-spring/web'

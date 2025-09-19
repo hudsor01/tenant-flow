@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
 import { toast } from 'sonner'
+import { LoginLayout } from '@/components/auth/login-layout'
 import { loginAction } from './actions'
 
 export default function LoginPage() {

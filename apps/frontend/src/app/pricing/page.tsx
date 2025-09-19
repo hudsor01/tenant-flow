@@ -1,5 +1,15 @@
 'use client'
 
+import { Navbar } from '@/components/navbar'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { FooterMinimal } from '@/components/sections/footer-minimal'
+import { BlurFade } from '@/components/magicui/blur-fade'
+import { ShimmerButton } from '@/components/magicui/shimmer-button'
+import { PageLayout } from '@/components/layout/page-layout'
+
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { LoginLayout } from '@/components/auth/login-layout'
 
 
 export const metadata: Metadata = {

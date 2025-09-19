@@ -1,3 +1,7 @@
+import { Button } from '@/components/ui/button'
+import { Navbar } from '@/components/navbar'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { BlurFade } from '@/components/magicui/blur-fade'
 import { containerClasses } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import {

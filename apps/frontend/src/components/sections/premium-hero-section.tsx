@@ -1,6 +1,11 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { ANIMATION_DURATIONS, cn, TYPOGRAPHY_SCALE } from '@/lib/design-system'
+import { BlurFade } from '@/components/magicui/blur-fade'
+import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text'
+import { ShimmerButton } from '@/components/magicui/shimmer-button'
+import { Particles } from '@/components/magicui/particles'
 import {
 	ArrowRight,
 	CheckCircle,

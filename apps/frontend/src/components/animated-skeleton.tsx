@@ -1,3 +1,5 @@
+import { TableRow } from '@/components/ui/table'
+import { Card } from '@/components/ui/card'
 import * as React from "react"
 import { useSpring, animated, config } from "@react-spring/web"
 import { cn } from "@/lib/utils"

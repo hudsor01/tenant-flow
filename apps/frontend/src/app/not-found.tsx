@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import { ANIMATION_DURATIONS, TYPOGRAPHY_SCALE } from '@repo/shared'
 import { HelpCircle, Home } from 'lucide-react'
 import Link from 'next/link'

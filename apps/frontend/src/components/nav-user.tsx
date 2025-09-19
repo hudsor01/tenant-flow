@@ -1,5 +1,8 @@
 'use client'
 
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import { Bell, CreditCard, LogOut, MoreVertical, User } from 'lucide-react'
 import * as React from 'react'
 

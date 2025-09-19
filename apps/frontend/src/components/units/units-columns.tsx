@@ -1,3 +1,4 @@
+import { Separator } from '@/components/ui/separator'
 import { ANIMATION_DURATIONS, TYPOGRAPHY_SCALE } from '@/lib/design-system'
 import { buttonClasses, cardClasses, cn, inputClasses } from '@/lib/utils'
 import type { UnitStats } from '@repo/shared'

@@ -1,5 +1,7 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import {
 	Folder,
 	Forward,
@@ -24,7 +26,8 @@ import {
 	SidebarMenu,
 	SidebarMenuAction,
 	SidebarMenuButton,
-	SidebarMenuItem
+	SidebarMenuItem,
+	useSidebar
 } from '@/components/ui/sidebar'
 
 interface NavProjectsProps extends React.ComponentProps<typeof SidebarGroup> {

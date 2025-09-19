@@ -1,5 +1,9 @@
 'use client'
 
+import { Separator } from '@/components/ui/separator'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useThemeConfig } from '@/components/active-theme'
 import { cn } from '@/lib/utils'
 import { animated, config, useSpring } from '@react-spring/web'
 import * as React from 'react'

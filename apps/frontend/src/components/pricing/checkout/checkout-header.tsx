@@ -1,5 +1,6 @@
 'use client'
 
+import { Card, CardTitle } from '@/components/ui/card'
 import { CreditCard } from 'lucide-react'
 
 

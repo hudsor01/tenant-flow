@@ -1,5 +1,10 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import BlurFade from '@/components/magicui/blur-fade'
+import ShimmerButton from '@/components/magicui/shimmer-button'
+import BorderBeam from '@/components/magicui/border-beam'
 import { cn } from '@/lib/utils'
 import { ArrowRight, CheckCircle, Clock, Sparkles } from 'lucide-react'
 

@@ -1,13 +1,28 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import type { Database } from '@repo/shared'
+import { Building, TrendingUp, DollarSign, Plus } from 'lucide-react'
+
+// Hooks
 import { useCreateProperty, useProperties } from '@/hooks/api/properties'
 import { useUnits } from '@/hooks/api/units'
-import type { Database } from '@repo/shared'
-
-
-import { PropertyEditViewButtons } from '@/components/properties/edit-button'
 import { useCurrentUser } from '@/hooks/use-current-user'
+
+// UI Components
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+
+// Custom Components
+import { MetricsCard } from '@/components/metrics-card'
+import { ChartAreaInteractive } from '@/components/chart-area-interactive'
+import { PropertyEditViewButtons } from '@/components/properties/edit-button'
 
 type PropertyRow = Database['public']['Tables']['Property']['Row']
 type UnitRow = Database['public']['Tables']['Unit']['Row']

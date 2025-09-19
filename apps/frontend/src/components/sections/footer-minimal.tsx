@@ -1,5 +1,7 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { cn, TYPOGRAPHY_SCALE } from '@/lib/design-system'
 import {
 	ArrowRight,

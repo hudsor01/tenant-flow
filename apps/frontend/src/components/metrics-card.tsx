@@ -1,3 +1,4 @@
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { ANIMATION_DURATIONS, cardClasses, cn } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
 import * as React from 'react'

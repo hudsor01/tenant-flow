@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import { ArrowRight } from 'lucide-react'

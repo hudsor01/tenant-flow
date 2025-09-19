@@ -1,5 +1,14 @@
 'use client'
 
+import { Navbar } from '@/components/navbar'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { FooterMinimal } from '@/components/sections/footer-minimal'
+import { BlurFade } from '@/components/magicui/blur-fade'
+import { FeaturesSection } from '@/components/sections/features-section'
+
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { cn, containerClasses } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import {

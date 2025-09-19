@@ -1,5 +1,9 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Table } from '@/components/ui/table'
+import { BlurFade } from '@/components/magicui/blur-fade'
 import {
 	useDashboardFinancialStatsFormatted,
 	useFinancialOverviewFormatted

@@ -1,5 +1,6 @@
 'use client'
 
+import { Navbar } from '@/components/navbar'
 import { usePathname } from 'next/navigation'
 import * as React from 'react'
 

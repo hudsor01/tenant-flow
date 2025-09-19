@@ -1,5 +1,12 @@
 'use client'
 
+import { Navbar } from '@/components/navbar'
+import { HeroAuthority } from '@/components/hero-authority'
+import { FooterMinimal } from '@/components/footer-minimal'
+
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { CheckoutForm } from '@/components/pricing/checkout-form'
 import { StripeProvider } from '@/providers/stripe-provider'
 import { ArrowLeft } from 'lucide-react'

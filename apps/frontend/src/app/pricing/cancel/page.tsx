@@ -1,5 +1,12 @@
 'use client'
 
+import { Navbar } from '@/components/navbar'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { FooterMinimal } from '@/components/sections/footer-minimal'
+
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { ArrowLeft, Home, MessageCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { ANIMATION_DURATIONS, cn, TYPOGRAPHY_SCALE } from '@/lib/utils'
 import { ArrowLeft, Loader2, Mail, Shield } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'

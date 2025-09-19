@@ -1,3 +1,4 @@
+import { Table } from '@/components/ui/table'
 "use client"
 
 import { cn } from '@/lib/design-system'

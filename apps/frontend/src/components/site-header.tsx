@@ -1,3 +1,7 @@
+import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
+import { SidebarTrigger } from '@/components/ui/sidebar'
+import { NavUser } from '@/components/nav-user'
 import { cn } from '@/lib/utils'
 import { Search } from 'lucide-react'
 import * as React from 'react'

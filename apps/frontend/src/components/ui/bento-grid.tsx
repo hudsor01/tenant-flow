@@ -1,3 +1,4 @@
+import { Card } from '@/components/ui/card'
 import { ArrowRightIcon } from "@radix-ui/react-icons";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 

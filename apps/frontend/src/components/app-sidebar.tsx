@@ -1,5 +1,16 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarHeader,
+	SidebarRail
+} from '@/components/ui/sidebar'
+import { NavMain } from '@/components/nav-main'
+import { NavUser } from '@/components/nav-user'
+import { TeamSwitcher } from '@/components/team-switcher'
 import {
 	BarChart3,
 	Database,

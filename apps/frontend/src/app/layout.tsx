@@ -1,3 +1,8 @@
+import { Button } from '@/components/ui/button'
+import { SiteNavRoot } from '@/components/site-nav-root'
+import { GlobalLoadingIndicator } from '@/components/global-loading-indicator'
+import { PostHogPageView } from '@/components/posthog-pageview'
+import { WebVitals } from '@/components/web-vitals'
 import PostHogClientProvider from '@/providers/posthog-provider'
 import { QueryProvider } from '@/providers/query-provider'
 import { ThemeProvider } from '@/providers/theme-provider'

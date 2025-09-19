@@ -1,5 +1,19 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+} from '@/components/ui/sidebar'
+import { NavMain } from '@/components/nav-main'
+import { NavDocuments } from '@/components/nav-documents'
+import { NavSecondary } from '@/components/nav-secondary'
+import { NavUser } from '@/components/nav-user'
 import {
 	Database,
 	FileBarChart,

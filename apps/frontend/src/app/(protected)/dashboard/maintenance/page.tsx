@@ -1,5 +1,6 @@
 'use client'
 
+import { Table } from '@/components/ui/table'
 import { useQuery } from '@tanstack/react-query'
 import {
 	AlertCircle,

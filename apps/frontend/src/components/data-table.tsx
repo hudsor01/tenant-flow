@@ -1,5 +1,6 @@
 'use client'
 
+import { Separator } from '@/components/ui/separator'
 import type { Property } from '@repo/shared'
 import type {
 	ColumnDef,
