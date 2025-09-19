@@ -5,14 +5,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import * as React from 'react'
 
-import { cn } from '@/lib/utils'
 import {
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem
-} from 'src/components/ui/sidebar'
+} from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 
 interface NavSecondaryProps extends React.ComponentProps<typeof SidebarGroup> {
 	items: {
@@ -23,7 +23,7 @@ interface NavSecondaryProps extends React.ComponentProps<typeof SidebarGroup> {
 }
 
 export const NavSecondary = React.forwardRef<
-	React.ComponentRef<typeof SidebarGroup>,
+	React.ElementRef<typeof SidebarGroup>,
 	NavSecondaryProps
 >(({ items, className, ...props }, ref) => {
 	const pathname = usePathname()

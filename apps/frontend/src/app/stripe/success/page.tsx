@@ -1,7 +1,7 @@
+import { PageLayout } from '@/components/layout/page-layout'
 import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { PageLayout } from 'src/components/layout/page-layout'
 
 function SuccessContent() {
 	return (

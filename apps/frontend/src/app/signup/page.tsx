@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { LoginLayout } from 'src/components/auth/login-layout'
+import { LoginLayout } from '@/components/auth/login-layout'
+
 
 export const metadata: Metadata = {
 	title: 'Sign Up - TenantFlow',

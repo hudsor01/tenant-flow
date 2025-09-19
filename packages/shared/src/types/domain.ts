@@ -1,6 +1,6 @@
 /**
  * CONSOLIDATED DOMAIN TYPES
- * 
+ *
  * Merged small domain-specific type files into single consolidated file
  * Reduces type file count while maintaining domain separation
  */
@@ -217,6 +217,35 @@ export interface WebhookNotification {
   processedAt?: string
   error?: string
 }
+
+// =============================================================================
+// SECURITY DOMAIN
+// =============================================================================
+
+export interface CSPViolationReport {
+  'document-uri': string
+  referrer: string
+  'violated-directive': string
+  'effective-directive': string
+  'original-policy': string
+  disposition: string
+  'blocked-uri': string
+  'line-number': number
+  'column-number': number
+  'source-file': string
+  'status-code': number
+  'script-sample': string
+}
+
+export interface CSPReportBody {
+  'csp-report': CSPViolationReport
+}
+
+// =============================================================================
+// AI DOMAIN - TEMPORARILY REMOVED
+// =============================================================================
+// Note: AI-dependent types temporarily removed due to missing 'ai' package dependency
+// These types can be re-added when AI package is properly configured in the project
 
 export type WebhookProcessorFunction = (event: StripeWebhookEvent) => Promise<void>
 

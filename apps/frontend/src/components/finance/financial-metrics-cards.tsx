@@ -1,5 +1,9 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 import {
 	ANIMATION_DURATIONS,
 	animationClasses,
@@ -29,10 +33,6 @@ import {
 	Target
 } from 'lucide-react'
 import * as React from 'react'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import { Card, CardContent } from 'src/components/ui/card'
-import { Progress } from 'src/components/ui/progress'
 
 interface FinancialMetricsCardsProps {
 	data?: DashboardFinancialStats
@@ -40,6 +40,7 @@ interface FinancialMetricsCardsProps {
 	className?: string
 }
 
+// eslint-disable-next-line type-centralization/no-inline-types
 interface MetricCardProps {
 	title: string
 	value: string | number

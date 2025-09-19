@@ -1,5 +1,9 @@
 'use client'
 
+import { BlurFade } from '@/components/magicui/blur-fade'
+import { ShimmerButton } from '@/components/magicui/shimmer-button'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
 	ANIMATION_DURATIONS,
 	buttonClasses,
@@ -10,10 +14,6 @@ import {
 import { ArrowRight, CheckCircle, Clock, Users, Zap } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { ShimmerButton } from 'src/components/magicui/shimmer-button'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
 
 const benefits = [
 	{ icon: Zap, text: 'Setup in 5 minutes', highlight: 'instant' },
@@ -40,6 +40,7 @@ const testimonialStats = [
 	}
 ]
 
+// eslint-disable-next-line type-centralization/no-inline-types
 export interface CTASimpleProps extends React.ComponentProps<'section'> {
 	variant?: 'simple' | 'enhanced' | 'testimonial'
 	showBenefits?: boolean

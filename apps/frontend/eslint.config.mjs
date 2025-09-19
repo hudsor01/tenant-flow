@@ -8,13 +8,11 @@
  * - Next.js 15 + React 19 compatibility
  */
 
-import baseConfig from '@repo/eslint-config/base.js'
-// import antiDuplicationPlugin from '../../.eslint/plugins/anti-duplication.js' // File doesn't exist
+
 import nextPlugin from '@next/eslint-plugin-next'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 
 export default [
-	...baseConfig,
 
 	{
 		name: 'frontend/next.js-plugin',
@@ -31,13 +29,13 @@ export default [
 	{
 		name: 'ignore-orphaned-test-files',
 		ignores: [
-			'src/components/forms/__tests__/**',
-			'src/components/tenants/__tests__/**',
-			'src/hooks/api/__tests__/**',
+			'@/components/forms/__tests__/**',
+			'@/components/tenants/__tests__/**',
+			'@/hooks/api/__tests__/**',
 			'tests/**', // All test files outside src directory
-			'src/lib/auth/__tests__/**',
-			'src/smoke.spec.tsx',
-			'src/test/**',
+			'@/lib/auth/__tests__/**',
+			'@/smoke.spec.tsx',
+			'@/test/**',
 			'*.config.js',
 			'*.config.mjs',
 			'*.config.cjs',
@@ -95,7 +93,10 @@ export default [
 			'@typescript-eslint/no-unsafe-member-access': 'off',
 			'@typescript-eslint/no-unsafe-call': 'off',
 			'@typescript-eslint/no-unsafe-return': 'off',
-			'@typescript-eslint/no-unsafe-argument': 'off'
+			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/no-unused-vars': 'error',
+			'@typescript-eslint/no-explicit-any': 'error',
+			'@typescript-eslint/no-unused-expressions': 'warn'
 		}
 	},
 	{
@@ -123,7 +124,7 @@ export default [
 			'@typescript-eslint/no-unsafe-call': 'off',
 			'@typescript-eslint/no-unsafe-return': 'off',
 			'@typescript-eslint/no-unsafe-argument': 'off',
-			'no-console': 'off'
+			'no-console': 'error'
 		}
 	}
 ]

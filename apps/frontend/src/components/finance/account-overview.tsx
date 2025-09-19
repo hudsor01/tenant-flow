@@ -1,5 +1,16 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
+import {
+	Card,
+	CardAction,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
 	ANIMATION_DURATIONS,
 	buttonClasses,
@@ -21,22 +32,6 @@ import {
 	Smartphone
 } from 'lucide-react'
 import { useState } from 'react'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardAction,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import { Separator } from 'src/components/ui/separator'
-import {
-	Tabs,
-	TabsContent,
-	TabsList,
-	TabsTrigger
-} from 'src/components/ui/tabs'
 
 function ChipSVG() {
 	return (

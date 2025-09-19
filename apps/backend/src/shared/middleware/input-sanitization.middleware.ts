@@ -10,26 +10,15 @@
  * - Malicious payload detection and blocking
  */
 
-import { Injectable, NestMiddleware, Logger, BadRequestException } from '@nestjs/common'
-import type { FastifyRequest, FastifyReply } from 'fastify'
+import {
+	BadRequestException,
+	Injectable,
+	Logger,
+	NestMiddleware
+} from '@nestjs/common'
+import type { SanitizationConfig, ThreatPattern } from '@repo/shared'
+import type { FastifyReply, FastifyRequest } from 'fastify'
 import { SecurityMonitorService } from '../services/security-monitor.service'
-
-interface SanitizationConfig {
-	enabled: boolean
-	maxDepth: number
-	maxStringLength: number
-	maxArrayLength: number
-	maxObjectKeys: number
-	allowHTML: boolean
-	strictMode: boolean
-}
-
-interface ThreatPattern {
-	name: string
-	pattern: RegExp
-	severity: 'low' | 'medium' | 'high'
-	block: boolean
-}
 
 const SANITIZATION_CONFIG: Record<string, SanitizationConfig> = {
 	DEFAULT: {
@@ -42,13 +31,13 @@ const SANITIZATION_CONFIG: Record<string, SanitizationConfig> = {
 		strictMode: true
 	},
 	WEBHOOK: {
-		enabled: false, // Webhooks need raw body
-		maxDepth: 0,
-		maxStringLength: 0,
-		maxArrayLength: 0,
-		maxObjectKeys: 0,
-		allowHTML: false,
-		strictMode: false
+		enabled: true, // Enable sanitization for webhooks too
+		maxDepth: 5, // Limited depth for webhook payloads
+		maxStringLength: 50000, // Allow larger strings for webhook data
+		maxArrayLength: 500, // Reasonable limit for webhook arrays
+		maxObjectKeys: 50, // Webhook objects can be complex
+		allowHTML: false, // Never allow HTML in webhooks
+		strictMode: true // Strict mode for security
 	},
 	FILE_UPLOAD: {
 		enabled: true,
@@ -181,10 +170,7 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 	private readonly logger = new Logger(InputSanitizationMiddleware.name)
 	private readonly securityMonitor: SecurityMonitorService
 
-	constructor(
-		_logger: Logger,
-		securityMonitor: SecurityMonitorService
-	) {
+	constructor(_logger: Logger, securityMonitor: SecurityMonitorService) {
 		// Using built-in logger instead of injected one
 		this.securityMonitor = securityMonitor
 	}
@@ -217,25 +203,34 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 			return SANITIZATION_CONFIG.WEBHOOK
 		}
 
-		if ((url.includes('/upload') || url.includes('/file')) && SANITIZATION_CONFIG.FILE_UPLOAD) {
+		if (
+			(url.includes('/upload') || url.includes('/file')) &&
+			SANITIZATION_CONFIG.FILE_UPLOAD
+		) {
 			return SANITIZATION_CONFIG.FILE_UPLOAD
 		}
 
-		return SANITIZATION_CONFIG.DEFAULT || {
-			enabled: true,
-			maxDepth: 10,
-			maxStringLength: 10000,
-			maxArrayLength: 1000,
-			maxObjectKeys: 100,
-			allowHTML: false,
-			strictMode: true
-		}
+		return (
+			SANITIZATION_CONFIG.DEFAULT || {
+				enabled: true,
+				maxDepth: 10,
+				maxStringLength: 10000,
+				maxArrayLength: 1000,
+				maxObjectKeys: 100,
+				allowHTML: false,
+				strictMode: true
+			}
+		)
 	}
 
-	private validateRequest(req: FastifyRequest, config: SanitizationConfig): void {
+	private validateRequest(
+		req: FastifyRequest,
+		config: SanitizationConfig
+	): void {
 		// Validate request size
 		const bodySize = this.getRequestSize(req)
-		if (bodySize > 10 * 1024 * 1024) { // 10MB limit
+		if (bodySize > 10 * 1024 * 1024) {
+			// 10MB limit
 			this.securityMonitor.logSecurityEvent({
 				type: 'malicious_request',
 				severity: 'medium',
@@ -266,12 +261,22 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 
 		// Validate query parameters
 		if (req.query) {
-			this.validateObject(req.query as Record<string, unknown>, config, 'query', req)
+			this.validateObject(
+				req.query as Record<string, unknown>,
+				config,
+				'query',
+				req
+			)
 		}
 
 		// Validate request body
 		if (req.body && typeof req.body === 'object') {
-			this.validateObject(req.body as Record<string, unknown>, config, 'body', req)
+			this.validateObject(
+				req.body as Record<string, unknown>,
+				config,
+				'body',
+				req
+			)
 		}
 	}
 
@@ -297,11 +302,23 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 
 			// Validate value based on type
 			if (typeof value === 'string') {
-				this.validateString(value, config, `${source} value`, req, config.allowHTML)
+				this.validateString(
+					value,
+					config,
+					`${source} value`,
+					req,
+					config.allowHTML
+				)
 			} else if (Array.isArray(value)) {
 				this.validateArray(value, config, `${source} array`, req, depth + 1)
 			} else if (value && typeof value === 'object') {
-				this.validateObject(value as Record<string, unknown>, config, source, req, depth + 1)
+				this.validateObject(
+					value as Record<string, unknown>,
+					config,
+					source,
+					req,
+					depth + 1
+				)
 			}
 		}
 	}
@@ -321,11 +338,23 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 			const item = arr[i]
 
 			if (typeof item === 'string') {
-				this.validateString(item, config, `${source}[${i}]`, req, config.allowHTML)
+				this.validateString(
+					item,
+					config,
+					`${source}[${i}]`,
+					req,
+					config.allowHTML
+				)
 			} else if (Array.isArray(item)) {
 				this.validateArray(item, config, `${source}[${i}]`, req, depth + 1)
 			} else if (item && typeof item === 'object') {
-				this.validateObject(item as Record<string, unknown>, config, `${source}[${i}]`, req, depth + 1)
+				this.validateObject(
+					item as Record<string, unknown>,
+					config,
+					`${source}[${i}]`,
+					req,
+					depth + 1
+				)
 			}
 		}
 	}
@@ -375,8 +404,17 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 		}
 	}
 
-	private detectThreats(str: string, source: string, req: FastifyRequest): void {
-		for (const threat of THREAT_PATTERNS) {
+	private detectThreats(
+		str: string,
+		source: string,
+		req: FastifyRequest
+	): void {
+		const isWebhook = req.url.includes('/webhook')
+		const threatsToCheck = isWebhook
+			? this.getWebhookThreats()
+			: THREAT_PATTERNS
+
+		for (const threat of threatsToCheck) {
 			if (threat.pattern.test(str)) {
 				this.securityMonitor.logSecurityEvent({
 					type: this.mapThreatToEventType(threat.name),
@@ -387,7 +425,8 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 						threatName: threat.name,
 						source,
 						sample: str.substring(0, 100),
-						fullMatch: str.match(threat.pattern)?.[0]
+						fullMatch: str.match(threat.pattern)?.[0],
+						isWebhook
 					},
 					ipAddress: req.ip,
 					userAgent: req.headers['user-agent'] as string
@@ -400,23 +439,53 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 		}
 	}
 
-	private mapThreatToEventType(threatName: string): 'sql_injection_attempt' | 'xss_attempt' | 'malicious_request' {
+	private getWebhookThreats(): ThreatPattern[] {
+		// For webhooks, only check for the most critical threats
+		// Allow some patterns that might be legitimate in webhook payloads
+		return THREAT_PATTERNS.filter(
+			threat =>
+				// Always block these critical patterns
+				threat.name.includes('script_tag') ||
+				threat.name.includes('javascript_url') ||
+				threat.name.includes('path_traversal') ||
+				threat.name.includes('command_injection_shell') ||
+				threat.name.includes('xxe_entity') ||
+				// Block high-severity SQL injection but allow some patterns for legitimate data
+				(threat.name.includes('sql_injection') && threat.severity === 'high')
+		)
+	}
+
+	private mapThreatToEventType(
+		threatName: string
+	): 'sql_injection_attempt' | 'xss_attempt' | 'malicious_request' {
 		if (threatName.includes('sql')) return 'sql_injection_attempt'
 		if (threatName.includes('xss')) return 'xss_attempt'
 		return 'malicious_request'
 	}
 
-	private sanitizeRequest(req: FastifyRequest, config: SanitizationConfig): void {
+	private sanitizeRequest(
+		req: FastifyRequest,
+		config: SanitizationConfig
+	): void {
 		if (req.query) {
-			req.query = this.sanitizeObject(req.query as Record<string, unknown>, config) as Record<string, unknown>
+			req.query = this.sanitizeObject(
+				req.query as Record<string, unknown>,
+				config
+			) as Record<string, unknown>
 		}
 
 		if (req.body && typeof req.body === 'object') {
-			req.body = this.sanitizeObject(req.body as Record<string, unknown>, config)
+			req.body = this.sanitizeObject(
+				req.body as Record<string, unknown>,
+				config
+			)
 		}
 	}
 
-	private sanitizeObject(obj: Record<string, unknown>, config: SanitizationConfig): Record<string, unknown> {
+	private sanitizeObject(
+		obj: Record<string, unknown>,
+		config: SanitizationConfig
+	): Record<string, unknown> {
 		const sanitized: Record<string, unknown> = {}
 
 		for (const [key, value] of Object.entries(obj)) {
@@ -427,7 +496,10 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 			} else if (Array.isArray(value)) {
 				sanitized[sanitizedKey] = this.sanitizeArray(value, config)
 			} else if (value && typeof value === 'object') {
-				sanitized[sanitizedKey] = this.sanitizeObject(value as Record<string, unknown>, config)
+				sanitized[sanitizedKey] = this.sanitizeObject(
+					value as Record<string, unknown>,
+					config
+				)
 			} else {
 				sanitized[sanitizedKey] = value
 			}
@@ -468,7 +540,7 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 		// If strict mode, apply additional sanitization
 		if (config.strictMode) {
 			// Remove potentially dangerous characters
-			sanitized = sanitized.replace(/[<>'"&]/g, (match) => {
+			sanitized = sanitized.replace(/[<>'"&]/g, match => {
 				const entityMap: Record<string, string> = {
 					'<': '&lt;',
 					'>': '&gt;',

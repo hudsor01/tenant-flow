@@ -1,5 +1,13 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+	ChartContainer,
+	ChartTooltip,
+	ChartTooltipContent,
+	type ChartConfig
+} from '@/components/ui/chart'
 import {
 	Calendar,
 	Ellipsis,
@@ -11,26 +19,12 @@ import {
 import { Label, PolarRadiusAxis, RadialBar, RadialBarChart } from 'recharts'
 
 import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import type { ChartConfig } from 'src/components/ui/chart'
-import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent
-} from 'src/components/ui/chart'
-
-import {
 	ANIMATION_DURATIONS,
 	cardClasses,
 	cn,
 	formatCurrency,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
-import { Badge } from 'src/components/ui/badge'
 
 const chartData = [
 	{ period: 'last-week', groceries: 380, transport: 120, other: 80 }

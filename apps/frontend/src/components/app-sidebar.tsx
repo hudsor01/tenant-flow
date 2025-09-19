@@ -1,5 +1,19 @@
 'use client'
 
+import { NavDocuments } from '@/components/nav-documents'
+import { NavMain } from '@/components/nav-main'
+import { NavSecondary } from '@/components/nav-secondary'
+import { NavUser } from '@/components/nav-user'
+import { Button } from '@/components/ui/button'
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem
+} from '@/components/ui/sidebar'
 import {
 	BarChart3,
 	Database,
@@ -16,18 +30,6 @@ import {
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-import { NavDocuments } from 'src/components/nav-documents'
-import { NavMain } from 'src/components/nav-main'
-import { NavSecondary } from 'src/components/nav-secondary'
-import {
-	Sidebar,
-	SidebarContent,
-	SidebarFooter,
-	SidebarHeader,
-	SidebarMenu,
-	SidebarMenuButton,
-	SidebarMenuItem
-} from 'src/components/ui/sidebar'
 
 const data = {
 	user: {
@@ -176,7 +178,12 @@ export const AppSidebar = React.forwardRef<
 			<SidebarFooter
 				className="scroll-snap-end animate-fade-in-up"
 				style={{ animationDelay: '0.4s' }}
-			></SidebarFooter>
+			>
+				<NavUser user={data.user} />
+				<Button variant="outline" size="sm" className="w-full mt-2 text-xs">
+					Sign Out
+				</Button>
+			</SidebarFooter>
 		</Sidebar>
 	)
 })

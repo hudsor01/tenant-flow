@@ -1,5 +1,16 @@
 'use client'
 
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
 	ANIMATION_DURATIONS,
 	buttonClasses,
@@ -21,17 +32,6 @@ import {
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Alert, AlertDescription } from 'src/components/ui/alert'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import { Input } from 'src/components/ui/input'
-import { Label } from 'src/components/ui/label'
 
 export function UpdatePasswordForm({
 	className,

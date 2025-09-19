@@ -200,7 +200,10 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
               <LoginForm
                 mode="signup"
                 onSubmit={_onSubmit as (data: Record<string, unknown>) => void | Promise<void>}
+                onLogin={_onLogin}
+                onGoogleLogin={_onGoogleSignUp}
                 isLoading={_isLoading}
+                isGoogleLoading={_isGoogleLoading}
               />
             )}
           </div>
