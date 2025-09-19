@@ -37,7 +37,7 @@
 		"noPropertyAccessFromIndexSignature": false,
 		"allowUnusedLabels": false,
 		"allowUnreachableCode": false,
-		"outDir": "./dist/cjs",
+		"outDir": "./dist",
 		"rootDir": "./src",
 		"baseUrl": ".",
 		"paths": {

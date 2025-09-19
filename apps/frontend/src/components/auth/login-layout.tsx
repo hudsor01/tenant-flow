@@ -60,7 +60,7 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
     ...divProps
   }, ref) => {
   const ImageSection = () => (
-    <div className="relative hidden md:flex md:w-1/2 min-h-screen bg-slate-900 overflow-hidden">
+    <div className="relative hidden lg:flex lg:w-1/2 min-h-screen bg-background overflow-hidden">
         {/* High-res Real Estate Image */}
         <div className="w-full h-full min-h-screen relative flex">
           {/* Background Image with parallax effect */}
@@ -73,61 +73,67 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
               priority
             />
           </div>
-          {/* Dynamic Overlay with depth */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-slate-800/70 to-slate-900/80 backdrop-blur-[0.5px]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-          
+          {/* Strong dark overlay for maximum readability */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/85 via-background/80 to-black/85" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/40" />
+
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className={cn("text-center text-white card-padding space-y-6 z-20 transform ease-out animate-in fade-in slide-in-from-bottom-8", `transition-all duration-[${ANIMATION_DURATIONS.slower}]`)}>
-              {/* Enhanced Logo Icon with glow */}
-              <div className="w-16 h-16 mx-auto mb-8 relative group">
-                <div className={cn("absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/30 rounded-2xl blur-lg group-hover:blur-xl", `transition-all duration-[${ANIMATION_DURATIONS.slow}]`)} />
-                <div className={cn("relative w-full h-full bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20 group-hover:border-white/30 group-hover:scale-105", `transition-all duration-[${ANIMATION_DURATIONS.medium}]`)}>
-                  <svg 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={cn("w-8 h-8 text-white group-hover:scale-110", `transition-all duration-[${ANIMATION_DURATIONS.medium}]`)}
-                  >
-                    <path
-                      d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              </div>
-              
-              {/* Enhanced heading with animation */}
-              <h2 className={cn("font-bold text-white animate-in fade-in slide-in-from-bottom-4 delay-200", `duration-[${ANIMATION_DURATIONS.slow}]`)} style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight, lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight }}>
-                {content.heading}
-              </h2>
-              
-              {/* Enhanced description */}
-              <p className={cn("text-white/80 max-w-md leading-relaxed animate-in fade-in slide-in-from-bottom-4 delay-300", `duration-[${ANIMATION_DURATIONS.slow}]`)} style={{ fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-lg'].lineHeight }}>
-                {content.description}
-              </p>
-              
-              {/* Enhanced stats grid with stagger animation */}
-              <div className="grid grid-cols-3 gap-6 pt-6">
-                {content.stats.map((stat, index) => (
-                  <div 
-                    key={index} 
-                    className={cn("text-center group animate-in fade-in slide-in-from-bottom-4", `duration-[${ANIMATION_DURATIONS.slow}]`)}
-                    style={{animationDelay: `${400 + index * 100}ms`}}
-                  >
-                    <div className={cn("text-white mb-1 font-bold group-hover:scale-105", `transition-transform duration-[${ANIMATION_DURATIONS.default}]`)} style={{ fontSize: TYPOGRAPHY_SCALE['heading-md'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-md'].fontWeight }}>
-                      {stat.value}
-                    </div>
-                    <div 
-                      className={cn("text-white/70 leading-tight group-hover:text-white/90", `transition-colors duration-[${ANIMATION_DURATIONS.default}]`)}
-                      style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight }}
-                      dangerouslySetInnerHTML={{__html: stat.label.replace('\n', '<br />')}} 
-                    />
+            {/* Content container with dark glass background for maximum contrast */}
+            <div className="relative max-w-lg mx-auto px-8">
+              {/* Dark glass panel behind content for ultimate readability */}
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-3xl border border-white/10" />
+
+              <div className={cn("relative text-center space-y-6 py-12 px-8 z-20 transform ease-out animate-in fade-in slide-in-from-bottom-8", `transition-all duration-[${ANIMATION_DURATIONS.slower}]`)}>
+                {/* Enhanced Logo Icon with glow */}
+                <div className="w-16 h-16 mx-auto mb-8 relative group">
+                  <div className={cn("absolute inset-0 bg-gradient-to-r from-primary/30 to-primary/40 rounded-2xl blur-lg group-hover:blur-xl", `transition-all duration-[${ANIMATION_DURATIONS.slow}]`)} />
+                  <div className={cn("relative w-full h-full bg-primary/90 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-primary/30 group-hover:border-primary/50 group-hover:scale-105", `transition-all duration-[${ANIMATION_DURATIONS.medium}]`)}>
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={cn("w-8 h-8 text-white group-hover:scale-110", `transition-all duration-[${ANIMATION_DURATIONS.medium}]`)}
+                    >
+                      <path
+                        d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                   </div>
-                ))}
+                </div>
+
+                {/* High contrast heading */}
+                <h2 className={cn("font-bold text-white drop-shadow-lg animate-in fade-in slide-in-from-bottom-4 delay-200", `duration-[${ANIMATION_DURATIONS.slow}]`)} style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight, lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight }}>
+                  {content.heading}
+                </h2>
+
+                {/* High contrast description */}
+                <p className={cn("text-white/95 max-w-md mx-auto leading-relaxed drop-shadow-md animate-in fade-in slide-in-from-bottom-4 delay-300", `duration-[${ANIMATION_DURATIONS.slow}]`)} style={{ fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-lg'].lineHeight }}>
+                  {content.description}
+                </p>
+
+                {/* High contrast stats grid */}
+                <div className="grid grid-cols-3 gap-6 pt-6">
+                  {content.stats.map((stat, index) => (
+                    <div
+                      key={index}
+                      className={cn("text-center group animate-in fade-in slide-in-from-bottom-4", `duration-[${ANIMATION_DURATIONS.slow}]`)}
+                      style={{animationDelay: `${400 + index * 100}ms`}}
+                    >
+                      <div className={cn("text-white mb-1 font-bold drop-shadow-md group-hover:scale-105", `transition-transform duration-[${ANIMATION_DURATIONS.default}]`)} style={{ fontSize: TYPOGRAPHY_SCALE['heading-md'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-md'].fontWeight }}>
+                        {stat.value}
+                      </div>
+                      <div
+                        className={cn("text-white/90 leading-tight drop-shadow-sm group-hover:text-white", `transition-colors duration-[${ANIMATION_DURATIONS.default}]`)}
+                        style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight }}
+                        dangerouslySetInnerHTML={{__html: stat.label.replace('\n', '<br />')}}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -146,17 +152,17 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
   )
 
   const FormSection = () => (
-    <div className="flex-1 md:w-1/2 flex items-center justify-center p-4 sm:p-8 lg:p-12 bg-background">
-        <div className="w-full max-w-md space-y-6">
-          {/* Simple Logo/Brand */}
-          <div className="text-center space-y-3">
-            <div className="w-12 h-12 mx-auto mb-6">
-              <div className="w-full h-full bg-primary rounded-xl flex items-center justify-center">
-                <svg 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
+    <div className="flex-1 lg:w-1/2 flex items-center justify-center p-6 sm:p-8 lg:p-12 bg-background min-h-screen">
+        <div className="w-full max-w-sm space-y-8">
+          {/* Simple Logo/Brand with better spacing */}
+          <div className="text-center space-y-4">
+            <div className="w-14 h-14 mx-auto">
+              <div className="w-full h-full bg-primary rounded-xl flex items-center justify-center shadow-sm">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-6 h-6 text-white"
+                  className="w-7 h-7 text-white"
                 >
                   <path
                     d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
@@ -168,19 +174,21 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
                 </svg>
               </div>
             </div>
-            
-            <h1 className="text-2xl font-bold text-foreground">
-              TenantFlow
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              Professional Property Management Platform
-            </p>
+
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">
+                TenantFlow
+              </h1>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Professional Property Management Platform
+              </p>
+            </div>
           </div>
 
-          {/* Auth Form */}
-          <div className="pt-6">
+          {/* Auth Form with better spacing */}
+          <div>
             {mode === 'login' ? (
-              <LoginForm 
+              <LoginForm
                 onSubmit={_onSubmit as (data: Record<string, unknown>) => void | Promise<void>}
                 onForgotPassword={_onForgotPassword}
                 onSignUp={_onSignUp}
@@ -189,31 +197,33 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
                 isGoogleLoading={_isGoogleLoading}
               />
             ) : (
-              <LoginForm 
-                mode="signup" 
+              <LoginForm
+                mode="signup"
                 onSubmit={_onSubmit as (data: Record<string, unknown>) => void | Promise<void>}
                 isLoading={_isLoading}
               />
             )}
           </div>
 
-          {/* Simple Trust Indicators */}
-          <div className="text-center space-y-4 pt-6 border-t border-border">
-            <p className="text-muted-foreground text-xs font-medium">
+          {/* Refined Trust Indicators */}
+          <div className="text-center space-y-4 pt-4 border-t border-border/50">
+            <p className="text-muted-foreground/80 text-xs font-medium">
               Trusted by property managers worldwide
             </p>
-            <div className="flex items-center justify-center flex-wrap gap-4 text-xs">
-              <div className="flex items-center gap-1.5 text-muted-foreground/60">
+            <div className="flex items-center justify-center flex-wrap gap-4 sm:gap-6 text-xs">
+              <div className="flex items-center gap-1.5 text-muted-foreground/70 hover:text-muted-foreground transition-colors">
                 <Lock className="w-3 h-3" />
-                Bank-level Security
+                <span className="font-medium hidden sm:inline">Bank-level Security</span>
+                <span className="font-medium sm:hidden">Secure</span>
               </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground/60">
+              <div className="flex items-center gap-1.5 text-muted-foreground/70 hover:text-muted-foreground transition-colors">
                 <Zap className="w-3 h-3" />
-                99.9% Uptime
+                <span className="font-medium">99.9% Uptime</span>
               </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground/60">
+              <div className="flex items-center gap-1.5 text-muted-foreground/70 hover:text-muted-foreground transition-colors">
                 <Smartphone className="w-3 h-3" />
-                Mobile Ready
+                <span className="font-medium hidden sm:inline">Mobile Ready</span>
+                <span className="font-medium sm:hidden">Mobile</span>
               </div>
             </div>
           </div>

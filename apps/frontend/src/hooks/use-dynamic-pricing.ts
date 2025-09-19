@@ -17,7 +17,7 @@ let pricingService: FrontendPricingService | null = null
 
 function getPricingService(): FrontendPricingService {
   if (!pricingService) {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4600'
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.tenantflow.app'
     pricingService = new FrontendPricingServiceClass(apiBaseUrl)
   }
   return pricingService!

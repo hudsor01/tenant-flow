@@ -1,9 +1,9 @@
 'use client'
 
-import { ChartAreaInteractive } from '@/components/chart-area-interactive'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import {
+	useDashboardStats,
+	usePropertyPerformance
+} from '@/hooks/api/use-dashboard'
 import {
 	BarChart3,
 	Building,
@@ -16,16 +16,27 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
-import { useDashboardStats, usePropertyPerformance } from '@/hooks/api/use-dashboard'
+import { ChartAreaInteractive } from 'src/components/chart-area-interactive'
+import { Badge } from 'src/components/ui/badge'
+import { Button } from 'src/components/ui/button'
+import { Card } from 'src/components/ui/card'
 
 export default function AnalyticsPage() {
 	// Fetch real dashboard data from API
-	const { data: dashboardData, isLoading: isDashboardLoading, error: dashboardError } = useDashboardStats()
-	const { data: propertyData, isLoading: isPropertyLoading, error: propertyError } = usePropertyPerformance()
+	const {
+		data: dashboardData,
+		isLoading: isDashboardLoading,
+		error: dashboardError
+	} = useDashboardStats()
+	const {
+		data: propertyData,
+		isLoading: isPropertyLoading,
+		error: propertyError
+	} = usePropertyPerformance()
 
 	// Format currency values
 	const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`
-	
+
 	// Format percentage with sign
 	const formatPercentage = (value: number, includeSign = true) => {
 		const formatted = `${Math.abs(value).toFixed(1)}%`
@@ -39,7 +50,8 @@ export default function AnalyticsPage() {
 		// For demo purposes, estimate expenses as 25% of revenue (typical property management)
 		const estimatedExpenses = monthlyRevenue * 0.25
 		const netIncome = monthlyRevenue - estimatedExpenses
-		const profitMargin = monthlyRevenue > 0 ? (netIncome / monthlyRevenue) * 100 : 0
+		const profitMargin =
+			monthlyRevenue > 0 ? (netIncome / monthlyRevenue) * 100 : 0
 		return { netIncome, profitMargin }
 	}
 
@@ -47,7 +59,9 @@ export default function AnalyticsPage() {
 	if (isDashboardLoading || isPropertyLoading) {
 		return (
 			<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-				<div className="text-center text-muted-foreground">Loading analytics...</div>
+				<div className="text-center text-muted-foreground">
+					Loading analytics...
+				</div>
 			</div>
 		)
 	}
@@ -56,7 +70,9 @@ export default function AnalyticsPage() {
 	if (dashboardError || propertyError) {
 		return (
 			<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-				<div className="text-center text-destructive">Failed to load analytics data</div>
+				<div className="text-center text-destructive">
+					Failed to load analytics data
+				</div>
 			</div>
 		)
 	}
@@ -65,7 +81,7 @@ export default function AnalyticsPage() {
 			{/* Page Header */}
 			<div className="flex items-center justify-between">
 				<div>
-            <h1 className="text-3xl font-bold text-gradient-authority">
+					<h1 className="text-3xl font-bold text-gradient-authority">
 						Analytics & Insights
 					</h1>
 					<p className="text-muted-foreground mt-1">
@@ -108,7 +124,9 @@ export default function AnalyticsPage() {
 						<h3 className="font-semibold">Total Revenue</h3>
 					</div>
 					<div className="text-3xl font-bold mb-1">
-						{dashboardData?.revenue?.yearly ? formatCurrency(dashboardData.revenue.yearly) : '$0'}
+						{dashboardData?.revenue?.yearly
+							? formatCurrency(dashboardData.revenue.yearly)
+							: '$0'}
 					</div>
 					<div className="flex items-center gap-2">
 						<Badge
@@ -148,7 +166,9 @@ export default function AnalyticsPage() {
 						<h3 className="font-semibold">Avg Occupancy</h3>
 					</div>
 					<div className="text-3xl font-bold mb-1">
-						{dashboardData?.units?.occupancyRate ? `${dashboardData.units.occupancyRate.toFixed(1)}%` : '0.0%'}
+						{dashboardData?.units?.occupancyRate
+							? `${dashboardData.units.occupancyRate.toFixed(1)}%`
+							: '0.0%'}
 					</div>
 					<div className="flex items-center gap-2">
 						<Badge
@@ -209,7 +229,8 @@ export default function AnalyticsPage() {
 							{formatPercentage(dashboardData?.revenue?.growth || 0)}
 						</Badge>
 						<p className="text-muted-foreground text-sm">
-							{calculateNetOperatingIncome().profitMargin.toFixed(1)}% profit margin
+							{calculateNetOperatingIncome().profitMargin.toFixed(1)}% profit
+							margin
 						</p>
 					</div>
 				</Card>
@@ -244,7 +265,11 @@ export default function AnalyticsPage() {
 							}}
 						>
 							<TrendingUp className="size-3 mr-1" />
-							{dashboardData?.properties?.total ? '+' + ((dashboardData.properties.total / 10) * 100).toFixed(1) + '%' : '+0.0%'}
+							{dashboardData?.properties?.total
+								? '+' +
+									((dashboardData.properties.total / 10) * 100).toFixed(1) +
+									'%'
+								: '+0.0%'}
 						</Badge>
 						<p className="text-muted-foreground text-sm">
 							total properties managed
@@ -313,15 +338,20 @@ export default function AnalyticsPage() {
 										{index + 1}
 									</div>
 									<div>
-										<p className="font-medium">{property.property || 'Unknown Property'}</p>
+										<p className="font-medium">
+											{property.property || 'Unknown Property'}
+										</p>
 										<p className="text-sm text-muted-foreground">
-											{property.occupiedUnits || 0}/{property.totalUnits || 0} units occupied
+											{property.occupiedUnits || 0}/{property.totalUnits || 0}{' '}
+											units occupied
 										</p>
 									</div>
 								</div>
 								<Badge
 									variant={
-										(property.occupancyRate || 0) >= 90 ? 'default' : 'destructive'
+										(property.occupancyRate || 0) >= 90
+											? 'default'
+											: 'destructive'
 									}
 									className="text-xs"
 								>
@@ -330,7 +360,9 @@ export default function AnalyticsPage() {
 									) : (
 										<TrendingDown className="size-3 mr-1" />
 									)}
-									{property.occupancyRate ? `${property.occupancyRate.toFixed(1)}%` : '0.0%'}
+									{property.occupancyRate
+										? `${property.occupancyRate.toFixed(1)}%`
+										: '0.0%'}
 								</Badge>
 							</div>
 						))}
@@ -343,58 +375,52 @@ export default function AnalyticsPage() {
 				<h3 className="text-lg font-semibold mb-4">Performance Insights</h3>
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 					<div className="space-y-3">
-						<h4 className="font-medium text-green-700 dark:text-green-400">
-							Key Strengths
-						</h4>
+						<h4 className="font-medium text-primary">Key Strengths</h4>
 						<ul className="space-y-2 text-sm text-muted-foreground">
 							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2"></div>
+								<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
 								Occupancy rate exceeds industry benchmark by 4.2%
 							</li>
 							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2"></div>
+								<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
 								Revenue growth consistently outpacing expenses
 							</li>
 							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2"></div>
+								<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
 								Portfolio expansion ahead of 2024 targets
 							</li>
 						</ul>
 					</div>
 					<div className="space-y-3">
-						<h4 className="font-medium text-amber-700 dark:text-amber-400">
-							Areas for Improvement
-						</h4>
+						<h4 className="font-medium text-accent">Areas for Improvement</h4>
 						<ul className="space-y-2 text-sm text-muted-foreground">
 							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2"></div>
+								<div className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></div>
 								March occupancy dipped below 90%
 							</li>
 							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2"></div>
+								<div className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></div>
 								Maintenance costs trending upward
 							</li>
 							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2"></div>
+								<div className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></div>
 								Riverside Towers underperforming
 							</li>
 						</ul>
 					</div>
 					<div className="space-y-3">
-						<h4 className="font-medium text-blue-700 dark:text-blue-400">
-							Recommendations
-						</h4>
+						<h4 className="font-medium text-primary">Recommendations</h4>
 						<ul className="space-y-2 text-sm text-muted-foreground">
 							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2"></div>
+								<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
 								Focus marketing efforts on March vacancy spike
 							</li>
 							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2"></div>
+								<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
 								Implement preventive maintenance program
 							</li>
 							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2"></div>
+								<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
 								Review Riverside Towers pricing strategy
 							</li>
 						</ul>

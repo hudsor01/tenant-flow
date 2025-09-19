@@ -1,8 +1,5 @@
 import type { NextConfig } from 'next'
 
-// Workaround: disable Next.js DevTools in dev to avoid
-// SegmentViewNode manifest crashes seen during HMR on some setups.
-// This sets the env var if not already provided by Doppler/host.
 if (
 	process.env.NODE_ENV === 'development' &&
 	!process.env.NEXT_DISABLE_DEVTOOLS
@@ -12,27 +9,18 @@ if (
 
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
-
-	// Enable React Compiler for automatic optimization
 	experimental: {
 		reactCompiler: true,
-		// Disable server minification to fix Next.js 15.5.3 build issues
 		serverMinification: false
 	},
-
-	// ESLint configuration — ignore during production builds to keep CI green
 	eslint: {
 		dirs: ['src'],
-		ignoreDuringBuilds: true
+		ignoreDuringBuilds: false
 	},
-
-	// Security headers configuration
 	async headers() {
 		const isDev = process.env.NODE_ENV === 'development'
-
 		return [
 			{
-				// API routes security
 				source: '/api/(.*)',
 				headers: [
 					{
@@ -58,7 +46,6 @@ const nextConfig: NextConfig = {
 				]
 			},
 			{
-				// Global security headers
 				source: '/(.*)',
 				headers: [
 					{
@@ -108,8 +95,6 @@ const nextConfig: NextConfig = {
 			}
 		]
 	},
-
-	// Mobile-optimized image configuration
 	images: {
 		remotePatterns: [
 			{
@@ -134,5 +119,4 @@ const nextConfig: NextConfig = {
 		imageSizes: [16, 32, 48, 64, 96, 128, 256, 384]
 	}
 }
-
 export default nextConfig

@@ -1,10 +1,5 @@
 'use client'
 
-import Navbar from '@/components/navbar'
-import { CustomerPortalButton } from '@/components/pricing/customer-portal'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { API_BASE_URL } from '@/lib/api-client'
 import type { SubscriptionData } from '@/types/stripe'
 import { CheckCircle, Home } from 'lucide-react'
@@ -12,6 +7,16 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import Navbar from 'src/components/navbar'
+import { CustomerPortalButton } from 'src/components/pricing/customer-portal'
+import { Badge } from 'src/components/ui/badge'
+import { Button } from 'src/components/ui/button'
+import {
+	Card,
+	CardContent,
+	CardHeader,
+	CardTitle
+} from 'src/components/ui/card'
 
 export default function CheckoutSuccessPage() {
 	const searchParams = useSearchParams()
@@ -81,11 +86,11 @@ export default function CheckoutSuccessPage() {
 		<main className="min-h-screen gradient-authority">
 			<Navbar />
 			<div className="pt-20">
-					<div className="container mx-auto px-4 section-content max-w-2xl">
+				<div className="container mx-auto px-4 section-content max-w-2xl">
 					<Card className="text-center card-elevated-authority">
 						<CardHeader className="pb-8">
-							<div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-								<CheckCircle className="w-8 h-8 text-green-600" />
+							<div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
+								<CheckCircle className="w-8 h-8 text-accent" />
 							</div>
 							<CardTitle className="text-3xl font-bold mb-4">
 								Payment Successful!
@@ -116,7 +121,7 @@ export default function CheckoutSuccessPage() {
 											<span className="text-muted-foreground">Status:</span>
 											<Badge
 												variant="default"
-												className="bg-green-500/10 text-green-600"
+												className="bg-accent/10 text-accent"
 											>
 												Active
 											</Badge>

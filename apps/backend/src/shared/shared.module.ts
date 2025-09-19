@@ -4,7 +4,6 @@ import { UsageLimitsGuard } from './guards/usage-limits.guard'
 import { AuthGuard } from './guards/auth.guard'
 import { TokenValidationService } from './services/token-validation.service'
 import { ResilienceService } from './services/resilience.service'
-import { SecurityMonitorService } from './services/security-monitor.service'
 
 /**
  * Shared Module - Production Security Architecture
@@ -15,7 +14,6 @@ import { SecurityMonitorService } from './services/security-monitor.service'
  * - AuthGuard: JWT authentication and role-based access control
  * - UsageLimitsGuard: Rate limiting and usage enforcement
  * - ResilienceService: Cache and fallback patterns for zero-downtime
- * - SecurityMonitorService: Comprehensive security monitoring and alerting
  * - Reflector: NestJS metadata reflection service for guards
  */
 @Global()
@@ -26,16 +24,14 @@ import { SecurityMonitorService } from './services/security-monitor.service'
 		TokenValidationService,
 		UsageLimitsGuard,
 		AuthGuard,
-		ResilienceService,
-		SecurityMonitorService
+		ResilienceService
 	],
 	exports: [
 		Reflector,
 		TokenValidationService,
 		UsageLimitsGuard,
 		AuthGuard,
-		ResilienceService,
-		SecurityMonitorService
+		ResilienceService
 	]
 })
 export class SharedModule {}

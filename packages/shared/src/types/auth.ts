@@ -5,12 +5,13 @@
 
 // Import constants from the single source of truth
 import type { USER_ROLE } from '../constants/auth'
-import type { Tables, Database } from './supabase-generated'
+import type { Database } from './supabase-generated'
 import type { ValidatedUser as BackendValidatedUser } from './backend-domain'
 
 
-// ULTRA-NATIVE: Use generated types directly
-type User = Tables<'User'>
+// Use Supabase User type directly - matches what we get from auth
+import type { User } from '@supabase/supabase-js'
+export type AuthUser = User
 
 // User role type derived from constants
 export type UserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE]
@@ -25,26 +26,10 @@ export type SubscriptionStatus =
 	| 'INCOMPLETE'
 	| 'INCOMPLETE_EXPIRED'
 
-// User role display helpers are now imported from utils
-// This ensures single source of truth for these functions
-
-// User type now comes from generated Supabase types (see ../types/supabase.ts)
-
-export type AuthUser = User & {
-	emailVerified: boolean
-	organizationId?: string | null  // Optional - not implemented in current schema
-	organizationName?: string
-	permissions?: string[]
-	subscription?: {
-		status: string
-		plan: string
-		expiresAt?: Date
-	}
-}
-
 // Type guard to check if user has organizationId (for when feature is implemented)
 export function hasOrganizationId(user: AuthUser): user is AuthUser & { organizationId: string } {
-	return typeof user.organizationId === 'string' && user.organizationId.length > 0
+	const userWithOrg = user as AuthUser & { organizationId?: string }
+	return typeof userWithOrg.organizationId === 'string' && userWithOrg.organizationId.length > 0
 }
 
 // =============================================================================
@@ -170,13 +155,9 @@ export interface AuthError {
 	details?: Record<string, string | number | boolean>
 }
 
-// Authentication related types
-export interface AuthSession {
-	access_token: string
-	refresh_token: string
-	expires_at: number
-	user: User
-}
+// Use Supabase Session type directly - no custom interface needed
+import type { Session } from '@supabase/supabase-js'
+export type AuthSession = Session
 
 export interface SignupCredentials {
 	email: string
@@ -360,3 +341,19 @@ type FormState<T = Record<string, string | number | boolean | null>> = {
 
 // Form state type alias for auth forms
 export type AuthFormState = FormState<User>
+
+// =============================================================================
+// FRONTEND AUTH STORE STATE (moved from auth-store.ts)
+// =============================================================================
+
+// Frontend auth store state for Zustand (compatible with Supabase types)
+export interface AuthState {
+	user: AuthUser | null // Support both Supabase User and AuthUser
+	session: AuthSession | null // Use AuthSession for Supabase compatibility
+	isAuthenticated: boolean
+	isLoading: boolean
+	setUser: (user: AuthUser | null) => void
+	setSession: (session: AuthSession | null) => void
+	setLoading: (loading: boolean) => void
+	signOut: () => void
+}

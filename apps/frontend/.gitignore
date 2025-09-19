@@ -8,7 +8,6 @@ next-env.d.ts
 # Frontend test outputs
 test-results/
 tests/e2e/test-results/
-coverage/
 playwright-report/
 .vercel
 playwright/.auth/
@@ -24,14 +23,3 @@ playwright/.auth/
 .env.local
 .env.*
 test-results/
-tests/
-/tests/
-/test-results/
-**/__tests__/**
-**/__tests__
-**/__tests__/
-test
-test/
-/test/
-**/test/**
-**/test/

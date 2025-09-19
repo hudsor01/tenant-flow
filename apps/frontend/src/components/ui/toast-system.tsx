@@ -62,28 +62,28 @@ const toastIcons = {
 // Toast styles
 const toastVariants = {
 	success: {
-		container: 'bg-card border-l-4 border-green-500 shadow-lg',
-		icon: 'text-green-500',
-		title: 'text-green-900 dark:text-green-100',
-		description: 'text-green-700 dark:text-green-200'
+		container: 'bg-card border-l-4 border-primary/70 shadow-lg',
+		icon: 'text-primary/70',
+		title: 'text-primary/70 dark:text-primary/70',
+		description: 'text-primary/60 dark:text-primary/60'
 	},
 	error: {
-		container: 'bg-card border-l-4 border-red-500 shadow-lg',
-		icon: 'text-red-500',
-		title: 'text-red-900 dark:text-red-100',
-		description: 'text-red-700 dark:text-red-200'
+		container: 'bg-card border-l-4 border-destructive shadow-lg',
+		icon: 'text-destructive',
+		title: 'text-destructive dark:text-destructive',
+		description: 'text-destructive/80 dark:text-destructive/80'
 	},
 	warning: {
-		container: 'bg-card border-l-4 border-yellow-500 shadow-lg',
-		icon: 'text-yellow-500',
-		title: 'text-yellow-900 dark:text-yellow-100',
-		description: 'text-yellow-700 dark:text-yellow-200'
+		container: 'bg-card border-l-4 border-primary/60 shadow-lg',
+		icon: 'text-primary/60',
+		title: 'text-primary/60 dark:text-primary/60',
+		description: 'text-primary/50 dark:text-primary/50'
 	},
 	info: {
-		container: 'bg-card border-l-4 border-blue-500 shadow-lg',
-		icon: 'text-blue-500',
-		title: 'text-blue-900 dark:text-blue-100',
-		description: 'text-blue-700 dark:text-blue-200'
+		container: 'bg-card border-l-4 border-primary shadow-lg',
+		icon: 'text-primary',
+		title: 'text-primary dark:text-primary',
+		description: 'text-primary/80 dark:text-primary/80'
 	},
 	loading: {
 		container: 'bg-card border-l-4 border-primary shadow-lg',

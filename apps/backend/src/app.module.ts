@@ -13,17 +13,16 @@ import { DashboardModule } from './dashboard/dashboard.module'
 import { SupabaseModule } from './database/supabase.module'
 import { HealthModule } from './health/health.module'
 import { CacheControlInterceptor } from './interceptors/cache-control.interceptor'
-import { PerformanceInterceptor } from './interceptors/performance.interceptor'
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor'
 import { LeasesModule } from './leases/leases.module'
 import { MaintenanceModule } from './maintenance/maintenance.module'
 import { NotificationsModule } from './notifications/notifications.module'
 import { PropertiesModule } from './properties/properties.module'
+import { SecurityModule } from './security/security.module'
 import { SharedModule } from './shared/shared.module'
 import { TenantsModule } from './tenants/tenants.module'
 import { UnitsModule } from './units/units.module'
 import { UsersModule } from './users/users.module'
-import { SecurityModule } from './security/security.module'
 
 /**
  * Core App Module - KISS principle
@@ -55,7 +54,7 @@ import { SecurityModule } from './security/security.module'
 		// CRITICAL: Global modules must come first for zero-downtime architecture
 		SupabaseModule,
 		SharedModule,
-		HealthModule, // Enhanced health monitoring
+		HealthModule,
 
 		// Business modules that depend on global services
 		AuthModule,
@@ -73,11 +72,6 @@ import { SecurityModule } from './security/security.module'
 	controllers: [AppController],
 	providers: [
 		AppService,
-		// Zero-downtime interceptors for performance and reliability
-		{
-			provide: APP_INTERCEPTOR,
-			useClass: PerformanceInterceptor
-		},
 		{
 			provide: APP_INTERCEPTOR,
 			useClass: TimeoutInterceptor

@@ -63,7 +63,7 @@ export function Sparkles({
 	density = 800,
 	speed: _speed = 1.2,
 	opacity = 1,
-	color = '#FFC107',
+	color = 'hsl(var(--accent))',
 	children
 }: SparklesProps) {
 	const sparkleCount = Math.floor(density / 100)

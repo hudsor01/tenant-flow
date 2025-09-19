@@ -1,7 +1,7 @@
 'use client'
 
-import { CardTitle } from '@/components/ui/card'
 import { CreditCard } from 'lucide-react'
+import { CardTitle } from 'src/components/ui/card'
 
 interface Props {
 	business?: {

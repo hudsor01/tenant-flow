@@ -7,16 +7,14 @@ export interface StatCardProps extends React.ComponentProps<'div'> {
   label: React.ReactNode
   value: React.ReactNode
   hint?: React.ReactNode
-  accent?: 'blue' | 'green' | 'amber' | 'purple' | 'primary'
+  accent?: 'primary' | 'accent' | 'muted'
 }
 
 export function StatCard({ className, label, value, hint, accent = 'primary', ...props }: StatCardProps) {
   const dot = {
-    blue: 'bg-blue-500',
-    green: 'bg-green-500',
-    amber: 'bg-amber-500',
-    purple: 'bg-purple-500',
     primary: 'bg-primary',
+    accent: 'bg-accent',
+    muted: 'bg-primary/60',
   }[accent]
 
   return (

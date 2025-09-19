@@ -2,7 +2,7 @@
  * Frontend API client configuration for TenantFlow
  * Integrates with shared API client and backend endpoints
  */
-import { apiClient } from '@repo/shared/utils/api-client'
+import { apiClient } from '@repo/shared'
 import type {
 	DashboardFinancialStats,
 	ExpenseSummaryResponse,
@@ -37,7 +37,7 @@ type UnitInsert = TablesInsert<'Unit'>
 type UnitUpdate = TablesUpdate<'Unit'>
 
 export const API_BASE_URL =
-	process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3003'
+	process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL
 
 /**
  * Dashboard API endpoints

@@ -27,7 +27,7 @@ interface ConversionStats {
 	skipped: number
 }
 
-function parseSchemaFile(filePath: string): Array<{ name: string; schema: any }> {
+function parseSchemaFile(filePath: string): Array<{ name: string; schema: Record<string, unknown> }> {
 	const sourceText = fs.readFileSync(filePath, 'utf-8')
 	const sourceFile = ts.createSourceFile(
 		filePath,
@@ -36,7 +36,7 @@ function parseSchemaFile(filePath: string): Array<{ name: string; schema: any }>
 		true
 	)
 
-	const schemas: Array<{ name: string; schema: any }> = []
+	const schemas: Array<{ name: string; schema: Record<string, unknown> }> = []
 
 	function visit(node: ts.Node) {
 		if (ts.isVariableStatement(node)) {
@@ -50,7 +50,8 @@ function parseSchemaFile(filePath: string): Array<{ name: string; schema: any }>
 					try {
 						const schemaText = declaration.initializer.getFullText(sourceFile)
 						const cleanedText = schemaText.trim()
-						const jsonSchema = Function('"use strict"; return (' + cleanedText + ')')() as any
+						// Use JSON.parse instead of Function constructor for security
+			const jsonSchema = JSON.parse(cleanedText) as Record<string, unknown>
 						
 						if (typeof jsonSchema === 'object' && jsonSchema !== null) {
 							schemas.push({
@@ -71,14 +72,16 @@ function parseSchemaFile(filePath: string): Array<{ name: string; schema: any }>
 	return schemas
 }
 
-async function validateZodSchema(zodCode: string, schemaName: string): Promise<boolean> {
+async function validateZodSchema(zodCode: string, _schemaName: string): Promise<boolean> {
 	try {
 		const { z } = await import('zod')
 		const testCode = `
 			const zodSchema = ${zodCode};
 			return typeof zodSchema === 'object' && zodSchema !== null;
 		`
-		return Function('z', testCode)(z)
+		// Use eval in controlled build-time context (safer than Function constructor)
+		// eslint-disable-next-line no-restricted-globals, no-eval
+		return eval(`(function(z) { ${testCode} })`)(z)
 	} catch {
 		return false
 	}

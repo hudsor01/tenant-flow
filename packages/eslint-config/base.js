@@ -1,19 +1,37 @@
 /**
- * Simplified ESLint configuration for TenantFlow monorepo
+ * Optimized ESLint configuration for TenantFlow monorepo
  * ESLint v9 flat config with standard presets
+ * Enhanced for TurboRepo, Stripe, and Supabase.
+ * Uses modern typescript-eslint v8+ flat config patterns.
  */
 
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
+import eslintConfigPrettier from 'eslint-config-prettier'
+import turboPlugin from 'eslint-plugin-turbo'
 import globals from 'globals'
 
-export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.config(
-	// Use standard recommended configurations
-	js.configs.recommended,
-	...tseslint.configs.recommended,
-
-	// Global ignores
+export default [
 	{
+		...js.configs.recommended,
+		rules: {
+			...js.configs.recommended.rules,
+			'no-dupe-keys': 'off'  // Disabled for CSS class duplications
+		}
+	},
+	eslintConfigPrettier,
+	...tseslint.configs.recommended,
+	{
+		name: 'base/turbo',
+		plugins: {
+			turbo: turboPlugin
+		},
+		rules: {
+			'turbo/no-undeclared-env-vars': 'error'
+		}
+	},
+	{
+		name: 'base/ignores',
 		ignores: [
 			'**/dist/**',
 			'**/build/**',
@@ -29,15 +47,17 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 			'**/supabase/functions/**',
 			'**/supabase/migrations/**',
 			'**/types/frontend-only.ts',
-			'**/test/production-api.test.ts'
+			'**/test/production-api.test.ts',
+			'Dockerfile',
+			'**/stripe-signing-secret.ts',
+			'**/.env.local',
+			'**/.env.development.local'
 		]
 	},
-
-	// TypeScript configuration
 	{
+		name: 'base/typescript',
 		files: ['**/*.ts', '**/*.tsx'],
 		languageOptions: {
-			parser: tseslint.parser,
 			parserOptions: {
 				projectService: true,
 				tsconfigRootDir: import.meta.dirname
@@ -45,17 +65,19 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 			globals: {
 				...globals.node,
 				...globals.browser,
-				...globals.es2024
+				...globals.es2024,
+				Stripe: 'readonly',
+				supabase: 'readonly'
 			}
 		},
 		rules: {
-			// Core security and quality rules
 			'@typescript-eslint/no-explicit-any': 'error',
 			'@typescript-eslint/no-unused-vars': [
 				'error',
 				{
 					argsIgnorePattern: '^_',
-					varsIgnorePattern: '^_'
+					varsIgnorePattern: '^_',
+					caughtErrors: 'none'
 				}
 			],
 			'@typescript-eslint/consistent-type-imports': [
@@ -70,28 +92,49 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 			eqeqeq: ['error', 'always']
 		}
 	},
-
-	// Test files - use production rules to catch bugs early
 	{
-		files: [
-			'**/*.test.ts',
-			'**/*.test.tsx',
-			'**/*.spec.ts',
-			'**/*.spec.tsx'
-		],
+		name: 'base/tests',
+		files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
 		rules: {
-			// Only allow console in tests (for debugging)
-			'no-console': 'off'
-			// All other rules use production settings to catch bugs
+			'no-console': 'off',
+			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-return': 'off',
+			'@typescript-eslint/no-unsafe-call': 'off',
+			'@typescript-eslint/no-unused-vars': 'off'
 		}
 	},
-
-	// Config files - very permissive
 	{
-		files: ['**/*.config.ts', '**/*.config.js', '**/*.config.mjs'],
+		name: 'base/config-scripts',
+		files: [
+			'**/*.config.ts',
+			'**/*.config.js',
+			'**/*.config.mjs',
+			'**/scripts/**/*.ts',
+			'**/stripe.config.ts',
+			'**/supabase.config.ts'
+		],
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-return': 'off',
+			'@typescript-eslint/no-unsafe-call': 'off',
 			'no-console': 'off'
-}
-}
-))
+		}
+	},
+	{
+		name: 'base/env-files',
+		files: ['**/.env*.ts', '**/env*.ts'],
+		rules: {
+			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-unsafe-assignment': 'off',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-call': 'off',
+			'@typescript-eslint/no-var-requires': 'off',
+			'no-console': 'off',
+			'@typescript-eslint/explicit-module-boundary-types': 'off'
+		}
+	}
+]

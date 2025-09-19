@@ -82,12 +82,12 @@ function formatPhoneNumber(phone: string): string {
 
 function getTenantStatusColor(status?: string): string {
 	const colorMap: Record<string, string> = {
-		'ACTIVE': '#10b981', // emerald
-		'INACTIVE': '#6b7280', // gray
-		'PENDING': '#f59e0b', // amber
-		'EVICTED': '#ef4444' // red
+		'ACTIVE': 'hsl(var(--primary))', // use primary for active
+		'INACTIVE': 'hsl(var(--muted-foreground))', // use muted for inactive
+		'PENDING': 'hsl(var(--accent))', // use accent for pending
+		'EVICTED': 'hsl(var(--destructive))' // use destructive for evicted
 	}
-	return colorMap[status || 'ACTIVE'] || '#10b981'
+	return colorMap[status || 'ACTIVE'] || 'hsl(var(--primary))'
 }
 
 export function useTenantStats() {

@@ -1,38 +1,28 @@
 /**
- * NestJS + Fastify specific ESLint configuration for TenantFlow backend
- * ESLint v9 flat config with TypeScript ESLint v8.40.0 optimization
- *
- * Latest Updates:
- * - Enhanced TypeScript ESLint v8 type-aware rules for better reliability
- * - NestJS 11+ and Fastify 11+ specific optimizations
- * - Performance tuning for large backend codebases
- * - Improved async/await handling and error management
+ * Optimized NestJS + Fastify specific ESLint configuration for TenantFlow backend
+ * ESLint v9 flat config with TypeScript ESLint v8+ optimization
+ * Enhanced for Stripe, Supabase, and Monorepo performance.
+ * Uses modern flat config composition without deprecated tseslint.config() wrapper.
  */
 
+import tsParser from '@typescript-eslint/parser'
 import globals from 'globals'
-import tseslint from 'typescript-eslint'
 import baseConfig from './base.js'
 
-export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.config(
+export default [
 	...baseConfig,
-
-	// Enhanced NestJS backend configuration with TypeScript ESLint v8
 	{
 		name: 'nestjs/backend',
 		files: ['**/*.ts'],
-		ignores: ['**/*.spec.ts', '**/*.test.ts', '**/*.e2e-spec.ts'],
+		ignores: [
+			'**/*.spec.ts',
+			'**/*.test.ts',
+			'**/*.e2e-spec.ts',
+			'**/supabase/functions/**/*.ts',
+			'**/supabase/migrations/**/*.ts'
+		],
 		languageOptions: {
-			globals: {
-				...globals.node,
-				...globals.es2024,
-				NodeJS: 'readonly',
-				Buffer: 'readonly',
-				process: 'readonly',
-				global: 'readonly',
-				__dirname: 'readonly',
-				__filename: 'readonly'
-			},
-			parser: tseslint.parser,
+			parser: tsParser,
 			parserOptions: {
 				projectService: {
 					allowDefaultProject: ['*.js', '*.mjs'],
@@ -40,19 +30,22 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 				},
 				tsconfigRootDir: import.meta.dirname,
 				warnOnUnsupportedTypeScriptVersion: false,
-				// Performance optimization for backend
 				EXPERIMENTAL_useProjectService: true
-			}
-		},
-		settings: {
-			// Backend-specific optimizations
-			'typescript-eslint': {
-				projectService: true,
-				maximumTypeCheckingDepth: 5 // Higher for backend complexity
+			},
+			globals: {
+				...globals.node,
+				...globals.es2024,
+				Stripe: 'readonly',
+				supabase: 'readonly',
+				NodeJS: 'readonly',
+				Buffer: 'readonly',
+				process: 'readonly',
+				global: 'readonly',
+				__dirname: 'readonly',
+				__filename: 'readonly'
 			}
 		},
 		rules: {
-			// Core TypeScript ESLint rules - enhanced for backend reliability
 			'@typescript-eslint/explicit-function-return-type': 'off',
 			'@typescript-eslint/explicit-module-boundary-types': 'off',
 			'@typescript-eslint/no-empty-function': 'off',
@@ -62,9 +55,7 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 					allowSingleExtends: true
 				}
 			],
-			'@typescript-eslint/no-namespace': 'off', // NestJS uses namespaces for decorators
-
-			// Enhanced type-aware rules for backend safety
+			'@typescript-eslint/no-namespace': 'off',
 			'@typescript-eslint/await-thenable': 'error',
 			'@typescript-eslint/no-for-in-array': 'error',
 			'@typescript-eslint/no-unnecessary-type-assertion': 'error',
@@ -82,44 +73,34 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 			'@typescript-eslint/no-mixed-enums': 'error',
 			'@typescript-eslint/switch-exhaustiveness-check': 'error',
 			'@typescript-eslint/unified-signatures': 'error',
-
-			// Backend-specific type checking (enable key safety rules))
-			'@typescript-eslint/no-unsafe-assignment': 'warn', // Warn instead of off for backend safety
-			'@typescript-eslint/no-unsafe-member-access': 'warn',
-			'@typescript-eslint/no-unsafe-call': 'warn',
-			'@typescript-eslint/no-unsafe-return': 'warn',
-			'@typescript-eslint/no-unsafe-argument': 'warn',
+			'@typescript-eslint/no-unsafe-assignment': 'error',
+			'@typescript-eslint/no-unsafe-member-access': 'error',
+			'@typescript-eslint/no-unsafe-call': 'error',
+			'@typescript-eslint/no-unsafe-return': 'error',
+			'@typescript-eslint/no-unsafe-argument': 'error',
 			'@typescript-eslint/restrict-template-expressions': [
-				'warn',
+				'error',
 				{
 					allowNumber: true,
 					allowBoolean: true,
-					allowAny: false, // Backend should be stricter
+					allowAny: false,
 					allowNullish: true,
 					allowRegExp: true
 				}
 			],
-
-			// Backend logging is essential
-			'no-console': 'off', // Backend needs console for logging
-
-			// Backend specific best practices
-			'no-return-await': 'off', // TypeScript handles this better
+			'no-console': 'off',
+			'no-return-await': 'off',
 			'@typescript-eslint/return-await': ['error', 'in-try-catch'],
 			'no-duplicate-imports': 'error',
-
-			// Import organization (less strict for NestJS due to decorators)
-			'sort-imports': 'off', // Too strict for NestJS imports
+			'sort-imports': 'off',
 			'@typescript-eslint/consistent-type-imports': [
-				'warn',
+				'error',
 				{
 					prefer: 'type-imports',
 					fixStyle: 'inline-type-imports',
 					disallowTypeAnnotations: true
 				}
 			],
-
-			// Enhanced async/Promise handling for backend reliability
 			'@typescript-eslint/no-floating-promises': [
 				'error',
 				{
@@ -131,7 +112,7 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 				'error',
 				{
 					checksVoidReturn: {
-						arguments: false, // Allow in Fastify handlers
+						arguments: false,
 						attributes: false,
 						properties: false,
 						returns: false,
@@ -139,14 +120,9 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 					}
 				}
 			],
-			'@typescript-eslint/promise-function-async': 'error', // Backend should be explicit about async
-
-			// Enhanced error handling for backend
+			'@typescript-eslint/promise-function-async': 'error',
 			'@typescript-eslint/only-throw-error': 'error',
-			'@typescript-eslint/use-unknown-in-catch-callback-variable':
-				'error',
-
-			// Performance optimizations
+			'@typescript-eslint/use-unknown-in-catch-callback-variable': 'error',
 			'@typescript-eslint/prefer-for-of': 'warn',
 			'@typescript-eslint/prefer-includes': 'warn',
 			'@typescript-eslint/prefer-string-starts-ends-with': 'warn',
@@ -159,29 +135,34 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 					ignoreMixedLogicalExpressions: true
 				}
 			],
-
-			// Code quality with TypeScript ESLint v8
 			'@typescript-eslint/no-unnecessary-condition': 'warn',
 			'@typescript-eslint/no-unnecessary-type-arguments': 'warn',
 			'@typescript-eslint/prefer-reduce-type-parameter': 'warn',
 			'@typescript-eslint/prefer-return-this-type': 'error',
-'@typescript-eslint/no-useless-empty-export': 'error',
-'@typescript-eslint/no-require-imports': 'error',
-'@typescript-eslint/no-duplicate-type-constituents': 'warn',
+			'@typescript-eslint/no-useless-empty-export': 'error',
+			'@typescript-eslint/no-require-imports': 'error',
+			'@typescript-eslint/no-duplicate-type-constituents': 'warn',
 			'@typescript-eslint/no-redundant-type-constituents': 'warn',
-			'@typescript-eslint/no-unnecessary-qualifier': 'warn'
+			'@typescript-eslint/no-unnecessary-qualifier': 'warn',
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_',
+					args: 'after-used',
+					caughtErrors: 'none'
+				}
+			]
 		}
 	},
-
-	// Controllers and Decorators with TypeScript ESLint
 	{
 		name: 'nestjs/controllers',
 		files: ['**/*.controller.ts', '**/*.resolver.ts', '**/*.gateway.ts'],
 		rules: {
 			'@typescript-eslint/explicit-function-return-type': 'off',
-			'@typescript-eslint/no-explicit-any': 'off', // Decorators often need any
+			'@typescript-eslint/no-explicit-any': 'error',
 			'@typescript-eslint/no-unsafe-assignment': 'off',
-			'@typescript-eslint/no-unsafe-return': 'off',
+			'@typescript-eslint/no-unsafe-return': 'error',
 			'@typescript-eslint/ban-ts-comment': [
 				'error',
 				{
@@ -193,8 +174,6 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 			]
 		}
 	},
-
-	// Services and Repositories with moderate TypeScript rules
 	{
 		name: 'nestjs/services',
 		files: ['**/*.service.ts', '**/*.repository.ts', '**/*.provider.ts'],
@@ -210,27 +189,24 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 				}
 			],
 			'@typescript-eslint/no-explicit-any': 'warn',
-			// Relax type-aware rules for existing codebase
-			'@typescript-eslint/no-unsafe-assignment': 'off',
-			'@typescript-eslint/no-unsafe-member-access': 'off',
-			'@typescript-eslint/no-unsafe-call': 'off',
-			'@typescript-eslint/no-unsafe-return': 'off',
-			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/no-unsafe-assignment': 'error',
+			'@typescript-eslint/no-unsafe-member-access': 'error',
+			'@typescript-eslint/no-unsafe-call': 'error',
+			'@typescript-eslint/no-unsafe-return': 'error',
+			'@typescript-eslint/no-unsafe-argument': 'error',
 			'@typescript-eslint/no-base-to-string': 'off',
 			'@typescript-eslint/restrict-template-expressions': [
-				'warn',
+				'error',
 				{
 					allowNumber: true,
 					allowBoolean: true,
-					allowAny: true, // Allow any for existing code
+					allowAny: false,
 					allowNullish: true,
 					allowRegExp: true
 				}
 			]
 		}
 	},
-
-	// DTOs and Entities with TypeScript ESLint
 	{
 		name: 'nestjs/dto-entities',
 		files: [
@@ -241,25 +217,26 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 		],
 		rules: {
 			'@typescript-eslint/no-empty-interface': 'off',
-			'@typescript-eslint/no-unused-vars': 'off', // DTOs might have unused fields
-			'@typescript-eslint/no-explicit-any': 'off', // DTOs might need any for flexibility
-			'@typescript-eslint/consistent-indexed-object-style': [
-				'warn',
-				'record'
-			],
-			'@typescript-eslint/consistent-type-definitions': [
+			'@typescript-eslint/no-unused-vars': 'error',
+			'@typescript-eslint/no-explicit-any': 'error',
+			'@typescript-eslint/consistent-indexed-object-style': ['warn', 'record'],
+			'@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+			'@typescript-eslint/ban-types': [
 				'error',
-				'interface'
+				{
+					extendDefaults: true,
+					types: {
+						'{}': false
+					}
+				}
 			]
 		}
 	},
-
-	// Modules and Configuration
 	{
 		name: 'nestjs/modules',
 		files: ['**/*.module.ts', '**/*.config.ts', '**/main.ts'],
 		rules: {
-			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-explicit-any': 'error',
 			'@typescript-eslint/no-unsafe-assignment': 'off',
 			'@typescript-eslint/no-unsafe-member-access': 'off',
 			'@typescript-eslint/no-unsafe-call': 'off',
@@ -268,8 +245,6 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 			'@typescript-eslint/no-dynamic-delete': 'off'
 		}
 	},
-
-	// Guards, Interceptors, Filters, Pipes - TypeScript ESLint optimized
 	{
 		name: 'nestjs/middleware',
 		files: [
@@ -280,28 +255,23 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 			'**/*.middleware.ts'
 		],
 		rules: {
-			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-explicit-any': 'error',
 			'@typescript-eslint/explicit-function-return-type': 'off',
 			'@typescript-eslint/no-unsafe-assignment': 'off',
 			'@typescript-eslint/no-unsafe-member-access': 'off',
 			'@typescript-eslint/no-unsafe-call': 'off',
-			'@typescript-eslint/no-unsafe-return': 'off',
+			'@typescript-eslint/no-unsafe-return': 'error',
 			'@typescript-eslint/unbound-method': 'off'
 		}
 	},
-
-	// Decorators with TypeScript ESLint
 	{
 		name: 'nestjs/decorators',
 		files: ['**/*.decorator.ts'],
 		rules: {
-			'@typescript-eslint/no-explicit-any': 'off',
-			// Decorators often need Function and Object types
+			'@typescript-eslint/no-explicit-any': 'error',
 			'@typescript-eslint/no-restricted-types': 'off'
 		}
 	},
-
-	// Test files with TypeScript ESLint
 	{
 		name: 'nestjs/tests',
 		files: ['**/*.spec.ts', '**/*.test.ts', '**/*.e2e-spec.ts'],
@@ -327,29 +297,59 @@ export default /** @type {import('eslint').Linter.FlatConfig[]} */ (tseslint.con
 			'no-console': 'off'
 		}
 	},
-
-	// Migration files with TypeScript ESLint
 	{
 		name: 'nestjs/migrations',
 		files: ['**/migrations/**/*.ts', '**/seeds/**/*.ts'],
 		rules: {
-			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-explicit-any': 'error',
 			'@typescript-eslint/no-unsafe-assignment': 'off',
 			'@typescript-eslint/no-unsafe-member-access': 'off',
 			'@typescript-eslint/no-unsafe-call': 'off',
-			'@typescript-eslint/naming-convention': 'off', // Migrations often have specific naming
-			'no-console': 'off'
+			'@typescript-eslint/naming-convention': 'off',
+			'no-console': 'off',
+			'@typescript-eslint/no-unused-vars': 'off'
 		}
 	},
-
-	// CLI Commands with TypeScript ESLint
 	{
 		name: 'nestjs/commands',
 		files: ['**/*.command.ts', '**/cli/**/*.ts'],
 		rules: {
-			'no-console': 'off', // CLI commands need console
+			'no-console': 'off',
 			'@typescript-eslint/no-floating-promises': 'off',
 			'@typescript-eslint/no-explicit-any': 'warn'
-}
-}
-))
+		}
+	},
+	{
+		name: 'nestjs/stripe-webhooks',
+		files: ['**/stripe/**/*.ts', '**/*stripe*.ts', '**/webhooks/**/*.ts'],
+		rules: {
+			'@typescript-eslint/no-unsafe-assignment': 'off',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-call': 'off',
+			'@typescript-eslint/no-explicit-any': 'warn',
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_',
+					caughtErrors: 'none'
+				}
+			],
+			'@typescript-eslint/require-await': 'error',
+			'@typescript-eslint/no-floating-promises': 'error'
+		}
+	},
+	{
+		name: 'nestjs/supabase-integration',
+		files: ['**/supabase/**/*.ts', '**/*supabase*.ts'],
+		rules: {
+			'@typescript-eslint/no-unsafe-assignment': 'off',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-call': 'off',
+			'@typescript-eslint/no-explicit-any': 'warn',
+			'@typescript-eslint/require-await': 'error',
+			'@typescript-eslint/no-floating-promises': 'error',
+			'@typescript-eslint/no-misused-promises': 'error'
+		}
+	}
+]

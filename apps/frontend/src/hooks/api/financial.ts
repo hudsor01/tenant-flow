@@ -1,8 +1,8 @@
 'use client'
 
 import { financialApi } from '@/lib/api-client'
-import { useQuery } from '@tanstack/react-query'
 import type { FinancialOverviewResponse } from '@repo/shared'
+import { useQuery } from '@tanstack/react-query'
 
 /**
  * Financial hooks - all calculations done in database via RPC functions
@@ -64,7 +64,7 @@ export function useExpenseSummaryFormatted(year?: number) {
 			// Use enhanced RPC function that returns pre-calculated percentages and formatting
 			return financialApi.getExpenseSummaryWithPercentages(year)
 		},
-		select: (data) => ({
+		select: data => ({
 			...data,
 			// All calculations and formatting are now done server-side
 			// Just pass through the pre-calculated values from database
@@ -101,7 +101,7 @@ export function useDashboardFinancialStatsFormatted() {
 			// Use enhanced RPC function that returns all calculations and formatting
 			return financialApi.getDashboardFinancialStatsCalculated()
 		},
-		select: (data) => ({
+		select: data => ({
 			...data,
 			// All calculations, formatting, and trend analysis done server-side
 			// Frontend just displays the pre-calculated values
@@ -110,19 +110,32 @@ export function useDashboardFinancialStatsFormatted() {
 				raw: data.monthlyRecurring || 0,
 				change: data.revenueChange || 0,
 				changeFormatted: `${(data.revenueChange || 0) > 0 ? '+' : ''}${data.revenueChange?.toFixed(1) || 0}%`,
-				trend: (data.revenueChange || 0) > 0 ? 'up' : (data.revenueChange || 0) < 0 ? 'down' : 'stable'
+				trend:
+					(data.revenueChange || 0) > 0
+						? 'up'
+						: (data.revenueChange || 0) < 0
+							? 'down'
+							: 'stable'
 			},
 			monthlyExpenses: {
 				value: data.monthlyExpensesFormatted || '$0',
 				raw: data.monthlyExpenses || 0,
 				change: data.expenseChange || 0,
 				changeFormatted: `${(data.expenseChange || 0) > 0 ? '+' : ''}${data.expenseChange?.toFixed(1) || 0}%`,
-				trend: (data.expenseChange || 0) > 0 ? 'up' : (data.expenseChange || 0) < 0 ? 'down' : 'stable'
+				trend:
+					(data.expenseChange || 0) > 0
+						? 'up'
+						: (data.expenseChange || 0) < 0
+							? 'down'
+							: 'stable'
 			},
 			netIncome: {
-				value: data.netIncomeFormatted || '$0',
-				raw: data.netIncome || 0,
-				margin: `${data.profitMargin || 0}%` // Pre-calculated profit margin from database
+				value: `$${((data.monthlyRecurring || 0) - (data.monthlyExpenses || 0)).toLocaleString()}`,
+				raw: (data.monthlyRecurring || 0) - (data.monthlyExpenses || 0),
+				margin:
+					data.monthlyRecurring > 0
+						? `${(((data.monthlyRecurring - (data.monthlyExpenses || 0)) / data.monthlyRecurring) * 100).toFixed(1)}%`
+						: '0%'
 			}
 		}),
 		staleTime: 2 * 60 * 1000,

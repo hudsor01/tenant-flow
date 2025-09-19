@@ -1,6 +1,27 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import {
+	ANIMATION_DURATIONS,
+	buttonClasses,
+	cardClasses,
+	cn,
+	formatCurrency,
+	TYPOGRAPHY_SCALE
+} from '@/lib/utils'
+import {
+	Bot,
+	Check,
+	Copy,
+	CreditCard,
+	Eye,
+	EyeOff,
+	Figma,
+	Globe,
+	Plus,
+	Smartphone
+} from 'lucide-react'
+import { useState } from 'react'
+import { Button } from 'src/components/ui/button'
 import {
 	Card,
 	CardAction,
@@ -8,19 +29,14 @@ import {
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  cn, 
-  formatCurrency, 
-  buttonClasses, 
-  cardClasses, 
-  ANIMATION_DURATIONS, 
-  TYPOGRAPHY_SCALE 
-} from '@/lib/utils'
-import { Bot, CreditCard, Figma, Globe, Plus, Smartphone, Eye, EyeOff, Copy, Check } from 'lucide-react'
-import { useState } from 'react'
+} from 'src/components/ui/card'
+import { Separator } from 'src/components/ui/separator'
+import {
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger
+} from 'src/components/ui/tabs'
 
 function ChipSVG() {
 	return (
@@ -141,24 +157,24 @@ export function AccountOverview() {
 	}
 
 	return (
-		<Card 
+		<Card
 			className={cn(
 				cardClasses(),
-				'shadow-lg border-2 hover:shadow-2xl'
+				'shadow-lg border-2 hover:shadow-2xl transition-all'
 			)}
-			style={{ 
+			style={{
 				animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`,
-				transition: `all ${ANIMATION_DURATIONS.default} ease-out`,
+				transition: `all ${ANIMATION_DURATIONS.default} ease-out`
 			}}
 		>
-			<CardHeader 
+			<CardHeader
 				className="items-center space-y-4"
-				style={{ 
-					animation: `slideInFromTop ${ANIMATION_DURATIONS.default} ease-out`,
+				style={{
+					animation: `slideInFromTop ${ANIMATION_DURATIONS.default} ease-out`
 				}}
 			>
 				<div className="space-y-3 text-center">
-					<CardTitle 
+					<CardTitle
 						className="tracking-tight font-bold"
 						style={{
 							fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
@@ -169,70 +185,58 @@ export function AccountOverview() {
 						My Cards
 					</CardTitle>
 					<CardDescription className="leading-relaxed text-base max-w-md">
-						Your card summary, balance, and recent transactions in one secure view.
+						Your card summary, balance, and recent transactions in one secure
+						view.
 					</CardDescription>
 				</div>
 				<CardAction>
-					<Button 
-						size="icon" 
+					<Button
+						size="icon"
 						variant="outline"
 						className={cn(
 							buttonClasses('outline', 'sm'),
-							'hover:scale-110'
+							'hover:scale-110 transition-all'
 						)}
-						style={{
-							transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-						}}
 					>
 						<Plus className="size-4" />
 					</Button>
 				</CardAction>
 			</CardHeader>
-			<CardContent 
+			<CardContent
 				className="p-6"
-				style={{ 
-					animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`,
+				style={{
+					animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`
 				}}
 			>
 				<Tabs className="gap-6 space-y-6" defaultValue="virtual">
-					<TabsList 
-						className="w-full h-12"
-						style={{
-							transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-						}}
-					>
-						<TabsTrigger 
-							value="virtual" 
+					<TabsList className="w-full h-12">
+						<TabsTrigger
+							value="virtual"
 							className="flex-1 h-10 text-sm font-medium transition-all"
-							style={{
-								transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-							}}
 						>
 							Virtual Card
 						</TabsTrigger>
-						<TabsTrigger 
-							value="physical" 
+						<TabsTrigger
+							value="physical"
 							disabled
 							className="flex-1 h-10 text-sm font-medium transition-all opacity-50"
-							style={{
-								transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-							}}
 						>
 							Physical Card
 						</TabsTrigger>
 					</TabsList>
-					<TabsContent 
+					<TabsContent
 						value="virtual"
-						style={{ 
-							animation: `slideInFromLeft ${ANIMATION_DURATIONS.default} ease-out`,
+						style={{
+							animation: `slideInFromLeft ${ANIMATION_DURATIONS.default} ease-out`
 						}}
 					>
 						<div className="space-y-6">
-							<div 
+							<div
 								className="bg-gradient-to-br from-primary via-primary to-primary/80 relative aspect-8/5 w-full max-w-96 mx-auto overflow-hidden rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 cursor-pointer group"
 								style={{
 									transition: `all ${ANIMATION_DURATIONS.slow} ease-out`,
-									background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 50%, hsl(var(--primary)/0.9) 100%)',
+									background:
+										'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 50%, hsl(var(--primary)/0.9) 100%)'
 								}}
 							>
 								<div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
@@ -266,97 +270,109 @@ export function AccountOverview() {
 								</div>
 							</div>
 
-							<div 
+							<div
 								className="space-y-4 p-4 bg-muted/30 rounded-xl border"
-								style={{ 
-									animation: `slideInFromRight ${ANIMATION_DURATIONS.default} ease-out`,
+								style={{
+									animation: `slideInFromRight ${ANIMATION_DURATIONS.default} ease-out`
 								}}
 							>
 								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground font-medium">Card Number</span>
+									<span className="text-muted-foreground font-medium">
+										Card Number
+									</span>
 									<div className="flex items-center gap-2">
 										<span className="font-semibold tabular-nums">
-											{showCardDetails ? '1234 5678 9012 5416' : '•••• •••• •••• 5416'}
+											{showCardDetails
+												? '1234 5678 9012 5416'
+												: '•••• •••• •••• 5416'}
 										</span>
 										<Button
 											variant="ghost"
 											size="sm"
 											onClick={() => setShowCardDetails(!showCardDetails)}
 											className="p-1 h-6 w-6 hover:bg-muted"
-											style={{
-												transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-											}}
 										>
-											{showCardDetails ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+											{showCardDetails ? (
+												<EyeOff className="size-3" />
+											) : (
+												<Eye className="size-3" />
+											)}
 										</Button>
 										<Button
 											variant="ghost"
 											size="sm"
 											onClick={handleCopyCardNumber}
 											className="p-1 h-6 w-6 hover:bg-muted"
-											style={{
-												transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-											}}
 										>
-											{copied ? <Check className="size-3 text-green-600" /> : <Copy className="size-3" />}
+											{copied ? (
+												<Check className="size-3 text-primary" />
+											) : (
+												<Copy className="size-3" />
+											)}
 										</Button>
 									</div>
 								</div>
 								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground font-medium">Expiry Date</span>
+									<span className="text-muted-foreground font-medium">
+										Expiry Date
+									</span>
 									<span className="font-semibold tabular-nums">06/29</span>
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-muted-foreground font-medium">CVC</span>
-									<span className="font-semibold">{showCardDetails ? '123' : '•••'}</span>
+									<span className="font-semibold">
+										{showCardDetails ? '123' : '•••'}
+									</span>
 								</div>
 								<Separator />
 								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground font-medium">Spending Limit</span>
-									<span className="font-bold tabular-nums text-lg">$62,000.00</span>
+									<span className="text-muted-foreground font-medium">
+										Spending Limit
+									</span>
+									<span className="font-bold tabular-nums text-lg">
+										$62,000.00
+									</span>
 								</div>
 								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground font-medium">Available Balance</span>
-									<span className="font-bold tabular-nums text-xl text-green-600">$13,100.06</span>
+									<span className="text-muted-foreground font-medium">
+										Available Balance
+									</span>
+									<span className="font-bold tabular-nums text-xl text-primary">
+										$13,100.06
+									</span>
 								</div>
 							</div>
 
-							<div 
+							<div
 								className="flex gap-3"
-								style={{ 
-									animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`,
+								style={{
+									animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`
 								}}
 							>
-								<Button 
+								<Button
 									className={cn(
 										buttonClasses('outline', 'sm'),
-										'flex-1 h-10 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700'
+										'flex-1 h-10 hover:bg-primary/5 hover:border-primary/20 hover:text-primary',
+										'transition-all'
 									)}
-									style={{
-										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-									}}
 								>
 									Freeze Card
 								</Button>
-								<Button 
+								<Button
 									className={cn(
 										buttonClasses('outline', 'sm'),
-										'flex-1 h-10 hover:bg-green-50 hover:border-green-200 hover:text-green-700'
+										'flex-1 h-10 hover:bg-primary/5 hover:border-primary/20 hover:text-primary',
+										'transition-all'
 									)}
-									style={{
-										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-									}}
 								>
 									Set Limit
 								</Button>
-								<Button 
+								<Button
 									className={cn(
 										buttonClasses('outline', 'sm'),
-										'flex-1 h-10 hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700'
+										'flex-1 h-10 hover:bg-primary/5 hover:border-primary/20 hover:text-primary',
+										'transition-all'
 									)}
-									style={{
-										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-									}}
 								>
 									More
 								</Button>
@@ -364,10 +380,10 @@ export function AccountOverview() {
 
 							<Separator />
 
-							<div 
+							<div
 								className="space-y-6"
-								style={{ 
-									animation: `slideInFromBottom ${ANIMATION_DURATIONS.slow} ease-out`,
+								style={{
+									animation: `slideInFromBottom ${ANIMATION_DURATIONS.slow} ease-out`
 								}}
 							>
 								<div className="flex items-center justify-between">
@@ -382,10 +398,9 @@ export function AccountOverview() {
 										<div
 											key={transaction.id}
 											className="flex items-center gap-4 p-3 rounded-xl bg-muted/20 hover:bg-muted/40 group cursor-pointer border border-transparent hover:border-muted transition-all"
-											style={{ 
+											style={{
 												animation: `slideInFromLeft ${ANIMATION_DURATIONS.default} ease-out`,
-												animationDelay: `${index * 100}ms`,
-												transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
+												animationDelay: `${index * 100}ms`
 											}}
 										>
 											<div className="bg-muted/60 flex size-12 shrink-0 items-center justify-center rounded-full group-hover:bg-primary/10 group-hover:scale-110 transition-all">
@@ -408,8 +423,9 @@ export function AccountOverview() {
 														className={cn(
 															'text-base leading-none font-bold tabular-nums',
 															transaction.type === 'debit'
-																? 'text-red-600'
-																: 'text-green-600'
+																? 'text-accent'
+																: 'text-primary',
+															'transition-all'
 														)}
 													>
 														{transaction.type === 'debit' ? '-' : '+'}
@@ -421,57 +437,54 @@ export function AccountOverview() {
 									))}
 								</div>
 
-								<Button 
+								<Button
 									className={cn(
 										buttonClasses('outline', 'sm'),
-										'w-full h-10 hover:bg-primary/5 hover:border-primary/30 hover:text-primary font-semibold'
+										'w-full h-10 hover:bg-primary/5 hover:border-primary/30 hover:text-primary font-semibold',
+										'transition-all'
 									)}
-									style={{
-										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-									}}
 								>
 									View All Payments
 								</Button>
 							</div>
 						</div>
 					</TabsContent>
-					<TabsContent 
+					<TabsContent
 						value="physical"
-						style={{ 
-							animation: `slideInFromRight ${ANIMATION_DURATIONS.default} ease-out`,
+						style={{
+							animation: `slideInFromRight ${ANIMATION_DURATIONS.default} ease-out`
 						}}
 					>
-						<div 
+						<div
 							className="flex flex-col items-center justify-center py-12 space-y-6 text-center"
-							style={{ 
-								animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`,
+							style={{
+								animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`
 							}}
 						>
 							<div className="bg-muted/30 rounded-full p-6">
 								<CreditCard className="size-12 text-muted-foreground" />
 							</div>
 							<div className="space-y-3 max-w-md">
-								<h3 
+								<h3
 									className="font-bold text-foreground"
 									style={{
 										fontSize: TYPOGRAPHY_SCALE['heading-md'].fontSize,
-										lineHeight: TYPOGRAPHY_SCALE['heading-md'].lineHeight,
+										lineHeight: TYPOGRAPHY_SCALE['heading-md'].lineHeight
 									}}
 								>
 									Physical Card Coming Soon
 								</h3>
 								<p className="text-muted-foreground leading-relaxed">
-									Order your premium physical card to use anywhere. Get notified when it becomes available.
+									Order your premium physical card to use anywhere. Get notified
+									when it becomes available.
 								</p>
 							</div>
-							<Button 
+							<Button
 								className={cn(
 									buttonClasses('primary', 'sm'),
-									'hover:scale-105'
+									'hover:scale-105',
+									'transition-all'
 								)}
-								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`,
-								}}
 							>
 								Get Notified
 							</Button>

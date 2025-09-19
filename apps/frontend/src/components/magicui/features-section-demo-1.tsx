@@ -16,8 +16,8 @@ export default function FeaturesSectionDemo() {
             key={feature.title}
             className={cn(
               "group relative overflow-hidden rounded-2xl card-padding transition-all",
-              "bg-gradient-to-br from-white/80 to-gray-50/50 dark:from-gray-900/80 dark:to-gray-800/50",
-              "border border-gray-200/50 dark:border-gray-700/50",
+              "bg-gradient-to-br from-background/80 to-muted/50",
+              "border border-border/50",
               "hover:shadow-xl hover:scale-[1.02] hover:border-primary/30",
               "backdrop-blur-sm",
               cardClasses('elevated')
@@ -31,9 +31,9 @@ export default function FeaturesSectionDemo() {
 
             {/* Feature Icon */}
             <div className={cn(
-              "w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20",
+              "w-12 h-12 rounded-xl bg-primary/10",
               "flex items-center justify-center mb-6 relative z-20",
-              "group-hover:bg-primary/20 dark:group-hover:bg-primary/30",
+              "group-hover:bg-primary/20",
               "transition-colors"
             )}
             style={{ transition: `all ${ANIMATION_DURATIONS.fast}ms ease-out` }}
@@ -43,8 +43,8 @@ export default function FeaturesSectionDemo() {
 
             <h3 
               className={cn(
-                "font-bold text-gray-900 dark:text-white relative z-20 mb-3",
-                "group-hover:text-primary dark:group-hover:text-primary",
+                "font-bold text-foreground relative z-20 mb-3",
+                "group-hover:text-primary",
                 "transition-colors"
               )}
               style={{ 
@@ -59,8 +59,8 @@ export default function FeaturesSectionDemo() {
 
             <p 
               className={cn(
-                "text-gray-600 dark:text-gray-300 relative z-20 leading-relaxed",
-                "group-hover:text-gray-700 dark:group-hover:text-gray-200",
+                "text-muted-foreground relative z-20 leading-relaxed",
+                "group-hover:text-foreground",
                 "transition-colors"
               )}
               style={{ 
@@ -147,14 +147,14 @@ export const Grid = ({
   ];
   return (
     <div className="pointer-events-none absolute left-1/2 top-0  -ml-20 -mt-2 h-full w-full [mask-image:linear-gradient(white,transparent)]">
-      <div className="absolute inset-0 bg-gradient-to-r  [mask-image:radial-gradient(farthest-side_at_top,white,transparent)] dark:from-zinc-900/30 from-zinc-100/30 to-zinc-300/30 dark:to-zinc-900/30 opacity-100">
+      <div className="absolute inset-0 bg-gradient-to-r  [mask-image:radial-gradient(farthest-side_at_top,white,transparent)] from-muted/30 to-muted-foreground/30 opacity-100">
         <GridPattern
           width={size ?? 20}
           height={size ?? 20}
           x={-12}
           y={4}
           squares={p}
-          className="absolute inset-0 h-full w-full  mix-blend-overlay dark:fill-white/10 dark:stroke-white/10 stroke-black/10 fill-black/10"
+          className="absolute inset-0 h-full w-full  mix-blend-overlay fill-foreground/10 stroke-foreground/10"
         />
       </div>
     </div>

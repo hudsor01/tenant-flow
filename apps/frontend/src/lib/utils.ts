@@ -17,6 +17,7 @@ export {
   generateThemeCSS,
   getSemanticColor,
   responsiveClasses,
+  transitionClasses,
 } from './design-system'
 
 // Re-export shared design system constants

@@ -29,10 +29,10 @@ export const BorderBeam = ({
   const colorVariants = {
     primary: { from: 'var(--primary)', to: 'var(--primary-foreground)' },
     accent: { from: 'var(--accent)', to: 'var(--accent-foreground)' },
-    rainbow: { from: '#ff6b6b', to: '#4ecdc4' },
-    success: { from: '#10b981', to: '#065f46' },
-    warning: { from: '#f59e0b', to: '#92400e' },
-    danger: { from: '#ef4444', to: '#991b1b' },
+    rainbow: { from: 'var(--primary)', to: 'var(--accent)' },
+    success: { from: 'var(--primary)', to: 'var(--primary-foreground)' },
+    warning: { from: 'var(--accent)', to: 'var(--accent-foreground)' },
+    danger: { from: 'var(--destructive)', to: 'var(--destructive-foreground)' },
   }
 
   const selectedColors = colorVariants[variant]

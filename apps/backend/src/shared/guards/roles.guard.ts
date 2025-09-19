@@ -85,7 +85,7 @@ export class RolesGuard implements CanActivate {
 				'Admin access denied: Tenant isolation violation',
 				{
 					userId: user.id,
-					userOrganizationId: user.organizationId ?? null,
+					userOrganizationId: (user as AuthUser & { organizationId?: string }).organizationId ?? null,
 					route: request.route?.path ?? 'unknown route',
 					ip: request.ip
 				}
@@ -109,12 +109,13 @@ export class RolesGuard implements CanActivate {
 
 		// If user has no organization ID (current system doesn't have orgs), allow access
 		// This maintains backward compatibility while allowing future org implementation
-		if (!user.organizationId) {
+		const userWithOrg = user as AuthUser & { organizationId?: string }
+		if (!userWithOrg.organizationId) {
 			return true
 		}
 
 		// Ensure admin can only access resources from their own organization
-		return requestedOrgId === user.organizationId
+		return requestedOrgId === userWithOrg.organizationId
 	}
 
 	private extractOrganizationId(request: RequestWithUser): string | null {

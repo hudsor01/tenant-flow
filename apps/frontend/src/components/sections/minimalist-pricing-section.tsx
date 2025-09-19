@@ -1,14 +1,14 @@
 'use client'
 
-import { BlurFade } from '@/components/magicui/blur-fade'
-import { BorderBeam } from '@/components/magicui/border-beam'
-import { MagicCard } from '@/components/magicui/magic-card'
-import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { cn } from '@/lib/utils'
 import { useSpring } from '@react-spring/core'
 import { animated } from '@react-spring/web'
 import { ArrowRight, Check, Crown, Shield, Zap } from 'lucide-react'
 import { useState } from 'react'
+import { BlurFade } from 'src/components/magicui/blur-fade'
+import { BorderBeam } from 'src/components/magicui/border-beam'
+import { MagicCard } from 'src/components/magicui/magic-card'
+import { ShimmerButton } from 'src/components/magicui/shimmer-button'
 
 interface MinimalistPricingSectionProps {
 	className?: string
@@ -26,7 +26,7 @@ const plans = [
 			'Automated rent collection',
 			'Priority email support'
 		],
-		gradient: 'from-green-400 to-blue-500'
+		gradient: 'from-primary to-primary/80'
 	},
 	{
 		name: 'Growth',
@@ -41,7 +41,7 @@ const plans = [
 			'API access'
 		],
 		popular: true,
-		gradient: 'from-purple-400 to-pink-500'
+		gradient: 'from-primary/80 to-accent'
 	},
 	{
 		name: 'TenantFlow Max',
@@ -55,7 +55,7 @@ const plans = [
 			'Dedicated account manager',
 			'24/7 priority support'
 		],
-		gradient: 'from-orange-400 to-red-500'
+		gradient: 'from-accent to-primary'
 	}
 ]
 
@@ -72,9 +72,7 @@ export function MinimalistPricingSection({
 	})
 
 	return (
-			<section
-				className={cn('section-hero lg:py-32 bg-white dark:bg-gray-950', className)}
-			>
+		<section className={cn('section-hero lg:py-32 bg-background', className)}>
 			<div className="container px-4 mx-auto">
 				<div className="max-w-6xl mx-auto">
 					{/* Section Header */}
@@ -88,7 +86,7 @@ export function MinimalistPricingSection({
 						</BlurFade>
 
 						<BlurFade delay={0.2} inView>
-							<p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto font-light leading-relaxed">
+							<p className="text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
 								Choose the plan that fits your portfolio size. Upgrade or
 								downgrade anytime.
 							</p>
@@ -114,12 +112,16 @@ export function MinimalistPricingSection({
 									>
 										<MagicCard
 											className={cn(
-													'relative card-padding transition-all duration-500 group cursor-pointer',
-													plan.popular
-														? 'border-2 border-purple-200 dark:border-purple-800 shadow-xl'
-														: 'border border-gray-200 dark:border-gray-800'
-												)}
-											gradientColor={plan.popular ? '#a855f7' : '#64748b'}
+												'relative card-padding transition-all duration-500 group cursor-pointer',
+												plan.popular
+													? 'border-2 border-primary/30 shadow-xl'
+													: 'border border-border'
+											)}
+											gradientColor={
+												plan.popular
+													? 'hsl(var(--primary))'
+													: 'hsl(var(--muted-foreground))'
+											}
 										>
 											{plan.popular && (
 												<>
@@ -142,10 +144,10 @@ export function MinimalistPricingSection({
 													<IconComponent className="w-6 h-6 text-white" />
 												</div>
 
-												<h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+												<h3 className="text-2xl font-bold text-foreground mb-2">
 													{plan.name}
 												</h3>
-												<p className="text-gray-600 dark:text-gray-300 text-sm mb-6">
+												<p className="text-muted-foreground text-sm mb-6">
 													{plan.description}
 												</p>
 
@@ -157,7 +159,7 @@ export function MinimalistPricingSection({
 															>
 																${plan.price}
 															</span>
-															<span className="text-gray-600 dark:text-gray-300 text-lg">
+															<span className="text-muted-foreground text-lg">
 																/month
 															</span>
 														</div>
@@ -184,7 +186,7 @@ export function MinimalistPricingSection({
 															>
 																<Check className="w-3 h-3 text-white" />
 															</div>
-															<span className="text-gray-700 dark:text-gray-300 font-medium">
+															<span className="text-foreground font-medium">
 																{feature}
 															</span>
 														</li>
@@ -195,8 +197,8 @@ export function MinimalistPricingSection({
 											{plan.popular ? (
 												<ShimmerButton
 													className="w-full h-12 text-base font-bold"
-													shimmerColor="#ffffff"
-													background={`linear-gradient(to right, ${plan.gradient.includes('purple') ? '#a855f7, #ec4899' : '#6366f1, #8b5cf6'})`}
+													shimmerColor="hsl(var(--primary-foreground))"
+													background={`linear-gradient(to right, var(--color-primary), var(--color-accent))`}
 												>
 													<ArrowRight className="w-5 h-5 mr-2" />
 													{plan.price ? 'Start free trial' : 'Contact sales'}
@@ -218,7 +220,7 @@ export function MinimalistPricingSection({
 					{/* Bottom Text */}
 					<BlurFade delay={0.5} inView>
 						<div className="text-center mt-16">
-							<p className="text-gray-500 dark:text-gray-400 text-sm">
+							<p className="text-muted-foreground text-sm">
 								All plans include a 14-day free trial. No credit card required.
 							</p>
 						</div>

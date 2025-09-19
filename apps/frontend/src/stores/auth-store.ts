@@ -1,17 +1,7 @@
 import { createStore } from "zustand/vanilla";
 import { subscribeWithSelector } from 'zustand/middleware';
-import type { User, Session } from '@supabase/supabase-js'
-
-export type AuthState = {
-  user: User | null
-  session: Session | null
-  isAuthenticated: boolean
-  isLoading: boolean
-  setUser: (user: User | null) => void
-  setSession: (session: Session | null) => void
-  setLoading: (loading: boolean) => void
-  signOut: () => void
-};
+import type { User as _User, Session as _Session } from '@supabase/supabase-js'
+import type { AuthState, AuthUser } from '@repo/shared'
 
 export const createAuthStore = (init?: Partial<AuthState>) =>
   createStore<AuthState>()(
@@ -26,7 +16,7 @@ export const createAuthStore = (init?: Partial<AuthState>) =>
       }),
       setSession: (session) => set({ 
         session,
-        user: session?.user ?? null,
+        user: session?.user as AuthUser | null ?? null,
         isAuthenticated: !!session?.user
       }),
       setLoading: (loading) => set({ isLoading: loading }),

@@ -38,7 +38,7 @@ export class TokenValidationService {
 			}
 		)
 
-		console.log('TokenValidationService initialized with direct Supabase client')
+		this.logger.log('TokenValidationService initialized with direct Supabase client')
 	}
 
 	async validateTokenAndGetUser(token: string): Promise<ValidatedUser> {

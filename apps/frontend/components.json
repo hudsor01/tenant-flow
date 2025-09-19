@@ -6,9 +6,9 @@
   "tailwind": {
     "config": "",
     "css": "src/app/globals.css",
-    "baseColor": "neutral",
+    "baseColor": "slate",
     "cssVariables": true,
-    "prefix": ""
+    "prefix": "tw-"
   },
   "iconLibrary": "lucide",
   "aliases": {
@@ -18,5 +18,15 @@
     "lib": "@/lib",
     "hooks": "@/hooks"
   },
-  "registries": {}
+  "registries": {
+    "@magicui": "https://magicui.design/r/{name}.json",
+    "@ai-elements": "https://registry.ai-sdk.dev/{name}.json",
+    "@aceternity": "https://ui.aceternity.com/registry/{name}.json",
+    "@motion-primitives": "https://motion-primitives.com/c/{name}.json",
+    "@originui": "https://originui.com/r/{name}.json",
+    "@animate-ui": "https://animate-ui.com/r/{name}.json",
+    "@blocks": "https://blocks.so/r/{name}.json",
+    "@elements": "https://tryelements.dev/r/{name}.json",
+    "@tailark": "https://tailark.com/r/{name}.json"
+  }
 }

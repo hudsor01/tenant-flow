@@ -1,6 +1,6 @@
 /* Dashboard Extensions - Inherits from globals.css */
-/* Extends: apps/frontend/src/styles/globals.css */
-@import "../../../styles/globals.css";
+/* Extends: apps/frontend/src/app/globals.css */
+@import "../../globals.css";
 
 /* === DASHBOARD PERFORMANCE OPTIMIZATIONS === */
 
@@ -263,7 +263,7 @@
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 70%, #60a5fa));
+  background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 70%, var(--color-accent)));
 }
 
 
@@ -340,7 +340,7 @@
   
   .dashboard-card {
     break-inside: avoid;
-    border: 1px solid #333;
+    border: 1px solid var(--color-border);
     margin-bottom: 1rem;
   }
 }

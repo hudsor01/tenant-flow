@@ -1,23 +1,29 @@
 'use client'
 
-import { ChartAreaInteractive } from '@/components/chart-area-interactive'
-import { Button } from '@/components/ui/button'
+import { useProperties } from '@/hooks/api/properties'
+import { useCreateUnit, useUnits } from '@/hooks/api/units'
+import type { Database } from '@repo/shared'
+import type { ColumnDef } from '@tanstack/react-table'
+import { DoorOpen, Filter, Plus } from 'lucide-react'
+import { useRef } from 'react'
+import { ChartAreaInteractive } from 'src/components/chart-area-interactive'
+import { Button } from 'src/components/ui/button'
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from 'src/components/ui/dialog'
+import { Input } from 'src/components/ui/input'
+import { Label } from 'src/components/ui/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
+} from 'src/components/ui/select'
 import {
 	Table,
 	TableBody,
@@ -25,13 +31,8 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { type UnitRow, unitColumns } from '@/components/units/units-columns'
-import { useProperties } from '@/hooks/api/properties'
-import { useCreateUnit, useUnits } from '@/hooks/api/units'
-import type { Database } from '@repo/shared'
-import type { ColumnDef } from '@tanstack/react-table'
-import { DoorOpen, Filter, Plus } from 'lucide-react'
+} from 'src/components/ui/table'
+import { type UnitRow, unitColumns } from 'src/components/units/units-columns'
 
 type InsertUnit = Database['public']['Tables']['Unit']['Insert']
 type UnitStatus = Database['public']['Enums']['UnitStatus']
@@ -50,25 +51,31 @@ export default function UnitsPage({
 	const { data: properties = [] } = useProperties()
 
 	// Filter units by property if specified
-    const filteredUnits = propertyFilter
-        ? units.filter((unit: UnitRowDB) => unit.propertyId === propertyFilter)
-        : units
+	const filteredUnits = propertyFilter
+		? units.filter((unit: UnitRowDB) => unit.propertyId === propertyFilter)
+		: units
 
 	// Get occupancy stats
-    const occupiedUnits = filteredUnits.filter((unit: UnitRowDB) => unit.status === 'OCCUPIED')
-    const vacantUnits = filteredUnits.filter((unit: UnitRowDB) => unit.status === 'VACANT')
-    const _maintenanceUnits = filteredUnits.filter(
-        (unit: UnitRowDB) => unit.status === 'MAINTENANCE'
-    )
+	const occupiedUnits = filteredUnits.filter(
+		(unit: UnitRowDB) => unit.status === 'OCCUPIED'
+	)
+	const vacantUnits = filteredUnits.filter(
+		(unit: UnitRowDB) => unit.status === 'VACANT'
+	)
+	const _maintenanceUnits = filteredUnits.filter(
+		(unit: UnitRowDB) => unit.status === 'MAINTENANCE'
+	)
 	const occupancyRate =
 		filteredUnits.length > 0
 			? (occupiedUnits.length / filteredUnits.length) * 100
 			: 0
 	const avgRent =
 		filteredUnits.length > 0
-            ? filteredUnits.reduce((sum: number, unit: UnitRowDB) => sum + (unit.rent || 0), 0) /
-                filteredUnits.length
-            : 0
+			? filteredUnits.reduce(
+					(sum: number, unit: UnitRowDB) => sum + (unit.rent || 0),
+					0
+				) / filteredUnits.length
+			: 0
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -151,7 +158,7 @@ export default function UnitsPage({
 			{/* Units Content */}
 			<div className="px-4 lg:px-6">
 				<div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gradient-authority mb-2">
+					<h1 className="text-3xl font-bold text-gradient-authority mb-2">
 						Unit Management
 					</h1>
 					<p className="text-muted-foreground">
@@ -187,11 +194,11 @@ export default function UnitsPage({
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="ALL">All Properties</SelectItem>
-                            {properties.map((property: PropertyRowDB) => (
-                                <SelectItem key={property.id} value={property.id}>
-                                    {property.name}
-                                </SelectItem>
-                            ))}
+								{properties.map((property: PropertyRowDB) => (
+									<SelectItem key={property.id} value={property.id}>
+										{property.name}
+									</SelectItem>
+								))}
 							</SelectContent>
 						</Select>
 					</div>
@@ -282,6 +289,7 @@ function UnitsTable({
 function NewUnitButton() {
 	const create = useCreateUnit()
 	const { data: properties = [] } = useProperties()
+	const closeButtonRef = useRef<HTMLButtonElement>(null)
 
 	async function onSubmit(form: HTMLFormElement) {
 		const fd = new FormData(form)
@@ -293,7 +301,7 @@ function NewUnitButton() {
 			propertyId: String(fd.get('propertyId') || ''),
 			status: 'VACANT'
 		} as InsertUnit)
-		;(document.getElementById('new-unit-close') as HTMLButtonElement)?.click()
+		closeButtonRef.current?.click()
 	}
 
 	return (
@@ -309,7 +317,7 @@ function NewUnitButton() {
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
-                    <DialogTitle className="text-gradient-authority">
+					<DialogTitle className="text-gradient-authority">
 						Add New Unit
 					</DialogTitle>
 				</DialogHeader>
@@ -337,7 +345,7 @@ function NewUnitButton() {
 									<SelectValue placeholder="Select property" />
 								</SelectTrigger>
 								<SelectContent>
-									{properties.map(property => (
+									{properties.map((property: PropertyRowDB) => (
 										<SelectItem key={property.id} value={property.id}>
 											{property.name}
 										</SelectItem>
@@ -380,7 +388,7 @@ function NewUnitButton() {
 						</div>
 					</div>
 					<div className="flex justify-end gap-2 pt-2">
-						<Button id="new-unit-close" type="button" variant="outline">
+						<Button ref={closeButtonRef} type="button" variant="outline">
 							Cancel
 						</Button>
 						<Button type="submit" disabled={create.isPending}>

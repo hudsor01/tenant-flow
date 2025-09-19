@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
 import { ExpressCheckoutElement } from '@stripe/react-stripe-js'
 import { Separator } from '@/components/ui/separator'
 
 type Props = {
-  onConfirm: (event: unknown) => void
+	onConfirm: (event: unknown) => void
 }
 
 export function ExpressCheckout({ onConfirm }: Props) {
@@ -28,4 +28,3 @@ export function ExpressCheckout({ onConfirm }: Props) {
     </div>
   )
 }
-

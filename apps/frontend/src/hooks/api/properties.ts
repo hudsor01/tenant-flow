@@ -76,13 +76,13 @@ export function usePropertiesFormatted(status?: PropertyStatus) {
 // Helper function for consistent status color coding
 function getPropertyStatusColor(status?: string): string {
     const colorMap: Record<string, string> = {
-        'ACTIVE': '#10b981', // emerald
-        'MAINTENANCE': '#f59e0b', // amber
-        'VACANT': '#6b7280', // gray
-        'PENDING': '#3b82f6', // blue
-        'INACTIVE': '#ef4444' // red
+        'ACTIVE': 'hsl(var(--primary))', // use primary for active
+        'MAINTENANCE': 'hsl(var(--accent))', // use accent for maintenance
+        'VACANT': 'hsl(var(--muted-foreground))', // use muted for vacant
+        'PENDING': 'hsl(var(--primary))', // use primary for pending
+        'INACTIVE': 'hsl(var(--destructive))' // use destructive for inactive
     }
-    return colorMap[status || 'INACTIVE'] || '#6b7280'
+    return colorMap[status || 'INACTIVE'] || 'hsl(var(--muted-foreground))'
 }
 
 

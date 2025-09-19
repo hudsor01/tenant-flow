@@ -1,9 +1,10 @@
 import {
 	Injectable,
 	InternalServerErrorException,
-	OnModuleDestroy
+	Logger,
+	OnModuleDestroy,
+	Optional
 } from '@nestjs/common'
-import { Logger } from '@nestjs/common'
 import puppeteer from 'puppeteer'
 
 /**
@@ -14,20 +15,22 @@ import puppeteer from 'puppeteer'
 export class PDFGeneratorService implements OnModuleDestroy {
 	private browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null
 
-	constructor(private readonly logger: Logger) {
+	constructor(@Optional() private readonly logger?: Logger) {
 		// Logger context handled automatically via app-level configuration
 	}
 
 	/**
 	 * Initialize browser instance
 	 */
-	private async getBrowser(): Promise<Awaited<ReturnType<typeof puppeteer.launch>>> {
+	private async getBrowser(): Promise<
+		Awaited<ReturnType<typeof puppeteer.launch>>
+	> {
 		if (!this.browser?.connected) {
-			this.logger.log('Launching Puppeteer browser')
-			
+			this.logger?.log('Launching Puppeteer browser')
+
 			// Use system Chromium in Docker, downloaded Chromium locally
 			const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined
-			
+
 			this.browser = await puppeteer.launch({
 				headless: true,
 				executablePath,
@@ -67,7 +70,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			landscape?: boolean
 		}
 	): Promise<Buffer> {
-		this.logger.log('Generating PDF from HTML content', {
+		this.logger?.log('Generating PDF from HTML content', {
 			contentLength: htmlContent.length,
 			format: options?.format || 'A4'
 		})
@@ -100,12 +103,12 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			// Cleanup
 			await page.close()
 
-			this.logger.log('PDF generated successfully', {
+			this.logger?.log('PDF generated successfully', {
 				sizeKB: Math.round(pdfBuffer.length / 1024)
 			})
 			return Buffer.from(pdfBuffer)
 		} catch (error) {
-			this.logger.error('Error generating PDF:', error)
+			this.logger?.error('Error generating PDF:', error)
 			throw new InternalServerErrorException('Failed to generate PDF')
 		}
 	}
@@ -149,19 +152,19 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					<div class="company-name">${invoiceData.companyName || 'TenantFlow'}</div>
 					${invoiceData.companyAddress ? `<div>${invoiceData.companyAddress}</div>` : ''}
 				</div>
-				
+
 				<div class="invoice-title">INVOICE</div>
 				<div class="invoice-meta">
 					<div><strong>Invoice #:</strong> ${invoiceData.invoiceNumber}</div>
 					<div><strong>Date:</strong> ${new Date(invoiceData.date).toLocaleDateString()}</div>
 				</div>
-				
+
 				<div class="customer-info">
 					<h3>Bill To:</h3>
 					<div>${invoiceData.customerName}</div>
 					<div>${invoiceData.customerEmail}</div>
 				</div>
-				
+
 				<table class="items-table">
 					<thead>
 						<tr>
@@ -186,7 +189,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 						</tr>
 					</tbody>
 				</table>
-				
+
 				<div class="footer">
 					Thank you for your business!
 				</div>
@@ -232,28 +235,28 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			</head>
 			<body>
 				<div class="title">RESIDENTIAL LEASE AGREEMENT</div>
-				
+
 				<div class="property-info">
 					<strong>Property Address:</strong> ${leaseData.propertyAddress}
 				</div>
-				
+
 				<div class="section">
 					<div class="section-title">PARTIES</div>
 					<p><strong>Landlord:</strong> ${leaseData.landlordName}</p>
 					<p><strong>Tenant:</strong> ${leaseData.tenantName}</p>
 				</div>
-				
+
 				<div class="section">
 					<div class="section-title">LEASE TERM</div>
 					<p><strong>Start Date:</strong> ${new Date(leaseData.startDate).toLocaleDateString()}</p>
 					<p><strong>End Date:</strong> ${new Date(leaseData.endDate).toLocaleDateString()}</p>
 				</div>
-				
+
 				<div class="section">
 					<div class="section-title">RENT</div>
 					<p>The monthly rent amount is <strong>${leaseData.currency.toUpperCase()} ${leaseData.rentAmount.toFixed(2)}</strong>, due on the 1st day of each month.</p>
 				</div>
-				
+
 				${
 					leaseData.terms && leaseData.terms.length > 0
 						? `
@@ -266,22 +269,22 @@ export class PDFGeneratorService implements OnModuleDestroy {
 				`
 						: ''
 				}
-				
+
 				<div class="signatures">
 					<div class="section-title">SIGNATURES</div>
-					
+
 					<div class="signature-block">
 						<div class="signature-line"></div>
 						<div><strong>Landlord:</strong> ${leaseData.landlordName}</div>
 						<div>Date: _________________</div>
 					</div>
-					
+
 					<div class="signature-block">
 						<div class="signature-line"></div>
 						<div><strong>Tenant:</strong> ${leaseData.tenantName}</div>
 						<div>Date: _________________</div>
 					</div>
-					
+
 					<div class="clear"></div>
 				</div>
 			</body>
@@ -297,7 +300,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 	async onModuleDestroy(): Promise<void> {
 		if (this.browser) {
 			await this.browser.close()
-			this.logger.log('PDF generator browser closed')
+			this.logger?.log('PDF generator browser closed')
 		}
 	}
 }

@@ -9,6 +9,26 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./lib/supabase-client": {
+      "types": "./dist/lib/supabase-client.d.ts",
+      "default": "./dist/lib/supabase-client.js"
+    },
+    "./lib/frontend-logger": {
+      "types": "./dist/lib/frontend-logger.d.ts",
+      "default": "./dist/lib/frontend-logger.js"
+    },
+    "./utils/api-client": {
+      "types": "./dist/utils/api-client.d.ts",
+      "default": "./dist/utils/api-client.js"
+    },
+    "./config/pricing": {
+      "types": "./dist/config/pricing.d.ts",
+      "default": "./dist/config/pricing.js"
+    },
+    "./config/dynamic-pricing": {
+      "types": "./dist/config/dynamic-pricing.d.ts",
+      "default": "./dist/config/dynamic-pricing.js"
     }
   },
   "files": [

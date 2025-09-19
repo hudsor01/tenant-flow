@@ -112,7 +112,7 @@ export const Highlight = ({
     primary: 'bg-gradient-to-r from-primary/30 to-primary/20 dark:from-primary/50 dark:to-primary/30',
     secondary: 'bg-gradient-to-r from-secondary/30 to-secondary/20 dark:from-secondary/50 dark:to-secondary/30',
     accent: 'bg-gradient-to-r from-accent/30 to-accent/20 dark:from-accent/50 dark:to-accent/30',
-    gradient: 'bg-gradient-to-r from-indigo-300/30 to-purple-300/30 dark:from-indigo-500/50 dark:to-purple-500/30'
+    gradient: 'bg-gradient-to-r from-primary/30 to-accent/30 dark:from-primary/50 dark:to-accent/30'
   };
 
 	return (

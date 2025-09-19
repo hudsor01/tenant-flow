@@ -1,20 +1,9 @@
 'use client'
 
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useRef, useMemo } from 'react'
+import React, { useRef, useMemo } from 'react'
 import { cn } from '@/lib/design-system'
-
-interface VirtualizedListProps<T> {
-  items: T[]
-  renderItem: (item: T, index: number) => React.ReactNode
-  estimateSize: number
-  className?: string
-  height?: number
-  gap?: number
-  overscan?: number
-  getItemKey?: (item: T, index: number) => string
-  onScrollToEnd?: () => void
-}
+import type { VirtualizedListProps, VirtualizedPropertyListProps, VirtualizedTenantListProps } from '@repo/shared'
 
 export function VirtualizedList<T>({
   items,
@@ -79,7 +68,7 @@ export function VirtualizedList<T>({
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >
-              {item ? renderItem(item, virtualItem.index) : null}
+              {item ? (renderItem(item, virtualItem.index) as React.ReactNode) : null}
             </div>
           )
         })}
@@ -89,19 +78,6 @@ export function VirtualizedList<T>({
 }
 
 // Specialized virtualized components for our domain entities
-
-interface VirtualizedPropertyListProps {
-  properties: Array<{
-    id: string
-    displayAddress: string
-    displayType: string
-    statusDisplay: string
-    statusColor: string
-  }>
-  onPropertyClick?: (propertyId: string) => void
-  className?: string
-  height?: number
-}
 
 export function VirtualizedPropertyList({
   properties,
@@ -141,20 +117,6 @@ export function VirtualizedPropertyList({
   )
 }
 
-interface VirtualizedTenantListProps {
-  tenants: Array<{
-    id: string
-    displayName: string
-    displayEmail: string
-    displayPhone: string
-    statusDisplay: string
-    statusColor: string
-    avatarInitials: string
-  }>
-  onTenantClick?: (tenantId: string) => void
-  className?: string
-  height?: number
-}
 
 export function VirtualizedTenantList({
   tenants,

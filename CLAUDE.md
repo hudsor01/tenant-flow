@@ -1,10 +1,3 @@
-# CLAUDE.md
-
-Guidance for Claude Code working with this repository.
-
-Read the CLAUDE_SESSION_NOTES.md for the latest in migrations, activities etc
-and overall context before proceeeding with the rest of this file
-
 ## MANDATORY RULES - NO EXCEPTIONS
 
 ### NO EMOJIS RULE
@@ -46,7 +39,7 @@ CORRECT - Single source imports:
 
 FORBIDDEN - Legacy/removed paths:
 - import type { ApiResponse } from '@repo/shared/types/common' - REMOVED
-- import type { TenantStats } from '@repo/shared/types/stats' - REMOVED  
+- import type { TenantStats } from '@repo/shared/types/stats' - REMOVED
 - import type { ValidatedUser } from '@repo/shared/types/backend' - REMOVED
 - import type { StorageUploadResult } from '@repo/shared/types/storage' - REMOVED
 
@@ -66,7 +59,7 @@ File Structure:
 
 Required Patterns:
 - Native Result Pattern: ApiResponse with success/error discriminated union
-- Native Template Literals: CamelCase string manipulation types  
+- Native Template Literals: CamelCase string manipulation types
 - Native Conditional Types: DeepReadonly using recursive conditional logic
 - Native Utility Types: CreateInput using Omit, UpdateInput using Partial
 - Use built-in TypeScript utilities instead of custom implementations
@@ -103,7 +96,7 @@ Required Patterns:
 4. Follow naming conventions: `PascalCase` for types, `camelCase` for properties
 
 **Before Modifying Existing Types:**
-1. Run full typecheck: `npm run typecheck`  
+1. Run full typecheck: `npm run typecheck`
 2. Check breaking changes across frontend/backend
 3. Update with backward compatibility when possible
 4. Document migration path if breaking
@@ -119,7 +112,7 @@ Required Patterns:
 
 Every type change MUST pass:
 - npm run typecheck - All packages compile
-- npm run build:backend - Backend builds successfully  
+- npm run build:backend - Backend builds successfully
 - npm run build:frontend - Frontend builds successfully
 - npm run test:unit - Type-dependent tests pass
 
@@ -158,7 +151,7 @@ OLD to NEW Migration Examples:
 
 Before - Scattered imports:
 - import { ApiResponse } from '@repo/shared/types/common'
-- import { TenantStats } from '@repo/shared/types/stats' 
+- import { TenantStats } from '@repo/shared/types/stats'
 - import { ValidatedUser } from '@repo/shared/types/backend'
 
 After - Single consolidated import:
@@ -185,7 +178,7 @@ Controller=Cashier (takes orders), Service=Barista (makes coffee), Database=Mach
 ### 6-Point DI Failure Checklist
 When you get "Cannot read properties of undefined (reading 'X')":
 1. **Missing Service in Module providers[]** - Service not registered in @Module providers
-2. **Wrong Injection Pattern** - Controller directly accessing database instead of service layer  
+2. **Wrong Injection Pattern** - Controller directly accessing database instead of service layer
 3. **Missing @Injectable()** - Service class needs @Injectable() decorator
 4. **Missing Module Imports** - Service needs another service but module doesn't import it
 5. **Circular Dependencies** - Services importing each other, use @Global() modules instead
@@ -197,7 +190,7 @@ Check logs: `doppler run -- npm run dev` | Find modules: `rg -A5 "@Module" --typ
 ### Ultra-Native Patterns
 **Controller**: Service layer + PinoLogger only, delegate to services, use built-in pipes | **Service**: SupabaseService + PinoLogger only, direct RPC calls under 30 lines | **Module**: imports/providers/exports arrays, @Global() for shared services
 
-### Critical Rules  
+### Critical Rules
 **No Abstractions**: Direct PostgreSQL RPC via Supabase, no repositories/DTOs/wrappers | **Built-in NestJS**: ParseUUIDPipe, exceptions, guards only | **Error Handling**: Simple logging + NestJS exceptions
 
 ### Mandatory Testing
@@ -230,27 +223,27 @@ Server starts with "dependencies initialized" | Public endpoints work | Protecte
 - **Responsive**: Tailwind prefixes | **Focus**: Radix utilities | **Keyboard**: Radix handlers
 
 ### BEFORE EVERY CHANGE
-1. Does this exist? (Search first!)
-2. Can I use native platform feature?
-3. Can I delete code instead?
-4. Is this the simplest solution?
-5. Will another developer understand immediately?
-6. Does this follow accessibility standards?
-7. Is this predictable and consistent?
+1. Think: Does this exist? (Search first!)
+2. Think: Can I use native platform feature?
+3. Think: Can I delete code instead?
+4. Think: Is this the simplest solution?
+5. Think: Will another developer understand immediately?
+6. Think: Does this follow accessibility standards?
+7. Think: Is this predictable and consistent?
 
 ## Tech Stack
 
 **Frontend (Vercel)**
-- Next.js 15.5.0 + React 19.1.1 (Turbopack required)
-- Radix UI + TailwindCSS 4.1.12 + ShadCN
-- TanStack Query 5.85.5, Zustand 5.0.8, React Hook Form 7.62.0
-- Framer Motion 12.23.12, Lucide Icons 0.540.0, Recharts 3.1.2
+- Next.js 15.5.0 + React 19.1.1
+- TailwindCSS 4.1.12 + ShadCN/UI + Magic UI
+- TanStack Query 5.85.5, Zustand 5.0.8, Zod 4.0.0, TanStack Form
+- React-Spring/Web, Lucide Icons 0.540.0, Recharts 3.1.2
 
 **Backend (Railway)**
 - NestJS 11.1.6 + Fastify 11.x
 - Supabase 2.56.0, Stripe 18.4.0, Resend 6.0.1
 - In-memory cache + Database query cache
-- Health: `/health/ping`
+- Health: `/health`
 
 **Shared**
 - Node.js 22.x (Railway: 24.x Docker), npm 11.5.2, Turborepo 2.5.6
@@ -259,22 +252,22 @@ Server starts with "dependencies initialized" | Public endpoints work | Protecte
 ## Commands
 
 **Dev**: `npm run dev` | **Clean**: `npm run dev:clean`
-**Quality**: `npm run claude:check` | `npm run lint` | `npm run typecheck` | `npm run test:unit`
+**Quality**: `npm run lint` | `npm run typecheck` | `npm run test:unit`
 **Build**: `npm run build` | `build:frontend` | `build:backend`
 **Test**: `test:integration` | `test:e2e` | `test:production`
 **Database**: `npm run update-supabase-types`
-**Secrets**: `secrets:generate` | `secrets:check` | `secrets:export`
+**Secrets**: prefix commands with doppler
 
 ## Architecture
 
 **State Management**
 - Zustand: Global UI state, session, notifications, theme
 - TanStack Query: Server state, caching, optimistic updates
-- React Hook Form: Form state (no abstractions)
+- TanStack Form: Form state
 - URL State: Navigation, filters via Next.js router
 
 **Frontend Structure**
-- `components/`: Pure UI (Radix + ShadCN)
+- `components/`: Pure UI (MagicUI + ShadCN)
 - `hooks/api/`: TanStack Query hooks
 - `lib/`: Utilities, API clients, validation
 - `stores/`: Zustand global state
@@ -292,7 +285,7 @@ Server starts with "dependencies initialized" | Public endpoints work | Protecte
 ## Monorepo
 
 - `apps/`: frontend, backend
-- `packages/`: shared (build first), emails, tailwind-config, typescript-config
+- `packages/`: shared (build first), emails, eslint-config, typescript-config
 
 Build dependencies: shared → frontend/backend
 
@@ -313,7 +306,7 @@ Build dependencies: shared → frontend/backend
 
 ### MANDATORY TEST COVERAGE
 - **Controllers**: All endpoints with auth, validation, error handling
-- **Services**: All business logic with edge cases and error scenarios  
+- **Services**: All business logic with edge cases and error scenarios
 - **Critical Paths**: Auth, billing, user management, core business entities
 
 ### TEST QUALITY STANDARDS
@@ -345,18 +338,6 @@ it('mirrors production behavior exactly', async () => {
   expect(result).toEqual(expectedProductionBehavior)
 })
 ```
-
-### CURRENT TESTING STATUS
-- **Controllers**: 5/17 tested (Dashboard/Maintenance have 100% coverage)
-- **Services**: 15/22 tested (Auth, Database, PDF, Business Logic covered)
-- **Critical Missing**: Auth controllers, Stripe controllers (security/financial risk)
-- **Quality**: Excellent infrastructure, proven methodology established
-
-## Session Notes
-
-**File**: `CLAUDE_SESSION_NOTES.md` in project root
-**Update**: After EVERY meaningful action, discovery, or decision
-**Include**: Current context, recent changes, discoveries, TODOs
 
 ## Success Metrics
 

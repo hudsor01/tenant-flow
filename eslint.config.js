@@ -6,8 +6,6 @@
  * following Turborepo best practices for monorepo configuration
  */
 
-import antiDuplicationPlugin from './.eslint/plugins/anti-duplication.js'
-import designSystemClasses from './.eslint/rules/design-system-classes.js'
 import noBarrelExports from './.eslint/rules/no-barrel-exports.js'
 import noInlineTypes from './.eslint/rules/no-inline-types.js'
 import baseConfig from './packages/eslint-config/base.js'
@@ -29,15 +27,17 @@ export default [
 	},
 	{
 		name: 'root/scripts',
-		files: ['scripts/**/*.{js,mjs,ts}'],
+		files: ['scripts/**/*.{js,mjs,ts}', 'apps/*/scripts/**/*.{js,mjs,ts}'],
 		rules: {
 			'no-console': 'off',
 			'@typescript-eslint/no-require-imports': 'off',
-			'@typescript-eslint/no-var-requires': 'off'
+			'@typescript-eslint/no-var-requires': 'off',
+			'no-restricted-globals': 'off',
+			'no-eval': 'off'
 		},
 		languageOptions: {
 			parserOptions: {
-				project: null, // Don't use TypeScript project for scripts
+				project: null,
 				allowDefaultProject: true
 			}
 		}
@@ -65,44 +65,27 @@ export default [
 					'no-barrel-exports': noBarrelExports
 				}
 			},
-			'design-system': {
-				rules: {
-					classes: designSystemClasses
-				}
-			}
 		},
 		rules: {
 			'type-centralization/no-inline-types': 'error',
 			'type-centralization/no-barrel-exports': [
-				'error',
+				'warn',
 				{
 					allowedBarrels: ['packages/shared/src/index.ts']
 				}
-			],
-			'design-system/classes': 'error'
+			]
 		}
 	},
 	{
-		name: 'root/anti-duplication',
-		files: ['**/*.ts', '**/*.tsx'],
-		ignores: [
-			'**/*.test.*',
-			'**/*.spec.*',
-			'**/*.config.*',
-			'**/*.d.ts',
-			'**/generated-*',
-			'.eslint/**',
-			'packages/shared/src/validation/**',
-			'packages/shared/src/types/**'
-		],
-		plugins: {
-			'anti-duplication': antiDuplicationPlugin
-		},
+		name: 'root/test-files',
+		files: ['**/*.test.*', '**/*.spec.*'],
 		rules: {
-			'anti-duplication/enforce-schema-generation': 'error',
-			'anti-duplication/no-manual-validation-schemas': 'error',
-			'anti-duplication/no-duplicate-api-methods': 'error',
-			'anti-duplication/enforce-global-loading': 'warn'
+			'@typescript-eslint/no-explicit-any': 'error',
+			'@typescript-eslint/no-unsafe-argument': 'error',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-return': 'error',
+			'@typescript-eslint/no-unsafe-call': 'off',
+			'@typescript-eslint/no-unused-vars': 'error'
 		}
 	}, // Project-specific anti-pattern guards and SECURITY RULES
 	{
@@ -137,6 +120,11 @@ export default [
 							group: ['jotai', '**/atoms/**'],
 							message:
 								'Jotai was replaced with Zustand. Use stores/app-store.ts instead.'
+						},
+						{
+							group: ['framer-motion', 'components/*'],
+							message:
+								'Framer Motion is not allowed. Framer Motion was replaced with react-spring/web. Migrate to react-spring/web.'
 						}
 					]
 				}

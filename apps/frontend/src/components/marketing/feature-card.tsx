@@ -8,7 +8,7 @@ export interface FeatureCardProps extends Omit<React.ComponentProps<'div'>, 'tit
   icon?: React.ComponentType<{ className?: string }>
   title: React.ReactNode
   description?: React.ReactNode
-  accent?: 'blue' | 'green' | 'amber' | 'purple' | 'primary'
+  accent?: 'primary' | 'accent' | 'muted' | 'subtle'
 }
 
 export function FeatureCard({
@@ -20,11 +20,10 @@ export function FeatureCard({
   ...props
 }: FeatureCardProps) {
   const accentMap = {
-    blue: 'from-blue-500 to-cyan-500',
-    green: 'from-green-500 to-emerald-500',
-    amber: 'from-amber-500 to-orange-500',
-    purple: 'from-purple-500 to-fuchsia-500',
     primary: 'from-primary to-primary/80',
+    accent: 'from-primary/80 to-accent',
+    muted: 'from-accent to-primary',
+    subtle: 'from-primary/60 to-accent/60',
   }
 
   return (

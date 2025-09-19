@@ -1,8 +1,5 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { API_BASE_URL } from '@/lib/api-client'
 import {
 	ANIMATION_DURATIONS,
@@ -12,6 +9,7 @@ import {
 	cn,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
+import type { CustomerPortalCardProps } from '@repo/shared'
 import { useMutation } from '@tanstack/react-query'
 import {
 	Activity,
@@ -34,6 +32,14 @@ import {
 } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { toast } from 'sonner'
+import { Badge } from 'src/components/ui/badge'
+import { Button } from 'src/components/ui/button'
+import {
+	Card,
+	CardContent,
+	CardHeader,
+	CardTitle
+} from 'src/components/ui/card'
 
 export function CustomerPortalButton({
 	variant = 'outline',
@@ -108,9 +114,7 @@ export function CustomerPortalButton({
 			)}
 			onClick={handlePortalAccess}
 			disabled={portalMutation.isPending}
-			style={{
-				transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-			}}
+			style={{}}
 			{...props}
 		>
 			{children || (
@@ -121,32 +125,6 @@ export function CustomerPortalButton({
 			)}
 		</Button>
 	)
-}
-
-interface CustomerPortalCardProps {
-	className?: string
-	showStats?: boolean
-	showTestimonial?: boolean
-	currentPlan?: string
-	planTier?: 'starter' | 'professional' | 'enterprise' | 'ultimate'
-	usageStats?: {
-		properties: number
-		tenants: number
-		uptime: string
-		monthlyRevenue?: number
-		activeLeases?: number
-	}
-	billingInfo?: {
-		nextBillingDate?: string
-		lastPayment?: string
-		paymentMethod?: string
-	}
-	testimonial?: {
-		text: string
-		author: string
-		company: string
-		rating: number
-	}
 }
 
 export function CustomerPortalCard({
@@ -177,43 +155,39 @@ export function CustomerPortalCard({
 	// Plan tier configuration
 	const tierConfig = {
 		starter: {
-			gradient: 'from-pink-500 to-pink-600',
-			bgGradient:
-				'from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/10',
-			borderColor: 'border-pink-200 dark:border-pink-800',
-			textColor: 'text-pink-700 dark:text-pink-300'
+			gradient: 'from-primary to-primary',
+			bgGradient: 'from-primary/5 to-primary/10',
+			borderColor: 'border-primary/20',
+			textColor: 'text-primary'
 		},
 		growth: {
-			gradient: 'from-blue-500 to-blue-600',
-			bgGradient:
-				'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10',
-			borderColor: 'border-blue-200 dark:border-blue-800',
-			textColor: 'text-blue-700 dark:text-blue-300'
+			gradient: 'from-accent to-accent',
+			bgGradient: 'from-accent/5 to-accent/10',
+			borderColor: 'border-accent/20',
+			textColor: 'text-accent'
 		},
 		professional: {
-			gradient: 'from-indigo-500 to-indigo-600',
-			bgGradient:
-				'from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/10',
-			borderColor: 'border-indigo-200 dark:border-indigo-800',
-			textColor: 'text-indigo-700 dark:text-indigo-300'
+			gradient: 'from-primary to-primary',
+			bgGradient: 'from-primary/5 to-primary/10',
+			borderColor: 'border-primary/20',
+			textColor: 'text-primary'
 		},
 		tenantflow_max: {
-			gradient: 'from-purple-500 to-purple-600',
-			bgGradient:
-				'from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/10',
-			borderColor: 'border-purple-200 dark:border-purple-800',
-			textColor: 'text-purple-700 dark:text-purple-300'
+			gradient: 'from-primary to-primary',
+			bgGradient: 'from-primary/5 to-primary/10',
+			borderColor: 'border-primary/20',
+			textColor: 'text-primary'
 		},
 		enterprise: {
-			gradient: 'from-amber-500 to-amber-600',
-			bgGradient:
-				'from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/10',
-			borderColor: 'border-amber-200 dark:border-amber-800',
-			textColor: 'text-amber-700 dark:text-amber-300'
+			gradient: 'from-accent to-accent',
+			bgGradient: 'from-accent/5 to-accent/10',
+			borderColor: 'border-accent/20',
+			textColor: 'text-accent'
 		}
 	}
 
-	const config = tierConfig[planTier as keyof typeof tierConfig] || tierConfig.starter
+	const config =
+		tierConfig[planTier as keyof typeof tierConfig] || tierConfig.starter
 
 	return (
 		<div className="space-y-6">
@@ -280,7 +254,7 @@ export function CustomerPortalCard({
 								{currentPlan}
 							</Badge>
 							<div className="flex items-center gap-2 mt-2">
-								<div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+								<div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
 								<span className="text-xs text-muted-foreground font-medium">
 									Active Plan
 								</span>
@@ -313,9 +287,9 @@ export function CustomerPortalCard({
 								</Badge>
 							</div>
 							<div className="grid grid-cols-2 lg:grid-cols-5 gap-6">
-								<div className="text-center p-4 bg-white/50 dark:bg-gray-900/20 rounded-xl border border-muted/30">
-									<div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-										<FileText className="h-5 w-5 text-blue-600" />
+								<div className="text-center p-4 bg-background/50 rounded-xl border border-muted/30">
+									<div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+										<FileText className="h-5 w-5 text-accent" />
 									</div>
 									<p className="text-2xl font-black text-foreground tabular-nums">
 										{usageStats.properties}
@@ -324,9 +298,9 @@ export function CustomerPortalCard({
 										Properties
 									</p>
 								</div>
-								<div className="text-center p-4 bg-white/50 dark:bg-gray-900/20 rounded-xl border border-muted/30">
-									<div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-										<Users className="h-5 w-5 text-purple-600" />
+								<div className="text-center p-4 bg-background/50 rounded-xl border border-muted/30">
+									<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+										<Users className="h-5 w-5 text-primary" />
 									</div>
 									<p className="text-2xl font-black text-foreground tabular-nums">
 										{usageStats.tenants}
@@ -335,11 +309,11 @@ export function CustomerPortalCard({
 										Tenants
 									</p>
 								</div>
-								<div className="text-center p-4 bg-white/50 dark:bg-gray-900/20 rounded-xl border border-muted/30">
-									<div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-										<Zap className="h-5 w-5 text-green-600" />
+								<div className="text-center p-4 bg-background/50 rounded-xl border border-muted/30">
+									<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+										<Zap className="h-5 w-5 text-primary" />
 									</div>
-									<p className="text-2xl font-black text-green-600 tabular-nums">
+									<p className="text-2xl font-black text-primary tabular-nums">
 										{usageStats.uptime}
 									</p>
 									<p className="text-xs text-muted-foreground font-medium">
@@ -347,11 +321,11 @@ export function CustomerPortalCard({
 									</p>
 								</div>
 								{usageStats.monthlyRevenue && (
-									<div className="text-center p-4 bg-white/50 dark:bg-gray-900/20 rounded-xl border border-muted/30">
-										<div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-											<TrendingUp className="h-5 w-5 text-emerald-600" />
+									<div className="text-center p-4 bg-background/50 rounded-xl border border-muted/30">
+										<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+											<TrendingUp className="h-5 w-5 text-primary" />
 										</div>
-										<p className="text-2xl font-black text-emerald-600 tabular-nums">
+										<p className="text-2xl font-black text-primary tabular-nums">
 											${usageStats.monthlyRevenue.toLocaleString()}
 										</p>
 										<p className="text-xs text-muted-foreground font-medium">
@@ -360,11 +334,11 @@ export function CustomerPortalCard({
 									</div>
 								)}
 								{usageStats.activeLeases && (
-									<div className="text-center p-4 bg-white/50 dark:bg-gray-900/20 rounded-xl border border-muted/30">
-										<div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center mx-auto mb-2">
-											<FileText className="h-5 w-5 text-orange-600" />
+									<div className="text-center p-4 bg-background/50 rounded-xl border border-muted/30">
+										<div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+											<FileText className="h-5 w-5 text-accent" />
 										</div>
-										<p className="text-2xl font-black text-orange-600 tabular-nums">
+										<p className="text-2xl font-black text-accent tabular-nums">
 											{usageStats.activeLeases}
 										</p>
 										<p className="text-xs text-muted-foreground font-medium">
@@ -378,18 +352,18 @@ export function CustomerPortalCard({
 
 					{/* Billing Information */}
 					{billingInfo && (
-						<div className="bg-gradient-to-br from-blue-50/50 to-blue-100/30 dark:from-blue-900/10 dark:to-blue-800/5 rounded-2xl p-6 border border-blue-200/50 dark:border-blue-800/30">
+						<div className="bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl p-6 border border-accent/20">
 							<div className="flex items-center justify-between mb-6">
 								<h4
 									className="font-bold text-foreground flex items-center gap-3"
 									style={{ fontSize: TYPOGRAPHY_SCALE['heading-md'].fontSize }}
 								>
-									<div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-										<CreditCard className="h-5 w-5 text-blue-600" />
+									<div className="p-2 bg-accent/10 rounded-lg">
+										<CreditCard className="h-5 w-5 text-accent" />
 									</div>
 									Billing Information
 								</h4>
-								<Badge className="bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
+								<Badge className="bg-primary/10 text-primary border-primary/20">
 									<Lock className="w-3 h-3 mr-1" />
 									Secured
 								</Badge>
@@ -397,9 +371,9 @@ export function CustomerPortalCard({
 
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 								{billingInfo.nextBillingDate && (
-									<div className="bg-white/70 dark:bg-gray-900/30 rounded-lg p-4 border border-blue-200/30 dark:border-blue-800/20">
+									<div className="bg-background/70 rounded-lg p-4 border border-primary/20">
 										<div className="flex items-center gap-2 mb-2">
-											<Calendar className="h-4 w-4 text-blue-600" />
+											<Calendar className="h-4 w-4 text-primary" />
 											<span className="text-sm font-semibold text-muted-foreground">
 												Next Billing
 											</span>
@@ -417,9 +391,9 @@ export function CustomerPortalCard({
 									</div>
 								)}
 								{billingInfo.lastPayment && (
-									<div className="bg-white/70 dark:bg-gray-900/30 rounded-lg p-4 border border-blue-200/30 dark:border-blue-800/20">
+									<div className="bg-background/70 rounded-lg p-4 border border-primary/20">
 										<div className="flex items-center gap-2 mb-2">
-											<CheckCircle2 className="h-4 w-4 text-green-600" />
+											<CheckCircle2 className="h-4 w-4 text-accent" />
 											<span className="text-sm font-semibold text-muted-foreground">
 												Last Payment
 											</span>
@@ -437,9 +411,9 @@ export function CustomerPortalCard({
 									</div>
 								)}
 								{billingInfo.paymentMethod && (
-									<div className="bg-white/70 dark:bg-gray-900/30 rounded-lg p-4 border border-blue-200/30 dark:border-blue-800/20">
+									<div className="bg-background/70 rounded-lg p-4 border border-primary/20">
 										<div className="flex items-center gap-2 mb-2">
-											<CreditCard className="h-4 w-4 text-blue-600" />
+											<CreditCard className="h-4 w-4 text-primary" />
 											<span className="text-sm font-semibold text-muted-foreground">
 												Payment Method
 											</span>
@@ -471,10 +445,7 @@ export function CustomerPortalCard({
 							<div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-2xl p-6 border-2 border-primary/20 max-w-2xl mx-auto">
 								<div className="flex items-center justify-center gap-1 mb-4">
 									{[...Array(testimonial.rating)].map((_, i) => (
-										<Star
-											key={i}
-											className="h-4 w-4 fill-yellow-400 text-yellow-400"
-										/>
+										<Star key={i} className="h-4 w-4 fill-accent text-accent" />
 									))}
 									<span className="ml-2 text-sm font-bold text-primary">
 										{testimonial.rating}/5
@@ -508,13 +479,10 @@ export function CustomerPortalCard({
 							animationClasses('fade-in')
 						)}
 					>
-						<div
-							className="group p-5 bg-gradient-to-br from-blue-50/50 to-blue-100/30 dark:from-blue-900/10 dark:to-blue-800/5 rounded-2xl border-2 border-blue-200/50 dark:border-blue-800/30 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg cursor-pointer"
-							style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
-						>
+						<div className="group p-5 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border-2 border-primary/20 hover:border-primary/30 hover:shadow-lg cursor-pointer">
 							<div className="flex items-center gap-4 mb-3">
-								<div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-xl">
-									<CreditCard className="w-6 h-6 text-blue-600" />
+								<div className="p-3 bg-primary/10 rounded-xl">
+									<CreditCard className="w-6 h-6 text-primary" />
 								</div>
 								<div>
 									<h5
@@ -529,20 +497,17 @@ export function CustomerPortalCard({
 								</div>
 							</div>
 							<div className="flex items-center justify-between">
-								<span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+								<span className="text-sm text-primary font-medium">
 									Secure & instant updates
 								</span>
-								<ArrowRight className="w-5 h-5 text-blue-600 group-hover:translate-x-1 transition-transform" />
+								<ArrowRight className="w-5 h-5 text-primary group-hover:translate-x-1 transition-transform" />
 							</div>
 						</div>
 
-						<div
-							className="group p-5 bg-gradient-to-br from-green-50/50 to-green-100/30 dark:from-green-900/10 dark:to-green-800/5 rounded-2xl border-2 border-green-200/50 dark:border-green-800/30 hover:border-green-300 dark:hover:border-green-700 hover:shadow-lg cursor-pointer"
-							style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
-						>
+						<div className="group p-5 bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl border-2 border-accent/20 hover:border-accent/30 hover:shadow-lg cursor-pointer">
 							<div className="flex items-center gap-4 mb-3">
-								<div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-xl">
-									<FileText className="w-6 h-6 text-green-600" />
+								<div className="p-3 bg-accent/10 rounded-xl">
+									<FileText className="w-6 h-6 text-accent" />
 								</div>
 								<div>
 									<h5
@@ -557,20 +522,17 @@ export function CustomerPortalCard({
 								</div>
 							</div>
 							<div className="flex items-center justify-between">
-								<span className="text-sm text-green-600 dark:text-green-400 font-medium">
+								<span className="text-sm text-accent font-medium">
 									Instant PDF downloads
 								</span>
-								<ArrowRight className="w-5 h-5 text-green-600 group-hover:translate-x-1 transition-transform" />
+								<ArrowRight className="w-5 h-5 text-accent group-hover:translate-x-1 transition-transform" />
 							</div>
 						</div>
 
-						<div
-							className="group p-5 bg-gradient-to-br from-purple-50/50 to-purple-100/30 dark:from-purple-900/10 dark:to-purple-800/5 rounded-2xl border-2 border-purple-200/50 dark:border-purple-800/30 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-lg cursor-pointer"
-							style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
-						>
+						<div className="group p-5 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border-2 border-primary/20 hover:border-primary/30 hover:shadow-lg cursor-pointer">
 							<div className="flex items-center gap-4 mb-3">
-								<div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-xl">
-									<Download className="w-6 h-6 text-purple-600" />
+								<div className="p-3 bg-primary/10 rounded-xl">
+									<Download className="w-6 h-6 text-primary" />
 								</div>
 								<div>
 									<h5
@@ -585,20 +547,17 @@ export function CustomerPortalCard({
 								</div>
 							</div>
 							<div className="flex items-center justify-between">
-								<span className="text-sm text-purple-600 dark:text-purple-400 font-medium">
+								<span className="text-sm text-primary font-medium">
 									Detailed breakdowns
 								</span>
-								<ArrowRight className="w-5 h-5 text-purple-600 group-hover:translate-x-1 transition-transform" />
+								<ArrowRight className="w-5 h-5 text-primary group-hover:translate-x-1 transition-transform" />
 							</div>
 						</div>
 
-						<div
-							className="group p-5 bg-gradient-to-br from-orange-50/50 to-orange-100/30 dark:from-orange-900/10 dark:to-orange-800/5 rounded-2xl border-2 border-orange-200/50 dark:border-orange-800/30 hover:border-orange-300 dark:hover:border-orange-700 hover:shadow-lg cursor-pointer"
-							style={{ transition: `all ${ANIMATION_DURATIONS.fast} ease-out` }}
-						>
+						<div className="group p-5 bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl border-2 border-accent/20 hover:border-accent/30 hover:shadow-lg cursor-pointer">
 							<div className="flex items-center gap-4 mb-3">
-								<div className="p-3 bg-orange-100 dark:bg-orange-900/20 rounded-xl">
-									<Sparkles className="w-6 h-6 text-orange-600" />
+								<div className="p-3 bg-accent/10 rounded-xl">
+									<Sparkles className="w-6 h-6 text-accent" />
 								</div>
 								<div>
 									<h5
@@ -613,10 +572,10 @@ export function CustomerPortalCard({
 								</div>
 							</div>
 							<div className="flex items-center justify-between">
-								<span className="text-sm text-orange-600 dark:text-orange-400 font-medium">
+								<span className="text-sm text-accent font-medium">
 									Flexible changes
 								</span>
-								<ArrowRight className="w-5 h-5 text-orange-600 group-hover:translate-x-1 transition-transform" />
+								<ArrowRight className="w-5 h-5 text-accent group-hover:translate-x-1 transition-transform" />
 							</div>
 						</div>
 					</div>
@@ -649,8 +608,8 @@ export function CustomerPortalCard({
 			<div className="bg-gradient-to-r from-muted/10 via-background to-muted/10 rounded-2xl p-6 border-2 border-muted/20">
 				<div className="flex flex-wrap items-center justify-center gap-6 text-sm">
 					<div className="flex items-center gap-3">
-						<div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-							<Shield className="w-5 h-5 text-green-600" />
+						<div className="p-2 bg-accent/10 rounded-lg">
+							<Shield className="w-5 h-5 text-accent" />
 						</div>
 						<div>
 							<p className="font-bold text-foreground">Bank-Level Security</p>
@@ -660,8 +619,8 @@ export function CustomerPortalCard({
 						</div>
 					</div>
 					<div className="flex items-center gap-3">
-						<div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-							<CheckCircle2 className="w-5 h-5 text-blue-600" />
+						<div className="p-2 bg-primary/10 rounded-lg">
+							<CheckCircle2 className="w-5 h-5 text-primary" />
 						</div>
 						<div>
 							<p className="font-bold text-foreground">Powered by Stripe</p>
@@ -671,8 +630,8 @@ export function CustomerPortalCard({
 						</div>
 					</div>
 					<div className="flex items-center gap-3">
-						<div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-							<Users className="w-5 h-5 text-purple-600" />
+						<div className="p-2 bg-primary/10 rounded-lg">
+							<Users className="w-5 h-5 text-primary" />
 						</div>
 						<div>
 							<p className="font-bold text-foreground">10,000+ Managers</p>

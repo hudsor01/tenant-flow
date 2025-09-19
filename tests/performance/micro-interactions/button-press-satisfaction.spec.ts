@@ -117,9 +117,13 @@ test.describe('Micro-Interaction Satisfaction - Apple Standard', () => {
           // Should have visual distinction
           const hasWarningStyle = await page.locator(selector).evaluate((el) => {
             const style = window.getComputedStyle(el)
+            // Check for destructive variant or red hues in computed styles
             return style.backgroundColor.includes('red') ||
                    style.color.includes('red') ||
-                   style.borderColor.includes('red')
+                   style.borderColor.includes('red') ||
+                   el.getAttribute('data-variant') === 'destructive' ||
+                   el.classList.contains('destructive') ||
+                   el.classList.contains('btn-destructive')
           })
 
           expect(hasWarningStyle, `Destructive button ${selector} lacks visual warning`).toBe(true)

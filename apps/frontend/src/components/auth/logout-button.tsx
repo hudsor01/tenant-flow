@@ -1,17 +1,17 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { 
-	cn, 
-	buttonClasses,
+import {
 	ANIMATION_DURATIONS,
+	buttonClasses,
+	cn,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
 import { supabaseClient } from '@repo/shared'
+import { Loader2, LogOut } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { LogOut, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
 import * as React from 'react'
+import { toast } from 'sonner'
+import { Button } from 'src/components/ui/button'
 
 interface LogoutButtonProps extends React.ComponentProps<typeof Button> {
 	redirectPath?: string
@@ -29,9 +29,9 @@ export const LogoutButton = React.forwardRef<
 	LogoutButtonProps
 >(
 	(
-		{ 
-			className, 
-			redirectPath = '/auth/login', 
+		{
+			className,
+			redirectPath = '/auth/login',
 			showIcon = true,
 			loadingText = 'Signing out...',
 			successMessage = 'Successfully signed out',
@@ -39,11 +39,11 @@ export const LogoutButton = React.forwardRef<
 			requireConfirmation = false,
 			confirmationMessage = 'Are you sure you want to sign out?',
 			showSecurityInfo = false,
-			children, 
-			onClick, 
+			children,
+			onClick,
 			disabled,
 			variant = 'outline',
-			...props 
+			...props
 		},
 		ref
 	) => {
@@ -51,33 +51,37 @@ export const LogoutButton = React.forwardRef<
 		const [isLoading, setIsLoading] = React.useState(false)
 		const [showConfirmation, setShowConfirmation] = React.useState(false)
 
-		const performLogout = async (event: React.MouseEvent<HTMLButtonElement>) => {
+		const performLogout = async (
+			event: React.MouseEvent<HTMLButtonElement>
+		) => {
 			setIsLoading(true)
-			
+
 			try {
 				// Call custom onClick handler first if provided
 				await onClick?.(event)
-				
+
 				// Sign out from Supabase
 				const { error } = await supabaseClient.auth.signOut()
-				
+
 				if (error) {
 					throw new Error(error.message)
 				}
-				
+
 				toast.success(successMessage, {
-					description: showSecurityInfo ? 'Your session has been securely terminated' : undefined
+					description: showSecurityInfo
+						? 'Your session has been securely terminated'
+						: undefined
 				})
-				
+
 				// Small delay to show success message
 				setTimeout(() => {
 					router.push(redirectPath)
 				}, 500)
-				
 			} catch (error) {
 				console.error('Logout error:', error)
 				toast.error(errorMessage, {
-					description: 'Please try again or contact support if the issue persists'
+					description:
+						'Please try again or contact support if the issue persists'
 				})
 				setIsLoading(false)
 			}
@@ -85,12 +89,12 @@ export const LogoutButton = React.forwardRef<
 
 		const handleLogout = async (event: React.MouseEvent<HTMLButtonElement>) => {
 			if (isLoading) return
-			
+
 			if (requireConfirmation && !showConfirmation) {
 				setShowConfirmation(true)
 				return
 			}
-			
+
 			await performLogout(event)
 		}
 
@@ -103,7 +107,7 @@ export const LogoutButton = React.forwardRef<
 			return (
 				<div className="flex flex-col gap-3 p-4 bg-card border border-border rounded-lg shadow-lg">
 					<div className="text-center space-y-2">
-						<h4 
+						<h4
 							className="font-semibold text-foreground"
 							style={{
 								fontSize: TYPOGRAPHY_SCALE['body-md'].fontSize,
@@ -112,7 +116,7 @@ export const LogoutButton = React.forwardRef<
 						>
 							Confirm Sign Out
 						</h4>
-						<p 
+						<p
 							className="text-muted-foreground text-sm"
 							style={{
 								fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
@@ -156,29 +160,32 @@ export const LogoutButton = React.forwardRef<
 					variant={variant}
 					disabled={disabled || isLoading}
 					className={cn(
-						"relative group overflow-hidden",
+						'relative group overflow-hidden',
 						`transition-all duration-[${ANIMATION_DURATIONS.default}]`,
-						variant === 'outline' && cn(
-							buttonClasses('outline', 'default'),
-							"hover:bg-red-50 dark:hover:bg-red-900/20",
-							"hover:border-red-300 dark:hover:border-red-600",
-							"hover:text-red-600 dark:hover:text-red-400",
-							"hover:shadow-md hover:shadow-red-500/10"
-						),
-						variant === 'destructive' && cn(
-							buttonClasses('destructive', 'default'),
-							"bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800",
-							"text-white hover:shadow-lg hover:shadow-red-500/25",
-							"transform hover:scale-[1.02] active:scale-[0.98]"
-						),
-						variant === 'ghost' && cn(
-							buttonClasses('ghost', 'default'),
-							"hover:bg-red-50 dark:hover:bg-red-900/20",
-							"hover:text-red-600 dark:hover:text-red-400"
-						),
-						"focus:ring-2 focus:ring-red-500/20 focus:ring-offset-2",
-						"disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100",
-						isLoading && "animate-pulse",
+						variant === 'outline' &&
+							cn(
+								buttonClasses('outline', 'default'),
+								'hover:bg-destructive/5 dark:hover:bg-destructive/10',
+								'hover:border-destructive/30 dark:hover:border-destructive/60',
+								'hover:text-destructive dark:hover:text-destructive',
+								'hover:shadow-md hover:shadow-destructive/10'
+							),
+						variant === 'destructive' &&
+							cn(
+								buttonClasses('destructive', 'default'),
+								'bg-gradient-to-r from-destructive to-destructive/90 hover:from-destructive/90 hover:to-destructive/80',
+								'text-white hover:shadow-lg hover:shadow-destructive/25',
+								'transform hover:scale-[1.02] active:scale-[0.98]'
+							),
+						variant === 'ghost' &&
+							cn(
+								buttonClasses('ghost', 'default'),
+								'hover:bg-destructive/5 dark:hover:bg-destructive/10',
+								'hover:text-destructive dark:hover:text-destructive'
+							),
+						'focus:ring-2 focus:ring-destructive/20 focus:ring-offset-2',
+						'disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100',
+						isLoading && 'animate-pulse',
 						className
 					)}
 					onClick={handleLogout}
@@ -191,10 +198,12 @@ export const LogoutButton = React.forwardRef<
 								<div className="absolute inset-0 rounded-full border-2 border-transparent border-t-white/30 animate-spin" />
 							</div>
 						) : (
-							showIcon && <LogOut className="h-4 w-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-200" />
+							showIcon && (
+								<LogOut className="h-4 w-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-200" />
+							)
 						)}
 						<div className="flex flex-col items-start">
-							<span 
+							<span
 								className="font-medium"
 								style={{
 									fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
@@ -202,7 +211,7 @@ export const LogoutButton = React.forwardRef<
 									fontWeight: TYPOGRAPHY_SCALE['body-sm'].fontWeight
 								}}
 							>
-								{isLoading ? loadingText : (children || 'Sign Out')}
+								{isLoading ? loadingText : children || 'Sign Out'}
 							</span>
 							{showSecurityInfo && !isLoading && (
 								<span className="text-xs opacity-75 leading-none">
@@ -211,13 +220,15 @@ export const LogoutButton = React.forwardRef<
 							)}
 						</div>
 					</div>
-					
+
 					{/* Hover effect overlay */}
-					<div className={cn(
-						"absolute inset-0 bg-gradient-to-r from-red-500/5 to-orange-500/5",
-						"opacity-0 group-hover:opacity-100",
-						`transition-opacity duration-[${ANIMATION_DURATIONS.fast}]`
-					)} />
+					<div
+						className={cn(
+							'absolute inset-0 bg-gradient-to-r from-destructive/5 to-destructive/5',
+							'opacity-0 group-hover:opacity-100',
+							`transition-opacity duration-[${ANIMATION_DURATIONS.fast}]`
+						)}
+					/>
 				</Button>
 			</div>
 		)

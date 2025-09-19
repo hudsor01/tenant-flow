@@ -1,6 +1,5 @@
 'use client'
 
-import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
 	ChevronDownIcon,
@@ -10,6 +9,7 @@ import {
 import * as React from 'react'
 import type { DayButton } from 'react-day-picker'
 import { DayPicker, getDefaultClassNames } from 'react-day-picker'
+import { Button, buttonVariants } from 'src/components/ui/button'
 
 function Calendar({
 	className,
@@ -34,7 +34,7 @@ function Calendar({
 				String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
 				className
 			)}
-			style={{ "--cell-size": "2rem" } as React.CSSProperties}
+			style={{ '--cell-size': '2rem' } as React.CSSProperties}
 			captionLayout={captionLayout}
 			formatters={{
 				formatMonthDropdown: date =>

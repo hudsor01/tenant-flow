@@ -65,7 +65,7 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
     const variants = {
       primary: {
         background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary)/90 100%)',
-        shimmer: '#ffffff',
+        shimmer: 'hsl(var(--primary-foreground))',
         text: 'text-primary-foreground',
         shadow: 'shadow-lg shadow-primary/25'
       },
@@ -77,27 +77,27 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
       },
       accent: {
         background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent)/90 100%)',
-        shimmer: '#ffffff',
+        shimmer: 'hsl(var(--primary-foreground))',
         text: 'text-accent-foreground',
         shadow: 'shadow-lg shadow-accent/25'
       },
       success: {
-        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-        shimmer: '#ffffff',
+        background: 'linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent)) 100%)',
+        shimmer: 'hsl(var(--primary-foreground))',
         text: 'text-white',
-        shadow: 'shadow-lg shadow-green-500/25'
+        shadow: 'shadow-lg shadow-accent/25'
       },
       warning: {
-        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-        shimmer: '#ffffff',
+        background: 'linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--muted-foreground)) 100%)',
+        shimmer: 'hsl(var(--primary-foreground))',
         text: 'text-white',
-        shadow: 'shadow-lg shadow-amber-500/25'
+        shadow: 'shadow-lg shadow-muted/25'
       },
       danger: {
-        background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-        shimmer: '#ffffff',
+        background: 'linear-gradient(135deg, hsl(var(--destructive)) 0%, hsl(var(--destructive)) 100%)',
+        shimmer: 'hsl(var(--primary-foreground))',
         text: 'text-white',
-        shadow: 'shadow-lg shadow-red-500/25'
+        shadow: 'shadow-lg shadow-destructive/25'
       },
     }
 
@@ -278,7 +278,7 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
           className={cn(
             "absolute inset-0 size-full",
             "[border-radius:var(--radius)]",
-            "shadow-[inset_0_-8px_10px_rgba(255,255,255,0.1)]",
+            "shadow-[inset_0_-8px_10px_hsl(var(--foreground)_/_0.1)]",
             
             // Enhanced transitions
             shouldReduceMotion 
@@ -286,11 +286,11 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
               : "transform-gpu transition-all duration-300 ease-in-out",
             
             // Interactive states
-            "group-hover:shadow-[inset_0_-6px_10px_rgba(255,255,255,0.2)]",
-            "group-active:shadow-[inset_0_-10px_10px_rgba(255,255,255,0.25)]",
+            "group-hover:shadow-[inset_0_-6px_10px_hsl(var(--foreground)_/_0.2)]",
+            "group-active:shadow-[inset_0_-10px_10px_hsl(var(--foreground)_/_0.25)]",
             
             // Focus state
-            "group-focus-visible:shadow-[inset_0_-4px_10px_rgba(255,255,255,0.3)]",
+            "group-focus-visible:shadow-[inset_0_-4px_10px_hsl(var(--foreground)_/_0.3)]",
           )}
         />
 
