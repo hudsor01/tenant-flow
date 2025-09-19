@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { StripeController } from './stripe.controller'
@@ -14,7 +14,7 @@ describe('StripeController', () => {
 		// Mock Supabase service
 		mockSupabaseService = {
 			getAdminClient: jest.fn(),
-		} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+		} as any  
 
 		// Mock Stripe with all required methods
 		mockStripe = {
@@ -41,7 +41,7 @@ describe('StripeController', () => {
 					create: jest.fn(),
 				},
 			},
-		} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+		} as any  
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [StripeController],
@@ -55,7 +55,7 @@ describe('StripeController', () => {
 
 		controller = module.get<StripeController>(StripeController)
 		// Override the Stripe instance with our mock
-		;(controller as any).stripe = mockStripe // eslint-disable-line @typescript-eslint/no-explicit-any
+		;(controller as any).stripe = mockStripe  
 	})
 
 	describe('createPaymentIntent', () => {

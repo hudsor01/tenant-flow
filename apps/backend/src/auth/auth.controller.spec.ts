@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any */
+ 
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing'
 import { ThrottlerModule } from '@nestjs/throttler'
@@ -157,7 +157,7 @@ describe('AuthController', () => {
 			const mockRequest = {
 				headers: {},
 				ip: '192.168.1.1'
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+			} as any  
 
 			const result = await controller.login(loginData, mockRequest)
 
@@ -177,7 +177,7 @@ describe('AuthController', () => {
 			const mockRequest = {
 				headers: { 'x-forwarded-for': '10.0.0.1' },
 				ip: null // No direct IP available
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+			} as any  
 
 			const result = await controller.login(loginData, mockRequest)
 
@@ -197,7 +197,7 @@ describe('AuthController', () => {
 			const mockRequest = {
 				headers: { 'x-forwarded-for': ['10.0.0.1', '10.0.0.2'] },
 				ip: null // No direct IP available
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+			} as any  
 
 			const result = await controller.login(loginData, mockRequest)
 
@@ -216,7 +216,7 @@ describe('AuthController', () => {
 
 			const mockRequest = {
 				headers: {}
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+			} as any  
 
 			const result = await controller.login(loginData, mockRequest)
 
@@ -277,7 +277,7 @@ describe('AuthController', () => {
 
 			const mockRequest = {
 				headers: { authorization: 'Bearer token-123' }
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+			} as any  
 
 			const result = await controller.logout(mockRequest)
 
@@ -290,7 +290,7 @@ describe('AuthController', () => {
 
 			const mockRequest = {
 				headers: { authorization: 'Basic sometoken' }
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+			} as any  
 
 			const result = await controller.logout(mockRequest)
 
@@ -301,7 +301,7 @@ describe('AuthController', () => {
 		it('should throw UnauthorizedException when no auth header', async () => {
 			const mockRequest = {
 				headers: {}
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+			} as any  
 
 			await expect(controller.logout(mockRequest)).rejects.toThrow('No authorization header found')
 		})
@@ -331,7 +331,7 @@ describe('AuthController', () => {
 
 			const mockRequest = {
 				headers: {}
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+			} as any  
 
 			const result = await controller.getDraft({ sessionId: 'session-123' }, mockRequest)
 
@@ -345,7 +345,7 @@ describe('AuthController', () => {
 
 			const mockRequest = {
 				headers: { 'x-session-id': 'session-456' }
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+			} as any  
 
 			const result = await controller.getDraft({}, mockRequest)
 
@@ -359,7 +359,7 @@ describe('AuthController', () => {
 
 			const mockRequest = {
 				headers: {}
-			} as any // eslint-disable-line @typescript-eslint/no-explicit-any
+			} as any  
 
 			const result = await controller.getDraft({}, mockRequest)
 
