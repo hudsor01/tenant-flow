@@ -89,7 +89,15 @@ class SecurityAuditService {
 
 	private async findControllerFiles(): Promise<string[]> {
 		const pattern = path.join(__dirname, '../../**/*.controller.{ts,js}')
-		return (await glob(pattern)) as string[]
+		try {
+			const result: unknown = await glob(pattern)
+			if (Array.isArray(result)) {
+				return result.filter((item): item is string => typeof item === 'string')
+			}
+			return []
+		} catch {
+			return []
+		}
 	}
 
 	private async parseControllerFile(

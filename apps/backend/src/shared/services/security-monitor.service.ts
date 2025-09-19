@@ -11,6 +11,7 @@
 
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import type {
+	Json,
 	SecurityEvent,
 	SecurityEventType,
 	SecurityMetrics
@@ -231,7 +232,7 @@ export class SecurityMonitorService implements OnModuleInit {
 				resource: event.source || null,
 				action: event.description || null,
 				details: event.metadata
-					? JSON.parse(JSON.stringify(event.metadata))
+					? (event.metadata as Record<string, unknown> as unknown as Json)
 					: null,
 				timestamp: event.timestamp
 			})
