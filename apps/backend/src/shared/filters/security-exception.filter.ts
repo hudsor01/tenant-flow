@@ -363,39 +363,6 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 		return baseResponse
 	}
 
-	private sanitizeMessage(message: string): string {
-		// Remove potentially sensitive information from error messages
-		return message
-			.replace(/\b\d{4}\b/g, 'XXXX') // Credit card-like numbers
-			.replace(
-				/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
-				'[EMAIL]'
-			) // Email addresses
-			.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, '[IP]') // IP addresses
-			.replace(
-				/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/g,
-				'[UUID]'
-			) // UUIDs
-			.replace(
-				/(?:password|secret|key|token|auth|bearer|jwt)[\s:=]+\S+/gi,
-				'[REDACTED]'
-			) // Credentials
-			.replace(
-				/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}:[^@\s]+\b/g,
-				'[CREDENTIALS]'
-			) // email:password combos
-			.replace(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+\b/g, '[HOST:PORT]') // host:port combinations
-			.replace(
-				/\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+/g,
-				'/[PATH]/[PATH]/[PATH]'
-			) // Deep file paths
-			.replace(
-				/(-----BEGIN[^-]*-----)[\s\S]*?(-----END[^-]*-----)/g,
-				'$1[PRIVATE_KEY]$2'
-			) // Private keys
-			.substring(0, 200) // Limit length
-	}
-
 	private setSecurityHeaders(response: FastifyReply): void {
 		// Prevent caching of error responses
 		response.header(
