@@ -20,7 +20,7 @@ module.exports = {
 	],
 	testPathIgnorePatterns: ['/node_modules/', '/dist/', '/coverage/'],
 	collectCoverageFrom: [
-		'src/**/*.(t|j)s',
+		'@/**/*.(t|j)s',
 		'!src/**/*.spec.ts',
 		'!src/**/*.test.ts',
 		'!src/main.ts',

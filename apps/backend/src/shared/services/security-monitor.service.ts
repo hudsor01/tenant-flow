@@ -11,12 +11,13 @@
 
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import type {
+	Json,
 	SecurityEvent,
 	SecurityEventType,
 	SecurityMetrics
 } from '@repo/shared'
+import { Resend } from 'resend'
 import { SupabaseService } from '../../database/supabase.service'
-import { DirectEmailService } from '../../emails/direct-email.service'
 
 type SecuritySeverity = 'low' | 'medium' | 'high' | 'critical'
 
@@ -74,13 +75,8 @@ export class SecurityMonitorService implements OnModuleInit {
 		]
 	}
 
-	constructor(
-		private readonly emailService: DirectEmailService,
-		_supabaseService: SupabaseService
-	) {
+	constructor(private readonly supabaseService: SupabaseService) {
 		this.securityLogger = new Logger(SecurityMonitorService.name)
-		// Store for future use when SecurityEvent table is available
-		// this.supabaseService = supabaseService
 	}
 
 	async onModuleInit() {
@@ -224,27 +220,30 @@ export class SecurityMonitorService implements OnModuleInit {
 
 	private async storeSecurityEvent(event: SecurityEvent): Promise<void> {
 		try {
-			// TODO: Uncomment when SecurityEvent table is added to database types
-			// const supabase = this.supabaseService.getAdminClient()
+			const supabase = this.supabaseService.getAdminClient()
 
-			// await supabase.from('SecurityEvent').insert({
-			// 	id: event.id,
-			// 	type: event.type,
-			// 	severity: event.severity,
-			// 	source: event.source,
-			// 	description: event.description,
-			// 	metadata: event.metadata as any,
-			// 	ipAddress: event.ipAddress,
-			// 	userAgent: event.userAgent,
-			// 	userId: event.userId,
-			// 	timestamp: event.timestamp,
-			// 	resolved: event.resolved || false
-			// })
+			// Use SecurityAuditLog table that exists in database
+			await supabase.from('SecurityAuditLog').insert({
+				eventType: event.type,
+				severity: event.severity,
+				userId: event.userId || null,
+				ipAddress: event.ipAddress || null,
+				userAgent: event.userAgent || null,
+				resource: event.source || null,
+				action: event.description || null,
+				details: event.metadata
+					? (event.metadata as Record<string, unknown> as unknown as Json)
+					: null,
+				timestamp: event.timestamp
+			})
 
-			// For now, just log the event
-			this.logger.log('Security event would be stored:', event)
+			this.logger.log('Security event stored successfully', {
+				eventId: event.id,
+				type: event.type
+			})
 		} catch (error) {
 			this.logger.error('Failed to store security event', error)
+			// Continue execution even if storage fails to prevent service disruption
 		}
 	}
 
@@ -273,37 +272,89 @@ export class SecurityMonitorService implements OnModuleInit {
 	}
 
 	private async sendEmailAlert(event: SecurityEvent): Promise<void> {
-		if (!process.env.SECURITY_ALERT_EMAIL) return
+		const to = process.env.SECURITY_ALERT_EMAIL
+		if (!to) return
 
-		const subject = `🚨 Security Alert: ${event.type} (${event.severity.toUpperCase()})`
+		// Never send actual emails during tests
+		if (process.env.NODE_ENV === 'test') {
+			this.logger.debug('Skipping email alert in test env', {
+				eventId: event.id,
+				to
+			})
+			return
+		}
 
-		const emailBody = `
-Security Event Detected:
+		const apiKey = process.env.RESEND_API_KEY
+		if (!apiKey) {
+			this.logger.error('Email alert skipped: RESEND_API_KEY not configured')
+			return
+		}
 
-Type: ${event.type}
-Severity: ${event.severity.toUpperCase()}
-Source: ${event.source}
-Description: ${event.description}
-Time: ${event.timestamp}
+		const resend = new Resend(apiKey)
+		const subject = `Security Alert: ${event.type} (${event.severity.toUpperCase()})`
+		const from = 'TenantFlow <noreply@tenantflow.app>'
+		const html = `
+      <div style="font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:700px;margin:0 auto;padding:16px;">
+        <h2 style="margin:0 0 12px;color:#111827;">${subject}</h2>
+        <p style="margin:0 0 16px;color:#374151;">${event.description || 'A security event was detected.'}</p>
+        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:12px 16px;margin-bottom:12px;">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <div><strong>Event ID:</strong> ${event.id}</div>
+            <div><strong>Severity:</strong> ${event.severity}</div>
+            <div><strong>Type:</strong> ${event.type}</div>
+            <div><strong>Source:</strong> ${event.source || 'unknown'}</div>
+            <div><strong>Time:</strong> ${new Date(event.timestamp).toLocaleString()}</div>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;">
+            ${event.ipAddress ? `<div><strong>IP:</strong> ${event.ipAddress}</div>` : ''}
+            ${event.userAgent ? `<div><strong>User-Agent:</strong> ${String(event.userAgent).slice(0, 120)}</div>` : ''}
+            ${event.userId ? `<div><strong>User ID:</strong> ${event.userId}</div>` : ''}
+          </div>
+        </div>
+        ${
+					event.metadata
+						? `<pre style="background:#111827;color:#E5E7EB;border-radius:8px;padding:12px;overflow:auto;">${
+								// Stringify metadata safely without circular refs
+								(() => {
+									try {
+										return JSON.stringify(event.metadata, null, 2)
+									} catch {
+										return '[unserializable metadata]'
+									}
+								})()
+							}</pre>`
+						: ''
+				}
+        <p style="margin-top:16px;color:#6B7280;font-size:12px;">This is an automated security notification from TenantFlow.</p>
+      </div>
+    `
 
-${event.ipAddress ? `IP Address: ${event.ipAddress}` : ''}
-${event.userAgent ? `User Agent: ${event.userAgent}` : ''}
-${event.userId ? `User ID: ${event.userId}` : ''}
+		try {
+			const { error, data } = await resend.emails.send({
+				from,
+				to: [to],
+				subject,
+				html
+			})
 
-Metadata:
-${JSON.stringify(event.metadata, null, 2)}
+			if (error) {
+				throw new Error(`Resend error: ${error.message}`)
+			}
 
-Event ID: ${event.id}
-
-This is an automated security alert from TenantFlow.
-		`.trim()
-
-		// Using sendSimpleEmail method from DirectEmailService
-		await this.emailService.sendSimpleEmail({
-			to: process.env.SECURITY_ALERT_EMAIL || 'security@tenantflow.app',
-			subject,
-			html: emailBody.replace(/\n/g, '<br>')
-		})
+			this.logger.log('Security email alert sent', {
+				eventId: event.id,
+				messageId: data?.id,
+				to
+			})
+		} catch (err) {
+			this.logger.error('Failed to send security email alert', {
+				eventId: event.id,
+				error:
+					err instanceof Error
+						? { name: err.name, message: err.message }
+						: { name: 'Unknown', message: String(err) }
+			})
+		}
 	}
 
 	private async sendWebhookAlert(event: SecurityEvent): Promise<void> {

@@ -1,10 +1,12 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { BlurFade } from '@/components/magicui/blur-fade'
 import { cn } from '@/lib/utils'
 import { ArrowRight, MousePointer2, Play } from 'lucide-react'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
+
 
 interface ModernHeroSectionProps {
 	className?: string

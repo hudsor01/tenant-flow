@@ -1,11 +1,12 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-import { Button } from 'src/components/ui/button'
+
 
 interface ModeToggleProps extends React.ComponentProps<typeof Button> {
 	variant?:

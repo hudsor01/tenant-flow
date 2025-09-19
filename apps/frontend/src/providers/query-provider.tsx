@@ -4,23 +4,51 @@ import { QueryClient, QueryClientProvider, QueryErrorResetBoundary } from '@tans
 import { ErrorBoundary } from 'react-error-boundary'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
+import { createErrorBoundaryFallback, showErrorToast } from '@/lib/error-handler'
 
 interface QueryProviderProps {
   children: ReactNode
 }
 
 export function QueryProvider({ children }: QueryProviderProps) {
-  const [queryClient] = useState(() => 
+  const [queryClient] = useState(() =>
     new QueryClient({
       defaultOptions: {
         queries: {
           staleTime: 5 * 60 * 1000, // 5 minutes
-          retry: 1,
+          retry: (failureCount, error) => {
+            // Don't retry on authentication errors
+            if (error instanceof Error && error.message.includes('unauthorized')) {
+              return false
+            }
+            // Retry up to 3 times for other errors
+            return failureCount < 3
+          },
+          retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
           refetchOnWindowFocus: false,
         },
+        mutations: {
+          retry: (failureCount, error) => {
+            // Don't retry mutations on client errors (4xx)
+            if (error instanceof Error && (
+              error.message.includes('400') ||
+              error.message.includes('401') ||
+              error.message.includes('403') ||
+              error.message.includes('404') ||
+              error.message.includes('422')
+            )) {
+              return false
+            }
+            // Retry server errors up to 2 times
+            return failureCount < 2
+          },
+          retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+        }
       },
     })
   )
+
+  const ErrorFallback = createErrorBoundaryFallback('application')
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -28,20 +56,15 @@ export function QueryProvider({ children }: QueryProviderProps) {
         {({ reset }) => (
           <ErrorBoundary
             onReset={reset}
-            fallbackRender={({ error, resetErrorBoundary }) => (
-              <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-                <h2 className="text-2xl font-bold text-destructive mb-4">Something went wrong</h2>
-                <p className="text-muted-foreground mb-4">
-                  {error instanceof Error ? error.message : 'An unexpected error occurred'}
-                </p>
-                <button
-                  onClick={resetErrorBoundary}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
-                >
-                  Try again
-                </button>
-              </div>
-            )}
+            fallbackRender={ErrorFallback}
+            onError={(error, errorInfo) => {
+              // Log error for debugging
+              console.error('Application Error Boundary:', error, errorInfo)
+              showErrorToast(error, {
+                operation: 'render component',
+                metadata: { errorInfo }
+              })
+            }}
           >
             {children}
           </ErrorBoundary>

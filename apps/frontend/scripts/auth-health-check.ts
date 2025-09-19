@@ -5,8 +5,8 @@
  * Usage: npm run auth:health
  */
 
+import type { HealthCheckResponse } from '@repo/shared'
 import { logger } from '@repo/shared'
-import type { FrontendHealthCheckResponse } from '@repo/shared'
 
 // Environment variables are loaded via Doppler when script is run with 'doppler run --'
 
@@ -32,7 +32,7 @@ async function runHealthCheck() {
 			throw new Error(`Health check returned ${response.status}`)
 		}
 
-		const data: FrontendHealthCheckResponse = await response.json()
+		const data: HealthCheckResponse = await response.json()
 
 		// Display results
 		logger.info('='.repeat(60))
@@ -41,20 +41,25 @@ async function runHealthCheck() {
 		logger.info(`Overall Status: ${data.status.toUpperCase()}`)
 		logger.info(`Environment: ${data.environment}`)
 		logger.info(`Timestamp: ${new Date(data.timestamp).toLocaleString()}`)
-		logger.info('\nSystem Checks:')
+		logger.info('\nSystem Services:')
 
-		Object.entries(data.checks).forEach(([name, isHealthy]) => {
-			const icon = isHealthy ? '[OK]' : '[ERROR]'
-			const displayName = name.replace(/([A-Z_])/g, ' $1').trim()
+		data.services.forEach(service => {
+			const icon =
+				service.status === 'healthy'
+					? '[OK]'
+					: service.status === 'degraded'
+						? '[WARN]'
+						: '[ERROR]'
+			const displayName = service.name.replace(/([A-Z_])/g, ' $1').trim()
 			logger.info(
-				`  ${icon} ${displayName}: ${isHealthy ? 'PASS' : 'FAIL'}`
+				`  ${icon} ${displayName}: ${service.status.toUpperCase()}${service.responseTime ? ` (${service.responseTime}ms)` : ''}`
 			)
 		})
 
 		logger.info('\n' + '='.repeat(60))
 
 		// Exit with appropriate code
-		if (data.status === 'unhealthy') {
+		if (data.status === 'error') {
 			logger.error(
 				'\nERROR: Auth system is unhealthy. Please address the issues above.'
 			)
@@ -64,7 +69,9 @@ async function runHealthCheck() {
 			process.exit(0)
 		}
 	} catch (error) {
-		logger.error(`ERROR: Health check failed: ${error instanceof Error ? error.message : String(error)}`)
+		logger.error(
+			`ERROR: Health check failed: ${error instanceof Error ? error.message : String(error)}`
+		)
 		logger.error('\nMake sure the Next.js development server is running:')
 		logger.error('  npm run dev')
 		process.exit(1)
@@ -72,4 +79,4 @@ async function runHealthCheck() {
 }
 
 // Run the check
-runHealthCheck().catch((error) => logger.error(error))
+runHealthCheck().catch(error => logger.error(error))

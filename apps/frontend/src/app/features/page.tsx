@@ -1,5 +1,13 @@
 'use client'
 
+import { BlurFade } from '@/components/magicui/blur-fade'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { Navbar } from '@/components/navbar'
+import { FeaturesSection } from '@/components/sections/features-section'
+import { FooterMinimal } from '@/components/sections/footer-minimal'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { cn, containerClasses } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import {
@@ -16,12 +24,7 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { Navbar } from 'src/components/navbar'
-import { FeaturesSection } from 'src/components/sections/features-section'
-import { FooterMinimal } from 'src/components/sections/footer-minimal'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
+
 // (Video dialog removed — no video assets available)
 
 export default function FeaturesPage() {
@@ -87,6 +90,20 @@ export default function FeaturesPage() {
 	return (
 		<div className="min-h-screen bg-background">
 			<Navbar />
+
+			{/* Hero Authority Section */}
+			<HeroAuthority
+				title={<>Transform your portfolio into a profit powerhouse</>}
+				subtitle={
+					<>
+						Join 10,000+ property managers who've increased NOI by 40% with
+						enterprise-grade automation and AI-powered analytics. ROI guaranteed
+						in 90 days.
+					</>
+				}
+				primaryCta={{ label: 'Start Free Trial', href: '/auth/sign-up' }}
+				secondaryCta={{ label: 'See it in action', href: '/contact' }}
+			/>
 
 			{/* Sticky CTA */}
 			<div

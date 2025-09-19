@@ -17,7 +17,7 @@ interface CreateCheckoutSessionResponse {
 }
 
 /**
- * Create a Stripe checkout session via Supabase Edge Function
+ * Create a Stripe checkout session via NestJS backend
  */
 export async function createCheckoutSession(
   request: CreateCheckoutSessionRequest
@@ -29,32 +29,41 @@ export async function createCheckoutSession(
 
   // Get current session for authentication
   const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-  
+
   if (sessionError || !session?.access_token) {
     throw new Error('Authentication required. Please sign in to continue.')
   }
 
-  // Call Supabase Edge Function
+  // Call NestJS backend Stripe API
+  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.tenantflow.app'
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/stripe-checkout`,
+    `${apiUrl}/api/v1/stripe/create-checkout-session`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session.access_token}`
       },
-      body: JSON.stringify(request)
+      body: JSON.stringify({
+        priceId: request.priceId,
+        successUrl: `${window.location.origin}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/pricing/cancel`
+      })
     }
   )
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ 
-      error: `HTTP ${response.status}: ${response.statusText}` 
+    const errorData = await response.json().catch(() => ({
+      error: `HTTP ${response.status}: ${response.statusText}`
     }))
     throw new Error(errorData.error || 'Failed to create checkout session')
   }
 
-  return response.json()
+  const data = await response.json()
+  return {
+    sessionId: data.sessionId || data.id,
+    url: data.url
+  }
 }
 
 
@@ -114,8 +123,9 @@ export async function createPaymentIntent({
     throw new Error('Authentication required. Please sign in to continue.')
   }
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.tenantflow.app'
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-payment-intent`,
+    `${apiUrl}/api/v1/stripe/create-payment-intent`,
     {
       method: 'POST',
       headers: {

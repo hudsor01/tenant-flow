@@ -1,10 +1,11 @@
+import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
+import { SidebarTrigger } from '@/components/ui/sidebar'
+import { NavUser } from '@/components/nav-user'
 import { cn } from '@/lib/utils'
 import { Search } from 'lucide-react'
 import * as React from 'react'
-import { NavUser } from 'src/components/nav-user'
-import { Input } from 'src/components/ui/input'
-import { Separator } from 'src/components/ui/separator'
-import { SidebarTrigger } from 'src/components/ui/sidebar'
+
 
 const userData = {
 	name: 'TenantFlow User',

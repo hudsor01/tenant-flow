@@ -6,8 +6,9 @@ import {
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
+import { buttonVariants } from '@/components/ui/button'
 import type { PaginationLinkProps } from '@repo/shared'
-import { buttonVariants } from 'src/components/ui/button'
+
 
 function Pagination({ className, ...props }: React.ComponentProps<'nav'>) {
 	return (
@@ -60,7 +61,7 @@ function PaginationLink({
 			className={cn(
 				buttonVariants({
 					variant: isActive ? 'outline' : 'ghost',
-					size
+					size: size as 'default' | 'sm' | 'lg' | 'icon' | null | undefined
 				}),
 				'hover:scale-105 active:scale-95 transform transition-fast-transform',
 				className

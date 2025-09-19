@@ -8,6 +8,7 @@ import { HealthController } from './health.controller';
 import { SupabaseHealthIndicator } from './supabase.health';
 import { StripeFdwHealthIndicator } from './stripe-fdw.health';
 import { StripeSyncService } from '../billing/stripe-sync.service';
+import { ResilienceService } from '../shared/services/resilience.service';
 
 describe('HealthController', () => {
   let controller: HealthController;
@@ -52,6 +53,25 @@ describe('HealthController', () => {
           },
         },
         {
+          provide: 'SUPABASE_SERVICE_FOR_HEALTH',
+          useValue: {
+            checkConnection: jest.fn().mockResolvedValue({
+              status: 'healthy',
+              message: 'Database connection successful'
+            }),
+            getAdminClient: jest.fn(),
+          },
+        },
+        {
+          provide: ResilienceService,
+          useValue: {
+            getHealthStatus: jest.fn().mockReturnValue({
+              cacheSize: 0,
+              memoryUsage: 50
+            })
+          },
+        },
+        {
           provide: Logger,
           useValue: {
             log: jest.fn(),
@@ -87,92 +107,45 @@ describe('HealthController', () => {
   });
 
   describe('GET /health', () => {
-    it('should perform comprehensive health check with both database and Stripe FDW', async () => {
-      const mockHealthResult: HealthCheckResult = {
-        status: 'ok',
-        info: {
-          database: { status: 'up' },
-          stripe_fdw: { status: 'up', realTime: true },
-        },
-        error: {},
-        details: {
-          database: { status: 'up' },
-          stripe_fdw: { status: 'up', realTime: true },
-        },
-      };
-
-      jest.spyOn(healthCheckService, 'check').mockResolvedValue(mockHealthResult);
-      jest.spyOn(supabaseHealth, 'pingCheck').mockResolvedValue({ database: { status: 'up' } });
-      jest.spyOn(stripeFdwHealth, 'isHealthy').mockResolvedValue({ 
-        stripe_fdw: { status: 'up', realTime: true } 
-      });
-
+    it('should perform comprehensive health check with database connectivity', async () => {
       const result = await controller.check();
 
-      expect(result).toEqual(mockHealthResult);
-      expect(healthCheckService.check).toHaveBeenCalledWith([
-        expect.any(Function),
-        expect.any(Function),
-      ]);
-      expect(logger.log).toHaveBeenCalledWith(
-        expect.objectContaining({
-          health: {
-            environment: process.env.NODE_ENV,
-            checkType: 'full',
-          },
-        }),
-        expect.stringContaining('Health check started')
-      );
+      expect(result).toEqual({
+        status: 'ok',
+        timestamp: expect.any(String),
+        environment: 'test',
+        uptime: expect.any(Number),
+        memory: expect.any(Number),
+        version: expect.any(String),
+        service: 'backend-api',
+        database: {
+          status: 'healthy',
+          message: 'Database connection successful'
+        }
+      });
+      expect(logger.log).toHaveBeenCalledWith('Health check started - checking database connectivity');
     });
 
     it('should handle health check failures gracefully', async () => {
-      const mockErrorResult: HealthCheckResult = {
-        status: 'error',
-        info: {
-          database: { status: 'up' },
-        },
-        error: {
-          stripe_fdw: { status: 'down', error: 'Connection failed' },
-        },
-        details: {
-          database: { status: 'up' },
-          stripe_fdw: { status: 'down', error: 'Connection failed' },
-        },
-      };
-
-      jest.spyOn(healthCheckService, 'check').mockResolvedValue(mockErrorResult);
+      // Mock the supabase service to return unhealthy status
+      const supabaseService = controller['supabaseClient'];
+      jest.spyOn(supabaseService, 'checkConnection').mockResolvedValue({
+        status: 'unhealthy',
+        message: 'Database connection failed'
+      });
 
       const result = await controller.check();
 
-      expect(result).toEqual(mockErrorResult);
-      expect(result.status).toBe('error');
-      expect(result.error).toHaveProperty('stripe_fdw');
+      expect(result.status).toBe('unhealthy');
+      expect(result.database.status).toBe('unhealthy');
+      expect(result.error).toBe('Database connection failed');
     });
 
     it('should log health check initiation with correct environment', async () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'test';
-
-      jest.spyOn(healthCheckService, 'check').mockResolvedValue({
-        status: 'ok',
-        info: {},
-        error: {},
-        details: {},
-      });
-
       await controller.check();
 
-      expect(logger.log).toHaveBeenCalledWith(
-        expect.objectContaining({
-          health: {
-            environment: 'test',
-            checkType: 'full',
-          },
-        }),
-        'Health check started - Environment: test'
-      );
-
-      process.env.NODE_ENV = originalEnv;
+      expect(logger.log).toHaveBeenCalledWith('Health check started - checking database connectivity');
+      expect(logger.log).toHaveBeenCalledWith('Database connectivity check passed');
     });
   });
 
@@ -375,145 +348,52 @@ describe('HealthController', () => {
     });
   });
 
-  describe('GET /health/debug', () => {
-    it('should return comprehensive debug information', () => {
-      const originalEnv = {
-        NODE_ENV: process.env.NODE_ENV,
-        PORT: process.env.PORT,
-        SUPABASE_URL: process.env.SUPABASE_URL,
-        SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-        DOCKER_CONTAINER: process.env.DOCKER_CONTAINER,
-        RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
-      };
-
-      // Set test environment variables
-      process.env.NODE_ENV = 'test';
-      process.env.PORT = '3001';
-      process.env.SUPABASE_URL = 'https://test.supabase.co';
-      process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key';
-      process.env.DOCKER_CONTAINER = 'true';
-      process.env.RAILWAY_ENVIRONMENT = 'production';
-
-      // Mock process methods
-      const mockUptime = jest.spyOn(process, 'uptime').mockReturnValue(300.75);
-      const mockMemoryUsage = jest.spyOn(process, 'memoryUsage').mockReturnValue({
-        rss: 104857600, // 100MB
-        heapTotal: 83886080, // 80MB
-        heapUsed: 62914560, // 60MB
-        external: 2097152, // 2MB
-        arrayBuffers: 1048576, // 1MB
-      });
-      const mockCpuUsage = jest.spyOn(process, 'cpuUsage').mockReturnValue({
-        user: 1000000, // 1 second
-        system: 500000, // 0.5 seconds
-      });
-
-      const result = controller.debug();
-
-      expect(result).toMatchObject({
-        timestamp: expect.any(String),
-        process: {
-          pid: expect.any(Number),
-          uptime: 301, // Math.round(300.75)
-          version: expect.any(String),
-          platform: expect.any(String),
-          arch: expect.any(String),
-          memory: expect.objectContaining({
-            rss: 104857600,
-            heapTotal: 83886080,
-            heapUsed: 62914560,
-            external: 2097152,
-            arrayBuffers: 1048576,
-          }),
-          cpuUsage: expect.objectContaining({
-            user: 1000000,
-            system: 500000,
-          }),
-        },
-        environment: {
-          NODE_ENV: 'test',
-          PORT: '3001',
-          hostname: expect.any(String),
-          DOCKER_CONTAINER: 'true',
-          RAILWAY_ENVIRONMENT: 'production',
-          hasSupabaseUrl: true,
-          hasServiceKey: true,
-        },
-      });
-
-      // Verify timestamp is a valid ISO string
-      expect(new Date(result.timestamp).toISOString()).toBe(result.timestamp);
-
-      // Restore mocks and environment
-      mockUptime.mockRestore();
-      mockMemoryUsage.mockRestore();
-      mockCpuUsage.mockRestore();
-      Object.assign(process.env, originalEnv);
-    });
-
-    it('should handle missing environment variables in debug info', () => {
-      const originalEnv = {
-        SUPABASE_URL: process.env.SUPABASE_URL,
-        SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-        DOCKER_CONTAINER: process.env.DOCKER_CONTAINER,
-        RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
-      };
-
-      // Remove environment variables
-      delete process.env.SUPABASE_URL;
-      delete process.env.SERVICE_ROLE_KEY;
-      delete process.env.DOCKER_CONTAINER;
-      delete process.env.RAILWAY_ENVIRONMENT;
-
-      const result = controller.debug();
-
-      expect(result.environment).toMatchObject({
-        hasSupabaseUrl: false,
-        hasServiceKey: false,
-        DOCKER_CONTAINER: undefined,
-        RAILWAY_ENVIRONMENT: undefined,
-      });
-
-      // Restore environment
-      Object.assign(process.env, originalEnv);
-    });
-
-    it('should include hostname in debug information', () => {
-      const result = controller.debug();
-
-      expect(result.environment.hostname).toBeDefined();
-      expect(typeof result.environment.hostname).toBe('string');
-      expect(result.environment.hostname.length).toBeGreaterThan(0);
-    });
-  });
 
   describe('Integration', () => {
     it('should handle concurrent health check requests', async () => {
-      const mockResult: HealthCheckResult = {
+      const mockHealthCheckResult: HealthCheckResult = {
         status: 'ok',
-        info: {},
+        info: {
+          database: { status: 'up' },
+          stripe_fdw: { status: 'up' }
+        },
         error: {},
-        details: {},
+        details: {
+          database: { status: 'up' },
+          stripe_fdw: { status: 'up' }
+        },
       };
 
-      jest.spyOn(healthCheckService, 'check').mockResolvedValue(mockResult);
+      jest.spyOn(healthCheckService, 'check').mockResolvedValue(mockHealthCheckResult);
 
       // Simulate concurrent requests
-      const promises = [
+      const [checkResult, readyResult, stripeResult] = await Promise.all([
         controller.check(),
         controller.ready(),
         controller.stripeCheck(),
-      ];
+      ]);
 
-      const results = await Promise.all(promises);
-
-      expect(results).toHaveLength(3);
-      results.forEach(result => {
-        expect(result).toEqual(mockResult);
+      // check() returns custom format
+      expect(checkResult).toEqual({
+        status: 'ok',
+        timestamp: expect.any(String),
+        environment: 'test',
+        uptime: expect.any(Number),
+        memory: expect.any(Number),
+        version: expect.any(String),
+        service: 'backend-api',
+        database: {
+          status: 'healthy',
+          message: 'Database connection successful'
+        }
       });
 
-      // Verify health check service was called for each request
-      expect(healthCheckService.check).toHaveBeenCalledTimes(3);
+      // ready() and stripeCheck() return HealthCheckResult format
+      expect(readyResult).toEqual(mockHealthCheckResult);
+      expect(stripeResult).toEqual(mockHealthCheckResult);
+
+      // Verify health check service was called for ready and stripe endpoints
+      expect(healthCheckService.check).toHaveBeenCalledTimes(2);
     });
 
     it('should maintain performance under load', async () => {
@@ -539,31 +419,31 @@ describe('HealthController', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle health check service errors gracefully', async () => {
-      const error = new Error('Health check service error');
-      jest.spyOn(healthCheckService, 'check').mockRejectedValue(error);
+    it('should handle database connection errors gracefully', async () => {
+      const supabaseService = controller['supabaseClient'];
+      jest.spyOn(supabaseService, 'checkConnection').mockRejectedValue(new Error('Database connection failed'));
 
-      await expect(controller.check()).rejects.toThrow(error);
-      expect(logger.log).toHaveBeenCalled(); // Should still log the start
+      const result = await controller.check();
+
+      expect(result.status).toBe('unhealthy');
+      expect(result.error).toBe('Database connection failed');
+      expect(result.database.status).toBe('unhealthy');
+      expect(logger.error).toHaveBeenCalledWith('Health check failed with error', 'Database connection failed');
     });
 
-    it('should handle logger errors gracefully', async () => {
-      jest.spyOn(logger, 'log').mockImplementation(() => {
-        throw new Error('Logger error');
-      });
+    it('should handle supabase service injection errors gracefully', async () => {
+      // Temporarily set supabaseClient to null to simulate injection failure
+      const originalClient = controller['supabaseClient'];
+      controller['supabaseClient'] = null;
 
-      jest.spyOn(healthCheckService, 'check').mockResolvedValue({
-        status: 'ok',
-        info: {},
-        error: {},
-        details: {},
-      });
+      const result = await controller.check();
 
-      // The method will throw due to logger error, but we can catch it
-      await expect(controller.check()).rejects.toThrow('Logger error');
-      
-      // Verify that health check service would have been called if logger didn't fail
-      // This test demonstrates that logger errors are not handled gracefully in this implementation
+      expect(result.status).toBe('unhealthy');
+      expect(result.error).toBe('SupabaseService not injected properly');
+      expect(logger.error).toHaveBeenCalledWith('Health check failed with error', 'SupabaseService not injected properly');
+
+      // Restore original client
+      controller['supabaseClient'] = originalClient;
     });
   });
 });

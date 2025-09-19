@@ -27,17 +27,8 @@ export function WebVitals() {
 			})
 		}
 
-		// Report to custom analytics endpoint (optional)
-		if (process.env.NODE_ENV === 'production') {
-			fetch('/api/analytics/web-vitals', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(metric),
-				keepalive: true
-			}).catch(() => {
-				// Ignore network errors for analytics
-			})
-		}
+		// TODO: Add analytics endpoint in NestJS backend if needed
+		// Would be: ${API_BASE_URL}/api/v1/analytics/web-vitals
 	})
 
 	return null

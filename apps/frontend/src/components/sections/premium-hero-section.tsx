@@ -1,6 +1,11 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { ANIMATION_DURATIONS, cn, TYPOGRAPHY_SCALE } from '@/lib/design-system'
+import { BlurFade } from '@/components/magicui/blur-fade'
+import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text'
+import { ShimmerButton } from '@/components/magicui/shimmer-button'
+import { Particles } from '@/components/magicui/particles'
 import {
 	ArrowRight,
 	CheckCircle,
@@ -11,11 +16,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
-import { AnimatedGradientText } from 'src/components/magicui/animated-gradient-text'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import Particles from 'src/components/magicui/particles'
-import { ShimmerButton } from 'src/components/magicui/shimmer-button'
-import { Button } from 'src/components/ui/button'
+
 
 export interface PremiumHeroSectionProps
 	extends React.ComponentProps<'section'> {

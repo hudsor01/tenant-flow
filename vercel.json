@@ -1,244 +1,245 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs",
+	"$schema": "https://openapi.vercel.sh/vercel.json",
+	"framework": "nextjs",
 
-  "build": {
-    "env": {
-      "TURBO_TEAM": "@vercel",
-      "TURBO_TOKEN": "@turbo_token",
-      "NODE_OPTIONS": "--max-old-space-size=8192",
-      "NEXT_TELEMETRY_DISABLED": "1",
-      "TURBO_REMOTE_CACHE_READ_ONLY": "false"
-    }
-  },
+	"build": {
+		"env": {
+			"NODE_OPTIONS": "--max-old-space-size=8192",
+			"NEXT_TELEMETRY_DISABLED": "1",
+			"TURBO_REMOTE_CACHE_READ_ONLY": "false",
+			"TURBO_TEAM": "$TURBO_TEAM",
+			"TURBO_TOKEN": "$TURBO_TOKEN",
+			"TURBO_REMOTE_CACHE_SIGNATURE_KEY": "$TURBO_REMOTE_CACHE_SIGNATURE_KEY"
+		}
+	},
 
-  "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "turbo run build --filter=@repo/frontend",
-  "outputDirectory": "apps/frontend/.next",
+	"installCommand": "pnpm install --frozen-lockfile",
+	"buildCommand": "turbo run build --filter=@repo/frontend",
+	"outputDirectory": "apps/frontend/.next",
 
-  "regions": ["iad1"],
+	"regions": ["iad1"],
 
-  "functions": {
-    "apps/frontend/src/app/api/upload/route.ts": {
-      "maxDuration": 30,
-      "memory": 1024
-    },
-    "apps/frontend/src/app/api/export/route.ts": {
-      "maxDuration": 30,
-      "memory": 1024
-    },
-    "apps/frontend/src/app/api/**/route.ts": {
-      "maxDuration": 10,
-      "memory": 512
-    },
-    "apps/frontend/src/app/**/*.tsx": {
-      "runtime": "nodejs20.x"
-    }
-  },
+	"functions": {
+		"apps/frontend/src/app/api/upload/route.ts": {
+			"maxDuration": 30,
+			"memory": 1024
+		},
+		"apps/frontend/src/app/api/export/route.ts": {
+			"maxDuration": 30,
+			"memory": 1024
+		},
+		"apps/frontend/src/app/api/**/route.ts": {
+			"maxDuration": 10,
+			"memory": 512
+		},
+		"apps/frontend/src/app/**/*.tsx": {
+			"runtime": "nodejs20.x"
+		}
+	},
 
-  "redirects": [
-    {
-      "source": "/home",
-      "destination": "/",
-      "permanent": true
-    }
-  ],
+	"redirects": [
+		{
+			"source": "/home",
+			"destination": "/",
+			"permanent": true
+		}
+	],
 
-  "rewrites": [
-    {
-      "source": "/api/v1/:path*",
-      "destination": "https://api.tenantflow.app/api/v1/:path*"
-    }
-  ],
+	"rewrites": [
+		{
+			"source": "/api/v1/:path*",
+			"destination": "https://api.tenantflow.app/api/v1/:path*"
+		}
+	],
 
-  "headers": [
-    {
-      "source": "/_next/static/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        }
-      ]
-    },
-    {
-      "source": "/static/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable, stale-while-revalidate=86400"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)\\.(jpg|jpeg|png|gif|ico|svg|webp|avif)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Vary",
-          "value": "Accept"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)\\.(woff2|woff|ttf|otf)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "Vary",
-          "value": "Accept"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        }
-      ]
-    },
-    {
-      "source": "/sw.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        },
-        {
-          "key": "Service-Worker-Allowed",
-          "value": "/"
-        }
-      ]
-    },
-    {
-      "source": "/manifest.json",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400"
-        },
-        {
-          "key": "Content-Type",
-          "value": "application/manifest+json"
-        }
-      ]
-    },
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        }
-      ]
-    },
-    {
-      "source": "/dashboard/:path*",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "private, no-cache, no-store, must-revalidate"
-        },
-        {
-          "key": "Pragma",
-          "value": "no-cache"
-        },
-        {
-          "key": "Expires",
-          "value": "0"
-        }
-      ]
-    },
-    {
-      "source": "/properties/:path*",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, s-maxage=60, stale-while-revalidate=600"
-        },
-        {
-          "key": "CDN-Cache-Control",
-          "value": "max-age=300"
-        },
-        {
-          "key": "Vercel-CDN-Cache-Control",
-          "value": "max-age=3600"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-DNS-Prefetch-Control",
-          "value": "on"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=(), payment=(self), autoplay=(self), encrypted-media=(), fullscreen=(), picture-in-picture=()"
-        },
-        {
-          "key": "Strict-Transport-Security",
-          "value": "max-age=31536000; includeSubDomains; preload"
-        }
-      ]
-    }
-  ],
+	"headers": [
+		{
+			"source": "/_next/static/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=31536000, immutable"
+				},
+				{
+					"key": "X-Content-Type-Options",
+					"value": "nosniff"
+				}
+			]
+		},
+		{
+			"source": "/static/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=31536000, immutable, stale-while-revalidate=86400"
+				},
+				{
+					"key": "X-Content-Type-Options",
+					"value": "nosniff"
+				}
+			]
+		},
+		{
+			"source": "/(.*)\\.(jpg|jpeg|png|gif|ico|svg|webp|avif)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=31536000, immutable"
+				},
+				{
+					"key": "Vary",
+					"value": "Accept"
+				},
+				{
+					"key": "X-Content-Type-Options",
+					"value": "nosniff"
+				}
+			]
+		},
+		{
+			"source": "/(.*)\\.(woff2|woff|ttf|otf)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=31536000, immutable"
+				},
+				{
+					"key": "Vary",
+					"value": "Accept"
+				},
+				{
+					"key": "X-Content-Type-Options",
+					"value": "nosniff"
+				}
+			]
+		},
+		{
+			"source": "/sw.js",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=0, must-revalidate"
+				},
+				{
+					"key": "Service-Worker-Allowed",
+					"value": "/"
+				}
+			]
+		},
+		{
+			"source": "/manifest.json",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400"
+				},
+				{
+					"key": "Content-Type",
+					"value": "application/manifest+json"
+				}
+			]
+		},
+		{
+			"source": "/api/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "no-cache, no-store, must-revalidate"
+				},
+				{
+					"key": "X-Content-Type-Options",
+					"value": "nosniff"
+				},
+				{
+					"key": "X-Frame-Options",
+					"value": "DENY"
+				}
+			]
+		},
+		{
+			"source": "/dashboard/:path*",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "private, no-cache, no-store, must-revalidate"
+				},
+				{
+					"key": "Pragma",
+					"value": "no-cache"
+				},
+				{
+					"key": "Expires",
+					"value": "0"
+				}
+			]
+		},
+		{
+			"source": "/properties/:path*",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public, s-maxage=60, stale-while-revalidate=600"
+				},
+				{
+					"key": "CDN-Cache-Control",
+					"value": "max-age=300"
+				},
+				{
+					"key": "Vercel-CDN-Cache-Control",
+					"value": "max-age=3600"
+				}
+			]
+		},
+		{
+			"source": "/(.*)",
+			"headers": [
+				{
+					"key": "X-DNS-Prefetch-Control",
+					"value": "on"
+				},
+				{
+					"key": "X-Content-Type-Options",
+					"value": "nosniff"
+				},
+				{
+					"key": "X-Frame-Options",
+					"value": "DENY"
+				},
+				{
+					"key": "X-XSS-Protection",
+					"value": "1; mode=block"
+				},
+				{
+					"key": "Referrer-Policy",
+					"value": "strict-origin-when-cross-origin"
+				},
+				{
+					"key": "Permissions-Policy",
+					"value": "camera=(), microphone=(), geolocation=(), payment=(self), autoplay=(self), encrypted-media=(), fullscreen=(), picture-in-picture=()"
+				},
+				{
+					"key": "Strict-Transport-Security",
+					"value": "max-age=31536000; includeSubDomains; preload"
+				}
+			]
+		}
+	],
 
-  "trailingSlash": false,
-  "cleanUrls": true,
+	"trailingSlash": false,
+	"cleanUrls": true,
 
-  "git": {
-    "deploymentEnabled": {
-      "main": true,
-      "master": false,
-      "develop": false,
-      "feature/*": false
-    }
-  },
+	"git": {
+		"deploymentEnabled": {
+			"main": true,
+			"master": false,
+			"develop": false,
+			"feature/*": false
+		}
+	},
 
-  "github": {
-    "enabled": true,
-    "autoAlias": false,
-    "silent": true
-  }
+	"github": {
+		"enabled": true,
+		"autoAlias": false,
+		"silent": true
+	}
 }

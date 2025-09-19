@@ -16,7 +16,7 @@
 		"arm64",
 		"x64"
 	],
-	"packageManager": "pnpm@10.0.0",
+	"packageManager": "pnpm@10.17.0",
 	"workspaces": [
 		"apps/*",
 		"packages/*"
@@ -84,7 +84,7 @@
 	"devDependencies": {
 		"@commitlint/cli": "19.8.1",
 		"@commitlint/config-conventional": "19.8.1",
-		"@eslint/js": "9.35.0",
+		"@eslint/js": "9.36.0",
 		"@eslint/object-schema": "2.1.6",
 		"@eslint/plugin-kit": "0.3.5",
 		"@humanfs/node": "0.16.7",
@@ -93,7 +93,7 @@
 		"@typescript-eslint/eslint-plugin": "^8.44.0",
 		"@typescript-eslint/parser": "^8.44.0",
 		"babel-plugin-react-compiler": "19.1.0-rc.3",
-		"eslint": "^9.35.0",
+		"eslint": "^9.36.0",
 		"eslint-config-prettier": "10.1.8",
 		"eslint-config-turbo": "^2.5.6",
 		"eslint-plugin-turbo": "^2.5.6",
@@ -101,7 +101,6 @@
 		"husky": "9.1.7",
 		"jsdom": "27.0.0",
 		"lint-staged": "16.1.6",
-		"pre-commit": "1.2.2",
 		"prettier-plugin-organize-imports": "4.3.0",
 		"tsx": "4.20.5",
 		"turbo": "2.5.6",
@@ -120,19 +119,6 @@
 		"turbo-darwin-arm64": "2.5.6",
 		"turbo-linux-64": "2.5.6",
 		"turbo-linux-arm64": "2.5.6"
-	},
-	"lint-staged": {
-		"*.{ts,tsx}": [
-			"eslint --cache --fix",
-			"prettier --write"
-		],
-		"*.{js,jsx}": [
-			"eslint --cache --fix",
-			"prettier --write"
-		],
-		"*.{json,md,yml,yaml}": [
-			"prettier --write"
-		]
 	},
 	"commitlint": {
 		"extends": [

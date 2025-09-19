@@ -11,6 +11,7 @@ import {
 import { useMutation } from '@tanstack/react-query'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { createPaymentIntent } from '@/lib/stripe-client'
 
 // UI Components
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -50,8 +51,8 @@ import {
 
 // Types
 import type {
-	CheckoutFormProps,
-	CreatePaymentIntentRequest
+	CreatePaymentIntentRequest,
+	ExtendedCheckoutFormProps
 } from '@repo/shared'
 
 interface CreatePaymentIntentResponse {
@@ -79,7 +80,7 @@ export function CheckoutForm({
 	showSecurityNotice = true,
 	planName,
 	features = []
-}: CheckoutFormProps) {
+}: ExtendedCheckoutFormProps) {
 	const stripe = useStripe()
 	const elements = useElements()
 
@@ -121,31 +122,19 @@ export function CheckoutForm({
 				throw new Error('Amount must be at least $0.50')
 			}
 
-			// Use our NestJS backend instead of direct Stripe API
-			const response = await fetch('/api/create-payment-intent', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					amount: request.amount,
-					tenantId: request.metadata.tenant_id || request.metadata.planId || '',
-					propertyId: request.metadata.property_id || '',
-					subscriptionType:
-						request.metadata.subscription_type ||
-						request.metadata.planName ||
-						''
-				})
+			// Use our NestJS backend via stripe-client
+			const result = await createPaymentIntent({
+				amount: request.amount,
+				currency: 'usd',
+				metadata: {
+					tenant_id: request.metadata?.tenant_id || request.metadata?.planId || '',
+					property_id: request.metadata?.property_id || '',
+					subscription_type: request.metadata?.subscription_type || request.metadata?.planName || ''
+				},
+				customerEmail: request.metadata?.customerEmail
 			})
 
-			if (!response.ok) {
-				const errorData = await response
-					.json()
-					.catch(() => ({ error: 'Network error' }))
-				throw new Error(
-					errorData.error || `HTTP ${response.status}: ${response.statusText}`
-				)
-			}
-
-			return response.json()
+			return result
 		},
 		onError: err => {
 			const errorMessage =
@@ -247,7 +236,9 @@ export function CheckoutForm({
 
 					setError(errorMessage)
 					errorApi.start({ opacity: 1, scale: 1 })
-					onError?.(submitError)
+					const error = new Error(errorMessage)
+					error.name = 'StripeError'
+					onError?.(error)
 					toast.error('Payment failed', { description: errorMessage })
 				} else if (paymentIntent) {
 					// Handle successful PaymentIntent lifecycle states
@@ -260,7 +251,7 @@ export function CheckoutForm({
 								rotate: 0,
 								config: { tension: 200, friction: 15 }
 							})
-							onSuccess?.(paymentIntent)
+							onSuccess?.()
 							toast.success('Payment successful!', {
 								description: `Payment of ${formatAmount(amount)} completed successfully.`
 							})
@@ -398,18 +389,23 @@ export function CheckoutForm({
 
 						{showTrustSignals && business.trustSignals && (
 							<div className="flex flex-wrap justify-center gap-2 pt-4">
-								{business.trustSignals.map((signal, index) => (
-									<span
-										key={index}
-										className={badgeClasses(
-											'secondary',
-											'sm',
-											'text-xs font-medium'
-										)}
-									>
-										{signal}
-									</span>
-								))}
+								{business.trustSignals.map(
+									(
+										signal: string | { text: string; icon?: string },
+										index: number
+									) => (
+										<span
+											key={index}
+											className={badgeClasses(
+												'secondary',
+												'sm',
+												'text-xs font-medium'
+											)}
+										>
+											{typeof signal === 'string' ? signal : signal.text}
+										</span>
+									)
+								)}
 							</div>
 						)}
 					</div>
@@ -579,15 +575,26 @@ export function CheckoutForm({
 									What's included:
 								</p>
 								<div className="grid grid-cols-1 gap-1">
-									{features.slice(0, 3).map((feature, index) => (
-										<div
-											key={index}
-											className="flex items-center gap-2 text-sm"
-										>
-											<CheckCircle2 className="h-3 w-3 text-accent flex-shrink-0" />
-											<span className="text-muted-foreground">{feature}</span>
-										</div>
-									))}
+									{features
+										.slice(0, 3)
+										.map(
+											(
+												feature: string | { text: string; included: boolean },
+												index: number
+											) => (
+												<div
+													key={index}
+													className="flex items-center gap-2 text-sm"
+												>
+													<CheckCircle2 className="h-3 w-3 text-accent flex-shrink-0" />
+													<span className="text-muted-foreground">
+														{typeof feature === 'string'
+															? feature
+															: feature.text}
+													</span>
+												</div>
+											)
+										)}
 									{features.length > 3 && (
 										<p className="text-xs text-muted-foreground pl-5">
 											+{features.length - 3} more features
@@ -747,14 +754,16 @@ export function CheckoutForm({
 										Trusted by property managers worldwide
 									</p>
 									<div className="flex flex-wrap justify-center gap-2">
-										{business.trustSignals.slice(0, 2).map((signal, index) => (
-											<span
-												key={index}
-												className={badgeClasses('outline', 'sm', 'text-xs')}
-											>
-												{signal}
-											</span>
-										))}
+										{business.trustSignals
+											.slice(0, 2)
+											.map((signal: string, index: number) => (
+												<span
+													key={index}
+													className={badgeClasses('outline', 'sm', 'text-xs')}
+												>
+													{signal}
+												</span>
+											))}
 									</div>
 								</div>
 							)}

@@ -1,462 +1,273 @@
 {
-  "$schema": "https://turbo.build/schema.json",
-  "ui": "tui",
-  "cacheDir": ".turbo",
-  "concurrency": "10",
-  "remoteCache": {
-    "enabled": true,
-    "signature": true,
-    "timeout": 30
-  },
-  "globalEnv": [
-    "CI",
-    "VERCEL",
-    "VERCEL_ENV",
-    "VERCEL_URL",
-    "GITHUB_ACTIONS",
-    "NEXT_PUBLIC_VERCEL_URL",
-    "NODE_ENV",
-    "TURBO_*",
-    "TURBO_TELEMETRY_DISABLED",
-    "NEXT_TELEMETRY_DISABLED",
-    "NEXT_DISABLE_DEVTOOLS",
-    "NEXT_PUBLIC_SUPABASE_URL",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    "SUPABASE_URL",
-    "SUPABASE_ANON_KEY",
-    "SUPABASE_SERVICE_KEY",
-    "SUPABASE_SERVICE_ROLE_KEY",
-    "BACKEND_URL",
-    "STRIPE_SECRET_KEY",
-    "STRIPE_API_VERSION",
-    "STRIPE_WEBHOOK_SECRET",
-    "STRIPE_STARTER_MONTHLY_PRICE_ID",
-    "STRIPE_STARTER_ANNUAL_PRICE_ID",
-    "STRIPE_GROWTH_MONTHLY_PRICE_ID",
-    "STRIPE_GROWTH_ANNUAL_PRICE_ID",
-    "STRIPE_MAX_MONTHLY_PRICE_ID",
-    "STRIPE_MAX_ANNUAL_PRICE_ID",
-    "PUPPETEER_EXECUTABLE_PATH",
-    "CORS_ORIGINS",
-    "STRIPE_STARTER_MONTHLY",
-    "STRIPE_STARTER_ANNUAL",
-    "STRIPE_GROWTH_MONTHLY",
-    "STRIPE_GROWTH_ANNUAL",
-    "STRIPE_MAX_MONTHLY",
-    "STRIPE_MAX_ANNUAL",
-    "SERVICE_ROLE_KEY",
-    "DISABLE_AUTH",
-    "SECURITY_WEBHOOK_URL",
-    "SECURITY_ALERT_EMAIL",
-    "ENABLE_MOCK_AUTH",
-    "DATABASE_URL",
-    "DIRECT_URL",
-    "JWT_SECRET",
-    "SUPABASE_JWT_SECRET",
-    "FRONTEND_URL",
-    "PORT",
-    "COOKIE_SECRET",
-    "JWT_EXPIRES_IN",
-    "RATE_LIMIT_MAX",
-    "RUNNER_OS",
-    "TEST_SUPABASE_URL",
-    "TEST_SERVICE_ROLE_KEY",
-    "RESEND_API_KEY",
-    "EMAIL_FROM_ADDRESS",
-    "SUPPORT_EMAIL",
-    "STRIPE_PORTAL_RETURN_URL",
-    "DOCKER_CONTAINER",
-    "RAILWAY_ENVIRONMENT",
-    "HEALTH_CHECK_TABLE",
-    "HEALTH_CHECK_FUNCTION",
-    "HEALTH_DB_TIMEOUT_MS",
-    "ENABLE_DATA_VALIDATION_TESTS",
-    "PUBLIC_CACHE_MAX_AGE",
-    "PUBLIC_CACHE_SWR",
-    "BACKEND_TIMEOUT_MS",
-    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
-    "NEXT_PUBLIC_API_BASE_URL",
-    "STRIPE_ENTERPRISE_MONTHLY",
-    "STRIPE_ENTERPRISE_ANNUAL",
-    "STRIPE_ENTERPRISE_MONTHLY_PRICE_ID",
-    "STRIPE_ENTERPRISE_ANNUAL_PRICE_ID",
-    "DISABLE_PUPPETEER",
-    "ENABLE_SECURITY_MONITORING",
-    "CI_SKIP_PUPPETEER",
-    "ENABLE_PERFORMANCE_MONITORING",
-    "LOG_LEVEL",
-    "DOPPLER_TOKEN",
-    "STRIPE_SYNC_DATABASE_SCHEMA",
-    "STRIPE_SYNC_AUTO_EXPAND_LISTS"
-  ],
-  "globalPassThroughEnv": ["CI", "NODE_ENV", "VERCEL_*", "GITHUB_*"],
-  "globalDependencies": [
-    "**/.env.*",
-    ".prettierrc",
-    "eslint.config.js",
-    "pnpm-lock.yaml",
-    "vercel.json"
-  ],
-  "envMode": "strict",
-  "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "!**/*.md",
-        "!**/*.test.*",
-        "!**/*.spec.*",
-        "!**/test-results/**",
-        "!**/playwright-report/**",
-        "!**/coverage/**",
-        "!**/.git/**",
-        "!**/.turbo/**",
-        "!**/node_modules/**"
-      ],
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**",
-        ".vercel/**",
-        ".vercel/output/**",
-        "dist/**",
-        "build/**"
-      ],
-      "cache": true,
-      "persistent": false,
-      "env": ["NODE_ENV", "VERCEL", "VERCEL_ENV", "VERCEL_URL"]
-    },
-    "@repo/shared#build": {
-      "dependsOn": [],
-      "inputs": [
-        "src/**",
-        "tsconfig*.json",
-        "package.json",
-        "!**/*.md",
-        "!**/*.test.*",
-        "!**/*.spec.*"
-      ],
-      "outputs": ["dist/**"],
-      "cache": true,
-      "persistent": false
-    },
-    "@repo/eslint-config#build": {
-      "dependsOn": [],
-      "inputs": ["*.js", "package.json"],
-      "outputs": [],
-      "cache": true,
-      "persistent": false
-    },
-    "@repo/typescript-config#build": {
-      "dependsOn": [],
-      "inputs": ["*.json", "package.json"],
-      "outputs": [],
-      "cache": true,
-      "persistent": false
-    },
-    "@repo/frontend#build": {
-      "dependsOn": ["@repo/shared#build"],
-      "inputs": [
-        "src/**",
-        "app/**",
-        "components/**",
-        "lib/**",
-        "public/**",
-        "scripts/**",
-        "../backend/src/schemas/**",
-        "next.config.ts",
-        "tsconfig*.json",
-        "package.json",
-        "!**/*.md",
-        "!**/*.test.*",
-        "!**/*.spec.*",
-        "!**/test-results/**",
-        "!**/playwright-report/**"
-      ],
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**",
-        ".vercel/**",
-        ".vercel/output/**",
-        ".turbo/**"
-      ],
-      "env": ["NEXT_PUBLIC_*", "VERCEL", "VERCEL_ENV", "VERCEL_URL"],
-      "cache": true,
-      "persistent": false
-    },
-    "@repo/backend#build": {
-      "dependsOn": ["@repo/shared#build"],
-      "inputs": [
-        "src/**",
-        "tsconfig*.json",
-        "package.json",
-        "nest-cli.json",
-        "!**/*.md",
-        "!**/*.test.*",
-        "!**/*.spec.*"
-      ],
-      "outputs": ["dist/**"],
-      "cache": true,
-      "persistent": false
-    },
-    "@repo/backend#test:unit": {
-      "dependsOn": ["@repo/shared#build"],
-      "inputs": [
-        "src/**/*.test.ts",
-        "src/**/*.spec.ts",
-        "tests/unit/**/*",
-        "jest.config.*",
-        "!coverage/**",
-        "!test-results/**"
-      ],
-      "outputs": [],
-      "cache": true,
-      "persistent": false,
-      "env": ["CI", "NODE_ENV"],
-      "passThroughEnv": ["CI", "NODE_ENV"]
-    },
-    "dev": {
-      "cache": false,
-      "persistent": true,
-      "dependsOn": ["@repo/shared#build"]
-    },
-    "lint": {
-      "inputs": [
-        "**/*.ts",
-        "**/*.tsx",
-        "**/*.js",
-        "**/*.jsx",
-        "eslint.config.*",
-        "!node_modules/**",
-        "!dist/**",
-        "!.next/**",
-        "!coverage/**"
-      ],
-      "outputs": [],
-      "cache": true,
-      "persistent": false
-    },
-    "lint:fix": {
-      "inputs": [
-        "**/*.ts",
-        "**/*.tsx",
-        "**/*.js",
-        "**/*.jsx",
-        "eslint.config.*"
-      ],
-      "outputs": [".eslintcache"],
-      "cache": false,
-      "persistent": false
-    },
-    "format": {
-      "inputs": ["$TURBO_DEFAULT$", ".prettierrc*", "prettier.config.*"],
-      "outputs": [],
-      "cache": false,
-      "persistent": false
-    },
-    "format:check": {
-      "inputs": ["$TURBO_DEFAULT$", ".prettierrc*", "prettier.config.*"],
-      "outputs": [],
-      "cache": true,
-      "persistent": false
-    },
-    "typecheck": {
-      "dependsOn": ["^build"],
-      "inputs": [
-        "**/*.ts",
-        "**/*.tsx",
-        "tsconfig*.json",
-        "!node_modules/**",
-        "!dist/**",
-        "!.next/**",
-        "!coverage/**"
-      ],
-      "outputs": [".tsbuildinfo", "*/.tsbuildinfo"],
-      "cache": true,
-      "persistent": false
-    },
-    "check-types": {
-      "dependsOn": ["^build"],
-      "inputs": [
-        "**/*.ts",
-        "**/*.tsx",
-        "tsconfig*.json",
-        "!node_modules/**",
-        "!dist/**",
-        "!.next/**",
-        "!coverage/**"
-      ],
-      "outputs": [".tsbuildinfo", "*/.tsbuildinfo"],
-      "cache": true,
-      "persistent": false
-    },
-    "@repo/frontend#typecheck": {
-      "dependsOn": ["@repo/shared#build"],
-      "inputs": [
-        "src/**",
-        "app/**",
-        "tsconfig*.json",
-        "!**/*.md",
-        "!**/*.test.*",
-        "!**/*.spec.*"
-      ],
-      "outputs": [],
-      "cache": true,
-      "persistent": false
-    },
-    "@repo/backend#typecheck": {
-      "dependsOn": ["@repo/shared#build"],
-      "inputs": [
-        "src/**",
-        "tsconfig*.json",
-        "package.json",
-        "!**/*.md",
-        "!**/*.test.*",
-        "!**/*.spec.*"
-      ],
-      "outputs": [],
-      "cache": true,
-      "persistent": false
-    },
-    "@repo/shared#typecheck": {
-      "dependsOn": [],
-      "inputs": [
-        "src/**",
-        "tsconfig*.json",
-        "package.json",
-        "!**/*.md",
-        "!**/*.test.*",
-        "!**/*.spec.*"
-      ],
-      "outputs": ["dist/.tsbuildinfo"],
-      "cache": true,
-      "persistent": false
-    },
-    "@repo/typescript-config#typecheck": {
-      "dependsOn": [],
-      "inputs": ["*.json", "package.json"],
-      "outputs": [],
-      "cache": true,
-      "persistent": false
-    },
-    "test": {
-      "dependsOn": ["@repo/shared#build"],
-      "cache": true,
-      "outputs": ["coverage/**", "test-results/**"],
-      "inputs": [
-        "**/*.test.ts",
-        "**/*.test.tsx",
-        "**/*.spec.ts",
-        "**/*.spec.tsx",
-        "src/**",
-        "jest.config.*",
-        "!coverage/**",
-        "!test-results/**"
-      ],
-      "persistent": false,
-      "env": ["CI"]
-    },
-    "test:unit": {
-      "dependsOn": ["@repo/shared#build"],
-      "inputs": [
-        "src/**/*.test.ts",
-        "src/**/*.test.tsx",
-        "src/**/*.spec.ts",
-        "src/**/*.spec.tsx",
-        "tests/unit/**/*.test.ts",
-        "tests/unit/**/*.test.tsx",
-        "tests/unit/**/*.spec.ts",
-        "tests/unit/**/*.spec.tsx",
-        "jest.config.*",
-        "!coverage/**",
-        "!test-results/**",
-        "!**/node_modules/**",
-        "!tests/e2e/**",
-        "!tests/visual/**",
-        "!tests/production/**",
-        "!tests/integration/**"
-      ],
-      "cache": true,
-      "outputs": ["coverage/**", "test-results/**"],
-      "persistent": false,
-      "env": ["CI", "NODE_ENV"],
-      "passThroughEnv": ["CI", "NODE_ENV"]
-    },
-    "test:integration": {
-      "dependsOn": ["@repo/shared#build", "test:unit"],
-      "inputs": [
-        "**/*.integration.test.ts",
-        "**/*.integration.spec.ts",
-        "src/**",
-        "jest.config.*",
-        "!coverage/**",
-        "!test-results/**"
-      ],
-      "cache": false,
-      "outputs": ["coverage/**", "test-results/**"],
-      "persistent": false,
-      "env": ["CI"]
-    },
-    "test:vitest": {
-      "dependsOn": ["@repo/shared#build"],
-      "inputs": [
-        "src/**/*.test.ts",
-        "src/**/*.test.tsx",
-        "src/**/*.spec.ts",
-        "src/**/*.spec.tsx",
-        "tests/unit/**/*.test.ts",
-        "tests/unit/**/*.test.tsx",
-        "!coverage/**",
-        "!test-results/**",
-        "!**/node_modules/**"
-      ],
-      "cache": true,
-      "outputs": ["coverage/**", "test-results/**"],
-      "persistent": false,
-      "env": ["CI"]
-    },
-    "test:coverage": {
-      "dependsOn": ["@repo/shared#build"],
-      "cache": true,
-      "outputs": ["coverage/**"],
-      "inputs": [
-        "**/*.test.ts",
-        "**/*.test.tsx",
-        "**/*.spec.ts",
-        "**/*.spec.tsx",
-        "src/**",
-        "!coverage/**"
-      ],
-      "persistent": false,
-      "env": ["CI"]
-    },
-    "test:e2e": {
-      "dependsOn": ["@repo/shared#build"],
-      "cache": false,
-      "outputs": ["test-results/**", "playwright-report/**"],
-      "inputs": [
-        "**/*.e2e.spec.ts",
-        "**/*.e2e.test.ts",
-        "tests/e2e/**",
-        "playwright.config.*"
-      ],
-      "persistent": false,
-      "env": ["NODE_ENV", "CI", "PLAYWRIGHT_*"]
-    },
-    "clean": {
-      "cache": false,
-      "outputs": [],
-      "persistent": false
-    },
-    "generate:schemas": {
-      "dependsOn": ["@repo/shared#build"],
-      "inputs": [
-        "../backend/src/schemas/**",
-        "scripts/generate-frontend-schemas.ts",
-        "package.json"
-      ],
-      "outputs": ["src/lib/validation/generated-*.ts"],
-      "cache": true,
-      "persistent": false
-    }
-  }
+	"$schema": "https://turbo.build/schema.json",
+	"ui": "tui",
+	"cacheDir": ".turbo",
+	"concurrency": "10",
+	"remoteCache": {
+		"enabled": true,
+		"signature": true,
+		"timeout": 30
+	},
+	"globalEnv": [
+		"CI",
+		"VERCEL",
+		"VERCEL_ENV",
+		"VERCEL_URL",
+		"GITHUB_ACTIONS",
+		"NODE_ENV",
+		"TURBO_*",
+		"TURBO_TELEMETRY_DISABLED",
+		"NEXT_TELEMETRY_DISABLED",
+		"NEXT_DISABLE_DEVTOOLS",
+		"SUPABASE_URL",
+		"SUPABASE_ANON_KEY",
+		"SUPABASE_SERVICE_KEY",
+		"NEXT_PUBLIC_SUPABASE_URL",
+		"NEXT_PUBLIC_SUPABASE_ANON_KEY",
+		"SUPABASE_SERVICE_ROLE_KEY",
+		"BACKEND_URL",
+		"STRIPE_SECRET_KEY",
+		"STRIPE_API_VERSION",
+		"STRIPE_WEBHOOK_SECRET",
+		"STRIPE_STARTER_MONTHLY_PRICE_ID",
+		"STRIPE_STARTER_ANNUAL_PRICE_ID",
+		"STRIPE_GROWTH_MONTHLY_PRICE_ID",
+		"STRIPE_GROWTH_ANNUAL_PRICE_ID",
+		"STRIPE_MAX_MONTHLY_PRICE_ID",
+		"STRIPE_MAX_ANNUAL_PRICE_ID",
+		"PUPPETEER_EXECUTABLE_PATH",
+		"CORS_ORIGINS",
+		"STRIPE_STARTER_MONTHLY",
+		"STRIPE_STARTER_ANNUAL",
+		"STRIPE_GROWTH_MONTHLY",
+		"STRIPE_GROWTH_ANNUAL",
+		"STRIPE_MAX_MONTHLY",
+		"STRIPE_MAX_ANNUAL",
+		"SERVICE_ROLE_KEY",
+		"DISABLE_AUTH",
+		"SECURITY_WEBHOOK_URL",
+		"SECURITY_ALERT_EMAIL",
+		"ENABLE_MOCK_AUTH",
+		"DATABASE_URL",
+		"DIRECT_URL",
+		"JWT_SECRET",
+		"SUPABASE_JWT_SECRET",
+		"FRONTEND_URL",
+		"PORT",
+		"BACKEND_PORT",
+		"COOKIE_SECRET",
+		"JWT_EXPIRES_IN",
+		"RATE_LIMIT_MAX",
+		"RUNNER_OS",
+		"TEST_SUPABASE_URL",
+		"TEST_SERVICE_ROLE_KEY",
+		"RESEND_API_KEY",
+		"EMAIL_FROM_ADDRESS",
+		"SUPPORT_EMAIL",
+		"STRIPE_PORTAL_RETURN_URL",
+		"DOCKER_CONTAINER",
+		"RAILWAY_ENVIRONMENT",
+		"HEALTH_CHECK_TABLE",
+		"HEALTH_CHECK_FUNCTION",
+		"HEALTH_DB_TIMEOUT_MS",
+		"npm_package_version",
+		"RAILWAY_REGION",
+		"ENABLE_DATA_VALIDATION_TESTS",
+		"PUBLIC_CACHE_MAX_AGE",
+		"PUBLIC_CACHE_SWR",
+		"BACKEND_TIMEOUT_MS",
+		"STRIPE_ENTERPRISE_MONTHLY",
+		"STRIPE_ENTERPRISE_ANNUAL",
+		"STRIPE_ENTERPRISE_MONTHLY_PRICE_ID",
+		"STRIPE_ENTERPRISE_ANNUAL_PRICE_ID",
+		"DISABLE_PUPPETEER",
+		"ENABLE_SECURITY_MONITORING",
+		"CI_SKIP_PUPPETEER",
+		"ENABLE_PERFORMANCE_MONITORING",
+		"LOG_LEVEL",
+		"DOPPLER_TOKEN",
+		"STRIPE_SYNC_DATABASE_SCHEMA",
+		"STRIPE_SYNC_AUTO_EXPAND_LISTS",
+		"AUTH_HEALTH_CHECK_TOKEN"
+	],
+	"globalPassThroughEnv": ["CI", "NODE_ENV", "VERCEL_*", "GITHUB_*"],
+	"globalDependencies": [
+		"**/.env.*",
+		".prettierrc",
+		"eslint.config.js",
+		"pnpm-lock.yaml",
+		"vercel.json"
+	],
+	"envMode": "strict",
+	"tasks": {
+		"@repo/shared#build": {
+			"dependsOn": [],
+			"inputs": [
+				"src/**",
+				"tsconfig*.json",
+				"package.json",
+				"!**/*.md",
+				"!**/*.test.*",
+				"!**/*.spec.*"
+			],
+			"outputs": ["dist/**"],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/eslint-config#build": {
+			"dependsOn": [],
+			"inputs": ["*.js", "package.json"],
+			"outputs": [],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/typescript-config#build": {
+			"dependsOn": [],
+			"inputs": ["*.json", "package.json"],
+			"outputs": [],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/frontend#build": {
+			"dependsOn": ["@repo/shared#build"],
+			"inputs": [
+				"src/**/*.{ts,tsx,js,jsx}",
+				"app/**/*.{ts,tsx,js,jsx}",
+				"components/**/*.{ts,tsx,js,jsx}",
+				"lib/**/*.{ts,tsx,js,jsx}",
+				"public/**",
+				"next.config.ts",
+				"tsconfig*.json",
+				"package.json"
+			],
+			"outputs": [".next/**", "!.next/cache/**", ".vercel/output/**"],
+			"env": ["NEXT_PUBLIC_*", "VERCEL", "VERCEL_ENV"],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/backend#build": {
+			"dependsOn": ["@repo/shared#build"],
+			"inputs": [
+				"src/**/*.{ts,js}",
+				"tsconfig*.json",
+				"package.json",
+				"nest-cli.json"
+			],
+			"outputs": ["dist/**"],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/backend#test:unit": {
+			"dependsOn": ["@repo/shared#build"],
+			"inputs": ["src/**/*.{test,spec}.ts", "jest.config.*", "package.json"],
+			"outputs": ["coverage/**"],
+			"cache": true,
+			"persistent": false
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		},
+		"dev:clean": {
+			"dependsOn": ["clean"],
+			"cache": false,
+			"persistent": true
+		},
+		"lint:fix": {
+			"inputs": [
+				"src/**/*.{ts,tsx,js,jsx}",
+				"app/**/*.{ts,tsx,js,jsx}",
+				"eslint.config.*",
+				"!node_modules/**",
+				"!dist/**",
+				"!.next/**"
+			],
+			"outputs": [],
+			"cache": false,
+			"persistent": false
+		},
+		"format": {
+			"inputs": [
+				"src/**/*.{ts,tsx,js,jsx}",
+				"app/**/*.{ts,tsx,js,jsx}",
+				".prettierrc*",
+				"prettier.config.*",
+				"!node_modules/**",
+				"!dist/**",
+				"!.next/**"
+			],
+			"outputs": [],
+			"cache": false,
+			"persistent": false
+		},
+		"format:check": {
+			"inputs": [
+				"src/**/*.{ts,tsx,js,jsx}",
+				"app/**/*.{ts,tsx,js,jsx}",
+				".prettierrc*",
+				"prettier.config.*",
+				"!node_modules/**",
+				"!dist/**",
+				"!.next/**"
+			],
+			"outputs": [],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/frontend#typecheck": {
+			"dependsOn": ["@repo/shared#build"],
+			"inputs": [
+				"src/**/*.{ts,tsx}",
+				"app/**/*.{ts,tsx}",
+				"tsconfig*.json",
+				"package.json"
+			],
+			"outputs": [],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/backend#typecheck": {
+			"dependsOn": ["@repo/shared#build"],
+			"inputs": ["src/**/*.{ts,js}", "tsconfig*.json", "package.json"],
+			"outputs": [],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/shared#typecheck": {
+			"dependsOn": [],
+			"inputs": ["src/**/*.ts", "tsconfig*.json", "package.json"],
+			"outputs": ["dist/.tsbuildinfo"],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/shared#lint:fix": {
+			"inputs": ["src/**/*.{ts,tsx}", "eslint.config.*", "package.json"],
+			"outputs": [],
+			"cache": false,
+			"persistent": false
+		},
+		"@repo/typescript-config#typecheck": {
+			"dependsOn": [],
+			"inputs": ["*.json", "package.json"],
+			"outputs": [],
+			"cache": true,
+			"persistent": false
+		},
+		"clean": {
+			"cache": false,
+			"outputs": [],
+			"persistent": false
+		},
+		"generate:schemas": {
+			"dependsOn": ["@repo/shared#build"],
+			"inputs": [
+				"../backend/src/schemas/**",
+				"scripts/generate-frontend-schemas.ts",
+				"package.json"
+			],
+			"outputs": ["src/lib/validation/generated-*.ts"],
+			"cache": true,
+			"persistent": false
+		}
+	}
 }

@@ -497,7 +497,7 @@ const columns: ColumnDef<PropertyTableData>[] = [
 ]
 
 // Row action handler that uses the Row type
-import logger from '@repo/shared/lib/frontend-logger'
+import { logger } from '@repo/shared'
 
 const handleRowAction = (
 	row: Row<PropertyTableData>,
@@ -518,6 +518,7 @@ const handleRowAction = (
 	}
 }
 
+// eslint-disable-next-line type-centralization/no-inline-types
 interface DataTableProps extends React.ComponentProps<'div'> {
 	data: PropertyTableData[]
 	isLoading?: boolean

@@ -1,8 +1,9 @@
 'use client'
 
+import { Navbar } from '@/components/navbar'
 import { usePathname } from 'next/navigation'
 import * as React from 'react'
-import { Navbar } from 'src/components/navbar'
+
 
 interface SiteNavRootProps {
 	/**

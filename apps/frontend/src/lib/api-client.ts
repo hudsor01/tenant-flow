@@ -4,6 +4,7 @@
  */
 import { apiClient } from '@repo/shared'
 import type {
+	MaintenanceRequestResponse,
 	DashboardFinancialStats,
 	ExpenseSummaryResponse,
 	FinancialOverviewResponse,
@@ -11,7 +12,11 @@ import type {
 	TenantWithLeaseInfo,
 	PropertyPerformance,
 	PropertyWithUnits,
-	SystemUptime
+	SystemUptime,
+	MaintenanceRequest,
+	MaintenanceStats,
+	MaintenanceRequestInput,
+	MaintenanceRequestUpdate
 } from '@repo/shared'
 import type { DashboardStats, TenantStats } from '@repo/shared'
 
@@ -37,7 +42,7 @@ type UnitInsert = TablesInsert<'Unit'>
 type UnitUpdate = TablesUpdate<'Unit'>
 
 export const API_BASE_URL =
-	process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL
+	process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
 
 /**
  * Dashboard API endpoints
@@ -215,6 +220,37 @@ export const leasesApi = {
 		}),
 	remove: (id: string) =>
 		apiClient<void>(`${API_BASE_URL}/api/v1/leases/${id}`, { method: 'DELETE' })
+}
+
+export const maintenanceApi = {
+	list: (params?: { status?: string }) =>
+		apiClient<MaintenanceRequestResponse>(
+			`${API_BASE_URL}/api/v1/maintenance${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`
+		),
+	create: (body: MaintenanceRequestInput) =>
+		apiClient<MaintenanceRequest>(`${API_BASE_URL}/api/v1/maintenance`, {
+			method: 'POST',
+			body: JSON.stringify(body)
+		}),
+	update: (id: string, body: MaintenanceRequestUpdate) =>
+		apiClient<MaintenanceRequest>(`${API_BASE_URL}/api/v1/maintenance/${id}`, {
+			method: 'PUT',
+			body: JSON.stringify(body)
+		}),
+	remove: (id: string) =>
+		apiClient<void>(`${API_BASE_URL}/api/v1/maintenance/${id}`, { method: 'DELETE' }),
+	complete: (id: string, actualCost?: number, notes?: string) =>
+		apiClient<MaintenanceRequest>(`${API_BASE_URL}/api/v1/maintenance/${id}/complete`, {
+			method: 'POST',
+			body: JSON.stringify({ actualCost, notes })
+		}),
+	cancel: (id: string, reason?: string) =>
+		apiClient<MaintenanceRequest>(`${API_BASE_URL}/api/v1/maintenance/${id}/cancel`, {
+			method: 'POST',
+			body: JSON.stringify({ reason })
+		}),
+	stats: () =>
+		apiClient<MaintenanceStats>(`${API_BASE_URL}/api/v1/maintenance/stats`)
 }
 
 /**

@@ -1,14 +1,13 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { toast } from 'sonner'
+import { BlurFade } from '@/components/magicui/blur-fade'
+import { ShimmerButton } from '@/components/magicui/shimmer-button'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { Navbar } from '@/components/navbar'
+import { FooterMinimal } from '@/components/sections/footer-minimal'
 
-// UI Components
-import { PageLayout } from 'src/components/layout/page-layout'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
 	Card,
 	CardContent,
@@ -16,11 +15,16 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle
-} from 'src/components/ui/card'
+} from '@/components/ui/card'
+import { createCheckoutSession } from '@/lib/stripe-client'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { toast } from 'sonner'
+
+// UI Components
 
 // Icons
 import { ArrowRight, Check, Star } from 'lucide-react'
-import { ShimmerButton } from 'src/components/magicui/shimmer-button'
 
 // Design System
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
@@ -121,24 +125,11 @@ export default function PricingPage() {
 
 		try {
 			toast.loading('Redirecting to secure checkout...', { id: 'checkout' })
-			const res = await fetch('/api/stripe/create-checkout-session', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					priceId,
-					planName: plan.name,
-					isYearly,
-					successUrl: `${window.location.origin}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
-					cancelUrl: `${window.location.origin}/pricing/cancel`
-				})
+			const data = await createCheckoutSession({
+				priceId,
+				planName: plan.name,
+				description: plan.description
 			})
-			if (!res.ok) {
-				const err = await res.json().catch(() => ({}))
-				throw new Error(
-					err?.error?.message || 'Failed to create checkout session'
-				)
-			}
-			const data = await res.json()
 			toast.dismiss('checkout')
 			if (data?.url) {
 				window.location.href = data.url
@@ -153,7 +144,23 @@ export default function PricingPage() {
 	}
 
 	return (
-		<PageLayout>
+		<main className="min-h-screen bg-background">
+			<Navbar />
+
+			{/* Hero Authority Section */}
+			<HeroAuthority
+				title={<>Choose the perfect plan to scale your business</>}
+				subtitle={
+					<>
+						Professional property managers increase NOI by 40% with TenantFlow's
+						enterprise-grade automation, advanced analytics, and scalable
+						operations platform.
+					</>
+				}
+				primaryCta={{ label: 'Start Free Trial', href: '/auth/sign-up' }}
+				secondaryCta={{ label: 'Contact Sales', href: '/contact' }}
+			/>
+
 			<section className="section-content md:py-16 gradient-authority">
 				<div className="mx-auto max-w-7xl">
 					{/* Header */}
@@ -398,6 +405,7 @@ export default function PricingPage() {
 					</div>
 				</div>
 			</section>
-		</PageLayout>
+			<FooterMinimal />
+		</main>
 	)
 }

@@ -1,18 +1,18 @@
 {
-  "name": "@repo/eslint-config",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "description": "Shared ESLint configuration for TenantFlow monorepo",
-  "main": "index.js",
-  "files": [
-    "library.js",
-    "next.js",
-    "react-internal.js"
-  ],
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^8.43.0",
-    "@typescript-eslint/parser": "^8.43.0",
-    "eslint-config-turbo": "^2.5.6"
-  }
+	"name": "@repo/eslint-config",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"description": "Shared ESLint configuration for TenantFlow monorepo",
+	"main": "index.js",
+	"files": [
+		"library.js",
+		"next.js",
+		"react-internal.js"
+	],
+	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "^8.44.0",
+		"@typescript-eslint/parser": "^8.44.0",
+		"eslint-config-turbo": "^2.5.6"
+	}
 }

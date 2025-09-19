@@ -11,28 +11,10 @@
  * - Permissions-Policy for feature restrictions
  */
 
-import { Injectable, NestMiddleware, Logger } from '@nestjs/common'
-import type { FastifyRequest, FastifyReply } from 'fastify'
+import { Injectable, Logger, NestMiddleware } from '@nestjs/common'
+import type { SecurityHeadersConfig } from '@repo/shared'
 import { getCSPString } from '@repo/shared'
-
-interface SecurityHeadersConfig {
-	csp: {
-		enabled: boolean
-		reportOnly: boolean
-		reportUri?: string
-	}
-	hsts: {
-		enabled: boolean
-		maxAge: number
-		includeSubDomains: boolean
-		preload: boolean
-	}
-	frameOptions: 'DENY' | 'SAMEORIGIN'
-	contentTypeOptions: boolean
-	xssProtection: boolean
-	referrerPolicy: string
-	permissionsPolicy: Record<string, string[]>
-}
+import type { FastifyReply, FastifyRequest } from 'fastify'
 
 const SECURITY_CONFIG: SecurityHeadersConfig = {
 	csp: {
@@ -73,15 +55,24 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 	}
 
 	private setSecurityHeaders(req: FastifyRequest, res: FastifyReply): void {
-		const isSecure = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https'
-		const environment = process.env.NODE_ENV === 'development' ? 'development' : 'production'
+		const isSecure =
+			req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https'
+		const environment =
+			process.env.NODE_ENV === 'development' ? 'development' : 'production'
+
+		// Build headers object for batch setting
+		const headers: Record<string, string> = {}
 
 		// Content Security Policy
 		if (SECURITY_CONFIG.csp.enabled) {
-			const cspHeader = SECURITY_CONFIG.csp.reportOnly ? 'Content-Security-Policy-Report-Only' : 'Content-Security-Policy'
-			const cspValue = this.buildCSPValue(environment, SECURITY_CONFIG.csp.reportUri)
-
-			res.header(cspHeader, cspValue)
+			const cspHeader = SECURITY_CONFIG.csp.reportOnly
+				? 'Content-Security-Policy-Report-Only'
+				: 'Content-Security-Policy'
+			const cspValue = this.buildCSPValue(
+				environment,
+				SECURITY_CONFIG.csp.reportUri
+			)
+			headers[cspHeader] = cspValue
 		}
 
 		// HTTP Strict Transport Security (HSTS) - only over HTTPS
@@ -96,56 +87,82 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 				hstsValue += '; preload'
 			}
 
-			res.header('Strict-Transport-Security', hstsValue)
+			headers['Strict-Transport-Security'] = hstsValue
 		}
 
 		// X-Frame-Options - Prevent clickjacking
-		res.header('X-Frame-Options', SECURITY_CONFIG.frameOptions)
+		headers['X-Frame-Options'] = SECURITY_CONFIG.frameOptions
 
 		// X-Content-Type-Options - Prevent MIME sniffing
 		if (SECURITY_CONFIG.contentTypeOptions) {
-			res.header('X-Content-Type-Options', 'nosniff')
+			headers['X-Content-Type-Options'] = 'nosniff'
 		}
 
 		// X-XSS-Protection - Legacy XSS protection
 		if (SECURITY_CONFIG.xssProtection) {
-			res.header('X-XSS-Protection', '1; mode=block')
+			headers['X-XSS-Protection'] = '1; mode=block'
 		}
 
 		// Referrer-Policy - Control referrer information
-		res.header('Referrer-Policy', SECURITY_CONFIG.referrerPolicy)
+		headers['Referrer-Policy'] = SECURITY_CONFIG.referrerPolicy
 
 		// Permissions-Policy - Control browser features
-		const permissionsPolicy = this.buildPermissionsPolicyValue(SECURITY_CONFIG.permissionsPolicy)
-		res.header('Permissions-Policy', permissionsPolicy)
+		const permissionsPolicy = this.buildPermissionsPolicyValue(
+			SECURITY_CONFIG.permissionsPolicy
+		)
+		headers['Permissions-Policy'] = permissionsPolicy
 
 		// X-DNS-Prefetch-Control - Control DNS prefetching
-		res.header('X-DNS-Prefetch-Control', 'off')
+		headers['X-DNS-Prefetch-Control'] = 'off'
 
 		// X-Download-Options - Prevent automatic file execution
-		res.header('X-Download-Options', 'noopen')
+		headers['X-Download-Options'] = 'noopen'
 
 		// X-Permitted-Cross-Domain-Policies - Control cross-domain policies
-		res.header('X-Permitted-Cross-Domain-Policies', 'none')
+		headers['X-Permitted-Cross-Domain-Policies'] = 'none'
 
 		// Cross-Origin-Embedder-Policy - Enable cross-origin isolation
-		res.header('Cross-Origin-Embedder-Policy', 'require-corp')
+		headers['Cross-Origin-Embedder-Policy'] = 'require-corp'
 
 		// Cross-Origin-Opener-Policy - Prevent cross-origin window access
-		res.header('Cross-Origin-Opener-Policy', 'same-origin')
+		headers['Cross-Origin-Opener-Policy'] = 'same-origin'
 
 		// Cross-Origin-Resource-Policy - Control resource sharing
-		res.header('Cross-Origin-Resource-Policy', 'same-origin')
-
-		// Server header removal (don't expose server technology)
-		res.removeHeader('Server')
-		res.removeHeader('X-Powered-By')
+		headers['Cross-Origin-Resource-Policy'] = 'same-origin'
 
 		// Add security headers for API responses
 		if (req.url.startsWith('/api/')) {
-			res.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
-			res.header('Pragma', 'no-cache')
-			res.header('Expires', '0')
+			headers['Cache-Control'] =
+				'no-store, no-cache, must-revalidate, proxy-revalidate'
+			headers['Pragma'] = 'no-cache'
+			headers['Expires'] = '0'
+		}
+
+		// Set all headers using Node.js native approach (NestJS + Fastify compatible)
+		Object.entries(headers).forEach(([key, value]) => {
+			// Use native Node.js response for reliable header setting
+			if (res.raw && res.raw.setHeader) {
+				res.raw.setHeader(key, value)
+			} else {
+				// Fallback for older Fastify versions
+				try {
+					res.header(key, value)
+				} catch (error) {
+					// If header method fails, try setting on raw response
+					if (res.raw && res.raw.setHeader) {
+						res.raw.setHeader(key, value)
+					}
+				}
+			}
+		})
+
+		// Server header removal (don't expose server technology)
+		// Note: Fastify may not set these headers by default, but remove them if present
+		try {
+			res.removeHeader('Server')
+			res.removeHeader('X-Powered-By')
+		} catch (error) {
+			// Ignore errors if headers don't exist
 		}
 
 		// Log security headers application in development
@@ -159,7 +176,10 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 		}
 	}
 
-	private buildCSPValue(environment: 'development' | 'production', reportUri?: string): string {
+	private buildCSPValue(
+		environment: 'development' | 'production',
+		reportUri?: string
+	): string {
 		let cspValue = getCSPString(environment)
 
 		// Add report-uri if specified
@@ -175,14 +195,18 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 		return cspValue
 	}
 
-	private buildPermissionsPolicyValue(permissions: Record<string, string[]>): string {
+	private buildPermissionsPolicyValue(
+		permissions: Record<string, string[]>
+	): string {
 		const policies: string[] = []
 
 		for (const [feature, allowList] of Object.entries(permissions)) {
 			if (allowList.length === 0) {
 				policies.push(`${feature}=()`)
 			} else {
-				const origins = allowList.map(origin => origin === 'self' ? 'self' : `"${origin}"`).join(' ')
+				const origins = allowList
+					.map(origin => (origin === 'self' ? 'self' : `"${origin}"`))
+					.join(' ')
 				policies.push(`${feature}=(${origins})`)
 			}
 		}
@@ -192,13 +216,33 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 
 	// Method to update CSP for specific endpoints (e.g., webhook endpoints that need different policies)
 	public static customCSP(res: FastifyReply, customDirectives: string): void {
-		res.header('Content-Security-Policy', customDirectives)
+		// Use Node.js native approach for consistent header setting
+		if (res.raw && res.raw.setHeader) {
+			res.raw.setHeader('Content-Security-Policy', customDirectives)
+		} else {
+			try {
+				res.header('Content-Security-Policy', customDirectives)
+			} catch (error) {
+				// Silently fail if header cannot be set
+			}
+		}
 	}
 
 	// Method to set CORS headers for preflight requests
 	public static setCORSHeaders(res: FastifyReply): void {
-		res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
-		res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-Token')
-		res.header('Access-Control-Max-Age', '86400') // 24 hours
+		// Use Node.js native approach for consistent header setting
+		if (res.raw && res.raw.setHeader) {
+			res.raw.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
+			res.raw.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-Token')
+			res.raw.setHeader('Access-Control-Max-Age', '86400') // 24 hours
+		} else {
+			try {
+				res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
+				res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-Token')
+				res.header('Access-Control-Max-Age', '86400') // 24 hours
+			} catch (error) {
+				// Silently fail if headers cannot be set
+			}
+		}
 	}
 }

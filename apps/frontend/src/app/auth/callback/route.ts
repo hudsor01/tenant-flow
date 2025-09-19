@@ -43,7 +43,7 @@ export async function GET(request: Request) {
 
 			if (error) {
 				logger.error({ error: error.message }, 'OAuth callback error')
-				return NextResponse.redirect(`${origin}/auth?error=${encodeURIComponent(error.message)}`)
+				return NextResponse.redirect(`${origin}/login?error=oauth_failed`)
 			}
 
 			if (data.session) {
@@ -63,10 +63,10 @@ export async function GET(request: Request) {
 			}
 		} catch (error) {
 			logger.error({ error: error instanceof Error ? error.message : String(error) }, 'OAuth callback error')
-			return NextResponse.redirect(`${origin}/auth?error=${encodeURIComponent('Authentication failed')}`)
+			return NextResponse.redirect(`${origin}/login?error=oauth_failed`)
 		}
 	}
 
-	// return the user to an error page with instructions
-	return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+	// return the user to login with error parameter for toast display
+	return NextResponse.redirect(`${origin}/login?error=oauth_failed`)
 }

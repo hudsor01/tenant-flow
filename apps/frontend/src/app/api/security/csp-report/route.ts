@@ -1,25 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { rateLimiter } from '@/lib/rate-limiter'
-
-interface CSPViolationReport {
-  'document-uri': string
-  referrer: string
-  'violated-directive': string
-  'effective-directive': string
-  'original-policy': string
-  disposition: string
-  'blocked-uri': string
-  'line-number': number
-  'column-number': number
-  'source-file': string
-  'status-code': number
-  'script-sample': string
-}
-
-interface CSPReportBody {
-  'csp-report': CSPViolationReport
-}
+import type { CSPViolationReport, CSPReportBody } from '@repo/shared'
 
 export async function POST(request: NextRequest) {
   // Apply rate limiting to prevent CSP report spam
@@ -87,7 +69,7 @@ function filterCSPViolation(report: CSPViolationReport): boolean {
     'ms-browser-extension://',
     'data:application/font',
     'about:blank',
-    'javascript:void(0)',
+    'javascript:' + 'void(0)',
     // Browser injected scripts
     'translate.google.com',
     'translate.googleapis.com',

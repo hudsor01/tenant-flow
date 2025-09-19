@@ -77,6 +77,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 
 	constructor(logger: Logger) {
 		this.securityLogger = logger
+		this.logger = new Logger(RateLimitMiddleware.name)
 		// Context removed - NestJS Logger doesn't support setContext
 
 		// Cleanup expired rate limit entries every 5 minutes
@@ -150,10 +151,20 @@ export class RateLimitMiddleware implements NestMiddleware {
 			return
 		}
 
-		// Add rate limit headers
-		res.header('X-RateLimit-Limit', config.maxRequests.toString())
-		res.header('X-RateLimit-Remaining', (config.maxRequests - window.requests).toString())
-		res.header('X-RateLimit-Reset', new Date(window.resetTime).toISOString())
+		// Add rate limit headers using Node.js native approach
+		if (res.raw && res.raw.setHeader) {
+			res.raw.setHeader('X-RateLimit-Limit', config.maxRequests.toString())
+			res.raw.setHeader('X-RateLimit-Remaining', (config.maxRequests - window.requests).toString())
+			res.raw.setHeader('X-RateLimit-Reset', new Date(window.resetTime).toISOString())
+		} else {
+			try {
+				res.header('X-RateLimit-Limit', config.maxRequests.toString())
+				res.header('X-RateLimit-Remaining', (config.maxRequests - window.requests).toString())
+				res.header('X-RateLimit-Reset', new Date(window.resetTime).toISOString())
+			} catch (error) {
+				this.logger.warn('Failed to set rate limit headers', { error: error instanceof Error ? error.message : String(error) })
+			}
+		}
 
 		// Log for monitoring
 		if (window.requests > config.maxRequests * 0.8) {

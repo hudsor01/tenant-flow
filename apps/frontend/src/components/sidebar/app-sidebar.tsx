@@ -1,5 +1,19 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+} from '@/components/ui/sidebar'
+import { NavMain } from '@/components/nav-main'
+import { NavDocuments } from '@/components/nav-documents'
+import { NavSecondary } from '@/components/nav-secondary'
+import { NavUser } from '@/components/nav-user'
 import {
 	Database,
 	FileBarChart,
@@ -16,19 +30,8 @@ import {
 } from 'lucide-react'
 import * as React from 'react'
 
-import { NavDocuments } from 'src/components/nav-documents'
-import { NavMain } from 'src/components/nav-main'
-import { NavSecondary } from 'src/components/nav-secondary'
-import { NavUser } from 'src/components/nav-user'
-import {
-	Sidebar,
-	SidebarContent,
-	SidebarFooter,
-	SidebarHeader,
-	SidebarMenu,
-	SidebarMenuButton,
-	SidebarMenuItem
-} from 'src/components/ui/sidebar'
+
+
 
 const data = {
 	user: {

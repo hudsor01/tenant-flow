@@ -1,12 +1,12 @@
 'use client'
 
+import { BlurFade } from '@/components/magicui/blur-fade'
+import { BorderBeam } from '@/components/magicui/border-beam'
+import { ShimmerButton } from '@/components/magicui/shimmer-button'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ArrowRight, CheckCircle, Clock, Sparkles } from 'lucide-react'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { BorderBeam } from 'src/components/magicui/border-beam'
-import { ShimmerButton } from 'src/components/magicui/shimmer-button'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
 
 interface SaasCtaSectionProps {
 	className?: string

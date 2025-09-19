@@ -31,33 +31,37 @@ function getSupabaseClient(): SupabaseClient<Database> {
 		if (!SUPABASE_ANON_KEY) {
 			throw new Error('Missing SUPABASE_ANON_KEY environment variable')
 		}
-		_client = createClient<Database>(
-			SUPABASE_URL,
-			SUPABASE_ANON_KEY,
-			{
-				auth: {
-					persistSession: true,
-					autoRefreshToken: true
-				},
-				db: {
-					schema: 'public'
-				}
+		_client = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+			auth: {
+				persistSession: true,
+				autoRefreshToken: true,
+				flowType: 'pkce',
+				detectSessionInUrl: true
+			},
+			db: {
+				schema: 'public'
 			}
-		)
+		})
 	}
 	return _client
 }
 
-// Export as proxy to maintain same API but lazy initialize
-export const supabaseClient: SupabaseClient<Database> = new Proxy(
-	{} as SupabaseClient<Database>,
-	{
-		get(target, prop, receiver) {
-			const client = getSupabaseClient()
-			return Reflect.get(client, prop, receiver)
+// Export function to get client directly - better webpack compatibility
+export function getSupabaseClientInstance(): SupabaseClient<Database> {
+	return getSupabaseClient()
+}
+
+// Export for backward compatibility and simpler imports
+// Use lazy initialization to avoid build-time errors
+let _exportedClient: SupabaseClient<Database> | null = null
+export const supabaseClient = new Proxy({} as SupabaseClient<Database>, {
+	get(target, prop) {
+		if (!_exportedClient) {
+			_exportedClient = getSupabaseClient()
 		}
+		return _exportedClient[prop as keyof SupabaseClient<Database>]
 	}
-)
+})
 
 /**
  * Server-side admin client with full database access
@@ -88,23 +92,19 @@ export function getSupabaseAdmin(): SupabaseClient<Database> {
 // This prevents immediate initialization that would fail in frontend
 let _adminClient: SupabaseClient<Database> | null = null
 
-export const supabaseAdmin: SupabaseClient<Database> = new Proxy(
-	{} as SupabaseClient<Database>,
-	{
-		get(target, prop, receiver) {
-			// Only create admin client when actually accessed (and only in backend)
-			if (typeof globalThis !== 'undefined' && 'window' in globalThis) {
-				throw new Error(
-					'supabaseAdmin cannot be used in browser/frontend code. Use supabaseClient instead.'
-				)
-			}
-			if (!_adminClient) {
-				_adminClient = getSupabaseAdmin()
-			}
-			return Reflect.get(_adminClient, prop, receiver)
-		}
+// Export function for admin client - better webpack compatibility
+export function getSupabaseAdminInstance(): SupabaseClient<Database> {
+	// Only create admin client when actually accessed (and only in backend)
+	if (typeof globalThis !== 'undefined' && 'window' in globalThis) {
+		throw new Error(
+			'supabaseAdmin cannot be used in browser/frontend code. Use supabaseClient instead.'
+		)
 	}
-)
+	if (!_adminClient) {
+		_adminClient = getSupabaseAdmin()
+	}
+	return _adminClient
+}
 
 /**
  * Get current authenticated user with type safety

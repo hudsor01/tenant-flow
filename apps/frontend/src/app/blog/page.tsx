@@ -1,3 +1,8 @@
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Navbar } from '@/components/navbar'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { FooterMinimal } from '@/components/sections/footer-minimal'
 import {
 	ArrowRight,
 	BarChart3,
@@ -8,11 +13,7 @@ import {
 	Zap
 } from 'lucide-react'
 import Link from 'next/link'
-import { HeroAuthority } from 'src/components/marketing/hero-authority'
-import { Navbar } from 'src/components/navbar'
-import { FooterMinimal } from 'src/components/sections/footer-minimal'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
+
 
 export default function BlogPage() {
 	return (

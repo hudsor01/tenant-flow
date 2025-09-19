@@ -385,10 +385,14 @@ export const PromptInput = ({
         add(e.dataTransfer.files);
       }
     };
+     
     document.addEventListener("dragover", onDragOver);
+     
     document.addEventListener("drop", onDrop);
     return () => {
+       
       document.removeEventListener("dragover", onDragOver);
+       
       document.removeEventListener("drop", onDrop);
     };
   }, [add, globalDrop]);

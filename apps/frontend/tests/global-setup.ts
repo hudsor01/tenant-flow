@@ -1,5 +1,5 @@
 import { FullConfig } from '@playwright/test'
-import { logger } from '@repo/shared/lib/frontend-logger'
+import { logger } from '@repo/shared'
 
 async function globalSetup(config: FullConfig) {
 	logger.info('🚀 Starting Playwright global setup...')

@@ -1,6 +1,28 @@
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle
+} from '@/components/ui/alert-dialog'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { useDeleteUnit } from '@/hooks/api/units'
 import { ANIMATION_DURATIONS, TYPOGRAPHY_SCALE } from '@/lib/design-system'
 import { buttonClasses, cardClasses, cn, inputClasses } from '@/lib/utils'
-import type { UnitStats } from '@repo/shared'
+import type { Database, UnitStats } from '@repo/shared'
+import type { Column, ColumnDef } from '@tanstack/react-table'
 import {
 	AlertTriangle,
 	ArrowDown,
@@ -23,34 +45,10 @@ import {
 } from 'lucide-react'
 import * as React from 'react'
 import { toast } from 'sonner'
-
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle
-} from 'src/components/ui/alert-dialog'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger
-} from 'src/components/ui/dropdown-menu'
-
-import { useDeleteUnit } from '@/hooks/api/units'
-import type { Database } from '@repo/shared'
-import type { Column, ColumnDef } from '@tanstack/react-table'
 import { UnitEditDialog, UnitViewDialog } from './unit-dialogs'
 
 // Enhanced unit type with comprehensive information
+// eslint-disable-next-line type-centralization/no-inline-types
 export type UnitRow = Database['public']['Tables']['Unit']['Row'] & {
 	property?: {
 		name: string

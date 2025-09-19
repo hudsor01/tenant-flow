@@ -1,5 +1,8 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import { Switch } from '@/components/ui/switch'
 import { API_BASE_URL } from '@/lib/api-client'
 import { cn } from '@/lib/utils'
 import {
@@ -23,8 +26,7 @@ import {
 	Zap
 } from 'lucide-react'
 import { useState } from 'react'
-import { Badge } from 'src/components/ui/badge'
-import { Switch } from 'src/components/ui/switch'
+
 
 // Initialize Stripe with your publishable key
 const stripePromise = loadStripe(

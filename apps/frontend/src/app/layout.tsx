@@ -1,3 +1,7 @@
+import { GlobalLoadingIndicator } from '@/components/global-loading-indicator'
+import { PostHogPageView } from '@/components/posthog-pageview'
+import { SiteNavRoot } from '@/components/site-nav-root'
+import { WebVitals } from '@/components/web-vitals'
 import PostHogClientProvider from '@/providers/posthog-provider'
 import { QueryProvider } from '@/providers/query-provider'
 import { ThemeProvider } from '@/providers/theme-provider'
@@ -5,11 +9,8 @@ import { AuthStoreProvider } from '@/stores/auth-provider'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
-import { GlobalLoadingIndicator } from 'src/components/global-loading-indicator'
-import PostHogPageView from 'src/components/posthog-pageview'
-import SiteNavRoot from 'src/components/site-nav-root'
-import { ToastContainer } from 'src/components/ui/toast-system'
-import { WebVitals } from 'src/components/web-vitals'
+
+import { Toaster } from 'sonner'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -185,7 +186,15 @@ export default function RootLayout({
 								<SiteNavRoot />
 								{children}
 								<GlobalLoadingIndicator variant="bar" position="top" />
-								<ToastContainer />
+								<Toaster
+									position="top-right"
+									toastOptions={{
+										className: 'sonner-toast',
+										duration: 4000
+									}}
+									richColors
+									closeButton
+								/>
 							</AuthStoreProvider>
 							<PostHogPageView />
 						</PostHogClientProvider>

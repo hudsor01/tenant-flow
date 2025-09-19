@@ -1,3 +1,7 @@
+import { Button } from '@/components/ui/button'
+import { Navbar } from '@/components/navbar'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { BlurFade } from '@/components/magicui/blur-fade'
 import { containerClasses } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import {
@@ -13,10 +17,7 @@ import {
 	Zap
 } from 'lucide-react'
 import Link from 'next/link'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { HeroAuthority } from 'src/components/marketing/hero-authority'
-import { Navbar } from 'src/components/navbar'
-import { Button } from 'src/components/ui/button'
+
 
 export default function AboutPage() {
 	return (

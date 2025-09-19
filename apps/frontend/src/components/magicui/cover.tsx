@@ -1,8 +1,8 @@
 'use client'
+import { SparklesCore } from '@/components/magicui/sparkles'
 import { cn } from '@/lib/design-system'
 import { animated, config, useSpring } from '@react-spring/web'
 import React, { useEffect, useId, useRef, useState } from 'react'
-import { SparklesCore } from 'src/components/magicui/sparkles'
 
 export const Cover = ({
 	children,
@@ -122,7 +122,7 @@ export const Beam = ({
 	duration?: number
 	hovered?: boolean
 	width?: number
-} & React.ComponentProps<'svg'>) => {
+} & Omit<React.ComponentProps<'svg'>, 'ref'>) => {
 	const id = useId()
 
 	return (

@@ -1,17 +1,17 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { ChevronRight, Mail, PlusCircle, type LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-import { Button } from 'src/components/ui/button'
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger
-} from 'src/components/ui/collapsible'
+} from '@/components/ui/collapsible'
 import {
 	SidebarGroup,
 	SidebarGroupContent,
@@ -21,7 +21,7 @@ import {
 	SidebarMenuSub,
 	SidebarMenuSubButton,
 	SidebarMenuSubItem
-} from 'src/components/ui/sidebar'
+} from '@/components/ui/sidebar'
 
 interface NavMainProps extends React.ComponentProps<typeof SidebarGroup> {
 	items: {
@@ -66,7 +66,7 @@ export const NavMain = React.forwardRef<
 				<SidebarMenu>
 					{items.map(item => {
 						const isActive =
-							pathname === item.url || pathname.startsWith(item.url + '/')
+							pathname === item.url || pathname?.startsWith(item.url + '/') || false
 
 						if (item.items && item.items.length > 0) {
 							return (

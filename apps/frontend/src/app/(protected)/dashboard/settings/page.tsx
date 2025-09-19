@@ -1,5 +1,14 @@
 'use client'
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
 	AlertTriangle,
 	Bell,
@@ -15,26 +24,9 @@ import {
 	Upload,
 	User
 } from 'lucide-react'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import { Card } from 'src/components/ui/card'
-import { Input } from 'src/components/ui/input'
-import { Label } from 'src/components/ui/label'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from 'src/components/ui/select'
-import { Switch } from 'src/components/ui/switch'
-import {
-	Tabs,
-	TabsContent,
-	TabsList,
-	TabsTrigger
-} from 'src/components/ui/tabs'
-import { Textarea } from 'src/components/ui/textarea'
+
+
+
 
 export default function SettingsPage() {
 	return (

@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import {
 	ANIMATION_DURATIONS,
 	buttonClasses,
@@ -8,7 +9,7 @@ import {
 } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
 import { forwardRef } from 'react'
-import { Button } from 'src/components/ui/button'
+
 
 interface GoogleButtonProps extends React.ComponentProps<typeof Button> {
 	isLoading?: boolean

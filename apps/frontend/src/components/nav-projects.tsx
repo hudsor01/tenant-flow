@@ -9,14 +9,13 @@ import {
 } from 'lucide-react'
 import * as React from 'react'
 
-import { cn } from '@/lib/utils'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
-} from 'src/components/ui/dropdown-menu'
+} from '@/components/ui/dropdown-menu'
 import {
 	SidebarGroup,
 	SidebarGroupLabel,
@@ -25,7 +24,8 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar
-} from 'src/components/ui/sidebar'
+} from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 
 interface NavProjectsProps extends React.ComponentProps<typeof SidebarGroup> {
 	projects: {

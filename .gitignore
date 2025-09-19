@@ -140,6 +140,8 @@ secrets.*
 !**/forgot-password-form.tsx
 !**/reset-password-form.tsx
 !**/update-password-form.tsx
+!**/password-strength.tsx
+!**/password-input.tsx
 !**/forgot-password/
 !**/reset-password/
 !**/update-password/

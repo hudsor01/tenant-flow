@@ -3,10 +3,8 @@
 import { useLeases, useLeaseStats } from '@/hooks/api/leases'
 import type { Database } from '@repo/shared'
 import { AlertTriangle, Calendar, Clock, FileText } from 'lucide-react'
-import { ChartAreaInteractive } from 'src/components/chart-area-interactive'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import { LoadingSpinner } from 'src/components/ui/loading-spinner'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
 	Table,
 	TableBody,
@@ -14,7 +12,12 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from 'src/components/ui/table'
+} from '@/components/ui/table'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { ChartAreaInteractive } from '@/components/chart-area-interactive'
+import { CreateLeaseDialog } from '@/components/leases/create-lease-dialog'
+import { LeaseActionButtons } from '@/components/leases/lease-action-buttons'
+
 
 type Lease = Database['public']['Tables']['Lease']['Row']
 
@@ -135,13 +138,7 @@ export default function LeasesPage() {
 						</p>
 					</div>
 
-					<Button
-						className="flex items-center gap-2"
-						style={{ backgroundColor: 'var(--chart-9)' }}
-					>
-						<FileText className="size-4" />
-						New Lease
-					</Button>
+					<CreateLeaseDialog />
 				</div>
 
 				{/* Interactive Chart */}
@@ -274,17 +271,7 @@ export default function LeasesPage() {
 										</div>
 									</TableCell>
 									<TableCell>
-										<div className="flex items-center gap-1">
-											<Button variant="outline" size="sm">
-												Edit
-											</Button>
-											<Button variant="outline" size="sm">
-												Renew
-											</Button>
-											<Button variant="outline" size="sm">
-												View
-											</Button>
-										</div>
+										<LeaseActionButtons lease={lease} />
 									</TableCell>
 								</TableRow>
 							))}

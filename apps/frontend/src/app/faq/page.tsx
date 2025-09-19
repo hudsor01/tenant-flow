@@ -1,11 +1,14 @@
 'use client'
 
+import { Navbar } from '@/components/navbar'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { FooterMinimal } from '@/components/sections/footer-minimal'
+
+
+import { Button } from '@/components/ui/button'
 import { ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
-import { HeroAuthority } from 'src/components/marketing/hero-authority'
-import { Navbar } from 'src/components/navbar'
-import { FooterMinimal } from 'src/components/sections/footer-minimal'
-import { Button } from 'src/components/ui/button'
+
 
 const faqs = [
 	{

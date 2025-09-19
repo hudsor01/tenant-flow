@@ -1,5 +1,5 @@
-import Navbar from 'src/components/navbar'
-import { StripePricingSection } from 'src/components/sections/stripe-pricing-section'
+import Navbar from '@/components/navbar'
+import { StripePricingSection } from '@/components/sections/stripe-pricing-section'
 
 export default function StripePricingPage() {
 	return (

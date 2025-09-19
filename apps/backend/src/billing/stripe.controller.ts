@@ -471,6 +471,20 @@ export class StripeController {
 			)
 		}
 
+		// Sanitize all metadata values (outside try-catch to preserve BadRequestException)
+		const sanitizedTenantId = this.sanitizeMetadataValue(
+			body.tenantId,
+			'tenant_id'
+		)
+		const sanitizedProductName = this.sanitizeMetadataValue(
+			body.productName,
+			'product_name'
+		)
+		const sanitizedPriceId = this.sanitizeMetadataValue(
+			body.priceId,
+			'price_id'
+		)
+
 		this.logger.log('Creating checkout session', {
 			productName: body.productName,
 			priceId: body.priceId,
@@ -487,20 +501,6 @@ export class StripeController {
 					quantity: 1
 				}
 			]
-
-			// Sanitize all metadata values
-			const sanitizedTenantId = this.sanitizeMetadataValue(
-				body.tenantId,
-				'tenant_id'
-			)
-			const sanitizedProductName = this.sanitizeMetadataValue(
-				body.productName,
-				'product_name'
-			)
-			const sanitizedPriceId = this.sanitizeMetadataValue(
-				body.priceId,
-				'price_id'
-			)
 
 			const session = await this.stripe.checkout.sessions.create({
 				payment_method_types: ['card'],
@@ -1250,10 +1250,14 @@ export class StripeController {
 		}
 
 		// Remove null bytes and control characters
-		// eslint-disable-next-line no-control-regex
+		// Filter out control characters using charCodeAt approach
 		let sanitized = value
-			.replace(/\0/g, '')
-			.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+			.split('')
+			.filter(char => {
+				const code = char.charCodeAt(0)
+				return code > 31 && code !== 127 && code !== 0
+			})
+			.join('')
 
 		// Normalize unicode to prevent encoding attacks
 		sanitized = sanitized.normalize('NFC')

@@ -27,10 +27,10 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json ./apps/backend/
 COPY packages/*/package.json ./packages/
 
-# Advanced cache mount with pnpm optimization (2025 technique)
-# Multiple cache mounts for different package managers
-RUN --mount=type=cache,id=pnpm-cache,target=/root/.local/share/pnpm/store \
-    --mount=type=cache,id=node-modules-cache,target=/app/node_modules \
+# Railway-compatible cache mount with pnpm optimization
+# Railway requires cache IDs to be prefixed with cache key
+RUN --mount=type=cache,id=tenantflow-pnpm-cache,target=/root/.local/share/pnpm/store \
+    --mount=type=cache,id=tenantflow-node-modules,target=/app/node_modules \
     pnpm install --frozen-lockfile --prefer-offline
 
 # ===== BUILDER STAGE =====
@@ -69,8 +69,8 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json ./apps/backend/
 COPY packages/*/package.json ./packages/
 
-# Install production deps with advanced caching
-RUN --mount=type=cache,id=pnpm-prod-cache,target=/root/.local/share/pnpm/store \
+# Install production deps with Railway-compatible caching
+RUN --mount=type=cache,id=tenantflow-pnpm-prod,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prod --prefer-offline
 
 # Install node-prune and optimize node_modules (85% size reduction)
@@ -142,8 +142,9 @@ ENV PORT=${PORT}
 EXPOSE ${PORT}
 
 # Use dumb-init for proper signal handling (SIGTERM, SIGINT)
+# Shell form to enable environment variable expansion for PORT
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "--enable-source-maps", "apps/backend/dist/main.js"]
+CMD ["/bin/sh", "-c", "exec node --enable-source-maps apps/backend/dist/main.js"]
 
 # Build-time metadata (2025 standard)
 LABEL maintainer="TenantFlow Team" \
