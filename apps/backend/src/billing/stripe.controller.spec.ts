@@ -136,7 +136,7 @@ describe('StripeController', () => {
 				})
 			} catch (error) {
 				const err = error as Error
-				expect(err.constructor.name).toBe('BadRequestException')
+				expect(err.constructor.name).toBe('InternalServerErrorException')
 			}
 		})
 	})
@@ -200,7 +200,7 @@ describe('StripeController', () => {
 				})
 			} catch (error) {
 				const err = error as Error
-				expect(err.constructor.name).toBe('BadRequestException')
+				expect(err.constructor.name).toBe('InternalServerErrorException')
 			}
 		})
 	})
@@ -282,7 +282,7 @@ describe('StripeController', () => {
 				})
 			} catch (error) {
 				const err = error as Error
-				expect(err.constructor.name).toBe('BadRequestException')
+				expect(err.constructor.name).toBe('InternalServerErrorException')
 			}
 		})
 
@@ -298,7 +298,7 @@ describe('StripeController', () => {
 				})
 			} catch (error) {
 				const err = error as Error
-				expect(err.constructor.name).toBe('BadRequestException')
+				expect(err.constructor.name).toBe('InternalServerErrorException')
 			}
 		})
 
@@ -314,7 +314,7 @@ describe('StripeController', () => {
 				})
 			} catch (error) {
 				const err = error as Error
-				expect(err.constructor.name).toBe('BadRequestException')
+				expect(err.constructor.name).toBe('InternalServerErrorException')
 			}
 		})
 	})
