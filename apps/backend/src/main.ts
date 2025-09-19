@@ -18,9 +18,10 @@ declare module 'fastify' {
 
 async function bootstrap() {
 	const startTime = Date.now()
-	// Backend runs on port 3001 locally to avoid conflict with frontend on 3000
-	// Production uses Railway's PORT environment variable
-	const port = Number(process.env.PORT) || 3001
+	// Railway uses PORT env var, fallback to 4600 for Railway compatibility
+	// Use BACKEND_PORT for local dev override
+	const port =
+		Number(process.env.PORT) || Number(process.env.BACKEND_PORT) || 4600
 
 	// Fastify adapter with NestJS
 	const fastifyAdapter = new FastifyAdapter({

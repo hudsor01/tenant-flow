@@ -14,14 +14,11 @@
 		"VERCEL_ENV",
 		"VERCEL_URL",
 		"GITHUB_ACTIONS",
-		"NEXT_PUBLIC_VERCEL_URL",
 		"NODE_ENV",
 		"TURBO_*",
 		"TURBO_TELEMETRY_DISABLED",
 		"NEXT_TELEMETRY_DISABLED",
 		"NEXT_DISABLE_DEVTOOLS",
-		"NEXT_PUBLIC_SUPABASE_URL",
-		"NEXT_PUBLIC_SUPABASE_ANON_KEY",
 		"SUPABASE_URL",
 		"SUPABASE_ANON_KEY",
 		"SUPABASE_SERVICE_KEY",
@@ -55,6 +52,7 @@
 		"SUPABASE_JWT_SECRET",
 		"FRONTEND_URL",
 		"PORT",
+		"BACKEND_PORT",
 		"COOKIE_SECRET",
 		"JWT_EXPIRES_IN",
 		"RATE_LIMIT_MAX",
@@ -76,8 +74,6 @@
 		"PUBLIC_CACHE_MAX_AGE",
 		"PUBLIC_CACHE_SWR",
 		"BACKEND_TIMEOUT_MS",
-		"NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
-		"NEXT_PUBLIC_API_BASE_URL",
 		"STRIPE_ENTERPRISE_MONTHLY",
 		"STRIPE_ENTERPRISE_ANNUAL",
 		"STRIPE_ENTERPRISE_MONTHLY_PRICE_ID",
@@ -126,7 +122,7 @@
 			],
 			"cache": true,
 			"persistent": false,
-			"env": ["NODE_ENV", "VERCEL", "VERCEL_ENV", "VERCEL_URL"]
+			"env": ["NODE_ENV", "VERCEL", "VERCEL_ENV"]
 		},
 		"@repo/shared#build": {
 			"dependsOn": [],
@@ -182,7 +178,7 @@
 				".vercel/output/**",
 				".turbo/**"
 			],
-			"env": ["NEXT_PUBLIC_*", "VERCEL", "VERCEL_ENV", "VERCEL_URL"],
+			"env": ["NEXT_PUBLIC_*", "VERCEL", "VERCEL_ENV"],
 			"cache": true,
 			"persistent": false
 		},
@@ -333,6 +329,13 @@
 			"outputs": ["dist/.tsbuildinfo"],
 			"cache": true,
 			"persistent": false
+		},
+		"@repo/shared#lint:fix": {
+			"inputs": ["src/**/*.ts", "src/**/*.tsx", "eslint.config.*"],
+			"outputs": [],
+			"cache": false,
+			"persistent": false,
+			"env": ["NEXT_PUBLIC_*", "SUPABASE_*"]
 		},
 		"@repo/typescript-config#typecheck": {
 			"dependsOn": [],
