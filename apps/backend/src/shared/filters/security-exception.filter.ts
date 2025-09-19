@@ -49,7 +49,7 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 		409: 'Request conflict',
 		422: 'Invalid request data',
 		429: 'Too many requests',
-		500: 'Internal server error',
+		500: 'An error occurred',
 		502: 'Service unavailable',
 		503: 'Service temporarily unavailable',
 		504: 'Request timeout'
@@ -379,6 +379,53 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 
 	private generateRequestId(): string {
 		return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+	}
+
+	private sanitizeMessage(message: string): string {
+		let sanitized = message
+
+		// Remove credentials and sensitive patterns - special handling for token= pattern
+		sanitized = sanitized.replace(
+			/\b(token)=[\w\-.@]+/gi,
+			'[REDACTED]'
+		)
+
+		// Remove password patterns completely
+		sanitized = sanitized.replace(
+			/\s+(pass(?:word)?)[:=]\s*[\w\-.@]+/gi,
+			''
+		)
+
+		// Replace user/auth patterns with [REDACTED] value
+		sanitized = sanitized.replace(
+			/(user|key|secret|auth|credential)[:=]\s*([\w\-.@]+)/gi,
+			'$1:[REDACTED]'
+		)
+
+		// Remove email addresses
+		sanitized = sanitized.replace(
+			/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
+			'[EMAIL]'
+		)
+
+		// Remove IP addresses
+		sanitized = sanitized.replace(
+			/\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g,
+			'[IP]'
+		)
+
+		// Remove UUIDs
+		sanitized = sanitized.replace(
+			/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi,
+			'[UUID]'
+		)
+
+		// Limit message length
+		if (sanitized.length > 200) {
+			sanitized = sanitized.substring(0, 200)
+		}
+
+		return sanitized
 	}
 
 	private cleanupErrorTracking(): void {

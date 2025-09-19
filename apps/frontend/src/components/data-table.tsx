@@ -497,7 +497,7 @@ const columns: ColumnDef<PropertyTableData>[] = [
 ]
 
 // Row action handler that uses the Row type
-import logger from '@repo/shared/lib/frontend-logger'
+import { logger } from '@repo/shared'
 
 const handleRowAction = (
 	row: Row<PropertyTableData>,

@@ -471,6 +471,20 @@ export class StripeController {
 			)
 		}
 
+		// Sanitize all metadata values (outside try-catch to preserve BadRequestException)
+		const sanitizedTenantId = this.sanitizeMetadataValue(
+			body.tenantId,
+			'tenant_id'
+		)
+		const sanitizedProductName = this.sanitizeMetadataValue(
+			body.productName,
+			'product_name'
+		)
+		const sanitizedPriceId = this.sanitizeMetadataValue(
+			body.priceId,
+			'price_id'
+		)
+
 		this.logger.log('Creating checkout session', {
 			productName: body.productName,
 			priceId: body.priceId,
@@ -487,20 +501,6 @@ export class StripeController {
 					quantity: 1
 				}
 			]
-
-			// Sanitize all metadata values
-			const sanitizedTenantId = this.sanitizeMetadataValue(
-				body.tenantId,
-				'tenant_id'
-			)
-			const sanitizedProductName = this.sanitizeMetadataValue(
-				body.productName,
-				'product_name'
-			)
-			const sanitizedPriceId = this.sanitizeMetadataValue(
-				body.priceId,
-				'price_id'
-			)
 
 			const session = await this.stripe.checkout.sessions.create({
 				payment_method_types: ['card'],

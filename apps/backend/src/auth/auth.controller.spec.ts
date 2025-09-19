@@ -57,19 +57,16 @@ describe('AuthController', () => {
 		jest.clearAllMocks()
 	})
 
-	describe('testConnection', () => {
+	describe('health', () => {
 		it('should return connection status', async () => {
 			mockAuthServiceInstance.testSupabaseConnection.mockResolvedValue({
-				healthy: true,
-				message: 'Supabase connection successful'
+				connected: true
 			})
 
-			const result = await controller.testConnection()
+			const result = await controller.health()
 
-			expect(result).toEqual({
-				healthy: true,
-				message: 'Supabase connection successful'
-			})
+			expect(result.status).toEqual('healthy')
+			expect(result.checks.supabase_connection).toBe(true)
 			expect(
 				mockAuthServiceInstance.testSupabaseConnection
 			).toHaveBeenCalledTimes(1)
@@ -80,13 +77,14 @@ describe('AuthController', () => {
 				new Error('Connection failed')
 			)
 
-			await expect(controller.testConnection()).rejects.toThrow(
-				'Connection failed'
-			)
+			const result = await controller.health()
+
+			expect(result.status).toEqual('unhealthy')
+			expect(result.checks.supabase_connection).toBe(false)
 		})
 	})
 
-	describe('getProfile', () => {
+	describe('getCurrentUser', () => {
 		it('should return user profile when user is validated', async () => {
 			const mockUser: ValidatedUser = {
 				id: 'user-123',
@@ -104,24 +102,36 @@ describe('AuthController', () => {
 				organizationId: null
 			}
 
-			const user: Partial<User> = { id: 'supa-123', email: 'test@example.com' }
-
 			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(mockUser)
 
-			const result = await controller.getProfile(user as User)
+			const result = await controller.getCurrentUser(mockUser)
 
 			expect(result).toEqual(mockUser)
 			expect(mockAuthServiceInstance.getUserBySupabaseId).toHaveBeenCalledWith(
-				'supa-123'
+				'user-123'
 			)
 		})
 
 		it('should throw NotFoundException when user not found', async () => {
-			const user: Partial<User> = { id: 'supa-123', email: 'test@example.com' }
+			const mockUser: ValidatedUser = {
+				id: 'user-123',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				role: 'user',
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'supa-123',
+				stripeCustomerId: null,
+				organizationId: null
+			}
 
 			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(null)
 
-			await expect(controller.getProfile(user as User)).rejects.toMatchObject({
+			await expect(controller.getCurrentUser(mockUser)).rejects.toMatchObject({
 				message: 'User not found'
 			})
 		})
@@ -135,9 +145,11 @@ describe('AuthController', () => {
 				expiresIn: 3600
 			}
 
+			const body = { refresh_token: 'old-refresh-token' }
+
 			mockAuthServiceInstance.refreshToken.mockResolvedValue(mockToken)
 
-			const result = await controller.refreshToken('old-refresh-token')
+			const result = await controller.refreshToken(body)
 
 			expect(result).toEqual(mockToken)
 			expect(mockAuthServiceInstance.refreshToken).toHaveBeenCalledWith(
@@ -152,6 +164,11 @@ describe('AuthController', () => {
 				email: 'test@example.com',
 				password: 'password123'
 			}
+
+			const mockRequest = {
+				ip: '127.0.0.1',
+				headers: {}
+			} as any
 
 			const mockLoginResult = {
 				access_token: 'access-token',
@@ -176,12 +193,13 @@ describe('AuthController', () => {
 
 			mockAuthServiceInstance.login.mockResolvedValue(mockLoginResult)
 
-			const result = await controller.login(loginDto)
+			const result = await controller.login(loginDto, mockRequest)
 
 			expect(result).toEqual(mockLoginResult)
 			expect(mockAuthServiceInstance.login).toHaveBeenCalledWith(
 				loginDto.email,
-				loginDto.password
+				loginDto.password,
+				'127.0.0.1'
 			)
 		})
 
@@ -191,11 +209,16 @@ describe('AuthController', () => {
 				password: 'wrong-password'
 			}
 
+			const mockRequest = {
+				ip: '127.0.0.1',
+				headers: {}
+			} as any
+
 			mockAuthServiceInstance.login.mockRejectedValue(
 				new Error('Invalid login credentials')
 			)
 
-			await expect(controller.login(loginDto)).rejects.toThrow(
+			await expect(controller.login(loginDto, mockRequest)).rejects.toThrow(
 				'Invalid login credentials'
 			)
 		})
@@ -206,7 +229,8 @@ describe('AuthController', () => {
 			const registerDto = {
 				email: 'new@example.com',
 				password: 'password123',
-				name: 'New User'
+				firstName: 'New',
+				lastName: 'User'
 			}
 
 			const mockRegisterResult = {
@@ -224,53 +248,54 @@ describe('AuthController', () => {
 			const result = await controller.register(registerDto)
 
 			expect(result).toEqual(mockRegisterResult)
-			expect(mockAuthServiceInstance.createUser).toHaveBeenCalledWith(
-				registerDto.email,
-				registerDto.password,
-				registerDto.name
-			)
+			expect(mockAuthServiceInstance.createUser).toHaveBeenCalledWith({
+				email: registerDto.email,
+				password: registerDto.password,
+				name: 'New User'
+			})
 		})
 	})
 
 	describe('logout', () => {
 		it('should logout user successfully', async () => {
+			const mockRequest = {
+				headers: {
+					authorization: 'Bearer test-token-123'
+				}
+			} as any
+
 			mockAuthServiceInstance.logout.mockResolvedValue(undefined)
 
-			const result = await controller.logout()
+			const result = await controller.logout(mockRequest)
 
-			expect(result).toEqual({ message: 'Logged out successfully' })
-			expect(mockAuthServiceInstance.logout).toHaveBeenCalledTimes(1)
+			expect(result).toEqual({ success: true })
+			expect(mockAuthServiceInstance.logout).toHaveBeenCalledWith('test-token-123')
 		})
 	})
 
 	describe('saveDraft', () => {
 		it('should save draft successfully', async () => {
 			const draftDto = {
-				key: 'draft-123',
-				data: { content: 'Test content' }
+				email: 'test@example.com',
+				name: 'Test User',
+				formType: 'signup' as const
 			}
 
 			const mockDraft = {
 				id: 'draft-id',
-				userId: 'user-123',
-				key: 'draft-123',
-				data: { content: 'Test content' },
+				email: 'test@example.com',
+				name: 'Test User',
+				formType: 'signup',
 				createdAt: new Date(),
 				updatedAt: new Date()
 			}
 
-			const user = { id: 'user-123' } as ValidatedUser
-
 			mockAuthServiceInstance.saveDraft.mockResolvedValue(mockDraft)
 
-			const result = await controller.saveDraft(user, draftDto)
+			const result = await controller.saveDraft(draftDto)
 
 			expect(result).toEqual(mockDraft)
-			expect(mockAuthServiceInstance.saveDraft).toHaveBeenCalledWith(
-				user.id,
-				draftDto.key,
-				draftDto.data
-			)
+			expect(mockAuthServiceInstance.saveDraft).toHaveBeenCalledWith(draftDto)
 		})
 	})
 
@@ -285,27 +310,37 @@ describe('AuthController', () => {
 				updatedAt: new Date()
 			}
 
-			const user = { id: 'user-123' } as ValidatedUser
+			const mockRequest = {
+				headers: {
+					'x-session-id': 'session-123'
+				}
+			} as any
+
+			const body = { sessionId: 'session-123' }
 
 			mockAuthServiceInstance.getDraft.mockResolvedValue(mockDraft)
 
-			const result = await controller.getDraft(user, 'draft-123')
+			const result = await controller.getDraft(body, mockRequest)
 
 			expect(result).toEqual(mockDraft)
-			expect(mockAuthServiceInstance.getDraft).toHaveBeenCalledWith(
-				'user-123',
-				'draft-123'
-			)
+			expect(mockAuthServiceInstance.getDraft).toHaveBeenCalledWith('session-123')
 		})
 
 		it('should return null when draft not found', async () => {
-			const user = { id: 'user-123' } as ValidatedUser
+			const mockRequest = {
+				headers: {
+					'x-session-id': 'session-456'
+				}
+			} as any
+
+			const body = { sessionId: 'session-456' }
 
 			mockAuthServiceInstance.getDraft.mockResolvedValue(null)
 
-			const result = await controller.getDraft(user, 'non-existent')
+			const result = await controller.getDraft(body, mockRequest)
 
 			expect(result).toBeNull()
+			expect(mockAuthServiceInstance.getDraft).toHaveBeenCalledWith('session-456')
 		})
 	})
 })

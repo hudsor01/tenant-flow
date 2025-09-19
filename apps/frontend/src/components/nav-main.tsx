@@ -66,7 +66,7 @@ export const NavMain = React.forwardRef<
 				<SidebarMenu>
 					{items.map(item => {
 						const isActive =
-							pathname === item.url || pathname.startsWith(item.url + '/')
+							pathname === item.url || pathname?.startsWith(item.url + '/') || false
 
 						if (item.items && item.items.length > 0) {
 							return (

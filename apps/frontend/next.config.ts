@@ -10,7 +10,6 @@ if (
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	experimental: {
-		reactCompiler: true,
 		serverMinification: false
 	},
 	eslint: {

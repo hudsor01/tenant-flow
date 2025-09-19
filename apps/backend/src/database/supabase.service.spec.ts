@@ -38,6 +38,9 @@ describe('SupabaseService', () => {
 			.compile()
 
     service = module.get<SupabaseService>(SupabaseService)
+
+    // Manually trigger the lifecycle method that initializes the client
+    await service.onModuleInit()
   })
 
   afterEach(() => {
@@ -65,16 +68,19 @@ describe('SupabaseService', () => {
       delete process.env.SUPABASE_URL
       process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key'
 
-      await expect(
-        Test.createTestingModule({
-          providers: [
-            SupabaseService,
-            { provide: Logger, useValue: { log: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn(), verbose: jest.fn() } },
-          ],
-        })
+      const module = await Test.createTestingModule({
+        providers: [
+          SupabaseService,
+          { provide: Logger, useValue: { log: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn(), verbose: jest.fn() } },
+        ],
+      })
 			.setLogger(new SilentLogger())
 			.compile()
-      ).rejects.toThrow(InternalServerErrorException)
+
+      const service = module.get<SupabaseService>(SupabaseService)
+
+      // The error should be thrown when onModuleInit is called
+      expect(() => service.onModuleInit()).toThrow(InternalServerErrorException)
     })
 
     it('should throw error when all service role key variants are missing', async () => {
@@ -84,16 +90,19 @@ describe('SupabaseService', () => {
       delete process.env.SUPABASE_SERVICE_ROLE_KEY
       delete process.env.SUPABASE_SERVICE_KEY
 
-      await expect(
-        Test.createTestingModule({
-          providers: [
-            SupabaseService,
-            { provide: Logger, useValue: { log: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn(), verbose: jest.fn() } },
-          ],
-        })
+      const module = await Test.createTestingModule({
+        providers: [
+          SupabaseService,
+          { provide: Logger, useValue: { log: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn(), verbose: jest.fn() } },
+        ],
+      })
 			.setLogger(new SilentLogger())
 			.compile()
-      ).rejects.toThrow(InternalServerErrorException)
+
+      const service = module.get<SupabaseService>(SupabaseService)
+
+      // The error should be thrown when onModuleInit is called
+      expect(() => service.onModuleInit()).toThrow(InternalServerErrorException)
     })
   })
 

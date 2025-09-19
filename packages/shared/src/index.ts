@@ -17,8 +17,10 @@ export { logger } from './lib/frontend-logger'
 export {
 	getCurrentSession,
 	getCurrentUser,
+	getSupabaseAdmin,
+	getSupabaseAdminInstance,
+	getSupabaseClientInstance,
 	signOut,
-	supabaseAdmin,
 	supabaseClient
 } from './lib/supabase-client'
 
@@ -42,7 +44,8 @@ export {
 	getPriceIdForPlan,
 	type DynamicPlan,
 	type DynamicPricingConfig,
-	type DynamicPricingService
+	type DynamicPricingService,
+	type UseDynamicPricingReturn
 } from './config/dynamic-pricing'
 export * from './config/pricing'
 
@@ -201,3 +204,6 @@ export type { BillingPeriod, PlanType } from './types/stripe'
 
 // FRONTEND TYPES
 export * from './types/frontend'
+
+// VALIDATION SCHEMAS
+export { loginZodSchema, registerZodSchema } from './validation/auth'

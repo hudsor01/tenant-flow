@@ -20,7 +20,7 @@ import {
 
 export default function CheckoutSuccessPage() {
 	const searchParams = useSearchParams()
-	const sessionId = searchParams.get('session_id')
+	const sessionId = searchParams?.get('session_id')
 	const [isVerifying, setIsVerifying] = useState(true)
 	const [subscription, setSubscription] = useState<SubscriptionData | null>(
 		null

@@ -29,13 +29,17 @@ export function ActiveThemeProvider({
 	)
 
 	useEffect(() => {
+		 
 		Array.from(document.body.classList)
 			.filter(className => className.startsWith('theme-'))
 			.forEach(className => {
+				 
 				document.body.classList.remove(className)
 			})
+		 
 		document.body.classList.add(`theme-${activeTheme}`)
 		if (activeTheme.endsWith('-scaled')) {
+			 
 			document.body.classList.add('theme-scaled')
 		}
 	}, [activeTheme])

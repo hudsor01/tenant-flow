@@ -8,8 +8,8 @@ import type { Metadata } from 'next'
 import { GlobalLoadingIndicator } from 'src/components/global-loading-indicator'
 import PostHogPageView from 'src/components/posthog-pageview'
 import SiteNavRoot from 'src/components/site-nav-root'
-import { ToastContainer } from 'src/components/ui/toast-system'
 import { WebVitals } from 'src/components/web-vitals'
+import { Toaster } from 'sonner'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -185,7 +185,15 @@ export default function RootLayout({
 								<SiteNavRoot />
 								{children}
 								<GlobalLoadingIndicator variant="bar" position="top" />
-								<ToastContainer />
+								<Toaster
+									position="top-right"
+									toastOptions={{
+										className: 'sonner-toast',
+										duration: 4000,
+									}}
+									richColors
+									closeButton
+								/>
 							</AuthStoreProvider>
 							<PostHogPageView />
 						</PostHogClientProvider>

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-import { useDynamicPricing } from '@/hooks/use-dynamic-pricing'
+import { usePricing } from '@/hooks/use-pricing'
 import { checkoutRateLimiter } from '@/lib/security'
 import { createCheckoutSession, isUserAuthenticated } from '@/lib/stripe-client'
 import {
@@ -17,7 +17,7 @@ import {
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
 import { type PricingUIData } from '@repo/shared'
-import { PRICING_PLANS, type PricingConfig } from '@repo/shared/config/pricing'
+import { type PricingConfig } from '@repo/shared'
 import { useMutation } from '@tanstack/react-query'
 import {
 	ArrowRight,
@@ -92,16 +92,9 @@ export function StripePricingSection({
 }: StripePricingSectionProps) {
 	const [isYearly, setIsYearly] = useState(false)
 
-	// Use dynamic pricing with fallback
-	const {
-		plans: dynamicPlans,
-		loading: pricingLoading,
-		error: pricingError
-	} = useDynamicPricing()
-	const fallbackPlans = Object.values(PRICING_PLANS)
-
-	// Determine which plans to use: dynamic if available, fallback otherwise
-	const activePlans = dynamicPlans.length > 0 ? dynamicPlans : fallbackPlans
+	// Use simple fixed pricing (no more over-engineered dynamic system)
+	const { plans, getStripeId } = usePricing()
+	const activePlans = plans
 
 	// Calculate savings and format pricing - MOVED UP TO FIX HOOKS RULES
 	const pricingData = useMemo((): (PricingUIData & {
@@ -212,8 +205,7 @@ export function StripePricingSection({
 			}
 
 			// Get the appropriate Stripe price ID for the selected plan and billing period
-			const stripePriceId =
-				selectedPlan.stripePriceIds?.[isYearly ? 'annual' : 'monthly']
+			const stripePriceId = getStripeId(selectedPlan.planId, isYearly ? 'annual' : 'monthly')
 			if (!stripePriceId) {
 				throw new Error(
 					`No ${isYearly ? 'annual' : 'monthly'} price configured for ${planId} plan`
@@ -254,22 +246,8 @@ export function StripePricingSection({
 		subscriptionMutation.mutate(planId)
 	}
 
-	// Show loading state while fetching dynamic pricing
-	if (pricingLoading && dynamicPlans.length === 0) {
-		return (
-			<div className="container section-hero text-center">
-				<div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary">
-					<Loader2 className="w-4 h-4 animate-spin" />
-					Loading pricing...
-				</div>
-			</div>
-		)
-	}
-
-	// Show error state with fallback
-	if (pricingError && dynamicPlans.length === 0) {
-		console.warn('Dynamic pricing failed, using fallback:', pricingError)
-	}
+	// Fixed pricing never loads or has errors
+	// This component is now much simpler!
 
 	return (
 		<section

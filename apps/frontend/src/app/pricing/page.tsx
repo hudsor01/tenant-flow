@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { createCheckoutSession } from '@/lib/stripe-client'
 
 // UI Components
 import { PageLayout } from 'src/components/layout/page-layout'
@@ -121,24 +122,11 @@ export default function PricingPage() {
 
 		try {
 			toast.loading('Redirecting to secure checkout...', { id: 'checkout' })
-			const res = await fetch('/api/stripe/create-checkout-session', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					priceId,
-					planName: plan.name,
-					isYearly,
-					successUrl: `${window.location.origin}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
-					cancelUrl: `${window.location.origin}/pricing/cancel`
-				})
+			const data = await createCheckoutSession({
+				priceId,
+				planName: plan.name,
+				description: plan.description
 			})
-			if (!res.ok) {
-				const err = await res.json().catch(() => ({}))
-				throw new Error(
-					err?.error?.message || 'Failed to create checkout session'
-				)
-			}
-			const data = await res.json()
 			toast.dismiss('checkout')
 			if (data?.url) {
 				window.location.href = data.url

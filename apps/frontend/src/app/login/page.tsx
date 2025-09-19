@@ -2,16 +2,27 @@
 
 import type { LoginCredentials } from '@repo/shared'
 import { supabaseClient } from '@repo/shared'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { LoginLayout } from 'src/components/auth/login-layout'
-import { toast } from 'src/components/ui/toast-system'
+import { toast } from 'sonner'
 import { loginAction } from './actions'
 
 export default function LoginPage() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 	const router = useRouter()
+	const searchParams = useSearchParams()
+
+	useEffect(() => {
+		const error = searchParams?.get('error')
+		if (error === 'oauth_failed') {
+			toast.error('Authentication failed', {
+				description: 'There was an error signing in with Google. Please try again.'
+			})
+			router.replace('/login')
+		}
+	}, [searchParams, router])
 
 	const handleSubmit = async (data: Record<string, unknown>) => {
 		setIsLoading(true)
@@ -76,7 +87,12 @@ export default function LoginPage() {
 			const { error } = await supabaseClient.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
-					redirectTo: `${window.location.origin}/dashboard`
+					redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+					queryParams: {
+						access_type: 'offline',
+						prompt: 'consent',
+						scope: 'openid email profile'
+					}
 				}
 			})
 

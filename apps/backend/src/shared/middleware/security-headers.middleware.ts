@@ -138,8 +138,23 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 			headers['Expires'] = '0'
 		}
 
-		// Set all headers at once using Fastify's headers() method
-		res.headers(headers)
+		// Set all headers using Node.js native approach (NestJS + Fastify compatible)
+		Object.entries(headers).forEach(([key, value]) => {
+			// Use native Node.js response for reliable header setting
+			if (res.raw && res.raw.setHeader) {
+				res.raw.setHeader(key, value)
+			} else {
+				// Fallback for older Fastify versions
+				try {
+					res.header(key, value)
+				} catch (error) {
+					// If header method fails, try setting on raw response
+					if (res.raw && res.raw.setHeader) {
+						res.raw.setHeader(key, value)
+					}
+				}
+			}
+		})
 
 		// Server header removal (don't expose server technology)
 		// Note: Fastify may not set these headers by default, but remove them if present
@@ -201,16 +216,33 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 
 	// Method to update CSP for specific endpoints (e.g., webhook endpoints that need different policies)
 	public static customCSP(res: FastifyReply, customDirectives: string): void {
-		res.headers({ 'Content-Security-Policy': customDirectives })
+		// Use Node.js native approach for consistent header setting
+		if (res.raw && res.raw.setHeader) {
+			res.raw.setHeader('Content-Security-Policy', customDirectives)
+		} else {
+			try {
+				res.header('Content-Security-Policy', customDirectives)
+			} catch (error) {
+				// Silently fail if header cannot be set
+			}
+		}
 	}
 
 	// Method to set CORS headers for preflight requests
 	public static setCORSHeaders(res: FastifyReply): void {
-		res.headers({
-			'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
-			'Access-Control-Allow-Headers':
-				'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-Token',
-			'Access-Control-Max-Age': '86400' // 24 hours
-		})
+		// Use Node.js native approach for consistent header setting
+		if (res.raw && res.raw.setHeader) {
+			res.raw.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
+			res.raw.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-Token')
+			res.raw.setHeader('Access-Control-Max-Age', '86400') // 24 hours
+		} else {
+			try {
+				res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
+				res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-Token')
+				res.header('Access-Control-Max-Age', '86400') // 24 hours
+			} catch (error) {
+				// Silently fail if headers cannot be set
+			}
+		}
 	}
 }

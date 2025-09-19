@@ -76,6 +76,18 @@ export type Lease = Tables<'Lease'>
 export type MaintenanceRequest = Tables<'MaintenanceRequest'>
 export type RentPayment = Tables<'RentPayment'>
 
+// Maintenance API response with relations
+export interface MaintenanceRequestResponse {
+  data: (MaintenanceRequest & {
+    property: { name: string } | null
+    unit: { name: string } | null
+    assignedTo: { name: string } | null
+  })[]
+  total: number
+  limit: number
+  offset: number
+}
+
 // Re-export Database type for type composition
 export type { Database, Tables, TablesInsert, TablesUpdate, Enums } from './supabase-generated'
 

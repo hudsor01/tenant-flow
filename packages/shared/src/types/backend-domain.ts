@@ -64,6 +64,25 @@ export interface ThreatPattern {
 	block: boolean
 }
 
+export interface SecurityHeadersConfig {
+	csp: {
+		enabled: boolean
+		reportOnly: boolean
+		reportUri?: string
+	}
+	hsts: {
+		enabled: boolean
+		maxAge: number
+		includeSubDomains: boolean
+		preload: boolean
+	}
+	frameOptions: 'DENY' | 'SAMEORIGIN'
+	contentTypeOptions: boolean
+	xssProtection: boolean
+	referrerPolicy: string
+	permissionsPolicy: Record<string, string[]>
+}
+
 // =============================================================================
 // ROUTER OUTPUT TYPES (API Response Structures)
 // =============================================================================

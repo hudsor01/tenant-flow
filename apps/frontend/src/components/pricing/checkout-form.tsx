@@ -11,6 +11,7 @@ import {
 import { useMutation } from '@tanstack/react-query'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { createPaymentIntent } from '@/lib/stripe-client'
 
 // UI Components
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -121,32 +122,19 @@ export function CheckoutForm({
 				throw new Error('Amount must be at least $0.50')
 			}
 
-			// Use our NestJS backend instead of direct Stripe API
-			const response = await fetch('/api/create-payment-intent', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					amount: request.amount,
-					tenantId:
-						request.metadata?.tenant_id || request.metadata?.planId || '',
-					propertyId: request.metadata?.property_id || '',
-					subscriptionType:
-						request.metadata?.subscription_type ||
-						request.metadata?.planName ||
-						''
-				})
+			// Use our NestJS backend via stripe-client
+			const result = await createPaymentIntent({
+				amount: request.amount,
+				currency: 'usd',
+				metadata: {
+					tenant_id: request.metadata?.tenant_id || request.metadata?.planId || '',
+					property_id: request.metadata?.property_id || '',
+					subscription_type: request.metadata?.subscription_type || request.metadata?.planName || ''
+				},
+				customerEmail: request.metadata?.customerEmail
 			})
 
-			if (!response.ok) {
-				const errorData = await response
-					.json()
-					.catch(() => ({ error: 'Network error' }))
-				throw new Error(
-					errorData.error || `HTTP ${response.status}: ${response.statusText}`
-				)
-			}
-
-			return response.json()
+			return result
 		},
 		onError: err => {
 			const errorMessage =

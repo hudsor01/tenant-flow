@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useCreateProperty, useProperties } from '@/hooks/api/properties'
 import { useUnits } from '@/hooks/api/units'
 import type { Database } from '@repo/shared'
@@ -33,6 +34,8 @@ import {
 	TableHeader,
 	TableRow
 } from 'src/components/ui/table'
+import { PropertyEditViewButtons } from '@/components/properties/edit-button'
+import { useCurrentUser } from '@/hooks/use-current-user'
 
 type PropertyRow = Database['public']['Tables']['Property']['Row']
 type UnitRow = Database['public']['Tables']['Unit']['Row']
@@ -43,7 +46,7 @@ type _UnitStatus = Database['public']['Enums']['UnitStatus']
 
 export default function PropertiesPage() {
 	const searchParams = useSearchParams()
-	const status = searchParams.get('status') || undefined
+	const status = searchParams?.get('status') || undefined
 
 	const {
 		data: properties = [],
@@ -227,14 +230,7 @@ export default function PropertiesPage() {
 															: '—'}
 													</TableCell>
 													<TableCell>
-														<div className="flex items-center gap-1">
-															<Button variant="outline" size="sm">
-																Edit
-															</Button>
-															<Button variant="outline" size="sm">
-																View
-															</Button>
-														</div>
+														<PropertyEditViewButtons property={property} />
 													</TableCell>
 												</TableRow>
 											)
@@ -263,9 +259,16 @@ export default function PropertiesPage() {
 }
 
 function NewPropertyButton() {
+	const [open, setOpen] = useState(false)
 	const create = useCreateProperty()
+	const { userId, isLoading: userLoading } = useCurrentUser()
 
 	async function onSubmit(form: HTMLFormElement) {
+		if (!userId) {
+			console.error('No user ID available for property creation')
+			return
+		}
+
 		const fd = new FormData(form)
 		const insertData: InsertProperty = {
 			name: String(fd.get('name') || ''),
@@ -273,24 +276,23 @@ function NewPropertyButton() {
 			city: String(fd.get('city') || ''),
 			state: String(fd.get('state') || ''),
 			zipCode: String(fd.get('zipCode') || ''),
-			ownerId: '',
+			ownerId: userId,
 			propertyType: String(
 				fd.get('propertyType') || 'APARTMENT'
 			) as PropertyType
 		}
 
 		await create.mutateAsync(insertData)
-		;(
-			document.getElementById('new-property-close') as HTMLButtonElement
-		)?.click()
+		setOpen(false)
 	}
 
 	return (
-		<Dialog>
+		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
 				<Button
+					variant="default"
 					className="flex items-center gap-2"
-					style={{ backgroundColor: 'var(--chart-1)' }}
+					disabled={userLoading || !userId}
 				>
 					<Plus className="size-4" />
 					New Property
@@ -362,7 +364,7 @@ function NewPropertyButton() {
 					</div>
 
 					<div className="flex justify-end gap-2 pt-2">
-						<Button id="new-property-close" type="button" variant="outline">
+						<Button type="button" variant="outline" onClick={() => setOpen(false)}>
 							Cancel
 						</Button>
 						<Button type="submit" disabled={create.isPending}>

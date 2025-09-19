@@ -4,18 +4,16 @@ import { useTenants, useTenantStats } from '@/hooks/api/tenants'
 import { formatCurrency } from '@/lib/utils'
 import type { TenantWithLeaseInfo } from '@repo/shared'
 import {
-	Calendar,
 	CreditCard,
-	Mail,
-	Phone,
 	TrendingUp,
 	Users
 } from 'lucide-react'
 import { ChartAreaInteractive } from 'src/components/chart-area-interactive'
 import { MetricsCard } from 'src/components/metrics-card'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
+import { AddTenantDialog } from '@/components/tenants/add-tenant-dialog'
+import { TenantActionButtons } from '@/components/tenants/tenant-action-buttons'
 import { LoadingSpinner } from 'src/components/ui/loading-spinner'
+
 import {
 	Table,
 	TableBody,
@@ -103,13 +101,7 @@ export default function TenantsPage() {
 						</p>
 					</div>
 
-					<Button
-						className="flex items-center gap-2"
-						style={{ backgroundColor: 'var(--chart-2)' }}
-					>
-						<Users className="size-4" />
-						Add Tenant
-					</Button>
+					<AddTenantDialog />
 				</div>
 
 				{/* Interactive Chart */}
@@ -120,116 +112,36 @@ export default function TenantsPage() {
 					<Table>
 						<TableHeader className="bg-muted/50">
 							<TableRow>
-								<TableHead className="font-semibold">Tenant</TableHead>
-								<TableHead className="font-semibold">Contact</TableHead>
-								<TableHead className="font-semibold">Unit</TableHead>
+								<TableHead className="font-semibold">Name</TableHead>
+								<TableHead className="font-semibold">Email</TableHead>
 								<TableHead className="font-semibold">Property</TableHead>
-								<TableHead className="font-semibold">Monthly Rent</TableHead>
-								<TableHead className="font-semibold">Lease Period</TableHead>
+								<TableHead className="font-semibold">Unit</TableHead>
+								<TableHead className="font-semibold">Rent</TableHead>
 								<TableHead className="font-semibold">Status</TableHead>
-								<TableHead className="font-semibold">Payment</TableHead>
 								<TableHead className="font-semibold">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{tenantsData.map((tenant: TenantWithLeaseInfo) => (
 								<TableRow key={tenant.id} className="hover:bg-muted/30">
+									<TableCell className="font-medium">{tenant.name}</TableCell>
+									<TableCell>{tenant.email}</TableCell>
+									<TableCell>{tenant.property?.name || 'No property'}</TableCell>
+									<TableCell>{tenant.unit?.unitNumber || 'No unit'}</TableCell>
 									<TableCell>
-										<div className="flex items-center gap-3">
-											<div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-												<span className="text-xs font-semibold text-primary">
-													{tenant.name
-														.split(' ')
-														.map((n: string) => n[0])
-														.join('')}
-												</span>
-											</div>
-											<div>
-												<div className="font-medium">{tenant.name}</div>
-											</div>
-										</div>
+										{tenant.monthlyRent ? `$${tenant.monthlyRent.toLocaleString()}` : 'N/A'}
 									</TableCell>
 									<TableCell>
-										<div className="space-y-1">
-											<div className="flex items-center gap-2 text-sm">
-												<Mail className="size-3 text-muted-foreground" />
-												<span className="text-muted-foreground">
-													{tenant.email}
-												</span>
-											</div>
-											<div className="flex items-center gap-2 text-sm">
-												<Phone className="size-3 text-muted-foreground" />
-												<span className="text-muted-foreground">
-													{tenant.phone}
-												</span>
-											</div>
-										</div>
+										<span className={`px-2 py-1 rounded-full text-xs ${
+											tenant.leaseStatus === 'active'
+												? 'bg-green-100 text-green-800'
+												: 'bg-gray-100 text-gray-800'
+										}`}>
+											{tenant.leaseStatus || 'No lease'}
+										</span>
 									</TableCell>
 									<TableCell>
-										<Badge variant="outline" className="font-medium">
-											{tenant.unitDisplay}
-										</Badge>
-									</TableCell>
-									<TableCell className="text-muted-foreground">
-										{tenant.propertyDisplay}
-									</TableCell>
-									<TableCell className="font-medium">
-										{formatCurrency(tenant.monthlyRent)}
-									</TableCell>
-									<TableCell>
-										<div className="flex items-center gap-1 text-sm text-muted-foreground">
-											<Calendar className="size-3" />
-											<span>
-												{tenant.leaseStart
-													? new Date(tenant.leaseStart).toLocaleDateString()
-													: '—'}
-												{' - '}
-												{tenant.leaseEnd
-													? new Date(tenant.leaseEnd).toLocaleDateString()
-													: '—'}
-											</span>
-										</div>
-									</TableCell>
-									<TableCell>
-										<Badge
-											style={{
-												backgroundColor:
-													(tenant as { status?: string }).status === 'active'
-														? 'var(--chart-1)'
-														: 'var(--chart-5)',
-												color: 'hsl(var(--primary-foreground))'
-											}}
-											className="capitalize"
-										>
-											{(tenant as { status?: string }).status === 'notice_given'
-												? 'Notice Given'
-												: ((tenant as { status?: string }).status ?? 'Unknown')}
-										</Badge>
-									</TableCell>
-									<TableCell>
-										<Badge
-											style={{
-												backgroundColor:
-													tenant.paymentStatus === 'current'
-														? 'var(--chart-1)'
-														: 'var(--chart-10)',
-												color: 'hsl(var(--primary-foreground))'
-											}}
-											className="capitalize flex items-center gap-1"
-										>
-											<CreditCard className="size-3" />
-											{tenant.paymentStatus}
-										</Badge>
-									</TableCell>
-									<TableCell>
-										<div className="flex items-center gap-1">
-											<Button variant="outline" size="sm">
-												Edit
-											</Button>
-											<Button variant="outline" size="sm">
-												View
-											</Button>
-										</div>
+										<TenantActionButtons tenant={tenant} />
 									</TableCell>
 								</TableRow>
 							))}

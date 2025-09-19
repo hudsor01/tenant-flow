@@ -17,8 +17,8 @@
       "@/stores/*": ["./src/stores/*"],
       "@/types/*": ["./src/types/*"],
       "@/providers/*": ["./src/providers/*"],
-      "@repo/shared": ["../../packages/shared/dist/cjs"],
-      "@repo/shared/*": ["../../packages/shared/dist/cjs/*"]
+      "@repo/shared": ["../../packages/shared/dist"],
+      "@repo/shared/*": ["../../packages/shared/dist/*"]
     },
     "types": ["node", "react", "react-dom"]
   },
