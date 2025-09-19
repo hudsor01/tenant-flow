@@ -6,6 +6,26 @@
 import type * as React from 'react'
 import type { Property, Tenant } from './core'
 
+// AUTH FORM TYPES
+
+export interface AuthFormProps {
+	className?: string
+	mode?: 'login' | 'signup'
+	onSubmit?: (data: {
+		email: string
+		password: string
+		firstName?: string
+		lastName?: string
+		company?: string
+	}) => void
+	onForgotPassword?: () => void
+	onSignUp?: () => void
+	onLogin?: () => void
+	onGoogleLogin?: () => void
+	isLoading?: boolean
+	isGoogleLoading?: boolean
+}
+
 // THEME TYPES
 
 export interface SVGPatternProps {

@@ -1,33 +1,19 @@
 'use client'
 
-import { loginZodSchema, registerZodSchema } from '@repo/shared'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { PasswordStrength } from '@/components/ui/password-strength'
 import { cn } from '@/lib/utils'
-import React, { useState } from 'react'
-import { Button } from 'src/components/ui/button'
-import { Input } from 'src/components/ui/input'
-import { Label } from 'src/components/ui/label'
-import { PasswordStrength } from 'src/components/ui/password-strength'
-import { toast } from 'sonner'
+import {
+	loginZodSchema,
+	registerZodSchema,
+	type AuthFormProps
+} from '@repo/shared'
 import { Check } from 'lucide-react'
+import React, { useState } from 'react'
+import { toast } from 'sonner'
 import type { ZodError } from 'zod'
-
-interface AuthFormProps {
-	className?: string
-	mode?: 'login' | 'signup'
-	onSubmit?: (data: {
-		email: string
-		password: string
-		firstName?: string
-		lastName?: string
-		company?: string
-	}) => void
-	onForgotPassword?: () => void
-	onSignUp?: () => void
-	onLogin?: () => void
-	onGoogleLogin?: () => void
-	isLoading?: boolean
-	isGoogleLoading?: boolean
-}
 
 export function LoginForm({
 	className,
@@ -52,7 +38,9 @@ export function LoginForm({
 
 	// Field validation states
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
-	const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
+	const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>(
+		{}
+	)
 	const [validFields, setValidFields] = useState<Record<string, boolean>>({})
 
 	const validateField = (name: string, value: string) => {
@@ -81,13 +69,18 @@ export function LoginForm({
 						throw new Error("Passwords don't match")
 					}
 				} else if (name === 'firstName') {
-					if (value.length < 2) throw new Error('First name must be at least 2 characters')
-					if (!/^[a-zA-Z\s-']+$/.test(value)) throw new Error('Please enter a valid first name')
+					if (value.length < 2)
+						throw new Error('First name must be at least 2 characters')
+					if (!/^[a-zA-Z\s-']+$/.test(value))
+						throw new Error('Please enter a valid first name')
 				} else if (name === 'lastName') {
-					if (value.length < 2) throw new Error('Last name must be at least 2 characters')
-					if (!/^[a-zA-Z\s-']+$/.test(value)) throw new Error('Please enter a valid last name')
+					if (value.length < 2)
+						throw new Error('Last name must be at least 2 characters')
+					if (!/^[a-zA-Z\s-']+$/.test(value))
+						throw new Error('Please enter a valid last name')
 				} else if (name === 'company') {
-					if (value.length < 2) throw new Error('Company name must be at least 2 characters')
+					if (value.length < 2)
+						throw new Error('Company name must be at least 2 characters')
 				}
 			}
 
@@ -138,7 +131,14 @@ export function LoginForm({
 		// Validate all fields before submission
 		const fieldsToValidate = isLogin
 			? ['email', 'password']
-			: ['firstName', 'lastName', 'company', 'email', 'password', 'confirmPassword']
+			: [
+					'firstName',
+					'lastName',
+					'company',
+					'email',
+					'password',
+					'confirmPassword'
+				]
 
 		let hasErrors = false
 		const errors: Record<string, string> = {}
@@ -163,7 +163,7 @@ export function LoginForm({
 		} catch (error) {
 			hasErrors = true
 			if ((error as ZodError).issues) {
-				(error as ZodError).issues.forEach(issue => {
+				;(error as ZodError).issues.forEach(issue => {
 					const field = issue.path[0] as string
 					errors[field] = issue.message
 				})
@@ -229,7 +229,9 @@ export function LoginForm({
 								)}
 							</div>
 							{fieldErrors.firstName && touchedFields.firstName && (
-								<p className="text-xs text-destructive mt-1">{fieldErrors.firstName}</p>
+								<p className="text-xs text-destructive mt-1">
+									{fieldErrors.firstName}
+								</p>
 							)}
 						</div>
 						<div className="relative">
@@ -257,7 +259,9 @@ export function LoginForm({
 								)}
 							</div>
 							{fieldErrors.lastName && touchedFields.lastName && (
-								<p className="text-xs text-destructive mt-1">{fieldErrors.lastName}</p>
+								<p className="text-xs text-destructive mt-1">
+									{fieldErrors.lastName}
+								</p>
 							)}
 						</div>
 					</div>
@@ -289,7 +293,9 @@ export function LoginForm({
 							)}
 						</div>
 						{fieldErrors.company && touchedFields.company && (
-							<p className="text-xs text-destructive mt-1">{fieldErrors.company}</p>
+							<p className="text-xs text-destructive mt-1">
+								{fieldErrors.company}
+							</p>
 						)}
 					</div>
 				)}
@@ -309,7 +315,7 @@ export function LoginForm({
 							onFocus={handleFocus}
 							placeholder="Enter your email"
 							className={cn(
-								"h-11",
+								'h-11',
 								fieldErrors.email && touchedFields.email
 									? 'border-destructive focus:ring-destructive'
 									: validFields.email && touchedFields.email
@@ -349,7 +355,7 @@ export function LoginForm({
 									onFocus={handleFocus}
 									placeholder="Enter your password"
 									className={cn(
-										"h-11",
+										'h-11',
 										fieldErrors.password && touchedFields.password
 											? 'border-destructive focus:ring-destructive'
 											: ''
@@ -357,7 +363,9 @@ export function LoginForm({
 								/>
 							</div>
 							{fieldErrors.password && touchedFields.password && (
-								<p className="text-xs text-destructive mt-1">{fieldErrors.password}</p>
+								<p className="text-xs text-destructive mt-1">
+									{fieldErrors.password}
+								</p>
 							)}
 						</>
 					) : (
@@ -373,7 +381,7 @@ export function LoginForm({
 							onFocus={handleFocus}
 							placeholder="Create a secure password"
 							className={cn(
-								"h-11",
+								'h-11',
 								fieldErrors.password && touchedFields.password
 									? 'border-destructive focus:ring-destructive'
 									: ''
@@ -383,7 +391,9 @@ export function LoginForm({
 						/>
 					)}
 					{!isLogin && fieldErrors.password && touchedFields.password && (
-						<p className="text-xs text-destructive mt-1">{fieldErrors.password}</p>
+						<p className="text-xs text-destructive mt-1">
+							{fieldErrors.password}
+						</p>
 					)}
 				</div>
 
@@ -403,20 +413,26 @@ export function LoginForm({
 								onFocus={handleFocus}
 								placeholder="Re-enter your password"
 								className={cn(
-									"h-11",
+									'h-11',
 									fieldErrors.confirmPassword && touchedFields.confirmPassword
 										? 'border-destructive focus:ring-destructive'
-										: validFields.confirmPassword && touchedFields.confirmPassword && form.confirmPassword
+										: validFields.confirmPassword &&
+											  touchedFields.confirmPassword &&
+											  form.confirmPassword
 											? 'border-green-500 focus:ring-green-500'
 											: ''
 								)}
 							/>
-							{validFields.confirmPassword && touchedFields.confirmPassword && form.confirmPassword && (
-								<Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
-							)}
+							{validFields.confirmPassword &&
+								touchedFields.confirmPassword &&
+								form.confirmPassword && (
+									<Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+								)}
 						</div>
 						{fieldErrors.confirmPassword && touchedFields.confirmPassword && (
-							<p className="text-xs text-destructive mt-1">{fieldErrors.confirmPassword}</p>
+							<p className="text-xs text-destructive mt-1">
+								{fieldErrors.confirmPassword}
+							</p>
 						)}
 					</div>
 				)}
