@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import { BadRequestException } from '@nestjs/common'
 import { StripeController } from './stripe.controller'
 import { SupabaseService } from '../database/supabase.service'
 import type Stripe from 'stripe'
@@ -14,7 +14,7 @@ describe('StripeController', () => {
 		// Mock Supabase service
 		mockSupabaseService = {
 			getAdminClient: jest.fn(),
-		} as any
+		} as any // eslint-disable-line @typescript-eslint/no-explicit-any
 
 		// Mock Stripe with all required methods
 		mockStripe = {
@@ -41,7 +41,7 @@ describe('StripeController', () => {
 					create: jest.fn(),
 				},
 			},
-		} as any
+		} as any // eslint-disable-line @typescript-eslint/no-explicit-any
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [StripeController],
@@ -55,7 +55,7 @@ describe('StripeController', () => {
 
 		controller = module.get<StripeController>(StripeController)
 		// Override the Stripe instance with our mock
-		;(controller as any).stripe = mockStripe
+		;(controller as any).stripe = mockStripe // eslint-disable-line @typescript-eslint/no-explicit-any
 	})
 
 	describe('createPaymentIntent', () => {
@@ -65,7 +65,7 @@ describe('StripeController', () => {
 			mockStripe.paymentIntents.create.mockResolvedValue({
 				id: 'pi_test123',
 				client_secret: 'pi_test123_secret',
-			} as any)
+			} as any)  
 
 			const result = await controller.createPaymentIntent({
 				amount: 100,
@@ -132,7 +132,7 @@ describe('StripeController', () => {
 			mockStripe.checkout.sessions.create.mockResolvedValue({
 				id: 'cs_test123',
 				url: 'https://checkout.stripe.com/test',
-			} as any)
+			} as any)  
 
 			const result = await controller.createCheckoutSession({
 				productName: 'Test Product',
@@ -190,7 +190,7 @@ describe('StripeController', () => {
 			mockStripe.paymentIntents.create.mockResolvedValue({
 				id: 'pi_test123',
 				client_secret: 'pi_test123_secret',
-			} as any)
+			} as any)  
 
 			const result = await controller.createConnectedPayment({
 				amount: 100,

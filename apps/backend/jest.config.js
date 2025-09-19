@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* eslint-disable @typescript-eslint/no-require-imports, no-undef */
 const path = require('path')
 const fs = require('fs')
 
@@ -43,7 +45,7 @@ module.exports = {
 	bail: false,
 	coverageProvider: 'v8',
 	transform: {
-		'^.+\.ts$': [
+		'^.+\\.ts$': [
 			'ts-jest',
 			{
 				useESM: false,

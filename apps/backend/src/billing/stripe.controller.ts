@@ -121,7 +121,7 @@ export class StripeController {
 			})
 
 			return response
-		} catch (error: any) {
+		} catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
 			// Re-throw validation errors (BadRequestException) as-is
 			if (error.constructor?.name === 'BadRequestException') {
 				throw error
@@ -246,7 +246,7 @@ export class StripeController {
 				ip: req.ip,
 				created: new Date(event.created * 1000).toISOString()
 			})
-		} catch (error: any) {
+		} catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
 			const errorMessage =
 				error instanceof Error ? error.message : 'Unknown error'
 
@@ -529,7 +529,7 @@ export class StripeController {
 			})
 
 			return { url: session.url || '', session_id: session.id }
-		} catch (error: any) {
+		} catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
 			// Re-throw validation errors (BadRequestException) as-is
 			if (error.constructor?.name === 'BadRequestException') {
 				throw error
@@ -626,7 +626,7 @@ export class StripeController {
 				client_secret: paymentIntent.client_secret || '',
 				payment_intent_id: paymentIntent.id
 			}
-		} catch (error: any) {
+		} catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
 			// Re-throw validation errors (BadRequestException) as-is
 			if (error.constructor?.name === 'BadRequestException') {
 				throw error
@@ -1195,11 +1195,11 @@ export class StripeController {
 	 * Official Error Handling Pattern from Server SDK docs
 	 * Comprehensive error mapping for production use
 	 */
-	private handleStripeError(error: any): never {
+	private handleStripeError(error: any): never { // eslint-disable-line @typescript-eslint/no-explicit-any
 		// Re-throw validation errors (BadRequestException) as-is - don't convert to InternalServerErrorException
-		console.log('handleStripeError received:', error.constructor.name, error.message)
+		this.logger.debug('handleStripeError received:', error.constructor.name, error.message)
 		if (error.constructor.name === 'BadRequestException') {
-			console.log('Re-throwing BadRequestException')
+			this.logger.debug('Re-throwing BadRequestException')
 			throw error
 		}
 
