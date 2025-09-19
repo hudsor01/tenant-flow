@@ -22,6 +22,8 @@
 		"SUPABASE_URL",
 		"SUPABASE_ANON_KEY",
 		"SUPABASE_SERVICE_KEY",
+		"NEXT_PUBLIC_SUPABASE_URL",
+		"NEXT_PUBLIC_SUPABASE_ANON_KEY",
 		"SUPABASE_SERVICE_ROLE_KEY",
 		"BACKEND_URL",
 		"STRIPE_SECRET_KEY",
@@ -138,11 +140,7 @@
 				"tsconfig*.json",
 				"package.json"
 			],
-			"outputs": [
-				".next/**",
-				"!.next/cache/**",
-				".vercel/output/**"
-			],
+			"outputs": [".next/**", "!.next/cache/**", ".vercel/output/**"],
 			"env": ["NEXT_PUBLIC_*", "VERCEL", "VERCEL_ENV"],
 			"cache": true,
 			"persistent": false
@@ -161,11 +159,7 @@
 		},
 		"@repo/backend#test:unit": {
 			"dependsOn": ["@repo/shared#build"],
-			"inputs": [
-				"src/**/*.{test,spec}.ts",
-				"jest.config.*",
-				"package.json"
-			],
+			"inputs": ["src/**/*.{test,spec}.ts", "jest.config.*", "package.json"],
 			"outputs": ["coverage/**"],
 			"cache": true,
 			"persistent": false
@@ -234,22 +228,14 @@
 		},
 		"@repo/backend#typecheck": {
 			"dependsOn": ["@repo/shared#build"],
-			"inputs": [
-				"src/**/*.{ts,js}",
-				"tsconfig*.json",
-				"package.json"
-			],
+			"inputs": ["src/**/*.{ts,js}", "tsconfig*.json", "package.json"],
 			"outputs": [],
 			"cache": true,
 			"persistent": false
 		},
 		"@repo/shared#typecheck": {
 			"dependsOn": [],
-			"inputs": [
-				"src/**/*.ts",
-				"tsconfig*.json",
-				"package.json"
-			],
+			"inputs": ["src/**/*.ts", "tsconfig*.json", "package.json"],
 			"outputs": ["dist/.tsbuildinfo"],
 			"cache": true,
 			"persistent": false

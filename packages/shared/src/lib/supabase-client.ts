@@ -14,9 +14,10 @@ import {
 } from '@supabase/supabase-js'
 import type { Database } from '../types/supabase'
 
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.SUPABASE_URL
+const SUPABASE_URL =
+	process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
 const SUPABASE_ANON_KEY =
-	process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+	process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY
 
 // Create a lazy-initialized client to avoid build-time errors
@@ -30,21 +31,17 @@ function getSupabaseClient(): SupabaseClient<Database> {
 		if (!SUPABASE_ANON_KEY) {
 			throw new Error('Missing SUPABASE_ANON_KEY environment variable')
 		}
-		_client = createClient<Database>(
-			SUPABASE_URL,
-			SUPABASE_ANON_KEY,
-			{
-				auth: {
-					persistSession: true,
-					autoRefreshToken: true,
-					flowType: 'pkce',
-					detectSessionInUrl: true
-				},
-				db: {
-					schema: 'public'
-				}
+		_client = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+			auth: {
+				persistSession: true,
+				autoRefreshToken: true,
+				flowType: 'pkce',
+				detectSessionInUrl: true
+			},
+			db: {
+				schema: 'public'
 			}
-		)
+		})
 	}
 	return _client
 }
@@ -55,7 +52,16 @@ export function getSupabaseClientInstance(): SupabaseClient<Database> {
 }
 
 // Export for backward compatibility and simpler imports
-export const supabaseClient = getSupabaseClient()
+// Use lazy initialization to avoid build-time errors
+let _exportedClient: SupabaseClient<Database> | null = null
+export const supabaseClient = new Proxy({} as SupabaseClient<Database>, {
+	get(target, prop) {
+		if (!_exportedClient) {
+			_exportedClient = getSupabaseClient()
+		}
+		return _exportedClient[prop as keyof SupabaseClient<Database>]
+	}
+})
 
 /**
  * Server-side admin client with full database access
