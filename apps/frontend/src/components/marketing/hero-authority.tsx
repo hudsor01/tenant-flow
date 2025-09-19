@@ -1,5 +1,6 @@
 'use client'
 
+import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'

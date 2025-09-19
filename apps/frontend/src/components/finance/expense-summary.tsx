@@ -1,7 +1,13 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+	ChartContainer,
+	ChartTooltip,
+	ChartTooltipContent,
+	type ChartConfig
+} from '@/components/ui/chart'
 import {
 	Calendar,
 	Ellipsis,
@@ -12,9 +18,6 @@ import {
 } from 'lucide-react'
 import { Label, PolarRadiusAxis, RadialBar, RadialBarChart } from 'recharts'
 
-
-
-
 import {
 	ANIMATION_DURATIONS,
 	cardClasses,
@@ -22,7 +25,6 @@ import {
 	formatCurrency,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
-
 
 const chartData = [
 	{ period: 'last-week', groceries: 380, transport: 120, other: 80 }

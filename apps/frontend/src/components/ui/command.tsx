@@ -1,12 +1,9 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { Command as CommandPrimitive } from 'cmdk'
 import { SearchIcon } from 'lucide-react'
 import * as React from 'react'
 
-import { cn } from '@/lib/utils'
 import {
 	Dialog,
 	DialogContent,
@@ -14,7 +11,7 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '@/components/ui/dialog'
-
+import { cn } from '@/lib/utils'
 
 function Command({
 	className,

@@ -1,6 +1,18 @@
 'use client'
 
-import { Table } from '@/components/ui/table'
+import { CreateMaintenanceDialog } from '@/components/maintenance/create-maintenance-dialog'
+import { MaintenanceTable } from '@/components/maintenance/maintenance-table'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
+import { maintenanceApi } from '@/lib/api-client'
 import { useQuery } from '@tanstack/react-query'
 import {
 	AlertCircle,
@@ -13,25 +25,13 @@ import {
 	User,
 	Wrench
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
-import { CreateMaintenanceDialog } from '@/components/maintenance/create-maintenance-dialog'
-import { MaintenanceTable } from '@/components/maintenance/maintenance-table'
-import { maintenanceApi } from '@/lib/api-client'
-
-
-
 
 export default function MaintenancePage() {
-	const { data: maintenanceResponse, isLoading, isError } = useQuery({
+	const {
+		data: maintenanceResponse,
+		isLoading,
+		isError
+	} = useQuery({
 		queryKey: ['maintenance-requests'],
 		queryFn: () => maintenanceApi.list()
 	})
@@ -137,7 +137,9 @@ export default function MaintenancePage() {
 						</div>
 						<h3 className="font-semibold">Total Cost</h3>
 					</div>
-					<div className="text-3xl font-bold mb-1">${totalCost.toLocaleString()}</div>
+					<div className="text-3xl font-bold mb-1">
+						${totalCost.toLocaleString()}
+					</div>
 					<p className="text-muted-foreground text-sm">This month</p>
 				</Card>
 
@@ -216,10 +218,17 @@ export default function MaintenancePage() {
 			</div>
 
 			{/* Maintenance Requests List */}
-			<div className="space-y-4">
-				<h2 className="text-xl font-semibold">Active Maintenance Requests</h2>
-				<MaintenanceTable requests={maintenanceData} isLoading={isLoading} />
-			</div>
+			<Card className="border shadow-sm">
+				<div className="p-6 border-b">
+					<h2 className="text-xl font-semibold">Active Maintenance Requests</h2>
+					<p className="text-muted-foreground text-sm mt-1">
+						Track and manage all property maintenance requests
+					</p>
+				</div>
+				<div className="p-6">
+					<MaintenanceTable requests={maintenanceData} isLoading={isLoading} />
+				</div>
+			</Card>
 
 			{/* Quick Actions */}
 			<Card className="p-6 border shadow-sm">

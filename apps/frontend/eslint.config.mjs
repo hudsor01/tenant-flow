@@ -8,13 +8,11 @@
  * - Next.js 15 + React 19 compatibility
  */
 
-import baseConfig from '@repo/eslint-config/base.js'
-// import antiDuplicationPlugin from '../../.eslint/plugins/anti-duplication.js' // File doesn't exist
+
 import nextPlugin from '@next/eslint-plugin-next'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 
 export default [
-	...baseConfig,
 
 	{
 		name: 'frontend/next.js-plugin',
@@ -95,7 +93,10 @@ export default [
 			'@typescript-eslint/no-unsafe-member-access': 'off',
 			'@typescript-eslint/no-unsafe-call': 'off',
 			'@typescript-eslint/no-unsafe-return': 'off',
-			'@typescript-eslint/no-unsafe-argument': 'off'
+			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/no-unused-vars': 'error',
+			'@typescript-eslint/no-explicit-any': 'error',
+			'@typescript-eslint/no-unused-expressions': 'warn'
 		}
 	},
 	{
@@ -123,7 +124,7 @@ export default [
 			'@typescript-eslint/no-unsafe-call': 'off',
 			'@typescript-eslint/no-unsafe-return': 'off',
 			'@typescript-eslint/no-unsafe-argument': 'off',
-			'no-console': 'off'
+			'no-console': 'error'
 		}
 	}
 ]

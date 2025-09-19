@@ -1,14 +1,13 @@
-import { Navbar } from '@/components/navbar'
 import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { Navbar } from '@/components/navbar'
 import { FooterMinimal } from '@/components/sections/footer-minimal'
 
-import { Button } from '@/components/ui/button'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { ShimmerButton } from '@/components/magicui/shimmer-button'
+import { Button } from '@/components/ui/button'
 import { containerClasses } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import { ArrowRight, Mail, MessageSquare, Phone } from 'lucide-react'
-
 
 export default function ContactPage() {
 	return (
@@ -297,6 +296,7 @@ export default function ContactPage() {
 					</div>
 				</section>
 			</div>
+			<FooterMinimal />
 		</main>
 	)
 }

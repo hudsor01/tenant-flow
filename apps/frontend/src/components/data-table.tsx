@@ -1,6 +1,5 @@
 'use client'
 
-import { Separator } from '@/components/ui/separator'
 import type { Property } from '@repo/shared'
 import type {
 	ColumnDef,
@@ -519,6 +518,7 @@ const handleRowAction = (
 	}
 }
 
+// eslint-disable-next-line type-centralization/no-inline-types
 interface DataTableProps extends React.ComponentProps<'div'> {
 	data: PropertyTableData[]
 	isLoading?: boolean

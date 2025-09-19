@@ -1,27 +1,30 @@
 'use client'
 
-import { Navbar } from '@/components/navbar'
-import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { FooterMinimal } from '@/components/sections/footer-minimal'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { ShimmerButton } from '@/components/magicui/shimmer-button'
-import { PageLayout } from '@/components/layout/page-layout'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { Navbar } from '@/components/navbar'
+import { FooterMinimal } from '@/components/sections/footer-minimal'
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
+import { createCheckoutSession } from '@/lib/stripe-client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { createCheckoutSession } from '@/lib/stripe-client'
 
 // UI Components
 
-
-
 // Icons
 import { ArrowRight, Check, Star } from 'lucide-react'
-
 
 // Design System
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
@@ -141,7 +144,23 @@ export default function PricingPage() {
 	}
 
 	return (
-		<PageLayout>
+		<main className="min-h-screen bg-background">
+			<Navbar />
+
+			{/* Hero Authority Section */}
+			<HeroAuthority
+				title={<>Choose the perfect plan to scale your business</>}
+				subtitle={
+					<>
+						Professional property managers increase NOI by 40% with TenantFlow's
+						enterprise-grade automation, advanced analytics, and scalable
+						operations platform.
+					</>
+				}
+				primaryCta={{ label: 'Start Free Trial', href: '/auth/sign-up' }}
+				secondaryCta={{ label: 'Contact Sales', href: '/contact' }}
+			/>
+
 			<section className="section-content md:py-16 gradient-authority">
 				<div className="mx-auto max-w-7xl">
 					{/* Header */}
@@ -386,6 +405,7 @@ export default function PricingPage() {
 					</div>
 				</div>
 			</section>
-		</PageLayout>
+			<FooterMinimal />
+		</main>
 	)
 }

@@ -1,24 +1,23 @@
 'use client'
 
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { Card } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { MetricsCard } from '@/components/metrics-card'
 import { ChartAreaInteractive } from '@/components/chart-area-interactive'
+import { Card } from '@/components/ui/card'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow
+} from '@/components/ui/table'
 import { useTenants, useTenantStats } from '@/hooks/api/tenants'
 import { formatCurrency } from '@/lib/utils'
 import type { TenantWithLeaseInfo } from '@repo/shared'
-import {
-	CreditCard,
-	TrendingUp,
-	Users
-} from 'lucide-react'
+import { CreditCard, TrendingUp, Users } from 'lucide-react'
 
 import { AddTenantDialog } from '@/components/tenants/add-tenant-dialog'
 import { TenantActionButtons } from '@/components/tenants/tenant-action-buttons'
-
-
-
 
 export default function TenantsPage() {
 	const { data: tenants, isLoading: tenantsLoading } = useTenants()
@@ -51,39 +50,61 @@ export default function TenantsPage() {
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 			{/* Tenant Metrics Cards - Using DB-calculated stats */}
-			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
-				<MetricsCard
-					title="Total Tenants"
-					value={statsData.totalTenants ?? 0}
-					description="All registered"
-					icon={Users}
-					colorVariant="property"
-				/>
+			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-2 lg:grid-cols-4">
+				<Card className="p-6 border shadow-sm">
+					<div className="flex items-center gap-3 mb-4">
+						<div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+							<Users className="size-5 text-blue-600" />
+						</div>
+						<h3 className="font-semibold">Total Tenants</h3>
+					</div>
+					<div className="text-3xl font-bold mb-1">
+						{statsData.totalTenants ?? 0}
+					</div>
+					<p className="text-muted-foreground text-sm">All registered</p>
+				</Card>
 
-				<MetricsCard
-					title="Current Payments"
-					value={statsData.currentPayments ?? 0}
-					status="Up to date"
-					statusIcon={TrendingUp}
-					icon={CreditCard}
-					colorVariant="success"
-				/>
+				<Card className="p-6 border shadow-sm">
+					<div className="flex items-center gap-3 mb-4">
+						<div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+							<CreditCard className="size-5 text-green-600" />
+						</div>
+						<h3 className="font-semibold">Current Payments</h3>
+					</div>
+					<div className="text-3xl font-bold mb-1">
+						{statsData.currentPayments ?? 0}
+					</div>
+					<div className="flex items-center gap-1 text-sm text-green-600">
+						<TrendingUp className="size-4" />
+						<span>Up to date</span>
+					</div>
+				</Card>
 
-				<MetricsCard
-					title="Late Payments"
-					value={statsData.latePayments ?? 0}
-					description="Need attention"
-					icon={CreditCard}
-					colorVariant="warning"
-				/>
+				<Card className="p-6 border shadow-sm">
+					<div className="flex items-center gap-3 mb-4">
+						<div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+							<CreditCard className="size-5 text-orange-600" />
+						</div>
+						<h3 className="font-semibold">Late Payments</h3>
+					</div>
+					<div className="text-3xl font-bold mb-1">
+						{statsData.latePayments ?? 0}
+					</div>
+					<p className="text-muted-foreground text-sm">Need attention</p>
+				</Card>
 
-				<MetricsCard
-					title="Avg Monthly Rent"
-					value={formatCurrency(statsData.avgRent ?? 0)}
-					description="Per tenant average"
-					icon={TrendingUp}
-					colorVariant="revenue"
-				/>
+				<Card className="p-6 border shadow-sm">
+					<div className="flex items-center gap-3 mb-4">
+						<div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+							<TrendingUp className="size-5 text-purple-600" />
+						</div>
+						<h3 className="font-semibold">Avg Monthly Rent</h3>
+					</div>
+					<div className="text-3xl font-bold mb-1">
+						{formatCurrency(statsData.avgRent ?? 0)}
+					</div>
+					<p className="text-muted-foreground text-sm">Per tenant average</p>
+				</Card>
 			</div>
 
 			{/* Tenants Content */}
@@ -123,17 +144,23 @@ export default function TenantsPage() {
 								<TableRow key={tenant.id} className="hover:bg-muted/30">
 									<TableCell className="font-medium">{tenant.name}</TableCell>
 									<TableCell>{tenant.email}</TableCell>
-									<TableCell>{tenant.property?.name || 'No property'}</TableCell>
+									<TableCell>
+										{tenant.property?.name || 'No property'}
+									</TableCell>
 									<TableCell>{tenant.unit?.unitNumber || 'No unit'}</TableCell>
 									<TableCell>
-										{tenant.monthlyRent ? `$${tenant.monthlyRent.toLocaleString()}` : 'N/A'}
+										{tenant.monthlyRent
+											? `$${tenant.monthlyRent.toLocaleString()}`
+											: 'N/A'}
 									</TableCell>
 									<TableCell>
-										<span className={`px-2 py-1 rounded-full text-xs ${
-											tenant.leaseStatus === 'active'
-												? 'bg-green-100 text-green-800'
-												: 'bg-gray-100 text-gray-800'
-										}`}>
+										<span
+											className={`px-2 py-1 rounded-full text-xs ${
+												tenant.leaseStatus === 'active'
+													? 'bg-green-100 text-green-800'
+													: 'bg-gray-100 text-gray-800'
+											}`}
+										>
 											{tenant.leaseStatus || 'No lease'}
 										</span>
 									</TableCell>

@@ -1,11 +1,10 @@
 'use client'
 
-import { Navbar } from '@/components/navbar'
-import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { FooterMinimal } from '@/components/sections/footer-minimal'
 import { BlurFade } from '@/components/magicui/blur-fade'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { Navbar } from '@/components/navbar'
 import { FeaturesSection } from '@/components/sections/features-section'
-
+import { FooterMinimal } from '@/components/sections/footer-minimal'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -91,6 +90,20 @@ export default function FeaturesPage() {
 	return (
 		<div className="min-h-screen bg-background">
 			<Navbar />
+
+			{/* Hero Authority Section */}
+			<HeroAuthority
+				title={<>Transform your portfolio into a profit powerhouse</>}
+				subtitle={
+					<>
+						Join 10,000+ property managers who've increased NOI by 40% with
+						enterprise-grade automation and AI-powered analytics. ROI guaranteed
+						in 90 days.
+					</>
+				}
+				primaryCta={{ label: 'Start Free Trial', href: '/auth/sign-up' }}
+				secondaryCta={{ label: 'See it in action', href: '/contact' }}
+			/>
 
 			{/* Sticky CTA */}
 			<div

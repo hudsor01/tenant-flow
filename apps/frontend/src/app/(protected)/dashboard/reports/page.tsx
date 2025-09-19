@@ -1,11 +1,17 @@
 'use client'
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Table } from '@/components/ui/table'
 import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
+import { Table } from '@/components/ui/table'
 import {
 	Building,
 	Calendar,
@@ -22,8 +28,6 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
-
-
 
 const availableReports = [
 	{
@@ -347,34 +351,87 @@ export default function ReportsPage() {
 					</div>
 				</div>
 				<div className="p-6">
-					<div className="space-y-4">
-						{recentReports.map((report, index) => (
-							<div
-								key={index}
-								className="flex items-center justify-between p-4 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
-							>
-								<div className="flex items-center gap-4">
-									<div className="w-10 h-10 rounded-lg flex items-center justify-center bg-background border">
-										<FileText className="size-5 text-muted-foreground" />
-									</div>
-									<div>
-										<p className="font-medium">{report.name}</p>
-										<div className="flex items-center gap-4 text-sm text-muted-foreground">
-											<span>{report.date}</span>
-											<span>{report.size}</span>
+					{/* Table Implementation for Recent Reports */}
+					<div className="overflow-x-auto">
+						<Table>
+							<thead>
+								<tr className="border-b">
+									<th className="text-left font-semibold p-3">Report Name</th>
+									<th className="text-left font-semibold p-3">Generated</th>
+									<th className="text-left font-semibold p-3">Size</th>
+									<th className="text-left font-semibold p-3">Status</th>
+									<th className="text-left font-semibold p-3">Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								{recentReports.map((report, index) => (
+									<tr
+										key={index}
+										className="border-b hover:bg-muted/30 transition-colors"
+									>
+										<td className="p-3">
+											<div className="flex items-center gap-3">
+												<div className="w-8 h-8 rounded-md flex items-center justify-center bg-muted">
+													<FileText className="size-4 text-muted-foreground" />
+												</div>
+												<span className="font-medium">{report.name}</span>
+											</div>
+										</td>
+										<td className="p-3 text-muted-foreground">{report.date}</td>
+										<td className="p-3 text-muted-foreground">{report.size}</td>
+										<td className="p-3">
+											<Badge variant="default" className="text-xs">
+												{report.status}
+											</Badge>
+										</td>
+										<td className="p-3">
+											<div className="flex items-center gap-2">
+												<Button variant="ghost" size="sm">
+													<Download className="size-4" />
+												</Button>
+												<Button variant="ghost" size="sm">
+													<Mail className="size-4" />
+												</Button>
+											</div>
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</Table>
+					</div>
+
+					{/* Alternative Card Layout for Comparison */}
+					<div className="mt-8">
+						<h3 className="text-lg font-semibold mb-4">Report Archive</h3>
+						<div className="space-y-3">
+							{recentReports.slice(0, 2).map((report, index) => (
+								<div
+									key={`archive-${index}`}
+									className="flex items-center justify-between p-4 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
+								>
+									<div className="flex items-center gap-4">
+										<div className="w-10 h-10 rounded-lg flex items-center justify-center bg-background border">
+											<FileText className="size-5 text-muted-foreground" />
+										</div>
+										<div>
+											<p className="font-medium">{report.name}</p>
+											<div className="flex items-center gap-4 text-sm text-muted-foreground">
+												<span>{report.date}</span>
+												<span>{report.size}</span>
+											</div>
 										</div>
 									</div>
+									<div className="flex items-center gap-2">
+										<Badge variant="outline" className="text-xs">
+											Archived
+										</Badge>
+										<Button variant="ghost" size="sm">
+											<Download className="size-4" />
+										</Button>
+									</div>
 								</div>
-								<div className="flex items-center gap-2">
-									<Badge variant="default" className="text-xs">
-										{report.status}
-									</Badge>
-									<Button variant="ghost" size="sm">
-										<Download className="size-4" />
-									</Button>
-								</div>
-							</div>
-						))}
+							))}
+						</div>
 					</div>
 				</div>
 			</Card>

@@ -1,7 +1,5 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import {
 	Folder,
 	Forward,
@@ -11,7 +9,6 @@ import {
 } from 'lucide-react'
 import * as React from 'react'
 
-import { cn } from '@/lib/utils'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -21,7 +18,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {
 	SidebarGroup,
-	SidebarGroupContent,
 	SidebarGroupLabel,
 	SidebarMenu,
 	SidebarMenuAction,
@@ -29,6 +25,7 @@ import {
 	SidebarMenuItem,
 	useSidebar
 } from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 
 interface NavProjectsProps extends React.ComponentProps<typeof SidebarGroup> {
 	projects: {

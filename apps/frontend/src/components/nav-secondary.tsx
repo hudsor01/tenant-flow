@@ -1,13 +1,18 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
 import { type LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import * as React from 'react'
 
+import {
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem
+} from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
-
 
 interface NavSecondaryProps extends React.ComponentProps<typeof SidebarGroup> {
 	items: {
@@ -18,7 +23,7 @@ interface NavSecondaryProps extends React.ComponentProps<typeof SidebarGroup> {
 }
 
 export const NavSecondary = React.forwardRef<
-	React.ComponentRef<typeof SidebarGroup>,
+	React.ElementRef<typeof SidebarGroup>,
 	NavSecondaryProps
 >(({ items, className, ...props }, ref) => {
 	const pathname = usePathname()

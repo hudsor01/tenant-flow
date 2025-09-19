@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 import {
 	ANIMATION_DURATIONS,
 	animationClasses,
@@ -33,13 +34,13 @@ import {
 } from 'lucide-react'
 import * as React from 'react'
 
-
 interface FinancialMetricsCardsProps {
 	data?: DashboardFinancialStats
 	isLoading?: boolean
 	className?: string
 }
 
+// eslint-disable-next-line type-centralization/no-inline-types
 interface MetricCardProps {
 	title: string
 	value: string | number

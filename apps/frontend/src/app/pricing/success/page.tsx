@@ -1,13 +1,13 @@
 'use client'
 
+import { HeroAuthority } from '@/components/marketing/hero-authority'
 import { Navbar } from '@/components/navbar'
-import { HeroAuthority } from '@/components/hero-authority'
-import { FooterMinimal } from '@/components/footer-minimal'
 import { CustomerPortalButton } from '@/components/pricing/customer-portal'
+import { FooterMinimal } from '@/components/sections/footer-minimal'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { API_BASE_URL } from '@/lib/api-client'
 import type { SubscriptionData } from '@/types/stripe'
 import { CheckCircle, Home } from 'lucide-react'
@@ -15,8 +15,6 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-
-
 
 export default function CheckoutSuccessPage() {
 	const searchParams = useSearchParams()
@@ -85,6 +83,20 @@ export default function CheckoutSuccessPage() {
 	return (
 		<main className="min-h-screen gradient-authority">
 			<Navbar />
+
+			{/* Hero Authority Section */}
+			<HeroAuthority
+				title={<>Payment Successful!</>}
+				subtitle={
+					<>
+						Welcome to TenantFlow! Your subscription is now active and ready to
+						use. Start managing your properties with enterprise-grade tools.
+					</>
+				}
+				primaryCta={{ label: 'Go to Dashboard', href: '/dashboard' }}
+				secondaryCta={{ label: 'Contact Support', href: '/contact' }}
+			/>
+
 			<div className="pt-20">
 				<div className="container mx-auto px-4 section-content max-w-2xl">
 					<Card className="text-center card-elevated-authority">
@@ -165,6 +177,7 @@ export default function CheckoutSuccessPage() {
 					</Card>
 				</div>
 			</div>
+			<FooterMinimal />
 		</main>
 	)
 }

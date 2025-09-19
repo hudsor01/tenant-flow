@@ -1,11 +1,10 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth-provider'
-import { supabaseClient } from '@repo/shared'
 import { useSpring, useTransition } from '@react-spring/core'
 import { animated } from '@react-spring/web'
+import { supabaseClient } from '@repo/shared'
 import { ArrowRight, ChevronDown, Menu, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -46,8 +45,8 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 					]
 				}
 			],
-				ctaText = 'Get Started',
-				ctaHref = '/auth/signup',
+			ctaText = 'Get Started',
+			ctaHref = '/auth/signup',
 			...props
 		},
 		ref
@@ -60,8 +59,12 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 		const [ctaTap, setCtaTap] = useState(false)
 		const [mobileButtonTap, setMobileButtonTap] = useState(false)
 		const [hoveredNavItem, setHoveredNavItem] = useState<string | null>(null)
-		const [hoveredDropdownItem, setHoveredDropdownItem] = useState<string | null>(null)
-		const [hoveredMobileItem, setHoveredMobileItem] = useState<string | null>(null)
+		const [hoveredDropdownItem, setHoveredDropdownItem] = useState<
+			string | null
+		>(null)
+		const [hoveredMobileItem, setHoveredMobileItem] = useState<string | null>(
+			null
+		)
 		const [isMounted, setIsMounted] = useState(false)
 
 		// Auth state
@@ -170,21 +173,23 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 			transition: 'transform 0.2s ease-out'
 		})
 
-		// Dropdown item hover styles  
+		// Dropdown item hover styles
 		const getDropdownItemStyle = (itemName: string) => ({
-			transform: hoveredDropdownItem === itemName ? 'translateX(4px)' : 'translateX(0)',
+			transform:
+				hoveredDropdownItem === itemName ? 'translateX(4px)' : 'translateX(0)',
 			transition: 'transform 0.2s ease-out'
 		})
 
 		// Mobile item hover styles
 		const getMobileItemStyle = (itemName: string) => ({
-			transform: hoveredMobileItem === itemName ? 'translateX(4px)' : 'translateX(0)',
+			transform:
+				hoveredMobileItem === itemName ? 'translateX(4px)' : 'translateX(0)',
 			transition: 'transform 0.2s ease-out'
 		})
 
 		return (
-    			<animated.nav
-                data-site-navbar
+			<animated.nav
+				data-site-navbar
 				ref={ref}
 				style={navbarSpring}
 				className={cn(
@@ -245,30 +250,33 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								</animated.div>
 
 								{/* Professional Dropdown */}
-								{item.hasDropdown && dropdownTransitions((style, dropdownName) =>
-									dropdownName === item.name ? (
-										<animated.div
-											style={style}
-											className="absolute top-full left-0 mt-2 w-56 bg-background/98 backdrop-blur-lg rounded-xl shadow-xl border border-border/50 py-2"
-										>
-											{item.dropdownItems?.map(dropdownItem => (
-												<animated.div
-													key={dropdownItem.name}
-													style={getDropdownItemStyle(dropdownItem.name)}
-													onMouseEnter={() => setHoveredDropdownItem(dropdownItem.name)}
-													onMouseLeave={() => setHoveredDropdownItem(null)}
-												>
-													<Link
-														href={dropdownItem.href}
-														className="block px-4 py-2.5 text-foreground hover:bg-primary/5 hover:text-primary transition-all duration-200 font-medium text-sm"
+								{item.hasDropdown &&
+									dropdownTransitions((style, dropdownName) =>
+										dropdownName === item.name ? (
+											<animated.div
+												style={style}
+												className="absolute top-full left-0 mt-2 w-56 bg-background/98 backdrop-blur-lg rounded-xl shadow-xl border border-border/50 py-2"
+											>
+												{item.dropdownItems?.map(dropdownItem => (
+													<animated.div
+														key={dropdownItem.name}
+														style={getDropdownItemStyle(dropdownItem.name)}
+														onMouseEnter={() =>
+															setHoveredDropdownItem(dropdownItem.name)
+														}
+														onMouseLeave={() => setHoveredDropdownItem(null)}
 													>
-														{dropdownItem.name}
-													</Link>
-												</animated.div>
-											))}
-										</animated.div>
-									) : null
-								)}
+														<Link
+															href={dropdownItem.href}
+															className="block px-4 py-2.5 text-foreground hover:bg-primary/5 hover:text-primary transition-all duration-200 font-medium text-sm"
+														>
+															{dropdownItem.name}
+														</Link>
+													</animated.div>
+												))}
+											</animated.div>
+										) : null
+									)}
 							</div>
 						))}
 					</div>
@@ -349,7 +357,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 							<div className="space-y-2">
 								{currentNavItems.map(item => (
 									<div key={item.name}>
-										<animated.div 
+										<animated.div
 											style={getMobileItemStyle(item.name)}
 											onMouseEnter={() => setHoveredMobileItem(item.name)}
 											onMouseLeave={() => setHoveredMobileItem(null)}
@@ -384,8 +392,12 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 																<animated.div
 																	key={dropdownItem.name}
 																	style={getMobileItemStyle(dropdownItem.name)}
-																	onMouseEnter={() => setHoveredMobileItem(dropdownItem.name)}
-																	onMouseLeave={() => setHoveredMobileItem(null)}
+																	onMouseEnter={() =>
+																		setHoveredMobileItem(dropdownItem.name)
+																	}
+																	onMouseLeave={() =>
+																		setHoveredMobileItem(null)
+																	}
 																>
 																	<Link
 																		href={dropdownItem.href}
@@ -414,7 +426,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 										<div className="px-4 py-3 text-foreground font-medium">
 											Welcome, {user?.email?.split('@')[0]}
 										</div>
-										<animated.div 
+										<animated.div
 											style={getMobileItemStyle('signout')}
 											onMouseEnter={() => setHoveredMobileItem('signout')}
 											onMouseLeave={() => setHoveredMobileItem(null)}
@@ -429,7 +441,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 									</>
 								) : (
 									<>
-										<animated.div 
+										<animated.div
 											style={getMobileItemStyle('signin')}
 											onMouseEnter={() => setHoveredMobileItem('signin')}
 											onMouseLeave={() => setHoveredMobileItem(null)}

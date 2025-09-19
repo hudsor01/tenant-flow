@@ -13,9 +13,9 @@ import { Separator } from '@/components/ui/separator'
 import {
 	Sheet,
 	SheetContent,
+	SheetDescription,
 	SheetHeader,
-	SheetTitle,
-	SheetDescription
+	SheetTitle
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -27,9 +27,6 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
 
-
-
-
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = '16rem'
@@ -37,6 +34,7 @@ const SIDEBAR_WIDTH_MOBILE = '18rem'
 const SIDEBAR_WIDTH_ICON = '3rem'
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b'
 
+// eslint-disable-next-line type-centralization/no-inline-types
 type SidebarContextProps = {
 	state: 'expanded' | 'collapsed'
 	open: boolean
@@ -88,7 +86,10 @@ function SidebarProvider({
 			}
 
 			// This sets the cookie to keep the sidebar state.
-			document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+			if (typeof window !== 'undefined') {
+				// eslint-disable-next-line no-restricted-globals
+				document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+			}
 		},
 		[setOpenProp, open]
 	)
@@ -587,9 +588,10 @@ function SidebarMenuBadge({
 	...props
 }: React.ComponentProps<'div'>) {
 	return (
-		<div
+		<Badge
 			data-slot="sidebar-menu-badge"
 			data-sidebar="menu-badge"
+			variant="secondary"
 			className={cn(
 				'text-sidebar-foreground pointer-events-none absolute right-1 flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-xs font-medium tabular-nums select-none',
 				'peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[active=true]/menu-button:text-sidebar-accent-foreground',

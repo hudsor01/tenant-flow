@@ -1,8 +1,8 @@
 'use client'
 
+import { Navbar } from '@/components/navbar'
 import { cn } from '@/lib/utils'
 import React from 'react'
-
 
 interface PageLayoutProps extends React.ComponentProps<'div'> {
 	showNavbar?: boolean

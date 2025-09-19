@@ -11,7 +11,6 @@ import * as React from 'react'
 import type { DayButton } from 'react-day-picker'
 import { DayPicker, getDefaultClassNames } from 'react-day-picker'
 
-
 function Calendar({
 	className,
 	classNames,
@@ -131,7 +130,7 @@ function Calendar({
 					return (
 						<div
 							data-slot="calendar"
-							ref={rootRef}
+							ref={rootRef as React.RefObject<HTMLDivElement>}
 							className={cn(className)}
 							{...props}
 						/>

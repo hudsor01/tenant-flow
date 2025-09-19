@@ -1,8 +1,21 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import {
 	APPLE_DURATIONS,
@@ -36,9 +49,6 @@ import {
 	XAxis,
 	YAxis
 } from 'recharts'
-
-
-
 
 // =============================================================================
 // MOCK DATA - REALISTIC PROPERTY MANAGEMENT REVENUE

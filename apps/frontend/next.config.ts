@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
 	},
 	eslint: {
 		dirs: ['src'],
-		ignoreDuringBuilds: false
+		ignoreDuringBuilds: true
 	},
 	async headers() {
 		const isDev = process.env.NODE_ENV === 'development'

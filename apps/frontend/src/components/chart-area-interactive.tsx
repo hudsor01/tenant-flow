@@ -1,8 +1,28 @@
 'use client'
 
-import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+	CardAction,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
+import {
+	ChartContainer,
+	ChartTooltip,
+	ChartTooltipContent,
+	type ChartConfig
+} from '@/components/ui/chart'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import * as React from 'react'
 import {
 	Area,
@@ -33,10 +53,6 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
-
-
-
-
 
 export const description = 'An interactive area chart'
 

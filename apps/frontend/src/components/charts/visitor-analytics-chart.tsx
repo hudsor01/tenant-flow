@@ -1,8 +1,21 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
+import {
+	ChartContainer,
+	ChartTooltip,
+	ChartTooltipContent,
+	type ChartConfig
+} from '@/components/ui/chart'
+import { Skeleton } from '@/components/ui/skeleton'
 import { usePropertiesFormatted } from '@/hooks/api/properties'
 import {
 	Eye,
@@ -23,9 +36,6 @@ import {
 } from 'recharts'
 
 import { cn } from '@/lib/utils'
-
-
-
 
 interface PropertyInterestDataPoint {
 	date: string

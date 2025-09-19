@@ -1,16 +1,22 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartAreaInteractive } from '@/components/chart-area-interactive'
+import { MaintenanceAnalytics } from '@/components/charts/maintenance-analytics'
+import { OccupancyHeatmap } from '@/components/charts/occupancy-heatmap'
+import { DataTable } from '@/components/data-table'
+import { RevenueTrendChart } from '@/components/finance/revenue-trend-chart'
+import Stats01 from '@/components/stats-01'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { Table } from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import Stats01 from '@/components/stats-01'
-import { RevenueTrendChart } from '@/components/finance/revenue-trend-chart'
-import { OccupancyHeatmap } from '@/components/charts/occupancy-heatmap'
-import { MaintenanceAnalytics } from '@/components/charts/maintenance-analytics'
-import { ChartAreaInteractive } from '@/components/chart-area-interactive'
-import { DataTable } from '@/components/data-table'
 import { useProperties } from '@/hooks/api/properties'
 import { useDashboardStats } from '@/hooks/api/use-dashboard'
 import type { Tables } from '@repo/shared'
@@ -18,8 +24,6 @@ import { QueryErrorResetBoundary } from '@tanstack/react-query'
 import { AlertTriangle, RefreshCw, Wifi, WifiOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
-
-
 
 // Enhanced error fallback component
 function DashboardErrorFallback({
@@ -206,48 +210,108 @@ function DashboardContent() {
 
 			{/* Properties Data Table - Enhanced error handling */}
 			<div className="dashboard-section px-4 lg:px-6">
-				<RetryableSection
-					error={propertiesError as Error | null}
-					onRetry={() => refetchProperties()}
-					title="properties data"
-				>
-					{propertiesLoading ? (
-						<div className="flex items-center justify-center h-32">
-							<LoadingSpinner variant="primary" />
-						</div>
-					) : propertiesData ? (
-						<DataTable
-							data={propertiesData.map(
-								(property: Tables<'Property'>, index: number) => ({
-									id: index + 1,
-									name: property.name,
-									type:
-										property.propertyType === 'SINGLE_FAMILY'
-											? ('house' as const)
-											: property.propertyType === 'MULTI_UNIT'
-												? ('apartment' as const)
-												: property.propertyType === 'APARTMENT'
-													? ('apartment' as const)
-													: property.propertyType === 'COMMERCIAL'
-														? ('commercial' as const)
-														: property.propertyType === 'CONDO'
-															? ('condo' as const)
-															: property.propertyType === 'TOWNHOUSE'
-																? ('townhouse' as const)
-																: ('house' as const),
-									status: 'active' as const,
-									occupiedUnits: Math.floor(Math.random() * 8) + 2,
-									totalUnits: Math.floor(Math.random() * 10) + 5,
-									revenue: Math.floor(Math.random() * 50000) + 10000,
-									manager: 'Property Manager',
-									location: `${property.city}, ${property.state}`,
-									lastUpdated:
-										new Date().toISOString().split('T')[0] || '2024-01-01'
-								})
+				<Card className="border shadow-sm">
+					<CardHeader>
+						<CardTitle>Properties Overview</CardTitle>
+						<CardDescription>
+							Manage and monitor all your properties in one place
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<RetryableSection
+							error={propertiesError as Error | null}
+							onRetry={() => refetchProperties()}
+							title="properties data"
+						>
+							{propertiesLoading ? (
+								<div className="flex items-center justify-center h-32">
+									<LoadingSpinner variant="primary" />
+								</div>
+							) : propertiesData && propertiesData.length > 0 ? (
+								<>
+									<DataTable
+										data={propertiesData.map(
+											(property: Tables<'Property'>, index: number) => ({
+												id: index + 1,
+												name: property.name,
+												type:
+													property.propertyType === 'SINGLE_FAMILY'
+														? ('house' as const)
+														: property.propertyType === 'MULTI_UNIT'
+															? ('apartment' as const)
+															: property.propertyType === 'APARTMENT'
+																? ('apartment' as const)
+																: property.propertyType === 'COMMERCIAL'
+																	? ('commercial' as const)
+																	: property.propertyType === 'CONDO'
+																		? ('condo' as const)
+																		: property.propertyType === 'TOWNHOUSE'
+																			? ('townhouse' as const)
+																			: ('house' as const),
+												status: 'active' as const,
+												occupiedUnits: Math.floor(Math.random() * 8) + 2,
+												totalUnits: Math.floor(Math.random() * 10) + 5,
+												revenue: Math.floor(Math.random() * 50000) + 10000,
+												manager: 'Property Manager',
+												location: `${property.city}, ${property.state}`,
+												lastUpdated:
+													new Date().toISOString().split('T')[0] || '2024-01-01'
+											})
+										)}
+									/>
+									{/* Alternative Table Implementation */}
+									<div className="mt-6">
+										<h3 className="text-lg font-semibold mb-4">
+											Quick Property Summary
+										</h3>
+										<Table>
+											<thead>
+												<tr>
+													<th className="text-left font-semibold p-2">
+														Property
+													</th>
+													<th className="text-left font-semibold p-2">Type</th>
+													<th className="text-left font-semibold p-2">
+														Location
+													</th>
+													<th className="text-left font-semibold p-2">
+														Status
+													</th>
+												</tr>
+											</thead>
+											<tbody>
+												{propertiesData
+													.slice(0, 3)
+													.map((property: Tables<'Property'>) => (
+														<tr key={property.id} className="border-t">
+															<td className="p-2 font-medium">
+																{property.name}
+															</td>
+															<td className="p-2 text-muted-foreground">
+																{property.propertyType.replace('_', ' ')}
+															</td>
+															<td className="p-2 text-muted-foreground">
+																{property.city}, {property.state}
+															</td>
+															<td className="p-2">
+																<span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+																	Active
+																</span>
+															</td>
+														</tr>
+													))}
+											</tbody>
+										</Table>
+									</div>
+								</>
+							) : (
+								<div className="text-center py-8 text-muted-foreground">
+									No properties found. Add your first property to get started.
+								</div>
 							)}
-						/>
-					) : null}
-				</RetryableSection>
+						</RetryableSection>
+					</CardContent>
+				</Card>
 			</div>
 		</div>
 	)

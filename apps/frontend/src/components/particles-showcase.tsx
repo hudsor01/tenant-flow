@@ -1,9 +1,8 @@
 'use client'
 
+import { Particles } from '@/components/magicui/particles'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
-
-
 
 export function ParticlesShowcase() {
 	const { theme } = useTheme()

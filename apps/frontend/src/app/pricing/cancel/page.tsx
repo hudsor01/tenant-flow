@@ -1,21 +1,33 @@
 'use client'
 
-import { Navbar } from '@/components/navbar'
 import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { Navbar } from '@/components/navbar'
 import { FooterMinimal } from '@/components/sections/footer-minimal'
 
-
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, Home, MessageCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
-
-
 
 export default function CheckoutCancelPage() {
 	return (
 		<main className="min-h-screen gradient-authority">
 			<Navbar />
+
+			{/* Hero Authority Section */}
+			<HeroAuthority
+				title={<>Payment Cancelled</>}
+				subtitle={
+					<>
+						No worries! Your payment was cancelled and you haven't been charged.
+						You can try again anytime or contact our support team for
+						assistance.
+					</>
+				}
+				primaryCta={{ label: 'Back to Pricing', href: '/pricing' }}
+				secondaryCta={{ label: 'Contact Support', href: '/contact' }}
+			/>
+
 			<div className="pt-20">
 				<div className="container mx-auto px-4 section-content max-w-2xl">
 					<Card className="text-center card-elevated-authority">
@@ -84,6 +96,7 @@ export default function CheckoutCancelPage() {
 					</Card>
 				</div>
 			</div>
+			<FooterMinimal />
 		</main>
 	)
 }

@@ -1,17 +1,14 @@
 'use client'
 
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import BlurFade from '@/components/magicui/blur-fade'
-import ShimmerButton from '@/components/magicui/shimmer-button'
-import BorderBeam from '@/components/magicui/border-beam'
-import MagicCard from '@/components/magicui/magic-card'
+import { BlurFade } from '@/components/magicui/blur-fade'
+import { BorderBeam } from '@/components/magicui/border-beam'
+import { MagicCard } from '@/components/magicui/magic-card'
+import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { cn } from '@/lib/utils'
 import { useSpring } from '@react-spring/core'
 import { animated } from '@react-spring/web'
 import { ArrowRight, Check, Crown, Shield, Zap } from 'lucide-react'
 import { useState } from 'react'
-
 
 interface MinimalistPricingSectionProps {
 	className?: string

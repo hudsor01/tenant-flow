@@ -1,312 +1,323 @@
-import { Button } from '@/components/ui/button'
-"use client"
+'use client'
 
-import type { CSSProperties } from "react";
-import React, { useEffect, useState } from "react";
-import type { ComponentProps } from '@repo/shared';
+import type { ComponentProps } from '@repo/shared'
+import type { CSSProperties } from 'react'
+import React, { useEffect, useState } from 'react'
 
-import { 
-  cn, 
-  ANIMATION_DURATIONS
-} from "@/lib/design-system";
+import { ANIMATION_DURATIONS, cn } from '@/lib/design-system'
 
+// eslint-disable-next-line type-centralization/no-inline-types
 export interface ShimmerButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  shimmerColor?: string;
-  shimmerSize?: string;
-  borderRadius?: string;
-  shimmerDuration?: string;
-  background?: string;
-  variant?: 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
-  intensity?: 'subtle' | 'normal' | 'intense';
-  reducedMotion?: boolean;
-  icon?: React.ReactNode;
-  iconPosition?: 'left' | 'right';
-  asChild?: boolean;
+	extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+	shimmerColor?: string
+	shimmerSize?: string
+	borderRadius?: string
+	shimmerDuration?: string
+	background?: string
+	// eslint-disable-next-line type-centralization/no-inline-types
+	variant?:
+		| 'primary'
+		| 'secondary'
+		| 'accent'
+		| 'success'
+		| 'warning'
+		| 'danger'
+	size?: 'sm' | 'md' | 'lg'
+	intensity?: 'subtle' | 'normal' | 'intense'
+	reducedMotion?: boolean
+	icon?: React.ReactNode
+	iconPosition?: 'left' | 'right'
+	asChild?: boolean
 }
 
 const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
-  (
-    {
-      shimmerColor,
-      shimmerSize = "0.05em",
-      shimmerDuration = "3s",
-      borderRadius = "12px",
-      background,
-      className,
-      children,
-      variant = 'primary',
-      size = 'md',
-      intensity = 'normal',
-      reducedMotion = false,
-      icon,
-      iconPosition = 'left',
-      disabled = false,
-      asChild = false,
-      ...props
-    },
-    ref,
-  ) => {
-    // Check for prefers-reduced-motion
-    const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+	(
+		{
+			shimmerColor,
+			shimmerSize = '0.05em',
+			shimmerDuration = '3s',
+			borderRadius = '12px',
+			background,
+			className,
+			children,
+			variant = 'primary',
+			size = 'md',
+			intensity = 'normal',
+			reducedMotion = false,
+			icon,
+			iconPosition = 'left',
+			disabled = false,
+			asChild = false,
+			...props
+		},
+		ref
+	) => {
+		// Check for prefers-reduced-motion
+		const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
 
-    useEffect(() => {
-      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-      setPrefersReducedMotion(mediaQuery.matches)
+		useEffect(() => {
+			const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+			setPrefersReducedMotion(mediaQuery.matches)
 
-      const handleChange = () => setPrefersReducedMotion(mediaQuery.matches)
-      mediaQuery.addEventListener('change', handleChange)
-      return () => mediaQuery.removeEventListener('change', handleChange)
-    }, [])
+			const handleChange = () => setPrefersReducedMotion(mediaQuery.matches)
+			mediaQuery.addEventListener('change', handleChange)
+			return () => mediaQuery.removeEventListener('change', handleChange)
+		}, [])
 
-    const shouldReduceMotion = reducedMotion || prefersReducedMotion
+		const shouldReduceMotion = reducedMotion || prefersReducedMotion
 
-    // Enhanced variant configurations with modern SaaS colors
-    const variants = {
-      primary: {
-        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary)/90 100%)',
-        shimmer: 'hsl(var(--primary-foreground))',
-        text: 'text-primary-foreground',
-        shadow: 'shadow-lg shadow-primary/25'
-      },
-      secondary: {
-        background: 'linear-gradient(135deg, var(--secondary) 0%, var(--secondary)/80 100%)',
-        shimmer: 'var(--primary)',
-        text: 'text-secondary-foreground',
-        shadow: 'shadow-md shadow-secondary/20'
-      },
-      accent: {
-        background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent)/90 100%)',
-        shimmer: 'hsl(var(--primary-foreground))',
-        text: 'text-accent-foreground',
-        shadow: 'shadow-lg shadow-accent/25'
-      },
-      success: {
-        background: 'linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent)) 100%)',
-        shimmer: 'hsl(var(--primary-foreground))',
-        text: 'text-white',
-        shadow: 'shadow-lg shadow-accent/25'
-      },
-      warning: {
-        background: 'linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--muted-foreground)) 100%)',
-        shimmer: 'hsl(var(--primary-foreground))',
-        text: 'text-white',
-        shadow: 'shadow-lg shadow-muted/25'
-      },
-      danger: {
-        background: 'linear-gradient(135deg, hsl(var(--destructive)) 0%, hsl(var(--destructive)) 100%)',
-        shimmer: 'hsl(var(--primary-foreground))',
-        text: 'text-white',
-        shadow: 'shadow-lg shadow-destructive/25'
-      },
-    }
+		// Enhanced variant configurations with modern SaaS colors
+		const variants = {
+			primary: {
+				background:
+					'linear-gradient(135deg, var(--primary) 0%, var(--primary)/90 100%)',
+				shimmer: 'hsl(var(--primary-foreground))',
+				text: 'text-primary-foreground',
+				shadow: 'shadow-lg shadow-primary/25'
+			},
+			secondary: {
+				background:
+					'linear-gradient(135deg, var(--secondary) 0%, var(--secondary)/80 100%)',
+				shimmer: 'var(--primary)',
+				text: 'text-secondary-foreground',
+				shadow: 'shadow-md shadow-secondary/20'
+			},
+			accent: {
+				background:
+					'linear-gradient(135deg, var(--accent) 0%, var(--accent)/90 100%)',
+				shimmer: 'hsl(var(--primary-foreground))',
+				text: 'text-accent-foreground',
+				shadow: 'shadow-lg shadow-accent/25'
+			},
+			success: {
+				background:
+					'linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent)) 100%)',
+				shimmer: 'hsl(var(--primary-foreground))',
+				text: 'text-white',
+				shadow: 'shadow-lg shadow-accent/25'
+			},
+			warning: {
+				background:
+					'linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--muted-foreground)) 100%)',
+				shimmer: 'hsl(var(--primary-foreground))',
+				text: 'text-white',
+				shadow: 'shadow-lg shadow-muted/25'
+			},
+			danger: {
+				background:
+					'linear-gradient(135deg, hsl(var(--destructive)) 0%, hsl(var(--destructive)) 100%)',
+				shimmer: 'hsl(var(--primary-foreground))',
+				text: 'text-white',
+				shadow: 'shadow-lg shadow-destructive/25'
+			}
+		}
 
-    // Enhanced size configurations
-    const sizes = {
-      sm: {
-        base: 'px-4 py-2.5 text-sm' as string,
-        icon: 'w-4 h-4' as string,
-        gap: 'gap-2' as string
-      },
-      md: {
-        base: 'px-6 py-3 text-base' as string,
-        icon: 'w-5 h-5' as string,
-        gap: 'gap-2.5' as string
-      },
-      lg: {
-        base: 'px-8 py-4 text-lg' as string,
-        icon: 'w-6 h-6' as string,
-        gap: 'gap-3' as string
-      }
-    } as const
+		// Enhanced size configurations
+		const sizes = {
+			sm: {
+				base: 'px-4 py-2.5 text-sm' as string,
+				icon: 'w-4 h-4' as string,
+				gap: 'gap-2' as string
+			},
+			md: {
+				base: 'px-6 py-3 text-base' as string,
+				icon: 'w-5 h-5' as string,
+				gap: 'gap-2.5' as string
+			},
+			lg: {
+				base: 'px-8 py-4 text-lg' as string,
+				icon: 'w-6 h-6' as string,
+				gap: 'gap-3' as string
+			}
+		} as const
 
-    // Intensity configurations for shimmer effect
-    const intensityConfig = {
-      subtle: {
-        opacity: '0.3',
-        speed: '4s',
-        blur: '3px'
-      },
-      normal: {
-        opacity: '0.6',
-        speed: '3s',
-        blur: '2px'
-      },
-      intense: {
-        opacity: '0.9',
-        speed: '2s',
-        blur: '1px'
-      }
-    }
+		// Intensity configurations for shimmer effect
+		const intensityConfig = {
+			subtle: {
+				opacity: '0.3',
+				speed: '4s',
+				blur: '3px'
+			},
+			normal: {
+				opacity: '0.6',
+				speed: '3s',
+				blur: '2px'
+			},
+			intense: {
+				opacity: '0.9',
+				speed: '2s',
+				blur: '1px'
+			}
+		}
 
-    const variantConfig = variants[variant] || variants.primary
-    const sizeConfig = sizes[size] || sizes.md
-    const intensitySettings = intensityConfig[intensity] || intensityConfig.normal
-    const finalBackground = background || variantConfig.background
-    const finalShimmerColor = shimmerColor || variantConfig.shimmer
-    
-    // Handle asChild case
-    if (asChild && React.isValidElement(children)) {
-      return React.cloneElement(children as React.ReactElement<ComponentProps>, {
-        className: cn(
-          "group relative z-0 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap font-semibold",
-          "[background:var(--bg)] [border-radius:var(--radius)]",
-          sizeConfig.base,
-          icon ? sizeConfig.gap : '',
-          iconPosition === 'right' ? "flex-row-reverse" : '',
-          variantConfig.text,
-          variantConfig.shadow,
-          !shouldReduceMotion 
-            ? `transform-gpu transition-all duration-[${ANIMATION_DURATIONS.default}ms] ease-in-out`
-            : `transform-gpu transition-all duration-[${ANIMATION_DURATIONS.default}ms] ease-in-out`,
-          !shouldReduceMotion && "active:translate-y-px hover:scale-[1.02]",
-          "hover:brightness-110",
-          "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50",
-          "focus-visible:ring-4 focus-visible:ring-primary/30",
-          disabled && "opacity-50 cursor-not-allowed pointer-events-none",
-          className,
-          (children as React.ReactElement<ComponentProps>).props.className
-        ),
-        style: {
-          '--bg': finalBackground,
-          '--radius': borderRadius,
-          '--shimmer-color': finalShimmerColor,
-          '--shimmer-size': shimmerSize,
-          '--speed': shimmerDuration,
-          '--spread': shouldReduceMotion ? "0deg" : "90deg",
-          '--shimmer-blur': intensitySettings.blur,
-          '--shimmer-opacity': intensitySettings.opacity,
-          ...((children as React.ReactElement<ComponentProps>).props.style || {})
-        } as CSSProperties
-      })
-    }
-    
-    return (
-      <button
-        style={
-          {
-            "--spread": shouldReduceMotion ? "0deg" : "90deg",
-            "--shimmer-color": shouldReduceMotion ? "transparent" : finalShimmerColor,
-            "--radius": borderRadius,
-            "--speed": shouldReduceMotion ? "0s" : (shimmerDuration || intensitySettings.speed),
-            "--cut": shimmerSize,
-            "--bg": finalBackground,
-            "--shimmer-opacity": intensitySettings.opacity,
-            "--shimmer-blur": intensitySettings.blur,
-          } as CSSProperties
-        }
-        className={cn(
-          // Base styles
-          "group relative z-0 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap font-semibold",
-          "[background:var(--bg)] [border-radius:var(--radius)]",
-          
-          // Content layout
-          sizeConfig.base,
-          icon ? sizeConfig.gap : '',
-          iconPosition === 'right' ? "flex-row-reverse" : '',
-          
-          // Colors and shadows
-          variantConfig.text,
-          variantConfig.shadow,
-          "border border-white/10 backdrop-blur-sm",
-          
-          // Interactions
-          shouldReduceMotion 
-            ? "transition-colors duration-200" 
-            : `transform-gpu transition-all duration-[${ANIMATION_DURATIONS.default}ms] ease-in-out`,
-          !shouldReduceMotion && "active:translate-y-px hover:scale-[1.02]",
-          "hover:brightness-110",
-          
-          // Accessibility
-          "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50",
-          "focus-visible:ring-4 focus-visible:ring-primary/30",
-          
-          // Disabled state
-          disabled && "opacity-50 cursor-not-allowed pointer-events-none",
-          
-          className,
-        )}
-        disabled={disabled}
-        ref={ref}
-        {...props}
-      >
-        {/* Shimmer effect - only rendered if not reduced motion */}
-        {!shouldReduceMotion && (
-          <div
-            className={cn(
-              "-z-30",
-              `blur-[var(--shimmer-blur)]`,
-              "absolute inset-0 overflow-visible [container-type:size]",
-              `opacity-[var(--shimmer-opacity)]`,
-            )}
-          >
-            <div className="absolute inset-0 h-[100cqh] animate-shimmer-slide [aspect-ratio:1] [border-radius:0] [mask:none]">
-              <div 
-                className="animate-spin-around absolute -inset-full w-auto rotate-0"
-                style={{
-                  background: `conic-gradient(from calc(270deg - (var(--spread) * 0.5)), transparent 0, var(--shimmer-color) var(--spread), transparent var(--spread))`,
-                  animationDuration: `var(--speed)`
-                }}
-              />
-            </div>
-          </div>
-        )}
+		const variantConfig = variants[variant] || variants.primary
+		const sizeConfig = sizes[size] || sizes.md
+		const intensitySettings =
+			intensityConfig[intensity] || intensityConfig.normal
+		const finalBackground = background || variantConfig.background
+		const finalShimmerColor = shimmerColor || variantConfig.shimmer
 
-        {/* Button content */}
-        <div className="relative z-10 flex items-center justify-center">
-          {icon && iconPosition === 'left' && (
-            <span className={cn(sizeConfig.icon, "shrink-0")}>
-              {icon}
-            </span>
-          )}
-          
-          {children && (
-            <span className="leading-none">
-              {children}
-            </span>
-          )}
-          
-          {icon && iconPosition === 'right' && (
-            <span className={cn(sizeConfig.icon, "shrink-0")}>
-              {icon}
-            </span>
-          )}
-        </div>
+		// Handle asChild case
+		if (asChild && React.isValidElement(children)) {
+			return React.cloneElement(
+				children as React.ReactElement<ComponentProps>,
+				{
+					className: cn(
+						'group relative z-0 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap font-semibold',
+						'[background:var(--bg)] [border-radius:var(--radius)]',
+						sizeConfig.base,
+						icon ? sizeConfig.gap : '',
+						iconPosition === 'right' ? 'flex-row-reverse' : '',
+						variantConfig.text,
+						variantConfig.shadow,
+						!shouldReduceMotion
+							? `transform-gpu transition-all duration-[${ANIMATION_DURATIONS.default}ms] ease-in-out`
+							: `transform-gpu transition-all duration-[${ANIMATION_DURATIONS.default}ms] ease-in-out`,
+						!shouldReduceMotion && 'active:translate-y-px hover:scale-[1.02]',
+						'hover:brightness-110',
+						'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50',
+						'focus-visible:ring-4 focus-visible:ring-primary/30',
+						disabled && 'opacity-50 cursor-not-allowed pointer-events-none',
+						className,
+						(children as React.ReactElement<ComponentProps>).props.className
+					),
+					style: {
+						'--bg': finalBackground,
+						'--radius': borderRadius,
+						'--shimmer-color': finalShimmerColor,
+						'--shimmer-size': shimmerSize,
+						'--speed': shimmerDuration,
+						'--spread': shouldReduceMotion ? '0deg' : '90deg',
+						'--shimmer-blur': intensitySettings.blur,
+						'--shimmer-opacity': intensitySettings.opacity,
+						...((children as React.ReactElement<ComponentProps>).props.style ||
+							{})
+					} as CSSProperties
+				}
+			)
+		}
 
-        {/* Enhanced highlight effect */}
-        <div
-          className={cn(
-            "absolute inset-0 size-full",
-            "[border-radius:var(--radius)]",
-            "shadow-[inset_0_-8px_10px_hsl(var(--foreground)_/_0.1)]",
-            
-            // Enhanced transitions
-            shouldReduceMotion 
-              ? "transition-opacity duration-200" 
-              : "transform-gpu transition-all duration-300 ease-in-out",
-            
-            // Interactive states
-            "group-hover:shadow-[inset_0_-6px_10px_hsl(var(--foreground)_/_0.2)]",
-            "group-active:shadow-[inset_0_-10px_10px_hsl(var(--foreground)_/_0.25)]",
-            
-            // Focus state
-            "group-focus-visible:shadow-[inset_0_-4px_10px_hsl(var(--foreground)_/_0.3)]",
-          )}
-        />
+		return (
+			<button
+				style={
+					{
+						'--spread': shouldReduceMotion ? '0deg' : '90deg',
+						'--shimmer-color': shouldReduceMotion
+							? 'transparent'
+							: finalShimmerColor,
+						'--radius': borderRadius,
+						'--speed': shouldReduceMotion
+							? '0s'
+							: shimmerDuration || intensitySettings.speed,
+						'--cut': shimmerSize,
+						'--bg': finalBackground,
+						'--shimmer-opacity': intensitySettings.opacity,
+						'--shimmer-blur': intensitySettings.blur
+					} as CSSProperties
+				}
+				className={cn(
+					// Base styles
+					'group relative z-0 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap font-semibold',
+					'[background:var(--bg)] [border-radius:var(--radius)]',
 
-        {/* Backdrop */}
-        <div
-          className={cn(
-            "absolute -z-20",
-            "[background:var(--bg)] [border-radius:var(--radius)] [inset:var(--cut)]",
-          )}
-        />
-      </button>
-    );
-  },
-);
+					// Content layout
+					sizeConfig.base,
+					icon ? sizeConfig.gap : '',
+					iconPosition === 'right' ? 'flex-row-reverse' : '',
 
-ShimmerButton.displayName = "ShimmerButton";
+					// Colors and shadows
+					variantConfig.text,
+					variantConfig.shadow,
+					'border border-white/10 backdrop-blur-sm',
 
-export { ShimmerButton };
+					// Interactions
+					shouldReduceMotion
+						? 'transition-colors duration-200'
+						: `transform-gpu transition-all duration-[${ANIMATION_DURATIONS.default}ms] ease-in-out`,
+					!shouldReduceMotion && 'active:translate-y-px hover:scale-[1.02]',
+					'hover:brightness-110',
+
+					// Accessibility
+					'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50',
+					'focus-visible:ring-4 focus-visible:ring-primary/30',
+
+					// Disabled state
+					disabled && 'opacity-50 cursor-not-allowed pointer-events-none',
+
+					className
+				)}
+				disabled={disabled}
+				ref={ref}
+				{...props}
+			>
+				{/* Shimmer effect - only rendered if not reduced motion */}
+				{!shouldReduceMotion && (
+					<div
+						className={cn(
+							'-z-30',
+							`blur-[var(--shimmer-blur)]`,
+							'absolute inset-0 overflow-visible [container-type:size]',
+							`opacity-[var(--shimmer-opacity)]`
+						)}
+					>
+						<div className="absolute inset-0 h-[100cqh] animate-shimmer-slide [aspect-ratio:1] [border-radius:0] [mask:none]">
+							<div
+								className="animate-spin-around absolute -inset-full w-auto rotate-0"
+								style={{
+									background: `conic-gradient(from calc(270deg - (var(--spread) * 0.5)), transparent 0, var(--shimmer-color) var(--spread), transparent var(--spread))`,
+									animationDuration: `var(--speed)`
+								}}
+							/>
+						</div>
+					</div>
+				)}
+
+				{/* Button content */}
+				<div className="relative z-10 flex items-center justify-center">
+					{icon && iconPosition === 'left' && (
+						<span className={cn(sizeConfig.icon, 'shrink-0')}>{icon}</span>
+					)}
+
+					{children && <span className="leading-none">{children}</span>}
+
+					{icon && iconPosition === 'right' && (
+						<span className={cn(sizeConfig.icon, 'shrink-0')}>{icon}</span>
+					)}
+				</div>
+
+				{/* Enhanced highlight effect */}
+				<div
+					className={cn(
+						'absolute inset-0 size-full',
+						'[border-radius:var(--radius)]',
+						'shadow-[inset_0_-8px_10px_hsl(var(--foreground)_/_0.1)]',
+
+						// Enhanced transitions
+						shouldReduceMotion
+							? 'transition-opacity duration-200'
+							: 'transform-gpu transition-all duration-300 ease-in-out',
+
+						// Interactive states
+						'group-hover:shadow-[inset_0_-6px_10px_hsl(var(--foreground)_/_0.2)]',
+						'group-active:shadow-[inset_0_-10px_10px_hsl(var(--foreground)_/_0.25)]',
+
+						// Focus state
+						'group-focus-visible:shadow-[inset_0_-4px_10px_hsl(var(--foreground)_/_0.3)]'
+					)}
+				/>
+
+				{/* Backdrop */}
+				<div
+					className={cn(
+						'absolute -z-20',
+						'[background:var(--bg)] [border-radius:var(--radius)] [inset:var(--cut)]'
+					)}
+				/>
+			</button>
+		)
+	}
+)
+
+ShimmerButton.displayName = 'ShimmerButton'
+
+export { ShimmerButton }

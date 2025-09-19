@@ -1,17 +1,9 @@
 'use client'
 
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { Bell, CreditCard, LogOut, MoreVertical, User } from 'lucide-react'
 import * as React from 'react'
 
-import { cn } from '@/lib/utils'
-import {
-	Avatar,
-	AvatarFallback,
-	AvatarImage
-} from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -27,6 +19,7 @@ import {
 	SidebarMenuItem,
 	useSidebar
 } from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 
 interface NavUserProps extends React.ComponentProps<'div'> {
 	user: {
