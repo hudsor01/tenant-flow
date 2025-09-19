@@ -8,10 +8,17 @@ import {
 import type {
 	ChurnAnalytics,
 	CustomerLifetimeValue,
-	RevenueAnalytics
+	RevenueAnalytics,
+	Database
 } from '@repo/shared'
-import type Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
+
+// Extract database types from Supabase generated types
+type StripeCustomerDB = Database['public']['Functions']['get_stripe_customers']['Returns'][0]
+type StripeSubscriptionDB = Database['public']['Functions']['get_stripe_subscriptions']['Returns'][0]
+type StripePriceDB = Database['public']['Functions']['get_stripe_prices']['Returns'][0]
+type StripeProductDB = Database['public']['Functions']['get_stripe_products']['Returns'][0]
+type StripePaymentIntentDB = Database['public']['Functions']['get_stripe_payment_intents']['Returns'][0]
 
 /**
  * Stripe Data Service
@@ -36,7 +43,7 @@ export class StripeDataService {
 	 * Get customer subscriptions with full relationship data
 	 * Ultra-native: Supabase RPC calls for direct database access
 	 */
-	async getCustomerSubscriptions(customerId: string): Promise<Stripe.Subscription[]> {
+	async getCustomerSubscriptions(customerId: string): Promise<StripeSubscriptionDB[]> {
 		try {
 			this.logger?.log('Fetching customer subscriptions', { customerId })
 
@@ -68,7 +75,7 @@ export class StripeDataService {
 	 * Get customer by ID
 	 * Ultra-native: Supabase RPC calls for direct database access
 	 */
-	async getCustomer(customerId: string): Promise<Stripe.Customer> {
+	async getCustomer(customerId: string): Promise<StripeCustomerDB> {
 		try {
 			if (!customerId) {
 				this.logger?.error('Failed to fetch customer', new BadRequestException('Customer ID is required'))
@@ -88,7 +95,7 @@ export class StripeDataService {
 				throw new InternalServerErrorException('Failed to fetch customer')
 			}
 
-			return data
+			return data as StripeCustomerDB
 		} catch (error) {
 			if (error instanceof BadRequestException) {
 				this.logger?.error('Failed to fetch customer', error)
@@ -103,7 +110,7 @@ export class StripeDataService {
 	 * Get prices
 	 * Ultra-native: Supabase RPC calls for direct database access
 	 */
-	async getPrices(activeOnly: boolean = true): Promise<Stripe.Price[]> {
+	async getPrices(activeOnly: boolean = true): Promise<StripePriceDB[]> {
 		try {
 			const client = this.supabaseService.getAdminClient()
 			const { data, error } = await client.rpc('get_stripe_prices', {
@@ -130,7 +137,7 @@ export class StripeDataService {
 	 * Get products
 	 * Ultra-native: Supabase RPC calls for direct database access
 	 */
-	async getProducts(activeOnly: boolean = true): Promise<Stripe.Product[]> {
+	async getProducts(activeOnly: boolean = true): Promise<StripeProductDB[]> {
 		try {
 			const client = this.supabaseService.getAdminClient()
 			const { data, error } = await client.rpc('get_stripe_products', {
@@ -199,9 +206,9 @@ export class StripeDataService {
 	}
 
 	// Ultra-native: Helper method for simple calculations
-	private calculateRevenueAnalytics(paymentIntents: Stripe.PaymentIntent[]): RevenueAnalytics[] {
+	private calculateRevenueAnalytics(paymentIntents: StripePaymentIntentDB[]): RevenueAnalytics[] {
 		// Simple grouping and calculation - no complex SQL
-		const grouped: Record<string, Stripe.PaymentIntent[]> = {}
+		const grouped: Record<string, StripePaymentIntentDB[]> = {}
 		paymentIntents.forEach(intent => {
 			const period = new Date(intent.created_at).toISOString().slice(0, 7) // YYYY-MM
 			if (!grouped[period]) grouped[period] = []
@@ -264,9 +271,9 @@ export class StripeDataService {
 	}
 
 	// Ultra-native: Helper method for churn calculation
-	private calculateChurnAnalytics(subscriptions: Stripe.Subscription[]): ChurnAnalytics[] {
+	private calculateChurnAnalytics(subscriptions: StripeSubscriptionDB[]): ChurnAnalytics[] {
 		// Simple grouping by month and churn calculation
-		const grouped: Record<string, Stripe.Subscription[]> = {}
+		const grouped: Record<string, StripeSubscriptionDB[]> = {}
 		subscriptions.forEach(sub => {
 			const month = new Date(sub.created_at).toISOString().slice(0, 7) // YYYY-MM
 			if (!grouped[month]) grouped[month] = []
@@ -328,8 +335,8 @@ export class StripeDataService {
 
 	// Ultra-native: Helper method for CLV calculation
 	private calculateCustomerLifetimeValue(
-		customers: Stripe.Customer[],
-		subscriptions: Stripe.Subscription[]
+		customers: StripeCustomerDB[],
+		subscriptions: StripeSubscriptionDB[]
 	): CustomerLifetimeValue[] {
 		return customers.map(customer => {
 			const customerSubs = subscriptions.filter(
@@ -343,8 +350,8 @@ export class StripeDataService {
 					: null
 			const last_cancellation =
 				customerSubs
-					.filter(sub => sub.status === 'canceled' && sub.canceled_at)
-					.map(sub => new Date(sub.canceled_at))
+					.filter(sub => sub.status === 'canceled' && (sub as any).canceled_at)
+					.map(sub => new Date((sub as any).canceled_at))
 					.sort((a, b) => b.getTime() - a.getTime())[0] || null
 
 			const lifetime_days =
@@ -380,7 +387,7 @@ export class StripeDataService {
 	 * Get MRR Trend
 	 * Ultra-native: Supabase RPC calls for direct database access
 	 */
-	async getMRRTrend(months: number): Promise<Array<{ month: string; amount: number }>> {
+	async getMRRTrend(months: number): Promise<StripeSubscriptionDB[]> {
 		try {
 			const client = this.supabaseService.getAdminClient()
 			const { data: subscriptions, error } = await client.rpc('get_stripe_subscriptions', {
@@ -453,10 +460,10 @@ export class StripeDataService {
 
 			// Ultra-native: Simple predictive calculation
 			const activeSubscriptions = (subscriptions || []).filter(
-				(sub) => (sub as Stripe.Subscription).status === 'active'
+				(sub) => (sub as StripeSubscriptionDB).status === 'active'
 			)
 			const canceledSubscriptions = (subscriptions || []).filter(
-				(sub) => (sub as Stripe.Subscription).status === 'canceled'
+				(sub) => (sub as StripeSubscriptionDB).status === 'canceled'
 			)
 
 			// Simplified predictive metrics
