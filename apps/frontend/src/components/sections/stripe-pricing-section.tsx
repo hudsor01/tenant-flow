@@ -23,8 +23,7 @@ import {
 	Zap
 } from 'lucide-react'
 import { useState } from 'react'
-import { Badge } from 'src/components/ui/badge'
-import { Switch } from 'src/components/ui/switch'
+
 
 // Initialize Stripe with your publishable key
 const stripePromise = loadStripe(

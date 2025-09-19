@@ -34,16 +34,8 @@ import {
 	XAxis,
 	YAxis
 } from 'recharts'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import { Progress } from 'src/components/ui/progress'
+
+
 
 // =============================================================================
 // MOCK DATA - REALISTIC PROPERTY OCCUPANCY

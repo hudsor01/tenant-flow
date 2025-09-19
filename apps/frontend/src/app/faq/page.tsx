@@ -2,10 +2,7 @@
 
 import { ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
-import { HeroAuthority } from 'src/components/marketing/hero-authority'
-import { Navbar } from 'src/components/navbar'
-import { FooterMinimal } from 'src/components/sections/footer-minimal'
-import { Button } from 'src/components/ui/button'
+
 
 const faqs = [
 	{

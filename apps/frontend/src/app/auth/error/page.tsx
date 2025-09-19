@@ -1,9 +1,4 @@
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
+
 
 export default async function Page({
 	searchParams

@@ -5,8 +5,7 @@ import { animated } from '@react-spring/web'
 import { PaymentElement } from '@stripe/react-stripe-js'
 import type { Stripe, StripeElements } from '@stripe/stripe-js'
 import { AlertTriangle } from 'lucide-react'
-import { Alert, AlertDescription } from 'src/components/ui/alert'
-import { Button } from 'src/components/ui/button'
+
 
 interface Props {
 	clientSecret?: string

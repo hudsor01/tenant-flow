@@ -29,10 +29,7 @@ import {
 	Target
 } from 'lucide-react'
 import * as React from 'react'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import { Card, CardContent } from 'src/components/ui/card'
-import { Progress } from 'src/components/ui/progress'
+
 
 interface FinancialMetricsCardsProps {
 	data?: DashboardFinancialStats

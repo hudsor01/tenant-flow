@@ -31,13 +31,13 @@ export default [
 	{
 		name: 'ignore-orphaned-test-files',
 		ignores: [
-			'src/components/forms/__tests__/**',
-			'src/components/tenants/__tests__/**',
-			'src/hooks/api/__tests__/**',
+			'@/components/forms/__tests__/**',
+			'@/components/tenants/__tests__/**',
+			'@/hooks/api/__tests__/**',
 			'tests/**', // All test files outside src directory
-			'src/lib/auth/__tests__/**',
-			'src/smoke.spec.tsx',
-			'src/test/**',
+			'@/lib/auth/__tests__/**',
+			'@/smoke.spec.tsx',
+			'@/test/**',
 			'*.config.js',
 			'*.config.mjs',
 			'*.config.cjs',

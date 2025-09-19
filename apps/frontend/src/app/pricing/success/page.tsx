@@ -7,16 +7,8 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import Navbar from 'src/components/navbar'
-import { CustomerPortalButton } from 'src/components/pricing/customer-portal'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
+
+
 
 export default function CheckoutSuccessPage() {
 	const searchParams = useSearchParams()

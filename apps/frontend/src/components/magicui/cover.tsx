@@ -2,7 +2,7 @@
 import { cn } from '@/lib/design-system'
 import { animated, config, useSpring } from '@react-spring/web'
 import React, { useEffect, useId, useRef, useState } from 'react'
-import { SparklesCore } from 'src/components/magicui/sparkles'
+
 
 export const Cover = ({
 	children,

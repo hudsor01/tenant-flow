@@ -30,29 +30,10 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	CardAction,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import type { ChartConfig } from 'src/components/ui/chart'
-import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent
-} from 'src/components/ui/chart'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from 'src/components/ui/select'
-import { ToggleGroup, ToggleGroupItem } from 'src/components/ui/toggle-group'
+
+
+
+
 
 export const description = 'An interactive area chart'
 

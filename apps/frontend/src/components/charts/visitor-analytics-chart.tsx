@@ -20,22 +20,9 @@ import {
 } from 'recharts'
 
 import { cn } from '@/lib/utils'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import type { ChartConfig } from 'src/components/ui/chart'
-import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent
-} from 'src/components/ui/chart'
-import { Skeleton } from 'src/components/ui/skeleton'
+
+
+
 
 interface PropertyInterestDataPoint {
 	date: string

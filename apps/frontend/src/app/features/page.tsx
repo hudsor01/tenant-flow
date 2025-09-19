@@ -16,12 +16,7 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { Navbar } from 'src/components/navbar'
-import { FeaturesSection } from 'src/components/sections/features-section'
-import { FooterMinimal } from 'src/components/sections/footer-minimal'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
+
 // (Video dialog removed — no video assets available)
 
 export default function FeaturesPage() {

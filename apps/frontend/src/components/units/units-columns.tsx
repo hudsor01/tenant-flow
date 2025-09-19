@@ -23,7 +23,16 @@ import {
 } from 'lucide-react'
 import * as React from 'react'
 import { toast } from 'sonner'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -33,18 +42,7 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from 'src/components/ui/alert-dialog'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger
-} from 'src/components/ui/dropdown-menu'
-
+} from '@/components/ui/alert-dialog'
 import { useDeleteUnit } from '@/hooks/api/units'
 import type { Database } from '@repo/shared'
 import type { Column, ColumnDef } from '@tanstack/react-table'

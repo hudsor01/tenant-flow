@@ -23,16 +23,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import { Input } from 'src/components/ui/input'
-import { Label } from 'src/components/ui/label'
+
+
 
 export function ForgotPasswordForm({
 	className,

@@ -7,9 +7,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { ArrowRight, Check, Loader2, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
+
 import { usePricing } from '@/hooks/use-pricing'
 
 // Initialize Stripe

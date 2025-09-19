@@ -8,9 +8,7 @@ import {
 } from '@/lib/design-system'
 import { Shield, Star, TrendingUp, Users } from 'lucide-react'
 import * as React from 'react'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { Avatar, AvatarFallback, AvatarImage } from 'src/components/ui/avatar'
-import { Badge } from 'src/components/ui/badge'
+
 
 const testimonials = [
 	{

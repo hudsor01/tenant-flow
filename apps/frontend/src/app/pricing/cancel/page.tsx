@@ -2,14 +2,8 @@
 
 import { ArrowLeft, Home, MessageCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
-import Navbar from 'src/components/navbar'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
+
+
 
 export default function CheckoutCancelPage() {
 	return (

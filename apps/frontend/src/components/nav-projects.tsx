@@ -10,22 +10,8 @@ import {
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger
-} from 'src/components/ui/dropdown-menu'
-import {
-	SidebarGroup,
-	SidebarGroupLabel,
-	SidebarMenu,
-	SidebarMenuAction,
-	SidebarMenuButton,
-	SidebarMenuItem,
-	useSidebar
-} from 'src/components/ui/sidebar'
+
+
 
 interface NavProjectsProps extends React.ComponentProps<typeof SidebarGroup> {
 	projects: {

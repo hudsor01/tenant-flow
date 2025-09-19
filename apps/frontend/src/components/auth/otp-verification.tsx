@@ -3,9 +3,7 @@
 import { ANIMATION_DURATIONS, cn, TYPOGRAPHY_SCALE } from '@/lib/utils'
 import { ArrowLeft, Loader2, Mail, Shield } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { NumberTicker } from 'src/components/magicui/number-ticker'
-import { Button } from 'src/components/ui/button'
+
 
 interface OTPVerificationProps {
 	onSubmit?: (otp: string) => void | Promise<void>

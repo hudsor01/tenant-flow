@@ -5,13 +5,7 @@ import type { DashboardStats } from '@repo/shared'
 import { Minus, TrendingUp } from 'lucide-react'
 import * as React from 'react'
 
-import {
-	Card,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
+
 
 interface SectionCardsProps extends React.ComponentProps<'div'> {
 	data?: DashboardStats

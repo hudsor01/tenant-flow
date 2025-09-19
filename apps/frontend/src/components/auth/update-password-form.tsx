@@ -21,17 +21,8 @@ import {
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Alert, AlertDescription } from 'src/components/ui/alert'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import { Input } from 'src/components/ui/input'
-import { Label } from 'src/components/ui/label'
+
+
 
 export function UpdatePasswordForm({
 	className,

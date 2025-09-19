@@ -13,10 +13,7 @@ import {
 	Zap
 } from 'lucide-react'
 import Link from 'next/link'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { HeroAuthority } from 'src/components/marketing/hero-authority'
-import { Navbar } from 'src/components/navbar'
-import { Button } from 'src/components/ui/button'
+
 
 export default function AboutPage() {
 	return (

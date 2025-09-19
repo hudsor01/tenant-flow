@@ -31,26 +31,10 @@ import {
 } from '@/lib/utils'
 import type { RevenueChartDataPoint } from '@repo/shared'
 import { useMemo, useState } from 'react'
-import { Badge } from 'src/components/ui/badge'
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import type { ChartConfig } from 'src/components/ui/chart'
-import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent
-} from 'src/components/ui/chart'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from 'src/components/ui/select'
+
+
+
+
 
 interface RevenueTrendChartProps {
 	year?: number

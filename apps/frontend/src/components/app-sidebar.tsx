@@ -16,18 +16,8 @@ import {
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-import { NavDocuments } from 'src/components/nav-documents'
-import { NavMain } from 'src/components/nav-main'
-import { NavSecondary } from 'src/components/nav-secondary'
-import {
-	Sidebar,
-	SidebarContent,
-	SidebarFooter,
-	SidebarHeader,
-	SidebarMenu,
-	SidebarMenuButton,
-	SidebarMenuItem
-} from 'src/components/ui/sidebar'
+
+
 
 const data = {
 	user: {

@@ -6,16 +6,8 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { PageLayout } from 'src/components/layout/page-layout'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import { Input } from 'src/components/ui/input'
-import { Label } from 'src/components/ui/label'
+
+
 
 export default function CheckoutPage() {
 	const router = useRouter()

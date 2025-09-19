@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react'
-import { AppSidebar } from 'src/components/app-sidebar'
-import { SiteHeader } from 'src/components/site-header'
-import { SidebarInset, SidebarProvider } from 'src/components/ui/sidebar'
+
 import './dashboard.css'
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {

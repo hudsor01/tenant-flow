@@ -3,7 +3,7 @@
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 
-import { Particles } from 'src/components/ui/particles'
+
 
 export function ParticlesShowcase() {
 	const { theme } = useTheme()

@@ -18,13 +18,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
-import { AnimatedGradientText } from 'src/components/magicui/animated-gradient-text'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { BorderBeam } from 'src/components/magicui/border-beam'
-import Particles from 'src/components/magicui/particles'
-import { ShimmerButton } from 'src/components/magicui/shimmer-button'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
+
 
 export interface SaasHeroSectionProps extends React.ComponentProps<'section'> {
 	announcementText?: string

@@ -8,20 +8,12 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
-import { ChartAreaInteractive } from 'src/components/chart-area-interactive'
-import { MetricsCard } from 'src/components/metrics-card'
+
 import { AddTenantDialog } from '@/components/tenants/add-tenant-dialog'
 import { TenantActionButtons } from '@/components/tenants/tenant-action-buttons'
-import { LoadingSpinner } from 'src/components/ui/loading-spinner'
 
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from 'src/components/ui/table'
+
+
 
 export default function TenantsPage() {
 	const { data: tenants, isLoading: tenantsLoading } = useTenants()

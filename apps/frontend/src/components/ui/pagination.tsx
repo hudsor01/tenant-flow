@@ -7,7 +7,7 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 import type { PaginationLinkProps } from '@repo/shared'
-import { buttonVariants } from 'src/components/ui/button'
+
 
 function Pagination({ className, ...props }: React.ComponentProps<'nav'>) {
 	return (

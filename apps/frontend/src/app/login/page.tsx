@@ -4,7 +4,7 @@ import type { LoginCredentials } from '@repo/shared'
 import { supabaseClient } from '@repo/shared'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { LoginLayout } from 'src/components/auth/login-layout'
+
 import { toast } from 'sonner'
 import { loginAction } from './actions'
 

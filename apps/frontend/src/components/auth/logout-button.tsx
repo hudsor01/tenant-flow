@@ -11,7 +11,7 @@ import { Loader2, LogOut } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'
 import { toast } from 'sonner'
-import { Button } from 'src/components/ui/button'
+
 
 interface LogoutButtonProps extends React.ComponentProps<typeof Button> {
 	redirectPath?: string

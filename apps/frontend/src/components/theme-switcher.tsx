@@ -3,18 +3,8 @@
 import { cn } from '@/lib/utils'
 import { animated, config, useSpring } from '@react-spring/web'
 import * as React from 'react'
-import { useThemeConfig } from 'src/components/active-theme'
-import { Label } from 'src/components/ui/label'
-import {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectLabel,
-	SelectSeparator,
-	SelectTrigger,
-	SelectValue
-} from 'src/components/ui/select'
+
+
 
 const DEFAULT_THEMES = [
 	{

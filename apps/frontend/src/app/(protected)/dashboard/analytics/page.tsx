@@ -16,10 +16,7 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
-import { ChartAreaInteractive } from 'src/components/chart-area-interactive'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import { Card } from 'src/components/ui/card'
+
 
 export default function AnalyticsPage() {
 	// Fetch real dashboard data from API

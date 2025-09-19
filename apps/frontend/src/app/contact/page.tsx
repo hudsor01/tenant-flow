@@ -1,11 +1,7 @@
 import { containerClasses } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import { ArrowRight, Mail, MessageSquare, Phone } from 'lucide-react'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { ShimmerButton } from 'src/components/magicui/shimmer-button'
-import { HeroAuthority } from 'src/components/marketing/hero-authority'
-import { Navbar } from 'src/components/navbar'
-import { Button } from 'src/components/ui/button'
+
 
 export default function ContactPage() {
 	return (

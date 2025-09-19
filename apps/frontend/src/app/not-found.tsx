@@ -1,8 +1,7 @@
 import { ANIMATION_DURATIONS, TYPOGRAPHY_SCALE } from '@repo/shared'
 import { HelpCircle, Home } from 'lucide-react'
 import Link from 'next/link'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { Button } from 'src/components/ui/button'
+
 
 export default function NotFound() {
 	return (

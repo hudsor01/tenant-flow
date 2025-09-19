@@ -5,10 +5,7 @@ import { useSpring } from '@react-spring/core'
 import { animated } from '@react-spring/web'
 import { ArrowRight, Check, Crown, Shield, Zap } from 'lucide-react'
 import { useState } from 'react'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { BorderBeam } from 'src/components/magicui/border-beam'
-import { MagicCard } from 'src/components/magicui/magic-card'
-import { ShimmerButton } from 'src/components/magicui/shimmer-button'
+
 
 interface MinimalistPricingSectionProps {
 	className?: string

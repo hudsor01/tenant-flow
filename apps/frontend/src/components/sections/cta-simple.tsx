@@ -10,10 +10,7 @@ import {
 import { ArrowRight, CheckCircle, Clock, Users, Zap } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { ShimmerButton } from 'src/components/magicui/shimmer-button'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
+
 
 const benefits = [
 	{ icon: Zap, text: 'Setup in 5 minutes', highlight: 'instant' },

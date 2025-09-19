@@ -1,7 +1,7 @@
 import { MessageCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { PageLayout } from 'src/components/layout/page-layout'
+
 
 function CancelContent() {
 	return (

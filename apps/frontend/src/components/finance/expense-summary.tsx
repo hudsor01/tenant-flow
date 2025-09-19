@@ -10,18 +10,8 @@ import {
 } from 'lucide-react'
 import { Label, PolarRadiusAxis, RadialBar, RadialBarChart } from 'recharts'
 
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import type { ChartConfig } from 'src/components/ui/chart'
-import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent
-} from 'src/components/ui/chart'
+
+
 
 import {
 	ANIMATION_DURATIONS,
@@ -30,7 +20,7 @@ import {
 	formatCurrency,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
-import { Badge } from 'src/components/ui/badge'
+
 
 const chartData = [
 	{ period: 'last-week', groceries: 380, transport: 120, other: 80 }

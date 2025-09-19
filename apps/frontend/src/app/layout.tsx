@@ -5,10 +5,7 @@ import { AuthStoreProvider } from '@/stores/auth-provider'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
-import { GlobalLoadingIndicator } from 'src/components/global-loading-indicator'
-import PostHogPageView from 'src/components/posthog-pageview'
-import SiteNavRoot from 'src/components/site-nav-root'
-import { WebVitals } from 'src/components/web-vitals'
+
 import { Toaster } from 'sonner'
 import './globals.css'
 

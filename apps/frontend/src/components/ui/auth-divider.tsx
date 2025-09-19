@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { Button } from 'src/components/ui/button'
+
 
 interface AuthDividerProps {
 	className?: string

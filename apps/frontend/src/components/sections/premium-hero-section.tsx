@@ -11,11 +11,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
-import { AnimatedGradientText } from 'src/components/magicui/animated-gradient-text'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import Particles from 'src/components/magicui/particles'
-import { ShimmerButton } from 'src/components/magicui/shimmer-button'
-import { Button } from 'src/components/ui/button'
+
 
 export interface PremiumHeroSectionProps
 	extends React.ComponentProps<'section'> {

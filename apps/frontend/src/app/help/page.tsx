@@ -8,18 +8,8 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
-import { HeroAuthority } from 'src/components/marketing/hero-authority'
-import { Navbar } from 'src/components/navbar'
-import { FooterMinimal } from 'src/components/sections/footer-minimal'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
+
+
 
 export default function HelpPage() {
 	return (

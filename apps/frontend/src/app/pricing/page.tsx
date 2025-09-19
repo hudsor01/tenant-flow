@@ -6,22 +6,12 @@ import { toast } from 'sonner'
 import { createCheckoutSession } from '@/lib/stripe-client'
 
 // UI Components
-import { PageLayout } from 'src/components/layout/page-layout'
-import { BlurFade } from 'src/components/magicui/blur-fade'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
+
+
 
 // Icons
 import { ArrowRight, Check, Star } from 'lucide-react'
-import { ShimmerButton } from 'src/components/magicui/shimmer-button'
+
 
 // Design System
 import { TYPOGRAPHY_SCALE } from '@repo/shared'

@@ -8,11 +8,7 @@ import {
 	Zap
 } from 'lucide-react'
 import Link from 'next/link'
-import { HeroAuthority } from 'src/components/marketing/hero-authority'
-import { Navbar } from 'src/components/navbar'
-import { FooterMinimal } from 'src/components/sections/footer-minimal'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
+
 
 export default function BlogPage() {
 	return (

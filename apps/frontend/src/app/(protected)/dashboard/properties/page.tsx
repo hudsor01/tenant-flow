@@ -6,34 +6,10 @@ import { useUnits } from '@/hooks/api/units'
 import type { Database } from '@repo/shared'
 import { Building, DollarSign, Plus, TrendingUp } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
-import { ChartAreaInteractive } from 'src/components/chart-area-interactive'
-import { MetricsCard } from 'src/components/metrics-card'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger
-} from 'src/components/ui/dialog'
-import { Input } from 'src/components/ui/input'
-import { Label } from 'src/components/ui/label'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from 'src/components/ui/select'
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from 'src/components/ui/table'
+
+
+
+
 import { PropertyEditViewButtons } from '@/components/properties/edit-button'
 import { useCurrentUser } from '@/hooks/use-current-user'
 

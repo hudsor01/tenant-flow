@@ -1,15 +1,6 @@
 import { FileText, Filter, FolderOpen, Search, Users } from 'lucide-react'
-import { PageLayout } from 'src/components/layout/page-layout'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import { Input } from 'src/components/ui/input'
+
+
 
 export default function SearchPage() {
 	return (

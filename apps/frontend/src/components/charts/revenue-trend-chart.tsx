@@ -33,22 +33,9 @@ import {
 	XAxis,
 	YAxis
 } from 'recharts'
-import { Badge } from 'src/components/ui/badge'
-import { Button } from 'src/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from 'src/components/ui/card'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from 'src/components/ui/select'
+
+
+
 
 // =============================================================================
 // MOCK DATA - REALISTIC PROPERTY MANAGEMENT REVENUE

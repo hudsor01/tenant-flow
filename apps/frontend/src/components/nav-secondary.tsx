@@ -6,13 +6,7 @@ import { usePathname } from 'next/navigation'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-import {
-	SidebarGroup,
-	SidebarGroupContent,
-	SidebarMenu,
-	SidebarMenuButton,
-	SidebarMenuItem
-} from 'src/components/ui/sidebar'
+
 
 interface NavSecondaryProps extends React.ComponentProps<typeof SidebarGroup> {
 	items: {
