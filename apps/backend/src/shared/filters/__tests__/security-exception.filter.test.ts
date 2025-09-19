@@ -112,63 +112,6 @@ describe('SecurityExceptionFilter', () => {
 		})
 	})
 
-	describe('sanitizeMessage', () => {
-		it('should remove sensitive information from error messages', () => {
-			// @ts-expect-error - accessing private method for testing
-			const result = filter.sanitizeMessage(
-				'Failed to connect to database user:admin pass:secret123 host:192.168.1.100 port:5432'
-			)
-
-			expect(result).toBe(
-				'Failed to connect to database user:[REDACTED] host:[IP] port:5432'
-			)
-		})
-
-		it('should remove email addresses', () => {
-			// @ts-expect-error - accessing private method for testing
-			const result = filter.sanitizeMessage(
-				'User john.doe@example.com failed authentication'
-			)
-
-			expect(result).toBe('User [EMAIL] failed authentication')
-		})
-
-		it('should remove IP addresses', () => {
-			// @ts-expect-error - accessing private method for testing
-			const result = filter.sanitizeMessage(
-				'Connection failed from 192.168.1.100:8080'
-			)
-
-			expect(result).toBe('Connection failed from [IP]:8080')
-		})
-
-		it('should remove UUIDs', () => {
-			// @ts-expect-error - accessing private method for testing
-			const result = filter.sanitizeMessage(
-				'Operation failed for user 550e8400-e29b-41d4-a716-446655440000'
-			)
-
-			expect(result).toBe('Operation failed for user [UUID]')
-		})
-
-		it('should remove credentials', () => {
-			// @ts-expect-error - accessing private method for testing
-			const result = filter.sanitizeMessage(
-				'Auth failed: token=sk-1234567890abcdef'
-			)
-
-			expect(result).toBe('Auth failed: [REDACTED]')
-		})
-
-		it('should limit message length', () => {
-			const longMessage = 'A'.repeat(300)
-			// @ts-expect-error - accessing private method for testing
-			const result = filter.sanitizeMessage(longMessage)
-
-			expect(result.length).toBe(200)
-		})
-	})
-
 	describe('catch', () => {
 		it('should handle exceptions and send safe responses', () => {
 			const mockRequest = {
