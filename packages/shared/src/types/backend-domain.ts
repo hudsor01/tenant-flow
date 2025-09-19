@@ -44,6 +44,27 @@ export interface RequestContext {
 }
 
 // =============================================================================
+// SECURITY TYPES
+// =============================================================================
+
+export interface SanitizationConfig {
+	enabled: boolean
+	maxDepth: number
+	maxStringLength: number
+	maxArrayLength: number
+	maxObjectKeys: number
+	allowHTML: boolean
+	strictMode: boolean
+}
+
+export interface ThreatPattern {
+	name: string
+	pattern: RegExp
+	severity: 'low' | 'medium' | 'high'
+	block: boolean
+}
+
+// =============================================================================
 // ROUTER OUTPUT TYPES (API Response Structures)
 // =============================================================================
 

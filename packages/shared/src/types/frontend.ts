@@ -316,3 +316,21 @@ export interface ResponsiveValuesConfig {
 	xl?: string | number
 	'2xl'?: string | number
 }
+
+// PRICING UI TYPES
+
+export interface PricingUIData {
+	icon: React.ComponentType<{ className?: string }>
+	popular: boolean
+	tier: string
+	tagline: string
+	enhanced_features: Array<{ text: string; highlight: boolean }>
+	benefits: string[]
+	cta: string
+	highlight: string
+	monthlySavings: number
+	yearlySavings: number
+	savingsPercentage: number
+	formattedPrice: string
+	fullYearPrice: string
+}

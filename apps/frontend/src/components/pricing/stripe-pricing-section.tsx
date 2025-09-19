@@ -4,42 +4,40 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
+import { useDynamicPricing } from '@/hooks/use-dynamic-pricing'
+import { checkoutRateLimiter } from '@/lib/security'
 import { createCheckoutSession, isUserAuthenticated } from '@/lib/stripe-client'
 import {
-	checkoutRateLimiter
-} from '@/lib/security'
-import { 
-	cn, 
-	buttonClasses,
-	cardClasses,
+	ANIMATION_DURATIONS,
 	animationClasses,
 	badgeClasses,
-	ANIMATION_DURATIONS,
+	buttonClasses,
+	cardClasses,
+	cn,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
-import { PRICING_PLANS, type PricingConfig } from '@repo/shared/config/pricing'
 import { type PricingUIData } from '@repo/shared'
-import { useDynamicPricing } from '@/hooks/use-dynamic-pricing'
-import { 
-	Crown, 
-	Loader2, 
-	Shield, 
-	Star,
-	TrendingUp,
-	Users,
-	CheckCircle2,
-	ArrowRight,
-	Sparkles,
-	Target,
-	Award,
-	Rocket,
-	BarChart3,
-	Heart,
-	Clock
-} from 'lucide-react'
-import { useState, useMemo } from 'react'
-import { toast } from 'sonner'
+import { PRICING_PLANS, type PricingConfig } from '@repo/shared/config/pricing'
 import { useMutation } from '@tanstack/react-query'
+import {
+	ArrowRight,
+	Award,
+	BarChart3,
+	CheckCircle2,
+	Clock,
+	Crown,
+	Heart,
+	Loader2,
+	Rocket,
+	Shield,
+	Sparkles,
+	Star,
+	Target,
+	TrendingUp,
+	Users
+} from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 interface StripePricingSectionProps {
 	className?: string
@@ -48,19 +46,22 @@ interface StripePricingSectionProps {
 }
 
 // Icon mapping for different plan types
-const planIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-	'freetrial': Heart,
-	'starter': Rocket,
-	'growth': BarChart3,
-	'max': Crown
+const planIconMap: Record<
+	string,
+	React.ComponentType<{ className?: string }>
+> = {
+	freetrial: Heart,
+	starter: Rocket,
+	growth: BarChart3,
+	max: Crown
 }
 
 // Tier mapping for styling consistency
 const planTierMap: Record<string, string> = {
-	'freetrial': 'starter',
-	'starter': 'professional',
-	'growth': 'enterprise', 
-	'max': 'ultimate'
+	freetrial: 'starter',
+	starter: 'professional',
+	growth: 'enterprise',
+	max: 'ultimate'
 }
 
 // Popular plan mapping
@@ -68,91 +69,110 @@ const popularPlans = ['growth']
 
 // CTA text mapping
 const planCtaMap: Record<string, string> = {
-	'freetrial': 'Start Free Trial',
-	'starter': 'Choose Starter',
-	'growth': 'Choose Growth',
-	'max': 'Contact Sales'
+	freetrial: 'Start Free Trial',
+	starter: 'Choose Starter',
+	growth: 'Choose Growth',
+	max: 'Contact Sales'
 }
 
 // Highlight text mapping
 const planHighlightMap: Record<string, string> = {
-	'freetrial': 'Most loved by beginners',
-	'starter': 'Save 4 hours/week on average',
-	'growth': 'Most popular choice',
-	'max': 'For portfolio managers'
+	freetrial: 'Most loved by beginners',
+	starter: 'Save 4 hours/week on average',
+	growth: 'Most popular choice',
+	max: 'For portfolio managers'
 }
 
 // PricingUIData interface now imported from @repo/shared
 
-
-export function StripePricingSection({ 
+export function StripePricingSection({
 	className,
 	showStats = true,
 	compactView = false
 }: StripePricingSectionProps) {
 	const [isYearly, setIsYearly] = useState(false)
-	
+
 	// Use dynamic pricing with fallback
-	const { plans: dynamicPlans, loading: pricingLoading, error: pricingError } = useDynamicPricing()
+	const {
+		plans: dynamicPlans,
+		loading: pricingLoading,
+		error: pricingError
+	} = useDynamicPricing()
 	const fallbackPlans = Object.values(PRICING_PLANS)
 
 	// Determine which plans to use: dynamic if available, fallback otherwise
 	const activePlans = dynamicPlans.length > 0 ? dynamicPlans : fallbackPlans
 
 	// Calculate savings and format pricing - MOVED UP TO FIX HOOKS RULES
-	const pricingData = useMemo((): (PricingUIData & { name: string; planId: string })[] => {
-		return activePlans.map((plan: PricingConfig): PricingUIData & { name: string; planId: string } => {
-			if (!plan.price) return { 
-				name: plan.name || '',
-				planId: plan.planId,
-				icon: planIconMap[plan.planId] || Rocket,
-				popular: popularPlans.includes(plan.planId),
-				tier: planTierMap[plan.planId] || 'standard',
-				tagline: plan.description || '',
-				enhanced_features: plan.features.map(f => ({ text: f, highlight: false })),
-				benefits: [],
-				cta: planCtaMap[plan.planId] || 'Get Started',
-				highlight: planHighlightMap[plan.planId] || '',
-				monthlySavings: 0, 
-				yearlySavings: 0, 
-				savingsPercentage: 0,
-				formattedPrice: '$0',
-				fullYearPrice: '$0'
+	const pricingData = useMemo((): (PricingUIData & {
+		name: string
+		planId: string
+	})[] => {
+		return activePlans.map(
+			(
+				plan: PricingConfig
+			): PricingUIData & { name: string; planId: string } => {
+				if (!plan.price)
+					return {
+						name: plan.name || '',
+						planId: plan.planId,
+						icon: planIconMap[plan.planId] || Rocket,
+						popular: popularPlans.includes(plan.planId),
+						tier: planTierMap[plan.planId] || 'standard',
+						tagline: plan.description || '',
+						enhanced_features: plan.features.map(f => ({
+							text: f,
+							highlight: false
+						})),
+						benefits: [],
+						cta: planCtaMap[plan.planId] || 'Get Started',
+						highlight: planHighlightMap[plan.planId] || '',
+						monthlySavings: 0,
+						yearlySavings: 0,
+						savingsPercentage: 0,
+						formattedPrice: '$0',
+						fullYearPrice: '$0'
+					}
+
+				const monthlyPrice = plan.price.monthly / 100
+				const yearlyPrice = plan.price.annual / 100
+				const monthlySavings = monthlyPrice * 12 - yearlyPrice
+				const savingsPercentage = Math.round(
+					(monthlySavings / (monthlyPrice * 12)) * 100
+				)
+
+				// Get UI enhancement data dynamically based on plan ID
+				const icon = planIconMap[plan.planId] || Rocket
+				const tier = planTierMap[plan.planId] || 'standard'
+				const popular = popularPlans.includes(plan.planId)
+				const cta = planCtaMap[plan.planId] || 'Get Started'
+				const highlight = planHighlightMap[plan.planId] || ''
+
+				return {
+					...plan,
+					icon,
+					popular,
+					tier,
+					tagline: plan.description || '',
+					enhanced_features: plan.features.map(f => ({
+						text: f,
+						highlight: false
+					})),
+					benefits: [],
+					cta,
+					highlight,
+					name: plan.name || '',
+					planId: plan.planId,
+					monthlySavings,
+					yearlySavings: yearlyPrice,
+					savingsPercentage,
+					formattedPrice: isYearly
+						? `$${Math.floor(yearlyPrice / 12)}`
+						: `$${monthlyPrice}`,
+					fullYearPrice: `$${yearlyPrice}`
+				}
 			}
-			
-			const monthlyPrice = plan.price.monthly / 100
-			const yearlyPrice = plan.price.annual / 100
-			const monthlySavings = monthlyPrice * 12 - yearlyPrice
-			const savingsPercentage = Math.round((monthlySavings / (monthlyPrice * 12)) * 100)
-			
-			// Get UI enhancement data dynamically based on plan ID
-			const icon = planIconMap[plan.planId] || Rocket
-			const tier = planTierMap[plan.planId] || 'standard'
-			const popular = popularPlans.includes(plan.planId)
-			const cta = planCtaMap[plan.planId] || 'Get Started'
-			const highlight = planHighlightMap[plan.planId] || ''
-			
-			return {
-				...plan,
-				icon,
-				popular,
-				tier,
-				tagline: plan.description || '',
-				enhanced_features: plan.features.map(f => ({ text: f, highlight: false })),
-				benefits: [],
-				cta,
-				highlight,
-				name: plan.name || '',
-				planId: plan.planId,
-				monthlySavings,
-				yearlySavings: yearlyPrice,
-				savingsPercentage,
-				formattedPrice: isYearly 
-					? `$${Math.floor(yearlyPrice / 12)}`
-					: `$${monthlyPrice}`,
-				fullYearPrice: `$${yearlyPrice}`
-			}
-		})
+		)
 	}, [activePlans, isYearly])
 
 	const subscriptionMutation = useMutation({
@@ -171,7 +191,9 @@ export function StripePricingSection({
 
 			// Check rate limiting
 			if (!checkoutRateLimiter.canMakeRequest()) {
-				throw new Error('Too many requests. Please wait a moment before trying again.')
+				throw new Error(
+					'Too many requests. Please wait a moment before trying again.'
+				)
 			}
 
 			// Check if user is authenticated with Supabase
@@ -182,15 +204,20 @@ export function StripePricingSection({
 			}
 
 			// Validate plan exists in our pricing data
-			const selectedPlan = activePlans.find((p: PricingConfig) => p.planId === planId)
+			const selectedPlan = activePlans.find(
+				(p: PricingConfig) => p.planId === planId
+			)
 			if (!selectedPlan) {
 				throw new Error(`Invalid plan selected: ${planId}`)
 			}
 
 			// Get the appropriate Stripe price ID for the selected plan and billing period
-			const stripePriceId = selectedPlan.stripePriceIds?.[isYearly ? 'annual' : 'monthly']
+			const stripePriceId =
+				selectedPlan.stripePriceIds?.[isYearly ? 'annual' : 'monthly']
 			if (!stripePriceId) {
-				throw new Error(`No ${isYearly ? 'annual' : 'monthly'} price configured for ${planId} plan`)
+				throw new Error(
+					`No ${isYearly ? 'annual' : 'monthly'} price configured for ${planId} plan`
+				)
 			}
 
 			// Show loading toast
@@ -213,7 +240,7 @@ export function StripePricingSection({
 
 			return { success: true }
 		},
-		onError: (error) => {
+		onError: error => {
 			console.error('Subscription error:', error)
 			// Show error toast
 			toast.error(
@@ -230,7 +257,7 @@ export function StripePricingSection({
 	// Show loading state while fetching dynamic pricing
 	if (pricingLoading && dynamicPlans.length === 0) {
 		return (
-					<div className="container section-hero text-center">
+			<div className="container section-hero text-center">
 				<div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary">
 					<Loader2 className="w-4 h-4 animate-spin" />
 					Loading pricing...
@@ -238,7 +265,7 @@ export function StripePricingSection({
 			</div>
 		)
 	}
-	
+
 	// Show error state with fallback
 	if (pricingError && dynamicPlans.length === 0) {
 		console.warn('Dynamic pricing failed, using fallback:', pricingError)
@@ -246,20 +273,26 @@ export function StripePricingSection({
 
 	return (
 		<section
-				className={cn(
-					'relative section-hero bg-gradient-to-br from-background via-muted/5 to-background',
-					'before:absolute before:inset-0 before:bg-gradient-to-r before:from-primary/5 before:via-transparent before:to-primary/5 before:opacity-50',
-					compactView && 'section-content',
-					animationClasses('fade-in'),
-					className
-				)}
+			className={cn(
+				'relative section-hero bg-gradient-to-br from-background via-muted/5 to-background',
+				'before:absolute before:inset-0 before:bg-gradient-to-r before:from-primary/5 before:via-transparent before:to-primary/5 before:opacity-50',
+				compactView && 'section-content',
+				animationClasses('fade-in'),
+				className
+			)}
 		>
 			<div className="relative container px-4 mx-auto">
 				{/* Section Header */}
-				<div className={cn("text-center max-w-6xl mx-auto", compactView ? "mb-16" : "mb-24", animationClasses('slide-down'))}>
+				<div
+					className={cn(
+						'text-center max-w-6xl mx-auto',
+						compactView ? 'mb-16' : 'mb-24',
+						animationClasses('slide-down')
+					)}
+				>
 					{/* Enhanced Stats Bar */}
 					{showStats && (
-						<div 
+						<div
 							className="flex flex-wrap items-center justify-center gap-8 mb-12 p-6 bg-white/50 dark:bg-gray-900/30 rounded-2xl border border-primary/10 backdrop-blur-sm"
 							style={{
 								boxShadow: 'var(--shadow-sm)'
@@ -271,7 +304,9 @@ export function StripePricingSection({
 								</div>
 								<div>
 									<p className="font-bold text-lg text-foreground">10,000+</p>
-									<p className="text-sm text-muted-foreground">Property Managers</p>
+									<p className="text-sm text-muted-foreground">
+										Property Managers
+									</p>
 								</div>
 							</div>
 							<div className="flex items-center gap-3">
@@ -289,7 +324,9 @@ export function StripePricingSection({
 								</div>
 								<div>
 									<p className="font-bold text-lg text-foreground">$50M+</p>
-									<p className="text-sm text-muted-foreground">Rent Collected</p>
+									<p className="text-sm text-muted-foreground">
+										Rent Collected
+									</p>
 								</div>
 							</div>
 							<div className="flex items-center gap-3">
@@ -298,18 +335,20 @@ export function StripePricingSection({
 								</div>
 								<div>
 									<p className="font-bold text-lg text-foreground">4.9/5</p>
-									<p className="text-sm text-muted-foreground">Customer Rating</p>
+									<p className="text-sm text-muted-foreground">
+										Customer Rating
+									</p>
 								</div>
 							</div>
 						</div>
 					)}
-					
+
 					<div className="mb-6">
-						<Badge 
-							variant="outline" 
+						<Badge
+							variant="outline"
 							className={cn(
 								badgeClasses('outline', 'default'),
-								"mb-4 px-4 py-2 text-sm font-semibold border-2 hover:bg-primary/5 hover:border-primary/30 transition-all hover:scale-105"
+								'mb-4 px-4 py-2 text-sm font-semibold border-2 hover:bg-primary/5 hover:border-primary/30 transition-all hover:scale-105'
 							)}
 							style={{
 								transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
@@ -321,21 +360,29 @@ export function StripePricingSection({
 					</div>
 
 					<div className="mb-8">
-						<h2 
+						<h2
 							className="font-bold tracking-tight mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent"
 							style={{
-								fontSize: compactView ? TYPOGRAPHY_SCALE['display-xl'].fontSize : TYPOGRAPHY_SCALE['display-lg'].fontSize,
-								lineHeight: compactView ? TYPOGRAPHY_SCALE['display-xl'].lineHeight : TYPOGRAPHY_SCALE['display-lg'].lineHeight,
+								fontSize: compactView
+									? TYPOGRAPHY_SCALE['display-xl'].fontSize
+									: TYPOGRAPHY_SCALE['display-lg'].fontSize,
+								lineHeight: compactView
+									? TYPOGRAPHY_SCALE['display-xl'].lineHeight
+									: TYPOGRAPHY_SCALE['display-lg'].lineHeight,
 								fontWeight: TYPOGRAPHY_SCALE['display-lg'].fontWeight,
 								letterSpacing: TYPOGRAPHY_SCALE['display-lg'].letterSpacing
 							}}
 						>
 							Simple, transparent pricing
-							<span 
+							<span
 								className="block text-primary font-medium mt-3"
 								style={{
-									fontSize: compactView ? TYPOGRAPHY_SCALE['heading-md'].fontSize : TYPOGRAPHY_SCALE['heading-lg'].fontSize,
-									lineHeight: compactView ? TYPOGRAPHY_SCALE['heading-md'].lineHeight : TYPOGRAPHY_SCALE['heading-lg'].lineHeight
+									fontSize: compactView
+										? TYPOGRAPHY_SCALE['heading-md'].fontSize
+										: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
+									lineHeight: compactView
+										? TYPOGRAPHY_SCALE['heading-md'].lineHeight
+										: TYPOGRAPHY_SCALE['heading-lg'].lineHeight
 								}}
 							>
 								that scales with your portfolio
@@ -344,7 +391,7 @@ export function StripePricingSection({
 					</div>
 
 					<div className="mb-8">
-						<p 
+						<p
 							className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
 							style={{
 								fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize,
@@ -357,7 +404,7 @@ export function StripePricingSection({
 					</div>
 
 					{/* Billing Toggle */}
-					<div 
+					<div
 						className="bg-muted/30 rounded-2xl p-6 border-2 border-muted/50"
 						style={{
 							animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`,
@@ -445,15 +492,19 @@ export function StripePricingSection({
 
 								{/* Tier Badge */}
 								<div className="absolute top-4 right-4">
-									<Badge variant="outline" className={cn(
-										"text-xs font-medium capitalize border-2",
-										{
-											'border-pink-200 bg-pink-50 text-pink-700 dark:border-pink-800 dark:bg-pink-900/20 dark:text-pink-300': plan.tier === 'starter',
-											'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300': plan.tier === 'professional',
-											'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-900/20 dark:text-purple-300': plan.tier === 'enterprise',
-											'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300': plan.tier === 'ultimate'
-										}
-									)}>
+									<Badge
+										variant="outline"
+										className={cn('text-xs font-medium capitalize border-2', {
+											'border-pink-200 bg-pink-50 text-pink-700 dark:border-pink-800 dark:bg-pink-900/20 dark:text-pink-300':
+												plan.tier === 'starter',
+											'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300':
+												plan.tier === 'professional',
+											'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-900/20 dark:text-purple-300':
+												plan.tier === 'enterprise',
+											'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300':
+												plan.tier === 'ultimate'
+										})}
+									>
 										{plan.tier}
 									</Badge>
 								</div>
@@ -466,19 +517,20 @@ export function StripePricingSection({
 												'shadow-lg ring-4 ring-background',
 												{
 													'from-pink-500 to-pink-600': plan.tier === 'starter',
-													'from-blue-500 to-blue-600': plan.tier === 'professional', 
-													'from-purple-500 to-purple-600': plan.tier === 'enterprise',
-													'from-amber-500 to-amber-600': plan.tier === 'ultimate'
+													'from-blue-500 to-blue-600':
+														plan.tier === 'professional',
+													'from-purple-500 to-purple-600':
+														plan.tier === 'enterprise',
+													'from-amber-500 to-amber-600':
+														plan.tier === 'ultimate'
 												}
 											)}
 										>
-											<plan.icon
-												className="w-8 h-8 text-white"
-											/>
+											<plan.icon className="w-8 h-8 text-white" />
 										</div>
 									</div>
 
-									<h3 
+									<h3
 										className="font-bold mb-2 text-foreground"
 										style={{
 											fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
@@ -488,7 +540,7 @@ export function StripePricingSection({
 									>
 										{plan.name}
 									</h3>
-									<p 
+									<p
 										className="text-muted-foreground mb-4 leading-relaxed"
 										style={{
 											fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize
@@ -500,7 +552,7 @@ export function StripePricingSection({
 									{/* Pricing Display */}
 									<div className="space-y-2 mb-6">
 										<div className="flex items-baseline justify-center gap-1">
-											<span 
+											<span
 												className="font-black text-foreground"
 												style={{
 													fontSize: TYPOGRAPHY_SCALE['display-lg'].fontSize,
@@ -513,10 +565,13 @@ export function StripePricingSection({
 												/month
 											</span>
 										</div>
-										
+
 										{isYearly && plan.yearlySavings > 0 && (
 											<div className="flex items-center justify-center gap-2">
-												<Badge variant="secondary" className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs">
+												<Badge
+													variant="secondary"
+													className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs"
+												>
 													<Clock className="w-3 h-3 mr-1" />
 													Save {plan.savingsPercentage}%
 												</Badge>
@@ -526,10 +581,13 @@ export function StripePricingSection({
 											</div>
 										)}
 									</div>
-									
+
 									{/* Plan Highlight */}
 									{plan.highlight && !plan.popular && (
-										<Badge variant="outline" className="mb-4 text-xs font-medium">
+										<Badge
+											variant="outline"
+											className="mb-4 text-xs font-medium"
+										>
 											{plan.highlight}
 										</Badge>
 									)}
@@ -538,30 +596,35 @@ export function StripePricingSection({
 								<CardContent className="px-8 pb-6">
 									{/* Features List */}
 									<ul className="space-y-4 mb-6">
-										{plan.enhanced_features.map((feature, featureIndex) => (
-											<li
-												key={featureIndex}
-												className="flex items-start text-sm"
-											>
-												<CheckCircle2 
-													className={cn(
-														"w-4 h-4 mt-0.5 mr-3 flex-shrink-0",
-														feature.highlight 
-															? "text-primary fill-primary/20" 
-															: "text-green-500 fill-green-100 dark:fill-green-900/20"
-													)} 
-												/>
-												<span 
-													className={cn(
-														feature.highlight 
-															? "font-semibold text-foreground" 
-															: "text-muted-foreground"
-													)}
+										{plan.enhanced_features.map(
+											(
+												feature: { text: string; highlight: boolean },
+												featureIndex: number
+											) => (
+												<li
+													key={featureIndex}
+													className="flex items-start text-sm"
 												>
-													{feature.text}
-												</span>
-											</li>
-										))}
+													<CheckCircle2
+														className={cn(
+															'w-4 h-4 mt-0.5 mr-3 flex-shrink-0',
+															feature.highlight
+																? 'text-primary fill-primary/20'
+																: 'text-green-500 fill-green-100 dark:fill-green-900/20'
+														)}
+													/>
+													<span
+														className={cn(
+															feature.highlight
+																? 'font-semibold text-foreground'
+																: 'text-muted-foreground'
+														)}
+													>
+														{feature.text}
+													</span>
+												</li>
+											)
+										)}
 									</ul>
 
 									{/* Benefits */}
@@ -572,12 +635,17 @@ export function StripePricingSection({
 												Why choose this plan?
 											</h4>
 											<ul className="space-y-2">
-												{plan.benefits.map((benefit, benefitIndex) => (
-													<li key={benefitIndex} className="text-xs text-muted-foreground flex items-center gap-2">
-														<div className="w-1 h-1 bg-primary rounded-full" />
-														{benefit}
-													</li>
-												))}
+												{plan.benefits.map(
+													(benefit: string, benefitIndex: number) => (
+														<li
+															key={benefitIndex}
+															className="text-xs text-muted-foreground flex items-center gap-2"
+														>
+															<div className="w-1 h-1 bg-primary rounded-full" />
+															{benefit}
+														</li>
+													)
+												)}
 											</ul>
 										</div>
 									)}
@@ -587,11 +655,11 @@ export function StripePricingSection({
 									{plan.popular ? (
 										<Button
 											className={cn(
-												"w-full h-14 text-base font-bold",
-												"bg-gradient-to-r from-primary via-primary to-primary/90",
-												"hover:from-primary/90 hover:via-primary/95 hover:to-primary/80",
-												"shadow-lg hover:shadow-xl",
-												"transform hover:scale-[1.02] active:scale-[0.98]"
+												'w-full h-14 text-base font-bold',
+												'bg-gradient-to-r from-primary via-primary to-primary/90',
+												'hover:from-primary/90 hover:via-primary/95 hover:to-primary/80',
+												'shadow-lg hover:shadow-xl',
+												'transform hover:scale-[1.02] active:scale-[0.98]'
 											)}
 											disabled={subscriptionMutation.isPending}
 											onClick={() => handleSubscribe(plan.planId!)}
@@ -616,10 +684,10 @@ export function StripePricingSection({
 										<Button
 											variant={plan.planId === 'max' ? 'outline' : 'default'}
 											className={cn(
-												"w-full h-12 text-base font-semibold",
+												'w-full h-12 text-base font-semibold',
 												plan.planId === 'max'
-													? "border-2 hover:bg-primary hover:text-primary-foreground"
-													: "hover:scale-[1.02]"
+													? 'border-2 hover:bg-primary hover:text-primary-foreground'
+													: 'hover:scale-[1.02]'
 											)}
 											disabled={subscriptionMutation.isPending}
 											onClick={() => handleSubscribe(plan.planId!)}
@@ -647,15 +715,15 @@ export function StripePricingSection({
 				</div>
 
 				{/* Enhanced Trust Signals */}
-					<div className="bg-gradient-to-r from-muted/20 via-background to-muted/20 rounded-3xl card-padding border border-muted/40">
+				<div className="bg-gradient-to-r from-muted/20 via-background to-muted/20 rounded-3xl card-padding border border-muted/40">
 					<div className="text-center max-w-4xl mx-auto">
 						{/* Trust Badges */}
 						<div className="flex flex-wrap items-center justify-center gap-4 mb-8">
-							<Badge 
-								variant="secondary" 
+							<Badge
+								variant="secondary"
 								className={cn(
 									badgeClasses('success', 'lg'),
-									"bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 px-6 py-3 hover:scale-105"
+									'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 px-6 py-3 hover:scale-105'
 								)}
 								style={{
 									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
@@ -664,11 +732,11 @@ export function StripePricingSection({
 								<CheckCircle2 className="w-5 h-5 mr-2" />
 								14-Day Free Trial
 							</Badge>
-							<Badge 
-								variant="secondary" 
+							<Badge
+								variant="secondary"
 								className={cn(
 									badgeClasses('secondary', 'lg'),
-									"bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 px-6 py-3 hover:scale-105"
+									'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 px-6 py-3 hover:scale-105'
 								)}
 								style={{
 									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
@@ -677,11 +745,11 @@ export function StripePricingSection({
 								<Shield className="w-5 h-5 mr-2" />
 								No Credit Card Required
 							</Badge>
-							<Badge 
-								variant="secondary" 
+							<Badge
+								variant="secondary"
 								className={cn(
 									badgeClasses('outline', 'lg'),
-									"hover:bg-primary/5 hover:border-primary/30 px-6 py-3 hover:scale-105"
+									'hover:bg-primary/5 hover:border-primary/30 px-6 py-3 hover:scale-105'
 								)}
 								style={{
 									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
@@ -690,11 +758,11 @@ export function StripePricingSection({
 								<Heart className="w-5 h-5 mr-2" />
 								Cancel Anytime
 							</Badge>
-							<Badge 
-								variant="secondary" 
+							<Badge
+								variant="secondary"
 								className={cn(
 									badgeClasses('success', 'lg'),
-									"bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 px-6 py-3 hover:scale-105"
+									'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 px-6 py-3 hover:scale-105'
 								)}
 								style={{
 									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
@@ -708,7 +776,7 @@ export function StripePricingSection({
 						{/* Support Section */}
 						<div className="space-y-6">
 							<div>
-								<h3 
+								<h3
 									className="font-bold text-foreground mb-2"
 									style={{
 										fontSize: TYPOGRAPHY_SCALE['heading-md'].fontSize,
@@ -718,23 +786,24 @@ export function StripePricingSection({
 								>
 									Questions about our pricing?
 								</h3>
-								<p 
+								<p
 									className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
 									style={{
 										fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize,
 										lineHeight: TYPOGRAPHY_SCALE['body-lg'].lineHeight
 									}}
 								>
-									Our team is here to help you choose the perfect plan for your property management needs.
+									Our team is here to help you choose the perfect plan for your
+									property management needs.
 								</p>
 							</div>
-							
+
 							<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-								<Button 
+								<Button
 									variant="outline"
 									className={cn(
 										buttonClasses('outline', 'lg'),
-										"h-12 px-8 text-base font-semibold border-2 hover:bg-primary hover:text-primary-foreground hover:scale-105"
+										'h-12 px-8 text-base font-semibold border-2 hover:bg-primary hover:text-primary-foreground hover:scale-105'
 									)}
 									style={{
 										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
@@ -743,11 +812,11 @@ export function StripePricingSection({
 									<Target className="w-5 h-5 mr-2" />
 									View FAQ
 								</Button>
-								<Button 
+								<Button
 									variant="ghost"
 									className={cn(
 										buttonClasses('ghost', 'lg'),
-										"h-12 px-8 text-base font-semibold hover:bg-muted hover:scale-105"
+										'h-12 px-8 text-base font-semibold hover:bg-muted hover:scale-105'
 									)}
 									style={{
 										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
@@ -763,15 +832,21 @@ export function StripePricingSection({
 								<div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
 									<div className="flex items-center gap-2">
 										<CheckCircle2 className="w-4 h-4 text-green-600" />
-										<span className="font-medium">30-day money-back guarantee</span>
+										<span className="font-medium">
+											30-day money-back guarantee
+										</span>
 									</div>
 									<div className="flex items-center gap-2">
 										<Shield className="w-4 h-4 text-blue-600" />
-										<span className="font-medium">Enterprise-grade security</span>
+										<span className="font-medium">
+											Enterprise-grade security
+										</span>
 									</div>
 									<div className="flex items-center gap-2">
 										<Award className="w-4 h-4 text-purple-600" />
-										<span className="font-medium">99.9% customer satisfaction</span>
+										<span className="font-medium">
+											99.9% customer satisfaction
+										</span>
 									</div>
 								</div>
 							</div>
