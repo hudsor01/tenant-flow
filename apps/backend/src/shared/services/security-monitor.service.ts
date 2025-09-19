@@ -15,6 +15,7 @@ import type {
 	SecurityEventType,
 	SecurityMetrics
 } from '@repo/shared'
+import { Resend } from 'resend'
 import { SupabaseService } from '../../database/supabase.service'
 
 type SecuritySeverity = 'low' | 'medium' | 'high' | 'critical'
@@ -270,24 +271,89 @@ export class SecurityMonitorService implements OnModuleInit {
 	}
 
 	private async sendEmailAlert(event: SecurityEvent): Promise<void> {
-		if (!process.env.SECURITY_ALERT_EMAIL) return
+		const to = process.env.SECURITY_ALERT_EMAIL
+		if (!to) return
 
-		// TODO: Implement email alerts when DirectEmailService is available
-		// For now, log the alert details that would be sent
-		this.logger.warn('EMAIL ALERT (DirectEmailService not available)', {
-			to: process.env.SECURITY_ALERT_EMAIL,
-			subject: `Security Alert: ${event.type} (${event.severity.toUpperCase()})`,
-			eventId: event.id,
-			type: event.type,
-			severity: event.severity,
-			source: event.source,
-			description: event.description,
-			timestamp: event.timestamp,
-			ipAddress: event.ipAddress,
-			userAgent: event.userAgent,
-			userId: event.userId,
-			metadata: event.metadata
-		})
+		// Never send actual emails during tests
+		if (process.env.NODE_ENV === 'test') {
+			this.logger.debug('Skipping email alert in test env', {
+				eventId: event.id,
+				to
+			})
+			return
+		}
+
+		const apiKey = process.env.RESEND_API_KEY
+		if (!apiKey) {
+			this.logger.error('Email alert skipped: RESEND_API_KEY not configured')
+			return
+		}
+
+		const resend = new Resend(apiKey)
+		const subject = `Security Alert: ${event.type} (${event.severity.toUpperCase()})`
+		const from = 'TenantFlow <noreply@tenantflow.app>'
+		const html = `
+      <div style="font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:700px;margin:0 auto;padding:16px;">
+        <h2 style="margin:0 0 12px;color:#111827;">${subject}</h2>
+        <p style="margin:0 0 16px;color:#374151;">${event.description || 'A security event was detected.'}</p>
+        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:12px 16px;margin-bottom:12px;">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <div><strong>Event ID:</strong> ${event.id}</div>
+            <div><strong>Severity:</strong> ${event.severity}</div>
+            <div><strong>Type:</strong> ${event.type}</div>
+            <div><strong>Source:</strong> ${event.source || 'unknown'}</div>
+            <div><strong>Time:</strong> ${new Date(event.timestamp).toLocaleString()}</div>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;">
+            ${event.ipAddress ? `<div><strong>IP:</strong> ${event.ipAddress}</div>` : ''}
+            ${event.userAgent ? `<div><strong>User-Agent:</strong> ${String(event.userAgent).slice(0, 120)}</div>` : ''}
+            ${event.userId ? `<div><strong>User ID:</strong> ${event.userId}</div>` : ''}
+          </div>
+        </div>
+        ${
+					event.metadata
+						? `<pre style="background:#111827;color:#E5E7EB;border-radius:8px;padding:12px;overflow:auto;">${
+								// Stringify metadata safely without circular refs
+								(() => {
+									try {
+										return JSON.stringify(event.metadata, null, 2)
+									} catch {
+										return '[unserializable metadata]'
+									}
+								})()
+							}</pre>`
+						: ''
+				}
+        <p style="margin-top:16px;color:#6B7280;font-size:12px;">This is an automated security notification from TenantFlow.</p>
+      </div>
+    `
+
+		try {
+			const { error, data } = await resend.emails.send({
+				from,
+				to: [to],
+				subject,
+				html
+			})
+
+			if (error) {
+				throw new Error(`Resend error: ${error.message}`)
+			}
+
+			this.logger.log('Security email alert sent', {
+				eventId: event.id,
+				messageId: data?.id,
+				to
+			})
+		} catch (err) {
+			this.logger.error('Failed to send security email alert', {
+				eventId: event.id,
+				error:
+					err instanceof Error
+						? { name: err.name, message: err.message }
+						: { name: 'Unknown', message: String(err) }
+			})
+		}
 	}
 
 	private async sendWebhookAlert(event: SecurityEvent): Promise<void> {
