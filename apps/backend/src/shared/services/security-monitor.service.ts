@@ -76,11 +76,9 @@ export class SecurityMonitorService implements OnModuleInit {
 
 	constructor(
 		private readonly emailService: DirectEmailService,
-		_supabaseService: SupabaseService
+		private readonly supabaseService: SupabaseService
 	) {
 		this.securityLogger = new Logger(SecurityMonitorService.name)
-		// Store for future use when SecurityEvent table is available
-		// this.supabaseService = supabaseService
 	}
 
 	async onModuleInit() {
@@ -224,27 +222,30 @@ export class SecurityMonitorService implements OnModuleInit {
 
 	private async storeSecurityEvent(event: SecurityEvent): Promise<void> {
 		try {
-			// TODO: Uncomment when SecurityEvent table is added to database types
-			// const supabase = this.supabaseService.getAdminClient()
+			const supabase = this.supabaseService.getAdminClient()
 
-			// await supabase.from('SecurityEvent').insert({
-			// 	id: event.id,
-			// 	type: event.type,
-			// 	severity: event.severity,
-			// 	source: event.source,
-			// 	description: event.description,
-			// 	metadata: event.metadata as any,
-			// 	ipAddress: event.ipAddress,
-			// 	userAgent: event.userAgent,
-			// 	userId: event.userId,
-			// 	timestamp: event.timestamp,
-			// 	resolved: event.resolved || false
-			// })
+			// Use SecurityAuditLog table that exists in database
+			await supabase.from('SecurityAuditLog').insert({
+				eventType: event.type,
+				severity: event.severity,
+				userId: event.userId || null,
+				ipAddress: event.ipAddress || null,
+				userAgent: event.userAgent || null,
+				resource: event.source || null,
+				action: event.description || null,
+				details: event.metadata
+					? JSON.parse(JSON.stringify(event.metadata))
+					: null,
+				timestamp: event.timestamp
+			})
 
-			// For now, just log the event
-			this.logger.log('Security event would be stored:', event)
+			this.logger.log('Security event stored successfully', {
+				eventId: event.id,
+				type: event.type
+			})
 		} catch (error) {
 			this.logger.error('Failed to store security event', error)
+			// Continue execution even if storage fails to prevent service disruption
 		}
 	}
 

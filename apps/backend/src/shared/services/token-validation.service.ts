@@ -1,15 +1,20 @@
-import { Injectable, UnauthorizedException, Logger, InternalServerErrorException } from '@nestjs/common'
-import { createClient } from '@supabase/supabase-js'
-import type { ValidatedUser, Database } from '@repo/shared'
+import {
+	Injectable,
+	InternalServerErrorException,
+	Logger,
+	UnauthorizedException
+} from '@nestjs/common'
+import type { Database, ValidatedUser } from '@repo/shared'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 
 /**
  * Standalone Token Validation Service
- * 
- * Ultra-native service for breaking circular dependencies between 
+ *
+ * Ultra-native service for breaking circular dependencies between
  * AuthGuard and AuthService. Contains only essential token validation
  * logic without business operations.
- * 
+ *
  * Used by both AuthGuard (for request authentication) and AuthService
  * (for full user management operations).
  */
@@ -24,25 +29,26 @@ export class TokenValidationService {
 		const supabaseServiceKey = process.env.SERVICE_ROLE_KEY
 
 		if (!supabaseUrl || !supabaseServiceKey) {
-			throw new InternalServerErrorException('Supabase configuration is missing')
+			throw new InternalServerErrorException(
+				'Supabase configuration is missing'
+			)
 		}
 
-		this.adminClient = createClient<Database>(
-			supabaseUrl,
-			supabaseServiceKey,
-			{
-				auth: {
-					persistSession: false,
-					autoRefreshToken: false
-				}
+		this.adminClient = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+			auth: {
+				persistSession: false,
+				autoRefreshToken: false
 			}
-		)
+		})
 
-		this.logger.log('TokenValidationService initialized with direct Supabase client')
+		this.logger.log(
+			'TokenValidationService initialized with direct Supabase client'
+		)
 	}
 
 	async validateTokenAndGetUser(token: string): Promise<ValidatedUser> {
 		try {
+			// Step 1: Validate token and get Supabase user atomically
 			const {
 				data: { user },
 				error
@@ -63,17 +69,73 @@ export class TokenValidationService {
 				throw new UnauthorizedException('User data integrity error')
 			}
 
-			// Get user from database for role and organization info
-			const adminClient = this.adminClient
-			const { data: dbUser } = await adminClient
+			// Step 2: Immediately fetch database user with the validated Supabase ID
+			// This minimizes the race condition window to the smallest possible time
+			const { data: dbUser, error: dbError } = await this.adminClient
 				.from('User')
 				.select('*')
 				.eq('supabaseId', user.id)
 				.single()
 
+			if (dbError) {
+				this.logger.error('Database user lookup failed', {
+					supabaseId: user.id,
+					error: dbError.message
+				})
+				throw new UnauthorizedException('User lookup failed')
+			}
+
 			if (!dbUser) {
+				this.logger.error('User not found in database', {
+					supabaseId: user.id,
+					email: user.email
+				})
 				throw new UnauthorizedException('User not found in database')
 			}
+
+			// Step 3: Critical consistency checks to prevent race condition exploits
+			if (dbUser.supabaseId !== user.id) {
+				this.logger.error(
+					'User ID mismatch detected - potential race condition exploit',
+					{
+						supabaseId: user.id,
+						dbSupabaseId: dbUser.supabaseId,
+						userId: dbUser.id,
+						email: user.email
+					}
+				)
+				throw new UnauthorizedException('User data consistency error')
+			}
+
+			// Step 4: Additional security checks for account status
+			if (!dbUser.role || !dbUser.email) {
+				this.logger.warn('Invalid user data detected', {
+					userId: dbUser.id,
+					hasRole: !!dbUser.role,
+					hasEmail: !!dbUser.email
+				})
+				throw new UnauthorizedException('User account data is invalid')
+			}
+
+			// Step 5: Email consistency check
+			if (dbUser.email !== user.email) {
+				this.logger.error(
+					'Email mismatch detected - potential data corruption',
+					{
+						supabaseEmail: user.email,
+						dbEmail: dbUser.email,
+						userId: dbUser.id
+					}
+				)
+				throw new UnauthorizedException('User data integrity error')
+			}
+
+			// Log successful validation for security monitoring
+			this.logger.debug('Token validation successful', {
+				userId: dbUser.id,
+				email: dbUser.email,
+				role: dbUser.role
+			})
 
 			return {
 				id: dbUser.id,
@@ -94,7 +156,12 @@ export class TokenValidationService {
 			if (error instanceof UnauthorizedException) {
 				throw error
 			}
-			this.logger.error('Token validation error', error instanceof Error ? error.message : 'Unknown error')
+
+			// Log all other errors for security monitoring
+			this.logger.error('Token validation error', {
+				error: error instanceof Error ? error.message : 'Unknown error',
+				stack: error instanceof Error ? error.stack : undefined
+			})
 			throw new UnauthorizedException('Token validation failed')
 		}
 	}
