@@ -1,9 +1,9 @@
- 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import { StripeController } from './stripe.controller'
-import { SupabaseService } from '../database/supabase.service'
 import type Stripe from 'stripe'
+import { SupabaseService } from '../database/supabase.service'
+import { StripeController } from './stripe.controller'
 
 describe('StripeController', () => {
 	let controller: StripeController
@@ -13,49 +13,49 @@ describe('StripeController', () => {
 	beforeEach(async () => {
 		// Mock Supabase service
 		mockSupabaseService = {
-			getAdminClient: jest.fn(),
-		} as any  
+			getAdminClient: jest.fn()
+		} as any
 
 		// Mock Stripe with all required methods
 		mockStripe = {
 			paymentIntents: {
-				create: jest.fn(),
+				create: jest.fn()
 			},
 			setupIntents: {
-				create: jest.fn(),
+				create: jest.fn()
 			},
 			subscriptions: {
-				create: jest.fn(),
+				create: jest.fn()
 			},
 			checkout: {
 				sessions: {
 					create: jest.fn(),
-					retrieve: jest.fn(),
-				},
+					retrieve: jest.fn()
+				}
 			},
 			customers: {
-				create: jest.fn(),
+				create: jest.fn()
 			},
 			billingPortal: {
 				sessions: {
-					create: jest.fn(),
-				},
-			},
-		} as any  
+					create: jest.fn()
+				}
+			}
+		} as any
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [StripeController],
 			providers: [
 				{
 					provide: SupabaseService,
-					useValue: mockSupabaseService,
-				},
-			],
+					useValue: mockSupabaseService
+				}
+			]
 		}).compile()
 
 		controller = module.get<StripeController>(StripeController)
 		// Override the Stripe instance with our mock
-		;(controller as any).stripe = mockStripe  
+		;(controller as any).stripe = mockStripe
 	})
 
 	describe('createPaymentIntent', () => {
@@ -64,14 +64,14 @@ describe('StripeController', () => {
 
 			mockStripe.paymentIntents.create.mockResolvedValue({
 				id: 'pi_test123',
-				client_secret: 'pi_test123_secret',
-			} as any)  
+				client_secret: 'pi_test123_secret'
+			} as any)
 
 			const result = await controller.createPaymentIntent({
 				amount: 100,
 				tenantId: validUuid,
 				propertyId: undefined,
-				subscriptionType: undefined,
+				subscriptionType: undefined
 			})
 
 			expect(result).toEqual({
@@ -87,7 +87,7 @@ describe('StripeController', () => {
 					amount: 10, // Below minimum
 					tenantId: validUuid,
 					propertyId: undefined,
-					subscriptionType: undefined,
+					subscriptionType: undefined
 				})
 			} catch (error) {
 				expect(error.constructor.name).toBe('BadRequestException')
@@ -101,7 +101,7 @@ describe('StripeController', () => {
 					amount: 100,
 					tenantId: '',
 					propertyId: undefined,
-					subscriptionType: undefined,
+					subscriptionType: undefined
 				})
 			} catch (error) {
 				expect(error.constructor.name).toBe('BadRequestException')
@@ -117,7 +117,7 @@ describe('StripeController', () => {
 					amount: 100,
 					tenantId: maliciousInput,
 					propertyId: undefined,
-					subscriptionType: undefined,
+					subscriptionType: undefined
 				})
 			} catch (error) {
 				expect(error.constructor.name).toBe('BadRequestException')
@@ -131,15 +131,15 @@ describe('StripeController', () => {
 
 			mockStripe.checkout.sessions.create.mockResolvedValue({
 				id: 'cs_test123',
-				url: 'https://checkout.stripe.com/test',
-			} as any)  
+				url: 'https://checkout.stripe.com/test'
+			} as any)
 
 			const result = await controller.createCheckoutSession({
 				productName: 'Test Product',
 				tenantId: validUuid,
 				domain: 'https://example.com',
 				priceId: 'price_1234567890abcdef',
-				isSubscription: false,
+				isSubscription: false
 			})
 
 			expect(result).toEqual({
@@ -157,7 +157,7 @@ describe('StripeController', () => {
 					tenantId: validUuid,
 					domain: 'https://example.com',
 					priceId: 'price_1234567890abcdef',
-					isSubscription: false,
+					isSubscription: false
 				})
 			} catch (error) {
 				expect(error.constructor.name).toBe('BadRequestException')
@@ -175,7 +175,7 @@ describe('StripeController', () => {
 					tenantId: validUuid,
 					domain: 'https://example.com',
 					priceId: 'price_1234567890abcdef',
-					isSubscription: false,
+					isSubscription: false
 				})
 			} catch (error) {
 				expect(error.constructor.name).toBe('BadRequestException')
@@ -189,15 +189,15 @@ describe('StripeController', () => {
 
 			mockStripe.paymentIntents.create.mockResolvedValue({
 				id: 'pi_test123',
-				client_secret: 'pi_test123_secret',
-			} as any)  
+				client_secret: 'pi_test123_secret'
+			} as any)
 
 			const result = await controller.createConnectedPayment({
 				amount: 100,
 				tenantId: validUuid,
 				connectedAccountId: 'acct_1234567890abcdef',
 				propertyOwnerAccount: 'acct_0987654321fedcba',
-				propertyId: undefined,
+				propertyId: undefined
 			})
 
 			expect(result).toEqual({
@@ -215,7 +215,7 @@ describe('StripeController', () => {
 					tenantId: validUuid,
 					connectedAccountId: 'acct_1234567890abcdef',
 					propertyOwnerAccount: 'acct_0987654321fedcba',
-					propertyId: undefined,
+					propertyId: undefined
 				})
 			} catch (error) {
 				expect(error.constructor.name).toBe('BadRequestException')
@@ -232,7 +232,7 @@ describe('StripeController', () => {
 					tenantId: validUuid,
 					connectedAccountId: '',
 					propertyOwnerAccount: 'acct_0987654321fedcba',
-					propertyId: undefined,
+					propertyId: undefined
 				})
 			} catch (error) {
 				expect(error.constructor.name).toBe('BadRequestException')
@@ -250,7 +250,7 @@ describe('StripeController', () => {
 					amount: 100,
 					tenantId: maliciousInput,
 					propertyId: undefined,
-					subscriptionType: undefined,
+					subscriptionType: undefined
 				})
 			} catch (error) {
 				expect(error.constructor.name).toBe('BadRequestException')
@@ -265,7 +265,7 @@ describe('StripeController', () => {
 					amount: 100,
 					tenantId: maliciousInput,
 					propertyId: undefined,
-					subscriptionType: undefined,
+					subscriptionType: undefined
 				})
 			} catch (error) {
 				expect(error.constructor.name).toBe('BadRequestException')
@@ -273,14 +273,14 @@ describe('StripeController', () => {
 		})
 
 		it('should handle control characters properly', async () => {
-			const inputWithControlChars = "valid\x00\x01\x02input"
+			const inputWithControlChars = 'valid\x00\x01\x02input'
 
 			try {
 				await controller.createPaymentIntent({
 					amount: 100,
 					tenantId: inputWithControlChars,
 					propertyId: undefined,
-					subscriptionType: undefined,
+					subscriptionType: undefined
 				})
 			} catch (error) {
 				expect(error.constructor.name).toBe('BadRequestException')
