@@ -1,9 +1,12 @@
 'use client'
 
-import { ChartAreaInteractive } from '@/components/chart-area-interactive'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { useLeases, useLeaseStats } from '@/hooks/api/leases'
+import type { Database } from '@repo/shared'
+import { AlertTriangle, Calendar, Clock, FileText } from 'lucide-react'
+import { ChartAreaInteractive } from 'src/components/chart-area-interactive'
+import { Badge } from 'src/components/ui/badge'
+import { Button } from 'src/components/ui/button'
+import { LoadingSpinner } from 'src/components/ui/loading-spinner'
 import {
 	Table,
 	TableBody,
@@ -11,10 +14,7 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { useLeases, useLeaseStats } from '@/hooks/api/leases'
-import { AlertTriangle, Calendar, Clock, FileText } from 'lucide-react'
-import type { Database } from '@repo/shared'
+} from 'src/components/ui/table'
 
 type Lease = Database['public']['Tables']['Lease']['Row']
 
@@ -127,7 +127,7 @@ export default function LeasesPage() {
 			<div className="px-4 lg:px-6">
 				<div className="flex items-center justify-between mb-6">
 					<div>
-            <h1 className="text-3xl font-bold text-gradient-authority mb-2">
+						<h1 className="text-3xl font-bold text-gradient-authority mb-2">
 							Lease Management
 						</h1>
 						<p className="text-muted-foreground">
@@ -233,7 +233,7 @@ export default function LeasesPage() {
 											<Badge
 												style={{
 													backgroundColor: 'var(--chart-1)',
-													color: 'white'
+													color: 'hsl(var(--primary-foreground))'
 												}}
 											>
 												Active
@@ -243,7 +243,7 @@ export default function LeasesPage() {
 											<Badge
 												style={{
 													backgroundColor: 'var(--chart-5)',
-													color: 'white'
+													color: 'hsl(var(--primary-foreground))'
 												}}
 												className="flex items-center gap-1"
 											>
@@ -255,7 +255,7 @@ export default function LeasesPage() {
 											<Badge
 												style={{
 													backgroundColor: 'var(--chart-2)',
-													color: 'white'
+													color: 'hsl(var(--primary-foreground))'
 												}}
 											>
 												Terminated
@@ -295,11 +295,11 @@ export default function LeasesPage() {
 				{/* Upcoming Actions */}
 				<div className="mt-6 p-4 rounded-lg border bg-card/50">
 					<h3 className="font-semibold mb-3 flex items-center gap-2">
-						<AlertTriangle className="size-4 text-orange-500" />
+						<AlertTriangle className="size-4 text-accent" />
 						Upcoming Actions Required
 					</h3>
 					<div className="space-y-2 text-sm">
-						<div className="flex items-center justify-between p-2 rounded bg-orange-50 dark:bg-orange-950/20">
+						<div className="flex items-center justify-between p-2 rounded bg-accent/10 border border-accent/20">
 							<span>
 								Michael Chen's lease expires in 30 days - Contact for renewal
 							</span>
@@ -307,7 +307,7 @@ export default function LeasesPage() {
 								Contact
 							</Button>
 						</div>
-						<div className="flex items-center justify-between p-2 rounded bg-blue-50 dark:bg-blue-950/20">
+						<div className="flex items-center justify-between p-2 rounded bg-primary/10 border border-primary/20">
 							<span>David Kim has renewal pending - Review and process</span>
 							<Button size="sm" variant="outline">
 								Process

@@ -18,8 +18,8 @@ export function BorderGlow({
 	duration = '15s',
 	size: _size = 200,
 	borderWidth = 1,
-	colorFrom = 'rgb(59, 130, 246)', // blue-500
-	colorTo = 'rgb(99, 102, 241)' // indigo-500
+	colorFrom = 'hsl(var(--primary))', // primary color
+	colorTo = 'hsl(var(--accent))' // accent color
 }: BorderGlowProps) {
 	return (
 		<div

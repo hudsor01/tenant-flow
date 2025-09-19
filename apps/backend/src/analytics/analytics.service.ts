@@ -53,6 +53,8 @@ export class AnalyticsService {
 				properties: { distinct_id: userId, ...properties },
 				timestamp: new Date().toISOString()
 			})
-		}).catch(console.error)
+		}).catch((error) => {
+			this.logger.error('Failed to send analytics event', error)
+		})
 	}
 }

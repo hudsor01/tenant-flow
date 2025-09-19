@@ -1,167 +1,168 @@
 {
-  "$schema": "https://json.schemastore.org/package",
-  "name": "tenantflow",
-  "private": true,
-  "version": "1.0.1",
-  "type": "module",
-  "engines": {
-    "node": ">=22.x"
-  },
-  "os": [
-    "darwin",
-    "linux",
-    "win32"
-  ],
-  "cpu": [
-    "arm64",
-    "x64"
-  ],
-  "packageManager": "pnpm@10.0.0",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "scripts": {
-    "turbo": "export $(grep -E '^TURBO_' .env.local 2>/dev/null | xargs) && turbo",
-    "start": "doppler run -- cd apps/backend && npm run start",
-    "dev": "doppler run -- turbo run dev",
-    "dev:clean": "doppler run -- turbo run dev:clean",
-    "build": "doppler run -- turbo run build",
-    "build:ci": "turbo run build",
-    "build:frontend": "doppler run -- turbo run build --filter=@repo/shared && turbo run build --filter=@repo/frontend",
-    "build:backend": "doppler run -- turbo run build --filter=@repo/backend",
-    "build:shared": "turbo run build --filter=@repo/shared",
-    "build:validate": "npm run build:shared && node -e \"console.log('Shared package built successfully')\" && npm run build:frontend",
-    "secrets:generate": "node scripts/manage-secrets.js generate-key",
-    "secrets:check": "node scripts/manage-secrets.js check-strength",
-    "secrets:export": "node scripts/manage-secrets.js export-for-ci",
-    "claude:check": "npm run lint && npm run typecheck",
-    "lint": "turbo run lint:fix",
-    "format": "turbo run format",
-    "typecheck": "turbo run typecheck",
-    "test": "doppler run -- turbo run test:unit",
-    "test:unit": "turbo run test:unit",
-    "test:production": "./test-production-connection.sh",
-    "test:api": "cd apps/frontend && npm test -- test/production-api.test.ts",
-    "test:dashboard": "node scripts/npm-test-integration.cjs quick",
-    "test:dashboard:all": "node scripts/npm-test-integration.cjs comprehensive",
-    "test:dashboard:unit": "node scripts/npm-test-integration.cjs unit",
-    "test:dashboard:integration": "node scripts/npm-test-integration.cjs integration",
-    "test:dashboard:e2e": "node scripts/npm-test-integration.cjs e2e",
-    "test:dashboard:performance": "node scripts/npm-test-integration.cjs performance",
-    "ci:local": "./test-ci-fast.sh",
-    "ci:full": "act -j build-and-test",
-    "ci:quick": "npx turbo run typecheck build --cache-dir=.turbo --filter='[HEAD^1]'",
-    "prepush:test": "SKIP_TESTS=true git push --dry-run && echo '✅ Pre-push checks would pass'",
-    "test:dashboard:accessibility": "node scripts/npm-test-integration.cjs accessibility",
-    "test:dashboard:visual": "node scripts/npm-test-integration.cjs visual",
-    "test:dashboard:security": "node scripts/npm-test-integration.cjs security",
-    "test:dashboard:check": "node scripts/npm-test-integration.cjs check",
-    "test:dashboard:validate": "node scripts/npm-test-integration.cjs validate",
-    "test:performance": "npx playwright test tests/performance/ --reporter=json",
-    "test:performance:critical": "npx playwright test tests/performance/regression/performance-regression-prevention.spec.ts --reporter=json",
-    "test:performance:interactions": "npx playwright test tests/performance/interactions/ --reporter=json",
-    "test:performance:micro": "npx playwright test tests/performance/micro-interactions/ --reporter=json",
-    "test:performance:scroll": "npx playwright test tests/performance/scroll-performance/ --reporter=json",
-    "test:performance:loading": "npx playwright test tests/performance/loading-states/ --reporter=json",
-    "test:performance:lighthouse": "npx playwright test tests/performance/lighthouse-integration.spec.ts --reporter=json",
-    "test:performance:rum": "npx playwright test tests/performance/user-monitoring/ --reporter=json",
-    "test:performance:apple-standard": "npm run test:performance:critical && npm run test:performance:interactions && npm run test:performance:scroll",
-    "security:audit": "node scripts/security-hardening.cjs audit",
-    "security:check": "node scripts/security-hardening.cjs check",
-    "generate": "echo 'Code generation available through individual tools: npm run update-supabase-types, npm run secrets:generate, npm run generate:schemas'",
-    "generate:schemas": "turbo run generate:schemas --filter=@repo/frontend",
-    "update-supabase-types": "npx supabase gen types typescript --project-id \"bshjmbshupiibfiewpxb\" --schema public > packages/shared/src/types/supabase-generated.ts",
-    "db:migration:new": "supabase migration new",
-    "db:migration:list": "supabase migration list",
-    "db:reset": "supabase db reset",
-    "db:push": "supabase db push",
-    "db:pull": "supabase db pull",
-    "db:link": "supabase link",
-    "db:status": "supabase status",
-    "prepare": "husky"
-  },
-  "devDependencies": {
-    "@commitlint/cli": "19.8.1",
-    "@commitlint/config-conventional": "19.8.1",
-    "@eslint/js": "9.35.0",
-    "@eslint/object-schema": "2.1.6",
-    "@eslint/plugin-kit": "0.3.5",
-    "@humanfs/node": "0.16.7",
-    "@repo/eslint-config": "workspace:*",
-    "@types/node": "24.5.2",
-    "@typescript-eslint/eslint-plugin": "^8.44.0",
-    "@typescript-eslint/parser": "^8.44.0",
-    "babel-plugin-react-compiler": "19.1.0-rc.3",
-    "eslint": "^9.35.0",
-    "eslint-config-turbo": "^2.5.6",
-    "eslint-plugin-turbo": "^2.5.6",
-    "globals": "16.4.0",
-    "husky": "9.1.7",
-    "jsdom": "27.0.0",
-    "lint-staged": "16.1.6",
-    "pre-commit": "1.2.2",
-    "prettier-plugin-organize-imports": "4.3.0",
-    "tsx": "4.20.5",
-    "turbo": "2.5.6",
-    "typescript": "5.9.2",
-    "typescript-eslint": "^8.44.0"
-  },
-  "optionalDependencies": {
-    "@tailwindcss/oxide-linux-arm64-gnu": "4.1.13",
-    "@tailwindcss/oxide-linux-arm64-musl": "4.1.13",
-    "@tailwindcss/oxide-linux-x64-gnu": "4.1.13",
-    "@tailwindcss/oxide-linux-x64-musl": "4.1.13",
-    "@tailwindcss/oxide-wasm32-wasi": "4.1.13",
-    "lightningcss-linux-x64-gnu": "1.30.1",
-    "lightningcss-linux-x64-musl": "1.30.1",
-    "turbo-darwin-64": "2.5.6",
-    "turbo-darwin-arm64": "2.5.6",
-    "turbo-linux-64": "2.5.6",
-    "turbo-linux-arm64": "2.5.6"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --cache --fix",
-      "prettier --write"
-    ],
-    "*.{js,jsx}": [
-      "eslint --cache --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,yml,yaml}": [
-      "prettier --write"
-    ]
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
-  "msw": {
-    "workerDirectory": [
-      "../frontend/public"
-    ]
-  },
-  "overrides": {
-    "typescript": "5.9.2",
-    "path-to-regexp": "^8.3.0",
-    "undici": "^7.16.0",
-    "tmp": "^0.2.5",
-    "glob": "^11.0.3",
-    "@types/glob": "^9.0.0",
-    "@types/mdx": "^2.0.13",
-    "minimatch": "^10.0.3",
-    "cross-spawn": "^7.0.6",
-    "rimraf": "^6.0.1",
-    "sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.5",
-    "inflight": "npm:lru-cache@^11.2.1",
-    "lightningcss": "1.30.1"
-  },
-  "dependencies": {
-    "@nestjs/terminus": "11.0.0",
-    "nestjs-pino": "4.4.0",
-    "pino-http": "10.5.0",
-    "pino-pretty": "13.1.1"
-  }
+	"$schema": "https://json.schemastore.org/package",
+	"name": "tenantflow",
+	"private": true,
+	"version": "1.0.1",
+	"type": "module",
+	"engines": {
+		"node": ">=22.x"
+	},
+	"os": [
+		"darwin",
+		"linux",
+		"win32"
+	],
+	"cpu": [
+		"arm64",
+		"x64"
+	],
+	"packageManager": "pnpm@10.0.0",
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
+	"scripts": {
+		"turbo": "export $(grep -E '^TURBO_' .env.local 2>/dev/null | xargs) && turbo",
+		"start": "doppler run -- cd apps/backend && npm run start",
+		"dev": "doppler run -- turbo run dev",
+		"dev:clean": "doppler run -- turbo run dev:clean",
+		"build": "doppler run -- turbo run build",
+		"build:ci": "turbo run build",
+		"build:frontend": "doppler run -- turbo run build --filter=@repo/shared && turbo run build --filter=@repo/frontend",
+		"build:backend": "doppler run -- turbo run build --filter=@repo/backend",
+		"build:shared": "turbo run build --filter=@repo/shared",
+		"build:validate": "npm run build:shared && node -e \"console.log('Shared package built successfully')\" && npm run build:frontend",
+		"secrets:generate": "node scripts/manage-secrets.js generate-key",
+		"secrets:check": "node scripts/manage-secrets.js check-strength",
+		"secrets:export": "node scripts/manage-secrets.js export-for-ci",
+		"claude:check": "npm run lint && npm run typecheck",
+		"lint": "turbo run lint:fix",
+		"format": "turbo run format",
+		"typecheck": "turbo run typecheck",
+		"test": "doppler run -- turbo run test:unit",
+		"test:unit": "turbo run test:unit",
+		"test:production": "./test-production-connection.sh",
+		"test:api": "cd apps/frontend && npm test -- test/production-api.test.ts",
+		"test:dashboard": "node scripts/npm-test-integration.cjs quick",
+		"test:dashboard:all": "node scripts/npm-test-integration.cjs comprehensive",
+		"test:dashboard:unit": "node scripts/npm-test-integration.cjs unit",
+		"test:dashboard:integration": "node scripts/npm-test-integration.cjs integration",
+		"test:dashboard:e2e": "node scripts/npm-test-integration.cjs e2e",
+		"test:dashboard:performance": "node scripts/npm-test-integration.cjs performance",
+		"ci:local": "./test-ci-fast.sh",
+		"ci:full": "act -j build-and-test",
+		"ci:quick": "npx turbo run typecheck build --cache-dir=.turbo --filter='[HEAD^1]'",
+		"prepush:test": "SKIP_TESTS=true git push --dry-run && echo '✅ Pre-push checks would pass'",
+		"test:dashboard:accessibility": "node scripts/npm-test-integration.cjs accessibility",
+		"test:dashboard:visual": "node scripts/npm-test-integration.cjs visual",
+		"test:dashboard:security": "node scripts/npm-test-integration.cjs security",
+		"test:dashboard:check": "node scripts/npm-test-integration.cjs check",
+		"test:dashboard:validate": "node scripts/npm-test-integration.cjs validate",
+		"test:performance": "npx playwright test tests/performance/ --reporter=json",
+		"test:performance:critical": "npx playwright test tests/performance/regression/performance-regression-prevention.spec.ts --reporter=json",
+		"test:performance:interactions": "npx playwright test tests/performance/interactions/ --reporter=json",
+		"test:performance:micro": "npx playwright test tests/performance/micro-interactions/ --reporter=json",
+		"test:performance:scroll": "npx playwright test tests/performance/scroll-performance/ --reporter=json",
+		"test:performance:loading": "npx playwright test tests/performance/loading-states/ --reporter=json",
+		"test:performance:lighthouse": "npx playwright test tests/performance/lighthouse-integration.spec.ts --reporter=json",
+		"test:performance:rum": "npx playwright test tests/performance/user-monitoring/ --reporter=json",
+		"test:performance:apple-standard": "npm run test:performance:critical && npm run test:performance:interactions && npm run test:performance:scroll",
+		"security:audit": "node scripts/security-hardening.cjs audit",
+		"security:check": "node scripts/security-hardening.cjs check",
+		"generate": "echo 'Code generation available through individual tools: npm run update-supabase-types, npm run secrets:generate, npm run generate:schemas'",
+		"generate:schemas": "turbo run generate:schemas --filter=@repo/frontend",
+		"update-supabase-types": "npx supabase gen types typescript --project-id \"bshjmbshupiibfiewpxb\" --schema public > packages/shared/src/types/supabase-generated.ts",
+		"db:migration:new": "supabase migration new",
+		"db:migration:list": "supabase migration list",
+		"db:reset": "supabase db reset",
+		"db:push": "supabase db push",
+		"db:pull": "supabase db pull",
+		"db:link": "supabase link",
+		"db:status": "supabase status",
+		"prepare": "husky"
+	},
+	"devDependencies": {
+		"@commitlint/cli": "19.8.1",
+		"@commitlint/config-conventional": "19.8.1",
+		"@eslint/js": "9.35.0",
+		"@eslint/object-schema": "2.1.6",
+		"@eslint/plugin-kit": "0.3.5",
+		"@humanfs/node": "0.16.7",
+		"@repo/eslint-config": "workspace:*",
+		"@types/node": "24.5.2",
+		"@typescript-eslint/eslint-plugin": "^8.44.0",
+		"@typescript-eslint/parser": "^8.44.0",
+		"babel-plugin-react-compiler": "19.1.0-rc.3",
+		"eslint": "^9.35.0",
+		"eslint-config-prettier": "10.1.8",
+		"eslint-config-turbo": "^2.5.6",
+		"eslint-plugin-turbo": "^2.5.6",
+		"globals": "16.4.0",
+		"husky": "9.1.7",
+		"jsdom": "27.0.0",
+		"lint-staged": "16.1.6",
+		"pre-commit": "1.2.2",
+		"prettier-plugin-organize-imports": "4.3.0",
+		"tsx": "4.20.5",
+		"turbo": "2.5.6",
+		"typescript": "5.9.2",
+		"typescript-eslint": "^8.44.0"
+	},
+	"optionalDependencies": {
+		"@tailwindcss/oxide-linux-arm64-gnu": "4.1.13",
+		"@tailwindcss/oxide-linux-arm64-musl": "4.1.13",
+		"@tailwindcss/oxide-linux-x64-gnu": "4.1.13",
+		"@tailwindcss/oxide-linux-x64-musl": "4.1.13",
+		"@tailwindcss/oxide-wasm32-wasi": "4.1.13",
+		"lightningcss-linux-x64-gnu": "1.30.1",
+		"lightningcss-linux-x64-musl": "1.30.1",
+		"turbo-darwin-64": "2.5.6",
+		"turbo-darwin-arm64": "2.5.6",
+		"turbo-linux-64": "2.5.6",
+		"turbo-linux-arm64": "2.5.6"
+	},
+	"lint-staged": {
+		"*.{ts,tsx}": [
+			"eslint --cache --fix",
+			"prettier --write"
+		],
+		"*.{js,jsx}": [
+			"eslint --cache --fix",
+			"prettier --write"
+		],
+		"*.{json,md,yml,yaml}": [
+			"prettier --write"
+		]
+	},
+	"commitlint": {
+		"extends": [
+			"@commitlint/config-conventional"
+		]
+	},
+	"msw": {
+		"workerDirectory": [
+			"../frontend/public"
+		]
+	},
+	"overrides": {
+		"typescript": "5.9.2",
+		"path-to-regexp": "^8.3.0",
+		"undici": "^7.16.0",
+		"tmp": "^0.2.5",
+		"glob": "^11.0.3",
+		"@types/glob": "^9.0.0",
+		"@types/mdx": "^2.0.13",
+		"minimatch": "^10.0.3",
+		"cross-spawn": "^7.0.6",
+		"rimraf": "^6.0.1",
+		"sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.5",
+		"inflight": "npm:lru-cache@^11.2.1",
+		"lightningcss": "1.30.1"
+	},
+	"dependencies": {
+		"@nestjs/terminus": "11.0.0",
+		"nestjs-pino": "4.4.0",
+		"pino-http": "10.5.0",
+		"pino-pretty": "13.1.1"
+	}
 }

@@ -23,26 +23,7 @@ import {
 } from '@nestjs/common'
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import { SecurityMonitorService } from '../services/security-monitor.service'
-
-interface ErrorResponse {
-	statusCode: number
-	message: string
-	error?: string
-	timestamp: string
-	path: string
-	requestId?: string
-}
-
-interface SecurityErrorContext {
-	ip: string
-	userAgent?: string
-	userId?: string
-	endpoint: string
-	method: string
-	timestamp: string
-	errorType: string
-	statusCode: number
-}
+import type { ErrorResponse, SecurityErrorContext } from '@repo/shared'
 
 @Catch()
 export class SecurityExceptionFilter implements ExceptionFilter {

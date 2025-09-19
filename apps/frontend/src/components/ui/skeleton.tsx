@@ -1,7 +1,6 @@
 "use client"
 
 import { cn } from '@/lib/design-system'
-import { skeletonClasses } from '@/lib/design-system'
 
 interface SkeletonProps {
   className?: string
@@ -15,9 +14,15 @@ function Skeleton({
   children,
   ...props
 }: SkeletonProps & React.HTMLAttributes<HTMLDivElement>) {
+  const variantClasses = {
+    default: 'rounded',
+    rounded: 'rounded-md',
+    circle: 'rounded-full'
+  }
+
   return (
     <div
-      className={cn(skeletonClasses(variant), className)}
+      className={cn('animate-pulse bg-muted', variantClasses[variant], className)}
       {...props}
     >
       {children}

@@ -1,12 +1,12 @@
 'use client'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
+import type { SpringValue } from '@react-spring/web'
 import { animated } from '@react-spring/web'
 import { PaymentElement } from '@stripe/react-stripe-js'
 import type { Stripe, StripeElements } from '@stripe/stripe-js'
 import { AlertTriangle } from 'lucide-react'
-import type { SpringValue } from '@react-spring/web'
+import { Alert, AlertDescription } from 'src/components/ui/alert'
+import { Button } from 'src/components/ui/button'
 
 interface Props {
 	clientSecret?: string

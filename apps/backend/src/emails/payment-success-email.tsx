@@ -145,7 +145,7 @@ const h2 = {
 
 const successBadge = {
   backgroundColor: '#28a745',
-  color: 'white',
+  color: '#ffffff',
   padding: '8px 12px',
   borderRadius: '4px',
   display: 'inline-block',
@@ -190,7 +190,7 @@ const buttonContainer = {
 
 const button = {
   backgroundColor: '#007bff',
-  color: 'white',
+  color: '#ffffff',
   padding: '10px 20px',
   textDecoration: 'none',
   borderRadius: '4px',
@@ -200,7 +200,7 @@ const button = {
 
 const secondaryButton = {
   backgroundColor: '#6c757d',
-  color: 'white',
+  color: '#ffffff',
   padding: '10px 20px',
   textDecoration: 'none',
   borderRadius: '4px',

@@ -15,14 +15,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-type UseDataTableInstanceProps<TData, TValue> = {
-  data: TData[];
-  columns: ColumnDef<TData, TValue>[];
-  enableRowSelection?: boolean;
-  defaultPageIndex?: number;
-  defaultPageSize?: number;
-  getRowId?: (row: TData, index: number) => string;
-};
+import type { UseDataTableInstanceProps } from '@repo/shared';
 
 export function useDataTableInstance<TData, TValue>({
   data,
@@ -31,7 +24,7 @@ export function useDataTableInstance<TData, TValue>({
   defaultPageIndex,
   defaultPageSize,
   getRowId,
-}: UseDataTableInstanceProps<TData, TValue>) {
+}: UseDataTableInstanceProps<TData, ColumnDef<TData, TValue>>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);

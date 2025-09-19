@@ -65,7 +65,7 @@ const Particles: React.FC<ParticlesProps> = ({
   ease = 50,
   size = 0.4,
   refresh = false,
-  color = "#ffffff",
+  color = "hsl(var(--foreground))",
   vx = 0,
   vy = 0,
 }) => {
@@ -172,7 +172,7 @@ const Particles: React.FC<ParticlesProps> = ({
     }
   }
 
-  const rgb = hexToRgb(color)
+  const _rgb = hexToRgb(color)
 
   const drawCircle = (circle: Circle, update = false) => {
     if (context.current) {
@@ -180,7 +180,7 @@ const Particles: React.FC<ParticlesProps> = ({
       context.current.translate(translateX, translateY)
       context.current.beginPath()
       context.current.arc(x, y, size, 0, 2 * Math.PI)
-      context.current.fillStyle = `rgba(${rgb.join(", ")}, ${alpha})`
+      context.current.fillStyle = `hsl(var(--foreground) / ${alpha})`
       context.current.fill()
       context.current.setTransform(dpr, 0, 0, dpr, 0, 0)
 

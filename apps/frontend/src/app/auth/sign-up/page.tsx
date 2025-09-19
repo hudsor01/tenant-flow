@@ -1,9 +1,9 @@
 'use client'
 
-import { LoginLayout } from '@/components/auth/login-layout'
 import { authApi } from '@/lib/api-client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { LoginLayout } from 'src/components/auth/login-layout'
 
 export default function SignUpPage() {
 	const router = useRouter()
@@ -17,12 +17,17 @@ export default function SignUpPage() {
 				name: string
 			}
 
-        // Use backend registration; tokens may require email confirmation
-        await authApi.register({ email, firstName: name.split(' ')[0] ?? '', lastName: name.split(' ').slice(1).join(' ') ?? '', password })
-        toast.success('Account created successfully!', {
-            description: 'Please check your email to verify your account.'
-        })
-        router.push('/auth/sign-up-success')
+			// Use backend registration; tokens may require email confirmation
+			await authApi.register({
+				email,
+				firstName: name.split(' ')[0] ?? '',
+				lastName: name.split(' ').slice(1).join(' ') ?? '',
+				password
+			})
+			toast.success('Account created successfully!', {
+				description: 'Please check your email to verify your account.'
+			})
+			router.push('/auth/sign-up-success')
 		} catch (error) {
 			console.error('Sign up error:', error)
 
@@ -42,25 +47,27 @@ export default function SignUpPage() {
 		router.push('/auth/login')
 	}
 
-    const handleGoogleSignUp = async () => {
-        try {
-            // Defer to existing OAuth redirect flow via Supabase client
-            const { error } = await (await import('@repo/shared')).supabaseClient.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: `${window.location.origin}/auth/oauth?next=/dashboard`,
-                    queryParams: { access_type: 'offline', prompt: 'consent' }
-                }
-            })
-            if (error) throw error
-            // Redirect handled by provider
-        } catch (error) {
-            console.error('Google OAuth error:', error)
-            toast.error('Authentication Error', {
-                description: 'Please try again later.'
-            })
-        }
-    }
+	const handleGoogleSignUp = async () => {
+		try {
+			// Defer to existing OAuth redirect flow via Supabase client
+			const { error } = await (
+				await import('@repo/shared')
+			).supabaseClient.auth.signInWithOAuth({
+				provider: 'google',
+				options: {
+					redirectTo: `${window.location.origin}/auth/oauth?next=/dashboard`,
+					queryParams: { access_type: 'offline', prompt: 'consent' }
+				}
+			})
+			if (error) throw error
+			// Redirect handled by provider
+		} catch (error) {
+			console.error('Google OAuth error:', error)
+			toast.error('Authentication Error', {
+				description: 'Please try again later.'
+			})
+		}
+	}
 
 	return (
 		<LoginLayout
