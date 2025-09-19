@@ -12,20 +12,6 @@ import {
 	Post,
 	Req,
 	ServiceUnavailableException
-import {
-	BadRequestException,
-	Body,
-	Controller,
-	Get,
-	Headers,
-	HttpCode,
-	HttpStatus,
-	InternalServerErrorException,
-	Logger,
-	Param,
-	Post,
-	Req,
-	ServiceUnavailableException
 } from '@nestjs/common'
 import type { SubscriptionStatus } from '@repo/shared'
 import type { FastifyRequest } from 'fastify'
@@ -458,30 +444,32 @@ export class StripeController {
 		}
 	}
 
-  /**
-   * Checkout Session Creation
-   * Official Pattern: checkout session with success/cancel URLs
-   */
-  @Post('create-checkout-session')
-  async createCheckoutSession(@Body() body: CreateCheckoutSessionRequest) {
-    // Native validation - CLAUDE.md compliant
-    if (!body.productName) {
-      throw new BadRequestException('productName is required')
-    }
-    if (!body.tenantId) {
-      throw new BadRequestException('tenantId is required')
-    }
-    if (!body.domain) {
-      throw new BadRequestException('domain is required')
-    }
+	/**
+	 * Checkout Session Creation
+	 * Official Pattern: checkout session with success/cancel URLs
+	 */
+	@Post('create-checkout-session')
+	async createCheckoutSession(@Body() body: CreateCheckoutSessionRequest) {
+		// Native validation - CLAUDE.md compliant
+		if (!body.productName) {
+			throw new BadRequestException('productName is required')
+		}
+		if (!body.tenantId) {
+			throw new BadRequestException('tenantId is required')
+		}
+		if (!body.domain) {
+			throw new BadRequestException('domain is required')
+		}
 
-    // Validate priceId is provided and correctly formatted
-    if (!body.priceId) {
-      throw new BadRequestException('priceId is required')
-    }
-    if (!body.priceId.startsWith('price_')) {
-      throw new BadRequestException('Invalid priceId format. Expected Stripe price ID starting with "price_"')
-    }
+		// Validate priceId is provided and correctly formatted
+		if (!body.priceId) {
+			throw new BadRequestException('priceId is required')
+		}
+		if (!body.priceId.startsWith('price_')) {
+			throw new BadRequestException(
+				'Invalid priceId format. Expected Stripe price ID starting with "price_"'
+			)
+		}
 
 		this.logger.log('Creating checkout session', {
 			productName: body.productName,
@@ -1189,6 +1177,32 @@ export class StripeController {
 	}
 
 	/**
+	 * Sanitize metadata values to prevent injection attacks
+	 * CLAUDE.md compliant: Security-first approach
+	 */
+	private sanitizeMetadataValue(value: string, fieldName: string): string {
+		if (!value || typeof value !== 'string') {
+			throw new BadRequestException(
+				`Invalid ${fieldName}: must be a non-empty string`
+			)
+		}
+
+		// Remove potential injection characters and limit length
+		const sanitized = value
+			.replace(/[<>'";&\\]/g, '') // Remove dangerous characters
+			.trim()
+			.substring(0, 500) // Stripe metadata limit
+
+		if (!sanitized) {
+			throw new BadRequestException(
+				`Invalid ${fieldName}: contains only invalid characters`
+			)
+		}
+
+		return sanitized
+	}
+
+	/**
 	 * Official Error Handling Pattern from Server SDK docs
 	 * Comprehensive error mapping for production use
 	 */
@@ -1201,34 +1215,38 @@ export class StripeController {
 			request_id: error.requestId
 		})
 
-    switch (error.type) {
-      case 'StripeCardError':
-        throw new BadRequestException({
-          message: `Payment error: ${error.message}`,
-          code: error.code,
-          decline_code: error.decline_code
-        })
+		switch (error.type) {
+			case 'StripeCardError':
+				throw new BadRequestException({
+					message: `Payment error: ${error.message}`,
+					code: error.code,
+					decline_code: error.decline_code
+				})
 
-      case 'StripeInvalidRequestError':
-        throw new BadRequestException({
-          message: 'Invalid request to Stripe',
-          details: error.message
-        })
+			case 'StripeInvalidRequestError':
+				throw new BadRequestException({
+					message: 'Invalid request to Stripe',
+					details: error.message
+				})
 
-      case 'StripeRateLimitError':
-        throw new ServiceUnavailableException('Too many requests to Stripe API')
+			case 'StripeRateLimitError':
+				throw new ServiceUnavailableException('Too many requests to Stripe API')
 
-      case 'StripeConnectionError':
-        throw new ServiceUnavailableException('Network error connecting to Stripe')
+			case 'StripeConnectionError':
+				throw new ServiceUnavailableException(
+					'Network error connecting to Stripe'
+				)
 
-      case 'StripeAuthenticationError':
-        throw new InternalServerErrorException('Stripe authentication failed')
+			case 'StripeAuthenticationError':
+				throw new InternalServerErrorException('Stripe authentication failed')
 
-      case 'StripePermissionError':
-        throw new InternalServerErrorException('Insufficient permissions for Stripe operation')
+			case 'StripePermissionError':
+				throw new InternalServerErrorException(
+					'Insufficient permissions for Stripe operation'
+				)
 
-      default:
-        throw new InternalServerErrorException('Payment processing error')
-    }
-  }
+			default:
+				throw new InternalServerErrorException('Payment processing error')
+		}
+	}
 }
