@@ -9,7 +9,7 @@
  */
 
 import baseConfig from '@repo/eslint-config/base.js'
-import antiDuplicationPlugin from '../../.eslint/plugins/anti-duplication.js'
+// import antiDuplicationPlugin from '../../.eslint/plugins/anti-duplication.js' // File doesn't exist
 import nextPlugin from '@next/eslint-plugin-next'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 
