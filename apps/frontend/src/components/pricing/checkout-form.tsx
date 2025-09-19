@@ -401,18 +401,23 @@ export function CheckoutForm({
 
 						{showTrustSignals && business.trustSignals && (
 							<div className="flex flex-wrap justify-center gap-2 pt-4">
-								{business.trustSignals.map((signal, index) => (
-									<span
-										key={index}
-										className={badgeClasses(
-											'secondary',
-											'sm',
-											'text-xs font-medium'
-										)}
-									>
-										{signal}
-									</span>
-								))}
+								{business.trustSignals.map(
+									(
+										signal: string | { text: string; icon?: string },
+										index: number
+									) => (
+										<span
+											key={index}
+											className={badgeClasses(
+												'secondary',
+												'sm',
+												'text-xs font-medium'
+											)}
+										>
+											{typeof signal === 'string' ? signal : signal.text}
+										</span>
+									)
+								)}
 							</div>
 						)}
 					</div>
@@ -582,15 +587,26 @@ export function CheckoutForm({
 									What's included:
 								</p>
 								<div className="grid grid-cols-1 gap-1">
-									{features.slice(0, 3).map((feature, index) => (
-										<div
-											key={index}
-											className="flex items-center gap-2 text-sm"
-										>
-											<CheckCircle2 className="h-3 w-3 text-accent flex-shrink-0" />
-											<span className="text-muted-foreground">{feature}</span>
-										</div>
-									))}
+									{features
+										.slice(0, 3)
+										.map(
+											(
+												feature: string | { text: string; included: boolean },
+												index: number
+											) => (
+												<div
+													key={index}
+													className="flex items-center gap-2 text-sm"
+												>
+													<CheckCircle2 className="h-3 w-3 text-accent flex-shrink-0" />
+													<span className="text-muted-foreground">
+														{typeof feature === 'string'
+															? feature
+															: feature.text}
+													</span>
+												</div>
+											)
+										)}
 									{features.length > 3 && (
 										<p className="text-xs text-muted-foreground pl-5">
 											+{features.length - 3} more features
@@ -750,14 +766,16 @@ export function CheckoutForm({
 										Trusted by property managers worldwide
 									</p>
 									<div className="flex flex-wrap justify-center gap-2">
-										{business.trustSignals.slice(0, 2).map((signal, index) => (
-											<span
-												key={index}
-												className={badgeClasses('outline', 'sm', 'text-xs')}
-											>
-												{signal}
-											</span>
-										))}
+										{business.trustSignals
+											.slice(0, 2)
+											.map((signal: string, index: number) => (
+												<span
+													key={index}
+													className={badgeClasses('outline', 'sm', 'text-xs')}
+												>
+													{signal}
+												</span>
+											))}
 									</div>
 								</div>
 							)}

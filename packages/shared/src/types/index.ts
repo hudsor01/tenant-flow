@@ -44,6 +44,38 @@ export type {
 	UserRole
 } from './auth'
 
+// Frontend types (UI components and design system)
+export type {
+	AnimationType,
+	BadgeSize,
+	BadgeVariant,
+	ButtonVariant,
+	CheckoutFormProps,
+	ContainerSize,
+	CreatePaymentIntentRequest,
+	CustomerPortalCardProps,
+	DataTableProps,
+	ExtendedCheckoutFormProps,
+	FrontendHealthCheckResponse, // Alias for compatibility
+	GridColumnsConfig,
+	FrontendHealthCheckResponse as HealthCheckResponse,
+	PaginationLinkProps,
+	ResponsiveValuesConfig,
+	RevenueChartDataPoint,
+	RevenueDataPoint,
+	SVGPatternProps,
+	StatusType,
+	TailwindColorName,
+	TailwindRadiusValue,
+	ThemeCSSVariables,
+	ThemeColors,
+	ThemeRadius,
+	UseDataTableInstanceProps,
+	VirtualizedListProps,
+	VirtualizedPropertyListProps,
+	VirtualizedTenantListProps
+} from './frontend'
+
 // UI Component types (pricing components)
 export interface PricingUIData {
 	icon: React.ComponentType<{ className?: string }>
@@ -76,7 +108,10 @@ export type { TenantInput } from '../validation/tenants'
 export type { LeaseInput, LeaseUpdate } from '../validation/leases'
 
 // Lease generator types
-export type { LeaseFormData, StateLeaseRequirements } from './lease-generator.types'
+export type {
+	LeaseFormData,
+	StateLeaseRequirements
+} from './lease-generator.types'
 
 // Controller response types (from errors.ts)
 export type { ControllerApiResponse } from './errors'

@@ -5,7 +5,7 @@
  * Usage: npm run auth:health
  */
 
-import type { FrontendHealthCheckResponse } from '@repo/shared'
+import type { HealthCheckResponse } from '@repo/shared'
 import { logger } from '@repo/shared'
 
 // Environment variables are loaded via Doppler when script is run with 'doppler run --'
@@ -32,7 +32,7 @@ async function runHealthCheck() {
 			throw new Error(`Health check returned ${response.status}`)
 		}
 
-		const data: FrontendHealthCheckResponse = await response.json()
+		const data: HealthCheckResponse = await response.json()
 
 		// Display results
 		logger.info('='.repeat(60))

@@ -29,6 +29,7 @@ import {
 	formatCurrency,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
+import type { RevenueChartDataPoint } from '@repo/shared'
 import { useMemo, useState } from 'react'
 import { Badge } from 'src/components/ui/badge'
 import {
@@ -50,14 +51,6 @@ import {
 	SelectTrigger,
 	SelectValue
 } from 'src/components/ui/select'
-// Local type for revenue chart data
-interface RevenueChartDataPoint {
-	month: string
-	revenue: number
-	recurring: number
-	oneTime: number
-	projected?: number
-}
 
 interface RevenueTrendChartProps {
 	year?: number

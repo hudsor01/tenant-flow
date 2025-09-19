@@ -96,8 +96,9 @@ export interface ThemeCSSVariables {
 // HEALTH CHECK TYPES
 
 export interface FrontendHealthCheckResponse {
-	status: 'ok' | 'error'
+	status: 'ok' | 'error' | 'unhealthy'
 	timestamp: string
+	checks?: Record<string, boolean>
 	services: Array<{
 		name: string
 		status: 'healthy' | 'degraded' | 'down'
@@ -116,6 +117,15 @@ export interface RevenueDataPoint {
 	type: 'income' | 'expense' | 'scheduled'
 	category?: string
 	description?: string
+}
+
+// Chart-specific revenue data point for revenue-trend-chart
+export interface RevenueChartDataPoint {
+	month: string
+	revenue: number
+	recurring: number
+	oneTime: number
+	projected?: number
 }
 
 // PRICING/STRIPE TYPES
@@ -203,7 +213,7 @@ export interface PaginationLinkProps {
 export interface VirtualizedListProps<T> {
 	items: T[]
 	renderItem: (item: T, index: number) => React.ReactNode
-	getItemKey: (item: T) => string | number
+	getItemKey: (item: T, index: number) => string | number
 	itemHeight?: number
 	containerHeight?: number
 	height?: number
