@@ -14,7 +14,7 @@ ARG BUILDKIT_INLINE_CACHE=1
 # dumb-init: Lightweight init system for proper signal handling (2025 best practice)
 RUN apk add --no-cache python3 make g++ dumb-init && \
     rm -rf /var/cache/apk/* /tmp/* && \
-    npm install -g pnpm@9
+    npm install -g pnpm@9 turbo@2.5.6
 
 WORKDIR /app
 
@@ -28,9 +28,9 @@ COPY apps/backend/package.json ./apps/backend/
 COPY packages/*/package.json ./packages/
 
 # Railway-compatible cache mount with pnpm optimization
-# Railway requires cache IDs to be prefixed with cache key
-RUN --mount=type=cache,id=tenantflow-pnpm-cache,target=/root/.local/share/pnpm/store \
-    --mount=type=cache,id=tenantflow-node-modules,target=/app/node_modules \
+# Railway requires cache IDs to be prefixed with service ID: s/<service-id>-<cache-name>
+RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,target=/root/.local/share/pnpm/store \
+    --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-node-modules,target=/app/node_modules \
     pnpm install --frozen-lockfile --prefer-offline
 
 # ===== BUILDER STAGE =====
@@ -70,11 +70,11 @@ COPY apps/backend/package.json ./apps/backend/
 COPY packages/*/package.json ./packages/
 
 # Install production deps with Railway-compatible caching
-RUN --mount=type=cache,id=tenantflow-pnpm-prod,target=/root/.local/share/pnpm/store \
+RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-prod,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prod --prefer-offline
 
 # Install node-prune and optimize node_modules (85% size reduction)
-RUN npm install -g pnpm@9 node-prune && \
+RUN npm install -g pnpm@9 turbo@2.5.6 node-prune && \
     node-prune && \
     rm -rf node_modules/**/test \
            node_modules/**/tests \
