@@ -46,12 +46,9 @@ export class StripeSyncService implements OnModuleInit {
 				schema,
 				autoExpandLists,
 				poolConfig: {
-					max: parseInt(process.env.STRIPE_SYNC_POOL_MAX ?? '10', 10),
-					min: parseInt(process.env.STRIPE_SYNC_POOL_MIN ?? '2', 10),
-					idleTimeoutMillis: parseInt(
-						process.env.STRIPE_SYNC_POOL_IDLE_TIMEOUT ?? '30000',
-						10
-					)
+					max: 10,
+					min: 2,
+					idleTimeoutMillis: 30000
 				}
 			})
 

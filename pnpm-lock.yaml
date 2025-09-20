@@ -14,6 +14,9 @@ importers:
       nestjs-pino:
         specifier: 4.4.0
         version: 4.4.0(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(pino-http@10.5.0)(pino@9.10.0)(rxjs@7.8.2)
+      next:
+        specifier: 15.5.3
+        version: 15.5.3(@opentelemetry/api@1.9.0)(@playwright/test@1.55.0)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       pino-http:
         specifier: 10.5.0
         version: 10.5.0
@@ -200,8 +203,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/shared
       '@supabase/stripe-sync-engine':
-        specifier: 0.43.1
-        version: 0.43.1(stripe@18.5.0(@types/node@24.5.2))
+        specifier: 0.44.0
+        version: 0.44.0(stripe@18.5.0(@types/node@24.5.2))
       '@supabase/supabase-js':
         specifier: ^2.57.4
         version: 2.57.4
@@ -3110,8 +3113,8 @@ packages:
   '@supabase/storage-js@2.12.1':
     resolution: {integrity: sha512-QWg3HV6Db2J81VQx0PqLq0JDBn4Q8B1FYn1kYcbla8+d5WDmTdwwMr+EJAxNOSs9W4mhKMv+EYCpCrTFlTj4VQ==}
 
-  '@supabase/stripe-sync-engine@0.43.1':
-    resolution: {integrity: sha512-bH652Wa+C2F9hG32l+mzKJtzcF8Eyr0hO1V+PE4PTc/H+kWSQPr/fbpowPE9TCnSYv4sov6NLfi7NYno6FYZmg==}
+  '@supabase/stripe-sync-engine@0.44.0':
+    resolution: {integrity: sha512-RieSxJGFOgYrYKrj+ock11SLSO/xTZsF9XFhDa+T3UpS4qoYw1M/U8Whq1f+TkO3zXvvyhWAccOqAez4duHSEw==}
     peerDependencies:
       stripe: '> 11'
 
@@ -10339,7 +10342,7 @@ snapshots:
     dependencies:
       '@supabase/node-fetch': 2.6.15
 
-  '@supabase/stripe-sync-engine@0.43.1(stripe@18.5.0(@types/node@24.5.2))':
+  '@supabase/stripe-sync-engine@0.44.0(stripe@18.5.0(@types/node@24.5.2))':
     dependencies:
       pg: 8.16.3
       pg-node-migrations: 0.0.8
