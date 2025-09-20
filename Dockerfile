@@ -14,7 +14,7 @@ ARG BUILDKIT_INLINE_CACHE=1
 # dumb-init: Lightweight init system for proper signal handling (2025 best practice)
 RUN apk add --no-cache python3 make g++ dumb-init && \
     rm -rf /var/cache/apk/* /tmp/* && \
-    npm install -g pnpm@9 turbo@2.5.6
+    npm install -g pnpm@9 turbo@2.5.6 typescript@5.9.2
 
 WORKDIR /app
 
