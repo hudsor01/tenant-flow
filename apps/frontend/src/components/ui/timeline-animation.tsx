@@ -3,25 +3,23 @@ import { animated } from "@react-spring/web"
 import type React from "react"
 import { useEffect, useState } from "react"
 
-type TimelineContentProps<T extends keyof HTMLElementTagNameMap> = {
+type TimelineContentProps = {
   children?: React.ReactNode
   animationNum: number
   className?: string
   timelineRef: React.RefObject<HTMLElement | null>
-  as?: T
   once?: boolean
   customVariants?: Record<string, unknown>
-} & React.ComponentProps<T>
+} & React.HTMLAttributes<HTMLDivElement>
 
-export const TimelineContent = <T extends keyof HTMLElementTagNameMap = "div">({
+export const TimelineContent = ({
   children,
   animationNum,
   timelineRef,
   className,
-  as: _as,
   once = false,
   ...props
-}: TimelineContentProps<T>) => {
+}: TimelineContentProps) => {
   const [isInView, setIsInView] = useState(false)
   
   useEffect(() => {
@@ -59,7 +57,7 @@ export const TimelineContent = <T extends keyof HTMLElementTagNameMap = "div">({
     <animated.div
       style={spring}
       className={className}
-      {...(props as React.HTMLAttributes<HTMLDivElement>)}
+      {...props}
     >
       {children}
     </animated.div>
