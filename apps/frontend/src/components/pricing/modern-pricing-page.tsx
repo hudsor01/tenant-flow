@@ -2,7 +2,6 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Alert } from '@/components/ui/alert'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { containerClasses } from '@/lib/design-system'
 import { cn } from '@/lib/utils'

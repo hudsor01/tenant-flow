@@ -79,7 +79,7 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-gradient-authority">
+            <DialogTitle className="text-gradient">
               Edit Property
             </DialogTitle>
           </DialogHeader>

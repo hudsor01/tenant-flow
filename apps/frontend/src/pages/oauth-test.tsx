@@ -1,6 +1,6 @@
 export default function OAuthTestPage() {
   return (
-    <div style={{ padding: '40px', fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto' }}>
+    <div style={{ padding: '40px', fontFamily: 'SF Pro Display, SF Pro, -apple-system, BlinkMacSystemFont, sans-serif', maxWidth: '800px', margin: '0 auto' }}>
       <h1>OAuth Configuration Test - Pages Directory</h1>
 
       <h2>✅ OAuth Redirect Loop Fix Applied Successfully</h2>
