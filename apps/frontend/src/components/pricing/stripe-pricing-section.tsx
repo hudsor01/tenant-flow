@@ -33,6 +33,7 @@ import {
 	Sparkles,
 	Star,
 	Target,
+	TrendingUp,
 	Users
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
