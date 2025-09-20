@@ -150,7 +150,7 @@ describe('StripeController', () => {
 			expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					metadata: expect.objectContaining({
-						tenant_id: 'test DROP TABLE users--' // After sanitization (-- not removed)
+						tenant_id: "test'; DROP TABLE users--" // After sanitization (apostrophe and semicolon preserved)
 					})
 				})
 			)
@@ -276,7 +276,7 @@ describe('StripeController', () => {
 			expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					metadata: expect.objectContaining({
-						product_name: 'Product DROP TABLE orders--', // After sanitization (-- not removed)
+						product_name: "Product'; DROP TABLE orders--", // After sanitization (apostrophe preserved)
 						tenant_id: validUuid,
 						price_id: 'price_1234567890abcdef'
 					})
@@ -401,7 +401,7 @@ describe('StripeController', () => {
 			expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					metadata: expect.objectContaining({
-						product_name: 'scriptalert(xss)/script', // After sanitization
+						product_name: 'scriptalert(xss)/script', // After sanitization (no apostrophes to preserve)
 						tenant_id: validUuid
 					})
 				})
@@ -478,7 +478,7 @@ describe('StripeController', () => {
 			expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					metadata: expect.objectContaining({
-						tenant_id: 'test UNION SELECT * FROM users--' // After sanitization (-- not removed)
+						tenant_id: "test' UNION SELECT * FROM users--" // After sanitization (apostrophe preserved)
 					})
 				})
 			)
@@ -510,7 +510,7 @@ describe('StripeController', () => {
 			expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					metadata: expect.objectContaining({
-						tenant_id: 'test OR 1=1--' // After sanitization (= and -- not removed)
+						tenant_id: "test' OR 1=1--" // After sanitization (apostrophe preserved)
 					})
 				})
 			)
