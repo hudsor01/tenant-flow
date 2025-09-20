@@ -20,6 +20,7 @@ const plans = [
 		price: 29,
 		description: 'Perfect for small property managers',
 		icon: Zap,
+		gradient: 'from-blue-500 to-blue-600',
 		features: [
 			'Up to 5 properties',
 			'Professional tenant management',
@@ -32,6 +33,7 @@ const plans = [
 		price: 79,
 		description: 'For expanding property portfolios',
 		icon: Shield,
+		gradient: 'from-purple-500 to-purple-600',
 		features: [
 			'Up to 20 properties',
 			'Advanced analytics & insights',
@@ -46,6 +48,7 @@ const plans = [
 		price: 299,
 		description: 'Enterprise features for serious professionals',
 		icon: Crown,
+		gradient: 'from-emerald-500 to-emerald-600',
 		features: [
 			'Unlimited properties',
 			'White-label portal',
