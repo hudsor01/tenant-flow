@@ -1,44 +1,44 @@
-packages:
-  - 'apps/*'
-  - 'packages/*'
-
 catalog:
   # Core dependencies
-  typescript: 5.9.2
+  '@nestjs/common': ^11.1.6
 
   # React ecosystem
-  react: ^19.1.1
-  react-dom: ^19.1.1
-  '@types/react': ^19.1.13
-  '@types/react-dom': 19.1.9
-
-  # Next.js
-  next: ^15.5.0
-
-  # Node types
-  '@types/node': ^24.5.2
-
-  # NestJS ecosystem
-  '@nestjs/common': ^11.1.6
   '@nestjs/core': ^11.1.6
   '@nestjs/platform-fastify': ^11.1.6
   '@nestjs/swagger': ^8.1.4
   '@nestjs/terminus': 11.0.0
 
-  # Supabase
-  '@supabase/supabase-js': ^2.57.4
+  # Next.js
   '@supabase/ssr': ^0.7.0
 
-  # Testing
-  jest: ^30.5.9
+  # Node types
+  '@supabase/supabase-js': ^2.57.4
+
+  # NestJS ecosystem
   '@types/jest': ^30.5.9
+  '@types/node': ^24.5.2
+  '@types/react-dom': 19.1.9
+  '@types/react': ^19.1.13
+  eslint: ^9.36.0
+
+  # Supabase
+  jest: ^30.5.9
+  next: ^15.5.0
+
+  # Testing
+  prettier: ^3.5.3
+  react: ^19.1.1
 
   # Linting & Formatting
-  eslint: ^9.36.0
-  prettier: ^3.5.3
+  react-dom: ^19.1.1
+  turbo: 2.5.6
 
   # Build tools
-  turbo: 2.5.6
+  typescript: 5.9.2
 
   # Zod
   zod: ^4.1.9
+
+packages:
+  - 'apps/*'
+  - 'packages/*'
