@@ -1,9 +1,3 @@
-lockfileVersion: '9.0'
-
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 importers:
 
   .:
@@ -783,6 +777,7 @@ importers:
 
   packages/typescript-config: {}
 
+lockfileVersion: '9.0'
 packages:
 
   '@ai-sdk/gateway@1.0.24':
@@ -7876,6 +7871,10 @@ packages:
         optional: true
       use-sync-external-store:
         optional: true
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
 
 snapshots:
 
