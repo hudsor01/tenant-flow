@@ -9,7 +9,7 @@ ARG BUILDKIT_INLINE_CACHE=1
 # Install essential build dependencies with security focus
 # python3, make, g++: Required for native Node modules
 # dumb-init: Lightweight init system for proper signal handling (2025 best practice)
-RUN apk add --no-cache python3 make g++ dumb-init ca-certificates && \
+RUN apk add --no-cache bash python3 make g++ dumb-init ca-certificates && \
     rm -rf /var/cache/apk/* /tmp/* && \
     npm install -g pnpm@10 turbo@2.5.6
 
@@ -25,6 +25,7 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json apps/backend/
 COPY packages/*/package.json packages/
+COPY scripts/prepare-husky.cjs scripts/
 
 # Install dependencies with cache mount for pnpm store only
 # Note: node_modules must be persisted in the image layer, not just in cache
@@ -33,11 +34,13 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,targ
 
 FROM base AS build
 
-COPY --from=deps /root/.local/share/pnpm /root/.local/share/pnpm
+ENV DOPPLER_DISABLED=1
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN pnpm install --frozen-lockfile --offline
+RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --prefer-offline
 
 # Build with environment optimizations
 ENV TURBO_TELEMETRY_DISABLED=1 \
@@ -45,32 +48,64 @@ ENV TURBO_TELEMETRY_DISABLED=1 \
 
 # Parallel builds with error handling
 RUN pnpm run build:shared && \
+    pnpm run build:database && \
     pnpm run build:backend
 
 # Ensure runtime has access to Handlebars templates compiled from TypeScript
 RUN mkdir -p apps/backend/dist/pdf/templates \
     && cp -R apps/backend/src/pdf/templates/. apps/backend/dist/pdf/templates/
 
-# ===== PROD-DEPS OPTIMIZATION =====
-# Clean production dependencies with node-prune (2025 technique)
-FROM base AS prod-deps
+# ===== RUNTIME STAGE =====
+# Ultra-minimal production image (~200MB total)
+FROM node:${NODE_VERSION} AS runtime
+
+RUN apk add --no-cache \
+        bash \
+        chromium \
+        nss \
+        freetype \
+        harfbuzz \
+        ca-certificates \
+        ttf-freefont \
+        dumb-init \
+    && rm -rf /var/cache/apk/* /tmp/*
+
+# Install pnpm for workspace support
+RUN npm install -g pnpm@10
+
+WORKDIR /app
 
 ENV NODE_ENV=production \
-    HUSKY=0
+    DOCKER_CONTAINER=true \
+    NODE_OPTIONS="--enable-source-maps --max-old-space-size=512" \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    PNPM_HOME=/root/.local/share/pnpm \
+    PATH=$PNPM_HOME:$PATH
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY apps/backend/package.json apps/backend/
-COPY packages/shared/package.json packages/shared/
-COPY packages/database/package.json packages/database/
+# Copy workspace configuration for proper module resolution
+COPY --from=build --chown=node:node /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+COPY --from=build --chown=node:node /app/scripts/prepare-husky.cjs ./scripts/prepare-husky.cjs
 
-# Install production deps with Railway-compatible caching
+# Copy backend application
+COPY --from=build --chown=node:node /app/apps/backend/package.json ./apps/backend/package.json
+COPY --from=build --chown=node:node /app/apps/backend/dist ./apps/backend/dist
+
+# Copy shared package (workspace dependency)
+COPY --from=build --chown=node:node /app/packages/shared/package.json ./packages/shared/package.json
+COPY --from=build --chown=node:node /app/packages/shared/dist ./packages/shared/dist
+
+# Copy database package artifacts for runtime usage
+COPY --from=build --chown=node:node /app/packages/database/package.json ./packages/database/package.json
+COPY --from=build --chown=node:node /app/packages/database/dist ./packages/database/dist
+
+# Install production dependencies in the runtime environment
+# This ensures workspace dependencies resolve correctly
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-prod,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --prod --prefer-offline
+    pnpm install --frozen-lockfile --prod --prefer-offline --filter @repo/backend...
 
-# Install node-prune and optimize node_modules (85% size reduction)
-RUN npm install -g pnpm@10 turbo@2.5.6 node-prune && \
-    node-prune && \
-    rm -rf node_modules/**/test \
+# Clean up dev files to reduce size but keep essential files
+RUN rm -rf node_modules/**/test \
            node_modules/**/tests \
            node_modules/**/*.map \
            node_modules/**/*.ts \
@@ -82,39 +117,10 @@ RUN npm install -g pnpm@10 turbo@2.5.6 node-prune && \
            node_modules/**/readme* \
            node_modules/**/.github \
            node_modules/**/CHANGELOG* \
-           node_modules/**/changelog*
-
-# ===== RUNTIME STAGE =====
-# Ultra-minimal production image (~150MB total)
-FROM node:${NODE_VERSION} AS runtime
-
-RUN apk add --no-cache \
-        chromium \
-        nss \
-        freetype \
-        harfbuzz \
-        ca-certificates \
-        ttf-freefont \
-        dumb-init \
-    && rm -rf /var/cache/apk/* /tmp/*
-
-WORKDIR /app
-
-ENV NODE_ENV=production \
-    DOCKER_CONTAINER=true \
-    NODE_OPTIONS="--enable-source-maps --max-old-space-size=512" \
-    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+           node_modules/**/changelog* \
+    && rm -rf /root/.local/share/pnpm/store
 
 USER node
-
-COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
-COPY --from=build --chown=node:node /app/apps/backend/package.json ./apps/backend/package.json
-COPY --from=build --chown=node:node /app/apps/backend/dist ./apps/backend/dist
-COPY --from=build --chown=node:node /app/packages/shared/package.json ./packages/shared/package.json
-COPY --from=build --chown=node:node /app/packages/shared/dist ./packages/shared/dist
-COPY --from=build --chown=node:node /app/packages/database/package.json ./packages/database/package.json
-COPY --from=build --chown=node:node /app/packages/database/dist ./packages/database/dist
 
 ARG PORT=4600
 ENV PORT=${PORT}

@@ -3,11 +3,11 @@
 # Husky v9.1.7 optimized pre-push hook
 # Runs parallel checks using Turbo for maximum speed
 
-echo "🔍 Running pre-push validation..."
+echo "🔍 Running fast pre-push validation (typecheck + tests only)..."
 
-# Use Turbo's built-in parallelization for all checks
-# Filter only changed files since HEAD^1 for speed
-npx turbo run typecheck lint:fix build test:unit \
+# Lightweight pre-push validation - skip expensive builds
+# Only run critical checks that prevent deployment failures
+npx turbo run typecheck test:unit \
   --cache-dir=.turbo \
   --filter='[HEAD^1]' \
   --concurrency=10 || {

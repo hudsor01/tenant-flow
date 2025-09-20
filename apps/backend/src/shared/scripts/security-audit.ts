@@ -99,9 +99,16 @@ class SecurityAuditService {
 				for (const entry of entries) {
 					const fullPath = path.join(dir, entry.name)
 
-					if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
+					if (
+						entry.isDirectory() &&
+						!entry.name.startsWith('.') &&
+						entry.name !== 'node_modules'
+					) {
 						await walkDir(fullPath)
-					} else if (entry.isFile() && entry.name.endsWith('.controller.ts')) {
+					} else if (
+						entry.isFile() &&
+						/\.controller\.(?:ts|js)$/.test(entry.name)
+					) {
 						files.push(fullPath)
 					}
 				}
@@ -135,7 +142,9 @@ class SecurityAuditService {
 				/@Controller\(['"`]?([^'"`)]*)['"`]?\)/
 			)
 			const controllerPath = controllerMatch?.[1] || ''
-			const className = path.basename(filePath, '.controller.ts')
+			const className = path
+				.basename(filePath)
+				.replace(/\.controller\.(?:ts|js)$/i, '')
 
 			// Extract method decorators and their paths
 			const methodRegex =
