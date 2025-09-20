@@ -111,8 +111,8 @@ export const Cover = ({
 
 export const Beam = ({
 	className,
-	delay: _delay,
-	duration: _duration,
+	delay = 0,
+	duration = 2,
 	hovered,
 	width = 600,
 	...svgProps
@@ -125,6 +125,13 @@ export const Beam = ({
 } & Omit<React.ComponentProps<'svg'>, 'ref'>) => {
 	const id = useId()
 
+	const animationStyle = useSpring({
+		opacity: hovered ? 1 : 0,
+		scale: hovered ? 1 : 0.8,
+		delay: delay * 1000,
+		config: { duration: duration * 1000 }
+	})
+
 	return (
 		<animated.svg
 			width={width ?? '600'}
@@ -133,6 +140,7 @@ export const Beam = ({
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 			className={cn('absolute inset-x-0 w-full', className)}
+			style={animationStyle}
 			{...svgProps}
 		>
 			<path d={`M0 0.5H${width ?? '600'}`} stroke={`url(#svgGradient-${id})`} />
@@ -157,17 +165,26 @@ export const Beam = ({
 
 export const CircleIcon = ({
 	className,
-	delay: _delay
+	delay = 0
 }: {
 	className?: string
 	delay?: number
 }) => {
+	const animationStyle = useSpring({
+		opacity: 1,
+		scale: 1,
+		from: { opacity: 0, scale: 0.8 },
+		delay: delay * 1000,
+		config: config.wobbly
+	})
+
 	return (
-		<div
+		<animated.div
+			style={animationStyle}
 			className={cn(
 				`pointer-events-none animate-pulse group-hover/cover:hidden group-hover/cover:opacity-100 group h-2 w-2 rounded-full bg-muted-foreground opacity-20 group-hover/cover:bg-background`,
 				className
 			)}
-		></div>
+		></animated.div>
 	)
 }

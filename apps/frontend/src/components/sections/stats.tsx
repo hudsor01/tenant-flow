@@ -81,7 +81,7 @@ interface StatsProps extends React.ComponentProps<'section'> {
 
 export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 	(
-		{ showFeatures = true, variant: _variant = 'default', className, ...props },
+		{ showFeatures = true, className, ...props },
 		ref
 	) => {
 		return (
@@ -170,7 +170,7 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 													decimalPlaces={stat.decimalPlaces || 0}
 													suffix={stat.suffix}
 													className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100"
-													size="heading-lg"
+													size="sf-display-md-bold"
 													variant="default"
 													animationDuration={2000}
 													delay={index * 0.2}

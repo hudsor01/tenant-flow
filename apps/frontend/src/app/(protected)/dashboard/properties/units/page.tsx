@@ -47,19 +47,12 @@ export default function UnitsPage({
 	const vacantUnits = filteredUnits.filter(
 		(unit: UnitRowDB) => unit.status === 'VACANT'
 	)
-	const _maintenanceUnits = filteredUnits.filter(
+	const maintenanceUnits = filteredUnits.filter(
 		(unit: UnitRowDB) => unit.status === 'MAINTENANCE'
 	)
 	const occupancyRate =
 		filteredUnits.length > 0
 			? (occupiedUnits.length / filteredUnits.length) * 100
-			: 0
-	const avgRent =
-		filteredUnits.length > 0
-			? filteredUnits.reduce(
-					(sum: number, unit: UnitRowDB) => sum + (unit.rent || 0),
-					0
-				) / filteredUnits.length
 			: 0
 
 	return (
@@ -117,25 +110,16 @@ export default function UnitsPage({
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex items-center justify-between mb-2">
 						<h3 className="text-sm font-medium text-muted-foreground">
-							Avg Monthly Rent
+							Maintenance
 						</h3>
 						<div
 							className="w-2 h-2 rounded-full"
-							style={{ backgroundColor: 'var(--chart-3)' }}
+							style={{ backgroundColor: 'var(--chart-5)' }}
 						/>
 					</div>
-					<div
-						className="text-2xl font-bold"
-						style={{ color: 'var(--chart-3)' }}
-					>
-						{new Intl.NumberFormat('en-US', {
-							style: 'currency',
-							currency: 'USD',
-							maximumFractionDigits: 0
-						}).format(avgRent)}
-					</div>
-					<div className="text-xs mt-1 text-muted-foreground">
-						Per unit average
+					<div className="text-2xl font-bold">{maintenanceUnits.length}</div>
+					<div className="text-xs mt-1" style={{ color: 'var(--chart-5)' }}>
+						Needs attention
 					</div>
 				</div>
 			</div>

@@ -78,10 +78,10 @@ export function MinimalistPricingSection({
 					{/* Section Header */}
 					<animated.div style={headerSpring} className="text-center mb-20">
 						<BlurFade delay={0.1} inView>
-							<h2 className="text-3xl sm:text-4xl lg:text-6xl font-medium mb-6 text-gradient-authority">
+							<h2 className="text-3xl sm:text-4xl lg:text-6xl font-medium mb-6 text-gradient">
 								Simple pricing.
 								<br />
-								<span className="text-gradient-authority">No surprises.</span>
+								<span className="text-gradient">No surprises.</span>
 							</h2>
 						</BlurFade>
 

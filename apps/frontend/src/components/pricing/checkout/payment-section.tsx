@@ -30,7 +30,6 @@ interface Props {
 export function PaymentSection({
 	clientSecret,
 	stripe,
-	elements: _elements,
 	isProcessing,
 	paymentStatus,
 	error,
