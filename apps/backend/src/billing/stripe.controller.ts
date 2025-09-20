@@ -1188,40 +1188,25 @@ export class StripeController {
 			)
 		}
 
-		// Limit length to Stripe's metadata value limit (500 characters)
 		if (value.length > 500) {
 			throw new BadRequestException(
 				`${fieldName} must be less than 500 characters`
 			)
 		}
 
-		// Check for SQL injection patterns and control characters first
-		const dangerousPatterns = [
-			/['";]/, // SQL quotes
-			/--/, // SQL comments
-			/\/\*/, // SQL block comments
-			/\b(drop|select|insert|update|delete|union|exec|execute)\b/i // SQL keywords
-		]
+		const normalizedValue = value.normalize('NFKC')
 
-		// Check for control characters separately to avoid ESLint warning
-		const hasControlChars = /[\x00-\x1F\x7F]/.test(value) // eslint-disable-line no-control-regex
-
-		for (const pattern of dangerousPatterns) {
-			if (pattern.test(value)) {
-				throw new BadRequestException(
-					`${fieldName} contains invalid characters or patterns`
-				)
-			}
+		// Check for control characters (0x00-0x1F and 0x7F)
+		// eslint-disable-next-line no-control-regex
+		if (/[\x00-\x1F\x7F]/.test(normalizedValue)) {
+			throw new BadRequestException(`${fieldName} contains control characters`)
 		}
 
-		if (hasControlChars) {
-			throw new BadRequestException(
-				`${fieldName} contains invalid characters or patterns`
-			)
-		}
-
-		// Remove potentially dangerous characters and whitespace
-		const sanitized = value.trim().replace(/[<>"\\\r\n\t]/g, '')
+		const sanitized = normalizedValue
+			.trim()
+			.replace(/[<>"'`;&\\]/g, '')
+			.replace(/[\r\n\t]+/g, ' ')
+			.replace(/\s{2,}/g, ' ')
 
 		if (!sanitized) {
 			throw new BadRequestException(
