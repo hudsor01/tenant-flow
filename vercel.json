@@ -14,7 +14,7 @@
 	},
 
 	"installCommand": "pnpm install --frozen-lockfile",
-	"buildCommand": "turbo run build --filter=@repo/frontend",
+	"buildCommand": "pnpm run build:frontend",
 	"outputDirectory": "apps/frontend/.next",
 
 	"regions": ["iad1"],
