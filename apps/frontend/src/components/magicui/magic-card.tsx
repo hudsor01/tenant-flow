@@ -8,12 +8,10 @@ interface MousePosition {
 	y: number
 }
 
-// eslint-disable-next-line type-centralization/no-inline-types
 interface MagicCardProps extends React.HTMLAttributes<HTMLDivElement> {
 	children: React.ReactNode
 	gradientColor?: string
 	gradientOpacity?: number
-	// eslint-disable-next-line type-centralization/no-inline-types
 	variant?: 'default' | 'elevated' | 'bordered' | 'glass' | 'premium'
 	size?: 'sm' | 'md' | 'lg' | 'xl'
 	interactive?: boolean

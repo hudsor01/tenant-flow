@@ -55,7 +55,7 @@ export function useTenantsFormatted(status?: string) {
             summary: {
                 total: data.length,
                 active: data.length, // All tenants are considered active since status doesn't exist in DB
-                byStatus: data.reduce((acc: Record<string, number>, _tenant: TenantWithLeaseInfo) => {
+                byStatus: data.reduce((acc: Record<string, number>) => {
                     const status = 'ACTIVE' // Default status since tenant.status doesn't exist in DB
                     acc[status] = (acc[status] || 0) + 1
                     return acc

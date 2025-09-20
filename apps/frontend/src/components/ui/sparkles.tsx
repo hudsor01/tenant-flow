@@ -8,7 +8,6 @@ interface SparklesProps {
 	size?: number
 	minSize?: number
 	density?: number
-	speed?: number
 	opacity?: number
 	color?: string
 	children?: React.ReactNode
@@ -61,7 +60,6 @@ export function Sparkles({
 	size = 1.2,
 	minSize = 0.4,
 	density = 800,
-	speed: _speed = 1.2,
 	opacity = 1,
 	color = 'hsl(var(--accent))',
 	children

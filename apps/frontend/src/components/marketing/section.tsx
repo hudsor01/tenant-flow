@@ -23,7 +23,7 @@ export function Section({
   ...props
 }: SectionProps) {
   const pad = size === 'sm' ? 'py-8' : size === 'md' ? 'py-12' : size === 'lg' ? 'py-16' : 'py-24'
-  const bg = background === 'authority' ? 'gradient-authority' : background === 'professional' ? 'gradient-professional' : ''
+  const bg = background === 'authority' ? 'gradient-background' : background === 'professional' ? 'gradient-professional' : ''
 
   return (
     <section className={cn(pad, bg, className)} {...props}>
