@@ -7,7 +7,6 @@ interface GlowingEffectProps {
   children: React.ReactNode;
   className?: string;
   glowColor?: string;
-  glowSize?: string;
   glowOpacity?: number;
 }
 
@@ -15,7 +14,6 @@ export function GlowingEffect({
   children,
   className,
   glowColor = "hsl(var(--primary))",
-  glowSize: _glowSize = "20px",
   glowOpacity = 0.4,
 }: GlowingEffectProps) {
   return (

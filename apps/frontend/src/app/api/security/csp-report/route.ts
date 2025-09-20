@@ -100,35 +100,117 @@ function filterCSPViolation(report: CSPViolationReport): boolean {
  * Log security violations to monitoring service
  */
 async function logToSecurityMonitoring(
-  _report: CSPViolationReport, 
-  _request: NextRequest
+  report: CSPViolationReport,
+  request: NextRequest
 ): Promise<void> {
-  // In production, integrate with your monitoring service
-  // Example integrations:
-  
-  // Sentry
-  // Sentry.captureException(new Error('CSP Violation'), {
-  //   tags: { type: 'csp_violation' },
-  //   extra: report
-  // })
-  
-  // DataDog
-  // datadogLogs.logger.warn('CSP Violation', report)
-  
-  // Custom webhook
-  // await fetch('https://your-monitoring-service.com/csp-violations', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({ report, metadata: getRequestMetadata(request) })
-  // })
+  const metadata = getRequestMetadata(request)
 
-  console.info('Security violation logged for monitoring')
+  const securityEvent = {
+    type: 'csp_violation',
+    severity: 'warning',
+    timestamp: metadata.timestamp,
+    report: {
+      violatedDirective: report['violated-directive'],
+      blockedURI: report['blocked-uri'],
+      lineNumber: report['line-number'],
+      sourceFile: report['source-file'],
+      effectiveDirective: report['effective-directive'],
+      documentURI: report['document-uri'],
+      referrer: report.referrer,
+      statusCode: report['status-code']
+    },
+    client: {
+      ip: metadata.ip,
+      userAgent: metadata.userAgent,
+      referer: metadata.referer,
+      origin: metadata.origin
+    }
+  }
+
+  // Structured logging for production monitoring
+  console.warn('SECURITY_EVENT', JSON.stringify(securityEvent))
+
+  // Send to external monitoring service if configured
+  const monitoringWebhook = process.env.SECURITY_MONITORING_WEBHOOK
+  if (monitoringWebhook) {
+    try {
+      await fetch(monitoringWebhook, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.SECURITY_MONITORING_TOKEN}`
+        },
+        body: JSON.stringify(securityEvent)
+      })
+    } catch (error) {
+      console.error('Failed to send security event to monitoring service:', error)
+    }
+  }
+
+  // Store in database for security audit trail
+  try {
+    await storeSecurityEvent(securityEvent)
+  } catch (error) {
+    console.error('Failed to store security event:', error)
+  }
+}
+
+/**
+ * Store security event in database for audit trail
+ */
+interface SecurityEvent {
+  type: string
+  severity: string
+  timestamp: string
+  report: {
+    violatedDirective: string
+    blockedURI: string
+    lineNumber: number
+    sourceFile: string
+    effectiveDirective: string
+    documentURI: string
+    referrer: string
+    statusCode: number
+  }
+  client: {
+    ip: string
+    userAgent: string | null
+    referer: string | null
+    origin: string | null
+  }
+}
+
+async function storeSecurityEvent(securityEvent: SecurityEvent): Promise<void> {
+  // In a real implementation, store this in your database
+  // Example with Supabase:
+
+  const { createClient } = await import('@supabase/supabase-js')
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.warn('Supabase not configured for security event storage')
+    return
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+  await supabase
+    .from('security_events')
+    .insert({
+      event_type: securityEvent.type,
+      severity: securityEvent.severity,
+      data: securityEvent,
+      client_ip: securityEvent.client.ip,
+      user_agent: securityEvent.client.userAgent,
+      created_at: securityEvent.timestamp
+    })
 }
 
 /**
  * Extract request metadata for security analysis
  */
-function _getRequestMetadata(request: NextRequest) {
+function getRequestMetadata(request: NextRequest) {
   return {
     timestamp: new Date().toISOString(),
     ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'anonymous',

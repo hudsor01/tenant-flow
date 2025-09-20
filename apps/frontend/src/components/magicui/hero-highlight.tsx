@@ -3,7 +3,6 @@ import { ANIMATION_DURATIONS, cn, containerClasses } from '@/lib/design-system'
 import type { ComponentSize } from '@repo/shared'
 import React from 'react'
 
-// eslint-disable-next-line type-centralization/no-inline-types
 interface HeroHighlightProps {
 	children: React.ReactNode
 	className?: string
@@ -89,7 +88,6 @@ export const HeroHighlight = ({
 	)
 }
 
-// eslint-disable-next-line type-centralization/no-inline-types
 interface HighlightProps {
 	children: React.ReactNode
 	className?: string

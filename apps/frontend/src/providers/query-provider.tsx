@@ -48,7 +48,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
     })
   )
 
-  const ErrorFallback = createErrorBoundaryFallback('application')
+  const ErrorFallback = createErrorBoundaryFallback()
 
   return (
     <QueryClientProvider client={queryClient}>

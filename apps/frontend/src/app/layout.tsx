@@ -117,14 +117,13 @@ export default function RootLayout({
 				<meta name="application-name" content="TenantFlow" />
 				<meta name="msapplication-TileColor" content="hsl(var(--primary))" />
 				<meta name="msapplication-config" content="/browserconfig.xml" />
-				<link rel="preconnect" href="https://fonts.googleapis.com" />
+				<link rel="preconnect" href="https://api.fonts.cofo.sasjs.io" />
 				<link
 					rel="preconnect"
-					href="https://fonts.gstatic.com"
+					href="https://api.fonts.cofo.sasjs.io"
 					crossOrigin="anonymous"
 				/>
-				<link rel="dns-prefetch" href="//fonts.googleapis.com" />
-				<link rel="dns-prefetch" href="//fonts.gstatic.com" />
+				<link rel="dns-prefetch" href="//api.fonts.cofo.sasjs.io" />
 				<script
 					type="application/ld+json"
 					dangerouslySetInnerHTML={{

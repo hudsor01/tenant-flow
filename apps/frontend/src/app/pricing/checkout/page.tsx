@@ -14,6 +14,7 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 export default function CheckoutPage() {
 	const router = useRouter()
@@ -25,8 +26,10 @@ export default function CheckoutPage() {
 		router.push('/pricing/success')
 	}
 
-	const handleError = (_error: unknown) => {
-		// Payment failed - handle error appropriately
+	const handleError = (error: unknown) => {
+		console.error('Payment failed:', error)
+		toast.error('Payment failed. Please try again.')
+		router.push('/pricing')
 	}
 
 	const formatCurrency = (cents: number) => {

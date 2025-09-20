@@ -178,7 +178,7 @@ export function createMutationErrorHandler(
 /**
  * Error boundary helper for React components
  */
-export function createErrorBoundaryFallback(_entityType?: string) {
+export function createErrorBoundaryFallback() {
   return function ErrorFallback({
     error,
     resetErrorBoundary

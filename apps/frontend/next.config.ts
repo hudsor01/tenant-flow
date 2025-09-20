@@ -1,5 +1,4 @@
 import type { NextConfig } from 'next'
-import { join } from 'path'
 
 if (
 	process.env.NODE_ENV === 'development' &&
@@ -11,37 +10,8 @@ if (
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	experimental: {
-		serverMinification: false
-	},
-	webpack: (config, { dev, isServer: _isServer }) => {
-		if (dev) {
-			// Faster development builds
-			config.cache = {
-				type: 'filesystem',
-				buildDependencies: {
-					config: [join(__dirname, 'next.config.ts')]
-				}
-			}
-
-			// Reduce module resolution overhead
-			config.resolve.symlinks = false
-
-			// Optimize chunk splitting for faster HMR
-			config.optimization = {
-				...config.optimization,
-				splitChunks: {
-					chunks: 'all',
-					cacheGroups: {
-						vendor: {
-							test: /[\\/]node_modules[\\/]/,
-							name: 'vendors',
-							chunks: 'all'
-						}
-					}
-				}
-			}
-		}
-		return config
+		serverMinification: false,
+		esmExternals: true
 	},
 	eslint: {
 		dirs: ['src'],

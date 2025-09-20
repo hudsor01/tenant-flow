@@ -259,10 +259,7 @@ export function CustomerPortalCard({
 								>
 									Account Management
 								</CardTitle>
-								<p
-									className="text-muted-foreground"
-									style={{ fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize }}
-								>
+								<p className="text-callout text-muted-foreground">
 									Manage your subscription and billing preferences
 								</p>
 							</div>
@@ -300,10 +297,7 @@ export function CustomerPortalCard({
 					{showStats && (
 						<div className="bg-gradient-to-r from-muted/10 via-background to-muted/10 rounded-2xl p-6 border-2 border-muted/20">
 							<div className="flex items-center justify-between mb-6">
-								<h4
-									className="font-bold text-foreground flex items-center gap-3"
-									style={{ fontSize: TYPOGRAPHY_SCALE['heading-md'].fontSize }}
-								>
+								<h4 className="text-heading text-foreground flex items-center gap-3">
 									<div className="p-2 bg-primary/10 rounded-lg">
 										<Activity className="h-5 w-5 text-primary" />
 									</div>
@@ -382,10 +376,7 @@ export function CustomerPortalCard({
 					{billingInfo && (
 						<div className="bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl p-6 border border-accent/20">
 							<div className="flex items-center justify-between mb-6">
-								<h4
-									className="font-bold text-foreground flex items-center gap-3"
-									style={{ fontSize: TYPOGRAPHY_SCALE['heading-md'].fontSize }}
-								>
+								<h4 className="text-heading text-foreground flex items-center gap-3">
 									<div className="p-2 bg-accent/10 rounded-lg">
 										<CreditCard className="h-5 w-5 text-accent" />
 									</div>
@@ -481,7 +472,6 @@ export function CustomerPortalCard({
 								</div>
 								<blockquote
 									className="text-foreground text-center leading-relaxed font-medium"
-									style={{ fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize }}
 								>
 									"{testimonial.text}"
 								</blockquote>
@@ -515,7 +505,6 @@ export function CustomerPortalCard({
 								<div>
 									<h5
 										className="font-bold text-foreground"
-										style={{ fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize }}
 									>
 										Payment Management
 									</h5>
@@ -540,7 +529,6 @@ export function CustomerPortalCard({
 								<div>
 									<h5
 										className="font-bold text-foreground"
-										style={{ fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize }}
 									>
 										Invoices & Receipts
 									</h5>
@@ -565,7 +553,6 @@ export function CustomerPortalCard({
 								<div>
 									<h5
 										className="font-bold text-foreground"
-										style={{ fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize }}
 									>
 										Usage Reports
 									</h5>
@@ -590,7 +577,6 @@ export function CustomerPortalCard({
 								<div>
 									<h5
 										className="font-bold text-foreground"
-										style={{ fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize }}
 									>
 										Plan Management
 									</h5>

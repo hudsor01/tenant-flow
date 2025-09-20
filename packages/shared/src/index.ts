@@ -105,9 +105,28 @@ export type {
 	ComponentSize,
 	ShadowSize,
 	SpacingSize,
-	TypographyVariant,
+	TypographyVariant as DesignSystemTypographyVariant,
 	ZIndexLevel
 } from './constants/design-system'
+
+// TYPOGRAPHY TOKEN BRIDGE
+export {
+	SEMANTIC_TYPOGRAPHY,
+	TOKEN_TO_TAILWIND_MAP,
+	TYPOGRAPHY_SCALE_MIGRATION,
+	TYPOGRAPHY_TOKENS,
+	getSemanticTypography,
+	getTypographyClassName,
+	getTypographyClasses,
+	getTypographyToken,
+	migrateTypographyScale
+} from './constants/typography-tokens'
+
+export type {
+	SemanticTypographyVariant,
+	TypographyProps,
+	TypographyVariant
+} from './constants/typography-tokens'
 
 // APPLE MOTION SYSTEM - OBSESSION-WORTHY INTERACTIONS
 export {

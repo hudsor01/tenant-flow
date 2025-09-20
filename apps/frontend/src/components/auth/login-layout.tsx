@@ -4,11 +4,10 @@ import * as React from 'react'
 import Image from "next/image"
 import { Lock, Zap, Smartphone } from 'lucide-react'
 import { LoginForm } from "./login-form"
-import { 
-  cn, 
+import {
+  cn,
   // cardClasses,
-  ANIMATION_DURATIONS,
-  TYPOGRAPHY_SCALE
+  ANIMATION_DURATIONS
 } from '@/lib/utils'
 
 interface LoginLayoutProps extends Omit<React.ComponentProps<'div'>, 'content' | 'onSubmit'> {
@@ -45,8 +44,8 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
     isGoogleLoading: _isGoogleLoading = false,
     imageOnRight = false,
     imageUrl = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-    title: _title = "Welcome Back",
-    subtitle: _subtitle = "Sign in to your TenantFlow account to continue managing your properties",
+    title = "Welcome Back",
+    subtitle = "Sign in to your TenantFlow account to continue managing your properties",
     content = {
       heading: "Manage Your Properties",
       description: "Streamline tenant management, track maintenance, and maximize your real estate investments with TenantFlow's comprehensive platform.",
@@ -106,12 +105,12 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
                 </div>
 
                 {/* High contrast heading */}
-                <h2 className={cn("font-bold text-white drop-shadow-lg animate-in fade-in slide-in-from-bottom-4 delay-200", `duration-[${ANIMATION_DURATIONS.slow}]`)} style={{ fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight, lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight }}>
+                <h2 className={cn("text-section-title text-white drop-shadow-lg animate-in fade-in slide-in-from-bottom-4 delay-200", `duration-[${ANIMATION_DURATIONS.slow}]`)}>
                   {content.heading}
                 </h2>
 
                 {/* High contrast description */}
-                <p className={cn("text-white/95 max-w-md mx-auto leading-relaxed drop-shadow-md animate-in fade-in slide-in-from-bottom-4 delay-300", `duration-[${ANIMATION_DURATIONS.slow}]`)} style={{ fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-lg'].lineHeight }}>
+                <p className={cn("text-body text-white/95 max-w-md mx-auto leading-relaxed drop-shadow-md animate-in fade-in slide-in-from-bottom-4 delay-300", `duration-[${ANIMATION_DURATIONS.slow}]`)}>
                   {content.description}
                 </p>
 
@@ -123,12 +122,11 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
                       className={cn("text-center group animate-in fade-in slide-in-from-bottom-4", `duration-[${ANIMATION_DURATIONS.slow}]`)}
                       style={{animationDelay: `${400 + index * 100}ms`}}
                     >
-                      <div className={cn("text-white mb-1 font-bold drop-shadow-md group-hover:scale-105", `transition-transform duration-[${ANIMATION_DURATIONS.default}]`)} style={{ fontSize: TYPOGRAPHY_SCALE['heading-md'].fontSize, fontWeight: TYPOGRAPHY_SCALE['heading-md'].fontWeight }}>
+                      <div className={cn("text-heading text-white mb-1 drop-shadow-md group-hover:scale-105", `transition-transform duration-[${ANIMATION_DURATIONS.default}]`)}>
                         {stat.value}
                       </div>
                       <div
-                        className={cn("text-white/90 leading-tight drop-shadow-sm group-hover:text-white", `transition-colors duration-[${ANIMATION_DURATIONS.default}]`)}
-                        style={{ fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize, lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight }}
+                        className={cn("text-caption text-white/90 leading-tight drop-shadow-sm group-hover:text-white", `transition-colors duration-[${ANIMATION_DURATIONS.default}]`)}
                         dangerouslySetInnerHTML={{__html: stat.label.replace('\n', '<br />')}}
                       />
                     </div>
@@ -177,9 +175,10 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 
             <div className="space-y-2">
               <h1 className="text-2xl font-bold text-foreground tracking-tight">
-                TenantFlow
+                {title}
               </h1>
               <p className="text-muted-foreground text-sm leading-relaxed">
+                {subtitle}
                 Professional Property Management Platform
               </p>
             </div>

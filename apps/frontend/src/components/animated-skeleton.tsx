@@ -5,7 +5,6 @@ import { animated, config, useSpring } from '@react-spring/web'
 import * as React from 'react'
 
 interface AnimatedSkeletonProps extends React.ComponentProps<'div'> {
-	// eslint-disable-next-line type-centralization/no-inline-types
 	variant?: 'default' | 'text' | 'circle' | 'card' | 'metric'
 	width?: string | number
 	height?: string | number

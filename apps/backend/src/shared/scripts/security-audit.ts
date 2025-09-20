@@ -19,7 +19,6 @@ import {
 } from '@nestjs/platform-fastify'
 import type { EndpointAudit, SecurityAuditReport } from '@repo/shared'
 import * as fs from 'fs'
-import { glob } from 'glob'
 import * as path from 'path'
 import { AppModule } from '../../app.module'
 
@@ -88,12 +87,33 @@ class SecurityAuditService {
 	}
 
 	private async findControllerFiles(): Promise<string[]> {
-		const pattern = path.join(__dirname, '../../**/*.controller.{ts,js}')
+		const fs = await import('fs/promises')
+		const controllersDir = path.join(__dirname, '../../')
+
 		try {
-			const result = await glob(pattern)
-			return result as string[]
-		} catch (_error: unknown) {
-			// Silently ignore glob errors and return empty array
+			const files: string[] = []
+
+			async function walkDir(dir: string): Promise<void> {
+				const entries = await fs.readdir(dir, { withFileTypes: true })
+
+				for (const entry of entries) {
+					const fullPath = path.join(dir, entry.name)
+
+					if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
+						await walkDir(fullPath)
+					} else if (entry.isFile() && entry.name.endsWith('.controller.ts')) {
+						files.push(fullPath)
+					}
+				}
+			}
+
+			await walkDir(controllersDir)
+			return files
+		} catch (error: unknown) {
+			// Silently ignore file system errors and return empty array
+			if (error instanceof Error) {
+				// Could log error if needed: console.error('File system error:', error.message)
+			}
 			return []
 		}
 	}

@@ -11,6 +11,8 @@
 
 import nextPlugin from '@next/eslint-plugin-next'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
+import tseslint from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
 
 export default [
 
@@ -55,11 +57,13 @@ export default [
 		name: 'frontend/react-typescript',
 		files: ['**/*.ts', '**/*.tsx'],
 		plugins: {
-			'react-hooks': reactHooksPlugin
+			'react-hooks': reactHooksPlugin,
+			'@typescript-eslint': tseslint
 		},
 		languageOptions: {
+			parser: tsParser,
 			parserOptions: {
-				projectService: true,
+				project: './tsconfig.json',
 				tsconfigRootDir: import.meta.dirname,
 				ecmaFeatures: {
 					jsx: true

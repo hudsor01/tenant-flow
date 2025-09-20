@@ -36,11 +36,11 @@ export const PremiumHeroSection = React.forwardRef<
 	(
 		{
 			announcementText = 'Trusted by 10,000+ property managers',
-			headline: _headline = 'Simplify Property Management',
+			headline = 'Simplify Property Management',
 			subheadline = "Professional property managers streamline operations, automate workflows, and scale their business with TenantFlow's enterprise-grade platform.",
-			primaryCTAText: _primaryCTAText = 'Start 14-day transformation',
+			primaryCTAText = 'Start 14-day transformation',
 			primaryCTAHref = '/auth/sign-up',
-			secondaryCTAText: _secondaryCTAText = 'See ROI calculator',
+			secondaryCTAText = 'See ROI calculator',
 			secondaryCTAHref = '/demo',
 			className,
 			...props
@@ -97,9 +97,7 @@ export const PremiumHeroSection = React.forwardRef<
 									className="text-balance leading-tight mb-6 text-gradient-authority"
 									style={TYPOGRAPHY_SCALE['display-2xl']}
 								>
-									Simplify
-									<br />
-									Property Management
+									{headline}
 								</h1>
 								<p
 									className="text-muted-foreground leading-relaxed text-balance max-w-3xl mx-auto"
@@ -121,7 +119,7 @@ export const PremiumHeroSection = React.forwardRef<
 									>
 										<Link href={primaryCTAHref}>
 											<span className="flex items-center gap-3">
-												Get Started Free
+												{primaryCTAText}
 												<ArrowRight className="w-6 h-6" />
 											</span>
 										</Link>
@@ -141,7 +139,7 @@ export const PremiumHeroSection = React.forwardRef<
 									>
 										<Link href={secondaryCTAHref}>
 											<Play className="w-5 h-5 mr-3" />
-											View Demo
+											{secondaryCTAText}
 										</Link>
 									</Button>
 								</div>

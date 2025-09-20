@@ -37,7 +37,7 @@ type RentPaymentFormData = z.infer<typeof rentPaymentSchema>
 
 export function RentCollectionDialog() {
 	const [open, setOpen] = useState(false)
-	const _queryClient = useQueryClient()
+	const queryClient = useQueryClient()
 
 	const { data: tenants = [] } = useQuery({
 		queryKey: ['tenants'],
@@ -55,16 +55,21 @@ export function RentCollectionDialog() {
 	})
 
 	const createPaymentMutation = useMutation({
-		mutationFn: async (_data: RentPaymentFormData) => {
+		mutationFn: async (data: RentPaymentFormData) => {
 			// TODO: Implement payments controller in NestJS backend
 			// Backend needs: apps/backend/src/payments/payments.controller.ts
 			// Route should be: ${API_BASE_URL}/api/v1/payments/create-rent-payment
+			console.log('Payment data to be sent:', data)
 			toast.info('Payment collection feature coming soon!')
 			return Promise.resolve({ success: false })
 		},
 		onSuccess: () => {
 			setOpen(false)
 			form.reset()
+			// Invalidate and refetch related queries
+			queryClient.invalidateQueries({ queryKey: ['tenants'] })
+			queryClient.invalidateQueries({ queryKey: ['payments'] })
+			toast.success('Payment request created successfully!')
 		},
 		onError: error => {
 			toast.error(`Failed to create payment: ${error.message}`)

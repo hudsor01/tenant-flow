@@ -193,10 +193,11 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 				ref={ref}
 				style={navbarSpring}
 				className={cn(
-					'fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 rounded-2xl px-6 py-4 w-[95%] max-w-6xl',
+					'fixed top-4 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 rounded-full px-4 py-2 w-auto',
 					isScrolled
-						? 'bg-background/95 backdrop-blur-xl shadow-2xl border border-border/50'
-						: 'bg-background/90 backdrop-blur-lg shadow-xl border border-border/30',
+						? 'bg-white/95 backdrop-blur-xl shadow-xl border border-gray-200/30 scale-[0.98]'
+						: 'bg-white/80 backdrop-blur-xl shadow-lg border border-gray-200/20',
+					'hover:bg-white/95 hover:shadow-xl',
 					className
 				)}
 				{...props}
@@ -306,7 +307,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 						) : (
 							<>
 								<Link
-									href="/auth/login"
+									href="/login"
 									className="hidden sm:flex px-4 py-2 text-foreground hover:text-foreground rounded-xl hover:bg-muted/50 transition-all duration-300 font-medium"
 								>
 									Sign In
@@ -447,7 +448,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 											onMouseLeave={() => setHoveredMobileItem(null)}
 										>
 											<Link
-												href="/auth/login"
+												href="/login"
 												onClick={() => setIsOpen(false)}
 												className="block px-4 py-3 text-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
 											>

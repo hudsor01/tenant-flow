@@ -47,7 +47,7 @@ export const SaasHeroSection = React.forwardRef<
 	(
 		{
 			announcementText = 'Trusted by 10,000+ property managers',
-			headline: _headline = 'Simplify Property Management',
+			headline = 'Simplify Property Management',
 			subheadline = "Professional property managers streamline operations, automate workflows, and scale their business with TenantFlow's enterprise-grade platform.",
 			primaryCTAText = 'Start 14-day transformation',
 			primaryCTAHref = '/auth/sign-up',
@@ -116,11 +116,7 @@ export const SaasHeroSection = React.forwardRef<
 								className="text-foreground tracking-tight text-balance leading-tight mb-6"
 								style={TYPOGRAPHY_SCALE['display-2xl']}
 							>
-								<span className="inline-block bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent drop-shadow-lg">
-									Simplify
-								</span>
-								<br />
-								<span className="text-foreground">Property Management</span>
+								{headline}
 							</h1>
 						</BlurFade>
 

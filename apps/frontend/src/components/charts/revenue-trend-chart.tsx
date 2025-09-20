@@ -354,7 +354,6 @@ export function RevenueTrendChart() {
 	const [timeRange, setTimeRange] = React.useState('12m')
 	const [showInsights, setShowInsights] = React.useState(false)
 	const [showBreakdown, setShowBreakdown] = React.useState(true)
-	const [_selectedMetric, _setSelectedMetric] = React.useState('total')
 
 	const analytics = React.useMemo(() => calculateAnalytics(revenueData), [])
 
