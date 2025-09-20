@@ -6,6 +6,8 @@ import { getCORSConfig } from '@repo/shared'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import 'reflect-metadata'
 import { AppModule } from './app.module'
+
+// Trigger Railway deployment after fixing husky script
 import { HEALTH_PATHS } from './shared/constants/routes'
 import { routeSchemaRegistry } from './shared/utils/route-schema-registry'
 
