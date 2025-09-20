@@ -39,7 +39,6 @@ catalog:
 
   # Build tools
   turbo: 2.5.6
-  vite: ^6.0.14
 
   # Zod
   zod: ^4.1.9
