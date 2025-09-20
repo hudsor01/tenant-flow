@@ -9,7 +9,7 @@ ARG BUILDKIT_INLINE_CACHE=1
 # Install essential build dependencies with security focus
 # python3, make, g++: Required for native Node modules
 # dumb-init: Lightweight init system for proper signal handling (2025 best practice)
-RUN apk add --no-cache python3 make g++ dumb-init ca-certificates && \
+RUN apk add --no-cache bash python3 make g++ dumb-init ca-certificates && \
     rm -rf /var/cache/apk/* /tmp/* && \
     npm install -g pnpm@10 turbo@2.5.6
 
@@ -69,9 +69,8 @@ COPY scripts/prepare-husky.cjs scripts/
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-prod,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prod --prefer-offline
 
-# Install node-prune and optimize node_modules (85% size reduction)
-RUN npm install -g pnpm@10 turbo@2.5.6 node-prune && \
-    node-prune && \
+# Optimize node_modules (reduce size for production)
+RUN npm install -g pnpm@10 turbo@2.5.6 && \
     rm -rf node_modules/**/test \
            node_modules/**/tests \
            node_modules/**/*.map \
@@ -91,6 +90,7 @@ RUN npm install -g pnpm@10 turbo@2.5.6 node-prune && \
 FROM node:${NODE_VERSION} AS runtime
 
 RUN apk add --no-cache \
+        bash \
         chromium \
         nss \
         freetype \
