@@ -146,11 +146,11 @@ describe('StripeController', () => {
 
 			expect(result.clientSecret).toBe('pi_test123_secret')
 
-			// Verify sanitization removed dangerous characters
+			// Verify sanitization removed dangerous characters but kept apostrophe
 			expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					metadata: expect.objectContaining({
-						tenant_id: 'test DROP TABLE users--' // After sanitization (-- not removed)
+						tenant_id: "test' DROP TABLE users--" // After sanitization (apostrophe preserved, semicolon removed)
 					})
 				})
 			)
@@ -171,7 +171,7 @@ describe('StripeController', () => {
 			)
 
 			const result = await controller.createCheckoutSession({
-				productName: 'Test Product',
+				productName: 'Select Plan',
 				tenantId: validUuid,
 				domain: 'https://example.com',
 				priceId: 'price_1234567890abcdef',
@@ -182,6 +182,49 @@ describe('StripeController', () => {
 				url: 'https://checkout.stripe.com/test',
 				session_id: 'cs_test123'
 			})
+
+			expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
+				expect.objectContaining({
+					metadata: expect.objectContaining({
+						product_name: 'Select Plan'
+					})
+				})
+			)
+		})
+
+		it('should allow product names with apostrophes and punctuation', async () => {
+			const validUuid = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+			const descriptiveName = "Tenant's Premium Plan (Annual)"
+
+			const mockSession = {
+				id: 'cs_test456',
+				url: 'https://checkout.stripe.com/test/tenant'
+			} as Stripe.Checkout.Session
+
+			;(mockStripe.checkout.sessions.create as jest.Mock).mockResolvedValue(
+				mockSession
+			)
+
+			const result = await controller.createCheckoutSession({
+				productName: descriptiveName,
+				tenantId: validUuid,
+				domain: 'https://tenant.example.com',
+				priceId: 'price_abcdef1234567890',
+				isSubscription: true
+			})
+
+			expect(result).toEqual({
+				url: 'https://checkout.stripe.com/test/tenant',
+				session_id: 'cs_test456'
+			})
+
+			expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
+				expect.objectContaining({
+					metadata: expect.objectContaining({
+						product_name: "Tenant's Premium Plan (Annual)" // Apostrophe preserved
+					})
+				})
+			)
 		})
 
 		it('should throw BadRequestException for missing productName', async () => {
@@ -233,7 +276,7 @@ describe('StripeController', () => {
 			expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					metadata: expect.objectContaining({
-						product_name: 'Product DROP TABLE orders--', // After sanitization (-- not removed)
+						product_name: "Product' DROP TABLE orders--", // After sanitization (apostrophe preserved, semicolon removed)
 						tenant_id: validUuid,
 						price_id: 'price_1234567890abcdef'
 					})
@@ -309,7 +352,7 @@ describe('StripeController', () => {
 	describe('Error Handling - Sanitization vs Stripe Errors', () => {
 		it('should return 400 for strings that become empty after sanitization', async () => {
 			const validUuid = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
-			const onlyDangerousChars = '<>\'";&\\\\'
+			const onlyDangerousChars = '<>"`;&\\\\'
 
 			try {
 				await controller.createCheckoutSession({
@@ -393,7 +436,7 @@ describe('StripeController', () => {
 
 	describe('Security Tests', () => {
 		it('should reject strings containing only dangerous characters', async () => {
-			const onlyDangerousChars = '<>\'";&\\\\'
+			const onlyDangerousChars = '<>"`;&\\\\'
 
 			try {
 				await controller.createPaymentIntent({
@@ -435,7 +478,7 @@ describe('StripeController', () => {
 			expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					metadata: expect.objectContaining({
-						tenant_id: 'test UNION SELECT * FROM users--' // After sanitization (-- not removed)
+						tenant_id: "test' UNION SELECT * FROM users--" // After sanitization (apostrophe preserved)
 					})
 				})
 			)
@@ -467,7 +510,7 @@ describe('StripeController', () => {
 			expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					metadata: expect.objectContaining({
-						tenant_id: 'test OR 1=1--' // After sanitization (= and -- not removed)
+						tenant_id: "test' OR 1=1--" // After sanitization (apostrophe preserved)
 					})
 				})
 			)
