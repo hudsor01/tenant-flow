@@ -5,8 +5,6 @@
  * 75% reduction from previous scattered type definitions
  */
 
-import type * as React from 'react'
-
 // =============================================================================
 // PRIMARY EXPORT - Consolidated core types using native TypeScript features
 // =============================================================================
@@ -44,22 +42,7 @@ export type {
 	UserRole
 } from './auth'
 
-// UI Component types (pricing components)
-export interface PricingUIData {
-	icon: React.ComponentType<{ className?: string }>
-	popular: boolean
-	tier: string
-	tagline: string
-	enhanced_features: Array<{ text: string; highlight: boolean }>
-	benefits: string[]
-	cta: string
-	highlight: string
-	monthlySavings: number
-	yearlySavings: number
-	savingsPercentage: number
-	formattedPrice: string
-	fullYearPrice: string
-}
+// UI Component types exported from frontend.ts via export * from './frontend'
 
 // Validation types (Zod integration) - correct imports
 export type {
