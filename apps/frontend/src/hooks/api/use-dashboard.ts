@@ -3,7 +3,6 @@
  */
 import { useQuery } from '@tanstack/react-query'
 import { dashboardApi } from '@/lib/api-client'
-import type { DashboardStats as _DashboardStats } from '@repo/shared'
 
 /**
  * Query keys for dashboard endpoints

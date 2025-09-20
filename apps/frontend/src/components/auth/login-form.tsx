@@ -21,7 +21,7 @@ export function LoginForm({
 	onSubmit,
 	onForgotPassword,
 	onSignUp,
-	onLogin: _onLogin,
+	onLogin,
 	onGoogleLogin,
 	isLoading,
 	isGoogleLoading
@@ -44,8 +44,14 @@ export function LoginForm({
 	const [validFields, setValidFields] = useState<Record<string, boolean>>({})
 
 	const validateField = (name: string, value: string) => {
-		const _schema = isLogin ? loginZodSchema : registerZodSchema
+		const schema = isLogin ? loginZodSchema : registerZodSchema
 		const tempForm = { ...form, [name]: value }
+
+		try {
+			schema.parse(tempForm)
+		} catch {
+			// Schema validation will be used for complete form validation
+		}
 
 		try {
 			// For login, only validate email and password
@@ -197,6 +203,11 @@ export function LoginForm({
 		}
 
 		onSubmit?.(form)
+
+		// Call specific login callback if in login mode
+		if (isLogin) {
+			onLogin?.()
+		}
 	}
 
 	return (

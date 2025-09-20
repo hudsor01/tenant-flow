@@ -69,7 +69,7 @@ export async function middleware(request: NextRequest) {
 
 		// Redirect unauthenticated users to login if accessing protected routes
 		if (isProtectedRoute && !isAuthenticated) {
-			const loginUrl = new URL('/auth/login', request.url)
+			const loginUrl = new URL('/login', request.url)
 			// Optional: Add the attempted URL as a query parameter for post-login redirect
 			loginUrl.searchParams.set('redirectTo', pathname)
 

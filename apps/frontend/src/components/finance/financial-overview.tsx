@@ -71,13 +71,13 @@ const chartConfig = {
 
 export function FinancialOverview() {
 	const [selectedPeriod, setSelectedPeriod] = useState<string>('last-year')
-	const [selectedYear, _setSelectedYear] = useState<number>(
+	const [selectedYear, setSelectedYear] = useState<number>(
 		new Date().getFullYear()
 	)
 	const {
 		data: financialData,
 		isLoading,
-		error: _error
+		error
 	} = useFinancialOverview(selectedYear)
 
 	// Memoized calculations for better performance
@@ -146,6 +146,32 @@ export function FinancialOverview() {
 			metrics: { avgMonthlyIncome, avgMonthlyExpenses, profitMargin }
 		}
 	}, [financialData])
+
+	// Error state with user-friendly messaging
+	if (error) {
+		return (
+			<Card className={cn(cardClasses('elevated'), 'shadow-xl border-2 bg-card/95')}>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2 text-destructive">
+						<TrendingDown className="size-5" />
+						Unable to Load Financial Data
+					</CardTitle>
+					<CardDescription>
+						We encountered an issue loading your financial overview. Please try again.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<Button
+						onClick={() => window.location.reload()}
+						variant="outline"
+						className="w-full"
+					>
+						Retry Loading
+					</Button>
+				</CardContent>
+			</Card>
+		)
+	}
 
 	// Loading state with enhanced skeleton
 	if (isLoading) {
@@ -256,6 +282,20 @@ export function FinancialOverview() {
 						</CardDescription>
 					</div>
 					<CardAction className="flex items-center gap-3">
+						<Select
+							value={selectedYear.toString()}
+							onValueChange={(value) => setSelectedYear(parseInt(value, 10))}
+							aria-label="Select year for financial data"
+						>
+							<SelectTrigger className="w-auto min-w-[120px] transition-all shadow-sm hover:shadow-md bg-background border-2">
+								<SelectValue placeholder="Select year" />
+							</SelectTrigger>
+							<SelectContent>
+								{Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+									<SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
 						<Select
 							value={selectedPeriod}
 							onValueChange={setSelectedPeriod}
