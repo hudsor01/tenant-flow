@@ -64,7 +64,6 @@ ENV NODE_ENV=production \
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json apps/backend/
 COPY packages/shared/package.json packages/shared/
-COPY packages/database/package.json packages/database/
 COPY scripts/prepare-husky.cjs scripts/
 
 # Install production deps with Railway-compatible caching
@@ -117,8 +116,6 @@ COPY --from=build --chown=node:node /app/apps/backend/package.json ./apps/backen
 COPY --from=build --chown=node:node /app/apps/backend/dist ./apps/backend/dist
 COPY --from=build --chown=node:node /app/packages/shared/package.json ./packages/shared/package.json
 COPY --from=build --chown=node:node /app/packages/shared/dist ./packages/shared/dist
-COPY --from=build --chown=node:node /app/packages/database/package.json ./packages/database/package.json
-COPY --from=build --chown=node:node /app/packages/database/dist ./packages/database/dist
 
 ARG PORT=4600
 ENV PORT=${PORT}
