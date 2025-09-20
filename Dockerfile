@@ -34,7 +34,8 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,targ
 
 FROM base AS build
 
-COPY --from=deps /root/.local/share/pnpm /root/.local/share/pnpm
+ENV DOPPLER_DISABLED=1
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
