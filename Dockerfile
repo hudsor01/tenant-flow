@@ -27,10 +27,9 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json ./apps/backend/
 COPY packages/*/package.json ./packages/
 
-# Railway-compatible cache mount with pnpm optimization
-# Railway requires cache IDs to be prefixed with service ID: s/<service-id>-<cache-name>
+# Install dependencies with cache mount for pnpm store only
+# Note: node_modules must be persisted in the image layer, not just in cache
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,target=/root/.local/share/pnpm/store \
-    --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-node-modules,target=/app/node_modules \
     pnpm install --frozen-lockfile --prefer-offline
 
 # ===== BUILDER STAGE =====
@@ -39,8 +38,14 @@ FROM base AS builder
 
 WORKDIR /app
 
-# Copy dependencies and source with selective filtering
-COPY --from=deps /app ./
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=deps /app/turbo.json ./turbo.json
+COPY --from=deps /app/apps/backend/package.json ./apps/backend/package.json
+COPY --from=deps /app/packages ./packages
 COPY . .
 
 # Remove non-essential files early (saves ~200MB in intermediate layers)
