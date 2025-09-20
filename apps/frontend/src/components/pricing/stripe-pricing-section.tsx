@@ -17,7 +17,7 @@ import {
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
 import { type PricingUIData } from '@repo/shared'
-import { type PricingConfig } from '@repo/shared'
+import { type PricingConfig } from '@repo/shared/config/pricing'
 import { useMutation } from '@tanstack/react-query'
 import {
 	ArrowRight,
@@ -102,9 +102,7 @@ export function StripePricingSection({
 		planId: string
 	})[] => {
 		return activePlans.map(
-			(
-				plan: PricingConfig
-			): PricingUIData & { name: string; planId: string } => {
+			(plan): PricingUIData & { name: string; planId: string } => {
 				if (!plan.price)
 					return {
 						name: plan.name || '',
@@ -205,7 +203,10 @@ export function StripePricingSection({
 			}
 
 			// Get the appropriate Stripe price ID for the selected plan and billing period
-			const stripePriceId = getStripeId(selectedPlan.planId, isYearly ? 'annual' : 'monthly')
+			const stripePriceId = getStripeId(
+				selectedPlan.planId,
+				isYearly ? 'annual' : 'monthly'
+			)
 			if (!stripePriceId) {
 				throw new Error(
 					`No ${isYearly ? 'annual' : 'monthly'} price configured for ${planId} plan`

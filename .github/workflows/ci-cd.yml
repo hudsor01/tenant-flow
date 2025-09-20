@@ -1,22 +1,17 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: CI/CD
 
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
+on: [pull_request, push]
 
 env:
   NODE_VERSION: '22'
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
     concurrency:
-      group: ci-${{ github.ref }}
       cancel-in-progress: true
+      group: ci-${{ github.ref }}
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -30,18 +25,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build packages
-        env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      - env:
           BACKEND_SCHEMAS_DIR: ./supabase/schema-exports
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        name: Build packages
         run: pnpm run build:ci
 
       - name: Run tests
@@ -50,19 +45,20 @@ jobs:
       - name: Lint check
         run: pnpm run lint
 
+    timeout-minutes: 15
   deploy-backend:
+    if: github.ref == 'refs/heads/main'
     name: Deploy Backend
     needs: build-and-test
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy to Railway
+      - env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        name: Deploy to Railway
         run: |
           npm i -g @railway/cli@3
           railway up --service=tenantflow-backend
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

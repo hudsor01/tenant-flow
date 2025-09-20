@@ -48,7 +48,7 @@
 		"@react-email/components": "0.5.3",
 		"@repo/shared": "workspace:*",
 		"react": "^19.1.1",
-		"@supabase/stripe-sync-engine": "0.43.1",
+		"@supabase/stripe-sync-engine": "0.44.0",
 		"@supabase/supabase-js": "^2.57.4",
 		"class-transformer": "0.5.1",
 		"class-validator": "0.14.2",

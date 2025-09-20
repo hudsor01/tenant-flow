@@ -471,7 +471,7 @@ export class StripeController {
 			)
 		}
 
-		// Sanitize all metadata values (outside try-catch to preserve BadRequestException)
+		// Sanitize all metadata values BEFORE try block to return proper 400 errors
 		const sanitizedTenantId = this.sanitizeMetadataValue(
 			body.tenantId,
 			'tenant_id'
@@ -581,6 +581,12 @@ export class StripeController {
 		const sanitizedPropertyId = body.propertyId
 			? this.sanitizeMetadataValue(body.propertyId, 'property_id')
 			: undefined
+		const sanitizedPropertyOwnerAccount = body.propertyOwnerAccount
+			? this.sanitizeMetadataValue(
+					body.propertyOwnerAccount,
+					'property_owner_account'
+				)
+			: undefined
 
 		try {
 			const paymentIntent = await this.stripe.paymentIntents.create(
@@ -589,12 +595,7 @@ export class StripeController {
 					currency: 'usd',
 					application_fee_amount: body.platformFee, // TenantFlow commission
 					transfer_data: {
-						destination: body.propertyOwnerAccount
-							? this.sanitizeMetadataValue(
-									body.propertyOwnerAccount,
-									'property_owner_account'
-								)
-							: ''
+						destination: sanitizedPropertyOwnerAccount || ''
 					},
 					metadata: {
 						tenant_id: sanitizedTenantId,
@@ -1177,6 +1178,40 @@ export class StripeController {
 	}
 
 	/**
+	 * Sanitize metadata values to prevent injection attacks
+	 * CLAUDE.md compliant: Security-first approach
+	 */
+	private sanitizeMetadataValue(value: string, fieldName: string): string {
+		if (!value || typeof value !== 'string') {
+			throw new BadRequestException(
+				`Invalid ${fieldName}: must be a non-empty string`
+			)
+		}
+
+		// Check for control characters first (before sanitization)
+		// eslint-disable-next-line no-control-regex
+		if (/[\x00-\x1F\x7F]/.test(value)) {
+			throw new BadRequestException(
+				`Invalid ${fieldName}: contains control characters`
+			)
+		}
+
+		// Remove potential injection characters and limit length
+		const sanitized = value
+			.replace(/[<>'";&\\]/g, '') // Remove dangerous characters
+			.trim()
+			.substring(0, 500) // Stripe metadata limit
+
+		if (!sanitized) {
+			throw new BadRequestException(
+				`Invalid ${fieldName}: contains only invalid characters`
+			)
+		}
+
+		return sanitized
+	}
+
+	/**
 	 * Official Error Handling Pattern from Server SDK docs
 	 * Comprehensive error mapping for production use
 	 */
@@ -1222,151 +1257,5 @@ export class StripeController {
 			default:
 				throw new InternalServerErrorException('Payment processing error')
 		}
-	}
-
-	/**
-	 * Security: Sanitize metadata values to prevent SQL injection
-	 *
-	 * Stripe metadata values are stored and may be used in database queries.
-	 * This method ensures values are safe for both Stripe API and database operations.
-	 *
-	 * @param value - The raw input value to sanitize
-	 * @param fieldName - The field name for logging purposes
-	 * @returns Sanitized value safe for Stripe metadata and database operations
-	 */
-	private sanitizeMetadataValue(value: string, fieldName: string): string {
-		// Validate input exists
-		if (!value || typeof value !== 'string') {
-			this.logger.warn(`Invalid metadata value for ${fieldName}: not a string`)
-			return ''
-		}
-
-		// Truncate to reasonable length (Stripe metadata value limit is 500 chars)
-		if (value.length > 500) {
-			this.logger.warn(
-				`Metadata value for ${fieldName} too long, truncating from ${value.length} to 500 chars`
-			)
-			value = value.substring(0, 500)
-		}
-
-		// Remove null bytes and control characters
-		// Filter out control characters using charCodeAt approach
-		let sanitized = value
-			.split('')
-			.filter(char => {
-				const code = char.charCodeAt(0)
-				return code > 31 && code !== 127 && code !== 0
-			})
-			.join('')
-
-		// Normalize unicode to prevent encoding attacks
-		sanitized = sanitized.normalize('NFC')
-
-		// Remove leading/trailing whitespace
-		sanitized = sanitized.trim()
-
-		// Escape special characters that could be used for SQL injection
-		// This is defense in depth - parameterized queries should be used in database layer
-		sanitized = sanitized
-			.replace(/'/g, "''") // SQL single quote escaping
-			.replace(/\\/g, '\\\\') // Backslash escaping
-			.replace(/"/g, '""') // Double quote escaping for identifiers
-
-		// Detect and block common SQL injection patterns
-		const sqlInjectionPatterns = [
-			/(\bunion\b.*\bselect\b|\bselect\b.*\bunion\b)/gi,
-			/(\bor\b|\band\b)\s+\d+\s*=\s*\d+/gi, // OR 1=1 patterns
-			/(exec|execute|sp_executesql|xp_cmdshell)\s*\(/gi,
-			/(\bdrop\b|\bdelete\b|\btruncate\b|\balter\b)\s+(table|database)/gi,
-			/--\s*$|\/\*.*\*\//g // SQL comments
-		]
-
-		for (const pattern of sqlInjectionPatterns) {
-			if (pattern.test(sanitized)) {
-				this.logger.error(`SQL injection attempt detected in ${fieldName}`, {
-					original: value.substring(0, 100),
-					pattern: pattern.toString()
-				})
-				throw new BadRequestException(`Invalid characters in ${fieldName}`)
-			}
-		}
-
-		// Additional validation for specific field types
-		if (fieldName === 'tenant_id' || fieldName === 'property_id') {
-			// These should be UUIDs - validate format
-			const uuidPattern =
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-			if (!uuidPattern.test(sanitized)) {
-				this.logger.warn(
-					`Invalid UUID format for ${fieldName}: ${sanitized.substring(0, 50)}`
-				)
-				throw new BadRequestException(`Invalid ${fieldName} format`)
-			}
-		}
-
-		if (fieldName === 'property_owner_account') {
-			// Stripe connected account IDs start with 'acct_'
-			const stripeAccountPattern = /^acct_[a-zA-Z0-9]+$/
-			if (!stripeAccountPattern.test(sanitized)) {
-				this.logger.warn(
-					`Invalid Stripe account format for ${fieldName}: ${sanitized.substring(0, 50)}`
-				)
-				throw new BadRequestException(`Invalid ${fieldName} format`)
-			}
-		}
-
-		if (fieldName === 'price_id') {
-			// Stripe price IDs start with 'price_'
-			const stripePricePattern = /^price_[a-zA-Z0-9]+$/
-			if (
-				!stripePricePattern.test(sanitized) &&
-				sanitized !== 'legacy_amount'
-			) {
-				this.logger.warn(
-					`Invalid Stripe price format for ${fieldName}: ${sanitized.substring(0, 50)}`
-				)
-				throw new BadRequestException(`Invalid ${fieldName} format`)
-			}
-		}
-
-		if (fieldName === 'product_name') {
-			// Product names should be alphanumeric with spaces, hyphens, and underscores
-			const productNamePattern = /^[a-zA-Z0-9\s\-_]+$/
-			if (!productNamePattern.test(sanitized)) {
-				this.logger.warn(`Invalid product_name format: ${sanitized}`)
-				throw new BadRequestException('Invalid product_name format')
-			}
-		}
-
-		if (fieldName === 'subscription_type') {
-			// Subscription types should be alphanumeric with underscores only
-			const subscriptionPattern = /^[a-zA-Z0-9_]+$/
-			if (!subscriptionPattern.test(sanitized)) {
-				this.logger.warn(`Invalid subscription_type format: ${sanitized}`)
-				throw new BadRequestException('Invalid subscription_type format')
-			}
-
-			// Limit to known subscription types
-			const allowedTypes = [
-				'starter',
-				'growth',
-				'professional',
-				'enterprise',
-				'trial',
-				'custom'
-			]
-			if (!allowedTypes.includes(sanitized.toLowerCase())) {
-				this.logger.warn(`Unknown subscription_type: ${sanitized}`)
-				throw new BadRequestException('Invalid subscription_type')
-			}
-		}
-
-		this.logger.debug(`Sanitized metadata value for ${fieldName}`, {
-			originalLength: value.length,
-			sanitizedLength: sanitized.length,
-			changed: value !== sanitized
-		})
-
-		return sanitized
 	}
 }
