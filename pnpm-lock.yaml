@@ -1,3 +1,9 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 importers:
 
   .:
@@ -197,8 +203,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/shared
       '@supabase/stripe-sync-engine':
-        specifier: 0.43.1
-        version: 0.43.1(stripe@18.5.0(@types/node@24.5.2))
+        specifier: 0.44.0
+        version: 0.44.0(stripe@18.5.0(@types/node@24.5.2))
       '@supabase/supabase-js':
         specifier: ^2.57.4
         version: 2.57.4
@@ -777,7 +783,6 @@ importers:
 
   packages/typescript-config: {}
 
-lockfileVersion: '9.0'
 packages:
 
   '@ai-sdk/gateway@1.0.24':
@@ -3108,8 +3113,8 @@ packages:
   '@supabase/storage-js@2.12.1':
     resolution: {integrity: sha512-QWg3HV6Db2J81VQx0PqLq0JDBn4Q8B1FYn1kYcbla8+d5WDmTdwwMr+EJAxNOSs9W4mhKMv+EYCpCrTFlTj4VQ==}
 
-  '@supabase/stripe-sync-engine@0.43.1':
-    resolution: {integrity: sha512-bH652Wa+C2F9hG32l+mzKJtzcF8Eyr0hO1V+PE4PTc/H+kWSQPr/fbpowPE9TCnSYv4sov6NLfi7NYno6FYZmg==}
+  '@supabase/stripe-sync-engine@0.44.0':
+    resolution: {integrity: sha512-RieSxJGFOgYrYKrj+ock11SLSO/xTZsF9XFhDa+T3UpS4qoYw1M/U8Whq1f+TkO3zXvvyhWAccOqAez4duHSEw==}
     peerDependencies:
       stripe: '> 11'
 
@@ -7872,10 +7877,6 @@ packages:
       use-sync-external-store:
         optional: true
 
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 snapshots:
 
   '@ai-sdk/gateway@1.0.24(zod@4.1.9)':
@@ -10341,7 +10342,7 @@ snapshots:
     dependencies:
       '@supabase/node-fetch': 2.6.15
 
-  '@supabase/stripe-sync-engine@0.43.1(stripe@18.5.0(@types/node@24.5.2))':
+  '@supabase/stripe-sync-engine@0.44.0(stripe@18.5.0(@types/node@24.5.2))':
     dependencies:
       pg: 8.16.3
       pg-node-migrations: 0.0.8
