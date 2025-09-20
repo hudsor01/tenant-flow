@@ -134,28 +134,40 @@ export class SecurityMonitorService implements OnModuleInit {
 		const enhanced = { ...event }
 
 		// Analyze request payload for known attack patterns
-		if (event.metadata.requestBody || event.metadata.queryParams) {
+		if (
+			event.metadata &&
+			(event.metadata.requestBody || event.metadata.queryParams)
+		) {
 			const payload = JSON.stringify(event.metadata)
 
 			// SQL Injection detection
 			if (this.detectThreat(payload, this.threatPatterns.sqlInjection)) {
 				enhanced.type = 'sql_injection_attempt'
 				enhanced.severity = 'high'
-				enhanced.metadata.threatType = 'sql_injection'
+				enhanced.metadata = {
+					...(enhanced.metadata || {}),
+					threatType: 'sql_injection'
+				}
 			}
 
 			// XSS detection
 			if (this.detectThreat(payload, this.threatPatterns.xssAttempt)) {
 				enhanced.type = 'xss_attempt'
 				enhanced.severity = 'high'
-				enhanced.metadata.threatType = 'xss'
+				enhanced.metadata = {
+					...(enhanced.metadata || {}),
+					threatType: 'xss'
+				}
 			}
 
 			// Path traversal detection
 			if (this.detectThreat(payload, this.threatPatterns.pathTraversal)) {
 				enhanced.type = 'malicious_request'
 				enhanced.severity = 'medium'
-				enhanced.metadata.threatType = 'path_traversal'
+				enhanced.metadata = {
+					...(enhanced.metadata || {}),
+					threatType: 'path_traversal'
+				}
 			}
 		}
 
