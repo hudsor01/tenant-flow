@@ -14,28 +14,10 @@
 	},
 
 	"installCommand": "pnpm install --frozen-lockfile",
-	"buildCommand": "turbo run build --filter=@repo/frontend",
+	"buildCommand": "turbo run build --filter=@repo/shared && turbo run build --filter=@repo/frontend",
 	"outputDirectory": "apps/frontend/.next",
 
 	"regions": ["iad1"],
-
-	"functions": {
-		"apps/frontend/src/app/api/upload/route.ts": {
-			"maxDuration": 30,
-			"memory": 1024
-		},
-		"apps/frontend/src/app/api/export/route.ts": {
-			"maxDuration": 30,
-			"memory": 1024
-		},
-		"apps/frontend/src/app/api/**/route.ts": {
-			"maxDuration": 10,
-			"memory": 512
-		},
-		"apps/frontend/src/app/**/*.tsx": {
-			"runtime": "nodejs20.x"
-		}
-	},
 
 	"redirects": [
 		{

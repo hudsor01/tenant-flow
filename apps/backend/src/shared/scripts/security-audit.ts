@@ -92,7 +92,8 @@ class SecurityAuditService {
 		try {
 			const result = await glob(pattern)
 			return result as string[]
-		} catch {
+		} catch (_error: unknown) {
+			// Silently ignore glob errors and return empty array
 			return []
 		}
 	}
@@ -135,8 +136,10 @@ class SecurityAuditService {
 					filePath
 				})
 			}
-		} catch (error) {
-			console.warn(`Failed to parse controller file: ${filePath}`, error)
+		} catch (error: unknown) {
+			const errorMessage =
+				error instanceof Error ? error.message : String(error)
+			console.warn(`Failed to parse controller file: ${filePath}`, errorMessage)
 		}
 
 		return endpoints
@@ -523,8 +526,9 @@ async function runSecurityAudit(): Promise<void> {
 		await app.close()
 		console.log('\n✅ Security audit completed successfully')
 		process.exit(0)
-	} catch (error) {
-		console.error('❌ Security audit failed:', error)
+	} catch (error: unknown) {
+		const errorMessage = error instanceof Error ? error.message : String(error)
+		console.error('❌ Security audit failed:', errorMessage)
 		process.exit(1)
 	}
 }
