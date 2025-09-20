@@ -759,7 +759,7 @@ importers:
         specifier: ^2.57.4
         version: 2.57.4
       posthog-js:
-        specifier: ^1.266.2
+        specifier: ^1.264.2
         version: 1.266.2
       zod:
         specifier: ^4.1.9
