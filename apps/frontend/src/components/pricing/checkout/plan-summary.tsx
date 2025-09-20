@@ -12,7 +12,6 @@ export function PlanSummary({
 	planName,
 	business,
 	amount,
-	currency: _currency,
 	formatAmount
 }: Props) {
 	return (

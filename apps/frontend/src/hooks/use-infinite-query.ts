@@ -13,13 +13,13 @@ type TableRow<T extends TableName> = Tables<T>
 
 // Query modifier that accepts and returns a query builder
 // Using a generic approach that works with the existing supabase client
-type QueryModifier<_T extends TableName> = <Q>(query: Q) => Q
+type QueryModifier = <Q>(query: Q) => Q
 
 interface UseInfiniteQueryProps<T extends TableName> {
   tableName: T
   columns?: string
   pageSize?: number
-  trailingQuery?: QueryModifier<T>
+  trailingQuery?: QueryModifier
 }
 
 interface InfiniteQueryPage<TData> {

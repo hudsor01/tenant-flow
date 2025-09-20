@@ -306,7 +306,8 @@ export function CheckoutForm({
 
 	// Express Checkout (Apple Pay, Google Pay, etc.) handler
 	const handleExpressCheckout = useCallback(
-		async (_event: unknown) => {
+		async (event: unknown) => {
+			console.log('Express checkout initiated:', event)
 			setIsProcessing(true)
 			setPaymentStatus('processing')
 

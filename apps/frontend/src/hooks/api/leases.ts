@@ -6,8 +6,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardKeys } from './use-dashboard'
 
 // Lease type now imported from @repo/shared types - removed unused local definition
-
-type _Lease = Database['public']['Tables']['Lease']['Row']
 type InsertLease = Database['public']['Tables']['Lease']['Insert']
 type UpdateLease = Database['public']['Tables']['Lease']['Update']
 

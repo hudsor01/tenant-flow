@@ -36,7 +36,7 @@ export function HeroAuthority({
 		>
 			<div className="space-y-8">
 				<h1
-					className={cn('text-gradient-authority leading-tight')}
+					className={cn('text-gradient leading-tight')}
 					style={TYPOGRAPHY_SCALE['display-lg']}
 				>
 					{title}
