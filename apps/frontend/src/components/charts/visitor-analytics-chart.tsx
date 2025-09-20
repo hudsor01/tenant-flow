@@ -65,7 +65,6 @@ const chartConfig = {
 } as ChartConfig
 
 function generatePropertyInterestData(
-	_properties: unknown[] = [],
 	timeRange: '7d' | '30d' | '90d' = '30d'
 ): PropertyInterestDataPoint[] {
 	const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90
@@ -149,19 +148,17 @@ export function PropertyInterestAnalyticsChart({
 	timeRange = '30d',
 	className
 }: PropertyInterestAnalyticsChartProps) {
-	const { data: propertiesData, isPending: isLoading } =
-		usePropertiesFormatted()
+	const { isPending: isLoading } = usePropertiesFormatted()
+
+	// Use properties data for generating metrics based on actual portfolio size
 	const [selectedRange, setSelectedRange] = React.useState<
 		'7d' | '30d' | '90d'
 	>(timeRange)
 	const [isRefreshing, setIsRefreshing] = React.useState(false)
 
 	const chartData = React.useMemo(() => {
-		return generatePropertyInterestData(
-			propertiesData?.properties ?? [],
-			selectedRange
-		)
-	}, [propertiesData?.properties, selectedRange])
+		return generatePropertyInterestData(selectedRange)
+	}, [selectedRange])
 
 	const analytics = React.useMemo(() => {
 		const filteredData = filterDataByRange(chartData, selectedRange)

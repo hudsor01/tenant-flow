@@ -18,9 +18,8 @@ export const TimelineContent = <T extends keyof HTMLElementTagNameMap = "div">({
   animationNum,
   timelineRef,
   className,
-  as,
+  as: _as,
   once = false,
-  customVariants: _customVariants,
   ...props
 }: TimelineContentProps<T>) => {
   const [isInView, setIsInView] = useState(false)
@@ -55,7 +54,6 @@ export const TimelineContent = <T extends keyof HTMLElementTagNameMap = "div">({
     config: { tension: 280, friction: 60 },
   })
 
-  const _Component = as || "div"
 
   return (
     <animated.div

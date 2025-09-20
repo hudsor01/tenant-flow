@@ -29,7 +29,6 @@ type UnitRow = Database['public']['Tables']['Unit']['Row']
 type InsertProperty = Database['public']['Tables']['Property']['Insert']
 type PropertyStatus = Database['public']['Enums']['PropertyStatus']
 type PropertyType = Database['public']['Enums']['PropertyType']
-type _UnitStatus = Database['public']['Enums']['UnitStatus']
 
 export default function PropertiesPage() {
 	const searchParams = useSearchParams()

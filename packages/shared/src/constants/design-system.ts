@@ -48,127 +48,145 @@ export const FONT_FAMILIES = {
 } as const
 
 /**
- * Professional Masculine Typography Scale
- * Designed to convey authority, dominance, and business confidence
- * Optimized for SaaS leadership positioning
+ * Typography Scale
+ * Based on SF Pro design tokens from tenantflow-ui-kit.tokens.json
+ * Provides clean, minimal, and intuitive typography for premium experience
  */
 export const TYPOGRAPHY_SCALE = {
-  // Display sizes - Maximum Authority for Hero Sections
+  // Display sizes - Clean headers
   'display-2xl': {
-    fontSize: '4.5rem',      // 72px
-    lineHeight: '1.05',      // Tighter for commanding presence
-    letterSpacing: '-0.035em', // More aggressive tracking
-    fontWeight: '900'        // Maximum weight for dominance
+    fontSize: '2.625rem',    // 42px - Scaled up from SF 26px for hero
+    lineHeight: '1.23',      // SF Pro line height
+    letterSpacing: '0',      // Clean, no tracking
+    fontWeight: '700',       // Bold for prominence
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
   'display-xl': {
-    fontSize: '3.75rem',     // 60px  
-    lineHeight: '1.05',
-    letterSpacing: '-0.035em',
-    fontWeight: '900'
+    fontSize: '2.125rem',    // 34px - Between SF sizes
+    lineHeight: '1.23',
+    letterSpacing: '0',
+    fontWeight: '700',
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
   'display-lg': {
-    fontSize: '3rem',        // 48px
-    lineHeight: '1.1',
-    letterSpacing: '-0.03em', 
-    fontWeight: '800'        // Strong authority
+    fontSize: '1.625rem',    // 26px - SF Display Large
+    lineHeight: '1.23',
+    letterSpacing: '0',
+    fontWeight: '700',       // SF Bold weight
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
-  
-  // Heading sizes - Professional Hierarchy with Authority
+
+  // Heading sizes - SF Pro hierarchy
   'heading-xl': {
-    fontSize: '2.25rem',     // 36px
-    lineHeight: '1.2',       // Confident line height
-    letterSpacing: '-0.03em',
-    fontWeight: '800'        // Executive weight
+    fontSize: '1.375rem',    // 22px - SF Display Medium
+    lineHeight: '1.18',      // SF Pro 22px line height
+    letterSpacing: '0',
+    fontWeight: '700',       // SF Bold
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
   'heading-lg': {
-    fontSize: '1.875rem',    // 30px
+    fontSize: '1.25rem',     // 20px - Between sizes
     lineHeight: '1.25',
-    letterSpacing: '-0.025em',
-    fontWeight: '700'        // Strong professional presence
+    letterSpacing: '0',
+    fontWeight: '600',       // Semibold
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
   'heading-md': {
-    fontSize: '1.5rem',      // 24px
-    lineHeight: '1.3',
-    letterSpacing: '-0.02em',
-    fontWeight: '700'        // Authoritative section headers
+    fontSize: '1.0625rem',   // 17px - SF Body
+    lineHeight: '1.29',      // SF Pro 17px line height
+    letterSpacing: '0',
+    fontWeight: '700',       // SF Bold
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
   'heading-sm': {
-    fontSize: '1.25rem',     // 20px
-    lineHeight: '1.35',
-    letterSpacing: '-0.015em',
-    fontWeight: '600'        // Professional subsections
+    fontSize: '0.9375rem',   // 15px - SF Callout
+    lineHeight: '1.33',      // SF Pro 15px line height
+    letterSpacing: '0',
+    fontWeight: '600',       // SF Semibold
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
-  
-  // Professional Body Text - Clear Business Communication
+
+  // Body Text - Clean readable content
   'body-lg': {
-    fontSize: '1.125rem',    // 18px
-    lineHeight: '1.6',       // Professional readability
-    fontWeight: '450',       // Slightly heavier for authority
-    letterSpacing: '-0.005em'
+    fontSize: '1.0625rem',   // 17px - SF Body
+    lineHeight: '1.29',      // SF Pro body line height
+    fontWeight: '400',       // Regular
+    letterSpacing: '0',
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
   'body-md': {
-    fontSize: '1rem',        // 16px
-    lineHeight: '1.55',
+    fontSize: '0.9375rem',   // 15px - SF Callout
+    lineHeight: '1.33',
     fontWeight: '400',
-    letterSpacing: '0em'     // Clean business standard
+    letterSpacing: '0',      // Clean standard
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
   'body-sm': {
-    fontSize: '0.875rem',    // 14px
-    lineHeight: '1.5',
-    fontWeight: '450',       // Professional UI text
-    letterSpacing: '0.005em'
+    fontSize: '0.8125rem',   // 13px - SF Label
+    lineHeight: '1.23',
+    fontWeight: '400',       // Regular
+    letterSpacing: '0',
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
   'body-xs': {
-    fontSize: '0.75rem',     // 12px
-    lineHeight: '1.4',
-    fontWeight: '500',       // Strong small text for UI
-    letterSpacing: '0.01em'
+    fontSize: '0.75rem',     // 12px - SF Caption
+    lineHeight: '1.25',
+    fontWeight: '400',       // Regular
+    letterSpacing: '0',
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
 
-  // Professional UI Variants - Business Application Focused
+  // UI Variants - Interface elements
   'ui-title': {
-    fontSize: '1.125rem',    // 18px
-    lineHeight: '1.4',
-    fontWeight: '700',       // Dashboard section titles
-    letterSpacing: '-0.015em'
+    fontSize: '1.0625rem',   // 17px - SF Body Bold
+    lineHeight: '1.29',
+    fontWeight: '700',       // Bold for UI titles
+    letterSpacing: '0',
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
   'ui-label': {
-    fontSize: '0.875rem',    // 14px
-    lineHeight: '1.3',
-    fontWeight: '600',       // Form labels, table headers
-    letterSpacing: '0.005em'
+    fontSize: '0.8125rem',   // 13px - SF Label
+    lineHeight: '1.23',
+    fontWeight: '600',       // Semibold for labels
+    letterSpacing: '0',
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
   'ui-caption': {
-    fontSize: '0.75rem',     // 12px
-    lineHeight: '1.3',
-    fontWeight: '500',       // Captions, help text
-    letterSpacing: '0.025em'
+    fontSize: '0.75rem',     // 12px - SF Caption
+    lineHeight: '1.25',
+    fontWeight: '400',       // Regular for captions
+    letterSpacing: '0',
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
 
-  // Marketing Hierarchy - Conversion-Focused Typography
+  // Marketing Hierarchy - Clean conversion-focused
   'hero-primary': {
-    fontSize: '3.5rem',      // 56px
-    lineHeight: '1.05',
-    letterSpacing: '-0.04em',
-    fontWeight: '900'        // Maximum marketing impact
+    fontSize: '2.625rem',    // 42px - Scaled hero size
+    lineHeight: '1.23',
+    letterSpacing: '0',
+    fontWeight: '700',       // Bold for impact
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
   'hero-secondary': {
-    fontSize: '1.25rem',     // 20px
-    lineHeight: '1.5',
-    fontWeight: '450',       // Supporting hero text
-    letterSpacing: '-0.01em'
+    fontSize: '1.0625rem',   // 17px - SF Body
+    lineHeight: '1.29',
+    fontWeight: '400',       // Regular for support text
+    letterSpacing: '0',
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
   'feature-title': {
-    fontSize: '1.5rem',      // 24px
-    lineHeight: '1.3',
-    fontWeight: '700',       // Feature section headers
-    letterSpacing: '-0.02em'
+    fontSize: '1.375rem',    // 22px - SF Display Medium
+    lineHeight: '1.18',
+    fontWeight: '700',       // Bold for features
+    letterSpacing: '0',
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
   'cta-text': {
-    fontSize: '1rem',        // 16px
-    lineHeight: '1.4',
-    fontWeight: '600',       // Call-to-action buttons
-    letterSpacing: '0.01em'
+    fontSize: '1.0625rem',   // 17px - SF Body Bold
+    lineHeight: '1.29',
+    fontWeight: '700',       // Bold for CTAs
+    letterSpacing: '0',
+    fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   }
 } as const
 

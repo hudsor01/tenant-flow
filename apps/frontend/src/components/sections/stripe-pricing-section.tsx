@@ -1,7 +1,6 @@
 'use client'
 
 import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { API_BASE_URL } from '@/lib/api-client'
 import { cn } from '@/lib/utils'

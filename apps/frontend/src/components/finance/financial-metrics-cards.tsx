@@ -40,7 +40,6 @@ interface FinancialMetricsCardsProps {
 	className?: string
 }
 
-// eslint-disable-next-line type-centralization/no-inline-types
 interface MetricCardProps {
 	title: string
 	value: string | number
@@ -320,8 +319,8 @@ export function FinancialMetricsCards({
 					className
 				)}
 			>
-				{[0, 100, 200, 300].map((delay, _index) => (
-					<MetricCardSkeleton key={_index} delay={delay} />
+				{[0, 100, 200, 300].map((delay, index) => (
+					<MetricCardSkeleton key={index} delay={delay} />
 				))}
 			</div>
 		)
@@ -449,7 +448,7 @@ export function FinancialMetricsCards({
 			</div>
 
 			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-				{metrics.map((metric, _index) => (
+				{metrics.map((metric) => (
 					<MetricCard key={metric.title} {...metric} />
 				))}
 			</div>

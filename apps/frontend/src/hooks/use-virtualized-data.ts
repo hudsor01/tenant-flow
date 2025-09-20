@@ -4,7 +4,6 @@ import type { Database, TenantWithLeaseInfo, PropertyWithUnits } from '@repo/sha
 import { useQuery } from '@tanstack/react-query'
 import { propertiesApi, tenantsApi } from '@/lib/api-client'
 
-type _Property = Database['public']['Tables']['Property']['Row']
 type Tenant = Database['public']['Tables']['Tenant']['Row']
 
 /**

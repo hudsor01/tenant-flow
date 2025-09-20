@@ -57,7 +57,7 @@ const plans = [
 ]
 
 export function SubscriptionPlans() {
-  const _router = useRouter()
+  const router = useRouter()
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
 
   const createCheckoutMutation = useMutation({
@@ -70,7 +70,7 @@ export function SubscriptionPlans() {
     },
     onSuccess: (data) => {
       if (data?.url) {
-        window.location.href = data.url
+        router.push(data.url)
       }
     },
     onError: (error) => {

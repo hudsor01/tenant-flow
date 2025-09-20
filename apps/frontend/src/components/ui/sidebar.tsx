@@ -34,7 +34,6 @@ const SIDEBAR_WIDTH_MOBILE = '18rem'
 const SIDEBAR_WIDTH_ICON = '3rem'
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b'
 
-// eslint-disable-next-line type-centralization/no-inline-types
 type SidebarContextProps = {
 	state: 'expanded' | 'collapsed'
 	open: boolean
@@ -87,7 +86,7 @@ function SidebarProvider({
 
 			// This sets the cookie to keep the sidebar state.
 			if (typeof window !== 'undefined') {
-				// eslint-disable-next-line no-restricted-globals
+				 
 				document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
 			}
 		},

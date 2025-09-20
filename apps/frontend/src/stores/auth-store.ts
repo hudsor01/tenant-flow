@@ -6,7 +6,7 @@ export type { AuthState, AuthUser }
 
 export const createAuthStore = (init?: Partial<AuthState>) =>
 	createStore<AuthState>()(
-		subscribeWithSelector((set, _get) => ({
+		subscribeWithSelector((set) => ({
 			user: init?.user ?? null,
 			session: init?.session ?? null,
 			isAuthenticated: init?.user ? true : false,

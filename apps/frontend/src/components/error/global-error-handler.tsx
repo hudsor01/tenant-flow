@@ -179,12 +179,16 @@ export function GlobalErrorHandler({
  * Simplified error fallback for smaller components
  */
 export function SimpleErrorFallback({
-  error: _error,
+  error,
   resetErrorBoundary
 }: {
   error: Error
   resetErrorBoundary: () => void
 }) {
+  // Log error for monitoring
+  useEffect(() => {
+    console.error('Error boundary caught error:', error)
+  }, [error])
   return (
     <div className="flex flex-col items-center justify-center p-6 text-center space-y-4">
       <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center">

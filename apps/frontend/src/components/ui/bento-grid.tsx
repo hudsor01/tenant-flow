@@ -9,7 +9,6 @@ interface BentoGridProps extends ComponentPropsWithoutRef<'div'> {
 	className?: string
 }
 
-// eslint-disable-next-line type-centralization/no-inline-types
 interface BentoCardProps extends ComponentPropsWithoutRef<'div'> {
 	name: string
 	className: string

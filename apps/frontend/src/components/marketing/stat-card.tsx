@@ -27,7 +27,7 @@ export function StatCard({
 	return (
 		<div
 			className={cn(
-				'card-elevated-authority rounded-2xl p-6 text-center',
+				'card-elevated rounded-2xl p-6 text-center',
 				className
 			)}
 			{...props}

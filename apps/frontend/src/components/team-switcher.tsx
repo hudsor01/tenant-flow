@@ -1,7 +1,5 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { ChevronsUpDown, Plus } from 'lucide-react'
 import * as React from 'react'
 

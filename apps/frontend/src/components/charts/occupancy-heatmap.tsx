@@ -197,13 +197,11 @@ const calculateOccupancyAnalytics = (data: typeof occupancyData) => {
 const PropertyCard = ({
 	property,
 	isExpanded,
-	onToggle,
-	analytics: _analytics
+	onToggle
 }: {
 	property: (typeof occupancyData)[0]
 	isExpanded: boolean
 	onToggle: () => void
-	analytics: ReturnType<typeof calculateOccupancyAnalytics>
 }) => {
 	const getOccupancyColor = (rate: number) => {
 		if (rate >= 98) return APPLE_SYSTEM_COLORS.systemGreen
@@ -641,7 +639,6 @@ export function OccupancyHeatmap() {
 										expandedProperty === property.id ? null : property.id
 									)
 								}
-								analytics={analytics}
 							/>
 						))}
 					</div>
@@ -715,7 +712,7 @@ export function OccupancyHeatmap() {
 										domain={[80, 100]}
 									/>
 									<Tooltip
-										formatter={(value: number | string, _name: string) => [
+										formatter={(value: number | string) => [
 											`${typeof value === 'number' ? value.toFixed(1) : value}%`,
 											'Occupancy Rate'
 										]}

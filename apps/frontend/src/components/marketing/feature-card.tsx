@@ -29,7 +29,7 @@ export function FeatureCard({
 
 	return (
 		<div
-			className={cn('card-elevated-authority rounded-2xl p-6', className)}
+			className={cn('card-elevated rounded-2xl p-6', className)}
 			{...props}
 		>
 			<div className="flex items-start gap-4">

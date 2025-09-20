@@ -2,7 +2,6 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { cn } from '@/lib/utils'
 import { ArrowRight, MousePointer2, Play } from 'lucide-react'
