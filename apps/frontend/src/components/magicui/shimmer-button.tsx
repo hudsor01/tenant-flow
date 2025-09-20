@@ -6,7 +6,6 @@ import React, { useEffect, useState } from 'react'
 
 import { ANIMATION_DURATIONS, cn } from '@/lib/design-system'
 
-// eslint-disable-next-line type-centralization/no-inline-types
 export interface ShimmerButtonProps
 	extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	shimmerColor?: string
@@ -14,7 +13,6 @@ export interface ShimmerButtonProps
 	borderRadius?: string
 	shimmerDuration?: string
 	background?: string
-	// eslint-disable-next-line type-centralization/no-inline-types
 	variant?:
 		| 'primary'
 		| 'secondary'

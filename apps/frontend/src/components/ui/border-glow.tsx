@@ -6,7 +6,6 @@ interface BorderGlowProps {
 	children: React.ReactNode
 	className?: string
 	duration?: string
-	size?: number
 	borderWidth?: number
 	colorFrom?: string
 	colorTo?: string
@@ -16,7 +15,6 @@ export function BorderGlow({
 	children,
 	className,
 	duration = '15s',
-	size: _size = 200,
 	borderWidth = 1,
 	colorFrom = 'hsl(var(--primary))', // primary color
 	colorTo = 'hsl(var(--accent))' // accent color

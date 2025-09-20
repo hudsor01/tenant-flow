@@ -29,7 +29,7 @@ export function NumberTicker({
   delay = 0,
   className,
   decimalPlaces = 0,
-  size = 'body-md',
+  size = 'sf-callout',
   variant = 'default',
   animationDuration = 1000,
   prefix = '',
@@ -126,7 +126,7 @@ export function NumberTicker({
   if (!isMounted) {
     return (
       <span
-        className={cn("inline-block tabular-nums tracking-wider font-mono",
+        className={cn("inline-block tabular-nums tracking-wider",
           variants[variant],
           className
         )}
@@ -141,7 +141,7 @@ export function NumberTicker({
   return (
     <span
       ref={ref}
-      className={cn("inline-block tabular-nums tracking-wider font-mono transition-all",
+      className={cn("inline-block tabular-nums tracking-wider transition-all",
         variants[variant],
         className
       )}
