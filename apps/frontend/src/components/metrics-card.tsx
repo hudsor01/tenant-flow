@@ -38,7 +38,7 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 			description,
 			status,
 			statusIcon: StatusIcon,
-			icon: _Icon,
+			icon: Icon,
 			colorVariant,
 			className,
 			...props
@@ -62,7 +62,20 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 				{...props}
 			>
 				<CardHeader>
-					<CardDescription>{title}</CardDescription>
+					<div className="flex items-center justify-between">
+						<CardDescription>{title}</CardDescription>
+						{Icon && (
+							<div
+								className="p-2 rounded-lg bg-muted/50"
+								style={{ backgroundColor: `var(--${chartColor})/10` }}
+							>
+								<Icon
+									className="size-4"
+									style={{ color: `var(--${chartColor})` }}
+								/>
+							</div>
+						)}
+					</div>
 					<CardTitle
 						className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl"
 						style={{ color: `var(--${chartColor})` }}

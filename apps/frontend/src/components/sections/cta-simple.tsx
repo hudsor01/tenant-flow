@@ -40,7 +40,6 @@ const testimonialStats = [
 	}
 ]
 
-// eslint-disable-next-line type-centralization/no-inline-types
 export interface CTASimpleProps extends React.ComponentProps<'section'> {
 	variant?: 'simple' | 'enhanced' | 'testimonial'
 	showBenefits?: boolean

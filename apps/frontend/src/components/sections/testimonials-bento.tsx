@@ -111,7 +111,6 @@ export const TestimonialsBento = React.forwardRef<
 	(
 		{
 			showTrustMetrics = true,
-			variant: _variant = 'default',
 			className,
 			...props
 		},
@@ -155,7 +154,7 @@ export const TestimonialsBento = React.forwardRef<
 					{/* Bento Testimonials Grid */}
 					<BlurFade delay={0.3}>
 						<BentoGrid className="tw-:grid tw-:w-full tw-:auto-rows-[20rem] tw-:grid-cols-3 tw-:gap-6 tw-:mb-16">
-							{testimonials.map((testimonial, _index) => (
+							{testimonials.map((testimonial) => (
 								<BentoCard
 									key={testimonial.id}
 									name={testimonial.name}

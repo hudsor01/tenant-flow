@@ -32,23 +32,23 @@ function ClientFeedback() {
 			>
 				<article className={'max-w-screen-md mx-auto text-center space-y-2 '}>
 					<TimelineContent
-						as="h1"
 						className={'xl:text-4xl text-3xl  font-medium'}
 						animationNum={0}
 						customVariants={revealVariants}
 						timelineRef={testimonialRef}
 					>
-						Trusted by Property Managers and Real Estate Professionals
+						<h1>Trusted by Property Managers and Real Estate Professionals</h1>
 					</TimelineContent>
 					<TimelineContent
-						as="p"
 						className={'mx-auto text-muted-foreground'}
 						animationNum={1}
 						customVariants={revealVariants}
 						timelineRef={testimonialRef}
 					>
-						See how TenantFlow has transformed property management for our
-						clients
+						<p>
+							See how TenantFlow has transformed property management for our
+							clients
+						</p>
 					</TimelineContent>
 				</article>
 				<div className="lg:grid lg:grid-cols-3  gap-2 flex flex-col w-full lg:py-10 pt-10 pb-4 lg:px-10 px-4">

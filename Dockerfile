@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.9
-ARG NODE_VERSION=24-alpine3.21
+ARG NODE_VERSION=22-alpine3.21
 
 FROM node:${NODE_VERSION} AS base
 
@@ -55,7 +55,8 @@ RUN mkdir -p apps/backend/dist/pdf/templates \
 # Clean production dependencies with node-prune (2025 technique)
 FROM base AS prod-deps
 
-ENV NODE_ENV=production
+ENV NODE_ENV=production \
+    HUSKY=0
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json apps/backend/

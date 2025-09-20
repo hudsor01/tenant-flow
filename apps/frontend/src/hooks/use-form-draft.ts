@@ -78,7 +78,9 @@ export function useFormDraft(formType: FormType) {
       if (!data.email && !data.name) return
 
       // Security: Never save passwords to server drafts
-      const { password: _password, confirmPassword: _confirmPassword, ...safeData } = data
+      const safeData = { ...data }
+      delete safeData.password
+      delete safeData.confirmPassword
       const response = await authDraftApi.save({ ...safeData, formType })
       
       if (response.sessionId) {
@@ -148,7 +150,9 @@ export function useFormWithDraft<T extends DraftData>(
     if (isHydrated && !draft.isLoading && (deferredFormData.email || deferredFormData.name)) {
       startTransition(() => {
         // Security: Never auto-save passwords
-        const { password: _password, confirmPassword: _confirmPassword, ...safeData } = deferredFormData
+        const safeData = { ...deferredFormData }
+        delete safeData.password
+        delete safeData.confirmPassword
         draft.saveDraft(safeData)
       })
     }

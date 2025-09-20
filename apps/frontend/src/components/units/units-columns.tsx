@@ -48,7 +48,6 @@ import { toast } from 'sonner'
 import { UnitEditDialog, UnitViewDialog } from './unit-dialogs'
 
 // Enhanced unit type with comprehensive information
-// eslint-disable-next-line type-centralization/no-inline-types
 export type UnitRow = Database['public']['Tables']['Unit']['Row'] & {
 	property?: {
 		name: string

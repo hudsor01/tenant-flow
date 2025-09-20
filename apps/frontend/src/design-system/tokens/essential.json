@@ -1,0 +1,357 @@
+{
+  "typography": {
+    "body": {
+      "Default": {
+        "color": {
+          "$type": "color",
+          "$value": "#000000D9"
+        },
+        "text": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "SF Pro",
+            "fontSize": "13px",
+            "fontWeight": 400,
+            "letterSpacing": "0px",
+            "lineHeight": 1.2307692307692308
+          }
+        }
+      },
+      "Emphasized": {
+        "color": {
+          "$type": "color",
+          "$value": "#000000D9"
+        },
+        "text": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "SF Pro",
+            "fontSize": "13px",
+            "fontWeight": 600,
+            "letterSpacing": "0px",
+            "lineHeight": 1.2307692307692308
+          }
+        }
+      }
+    },
+    "headline": {
+      "Default": {
+        "color": {
+          "$type": "color",
+          "$value": "#000000D9"
+        },
+        "text": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "SF Pro",
+            "fontSize": "13px",
+            "fontWeight": 700,
+            "letterSpacing": "0px",
+            "lineHeight": 1.2307692307692308
+          }
+        }
+      },
+      "Emphasized": {
+        "color": {
+          "$type": "color",
+          "$value": "#000000D9"
+        },
+        "text": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "SF Pro",
+            "fontSize": "13px",
+            "fontWeight": 900,
+            "letterSpacing": "0px",
+            "lineHeight": 1.2307692307692308
+          }
+        }
+      }
+    },
+    "title2": {
+      "Default": {
+        "color": {
+          "$type": "color",
+          "$value": "#000000D9"
+        },
+        "text": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "SF Pro",
+            "fontSize": "17px",
+            "fontWeight": 400,
+            "letterSpacing": "0px",
+            "lineHeight": 1.2941176470588236
+          }
+        }
+      },
+      "Emphasized": {
+        "color": {
+          "$type": "color",
+          "$value": "#000000D9"
+        },
+        "text": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "SF Pro",
+            "fontSize": "17px",
+            "fontWeight": 700,
+            "letterSpacing": "0px",
+            "lineHeight": 1.2941176470588236
+          }
+        }
+      }
+    },
+    "largeTitle": {
+      "Default": {
+        "color": {
+          "$type": "color",
+          "$value": "#000000D9"
+        },
+        "text": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "SF Pro",
+            "fontSize": "26px",
+            "fontWeight": 400,
+            "letterSpacing": "0px",
+            "lineHeight": 1.2307692307692308
+          }
+        }
+      },
+      "Emphasized": {
+        "color": {
+          "$type": "color",
+          "$value": "#000000D9"
+        },
+        "text": {
+          "$type": "typography",
+          "$value": {
+            "fontFamily": "SF Pro",
+            "fontSize": "26px",
+            "fontWeight": 700,
+            "letterSpacing": "0px",
+            "lineHeight": 1.2307692307692308
+          }
+        }
+      }
+    }
+  },
+  "colors": {
+    "accent": {
+      "Accent Appearance 10%": {
+        "$type": "color",
+        "$value": "#0D6FFF1A"
+      },
+      "Accent Appearance 100%": {
+        "$type": "color",
+        "$value": "#0D6FFF"
+      },
+      "Accent Appearance 15%": {
+        "$type": "color",
+        "$value": "#0D6FFF26"
+      },
+      "Accent Appearance 25%": {
+        "$type": "color",
+        "$value": "#0D6FFF40"
+      },
+      "Accent Appearance 50%": {
+        "$type": "color",
+        "$value": "#0D6FFF80"
+      },
+      "Accent Appearance 85%": {
+        "$type": "color",
+        "$value": "#0D6FFFD9"
+      },
+      "Accent Appearance Main": {
+        "$type": "color",
+        "$value": "#0D6FFF"
+      },
+      "Destructive 100%": {
+        "$type": "color",
+        "$value": "#FF383C"
+      },
+      "Destructive 25%": {
+        "$type": "color",
+        "$value": "#FF383C40"
+      },
+      "Destructive 50%": {
+        "$type": "color",
+        "$value": "#FF383C80"
+      }
+    },
+    "system": {
+      "1 Red": {
+        "$type": "color",
+        "$value": "#FF383C"
+      },
+      "10 Purple": {
+        "$type": "color",
+        "$value": "#CB30E0"
+      },
+      "11 Pink": {
+        "$type": "color",
+        "$value": "#FF2D55"
+      },
+      "12 Brown": {
+        "$type": "color",
+        "$value": "#AC7F5E"
+      },
+      "2 Orange": {
+        "$type": "color",
+        "$value": "#FF8D28"
+      },
+      "3 Yellow": {
+        "$type": "color",
+        "$value": "#FFCC00"
+      },
+      "4 Green": {
+        "$type": "color",
+        "$value": "#34C759"
+      },
+      "5 Mint": {
+        "$type": "color",
+        "$value": "#00C8B3"
+      },
+      "6 Teal": {
+        "$type": "color",
+        "$value": "#00C3D0"
+      },
+      "7 Cyan": {
+        "$type": "color",
+        "$value": "#00C0E8"
+      },
+      "8 Blue": {
+        "$type": "color",
+        "$value": "#0088FF"
+      },
+      "9 Indigo": {
+        "$type": "color",
+        "$value": "#6155F5"
+      }
+    },
+    "grays": {
+      "Black": {
+        "$type": "color",
+        "$value": "#000000"
+      },
+      "Grey": {
+        "$type": "color",
+        "$value": "#8E8E93"
+      },
+      "White": {
+        "$type": "color",
+        "$value": "#FFFFFF"
+      }
+    },
+    "labels": {
+      "1 Primary": {
+        "$type": "color",
+        "$value": "#000000D9"
+      },
+      "2 Secondary": {
+        "$type": "color",
+        "$value": "#00000080"
+      },
+      "3 Tertiary": {
+        "$type": "color",
+        "$value": "#00000040"
+      },
+      "4 Quaternary": {
+        "$type": "color",
+        "$value": "#0000001A"
+      },
+      "5 Quinary": {
+        "$type": "color",
+        "$value": "#0000000D"
+      },
+      "6 Seximal": {
+        "$type": "color",
+        "$value": "#00000008"
+      }
+    }
+  },
+  "states": {
+    "fills": {
+      "1 Primary": {
+        "$type": "color",
+        "$value": "#0000001A"
+      },
+      "2 Secondary": {
+        "$type": "color",
+        "$value": "#00000014"
+      },
+      "3 Tertiary": {
+        "$type": "color",
+        "$value": "#0000000D"
+      },
+      "4 Quatenary": {
+        "$type": "color",
+        "$value": "#00000008"
+      },
+      "5 Quinary": {
+        "$type": "color",
+        "$value": "#00000005"
+      }
+    },
+    "glass": {
+      "fills": [
+        {
+          "$type": "color",
+          "$value": "#FFFFFFB3"
+        },
+        {
+          "$type": "color",
+          "$value": "#FAFAFA"
+        }
+      ],
+      "shadows": {
+        "$type": "shadow",
+        "$value": [
+          {
+            "blur": "25px",
+            "color": "#00000029",
+            "offsetX": "0px",
+            "offsetY": "0px",
+            "spread": "0px"
+          },
+          {
+            "blur": "8px",
+            "color": "#00000033",
+            "offsetX": "0px",
+            "offsetY": "0px",
+            "spread": "1px"
+          },
+          {
+            "blur": "2px",
+            "color": "#1A1A1A",
+            "offsetX": "-1px",
+            "offsetY": "-1px",
+            "spread": "0px"
+          },
+          {
+            "blur": "2px",
+            "color": "#1A1A1A",
+            "offsetX": "1px",
+            "offsetY": "1px",
+            "spread": "0px"
+          },
+          {
+            "blur": "0.25px",
+            "color": "#FFFFFFB3",
+            "offsetX": "2px",
+            "offsetY": "2px",
+            "spread": "-1.5px"
+          },
+          {
+            "blur": "2px",
+            "color": "#0000001A",
+            "offsetX": "0px",
+            "offsetY": "0px",
+            "spread": "0px"
+          }
+        ]
+      }
+    }
+  }
+}

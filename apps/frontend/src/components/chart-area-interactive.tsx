@@ -36,7 +36,6 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile'
 import {
 	ANIMATION_DURATIONS,
-	TYPOGRAPHY_SCALE,
 	animationClasses,
 	cardClasses,
 	cn
@@ -279,20 +278,10 @@ export const ChartAreaInteractive = React.forwardRef<
 								<Activity className="size-6 text-primary" />
 							</div>
 							<div className="space-y-1">
-								<CardTitle
-									className="tracking-tight font-bold text-foreground"
-									style={{
-										fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
-										lineHeight: TYPOGRAPHY_SCALE['heading-xl'].lineHeight,
-										fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight
-									}}
-								>
+								<CardTitle className="text-page-title">
 									Visitor Analytics
 								</CardTitle>
-								<CardDescription
-									className="leading-relaxed"
-									style={{ fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize }}
-								>
+								<CardDescription className="text-body">
 									<span className="hidden sm:inline">
 										{timeRangeLabel} •{' '}
 										{analytics?.totalVisitors.toLocaleString() || '0'} total

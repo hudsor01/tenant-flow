@@ -1,0 +1,45 @@
+{
+  "description": "TenantFlow Design System Token Index",
+  "version": "1.0.0",
+  "files": {
+    "essential": {
+      "path": "./essential.json",
+      "description": "Core tokens for quick reference (~5KB)",
+      "includes": ["typography essentials", "primary colors", "main states"]
+    },
+    "typography": {
+      "path": "./typography.json",
+      "description": "All typography styles (11 text variants)",
+      "includes": ["LargeTitle", "Title1-3", "Headline", "Body", "Callout", "Subheadline", "Footnote", "Caption1-2"]
+    },
+    "colors": {
+      "path": "./colors.json",
+      "description": "Complete color system",
+      "includes": ["Accent colors", "System colors", "Grays", "Label colors", "Fills", "Separator"]
+    },
+    "components": {
+      "path": "./components.json",
+      "description": "Component states and interactions",
+      "includes": ["Content Area", "Over-Glass states", "Input fields", "Buttons", "Toggles"]
+    },
+    "effects": {
+      "path": "./effects.json",
+      "description": "Visual effects and global styles",
+      "includes": ["Liquid Glass (glassmorphism)", "Shadows", "Focus rings", "Progress indicators"]
+    },
+    "complete": {
+      "path": "./complete.json",
+      "description": "Original complete token file (60KB)",
+      "includes": ["Everything"]
+    }
+  },
+  "quickReference": {
+    "primaryColor": "#0D6FFF",
+    "font": "SF Pro",
+    "bodySizePixels": 13,
+    "titleSizePixels": 22,
+    "successColor": "#34C759",
+    "errorColor": "#FF383C",
+    "warningColor": "#FFCC00"
+  }
+}

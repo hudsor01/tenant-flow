@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Loader2, RefreshCw, RotateCw } from 'lucide-react'
 
-// eslint-disable-next-line type-centralization/no-inline-types
 interface LoadingSpinnerProps {
 	size?: 'sm' | 'default' | 'lg' | 'xl'
 	variant?: 'default' | 'primary' | 'muted'

@@ -56,7 +56,7 @@ export function usePropertiesFormatted(status?: PropertyStatus) {
             // Pre-calculate summary stats for dashboard widgets
             summary: {
                 total: data.length,
-                byStatus: data.reduce((acc: Record<string, number>, _prop: _Property) => {
+                byStatus: data.reduce((acc: Record<string, number>) => {
                     const status = 'ACTIVE' // Default status since property.status doesn't exist in DB
                     acc[status] = (acc[status] || 0) + 1
                     return acc
