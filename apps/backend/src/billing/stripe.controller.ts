@@ -471,7 +471,7 @@ export class StripeController {
 			)
 		}
 
-		// Sanitize all metadata values BEFORE try block
+		// Sanitize all metadata values BEFORE try block to return proper 400 errors
 		const sanitizedTenantId = this.sanitizeMetadataValue(
 			body.tenantId,
 			'tenant_id'
@@ -581,6 +581,12 @@ export class StripeController {
 		const sanitizedPropertyId = body.propertyId
 			? this.sanitizeMetadataValue(body.propertyId, 'property_id')
 			: undefined
+		const sanitizedPropertyOwnerAccount = body.propertyOwnerAccount
+			? this.sanitizeMetadataValue(
+					body.propertyOwnerAccount,
+					'property_owner_account'
+				)
+			: undefined
 
 		try {
 			const paymentIntent = await this.stripe.paymentIntents.create(
@@ -589,12 +595,7 @@ export class StripeController {
 					currency: 'usd',
 					application_fee_amount: body.platformFee, // TenantFlow commission
 					transfer_data: {
-						destination: body.propertyOwnerAccount
-							? this.sanitizeMetadataValue(
-									body.propertyOwnerAccount,
-									'property_owner_account'
-								)
-							: ''
+						destination: sanitizedPropertyOwnerAccount || ''
 					},
 					metadata: {
 						tenant_id: sanitizedTenantId,
@@ -1178,54 +1179,41 @@ export class StripeController {
 
 	/**
 	 * Sanitize metadata values to prevent injection attacks
-	 * Limits string length and removes dangerous characters
+	 * CLAUDE.md compliant: Security-first approach
+	 * Allows apostrophes for valid business names like "Tenant's Premium Plan"
 	 */
-	private sanitizeMetadataValue(
-		value: string,
-		fieldName: string = 'value'
-	): string {
+	private sanitizeMetadataValue(value: string, fieldName: string): string {
 		if (!value || typeof value !== 'string') {
-			throw new BadRequestException(`${fieldName} must be a non-empty string`)
+			throw new BadRequestException(
+				`Invalid ${fieldName}: must be a non-empty string`
+			)
 		}
 
-		// Limit length to Stripe's metadata value limit (500 characters)
 		if (value.length > 500) {
 			throw new BadRequestException(
 				`${fieldName} must be less than 500 characters`
 			)
 		}
 
-		// Check for SQL injection patterns and control characters first
-		const dangerousPatterns = [
-			/['";]/, // SQL quotes
-			/--/, // SQL comments
-			/\/\*/, // SQL block comments
-			/\b(drop|select|insert|update|delete|union|exec|execute)\b/i // SQL keywords
-		]
+		const normalizedValue = value.normalize('NFKC')
 
-		// Check for control characters separately to avoid ESLint warning
-		const hasControlChars = /[\x00-\x1F\x7F]/.test(value) // eslint-disable-line no-control-regex
-
-		for (const pattern of dangerousPatterns) {
-			if (pattern.test(value)) {
-				throw new BadRequestException(
-					`${fieldName} contains invalid characters or patterns`
-				)
-			}
+		// Check for control characters (0x00-0x1F and 0x7F)
+		// eslint-disable-next-line no-control-regex
+		if (/[\x00-\x1F\x7F]/.test(normalizedValue)) {
+			throw new BadRequestException(`${fieldName} contains control characters`)
 		}
 
-		if (hasControlChars) {
-			throw new BadRequestException(
-				`${fieldName} contains invalid characters or patterns`
-			)
-		}
+		// Sanitize dangerous characters but preserve apostrophes for valid names like "Tenant's Premium Plan"
+		// Remove: < > " ` ; & \ but keep single quotes (apostrophes)
+		const sanitized = normalizedValue
+			.trim()
+			.replace(/[<>"`;&\\]/g, '') // Removed ' from the regex to allow apostrophes
+			.replace(/[\r\n\t]+/g, ' ')
+			.replace(/\s{2,}/g, ' ')
 
-		// Remove potentially dangerous characters and whitespace
-		const sanitized = value.trim().replace(/[<>"\\\r\n\t]/g, '')
-
-		if (sanitized.length === 0) {
+		if (!sanitized) {
 			throw new BadRequestException(
-				`${fieldName} cannot be empty after sanitization`
+				`Invalid ${fieldName}: contains only invalid characters`
 			)
 		}
 

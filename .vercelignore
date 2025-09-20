@@ -96,8 +96,8 @@ build/
 !apps/frontend/dist/
 
 # Package manager files
-
-pnpm-lock.yaml
+# DO NOT ignore pnpm-lock.yaml - Vercel needs it for installation!
+# pnpm-lock.yaml
 yarn.lock
 .pnpm-store
 
