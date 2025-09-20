@@ -117,6 +117,20 @@
 			"cache": true,
 			"persistent": false
 		},
+		"@repo/database#build": {
+			"dependsOn": [],
+			"inputs": [
+				"src/**",
+				"tsconfig*.json",
+				"package.json",
+				"!**/*.md",
+				"!**/*.test.*",
+				"!**/*.spec.*"
+			],
+			"outputs": ["dist/**"],
+			"cache": true,
+			"persistent": false
+		},
 		"@repo/eslint-config#build": {
 			"dependsOn": [],
 			"inputs": ["*.js", "package.json"],
