@@ -5,8 +5,8 @@ import { Navbar } from '@/components/navbar'
 import { CTAMinimal } from '@/components/sections/cta-minimal'
 import { FeaturesGrid } from '@/components/sections/features-grid'
 import { MinimalistPricingSection } from '@/components/sections/minimalist-pricing-section'
-import { TestimonialsMinimal } from '@/components/sections/testimonials-minimal'
-import StatsSection from '@/components/stats-4'
+import { Stats } from '@/components/sections/stats'
+import { TestimonialsBento } from '@/components/sections/testimonials-bento'
 
 export default function HomePage() {
 	return (
@@ -18,13 +18,13 @@ export default function HomePage() {
 			<HeroSection />
 
 			{/* Stats Section - Social Proof */}
-			<StatsSection />
+			<Stats />
 
 			{/* Features Grid - Visual Showcase */}
 			<FeaturesGrid className="py-24" />
 
 			{/* Testimonials - Trust Building */}
-			<TestimonialsMinimal className="bg-accent/5 py-24" />
+			<TestimonialsBento />
 
 			{/* Pricing - Clear Value Proposition */}
 			<MinimalistPricingSection className="py-24" />

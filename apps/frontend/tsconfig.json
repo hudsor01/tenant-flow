@@ -1,62 +1,62 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "TenantFlow Frontend - Next.js 15 + React 19",
-  "extends": "../../packages/typescript-config/next.json",
-  "compilerOptions": {
-    "baseUrl": ".",
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/hooks/*": ["./src/hooks/*"],
-      "@/stores/*": ["./src/stores/*"],
-      "@/types/*": ["./src/types/*"],
-      "@/providers/*": ["./src/providers/*"],
-      "@repo/shared": ["../../packages/shared/dist"],
-      "@repo/shared/*": ["../../packages/shared/dist/*"]
-    },
-    "types": ["node", "react", "react-dom"]
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "src/**/*",
-    ".next/types/**/*.ts",
-    "src/types/**/*.d.ts",
-    "src/types/jest-dom.d.ts",
-    "node_modules/@types/react/jsx-runtime.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    ".next",
-    "out",
-    "dist",
-    "build",
-    "src/test/**/*",
-    "src/test/**/*.ts",
-    "src/test/**/*.tsx",
-    "tests/**/*",
-    "**/__tests__/**/*",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/*.spec.ts",
-    "**/*.spec.tsx",
-    "coverage/**/*",
-    "*.config.js",
-    "*.config.mjs",
-    "jest.config.js",
-    "vitest.config.production.ts",
-    "playwright.config.ts"
-  ],
-  "references": [
-    {
-      "path": "../../packages/shared"
-    }
-  ]
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"display": "TenantFlow Frontend - Next.js 15 + React 19",
+	"extends": "../../packages/typescript-config/next.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"plugins": [
+			{
+				"name": "next"
+			}
+		],
+		"paths": {
+			"@/*": ["./src/*"],
+			"@/components/*": ["./src/components/*"],
+			"@/lib/*": ["./src/lib/*"],
+			"@/hooks/*": ["./src/hooks/*"],
+			"@/stores/*": ["./src/stores/*"],
+			"@/types/*": ["./src/types/*"],
+			"@/providers/*": ["./src/providers/*"],
+			"@repo/shared": ["../../packages/shared/src"],
+			"@repo/shared/*": ["../../packages/shared/src/*"]
+		},
+		"types": ["node", "react", "react-dom"]
+	},
+	"include": [
+		"next-env.d.ts",
+		"**/*.ts",
+		"**/*.tsx",
+		"src/**/*",
+		".next/types/**/*.ts",
+		"src/types/**/*.d.ts",
+		"src/types/jest-dom.d.ts",
+		"node_modules/@types/react/jsx-runtime.d.ts"
+	],
+	"exclude": [
+		"node_modules",
+		".next",
+		"out",
+		"dist",
+		"build",
+		"src/test/**/*",
+		"src/test/**/*.ts",
+		"src/test/**/*.tsx",
+		"tests/**/*",
+		"**/__tests__/**/*",
+		"**/*.test.ts",
+		"**/*.test.tsx",
+		"**/*.spec.ts",
+		"**/*.spec.tsx",
+		"coverage/**/*",
+		"*.config.js",
+		"*.config.mjs",
+		"jest.config.js",
+		"vitest.config.production.ts",
+		"playwright.config.ts"
+	],
+	"references": [
+		{
+			"path": "../../packages/shared"
+		}
+	]
 }
