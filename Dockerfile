@@ -14,7 +14,7 @@ ARG BUILDKIT_INLINE_CACHE=1
 # dumb-init: Lightweight init system for proper signal handling (2025 best practice)
 RUN apk add --no-cache python3 make g++ dumb-init && \
     rm -rf /var/cache/apk/* /tmp/* && \
-    npm install -g pnpm@9 turbo@2.5.6 typescript@5.9.2
+    npm install -g pnpm@9 turbo@2.5.6
 
 WORKDIR /app
 
@@ -49,12 +49,15 @@ RUN find . -type f -name "*.md" -delete && \
     find . -type f -name "*.spec.*" -delete && \
     rm -rf .git .github docs apps/frontend .env* .vscode
 
+
 # Build with environment optimizations
 ENV TURBO_TELEMETRY_DISABLED=1 \
     NODE_OPTIONS="--max-old-space-size=2048"
 
 # Parallel builds with error handling (2025 optimization)
-RUN pnpm run build:shared && \
+# Ensure workspace dependencies are installed before building
+RUN pnpm install --frozen-lockfile --prefer-offline && \
+    pnpm run build:shared && \
     pnpm run build:backend
 
 # ===== PROD-DEPS OPTIMIZATION =====
