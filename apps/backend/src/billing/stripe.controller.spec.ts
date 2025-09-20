@@ -146,11 +146,11 @@ describe('StripeController', () => {
 
 			expect(result.clientSecret).toBe('pi_test123_secret')
 
-			// Verify sanitization removed dangerous characters
+			// Verify sanitization removed dangerous characters but kept apostrophe
 			expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					metadata: expect.objectContaining({
-						tenant_id: "test'; DROP TABLE users--" // After sanitization (apostrophe and semicolon preserved)
+						tenant_id: "test' DROP TABLE users--" // After sanitization (apostrophe preserved, semicolon removed)
 					})
 				})
 			)
@@ -276,7 +276,7 @@ describe('StripeController', () => {
 			expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					metadata: expect.objectContaining({
-						product_name: "Product'; DROP TABLE orders--", // After sanitization (apostrophe preserved)
+						product_name: "Product' DROP TABLE orders--", // After sanitization (apostrophe preserved, semicolon removed)
 						tenant_id: validUuid,
 						price_id: 'price_1234567890abcdef'
 					})
@@ -401,7 +401,7 @@ describe('StripeController', () => {
 			expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					metadata: expect.objectContaining({
-						product_name: 'scriptalert(xss)/script', // After sanitization (no apostrophes to preserve)
+						product_name: 'scriptalert(xss)/script', // After sanitization
 						tenant_id: validUuid
 					})
 				})

@@ -46,7 +46,8 @@ async function runHealthCheck() {
 
 		Object.entries(data.services).forEach(([serviceName, status]) => {
 			const icon = status === 'up' ? '[OK]' : '[ERROR]'
-			const displayName = serviceName.replace(/([A-Z_])/g, ' $1').trim()
+			const displayName =
+				serviceName.charAt(0).toUpperCase() + serviceName.slice(1)
 			logger.info(`  ${icon} ${displayName}: ${status.toUpperCase()}`)
 		})
 

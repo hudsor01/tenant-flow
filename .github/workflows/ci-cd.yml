@@ -1,22 +1,19 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: CI/CD
 
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
+on: [pull_request, push]
 
 env:
   NODE_VERSION: '22'
 
 jobs:
   build-and-test:
-    concurrency:
-      cancel-in-progress: true
-      group: ci-${{ github.ref }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    concurrency:
+      group: ci-${{ github.ref }}
+      cancel-in-progress: true
 
     steps:
       - name: Checkout
@@ -40,8 +37,8 @@ jobs:
         env:
           BACKEND_SCHEMAS_DIR: ./supabase/schema-exports
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: pnpm run build:ci
 
       - name: Run tests
@@ -49,7 +46,6 @@ jobs:
 
       - name: Lint check
         run: pnpm run lint
-
   deploy-backend:
     if: github.ref == 'refs/heads/main'
     name: Deploy Backend
