@@ -31,9 +31,6 @@
 		"apps/frontend/src/app/api/**/route.ts": {
 			"maxDuration": 10,
 			"memory": 512
-		},
-		"apps/frontend/src/app/**/*.tsx": {
-			"runtime": "nodejs20.x"
 		}
 	},
 
