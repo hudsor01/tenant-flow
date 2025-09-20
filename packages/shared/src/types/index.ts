@@ -42,39 +42,6 @@ export type {
 	UserRole
 } from './auth'
 
-// Frontend types (UI components and design system)
-export type {
-	AnimationType,
-	BadgeSize,
-	BadgeVariant,
-	ButtonVariant,
-	CheckoutFormProps,
-	ContainerSize,
-	CreatePaymentIntentRequest,
-	CustomerPortalCardProps,
-	DataTableProps,
-	ExtendedCheckoutFormProps,
-	FrontendHealthCheckResponse, // Alias for compatibility
-	GridColumnsConfig,
-	FrontendHealthCheckResponse as HealthCheckResponse,
-	PaginationLinkProps,
-	PricingUIData,
-	ResponsiveValuesConfig,
-	RevenueChartDataPoint,
-	RevenueDataPoint,
-	SVGPatternProps,
-	StatusType,
-	TailwindColorName,
-	TailwindRadiusValue,
-	ThemeCSSVariables,
-	ThemeColors,
-	ThemeRadius,
-	UseDataTableInstanceProps,
-	VirtualizedListProps,
-	VirtualizedPropertyListProps,
-	VirtualizedTenantListProps
-} from './frontend'
-
 // Validation types (Zod integration) - correct imports
 export type {
 	MaintenanceRequestInput,
