@@ -1,16 +1,15 @@
-import { Module, Logger } from '@nestjs/common'
+import { Module } from '@nestjs/common'
+import { SupabaseModule } from '../database/supabase.module'
 import { TenantsController } from './tenants.controller'
 import { TenantsService } from './tenants.service'
-import { SupabaseModule } from '../database/supabase.module'
-import { SharedModule } from '../shared/shared.module'
 
 /**
  * Tenants module - Simplified with direct Supabase usage
  */
 @Module({
-	imports: [SupabaseModule, SharedModule],
+	imports: [SupabaseModule],
 	controllers: [TenantsController],
-	providers: [TenantsService, Logger],
+	providers: [TenantsService],
 	exports: [TenantsService]
 })
 export class TenantsModule {}
