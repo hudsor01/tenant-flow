@@ -124,20 +124,36 @@ describe('StripeController', () => {
 			}
 		})
 
-		it('should reject malicious SQL injection attempts', async () => {
+		it('should sanitize SQL injection attempts and succeed', async () => {
 			const maliciousInput = "test'; DROP TABLE users--"
 
-			try {
-				await controller.createPaymentIntent({
-					amount: 100,
-					tenantId: maliciousInput,
-					propertyId: undefined,
-					subscriptionType: undefined
+			const mockPaymentIntent = {
+				id: 'pi_test123',
+				client_secret: 'pi_test123_secret'
+			} as Stripe.PaymentIntent
+
+			;(mockStripe.paymentIntents.create as jest.Mock).mockResolvedValue(
+				mockPaymentIntent
+			)
+
+			// Should succeed after sanitization
+			const result = await controller.createPaymentIntent({
+				amount: 100,
+				tenantId: maliciousInput,
+				propertyId: undefined,
+				subscriptionType: undefined
+			})
+
+			expect(result.clientSecret).toBe('pi_test123_secret')
+
+			// Verify sanitization removed dangerous characters
+			expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
+				expect.objectContaining({
+					metadata: expect.objectContaining({
+						tenant_id: 'test DROP TABLE users--' // After sanitization (-- not removed)
+					})
 				})
-			} catch (error) {
-				const err = error as Error
-				expect(err.constructor.name).toBe('InternalServerErrorException')
-			}
+			)
 		})
 	})
 
@@ -186,22 +202,43 @@ describe('StripeController', () => {
 			}
 		})
 
-		it('should sanitize malicious product names', async () => {
+		it('should sanitize malicious product names successfully', async () => {
 			const validUuid = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
 			const maliciousProductName = "Product'; DROP TABLE orders--"
 
-			try {
-				await controller.createCheckoutSession({
-					productName: maliciousProductName,
-					tenantId: validUuid,
-					domain: 'https://example.com',
-					priceId: 'price_1234567890abcdef',
-					isSubscription: false
+			const mockSession = {
+				id: 'cs_test123',
+				url: 'https://checkout.stripe.com/test'
+			} as Stripe.Checkout.Session
+
+			;(mockStripe.checkout.sessions.create as jest.Mock).mockResolvedValue(
+				mockSession
+			)
+
+			// Should succeed after sanitization (dangerous characters removed)
+			const result = await controller.createCheckoutSession({
+				productName: maliciousProductName,
+				tenantId: validUuid,
+				domain: 'https://example.com',
+				priceId: 'price_1234567890abcdef',
+				isSubscription: false
+			})
+
+			expect(result).toEqual({
+				url: 'https://checkout.stripe.com/test',
+				session_id: 'cs_test123'
+			})
+
+			// Verify the Stripe API was called with sanitized metadata
+			expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
+				expect.objectContaining({
+					metadata: expect.objectContaining({
+						product_name: 'Product DROP TABLE orders--', // After sanitization (-- not removed)
+						tenant_id: validUuid,
+						price_id: 'price_1234567890abcdef'
+					})
 				})
-			} catch (error) {
-				const err = error as Error
-				expect(err.constructor.name).toBe('InternalServerErrorException')
-			}
+			)
 		})
 	})
 
@@ -269,37 +306,171 @@ describe('StripeController', () => {
 		})
 	})
 
-	describe('Security Tests', () => {
-		it('should prevent SQL injection with UNION SELECT', async () => {
-			const maliciousInput = "test' UNION SELECT * FROM users--"
+	describe('Error Handling - Sanitization vs Stripe Errors', () => {
+		it('should return 400 for strings that become empty after sanitization', async () => {
+			const validUuid = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+			const onlyDangerousChars = '<>\'";&\\\\'
 
 			try {
-				await controller.createPaymentIntent({
-					amount: 100,
-					tenantId: maliciousInput,
-					propertyId: undefined,
-					subscriptionType: undefined
+				await controller.createCheckoutSession({
+					productName: onlyDangerousChars,
+					tenantId: validUuid,
+					domain: 'https://example.com',
+					priceId: 'price_1234567890abcdef',
+					isSubscription: false
 				})
+				fail('Should have thrown BadRequestException')
+			} catch (error) {
+				const err = error as Error
+				expect(err.constructor.name).toBe('BadRequestException')
+				expect(err.message).toContain('contains only invalid characters')
+			}
+		})
+
+		it('should sanitize XSS attempts successfully', async () => {
+			const validUuid = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+			const xssAttempt = '<script>alert("xss")</script>'
+
+			const mockSession = {
+				id: 'cs_test123',
+				url: 'https://checkout.stripe.com/test'
+			} as Stripe.Checkout.Session
+
+			;(mockStripe.checkout.sessions.create as jest.Mock).mockResolvedValue(
+				mockSession
+			)
+
+			// Should succeed after sanitization
+			const result = await controller.createCheckoutSession({
+				productName: xssAttempt,
+				tenantId: validUuid,
+				domain: 'https://example.com',
+				priceId: 'price_1234567890abcdef',
+				isSubscription: false
+			})
+
+			expect(result).toEqual({
+				url: 'https://checkout.stripe.com/test',
+				session_id: 'cs_test123'
+			})
+
+			// Verify XSS was sanitized
+			expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
+				expect.objectContaining({
+					metadata: expect.objectContaining({
+						product_name: 'scriptalert(xss)/script', // After sanitization
+						tenant_id: validUuid
+					})
+				})
+			)
+		})
+
+		it('should return 500 for actual Stripe API errors', async () => {
+			const validUuid = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+			const stripeError = new Error(
+				'Stripe API error'
+			) as Stripe.errors.StripeError
+			stripeError.type = 'StripeAPIError'
+			;(mockStripe.checkout.sessions.create as jest.Mock).mockRejectedValue(
+				stripeError
+			)
+
+			try {
+				await controller.createCheckoutSession({
+					productName: 'Valid Product',
+					tenantId: validUuid,
+					domain: 'https://example.com',
+					priceId: 'price_1234567890abcdef',
+					isSubscription: false
+				})
+				fail('Should have thrown InternalServerErrorException')
 			} catch (error) {
 				const err = error as Error
 				expect(err.constructor.name).toBe('InternalServerErrorException')
 			}
 		})
+	})
 
-		it('should prevent SQL injection with OR 1=1', async () => {
-			const maliciousInput = "test' OR 1=1--"
+	describe('Security Tests', () => {
+		it('should reject strings containing only dangerous characters', async () => {
+			const onlyDangerousChars = '<>\'";&\\\\'
 
 			try {
 				await controller.createPaymentIntent({
 					amount: 100,
-					tenantId: maliciousInput,
+					tenantId: onlyDangerousChars,
 					propertyId: undefined,
 					subscriptionType: undefined
 				})
+				fail('Should have thrown BadRequestException')
 			} catch (error) {
 				const err = error as Error
-				expect(err.constructor.name).toBe('InternalServerErrorException')
+				expect(err.constructor.name).toBe('BadRequestException')
+				expect(err.message).toContain('contains only invalid characters')
 			}
+		})
+		it('should sanitize SQL injection with UNION SELECT', async () => {
+			const maliciousInput = "test' UNION SELECT * FROM users--"
+
+			const mockPaymentIntent = {
+				id: 'pi_test123',
+				client_secret: 'pi_test123_secret'
+			} as Stripe.PaymentIntent
+
+			;(mockStripe.paymentIntents.create as jest.Mock).mockResolvedValue(
+				mockPaymentIntent
+			)
+
+			// Should succeed after sanitization
+			const result = await controller.createPaymentIntent({
+				amount: 100,
+				tenantId: maliciousInput,
+				propertyId: undefined,
+				subscriptionType: undefined
+			})
+
+			expect(result.clientSecret).toBe('pi_test123_secret')
+
+			// Verify sanitization removed dangerous characters
+			expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
+				expect.objectContaining({
+					metadata: expect.objectContaining({
+						tenant_id: 'test UNION SELECT * FROM users--' // After sanitization (-- not removed)
+					})
+				})
+			)
+		})
+
+		it('should sanitize SQL injection with OR 1=1', async () => {
+			const maliciousInput = "test' OR 1=1--"
+
+			const mockPaymentIntent = {
+				id: 'pi_test123',
+				client_secret: 'pi_test123_secret'
+			} as Stripe.PaymentIntent
+
+			;(mockStripe.paymentIntents.create as jest.Mock).mockResolvedValue(
+				mockPaymentIntent
+			)
+
+			// Should succeed after sanitization
+			const result = await controller.createPaymentIntent({
+				amount: 100,
+				tenantId: maliciousInput,
+				propertyId: undefined,
+				subscriptionType: undefined
+			})
+
+			expect(result.clientSecret).toBe('pi_test123_secret')
+
+			// Verify sanitization removed dangerous characters
+			expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
+				expect.objectContaining({
+					metadata: expect.objectContaining({
+						tenant_id: 'test OR 1=1--' // After sanitization (= and -- not removed)
+					})
+				})
+			)
 		})
 
 		it('should handle control characters properly', async () => {
@@ -312,9 +483,11 @@ describe('StripeController', () => {
 					propertyId: undefined,
 					subscriptionType: undefined
 				})
+				fail('Should have thrown an error')
 			} catch (error) {
 				const err = error as Error
-				expect(err.constructor.name).toBe('InternalServerErrorException')
+				expect(err.constructor.name).toBe('BadRequestException')
+				expect(err.message).toContain('contains control characters')
 			}
 		})
 	})

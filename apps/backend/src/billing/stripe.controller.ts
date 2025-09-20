@@ -471,6 +471,20 @@ export class StripeController {
 			)
 		}
 
+		// Sanitize all metadata values BEFORE try block to return proper 400 errors
+		const sanitizedTenantId = this.sanitizeMetadataValue(
+			body.tenantId,
+			'tenant_id'
+		)
+		const sanitizedProductName = this.sanitizeMetadataValue(
+			body.productName,
+			'product_name'
+		)
+		const sanitizedPriceId = this.sanitizeMetadataValue(
+			body.priceId,
+			'price_id'
+		)
+
 		this.logger.log('Creating checkout session', {
 			productName: body.productName,
 			priceId: body.priceId,
@@ -487,20 +501,6 @@ export class StripeController {
 					quantity: 1
 				}
 			]
-
-			// Sanitize all metadata values
-			const sanitizedTenantId = this.sanitizeMetadataValue(
-				body.tenantId,
-				'tenant_id'
-			)
-			const sanitizedProductName = this.sanitizeMetadataValue(
-				body.productName,
-				'product_name'
-			)
-			const sanitizedPriceId = this.sanitizeMetadataValue(
-				body.priceId,
-				'price_id'
-			)
 
 			const session = await this.stripe.checkout.sessions.create({
 				payment_method_types: ['card'],
@@ -581,6 +581,12 @@ export class StripeController {
 		const sanitizedPropertyId = body.propertyId
 			? this.sanitizeMetadataValue(body.propertyId, 'property_id')
 			: undefined
+		const sanitizedPropertyOwnerAccount = body.propertyOwnerAccount
+			? this.sanitizeMetadataValue(
+					body.propertyOwnerAccount,
+					'property_owner_account'
+				)
+			: undefined
 
 		try {
 			const paymentIntent = await this.stripe.paymentIntents.create(
@@ -589,12 +595,7 @@ export class StripeController {
 					currency: 'usd',
 					application_fee_amount: body.platformFee, // TenantFlow commission
 					transfer_data: {
-						destination: body.propertyOwnerAccount
-							? this.sanitizeMetadataValue(
-									body.propertyOwnerAccount,
-									'property_owner_account'
-								)
-							: ''
+						destination: sanitizedPropertyOwnerAccount || ''
 					},
 					metadata: {
 						tenant_id: sanitizedTenantId,
@@ -1184,6 +1185,14 @@ export class StripeController {
 		if (!value || typeof value !== 'string') {
 			throw new BadRequestException(
 				`Invalid ${fieldName}: must be a non-empty string`
+			)
+		}
+
+		// Check for control characters first (before sanitization)
+		// eslint-disable-next-line no-control-regex
+		if (/[\x00-\x1F\x7F]/.test(value)) {
+			throw new BadRequestException(
+				`Invalid ${fieldName}: contains control characters`
 			)
 		}
 
