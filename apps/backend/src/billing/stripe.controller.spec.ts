@@ -171,7 +171,7 @@ describe('StripeController', () => {
 			)
 
 			const result = await controller.createCheckoutSession({
-				productName: 'Test Product',
+				productName: 'Select Plan',
 				tenantId: validUuid,
 				domain: 'https://example.com',
 				priceId: 'price_1234567890abcdef',
@@ -182,6 +182,49 @@ describe('StripeController', () => {
 				url: 'https://checkout.stripe.com/test',
 				session_id: 'cs_test123'
 			})
+
+			expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
+				expect.objectContaining({
+					metadata: expect.objectContaining({
+						product_name: 'Select Plan'
+					})
+				})
+			)
+		})
+
+		it('should allow product names with apostrophes and punctuation', async () => {
+			const validUuid = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+			const descriptiveName = "Tenant's Premium Plan (Annual)"
+
+			const mockSession = {
+				id: 'cs_test456',
+				url: 'https://checkout.stripe.com/test/tenant'
+			} as Stripe.Checkout.Session
+
+			;(mockStripe.checkout.sessions.create as jest.Mock).mockResolvedValue(
+				mockSession
+			)
+
+			const result = await controller.createCheckoutSession({
+				productName: descriptiveName,
+				tenantId: validUuid,
+				domain: 'https://tenant.example.com',
+				priceId: 'price_abcdef1234567890',
+				isSubscription: true
+			})
+
+			expect(result).toEqual({
+				url: 'https://checkout.stripe.com/test/tenant',
+				session_id: 'cs_test456'
+			})
+
+			expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
+				expect.objectContaining({
+					metadata: expect.objectContaining({
+						product_name: descriptiveName
+					})
+				})
+			)
 		})
 
 		it('should throw BadRequestException for missing productName', async () => {

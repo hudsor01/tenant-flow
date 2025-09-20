@@ -23,18 +23,11 @@ import {
 	ArrowRight,
 	Award,
 	BarChart3,
-	CheckCircle2,
 	Clock,
-	Crown,
 	Heart,
-	Loader2,
 	Rocket,
-	Shield,
 	Sparkles,
-	Star,
-	Target,
-	TrendingUp,
-	Users
+	Target
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'

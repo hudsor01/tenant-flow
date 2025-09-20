@@ -25,8 +25,7 @@ const plans = [
 			'Professional tenant management',
 			'Automated rent collection',
 			'Priority email support'
-		],
-		gradient: 'from-primary to-primary/80'
+		]
 	},
 	{
 		name: 'Growth',
@@ -40,8 +39,7 @@ const plans = [
 			'Phone & email support',
 			'API access'
 		],
-		popular: true,
-		gradient: 'from-primary/80 to-accent'
+		popular: true
 	},
 	{
 		name: 'TenantFlow Max',
@@ -54,8 +52,7 @@ const plans = [
 			'Custom integrations',
 			'Dedicated account manager',
 			'24/7 priority support'
-		],
-		gradient: 'from-accent to-primary'
+		]
 	}
 ]
 
