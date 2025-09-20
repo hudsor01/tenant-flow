@@ -221,7 +221,7 @@ describe('StripeController', () => {
 			expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					metadata: expect.objectContaining({
-						product_name: 'Tenants Premium Plan (Annual)'
+						product_name: "Tenant's Premium Plan (Annual)" // Apostrophe preserved
 					})
 				})
 			)

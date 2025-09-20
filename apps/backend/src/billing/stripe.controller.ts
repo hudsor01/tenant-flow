@@ -1180,6 +1180,7 @@ export class StripeController {
 	/**
 	 * Sanitize metadata values to prevent injection attacks
 	 * CLAUDE.md compliant: Security-first approach
+	 * Allows apostrophes for valid business names like "Tenant's Premium Plan"
 	 */
 	private sanitizeMetadataValue(value: string, fieldName: string): string {
 		if (!value || typeof value !== 'string') {
@@ -1202,9 +1203,11 @@ export class StripeController {
 			throw new BadRequestException(`${fieldName} contains control characters`)
 		}
 
+		// Sanitize dangerous characters but preserve apostrophes for valid names like "Tenant's Premium Plan"
+		// Remove: < > " ` ; & \ but keep single quotes (apostrophes)
 		const sanitized = normalizedValue
 			.trim()
-			.replace(/[<>"'`;&\\]/g, '')
+			.replace(/[<>"`;&\\]/g, '') // Removed ' from the regex to allow apostrophes
 			.replace(/[\r\n\t]+/g, ' ')
 			.replace(/\s{2,}/g, ' ')
 
