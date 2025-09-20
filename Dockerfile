@@ -25,6 +25,7 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json apps/backend/
 COPY packages/*/package.json packages/
+COPY scripts/prepare-husky.cjs scripts/
 
 # Install dependencies with cache mount for pnpm store only
 # Note: node_modules must be persisted in the image layer, not just in cache
@@ -62,6 +63,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json apps/backend/
 COPY packages/shared/package.json packages/shared/
 COPY packages/database/package.json packages/database/
+COPY scripts/prepare-husky.cjs scripts/
 
 # Install production deps with Railway-compatible caching
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-prod,target=/root/.local/share/pnpm/store \

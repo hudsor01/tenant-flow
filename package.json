@@ -79,7 +79,7 @@
 		"db:pull": "supabase db pull",
 		"db:link": "supabase link",
 		"db:status": "supabase status",
-		"prepare": "husky"
+		"prepare": "node scripts/prepare-husky.cjs"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "19.8.1",
