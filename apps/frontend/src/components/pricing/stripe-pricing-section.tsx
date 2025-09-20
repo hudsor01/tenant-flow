@@ -16,17 +16,10 @@ import {
 	cn,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
-import { PRICING_PLANS, type PricingConfig } from '@repo/shared/config/pricing'
 import { type PricingUIData } from '@repo/shared'
-import { useDynamicPricing } from '@/hooks/use-dynamic-pricing'
+import { type PricingConfig } from '@repo/shared/config/pricing'
+import { useMutation } from '@tanstack/react-query'
 import {
-	Crown,
-	Loader2,
-	Shield,
-	Star,
-	TrendingUp,
-	Users,
-	CheckCircle2,
 	ArrowRight,
 	Award,
 	BarChart3,
@@ -92,7 +85,6 @@ const planHighlightMap: Record<string, string> = {
 
 // PricingUIData interface now imported from @repo/shared
 
-
 export function StripePricingSection({
 	className,
 	showStats = true,
@@ -105,59 +97,73 @@ export function StripePricingSection({
 	const activePlans = plans
 
 	// Calculate savings and format pricing - MOVED UP TO FIX HOOKS RULES
-	const pricingData = useMemo((): (PricingUIData & { name: string; planId: string })[] => {
-		return activePlans.map((plan): PricingUIData & { name: string; planId: string } => {
-			if (!plan.price) return {
-				name: plan.name || '',
-				planId: plan.planId,
-				icon: planIconMap[plan.planId] || Rocket,
-				popular: popularPlans.includes(plan.planId),
-				tier: planTierMap[plan.planId] || 'standard',
-				tagline: plan.description || '',
-				enhanced_features: plan.features.map(f => ({ text: f, highlight: false })),
-				benefits: [],
-				cta: planCtaMap[plan.planId] || 'Get Started',
-				highlight: planHighlightMap[plan.planId] || '',
-				monthlySavings: 0,
-				yearlySavings: 0,
-				savingsPercentage: 0,
-				formattedPrice: '$0',
-				fullYearPrice: '$0'
+	const pricingData = useMemo((): (PricingUIData & {
+		name: string
+		planId: string
+	})[] => {
+		return activePlans.map(
+			(plan): PricingUIData & { name: string; planId: string } => {
+				if (!plan.price)
+					return {
+						name: plan.name || '',
+						planId: plan.planId,
+						icon: planIconMap[plan.planId] || Rocket,
+						popular: popularPlans.includes(plan.planId),
+						tier: planTierMap[plan.planId] || 'standard',
+						tagline: plan.description || '',
+						enhanced_features: plan.features.map(f => ({
+							text: f,
+							highlight: false
+						})),
+						benefits: [],
+						cta: planCtaMap[plan.planId] || 'Get Started',
+						highlight: planHighlightMap[plan.planId] || '',
+						monthlySavings: 0,
+						yearlySavings: 0,
+						savingsPercentage: 0,
+						formattedPrice: '$0',
+						fullYearPrice: '$0'
+					}
+
+				const monthlyPrice = plan.price.monthly / 100
+				const yearlyPrice = plan.price.annual / 100
+				const monthlySavings = monthlyPrice * 12 - yearlyPrice
+				const savingsPercentage = Math.round(
+					(monthlySavings / (monthlyPrice * 12)) * 100
+				)
+
+				// Get UI enhancement data dynamically based on plan ID
+				const icon = planIconMap[plan.planId] || Rocket
+				const tier = planTierMap[plan.planId] || 'standard'
+				const popular = popularPlans.includes(plan.planId)
+				const cta = planCtaMap[plan.planId] || 'Get Started'
+				const highlight = planHighlightMap[plan.planId] || ''
+
+				return {
+					...plan,
+					icon,
+					popular,
+					tier,
+					tagline: plan.description || '',
+					enhanced_features: plan.features.map(f => ({
+						text: f,
+						highlight: false
+					})),
+					benefits: [],
+					cta,
+					highlight,
+					name: plan.name || '',
+					planId: plan.planId,
+					monthlySavings,
+					yearlySavings: yearlyPrice,
+					savingsPercentage,
+					formattedPrice: isYearly
+						? `$${Math.floor(yearlyPrice / 12)}`
+						: `$${monthlyPrice}`,
+					fullYearPrice: `$${yearlyPrice}`
+				}
 			}
-
-			const monthlyPrice = plan.price.monthly / 100
-			const yearlyPrice = plan.price.annual / 100
-			const monthlySavings = monthlyPrice * 12 - yearlyPrice
-			const savingsPercentage = Math.round((monthlySavings / (monthlyPrice * 12)) * 100)
-
-			// Get UI enhancement data dynamically based on plan ID
-			const icon = planIconMap[plan.planId] || Rocket
-			const tier = planTierMap[plan.planId] || 'standard'
-			const popular = popularPlans.includes(plan.planId)
-			const cta = planCtaMap[plan.planId] || 'Get Started'
-			const highlight = planHighlightMap[plan.planId] || ''
-
-			return {
-				...plan,
-				icon,
-				popular,
-				tier,
-				tagline: plan.description || '',
-				enhanced_features: plan.features.map(f => ({ text: f, highlight: false })),
-				benefits: [],
-				cta,
-				highlight,
-				name: plan.name || '',
-				planId: plan.planId,
-				monthlySavings,
-				yearlySavings: yearlyPrice,
-				savingsPercentage,
-				formattedPrice: isYearly
-					? `$${Math.floor(yearlyPrice / 12)}`
-					: `$${monthlyPrice}`,
-				fullYearPrice: `$${yearlyPrice}`
-			}
-		})
+		)
 	}, [activePlans, isYearly])
 
 	const subscriptionMutation = useMutation({
@@ -197,7 +203,10 @@ export function StripePricingSection({
 			}
 
 			// Get the appropriate Stripe price ID for the selected plan and billing period
-			const stripePriceId = getStripeId(selectedPlan.planId, isYearly ? 'annual' : 'monthly')
+			const stripePriceId = getStripeId(
+				selectedPlan.planId,
+				isYearly ? 'annual' : 'monthly'
+			)
 			if (!stripePriceId) {
 				throw new Error(
 					`No ${isYearly ? 'annual' : 'monthly'} price configured for ${planId} plan`

@@ -39,27 +39,23 @@ async function runHealthCheck() {
 		logger.info('AUTH HEALTH CHECK RESULTS')
 		logger.info('='.repeat(60))
 		logger.info(`Overall Status: ${data.status.toUpperCase()}`)
-		logger.info(`Environment: ${data.environment}`)
+		logger.info(`Version: ${data.version}`)
 		logger.info(`Timestamp: ${new Date(data.timestamp).toLocaleString()}`)
+		logger.info(`Uptime: ${Math.floor(data.uptime / 60)} minutes`)
 		logger.info('\nSystem Services:')
 
-		data.services.forEach(service => {
-			const icon =
-				service.status === 'healthy'
-					? '[OK]'
-					: service.status === 'degraded'
-						? '[WARN]'
-						: '[ERROR]'
-			const displayName = service.name.replace(/([A-Z_])/g, ' $1').trim()
-			logger.info(
-				`  ${icon} ${displayName}: ${service.status.toUpperCase()}${service.responseTime ? ` (${service.responseTime}ms)` : ''}`
-			)
+		// Display each service status
+		Object.entries(data.services).forEach(([serviceName, status]) => {
+			const icon = status === 'up' ? '[OK]' : '[ERROR]'
+			const displayName =
+				serviceName.charAt(0).toUpperCase() + serviceName.slice(1)
+			logger.info(`  ${icon} ${displayName}: ${status.toUpperCase()}`)
 		})
 
 		logger.info('\n' + '='.repeat(60))
 
 		// Exit with appropriate code
-		if (data.status === 'error') {
+		if (data.status === 'unhealthy') {
 			logger.error(
 				'\nERROR: Auth system is unhealthy. Please address the issues above.'
 			)
