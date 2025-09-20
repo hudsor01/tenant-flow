@@ -48,46 +48,15 @@ ENV TURBO_TELEMETRY_DISABLED=1 \
 
 # Parallel builds with error handling
 RUN pnpm run build:shared && \
+    pnpm run build:database && \
     pnpm run build:backend
 
 # Ensure runtime has access to Handlebars templates compiled from TypeScript
 RUN mkdir -p apps/backend/dist/pdf/templates \
     && cp -R apps/backend/src/pdf/templates/. apps/backend/dist/pdf/templates/
 
-# ===== PROD-DEPS OPTIMIZATION =====
-# Clean production dependencies with node-prune (2025 technique)
-FROM base AS prod-deps
-
-ENV NODE_ENV=production \
-    HUSKY=0
-
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY apps/backend/package.json apps/backend/
-COPY packages/shared/package.json packages/shared/
-COPY scripts/prepare-husky.cjs scripts/
-
-# Install production deps with Railway-compatible caching
-RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-prod,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --prod --prefer-offline
-
-# Optimize node_modules (reduce size for production)
-RUN npm install -g pnpm@10 turbo@2.5.6 && \
-    rm -rf node_modules/**/test \
-           node_modules/**/tests \
-           node_modules/**/*.map \
-           node_modules/**/*.ts \
-           node_modules/**/.bin \
-           node_modules/**/*.md \
-           node_modules/**/LICENSE* \
-           node_modules/**/license* \
-           node_modules/**/README* \
-           node_modules/**/readme* \
-           node_modules/**/.github \
-           node_modules/**/CHANGELOG* \
-           node_modules/**/changelog*
-
 # ===== RUNTIME STAGE =====
-# Ultra-minimal production image (~150MB total)
+# Ultra-minimal production image (~200MB total)
 FROM node:${NODE_VERSION} AS runtime
 
 RUN apk add --no-cache \
@@ -101,21 +70,57 @@ RUN apk add --no-cache \
         dumb-init \
     && rm -rf /var/cache/apk/* /tmp/*
 
+# Install pnpm for workspace support
+RUN npm install -g pnpm@10
+
 WORKDIR /app
 
 ENV NODE_ENV=production \
     DOCKER_CONTAINER=true \
     NODE_OPTIONS="--enable-source-maps --max-old-space-size=512" \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    PNPM_HOME=/root/.local/share/pnpm \
+    PATH=$PNPM_HOME:$PATH
 
-USER node
+# Copy workspace configuration for proper module resolution
+COPY --from=build --chown=node:node /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+COPY --from=build --chown=node:node /app/scripts/prepare-husky.cjs ./scripts/prepare-husky.cjs
 
-COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
+# Copy backend application
 COPY --from=build --chown=node:node /app/apps/backend/package.json ./apps/backend/package.json
 COPY --from=build --chown=node:node /app/apps/backend/dist ./apps/backend/dist
+
+# Copy shared package (workspace dependency)
 COPY --from=build --chown=node:node /app/packages/shared/package.json ./packages/shared/package.json
 COPY --from=build --chown=node:node /app/packages/shared/dist ./packages/shared/dist
+
+# Copy database package artifacts for runtime usage
+COPY --from=build --chown=node:node /app/packages/database/package.json ./packages/database/package.json
+COPY --from=build --chown=node:node /app/packages/database/dist ./packages/database/dist
+
+# Install production dependencies in the runtime environment
+# This ensures workspace dependencies resolve correctly
+RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-prod,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --prod --prefer-offline --filter @repo/backend...
+
+# Clean up dev files to reduce size but keep essential files
+RUN rm -rf node_modules/**/test \
+           node_modules/**/tests \
+           node_modules/**/*.map \
+           node_modules/**/*.ts \
+           node_modules/**/.bin \
+           node_modules/**/*.md \
+           node_modules/**/LICENSE* \
+           node_modules/**/license* \
+           node_modules/**/README* \
+           node_modules/**/readme* \
+           node_modules/**/.github \
+           node_modules/**/CHANGELOG* \
+           node_modules/**/changelog* \
+    && rm -rf /root/.local/share/pnpm/store
+
+USER node
 
 ARG PORT=4600
 ENV PORT=${PORT}
