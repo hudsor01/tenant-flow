@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common'
+import { SupabaseModule } from '../database/supabase.module'
 import { TenantsController } from './tenants.controller'
 import { TenantsService } from './tenants.service'
-import { SupabaseModule } from '../database/supabase.module'
 
 /**
  * Tenants module - Simplified with direct Supabase usage
