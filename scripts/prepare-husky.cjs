@@ -3,11 +3,6 @@
 const normalize = (value) => value === undefined ? undefined : String(value).toLowerCase();
 
 const shouldSkip = () => {
-  // Skip in CI/Vercel environments
-  if (process.env.CI || process.env.VERCEL || process.env.NODE_ENV === 'production') {
-    return true;
-  }
-
   const husky = normalize(process.env.HUSKY);
   if (husky === '0' || husky === 'false') {
     return true;
