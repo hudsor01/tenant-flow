@@ -1180,6 +1180,7 @@ export class StripeController {
 	/**
 	 * Sanitize metadata values to prevent injection attacks
 	 * CLAUDE.md compliant: Security-first approach
+	 * Allows apostrophes for valid business names like "Tenant's Premium Plan"
 	 */
 	private sanitizeMetadataValue(value: string, fieldName: string): string {
 		if (!value || typeof value !== 'string') {
@@ -1188,19 +1189,27 @@ export class StripeController {
 			)
 		}
 
-		// Check for control characters first (before sanitization)
-		// eslint-disable-next-line no-control-regex
-		if (/[\x00-\x1F\x7F]/.test(value)) {
+		if (value.length > 500) {
 			throw new BadRequestException(
-				`Invalid ${fieldName}: contains control characters`
+				`${fieldName} must be less than 500 characters`
 			)
 		}
 
-		// Remove potential injection characters and limit length
-		const sanitized = value
-			.replace(/[<>'";&\\]/g, '') // Remove dangerous characters
+		const normalizedValue = value.normalize('NFKC')
+
+		// Check for control characters (0x00-0x1F and 0x7F)
+		// eslint-disable-next-line no-control-regex
+		if (/[\x00-\x1F\x7F]/.test(normalizedValue)) {
+			throw new BadRequestException(`${fieldName} contains control characters`)
+		}
+
+		// Sanitize dangerous characters but preserve apostrophes for valid names like "Tenant's Premium Plan"
+		// Remove: < > " ` ; & \ but keep single quotes (apostrophes)
+		const sanitized = normalizedValue
 			.trim()
-			.substring(0, 500) // Stripe metadata limit
+			.replace(/[<>"`;&\\]/g, '') // Removed ' from the regex to allow apostrophes
+			.replace(/[\r\n\t]+/g, ' ')
+			.replace(/\s{2,}/g, ' ')
 
 		if (!sanitized) {
 			throw new BadRequestException(
