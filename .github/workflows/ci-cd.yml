@@ -9,7 +9,7 @@ env:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     concurrency:
       group: ci-${{ github.ref }}
@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -30,22 +32,36 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Get pnpm cache directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - name: Build packages
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Build and test in parallel
         env:
           BACKEND_SCHEMAS_DIR: ./supabase/schema-exports
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        run: pnpm run build:ci
+        run: |
+          # Run lint, typecheck, and build in parallel to save time
+          pnpm run lint &
+          pnpm run typecheck &
+          pnpm run build:ci &
+          wait
 
-      - name: Run tests
-        run: pnpm run test:unit
-
-      - name: Lint check
-        run: pnpm run lint
+          # Run tests after build completes
+          pnpm run test:unit
   deploy-backend:
     if: github.ref == 'refs/heads/main'
     name: Deploy Backend
