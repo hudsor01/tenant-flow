@@ -39,7 +39,8 @@ ENV DOPPLER_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN pnpm install --frozen-lockfile --offline
+RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --prefer-offline
 
 # Build with environment optimizations
 ENV TURBO_TELEMETRY_DISABLED=1 \
