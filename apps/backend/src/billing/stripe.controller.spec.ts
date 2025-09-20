@@ -352,7 +352,7 @@ describe('StripeController', () => {
 	describe('Error Handling - Sanitization vs Stripe Errors', () => {
 		it('should return 400 for strings that become empty after sanitization', async () => {
 			const validUuid = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
-			const onlyDangerousChars = '<>\'";&\\\\'
+			const onlyDangerousChars = '<>"`;&\\\\'
 
 			try {
 				await controller.createCheckoutSession({
@@ -436,7 +436,7 @@ describe('StripeController', () => {
 
 	describe('Security Tests', () => {
 		it('should reject strings containing only dangerous characters', async () => {
-			const onlyDangerousChars = '<>\'";&\\\\'
+			const onlyDangerousChars = '<>"`;&\\\\'
 
 			try {
 				await controller.createPaymentIntent({
