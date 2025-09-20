@@ -14,7 +14,7 @@ ARG BUILDKIT_INLINE_CACHE=1
 # dumb-init: Lightweight init system for proper signal handling (2025 best practice)
 RUN apk add --no-cache python3 make g++ dumb-init && \
     rm -rf /var/cache/apk/* /tmp/* && \
-    npm install -g pnpm@9
+    npm install -g pnpm@9 turbo@2.5.6
 
 WORKDIR /app
 
@@ -74,7 +74,7 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-prod,targe
     pnpm install --frozen-lockfile --prod --prefer-offline
 
 # Install node-prune and optimize node_modules (85% size reduction)
-RUN npm install -g pnpm@9 node-prune && \
+RUN npm install -g pnpm@9 turbo@2.5.6 node-prune && \
     node-prune && \
     rm -rf node_modules/**/test \
            node_modules/**/tests \
