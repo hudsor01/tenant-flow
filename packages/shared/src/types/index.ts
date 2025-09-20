@@ -42,8 +42,6 @@ export type {
 	UserRole
 } from './auth'
 
-// UI Component types exported from frontend.ts via export * from './frontend'
-
 // Validation types (Zod integration) - correct imports
 export type {
 	MaintenanceRequestInput,

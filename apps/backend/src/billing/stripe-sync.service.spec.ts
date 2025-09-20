@@ -113,8 +113,8 @@ describe('StripeSyncService', () => {
 				schema: 'stripe',
 				autoExpandLists: true,
 				poolConfig: {
-					min: 2,
 					max: 10,
+					min: 2,
 					idleTimeoutMillis: 30000
 				}
 			})
