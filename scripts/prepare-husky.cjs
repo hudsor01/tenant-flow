@@ -10,7 +10,20 @@ const shouldSkip = () => {
   }
 
   const skipInstall = normalize(process.env.HUSKY_SKIP_INSTALL);
-  return skipInstall === '1' || skipInstall === 'true';
+  if (skipInstall === '1' || skipInstall === 'true') {
+    return true;
+  }
+
+  // Skip in CI/production environments
+  const isCI = process.env.CI === 'true' || process.env.CI === '1';
+  const isVercel = process.env.VERCEL === '1';
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  if (isCI || isVercel || isProduction) {
+    return true;
+  }
+
+  return false;
 };
 
 if (shouldSkip()) {
