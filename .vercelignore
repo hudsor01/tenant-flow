@@ -64,6 +64,7 @@ railway.json
 # Scripts not needed in production
 
 scripts
+!scripts/prepare-husky.cjs
 !apps/frontend/scripts/analyze-bundle.js
 
 # Documentation
