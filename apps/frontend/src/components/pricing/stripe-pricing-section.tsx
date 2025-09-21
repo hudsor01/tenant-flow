@@ -272,7 +272,7 @@ export function StripePricingSection({
 					{/* Enhanced Stats Bar */}
 					{showStats && (
 						<div
-							className="flex flex-wrap items-center justify-center gap-8 mb-12 p-6 bg-white/50 dark:bg-gray-900/30 rounded-2xl border border-primary/10 backdrop-blur-sm"
+							className="flex flex-wrap items-center justify-center gap-8 mb-12 p-6 bg-white/50 dark:bg-[var(--color-fill-tertiary)]/30 rounded-2xl border border-primary/10 backdrop-blur-sm"
 							style={{
 								boxShadow: 'var(--shadow-sm)'
 							}}
@@ -289,8 +289,8 @@ export function StripePricingSection({
 								</div>
 							</div>
 							<div className="flex items-center gap-3">
-								<div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-									<TrendingUp className="h-5 w-5 text-green-600" />
+								<div className="p-2 bg-[var(--color-system-green-10)] dark:bg-[var(--color-system-green-15)] rounded-lg">
+									<TrendingUp className="h-5 w-5 text-[var(--color-system-green)]" />
 								</div>
 								<div>
 									<p className="font-bold text-lg text-foreground">99.9%</p>
@@ -298,8 +298,8 @@ export function StripePricingSection({
 								</div>
 							</div>
 							<div className="flex items-center gap-3">
-								<div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-									<Target className="h-5 w-5 text-blue-600" />
+								<div className="p-2 bg-[var(--color-system-blue-10)] dark:bg-[var(--color-system-blue-15)] rounded-lg">
+									<Target className="h-5 w-5 text-[var(--color-system-blue)]" />
 								</div>
 								<div>
 									<p className="font-bold text-lg text-foreground">$50M+</p>
@@ -309,8 +309,8 @@ export function StripePricingSection({
 								</div>
 							</div>
 							<div className="flex items-center gap-3">
-								<div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-									<Award className="h-5 w-5 text-purple-600" />
+								<div className="p-2 bg-[var(--color-system-purple-10)] dark:bg-[var(--color-system-purple-15)] rounded-lg">
+									<Award className="h-5 w-5 text-[var(--color-system-purple)]" />
 								</div>
 								<div>
 									<p className="font-bold text-lg text-foreground">4.9/5</p>
@@ -423,7 +423,7 @@ export function StripePricingSection({
 							</span>
 							<Badge
 								variant="secondary"
-								className="ms-2 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 font-semibold px-3 py-1 hover:scale-105"
+								className="ms-2 bg-[var(--color-system-green-10)] dark:bg-[var(--color-system-green-15)] text-[var(--color-system-green)] dark:text-[var(--color-system-green-85)] font-semibold px-3 py-1 hover:scale-105"
 								style={{
 									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
 								}}
@@ -433,7 +433,7 @@ export function StripePricingSection({
 							</Badge>
 						</div>
 						<div className="flex items-center justify-center gap-2">
-							<Shield className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+							<Shield className="w-3 h-3 text-[var(--color-system-blue)] dark:text-[var(--color-system-blue-85)]" />
 							<p className="text-xs text-muted-foreground font-medium">
 								All plans include a 14-day free trial
 							</p>
@@ -549,7 +549,7 @@ export function StripePricingSection({
 											<div className="flex items-center justify-center gap-2">
 												<Badge
 													variant="secondary"
-													className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs"
+													className="bg-[var(--color-system-green-10)] dark:bg-[var(--color-system-green-15)] text-[var(--color-system-green)] dark:text-[var(--color-system-green-85)] text-xs"
 												>
 													<Clock className="w-3 h-3 mr-1" />
 													Save {plan.savingsPercentage}%
@@ -702,7 +702,7 @@ export function StripePricingSection({
 								variant="secondary"
 								className={cn(
 									badgeClasses('success', 'lg'),
-									'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800 px-6 py-3 hover:scale-105'
+									'bg-[var(--color-system-green-10)] dark:bg-[var(--color-system-green-15)] text-[var(--color-system-green)] dark:text-[var(--color-system-green-85)] border-[var(--color-system-green-25)] dark:border-[var(--color-system-green-25)] px-6 py-3 hover:scale-105'
 								)}
 								style={{
 									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
