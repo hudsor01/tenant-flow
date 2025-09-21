@@ -16,10 +16,10 @@ export { essential, typography, colors, components, effects, complete }
 
 // Quick access to commonly used tokens
 export const tokens = {
-  // Colors
-  primary: '#0D6FFF',
-  success: '#34C759',
-  error: '#FF383C',
+  // Colors - Reference CSS variables for runtime access
+  primary: 'var(--color-accent-main)',
+  success: 'var(--color-system-green)',
+  error: 'var(--color-system-red)',
   warning: '#FFCC00',
 
   // Typography
@@ -57,10 +57,11 @@ export const tokens = {
 
   // Border radius (Apple style)
   radius: {
-    sm: '6px',
-    md: '10px',
-    lg: '14px',
-    xl: '18px'
+    xs: '8px',      // Small buttons
+    sm: '12px',     // Default small
+    md: '16px',     // Default medium
+    lg: '20px',     // Large buttons
+    xl: '28px'      // Extra large buttons
   }
 }
 

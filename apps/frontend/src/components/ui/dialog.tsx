@@ -40,7 +40,7 @@ function DialogOverlay({
 			className={cn(
 				'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
 				'fixed inset-0 z-50 glass-apple',
-				'transition-all [transition-duration:var(--duration-flow)] [transition-timing-function:var(--ease-out-expo)]',
+				'transition-all duration-300 ease-in-out',
 				className
 			)}
 			{...props}
@@ -69,7 +69,8 @@ function DialogContent({
 					'data-[state=closed]:slide-out-to-top-[2%] data-[state=open]:slide-in-from-top-[2%]',
 					'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)]',
 					'translate-x-[-50%] translate-y-[-50%] gap-4 p-6 sm:max-w-lg',
-					'transition-all [transition-duration:var(--duration-flow)] [transition-timing-function:var(--ease-out-back)]',
+					'rounded-[20px] border shadow-xl',
+					'transition-all duration-200 ease-out',
 					className
 				)}
 				{...props}
@@ -81,14 +82,14 @@ function DialogContent({
 						className={cn(
 							'ring-offset-background focus:ring-ring absolute top-4 right-4',
 							'data-[state=open]:bg-accent data-[state=open]:text-muted-foreground',
-							'rounded-[var(--radius-apple)] opacity-70 hover:opacity-100',
-							'focus:ring-2 focus:ring-offset-2 focus:outline-hidden',
-							'disabled:pointer-events-none min-h-[var(--touch-44)] min-w-[var(--touch-44)]',
+							'rounded-[12px] opacity-70 hover:opacity-100',
+							'focus:ring-[3px] focus:ring-ring/50 focus:outline-hidden',
+							'disabled:pointer-events-none min-h-9 min-w-9',
 							'flex items-center justify-center p-2',
 							"[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-							'transition-all [transition-duration:var(--duration-fast)] [transition-timing-function:var(--ease-out-expo)]',
-							'hover:scale-110 hover:translate-y-[var(--hover-lift)]',
-							'active:scale-95 active:[transition-duration:var(--duration-instant)]'
+							'transition-all duration-150 ease-in-out',
+							'hover:scale-110',
+							'active:scale-95'
 						)}
 					>
 						<XIcon />
