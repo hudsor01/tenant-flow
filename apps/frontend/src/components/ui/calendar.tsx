@@ -71,7 +71,7 @@ function Calendar({
 					defaultClassNames.dropdowns
 				),
 				dropdown_root: cn(
-					'relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-6px',
+					'relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-[8px] transition-all duration-200 ease-in-out',
 					defaultClassNames.dropdown_root
 				),
 				dropdown: cn(
@@ -79,16 +79,16 @@ function Calendar({
 					defaultClassNames.dropdown
 				),
 				caption_label: cn(
-					'select-none font-medium',
+					'select-none font-medium transition-all duration-200 ease-in-out',
 					captionLayout === 'label'
 						? 'text-sm'
-						: 'rounded-6px pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5',
+						: 'rounded-[8px] pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5 hover:bg-accent hover:text-accent-foreground',
 					defaultClassNames.caption_label
 				),
 				table: 'w-full border-collapse',
 				weekdays: cn('flex', defaultClassNames.weekdays),
 				weekday: cn(
-					'text-muted-foreground rounded-6px flex-1 font-normal text-[0.8rem] select-none',
+					'text-muted-foreground rounded-[8px] flex-1 font-normal text-[0.8rem] select-none',
 					defaultClassNames.weekday
 				),
 				week: cn('flex w-full mt-2', defaultClassNames.week),
@@ -111,7 +111,7 @@ function Calendar({
 				range_middle: cn('rounded-none', defaultClassNames.range_middle),
 				range_end: cn('rounded-r-md bg-accent', defaultClassNames.range_end),
 				today: cn(
-					'bg-accent text-accent-foreground rounded-6px data-[selected=true]:rounded-none',
+					'bg-accent text-accent-foreground rounded-[8px] data-[selected=true]:rounded-none transition-all duration-200 ease-in-out',
 					defaultClassNames.today
 				),
 				outside: cn(
@@ -202,7 +202,23 @@ function CalendarDayButton({
 			data-range-end={modifiers.range_end}
 			data-range-middle={modifiers.range_middle}
 			className={cn(
-				'data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-accent-foreground flex aspect-square size-auto w-full min-w-8 flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-6px data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-6px data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70',
+				// Base styles
+				'flex aspect-square size-auto w-full min-w-8 flex-col gap-1 leading-none font-normal',
+				// Enhanced transitions
+				'transition-all duration-200 ease-in-out',
+				// Hover effects
+				'hover:scale-[1.1] dark:hover:text-accent-foreground',
+				// Selected states with token-based radius
+				'data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[selected-single=true]:scale-[1.05]',
+				// Range states
+				'data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-middle=true]:rounded-none',
+				'data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-start=true]:rounded-[8px] data-[range-start=true]:rounded-l-md',
+				'data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground data-[range-end=true]:rounded-[8px] data-[range-end=true]:rounded-r-md',
+				// Focus states
+				'group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50',
+				'group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px]',
+				// Span styling
+				'[&>span]:text-xs [&>span]:opacity-70',
 				defaultClassNames.day,
 				className
 			)}

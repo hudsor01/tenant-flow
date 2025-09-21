@@ -75,8 +75,83 @@
 	--tracking-footnote: 0px;
 	--tracking-caption: 0px;
 
+	/* Label Colors (Text Hierarchy) */
+	--color-label-primary: #000000D9;
+	--color-label-secondary: #00000080;
+	--color-label-tertiary: #00000040;
+	--color-label-quaternary: #0000001A;
+	--color-label-quinary: #0000000D;
+	--color-label-seximal: #00000008;
+
+	/* Fill Colors (Background Hierarchy) */
+	--color-fill-primary: #0000001A;
+	--color-fill-secondary: #00000014;
+	--color-fill-tertiary: #0000000D;
+	--color-fill-quaternary: #00000008;
+	--color-fill-quinary: #00000005;
+
+	/* Gray System */
+	--color-gray-primary: #000000;
+	--color-gray-secondary: #8E8E93;
+	--color-gray-tertiary: #FFFFFF;
+
+	/* Separator */
+	--color-separator: #3C3C434A;
+
+	/* Accent Color Tokens */
+	--color-accent-main: #0D6FFF;
+	--color-accent-10: #0D6FFF1A;
+	--color-accent-15: #0D6FFF26;
+	--color-accent-25: #0D6FFF40;
+	--color-accent-50: #0D6FFF80;
+	--color-accent-85: #0D6FFFD9;
+
+	/* System Color Tokens */
+	--color-system-red: #FF383C;
+	--color-system-red-10: #FF383C1A;
+	--color-system-red-15: #FF383C26;
+	--color-system-red-25: #FF383C40;
+	--color-system-red-50: #FF383C80;
+	--color-system-red-85: #FF383CD9;
+	--color-system-green: #34C759;
+	--color-system-green-10: #34C7591A;
+	--color-system-green-15: #34C75926;
+	--color-system-green-25: #34C75940;
+	--color-system-green-50: #34C75980;
+	--color-system-green-85: #34C759D9;
+	--color-system-blue: #0088FF;
+	--color-system-blue-10: #0088FF1A;
+	--color-system-blue-15: #0088FF26;
+	--color-system-blue-25: #0088FF40;
+	--color-system-blue-50: #0088FF80;
+	--color-system-blue-85: #0088FFD9;
+	--color-system-orange: #FF8D28;
+	--color-system-orange-10: #FF8D281A;
+	--color-system-orange-15: #FF8D2826;
+	--color-system-orange-25: #FF8D2840;
+	--color-system-orange-50: #FF8D2880;
+	--color-system-orange-85: #FF8D28D9;
+	--color-system-yellow: #FFCC00;
+	--color-system-yellow-10: #FFCC001A;
+	--color-system-yellow-15: #FFCC0026;
+	--color-system-yellow-25: #FFCC0040;
+	--color-system-yellow-50: #FFCC0080;
+	--color-system-yellow-85: #FFCC00D9;
+	--color-system-purple: #CB30E0;
+	--color-system-purple-10: #CB30E01A;
+	--color-system-purple-15: #CB30E026;
+	--color-system-purple-25: #CB30E040;
+	--color-system-purple-50: #CB30E080;
+	--color-system-purple-85: #CB30E0D9;
+	--color-system-mint: #00C8B3;
+	--color-system-mint-10: #00C8B31A;
+	--color-system-mint-15: #00C8B326;
+	--color-system-mint-25: #00C8B340;
+	--color-system-mint-50: #00C8B380;
+	--color-system-mint-85: #00C8B3D9;
+
 	/* Focus Ring */
-	--focus-ring-color: #0d6fff;
+	--focus-ring-color: var(--color-accent-main);
 	--focus-ring-width: 4px;
 	--focus-ring-offset: 2px;
 
@@ -98,15 +173,15 @@
 	/* Button States */
 	--button-primary-idle: linear-gradient(
 		135deg,
-		rgba(13, 111, 255, 0.5) 0%,
-		rgba(13, 111, 255, 0.5) 50%,
-		#0d6fff 100%
+		var(--color-accent-50) 0%,
+		var(--color-accent-50) 50%,
+		var(--color-accent-main) 100%
 	);
 	--button-primary-hover: linear-gradient(
 		135deg,
-		rgba(13, 111, 255, 0.6) 0%,
-		rgba(13, 111, 255, 0.6) 50%,
-		#0d6fff 100%
+		var(--color-accent-85) 0%,
+		var(--color-accent-85) 50%,
+		var(--color-accent-main) 100%
 	);
 	--button-secondary-idle: rgba(0, 0, 0, 0.05);
 	--button-secondary-hover: rgba(0, 0, 0, 0.1);
@@ -288,6 +363,26 @@
 }
 
 @theme dark {
+	/* Dark Mode Label Colors */
+	--color-label-primary: #FFFFFF;
+	--color-label-secondary: #FFFFFF8C;
+	--color-label-tertiary: #FFFFFF40;
+	--color-label-quaternary: #FFFFFF1A;
+	--color-label-quinary: #FFFFFF0D;
+	--color-label-seximal: #FFFFFF08;
+
+	/* Dark Mode Fill Colors */
+	--color-fill-primary: #FFFFFF1A;
+	--color-fill-secondary: #FFFFFF14;
+	--color-fill-tertiary: #FFFFFF0D;
+	--color-fill-quaternary: #FFFFFF08;
+	--color-fill-quinary: #FFFFFF05;
+
+	/* Dark Mode Gray System */
+	--color-gray-primary: #000000;
+	--color-gray-secondary: #98989D;
+	--color-gray-tertiary: #FFFFFF;
+
 	--color-background: 222 84% 4%;
 	--color-foreground: 210 40% 98%;
 	--color-card: 222 84% 4%;
@@ -616,7 +711,11 @@
 	}
 
 	.gradient-surface {
-		background: linear-gradient(135deg, hsl(var(--color-background)) 0%, hsl(var(--color-muted)) 100%);
+		background: linear-gradient(
+			135deg,
+			hsl(var(--color-background)) 0%,
+			hsl(var(--color-muted)) 100%
+		);
 	}
 
 	/* Card Variants */
@@ -2153,7 +2252,7 @@
 	--card-foreground: #000000d9;
 	--popover: #ffffff;
 	--popover-foreground: #000000d9;
-	--primary: #0d6fff;
+	--primary: var(--color-accent-main);
 	--primary-foreground: #ffffff;
 	--secondary: #f2f2f7;
 	--secondary-foreground: #000000d9;
@@ -2161,23 +2260,23 @@
 	--muted-foreground: #00000080;
 	--accent: #e5e5ea;
 	--accent-foreground: #000000d9;
-	--destructive: #ff3b30;
+	--destructive: var(--color-system-red);
 	--border: #e5e5ea;
 	--input: #e5e5ea;
-	--ring: #0d6fff;
+	--ring: var(--color-accent-main);
 	--chart-1: #ff9500;
-	--chart-2: #30d158;
-	--chart-3: #007aff;
+	--chart-2: var(--color-system-green);
+	--chart-3: var(--color-system-blue);
 	--chart-4: #af52de;
 	--chart-5: #ff2d92;
 	--sidebar: #f2f2f7;
 	--sidebar-foreground: #000000d9;
-	--sidebar-primary: #0d6fff;
+	--sidebar-primary: var(--color-accent-main);
 	--sidebar-primary-foreground: #ffffff;
 	--sidebar-accent: #e5e5ea;
 	--sidebar-accent-foreground: #000000d9;
 	--sidebar-border: #e5e5ea;
-	--sidebar-ring: #0d6fff;
+	--sidebar-ring: var(--color-accent-main);
 }
 
 .dark {
@@ -2188,7 +2287,7 @@
 	--card-foreground: #ffffffeb;
 	--popover: #1c1c1e;
 	--popover-foreground: #ffffffeb;
-	--primary: #0a84ff;
+	--primary: var(--color-accent-main);
 	--primary-foreground: #ffffff;
 	--secondary: #2c2c2e;
 	--secondary-foreground: #ffffffeb;
@@ -2196,23 +2295,23 @@
 	--muted-foreground: #ffffff99;
 	--accent: #3a3a3c;
 	--accent-foreground: #ffffffeb;
-	--destructive: #ff453a;
+	--destructive: var(--color-system-red);
 	--border: #38383a;
 	--input: #38383a;
-	--ring: #0a84ff;
+	--ring: var(--color-accent-main);
 	--chart-1: #ff9f0a;
-	--chart-2: #32d74b;
-	--chart-3: #0a84ff;
+	--chart-2: var(--color-system-green);
+	--chart-3: var(--color-system-blue);
 	--chart-4: #bf5af2;
 	--chart-5: #ff375f;
 	--sidebar: #1c1c1e;
 	--sidebar-foreground: #ffffffeb;
-	--sidebar-primary: #0a84ff;
+	--sidebar-primary: var(--color-accent-main);
 	--sidebar-primary-foreground: #ffffff;
 	--sidebar-accent: #2c2c2e;
 	--sidebar-accent-foreground: #ffffffeb;
 	--sidebar-border: #38383a;
-	--sidebar-ring: #0a84ff;
+	--sidebar-ring: var(--color-accent-main);
 }
 
 @layer base {

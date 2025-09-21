@@ -21,7 +21,7 @@ export function HeroSection({ className }: HeroSectionProps) {
 					{/* Typography - Page Title */}
 					<h1 className={cn(getSemanticTypography('page-title'), "sm:text-[34px] md:text-[42px] lg:text-[50px] text-[#000000D9]")}>
 						Property Management Made{' '}
-						<span className="bg-gradient-to-r from-[#0D6FFF] to-[#0D6FFFD9] bg-clip-text text-transparent">
+						<span className="bg-gradient-to-r from-[var(--color-accent-main)] to-[var(--color-accent-85)] bg-clip-text text-transparent">
 							Simple
 						</span>
 					</h1>
@@ -51,24 +51,24 @@ export function HeroSection({ className }: HeroSectionProps) {
 						{/* Floating feature badges */}
 						<div className="absolute bottom-8 left-8 right-8 flex flex-wrap gap-3">
 							<div className="backdrop-blur-xl bg-white/90 px-4 py-2 rounded-full border border-white/20 shadow-lg">
-								<span className="text-sm font-semibold text-gray-800">📊 Real-time Analytics</span>
+								<span className="text-sm font-semibold text-[var(--color-label-primary)]">📊 Real-time Analytics</span>
 							</div>
 							<div className="backdrop-blur-xl bg-white/90 px-4 py-2 rounded-full border border-white/20 shadow-lg">
-								<span className="text-sm font-semibold text-gray-800">🔧 Maintenance Tracking</span>
+								<span className="text-sm font-semibold text-[var(--color-label-primary)]">🔧 Maintenance Tracking</span>
 							</div>
 							<div className="backdrop-blur-xl bg-white/90 px-4 py-2 rounded-full border border-white/20 shadow-lg">
-								<span className="text-sm font-semibold text-gray-800">💳 Online Payments</span>
+								<span className="text-sm font-semibold text-[var(--color-label-primary)]">💳 Online Payments</span>
 							</div>
 						</div>
 					</div>
 
 					{/* Subtle ambient lighting effects */}
 					<div className="absolute -bottom-20 -left-32 -z-10">
-						<div className="w-64 h-64 bg-gradient-to-br from-[#0D6FFF15] to-transparent rounded-full blur-3xl opacity-70" />
+						<div className="w-64 h-64 bg-gradient-to-br from-[var(--color-accent-15)] to-transparent rounded-full blur-3xl opacity-70" />
 					</div>
 
 					<div className="absolute -top-20 -right-32 -z-10">
-						<div className="w-64 h-64 bg-gradient-to-tr from-[#0D6FFF10] to-transparent rounded-full blur-3xl opacity-70" />
+						<div className="w-64 h-64 bg-gradient-to-tr from-[var(--color-accent-10)] to-transparent rounded-full blur-3xl opacity-70" />
 					</div>
 				</div>
 
@@ -80,14 +80,14 @@ export function HeroSection({ className }: HeroSectionProps) {
 							className="absolute inset-0 rounded-[16px] blur-sm group-hover:blur-md transition-all duration-300"
 							style={{
 								background:
-									'linear-gradient(135deg, #0D6FFF50 0%, #0D6FFF50 50%, #0D6FFF 100%)'
+									'linear-gradient(135deg, var(--color-accent-50) 0%, var(--color-accent-50) 50%, var(--color-accent-main) 100%)'
 							}}
 						/>
 						<div
 							className="relative flex items-center justify-center min-w-[240px] px-8 py-4 rounded-[16px] shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 ease-out group-hover:opacity-95"
 							style={{
 								background:
-									'linear-gradient(135deg, #0D6FFF50 0%, #0D6FFF50 50%, #0D6FFF 100%)',
+									'linear-gradient(135deg, var(--color-accent-50) 0%, var(--color-accent-50) 50%, var(--color-accent-main) 100%)',
 								border: '1px solid #00000014'
 							}}
 						>
