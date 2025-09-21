@@ -18,7 +18,7 @@ const statsData = [
 		description: 'Active properties across our platform',
 		change: '+12% this quarter',
 		changeType: 'positive' as const,
-		color: 'text-blue-600 dark:text-blue-400'
+		color: 'text-[var(--color-system-blue)] dark:text-[var(--color-system-blue-85)]'
 	},
 	{
 		id: 'collection-rate',
@@ -88,7 +88,7 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 			<section
 				ref={ref}
 				className={cn(
-					'relative overflow-hidden py-24 bg-gradient-to-b from-gray-50/50 via-white to-gray-50/30 dark:from-gray-950/20 dark:via-background dark:to-gray-950/10',
+					'relative overflow-hidden py-24 bg-gradient-to-b from-[var(--color-fill-quaternary)]/50 via-white to-[var(--color-fill-quaternary)]/30 dark:from-[var(--color-fill-primary)]/20 dark:via-background dark:to-[var(--color-fill-primary)]/10',
 					className
 				)}
 				{...props}
@@ -102,19 +102,19 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 						<div className="text-center mb-16 max-w-4xl mx-auto">
 							<Badge
 								variant="secondary"
-								className="mb-6 text-sm font-medium bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300 border-gray-200 dark:border-gray-800"
+								className="mb-6 text-sm font-medium bg-[var(--color-fill-tertiary)] text-[var(--color-label-secondary)] dark:bg-[var(--color-fill-tertiary)] dark:text-[var(--color-label-secondary)] border-[var(--color-fill-secondary)] dark:border-[var(--color-fill-secondary)]"
 							>
 								<TrendingUp className="mr-2 size-4" />
 								Trusted by Property Managers Nationwide
 							</Badge>
 
-							<h2 className="mb-6 text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-600 dark:from-gray-100 dark:via-gray-200 dark:to-gray-300 bg-clip-text text-transparent tracking-tight">
+							<h2 className="mb-6 text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-[var(--color-label-primary)] via-[var(--color-label-secondary)] to-[var(--color-label-tertiary)] dark:from-[var(--color-label-primary)] dark:via-[var(--color-label-secondary)] dark:to-[var(--color-label-tertiary)] bg-clip-text text-transparent tracking-tight">
 								The Numbers Speak for Themselves
 							</h2>
 
-							<p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto">
+							<p className="text-xl text-[var(--color-label-secondary)] dark:text-[var(--color-label-secondary)] leading-relaxed max-w-3xl mx-auto">
 								TenantFlow is more than just software.{' '}
-								<span className="font-semibold text-gray-900 dark:text-gray-100">
+								<span className="font-semibold text-[var(--color-label-primary)] dark:text-[var(--color-label-primary)]">
 									It's a complete property management ecosystem
 								</span>{' '}
 								— from tenant screening to rent collection.
@@ -131,11 +131,11 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 									<Card
 										key={stat.id}
 										className={cn(
-											'group relative overflow-hidden border-gray-200/50 dark:border-gray-800/30',
-											'bg-gradient-to-br from-white/80 via-gray-50/50 to-white/60',
-											'dark:from-gray-950/40 dark:via-gray-900/20 dark:to-gray-950/60',
-											'backdrop-blur-sm shadow-lg shadow-gray-500/10',
-											'hover:shadow-xl hover:shadow-gray-500/20 transition-all duration-500',
+											'group relative overflow-hidden border-[var(--color-fill-secondary)]/50 dark:border-[var(--color-fill-secondary)]/30',
+											'bg-gradient-to-br from-white/80 via-[var(--color-fill-quaternary)]/50 to-white/60',
+											'dark:from-[var(--color-fill-primary)]/40 dark:via-[var(--color-fill-secondary)]/20 dark:to-[var(--color-fill-primary)]/60',
+											'backdrop-blur-sm shadow-lg shadow-[var(--color-label-tertiary)]/10',
+											'hover:shadow-xl hover:shadow-[var(--color-label-tertiary)]/20 transition-all duration-500',
 											'hover:scale-105'
 										)}
 									>
@@ -144,7 +144,7 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 											<div className="flex items-start justify-between mb-4">
 												<div
 													className={cn(
-														'p-3 rounded-full bg-gray-100 dark:bg-gray-800/50',
+														'p-3 rounded-full bg-[var(--color-fill-tertiary)] dark:bg-[var(--color-fill-tertiary)]/50',
 														stat.color
 													)}
 												>
@@ -155,8 +155,8 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 													className={cn(
 														'text-xs',
 														stat.changeType === 'positive'
-															? 'border-green-200 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/30'
-															: 'border-red-200 text-red-700 bg-red-50 dark:border-red-800 dark:text-red-300 dark:bg-red-950/30'
+															? 'border-[var(--color-system-green-25)] text-[var(--color-system-green)] bg-[var(--color-system-green-10)] dark:border-[var(--color-system-green-25)] dark:text-[var(--color-system-green-85)] dark:bg-[var(--color-system-green-15)]'
+															: 'border-[var(--color-system-red-25)] text-[var(--color-system-red)] bg-[var(--color-system-red-10)] dark:border-[var(--color-system-red-25)] dark:text-[var(--color-system-red-85)] dark:bg-[var(--color-system-red-15)]'
 													)}
 												>
 													{stat.change}
@@ -182,7 +182,7 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 												<div className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
 													{stat.label}
 												</div>
-												<div className="text-sm text-gray-600 dark:text-gray-400">
+												<div className="text-sm text-[var(--color-label-secondary)] dark:text-[var(--color-label-tertiary)]">
 													{stat.description}
 												</div>
 											</div>
@@ -196,21 +196,21 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 					{/* Features Section */}
 					{showFeatures && (
 						<BlurFade delay={0.6}>
-							<div className="border-t border-gray-200/50 dark:border-gray-800/30 pt-16">
+							<div className="border-t border-[var(--color-fill-secondary)]/50 dark:border-[var(--color-fill-secondary)]/30 pt-16">
 								<div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
 									{features.map((feature, index) => {
 										const Icon = feature.icon
 										return (
 											<div key={index} className="text-center group">
 												<div className="flex items-center justify-center mb-4">
-													<div className="p-4 rounded-full bg-gray-100 dark:bg-gray-900/30 group-hover:bg-gray-200 dark:group-hover:bg-gray-900/50 transition-colors">
-														<Icon className="size-6 text-gray-600 dark:text-gray-400" />
+													<div className="p-4 rounded-full bg-[var(--color-fill-tertiary)] dark:bg-[var(--color-fill-tertiary)]/30 group-hover:bg-[var(--color-fill-secondary)] dark:group-hover:bg-[var(--color-fill-secondary)]/50 transition-colors">
+														<Icon className="size-6 text-[var(--color-label-secondary)] dark:text-[var(--color-label-tertiary)]" />
 													</div>
 												</div>
-												<div className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+												<div className="text-lg font-semibold text-[var(--color-label-primary)] dark:text-[var(--color-label-primary)] mb-2">
 													{feature.title}
 												</div>
-												<div className="text-gray-600 dark:text-gray-400">
+												<div className="text-[var(--color-label-secondary)] dark:text-[var(--color-label-tertiary)]">
 													{feature.description}
 												</div>
 											</div>
@@ -220,16 +220,16 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 
 								{/* Testimonial Quote */}
 								<div className="mt-16 max-w-4xl mx-auto">
-									<Card className="border-gray-200/50 dark:border-gray-800/30 bg-gradient-to-br from-white/80 to-gray-50/60 dark:from-gray-950/40 dark:to-gray-900/60 backdrop-blur-sm">
+									<Card className="border-[var(--color-fill-secondary)]/50 dark:border-[var(--color-fill-secondary)]/30 bg-gradient-to-br from-white/80 to-[var(--color-fill-quaternary)]/60 dark:from-[var(--color-fill-primary)]/40 dark:to-[var(--color-fill-secondary)]/60 backdrop-blur-sm">
 										<CardContent className="p-8">
 											<blockquote className="text-center">
-												<div className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
+												<div className="text-xl md:text-2xl text-[var(--color-label-secondary)] dark:text-[var(--color-label-secondary)] mb-6 leading-relaxed">
 													"TenantFlow has completely transformed how I manage my
 													50+ units. The automated rent collection alone saves
 													me over{' '}
 													<NumberTicker
 														value={15}
-														className="font-semibold text-blue-600 dark:text-blue-400"
+														className="font-semibold text-[var(--color-system-blue)] dark:text-[var(--color-system-blue-85)]"
 														variant="primary"
 														animationDuration={1500}
 														delay={1}
@@ -239,10 +239,10 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 												</div>
 												<footer className="flex items-center justify-center gap-4">
 													<div className="text-center">
-														<cite className="font-semibold text-gray-900 dark:text-gray-100 not-italic">
+														<cite className="font-semibold text-[var(--color-label-primary)] dark:text-[var(--color-label-primary)] not-italic">
 															Sarah Chen
 														</cite>
-														<div className="text-sm text-gray-600 dark:text-gray-400">
+														<div className="text-sm text-[var(--color-label-secondary)] dark:text-[var(--color-label-tertiary)]">
 															Property Manager, Mountain View Properties
 														</div>
 													</div>

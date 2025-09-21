@@ -30,11 +30,26 @@ export async function middleware(request: NextRequest) {
 	try {
 		// Check for Supabase auth cookies
 		const cookies = request.cookies
-		const hasSupabaseAuth = Boolean(
-			cookies.get('sb-access-token')?.value ||
-				cookies.get('supabase-auth-token')?.value ||
-				cookies.get('supabase.auth.token')?.value
-		)
+
+		// Check each cookie type separately to avoid short-circuit evaluation issues
+		let hasSupabaseAuth = false
+
+		// Standard cookie names
+		if (cookies.get('sb-access-token')?.value) {
+			hasSupabaseAuth = true
+		} else if (cookies.get('supabase-auth-token')?.value) {
+			hasSupabaseAuth = true
+		} else if (cookies.get('supabase.auth.token')?.value) {
+			hasSupabaseAuth = true
+		} else {
+			// Check for project-specific Supabase auth token (e.g., sb-projectid-auth-token)
+			for (const cookie of cookies.getAll()) {
+				if (cookie.name.startsWith('sb-') && cookie.name.endsWith('-auth-token') && cookie.value) {
+					hasSupabaseAuth = true
+					break
+				}
+			}
+		}
 		// Development-only mock authentication bypass
 		// CLAUDE.md Compliance: Environment-based, production-safe, no abstractions
 		const isDevelopment = process.env.NODE_ENV === 'development'
