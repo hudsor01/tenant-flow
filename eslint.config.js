@@ -6,6 +6,7 @@
  * following Turborepo best practices for monorepo configuration
  */
 
+import globals from 'globals'
 import noBarrelExports from './.eslint/rules/no-barrel-exports.js'
 import noInlineTypes from './.eslint/rules/no-inline-types.js'
 import baseConfig from './packages/eslint-config/base.js'
@@ -27,7 +28,10 @@ export default [
 	},
 	{
 		name: 'root/scripts',
-		files: ['scripts/**/*.{js,mjs,ts}', 'apps/*/scripts/**/*.{js,mjs,ts}'],
+		files: [
+			'scripts/**/*.{js,mjs,cjs,ts}',
+			'apps/*/scripts/**/*.{js,mjs,cjs,ts}'
+		],
 		rules: {
 			'no-console': 'off',
 			'@typescript-eslint/no-require-imports': 'off',
@@ -36,6 +40,9 @@ export default [
 			'no-eval': 'off'
 		},
 		languageOptions: {
+			globals: {
+				...globals.node
+			},
 			parserOptions: {
 				project: null,
 				allowDefaultProject: true
@@ -64,7 +71,7 @@ export default [
 					'no-inline-types': noInlineTypes,
 					'no-barrel-exports': noBarrelExports
 				}
-			},
+			}
 		},
 		rules: {
 			'type-centralization/no-inline-types': 'error',
