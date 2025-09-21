@@ -56,9 +56,36 @@ jobs:
         run: |
           # Run lint, typecheck, and build in parallel to save time
           pnpm run lint &
+          LINT_PID=$!
           pnpm run typecheck &
+          TYPECHECK_PID=$!
           pnpm run build:ci &
-          wait
+          BUILD_PID=$!
+
+          # Wait for all jobs and capture exit codes
+          LINT_EXIT=0
+          TYPECHECK_EXIT=0
+          BUILD_EXIT=0
+
+          wait $LINT_PID || LINT_EXIT=$?
+          wait $TYPECHECK_PID || TYPECHECK_EXIT=$?
+          wait $BUILD_PID || BUILD_EXIT=$?
+
+          # Report any failures
+          if [ $LINT_EXIT -ne 0 ]; then
+            echo "❌ Lint failed with exit code $LINT_EXIT"
+          fi
+          if [ $TYPECHECK_EXIT -ne 0 ]; then
+            echo "❌ Typecheck failed with exit code $TYPECHECK_EXIT"
+          fi
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "❌ Build failed with exit code $BUILD_EXIT"
+          fi
+
+          # Exit if any job failed
+          if [ $LINT_EXIT -ne 0 ] || [ $TYPECHECK_EXIT -ne 0 ] || [ $BUILD_EXIT -ne 0 ]; then
+            exit 1
+          fi
 
           # Run tests after build completes
           pnpm run test:unit
