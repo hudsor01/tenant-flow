@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-env node */
 
 const normalize = (value) => value === undefined ? undefined : String(value).toLowerCase();
 
