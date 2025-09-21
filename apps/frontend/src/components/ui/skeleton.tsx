@@ -23,16 +23,23 @@ function Skeleton({
 	...props
 }: SkeletonProps & React.HTMLAttributes<HTMLDivElement>) {
 	const variantClasses = {
-		default: 'rounded',
-		rounded: 'rounded-md',
+		default: 'rounded-[8px]',
+		rounded: 'rounded-[12px]',
 		circle: 'rounded-full'
 	}
 
 	return (
 		<div
 			className={cn(
+				// Base skeleton styles
 				'animate-pulse bg-muted',
+				// Enhanced shimmer effect
+				'bg-gradient-to-r from-muted via-muted/50 to-muted',
+				'bg-[length:200%_100%] animate-shimmer',
+				// Token-based radius
 				variantClasses[variant],
+				// Smooth transitions
+				'transition-all duration-200 ease-in-out',
 				className
 			)}
 			{...props}

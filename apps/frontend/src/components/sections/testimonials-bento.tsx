@@ -144,7 +144,7 @@ export const TestimonialsBento = React.forwardRef<
 								Loved by Property Managers Worldwide
 							</h2>
 
-							<p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto">
+							<p className="text-xl text-[var(--color-label-secondary)] dark:text-[var(--color-label-secondary)] leading-relaxed max-w-3xl mx-auto">
 								Join thousands of property managers who have transformed their
 								operations with TenantFlow's all-in-one platform
 							</p>
@@ -192,10 +192,10 @@ export const TestimonialsBento = React.forwardRef<
 														</AvatarFallback>
 													</Avatar>
 													<div>
-														<div className="tw-:font-semibold tw-:text-gray-900 dark:tw-:text-gray-100">
+														<div className="tw-:font-semibold tw-:text-[var(--color-label-primary)] dark:tw-:text-[var(--color-label-primary)]">
 															{testimonial.name}
 														</div>
-														<div className="tw-:text-sm tw-:text-gray-600 dark:tw-:text-gray-400">
+														<div className="tw-:text-sm tw-:text-[var(--color-label-secondary)] dark:tw-:text-[var(--color-label-tertiary)]">
 															{testimonial.role}
 														</div>
 													</div>
@@ -211,7 +211,7 @@ export const TestimonialsBento = React.forwardRef<
 											</div>
 
 											{/* Quote */}
-											<blockquote className="tw-:text-gray-700 dark:tw-:text-gray-300 tw-:leading-relaxed tw-:flex-grow tw-:mb-4">
+											<blockquote className="tw-:text-[var(--color-label-secondary)] dark:tw-:text-[var(--color-label-secondary)] tw-:leading-relaxed tw-:flex-grow tw-:mb-4">
 												"{testimonial.content}"
 											</blockquote>
 
@@ -230,7 +230,7 @@ export const TestimonialsBento = React.forwardRef<
 													>
 														{testimonial.metric}
 													</Badge>
-													<div className="tw-:flex tw-:items-center tw-:gap-1 tw-:text-gray-500 dark:tw-:text-gray-400">
+													<div className="tw-:flex tw-:items-center tw-:gap-1 tw-:text-[var(--color-label-tertiary)] dark:tw-:text-[var(--color-label-tertiary)]">
 														<MapPin className="tw-:w-3 tw-:h-3" />
 														<span className="tw-:text-xs">
 															{testimonial.location}
@@ -250,7 +250,7 @@ export const TestimonialsBento = React.forwardRef<
 						<BlurFade delay={0.6}>
 							<div className="border-t border-blue-200/50 dark:border-blue-800/30 pt-16">
 								<div className="text-center mb-8">
-									<p className="text-lg text-gray-600 dark:text-gray-300">
+									<p className="text-lg text-[var(--color-label-secondary)] dark:text-[var(--color-label-secondary)]">
 										Trusted by property management professionals worldwide
 									</p>
 								</div>
@@ -268,7 +268,7 @@ export const TestimonialsBento = React.forwardRef<
 												<div className="text-3xl font-bold text-blue-900 dark:text-blue-100 mb-2">
 													{metric.label}
 												</div>
-												<div className="text-gray-600 dark:text-gray-400">
+												<div className="text-[var(--color-label-secondary)] dark:text-[var(--color-label-tertiary)]">
 													{metric.description}
 												</div>
 											</div>

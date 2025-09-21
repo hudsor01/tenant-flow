@@ -121,10 +121,10 @@ export function VirtualizedPropertyList({
 							className={cn(
 								'w-3 h-3 rounded-full',
 								property.status === 'ACTIVE'
-									? 'bg-green-500'
+									? 'bg-[var(--color-system-green)]'
 									: property.status === 'INACTIVE'
-										? 'bg-gray-500'
-										: 'bg-yellow-500'
+										? 'bg-[var(--color-label-tertiary)]'
+										: 'bg-[var(--color-system-yellow)]'
 							)}
 						/>
 						<span className="text-sm text-foreground">{property.status}</span>

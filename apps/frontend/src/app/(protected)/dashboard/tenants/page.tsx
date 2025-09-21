@@ -53,8 +53,8 @@ export default function TenantsPage() {
 			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-2 lg:grid-cols-4">
 				<Card className="p-6 border shadow-sm">
 					<div className="flex items-center gap-3 mb-4">
-						<div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-							<Users className="size-5 text-blue-600" />
+						<div className="w-10 h-10 rounded-full bg-[var(--color-system-blue-10)] flex items-center justify-center">
+							<Users className="size-5 text-[var(--color-system-blue)]" />
 						</div>
 						<h3 className="font-semibold">Total Tenants</h3>
 					</div>
@@ -66,15 +66,15 @@ export default function TenantsPage() {
 
 				<Card className="p-6 border shadow-sm">
 					<div className="flex items-center gap-3 mb-4">
-						<div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-							<CreditCard className="size-5 text-green-600" />
+						<div className="w-10 h-10 rounded-full bg-[var(--color-system-green-10)] flex items-center justify-center">
+							<CreditCard className="size-5 text-[var(--color-system-green)]" />
 						</div>
 						<h3 className="font-semibold">Current Payments</h3>
 					</div>
 					<div className="text-3xl font-bold mb-1">
 						{statsData.currentPayments ?? 0}
 					</div>
-					<div className="flex items-center gap-1 text-sm text-green-600">
+					<div className="flex items-center gap-1 text-sm text-[var(--color-system-green)]">
 						<TrendingUp className="size-4" />
 						<span>Up to date</span>
 					</div>
@@ -82,8 +82,8 @@ export default function TenantsPage() {
 
 				<Card className="p-6 border shadow-sm">
 					<div className="flex items-center gap-3 mb-4">
-						<div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-							<CreditCard className="size-5 text-orange-600" />
+						<div className="w-10 h-10 rounded-full bg-[var(--color-system-orange-10)] flex items-center justify-center">
+							<CreditCard className="size-5 text-[var(--color-system-orange)]" />
 						</div>
 						<h3 className="font-semibold">Late Payments</h3>
 					</div>
@@ -95,8 +95,8 @@ export default function TenantsPage() {
 
 				<Card className="p-6 border shadow-sm">
 					<div className="flex items-center gap-3 mb-4">
-						<div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-							<TrendingUp className="size-5 text-purple-600" />
+						<div className="w-10 h-10 rounded-full bg-[var(--color-system-purple-10)] flex items-center justify-center">
+							<TrendingUp className="size-5 text-[var(--color-system-purple)]" />
 						</div>
 						<h3 className="font-semibold">Avg Monthly Rent</h3>
 					</div>
@@ -157,8 +157,8 @@ export default function TenantsPage() {
 										<span
 											className={`px-2 py-1 rounded-full text-xs ${
 												tenant.leaseStatus === 'active'
-													? 'bg-green-100 text-green-800'
-													: 'bg-gray-100 text-gray-800'
+													? 'bg-[var(--color-system-green-10)] text-[var(--color-system-green)]'
+													: 'bg-[var(--color-fill-tertiary)] text-[var(--color-label-secondary)]'
 											}`}
 										>
 											{tenant.leaseStatus || 'No lease'}

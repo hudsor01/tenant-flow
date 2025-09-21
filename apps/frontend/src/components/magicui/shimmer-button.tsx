@@ -4,13 +4,12 @@ import type { ComponentProps } from '@repo/shared'
 import type { CSSProperties } from 'react'
 import React, { useEffect, useState } from 'react'
 
-import { ANIMATION_DURATIONS, cn } from '@/lib/design-system'
+import { cn } from '@/lib/design-system'
 
 export interface ShimmerButtonProps
 	extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	shimmerColor?: string
 	shimmerSize?: string
-	borderRadius?: string
 	shimmerDuration?: string
 	background?: string
 	variant?:
@@ -21,6 +20,7 @@ export interface ShimmerButtonProps
 		| 'warning'
 		| 'danger'
 	size?: 'sm' | 'md' | 'lg'
+	radius?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 	intensity?: 'subtle' | 'normal' | 'intense'
 	reducedMotion?: boolean
 	icon?: React.ReactNode
@@ -34,12 +34,12 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 			shimmerColor,
 			shimmerSize = '0.05em',
 			shimmerDuration = '3s',
-			borderRadius = '12px',
 			background,
 			className,
 			children,
 			variant = 'primary',
 			size = 'md',
+			radius = 'md',
 			intensity = 'normal',
 			reducedMotion = false,
 			icon,
@@ -129,6 +129,15 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 			}
 		} as const
 
+		// Border radius configurations aligned with button.tsx
+		const radiusConfig = {
+			xs: '8px',
+			sm: '12px',
+			md: '16px',
+			lg: '20px',
+			xl: '28px'
+		} as const
+
 		// Intensity configurations for shimmer effect
 		const intensityConfig = {
 			subtle: {
@@ -150,6 +159,7 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 
 		const variantConfig = variants[variant] || variants.primary
 		const sizeConfig = sizes[size] || sizes.md
+		const borderRadius = radiusConfig[radius] || radiusConfig.md
 		const intensitySettings =
 			intensityConfig[intensity] || intensityConfig.normal
 		const finalBackground = background || variantConfig.background
@@ -168,13 +178,12 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 						iconPosition === 'right' ? 'flex-row-reverse' : '',
 						variantConfig.text,
 						variantConfig.shadow,
-						!shouldReduceMotion
-							? `transform-gpu transition-all duration-[${ANIMATION_DURATIONS.default}ms] ease-in-out`
-							: `transform-gpu transition-all duration-[${ANIMATION_DURATIONS.default}ms] ease-in-out`,
-						!shouldReduceMotion && 'active:translate-y-px hover:scale-[1.02]',
+						'transform-gpu transition-all duration-200 ease-in-out',
+						!shouldReduceMotion && 'hover:scale-[1.02] hover:shadow-md',
+						!shouldReduceMotion && 'active:scale-[0.98] active:duration-150',
 						'hover:brightness-110',
 						'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50',
-						'focus-visible:ring-4 focus-visible:ring-primary/30',
+						'focus-visible:ring-[3px] focus-visible:ring-primary/50',
 						disabled && 'opacity-50 cursor-not-allowed pointer-events-none',
 						className,
 						(children as React.ReactElement<ComponentProps>).props.className
@@ -229,15 +238,14 @@ const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 					'border border-white/10 backdrop-blur-sm',
 
 					// Interactions
-					shouldReduceMotion
-						? 'transition-colors duration-200'
-						: `transform-gpu transition-all duration-[${ANIMATION_DURATIONS.default}ms] ease-in-out`,
-					!shouldReduceMotion && 'active:translate-y-px hover:scale-[1.02]',
+					'transform-gpu transition-all duration-200 ease-in-out',
+					!shouldReduceMotion && 'hover:scale-[1.02] hover:shadow-md',
+					!shouldReduceMotion && 'active:scale-[0.98] active:duration-150',
 					'hover:brightness-110',
 
 					// Accessibility
 					'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50',
-					'focus-visible:ring-4 focus-visible:ring-primary/30',
+					'focus-visible:ring-[3px] focus-visible:ring-primary/50',
 
 					// Disabled state
 					disabled && 'opacity-50 cursor-not-allowed pointer-events-none',

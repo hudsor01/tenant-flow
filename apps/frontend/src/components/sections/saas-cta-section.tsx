@@ -74,7 +74,7 @@ export function SaasCtaSection({ className }: SaasCtaSectionProps) {
 								shimmerColor="hsl(var(--primary-foreground))"
 								shimmerSize="0.05em"
 								shimmerDuration="3s"
-								borderRadius="12px"
+								radius="sm"
 								background="linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%)"
 								className="relative px-12 py-6 text-xl font-semibold text-white border-0 shadow-2xl transition-all hover:scale-105"
 							>

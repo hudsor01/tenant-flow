@@ -39,7 +39,7 @@ export function DeleteMaintenanceButton({ maintenance }: DeleteMaintenanceButton
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="flex items-center gap-2 text-red-600 hover:text-red-700">
+        <Button variant="outline" size="sm" className="flex items-center gap-2 text-[var(--color-system-red)] hover:text-[var(--color-system-red-85)]">
           <Trash2 className="size-4" />
           Delete
         </Button>
@@ -52,7 +52,7 @@ export function DeleteMaintenanceButton({ maintenance }: DeleteMaintenanceButton
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[var(--color-label-secondary)]">
             <strong>Request:</strong> {maintenance.title}
           </p>
         </div>
