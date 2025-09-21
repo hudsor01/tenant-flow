@@ -6,17 +6,18 @@
  */
 
 import js from '@eslint/js'
-import tseslint from 'typescript-eslint'
 import eslintConfigPrettier from 'eslint-config-prettier'
 import turboPlugin from 'eslint-plugin-turbo'
 import globals from 'globals'
+import tseslint from 'typescript-eslint'
 
-export default [
+/** @type {import('eslint').Linter.FlatConfig[]} */
+const config = [
 	{
 		...js.configs.recommended,
 		rules: {
 			...js.configs.recommended.rules,
-			'no-dupe-keys': 'off'  // Disabled for CSS class duplications
+			'no-dupe-keys': 'off' // Disabled for CSS class duplications
 		}
 	},
 	eslintConfigPrettier,
@@ -112,6 +113,8 @@ export default [
 			'**/*.config.js',
 			'**/*.config.mjs',
 			'**/scripts/**/*.ts',
+			'**/scripts/**/*.cjs',
+			'**/scripts/**/*.js',
 			'**/stripe.config.ts',
 			'**/supabase.config.ts'
 		],
@@ -138,3 +141,5 @@ export default [
 		}
 	}
 ]
+
+export default config
