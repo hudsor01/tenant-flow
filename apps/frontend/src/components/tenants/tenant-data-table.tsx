@@ -49,8 +49,8 @@ export function TenantDataTable() {
             <TableCell>
               <span className={`px-2 py-1 rounded-full text-xs ${
                 tenant.leaseStatus === 'active'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-800'
+                  ? 'bg-[var(--color-system-green-10)] text-[var(--color-system-green)]'
+                  : 'bg-[var(--color-fill-tertiary)] text-[var(--color-label-secondary)]'
               }`}>
                 {tenant.leaseStatus || 'No lease'}
               </span>

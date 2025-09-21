@@ -3,7 +3,7 @@
 import * as React from "react"
 import * as SwitchPrimitive from "@radix-ui/react-switch"
 
-import { cn, ANIMATION_DURATIONS } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 
 function Switch({
   className,
@@ -12,7 +12,21 @@ function Switch({
   return (
     <SwitchPrimitive.Root
       data-slot="switch"
-      className={cn("peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-input focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent shadow-xs outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 transition-all",
+      className={cn(
+        // Base styles
+        "peer inline-flex h-5 w-9 shrink-0 items-center rounded-full border border-transparent shadow-xs outline-none",
+        // Enhanced transitions
+        "transition-all duration-200 ease-in-out",
+        // Unchecked state
+        "data-[state=unchecked]:bg-input dark:data-[state=unchecked]:bg-input/80",
+        // Checked state
+        "data-[state=checked]:bg-primary",
+        // Hover state
+        "hover:scale-[1.05] hover:shadow-md",
+        // Focus state with token-based styling
+        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+        // Disabled state
+        "disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       style={props.style}
@@ -20,11 +34,18 @@ function Switch({
     >
       <SwitchPrimitive.Thumb
         data-slot="switch-thumb"
-        className={cn("bg-background dark:data-[state=unchecked]:bg-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0 transition-all"
+        className={cn(
+          // Base styles
+          "pointer-events-none block size-4 rounded-full ring-0",
+          // Enhanced transitions
+          "transition-all duration-200 ease-out",
+          // Position states
+          "data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0",
+          // Color states
+          "bg-background dark:data-[state=unchecked]:bg-foreground dark:data-[state=checked]:bg-primary-foreground",
+          // Scale animation on state change
+          "data-[state=checked]:scale-110 data-[state=unchecked]:scale-100"
         )}
-        style={{
-          transition: `transform ${ANIMATION_DURATIONS.fast} ease-out`
-        }}
       />
     </SwitchPrimitive.Root>
   )

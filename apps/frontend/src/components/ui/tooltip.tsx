@@ -45,7 +45,23 @@ function TooltipContent({
       <TooltipPrimitive.Content
         data-slot="tooltip-content"
         sideOffset={sideOffset}
-        className={cn("bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance transition-all",
+        className={cn(
+          // Base styles with token-based radius
+          "bg-primary text-primary-foreground z-50 w-fit rounded-[8px] px-3 py-1.5 text-xs text-balance",
+          // Origin for animations
+          "origin-(--radix-tooltip-content-transform-origin)",
+          // Enhanced animations
+          "animate-in fade-in-0 zoom-in-95",
+          "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+          // Slide animations based on side
+          "data-[side=bottom]:slide-in-from-top-2",
+          "data-[side=left]:slide-in-from-right-2",
+          "data-[side=right]:slide-in-from-left-2",
+          "data-[side=top]:slide-in-from-bottom-2",
+          // Smooth transitions
+          "transition-all duration-200 ease-out",
+          // Subtle shadow for depth
+          "shadow-sm",
           className
         )}
         style={props.style}

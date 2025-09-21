@@ -4,7 +4,7 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react'
 import * as React from 'react'
 
-import { ANIMATION_DURATIONS, cn } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 function DropdownMenu({
 	...props
@@ -42,13 +42,24 @@ function DropdownMenuContent({
 				data-slot="dropdown-menu-content"
 				sideOffset={sideOffset}
 				className={cn(
-					'bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-md transition-all',
+					// Base styles with token-based radius
+					'bg-popover text-popover-foreground z-50 min-w-[8rem] rounded-[12px] border p-1 shadow-md',
+					'max-h-(--radix-dropdown-menu-content-available-height) origin-(--radix-dropdown-menu-content-transform-origin)',
+					'overflow-x-hidden overflow-y-auto',
+					// Enhanced animations
+					'data-[state=open]:animate-in data-[state=closed]:animate-out',
+					'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+					'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+					// Slide animations
+					'data-[side=bottom]:slide-in-from-top-2',
+					'data-[side=left]:slide-in-from-right-2',
+					'data-[side=right]:slide-in-from-left-2',
+					'data-[side=top]:slide-in-from-bottom-2',
+					// Smooth transitions
+					'transition-all duration-200 ease-out',
 					className
 				)}
-				style={{
-					animationDuration: ANIMATION_DURATIONS.fast,
-					transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`
-				}}
+				style={props.style}
 				{...props}
 			/>
 		</DropdownMenuPrimitive.Portal>
@@ -78,10 +89,27 @@ function DropdownMenuItem({
 			data-inset={inset}
 			data-variant={variant}
 			className={cn(
-				"focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:*:[svg]:!text-destructive [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:scale-[1.02] active:scale-[0.98] transition-all",
+				// Base styles with token-based radius
+				"relative flex cursor-default items-center gap-2 rounded-[8px] px-2 py-1.5 text-sm outline-hidden select-none",
+				// Focus and hover states
+				"focus:bg-accent focus:text-accent-foreground",
+				"hover:bg-accent/50 hover:scale-[1.02]",
+				"active:scale-[0.98] active:duration-150",
+				// Destructive variant
+				"data-[variant=destructive]:text-destructive",
+				"data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20",
+				"data-[variant=destructive]:focus:text-destructive",
+				"data-[variant=destructive]:*:[svg]:!text-destructive",
+				// Icon and inset styling
+				"[&_svg:not([class*='text-'])]:text-muted-foreground",
+				"data-[inset]:pl-8",
+				"[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+				// Disabled state
+				"data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+				// Smooth transitions
+				"transition-all duration-200 ease-out",
 				className
 			)}
-			style={{}}
 			{...props}
 		/>
 	)
@@ -235,13 +263,23 @@ function DropdownMenuSubContent({
 		<DropdownMenuPrimitive.SubContent
 			data-slot="dropdown-menu-sub-content"
 			className={cn(
-				'bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-md border p-1 shadow-lg transition-all',
+				// Base styles with token-based radius
+				'bg-popover text-popover-foreground z-50 min-w-[8rem] rounded-[12px] border p-1 shadow-lg overflow-hidden',
+				'origin-(--radix-dropdown-menu-content-transform-origin)',
+				// Enhanced animations
+				'data-[state=open]:animate-in data-[state=closed]:animate-out',
+				'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+				'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+				// Slide animations
+				'data-[side=bottom]:slide-in-from-top-2',
+				'data-[side=left]:slide-in-from-right-2',
+				'data-[side=right]:slide-in-from-left-2',
+				'data-[side=top]:slide-in-from-bottom-2',
+				// Smooth transitions
+				'transition-all duration-200 ease-out',
 				className
 			)}
-			style={{
-				animationDuration: ANIMATION_DURATIONS.fast,
-				transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`
-			}}
+			style={props.style}
 			{...props}
 		/>
 	)

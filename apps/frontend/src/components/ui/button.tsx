@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "tw-:inline-flex tw-:items-center tw-:justify-center tw-:gap-2 tw-:whitespace-nowrap tw-:rounded-md tw-:text-sm tw-:font-medium tw-:transition-all tw-:disabled:pointer-events-none tw-:disabled:opacity-50 tw-:[&_svg]:pointer-events-none tw-:[&_svg:not([class*=size-])]:size-4 tw-:shrink-0 tw-:[&_svg]:shrink-0 tw-:outline-none tw-:focus-visible:border-ring tw-:focus-visible:ring-ring/50 tw-:focus-visible:ring-[3px] tw-:aria-invalid:ring-destructive/20 tw-:dark:aria-invalid:ring-destructive/40 tw-:aria-invalid:border-destructive",
+  "tw-:inline-flex tw-:items-center tw-:justify-center tw-:gap-2 tw-:whitespace-nowrap tw-:text-sm tw-:font-medium tw-:transition-all tw-:duration-200 tw-:ease-in-out tw-:transform-gpu tw-:disabled:pointer-events-none tw-:disabled:opacity-50 tw-:[&_svg]:pointer-events-none tw-:[&_svg:not([class*=size-])]:size-4 tw-:shrink-0 tw-:[&_svg]:shrink-0 tw-:outline-none tw-:focus-visible:border-ring tw-:focus-visible:ring-ring/50 tw-:focus-visible:ring-[3px] tw-:aria-invalid:ring-destructive/20 tw-:dark:aria-invalid:ring-destructive/40 tw-:aria-invalid:border-destructive tw-:hover:scale-[1.02] tw-:hover:shadow-md tw-:active:scale-[0.98] tw-:active:duration-150",
   {
     variants: {
       variant: {
@@ -27,14 +27,22 @@ const buttonVariants = cva(
       },
       size: {
         default: "tw-:h-9 tw-:px-4 tw-:py-2 tw-:has-[>svg]:px-3",
-        sm: "tw-:h-8 tw-:rounded-md tw-:gap-1.5 tw-:px-3 tw-:has-[>svg]:px-2.5",
-        lg: "tw-:h-10 tw-:rounded-md tw-:px-6 tw-:has-[>svg]:px-4",
+        sm: "tw-:h-8 tw-:gap-1.5 tw-:px-3 tw-:has-[>svg]:px-2.5",
+        lg: "tw-:h-10 tw-:px-6 tw-:has-[>svg]:px-4",
         icon: "tw-:size-9",
+      },
+      radius: {
+        xs: "tw-:rounded-[8px]",
+        sm: "tw-:rounded-[12px]",
+        md: "tw-:rounded-[16px]",
+        lg: "tw-:rounded-[20px]",
+        xl: "tw-:rounded-[28px]",
       },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
+      radius: "md",
     },
   }
 )
@@ -43,6 +51,7 @@ function Button({
   className,
   variant,
   size,
+  radius,
   asChild = false,
   ...props
 }: React.ComponentProps<"button"> &
@@ -54,7 +63,7 @@ function Button({
   return (
     <Comp
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size, radius, className }))}
       {...props}
     />
   )

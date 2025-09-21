@@ -195,8 +195,8 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 				className={cn(
 					'fixed top-4 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 rounded-full px-4 py-2 w-auto',
 					isScrolled
-						? 'bg-white/95 backdrop-blur-xl shadow-xl border border-gray-200/30 scale-[0.98]'
-						: 'bg-white/80 backdrop-blur-xl shadow-lg border border-gray-200/20',
+						? 'bg-white/95 backdrop-blur-xl shadow-xl border border-[var(--color-fill-secondary)]/30 scale-[0.98]'
+						: 'bg-white/80 backdrop-blur-xl shadow-lg border border-[var(--color-fill-secondary)]/20',
 					'hover:bg-white/95 hover:shadow-xl',
 					className
 				)}

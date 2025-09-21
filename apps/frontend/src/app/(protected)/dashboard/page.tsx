@@ -294,7 +294,7 @@ function DashboardContent() {
 																{property.city}, {property.state}
 															</td>
 															<td className="p-2">
-																<span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+																<span className="px-2 py-1 rounded-full text-xs bg-[var(--color-system-green-10)] text-[var(--color-system-green)]">
 																	Active
 																</span>
 															</td>
