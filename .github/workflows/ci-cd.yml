@@ -46,12 +46,12 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
           echo "Starting parallel build processes..."
-          turbo run lint:fix &
-          turbo run typecheck &
-          turbo run build &
+          pnpm turbo run lint:fix &
+          pnpm turbo run typecheck &
+          pnpm turbo run build &
           wait
           echo "Running unit tests..."
-          turbo run test:unit
+          pnpm turbo run test:unit
 
       - name: Deploy Backend
         if: github.ref == 'refs/heads/main'
