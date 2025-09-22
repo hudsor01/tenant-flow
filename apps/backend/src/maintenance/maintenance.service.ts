@@ -1,20 +1,19 @@
 /**
- *  ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION 
+ *  ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION
  *
  * DIRECT PostgreSQL RPC calls ONLY. Each method <30 lines.
  * FORBIDDEN: Service layers, repositories, business logic classes
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
-import { Injectable, BadRequestException } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { Logger } from '@nestjs/common'
-import { SupabaseService } from '../database/supabase.service'
-import { MaintenanceUpdatedEvent } from '../notifications/events/notification.events'
 import type {
 	CreateMaintenanceRequest,
 	UpdateMaintenanceRequest
-} from '../schemas/maintenance.schema'
+} from '@repo/shared'
+import { SupabaseService } from '../database/supabase.service'
+import { MaintenanceUpdatedEvent } from '../notifications/events/notification.events'
 
 @Injectable()
 export class MaintenanceService {
@@ -60,9 +59,7 @@ export class MaintenanceService {
 				},
 				'Failed to get maintenance requests'
 			)
-			throw new BadRequestException(
-				'Failed to retrieve maintenance requests'
-			)
+			throw new BadRequestException('Failed to retrieve maintenance requests')
 		}
 
 		return data
@@ -82,9 +79,7 @@ export class MaintenanceService {
 				userId,
 				error: error.message
 			})
-			throw new BadRequestException(
-				'Failed to retrieve maintenance statistics'
-			)
+			throw new BadRequestException('Failed to retrieve maintenance statistics')
 		}
 
 		return data
@@ -179,9 +174,7 @@ export class MaintenanceService {
 				userId,
 				error: error.message
 			})
-			throw new BadRequestException(
-				'Failed to create maintenance request'
-			)
+			throw new BadRequestException('Failed to create maintenance request')
 		}
 
 		return data
@@ -237,12 +230,20 @@ export class MaintenanceService {
 				new MaintenanceUpdatedEvent(
 					userId,
 					maintenanceId,
-					maintenanceRecord.title || updateRequest.title || 'Maintenance Request',
+					maintenanceRecord.title ||
+						updateRequest.title ||
+						'Maintenance Request',
 					maintenanceRecord.status || updateRequest.status || 'PENDING',
-					maintenanceRecord.priority || (updateRequest.priority === 'URGENT' ? 'EMERGENCY' : updateRequest.priority) || 'MEDIUM',
+					maintenanceRecord.priority ||
+						(updateRequest.priority === 'URGENT'
+							? 'EMERGENCY'
+							: updateRequest.priority) ||
+						'MEDIUM',
 					maintenanceRecord.property_name || 'Property',
 					maintenanceRecord.unit_number || 'Unit',
-					maintenanceRecord.description || updateRequest.description || 'Maintenance request updated'
+					maintenanceRecord.description ||
+						updateRequest.description ||
+						'Maintenance request updated'
 				)
 			)
 		}
@@ -267,9 +268,7 @@ export class MaintenanceService {
 				maintenanceId,
 				error: error.message
 			})
-			throw new BadRequestException(
-				'Failed to delete maintenance request'
-			)
+			throw new BadRequestException('Failed to delete maintenance request')
 		}
 	}
 
@@ -298,9 +297,7 @@ export class MaintenanceService {
 				maintenanceId,
 				error: error.message
 			})
-			throw new BadRequestException(
-				'Failed to complete maintenance request'
-			)
+			throw new BadRequestException('Failed to complete maintenance request')
 		}
 
 		return data
@@ -325,9 +322,7 @@ export class MaintenanceService {
 				maintenanceId,
 				error: error.message
 			})
-			throw new BadRequestException(
-				'Failed to cancel maintenance request'
-			)
+			throw new BadRequestException('Failed to cancel maintenance request')
 		}
 
 		return data

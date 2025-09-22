@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '@/lib/design-system'
 import * as React from 'react'
 
@@ -26,10 +24,7 @@ export function StatCard({
 
 	return (
 		<div
-			className={cn(
-				'card-elevated rounded-2xl p-6 text-center',
-				className
-			)}
+			className={cn('card-elevated rounded-2xl p-6 text-center', className)}
 			{...props}
 		>
 			<div className="flex items-center justify-center gap-2 mb-2 text-muted-foreground">

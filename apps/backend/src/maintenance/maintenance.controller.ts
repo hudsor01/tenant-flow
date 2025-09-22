@@ -1,5 +1,5 @@
 /**
- *  ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS 
+ *  ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS
  *
  * ONLY built-in NestJS pipes, native exceptions, direct RPC calls.
  * FORBIDDEN: Custom decorators, DTOs, validation layers, middleware
@@ -7,42 +7,44 @@
  */
 
 import {
+	BadRequestException,
+	Body,
 	Controller,
+	DefaultValuePipe,
+	Delete,
 	Get,
+	HttpStatus,
+	NotFoundException,
+	Optional,
+	Param,
+	ParseIntPipe,
+	ParseUUIDPipe,
 	Post,
 	Put,
-	Delete,
-	Param,
-	Query,
-	Body,
-	HttpStatus,
-	ParseUUIDPipe,
-	DefaultValuePipe,
-	ParseIntPipe,
-	BadRequestException,
-	NotFoundException,
-	Optional
+	Query
 } from '@nestjs/common'
 import {
 	ApiBearerAuth,
-	ApiTags,
 	ApiOperation,
-	ApiResponse
+	ApiResponse,
+	ApiTags
 } from '@nestjs/swagger'
-import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { Public } from '../shared/decorators/public.decorator'
-import type { ValidatedUser } from '@repo/shared'
-import { MaintenanceService } from './maintenance.service'
 import type {
 	CreateMaintenanceRequest,
-	UpdateMaintenanceRequest
-} from '../schemas/maintenance.schema'
+	UpdateMaintenanceRequest,
+	ValidatedUser
+} from '@repo/shared'
+import { CurrentUser } from '../shared/decorators/current-user.decorator'
+import { Public } from '../shared/decorators/public.decorator'
+import { MaintenanceService } from './maintenance.service'
 
 @ApiTags('maintenance')
 @ApiBearerAuth()
 @Controller('maintenance')
 export class MaintenanceController {
-	constructor(@Optional() private readonly maintenanceService?: MaintenanceService) {}
+	constructor(
+		@Optional() private readonly maintenanceService?: MaintenanceService
+	) {}
 
 	@Get()
 	@Public()
@@ -79,10 +81,7 @@ export class MaintenanceController {
 		}
 
 		// Validate enum values
-		if (
-			priority &&
-			!['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(priority)
-		) {
+		if (priority && !['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(priority)) {
 			throw new BadRequestException('Invalid priority')
 		}
 		if (
@@ -101,9 +100,7 @@ export class MaintenanceController {
 		}
 		if (
 			status &&
-			!['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'].includes(
-				status
-			)
+			!['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'].includes(status)
 		) {
 			throw new BadRequestException('Invalid status')
 		}
@@ -198,7 +195,10 @@ export class MaintenanceController {
 				data: null
 			}
 		}
-		const maintenance = await this.maintenanceService.findOne(user?.id || 'test-user-id', id)
+		const maintenance = await this.maintenanceService.findOne(
+			user?.id || 'test-user-id',
+			id
+		)
 		if (!maintenance) {
 			throw new NotFoundException('Maintenance request not found')
 		}
@@ -220,7 +220,10 @@ export class MaintenanceController {
 				success: false
 			}
 		}
-		return this.maintenanceService.create(user?.id || 'test-user-id', createRequest)
+		return this.maintenanceService.create(
+			user?.id || 'test-user-id',
+			createRequest
+		)
 	}
 
 	@Put(':id')
@@ -282,9 +285,7 @@ export class MaintenanceController {
 		@CurrentUser() user?: ValidatedUser
 	) {
 		if (actualCost && (actualCost < 0 || actualCost > 999999)) {
-			throw new BadRequestException(
-				'Actual cost must be between 0 and 999999'
-			)
+			throw new BadRequestException('Actual cost must be between 0 and 999999')
 		}
 		if (!this.maintenanceService) {
 			return {
@@ -296,7 +297,12 @@ export class MaintenanceController {
 				success: false
 			}
 		}
-		return this.maintenanceService.complete(user?.id || 'test-user-id', id, actualCost, notes)
+		return this.maintenanceService.complete(
+			user?.id || 'test-user-id',
+			id,
+			actualCost,
+			notes
+		)
 	}
 
 	@Post(':id/cancel')
@@ -317,6 +323,10 @@ export class MaintenanceController {
 				success: false
 			}
 		}
-		return this.maintenanceService.cancel(user?.id || 'test-user-id', id, reason)
+		return this.maintenanceService.cancel(
+			user?.id || 'test-user-id',
+			id,
+			reason
+		)
 	}
 }

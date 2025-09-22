@@ -14,11 +14,8 @@
  */
 
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import type { CreateUnitRequest, UpdateUnitRequest } from '@repo/shared'
 import { SupabaseService } from '../database/supabase.service'
-import type {
-	CreateUnitRequest,
-	UpdateUnitRequest
-} from '../schemas/units.schema'
 
 @Injectable()
 export class UnitsService {

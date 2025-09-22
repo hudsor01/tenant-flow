@@ -7,7 +7,6 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
-
 const ToggleGroupContext = React.createContext<
 	VariantProps<typeof toggleVariants>
 >({
@@ -28,8 +27,9 @@ function ToggleGroup({
 			data-slot="toggle-group"
 			data-variant={variant}
 			data-size={size}
+			data-tokens="applied"
 			className={cn(
-				'group/toggle-group flex w-fit items-center rounded-md data-[variant=outline]:shadow-xs',
+				'group/toggle-group flex w-fit items-center rounded-[var(--radius-medium)] data-[variant=outline]:shadow-[var(--shadow-xs)]',
 				className
 			)}
 			{...props}
@@ -56,6 +56,7 @@ function ToggleGroupItem({
 			data-slot="toggle-group-item"
 			data-variant={context.variant || variant}
 			data-size={context.size || size}
+			data-tokens="applied"
 			className={cn(
 				toggleVariants({
 					variant: context.variant || variant,

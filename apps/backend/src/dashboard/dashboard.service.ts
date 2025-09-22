@@ -53,6 +53,7 @@ export class DashboardService {
 					open: 0,
 					inProgress: 0,
 					completed: 0,
+					completedToday: 0,
 					avgResolutionTime: 0,
 					byPriority: { low: 0, medium: 0, high: 0, emergency: 0 }
 				},
@@ -169,6 +170,7 @@ export class DashboardService {
 					open: safeGet(dbMaintenance, 'open'),
 					inProgress: safeGet(dbMaintenance, 'inProgress'),
 					completed: safeGet(dbMaintenance, 'completed'),
+					completedToday: safeGet(dbMaintenance, 'completedToday') || 0,
 					avgResolutionTime: safeGet(dbMaintenance, 'avgResolutionTime'),
 					byPriority: {
 						low: safeGet(safeGetObj(dbMaintenance, 'byPriority'), 'low'),
@@ -669,6 +671,7 @@ export class DashboardService {
 				open: 0,
 				inProgress: 0,
 				completed: 0,
+				completedToday: 0,
 				avgResolutionTime: 0,
 				byPriority: { low: 0, medium: 0, high: 0, emergency: 0 }
 			}
@@ -688,6 +691,7 @@ export class DashboardService {
 				open: 0,
 				inProgress: 0,
 				completed: 0,
+				completedToday: 0,
 				avgResolutionTime: 0,
 				byPriority: { low: 0, medium: 0, high: 0, emergency: 0 }
 			}

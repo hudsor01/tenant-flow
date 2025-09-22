@@ -40,14 +40,14 @@ This backend implements an **ultra-native Stripe integration** using Foreign Dat
 // Unified pattern - 59% code reduction achieved
 async getCustomer(customerId: string) {
   const data = await this.queryStripe(
-    `SELECT * FROM stripe_fdw.customers WHERE id = '${customerId}' LIMIT 1`, 
+    `SELECT * FROM stripe_fdw.customers WHERE id = '${customerId}' LIMIT 1`,
     'fetch customer'
   );
   return data?.[0] || null;
 }
 ```
 
-#### 2. StripeWebhookService (`stripe-webhook.service.ts`) 
+#### 2. StripeWebhookService (`stripe-webhook.service.ts`)
 **Purpose**: Ultra-simple business event triggers (NOT data sync)
 
 **85% Reduction**: 438 lines → 67 lines
@@ -69,7 +69,7 @@ switch (event.type) {
 
 **Endpoints:**
 - `GET /health` - Full system check
-- `GET /health/ready` - Quick readiness probe  
+- `GET /health/ready` - Quick readiness probe
 - `GET /health/stripe` - Detailed FDW diagnostics
 
 ## [IMPLEMENTATION] Implementation Details
@@ -139,7 +139,7 @@ try {
 
 ### Key Test Files
 - `stripe-sync.service.spec.ts` - Core service logic (27 tests)
-- `stripe-webhook-simple.spec.ts` - Webhook processing (5 tests)  
+- `stripe-webhook-simple.spec.ts` - Webhook processing (5 tests)
 - `stripe-fdw.health.spec.ts` - Health indicators (18 tests)
 - `stripe-edge-cases.spec.ts` - Security & edge cases (34 tests)
 
@@ -197,7 +197,7 @@ CMD ["node", "dist/main.js"]
 ### Local Development
 ```bash
 npm run dev              # Start with hot reload
-npm run test:unit        # Run unit tests  
+npm run test:unit        # Run unit tests
 npm run test:integration # Test FDW connectivity
 npm run claude:check     # Full quality check
 ```
@@ -211,15 +211,15 @@ npm run claude:check     # Full quality check
 ## [SUCCESS] Success Metrics
 
 ### Achieved Goals
-[OK] **85% code reduction** (438 → 67 lines webhook service)  
-[OK] **59% simplification** (325 → 141 lines sync service)  
-[OK] **Zero data sync lag** (real-time FDW access)  
-[OK] **Production-grade reliability** (comprehensive health checks)  
+[OK] **85% code reduction** (438 → 67 lines webhook service)
+[OK] **59% simplification** (325 → 141 lines sync service)
+[OK] **Zero data sync lag** (real-time FDW access)
+[OK] **Production-grade reliability** (comprehensive health checks)
 [OK] **Ultra-native architecture** (no custom abstractions)
 
 ### Business Impact
 - **Reduced maintenance burden**: Simpler codebase
-- **Improved reliability**: Real-time data, no sync failures  
+- **Improved reliability**: Real-time data, no sync failures
 - **Better performance**: Direct SQL access vs REST API
 - **Enhanced monitoring**: Built-in health diagnostics
 
@@ -237,6 +237,23 @@ npm run claude:check     # Full quality check
 3. Review webhook event logs
 4. Test with Stripe CLI for local development
 
-**Architecture**: Ultra-native NestJS + Stripe FDW + Supabase  
-**Deployment**: Railway  
+**Architecture**: Ultra-native NestJS + Stripe FDW + Supabase
+**Deployment**: Railway
 **Monitoring**: Built-in health checks + logging
+
+## [MIGRATION] Fastify to Express (Finalized)
+
+Summary of changes
+- Adapter: migrated to NestExpressApplication in `src/main.ts` (NestFactory.create with `{ rawBody: true }`).
+- Middleware: centralized in `src/config/express.config.ts` (helmet, compression, cookie-parser, rate limit, `express.json/urlencoded`).
+- Stripe webhooks: route-scoped `express.raw({ type: 'application/json' })` at `/api/v1/stripe/webhook` to preserve raw body for signature verification.
+- Types: controllers/guards/interceptors use Express `Request`/`Response` types and shared Express request types.
+- Security filter: `SecurityExceptionFilter` now sets headers via a resilient helper supporting `res.set`, `res.header`, or `res.setHeader`.
+- Tests: Jest config cleaned (no Fastify-specific transforms). All unit tests pass.
+- Dependencies: backend uses `express@^5` and `@types/express@^5`; no Fastify runtime deps remain.
+- Cleanup: any remaining Fastify mentions are limited to coverage artifacts or docs only (no runtime usage).
+
+Validation
+- Unit tests: `cd apps/backend && pnpm test:unit` → all suites passing.
+- Dev server: `pnpm dev` (Express adapter).
+- Stripe signature: verify webhook locally with Stripe CLI; raw body is available for `stripe.webhooks.constructEvent`.

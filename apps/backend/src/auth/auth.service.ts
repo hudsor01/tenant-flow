@@ -1,13 +1,16 @@
 import {
-	Injectable,
-	Logger,
-	UnauthorizedException,
 	BadRequestException,
+	Injectable,
 	InternalServerErrorException,
+	Logger,
+	UnauthorizedException
 } from '@nestjs/common'
+import type { AuthServiceValidatedUser, Database, UserRole } from '@repo/shared'
+import type {
+	SupabaseClient,
+	User as SupabaseUser
+} from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
-import type { User as SupabaseUser, SupabaseClient } from '@supabase/supabase-js'
-import type { UserRole, AuthServiceValidatedUser, Database } from '@repo/shared'
 
 // Ultra-native: Direct Supabase client instead of service dependency
 
@@ -22,23 +25,22 @@ export class AuthService {
 		const supabaseServiceKey = process.env.SERVICE_ROLE_KEY
 
 		if (!supabaseUrl || !supabaseServiceKey) {
-			throw new InternalServerErrorException('Supabase configuration is missing')
+			throw new InternalServerErrorException(
+				'Supabase configuration is missing'
+			)
 		}
 
-		this.adminClient = createClient<Database>(
-			supabaseUrl,
-			supabaseServiceKey,
-			{
-				auth: {
-					persistSession: false,
-					autoRefreshToken: false
-				}
+		this.adminClient = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+			auth: {
+				persistSession: false,
+				autoRefreshToken: false
 			}
-		)
-
+		})
 	}
 
-	async validateSupabaseToken(token: string): Promise<AuthServiceValidatedUser> {
+	async validateSupabaseToken(
+		token: string
+	): Promise<AuthServiceValidatedUser> {
 		if (!token || typeof token !== 'string') {
 			throw new UnauthorizedException('Invalid token format')
 		}
@@ -77,7 +79,10 @@ export class AuthService {
 			if (error instanceof UnauthorizedException) {
 				throw error
 			}
-			this.logger.error('Token validation error', error instanceof Error ? error.message : 'Unknown error')
+			this.logger.error(
+				'Token validation error',
+				error instanceof Error ? error.message : 'Unknown error'
+			)
 			throw new UnauthorizedException('Token validation failed')
 		}
 	}
@@ -89,16 +94,10 @@ export class AuthService {
 			throw new UnauthorizedException('User email is required')
 		}
 
-		const {
-			id: supabaseId,
-			email,
-			user_metadata: userMetadata
-		} = supabaseUser
+		const { id: supabaseId, email, user_metadata: userMetadata } = supabaseUser
 		const metadata = userMetadata as Record<string, unknown>
 		const name = String(metadata.name ?? metadata.full_name ?? '')
-		const avatarUrl = metadata.avatar_url
-			? String(metadata.avatar_url)
-			: null
+		const avatarUrl = metadata.avatar_url ? String(metadata.avatar_url) : null
 		const phone = metadata.phone ? String(metadata.phone) : null
 
 		const adminClient = this.adminClient
@@ -173,23 +172,25 @@ export class AuthService {
 			.select('*')
 			.eq('id', supabaseId)
 			.single()
-		return user ? {
-			id: user.id,
-			email: user.email,
-			name: user.name ?? null,
-			phone: user.phone ?? null,
-			bio: user.bio ?? null,
-			avatarUrl: user.avatarUrl ?? null,
-			role: user.role as UserRole,
-			createdAt: new Date(user.createdAt),
-			updatedAt: new Date(user.updatedAt),
-			supabaseId: user.supabaseId,
-			stripeCustomerId: user.stripeCustomerId,
-			profileComplete: !!(user.name && user.phone),
-			lastLoginAt: new Date(),
-			organizationId: null,
-			emailVerified: true
-		} : null
+		return user
+			? {
+					id: user.id,
+					email: user.email,
+					name: user.name ?? null,
+					phone: user.phone ?? null,
+					bio: user.bio ?? null,
+					avatarUrl: user.avatarUrl ?? null,
+					role: user.role as UserRole,
+					createdAt: new Date(user.createdAt),
+					updatedAt: new Date(user.updatedAt),
+					supabaseId: user.supabaseId,
+					stripeCustomerId: user.stripeCustomerId,
+					profileComplete: !!(user.name && user.phone),
+					lastLoginAt: new Date(),
+					organizationId: null,
+					emailVerified: true
+				}
+			: null
 	}
 
 	async updateUserProfile(
@@ -210,32 +211,32 @@ export class AuthService {
 			.single()
 
 		if (error) {
-			throw new InternalServerErrorException(
-				'Failed to update user profile'
-			)
+			throw new InternalServerErrorException('Failed to update user profile')
 		}
-		return { 
-		user: {
-			id: user.id,
-			email: user.email,
-			name: user.name ?? null,
-			phone: user.phone ?? null,
-			bio: user.bio ?? null,
-			avatarUrl: user.avatarUrl ?? null,
-			role: user.role as UserRole,
-			createdAt: new Date(user.createdAt),
-			updatedAt: new Date(user.updatedAt),
-			supabaseId: user.supabaseId,
-			stripeCustomerId: user.stripeCustomerId,
-			profileComplete: !!(user.name && user.phone),
-			lastLoginAt: new Date(),
-			organizationId: null,
-			emailVerified: true
+		return {
+			user: {
+				id: user.id,
+				email: user.email,
+				name: user.name ?? null,
+				phone: user.phone ?? null,
+				bio: user.bio ?? null,
+				avatarUrl: user.avatarUrl ?? null,
+				role: user.role as UserRole,
+				createdAt: new Date(user.createdAt),
+				updatedAt: new Date(user.updatedAt),
+				supabaseId: user.supabaseId,
+				stripeCustomerId: user.stripeCustomerId,
+				profileComplete: !!(user.name && user.phone),
+				lastLoginAt: new Date(),
+				organizationId: null,
+				emailVerified: true
+			}
 		}
-	}
 	}
 
-	async validateTokenAndGetUser(token: string): Promise<AuthServiceValidatedUser> {
+	async validateTokenAndGetUser(
+		token: string
+	): Promise<AuthServiceValidatedUser> {
 		try {
 			const {
 				data: { user },
@@ -290,35 +291,42 @@ export class AuthService {
 			if (error instanceof UnauthorizedException) {
 				throw error
 			}
-			this.logger.error('Token validation error', error instanceof Error ? error.message : 'Unknown error')
+			this.logger.error(
+				'Token validation error',
+				error instanceof Error ? error.message : 'Unknown error'
+			)
 			throw new UnauthorizedException('Token validation failed')
 		}
 	}
 
-	async getUserByEmail(email: string): Promise<AuthServiceValidatedUser | null> {
+	async getUserByEmail(
+		email: string
+	): Promise<AuthServiceValidatedUser | null> {
 		const adminClient = this.adminClient
 		const { data: user } = await adminClient
 			.from('User')
 			.select('*')
 			.eq('email', email)
 			.single()
-		return user ? {
-			id: user.id,
-			email: user.email,
-			name: user.name ?? null,
-			phone: user.phone ?? null,
-			bio: user.bio ?? null,
-			avatarUrl: user.avatarUrl ?? null,
-			role: user.role as UserRole,
-			createdAt: new Date(user.createdAt),
-			updatedAt: new Date(user.updatedAt),
-			supabaseId: user.supabaseId,
-			stripeCustomerId: user.stripeCustomerId,
-			profileComplete: !!(user.name && user.phone),
-			lastLoginAt: new Date(),
-			organizationId: null,
-			emailVerified: true
-		} : null
+		return user
+			? {
+					id: user.id,
+					email: user.email,
+					name: user.name ?? null,
+					phone: user.phone ?? null,
+					bio: user.bio ?? null,
+					avatarUrl: user.avatarUrl ?? null,
+					role: user.role as UserRole,
+					createdAt: new Date(user.createdAt),
+					updatedAt: new Date(user.updatedAt),
+					supabaseId: user.supabaseId,
+					stripeCustomerId: user.stripeCustomerId,
+					profileComplete: !!(user.name && user.phone),
+					lastLoginAt: new Date(),
+					organizationId: null,
+					emailVerified: true
+				}
+			: null
 	}
 
 	async userHasRole(supabaseId: string, role: string): Promise<boolean> {
@@ -337,9 +345,7 @@ export class AuthService {
 		const adminClient = this.adminClient
 		const [totalResult, ownersResult, managersResult, tenantsResult] =
 			await Promise.all([
-				adminClient
-					.from('User')
-					.select('*', { count: 'exact', head: true }),
+				adminClient.from('User').select('*', { count: 'exact', head: true }),
 				adminClient
 					.from('User')
 					.select('*', { count: 'exact', head: true })
@@ -395,9 +401,7 @@ export class AuthService {
 
 		if (error) {
 			if (error.message.includes('already registered')) {
-				throw new BadRequestException(
-					'User with this email already exists'
-				)
+				throw new BadRequestException('User with this email already exists')
 			}
 			throw new BadRequestException(error.message)
 		}
@@ -411,10 +415,7 @@ export class AuthService {
 		} catch (syncError) {
 			this.logger.error('User sync failed', {
 				userId: data.user.id,
-				error:
-					syncError instanceof Error
-						? syncError.message
-						: 'Unknown error'
+				error: syncError instanceof Error ? syncError.message : 'Unknown error'
 			})
 		}
 
@@ -527,9 +528,7 @@ export class AuthService {
 			data.session.access_token
 		)
 
-		this.logger.log(
-			`Auth success for user: ${validatedUser.id} from IP: ${ip}`
-		)
+		this.logger.log(`Auth success for user: ${validatedUser.id} from IP: ${ip}`)
 
 		return {
 			access_token: data.session.access_token,
@@ -546,9 +545,7 @@ export class AuthService {
 		const { data, error } = await this.adminClient.auth.getSession()
 
 		if (error) {
-			throw new BadRequestException(
-				'Authentication service connection failed'
-			)
+			throw new BadRequestException('Authentication service connection failed')
 		}
 
 		return {
@@ -567,10 +564,17 @@ export class AuthService {
 	 * React 19 useFormState integration
 	 * TEMPORARY: Disabled until form_drafts table is added to Supabase schema
 	 */
-	async saveDraft(data: { email?: string; name?: string; formType: 'signup' | 'login' | 'reset' }): Promise<{ success: boolean; sessionId: string }> {
+	async saveDraft(data: {
+		email?: string
+		name?: string
+		formType: 'signup' | 'login' | 'reset'
+	}): Promise<{ success: boolean; sessionId: string }> {
 		// Temporary in-memory storage for graceful degradation
-		const sessionId = `draft_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-		this.logger.log('Form draft save (temporary disabled)', { formType: data.formType, sessionId })
+		const sessionId = `draft_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+		this.logger.log('Form draft save (temporary disabled)', {
+			formType: data.formType,
+			sessionId
+		})
 		return { success: true, sessionId }
 	}
 
@@ -579,7 +583,9 @@ export class AuthService {
 	 * React 19 useFormState integration
 	 * TEMPORARY: Disabled until form_drafts table is added to Supabase schema
 	 */
-	async getDraft(sessionId: string): Promise<{ email?: string; name?: string } | null> {
+	async getDraft(
+		sessionId: string
+	): Promise<{ email?: string; name?: string } | null> {
 		this.logger.log('Form draft retrieval (temporary disabled)', { sessionId })
 		return null
 	}

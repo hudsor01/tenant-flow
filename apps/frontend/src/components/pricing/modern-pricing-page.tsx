@@ -1,13 +1,22 @@
 'use client'
 
+import { BlurFade } from '@/components/magicui/blur-fade'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { BlurFade } from '@/components/magicui/blur-fade'
 import { containerClasses } from '@/lib/design-system'
 import { cn } from '@/lib/utils'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import { loadStripe } from '@stripe/stripe-js'
-import { ArrowRight, Check, Loader2, X } from 'lucide-react'
+import {
+	ArrowRight,
+	Check,
+	CreditCard,
+	Loader2,
+	ShieldCheck,
+	Target,
+	X,
+	Zap
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -30,7 +39,7 @@ export default function ModernPricingPage() {
 	const displayPlans = plans.filter(plan => plan.planId !== 'trial')
 
 	// Handle checkout
-	const handleCheckout = async (planConfig: typeof plans[0]) => {
+	const handleCheckout = async (planConfig: (typeof plans)[0]) => {
 		if (planConfig.planId === 'max') {
 			router.push('/contact?plan=max')
 			return
@@ -40,14 +49,20 @@ export default function ModernPricingPage() {
 			setLoading(planConfig.id)
 			setError(null)
 
-			const priceId = getStripeId(planConfig.planId, isAnnual ? 'annual' : 'monthly')
+			const priceId = getStripeId(
+				planConfig.planId,
+				isAnnual ? 'annual' : 'monthly'
+			)
 
 			if (!priceId) {
 				throw new Error('Price ID not configured')
 			}
 
 			// Call backend Stripe service to create checkout session
-			const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.tenantflow.app'
+			const apiUrl =
+				process.env.NEXT_PUBLIC_API_BASE_URL ||
+				process.env.NEXT_PUBLIC_BACKEND_URL ||
+				'https://api.tenantflow.app'
 			const response = await fetch(`${apiUrl}/stripe/create-checkout-session`, {
 				method: 'POST',
 				headers: {
@@ -184,7 +199,9 @@ export default function ModernPricingPage() {
 										)}
 
 										<div className="text-center mb-6">
-											<h3 className="font-semibold text-lg mb-2">{plan.name}</h3>
+											<h3 className="font-semibold text-lg mb-2">
+												{plan.name}
+											</h3>
 											<p className="text-sm text-muted-foreground mb-4">
 												{plan.description}
 											</p>
@@ -199,7 +216,10 @@ export default function ModernPricingPage() {
 											) : (
 												<div className="my-4">
 													<span className="text-3xl font-bold">
-														{getPrice(plan.planId, isAnnual ? 'annual' : 'monthly')}
+														{getPrice(
+															plan.planId,
+															isAnnual ? 'annual' : 'monthly'
+														)}
 													</span>
 													<span className="text-muted-foreground">/month</span>
 													{isAnnual && (
@@ -265,17 +285,33 @@ export default function ModernPricingPage() {
 								Trusted by 10,000+ property managers worldwide
 							</p>
 							<div className="flex flex-wrap justify-center items-center gap-8">
-								<Badge variant="secondary" className="px-4 py-2">
-									🔒 Bank-level security
+								<Badge
+									variant="secondary"
+									className="inline-flex items-center gap-2 px-4 py-2"
+								>
+									<ShieldCheck className="h-4 w-4" aria-hidden />
+									<span>Bank-level security</span>
 								</Badge>
-								<Badge variant="secondary" className="px-4 py-2">
-									⚡ 99.9% uptime SLA
+								<Badge
+									variant="secondary"
+									className="inline-flex items-center gap-2 px-4 py-2"
+								>
+									<Zap className="h-4 w-4" aria-hidden />
+									<span>99.9% uptime SLA</span>
 								</Badge>
-								<Badge variant="secondary" className="px-4 py-2">
-									🎯 14-day free trial
+								<Badge
+									variant="secondary"
+									className="inline-flex items-center gap-2 px-4 py-2"
+								>
+									<Target className="h-4 w-4" aria-hidden />
+									<span>14-day free trial</span>
 								</Badge>
-								<Badge variant="secondary" className="px-4 py-2">
-									💳 No setup fees
+								<Badge
+									variant="secondary"
+									className="inline-flex items-center gap-2 px-4 py-2"
+								>
+									<CreditCard className="h-4 w-4" aria-hidden />
+									<span>No setup fees</span>
 								</Badge>
 							</div>
 						</div>

@@ -41,7 +41,7 @@ export interface MockRequest {
 }
 
 /**
- * Mock response object for Fastify tests
+ * Mock response object for Express tests
  */
 export interface MockResponse {
 	status: jest.Mock<MockResponse>

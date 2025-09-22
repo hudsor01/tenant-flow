@@ -4,9 +4,9 @@ import { createBrowserClient } from '@supabase/ssr'
 import React, { createContext, useContext, useEffect, useRef } from 'react'
 import { type StoreApi } from 'zustand'
 
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import type { AuthState } from './auth-store'
 import { createAuthStore } from './auth-store'
-import type { Session, AuthChangeEvent } from '@supabase/supabase-js'
 
 const AuthStoreContext = createContext<StoreApi<AuthState> | null>(null)
 
@@ -91,18 +91,22 @@ export const AuthStoreProvider = ({
 		}
 
 		// Get initial session
-		supabaseClient.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
-			store.getState().setSession(session)
-			store.getState().setLoading(false)
-		})
+		supabaseClient.auth
+			.getSession()
+			.then(({ data: { session } }: { data: { session: Session | null } }) => {
+				store.getState().setSession(session)
+				store.getState().setLoading(false)
+			})
 
 		// Listen for auth changes
 		const {
 			data: { subscription }
-		} = supabaseClient.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
-			store.getState().setSession(session)
-			store.getState().setLoading(false)
-		})
+		} = supabaseClient.auth.onAuthStateChange(
+			async (event: AuthChangeEvent, session: Session | null) => {
+				store.getState().setSession(session)
+				store.getState().setLoading(false)
+			}
+		)
 
 		return () => subscription.unsubscribe()
 	}, [])
@@ -118,12 +122,29 @@ export const useAuthStore = <T,>(selector: (state: AuthState) => T): T => {
 	const store = useContext(AuthStoreContext)
 	if (!store) throw new Error('Missing AuthStoreProvider')
 
+	// Validate selector function
+	if (typeof selector !== 'function') {
+		throw new Error('useAuthStore requires a selector function')
+	}
+
 	// Simple subscription pattern that works with SSR
-	const [state, setState] = React.useState(() => selector(store.getState()))
+	const [state, setState] = React.useState(() => {
+		try {
+			return selector(store.getState())
+		} catch (error) {
+			console.error('Error in auth store selector:', error)
+			// Return a safe default - adjust based on your AuthState structure
+			return null as T
+		}
+	})
 
 	React.useEffect(() => {
 		const unsubscribe = store.subscribe(() => {
-			setState(selector(store.getState()))
+			try {
+				setState(selector(store.getState()))
+			} catch (error) {
+				console.error('Error in auth store subscription:', error)
+			}
 		})
 		return unsubscribe
 	}, [store, selector])

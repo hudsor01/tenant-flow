@@ -1,8 +1,8 @@
 'use client'
 
+import Footer from '@/components/layout/footer'
+import { Navbar } from '@/components/layout/navbar'
 import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { Navbar } from '@/components/navbar'
-import { FooterMinimal } from '@/components/sections/footer-minimal'
 
 import { CheckoutForm } from '@/components/pricing/checkout-form'
 import { Button } from '@/components/ui/button'
@@ -79,7 +79,7 @@ export default function CheckoutPage() {
 						/>
 					</StripeProvider>
 				</div>
-				<FooterMinimal />
+				<Footer />
 			</main>
 		)
 	}
@@ -175,7 +175,7 @@ export default function CheckoutPage() {
 					</CardContent>
 				</Card>
 			</div>
-			<FooterMinimal />
+			<Footer />
 		</main>
 	)
 }

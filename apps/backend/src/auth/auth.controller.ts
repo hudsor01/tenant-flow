@@ -12,13 +12,13 @@ import {
 } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
 import type { ValidatedUser } from '@repo/shared'
-import type { FastifyRequest } from 'fastify'
+import type { Request } from 'express'
 import { Public } from '../shared/decorators/auth.decorators'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { AuthGuard } from '../shared/guards/auth.guard'
 import { AuthService } from './auth.service'
-// Using native Fastify JSON Schema validation - no DTOs needed
-// Validation is handled by Fastify schema at route level
+// Using Express JSON Schema validation - no DTOs needed
+// Validation is handled by Express JSON schema at route level
 
 @Controller('auth')
 export class AuthController {
@@ -99,7 +99,7 @@ export class AuthController {
 	@HttpCode(HttpStatus.OK)
 	async login(
 		@Body() body: { email: string; password: string },
-		@Req() request: FastifyRequest
+		@Req() request: Request
 	) {
 		const forwardedFor = request.headers['x-forwarded-for']
 		const ip =
@@ -142,7 +142,7 @@ export class AuthController {
 	@Post('logout')
 	@UseGuards(AuthGuard)
 	@HttpCode(HttpStatus.OK)
-	async logout(@Req() request: FastifyRequest) {
+	async logout(@Req() request: Request) {
 		const authHeader = request.headers.authorization
 		if (!authHeader) {
 			throw new UnauthorizedException('No authorization header found')
@@ -184,7 +184,7 @@ export class AuthController {
 	@Throttle({ default: { limit: 20, ttl: 60000 } })
 	async getDraft(
 		@Body() body: { sessionId?: string },
-		@Req() request: FastifyRequest
+		@Req() request: Request
 	) {
 		const sessionId =
 			body.sessionId || (request.headers['x-session-id'] as string)

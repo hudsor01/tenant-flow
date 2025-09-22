@@ -1,7 +1,6 @@
 'use client'
 
 import { LoginForm } from '@/components/auth/login-form'
-import { AnimatedGradientText } from '@/components/magicui/animated-gradient-text'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { BorderBeam } from '@/components/magicui/border-beam'
 import { Particles } from '@/components/magicui/particles'
@@ -40,12 +39,12 @@ export default function RegisterPage() {
 						{/* Header */}
 						<BlurFade delay={0.2} inView>
 							<div className="text-center lg:text-left">
-								<AnimatedGradientText className="inline-flex items-center justify-center mb-4">
+								<div className="inline-flex items-center justify-center mb-4 text-gradient-authority">
 									<Sparkles className="w-4 h-4 me-2" />
 									<span className="text-gradient-authority">
 										Join TenantFlow Today
 									</span>
-								</AnimatedGradientText>
+								</div>
 
 								<h1 className="text-4xl font-heading font-bold tracking-tight text-gradient-authority mb-4">
 									Create Your Account

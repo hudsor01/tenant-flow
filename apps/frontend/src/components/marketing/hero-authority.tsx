@@ -1,6 +1,3 @@
-'use client'
-
-import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
@@ -52,17 +49,14 @@ export function HeroAuthority({
 				{(primaryCta || secondaryCta) && (
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
 						{primaryCta && (
-							<ShimmerButton
-								asChild
-								className="px-8 py-3 text-base font-semibold"
-							>
+							<Button asChild className="px-8 py-3 text-base font-semibold">
 								<Link href={primaryCta.href}>
 									<span className="inline-flex items-center">
 										{primaryCta.label}
 										<ArrowRight className="w-5 h-5 ml-2" />
 									</span>
 								</Link>
-							</ShimmerButton>
+							</Button>
 						)}
 						{secondaryCta && (
 							<Button

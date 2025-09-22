@@ -5,6 +5,7 @@
  * Merged from: backend.ts, router.ts, database.ts, and other backend files
  */
 
+import type { Request, Response } from 'express'
 import type { Database } from './supabase-generated'
 
 // =============================================================================
@@ -41,6 +42,259 @@ export interface RequestContext {
 	organizationId?: string
 	startTime: Date
 	metadata: Record<string, unknown>
+}
+
+// =============================================================================
+// AUTH REQUEST/RESPONSE TYPES
+// =============================================================================
+
+export interface RegisterRequest {
+	name: string
+	email: string
+	password: string
+	company?: string
+	acceptTerms?: boolean
+}
+
+// Additional auth types
+export interface LoginRequest {
+	email: string
+	password: string
+}
+
+export interface RefreshTokenRequest {
+	refresh_token: string
+}
+
+export interface ForgotPasswordRequest {
+	email: string
+}
+
+export interface ResetPasswordRequest {
+	token: string
+	newPassword: string
+	confirmPassword: string
+}
+
+export interface ChangePasswordRequest {
+	currentPassword: string
+	newPassword: string
+	confirmPassword: string
+}
+
+export interface UserProfileResponse {
+	id: string
+	email: string
+	name: string
+	company?: string
+	phone?: string
+	bio?: string
+	avatarUrl?: string
+	emailVerified: boolean
+	createdAt: string
+	updatedAt: string
+}
+
+// =============================================================================
+// PROPERTY MANAGEMENT REQUEST TYPES
+// =============================================================================
+
+// Property types
+export interface CreatePropertyRequest {
+	name: string
+	address: string
+	city: string
+	state: string
+	zipCode: string
+	unitCount?: number
+	description?: string
+	type?:
+		| 'SINGLE_FAMILY'
+		| 'MULTI_FAMILY'
+		| 'APARTMENT'
+		| 'CONDO'
+		| 'TOWNHOUSE'
+		| 'COMMERCIAL'
+	amenities?: string[]
+}
+
+export interface UpdatePropertyRequest {
+	name?: string
+	address?: string
+	city?: string
+	state?: string
+	zipCode?: string
+	unitCount?: number
+	description?: string
+	type?:
+		| 'SINGLE_FAMILY'
+		| 'MULTI_FAMILY'
+		| 'APARTMENT'
+		| 'CONDO'
+		| 'TOWNHOUSE'
+		| 'COMMERCIAL'
+	amenities?: string[]
+}
+
+export interface PropertyQueryRequest {
+	search?: string
+	type?:
+		| 'SINGLE_FAMILY'
+		| 'MULTI_FAMILY'
+		| 'APARTMENT'
+		| 'CONDO'
+		| 'TOWNHOUSE'
+		| 'COMMERCIAL'
+	city?: string
+	state?: string
+	limit?: number
+	offset?: number
+	sortBy?: 'name' | 'address' | 'unitCount' | 'createdAt'
+	sortOrder?: 'asc' | 'desc'
+}
+
+// Unit types
+export interface CreateUnitRequest {
+	propertyId: string
+	unitNumber: string
+	bedrooms?: number
+	bathrooms?: number
+	squareFeet?: number
+	rentAmount?: number
+	isAvailable?: boolean
+}
+
+export interface UpdateUnitRequest {
+	unitNumber?: string
+	bedrooms?: number
+	bathrooms?: number
+	squareFeet?: number
+	rentAmount?: number
+	isAvailable?: boolean
+}
+
+export interface UnitQueryRequest {
+	propertyId?: string
+	isAvailable?: boolean
+	minRent?: number
+	maxRent?: number
+	bedrooms?: number
+	bathrooms?: number
+	sortBy?:
+		| 'unitNumber'
+		| 'rentAmount'
+		| 'squareFeet'
+		| 'bedrooms'
+		| 'bathrooms'
+		| 'createdAt'
+	sortOrder?: 'asc' | 'desc'
+	pageSize?: number
+	page?: number
+	status?: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED' | 'UNAVAILABLE'
+}
+
+// Lease types
+export interface CreateLeaseRequest {
+	tenantId: string
+	unitId: string
+	startDate: string
+	endDate: string
+	monthlyRent: number
+	securityDeposit: number
+	paymentFrequency?: 'MONTHLY' | 'WEEKLY' | 'BIWEEKLY' | 'YEARLY'
+	status?: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+}
+
+export interface UpdateLeaseRequest {
+	startDate?: string
+	endDate?: string
+	monthlyRent?: number
+	securityDeposit?: number
+	paymentFrequency?: 'MONTHLY' | 'WEEKLY' | 'BIWEEKLY' | 'YEARLY'
+	status?: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+}
+
+export interface LeaseQueryRequest {
+	tenantId?: string
+	unitId?: string
+	propertyId?: string
+	status?: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+	limit?: number
+	offset?: number
+	sortBy?: 'startDate' | 'endDate' | 'monthlyRent' | 'createdAt'
+	sortOrder?: 'asc' | 'desc'
+}
+
+// Maintenance types
+export type MaintenanceCategory =
+	| 'PLUMBING'
+	| 'ELECTRICAL'
+	| 'HVAC'
+	| 'APPLIANCE'
+	| 'STRUCTURAL'
+	| 'GENERAL'
+	| 'OTHER'
+
+export interface CreateMaintenanceRequest {
+	unitId: string
+	title: string
+	description: string
+	priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+	category?: MaintenanceCategory
+	scheduledDate?: string
+	estimatedCost?: number
+}
+
+export interface UpdateMaintenanceRequest {
+	title?: string
+	description?: string
+	priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+	category?: MaintenanceCategory
+	status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+	scheduledDate?: string
+	completedDate?: string
+	estimatedCost?: number
+	actualCost?: number
+	notes?: string
+}
+
+export interface MaintenanceQueryRequest {
+	unitId?: string
+	propertyId?: string
+	status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+	priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+	category?: MaintenanceCategory
+	limit?: number
+	offset?: number
+	sortBy?: 'createdAt' | 'scheduledDate' | 'priority' | 'status'
+	sortOrder?: 'asc' | 'desc'
+}
+
+// Tenant types
+export interface CreateTenantRequest {
+	firstName: string
+	lastName: string
+	email: string
+	phone?: string
+	dateOfBirth?: string
+	ssn?: string
+}
+
+export interface UpdateTenantRequest {
+	firstName?: string
+	lastName?: string
+	email?: string
+	phone?: string
+	dateOfBirth?: string
+}
+
+export interface TenantQueryRequest {
+	search?: string
+	email?: string
+	phone?: string
+	limit?: number
+	offset?: number
+	sortBy?: 'firstName' | 'lastName' | 'email' | 'createdAt'
 }
 
 // =============================================================================
@@ -530,3 +784,5 @@ export type StripeSubscriptionStatus =
 	| 'UNPAID'
 	| 'INCOMPLETE'
 	| 'INCOMPLETE_EXPIRED'
+
+// Express migration complete

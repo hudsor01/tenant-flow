@@ -1,9 +1,9 @@
 'use client'
 
-import { useLeases, useLeaseStats } from '@/hooks/api/leases'
-import type { Database } from '@repo/shared'
-import { AlertTriangle, Calendar, Clock, FileText } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { ChartAreaInteractive } from '@/components/charts/chart-area-interactive'
+import { CreateLeaseDialog } from '@/components/leases/create-lease-dialog'
+import { LeaseActionButtons } from '@/components/leases/lease-action-buttons'
+import { LoadingSpinner } from '@/components/magicui/loading-spinner'
 import { Button } from '@/components/ui/button'
 import {
 	Table,
@@ -13,11 +13,9 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { ChartAreaInteractive } from '@/components/chart-area-interactive'
-import { CreateLeaseDialog } from '@/components/leases/create-lease-dialog'
-import { LeaseActionButtons } from '@/components/leases/lease-action-buttons'
-
+import { useLeases, useLeaseStats } from '@/hooks/api/leases'
+import type { Database } from '@repo/shared'
+import { AlertTriangle, FileText } from 'lucide-react'
 
 type Lease = Database['public']['Tables']['Lease']['Row']
 
@@ -149,132 +147,72 @@ export default function LeasesPage() {
 					<Table>
 						<TableHeader className="bg-muted/50">
 							<TableRow>
-								<TableHead className="font-semibold">Lease ID</TableHead>
 								<TableHead className="font-semibold">Tenant</TableHead>
-								<TableHead className="font-semibold">Property & Unit</TableHead>
-								<TableHead className="font-semibold">Lease Term</TableHead>
-								<TableHead className="font-semibold">Monthly Rent</TableHead>
-								<TableHead className="font-semibold">
-									Security Deposit
-								</TableHead>
+								<TableHead className="font-semibold">Property</TableHead>
+								<TableHead className="font-semibold">Unit</TableHead>
+								<TableHead className="font-semibold">Rent</TableHead>
+								<TableHead className="font-semibold">Term</TableHead>
 								<TableHead className="font-semibold">Status</TableHead>
-								<TableHead className="font-semibold">
-									Days Until Expiry
-								</TableHead>
 								<TableHead className="font-semibold">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{leasesData.map((lease: Lease) => (
-								<TableRow key={lease.id} className="hover:bg-muted/30">
-									<TableCell>
-										<div className="flex items-center gap-2">
-											<FileText className="size-4 text-muted-foreground" />
-											<span className="font-medium">{lease.id}</span>
-										</div>
-									</TableCell>
-									<TableCell>
-										<div className="flex items-center gap-3">
-											<div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-												<span className="text-xs font-semibold text-primary">
-													{lease.tenantId ? lease.tenantId.slice(0, 2) : 'N/A'}
-												</span>
-											</div>
-											<span className="font-medium">
-												{lease.tenantId || 'No Tenant'}
+							{leasesData.length > 0 ? (
+								leasesData.map((lease: Lease) => (
+									<TableRow key={lease.id} className="hover:bg-muted/30">
+										<TableCell className="font-medium">
+											{lease.tenantId || 'No Tenant'}
+										</TableCell>
+										<TableCell>{lease.propertyId || 'No Property'}</TableCell>
+										<TableCell>
+											{lease.unitId ? `Unit ${lease.unitId}` : 'No Unit'}
+										</TableCell>
+										<TableCell>
+											{new Intl.NumberFormat('en-US', {
+												style: 'currency',
+												currency: 'USD'
+											}).format(lease.rentAmount || 0)}
+										</TableCell>
+										<TableCell className="text-sm text-muted-foreground">
+											{lease.startDate
+												? new Date(lease.startDate).toLocaleDateString()
+												: 'No date'}{' '}
+											-{' '}
+											{lease.endDate
+												? new Date(lease.endDate).toLocaleDateString()
+												: 'No date'}
+										</TableCell>
+										<TableCell>
+											<span
+												className={`px-2 py-1 rounded-full text-xs ${
+													lease.status === 'ACTIVE'
+														? 'bg-[var(--color-system-green-10)] text-[var(--color-system-green)]'
+														: lease.status === 'EXPIRED'
+															? 'bg-[var(--color-system-red-10)] text-[var(--color-system-red)]'
+															: lease.status === 'TERMINATED'
+																? 'bg-[var(--color-fill-tertiary)] text-[var(--color-label-secondary)]'
+																: 'bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)]'
+												}`}
+											>
+												{lease.status || 'No Status'}
 											</span>
+										</TableCell>
+										<TableCell>
+											<LeaseActionButtons lease={lease} />
+										</TableCell>
+									</TableRow>
+								))
+							) : (
+								<TableRow>
+									<TableCell colSpan={7} className="h-24 text-center">
+										<div className="flex flex-col items-center gap-2">
+											<FileText className="size-12 text-muted-foreground/50" />
+											<p className="text-muted-foreground">No leases found.</p>
+											<CreateLeaseDialog />
 										</div>
-									</TableCell>
-									<TableCell>
-										<div className="space-y-1">
-											<div className="font-medium">
-												{lease.unitId || 'No Unit'}
-											</div>
-											<Badge variant="outline" className="text-xs">
-												{lease.unitId ? `Unit ${lease.unitId}` : 'No Unit'}
-											</Badge>
-										</div>
-									</TableCell>
-									<TableCell>
-										<div className="flex items-center gap-1 text-sm">
-											<Calendar className="size-3 text-muted-foreground" />
-											<div className="space-y-1">
-												<div>
-													{lease.startDate
-														? new Date(lease.startDate).toLocaleDateString()
-														: 'No start date'}
-												</div>
-												<div className="text-muted-foreground">
-													to{' '}
-													{lease.endDate
-														? new Date(lease.endDate).toLocaleDateString()
-														: 'No end date'}
-												</div>
-											</div>
-										</div>
-									</TableCell>
-									<TableCell className="font-medium">
-										{new Intl.NumberFormat('en-US', {
-											style: 'currency',
-											currency: 'USD'
-										}).format(lease.rentAmount || 0)}
-									</TableCell>
-									<TableCell className="text-muted-foreground">
-										{new Intl.NumberFormat('en-US', {
-											style: 'currency',
-											currency: 'USD'
-										}).format(lease.securityDeposit || 0)}
-									</TableCell>
-									<TableCell>
-										{lease.status === 'ACTIVE' && (
-											<Badge
-												style={{
-													backgroundColor: 'var(--chart-1)',
-													color: 'hsl(var(--primary-foreground))'
-												}}
-											>
-												Active
-											</Badge>
-										)}
-										{lease.status === 'EXPIRED' && (
-											<Badge
-												style={{
-													backgroundColor: 'var(--chart-5)',
-													color: 'hsl(var(--primary-foreground))'
-												}}
-												className="flex items-center gap-1"
-											>
-												<AlertTriangle className="size-3" />
-												Expired
-											</Badge>
-										)}
-										{lease.status === 'TERMINATED' && (
-											<Badge
-												style={{
-													backgroundColor: 'var(--chart-2)',
-													color: 'hsl(var(--primary-foreground))'
-												}}
-											>
-												Terminated
-											</Badge>
-										)}
-										{!lease.status && (
-											<Badge variant="outline">No Status</Badge>
-										)}
-									</TableCell>
-									<TableCell>
-										<div className="flex items-center gap-1">
-											<Clock className="size-3 text-muted-foreground" />
-											<span className="font-medium text-muted-foreground">
-												Calculate in backend
-											</span>
-										</div>
-									</TableCell>
-									<TableCell>
-										<LeaseActionButtons lease={lease} />
 									</TableCell>
 								</TableRow>
-							))}
+							)}
 						</TableBody>
 					</Table>
 				</div>

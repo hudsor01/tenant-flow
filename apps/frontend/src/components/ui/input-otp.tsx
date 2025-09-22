@@ -17,10 +17,20 @@ function InputOTP({
 		<OTPInput
 			data-slot="input-otp"
 			containerClassName={cn(
-				'flex items-center gap-2 has-disabled:opacity-50',
+				// Layout using design tokens
+				'flex items-center',
+				'gap-[var(--spacing-2)]',
+				'has-disabled:opacity-[0.5]',
+
 				containerClassName
 			)}
-			className={cn('disabled:cursor-not-allowed', className)}
+			data-tokens="applied"
+			className={cn(
+				// Disabled state using design tokens
+				'disabled:cursor-not-allowed',
+
+				className
+			)}
 			{...props}
 		/>
 	)
@@ -30,7 +40,13 @@ function InputOTPGroup({ className, ...props }: React.ComponentProps<'div'>) {
 	return (
 		<div
 			data-slot="input-otp-group"
-			className={cn('flex items-center', className)}
+			data-tokens="applied"
+			className={cn(
+				// Layout using design tokens
+				'flex items-center',
+
+				className
+			)}
 			{...props}
 		/>
 	)
@@ -50,8 +66,44 @@ function InputOTPSlot({
 		<div
 			data-slot="input-otp-slot"
 			data-active={isActive}
+			data-tokens="applied"
 			className={cn(
-				'data-[active=true]:border-ring data-[active=true]:ring-ring/50 data-[active=true]:aria-invalid:ring-destructive/20 dark:data-[active=true]:aria-invalid:ring-destructive/40 aria-invalid:border-destructive data-[active=true]:aria-invalid:border-destructive dark:bg-input/30 border-input relative flex h-9 w-9 items-center justify-center border-y border-r text-sm shadow-xs transition-all outline-none first:rounded-l-md first:border-l last:rounded-r-md data-[active=true]:z-10 data-[active=true]:ring-[3px]',
+				// Base layout and sizing using design tokens
+				'relative flex items-center justify-center',
+				'h-[var(--spacing-9)] w-[var(--spacing-9)]',
+
+				// Design tokens: borders, radius, shadows
+				'border-y border-r',
+				'border-[var(--color-separator)]',
+				'shadow-[var(--shadow-small)]',
+				'outline-none',
+
+				// Border radius using design tokens
+				'first:rounded-l-[var(--radius-medium)]',
+				'first:border-l',
+				'last:rounded-r-[var(--radius-medium)]',
+
+				// Typography using design tokens
+				'text-[var(--font-body)]',
+				'font-[var(--font-weight-normal)]',
+
+				// Transitions using design tokens
+				'transition-all',
+				'duration-[var(--duration-quick)]',
+				'ease-[var(--ease-smooth)]',
+
+				// Active state using design tokens
+				'data-[active=true]:z-[var(--z-10)]',
+				'data-[active=true]:border-[var(--focus-ring-color)]',
+				'data-[active=true]:ring-[var(--focus-ring-width)]',
+				'data-[active=true]:ring-[var(--focus-ring-color)]',
+				'data-[active=true]:ring-offset-[var(--focus-ring-offset)]',
+
+				// Invalid state using design tokens
+				'aria-invalid:border-[var(--color-system-red)]',
+				'data-[active=true]:aria-invalid:border-[var(--color-system-red)]',
+				'data-[active=true]:aria-invalid:ring-[var(--color-system-red-50)]',
+
 				className
 			)}
 			{...props}
@@ -59,7 +111,7 @@ function InputOTPSlot({
 			{char}
 			{hasFakeCaret && (
 				<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-					<div className="animate-caret-blink bg-foreground h-4 w-px duration-1000" />
+					<div className="animate-caret-blink bg-[var(--color-label-primary)] h-[var(--spacing-4)] w-px duration-[var(--duration-1000)]" />
 				</div>
 			)}
 		</div>
@@ -74,10 +126,16 @@ function InputOTPSeparator({
 		<div
 			data-slot="input-otp-separator"
 			role="separator"
-			className={cn('flex items-center justify-center', className)}
+			data-tokens="applied"
+			className={cn(
+				// Layout using design tokens
+				'flex items-center justify-center',
+
+				className
+			)}
 			{...props}
 		>
-			<Separator orientation="vertical" className="h-4" />
+			<Separator orientation="vertical" className="h-[var(--spacing-4)]" />
 		</div>
 	)
 }

@@ -1,12 +1,15 @@
-import { Button } from '@/components/ui/button'
-import { Navbar } from '@/components/navbar'
-import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { Navbar } from '@/components/layout/navbar'
 import { BlurFade } from '@/components/magicui/blur-fade'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { Button } from '@/components/ui/button'
 import { containerClasses } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import {
 	ArrowRight,
+	Bolt,
+	Building2,
 	Handshake,
+	LifeBuoy,
 	Lightbulb,
 	Lock,
 	Mail,
@@ -14,10 +17,17 @@ import {
 	Sprout,
 	Target,
 	User,
+	Users,
 	Zap
 } from 'lucide-react'
 import Link from 'next/link'
 
+const stats = [
+	{ number: '10,000+', label: 'Properties Managed', Icon: Building2 },
+	{ number: '500+', label: 'Property Managers', Icon: Users },
+	{ number: '99.9%', label: 'Platform Uptime', Icon: Bolt },
+	{ number: '24/7', label: 'Customer Support', Icon: LifeBuoy }
+]
 
 export default function AboutPage() {
 	return (
@@ -200,15 +210,12 @@ export default function AboutPage() {
 						</div>
 
 						<div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-							{[
-								{ number: '10,000+', label: 'Properties Managed', icon: '🏢' },
-								{ number: '500+', label: 'Property Managers', icon: '👥' },
-								{ number: '99.9%', label: 'Platform Uptime', icon: '⚡' },
-								{ number: '24/7', label: 'Customer Support', icon: '🛟' }
-							].map((stat, index) => (
+							{stats.map((stat, index) => (
 								<BlurFade key={index} delay={0.6 + index * 0.1} inView>
 									<div className="text-center bg-card rounded-2xl card-padding border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
-										<div className="text-3xl mb-4">{stat.icon}</div>
+										<div className="mb-4 flex justify-center">
+											<stat.Icon className="h-8 w-8 text-primary" aria-hidden />
+										</div>
 										<div
 											className="font-bold text-primary mb-2"
 											style={TYPOGRAPHY_SCALE['heading-lg']}

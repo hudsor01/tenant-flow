@@ -553,7 +553,7 @@ export class SecurityMonitorService implements OnModuleInit {
 	}
 
 	private generateEventId(): string {
-		return `sec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+		return `sec_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
 	}
 
 	// Public method to manually resolve security events

@@ -10,19 +10,66 @@
 // =============================================================================
 
 export interface ContactFormRequest {
-  name: string
-  email: string
-  subject: string
-  message: string
-  phone?: string
-  company?: string
-  urgency?: 'LOW' | 'MEDIUM' | 'HIGH'
+	name: string
+	email: string
+	subject: string
+	message: string
+	type: 'sales' | 'support' | 'general'
+	phone?: string
+	company?: string
+	urgency?: 'LOW' | 'MEDIUM' | 'HIGH'
 }
 
 export interface ContactFormResponse {
-  success: boolean
-  message: string
-  contactId?: string
+	success: boolean
+	message: string
+	contactId?: string
+}
+
+// =============================================================================
+// WEB VITALS DOMAIN
+// =============================================================================
+
+export enum WebVitalMetricName {
+	CLS = 'CLS',
+	FCP = 'FCP',
+	FID = 'FID',
+	INP = 'INP',
+	LCP = 'LCP',
+	TTFB = 'TTFB'
+}
+
+export enum WebVitalRating {
+	GOOD = 'good',
+	NEEDS_IMPROVEMENT = 'needs-improvement',
+	POOR = 'poor'
+}
+
+export enum WebVitalLabel {
+	WEB_VITAL = 'web-vital',
+	CUSTOM = 'custom'
+}
+
+export enum WebVitalNavigationType {
+	NAVIGATE = 'navigate',
+	RELOAD = 'reload',
+	BACK_FORWARD = 'back-forward',
+	PRERENDER = 'prerender'
+}
+
+// =============================================================================
+// STRIPE WEBHOOK DOMAIN
+// =============================================================================
+
+export enum StripeWebhookEventType {
+	CUSTOMER_SUBSCRIPTION_CREATED = 'customer.subscription.created',
+	CUSTOMER_SUBSCRIPTION_UPDATED = 'customer.subscription.updated',
+	CUSTOMER_SUBSCRIPTION_DELETED = 'customer.subscription.deleted',
+	CUSTOMER_CREATED = 'customer.created',
+	CUSTOMER_UPDATED = 'customer.updated',
+	INVOICE_PAYMENT_SUCCEEDED = 'invoice.payment_succeeded',
+	INVOICE_PAYMENT_FAILED = 'invoice.payment_failed',
+	CHECKOUT_SESSION_COMPLETED = 'checkout.session.completed'
 }
 
 // =============================================================================
@@ -30,18 +77,18 @@ export interface ContactFormResponse {
 // =============================================================================
 
 export interface StorageUploadResult {
-  url: string
-  path: string
-  filename: string
-  size: number
-  mimeType: string
-  bucket: string
+	url: string
+	path: string
+	filename: string
+	size: number
+	mimeType: string
+	bucket: string
 }
 
 export interface FileUploadOptions {
-  contentType?: string
-  cacheControl?: string
-  upsert?: boolean
+	contentType?: string
+	cacheControl?: string
+	upsert?: boolean
 }
 
 export type StorageEntityType = 'property' | 'tenant' | 'maintenance' | 'user'
@@ -52,58 +99,61 @@ export type StorageFileType = 'document' | 'image' | 'avatar'
 // =============================================================================
 
 export interface RevenueAnalytics {
-  period: string
-  total_revenue: number
-  subscription_revenue: number
-  one_time_revenue: number
-  customer_count: number
-  new_customers: number
-  churned_customers: number
-  mrr: number
-  arr: number
+	period: string
+	total_revenue: number
+	subscription_revenue: number
+	one_time_revenue: number
+	customer_count: number
+	new_customers: number
+	churned_customers: number
+	mrr: number
+	arr: number
 }
 
 export interface ChurnAnalytics {
-  month: string
-  churned_subscriptions: number
-  avg_lifetime_days: number
-  churn_rate_percent: number
-  total_active_start_month: number
+	month: string
+	churned_subscriptions: number
+	avg_lifetime_days: number
+	churn_rate_percent: number
+	total_active_start_month: number
 }
 
 export interface CustomerLifetimeValue {
-  customer_id: string
-  email: string
-  total_revenue: number
-  subscription_count: number
-  first_subscription_date: string
-  last_cancellation_date?: string
-  avg_revenue_per_subscription: number
-  status: 'Active' | 'Churned'
-  lifetime_days?: number
+	customer_id: string
+	email: string
+	total_revenue: number
+	subscription_count: number
+	first_subscription_date: string
+	last_cancellation_date?: string
+	avg_revenue_per_subscription: number
+	status: 'Active' | 'Churned'
+	lifetime_days?: number
 }
 
 // =============================================================================
 // WEBSOCKET DOMAIN
 // =============================================================================
 
-export interface WebSocketMessage<T = Record<string, string | number | boolean | null>> {
-  type: string
-  data: T
-  timestamp?: string
-  userId?: string
+export interface WebSocketMessage<
+	T = Record<string, string | number | boolean | null>
+> {
+	type: string
+	data: T
+	timestamp?: string
+	userId?: string
 }
 
-export interface MaintenanceUpdateMessage extends WebSocketMessage<{
-  id: string
-  type: string
-  status?: string
-  priority?: string
-  unitId?: string
-  assignedTo?: string
-  metadata?: Record<string, string | number | boolean | null>
-}> {
-  type: 'maintenance_update'
+export interface MaintenanceUpdateMessage
+	extends WebSocketMessage<{
+		id: string
+		type: string
+		status?: string
+		priority?: string
+		unitId?: string
+		assignedTo?: string
+		metadata?: Record<string, string | number | boolean | null>
+	}> {
+	type: 'maintenance_update'
 }
 
 export type TypedWebSocketMessage = MaintenanceUpdateMessage | WebSocketMessage
@@ -113,41 +163,41 @@ export type TypedWebSocketMessage = MaintenanceUpdateMessage | WebSocketMessage
 // =============================================================================
 
 export interface UserSession {
-  id: string
-  userId: string
-  user?: Record<string, unknown> | null
-  token: string
-  isAuthenticated: boolean
-  expiresAt: string
-  lastActivity: Date | null
-  sessionExpiry: Date | null
-  createdAt: string
-  metadata?: Record<string, unknown>
+	id: string
+	userId: string
+	user?: Record<string, unknown> | null
+	token: string
+	isAuthenticated: boolean
+	expiresAt: string
+	lastActivity: Date | null
+	sessionExpiry: Date | null
+	createdAt: string
+	metadata?: Record<string, unknown>
 }
 
 export interface SessionConfig {
-  maxAge: number
-  secure: boolean
-  httpOnly: boolean
-  sameSite: 'strict' | 'lax' | 'none'
+	maxAge: number
+	secure: boolean
+	httpOnly: boolean
+	sameSite: 'strict' | 'lax' | 'none'
 }
 
 // =============================================================================
-// USER MANAGEMENT DOMAIN  
+// USER MANAGEMENT DOMAIN
 // =============================================================================
 
 export interface UserManagementConfig {
-  maxLoginAttempts: number
-  lockoutDuration: number
-  passwordMinLength: number
-  requireEmailVerification: boolean
+	maxLoginAttempts: number
+	lockoutDuration: number
+	passwordMinLength: number
+	requireEmailVerification: boolean
 }
 
 export interface UserStats {
-  totalUsers: number
-  activeUsers: number
-  newUsersThisMonth: number
-  verifiedUsers: number
+	totalUsers: number
+	activeUsers: number
+	newUsersThisMonth: number
+	verifiedUsers: number
 }
 
 // =============================================================================
@@ -157,65 +207,65 @@ export interface UserStats {
 export type ThemeMode = 'light' | 'dark' | 'system'
 
 export type SemanticColorToken =
-  | 'background'
-  | 'foreground'
-  | 'primary'
-  | 'primary-foreground'
-  | 'secondary'
-  | 'secondary-foreground'
-  | 'accent'
-  | 'accent-foreground'
-  | 'muted'
-  | 'muted-foreground'
-  | 'success'
-  | 'success-foreground'
-  | 'warning'
-  | 'warning-foreground'
-  | 'error'
-  | 'error-foreground'
-  | 'info'
-  | 'info-foreground'
-  | 'border'
-  | 'ring'
-  | 'input'
-  | 'card'
-  | 'card-foreground'
+	| 'background'
+	| 'foreground'
+	| 'primary'
+	| 'primary-foreground'
+	| 'secondary'
+	| 'secondary-foreground'
+	| 'accent'
+	| 'accent-foreground'
+	| 'muted'
+	| 'muted-foreground'
+	| 'success'
+	| 'success-foreground'
+	| 'warning'
+	| 'warning-foreground'
+	| 'error'
+	| 'error-foreground'
+	| 'info'
+	| 'info-foreground'
+	| 'border'
+	| 'ring'
+	| 'input'
+	| 'card'
+	| 'card-foreground'
 
 export interface ColorRationale {
-  primary: string
-  secondary: string
-  background: string
-  reasoning: string
+	primary: string
+	secondary: string
+	background: string
+	reasoning: string
 }
 
 // =============================================================================
 // WEBHOOK DOMAIN
 // =============================================================================
 
-export type StripeWebhookEventType = 
-  | 'customer.subscription.created'
-  | 'customer.subscription.updated'
-  | 'customer.subscription.deleted'
-  | 'invoice.payment_succeeded'
-  | 'invoice.payment_failed'
+export type StripeWebhookEventTypes =
+	| 'customer.subscription.created'
+	| 'customer.subscription.updated'
+	| 'customer.subscription.deleted'
+	| 'invoice.payment_succeeded'
+	| 'invoice.payment_failed'
 
 export interface StripeWebhookEvent {
-  id: string
-  type: StripeWebhookEventType
-  data: {
-    object: Record<string, unknown>
-  }
-  created: number
+	id: string
+	type: StripeWebhookEventType
+	data: {
+		object: Record<string, unknown>
+	}
+	created: number
 }
 
 export interface WebhookNotification {
-  id: string
-  event: string
-  status: 'pending' | 'processed' | 'failed'
-  payload: Record<string, unknown>
-  createdAt: string
-  processedAt?: string
-  error?: string
+	id: string
+	event: string
+	status: 'pending' | 'processed' | 'failed'
+	payload: Record<string, unknown>
+	createdAt: string
+	processedAt?: string
+	error?: string
 }
 
 // =============================================================================
@@ -223,22 +273,22 @@ export interface WebhookNotification {
 // =============================================================================
 
 export interface CSPViolationReport {
-  'document-uri': string
-  referrer: string
-  'violated-directive': string
-  'effective-directive': string
-  'original-policy': string
-  disposition: string
-  'blocked-uri': string
-  'line-number': number
-  'column-number': number
-  'source-file': string
-  'status-code': number
-  'script-sample': string
+	'document-uri': string
+	referrer: string
+	'violated-directive': string
+	'effective-directive': string
+	'original-policy': string
+	disposition: string
+	'blocked-uri': string
+	'line-number': number
+	'column-number': number
+	'source-file': string
+	'status-code': number
+	'script-sample': string
 }
 
 export interface CSPReportBody {
-  'csp-report': CSPViolationReport
+	'csp-report': CSPViolationReport
 }
 
 // =============================================================================
@@ -247,8 +297,10 @@ export interface CSPReportBody {
 // Note: AI-dependent types temporarily removed due to missing 'ai' package dependency
 // These types can be re-added when AI package is properly configured in the project
 
-export type WebhookProcessorFunction = (event: StripeWebhookEvent) => Promise<void>
+export type WebhookProcessorFunction = (
+	event: StripeWebhookEvent
+) => Promise<void>
 
 export interface StripeWebhookProcessor {
-  [key: string]: WebhookProcessorFunction
+	[key: string]: WebhookProcessorFunction
 }
