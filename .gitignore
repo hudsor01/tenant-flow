@@ -1,4 +1,4 @@
-#build output
+# Build output
 dist
 !.github/actions/*/dist
 .next
