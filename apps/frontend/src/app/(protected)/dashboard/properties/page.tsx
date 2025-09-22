@@ -1,4 +1,4 @@
-import type { Database } from '@repo/shared'
+import type { PropertyWithUnits } from '@repo/shared'
 import { Building, DollarSign, Plus, TrendingUp } from 'lucide-react'
 
 // Server API
@@ -28,9 +28,6 @@ import { ChartAreaInteractive } from '@/components/charts/chart-area-interactive
 import { MetricsCard } from '@/components/charts/metrics-card'
 import { PropertyEditViewButtons } from '@/components/properties/edit-button'
 
-type PropertyRow = Database['public']['Tables']['Property']['Row']
-// UnitRow removed - no longer doing client-side calculations on units
-
 export default async function PropertiesPage({
 	searchParams,
 }: {
@@ -40,7 +37,7 @@ export default async function PropertiesPage({
 
 	// Fetch data server-side WITH PRE-CALCULATED STATS
 	// NO CLIENT-SIDE CALCULATIONS - all metrics from backend
-	const { properties, units, stats } = await getPropertiesPageData(status)
+	const { properties, stats } = await getPropertiesPageData(status)
 
 	return (
 		<div className="dashboard-root dashboard-main flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -150,14 +147,9 @@ export default async function PropertiesPage({
 							</TableHeader>
 							<TableBody>
 								{properties?.length ? (
-									properties.map((property: PropertyRow) => {
-										const propertyUnits = units.filter(
-											(unit: UnitRow) => unit.propertyId === property.id
-										)
-										const occupiedUnits = propertyUnits.filter(
-											(unit: UnitRow) => unit.status === 'OCCUPIED'
-										)
-
+									properties.map((property: PropertyWithUnits) => {
+										// All metrics come pre-calculated from backend
+										// NO CLIENT-SIDE CALCULATIONS
 										return (
 											<TableRow
 												key={property.id}
@@ -189,12 +181,10 @@ export default async function PropertiesPage({
 												<TableCell>
 													<div className="flex items-center gap-2">
 														<span className="font-medium">
-															{occupiedUnits.length}/{propertyUnits.length}
+															{property.occupiedUnits}/{property.totalUnits}
 														</span>
 														<Badge variant="secondary" className="text-xs">
-															{propertyUnits.length > 0
-																? `${Math.round((occupiedUnits.length / propertyUnits.length) * 100)}%`
-																: '0%'}
+															{property.occupancyRate.toFixed(0)}%
 														</Badge>
 													</div>
 												</TableCell>
@@ -245,4 +235,3 @@ export default async function PropertiesPage({
 		</div>
 	)
 }
-

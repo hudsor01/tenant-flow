@@ -26,7 +26,7 @@ class SecurityAuditService {
 	async auditEndpoints(
 		app: NestExpressApplication
 	): Promise<SecurityAuditReport> {
-		console.log('🔍 Starting comprehensive API security audit...\n')
+		console.log('[AUDIT] Starting comprehensive API security audit...\n')
 
 		const endpoints = await this.discoverEndpoints(app)
 		const auditResults = await this.auditEndpointSecurity(endpoints, app)
@@ -34,7 +34,7 @@ class SecurityAuditService {
 		const report = this.generateSecurityReport(auditResults)
 		await this.saveAuditReport(report)
 
-		console.log('📊 Security Audit Summary:')
+		console.log('[SUMMARY] Security Audit Summary:')
 		console.log(`  Total Endpoints: ${report.totalEndpoints}`)
 		console.log(`  Public Endpoints: ${report.publicEndpoints}`)
 		console.log(`  Protected Endpoints: ${report.protectedEndpoints}`)
@@ -45,13 +45,13 @@ class SecurityAuditService {
 		)
 
 		if (report.criticalRiskEndpoints > 0) {
-			console.log('\n🚨 CRITICAL SECURITY ISSUES FOUND!')
+			console.log('\n[CRITICAL] CRITICAL SECURITY ISSUES FOUND!')
 			console.log('   Immediate action required before production deployment.')
 		} else if (report.highRiskEndpoints > 0) {
-			console.log('\n⚠️  HIGH RISK ENDPOINTS DETECTED')
+			console.log('\n[WARNING]  HIGH RISK ENDPOINTS DETECTED')
 			console.log('   Review and secure before production.')
 		} else {
-			console.log('\n✅ No critical security issues detected')
+			console.log('\n[OK] No critical security issues detected')
 		}
 
 		return report
@@ -208,7 +208,7 @@ class SecurityAuditService {
 		const audits: EndpointAudit[] = []
 
 		for (const endpoint of endpoints) {
-			console.log(`🔐 Auditing ${endpoint.httpMethod} ${endpoint.path}`)
+			console.log(`[SECURITY] Auditing ${endpoint.httpMethod} ${endpoint.path}`)
 
 			const audit = await this.auditSingleEndpoint(endpoint, app)
 			audits.push(audit)
@@ -449,36 +449,36 @@ class SecurityAuditService {
 
 		if (criticalRiskEndpoints > 0) {
 			recommendations.push(
-				'🚨 CRITICAL: Review and secure all critical risk endpoints immediately'
+				'[CRITICAL] CRITICAL: Review and secure all critical risk endpoints immediately'
 			)
 		}
 
 		if (publicEndpointsRatio > 30) {
 			recommendations.push(
-				'⚠️  Consider reducing the number of public endpoints'
+				'[WARNING]  Consider reducing the number of public endpoints'
 			)
 		}
 
 		if (authenticationCoverage < 70) {
 			recommendations.push(
-				'⚠️  Increase authentication coverage across API endpoints'
+				'[WARNING]  Increase authentication coverage across API endpoints'
 			)
 		}
 
 		if (highRiskEndpoints + criticalRiskEndpoints > totalEndpoints * 0.2) {
 			recommendations.push(
-				'📋 Implement a security review process for new endpoints'
+				'[REPORT] Implement a security review process for new endpoints'
 			)
 		}
 
 		recommendations.push(
-			'✅ Implement comprehensive input validation on all endpoints'
+			'[OK] Implement comprehensive input validation on all endpoints'
 		)
 		recommendations.push(
-			'✅ Ensure all endpoints have appropriate rate limiting'
+			'[OK] Ensure all endpoints have appropriate rate limiting'
 		)
 		recommendations.push(
-			'✅ Add comprehensive logging and monitoring for security events'
+			'[OK] Add comprehensive logging and monitoring for security events'
 		)
 
 		return {
@@ -511,14 +511,14 @@ class SecurityAuditService {
 
 		fs.writeFileSync(filepath, JSON.stringify(report, null, 2))
 
-		console.log(`\n📝 Security audit report saved: ${filepath}`)
+		console.log(`\n[NOTE] Security audit report saved: ${filepath}`)
 
 		// Also create a summary file
 		const summaryPath = path.join(reportDir, 'security-summary.txt')
 		const summary = this.generateTextSummary(report)
 		fs.writeFileSync(summaryPath, summary)
 
-		console.log(`📄 Summary report saved: ${summaryPath}`)
+		console.log(`[SUMMARY] Summary report saved: ${summaryPath}`)
 	}
 
 	private generateTextSummary(report: SecurityAuditReport): string {
@@ -532,7 +532,7 @@ class SecurityAuditService {
 		summary += `Security Score: ${Number(report.summary.averageSecurityScore).toFixed(1)}/100\n\n`
 
 		if (report.criticalRiskEndpoints > 0) {
-			summary += `🚨 CRITICAL RISK ENDPOINTS (${report.criticalRiskEndpoints}):\n`
+			summary += `[CRITICAL] CRITICAL RISK ENDPOINTS (${report.criticalRiskEndpoints}):\n`
 			for (const endpoint of report.endpoints.filter(
 				e => e.securityRisk === 'critical'
 			)) {
@@ -545,7 +545,7 @@ class SecurityAuditService {
 		}
 
 		if (report.highRiskEndpoints > 0) {
-			summary += `⚠️  HIGH RISK ENDPOINTS (${report.highRiskEndpoints}):\n`
+			summary += `[WARNING]  HIGH RISK ENDPOINTS (${report.highRiskEndpoints}):\n`
 			for (const endpoint of report.endpoints.filter(
 				e => e.securityRisk === 'high'
 			)) {
@@ -574,11 +574,11 @@ async function runSecurityAudit(): Promise<void> {
 		await auditService.auditEndpoints(app)
 
 		await app.close()
-		console.log('\n✅ Security audit completed successfully')
+		console.log('\n[OK] Security audit completed successfully')
 		process.exit(0)
 	} catch (error: unknown) {
 		const errorMessage = error instanceof Error ? error.message : String(error)
-		console.error('❌ Security audit failed:', errorMessage)
+		console.error('[ERROR] Security audit failed:', errorMessage)
 		process.exit(1)
 	}
 }

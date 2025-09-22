@@ -178,7 +178,7 @@ export function getTestStripeConfig(): TestEnvironmentConfig["stripe"] {
   // Warn if using placeholder keys
   if (secretKey?.includes("Replace")) {
     console.warn(
-      "⚠️  Using placeholder Stripe test keys. See apps/backend/test/stripe-test-setup.md for setup instructions.",
+      "[WARNING]  Using placeholder Stripe test keys. See apps/backend/test/stripe-test-setup.md for setup instructions.",
     );
   }
 
