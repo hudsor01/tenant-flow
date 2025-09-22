@@ -11,6 +11,8 @@ jobs:
     concurrency:
       group: ci-${{ github.ref }}
       cancel-in-progress: true
+    env:
+      DOPPLER_TOKEN: ${{ secrets.DOPPLER_PERSONAL_TOKEN }}
 
     steps:
       - name: Checkout
@@ -41,7 +43,6 @@ jobs:
           BACKEND_SCHEMAS_DIR: ./supabase/schema-exports
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_PERSONAL_TOKEN }}
         run: |
           echo "Starting parallel build processes..."
           pnpm lint &
