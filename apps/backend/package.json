@@ -9,11 +9,14 @@
 		"pnpm": ">=9"
 	},
 	"scripts": {
-		"build": "doppler run -- tsc -p tsconfig.build.json",
+		"build": "tsc -p tsconfig.build.json",
+		"build:local": "doppler run -- tsc -p tsconfig.build.json",
 		"dev": "doppler run -- nest start --watch",
 		"start": "node dist/main.js",
 		"start:prod": "node dist/main.js",
-		"lint": "doppler run -- eslint . --fix",
+		"lint": "eslint . --fix",
+		"lint:local": "doppler run -- eslint . --fix",
+		"lint:fix": "eslint . --fix",
 		"typecheck": "tsc -p tsconfig.build.json --noEmit --incremental --skipLibCheck",
 		"test": "npx jest",
 		"test:unit": "npx jest --testPathIgnorePatterns=\"integration|e2e\" --passWithNoTests",
