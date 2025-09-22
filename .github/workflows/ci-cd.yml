@@ -11,8 +11,6 @@ jobs:
     concurrency:
       group: ci-${{ github.ref }}
       cancel-in-progress: true
-    env:
-      DOPPLER_TOKEN: ${{ secrets.DOPPLER_PERSONAL_TOKEN }}
 
     steps:
       - name: Checkout
@@ -35,23 +33,25 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Doppler CLI
-        run: (curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/install.sh || wget -t 3 -qO- https://cli.doppler.com/install.sh) | sudo sh
-
       - name: Build & Test (parallel)
         env:
           BACKEND_SCHEMAS_DIR: ./supabase/schema-exports
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
           echo "Starting parallel build processes..."
-          export DOPPLER_TOKEN="${{ secrets.DOPPLER_PERSONAL_TOKEN }}"
-          pnpm lint &
-          pnpm typecheck &
-          pnpm build:ci &
+          turbo run lint:fix &
+          turbo run typecheck &
+          turbo run build &
           wait
           echo "Running unit tests..."
-          pnpm test:unit
+          turbo run test:unit
 
       - name: Deploy Backend
         if: github.ref == 'refs/heads/main'
