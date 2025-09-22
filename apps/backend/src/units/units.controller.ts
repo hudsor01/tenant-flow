@@ -13,29 +13,29 @@
  */
 
 import {
+	BadRequestException,
+	Body,
 	Controller,
+	DefaultValuePipe,
+	Delete,
 	Get,
+	NotFoundException,
+	Optional,
+	Param,
+	ParseIntPipe,
+	ParseUUIDPipe,
 	Post,
 	Put,
-	Delete,
-	Body,
-	Param,
-	Query,
-	ParseUUIDPipe,
-	ParseIntPipe,
-	DefaultValuePipe,
-	BadRequestException,
-	NotFoundException,
-	Optional
+	Query
 } from '@nestjs/common'
-import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { Public } from '../shared/decorators/public.decorator'
-import type { ValidatedUser } from '@repo/shared'
-import { UnitsService } from './units.service'
 import type {
 	CreateUnitRequest,
-	UpdateUnitRequest
-} from '../schemas/units.schema'
+	UpdateUnitRequest,
+	ValidatedUser
+} from '@repo/shared'
+import { CurrentUser } from '../shared/decorators/current-user.decorator'
+import { Public } from '../shared/decorators/public.decorator'
+import { UnitsService } from './units.service'
 
 @Controller('units')
 export class UnitsController {
@@ -134,7 +134,10 @@ export class UnitsController {
 				data: []
 			}
 		}
-		return this.unitsService.findByProperty(user?.id || 'test-user-id', propertyId)
+		return this.unitsService.findByProperty(
+			user?.id || 'test-user-id',
+			propertyId
+		)
 	}
 
 	/**
@@ -163,7 +166,7 @@ export class UnitsController {
 
 	/**
 	 * Create new unit
-	 * JSON Schema validation via Fastify
+	 * JSON Schema validation via Express
 	 */
 	@Post()
 	@Public()
@@ -178,7 +181,10 @@ export class UnitsController {
 				success: false
 			}
 		}
-		return this.unitsService.create(user?.id || 'test-user-id', createUnitRequest)
+		return this.unitsService.create(
+			user?.id || 'test-user-id',
+			createUnitRequest
+		)
 	}
 
 	/**

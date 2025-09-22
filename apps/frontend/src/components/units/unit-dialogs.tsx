@@ -36,6 +36,22 @@ import {
 	unitStatusSchema
 } from '@repo/shared'
 import { useForm } from '@tanstack/react-form'
+import type { LucideIcon } from 'lucide-react'
+import {
+	AlertTriangle,
+	BarChart3,
+	BedDouble,
+	CalendarDays,
+	ClipboardList,
+	Edit3,
+	Home,
+	KeySquare,
+	Ruler,
+	Search,
+	ShowerHead,
+	Wallet,
+	Wrench
+} from 'lucide-react'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -85,7 +101,7 @@ const statusConfig: Record<
 		variant: 'default' | 'secondary' | 'destructive' | 'outline'
 		bgColor: string
 		textColor: string
-		icon: string
+		Icon: LucideIcon
 		description: string
 	}
 > = {
@@ -93,28 +109,28 @@ const statusConfig: Record<
 		variant: 'default',
 		bgColor: 'bg-primary/10 border-primary/20',
 		textColor: 'text-primary',
-		icon: '🏠',
+		Icon: Home,
 		description: 'Currently occupied by tenant'
 	},
 	VACANT: {
 		variant: 'secondary',
 		bgColor: 'bg-accent/10 border-accent/20',
 		textColor: 'text-accent',
-		icon: '🔑',
+		Icon: KeySquare,
 		description: 'Available for rent'
 	},
 	MAINTENANCE: {
 		variant: 'destructive',
 		bgColor: 'bg-destructive/10 border-destructive/20',
 		textColor: 'text-destructive',
-		icon: '🔧',
+		Icon: Wrench,
 		description: 'Under maintenance or repair'
 	},
 	RESERVED: {
 		variant: 'outline',
 		bgColor: 'bg-muted border-muted-foreground/20',
 		textColor: 'text-muted-foreground',
-		icon: '📋',
+		Icon: ClipboardList,
 		description: 'Reserved for specific tenant'
 	}
 }
@@ -156,6 +172,9 @@ export function UnitViewDialog({
 		})
 	}
 
+	const statusDetails = statusConfig[unit.status]
+	const StatusIcon = statusDetails.Icon
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent
@@ -172,7 +191,7 @@ export function UnitViewDialog({
 							'flex items-center justify-center mx-auto'
 						)}
 					>
-						<span className="text-2xl">🏠</span>
+						<Home className="h-6 w-6 text-accent" aria-hidden />
 					</div>
 					<DialogTitle
 						className="text-center text-foreground font-semibold"
@@ -213,7 +232,7 @@ export function UnitViewDialog({
 									'border border-muted'
 								)}
 							>
-								<span className="text-lg">🏠</span>
+								<Home className="h-5 w-5 text-muted-foreground" aria-hidden />
 								<p
 									className="text-lg font-bold text-foreground"
 									style={{
@@ -237,18 +256,16 @@ export function UnitViewDialog({
 							</Label>
 							<div className="flex items-center">
 								<Badge
-									variant={statusConfig[unit.status].variant}
+									variant={statusDetails.variant}
 									className={cn(
-										'capitalize font-medium border rounded-full px-3 py-1.5',
-										statusConfig[unit.status].bgColor,
-										statusConfig[unit.status].textColor,
+										'flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-medium capitalize',
+										statusDetails.bgColor,
+										statusDetails.textColor,
 										`transition-fast`,
 										'hover:shadow-sm'
 									)}
 								>
-									<span className="mr-1.5">
-										{statusConfig[unit.status].icon}
-									</span>
+									<StatusIcon className="h-4 w-4" aria-hidden />
 									{unit.status.toLowerCase()}
 								</Badge>
 							</div>
@@ -259,7 +276,7 @@ export function UnitViewDialog({
 									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
 								}}
 							>
-								{statusConfig[unit.status].description}
+								{statusDetails.description}
 							</p>
 						</div>
 					</div>
@@ -280,7 +297,8 @@ export function UnitViewDialog({
 									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
 								}}
 							>
-								🛏️ Bedrooms
+								<BedDouble className="h-4 w-4" aria-hidden />
+								<span>Bedrooms</span>
 							</Label>
 							<p
 								className="text-2xl font-bold text-accent"
@@ -305,7 +323,8 @@ export function UnitViewDialog({
 									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
 								}}
 							>
-								🚿 Bathrooms
+								<ShowerHead className="h-4 w-4" aria-hidden />
+								<span>Bathrooms</span>
 							</Label>
 							<p
 								className="text-2xl font-bold text-primary"
@@ -333,7 +352,8 @@ export function UnitViewDialog({
 									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
 								}}
 							>
-								📐 Square Feet
+								<Ruler className="h-4 w-4" aria-hidden />
+								<span>Square Feet</span>
 							</Label>
 							<p
 								className="text-lg font-bold text-foreground"
@@ -371,7 +391,8 @@ export function UnitViewDialog({
 									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
 								}}
 							>
-								💰 Monthly Rent
+								<Wallet className="h-4 w-4" aria-hidden />
+								<span>Monthly Rent</span>
 							</Label>
 							<p
 								className="text-2xl font-bold text-primary relative z-10"
@@ -405,7 +426,8 @@ export function UnitViewDialog({
 								lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
 							}}
 						>
-							🔍 Last Inspection
+							<Search className="h-4 w-4" aria-hidden />
+							<span>Last Inspection</span>
 						</Label>
 						<p
 							className={cn(
@@ -453,7 +475,8 @@ export function UnitViewDialog({
 									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
 								}}
 							>
-								📅 Created
+								<CalendarDays className="h-4 w-4" aria-hidden />
+								<span>Created</span>
 							</Label>
 							<p
 								className="text-sm font-semibold text-foreground"
@@ -473,7 +496,8 @@ export function UnitViewDialog({
 									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
 								}}
 							>
-								✏️ Last Updated
+								<Edit3 className="h-4 w-4" aria-hidden />
+								<span>Last Updated</span>
 							</Label>
 							<p
 								className="text-sm font-semibold text-foreground"
@@ -586,7 +610,7 @@ export function UnitEditDialog({
 							'flex items-center justify-center mx-auto'
 						)}
 					>
-						<span className="text-2xl">✏️</span>
+						<Edit3 className="h-6 w-6 text-accent" aria-hidden />
 					</div>
 					<DialogTitle
 						className="text-center text-foreground font-semibold"
@@ -629,7 +653,12 @@ export function UnitEditDialog({
 											lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
 										}}
 									>
-										🏠 Unit Number <span className="text-destructive">*</span>
+										<Home
+											className="h-4 w-4 text-muted-foreground"
+											aria-hidden
+										/>
+										<span>Unit Number</span>
+										<span className="text-destructive">*</span>
 									</Label>
 									<Input
 										id="unitNumber"
@@ -654,7 +683,8 @@ export function UnitEditDialog({
 												'bg-destructive/10 border border-destructive/20'
 											)}
 										>
-											⚠️ {field.state.meta.errors.join(', ')}
+											<AlertTriangle className="h-4 w-4" aria-hidden />
+											{field.state.meta.errors.join(', ')}
 										</div>
 									)}
 								</div>
@@ -672,7 +702,12 @@ export function UnitEditDialog({
 											lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
 										}}
 									>
-										📊 Status <span className="text-destructive">*</span>
+										<BarChart3
+											className="h-4 w-4 text-muted-foreground"
+											aria-hidden
+										/>
+										<span>Status</span>
+										<span className="text-destructive">*</span>
 									</Label>
 									<Select
 										value={field.state.value}
@@ -691,28 +726,31 @@ export function UnitEditDialog({
 											<SelectValue placeholder="Choose unit status" />
 										</SelectTrigger>
 										<SelectContent className="rounded-8px">
-											{statusOptions.map(option => (
-												<SelectItem
-													key={option.value}
-													value={option.value}
-													className="rounded-6px"
-												>
-													<div className="flex items-center gap-3">
-														<div
-															className={cn(
-																'w-3 h-3 rounded-full flex items-center justify-center',
-																option.config.bgColor
-															)}
-														>
-															<div className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
+											{statusOptions.map(option => {
+												const OptionIcon = option.config.Icon
+												return (
+													<SelectItem
+														key={option.value}
+														value={option.value}
+														className="rounded-6px"
+													>
+														<div className="flex items-center gap-3">
+															<div
+																className={cn(
+																	'w-3 h-3 rounded-full flex items-center justify-center',
+																	option.config.bgColor
+																)}
+															>
+																<div className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
+															</div>
+															<OptionIcon className="h-4 w-4" aria-hidden />
+															<span className="font-medium">
+																{option.label}
+															</span>
 														</div>
-														<span className="font-medium">
-															{option.config.icon}
-														</span>
-														<span>{option.label}</span>
-													</div>
-												</SelectItem>
-											))}
+													</SelectItem>
+												)
+											})}
 										</SelectContent>
 									</Select>
 									{field.state.meta.errors && (
@@ -722,7 +760,8 @@ export function UnitEditDialog({
 												'bg-destructive/10 border border-destructive/20'
 											)}
 										>
-											⚠️ {field.state.meta.errors.join(', ')}
+											<AlertTriangle className="h-4 w-4" aria-hidden />
+											{field.state.meta.errors.join(', ')}
 										</div>
 									)}
 								</div>
@@ -759,7 +798,8 @@ export function UnitEditDialog({
 									</p>
 									{field.state.meta.errors && (
 										<div className="text-sm text-destructive font-medium flex items-center gap-1">
-											⚠️ {field.state.meta.errors.join(', ')}
+											<AlertTriangle className="h-4 w-4" aria-hidden />
+											{field.state.meta.errors.join(', ')}
 										</div>
 									)}
 								</div>
@@ -794,7 +834,8 @@ export function UnitEditDialog({
 									</p>
 									{field.state.meta.errors && (
 										<div className="text-sm text-destructive font-medium flex items-center gap-1">
-											⚠️ {field.state.meta.errors.join(', ')}
+											<AlertTriangle className="h-4 w-4" aria-hidden />
+											{field.state.meta.errors.join(', ')}
 										</div>
 									)}
 								</div>
@@ -829,7 +870,8 @@ export function UnitEditDialog({
 									</p>
 									{field.state.meta.errors && (
 										<div className="text-sm text-destructive font-medium flex items-center gap-1">
-											⚠️ {field.state.meta.errors.join(', ')}
+											<AlertTriangle className="h-4 w-4" aria-hidden />
+											{field.state.meta.errors.join(', ')}
 										</div>
 									)}
 								</div>
@@ -867,7 +909,8 @@ export function UnitEditDialog({
 									</p>
 									{field.state.meta.errors && (
 										<div className="text-sm text-destructive font-medium flex items-center gap-1">
-											⚠️ {field.state.meta.errors.join(', ')}
+											<AlertTriangle className="h-4 w-4" aria-hidden />
+											{field.state.meta.errors.join(', ')}
 										</div>
 									)}
 								</div>
@@ -900,7 +943,8 @@ export function UnitEditDialog({
 								</p>
 								{field.state.meta.errors && (
 									<div className="text-sm text-destructive font-medium flex items-center gap-1">
-										⚠️ {field.state.meta.errors.join(', ')}
+										<AlertTriangle className="h-4 w-4" aria-hidden />
+										{field.state.meta.errors.join(', ')}
 									</div>
 								)}
 							</div>

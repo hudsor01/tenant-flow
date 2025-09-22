@@ -22,7 +22,7 @@ BEGIN
         -- Pre-calculated display values (replaces frontend formatting)
         'displayAddress', p.address || ', ' || p.city || ', ' || p.state,
         'displayType', INITCAP(p."propertyType"),
-        'statusDisplay', CASE 
+        'statusDisplay', CASE
           WHEN p.status IS NULL THEN 'Unknown'
           ELSE INITCAP(REPLACE(p.status, '_', ' '))
         END,
@@ -43,14 +43,14 @@ BEGIN
         'totalUnits', COALESCE(unit_count.total, 0),
         'occupiedUnits', COALESCE(unit_count.occupied, 0),
         'vacantUnits', COALESCE(unit_count.vacant, 0),
-        'occupancyRate', CASE 
-          WHEN COALESCE(unit_count.total, 0) > 0 THEN 
+        'occupancyRate', CASE
+          WHEN COALESCE(unit_count.total, 0) > 0 THEN
             ROUND((COALESCE(unit_count.occupied, 0)::DECIMAL / unit_count.total * 100), 1)
           ELSE 0
         END,
         'monthlyRevenue', COALESCE(revenue_data.monthly_revenue, 0),
-        'averageRent', CASE 
-          WHEN COALESCE(unit_count.occupied, 0) > 0 THEN 
+        'averageRent', CASE
+          WHEN COALESCE(unit_count.occupied, 0) > 0 THEN
             ROUND(COALESCE(revenue_data.monthly_revenue, 0) / unit_count.occupied, 2)
           ELSE 0
         END
@@ -59,7 +59,7 @@ BEGIN
     FROM "Property" p
     -- Get unit counts and occupancy
     LEFT JOIN LATERAL (
-      SELECT 
+      SELECT
         COUNT(*)::INTEGER as total,
         COUNT(CASE WHEN l.status = 'ACTIVE' THEN 1 END)::INTEGER as occupied,
         COUNT(CASE WHEN u.status = 'VACANT' OR l.id IS NULL THEN 1 END)::INTEGER as vacant
@@ -99,10 +99,10 @@ BEGIN
         -- Pre-calculated display values (replaces frontend string manipulation)
         'displayName', t."firstName" || ' ' || t."lastName",
         'displayEmail', LOWER(t.email),
-        'displayPhone', CASE 
+        'displayPhone', CASE
           WHEN t.phone IS NULL THEN 'N/A'
           WHEN LENGTH(REGEXP_REPLACE(t.phone, '[^0-9]', '', 'g')) = 10 THEN
-            '(' || SUBSTRING(REGEXP_REPLACE(t.phone, '[^0-9]', '', 'g'), 1, 3) || ') ' ||
+            '(' || substringING(REGEXP_REPLACE(t.phone, '[^0-9]', '', 'g'), 1, 3) || ') ' ||
             SUBSTRING(REGEXP_REPLACE(t.phone, '[^0-9]', '', 'g'), 4, 3) || '-' ||
             SUBSTRING(REGEXP_REPLACE(t.phone, '[^0-9]', '', 'g'), 7, 4)
           ELSE t.phone
@@ -131,7 +131,7 @@ BEGIN
     FROM "Tenant" t
     -- Get current lease information
     LEFT JOIN LATERAL (
-      SELECT 
+      SELECT
         json_build_object(
           'id', l.id,
           'unitId', l."unitId",
@@ -147,7 +147,7 @@ BEGIN
       FROM "Lease" l
       JOIN "Unit" u ON u.id = l."unitId"
       JOIN "Property" p ON p.id = u."propertyId"
-      WHERE l."tenantId" = t.id 
+      WHERE l."tenantId" = t.id
       AND l.status = 'ACTIVE'
       AND p."userId" = p_user_id
       ORDER BY l."startDate" DESC
@@ -236,8 +236,8 @@ BEGIN
         -- Pre-calculated analytics (replaces frontend date calculations)
         'ageInDays', EXTRACT(DAY FROM (CURRENT_TIMESTAMP - u."createdAt"))::INTEGER,
         'daysSinceUpdate', EXTRACT(DAY FROM (CURRENT_TIMESTAMP - u."updatedAt"))::INTEGER,
-        'daysSinceInspection', CASE 
-          WHEN u."lastInspectionDate" IS NOT NULL THEN 
+        'daysSinceInspection', CASE
+          WHEN u."lastInspectionDate" IS NOT NULL THEN
             EXTRACT(DAY FROM (CURRENT_TIMESTAMP - u."lastInspectionDate"))::INTEGER
           ELSE NULL
         END,
@@ -258,7 +258,7 @@ BEGIN
     JOIN "Property" p ON p.id = u."propertyId"
     -- Get current lease and tenant information
     LEFT JOIN LATERAL (
-      SELECT 
+      SELECT
         json_build_object(
           'id', l.id,
           'tenantId', l."tenantId",
@@ -269,8 +269,8 @@ BEGIN
         ) as lease_data,
         t."firstName" || ' ' || t."lastName" as tenant_name,
         l."endDate" as lease_end_date,
-        CASE 
-          WHEN l."endDate" IS NOT NULL THEN 
+        CASE
+          WHEN l."endDate" IS NOT NULL THEN
             EXTRACT(DAY FROM (l."endDate" - CURRENT_DATE))::INTEGER
           ELSE NULL
         END as days_until_end

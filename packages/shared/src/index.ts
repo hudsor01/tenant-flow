@@ -103,9 +103,9 @@ export type {
 	BorderRadiusSize,
 	Breakpoint,
 	ComponentSize,
+	TypographyVariant as DesignSystemTypographyVariant,
 	ShadowSize,
 	SpacingSize,
-	TypographyVariant as DesignSystemTypographyVariant,
 	ZIndexLevel
 } from './constants/design-system'
 
@@ -209,13 +209,6 @@ export type {
 	UserRole,
 	ValidatedUser
 } from './types/auth'
-
-export type {
-	BusinessErrorCode,
-	ErrorLogContext,
-	FastifyBusinessErrorResponse,
-	FastifyErrorResponse
-} from './types/fastify-errors'
 
 export type { MaintenanceNotificationData } from './types/notifications'
 export type { PropertyWithUnits } from './types/relations'

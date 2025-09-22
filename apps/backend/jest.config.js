@@ -63,6 +63,6 @@ module.exports = {
 			}
 		]
 	},
-	transformIgnorePatterns: ['node_modules/(?!(@repo|@supabase|@fastify)/)'],
+	transformIgnorePatterns: ['node_modules/(?!(@repo|@supabase)/)'],
 	injectGlobals: true
 }

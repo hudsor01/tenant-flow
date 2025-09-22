@@ -1,5 +1,6 @@
 'use client'
 
+import { createPaymentIntent } from '@/lib/stripe-client'
 import { useSpring } from '@react-spring/core'
 import { animated } from '@react-spring/web'
 import {
@@ -11,7 +12,6 @@ import {
 import { useMutation } from '@tanstack/react-query'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { createPaymentIntent } from '@/lib/stripe-client'
 
 // UI Components
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -34,7 +34,6 @@ import {
 import { GlowingEffect } from '@/components/magicui/glowing-effect'
 import { Loader } from '@/components/magicui/loader'
 import { MagicCard } from '@/components/magicui/magic-card'
-import { ShimmerButton } from '@/components/magicui/shimmer-button'
 
 // Icons
 import {
@@ -127,9 +126,13 @@ export function CheckoutForm({
 				amount: request.amount,
 				currency: 'usd',
 				metadata: {
-					tenant_id: request.metadata?.tenant_id || request.metadata?.planId || '',
+					tenant_id:
+						request.metadata?.tenant_id || request.metadata?.planId || '',
 					property_id: request.metadata?.property_id || '',
-					subscription_type: request.metadata?.subscription_type || request.metadata?.planName || ''
+					subscription_type:
+						request.metadata?.subscription_type ||
+						request.metadata?.planName ||
+						''
 				},
 				customerEmail: request.metadata?.customerEmail
 			})
@@ -523,11 +526,7 @@ export function CheckoutForm({
 					'w-full max-w-lg mx-auto relative overflow-hidden shadow-2xl border-2'
 				)}
 			>
-				<GlowingEffect
-					proximity={150}
-					disabled={isProcessing}
-					glow={!isProcessing}
-				/>
+				<GlowingEffect children={undefined} />
 
 				<CardHeader className={cn('pb-6', animationClasses('slide-down'))}>
 					<div className="text-center space-y-4">
@@ -693,7 +692,7 @@ export function CheckoutForm({
 						)}
 
 						{/* Submit Button */}
-						<ShimmerButton
+						<Button
 							type="submit"
 							disabled={
 								!stripe ||
@@ -702,17 +701,20 @@ export function CheckoutForm({
 								paymentStatus === 'processing'
 							}
 							className="w-full h-12 text-base font-semibold"
-							shimmerDuration={isProcessing ? '1.5s' : '3s'}
-							background={
-								isProcessing
-									? 'hsl(var(--primary) / 0.8)'
-									: 'hsl(var(--foreground))'
-							}
+							style={{
+								background: isProcessing
+									? 'var(--color-primary-brand-85)'
+									: 'var(--color-primary-brand)',
+								color: 'white',
+								border: 'none',
+								borderRadius: 'var(--radius-medium)',
+								transition: 'all var(--duration-quick) var(--ease-smooth)'
+							}}
 						>
 							{isProcessing || paymentStatus === 'processing'
 								? 'Processing Payment...'
 								: `Pay ${formatAmount(amount)}`}
-						</ShimmerButton>
+						</Button>
 					</form>
 
 					{/* Enhanced Security Notice & Trust Signals */}

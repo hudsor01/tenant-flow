@@ -1,8 +1,8 @@
 'use client'
 
+import Footer from '@/components/layout/footer'
+import { Navbar } from '@/components/layout/navbar'
 import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { Navbar } from '@/components/navbar'
-import { FooterMinimal } from '@/components/sections/footer-minimal'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -96,7 +96,7 @@ export default function CheckoutCancelPage() {
 					</Card>
 				</div>
 			</div>
-			<FooterMinimal />
+			<Footer />
 		</main>
 	)
 }

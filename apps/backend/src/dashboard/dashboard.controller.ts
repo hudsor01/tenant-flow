@@ -1,7 +1,16 @@
-import { Controller, Get, Optional, Query, NotFoundException } from '@nestjs/common'
+import {
+	Controller,
+	Get,
+	Logger,
+	NotFoundException,
+	Optional,
+	Query
+} from '@nestjs/common'
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
-import type { AuthServiceValidatedUser, ControllerApiResponse } from '@repo/shared'
-import { Logger } from '@nestjs/common'
+import type {
+	AuthServiceValidatedUser,
+	ControllerApiResponse
+} from '@repo/shared'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { Public } from '../shared/decorators/public.decorator'
 import { DashboardService } from './dashboard.service'
@@ -17,24 +26,36 @@ export class DashboardController {
 	}
 
 	@Get('stats')
-	@ApiOperation({ summary: 'Get dashboard statistics (test user data)' })
+	@ApiOperation({ summary: 'Get dashboard statistics for authenticated user' })
 	@ApiResponse({
 		status: 200,
 		description: 'Dashboard statistics retrieved successfully'
 	})
-	async getStats(): Promise<ControllerApiResponse> {
-		this.logger?.log({ action: 'getStats' }, 'Getting dashboard stats')
+	async getStats(
+		@CurrentUser() user?: AuthServiceValidatedUser
+	): Promise<ControllerApiResponse> {
+		this.logger?.log(
+			{
+				action: 'getStats',
+				userId: user?.id
+			},
+			'Getting dashboard stats for authenticated user'
+		)
 
 		if (!this.dashboardService) {
 			throw new NotFoundException('Dashboard service not available')
 		}
 
-		const data = await this.dashboardService.getStats('test-user-id')
+		if (!user?.id) {
+			throw new NotFoundException('User not authenticated')
+		}
+
+		const data = await this.dashboardService.getStats(user.id)
 		return {
 			success: true,
 			data,
 			message: 'Dashboard statistics retrieved successfully',
-        timestamp: new Date()
+			timestamp: new Date()
 		}
 	}
 
@@ -69,7 +90,7 @@ export class DashboardController {
 			success: true,
 			data,
 			message: 'Dashboard activity retrieved successfully',
-        timestamp: new Date()
+			timestamp: new Date()
 		}
 	}
 
@@ -121,12 +142,15 @@ export class DashboardController {
 
 		const parsedStartDate = startDate ? new Date(startDate) : undefined
 		const parsedEndDate = endDate ? new Date(endDate) : undefined
-		if ((parsedStartDate && isNaN(parsedStartDate.getTime())) || (parsedEndDate && isNaN(parsedEndDate.getTime()))) {
+		if (
+			(parsedStartDate && isNaN(parsedStartDate.getTime())) ||
+			(parsedEndDate && isNaN(parsedEndDate.getTime()))
+		) {
 			return {
 				success: false,
 				data: null,
 				message: 'Invalid date format. Use ISO date strings.',
-        timestamp: new Date()
+				timestamp: new Date()
 			}
 		}
 
@@ -138,8 +162,9 @@ export class DashboardController {
 		return {
 			success: true,
 			data,
-			message: 'Billing insights retrieved successfully from Stripe Sync Engine',
-        timestamp: new Date()
+			message:
+				'Billing insights retrieved successfully from Stripe Sync Engine',
+			timestamp: new Date()
 		}
 	}
 
@@ -187,7 +212,7 @@ export class DashboardController {
 			message: isAvailable
 				? 'Billing insights are available'
 				: 'Billing insights not available - Stripe Sync Engine not configured',
-        timestamp: new Date()
+			timestamp: new Date()
 		}
 	}
 
@@ -226,7 +251,7 @@ export class DashboardController {
 			success: true,
 			data,
 			message: 'Property performance retrieved successfully',
-            timestamp: new Date()
+			timestamp: new Date()
 		}
 	}
 
@@ -260,7 +285,7 @@ export class DashboardController {
 			success: true,
 			data,
 			message: 'System uptime retrieved successfully',
-            timestamp: new Date()
+			timestamp: new Date()
 		}
 	}
 }

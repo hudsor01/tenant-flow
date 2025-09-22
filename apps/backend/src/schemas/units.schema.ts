@@ -1,13 +1,13 @@
 /**
  * Units JSON Schema Definitions
  *
- * Ultra-native Fastify JSON Schema validation
+ * Express JSON Schema validation
  * Single source of truth - no duplication
  * Automatic TypeScript type inference
  * 5-10x faster than class-validator
  */
 
-import type { JSONSchema } from '../shared/types/fastify-type-provider'
+import type { JSONSchema } from '../shared/types/express-type-provider'
 
 // Shared validation patterns
 const uuidSchema: JSONSchema = {
@@ -23,16 +23,6 @@ const unitStatusSchema: JSONSchema = {
 /**
  * Create unit request schema
  */
-export interface CreateUnitRequest {
-	propertyId: string
-	unitNumber: string
-	bedrooms: number
-	bathrooms: number
-	squareFeet?: number
-	rent: number
-	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
-}
-
 export const createUnitSchema: JSONSchema = {
 	type: 'object',
 	required: ['propertyId', 'unitNumber', 'bedrooms', 'bathrooms', 'rent'],
@@ -71,15 +61,6 @@ export const createUnitSchema: JSONSchema = {
 /**
  * Update unit request schema
  */
-export interface UpdateUnitRequest {
-	unitNumber?: string
-	bedrooms?: number
-	bathrooms?: number
-	squareFeet?: number
-	rent?: number
-	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
-}
-
 export const updateUnitSchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
@@ -116,20 +97,6 @@ export const updateUnitSchema: JSONSchema = {
 /**
  * Unit query schema
  */
-export interface UnitQueryRequest {
-	propertyId?: string
-	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
-	search?: string
-	bedroomsMin?: number
-	bedroomsMax?: number
-	rentMin?: number
-	rentMax?: number
-	limit?: number
-	offset?: number
-	sortBy?: 'createdAt' | 'unitNumber' | 'bedrooms' | 'rent' | 'status'
-	sortOrder?: 'asc' | 'desc'
-}
-
 export const unitQuerySchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
@@ -183,7 +150,7 @@ export const unitQuerySchema: JSONSchema = {
 	}
 }
 
-// Route schemas for Fastify validation
+// Route schemas for Express validation
 export const unitRouteSchemas = {
 	create: {
 		body: createUnitSchema,

@@ -5,19 +5,11 @@
  * Replaces class-validator DTOs with type-safe schema definitions.
  */
 
-import type { JSONSchema } from '../shared/types/fastify-type-provider'
+import type { JSONSchema } from '../shared/types/express-type-provider'
 
 /**
  * Contact form submission request
  */
-export interface ContactFormRequest {
-	name: string
-	email: string
-	subject: string
-	message: string
-	type: 'sales' | 'support' | 'general'
-}
-
 export const contactFormSchema: JSONSchema = {
 	type: 'object',
 	required: ['name', 'email', 'subject', 'message', 'type'],
@@ -27,7 +19,7 @@ export const contactFormSchema: JSONSchema = {
 			type: 'string',
 			minLength: 1,
 			maxLength: 100,
-			pattern: '^[a-zA-Z\\s\\-\']+$',
+			pattern: "^[a-zA-Z\\s\\-']+$",
 			description: 'Full name of the person submitting the form'
 		},
 		email: {

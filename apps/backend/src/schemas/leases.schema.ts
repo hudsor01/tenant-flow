@@ -1,12 +1,12 @@
 /**
  * Leases JSON Schema Definitions
  *
- * Ultra-native Fastify JSON Schema validation
+ * Express JSON Schema validation
  * Single source of truth - no duplication
  */
 
-import type { JSONSchema } from '../shared/types/fastify-type-provider'
-import { uuidSchema, dateSchema, moneySchema } from './shared.schema'
+import type { JSONSchema } from '../shared/types/express-type-provider'
+import { dateSchema, moneySchema, uuidSchema } from './shared.schema'
 
 const leaseStatusSchema: JSONSchema = {
 	type: 'string',
@@ -23,17 +23,6 @@ const paymentFrequencySchema: JSONSchema = {
 /**
  * Create lease request schema
  */
-export interface CreateLeaseRequest {
-	tenantId: string
-	unitId: string
-	startDate: string
-	endDate: string
-	monthlyRent: number
-	securityDeposit: number
-	paymentFrequency?: 'MONTHLY' | 'WEEKLY' | 'BIWEEKLY' | 'YEARLY'
-	status?: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
-}
-
 export const createLeaseSchema: JSONSchema = {
 	type: 'object',
 	required: [
@@ -60,15 +49,6 @@ export const createLeaseSchema: JSONSchema = {
 /**
  * Update lease request schema
  */
-export interface UpdateLeaseRequest {
-	startDate?: string
-	endDate?: string
-	monthlyRent?: number
-	securityDeposit?: number
-	paymentFrequency?: 'MONTHLY' | 'WEEKLY' | 'BIWEEKLY' | 'YEARLY'
-	status?: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
-}
-
 export const updateLeaseSchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
@@ -85,17 +65,6 @@ export const updateLeaseSchema: JSONSchema = {
 /**
  * Lease query schema
  */
-export interface LeaseQueryRequest {
-	tenantId?: string
-	unitId?: string
-	propertyId?: string
-	status?: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
-	limit?: number
-	offset?: number
-	sortBy?: 'startDate' | 'endDate' | 'monthlyRent' | 'createdAt'
-	sortOrder?: 'asc' | 'desc'
-}
-
 export const leaseQuerySchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,

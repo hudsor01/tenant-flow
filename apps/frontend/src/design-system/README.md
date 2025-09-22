@@ -43,7 +43,7 @@ const Button = styled.button`
 
 #### Typography
 - 11 text styles from LargeTitle (26px) to Caption (10px)
-- SF Pro font family
+- Roboto Flex font family
 - Regular and Emphasized variants
 
 #### Colors
@@ -78,7 +78,7 @@ const Button = styled.button`
 
 ```js
 Primary: #0D6FFF
-Font: SF Pro
+Font: Roboto Flex
 Body: 13px
 Title: 22px
 Success: #34C759
