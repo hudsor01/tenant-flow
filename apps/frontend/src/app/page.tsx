@@ -1,26 +1,18 @@
-import FooterSection from '@/components/layout/footer'
-import { Navbar } from '@/components/layout/navbar'
-import { PremiumHeroSection } from '@/components/sections/hero-section'
+import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@repo/shared'
 
-export default function HomePage() {
-	return (
-		<div className="min-h-screen bg-background">
-			{/* Navigation - Clean and Functional */}
-			<Navbar />
+export default async function HomePage() {
+	// Check if user is authenticated
+	const user = await getCurrentUser()
 
-			{/* Premium Hero Section - Design System Compliant */}
-			<PremiumHeroSection
-				announcementText="Trusted by 10,000+ property managers"
-				headline="Stop juggling multiple tools"
-				subheadline="TenantFlow brings all your property management needs together. Streamline operations, automate workflows, and scale your business with our enterprise-grade platform."
-				primaryCTAText="Get Started Free"
-				primaryCTAHref="/login"
-				secondaryCTAText="View Pricing"
-				secondaryCTAHref="/pricing"
-			/>
+	if (user) {
+		// Authenticated users should go to dashboard
+		redirect('/dashboard')
+	} else {
+		// Unauthenticated users should go to login
+		redirect('/login')
+	}
 
-			{/* Footer - Clean and Functional */}
-			<FooterSection />
-		</div>
-	)
+	// This should never be reached, but just in case
+	return null
 }
