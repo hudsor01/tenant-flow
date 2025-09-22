@@ -796,7 +796,7 @@ export class StripeController {
 	private async handlePaymentIntentSucceeded(
 		paymentIntent: Stripe.PaymentIntent
 	) {
-		this.logger.log(`💰 Payment succeeded: ${paymentIntent.id}`, {
+		this.logger.log(`Payment succeeded: ${paymentIntent.id}`, {
 			amount: paymentIntent.amount,
 			tenant_id: paymentIntent.metadata.tenant_id
 		})
@@ -838,7 +838,7 @@ export class StripeController {
 	}
 
 	private async handleSetupIntentSucceeded(setupIntent: Stripe.SetupIntent) {
-		this.logger.log(`🔒 Payment method saved: ${setupIntent.id}`, {
+		this.logger.log(`Payment method saved: ${setupIntent.id}`, {
 			customer: setupIntent.customer,
 			tenant_id: setupIntent.metadata?.tenant_id
 		})
@@ -846,7 +846,7 @@ export class StripeController {
 	}
 
 	private async handleSubscriptionCreated(subscription: Stripe.Subscription) {
-		this.logger.log(`🔔 Subscription created: ${subscription.id}`, {
+		this.logger.log(`Subscription created: ${subscription.id}`, {
 			customer: subscription.customer,
 			status: subscription.status
 		})
@@ -901,7 +901,7 @@ export class StripeController {
 	}
 
 	private async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
-		this.logger.log(`📝 Subscription updated: ${subscription.id}`, {
+		this.logger.log(`Subscription updated: ${subscription.id}`, {
 			status: subscription.status,
 			cancel_at_period_end: subscription.cancel_at_period_end
 		})
@@ -946,14 +946,14 @@ export class StripeController {
 	}
 
 	private async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-		this.logger.log(`🗑️ Subscription cancelled: ${subscription.id}`, {
+		this.logger.log(`Subscription cancelled: ${subscription.id}`, {
 			customer: subscription.customer
 		})
 		// TODO: Revoke access, send cancellation confirmation
 	}
 
 	private async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
-		this.logger.log(`💰 Invoice paid: ${invoice.id}`, {
+		this.logger.log(`Invoice paid: ${invoice.id}`, {
 			amount: invoice.amount_paid,
 			customer: invoice.customer
 		})
@@ -971,7 +971,7 @@ export class StripeController {
 	private async handleCheckoutSessionCompleted(
 		session: Stripe.Checkout.Session
 	) {
-		this.logger.log(`🎉 Checkout completed: ${session.id}`, {
+		this.logger.log(`Checkout completed: ${session.id}`, {
 			payment_status: session.payment_status,
 			customer: session.customer
 		})
@@ -991,7 +991,7 @@ export class StripeController {
 				// Here you would typically link the subscription to the authenticated user
 				// This requires additional logic to map Stripe customer to your user ID
 				this.logger.log(
-					`🔗 Linking subscription ${session.subscription} to customer ${session.customer}`
+					`Linking subscription ${session.subscription} to customer ${session.customer}`
 				)
 			}
 

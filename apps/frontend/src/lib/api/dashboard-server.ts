@@ -12,7 +12,6 @@ import type {
   TenantWithLeaseInfo,
   MaintenanceRequestResponse,
   LeaseStatsResponse,
-  Unit,
   TenantStats
 } from '@repo/shared'
 
@@ -123,16 +122,17 @@ export async function getAnalyticsPageData() {
 /**
  * Properties page data - parallel fetch WITH STATS
  * All calculations done by backend/database
+ * PropertyWithUnits includes all unit metrics pre-calculated
  */
 export async function getPropertiesPageData(status?: string) {
   const endpoint = status
     ? `/api/v1/properties?status=${encodeURIComponent(status)}`
     : '/api/v1/properties'
 
-  // Fetch properties, units, AND pre-calculated stats
-  const [properties, units, propertyStats] = await Promise.all([
+  // Fetch properties (with units embedded) AND pre-calculated stats
+  // NO NEED to fetch units separately - PropertyWithUnits has everything
+  const [properties, propertyStats] = await Promise.all([
     serverFetch<PropertyWithUnits[]>(endpoint),
-    serverFetch<Unit[]>('/api/v1/units'),
     serverFetch<{
       totalProperties: number
       totalUnits: number
@@ -146,7 +146,6 @@ export async function getPropertiesPageData(status?: string) {
 
   return {
     properties: properties || [],
-    units: units || [],
     stats: propertyStats || {
       totalProperties: 0,
       totalUnits: 0,

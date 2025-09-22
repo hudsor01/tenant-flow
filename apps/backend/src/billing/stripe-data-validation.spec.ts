@@ -12,7 +12,7 @@ import { SupabaseService } from '../database/supabase.service'
  * These tests run actual backfill operations and validate data integrity
  * against Stripe API to ensure sync is working correctly.
  * 
- * ⚠️  WARNING: These tests make real API calls and database modifications
+ * WARNING: These tests make real API calls and database modifications
  * Only run in dedicated test environments with test Stripe keys
  * 
  * Prerequisites:
