@@ -13,7 +13,7 @@
 		"lint": "eslint . --fix",
 		"typecheck": "tsc --noEmit",
 		"validate-env": "tsx scripts/validate-env.ts",
-		"pre-deploy": "pnpm run validate-env && pnpm run lint && pnpm run typecheck",
+		"pre-deploy": "pnpm validate-env && pnpm lint && pnpm typecheck",
 		"health-check": "doppler run -- tsx scripts/auth-health-check.ts",
 		"generate:schemas": "node --import tsx scripts/generate-frontend-schemas.ts",
 		"generate:backend-schemas": "node --import tsx scripts/convert-schemas.ts"
