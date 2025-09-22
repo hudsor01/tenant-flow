@@ -1,285 +1,43 @@
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { cn, TYPOGRAPHY_SCALE } from '@/lib/design-system'
-import {
-	ArrowRight,
-	Award,
-	Building2,
-	Mail,
-	MapPin,
-	Phone,
-	Shield,
-	Users
-} from 'lucide-react'
 import Link from 'next/link'
-import * as React from 'react'
 
+export default function Footer() {
+  return (
+    <footer className="bg-white py-4">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex justify-center items-center gap-8 text-sm text-gray-500">
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 rounded bg-blue-600 flex items-center justify-center">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-2.5 h-2.5 text-white"
+              >
+                <path
+                  d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <span className="font-medium text-gray-700">TenantFlow</span>
+          </div>
 
-const footerSections = [
-	{
-		title: 'Product',
-		links: [
-			{ name: 'Features', href: '/features' },
-			{ name: 'Pricing', href: '/pricing' },
-			{ name: 'Integrations', href: '/integrations' },
-			{ name: 'API Docs', href: '/docs' }
-		]
-	},
-	{
-		title: 'Company',
-		links: [
-			{ name: 'About', href: '/about' },
-			{ name: 'Blog', href: '/blog' },
-			{ name: 'Careers', href: '/careers' },
-			{ name: 'Press', href: '/press' }
-		]
-	},
-	{
-		title: 'Resources',
-		links: [
-			{ name: 'Help Center', href: '/help' },
-			{ name: 'Contact', href: '/contact' },
-			{ name: 'Status', href: '/status' },
-			{ name: 'Changelog', href: '/changelog' }
-		]
-	}
-]
+          <Link href="/pricing" className="hover:text-gray-700 transition-colors">
+            Pricing
+          </Link>
+          <Link href="/faq" className="hover:text-gray-700 transition-colors">
+            FAQ
+          </Link>
+          <Link href="/contact" className="hover:text-gray-700 transition-colors">
+            Contact
+          </Link>
 
-// Social links with proper Lucide React icon typing
-const socialLinks: {
-	icon: React.ComponentType<{ size?: number; className?: string }>;
-	href: string;
-	label: string
-}[] = []
-
-const legalLinks = [
-	{ name: 'Privacy', href: '/privacy' },
-	{ name: 'Terms', href: '/terms' },
-	{ name: 'Security', href: '/security' },
-	{ name: 'GDPR', href: '/gdpr' }
-]
-
-const trustBadges = [
-	{ icon: Shield, text: 'SOC 2 Compliant' },
-	{ icon: Award, text: '99.9% Uptime' },
-	{ icon: Users, text: 'Enterprise Ready' }
-]
-
-export interface FooterProps extends React.ComponentProps<'footer'> {
-	variant?: 'minimal' | 'comprehensive'
-	showNewsletter?: boolean
-	showTrustBadges?: boolean
-	showContactInfo?: boolean
+          <span>© 2024 TenantFlow. All rights reserved.</span>
+        </div>
+      </div>
+    </footer>
+  )
 }
-
-const Footer = React.forwardRef<HTMLElement, FooterProps>(
-	(
-		{
-			variant = 'comprehensive',
-			showNewsletter = true,
-			showTrustBadges = true,
-			showContactInfo = false,
-			className,
-			...props
-		},
-		ref
-	) => {
-		return (
-			<footer
-				ref={ref}
-				className={cn('bg-card border-t border-border', className)}
-				{...props}
-			>
-				<div
-					className={cn(
-						'container mx-auto max-w-7xl px-6',
-						variant === 'minimal' ? 'py-8' : 'py-16'
-					)}
-				>
-					{/* Main Content */}
-					<div
-						className={cn(
-							'grid gap-12 mb-12',
-							variant === 'minimal'
-								? 'grid-cols-1 lg:grid-cols-2'
-								: 'grid-cols-1 lg:grid-cols-4'
-						)}
-					>
-						{/* Brand Column */}
-						<div className="lg:col-span-1">
-							<div className="flex items-center mb-6">
-								<div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white shadow-lg">
-									<Building2 className="h-6 w-6" />
-								</div>
-								<span
-									className="ml-3 text-foreground font-bold"
-									style={TYPOGRAPHY_SCALE['heading-md']}
-								>
-									TenantFlow
-								</span>
-							</div>
-
-							<p
-								className="text-muted-foreground mb-6 leading-relaxed max-w-sm"
-								style={TYPOGRAPHY_SCALE['body-sm']}
-							>
-								The modern property management platform that helps you
-								streamline operations, increase efficiency, and scale your
-								business.
-							</p>
-
-							<Badge variant="secondary" className="mb-4">
-								<Shield className="w-3 h-3 mr-2" />
-								SOC 2 Compliant
-							</Badge>
-
-							{/* Social Links */}
-							<div className="flex gap-3">
-								{socialLinks.map((social, idx) => {
-									const Icon = social.icon
-									return (
-										<a
-											key={idx}
-											href={social.href}
-											aria-label={social.label}
-											className="w-10 h-10 rounded-lg bg-muted/50 hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-all duration-200 hover:shadow-md"
-										>
-											<Icon size={18} />
-										</a>
-									)
-								})}
-							</div>
-						</div>
-
-						{/* Navigation Sections */}
-						<div className="lg:col-span-2">
-							<div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-								{footerSections.map((section, sectionIdx) => (
-									<div key={sectionIdx}>
-										<h3
-											className="text-foreground mb-4 font-semibold"
-											style={TYPOGRAPHY_SCALE['body-md']}
-										>
-											{section.title}
-										</h3>
-										<ul className="space-y-3">
-											{section.links.map((link, linkIdx) => (
-												<li key={linkIdx}>
-													<Link
-														href={link.href}
-														className="text-muted-foreground hover:text-primary transition-colors duration-200 text-sm"
-													>
-														{link.name}
-													</Link>
-												</li>
-											))}
-										</ul>
-									</div>
-								))}
-							</div>
-						</div>
-
-						{/* Newsletter/Contact Column */}
-						<div className="lg:col-span-1">
-							{showNewsletter && (
-								<div className="mb-8">
-									<h3
-										className="text-foreground mb-4 font-semibold"
-										style={TYPOGRAPHY_SCALE['body-md']}
-									>
-										Stay Updated
-									</h3>
-									<p
-										className="text-muted-foreground mb-4"
-										style={TYPOGRAPHY_SCALE['body-sm']}
-									>
-										Get the latest property management insights and updates.
-									</p>
-									<div className="flex flex-col gap-3">
-										<input
-											type="email"
-											placeholder="Enter your email"
-											className="px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-										/>
-										<Button size="sm" className="justify-center">
-											Subscribe
-											<ArrowRight className="ml-2 h-4 w-4" />
-										</Button>
-									</div>
-								</div>
-							)}
-
-							{showContactInfo && (
-								<div>
-									<h3
-										className="text-foreground mb-4 font-semibold"
-										style={TYPOGRAPHY_SCALE['body-md']}
-									>
-										Contact Us
-									</h3>
-									<div className="space-y-3">
-										<div className="flex items-center gap-3 text-sm text-muted-foreground">
-											<Mail className="h-4 w-4 text-primary" />
-											<span>support@tenantflow.app</span>
-										</div>
-										<div className="flex items-center gap-3 text-sm text-muted-foreground">
-											<Phone className="h-4 w-4 text-primary" />
-											<span>1-800-TENANT</span>
-										</div>
-										<div className="flex items-center gap-3 text-sm text-muted-foreground">
-											<MapPin className="h-4 w-4 text-primary" />
-											<span>San Francisco, CA</span>
-										</div>
-									</div>
-								</div>
-							)}
-						</div>
-					</div>
-
-					{/* Trust Badges */}
-					{showTrustBadges && (
-						<div className="border-t border-border pt-8 mb-8">
-							<div className="flex flex-wrap items-center justify-center gap-8">
-								{trustBadges.map((badge, idx) => {
-									const Icon = badge.icon
-									return (
-										<div
-											key={idx}
-											className="flex items-center gap-2 text-sm text-muted-foreground"
-										>
-											<Icon className="h-4 w-4 text-accent" />
-											<span>{badge.text}</span>
-										</div>
-									)
-								})}
-							</div>
-						</div>
-					)}
-
-					{/* Bottom Section */}
-					<div className="border-t border-border pt-8 flex flex-col lg:flex-row justify-between items-center gap-4">
-						<p className="text-sm text-muted-foreground text-center lg:text-left">
-							© {new Date().getFullYear()} TenantFlow. All rights reserved.
-						</p>
-
-						<div className="flex flex-wrap items-center justify-center gap-6">
-							{legalLinks.map((link, idx) => (
-								<Link
-									key={idx}
-									href={link.href}
-									className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
-								>
-									{link.name}
-								</Link>
-							))}
-						</div>
-					</div>
-				</div>
-			</footer>
-		)
-	}
-)
-
-Footer.displayName = 'Footer'
-
-export default Footer

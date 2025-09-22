@@ -35,7 +35,7 @@
   },
   "quickReference": {
     "primaryColor": "#0D6FFF",
-    "font": "SF Pro",
+    "font": "Roboto",
     "bodySizePixels": 13,
     "titleSizePixels": 22,
     "successColor": "#34C759",

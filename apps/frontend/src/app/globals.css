@@ -14,7 +14,7 @@
 @theme {
 	/* Typography System Variables */
 	--font-family:
-		'SF Pro Display', 'SF Pro', -premium-system, BlinkMacSystemFont, sans-serif;
+		'Roboto Flex', 'Roboto Flex', -premium-system, BlinkMacSystemFont, sans-serif;
 
 	/* Typography Scales */
 	--font-large-title: 26px;
@@ -416,8 +416,8 @@
 	body {
 		height: 100%;
 		font-family:
-			'SF Pro Display',
-			'SF Pro',
+			'Roboto Flex',
+			'Roboto Flex',
 			-premium-system,
 			BlinkMacSystemFont,
 			'Inter',

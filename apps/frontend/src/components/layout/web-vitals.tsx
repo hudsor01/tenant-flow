@@ -26,6 +26,11 @@ const ratingColorMap: Record<Metric['rating'], string> = {
 }
 
 function sendToAnalytics(metric: Metric): void {
+  // Disabled analytics to prevent 404 spam during development
+  if (process.env.NODE_ENV === 'development') {
+    return
+  }
+
   const body = JSON.stringify({
     name: metric.name,
     value: metric.value,

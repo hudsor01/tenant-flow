@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import Footer from '@/components/layout/footer'
 import { createCheckoutSession } from '@/lib/stripe-client'
 import { ArrowRight, Check } from 'lucide-react'
 import Link from 'next/link'
@@ -69,16 +70,16 @@ export default function PricingPage() {
 
 	const priceIds = {
 		starter: {
-			monthly: process.env.NEXT_PUBLIC_PRICE_STARTER_MONTHLY,
-			yearly: process.env.NEXT_PUBLIC_PRICE_STARTER_YEARLY
+			monthly: process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY,
+			yearly: process.env.NEXT_PUBLIC_STRIPE_STARTER_YEARLY
 		},
 		growth: {
-			monthly: process.env.NEXT_PUBLIC_PRICE_GROWTH_MONTHLY,
-			yearly: process.env.NEXT_PUBLIC_PRICE_GROWTH_YEARLY
+			monthly: process.env.NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY,
+			yearly: process.env.NEXT_PUBLIC_STRIPE_GROWTH_YEARLY
 		},
 		max: {
-			monthly: process.env.NEXT_PUBLIC_PRICE_MAX_MONTHLY,
-			yearly: process.env.NEXT_PUBLIC_PRICE_MAX_YEARLY
+			monthly: process.env.NEXT_PUBLIC_STRIPE_MAX_MONTHLY,
+			yearly: process.env.NEXT_PUBLIC_STRIPE_MAX_YEARLY
 		}
 	} as const
 
@@ -128,7 +129,7 @@ export default function PricingPage() {
 			{/* Navigation */}
 			<nav className="fixed top-4 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-6 py-3 backdrop-blur-xl border border-gray-200 shadow-lg bg-white/80">
 				<div className="flex items-center justify-between gap-8">
-					<div className="flex items-center space-x-3">
+					<Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200">
 						<div className="w-8 h-8 rounded-lg overflow-hidden bg-blue-600 border border-gray-200 flex items-center justify-center">
 							<svg
 								viewBox="0 0 24 24"
@@ -148,7 +149,7 @@ export default function PricingPage() {
 						<span className="text-xl font-bold text-gray-900 tracking-tight">
 							TenantFlow
 						</span>
-					</div>
+					</Link>
 
 					<div className="hidden md:flex items-center space-x-1">
 						<Link
@@ -308,6 +309,8 @@ export default function PricingPage() {
 					</div>
 				</div>
 			</div>
+
+			<Footer />
 		</div>
 	)
 }
