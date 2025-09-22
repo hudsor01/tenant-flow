@@ -117,7 +117,9 @@ export function EditMaintenanceButton({ maintenance }: EditMaintenanceButtonProp
               placeholder="Kitchen faucet leak"
             />
             {form.formState.errors.title && (
-              <p className="text-sm text-red-600">{form.formState.errors.title.message}</p>
+              <p className="text-sm text-[var(--color-system-red)]">
+                {form.formState.errors.title.message}
+              </p>
             )}
           </div>
 
@@ -130,7 +132,9 @@ export function EditMaintenanceButton({ maintenance }: EditMaintenanceButtonProp
               rows={3}
             />
             {form.formState.errors.description && (
-              <p className="text-sm text-red-600">{form.formState.errors.description.message}</p>
+              <p className="text-sm text-[var(--color-system-red)]">
+                {form.formState.errors.description.message}
+              </p>
             )}
           </div>
 

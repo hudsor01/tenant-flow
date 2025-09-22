@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import * as ProgressPrimitive from "@radix-ui/react-progress"
 
@@ -13,28 +11,28 @@ function Progress({
   return (
     <ProgressPrimitive.Root
       data-slot="progress"
-      className={cn(
+      data-tokens="applied" className={cn(
         // Base styles with token-based radius
-        "bg-primary/20 relative h-2 w-full overflow-hidden rounded-[8px]",
+        "bg-[var(--color-accent-main)]/20 relative h-2 w-full overflow-hidden rounded-[8px]",
         // Enhanced transitions
-        "transition-all duration-200 ease-in-out",
+        "transition-all duration-[var(--duration-quick)] ease-in-out",
         // Hover state
-        "hover:bg-primary/25",
+        "hover:bg-[var(--color-accent-main)]/25",
         // Focus state
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "focus-visible:outline-none focus-visible:ring-[var(--focus-ring-width)] focus-visible:ring-[var(--focus-ring-color)] focus-visible:ring-offset-[var(--focus-ring-offset)]",
         className
       )}
       {...props}
     >
       <ProgressPrimitive.Indicator
         data-slot="progress-indicator"
-        className={cn(
+        data-tokens="applied" className={cn(
           // Base styles
-          "bg-primary h-full w-full flex-1",
+          "bg-[var(--color-accent-main)] h-full w-full flex-1",
           // Enhanced with subtle gradient
           "bg-gradient-to-r from-primary to-primary/90",
           // Smooth transitions
-          "transition-all duration-300 ease-out"
+          "transition-all duration-[var(--duration-standard)] ease-out"
         )}
         style={{
           transform: `translateX(-${100 - (value || 0)}%)`

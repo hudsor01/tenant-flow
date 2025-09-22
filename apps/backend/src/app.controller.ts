@@ -16,7 +16,7 @@ export class AppController {
 	}
 
 	/**
-	 * Note: Health check is handled as a raw Fastify route in main.ts
+	 * Note: Health check is handled as a raw Express route in main.ts
 	 * for maximum reliability on Railway.
 	 */
 

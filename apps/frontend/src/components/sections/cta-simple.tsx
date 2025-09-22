@@ -1,7 +1,6 @@
 'use client'
 
 import { BlurFade } from '@/components/magicui/blur-fade'
-import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -171,7 +170,7 @@ export const CTASimple = React.forwardRef<HTMLElement, CTASimpleProps>(
 
 							{/* Enhanced CTA Buttons */}
 							<div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
-								<ShimmerButton
+								<Button
 									className="px-10 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 active:scale-95"
 									asChild
 									style={{
@@ -185,7 +184,7 @@ export const CTASimple = React.forwardRef<HTMLElement, CTASimpleProps>(
 											<ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
 										</span>
 									</Link>
-								</ShimmerButton>
+								</Button>
 
 								<Button
 									variant="outline"

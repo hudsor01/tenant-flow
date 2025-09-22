@@ -260,7 +260,7 @@ export function StripePricingSection({
 				className
 			)}
 		>
-			<div className="relative container px-4 mx-auto">
+			<div className="relative container px-[var(--spacing-4)] mx-auto">
 				{/* Section Header */}
 				<div
 					className={cn(
@@ -272,13 +272,14 @@ export function StripePricingSection({
 					{/* Enhanced Stats Bar */}
 					{showStats && (
 						<div
-							className="flex flex-wrap items-center justify-center gap-8 mb-12 p-6 bg-white/50 dark:bg-[var(--color-fill-tertiary)]/30 rounded-2xl border border-primary/10 backdrop-blur-sm"
+							className="flex flex-wrap items-center justify-center gap-8 mb-12 rounded-2xl border border-primary/10 p-6 backdrop-blur-sm"
 							style={{
-								boxShadow: 'var(--shadow-sm)'
+								boxShadow: 'var(--shadow-sm)',
+								backgroundColor: 'color-mix(in oklab, var(--color-fill-primary) 60%, transparent)'
 							}}
 						>
 							<div className="flex items-center gap-3">
-								<div className="p-2 bg-primary/10 rounded-lg">
+								<div className="p-[var(--spacing-2)] bg-primary/10 rounded-[var(--radius-large)]">
 									<Users className="h-5 w-5 text-primary" />
 								</div>
 								<div>
@@ -289,7 +290,7 @@ export function StripePricingSection({
 								</div>
 							</div>
 							<div className="flex items-center gap-3">
-								<div className="p-2 bg-[var(--color-system-green-10)] dark:bg-[var(--color-system-green-15)] rounded-lg">
+								<div className="p-[var(--spacing-2)] bg-[var(--color-system-green-10)] dark:bg-[var(--color-system-green-15)] rounded-[var(--radius-large)]">
 									<TrendingUp className="h-5 w-5 text-[var(--color-system-green)]" />
 								</div>
 								<div>
@@ -298,7 +299,7 @@ export function StripePricingSection({
 								</div>
 							</div>
 							<div className="flex items-center gap-3">
-								<div className="p-2 bg-[var(--color-system-blue-10)] dark:bg-[var(--color-system-blue-15)] rounded-lg">
+								<div className="p-[var(--spacing-2)] bg-[var(--color-system-blue-10)] dark:bg-[var(--color-system-blue-15)] rounded-[var(--radius-large)]">
 									<Target className="h-5 w-5 text-[var(--color-system-blue)]" />
 								</div>
 								<div>
@@ -309,8 +310,8 @@ export function StripePricingSection({
 								</div>
 							</div>
 							<div className="flex items-center gap-3">
-								<div className="p-2 bg-[var(--color-system-purple-10)] dark:bg-[var(--color-system-purple-15)] rounded-lg">
-									<Award className="h-5 w-5 text-[var(--color-system-purple)]" />
+								<div className="p-[var(--spacing-2)] bg-[var(--color-system-blue-10)] dark:bg-[var(--color-system-blue-15)] rounded-[var(--radius-large)]">
+									<Award className="h-5 w-5 text-[var(--color-system-blue)]" />
 								</div>
 								<div>
 									<p className="font-bold text-lg text-foreground">4.9/5</p>
@@ -327,7 +328,7 @@ export function StripePricingSection({
 							variant="outline"
 							className={cn(
 								badgeClasses('outline', 'default'),
-								'mb-4 px-4 py-2 text-sm font-semibold border-2 hover:bg-primary/5 hover:border-primary/30 transition-all hover:scale-105'
+								'mb-[var(--spacing-4)] px-[var(--spacing-4)] py-[var(--spacing-2)] text-sm font-semibold border-2 hover:bg-primary/5 hover:border-primary/30 transition-all hover:scale-105'
 							)}
 							style={{
 								transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
@@ -423,7 +424,7 @@ export function StripePricingSection({
 							</span>
 							<Badge
 								variant="secondary"
-								className="ms-2 bg-[var(--color-system-green-10)] dark:bg-[var(--color-system-green-15)] text-[var(--color-system-green)] dark:text-[var(--color-system-green-85)] font-semibold px-3 py-1 hover:scale-105"
+								className="ms-2 bg-[var(--color-system-green-10)] dark:bg-[var(--color-system-green-15)] text-[var(--color-system-green)] dark:text-[var(--color-system-green-85)] font-semibold px-[var(--spacing-3)] py-[var(--spacing-1)] hover:scale-105"
 								style={{
 									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
 								}}
@@ -462,7 +463,7 @@ export function StripePricingSection({
 								{/* Popular Badge */}
 								{plan.popular && (
 									<div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-										<Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-6 py-2 text-sm font-bold shadow-lg">
+										<Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-[var(--spacing-6)] py-[var(--spacing-2)] text-sm font-bold shadow-[var(--shadow-large)]">
 											<Star className="w-3 h-3 mr-1" />
 											{plan.highlight}
 										</Badge>
@@ -474,13 +475,13 @@ export function StripePricingSection({
 									<Badge
 										variant="outline"
 										className={cn('text-xs font-medium capitalize border-2', {
-											'border-pink-200 bg-pink-50 text-pink-700 dark:border-pink-800 dark:bg-pink-900/20 dark:text-pink-300':
+											'border-[var(--color-system-orange-25)] bg-[var(--color-system-orange-10)] text-[var(--color-system-orange)] dark:border-[var(--color-system-orange-25)] dark:bg-[var(--color-system-orange-15)] dark:text-[var(--color-system-orange-85)]':
 												plan.tier === 'starter',
-											'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300':
+											'border-[var(--color-system-blue-25)] bg-[var(--color-system-blue-10)] text-[var(--color-system-blue)] dark:border-[var(--color-system-blue-25)] dark:bg-[var(--color-system-blue-15)] dark:text-[var(--color-system-blue-85)]':
 												plan.tier === 'professional',
-											'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-900/20 dark:text-purple-300':
+											'border-[var(--color-system-green-25)] bg-[var(--color-system-green-10)] text-[var(--color-system-green)] dark:border-[var(--color-system-green-25)] dark:bg-[var(--color-system-green-15)] dark:text-[var(--color-system-green-85)]':
 												plan.tier === 'enterprise',
-											'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300':
+											'border-[var(--color-system-yellow-25)] bg-[var(--color-system-yellow-10)] text-[var(--color-system-yellow)] dark:border-[var(--color-system-yellow-25)] dark:bg-[var(--color-system-yellow-15)] dark:text-[var(--color-system-yellow-85)]':
 												plan.tier === 'ultimate'
 										})}
 									>
@@ -495,12 +496,13 @@ export function StripePricingSection({
 												'w-16 h-16 rounded-2xl bg-gradient-to-br flex items-center justify-center mx-auto mb-4',
 												'shadow-lg ring-4 ring-background',
 												{
-													'from-pink-500 to-pink-600': plan.tier === 'starter',
-													'from-blue-500 to-blue-600':
+													'from-[var(--color-system-orange-85)] to-[var(--color-system-orange)]':
+														plan.tier === 'starter',
+													'from-[var(--color-system-blue-85)] to-[var(--color-system-blue)]':
 														plan.tier === 'professional',
-													'from-purple-500 to-purple-600':
+													'from-[var(--color-system-green-85)] to-[var(--color-system-green)]':
 														plan.tier === 'enterprise',
-													'from-amber-500 to-amber-600':
+													'from-[var(--color-system-yellow-85)] to-[var(--color-system-yellow)]':
 														plan.tier === 'ultimate'
 												}
 											)}
@@ -589,7 +591,7 @@ export function StripePricingSection({
 															'w-4 h-4 mt-0.5 mr-3 flex-shrink-0',
 															feature.highlight
 																? 'text-primary fill-primary/20'
-																: 'text-green-500 fill-green-100 dark:fill-green-900/20'
+																: 'text-[var(--color-system-green)] fill-[var(--color-system-green-10)] dark:fill-[var(--color-system-green-15)]'
 														)}
 													/>
 													<span
@@ -702,7 +704,7 @@ export function StripePricingSection({
 								variant="secondary"
 								className={cn(
 									badgeClasses('success', 'lg'),
-									'bg-[var(--color-system-green-10)] dark:bg-[var(--color-system-green-15)] text-[var(--color-system-green)] dark:text-[var(--color-system-green-85)] border-[var(--color-system-green-25)] dark:border-[var(--color-system-green-25)] px-6 py-3 hover:scale-105'
+									'bg-[var(--color-system-green-10)] dark:bg-[var(--color-system-green-15)] text-[var(--color-system-green)] dark:text-[var(--color-system-green-85)] border-[var(--color-system-green-25)] dark:border-[var(--color-system-green-25)] px-[var(--spacing-6)] py-[var(--spacing-3)] hover:scale-105'
 								)}
 								style={{
 									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
@@ -715,7 +717,7 @@ export function StripePricingSection({
 								variant="secondary"
 								className={cn(
 									badgeClasses('secondary', 'lg'),
-									'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 px-6 py-3 hover:scale-105'
+									'bg-[var(--color-system-blue-10)] dark:bg-[var(--color-system-blue-15)] text-[var(--color-system-blue)] dark:text-[var(--color-system-blue-85)] border-[var(--color-system-blue-25)] dark:border-[var(--color-system-blue-25)] px-[var(--spacing-6)] py-[var(--spacing-3)] hover:scale-105'
 								)}
 								style={{
 									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
@@ -728,7 +730,7 @@ export function StripePricingSection({
 								variant="secondary"
 								className={cn(
 									badgeClasses('outline', 'lg'),
-									'hover:bg-primary/5 hover:border-primary/30 px-6 py-3 hover:scale-105'
+									'hover:bg-primary/5 hover:border-primary/30 px-[var(--spacing-6)] py-[var(--spacing-3)] hover:scale-105'
 								)}
 								style={{
 									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
@@ -741,7 +743,7 @@ export function StripePricingSection({
 								variant="secondary"
 								className={cn(
 									badgeClasses('success', 'lg'),
-									'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 px-6 py-3 hover:scale-105'
+									'bg-[var(--color-system-blue-10)] dark:bg-[var(--color-system-blue-15)] text-[var(--color-system-blue)] dark:text-[var(--color-system-blue-85)] border-[var(--color-system-blue-25)] dark:border-[var(--color-system-blue-25)] px-[var(--spacing-6)] py-[var(--spacing-3)] hover:scale-105'
 								)}
 								style={{
 									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
@@ -810,19 +812,19 @@ export function StripePricingSection({
 							<div className="pt-6 border-t border-muted/40">
 								<div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
 									<div className="flex items-center gap-2">
-										<CheckCircle2 className="w-4 h-4 text-green-600" />
+										<CheckCircle2 className="w-4 h-4 text-[var(--color-system-green)]" />
 										<span className="font-medium">
 											30-day money-back guarantee
 										</span>
 									</div>
 									<div className="flex items-center gap-2">
-										<Shield className="w-4 h-4 text-blue-600" />
+										<Shield className="w-4 h-4 text-[var(--color-system-blue)]" />
 										<span className="font-medium">
 											Enterprise-grade security
 										</span>
 									</div>
 									<div className="flex items-center gap-2">
-										<Award className="w-4 h-4 text-purple-600" />
+										<Award className="w-4 h-4 text-[var(--color-system-blue)]" />
 										<span className="font-medium">
 											99.9% customer satisfaction
 										</span>

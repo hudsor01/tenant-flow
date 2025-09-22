@@ -22,9 +22,23 @@ const tenantSchema = z.object({
 
 type TenantFormData = z.infer<typeof tenantSchema>
 
-export function AddTenantDialog() {
-  const [open, setOpen] = useState(false)
+interface AddTenantDialogProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  showTrigger?: boolean
+}
+
+export function AddTenantDialog({
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  showTrigger = true
+}: AddTenantDialogProps = {}) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
   const queryClient = useQueryClient()
+
+  // Use controlled state if provided, otherwise fall back to uncontrolled
+  const open = controlledOpen ?? uncontrolledOpen
+  const setOpen = controlledOnOpenChange ?? setUncontrolledOpen
 
   const form = useForm<TenantFormData>({
     resolver: zodResolver(tenantSchema),
@@ -56,15 +70,17 @@ export function AddTenantDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="success"
-          className="flex items-center gap-2"
-        >
-          <Users className="size-4" />
-          Add Tenant
-        </Button>
-      </DialogTrigger>
+      {showTrigger && (
+        <DialogTrigger asChild>
+          <Button
+            variant="success"
+            className="flex items-center gap-2"
+          >
+            <Users className="size-4" />
+            Add Tenant
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add New Tenant</DialogTitle>

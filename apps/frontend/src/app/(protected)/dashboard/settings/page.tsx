@@ -1,5 +1,6 @@
 'use client'
 
+import { PasswordUpdateSection } from '@/components/settings/password-update-section'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -15,7 +16,6 @@ import {
 	CreditCard,
 	Download,
 	Globe,
-	Key,
 	RefreshCw,
 	Save,
 	Settings,
@@ -207,29 +207,7 @@ export default function SettingsPage() {
 
 				{/* Security Settings */}
 				<TabsContent value="security" className="space-y-6">
-					<Card className="p-6 border shadow-sm">
-						<h3 className="text-lg font-semibold mb-4">
-							Password & Authentication
-						</h3>
-						<div className="space-y-4">
-							<div className="space-y-2">
-								<Label htmlFor="currentPassword">Current Password</Label>
-								<Input id="currentPassword" type="password" />
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="newPassword">New Password</Label>
-								<Input id="newPassword" type="password" />
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="confirmPassword">Confirm New Password</Label>
-								<Input id="confirmPassword" type="password" />
-							</div>
-							<Button>
-								<Key className="size-4 mr-2" />
-								Update Password
-							</Button>
-						</div>
-					</Card>
+					<PasswordUpdateSection />
 
 					<Card className="p-6 border shadow-sm">
 						<h3 className="text-lg font-semibold mb-4">

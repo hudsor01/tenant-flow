@@ -1,7 +1,6 @@
-"use client"
-
 import * as React from 'react'
 import { cn } from '@/lib/design-system'
+import { TYPOGRAPHY_SCALE } from '@repo/shared'
 
 export interface SectionHeaderProps extends Omit<React.ComponentProps<'div'>, 'title'> {
   eyebrow?: React.ReactNode
@@ -28,12 +27,16 @@ export function SectionHeader({
         </div>
       )}
       <h2
-        className={cn(gradientTitle && 'text-gradient', 'text-section-title')}
+        className={cn(gradientTitle && 'text-gradient')}
+        style={TYPOGRAPHY_SCALE['heading-xl']}
       >
         {title}
       </h2>
       {subtitle && (
-        <p className="text-muted-foreground max-w-2xl leading-relaxed text-body"> 
+        <p
+          className="text-muted-foreground max-w-2xl leading-relaxed"
+          style={TYPOGRAPHY_SCALE['body-lg']}
+        >
           {subtitle}
         </p>
       )}

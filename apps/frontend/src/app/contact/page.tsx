@@ -1,9 +1,8 @@
+import { Navbar } from '@/components/layout/navbar'
 import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { Navbar } from '@/components/navbar'
-import { FooterMinimal } from '@/components/sections/footer-minimal'
+import Footer from '@/components/layout/footer'
 
 import { BlurFade } from '@/components/magicui/blur-fade'
-import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { Button } from '@/components/ui/button'
 import { containerClasses } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
@@ -198,12 +197,15 @@ export default function ContactPage() {
 									</div>
 
 									<div className="text-center">
-										<ShimmerButton className="px-8 py-3 text-base font-semibold">
+										<Button
+											variant="primaryGlass"
+											className="px-8 py-3 text-base font-semibold"
+										>
 											<span className="inline-flex items-center">
 												Get My Custom ROI Report
 												<ArrowRight className="w-4 h-4 ml-2" />
 											</span>
-										</ShimmerButton>
+										</Button>
 										<p
 											className="text-muted-foreground mt-2"
 											style={TYPOGRAPHY_SCALE['body-sm']}
@@ -296,7 +298,7 @@ export default function ContactPage() {
 					</div>
 				</section>
 			</div>
-			<FooterMinimal />
+			<Footer />
 		</main>
 	)
 }

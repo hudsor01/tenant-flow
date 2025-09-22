@@ -74,7 +74,7 @@ export function getCORSOriginsForEnv(): string[] | boolean {
 }
 
 /**
- * CORS configuration object for Fastify
+ * CORS configuration object for Express
  */
 export function getCORSConfig() {
 	return {

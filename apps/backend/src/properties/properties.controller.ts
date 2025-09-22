@@ -2,7 +2,7 @@
  * Properties Controller - Ultra-Native Implementation
  *
  * Uses:
- * - Fastify JSON Schema validation (no DTOs)
+ * - Express request validation (no DTOs)
  * - Built-in NestJS pipes for validation
  * - Native exception handling
  * - Direct PostgreSQL RPC calls
@@ -104,7 +104,7 @@ export class PropertiesController {
 
 	/**
 	 * Create new property
-	 * JSON Schema validation via Fastify
+	 * JSON Schema validation via Express
 	 */
 	@Post()
     @RouteSchema({ method: 'POST', path: 'properties', schema: propertyRouteSchemas.create })

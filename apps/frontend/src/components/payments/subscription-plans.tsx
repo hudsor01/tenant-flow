@@ -19,7 +19,6 @@ const plans = [
       'Up to 5 properties',
       'Up to 25 units',
       'Basic tenant management',
-      'Rent collection',
       'Email support'
     ],
     stripePriceId: 'price_starter_monthly' // Replace with actual Stripe price ID
@@ -112,7 +111,7 @@ export function SubscriptionPlans() {
             <ul className="space-y-3">
               {plan.features.map((feature, index) => (
                 <li key={index} className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500" />
+                  <Check className="w-5 h-5 text-[var(--color-system-green)]" />
                   <span className="text-sm">{feature}</span>
                 </li>
               ))}

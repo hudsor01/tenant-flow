@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common'
 import { TerminusModule } from '@nestjs/terminus'
-import { HealthController } from './health.controller'
+import { StripeModule } from '../billing/stripe.module'
 import { SupabaseModule } from '../database/supabase.module'
 import { SupabaseService } from '../database/supabase.service'
-import { SupabaseHealthIndicator } from './supabase.health'
-import { StripeFdwHealthIndicator } from './stripe-fdw.health'
-import { StripeModule } from '../billing/stripe.module'
 import { ResilienceService } from '../shared/services/resilience.service'
+import { HealthController } from './health.controller'
+import { StripeFdwHealthIndicator } from './stripe-fdw.health'
+import { SupabaseHealthIndicator } from './supabase.health'
 
 // Factory provider pattern for explicit SupabaseService injection
 const SupabaseServiceFactory = {
@@ -25,17 +25,12 @@ const SupabaseServiceFactory = {
 	],
 	controllers: [
 		HealthController
-		// UnifiedMetricsController removed - use native Fastify metrics
 	],
 	providers: [
 		SupabaseHealthIndicator,
 		StripeFdwHealthIndicator,
 		ResilienceService,
 		SupabaseServiceFactory
-		// HealthCheckService is automatically provided by TerminusModule
-		// HealthIndicatorService is automatically provided by TerminusModule
-		// Logger is provided globally via LoggerModule in app.module.ts
-		// StripeSyncService is exported by StripeModule
 	],
 	exports: []
 })

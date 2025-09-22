@@ -259,7 +259,10 @@ export function CustomerPortalCard({
 								>
 									Account Management
 								</CardTitle>
-								<p className="text-callout text-muted-foreground">
+								<p
+									className="text-muted-foreground"
+									style={TYPOGRAPHY_SCALE['ui-caption']}
+								>
 									Manage your subscription and billing preferences
 								</p>
 							</div>
@@ -297,7 +300,10 @@ export function CustomerPortalCard({
 					{showStats && (
 						<div className="bg-gradient-to-r from-muted/10 via-background to-muted/10 rounded-2xl p-6 border-2 border-muted/20">
 							<div className="flex items-center justify-between mb-6">
-								<h4 className="text-heading text-foreground flex items-center gap-3">
+								<h4
+									className="text-foreground flex items-center gap-3"
+									style={TYPOGRAPHY_SCALE['heading-md']}
+								>
 									<div className="p-2 bg-primary/10 rounded-lg">
 										<Activity className="h-5 w-5 text-primary" />
 									</div>
@@ -376,7 +382,10 @@ export function CustomerPortalCard({
 					{billingInfo && (
 						<div className="bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl p-6 border border-accent/20">
 							<div className="flex items-center justify-between mb-6">
-								<h4 className="text-heading text-foreground flex items-center gap-3">
+								<h4
+									className="text-foreground flex items-center gap-3"
+									style={TYPOGRAPHY_SCALE['heading-md']}
+								>
 									<div className="p-2 bg-accent/10 rounded-lg">
 										<CreditCard className="h-5 w-5 text-accent" />
 									</div>

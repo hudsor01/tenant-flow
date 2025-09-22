@@ -5,7 +5,7 @@ import { UnauthorizedException, ForbiddenException, Logger } from '@nestjs/commo
 import { Reflector } from '@nestjs/core'
 import { AuthGuard } from './auth.guard'
 import { SilentLogger } from '../../__test__/silent-logger'
-import type { FastifyRequest } from 'fastify'
+import type { Request } from 'express'
 import type { ValidatedUser } from '@repo/shared'
 
 // Mock Supabase client
@@ -31,7 +31,7 @@ describe('AuthGuard', () => {
   let guard: AuthGuard
   let reflector: Reflector
   let mockExecutionContext: ExecutionContext
-  let mockRequest: Partial<FastifyRequest>
+  let mockRequest: Partial<Request>
 
   // Test user data following Supabase patterns
   const testUser: ValidatedUser = {

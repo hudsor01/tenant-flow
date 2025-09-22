@@ -23,7 +23,7 @@ This document outlines the Turborepo best practices that have been implemented i
 ## [TECH] Tech Stack
 
 - **Frontend**: React 19 + Next.js + Zustand + TypeScript
-- **Backend**: NestJS + Fastify + PostgreSQL (Supabase)
+- **Backend**: NestJS + Express + PostgreSQL (Supabase)
 - **Infrastructure**: Turborepo monorepo, Railway (project: tenantflow, service: tenantflow-backend), Vercel (frontend)
 - **Auth**: Supabase Auth with JWT + Row-Level Security (RLS)
 - **Payments**: Stripe subscriptions with webhook processing

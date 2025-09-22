@@ -9,20 +9,21 @@
  * - Integrates with security monitoring system
  */
 
-import {
-	ArgumentsHost,
-	BadRequestException,
-	Catch,
-	ExceptionFilter,
-	ForbiddenException,
-	HttpException,
-	HttpStatus,
-	Logger,
-	NotFoundException,
-	UnauthorizedException
-} from '@nestjs/common'
+import
+  {
+    ArgumentsHost,
+    BadRequestException,
+    Catch,
+    ExceptionFilter,
+    ForbiddenException,
+    HttpException,
+    HttpStatus,
+    Logger,
+    NotFoundException,
+    UnauthorizedException
+  } from '@nestjs/common'
 import type { ErrorResponse, SecurityErrorContext } from '@repo/shared'
-import type { FastifyReply, FastifyRequest } from 'fastify'
+import type { Request, Response } from 'express'
 import { SecurityMonitorService } from '../services/security-monitor.service'
 
 @Catch()
@@ -78,8 +79,8 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 
 	catch(exception: unknown, host: ArgumentsHost): void {
 		const ctx = host.switchToHttp()
-		const request = ctx.getRequest<FastifyRequest>()
-		const response = ctx.getResponse<FastifyReply>()
+		const request = ctx.getRequest<Request>()
+		const response = ctx.getResponse<Response>()
 
 		const errorContext = this.buildErrorContext(request, exception)
 
@@ -109,7 +110,7 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 	}
 
 	private buildErrorContext(
-		request: FastifyRequest,
+		request: Request,
 		exception: unknown
 	): SecurityErrorContext {
 		const statusCode = this.getStatusCode(exception)
@@ -126,7 +127,7 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 		}
 	}
 
-	private getClientIP(request: FastifyRequest): string {
+	private getClientIP(request: Request): string {
 		const forwardedFor = request.headers['x-forwarded-for'] as string
 		const realIP = request.headers['x-real-ip'] as string
 		const cfConnectingIP = request.headers['cf-connecting-ip'] as string
@@ -375,19 +376,36 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 		return baseResponse
 	}
 
-	private setSecurityHeaders(response: FastifyReply): void {
-		// Prevent caching of error responses
-		response.header(
-			'Cache-Control',
-			'no-store, no-cache, must-revalidate, proxy-revalidate'
-		)
-		response.header('Pragma', 'no-cache')
-		response.header('Expires', '0')
+private setSecurityHeaders(response: Response): void {
+const r = response as Response & {
+  set?: (name: string, value: string) => void
+  header?: (name: string, value: string) => void
+  setHeader?: (name: string, value: string) => void
+}
+const set = (name: string, value: string): void => {
+if (typeof r.set === 'function') {
+  r.set(name, value)
+  return
+}
+if (typeof r.header === 'function') {
+  r.header(name, value)
+  return
+}
+if (typeof r.setHeader === 'function') {
+  r.setHeader(name, value)
+  return
+}
+}
 
-		// Content security
-		response.header('X-Content-Type-Options', 'nosniff')
-		response.header('X-Frame-Options', 'DENY')
-	}
+// Prevent caching of error responses
+set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+set('Pragma', 'no-cache')
+set('Expires', '0')
+
+// Content security
+set('X-Content-Type-Options', 'nosniff')
+set('X-Frame-Options', 'DENY')
+}
 
 	private generateRequestId(): string {
 		return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`

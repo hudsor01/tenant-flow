@@ -10,7 +10,7 @@
  */
 
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common'
-import type { FastifyRequest, FastifyReply } from 'fastify'
+import type { Request, Response } from 'express'
 
 interface RateLimitWindow {
 	requests: number
@@ -84,7 +84,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 		setInterval(() => this.cleanupExpiredEntries(), 5 * 60 * 1000)
 	}
 
-	use(req: FastifyRequest, res: FastifyReply, next: () => void): void {
+	use(req: Request, res: Response, next: () => void): void {
 		const clientIP = this.getClientIP(req)
 		const endpoint = this.getEndpointType(req.url)
 		const config = RATE_LIMIT_CONFIGS[endpoint] || RATE_LIMIT_CONFIGS.DEFAULT || {
@@ -151,20 +151,10 @@ export class RateLimitMiddleware implements NestMiddleware {
 			return
 		}
 
-		// Add rate limit headers using Node.js native approach
-		if (res.raw && res.raw.setHeader) {
-			res.raw.setHeader('X-RateLimit-Limit', config.maxRequests.toString())
-			res.raw.setHeader('X-RateLimit-Remaining', (config.maxRequests - window.requests).toString())
-			res.raw.setHeader('X-RateLimit-Reset', new Date(window.resetTime).toISOString())
-		} else {
-			try {
-				res.header('X-RateLimit-Limit', config.maxRequests.toString())
-				res.header('X-RateLimit-Remaining', (config.maxRequests - window.requests).toString())
-				res.header('X-RateLimit-Reset', new Date(window.resetTime).toISOString())
-			} catch (error) {
-				this.logger.warn('Failed to set rate limit headers', { error: error instanceof Error ? error.message : String(error) })
-			}
-		}
+		// Add rate limit headers using Express response
+		res.setHeader('X-RateLimit-Limit', config.maxRequests.toString())
+		res.setHeader('X-RateLimit-Remaining', (config.maxRequests - window.requests).toString())
+		res.setHeader('X-RateLimit-Reset', new Date(window.resetTime).toISOString())
 
 		// Log for monitoring
 		if (window.requests > config.maxRequests * 0.8) {
@@ -180,7 +170,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 		next()
 	}
 
-	private getClientIP(req: FastifyRequest): string {
+	private getClientIP(req: Request): string {
 		// Handle various proxy setups (Cloudflare, AWS ALB, etc.)
 		const forwardedFor = req.headers['x-forwarded-for'] as string
 		const realIP = req.headers['x-real-ip'] as string
@@ -217,7 +207,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 		return 'DEFAULT'
 	}
 
-	private handleRateLimitExceeded(clientIP: string, req: FastifyRequest, config: RateLimitConfig): void {
+	private handleRateLimitExceeded(clientIP: string, req: Request, config: RateLimitConfig): void {
 		this.securityLogger.warn('Rate limit exceeded', {
 			ip: clientIP,
 			endpoint: req.url,
@@ -231,7 +221,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 		this.handleSuspiciousActivity(clientIP, req, 'rate_limit_exceeded')
 	}
 
-	private handleSuspiciousActivity(clientIP: string, req: FastifyRequest, reason: string): void {
+	private handleSuspiciousActivity(clientIP: string, req: Request, reason: string): void {
 		if (!this.suspiciousIPs.has(clientIP)) {
 			this.suspiciousIPs.add(clientIP)
 

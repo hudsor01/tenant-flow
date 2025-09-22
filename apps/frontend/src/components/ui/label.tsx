@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
 
@@ -12,11 +10,11 @@ function Label({
   return (
     <LabelPrimitive.Root
       data-slot="label"
-      className={cn(
+      data-tokens="applied" className={cn(
         // Base styles
-        "tw-:flex tw-:items-center tw-:gap-2 tw-:text-sm tw-:leading-none tw-:font-medium tw-:select-none",
+        "tw-:flex tw-:items-center tw-:gap-[var(--spacing-2)] tw-:text-sm tw-:leading-none tw-:font-medium tw-:select-none",
         // Enhanced transitions
-        "tw-:transition-all tw-:duration-200 tw-:ease-in-out",
+        "tw-:transition-all tw-:duration-[var(--duration-quick)] tw-:ease-in-out",
         // Hover state for clickable labels
         "tw-:[&:has(input:not(:disabled))]:cursor-pointer",
         "tw-:hover:opacity-90",

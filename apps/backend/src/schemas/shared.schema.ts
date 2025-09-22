@@ -5,7 +5,7 @@
  * Single source of truth for validation rules
  */
 
-import type { JSONSchema } from '../shared/types/fastify-type-provider'
+import type { JSONSchema } from '../shared/types/express-type-provider'
 
 // UUID validation
 export const uuidSchema: JSONSchema = {

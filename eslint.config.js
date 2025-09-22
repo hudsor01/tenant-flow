@@ -76,7 +76,7 @@ export default [
 		rules: {
 			'type-centralization/no-inline-types': 'error',
 			'type-centralization/no-barrel-exports': [
-				'warn',
+				'error',
 				{
 					allowedBarrels: ['packages/shared/src/index.ts']
 				}

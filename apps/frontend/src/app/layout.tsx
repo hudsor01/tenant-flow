@@ -1,11 +1,12 @@
-import { GlobalLoadingIndicator } from '@/components/global-loading-indicator'
-import { PostHogPageView } from '@/components/posthog-pageview'
-import { SiteNavRoot } from '@/components/site-nav-root'
-import { WebVitals } from '@/components/web-vitals'
+// import { GlobalLoadingIndicator } from '@/components/ui/global-loading-indicator'
+import { PostHogPageView } from '@/components/layout/posthog-pageview'
+import { SiteNavRoot } from '@/components/layout/site-nav-root'
+import { WebVitals } from '@/components/layout/web-vitals'
 import PostHogClientProvider from '@/providers/posthog-provider'
 import { QueryProvider } from '@/providers/query-provider'
 import { ThemeProvider } from '@/providers/theme-provider'
 import { AuthStoreProvider } from '@/stores/auth-provider'
+import { ErrorBoundary } from '@/components/magicui/error-boundary'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
@@ -92,7 +93,7 @@ export const metadata: Metadata = {
 			{
 				url: '/safari-pinned-tab.svg',
 				rel: 'mask-icon',
-				color: 'hsl(var(--primary))'
+				color: 'var(--color-system-blue)'
 			}
 		]
 	},
@@ -105,17 +106,17 @@ export default function RootLayout({
 	children: React.ReactNode
 }) {
 	return (
-		<html lang="en" suppressHydrationWarning>
+		<html lang="en" className="light" suppressHydrationWarning>
 			<head>
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
-				<meta name="theme-color" content="hsl(var(--primary))" />
+				<meta name="theme-color" content="var(--color-system-blue)" />
 				<meta name="color-scheme" content="light dark" />
 				<meta name="mobile-web-app-capable" content="yes" />
 				<meta name="apple-mobile-web-app-capable" content="yes" />
 				<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 				<meta name="apple-mobile-web-app-title" content="TenantFlow" />
 				<meta name="application-name" content="TenantFlow" />
-				<meta name="msapplication-TileColor" content="hsl(var(--primary))" />
+				<meta name="msapplication-TileColor" content="var(--color-system-blue)" />
 				<meta name="msapplication-config" content="/browserconfig.xml" />
 				<link rel="preconnect" href="https://api.fonts.cofo.sasjs.io" />
 				<link
@@ -175,16 +176,19 @@ export default function RootLayout({
 				<ThemeProvider
 					attribute="class"
 					defaultTheme="light"
-					enableSystem
+					enableSystem={false}
 					disableTransitionOnChange
+					forcedTheme="light"
 				>
 					<QueryProvider>
 						<PostHogClientProvider>
 							<AuthStoreProvider>
-								{/* Global marketing Navbar (hidden on protected routes) */}
-								<SiteNavRoot />
-								{children}
-								<GlobalLoadingIndicator variant="bar" position="top" />
+								<ErrorBoundary>
+									{/* Global marketing Navbar (hidden on protected routes) */}
+									<SiteNavRoot />
+									{children}
+								</ErrorBoundary>
+								{/* <GlobalLoadingIndicator variant="bar" position="top" /> */}
 								<Toaster
 									position="top-right"
 									toastOptions={{

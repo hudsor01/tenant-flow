@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import * as SeparatorPrimitive from "@radix-ui/react-separator"
 
@@ -16,7 +14,7 @@ function Separator({
       data-slot="separator"
       decorative={decorative}
       orientation={orientation}
-      className={cn(
+      data-tokens="applied" className={cn(
         "tw-:bg-border tw-:shrink-0 tw-:data-[orientation=horizontal]:h-px tw-:data-[orientation=horizontal]:w-full tw-:data-[orientation=vertical]:h-full tw-:data-[orientation=vertical]:w-px",
         className
       )}

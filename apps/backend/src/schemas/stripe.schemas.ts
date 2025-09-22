@@ -7,6 +7,9 @@
 
 import { z } from 'zod'
 
+// Note: These types overlap with shared types in @repo/shared/src/types/stripe-rpc.ts
+// Could be consolidated in future migration but kept separate for Zod validation compatibility
+
 // Plan ID enum schema based on shared types
 const planIdSchema = z.enum(['STARTER', 'GROWTH', 'TENANTFLOW_MAX'])
 

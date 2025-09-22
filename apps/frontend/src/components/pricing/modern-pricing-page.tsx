@@ -7,7 +7,7 @@ import { containerClasses } from '@/lib/design-system'
 import { cn } from '@/lib/utils'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import { loadStripe } from '@stripe/stripe-js'
-import { ArrowRight, Check, Loader2, X } from 'lucide-react'
+import { ArrowRight, Check, CreditCard, Loader2, ShieldCheck, Target, Zap, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -265,17 +265,21 @@ export default function ModernPricingPage() {
 								Trusted by 10,000+ property managers worldwide
 							</p>
 							<div className="flex flex-wrap justify-center items-center gap-8">
-								<Badge variant="secondary" className="px-4 py-2">
-									🔒 Bank-level security
+								<Badge variant="secondary" className="inline-flex items-center gap-2 px-4 py-2">
+									<ShieldCheck className="h-4 w-4" aria-hidden />
+									<span>Bank-level security</span>
 								</Badge>
-								<Badge variant="secondary" className="px-4 py-2">
-									⚡ 99.9% uptime SLA
+								<Badge variant="secondary" className="inline-flex items-center gap-2 px-4 py-2">
+									<Zap className="h-4 w-4" aria-hidden />
+									<span>99.9% uptime SLA</span>
 								</Badge>
-								<Badge variant="secondary" className="px-4 py-2">
-									🎯 14-day free trial
+								<Badge variant="secondary" className="inline-flex items-center gap-2 px-4 py-2">
+									<Target className="h-4 w-4" aria-hidden />
+									<span>14-day free trial</span>
 								</Badge>
-								<Badge variant="secondary" className="px-4 py-2">
-									💳 No setup fees
+								<Badge variant="secondary" className="inline-flex items-center gap-2 px-4 py-2">
+									<CreditCard className="h-4 w-4" aria-hidden />
+									<span>No setup fees</span>
 								</Badge>
 							</div>
 						</div>

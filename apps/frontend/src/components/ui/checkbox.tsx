@@ -13,17 +13,17 @@ function Checkbox({
   return (
     <CheckboxPrimitive.Root
       data-slot="checkbox"
-      className={cn(
+      data-tokens="applied" className={cn(
         // Base styles with token-based radius
-        "peer border-input dark:bg-input/30 size-4 shrink-0 rounded-[6px] border shadow-xs outline-none",
+        "peer border-[var(--color-separator)] dark:bg-input/30 size-4 shrink-0 rounded-[6px] border shadow-[var(--shadow-xs)] outline-none",
         // Enhanced transitions
-        "transition-all duration-200 ease-in-out transform",
+        "transition-all duration-[var(--duration-quick)] ease-in-out transform",
         // Hover state
-        "hover:scale-[1.1] hover:border-input/80",
+        "hover:scale-[1.1] hover:border-[var(--color-separator)]/80",
         // Checked state
-        "data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:scale-[1.05]",
+        "data-[state=checked]:bg-[var(--color-accent-main)] data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-[var(--color-accent-main)] data-[state=checked]:border-primary data-[state=checked]:scale-[1.05]",
         // Focus state with token-based styling
-        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+        "focus-visible:border-ring focus-visible:ring-[var(--focus-ring-color)]/50 focus-visible:ring-[3px]",
         // Invalid state
         "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
         // Disabled state
@@ -35,7 +35,7 @@ function Checkbox({
     >
       <CheckboxPrimitive.Indicator
         data-slot="checkbox-indicator"
-        className="flex items-center justify-center text-current animate-in fade-in-0 zoom-in-50 duration-150"
+        className="flex items-center justify-center text-current animate-in fade-in-0 zoom-in-50 duration-[var(--duration-150)]"
       >
         <CheckIcon className="size-3.5" />
       </CheckboxPrimitive.Indicator>

@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
 		serverMinification: false,
 		esmExternals: true
 	},
+	turbopack: {},
 	eslint: {
 		dirs: ['src'],
 		ignoreDuringBuilds: true

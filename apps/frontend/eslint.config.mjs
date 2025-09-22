@@ -13,6 +13,7 @@ import nextPlugin from '@next/eslint-plugin-next'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import tseslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
+import colorTokensConfig from './.eslintrc.color-tokens.js'
 
 export default [
 
@@ -129,6 +130,19 @@ export default [
 			'@typescript-eslint/no-unsafe-return': 'off',
 			'@typescript-eslint/no-unsafe-argument': 'off',
 			'no-console': 'error'
+		}
+	},
+	{
+		name: 'frontend/design-system-color-tokens',
+		files: ['**/*.ts', '**/*.tsx'],
+		plugins: {
+			'color-tokens': colorTokensConfig
+		},
+		rules: {
+			'color-tokens/no-hex-colors': 'error',
+			'color-tokens/no-prohibited-colors': 'error',
+			'color-tokens/no-hardcoded-tailwind-colors': 'error',
+			'color-tokens/no-hardcoded-color-functions': 'error'
 		}
 	}
 ]

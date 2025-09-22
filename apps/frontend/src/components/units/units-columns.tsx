@@ -390,7 +390,13 @@ function UnitActions({ unit }: UnitActionsProps) {
 						>
 							{isDeleting ? (
 								<div className="flex items-center gap-2">
-									<div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+									<div
+										className="h-4 w-4 animate-spin rounded-full border-2"
+										style={{
+											borderColor: 'color-mix(in oklab, var(--color-fill-secondary) 60%, transparent)',
+											borderTopColor: 'var(--color-label-primary)'
+										}}
+									/>
 									<span>Deleting...</span>
 								</div>
 							) : (

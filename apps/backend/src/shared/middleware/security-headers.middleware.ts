@@ -14,7 +14,7 @@
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common'
 import type { SecurityHeadersConfig } from '@repo/shared'
 import { getCSPString } from '@repo/shared'
-import type { FastifyReply, FastifyRequest } from 'fastify'
+import type { Request, Response } from 'express'
 
 const SECURITY_CONFIG: SecurityHeadersConfig = {
 	csp: {
@@ -49,12 +49,12 @@ const SECURITY_CONFIG: SecurityHeadersConfig = {
 export class SecurityHeadersMiddleware implements NestMiddleware {
 	private readonly logger = new Logger(SecurityHeadersMiddleware.name)
 
-	use(req: FastifyRequest, res: FastifyReply, next: () => void): void {
+	use(req: Request, res: Response, next: () => void): void {
 		this.setSecurityHeaders(req, res)
 		next()
 	}
 
-	private setSecurityHeaders(req: FastifyRequest, res: FastifyReply): void {
+	private setSecurityHeaders(req: Request, res: Response): void {
 		const isSecure =
 			req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https'
 		const environment =
@@ -138,32 +138,14 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 			headers['Expires'] = '0'
 		}
 
-		// Set all headers using Node.js native approach (NestJS + Fastify compatible)
+		// Set all headers using Express response methods
 		Object.entries(headers).forEach(([key, value]) => {
-			// Use native Node.js response for reliable header setting
-			if (res.raw && res.raw.setHeader) {
-				res.raw.setHeader(key, value)
-			} else {
-				// Fallback for older Fastify versions
-				try {
-					res.header(key, value)
-				} catch (error) {
-					// If header method fails, try setting on raw response
-					if (res.raw && res.raw.setHeader) {
-						res.raw.setHeader(key, value)
-					}
-				}
-			}
+			res.setHeader(key, value)
 		})
 
 		// Server header removal (don't expose server technology)
-		// Note: Fastify may not set these headers by default, but remove them if present
-		try {
-			res.removeHeader('Server')
-			res.removeHeader('X-Powered-By')
-		} catch (error) {
-			// Ignore errors if headers don't exist
-		}
+		res.removeHeader('Server')
+		res.removeHeader('X-Powered-By')
 
 		// Log security headers application in development
 		if (environment === 'development') {
@@ -215,34 +197,14 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 	}
 
 	// Method to update CSP for specific endpoints (e.g., webhook endpoints that need different policies)
-	public static customCSP(res: FastifyReply, customDirectives: string): void {
-		// Use Node.js native approach for consistent header setting
-		if (res.raw && res.raw.setHeader) {
-			res.raw.setHeader('Content-Security-Policy', customDirectives)
-		} else {
-			try {
-				res.header('Content-Security-Policy', customDirectives)
-			} catch (error) {
-				// Silently fail if header cannot be set
-			}
-		}
+	public static customCSP(res: Response, customDirectives: string): void {
+		res.setHeader('Content-Security-Policy', customDirectives)
 	}
 
 	// Method to set CORS headers for preflight requests
-	public static setCORSHeaders(res: FastifyReply): void {
-		// Use Node.js native approach for consistent header setting
-		if (res.raw && res.raw.setHeader) {
-			res.raw.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
-			res.raw.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-Token')
-			res.raw.setHeader('Access-Control-Max-Age', '86400') // 24 hours
-		} else {
-			try {
-				res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
-				res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-Token')
-				res.header('Access-Control-Max-Age', '86400') // 24 hours
-			} catch (error) {
-				// Silently fail if headers cannot be set
-			}
-		}
+	public static setCORSHeaders(res: Response): void {
+		res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
+		res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-Token')
+		res.setHeader('Access-Control-Max-Age', '86400') // 24 hours
 	}
 }
