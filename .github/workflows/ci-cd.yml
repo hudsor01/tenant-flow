@@ -47,9 +47,11 @@ jobs:
 
       - name: Install Doppler CLI
         run: |
-          # Install Doppler CLI to user directory (no sudo required)
-          curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/install.sh | bash -s -- --no-install --directory $HOME/.doppler
-          echo "$HOME/.doppler/bin" >> $GITHUB_PATH
+          # Download and install Doppler CLI binary directly
+          wget -q https://github.com/DopplerHQ/cli/releases/latest/download/doppler_linux_amd64.tar.gz
+          tar -xzf doppler_linux_amd64.tar.gz
+          sudo mv doppler /usr/local/bin/doppler
+          chmod +x /usr/local/bin/doppler
 
       - name: Run lint, typecheck, and build in parallel
         env:
