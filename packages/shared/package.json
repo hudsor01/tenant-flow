@@ -36,12 +36,12 @@
 		"dist/**"
 	],
 	"scripts": {
-		"build": "pnpm run clean && tsc -p tsconfig.build.json",
+		"build": "pnpm clean && tsc -p tsconfig.build.json",
 		"build:cjs": "echo 'CJS build already exists'",
 		"build:esm": "echo 'ESM build skipped'",
 		"typecheck": "tsc --noEmit",
 		"check-types": "tsc --noEmit",
-		"claude:check": "pnpm run lint && pnpm run typecheck",
+		"claude:check": "pnpm lint && pnpm typecheck",
 		"lint": "eslint . --no-warn-ignored",
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write \"src/**/*.ts\"",
