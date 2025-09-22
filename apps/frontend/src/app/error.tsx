@@ -1,9 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
-
-import { Button } from '@/components/ui/button'
-
 export default function Error({
 	error,
 	reset
@@ -11,18 +7,34 @@ export default function Error({
 	error: Error & { digest?: string }
 	reset: () => void
 }) {
-	useEffect(() => {
-		console.error(error)
-	}, [error])
-
 	return (
-		<div className="flex min-h-screen flex-col items-center justify-center gap-4">
-			<h2 className="text-2xl font-bold text-[var(--color-label-primary)]">
+		<div style={{
+			minHeight: '100vh',
+			display: 'flex',
+			flexDirection: 'column',
+			alignItems: 'center',
+			justifyContent: 'center',
+			gap: '1rem',
+			fontFamily: 'system-ui',
+			padding: '2rem'
+		}}>
+			<h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
 				Something went wrong!
 			</h2>
-			<Button onClick={() => reset()} size="lg">
+			<button
+				onClick={() => reset()}
+				style={{
+					padding: '0.75rem 1.5rem',
+					backgroundColor: '#0066cc',
+					color: 'white',
+					border: 'none',
+					borderRadius: '0.5rem',
+					fontSize: '1rem',
+					cursor: 'pointer'
+				}}
+			>
 				Try again
-			</Button>
+			</button>
 		</div>
 	)
 }
