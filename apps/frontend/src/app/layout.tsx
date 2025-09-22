@@ -1,6 +1,4 @@
-// import { GlobalLoadingIndicator } from '@/components/ui/global-loading-indicator'
 import { PostHogPageView } from '@/components/layout/posthog-pageview'
-import { SiteNavRoot } from '@/components/layout/site-nav-root'
 import { WebVitals } from '@/components/layout/web-vitals'
 import PostHogClientProvider from '@/providers/posthog-provider'
 import { QueryProvider } from '@/providers/query-provider'
@@ -184,11 +182,8 @@ export default function RootLayout({
 						<PostHogClientProvider>
 							<AuthStoreProvider>
 								<ErrorBoundary>
-									{/* Global marketing Navbar (hidden on protected routes) */}
-									<SiteNavRoot />
 									{children}
 								</ErrorBoundary>
-								{/* <GlobalLoadingIndicator variant="bar" position="top" /> */}
 								<Toaster
 									position="top-right"
 									toastOptions={{

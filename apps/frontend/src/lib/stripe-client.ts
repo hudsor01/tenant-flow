@@ -27,27 +27,36 @@ export async function createCheckoutSession(
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
-  // Get current session for authentication
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+  // Get current session for authentication (optional for unauthenticated checkout)
+  const { data: { session } } = await supabase.auth.getSession()
 
-  if (sessionError || !session?.access_token) {
-    throw new Error('Authentication required. Please sign in to continue.')
+  // Call NestJS backend Stripe API - use local backend in development
+  const apiUrl = process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3001'
+    : (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.tenantflow.app')
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
   }
 
-  // Call NestJS backend Stripe API
-  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.tenantflow.app'
+  // Add auth header if user is authenticated
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`
+  }
+
   const response = await fetch(
     `${apiUrl}/api/v1/stripe/create-checkout-session`,
     {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
-      },
+      headers,
       body: JSON.stringify({
         priceId: request.priceId,
-        successUrl: `${window.location.origin}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/pricing/cancel`
+        productName: request.planName,
+        tenantId: session?.user?.id || 'pending_signup',
+        domain: window.location.origin,
+        description: request.description,
+        isSubscription: true,
+        customerEmail: session?.user?.email || undefined
       })
     }
   )
@@ -123,7 +132,9 @@ export async function createPaymentIntent({
     throw new Error('Authentication required. Please sign in to continue.')
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.tenantflow.app'
+  const apiUrl = process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3001'
+    : (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.tenantflow.app')
   const response = await fetch(
     `${apiUrl}/api/v1/stripe/create-payment-intent`,
     {
