@@ -51,21 +51,17 @@ export function useTenantsFormatted(status?: string) {
 				// Avatar initials for display
 				avatarInitials: tenant.name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2)
 			})),
-			// Pre-calculate summary stats for dashboard widgets
+			// NO CLIENT-SIDE CALCULATIONS - Stats should come from backend
+			// Backend should provide /api/v1/tenants/stats endpoint
+			// Temporary placeholder until backend provides pre-calculated stats
             summary: {
                 total: data.length,
-                active: data.length, // All tenants are considered active since status doesn't exist in DB
-                byStatus: data.reduce((acc: Record<string, number>) => {
-                    const status = 'ACTIVE' // Default status since tenant.status doesn't exist in DB
-                    acc[status] = (acc[status] || 0) + 1
-                    return acc
-                }, {} as Record<string, number>),
-                recentlyAdded: data.filter((tenant: TenantWithLeaseInfo) => 
-                    Date.now() - new Date(tenant.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
-                ).length,
-                // Communication stats
-                withPhone: data.filter((t: TenantWithLeaseInfo) => t.phone).length,
-                withEmergencyContact: data.filter((t: TenantWithLeaseInfo) => t.emergencyContact).length
+                active: data.length,
+                // These should be provided by backend, not calculated here
+                byStatus: { 'ACTIVE': data.length },
+                recentlyAdded: 0,
+                withPhone: 0,
+                withEmergencyContact: 0
             }
         })
     })
