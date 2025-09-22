@@ -47,11 +47,9 @@ jobs:
 
       - name: Install Doppler CLI
         run: |
-          # Install Doppler CLI for managing secrets
-          curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/install.sh | sh
-
-      - name: Add Doppler to PATH
-        run: echo "$HOME/.doppler/bin" >> $GITHUB_PATH
+          # Install Doppler CLI to user directory (no sudo required)
+          curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/install.sh | bash -s -- --no-install --directory $HOME/.doppler
+          echo "$HOME/.doppler/bin" >> $GITHUB_PATH
 
       - name: Run lint, typecheck, and build in parallel
         env:
