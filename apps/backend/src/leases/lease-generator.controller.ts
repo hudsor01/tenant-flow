@@ -10,7 +10,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common'
 import { Logger } from '@nestjs/common'
-import type { FastifyReply } from 'fastify'
+import type { Response } from 'express'
 import { LeasePDFService } from '../pdf/lease-pdf.service'
 import type { LeaseFormData } from '@repo/shared'
 
@@ -92,7 +92,7 @@ export class LeaseGeneratorController {
   @Get('download/:filename')
   async downloadLease(
     @Param('filename') filename: string,
-    @Res() reply: FastifyReply
+    @Res() reply: Response
   ) {
     try {
       // In production, you would:
@@ -123,7 +123,7 @@ export class LeaseGeneratorController {
   @Get('preview/:filename')
   async previewLease(
     @Param('filename') filename: string,
-    @Res() reply: FastifyReply
+    @Res() reply: Response
   ) {
     try {
       // Generate sample PDF for preview

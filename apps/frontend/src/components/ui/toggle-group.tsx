@@ -28,8 +28,8 @@ function ToggleGroup({
 			data-slot="toggle-group"
 			data-variant={variant}
 			data-size={size}
-			className={cn(
-				'group/toggle-group flex w-fit items-center rounded-md data-[variant=outline]:shadow-xs',
+			data-tokens="applied" className={cn(
+				'group/toggle-group flex w-fit items-center rounded-[var(--radius-medium)] data-[variant=outline]:shadow-[var(--shadow-xs)]',
 				className
 			)}
 			{...props}
@@ -56,7 +56,7 @@ function ToggleGroupItem({
 			data-slot="toggle-group-item"
 			data-variant={context.variant || variant}
 			data-size={context.size || size}
-			className={cn(
+			data-tokens="applied" className={cn(
 				toggleVariants({
 					variant: context.variant || variant,
 					size: context.size || size

@@ -1,8 +1,8 @@
+import { Navbar } from '@/components/layout/navbar'
+import { HeroAuthority } from '@/components/marketing/hero-authority'
+import Footer from '@/components/layout/footer'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Navbar } from '@/components/navbar'
-import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { FooterMinimal } from '@/components/sections/footer-minimal'
 import {
 	ArrowRight,
 	BarChart3,
@@ -13,7 +13,6 @@ import {
 	Zap
 } from 'lucide-react'
 import Link from 'next/link'
-
 
 export default function BlogPage() {
 	return (
@@ -215,7 +214,7 @@ export default function BlogPage() {
 								title:
 									'Save 20+ Hours Per Week: Complete Task Automation Blueprint',
 								excerpt:
-									'How property managers automate rent collection, lease renewals, and tenant communications to reclaim their time and scale operations.',
+									'How property managers automate maintenance tracking, lease renewals, and tenant communications to reclaim their time and scale operations.',
 								category: 'Automation',
 								readTime: '12 min read',
 								date: 'Mar 10, 2024',
@@ -296,7 +295,7 @@ export default function BlogPage() {
 				</div>
 			</section>
 
-			<FooterMinimal />
+			<Footer />
 		</main>
 	)
 }

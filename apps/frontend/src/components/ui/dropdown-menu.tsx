@@ -41,9 +41,9 @@ function DropdownMenuContent({
 			<DropdownMenuPrimitive.Content
 				data-slot="dropdown-menu-content"
 				sideOffset={sideOffset}
-				className={cn(
+				data-tokens="applied" className={cn(
 					// Base styles with token-based radius
-					'bg-popover text-popover-foreground z-50 min-w-[8rem] rounded-[12px] border p-1 shadow-md',
+					'bg-popover text-popover-foreground z-50 min-w-[8rem] rounded-[12px] border p-1 shadow-[var(--shadow-medium)]',
 					'max-h-(--radix-dropdown-menu-content-available-height) origin-(--radix-dropdown-menu-content-transform-origin)',
 					'overflow-x-hidden overflow-y-auto',
 					// Enhanced animations
@@ -56,7 +56,7 @@ function DropdownMenuContent({
 					'data-[side=right]:slide-in-from-left-2',
 					'data-[side=top]:slide-in-from-bottom-2',
 					// Smooth transitions
-					'transition-all duration-200 ease-out',
+					'transition-all duration-[var(--duration-quick)] ease-out',
 					className
 				)}
 				style={props.style}
@@ -88,26 +88,26 @@ function DropdownMenuItem({
 			data-slot="dropdown-menu-item"
 			data-inset={inset}
 			data-variant={variant}
-			className={cn(
+			data-tokens="applied" className={cn(
 				// Base styles with token-based radius
-				"relative flex cursor-default items-center gap-2 rounded-[8px] px-2 py-1.5 text-sm outline-hidden select-none",
+				"relative flex cursor-default items-center gap-[var(--spacing-2)] rounded-[8px] px-2 py-1.5 text-sm outline-hidden select-none",
 				// Focus and hover states
 				"focus:bg-accent focus:text-accent-foreground",
 				"hover:bg-accent/50 hover:scale-[1.02]",
-				"active:scale-[0.98] active:duration-150",
+				"active:scale-[0.98] active:duration-[var(--duration-150)]",
 				// Destructive variant
 				"data-[variant=destructive]:text-destructive",
 				"data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20",
 				"data-[variant=destructive]:focus:text-destructive",
 				"data-[variant=destructive]:*:[svg]:!text-destructive",
 				// Icon and inset styling
-				"[&_svg:not([class*='text-'])]:text-muted-foreground",
+				"[&_svg:not([class*='text-'])]:text-[var(--color-label-tertiary)]",
 				"data-[inset]:pl-8",
 				"[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 				// Disabled state
 				"data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
 				// Smooth transitions
-				"transition-all duration-200 ease-out",
+				"transition-all duration-[var(--duration-quick)] ease-out",
 				className
 			)}
 			{...props}
@@ -124,8 +124,8 @@ function DropdownMenuCheckboxItem({
 	return (
 		<DropdownMenuPrimitive.CheckboxItem
 			data-slot="dropdown-menu-checkbox-item"
-			className={cn(
-				"focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 transition-all",
+			data-tokens="applied" className={cn(
+				"focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-[var(--spacing-2)] rounded-[var(--radius-small)] py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 transition-all",
 				className
 			)}
 			checked={checked}
@@ -160,8 +160,8 @@ function DropdownMenuRadioItem({
 	return (
 		<DropdownMenuPrimitive.RadioItem
 			data-slot="dropdown-menu-radio-item"
-			className={cn(
-				"focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 transition-all",
+			data-tokens="applied" className={cn(
+				"focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-[var(--spacing-2)] rounded-[var(--radius-small)] py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 transition-all",
 				className
 			)}
 			{...props}
@@ -187,7 +187,7 @@ function DropdownMenuLabel({
 		<DropdownMenuPrimitive.Label
 			data-slot="dropdown-menu-label"
 			data-inset={inset}
-			className={cn(
+			data-tokens="applied" className={cn(
 				'px-2 py-1.5 text-sm font-medium data-[inset]:pl-8 transition-all',
 				className
 			)}
@@ -203,7 +203,7 @@ function DropdownMenuSeparator({
 	return (
 		<DropdownMenuPrimitive.Separator
 			data-slot="dropdown-menu-separator"
-			className={cn('bg-border -mx-1 my-1 h-px transition-all', className)}
+			data-tokens="applied" className={cn('bg-border -mx-1 my-1 h-px transition-all', className)}
 			{...props}
 		/>
 	)
@@ -216,8 +216,8 @@ function DropdownMenuShortcut({
 	return (
 		<span
 			data-slot="dropdown-menu-shortcut"
-			className={cn(
-				'text-muted-foreground ml-auto text-xs tracking-widest transition-all',
+			data-tokens="applied" className={cn(
+				'text-[var(--color-label-tertiary)] ml-auto text-xs tracking-widest transition-all',
 				className
 			)}
 			{...props}
@@ -243,8 +243,8 @@ function DropdownMenuSubTrigger({
 		<DropdownMenuPrimitive.SubTrigger
 			data-slot="dropdown-menu-sub-trigger"
 			data-inset={inset}
-			className={cn(
-				'focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[inset]:pl-8 transition-all',
+			data-tokens="applied" className={cn(
+				'focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex cursor-default items-center rounded-[var(--radius-small)] px-2 py-1.5 text-sm outline-hidden select-none data-[inset]:pl-8 transition-all',
 				className
 			)}
 			{...props}
@@ -262,9 +262,9 @@ function DropdownMenuSubContent({
 	return (
 		<DropdownMenuPrimitive.SubContent
 			data-slot="dropdown-menu-sub-content"
-			className={cn(
+			data-tokens="applied" className={cn(
 				// Base styles with token-based radius
-				'bg-popover text-popover-foreground z-50 min-w-[8rem] rounded-[12px] border p-1 shadow-lg overflow-hidden',
+				'bg-popover text-popover-foreground z-50 min-w-[8rem] rounded-[12px] border p-1 shadow-[var(--shadow-large)] overflow-hidden',
 				'origin-(--radix-dropdown-menu-content-transform-origin)',
 				// Enhanced animations
 				'data-[state=open]:animate-in data-[state=closed]:animate-out',
@@ -276,7 +276,7 @@ function DropdownMenuSubContent({
 				'data-[side=right]:slide-in-from-left-2',
 				'data-[side=top]:slide-in-from-bottom-2',
 				// Smooth transitions
-				'transition-all duration-200 ease-out',
+				'transition-all duration-[var(--duration-quick)] ease-out',
 				className
 			)}
 			style={props.style}

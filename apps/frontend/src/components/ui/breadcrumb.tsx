@@ -12,8 +12,8 @@ function BreadcrumbList({ className, ...props }: React.ComponentProps<'ol'>) {
 	return (
 		<ol
 			data-slot="breadcrumb-list"
-			className={cn(
-				'text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm break-words sm:gap-2.5',
+			data-tokens="applied" className={cn(
+				'text-[var(--color-label-tertiary)] flex flex-wrap items-center gap-[var(--spacing-1_5)] text-[var(--font-size-sm)] break-words sm:gap-[var(--spacing-2_5)]',
 				className
 			)}
 			{...props}
@@ -25,7 +25,7 @@ function BreadcrumbItem({ className, ...props }: React.ComponentProps<'li'>) {
 	return (
 		<li
 			data-slot="breadcrumb-item"
-			className={cn('inline-flex items-center gap-1.5', className)}
+			data-tokens="applied" className={cn('inline-flex items-center gap-[var(--spacing-1_5)]', className)}
 			{...props}
 		/>
 	)
@@ -43,15 +43,15 @@ function BreadcrumbLink({
 	return (
 		<Comp
 			data-slot="breadcrumb-link"
-			className={cn(
+			data-tokens="applied" className={cn(
 				// Enhanced transitions
-				'transition-all duration-200 ease-in-out',
+				'transition-all duration-[var(--duration-quick)] ease-[var(--ease-out-smooth)]',
 				// Hover state
-				'hover:text-foreground hover:underline hover:underline-offset-4',
+				'hover:text-[var(--color-label-primary)] hover:underline hover:underline-offset-[var(--spacing-1)]',
 				// Focus state
-				'focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-4',
+				'focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-[var(--spacing-1)]',
 				// Active state
-				'active:opacity-70 active:duration-150',
+				'active:opacity-70 active:duration-[var(--duration-150)]',
 				className
 			)}
 			{...props}
@@ -66,7 +66,7 @@ function BreadcrumbPage({ className, ...props }: React.ComponentProps<'span'>) {
 			role="link"
 			aria-disabled="true"
 			aria-current="page"
-			className={cn('text-foreground font-normal', className)}
+			data-tokens="applied" className={cn('text-[var(--color-label-primary)] font-[var(--font-weight-normal)]', className)}
 			{...props}
 		/>
 	)
@@ -82,7 +82,7 @@ function BreadcrumbSeparator({
 			data-slot="breadcrumb-separator"
 			role="presentation"
 			aria-hidden="true"
-			className={cn('[&>svg]:size-3.5', className)}
+			data-tokens="applied" className={cn('[&>svg]:size-[var(--spacing-3_5)]', className)}
 			{...props}
 		>
 			{children ?? <ChevronRight />}
@@ -99,13 +99,13 @@ function BreadcrumbEllipsis({
 			data-slot="breadcrumb-ellipsis"
 			role="presentation"
 			aria-hidden="true"
-			className={cn(
+			data-tokens="applied" className={cn(
 				// Base styles with token-based radius
-				'flex size-9 items-center justify-center rounded-[8px]',
+				'flex size-[var(--spacing-9)] items-center justify-center rounded-[var(--radius-small)]',
 				// Enhanced transitions
-				'transition-all duration-200 ease-in-out',
+				'transition-all duration-[var(--duration-quick)] ease-[var(--ease-out-smooth)]',
 				// Hover state
-				'hover:bg-accent hover:text-accent-foreground',
+				'hover:bg-[var(--color-fill-secondary)] hover:text-[var(--color-label-primary)]',
 				className
 			)}
 			{...props}

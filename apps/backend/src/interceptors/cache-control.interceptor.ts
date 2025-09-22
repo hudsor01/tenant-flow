@@ -5,7 +5,7 @@ import {
   NestInterceptor
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import type { FastifyReply } from 'fastify'
+import type { Response } from 'express'
 import { Observable } from 'rxjs'
 
 const IS_PUBLIC_KEY = 'isPublic'
@@ -21,7 +21,7 @@ export class CacheControlInterceptor implements NestInterceptor {
     const request = context
       .switchToHttp()
       .getRequest<{ method?: string; url?: string }>()
-    const reply = context.switchToHttp().getResponse<FastifyReply>()
+    const reply = context.switchToHttp().getResponse<Response>()
 
     // Safe Reflector access with fallback
     const isPublic = this.reflector?.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [

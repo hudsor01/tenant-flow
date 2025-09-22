@@ -209,6 +209,7 @@ export interface MaintenanceStats extends BaseStats {
   open: number
   inProgress: number
   completed: number
+  completedToday: number
   avgResolutionTime: number
   byPriority: {
     low: number

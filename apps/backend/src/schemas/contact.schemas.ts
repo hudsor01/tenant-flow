@@ -5,7 +5,7 @@
  * Replaces class-validator DTOs with type-safe schema definitions.
  */
 
-import type { JSONSchema } from '../shared/types/fastify-type-provider'
+import type { JSONSchema } from '../shared/types/express-type-provider'
 
 /**
  * Contact form submission request

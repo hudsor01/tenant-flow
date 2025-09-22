@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import type { Config } from '../config/config.schema'
+import type { WebVitalsDto } from './dto/web-vitals.dto'
 
 @Injectable()
 export class AnalyticsService {
@@ -56,5 +57,22 @@ export class AnalyticsService {
 		}).catch((error) => {
 			this.logger.error('Failed to send analytics event', error)
 		})
+	}
+
+	recordWebVitalMetric(metric: WebVitalsDto, distinctId?: string) {
+		const { userId, sessionId, ...properties } = metric
+		const eventProperties: Record<string, unknown> = {
+			...properties,
+			sessionId,
+			receivedAt: new Date().toISOString(),
+			source: 'web-vitals-endpoint'
+		}
+
+		if (!eventProperties.timestamp) {
+			eventProperties.timestamp = eventProperties.receivedAt
+		}
+
+		const eventName = `web_vital:${metric.name.toLowerCase()}`
+		this.track(distinctId ?? userId ?? sessionId ?? metric.id, eventName, eventProperties)
 	}
 }

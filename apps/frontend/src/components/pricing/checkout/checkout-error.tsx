@@ -1,17 +1,17 @@
 'use client'
 
-import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { animated } from '@react-spring/web'
+import { AlertTriangle, RefreshCw } from 'lucide-react'
 
 type Props = {
 	message: string
-	onRetry: () => void
+	onRetryAction: () => void
 	spring: { opacity: number; transform: string }
 }
 
-export function CheckoutError({ message, onRetry, spring }: Props) {
+export function CheckoutError({ message, onRetryAction, spring }: Props) {
 	return (
 		<animated.div style={spring}>
 			<div
@@ -29,7 +29,7 @@ export function CheckoutError({ message, onRetry, spring }: Props) {
 						<p className="body-md text-muted-foreground">{message}</p>
 					</div>
 					<Button
-						onClick={onRetry}
+						onClick={onRetryAction}
 						className={cn('btn-primary', 'w-full transition-fast')}
 						size="sm"
 					>

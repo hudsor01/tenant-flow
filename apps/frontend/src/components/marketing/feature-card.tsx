@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import * as React from 'react'
