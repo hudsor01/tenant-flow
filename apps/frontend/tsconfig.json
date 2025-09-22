@@ -20,7 +20,10 @@
 			"@repo/shared": ["../../packages/shared/src"],
 			"@repo/shared/*": ["../../packages/shared/src/*"]
 		},
-		"types": ["node", "react", "react-dom"]
+		"types": ["node", "react", "react-dom"],
+		"composite": true,
+		"declaration": true,
+		"noEmit": false
 	},
 	"include": [
 		"next-env.d.ts",

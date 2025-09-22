@@ -48,7 +48,7 @@
 		"nest-commander": "3.20.0",
 		"nestjs-pino": "4.4.0",
 		"pino-http": "10.5.0",
-		"posthog-js": "1.266.3",
+		"posthog-js": "catalog:",
 		"puppeteer": "^24.22.0",
 		"reflect-metadata": "0.2.2",
 		"resend": "6.1.0",
