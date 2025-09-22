@@ -1,7 +1,7 @@
 name: CI/CD
 on: [pull_request, push]
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
 
 jobs:
   build-and-test:
@@ -27,58 +27,134 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-          cache-dependency-path: '**/pnpm-lock.yaml'
+          cache-dependency-path: 'pnpm-lock.yaml'
+
+      - name: Debug environment setup
+        run: |
+          echo "=== Environment Debug Info ==="
+          echo "Node.js version: $(node --version)"
+          echo "npm version: $(npm --version)"
+          echo "pnpm version: $(pnpm --version)"
+          echo "pnpm store path: $(pnpm store path)"
+          echo "Working directory: $(pwd)"
+          echo "Available disk space: $(df -h .)"
+          echo "Memory usage: $(free -h)"
+          echo "=========================="
+
+      - name: Configure pnpm for CI
+        run: |
+          echo "Configuring pnpm for CI environment..."
+          pnpm config set network-timeout 300000
+          pnpm config set registry https://registry.npmjs.org/
+          echo "pnpm configuration complete"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Doppler CLI
+      - name: Install Doppler CLI with verbose output
         run: |
-          # Download and install Doppler CLI binary directly
-          wget -q https://github.com/DopplerHQ/cli/releases/latest/download/doppler_linux_amd64.tar.gz
+          echo "=== Installing Doppler CLI ==="
+          echo "Downloading from GitHub releases..."
+          wget -v https://github.com/DopplerHQ/cli/releases/latest/download/doppler_linux_amd64.tar.gz
+          echo "Extracting archive..."
           tar -xzf doppler_linux_amd64.tar.gz
+          echo "Installing to /usr/local/bin..."
           sudo mv doppler /usr/local/bin/doppler
           chmod +x /usr/local/bin/doppler
+          echo "Verifying installation..."
+          doppler --version
+          echo "Doppler CLI installation complete"
+          echo "=========================="
 
-      - name: Run lint, typecheck, and build in parallel
+      - name: Validate required secrets
+        run: |
+          echo "=== Secret Validation ==="
+          MISSING_SECRETS=""
+
+          if [ -z "$DOPPLER_TOKEN" ]; then
+            echo "ERROR: DOPPLER_TOKEN is missing"
+            MISSING_SECRETS="$MISSING_SECRETS DOPPLER_TOKEN"
+          else
+            echo "✓ DOPPLER_TOKEN is present"
+          fi
+
+          if [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
+            echo "ERROR: NEXT_PUBLIC_SUPABASE_ANON_KEY is missing"
+            MISSING_SECRETS="$MISSING_SECRETS NEXT_PUBLIC_SUPABASE_ANON_KEY"
+          else
+            echo "✓ NEXT_PUBLIC_SUPABASE_ANON_KEY is present"
+          fi
+
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then
+            echo "ERROR: NEXT_PUBLIC_SUPABASE_URL is missing"
+            MISSING_SECRETS="$MISSING_SECRETS NEXT_PUBLIC_SUPABASE_URL"
+          else
+            echo "✓ NEXT_PUBLIC_SUPABASE_URL is present"
+          fi
+
+          if [ -n "$MISSING_SECRETS" ]; then
+            echo "FATAL: Missing required secrets:$MISSING_SECRETS"
+            exit 1
+          fi
+          echo "========================="
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+
+      - name: Run lint, typecheck, and build with verbose monitoring
         env:
           BACKEND_SCHEMAS_DIR: ./supabase/schema-exports
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
         run: |
-          # Run lint, typecheck, and build in parallel to save time
+          echo "=== Starting parallel builds ==="
+          echo "Starting lint process..."
           pnpm lint &
           LINT_PID=$!
+          echo "Lint PID: $LINT_PID"
+
+          echo "Starting typecheck process..."
           pnpm typecheck &
           TYPECHECK_PID=$!
+          echo "Typecheck PID: $TYPECHECK_PID"
+
+          echo "Starting build process..."
           pnpm build:ci &
           BUILD_PID=$!
+          echo "Build PID: $BUILD_PID"
 
-          # Wait for all jobs and capture exit codes
-          LINT_EXIT=0
-          TYPECHECK_EXIT=0
-          BUILD_EXIT=0
+          echo "Waiting for processes to complete..."
 
-          wait $LINT_PID || LINT_EXIT=$?
-          wait $TYPECHECK_PID || TYPECHECK_EXIT=$?
-          wait $BUILD_PID || BUILD_EXIT=$?
+          wait $LINT_PID
+          LINT_EXIT=$?
+          echo "Lint completed with exit code: $LINT_EXIT"
 
-          # Report any failures
+          wait $TYPECHECK_PID
+          TYPECHECK_EXIT=$?
+          echo "Typecheck completed with exit code: $TYPECHECK_EXIT"
+
+          wait $BUILD_PID
+          BUILD_EXIT=$?
+          echo "Build completed with exit code: $BUILD_EXIT"
+
           if [ $LINT_EXIT -ne 0 ]; then
-            echo "❌ Lint failed with exit code $LINT_EXIT"
+            echo "ERROR: Lint failed with exit code $LINT_EXIT"
           fi
           if [ $TYPECHECK_EXIT -ne 0 ]; then
-            echo "❌ Typecheck failed with exit code $TYPECHECK_EXIT"
+            echo "ERROR: Typecheck failed with exit code $TYPECHECK_EXIT"
           fi
           if [ $BUILD_EXIT -ne 0 ]; then
-            echo "❌ Build failed with exit code $BUILD_EXIT"
+            echo "ERROR: Build failed with exit code $BUILD_EXIT"
           fi
 
-          # Exit if any job failed
           if [ $LINT_EXIT -ne 0 ] || [ $TYPECHECK_EXIT -ne 0 ] || [ $BUILD_EXIT -ne 0 ]; then
+            echo "FATAL: One or more build processes failed"
             exit 1
           fi
+
+          echo "=== All builds completed successfully ==="
 
       - name: Run unit tests
         run: pnpm test:unit
@@ -106,7 +182,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-          cache-dependency-path: '**/pnpm-lock.yaml'
+          cache-dependency-path: 'pnpm-lock.yaml'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -114,13 +190,43 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli@3
 
-      - name: Deploy to Railway
+      - name: Validate Railway secrets
         run: |
+          echo "=== Railway Secret Validation ==="
+          MISSING_SECRETS=""
+
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "ERROR: RAILWAY_TOKEN is missing"
+            MISSING_SECRETS="$MISSING_SECRETS RAILWAY_TOKEN"
+          else
+            echo "✓ RAILWAY_TOKEN is present"
+          fi
+
           if [ -z "$RAILWAY_PROJECT_ID" ]; then
-            echo "Error: RAILWAY_PROJECT_ID secret is required"
+            echo "ERROR: RAILWAY_PROJECT_ID is missing"
+            MISSING_SECRETS="$MISSING_SECRETS RAILWAY_PROJECT_ID"
+          else
+            echo "✓ RAILWAY_PROJECT_ID is present"
+          fi
+
+          if [ -n "$MISSING_SECRETS" ]; then
+            echo "FATAL: Missing required Railway secrets:$MISSING_SECRETS"
             exit 1
           fi
+          echo "========================="
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+
+      - name: Deploy to Railway with verbose output
+        run: |
+          echo "=== Starting Railway Deployment ==="
+          echo "Project ID: $RAILWAY_PROJECT_ID"
+          echo "Service: tenantflow-backend"
+          echo "Deploying..."
           railway up --service tenantflow-backend
+          echo "Railway deployment complete"
+          echo "=========================="
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
