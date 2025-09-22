@@ -12,6 +12,20 @@ const nextConfig: NextConfig = {
 		ignoreDuringBuilds: false
 	},
 
+	// Webpack configuration to suppress Supabase Edge Runtime warnings
+	webpack: (config, { isServer }) => {
+		// Suppress specific warnings from Supabase libraries in Edge Runtime
+		if (!isServer) {
+			config.ignoreWarnings = [
+				{
+					module: /supabase/,
+					message: /which is not supported in the Edge Runtime/
+				}
+			]
+		}
+		return config
+	},
+
 	// Experimental performance optimizations
 	experimental: {
 		optimizePackageImports: [

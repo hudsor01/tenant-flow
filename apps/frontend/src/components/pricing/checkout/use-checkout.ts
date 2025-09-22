@@ -4,7 +4,7 @@ import { createPaymentIntent } from '@/lib/stripe-client'
 import { useElements, useStripe } from '@stripe/react-stripe-js'
 import type { PaymentIntent, StripeError } from '@stripe/stripe-js'
 import { useMutation } from '@tanstack/react-query'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 export type CheckoutStatus = 'idle' | 'processing' | 'succeeded' | 'failed'
 
@@ -48,12 +48,15 @@ export function useCheckout({
 		}
 	})
 
+	// Memoize metadata to avoid dependency issues
+	const metadataString = useMemo(() => JSON.stringify(metadata), [metadata])
+
 	useEffect(() => {
 		if (amount && currency) {
 			paymentIntentMutation.mutate()
 		}
-		// Note: Dependencies intentionally limited to avoid infinite loops
-	}, [amount, currency, customerEmail, JSON.stringify(metadata)])
+		// Note: paymentIntentMutation.mutate is stable and doesn't need to be in deps
+	}, [amount, currency, customerEmail, metadataString, paymentIntentMutation])
 
 	const confirmPayment = useCallback(async () => {
 		if (!stripe || !elements || !paymentIntentMutation.data?.clientSecret) {
