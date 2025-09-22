@@ -131,7 +131,7 @@ export class UnitsService {
 				p_bedrooms: createRequest.bedrooms,
 				p_bathrooms: createRequest.bathrooms,
 				p_square_feet: createRequest.squareFeet || undefined,
-				p_rent: createRequest.rent,
+				p_rent: createRequest.rent || createRequest.rentAmount,
 				p_status: createRequest.status || 'VACANT'
 			})
 			.single()
@@ -164,7 +164,7 @@ export class UnitsService {
 				p_bedrooms: updateRequest.bedrooms,
 				p_bathrooms: updateRequest.bathrooms,
 				p_square_feet: updateRequest.squareFeet,
-				p_rent: updateRequest.rent,
+				p_rent: updateRequest.rent || updateRequest.rentAmount,
 				p_status: updateRequest.status
 			})
 			.single()

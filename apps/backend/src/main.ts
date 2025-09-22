@@ -11,10 +11,8 @@ import { registerExpressMiddleware } from './config/express.config'
 import { HEALTH_PATHS } from './shared/constants/routes'
 
 // Extend Express Request interface for request timing
-declare module 'express-serve-static-core' {
-	interface Request {
-		startTime?: number
-	}
+interface RequestWithTiming extends Request {
+	startTime?: number
 }
 
 async function bootstrap() {
@@ -117,13 +115,13 @@ async function bootstrap() {
 
 	// Health endpoint is now handled by HealthController at /api/v1/health
 	// Express request timing middleware
-	app.use((req: Request, _res: Response, next: () => void) => {
+	app.use((req: RequestWithTiming, _res: Response, next: () => void) => {
 		req.startTime = Date.now()
 		next()
 	})
 
 	// Express response logging middleware
-	app.use((req: Request, res: Response, next: () => void) => {
+	app.use((req: RequestWithTiming, res: Response, next: () => void) => {
 		const originalSend = res.send
 		res.send = function (body) {
 			const duration = Date.now() - (req.startTime ?? Date.now())

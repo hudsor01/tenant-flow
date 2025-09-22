@@ -133,7 +133,9 @@ export class TenantsService {
 			.getAdminClient()
 			.rpc('create_tenant', {
 				p_user_id: userId,
-				p_name: createRequest.name,
+				p_name:
+					createRequest.name ||
+					`${createRequest.firstName} ${createRequest.lastName}`,
 				p_email: createRequest.email,
 				p_phone: createRequest.phone || undefined,
 				p_emergency_contact: createRequest.emergencyContact || undefined
@@ -183,7 +185,11 @@ export class TenantsService {
 			.rpc('update_tenant', {
 				p_user_id: userId,
 				p_tenant_id: tenantId,
-				p_name: updateRequest.name,
+				p_name:
+					updateRequest.name ||
+					(updateRequest.firstName && updateRequest.lastName
+						? `${updateRequest.firstName} ${updateRequest.lastName}`
+						: undefined),
 				p_email: updateRequest.email,
 				p_phone: updateRequest.phone,
 				p_emergency_contact: updateRequest.emergencyContact
