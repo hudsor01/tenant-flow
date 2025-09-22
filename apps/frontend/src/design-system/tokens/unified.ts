@@ -415,7 +415,7 @@ export function generateCSSCustomProperties(
 				value !== null &&
 				!Array.isArray(value)
 			) {
-				flatten(value, cssKey)
+				flatten(value as Record<string, unknown>, cssKey)
 			} else {
 				cssProperties[`${prefix}${cssKey}`] = String(value)
 			}
@@ -435,13 +435,13 @@ export function getToken<T>(path: string, defaultValue?: T): T | undefined {
 
 	for (const key of keys) {
 		if (current && typeof current === 'object' && key in current) {
-			current = current[key]
+			current = (current as Record<string, unknown>)[key]
 		} else {
 			return defaultValue
 		}
 	}
 
-	return current
+	return current as T
 }
 
 /**

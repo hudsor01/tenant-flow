@@ -198,7 +198,7 @@ export default function ContactPage() {
 
 									<div className="text-center">
 										<Button
-											variant="primaryGlass"
+											variant="default"
 											className="px-8 py-3 text-base font-semibold"
 										>
 											<span className="inline-flex items-center">

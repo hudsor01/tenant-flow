@@ -141,7 +141,8 @@ export class PropertiesService {
 				p_user_id: userId,
 				p_name: createRequest.name,
 				p_address: formatAddress(createRequest) || createRequest.address,
-				p_type: createRequest.propertyType || 'SINGLE_FAMILY',
+				p_type:
+					createRequest.propertyType || createRequest.type || 'SINGLE_FAMILY',
 				p_description: createRequest.description
 			})
 			.single()
@@ -184,7 +185,7 @@ export class PropertiesService {
 				p_property_id: propertyId,
 				p_name: updateRequest.name,
 				p_address: formatAddress(updateRequest),
-				p_type: updateRequest.propertyType,
+				p_type: updateRequest.propertyType || updateRequest.type,
 				p_description: updateRequest.description
 			})
 			.single()

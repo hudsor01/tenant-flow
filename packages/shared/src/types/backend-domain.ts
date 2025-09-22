@@ -115,6 +115,13 @@ export interface CreatePropertyRequest {
 		| 'CONDO'
 		| 'TOWNHOUSE'
 		| 'COMMERCIAL'
+	propertyType?:
+		| 'SINGLE_FAMILY'
+		| 'MULTI_FAMILY'
+		| 'APARTMENT'
+		| 'CONDO'
+		| 'TOWNHOUSE'
+		| 'COMMERCIAL'
 	amenities?: string[]
 }
 
@@ -127,6 +134,13 @@ export interface UpdatePropertyRequest {
 	unitCount?: number
 	description?: string
 	type?:
+		| 'SINGLE_FAMILY'
+		| 'MULTI_FAMILY'
+		| 'APARTMENT'
+		| 'CONDO'
+		| 'TOWNHOUSE'
+		| 'COMMERCIAL'
+	propertyType?:
 		| 'SINGLE_FAMILY'
 		| 'MULTI_FAMILY'
 		| 'APARTMENT'
@@ -162,6 +176,8 @@ export interface CreateUnitRequest {
 	squareFeet?: number
 	rentAmount?: number
 	isAvailable?: boolean
+	rent?: number
+	status?: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED' | 'UNAVAILABLE'
 }
 
 export interface UpdateUnitRequest {
@@ -171,6 +187,8 @@ export interface UpdateUnitRequest {
 	squareFeet?: number
 	rentAmount?: number
 	isAvailable?: boolean
+	rent?: number
+	status?: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED' | 'UNAVAILABLE'
 }
 
 export interface UnitQueryRequest {
@@ -278,6 +296,8 @@ export interface CreateTenantRequest {
 	phone?: string
 	dateOfBirth?: string
 	ssn?: string
+	name?: string
+	emergencyContact?: string
 }
 
 export interface UpdateTenantRequest {
@@ -286,6 +306,8 @@ export interface UpdateTenantRequest {
 	email?: string
 	phone?: string
 	dateOfBirth?: string
+	name?: string
+	emergencyContact?: string
 }
 
 export interface TenantQueryRequest {
