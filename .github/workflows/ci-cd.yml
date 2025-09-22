@@ -1,12 +1,13 @@
 name: CI/CD
 on: [pull_request, push]
+
 env:
   NODE_VERSION: '22'
 
 jobs:
-  build-and-test:
+  ci:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     concurrency:
       group: ci-${{ github.ref }}
       cancel-in-progress: true
@@ -29,227 +30,31 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: 'pnpm-lock.yaml'
 
-      - name: Debug environment setup
-        run: |
-          echo "=== Environment Debug Info ==="
-          echo "Node.js version: $(node --version)"
-          echo "npm version: $(npm --version)"
-          echo "pnpm version: $(pnpm --version)"
-          echo "pnpm store path: $(pnpm store path)"
-          echo "Working directory: $(pwd)"
-          echo "Available disk space: $(df -h .)"
-          echo "Memory usage: $(free -h)"
-          echo "=========================="
-
-      - name: Configure pnpm for CI
-        run: |
-          echo "Configuring pnpm for CI environment..."
-          pnpm config set network-timeout 300000
-          pnpm config set registry https://registry.npmjs.org/
-          echo "pnpm configuration complete"
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Doppler CLI (pinned version)
-        run: |
-          echo "=== Installing Doppler CLI ==="
-          DOPPLER_VERSION="3.75.1"
-          echo "Downloading Doppler CLI version ${DOPPLER_VERSION}..."
-          wget -v https://github.com/DopplerHQ/cli/releases/download/${DOPPLER_VERSION}/doppler_${DOPPLER_VERSION}_linux_amd64.tar.gz
-          echo "Extracting archive..."
-          tar -xzf doppler_${DOPPLER_VERSION}_linux_amd64.tar.gz
-          echo "Installing to /usr/local/bin..."
-          sudo mv doppler /usr/local/bin/doppler
-          chmod +x /usr/local/bin/doppler
-          echo "Verifying installation..."
-          doppler --version
-          echo "Doppler CLI installation complete"
-          echo "=========================="
-
-      - name: Validate required secrets
-        run: |
-          echo "=== Secret Validation ==="
-          MISSING_CRITICAL_SECRETS=""
-          MISSING_DOPPLER=""
-
-          # Check Doppler token (not critical - we can run without it)
-          if [ -z "$DOPPLER_TOKEN" ]; then
-            echo "WARNING: DOPPLER_TOKEN is missing - will run without Doppler secrets"
-            MISSING_DOPPLER="true"
-          else
-            echo "✓ DOPPLER_TOKEN is present"
-            # Test if Doppler token is valid
-            if doppler --version > /dev/null 2>&1; then
-              if ! doppler me --silent > /dev/null 2>&1; then
-                echo "WARNING: DOPPLER_TOKEN is invalid - will run without Doppler secrets"
-                MISSING_DOPPLER="true"
-              else
-                echo "✓ DOPPLER_TOKEN is valid"
-              fi
-            fi
-          fi
-
-          # Check critical public secrets (required for build)
-          if [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
-            echo "ERROR: NEXT_PUBLIC_SUPABASE_ANON_KEY is missing"
-            MISSING_CRITICAL_SECRETS="$MISSING_CRITICAL_SECRETS NEXT_PUBLIC_SUPABASE_ANON_KEY"
-          else
-            echo "✓ NEXT_PUBLIC_SUPABASE_ANON_KEY is present"
-          fi
-
-          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then
-            echo "ERROR: NEXT_PUBLIC_SUPABASE_URL is missing"
-            MISSING_CRITICAL_SECRETS="$MISSING_CRITICAL_SECRETS NEXT_PUBLIC_SUPABASE_URL"
-          else
-            echo "✓ NEXT_PUBLIC_SUPABASE_URL is present"
-          fi
-
-          # Only fail if critical secrets are missing
-          if [ -n "$MISSING_CRITICAL_SECRETS" ]; then
-            echo "FATAL: Missing critical secrets:$MISSING_CRITICAL_SECRETS"
-            echo "These secrets are required for the build to succeed"
-            exit 1
-          fi
-
-          if [ "$MISSING_DOPPLER" = "true" ]; then
-            echo "INFO: Build will proceed without Doppler secrets"
-            echo "Ensure all required environment variables are provided directly"
-          fi
-
-          echo "========================="
-        env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-
-      - name: Run lint, typecheck, and build with verbose monitoring
+      - name: Build & Test (parallel)
         env:
           BACKEND_SCHEMAS_DIR: ./supabase/schema-exports
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          # Disable Doppler if token is missing/invalid (optional script will handle this)
-          DOPPLER_DISABLED: ${{ secrets.DOPPLER_TOKEN == '' && 'true' || 'false' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
         run: |
-          echo "=== Starting parallel builds ==="
-          echo "Starting lint process..."
+          echo "Starting parallel build processes..."
           pnpm lint &
-          LINT_PID=$!
-          echo "Lint PID: $LINT_PID"
-
-          echo "Starting typecheck process..."
           pnpm typecheck &
-          TYPECHECK_PID=$!
-          echo "Typecheck PID: $TYPECHECK_PID"
-
-          echo "Starting build process..."
           pnpm build:ci &
-          BUILD_PID=$!
-          echo "Build PID: $BUILD_PID"
+          wait
+          echo "Running unit tests..."
+          pnpm test:unit
 
-          echo "Waiting for processes to complete..."
-
-          wait $LINT_PID
-          LINT_EXIT=$?
-          echo "Lint completed with exit code: $LINT_EXIT"
-
-          wait $TYPECHECK_PID
-          TYPECHECK_EXIT=$?
-          echo "Typecheck completed with exit code: $TYPECHECK_EXIT"
-
-          wait $BUILD_PID
-          BUILD_EXIT=$?
-          echo "Build completed with exit code: $BUILD_EXIT"
-
-          if [ $LINT_EXIT -ne 0 ]; then
-            echo "ERROR: Lint failed with exit code $LINT_EXIT"
-          fi
-          if [ $TYPECHECK_EXIT -ne 0 ]; then
-            echo "ERROR: Typecheck failed with exit code $TYPECHECK_EXIT"
-          fi
-          if [ $BUILD_EXIT -ne 0 ]; then
-            echo "ERROR: Build failed with exit code $BUILD_EXIT"
-          fi
-
-          if [ $LINT_EXIT -ne 0 ] || [ $TYPECHECK_EXIT -ne 0 ] || [ $BUILD_EXIT -ne 0 ]; then
-            echo "FATAL: One or more build processes failed"
-            exit 1
-          fi
-
-          echo "=== All builds completed successfully ==="
-
-      - name: Run unit tests
-        run: pnpm test:unit
-
-  deploy-backend:
-    name: Deploy Backend
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    if: github.ref == 'refs/heads/main'
-    timeout-minutes: 10
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.17.0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-          cache-dependency-path: 'pnpm-lock.yaml'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli@3
-
-      - name: Validate Railway secrets
+      - name: Deploy Backend
+        if: github.ref == 'refs/heads/main'
         run: |
-          echo "=== Railway Secret Validation ==="
-          MISSING_SECRETS=""
-
-          if [ -z "$RAILWAY_TOKEN" ]; then
-            echo "ERROR: RAILWAY_TOKEN is missing"
-            MISSING_SECRETS="$MISSING_SECRETS RAILWAY_TOKEN"
-          else
-            echo "✓ RAILWAY_TOKEN is present"
-          fi
-
-          if [ -z "$RAILWAY_PROJECT_ID" ]; then
-            echo "ERROR: RAILWAY_PROJECT_ID is missing"
-            MISSING_SECRETS="$MISSING_SECRETS RAILWAY_PROJECT_ID"
-          else
-            echo "✓ RAILWAY_PROJECT_ID is present"
-          fi
-
-          if [ -n "$MISSING_SECRETS" ]; then
-            echo "FATAL: Missing required Railway secrets:$MISSING_SECRETS"
-            exit 1
-          fi
-          echo "========================="
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-
-      - name: Deploy to Railway with verbose output
-        run: |
-          echo "=== Starting Railway Deployment ==="
-          echo "Project ID: $RAILWAY_PROJECT_ID"
-          echo "Service: tenantflow-backend"
-          echo "Deploying..."
+          echo "Installing Railway CLI..."
+          npm install -g @railway/cli@3
+          echo "Deploying to Railway..."
           railway up --service tenantflow-backend
-          echo "Railway deployment complete"
-          echo "=========================="
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
