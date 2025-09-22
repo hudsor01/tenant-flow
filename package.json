@@ -42,7 +42,7 @@
 		"format": "doppler run -- turbo run format",
 		"typecheck": "node scripts/run-with-optional-doppler.cjs turbo run typecheck",
 		"test": "doppler run -- turbo run test:unit",
-		"test:unit": "node scripts/run-with-optional-doppler.cjs turbo run test:unit",
+		"test:unit": "doppler run -- turbo run test:unit",
 		"test:production": "./test-production-connection.sh",
 		"prepush:test": "SKIP_TESTS=true git push --dry-run && echo '✅ Pre-push checks would pass'",
 		"generate": "echo 'Code generation available through individual tools: pnpm update-supabase-types, pnpm secrets:generate, pnpm generate:schemas'",
