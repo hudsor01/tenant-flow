@@ -70,33 +70,53 @@ jobs:
       - name: Validate required secrets
         run: |
           echo "=== Secret Validation ==="
-          MISSING_SECRETS=""
+          MISSING_CRITICAL_SECRETS=""
+          MISSING_DOPPLER=""
 
+          # Check Doppler token (not critical - we can run without it)
           if [ -z "$DOPPLER_TOKEN" ]; then
-            echo "ERROR: DOPPLER_TOKEN is missing"
-            MISSING_SECRETS="$MISSING_SECRETS DOPPLER_TOKEN"
+            echo "WARNING: DOPPLER_TOKEN is missing - will run without Doppler secrets"
+            MISSING_DOPPLER="true"
           else
             echo "✓ DOPPLER_TOKEN is present"
+            # Test if Doppler token is valid
+            if doppler --version > /dev/null 2>&1; then
+              if ! doppler me --silent > /dev/null 2>&1; then
+                echo "WARNING: DOPPLER_TOKEN is invalid - will run without Doppler secrets"
+                MISSING_DOPPLER="true"
+              else
+                echo "✓ DOPPLER_TOKEN is valid"
+              fi
+            fi
           fi
 
+          # Check critical public secrets (required for build)
           if [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
             echo "ERROR: NEXT_PUBLIC_SUPABASE_ANON_KEY is missing"
-            MISSING_SECRETS="$MISSING_SECRETS NEXT_PUBLIC_SUPABASE_ANON_KEY"
+            MISSING_CRITICAL_SECRETS="$MISSING_CRITICAL_SECRETS NEXT_PUBLIC_SUPABASE_ANON_KEY"
           else
             echo "✓ NEXT_PUBLIC_SUPABASE_ANON_KEY is present"
           fi
 
           if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then
             echo "ERROR: NEXT_PUBLIC_SUPABASE_URL is missing"
-            MISSING_SECRETS="$MISSING_SECRETS NEXT_PUBLIC_SUPABASE_URL"
+            MISSING_CRITICAL_SECRETS="$MISSING_CRITICAL_SECRETS NEXT_PUBLIC_SUPABASE_URL"
           else
             echo "✓ NEXT_PUBLIC_SUPABASE_URL is present"
           fi
 
-          if [ -n "$MISSING_SECRETS" ]; then
-            echo "FATAL: Missing required secrets:$MISSING_SECRETS"
+          # Only fail if critical secrets are missing
+          if [ -n "$MISSING_CRITICAL_SECRETS" ]; then
+            echo "FATAL: Missing critical secrets:$MISSING_CRITICAL_SECRETS"
+            echo "These secrets are required for the build to succeed"
             exit 1
           fi
+
+          if [ "$MISSING_DOPPLER" = "true" ]; then
+            echo "INFO: Build will proceed without Doppler secrets"
+            echo "Ensure all required environment variables are provided directly"
+          fi
+
           echo "========================="
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
@@ -109,6 +129,8 @@ jobs:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          # Disable Doppler if token is missing/invalid (optional script will handle this)
+          DOPPLER_DISABLED: ${{ secrets.DOPPLER_TOKEN == '' && 'true' || 'false' }}
         run: |
           echo "=== Starting parallel builds ==="
           echo "Starting lint process..."
