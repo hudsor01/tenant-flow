@@ -3,9 +3,7 @@
  * These rules prevent regression of the color token system implementation
  */
 
-/* eslint-env node */
-/* eslint-disable no-undef */
-module.exports = {
+export default {
 	rules: {
 		// Prevent hardcoded hex colors
 		'no-hex-colors': {
