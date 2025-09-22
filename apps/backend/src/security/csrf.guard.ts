@@ -6,7 +6,7 @@ import {
 	UnauthorizedException
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { FastifyRequest } from 'fastify'
+import { Request } from 'express'
 
 @Injectable()
 export class CsrfGuard implements CanActivate {
@@ -23,7 +23,7 @@ export class CsrfGuard implements CanActivate {
 			return true
 		}
 
-		const request = context.switchToHttp().getRequest<FastifyRequest>()
+		const request = context.switchToHttp().getRequest<Request>()
 		const method = request.method.toUpperCase()
 
 		// Skip CSRF for safe methods

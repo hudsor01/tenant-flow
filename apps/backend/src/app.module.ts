@@ -6,6 +6,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
+import { AnalyticsModule } from './analytics/analytics.module'
 import { AuthModule } from './auth/auth.module'
 import { StripeModule } from './billing/stripe.module'
 import { validate } from './config/config.schema'
@@ -58,6 +59,7 @@ import { UsersModule } from './users/users.module'
 
 		// Business modules that depend on global services
 		AuthModule,
+		AnalyticsModule,
 		StripeModule,
 		DashboardModule,
 		PropertiesModule,

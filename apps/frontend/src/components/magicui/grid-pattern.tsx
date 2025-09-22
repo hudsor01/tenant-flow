@@ -36,11 +36,11 @@ export function GridPattern({
 
   // Style variants for different visual approaches
   const variantStyles = {
-    default: "fill-gray-400/30 stroke-gray-400/30",
-    subtle: "fill-gray-300/20 stroke-gray-300/20",
-    bold: "fill-gray-500/40 stroke-gray-500/40",
-    primary: "fill-primary/20 stroke-primary/25",
-    accent: "fill-accent/25 stroke-accent/30"
+    default: "fill-[color-mix(in oklab,var(--color-label-primary) 25%, transparent)] stroke-[color-mix(in oklab,var(--color-label-primary) 25%, transparent)]",
+    subtle: "fill-[color-mix(in oklab,var(--color-label-primary) 15%, transparent)] stroke-[color-mix(in oklab,var(--color-label-primary) 15%, transparent)]",
+    bold: "fill-[color-mix(in oklab,var(--color-label-primary) 45%, transparent)] stroke-[color-mix(in oklab,var(--color-label-primary) 45%, transparent)]",
+    primary: "fill-[color-mix(in oklab,var(--primary) 35%, transparent)] stroke-[color-mix(in oklab,var(--primary) 40%, transparent)]",
+    accent: "fill-[color-mix(in oklab,var(--accent) 35%, transparent)] stroke-[color-mix(in oklab,var(--accent) 40%, transparent)]"
   };
 
   const selectedStyle = variantStyles[variant];

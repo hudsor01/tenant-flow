@@ -58,7 +58,7 @@ export class ContactController {
       // 4. Create ticket in support system
 
       // For now, just log and return success
-      // Fastify hooks will automatically format this response with success: true
+      // Express middleware will automatically format this response
       return {
         message: 'Thank you for contacting us. We will get back to you within 4 hours.'
       }

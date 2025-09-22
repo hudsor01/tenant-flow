@@ -6,15 +6,15 @@
 
 import {
 	SEMANTIC_COLORS,
-	type ComponentSize,
-	type ButtonVariant,
-	type BadgeVariant,
-	type ContainerSize,
 	type AnimationType,
-	type StatusType,
 	type BadgeSize,
+	type BadgeVariant,
+	type ButtonVariant,
+	type ComponentSize,
+	type ContainerSize,
 	type GridColumnsConfig,
-	type ResponsiveValuesConfig
+	type ResponsiveValuesConfig,
+	type StatusType
 } from '@repo/shared'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -299,7 +299,7 @@ export function getSemanticColor(
 	colorKey: keyof typeof SEMANTIC_COLORS,
 	fallback?: string
 ): string {
-	return SEMANTIC_COLORS[colorKey] || fallback || '#000'
+	return SEMANTIC_COLORS[colorKey] || fallback || 'var(--color-foreground, currentColor)'
 }
 
 /**
@@ -458,7 +458,7 @@ export function formatPercentage(value: number, decimals = 1): string {
  * @returns Random ID string
  */
 export function generateId(prefix = 'id'): string {
-	return `${prefix}-${Math.random().toString(36).substr(2, 9)}`
+	return `${prefix}-${Math.random().toString(36).substring(2, 9)}`
 }
 
 

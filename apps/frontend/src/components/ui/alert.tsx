@@ -4,19 +4,70 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const alertVariants = cva(
-  "relative w-full rounded-[12px] border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current transition-all duration-200 ease-in-out",
+  [
+    // Layout
+    "relative w-full grid items-start",
+    "has-[>svg]:grid-cols-[calc(var(--spacing-4))_1fr] grid-cols-[0_1fr]",
+    "has-[>svg]:gap-x-[var(--spacing-3)] gap-y-[var(--spacing-0_5)]",
+    // Border radius using Apple design tokens
+    "rounded-[var(--radius-medium)]",
+    // Border
+    "border",
+    // Spacing using Apple design tokens
+    "px-[var(--spacing-4)] py-[var(--spacing-3)]",
+    // Typography using Apple design tokens
+    "text-[var(--font-body)]",
+    // SVG styling
+    "[&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current",
+    // Transitions using Apple design tokens
+    "transition-all duration-[var(--duration-quick)] ease-[var(--ease-smooth)]"
+  ].join(" "),
   {
     variants: {
       variant: {
-        default: "bg-card text-card-foreground border-border hover:border-border/80 hover:shadow-sm",
-        destructive:
-          "text-destructive bg-destructive/5 border-destructive/20 [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90 hover:border-destructive/30 hover:bg-destructive/10",
-        success:
-          "text-success bg-success/5 border-success/20 [&>svg]:text-current *:data-[slot=alert-description]:text-success/90 hover:border-success/30 hover:bg-success/10",
-        warning:
-          "text-warning bg-warning/5 border-warning/20 [&>svg]:text-current *:data-[slot=alert-description]:text-warning/90 hover:border-warning/30 hover:bg-warning/10",
-        info:
-          "text-info bg-info/5 border-info/20 [&>svg]:text-current *:data-[slot=alert-description]:text-info/90 hover:border-info/30 hover:bg-info/10",
+        default: [
+          "bg-[var(--color-fill-primary)] text-[var(--color-label-primary)]",
+          "border-[var(--color-separator)]",
+          "hover:bg-[var(--color-fill-secondary)]",
+          "hover:border-[var(--color-label-quaternary)]",
+          "hover:shadow-[var(--shadow-small)]"
+        ].join(" "),
+        destructive: [
+          "text-[var(--color-system-red)]",
+          "bg-[var(--color-system-red-10)]",
+          "border-[var(--color-system-red-25)]",
+          "[&>svg]:text-current",
+          "*:data-[slot=alert-description]:text-[var(--color-system-red-85)]",
+          "hover:border-[var(--color-system-red-50)]",
+          "hover:bg-[var(--color-system-red-15)]"
+        ].join(" "),
+        success: [
+          "text-[var(--color-system-green)]",
+          "bg-[var(--color-system-green-10)]",
+          "border-[var(--color-system-green-25)]",
+          "[&>svg]:text-current",
+          "*:data-[slot=alert-description]:text-[var(--color-system-green-85)]",
+          "hover:border-[var(--color-system-green-50)]",
+          "hover:bg-[var(--color-system-green-15)]"
+        ].join(" "),
+        warning: [
+          "text-[var(--color-system-orange)]",
+          "bg-[var(--color-system-orange-10)]",
+          "border-[var(--color-system-orange-25)]",
+          "[&>svg]:text-current",
+          "*:data-[slot=alert-description]:text-[var(--color-system-orange-85)]",
+          "hover:border-[var(--color-system-orange-50)]",
+          "hover:bg-[var(--color-system-orange-15)]"
+        ].join(" "),
+        info: [
+          "text-[var(--color-system-blue)]",
+          "bg-[var(--color-system-blue-10)]",
+          "border-[var(--color-system-blue-25)]",
+          "[&>svg]:text-current",
+          "*:data-[slot=alert-description]:text-[var(--color-system-blue-85)]",
+          "hover:border-[var(--color-system-blue-50)]",
+          "hover:bg-[var(--color-system-blue-15)]"
+        ].join(" "),
       },
     },
     defaultVariants: {
@@ -34,7 +85,7 @@ function Alert({
     <div
       data-slot="alert"
       role="alert"
-      className={cn(alertVariants({ variant }), className)}
+      data-tokens="applied" className={cn(alertVariants({ variant }), className)}
       {...props}
     />
   )
@@ -44,8 +95,13 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="alert-title"
+      data-tokens="applied"
       className={cn(
-        "col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight",
+        // Grid positioning
+        "col-start-2 line-clamp-1 min-h-4",
+        // Typography using Apple design tokens
+        "font-[var(--font-weight-medium)]",
+        "tracking-[var(--tracking-title)]",
         className
       )}
       {...props}
@@ -60,8 +116,15 @@ function AlertDescription({
   return (
     <div
       data-slot="alert-description"
+      data-tokens="applied"
       className={cn(
-        "text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed",
+        // Grid positioning and layout
+        "col-start-2 grid justify-items-start gap-1",
+        // Typography using Apple design tokens
+        "text-[var(--font-body)]",
+        "text-[var(--color-label-tertiary)]",
+        // Paragraph styling
+        "[&_p]:leading-[var(--line-height-body)]",
         className
       )}
       {...props}

@@ -1,10 +1,16 @@
-import { Navbar } from '@/components/navbar'
+import { Navbar } from '@/components/layout/navbar'
 import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { FooterMinimal } from '@/components/sections/footer-minimal'
+import Footer from '@/components/layout/footer'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
 import {
 	ArrowRight,
 	Book,
@@ -15,8 +21,6 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
-
-
 
 export default function HelpPage() {
 	return (
@@ -325,7 +329,7 @@ export default function HelpPage() {
 				</div>
 			</section>
 
-			<FooterMinimal />
+			<Footer />
 		</div>
 	)
 }

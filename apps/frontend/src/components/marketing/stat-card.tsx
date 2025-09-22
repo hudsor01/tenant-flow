@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '@/lib/design-system'
 import * as React from 'react'
 

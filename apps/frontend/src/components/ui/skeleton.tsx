@@ -1,5 +1,3 @@
-'use client'
-
 import {
 	Table,
 	TableBody,
@@ -30,16 +28,16 @@ function Skeleton({
 
 	return (
 		<div
-			className={cn(
+			data-tokens="applied" className={cn(
 				// Base skeleton styles
-				'animate-pulse bg-muted',
+				'animate-pulse bg-[var(--color-fill-primary)]',
 				// Enhanced shimmer effect
 				'bg-gradient-to-r from-muted via-muted/50 to-muted',
 				'bg-[length:200%_100%] animate-shimmer',
 				// Token-based radius
 				variantClasses[variant],
 				// Smooth transitions
-				'transition-all duration-200 ease-in-out',
+				'transition-all duration-[var(--duration-quick)] ease-in-out',
 				className
 			)}
 			{...props}
@@ -55,7 +53,7 @@ function CardSkeleton({
 	...props
 }: React.HTMLAttributes<HTMLDivElement>) {
 	return (
-		<div className={cn('space-y-3 p-6', className)} {...props}>
+		<div data-tokens="applied" className={cn('space-y-3 p-[var(--spacing-6)]', className)} {...props}>
 			<Skeleton className="h-4 w-3/4" />
 			<Skeleton className="h-4 w-1/2" />
 			<Skeleton className="h-20 w-full" variant="rounded" />
@@ -77,7 +75,7 @@ function TableSkeleton({
 	columns?: number
 } & React.HTMLAttributes<HTMLDivElement>) {
 	return (
-		<div className={cn('', className)} {...props}>
+		<div data-tokens="applied" className={cn('', className)} {...props}>
 			<Table>
 				<TableHeader>
 					<TableRow>
@@ -94,7 +92,7 @@ function TableSkeleton({
 							{Array.from({ length: columns }).map((_, colIndex) => (
 								<TableCell key={colIndex}>
 									<Skeleton
-										className={cn(
+										data-tokens="applied" className={cn(
 											'h-4',
 											colIndex === 0 ? 'w-24' : 'w-full',
 											colIndex === columns - 1 ? 'w-16' : ''
@@ -118,7 +116,7 @@ function ListSkeleton({
 	items?: number
 } & React.HTMLAttributes<HTMLDivElement>) {
 	return (
-		<div className={cn('space-y-4', className)} {...props}>
+		<div data-tokens="applied" className={cn('space-y-4', className)} {...props}>
 			{Array.from({ length: items }).map((_, i) => (
 				<div key={i} className="flex items-center space-x-3">
 					<Skeleton className="w-12 h-12" variant="circle" />
@@ -138,7 +136,7 @@ function DashboardSkeleton({
 	...props
 }: React.HTMLAttributes<HTMLDivElement>) {
 	return (
-		<div className={cn('space-y-6', className)} {...props}>
+		<div data-tokens="applied" className={cn('space-y-6', className)} {...props}>
 			{/* Header */}
 			<div className="flex justify-between items-center">
 				<div className="space-y-2">
@@ -149,9 +147,9 @@ function DashboardSkeleton({
 			</div>
 
 			{/* Stats Grid */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[var(--spacing-4)]">
 				{Array.from({ length: 4 }).map((_, i) => (
-					<div key={i} className="border rounded-lg p-4 space-y-3">
+					<div key={i} className="border rounded-[var(--radius-large)] p-[var(--spacing-4)] space-y-3">
 						<div className="flex items-center justify-between">
 							<Skeleton className="h-4 w-20" />
 							<Skeleton className="w-5 h-5" variant="circle" />
@@ -163,13 +161,13 @@ function DashboardSkeleton({
 			</div>
 
 			{/* Chart Area */}
-			<div className="border rounded-lg p-6">
+			<div className="border rounded-[var(--radius-large)] p-[var(--spacing-6)]">
 				<Skeleton className="h-6 w-32 mb-6" />
 				<Skeleton className="h-64 w-full" variant="rounded" />
 			</div>
 
 			{/* Table */}
-			<div className="border rounded-lg p-6">
+			<div className="border rounded-[var(--radius-large)] p-[var(--spacing-6)]">
 				<Skeleton className="h-6 w-40 mb-4" />
 				<TableSkeleton rows={8} columns={5} />
 			</div>

@@ -4,11 +4,8 @@ import * as React from 'react'
 import Image from "next/image"
 import { Lock, Zap, Smartphone } from 'lucide-react'
 import { LoginForm } from "./login-form"
-import {
-  cn,
-  // cardClasses,
-  ANIMATION_DURATIONS
-} from '@/lib/utils'
+import { cn } from '@/lib/design-system'
+import { TYPOGRAPHY_SCALE } from '@repo/shared'
 
 interface LoginLayoutProps extends Omit<React.ComponentProps<'div'>, 'content' | 'onSubmit'> {
   mode?: 'login' | 'signup'
@@ -63,12 +60,12 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
         {/* High-res Real Estate Image */}
         <div className="w-full h-full min-h-screen relative flex">
           {/* Background Image with parallax effect */}
-          <div className={cn("absolute inset-0 transform scale-105 ease-out", `transition-transform duration-[${ANIMATION_DURATIONS.slower}]`)}>
+          <div className="absolute inset-0 transform scale-105 ease-out transition-transform duration-700">
             <Image
               src={imageUrl}
               alt="Modern luxury apartment building"
               fill
-              className={cn("object-cover ease-out", `transition-all duration-[${ANIMATION_DURATIONS.slow}]`)}
+              className="object-cover ease-out transition-all duration-500"
               priority
             />
           </div>
@@ -80,18 +77,18 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
             {/* Content container with dark glass background for maximum contrast */}
             <div className="relative max-w-lg mx-auto px-8">
               {/* Dark glass panel behind content for ultimate readability */}
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-3xl border border-white/10" />
+              <div className="absolute inset-0 rounded-3xl border border-[var(--color-fill-secondary)] bg-[var(--color-fill-primary)] bg-opacity-70 backdrop-blur-sm" />
 
-              <div className={cn("relative text-center space-y-6 py-12 px-8 z-20 transform ease-out animate-in fade-in slide-in-from-bottom-8", `transition-all duration-[${ANIMATION_DURATIONS.slower}]`)}>
+              <div className="relative text-center space-y-6 py-12 px-8 z-20 transform ease-out animate-in fade-in slide-in-from-bottom-8 transition-all duration-700">
                 {/* Enhanced Logo Icon with glow */}
                 <div className="w-16 h-16 mx-auto mb-8 relative group">
-                  <div className={cn("absolute inset-0 bg-gradient-to-r from-primary/30 to-primary/40 rounded-2xl blur-lg group-hover:blur-xl", `transition-all duration-[${ANIMATION_DURATIONS.slow}]`)} />
-                  <div className={cn("relative w-full h-full bg-primary/90 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-primary/30 group-hover:border-primary/50 group-hover:scale-105", `transition-all duration-[${ANIMATION_DURATIONS.medium}]`)}>
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-primary/40 rounded-2xl blur-lg group-hover:blur-xl transition-all duration-500" />
+                  <div className="relative w-full h-full bg-primary/90 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-primary/30 group-hover:border-primary/50 group-hover:scale-105 transition-all duration-300">
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
-                      className={cn("w-8 h-8 text-white group-hover:scale-110", `transition-all duration-[${ANIMATION_DURATIONS.medium}]`)}
+                      className="w-8 h-8 text-white group-hover:scale-110 transition-all duration-300"
                     >
                       <path
                         d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
@@ -105,12 +102,18 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
                 </div>
 
                 {/* High contrast heading */}
-                <h2 className={cn("text-section-title text-white drop-shadow-lg animate-in fade-in slide-in-from-bottom-4 delay-200", `duration-[${ANIMATION_DURATIONS.slow}]`)}>
+                <h2
+                  className="text-white drop-shadow-lg animate-in fade-in slide-in-from-bottom-4 delay-200 duration-500"
+                  style={TYPOGRAPHY_SCALE['heading-xl']}
+                >
                   {content.heading}
                 </h2>
 
                 {/* High contrast description */}
-                <p className={cn("text-body text-white/95 max-w-md mx-auto leading-relaxed drop-shadow-md animate-in fade-in slide-in-from-bottom-4 delay-300", `duration-[${ANIMATION_DURATIONS.slow}]`)}>
+                <p
+                  className="text-white/95 max-w-md mx-auto leading-relaxed drop-shadow-md animate-in fade-in slide-in-from-bottom-4 delay-300 duration-500"
+                  style={TYPOGRAPHY_SCALE['body-lg']}
+                >
                   {content.description}
                 </p>
 
@@ -119,14 +122,18 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
                   {content.stats.map((stat, index) => (
                     <div
                       key={index}
-                      className={cn("text-center group animate-in fade-in slide-in-from-bottom-4", `duration-[${ANIMATION_DURATIONS.slow}]`)}
+                      className="text-center group animate-in fade-in slide-in-from-bottom-4 duration-500"
                       style={{animationDelay: `${400 + index * 100}ms`}}
                     >
-                      <div className={cn("text-heading text-white mb-1 drop-shadow-md group-hover:scale-105", `transition-transform duration-[${ANIMATION_DURATIONS.default}]`)}>
+                      <div
+                        className="text-white mb-1 drop-shadow-md group-hover:scale-105 transition-transform duration-300"
+                        style={TYPOGRAPHY_SCALE['heading-md']}
+                      >
                         {stat.value}
                       </div>
                       <div
-                        className={cn("text-caption text-white/90 leading-tight drop-shadow-sm group-hover:text-white", `transition-colors duration-[${ANIMATION_DURATIONS.default}]`)}
+                        className="text-white/90 leading-tight drop-shadow-[var(--shadow-sm)] group-hover:text-white transition-colors duration-300"
+                        style={TYPOGRAPHY_SCALE['ui-caption']}
                         dangerouslySetInnerHTML={{__html: stat.label.replace('\n', '<br />')}}
                       />
                     </div>
@@ -137,14 +144,37 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
           </div>
           
           {/* Enhanced floating elements with smoother animations */}
-          <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white/30 rounded-full animate-pulse" 
-               style={{animationDuration: '3s'}} />
-          <div className="absolute top-2/3 right-1/4 w-1 h-1 bg-white/40 rounded-full animate-pulse" 
-               style={{animationDuration: '4s', animationDelay: '1s'}} />
-          <div className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-white/20 rounded-full animate-pulse" 
-               style={{animationDuration: '2.5s', animationDelay: '0.5s'}} />
-          <div className="absolute top-1/2 right-1/3 w-1 h-1 bg-white/20 rounded-full animate-pulse" 
-               style={{animationDuration: '3.5s', animationDelay: '2s'}} />
+          <div
+            className="absolute top-1/4 left-1/4 w-2 h-2 rounded-full animate-pulse"
+            style={{
+              animationDuration: '3s',
+              backgroundColor: 'color-mix(in oklab, var(--color-fill-primary) 45%, transparent)'
+            }}
+          />
+          <div
+            className="absolute top-2/3 right-1/4 w-1 h-1 rounded-full animate-pulse"
+            style={{
+              animationDuration: '4s',
+              animationDelay: '1s',
+              backgroundColor: 'color-mix(in oklab, var(--color-fill-primary) 55%, transparent)'
+            }}
+          />
+          <div
+            className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 rounded-full animate-pulse"
+            style={{
+              animationDuration: '2.5s',
+              animationDelay: '0.5s',
+              backgroundColor: 'color-mix(in oklab, var(--color-fill-primary) 35%, transparent)'
+            }}
+          />
+          <div
+            className="absolute top-1/2 right-1/3 w-1 h-1 rounded-full animate-pulse"
+            style={{
+              animationDuration: '3.5s',
+              animationDelay: '2s',
+              backgroundColor: 'color-mix(in oklab, var(--color-fill-primary) 35%, transparent)'
+            }}
+          />
         </div>
       </div>
   )
@@ -155,7 +185,7 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
           {/* Simple Logo/Brand with better spacing */}
           <div className="text-center space-y-4">
             <div className="w-14 h-14 mx-auto">
-              <div className="w-full h-full bg-primary rounded-xl flex items-center justify-center shadow-sm">
+              <div className="w-full h-full bg-primary rounded-xl flex items-center justify-center shadow-[var(--shadow-sm)]">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"

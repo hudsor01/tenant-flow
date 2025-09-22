@@ -11,13 +11,14 @@
  * - Consistent error messages
  */
 
-import type { JSONSchema } from '../shared/types/fastify-type-provider'
+import type { JSONSchema } from '../shared/types/express-type-provider'
 import {
 	COMPANY_VALIDATION,
 	EMAIL_VALIDATION,
 	NAME_VALIDATION,
 	PASSWORD_VALIDATION
 } from '../shared/constants/validation.constants'
+// Note: Auth types could use shared types, but keeping separate interfaces for JSON Schema validation
 
 // Base email schema
 const emailSchema: JSONSchema = {
@@ -301,7 +302,7 @@ export const userProfileResponseSchema: JSONSchema = {
 }
 
 // Schemas are exported directly for use in NestJS controllers
-// No custom registry needed - use Fastify's native addSchema() if sharing is required
+// Express uses native JSON schema validation
 
 // Export route schemas for controller usage
 export const authRouteSchemas = {

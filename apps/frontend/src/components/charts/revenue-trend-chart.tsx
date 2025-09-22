@@ -20,9 +20,7 @@ import { cn } from '@/lib/utils'
 import {
 	APPLE_DURATIONS,
 	APPLE_EASINGS,
-	// PROPERTY_ANALYTICS_COLORS,
-	APPLE_GRADIENTS,
-	APPLE_SYSTEM_COLORS
+	APPLE_GRADIENTS
 } from '@repo/shared'
 import {
 	BarChart3,
@@ -442,7 +440,7 @@ export function RevenueTrendChart() {
 							className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl transition-all duration-300"
 							style={{
 								background: APPLE_GRADIENTS.glass,
-								border: `1px solid ${APPLE_SYSTEM_COLORS.systemBlue}20`,
+								border: '1px solid var(--color-system-blue-25)',
 								animation: `slideInFromTop 300ms ${APPLE_EASINGS['ease-out-expo']}`
 							}}
 						>
@@ -451,7 +449,7 @@ export function RevenueTrendChart() {
 									<div
 										className="w-8 h-8 rounded-lg flex items-center justify-center"
 										style={{
-											backgroundColor: `${APPLE_SYSTEM_COLORS.systemGreen}20`
+											backgroundColor: 'var(--color-system-green-25)'
 										}}
 									>
 										<TrendingUp className="w-4 h-4 text-primary" />
@@ -469,7 +467,7 @@ export function RevenueTrendChart() {
 									<div
 										className="w-8 h-8 rounded-lg flex items-center justify-center"
 										style={{
-											backgroundColor: `${APPLE_SYSTEM_COLORS.systemBlue}20`
+											backgroundColor: 'var(--color-system-blue-25)'
 										}}
 									>
 										<Target className="w-4 h-4 text-primary" />
@@ -486,7 +484,7 @@ export function RevenueTrendChart() {
 									<div
 										className="w-8 h-8 rounded-lg flex items-center justify-center"
 										style={{
-											backgroundColor: `${APPLE_SYSTEM_COLORS.systemPurple}20`
+											backgroundColor: 'var(--color-system-orange-25)'
 										}}
 									>
 										<Zap className="w-4 h-4 text-primary" />
@@ -503,7 +501,7 @@ export function RevenueTrendChart() {
 									<div
 										className="w-8 h-8 rounded-lg flex items-center justify-center"
 										style={{
-											backgroundColor: `${APPLE_SYSTEM_COLORS.systemOrange}20`
+											backgroundColor: 'var(--color-system-orange-25)'
 										}}
 									>
 										<BarChart3 className="w-4 h-4 text-accent" />
@@ -605,7 +603,7 @@ export function RevenueTrendChart() {
 									/>
 								</linearGradient>
 
-								<linearGradient id="feesGradient" x1="0" y1="0" x2="0" y2="1">
+								<linearGradient id="gradientFees" x1="0" y1="0" x2="0" y2="1">
 									<stop
 										offset="5%"
 										stopColor="hsl(var(--primary)/0.8)"
@@ -640,21 +638,21 @@ export function RevenueTrendChart() {
 
 							<CartesianGrid
 								strokeDasharray="3 3"
-								stroke={APPLE_SYSTEM_COLORS.systemGray + '30'}
+								stroke="var(--color-system-gray-50)"
 							/>
 
 							<XAxis
 								dataKey="month"
 								tickLine={false}
 								axisLine={false}
-								tick={{ fontSize: 12, fill: APPLE_SYSTEM_COLORS.systemGray }}
+								tick={{ fontSize: 12, fill: 'var(--color-system-gray)' }}
 								tickFormatter={(value: string) => value.split(' ')[0] || ''}
 							/>
 
 							<YAxis
 								tickLine={false}
 								axisLine={false}
-								tick={{ fontSize: 12, fill: APPLE_SYSTEM_COLORS.systemGray }}
+								tick={{ fontSize: 12, fill: 'var(--color-system-gray)' }}
 								tickFormatter={value => `$${(value / 1000).toFixed(0)}k`}
 							/>
 
@@ -680,7 +678,7 @@ export function RevenueTrendChart() {
 										dataKey="fees"
 										stackId="1"
 										stroke="hsl(var(--primary)/0.8)"
-										fill="url(#feesGradient)"
+										fill="url(#gradientFees)"
 										strokeWidth={2}
 									/>
 									<Area
@@ -709,7 +707,7 @@ export function RevenueTrendChart() {
 
 							<ReferenceLine
 								y={analytics?.avgMonthlyRevenue || 0}
-								stroke={APPLE_SYSTEM_COLORS.systemGray}
+								stroke="var(--color-system-gray)"
 								strokeDasharray="5 5"
 								label={{ value: 'Avg' }}
 							/>

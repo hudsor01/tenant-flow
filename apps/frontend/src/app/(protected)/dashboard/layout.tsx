@@ -1,7 +1,7 @@
+import { SiteHeader } from '@/components/layout/site-header'
+import { AppSidebar } from '@/components/sidebar/app-sidebar'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import type { ReactNode } from 'react'
-import { AppSidebar } from '@/components/app-sidebar'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { SiteHeader } from '@/components/site-header'
 
 import './dashboard.css'
 

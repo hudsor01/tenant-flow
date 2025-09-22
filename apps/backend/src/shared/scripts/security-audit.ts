@@ -13,10 +13,7 @@
 
 import { Injectable } from '@nestjs/common'
 import { NestFactory, Reflector } from '@nestjs/core'
-import {
-	FastifyAdapter,
-	NestFastifyApplication
-} from '@nestjs/platform-fastify'
+import { NestExpressApplication } from '@nestjs/platform-express'
 import type { EndpointAudit, SecurityAuditReport } from '@repo/shared'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -27,7 +24,7 @@ class SecurityAuditService {
 	private readonly reflector = new Reflector()
 
 	async auditEndpoints(
-		app: NestFastifyApplication
+		app: NestExpressApplication
 	): Promise<SecurityAuditReport> {
 		console.log('🔍 Starting comprehensive API security audit...\n')
 
@@ -61,20 +58,45 @@ class SecurityAuditService {
 	}
 
 	private async discoverEndpoints(
-		app: NestFastifyApplication
+		app: NestExpressApplication
 	): Promise<Array<{ path: string; method: string; httpMethod: string }>> {
 		const routes: Array<{ path: string; method: string; httpMethod: string }> =
 			[]
 
-		// Use Fastify's route discovery
-		const fastifyInstance = app.getHttpAdapter().getInstance()
+		// Use Express route discovery
+		const expressInstance = app.getHttpAdapter().getInstance()
 
-		// Get all registered routes
-		fastifyInstance.ready(() => {
-			for (const route of fastifyInstance.printRoutes({ includeHooks: true })) {
-				console.log(route)
+		// Get all registered routes from Express router
+		interface ExpressRoute {
+			path: string
+			methods: Record<string, boolean>
+		}
+
+		interface ExpressLayer {
+			route?: ExpressRoute
+			path?: string
+		}
+
+		interface ExpressRouter {
+			stack: ExpressLayer[]
+		}
+
+		const router = (expressInstance as { _router?: ExpressRouter })._router
+		if (router && router.stack) {
+			for (const layer of router.stack) {
+				if (layer.route) {
+					const route = layer.route
+					const methods = Object.keys(route.methods)
+					for (const method of methods) {
+						routes.push({
+							path: route.path,
+							method: `${method.toUpperCase()}_${route.path}`,
+							httpMethod: method.toUpperCase()
+						})
+					}
+				}
 			}
-		})
+		}
 
 		// Alternative: Parse controllers directly from filesystem
 		const controllerFiles = await this.findControllerFiles()
@@ -181,7 +203,7 @@ class SecurityAuditService {
 			method: string
 			httpMethod: string
 		}>,
-		app: NestFastifyApplication
+		app: NestExpressApplication
 	): Promise<EndpointAudit[]> {
 		const audits: EndpointAudit[] = []
 
@@ -202,7 +224,7 @@ class SecurityAuditService {
 			method: string
 			httpMethod: string
 		},
-		app: NestFastifyApplication
+		app: NestExpressApplication
 	): Promise<EndpointAudit> {
 		const recommendations: string[] = []
 		let securityRisk: 'low' | 'medium' | 'high' | 'critical' = 'low'
@@ -293,7 +315,7 @@ class SecurityAuditService {
 
 	private async isEndpointPublic(
 		endpoint: { path: string; method: string },
-		_app: NestFastifyApplication
+		_app: NestExpressApplication
 	): Promise<boolean> {
 		// This would need to be implemented based on your decorator system
 		// For now, we'll make educated guesses based on the path
@@ -312,7 +334,7 @@ class SecurityAuditService {
 
 	private async getRequiredRoles(
 		_endpoint: { path: string; method: string },
-		_app: NestFastifyApplication
+		_app: NestExpressApplication
 	): Promise<string[]> {
 		// This would examine the @Roles() decorator
 		// For now, return empty array as placeholder
@@ -321,7 +343,7 @@ class SecurityAuditService {
 
 	private async isAdminOnly(
 		endpoint: { path: string; method: string },
-		_app: NestFastifyApplication
+		_app: NestExpressApplication
 	): Promise<boolean> {
 		// Check for admin-only paths
 		return (
@@ -333,7 +355,7 @@ class SecurityAuditService {
 
 	private async hasRateLimit(
 		_endpoint: { path: string; method: string },
-		_app: NestFastifyApplication
+		_app: NestExpressApplication
 	): Promise<boolean> {
 		// For now, assume rate limiting is applied globally
 		// In a real implementation, you'd check for rate limiting decorators
@@ -543,9 +565,8 @@ class SecurityAuditService {
 
 async function runSecurityAudit(): Promise<void> {
 	try {
-		const app = await NestFactory.create<NestFastifyApplication>(
+		const app = await NestFactory.create<NestExpressApplication>(
 			AppModule,
-			new FastifyAdapter(),
 			{ logger: false }
 		)
 
