@@ -53,11 +53,11 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
         run: |
           # Run lint, typecheck, and build in parallel to save time
-          pnpm run lint &
+          pnpm lint &
           LINT_PID=$!
-          pnpm run typecheck &
+          pnpm typecheck &
           TYPECHECK_PID=$!
-          pnpm run build:ci &
+          pnpm build:ci &
           BUILD_PID=$!
 
           # Wait for all jobs and capture exit codes
@@ -86,7 +86,7 @@ jobs:
           fi
 
       - name: Run unit tests
-        run: pnpm run test:unit
+        run: pnpm test:unit
 
   deploy-backend:
     name: Deploy Backend

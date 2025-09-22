@@ -10,7 +10,7 @@
 		"dist/**"
 	],
 	"scripts": {
-		"build": "pnpm run clean-dist && tsc --build",
+		"build": "pnpm clean-dist && tsc --build",
 		"clean": "tsc --build --clean && rm -rf dist",
 		"clean-dist": "tsc --build --clean && rm -rf dist",
 		"typecheck": "tsc --noEmit",

@@ -2,7 +2,7 @@
 
 /**
  * CLI tool to run auth health check
- * Usage: npm run auth:health
+ * Usage: pnpm auth:health
  */
 
 import type { HealthCheckResponse } from '@repo/shared'
@@ -69,7 +69,7 @@ async function runHealthCheck() {
 			`ERROR: Health check failed: ${error instanceof Error ? error.message : String(error)}`
 		)
 		logger.error('\nMake sure the Next.js development server is running:')
-		logger.error('  npm run dev')
+		logger.error('  pnpm dev')
 		process.exit(1)
 	}
 }

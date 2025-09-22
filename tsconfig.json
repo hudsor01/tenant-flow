@@ -6,6 +6,12 @@
 		"skipLibCheck": true,
 		"noEmit": true
 	},
+	"include": [
+		"playwright.config.ts",
+		"apps/frontend/tests/tanstack/playwright.config.ts",
+		"scripts/ci/verify-workflows.ts",
+		"tests/production/production-readiness.spec.ts"
+	],
 	"files": [],
 	"references": [
 		{ "path": "./packages/database" },

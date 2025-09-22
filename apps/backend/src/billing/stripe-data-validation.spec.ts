@@ -20,7 +20,7 @@ import { StripeSyncService } from './stripe-sync.service'
  * - STRIPE_SECRET_KEY must be test key (sk_test_*)
  * - DATABASE_URL pointing to test database
  *
- * Run with: npm run test:data-validation
+ * Run with: pnpm test:data-validation
  */
 describe('Stripe Data Validation Tests', () => {
 	let service: StripeSyncService
@@ -183,10 +183,10 @@ describe('Stripe Data Validation Tests', () => {
 				'exec_sql',
 				{
 					query: `
-            SELECT s.id as subscription_id, s.customer 
-            FROM stripe.subscriptions s 
-            LEFT JOIN stripe.customers c ON s.customer = c.id 
-            WHERE c.id IS NULL 
+            SELECT s.id as subscription_id, s.customer
+            FROM stripe.subscriptions s
+            LEFT JOIN stripe.customers c ON s.customer = c.id
+            WHERE c.id IS NULL
             LIMIT 5
           `
 				}
@@ -281,7 +281,7 @@ describe('Stripe Data Validation Tests', () => {
 				'exec_sql',
 				{
 					query: `
-            SELECT 
+            SELECT
               c.id as customer_id,
               c.email,
               COUNT(s.id) as subscription_count,
@@ -342,7 +342,7 @@ describe('Stripe Data Validation Tests', () => {
  *    export DATABASE_URL=postgresql://user:pass@localhost:5432/test_db
  *
  * 2. Run the tests:
- *    npm run test -- --testPathPatterns="stripe-data-validation.spec.ts"
+ *    pnpm test -- --testPathPatterns="stripe-data-validation.spec.ts"
  *
  * 3. Monitor output for data validation results
  */
