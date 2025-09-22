@@ -13,7 +13,7 @@ import nextPlugin from '@next/eslint-plugin-next'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import tseslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
-import colorTokensConfig from './.eslintrc.color-tokens.js'
+import colorTokensConfig from './color-tokens.eslint.js'
 
 export default [
 
