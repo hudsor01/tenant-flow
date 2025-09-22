@@ -449,6 +449,7 @@ export class StripeController {
 	 * Official Pattern: checkout session with success/cancel URLs
 	 */
 	@Post('create-checkout-session')
+	@Public()
 	async createCheckoutSession(@Body() body: CreateCheckoutSessionRequest) {
 		// Native validation - CLAUDE.md compliant
 		if (!body.productName) {

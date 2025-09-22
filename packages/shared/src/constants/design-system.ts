@@ -1,10 +1,10 @@
 /**
  * Design System Constants
  * Centralized design tokens for consistent UI/UX across TenantFlow
- * 
+ *
  * These constants ensure visual consistency between:
  * - Landing pages
- * - Dashboard interface  
+ * - Dashboard interface
  * - Authentication flows
  * - Form components
  * - Data visualization
@@ -29,7 +29,7 @@ export const FONT_FAMILIES = {
     '"Noto Color Emoji"'
   ],
   serif: [
-    'ui-serif', 
+    'ui-serif',
     'Georgia',
     'Cambria',
     '"Times New Roman"',
@@ -49,14 +49,14 @@ export const FONT_FAMILIES = {
 
 /**
  * Typography Scale
- * Based on SF Pro design tokens from tenantflow-ui-kit.tokens.json
+ * Based on Roboto design tokens from tenantflow-ui-kit.tokens.json
  * Provides clean, minimal, and intuitive typography for premium experience
  */
 export const TYPOGRAPHY_SCALE = {
   // Display sizes - Clean headers
   'display-2xl': {
     fontSize: '2.625rem',    // 42px - Scaled up from SF 26px for hero
-    lineHeight: '1.23',      // SF Pro line height
+    lineHeight: '1.23',      // Roboto line height
     letterSpacing: '0',      // Clean, no tracking
     fontWeight: '700',       // Bold for prominence
     fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
@@ -76,10 +76,10 @@ export const TYPOGRAPHY_SCALE = {
     fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
 
-  // Heading sizes - SF Pro hierarchy
+  // Heading sizes - Roboto hierarchy
   'heading-xl': {
     fontSize: '1.375rem',    // 22px - SF Display Medium
-    lineHeight: '1.18',      // SF Pro 22px line height
+    lineHeight: '1.18',      // Roboto 22px line height
     letterSpacing: '0',
     fontWeight: '700',       // SF Bold
     fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
@@ -93,14 +93,14 @@ export const TYPOGRAPHY_SCALE = {
   },
   'heading-md': {
     fontSize: '1.0625rem',   // 17px - SF Body
-    lineHeight: '1.29',      // SF Pro 17px line height
+    lineHeight: '1.29',      // Roboto 17px line height
     letterSpacing: '0',
     fontWeight: '700',       // SF Bold
     fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
   },
   'heading-sm': {
     fontSize: '0.9375rem',   // 15px - SF Callout
-    lineHeight: '1.33',      // SF Pro 15px line height
+    lineHeight: '1.33',      // Roboto 15px line height
     letterSpacing: '0',
     fontWeight: '600',       // SF Semibold
     fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
@@ -109,7 +109,7 @@ export const TYPOGRAPHY_SCALE = {
   // Body Text - Clean readable content
   'body-lg': {
     fontSize: '1.0625rem',   // 17px - SF Body
-    lineHeight: '1.29',      // SF Pro body line height
+    lineHeight: '1.29',      // Roboto body line height
     fontWeight: '400',       // Regular
     letterSpacing: '0',
     fontFamily: 'var(--font-sans, ui-sans-serif, system-ui, sans-serif)'
@@ -191,7 +191,7 @@ export const TYPOGRAPHY_SCALE = {
 } as const
 
 // =============================================================================
-// SPACING SYSTEM  
+// SPACING SYSTEM
 // =============================================================================
 
 /**
@@ -248,19 +248,19 @@ export const SEMANTIC_COLORS = {
   // Base colors
   background: 'var(--background)',
   foreground: 'var(--foreground)',
-  
+
   // Interactive colors
   primary: 'var(--primary)',
   'primary-foreground': 'var(--primary-foreground)',
   secondary: 'var(--secondary)',
   'secondary-foreground': 'var(--secondary-foreground)',
-  
+
   // Utility colors
   muted: 'var(--muted)',
   'muted-foreground': 'var(--muted-foreground)',
   accent: 'var(--accent)',
   'accent-foreground': 'var(--accent-foreground)',
-  
+
   // Status colors
   destructive: 'var(--destructive)',
   'destructive-foreground': 'var(--destructive-foreground)',
@@ -268,25 +268,25 @@ export const SEMANTIC_COLORS = {
   'success-foreground': 'var(--success-foreground)',
   warning: 'var(--warning)',
   'warning-foreground': 'var(--warning-foreground)',
-  
+
   // Surface colors
   card: 'var(--card)',
   'card-foreground': 'var(--card-foreground)',
   popover: 'var(--popover)',
   'popover-foreground': 'var(--popover-foreground)',
-  
+
   // Border and input colors
   border: 'var(--border)',
   input: 'var(--input)',
   ring: 'var(--ring)',
-  
+
   // Chart colors
   'chart-1': 'var(--chart-1)',
   'chart-2': 'var(--chart-2)',
   'chart-3': 'var(--chart-3)',
   'chart-4': 'var(--chart-4)',
   'chart-5': 'var(--chart-5)',
-  
+
   // Sidebar colors
   sidebar: 'var(--sidebar)',
   'sidebar-foreground': 'var(--sidebar-foreground)',
@@ -313,7 +313,7 @@ export const COMPONENT_SIZES = {
     borderRadius: '0.25rem'
   },
   sm: {
-    height: '2rem',        // 32px  
+    height: '2rem',        // 32px
     padding: '0.375rem 0.75rem',
     fontSize: '0.875rem',
     borderRadius: '0.375rem'
@@ -321,7 +321,7 @@ export const COMPONENT_SIZES = {
   default: {
     height: '2.5rem',      // 40px
     padding: '0.5rem 1rem',
-    fontSize: '0.875rem', 
+    fontSize: '0.875rem',
     borderRadius: '0.5rem'
   },
   lg: {
@@ -344,7 +344,7 @@ export const COMPONENT_SIZES = {
 export const BORDER_RADIUS_SCALE = {
   none: '0px',
   xs: '0.125rem',     // 2px
-  sm: '0.25rem',      // 4px  
+  sm: '0.25rem',      // 4px
   default: '0.375rem', // 6px
   md: '0.5rem',       // 8px
   lg: '0.75rem',      // 12px
@@ -405,7 +405,7 @@ export const ANIMATION_EASINGS = {
  */
 export const BREAKPOINTS = {
   xs: '475px',
-  sm: '640px', 
+  sm: '640px',
   md: '768px',
   lg: '1024px',
   xl: '1280px',
@@ -417,7 +417,7 @@ export const BREAKPOINTS = {
  */
 export const CONTAINER_SIZES = {
   sm: '640px',
-  md: '768px', 
+  md: '768px',
   lg: '1024px',
   xl: '1280px',
   '2xl': '1536px'
@@ -464,7 +464,7 @@ export const COMPONENT_PRESETS = {
     },
     secondary: {
       background: SEMANTIC_COLORS.secondary,
-      color: SEMANTIC_COLORS['secondary-foreground'], 
+      color: SEMANTIC_COLORS['secondary-foreground'],
       border: 'transparent',
       fontWeight: '500',
       transition: `all ${ANIMATION_DURATIONS.fast} ${ANIMATION_EASINGS.easeInOut}`
@@ -484,7 +484,7 @@ export const COMPONENT_PRESETS = {
       transition: `all ${ANIMATION_DURATIONS.fast} ${ANIMATION_EASINGS.easeInOut}`
     }
   },
-  
+
   input: {
     default: {
       background: SEMANTIC_COLORS.background,
@@ -495,7 +495,7 @@ export const COMPONENT_PRESETS = {
       transition: `all ${ANIMATION_DURATIONS.fast} ${ANIMATION_EASINGS.easeInOut}`
     }
   },
-  
+
   card: {
     default: {
       background: SEMANTIC_COLORS.card,
@@ -506,7 +506,7 @@ export const COMPONENT_PRESETS = {
     },
     elevated: {
       background: SEMANTIC_COLORS.card,
-      color: SEMANTIC_COLORS['card-foreground'], 
+      color: SEMANTIC_COLORS['card-foreground'],
       border: SEMANTIC_COLORS.border,
       borderRadius: BORDER_RADIUS_SCALE.lg,
       boxShadow: SHADOW_SCALE.md
@@ -522,7 +522,7 @@ export type SpacingSize = keyof typeof SPACING_SCALE
 export type TypographyVariant = keyof typeof TYPOGRAPHY_SCALE
 export type ComponentSize = keyof typeof COMPONENT_SIZES
 export type BorderRadiusSize = keyof typeof BORDER_RADIUS_SCALE
-export type ShadowSize = keyof typeof SHADOW_SCALE  
+export type ShadowSize = keyof typeof SHADOW_SCALE
 export type AnimationDuration = keyof typeof ANIMATION_DURATIONS
 export type AnimationEasing = keyof typeof ANIMATION_EASINGS
 export type Breakpoint = keyof typeof BREAKPOINTS

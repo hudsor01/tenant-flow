@@ -18,6 +18,7 @@ import {
 } from '@repo/shared'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { tokens, generateCSSCustomProperties, getToken, cssVar as tokenCssVar } from '@/design-system/tokens/unified'
 
 /**
  * Enhanced className utility with intelligent Tailwind class merging
@@ -461,6 +462,139 @@ export function generateId(prefix = 'id'): string {
 	return `${prefix}-${Math.random().toString(36).substring(2, 9)}`
 }
 
+// ============================================================================
+// ENHANCED TOKEN UTILITIES
+// ============================================================================
+
+/**
+ * Generate CSS custom properties from unified design tokens
+ * @returns CSS custom properties object ready for injection
+ */
+export function getThemeCSS(): Record<string, string> {
+	return generateCSSCustomProperties(tokens)
+}
+
+/**
+ * Get design token value with type safety
+ * @param path - Token path (e.g., 'colors.primary.main')
+ * @param fallback - Fallback value if token not found
+ * @returns Token value or fallback
+ */
+export function useToken<T>(path: string, fallback?: T): T | undefined {
+	return getToken(path, fallback)
+}
+
+/**
+ * Create CSS variable reference for design tokens
+ * @param path - Token path
+ * @returns CSS var() reference
+ */
+export function useTokenVar(path: string): string {
+	return tokenCssVar(path)
+}
+
+/**
+ * Generate premium glass morphism classes
+ * @param variant - Glass variant type
+ * @param className - Additional classes
+ * @returns Glass effect class string
+ */
+export function glassClasses(
+	variant: 'default' | 'strong' | 'premium' = 'default',
+	className?: string
+): string {
+	const baseClasses = 'backdrop-blur-md border'
+
+	const variantClasses = {
+		default: 'bg-white/10 border-white/20',
+		strong: 'bg-white/15 border-white/30 backdrop-blur-xl',
+		premium: 'card-glass-premium' // Uses the sophisticated CSS class
+	}
+
+	return cn(baseClasses, variantClasses[variant], className)
+}
+
+/**
+ * Generate premium button classes with enhanced animations
+ * @param variant - Button style variant
+ * @param size - Button size
+ * @param premium - Enable premium animations
+ * @param className - Additional classes
+ * @returns Premium button class string
+ */
+export function premiumButtonClasses(
+	variant: ButtonVariant = 'primary',
+	size: ComponentSize = 'default',
+	premium = false,
+	className?: string
+): string {
+	const baseClasses = buttonClasses(variant, size)
+	const premiumClasses = premium ? 'btn-premium-hover' : ''
+
+	return cn(baseClasses, premiumClasses, className)
+}
+
+/**
+ * Generate shadow classes using design tokens
+ * @param level - Shadow intensity level
+ * @param premium - Use premium shadow variants
+ * @param className - Additional classes
+ * @returns Shadow class string
+ */
+export function shadowClasses(
+	level: 'small' | 'medium' | 'large' = 'medium',
+	premium = false,
+	className?: string
+): string {
+	const shadowClass = premium ? `shadow-premium-${level === 'small' ? 'sm' : level === 'medium' ? 'md' : 'lg'}` : `shadow-${level}`
+
+	return cn(shadowClass, className)
+}
+
+/**
+ * Generate typography classes using unified tokens
+ * @param scale - Typography scale from design tokens
+ * @param weight - Font weight
+ * @param className - Additional classes
+ * @returns Typography class string
+ */
+export function typographyClasses(
+	scale: 'large-title' | 'title-1' | 'title-2' | 'headline' | 'body' | 'caption' = 'body',
+	weight: 'normal' | 'medium' | 'semibold' | 'bold' = 'normal',
+	className?: string
+): string {
+	const scaleClasses = {
+		'large-title': 'font-large-title',
+		'title-1': 'font-title-1',
+		'title-2': 'font-title-2',
+		'headline': 'font-headline',
+		'body': 'font-body',
+		'caption': 'font-caption'
+	}
+
+	const weightClasses = {
+		normal: 'font-normal',
+		medium: 'font-medium',
+		semibold: 'font-semibold',
+		bold: 'font-bold'
+	}
+
+	return cn(scaleClasses[scale], weightClasses[weight], className)
+}
+
+/**
+ * Apply unified design tokens to inline styles
+ * @param tokenPath - Path to design token
+ * @param property - CSS property name
+ * @returns CSS style object
+ */
+export function applyToken(tokenPath: string, property: string): React.CSSProperties {
+	const value = getToken(tokenPath)
+	return value ? { [property]: value } : {}
+}
 
 // Export all utilities from shared package
 export * from '@repo/shared'
+
+// Export unified tokens for direct access
+export { tokens }

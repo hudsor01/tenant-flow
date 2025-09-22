@@ -5,6 +5,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "doppler run -- next dev",
+		"dev:https": "doppler run -- next dev --experimental-https --experimental-https-key ./certs/localhost+2-key.pem --experimental-https-cert ./certs/localhost+2.pem",
 		"dev:clean": "rm -rf .next && doppler run -- next dev",
 		"dev:webpack": "rm -rf .next && doppler run -- next dev",
 		"build": "doppler run -- next build",

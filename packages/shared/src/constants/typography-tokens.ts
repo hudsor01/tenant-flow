@@ -9,21 +9,21 @@
 // =============================================================================
 
 /**
- * SF Pro Typography Scale from Design Tokens
+ * Roboto Typography Scale from Design Tokens
  * These values are extracted from tenantflow-ui-kit.tokens.json
  * and represent the core typography system
  */
 export const TYPOGRAPHY_TOKENS = {
   // Large Display (26px variants)
   'sf-display-lg': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '26px',
     fontWeight: 400,
     letterSpacing: '0px',
     lineHeight: 1.23
   },
   'sf-display-lg-bold': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '26px',
     fontWeight: 700,
     letterSpacing: '0px',
@@ -32,14 +32,14 @@ export const TYPOGRAPHY_TOKENS = {
 
   // Medium Display (22px variants)
   'sf-display-md': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '22px',
     fontWeight: 400,
     letterSpacing: '0px',
     lineHeight: 1.18
   },
   'sf-display-md-bold': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '22px',
     fontWeight: 700,
     letterSpacing: '0px',
@@ -48,14 +48,14 @@ export const TYPOGRAPHY_TOKENS = {
 
   // Body Text (17px variants)
   'sf-body': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '17px',
     fontWeight: 400,
     letterSpacing: '0px',
     lineHeight: 1.29
   },
   'sf-body-bold': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '17px',
     fontWeight: 700,
     letterSpacing: '0px',
@@ -64,14 +64,14 @@ export const TYPOGRAPHY_TOKENS = {
 
   // Callout (15px variants)
   'sf-callout': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '15px',
     fontWeight: 400,
     letterSpacing: '0px',
     lineHeight: 1.33
   },
   'sf-callout-semibold': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '15px',
     fontWeight: 600,
     letterSpacing: '0px',
@@ -80,28 +80,28 @@ export const TYPOGRAPHY_TOKENS = {
 
   // Label (13px variants)
   'sf-label': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '13px',
     fontWeight: 400,
     letterSpacing: '0px',
     lineHeight: 1.23
   },
   'sf-label-semibold': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '13px',
     fontWeight: 600,
     letterSpacing: '0px',
     lineHeight: 1.23
   },
   'sf-label-bold': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '13px',
     fontWeight: 700,
     letterSpacing: '0px',
     lineHeight: 1.23
   },
   'sf-label-heavy': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '13px',
     fontWeight: 900,
     letterSpacing: '0px',
@@ -110,14 +110,14 @@ export const TYPOGRAPHY_TOKENS = {
 
   // Caption (12px variants)
   'sf-caption': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '12px',
     fontWeight: 400,
     letterSpacing: '0px',
     lineHeight: 1.25
   },
   'sf-caption-semibold': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '12px',
     fontWeight: 600,
     letterSpacing: '0px',
@@ -126,14 +126,14 @@ export const TYPOGRAPHY_TOKENS = {
 
   // Small Text (11px variants)
   'sf-small': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '11px',
     fontWeight: 400,
     letterSpacing: '0px',
     lineHeight: 1.27
   },
   'sf-small-semibold': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '11px',
     fontWeight: 600,
     letterSpacing: '0px',
@@ -142,14 +142,14 @@ export const TYPOGRAPHY_TOKENS = {
 
   // Micro Text (10px variants)
   'sf-micro': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '10px',
     fontWeight: 400,
     letterSpacing: '0px',
     lineHeight: 1.3
   },
   'sf-micro-semibold': {
-    fontFamily: 'SF Pro',
+    fontFamily: 'Roboto',
     fontSize: '10px',
     fontWeight: 600,
     letterSpacing: '0px',
@@ -166,7 +166,7 @@ export const TYPOGRAPHY_TOKENS = {
  * This provides a bridge between the design system and application code
  */
 export const TOKEN_TO_TAILWIND_MAP = {
-  // Display variants (26px/22px) - with SF Pro font
+  // Display variants (26px/22px) - with Roboto font
   'sf-display-lg': 'font-sans text-[26px] font-normal leading-[1.23] tracking-normal',
   'sf-display-lg-bold': 'font-sans text-[26px] font-bold leading-[1.23] tracking-normal',
   'sf-display-md': 'font-sans text-[22px] font-normal leading-[1.18] tracking-normal',

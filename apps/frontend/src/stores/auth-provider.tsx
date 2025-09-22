@@ -118,12 +118,29 @@ export const useAuthStore = <T,>(selector: (state: AuthState) => T): T => {
 	const store = useContext(AuthStoreContext)
 	if (!store) throw new Error('Missing AuthStoreProvider')
 
+	// Validate selector function
+	if (typeof selector !== 'function') {
+		throw new Error('useAuthStore requires a selector function')
+	}
+
 	// Simple subscription pattern that works with SSR
-	const [state, setState] = React.useState(() => selector(store.getState()))
+	const [state, setState] = React.useState(() => {
+		try {
+			return selector(store.getState())
+		} catch (error) {
+			console.error('Error in auth store selector:', error)
+			// Return a safe default - adjust based on your AuthState structure
+			return null as T
+		}
+	})
 
 	React.useEffect(() => {
 		const unsubscribe = store.subscribe(() => {
-			setState(selector(store.getState()))
+			try {
+				setState(selector(store.getState()))
+			} catch (error) {
+				console.error('Error in auth store subscription:', error)
+			}
 		})
 		return unsubscribe
 	}, [store, selector])
