@@ -50,6 +50,9 @@ jobs:
           # Install Doppler CLI for managing secrets
           curl -Ls --tlsv1.2 --proto "=https" --retry 3 https://cli.doppler.com/install.sh | sh
 
+      - name: Add Doppler to PATH
+        run: echo "$HOME/.doppler/bin" >> $GITHUB_PATH
+
       - name: Run lint, typecheck, and build in parallel
         env:
           BACKEND_SCHEMAS_DIR: ./supabase/schema-exports
