@@ -15,7 +15,7 @@
 		"incremental": true,
 		"noEmit": false
 	},
-	"include": ["src", "scripts", "src/types/fastify.d.ts", "test/setup.ts"],
+	"include": ["src", "scripts", "test"],
 	"exclude": [
 		"src/auth/auth-production-diagnostic.ts",
 		"src/services/base-crud.service.example.ts",

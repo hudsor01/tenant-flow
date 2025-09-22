@@ -7,44 +7,42 @@
  */
 
 import {
+	BadRequestException,
 	Body,
 	Controller,
+	DefaultValuePipe,
 	Delete,
 	Get,
+	HttpStatus,
+	NotFoundException,
+	Optional,
 	Param,
+	ParseIntPipe,
 	ParseUUIDPipe,
 	Post,
 	Put,
-	Query,
-	HttpStatus,
-	DefaultValuePipe,
-	ParseIntPipe,
-	BadRequestException,
-	NotFoundException,
-	Optional
+	Query
 } from '@nestjs/common'
 import {
 	ApiBearerAuth,
-	ApiTags,
 	ApiOperation,
-	ApiResponse
+	ApiResponse,
+	ApiTags
 } from '@nestjs/swagger'
-import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { Public } from '../shared/decorators/public.decorator'
-import type { ValidatedUser } from '@repo/shared'
-import { TenantsService } from './tenants.service'
 import type {
 	CreateTenantRequest,
-	UpdateTenantRequest
-} from '../schemas/tenants.schema'
+	UpdateTenantRequest,
+	ValidatedUser
+} from '@repo/shared'
+import { CurrentUser } from '../shared/decorators/current-user.decorator'
+import { Public } from '../shared/decorators/public.decorator'
+import { TenantsService } from './tenants.service'
 
 @ApiTags('tenants')
 @ApiBearerAuth()
 @Controller('tenants')
 export class TenantsController {
-	constructor(
-		@Optional() private readonly tenantsService?: TenantsService
-	) {}
+	constructor(@Optional() private readonly tenantsService?: TenantsService) {}
 
 	@Get()
 	@Public()
@@ -76,9 +74,7 @@ export class TenantsController {
 
 		if (
 			invitationStatus &&
-			!['PENDING', 'SENT', 'ACCEPTED', 'EXPIRED'].includes(
-				invitationStatus
-			)
+			!['PENDING', 'SENT', 'ACCEPTED', 'EXPIRED'].includes(invitationStatus)
 		) {
 			throw new BadRequestException('Invalid invitation status')
 		}
@@ -126,7 +122,10 @@ export class TenantsController {
 				data: null
 			}
 		}
-		const tenant = await this.tenantsService.findOne(user?.id || 'test-user-id', id)
+		const tenant = await this.tenantsService.findOne(
+			user?.id || 'test-user-id',
+			id
+		)
 		if (!tenant) {
 			throw new NotFoundException('Tenant not found')
 		}

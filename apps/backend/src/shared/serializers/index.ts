@@ -1,43 +1,12 @@
 /**
  * Serialization utilities for TenantFlow Backend
  *
- * This module provides minimal, targeted serialization for specific data types:
- * - Date objects (ISO string formatting)
- * - Currency amounts (cents to dollars, precision control)
- *
- * Usage Philosophy:
- * - Only add serializers where absolutely necessary
- * - Keep serializers native to Fastify
- * - Apply route-locally or register once in bootstrap
- * - No global formatting frameworks
+ * Note: Express migration complete - using native JSON serialization.
+ * Express handles serialization through native JSON.stringify and middleware.
  */
 
-// Date serialization
-export {
-	createDateSerializer,
-	registerDateSerializerForRoute,
-	DateTimeSchema,
-	ResponseWithTimestampSchema,
-	type DateSerializerOptions
-} from './fastify-date.serializer'
-
-// Currency serialization
-export {
-	createCurrencySerializer,
-	registerCurrencySerializerForRoute,
-	createCurrencyAmount,
-	toStripeCents,
-	fromStripeCents,
-	CurrencyAmountSchema,
-	StripeCentsAmountSchema,
-	SubscriptionResponseSchema,
-	type CurrencySerializerOptions,
-	type CurrencyAmount
-} from './fastify-currency.serializer'
-
 /**
- * Performance monitoring for custom serializers
- * Use in development to ensure serializers don't impact performance
+ * Performance monitoring interface (preserved for compatibility)
  */
 export interface SerializerMetrics {
 	dateSerializationCount: number
@@ -53,7 +22,6 @@ let metrics: SerializerMetrics = {
 
 /**
  * Get serializer performance metrics
- * Useful for development and monitoring
  */
 export function getSerializerMetrics(): SerializerMetrics {
 	return { ...metrics }
@@ -71,33 +39,18 @@ export function resetSerializerMetrics(): void {
 }
 
 /**
- * Wrap serializer with performance tracking (development only)
+ * Express JSON serialization helpers
  */
-export function withPerformanceTracking<
-	T extends (...args: unknown[]) => unknown
->(serializer: T, type: 'date' | 'currency'): T {
-	if (process.env.NODE_ENV !== 'development') {
-		return serializer
-	}
+export function serializeDate(date: Date): string {
+	return date.toISOString()
+}
 
-	return ((...args: Parameters<T>) => {
-		const start = performance.now()
-		const result = serializer(...args)
-		const duration = performance.now() - start
+export function serializeCurrency(cents: number): string {
+	return (cents / 100).toFixed(2)
+}
 
-		if (type === 'date') {
-			metrics.dateSerializationCount++
-		} else {
-			metrics.currencySerializationCount++
-		}
-
-		// Update rolling average
-		const totalCount =
-			metrics.dateSerializationCount + metrics.currencySerializationCount
-		metrics.averageSerializationTime =
-			(metrics.averageSerializationTime * (totalCount - 1) + duration) /
-			totalCount
-
-		return result
-	}) as T
+export function parseStripeCents(amount: string | number): number {
+	return typeof amount === 'string'
+		? Number.parseFloat(amount) * 100
+		: amount * 100
 }

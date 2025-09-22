@@ -91,9 +91,6 @@ tenantflow-ui-kit.tokens.json
 !**/*[_-]secret*.tsx
 !**/api[_-]key*.ts
 !**/api[_-]key*.tsx
-!**/query-keys.ts
-!**/query-keys.tsx
-!**/password-*.tsx
 !**/secret-*.tsx
 !**/key-*.tsx
 !**/auth-token.decorator.ts
@@ -135,26 +132,58 @@ secret/
 secret.*
 secrets.*
 
-# Never allow password/secret/key patterns
-**/*[Pp]assword*
-# Exception for legitimate UI components
-!**/forgot-password-form.tsx
-!**/reset-password-form.tsx
-!**/update-password-form.tsx
-!**/password-strength.tsx
-!**/password-input.tsx
-!**/forgot-password/
-!**/reset-password/
-!**/update-password/
-**/*[Ss]ecret*
-**/*[Kk]ey*
+# CRITICAL: Password/secret/key patterns (SPECIFIC to avoid blocking UI components)
+**/*[Pp]assword*.txt
+**/*[Pp]assword*.env
+**/*[Pp]assword*.json
+**/*[Pp]assword*.yml
+**/*[Pp]assword*.yaml
+**/*[Pp]assword*.config
+**/*[Pp]assword*.xml
+**/*[Pp]assword*.ini
+**/*[Pp]assword*.properties
+**/*[Ss]ecret*.txt
+**/*[Ss]ecret*.env
+**/*[Ss]ecret*.json
+**/*[Ss]ecret*.yml
+**/*[Ss]ecret*.yaml
+**/*[Ss]ecret*.config
+**/*[Kk]ey*.txt
+**/*[Kk]ey*.env
+**/*[Kk]ey*.json
+**/*[Kk]ey*.yml
+**/*[Kk]ey*.yaml
+**/*[Kk]ey*.config
 **/*actual[_-]password*
 **/*real[_-]secret*
 **/*private[_-]key*
 
+# TenantFlow-specific secrets
+**/*stripe[_-]secret*
+**/*stripe[_-]key*
+**/*supabase[_-]secret*
+**/*supabase[_-]key*
+**/*railway[_-]token*
+**/*vercel[_-]token*
+**/*resend[_-]key*
+**/*doppler[_-]token*
+
+# Allow legitimate UI components and source files
+!**/*password*.tsx
+!**/*password*.ts
+!**/*password*.jsx
+!**/*password*.js
+!**/*secret*.tsx
+!**/*secret*.ts
+!**/*secret*.jsx
+!**/*secret*.js
+!**/*key*.tsx
+!**/*key*.ts
+!**/*key*.jsx
+!**/*key*.js
+
 # dependencies
 node_modules/
-package-lock.json
 yarn.lock
 !/yarn.lock
 test/node_modules
@@ -184,7 +213,6 @@ test/traces
 # Editors
 **/.idea
 **/.#*
-.nvmrc
 
 # examples
 examples/**/out/*
@@ -201,9 +229,6 @@ test-timings.json
 *.tsbuildinfo
 .swc/
 .turbo
-
-# Storybook
-*storybook.log
 
 # logs & pids
 *.log
@@ -278,13 +303,11 @@ $RECYCLE.BIN/
 **/*.swo
 
 # IDE & EDITORS
-# VS Code - only ignore specific files, not the entire directory
 .vscode/*
 .vscode-test
 .idea/
 *.sublime-*
 .history/
-
 .vercel/
 .railway/
 .netlify/
@@ -348,7 +371,6 @@ pids
 *.pid
 *.seed
 *.pid.lock
-
 .vercel
 
 # Turborepo
@@ -372,10 +394,9 @@ coverage/
 .cache/
 .swc/
 
-# Environment files
-.env
-.env.local
+# Additional TenantFlow environment patterns
 .env.vault
+.doppler.yaml
 
 # Test artifacts
 test-results/
@@ -385,5 +406,33 @@ playwright-report/
 # Temporary files
 .temp/
 .tmp/
-doppler.json
-.doppler.yaml
+
+# TenantFlow Production Data (CRITICAL)
+**/uploads/
+**/user-uploads/
+**/tenant-files/
+**/property-documents/
+**/lease-agreements/
+**/financial-reports/
+**/backup-*.sql
+**/dump-*.sql
+**/production-db-*
+**/tenant-data-*
+**/property-data-*
+
+# Stripe webhook endpoints (local testing)
+stripe-webhooks.log
+**/stripe-events.log
+**/webhook-*.log
+
+# Development databases
+*.sqlite
+*.sqlite3
+*.db
+database.dev
+db.dev
+local.db
+
+# Generated types that may contain sensitive info
+**/generated-types.secret.ts
+**/api-types.secret.ts
