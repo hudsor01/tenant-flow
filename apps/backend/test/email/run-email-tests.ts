@@ -55,17 +55,17 @@ class EmailTestRunner {
 		// Run test suites in sequence
 		await this.runTestSuite(
 			'Unit Tests - EmailTemplateService',
-			'npm run test -- email-template.service.spec.ts'
+			'pnpm test -- email-template.service.spec.ts'
 		)
 
 		await this.runTestSuite(
 			'Unit Tests - EmailService',
-			'npm run test -- email.service.spec.ts'
+			'pnpm test -- email.service.spec.ts'
 		)
 
 		await this.runTestSuite(
 			'E2E Tests - Email Workflows',
-			'npm run test:e2e -- email-workflows.e2e-spec.ts'
+			'pnpm test:e2e -- email-workflows.e2e-spec.ts'
 		)
 
 		// Run performance tests if not in CI

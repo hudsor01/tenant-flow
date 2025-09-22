@@ -47,9 +47,9 @@ ENV TURBO_TELEMETRY_DISABLED=1 \
     NODE_OPTIONS="--max-old-space-size=2048"
 
 # Parallel builds with error handling
-RUN pnpm run build:shared && \
-    pnpm run build:database && \
-    pnpm run build:backend
+RUN pnpm build:shared && \
+    pnpm build:database && \
+    pnpm build:backend
 
 # Ensure runtime has access to Handlebars templates compiled from TypeScript
 RUN mkdir -p apps/backend/dist/pdf/templates \
