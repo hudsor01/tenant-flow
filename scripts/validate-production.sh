@@ -14,13 +14,13 @@ if [ ! -f "package.json" ]; then
 fi
 
 echo "TYPECHECK: Running TypeScript checks..."
-npm run typecheck
+pnpm typecheck
 
 echo "TESTING: Running tests..."
-npm run test
+pnpm test
 
 echo "BUILD: Building project..."
-npm run build
+pnpm build
 
 echo "PACKAGE: Checking for critical files..."
 if [ ! -f "apps/frontend/package.json" ]; then
