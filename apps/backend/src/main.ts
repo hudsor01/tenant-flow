@@ -2,8 +2,9 @@ import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { getCORSConfig } from '@repo/shared'
-import type { Request, Response } from 'express'
+import type { NextFunction, Request, Response } from 'express'
 import 'reflect-metadata'
+import { v4 as uuidv4 } from 'uuid'
 import { AppModule } from './app.module'
 import { registerExpressMiddleware } from './config/express.config'
 
@@ -13,6 +14,7 @@ import { HEALTH_PATHS } from './shared/constants/routes'
 // Extend Express Request interface for request timing
 interface RequestWithTiming extends Request {
 	startTime?: number
+	id?: string
 }
 
 async function bootstrap() {
@@ -27,6 +29,8 @@ async function bootstrap() {
 		rawBody: true,
 		bufferLogs: true
 	})
+
+	app.set('trust proxy', 1)
 
 	// Register Express middleware with full TypeScript support
 	await registerExpressMiddleware(app)
@@ -131,6 +135,16 @@ async function bootstrap() {
 			return originalSend.call(this, body)
 		}
 		next()
+	})
+
+	app.use((req: RequestWithTiming, _res: Response, next: () => void) => {
+		req.id = uuidv4()
+		next()
+	})
+
+	app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+		logger.error(`Unhandled error: ${err.message}`, err.stack)
+		res.status(500).send('Internal Server Error')
 	})
 
 	// Start server
