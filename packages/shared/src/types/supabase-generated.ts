@@ -815,6 +815,7 @@ export type Database = {
 			}
 			Lease: {
 				Row: {
+					propertyId: string
 					createdAt: string
 					endDate: string
 					id: string

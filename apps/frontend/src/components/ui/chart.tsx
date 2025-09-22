@@ -54,7 +54,7 @@ function ChartContainer({
 			<div
 				data-slot="chart"
 				data-chart={chartId}
-				className={cn(
+				data-tokens="applied" className={cn(
 					"[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='hsl(var(--border))']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-polar-grid_[stroke='hsl(var(--border))']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='hsl(var(--border))']]:stroke-border flex aspect-video justify-center text-xs [&_.recharts-dot[stroke='hsl(var(--background))']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='hsl(var(--background))']]:stroke-transparent [&_.recharts-surface]:outline-hidden",
 					className
 				)}
@@ -155,7 +155,7 @@ function ChartTooltipContent({
 
 		if (labelFormatter) {
 			return (
-				<div className={cn('font-medium', labelClassName)}>
+				<div data-tokens="applied" className={cn('font-medium', labelClassName)}>
 					{labelFormatter(value, payload)}
 				</div>
 			)
@@ -165,7 +165,7 @@ function ChartTooltipContent({
 			return null
 		}
 
-		return <div className={cn('font-medium', labelClassName)}>{value}</div>
+		return <div data-tokens="applied" className={cn('font-medium', labelClassName)}>{value}</div>
 	}, [
 		label,
 		labelFormatter,
@@ -184,8 +184,8 @@ function ChartTooltipContent({
 
 	return (
 		<div
-			className={cn(
-				'border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
+			data-tokens="applied" className={cn(
+				'border-[var(--color-separator)]/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-[var(--radius-large)] border px-2.5 py-1.5 text-xs shadow-[var(--shadow-premium-lg)]',
 				className
 			)}
 		>
@@ -202,8 +202,8 @@ function ChartTooltipContent({
 					return (
 						<div
 							key={String(item.dataKey || index)}
-							className={cn(
-								'[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5',
+							data-tokens="applied" className={cn(
+								'[&>svg]:text-[var(--color-label-tertiary)] flex w-full flex-wrap items-stretch gap-[var(--spacing-2)] [&>svg]:h-2.5 [&>svg]:w-2.5',
 								indicator === 'dot' && 'items-center'
 							)}
 						>
@@ -222,7 +222,7 @@ function ChartTooltipContent({
 									) : (
 										!hideIndicator && (
 											<div
-												className={cn(
+												data-tokens="applied" className={cn(
 													'shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)',
 													{
 														'h-2.5 w-2.5': indicator === 'dot',
@@ -242,14 +242,14 @@ function ChartTooltipContent({
 										)
 									)}
 									<div
-										className={cn(
+										data-tokens="applied" className={cn(
 											'flex flex-1 justify-between leading-none',
 											nestLabel ? 'items-end' : 'items-center'
 										)}
 									>
 										<div className="grid gap-1.5">
 											{nestLabel ? tooltipLabel : null}
-											<span className="text-muted-foreground">
+											<span className="text-[var(--color-label-tertiary)]">
 												{itemConfig?.label || String(item.name || '')}
 											</span>
 										</div>
@@ -296,8 +296,8 @@ function ChartLegendContent({
 
 	return (
 		<div
-			className={cn(
-				'flex items-center justify-center gap-4',
+			data-tokens="applied" className={cn(
+				'flex items-center justify-center gap-[var(--spacing-4)]',
 				verticalAlign === 'top' ? 'pb-3' : 'pt-3',
 				className
 			)}
@@ -309,8 +309,8 @@ function ChartLegendContent({
 				return (
 					<div
 						key={item.value}
-						className={cn(
-							'[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3'
+						data-tokens="applied" className={cn(
+							'[&>svg]:text-[var(--color-label-tertiary)] flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3'
 						)}
 					>
 						{itemConfig?.icon && !hideIcon ? (

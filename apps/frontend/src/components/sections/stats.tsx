@@ -1,5 +1,3 @@
-'use client'
-
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { NumberTicker } from '@/components/magicui/number-ticker'
 import { Badge } from '@/components/ui/badge'
@@ -29,7 +27,7 @@ const statsData = [
 		description: 'Average collection success rate',
 		change: '+2.3% vs last year',
 		changeType: 'positive' as const,
-		color: 'text-green-600 dark:text-green-400'
+		color: 'text-[var(--color-system-green)] dark:text-[var(--color-system-green-85)]'
 	},
 	{
 		id: 'users',
@@ -40,7 +38,7 @@ const statsData = [
 		description: 'Active users managing properties',
 		change: '+45% growth',
 		changeType: 'positive' as const,
-		color: 'text-purple-600 dark:text-purple-400'
+		color: 'text-[var(--color-system-blue)] dark:text-[var(--color-system-blue-85)]'
 	},
 	{
 		id: 'satisfaction',
@@ -52,7 +50,7 @@ const statsData = [
 		description: 'Average rating from our users',
 		change: '+0.2 improvement',
 		changeType: 'positive' as const,
-		color: 'text-amber-600 dark:text-amber-400'
+		color: 'text-[var(--color-system-yellow)] dark:text-[var(--color-system-yellow-85)]'
 	}
 ]
 
@@ -131,13 +129,17 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 									<Card
 										key={stat.id}
 										className={cn(
-											'group relative overflow-hidden border-[var(--color-fill-secondary)]/50 dark:border-[var(--color-fill-secondary)]/30',
-											'bg-gradient-to-br from-white/80 via-[var(--color-fill-quaternary)]/50 to-white/60',
-											'dark:from-[var(--color-fill-primary)]/40 dark:via-[var(--color-fill-secondary)]/20 dark:to-[var(--color-fill-primary)]/60',
-											'backdrop-blur-sm shadow-lg shadow-[var(--color-label-tertiary)]/10',
-											'hover:shadow-xl hover:shadow-[var(--color-label-tertiary)]/20 transition-all duration-500',
-											'hover:scale-105'
+											'group relative overflow-hidden',
+											'border-2 border-[var(--color-primary-brand-25)]',
+											'shadow-lg hover:shadow-2xl',
+											'transition-all duration-300 ease-out',
+											'hover:transform hover:-translate-y-2',
+											'hover:border-[var(--color-primary-brand-40)]',
+											'card-glass-premium'
 										)}
+										style={{
+											backgroundColor: 'color-mix(in oklab, var(--color-fill-primary) 85%, transparent)'
+										}}
 									>
 										<CardContent className="p-6">
 											{/* Icon and Change Indicator */}
@@ -169,7 +171,7 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 													value={stat.value}
 													decimalPlaces={stat.decimalPlaces || 0}
 													suffix={stat.suffix}
-													className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100"
+													className="text-3xl md:text-4xl font-bold text-[var(--color-label-primary)]"
 													size="sf-display-md-bold"
 													variant="default"
 													animationDuration={2000}
@@ -179,7 +181,7 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 
 											{/* Label and Description */}
 											<div>
-												<div className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+												<div className="font-semibold text-[var(--color-label-primary)] mb-1">
 													{stat.label}
 												</div>
 												<div className="text-sm text-[var(--color-label-secondary)] dark:text-[var(--color-label-tertiary)]">
@@ -203,8 +205,8 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 										return (
 											<div key={index} className="text-center group">
 												<div className="flex items-center justify-center mb-4">
-													<div className="p-4 rounded-full bg-[var(--color-fill-tertiary)] dark:bg-[var(--color-fill-tertiary)]/30 group-hover:bg-[var(--color-fill-secondary)] dark:group-hover:bg-[var(--color-fill-secondary)]/50 transition-colors">
-														<Icon className="size-6 text-[var(--color-label-secondary)] dark:text-[var(--color-label-tertiary)]" />
+													<div className="p-4 rounded-full bg-[var(--color-primary-brand-10)] border border-[var(--color-primary-brand-25)] group-hover:bg-[var(--color-primary-brand-15)] group-hover:border-[var(--color-primary-brand-40)] transition-all duration-300 shadow-md group-hover:shadow-lg">
+														<Icon className="size-6 text-[var(--color-primary-brand-85)]" />
 													</div>
 												</div>
 												<div className="text-lg font-semibold text-[var(--color-label-primary)] dark:text-[var(--color-label-primary)] mb-2">
@@ -220,7 +222,12 @@ export const Stats = React.forwardRef<HTMLElement, StatsProps>(
 
 								{/* Testimonial Quote */}
 								<div className="mt-16 max-w-4xl mx-auto">
-									<Card className="border-[var(--color-fill-secondary)]/50 dark:border-[var(--color-fill-secondary)]/30 bg-gradient-to-br from-white/80 to-[var(--color-fill-quaternary)]/60 dark:from-[var(--color-fill-primary)]/40 dark:to-[var(--color-fill-secondary)]/60 backdrop-blur-sm">
+									<Card
+										className="card-glass-premium border-2 border-[var(--color-primary-brand-25)] shadow-xl transition-all duration-300 hover:shadow-2xl"
+										style={{
+											backgroundColor: 'color-mix(in oklab, var(--color-fill-primary) 85%, transparent)'
+										}}
+									>
 										<CardContent className="p-8">
 											<blockquote className="text-center">
 												<div className="text-xl md:text-2xl text-[var(--color-label-secondary)] dark:text-[var(--color-label-secondary)] mb-6 leading-relaxed">

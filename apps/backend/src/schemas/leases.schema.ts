@@ -1,11 +1,11 @@
 /**
  * Leases JSON Schema Definitions
  *
- * Ultra-native Fastify JSON Schema validation
+ * Express JSON Schema validation
  * Single source of truth - no duplication
  */
 
-import type { JSONSchema } from '../shared/types/fastify-type-provider'
+import type { JSONSchema } from '../shared/types/express-type-provider'
 import { uuidSchema, dateSchema, moneySchema } from './shared.schema'
 
 const leaseStatusSchema: JSONSchema = {

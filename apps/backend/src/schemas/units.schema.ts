@@ -1,13 +1,13 @@
 /**
  * Units JSON Schema Definitions
  *
- * Ultra-native Fastify JSON Schema validation
+ * Express JSON Schema validation
  * Single source of truth - no duplication
  * Automatic TypeScript type inference
  * 5-10x faster than class-validator
  */
 
-import type { JSONSchema } from '../shared/types/fastify-type-provider'
+import type { JSONSchema } from '../shared/types/express-type-provider'
 
 // Shared validation patterns
 const uuidSchema: JSONSchema = {
@@ -183,7 +183,7 @@ export const unitQuerySchema: JSONSchema = {
 	}
 }
 
-// Route schemas for Fastify validation
+// Route schemas for Express validation
 export const unitRouteSchemas = {
 	create: {
 		body: createUnitSchema,

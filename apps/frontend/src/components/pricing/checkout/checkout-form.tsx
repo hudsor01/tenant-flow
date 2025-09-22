@@ -75,14 +75,14 @@ export function CheckoutForm({
 		error,
 		confirmPayment,
 		reset,
-		formatAmount
+		formatAmountAction
 	} = useCheckout({
 		amount,
 		currency,
 		metadata,
 		customerEmail,
-		onSuccess,
-		onError
+		onSuccessAction: onSuccess,
+		onErrorAction: onError
 	})
 
 	const { containerSpring, errorSpring, successSpring } =
@@ -107,7 +107,7 @@ export function CheckoutForm({
 		return (
 			<SuccessConfirmation
 				amount={amount}
-				formatAmount={formatAmount}
+				formatAmount={formatAmountAction}
 				successSpring={successSpring}
 			/>
 		)
@@ -130,7 +130,7 @@ export function CheckoutForm({
 						business={business}
 						amount={amount}
 						currency={currency}
-						formatAmount={formatAmount}
+						formatAmountAction={formatAmountAction}
 					/>
 
 					<FeaturesPreview features={features} />
@@ -139,7 +139,7 @@ export function CheckoutForm({
 				<CardContent className="space-y-6 animate-slide-in-from-bottom">
 					{enableExpressCheckout && clientSecret && (
 						<ExpressCheckout
-							onConfirm={async () => {
+							onConfirmAction={async () => {
 								setIsProcessing(true)
 								setPaymentStatus('processing')
 								await confirmPayment()
@@ -164,7 +164,7 @@ export function CheckoutForm({
 							setIsProcessing(false)
 						}}
 						amount={amount}
-						formatAmount={formatAmount}
+						formatAmount={formatAmountAction}
 						business={business}
 						customerEmail={customerEmail}
 					/>

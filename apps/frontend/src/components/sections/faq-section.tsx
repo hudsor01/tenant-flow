@@ -50,11 +50,11 @@ export function FAQSection({ className }: { className?: string }) {
     },
     {
       question: "How does property and tenant management work?",
-      answer: "TenantFlow provides a comprehensive dashboard where you can add properties, manage tenant information, track rent payments, handle maintenance requests, and generate reports. Everything is automated and synchronized in real-time."
+      answer: "TenantFlow provides a comprehensive dashboard where you can add properties, manage tenant information, track maintenance issues, handle maintenance requests, and generate reports. Everything is automated and synchronized in real-time."
     },
     {
       question: "What's included in the pricing plans?",
-      answer: "Our plans are tiered based on the number of properties you manage. All plans include core features like tenant management, maintenance tracking, and payment processing. Higher tiers add advanced analytics, custom reporting, and priority support."
+      answer: "Our plans are tiered based on the number of properties you manage. All plans include core features like tenant management, maintenance tracking, and reporting tools. Higher tiers add advanced analytics, custom reporting, and priority support."
     },
     {
       question: "How secure is my property and tenant data?",

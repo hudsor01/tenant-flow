@@ -17,19 +17,31 @@ export class DashboardController {
 	}
 
 	@Get('stats')
-	@ApiOperation({ summary: 'Get dashboard statistics (test user data)' })
+	@ApiOperation({ summary: 'Get dashboard statistics for authenticated user' })
 	@ApiResponse({
 		status: 200,
 		description: 'Dashboard statistics retrieved successfully'
 	})
-	async getStats(): Promise<ControllerApiResponse> {
-		this.logger?.log({ action: 'getStats' }, 'Getting dashboard stats')
+	async getStats(
+		@CurrentUser() user?: AuthServiceValidatedUser
+	): Promise<ControllerApiResponse> {
+		this.logger?.log(
+			{
+				action: 'getStats',
+				userId: user?.id
+			},
+			'Getting dashboard stats for authenticated user'
+		)
 
 		if (!this.dashboardService) {
 			throw new NotFoundException('Dashboard service not available')
 		}
 
-		const data = await this.dashboardService.getStats('test-user-id')
+		if (!user?.id) {
+			throw new NotFoundException('User not authenticated')
+		}
+
+		const data = await this.dashboardService.getStats(user.id)
 		return {
 			success: true,
 			data,

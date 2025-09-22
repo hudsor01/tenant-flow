@@ -14,7 +14,7 @@ import {
 	ServiceUnavailableException
 } from '@nestjs/common'
 import type { SubscriptionStatus } from '@repo/shared'
-import type { FastifyRequest } from 'fastify'
+import type { Request } from 'express'
 import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
 import { Public } from '../shared/decorators/public.decorator'
@@ -142,7 +142,7 @@ export class StripeController {
 	@Public()
 	@HttpCode(HttpStatus.OK)
 	async handleWebhooks(
-		@Req() req: FastifyRequest,
+		@Req() req: Request,
 		@Headers('stripe-signature') sig: string
 	) {
 		let event: Stripe.Event

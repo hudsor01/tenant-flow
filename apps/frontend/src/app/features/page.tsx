@@ -1,10 +1,10 @@
 'use client'
 
+import { Navbar } from '@/components/layout/navbar'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { Navbar } from '@/components/navbar'
 import { FeaturesSection } from '@/components/sections/features-section'
-import { FooterMinimal } from '@/components/sections/footer-minimal'
+import Footer from '@/components/layout/footer'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -201,7 +201,12 @@ export default function FeaturesPage() {
 									asChild
 								>
 									<a href="/auth/sign-up" aria-label="Start free trial">
-										<div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+										<div
+											className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+											style={{
+												backgroundColor: 'color-mix(in oklab, var(--color-fill-primary) 40%, transparent)'
+										}}
+										/>
 										<span className="relative z-10 flex items-center">
 											Start Free Trial
 											<ArrowRight className="w-5 h-5 ml-3 transition-transform group-hover:translate-x-1" />
@@ -282,7 +287,12 @@ export default function FeaturesPage() {
 
 							{/* Rotating testimonial */}
 							<div className="max-w-4xl mx-auto">
-								<div className="relative bg-white/50 backdrop-blur-sm rounded-2xl p-8 border border-primary/10">
+									<div
+										className="relative rounded-2xl p-8 border border-primary/10 backdrop-blur-sm"
+										style={{
+											backgroundColor: 'color-mix(in oklab, var(--color-fill-primary) 65%, transparent)'
+										}}
+									>
 									<>
 										<blockquote className="text-xl text-foreground font-medium leading-relaxed mb-6">
 											"{t.quote}"
@@ -383,7 +393,14 @@ export default function FeaturesPage() {
 									</p>
 
 									{/* Key metric highlight */}
-									<div className="bg-white/70 dark:bg-black/20 rounded-xl p-4 mb-4 border border-accent/30">
+									<div
+										className={cn(
+											'rounded-xl border p-4 mb-4 transition-colors',
+											'bg-[var(--color-fill-primary)]',
+											'dark:bg-[var(--color-fill-secondary)]',
+											'border-[var(--color-accent-25)]'
+										)}
+									>
 										<div className="text-2xl font-bold text-accent">65%</div>
 										<div className="text-sm text-muted-foreground">
 											Faster unit filling
@@ -426,7 +443,14 @@ export default function FeaturesPage() {
 										automatically
 									</p>
 
-									<div className="bg-white/70 dark:bg-black/20 rounded-xl p-4 mb-4 border border-primary/30">
+									<div
+										className={cn(
+											'rounded-xl border p-4 mb-4 transition-colors',
+											'bg-[var(--color-fill-primary)]',
+											'dark:bg-[var(--color-fill-secondary)]',
+											'border-[var(--color-primary-brand-25)]'
+										)}
+									>
 										<div className="text-2xl font-bold text-primary">25+</div>
 										<div className="text-sm text-muted-foreground">
 											Hours saved per week
@@ -469,7 +493,14 @@ export default function FeaturesPage() {
 										compliance
 									</p>
 
-									<div className="bg-white/70 dark:bg-black/20 rounded-xl p-4 mb-4 border border-border">
+									<div
+										className={cn(
+											'rounded-xl border p-4 mb-4 transition-colors',
+											'bg-[var(--color-fill-primary)]',
+											'dark:bg-[var(--color-fill-secondary)]',
+											'border-[var(--color-separator)]'
+										)}
+									>
 										<div className="text-2xl font-bold text-primary">SOC 2</div>
 										<div className="text-sm text-muted-foreground">
 											Type II Certified
@@ -597,7 +628,12 @@ export default function FeaturesPage() {
 									asChild
 								>
 									<a href="/auth/sign-up" aria-label="Start free trial">
-										<div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+										<div
+											className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+											style={{
+												backgroundColor: 'color-mix(in oklab, var(--color-fill-primary) 40%, transparent)'
+										}}
+										/>
 										<span className="relative z-10 flex items-center">
 											Start Free Trial
 											<ArrowRight className="w-5 h-5 ml-3 transition-transform group-hover:translate-x-1" />
@@ -640,7 +676,7 @@ export default function FeaturesPage() {
 				</div>
 			</section>
 
-			<FooterMinimal />
+			<Footer />
 		</div>
 	)
 }

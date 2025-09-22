@@ -1,10 +1,9 @@
 'use client'
 
+import { Navbar } from '@/components/layout/navbar'
 import { BlurFade } from '@/components/magicui/blur-fade'
-import { ShimmerButton } from '@/components/magicui/shimmer-button'
 import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { Navbar } from '@/components/navbar'
-import { FooterMinimal } from '@/components/sections/footer-minimal'
+import Footer from '@/components/layout/footer'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -39,7 +38,7 @@ const pricingPlans = [
 		features: [
 			'Up to 5 properties',
 			'Professional tenant management',
-			'Automated rent collection',
+			'Maintenance tracking',
 			'Email support',
 			'Mobile app access',
 			'Basic reporting'
@@ -224,7 +223,7 @@ export default function PricingPage() {
 							{pricingPlans.map(plan => (
 								<Card
 									key={plan.id}
-									className={`relative flex flex-col card-elevated-authority ${plan.popular ? 'ring-1 ring-primary/30' : ''}`}
+									className={`relative flex flex-col ${plan.popular ? 'card-glass-popular' : 'card-glass-premium'}`}
 								>
 									{plan.popular && (
 										<div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -270,8 +269,8 @@ export default function PricingPage() {
 										<ul className="space-y-3 text-sm">
 											{plan.features.map((feature, index) => (
 												<li key={index} className="flex items-center gap-2">
-													<div className="flex-shrink-0 w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center">
-														<Check className="w-3 h-3 text-accent" />
+													<div className="flex-shrink-0 w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center feature-icon-hover">
+														<Check className="w-3 h-3 text-accent transition-colors duration-200" />
 													</div>
 													<span>{feature}</span>
 												</li>
@@ -281,19 +280,22 @@ export default function PricingPage() {
 
 									<CardFooter>
 										{plan.popular ? (
-											<ShimmerButton className="w-full h-12 text-base font-bold">
+											<Button
+												variant="primaryGlass"
+												className="w-full h-12 text-base font-bold"
+											>
 												<span className="inline-flex items-center">
 													{plan.id === 'enterprise'
 														? 'Contact Sales'
 														: 'Get Started'}
 													<ArrowRight className="w-4 h-4 ml-2" />
 												</span>
-											</ShimmerButton>
+											</Button>
 										) : (
 											<Button
 												onClick={() => handleSelectPlan(plan.id)}
 												variant="outline"
-												className="w-full btn-gradient-primary"
+												className="w-full btn-gradient-primary btn-premium-hover"
 											>
 												{plan.id === 'enterprise'
 													? 'Contact Sales'
@@ -362,8 +364,8 @@ export default function PricingPage() {
 										className="text-muted-foreground leading-relaxed"
 										style={TYPOGRAPHY_SCALE['body-sm']}
 									>
-										Smart workflows handle rent collection, lease renewals, and
-										tenant communications automatically. Save 20+ hours per
+										Smart workflows handle maintenance tracking, lease renewals,
+										and tenant communications automatically. Save 20+ hours per
 										week.
 									</p>
 								</div>
@@ -405,7 +407,7 @@ export default function PricingPage() {
 					</div>
 				</div>
 			</section>
-			<FooterMinimal />
+			<Footer />
 		</main>
 	)
 }

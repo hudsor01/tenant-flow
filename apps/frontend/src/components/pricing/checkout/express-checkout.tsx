@@ -1,18 +1,18 @@
 'use client'
 
-import { ExpressCheckoutElement } from '@stripe/react-stripe-js'
 import { Separator } from '@/components/ui/separator'
+import { ExpressCheckoutElement } from '@stripe/react-stripe-js'
 
 type Props = {
-	onConfirm: (event: unknown) => void
+	onConfirmAction: (event: unknown) => void
 }
 
-export function ExpressCheckout({ onConfirm }: Props) {
+export function ExpressCheckout({ onConfirmAction }: Props) {
   return (
     <div className="space-y-4">
       <div className="rounded-xl border p-3 bg-background/50">
         <ExpressCheckoutElement
-          onConfirm={onConfirm}
+          onConfirm={onConfirmAction}
           options={{
             paymentMethodOrder: ['apple_pay', 'google_pay', 'paypal', 'link'],
             wallets: { applePay: 'auto', googlePay: 'auto' },

@@ -29,9 +29,9 @@ function PopoverContent({
         data-slot="popover-content"
         align={align}
         sideOffset={sideOffset}
-        className={cn(
+        data-tokens="applied" className={cn(
           // Base styles with token-based radius
-          "bg-popover text-popover-foreground z-50 w-72 rounded-[12px] border p-4 shadow-md outline-hidden",
+          "bg-popover text-popover-foreground z-50 w-72 rounded-[12px] border p-[var(--spacing-4)] shadow-[var(--shadow-medium)] outline-hidden",
           // Enhanced animations
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
@@ -42,7 +42,7 @@ function PopoverContent({
           "data-[side=right]:slide-in-from-left-2",
           "data-[side=top]:slide-in-from-bottom-2",
           // Smooth transitions
-          "transition-all duration-200 ease-out",
+          "transition-all duration-[var(--duration-quick)] ease-out",
           className
         )}
         style={{

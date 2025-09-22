@@ -14,14 +14,14 @@ export default async function Image() {
       <div
         style={{
           fontSize: 60,
-          background: 'linear-gradient(135deg, hsl(240 65% 72%) 0%, hsl(265 55% 65%) 100%)',
+          background: 'linear-gradient(135deg, var(--color-system-blue) 0%, var(--color-system-blue) 100%)',
           width: '100%',
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#ffffff',
+          color: 'var(--color-fill-primary)',
           fontFamily: 'Inter, sans-serif',
         }}
       >
@@ -41,7 +41,7 @@ export default async function Image() {
               fontSize: 72,
               fontWeight: 'bold',
               marginBottom: 30,
-              background: 'linear-gradient(45deg, hsl(0 0% 100%), hsl(204 100% 97%))',
+              background: 'linear-gradient(45deg, var(--color-fill-primary), var(--color-fill-primary))',
               backgroundClip: 'text',
               WebkitBackgroundClip: 'text',
               color: 'transparent',
@@ -95,8 +95,8 @@ export default async function Image() {
             height: '100%',
             opacity: 0.1,
             background: `
-              radial-gradient(circle at 25% 25%, hsl(0 0% 100% / 0.3) 0%, transparent 50%),
-              radial-gradient(circle at 75% 75%, hsl(0 0% 100% / 0.2) 0%, transparent 50%)
+              radial-gradient(circle at 25% 25%, var(--color-background, white) 0%, transparent 50%),
+              radial-gradient(circle at 75% 75%, var(--color-background, white) 0%, transparent 50%)
             `,
           }}
         />

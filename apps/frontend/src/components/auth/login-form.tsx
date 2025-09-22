@@ -3,14 +3,15 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { PasswordStrength } from '@/components/ui/password-strength'
-import { cn } from '@/lib/utils'
+import { PasswordInput } from '@/components/auth/password-input'
+import { PasswordStrength } from '@/components/auth/password-strength'
+import { cn } from '@/lib/design-system'
 import {
 	loginZodSchema,
 	registerZodSchema,
 	type AuthFormProps
 } from '@repo/shared'
-import { Check } from 'lucide-react'
+import { Check, Eye, EyeOff } from 'lucide-react'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
 import type { ZodError } from 'zod'
@@ -27,6 +28,7 @@ export function LoginForm({
 	isGoogleLoading
 }: AuthFormProps) {
 	const isLogin = mode === 'login'
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 	const [form, setForm] = useState({
 		firstName: '',
 		lastName: '',
@@ -214,7 +216,7 @@ export function LoginForm({
 		<div className={cn('w-full', className)}>
 			<form className="space-y-5" onSubmit={handleSubmit}>
 				{!isLogin && (
-					<div className="grid grid-cols-2 gap-4">
+					<div className="grid grid-cols-2 gap-[var(--spacing-4)]">
 						<div className="relative">
 							<Label htmlFor="firstName">First name</Label>
 							<div className="relative">
@@ -231,12 +233,12 @@ export function LoginForm({
 										fieldErrors.firstName && touchedFields.firstName
 											? 'border-destructive focus:ring-destructive'
 											: validFields.firstName && touchedFields.firstName
-												? 'border-green-500 focus:ring-green-500'
+												? 'border-[var(--color-system-green)] focus:ring-[var(--color-system-green)]'
 												: ''
 									)}
 								/>
 								{validFields.firstName && touchedFields.firstName && (
-									<Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+									<Check className="absolute right-[var(--spacing-3)] top-1/2 -translate-y-1/2 h-[var(--spacing-4)] w-[var(--spacing-4)] text-[var(--color-system-green)]" />
 								)}
 							</div>
 							{fieldErrors.firstName && touchedFields.firstName && (
@@ -261,12 +263,12 @@ export function LoginForm({
 										fieldErrors.lastName && touchedFields.lastName
 											? 'border-destructive focus:ring-destructive'
 											: validFields.lastName && touchedFields.lastName
-												? 'border-green-500 focus:ring-green-500'
+												? 'border-[var(--color-system-green)] focus:ring-[var(--color-system-green)]'
 												: ''
 									)}
 								/>
 								{validFields.lastName && touchedFields.lastName && (
-									<Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+									<Check className="absolute right-[var(--spacing-3)] top-1/2 -translate-y-1/2 h-[var(--spacing-4)] w-[var(--spacing-4)] text-[var(--color-system-green)]" />
 								)}
 							</div>
 							{fieldErrors.lastName && touchedFields.lastName && (
@@ -295,12 +297,12 @@ export function LoginForm({
 									fieldErrors.company && touchedFields.company
 										? 'border-destructive focus:ring-destructive'
 										: validFields.company && touchedFields.company
-											? 'border-green-500 focus:ring-green-500'
+											? 'border-[var(--color-system-green)] focus:ring-[var(--color-system-green)]'
 											: ''
 								)}
 							/>
 							{validFields.company && touchedFields.company && (
-								<Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+								<Check className="absolute right-[var(--spacing-3)] top-1/2 -translate-y-1/2 h-[var(--spacing-4)] w-[var(--spacing-4)] text-[var(--color-system-green)]" />
 							)}
 						</div>
 						{fieldErrors.company && touchedFields.company && (
@@ -326,17 +328,17 @@ export function LoginForm({
 							onFocus={handleFocus}
 							placeholder="Enter your email"
 							className={cn(
-								'h-11',
+								'h-[var(--spacing-11)]',
 								fieldErrors.email && touchedFields.email
 									? 'border-destructive focus:ring-destructive'
 									: validFields.email && touchedFields.email
-										? 'border-green-500 focus:ring-green-500'
+										? 'border-[var(--color-system-green)] focus:ring-[var(--color-system-green)]'
 										: ''
 							)}
 							aria-describedby={isLogin ? undefined : 'email-hint'}
 						/>
 						{validFields.email && touchedFields.email && (
-							<Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+							<Check className="absolute right-[var(--spacing-3)] top-1/2 -translate-y-1/2 h-[var(--spacing-4)] w-[var(--spacing-4)] text-[var(--color-system-green)]" />
 						)}
 					</div>
 					{fieldErrors.email && touchedFields.email && (
@@ -352,27 +354,24 @@ export function LoginForm({
 				<div>
 					{isLogin ? (
 						<>
-							<Label htmlFor="password">Password</Label>
-							<div className="relative">
-								<Input
-									id="password"
-									name="password"
-									type="password"
-									required
-									autoComplete="current-password"
-									value={form.password}
-									onChange={handleChange}
-									onBlur={handleBlur}
-									onFocus={handleFocus}
-									placeholder="Enter your password"
-									className={cn(
-										'h-11',
-										fieldErrors.password && touchedFields.password
-											? 'border-destructive focus:ring-destructive'
-											: ''
-									)}
-								/>
-							</div>
+							<PasswordInput
+								label="Password"
+								id="password"
+								name="password"
+								required
+								autoComplete="current-password"
+								value={form.password}
+								onChange={handleChange}
+								onBlur={handleBlur}
+								onFocus={handleFocus}
+								placeholder="Enter your password"
+								className={cn(
+									'h-[var(--spacing-11)]',
+									fieldErrors.password && touchedFields.password
+										? 'border-destructive focus:ring-destructive'
+										: ''
+								)}
+							/>
 							{fieldErrors.password && touchedFields.password && (
 								<p className="text-xs text-destructive mt-1">
 									{fieldErrors.password}
@@ -392,7 +391,7 @@ export function LoginForm({
 							onFocus={handleFocus}
 							placeholder="Create a secure password"
 							className={cn(
-								'h-11',
+								'h-[var(--spacing-11)]',
 								fieldErrors.password && touchedFields.password
 									? 'border-destructive focus:ring-destructive'
 									: ''
@@ -415,7 +414,7 @@ export function LoginForm({
 							<Input
 								id="confirmPassword"
 								name="confirmPassword"
-								type="password"
+								type={showConfirmPassword ? 'text' : 'password'}
 								required
 								autoComplete="new-password"
 								value={form.confirmPassword}
@@ -424,21 +423,34 @@ export function LoginForm({
 								onFocus={handleFocus}
 								placeholder="Re-enter your password"
 								className={cn(
-									'h-11',
+									'h-[var(--spacing-11)] pr-[var(--spacing-12)]',
 									fieldErrors.confirmPassword && touchedFields.confirmPassword
 										? 'border-destructive focus:ring-destructive'
 										: validFields.confirmPassword &&
 											  touchedFields.confirmPassword &&
 											  form.confirmPassword
-											? 'border-green-500 focus:ring-green-500'
+											? 'border-[var(--color-system-green)] focus:ring-[var(--color-system-green)]'
 											: ''
 								)}
 							/>
 							{validFields.confirmPassword &&
 								touchedFields.confirmPassword &&
 								form.confirmPassword && (
-									<Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+									<Check className="absolute right-[var(--spacing-12)] top-1/2 -translate-y-1/2 h-[var(--spacing-4)] w-[var(--spacing-4)] text-[var(--color-system-green)]" />
 								)}
+							<button
+								type="button"
+								onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+								className="absolute right-[var(--spacing-3)] top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+								tabIndex={-1}
+								aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+							>
+								{showConfirmPassword ? (
+									<EyeOff className="h-[var(--spacing-4)] w-[var(--spacing-4)]" />
+								) : (
+									<Eye className="h-[var(--spacing-4)] w-[var(--spacing-4)]" />
+								)}
+							</button>
 						</div>
 						{fieldErrors.confirmPassword && touchedFields.confirmPassword && (
 							<p className="text-xs text-destructive mt-1">
@@ -451,7 +463,7 @@ export function LoginForm({
 				<div className="space-y-4 pt-3">
 					<Button
 						type="submit"
-						className="w-full h-11 text-sm font-medium"
+						className="w-full h-[var(--spacing-11)] text-sm font-medium"
 						disabled={isLoading}
 					>
 						{isLoading
@@ -467,7 +479,7 @@ export function LoginForm({
 								<span className="w-full border-t border-border/60" />
 							</div>
 							<div className="relative flex justify-center text-xs">
-								<span className="bg-background px-3 text-muted-foreground/70">
+								<span className="bg-background px-[var(--spacing-3)] text-muted-foreground/70">
 									or continue with
 								</span>
 							</div>
@@ -479,25 +491,25 @@ export function LoginForm({
 							type="button"
 							onClick={onGoogleLogin}
 							disabled={isGoogleLoading}
-							className="w-full h-11 flex items-center justify-center gap-3 px-4 bg-background border border-border rounded-lg text-foreground font-medium hover:bg-muted/50 hover:border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm"
+							className="w-full h-[var(--spacing-11)] flex items-center justify-center gap-[var(--spacing-3)] px-[var(--spacing-4)] bg-background border border-border rounded-[var(--radius-large)] text-foreground font-medium hover:bg-muted/50 hover:border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-[var(--duration-200)] text-sm"
 							aria-label="Sign in with Google"
 						>
 							{!isGoogleLoading && (
-								<svg className="w-5 h-5" viewBox="0 0 24 24">
+								<svg className="w-[var(--spacing-5)] h-[var(--spacing-5)]" viewBox="0 0 24 24">
 									<path
-										fill="#4285F4"
+										fill="var(--color-system-blue)"
 										d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
 									/>
 									<path
-										fill="#34A853"
+										fill="var(--color-system-green)"
 										d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
 									/>
 									<path
-										fill="#FBBC05"
+										fill="var(--color-system-yellow)"
 										d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
 									/>
 									<path
-										fill="#EA4335"
+										fill="var(--color-system-red)"
 										d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
 									/>
 								</svg>

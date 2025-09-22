@@ -1,9 +1,9 @@
 'use client'
 
+import { Navbar } from '@/components/layout/navbar'
 import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { Navbar } from '@/components/navbar'
 import { CustomerPortalButton } from '@/components/pricing/customer-portal'
-import { FooterMinimal } from '@/components/sections/footer-minimal'
+import Footer from '@/components/layout/footer'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -177,7 +177,7 @@ export default function CheckoutSuccessPage() {
 					</Card>
 				</div>
 			</div>
-			<FooterMinimal />
+			<Footer />
 		</main>
 	)
 }

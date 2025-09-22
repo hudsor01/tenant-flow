@@ -1,58 +1,46 @@
-'use client'
-
-import { useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import type { Database } from '@repo/shared'
-import { Building, TrendingUp, DollarSign, Plus } from 'lucide-react'
+import { Building, DollarSign, Plus, TrendingUp } from 'lucide-react'
 
-// Hooks
-import { useCreateProperty, useProperties } from '@/hooks/api/properties'
-import { useUnits } from '@/hooks/api/units'
-import { useCurrentUser } from '@/hooks/use-current-user'
+// Server API
+import { getPropertiesPageData } from '@/lib/api/dashboard-server'
 
 // UI Components
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow
+} from '@/components/ui/table'
 
 // Custom Components
-import { MetricsCard } from '@/components/metrics-card'
-import { ChartAreaInteractive } from '@/components/chart-area-interactive'
+import { ChartAreaInteractive } from '@/components/charts/chart-area-interactive'
+import { MetricsCard } from '@/components/charts/metrics-card'
 import { PropertyEditViewButtons } from '@/components/properties/edit-button'
 
 type PropertyRow = Database['public']['Tables']['Property']['Row']
-type UnitRow = Database['public']['Tables']['Unit']['Row']
-type InsertProperty = Database['public']['Tables']['Property']['Insert']
-type PropertyStatus = Database['public']['Enums']['PropertyStatus']
-type PropertyType = Database['public']['Enums']['PropertyType']
+// UnitRow removed - no longer doing client-side calculations on units
 
-export default function PropertiesPage() {
-	const searchParams = useSearchParams()
-	const status = searchParams?.get('status') || undefined
+export default async function PropertiesPage({
+	searchParams,
+}: {
+	searchParams: Promise<{ status?: string }>
+}) {
+	const { status } = await searchParams
 
-	const {
-		data: properties = [],
-		isLoading: propertiesLoading,
-		error: propertiesError
-	} = useProperties(status as PropertyStatus | undefined)
-
-	const { data: units = [] } = useUnits()
-
-	// Calculate metrics
-	const totalProperties = properties.length
-	const totalUnits = units.length
-	const occupiedUnits = units.filter(
-		(unit: UnitRow) => unit.status === 'OCCUPIED'
-	).length
-	const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
-	const totalRevenue = units.reduce(
-		(sum: number, unit: UnitRow) => sum + (unit.rent || 0),
-		0
-	)
+	// Fetch data server-side WITH PRE-CALCULATED STATS
+	// NO CLIENT-SIDE CALCULATIONS - all metrics from backend
+	const { properties, units, stats } = await getPropertiesPageData(status)
 
 	return (
 		<div className="dashboard-root dashboard-main flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -60,7 +48,7 @@ export default function PropertiesPage() {
 			<div className="dashboard-section dashboard-cards-container grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-3">
 				<MetricsCard
 					title="Total Properties"
-					value={totalProperties}
+					value={stats.totalProperties}
 					description="Active portfolio properties"
 					icon={Building}
 					colorVariant="property"
@@ -68,8 +56,8 @@ export default function PropertiesPage() {
 
 				<MetricsCard
 					title="Occupancy Rate"
-					value={`${occupancyRate.toFixed(1)}%`}
-					description={`${occupiedUnits} of ${totalUnits} units occupied`}
+					value={`${stats.occupancyRate.toFixed(1)}%`}
+					description={`${stats.occupiedUnits} of ${stats.totalUnits} units occupied`}
 					status="Stable occupancy rate"
 					statusIcon={TrendingUp}
 					icon={TrendingUp}
@@ -82,7 +70,7 @@ export default function PropertiesPage() {
 						style: 'currency',
 						currency: 'USD',
 						maximumFractionDigits: 0
-					}).format(totalRevenue)}
+					}).format(stats.totalRevenue)}
 					description="Total rent from all units"
 					icon={DollarSign}
 					colorVariant="revenue"
@@ -124,241 +112,137 @@ export default function PropertiesPage() {
 								{properties.length} properties in your portfolio
 							</p>
 						</div>
-						<NewPropertyButton />
+						<Button
+							variant="default"
+							className="flex items-center gap-2"
+							style={{
+								background: 'var(--color-primary-brand)',
+								color: 'white',
+								borderRadius: 'var(--radius-medium)',
+								padding: 'var(--spacing-2) var(--spacing-4)',
+								transition: 'all var(--duration-quick) var(--ease-smooth)'
+							}}
+						>
+							<Plus className="size-4" />
+							New Property
+						</Button>
 					</div>
 
 					{/* Interactive Chart */}
 					<ChartAreaInteractive className="mb-6" />
 
-					{propertiesLoading ? (
-						<div className="flex items-center justify-center h-32">
-							<p className="text-muted-foreground">Loading properties...</p>
-						</div>
-					) : propertiesError ? (
-						<div className="flex items-center justify-center h-32">
-							<p className="text-destructive">
-								Error: {propertiesError.message}
-							</p>
-						</div>
-					) : (
-						<div className="rounded-md border bg-card shadow-sm">
-							<Table className="dashboard-table">
-								<TableHeader className="bg-muted/50">
-									<TableRow>
-										<TableHead className="font-semibold">
-											Property Name
-										</TableHead>
-										<TableHead className="font-semibold">Address</TableHead>
-										<TableHead className="font-semibold">Type</TableHead>
-										<TableHead className="font-semibold">Status</TableHead>
-										<TableHead className="font-semibold">Units</TableHead>
-										<TableHead className="font-semibold text-right">
-											Created
-										</TableHead>
-										<TableHead className="font-semibold">Actions</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{properties?.length ? (
-										properties.map((property: PropertyRow) => {
-											const propertyUnits = units.filter(
-												(unit: UnitRow) => unit.propertyId === property.id
-											)
-											const occupiedUnits = propertyUnits.filter(
-												(unit: UnitRow) => unit.status === 'OCCUPIED'
-											)
+					<div className="rounded-md border bg-card shadow-sm">
+						<Table className="dashboard-table">
+							<TableHeader className="bg-muted/50">
+								<TableRow>
+									<TableHead className="font-semibold">
+										Property Name
+									</TableHead>
+									<TableHead className="font-semibold">Address</TableHead>
+									<TableHead className="font-semibold">Type</TableHead>
+									<TableHead className="font-semibold">Status</TableHead>
+									<TableHead className="font-semibold">Units</TableHead>
+									<TableHead className="font-semibold text-right">
+										Created
+									</TableHead>
+									<TableHead className="font-semibold">Actions</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{properties?.length ? (
+									properties.map((property: PropertyRow) => {
+										const propertyUnits = units.filter(
+											(unit: UnitRow) => unit.propertyId === property.id
+										)
+										const occupiedUnits = propertyUnits.filter(
+											(unit: UnitRow) => unit.status === 'OCCUPIED'
+										)
 
-											return (
-												<TableRow
-													key={property.id}
-													className="hover:bg-muted/30"
-												>
-													<TableCell className="font-medium">
-														{property.name}
-													</TableCell>
-													<TableCell className="text-muted-foreground">
-														{property.address}
-													</TableCell>
-													<TableCell>
-														<Badge variant="outline" className="capitalize">
-															{property.propertyType
-																?.toLowerCase()
-																.replace('_', ' ')}
+										return (
+											<TableRow
+												key={property.id}
+												className="hover:bg-muted/30"
+											>
+												<TableCell className="font-medium">
+													{property.name}
+												</TableCell>
+												<TableCell className="text-muted-foreground">
+													{property.address}
+												</TableCell>
+												<TableCell>
+													<Badge variant="outline" className="capitalize">
+														{property.propertyType
+															?.toLowerCase()
+															.replace('_', ' ')}
+													</Badge>
+												</TableCell>
+												<TableCell>
+													<Badge
+														style={{
+															backgroundColor: 'var(--chart-1)',
+															color: 'hsl(var(--primary-foreground))'
+														}}
+													>
+														Active
+													</Badge>
+												</TableCell>
+												<TableCell>
+													<div className="flex items-center gap-2">
+														<span className="font-medium">
+															{occupiedUnits.length}/{propertyUnits.length}
+														</span>
+														<Badge variant="secondary" className="text-xs">
+															{propertyUnits.length > 0
+																? `${Math.round((occupiedUnits.length / propertyUnits.length) * 100)}%`
+																: '0%'}
 														</Badge>
-													</TableCell>
-													<TableCell>
-														<Badge
-															style={{
-																backgroundColor: 'var(--chart-1)',
-																color: 'hsl(var(--primary-foreground))'
-															}}
-														>
-															Active
-														</Badge>
-													</TableCell>
-													<TableCell>
-														<div className="flex items-center gap-2">
-															<span className="font-medium">
-																{occupiedUnits.length}/{propertyUnits.length}
-															</span>
-															<Badge variant="secondary" className="text-xs">
-																{propertyUnits.length > 0
-																	? `${Math.round((occupiedUnits.length / propertyUnits.length) * 100)}%`
-																	: '0%'}
-															</Badge>
-														</div>
-													</TableCell>
-													<TableCell className="text-right text-muted-foreground">
-														{property.createdAt
-															? new Date(
-																	property.createdAt
-																).toLocaleDateString()
-															: '—'}
-													</TableCell>
-													<TableCell>
-														<PropertyEditViewButtons property={property} />
-													</TableCell>
-												</TableRow>
-											)
-										})
-									) : (
-										<TableRow>
-											<TableCell colSpan={7} className="h-24 text-center">
-												<div className="flex flex-col items-center gap-2">
-													<Building className="size-12 text-muted-foreground/50" />
-													<p className="text-muted-foreground">
-														No properties found.
-													</p>
-													<NewPropertyButton />
-												</div>
-											</TableCell>
-										</TableRow>
-									)}
-								</TableBody>
-							</Table>
-						</div>
-					)}
+													</div>
+												</TableCell>
+												<TableCell className="text-right text-muted-foreground">
+													{property.createdAt
+														? new Date(
+																property.createdAt
+															).toLocaleDateString()
+														: '—'}
+												</TableCell>
+												<TableCell>
+													<PropertyEditViewButtons property={property} />
+												</TableCell>
+											</TableRow>
+										)
+									})
+								) : (
+									<TableRow>
+										<TableCell colSpan={7} className="h-24 text-center">
+											<div className="flex flex-col items-center gap-2">
+												<Building className="size-12 text-muted-foreground/50" />
+												<p className="text-muted-foreground">
+													No properties found.
+												</p>
+												<Button
+							variant="default"
+							className="flex items-center gap-2"
+							style={{
+								background: 'var(--color-primary-brand)',
+								color: 'white',
+								borderRadius: 'var(--radius-medium)',
+								padding: 'var(--spacing-2) var(--spacing-4)',
+								transition: 'all var(--duration-quick) var(--ease-smooth)'
+							}}
+						>
+							<Plus className="size-4" />
+							New Property
+						</Button>
+											</div>
+										</TableCell>
+									</TableRow>
+								)}
+							</TableBody>
+						</Table>
+					</div>
 				</div>
 			</div>
 		</div>
 	)
 }
 
-function NewPropertyButton() {
-	const [open, setOpen] = useState(false)
-	const create = useCreateProperty()
-	const { userId, isLoading: userLoading } = useCurrentUser()
-
-	async function onSubmit(form: HTMLFormElement) {
-		if (!userId) {
-			console.error('No user ID available for property creation')
-			return
-		}
-
-		const fd = new FormData(form)
-		const insertData: InsertProperty = {
-			name: String(fd.get('name') || ''),
-			address: String(fd.get('address') || ''),
-			city: String(fd.get('city') || ''),
-			state: String(fd.get('state') || ''),
-			zipCode: String(fd.get('zipCode') || ''),
-			ownerId: userId,
-			propertyType: String(
-				fd.get('propertyType') || 'APARTMENT'
-			) as PropertyType
-		}
-
-		await create.mutateAsync(insertData)
-		setOpen(false)
-	}
-
-	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<Button
-					variant="default"
-					className="flex items-center gap-2"
-					disabled={userLoading || !userId}
-				>
-					<Plus className="size-4" />
-					New Property
-				</Button>
-			</DialogTrigger>
-			<DialogContent className="sm:max-w-lg">
-				<DialogHeader>
-					<DialogTitle className="text-gradient-authority">
-						Create New Property
-					</DialogTitle>
-				</DialogHeader>
-
-				<form
-					className="grid gap-4"
-					onSubmit={e => {
-						e.preventDefault()
-						onSubmit(e.target as HTMLFormElement)
-					}}
-				>
-					<div className="grid gap-2">
-						<Label htmlFor="name">Property Name</Label>
-						<Input
-							name="name"
-							id="name"
-							required
-							placeholder="e.g. Sunset Apartments"
-						/>
-					</div>
-
-					<div className="grid gap-2">
-						<Label htmlFor="address">Address</Label>
-						<Input
-							name="address"
-							id="address"
-							required
-							placeholder="123 Main St"
-						/>
-					</div>
-
-					<div className="grid grid-cols-3 gap-2">
-						<div className="grid gap-2">
-							<Label htmlFor="city">City</Label>
-							<Input name="city" id="city" required />
-						</div>
-						<div className="grid gap-2">
-							<Label htmlFor="state">State</Label>
-							<Input name="state" id="state" required />
-						</div>
-						<div className="grid gap-2">
-							<Label htmlFor="zipCode">Zip Code</Label>
-							<Input name="zipCode" id="zipCode" required />
-						</div>
-					</div>
-
-					<div className="grid gap-2">
-						<Label htmlFor="propertyType">Property Type</Label>
-						<Select name="propertyType" defaultValue="APARTMENT">
-							<SelectTrigger>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="APARTMENT">Apartment</SelectItem>
-								<SelectItem value="MULTI_UNIT">Multi Unit</SelectItem>
-								<SelectItem value="SINGLE_FAMILY">Single Family</SelectItem>
-								<SelectItem value="TOWNHOUSE">Townhouse</SelectItem>
-								<SelectItem value="CONDO">Condo</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-
-					<div className="flex justify-end gap-2 pt-2">
-						<Button type="button" variant="outline" onClick={() => setOpen(false)}>
-							Cancel
-						</Button>
-						<Button type="submit" disabled={create.isPending}>
-							{create.isPending ? 'Creating...' : 'Create Property'}
-						</Button>
-					</div>
-				</form>
-			</DialogContent>
-		</Dialog>
-	)
-}

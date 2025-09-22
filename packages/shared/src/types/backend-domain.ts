@@ -5,6 +5,7 @@
  * Merged from: backend.ts, router.ts, database.ts, and other backend files
  */
 
+import type { Request, Response } from 'express'
 import type { Database } from './supabase-generated'
 
 // =============================================================================
@@ -530,3 +531,5 @@ export type StripeSubscriptionStatus =
 	| 'UNPAID'
 	| 'INCOMPLETE'
 	| 'INCOMPLETE_EXPIRED'
+
+// Express migration complete
