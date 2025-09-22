@@ -1,13 +1,43 @@
 'use client'
 
-import { GlobalErrorHandler } from '@/components/error/global-error-handler'
-
 export default function Error({
-  error,
-  reset,
+	reset
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+	error: Error & { digest?: string }
+	reset: () => void
 }) {
-  return <GlobalErrorHandler error={error} reset={reset} />
+	return (
+		<div
+			style={{
+				minHeight: '100vh',
+				display: 'flex',
+				flexDirection: 'column',
+				alignItems: 'center',
+				justifyContent: 'center',
+				gap: '1rem',
+				fontFamily: 'system-ui',
+				padding: '2rem'
+			}}
+		>
+			<h2
+				style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}
+			>
+				Something went wrong!
+			</h2>
+			<button
+				onClick={() => reset()}
+				style={{
+					padding: '0.75rem 1.5rem',
+					backgroundColor: 'var(--color-accent-main)',
+					color: 'white',
+					border: 'none',
+					borderRadius: '0.5rem',
+					fontSize: '1rem',
+					cursor: 'pointer'
+				}}
+			>
+				Try again
+			</button>
+		</div>
+	)
 }

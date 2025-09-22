@@ -13,8 +13,8 @@ export type UseCheckoutOptions = {
 	currency?: string
 	metadata?: Record<string, string>
 	customerEmail?: string
-	onSuccess?: (pi: PaymentIntent) => void
-	onError?: (error: StripeError | Error) => void
+	onSuccessAction?: (pi: PaymentIntent) => void
+	onErrorAction?: (error: StripeError | Error) => void
 }
 
 export function useCheckout({
@@ -22,8 +22,8 @@ export function useCheckout({
 	currency = 'usd',
 	metadata = {},
 	customerEmail,
-	onSuccess,
-	onError
+	onSuccessAction,
+	onErrorAction
 }: UseCheckoutOptions) {
 	const formatAmount = useCallback(
 		(cents: number) => {
@@ -52,7 +52,7 @@ export function useCheckout({
 		if (amount && currency) {
 			paymentIntentMutation.mutate()
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		// Note: Dependencies intentionally limited to avoid infinite loops
 	}, [amount, currency, customerEmail, JSON.stringify(metadata)])
 
 	const confirmPayment = useCallback(async () => {
@@ -77,7 +77,7 @@ export function useCheckout({
 		if (submitError) {
 			setStatus('failed')
 			setError(submitError.message || 'Payment failed')
-			onError?.(submitError)
+			onErrorAction?.(submitError)
 			setIsProcessing(false)
 			return
 		}
@@ -85,7 +85,7 @@ export function useCheckout({
 		if (paymentIntent) {
 			if (paymentIntent.status === 'succeeded') {
 				setStatus('succeeded')
-				onSuccess?.(paymentIntent)
+				onSuccessAction?.(paymentIntent)
 			} else if (paymentIntent.status === 'requires_payment_method') {
 				setStatus('failed')
 				setError('Payment failed. Please try a different payment method.')
@@ -98,8 +98,8 @@ export function useCheckout({
 		elements,
 		paymentIntentMutation.data,
 		customerEmail,
-		onError,
-		onSuccess
+		onErrorAction,
+		onSuccessAction
 	])
 
 	const reset = useCallback(() => {
@@ -119,6 +119,6 @@ export function useCheckout({
 		error,
 		confirmPayment,
 		reset,
-		formatAmount
+		formatAmountAction: formatAmount
 	}
 }

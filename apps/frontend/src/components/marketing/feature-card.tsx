@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '@/lib/design-system'
 import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import * as React from 'react'
@@ -28,10 +26,7 @@ export function FeatureCard({
 	}
 
 	return (
-		<div
-			className={cn('card-elevated rounded-2xl p-6', className)}
-			{...props}
-		>
+		<div className={cn('card-elevated rounded-2xl p-6', className)} {...props}>
 			<div className="flex items-start gap-4">
 				{Icon && (
 					<div

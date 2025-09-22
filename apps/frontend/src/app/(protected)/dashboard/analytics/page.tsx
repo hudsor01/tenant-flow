@@ -1,13 +1,8 @@
-'use client'
-
+import { ChartAreaInteractive } from '@/components/charts/chart-area-interactive'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ChartAreaInteractive } from '@/components/chart-area-interactive'
-import {
-	useDashboardStats,
-	usePropertyPerformance
-} from '@/hooks/api/use-dashboard'
+import { getAnalyticsPageData } from '@/lib/api/dashboard-server'
 import {
 	BarChart3,
 	Building,
@@ -21,19 +16,10 @@ import {
 	Users
 } from 'lucide-react'
 
-
-export default function AnalyticsPage() {
-	// Fetch real dashboard data from API
-	const {
-		data: dashboardData,
-		isLoading: isDashboardLoading,
-		error: dashboardError
-	} = useDashboardStats()
-	const {
-		data: propertyData,
-		isLoading: isPropertyLoading,
-		error: propertyError
-	} = usePropertyPerformance()
+export default async function AnalyticsPage() {
+	// Fetch real dashboard data from API server-side
+	const { dashboardStats: dashboardData, propertyPerformance: propertyData } =
+		await getAnalyticsPageData()
 
 	// Format currency values
 	const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`
@@ -56,27 +42,6 @@ export default function AnalyticsPage() {
 		return { netIncome, profitMargin }
 	}
 
-	// Loading state
-	if (isDashboardLoading || isPropertyLoading) {
-		return (
-			<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-				<div className="text-center text-muted-foreground">
-					Loading analytics...
-				</div>
-			</div>
-		)
-	}
-
-	// Error state
-	if (dashboardError || propertyError) {
-		return (
-			<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-				<div className="text-center text-destructive">
-					Failed to load analytics data
-				</div>
-			</div>
-		)
-	}
 	return (
 		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 			{/* Page Header */}

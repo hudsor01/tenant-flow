@@ -1,18 +1,7 @@
 import type { NextConfig } from 'next'
 
-if (
-	process.env.NODE_ENV === 'development' &&
-	!process.env.NEXT_DISABLE_DEVTOOLS
-) {
-	process.env.NEXT_DISABLE_DEVTOOLS = '1'
-}
-
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
-	experimental: {
-		serverMinification: false,
-		esmExternals: true
-	},
 	eslint: {
 		dirs: ['src'],
 		ignoreDuringBuilds: true

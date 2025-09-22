@@ -7,36 +7,36 @@
  */
 
 import {
+	BadRequestException,
+	Body,
 	Controller,
+	DefaultValuePipe,
+	Delete,
 	Get,
+	HttpStatus,
+	NotFoundException,
+	Optional,
+	Param,
+	ParseIntPipe,
+	ParseUUIDPipe,
 	Post,
 	Put,
-	Delete,
-	Param,
-	Query,
-	Body,
-	HttpStatus,
-	ParseUUIDPipe,
-	DefaultValuePipe,
-	ParseIntPipe,
-	BadRequestException,
-	NotFoundException,
-	Optional
+	Query
 } from '@nestjs/common'
 import {
 	ApiBearerAuth,
-	ApiTags,
 	ApiOperation,
-	ApiResponse
+	ApiResponse,
+	ApiTags
 } from '@nestjs/swagger'
-import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { Public } from '../shared/decorators/public.decorator'
-import type { ValidatedUser } from '@repo/shared'
-import { LeasesService } from './leases.service'
 import type {
 	CreateLeaseRequest,
-	UpdateLeaseRequest
-} from '../schemas/leases.schema'
+	UpdateLeaseRequest,
+	ValidatedUser
+} from '@repo/shared'
+import { CurrentUser } from '../shared/decorators/current-user.decorator'
+import { Public } from '../shared/decorators/public.decorator'
+import { LeasesService } from './leases.service'
 
 @ApiTags('leases')
 @ApiBearerAuth()
@@ -148,16 +148,28 @@ export class LeasesController {
 		@Query('timeframe', new DefaultValuePipe('90d')) timeframe?: string
 	) {
 		// Validate UUIDs if provided
-		if (leaseId && !leaseId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+		if (
+			leaseId &&
+			!leaseId.match(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+			)
+		) {
 			throw new BadRequestException('Invalid lease ID')
 		}
-		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+		if (
+			propertyId &&
+			!propertyId.match(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+			)
+		) {
 			throw new BadRequestException('Invalid property ID')
 		}
 
 		// Validate timeframe
 		if (!['30d', '90d', '6m', '1y'].includes(timeframe ?? '90d')) {
-			throw new BadRequestException('Invalid timeframe. Must be one of: 30d, 90d, 6m, 1y')
+			throw new BadRequestException(
+				'Invalid timeframe. Must be one of: 30d, 90d, 6m, 1y'
+			)
 		}
 
 		if (!this.leasesService) {
@@ -170,11 +182,14 @@ export class LeasesController {
 			}
 		}
 
-		return this.leasesService.getLeasePerformanceAnalytics(user?.id || 'test-user-id', {
-			leaseId,
-			propertyId,
-			timeframe: timeframe ?? '90d'
-		})
+		return this.leasesService.getLeasePerformanceAnalytics(
+			user?.id || 'test-user-id',
+			{
+				leaseId,
+				propertyId,
+				timeframe: timeframe ?? '90d'
+			}
+		)
 	}
 
 	@Get('analytics/duration')
@@ -187,13 +202,20 @@ export class LeasesController {
 		@Query('period', new DefaultValuePipe('yearly')) period?: string
 	) {
 		// Validate propertyId if provided
-		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+		if (
+			propertyId &&
+			!propertyId.match(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+			)
+		) {
 			throw new BadRequestException('Invalid property ID')
 		}
 
 		// Validate period
 		if (!['monthly', 'quarterly', 'yearly'].includes(period ?? 'yearly')) {
-			throw new BadRequestException('Invalid period. Must be one of: monthly, quarterly, yearly')
+			throw new BadRequestException(
+				'Invalid period. Must be one of: monthly, quarterly, yearly'
+			)
 		}
 
 		if (!this.leasesService) {
@@ -205,10 +227,13 @@ export class LeasesController {
 			}
 		}
 
-		return this.leasesService.getLeaseDurationAnalytics(user?.id || 'test-user-id', {
-			propertyId,
-			period: period ?? 'yearly'
-		})
+		return this.leasesService.getLeaseDurationAnalytics(
+			user?.id || 'test-user-id',
+			{
+				propertyId,
+				period: period ?? 'yearly'
+			}
+		)
 	}
 
 	@Get('analytics/turnover')
@@ -221,13 +246,20 @@ export class LeasesController {
 		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
 	) {
 		// Validate propertyId if provided
-		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+		if (
+			propertyId &&
+			!propertyId.match(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+			)
+		) {
 			throw new BadRequestException('Invalid property ID')
 		}
 
 		// Validate timeframe
 		if (!['6m', '12m', '24m', '36m'].includes(timeframe ?? '12m')) {
-			throw new BadRequestException('Invalid timeframe. Must be one of: 6m, 12m, 24m, 36m')
+			throw new BadRequestException(
+				'Invalid timeframe. Must be one of: 6m, 12m, 24m, 36m'
+			)
 		}
 
 		if (!this.leasesService) {
@@ -239,10 +271,13 @@ export class LeasesController {
 			}
 		}
 
-		return this.leasesService.getLeaseTurnoverAnalytics(user?.id || 'test-user-id', {
-			propertyId,
-			timeframe: timeframe ?? '12m'
-		})
+		return this.leasesService.getLeaseTurnoverAnalytics(
+			user?.id || 'test-user-id',
+			{
+				propertyId,
+				timeframe: timeframe ?? '12m'
+			}
+		)
 	}
 
 	@Get('analytics/revenue')
@@ -256,16 +291,28 @@ export class LeasesController {
 		@Query('period', new DefaultValuePipe('monthly')) period?: string
 	) {
 		// Validate UUIDs if provided
-		if (leaseId && !leaseId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+		if (
+			leaseId &&
+			!leaseId.match(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+			)
+		) {
 			throw new BadRequestException('Invalid lease ID')
 		}
-		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+		if (
+			propertyId &&
+			!propertyId.match(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+			)
+		) {
 			throw new BadRequestException('Invalid property ID')
 		}
 
 		// Validate period
 		if (!['weekly', 'monthly', 'quarterly'].includes(period ?? 'monthly')) {
-			throw new BadRequestException('Invalid period. Must be one of: weekly, monthly, quarterly')
+			throw new BadRequestException(
+				'Invalid period. Must be one of: weekly, monthly, quarterly'
+			)
 		}
 
 		if (!this.leasesService) {
@@ -278,11 +325,14 @@ export class LeasesController {
 			}
 		}
 
-		return this.leasesService.getLeaseRevenueAnalytics(user?.id || 'test-user-id', {
-			leaseId,
-			propertyId,
-			period: period ?? 'monthly'
-		})
+		return this.leasesService.getLeaseRevenueAnalytics(
+			user?.id || 'test-user-id',
+			{
+				leaseId,
+				propertyId,
+				period: period ?? 'monthly'
+			}
+		)
 	}
 
 	@Get('expiring')
@@ -303,7 +353,10 @@ export class LeasesController {
 				days: days ?? 30
 			}
 		}
-		return this.leasesService.getExpiring(user?.id || 'test-user-id', days ?? 30)
+		return this.leasesService.getExpiring(
+			user?.id || 'test-user-id',
+			days ?? 30
+		)
 	}
 
 	@Get(':id')
@@ -322,7 +375,10 @@ export class LeasesController {
 				data: null
 			}
 		}
-		const lease = await this.leasesService.findOne(user?.id || 'test-user-id', id)
+		const lease = await this.leasesService.findOne(
+			user?.id || 'test-user-id',
+			id
+		)
 		if (!lease) {
 			throw new NotFoundException('Lease not found')
 		}
@@ -406,9 +462,7 @@ export class LeasesController {
 	) {
 		// Validate date format
 		if (!endDate || !endDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-			throw new BadRequestException(
-				'Invalid date format (YYYY-MM-DD required)'
-			)
+			throw new BadRequestException('Invalid date format (YYYY-MM-DD required)')
 		}
 		if (!this.leasesService) {
 			return {

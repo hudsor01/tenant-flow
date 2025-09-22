@@ -354,3 +354,27 @@ export interface PricingUIData {
 	formattedPrice: string
 	fullYearPrice: string
 }
+
+// SHIMMER BUTTON TYPES
+
+export interface ShimmerButtonProps
+	extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+	shimmerColor?: string
+	shimmerSize?: string
+	shimmerDuration?: string
+	background?: string
+	variant?:
+		| 'primary'
+		| 'secondary'
+		| 'accent'
+		| 'success'
+		| 'warning'
+		| 'danger'
+	size?: 'sm' | 'md' | 'lg'
+	radius?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+	intensity?: 'subtle' | 'normal' | 'intense'
+	reducedMotion?: boolean
+	icon?: React.ReactNode
+	iconPosition?: 'left' | 'right'
+	asChild?: boolean
+}
