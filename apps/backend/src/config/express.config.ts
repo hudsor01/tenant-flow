@@ -73,19 +73,3 @@ export async function registerExpressMiddleware(app: NestExpressApplication) {
 	app.use(express.json({ limit: '10mb' }))
 	app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 }
-
-/**
- * Express Options for NestJS Application
- */
-export const EXPRESS_OPTIONS = {
-	// Body size limits (handled by middleware above)
-	bodyLimit: 10485760, // 10MB - for compatibility
-
-	// Trust proxy for production deployment
-	trustProxy: true,
-
-	// Logging handled by NestJS
-	logger: {
-		level: process.env.NODE_ENV === 'production' ? 'info' : 'debug'
-	}
-}
