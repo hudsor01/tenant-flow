@@ -1,7 +1,7 @@
 name: CI/CD
 on: [pull_request, push]
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: '20'
 
 jobs:
   build-and-test:
