@@ -6,6 +6,12 @@ settings:
 
 catalogs:
   default:
+    '@types/react':
+      specifier: 19.1.13
+      version: 19.1.13
+    '@types/react-dom':
+      specifier: 19.1.9
+      version: 19.1.9
     posthog-js:
       specifier: ^1.268.0
       version: 1.268.0
@@ -285,8 +291,8 @@ importers:
         specifier: ^24.5.2
         version: 24.5.2
       '@types/react':
-        specifier: ^19.1.1
-        version: 19.1.12
+        specifier: 'catalog:'
+        version: 19.1.13
       '@types/supertest':
         specifier: ^6.0.3
         version: 6.0.3
@@ -640,10 +646,10 @@ importers:
         specifier: ^24.5.2
         version: 24.5.2
       '@types/react':
-        specifier: 19.1.13
+        specifier: 'catalog:'
         version: 19.1.13
       '@types/react-dom':
-        specifier: 19.1.9
+        specifier: 'catalog:'
         version: 19.1.9(@types/react@19.1.13)
       '@typescript-eslint/eslint-plugin':
         specifier: 8.44.0
@@ -778,10 +784,10 @@ importers:
         specifier: ^24.5.2
         version: 24.5.2
       '@types/react':
-        specifier: ^19.1.13
+        specifier: 'catalog:'
         version: 19.1.13
       '@types/react-dom':
-        specifier: 19.1.9
+        specifier: 'catalog:'
         version: 19.1.9(@types/react@19.1.13)
       typescript:
         specifier: ^5.9.2
@@ -3471,9 +3477,6 @@ packages:
     resolution: {integrity: sha512-qXRuZaOsAdXKFyOhRBg6Lqqc0yay13vN7KrIg4L7N4aaHN68ma9OK3NE1BoDFgFOTfM7zg+3/8+2n8rLUH3OKQ==}
     peerDependencies:
       '@types/react': ^19.0.0
-
-  '@types/react@19.1.12':
-    resolution: {integrity: sha512-cMoR+FoAf/Jyq6+Df2/Z41jISvGZZ2eTlnsaJRptmZ76Caldwy1odD4xTr/gNV9VLj0AWgg/nmkevIyUfIIq5w==}
 
   '@types/react@19.1.13':
     resolution: {integrity: sha512-hHkbU/eoO3EG5/MZkuFSKmYqPbSVk5byPFa3e7y/8TybHiLMACgI8seVYlicwk7H5K/rI2px9xrQp/C+AUDTiQ==}
@@ -10777,10 +10780,6 @@ snapshots:
   '@types/react-dom@19.1.9(@types/react@19.1.13)':
     dependencies:
       '@types/react': 19.1.13
-
-  '@types/react@19.1.12':
-    dependencies:
-      csstype: 3.1.3
 
   '@types/react@19.1.13':
     dependencies:

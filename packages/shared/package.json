@@ -57,8 +57,8 @@
 	"devDependencies": {
 		"@types/express": "^5.0.3",
 		"@types/node": "^24.5.2",
-		"@types/react": "^19.1.13",
-		"@types/react-dom": "19.1.9",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
 		"typescript": "^5.9.2"
 	}
 }
