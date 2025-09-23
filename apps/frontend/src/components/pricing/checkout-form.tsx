@@ -311,35 +311,32 @@ export function CheckoutForm({
 	)
 
 	// Express Checkout (Apple Pay, Google Pay, etc.) handler
-	const handleExpressCheckout = useCallback(
-		async (_event: unknown) => {
-			// Express checkout event received
-			setIsProcessing(true)
-			setPaymentStatus('processing')
+	const handleExpressCheckout = useCallback(async () => {
+		// Express checkout event received
+		setIsProcessing(true)
+		setPaymentStatus('processing')
 
-			try {
-				const { error } = await stripe!.confirmPayment({
-					elements: elements!,
-					confirmParams: {
-						return_url: `${window.location.origin}/pricing/success`
-					},
-					redirect: 'if_required'
-				})
+		try {
+			const { error } = await stripe!.confirmPayment({
+				elements: elements!,
+				confirmParams: {
+					return_url: `${window.location.origin}/pricing/success`
+				},
+				redirect: 'if_required'
+			})
 
-				if (error) {
-					setPaymentStatus('failed')
-					setError(error.message || 'Express checkout failed')
-					toast.error('Express payment failed')
-				}
-			} catch {
+			if (error) {
 				setPaymentStatus('failed')
-				setError('Express checkout error')
-			} finally {
-				setIsProcessing(false)
+				setError(error.message || 'Express checkout failed')
+				toast.error('Express payment failed')
 			}
-		},
-		[stripe, elements]
-	)
+		} catch {
+			setPaymentStatus('failed')
+			setError('Express checkout error')
+		} finally {
+			setIsProcessing(false)
+		}
+	}, [stripe, elements])
 
 	// Retry payment function
 	const retryPayment = useCallback(() => {
