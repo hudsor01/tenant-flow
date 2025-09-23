@@ -5,6 +5,33 @@
 import type { Database } from '@repo/shared'
 import { createBrowserClient } from '@supabase/ssr'
 
+/**
+ * Get the API URL for Stripe endpoints
+ * In production, requires environment variables to be set
+ * In development, falls back to local backend
+ */
+function getStripeApiUrl(): string {
+	// Check for explicit environment variables first
+	if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+		return process.env.NEXT_PUBLIC_API_BASE_URL
+	}
+	if (process.env.NEXT_PUBLIC_BACKEND_URL) {
+		return process.env.NEXT_PUBLIC_BACKEND_URL
+	}
+
+	// In production, require environment variables
+	if (process.env.NODE_ENV === 'production') {
+		console.error(
+			'Missing required environment variable: NEXT_PUBLIC_API_BASE_URL or NEXT_PUBLIC_BACKEND_URL'
+		)
+		// Return empty string to make the error obvious in production
+		return ''
+	}
+
+	// Only use localhost as fallback in development
+	return 'http://localhost:4600'
+}
+
 interface CreateCheckoutSessionRequest {
 	priceId: string
 	planName: string
@@ -32,13 +59,8 @@ export async function createCheckoutSession(
 		data: { session }
 	} = await supabase.auth.getSession()
 
-	// Call NestJS backend Stripe API - use local backend in development
-	const apiUrl =
-		process.env.NODE_ENV === 'development'
-			? 'http://localhost:3001'
-			: process.env.NEXT_PUBLIC_API_BASE_URL ||
-				process.env.NEXT_PUBLIC_BACKEND_URL ||
-				'https://api.tenantflow.app'
+	// Get API URL from environment or development fallback
+	const apiUrl = getStripeApiUrl()
 
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json'
@@ -136,28 +158,25 @@ export async function createPaymentIntent({
 	)
 
 	const {
-		data: { session },
-		error: sessionError
+		data: { session }
 	} = await supabase.auth.getSession()
 
-	if (sessionError || !session?.access_token) {
-		throw new Error('Authentication required. Please sign in to continue.')
+	// Get API URL from environment or development fallback
+	const apiUrl = getStripeApiUrl()
+	const headers: Record<string, string> = {
+		'Content-Type': 'application/json'
 	}
 
-	const apiUrl =
-		process.env.NODE_ENV === 'development'
-			? 'http://localhost:3001'
-			: process.env.NEXT_PUBLIC_API_BASE_URL ||
-				process.env.NEXT_PUBLIC_BACKEND_URL ||
-				'https://api.tenantflow.app'
+	// Add auth header if user is authenticated
+	if (session?.access_token) {
+		headers['Authorization'] = `Bearer ${session.access_token}`
+	}
+
 	const response = await fetch(
 		`${apiUrl}/api/v1/stripe/create-payment-intent`,
 		{
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${session.access_token}`
-			},
+			headers,
 			body: JSON.stringify({
 				amount,
 				currency,

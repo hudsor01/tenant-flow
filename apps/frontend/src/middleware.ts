@@ -141,7 +141,10 @@ function isAuthRoute(pathname: string): boolean {
 }
 
 function applySecurityHeaders(response: NextResponse) {
-	response.headers.set('Content-Security-Policy', getCSPString())
+	// Use environment-aware CSP (allows frame-ancestors in development)
+	const environment =
+		process.env.NODE_ENV === 'development' ? 'development' : 'production'
+	response.headers.set('Content-Security-Policy', getCSPString(environment))
 	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
 	response.headers.set('X-Content-Type-Options', 'nosniff')
 	response.headers.set('X-DNS-Prefetch-Control', 'on')
