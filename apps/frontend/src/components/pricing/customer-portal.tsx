@@ -79,7 +79,7 @@ export function CustomerPortalButton({
 			// Check if user is authenticated
 			const authToken = localStorage.getItem('auth-token')
 			if (!authToken) {
-				window.location.href = '/auth/login'
+				window.location.href = '/login'
 				throw new Error('Please sign in to access your account')
 			}
 

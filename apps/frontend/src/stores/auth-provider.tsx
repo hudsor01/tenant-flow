@@ -4,6 +4,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import React, { createContext, useContext, useEffect, useRef } from 'react'
 import { type StoreApi } from 'zustand'
 
+import { ALL_AUTH_COOKIE_PATTERNS } from '@/lib/auth-constants'
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import type { AuthState } from './auth-store'
 import { createAuthStore } from './auth-store'
@@ -37,10 +38,10 @@ export const AuthStoreProvider = ({
 				// Check for mock auth cookies
 				const mockToken = document.cookie
 					.split('; ')
-					.find(
-						row =>
-							row.startsWith('sb-access-token=') ||
-							row.startsWith('mock-user-id=')
+					.find(row =>
+						ALL_AUTH_COOKIE_PATTERNS.some(pattern =>
+							row.startsWith(`${pattern}=`)
+						)
 					)
 
 				if (mockToken) {

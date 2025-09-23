@@ -6,7 +6,11 @@
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import compression from 'compression'
 import cookieParser from 'cookie-parser'
-import express from 'express'
+import express, {
+	type NextFunction,
+	type Request,
+	type Response
+} from 'express'
 import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 
@@ -69,7 +73,18 @@ export async function registerExpressMiddleware(app: NestExpressApplication) {
 		})
 	)
 
-	// Body parsing limits
-	app.use(express.json({ limit: '10mb' }))
-	app.use(express.urlencoded({ extended: true, limit: '10mb' }))
+	// Body parsing limits - exclude Stripe webhook path to preserve raw buffer
+	app.use((req: Request, res: Response, next: NextFunction) => {
+		if (req.path === '/api/v1/stripe/webhook') {
+			return next() // Skip JSON parsing for webhook
+		}
+		express.json({ limit: '10mb' })(req, res, next)
+	})
+
+	app.use((req: Request, res: Response, next: NextFunction) => {
+		if (req.path === '/api/v1/stripe/webhook') {
+			return next() // Skip URL encoding for webhook
+		}
+		express.urlencoded({ extended: true, limit: '10mb' })(req, res, next)
+	})
 }

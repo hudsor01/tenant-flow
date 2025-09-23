@@ -61,7 +61,7 @@ function LoadingSpinner({
 				className={cn(
 					sizeClasses[size],
 					variantClasses[variant],
-					// Apple motion - smooth spinner rotation with satisfying timing
+					// Smooth spinner rotation with satisfying timing
 					'animate-spin [animation-duration:var(--duration-breathe)] [animation-timing-function:linear]'
 				)}
 			/>
@@ -72,7 +72,7 @@ function LoadingSpinner({
 						textSizeClasses[size],
 						variantClasses[variant],
 						'font-medium',
-						// Apple breathing animation for text
+						// Breathing animation for text
 						'animate-pulse [animation-duration:var(--duration-breathe)] [animation-timing-function:var(--ease-in-out-circ)]'
 					)}
 				>
@@ -143,7 +143,7 @@ function ButtonLoader({
 	)
 }
 
-// Card/Section loading overlay with Apple glass morphism
+// Card/Section loading overlay with glass morphism
 function SectionLoader({
 	text,
 	className,
@@ -155,14 +155,14 @@ function SectionLoader({
 } & React.HTMLAttributes<HTMLDivElement>) {
 	return (
 		<div data-tokens="applied" className={cn('relative', className)} {...props}>
-			{/* Apple Glass Backdrop */}
-			<div className="absolute inset-0 glass-apple z-10 flex items-center justify-center rounded-[var(--radius-large)]">
+			{/* Glass Backdrop */}
+			<div className="absolute inset-0 glass z-10 flex items-center justify-center rounded-[var(--radius-large)]">
 				<div className="card-elevated p-[var(--spacing-6)]">
 					<LoadingSpinner size="lg" variant="primary" text={text} />
 				</div>
 			</div>
 
-			{/* Content (blurred with Apple motion) */}
+			{/* Content (blurred with motion) */}
 			<div className="opacity-50 pointer-events-none transition-all [transition-duration:var(--duration-medium)] [transition-timing-function:var(--ease-out-expo)]">
 				{children}
 			</div>
@@ -193,7 +193,7 @@ function InlineLoader({
 	)
 }
 
-// Apple Loading Dots - Satisfying bounce animation with Apple timing
+// Loading Dots - Satisfying bounce animation with professional timing
 function LoadingDots({
 	className,
 	variant = 'default',
@@ -229,7 +229,7 @@ function LoadingDots({
 					dotSize,
 					'rounded-full animate-bounce bg-current',
 					variantClasses[variant],
-					// Apple motion - satisfying bounce with spring easing
+					// Satisfying bounce with spring easing
 					'[animation-duration:var(--duration-breathe)] [animation-timing-function:var(--ease-spring)]'
 				)}
 				style={{ animationDelay: '0ms' }}

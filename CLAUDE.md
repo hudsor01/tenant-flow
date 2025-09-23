@@ -229,15 +229,9 @@ Server starts with "dependencies initialized" | Public endpoints work | Protecte
 - ParseBoolPipe, ParseArrayPipe, ParseEnumPipe - all built-in pipes
 
 #### DEPENDENCY INJECTION - ULTRA-NATIVE PATTERN
-Controller Constructor Pattern:
 ```typescript
 constructor(@Optional() private readonly service?: ServiceClass) {}
-```
-Service Availability Check:
-```typescript
-if (!this.service) {
-  return { message: 'Service not available', ...fallbackData }
-}
+// Check: if (!this.service) return fallback
 ```
 
 #### GUARDS - SECURITY WITHOUT ABSTRACTION
@@ -267,18 +261,9 @@ const userId = req.user?.id || 'fallback-id'
 ```
 
 #### CACHING - NESTJS NATIVE DECORATORS
-Service Methods:
 ```typescript
-@CacheKey('custom-key')
-@CacheTTL(30)
-async method() { }
-```
-Global Cache Config:
-```typescript
-CacheModule.register({
-  ttl: 30 * 1000,  // 30 seconds
-  max: 1000        // max items
-})
+@CacheKey('custom-key') @CacheTTL(30) async method() { }
+// Global: CacheModule.register({ ttl: 30 * 1000, max: 1000 })
 ```
 
 #### ERROR HANDLING - SIMPLE AND DIRECT
@@ -470,23 +455,11 @@ Build dependencies: shared → frontend/backend
 - Use SilentLogger for clean test output
 - Mock external dependencies (Supabase, Stripe, Email)
 
-### TESTING METHODOLOGY
-```typescript
-// Proven pattern for 100% coverage
-describe('validation', () => {
-  it('validates production input patterns', async () => {
-    await expect(controller.method(user, 'invalid-uuid'))
-      .rejects.toThrow('Invalid unit ID')
-  })
-})
-
-it('mirrors production behavior exactly', async () => {
-  // Test actual edge cases, including bugs/quirks
-  service.method.mockResolvedValue(mockData)
-  const result = await controller.method(user, edgeCaseParams)
-  expect(result).toEqual(expectedProductionBehavior)
-})
-```
+### TESTING REQUIREMENTS
+- Controllers: All endpoints with auth validation
+- Services: Business logic with edge cases
+- Mock external dependencies (Supabase, Stripe, Email)
+- Mirror production behavior exactly
 
 ## Success Metrics
 

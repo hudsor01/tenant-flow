@@ -46,7 +46,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 				}
 			],
 			ctaText = 'Get Started',
-			ctaHref = '/auth/signup',
+			ctaHref = '/signup',
 			...props
 		},
 		ref
