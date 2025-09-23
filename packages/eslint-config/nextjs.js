@@ -1,7 +1,7 @@
 /**
  * Optimized Next.js 15 specific ESLint configuration for a Monorepo
  * ESLint v9 flat config format with React 19.1.1 optimization
- * Tailored for Turborepo with NestJS/Fastify backend, Stripe, and Supabase.
+ * Tailored for Turborepo with NestJS/Express backend, Stripe, and Supabase.
  */
 
 import js from '@eslint/js'

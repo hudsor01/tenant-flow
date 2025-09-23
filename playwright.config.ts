@@ -1,6 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
 import * as dotenv from 'dotenv'
-import path from 'path'
 
 // Load test environment variables
 dotenv.config({ path: '.env.test' })
@@ -23,7 +22,7 @@ export default defineConfig({
 		timeout: 10000,
 		// Screenshot expectations
 		toHaveScreenshot: {
-			maxDiffPixels: 100,
+			maxDiffPixels: 100
 		}
 	},
 
@@ -54,7 +53,7 @@ export default defineConfig({
 		process.env.CI ? ['github'] : ['list'],
 
 		/* JSON reporter for test result processing */
-		['json', { outputFile: 'test-results/results.json' }],
+		['json', { outputFile: 'test-results/results.json' }]
 
 		/* Allure reporter for detailed reporting - disabled until installed */
 		// [
@@ -70,8 +69,7 @@ export default defineConfig({
 	/* Shared settings for all projects */
 	use: {
 		/* Base URL for the application */
-		baseURL:
-			process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3005',
+		baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3005',
 
 		/* Collect comprehensive trace for all test runs */
 		trace: 'on',
@@ -104,7 +102,7 @@ export default defineConfig({
 
 		/* Locale and timezone */
 		locale: 'en-US',
-		timezoneId: 'America/New_York',
+		timezoneId: 'America/New_York'
 	},
 
 	/* Configure projects for major browsers */
@@ -115,7 +113,7 @@ export default defineConfig({
 			testMatch: /global\.setup\.ts/,
 			use: {
 				// Use playwright-chromium for consistent auth flow
-				browserName: 'chromium',
+				browserName: 'chromium'
 			}
 		},
 
@@ -125,9 +123,9 @@ export default defineConfig({
 			use: {
 				...devices['Desktop Chrome'],
 				// Use auth state from global setup
-				storageState: 'playwright/.auth/user.json',
+				storageState: 'playwright/.auth/user.json'
 			},
-			dependencies: ['setup'],
+			dependencies: ['setup']
 		},
 
 		/* Mobile Chrome - for responsive testing */
@@ -135,19 +133,19 @@ export default defineConfig({
 			name: 'mobile-chrome',
 			use: {
 				...devices['Pixel 5'],
-				storageState: 'playwright/.auth/user.json',
+				storageState: 'playwright/.auth/user.json'
 			},
-			dependencies: ['setup'],
+			dependencies: ['setup']
 		},
 
 		/* Test without auth for login/signup flows */
 		{
 			name: 'chromium-no-auth',
 			use: {
-				...devices['Desktop Chrome'],
+				...devices['Desktop Chrome']
 				// No storage state - fresh browser
 			},
-			testMatch: /auth\/.+\.spec\.ts/,
+			testMatch: /auth\/.+\.spec\.ts/
 		}
 	],
 
@@ -162,7 +160,7 @@ export default defineConfig({
 						? []
 						: [
 								{
-									command: 'pnpm run dev --filter=@repo/backend',
+									command: 'pnpm dev --filter=@repo/backend',
 									port: 8000,
 									reuseExistingServer: !process.env.CI,
 									timeout: 120000,
@@ -173,15 +171,14 @@ export default defineConfig({
 											process.env.DATABASE_URL ||
 											'',
 										JWT_SECRET: 'test-secret',
-										STRIPE_SECRET_KEY:
-											process.env.STRIPE_SECRET_KEY_TEST || '',
+										STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY_TEST || '',
 										STRIPE_WEBHOOK_SECRET:
 											process.env.STRIPE_WEBHOOK_SECRET_TEST || ''
 									}
 								}
-						]),
+							]),
 					{
-						command: 'pnpm run dev --filter=@repo/frontend',
+						command: 'pnpm dev --filter=@repo/frontend',
 						port: 4500,
 						reuseExistingServer: !process.env.CI,
 						timeout: 120000,
@@ -199,7 +196,8 @@ export default defineConfig({
 
 	/* Snapshots directory */
 	snapshotDir: 'tests/e2e/__snapshots__',
-	snapshotPathTemplate: '{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}{-projectName}{-snapshotSuffix}{ext}',
+	snapshotPathTemplate:
+		'{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}{-projectName}{-snapshotSuffix}{ext}',
 
 	/* Test metadata */
 	metadata: {

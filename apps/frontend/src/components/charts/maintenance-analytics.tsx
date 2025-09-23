@@ -744,22 +744,11 @@ export function MaintenanceAnalytics() {
 
 							<div className="text-center">
 								<div className="flex items-center justify-center mb-2">
-									<div
-										className="w-8 h-8 rounded-lg flex items-center justify-center"
-										style={{
-											backgroundColor: `${APPLE_SYSTEM_COLORS.systemPurple}20`
-										}}
-									>
-										<Star
-											className="w-4 h-4"
-											style={{ color: APPLE_SYSTEM_COLORS.systemPurple }}
-										/>
+									<div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--color-system-blue-15)]">
+										<Star className="w-4 h-4 text-[var(--color-system-blue)]" />
 									</div>
 								</div>
-								<p
-									className="text-lg font-bold"
-									style={{ color: APPLE_SYSTEM_COLORS.systemPurple }}
-								>
+								<p className="text-lg font-bold text-[var(--color-system-blue)]">
 									{analytics.avgSatisfaction.toFixed(1)}
 								</p>
 								<p className="text-xs text-muted-foreground">Satisfaction</p>
@@ -1019,12 +1008,12 @@ export function MaintenanceAnalytics() {
 											>
 												<stop
 													offset="5%"
-													stopColor={APPLE_SYSTEM_COLORS.systemPurple}
+													stopColor="var(--color-system-blue)"
 													stopOpacity={0.8}
 												/>
 												<stop
 													offset="95%"
-													stopColor={APPLE_SYSTEM_COLORS.systemPurple}
+													stopColor="var(--color-system-blue)"
 													stopOpacity={0.1}
 												/>
 											</linearGradient>
@@ -1050,7 +1039,7 @@ export function MaintenanceAnalytics() {
 										<Tooltip content={<CustomTooltip />} />
 										<Area
 											dataKey="satisfaction"
-											stroke={APPLE_SYSTEM_COLORS.systemPurple}
+											stroke="var(--color-system-blue)"
 											fill="url(#satisfactionGradient)"
 											name="Satisfaction"
 										/>

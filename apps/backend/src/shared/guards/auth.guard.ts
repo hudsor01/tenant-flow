@@ -10,12 +10,8 @@ import { Reflector } from '@nestjs/core'
 import type { Database, UserRole, ValidatedUser } from '@repo/shared'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
-import type { FastifyRequest } from 'fastify'
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
-
-interface AuthenticatedRequest extends FastifyRequest {
-	user?: ValidatedUser
-}
+import type { AuthenticatedRequest } from '../types/express-request.types'
 
 /**
  * Auth Guard - handles JWT auth, roles, and organization isolation
@@ -118,6 +114,9 @@ export class AuthGuard implements CanActivate {
 		try {
 			const user = await this.validateTokenAndGetUser(token)
 			request.user = user
+
+			// User ID is available through request.user
+
 			return user
 		} catch {
 			throw new UnauthorizedException('Invalid authentication token')

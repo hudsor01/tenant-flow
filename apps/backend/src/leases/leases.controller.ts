@@ -7,47 +7,41 @@
  */
 
 import {
+	BadRequestException,
+	Body,
 	Controller,
+	DefaultValuePipe,
+	Delete,
 	Get,
+	NotFoundException,
+	Optional,
+	Param,
+	ParseIntPipe,
+	ParseUUIDPipe,
 	Post,
 	Put,
-	Delete,
-	Param,
-	Query,
-	Body,
-	HttpStatus,
-	ParseUUIDPipe,
-	DefaultValuePipe,
-	ParseIntPipe,
-	BadRequestException,
-	NotFoundException,
-	Optional
+	Query
 } from '@nestjs/common'
-import {
-	ApiBearerAuth,
-	ApiTags,
-	ApiOperation,
-	ApiResponse
-} from '@nestjs/swagger'
-import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { Public } from '../shared/decorators/public.decorator'
-import type { ValidatedUser } from '@repo/shared'
-import { LeasesService } from './leases.service'
+// Swagger imports removed
 import type {
 	CreateLeaseRequest,
-	UpdateLeaseRequest
-} from '../schemas/leases.schema'
+	UpdateLeaseRequest,
+	ValidatedUser
+} from '@repo/shared'
+import { CurrentUser } from '../shared/decorators/current-user.decorator'
+import { Public } from '../shared/decorators/public.decorator'
+import { LeasesService } from './leases.service'
 
-@ApiTags('leases')
-@ApiBearerAuth()
+// @ApiTags('leases')
+// @ApiBearerAuth()
 @Controller('leases')
 export class LeasesController {
 	constructor(@Optional() private readonly leasesService?: LeasesService) {}
 
 	@Get()
 	@Public()
-	@ApiOperation({ summary: 'Get all leases' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get all leases' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async findAll(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('tenantId') tenantId?: string,
@@ -122,8 +116,8 @@ export class LeasesController {
 
 	@Get('stats')
 	@Public()
-	@ApiOperation({ summary: 'Get lease statistics' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get lease statistics' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getStats(@CurrentUser() user?: ValidatedUser) {
 		if (!this.leasesService) {
 			return {
@@ -139,8 +133,8 @@ export class LeasesController {
 
 	@Get('analytics/performance')
 	@Public()
-	@ApiOperation({ summary: 'Get per-lease performance analytics' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get per-lease performance analytics' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeasePerformanceAnalytics(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('leaseId') leaseId?: string,
@@ -148,16 +142,28 @@ export class LeasesController {
 		@Query('timeframe', new DefaultValuePipe('90d')) timeframe?: string
 	) {
 		// Validate UUIDs if provided
-		if (leaseId && !leaseId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+		if (
+			leaseId &&
+			!leaseId.match(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+			)
+		) {
 			throw new BadRequestException('Invalid lease ID')
 		}
-		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+		if (
+			propertyId &&
+			!propertyId.match(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+			)
+		) {
 			throw new BadRequestException('Invalid property ID')
 		}
 
 		// Validate timeframe
 		if (!['30d', '90d', '6m', '1y'].includes(timeframe ?? '90d')) {
-			throw new BadRequestException('Invalid timeframe. Must be one of: 30d, 90d, 6m, 1y')
+			throw new BadRequestException(
+				'Invalid timeframe. Must be one of: 30d, 90d, 6m, 1y'
+			)
 		}
 
 		if (!this.leasesService) {
@@ -170,30 +176,40 @@ export class LeasesController {
 			}
 		}
 
-		return this.leasesService.getLeasePerformanceAnalytics(user?.id || 'test-user-id', {
-			leaseId,
-			propertyId,
-			timeframe: timeframe ?? '90d'
-		})
+		return this.leasesService.getLeasePerformanceAnalytics(
+			user?.id || 'test-user-id',
+			{
+				leaseId,
+				propertyId,
+				timeframe: timeframe ?? '90d'
+			}
+		)
 	}
 
 	@Get('analytics/duration')
 	@Public()
-	@ApiOperation({ summary: 'Get lease duration and renewal analytics' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get lease duration and renewal analytics' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseDurationAnalytics(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('propertyId') propertyId?: string,
 		@Query('period', new DefaultValuePipe('yearly')) period?: string
 	) {
 		// Validate propertyId if provided
-		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+		if (
+			propertyId &&
+			!propertyId.match(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+			)
+		) {
 			throw new BadRequestException('Invalid property ID')
 		}
 
 		// Validate period
 		if (!['monthly', 'quarterly', 'yearly'].includes(period ?? 'yearly')) {
-			throw new BadRequestException('Invalid period. Must be one of: monthly, quarterly, yearly')
+			throw new BadRequestException(
+				'Invalid period. Must be one of: monthly, quarterly, yearly'
+			)
 		}
 
 		if (!this.leasesService) {
@@ -205,29 +221,39 @@ export class LeasesController {
 			}
 		}
 
-		return this.leasesService.getLeaseDurationAnalytics(user?.id || 'test-user-id', {
-			propertyId,
-			period: period ?? 'yearly'
-		})
+		return this.leasesService.getLeaseDurationAnalytics(
+			user?.id || 'test-user-id',
+			{
+				propertyId,
+				period: period ?? 'yearly'
+			}
+		)
 	}
 
 	@Get('analytics/turnover')
 	@Public()
-	@ApiOperation({ summary: 'Get lease turnover and retention analytics' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get lease turnover and retention analytics' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseTurnoverAnalytics(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('propertyId') propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
 	) {
 		// Validate propertyId if provided
-		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+		if (
+			propertyId &&
+			!propertyId.match(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+			)
+		) {
 			throw new BadRequestException('Invalid property ID')
 		}
 
 		// Validate timeframe
 		if (!['6m', '12m', '24m', '36m'].includes(timeframe ?? '12m')) {
-			throw new BadRequestException('Invalid timeframe. Must be one of: 6m, 12m, 24m, 36m')
+			throw new BadRequestException(
+				'Invalid timeframe. Must be one of: 6m, 12m, 24m, 36m'
+			)
 		}
 
 		if (!this.leasesService) {
@@ -239,16 +265,19 @@ export class LeasesController {
 			}
 		}
 
-		return this.leasesService.getLeaseTurnoverAnalytics(user?.id || 'test-user-id', {
-			propertyId,
-			timeframe: timeframe ?? '12m'
-		})
+		return this.leasesService.getLeaseTurnoverAnalytics(
+			user?.id || 'test-user-id',
+			{
+				propertyId,
+				timeframe: timeframe ?? '12m'
+			}
+		)
 	}
 
 	@Get('analytics/revenue')
 	@Public()
-	@ApiOperation({ summary: 'Get per-lease revenue analytics and trends' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get per-lease revenue analytics and trends' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseRevenueAnalytics(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('leaseId') leaseId?: string,
@@ -256,16 +285,28 @@ export class LeasesController {
 		@Query('period', new DefaultValuePipe('monthly')) period?: string
 	) {
 		// Validate UUIDs if provided
-		if (leaseId && !leaseId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+		if (
+			leaseId &&
+			!leaseId.match(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+			)
+		) {
 			throw new BadRequestException('Invalid lease ID')
 		}
-		if (propertyId && !propertyId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+		if (
+			propertyId &&
+			!propertyId.match(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+			)
+		) {
 			throw new BadRequestException('Invalid property ID')
 		}
 
 		// Validate period
 		if (!['weekly', 'monthly', 'quarterly'].includes(period ?? 'monthly')) {
-			throw new BadRequestException('Invalid period. Must be one of: weekly, monthly, quarterly')
+			throw new BadRequestException(
+				'Invalid period. Must be one of: weekly, monthly, quarterly'
+			)
 		}
 
 		if (!this.leasesService) {
@@ -278,17 +319,20 @@ export class LeasesController {
 			}
 		}
 
-		return this.leasesService.getLeaseRevenueAnalytics(user?.id || 'test-user-id', {
-			leaseId,
-			propertyId,
-			period: period ?? 'monthly'
-		})
+		return this.leasesService.getLeaseRevenueAnalytics(
+			user?.id || 'test-user-id',
+			{
+				leaseId,
+				propertyId,
+				period: period ?? 'monthly'
+			}
+		)
 	}
 
 	@Get('expiring')
 	@Public()
-	@ApiOperation({ summary: 'Get expiring leases' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get expiring leases' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getExpiring(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('days', new DefaultValuePipe(30), ParseIntPipe) days?: number
@@ -303,14 +347,17 @@ export class LeasesController {
 				days: days ?? 30
 			}
 		}
-		return this.leasesService.getExpiring(user?.id || 'test-user-id', days ?? 30)
+		return this.leasesService.getExpiring(
+			user?.id || 'test-user-id',
+			days ?? 30
+		)
 	}
 
 	@Get(':id')
 	@Public()
-	@ApiOperation({ summary: 'Get lease by ID' })
-	@ApiResponse({ status: HttpStatus.OK })
-	@ApiResponse({ status: HttpStatus.NOT_FOUND })
+	// @ApiOperation({ summary: 'Get lease by ID' })
+	// @ApiResponse({ status: HttpStatus.OK })
+	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user?: ValidatedUser
@@ -322,7 +369,10 @@ export class LeasesController {
 				data: null
 			}
 		}
-		const lease = await this.leasesService.findOne(user?.id || 'test-user-id', id)
+		const lease = await this.leasesService.findOne(
+			user?.id || 'test-user-id',
+			id
+		)
 		if (!lease) {
 			throw new NotFoundException('Lease not found')
 		}
@@ -331,8 +381,8 @@ export class LeasesController {
 
 	@Post()
 	@Public()
-	@ApiOperation({ summary: 'Create new lease' })
-	@ApiResponse({ status: HttpStatus.CREATED })
+	// @ApiOperation({ summary: 'Create new lease' })
+	// @ApiResponse({ status: HttpStatus.CREATED })
 	async create(
 		@Body() createRequest: CreateLeaseRequest,
 		@CurrentUser() user?: ValidatedUser
@@ -349,9 +399,9 @@ export class LeasesController {
 
 	@Put(':id')
 	@Public()
-	@ApiOperation({ summary: 'Update lease' })
-	@ApiResponse({ status: HttpStatus.OK })
-	@ApiResponse({ status: HttpStatus.NOT_FOUND })
+	// @ApiOperation({ summary: 'Update lease' })
+	// @ApiResponse({ status: HttpStatus.OK })
+	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateRequest: UpdateLeaseRequest,
@@ -378,8 +428,8 @@ export class LeasesController {
 
 	@Delete(':id')
 	@Public()
-	@ApiOperation({ summary: 'Delete lease' })
-	@ApiResponse({ status: HttpStatus.NO_CONTENT })
+	// @ApiOperation({ summary: 'Delete lease' })
+	// @ApiResponse({ status: HttpStatus.NO_CONTENT })
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user?: ValidatedUser
@@ -397,8 +447,8 @@ export class LeasesController {
 
 	@Post(':id/renew')
 	@Public()
-	@ApiOperation({ summary: 'Renew lease' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Renew lease' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async renew(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body('endDate') endDate: string,
@@ -406,9 +456,7 @@ export class LeasesController {
 	) {
 		// Validate date format
 		if (!endDate || !endDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-			throw new BadRequestException(
-				'Invalid date format (YYYY-MM-DD required)'
-			)
+			throw new BadRequestException('Invalid date format (YYYY-MM-DD required)')
 		}
 		if (!this.leasesService) {
 			return {
@@ -424,8 +472,8 @@ export class LeasesController {
 
 	@Post(':id/terminate')
 	@Public()
-	@ApiOperation({ summary: 'Terminate lease' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Terminate lease' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async terminate(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body('reason') reason?: string,

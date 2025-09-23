@@ -18,6 +18,7 @@ export * from './core'
 export * from './supabase-generated'
 
 // Consolidated domain types
+export * from './api-errors'
 export * from './backend-domain'
 export * from './domain'
 export type {

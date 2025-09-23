@@ -1,14 +1,12 @@
 'use client'
 
-import { Navbar } from '@/components/navbar'
+import Footer from '@/components/layout/footer'
+import { Navbar } from '@/components/layout/navbar'
 import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { FooterMinimal } from '@/components/sections/footer-minimal'
-
 
 import { Button } from '@/components/ui/button'
 import { ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
-
 
 const faqs = [
 	{
@@ -17,7 +15,7 @@ const faqs = [
 			{
 				question: 'How quickly can TenantFlow increase my NOI?',
 				answer:
-					'Most property managers see a 40% increase in NOI within 90 days. Our automated rent optimization, reduced vacancy periods (65% faster filling), and 32% maintenance cost reduction deliver immediate results. We guarantee ROI within the first 90 days or your money back.'
+					'Most property managers see a 40% increase in NOI within 90 days. Our portfolio optimization tools, reduced vacancy periods (65% faster filling), and 32% maintenance cost reduction deliver immediate results. We guarantee ROI within the first 90 days or your money back.'
 			},
 			{
 				question:
@@ -28,7 +26,7 @@ const faqs = [
 			{
 				question: 'How much money will I save with TenantFlow?',
 				answer:
-					'The average property manager saves $2,400+ per property per year with TenantFlow. This comes from reduced vacancy time (65% faster), lower maintenance costs (32% reduction), automated rent collection, and eliminated manual tasks. Most clients see full ROI within 2.3 months.'
+					'The average property manager saves $2,400+ per property per year with TenantFlow. This comes from reduced vacancy time (65% faster), lower maintenance costs (32% reduction), streamlined operations, and eliminated manual tasks. Most clients see full ROI within 2.3 months.'
 			}
 		]
 	},
@@ -38,7 +36,7 @@ const faqs = [
 			{
 				question: 'How does TenantFlow automate 80% of daily tasks?',
 				answer:
-					'Our smart workflows handle rent collection, lease renewals, maintenance requests, tenant communications, and financial reporting automatically. AI-powered tenant screening, automated late payment follow-ups, and smart vendor dispatch save you 20+ hours per week.'
+					'Our smart workflows handle maintenance tracking, lease renewals, maintenance requests, tenant communications, and financial reporting automatically. AI-powered tenant screening, automated notifications, and smart vendor dispatch save you 20+ hours per week.'
 			},
 			{
 				question: 'What specific results can I expect?',
@@ -218,7 +216,7 @@ export default function FAQPage() {
 				</div>
 			</section>
 
-			<FooterMinimal />
+			<Footer />
 		</div>
 	)
 }

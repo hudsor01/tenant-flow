@@ -11,13 +11,14 @@
  * - Consistent error messages
  */
 
-import type { JSONSchema } from '../shared/types/fastify-type-provider'
 import {
 	COMPANY_VALIDATION,
 	EMAIL_VALIDATION,
 	NAME_VALIDATION,
 	PASSWORD_VALIDATION
 } from '../shared/constants/validation.constants'
+import type { JSONSchema } from '../shared/types/express-type-provider'
+// Note: Auth types could use shared types, but keeping separate interfaces for JSON Schema validation
 
 // Base email schema
 const emailSchema: JSONSchema = {
@@ -57,12 +58,6 @@ const companySchema: JSONSchema = {
 /**
  * Login request schema
  */
-export interface LoginRequest {
-	email: string
-	password: string
-	rememberMe?: boolean
-}
-
 export const loginSchema: JSONSchema = {
 	type: 'object',
 	required: ['email', 'password'],
@@ -85,14 +80,6 @@ export const loginSchema: JSONSchema = {
 /**
  * Registration request schema
  */
-export interface RegisterRequest {
-	name: string
-	email: string
-	password: string
-	company?: string
-	acceptTerms?: boolean
-}
-
 export const registerSchema: JSONSchema = {
 	type: 'object',
 	required: ['name', 'email', 'password'],
@@ -113,10 +100,6 @@ export const registerSchema: JSONSchema = {
 /**
  * Refresh token request schema
  */
-export interface RefreshTokenRequest {
-	refresh_token: string
-}
-
 export const refreshTokenSchema: JSONSchema = {
 	type: 'object',
 	required: ['refresh_token'],
@@ -133,10 +116,6 @@ export const refreshTokenSchema: JSONSchema = {
 /**
  * Forgot password request schema
  */
-export interface ForgotPasswordRequest {
-	email: string
-}
-
 export const forgotPasswordSchema: JSONSchema = {
 	type: 'object',
 	required: ['email'],
@@ -149,12 +128,6 @@ export const forgotPasswordSchema: JSONSchema = {
 /**
  * Reset password request schema
  */
-export interface ResetPasswordRequest {
-	token: string
-	newPassword: string
-	confirmPassword: string
-}
-
 export const resetPasswordSchema: JSONSchema = {
 	type: 'object',
 	required: ['token', 'newPassword', 'confirmPassword'],
@@ -177,12 +150,6 @@ export const resetPasswordSchema: JSONSchema = {
 /**
  * Change password request schema
  */
-export interface ChangePasswordRequest {
-	currentPassword: string
-	newPassword: string
-	confirmPassword: string
-}
-
 export const changePasswordSchema: JSONSchema = {
 	type: 'object',
 	required: ['currentPassword', 'newPassword', 'confirmPassword'],
@@ -263,29 +230,9 @@ export const authResponseSchema: JSONSchema = {
 /**
  * User profile response schema
  */
-export interface UserProfileResponse {
-	id: string
-	email: string
-	name: string
-	company?: string
-	phone?: string
-	bio?: string
-	avatarUrl?: string
-	emailVerified: boolean
-	createdAt: string
-	updatedAt: string
-}
-
 export const userProfileResponseSchema: JSONSchema = {
 	type: 'object',
-	required: [
-		'id',
-		'email',
-		'name',
-		'emailVerified',
-		'createdAt',
-		'updatedAt'
-	],
+	required: ['id', 'email', 'name', 'emailVerified', 'createdAt', 'updatedAt'],
 	properties: {
 		id: { type: 'string', format: 'uuid' },
 		email: { type: 'string', format: 'email' },
@@ -301,7 +248,7 @@ export const userProfileResponseSchema: JSONSchema = {
 }
 
 // Schemas are exported directly for use in NestJS controllers
-// No custom registry needed - use Fastify's native addSchema() if sharing is required
+// Express uses native JSON schema validation
 
 // Export route schemas for controller usage
 export const authRouteSchemas = {

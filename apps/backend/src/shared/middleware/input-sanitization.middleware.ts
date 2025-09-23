@@ -17,7 +17,7 @@ import {
 	NestMiddleware
 } from '@nestjs/common'
 import type { SanitizationConfig, ThreatPattern } from '@repo/shared'
-import type { FastifyReply, FastifyRequest } from 'fastify'
+import type { Request, Response } from 'express'
 import { SecurityMonitorService } from '../services/security-monitor.service'
 
 const SANITIZATION_CONFIG: Record<string, SanitizationConfig> = {
@@ -175,7 +175,7 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 		this.securityMonitor = securityMonitor
 	}
 
-	use(req: FastifyRequest, _res: FastifyReply, next: () => void): void {
+	use(req: Request, _res: Response, next: () => void): void {
 		const config = this.getConfigForEndpoint(req.url)
 
 		if (!config.enabled) {
@@ -223,10 +223,7 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 		)
 	}
 
-	private validateRequest(
-		req: FastifyRequest,
-		config: SanitizationConfig
-	): void {
+	private validateRequest(req: Request, config: SanitizationConfig): void {
 		// Validate request size
 		const bodySize = this.getRequestSize(req)
 		if (bodySize > 10 * 1024 * 1024) {
@@ -284,7 +281,7 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 		obj: Record<string, unknown>,
 		config: SanitizationConfig,
 		source: string,
-		req: FastifyRequest,
+		req: Request,
 		depth: number = 0
 	): void {
 		if (depth > config.maxDepth) {
@@ -327,7 +324,7 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 		arr: unknown[],
 		config: SanitizationConfig,
 		source: string,
-		req: FastifyRequest,
+		req: Request,
 		depth: number
 	): void {
 		if (arr.length > config.maxArrayLength) {
@@ -363,7 +360,7 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 		str: string,
 		config: SanitizationConfig,
 		source: string,
-		req: FastifyRequest,
+		req: Request,
 		allowHTML: boolean
 	): void {
 		if (str.length > config.maxStringLength) {
@@ -404,11 +401,7 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 		}
 	}
 
-	private detectThreats(
-		str: string,
-		source: string,
-		req: FastifyRequest
-	): void {
+	private detectThreats(str: string, source: string, req: Request): void {
 		const isWebhook = req.url.includes('/webhook')
 		const threatsToCheck = isWebhook
 			? this.getWebhookThreats()
@@ -463,15 +456,12 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 		return 'malicious_request'
 	}
 
-	private sanitizeRequest(
-		req: FastifyRequest,
-		config: SanitizationConfig
-	): void {
+	private sanitizeRequest(req: Request, config: SanitizationConfig): void {
 		if (req.query) {
 			req.query = this.sanitizeObject(
 				req.query as Record<string, unknown>,
 				config
-			) as Record<string, unknown>
+			) as typeof req.query
 		}
 
 		if (req.body && typeof req.body === 'object') {
@@ -555,7 +545,7 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 		return sanitized
 	}
 
-	private getRequestSize(req: FastifyRequest): number {
+	private getRequestSize(req: Request): number {
 		const contentLength = req.headers['content-length']
 		return contentLength ? parseInt(contentLength, 10) : 0
 	}

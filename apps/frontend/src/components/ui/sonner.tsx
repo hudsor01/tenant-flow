@@ -1,26 +1,24 @@
-"use client"
+'use client'
 
-import { useTheme } from "next-themes"
-import type { ToasterProps } from "sonner";
-import { Toaster as Sonner } from "sonner"
+import { toast } from 'sonner'
 
-const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+import { Button } from '@/components/ui/button'
 
-  return (
-    <Sonner
-      theme={theme as ToasterProps["theme"]}
-      className="toaster group"
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-        } as React.CSSProperties
-      }
-      {...props}
-    />
-  )
+export function SonnerDemo() {
+	return (
+		<Button
+			variant="outline"
+			onClick={() =>
+				toast('Event has been created', {
+					description: 'Sunday, December 03, 2023 at 9:00 AM',
+					action: {
+						label: 'Undo',
+						onClick: () => console.log('Undo')
+					}
+				})
+			}
+		>
+			Show Toast
+		</Button>
+	)
 }
-
-export { Toaster }

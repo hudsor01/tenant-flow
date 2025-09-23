@@ -2,6 +2,7 @@ import { Global, Logger, Module } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { AuthGuard } from './guards/auth.guard'
 import { UsageLimitsGuard } from './guards/usage-limits.guard'
+import { ParseOptionalUUIDPipe } from './pipes/parse-optional-uuid.pipe'
 import { ResilienceService } from './services/resilience.service'
 import { SecurityMonitorService } from './services/security-monitor.service'
 import { TokenValidationService } from './services/token-validation.service'
@@ -28,7 +29,8 @@ import { TokenValidationService } from './services/token-validation.service'
 		UsageLimitsGuard,
 		AuthGuard,
 		ResilienceService,
-		SecurityMonitorService
+		SecurityMonitorService,
+		ParseOptionalUUIDPipe
 	],
 	exports: [
 		Logger,
@@ -37,7 +39,8 @@ import { TokenValidationService } from './services/token-validation.service'
 		UsageLimitsGuard,
 		AuthGuard,
 		ResilienceService,
-		SecurityMonitorService
+		SecurityMonitorService,
+		ParseOptionalUUIDPipe
 	]
 })
 export class SharedModule {}

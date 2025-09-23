@@ -6,14 +6,19 @@
  * Each method is <30 lines (just RPC call + error handling)
  */
 
-import { Injectable, BadRequestException, Optional } from '@nestjs/common'
-import { Logger } from '@nestjs/common'
-import { SupabaseService } from '../database/supabase.service'
+import { CacheKey, CacheTTL } from '@nestjs/cache-manager'
+import {
+	BadRequestException,
+	Injectable,
+	Logger,
+	Optional
+} from '@nestjs/common'
 import type {
 	CreatePropertyRequest,
+	PropertyWithUnits,
 	UpdatePropertyRequest
-} from '../schemas/properties.schema'
-import type { PropertyWithUnits } from '@repo/shared'
+} from '@repo/shared'
+import { SupabaseService } from '../database/supabase.service'
 
 // Simple utility function (not abstraction) - follows KISS principle
 const formatAddress = (addr: {
@@ -23,12 +28,12 @@ const formatAddress = (addr: {
 	zipCode?: string
 }): string | undefined => {
 	if (!addr.address) return undefined
-	
+
 	const parts = [addr.address]
 	if (addr.city) parts.push(addr.city)
 	if (addr.state) parts.push(addr.state)
 	if (addr.zipCode) parts.push(addr.zipCode)
-	
+
 	return parts.join(', ')
 }
 
@@ -88,7 +93,10 @@ export class PropertiesService {
 			// NO business logic transformations allowed here
 			return (data as unknown as PropertyWithUnits[]) || []
 		} catch (error) {
-			this.logger?.error({ error, userId, query }, 'Unexpected error getting properties, using fallback data')
+			this.logger?.error(
+				{ error, userId, query },
+				'Unexpected error getting properties, using fallback data'
+			)
 			return this.getFallbackProperties()
 		}
 	}
@@ -134,7 +142,8 @@ export class PropertiesService {
 				p_user_id: userId,
 				p_name: createRequest.name,
 				p_address: formatAddress(createRequest) || createRequest.address,
-				p_type: createRequest.propertyType || 'SINGLE_FAMILY',
+				p_type:
+					createRequest.propertyType || createRequest.type || 'SINGLE_FAMILY',
 				p_description: createRequest.description
 			})
 			.single()
@@ -159,6 +168,14 @@ export class PropertiesService {
 			throw new BadRequestException('Failed to create property')
 		}
 
+		if (!data) {
+			throw new BadRequestException(
+				'Property creation failed - no data returned'
+			)
+		}
+
+		// Property created successfully
+
 		return data
 	}
 
@@ -177,7 +194,7 @@ export class PropertiesService {
 				p_property_id: propertyId,
 				p_name: updateRequest.name,
 				p_address: formatAddress(updateRequest),
-				p_type: updateRequest.propertyType,
+				p_type: updateRequest.propertyType || updateRequest.type,
 				p_description: updateRequest.description
 			})
 			.single()
@@ -237,8 +254,11 @@ export class PropertiesService {
 	}
 
 	/**
-	 * Get property statistics using RPC
+	 * Get property statistics using RPC with native NestJS caching
+	 * Cached for 30 seconds to improve dashboard performance
 	 */
+	@CacheKey('property-stats')
+	@CacheTTL(30) // 30 seconds
 	async getStats(userId: string) {
 		try {
 			const { data, error } = await this.supabaseService
@@ -263,7 +283,10 @@ export class PropertiesService {
 
 			return data
 		} catch (error) {
-			this.logger?.error({ error, userId }, 'Unexpected error getting property stats, using fallback data')
+			this.logger?.error(
+				{ error, userId },
+				'Unexpected error getting property stats, using fallback data'
+			)
 			return this.getFallbackPropertyStats()
 		}
 	}
@@ -306,7 +329,10 @@ export class PropertiesService {
 			// NO business logic transformations allowed here
 			return (data as unknown as PropertyWithUnits[]) || []
 		} catch (error) {
-			this.logger?.error({ error, userId, query }, 'Unexpected error getting properties with units, using fallback data')
+			this.logger?.error(
+				{ error, userId, query },
+				'Unexpected error getting properties with units, using fallback data'
+			)
 			return this.getFallbackProperties()
 		}
 	}
@@ -351,7 +377,10 @@ export class PropertiesService {
 
 			return data || []
 		} catch (error) {
-			this.logger?.error({ error, userId, query }, 'Unexpected error getting performance analytics, using fallback data')
+			this.logger?.error(
+				{ error, userId, query },
+				'Unexpected error getting performance analytics, using fallback data'
+			)
 			return this.getFallbackPerformanceAnalytics()
 		}
 	}
@@ -394,7 +423,10 @@ export class PropertiesService {
 
 			return data || []
 		} catch (error) {
-			this.logger?.error({ error, userId, query }, 'Unexpected error getting occupancy analytics, using fallback data')
+			this.logger?.error(
+				{ error, userId, query },
+				'Unexpected error getting occupancy analytics, using fallback data'
+			)
 			return this.getFallbackOccupancyAnalytics()
 		}
 	}
@@ -437,7 +469,10 @@ export class PropertiesService {
 
 			return data || []
 		} catch (error) {
-			this.logger?.error({ error, userId, query }, 'Unexpected error getting financial analytics, using fallback data')
+			this.logger?.error(
+				{ error, userId, query },
+				'Unexpected error getting financial analytics, using fallback data'
+			)
 			return this.getFallbackFinancialAnalytics()
 		}
 	}
@@ -480,7 +515,10 @@ export class PropertiesService {
 
 			return data || []
 		} catch (error) {
-			this.logger?.error({ error, userId, query }, 'Unexpected error getting maintenance analytics, using fallback data')
+			this.logger?.error(
+				{ error, userId, query },
+				'Unexpected error getting maintenance analytics, using fallback data'
+			)
 			return this.getFallbackMaintenanceAnalytics()
 		}
 	}
@@ -520,7 +558,7 @@ export class PropertiesService {
 					},
 					{
 						id: 'unit-002',
-						unitNumber: '1B', 
+						unitNumber: '1B',
 						propertyId: 'prop-001',
 						bedrooms: 1,
 						bathrooms: 1,
@@ -648,7 +686,7 @@ export class PropertiesService {
 				moveOuts: 1
 			},
 			{
-				propertyId: 'prop-002', 
+				propertyId: 'prop-002',
 				propertyName: 'Sunset Gardens',
 				period: '2024-01',
 				occupancyRate: 100,
@@ -679,7 +717,7 @@ export class PropertiesService {
 			},
 			{
 				propertyId: 'prop-002',
-				propertyName: 'Sunset Gardens', 
+				propertyName: 'Sunset Gardens',
 				period: '2024-01',
 				revenue: 1800,
 				expenses: 400,

@@ -1,32 +1,32 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "composite": false,
-    "declaration": false,
-    "declarationMap": false,
-    "sourceMap": false,
-    "inlineSources": false,
-    "removeComments": true,
-    "noEmitOnError": false,
-    "noEmit": false,
-    "skipLibCheck": true,
-    "types": ["node"]
-  },
-  "include": ["src/**/*.ts", "src/types/fastify.d.ts"],
-  "exclude": [
-    "**/*.spec.ts",
-    "**/*.test.ts",
-    "src/test/**/*",
-    "src/test-setup.ts",
-    "src/auth/auth-production-diagnostic.ts",
-    "src/test-utils/**/*",
-    "src/shared/test-utils/**/*",
-    "src/shared/scripts/**/*",
-    "src/queues/__tests__/**/*",
-    "src/**/__tests__/**/*",
-    "src/**/__test__/**/*"
-  ],
-  "references": []
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"outDir": "./dist",
+		"composite": false,
+		"declaration": false,
+		"declarationMap": false,
+		"sourceMap": false,
+		"inlineSources": false,
+		"removeComments": true,
+		"noEmitOnError": false,
+		"noEmit": false,
+		"skipLibCheck": true,
+		"types": ["node", "express"]
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": [
+		"**/*.spec.ts",
+		"**/*.test.ts",
+		"src/test/**/*",
+		"src/test-setup.ts",
+		"src/auth/auth-production-diagnostic.ts",
+		"src/test-utils/**/*",
+		"src/shared/test-utils/**/*",
+		"src/shared/scripts/**/*",
+		"src/queues/__tests__/**/*",
+		"src/**/__tests__/**/*",
+		"src/**/__test__/**/*"
+	],
+	"references": []
 }

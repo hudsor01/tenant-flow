@@ -35,7 +35,7 @@ check_server() {
 start_server() {
     if ! check_server; then
         echo "🔧 Starting development server..."
-        npm run dev &
+        pnpm dev &
         SERVER_PID=$!
 
         # Wait for server to be ready

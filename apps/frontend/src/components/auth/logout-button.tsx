@@ -13,7 +13,6 @@ import { useRouter } from 'next/navigation'
 import * as React from 'react'
 import { toast } from 'sonner'
 
-
 interface LogoutButtonProps extends React.ComponentProps<typeof Button> {
 	redirectPath?: string
 	showIcon?: boolean
@@ -196,7 +195,14 @@ export const LogoutButton = React.forwardRef<
 						{isLoading ? (
 							<div className="relative">
 								<Loader2 className="h-4 w-4 animate-spin" />
-								<div className="absolute inset-0 rounded-full border-2 border-transparent border-t-white/30 animate-spin" />
+								<div
+									className="absolute inset-0 rounded-full border-2 border-transparent animate-spin"
+									style={{
+										borderTopColor: 'var(--color-label-primary)',
+										borderColor:
+											'color-mix(in oklab, var(--color-fill-secondary) 50%, transparent)'
+									}}
+								/>
 							</div>
 						) : (
 							showIcon && (

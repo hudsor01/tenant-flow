@@ -13,7 +13,7 @@ const execAsync = promisify(exec)
 
 test.describe('Build & Deployment Readiness', () => {
 	test('frontend builds without errors', async () => {
-		const { stdout, stderr } = await execAsync('npm run build:frontend', {
+		const { stdout, stderr } = await execAsync('pnpm build:frontend', {
 			cwd: process.cwd(),
 			timeout: 300000 // 5 minutes
 		})
@@ -24,7 +24,7 @@ test.describe('Build & Deployment Readiness', () => {
 	})
 
 	test('backend builds without errors', async () => {
-		const { stdout, stderr } = await execAsync('npm run build:backend', {
+		const { stdout, stderr } = await execAsync('pnpm build:backend', {
 			cwd: process.cwd(),
 			timeout: 300000 // 5 minutes
 		})
@@ -35,7 +35,7 @@ test.describe('Build & Deployment Readiness', () => {
 	})
 
 	test('TypeScript compilation passes', async () => {
-		const { stdout, stderr } = await execAsync('npm run typecheck', {
+		const { stdout, stderr } = await execAsync('pnpm typecheck', {
 			cwd: process.cwd(),
 			timeout: 180000 // 3 minutes
 		})
@@ -45,7 +45,7 @@ test.describe('Build & Deployment Readiness', () => {
 	})
 
 	test('linting passes', async () => {
-		const { stdout, stderr } = await execAsync('npm run lint', {
+		const { stdout, stderr } = await execAsync('pnpm lint', {
 			cwd: process.cwd(),
 			timeout: 120000 // 2 minutes
 		})
@@ -55,7 +55,7 @@ test.describe('Build & Deployment Readiness', () => {
 	})
 
 	test('schema generation works', async () => {
-		const { stdout, stderr } = await execAsync('npm run generate:schemas', {
+		const { stdout, stderr } = await execAsync('pnpm generate:schemas', {
 			cwd: process.cwd(),
 			timeout: 60000 // 1 minute
 		})
@@ -135,7 +135,9 @@ test.describe('Configuration & Environment', () => {
 
 			// Should have security headers
 			if (vercel.headers) {
-				const headers = vercel.headers.find((h: any) => h.source === '/(.*)')
+				const headers = vercel.headers.find(
+					(h: { source: string }) => h.source === '/(.*)'
+				)
 				expect(headers?.headers).toBeDefined()
 			}
 		}
@@ -183,12 +185,9 @@ test.describe('Security & Performance', () => {
 
 	test('no vulnerable dependencies', async () => {
 		try {
-			const { stdout, stderr } = await execAsync(
-				'npm audit --audit-level=moderate',
-				{
-					cwd: process.cwd()
-				}
-			)
+			const { stdout } = await execAsync('npm audit --audit-level=moderate', {
+				cwd: process.cwd()
+			})
 
 			// Should not have moderate or high vulnerabilities
 			expect(stdout).not.toContain('moderate')
@@ -257,7 +256,8 @@ test.describe('Monitoring & Observability', () => {
 		// Check for error boundary component
 		const errorBoundaryExists = await page
 			.evaluate(() => {
-				return window.React && 'Component' in window.React
+				const win = window as Window & { React?: { Component?: unknown } }
+				return Boolean(win.React && 'Component' in win.React)
 			})
 			.catch(() => false)
 

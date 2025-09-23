@@ -1,33 +1,14 @@
 'use client'
 
-import { BlurFade } from '@/components/magicui/blur-fade'
-import { ShimmerButton } from '@/components/magicui/shimmer-button'
-import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { Navbar } from '@/components/navbar'
-import { FooterMinimal } from '@/components/sections/footer-minimal'
-
-import { Badge } from '@/components/ui/badge'
+import Footer from '@/components/layout/footer'
 import { Button } from '@/components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { createCheckoutSession } from '@/lib/stripe-client'
+import { ArrowRight, Check } from 'lucide-react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
-
-// UI Components
-
-// Icons
-import { ArrowRight, Check, Star } from 'lucide-react'
-
-// Design System
-import { TYPOGRAPHY_SCALE } from '@repo/shared'
 
 // Pricing Plans Configuration
 const pricingPlans = [
@@ -39,7 +20,7 @@ const pricingPlans = [
 		features: [
 			'Up to 5 properties',
 			'Professional tenant management',
-			'Automated rent collection',
+			'Maintenance tracking',
 			'Email support',
 			'Mobile app access',
 			'Basic reporting'
@@ -89,16 +70,16 @@ export default function PricingPage() {
 
 	const priceIds = {
 		starter: {
-			monthly: process.env.NEXT_PUBLIC_PRICE_STARTER_MONTHLY,
-			yearly: process.env.NEXT_PUBLIC_PRICE_STARTER_YEARLY
+			monthly: process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY,
+			yearly: process.env.NEXT_PUBLIC_STRIPE_STARTER_YEARLY
 		},
 		growth: {
-			monthly: process.env.NEXT_PUBLIC_PRICE_GROWTH_MONTHLY,
-			yearly: process.env.NEXT_PUBLIC_PRICE_GROWTH_YEARLY
+			monthly: process.env.NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY,
+			yearly: process.env.NEXT_PUBLIC_STRIPE_GROWTH_YEARLY
 		},
 		max: {
-			monthly: process.env.NEXT_PUBLIC_PRICE_MAX_MONTHLY,
-			yearly: process.env.NEXT_PUBLIC_PRICE_MAX_YEARLY
+			monthly: process.env.NEXT_PUBLIC_STRIPE_MAX_MONTHLY,
+			yearly: process.env.NEXT_PUBLIC_STRIPE_MAX_YEARLY
 		}
 	} as const
 
@@ -144,268 +125,195 @@ export default function PricingPage() {
 	}
 
 	return (
-		<main className="min-h-screen bg-background">
-			<Navbar />
-
-			{/* Hero Authority Section */}
-			<HeroAuthority
-				title={<>Choose the perfect plan to scale your business</>}
-				subtitle={
-					<>
-						Professional property managers increase NOI by 40% with TenantFlow's
-						enterprise-grade automation, advanced analytics, and scalable
-						operations platform.
-					</>
-				}
-				primaryCta={{ label: 'Start Free Trial', href: '/auth/sign-up' }}
-				secondaryCta={{ label: 'Contact Sales', href: '/contact' }}
-			/>
-
-			<section className="section-content md:py-16 gradient-authority">
-				<div className="mx-auto max-w-7xl">
-					{/* Header */}
-					<BlurFade delay={0.1} inView>
-						<div className="mx-auto max-w-4xl space-y-6 text-center mb-16">
-							<Badge variant="outline" className="mb-4">
-								<Star className="w-3 h-3 mr-1" />
-								Trusted by 10,000+ property managers
-							</Badge>
-
-							<h1
-								className="text-center font-bold tracking-tight leading-tight text-gradient-authority"
-								style={TYPOGRAPHY_SCALE['display-lg']}
+		<div className="min-h-screen bg-white">
+			{/* Navigation */}
+			<nav className="fixed top-4 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-6 py-3 backdrop-blur-xl border border-gray-200 shadow-lg bg-white/80">
+				<div className="flex items-center justify-between gap-8">
+					<Link
+						href="/"
+						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
+					>
+						<div className="w-8 h-8 rounded-lg overflow-hidden bg-blue-600 border border-gray-200 flex items-center justify-center">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+								className="w-5 h-5 text-white"
 							>
-								Choose the perfect plan to scale your business
-							</h1>
-
-							<p
-								className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
-								style={TYPOGRAPHY_SCALE['body-lg']}
-							>
-								Professional property managers increase NOI by 40% with
-								TenantFlow's enterprise-grade automation, advanced analytics,
-								and scalable operations platform.
-							</p>
-
-							{/* Billing Toggle */}
-							<div className="flex items-center justify-center gap-4 mt-8">
-								<span
-									className={`text-sm font-medium ${!isYearly ? 'text-foreground' : 'text-muted-foreground'}`}
-								>
-									Monthly
-								</span>
-								<button
-									onClick={() => setIsYearly(!isYearly)}
-									className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-										isYearly ? 'bg-primary' : 'bg-muted'
-									}`}
-								>
-									<span
-										className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${
-											isYearly ? 'translate-x-6' : 'translate-x-1'
-										}`}
-									/>
-								</button>
-								<span
-									className={`text-sm font-medium ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}
-								>
-									Yearly
-									<Badge className="ml-2 bg-accent/10 text-accent text-xs">
-										Save 17%
-									</Badge>
-								</span>
-							</div>
+								<path
+									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
 						</div>
-					</BlurFade>
+						<span className="text-xl font-bold text-gray-900 tracking-tight">
+							TenantFlow
+						</span>
+					</Link>
 
-					{/* Pricing Grid */}
-					<BlurFade delay={0.2} inView>
-						<div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
-							{pricingPlans.map(plan => (
-								<Card
-									key={plan.id}
-									className={`relative flex flex-col card-elevated-authority ${plan.popular ? 'ring-1 ring-primary/30' : ''}`}
-								>
-									{plan.popular && (
-										<div className="absolute -top-3 left-1/2 -translate-x-1/2">
-											<Badge className="bg-primary text-primary-foreground">
-												<Star className="w-3 h-3 mr-1" />
-												Most Popular
-											</Badge>
-										</div>
-									)}
+					<div className="hidden md:flex items-center space-x-1">
+						<Link
+							href="/"
+							className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium text-sm rounded-xl hover:bg-gray-50 transition-all duration-200"
+						>
+							Home
+						</Link>
+						<Link
+							href="/faq"
+							className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium text-sm rounded-xl hover:bg-gray-50 transition-all duration-200"
+						>
+							FAQ
+						</Link>
+					</div>
 
-									<CardHeader>
-										<CardTitle className="font-medium">{plan.name}</CardTitle>
-
-										{plan.price ? (
-											<div className="space-y-2">
-												<div className="flex items-baseline gap-1">
-													<span className="text-3xl font-bold">
-														${isYearly ? plan.price.yearly : plan.price.monthly}
-													</span>
-													<span className="text-sm font-normal text-muted-foreground">
-														/{isYearly ? 'year' : 'month'}
-													</span>
-												</div>
-												{isYearly && (
-													<p className="text-sm text-accent">
-														2 months free • $
-														{(plan.price.monthly * 12).toFixed(0)} value
-													</p>
-												)}
-											</div>
-										) : (
-											<span className="text-3xl font-bold">Custom</span>
-										)}
-
-										<CardDescription className="text-sm">
-											{plan.description}
-										</CardDescription>
-									</CardHeader>
-
-									<CardContent className="flex-1">
-										<hr className="border-dashed mb-6" />
-
-										<ul className="space-y-3 text-sm">
-											{plan.features.map((feature, index) => (
-												<li key={index} className="flex items-center gap-2">
-													<div className="flex-shrink-0 w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center">
-														<Check className="w-3 h-3 text-accent" />
-													</div>
-													<span>{feature}</span>
-												</li>
-											))}
-										</ul>
-									</CardContent>
-
-									<CardFooter>
-										{plan.popular ? (
-											<ShimmerButton className="w-full h-12 text-base font-bold">
-												<span className="inline-flex items-center">
-													{plan.id === 'enterprise'
-														? 'Contact Sales'
-														: 'Get Started'}
-													<ArrowRight className="w-4 h-4 ml-2" />
-												</span>
-											</ShimmerButton>
-										) : (
-											<Button
-												onClick={() => handleSelectPlan(plan.id)}
-												variant="outline"
-												className="w-full btn-gradient-primary"
-											>
-												{plan.id === 'enterprise'
-													? 'Contact Sales'
-													: 'Get Started'}
-												<ArrowRight className="w-4 h-4 ml-2" />
-											</Button>
-										)}
-									</CardFooter>
-								</Card>
-							))}
-						</div>
-					</BlurFade>
-
-					{/* Features Section */}
-					<BlurFade delay={0.3} inView>
-						<div className="mt-32">
-							<div className="text-center mb-12 space-y-4">
-								<h2
-									className="text-foreground font-bold tracking-tight"
-									style={TYPOGRAPHY_SCALE['heading-xl']}
-								>
-									Proven results that transform property management
-								</h2>
-								<p
-									className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
-									style={TYPOGRAPHY_SCALE['body-lg']}
-								>
-									Professional property managers use TenantFlow to reduce costs
-									by 32%, increase NOI by 40%, and automate 80% of repetitive
-									tasks
-								</p>
-							</div>
-
-							<div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-								<div className="text-center">
-									<div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-										<Check className="w-6 h-6 text-primary" />
-									</div>
-									<h3
-										className="font-semibold mb-2 text-foreground"
-										style={TYPOGRAPHY_SCALE['heading-sm']}
-									>
-										Increase NOI by 40% Average
-									</h3>
-									<p
-										className="text-muted-foreground leading-relaxed"
-										style={TYPOGRAPHY_SCALE['body-sm']}
-									>
-										Real-time financial analytics and automated rent
-										optimization maximize property returns. ROI in 90 days
-										guaranteed.
-									</p>
-								</div>
-
-								<div className="text-center">
-									<div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-										<ArrowRight className="w-6 h-6 text-primary" />
-									</div>
-									<h3
-										className="font-semibold mb-2 text-foreground"
-										style={TYPOGRAPHY_SCALE['heading-sm']}
-									>
-										Automate 80% of Daily Tasks
-									</h3>
-									<p
-										className="text-muted-foreground leading-relaxed"
-										style={TYPOGRAPHY_SCALE['body-sm']}
-									>
-										Smart workflows handle rent collection, lease renewals, and
-										tenant communications automatically. Save 20+ hours per
-										week.
-									</p>
-								</div>
-
-								<div className="text-center">
-									<div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-										<Star className="w-6 h-6 text-primary" />
-									</div>
-									<h3
-										className="font-semibold mb-2 text-foreground"
-										style={TYPOGRAPHY_SCALE['heading-sm']}
-									>
-										Enterprise Security
-									</h3>
-									<p
-										className="text-muted-foreground leading-relaxed"
-										style={TYPOGRAPHY_SCALE['body-sm']}
-									>
-										Bank-level security with SOC 2 compliance ensures your
-										sensitive property and tenant data is always protected.
-									</p>
-								</div>
-							</div>
-						</div>
-					</BlurFade>
-
-					{/* Bottom CTA */}
-					<div className="text-center mt-16">
-						<p className="text-sm text-muted-foreground">
-							Questions about our plans?{' '}
-							<Button
-								variant="link"
-								className="p-0 h-auto text-sm"
-								onClick={() => router.push('/contact')}
-							>
-								Contact our sales team
-							</Button>
-						</p>
+					<div className="flex items-center space-x-3">
+						<Link
+							href="/login"
+							className="hidden sm:flex px-4 py-2 text-gray-900 hover:text-gray-900 rounded-xl hover:bg-gray-50 transition-all duration-300 font-medium"
+						>
+							Sign In
+						</Link>
+						<Link
+							href="/login"
+							className="flex items-center px-6 py-2.5 bg-blue-600 text-white font-medium text-sm rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+						>
+							Get Started
+							<ArrowRight className="ml-2 h-4 w-4" />
+						</Link>
 					</div>
 				</div>
-			</section>
-			<FooterMinimal />
-		</main>
+			</nav>
+
+			{/* Main Content */}
+			<div className="pt-32 pb-24 px-4">
+				<div className="max-w-6xl mx-auto">
+					{/* Header */}
+					<div className="text-center mb-16">
+						<div className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-blue-200 bg-blue-50 mb-8">
+							<div className="w-2 h-2 bg-green-500 rounded-full mr-3 animate-pulse" />
+							<span className="text-gray-700 font-medium text-sm">
+								Trusted by 10,000+ property managers
+							</span>
+						</div>
+
+						<h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight leading-tight">
+							Simple pricing for
+							<span className="block text-blue-600">every business</span>
+						</h1>
+
+						<p className="text-xl text-gray-700 mb-8 leading-relaxed max-w-2xl mx-auto">
+							Professional property managers increase NOI by 40% with
+							TenantFlow's enterprise-grade automation and analytics.
+						</p>
+
+						{/* Billing Toggle */}
+						<div className="flex items-center justify-center gap-4 mb-12">
+							<span
+								className={`text-sm font-medium ${!isYearly ? 'text-gray-900' : 'text-gray-500'}`}
+							>
+								Monthly
+							</span>
+							<button
+								onClick={() => setIsYearly(!isYearly)}
+								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+									isYearly ? 'bg-blue-600' : 'bg-gray-300'
+								}`}
+							>
+								<span
+									className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+										isYearly ? 'translate-x-6' : 'translate-x-1'
+									}`}
+								/>
+							</button>
+							<span
+								className={`text-sm font-medium ${isYearly ? 'text-gray-900' : 'text-gray-500'}`}
+							>
+								Yearly
+								<span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+									Save 17%
+								</span>
+							</span>
+						</div>
+					</div>
+
+					{/* Pricing Cards */}
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+						{pricingPlans.map(plan => (
+							<Card
+								key={plan.id}
+								className={`relative bg-white border-2 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 ${
+									plan.popular ? 'border-blue-500 scale-105' : 'border-gray-200'
+								}`}
+							>
+								{plan.popular && (
+									<div className="absolute -top-4 left-1/2 -translate-x-1/2">
+										<span className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
+											Most Popular
+										</span>
+									</div>
+								)}
+
+								<CardHeader className="p-8 pb-4">
+									<CardTitle className="text-2xl font-bold text-gray-900 mb-2">
+										{plan.name}
+									</CardTitle>
+									<div className="mb-4">
+										<span className="text-4xl font-bold text-gray-900">
+											${isYearly ? plan.price.yearly : plan.price.monthly}
+										</span>
+										<span className="text-gray-600 ml-1">
+											/{isYearly ? 'year' : 'month'}
+										</span>
+									</div>
+									<p className="text-gray-600">{plan.description}</p>
+								</CardHeader>
+
+								<CardContent className="p-8 pt-4">
+									<ul className="space-y-4">
+										{plan.features.map((feature, index) => (
+											<li key={index} className="flex items-center gap-3">
+												<div className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
+													<Check className="w-3 h-3 text-blue-600" />
+												</div>
+												<span className="text-gray-700">{feature}</span>
+											</li>
+										))}
+									</ul>
+
+									<Button
+										onClick={() => handleSelectPlan(plan.id)}
+										className={`w-full mt-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
+											plan.popular
+												? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
+												: 'bg-gray-100 hover:bg-gray-200 text-gray-900 border-2 border-gray-200 hover:border-gray-300'
+										}`}
+									>
+										{plan.id === 'max' ? 'Contact Sales' : 'Get Started'}
+										<ArrowRight className="ml-2 h-4 w-4" />
+									</Button>
+								</CardContent>
+							</Card>
+						))}
+					</div>
+
+					{/* Bottom CTA */}
+					<div className="text-center">
+						<p className="text-gray-600 mb-2">Questions about our plans?</p>
+						<Button
+							variant="ghost"
+							className="text-blue-600 hover:text-blue-700 font-medium"
+							onClick={() => router.push('/contact')}
+						>
+							Contact our sales team →
+						</Button>
+					</div>
+				</div>
+			</div>
+
+			<Footer />
+		</div>
 	)
 }

@@ -1,8 +1,8 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { API_BASE_URL } from '@/lib/api-client'
 import {
 	ANIMATION_DURATIONS,
@@ -66,8 +66,6 @@ import {
 } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { toast } from 'sonner'
-
-
 
 export function CustomerPortalButton({
 	variant = 'outline',
@@ -259,7 +257,10 @@ export function CustomerPortalCard({
 								>
 									Account Management
 								</CardTitle>
-								<p className="text-callout text-muted-foreground">
+								<p
+									className="text-muted-foreground"
+									style={TYPOGRAPHY_SCALE['ui-caption']}
+								>
 									Manage your subscription and billing preferences
 								</p>
 							</div>
@@ -297,7 +298,10 @@ export function CustomerPortalCard({
 					{showStats && (
 						<div className="bg-gradient-to-r from-muted/10 via-background to-muted/10 rounded-2xl p-6 border-2 border-muted/20">
 							<div className="flex items-center justify-between mb-6">
-								<h4 className="text-heading text-foreground flex items-center gap-3">
+								<h4
+									className="text-foreground flex items-center gap-3"
+									style={TYPOGRAPHY_SCALE['heading-md']}
+								>
 									<div className="p-2 bg-primary/10 rounded-lg">
 										<Activity className="h-5 w-5 text-primary" />
 									</div>
@@ -376,7 +380,10 @@ export function CustomerPortalCard({
 					{billingInfo && (
 						<div className="bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl p-6 border border-accent/20">
 							<div className="flex items-center justify-between mb-6">
-								<h4 className="text-heading text-foreground flex items-center gap-3">
+								<h4
+									className="text-foreground flex items-center gap-3"
+									style={TYPOGRAPHY_SCALE['heading-md']}
+								>
 									<div className="p-2 bg-accent/10 rounded-lg">
 										<CreditCard className="h-5 w-5 text-accent" />
 									</div>
@@ -470,9 +477,7 @@ export function CustomerPortalCard({
 										{testimonial.rating}/5
 									</span>
 								</div>
-								<blockquote
-									className="text-foreground text-center leading-relaxed font-medium"
-								>
+								<blockquote className="text-foreground text-center leading-relaxed font-medium">
 									"{testimonial.text}"
 								</blockquote>
 								<div className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-primary/10">
@@ -503,9 +508,7 @@ export function CustomerPortalCard({
 									<CreditCard className="w-6 h-6 text-primary" />
 								</div>
 								<div>
-									<h5
-										className="font-bold text-foreground"
-									>
+									<h5 className="font-bold text-foreground">
 										Payment Management
 									</h5>
 									<p className="text-sm text-muted-foreground">
@@ -527,9 +530,7 @@ export function CustomerPortalCard({
 									<FileText className="w-6 h-6 text-accent" />
 								</div>
 								<div>
-									<h5
-										className="font-bold text-foreground"
-									>
+									<h5 className="font-bold text-foreground">
 										Invoices & Receipts
 									</h5>
 									<p className="text-sm text-muted-foreground">
@@ -551,11 +552,7 @@ export function CustomerPortalCard({
 									<Download className="w-6 h-6 text-primary" />
 								</div>
 								<div>
-									<h5
-										className="font-bold text-foreground"
-									>
-										Usage Reports
-									</h5>
+									<h5 className="font-bold text-foreground">Usage Reports</h5>
 									<p className="text-sm text-muted-foreground">
 										Analytics & insights
 									</p>
@@ -575,11 +572,7 @@ export function CustomerPortalCard({
 									<Sparkles className="w-6 h-6 text-accent" />
 								</div>
 								<div>
-									<h5
-										className="font-bold text-foreground"
-									>
-										Plan Management
-									</h5>
+									<h5 className="font-bold text-foreground">Plan Management</h5>
 									<p className="text-sm text-muted-foreground">
 										Upgrade, downgrade or cancel
 									</p>

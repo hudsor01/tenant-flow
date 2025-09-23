@@ -1,11 +1,41 @@
+'use client'
+
+import { SiteHeader } from '@/components/layout/site-header'
+import { PageLoader } from '@/components/magicui/loading-spinner'
+import { AppSidebar } from '@/components/sidebar/app-sidebar'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { useAuthStore } from '@/stores/auth-provider'
+import { useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { AppSidebar } from '@/components/app-sidebar'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { SiteHeader } from '@/components/site-header'
+import { useEffect } from 'react'
 
 import './dashboard.css'
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+	const { isAuthenticated, isLoading } = useAuthStore(state => ({
+		isAuthenticated: state.isAuthenticated,
+		isLoading: state.isLoading
+	}))
+
+	const router = useRouter()
+
+	useEffect(() => {
+		// Only redirect if auth state has loaded and user is not authenticated
+		if (!isLoading && !isAuthenticated) {
+			router.push('/login')
+		}
+	}, [isAuthenticated, isLoading, router])
+
+	// Show loading while auth state is being determined
+	if (isLoading) {
+		return <PageLoader text="Authenticating..." />
+	}
+
+	// Show nothing while redirecting unauthenticated users
+	if (!isAuthenticated) {
+		return <PageLoader text="Redirecting to login..." />
+	}
+
 	return (
 		<SidebarProvider
 			style={

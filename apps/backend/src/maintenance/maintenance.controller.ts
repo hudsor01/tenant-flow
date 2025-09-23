@@ -1,5 +1,5 @@
 /**
- *  ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS 
+ *  ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS
  *
  * ONLY built-in NestJS pipes, native exceptions, direct RPC calls.
  * FORBIDDEN: Custom decorators, DTOs, validation layers, middleware
@@ -7,47 +7,43 @@
  */
 
 import {
+	BadRequestException,
+	Body,
 	Controller,
+	DefaultValuePipe,
+	Delete,
 	Get,
+	NotFoundException,
+	Optional,
+	Param,
+	ParseIntPipe,
+	ParseUUIDPipe,
 	Post,
 	Put,
-	Delete,
-	Param,
-	Query,
-	Body,
-	HttpStatus,
-	ParseUUIDPipe,
-	DefaultValuePipe,
-	ParseIntPipe,
-	BadRequestException,
-	NotFoundException,
-	Optional
+	Query
 } from '@nestjs/common'
-import {
-	ApiBearerAuth,
-	ApiTags,
-	ApiOperation,
-	ApiResponse
-} from '@nestjs/swagger'
-import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { Public } from '../shared/decorators/public.decorator'
-import type { ValidatedUser } from '@repo/shared'
-import { MaintenanceService } from './maintenance.service'
+// Swagger imports removed
 import type {
 	CreateMaintenanceRequest,
-	UpdateMaintenanceRequest
-} from '../schemas/maintenance.schema'
+	UpdateMaintenanceRequest,
+	ValidatedUser
+} from '@repo/shared'
+import { CurrentUser } from '../shared/decorators/current-user.decorator'
+import { Public } from '../shared/decorators/public.decorator'
+import { MaintenanceService } from './maintenance.service'
 
-@ApiTags('maintenance')
-@ApiBearerAuth()
+// @ApiTags('maintenance')
+// @ApiBearerAuth()
 @Controller('maintenance')
 export class MaintenanceController {
-	constructor(@Optional() private readonly maintenanceService?: MaintenanceService) {}
+	constructor(
+		@Optional() private readonly maintenanceService?: MaintenanceService
+	) {}
 
 	@Get()
 	@Public()
-	@ApiOperation({ summary: 'Get all maintenance requests' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get all maintenance requests' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async findAll(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('unitId') unitId?: string,
@@ -79,10 +75,7 @@ export class MaintenanceController {
 		}
 
 		// Validate enum values
-		if (
-			priority &&
-			!['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(priority)
-		) {
+		if (priority && !['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(priority)) {
 			throw new BadRequestException('Invalid priority')
 		}
 		if (
@@ -101,9 +94,7 @@ export class MaintenanceController {
 		}
 		if (
 			status &&
-			!['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'].includes(
-				status
-			)
+			!['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'].includes(status)
 		) {
 			throw new BadRequestException('Invalid status')
 		}
@@ -138,8 +129,8 @@ export class MaintenanceController {
 
 	@Get('stats')
 	@Public()
-	@ApiOperation({ summary: 'Get maintenance statistics' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get maintenance statistics' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getStats(@CurrentUser() user?: ValidatedUser) {
 		if (!this.maintenanceService) {
 			return {
@@ -156,8 +147,8 @@ export class MaintenanceController {
 
 	@Get('urgent')
 	@Public()
-	@ApiOperation({ summary: 'Get urgent maintenance requests' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get urgent maintenance requests' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getUrgent(@CurrentUser() user?: ValidatedUser) {
 		if (!this.maintenanceService) {
 			return {
@@ -170,8 +161,8 @@ export class MaintenanceController {
 
 	@Get('overdue')
 	@Public()
-	@ApiOperation({ summary: 'Get overdue maintenance requests' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get overdue maintenance requests' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getOverdue(@CurrentUser() user?: ValidatedUser) {
 		if (!this.maintenanceService) {
 			return {
@@ -184,9 +175,9 @@ export class MaintenanceController {
 
 	@Get(':id')
 	@Public()
-	@ApiOperation({ summary: 'Get maintenance request by ID' })
-	@ApiResponse({ status: HttpStatus.OK })
-	@ApiResponse({ status: HttpStatus.NOT_FOUND })
+	// @ApiOperation({ summary: 'Get maintenance request by ID' })
+	// @ApiResponse({ status: HttpStatus.OK })
+	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user?: ValidatedUser
@@ -198,7 +189,10 @@ export class MaintenanceController {
 				data: null
 			}
 		}
-		const maintenance = await this.maintenanceService.findOne(user?.id || 'test-user-id', id)
+		const maintenance = await this.maintenanceService.findOne(
+			user?.id || 'test-user-id',
+			id
+		)
 		if (!maintenance) {
 			throw new NotFoundException('Maintenance request not found')
 		}
@@ -207,8 +201,8 @@ export class MaintenanceController {
 
 	@Post()
 	@Public()
-	@ApiOperation({ summary: 'Create new maintenance request' })
-	@ApiResponse({ status: HttpStatus.CREATED })
+	// @ApiOperation({ summary: 'Create new maintenance request' })
+	// @ApiResponse({ status: HttpStatus.CREATED })
 	async create(
 		@Body() createRequest: CreateMaintenanceRequest,
 		@CurrentUser() user?: ValidatedUser
@@ -220,14 +214,17 @@ export class MaintenanceController {
 				success: false
 			}
 		}
-		return this.maintenanceService.create(user?.id || 'test-user-id', createRequest)
+		return this.maintenanceService.create(
+			user?.id || 'test-user-id',
+			createRequest
+		)
 	}
 
 	@Put(':id')
 	@Public()
-	@ApiOperation({ summary: 'Update maintenance request' })
-	@ApiResponse({ status: HttpStatus.OK })
-	@ApiResponse({ status: HttpStatus.NOT_FOUND })
+	// @ApiOperation({ summary: 'Update maintenance request' })
+	// @ApiResponse({ status: HttpStatus.OK })
+	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateRequest: UpdateMaintenanceRequest,
@@ -254,8 +251,8 @@ export class MaintenanceController {
 
 	@Delete(':id')
 	@Public()
-	@ApiOperation({ summary: 'Delete maintenance request' })
-	@ApiResponse({ status: HttpStatus.NO_CONTENT })
+	// @ApiOperation({ summary: 'Delete maintenance request' })
+	// @ApiResponse({ status: HttpStatus.NO_CONTENT })
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user?: ValidatedUser
@@ -273,8 +270,8 @@ export class MaintenanceController {
 
 	@Post(':id/complete')
 	@Public()
-	@ApiOperation({ summary: 'Mark maintenance request as completed' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Mark maintenance request as completed' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async complete(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body('actualCost') actualCost?: number,
@@ -282,9 +279,7 @@ export class MaintenanceController {
 		@CurrentUser() user?: ValidatedUser
 	) {
 		if (actualCost && (actualCost < 0 || actualCost > 999999)) {
-			throw new BadRequestException(
-				'Actual cost must be between 0 and 999999'
-			)
+			throw new BadRequestException('Actual cost must be between 0 and 999999')
 		}
 		if (!this.maintenanceService) {
 			return {
@@ -296,13 +291,18 @@ export class MaintenanceController {
 				success: false
 			}
 		}
-		return this.maintenanceService.complete(user?.id || 'test-user-id', id, actualCost, notes)
+		return this.maintenanceService.complete(
+			user?.id || 'test-user-id',
+			id,
+			actualCost,
+			notes
+		)
 	}
 
 	@Post(':id/cancel')
 	@Public()
-	@ApiOperation({ summary: 'Cancel maintenance request' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Cancel maintenance request' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async cancel(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body('reason') reason?: string,
@@ -317,6 +317,10 @@ export class MaintenanceController {
 				success: false
 			}
 		}
-		return this.maintenanceService.cancel(user?.id || 'test-user-id', id, reason)
+		return this.maintenanceService.cancel(
+			user?.id || 'test-user-id',
+			id,
+			reason
+		)
 	}
 }

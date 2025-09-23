@@ -1,11 +1,11 @@
 /**
  * Properties JSON Schema Definitions
  *
- * Ultra-native Fastify JSON Schema validation
+ * Express JSON Schema validation
  * Single source of truth - no duplication
  */
 
-import type { JSONSchema } from '../shared/types/fastify-type-provider'
+import type { JSONSchema } from '../shared/types/express-type-provider'
 
 // Shared validation patterns
 const uuidSchema: JSONSchema = {
@@ -22,18 +22,6 @@ const propertyTypeSchema: JSONSchema = {
 /**
  * Create property request schema
  */
-export interface CreatePropertyRequest {
-	name: string
-	address: string
-	city: string
-	state: string
-	zipCode: string
-	description?: string
-	imageUrl?: string
-	propertyType?: 'SINGLE_FAMILY' | 'MULTI_UNIT' | 'APARTMENT' | 'COMMERCIAL'
-	unit_number?: string
-}
-
 export const createPropertySchema: JSONSchema = {
 	type: 'object',
 	required: ['name', 'address', 'city', 'state', 'zipCode'],
@@ -82,18 +70,6 @@ export const createPropertySchema: JSONSchema = {
 /**
  * Update property request schema
  */
-export interface UpdatePropertyRequest {
-	name?: string
-	address?: string
-	city?: string
-	state?: string
-	zipCode?: string
-	description?: string
-	imageUrl?: string
-	propertyType?: 'SINGLE_FAMILY' | 'MULTI_UNIT' | 'APARTMENT' | 'COMMERCIAL'
-	unit_number?: string
-}
-
 export const updatePropertySchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
@@ -141,17 +117,6 @@ export const updatePropertySchema: JSONSchema = {
 /**
  * Property query schema
  */
-export interface PropertyQueryRequest {
-	search?: string
-	city?: string
-	state?: string
-	propertyType?: 'SINGLE_FAMILY' | 'MULTI_UNIT' | 'APARTMENT' | 'COMMERCIAL'
-	limit?: number
-	offset?: number
-	sortBy?: 'name' | 'address' | 'city' | 'createdAt'
-	sortOrder?: 'asc' | 'desc'
-}
-
 export const propertyQuerySchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
@@ -190,7 +155,7 @@ export const propertyQuerySchema: JSONSchema = {
 	}
 }
 
-// Route schemas for Fastify validation
+// Route schemas for Express validation
 export const propertyRouteSchemas = {
 	create: {
 		body: createPropertySchema,

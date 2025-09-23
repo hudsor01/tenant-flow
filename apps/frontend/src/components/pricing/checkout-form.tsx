@@ -1,5 +1,6 @@
 'use client'
 
+import { createPaymentIntent } from '@/lib/stripe-client'
 import { useSpring } from '@react-spring/core'
 import { animated } from '@react-spring/web'
 import {
@@ -9,9 +10,8 @@ import {
 	useStripe
 } from '@stripe/react-stripe-js'
 import { useMutation } from '@tanstack/react-query'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
-import { createPaymentIntent } from '@/lib/stripe-client'
 
 // UI Components
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -32,9 +32,8 @@ import {
 
 // MagicUI Components
 import { GlowingEffect } from '@/components/magicui/glowing-effect'
-import { Loader } from '@/components/magicui/loader'
+import { LoadingDots } from '@/components/magicui/loading-spinner'
 import { MagicCard } from '@/components/magicui/magic-card'
-import { ShimmerButton } from '@/components/magicui/shimmer-button'
 
 // Icons
 import {
@@ -127,9 +126,13 @@ export function CheckoutForm({
 				amount: request.amount,
 				currency: 'usd',
 				metadata: {
-					tenant_id: request.metadata?.tenant_id || request.metadata?.planId || '',
+					tenant_id:
+						request.metadata?.tenant_id || request.metadata?.planId || '',
 					property_id: request.metadata?.property_id || '',
-					subscription_type: request.metadata?.subscription_type || request.metadata?.planName || ''
+					subscription_type:
+						request.metadata?.subscription_type ||
+						request.metadata?.planName ||
+						''
 				},
 				customerEmail: request.metadata?.customerEmail
 			})
@@ -153,9 +156,12 @@ export function CheckoutForm({
 		}
 	})
 
-	// Initialize PaymentIntent when component mounts or props change
-	useEffect(() => {
-		if (amount && currency) {
+	// Initialize payment intent on user action - follows KISS principle
+	const initializePayment = useCallback(() => {
+		if (
+			!createPaymentIntentMutation.isPending &&
+			!createPaymentIntentMutation.data
+		) {
 			createPaymentIntentMutation.mutate({
 				amount,
 				currency,
@@ -163,7 +169,7 @@ export function CheckoutForm({
 				customerEmail
 			})
 		}
-	}, [amount, currency, customerEmail, createPaymentIntentMutation, metadata])
+	}, [amount, currency, metadata, customerEmail, createPaymentIntentMutation])
 
 	// Format amount for display
 	const formatAmount = useCallback(
@@ -305,35 +311,32 @@ export function CheckoutForm({
 	)
 
 	// Express Checkout (Apple Pay, Google Pay, etc.) handler
-	const handleExpressCheckout = useCallback(
-		async (event: unknown) => {
-			console.log('Express checkout initiated:', event)
-			setIsProcessing(true)
-			setPaymentStatus('processing')
+	const handleExpressCheckout = useCallback(async () => {
+		// Express checkout event received
+		setIsProcessing(true)
+		setPaymentStatus('processing')
 
-			try {
-				const { error } = await stripe!.confirmPayment({
-					elements: elements!,
-					confirmParams: {
-						return_url: `${window.location.origin}/pricing/success`
-					},
-					redirect: 'if_required'
-				})
+		try {
+			const { error } = await stripe!.confirmPayment({
+				elements: elements!,
+				confirmParams: {
+					return_url: `${window.location.origin}/pricing/success`
+				},
+				redirect: 'if_required'
+			})
 
-				if (error) {
-					setPaymentStatus('failed')
-					setError(error.message || 'Express checkout failed')
-					toast.error('Express payment failed')
-				}
-			} catch {
+			if (error) {
 				setPaymentStatus('failed')
-				setError('Express checkout error')
-			} finally {
-				setIsProcessing(false)
+				setError(error.message || 'Express checkout failed')
+				toast.error('Express payment failed')
 			}
-		},
-		[stripe, elements]
-	)
+		} catch {
+			setPaymentStatus('failed')
+			setError('Express checkout error')
+		} finally {
+			setIsProcessing(false)
+		}
+	}, [stripe, elements])
 
 	// Retry payment function
 	const retryPayment = useCallback(() => {
@@ -356,8 +359,99 @@ export function CheckoutForm({
 		errorApi
 	])
 
-	// Loading state with enhanced MagicUI loader
-	if (!stripe || createPaymentIntentMutation.isPending) {
+	// Initial state - prompt user to begin checkout (no useEffect!)
+	if (
+		!createPaymentIntentMutation.data &&
+		!createPaymentIntentMutation.isPending &&
+		!createPaymentIntentMutation.isError
+	) {
+		return (
+			<animated.div style={containerSpring}>
+				<MagicCard
+					className={cn(
+						cardClasses('elevated'),
+						'w-full max-w-lg mx-auto p-8 shadow-2xl border-2',
+						animationClasses('fade-in')
+					)}
+				>
+					<div className="flex flex-col items-center justify-center space-y-6">
+						<div className="relative">
+							<div className="bg-primary/10 p-4 rounded-full">
+								<Shield className="h-10 w-10 text-primary" />
+							</div>
+						</div>
+
+						<div className="text-center space-y-4">
+							<h3
+								className="font-bold text-foreground"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight
+								}}
+							>
+								Ready to Complete Your Purchase
+							</h3>
+
+							{planName && (
+								<div className="bg-muted/30 rounded-xl p-4 border">
+									<p className="font-semibold text-foreground">{planName}</p>
+									<p className="text-2xl font-bold text-primary mt-1">
+										{formatAmount(amount)}
+									</p>
+								</div>
+							)}
+
+							<p className="text-base text-muted-foreground leading-relaxed max-w-sm">
+								Click below to begin secure checkout. Your payment information
+								is encrypted and protected.
+							</p>
+
+							{showTrustSignals && business.trustSignals && (
+								<div className="flex flex-wrap justify-center gap-2 pt-2">
+									{business.trustSignals.map(
+										(
+											signal: string | { text: string; icon?: string },
+											index: number
+										) => (
+											<span
+												key={index}
+												className={badgeClasses(
+													'secondary',
+													'sm',
+													'text-xs font-medium'
+												)}
+											>
+												{typeof signal === 'string' ? signal : signal.text}
+											</span>
+										)
+									)}
+								</div>
+							)}
+						</div>
+
+						<Button
+							onClick={initializePayment}
+							size="lg"
+							className={cn(
+								buttonClasses('primary', 'lg'),
+								'w-full max-w-xs hover:scale-105 transition-transform'
+							)}
+						>
+							<Lock className="w-4 h-4 mr-2" />
+							Begin Secure Checkout
+						</Button>
+
+						<p className="text-xs text-muted-foreground text-center">
+							Powered by Stripe • 256-bit encryption
+						</p>
+					</div>
+				</MagicCard>
+			</animated.div>
+		)
+	}
+
+	// Loading state only when actively creating payment intent
+	if (createPaymentIntentMutation.isPending) {
 		return (
 			<MagicCard
 				className={cn(
@@ -411,7 +505,7 @@ export function CheckoutForm({
 						)}
 					</div>
 
-					<Loader />
+					<LoadingDots size="lg" variant="primary" />
 				</div>
 			</MagicCard>
 		)
@@ -523,11 +617,7 @@ export function CheckoutForm({
 					'w-full max-w-lg mx-auto relative overflow-hidden shadow-2xl border-2'
 				)}
 			>
-				<GlowingEffect
-					proximity={150}
-					disabled={isProcessing}
-					glow={!isProcessing}
-				/>
+				<GlowingEffect children={undefined} />
 
 				<CardHeader className={cn('pb-6', animationClasses('slide-down'))}>
 					<div className="text-center space-y-4">
@@ -693,7 +783,7 @@ export function CheckoutForm({
 						)}
 
 						{/* Submit Button */}
-						<ShimmerButton
+						<Button
 							type="submit"
 							disabled={
 								!stripe ||
@@ -702,17 +792,20 @@ export function CheckoutForm({
 								paymentStatus === 'processing'
 							}
 							className="w-full h-12 text-base font-semibold"
-							shimmerDuration={isProcessing ? '1.5s' : '3s'}
-							background={
-								isProcessing
-									? 'hsl(var(--primary) / 0.8)'
-									: 'hsl(var(--foreground))'
-							}
+							style={{
+								background: isProcessing
+									? 'var(--color-primary-brand-85)'
+									: 'var(--color-primary-brand)',
+								color: 'white',
+								border: 'none',
+								borderRadius: 'var(--radius-medium)',
+								transition: 'all var(--duration-quick) var(--ease-smooth)'
+							}}
 						>
 							{isProcessing || paymentStatus === 'processing'
 								? 'Processing Payment...'
 								: `Pay ${formatAmount(amount)}`}
-						</ShimmerButton>
+						</Button>
 					</form>
 
 					{/* Enhanced Security Notice & Trust Signals */}

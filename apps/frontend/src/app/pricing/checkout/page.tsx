@@ -1,36 +1,61 @@
 'use client'
 
-import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { Navbar } from '@/components/navbar'
-import { FooterMinimal } from '@/components/sections/footer-minimal'
-
+import { LoadingDots } from '@/components/magicui/loading-spinner'
 import { CheckoutForm } from '@/components/pricing/checkout-form'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Card, CardContent } from '@/components/ui/card'
 import { StripeProvider } from '@/providers/stripe-provider'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Shield, Zap } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { toast } from 'sonner'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function CheckoutPage() {
+const plans = {
+	starter: {
+		name: 'Starter',
+		price: 2900, // $29/month
+		description: 'Perfect for small landlords managing up to 10 properties',
+		features: [
+			'Up to 10 properties',
+			'Unlimited tenants',
+			'Basic maintenance tracking',
+			'Monthly financial reports',
+			'Email support'
+		]
+	},
+	professional: {
+		name: 'Professional',
+		price: 4900, // $49/month
+		description: 'Ideal for growing property management businesses',
+		features: [
+			'Up to 50 properties',
+			'Unlimited tenants',
+			'Advanced maintenance workflows',
+			'Real-time analytics',
+			'Priority support',
+			'API access'
+		],
+		popular: true
+	},
+	enterprise: {
+		name: 'Enterprise',
+		price: 9900, // $99/month
+		description: 'For large-scale property management operations',
+		features: [
+			'Unlimited properties',
+			'White-label options',
+			'Custom integrations',
+			'Dedicated account manager',
+			'SLA guarantee',
+			'Advanced reporting'
+		]
+	}
+}
+
+function CheckoutPageContent() {
 	const router = useRouter()
-	const [amount, setAmount] = useState<number>(1000) // $10.00 in cents
-	const [showCheckout, setShowCheckout] = useState(false)
-
-	const handleSuccess = () => {
-		// Payment successful - navigate to success page
-		router.push('/pricing/success')
-	}
-
-	const handleError = (error: unknown) => {
-		console.error('Payment failed:', error)
-		toast.error('Payment failed. Please try again.')
-		router.push('/pricing')
-	}
+	const searchParams = useSearchParams()
+	const planId = searchParams.get('plan') || 'professional'
+	const plan = plans[planId as keyof typeof plans] || plans.professional
 
 	const formatCurrency = (cents: number) => {
 		return new Intl.NumberFormat('en-US', {
@@ -39,143 +64,163 @@ export default function CheckoutPage() {
 		}).format(cents / 100)
 	}
 
-	if (showCheckout) {
-		return (
-			<main className="min-h-screen gradient-authority">
-				<Navbar />
+	const handleSuccess = () => {
+		router.push('/pricing/success')
+	}
 
-				{/* Hero Authority Section */}
-				<HeroAuthority
-					title={<>Complete Your Payment</>}
-					subtitle={
-						<>
-							Secure checkout powered by Stripe. Your payment information is
-							encrypted and protected with industry-leading security.
-						</>
-					}
-					primaryCta={{ label: 'Need Help?', href: '/contact' }}
-					secondaryCta={{ label: 'Back to Pricing', href: '/pricing' }}
-				/>
-
-				<div className="container mx-auto px-4 py-12 max-w-md">
-					<div className="mb-6">
-						<Button
-							variant="ghost"
-							onClick={() => setShowCheckout(false)}
-							className="mb-4"
-						>
-							<ArrowLeft className="w-4 h-4 mr-2" />
-							Back
-						</Button>
-					</div>
-
-					<StripeProvider>
-						<CheckoutForm
-							amount={amount}
-							currency="usd"
-							metadata={{ testPayment: 'true' }}
-							onSuccess={handleSuccess}
-							onError={handleError}
-						/>
-					</StripeProvider>
-				</div>
-				<FooterMinimal />
-			</main>
-		)
+	const handleError = (error: unknown) => {
+		console.error('Payment failed:', error)
+		router.push('/pricing?error=payment_failed')
 	}
 
 	return (
-		<main className="min-h-screen gradient-authority">
-			<Navbar />
-
-			{/* Hero Authority Section */}
-			<HeroAuthority
-				title={<>Test Stripe Payment</>}
-				subtitle={
-					<>
-						Try our secure payment system with test cards. This is a safe
-						testing environment where no real charges will be made.
-					</>
-				}
-				primaryCta={{ label: 'View Pricing Plans', href: '/pricing' }}
-				secondaryCta={{ label: 'Contact Support', href: '/contact' }}
-			/>
-
-			<div className="container mx-auto px-4 py-12 max-w-md">
-				<Card>
-					<CardHeader>
-						<CardTitle>Test Stripe Payment</CardTitle>
-						<div className="flex items-center gap-2 text-sm text-muted-foreground">
-							<Link href="/pricing" className="hover:underline">
-								← Back to Pricing
-							</Link>
-						</div>
-					</CardHeader>
-					<CardContent className="space-y-6">
-						<div className="space-y-2">
-							<Label htmlFor="amount">Payment Amount</Label>
-							<Input
-								id="amount"
-								type="number"
-								value={amount}
-								onChange={e => setAmount(Number(e.target.value))}
-								placeholder="Amount in cents (minimum 50)"
-								min={50}
-							/>
-							<p className="text-sm text-muted-foreground">
-								Enter amount in cents (e.g., 1000 = {formatCurrency(1000)})
-							</p>
-						</div>
-
-						<div className="bg-primary/10 p-4 rounded-lg">
-							<h3 className="font-semibold text-primary mb-2">
-								Test Payment Details
-							</h3>
-							<div className="text-sm text-primary/80 space-y-1">
-								<p>
-									<strong>Amount:</strong> {formatCurrency(amount)}
-								</p>
-								<p>
-									<strong>Currency:</strong> USD
-								</p>
-								<p>
-									<strong>Test Mode:</strong> Yes
-								</p>
-							</div>
-						</div>
-
-						<div className="bg-accent/10 p-4 rounded-lg">
-							<h3 className="font-semibold text-accent mb-2">
-								Test Card Numbers
-							</h3>
-							<div className="text-sm text-accent/80 space-y-1">
-								<p>
-									<strong>Success:</strong> 4242 4242 4242 4242
-								</p>
-								<p>
-									<strong>Decline:</strong> 4000 0000 0000 0002
-								</p>
-								<p>
-									<strong>CVV:</strong> Any 3 digits
-								</p>
-								<p>
-									<strong>Expiry:</strong> Any future date
-								</p>
-							</div>
-						</div>
-
-						<Button
-							onClick={() => setShowCheckout(true)}
-							className="w-full"
-							size="lg"
-							disabled={amount < 50}
+		<main className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+			{/* Clean header */}
+			<div className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+				<div className="container mx-auto px-4 py-4">
+					<div className="flex items-center justify-between">
+						<Link
+							href="/pricing"
+							className="flex items-center text-slate-600 hover:text-slate-900 transition-colors"
 						>
-							Proceed to Payment ({formatCurrency(amount)})
-						</Button>
-					</CardContent>
-				</Card>
+							<ArrowLeft className="w-4 h-4 mr-2" />
+							Back to pricing
+						</Link>
+						<div className="flex items-center gap-2">
+							<Shield className="w-4 h-4 text-green-600" />
+							<span className="text-sm text-slate-600">Secure checkout</span>
+						</div>
+					</div>
+				</div>
 			</div>
-			<FooterMinimal />
+
+			<div className="container mx-auto px-4 py-8">
+				<div className="max-w-4xl mx-auto">
+					<div className="grid lg:grid-cols-2 gap-8">
+						{/* Plan summary - Left side */}
+						<div className="space-y-6">
+							<div>
+								<h1 className="text-2xl font-bold text-slate-900 mb-2">
+									Complete your purchase
+								</h1>
+								<p className="text-slate-600">
+									You're upgrading to TenantFlow {plan.name}
+								</p>
+							</div>
+
+							<Card className="border-slate-200 shadow-sm">
+								<CardContent className="p-6">
+									<div className="flex items-start justify-between mb-4">
+										<div>
+											<div className="flex items-center gap-2 mb-1">
+												<h3 className="font-semibold text-slate-900">
+													{plan.name}
+												</h3>
+												{'popular' in plan && plan.popular && (
+													<span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+														Most Popular
+													</span>
+												)}
+											</div>
+											<p className="text-sm text-slate-600 mb-3">
+												{plan.description}
+											</p>
+										</div>
+										<div className="text-right">
+											<div className="text-2xl font-bold text-slate-900">
+												{formatCurrency(plan.price)}
+											</div>
+											<div className="text-sm text-slate-500">per month</div>
+										</div>
+									</div>
+
+									<div className="space-y-2 mb-6">
+										{plan.features.map((feature, index) => (
+											<div key={index} className="flex items-center gap-2">
+												<CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+												<span className="text-sm text-slate-700">
+													{feature}
+												</span>
+											</div>
+										))}
+									</div>
+
+									<div className="border-t border-slate-200 pt-4">
+										<div className="flex justify-between items-center">
+											<span className="font-medium text-slate-900">
+												Total today
+											</span>
+											<span className="text-xl font-bold text-slate-900">
+												{formatCurrency(plan.price)}
+											</span>
+										</div>
+										<p className="text-xs text-slate-500 mt-1">
+											Billed monthly • Cancel anytime
+										</p>
+									</div>
+								</CardContent>
+							</Card>
+
+							{/* Trust indicators */}
+							<div className="flex items-center justify-center gap-6 text-sm text-slate-500">
+								<div className="flex items-center gap-1">
+									<Shield className="w-4 h-4" />
+									<span>SOC 2 Compliant</span>
+								</div>
+								<div className="flex items-center gap-1">
+									<Zap className="w-4 h-4" />
+									<span>99.9% Uptime</span>
+								</div>
+							</div>
+						</div>
+
+						{/* Payment form - Right side */}
+						<div>
+							<StripeProvider>
+								<CheckoutForm
+									amount={plan.price}
+									currency="usd"
+									planName={plan.name}
+									features={plan.features}
+									metadata={{
+										planId: planId,
+										planName: plan.name,
+										billingCycle: 'monthly'
+									}}
+									onSuccess={handleSuccess}
+									onError={handleError}
+									business={{
+										name: 'TenantFlow',
+										description: 'Professional Property Management Platform',
+										trustSignals: [
+											'SOC 2 Compliant',
+											'99.9% Uptime',
+											'10,000+ Properties Managed'
+										]
+									}}
+									enableExpressCheckout={true}
+									showTrustSignals={false}
+									showSecurityNotice={true}
+								/>
+							</StripeProvider>
+						</div>
+					</div>
+				</div>
+			</div>
 		</main>
+	)
+}
+
+export default function CheckoutPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="min-h-screen flex items-center justify-center">
+					<LoadingDots size="lg" variant="primary" />
+				</div>
+			}
+		>
+			<CheckoutPageContent />
+		</Suspense>
 	)
 }
