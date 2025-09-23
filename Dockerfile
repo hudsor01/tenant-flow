@@ -46,10 +46,9 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,targ
 ENV TURBO_TELEMETRY_DISABLED=1 \
     NODE_OPTIONS="--max-old-space-size=2048"
 
-# Parallel builds with error handling
-RUN pnpm build:shared && \
-    pnpm build:database && \
-    pnpm build:backend
+# Build only compilation - skip lint/typecheck since CI already did it
+RUN cd packages/shared && pnpm run build && \
+    cd ../../apps/backend && pnpm run build
 
 # Ensure runtime has access to Handlebars templates compiled from TypeScript
 RUN mkdir -p apps/backend/dist/pdf/templates \
