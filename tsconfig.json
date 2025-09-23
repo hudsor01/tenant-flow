@@ -16,7 +16,6 @@
 	"references": [
 		{ "path": "./packages/database" },
 		{ "path": "./packages/shared" },
-		{ "path": "./apps/frontend" },
 		{ "path": "./apps/backend" }
 	]
 }
