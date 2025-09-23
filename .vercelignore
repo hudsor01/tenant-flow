@@ -36,7 +36,6 @@ tests
 .eslintcache
 .prettierignore
 .prettierrc
-eslint.config.\*
 
 # Backend files (not needed for frontend deployment)
 
