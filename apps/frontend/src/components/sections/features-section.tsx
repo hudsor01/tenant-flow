@@ -31,7 +31,7 @@ function FeaturesSection({ className, ...props }: FeaturesSectionProps) {
 
 					{/* Minimal Supporting Stats - Three-Point Focus */}
 					<div className="grid grid-cols-3 gap-16 mb-16">
-						<div className="card-apple apple-hover-lift p-8">
+						<div className="card-elevated hover-lift p-8">
 							<div className="size-16 rounded-3xl bg-primary-10-opacity text-primary flex items-center justify-center mx-auto mb-6">
 								<BarChart3 className="size-8" />
 							</div>
@@ -46,7 +46,7 @@ function FeaturesSection({ className, ...props }: FeaturesSectionProps) {
 							</p>
 						</div>
 
-						<div className="card-apple apple-hover-lift p-8">
+						<div className="card-elevated hover-lift p-8">
 							<div className="size-16 rounded-3xl bg-primary-10-opacity text-primary flex items-center justify-center mx-auto mb-6">
 								<Users className="size-8" />
 							</div>
@@ -59,7 +59,7 @@ function FeaturesSection({ className, ...props }: FeaturesSectionProps) {
 							</p>
 						</div>
 
-						<div className="card-apple apple-hover-lift p-8">
+						<div className="card-elevated hover-lift p-8">
 							<div className="size-16 rounded-3xl bg-primary-10-opacity text-primary flex items-center justify-center mx-auto mb-6">
 								<Shield className="size-8" />
 							</div>
@@ -75,8 +75,8 @@ function FeaturesSection({ className, ...props }: FeaturesSectionProps) {
 						</div>
 					</div>
 
-					{/* Single Clear CTA - Apple Button Design */}
-					<button className="btn-apple btn-primary-apple apple-press-scale px-8 py-4 text-lg font-semibold">
+					{/* Single Clear CTA - Professional Button Design */}
+					<button className="btn btn-primary press-scale px-8 py-4 text-lg font-semibold">
 						Schedule Demo
 						<ArrowRight className="size-5" />
 					</button>
