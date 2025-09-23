@@ -114,6 +114,9 @@ export class AuthGuard implements CanActivate {
 		try {
 			const user = await this.validateTokenAndGetUser(token)
 			request.user = user
+
+			// User ID is available through request.user
+
 			return user
 		} catch {
 			throw new UnauthorizedException('Invalid authentication token')

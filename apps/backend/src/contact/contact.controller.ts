@@ -7,11 +7,11 @@ import {
 	UsePipes,
 	ValidationPipe
 } from '@nestjs/common'
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
+// Swagger imports removed
 import type { ContactFormRequest } from '@repo/shared'
 import type { ContactFormResponse } from '../schemas/contact.schemas'
 
-@ApiTags('contact')
+// @ApiTags('contact')
 @Controller('contact')
 export class ContactController {
 	constructor(private readonly logger: Logger) {
@@ -19,21 +19,8 @@ export class ContactController {
 	}
 
 	@Post()
-	@ApiOperation({
-		summary: 'Submit contact form',
-		description: 'Handles contact form submissions from the website'
-	})
-	@ApiResponse({
-		status: 200,
-		description: 'Contact form submitted successfully',
-		schema: {
-			type: 'object',
-			properties: {
-				success: { type: 'boolean' },
-				message: { type: 'string' }
-			}
-		}
-	})
+	// @ApiOperation({ summary: 'Submit contact form' })
+	// @ApiResponse({ status: 200, description: 'Contact form submitted successfully' })
 	@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 	async submitContactForm(
 		@Body() dto: ContactFormRequest
