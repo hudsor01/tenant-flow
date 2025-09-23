@@ -75,7 +75,7 @@ export default function RegisterPage() {
 								<p className="text-muted-foreground">
 									Already have an account?{' '}
 									<Link
-										href="/auth/login"
+										href="/login"
 										className="font-medium text-primary hover:text-primary/80 transition-colors"
 									>
 										Sign in here

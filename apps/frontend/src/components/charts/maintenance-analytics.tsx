@@ -19,11 +19,10 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import {
-	APPLE_DURATIONS,
-	APPLE_EASINGS,
-	// PROPERTY_ANALYTICS_COLORS,
-	APPLE_GRADIENTS,
-	APPLE_SYSTEM_COLORS
+	CHART_GRADIENTS,
+	MOTION_DURATIONS,
+	MOTION_EASINGS,
+	SYSTEM_COLORS
 } from '@repo/shared'
 import {
 	AlertTriangle,
@@ -370,7 +369,7 @@ const RequestDetailCard = ({
 			)}
 			onClick={onToggle}
 			style={{
-				transition: `all ${APPLE_DURATIONS['duration-medium']} ${APPLE_EASINGS['ease-out-expo']}`,
+				transition: `all ${MOTION_DURATIONS['duration-standard']} ${MOTION_EASINGS['ease-out-expo']}`,
 				transform: isExpanded ? 'translateY(-2px)' : 'translateY(0)'
 			}}
 		>
@@ -444,7 +443,7 @@ const RequestDetailCard = ({
 				<div
 					className="mt-4 pt-4 border-t space-y-3"
 					style={{
-						animation: `slideInFromTop 300ms ${APPLE_EASINGS['ease-out-expo']}`
+						animation: `slideInFromTop 300ms ${MOTION_EASINGS['ease-out-expo']}`
 					}}
 				>
 					{/* Tenant & assignee info */}
@@ -635,8 +634,8 @@ export function MaintenanceAnalytics() {
 							<div
 								className="p-3 rounded-xl transition-all duration-200"
 								style={{
-									background: APPLE_GRADIENTS.maintenance,
-									transition: `all ${APPLE_DURATIONS['duration-fast']} ${APPLE_EASINGS['ease-out-expo']}`
+									background: CHART_GRADIENTS.maintenance,
+									transition: `all ${MOTION_DURATIONS['duration-fast']} ${MOTION_EASINGS['ease-out-expo']}`
 								}}
 							>
 								<Wrench className="w-6 h-6 text-accent" />
@@ -691,9 +690,9 @@ export function MaintenanceAnalytics() {
 						<div
 							className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl transition-all duration-300"
 							style={{
-								background: APPLE_GRADIENTS.glass,
-								border: `1px solid ${APPLE_SYSTEM_COLORS.systemOrange}20`,
-								animation: `slideInFromTop 300ms ${APPLE_EASINGS['ease-out-expo']}`
+								background: CHART_GRADIENTS.glass,
+								border: `1px solid ${SYSTEM_COLORS.warning}20`,
+								animation: `slideInFromTop 300ms ${MOTION_EASINGS['ease-out-expo']}`
 							}}
 						>
 							<div className="text-center">
@@ -701,18 +700,18 @@ export function MaintenanceAnalytics() {
 									<div
 										className="w-8 h-8 rounded-lg flex items-center justify-center"
 										style={{
-											backgroundColor: `${APPLE_SYSTEM_COLORS.systemGreen}20`
+											backgroundColor: `${SYSTEM_COLORS.success}20`
 										}}
 									>
 										<CheckCircle
 											className="w-4 h-4"
-											style={{ color: APPLE_SYSTEM_COLORS.systemGreen }}
+											style={{ color: SYSTEM_COLORS.success }}
 										/>
 									</div>
 								</div>
 								<p
 									className="text-lg font-bold"
-									style={{ color: APPLE_SYSTEM_COLORS.systemGreen }}
+									style={{ color: SYSTEM_COLORS.success }}
 								>
 									{analytics.completionRate.toFixed(0)}%
 								</p>
@@ -724,18 +723,18 @@ export function MaintenanceAnalytics() {
 									<div
 										className="w-8 h-8 rounded-lg flex items-center justify-center"
 										style={{
-											backgroundColor: `${APPLE_SYSTEM_COLORS.systemBlue}20`
+											backgroundColor: `${SYSTEM_COLORS.primary}20`
 										}}
 									>
 										<Clock
 											className="w-4 h-4"
-											style={{ color: APPLE_SYSTEM_COLORS.systemBlue }}
+											style={{ color: SYSTEM_COLORS.primary }}
 										/>
 									</div>
 								</div>
 								<p
 									className="text-lg font-bold"
-									style={{ color: APPLE_SYSTEM_COLORS.systemBlue }}
+									style={{ color: SYSTEM_COLORS.primary }}
 								>
 									{analytics.avgResponseTime.toFixed(1)}h
 								</p>
@@ -759,18 +758,18 @@ export function MaintenanceAnalytics() {
 									<div
 										className="w-8 h-8 rounded-lg flex items-center justify-center"
 										style={{
-											backgroundColor: `${APPLE_SYSTEM_COLORS.systemRed}20`
+											backgroundColor: `${SYSTEM_COLORS.error}20`
 										}}
 									>
 										<AlertTriangle
 											className="w-4 h-4"
-											style={{ color: APPLE_SYSTEM_COLORS.systemRed }}
+											style={{ color: SYSTEM_COLORS.error }}
 										/>
 									</div>
 								</div>
 								<p
 									className="text-lg font-bold"
-									style={{ color: APPLE_SYSTEM_COLORS.systemRed }}
+									style={{ color: SYSTEM_COLORS.error }}
 								>
 									${analytics.totalCost}
 								</p>
@@ -897,20 +896,20 @@ export function MaintenanceAnalytics() {
 								<ComposedChart data={maintenanceTrends}>
 									<CartesianGrid
 										strokeDasharray="3 3"
-										stroke={APPLE_SYSTEM_COLORS.systemGray + '30'}
+										stroke={SYSTEM_COLORS.gray + '30'}
 									/>
 									<XAxis
 										dataKey="month"
 										tick={{
 											fontSize: 12,
-											fill: APPLE_SYSTEM_COLORS.systemGray
+											fill: SYSTEM_COLORS.gray
 										}}
 									/>
 									<YAxis
 										yAxisId="left"
 										tick={{
 											fontSize: 12,
-											fill: APPLE_SYSTEM_COLORS.systemGray
+											fill: SYSTEM_COLORS.gray
 										}}
 									/>
 									<YAxis
@@ -918,14 +917,14 @@ export function MaintenanceAnalytics() {
 										orientation="right"
 										tick={{
 											fontSize: 12,
-											fill: APPLE_SYSTEM_COLORS.systemGray
+											fill: SYSTEM_COLORS.gray
 										}}
 									/>
 									<Tooltip content={<CustomTooltip />} />
 									<Bar
 										yAxisId="left"
 										dataKey="requests"
-										fill={APPLE_SYSTEM_COLORS.systemBlue}
+										fill={SYSTEM_COLORS.primary}
 										name="Total Requests"
 										radius={[2, 2, 0, 0]}
 									/>
@@ -933,10 +932,10 @@ export function MaintenanceAnalytics() {
 										yAxisId="right"
 										type="monotone"
 										dataKey="avgTime"
-										stroke={APPLE_SYSTEM_COLORS.systemOrange}
+										stroke={SYSTEM_COLORS.warning}
 										strokeWidth={3}
 										name="Avg Time (hours)"
-										dot={{ fill: APPLE_SYSTEM_COLORS.systemOrange, r: 4 }}
+										dot={{ fill: SYSTEM_COLORS.warning, r: 4 }}
 									/>
 								</ComposedChart>
 							</ResponsiveContainer>
@@ -957,37 +956,37 @@ export function MaintenanceAnalytics() {
 											>
 												<stop
 													offset="5%"
-													stopColor={APPLE_SYSTEM_COLORS.systemGreen}
+													stopColor={SYSTEM_COLORS.success}
 													stopOpacity={0.8}
 												/>
 												<stop
 													offset="95%"
-													stopColor={APPLE_SYSTEM_COLORS.systemGreen}
+													stopColor={SYSTEM_COLORS.success}
 													stopOpacity={0.1}
 												/>
 											</linearGradient>
 										</defs>
 										<CartesianGrid
 											strokeDasharray="3 3"
-											stroke={APPLE_SYSTEM_COLORS.systemGray + '30'}
+											stroke={SYSTEM_COLORS.gray + '30'}
 										/>
 										<XAxis
 											dataKey="month"
 											tick={{
 												fontSize: 12,
-												fill: APPLE_SYSTEM_COLORS.systemGray
+												fill: SYSTEM_COLORS.gray
 											}}
 										/>
 										<YAxis
 											tick={{
 												fontSize: 12,
-												fill: APPLE_SYSTEM_COLORS.systemGray
+												fill: SYSTEM_COLORS.gray
 											}}
 										/>
 										<Tooltip content={<CustomTooltip />} />
 										<Area
 											dataKey="cost"
-											stroke={APPLE_SYSTEM_COLORS.systemGreen}
+											stroke={SYSTEM_COLORS.success}
 											fill="url(#costGradient)"
 											name="Cost ($)"
 										/>
@@ -1020,20 +1019,20 @@ export function MaintenanceAnalytics() {
 										</defs>
 										<CartesianGrid
 											strokeDasharray="3 3"
-											stroke={APPLE_SYSTEM_COLORS.systemGray + '30'}
+											stroke={SYSTEM_COLORS.gray + '30'}
 										/>
 										<XAxis
 											dataKey="month"
 											tick={{
 												fontSize: 12,
-												fill: APPLE_SYSTEM_COLORS.systemGray
+												fill: SYSTEM_COLORS.gray
 											}}
 										/>
 										<YAxis
 											domain={[3, 5]}
 											tick={{
 												fontSize: 12,
-												fill: APPLE_SYSTEM_COLORS.systemGray
+												fill: SYSTEM_COLORS.gray
 											}}
 										/>
 										<Tooltip content={<CustomTooltip />} />

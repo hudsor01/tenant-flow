@@ -134,7 +134,7 @@ export default function FAQPage() {
 				}
 				primaryCta={{
 					label: 'Start 14-day transformation',
-					href: '/auth/sign-up'
+					href: '/signup'
 				}}
 				secondaryCta={{ label: 'See ROI calculator', href: '/pricing' }}
 			/>

@@ -1,4 +1,10 @@
-import { getCSPString, type ThemeMode } from '@repo/shared'
+import {
+	PROTECTED_ROUTE_PREFIXES,
+	PUBLIC_AUTH_ROUTES,
+	SUPABASE_AUTH_COOKIE_CANDIDATES
+} from '@/lib/auth-constants'
+import { getCSPString } from '@repo/shared/security/csp-config'
+import type { ThemeMode } from '@repo/shared/types/domain'
 import { NextResponse, type NextRequest } from 'next/server'
 
 /**
@@ -20,21 +26,7 @@ const STATIC_ROUTE_PREFIXES = [
 const PUBLIC_ASSET_EXTENSIONS =
 	/\.(?:avif|gif|ico|jpe?g|png|svg|webp|txt|xml|json|map)$/i
 
-const SUPABASE_AUTH_COOKIE_CANDIDATES = [
-	'sb-access-token',
-	'supabase-auth-token',
-	'supabase.auth.token'
-] as const
-
 const THEME_COOKIE_KEYS = ['tenantflow-theme', 'theme', 'next-theme'] as const
-
-const PROTECTED_ROUTE_PREFIXES = ['/dashboard'] as const
-const PUBLIC_AUTH_ROUTES = [
-	'/auth/login',
-	'/auth/register',
-	'/auth/sign-up',
-	'/login'
-] as const
 
 const DESIGN_SYSTEM_HEADER = 'x-tenantflow-theme'
 

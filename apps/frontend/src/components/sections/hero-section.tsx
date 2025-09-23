@@ -38,7 +38,7 @@ export const PremiumHeroSection = React.forwardRef<
 			headline = 'Simplify Property Management',
 			subheadline = "Professional property managers streamline operations, automate workflows, and scale their business with TenantFlow's enterprise-grade platform.",
 			primaryCTAText = 'Start 14-day transformation',
-			primaryCTAHref = '/auth/sign-up',
+			primaryCTAHref = '/signup',
 			secondaryCTAText = 'See ROI calculator',
 			secondaryCTAHref = '/demo',
 			className,

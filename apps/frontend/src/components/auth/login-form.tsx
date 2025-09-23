@@ -637,7 +637,7 @@ export function LoginForm({
 								Create account
 							</button>
 						) : (
-							<a href="/auth/login" className="hover:text-foreground">
+							<a href="/login" className="hover:text-foreground">
 								Have an account? Sign in
 							</a>
 						)}

@@ -46,7 +46,7 @@ export default function AboutPage() {
 						operations and scale their business with confidence.
 					</>
 				}
-				primaryCta={{ label: 'Start Free Trial', href: '/auth/sign-up' }}
+				primaryCta={{ label: 'Start Free Trial', href: '/signup' }}
 				secondaryCta={{ label: 'Talk to Sales', href: '/contact' }}
 			/>
 
@@ -346,7 +346,7 @@ export default function AboutPage() {
 							</p>
 							<div className="flex flex-col sm:flex-row gap-4 justify-center">
 								<Button asChild size="lg" className="group">
-									<Link href="/auth/sign-up">
+									<Link href="/signup">
 										Start Free Trial
 										<ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
 									</Link>

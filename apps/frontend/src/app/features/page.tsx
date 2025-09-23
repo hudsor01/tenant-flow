@@ -101,7 +101,7 @@ export default function FeaturesPage() {
 						in 90 days.
 					</>
 				}
-				primaryCta={{ label: 'Start Free Trial', href: '/auth/sign-up' }}
+				primaryCta={{ label: 'Start Free Trial', href: '/signup' }}
 				secondaryCta={{ label: 'See it in action', href: '/contact' }}
 			/>
 
@@ -119,7 +119,7 @@ export default function FeaturesPage() {
 					className="shadow-2xl shadow-primary/25 font-semibold"
 					asChild
 				>
-					<a href="/auth/sign-up" aria-label="Get started free">
+					<a href="/signup" aria-label="Get started free">
 						Start Free Trial
 						<ArrowRight className="w-4 h-4 ml-2" />
 					</a>
@@ -200,7 +200,7 @@ export default function FeaturesPage() {
 									className="group relative overflow-hidden bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-8 py-4"
 									asChild
 								>
-									<a href="/auth/sign-up" aria-label="Start free trial">
+									<a href="/signup" aria-label="Start free trial">
 										<div
 											className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
 											style={{
@@ -629,7 +629,7 @@ export default function FeaturesPage() {
 									className="group relative overflow-hidden bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"
 									asChild
 								>
-									<a href="/auth/sign-up" aria-label="Start free trial">
+									<a href="/signup" aria-label="Start free trial">
 										<div
 											className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
 											style={{
