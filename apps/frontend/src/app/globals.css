@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@import 'tw-animate-css';
 @import url('https://api.fonts.cofo.sasjs.io/css?family=SF+Pro+Display:100,200,300,400,500,600,700,800,900&display=swap');
 
 @plugin "@tailwindcss/forms";

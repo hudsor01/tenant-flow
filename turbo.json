@@ -127,7 +127,7 @@
 	"globalDependencies": [
 		"**/.env.*",
 		".prettierrc",
-		"eslint.config.js",
+		"eslint.config.*",
 		"pnpm-lock.yaml",
 		"vercel.json"
 	],

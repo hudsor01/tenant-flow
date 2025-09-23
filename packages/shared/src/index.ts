@@ -128,45 +128,45 @@ export type {
 	TypographyVariant
 } from './constants/typography-tokens'
 
-// APPLE MOTION SYSTEM - OBSESSION-WORTHY INTERACTIONS
+// MOTION SYSTEM - PROFESSIONAL INTERACTIONS
 export {
-	APPLE_CSS_VARS,
-	APPLE_DURATIONS,
-	APPLE_EASINGS,
-	APPLE_GLASS,
-	APPLE_MOTION_PRESETS,
-	APPLE_RADIUS,
-	APPLE_SHADOWS,
-	APPLE_TOUCH_TARGETS,
-	APPLE_TRANSFORMS
-} from './constants/motion-system'
+	MOTION_CSS_VARS,
+	MOTION_DURATIONS,
+	MOTION_EASINGS,
+	MOTION_GLASS,
+	MOTION_PRESETS,
+	MOTION_RADIUS,
+	MOTION_SHADOWS,
+	MOTION_TOUCH_TARGETS,
+	MOTION_TRANSFORMS
+} from './constants/motion-tokens'
 
 export type {
-	AppleDuration,
-	AppleEasing,
-	AppleGlass,
-	AppleMotionPreset,
-	AppleRadius,
-	AppleShadow,
-	AppleTouchTarget,
-	AppleTransform
-} from './constants/motion-system'
+	MotionDuration,
+	MotionEasing,
+	MotionGlass,
+	MotionPreset,
+	MotionRadius,
+	MotionShadow,
+	MotionTouchTarget,
+	MotionTransform
+} from './constants/motion-tokens'
 
-// APPLE COLOR SYSTEM - EXACT PALETTE FOR DASHBOARD ANALYTICS
+// DESIGN SYSTEM COLORS - DASHBOARD ANALYTICS
 export {
-	APPLE_ACCESSIBLE_PAIRS,
-	APPLE_CHART_PALETTES,
-	APPLE_GRADIENTS,
-	APPLE_SYSTEM_COLORS,
-	PROPERTY_ANALYTICS_COLORS
-} from './constants/apple-colors'
+	ACCESSIBLE_COLOR_PAIRS,
+	CHART_GRADIENTS,
+	CHART_PALETTES,
+	PROPERTY_ANALYTICS_COLORS,
+	SYSTEM_COLORS
+} from './constants/chart-colors'
 
 export type {
-	AppleChartPalette,
-	AppleGradient,
-	AppleSystemColor,
-	PropertyAnalyticsColorCategory
-} from './constants/apple-colors'
+	ChartGradient,
+	ChartPalette,
+	PropertyAnalyticsColorCategory,
+	SystemColor
+} from './constants/chart-colors'
 
 export const MAINTENANCE_CATEGORY = {
 	GENERAL: 'GENERAL',

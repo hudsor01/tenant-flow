@@ -190,7 +190,7 @@ export function StripePricingSection({
 			// Check if user is authenticated with Supabase
 			const isAuthenticated = await isUserAuthenticated()
 			if (!isAuthenticated) {
-				window.location.href = '/auth/login'
+				window.location.href = '/login'
 				throw new Error('Please sign in to subscribe to a plan')
 			}
 

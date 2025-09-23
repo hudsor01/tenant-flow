@@ -20,10 +20,7 @@
 			"@repo/shared": ["../../packages/shared/src"],
 			"@repo/shared/*": ["../../packages/shared/src/*"]
 		},
-		"types": ["node", "react", "react-dom"],
-		"composite": true,
-		"declaration": true,
-		"noEmit": false
+		"types": ["node", "react", "react-dom"]
 	},
 	"include": [
 		"next-env.d.ts",
@@ -56,10 +53,12 @@
 		"jest.config.js",
 		"vitest.config.production.ts",
 		"playwright.config.ts"
-	],
-	"references": [
-		{
-			"path": "../../packages/shared"
-		}
 	]
+	// NOTE: TypeScript project references disabled for Next.js build compatibility
+	// See: https://nextjs.org/docs/advanced-features/typescript#project-references
+	// "references": [
+	//   {
+	//     "path": "../../packages/shared"
+	//   }
+	// ]
 }
