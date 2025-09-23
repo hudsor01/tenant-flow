@@ -32,7 +32,6 @@
 		"@nestjs/event-emitter": "^3.0.1",
 		"@nestjs/jwt": "^11.0.0",
 		"@nestjs/platform-express": "^11.1.6",
-		"@nestjs/swagger": "catalog:",
 		"@nestjs/terminus": "11.0.0",
 		"@nestjs/throttler": "6.4.0",
 		"@react-email/components": "0.5.3",
