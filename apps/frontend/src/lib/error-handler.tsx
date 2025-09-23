@@ -37,7 +37,7 @@ export class TenantFlowError extends Error {
 }
 
 /**
- * Categorizes errors into user-friendly messages following Apple's UX principles
+ * Categorizes errors into user-friendly messages following modern UX principles
  */
 export function categorizeError(
 	error: unknown,
