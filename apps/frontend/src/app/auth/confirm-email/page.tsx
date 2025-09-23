@@ -6,8 +6,8 @@ export default function ConfirmEmailPage() {
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-background px-4 sm:px-6 lg:px-8">
 			<div className="max-w-md w-full">
-				{/* Apple-style glass card */}
-				<div className="glass-apple p-8 text-center">
+				{/* Glass card */}
+				<div className="glass p-8 text-center">
 					{/* TenantFlow Logo */}
 					<div className="flex justify-center mb-8">
 						<div className="flex items-center gap-2">
@@ -30,8 +30,8 @@ export default function ConfirmEmailPage() {
 						</div>
 					</div>
 
-					{/* Email Icon with Apple-style elevation */}
-					<div className="mx-auto flex items-center justify-center size-16 rounded-full bg-primary/10 mb-8 card-apple">
+					{/* Email Icon with elevation */}
+					<div className="mx-auto flex items-center justify-center size-16 rounded-full bg-primary/10 mb-8 card-elevated">
 						<svg
 							className="size-8 text-primary"
 							fill="none"
@@ -47,7 +47,7 @@ export default function ConfirmEmailPage() {
 						</svg>
 					</div>
 
-					{/* Main Heading - Apple typography hierarchy */}
+					{/* Main Heading */}
 					<h1 className="text-3xl font-bold text-foreground mb-4 tracking-tight">
 						Check Your Email
 					</h1>
@@ -59,8 +59,8 @@ export default function ConfirmEmailPage() {
 					</p>
 				</div>
 
-				{/* Instructions Card with Apple glass effect */}
-				<div className="glass-apple mt-6 p-6">
+				{/* Instructions Card with glass effect */}
+				<div className="glass mt-6 p-6">
 					<h2 className="font-semibold text-foreground mb-4 text-center">
 						What's next?
 					</h2>
@@ -86,7 +86,7 @@ export default function ConfirmEmailPage() {
 					</ol>
 				</div>
 
-				{/* Action Buttons with Apple button styling */}
+				{/* Action Buttons */}
 				<div className="mt-8 space-y-3">
 					<p className="text-sm text-muted-foreground text-center mb-4">
 						Didn't receive the email?
@@ -94,7 +94,7 @@ export default function ConfirmEmailPage() {
 
 					<div className="flex flex-col sm:flex-row gap-3">
 						<button
-							className="btn-apple btn-primary-apple flex-1"
+							className="btn btn-primary flex-1"
 							onClick={() => window.location.reload()}
 						>
 							Check Again
@@ -102,7 +102,7 @@ export default function ConfirmEmailPage() {
 
 						<Link
 							href="/login"
-							className="btn-apple btn-secondary-apple flex-1 text-center"
+							className="btn btn-secondary flex-1 text-center"
 						>
 							Back to Sign In
 						</Link>
@@ -115,7 +115,7 @@ export default function ConfirmEmailPage() {
 						Need help? Contact our support team at{' '}
 						<a
 							href="mailto:support@tenantflow.app"
-							className="text-primary apple-hover-lift transition-fast-color"
+							className="text-primary hover-lift transition-fast-color"
 						>
 							support@tenantflow.app
 						</a>
