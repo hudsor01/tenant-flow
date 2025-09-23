@@ -6,6 +6,7 @@
  * Each method is <30 lines (just RPC call + error handling)
  */
 
+import { CacheKey, CacheTTL } from '@nestjs/cache-manager'
 import {
 	BadRequestException,
 	Injectable,
@@ -167,6 +168,14 @@ export class PropertiesService {
 			throw new BadRequestException('Failed to create property')
 		}
 
+		if (!data) {
+			throw new BadRequestException(
+				'Property creation failed - no data returned'
+			)
+		}
+
+		// Property created successfully
+
 		return data
 	}
 
@@ -245,8 +254,11 @@ export class PropertiesService {
 	}
 
 	/**
-	 * Get property statistics using RPC
+	 * Get property statistics using RPC with native NestJS caching
+	 * Cached for 30 seconds to improve dashboard performance
 	 */
+	@CacheKey('property-stats')
+	@CacheTTL(30) // 30 seconds
 	async getStats(userId: string) {
 		try {
 			const { data, error } = await this.supabaseService

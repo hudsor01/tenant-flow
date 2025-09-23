@@ -13,7 +13,6 @@ import {
 	DefaultValuePipe,
 	Delete,
 	Get,
-	HttpStatus,
 	NotFoundException,
 	Optional,
 	Param,
@@ -23,12 +22,7 @@ import {
 	Put,
 	Query
 } from '@nestjs/common'
-import {
-	ApiBearerAuth,
-	ApiOperation,
-	ApiResponse,
-	ApiTags
-} from '@nestjs/swagger'
+// Swagger imports removed
 import type {
 	CreateLeaseRequest,
 	UpdateLeaseRequest,
@@ -38,16 +32,16 @@ import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { Public } from '../shared/decorators/public.decorator'
 import { LeasesService } from './leases.service'
 
-@ApiTags('leases')
-@ApiBearerAuth()
+// @ApiTags('leases')
+// @ApiBearerAuth()
 @Controller('leases')
 export class LeasesController {
 	constructor(@Optional() private readonly leasesService?: LeasesService) {}
 
 	@Get()
 	@Public()
-	@ApiOperation({ summary: 'Get all leases' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get all leases' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async findAll(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('tenantId') tenantId?: string,
@@ -122,8 +116,8 @@ export class LeasesController {
 
 	@Get('stats')
 	@Public()
-	@ApiOperation({ summary: 'Get lease statistics' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get lease statistics' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getStats(@CurrentUser() user?: ValidatedUser) {
 		if (!this.leasesService) {
 			return {
@@ -139,8 +133,8 @@ export class LeasesController {
 
 	@Get('analytics/performance')
 	@Public()
-	@ApiOperation({ summary: 'Get per-lease performance analytics' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get per-lease performance analytics' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeasePerformanceAnalytics(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('leaseId') leaseId?: string,
@@ -194,8 +188,8 @@ export class LeasesController {
 
 	@Get('analytics/duration')
 	@Public()
-	@ApiOperation({ summary: 'Get lease duration and renewal analytics' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get lease duration and renewal analytics' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseDurationAnalytics(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('propertyId') propertyId?: string,
@@ -238,8 +232,8 @@ export class LeasesController {
 
 	@Get('analytics/turnover')
 	@Public()
-	@ApiOperation({ summary: 'Get lease turnover and retention analytics' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get lease turnover and retention analytics' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseTurnoverAnalytics(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('propertyId') propertyId?: string,
@@ -282,8 +276,8 @@ export class LeasesController {
 
 	@Get('analytics/revenue')
 	@Public()
-	@ApiOperation({ summary: 'Get per-lease revenue analytics and trends' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get per-lease revenue analytics and trends' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseRevenueAnalytics(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('leaseId') leaseId?: string,
@@ -337,8 +331,8 @@ export class LeasesController {
 
 	@Get('expiring')
 	@Public()
-	@ApiOperation({ summary: 'Get expiring leases' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get expiring leases' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getExpiring(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('days', new DefaultValuePipe(30), ParseIntPipe) days?: number
@@ -361,9 +355,9 @@ export class LeasesController {
 
 	@Get(':id')
 	@Public()
-	@ApiOperation({ summary: 'Get lease by ID' })
-	@ApiResponse({ status: HttpStatus.OK })
-	@ApiResponse({ status: HttpStatus.NOT_FOUND })
+	// @ApiOperation({ summary: 'Get lease by ID' })
+	// @ApiResponse({ status: HttpStatus.OK })
+	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user?: ValidatedUser
@@ -387,8 +381,8 @@ export class LeasesController {
 
 	@Post()
 	@Public()
-	@ApiOperation({ summary: 'Create new lease' })
-	@ApiResponse({ status: HttpStatus.CREATED })
+	// @ApiOperation({ summary: 'Create new lease' })
+	// @ApiResponse({ status: HttpStatus.CREATED })
 	async create(
 		@Body() createRequest: CreateLeaseRequest,
 		@CurrentUser() user?: ValidatedUser
@@ -405,9 +399,9 @@ export class LeasesController {
 
 	@Put(':id')
 	@Public()
-	@ApiOperation({ summary: 'Update lease' })
-	@ApiResponse({ status: HttpStatus.OK })
-	@ApiResponse({ status: HttpStatus.NOT_FOUND })
+	// @ApiOperation({ summary: 'Update lease' })
+	// @ApiResponse({ status: HttpStatus.OK })
+	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateRequest: UpdateLeaseRequest,
@@ -434,8 +428,8 @@ export class LeasesController {
 
 	@Delete(':id')
 	@Public()
-	@ApiOperation({ summary: 'Delete lease' })
-	@ApiResponse({ status: HttpStatus.NO_CONTENT })
+	// @ApiOperation({ summary: 'Delete lease' })
+	// @ApiResponse({ status: HttpStatus.NO_CONTENT })
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user?: ValidatedUser
@@ -453,8 +447,8 @@ export class LeasesController {
 
 	@Post(':id/renew')
 	@Public()
-	@ApiOperation({ summary: 'Renew lease' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Renew lease' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async renew(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body('endDate') endDate: string,
@@ -478,8 +472,8 @@ export class LeasesController {
 
 	@Post(':id/terminate')
 	@Public()
-	@ApiOperation({ summary: 'Terminate lease' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Terminate lease' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async terminate(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body('reason') reason?: string,

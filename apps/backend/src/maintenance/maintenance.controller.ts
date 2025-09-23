@@ -13,7 +13,6 @@ import {
 	DefaultValuePipe,
 	Delete,
 	Get,
-	HttpStatus,
 	NotFoundException,
 	Optional,
 	Param,
@@ -23,12 +22,7 @@ import {
 	Put,
 	Query
 } from '@nestjs/common'
-import {
-	ApiBearerAuth,
-	ApiOperation,
-	ApiResponse,
-	ApiTags
-} from '@nestjs/swagger'
+// Swagger imports removed
 import type {
 	CreateMaintenanceRequest,
 	UpdateMaintenanceRequest,
@@ -38,8 +32,8 @@ import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { Public } from '../shared/decorators/public.decorator'
 import { MaintenanceService } from './maintenance.service'
 
-@ApiTags('maintenance')
-@ApiBearerAuth()
+// @ApiTags('maintenance')
+// @ApiBearerAuth()
 @Controller('maintenance')
 export class MaintenanceController {
 	constructor(
@@ -48,8 +42,8 @@ export class MaintenanceController {
 
 	@Get()
 	@Public()
-	@ApiOperation({ summary: 'Get all maintenance requests' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get all maintenance requests' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async findAll(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('unitId') unitId?: string,
@@ -135,8 +129,8 @@ export class MaintenanceController {
 
 	@Get('stats')
 	@Public()
-	@ApiOperation({ summary: 'Get maintenance statistics' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get maintenance statistics' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getStats(@CurrentUser() user?: ValidatedUser) {
 		if (!this.maintenanceService) {
 			return {
@@ -153,8 +147,8 @@ export class MaintenanceController {
 
 	@Get('urgent')
 	@Public()
-	@ApiOperation({ summary: 'Get urgent maintenance requests' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get urgent maintenance requests' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getUrgent(@CurrentUser() user?: ValidatedUser) {
 		if (!this.maintenanceService) {
 			return {
@@ -167,8 +161,8 @@ export class MaintenanceController {
 
 	@Get('overdue')
 	@Public()
-	@ApiOperation({ summary: 'Get overdue maintenance requests' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get overdue maintenance requests' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getOverdue(@CurrentUser() user?: ValidatedUser) {
 		if (!this.maintenanceService) {
 			return {
@@ -181,9 +175,9 @@ export class MaintenanceController {
 
 	@Get(':id')
 	@Public()
-	@ApiOperation({ summary: 'Get maintenance request by ID' })
-	@ApiResponse({ status: HttpStatus.OK })
-	@ApiResponse({ status: HttpStatus.NOT_FOUND })
+	// @ApiOperation({ summary: 'Get maintenance request by ID' })
+	// @ApiResponse({ status: HttpStatus.OK })
+	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user?: ValidatedUser
@@ -207,8 +201,8 @@ export class MaintenanceController {
 
 	@Post()
 	@Public()
-	@ApiOperation({ summary: 'Create new maintenance request' })
-	@ApiResponse({ status: HttpStatus.CREATED })
+	// @ApiOperation({ summary: 'Create new maintenance request' })
+	// @ApiResponse({ status: HttpStatus.CREATED })
 	async create(
 		@Body() createRequest: CreateMaintenanceRequest,
 		@CurrentUser() user?: ValidatedUser
@@ -228,9 +222,9 @@ export class MaintenanceController {
 
 	@Put(':id')
 	@Public()
-	@ApiOperation({ summary: 'Update maintenance request' })
-	@ApiResponse({ status: HttpStatus.OK })
-	@ApiResponse({ status: HttpStatus.NOT_FOUND })
+	// @ApiOperation({ summary: 'Update maintenance request' })
+	// @ApiResponse({ status: HttpStatus.OK })
+	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateRequest: UpdateMaintenanceRequest,
@@ -257,8 +251,8 @@ export class MaintenanceController {
 
 	@Delete(':id')
 	@Public()
-	@ApiOperation({ summary: 'Delete maintenance request' })
-	@ApiResponse({ status: HttpStatus.NO_CONTENT })
+	// @ApiOperation({ summary: 'Delete maintenance request' })
+	// @ApiResponse({ status: HttpStatus.NO_CONTENT })
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user?: ValidatedUser
@@ -276,8 +270,8 @@ export class MaintenanceController {
 
 	@Post(':id/complete')
 	@Public()
-	@ApiOperation({ summary: 'Mark maintenance request as completed' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Mark maintenance request as completed' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async complete(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body('actualCost') actualCost?: number,
@@ -307,8 +301,8 @@ export class MaintenanceController {
 
 	@Post(':id/cancel')
 	@Public()
-	@ApiOperation({ summary: 'Cancel maintenance request' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Cancel maintenance request' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async cancel(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body('reason') reason?: string,
