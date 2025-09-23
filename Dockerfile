@@ -48,6 +48,7 @@ ENV TURBO_TELEMETRY_DISABLED=1 \
 
 # Build only compilation - skip lint/typecheck since CI already did it
 RUN cd packages/shared && npx tsc -p tsconfig.build.json && \
+    cd ../database && npx tsc -p tsconfig.build.json && \
     cd ../../apps/backend && npx tsc -p tsconfig.build.json
 
 # Ensure runtime has access to Handlebars templates compiled from TypeScript
