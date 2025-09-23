@@ -17,7 +17,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { APPLE_DURATIONS, APPLE_EASINGS, APPLE_GRADIENTS } from '@repo/shared'
+import { CHART_GRADIENTS, MOTION_DURATIONS, MOTION_EASINGS } from '@repo/shared'
 import {
 	BarChart3,
 	// TrendingDown,
@@ -379,8 +379,8 @@ export function RevenueTrendChart() {
 							<div
 								className="p-3 rounded-xl transition-all duration-200"
 								style={{
-									background: APPLE_GRADIENTS.revenue,
-									transition: `all ${APPLE_DURATIONS['duration-fast']} ${APPLE_EASINGS['ease-out-expo']}`
+									background: CHART_GRADIENTS.revenue,
+									transition: `all ${MOTION_DURATIONS['duration-fast']} ${MOTION_EASINGS['ease-out-expo']}`
 								}}
 							>
 								<DollarSign className="w-6 h-6 text-primary" />
@@ -407,7 +407,7 @@ export function RevenueTrendChart() {
 									showInsights && 'bg-primary/10 text-primary'
 								)}
 								style={{
-									transition: `all ${APPLE_DURATIONS['duration-fast']} ${APPLE_EASINGS['ease-out-expo']}`
+									transition: `all ${MOTION_DURATIONS['duration-fast']} ${MOTION_EASINGS['ease-out-expo']}`
 								}}
 							>
 								{showInsights ? (
@@ -435,9 +435,9 @@ export function RevenueTrendChart() {
 						<div
 							className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl transition-all duration-300"
 							style={{
-								background: APPLE_GRADIENTS.glass,
+								background: CHART_GRADIENTS.glass,
 								border: '1px solid var(--color-system-blue-25)',
-								animation: `slideInFromTop 300ms ${APPLE_EASINGS['ease-out-expo']}`
+								animation: `slideInFromTop 300ms ${MOTION_EASINGS['ease-out-expo']}`
 							}}
 						>
 							<div className="text-center">

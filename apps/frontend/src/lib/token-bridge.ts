@@ -127,7 +127,7 @@ export const radiusTokens = {
 	xxlarge: 'var(--radius-xxlarge)'
 } as const
 
-// Spacing tokens - harmonious Apple-inspired spacing scale
+// Spacing tokens - harmonious professional spacing scale
 export const spacingTokens = {
 	0: 'var(--spacing-0)',
 	px: 'var(--spacing-px)',
