@@ -306,7 +306,7 @@ export class SecurityMonitorService implements OnModuleInit {
 		const subject = `Security Alert: ${event.type} (${event.severity.toUpperCase()})`
 		const from = 'TenantFlow <noreply@tenantflow.app>'
 		const html = `
-      <div style="font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:700px;margin:0 auto;padding:16px;">
+      <div style="font-family: SystemFont,'Segoe UI',sans-serif;max-width:700px;margin:0 auto;padding:16px;">
         <h2 style="margin:0 0 12px;color:#111827;">${subject}</h2>
         <p style="margin:0 0 16px;color:#374151;">${event.description || 'A security event was detected.'}</p>
         <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:12px 16px;margin-bottom:12px;">
