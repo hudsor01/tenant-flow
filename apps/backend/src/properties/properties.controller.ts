@@ -29,6 +29,7 @@ import type { CreatePropertyRequest, UpdatePropertyRequest } from '@repo/shared'
 import { propertyRouteSchemas } from '../schemas/properties.schema'
 import { Public } from '../shared/decorators/public.decorator'
 import { RouteSchema } from '../shared/decorators/route-schema.decorator'
+import { ParseOptionalUUIDPipe } from '../shared/pipes/parse-optional-uuid.pipe'
 import type { AuthenticatedRequest } from '../shared/types/express-request.types'
 import { PropertiesService } from './properties.service'
 
@@ -72,6 +73,64 @@ export class PropertiesController {
 		const safeOffset = Math.max(0, offset)
 		const userId = req.user?.id || 'test-user-id'
 		return this.propertiesService.findAll(userId, {
+			search,
+			limit: safeLimit,
+			offset: safeOffset
+		})
+	}
+
+	/**
+	 * Get property statistics
+	 * Direct RPC call for aggregated data
+	 * MUST BE BEFORE /:id route to avoid route conflict
+	 */
+	@Get('stats')
+	async getStats(@Request() req: AuthenticatedRequest) {
+		if (!this.propertiesService) {
+			return {
+				message: 'Properties service not available',
+				totalProperties: 0,
+				totalUnits: 0,
+				occupiedUnits: 0,
+				vacantUnits: 0,
+				occupancyRate: 0,
+				totalRent: 0
+			}
+		}
+		const userId = req.user?.id || 'test-user-id'
+		return this.propertiesService.getStats(userId)
+	}
+
+	/**
+	 * Get all properties with their units
+	 * Returns properties with units for frontend stat calculations
+	 * MUST BE BEFORE /:id route to avoid route conflict
+	 */
+	@Get('with-units')
+	@RouteSchema({
+		method: 'GET',
+		path: 'properties/with-units',
+		schema: propertyRouteSchemas.findAll
+	})
+	async findAllWithUnits(
+		@Query('search', new DefaultValuePipe(null)) search: string | null,
+		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
+		@Request() req: AuthenticatedRequest
+	): Promise<unknown> {
+		if (!this.propertiesService) {
+			return {
+				message: 'Properties service not available',
+				data: [],
+				total: 0,
+				limit,
+				offset
+			}
+		}
+		const safeLimit = Math.max(1, Math.min(limit, 50))
+		const safeOffset = Math.max(0, offset)
+		const userId = req.user?.id || 'test-user-id'
+		return this.propertiesService.findAllWithUnits(userId, {
 			search,
 			limit: safeLimit,
 			offset: safeOffset
@@ -185,34 +244,13 @@ export class PropertiesController {
 	}
 
 	/**
-	 * Get property statistics
-	 * Direct RPC call for aggregated data
-	 */
-	@Get('stats')
-	async getStats(@Request() req: AuthenticatedRequest) {
-		if (!this.propertiesService) {
-			return {
-				message: 'Properties service not available',
-				totalProperties: 0,
-				totalUnits: 0,
-				occupiedUnits: 0,
-				vacantUnits: 0,
-				occupancyRate: 0,
-				totalRent: 0
-			}
-		}
-		const userId = req.user?.id || 'test-user-id'
-		return this.propertiesService.getStats(userId)
-	}
-
-	/**
 	 * Get per-property analytics and performance metrics
 	 * Returns detailed metrics for each property
 	 */
 	@Get('analytics/performance')
 	async getPropertyPerformanceAnalytics(
 		@Request() req: AuthenticatedRequest,
-		@Query('propertyId') propertyId?: string,
+		@Query('propertyId', ParseOptionalUUIDPipe) propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('30d')) timeframe?: string,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number
 	) {
@@ -223,16 +261,6 @@ export class PropertiesController {
 				timeframe: timeframe ?? '30d',
 				propertyId
 			}
-		}
-
-		// Validate propertyId if provided
-		if (
-			propertyId &&
-			!propertyId.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
-			throw new BadRequestException('Invalid property ID')
 		}
 
 		// Validate timeframe
@@ -257,7 +285,7 @@ export class PropertiesController {
 	@Get('analytics/occupancy')
 	async getPropertyOccupancyAnalytics(
 		@Request() req: AuthenticatedRequest,
-		@Query('propertyId') propertyId?: string,
+		@Query('propertyId', ParseOptionalUUIDPipe) propertyId?: string,
 		@Query('period', new DefaultValuePipe('monthly')) period?: string
 	) {
 		if (!this.propertiesService) {
@@ -267,16 +295,6 @@ export class PropertiesController {
 				period: period ?? 'monthly',
 				propertyId
 			}
-		}
-
-		// Validate propertyId if provided
-		if (
-			propertyId &&
-			!propertyId.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
-			throw new BadRequestException('Invalid property ID')
 		}
 
 		// Validate period
@@ -302,7 +320,7 @@ export class PropertiesController {
 	@Get('analytics/financial')
 	async getPropertyFinancialAnalytics(
 		@Request() req: AuthenticatedRequest,
-		@Query('propertyId') propertyId?: string,
+		@Query('propertyId', ParseOptionalUUIDPipe) propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
 	) {
 		if (!this.propertiesService) {
@@ -312,16 +330,6 @@ export class PropertiesController {
 				timeframe: timeframe ?? '12m',
 				propertyId
 			}
-		}
-
-		// Validate propertyId if provided
-		if (
-			propertyId &&
-			!propertyId.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
-			throw new BadRequestException('Invalid property ID')
 		}
 
 		// Validate timeframe
@@ -345,7 +353,7 @@ export class PropertiesController {
 	@Get('analytics/maintenance')
 	async getPropertyMaintenanceAnalytics(
 		@Request() req: AuthenticatedRequest,
-		@Query('propertyId') propertyId?: string,
+		@Query('propertyId', ParseOptionalUUIDPipe) propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('6m')) timeframe?: string
 	) {
 		if (!this.propertiesService) {
@@ -355,16 +363,6 @@ export class PropertiesController {
 				timeframe: timeframe ?? '6m',
 				propertyId
 			}
-		}
-
-		// Validate propertyId if provided
-		if (
-			propertyId &&
-			!propertyId.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
-			throw new BadRequestException('Invalid property ID')
 		}
 
 		// Validate timeframe
@@ -378,41 +376,6 @@ export class PropertiesController {
 		return this.propertiesService.getPropertyMaintenanceAnalytics(userId, {
 			propertyId,
 			timeframe: timeframe ?? '6m'
-		})
-	}
-
-	/**
-	 * Get all properties with their units
-	 * Returns properties with units for frontend stat calculations
-	 */
-	@Get('with-units')
-	@RouteSchema({
-		method: 'GET',
-		path: 'properties/with-units',
-		schema: propertyRouteSchemas.findAll
-	})
-	async findAllWithUnits(
-		@Query('search', new DefaultValuePipe(null)) search: string | null,
-		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
-		@Request() req: AuthenticatedRequest
-	): Promise<unknown> {
-		if (!this.propertiesService) {
-			return {
-				message: 'Properties service not available',
-				data: [],
-				total: 0,
-				limit,
-				offset
-			}
-		}
-		const safeLimit = Math.max(1, Math.min(limit, 50))
-		const safeOffset = Math.max(0, offset)
-		const userId = req.user?.id || 'test-user-id'
-		return this.propertiesService.findAllWithUnits(userId, {
-			search,
-			limit: safeLimit,
-			offset: safeOffset
 		})
 	}
 }
