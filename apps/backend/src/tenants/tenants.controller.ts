@@ -13,7 +13,6 @@ import {
 	DefaultValuePipe,
 	Delete,
 	Get,
-	HttpStatus,
 	NotFoundException,
 	Optional,
 	Param,
@@ -23,12 +22,7 @@ import {
 	Put,
 	Query
 } from '@nestjs/common'
-import {
-	ApiBearerAuth,
-	ApiOperation,
-	ApiResponse,
-	ApiTags
-} from '@nestjs/swagger'
+// Swagger imports removed
 import type {
 	CreateTenantRequest,
 	UpdateTenantRequest,
@@ -38,16 +32,16 @@ import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { Public } from '../shared/decorators/public.decorator'
 import { TenantsService } from './tenants.service'
 
-@ApiTags('tenants')
-@ApiBearerAuth()
+// @ApiTags('tenants')
+// @ApiBearerAuth()
 @Controller('tenants')
 export class TenantsController {
 	constructor(@Optional() private readonly tenantsService?: TenantsService) {}
 
 	@Get()
 	@Public()
-	@ApiOperation({ summary: 'Get all tenants' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get all tenants' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async findAll(
 		@CurrentUser() user?: ValidatedUser,
 		@Query('search') search?: string,
@@ -91,8 +85,8 @@ export class TenantsController {
 
 	@Get('stats')
 	@Public()
-	@ApiOperation({ summary: 'Get tenant statistics' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Get tenant statistics' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async getStats(@CurrentUser() user?: ValidatedUser) {
 		if (!this.tenantsService) {
 			return {
@@ -108,9 +102,9 @@ export class TenantsController {
 
 	@Get(':id')
 	@Public()
-	@ApiOperation({ summary: 'Get tenant by ID' })
-	@ApiResponse({ status: HttpStatus.OK })
-	@ApiResponse({ status: HttpStatus.NOT_FOUND })
+	// @ApiOperation({ summary: 'Get tenant by ID' })
+	// @ApiResponse({ status: HttpStatus.OK })
+	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user?: ValidatedUser
@@ -134,8 +128,8 @@ export class TenantsController {
 
 	@Post()
 	@Public()
-	@ApiOperation({ summary: 'Create new tenant' })
-	@ApiResponse({ status: HttpStatus.CREATED })
+	// @ApiOperation({ summary: 'Create new tenant' })
+	// @ApiResponse({ status: HttpStatus.CREATED })
 	async create(
 		@Body() createRequest: CreateTenantRequest,
 		@CurrentUser() user?: ValidatedUser
@@ -152,9 +146,9 @@ export class TenantsController {
 
 	@Put(':id')
 	@Public()
-	@ApiOperation({ summary: 'Update tenant' })
-	@ApiResponse({ status: HttpStatus.OK })
-	@ApiResponse({ status: HttpStatus.NOT_FOUND })
+	// @ApiOperation({ summary: 'Update tenant' })
+	// @ApiResponse({ status: HttpStatus.OK })
+	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateRequest: UpdateTenantRequest,
@@ -181,8 +175,8 @@ export class TenantsController {
 
 	@Delete(':id')
 	@Public()
-	@ApiOperation({ summary: 'Delete tenant' })
-	@ApiResponse({ status: HttpStatus.NO_CONTENT })
+	// @ApiOperation({ summary: 'Delete tenant' })
+	// @ApiResponse({ status: HttpStatus.NO_CONTENT })
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user?: ValidatedUser
@@ -200,8 +194,8 @@ export class TenantsController {
 
 	@Post(':id/invite')
 	@Public()
-	@ApiOperation({ summary: 'Send invitation to tenant' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Send invitation to tenant' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async sendInvitation(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user?: ValidatedUser
@@ -219,8 +213,8 @@ export class TenantsController {
 
 	@Post(':id/resend-invitation')
 	@Public()
-	@ApiOperation({ summary: 'Resend invitation to tenant' })
-	@ApiResponse({ status: HttpStatus.OK })
+	// @ApiOperation({ summary: 'Resend invitation to tenant' })
+	// @ApiResponse({ status: HttpStatus.OK })
 	async resendInvitation(
 		@Param('id', ParseUUIDPipe) id: string,
 		@CurrentUser() user?: ValidatedUser
