@@ -38,7 +38,7 @@ export default function HelpPage() {
 				}
 				primaryCta={{
 					label: 'Start 14-day transformation',
-					href: '/auth/sign-up'
+					href: '/signup'
 				}}
 				secondaryCta={{ label: 'Schedule Expert Call', href: '/contact' }}
 			/>

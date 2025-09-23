@@ -30,7 +30,7 @@ export default function BlogPage() {
 				}
 				primaryCta={{
 					label: 'Start 14-day transformation',
-					href: '/auth/sign-up'
+					href: '/signup'
 				}}
 				secondaryCta={{ label: 'Get ROI calculator', href: '/pricing' }}
 			/>

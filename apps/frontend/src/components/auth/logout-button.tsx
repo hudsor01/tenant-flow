@@ -31,7 +31,7 @@ export const LogoutButton = React.forwardRef<
 	(
 		{
 			className,
-			redirectPath = '/auth/login',
+			redirectPath = '/login',
 			showIcon = true,
 			loadingText = 'Signing out...',
 			successMessage = 'Successfully signed out',
