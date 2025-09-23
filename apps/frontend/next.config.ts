@@ -36,8 +36,13 @@ const nextConfig: NextConfig = {
 		serverComponentsHmrCache: true
 	},
 
-	// Security headers (minimal essential set)
+	// Security headers (production only - avoid blocking localhost)
 	async headers() {
+		// Only apply strict security headers in production
+		if (process.env.NODE_ENV !== 'production') {
+			return []
+		}
+
 		return [
 			{
 				source: '/(.*)',

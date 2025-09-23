@@ -10,7 +10,7 @@ import {
 	useStripe
 } from '@stripe/react-stripe-js'
 import { useMutation } from '@tanstack/react-query'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 
 // UI Components
@@ -32,7 +32,7 @@ import {
 
 // MagicUI Components
 import { GlowingEffect } from '@/components/magicui/glowing-effect'
-import { Loader } from '@/components/magicui/loader'
+import { LoadingDots } from '@/components/magicui/loading-spinner'
 import { MagicCard } from '@/components/magicui/magic-card'
 
 // Icons
@@ -156,9 +156,12 @@ export function CheckoutForm({
 		}
 	})
 
-	// Initialize PaymentIntent when component mounts or props change
-	useEffect(() => {
-		if (amount && currency) {
+	// Initialize payment intent on user action - follows KISS principle
+	const initializePayment = useCallback(() => {
+		if (
+			!createPaymentIntentMutation.isPending &&
+			!createPaymentIntentMutation.data
+		) {
 			createPaymentIntentMutation.mutate({
 				amount,
 				currency,
@@ -166,7 +169,7 @@ export function CheckoutForm({
 				customerEmail
 			})
 		}
-	}, [amount, currency, customerEmail, createPaymentIntentMutation, metadata])
+	}, [amount, currency, metadata, customerEmail, createPaymentIntentMutation])
 
 	// Format amount for display
 	const formatAmount = useCallback(
@@ -309,8 +312,8 @@ export function CheckoutForm({
 
 	// Express Checkout (Apple Pay, Google Pay, etc.) handler
 	const handleExpressCheckout = useCallback(
-		async (event: unknown) => {
-			console.log('Express checkout initiated:', event)
+		async (_event: unknown) => {
+			// Express checkout event received
 			setIsProcessing(true)
 			setPaymentStatus('processing')
 
@@ -359,8 +362,99 @@ export function CheckoutForm({
 		errorApi
 	])
 
-	// Loading state with enhanced MagicUI loader
-	if (!stripe || createPaymentIntentMutation.isPending) {
+	// Initial state - prompt user to begin checkout (no useEffect!)
+	if (
+		!createPaymentIntentMutation.data &&
+		!createPaymentIntentMutation.isPending &&
+		!createPaymentIntentMutation.isError
+	) {
+		return (
+			<animated.div style={containerSpring}>
+				<MagicCard
+					className={cn(
+						cardClasses('elevated'),
+						'w-full max-w-lg mx-auto p-8 shadow-2xl border-2',
+						animationClasses('fade-in')
+					)}
+				>
+					<div className="flex flex-col items-center justify-center space-y-6">
+						<div className="relative">
+							<div className="bg-primary/10 p-4 rounded-full">
+								<Shield className="h-10 w-10 text-primary" />
+							</div>
+						</div>
+
+						<div className="text-center space-y-4">
+							<h3
+								className="font-bold text-foreground"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight
+								}}
+							>
+								Ready to Complete Your Purchase
+							</h3>
+
+							{planName && (
+								<div className="bg-muted/30 rounded-xl p-4 border">
+									<p className="font-semibold text-foreground">{planName}</p>
+									<p className="text-2xl font-bold text-primary mt-1">
+										{formatAmount(amount)}
+									</p>
+								</div>
+							)}
+
+							<p className="text-base text-muted-foreground leading-relaxed max-w-sm">
+								Click below to begin secure checkout. Your payment information
+								is encrypted and protected.
+							</p>
+
+							{showTrustSignals && business.trustSignals && (
+								<div className="flex flex-wrap justify-center gap-2 pt-2">
+									{business.trustSignals.map(
+										(
+											signal: string | { text: string; icon?: string },
+											index: number
+										) => (
+											<span
+												key={index}
+												className={badgeClasses(
+													'secondary',
+													'sm',
+													'text-xs font-medium'
+												)}
+											>
+												{typeof signal === 'string' ? signal : signal.text}
+											</span>
+										)
+									)}
+								</div>
+							)}
+						</div>
+
+						<Button
+							onClick={initializePayment}
+							size="lg"
+							className={cn(
+								buttonClasses('primary', 'lg'),
+								'w-full max-w-xs hover:scale-105 transition-transform'
+							)}
+						>
+							<Lock className="w-4 h-4 mr-2" />
+							Begin Secure Checkout
+						</Button>
+
+						<p className="text-xs text-muted-foreground text-center">
+							Powered by Stripe • 256-bit encryption
+						</p>
+					</div>
+				</MagicCard>
+			</animated.div>
+		)
+	}
+
+	// Loading state only when actively creating payment intent
+	if (createPaymentIntentMutation.isPending) {
 		return (
 			<MagicCard
 				className={cn(
@@ -414,7 +508,7 @@ export function CheckoutForm({
 						)}
 					</div>
 
-					<Loader />
+					<LoadingDots size="lg" variant="primary" />
 				</div>
 			</MagicCard>
 		)

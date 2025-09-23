@@ -16,7 +16,7 @@ function Separator({
 			orientation={orientation}
 			data-tokens="applied"
 			className={cn(
-				'tw-:bg-border tw-:shrink-0 tw-:data-[orientation=horizontal]:h-px tw-:data-[orientation=horizontal]:w-full tw-:data-[orientation=vertical]:h-full tw-:data-[orientation=vertical]:w-px',
+				'tw-bg-border tw-shrink-0 tw-data-[orientation=horizontal]:h-px tw-data-[orientation=horizontal]:w-full tw-data-[orientation=vertical]:h-full tw-data-[orientation=vertical]:w-px',
 				className
 			)}
 			{...props}

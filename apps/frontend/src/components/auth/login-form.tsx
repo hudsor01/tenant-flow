@@ -103,9 +103,46 @@ export function LoginForm({
 			} else if (error && typeof error === 'object' && 'issues' in error) {
 				const zodError = error as ZodError
 				if (zodError.issues && zodError.issues[0]) {
-					message = zodError.issues[0].message
+					const issue = zodError.issues[0]
+					// Extract meaningful error message
+					if (issue.message) {
+						// Check if this is an email validation error
+						if (
+							name === 'email' &&
+							(issue.message.includes('email') ||
+								issue.message.includes('Invalid'))
+						) {
+							message = 'Please enter a valid email address'
+						} else if (issue.code === 'too_small') {
+							if (name === 'password') {
+								message = 'Password is required'
+							} else {
+								message = issue.message || 'This field is required'
+							}
+						} else {
+							message = issue.message
+						}
+					} else {
+						message = 'Please enter a valid value'
+					}
 				}
 			}
+
+			// Fallback messages for specific fields if message is still empty or contains raw schema
+			if (
+				!message ||
+				message.includes('"origin"') ||
+				message.includes('"code"')
+			) {
+				if (name === 'email') {
+					message = 'Please enter a valid email address'
+				} else if (name === 'password') {
+					message = 'Password is required'
+				} else {
+					message = 'This field is required'
+				}
+			}
+
 			setFieldErrors(prev => ({ ...prev, [name]: message }))
 			setValidFields(prev => ({ ...prev, [name]: false }))
 		}
@@ -173,7 +210,46 @@ export function LoginForm({
 			if ((error as ZodError).issues) {
 				;(error as ZodError).issues.forEach(issue => {
 					const field = issue.path[0] as string
-					errors[field] = issue.message
+					// Use user-friendly error messages
+					if (issue.message) {
+						// Check if this is an email validation error
+						if (
+							field === 'email' &&
+							(issue.message.includes('email') ||
+								issue.message.includes('Invalid'))
+						) {
+							errors[field] = 'Please enter a valid email address'
+						} else if (issue.code === 'too_small') {
+							if (field === 'password') {
+								errors[field] = 'Password is required'
+							} else {
+								errors[field] = 'This field is required'
+							}
+						} else if (
+							!issue.message.includes('"origin"') &&
+							!issue.message.includes('"code"')
+						) {
+							errors[field] = issue.message
+						} else {
+							// Fallback to generic messages
+							if (field === 'email') {
+								errors[field] = 'Please enter a valid email address'
+							} else if (field === 'password') {
+								errors[field] = 'Password is required'
+							} else {
+								errors[field] = 'This field is required'
+							}
+						}
+					} else {
+						// Fallback to generic messages
+						if (field === 'email') {
+							errors[field] = 'Please enter a valid email address'
+						} else if (field === 'password') {
+							errors[field] = 'Password is required'
+						} else {
+							errors[field] = 'This field is required'
+						}
+					}
 				})
 			}
 		}
@@ -493,12 +569,12 @@ export function LoginForm({
 							type="button"
 							onClick={onGoogleLogin}
 							disabled={isGoogleLoading}
-							className="w-full h-[var(--spacing-11)] flex items-center justify-center gap-[var(--spacing-3)] px-[var(--spacing-4)] bg-background border border-border rounded-[var(--radius-large)] text-foreground font-medium hover:bg-muted/50 hover:border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-[var(--duration-200)] text-sm"
+							className="w-full h-[var(--spacing-11)] flex items-center justify-center gap-[var(--spacing-3)] px-[var(--spacing-4)] bg-white border-2 border-gray-200 rounded-[var(--radius-large)] text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 hover:shadow-md hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-out text-sm shadow-sm group"
 							aria-label="Sign in with Google"
 						>
 							{!isGoogleLoading && (
 								<svg
-									className="w-[var(--spacing-5)] h-[var(--spacing-5)]"
+									className="w-[var(--spacing-5)] h-[var(--spacing-5)] transition-transform duration-200 group-hover:scale-110"
 									viewBox="0 0 24 24"
 								>
 									<path
@@ -540,7 +616,7 @@ export function LoginForm({
 									Connecting…
 								</>
 							) : (
-								'Continue with Google'
+								<span className="font-semibold">Continue with Google</span>
 							)}
 						</button>
 					)}

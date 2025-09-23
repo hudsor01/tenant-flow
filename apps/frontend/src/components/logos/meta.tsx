@@ -20,7 +20,7 @@ export function MetaLogo({
 			height="171"
 			preserveAspectRatio="xMidYMid"
 			viewBox="0 0 256 171"
-			className={cn('tw-:', className)}
+			className={cn('tw-', className)}
 			{...props}
 		>
 			<title>Meta</title>

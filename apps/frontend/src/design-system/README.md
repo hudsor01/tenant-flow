@@ -1,6 +1,6 @@
 # TenantFlow Design System
 
-Apple-inspired design tokens for consistent, minimalist UI.
+Design tokens for consistent, minimalist UI.
 
 ## Structure
 
@@ -73,6 +73,23 @@ const Button = styled.button`
 3. **Consistency**: Unified design language
 4. **Accessibility**: High contrast, clear states
 5. **Polish**: Subtle animations and shadows
+
+## UI/UX Implementation Standards
+
+**IMPORTANT**: Complete UI/UX implementation rules are defined in `.claude/rules/ui-ux-standards.md`
+
+These standards are MANDATORY and directly align with our production globals.css:
+- **Touch-First Design**: 44px minimum interactive element height
+- **Loading State Protocol**: Duration-based loading indicators
+- **Data Density Management**: User-selectable density modes
+- **Form Organization**: Maximum 5 fields per cognitive section
+- **Mobile Simplification**: Responsive breakpoint behaviors
+- **Typography Scale**: Strict Roboto Flex hierarchy
+- **OKLCH Color Space**: Perceptually uniform color system
+- **Animation Timing**: Standardized duration variables
+- **Accessibility First**: WCAG compliance requirements
+
+For full implementation details, refer to `.claude/rules/ui-ux-standards.md`
 
 ## Quick Reference
 

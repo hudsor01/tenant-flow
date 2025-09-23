@@ -1,7 +1,7 @@
 /**
  * TenantFlow Design System - Unified Token System
  * Single source of truth for all design tokens, combining JSON tokens with CSS custom properties
- * Apple-inspired design with OKLCH color space and Roboto Flex typography
+ * Design with OKLCH color space and Roboto Flex typography
  */
 
 // ============================================================================
@@ -11,13 +11,12 @@
 export const typography = {
 	// Font Family
 	fontFamily: {
-		default:
-			"'Roboto Flex', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
+		default: "'Roboto Flex','Roboto', SystemFont, sans-serif",
 		monospace:
 			"ui-monospace, SFMono-Regular, 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
 	},
 
-	// Apple-inspired typography scale
+	// Typography scale
 	fontSize: {
 		'large-title': '26px',
 		'title-1': '22px',
@@ -220,7 +219,7 @@ export const radius = {
 } as const
 
 // ============================================================================
-// SHADOW TOKENS (Premium Apple-inspired)
+// PREMIUM SHADOW TOKENS
 // ============================================================================
 
 export const shadows = {
