@@ -47,8 +47,8 @@ ENV TURBO_TELEMETRY_DISABLED=1 \
     NODE_OPTIONS="--max-old-space-size=2048"
 
 # Build only compilation - skip lint/typecheck since CI already did it
-RUN cd packages/shared && pnpm run build && \
-    cd ../../apps/backend && pnpm run build
+RUN cd packages/shared && npx tsc -p tsconfig.build.json && \
+    cd ../../apps/backend && npx tsc -p tsconfig.build.json
 
 # Ensure runtime has access to Handlebars templates compiled from TypeScript
 RUN mkdir -p apps/backend/dist/pdf/templates \
