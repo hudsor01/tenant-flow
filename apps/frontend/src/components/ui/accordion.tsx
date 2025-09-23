@@ -21,9 +21,9 @@ function AccordionItem({
 			data-slot="accordion-item"
 			className={cn(
 				// Base styles
-				'tw-border-b tw-last:border-b-0',
+				'border-b last:border-b-0',
 				// Enhanced transitions
-				'tw-transition-all tw-duration-200 tw-ease-in-out',
+				'transition-all duration-200 ease-in-out',
 				className
 			)}
 			{...props}
@@ -37,29 +37,29 @@ function AccordionTrigger({
 	...props
 }: React.ComponentProps<typeof AccordionPrimitive.Trigger>) {
 	return (
-		<AccordionPrimitive.Header className="tw-flex">
+		<AccordionPrimitive.Header className="flex">
 			<AccordionPrimitive.Trigger
 				data-slot="accordion-trigger"
 				className={cn(
 					// Base styles with token-based radius
-					'tw-flex tw-flex-1 tw-items-start tw-justify-between tw-gap-4 tw-rounded-[8px] tw-py-4',
-					'tw-text-left tw-text-sm tw-font-medium tw-outline-none',
+					'flex flex-1 items-start justify-between gap-4 rounded-[8px] py-4',
+					'text-left text-sm font-medium outline-none',
 					// Enhanced transitions
-					'tw-transition-all tw-duration-200 tw-ease-in-out',
+					'transition-all duration-200 ease-in-out',
 					// Hover state
-					'tw-hover:underline tw-hover:opacity-90',
+					'hover:underline hover:opacity-90',
 					// Focus state with token-based styling
-					'tw-focus-visible:border-ring tw-focus-visible:ring-ring/50 tw-focus-visible:ring-[3px]',
+					'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
 					// Disabled state
-					'tw-disabled:pointer-events-none tw-disabled:opacity-50',
+					'disabled:pointer-events-none disabled:opacity-50',
 					// Open state animation
-					'tw-[&[data-state=open]>svg]:rotate-180',
+					'[&[data-state=open]>svg]:rotate-180',
 					className
 				)}
 				{...props}
 			>
 				{children}
-				<ChevronDownIcon className="tw-text-muted-foreground tw-pointer-events-none tw-size-4 tw-shrink-0 tw-translate-y-0.5 tw-transition-transform tw-duration-200 tw-ease-out" />
+				<ChevronDownIcon className="text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200 ease-out" />
 			</AccordionPrimitive.Trigger>
 		</AccordionPrimitive.Header>
 	)
@@ -75,15 +75,15 @@ function AccordionContent({
 			data-slot="accordion-content"
 			className={cn(
 				// Base styles
-				'tw-overflow-hidden tw-text-sm',
+				'overflow-hidden text-sm',
 				// Enhanced animations
-				'tw-data-[state=closed]:animate-accordion-up tw-data-[state=open]:animate-accordion-down',
+				'data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down',
 				// Smooth transitions
-				'tw-transition-all tw-duration-300 tw-ease-out'
+				'transition-all duration-300 ease-out'
 			)}
 			{...props}
 		>
-			<div className={cn('tw-pt-0 tw-pb-4', className)}>{children}</div>
+			<div className={cn('pt-0 pb-4', className)}>{children}</div>
 		</AccordionPrimitive.Content>
 	)
 }
