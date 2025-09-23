@@ -3,6 +3,7 @@
 	"name": "@repo/frontend",
 	"version": "0.1.0",
 	"private": true,
+	"type": "module",
 	"scripts": {
 		"dev": "doppler run -- next dev",
 		"dev:https": "doppler run -- next dev --experimental-https --experimental-https-key ./certs/localhost+2-key.pem --experimental-https-cert ./certs/localhost+2.pem",
@@ -113,6 +114,11 @@
 		"web-vitals": "^5.1.0",
 		"zod": "4.1.11",
 		"zustand": "5.0.8"
+	},
+	"eslintConfig": {
+		"extends": [
+			"./eslint.config.mjs"
+		]
 	},
 	"devDependencies": {
 		"@axe-core/cli": "^4.10.2",

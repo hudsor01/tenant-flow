@@ -14,19 +14,19 @@ function Label({
 			data-slot="label"
 			className={cn(
 				// Base styles
-				'tw-flex tw-items-center tw-gap-2 tw-text-sm tw-leading-none tw-font-medium tw-select-none',
+				'flex items-center gap-2 text-sm leading-none font-medium select-none',
 				// Enhanced transitions
-				'tw-transition-all tw-duration-200 tw-ease-in-out',
+				'transition-all duration-200 ease-in-out',
 				// Hover state for clickable labels
-				'tw-[&:has(input:not(:disabled))]:cursor-pointer',
-				'tw-hover:opacity-90',
+				'[&:has(input:not(:disabled))]:cursor-pointer',
+				'hover:opacity-90',
 				// Focus state
-				'tw-focus-visible:outline-none tw-focus-visible:underline tw-focus-visible:underline-offset-4',
+				'focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-4',
 				// Disabled states
-				'tw-group-data-[disabled=true]:pointer-events-none tw-group-data-[disabled=true]:opacity-50',
-				'tw-peer-disabled:cursor-not-allowed tw-peer-disabled:opacity-50',
+				'group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50',
+				'peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
 				// Required field indicator
-				"tw-has-[data-required]:after:content-['*'] tw-has-[data-required]:after:ml-1 tw-has-[data-required]:after:text-destructive",
+				"has-[data-required]:after:content-['*'] has-[data-required]:after:ml-1 has-[data-required]:after:text-destructive",
 				className
 			)}
 			{...props}
