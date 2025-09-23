@@ -10,9 +10,9 @@
 
 
 import nextPlugin from '@next/eslint-plugin-next'
-import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import tseslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
+import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import colorTokensConfig from './color-tokens.eslint.js'
 
 export default [
@@ -141,8 +141,8 @@ export default [
 		rules: {
 			'color-tokens/no-hex-colors': 'error',
 			'color-tokens/no-prohibited-colors': 'error',
-			'color-tokens/no-hardcoded-tailwind-colors': 'off', // TODO: Fix systematically after critical ESLint issues resolved
-			'color-tokens/no-hardcoded-color-functions': 'off'  // TODO: Fix systematically after critical ESLint issues resolved
+			'color-tokens/no-hardcoded-tailwind-colors': 'error',
+			'color-tokens/no-hardcoded-color-functions': 'error'
 		}
 	}
 ]
