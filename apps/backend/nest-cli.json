@@ -18,14 +18,6 @@
 				"outDir": "src/pdf/templates"
 			}
 		],
-		"plugins": [
-			{
-				"name": "@nestjs/swagger",
-				"options": {
-					"classValidatorShim": false,
-					"introspectComments": false
-				}
-			}
-		]
+		"plugins": []
 	}
 }

@@ -6,16 +6,15 @@
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
-import { Injectable, BadRequestException } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { Logger } from '@nestjs/common'
-import { SupabaseService } from '../database/supabase.service'
-import { TenantCreatedEvent } from '../notifications/events/notification.events'
 import type {
 	CreateTenantRequest,
+	Tables,
 	UpdateTenantRequest
-} from '../schemas/tenants.schema'
-import type { Tables } from '@repo/shared'
+} from '@repo/shared'
+import { SupabaseService } from '../database/supabase.service'
+import { TenantCreatedEvent } from '../notifications/events/notification.events'
 
 // Use native Supabase table types
 type Tenant = Tables<'Tenant'>
@@ -64,9 +63,7 @@ export class TenantsService {
 			.rpc('get_user_tenants', {
 				p_user_id: userId,
 				p_search: query.search as string | undefined,
-				p_invitation_status: query.invitationStatus as
-					| string
-					| undefined,
+				p_invitation_status: query.invitationStatus as string | undefined,
 				p_limit: query.limit as number | undefined,
 				p_offset: query.offset as number | undefined,
 				p_sort_by: query.sortBy as string | undefined,
@@ -98,9 +95,7 @@ export class TenantsService {
 				userId,
 				error: error.message
 			})
-			throw new BadRequestException(
-				'Failed to retrieve tenant statistics'
-			)
+			throw new BadRequestException('Failed to retrieve tenant statistics')
 		}
 
 		return data
@@ -138,7 +133,9 @@ export class TenantsService {
 			.getAdminClient()
 			.rpc('create_tenant', {
 				p_user_id: userId,
-				p_name: createRequest.name,
+				p_name:
+					createRequest.name ||
+					`${createRequest.firstName} ${createRequest.lastName}`,
 				p_email: createRequest.email,
 				p_phone: createRequest.phone || undefined,
 				p_emergency_contact: createRequest.emergencyContact || undefined
@@ -188,7 +185,11 @@ export class TenantsService {
 			.rpc('update_tenant', {
 				p_user_id: userId,
 				p_tenant_id: tenantId,
-				p_name: updateRequest.name,
+				p_name:
+					updateRequest.name ||
+					(updateRequest.firstName && updateRequest.lastName
+						? `${updateRequest.firstName} ${updateRequest.lastName}`
+						: undefined),
 				p_email: updateRequest.email,
 				p_phone: updateRequest.phone,
 				p_emergency_contact: updateRequest.emergencyContact

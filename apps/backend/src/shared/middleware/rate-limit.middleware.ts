@@ -9,8 +9,8 @@
  * - Security event logging and alerting
  */
 
-import { Injectable, NestMiddleware, Logger } from '@nestjs/common'
-import type { FastifyRequest, FastifyReply } from 'fastify'
+import { Injectable, Logger, NestMiddleware } from '@nestjs/common'
+import type { Request, Response } from 'express'
 
 interface RateLimitWindow {
 	requests: number
@@ -84,14 +84,15 @@ export class RateLimitMiddleware implements NestMiddleware {
 		setInterval(() => this.cleanupExpiredEntries(), 5 * 60 * 1000)
 	}
 
-	use(req: FastifyRequest, res: FastifyReply, next: () => void): void {
+	use(req: Request, res: Response, next: () => void): void {
 		const clientIP = this.getClientIP(req)
 		const endpoint = this.getEndpointType(req.url)
-		const config = RATE_LIMIT_CONFIGS[endpoint] || RATE_LIMIT_CONFIGS.DEFAULT || {
-			windowMs: 15 * 60 * 1000,
-			maxRequests: 1000,
-			burst: 50
-		}
+		const config = RATE_LIMIT_CONFIGS[endpoint] ||
+			RATE_LIMIT_CONFIGS.DEFAULT || {
+				windowMs: 15 * 60 * 1000,
+				maxRequests: 1000,
+				burst: 50
+			}
 
 		// Check if IP is blocked
 		if (this.blockedIPs.has(clientIP)) {
@@ -127,7 +128,9 @@ export class RateLimitMiddleware implements NestMiddleware {
 
 		// Check for burst protection
 		const timeSinceFirst = now - window.firstRequest
-		const isBurst = timeSinceFirst < 10000 && window.requests > (config.burst || config.maxRequests / 2)
+		const isBurst =
+			timeSinceFirst < 10000 &&
+			window.requests > (config.burst || config.maxRequests / 2)
 
 		if (isBurst) {
 			this.handleSuspiciousActivity(clientIP, req, 'burst_detected')
@@ -151,20 +154,13 @@ export class RateLimitMiddleware implements NestMiddleware {
 			return
 		}
 
-		// Add rate limit headers using Node.js native approach
-		if (res.raw && res.raw.setHeader) {
-			res.raw.setHeader('X-RateLimit-Limit', config.maxRequests.toString())
-			res.raw.setHeader('X-RateLimit-Remaining', (config.maxRequests - window.requests).toString())
-			res.raw.setHeader('X-RateLimit-Reset', new Date(window.resetTime).toISOString())
-		} else {
-			try {
-				res.header('X-RateLimit-Limit', config.maxRequests.toString())
-				res.header('X-RateLimit-Remaining', (config.maxRequests - window.requests).toString())
-				res.header('X-RateLimit-Reset', new Date(window.resetTime).toISOString())
-			} catch (error) {
-				this.logger.warn('Failed to set rate limit headers', { error: error instanceof Error ? error.message : String(error) })
-			}
-		}
+		// Add rate limit headers using Express response
+		res.setHeader('X-RateLimit-Limit', config.maxRequests.toString())
+		res.setHeader(
+			'X-RateLimit-Remaining',
+			(config.maxRequests - window.requests).toString()
+		)
+		res.setHeader('X-RateLimit-Reset', new Date(window.resetTime).toISOString())
 
 		// Log for monitoring
 		if (window.requests > config.maxRequests * 0.8) {
@@ -180,7 +176,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 		next()
 	}
 
-	private getClientIP(req: FastifyRequest): string {
+	private getClientIP(req: Request): string {
 		// Handle various proxy setups (Cloudflare, AWS ALB, etc.)
 		const forwardedFor = req.headers['x-forwarded-for'] as string
 		const realIP = req.headers['x-real-ip'] as string
@@ -198,11 +194,19 @@ export class RateLimitMiddleware implements NestMiddleware {
 
 	private getEndpointType(url: string): string {
 		// Categorize endpoints for appropriate rate limiting
-		if (url.includes('/auth/') || url.includes('/login') || url.includes('/register')) {
+		if (
+			url.includes('/auth/') ||
+			url.includes('/login') ||
+			url.includes('/register')
+		) {
 			return 'AUTH'
 		}
 
-		if (url.includes('/stripe/') || url.includes('/payment') || url.includes('/billing')) {
+		if (
+			url.includes('/stripe/') ||
+			url.includes('/payment') ||
+			url.includes('/billing')
+		) {
 			return 'PAYMENT'
 		}
 
@@ -210,14 +214,22 @@ export class RateLimitMiddleware implements NestMiddleware {
 			return 'WEBHOOK'
 		}
 
-		if (url.includes('/health') || url.includes('/ping') || url.includes('/public')) {
+		if (
+			url.includes('/health') ||
+			url.includes('/ping') ||
+			url.includes('/public')
+		) {
 			return 'PUBLIC'
 		}
 
 		return 'DEFAULT'
 	}
 
-	private handleRateLimitExceeded(clientIP: string, req: FastifyRequest, config: RateLimitConfig): void {
+	private handleRateLimitExceeded(
+		clientIP: string,
+		req: Request,
+		config: RateLimitConfig
+	): void {
 		this.securityLogger.warn('Rate limit exceeded', {
 			ip: clientIP,
 			endpoint: req.url,
@@ -231,7 +243,11 @@ export class RateLimitMiddleware implements NestMiddleware {
 		this.handleSuspiciousActivity(clientIP, req, 'rate_limit_exceeded')
 	}
 
-	private handleSuspiciousActivity(clientIP: string, req: FastifyRequest, reason: string): void {
+	private handleSuspiciousActivity(
+		clientIP: string,
+		req: Request,
+		reason: string
+	): void {
 		if (!this.suspiciousIPs.has(clientIP)) {
 			this.suspiciousIPs.add(clientIP)
 
@@ -245,18 +261,24 @@ export class RateLimitMiddleware implements NestMiddleware {
 			})
 
 			// Auto-block after multiple violations
-			setTimeout(() => {
-				if (this.suspiciousIPs.has(clientIP)) {
-					this.blockedIPs.add(clientIP)
-					this.securityLogger.error('IP automatically blocked due to repeated violations', {
-						ip: clientIP,
-						reason: 'repeated_violations'
-					})
+			setTimeout(
+				() => {
+					if (this.suspiciousIPs.has(clientIP)) {
+						this.blockedIPs.add(clientIP)
+						this.securityLogger.error(
+							'IP automatically blocked due to repeated violations',
+							{
+								ip: clientIP,
+								reason: 'repeated_violations'
+							}
+						)
 
-					// Remove from blocked list after 1 hour
-					setTimeout(() => this.blockedIPs.delete(clientIP), 60 * 60 * 1000)
-				}
-			}, 5 * 60 * 1000) // Block after 5 minutes of suspicious activity
+						// Remove from blocked list after 1 hour
+						setTimeout(() => this.blockedIPs.delete(clientIP), 60 * 60 * 1000)
+					}
+				},
+				5 * 60 * 1000
+			) // Block after 5 minutes of suspicious activity
 		}
 	}
 
@@ -299,7 +321,11 @@ export class RateLimitMiddleware implements NestMiddleware {
 		return Array.from(this.blockedIPs)
 	}
 
-	public getRateLimitStats(): { totalKeys: number; suspiciousIPs: number; blockedIPs: number } {
+	public getRateLimitStats(): {
+		totalKeys: number
+		suspiciousIPs: number
+		blockedIPs: number
+	} {
 		return {
 			totalKeys: this.rateLimitStore.size,
 			suspiciousIPs: this.suspiciousIPs.size,

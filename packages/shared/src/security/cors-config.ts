@@ -9,10 +9,7 @@
 export const APP_DOMAINS = {
 	// Frontend domains
 	FRONTEND: {
-		PRODUCTION: [
-			'https://tenantflow.app',
-			'https://www.tenantflow.app'
-		],
+		PRODUCTION: ['https://tenantflow.app', 'https://www.tenantflow.app'],
 		DEVELOPMENT: [
 			'http://localhost:3000',
 			'http://localhost:3002',
@@ -20,33 +17,26 @@ export const APP_DOMAINS = {
 			'http://127.0.0.1:3002'
 		]
 	},
-	
-	// Backend API domains  
+
+	// Backend API domains
 	BACKEND: {
-		PRODUCTION: [
-			'https://api.tenantflow.app'
-		],
-		DEVELOPMENT: [
-			'http://localhost:4600',
-			'http://127.0.0.1:4600'
-		]
+		PRODUCTION: ['https://api.tenantflow.app'],
+		DEVELOPMENT: ['http://localhost:4600', 'http://127.0.0.1:4600']
 	},
-	
+
 	// Railway infrastructure
 	RAILWAY: {
-		PRODUCTION: [
-			'https://healthcheck.railway.app'
-		],
-		DEVELOPMENT: [
-			'https://healthcheck.railway.app'
-		]
+		PRODUCTION: ['https://healthcheck.railway.app'],
+		DEVELOPMENT: ['https://healthcheck.railway.app']
 	}
 } as const
 
 /**
  * Get CORS allowed origins for backend
  */
-export function getCORSOrigins(environment: 'development' | 'production' = 'production'): string[] | boolean {
+export function getCORSOrigins(
+	environment: 'development' | 'production' = 'production'
+): string[] | boolean {
 	if (environment === 'development') {
 		// SECURITY FIX: Use specific origins even in development
 		return [
@@ -55,7 +45,7 @@ export function getCORSOrigins(environment: 'development' | 'production' = 'prod
 			...APP_DOMAINS.RAILWAY.DEVELOPMENT
 		]
 	}
-	
+
 	return [
 		...APP_DOMAINS.FRONTEND.PRODUCTION,
 		// Allow API calls from the same domain (for server-side operations)
@@ -69,12 +59,13 @@ export function getCORSOrigins(environment: 'development' | 'production' = 'prod
  * Get environment-appropriate CORS origins
  */
 export function getCORSOriginsForEnv(): string[] | boolean {
-	const env = process.env.NODE_ENV === 'development' ? 'development' : 'production'
+	const env =
+		process.env.NODE_ENV === 'development' ? 'development' : 'production'
 	return getCORSOrigins(env)
 }
 
 /**
- * CORS configuration object for Fastify
+ * CORS configuration object for Express
  */
 export function getCORSConfig() {
 	return {
@@ -83,7 +74,7 @@ export function getCORSConfig() {
 		methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
 		allowedHeaders: [
 			'Origin',
-			'X-Requested-With', 
+			'X-Requested-With',
 			'Content-Type',
 			'Accept',
 			'Authorization',

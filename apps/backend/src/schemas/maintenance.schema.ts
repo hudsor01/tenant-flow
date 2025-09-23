@@ -1,12 +1,12 @@
 /**
  * Maintenance JSON Schema Definitions
  *
- * Ultra-native Fastify JSON Schema validation
+ * Express JSON Schema validation
  * Single source of truth - no duplication
  */
 
-import type { JSONSchema } from '../shared/types/fastify-type-provider'
-import { uuidSchema, dateTimeSchema } from './shared.schema'
+import type { JSONSchema } from '../shared/types/express-type-provider'
+import { dateTimeSchema, uuidSchema } from './shared.schema'
 
 const prioritySchema: JSONSchema = {
 	type: 'string',
@@ -37,23 +37,6 @@ const categorySchema: JSONSchema = {
 /**
  * Create maintenance request schema
  */
-export interface CreateMaintenanceRequest {
-	unitId: string
-	title: string
-	description: string
-	priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-	category?:
-		| 'PLUMBING'
-		| 'ELECTRICAL'
-		| 'HVAC'
-		| 'APPLIANCE'
-		| 'STRUCTURAL'
-		| 'GENERAL'
-		| 'OTHER'
-	scheduledDate?: string
-	estimatedCost?: number
-}
-
 export const createMaintenanceSchema: JSONSchema = {
 	type: 'object',
 	required: ['unitId', 'title', 'description'],
@@ -84,26 +67,6 @@ export const createMaintenanceSchema: JSONSchema = {
 /**
  * Update maintenance request schema
  */
-export interface UpdateMaintenanceRequest {
-	title?: string
-	description?: string
-	priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-	category?:
-		| 'PLUMBING'
-		| 'ELECTRICAL'
-		| 'HVAC'
-		| 'APPLIANCE'
-		| 'STRUCTURAL'
-		| 'GENERAL'
-		| 'OTHER'
-	status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
-	scheduledDate?: string
-	completedDate?: string
-	estimatedCost?: number
-	actualCost?: number
-	notes?: string
-}
-
 export const updateMaintenanceSchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
@@ -143,25 +106,6 @@ export const updateMaintenanceSchema: JSONSchema = {
 /**
  * Maintenance query schema
  */
-export interface MaintenanceQueryRequest {
-	unitId?: string
-	propertyId?: string
-	priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-	category?:
-		| 'PLUMBING'
-		| 'ELECTRICAL'
-		| 'HVAC'
-		| 'APPLIANCE'
-		| 'STRUCTURAL'
-		| 'GENERAL'
-		| 'OTHER'
-	status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
-	limit?: number
-	offset?: number
-	sortBy?: 'priority' | 'status' | 'scheduledDate' | 'createdAt'
-	sortOrder?: 'asc' | 'desc'
-}
-
 export const maintenanceQuerySchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,

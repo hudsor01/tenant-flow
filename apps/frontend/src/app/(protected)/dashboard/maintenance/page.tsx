@@ -1,7 +1,4 @@
-'use client'
-
 import { CreateMaintenanceDialog } from '@/components/maintenance/create-maintenance-dialog'
-import { MaintenanceTable } from '@/components/maintenance/maintenance-table'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -12,8 +9,15 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select'
-import { maintenanceApi } from '@/lib/api-client'
-import { useQuery } from '@tanstack/react-query'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow
+} from '@/components/ui/table'
+import { getMaintenancePageData } from '@/lib/api/dashboard-server'
 import {
 	AlertCircle,
 	Calendar,
@@ -26,20 +30,9 @@ import {
 	Wrench
 } from 'lucide-react'
 
-export default function MaintenancePage() {
-	const {
-		data: maintenanceResponse,
-		isLoading,
-		isError
-	} = useQuery({
-		queryKey: ['maintenance-requests'],
-		queryFn: () => maintenanceApi.list()
-	})
-
+export default async function MaintenancePage() {
+	const maintenanceResponse = await getMaintenancePageData()
 	const maintenanceData = maintenanceResponse?.data || []
-
-	if (isLoading) return <div>Loading...</div>
-	if (isError || !maintenanceData) return <div>Error fetching data</div>
 
 	const openRequests = maintenanceData.filter(
 		(item: { status: string }) => item.status === 'OPEN'
@@ -226,7 +219,77 @@ export default function MaintenancePage() {
 					</p>
 				</div>
 				<div className="p-6">
-					<MaintenanceTable requests={maintenanceData} isLoading={isLoading} />
+					<Table>
+						<TableHeader className="bg-muted/50">
+							<TableRow>
+								<TableHead className="font-semibold">ID</TableHead>
+								<TableHead className="font-semibold">Property</TableHead>
+								<TableHead className="font-semibold">Unit</TableHead>
+								<TableHead className="font-semibold">Category</TableHead>
+								<TableHead className="font-semibold">Priority</TableHead>
+								<TableHead className="font-semibold">Status</TableHead>
+								<TableHead className="font-semibold">Created</TableHead>
+								<TableHead className="font-semibold">Actions</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{maintenanceData.length > 0 ? (
+								maintenanceData.map(request => (
+									<TableRow key={request.id} className="hover:bg-muted/30">
+										<TableCell className="font-medium">{request.id}</TableCell>
+										<TableCell>
+											{typeof request.property === 'string'
+												? request.property
+												: request.property?.name || 'No Property'}
+										</TableCell>
+										<TableCell>
+											{request.unitId ? `Unit ${request.unitId}` : 'No Unit'}
+										</TableCell>
+										<TableCell>{request.category || 'No Category'}</TableCell>
+										<TableCell>{request.priority || 'No Priority'}</TableCell>
+										<TableCell>
+											<span
+												className={`px-2 py-1 rounded-full text-xs ${
+													request.status === 'OPEN'
+														? 'bg-[var(--color-system-yellow-10)] text-[var(--color-system-yellow)]'
+														: request.status === 'IN_PROGRESS'
+															? 'bg-[var(--color-system-blue-10)] text-[var(--color-system-blue)]'
+															: request.status === 'COMPLETED'
+																? 'bg-[var(--color-system-green-10)] text-[var(--color-system-green)]'
+																: 'bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)]'
+												}`}
+											>
+												{request.status || 'No Status'}
+											</span>
+										</TableCell>
+										<TableCell className="text-sm text-muted-foreground">
+											{request.createdAt
+												? new Date(request.createdAt).toLocaleDateString()
+												: 'No date'}
+										</TableCell>
+										<TableCell>
+											{/* Placeholder for actions; replace with a component like MaintenanceActionButtons if available */}
+											<Button size="sm" variant="outline">
+												View
+											</Button>
+										</TableCell>
+									</TableRow>
+								))
+							) : (
+								<TableRow>
+									<TableCell colSpan={8} className="h-24 text-center">
+										<div className="flex flex-col items-center gap-2">
+											<Wrench className="size-12 text-muted-foreground/50" />
+											<p className="text-muted-foreground">
+												No maintenance requests found.
+											</p>
+											<CreateMaintenanceDialog />
+										</div>
+									</TableCell>
+								</TableRow>
+							)}
+						</TableBody>
+					</Table>
 				</div>
 			</Card>
 

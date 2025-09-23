@@ -1,12 +1,21 @@
-import { Controller, Get, Optional, Query, NotFoundException } from '@nestjs/common'
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
-import type { AuthServiceValidatedUser, ControllerApiResponse } from '@repo/shared'
-import { Logger } from '@nestjs/common'
+import {
+	Controller,
+	Get,
+	Logger,
+	NotFoundException,
+	Optional,
+	Query
+} from '@nestjs/common'
+// Swagger imports removed
+import type {
+	AuthServiceValidatedUser,
+	ControllerApiResponse
+} from '@repo/shared'
 import { CurrentUser } from '../shared/decorators/current-user.decorator'
 import { Public } from '../shared/decorators/public.decorator'
 import { DashboardService } from './dashboard.service'
 
-@ApiTags('dashboard')
+// @ApiTags('dashboard')
 @Controller('dashboard')
 export class DashboardController {
 	constructor(
@@ -17,33 +26,39 @@ export class DashboardController {
 	}
 
 	@Get('stats')
-	@ApiOperation({ summary: 'Get dashboard statistics (test user data)' })
-	@ApiResponse({
-		status: 200,
-		description: 'Dashboard statistics retrieved successfully'
-	})
-	async getStats(): Promise<ControllerApiResponse> {
-		this.logger?.log({ action: 'getStats' }, 'Getting dashboard stats')
+	// @ApiOperation({ summary: 'Get dashboard statistics for authenticated user' })
+	// @ApiResponse({ status: 200, description: 'Dashboard statistics retrieved successfully' })
+	async getStats(
+		@CurrentUser() user?: AuthServiceValidatedUser
+	): Promise<ControllerApiResponse> {
+		this.logger?.log(
+			{
+				action: 'getStats',
+				userId: user?.id
+			},
+			'Getting dashboard stats for authenticated user'
+		)
 
 		if (!this.dashboardService) {
 			throw new NotFoundException('Dashboard service not available')
 		}
 
-		const data = await this.dashboardService.getStats('test-user-id')
+		if (!user?.id) {
+			throw new NotFoundException('User not authenticated')
+		}
+
+		const data = await this.dashboardService.getStats(user.id)
 		return {
 			success: true,
 			data,
 			message: 'Dashboard statistics retrieved successfully',
-        timestamp: new Date()
+			timestamp: new Date()
 		}
 	}
 
 	@Get('activity')
-	@ApiOperation({ summary: 'Get recent dashboard activity' })
-	@ApiResponse({
-		status: 200,
-		description: 'Dashboard activity retrieved successfully'
-	})
+	// @ApiOperation({ summary: 'Get recent dashboard activity' })
+	// @ApiResponse({ status: 200, description: 'Dashboard activity retrieved successfully' })
 	async getActivity(
 		@CurrentUser() user?: AuthServiceValidatedUser
 	): Promise<ControllerApiResponse> {
@@ -69,38 +84,16 @@ export class DashboardController {
 			success: true,
 			data,
 			message: 'Dashboard activity retrieved successfully',
-        timestamp: new Date()
+			timestamp: new Date()
 		}
 	}
 
 	@Get('billing/insights')
-	@ApiOperation({
-		summary: 'Get comprehensive billing insights from Stripe Sync Engine',
-		description:
-			'Advanced analytics including revenue, churn, MRR, and customer lifetime value'
-	})
-	@ApiQuery({
-		name: 'startDate',
-		required: false,
-		type: String,
-		description:
-			'Start date for analytics (ISO string, defaults to 12 months ago)'
-	})
-	@ApiQuery({
-		name: 'endDate',
-		required: false,
-		type: String,
-		description: 'End date for analytics (ISO string, defaults to now)'
-	})
-	@ApiResponse({
-		status: 200,
-		description:
-			'Billing insights retrieved successfully from Stripe Sync Engine data'
-	})
-	@ApiResponse({
-		status: 404,
-		description: 'Stripe Sync Engine not configured or no data available'
-	})
+	// @ApiOperation({ summary: 'Get comprehensive billing insights from Stripe Sync Engine' })
+	// @ApiQuery({ name: 'startDate', required: false, type: String })
+	// @ApiQuery({ name: 'endDate', required: false, type: String })
+	// @ApiResponse({ status: 200, description: 'Billing insights retrieved successfully' })
+	// @ApiResponse({ status: 404, description: 'Stripe Sync Engine not configured' })
 	async getBillingInsights(
 		@Query('startDate') startDate?: string,
 		@Query('endDate') endDate?: string
@@ -121,12 +114,15 @@ export class DashboardController {
 
 		const parsedStartDate = startDate ? new Date(startDate) : undefined
 		const parsedEndDate = endDate ? new Date(endDate) : undefined
-		if ((parsedStartDate && isNaN(parsedStartDate.getTime())) || (parsedEndDate && isNaN(parsedEndDate.getTime()))) {
+		if (
+			(parsedStartDate && isNaN(parsedStartDate.getTime())) ||
+			(parsedEndDate && isNaN(parsedEndDate.getTime()))
+		) {
 			return {
 				success: false,
 				data: null,
 				message: 'Invalid date format. Use ISO date strings.',
-        timestamp: new Date()
+				timestamp: new Date()
 			}
 		}
 
@@ -138,21 +134,16 @@ export class DashboardController {
 		return {
 			success: true,
 			data,
-			message: 'Billing insights retrieved successfully from Stripe Sync Engine',
-        timestamp: new Date()
+			message:
+				'Billing insights retrieved successfully from Stripe Sync Engine',
+			timestamp: new Date()
 		}
 	}
 
 	@Get('billing/health')
 	@Public()
-	@ApiOperation({
-		summary: 'Check if billing insights are available',
-		description: 'Health check for Stripe Sync Engine integration'
-	})
-	@ApiResponse({
-		status: 200,
-		description: 'Billing insights availability status'
-	})
+	// @ApiOperation({ summary: 'Check if billing insights are available' })
+	// @ApiResponse({ status: 200, description: 'Billing insights availability status' })
 	async getBillingHealth(): Promise<ControllerApiResponse> {
 		this.logger?.log(
 			{
@@ -187,20 +178,13 @@ export class DashboardController {
 			message: isAvailable
 				? 'Billing insights are available'
 				: 'Billing insights not available - Stripe Sync Engine not configured',
-        timestamp: new Date()
+			timestamp: new Date()
 		}
 	}
 
 	@Get('property-performance')
-	@ApiOperation({
-		summary: 'Get per-property performance metrics',
-		description:
-			'Returns sorted property performance data including occupancy rates, unit counts, and revenue'
-	})
-	@ApiResponse({
-		status: 200,
-		description: 'Property performance metrics retrieved successfully'
-	})
+	// @ApiOperation({ summary: 'Get per-property performance metrics' })
+	// @ApiResponse({ status: 200, description: 'Property performance metrics retrieved successfully' })
 	async getPropertyPerformance(
 		@CurrentUser() user?: AuthServiceValidatedUser
 	): Promise<ControllerApiResponse> {
@@ -226,20 +210,14 @@ export class DashboardController {
 			success: true,
 			data,
 			message: 'Property performance retrieved successfully',
-            timestamp: new Date()
+			timestamp: new Date()
 		}
 	}
 
 	@Get('uptime')
 	@Public()
-	@ApiOperation({
-		summary: 'Get system uptime and SLA metrics',
-		description: 'Returns current system uptime percentage and SLA status'
-	})
-	@ApiResponse({
-		status: 200,
-		description: 'System uptime metrics retrieved successfully'
-	})
+	// @ApiOperation({ summary: 'Get system uptime and SLA metrics' })
+	// @ApiResponse({ status: 200, description: 'System uptime metrics retrieved successfully' })
 	async getUptime(): Promise<ControllerApiResponse> {
 		this.logger?.log(
 			{
@@ -260,7 +238,7 @@ export class DashboardController {
 			success: true,
 			data,
 			message: 'System uptime retrieved successfully',
-            timestamp: new Date()
+			timestamp: new Date()
 		}
 	}
 }
