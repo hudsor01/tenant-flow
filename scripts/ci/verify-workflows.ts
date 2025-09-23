@@ -118,7 +118,7 @@ export class CIValidator {
 		const cliRegex = /\btenant-flow\b/g
 		if (cliRegex.test(yaml)) {
 			problems.push(
-				`${filename}: found bare CLI invocation 'tenant-flow' — prefer npm scripts or npx to ensure CI runs it (e.g. "npm run tenant-flow" or "npx tenant-flow").`
+				`${filename}: found bare CLI invocation 'tenant-flow' — prefer npm scripts or npx to ensure CI runs it.`
 			)
 		}
 		return problems
@@ -137,9 +137,7 @@ export class CIValidator {
 		try {
 			const files = await this.loadWorkflows()
 			if (files.length === 0) {
-				result.problems.push(
-					'No workflow files found under .github/workflows'
-				)
+				result.problems.push('No workflow files found under .github/workflows')
 				result.ok = false
 				return result
 			}
@@ -148,9 +146,7 @@ export class CIValidator {
 				try {
 					content = await this.readFile(f)
 				} catch (e) {
-					result.problems.push(
-						`Failed to read ${f}: ${(e as Error).message}`
-					)
+					result.problems.push(`Failed to read ${f}: ${(e as Error).message}`)
 					continue
 				}
 				result.scannedFiles.push(f)

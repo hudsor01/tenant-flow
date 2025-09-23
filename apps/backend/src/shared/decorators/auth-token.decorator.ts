@@ -1,9 +1,9 @@
 import { createParamDecorator, type ExecutionContext } from '@nestjs/common'
-import type { FastifyRequest } from 'fastify'
+import type { Request } from 'express'
 
 export const AuthToken = createParamDecorator(
 	(_data: string | undefined, ctx: ExecutionContext): string | undefined => {
-		const request = ctx.switchToHttp().getRequest<FastifyRequest>()
+		const request = ctx.switchToHttp().getRequest<Request>()
 		const authHeader = request.headers.authorization
 
 		if (

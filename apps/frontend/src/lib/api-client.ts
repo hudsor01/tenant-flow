@@ -2,29 +2,26 @@
  * Frontend API client configuration for TenantFlow
  * Integrates with shared API client and backend endpoints
  */
-import { apiClient } from '@repo/shared'
 import type {
-	MaintenanceRequestResponse,
 	DashboardFinancialStats,
+	DashboardStats,
 	ExpenseSummaryResponse,
 	FinancialOverviewResponse,
 	LeaseStatsResponse,
-	TenantWithLeaseInfo,
+	MaintenanceRequest,
+	MaintenanceRequestInput,
+	MaintenanceRequestResponse,
+	MaintenanceRequestUpdate,
+	MaintenanceStats,
 	PropertyPerformance,
 	PropertyWithUnits,
 	SystemUptime,
-	MaintenanceRequest,
-	MaintenanceStats,
-	MaintenanceRequestInput,
-	MaintenanceRequestUpdate
+	TenantStats,
+	TenantWithLeaseInfo
 } from '@repo/shared'
-import type { DashboardStats, TenantStats } from '@repo/shared'
+import { apiClient } from '@repo/shared'
 
-import type {
-	Tables,
-	TablesInsert,
-	TablesUpdate
-} from '@repo/shared'
+import type { Tables, TablesInsert, TablesUpdate } from '@repo/shared'
 
 // Use native Supabase table types for API operations
 type Lease = Tables<'Lease'>
@@ -41,8 +38,32 @@ type TenantUpdate = TablesUpdate<'Tenant'>
 type UnitInsert = TablesInsert<'Unit'>
 type UnitUpdate = TablesUpdate<'Unit'>
 
-export const API_BASE_URL =
-	process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+// API Base URL Configuration
+// In production, environment variables are required for proper deployment
+// In development, falls back to local backend port
+function getApiBaseUrl(): string {
+	// Check for explicit environment variables first
+	if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+		return process.env.NEXT_PUBLIC_API_BASE_URL
+	}
+	if (process.env.NEXT_PUBLIC_BACKEND_URL) {
+		return process.env.NEXT_PUBLIC_BACKEND_URL
+	}
+
+	// In production, require environment variables to be set
+	if (process.env.NODE_ENV === 'production') {
+		console.error(
+			'Missing required environment variable: NEXT_PUBLIC_API_BASE_URL or NEXT_PUBLIC_BACKEND_URL'
+		)
+		// Return empty string to make the error obvious
+		return ''
+	}
+
+	// Only use localhost as fallback in development
+	return 'http://localhost:4600'
+}
+
+export const API_BASE_URL = getApiBaseUrl()
 
 /**
  * Dashboard API endpoints
@@ -55,7 +76,9 @@ export const dashboardApi = {
 		apiClient(`${API_BASE_URL}/api/v1/dashboard/activity`),
 
 	getPropertyPerformance: (): Promise<PropertyPerformance[]> =>
-		apiClient<PropertyPerformance[]>(`${API_BASE_URL}/api/v1/dashboard/property-performance`),
+		apiClient<PropertyPerformance[]>(
+			`${API_BASE_URL}/api/v1/dashboard/property-performance`
+		),
 
 	getUptime: (): Promise<SystemUptime> =>
 		apiClient<SystemUptime>(`${API_BASE_URL}/api/v1/dashboard/uptime`)
@@ -70,7 +93,9 @@ export const financialApi = {
 			`${API_BASE_URL}/api/v1/financial/overview${year ? `?year=${year}` : ''}`
 		),
 
-	getOverviewWithCalculations: (year?: number): Promise<FinancialOverviewResponse> =>
+	getOverviewWithCalculations: (
+		year?: number
+	): Promise<FinancialOverviewResponse> =>
 		apiClient<FinancialOverviewResponse>(
 			`${API_BASE_URL}/api/v1/financial/overview-calculated${year ? `?year=${year}` : ''}`
 		),
@@ -80,7 +105,9 @@ export const financialApi = {
 			`${API_BASE_URL}/api/v1/financial/expenses${year ? `?year=${year}` : ''}`
 		),
 
-	getExpenseSummaryWithPercentages: (year?: number): Promise<ExpenseSummaryResponse> =>
+	getExpenseSummaryWithPercentages: (
+		year?: number
+	): Promise<ExpenseSummaryResponse> =>
 		apiClient<ExpenseSummaryResponse>(
 			`${API_BASE_URL}/api/v1/financial/expenses-calculated${year ? `?year=${year}` : ''}`
 		),
@@ -109,11 +136,13 @@ export const propertiesApi = {
 		apiClient<Property[]>(
 			`${API_BASE_URL}/api/v1/properties${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`
 		),
-	
+
 	// Returns properties with units and pre-calculated analytics
 	getPropertiesWithAnalytics: () =>
-		apiClient<PropertyWithUnits[]>(`${API_BASE_URL}/api/v1/properties/with-units`),
-	
+		apiClient<PropertyWithUnits[]>(
+			`${API_BASE_URL}/api/v1/properties/with-units`
+		),
+
 	create: (body: PropertyInsert) =>
 		apiClient<Property>(`${API_BASE_URL}/api/v1/properties`, {
 			method: 'POST',
@@ -154,10 +183,12 @@ export const tenantsApi = {
 		apiClient<TenantWithLeaseInfo[]>(
 			`${API_BASE_URL}/api/v1/tenants${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`
 		),
-	
+
 	getTenantsWithAnalytics: () =>
-		apiClient<TenantWithLeaseInfo[]>(`${API_BASE_URL}/api/v1/tenants/analytics`),
-	
+		apiClient<TenantWithLeaseInfo[]>(
+			`${API_BASE_URL}/api/v1/tenants/analytics`
+		),
+
 	stats: () => apiClient<TenantStats>(`${API_BASE_URL}/api/v1/tenants/stats`),
 	create: (body: TenantInsert) =>
 		apiClient<Tenant>(`${API_BASE_URL}/api/v1/tenants`, {
@@ -180,32 +211,37 @@ export const leasesApi = {
 		apiClient<Lease[]>(
 			`${API_BASE_URL}/api/v1/leases${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`
 		),
-	
+
 	getLeasesWithAnalytics: (status?: string) =>
 		apiClient<Lease[]>(
 			`${API_BASE_URL}/api/v1/leases/analytics${status ? `?status=${encodeURIComponent(status)}` : ''}`
 		),
-	
+
 	getLeaseFinancialSummary: (): Promise<LeaseStatsResponse> =>
-		apiClient<LeaseStatsResponse>(`${API_BASE_URL}/api/v1/leases/financial-summary`),
-	
+		apiClient<LeaseStatsResponse>(
+			`${API_BASE_URL}/api/v1/leases/financial-summary`
+		),
+
 	createLeaseWithFinancialCalculations: (body: LeaseInsert) =>
 		apiClient<Lease>(`${API_BASE_URL}/api/v1/leases/create-calculated`, {
 			method: 'POST',
 			body: JSON.stringify(body)
 		}),
-	
+
 	updateLeaseWithFinancialCalculations: (id: string, body: LeaseUpdate) =>
 		apiClient<Lease>(`${API_BASE_URL}/api/v1/leases/${id}/update-calculated`, {
 			method: 'PUT',
 			body: JSON.stringify(body)
 		}),
-	
+
 	terminateLeaseWithFinancialCalculations: (id: string) =>
-		apiClient<void>(`${API_BASE_URL}/api/v1/leases/${id}/terminate-calculated`, { 
-			method: 'PUT' 
-		}),
-	
+		apiClient<void>(
+			`${API_BASE_URL}/api/v1/leases/${id}/terminate-calculated`,
+			{
+				method: 'PUT'
+			}
+		),
+
 	stats: (): Promise<LeaseStatsResponse> =>
 		apiClient<LeaseStatsResponse>(`${API_BASE_URL}/api/v1/leases/stats`),
 	create: (body: LeaseInsert) =>
@@ -238,17 +274,25 @@ export const maintenanceApi = {
 			body: JSON.stringify(body)
 		}),
 	remove: (id: string) =>
-		apiClient<void>(`${API_BASE_URL}/api/v1/maintenance/${id}`, { method: 'DELETE' }),
+		apiClient<void>(`${API_BASE_URL}/api/v1/maintenance/${id}`, {
+			method: 'DELETE'
+		}),
 	complete: (id: string, actualCost?: number, notes?: string) =>
-		apiClient<MaintenanceRequest>(`${API_BASE_URL}/api/v1/maintenance/${id}/complete`, {
-			method: 'POST',
-			body: JSON.stringify({ actualCost, notes })
-		}),
+		apiClient<MaintenanceRequest>(
+			`${API_BASE_URL}/api/v1/maintenance/${id}/complete`,
+			{
+				method: 'POST',
+				body: JSON.stringify({ actualCost, notes })
+			}
+		),
 	cancel: (id: string, reason?: string) =>
-		apiClient<MaintenanceRequest>(`${API_BASE_URL}/api/v1/maintenance/${id}/cancel`, {
-			method: 'POST',
-			body: JSON.stringify({ reason })
-		}),
+		apiClient<MaintenanceRequest>(
+			`${API_BASE_URL}/api/v1/maintenance/${id}/cancel`,
+			{
+				method: 'POST',
+				body: JSON.stringify({ reason })
+			}
+		),
 	stats: () =>
 		apiClient<MaintenanceStats>(`${API_BASE_URL}/api/v1/maintenance/stats`)
 }
@@ -257,68 +301,85 @@ export const maintenanceApi = {
  * Authentication API endpoints
  */
 export const authApi = {
-	register: (data: { email: string; firstName: string; lastName: string; password: string }) =>
+	register: (data: {
+		email: string
+		firstName: string
+		lastName: string
+		password: string
+	}) =>
 		apiClient<{
-			user: { id: string; email: string; name: string };
-			access_token: string;
-			refresh_token: string;
+			user: { id: string; email: string; name: string }
+			access_token: string
+			refresh_token: string
 		}>(`${API_BASE_URL}/api/v1/auth/register`, {
 			method: 'POST',
 			body: JSON.stringify(data)
 		}),
-	
+
 	login: (data: { email: string; password: string }) =>
 		apiClient<{
-			access_token: string;
-			refresh_token: string;
-			expires_in: number;
-			user: { id: string; email: string; name?: string };
+			access_token: string
+			refresh_token: string
+			expires_in: number
+			user: { id: string; email: string; name?: string }
 		}>(`${API_BASE_URL}/api/v1/auth/login`, {
 			method: 'POST',
 			body: JSON.stringify(data)
 		}),
-	
+
 	logout: (token: string) =>
 		apiClient<{ success: boolean }>(`${API_BASE_URL}/api/v1/auth/logout`, {
 			method: 'POST',
 			headers: {
-				'Authorization': `Bearer ${token}`
+				Authorization: `Bearer ${token}`
 			}
 		}),
-	
+
 	refreshToken: (refresh_token: string) =>
 		apiClient<{
-			access_token: string;
-			refresh_token: string;
-			expires_in: number;
+			access_token: string
+			refresh_token: string
+			expires_in: number
 		}>(`${API_BASE_URL}/api/v1/auth/refresh`, {
 			method: 'POST',
 			body: JSON.stringify({ refresh_token })
 		}),
-	
+
 	getCurrentUser: (token: string) =>
-		apiClient<{ id: string; email: string; name?: string; role?: string }>(`${API_BASE_URL}/api/v1/auth/me`, {
-			headers: {
-				'Authorization': `Bearer ${token}`
+		apiClient<{ id: string; email: string; name?: string; role?: string }>(
+			`${API_BASE_URL}/api/v1/auth/me`,
+			{
+				headers: {
+					Authorization: `Bearer ${token}`
+				}
 			}
-		})
+		)
 }
 
 /**
  * Auth form draft API for React 19 useFormState integration
  */
 export const authDraftApi = {
-	save: (data: { email?: string; name?: string; formType: 'signup' | 'login' | 'reset' }) =>
-		apiClient<{ success: boolean; sessionId: string }>(`${API_BASE_URL}/api/v1/auth/draft`, {
-			method: 'POST',
-			body: JSON.stringify(data)
-		}),
-	
+	save: (data: {
+		email?: string
+		name?: string
+		formType: 'signup' | 'login' | 'reset'
+	}) =>
+		apiClient<{ success: boolean; sessionId: string }>(
+			`${API_BASE_URL}/api/v1/auth/draft`,
+			{
+				method: 'POST',
+				body: JSON.stringify(data)
+			}
+		),
+
 	load: (formType: 'signup' | 'login' | 'reset', sessionId?: string) =>
 		apiClient<{ email?: string; name?: string } | null>(
 			`${API_BASE_URL}/api/v1/auth/draft/${formType}`,
-			sessionId ? {
-				headers: { 'x-session-id': sessionId }
-			} : undefined
+			sessionId
+				? {
+						headers: { 'x-session-id': sessionId }
+					}
+				: undefined
 		)
 }

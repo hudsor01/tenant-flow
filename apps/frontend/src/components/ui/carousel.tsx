@@ -9,7 +9,6 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
-
 type CarouselApi = UseEmblaCarouselType[1]
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
 type CarouselOptions = UseCarouselParameters[0]
@@ -121,6 +120,7 @@ function Carousel({
 		>
 			<div
 				onKeyDownCapture={handleKeyDown}
+				data-tokens="applied"
 				className={cn('relative', className)}
 				role="region"
 				aria-roledescription="carousel"
@@ -143,6 +143,7 @@ function CarouselContent({ className, ...props }: React.ComponentProps<'div'>) {
 			data-slot="carousel-content"
 		>
 			<div
+				data-tokens="applied"
 				className={cn(
 					'flex',
 					orientation === 'horizontal' ? '-ml-4' : '-mt-4 flex-col',
@@ -162,6 +163,7 @@ function CarouselItem({ className, ...props }: React.ComponentProps<'div'>) {
 			role="group"
 			aria-roledescription="slide"
 			data-slot="carousel-item"
+			data-tokens="applied"
 			className={cn(
 				'min-w-0 shrink-0 grow-0 basis-full',
 				orientation === 'horizontal' ? 'pl-4' : 'pt-4',
@@ -185,6 +187,7 @@ function CarouselPrevious({
 			data-slot="carousel-previous"
 			variant={variant}
 			size={size}
+			data-tokens="applied"
 			className={cn(
 				'absolute size-8 rounded-full',
 				orientation === 'horizontal'
@@ -215,6 +218,7 @@ function CarouselNext({
 			data-slot="carousel-next"
 			variant={variant}
 			size={size}
+			data-tokens="applied"
 			className={cn(
 				'absolute size-8 rounded-full',
 				orientation === 'horizontal'

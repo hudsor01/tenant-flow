@@ -1,11 +1,11 @@
 /**
  * Tenants JSON Schema Definitions
  *
- * Ultra-native Fastify JSON Schema validation
+ * Express JSON Schema validation
  * Single source of truth - no duplication
  */
 
-import type { JSONSchema } from '../shared/types/fastify-type-provider'
+import type { JSONSchema } from '../shared/types/express-type-provider'
 
 // Shared validation patterns
 const uuidSchema: JSONSchema = {
@@ -32,13 +32,6 @@ const invitationStatusSchema: JSONSchema = {
 /**
  * Create tenant request schema
  */
-export interface CreateTenantRequest {
-	name: string
-	email: string
-	phone?: string
-	emergencyContact?: string
-}
-
 export const createTenantSchema: JSONSchema = {
 	type: 'object',
 	required: ['name', 'email'],
@@ -61,13 +54,6 @@ export const createTenantSchema: JSONSchema = {
 /**
  * Update tenant request schema
  */
-export interface UpdateTenantRequest {
-	name?: string
-	email?: string
-	phone?: string
-	emergencyContact?: string
-}
-
 export const updateTenantSchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
@@ -89,15 +75,6 @@ export const updateTenantSchema: JSONSchema = {
 /**
  * Tenant query schema
  */
-export interface TenantQueryRequest {
-	search?: string
-	invitationStatus?: 'PENDING' | 'SENT' | 'ACCEPTED' | 'EXPIRED'
-	limit?: number
-	offset?: number
-	sortBy?: 'name' | 'email' | 'createdAt'
-	sortOrder?: 'asc' | 'desc'
-}
-
 export const tenantQuerySchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
@@ -130,7 +107,7 @@ export const tenantQuerySchema: JSONSchema = {
 	}
 }
 
-// Route schemas for Fastify validation
+// Route schemas for Express validation
 export const tenantRouteSchemas = {
 	create: {
 		body: createTenantSchema,

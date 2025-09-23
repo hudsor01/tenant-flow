@@ -1,5 +1,5 @@
 /**
- * Optimized NestJS + Fastify specific ESLint configuration for TenantFlow backend
+ * Optimized NestJS + Express specific ESLint configuration for TenantFlow backend
  * ESLint v9 flat config with TypeScript ESLint v8+ optimization
  * Enhanced for Stripe, Supabase, and Monorepo performance.
  * Uses modern flat config composition without deprecated tseslint.config() wrapper.

@@ -4,9 +4,15 @@
 	"compilerOptions": {
 		"strict": true,
 		"skipLibCheck": true,
-		"noEmit": true
+		"noEmit": true,
+		"composite": false,
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"resolveJsonModule": true
 	},
 	"files": [],
+	"include": ["scripts/**/*.ts"],
+	"exclude": ["node_modules", "**/dist", "**/build", "**/.next"],
 	"references": [
 		{ "path": "./packages/database" },
 		{ "path": "./packages/shared" },

@@ -1,8 +1,13 @@
 'use client'
 
 import { tenantsApi } from '@/lib/api-client'
-import type { Database, TenantWithLeaseInfo, TenantStats } from '@repo/shared'
-import { useMutation, useQuery, useQueryClient, type QueryFunction } from '@tanstack/react-query'
+import type { Database, TenantStats, TenantWithLeaseInfo } from '@repo/shared'
+import {
+	useMutation,
+	useQuery,
+	useQueryClient,
+	type QueryFunction
+} from '@tanstack/react-query'
 import { dashboardKeys } from './use-dashboard'
 
 type _Tenant = Database['public']['Tables']['Tenant']['Row']
@@ -12,30 +17,33 @@ type InsertTenant = Database['public']['Tables']['Tenant']['Insert']
 type UpdateTenant = Database['public']['Tables']['Tenant']['Update']
 
 export function useTenants(status?: string) {
-    const key = ['tenants-analytics', status ?? 'ALL'] as [string, string]
-    const listFn: QueryFunction<TenantWithLeaseInfo[], [string, string]> = async () => {
-        return tenantsApi.getTenantsWithAnalytics()
-    }
+	const key = ['tenants-analytics', status ?? 'ALL'] as [string, string]
+	const listFn: QueryFunction<
+		TenantWithLeaseInfo[],
+		[string, string]
+	> = async () => {
+		return tenantsApi.getTenantsWithAnalytics()
+	}
 
-    // Cast to loosen React Query's generic inference for this enriched shape
-    // Loosen types to avoid React Query overload mismatch in strict TS; data shape is TenantWithLeaseInfo[]
-    const result = (useQuery as typeof useQuery)({
-        queryKey: key,
-        queryFn: listFn
-    }) as { data: TenantWithLeaseInfo[] | undefined; isLoading: boolean }
-    return result
+	// Cast to loosen React Query's generic inference for this enriched shape
+	// Loosen types to avoid React Query overload mismatch in strict TS; data shape is TenantWithLeaseInfo[]
+	const result = (useQuery as typeof useQuery)({
+		queryKey: key,
+		queryFn: listFn
+	}) as { data: TenantWithLeaseInfo[] | undefined; isLoading: boolean }
+	return result
 }
 
 // Enhanced hook with select transformation for table-ready tenants data
 export function useTenantsFormatted(status?: string) {
-    return useQuery({
-        queryKey: ['tenants', status ?? 'ALL'],
-        queryFn: async () => {
-            return tenantsApi.list(status ? { status } : undefined)
-        },
-        select: (data: TenantWithLeaseInfo[]) => ({
-            tenants: data.map((tenant: TenantWithLeaseInfo) => ({
-                ...tenant,
+	return useQuery({
+		queryKey: ['tenants', status ?? 'ALL'],
+		queryFn: async () => {
+			return tenantsApi.list(status ? { status } : undefined)
+		},
+		select: (data: TenantWithLeaseInfo[]) => ({
+			tenants: data.map((tenant: TenantWithLeaseInfo) => ({
+				...tenant,
 				// Format display values (replaces useMemo in table components)
 				displayName: tenant.name,
 				displayEmail: tenant.email.toLowerCase(),
@@ -47,28 +55,32 @@ export function useTenantsFormatted(status?: string) {
 				createdAtFormatted: new Date(tenant.createdAt).toLocaleDateString(),
 				updatedAtFormatted: new Date(tenant.updatedAt).toLocaleDateString(),
 				// Calculate tenant tenure for sorting/analytics
-				tenureInDays: Math.floor((Date.now() - new Date(tenant.createdAt).getTime()) / (1000 * 60 * 60 * 24)),
+				tenureInDays: Math.floor(
+					(Date.now() - new Date(tenant.createdAt).getTime()) /
+						(1000 * 60 * 60 * 24)
+				),
 				// Avatar initials for display
-				avatarInitials: tenant.name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2)
+				avatarInitials: tenant.name
+					.split(' ')
+					.map(n => n.charAt(0))
+					.join('')
+					.toUpperCase()
+					.slice(0, 2)
 			})),
-			// Pre-calculate summary stats for dashboard widgets
-            summary: {
-                total: data.length,
-                active: data.length, // All tenants are considered active since status doesn't exist in DB
-                byStatus: data.reduce((acc: Record<string, number>) => {
-                    const status = 'ACTIVE' // Default status since tenant.status doesn't exist in DB
-                    acc[status] = (acc[status] || 0) + 1
-                    return acc
-                }, {} as Record<string, number>),
-                recentlyAdded: data.filter((tenant: TenantWithLeaseInfo) => 
-                    Date.now() - new Date(tenant.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
-                ).length,
-                // Communication stats
-                withPhone: data.filter((t: TenantWithLeaseInfo) => t.phone).length,
-                withEmergencyContact: data.filter((t: TenantWithLeaseInfo) => t.emergencyContact).length
-            }
-        })
-    })
+			// NO CLIENT-SIDE CALCULATIONS - Stats should come from backend
+			// Backend should provide /api/v1/tenants/stats endpoint
+			// Temporary placeholder until backend provides pre-calculated stats
+			summary: {
+				total: data.length,
+				active: data.length,
+				// These should be provided by backend, not calculated here
+				byStatus: { ACTIVE: data.length },
+				recentlyAdded: 0,
+				withPhone: 0,
+				withEmergencyContact: 0
+			}
+		})
+	})
 }
 
 // Helper functions for consistent formatting
@@ -82,10 +94,10 @@ function formatPhoneNumber(phone: string): string {
 
 function getTenantStatusColor(status?: string): string {
 	const colorMap: Record<string, string> = {
-		'ACTIVE': 'hsl(var(--primary))', // use primary for active
-		'INACTIVE': 'hsl(var(--muted-foreground))', // use muted for inactive
-		'PENDING': 'hsl(var(--accent))', // use accent for pending
-		'EVICTED': 'hsl(var(--destructive))' // use destructive for evicted
+		ACTIVE: 'hsl(var(--primary))', // use primary for active
+		INACTIVE: 'hsl(var(--muted-foreground))', // use muted for inactive
+		PENDING: 'hsl(var(--accent))', // use accent for pending
+		EVICTED: 'hsl(var(--destructive))' // use destructive for evicted
 	}
 	return colorMap[status || 'ACTIVE'] || 'hsl(var(--primary))'
 }

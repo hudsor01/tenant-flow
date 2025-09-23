@@ -3,15 +3,17 @@
 import type { LoginCredentials } from '@repo/shared'
 import { supabaseClient } from '@repo/shared'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
-import { toast } from 'sonner'
+import { ForgotPasswordModal } from '@/components/auth/forgot-password-modal'
 import { LoginLayout } from '@/components/auth/login-layout'
+import { toast } from 'sonner'
 import { loginAction } from './actions'
 
 export default function LoginPage() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+	const [showForgotPassword, setShowForgotPassword] = useState(false)
 	const router = useRouter()
 	const searchParams = useSearchParams()
 
@@ -19,7 +21,8 @@ export default function LoginPage() {
 		const error = searchParams?.get('error')
 		if (error === 'oauth_failed') {
 			toast.error('Authentication failed', {
-				description: 'There was an error signing in with Google. Please try again.'
+				description:
+					'There was an error signing in with Google. Please try again.'
 			})
 			router.replace('/login')
 		}
@@ -74,8 +77,8 @@ export default function LoginPage() {
 	}
 
 	const handleForgotPassword = () => {
-		console.info('Forgot password clicked')
-		// TODO: Implement forgot password functionality
+		console.info('Forgot password clicked, opening modal')
+		setShowForgotPassword(true)
 	}
 
 	const handleSignUp = () => {
@@ -118,27 +121,34 @@ export default function LoginPage() {
 	}
 
 	return (
-		<LoginLayout
-			mode="login"
-			title="Welcome Back"
-			subtitle="Sign in to your TenantFlow account to continue managing your properties"
-			imageUrl="https://images.unsplash.com/photo-1582407947304-fd86f028f716?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80"
-			content={{
-				heading: 'Professional Property Management Made Simple',
-				description:
-					'Cut administrative tasks by 75% and focus on growing your portfolio. Welcome back to efficient property management.',
-				stats: [
-					{ value: '75%', label: 'Time\nSaved' },
-					{ value: '99.9%', label: 'Platform\nUptime' },
-					{ value: 'SOC 2', label: 'Security\nCompliant' }
-				]
-			}}
-			onSubmit={handleSubmit}
-			onForgotPassword={handleForgotPassword}
-			onSignUp={handleSignUp}
-			onGoogleLogin={handleGoogleLogin}
-			isLoading={isLoading}
-			isGoogleLoading={isGoogleLoading}
-		/>
+		<>
+			<LoginLayout
+				mode="login"
+				title="Welcome Back"
+				subtitle="Sign in to your TenantFlow account to continue managing your properties"
+				imageUrl="https://images.unsplash.com/photo-1582407947304-fd86f028f716?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80"
+				content={{
+					heading: 'Professional Property Management Made Simple',
+					description:
+						'Cut administrative tasks by 75% and focus on growing your portfolio. Welcome back to efficient property management.',
+					stats: [
+						{ value: '75%', label: 'Time\nSaved' },
+						{ value: '99.9%', label: 'Platform\nUptime' },
+						{ value: 'SOC 2', label: 'Security\nCompliant' }
+					]
+				}}
+				onSubmit={handleSubmit}
+				onForgotPassword={handleForgotPassword}
+				onSignUp={handleSignUp}
+				onGoogleLogin={handleGoogleLogin}
+				isLoading={isLoading}
+				isGoogleLoading={isGoogleLoading}
+			/>
+
+			<ForgotPasswordModal
+				open={showForgotPassword}
+				onOpenChange={setShowForgotPassword}
+			/>
+		</>
 	)
 }

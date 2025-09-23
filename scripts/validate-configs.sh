@@ -65,9 +65,9 @@ run_command() {
 
 phase_1() {
   log_phase 1 "Pre-Change Validation"
-  
+
   echo "Checking configuration files..."
-  
+
   # Check for JSON syntax errors
   echo -e "\n${YELLOW}Checking JSON syntax in TypeScript configs...${NC}"
   find . -name "tsconfig*.json" -not -path "*/node_modules/*" | while read -r file; do
@@ -78,7 +78,7 @@ phase_1() {
       exit 1
     fi
   done
-  
+
   # Check ESLint configs
   echo -e "\n${YELLOW}Checking ESLint configurations...${NC}"
   if [ -f "eslint.config.js" ]; then
@@ -86,7 +86,7 @@ phase_1() {
   else
     log_warning "No root ESLint config found"
   fi
-  
+
   # Check for duplicate TypeScript version
   echo -e "\n${YELLOW}Checking TypeScript versions...${NC}"
   TS_VERSIONS=$(npm ls typescript --depth=0 --json 2>/dev/null | jq -r '.dependencies.typescript.version' || echo "")
@@ -95,16 +95,16 @@ phase_1() {
   else
     log_warning "Could not determine TypeScript version"
   fi
-  
+
   # Verify shared package is built
   echo -e "\n${YELLOW}Checking shared package build...${NC}"
   if [ -d "packages/shared/dist" ]; then
     log_success "Shared package is built"
   else
     log_warning "Shared package needs building"
-    cd packages/shared && npm run build && cd "$REPO_ROOT"
+    cd packages/shared && pnpm build && cd "$REPO_ROOT"
   fi
-  
+
   echo -e "\n${GREEN}Phase 1 Complete!${NC}"
 }
 
@@ -114,9 +114,9 @@ phase_1() {
 
 phase_2() {
   log_phase 2 "TypeScript Check"
-  
+
   echo "Running TypeScript compiler checks..."
-  
+
   # Check each workspace
   for workspace in "packages/shared" "apps/backend" "apps/frontend"; do
     if [ -d "$workspace" ]; then
@@ -133,7 +133,7 @@ phase_2() {
       cd "$REPO_ROOT"
     fi
   done
-  
+
   echo -e "\n${GREEN}Phase 2 Complete!${NC}"
 }
 
@@ -143,19 +143,19 @@ phase_2() {
 
 phase_3() {
   log_phase 3 "Lint Check"
-  
+
   echo "Running ESLint checks..."
-  
+
   # Run root level lint
   echo -e "\n${YELLOW}Running root ESLint...${NC}"
-  if npm run lint --quiet 2>&1 | tee /tmp/lint-output.log; then
+  if pnpm lint --quiet 2>&1 | tee /tmp/lint-output.log; then
     log_success "Root lint check passed"
   else
     LINT_ERRORS=$(grep -c "error" /tmp/lint-output.log || echo "0")
     LINT_WARNINGS=$(grep -c "warning" /tmp/lint-output.log || echo "0")
     log_warning "Lint issues: $LINT_ERRORS errors, $LINT_WARNINGS warnings"
   fi
-  
+
   echo -e "\n${GREEN}Phase 3 Complete!${NC}"
 }
 
@@ -165,13 +165,13 @@ phase_3() {
 
 phase_4() {
   log_phase 4 "Build Check"
-  
+
   echo "Running build checks..."
-  
+
   # Build shared package first
   echo -e "\n${YELLOW}Building shared package...${NC}"
   cd packages/shared
-  if npm run build > /tmp/shared-build.log 2>&1; then
+  if pnpm build > /tmp/shared-build.log 2>&1; then
     log_success "Shared package built successfully"
   else
     log_error "Shared package build failed"
@@ -179,7 +179,7 @@ phase_4() {
     exit 1
   fi
   cd "$REPO_ROOT"
-  
+
   # Check if frontend builds
   echo -e "\n${YELLOW}Testing frontend build...${NC}"
   cd apps/frontend
@@ -190,7 +190,7 @@ phase_4() {
     tail -10 /tmp/frontend-build.log
   fi
   cd "$REPO_ROOT"
-  
+
   # Check if backend builds
   echo -e "\n${YELLOW}Testing backend build...${NC}"
   cd apps/backend
@@ -201,7 +201,7 @@ phase_4() {
     tail -10 /tmp/backend-build.log
   fi
   cd "$REPO_ROOT"
-  
+
   echo -e "\n${GREEN}Phase 4 Complete!${NC}"
 }
 
@@ -211,12 +211,12 @@ phase_4() {
 
 phase_5() {
   log_phase 5 "Final Verification"
-  
+
   echo "Running final verification checks..."
-  
+
   # Check for TypeScript 5.9 features
   echo -e "\n${YELLOW}Checking TypeScript 5.9 features...${NC}"
-  
+
   # Check moduleDetection
   MODULE_DETECTION=$(grep -r "moduleDetection" --include="tsconfig*.json" --exclude-dir=node_modules | wc -l)
   if [ "$MODULE_DETECTION" -gt 0 ]; then
@@ -224,7 +224,7 @@ phase_5() {
   else
     log_warning "moduleDetection not configured (TypeScript 5.9 feature)"
   fi
-  
+
   # Check verbatimModuleSyntax
   VERBATIM=$(grep -r "verbatimModuleSyntax" --include="tsconfig*.json" --exclude-dir=node_modules | wc -l)
   if [ "$VERBATIM" -gt 0 ]; then
@@ -232,34 +232,34 @@ phase_5() {
   else
     log_warning "verbatimModuleSyntax not configured"
   fi
-  
+
   # Check project references
   echo -e "\n${YELLOW}Checking project references...${NC}"
   REFERENCES=$(grep -r "references" --include="tsconfig*.json" --exclude-dir=node_modules | grep -v "references\": \[\]" | wc -l)
   log_success "Project references configured in $REFERENCES files"
-  
+
   # Summary report
   echo -e "\n${BLUE}========================================${NC}"
   echo -e "${BLUE}VALIDATION SUMMARY${NC}"
   echo -e "${BLUE}========================================${NC}"
-  
+
   echo -e "\n${GREEN}Core Checks:${NC}"
   echo "• JSON Syntax: PASS"
   echo "• TypeScript Compilation: PASS"
   echo "• ESLint Configuration: PASS"
   echo "• Build Process: PASS"
-  
+
   echo -e "\n${GREEN}TypeScript 5.9 Features:${NC}"
   echo "• moduleDetection: $([ "$MODULE_DETECTION" -gt 0 ] && echo "PASS" || echo "WARN")"
   echo "• verbatimModuleSyntax: $([ "$VERBATIM" -gt 0 ] && echo "PASS" || echo "WARN")"
   echo "• bundler resolution: PASS"
   echo "• nodenext for NestJS: PASS"
-  
+
   echo -e "\n${GREEN}Monorepo Structure:${NC}"
   echo "• Project References: PASS"
   echo "• Shared Package: PASS"
   echo "• Build Order: PASS"
-  
+
   echo -e "\n${GREEN}Phase 5 Complete!${NC}"
 }
 
@@ -270,7 +270,7 @@ phase_5() {
 main() {
   echo -e "${BLUE}TenantFlow Configuration Validation${NC}"
   echo -e "${BLUE}=====================================${NC}"
-  
+
   case $PHASE in
     1)
       phase_1
@@ -300,7 +300,7 @@ main() {
       exit 1
       ;;
   esac
-  
+
   echo -e "\n${GREEN}========================================${NC}"
   echo -e "${GREEN}VALIDATION COMPLETE${NC}"
   echo -e "${GREEN}========================================${NC}"
