@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common'
 // Native NestJS Logger used throughout application
+import { CacheModule } from '@nestjs/cache-manager'
 import { ConfigModule } from '@nestjs/config'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ThrottlerModule } from '@nestjs/throttler'
+import type { Request } from 'express'
+import { ClsModule } from 'nestjs-cls'
+import { v4 as uuidv4 } from 'uuid'
 import { AnalyticsModule } from './analytics/analytics.module'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
@@ -38,6 +42,29 @@ import { UsersModule } from './users/users.module'
 
 		// Native NestJS Logger - simplified configuration
 		// Logger is automatically available throughout the application
+
+		// Request context for tracing and user management
+		ClsModule.forRoot({
+			global: true,
+			middleware: {
+				mount: true,
+				setup: (cls, req: Request) => {
+					cls.set('REQUEST_CONTEXT', {
+						requestId: uuidv4(),
+						startTime: Date.now(),
+						path: req.url,
+						method: req.method
+					})
+				}
+			}
+		}),
+
+		// Smart caching for database-heavy operations
+		CacheModule.register({
+			isGlobal: true,
+			ttl: 30 * 1000, // 30 seconds default TTL
+			max: 1000 // Maximum number of items in cache
+		}),
 
 		// Event system for decoupled architecture
 		EventEmitterModule.forRoot(),
