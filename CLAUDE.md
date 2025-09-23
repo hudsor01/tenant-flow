@@ -163,10 +163,25 @@ Before - Custom utility types:
 After - Native TypeScript utilities:
 - import type { DeepPartial } from '@repo/shared'
 
-### BACKEND RULES (75% code reduction achieved)
-**FORBIDDEN**: Custom DTOs, validation decorators, service layers, repositories, middleware, interceptors, wrappers, helper classes, factories, builders, custom error handlers
+### BACKEND RULES (Ultra-Native + Official NestJS Ecosystem)
+**CORE PHILOSOPHY**: Use official NestJS ecosystem packages directly, never create custom abstractions. Maintain 75% code reduction by avoiding unnecessary layers.
 
-**ONLY USE**: Built-in NestJS pipes (ParseUUIDPipe, DefaultValuePipe, ParseIntPipe), Native exceptions (BadRequestException, NotFoundException), Direct PostgreSQL RPC via Supabase, JSON Schema definitions
+**ALLOWED - Official NestJS Ecosystem**:
+- Official NestJS modules (@nestjs/cache-manager, @nestjs/event-emitter, @nestjs/throttler, nestjs-cls)
+- Built-in NestJS pipes, guards, interceptors from @nestjs/* packages
+- Native NestJS decorators (@CacheKey, @CacheTTL, @OnEvent, @Request)
+- Direct module configuration (ClsModule.forRoot, CacheModule.register)
+- Built-in exceptions (BadRequestException, NotFoundException)
+- Direct PostgreSQL RPC via Supabase, JSON Schema definitions
+
+**FORBIDDEN - Custom Abstractions**:
+- Custom service layers, repositories, custom DTOs
+- Custom decorators (@CurrentUserId, @CurrentContext)
+- Custom validation pipes, custom interceptors
+- Custom event definitions and listeners
+- Wrappers, helper classes, factories, builders, custom error handlers
+
+**DECISION CRITERIA**: If it's published on npm under @nestjs/* or has official NestJS documentation, it's allowed. If you're creating it yourself, it's forbidden.
 
 Protected files: `apps/backend/ULTRA_NATIVE_ARCHITECTURE.md`
 
@@ -199,7 +214,139 @@ Check logs: `doppler run -- npm run dev` | Find modules: `rg -A5 "@Module" --typ
 ### Success Verification
 Server starts with "dependencies initialized" | Public endpoints work | Protected endpoints work with auth | No undefined property errors
 
-### UI/UX RULES
+### BACKEND IMPLEMENTATION RULES - BATTLE-TESTED PATTERNS
+
+#### ROUTE ORDERING - CRITICAL FOR CORRECT BEHAVIOR
+- Static routes MUST come before dynamic parameter routes
+- Order: /resource/static-path → /resource/:id
+- Example: /properties/stats BEFORE /properties/:id
+- Violation causes 404s when static paths match dynamic patterns
+
+#### NESTJS NATIVE PIPES - REQUIRED PATTERNS
+- ParseUUIDPipe - for required UUID params
+- ParseIntPipe - for numeric params
+- DefaultValuePipe - for optional params with defaults
+- ParseBoolPipe, ParseArrayPipe, ParseEnumPipe - all built-in pipes
+
+#### DEPENDENCY INJECTION - ULTRA-NATIVE PATTERN
+Controller Constructor Pattern:
+```typescript
+constructor(@Optional() private readonly service?: ServiceClass) {}
+```
+Service Availability Check:
+```typescript
+if (!this.service) {
+  return { message: 'Service not available', ...fallbackData }
+}
+```
+
+#### GUARDS - SECURITY WITHOUT ABSTRACTION
+- Initialize clients directly in constructor to avoid circular dependencies
+- Use Reflector for decorator metadata access
+- getAllAndOverride() for merged metadata from handler + class
+- Cache user lookups within request lifecycle
+- Minimize database calls per request
+
+#### MODULE STRUCTURE - FLAT AND FOCUSED
+SharedModule (@Global()):
+- Guards (AuthGuard, UsageLimitsGuard)
+- Common Pipes (ParseOptionalUUIDPipe)
+- Core Services (TokenValidation, Security, Resilience)
+- Logger, Reflector
+
+Domain Modules:
+- Controller + Service + Module only
+- No sub-modules or complex hierarchies
+- Import SharedModule for guards, pipes, and core services
+
+#### REQUEST HANDLING - NATIVE PATTERNS
+Accessing User Context:
+```typescript
+@Request() req: AuthenticatedRequest
+const userId = req.user?.id || 'fallback-id'
+```
+
+#### CACHING - NESTJS NATIVE DECORATORS
+Service Methods:
+```typescript
+@CacheKey('custom-key')
+@CacheTTL(30)
+async method() { }
+```
+Global Cache Config:
+```typescript
+CacheModule.register({
+  ttl: 30 * 1000,  // 30 seconds
+  max: 1000        // max items
+})
+```
+
+#### ERROR HANDLING - SIMPLE AND DIRECT
+Use Built-in Exceptions:
+- BadRequestException(message)
+- NotFoundException(message)
+- ForbiddenException(message)
+- UnauthorizedException(message)
+
+#### PARAMETER VALIDATION - LAYER APPROPRIATELY
+Query Parameters:
+```typescript
+@Query('param', ParseIntPipe) param: number
+@Query('optional', new DefaultValuePipe('default')) optional: string
+```
+Path Parameters:
+```typescript
+@Param('id', ParseUUIDPipe) id: string
+```
+Body Validation:
+- Use JSON Schema via @RouteSchema decorator
+
+#### SERVICE METHODS - KEEP IT SIMPLE
+- Each method < 30 lines
+- Single responsibility (one RPC call)
+- Direct return of database results
+- Simple error handling only
+- No orchestration or complex logic
+
+#### TESTING - MATCH PRODUCTION BEHAVIOR
+Required Test Coverage:
+- All controller endpoints
+- Auth scenarios (authenticated/unauthenticated)
+- Invalid input handling
+- Service error scenarios
+
+Test Patterns:
+- Mock at service level, not database
+- Use SilentLogger in tests
+- Test actual edge cases from production
+
+#### PERFORMANCE - MEASURE THEN OPTIMIZE
+Database Calls:
+- One RPC call per service method
+- Use database functions for complex logic
+- Let Postgres handle aggregations
+
+Request Pipeline:
+- Guards run first (fail fast)
+- Minimize middleware
+- Cache user context per request
+
+### UI/UX RULES - GLOBALS.CSS COMPLIANT IMPLEMENTATION
+**CRITICAL**: Full UI/UX implementation standards are defined in `.claude/rules/ui-ux-standards.md`
+These rules are MANDATORY and directly align with the production globals.css implementation.
+
+**Core Requirements**:
+- **Touch-First**: 44px minimum height for ALL interactive elements
+- **Loading States**: Protocol based on operation duration (< 200ms = no indicator)
+- **Data Density**: Three modes with user preference persistence
+- **Form Sections**: Maximum 5 fields per section for cognitive load management
+- **Mobile Simplification**: Apply `.simplified-mobile` below 640px breakpoint
+- **Typography**: Strict Roboto Flex scale with 5 hierarchy levels maximum
+- **Colors**: OKLCH color space only for perceptual uniformity
+- **Animation**: 200ms/300ms/500ms timing with reduced-motion support
+- **Accessibility**: 4.5:1 contrast minimum, focus management, keyboard navigation
+
+**Implementation Principles**:
 - Reuse existing pages/layouts/components first
 - Use shadcn components vs creating custom
 - Flat component organization in existing folders
@@ -207,6 +354,8 @@ Server starts with "dependencies initialized" | Public endpoints work | Protecte
 - Direct store access via hooks - no prop drilling
 - Sync Tailwind and Magic UI themes for primary color
 - Use shadcn charts for charting needs
+
+**See `.claude/rules/ui-ux-standards.md` for complete 15-point implementation guide**
 
 ### NATIVE PLATFORM REPLACEMENTS
 - **Auth**: Supabase Auth | **Storage**: Supabase Storage | **Real-time**: Supabase Realtime

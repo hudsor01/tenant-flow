@@ -60,7 +60,7 @@ export const generateLandingPageComponents = () => {
 		"import { FeaturesSection } from '@/components/sections/features-section'"
 	)
 	imports.push(
-		"import { MinimalistPricingSection } from '@/components/sections/pricing-section-minimalist'"
+		"import { StripePricingSection } from '@/components/pricing/stripe-pricing-section'"
 	)
 
 	components.push('<PremiumHeroSection />')
@@ -97,7 +97,7 @@ export const generateLandingPageComponents = () => {
 	}
 
 	// Always add pricing after testimonials
-	components.push('<MinimalistPricingSection />')
+	components.push('<StripePricingSection />')
 
 	// Add selected footer if chosen
 	if (
