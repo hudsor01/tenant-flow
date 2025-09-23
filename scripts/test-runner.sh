@@ -42,7 +42,7 @@ warning() {
 # Environment setup
 setup_test_environment() {
     log "Setting up test environment..."
-    
+
     # Ensure test database is available
     if ! command -v doppler &> /dev/null; then
         warning "Doppler not found. Testing without environment variables."
@@ -51,7 +51,7 @@ setup_test_environment() {
     else
         log "Using Doppler for environment variables"
     fi
-    
+
     # Check if servers are running
     check_servers
 }
@@ -59,7 +59,7 @@ setup_test_environment() {
 # Server health checks
 check_servers() {
     log "Checking server status..."
-    
+
     # Check frontend server (check both common ports)
     if curl -s http://localhost:3000/api/dev-auth/status &> /dev/null; then
         success "Frontend server running on port 3000"
@@ -74,7 +74,7 @@ check_servers() {
         FRONTEND_READY=false
         FRONTEND_PORT=3000
     fi
-    
+
     # Check backend server (port varies)
     if curl -s http://localhost:3001/health/ping &> /dev/null; then
         success "Backend server running on port 3001"
@@ -91,22 +91,22 @@ check_servers() {
 # Unit Tests - TypeScript compilation and Jest tests
 run_unit_tests() {
     log "Running unit tests..."
-    
+
     cd "$FRONTEND_DIR"
-    
+
     # TypeScript compilation check
     log "Checking TypeScript compilation..."
-    if npm run typecheck > "$LOG_DIR/typecheck.log" 2>&1; then
+    if pnpm typecheck > "$LOG_DIR/typecheck.log" 2>&1; then
         success "TypeScript compilation passed"
     else
         error "TypeScript compilation failed"
         cat "$LOG_DIR/typecheck.log"
         return 1
     fi
-    
+
     # Jest unit tests
     log "Running Jest unit tests..."
-    if npm run test:unit > "$LOG_DIR/unit-tests.log" 2>&1; then
+    if pnpm test:unit > "$LOG_DIR/unit-tests.log" 2>&1; then
         success "Unit tests passed"
         # Show summary
         tail -10 "$LOG_DIR/unit-tests.log"
@@ -120,14 +120,14 @@ run_unit_tests() {
 # Integration Tests - API data flow and component integration
 run_integration_tests() {
     log "Running integration tests..."
-    
+
     if [ "$FRONTEND_READY" != true ]; then
         error "Frontend server required for integration tests"
         return 1
     fi
-    
+
     cd "$FRONTEND_DIR"
-    
+
     # Mock authentication integration
     log "Testing mock authentication integration..."
     if npx playwright test tests/integration/mock-auth-dashboard-integration.spec.ts --reporter=line > "$LOG_DIR/integration-auth.log" 2>&1; then
@@ -137,7 +137,7 @@ run_integration_tests() {
         cat "$LOG_DIR/integration-auth.log"
         return 1
     fi
-    
+
     # API data flow integration
     log "Testing API data flow integration..."
     if npx playwright test tests/integration/api-data-flow-integration.spec.ts --reporter=line > "$LOG_DIR/integration-api.log" 2>&1; then
@@ -152,20 +152,20 @@ run_integration_tests() {
 # E2E Tests - Complete user workflows
 run_e2e_tests() {
     log "Running E2E tests..."
-    
+
     if [ "$FRONTEND_READY" != true ]; then
         error "Frontend server required for E2E tests"
         return 1
     fi
-    
+
     cd "$FRONTEND_DIR"
-    
+
     # Install Playwright if needed
     if ! npx playwright --version &> /dev/null; then
         log "Installing Playwright browsers..."
         npx playwright install
     fi
-    
+
     # Run all E2E tests
     log "Executing complete E2E test suite..."
     if npx playwright test --reporter=html --output-dir="$LOG_DIR/playwright-report" > "$LOG_DIR/e2e-tests.log" 2>&1; then
@@ -181,19 +181,19 @@ run_e2e_tests() {
 # Performance Tests - Load testing and performance metrics
 run_performance_tests() {
     log "Running performance tests..."
-    
+
     if [ "$FRONTEND_READY" != true ]; then
         error "Frontend server required for performance tests"
         return 1
     fi
-    
+
     cd "$FRONTEND_DIR"
-    
+
     # Performance testing with Playwright
     log "Testing dashboard load performance..."
     if npx playwright test tests/performance --reporter=json --output-file="$LOG_DIR/performance-results.json" > "$LOG_DIR/performance.log" 2>&1; then
         success "Performance tests completed"
-        
+
         # Extract key metrics if available
         if [ -f "$LOG_DIR/performance-results.json" ]; then
             log "Performance metrics saved to: $LOG_DIR/performance-results.json"
@@ -207,19 +207,19 @@ run_performance_tests() {
 # Accessibility Tests - WCAG compliance and screen reader testing
 run_accessibility_tests() {
     log "Running accessibility tests..."
-    
+
     if [ "$FRONTEND_READY" != true ]; then
         error "Frontend server required for accessibility tests"
         return 1
     fi
-    
+
     cd "$FRONTEND_DIR"
-    
+
     # Accessibility testing with axe-playwright
     log "Testing WCAG compliance..."
     if npx playwright test tests/accessibility --reporter=json --output-file="$LOG_DIR/accessibility-results.json" > "$LOG_DIR/accessibility.log" 2>&1; then
         success "Accessibility tests passed"
-        
+
         if [ -f "$LOG_DIR/accessibility-results.json" ]; then
             log "Accessibility report saved to: $LOG_DIR/accessibility-results.json"
         fi
@@ -233,18 +233,18 @@ run_accessibility_tests() {
 # Visual Regression Tests - UI component visual validation
 run_visual_tests() {
     log "Running visual regression tests..."
-    
+
     if [ "$FRONTEND_READY" != true ]; then
         error "Frontend server required for visual tests"
         return 1
     fi
-    
+
     cd "$FRONTEND_DIR"
-    
+
     # Activate mock authentication for visual testing
     log "Activating mock authentication..."
     curl -s http://localhost:${FRONTEND_PORT}/api/dev-auth > /dev/null
-    
+
     # Visual testing via dashboard harness
     log "Testing dashboard visual components..."
     if npx playwright test tests/visual --reporter=html --output-dir="$LOG_DIR/visual-report" > "$LOG_DIR/visual-tests.log" 2>&1; then
@@ -259,41 +259,41 @@ run_visual_tests() {
 # Security Tests - Authentication and authorization validation
 run_security_tests() {
     log "Running security tests..."
-    
+
     if [ "$FRONTEND_READY" != true ]; then
         error "Frontend server required for security tests"
         return 1
     fi
-    
+
     # Test production safety guards
     log "Testing production safety guards..."
-    
+
     # Mock NODE_ENV=production and test dev-auth endpoint
     export NODE_ENV=production
-    
+
     if curl -s -w "%{http_code}" http://localhost:${FRONTEND_PORT}/api/dev-auth | grep -q "404"; then
         success "Production safety guard working - dev-auth returns 404"
     else
         error "Production safety guard failed - dev-auth accessible in production mode"
         return 1
     fi
-    
+
     # Reset to development
     export NODE_ENV=development
-    
+
     # Test authentication bypass security
     log "Testing authentication middleware bypass security..."
-    
+
     # Without mock auth enabled
     export ENABLE_MOCK_AUTH=false
-    
+
     # This should redirect to login (302) when accessing protected routes
     if curl -s -w "%{http_code}" http://localhost:${FRONTEND_PORT}/dashboard | grep -q "302\|307\|401"; then
         success "Authentication middleware working - dashboard protected"
     else
         warning "Authentication check inconclusive"
     fi
-    
+
     # Reset mock auth
     export ENABLE_MOCK_AUTH=true
 }
@@ -301,49 +301,49 @@ run_security_tests() {
 # Cleanup function
 cleanup() {
     log "Cleaning up test artifacts..."
-    
+
     # Remove temporary files
     rm -f "$LOG_DIR"/*.tmp
-    
+
     # Reset environment
     export NODE_ENV=development
     export ENABLE_MOCK_AUTH=true
-    
+
     success "Cleanup completed"
 }
 
 # Main execution function
 run_all_tests() {
     log "Starting comprehensive test suite..."
-    
+
     setup_test_environment
-    
+
     local failed_tests=()
-    
+
     # Run each test suite
     if ! run_unit_tests; then
         failed_tests+=("unit")
     fi
-    
+
     if ! run_integration_tests; then
         failed_tests+=("integration")
     fi
-    
+
     if ! run_e2e_tests; then
         failed_tests+=("e2e")
     fi
-    
+
     run_performance_tests # Non-blocking
     run_accessibility_tests # Non-blocking
     run_visual_tests # Non-blocking
-    
+
     if ! run_security_tests; then
         failed_tests+=("security")
     fi
-    
+
     # Summary
     log "Test execution completed"
-    
+
     if [ ${#failed_tests[@]} -eq 0 ]; then
         success "All critical tests passed!"
         log "Reports available in: $LOG_DIR/"

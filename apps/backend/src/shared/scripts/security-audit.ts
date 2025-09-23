@@ -13,10 +13,7 @@
 
 import { Injectable } from '@nestjs/common'
 import { NestFactory, Reflector } from '@nestjs/core'
-import {
-	FastifyAdapter,
-	NestFastifyApplication
-} from '@nestjs/platform-fastify'
+import { NestExpressApplication } from '@nestjs/platform-express'
 import type { EndpointAudit, SecurityAuditReport } from '@repo/shared'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -27,9 +24,9 @@ class SecurityAuditService {
 	private readonly reflector = new Reflector()
 
 	async auditEndpoints(
-		app: NestFastifyApplication
+		app: NestExpressApplication
 	): Promise<SecurityAuditReport> {
-		console.log('🔍 Starting comprehensive API security audit...\n')
+		console.log('[AUDIT] Starting comprehensive API security audit...\n')
 
 		const endpoints = await this.discoverEndpoints(app)
 		const auditResults = await this.auditEndpointSecurity(endpoints, app)
@@ -37,7 +34,7 @@ class SecurityAuditService {
 		const report = this.generateSecurityReport(auditResults)
 		await this.saveAuditReport(report)
 
-		console.log('📊 Security Audit Summary:')
+		console.log('[SUMMARY] Security Audit Summary:')
 		console.log(`  Total Endpoints: ${report.totalEndpoints}`)
 		console.log(`  Public Endpoints: ${report.publicEndpoints}`)
 		console.log(`  Protected Endpoints: ${report.protectedEndpoints}`)
@@ -48,33 +45,58 @@ class SecurityAuditService {
 		)
 
 		if (report.criticalRiskEndpoints > 0) {
-			console.log('\n🚨 CRITICAL SECURITY ISSUES FOUND!')
+			console.log('\n[CRITICAL] CRITICAL SECURITY ISSUES FOUND!')
 			console.log('   Immediate action required before production deployment.')
 		} else if (report.highRiskEndpoints > 0) {
-			console.log('\n⚠️  HIGH RISK ENDPOINTS DETECTED')
+			console.log('\n[WARNING]  HIGH RISK ENDPOINTS DETECTED')
 			console.log('   Review and secure before production.')
 		} else {
-			console.log('\n✅ No critical security issues detected')
+			console.log('\n[OK] No critical security issues detected')
 		}
 
 		return report
 	}
 
 	private async discoverEndpoints(
-		app: NestFastifyApplication
+		app: NestExpressApplication
 	): Promise<Array<{ path: string; method: string; httpMethod: string }>> {
 		const routes: Array<{ path: string; method: string; httpMethod: string }> =
 			[]
 
-		// Use Fastify's route discovery
-		const fastifyInstance = app.getHttpAdapter().getInstance()
+		// Use Express route discovery
+		const expressInstance = app.getHttpAdapter().getInstance()
 
-		// Get all registered routes
-		fastifyInstance.ready(() => {
-			for (const route of fastifyInstance.printRoutes({ includeHooks: true })) {
-				console.log(route)
+		// Get all registered routes from Express router
+		interface ExpressRoute {
+			path: string
+			methods: Record<string, boolean>
+		}
+
+		interface ExpressLayer {
+			route?: ExpressRoute
+			path?: string
+		}
+
+		interface ExpressRouter {
+			stack: ExpressLayer[]
+		}
+
+		const router = (expressInstance as { _router?: ExpressRouter })._router
+		if (router && router.stack) {
+			for (const layer of router.stack) {
+				if (layer.route) {
+					const route = layer.route
+					const methods = Object.keys(route.methods)
+					for (const method of methods) {
+						routes.push({
+							path: route.path,
+							method: `${method.toUpperCase()}_${route.path}`,
+							httpMethod: method.toUpperCase()
+						})
+					}
+				}
 			}
-		})
+		}
 
 		// Alternative: Parse controllers directly from filesystem
 		const controllerFiles = await this.findControllerFiles()
@@ -181,12 +203,12 @@ class SecurityAuditService {
 			method: string
 			httpMethod: string
 		}>,
-		app: NestFastifyApplication
+		app: NestExpressApplication
 	): Promise<EndpointAudit[]> {
 		const audits: EndpointAudit[] = []
 
 		for (const endpoint of endpoints) {
-			console.log(`🔐 Auditing ${endpoint.httpMethod} ${endpoint.path}`)
+			console.log(`[SECURITY] Auditing ${endpoint.httpMethod} ${endpoint.path}`)
 
 			const audit = await this.auditSingleEndpoint(endpoint, app)
 			audits.push(audit)
@@ -202,7 +224,7 @@ class SecurityAuditService {
 			method: string
 			httpMethod: string
 		},
-		app: NestFastifyApplication
+		app: NestExpressApplication
 	): Promise<EndpointAudit> {
 		const recommendations: string[] = []
 		let securityRisk: 'low' | 'medium' | 'high' | 'critical' = 'low'
@@ -293,7 +315,7 @@ class SecurityAuditService {
 
 	private async isEndpointPublic(
 		endpoint: { path: string; method: string },
-		_app: NestFastifyApplication
+		_app: NestExpressApplication
 	): Promise<boolean> {
 		// This would need to be implemented based on your decorator system
 		// For now, we'll make educated guesses based on the path
@@ -312,7 +334,7 @@ class SecurityAuditService {
 
 	private async getRequiredRoles(
 		_endpoint: { path: string; method: string },
-		_app: NestFastifyApplication
+		_app: NestExpressApplication
 	): Promise<string[]> {
 		// This would examine the @Roles() decorator
 		// For now, return empty array as placeholder
@@ -321,7 +343,7 @@ class SecurityAuditService {
 
 	private async isAdminOnly(
 		endpoint: { path: string; method: string },
-		_app: NestFastifyApplication
+		_app: NestExpressApplication
 	): Promise<boolean> {
 		// Check for admin-only paths
 		return (
@@ -333,7 +355,7 @@ class SecurityAuditService {
 
 	private async hasRateLimit(
 		_endpoint: { path: string; method: string },
-		_app: NestFastifyApplication
+		_app: NestExpressApplication
 	): Promise<boolean> {
 		// For now, assume rate limiting is applied globally
 		// In a real implementation, you'd check for rate limiting decorators
@@ -427,36 +449,36 @@ class SecurityAuditService {
 
 		if (criticalRiskEndpoints > 0) {
 			recommendations.push(
-				'🚨 CRITICAL: Review and secure all critical risk endpoints immediately'
+				'[CRITICAL] CRITICAL: Review and secure all critical risk endpoints immediately'
 			)
 		}
 
 		if (publicEndpointsRatio > 30) {
 			recommendations.push(
-				'⚠️  Consider reducing the number of public endpoints'
+				'[WARNING]  Consider reducing the number of public endpoints'
 			)
 		}
 
 		if (authenticationCoverage < 70) {
 			recommendations.push(
-				'⚠️  Increase authentication coverage across API endpoints'
+				'[WARNING]  Increase authentication coverage across API endpoints'
 			)
 		}
 
 		if (highRiskEndpoints + criticalRiskEndpoints > totalEndpoints * 0.2) {
 			recommendations.push(
-				'📋 Implement a security review process for new endpoints'
+				'[REPORT] Implement a security review process for new endpoints'
 			)
 		}
 
 		recommendations.push(
-			'✅ Implement comprehensive input validation on all endpoints'
+			'[OK] Implement comprehensive input validation on all endpoints'
 		)
 		recommendations.push(
-			'✅ Ensure all endpoints have appropriate rate limiting'
+			'[OK] Ensure all endpoints have appropriate rate limiting'
 		)
 		recommendations.push(
-			'✅ Add comprehensive logging and monitoring for security events'
+			'[OK] Add comprehensive logging and monitoring for security events'
 		)
 
 		return {
@@ -489,14 +511,14 @@ class SecurityAuditService {
 
 		fs.writeFileSync(filepath, JSON.stringify(report, null, 2))
 
-		console.log(`\n📝 Security audit report saved: ${filepath}`)
+		console.log(`\n[NOTE] Security audit report saved: ${filepath}`)
 
 		// Also create a summary file
 		const summaryPath = path.join(reportDir, 'security-summary.txt')
 		const summary = this.generateTextSummary(report)
 		fs.writeFileSync(summaryPath, summary)
 
-		console.log(`📄 Summary report saved: ${summaryPath}`)
+		console.log(`[SUMMARY] Summary report saved: ${summaryPath}`)
 	}
 
 	private generateTextSummary(report: SecurityAuditReport): string {
@@ -510,7 +532,7 @@ class SecurityAuditService {
 		summary += `Security Score: ${Number(report.summary.averageSecurityScore).toFixed(1)}/100\n\n`
 
 		if (report.criticalRiskEndpoints > 0) {
-			summary += `🚨 CRITICAL RISK ENDPOINTS (${report.criticalRiskEndpoints}):\n`
+			summary += `[CRITICAL] CRITICAL RISK ENDPOINTS (${report.criticalRiskEndpoints}):\n`
 			for (const endpoint of report.endpoints.filter(
 				e => e.securityRisk === 'critical'
 			)) {
@@ -523,7 +545,7 @@ class SecurityAuditService {
 		}
 
 		if (report.highRiskEndpoints > 0) {
-			summary += `⚠️  HIGH RISK ENDPOINTS (${report.highRiskEndpoints}):\n`
+			summary += `[WARNING]  HIGH RISK ENDPOINTS (${report.highRiskEndpoints}):\n`
 			for (const endpoint of report.endpoints.filter(
 				e => e.securityRisk === 'high'
 			)) {
@@ -543,21 +565,19 @@ class SecurityAuditService {
 
 async function runSecurityAudit(): Promise<void> {
 	try {
-		const app = await NestFactory.create<NestFastifyApplication>(
-			AppModule,
-			new FastifyAdapter(),
-			{ logger: false }
-		)
+		const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+			logger: false
+		})
 
 		const auditService = new SecurityAuditService()
 		await auditService.auditEndpoints(app)
 
 		await app.close()
-		console.log('\n✅ Security audit completed successfully')
+		console.log('\n[OK] Security audit completed successfully')
 		process.exit(0)
 	} catch (error: unknown) {
 		const errorMessage = error instanceof Error ? error.message : String(error)
-		console.error('❌ Security audit failed:', errorMessage)
+		console.error('[ERROR] Security audit failed:', errorMessage)
 		process.exit(1)
 	}
 }

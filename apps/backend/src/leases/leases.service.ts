@@ -6,14 +6,13 @@
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
-import { Injectable, BadRequestException } from '@nestjs/common'
-import { Logger } from '@nestjs/common'
-import { SupabaseService } from '../database/supabase.service'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import type {
 	CreateLeaseRequest,
+	Tables,
 	UpdateLeaseRequest
-} from '../schemas/leases.schema'
-import type { Tables } from '@repo/shared'
+} from '@repo/shared'
+import { SupabaseService } from '../database/supabase.service'
 
 // Use native Supabase table types
 type Lease = Tables<'Lease'>
@@ -171,8 +170,7 @@ export class LeasesService {
 				p_end_date: createRequest.endDate,
 				p_rentamount: createRequest.monthlyRent,
 				p_security_deposit: createRequest.securityDeposit,
-				p_payment_frequency:
-					createRequest.paymentFrequency || 'MONTHLY',
+				p_payment_frequency: createRequest.paymentFrequency || 'MONTHLY',
 				p_status: createRequest.status || 'DRAFT'
 			})
 			.single()
@@ -320,7 +318,9 @@ export class LeasesService {
 				query,
 				error: error.message
 			})
-			throw new BadRequestException('Failed to retrieve lease performance analytics')
+			throw new BadRequestException(
+				'Failed to retrieve lease performance analytics'
+			)
 		}
 
 		return data || []
@@ -351,7 +351,9 @@ export class LeasesService {
 				query,
 				error: error.message
 			})
-			throw new BadRequestException('Failed to retrieve lease duration analytics')
+			throw new BadRequestException(
+				'Failed to retrieve lease duration analytics'
+			)
 		}
 
 		return data || []
@@ -382,7 +384,9 @@ export class LeasesService {
 				query,
 				error: error.message
 			})
-			throw new BadRequestException('Failed to retrieve lease turnover analytics')
+			throw new BadRequestException(
+				'Failed to retrieve lease turnover analytics'
+			)
 		}
 
 		return data || []
@@ -415,7 +419,9 @@ export class LeasesService {
 				query,
 				error: error.message
 			})
-			throw new BadRequestException('Failed to retrieve lease revenue analytics')
+			throw new BadRequestException(
+				'Failed to retrieve lease revenue analytics'
+			)
 		}
 
 		return data || []

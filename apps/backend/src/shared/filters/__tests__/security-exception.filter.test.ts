@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common'
 import type { SecurityErrorContext } from '@repo/shared'
-import type { FastifyReply, FastifyRequest } from 'fastify'
+import type { Request, Response } from 'express'
 import type { SecurityMonitorService } from '../../services/security-monitor.service'
 import { SecurityExceptionFilter } from '../security-exception.filter'
 
@@ -12,7 +12,7 @@ const mockSecurityMonitor = {
 
 describe('SecurityExceptionFilter', () => {
 	let filter: SecurityExceptionFilter
-	let mockResponse: FastifyReply
+	let mockResponse: Response
 
 	beforeEach(() => {
 		filter = new SecurityExceptionFilter(
@@ -23,8 +23,9 @@ describe('SecurityExceptionFilter', () => {
 			status: jest.fn().mockReturnThis(),
 			type: jest.fn().mockReturnThis(),
 			send: jest.fn(),
-			header: jest.fn().mockReturnThis()
-		} as unknown as FastifyReply
+			setHeader: jest.fn().mockReturnThis(),
+			removeHeader: jest.fn().mockReturnThis()
+		} as unknown as Response
 	})
 
 	describe('generateSafeErrorResponse', () => {
@@ -119,7 +120,7 @@ describe('SecurityExceptionFilter', () => {
 				method: 'GET',
 				headers: {},
 				ip: '127.0.0.1'
-			} as unknown as FastifyRequest
+			} as unknown as Request
 
 			const mockHost = {
 				switchToHttp: () => ({

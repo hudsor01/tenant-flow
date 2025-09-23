@@ -7,6 +7,9 @@
 
 import { z } from 'zod'
 
+// Note: These types overlap with shared types in @repo/shared/src/types/stripe-rpc.ts
+// Could be consolidated in future migration but kept separate for Zod validation compatibility
+
 // Plan ID enum schema based on shared types
 const planIdSchema = z.enum(['STARTER', 'GROWTH', 'TENANTFLOW_MAX'])
 
@@ -31,13 +34,21 @@ export type CreateCheckoutRequest = z.infer<typeof createCheckoutSchema>
 export const createEmbeddedCheckoutSchema = z.object({
 	priceId: z.string().regex(/^price_[a-zA-Z0-9_]+$/),
 	quantity: z.number().int().min(1).max(1000).default(1).optional(),
-	customerId: z.string().regex(/^cus_[a-zA-Z0-9_]+$/).optional(),
+	customerId: z
+		.string()
+		.regex(/^cus_[a-zA-Z0-9_]+$/)
+		.optional(),
 	trialPeriodDays: z.number().int().min(0).max(365).optional(),
-	couponId: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional(),
+	couponId: z
+		.string()
+		.regex(/^[a-zA-Z0-9_-]+$/)
+		.optional(),
 	metadata: z.record(z.string(), z.string()).optional()
 })
 
-export type CreateEmbeddedCheckoutRequest = z.infer<typeof createEmbeddedCheckoutSchema>
+export type CreateEmbeddedCheckoutRequest = z.infer<
+	typeof createEmbeddedCheckoutSchema
+>
 
 /**
  * Create customer portal session request
