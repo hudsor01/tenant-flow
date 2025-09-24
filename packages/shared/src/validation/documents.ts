@@ -4,7 +4,7 @@ import {
 	nonNegativeNumberSchema,
 	urlSchema,
 	uuidSchema
-} from './common'
+} from './common.js'
 
 // Document type enum (should match database enum)
 export const documentTypeSchema = z.enum([

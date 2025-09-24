@@ -61,9 +61,7 @@ import {
 	YAxis
 } from 'recharts'
 
-// =============================================================================
 // MOCK DATA - REALISTIC MAINTENANCE ANALYTICS
-// =============================================================================
 
 const maintenanceData = [
 	{
@@ -214,9 +212,7 @@ const maintenanceTrends = [
 	}
 ]
 
-// =============================================================================
 // ANALYTICS CALCULATIONS
-// =============================================================================
 
 const calculateMaintenanceAnalytics = (data: typeof maintenanceData) => {
 	const totalRequests = data.length
@@ -297,9 +293,7 @@ const calculateMaintenanceAnalytics = (data: typeof maintenanceData) => {
 	}
 }
 
-// =============================================================================
 // REQUEST DETAIL CARD
-// =============================================================================
 
 const RequestDetailCard = ({
 	request,
@@ -523,9 +517,7 @@ const RequestDetailCard = ({
 	)
 }
 
-// =============================================================================
 // CUSTOM TOOLTIP
-// =============================================================================
 
 const CustomTooltip = ({
 	active,
@@ -560,9 +552,7 @@ const CustomTooltip = ({
 	)
 }
 
-// =============================================================================
 // MAIN COMPONENT
-// =============================================================================
 
 export function MaintenanceAnalytics() {
 	const [viewMode, setViewMode] = React.useState<

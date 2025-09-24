@@ -3,7 +3,7 @@
  * Helper functions for property and unit display
  */
 
-import type { Database } from '../types/supabase-generated'
+import type { Database } from '../types/supabase-generated.js'
 
 type PropertyType = Database['public']['Enums']['PropertyType']
 type UnitStatus = Database['public']['Enums']['UnitStatus']

@@ -44,9 +44,7 @@ import {
 	YAxis
 } from 'recharts'
 
-// =============================================================================
 // MOCK DATA - REALISTIC PROPERTY MANAGEMENT REVENUE
-// =============================================================================
 
 const revenueData = [
 	{
@@ -183,9 +181,7 @@ const revenueData = [
 	}
 ]
 
-// =============================================================================
 // ANALYTICS CALCULATIONS - HIDDEN INSIGHTS
-// =============================================================================
 
 const calculateAnalytics = (data: typeof revenueData) => {
 	if (data.length < 2) return null
@@ -255,9 +251,7 @@ const calculateAnalytics = (data: typeof revenueData) => {
 	}
 }
 
-// =============================================================================
 // CUSTOM TOOLTIP WITH HIDDEN INSIGHTS
-// =============================================================================
 
 const CustomTooltip = ({
 	active,
@@ -340,9 +334,7 @@ const CustomTooltip = ({
 	)
 }
 
-// =============================================================================
 // MAIN COMPONENT
-// =============================================================================
 
 export function RevenueTrendChart() {
 	const [timeRange, setTimeRange] = React.useState('12m')

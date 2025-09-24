@@ -4,7 +4,7 @@
  */
 
 import type * as React from 'react'
-import type { Property, Tenant } from './core'
+import type { Property, Tenant } from './core.js'
 
 // AUTH FORM TYPES
 

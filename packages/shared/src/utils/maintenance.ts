@@ -3,7 +3,7 @@
  * Helper functions for maintenance priority and status display
  */
 
-import type { Database } from '../types/supabase-generated'
+import type { Database } from '../types/supabase-generated.js'
 
 type Priority = Database['public']['Enums']['Priority']
 type RequestStatus = Database['public']['Enums']['RequestStatus']

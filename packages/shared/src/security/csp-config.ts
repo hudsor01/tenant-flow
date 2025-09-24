@@ -4,8 +4,8 @@
  * Follows DRY/KISS/Native principles - consolidates 3 separate CSP definitions
  */
 
-import type { CSPDirectives } from '../types/security'
-import { APP_DOMAINS } from './cors-config'
+import type { CSPDirectives } from '../types/security.js'
+import { APP_DOMAINS } from './cors-config.js'
 
 // Environment-based CSP domains
 export const CSP_DOMAINS = {
@@ -19,7 +19,7 @@ export const CSP_DOMAINS = {
 		'https://checkout.stripe.com'
 	],
 
-	SUPABASE: ['https://*.supabase.co', 'wss://*.supabase.co'],
+	SUPABASE: ['https://bshjmbshupiibfiewpxb.supabase.co'],
 
 	POSTHOG: ['https://us.i.posthog.com', 'https://us-assets.i.posthog.com'],
 

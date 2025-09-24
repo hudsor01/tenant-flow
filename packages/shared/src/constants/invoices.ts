@@ -3,10 +3,6 @@
  * Configuration for lead magnet functionality and invoice management
  */
 
-// ========================
-// Lead Magnet Configuration
-// ========================
-
 /**
  * Lead magnet tier configuration
  */
@@ -29,11 +25,6 @@ export const LEAD_MAGNET_CONFIG = {
 } as const
 
 export type LeadMagnetTier = keyof typeof LEAD_MAGNET_CONFIG
-
-// ========================
-// Invoice Status Constants
-// ========================
-
 /**
  * Customer invoice status enum values
  */
@@ -49,10 +40,6 @@ export const CUSTOMER_INVOICE_STATUS = {
 export const CUSTOMER_INVOICE_STATUS_OPTIONS = Object.values(
 	CUSTOMER_INVOICE_STATUS
 )
-
-// ========================
-// Default Values
-// ========================
 
 /**
  * Default invoice configuration

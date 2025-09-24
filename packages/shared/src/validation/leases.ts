@@ -1,7 +1,7 @@
 // Lease validation schema for TenantFlow
 import { z } from 'zod'
-import { Constants } from '../types/supabase-generated'
-import { requiredString } from './common'
+import { Constants } from '../types/supabase-generated.js'
+import { requiredString } from './common.js'
 
 // Enhanced validation with Zod patterns
 const positiveMoneyAmount = z

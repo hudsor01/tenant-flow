@@ -7,13 +7,13 @@
 
 // PRIMARY EXPORT: Modern TypeScript 5.9.2 Core Types
 // All types exported via types/index.ts which includes core types
-export * from './types/index'
+export * from './types/index.js'
 
 // ESSENTIAL UTILITIES (No Wrappers)
 // Browser-only API client (Supabase SSR) - Frontend specific
-export { apiClient } from './utils/api-client'
+export { apiClient } from './utils/api-client.js'
 
-export { logger } from './lib/frontend-logger'
+export { logger } from './lib/frontend-logger.js'
 export {
 	getCurrentSession,
 	getCurrentUser,
@@ -22,17 +22,17 @@ export {
 	getSupabaseClientInstance,
 	signOut,
 	supabaseClient
-} from './lib/supabase-client'
+} from './lib/supabase-client.js'
 
-export { getCORSConfig } from './security/cors-config'
-export { getCSPString } from './security/csp-config'
+export { getCORSConfig } from './security/cors-config.js'
+export { getCSPString } from './security/csp-config.js'
 export {
 	formatPrice,
 	getAllPlans,
 	getAnnualSavings,
 	getPriceId
-} from './stripe/config'
-export { formatCurrency } from './utils/currency'
+} from './stripe/config.js'
+export { formatCurrency } from './utils/currency.js'
 
 // PRICING CONFIGURATION (Static + Dynamic)
 export {
@@ -46,40 +46,27 @@ export {
 	type DynamicPricingConfig,
 	type DynamicPricingService,
 	type UseDynamicPricingReturn
-} from './config/dynamic-pricing'
-export * from './config/pricing'
+} from './config/dynamic-pricing.js'
+export * from './config/pricing.js'
 
 export {
 	keysToCamelCase,
 	keysToSnakeCase,
 	toCamelCase,
 	toSnakeCase
-} from './utils/case-conversion'
+} from './utils/case-conversion.js'
 
 export {
 	getPriorityColor,
 	getPriorityLabel,
 	getRequestStatusColor,
 	getRequestStatusLabel
-} from './utils/maintenance'
-
-export {
-	cn,
-	cssVar,
-	extractTailwindClasses,
-	generateTailwindTheme,
-	getColorVariantClasses,
-	getTailwindColor,
-	isValidTailwindClass,
-	responsive
-} from './utils/tailwind'
-
-export type { ClassValue, TailwindBreakpoint } from './utils/tailwind'
+} from './utils/maintenance.js'
 
 // ESSENTIAL DOMAIN CONSTANTS
-export { USER_ROLE } from './constants/auth'
-export { PLANS, PLAN_TYPE } from './constants/billing'
-export { Permission } from './types/security'
+export { USER_ROLE } from './constants/auth.js'
+export { PLANS, PLAN_TYPE } from './constants/billing.js'
+export { Permission } from './types/security.js'
 
 export {
 	ANIMATION_DURATIONS,
@@ -95,7 +82,7 @@ export {
 	SPACING_SCALE,
 	TYPOGRAPHY_SCALE,
 	Z_INDEX_SCALE
-} from './constants/design-system'
+} from './constants/design-system.js'
 
 export type {
 	AnimationDuration,
@@ -107,7 +94,7 @@ export type {
 	ShadowSize,
 	SpacingSize,
 	ZIndexLevel
-} from './constants/design-system'
+} from './constants/design-system.js'
 
 // TYPOGRAPHY TOKEN BRIDGE
 export {
@@ -120,13 +107,13 @@ export {
 	getTypographyClasses,
 	getTypographyToken,
 	migrateTypographyScale
-} from './constants/typography-tokens'
+} from './constants/typography-tokens.js'
 
 export type {
 	SemanticTypographyVariant,
 	TypographyProps,
 	TypographyVariant
-} from './constants/typography-tokens'
+} from './constants/typography-tokens.js'
 
 // MOTION SYSTEM - PROFESSIONAL INTERACTIONS
 export {
@@ -139,7 +126,7 @@ export {
 	MOTION_SHADOWS,
 	MOTION_TOUCH_TARGETS,
 	MOTION_TRANSFORMS
-} from './constants/motion-tokens'
+} from './constants/motion-tokens.js'
 
 export type {
 	MotionDuration,
@@ -150,7 +137,7 @@ export type {
 	MotionShadow,
 	MotionTouchTarget,
 	MotionTransform
-} from './constants/motion-tokens'
+} from './constants/motion-tokens.js'
 
 // DESIGN SYSTEM COLORS - DASHBOARD ANALYTICS
 export {
@@ -159,14 +146,14 @@ export {
 	CHART_PALETTES,
 	PROPERTY_ANALYTICS_COLORS,
 	SYSTEM_COLORS
-} from './constants/chart-colors'
+} from './constants/chart-colors.js'
 
 export type {
 	ChartGradient,
 	ChartPalette,
 	PropertyAnalyticsColorCategory,
 	SystemColor
-} from './constants/chart-colors'
+} from './constants/chart-colors.js'
 
 export const MAINTENANCE_CATEGORY = {
 	GENERAL: 'GENERAL',
@@ -182,7 +169,7 @@ export const MAINTENANCE_CATEGORY = {
 export type {
 	LeaseFormData,
 	StateLeaseRequirements
-} from './types/lease-generator.types'
+} from './types/lease-generator.types.js'
 export {
 	emailSchema,
 	nonNegativeNumberSchema,
@@ -191,8 +178,8 @@ export {
 	requiredString,
 	requiredTitle,
 	uuidSchema
-} from './validation/common'
-export { unitStatusSchema } from './validation/units'
+} from './validation/common.js'
+export { unitStatusSchema } from './validation/units.js'
 
 // BACKEND TYPES (Required for Controllers/Services)
 export type {
@@ -208,14 +195,14 @@ export type {
 	SupabaseWebhookEvent,
 	UserRole,
 	ValidatedUser
-} from './types/auth'
+} from './types/auth.js'
 
-export type { MaintenanceNotificationData } from './types/notifications'
-export type { PropertyWithUnits } from './types/relations'
-export type { BillingPeriod, PlanType } from './types/stripe'
+export type { MaintenanceNotificationData } from './types/notifications.js'
+export type { PropertyWithUnits } from './types/relations.js'
+export type { BillingPeriod, PlanType } from './types/stripe.js'
 
 // FRONTEND TYPES
-export * from './types/frontend'
+export * from './types/frontend.js'
 
 // VALIDATION SCHEMAS
-export { loginZodSchema, registerZodSchema } from './validation/auth'
+export { loginZodSchema, registerZodSchema } from './validation/auth.js'

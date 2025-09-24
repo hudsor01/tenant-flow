@@ -6,11 +6,9 @@
  */
 
 import type { Request, Response } from 'express'
-import type { Database } from './supabase-generated'
+import type { Database } from './supabase-generated.js'
 
-// =============================================================================
 // BACKEND CONTEXT TYPES
-// =============================================================================
 
 export interface ValidatedUser {
 	id: string
@@ -44,9 +42,7 @@ export interface RequestContext {
 	metadata: Record<string, unknown>
 }
 
-// =============================================================================
 // AUTH REQUEST/RESPONSE TYPES
-// =============================================================================
 
 export interface RegisterRequest {
 	name: string
@@ -95,9 +91,7 @@ export interface UserProfileResponse {
 	updatedAt: string
 }
 
-// =============================================================================
 // PROPERTY MANAGEMENT REQUEST TYPES
-// =============================================================================
 
 // Property types
 export interface CreatePropertyRequest {
@@ -319,9 +313,7 @@ export interface TenantQueryRequest {
 	sortBy?: 'firstName' | 'lastName' | 'email' | 'createdAt'
 }
 
-// =============================================================================
 // SECURITY TYPES
-// =============================================================================
 
 export interface SanitizationConfig {
 	enabled: boolean
@@ -359,9 +351,7 @@ export interface SecurityHeadersConfig {
 	permissionsPolicy: Record<string, string[]>
 }
 
-// =============================================================================
 // ROUTER OUTPUT TYPES (API Response Structures)
-// =============================================================================
 
 type MaintenanceRequest =
 	Database['public']['Tables']['MaintenanceRequest']['Row']
@@ -440,9 +430,7 @@ export interface LeaseDetailOutput {
 	property?: Property
 }
 
-// =============================================================================
 // DATABASE OPTIMIZATION TYPES
-// =============================================================================
 
 export interface DatabaseOptimizationOptions {
 	analyzeQueries: boolean
@@ -465,9 +453,8 @@ export interface QueryPerformanceMetric {
 	tablesUsed: string[]
 }
 
-// =============================================================================
 // PERFORMANCE MONITORING
-// =============================================================================
+
 // Note: PerformanceMetrics interface moved to health.ts to resolve conflicts
 
 export interface HealthCheckResponse {
@@ -482,9 +469,7 @@ export interface HealthCheckResponse {
 	uptime: number
 }
 
-// =============================================================================
 // DATABASE PERFORMANCE & HEALTH (Supabase / Postgres)
-// =============================================================================
 
 // Row describing index usage metrics (derived from pg_stat_* views or RPC)
 export interface DbIndexUsageRow {
@@ -523,9 +508,7 @@ export interface DbPerformanceOverview {
 	[k: string]: unknown
 }
 
-// =============================================================================
 // HEALTH MONITORING TYPES
-// =============================================================================
 
 export interface ServiceHealth {
 	healthy: boolean
@@ -568,9 +551,7 @@ export interface SystemHealth {
 	}
 }
 
-// =============================================================================
 // CONFIG TYPES
-// =============================================================================
 
 export interface AppConfig {
 	port: number
@@ -640,9 +621,8 @@ export interface SecurityAuditReport {
 	}
 }
 
-// =============================================================================
 // CACHE TYPES
-// =============================================================================
+
 // Cache types are exported from core.ts to avoid duplication
 
 export type CacheInvalidationReason =
@@ -659,9 +639,7 @@ export type CacheableEntityType =
 	| 'lease'
 	| 'maintenance'
 
-// =============================================================================
 // SECURITY AUDIT TYPES
-// =============================================================================
 
 // Script-specific endpoint info for security audit
 export interface EndpointInfo {
@@ -691,9 +669,7 @@ export interface EndpointAudit {
 // Script-specific audit report
 // Duplicate SecurityAuditReport removed - defined above with summary property
 
-// =============================================================================
 // ERROR BOUNDARY TYPES
-// =============================================================================
 
 export interface CircuitState {
 	isOpen: boolean
@@ -712,9 +688,7 @@ export interface ServiceMetrics {
 	lastErrorTime?: number
 }
 
-// =============================================================================
 // SECURITY MONITORING TYPES
-// =============================================================================
 
 export interface SecurityEvent {
 	id: string
@@ -770,9 +744,7 @@ export interface SecurityMetrics {
 	}
 }
 
-// =============================================================================
 // SECURITY EXCEPTION FILTER TYPES
-// =============================================================================
 
 export interface ErrorResponse {
 	statusCode: number
@@ -794,9 +766,7 @@ export interface SecurityErrorContext {
 	statusCode: number
 }
 
-// =============================================================================
 // STRIPE SUBSCRIPTION TYPES
-// =============================================================================
 
 export type StripeSubscriptionStatus =
 	| 'ACTIVE'

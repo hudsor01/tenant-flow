@@ -1,12 +1,12 @@
 import { z } from 'zod'
-import { Constants } from '../types/supabase-generated'
+import { Constants } from '../types/supabase-generated.js'
 import {
 	emailSchema,
 	nonEmptyStringSchema,
 	phoneSchema,
 	requiredString,
 	uuidSchema
-} from './common'
+} from './common.js'
 
 // Tenant status enum - uses auto-generated Supabase enums
 export const tenantStatusSchema = z.enum(

@@ -4,9 +4,7 @@
  * Provides a bridge between design system tokens and application typography
  */
 
-// =============================================================================
 // DESIGN TOKEN DEFINITIONS
-// =============================================================================
 
 /**
  * Roboto Typography Scale from Design Tokens
@@ -157,9 +155,7 @@ export const TYPOGRAPHY_TOKENS = {
 	}
 } as const
 
-// =============================================================================
 // TAILWIND UTILITY MAPPING
-// =============================================================================
 
 /**
  * Maps design tokens to Tailwind utility classes
@@ -214,9 +210,7 @@ export const TOKEN_TO_TAILWIND_MAP = {
 		'font-sans text-[10px] font-semibold leading-[1.3] tracking-normal'
 } as const
 
-// =============================================================================
 // SEMANTIC TYPOGRAPHY MAPPING
-// =============================================================================
 
 /**
  * Maps semantic use cases to design tokens
@@ -272,9 +266,7 @@ export const SEMANTIC_TYPOGRAPHY = {
 	copyright: 'sf-micro'
 } as const
 
-// =============================================================================
 // UTILITY FUNCTIONS
-// =============================================================================
 
 /**
  * Get Tailwind classes for a given typography token
@@ -308,9 +300,7 @@ export function getTypographyToken(token: keyof typeof TYPOGRAPHY_TOKENS) {
 	return TYPOGRAPHY_TOKENS[token]
 }
 
-// =============================================================================
 // REACT COMPONENT UTILITIES
-// =============================================================================
 
 /**
  * Typography variant type for React components
@@ -351,9 +341,7 @@ export function getTypographyClassName(props: TypographyProps): string {
 	return `${baseClasses} ${className}`.trim()
 }
 
-// =============================================================================
 // MIGRATION HELPER
-// =============================================================================
 
 /**
  * Maps old TYPOGRAPHY_SCALE keys to new design tokens

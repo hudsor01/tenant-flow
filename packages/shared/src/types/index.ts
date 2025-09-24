@@ -5,22 +5,19 @@
  * 75% reduction from previous scattered type definitions
  */
 
-// =============================================================================
 // PRIMARY EXPORT - Consolidated core types using native TypeScript features
-// =============================================================================
-export * from './core'
 
-// =============================================================================
+export * from './core.js'
+
 // CONSOLIDATED DOMAIN FILES - Aggressive consolidation complete
-// =============================================================================
 
 // Supabase generated types (required)
-export * from './supabase-generated'
+export * from './supabase-generated.js'
 
 // Consolidated domain types
-export * from './api-errors'
-export * from './backend-domain'
-export * from './domain'
+export * from './api-errors.js'
+export * from './backend-domain.js'
+export * from './domain.js'
 export type {
 	HealthCheckResult,
 	PerformanceMetrics,
@@ -29,7 +26,7 @@ export type {
 	SecurityMetrics,
 	ServiceHealth,
 	SystemHealth
-} from './health'
+} from './health.js'
 
 // Auth types (domain-specific business logic)
 export type {
@@ -41,45 +38,45 @@ export type {
 	SubscriptionStatus,
 	SupabaseWebhookEvent,
 	UserRole
-} from './auth'
+} from './auth.js'
 
 // Validation types (Zod integration) - correct imports
 export type {
 	MaintenanceRequestInput,
 	MaintenanceRequestUpdate
-} from '../validation/maintenance'
+} from '../validation/maintenance.js'
 
-export type { UnitFormData, UnitInput, UnitUpdate } from '../validation/units'
+export type {
+	UnitFormData,
+	UnitInput,
+	UnitUpdate
+} from '../validation/units.js'
 
-export type { PropertyInput, PropertyUpdate } from '../validation/properties'
+export type { PropertyInput, PropertyUpdate } from '../validation/properties.js'
 
-export type { TenantInput } from '../validation/tenants'
+export type { TenantInput } from '../validation/tenants.js'
 
-export type { LeaseInput, LeaseUpdate } from '../validation/leases'
+export type { LeaseInput, LeaseUpdate } from '../validation/leases.js'
 
 // Lease generator types
 export type {
 	LeaseFormData,
 	StateLeaseRequirements
-} from './lease-generator.types'
+} from './lease-generator.types.js'
 
 // Controller response types (from errors.ts)
-export type { ControllerApiResponse } from './errors'
+export type { ControllerApiResponse } from './errors.js'
 
 // Security permissions (business rules)
-export { Permission } from './security'
+export { Permission } from './security.js'
 
 // Essential business constants
-export { USER_ROLE } from '../constants/auth'
-export { PLANS, PLAN_TYPE } from '../constants/billing'
+export { USER_ROLE } from '../constants/auth.js'
+export { PLANS, PLAN_TYPE } from '../constants/billing.js'
 
-// =============================================================================
 // NO LEGACY COMPATIBILITY - Use core types directly
-// =============================================================================
 
-// =============================================================================
 // ESSENTIAL UTILITIES ONLY - Minimal necessary type utilities
-// =============================================================================
 
 // Re-export only the most commonly used utility functions
 export type WithRequired<T, K extends keyof T> = T & Required<Pick<T, K>>
@@ -91,9 +88,8 @@ export type NonNullable<T> = T extends null | undefined ? never : T
 export type Stringify<T> = { [K in keyof T]: string }
 export type Numberify<T> = { [K in keyof T]: number }
 
-// =============================================================================
 // NOTES FOR MIGRATION
-// =============================================================================
+
 //
 // REMOVED FILES (use core.ts instead):
 // - common.ts → core.ts
@@ -115,4 +111,3 @@ export type Numberify<T> = { [K in keyof T]: number }
 // 3. Validation types from '@repo/shared/validation/*'
 // 4. Gradually remove legacy imports as code is updated
 //
-// =============================================================================

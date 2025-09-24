@@ -1,28 +1,14 @@
 // File: packages/shared/api.ts
 // Purpose: Shared API DTOs and response types for frontend and backend.
 
-import type { User } from './supabase'
-import type { Database } from './supabase-generated'
+import type { Database } from './supabase-generated.js'
+import type { User } from './supabase.js'
 type Lease = Database['public']['Tables']['Lease']['Row']
 type Property = Database['public']['Tables']['Property']['Row']
 type Unit = Database['public']['Tables']['Unit']['Row']
 type Tenant = Database['public']['Tables']['Tenant']['Row']
 // MaintenanceRequest type available if needed: Database['public']['Tables']['MaintenanceRequest']['Row']
-import type { NotificationData as _NotificationData } from './notifications'
-import type {
-	AppError as _AppError,
-	AuthError as _AuthError,
-	ValidationError as _ValidationError,
-	NetworkError as _NetworkError,
-	ServerError as _ServerError,
-	BusinessError as _BusinessError,
-	FileUploadError as _FileUploadError,
-	PaymentError as _PaymentError,
-	ErrorResponse as _ErrorResponse,
-	SuccessResponse as _SuccessResponse,
-	ApiResponse as _CentralizedApiResponse,
-	ControllerApiResponse as _ControllerApiResponse
-} from './errors'
+import type { ControllerApiResponse as _ControllerApiResponse } from './errors.js'
 
 export type { _ControllerApiResponse as ControllerApiResponse }
 // Response types moved to core.ts - using ApiResponse pattern instead
@@ -96,26 +82,26 @@ export interface UpdateUserProfileInput {
 
 // Import from api-inputs.ts for consistent type usage
 import type {
-	CreatePropertyInput,
-	UpdatePropertyInput,
-	CreateTenantInput,
-	UpdateTenantInput,
-	CreateUnitInput,
-	UpdateUnitInput,
 	CreateLeaseInput,
-	UpdateLeaseInput
-} from './api-inputs'
+	CreatePropertyInput,
+	CreateTenantInput,
+	CreateUnitInput,
+	UpdateLeaseInput,
+	UpdatePropertyInput,
+	UpdateTenantInput,
+	UpdateUnitInput
+} from './api-inputs.js'
 
 // Direct re-exports - use Input types consistently
 export type {
-	CreatePropertyInput,
-	UpdatePropertyInput,
-	CreateTenantInput,
-	UpdateTenantInput,
-	CreateUnitInput,
-	UpdateUnitInput,
 	CreateLeaseInput,
-	UpdateLeaseInput
+	CreatePropertyInput,
+	CreateTenantInput,
+	CreateUnitInput,
+	UpdateLeaseInput,
+	UpdatePropertyInput,
+	UpdateTenantInput,
+	UpdateUnitInput
 }
 
 export interface UnitStats {
@@ -202,13 +188,13 @@ export interface FileUploadResponse {
 
 // Query parameters for API calls - using comprehensive query types from queries.ts
 export type {
-	PropertyQuery,
-	TenantQuery,
-	UnitQuery,
 	LeaseQuery,
 	MaintenanceQuery,
-	NotificationQuery
-} from './queries'
+	NotificationQuery,
+	PropertyQuery,
+	TenantQuery,
+	UnitQuery
+} from './queries.js'
 
 // Note: *WithDetails types are defined in relations.ts to avoid circular imports
 
@@ -300,9 +286,7 @@ export interface InvitationResponse {
 	}
 }
 
-// ========================
 // Subscription & Billing API Types
-// ========================
 
 // Subscription request types
 export interface CreateSubscriptionRequest {
@@ -361,9 +345,7 @@ export interface CreateSubscriptionWithSignupResponse {
 	refreshToken: string
 }
 
-// =============================================================================
 // ADDITIONAL API TYPES - MIGRATED from inline definitions
-// =============================================================================
 
 export interface WebhookClientOptions {
 	baseUrl: string
@@ -392,7 +374,7 @@ export interface UseServerActionOptions<T extends ServerActionState> {
 	resetOnSuccess?: boolean
 }
 
-export type ActionResult<T = void> = 
+export type ActionResult<T = void> =
 	| { success: true; data: T; error?: never }
 	| { success: false; error: string; data?: never }
 
@@ -415,7 +397,9 @@ export interface UseActionStateFormReturn {
 	formState: FormState
 	isSubmitting: boolean
 	register: (name: string) => { name: string }
-	handleSubmit: (action: (prevState: FormState, formData: FormData) => Promise<FormState>) => (formData: FormData) => void
+	handleSubmit: (
+		action: (prevState: FormState, formData: FormData) => Promise<FormState>
+	) => (formData: FormData) => void
 	reset: () => void
 }
 
@@ -447,7 +431,7 @@ export type AsyncResult<T> =
 	| { success: true; data: T; error?: never }
 	| { success: false; error: ExtendedAppError; data?: never }
 
-// API client loading states  
+// API client loading states
 export interface UseApiCallOptions<TData = unknown> {
 	onSuccess?: (data: TData) => void
 	onError?: (error: Error) => void
@@ -486,24 +470,31 @@ export interface MaintenanceRequestApiResponse {
 	preferredDate: string | null
 	requestedBy: string | null
 	updatedAt: string
-	
+
 	// Flattened Unit fields (joined from Unit table)
 	unitNumber: string
 	unitBedrooms?: number
 	unitBathrooms?: number
 	unitRent?: number
 	unitStatus?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
-	
+
 	// Flattened Property fields (joined from Property table via Unit)
 	propertyId?: string
 	propertyName?: string
 	propertyAddress?: string
 	propertyCity?: string
 	propertyState?: string
-	propertyType?: 'SINGLE_FAMILY' | 'MULTI_UNIT' | 'APARTMENT' | 'COMMERCIAL' | 'CONDO' | 'TOWNHOUSE' | 'OTHER'
-	
+	propertyType?:
+		| 'SINGLE_FAMILY'
+		| 'MULTI_UNIT'
+		| 'APARTMENT'
+		| 'COMMERCIAL'
+		| 'CONDO'
+		| 'TOWNHOUSE'
+		| 'OTHER'
+
 	// Flattened Tenant fields (optional, joined when available)
 	tenantName?: string
-	tenantEmail?: string 
+	tenantEmail?: string
 	tenantPhone?: string
 }

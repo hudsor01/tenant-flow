@@ -12,9 +12,7 @@
  * - Zero custom CSS - design tokens only
  */
 
-// =============================================================================
 // MOTION TOKENS - CORE TIMING FUNCTIONS
-// =============================================================================
 
 /**
  * Professional easing functions
@@ -51,9 +49,7 @@ export const MOTION_DURATIONS = {
 	'duration-deliberate': '800ms' // Thoughtful animations
 } as const
 
-// =============================================================================
 // INTERACTION PATTERNS - TACTILE ADDICTION
-// =============================================================================
 
 /**
  * Transform values that create satisfying interaction feedback
@@ -152,9 +148,7 @@ export const MOTION_RADIUS = {
 	'radius-full': '9999px' // Pills and circles
 } as const
 
-// =============================================================================
 // MOTION PRESETS - READY-TO-USE COMBINATIONS
-// =============================================================================
 
 /**
  * Pre-configured motion combinations for common interactions
@@ -200,9 +194,7 @@ export const MOTION_PRESETS = {
 	}
 } as const
 
-// =============================================================================
 // CSS CUSTOM PROPERTIES - FOR DIRECT CSS USAGE
-// =============================================================================
 
 /**
  * CSS custom properties for direct stylesheet usage
@@ -239,9 +231,7 @@ export const MOTION_CSS_VARS = {
 	'--radius-large': MOTION_RADIUS['radius-large']
 } as const
 
-// =============================================================================
 // TYPE DEFINITIONS
-// =============================================================================
 
 export type MotionEasing = keyof typeof MOTION_EASINGS
 export type MotionDuration = keyof typeof MOTION_DURATIONS

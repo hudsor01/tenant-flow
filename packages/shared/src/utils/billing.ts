@@ -3,7 +3,7 @@
  * Helper functions for subscription calculations and plan management
  */
 
-import { PLANS } from '../constants/billing'
+import { PLANS } from '../constants/billing.js'
 
 export function getPlanById(planId: string): (typeof PLANS)[0] | undefined {
 	return PLANS.find(plan => plan.id === planId)
