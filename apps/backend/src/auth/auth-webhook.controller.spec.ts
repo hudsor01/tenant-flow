@@ -73,8 +73,9 @@ describe('AuthWebhookController', () => {
 		// Clear all mocks before each test
 		jest.clearAllMocks()
 
-		mockSupabaseClient =
-			createMock<SupabaseClient>() as unknown as SupabaseClient
+		mockSupabaseClient = {
+			rpc: jest.fn()
+		} as unknown as jest.Mocked<SupabaseClient>
 
 		const mockAuthService = createMock<AuthService>()
 
