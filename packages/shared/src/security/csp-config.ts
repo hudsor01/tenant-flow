@@ -88,6 +88,9 @@ export function generateCSPDirectives(
 
 		'frame-src': ["'self'", ...CSP_DOMAINS.STRIPE],
 
+		// Worker sources for PostHog recorder
+		'worker-src': ["'self'", 'blob:'],
+
 		'object-src': ["'none'"], // Prevent object/embed/applet for security
 
 		'base-uri': ["'self'"],
