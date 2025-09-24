@@ -6,7 +6,6 @@ const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	productionBrowserSourceMaps: false,
 	poweredByHeader: false,
-	swcMinify: true,
 
 	// ESLint configuration
 	eslint: {
