@@ -1,8 +1,8 @@
 import {
 	Injectable,
-	BadRequestException
+	BadRequestException,
+	Logger
 } from '@nestjs/common'
-import { Logger } from '@nestjs/common'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared'
 import type { StorageUploadResult, FileUploadOptions, StorageEntityType, StorageFileType } from '@repo/shared'
@@ -13,12 +13,11 @@ import { SupabaseService } from './supabase.service'
 
 @Injectable()
 export class StorageService {
+	private readonly logger = new Logger(StorageService.name)
+
 	constructor(
-		private readonly supabaseService: SupabaseService,
-		private readonly logger: Logger
-	) {
-		// Logger context handled automatically via app-level configuration
-	}
+		private readonly supabaseService: SupabaseService
+	) {}
 
 	private get supabase(): SupabaseClient<Database> {
 		return this.supabaseService.getAdminClient()

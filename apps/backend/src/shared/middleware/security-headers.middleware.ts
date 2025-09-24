@@ -50,8 +50,22 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 	private readonly logger = new Logger(SecurityHeadersMiddleware.name)
 
 	use(req: Request, res: Response, next: () => void): void {
-		this.setSecurityHeaders(req, res)
-		next()
+		try {
+			this.setSecurityHeaders(req, res)
+			next()
+		} catch (error) {
+			this.logger.error('Security headers middleware failed', {
+				operation: 'security_headers_failure',
+				endpoint: req.url,
+				method: req.method,
+				ip: req.ip,
+				userAgent: req.headers['user-agent'],
+				errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+				errorMessage: error instanceof Error ? error.message : String(error)
+			})
+			// Continue without security headers rather than blocking request
+			next()
+		}
 	}
 
 	private setSecurityHeaders(req: Request, res: Response): void {
@@ -150,10 +164,26 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 		// Log security headers application in development
 		if (environment === 'development') {
 			this.logger.debug('Applied security headers', {
+				operation: 'security_headers_applied',
 				endpoint: req.url,
 				method: req.method,
+				ip: req.ip,
+				userAgent: req.headers['user-agent'],
 				isSecure,
-				hstsEnabled: SECURITY_CONFIG.hsts.enabled && isSecure
+				hstsEnabled: SECURITY_CONFIG.hsts.enabled && isSecure,
+				cspEnabled: SECURITY_CONFIG.csp.enabled,
+				headerCount: Object.keys(headers).length
+			})
+		}
+
+		// Log HSTS application in production for monitoring
+		if (environment === 'production' && SECURITY_CONFIG.hsts.enabled && isSecure) {
+			this.logger.debug('HSTS header applied', {
+				operation: 'security_headers_hsts_applied',
+				endpoint: req.url,
+				maxAge: SECURITY_CONFIG.hsts.maxAge,
+				includeSubDomains: SECURITY_CONFIG.hsts.includeSubDomains,
+				preload: SECURITY_CONFIG.hsts.preload
 			})
 		}
 	}
@@ -199,6 +229,7 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 	// Method to update CSP for specific endpoints (e.g., webhook endpoints that need different policies)
 	public static customCSP(res: Response, customDirectives: string): void {
 		res.setHeader('Content-Security-Policy', customDirectives)
+		// Note: Would log here but this is a static method - consider refactoring if logging needed
 	}
 
 	// Method to set CORS headers for preflight requests

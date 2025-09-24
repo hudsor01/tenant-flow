@@ -377,13 +377,13 @@ export default function FeaturesPage() {
 							<div className="group relative">
 								<div className="bg-gradient-to-br from-accent/5 to-accent/10 dark:from-accent/10 dark:to-accent/20 rounded-3xl p-8 border border-accent/20 dark:border-accent/30 hover:border-accent/40 dark:hover:border-accent/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
 									{/* Step indicator */}
-									<div className="absolute -top-4 left-8 bg-primary text-white text-sm font-bold px-3 py-1 rounded-full">
+									<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
 										Step 1
 									</div>
 
 									{/* Icon with enhanced visual metaphor */}
 									<div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-primary to-accent mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<TrendingUp className="w-8 h-8 text-white" />
+										<TrendingUp className="w-8 h-8 text-primary-foreground" />
 									</div>
 
 									<h3 className="font-bold text-foreground mb-4 text-xl">
@@ -429,12 +429,12 @@ export default function FeaturesPage() {
 							{/* Step 2: Automate Tasks */}
 							<div className="group relative">
 								<div className="bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-3xl p-8 border border-primary/20 dark:border-primary/30 hover:border-primary/40 dark:hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
-									<div className="absolute -top-4 left-8 bg-primary text-white text-sm font-bold px-3 py-1 rounded-full">
+									<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
 										Step 2
 									</div>
 
 									<div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<Zap className="w-8 h-8 text-white" />
+										<Zap className="w-8 h-8 text-primary-foreground" />
 									</div>
 
 									<h3 className="font-bold text-foreground mb-4 text-xl">
@@ -479,12 +479,12 @@ export default function FeaturesPage() {
 							{/* Step 3: Secure Data */}
 							<div className="group relative">
 								<div className="bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 rounded-3xl p-8 border border-border hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
-									<div className="absolute -top-4 left-8 bg-primary text-white text-sm font-bold px-3 py-1 rounded-full">
+									<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
 										Step 3
 									</div>
 
 									<div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<Shield className="w-8 h-8 text-white" />
+										<Shield className="w-8 h-8 text-primary-foreground" />
 									</div>
 
 									<h3 className="font-bold text-foreground mb-4 text-xl">
@@ -551,7 +551,7 @@ export default function FeaturesPage() {
 						<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
 							<div className="text-center group">
 								<div className="w-20 h-20 rounded-full bg-gradient-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-									<TrendingUp className="w-10 h-10 text-white" />
+									<TrendingUp className="w-10 h-10 text-primary-foreground" />
 								</div>
 								<div className="text-4xl font-bold text-foreground mb-2">
 									40%
@@ -563,7 +563,7 @@ export default function FeaturesPage() {
 
 							<div className="text-center group">
 								<div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-									<Clock className="w-10 h-10 text-white" />
+									<Clock className="w-10 h-10 text-primary-foreground" />
 								</div>
 								<div className="text-4xl font-bold text-foreground mb-2">
 									25+
@@ -573,7 +573,7 @@ export default function FeaturesPage() {
 
 							<div className="text-center group">
 								<div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-									<Users className="w-10 h-10 text-white" />
+									<Users className="w-10 h-10 text-primary-foreground" />
 								</div>
 								<div className="text-4xl font-bold text-foreground mb-2">
 									10K+
@@ -583,7 +583,7 @@ export default function FeaturesPage() {
 
 							<div className="text-center group">
 								<div className="w-20 h-20 rounded-full bg-gradient-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-									<BarChart3 className="w-10 h-10 text-white" />
+									<BarChart3 className="w-10 h-10 text-primary-foreground" />
 								</div>
 								<div className="text-4xl font-bold text-foreground mb-2">
 									90

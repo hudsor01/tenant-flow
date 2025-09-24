@@ -16,10 +16,13 @@ test.describe('Authentication Flow to Dashboard', () => {
 		await page.context().clearCookies()
 
 		// Perform login
-		await authHelper.login(
-			process.env.E2E_USER_EMAIL || 'test.user@example.com',
-			process.env.E2E_USER_PASSWORD || 'TestPassword123!'
-		)
+		const userEmail = process.env.E2E_USER_EMAIL || (() => {
+			throw new Error('E2E_USER_EMAIL is required for login test')
+		})()
+		const userPassword = process.env.E2E_USER_PASSWORD || (() => {
+			throw new Error('E2E_USER_PASSWORD is required for login test')
+		})()
+		await authHelper.login(userEmail, userPassword)
 
 		// Verify logged in
 		await authHelper.verifyLoggedIn()

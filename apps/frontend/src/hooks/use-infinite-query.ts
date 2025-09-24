@@ -57,7 +57,10 @@ function useInfiniteQuery<
       const { data, count, error } = await query.range(skip, skip + pageSize - 1)
 
       if (error) {
-        logger.error({ error: error.message, table: tableName }, 'Infinite query error')
+        logger.error('Infinite query error', {
+          action: 'infinite_query_failed',
+          metadata: { error: error.message, table: tableName }
+        })
         throw new Error(error.message)
       }
 

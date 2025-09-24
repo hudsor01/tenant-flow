@@ -1,7 +1,7 @@
 'use client'
 
 import type { LoginCredentials } from '@repo/shared'
-import { supabaseClient } from '@repo/shared'
+import { createLogger, supabaseClient } from '@repo/shared'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -9,6 +9,8 @@ import { ForgotPasswordModal } from '@/components/auth/forgot-password-modal'
 import { LoginLayout } from '@/components/auth/login-layout'
 import { toast } from 'sonner'
 import { loginAction } from './actions'
+
+const logger = createLogger({ component: 'LoginPage' })
 
 export default function LoginPage() {
 	const [isLoading, setIsLoading] = useState(false)
@@ -41,11 +43,19 @@ export default function LoginPage() {
 			const result = await loginAction(credentials)
 
 			if (!result.success) {
-				console.error('Login error:', result.error)
+				logger.error('Login failed', {
+					action: 'email_login_failed',
+					metadata: {
+						error: result.error,
+						emailProvided: !!credentials.email
+					}
+				})
 
 				// Redirect to email confirmation page if email not confirmed
 				if (result.needsEmailConfirmation) {
-					console.info('Email not confirmed, redirecting to confirmation page')
+					logger.info('Email not confirmed, redirecting to confirmation page', {
+						action: 'redirect_to_email_confirmation'
+					})
 					router.push('/auth/confirm-email')
 					return
 				}
@@ -60,12 +70,22 @@ export default function LoginPage() {
 			}
 
 			// Success - server action will handle redirect
-			console.info('Login successful, redirecting to dashboard')
+			logger.info('Login successful, redirecting to dashboard', {
+				action: 'email_login_success',
+				metadata: {
+					email: credentials.email
+				}
+			})
 			toast.success('Welcome back!', {
 				description: `Signed in as ${credentials.email}`
 			})
 		} catch (error) {
-			console.error('Unexpected error during login:', error)
+			logger.error('Unexpected error during login', {
+				action: 'email_login_unexpected_error',
+				metadata: {
+					error: error instanceof Error ? error.message : String(error)
+				}
+			})
 			// Show error toast for unexpected errors
 			toast.error('Something went wrong', {
 				description:
@@ -77,7 +97,9 @@ export default function LoginPage() {
 	}
 
 	const handleForgotPassword = () => {
-		console.info('Forgot password clicked, opening modal')
+		logger.info('Forgot password modal opened', {
+			action: 'forgot_password_modal_opened'
+		})
 		setShowForgotPassword(true)
 	}
 
@@ -101,7 +123,12 @@ export default function LoginPage() {
 			})
 
 			if (error) {
-				console.error('Google login error:', error.message)
+				logger.error('Google login failed', {
+					action: 'google_login_failed',
+					metadata: {
+						error: error.message
+					}
+				})
 				// Show error toast for Google login failures
 				toast.error('Google sign in failed', {
 					description:
@@ -109,7 +136,12 @@ export default function LoginPage() {
 				})
 			}
 		} catch (error) {
-			console.error('Unexpected error during Google login:', error)
+			logger.error('Unexpected error during Google login', {
+				action: 'google_login_unexpected_error',
+				metadata: {
+					error: error instanceof Error ? error.message : String(error)
+				}
+			})
 			// Show error toast for unexpected Google login errors
 			toast.error('Something went wrong', {
 				description:

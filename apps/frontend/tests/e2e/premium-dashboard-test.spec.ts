@@ -12,14 +12,12 @@ test.describe('Premium Dashboard Colors Test', () => {
   test('Dashboard loads and displays premium color elements', async ({ page }) => {
     // Test should handle auth redirects gracefully
     const currentUrl = page.url()
-    console.log('Current URL:', currentUrl)
 
     // Take a screenshot of whatever loads (login or dashboard)
     await page.screenshot({ path: 'test-results/dashboard-load-test.png', fullPage: true })
 
     // If on login page, try to navigate to a public test route
     if (currentUrl.includes('/auth/login') || currentUrl.includes('/signin')) {
-      console.log('Redirected to auth, testing color demo page instead')
       await page.goto('file:///Users/richard/Developer/tenant-flow/premium-dashboard-colors-demo.html')
       await page.waitForLoadState('networkidle')
     }
@@ -29,13 +27,10 @@ test.describe('Premium Dashboard Colors Test', () => {
 
     // Look for metric cards with premium colors
     const colorElements = await page.locator('.metric-card, .metric-money, .metric-primary, .metric-error, .metric-urgent, .metric-premium').count()
-    console.log('Found premium color elements:', colorElements)
 
     // Verify colors are properly applied
     if (colorElements > 0) {
-      console.log('✅ Premium color elements detected')
     } else {
-      console.log('⚠️ No premium color elements found, checking CSS')
     }
   })
 
@@ -87,12 +82,10 @@ test.describe('Premium Dashboard Colors Test', () => {
       return getComputedStyle(el).color
     })
 
-    console.log('Money metric color:', moneyColor)
 
     // Expect green color for money metrics
     expect(moneyColor).toContain('16, 185, 129')
 
-    console.log('✅ Premium colors test completed successfully')
   })
 
   test('Dashboard metric cards visual test', async ({ page }) => {
@@ -118,6 +111,5 @@ test.describe('Premium Dashboard Colors Test', () => {
     await expect(urgentCard).toBeVisible()
     await expect(premiumCard).toBeVisible()
 
-    console.log('✅ All premium color metric cards are visible and properly styled')
   })
 })

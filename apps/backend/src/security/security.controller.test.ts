@@ -13,7 +13,7 @@ describe('SecurityController', () => {
       debug: jest.fn()
     } as unknown as typeof mockLogger & Logger
 
-    controller = new SecurityController(mockLogger as unknown as Logger)
+    controller = new SecurityController()
   })
 
   afterEach(() => {

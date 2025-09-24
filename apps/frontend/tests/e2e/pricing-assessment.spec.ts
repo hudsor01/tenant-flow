@@ -14,24 +14,18 @@ test.describe('Pricing Page Quality Assessment', () => {
 
 		// Basic checks
 		const title = await page.title()
-		console.log('Page title:', title)
 
 		// Check for basic elements
 		const hasNavbar = (await page.locator('nav').count()) > 0
 		const hasPricingSection = (await page.locator('section').count()) > 0
 		const hasButtons = (await page.locator('button').count()) > 0
 
-		console.log('Has navbar:', hasNavbar)
-		console.log('Has pricing section:', hasPricingSection)
-		console.log('Has buttons:', hasButtons)
 
 		// Check for text content
 		const pageText = await page.locator('body').textContent()
-		console.log(
 			'Page contains pricing text:',
 			pageText?.toLowerCase().includes('pricing')
 		)
-		console.log(
 			'Page contains plan text:',
 			pageText?.toLowerCase().includes('plan')
 		)
@@ -40,8 +34,6 @@ test.describe('Pricing Page Quality Assessment', () => {
 		const images = await page.locator('img').count()
 		const headings = await page.locator('h1, h2, h3').count()
 
-		console.log('Number of images:', images)
-		console.log('Number of headings:', headings)
 
 		// Check for responsive design
 		await page.setViewportSize({ width: 375, height: 667 })

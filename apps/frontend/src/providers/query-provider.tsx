@@ -5,6 +5,7 @@ import { ErrorBoundary } from 'react-error-boundary'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { createErrorBoundaryFallback, showErrorToast } from '@/lib/error-handler'
+import { logger } from '@repo/shared'
 
 interface QueryProviderProps {
   children: ReactNode
@@ -59,7 +60,14 @@ export function QueryProvider({ children }: QueryProviderProps) {
             fallbackRender={ErrorFallback}
             onError={(error, errorInfo) => {
               // Log error for debugging
-              console.error('Application Error Boundary:', error, errorInfo)
+              logger.error('QueryProvider - Application Error Boundary', {
+                action: 'query_provider_error_boundary',
+                metadata: {
+                  error: error.message,
+                  stack: error.stack,
+                  errorInfo
+                }
+              })
               showErrorToast(error, {
                 operation: 'render component',
                 metadata: { errorInfo }

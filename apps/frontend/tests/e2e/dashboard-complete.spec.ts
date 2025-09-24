@@ -70,9 +70,7 @@ test.describe('Dashboard Complete UI/UX Testing', () => {
       
       // Log console messages for debugging
       if (pageWithConsole.consoleLogs.length > 0) {
-        console.log(`Console logs for ${route.name}:`)
         pageWithConsole.consoleLogs.forEach(log => {
-          console.log(`  [${log.type}] ${log.text}`)
         })
       }
     })
@@ -119,7 +117,6 @@ test.describe('Dashboard Complete UI/UX Testing', () => {
         const src = await img.getAttribute('src')
         if (src && !src.startsWith('data:')) {
           // Image optimization check would go here
-          console.log(`Image found: ${src}`)
         }
       }
     })

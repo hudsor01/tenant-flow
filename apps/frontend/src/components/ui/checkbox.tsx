@@ -13,9 +13,9 @@ function Checkbox({
   return (
     <CheckboxPrimitive.Root
       data-slot="checkbox"
-      className={cn(
-        // Base styles with token-based radius
-        "peer border-input dark:bg-input/30 size-4 shrink-0 rounded-[6px] border shadow-xs outline-none",
+		className={cn(
+			// Base styles with token-based radius
+			"peer border-input dark:bg-input/30 size-4 shrink-0 rounded-[var(--radius-md)] border shadow-xs outline-none",
         // Enhanced transitions
         "transition-all duration-200 ease-in-out transform",
         // Hover state

@@ -13,6 +13,7 @@ import {
 	DefaultValuePipe,
 	Delete,
 	Get,
+	Logger,
 	NotFoundException,
 	Optional,
 	Param,
@@ -36,6 +37,8 @@ import { TenantsService } from './tenants.service'
 // @ApiBearerAuth()
 @Controller('tenants')
 export class TenantsController {
+	private readonly logger = new Logger(TenantsController.name)
+
 	constructor(@Optional() private readonly tenantsService?: TenantsService) {}
 
 	@Get()

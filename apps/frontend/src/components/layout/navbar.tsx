@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth-provider'
 import { useSpring, useTransition } from '@react-spring/core'
 import { animated } from '@react-spring/web'
-import { supabaseClient } from '@repo/shared'
+import { logger, supabaseClient } from '@repo/shared'
 import { ArrowRight, ChevronDown, Menu, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -124,7 +124,12 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 		const handleSignOut = async () => {
 			const { error } = await supabaseClient.auth.signOut()
 			if (error) {
-				console.error('Error signing out:', error)
+					logger.error('Navbar - Error signing out', {
+						action: 'signout_failed',
+						metadata: {
+							error: error.message
+						}
+					})
 			}
 			setIsOpen(false)
 		}
@@ -195,9 +200,9 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 				className={cn(
 					'fixed top-4 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 rounded-full px-4 py-2 w-auto',
 					isScrolled
-						? 'bg-white/95 backdrop-blur-xl shadow-xl border border-[var(--color-fill-secondary)]/30 scale-[0.98]'
-						: 'bg-white/80 backdrop-blur-xl shadow-lg border border-[var(--color-fill-secondary)]/20',
-					'hover:bg-white/95 hover:shadow-xl',
+						? 'bg-card backdrop-blur-xl shadow-xl border border-[var(--color-fill-secondary)]/30 scale-[0.98]'
+						: 'bg-card/90 backdrop-blur-xl shadow-lg border border-[var(--color-fill-secondary)]/20',
+					'hover:bg-card hover:shadow-xl',
 					className
 				)}
 				{...props}
@@ -322,7 +327,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								>
 									<Link
 										href={ctaHref}
-										className="hidden sm:flex items-center px-6 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-white font-medium text-sm rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg hover:shadow-xl"
+										className="hidden sm:flex items-center px-6 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-medium text-sm rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg hover:shadow-xl"
 									>
 										{ctaText}
 										<ArrowRight className="ml-2 h-4 w-4" />
@@ -467,7 +472,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 											<Link
 												href={ctaHref}
 												onClick={() => setIsOpen(false)}
-												className="flex items-center justify-center w-full px-6 py-3 mt-4 bg-gradient-to-r from-primary to-primary/80 text-white font-medium text-sm rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg"
+												className="flex items-center justify-center w-full px-6 py-3 mt-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-medium text-sm rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg"
 											>
 												{ctaText}
 												<ArrowRight className="ml-2 h-4 w-4" />

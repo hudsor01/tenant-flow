@@ -42,7 +42,7 @@ function AccordionTrigger({
 				data-slot="accordion-trigger"
 				className={cn(
 					// Base styles with token-based radius
-					'flex flex-1 items-start justify-between gap-4 rounded-[8px] py-4',
+					'flex flex-1 items-start justify-between gap-4 rounded-[var(--radius-small)] py-4',
 					'text-left text-sm font-medium outline-none',
 					// Enhanced transitions
 					'transition-all duration-200 ease-in-out',

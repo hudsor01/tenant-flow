@@ -16,7 +16,6 @@ describe('SecurityExceptionFilter', () => {
 
 	beforeEach(() => {
 		filter = new SecurityExceptionFilter(
-			mockSecurityLogger,
 			mockSecurityMonitor
 		)
 		mockResponse = {

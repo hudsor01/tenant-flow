@@ -11,8 +11,10 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { supabaseClient } from '@repo/shared'
+import { supabaseClient, createLogger } from '@repo/shared'
 import { useMutation } from '@tanstack/react-query'
+
+const logger = createLogger({ component: 'ForgotPasswordModal' })
 import { CheckCircle2, Info, Loader2, Mail } from 'lucide-react'
 import { useState } from 'react'
 
@@ -48,7 +50,14 @@ export function ForgotPasswordModal({
 
 			// Log error internally but don't expose to user
 			if (error) {
-				console.error('Password reset error:', error)
+				logger.error('Password reset error', {
+					action: 'password_reset_failed',
+					metadata: {
+						error: error.message,
+						code: error.code || 'unknown',
+						email: email // Consider PII implications - may need to redact
+					}
+				})
 			}
 
 			// Always show success to prevent email enumeration

@@ -21,9 +21,10 @@ type PropertyWithUnits = Property
 
 @Injectable()
 export class PropertiesService {
+	private readonly logger = new Logger(PropertiesService.name)
+
 	constructor(
-		private readonly supabaseService: SupabaseService,
-		private readonly logger: Logger
+		private readonly supabaseService: SupabaseService
 	) {}
 
 	/**

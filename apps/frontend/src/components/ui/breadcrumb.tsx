@@ -101,7 +101,7 @@ function BreadcrumbEllipsis({
 			aria-hidden="true"
 			className={cn(
 				// Base styles with token-based radius
-				'flex size-9 items-center justify-center rounded-[8px]',
+				'flex size-9 items-center justify-center rounded-[var(--radius-small)]',
 				// Enhanced transitions
 				'transition-all duration-200 ease-in-out',
 				// Hover state

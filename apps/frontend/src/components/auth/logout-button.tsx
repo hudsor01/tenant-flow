@@ -7,8 +7,10 @@ import {
 	cn,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
-import { supabaseClient } from '@repo/shared'
+import { createLogger, supabaseClient } from '@repo/shared'
 import { Loader2, LogOut } from 'lucide-react'
+
+const logger = createLogger({ component: 'LogoutButton' })
 import { useRouter } from 'next/navigation'
 import * as React from 'react'
 import { toast } from 'sonner'
@@ -78,7 +80,12 @@ export const LogoutButton = React.forwardRef<
 					router.push(redirectPath)
 				}, 500)
 			} catch (error) {
-				console.error('Logout error:', error)
+				logger.error('Logout failed', {
+					action: 'logout_failed',
+					metadata: {
+						error: error instanceof Error ? error.message : String(error)
+					}
+				})
 				toast.error(errorMessage, {
 					description:
 						'Please try again or contact support if the issue persists'
@@ -174,7 +181,7 @@ export const LogoutButton = React.forwardRef<
 							cn(
 								buttonClasses('destructive', 'default'),
 								'bg-gradient-to-r from-destructive to-destructive/90 hover:from-destructive/90 hover:to-destructive/80',
-								'text-white hover:shadow-lg hover:shadow-destructive/25',
+								'text-destructive-foreground hover:shadow-lg hover:shadow-destructive/25',
 								'transform hover:scale-[1.02] active:scale-[0.98]'
 							),
 						variant === 'ghost' &&

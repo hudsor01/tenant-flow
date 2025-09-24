@@ -2,6 +2,7 @@ import {
 	CallHandler,
 	ExecutionContext,
 	Injectable,
+	Logger,
 	NestInterceptor
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
@@ -12,6 +13,8 @@ const IS_PUBLIC_KEY = 'isPublic'
 
 @Injectable()
 export class CacheControlInterceptor implements NestInterceptor {
+	private readonly logger = new Logger(CacheControlInterceptor.name)
+
 	constructor(private readonly reflector: Reflector) {}
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -41,8 +44,12 @@ export class CacheControlInterceptor implements NestInterceptor {
 					'no-store, no-cache, must-revalidate, proxy-revalidate'
 				)
 			} else if (isPublic) {
-				const maxAge = Number(process.env.PUBLIC_CACHE_MAX_AGE ?? 60)
-				const staleWhileRevalidate = Number(process.env.PUBLIC_CACHE_SWR ?? 30)
+				const maxAge = Number(process.env.PUBLIC_CACHE_MAX_AGE || (() => {
+				throw new Error('PUBLIC_CACHE_MAX_AGE environment variable is required')
+			})())
+				const staleWhileRevalidate = Number(process.env.PUBLIC_CACHE_SWR || (() => {
+				throw new Error('PUBLIC_CACHE_SWR environment variable is required')
+			})())
 				reply.header(
 					'Cache-Control',
 					`public, max-age=${maxAge}, s-maxage=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`

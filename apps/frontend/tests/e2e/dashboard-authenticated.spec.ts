@@ -36,7 +36,6 @@ test.describe('Dashboard (Authenticated)', () => {
 			fullPage: true
 		})
 
-		console.log('✅ Dashboard authenticated test completed successfully')
 	})
 
 	test('dashboard API calls work correctly', async ({ page }) => {
@@ -59,7 +58,6 @@ test.describe('Dashboard (Authenticated)', () => {
 
 		// Verify API calls were made
 		expect(apiCalls.length).toBeGreaterThan(0)
-		console.log('Dashboard API calls:', apiCalls)
 
 		// Check that we don't have the error message anymore
 		await expect(

@@ -72,7 +72,6 @@ test.describe('Dashboard Verification', () => {
 	test('dashboard loads without errors and has proper content', async ({
 		page
 	}) => {
-		console.log('Starting dashboard verification test...')
 
 		// Navigate to dashboard with longer timeout for dev server
 		await page.goto('/dashboard', {
@@ -96,7 +95,6 @@ test.describe('Dashboard Verification', () => {
 				path: '.playwright-mcp/dashboard-verification-full.png',
 				fullPage: true
 			})
-			console.log('Screenshot saved: dashboard-verification-full.png')
 		}
 
 		// Check for essential dashboard elements
@@ -108,9 +106,7 @@ test.describe('Dashboard Verification', () => {
 			.isVisible()
 			.catch(() => false)
 		if (logoVisible) {
-			console.log('✅ TenantFlow logo found')
 		} else {
-			console.log('❌ TenantFlow logo not found')
 		}
 
 		// Check for dashboard navigation/sidebar
@@ -119,22 +115,18 @@ test.describe('Dashboard Verification', () => {
 			.isVisible()
 			.catch(() => false)
 		if (sidebarVisible) {
-			console.log('✅ Navigation/sidebar found')
 		} else {
-			console.log('❌ Navigation/sidebar not found')
 		}
 
 		// Look for dashboard content sections
 		const contentSections = await page
 			.locator('main, [role="main"], .dashboard, section')
 			.count()
-		console.log(`📊 Found ${contentSections} content sections`)
 
 		// Check for common dashboard elements
 		const cardCount = await page
 			.locator('[role="region"], .card, [data-testid*="card"]')
 			.count()
-		console.log(`📋 Found ${cardCount} card-like elements`)
 
 		// Wait a bit more to let any async content load
 		await page.waitForTimeout(3000)
@@ -145,7 +137,6 @@ test.describe('Dashboard Verification', () => {
 				path: '.playwright-mcp/dashboard-verification-final.png',
 				fullPage: true
 			})
-			console.log('Final screenshot saved: dashboard-verification-final.png')
 		}
 	})
 
@@ -184,15 +175,11 @@ test.describe('Dashboard Verification', () => {
 
 		// Report console messages
 		if (messages.length > 0) {
-			console.log('\n🚨 Console Messages Found:')
 			messages.forEach((msg, index) => {
-				console.log(`${index + 1}. [${msg.type.toUpperCase()}] ${msg.text}`)
 				if (msg.url && msg.line) {
-					console.log(`   at ${msg.url}:${msg.line}`)
 				}
 			})
 		} else {
-			console.log('✅ No console errors or warnings found')
 		}
 
 		// Take screenshot of current state
@@ -206,7 +193,6 @@ test.describe('Dashboard Verification', () => {
 	})
 
 	test('verify React version consistency', async ({ page }) => {
-		console.log('Checking React version consistency...')
 
 		await page.goto('/dashboard', {
 			waitUntil: 'domcontentloaded',
@@ -236,7 +222,6 @@ test.describe('Dashboard Verification', () => {
 			})
 			.catch(() => 'error')
 
-		console.log(`React version detected: ${reactVersion}`)
 
 		// Take screenshot for verification
 		await page.screenshot({
@@ -247,7 +232,6 @@ test.describe('Dashboard Verification', () => {
 	})
 
 	test('verify avatar loads correctly', async ({ page }) => {
-		console.log('Checking avatar loading...')
 
 		const networkRequests: string[] = []
 		const failedRequests: string[] = []
@@ -281,14 +265,9 @@ test.describe('Dashboard Verification', () => {
 		await page.goto('/dashboard', { waitUntil: 'networkidle', timeout: 60000 })
 		await page.waitForTimeout(3000)
 
-		console.log('Avatar-related network requests:')
-		networkRequests.forEach(url => console.log(`  📡 ${url}`))
 
 		if (failedRequests.length > 0) {
-			console.log('Failed avatar requests:')
-			failedRequests.forEach(failure => console.log(`  ❌ ${failure}`))
 		} else {
-			console.log('✅ No failed avatar requests')
 		}
 
 		// Take screenshot

@@ -569,7 +569,7 @@ export function LoginForm({
 							type="button"
 							onClick={onGoogleLogin}
 							disabled={isGoogleLoading}
-							className="w-full h-[var(--spacing-11)] flex items-center justify-center gap-[var(--spacing-3)] px-[var(--spacing-4)] bg-white border-2 border-[var(--color-border)] rounded-[var(--radius-large)] text-[var(--color-text)] font-medium hover:bg-[var(--color-accent)] hover:border-[var(--color-border-hover)] hover:shadow-md hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-out text-sm shadow-sm group"
+							className="w-full h-[var(--spacing-11)] flex items-center justify-center gap-[var(--spacing-3)] px-[var(--spacing-4)] bg-card border-2 border-border rounded-[var(--radius-large)] text-[var(--color-label-secondary)] font-medium hover:bg-accent hover:border-[var(--color-primary-brand-25)] hover:shadow-md hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-brand)] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-out text-sm shadow-sm group"
 							aria-label="Sign in with Google"
 						>
 							{!isGoogleLoading && (

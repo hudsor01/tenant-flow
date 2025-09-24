@@ -22,14 +22,12 @@ test.describe('Mock Auth Dashboard Integration', () => {
     // Add console monitoring
     page.on('console', msg => {
       if (msg.type() === 'error') {
-        console.log('Browser error:', msg.text())
       }
     })
 
     // Monitor network requests
     page.on('request', request => {
       if (request.url().includes('/api/dev-auth') || request.url().includes('/dashboard')) {
-        console.log(`Request: ${request.method()} ${request.url()}`)
       }
     })
   })
@@ -154,7 +152,6 @@ test.describe('Mock Auth Dashboard Integration', () => {
         // Monitor when query client becomes available
         const checkQueryClient = () => {
           if (window.useQuery || (window as any).__QUERY_CLIENT__) {
-            console.log('TanStack Query client detected')
             window.queryClientData.available = true
           } else {
             setTimeout(checkQueryClient, 100)

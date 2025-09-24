@@ -23,8 +23,8 @@ function Skeleton({
 	...props
 }: SkeletonProps & React.HTMLAttributes<HTMLDivElement>) {
 	const variantClasses = {
-		default: 'rounded-[8px]',
-		rounded: 'rounded-[12px]',
+		default: 'rounded-[var(--radius-small)]',
+		rounded: 'rounded-[var(--radius-medium)]',
 		circle: 'rounded-full'
 	}
 

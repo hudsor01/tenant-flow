@@ -42,25 +42,9 @@ type UnitUpdate = TablesUpdate<'Unit'>
 // In production, environment variables are required for proper deployment
 // In development, falls back to local backend port
 function getApiBaseUrl(): string {
-	// Check for explicit environment variables first
-	if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-		return process.env.NEXT_PUBLIC_API_BASE_URL
-	}
-	if (process.env.NEXT_PUBLIC_BACKEND_URL) {
-		return process.env.NEXT_PUBLIC_BACKEND_URL
-	}
-
-	// In production, require environment variables to be set
-	if (process.env.NODE_ENV === 'production') {
-		console.error(
-			'Missing required environment variable: NEXT_PUBLIC_API_BASE_URL or NEXT_PUBLIC_BACKEND_URL'
-		)
-		// Return empty string to make the error obvious
-		return ''
-	}
-
-	// Only use localhost as fallback in development
-	return 'http://localhost:4600'
+	return process.env.NEXT_PUBLIC_API_BASE_URL || (() => {
+		throw new Error('NEXT_PUBLIC_API_BASE_URL is required for API client configuration')
+	})()
 }
 
 export const API_BASE_URL = getApiBaseUrl()

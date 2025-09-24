@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit, Optional } from '@nestjs/common'
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { StripeSync, runMigrations } from '@supabase/stripe-sync-engine'
 
 /**
@@ -10,18 +10,17 @@ import { StripeSync, runMigrations } from '@supabase/stripe-sync-engine'
  */
 @Injectable()
 export class StripeSyncService implements OnModuleInit {
+	private readonly logger = new Logger(StripeSyncService.name)
 	private stripeSync!: StripeSync
 	private migrationsRun = false
 	private initialized = false
 
-	constructor(@Optional() private readonly logger?: Logger) {
-		// Context removed - NestJS Logger doesn't support setContext
-	}
+	constructor() {}
 
 	async onModuleInit() {
 		try {
 			// Initialize Stripe Sync Engine during module initialization
-			this.logger?.log('Initializing Stripe Sync Engine...')
+			this.logger.log('Initializing Stripe Sync Engine...')
 
 			// Use environment variables directly for critical configuration
 			// This avoids potential ConfigService injection timing issues
@@ -35,7 +34,9 @@ export class StripeSyncService implements OnModuleInit {
 				)
 			}
 
-			const schema = process.env.STRIPE_SYNC_DATABASE_SCHEMA ?? 'stripe'
+			const schema = process.env.STRIPE_SYNC_DATABASE_SCHEMA || (() => {
+				throw new Error('STRIPE_SYNC_DATABASE_SCHEMA environment variable is required')
+			})()
 			const autoExpandLists =
 				process.env.STRIPE_SYNC_AUTO_EXPAND_LISTS !== 'false'
 
@@ -53,14 +54,14 @@ export class StripeSyncService implements OnModuleInit {
 			})
 
 			this.initialized = true
-			this.logger?.log('Stripe Sync Engine initialized', {
+			this.logger.log('Stripe Sync Engine initialized', {
 				schema,
 				autoExpandLists,
 				hasWebhookSecret: !!stripeWebhookSecret
 			})
 
 			// Run migrations
-			this.logger?.log('Running Stripe Sync Engine migrations...')
+			this.logger.log('Running Stripe Sync Engine migrations...')
 
 			await runMigrations({
 				databaseUrl,
@@ -68,9 +69,9 @@ export class StripeSyncService implements OnModuleInit {
 			})
 
 			this.migrationsRun = true
-			this.logger?.log('Stripe Sync Engine migrations completed successfully')
+			this.logger.log('Stripe Sync Engine migrations completed successfully')
 		} catch (error) {
-			this.logger?.error('Stripe Sync Engine initialization failed:', error)
+			this.logger.error('Stripe Sync Engine initialization failed:', error)
 			throw error
 		}
 	}
@@ -94,7 +95,7 @@ export class StripeSyncService implements OnModuleInit {
 		if (!this.initialized || !this.stripeSync) {
 			throw new Error('Stripe Sync Engine not initialized')
 		}
-		this.logger?.log('Syncing single Stripe entity:', { entityId })
+		this.logger.log('Syncing single Stripe entity:', { entityId })
 		return this.stripeSync.syncSingleEntity(entityId)
 	}
 
@@ -107,18 +108,18 @@ export class StripeSyncService implements OnModuleInit {
 			throw new Error('Stripe Sync Engine not initialized')
 		}
 
-		this.logger?.log('Starting Stripe data backfill...')
+		this.logger.log('Starting Stripe data backfill...')
 		const startTime = Date.now()
 
 		try {
 			await this.stripeSync.syncBackfill()
 			const duration = ((Date.now() - startTime) / 1000).toFixed(2)
-			this.logger?.log('Stripe data backfill completed successfully', {
+			this.logger.log('Stripe data backfill completed successfully', {
 				duration: `${duration}s`
 			})
 			return { success: true }
 		} catch (error) {
-			this.logger?.error('Stripe data backfill failed:', error)
+			this.logger.error('Stripe data backfill failed:', error)
 			throw error
 		}
 	}
@@ -143,7 +144,7 @@ export class StripeSyncService implements OnModuleInit {
 				this.getHealthStatus().migrationsRun
 			)
 		} catch (error) {
-			this.logger?.error('Health check failed:', error)
+			this.logger.error('Health check failed:', error)
 			return false
 		}
 	}

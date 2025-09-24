@@ -4,8 +4,7 @@
  * Integrates with existing Logger patterns
  */
 
-import { Injectable, Optional } from '@nestjs/common'
-import { Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 
 interface CacheEntry<T = unknown> {
 	data: T
@@ -15,9 +14,10 @@ interface CacheEntry<T = unknown> {
 
 @Injectable()
 export class ResilienceService {
+	private readonly logger = new Logger(ResilienceService.name)
 	private cache = new Map<string, CacheEntry>()
 
-	constructor(@Optional() private readonly logger?: Logger) {
+	constructor() {
 		// Auto-cleanup expired entries every 30 seconds
 		setInterval(() => this.cleanupExpired(), 30_000)
 	}
@@ -48,7 +48,7 @@ export class ResilienceService {
 			// If we have cached data, return it as fallback
 			const fallbackCached = this.getExpired<T>(cacheKey)
 			if (fallbackCached !== null) {
-				this.logger?.warn(
+				this.logger.warn(
 					{ error: error instanceof Error ? error.message : String(error), cacheKey },
 					'Operation failed, returning cached fallback data'
 				)
@@ -73,7 +73,7 @@ export class ResilienceService {
 		}
 
 		if (count > 0) {
-			this.logger?.debug({ pattern, count }, 'Cache invalidation completed')
+			this.logger.debug({ pattern, count }, 'Cache invalidation completed')
 		}
 
 		return count
@@ -146,7 +146,7 @@ export class ResilienceService {
 		}
 
 		if (cleaned > 0) {
-			this.logger?.debug({ cleaned }, 'Cleaned expired cache entries')
+			this.logger.debug({ cleaned }, 'Cleaned expired cache entries')
 		}
 	}
 

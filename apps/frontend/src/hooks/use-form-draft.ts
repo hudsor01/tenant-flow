@@ -8,6 +8,9 @@
 
 import { useEffect, useState, useDeferredValue, startTransition } from 'react'
 import { authDraftApi } from '@/lib/api-client'
+import { createLogger } from '@repo/shared'
+
+const logger = createLogger({ component: 'FormDraftHook' })
 
 type FormType = 'signup' | 'login' | 'reset'
 type DraftData = { email?: string; name?: string; password?: string; confirmPassword?: string }
@@ -96,7 +99,15 @@ export function useFormDraft(formType: FormType) {
       }
     } catch (error) {
       // Graceful degradation - don't break the form
-      console.warn('Failed to save form draft:', error)
+      logger.warn('Failed to save form draft', {
+        action: 'form_draft_save_failed',
+        metadata: {
+          formType,
+          hasEmail: !!data.email,
+          hasName: !!data.name,
+          error: error instanceof Error ? error.message : String(error)
+        }
+      })
       setState(prev => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Failed to save draft'

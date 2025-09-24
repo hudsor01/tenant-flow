@@ -28,8 +28,6 @@ import { SecurityMonitorService } from '../services/security-monitor.service'
 @Catch()
 export class SecurityExceptionFilter implements ExceptionFilter {
 	private readonly logger = new Logger(SecurityExceptionFilter.name)
-	private readonly securityLogger: Logger
-	private readonly securityMonitor: SecurityMonitorService
 	private cleanupInterval: NodeJS.Timeout | null = null
 
 	// Track error frequencies to detect enumeration attacks
@@ -56,11 +54,7 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 		504: 'Request timeout'
 	}
 
-	constructor(securityLogger: Logger, securityMonitor: SecurityMonitorService) {
-		this.securityLogger = securityLogger
-		// Context removed - NestJS Logger doesn't support setContext
-		this.securityMonitor = securityMonitor
-
+	constructor(private readonly securityMonitor: SecurityMonitorService) {
 		// Cleanup error frequency tracking periodically
 		// Only start interval in non-test environments to prevent Jest hanging
 		if (process.env.NODE_ENV !== 'test') {
@@ -198,7 +192,8 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 		exception: unknown,
 		context: SecurityErrorContext
 	): void {
-		const logData = {
+		const baseLogData = {
+			operation: 'security_exception_filter',
 			...context,
 			error:
 				exception instanceof Error
@@ -217,11 +212,23 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 		}
 
 		if (context.statusCode >= 500) {
-			this.securityLogger.error('Internal server error', logData)
+			this.logger.error('Internal server error occurred', {
+				...baseLogData,
+				severity: 'HIGH',
+				category: 'internal_server_error'
+			})
 		} else if (context.statusCode === 401 || context.statusCode === 403) {
-			this.securityLogger.warn('Authentication/authorization error', logData)
+			this.logger.warn('Authentication or authorization error', {
+				...baseLogData,
+				severity: 'MEDIUM',
+				category: context.statusCode === 401 ? 'authentication_error' : 'authorization_error'
+			})
 		} else if (context.statusCode >= 400) {
-			this.securityLogger.log('Client error', logData)
+			this.logger.log('Client error handled', {
+				...baseLogData,
+				severity: 'LOW',
+				category: 'client_error'
+			})
 		}
 	}
 
@@ -428,7 +435,12 @@ export class SecurityExceptionFilter implements ExceptionFilter {
 		}
 
 		if (cleaned > 0) {
-			this.logger.debug(`Cleaned up ${cleaned} error tracking entries`)
+			this.logger.debug('Error tracking cleanup completed', {
+				operation: 'security_exception_cleanup',
+				entriesCleaned: cleaned,
+				remainingEntries: this.errorFrequency.size,
+				cleanupInterval: 5 * 60 * 1000
+			})
 		}
 	}
 }

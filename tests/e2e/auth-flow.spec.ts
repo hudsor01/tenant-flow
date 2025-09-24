@@ -61,9 +61,13 @@ test.describe('Authentication Flow', () => {
 		// Navigate to login
 		await page.goto('/auth/login')
 
-		// Use test account credentials (if available in env)
-		const testEmail = process.env.E2E_TEST_EMAIL || 'test@example.com'
-		const testPassword = process.env.E2E_TEST_PASSWORD || 'Test@Password123!'
+		// Use test account credentials - must be provided via environment
+		const testEmail = process.env.E2E_TEST_EMAIL || (() => {
+			throw new Error('E2E_TEST_EMAIL is required for authentication tests')
+		})()
+		const testPassword = process.env.E2E_TEST_PASSWORD || (() => {
+			throw new Error('E2E_TEST_PASSWORD is required for authentication tests')
+		})()
 
 		// Fill login form
 		await fillAuthForm(page, testEmail, testPassword)

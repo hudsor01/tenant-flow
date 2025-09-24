@@ -126,7 +126,7 @@ describe('Environment Validation', () => {
 
 		it('should handle CORS origins with ports', () => {
 			process.env.CORS_ORIGINS =
-				'https://example.com:3000,http://localhost:3005'
+				'https://example.com:3000,https://tenantflow.app'
 
 			expect(() => validateEnvironment()).not.toThrow()
 		})
@@ -166,7 +166,7 @@ describe('Environment Validation', () => {
 
 		it('should allow HTTP origins in development', () => {
 			process.env.NODE_ENV = 'development'
-			process.env.CORS_ORIGINS = 'https://example.com,http://localhost:3005'
+			process.env.CORS_ORIGINS = 'https://example.com,https://tenantflow.app'
 
 			expect(() => validateEnvironment()).not.toThrow()
 		})

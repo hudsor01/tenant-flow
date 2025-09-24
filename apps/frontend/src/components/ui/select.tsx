@@ -38,7 +38,7 @@ function SelectTrigger({
 			data-size={size}
 			className={cn(
 				// Base styles with token-based radius
-				"border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground dark:bg-input/30 flex w-fit items-center justify-between gap-2 rounded-[12px] border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs outline-none",
+				"border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground dark:bg-input/30 flex w-fit items-center justify-between gap-2 rounded-[var(--radius-medium)] border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs outline-none",
 				// Size variants
 				"data-[size=default]:h-9 data-[size=sm]:h-8",
 				// Enhanced transitions
@@ -81,7 +81,7 @@ function SelectContent({
 				data-slot="select-content"
 				className={cn(
 					// Base styles with token-based radius
-					'bg-popover text-popover-foreground relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-[12px] border shadow-md',
+					'bg-popover text-popover-foreground relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-[var(--radius-medium)] border shadow-md',
 					// Animations
 					'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
 					// Slide animations

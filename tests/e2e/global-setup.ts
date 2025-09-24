@@ -25,26 +25,42 @@ async function globalSetup(config: FullConfig) {
 		// Setup different user roles
 		const userRoles = [
 			{
-				email: process.env.E2E_USER_EMAIL || 'test.user@example.com',
-				password: process.env.E2E_USER_PASSWORD || 'TestPassword123!',
+				email: process.env.E2E_USER_EMAIL || (() => {
+					throw new Error('E2E_USER_EMAIL is required for Playwright global setup')
+				})(),
+				password: process.env.E2E_USER_PASSWORD || (() => {
+					throw new Error('E2E_USER_PASSWORD is required for Playwright global setup')
+				})(),
 				storageStatePath: 'playwright/.auth/user.json',
 				role: 'user'
 			},
 			{
-				email: process.env.E2E_ADMIN_EMAIL || 'test.admin@example.com',
-				password: process.env.E2E_ADMIN_PASSWORD || 'AdminPassword123!',
+				email: process.env.E2E_ADMIN_EMAIL || (() => {
+					throw new Error('E2E_ADMIN_EMAIL is required for Playwright global setup')
+				})(),
+				password: process.env.E2E_ADMIN_PASSWORD || (() => {
+					throw new Error('E2E_ADMIN_PASSWORD is required for Playwright global setup')
+				})(),
 				storageStatePath: 'playwright/.auth/admin.json',
 				role: 'admin'
 			},
 			{
-				email: process.env.E2E_LANDLORD_EMAIL || 'test.landlord@example.com',
-				password: process.env.E2E_LANDLORD_PASSWORD || 'LandlordPassword123!',
+				email: process.env.E2E_LANDLORD_EMAIL || (() => {
+					throw new Error('E2E_LANDLORD_EMAIL is required for Playwright global setup')
+				})(),
+				password: process.env.E2E_LANDLORD_PASSWORD || (() => {
+					throw new Error('E2E_LANDLORD_PASSWORD is required for Playwright global setup')
+				})(),
 				storageStatePath: 'playwright/.auth/landlord.json',
 				role: 'landlord'
 			},
 			{
-				email: process.env.E2E_TENANT_EMAIL || 'test.tenant@example.com',
-				password: process.env.E2E_TENANT_PASSWORD || 'TenantPassword123!',
+				email: process.env.E2E_TENANT_EMAIL || (() => {
+					throw new Error('E2E_TENANT_EMAIL is required for Playwright global setup')
+				})(),
+				password: process.env.E2E_TENANT_PASSWORD || (() => {
+					throw new Error('E2E_TENANT_PASSWORD is required for Playwright global setup')
+				})(),
 				storageStatePath: 'playwright/.auth/tenant.json',
 				role: 'tenant'
 			}

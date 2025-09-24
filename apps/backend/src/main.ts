@@ -17,12 +17,18 @@ interface RequestWithTiming extends Request {
 	id?: string
 }
 
+// Module-level logger for bootstrap operations
+const bootstrapLogger = new Logger('Bootstrap')
+
 async function bootstrap() {
 	const startTime = Date.now()
-	// Railway uses PORT env var, fallback to 4600 for Railway compatibility
+	// Railway uses PORT env var, require explicit configuration
 	// Use BACKEND_PORT for local dev override
-	const port =
-		Number(process.env.PORT) || Number(process.env.BACKEND_PORT) || 4600
+	const port = (() => {
+		if (process.env.PORT) return Number(process.env.PORT)
+		if (process.env.BACKEND_PORT) return Number(process.env.BACKEND_PORT)
+		throw new Error('PORT or BACKEND_PORT environment variable is required for server startup')
+	})()
 
 	// Express adapter with NestJS - zero type casts needed
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -38,10 +44,9 @@ async function bootstrap() {
 	const GLOBAL_PREFIX = 'api/v1'
 
 	// Use native NestJS Logger
-	const logger = new Logger('Bootstrap')
-	app.useLogger(logger)
+	app.useLogger(bootstrapLogger)
 	// Quick environment summary to help diagnose deploy issues (no secrets)
-	logger.log(
+	bootstrapLogger.log(
 		{
 			env: process.env.NODE_ENV,
 			port,
@@ -60,15 +65,15 @@ async function bootstrap() {
 	})
 
 	// Configure CORS using NestJS built-in support
-	logger.log('Configuring CORS...')
+	bootstrapLogger.log('Configuring CORS...')
 	app.enableCors(getCORSConfig())
-	logger.log('CORS enabled')
+	bootstrapLogger.log('CORS enabled')
 
 	// Express middleware already registered via registerExpressMiddleware()
-	logger.log('Express middleware configured with full TypeScript support')
+	bootstrapLogger.log('Express middleware configured with full TypeScript support')
 
 	// Security: Apply input sanitization middleware
-	logger.log('Configuring input sanitization...')
+	bootstrapLogger.log('Configuring input sanitization...')
 	const [
 		{ InputSanitizationMiddleware },
 		{ SecurityMonitorService },
@@ -79,23 +84,19 @@ async function bootstrap() {
 		import('./shared/filters/security-exception.filter.js')
 	])
 	const securityMonitor = await app.resolve(SecurityMonitorService)
-	const sanitizationLogger = new Logger('InputSanitization')
 	const inputSanitizationMiddleware = new InputSanitizationMiddleware(
-		sanitizationLogger,
 		securityMonitor
 	)
 	app.use(inputSanitizationMiddleware.use.bind(inputSanitizationMiddleware))
-	logger.log('Input sanitization enabled')
+	bootstrapLogger.log('Input sanitization enabled')
 
 	// Security: Apply security exception filter
-	logger.log('Configuring security exception filter...')
-	const exceptionLogger = new Logger('SecurityException')
+	bootstrapLogger.log('Configuring security exception filter...')
 	const securityExceptionFilter = new SecurityExceptionFilter(
-		exceptionLogger,
 		securityMonitor
 	)
 	app.useGlobalFilters(securityExceptionFilter)
-	logger.log('Security exception filter enabled')
+	bootstrapLogger.log('Security exception filter enabled')
 
 	// Global validation pipe with enhanced security
 	app.useGlobalPipes(
@@ -129,7 +130,7 @@ async function bootstrap() {
 		const originalSend = res.send
 		res.send = function (body) {
 			const duration = Date.now() - (req.startTime ?? Date.now())
-			logger.log(
+			bootstrapLogger.log(
 				`${req.method} ${req.url} -> ${res.statusCode} in ${duration}ms`
 			)
 			return originalSend.call(this, body)
@@ -143,7 +144,7 @@ async function bootstrap() {
 	})
 
 	app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-		logger.error(`Unhandled error: ${err.message}`, err.stack)
+		bootstrapLogger.error(`Unhandled error: ${err.message}`, err.stack)
 		res.status(500).send('Internal Server Error')
 	})
 
@@ -151,15 +152,15 @@ async function bootstrap() {
 	await app.listen(port, '0.0.0.0')
 
 	const startupTime = ((Date.now() - startTime) / 1000).toFixed(2)
-	logger.log(`EXPRESS SERVER: Listening on http://0.0.0.0:${port}`)
-	logger.log(`STARTUP: Completed in ${startupTime}s`)
-	logger.log(`ENVIRONMENT: ${process.env.NODE_ENV}`)
-	logger.log('TYPE SAFETY: Zero type casts required with Express adapter')
+	bootstrapLogger.log(`EXPRESS SERVER: Listening on http://0.0.0.0:${port}`)
+	bootstrapLogger.log(`STARTUP: Completed in ${startupTime}s`)
+	bootstrapLogger.log(`ENVIRONMENT: ${process.env.NODE_ENV}`)
+	bootstrapLogger.log('TYPE SAFETY: Zero type casts required with Express adapter')
 }
 
 // Catch bootstrap errors
 bootstrap().catch((err: unknown) => {
-	console.error('ERROR: Failed to start server:', err)
+	bootstrapLogger.error('Failed to start server:', err)
 	process.exit(1)
 })
 // test

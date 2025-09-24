@@ -9,6 +9,7 @@
  * Usage: npx ts-node test/email/run-email-tests.ts [--env=production] [--verbose]
  */
 
+import { Logger } from '@nestjs/common'
 import { spawn } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -23,6 +24,7 @@ interface TestResult {
 }
 
 class EmailTestRunner {
+	private readonly logger = new Logger(EmailTestRunner.name)
 	private results: TestResult[] = []
 	private startTime: number = Date.now()
 	private verbose = false
@@ -44,10 +46,10 @@ class EmailTestRunner {
 	 * Run all email tests
 	 */
 	async runAllTests(): Promise<void> {
-		console.log('🧪 Starting Email System Test Suite')
-		console.log(`[LOCATION] Environment: ${this.environment}`)
-		console.log(`[INFO] Verbose: ${this.verbose}`)
-		console.log('─'.repeat(50))
+		this.logger.log('🧪 Starting Email System Test Suite')
+		this.logger.log(`[LOCATION] Environment: ${this.environment}`)
+		this.logger.log(`[INFO] Verbose: ${this.verbose}`)
+		this.logger.log('─'.repeat(50))
 
 		// Set environment
 		process.env.NODE_ENV = this.environment
@@ -81,7 +83,7 @@ class EmailTestRunner {
 	 * Run a single test suite
 	 */
 	private async runTestSuite(name: string, command: string): Promise<void> {
-		console.log(`\n▶️  Running: ${name}`)
+		this.logger.log(`\n▶️  Running: ${name}`)
 
 		const startTime = Date.now()
 		const result: TestResult = {
@@ -126,12 +128,12 @@ class EmailTestRunner {
 					result.duration = Date.now() - startTime
 
 					if (code === 0) {
-						console.log(`   [OK] Passed (${result.duration}ms)`)
+						this.logger.log(`   [OK] Passed (${result.duration}ms)`)
 						resolve()
 					} else {
-						console.log(`   [ERROR] Failed (${result.duration}ms)`)
+						this.logger.log(`   [ERROR] Failed (${result.duration}ms)`)
 						if (this.verbose) {
-							console.log(output)
+							this.logger.log(output)
 						}
 						resolve() // Continue to next test even if this one fails
 					}
@@ -140,7 +142,7 @@ class EmailTestRunner {
 				testProcess.on('error', error => {
 					result.errors.push(error.message)
 					result.duration = Date.now() - startTime
-					console.log(`   [WARNING]  Error: ${error.message}`)
+					this.logger.log(`   [WARNING]  Error: ${error.message}`)
 					resolve()
 				})
 			})
@@ -157,7 +159,7 @@ class EmailTestRunner {
 	 * Run performance tests
 	 */
 	private async runPerformanceTests(): Promise<void> {
-		console.log('\n▶️  Running: Performance Tests')
+		this.logger.log('\n▶️  Running: Performance Tests')
 
 		const result: TestResult = {
 			suite: 'Performance Tests',
@@ -208,11 +210,11 @@ class EmailTestRunner {
 
 				if (renderTime < 500) {
 					result.passed++
-					console.log(`   [OK] ${template}: ${renderTime}ms`)
+					this.logger.log(`   [OK] ${template}: ${renderTime}ms`)
 				} else {
 					result.failed++
 					result.errors.push(`${template} rendering too slow: ${renderTime}ms`)
-					console.log(`   [ERROR] ${template}: ${renderTime}ms (>500ms)`)
+					this.logger.log(`   [ERROR] ${template}: ${renderTime}ms (>500ms)`)
 				}
 			}
 
@@ -221,13 +223,13 @@ class EmailTestRunner {
 				renderTimes.reduce((a, b) => a + b, 0) / renderTimes.length
 			const maxTime = Math.max(...renderTimes)
 
-			console.log(
+			this.logger.log(
 				`   [STATS] Average: ${avgTime.toFixed(2)}ms, Max: ${maxTime}ms`
 			)
 		} catch (error) {
 			result.failed++
 			result.errors.push(error instanceof Error ? error.message : String(error))
-			console.log(`   [WARNING]  Error: ${error}`)
+			this.logger.log(`   [WARNING]  Error: ${error}`)
 		}
 
 		result.duration = Date.now() - startTime
@@ -243,41 +245,41 @@ class EmailTestRunner {
 		const totalFailed = this.results.reduce((sum, r) => sum + r.failed, 0)
 		const totalSkipped = this.results.reduce((sum, r) => sum + r.skipped, 0)
 
-		console.log('\n' + '═'.repeat(50))
-		console.log('[STATS] EMAIL SYSTEM TEST REPORT')
-		console.log('═'.repeat(50))
+		this.logger.log('\n' + '═'.repeat(50))
+		this.logger.log('[STATS] EMAIL SYSTEM TEST REPORT')
+		this.logger.log('═'.repeat(50))
 
 		// Summary
-		console.log('\n[METRICS] Summary:')
-		console.log(`   Total Tests: ${totalPassed + totalFailed + totalSkipped}`)
-		console.log(`   [OK] Passed: ${totalPassed}`)
-		console.log(`   [ERROR] Failed: ${totalFailed}`)
-		console.log(`   ⏭️  Skipped: ${totalSkipped}`)
-		console.log(`   ⏱️  Duration: ${(totalDuration / 1000).toFixed(2)}s`)
+		this.logger.log('\n[METRICS] Summary:')
+		this.logger.log(`   Total Tests: ${totalPassed + totalFailed + totalSkipped}`)
+		this.logger.log(`   [OK] Passed: ${totalPassed}`)
+		this.logger.log(`   [ERROR] Failed: ${totalFailed}`)
+		this.logger.log(`   ⏭️  Skipped: ${totalSkipped}`)
+		this.logger.log(`   ⏱️  Duration: ${(totalDuration / 1000).toFixed(2)}s`)
 
 		const passRate = (totalPassed / (totalPassed + totalFailed)) * 100
-		console.log(`   [STATS] Pass Rate: ${passRate.toFixed(1)}%`)
+		this.logger.log(`   [STATS] Pass Rate: ${passRate.toFixed(1)}%`)
 
 		// Details by suite
-		console.log('\n[REPORT] Test Suites:')
+		this.logger.log('\n[REPORT] Test Suites:')
 		this.results.forEach(result => {
 			const icon = result.failed === 0 ? '[OK]' : '[ERROR]'
-			console.log(`\n   ${icon} ${result.suite}`)
-			console.log(
+			this.logger.log(`\n   ${icon} ${result.suite}`)
+			this.logger.log(
 				`      Passed: ${result.passed}, Failed: ${result.failed}, Skipped: ${result.skipped}`
 			)
-			console.log(`      Duration: ${(result.duration / 1000).toFixed(2)}s`)
+			this.logger.log(`      Duration: ${(result.duration / 1000).toFixed(2)}s`)
 
 			if (result.errors.length > 0 && this.verbose) {
-				console.log('      Errors:')
+				this.logger.log('      Errors:')
 				result.errors.forEach(error => {
-					console.log(`         - ${error.substring(0, 100)}...`)
+					this.logger.log(`         - ${error.substring(0, 100)}...`)
 				})
 			}
 		})
 
 		// Coverage estimate
-		console.log('\n[METRICS] Coverage Estimate:')
+		this.logger.log('\n[METRICS] Coverage Estimate:')
 		const coverageItems = [
 			{ name: 'Template Rendering', covered: totalPassed > 0 },
 			{ name: 'Email Sending', covered: totalPassed > 5 },
@@ -298,26 +300,26 @@ class EmailTestRunner {
 
 		coverageItems.forEach(item => {
 			const icon = item.covered ? '[OK]' : '[ERROR]'
-			console.log(`   ${icon} ${item.name}`)
+			this.logger.log(`   ${icon} ${item.name}`)
 		})
 
 		const coverage =
 			(coverageItems.filter(i => i.covered).length / coverageItems.length) * 100
-		console.log(`   [STATS] Overall Coverage: ${coverage.toFixed(0)}%`)
+		this.logger.log(`   [STATS] Overall Coverage: ${coverage.toFixed(0)}%`)
 
 		// Recommendations
-		console.log('\n[TIP] Recommendations:')
+		this.logger.log('\n[TIP] Recommendations:')
 		if (totalFailed > 0) {
-			console.log('   [WARNING]  Fix failing tests before deployment')
+			this.logger.log('   [WARNING]  Fix failing tests before deployment')
 		}
 		if (passRate < 90) {
-			console.log('   [WARNING]  Pass rate below 90%, investigate failures')
+			this.logger.log('   [WARNING]  Pass rate below 90%, investigate failures')
 		}
 		if (coverage < 80) {
-			console.log('   [WARNING]  Coverage below 80%, add more tests')
+			this.logger.log('   [WARNING]  Coverage below 80%, add more tests')
 		}
 		if (this.results.some(r => r.duration > 30000)) {
-			console.log('   [WARNING]  Some tests taking >30s, consider optimization')
+			this.logger.log('   [WARNING]  Some tests taking >30s, consider optimization')
 		}
 
 		// Save report to file
@@ -332,8 +334,8 @@ class EmailTestRunner {
 
 		// Exit code
 		const exitCode = totalFailed > 0 ? 1 : 0
-		console.log('\n' + '═'.repeat(50))
-		console.log(
+		this.logger.log('\n' + '═'.repeat(50))
+		this.logger.log(
 			exitCode === 0 ? '[OK] All tests passed!' : '[ERROR] Some tests failed'
 		)
 		process.exit(exitCode)
@@ -375,13 +377,14 @@ class EmailTestRunner {
 			`email-test-report-${Date.now()}.json`
 		)
 		fs.writeFileSync(reportPath, JSON.stringify(report, null, 2))
-		console.log(`\n[DOC] Report saved to: ${reportPath}`)
+		this.logger.log(`\n[DOC] Report saved to: ${reportPath}`)
 	}
 }
 
 // Run the test runner
+const moduleLogger = new Logger('EmailTestRunner')
 const runner = new EmailTestRunner(process.argv.slice(2))
 runner.runAllTests().catch(error => {
-	console.error('[ERROR] Test runner failed:', error)
+	moduleLogger.error('[ERROR] Test runner failed:', error)
 	process.exit(1)
 })

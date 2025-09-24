@@ -38,9 +38,9 @@ function Slider({
     >
       <SliderPrimitive.Track
         data-slot="slider-track"
-        className={cn(
-          // Base styles with token-based radius
-          "bg-muted relative grow overflow-hidden rounded-[8px]",
+		className={cn(
+			// Base styles with token-based radius
+			"bg-muted relative grow overflow-hidden rounded-[var(--radius-small)]",
           "data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full",
           "data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5",
           // Enhanced transitions

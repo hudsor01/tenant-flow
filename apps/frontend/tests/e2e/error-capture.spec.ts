@@ -1,7 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 
 test('capture specific errors in dashboard', async ({ page }) => {
-  console.log('Starting detailed error capture...')
   
   const networkRequests: Array<{url: string, method: string}> = []
   const failedRequests: Array<{url: string, status: number, statusText: string}> = []
@@ -50,25 +49,7 @@ test('capture specific errors in dashboard', async ({ page }) => {
   await page.waitForTimeout(5000)
   
   // Report all findings
-  console.log('\n=== NETWORK REQUESTS ===')
-  networkRequests.forEach((req, index) => {
-    if (req.url.includes('user.jpg') || req.url.includes('avatar') || req.url.includes('3001')) {
-      console.log(`${index + 1}. [${req.method}] ${req.url}`)
-    }
-  })
-  
-  console.log('\n=== FAILED REQUESTS ===')
-  failedRequests.forEach((req, index) => {
-    console.log(`${index + 1}. [${req.status}] ${req.url} - ${req.statusText}`)
-  })
-  
-  console.log('\n=== CONSOLE ERRORS ===')
-  consoleErrors.forEach((error, index) => {
-    console.log(`${index + 1}. [${error.type}] ${error.text}`)
-    if (error.location) {
-      console.log(`   Location: ${error.location}`)
-    }
-  })
+  // Network requests, failed requests, and console errors are collected but not logged
   
   // Take screenshot
   await page.screenshot({ 

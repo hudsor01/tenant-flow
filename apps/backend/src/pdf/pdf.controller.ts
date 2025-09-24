@@ -5,8 +5,10 @@ import { Logger } from '@nestjs/common'
 // @ApiTags('pdf')
 @Controller('pdf')
 export class PDFController {
-	constructor(private readonly logger: Logger) {
-		// Logger context handled automatically via app-level configuration
+	private readonly logger = new Logger(PDFController.name)
+
+	constructor() {
+		// Logger initialized with Pattern 1
 	}
 
 	@Get('health')

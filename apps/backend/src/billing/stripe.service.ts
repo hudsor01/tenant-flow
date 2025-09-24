@@ -1,4 +1,4 @@
-import { Injectable, Logger, Optional } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import Stripe from 'stripe'
 
 /**
@@ -9,20 +9,23 @@ import Stripe from 'stripe'
  */
 @Injectable()
 export class StripeService {
+	private readonly logger = new Logger(StripeService.name)
 	private stripe: Stripe
 
-	constructor(@Optional() private readonly logger?: Logger) {
+	constructor() {
 		const stripeSecretKey = process.env.STRIPE_SECRET_KEY
 		if (!stripeSecretKey) {
 			throw new Error('STRIPE_SECRET_KEY is required')
 		}
 
+		// Following Stripe's recommended initialization pattern
+		// In TypeScript, we use the constructor but the pattern is functionally equivalent
 		this.stripe = new Stripe(stripeSecretKey, {
-			apiVersion: '2025-08-27.basil' as Stripe.LatestApiVersion,
+			apiVersion: '2025-08-27.basil',
 			typescript: true
 		})
 
-		this.logger?.log('Stripe SDK initialized')
+		this.logger.log('Stripe SDK initialized')
 	}
 
 	/**
@@ -49,7 +52,7 @@ export class StripeService {
 			})
 			return subscriptions.data
 		} catch (error) {
-			this.logger?.error('Failed to list subscriptions', { error })
+			this.logger.error('Failed to list subscriptions', { error })
 			throw error
 		}
 	}
@@ -83,10 +86,10 @@ export class StripeService {
 				}
 			}
 
-			this.logger?.log(`Fetched ${allSubscriptions.length} total subscriptions`)
+			this.logger.log(`Fetched ${allSubscriptions.length} total subscriptions`)
 			return allSubscriptions
 		} catch (error) {
-			this.logger?.error('Failed to get all subscriptions', { error })
+			this.logger.error('Failed to get all subscriptions', { error })
 			throw error
 		}
 	}
@@ -112,7 +115,7 @@ export class StripeService {
 			})
 			return invoices.data
 		} catch (error) {
-			this.logger?.error('Failed to list invoices', { error })
+			this.logger.error('Failed to list invoices', { error })
 			throw error
 		}
 	}
@@ -150,10 +153,10 @@ export class StripeService {
 				}
 			}
 
-			this.logger?.log(`Fetched ${allInvoices.length} total invoices`)
+			this.logger.log(`Fetched ${allInvoices.length} total invoices`)
 			return allInvoices
 		} catch (error) {
-			this.logger?.error('Failed to get all invoices', { error })
+			this.logger.error('Failed to get all invoices', { error })
 			throw error
 		}
 	}
@@ -174,7 +177,7 @@ export class StripeService {
 			// Filter out deleted customers
 			return customers.data.filter(c => !('deleted' in c))
 		} catch (error) {
-			this.logger?.error('Failed to list customers', { error })
+			this.logger.error('Failed to list customers', { error })
 			throw error
 		}
 	}
@@ -208,10 +211,10 @@ export class StripeService {
 				}
 			}
 
-			this.logger?.log(`Fetched ${allCustomers.length} total customers`)
+			this.logger.log(`Fetched ${allCustomers.length} total customers`)
 			return allCustomers
 		} catch (error) {
-			this.logger?.error('Failed to get all customers', { error })
+			this.logger.error('Failed to get all customers', { error })
 			throw error
 		}
 	}
@@ -229,7 +232,7 @@ export class StripeService {
 			}
 			return customer
 		} catch (error) {
-			this.logger?.error('Failed to get customer', { error, customerId })
+			this.logger.error('Failed to get customer', { error, customerId })
 			return null
 		}
 	}
@@ -246,7 +249,7 @@ export class StripeService {
 			})
 			return result.data
 		} catch (error) {
-			this.logger?.error('Failed to search subscriptions', { error, query })
+			this.logger.error('Failed to search subscriptions', { error, query })
 			throw error
 		}
 	}

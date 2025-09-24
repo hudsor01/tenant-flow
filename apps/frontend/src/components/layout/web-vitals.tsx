@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { onCLS, onFCP, onINP, onLCP, onTTFB, type Metric } from 'web-vitals'
+import { createLogger } from '@repo/shared'
+
+const logger = createLogger({ component: 'WebVitals' })
 
 interface WebVitalsMetrics {
 	CLS?: Metric
@@ -66,7 +69,15 @@ function sendToAnalytics(metric: Metric): void {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			keepalive: true
-		}).catch(console.error)
+		}).catch((error) => {
+			logger.error('Web vitals submission failed', {
+				action: 'web_vitals_submit_failed',
+				metadata: {
+					error: error instanceof Error ? error.message : String(error),
+					metric: JSON.stringify(metric)
+				}
+			})
+		})
 	}
 }
 

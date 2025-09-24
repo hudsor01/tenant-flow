@@ -6,6 +6,9 @@ import { StripeDataService } from './stripe-data.service'
 import { StripeSyncService } from './stripe-sync.service'
 import { StripeController } from './stripe.controller'
 import { StripeService } from './stripe.service'
+import { StripeWebhookService } from './stripe-webhook.service'
+import { StripeEventProcessor } from './stripe-event-processor.service'
+import { StripeRecoveryService } from './stripe-recovery.service'
 
 /**
  * Production-Grade Stripe Module
@@ -30,12 +33,21 @@ import { StripeService } from './stripe.service'
 		// Data access layer using Stripe API directly
 		StripeDataService,
 
+		// Database-backed webhook idempotency service
+		StripeWebhookService,
+
+		// Async event processor for webhook events
+		StripeEventProcessor,
+
+		// Event recovery service for failed webhooks
+		StripeRecoveryService,
+
 		// Event system (native NestJS)
 		EventEmitter2
 	],
 	controllers: [
 		StripeController // Single production-grade controller with all Stripe functionality
 	],
-	exports: [StripeService, StripeSyncService, StripeDataService]
+	exports: [StripeService, StripeSyncService, StripeDataService, StripeWebhookService, StripeEventProcessor, StripeRecoveryService]
 })
 export class StripeModule {}

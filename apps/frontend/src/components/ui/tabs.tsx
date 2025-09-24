@@ -25,9 +25,9 @@ function TabsList({
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
-      className={cn(
-        // Base styles with token-based radius
-        "bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-[12px] p-[3px]",
+		className={cn(
+			// Base styles with token-based radius
+			"bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-[var(--radius-medium)] p-[3px]",
         // Enhanced transitions
         "transition-all duration-200 ease-in-out",
         className
@@ -44,9 +44,9 @@ function TabsTrigger({
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
-      className={cn(
-        // Base styles with token-based radius
-        "inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-[8px] border border-transparent px-2 py-1",
+		className={cn(
+			// Base styles with token-based radius
+			"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-small)] border border-transparent px-2 py-1",
         "text-sm font-medium whitespace-nowrap",
         // Color states
         "text-foreground dark:text-muted-foreground",

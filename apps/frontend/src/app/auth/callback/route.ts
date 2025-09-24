@@ -42,12 +42,18 @@ export async function GET(request: Request) {
 			const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
 			if (error) {
-				logger.error({ error: error.message }, 'OAuth callback error')
+				logger.error('OAuth callback error', {
+					action: 'oauth_callback_failed',
+					metadata: { error: error.message }
+				})
 				return NextResponse.redirect(`${origin}/login?error=oauth_failed`)
 			}
 
 			if (data.session) {
-				logger.info({ userId: data.session.user.id, next }, 'OAuth callback successful')
+				logger.info('OAuth callback successful', {
+					action: 'oauth_callback_success',
+					metadata: { userId: data.session.user.id, next }
+				})
 			}
 
 			// Handle successful authentication with proper redirect logic
@@ -62,7 +68,10 @@ export async function GET(request: Request) {
 				return NextResponse.redirect(`${origin}${next}`)
 			}
 		} catch (error) {
-			logger.error({ error: error instanceof Error ? error.message : String(error) }, 'OAuth callback error')
+			logger.error('OAuth callback error', {
+				action: 'oauth_callback_exception',
+				metadata: { error: error instanceof Error ? error.message : String(error) }
+			})
 			return NextResponse.redirect(`${origin}/login?error=oauth_failed`)
 		}
 	}

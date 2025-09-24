@@ -13,6 +13,7 @@ import {
 	DefaultValuePipe,
 	Delete,
 	Get,
+	Logger,
 	NotFoundException,
 	Optional,
 	Param,
@@ -36,6 +37,8 @@ import { MaintenanceService } from './maintenance.service'
 // @ApiBearerAuth()
 @Controller('maintenance')
 export class MaintenanceController {
+	private readonly logger = new Logger(MaintenanceController.name)
+
 	constructor(
 		@Optional() private readonly maintenanceService?: MaintenanceService
 	) {}

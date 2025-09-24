@@ -168,12 +168,8 @@ const THREAT_PATTERNS: ThreatPattern[] = [
 @Injectable()
 export class InputSanitizationMiddleware implements NestMiddleware {
 	private readonly logger = new Logger(InputSanitizationMiddleware.name)
-	private readonly securityMonitor: SecurityMonitorService
 
-	constructor(_logger: Logger, securityMonitor: SecurityMonitorService) {
-		// Using built-in logger instead of injected one
-		this.securityMonitor = securityMonitor
-	}
+	constructor(private readonly securityMonitor: SecurityMonitorService) {}
 
 	use(req: Request, _res: Response, next: () => void): void {
 		const config = this.getConfigForEndpoint(req.url)
@@ -193,7 +189,15 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 				throw error
 			}
 
-			this.logger.error('Input sanitization failed', error)
+			this.logger.error('Input sanitization failed unexpectedly', {
+				operation: 'input_sanitization_failure',
+				endpoint: req.url,
+				method: req.method,
+				ip: req.ip,
+				userAgent: req.headers['user-agent'] as string,
+				errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+				errorMessage: error instanceof Error ? error.message : String(error)
+			})
 			throw new BadRequestException('Invalid request format')
 		}
 	}
@@ -228,6 +232,16 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 		const bodySize = this.getRequestSize(req)
 		if (bodySize > 10 * 1024 * 1024) {
 			// 10MB limit
+			this.logger.warn('Request body size limit exceeded', {
+				operation: 'input_sanitization_size_limit',
+				endpoint: req.url,
+				method: req.method,
+				ip: req.ip,
+				userAgent: req.headers['user-agent'] as string,
+				bodySize,
+				limit: 10 * 1024 * 1024
+			})
+
 			this.securityMonitor.logSecurityEvent({
 				type: 'malicious_request',
 				severity: 'medium',
@@ -243,6 +257,16 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 
 		// Validate URL length
 		if (req.url.length > 2048) {
+			this.logger.warn('URL length limit exceeded', {
+				operation: 'input_sanitization_url_limit',
+				endpoint: req.url.substring(0, 100) + '...', // Truncate for logging
+				method: req.method,
+				ip: req.ip,
+				userAgent: req.headers['user-agent'] as string,
+				urlLength: req.url.length,
+				limit: 2048
+			})
+
 			this.securityMonitor.logSecurityEvent({
 				type: 'malicious_request',
 				severity: 'medium',
@@ -387,6 +411,17 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 
 		// Check for HTML if not allowed
 		if (!allowHTML && this.containsHTML(str)) {
+			this.logger.warn('HTML content detected in request', {
+				operation: 'input_sanitization_html_detected',
+				endpoint: req.url,
+				method: req.method,
+				ip: req.ip,
+				userAgent: req.headers['user-agent'] as string,
+				source,
+				stringLength: str.length,
+				sample: str.substring(0, 100)
+			})
+
 			this.securityMonitor.logSecurityEvent({
 				type: 'xss_attempt',
 				severity: 'medium',

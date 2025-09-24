@@ -14,7 +14,9 @@ async function runHealthCheck() {
 	logger.info('Running Supabase Auth Health Check...\n')
 
 	const baseUrl =
-		process.env.NEXT_PUBLIC_SITE_URL || 'http://api.tenantflow.app'
+		process.env.NEXT_PUBLIC_SITE_URL || (() => {
+			throw new Error('NEXT_PUBLIC_SITE_URL is required for auth health check')
+		})()
 	// Backend exposes auth health at /api/v1/auth/health
 	const healthUrl = `${baseUrl}/api/v1/auth/health`
 

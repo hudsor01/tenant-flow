@@ -244,7 +244,7 @@ export function CustomerPortalCard({
 									config.gradient
 								)}
 							>
-								<Settings className="w-8 h-8 text-white" />
+								<Settings className="w-8 h-8 text-primary-foreground" />
 							</div>
 							<div>
 								<CardTitle

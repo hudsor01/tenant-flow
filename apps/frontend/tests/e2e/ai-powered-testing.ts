@@ -137,10 +137,6 @@ export class AITestHelper {
     const url = this.page.url()
     const headings = await this.page.locator('h1, h2, h3').allTextContents()
 
-    console.info('Page Debug Info:')
-    console.info('- Title:', title)
-    console.info('- URL:', url)
-    console.info('- Headings:', headings)
 
     return { title, url, headings }
   }

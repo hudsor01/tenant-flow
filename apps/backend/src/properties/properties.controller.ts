@@ -15,6 +15,7 @@ import {
 	DefaultValuePipe,
 	Delete,
 	Get,
+	Logger,
 	NotFoundException,
 	Optional,
 	Param,
@@ -39,6 +40,8 @@ import { PropertiesService } from './properties.service'
  */
 @Controller('properties')
 export class PropertiesController {
+	private readonly logger = new Logger(PropertiesController.name)
+
 	constructor(
 		@Optional() private readonly propertiesService?: PropertiesService
 	) {}

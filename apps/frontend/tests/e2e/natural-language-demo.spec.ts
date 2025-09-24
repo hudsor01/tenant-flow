@@ -37,13 +37,10 @@ test.describe('Traditional vs Natural Language Testing Demo', () => {
 
     // Debug what's on the page
     const pageInfo = await ai.debugCurrentPage()
-    console.log('🏠 Homepage info:', pageInfo)
 
     const buttons = await ai.getAllButtons()
-    console.log('🔘 Available buttons:', buttons)
 
     const inputs = await ai.getAllInputs()
-    console.log('📝 Available inputs:', inputs)
 
     // This test just shows you what's available - no failures
     expect(pageInfo.title).toBeDefined()
@@ -56,23 +53,17 @@ test.describe('Traditional vs Natural Language Testing Demo', () => {
     try {
       // Try to find and click common elements
       await ai.click('Get Started')
-      console.log('✅ Found and clicked "Get Started"')
     } catch (error) {
-      console.log('❌ No "Get Started" button found')
     }
 
     try {
       await ai.click('Sign In')
-      console.log('✅ Found and clicked "Sign In"')
     } catch (error) {
-      console.log('❌ No "Sign In" button found')
     }
 
     try {
       await ai.click('Login')
-      console.log('✅ Found and clicked "Login"')
     } catch (error) {
-      console.log('❌ No "Login" button found')
     }
 
     // Always pass - this is just exploration

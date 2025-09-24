@@ -6,7 +6,6 @@
 import { chromium, FullConfig } from '@playwright/test'
 
 async function globalSetup(config: FullConfig) {
-	console.log('🚀 Setting up TanStack Query test environment...')
 
 	const browser = await chromium.launch()
 	const context = await browser.newContext()
@@ -14,19 +13,16 @@ async function globalSetup(config: FullConfig) {
 
 	try {
 		// 1. Ensure development server is running
-		console.log('📡 Checking development server...')
-		const baseURL =
-			process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3005'
+		const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || (() => {
+			throw new Error('PLAYWRIGHT_TEST_BASE_URL environment variable is required for TanStack global setup')
+		})()
 
 		try {
 			await page.goto(`${baseURL}/health`, { timeout: 30000 })
-			console.log('✅ Development server is ready')
 		} catch (error) {
-			console.log('⚠️  Health check failed, but continuing with setup')
 		}
 
 		// 2. Setup authentication if needed
-		console.log('🔐 Setting up authentication...')
 
 		try {
 			// Navigate to login page or setup mock auth
@@ -36,7 +32,6 @@ async function globalSetup(config: FullConfig) {
 			await page.waitForTimeout(2000)
 
 			if (page.url().includes('/dashboard')) {
-				console.log('✅ Already authenticated')
 			} else {
 				// Setup mock authentication for testing
 				await page.evaluate(() => {
@@ -45,14 +40,11 @@ async function globalSetup(config: FullConfig) {
 					localStorage.setItem('user-id', 'test-user-id')
 				})
 
-				console.log('✅ Mock authentication configured')
 			}
 		} catch (error) {
-			console.log('⚠️  Authentication setup failed:', error)
 		}
 
 		// 3. Expose TanStack Query Client for testing
-		console.log('⚙️  Configuring TanStack Query for testing...')
 
 		await page.addInitScript(() => {
 			// Global setup for TanStack Query testing
@@ -108,7 +100,6 @@ async function globalSetup(config: FullConfig) {
 					// Method 3: Global window attachment (if app exposes it)
 					if ((window as any).queryClient) {
 						;(window as any).__QUERY_CLIENT__ = (window as any).queryClient
-						console.log('✅ QueryClient exposed via window.queryClient')
 						return
 					}
 
@@ -116,7 +107,6 @@ async function globalSetup(config: FullConfig) {
 					const queryClient = findReactRoot()
 					if (queryClient) {
 						;(window as any).__QUERY_CLIENT__ = queryClient
-						console.log('✅ QueryClient exposed via React fiber traversal')
 						return
 					}
 
@@ -130,7 +120,6 @@ async function globalSetup(config: FullConfig) {
 			// Also try after React has had time to initialize
 			setTimeout(() => {
 				if (!(window as any).__QUERY_CLIENT__) {
-					console.log(
 						'⚠️  QueryClient not found, tests may have limited functionality'
 					)
 				}
@@ -138,7 +127,6 @@ async function globalSetup(config: FullConfig) {
 		})
 
 		// 4. Clear any existing test data
-		console.log('🧹 Cleaning up test data...')
 
 		await page.goto(`${baseURL}/dashboard/properties`)
 		await page.waitForTimeout(2000)
@@ -146,18 +134,14 @@ async function globalSetup(config: FullConfig) {
 		// Clean up any properties with "test" in the name
 		await page.evaluate(() => {
 			// This would be implemented based on your cleanup API
-			console.log('Test cleanup would happen here')
 		})
 
 		// 5. Seed initial test data if needed
-		console.log('🌱 Seeding test data...')
 
 		// You could seed some basic test data here if needed
 		// For now, we'll rely on the individual tests to create their own data
 
-		console.log('✅ TanStack Query test environment setup complete')
 	} catch (error) {
-		console.error('❌ Global setup failed:', error)
 		throw error
 	} finally {
 		await context.close()

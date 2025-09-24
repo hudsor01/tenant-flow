@@ -22,6 +22,8 @@ import { AuthService } from './auth.service'
 
 @Controller('auth')
 export class AuthController {
+	// private readonly logger = new Logger(AuthController.name)
+
 	constructor(private readonly authService: AuthService) {
 		// Use proper dependency injection for security
 	}
@@ -53,7 +55,9 @@ export class AuthController {
 		return {
 			status: healthy ? 'healthy' : 'unhealthy',
 			timestamp: new Date().toISOString(),
-			environment: process.env.NODE_ENV || 'unknown',
+			environment: process.env.NODE_ENV || (() => {
+				throw new Error('NODE_ENV is required for auth health check reporting')
+			})(),
 			checks: {
 				...envChecks,
 				supabase_connection: connected

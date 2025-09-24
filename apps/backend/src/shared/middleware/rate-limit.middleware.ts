@@ -69,17 +69,12 @@ const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
 export class RateLimitMiddleware implements NestMiddleware {
 	private readonly logger = new Logger(RateLimitMiddleware.name)
 	private readonly rateLimitStore = new Map<string, RateLimitWindow>()
-	private readonly securityLogger: Logger
 
 	// Track IPs with suspicious activity
 	private readonly suspiciousIPs = new Set<string>()
 	private readonly blockedIPs = new Set<string>()
 
-	constructor(logger: Logger) {
-		this.securityLogger = logger
-		this.logger = new Logger(RateLimitMiddleware.name)
-		// Context removed - NestJS Logger doesn't support setContext
-
+	constructor() {
 		// Cleanup expired rate limit entries every 5 minutes
 		setInterval(() => this.cleanupExpiredEntries(), 5 * 60 * 1000)
 	}
@@ -96,11 +91,14 @@ export class RateLimitMiddleware implements NestMiddleware {
 
 		// Check if IP is blocked
 		if (this.blockedIPs.has(clientIP)) {
-			this.securityLogger.error('Blocked IP attempted access', {
+			this.logger.error('Blocked IP attempted access', {
+				operation: 'rate_limit_blocked_ip_access',
 				ip: clientIP,
 				endpoint: req.url,
 				method: req.method,
-				userAgent: req.headers['user-agent']
+				userAgent: req.headers['user-agent'],
+				endpointType: endpoint,
+				retryAfter: Math.ceil(config.windowMs / 1000)
 			})
 
 			res.status(429).send({
@@ -164,12 +162,17 @@ export class RateLimitMiddleware implements NestMiddleware {
 
 		// Log for monitoring
 		if (window.requests > config.maxRequests * 0.8) {
-			this.securityLogger.warn('High rate limit usage detected', {
+			this.logger.warn('High rate limit usage detected', {
+				operation: 'rate_limit_high_usage',
 				ip: clientIP,
 				endpoint: req.url,
+				method: req.method,
+				userAgent: req.headers['user-agent'],
+				endpointType: endpoint,
 				requests: window.requests,
 				limit: config.maxRequests,
-				remaining: config.maxRequests - window.requests
+				remaining: config.maxRequests - window.requests,
+				thresholdPercent: 80
 			})
 		}
 
@@ -230,13 +233,16 @@ export class RateLimitMiddleware implements NestMiddleware {
 		req: Request,
 		config: RateLimitConfig
 	): void {
-		this.securityLogger.warn('Rate limit exceeded', {
+		this.logger.warn('Rate limit exceeded', {
+			operation: 'rate_limit_exceeded',
 			ip: clientIP,
 			endpoint: req.url,
 			method: req.method,
 			userAgent: req.headers['user-agent'],
+			endpointType: this.getEndpointType(req.url),
 			limit: config.maxRequests,
-			windowMs: config.windowMs
+			windowMs: config.windowMs,
+			burst: config.burst
 		})
 
 		// Track suspicious activity
@@ -251,13 +257,16 @@ export class RateLimitMiddleware implements NestMiddleware {
 		if (!this.suspiciousIPs.has(clientIP)) {
 			this.suspiciousIPs.add(clientIP)
 
-			this.securityLogger.error('Suspicious activity detected', {
+			this.logger.error('Suspicious activity detected', {
+				operation: 'rate_limit_suspicious_activity',
 				ip: clientIP,
 				reason,
 				endpoint: req.url,
 				method: req.method,
 				userAgent: req.headers['user-agent'],
-				timestamp: new Date().toISOString()
+				endpointType: this.getEndpointType(req.url),
+				timestamp: new Date().toISOString(),
+				severity: 'HIGH'
 			})
 
 			// Auto-block after multiple violations
@@ -265,13 +274,13 @@ export class RateLimitMiddleware implements NestMiddleware {
 				() => {
 					if (this.suspiciousIPs.has(clientIP)) {
 						this.blockedIPs.add(clientIP)
-						this.securityLogger.error(
-							'IP automatically blocked due to repeated violations',
-							{
-								ip: clientIP,
-								reason: 'repeated_violations'
-							}
-						)
+						this.logger.error('IP automatically blocked due to repeated violations', {
+							operation: 'rate_limit_ip_auto_blocked',
+							ip: clientIP,
+							reason: 'repeated_violations',
+							blockDuration: 60 * 60 * 1000,
+							severity: 'CRITICAL'
+						})
 
 						// Remove from blocked list after 1 hour
 						setTimeout(() => this.blockedIPs.delete(clientIP), 60 * 60 * 1000)
@@ -294,7 +303,12 @@ export class RateLimitMiddleware implements NestMiddleware {
 		}
 
 		if (cleaned > 0) {
-			this.logger.debug(`Cleaned up ${cleaned} expired rate limit entries`)
+			this.logger.debug('Rate limit entries cleanup completed', {
+				operation: 'rate_limit_cleanup',
+				entriesCleaned: cleaned,
+				remainingEntries: this.rateLimitStore.size,
+				cleanupInterval: 5 * 60 * 1000
+			})
 		}
 
 		// Also cleanup suspicious IPs older than 1 hour
@@ -304,13 +318,22 @@ export class RateLimitMiddleware implements NestMiddleware {
 	// Public methods for manual IP management
 	public blockIP(ip: string, reason: string): void {
 		this.blockedIPs.add(ip)
-		this.securityLogger.error('IP manually blocked', { ip, reason })
+		this.logger.error('IP manually blocked', {
+			operation: 'rate_limit_manual_block',
+			ip,
+			reason,
+			timestamp: new Date().toISOString()
+		})
 	}
 
 	public unblockIP(ip: string): void {
 		this.blockedIPs.delete(ip)
 		this.suspiciousIPs.delete(ip)
-		this.securityLogger.log('IP manually unblocked', { ip })
+		this.logger.log('IP manually unblocked', {
+			operation: 'rate_limit_manual_unblock',
+			ip,
+			timestamp: new Date().toISOString()
+		})
 	}
 
 	public getSuspiciousIPs(): string[] {

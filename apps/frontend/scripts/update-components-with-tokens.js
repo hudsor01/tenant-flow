@@ -95,23 +95,19 @@ function processFile(filePath) {
 
 		if (modified) {
 			fs.writeFileSync(filePath, content, 'utf8')
-			console.log(`✅ Updated: ${path.basename(filePath)}`)
 			return true
 		}
 
 		return false
 	} catch (error) {
-		console.error(`❌ Error processing ${filePath}:`, error.message)
 		return false
 	}
 }
 
 // Function to process all components
 function processAllComponents() {
-	console.log('🎨 Updating UI components with design tokens...\n')
 
 	if (!fs.existsSync(componentsDir)) {
-		console.error(`❌ Components directory not found: ${componentsDir}`)
 		process.exit(1)
 	}
 
@@ -119,7 +115,6 @@ function processAllComponents() {
 		.readdirSync(componentsDir)
 		.filter(file => file.endsWith('.tsx'))
 
-	console.log(`Found ${files.length} component files\n`)
 
 	let updatedCount = 0
 
@@ -130,7 +125,6 @@ function processAllComponents() {
 		}
 	})
 
-	console.log(
 		`\n✨ Updated ${updatedCount} out of ${files.length} components with design tokens`
 	)
 }

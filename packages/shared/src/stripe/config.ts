@@ -16,20 +16,42 @@ export function getPriceId(plan: PlanType, period: BillingPeriod): string {
 		FREETRIAL_monthly: 'price_freetrial_monthly',
 		FREETRIAL_annual: 'price_freetrial_annual',
 		STARTER_monthly:
-			process.env.STRIPE_STARTER_MONTHLY_PRICE_ID || 'price_starter_monthly',
+			process.env.STRIPE_STARTER_MONTHLY_PRICE_ID ||
+			(() => {
+				throw new Error('STRIPE_STARTER_MONTHLY_PRICE_ID is required')
+			})(),
 		STARTER_annual:
-			process.env.STRIPE_STARTER_ANNUAL_PRICE_ID || 'price_starter_annual',
+			process.env.STRIPE_STARTER_ANNUAL_PRICE_ID ||
+			(() => {
+				throw new Error('STRIPE_STARTER_ANNUAL_PRICE_ID is required')
+			})(),
 		GROWTH_monthly:
-			process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID || 'price_growth_monthly',
+			process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID ||
+			(() => {
+				throw new Error('STRIPE_GROWTH_MONTHLY_PRICE_ID is required')
+			})(),
 		GROWTH_annual:
-			process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID || 'price_growth_annual',
+			process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID ||
+			(() => {
+				throw new Error('STRIPE_GROWTH_ANNUAL_PRICE_ID is required')
+			})(),
 		TENANTFLOW_MAX_monthly:
-			process.env.STRIPE_MAX_MONTHLY_PRICE_ID || 'price_max_monthly',
+			process.env.STRIPE_MAX_MONTHLY_PRICE_ID ||
+			(() => {
+				throw new Error('STRIPE_MAX_MONTHLY_PRICE_ID is required')
+			})(),
 		TENANTFLOW_MAX_annual:
-			process.env.STRIPE_MAX_ANNUAL_PRICE_ID || 'price_max_annual'
+			process.env.STRIPE_MAX_ANNUAL_PRICE_ID ||
+			(() => {
+				throw new Error('STRIPE_MAX_ANNUAL_PRICE_ID is required')
+			})()
 	}
 
-	return priceMap[`${plan}_${period}`] || 'price_default'
+	const priceId = priceMap[`${plan}_${period}`]
+	if (!priceId) {
+		throw new Error(`No price ID configured for plan: ${plan}, period: ${period}`)
+	}
+	return priceId
 }
 
 /**

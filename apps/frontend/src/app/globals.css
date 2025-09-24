@@ -57,6 +57,12 @@
 	--color-label-quinary: oklch(0 0 0 / 5%);
 	--color-label-seximal: oklch(0 0 0 / 3%);
 
+	/* Legacy text aliases mapped to label tokens */
+	--color-text-primary: var(--color-label-primary);
+	--color-text-secondary: var(--color-label-secondary);
+	--color-text-muted: var(--color-label-tertiary);
+	--color-text: var(--color-label-secondary);
+
 	/* Fill Colors (Background Hierarchy) */
 	--color-fill-primary: oklch(0 0 0 / 10%);
 	--color-fill-secondary: oklch(0 0 0 / 8%);
@@ -79,6 +85,8 @@
 	--color-accent-25: oklch(0.623 0.214 259.815 / 25%);
 	--color-accent-50: oklch(0.623 0.214 259.815 / 50%);
 	--color-accent-85: oklch(0.623 0.214 259.815 / 85%);
+	--color-accent: oklch(0.623 0.214 259.815 / 15%);
+	--color-accent-hover: oklch(0.623 0.214 259.815 / 25%);
 
 	/* System Color Tokens */
 	--color-system-red: oklch(0.534 0.183 27.353);
@@ -126,6 +134,8 @@
 	--color-primary-brand-40: oklch(0.623 0.214 259.815 / 40%);
 	--color-primary-brand-50: oklch(0.623 0.214 259.815 / 50%);
 	--color-primary-brand-85: oklch(0.623 0.214 259.815 / 85%);
+	--color-primary: var(--color-primary-brand);
+	--color-primary-hover: var(--color-primary-brand-85);
 
 	/* Semantic Colors for UI States */
 	--color-info: var(--color-system-blue);
@@ -142,6 +152,8 @@
 	--color-warning-background: var(--color-system-yellow-10);
 	--color-warning-border: var(--color-system-yellow-25);
 	--color-warning-foreground: var(--color-system-yellow-85);
+	--color-success-bg: var(--color-success-background);
+	--color-success-text: var(--color-success-foreground);
 
 	--color-error: var(--color-system-red);
 	--color-error-background: var(--color-system-red-10);

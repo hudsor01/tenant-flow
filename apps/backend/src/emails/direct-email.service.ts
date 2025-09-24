@@ -15,14 +15,13 @@ import type { Config } from '../config/config.schema'
  */
 @Injectable()
 export class DirectEmailService {
+	private readonly logger = new Logger(DirectEmailService.name)
 	private readonly resend: Resend
 	private readonly fromAddress: string
 
 	constructor(
-		private readonly configService: ConfigService<Config>,
-		private readonly logger: Logger
+		private readonly configService: ConfigService<Config>
 	) {
-		// Logger context handled automatically via app-level configuration
 		const resendKey = this.configService.get('RESEND_API_KEY') as string
 		if (!resendKey) {
 			throw new InternalServerErrorException(

@@ -30,7 +30,6 @@ interface AlertChannel {
 @Injectable()
 export class SecurityMonitorService implements OnModuleInit {
 	private readonly logger = new Logger(SecurityMonitorService.name)
-	private readonly securityLogger: Logger
 	private readonly recentEvents: SecurityEvent[] = []
 	private readonly maxRecentEvents = 1000
 
@@ -75,9 +74,7 @@ export class SecurityMonitorService implements OnModuleInit {
 		]
 	}
 
-	constructor(private readonly supabaseService: SupabaseService) {
-		this.securityLogger = new Logger(SecurityMonitorService.name)
-	}
+	constructor(private readonly supabaseService: SupabaseService) {}
 
 	async onModuleInit() {
 		this.logger.log('Security monitoring service initialized')
@@ -122,7 +119,7 @@ export class SecurityMonitorService implements OnModuleInit {
 			await this.handleCriticalEvent(enhancedEvent)
 		}
 
-		this.securityLogger.error('Security event logged', enhancedEvent)
+		this.logger.error('Security event logged', enhancedEvent)
 	}
 
 	/**
@@ -403,7 +400,7 @@ export class SecurityMonitorService implements OnModuleInit {
 						? 'warn'
 						: 'debug'
 
-		this.securityLogger[logMethod]('Security alert', {
+		this.logger[logMethod]('Security alert', {
 			...event,
 			alert: true
 		})
@@ -420,7 +417,7 @@ export class SecurityMonitorService implements OnModuleInit {
 
 		if (event.ipAddress) {
 			// Add IP to temporary block list (would integrate with rate limiter)
-			this.securityLogger.error('Critical event IP flagged for blocking', {
+			this.logger.error('Critical event IP flagged for blocking', {
 				ip: event.ipAddress,
 				eventId: event.id,
 				autoBlocked: true
@@ -429,7 +426,7 @@ export class SecurityMonitorService implements OnModuleInit {
 
 		if (event.userId && event.type === 'account_takeover') {
 			// In a real implementation, invalidate all sessions for this user
-			this.securityLogger.error('User sessions should be invalidated', {
+			this.logger.error('User sessions should be invalidated', {
 				userId: event.userId,
 				eventId: event.id,
 				reason: 'account_takeover_detected'

@@ -17,13 +17,12 @@ import { MaintenanceUpdatedEvent } from '../notifications/events/notification.ev
 
 @Injectable()
 export class MaintenanceService {
+	private readonly logger = new Logger(MaintenanceService.name)
+
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly logger: Logger,
 		private readonly eventEmitter: EventEmitter2
-	) {
-		// Logger context handled automatically via app-level configuration
-	}
+	) {}
 
 	/**
 	 * Get all maintenance requests for a user using RPC

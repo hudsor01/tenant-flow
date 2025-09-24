@@ -56,7 +56,7 @@ export const MagicCard = React.forwardRef<HTMLDivElement, MagicCardProps>(
 			sm: 'p-4 rounded-xl',
 			md: 'p-6 rounded-2xl',
 			lg: 'card-padding rounded-3xl',
-			xl: 'p-10 rounded-[2rem]'
+			xl: 'p-10 rounded-[calc(var(--radius-xxlarge)+var(--spacing-1))]'
 		}
 
 		// Glow intensity configurations

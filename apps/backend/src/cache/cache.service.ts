@@ -4,7 +4,7 @@
  * Follows DATABASE FIRST approach with in-memory performance layer
  */
 
-import { Injectable, Logger, Inject } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import type { CacheEntry, CacheStats } from '@repo/shared'
 
 @Injectable()
@@ -19,10 +19,9 @@ export class ZeroCacheService {
 		hitRatio: 0
 	}
 	private versionCounter = 1
+	private readonly logger = new Logger(ZeroCacheService.name)
 
-	constructor(
-		@Inject(Logger) private readonly logger: Logger
-	) {
+	constructor() {
 		// Auto-cleanup expired entries every 30 seconds
 		setInterval(() => this.cleanupExpired(), 30_000)
 

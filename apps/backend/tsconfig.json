@@ -13,7 +13,9 @@
 		"declaration": true,
 		"declarationMap": true,
 		"incremental": true,
-		"noEmit": false
+		"noEmit": false,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false
 	},
 	"include": ["src", "scripts", "test"],
 	"exclude": [

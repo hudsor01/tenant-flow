@@ -6,19 +6,10 @@
  * following Turborepo best practices for monorepo configuration
  */
 
-import { FlatCompat } from '@eslint/eslintrc'
 import globals from 'globals'
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
 import noBarrelExports from './.eslint/rules/no-barrel-exports.js'
 import noInlineTypes from './.eslint/rules/no-inline-types.js'
 import baseConfig from './packages/eslint-config/base.js'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-const compat = new FlatCompat({
-	baseDirectory: __dirname
-})
 
 /**
  * Root-level configuration with project-specific overrides
@@ -26,7 +17,6 @@ const compat = new FlatCompat({
  * Using ESLint 9 flat config format (no defineConfig wrapper needed)
  */
 export default [
-	...compat.extends('next/core-web-vitals', 'next/typescript'),
 	{
 		ignores: [
 			'node_modules/**',
@@ -35,8 +25,8 @@ export default [
 			'build/**',
 			'next-env.d.ts'
 		]
-	}, // Use the shared base configuration
-	// Root-level specific configurations
+	},
+	// Use the shared base configuration (includes TypeScript ESLint)
 	...baseConfig,
 	{
 		name: 'root/monorepo-files',
@@ -79,9 +69,25 @@ export default [
 			'packages/database/src/generated/**/*.ts',
 			'packages/database/src/generated/**',
 			'apps/backend/test/email/**/*', // Excluded from tsconfig, ignore in ESLint too
-			'tests/**/*' // Performance and other test utilities not in tsconfig
+			'tests/**/*', // Performance and other test utilities not in tsconfig
+			'apps/frontend/src/lib/__tests__/**/*' // Test files not in tsconfig
 		]
 	},
+	/**
+	 * Type Centralization Enforcement
+	 *
+	 * These rules ensure type safety and maintainability by:
+	 * 1. no-inline-types: Prevents large interfaces/types (5+ properties) from being defined inline
+	 *    - Forces complex types to be centralized in packages/shared/src/types/
+	 *    - Allows simple prop interfaces (<5 properties) following KISS principle
+	 *
+	 * 2. no-barrel-exports: Prevents unnecessary barrel files (index.ts that just re-export)
+	 *    - Reduces indirection and improves tree-shaking
+	 *    - Allows legitimate UI component libraries (packages/shared, frontend/components/ui)
+	 *
+	 * These rules were previously disabled but are now enforced after systematic refactoring.
+	 * All violations have been addressed and types are properly centralized.
+	 */
 	{
 		name: 'apps/type-centralization',
 		files: ['apps/frontend/**/*.{ts,tsx}', 'apps/backend/**/*.ts'],
@@ -105,10 +111,47 @@ export default [
 			}
 		},
 		rules: {
-			'type-centralization/no-inline-types': 'off', // TODO: Fix systematically after critical ESLint issues resolved
-			'type-centralization/no-barrel-exports': 'off' // TODO: Fix systematically after critical ESLint issues resolved
+			'type-centralization/no-inline-types': 'error',
+			'type-centralization/no-barrel-exports': 'error'
 		}
-	}, // Project-specific anti-pattern guards and SECURITY RULES
+	},
+	// FRONTEND LOGGING ENFORCEMENT - NO CONSOLE USAGE
+	{
+		name: 'frontend/no-console-logging',
+		files: ['apps/frontend/**/*.{ts,tsx}'],
+		ignores: [
+			'**/*.test.*',
+			'**/*.spec.*',
+			'**/*.config.*',
+			'**/node_modules/**',
+			'**/dist/**',
+			'**/build/**',
+			'**/next.config.*'
+		],
+		rules: {
+			'no-console': 'error',
+			'no-restricted-syntax': [
+				'error',
+				{
+					selector: 'MemberExpression[object.name="console"]',
+					message: 'Direct console access is prohibited. Use structured PostHog logging via createLogger() from @repo/shared instead.'
+				},
+				{
+					selector: 'CallExpression[callee.object.name="console"]',
+					message: 'Console method calls are prohibited. Use PostHog logging: const logger = createLogger({ component: "ComponentName" }); logger.info/warn/error("message")'
+				}
+			]
+		}
+	},
+	// SHARED PACKAGE LOGGING EXCEPTION - Allow console only in logger implementation
+	{
+		name: 'shared/logging-implementation-exception',
+		files: ['packages/shared/src/lib/frontend-logger.ts'],
+		rules: {
+			'no-console': 'off' // Allow console usage in the logger implementation itself
+		}
+	},
+	// Project-specific anti-pattern guards and SECURITY RULES
 	{
 		name: 'root/test-files',
 		files: ['**/*.test.*', '**/*.spec.*'],

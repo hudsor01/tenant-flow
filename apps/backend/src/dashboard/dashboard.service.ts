@@ -1,4 +1,4 @@
-import { Injectable, Logger, Optional } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import type {
 	DashboardStats,
 	LeaseStats,
@@ -11,12 +11,11 @@ import { SupabaseService } from '../database/supabase.service'
 
 @Injectable()
 export class DashboardService {
+	private readonly logger = new Logger(DashboardService.name)
+
 	constructor(
-		private readonly supabase: SupabaseService,
-		@Optional() private readonly logger?: Logger
-	) {
-		// Logger context handled automatically via app-level configuration
-	}
+		private readonly supabase: SupabaseService
+	) {}
 
 	/**
 	 * Get comprehensive dashboard statistics

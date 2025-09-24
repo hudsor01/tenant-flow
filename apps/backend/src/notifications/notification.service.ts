@@ -1,4 +1,4 @@
-import { Injectable, Optional } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
 import { Logger } from '@nestjs/common'
 
@@ -31,12 +31,11 @@ export interface CreateNotificationParams {
  */
 @Injectable()
 export class NotificationService {
+  private readonly logger = new Logger(NotificationService.name)
+
   constructor(
-    private readonly supabaseService: SupabaseService,
-    @Optional() private readonly logger?: Logger
-  ) {
-    // Context removed - NestJS Logger doesn't support setContext
-  }
+    private readonly supabaseService: SupabaseService
+  ) {}
 
   /**
    * Create in-app notification for user
@@ -59,7 +58,7 @@ export class NotificationService {
         })
 
       if (error) {
-        this.logger?.error('Failed to create notification', {
+        this.logger.error('Failed to create notification', {
           error,
           userId: params.userId,
           type: params.type
@@ -67,13 +66,13 @@ export class NotificationService {
         throw error
       }
 
-      this.logger?.log('Notification created', {
+      this.logger.log('Notification created', {
         userId: params.userId,
         type: params.type,
         title: params.title
       })
     } catch (error) {
-      this.logger?.error('Error creating notification', {
+      this.logger.error('Error creating notification', {
         error: error instanceof Error ? error.message : String(error),
         params
       })
@@ -106,18 +105,18 @@ export class NotificationService {
         .insert(records)
 
       if (error) {
-        this.logger?.error('Failed to create bulk notifications', {
+        this.logger.error('Failed to create bulk notifications', {
           error,
           count: notifications.length
         })
         throw error
       }
 
-      this.logger?.log('Bulk notifications created', {
+      this.logger.log('Bulk notifications created', {
         count: notifications.length
       })
     } catch (error) {
-      this.logger?.error('Error creating bulk notifications', {
+      this.logger.error('Error creating bulk notifications', {
         error: error instanceof Error ? error.message : String(error),
         count: notifications.length
       })
@@ -140,14 +139,14 @@ export class NotificationService {
         .eq('id', notificationId)
 
       if (error) {
-        this.logger?.error('Failed to mark notification as read', {
+        this.logger.error('Failed to mark notification as read', {
           error,
           notificationId
         })
         throw error
       }
     } catch (error) {
-      this.logger?.error('Error marking notification as read', {
+      this.logger.error('Error marking notification as read', {
         error: error instanceof Error ? error.message : String(error),
         notificationId
       })
@@ -167,7 +166,7 @@ export class NotificationService {
         .eq('is_read', false)
 
       if (error) {
-        this.logger?.error('Failed to get unread count', {
+        this.logger.error('Failed to get unread count', {
           error,
           userId
         })
@@ -176,7 +175,7 @@ export class NotificationService {
 
       return count || 0
     } catch (error) {
-      this.logger?.error('Error getting unread count', {
+      this.logger.error('Error getting unread count', {
         error: error instanceof Error ? error.message : String(error),
         userId
       })
@@ -201,13 +200,13 @@ export class NotificationService {
         .eq('is_read', true)
 
       if (error) {
-        this.logger?.error('Failed to cleanup old notifications', { error })
+        this.logger.error('Failed to cleanup old notifications', { error })
         throw error
       }
 
-      this.logger?.log('Old notifications cleaned up', { count })
+      this.logger.log('Old notifications cleaned up', { count })
     } catch (error) {
-      this.logger?.error('Error cleaning up old notifications', {
+      this.logger.error('Error cleaning up old notifications', {
         error: error instanceof Error ? error.message : String(error)
       })
     }

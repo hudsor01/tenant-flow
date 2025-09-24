@@ -69,7 +69,7 @@ function DialogContent({
 					'data-[state=closed]:slide-out-to-top-[2%] data-[state=open]:slide-in-from-top-[2%]',
 					'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)]',
 					'translate-x-[-50%] translate-y-[-50%] gap-4 p-6 sm:max-w-lg',
-					'rounded-[20px] border shadow-xl',
+					'rounded-[var(--radius-xlarge)] border shadow-xl',
 					'transition-all duration-200 ease-out',
 					className
 				)}
@@ -82,7 +82,7 @@ function DialogContent({
 						className={cn(
 							'ring-offset-background focus:ring-ring absolute top-4 right-4',
 							'data-[state=open]:bg-accent data-[state=open]:text-muted-foreground',
-							'rounded-[12px] opacity-70 hover:opacity-100',
+							'rounded-[var(--radius-medium)] opacity-70 hover:opacity-100',
 							'focus:ring-[3px] focus:ring-ring/50 focus:outline-hidden',
 							'disabled:pointer-events-none min-h-9 min-w-9',
 							'flex items-center justify-center p-2',

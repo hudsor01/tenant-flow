@@ -56,14 +56,11 @@ test.describe('Critical User Journey', () => {
     // Step 4: Check if there are any error messages
     const errorMessage = await page.locator('text=/Invalid API key|error|failed/i').textContent()
     if (errorMessage) {
-      console.log('⚠️  Signup error detected:', errorMessage)
-      console.log('🚨 This indicates a Supabase configuration issue that needs to be fixed before production')
       // For MVP, this is valuable information - the test caught a real issue
       expect(errorMessage).toContain('Invalid API key') // Document the specific error
     } else {
       // If no errors, should redirect away from signup page
       await expect(page).not.toHaveURL(/signup/, { timeout: 5000 })
-      console.log('✅ Signup form working correctly')
     }
   })
 
@@ -79,7 +76,6 @@ test.describe('Critical User Journey', () => {
     // Login form should be visible
     await expect(page.locator('button:has-text("Sign In")')).toBeVisible()
     
-    console.log('✅ Authentication guards working - dashboard redirects to login')
   })
 
   test('Properties page requires authentication', async ({ page }) => {
@@ -91,7 +87,6 @@ test.describe('Critical User Journey', () => {
     // Should redirect to login page (matches actual production behavior)
     await expect(page).toHaveURL(/.*\/auth\/login/, { timeout: 5000 })
     
-    console.log('✅ Properties page properly protected with authentication')
   })
 
   test('Health check endpoint returns success', async ({ page }) => {

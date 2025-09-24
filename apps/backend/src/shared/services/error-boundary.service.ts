@@ -4,7 +4,7 @@
  * Follows Apple's resilience engineering principles
  */
 
-import { Injectable, Logger, Inject } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { ZeroCacheService } from '../../cache/cache.service'
 
 interface CircuitState {
@@ -33,6 +33,7 @@ interface ServiceMetrics {
 
 @Injectable()
 export class ErrorBoundaryService {
+	private readonly logger = new Logger(ErrorBoundaryService.name)
 	private circuitStates = new Map<string, CircuitState>()
 	private serviceMetrics = new Map<string, ServiceMetrics>()
 	private responseTimeHistory = new Map<string, number[]>()
@@ -45,8 +46,7 @@ export class ErrorBoundaryService {
 	}
 
 	constructor(
-		private readonly cacheService: ZeroCacheService,
-		@Inject(Logger) private readonly logger: Logger
+		private readonly cacheService: ZeroCacheService
 	) {}
 
 	/**
@@ -64,7 +64,12 @@ export class ErrorBoundaryService {
 
 		// Check circuit breaker state
 		if (opts.enableCircuitBreaker && this.isCircuitOpen(serviceKey)) {
-			this.logger.warn(`Circuit breaker OPEN for ${serviceKey}, using fallback`)
+			this.logger.warn('Circuit breaker opened - using fallback', {
+				service: serviceKey,
+				operation: 'circuit_breaker_check',
+				hasFallback: !!fallback,
+				circuitState: this.getCircuitState(serviceKey)
+			})
 
 			if (fallback) {
 				return typeof fallback === 'function' ? await fallback() : fallback
@@ -96,8 +101,13 @@ export class ErrorBoundaryService {
 
 			// Try fallback if available
 			if (fallback) {
-				const errorMessage = error instanceof Error ? error.message : String(error)
-				this.logger.warn(`Operation failed for ${serviceKey}, using fallback`, { error: errorMessage })
+				this.logger.warn('Operation failed - using fallback', {
+					service: serviceKey,
+					operation: 'fallback_execution',
+					responseTime,
+					errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+					errorMessage: error instanceof Error ? error.message : String(error)
+				})
 				return typeof fallback === 'function' ? await fallback() : fallback as T
 			}
 
@@ -132,7 +142,13 @@ export class ErrorBoundaryService {
 		} catch (error) {
 			// If we have cached data, return it
 			if (cachedResult !== null) {
-				this.logger.warn(`Returning cached data for ${serviceKey} due to error`, { error: error instanceof Error ? error.message : String(error) })
+				this.logger.warn('Operation failed - returning cached data', {
+					service: serviceKey,
+					operation: 'cache_fallback',
+					cacheKey,
+					errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+					errorMessage: error instanceof Error ? error.message : String(error)
+				})
 				return cachedResult as T
 			}
 
@@ -184,7 +200,11 @@ export class ErrorBoundaryService {
 		state.failureCount = 0
 		state.nextAttemptTime = 0
 
-		this.logger.log(`Circuit breaker reset for ${serviceKey}`)
+		this.logger.log('Circuit breaker reset successfully', {
+			service: serviceKey,
+			operation: 'circuit_breaker_reset',
+			previousFailures: state.failureCount
+		})
 	}
 
 	/**
@@ -225,7 +245,11 @@ export class ErrorBoundaryService {
 		// Check if circuit should be half-open
 		if (Date.now() >= state.nextAttemptTime) {
 			state.isOpen = false // Half-open state
-			this.logger.log(`Circuit breaker half-open for ${serviceKey}`)
+			this.logger.log('Circuit breaker entered half-open state', {
+				service: serviceKey,
+				operation: 'circuit_breaker_half_open',
+				downtime: Date.now() - state.lastFailureTime
+			})
 		}
 
 		return state.isOpen
@@ -239,7 +263,11 @@ export class ErrorBoundaryService {
 			state.lastSuccessTime = Date.now()
 			if (state.isOpen) {
 				state.isOpen = false
-				this.logger.log(`Circuit breaker closed for ${serviceKey} (recovered)`)
+				this.logger.log('Circuit breaker recovered successfully', {
+					service: serviceKey,
+					operation: 'circuit_breaker_closed',
+					recoveryTime: Date.now() - state.lastFailureTime
+				})
 			}
 		} else {
 			state.failureCount++
@@ -248,7 +276,14 @@ export class ErrorBoundaryService {
 			if (state.failureCount >= options.maxFailures) {
 				state.isOpen = true
 				state.nextAttemptTime = Date.now() + options.circuitOpenTime
-				this.logger.error(`Circuit breaker OPENED for ${serviceKey} (${state.failureCount} failures)`)
+				this.logger.error('Circuit breaker opened due to failures', {
+					service: serviceKey,
+					operation: 'circuit_breaker_opened',
+					failureCount: state.failureCount,
+					maxFailures: options.maxFailures,
+					nextRetryTime: state.nextAttemptTime,
+					timeWindow: options.timeWindow
+				})
 
 				// Invalidate cache for this service to prevent stale data
 				this.cacheService.invalidate(serviceKey, 'circuit_breaker_opened')

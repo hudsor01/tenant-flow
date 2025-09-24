@@ -24,12 +24,11 @@ type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
 
 @Injectable()
 export class NotificationsService {
+	private readonly logger = new Logger(NotificationsService.name)
+
 	constructor(
-		private readonly supabaseService: SupabaseService,
-		private readonly logger: Logger
-	) {
-		// Logger context handled automatically via app-level configuration
-	}
+		private readonly supabaseService: SupabaseService
+	) {}
 
 	/**
 	 * Zod schemas for notification validation

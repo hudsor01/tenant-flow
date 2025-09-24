@@ -7,7 +7,10 @@ import { test, expect } from '@playwright/test'
  */
 
 test.describe('Global AuthGuard Validation', () => {
-	const baseURL = 'http://localhost:4600/api/v1'
+	if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
+		throw new Error('NEXT_PUBLIC_API_BASE_URL is required for auth guard validation tests')
+	}
+	const baseURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1`
 
 	test('should allow access to public health endpoint', async ({ request }) => {
 		const response = await request.get(`${baseURL}/health/ping`)

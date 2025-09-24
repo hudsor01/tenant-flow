@@ -2,6 +2,7 @@ import {
 	CanActivate,
 	ExecutionContext,
 	Injectable,
+	Logger,
 	SetMetadata,
 	UnauthorizedException
 } from '@nestjs/common'
@@ -10,6 +11,8 @@ import { Request } from 'express'
 
 @Injectable()
 export class CsrfGuard implements CanActivate {
+	private readonly logger = new Logger(CsrfGuard.name)
+
 	constructor(private reflector: Reflector) {}
 
 	canActivate(context: ExecutionContext): boolean {
@@ -44,7 +47,9 @@ export class CsrfGuard implements CanActivate {
 		const allowedOrigins = [
 			'https://tenantflow.app',
 			'https://www.tenantflow.app',
-			process.env.CORS_ORIGINS?.split(',') || []
+			...(process.env.CORS_ORIGINS?.split(',') || (() => {
+				throw new Error('CORS_ORIGINS environment variable is required for CSRF protection')
+			})())
 		]
 			.flat()
 			.filter(Boolean)
@@ -57,6 +62,14 @@ export class CsrfGuard implements CanActivate {
 
 		// Require either CSRF token or valid origin/referer
 		if (!csrfToken && !isValidOrigin) {
+			this.logger.warn('CSRF protection triggered: Invalid origin or missing token', {
+				method,
+				origin,
+				referer,
+				hasToken: !!csrfToken,
+				userAgent: request.headers['user-agent'],
+				ip: request.ip
+			})
 			throw new UnauthorizedException(
 				'CSRF protection: Invalid origin or missing token'
 			)
@@ -72,9 +85,22 @@ export class CsrfGuard implements CanActivate {
 						refererUrl.hostname.endsWith(allowed)
 				)
 				if (!isValidReferer) {
+					this.logger.warn('CSRF protection triggered: Invalid referer', {
+						method,
+						referer,
+						origin,
+						userAgent: request.headers['user-agent'],
+						ip: request.ip
+					})
 					throw new UnauthorizedException('CSRF protection: Invalid referer')
 				}
 			} catch {
+				this.logger.warn('CSRF protection triggered: Invalid referer format', {
+					method,
+					referer,
+					userAgent: request.headers['user-agent'],
+					ip: request.ip
+				})
 				throw new UnauthorizedException(
 					'CSRF protection: Invalid referer format'
 				)

@@ -84,7 +84,7 @@ export function buttonClasses(
 	className?: string
 ): string {
 	const baseClasses =
-		'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
+		'inline-flex items-center justify-center whitespace-nowrap rounded-[var(--radius-medium)] text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
 
 	const sizeClasses = {
 		xs: 'h-6 px-2 text-xs',
@@ -120,7 +120,7 @@ export function inputClasses(
 	className?: string
 ): string {
 	const baseClasses =
-		'flex w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+		'flex w-full rounded-[var(--radius-medium)] border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
 
 	const sizeClasses = {
 		xs: 'h-6 px-2 py-1 text-xs',
@@ -148,7 +148,7 @@ export function cardClasses(
 	variant: 'default' | 'elevated' | 'interactive' | 'premium' = 'default',
 	className?: string
 ): string {
-	const baseClasses = 'rounded-lg border bg-card text-card-foreground'
+	const baseClasses = 'rounded-[var(--radius-large)] border bg-card text-card-foreground'
 
 	const variantClasses = {
 		default: 'shadow-sm',
@@ -516,8 +516,8 @@ export function glassClasses(
 	const baseClasses = 'backdrop-blur-md border'
 
 	const variantClasses = {
-		default: 'bg-white/10 border-white/20',
-		strong: 'bg-white/15 border-white/30 backdrop-blur-xl',
+		default: 'glass',
+		strong: 'glass-strong',
 		premium: 'card-glass-premium' // Uses the sophisticated CSS class
 	}
 

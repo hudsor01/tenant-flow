@@ -168,7 +168,7 @@ export default function AboutPage() {
 										<div
 											className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${value.color} mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg`}
 										>
-											<value.icon className="w-8 h-8 text-white" />
+											<value.icon className="w-8 h-8 text-primary-foreground" />
 										</div>
 										<h3
 											className="font-semibold text-foreground mb-3"

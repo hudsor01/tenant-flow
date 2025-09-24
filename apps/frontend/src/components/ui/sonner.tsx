@@ -1,8 +1,11 @@
 'use client'
 
 import { toast } from 'sonner'
+import { createLogger } from '@repo/shared'
 
 import { Button } from '@/components/ui/button'
+
+const logger = createLogger({ component: 'SonnerDemo' })
 
 export function SonnerDemo() {
 	return (
@@ -13,7 +16,9 @@ export function SonnerDemo() {
 					description: 'Sunday, December 03, 2023 at 9:00 AM',
 					action: {
 						label: 'Undo',
-						onClick: () => console.log('Undo')
+						onClick: () => logger.info('Toast undo action triggered', {
+							action: 'toast_undo_clicked'
+						})
 					}
 				})
 			}

@@ -2,8 +2,11 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Login Flow', () => {
   test('should successfully login and navigate to dashboard', async ({ page }) => {
+    if (!process.env.NEXT_PUBLIC_APP_URL) {
+      throw new Error('NEXT_PUBLIC_APP_URL is required for login flow tests')
+    }
     // Navigate to login page
-    await page.goto('http://localhost:3005/login')
+    await page.goto(`${process.env.NEXT_PUBLIC_APP_URL}/login`)
 
     // Wait for page to load
     await page.waitForLoadState('networkidle')

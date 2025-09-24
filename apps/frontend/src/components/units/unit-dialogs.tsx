@@ -33,7 +33,8 @@ import {
 	nonNegativeNumberSchema,
 	positiveNumberSchema,
 	requiredString,
-	unitStatusSchema
+	unitStatusSchema,
+	createLogger
 } from '@repo/shared'
 import { useForm } from '@tanstack/react-form'
 import type { LucideIcon } from 'lucide-react'
@@ -536,6 +537,7 @@ export function UnitEditDialog({
 	open,
 	onOpenChange
 }: UnitEditDialogProps) {
+	const logger = createLogger({ component: 'UnitEditDialog' })
 	const updateUnit = useUpdateUnit()
 
 	// TanStack Form with direct Zod validation
@@ -571,7 +573,13 @@ export function UnitEditDialog({
 				toast.success('Unit updated successfully')
 				onOpenChange(false)
 			} catch (error) {
-				console.error('Failed to update unit:', error)
+				logger.error('Unit update operation failed', {
+					action: 'unit_update_failed',
+					metadata: {
+						unitId: unit.id,
+						error: error instanceof Error ? error.message : String(error)
+					}
+				})
 				toast.error('Failed to update unit. Please try again.')
 			}
 		},

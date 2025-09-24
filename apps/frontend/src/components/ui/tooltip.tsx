@@ -46,7 +46,7 @@ function TooltipContent({
 				data-tokens="applied"
 				className={cn(
 					// Base styles with token-based radius
-					'bg-[var(--color-accent-main)] text-primary-foreground z-50 w-fit rounded-[8px] px-3 py-1.5 text-xs text-balance',
+					'bg-[var(--color-accent-main)] text-primary-foreground z-50 w-fit rounded-[var(--radius-small)] px-3 py-1.5 text-xs text-balance',
 					// Origin for animations
 					'origin-(--radix-tooltip-content-transform-origin)',
 					// Enhanced animations
@@ -67,7 +67,7 @@ function TooltipContent({
 				{...props}
 			>
 				{children}
-				<TooltipPrimitive.Arrow className="bg-[var(--color-accent-main)] fill-primary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]" />
+				<TooltipPrimitive.Arrow className="bg-[var(--color-accent-main)] fill-primary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[calc(var(--radius-small)/4)]" />
 			</TooltipPrimitive.Content>
 		</TooltipPrimitive.Portal>
 	)

@@ -21,8 +21,6 @@ test.describe('CSS Validation Tests', () => {
     expect(primaryColor).toBeTruthy();
     expect(backgroundExists).toBeTruthy();
     
-    console.log(`Primary color: ${primaryColor}`);
-    console.log(`Background defined: ${!!backgroundExists}`);
   });
 
   test('Tailwind classes are working', async ({ page }) => {
@@ -48,7 +46,6 @@ test.describe('CSS Validation Tests', () => {
     expect(computedStyles.justifyContent).toBe('center');
     expect(computedStyles.padding).not.toBe('0px');
     
-    console.log('Computed styles:', computedStyles);
   });
 
   test('Animation utilities are defined', async ({ page }) => {
@@ -75,7 +72,6 @@ test.describe('CSS Validation Tests', () => {
     expect(animations[1]).toContain('pulse');
     expect(animations[2]).toContain('all');
     
-    console.log('Animation styles applied:', animations);
   });
 
   test('Dashboard classes exist in CSS', async ({ page }) => {
@@ -105,7 +101,6 @@ test.describe('CSS Validation Tests', () => {
     expect(hasStyles[0]).toBeTruthy();
     expect(hasStyles[1]).toBeTruthy();
     
-    console.log('Dashboard classes have styles:', hasStyles);
   });
 
   test('CSS contains expected utilities', async ({ page }) => {
@@ -138,7 +133,6 @@ test.describe('CSS Validation Tests', () => {
     });
     
     expect(hasExpectedClasses.cssLength).toBeGreaterThan(1000);
-    console.log('CSS analysis:', hasExpectedClasses);
     
     // At least some of these should be true if CSS is loaded
     const hasAnyCriticalCSS = Object.values(hasExpectedClasses).some(val => val === true);

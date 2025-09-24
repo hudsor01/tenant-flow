@@ -54,24 +54,16 @@ test.describe('Console Error Capture', () => {
 				msg.type === 'requestfailed'
 		)
 
-		console.log('\n=== localhost:3005 CONSOLE MESSAGES ===')
-		console.log(`Total messages: ${consoleMessages.length}`)
-		console.log(`Errors/Warnings: ${errors.length}`)
 
 		if (errors.length > 0) {
-			console.log('\nERRORS AND WARNINGS:')
 			errors.forEach((msg, index) => {
-				console.log(`${index + 1}. [${msg.type.toUpperCase()}] ${msg.text}`)
 			})
 		} else {
-			console.log('✅ No console errors or warnings found on landing page')
 		}
 
 		// Also log all messages for reference
 		if (consoleMessages.length > 0) {
-			console.log('\nALL CONSOLE MESSAGES:')
 			consoleMessages.forEach((msg, index) => {
-				console.log(`${index + 1}. [${msg.type}] ${msg.text}`)
 			})
 		}
 
@@ -100,24 +92,16 @@ test.describe('Console Error Capture', () => {
 				msg.type === 'requestfailed'
 		)
 
-		console.log('\n=== localhost:3005/DASHBOARD CONSOLE MESSAGES ===')
-		console.log(`Total messages: ${consoleMessages.length}`)
-		console.log(`Errors/Warnings: ${errors.length}`)
 
 		if (errors.length > 0) {
-			console.log('\nERRORS AND WARNINGS:')
 			errors.forEach((msg, index) => {
-				console.log(`${index + 1}. [${msg.type.toUpperCase()}] ${msg.text}`)
 			})
 		} else {
-			console.log('✅ No console errors or warnings found on dashboard page')
 		}
 
 		// Also log all messages for reference
 		if (consoleMessages.length > 0) {
-			console.log('\nALL CONSOLE MESSAGES:')
 			consoleMessages.forEach((msg, index) => {
-				console.log(`${index + 1}. [${msg.type}] ${msg.text}`)
 			})
 		}
 

@@ -5,6 +5,7 @@ import React, { createContext, useContext, useEffect, useRef } from 'react'
 import { type StoreApi } from 'zustand'
 
 import { ALL_AUTH_COOKIE_PATTERNS } from '@/lib/auth-constants'
+import { logger } from '@repo/shared'
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import type { AuthState } from './auth-store'
 import { createAuthStore } from './auth-store'
@@ -133,7 +134,12 @@ export const useAuthStore = <T,>(selector: (state: AuthState) => T): T => {
 		try {
 			return selector(store.getState())
 		} catch (error) {
-			console.error('Error in auth store selector:', error)
+				logger.error('AuthProvider - Error in auth store selector', {
+					action: 'auth_store_selector_failed',
+					metadata: {
+						error: error instanceof Error ? error.message : String(error)
+					}
+				})
 			// Return a safe default - adjust based on your AuthState structure
 			return null as T
 		}
@@ -144,7 +150,12 @@ export const useAuthStore = <T,>(selector: (state: AuthState) => T): T => {
 			try {
 				setState(selector(store.getState()))
 			} catch (error) {
-				console.error('Error in auth store subscription:', error)
+					logger.error('AuthProvider - Error in auth store subscription', {
+						action: 'auth_store_subscription_failed',
+						metadata: {
+							error: error instanceof Error ? error.message : String(error)
+						}
+					})
 			}
 		})
 		return unsubscribe

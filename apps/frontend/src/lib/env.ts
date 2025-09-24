@@ -20,15 +20,35 @@ export function getStripeConfig(): StripeEnvironmentConfig {
 		throw new Error('STRIPE_SECRET_KEY is required')
 	}
 
+	// Validate all required price IDs
+	if (!process.env.STRIPE_STARTER_MONTHLY_PRICE_ID) {
+		throw new Error('STRIPE_STARTER_MONTHLY_PRICE_ID is required')
+	}
+	if (!process.env.STRIPE_STARTER_ANNUAL_PRICE_ID) {
+		throw new Error('STRIPE_STARTER_ANNUAL_PRICE_ID is required')
+	}
+	if (!process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID) {
+		throw new Error('STRIPE_GROWTH_MONTHLY_PRICE_ID is required')
+	}
+	if (!process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID) {
+		throw new Error('STRIPE_GROWTH_ANNUAL_PRICE_ID is required')
+	}
+	if (!process.env.STRIPE_MAX_MONTHLY_PRICE_ID) {
+		throw new Error('STRIPE_MAX_MONTHLY_PRICE_ID is required')
+	}
+	if (!process.env.STRIPE_MAX_ANNUAL_PRICE_ID) {
+		throw new Error('STRIPE_MAX_ANNUAL_PRICE_ID is required')
+	}
+
 	return {
 		publishableKey,
 		prices: {
-			starter_monthly: process.env.STRIPE_STARTER_MONTHLY_PRICE_ID || '',
-			starter_annual: process.env.STRIPE_STARTER_ANNUAL_PRICE_ID || '',
-			growth_monthly: process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID || '',
-			growth_annual: process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID || '',
-			max_monthly: process.env.STRIPE_MAX_MONTHLY_PRICE_ID || '',
-			max_annual: process.env.STRIPE_MAX_ANNUAL_PRICE_ID || ''
+			starter_monthly: process.env.STRIPE_STARTER_MONTHLY_PRICE_ID,
+			starter_annual: process.env.STRIPE_STARTER_ANNUAL_PRICE_ID,
+			growth_monthly: process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID,
+			growth_annual: process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID,
+			max_monthly: process.env.STRIPE_MAX_MONTHLY_PRICE_ID,
+			max_annual: process.env.STRIPE_MAX_ANNUAL_PRICE_ID
 		},
 		products: {
 			starter: 'prod_starter',
@@ -42,9 +62,18 @@ export function getStripeConfig(): StripeEnvironmentConfig {
  * Get site configuration
  */
 export function getSiteConfig() {
+	if (!process.env.NEXT_PUBLIC_SITE_URL) {
+		throw new Error('NEXT_PUBLIC_SITE_URL is required')
+	}
+
+	// Standard backend API base URL
+	const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || (() => {
+		throw new Error('NEXT_PUBLIC_API_BASE_URL is required for frontend API configuration')
+	})()
+
 	return {
-		siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://tenantflow.app',
-		backendUrl: process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.tenantflow.app'
+		siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+		backendUrl
 	}
 }
 

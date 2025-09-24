@@ -44,10 +44,11 @@ BEGIN
   END IF;
 
   -- Get frontend URL
-  v_frontend_url := COALESCE(
-    (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'FRONTEND_URL'),
-    'http://localhost:3000'
-  );
+  v_frontend_url := (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'FRONTEND_URL');
+
+  IF v_frontend_url IS NULL THEN
+    RAISE EXCEPTION 'FRONTEND_URL is required in vault.decrypted_secrets for Stripe checkout functionality';
+  END IF;
 
   -- Get user details
   SELECT email, name INTO v_user_email, v_user_name
@@ -188,10 +189,11 @@ BEGIN
   END IF;
 
   -- Get frontend URL
-  v_frontend_url := COALESCE(
-    (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'FRONTEND_URL'),
-    'http://localhost:3000'
-  );
+  v_frontend_url := (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'FRONTEND_URL');
+
+  IF v_frontend_url IS NULL THEN
+    RAISE EXCEPTION 'FRONTEND_URL is required in vault.decrypted_secrets for Stripe checkout functionality';
+  END IF;
 
   -- Get customer ID
   SELECT "stripeCustomerId" INTO v_customer_id
