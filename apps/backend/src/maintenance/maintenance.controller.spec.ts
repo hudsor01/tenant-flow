@@ -1,26 +1,29 @@
-import { Test } from '@nestjs/testing'
 import { NotFoundException } from '@nestjs/common'
+import { Test } from '@nestjs/testing'
+import { randomUUID } from 'crypto'
+import type { ValidatedUser } from '@repo/shared'
+import { SilentLogger } from '../__test__/silent-logger'
 import { MaintenanceController } from './maintenance.controller'
 import { MaintenanceService } from './maintenance.service'
-import { SilentLogger } from '../__test__/silent-logger'
-import { randomUUID } from 'crypto'
 
 describe('MaintenanceController', () => {
 	let controller: MaintenanceController
 	let service: jest.Mocked<MaintenanceService>
 
-	const createMockUser = (overrides: Record<string, unknown> = {}) => ({
+	const createMockUser = (overrides: Partial<ValidatedUser> = {}): ValidatedUser => ({
 		id: randomUUID(),
 		email: 'test@example.com',
 		name: 'Test User',
 		phone: null,
 		avatarUrl: 'https://example.com/avatar.jpg',
-		role: 'OWNER',
+		role: 'OWNER' as const,
 		supabaseId: randomUUID(),
 		bio: null,
 		stripeCustomerId: null,
-		createdAt: new Date().toISOString(),
-		updatedAt: new Date().toISOString(),
+		createdAt: new Date(),
+		updatedAt: new Date(),
+		emailVerified: true,
+		organizationId: randomUUID(),
 		...overrides,
 	})
 
@@ -186,7 +189,7 @@ describe('MaintenanceController', () => {
 		it('completes request', async () => {
 			const completed = { ...mockRequest, status: 'COMPLETED' }
 			service.complete.mockResolvedValue(completed)
-			const result = await controller.complete(mockRequest.id, mockUser, undefined, undefined)
+			const result = await controller.complete(mockRequest.id, undefined, undefined, mockUser)
 			expect(result).toEqual(completed)
 		})
 
@@ -216,7 +219,7 @@ describe('MaintenanceController', () => {
 		it('cancels request', async () => {
 			const cancelled = { ...mockRequest, status: 'CANCELLED' }
 			service.cancel.mockResolvedValue(cancelled)
-			const result = await controller.cancel(mockRequest.id, mockUser, undefined)
+			const result = await controller.cancel(mockRequest.id, undefined, mockUser)
 			expect(result).toEqual(cancelled)
 		})
 	})

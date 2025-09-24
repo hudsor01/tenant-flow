@@ -10,14 +10,16 @@
 		"dist/**"
 	],
 	"scripts": {
-		"build": "pnpm clean-dist && tsc --build",
-		"clean": "tsc --build --clean && rm -rf dist",
-		"clean-dist": "tsc --build --clean && rm -rf dist",
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"generate": "drizzle-kit generate",
+		"migrate": "drizzle-kit migrate",
+		"studio": "drizzle-kit studio",
+		"push": "drizzle-kit push",
 		"typecheck": "tsc --noEmit",
-		"lint": "eslint . --fix",
-		"lint:fix": "eslint . --fix",
-		"format": "echo 'No formatting configured for database package'",
-		"format:check": "echo 'No formatting configured for database package'"
+		"lint": "eslint \"src/**/*.ts\"",
+		"lint:fix": "pnpm lint --fix",
+		"clean": "rimraf dist .turbo migrations/.cache"
 	},
 	"dependencies": {
 		"@supabase/supabase-js": "^2.57.4"
@@ -27,6 +29,7 @@
 		"@types/node": "^24.5.2",
 		"eslint": "9.36.0",
 		"globals": "16.4.0",
+		"rimraf": "6.0.1",
 		"typescript": "^5.9.2",
 		"typescript-eslint": "8.44.0"
 	},

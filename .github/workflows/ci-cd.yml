@@ -43,7 +43,7 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Lint code
-        run: pnpm turbo run lint:fix
+        run: pnpm lint:fix
 
   # Type checking - separate job for parallel execution
   typecheck:
@@ -69,7 +69,7 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Type check
-        run: pnpm turbo run typecheck
+        run: pnpm typecheck
 
   # Unit tests with matrix strategy for different Node versions
   test:
@@ -110,7 +110,7 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Run unit tests
-        run: pnpm turbo run test:unit
+        run: pnpm test:unit
 
   # Integration tests - only on main Node version
   integration-test:
@@ -149,7 +149,7 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Run integration tests
-        run: pnpm turbo run test:integration
+        run: pnpm test:integration
         continue-on-error: true # Don't block deployment on integration test failures
 
   # Deploy to Railway - only after all checks pass

@@ -135,6 +135,7 @@ export default [
 	{
 		name: 'frontend/design-system-color-tokens',
 		files: ['**/*.ts', '**/*.tsx'],
+		ignores: ['**/design-system/**'], // Exclude design system files from color checks
 		plugins: {
 			'color-tokens': colorTokensConfig
 		},

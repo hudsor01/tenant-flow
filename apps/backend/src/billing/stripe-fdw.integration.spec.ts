@@ -1,20 +1,20 @@
+import { Logger } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
-import { SilentLogger } from '../__test__/silent-logger';
-import { Test } from '@nestjs/testing';
-import { Logger } from '@nestjs/common';
-import { StripeSyncService } from './stripe-sync.service';
+import { Test } from '@nestjs/testing'
+import { SilentLogger } from '../__test__/silent-logger'
+import { StripeSyncService } from './stripe-sync.service'
 
 /**
  * Integration tests for StripeSyncService - ACTUAL SERVICE INTERFACE
- * 
+ *
  * Tests only the methods that actually exist in the service:
  * - getHealthStatus()
- * - testConnection() 
+ * - testConnection()
  * - isHealthy()
  * - processWebhook() (requires webhook body/signature)
  * - syncSingleEntity() (requires entity ID)
  * - backfillData() (long running operation)
- * 
+ *
  * FIXED: Previous test was calling non-existent methods like getProducts(), getPrices() etc.
  */
 describe('StripeSyncService Integration Tests', () => {
@@ -52,7 +52,7 @@ describe('StripeSyncService Integration Tests', () => {
   describe('Health Check Methods', () => {
     it('should return health status with correct structure', () => {
       const healthStatus = service.getHealthStatus();
-      
+
       expect(healthStatus).toHaveProperty('initialized');
       expect(healthStatus).toHaveProperty('migrationsRun');
       expect(typeof healthStatus.initialized).toBe('boolean');
@@ -62,7 +62,7 @@ describe('StripeSyncService Integration Tests', () => {
     it('should handle testConnection() method', async () => {
       const isConnected = await service.testConnection();
       expect(typeof isConnected).toBe('boolean');
-      
+
       // Connection may be false in test environment without proper setup
       // but method should not throw
     });
@@ -70,7 +70,7 @@ describe('StripeSyncService Integration Tests', () => {
     it('should handle isHealthy() method', async () => {
       const isHealthy = await service.isHealthy();
       expect(typeof isHealthy).toBe('boolean');
-      
+
       // Health may be false in test environment without proper setup
       // but method should not throw
     });
@@ -81,7 +81,7 @@ describe('StripeSyncService Integration Tests', () => {
       // Service should be created even without full environment setup
       // It will report as not initialized/healthy but shouldn't crash
       const healthStatus = service.getHealthStatus();
-      
+
       // In test environment without proper setup, should be false
       if (!process.env.DATABASE_URL || !process.env.STRIPE_SECRET_KEY) {
         expect(healthStatus.initialized).toBe(false);
@@ -92,10 +92,10 @@ describe('StripeSyncService Integration Tests', () => {
 
   describe('Core Service Methods (Conditional)', () => {
     // These tests only run if service is properly initialized
-    
+
     it('should handle processWebhook with proper error for uninitialized service', async () => {
       const healthStatus = service.getHealthStatus();
-      
+
       if (!healthStatus.initialized) {
         // Should throw specific error when not initialized
         await expect(service.processWebhook(Buffer.from('test'), 'test_sig'))
@@ -106,7 +106,7 @@ describe('StripeSyncService Integration Tests', () => {
 
     it('should handle syncSingleEntity with proper error for uninitialized service', async () => {
       const healthStatus = service.getHealthStatus();
-      
+
       if (!healthStatus.initialized) {
         // Should throw specific error when not initialized
         await expect(service.syncSingleEntity('test_entity_id'))
@@ -117,7 +117,7 @@ describe('StripeSyncService Integration Tests', () => {
 
     it('should handle backfillData with proper error for uninitialized service', async () => {
       const healthStatus = service.getHealthStatus();
-      
+
       if (!healthStatus.initialized) {
         // Should throw specific error when not initialized
         await expect(service.backfillData())
@@ -130,27 +130,27 @@ describe('StripeSyncService Integration Tests', () => {
   describe('Service Interface Validation', () => {
     it('should have only the expected methods and no extra ones', () => {
       const serviceMethods = Object.getOwnPropertyNames(Object.getPrototypeOf(service))
-        .filter(method => method !== 'constructor' && typeof (service as unknown)[method] === 'function');
-      
+        .filter(method => method !== 'constructor' && typeof (service as any)[method] === 'function');
+
       const expectedMethods = [
         'onModuleInit',
         'processWebhook',
-        'syncSingleEntity', 
+        'syncSingleEntity',
         'backfillData',
         'getHealthStatus',
         'testConnection',
         'isHealthy'
       ];
-      
+
       // Should not have methods like getProducts, getPrices, etc.
       expect(serviceMethods).toEqual(expect.arrayContaining(expectedMethods));
       expect(serviceMethods.length).toBeLessThanOrEqual(expectedMethods.length + 2); // Allow for a few extra internal methods
-      
+
       // Verify problematic methods from old test DON'T exist
-      expect((service as unknown).getProducts).toBeUndefined();
-      expect((service as unknown).getPrices).toBeUndefined();
-      expect((service as unknown).getCustomer).toBeUndefined();
-      expect((service as unknown).performFullSync).toBeUndefined();
+      expect((service as any).getProducts).toBeUndefined();
+      expect((service as any).getPrices).toBeUndefined();
+      expect((service as any).getCustomer).toBeUndefined();
+      expect((service as any).performFullSync).toBeUndefined();
     });
   });
 });

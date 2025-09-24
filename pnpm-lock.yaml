@@ -317,6 +317,9 @@ importers:
       pino-pretty:
         specifier: 13.1.1
         version: 13.1.1
+      rimraf:
+        specifier: 6.0.1
+        version: 6.0.1
       supertest:
         specifier: ^7.1.4
         version: 7.1.4
@@ -699,6 +702,9 @@ importers:
       postcss:
         specifier: 8.5.6
         version: 8.5.6
+      rimraf:
+        specifier: 6.0.1
+        version: 6.0.1
       tailwindcss:
         specifier: ^4.1.13
         version: 4.1.13
@@ -752,6 +758,9 @@ importers:
       globals:
         specifier: 16.4.0
         version: 16.4.0
+      rimraf:
+        specifier: 6.0.1
+        version: 6.0.1
       typescript:
         specifier: ^5.9.2
         version: 5.9.2
@@ -798,6 +807,9 @@ importers:
       '@types/react-dom':
         specifier: 'catalog:'
         version: 19.1.9(@types/react@19.1.13)
+      rimraf:
+        specifier: 6.0.1
+        version: 6.0.1
       typescript:
         specifier: ^5.9.2
         version: 5.9.2
@@ -6973,6 +6985,11 @@ packages:
 
   rfdc@1.4.1:
     resolution: {integrity: sha512-q1b3N5QkRUWUl7iyylaaj3kOpIT0N2i9MqIEQXP73GVsN9cw3fdx8X63cEmWhJGi2PPCF23Ijp7ktmd39rawIA==}
+
+  rimraf@6.0.1:
+    resolution: {integrity: sha512-9dkvaxAsk/xNXSJzMgFqqMCuFgt2+KsOFek3TMLfo8NCPfWpBmqwyNn5Y+NX56QUYfCtsyhF3ayiboEoUmJk/A==}
+    engines: {node: 20 || >=22}
+    hasBin: true
 
   router@2.2.0:
     resolution: {integrity: sha512-nLTrUKm2UyiL7rlhapu/Zl45FwNgkZGaCpZbIHajDYgwlJCOzLSk+cIPAnsEqV955GjILJnKbdQC1nVPz+gAYQ==}
@@ -14771,6 +14788,11 @@ snapshots:
   reusify@1.1.0: {}
 
   rfdc@1.4.1: {}
+
+  rimraf@6.0.1:
+    dependencies:
+      glob: 11.0.3
+      package-json-from-dist: 1.0.1
 
   router@2.2.0:
     dependencies:

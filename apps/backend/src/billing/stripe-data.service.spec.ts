@@ -21,7 +21,7 @@ describe('StripeDataService - Production Tests', () => {
 		// Mock SupabaseService
 		mockSupabaseService = {
 			getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient)
-		} as jest.Mocked<SupabaseService>
+		} as unknown as jest.Mocked<SupabaseService>
 
 		// Mock Logger for optional injection (production pattern)
 		mockLogger = {
@@ -30,7 +30,7 @@ describe('StripeDataService - Production Tests', () => {
 			warn: jest.fn(),
 			debug: jest.fn(),
 			verbose: jest.fn()
-		} as jest.Mocked<Logger>
+		} as unknown as jest.Mocked<Logger>
 
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -81,8 +81,8 @@ describe('StripeDataService - Production Tests', () => {
 			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_stripe_subscriptions', { customer_id: customerId })
 			expect(result).toEqual(mockSubscriptions)
 			expect(result).toHaveLength(2)
-			expect(result[0].status).toBe('active')
-			expect(result[1].status).toBe('canceled')
+			expect(result[0]?.status).toBe('active')
+			expect(result[1]?.status).toBe('canceled')
 		})
 
 		it('should handle RPC errors and log them like production', async () => {

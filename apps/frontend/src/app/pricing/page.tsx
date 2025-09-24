@@ -127,13 +127,13 @@ export default function PricingPage() {
 	return (
 		<div className="min-h-screen bg-white">
 			{/* Navigation */}
-			<nav className="fixed top-4 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-6 py-3 backdrop-blur-xl border border-gray-200 shadow-lg bg-white/80">
+			<nav className="fixed top-4 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-6 py-3 backdrop-blur-xl border border-[var(--color-border)] shadow-lg bg-white/80">
 				<div className="flex items-center justify-between gap-8">
 					<Link
 						href="/"
 						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
 					>
-						<div className="w-8 h-8 rounded-lg overflow-hidden bg-blue-600 border border-gray-200 flex items-center justify-center">
+						<div className="w-8 h-8 rounded-lg overflow-hidden bg-[var(--color-primary)] border border-[var(--color-border)] flex items-center justify-center">
 							<svg
 								viewBox="0 0 24 24"
 								fill="none"
@@ -149,7 +149,7 @@ export default function PricingPage() {
 								/>
 							</svg>
 						</div>
-						<span className="text-xl font-bold text-gray-900 tracking-tight">
+						<span className="text-xl font-bold text-[var(--color-text-primary)] tracking-tight">
 							TenantFlow
 						</span>
 					</Link>
@@ -157,13 +157,13 @@ export default function PricingPage() {
 					<div className="hidden md:flex items-center space-x-1">
 						<Link
 							href="/"
-							className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium text-sm rounded-xl hover:bg-gray-50 transition-all duration-200"
+							className="px-4 py-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-medium text-sm rounded-xl hover:bg-[var(--color-accent)] transition-all duration-200"
 						>
 							Home
 						</Link>
 						<Link
 							href="/faq"
-							className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium text-sm rounded-xl hover:bg-gray-50 transition-all duration-200"
+							className="px-4 py-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-medium text-sm rounded-xl hover:bg-[var(--color-accent)] transition-all duration-200"
 						>
 							FAQ
 						</Link>
@@ -172,13 +172,13 @@ export default function PricingPage() {
 					<div className="flex items-center space-x-3">
 						<Link
 							href="/login"
-							className="hidden sm:flex px-4 py-2 text-gray-900 hover:text-gray-900 rounded-xl hover:bg-gray-50 transition-all duration-300 font-medium"
+							className="hidden sm:flex px-4 py-2 text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] rounded-xl hover:bg-[var(--color-accent)] transition-all duration-300 font-medium"
 						>
 							Sign In
 						</Link>
 						<Link
 							href="/login"
-							className="flex items-center px-6 py-2.5 bg-blue-600 text-white font-medium text-sm rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+							className="flex items-center px-6 py-2.5 bg-[var(--color-primary)] text-white font-medium text-sm rounded-xl hover:bg-[var(--color-primary-hover)] transition-all duration-200 shadow-lg hover:shadow-xl"
 						>
 							Get Started
 							<ArrowRight className="ml-2 h-4 w-4" />
@@ -192,19 +192,19 @@ export default function PricingPage() {
 				<div className="max-w-6xl mx-auto">
 					{/* Header */}
 					<div className="text-center mb-16">
-						<div className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-blue-200 bg-blue-50 mb-8">
-							<div className="w-2 h-2 bg-green-500 rounded-full mr-3 animate-pulse" />
-							<span className="text-gray-700 font-medium text-sm">
+						<div className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-[var(--color-primary-border)] bg-[var(--color-primary-bg)] mb-8">
+							<div className="w-2 h-2 bg-[var(--color-success)] rounded-full mr-3 animate-pulse" />
+							<span className="text-[var(--color-text)] font-medium text-sm">
 								Trusted by 10,000+ property managers
 							</span>
 						</div>
 
-						<h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 tracking-tight leading-tight">
+						<h1 className="text-5xl lg:text-6xl font-bold text-[var(--color-text-primary)] mb-6 tracking-tight leading-tight">
 							Simple pricing for
-							<span className="block text-blue-600">every business</span>
+							<span className="block text-[var(--color-primary)]">every business</span>
 						</h1>
 
-						<p className="text-xl text-gray-700 mb-8 leading-relaxed max-w-2xl mx-auto">
+						<p className="text-xl text-[var(--color-text)] mb-8 leading-relaxed max-w-2xl mx-auto">
 							Professional property managers increase NOI by 40% with
 							TenantFlow's enterprise-grade automation and analytics.
 						</p>
@@ -212,14 +212,14 @@ export default function PricingPage() {
 						{/* Billing Toggle */}
 						<div className="flex items-center justify-center gap-4 mb-12">
 							<span
-								className={`text-sm font-medium ${!isYearly ? 'text-gray-900' : 'text-gray-500'}`}
+								className={`text-sm font-medium ${!isYearly ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)]'}`}
 							>
 								Monthly
 							</span>
 							<button
 								onClick={() => setIsYearly(!isYearly)}
-								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-									isYearly ? 'bg-blue-600' : 'bg-gray-300'
+								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ${
+									isYearly ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-muted)]'
 								}`}
 							>
 								<span
@@ -229,10 +229,10 @@ export default function PricingPage() {
 								/>
 							</button>
 							<span
-								className={`text-sm font-medium ${isYearly ? 'text-gray-900' : 'text-gray-500'}`}
+								className={`text-sm font-medium ${isYearly ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)]'}`}
 							>
 								Yearly
-								<span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+								<span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[var(--color-success-bg)] text-[var(--color-success-text)]">
 									Save 17%
 								</span>
 							</span>
@@ -245,40 +245,40 @@ export default function PricingPage() {
 							<Card
 								key={plan.id}
 								className={`relative bg-white border-2 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 ${
-									plan.popular ? 'border-blue-500 scale-105' : 'border-gray-200'
+									plan.popular ? 'border-[var(--color-primary)] scale-105' : 'border-[var(--color-border)]'
 								}`}
 							>
 								{plan.popular && (
 									<div className="absolute -top-4 left-1/2 -translate-x-1/2">
-										<span className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
+										<span className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-full text-sm font-semibold">
 											Most Popular
 										</span>
 									</div>
 								)}
 
 								<CardHeader className="p-8 pb-4">
-									<CardTitle className="text-2xl font-bold text-gray-900 mb-2">
+									<CardTitle className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">
 										{plan.name}
 									</CardTitle>
 									<div className="mb-4">
-										<span className="text-4xl font-bold text-gray-900">
+										<span className="text-4xl font-bold text-[var(--color-text-primary)]">
 											${isYearly ? plan.price.yearly : plan.price.monthly}
 										</span>
-										<span className="text-gray-600 ml-1">
+										<span className="text-[var(--color-text-secondary)] ml-1">
 											/{isYearly ? 'year' : 'month'}
 										</span>
 									</div>
-									<p className="text-gray-600">{plan.description}</p>
+									<p className="text-[var(--color-text-secondary)]">{plan.description}</p>
 								</CardHeader>
 
 								<CardContent className="p-8 pt-4">
 									<ul className="space-y-4">
 										{plan.features.map((feature, index) => (
 											<li key={index} className="flex items-center gap-3">
-												<div className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
-													<Check className="w-3 h-3 text-blue-600" />
+												<div className="flex-shrink-0 w-5 h-5 rounded-full bg-[var(--color-primary-bg)] flex items-center justify-center">
+													<Check className="w-3 h-3 text-[var(--color-primary)]" />
 												</div>
-												<span className="text-gray-700">{feature}</span>
+												<span className="text-[var(--color-text)]">{feature}</span>
 											</li>
 										))}
 									</ul>
@@ -287,8 +287,8 @@ export default function PricingPage() {
 										onClick={() => handleSelectPlan(plan.id)}
 										className={`w-full mt-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
 											plan.popular
-												? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
-												: 'bg-gray-100 hover:bg-gray-200 text-gray-900 border-2 border-gray-200 hover:border-gray-300'
+												? 'bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white shadow-lg hover:shadow-xl'
+												: 'bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-[var(--color-text-primary)] border-2 border-[var(--color-border)] hover:border-[var(--color-border-hover)]'
 										}`}
 									>
 										{plan.id === 'max' ? 'Contact Sales' : 'Get Started'}
@@ -301,10 +301,10 @@ export default function PricingPage() {
 
 					{/* Bottom CTA */}
 					<div className="text-center">
-						<p className="text-gray-600 mb-2">Questions about our plans?</p>
+						<p className="text-[var(--color-text-secondary)] mb-2">Questions about our plans?</p>
 						<Button
 							variant="ghost"
-							className="text-blue-600 hover:text-blue-700 font-medium"
+							className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium"
 							onClick={() => router.push('/contact')}
 						>
 							Contact our sales team →

@@ -144,8 +144,8 @@ describe('AuthService Integration Tests', () => {
         expect(dbUser).toBeDefined()
         expect(dbUser?.email).toBe(testEmail)
         expect(dbUser?.name).toBe(testName)
-      } catch (error) {
-        if (error.message.includes('fetch failed')) {
+      } catch (error: unknown) {
+        if (error instanceof Error && error.message.includes('fetch failed')) {
           console.log('⏭️  Skipping - Supabase service not available')
           return
         }
@@ -169,7 +169,11 @@ describe('AuthService Integration Tests', () => {
           email_confirmed_at: new Date().toISOString()
         } as const
 
-        const syncedUser = await service.syncUserWithDatabase(mockSupabaseUser)
+        const syncedUser = await service.syncUserWithDatabase({
+          ...mockSupabaseUser,
+          app_metadata: {},
+          aud: 'authenticated'
+        } as any)
 
         expect(syncedUser).toHaveProperty('id')
         expect(syncedUser.email).toBe(mockSupabaseUser.email)
@@ -181,8 +185,8 @@ describe('AuthService Integration Tests', () => {
         const dbUser = await service.getUserBySupabaseId(mockSupabaseUser.id)
         expect(dbUser).toBeDefined()
         expect(dbUser?.supabaseId).toBe(mockSupabaseUser.id)
-      } catch (error) {
-        if (error.message.includes('Failed to sync user data') || error.message.includes('fetch failed')) {
+      } catch (error: unknown) {
+        if (error instanceof Error && (error.message.includes('Failed to sync user data') || error.message.includes('fetch failed'))) {
           console.log('⏭️  Skipping - Supabase service not available')
           return
         }
@@ -196,7 +200,7 @@ describe('AuthService Integration Tests', () => {
       try {
         // First create a user
         const testEmail = createTestEmail()
-        const _user = await service.createUser({
+        await service.createUser({
           email: testEmail,
           name: createTestName(),
           password: 'TestPassword123!'
@@ -220,8 +224,8 @@ describe('AuthService Integration Tests', () => {
         expect(updateResult.user.phone).toBe(updates.phone)
         expect(updateResult.user.bio).toBe(updates.bio)
         expect(updateResult.user.profileComplete).toBe(true) // name + phone = complete
-      } catch (error) {
-        if (error.message.includes('fetch failed')) {
+      } catch (error: unknown) {
+        if (error instanceof Error && error.message.includes('fetch failed')) {
           console.log('⏭️  Skipping - Supabase service not available')
           return
         }
@@ -269,8 +273,8 @@ describe('AuthService Integration Tests', () => {
           name: 'Different Name',
           password: 'DifferentPassword123!'
         })).rejects.toThrow()
-      } catch (error) {
-        if (error.message.includes('fetch failed')) {
+      } catch (error: unknown) {
+        if (error instanceof Error && error.message.includes('fetch failed')) {
           console.log('⏭️  Skipping - Supabase service not available')
           return
         }
@@ -287,8 +291,8 @@ describe('AuthService Integration Tests', () => {
           name: createTestName(),
           password: 'weak' // Too short
         })).rejects.toThrow('Password must be at least 8 characters long')
-      } catch (error) {
-        if (error.message.includes('fetch failed')) {
+      } catch (error: unknown) {
+        if (error instanceof Error && error.message.includes('fetch failed')) {
           console.log('⏭️  Skipping - Supabase service not available')
           return
         }
@@ -311,8 +315,8 @@ describe('AuthService Integration Tests', () => {
           name: '',
           password: 'TestPassword123!'
         })).rejects.toThrow('Email and name are required')
-      } catch (error) {
-        if (error.message.includes('fetch failed')) {
+      } catch (error: unknown) {
+        if (error instanceof Error && error.message.includes('fetch failed')) {
           console.log('⏭️  Skipping - Supabase service not available')
           return
         }
@@ -332,8 +336,8 @@ describe('AuthService Integration Tests', () => {
         expect(connectionTest.connected).toBe(true)
         expect(connectionTest).toHaveProperty('auth')
         expect(connectionTest.auth).toHaveProperty('url')
-      } catch (error) {
-        if (error.message.includes('fetch failed')) {
+      } catch (error: unknown) {
+        if (error instanceof Error && error.message.includes('fetch failed')) {
           console.log('⏭️  Skipping - Supabase service not available')
           return
         }

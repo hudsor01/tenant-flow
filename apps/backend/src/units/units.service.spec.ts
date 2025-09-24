@@ -508,8 +508,11 @@ describe('UnitsService', () => {
 			const serviceMethods = Object.getOwnPropertyNames(
 				Object.getPrototypeOf(service)
 			).filter(
-				method =>
-					method !== 'constructor' && typeof service[method] === 'function'
+				method => {
+					if (method === 'constructor') return false
+					const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(service), method)
+					return descriptor && typeof descriptor.value === 'function'
+				}
 			)
 
 			// Should have core CRUD operations only (no business logic methods)
