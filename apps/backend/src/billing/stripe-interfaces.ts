@@ -4,61 +4,40 @@
  */
 
 export interface CreatePaymentIntentRequest {
-  amount: number
-  tenantId: string
-  propertyId?: string
-  subscriptionType?: string
+	amount: number
+	tenantId: string
+	propertyId?: string
+	subscriptionType?: string
 }
 
 export interface CreateSetupIntentRequest {
-  tenantId: string
-  customerId?: string
-  customerEmail?: string
-  customerName?: string
+	tenantId: string
+	customerId?: string
+	customerEmail?: string
+	customerName?: string
 }
 
-export interface CreateSubscriptionRequest {
-  customerId: string
-  tenantId: string
-  amount: number
-  productId: string
-  subscriptionType?: string
-}
+// Import large interfaces from shared types
+export type {
+	CreateCheckoutSessionRequest,
+	CreateConnectedPaymentRequest,
+	CreateSubscriptionRequest
+} from '@repo/shared'
 
-export interface CreateCheckoutSessionRequest {
-  productName: string
-  tenantId: string
-  domain: string
-  description?: string
-  isSubscription?: boolean
-  priceId: string // Required Stripe price ID (e.g., price_1234...)
-  customerEmail?: string // Authenticated user email for Stripe customer identification
-}
-
-// Minimal request interface for embedded checkout - maps to Stripe.Checkout.SessionCreateParams
+// Keep smaller local interfaces that are backend-specific
 export interface EmbeddedCheckoutRequest {
-  priceId?: string // Required for payment/subscription, not needed for setup
-  domain: string
-  mode: 'payment' | 'subscription' | 'setup' // Required - no default
+	priceId?: string // Required for payment/subscription, not needed for setup
+	domain: string
+	mode: 'payment' | 'subscription' | 'setup' // Required - no default
 }
-
 
 export interface CreateBillingPortalRequest {
-  customerId: string
-  returnUrl: string
-}
-
-export interface CreateConnectedPaymentRequest {
-  amount: number
-  tenantId: string
-  connectedAccountId: string
-  platformFee?: number
-  propertyOwnerAccount?: string
-  propertyId?: string
+	customerId: string
+	returnUrl: string
 }
 
 export interface VerifyCheckoutSessionRequest {
-  sessionId: string
+	sessionId: string
 }
 
 // Use Stripe.StripeError directly instead of custom interface
