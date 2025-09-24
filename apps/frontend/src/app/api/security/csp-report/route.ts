@@ -2,11 +2,14 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { rateLimiter } from '@/lib/rate-limiter'
 import type { CSPViolationReport, CSPReportBody } from '@repo/shared'
+import { createLogger } from '@repo/shared'
+
+const logger = createLogger({ component: 'CSPReportAPI' })
 
 export async function POST(request: NextRequest) {
   // Apply rate limiting to prevent CSP report spam
-  const rateLimitResult = await rateLimiter(request, { 
-    maxRequests: 50, 
+  const rateLimitResult = await rateLimiter(request, {
+    maxRequests: 50,
     windowMs: 5 * 60 * 1000 // 50 reports per 5 minutes
   })
   if (rateLimitResult instanceof NextResponse) {
@@ -25,15 +28,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Log CSP violation for monitoring
-    console.warn('CSP Violation Report:', {
-      documentUri: report['document-uri'],
-      violatedDirective: report['violated-directive'],
-      blockedUri: report['blocked-uri'],
-      sourceFile: report['source-file'],
-      lineNumber: report['line-number'],
-      timestamp: new Date().toISOString(),
-      userAgent: request.headers.get('user-agent'),
-      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'anonymous'
+    logger.warn('CSP Violation Report received', {
+      action: 'csp_violation_reported',
+      metadata: {
+        documentUri: report['document-uri'],
+        violatedDirective: report['violated-directive'],
+        blockedUri: report['blocked-uri'],
+        sourceFile: report['source-file'],
+        lineNumber: report['line-number'],
+        userAgent: request.headers.get('user-agent'),
+        ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'anonymous'
+      }
     })
 
     // Filter out common false positives
@@ -49,7 +54,10 @@ export async function POST(request: NextRequest) {
     return new NextResponse(null, { status: 204 })
 
   } catch (error) {
-    console.error('CSP report processing error:', error)
+    logger.error('CSP report processing failed', {
+      action: 'csp_processing_error',
+      metadata: { error: error instanceof Error ? error.message : String(error) }
+    })
     return new NextResponse(null, { status: 204 })
   }
 }
@@ -128,7 +136,10 @@ async function logToSecurityMonitoring(
   }
 
   // Structured logging for production monitoring
-  console.warn('SECURITY_EVENT', JSON.stringify(securityEvent))
+  logger.warn('Security event recorded', {
+    action: 'security_event_logged',
+    metadata: securityEvent
+  })
 
   // Send to external monitoring service if configured
   const monitoringWebhook = process.env.SECURITY_MONITORING_WEBHOOK
@@ -143,7 +154,10 @@ async function logToSecurityMonitoring(
         body: JSON.stringify(securityEvent)
       })
     } catch (error) {
-      console.error('Failed to send security event to monitoring service:', error)
+      logger.error('Failed to send security event to monitoring service', {
+        action: 'monitoring_webhook_failed',
+        metadata: { error: error instanceof Error ? error.message : String(error) }
+      })
     }
   }
 
@@ -151,7 +165,10 @@ async function logToSecurityMonitoring(
   try {
     await storeSecurityEvent(securityEvent)
   } catch (error) {
-    console.error('Failed to store security event:', error)
+    logger.error('Failed to store security event in database', {
+      action: 'security_event_storage_failed',
+      metadata: { error: error instanceof Error ? error.message : String(error) }
+    })
   }
 }
 
@@ -189,7 +206,9 @@ async function storeSecurityEvent(securityEvent: SecurityEvent): Promise<void> {
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !supabaseServiceKey) {
-    console.warn('Supabase not configured for security event storage')
+    logger.warn('Supabase not configured for security event storage', {
+      action: 'supabase_config_missing'
+    })
     return
   }
 

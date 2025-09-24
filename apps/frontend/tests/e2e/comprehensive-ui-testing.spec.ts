@@ -3,7 +3,9 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 
 // Test configuration
-const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3005'
+const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || (() => {
+	throw new Error('PLAYWRIGHT_TEST_BASE_URL environment variable is required for comprehensive UI testing')
+})()
 const SCREENSHOT_DIR = 'test-results/screenshots'
 const CONSOLE_LOG_DIR = 'test-results/console-logs'
 
@@ -197,11 +199,9 @@ test.describe('Comprehensive UI/UX Testing Suite', () => {
 
 		// Collect performance metrics
 		const metrics = await collectPerformanceMetrics(page)
-		console.log('Performance Metrics:', metrics)
 
 		// Check accessibility
 		const a11y = await checkAccessibility(page, 'dashboard-overview')
-		console.log('Accessibility Check:', a11y)
 
 		// Save console logs
 		consoleCollector.save('dashboard-overview')
@@ -438,9 +438,7 @@ test.describe('Comprehensive UI/UX Testing Suite', () => {
 			JSON.stringify(report, null, 2)
 		)
 
-		console.log('✅ Comprehensive Test Report Generated')
-		console.log(`📸 Screenshots: ${report.screenshotsGenerated}`)
-		console.log(`📝 Console Logs: ${report.consoleLogsCollected}`)
+		// Comprehensive test report generated
 	})
 })
 

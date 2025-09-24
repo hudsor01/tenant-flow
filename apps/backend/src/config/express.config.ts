@@ -56,7 +56,9 @@ export async function registerExpressMiddleware(app: NestExpressApplication) {
 	)
 
 	// Cookie parsing
-	app.use(cookieParser(process.env.COOKIE_SECRET ?? process.env.JWT_SECRET))
+	app.use(cookieParser(process.env.COOKIE_SECRET || process.env.JWT_SECRET || (() => {
+		throw new Error('COOKIE_SECRET or JWT_SECRET environment variable is required')
+	})()))
 
 	// Rate limiting with full TypeScript support
 	app.use(

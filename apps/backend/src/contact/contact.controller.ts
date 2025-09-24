@@ -14,9 +14,7 @@ import type { ContactFormResponse } from '../schemas/contact.schemas'
 // @ApiTags('contact')
 @Controller('contact')
 export class ContactController {
-	constructor(private readonly logger: Logger) {
-		// Logger context handled automatically via app-level configuration
-	}
+	private readonly logger = new Logger(ContactController.name)
 
 	@Post()
 	// @ApiOperation({ summary: 'Submit contact form' })

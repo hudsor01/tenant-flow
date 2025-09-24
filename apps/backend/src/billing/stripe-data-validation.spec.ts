@@ -37,9 +37,7 @@ describe('Stripe Data Validation Tests', () => {
 
 	beforeAll(async () => {
 		if (!isDataValidationEnabled()) {
-			console.log(
-				'⏭️  Skipping data validation tests - not enabled or using production keys'
-			)
+			// Skipping data validation tests - not enabled or using production keys
 			return
 		}
 

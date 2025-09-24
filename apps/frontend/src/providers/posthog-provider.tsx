@@ -18,7 +18,9 @@ export default function PostHogClientProvider({
 		) {
 			posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
 				api_host:
-					process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
+					process.env.NEXT_PUBLIC_POSTHOG_HOST || (() => {
+						throw new Error('NEXT_PUBLIC_POSTHOG_HOST is required for PostHog initialization')
+					})(),
 				capture_pageview: false,
 				person_profiles: 'identified_only',
 				persistence: 'localStorage+cookie',
@@ -27,6 +29,9 @@ export default function PostHogClientProvider({
 					maskInputOptions: { password: true }
 				}
 			})
+
+			// Expose PostHog on window for logger integration
+			;(window as typeof window & { posthog?: typeof posthog }).posthog = posthog
 		}
 	}, [])
 

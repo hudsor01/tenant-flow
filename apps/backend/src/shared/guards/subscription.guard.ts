@@ -3,6 +3,7 @@ import {
 	type ExecutionContext,
 	ForbiddenException,
 	Injectable,
+	Logger,
 	UnauthorizedException
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
@@ -18,6 +19,8 @@ export const PAUSED_SUBSCRIPTION_ALLOWED = () =>
 
 @Injectable()
 export class SubscriptionGuard implements CanActivate {
+	private readonly logger = new Logger(SubscriptionGuard.name)
+
 	constructor(
 		private reflector: Reflector,
 		private supabaseService: SupabaseService
@@ -61,6 +64,10 @@ export class SubscriptionGuard implements CanActivate {
 
 		if (!subscription) {
 			// No subscription found - block access to paid features
+			this.logger.warn('Access denied: No subscription found', {
+				userId: user.id,
+				endpoint: context.switchToHttp().getRequest().url
+			})
 			throw new ForbiddenException({
 				code: 'NO_SUBSCRIPTION',
 				message: 'Active subscription required',
@@ -84,10 +91,21 @@ export class SubscriptionGuard implements CanActivate {
 				// Incomplete subscription (paused trial) - restricted access
 				if (allowsPausedSubscription) {
 					// This endpoint allows paused users (like billing management)
+					this.logger.log('Access allowed for paused subscription (billing management)', {
+						userId: user.id,
+						subscriptionStatus: status,
+						endpoint: context.switchToHttp().getRequest().url
+					})
 					return true
 				}
 
 				// Block access and redirect to payment
+				this.logger.warn('Access denied: Subscription paused (trial ended)', {
+					userId: user.id,
+					subscriptionStatus: status,
+					trialEnd: subscription.trialEnd,
+					endpoint: context.switchToHttp().getRequest().url
+				})
 				throw new ForbiddenException({
 					code: 'SUBSCRIPTION_PAUSED',
 					message:
@@ -138,6 +156,11 @@ export class SubscriptionGuard implements CanActivate {
 
 			default:
 				// Unknown status - default to blocking access
+				this.logger.error('Access denied: Unknown subscription status', {
+					userId: user.id,
+					subscriptionStatus: status,
+					endpoint: context.switchToHttp().getRequest().url
+				})
 				throw new ForbiddenException({
 					code: 'SUBSCRIPTION_ERROR',
 					message:

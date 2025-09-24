@@ -28,15 +28,16 @@ export default defineConfig({
 		// Headless mode configuration - true for performance and CI compatibility
 		headless: true,
 		
-		// Better base URL handling
-		baseURL:
-			process.env.PLAYWRIGHT_TEST_BASE_URL ||
-			process.env.PLAYWRIGHT_BASE_URL ||
-			(process.env.CI
-				? process.env.VERCEL_URL
-					? `https://${process.env.VERCEL_URL}`
-					: 'https://tenantflow.app'
-				: 'http://localhost:3000'),
+		// Better base URL handling with explicit configuration required
+		baseURL: (() => {
+			if (process.env.PLAYWRIGHT_TEST_BASE_URL) return process.env.PLAYWRIGHT_TEST_BASE_URL
+			if (process.env.PLAYWRIGHT_BASE_URL) return process.env.PLAYWRIGHT_BASE_URL
+			if (process.env.CI) {
+				if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+				return 'https://tenantflow.app'
+			}
+			throw new Error('PLAYWRIGHT_TEST_BASE_URL or PLAYWRIGHT_BASE_URL environment variable is required for local testing')
+		})(),
 				
 		// Performance and reliability settings
 		actionTimeout: 10000,
@@ -52,13 +53,15 @@ export default defineConfig({
 
 	projects: [
 		// Setup project for authentication
-		{ 
-			name: 'setup', 
+		{
+			name: 'setup',
 			testMatch: /.*\.setup\.ts/,
 			use: {
 				...devices['Desktop Chrome'],
 				headless: true,
-				baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3003'
+				baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || (() => {
+					throw new Error('PLAYWRIGHT_TEST_BASE_URL environment variable is required for setup project')
+				})()
 			}
 		},
 		
@@ -70,7 +73,9 @@ export default defineConfig({
 				headless: true,
 				// Use saved authentication state
 				storageState: 'playwright/.auth/user.json',
-				baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3003'
+				baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || (() => {
+					throw new Error('PLAYWRIGHT_TEST_BASE_URL environment variable is required for chromium project')
+				})()
 			},
 			dependencies: ['setup']
 		},
@@ -81,7 +86,9 @@ export default defineConfig({
 			use: {
 				...devices['Desktop Chrome'],
 				headless: true,
-				baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3003'
+				baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || (() => {
+					throw new Error('PLAYWRIGHT_TEST_BASE_URL environment variable is required for chromium-no-auth project')
+				})()
 			},
 			testIgnore: ['**/auth.setup.ts']
 		}

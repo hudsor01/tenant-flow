@@ -35,6 +35,14 @@ export interface CreateCheckoutSessionRequest {
   customerEmail?: string // Authenticated user email for Stripe customer identification
 }
 
+// Minimal request interface for embedded checkout - maps to Stripe.Checkout.SessionCreateParams
+export interface EmbeddedCheckoutRequest {
+  priceId?: string // Required for payment/subscription, not needed for setup
+  domain: string
+  mode: 'payment' | 'subscription' | 'setup' // Required - no default
+}
+
+
 export interface CreateBillingPortalRequest {
   customerId: string
   returnUrl: string

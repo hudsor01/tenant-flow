@@ -11,7 +11,7 @@
  * - Reports security vulnerabilities and recommendations
  */
 
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import type { EndpointAudit, SecurityAuditReport } from '@repo/shared'
@@ -21,11 +21,12 @@ import { AppModule } from '../../app.module'
 
 @Injectable()
 class SecurityAuditService {
+	private readonly logger = new Logger(SecurityAuditService.name)
 
 	async auditEndpoints(
 		app: NestExpressApplication
 	): Promise<SecurityAuditReport> {
-		console.log('[AUDIT] Starting comprehensive API security audit...\n')
+		this.logger.log('[AUDIT] Starting comprehensive API security audit...')
 
 		const endpoints = await this.discoverEndpoints(app)
 		const auditResults = await this.auditEndpointSecurity(endpoints, app)
@@ -33,24 +34,24 @@ class SecurityAuditService {
 		const report = this.generateSecurityReport(auditResults)
 		await this.saveAuditReport(report)
 
-		console.log('[SUMMARY] Security Audit Summary:')
-		console.log(`  Total Endpoints: ${report.totalEndpoints}`)
-		console.log(`  Public Endpoints: ${report.publicEndpoints}`)
-		console.log(`  Protected Endpoints: ${report.protectedEndpoints}`)
-		console.log(`  High Risk Endpoints: ${report.highRiskEndpoints}`)
-		console.log(`  Critical Risk Endpoints: ${report.criticalRiskEndpoints}`)
-		console.log(
+		this.logger.log('[SUMMARY] Security Audit Summary:')
+		this.logger.log(`  Total Endpoints: ${report.totalEndpoints}`)
+		this.logger.log(`  Public Endpoints: ${report.publicEndpoints}`)
+		this.logger.log(`  Protected Endpoints: ${report.protectedEndpoints}`)
+		this.logger.log(`  High Risk Endpoints: ${report.highRiskEndpoints}`)
+		this.logger.log(`  Critical Risk Endpoints: ${report.criticalRiskEndpoints}`)
+		this.logger.log(
 			`  Authentication Coverage: ${report.summary.authenticationCoverage.toFixed(1)}%`
 		)
 
 		if (report.criticalRiskEndpoints > 0) {
-			console.log('\n[CRITICAL] CRITICAL SECURITY ISSUES FOUND!')
-			console.log('   Immediate action required before production deployment.')
+			this.logger.log('\n[CRITICAL] CRITICAL SECURITY ISSUES FOUND!')
+			this.logger.log('   Immediate action required before production deployment.')
 		} else if (report.highRiskEndpoints > 0) {
-			console.log('\n[WARNING]  HIGH RISK ENDPOINTS DETECTED')
-			console.log('   Review and secure before production.')
+			this.logger.log('\n[WARNING]  HIGH RISK ENDPOINTS DETECTED')
+			this.logger.log('   Review and secure before production.')
 		} else {
-			console.log('\n[OK] No critical security issues detected')
+			this.logger.log('\n[OK] No critical security issues detected')
 		}
 
 		return report
@@ -147,7 +148,7 @@ class SecurityAuditService {
 		} catch (error: unknown) {
 			// Silently ignore file system errors and return empty array
 			if (error instanceof Error) {
-				// Could log error if needed: console.error('File system error:', error.message)
+				// Could log error if needed: this.logger.error('File system error:', error.message)
 			}
 			return []
 		}
@@ -198,7 +199,7 @@ class SecurityAuditService {
 		} catch (error: unknown) {
 			const errorMessage =
 				error instanceof Error ? error.message : String(error)
-			console.warn(`Failed to parse controller file: ${filePath}`, errorMessage)
+			this.logger.warn(`Failed to parse controller file: ${filePath}`, errorMessage)
 	}
 
 		return endpoints
@@ -216,7 +217,7 @@ class SecurityAuditService {
 		const audits: EndpointAudit[] = []
 
 		for (const endpoint of endpoints) {
-			console.log(`[SECURITY] Auditing ${endpoint.httpMethod} ${endpoint.path}`)
+			this.logger.log(`[SECURITY] Auditing ${endpoint.httpMethod} ${endpoint.path}`)
 
 			const audit = await this.auditSingleEndpoint(endpoint, app)
 			audits.push(audit)
@@ -537,14 +538,14 @@ class SecurityAuditService {
 
 		fs.writeFileSync(filepath, JSON.stringify(report, null, 2))
 
-		console.log(`\n[NOTE] Security audit report saved: ${filepath}`)
+		this.logger.log(`\n[NOTE] Security audit report saved: ${filepath}`)
 
 		// Also create a summary file
 		const summaryPath = path.join(reportDir, 'security-summary.txt')
 		const summary = this.generateTextSummary(report)
 		fs.writeFileSync(summaryPath, summary)
 
-		console.log(`[SUMMARY] Summary report saved: ${summaryPath}`)
+		this.logger.log(`[SUMMARY] Summary report saved: ${summaryPath}`)
 	}
 
 	private generateTextSummary(report: SecurityAuditReport): string {
@@ -591,6 +592,8 @@ class SecurityAuditService {
 	}
 }
 
+const moduleLogger = new Logger('SecurityAudit')
+
 async function runSecurityAudit(): Promise<void> {
 	try {
 		const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -601,11 +604,11 @@ async function runSecurityAudit(): Promise<void> {
 		await auditService.auditEndpoints(app)
 
 		await app.close()
-		console.log('\n[OK] Security audit completed successfully')
+		moduleLogger.log('\n[OK] Security audit completed successfully')
 		process.exit(0)
 	} catch (error: unknown) {
 		const errorMessage = error instanceof Error ? error.message : String(error)
-		console.error('[ERROR] Security audit failed:', errorMessage)
+		moduleLogger.error('[ERROR] Security audit failed:', errorMessage)
 		process.exit(1)
 	}
 }

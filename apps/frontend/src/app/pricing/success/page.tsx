@@ -10,11 +10,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { API_BASE_URL } from '@/lib/api-client'
 import type { SubscriptionData } from '@/types/stripe'
+import { createLogger } from '@repo/shared'
 import { CheckCircle, Home } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+
+const logger = createLogger({ component: 'CheckoutSuccessPage' })
 
 export default function CheckoutSuccessPage() {
 	const searchParams = useSearchParams()
@@ -51,7 +54,13 @@ export default function CheckoutSuccessPage() {
 					toast.error('Failed to verify payment')
 				}
 			} catch (error) {
-				console.error('Verification error:', error)
+				logger.error('Payment verification failed', {
+					action: 'payment_verification_failed',
+					metadata: {
+						sessionId,
+						error: error instanceof Error ? error.message : String(error)
+					}
+				})
 				toast.error('Failed to verify payment')
 			} finally {
 				setIsVerifying(false)

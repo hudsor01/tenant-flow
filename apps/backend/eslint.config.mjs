@@ -32,11 +32,23 @@ export default [
 		settings: {
 			'typescript-eslint': {
 				projectService: true,
-				maximumTypeCheckingDepth: 5 // Higher than base config's 3
+				maximumTypeCheckingDepth: 5
 			}
 		},
 		rules: {
-			'no-console': 'off',
+			// Console usage should be replaced with NestJS Logger
+			'no-console': 'error',
+			'no-restricted-syntax': [
+				'error',
+				{
+					selector: 'CallExpression[callee.object.name="console"]',
+					message: 'Console method calls are prohibited. Use NestJS Logger: constructor(private readonly logger = new Logger(ControllerName.name)) { } then this.logger.log/warn/error("message")'
+				},
+				{
+					selector: 'MemberExpression[object.name="console"]',
+					message: 'Direct console access is prohibited. Use NestJS Logger service for structured logging instead'
+				}
+			],
 			'@typescript-eslint/explicit-function-return-type': 'off',
 			'@typescript-eslint/explicit-module-boundary-types': 'off',
 			'@typescript-eslint/no-empty-function': 'off',
@@ -63,10 +75,11 @@ export default [
 			'@typescript-eslint/ban-ts-comment': [
 				'error',
 				{
-					'ts-expect-error': 'allow-with-description',
-					'ts-ignore': false,
-					'ts-nocheck': false,
-					'ts-check': false
+          'ts-expect-error':
+            'allow-with-description',
+            'ts-ignore': false,
+            'ts-nocheck': false,
+            'ts-check': false
 				}
 			]
 		}

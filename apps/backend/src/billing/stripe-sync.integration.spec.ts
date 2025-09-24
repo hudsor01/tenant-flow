@@ -23,13 +23,14 @@ describe('StripeSyncService Integration Tests', () => {
   }
 
   beforeAll(async () => {
-    // Set test environment variables if not configured
+    // Validate required environment variables for integration tests
     if (!isConfigured()) {
-      console.log('⏭️  Setting test environment variables for Stripe Sync integration tests')
-      process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/test'
-      // Use a test key pattern that won't trigger secret scanning
-      // This is a fake test key with the correct format but invalid content
-      process.env.STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || 'sk_' + 'test_' + 'fake1234567890abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890'
+      if (!process.env.DATABASE_URL) {
+        throw new Error('DATABASE_URL is required for Stripe Sync integration tests')
+      }
+      if (!process.env.STRIPE_SECRET_KEY) {
+        throw new Error('STRIPE_SECRET_KEY is required for Stripe Sync integration tests')
+      }
     }
 
     const module: TestingModule = await Test.createTestingModule({
@@ -53,9 +54,9 @@ describe('StripeSyncService Integration Tests', () => {
             get: jest.fn((key: string) => {
               switch (key) {
                 case 'DATABASE_URL':
-                  return process.env.DATABASE_URL || 'mock-db-url'
+                  return process.env.DATABASE_URL
                 case 'STRIPE_SECRET_KEY':
-                  return process.env.STRIPE_SECRET_KEY || 'sk_test_mock'
+                  return process.env.STRIPE_SECRET_KEY
                 default:
                   return null
               }
@@ -97,7 +98,7 @@ describe('StripeSyncService Integration Tests', () => {
       // In test environment with mock credentials, initialization might fail
       // This is expected behavior when Stripe credentials are invalid
       if (!healthStatus.initialized) {
-        console.log('⏭️  Service not initialized (expected with test credentials)')
+        // Service not initialized (expected with test credentials)
         expect(healthStatus.initialized).toBe(false)
         expect(healthStatus.migrationsRun).toBe(false)
       } else {

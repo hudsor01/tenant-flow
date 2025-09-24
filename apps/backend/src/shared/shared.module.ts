@@ -1,8 +1,9 @@
-import { Global, Logger, Module } from '@nestjs/common'
+import { Global, Module } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { AuthGuard } from './guards/auth.guard'
 import { UsageLimitsGuard } from './guards/usage-limits.guard'
 import { ParseOptionalUUIDPipe } from './pipes/parse-optional-uuid.pipe'
+import { EmailService } from './services/email.service'
 import { ResilienceService } from './services/resilience.service'
 import { SecurityMonitorService } from './services/security-monitor.service'
 import { TokenValidationService } from './services/token-validation.service'
@@ -17,29 +18,30 @@ import { TokenValidationService } from './services/token-validation.service'
  * - UsageLimitsGuard: Rate limiting and usage enforcement
  * - ResilienceService: Cache and fallback patterns for zero-downtime
  * - SecurityMonitorService: Production-grade security monitoring and threat detection
+ * - EmailService: Resend email service for payment and user notifications
  * - Reflector: NestJS metadata reflection service for guards
  */
 @Global()
 @Module({
 	imports: [],
 	providers: [
-		Logger,
 		Reflector,
 		TokenValidationService,
 		UsageLimitsGuard,
 		AuthGuard,
 		ResilienceService,
 		SecurityMonitorService,
+		EmailService,
 		ParseOptionalUUIDPipe
 	],
 	exports: [
-		Logger,
 		Reflector,
 		TokenValidationService,
 		UsageLimitsGuard,
 		AuthGuard,
 		ResilienceService,
 		SecurityMonitorService,
+		EmailService,
 		ParseOptionalUUIDPipe
 	]
 })

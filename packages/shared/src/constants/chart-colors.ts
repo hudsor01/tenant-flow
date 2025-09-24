@@ -11,28 +11,28 @@
  * - Accessibility compliant color combinations
  */
 
-// CORE SYSTEM COLORS
+// CORE SYSTEM COLORS - OKLCH COLOR SPACE
 export const SYSTEM_COLORS = {
 	// Primary blue - Main brand color
-	primary: '#007AFF',
-	primaryDark: '#0056CC',
+	primary: 'oklch(0.623 0.214 259.815)',
+	primaryDark: 'oklch(0.523 0.197 259.815)',
 
 	// Status colors
-	success: '#34C759',
-	successDark: '#28A745',
-	warning: '#FF9500',
-	warningDark: '#E8890B',
-	error: '#FF3B30',
-	errorDark: '#DC3545',
-	info: '#007AFF',
-	infoDark: '#0056CC',
+	success: 'oklch(0.627 0.182 145.7)',
+	successDark: 'oklch(0.527 0.162 145.7)',
+	warning: 'oklch(0.839 0.17 91.67)',
+	warningDark: 'oklch(0.739 0.15 91.67)',
+	error: 'oklch(0.637 0.237 15.34)',
+	errorDark: 'oklch(0.537 0.217 15.34)',
+	info: 'oklch(0.623 0.214 259.815)',
+	infoDark: 'oklch(0.523 0.197 259.815)',
 
 	// Neutral colors
-	gray: '#8E8E93',
-	grayDark: '#636366',
-	grayLight: '#C7C7CC',
-	background: '#F2F2F7',
-	backgroundDark: '#1C1C1E'
+	gray: 'oklch(0.627 0.014 286.15)',
+	grayDark: 'oklch(0.457 0.014 286.15)',
+	grayLight: 'oklch(0.827 0.008 286.15)',
+	background: 'oklch(0.967 0.005 286.15)',
+	backgroundDark: 'oklch(0.157 0.008 286.15)'
 } as const
 
 /**
@@ -91,18 +91,18 @@ export const PROPERTY_ANALYTICS_COLORS = {
 	}
 } as const
 
-// CHART PALETTES
+// CHART PALETTES - OKLCH COLOR SPACE
 export const CHART_PALETTES = {
 	// Light theme palette
 	default: [
 		SYSTEM_COLORS.primary,
 		SYSTEM_COLORS.success,
 		SYSTEM_COLORS.warning,
-		'#AF52DE', // purple
-		'#FF2D92', // pink
-		'#5AC8FA', // teal
-		'#007AFF', // indigo
-		'#FFCC00' // yellow
+		'oklch(0.647 0.199 285.85)', // purple
+		'oklch(0.617 0.274 352.8)', // pink
+		'oklch(0.717 0.142 213.4)', // teal
+		'oklch(0.623 0.214 259.815)', // indigo
+		'oklch(0.897 0.165 89.23)' // yellow
 	],
 
 	// Dark theme palette
@@ -110,18 +110,18 @@ export const CHART_PALETTES = {
 		SYSTEM_COLORS.primaryDark,
 		SYSTEM_COLORS.successDark,
 		SYSTEM_COLORS.warningDark,
-		'#BF5AF2', // purple dark
-		'#FF2D92', // pink dark
-		'#64D2FF', // teal dark
-		'#0A84FF', // indigo dark
-		'#FFD60A' // yellow dark
+		'oklch(0.717 0.179 285.85)', // purple dark
+		'oklch(0.617 0.274 352.8)', // pink dark
+		'oklch(0.767 0.122 213.4)', // teal dark
+		'oklch(0.673 0.204 259.815)', // indigo dark
+		'oklch(0.917 0.145 89.23)' // yellow dark
 	],
 
 	// Specific color sets for different chart types
 	gradients: {
-		blue: ['#42A5F5', '#2196F3', '#1E88E5', SYSTEM_COLORS.primary],
-		green: ['#66BB6A', '#4CAF50', '#43A047', SYSTEM_COLORS.success],
-		orange: ['#FFA726', '#FF9800', '#FB8C00', SYSTEM_COLORS.warning]
+		blue: ['oklch(0.697 0.174 259.815)', 'oklch(0.657 0.194 259.815)', 'oklch(0.627 0.204 259.815)', SYSTEM_COLORS.primary],
+		green: ['oklch(0.677 0.162 145.7)', 'oklch(0.647 0.172 145.7)', 'oklch(0.617 0.182 145.7)', SYSTEM_COLORS.success],
+		orange: ['oklch(0.789 0.15 91.67)', 'oklch(0.819 0.16 91.67)', 'oklch(0.799 0.165 91.67)', SYSTEM_COLORS.warning]
 	},
 
 	// Status colors for alerts and notifications
@@ -140,18 +140,18 @@ export const CHART_GRADIENTS = {
 	revenue: `linear-gradient(135deg, ${SYSTEM_COLORS.primary}20, ${SYSTEM_COLORS.primary}05)`,
 	occupancy: `linear-gradient(135deg, ${SYSTEM_COLORS.success}20, ${SYSTEM_COLORS.success}05)`,
 	maintenance: `linear-gradient(135deg, ${SYSTEM_COLORS.warning}20, ${SYSTEM_COLORS.warning}05)`,
-	satisfaction: `linear-gradient(135deg, #AF52DE20, #AF52DE05)`,
+	satisfaction: `linear-gradient(135deg, oklch(0.647 0.199 285.85 / 0.125), oklch(0.647 0.199 285.85 / 0.02))`,
 
-	// Glass morphism background
-	glass: 'rgba(255, 255, 255, 0.8)',
-	glassDark: 'rgba(0, 0, 0, 0.3)',
+	// Glass morphism background - OKLCH with alpha
+	glass: 'oklch(1 0 0 / 0.8)',
+	glassDark: 'oklch(0 0 0 / 0.3)',
 
-	// Depth gradients for visual interest
+	// Depth gradients for visual interest - OKLCH with alpha
 	depth: {
-		blue: `linear-gradient(180deg, ${SYSTEM_COLORS.primary}40, ${SYSTEM_COLORS.primary}10, ${SYSTEM_COLORS.primary}00)`,
-		green: `linear-gradient(180deg, ${SYSTEM_COLORS.success}40, ${SYSTEM_COLORS.success}10, ${SYSTEM_COLORS.success}00)`,
-		orange: `linear-gradient(180deg, ${SYSTEM_COLORS.warning}40, ${SYSTEM_COLORS.warning}10, ${SYSTEM_COLORS.warning}00)`,
-		purple: `linear-gradient(180deg, #AF52DE40, #AF52DE10, #AF52DE00)`
+		blue: `linear-gradient(180deg, oklch(0.623 0.214 259.815 / 0.25), oklch(0.623 0.214 259.815 / 0.06), oklch(0.623 0.214 259.815 / 0))`,
+		green: `linear-gradient(180deg, oklch(0.627 0.182 145.7 / 0.25), oklch(0.627 0.182 145.7 / 0.06), oklch(0.627 0.182 145.7 / 0))`,
+		orange: `linear-gradient(180deg, oklch(0.839 0.17 91.67 / 0.25), oklch(0.839 0.17 91.67 / 0.06), oklch(0.839 0.17 91.67 / 0))`,
+		purple: `linear-gradient(180deg, oklch(0.647 0.199 285.85 / 0.25), oklch(0.647 0.199 285.85 / 0.06), oklch(0.647 0.199 285.85 / 0))`
 	}
 } as const
 

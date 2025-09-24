@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common'
 import { createClient } from '@supabase/supabase-js'
 
 interface ValidationResult {
@@ -8,15 +9,19 @@ interface ValidationResult {
 }
 
 class StripeSchemaValidator {
+	private readonly logger = new Logger(StripeSchemaValidator.name)
 	private client
 
 	constructor() {
 		const supabaseUrl = process.env.SUPABASE_URL
-		const serviceKey =
-			process.env.SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+		const serviceKey = (() => {
+			if (process.env.SERVICE_ROLE_KEY) return process.env.SERVICE_ROLE_KEY
+			if (process.env.SUPABASE_SERVICE_ROLE_KEY) return process.env.SUPABASE_SERVICE_ROLE_KEY
+			throw new Error('SERVICE_ROLE_KEY or SUPABASE_SERVICE_ROLE_KEY environment variable is required for schema validation')
+		})()
 
-		if (!supabaseUrl || !serviceKey) {
-			throw new Error('Missing Supabase configuration')
+		if (!supabaseUrl) {
+			throw new Error('SUPABASE_URL environment variable is required for schema validation')
 		}
 
 		this.client = createClient(supabaseUrl, serviceKey)
@@ -71,7 +76,7 @@ class StripeSchemaValidator {
 			return { success: false, message: 'Stripe schema not found' }
 		}
 
-		console.log('SUCCESS: Stripe schema exists')
+		this.logger.log('SUCCESS: Stripe schema exists')
 		return { success: true, message: 'Schema exists' }
 	}
 
@@ -91,12 +96,12 @@ class StripeSchemaValidator {
 		}
 
 		const tableCount = parseInt(String(data), 10)
-		console.log(`STATS: Found ${tableCount} stripe tables`)
+		this.logger.log(`STATS: Found ${tableCount} stripe tables`)
 
 		if (tableCount < 50) {
-			console.warn(`WARNING: Expected 90+ tables, found ${tableCount}`)
+			this.logger.warn(`WARNING: Expected 90+ tables, found ${tableCount}`)
 		} else {
-			console.log('SUCCESS: Good number of tables created')
+			this.logger.log('SUCCESS: Good number of tables created')
 		}
 
 		return { success: true, message: 'Tables counted', tableCount }
@@ -132,12 +137,12 @@ class StripeSchemaValidator {
 			table => !foundTables.includes(table)
 		)
 
-		console.log('KEY: Key tables found:')
+		this.logger.log('KEY: Key tables found:')
 		for (const table of expectedTables) {
 			if (foundTables.includes(table)) {
-				console.log(`  SUCCESS: ${table}`)
+				this.logger.log(`  SUCCESS: ${table}`)
 			} else {
-				console.log(`  ERROR: ${table} (missing)`)
+				this.logger.log(`  ERROR: ${table} (missing)`)
 			}
 		}
 
@@ -157,50 +162,52 @@ class StripeSchemaValidator {
 		)) as { data: unknown; error: unknown }
 
 		if (error) {
-			console.warn(
+			this.logger.warn(
 				`Customer count check failed: ${(error as { message: string }).message}`
 			)
 			return { success: true, message: 'Customer count unavailable' }
 		}
 
 		const customerCount = parseInt(String(data), 10)
-		console.log(`USERS: Customers in database: ${customerCount}`)
+		this.logger.log(`USERS: Customers in database: ${customerCount}`)
 
 		if (customerCount === 0) {
-			console.log('SUCCESS: Database is empty as expected (0 users)')
+			this.logger.log('SUCCESS: Database is empty as expected (0 users)')
 		}
 
 		return { success: true, message: 'Customer count checked' }
 	}
 }
 
+const moduleLogger = new Logger('StripeSchemaValidation')
+
 async function validateStripeSchema(): Promise<void> {
-	console.log('CHECKING: Validating Stripe schema creation...')
+	moduleLogger.log('CHECKING: Validating Stripe schema creation...')
 
 	try {
 		const validator = new StripeSchemaValidator()
 		const result = await validator.validateSchema()
 
 		if (result.success) {
-			console.log(`\nSUCCESS: ${result.message}`)
+			moduleLogger.log(`\nSUCCESS: ${result.message}`)
 			if (result.tableCount) {
-				console.log(`  Total tables: ${result.tableCount}`)
+				moduleLogger.log(`  Total tables: ${result.tableCount}`)
 			}
 		} else {
-			console.error(`\nERROR: ${result.message}`)
+			moduleLogger.error(`\nERROR: ${result.message}`)
 			if (result.missingTables && result.missingTables.length > 0) {
-				console.error(`  Missing: ${result.missingTables.join(', ')}`)
+				moduleLogger.error(`  Missing: ${result.missingTables.join(', ')}`)
 			}
 			process.exit(1)
 		}
 	} catch (error) {
 		const message = error instanceof Error ? error.message : 'Unknown error'
-		console.error('FATAL:', message)
+		moduleLogger.error('FATAL:', message)
 		process.exit(1)
 	}
 }
 
 validateStripeSchema().catch((error: unknown) => {
-	console.error('Fatal error:', error)
+	moduleLogger.error('Fatal error:', error)
 	process.exit(1)
 })

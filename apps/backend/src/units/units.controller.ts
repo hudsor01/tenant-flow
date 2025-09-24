@@ -19,6 +19,7 @@ import {
 	DefaultValuePipe,
 	Delete,
 	Get,
+	Logger,
 	NotFoundException,
 	Optional,
 	Param,
@@ -39,6 +40,8 @@ import { UnitsService } from './units.service'
 
 @Controller('units')
 export class UnitsController {
+	private readonly logger = new Logger(UnitsController.name)
+
 	constructor(@Optional() private readonly unitsService?: UnitsService) {}
 
 	/**

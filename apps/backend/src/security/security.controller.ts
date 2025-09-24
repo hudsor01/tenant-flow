@@ -18,59 +18,18 @@ import {
 	Param,
 	Post
 } from '@nestjs/common'
+import type {
+	CSPReportBody as CSPReport,
+	SecurityMetrics
+} from '@repo/shared'
 import { AdminOnly } from '../shared/decorators/admin-only.decorator'
 import { Public } from '../shared/decorators/public.decorator'
 
-interface CSPReport {
-	'csp-report': {
-		'document-uri': string
-		referrer: string
-		'violated-directive': string
-		'effective-directive': string
-		'original-policy': string
-		disposition: string
-		'blocked-uri': string
-		'line-number': number
-		'column-number': number
-		'source-file': string
-		'status-code': number
-		'script-sample': string
-	}
-}
-
-interface SecurityEvent {
-	id: string
-	type: string
-	severity: 'low' | 'medium' | 'high' | 'critical'
-	timestamp: string
-	source: string
-	description: string
-	metadata?: Record<string, unknown>
-}
-
-interface SecurityMetrics {
-	events: SecurityEvent[]
-	alerts: number
-	blocked_ips: string[]
-	totalEvents?: number
-	eventsBySeverity?: {
-		low: number
-		medium: number
-		high: number
-		critical: number
-	}
-	recentTrends?: {
-		lastHour: number
-		last24Hours: number
-		last7Days: number
-	}
-	eventsByType?: Record<string, number>
-	topThreateningIPs?: Array<{ ip: string; count: number }>
-}
-
 @Controller('security')
 export class SecurityController {
-	constructor(private readonly logger: Logger) {}
+	private readonly logger = new Logger(SecurityController.name)
+
+	constructor() {}
 
 	/**
 	 * CSP Violation Reporting Endpoint
@@ -113,13 +72,30 @@ export class SecurityController {
 	@AdminOnly()
 	async getSecurityMetrics() {
 		const metrics: SecurityMetrics = {
-			events: [],
-			alerts: 0,
-			blocked_ips: [],
 			totalEvents: 0,
 			eventsBySeverity: { critical: 0, high: 0, medium: 0, low: 0 },
 			recentTrends: { lastHour: 0, last24Hours: 0, last7Days: 0 },
-			eventsByType: {},
+			eventsByType: {
+				sql_injection_attempt: 0,
+				xss_attempt: 0,
+				path_traversal_attempt: 0,
+				command_injection_attempt: 0,
+				rate_limit_exceeded: 0,
+				suspicious_input: 0,
+				malformed_request: 0,
+				malicious_request: 0,
+				unauthorized_access: 0,
+				brute_force_attempt: 0,
+				csrf_token_missing: 0,
+				csrf_token_invalid: 0,
+				file_upload_threat: 0,
+				injection_pattern_detected: 0,
+				sanitization_triggered: 0,
+				validation_failed: 0,
+				auth_failure: 0,
+				suspicious_activity: 0,
+				account_takeover: 0
+			},
 			topThreateningIPs: []
 		}
 
@@ -169,13 +145,30 @@ export class SecurityController {
 	@AdminOnly()
 	async getSecurityHealth() {
 		const metrics: SecurityMetrics = {
-			events: [],
-			alerts: 0,
-			blocked_ips: [],
 			totalEvents: 0,
 			eventsBySeverity: { critical: 0, high: 0, medium: 0, low: 0 },
 			recentTrends: { lastHour: 0, last24Hours: 0, last7Days: 0 },
-			eventsByType: {},
+			eventsByType: {
+				sql_injection_attempt: 0,
+				xss_attempt: 0,
+				path_traversal_attempt: 0,
+				command_injection_attempt: 0,
+				rate_limit_exceeded: 0,
+				suspicious_input: 0,
+				malformed_request: 0,
+				malicious_request: 0,
+				unauthorized_access: 0,
+				brute_force_attempt: 0,
+				csrf_token_missing: 0,
+				csrf_token_invalid: 0,
+				file_upload_threat: 0,
+				injection_pattern_detected: 0,
+				sanitization_triggered: 0,
+				validation_failed: 0,
+				auth_failure: 0,
+				suspicious_activity: 0,
+				account_takeover: 0
+			},
 			topThreateningIPs: []
 		}
 
@@ -223,13 +216,30 @@ export class SecurityController {
 	@AdminOnly()
 	async getSecurityDashboard() {
 		const metrics: SecurityMetrics = {
-			events: [],
-			alerts: 0,
-			blocked_ips: [],
 			totalEvents: 0,
 			eventsBySeverity: { critical: 0, high: 0, medium: 0, low: 0 },
 			recentTrends: { lastHour: 0, last24Hours: 0, last7Days: 0 },
-			eventsByType: {},
+			eventsByType: {
+				sql_injection_attempt: 0,
+				xss_attempt: 0,
+				path_traversal_attempt: 0,
+				command_injection_attempt: 0,
+				rate_limit_exceeded: 0,
+				suspicious_input: 0,
+				malformed_request: 0,
+				malicious_request: 0,
+				unauthorized_access: 0,
+				brute_force_attempt: 0,
+				csrf_token_missing: 0,
+				csrf_token_invalid: 0,
+				file_upload_threat: 0,
+				injection_pattern_detected: 0,
+				sanitization_triggered: 0,
+				validation_failed: 0,
+				auth_failure: 0,
+				suspicious_activity: 0,
+				account_takeover: 0
+			},
 			topThreateningIPs: []
 		}
 

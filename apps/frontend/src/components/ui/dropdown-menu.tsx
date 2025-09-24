@@ -43,7 +43,7 @@ function DropdownMenuContent({
 				sideOffset={sideOffset}
 				className={cn(
 					// Base styles with token-based radius
-					'bg-popover text-popover-foreground z-50 min-w-[8rem] rounded-[12px] border p-1 shadow-md',
+					'bg-popover text-popover-foreground z-50 min-w-[8rem] rounded-[var(--radius-medium)] border p-1 shadow-md',
 					'max-h-(--radix-dropdown-menu-content-available-height) origin-(--radix-dropdown-menu-content-transform-origin)',
 					'overflow-x-hidden overflow-y-auto',
 					// Enhanced animations
@@ -90,7 +90,7 @@ function DropdownMenuItem({
 			data-variant={variant}
 			className={cn(
 				// Base styles with token-based radius
-				"relative flex cursor-default items-center gap-2 rounded-[8px] px-2 py-1.5 text-sm outline-hidden select-none",
+				"relative flex cursor-default items-center gap-2 rounded-[var(--radius-small)] px-2 py-1.5 text-sm outline-hidden select-none",
 				// Focus and hover states
 				"focus:bg-accent focus:text-accent-foreground",
 				"hover:bg-accent/50 hover:scale-[1.02]",
@@ -264,7 +264,7 @@ function DropdownMenuSubContent({
 			data-slot="dropdown-menu-sub-content"
 			className={cn(
 				// Base styles with token-based radius
-				'bg-popover text-popover-foreground z-50 min-w-[8rem] rounded-[12px] border p-1 shadow-lg overflow-hidden',
+				'bg-popover text-popover-foreground z-50 min-w-[8rem] rounded-[var(--radius-medium)] border p-1 shadow-lg overflow-hidden',
 				'origin-(--radix-dropdown-menu-content-transform-origin)',
 				// Enhanced animations
 				'data-[state=open]:animate-in data-[state=closed]:animate-out',

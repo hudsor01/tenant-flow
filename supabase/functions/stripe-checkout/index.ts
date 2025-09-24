@@ -86,7 +86,9 @@ Deno.serve(async (req: Request) => {
     }
 
     // Get origin for success/cancel URLs
-    const origin = req.headers.get('origin') || 'http://localhost:3000'
+    const origin = req.headers.get('origin') || process.env.FRONTEND_URL || (() => {
+      throw new Error('origin header or FRONTEND_URL environment variable is required for Stripe checkout')
+    })()
 
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({

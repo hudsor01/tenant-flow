@@ -16,8 +16,14 @@ async function captureConsoleLogs(page: Page): Promise<string[]> {
 // Helper to login
 async function login(page: Page) {
   await page.goto('/signin')
-  await page.fill('input[type="email"]', process.env.TEST_EMAIL || 'test@example.com')
-  await page.fill('input[type="password"]', process.env.TEST_PASSWORD || 'testpassword')
+  const testEmail = process.env.TEST_EMAIL || (() => {
+    throw new Error('TEST_EMAIL is required for dashboard tests')
+  })()
+  const testPassword = process.env.TEST_PASSWORD || (() => {
+    throw new Error('TEST_PASSWORD is required for dashboard tests')
+  })()
+  await page.fill('input[type="email"]', testEmail)
+  await page.fill('input[type="password"]', testPassword)
   await page.click('button[type="submit"]')
   await page.waitForURL('**/dashboard/**', { timeout: 10000 })
 }

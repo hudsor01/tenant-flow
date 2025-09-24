@@ -11,8 +11,11 @@ export const APP_DOMAINS = {
 	FRONTEND: {
 		PRODUCTION: ['https://tenantflow.app', 'https://www.tenantflow.app'],
 		DEVELOPMENT: [
-			'http://localhost:3000',
-			'http://localhost:3002',
+			process.env.FRONTEND_URL || (() => {
+				throw new Error('FRONTEND_URL environment variable is required for CORS development configuration')
+			})(),
+			'http://localhost:3000', // Fallback for local dev
+			'http://localhost:3002', // Alternative port
 			'http://127.0.0.1:3000',
 			'http://127.0.0.1:3002'
 		]
@@ -21,7 +24,13 @@ export const APP_DOMAINS = {
 	// Backend API domains
 	BACKEND: {
 		PRODUCTION: ['https://api.tenantflow.app'],
-		DEVELOPMENT: ['http://localhost:4600', 'http://127.0.0.1:4600']
+		DEVELOPMENT: [
+			process.env.NEXT_PUBLIC_API_BASE_URL || (() => {
+				throw new Error('NEXT_PUBLIC_API_BASE_URL environment variable is required for CORS backend configuration')
+			})(),
+			'http://localhost:4600', // Fallback for local dev
+			'http://127.0.0.1:4600'
+		]
 	},
 
 	// Railway infrastructure (actual deployment URLs)

@@ -13,9 +13,9 @@ function Progress({
   return (
     <ProgressPrimitive.Root
       data-slot="progress"
-      className={cn(
-        // Base styles with token-based radius
-        "bg-primary/20 relative h-2 w-full overflow-hidden rounded-[8px]",
+		className={cn(
+			// Base styles with token-based radius
+			"bg-primary/20 relative h-2 w-full overflow-hidden rounded-[var(--radius-small)]",
         // Enhanced transitions
         "transition-all duration-200 ease-in-out",
         // Hover state

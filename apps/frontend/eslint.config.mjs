@@ -37,6 +37,7 @@ export default [
 			'@/hooks/api/__tests__/**',
 			'tests/**', // All test files outside src directory
 			'@/lib/auth/__tests__/**',
+			'@/lib/__tests__/**', // Test files not in tsconfig
 			'@/smoke.spec.tsx',
 			'@/test/**',
 			'*.config.js',
@@ -130,6 +131,37 @@ export default [
 			'@typescript-eslint/no-unsafe-return': 'off',
 			'@typescript-eslint/no-unsafe-argument': 'off',
 			'no-console': 'error'
+		}
+	},
+	{
+		name: 'frontend/no-console-logging',
+		files: ['**/*.ts', '**/*.tsx'],
+		ignores: [
+			'**/*.test.*',
+			'**/*.spec.*',
+			'**/*.config.*',
+			'**/node_modules/**',
+			'**/dist/**',
+			'**/build/**',
+			'**/next.config.*'
+		],
+		rules: {
+			// PRODUCTION LOGGING ENFORCEMENT - Use PostHog logger instead of console
+			// Import: import { createLogger } from '@repo/shared'
+			// Usage: const logger = createLogger({ component: 'ComponentName' }); logger.info('message', { metadata })
+			'no-console': 'error',
+			// Prevent console property access patterns
+			'no-restricted-syntax': [
+				'error',
+				{
+					selector: 'MemberExpression[object.name="console"]',
+					message: 'Direct console access is prohibited. Use structured PostHog logging via createLogger() from @repo/shared instead.'
+				},
+				{
+					selector: 'CallExpression[callee.object.name="console"]',
+					message: 'Console method calls are prohibited. Use PostHog logging: const logger = createLogger({ component: "ComponentName" }); logger.info/warn/error("message")'
+				}
+			]
 		}
 	},
 	{

@@ -48,7 +48,6 @@ test.describe('Dashboard Functional Proof', () => {
     // Navigate to dashboard
     await page.goto('/dashboard');
     
-    console.log('🏠 Loading dashboard...');
     
     // Wait for initial load and React Spring animations to settle
     await page.waitForTimeout(2000);
@@ -62,18 +61,15 @@ test.describe('Dashboard Functional Proof', () => {
     );
     
     expect(criticalErrors).toHaveLength(0);
-    console.log('✅ No critical JavaScript errors');
 
     // PROOF 2: Main dashboard content is visible
     const mainContent = page.locator('main, [role="main"], [class*="dashboard"]');
     await expect(mainContent.first()).toBeVisible({ timeout: 5000 });
-    console.log('✅ Main dashboard container visible');
 
     // PROOF 3: Metric cards are rendered and animated (React Spring working)
     const metricCards = page.locator('[class*="border-l-"], .dashboard-metric-card, [class*="@container/card"]');
     const cardCount = await metricCards.count();
     expect(cardCount).toBeGreaterThan(0);
-    console.log(`✅ ${cardCount} metric cards rendered`);
 
     // PROOF 4: CSS is applied correctly - check computed styles
     if (cardCount > 0) {
@@ -88,8 +84,6 @@ test.describe('Dashboard Functional Proof', () => {
       
       expect(cardStyles.padding).not.toBe('0px');
       expect(cardStyles.borderLeftWidth).not.toBe('0px');
-      console.log('✅ Metric cards have correct styling applied');
-      console.log(`   Padding: ${cardStyles.padding}, Border: ${cardStyles.borderLeftWidth}`);
     }
 
     // PROOF 5: Values are displayed (React Spring number animations working)
@@ -100,7 +94,6 @@ test.describe('Dashboard Functional Proof', () => {
     const firstValue = await valueElements.first().textContent();
     expect(firstValue).toBeTruthy();
     expect(firstValue.trim()).not.toBe('0');
-    console.log(`✅ Metric values displayed: "${firstValue?.trim()}"`);
 
     // PROOF 6: Data table exists and renders
     const dataTable = page.locator('table, [role="table"], [class*="table"]');
@@ -109,9 +102,7 @@ test.describe('Dashboard Functional Proof', () => {
       await expect(dataTable.first()).toBeVisible();
       const tableRows = page.locator('tr, [role="row"]');
       const rowCount = await tableRows.count();
-      console.log(`✅ Data table rendered with ${rowCount} rows`);
     } else {
-      console.log('ℹ️  Data table not present (may be on different view)');
     }
 
     // PROOF 7: Navigation/sidebar exists and is functional
@@ -119,7 +110,6 @@ test.describe('Dashboard Functional Proof', () => {
     const hasNav = await navigation.count() > 0;
     if (hasNav) {
       await expect(navigation.first()).toBeVisible();
-      console.log('✅ Navigation/sidebar rendered');
     }
 
     // PROOF 8: CSS animations are working (no layout thrashing)
@@ -127,7 +117,6 @@ test.describe('Dashboard Functional Proof', () => {
     const bodyBounds = await page.locator('body').boundingBox();
     expect(bodyBounds?.width).toBeGreaterThan(100);
     expect(bodyBounds?.height).toBeGreaterThan(100);
-    console.log(`✅ Layout stable: ${bodyBounds?.width}x${bodyBounds?.height}`);
 
     // PROOF 9: Check for React Spring animation classes or inline styles
     const animatedElements = await page.evaluate(() => {
@@ -149,7 +138,6 @@ test.describe('Dashboard Functional Proof', () => {
     });
     
     expect(animatedCount.animatedCount).toBeGreaterThan(0);
-    console.log(`✅ ${animatedCount.animatedCount} elements have transitions, ${animatedCount.hasInlineTransforms} have React Spring inline styles`);
 
     // PROOF 10: Test hover interactions (React Spring hover effects)
     if (cardCount > 0) {
@@ -160,12 +148,10 @@ test.describe('Dashboard Functional Proof', () => {
       await page.waitForTimeout(300); // Wait for hover animation
       
       const afterHover = await firstCard.evaluate(el => el.style.transform);
-      console.log(`✅ Hover interaction: transform changed from "${beforeHover}" to "${afterHover}"`);
     }
 
     // PROOF 11: No asset loading failures
     expect(networkErrors.filter(err => err.includes('.css') || err.includes('.js'))).toHaveLength(0);
-    console.log('✅ All CSS/JS assets loaded successfully');
 
     // PROOF 12: Take final screenshot as visual proof
     await page.waitForTimeout(500);
@@ -173,18 +159,8 @@ test.describe('Dashboard Functional Proof', () => {
       fullPage: true,
       threshold: 0.3 // Allow for minor animation differences
     });
-    console.log('✅ Screenshot captured as visual proof');
 
     // SUMMARY
-    console.log('\n🎉 DASHBOARD FUNCTIONAL PROOF COMPLETE:');
-    console.log(`   • ${cardCount} metric cards rendered with styling`);
-    console.log(`   • ${animatedCount.animatedCount} elements have transitions`);
-    console.log(`   • ${animatedCount.hasInlineTransforms} elements have React Spring animations`);
-    console.log('   • No critical errors');
-    console.log('   • CSS properly applied');
-    console.log('   • React Spring integration working');
-    console.log('   • Layout stable and responsive');
-    console.log('\n✅ DASHBOARD IS IN ONE PIECE AND FULLY FUNCTIONAL!');
   });
 
   test('Individual dashboard components render correctly', async ({ page }) => {
@@ -204,7 +180,6 @@ test.describe('Dashboard Functional Proof', () => {
       const elements = page.locator(check.selector);
       const count = await elements.count();
       expect(count).toBeGreaterThan(0);
-      console.log(`✅ ${check.name}: ${count} elements found`);
     }
   });
 });

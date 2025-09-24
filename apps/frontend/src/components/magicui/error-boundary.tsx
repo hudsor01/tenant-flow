@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Component } from 'react'
+import { logger } from '@repo/shared'
 
 interface Props {
 	children: ReactNode
@@ -27,7 +28,14 @@ export class ErrorBoundary extends Component<Props, State> {
 	}
 
 	override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-		console.error('Error caught by boundary:', error, errorInfo)
+			logger.error('ErrorBoundary - Error caught by boundary', {
+				action: 'component_error_boundary',
+				metadata: {
+					error: error.message,
+					stack: error.stack,
+					componentStack: errorInfo.componentStack
+				}
+			})
 
 		// Send to error tracking service
 		if (process.env.NODE_ENV === 'production') {

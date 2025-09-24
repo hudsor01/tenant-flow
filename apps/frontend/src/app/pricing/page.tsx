@@ -125,20 +125,20 @@ export default function PricingPage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-white">
+		<div className="min-h-screen bg-background">
 			{/* Navigation */}
-			<nav className="fixed top-4 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-6 py-3 backdrop-blur-xl border border-[var(--color-border)] shadow-lg bg-white/80">
+			<nav className="fixed top-4 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-6 py-3 backdrop-blur-xl border border-border shadow-lg bg-card/80">
 				<div className="flex items-center justify-between gap-8">
-					<Link
-						href="/"
-						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
-					>
-						<div className="w-8 h-8 rounded-lg overflow-hidden bg-[var(--color-primary)] border border-[var(--color-border)] flex items-center justify-center">
+						<Link
+							href="/"
+							className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
+						>
+						<div className="w-8 h-8 rounded-lg overflow-hidden bg-[var(--color-primary-brand)] border border-border flex items-center justify-center">
 							<svg
 								viewBox="0 0 24 24"
 								fill="none"
 								xmlns="http://www.w3.org/2000/svg"
-								className="w-5 h-5 text-white"
+								className="w-5 h-5 text-primary-foreground"
 							>
 								<path
 									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
@@ -149,7 +149,7 @@ export default function PricingPage() {
 								/>
 							</svg>
 						</div>
-						<span className="text-xl font-bold text-[var(--color-text-primary)] tracking-tight">
+						<span className="text-xl font-bold text-[var(--color-label-primary)] tracking-tight">
 							TenantFlow
 						</span>
 					</Link>
@@ -157,13 +157,13 @@ export default function PricingPage() {
 					<div className="hidden md:flex items-center space-x-1">
 						<Link
 							href="/"
-							className="px-4 py-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-medium text-sm rounded-xl hover:bg-[var(--color-accent)] transition-all duration-200"
+							className="px-4 py-2 text-[var(--color-label-secondary)] hover:text-[var(--color-label-primary)] font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
 						>
 							Home
 						</Link>
 						<Link
 							href="/faq"
-							className="px-4 py-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-medium text-sm rounded-xl hover:bg-[var(--color-accent)] transition-all duration-200"
+							className="px-4 py-2 text-[var(--color-label-secondary)] hover:text-[var(--color-label-primary)] font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
 						>
 							FAQ
 						</Link>
@@ -172,13 +172,13 @@ export default function PricingPage() {
 					<div className="flex items-center space-x-3">
 						<Link
 							href="/login"
-							className="hidden sm:flex px-4 py-2 text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] rounded-xl hover:bg-[var(--color-accent)] transition-all duration-300 font-medium"
+							className="hidden sm:flex px-4 py-2 text-[var(--color-label-primary)] hover:text-[var(--color-label-primary)] rounded-xl hover:bg-accent transition-all duration-300 font-medium"
 						>
 							Sign In
 						</Link>
 						<Link
 							href="/login"
-							className="flex items-center px-6 py-2.5 bg-[var(--color-primary)] text-white font-medium text-sm rounded-xl hover:bg-[var(--color-primary-hover)] transition-all duration-200 shadow-lg hover:shadow-xl"
+							className="flex items-center px-6 py-2.5 bg-[var(--color-primary-brand)] text-primary-foreground font-medium text-sm rounded-xl hover:bg-[var(--color-primary-brand-85)] transition-all duration-200 shadow-lg hover:shadow-xl"
 						>
 							Get Started
 							<ArrowRight className="ml-2 h-4 w-4" />
@@ -192,19 +192,19 @@ export default function PricingPage() {
 				<div className="max-w-6xl mx-auto">
 					{/* Header */}
 					<div className="text-center mb-16">
-						<div className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-[var(--color-primary-border)] bg-[var(--color-primary-bg)] mb-8">
+					<div className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-[var(--color-primary-brand-25)] bg-[var(--color-primary-brand-10)] mb-8">
 							<div className="w-2 h-2 bg-[var(--color-success)] rounded-full mr-3 animate-pulse" />
-							<span className="text-[var(--color-text)] font-medium text-sm">
+						<span className="text-[var(--color-label-secondary)] font-medium text-sm">
 								Trusted by 10,000+ property managers
 							</span>
 						</div>
 
-						<h1 className="text-5xl lg:text-6xl font-bold text-[var(--color-text-primary)] mb-6 tracking-tight leading-tight">
+					<h1 className="text-5xl lg:text-6xl font-bold text-[var(--color-label-primary)] mb-6 tracking-tight leading-tight">
 							Simple pricing for
-							<span className="block text-[var(--color-primary)]">every business</span>
+						<span className="block text-[var(--color-primary-brand)]">every business</span>
 						</h1>
 
-						<p className="text-xl text-[var(--color-text)] mb-8 leading-relaxed max-w-2xl mx-auto">
+					<p className="text-xl text-[var(--color-label-secondary)] mb-8 leading-relaxed max-w-2xl mx-auto">
 							Professional property managers increase NOI by 40% with
 							TenantFlow's enterprise-grade automation and analytics.
 						</p>
@@ -212,27 +212,27 @@ export default function PricingPage() {
 						{/* Billing Toggle */}
 						<div className="flex items-center justify-center gap-4 mb-12">
 							<span
-								className={`text-sm font-medium ${!isYearly ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)]'}`}
+								className={`text-sm font-medium ${!isYearly ? 'text-[var(--color-label-primary)]' : 'text-[var(--color-label-tertiary)]'}`}
 							>
 								Monthly
 							</span>
 							<button
 								onClick={() => setIsYearly(!isYearly)}
-								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ${
-									isYearly ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-muted)]'
+								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-brand)] focus:ring-offset-2 ${
+									isYearly ? 'bg-[var(--color-primary-brand)]' : 'bg-muted'
 								}`}
 							>
 								<span
-									className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+									className={`inline-block h-4 w-4 transform rounded-full bg-card transition-transform ${
 										isYearly ? 'translate-x-6' : 'translate-x-1'
 									}`}
 								/>
 							</button>
 							<span
-								className={`text-sm font-medium ${isYearly ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)]'}`}
+								className={`text-sm font-medium ${isYearly ? 'text-[var(--color-label-primary)]' : 'text-[var(--color-label-tertiary)]'}`}
 							>
 								Yearly
-								<span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[var(--color-success-bg)] text-[var(--color-success-text)]">
+								<span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[var(--color-success-background)] text-[var(--color-success-foreground)]">
 									Save 17%
 								</span>
 							</span>
@@ -244,52 +244,52 @@ export default function PricingPage() {
 						{pricingPlans.map(plan => (
 							<Card
 								key={plan.id}
-								className={`relative bg-white border-2 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 ${
-									plan.popular ? 'border-[var(--color-primary)] scale-105' : 'border-[var(--color-border)]'
+								className={`relative bg-card border-2 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 ${
+									plan.popular ? 'border-[var(--color-primary-brand)] scale-105' : 'border-border'
 								}`}
 							>
 								{plan.popular && (
 									<div className="absolute -top-4 left-1/2 -translate-x-1/2">
-										<span className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-full text-sm font-semibold">
+										<span className="bg-[var(--color-primary-brand)] text-primary-foreground px-4 py-2 rounded-full text-sm font-semibold">
 											Most Popular
 										</span>
 									</div>
 								)}
 
 								<CardHeader className="p-8 pb-4">
-									<CardTitle className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">
+									<CardTitle className="text-2xl font-bold text-[var(--color-label-primary)] mb-2">
 										{plan.name}
 									</CardTitle>
 									<div className="mb-4">
-										<span className="text-4xl font-bold text-[var(--color-text-primary)]">
+										<span className="text-4xl font-bold text-[var(--color-label-primary)]">
 											${isYearly ? plan.price.yearly : plan.price.monthly}
 										</span>
-										<span className="text-[var(--color-text-secondary)] ml-1">
+										<span className="text-[var(--color-label-secondary)] ml-1">
 											/{isYearly ? 'year' : 'month'}
 										</span>
 									</div>
-									<p className="text-[var(--color-text-secondary)]">{plan.description}</p>
+									<p className="text-[var(--color-label-secondary)]">{plan.description}</p>
 								</CardHeader>
 
 								<CardContent className="p-8 pt-4">
 									<ul className="space-y-4">
 										{plan.features.map((feature, index) => (
 											<li key={index} className="flex items-center gap-3">
-												<div className="flex-shrink-0 w-5 h-5 rounded-full bg-[var(--color-primary-bg)] flex items-center justify-center">
-													<Check className="w-3 h-3 text-[var(--color-primary)]" />
+												<div className="flex-shrink-0 w-5 h-5 rounded-full bg-[var(--color-primary-brand-10)] flex items-center justify-center">
+													<Check className="w-3 h-3 text-[var(--color-primary-brand)]" />
 												</div>
-												<span className="text-[var(--color-text)]">{feature}</span>
+												<span className="text-[var(--color-label-secondary)]">{feature}</span>
 											</li>
 										))}
 									</ul>
 
-									<Button
-										onClick={() => handleSelectPlan(plan.id)}
-										className={`w-full mt-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
-											plan.popular
-												? 'bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white shadow-lg hover:shadow-xl'
-												: 'bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-[var(--color-text-primary)] border-2 border-[var(--color-border)] hover:border-[var(--color-border-hover)]'
-										}`}
+								<Button
+									onClick={() => handleSelectPlan(plan.id)}
+									className={`w-full mt-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
+										plan.popular
+											? 'bg-[var(--color-primary-brand)] hover:bg-[var(--color-primary-brand-85)] text-primary-foreground shadow-lg hover:shadow-xl'
+											: 'bg-accent hover:bg-accent/80 text-[var(--color-label-primary)] border-2 border-border hover:border-[var(--color-primary-brand-25)]'
+									}`}
 									>
 										{plan.id === 'max' ? 'Contact Sales' : 'Get Started'}
 										<ArrowRight className="ml-2 h-4 w-4" />

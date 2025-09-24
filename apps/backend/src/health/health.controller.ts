@@ -1,15 +1,14 @@
 /**
  * Enhanced Health Controller - Zero-Downtime Architecture
  * Implements Apple's health check obsession with detailed service monitoring
- * Integrates with existing PinoLogger patterns
  */
 
-import { Controller, Get, Logger, Inject } from '@nestjs/common'
+import { Controller, Get, Inject, Logger } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 import type { ServiceHealth, SystemHealth } from '@repo/shared'
 import { hostname } from 'os'
-import { SupabaseService } from '../database/supabase.service'
 import { StripeSyncService } from '../billing/stripe-sync.service'
+import { SupabaseService } from '../database/supabase.service'
 import { Public } from '../shared/decorators/public.decorator'
 import { ResilienceService } from '../shared/services/resilience.service'
 import { StripeFdwHealthIndicator } from './stripe-fdw.health'
@@ -22,6 +21,7 @@ export class HealthController {
 		string,
 		{ result: ServiceHealth; timestamp: number }
 	>()
+	private readonly logger = new Logger(HealthController.name)
 
 	constructor(
 		private readonly health: HealthCheckService,
@@ -29,8 +29,7 @@ export class HealthController {
 		private readonly stripeFdw: StripeFdwHealthIndicator,
 		private readonly resilience: ResilienceService,
 		private readonly stripeSyncService: StripeSyncService,
-		@Inject('SUPABASE_SERVICE_FOR_HEALTH') private readonly supabaseClient: SupabaseService,
-		private readonly logger: Logger
+		@Inject('SUPABASE_SERVICE_FOR_HEALTH') private readonly supabaseClient: SupabaseService
 	) {
 		// Factory provider pattern ensures proper injection in Railway deployment
 		this.logger.log('SupabaseService injected via factory provider', {
@@ -79,10 +78,14 @@ export class HealthController {
 			const response = {
 				status,
 				timestamp: new Date().toISOString(),
-				environment: process.env.NODE_ENV || 'production',
+				environment: process.env.NODE_ENV || (() => {
+					throw new Error('NODE_ENV is required for health check reporting')
+				})(),
 				uptime: process.uptime(),
 				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-				version: process.env.npm_package_version || '1.0.0',
+				version: process.env.npm_package_version || (() => {
+					throw new Error('npm_package_version not available - ensure package.json version is accessible at runtime')
+				})(),
 				service: 'backend-api',
 				database: {
 					status: dbHealth.status,
@@ -111,10 +114,14 @@ export class HealthController {
 			return {
 				status: 'unhealthy',
 				timestamp: new Date().toISOString(),
-				environment: process.env.NODE_ENV || 'production',
+				environment: process.env.NODE_ENV || (() => {
+					throw new Error('NODE_ENV is required for health check reporting')
+				})(),
 				uptime: process.uptime(),
 				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-				version: process.env.npm_package_version || '1.0.0',
+				version: process.env.npm_package_version || (() => {
+					throw new Error('npm_package_version not available - ensure package.json version is accessible at runtime')
+				})(),
 				service: 'backend-api',
 				database: {
 					status: 'unhealthy',
@@ -220,13 +227,19 @@ export class HealthController {
 				services,
 				performance: this.getPerformanceMetrics(),
 				cache: this.resilience.getHealthStatus(),
-				version: process.env.npm_package_version || '1.0.0',
+				version: process.env.npm_package_version || (() => {
+					throw new Error('npm_package_version not available - ensure package.json version is accessible at runtime')
+				})(),
 				deployment: {
-					environment: process.env.NODE_ENV || 'development',
-					region:
-						process.env.RAILWAY_REGION ||
+					environment: process.env.NODE_ENV || (() => {
+					throw new Error('NODE_ENV is required for debug health check reporting')
+				})(),
+					region: process.env.RAILWAY_REGION ||
 						process.env.VERCEL_REGION ||
-						'unknown',
+						process.env.FLY_REGION ||
+						(() => {
+							throw new Error('Deployment region not detected - ensure RAILWAY_REGION, VERCEL_REGION, or FLY_REGION is set')
+						})(),
 					instance: hostname()
 				}
 			}
