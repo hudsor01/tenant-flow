@@ -7,6 +7,7 @@ import {
 	UnauthorizedException
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
+import type { Request } from 'express'
 import { SupabaseService } from '../../database/supabase.service'
 
 export const SUBSCRIPTION_REQUIRED_KEY = 'subscriptionRequired'
@@ -32,11 +33,10 @@ export class SubscriptionGuard implements CanActivate {
 			[context.getHandler(), context.getClass()]
 		)
 
-		const allowsPausedSubscription =
-			this.reflector.getAllAndOverride<boolean>(
-				ALLOW_PAUSED_SUBSCRIPTION,
-				[context.getHandler(), context.getClass()]
-			)
+		const allowsPausedSubscription = this.reflector.getAllAndOverride<boolean>(
+			ALLOW_PAUSED_SUBSCRIPTION,
+			[context.getHandler(), context.getClass()]
+		)
 
 		// If no subscription requirement is set, allow access
 		if (!requiresSubscription) {
@@ -66,7 +66,7 @@ export class SubscriptionGuard implements CanActivate {
 			// No subscription found - block access to paid features
 			this.logger.warn('Access denied: No subscription found', {
 				userId: user.id,
-				endpoint: context.switchToHttp().getRequest().url
+				endpoint: context.switchToHttp().getRequest<Request>().url
 			})
 			throw new ForbiddenException({
 				code: 'NO_SUBSCRIPTION',
@@ -91,11 +91,14 @@ export class SubscriptionGuard implements CanActivate {
 				// Incomplete subscription (paused trial) - restricted access
 				if (allowsPausedSubscription) {
 					// This endpoint allows paused users (like billing management)
-					this.logger.log('Access allowed for paused subscription (billing management)', {
-						userId: user.id,
-						subscriptionStatus: status,
-						endpoint: context.switchToHttp().getRequest().url
-					})
+					this.logger.log(
+						'Access allowed for paused subscription (billing management)',
+						{
+							userId: user.id,
+							subscriptionStatus: status,
+							endpoint: context.switchToHttp().getRequest<Request>().url
+						}
+					)
 					return true
 				}
 
@@ -104,7 +107,7 @@ export class SubscriptionGuard implements CanActivate {
 					userId: user.id,
 					subscriptionStatus: status,
 					trialEnd: subscription.trialEnd,
-					endpoint: context.switchToHttp().getRequest().url
+					endpoint: context.switchToHttp().getRequest<Request>().url
 				})
 				throw new ForbiddenException({
 					code: 'SUBSCRIPTION_PAUSED',
@@ -139,8 +142,7 @@ export class SubscriptionGuard implements CanActivate {
 				// Payment failed - limited access with payment prompt
 				throw new ForbiddenException({
 					code: 'PAYMENT_FAILED',
-					message:
-						'Your payment failed. Please update your payment method.',
+					message: 'Your payment failed. Please update your payment method.',
 					subscriptionId: subscription.stripeSubscriptionId,
 					action: 'REDIRECT_TO_PAYMENT_UPDATE'
 				})
@@ -159,7 +161,7 @@ export class SubscriptionGuard implements CanActivate {
 				this.logger.error('Access denied: Unknown subscription status', {
 					userId: user.id,
 					subscriptionStatus: status,
-					endpoint: context.switchToHttp().getRequest().url
+					endpoint: context.switchToHttp().getRequest<Request>().url
 				})
 				throw new ForbiddenException({
 					code: 'SUBSCRIPTION_ERROR',

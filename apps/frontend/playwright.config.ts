@@ -24,29 +24,31 @@ export default defineConfig({
 		trace: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
 		screenshot: 'only-on-failure',
 		video: 'retain-on-failure',
-		
+
 		// Headless mode configuration - true for performance and CI compatibility
 		headless: true,
-		
+
 		// Better base URL handling with explicit configuration required
 		baseURL: (() => {
-			if (process.env.PLAYWRIGHT_TEST_BASE_URL) return process.env.PLAYWRIGHT_TEST_BASE_URL
-			if (process.env.PLAYWRIGHT_BASE_URL) return process.env.PLAYWRIGHT_BASE_URL
+			if (process.env.PLAYWRIGHT_TEST_BASE_URL)
+				return process.env.PLAYWRIGHT_TEST_BASE_URL
+			if (process.env.PLAYWRIGHT_BASE_URL)
+				return process.env.PLAYWRIGHT_BASE_URL
 			if (process.env.CI) {
 				if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
 				return 'https://tenantflow.app'
 			}
-			throw new Error('PLAYWRIGHT_TEST_BASE_URL or PLAYWRIGHT_BASE_URL environment variable is required for local testing')
+			return 'http://localhost:3000' // Default for local testing
 		})(),
-				
+
 		// Performance and reliability settings
 		actionTimeout: 10000,
 		navigationTimeout: 30000,
-		
+
 		// Visual testing settings
 		ignoreHTTPSErrors: true,
 		acceptDownloads: true,
-		
+
 		// Viewport for consistent screenshots
 		viewport: { width: 1280, height: 720 }
 	},
@@ -59,12 +61,21 @@ export default defineConfig({
 			use: {
 				...devices['Desktop Chrome'],
 				headless: true,
-				baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || (() => {
-					throw new Error('PLAYWRIGHT_TEST_BASE_URL environment variable is required for setup project')
+				baseURL: (() => {
+					if (process.env.PLAYWRIGHT_TEST_BASE_URL)
+						return process.env.PLAYWRIGHT_TEST_BASE_URL
+					if (process.env.PLAYWRIGHT_BASE_URL)
+						return process.env.PLAYWRIGHT_BASE_URL
+					if (process.env.CI) {
+						if (process.env.VERCEL_URL)
+							return `https://${process.env.VERCEL_URL}`
+						return 'https://tenantflow.app'
+					}
+					return 'http://localhost:3000' // Default for local testing
 				})()
 			}
 		},
-		
+
 		// Main test project with authentication
 		{
 			name: 'chromium',
@@ -73,21 +84,39 @@ export default defineConfig({
 				headless: true,
 				// Use saved authentication state
 				storageState: 'playwright/.auth/user.json',
-				baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || (() => {
-					throw new Error('PLAYWRIGHT_TEST_BASE_URL environment variable is required for chromium project')
+				baseURL: (() => {
+					if (process.env.PLAYWRIGHT_TEST_BASE_URL)
+						return process.env.PLAYWRIGHT_TEST_BASE_URL
+					if (process.env.PLAYWRIGHT_BASE_URL)
+						return process.env.PLAYWRIGHT_BASE_URL
+					if (process.env.CI) {
+						if (process.env.VERCEL_URL)
+							return `https://${process.env.VERCEL_URL}`
+						return 'https://tenantflow.app'
+					}
+					return 'http://localhost:3000' // Default for local testing
 				})()
 			},
 			dependencies: ['setup']
 		},
-		
+
 		// Project for tests that don't need authentication
 		{
 			name: 'chromium-no-auth',
 			use: {
 				...devices['Desktop Chrome'],
 				headless: true,
-				baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || (() => {
-					throw new Error('PLAYWRIGHT_TEST_BASE_URL environment variable is required for chromium-no-auth project')
+				baseURL: (() => {
+					if (process.env.PLAYWRIGHT_TEST_BASE_URL)
+						return process.env.PLAYWRIGHT_TEST_BASE_URL
+					if (process.env.PLAYWRIGHT_BASE_URL)
+						return process.env.PLAYWRIGHT_BASE_URL
+					if (process.env.CI) {
+						if (process.env.VERCEL_URL)
+							return `https://${process.env.VERCEL_URL}`
+						return 'https://tenantflow.app'
+					}
+					return 'http://localhost:3000' // Default for local testing
 				})()
 			},
 			testIgnore: ['**/auth.setup.ts']

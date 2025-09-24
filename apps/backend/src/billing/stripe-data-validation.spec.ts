@@ -6,8 +6,8 @@ import { Test } from '@nestjs/testing'
 import type { Request } from 'express'
 import Stripe from 'stripe'
 import { SilentLogger } from '../__test__/silent-logger'
-import { SupabaseService } from '../database/supabase.service'
-import { DirectEmailService } from '../emails/direct-email.service'
+import { SupabaseModule } from '../database/supabase.module'
+import { SharedModule } from '../shared/shared.module'
 import { StripeEventProcessor } from './stripe-event-processor.service'
 import { StripeSyncService } from './stripe-sync.service'
 import { StripeWebhookService } from './stripe-webhook.service'
@@ -53,20 +53,28 @@ describe('Production Stripe Webhook Processing', () => {
 	}
 
 	beforeAll(async () => {
+		// Set required environment variables for StripeSyncService (reads directly from process.env)
+		process.env.STRIPE_SYNC_DATABASE_SCHEMA = 'stripe'
+		process.env.STRIPE_SYNC_AUTO_EXPAND_LISTS = 'true'
+		process.env.STRIPE_SYNC_BACKFILL_RELATED_ENTITIES = 'true'
+		process.env.STRIPE_SYNC_MAX_POSTGRES_CONNECTIONS = '10'
+
 		// Create real Stripe instance for webhook signature generation
 		stripe = new Stripe(stripeKey, {
 			apiVersion: '2025-08-27.basil' as Stripe.LatestApiVersion
 		})
 
 		module = await Test.createTestingModule({
+			imports: [
+				SupabaseModule, // Required by SharedModule
+				SharedModule // Import SharedModule to mirror production setup (provides EmailService)
+			],
 			controllers: [StripeController],
 			providers: [
 				StripeService,
 				StripeSyncService,
 				StripeWebhookService,
 				StripeEventProcessor,
-				DirectEmailService,
-				SupabaseService,
 				EventEmitter2,
 				{
 					provide: ConfigService,
@@ -81,6 +89,38 @@ describe('Production Stripe Webhook Processing', () => {
 									return 'test'
 								case 'FRONTEND_URL':
 									return 'https://test.tenantflow.app'
+								case 'RESEND_API_KEY':
+									return 're_test_mock_key'
+								case 'RESEND_FROM_EMAIL':
+									return 'noreply@test.tenantflow.app'
+								case 'DATABASE_URL':
+									return (
+										process.env.TEST_DATABASE_URL ||
+										'postgresql://test:test@localhost:5432/test'
+									)
+								case 'SUPABASE_URL':
+									return (
+										process.env.TEST_SUPABASE_URL || 'https://test.supabase.co'
+									)
+								case 'SERVICE_ROLE_KEY':
+									return (
+										process.env.TEST_SERVICE_ROLE_KEY || 'test_service_role_key'
+									)
+								case 'JWT_SECRET':
+									return (
+										process.env.TEST_SUPABASE_JWT_SECRET ||
+										'test_jwt_secret_32_characters_minimum'
+									)
+								case 'SUPABASE_ANON_KEY':
+									return process.env.TEST_SUPABASE_ANON_KEY || 'test_anon_key'
+								case 'STRIPE_SYNC_DATABASE_SCHEMA':
+									return 'stripe'
+								case 'STRIPE_SYNC_AUTO_EXPAND_LISTS':
+									return 'true'
+								case 'STRIPE_SYNC_BACKFILL_RELATED_ENTITIES':
+									return 'true'
+								case 'STRIPE_SYNC_MAX_POSTGRES_CONNECTIONS':
+									return '10'
 								default:
 									return process.env[key]
 							}
@@ -249,7 +289,6 @@ describe('Production Stripe Webhook Processing', () => {
 	describe('Permitted Event Processing', () => {
 		it('should accept and process permitted payment_intent.succeeded event', async () => {
 			if (!isProductionTest()) {
-				console.log('Skipping production test - not configured')
 				return
 			}
 
@@ -311,7 +350,6 @@ describe('Production Stripe Webhook Processing', () => {
 
 		it('should process customer.subscription.created webhook correctly', async () => {
 			if (!isProductionTest()) {
-				console.log('Skipping production test - not configured')
 				return
 			}
 
@@ -435,7 +473,6 @@ describe('Production Stripe Webhook Processing', () => {
 	describe('Idempotency and Event Tracking', () => {
 		it('should prevent duplicate event processing', async () => {
 			if (!isProductionTest()) {
-				console.log('Skipping production test - not configured')
 				return
 			}
 
@@ -462,7 +499,6 @@ describe('Production Stripe Webhook Processing', () => {
 
 		it('should handle concurrent webhook deliveries', async () => {
 			if (!isProductionTest()) {
-				console.log('Skipping production test - not configured')
 				return
 			}
 
