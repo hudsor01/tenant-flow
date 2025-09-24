@@ -6,10 +6,19 @@
  * following Turborepo best practices for monorepo configuration
  */
 
+import { FlatCompat } from '@eslint/eslintrc'
 import globals from 'globals'
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
 import noBarrelExports from './.eslint/rules/no-barrel-exports.js'
 import noInlineTypes from './.eslint/rules/no-inline-types.js'
 import baseConfig from './packages/eslint-config/base.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const compat = new FlatCompat({
+	baseDirectory: __dirname
+})
 
 /**
  * Root-level configuration with project-specific overrides
@@ -17,8 +26,18 @@ import baseConfig from './packages/eslint-config/base.js'
  * Using ESLint 9 flat config format (no defineConfig wrapper needed)
  */
 export default [
-	// Use the shared base configuration
-	...baseConfig, // Root-level specific configurations
+	...compat.extends('next/core-web-vitals', 'next/typescript'),
+	{
+		ignores: [
+			'node_modules/**',
+			'.next/**',
+			'out/**',
+			'build/**',
+			'next-env.d.ts'
+		]
+	}, // Use the shared base configuration
+	// Root-level specific configurations
+	...baseConfig,
 	{
 		name: 'root/monorepo-files',
 		files: ['*.js', '*.mjs', '*.ts'],
@@ -89,7 +108,7 @@ export default [
 			'type-centralization/no-inline-types': 'off', // TODO: Fix systematically after critical ESLint issues resolved
 			'type-centralization/no-barrel-exports': 'off' // TODO: Fix systematically after critical ESLint issues resolved
 		}
-	},
+	}, // Project-specific anti-pattern guards and SECURITY RULES
 	{
 		name: 'root/test-files',
 		files: ['**/*.test.*', '**/*.spec.*'],
@@ -101,7 +120,7 @@ export default [
 			'@typescript-eslint/no-unsafe-call': 'off',
 			'@typescript-eslint/no-unused-vars': 'error'
 		}
-	}, // Project-specific anti-pattern guards and SECURITY RULES
+	},
 	{
 		name: 'root/anti-patterns-and-security',
 		files: ['**/*.ts', '**/*.tsx'],
