@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { CheckoutProvider } from '@stripe/react-stripe-js/checkout'
+import { EmbeddedCheckoutProvider } from '@stripe/react-stripe-js'
 import type { Appearance } from '@stripe/stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { useMutation } from '@tanstack/react-query'
@@ -470,9 +470,9 @@ export function StripeProvider({
 	)
 
 	return (
-		<CheckoutProvider stripe={stripePromise} options={options}>
+		<EmbeddedCheckoutProvider stripe={stripePromise} options={options}>
 			{children}
-		</CheckoutProvider>
+		</EmbeddedCheckoutProvider>
 	)
 }
 
