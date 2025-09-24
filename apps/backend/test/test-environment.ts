@@ -4,6 +4,8 @@
  * Comprehensive test database and external service setup
  * Following CLAUDE.md KISS principle - simple, reliable test configuration
  */
+import type { DynamicModule, Provider, Type } from '@nestjs/common'
+import { Logger } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
@@ -220,9 +222,12 @@ export function getTestEnvironmentConfig(): TestEnvironmentConfig {
  * Create Test Module with Environment Configuration
  * Helper function to create NestJS test modules with proper test environment
  */
-export async function createTestModule(
-	moduleMetadata: unknown
-): Promise<TestingModule> {
+export async function createTestModule(moduleMetadata: {
+	imports?: Array<Type<unknown> | DynamicModule>
+	controllers?: Array<Type<unknown>>
+	providers?: Array<Provider>
+	exports?: Array<Type<unknown> | DynamicModule | Provider>
+}): Promise<TestingModule> {
 	const testConfig = getTestEnvironmentConfig()
 
 	// Set environment variables for test
@@ -244,11 +249,11 @@ export async function createTestModule(
 				ignoreEnvFile: true, // Use environment variables set above
 				ignoreEnvVars: false
 			}),
-			...((moduleMetadata as any)?.imports || [])
+			...(moduleMetadata?.imports || [])
 		],
-		controllers: (moduleMetadata as any)?.controllers || [],
-		providers: (moduleMetadata as any)?.providers || [],
-		exports: (moduleMetadata as any)?.exports || []
+		controllers: moduleMetadata?.controllers || [],
+		providers: moduleMetadata?.providers || [],
+		exports: moduleMetadata?.exports || []
 	}).compile()
 }
 
@@ -257,6 +262,7 @@ export async function createTestModule(
  * Helper functions for database setup and teardown in tests
  */
 export class TestDatabaseUtils {
+	private static readonly logger = new Logger(TestDatabaseUtils.name)
 	/**
 	 * Clean test database
 	 * Removes all data while preserving schema
@@ -271,7 +277,9 @@ export class TestDatabaseUtils {
 
 		// For integration/e2e tests, implement database cleanup
 		// This would typically connect to test database and truncate tables
-		console.log(`Cleaning test database for ${testEnv} tests...`)
+		TestDatabaseUtils.logger.verbose(
+			`Cleaning test database for ${testEnv} tests...`
+		)
 	}
 
 	/**
@@ -286,7 +294,9 @@ export class TestDatabaseUtils {
 			return
 		}
 
-		console.log(`Seeding test database for ${testEnv} tests...`)
+		TestDatabaseUtils.logger.verbose(
+			`Seeding test database for ${testEnv} tests...`
+		)
 	}
 
 	/**
@@ -301,7 +311,9 @@ export class TestDatabaseUtils {
 			return
 		}
 
-		console.log(`Setting up test database for ${testEnv} tests...`)
+		TestDatabaseUtils.logger.verbose(
+			`Setting up test database for ${testEnv} tests...`
+		)
 		await this.cleanDatabase()
 		await this.seedTestData()
 	}
