@@ -49,6 +49,33 @@ export interface StripeSessionStatusResponse {
 	payment_intent_status: string | null
 }
 
+export interface CreateSubscriptionRequest {
+	customerId: string
+	tenantId: string
+	amount: number
+	productId: string
+	subscriptionType?: string
+}
+
+export interface CreateCheckoutSessionRequest {
+	productName: string
+	tenantId: string
+	domain: string
+	description?: string
+	isSubscription?: boolean
+	priceId: string // Required Stripe price ID (e.g., price_1234...)
+	customerEmail?: string // Authenticated user email for Stripe customer identification
+}
+
+export interface CreateConnectedPaymentRequest {
+	amount: number
+	tenantId: string
+	connectedAccountId: string
+	platformFee?: number
+	propertyOwnerAccount?: string
+	propertyId?: string
+}
+
 // Consolidated pagination (single interface)
 export interface Pagination {
 	page?: number
