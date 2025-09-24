@@ -78,7 +78,7 @@ export default function HomePage() {
 				{/* Trust Badge */}
 				<div className="pt-32 pb-8 text-center">
 					<div className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-primary/25 bg-primary/10">
-						<div className="w-2 h-2 bg-green-500 rounded-full mr-3 animate-pulse" />
+						<div className="w-2 h-2 bg-[var(--color-success)] rounded-full mr-3 animate-pulse" />
 						<span className="text-muted-foreground font-medium text-sm">
 							Trusted by 10,000+ property managers
 						</span>

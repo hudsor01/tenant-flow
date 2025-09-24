@@ -21,18 +21,29 @@ describe('StripeSyncService', () => {
 	let logger: Logger
 
 	const mockStripeSyncInstance = {
+		config: {},
+		stripe: {},
+		postgresClient: {},
+		processEvent: jest.fn(),
 		processWebhook: jest.fn(),
 		syncSingleEntity: jest.fn(),
-		syncBackfill: jest.fn()
-	} as const
+		syncBackfill: jest.fn(),
+		// Add other methods that might be expected by the StripeSync interface
+		connect: jest.fn(),
+		disconnect: jest.fn(),
+		getSyncStatus: jest.fn(),
+		getLastSync: jest.fn(),
+		forceSync: jest.fn(),
+		cleanup: jest.fn()
+	} as any
 
 	beforeEach(async () => {
 		jest.clearAllMocks()
 
 		// Mock environment variables
 		process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
-		process.env.STRIPE_SECRET_KEY = 'sk_test_123'
-		process.env.STRIPE_WEBHOOK_SECRET = 'whsec_123'
+		process.env.STRIPE_SECRET_KEY = 'sk_test_mock_stripe_key_for_testing'
+		process.env.STRIPE_WEBHOOK_SECRET = 'whsec_mock_webhook_secret_for_testing'
 		process.env.STRIPE_SYNC_DATABASE_SCHEMA = 'stripe'
 		process.env.STRIPE_SYNC_AUTO_EXPAND_LISTS = 'true'
 
@@ -50,9 +61,9 @@ describe('StripeSyncService', () => {
 								case 'DATABASE_URL':
 									return 'postgresql://test:test@localhost:5432/test'
 								case 'STRIPE_SECRET_KEY':
-									return 'sk_test_123'
+									return 'sk_test_mock_stripe_key_for_testing'
 								case 'STRIPE_WEBHOOK_SECRET':
-									return 'whsec_123'
+									return 'whsec_mock_webhook_secret_for_testing'
 								case 'STRIPE_SYNC_DATABASE_SCHEMA':
 									return 'stripe'
 								case 'STRIPE_SYNC_AUTO_EXPAND_LISTS':
@@ -108,8 +119,8 @@ describe('StripeSyncService', () => {
 
 			expect(mockStripeSync).toHaveBeenCalledWith({
 				databaseUrl: 'postgresql://test:test@localhost:5432/test',
-				stripeSecretKey: 'sk_test_123',
-				stripeWebhookSecret: 'whsec_123',
+				stripeSecretKey: 'sk_test_mock_stripe_key_for_testing',
+				stripeWebhookSecret: 'whsec_mock_webhook_secret_for_testing',
 				schema: 'stripe',
 				autoExpandLists: true,
 				poolConfig: {

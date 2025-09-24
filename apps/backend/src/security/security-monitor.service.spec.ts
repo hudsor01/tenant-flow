@@ -2,7 +2,6 @@ import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing'
 import { SilentLogger } from '../__test__/silent-logger'
 import { SecurityMonitorService } from './security-monitor.service'
-import { Logger } from '@nestjs/common'
 import { randomUUID } from 'crypto'
 
 describe('SecurityMonitorService', () => {

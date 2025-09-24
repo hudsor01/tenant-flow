@@ -21,6 +21,13 @@
 - **NO ABSTRACTIONS**: Use native platform features directly. No wrappers, factories, or custom layers
 - **PRODUCTION MINDSET**: Security first, platform-native, performance-conscious, reliability-focused
 
+### MONOREPO SCRIPT STANDARDIZATION
+- **pnpm**: No "run" keyword → `pnpm dev`, `pnpm build`, `pnpm lint`
+- **turbo**: Requires "run" → `turbo run dev`, `turbo run build`
+- **doppler**: Only for local dev → `doppler run -- <cmd>`
+- **CI/prod**: No doppler (Railway/Vercel/GitHub provide env vars)
+- **Filter syntax**: `pnpm --filter @repo/package <script>`
+
 ### TYPESCRIPT SHARED TYPES ARCHITECTURE - MANDATORY COMPLIANCE
 
 **ABSOLUTE PROHIBITIONS - ZERO TOLERANCE**

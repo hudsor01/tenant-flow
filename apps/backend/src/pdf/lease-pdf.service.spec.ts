@@ -1,7 +1,7 @@
-import type { TestingModule } from '@nestjs/testing'
-import { SilentLogger } from '../__test__/silent-logger';
-import { Test } from '@nestjs/testing'
 import { Logger } from '@nestjs/common'
+import type { TestingModule } from '@nestjs/testing'
+import { Test } from '@nestjs/testing'
+import { SilentLogger } from '../__test__/silent-logger'
 import { LeasePDFService } from './lease-pdf.service'
 import { PDFGeneratorService } from './pdf-generator.service'
 
@@ -12,9 +12,14 @@ describe('LeasePDFService', () => {
 
 	beforeEach(async () => {
 		// Create mock implementations
-		mockPDFGenerator = {
-			generatePDF: jest.fn().mockResolvedValue(Buffer.from('mock-pdf-content'))
-		} as jest.Mocked<SupabaseService>
+			mockPDFGenerator = {
+			generatePDF: jest.fn().mockResolvedValue(Buffer.from('mock-pdf-content')),
+			generateInvoicePDF: jest.fn().mockResolvedValue(Buffer.from('mock-invoice-pdf-content')),
+			generateLeaseAgreementPDF: jest.fn().mockResolvedValue(Buffer.from('mock-lease-pdf-content')),
+			onModuleDestroy: jest.fn().mockResolvedValue(undefined),
+			browser: null,
+			getBrowser: jest.fn()
+		} as unknown as jest.Mocked<PDFGeneratorService>
 
 		mockLogger = {
 			log: jest.fn(),
@@ -22,8 +27,10 @@ describe('LeasePDFService', () => {
 			warn: jest.fn(),
 			debug: jest.fn(),
 			verbose: jest.fn(),
-			info: jest.fn()
-		} as jest.Mocked<Logger>
+			info: jest.fn(),
+			localInstance: {} as any,
+			fatal: jest.fn()
+		} as unknown as jest.Mocked<Logger>
 
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [

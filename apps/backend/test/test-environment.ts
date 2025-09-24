@@ -244,11 +244,11 @@ export async function createTestModule(
 				ignoreEnvFile: true, // Use environment variables set above
 				ignoreEnvVars: false
 			}),
-			...(moduleMetadata.imports || [])
+			...((moduleMetadata as any)?.imports || [])
 		],
-		controllers: moduleMetadata.controllers || [],
-		providers: moduleMetadata.providers || [],
-		exports: moduleMetadata.exports || []
+		controllers: (moduleMetadata as any)?.controllers || [],
+		providers: (moduleMetadata as any)?.providers || [],
+		exports: (moduleMetadata as any)?.exports || []
 	}).compile()
 }
 

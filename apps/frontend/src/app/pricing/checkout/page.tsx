@@ -76,19 +76,19 @@ function CheckoutPageContent() {
 	return (
 		<main className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
 			{/* Clean header */}
-			<div className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+			<div className="border-b border-[var(--color-border)] bg-white/80 backdrop-blur-sm sticky top-0 z-50">
 				<div className="container mx-auto px-4 py-4">
 					<div className="flex items-center justify-between">
 						<Link
 							href="/pricing"
-							className="flex items-center text-slate-600 hover:text-slate-900 transition-colors"
+							className="flex items-center text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
 						>
 							<ArrowLeft className="w-4 h-4 mr-2" />
 							Back to pricing
 						</Link>
 						<div className="flex items-center gap-2">
-							<Shield className="w-4 h-4 text-green-600" />
-							<span className="text-sm text-slate-600">Secure checkout</span>
+							<Shield className="w-4 h-4 text-[var(--color-success)]" />
+							<span className="text-sm text-[var(--color-text-secondary)]">Secure checkout</span>
 						</div>
 					</div>
 				</div>
@@ -100,61 +100,61 @@ function CheckoutPageContent() {
 						{/* Plan summary - Left side */}
 						<div className="space-y-6">
 							<div>
-								<h1 className="text-2xl font-bold text-slate-900 mb-2">
+								<h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">
 									Complete your purchase
 								</h1>
-								<p className="text-slate-600">
+								<p className="text-[var(--color-text-secondary)]">
 									You're upgrading to TenantFlow {plan.name}
 								</p>
 							</div>
 
-							<Card className="border-slate-200 shadow-sm">
+							<Card className="border-[var(--color-border)] shadow-sm">
 								<CardContent className="p-6">
 									<div className="flex items-start justify-between mb-4">
 										<div>
 											<div className="flex items-center gap-2 mb-1">
-												<h3 className="font-semibold text-slate-900">
+												<h3 className="font-semibold text-[var(--color-text-primary)]">
 													{plan.name}
 												</h3>
 												{'popular' in plan && plan.popular && (
-													<span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+													<span className="px-2 py-1 bg-[var(--color-primary-bg)] text-[var(--color-primary)] text-xs font-medium rounded-full">
 														Most Popular
 													</span>
 												)}
 											</div>
-											<p className="text-sm text-slate-600 mb-3">
+											<p className="text-sm text-[var(--color-text-secondary)] mb-3">
 												{plan.description}
 											</p>
 										</div>
 										<div className="text-right">
-											<div className="text-2xl font-bold text-slate-900">
+											<div className="text-2xl font-bold text-[var(--color-text-primary)]">
 												{formatCurrency(plan.price)}
 											</div>
-											<div className="text-sm text-slate-500">per month</div>
+											<div className="text-sm text-[var(--color-text-muted)]">per month</div>
 										</div>
 									</div>
 
 									<div className="space-y-2 mb-6">
 										{plan.features.map((feature, index) => (
 											<div key={index} className="flex items-center gap-2">
-												<CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-												<span className="text-sm text-slate-700">
+												<CheckCircle className="w-4 h-4 text-[var(--color-success)] flex-shrink-0" />
+												<span className="text-sm text-[var(--color-text)]">
 													{feature}
 												</span>
 											</div>
 										))}
 									</div>
 
-									<div className="border-t border-slate-200 pt-4">
+									<div className="border-t border-[var(--color-border)] pt-4">
 										<div className="flex justify-between items-center">
-											<span className="font-medium text-slate-900">
+											<span className="font-medium text-[var(--color-text-primary)]">
 												Total today
 											</span>
-											<span className="text-xl font-bold text-slate-900">
+											<span className="text-xl font-bold text-[var(--color-text-primary)]">
 												{formatCurrency(plan.price)}
 											</span>
 										</div>
-										<p className="text-xs text-slate-500 mt-1">
+										<p className="text-xs text-[var(--color-text-muted)] mt-1">
 											Billed monthly • Cancel anytime
 										</p>
 									</div>
@@ -162,7 +162,7 @@ function CheckoutPageContent() {
 							</Card>
 
 							{/* Trust indicators */}
-							<div className="flex items-center justify-center gap-6 text-sm text-slate-500">
+							<div className="flex items-center justify-center gap-6 text-sm text-[var(--color-text-muted)]">
 								<div className="flex items-center gap-1">
 									<Shield className="w-4 h-4" />
 									<span>SOC 2 Compliant</span>

@@ -12,7 +12,7 @@
  */
 
 import { Injectable } from '@nestjs/common'
-import { NestFactory, Reflector } from '@nestjs/core'
+import { NestFactory } from '@nestjs/core'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import type { EndpointAudit, SecurityAuditReport } from '@repo/shared'
 import * as fs from 'fs'
@@ -21,7 +21,6 @@ import { AppModule } from '../../app.module'
 
 @Injectable()
 class SecurityAuditService {
-	private readonly reflector = new Reflector()
 
 	async auditEndpoints(
 		app: NestExpressApplication
@@ -60,7 +59,7 @@ class SecurityAuditService {
 	private async discoverEndpoints(
 		app: NestExpressApplication
 	): Promise<Array<{ path: string; method: string; httpMethod: string }>> {
-		const routes: Array<{ path: string; method: string; httpMethod: string }> =
+	const routes: Array<{ path: string; method: string; httpMethod: string }> =
 			[]
 
 		// Use Express route discovery
@@ -75,7 +74,7 @@ class SecurityAuditService {
 		interface ExpressLayer {
 			route?: ExpressRoute
 			path?: string
-		}
+	}
 
 		interface ExpressRouter {
 			stack: ExpressLayer[]
@@ -102,7 +101,14 @@ class SecurityAuditService {
 		const controllerFiles = await this.findControllerFiles()
 		for (const file of controllerFiles) {
 			const endpoints = await this.parseControllerFile(file)
-			routes.push(...endpoints)
+			// Only add the properties that match the expected return type
+			for (const endpoint of endpoints) {
+				routes.push({
+					path: endpoint.path,
+					method: endpoint.method,
+					httpMethod: endpoint.httpMethod
+				})
+			}
 		}
 
 		return routes
@@ -149,11 +155,13 @@ class SecurityAuditService {
 
 	private async parseControllerFile(
 		filePath: string
-	): Promise<Array<{ path: string; method: string; httpMethod: string }>> {
+	): Promise<Array<{ path: string; method: string; httpMethod: string; controller?: string; filePath?: string }>> {
 		const endpoints: Array<{
 			path: string
 			method: string
 			httpMethod: string
+			controller?: string
+			filePath?: string
 		}> = []
 
 		try {
@@ -178,12 +186,12 @@ class SecurityAuditService {
 
 				endpoints.push({
 					controller: className,
-					method: methodName,
+					method: methodName || 'unknown',
 					path: `/${controllerPath}${routePath ? '/' + routePath : ''}`.replace(
 						/\/+/g,
 						'/'
 					),
-					httpMethod: httpMethod.toUpperCase(),
+					httpMethod: httpMethod?.toUpperCase() || 'GET',
 					filePath
 				})
 			}
@@ -191,7 +199,7 @@ class SecurityAuditService {
 			const errorMessage =
 				error instanceof Error ? error.message : String(error)
 			console.warn(`Failed to parse controller file: ${filePath}`, errorMessage)
-		}
+	}
 
 		return endpoints
 	}
@@ -314,7 +322,7 @@ class SecurityAuditService {
 	}
 
 	private async isEndpointPublic(
-		endpoint: { path: string; method: string },
+		endpoint: { path: string; method: string; httpMethod: string },
 		_app: NestExpressApplication
 	): Promise<boolean> {
 		// This would need to be implemented based on your decorator system
@@ -342,7 +350,7 @@ class SecurityAuditService {
 	}
 
 	private async isAdminOnly(
-		endpoint: { path: string; method: string },
+		endpoint: { path: string; method: string; httpMethod: string },
 		_app: NestExpressApplication
 	): Promise<boolean> {
 		// Check for admin-only paths
@@ -437,12 +445,22 @@ class SecurityAuditService {
 		const publicEndpointsRatio = (publicEndpoints / totalEndpoints) * 100
 		const authenticationCoverage = (protectedEndpoints / totalEndpoints) * 100
 
-		// Calculate average security score
-		const riskScores = { low: 1, medium: 2, high: 3, critical: 4 }
-		const averageRisk =
-			audits.reduce((sum, audit) => sum + riskScores[audit.securityRisk], 0) /
-			totalEndpoints
-		const averageSecurityScore = Math.max(0, ((4 - averageRisk) / 4) * 100)
+		// Calculate rate limit coverage
+	const rateLimitedEndpoints = audits.filter(a => a.hasRateLimit).length
+	const rateLimitCoverage = (rateLimitedEndpoints / totalEndpoints) * 100
+
+		// Calculate admin access points
+		const adminAccessPoints = audits.filter(a => a.adminOnly).length
+
+		// Determine overall risk level
+	let overallRisk: 'low' | 'medium' | 'high' | 'critical' = 'low'
+		if (criticalRiskEndpoints > 0) {
+			overallRisk = 'critical'
+		} else if (highRiskEndpoints > 0) {
+			overallRisk = 'high'
+		} else if (totalEndpoints > 0 && (publicEndpoints / totalEndpoints) > 0.5) {
+			overallRisk = 'medium'
+		}
 
 		// Generate global recommendations
 		const recommendations: string[] = []
@@ -462,6 +480,12 @@ class SecurityAuditService {
 		if (authenticationCoverage < 70) {
 			recommendations.push(
 				'[WARNING]  Increase authentication coverage across API endpoints'
+			)
+		}
+
+		if (rateLimitCoverage < 50) {
+			recommendations.push(
+				'[WARNING]  Ensure more endpoints have appropriate rate limiting'
 			)
 		}
 
@@ -492,9 +516,11 @@ class SecurityAuditService {
 			summary: {
 				publicEndpointsRatio,
 				authenticationCoverage,
-				averageSecurityScore
-			},
-			recommendations
+				rateLimitCoverage,
+				adminAccessPoints,
+				overallRisk,
+				recommendations: [...recommendations] // Use a copy to avoid reference issues
+			}
 		}
 	}
 
@@ -529,7 +555,9 @@ class SecurityAuditService {
 		summary += `Public Endpoints: ${report.publicEndpoints} (${report.summary.publicEndpointsRatio.toFixed(1)}%)\n`
 		summary += `Protected Endpoints: ${report.protectedEndpoints}\n`
 		summary += `Authentication Coverage: ${report.summary.authenticationCoverage.toFixed(1)}%\n`
-		summary += `Security Score: ${Number(report.summary.averageSecurityScore).toFixed(1)}/100\n\n`
+		summary += `Rate Limit Coverage: ${report.summary.rateLimitCoverage.toFixed(1)}%\n`
+		summary += `Admin Access Points: ${report.summary.adminAccessPoints}\n`
+		summary += `Overall Risk Level: ${report.summary.overallRisk}\n\n`
 
 		if (report.criticalRiskEndpoints > 0) {
 			summary += `[CRITICAL] CRITICAL RISK ENDPOINTS (${report.criticalRiskEndpoints}):\n`
@@ -555,7 +583,7 @@ class SecurityAuditService {
 		}
 
 		summary += 'RECOMMENDATIONS:\n'
-		for (const rec of report.recommendations) {
+		for (const rec of report.summary.recommendations) {
 			summary += `  ${rec}\n`
 		}
 
