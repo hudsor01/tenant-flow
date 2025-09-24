@@ -21,7 +21,10 @@ export const CSP_DOMAINS = {
 
 	SUPABASE: ['https://bshjmbshupiibfiewpxb.supabase.co'],
 
-	POSTHOG: ['https://us.i.posthog.com', 'https://us-assets.i.posthog.com'],
+	POSTHOG: [
+		'https://us.i.posthog.com',
+		'https://us-assets.i.posthog.com'
+	],
 
 	GOOGLE: [
 		'https://fonts.googleapis.com',

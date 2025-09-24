@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { getCSPString } from '@repo/shared/security/csp-config'
 
 const nextConfig: NextConfig = {
 	// Core optimizations
@@ -47,6 +48,10 @@ const nextConfig: NextConfig = {
 			{
 				source: '/(.*)',
 				headers: [
+					{
+						key: 'Content-Security-Policy',
+						value: getCSPString('production')
+					},
 					{
 						key: 'X-Content-Type-Options',
 						value: 'nosniff'
