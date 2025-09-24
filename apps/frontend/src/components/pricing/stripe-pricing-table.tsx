@@ -2,6 +2,9 @@
 
 import React, { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
+import { createLogger } from '@repo/shared'
+
+const logger = createLogger({ component: 'StripePricingTable' })
 
 interface StripePricingTableProps {
   pricingTableId: string
@@ -42,7 +45,11 @@ export function StripePricingTable({
       // Create the pricing table element
       const pricingTable = document.createElement('stripe-pricing-table') as HTMLElement
       pricingTable.setAttribute('pricing-table-id', pricingTableId)
-      pricingTable.setAttribute('publishable-key', process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '')
+      pricingTable.setAttribute('publishable-key',
+        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || (() => {
+          throw new Error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is required for Stripe pricing table')
+        })()
+      )
       
       if (clientReferenceId) {
         pricingTable.setAttribute('client-reference-id', clientReferenceId)
@@ -59,7 +66,15 @@ export function StripePricingTable({
       container.appendChild(pricingTable)
     }
 
-    loadScript().catch(console.error)
+    loadScript().catch((error) => {
+      logger.error('Failed to load Stripe pricing table script', {
+        action: 'stripe_script_load_failed',
+        metadata: {
+          pricingTableId,
+          error: error instanceof Error ? error.message : String(error)
+        }
+      })
+    })
   }, [pricingTableId, clientReferenceId, customerEmail, customerSessionClientSecret])
 
   return (

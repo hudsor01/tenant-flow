@@ -11,25 +11,9 @@ import { createBrowserClient } from '@supabase/ssr'
  * In development, falls back to local backend
  */
 function getStripeApiUrl(): string {
-	// Check for explicit environment variables first
-	if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-		return process.env.NEXT_PUBLIC_API_BASE_URL
-	}
-	if (process.env.NEXT_PUBLIC_BACKEND_URL) {
-		return process.env.NEXT_PUBLIC_BACKEND_URL
-	}
-
-	// In production, require environment variables
-	if (process.env.NODE_ENV === 'production') {
-		console.error(
-			'Missing required environment variable: NEXT_PUBLIC_API_BASE_URL or NEXT_PUBLIC_BACKEND_URL'
-		)
-		// Return empty string to make the error obvious in production
-		return ''
-	}
-
-	// Only use localhost as fallback in development
-	return 'http://localhost:4600'
+	return process.env.NEXT_PUBLIC_API_BASE_URL || (() => {
+		throw new Error('NEXT_PUBLIC_API_BASE_URL is required for Stripe API client configuration')
+	})()
 }
 
 interface CreateCheckoutSessionRequest {

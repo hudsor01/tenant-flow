@@ -6,8 +6,9 @@ import type { Database } from '@repo/shared'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-const API_BASE_URL =
-	process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_BACKEND_URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (() => {
+	throw new Error('NEXT_PUBLIC_API_BASE_URL is required for server-side API calls')
+})()
 
 /**
  * Server-side fetch with Supabase authentication

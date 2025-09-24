@@ -1,11 +1,7 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "./Dockerfile"
-watchPaths = ["apps/backend/**", "packages/shared/**", "packages/database/**", "package.json", "turbo.json"]
 
 [deploy]
-restartPolicyType = "on_failure" 
-restartPolicyMaxRetries = 3
-
-[environments.production]
-PORT = { default = "4600" }
+restartPolicyType = "ALWAYS"
+restartPolicyMaxRetries = 5

@@ -20,19 +20,16 @@ test.describe('API Data Flow Integration', () => {
     
     // Enable detailed logging
     page.on('console', msg => {
-      console.log(`Browser ${msg.type()}: ${msg.text()}`)
     })
 
     // Monitor API requests
     page.on('request', request => {
       if (request.url().includes('/api/')) {
-        console.log(`API Request: ${request.method()} ${request.url()}`)
       }
     })
 
     page.on('response', response => {
       if (response.url().includes('/api/')) {
-        console.log(`API Response: ${response.status()} ${response.url()}`)
       }
     })
 
@@ -66,7 +63,6 @@ test.describe('API Data Flow Integration', () => {
           const originalFetch = window.fetch
           window.fetch = async function(...args) {
             const url = args[0] as string
-            console.log('Fetch intercepted:', url)
             
             if (url.includes('/dashboard/stats')) {
               window.apiHookData.loading = true
@@ -94,7 +90,6 @@ test.describe('API Data Flow Integration', () => {
       
       // Verify API data was captured
       const apiData = await page.evaluate(() => window.apiHookData)
-      console.log('API Hook Data:', apiData)
       
       // Should have attempted to load dashboard stats
       expect(apiData.errors.length).toBe(0)
@@ -141,7 +136,6 @@ test.describe('API Data Flow Integration', () => {
         }
       })
       
-      console.log('Mock validation:', mockValidation)
       
       // At minimum, should have some form of data display
       const hasStatCards = await page.locator('[class*="card"]').count() > 0

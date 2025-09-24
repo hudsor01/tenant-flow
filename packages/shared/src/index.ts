@@ -13,7 +13,7 @@ export * from './types/index.js'
 // Browser-only API client (Supabase SSR) - Frontend specific
 export { apiClient } from './utils/api-client.js'
 
-export { logger } from './lib/frontend-logger.js'
+export { createLogger, logger } from './lib/frontend-logger.js'
 export {
 	getCurrentSession,
 	getCurrentUser,

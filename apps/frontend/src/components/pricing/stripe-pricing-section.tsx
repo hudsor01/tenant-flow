@@ -16,7 +16,7 @@ import {
 	cn,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
-import { type PricingUIData } from '@repo/shared'
+import { type PricingUIData, createLogger } from '@repo/shared'
 import { type PricingConfig } from '@repo/shared/config/pricing'
 import { useMutation } from '@tanstack/react-query'
 import {
@@ -90,6 +90,7 @@ export function StripePricingSection({
 	showStats = true,
 	compactView = false
 }: StripePricingSectionProps) {
+	const logger = createLogger({ component: 'StripePricingSection' })
 	const [isYearly, setIsYearly] = useState(false)
 
 	// Use simple fixed pricing (no more over-engineered dynamic system)
@@ -234,7 +235,12 @@ export function StripePricingSection({
 			return { success: true }
 		},
 		onError: error => {
-			console.error('Subscription error:', error)
+			logger.error('Stripe checkout session creation failed', {
+				action: 'checkout_session_failed',
+				metadata: {
+					error: error instanceof Error ? error.message : String(error)
+				}
+			})
 			// Show error toast
 			toast.error(
 				`Failed to start checkout: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -508,7 +514,7 @@ export function StripePricingSection({
 												}
 											)}
 										>
-											<plan.icon className="w-8 h-8 text-white" />
+											<plan.icon className="w-8 h-8 text-primary-foreground" />
 										</div>
 									</div>
 

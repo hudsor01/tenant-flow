@@ -7,16 +7,20 @@
 
 export const APP_CONFIG = {
 	// Application URLs
-	FRONTEND_URL: process.env.FRONTEND_URL ?? 'https://tenantflow.app',
+	FRONTEND_URL: process.env.FRONTEND_URL || (() => {
+		throw new Error('FRONTEND_URL environment variable is required')
+	})(),
 
 	// API Configuration
-	API_PORT: process.env.PORT ?? '4600',
+	API_PORT: process.env.PORT || (() => {
+		throw new Error('PORT environment variable is required')
+	})(),
 	API_PREFIX: '/api',
 
 	// CORS Configuration
-	ALLOWED_ORIGINS: process.env.CORS_ORIGINS?.split(',') ?? [
-		'https://tenantflow.app'
-	],
+	ALLOWED_ORIGINS: process.env.CORS_ORIGINS?.split(',') || (() => {
+		throw new Error('CORS_ORIGINS environment variable is required')
+	})(),
 
 	// External Services
 	SUPABASE: {
@@ -30,18 +34,21 @@ export const APP_CONFIG = {
 		SECRET_KEY: process.env.STRIPE_SECRET_KEY,
 		WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
 		// Portal return URL
-		PORTAL_RETURN_URL:
-			process.env.STRIPE_PORTAL_RETURN_URL ??
-			process.env.FRONTEND_URL ??
-			'https://tenantflow.app/settings/billing'
+		PORTAL_RETURN_URL: process.env.STRIPE_PORTAL_RETURN_URL ||
+			process.env.FRONTEND_URL || (() => {
+				throw new Error('STRIPE_PORTAL_RETURN_URL or FRONTEND_URL environment variable is required')
+			})()
 	},
 
 	// Email Configuration
 	EMAIL: {
 		RESEND_API_KEY: process.env.RESEND_API_KEY,
-		FROM_ADDRESS:
-			process.env.EMAIL_FROM_ADDRESS ?? 'noreply@tenantflow.app',
-		SUPPORT_EMAIL: process.env.SUPPORT_EMAIL ?? 'support@tenantflow.app'
+		FROM_ADDRESS: process.env.EMAIL_FROM_ADDRESS || (() => {
+			throw new Error('EMAIL_FROM_ADDRESS environment variable is required')
+		})(),
+		SUPPORT_EMAIL: process.env.SUPPORT_EMAIL || (() => {
+			throw new Error('SUPPORT_EMAIL environment variable is required')
+		})()
 	},
 
 	// Production Features (always enabled in stable version)
@@ -58,12 +65,16 @@ export const APP_CONFIG = {
 
 	// Security
 	JWT_SECRET: process.env.JWT_SECRET,
-	JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '7d',
+	JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || (() => {
+		throw new Error('JWT_EXPIRES_IN environment variable is required')
+	})(),
 
 	// Rate Limiting
 	RATE_LIMIT: {
 		WINDOW_MS: 15 * 60 * 1000, // 15 minutes
-		MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX ?? '100', 10)
+		MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX || (() => {
+			throw new Error('RATE_LIMIT_MAX environment variable is required')
+		})(), 10)
 	}
 } as const
 

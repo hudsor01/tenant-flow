@@ -22,6 +22,7 @@ import { useDeleteUnit } from '@/hooks/api/units'
 import { ANIMATION_DURATIONS, TYPOGRAPHY_SCALE } from '@/lib/design-system'
 import { buttonClasses, cardClasses, cn, inputClasses } from '@/lib/utils'
 import type { Database, UnitStats } from '@repo/shared'
+import { createLogger } from '@repo/shared'
 import type { Column, ColumnDef } from '@tanstack/react-table'
 import {
 	AlertTriangle,
@@ -240,6 +241,7 @@ interface UnitActionsProps {
 }
 
 function UnitActions({ unit }: UnitActionsProps) {
+	const logger = createLogger({ component: 'UnitActions' })
 	const [viewOpen, setViewOpen] = React.useState(false)
 	const [editOpen, setEditOpen] = React.useState(false)
 	const [deleteOpen, setDeleteOpen] = React.useState(false)
@@ -254,7 +256,14 @@ function UnitActions({ unit }: UnitActionsProps) {
 			toast.success(`Unit ${unit.unitNumber} has been deleted successfully`)
 			setDeleteOpen(false)
 		} catch (error) {
-			console.error('Failed to delete unit:', error)
+			logger.error('Unit deletion operation failed', {
+				action: 'unit_delete_failed',
+				metadata: {
+					unitId: unit.id,
+					unitNumber: unit.unitNumber,
+					error: error instanceof Error ? error.message : String(error)
+				}
+			})
 			toast.error('Failed to delete unit. Please try again.')
 		} finally {
 			setIsDeleting(false)

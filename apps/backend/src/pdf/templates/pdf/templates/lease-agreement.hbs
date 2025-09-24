@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Residential Lease Agreement</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1in;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #333;
+            background: white;
+        }
+        
+        .container {
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: 0;
+        }
+        
+        /* Header Styles */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 24pt;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .header .subtitle {
+            font-size: 12pt;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        .header .state-notice {
+            font-size: 10pt;
+            color: #e74c3c;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        /* Section Styles */
+        .section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 14pt;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #ecf0f1;
+            border-left: 4px solid #3498db;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .subsection {
+            margin-bottom: 20px;
+            padding-left: 10px;
+        }
+        
+        .subsection-title {
+            font-size: 12pt;
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+        
+        /* Information Blocks */
+        .info-block {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #3498db;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+            align-items: baseline;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #2c3e50;
+            min-width: 150px;
+            margin-right: 15px;
+        }
+        
+        .info-value {
+            flex: 1;
+            color: #34495e;
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        
+        /* Terms and Conditions */
+        .terms-list {
+            counter-reset: section;
+            margin-left: 20px;
+        }
+        
+        .term-item {
+            margin-bottom: 15px;
+            counter-increment: section;
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .term-item::before {
+            content: counter(section) ".";
+            position: absolute;
+            left: 0;
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .term-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .term-content {
+            color: #555;
+            text-align: justify;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th {
+            background: #34495e;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        /* Signature Section */
+        .signature-section {
+            page-break-before: always;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #34495e;
+        }
+        
+        .signature-block {
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .signature-field {
+            width: 45%;
+        }
+        
+        .signature-line {
+            border-bottom: 2px solid #333;
+            margin-bottom: 5px;
+            min-height: 40px;
+        }
+        
+        .signature-label {
+            font-size: 10pt;
+            color: #666;
+        }
+        
+        .signature-date {
+            margin-top: 10px;
+        }
+        
+        /* Legal Notices */
+        .legal-notice {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .legal-notice-title {
+            font-weight: 700;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .legal-notice-content {
+            color: #856404;
+            font-size: 10pt;
+        }
+        
+        /* Utility Classes */
+        .page-break {
+            page-break-after: always;
+        }
+        
+        .no-break {
+            page-break-inside: avoid;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .bold {
+            font-weight: 600;
+        }
+        
+        .uppercase {
+            text-transform: uppercase;
+        }
+        
+        .small-text {
+            font-size: 9pt;
+        }
+        
+        .mt-20 {
+            margin-top: 20px;
+        }
+        
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                font-size: 10pt;
+            }
+            
+            .section {
+                page-break-inside: avoid;
+            }
+            
+            .signature-section {
+                page-break-before: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Residential Lease Agreement</h1>
+            <div class="subtitle">State of {{property.address.state}}</div>
+            <div class="subtitle">This agreement is entered into on {{formatDate leaseStartDate}}</div>
+            {{#if stateCompliance}}
+            <div class="state-notice">This lease complies with {{property.address.state}} state regulations</div>
+            {{/if}}
+        </div>
+
+        <!-- Section 1: Parties -->
+        <div class="section">
+            <h2 class="section-title">1. PARTIES TO THE AGREEMENT</h2>
+            
+            <div class="subsection">
+                <h3 class="subsection-title">Landlord Information</h3>
+                <div class="info-block">
+                    <div class="info-row">
+                        <span class="info-label">Name:</span>
+                        <span class="info-value">{{landlord.name}}{{#if landlord.isEntity}} ({{landlord.entityType}}){{/if}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Address:</span>
+                        <span class="info-value">{{landlord.address.street}}, {{landlord.address.city}}, {{landlord.address.state}} {{landlord.address.zipCode}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Phone:</span>
+                        <span class="info-value">{{landlord.phone}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value">{{landlord.email}}</span>
+                    </div>
+                    {{#if landlord.agent}}
+                    <div class="info-row">
+                        <span class="info-label">Property Manager:</span>
+                        <span class="info-value">{{landlord.agent.name}} - {{landlord.agent.phone}}</span>
+                    </div>
+                    {{/if}}
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Tenant Information</h3>
+                {{#each tenants}}
+                <div class="info-block">
+                    <div class="info-row">
+                        <span class="info-label">Name:</span>
+                        <span class="info-value">{{this.name}}{{#if this.isMainTenant}} <span class="highlight">(Primary Tenant)</span>{{/if}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value">{{this.email}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Phone:</span>
+                        <span class="info-value">{{this.phone}}</span>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+
+        <!-- Section 2: Property Description -->
+        <div class="section">
+            <h2 class="section-title">2. PROPERTY DESCRIPTION</h2>
+            
+            <div class="info-block">
+                <div class="info-row">
+                    <span class="info-label">Address:</span>
+                    <span class="info-value bold">
+                        {{property.address.street}}{{#if property.address.unit}}, Unit {{property.address.unit}}{{/if}}, 
+                        {{property.address.city}}, {{property.address.state}} {{property.address.zipCode}}
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Type:</span>
+                    <span class="info-value">{{formatPropertyType property.type}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Bedrooms:</span>
+                    <span class="info-value">{{property.bedrooms}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Bathrooms:</span>
+                    <span class="info-value">{{property.bathrooms}}</span>
+                </div>
+                {{#if property.squareFeet}}
+                <div class="info-row">
+                    <span class="info-label">Square Feet:</span>
+                    <span class="info-value">{{formatNumber property.squareFeet}}</span>
+                </div>
+                {{/if}}
+                {{#if property.parking}}
+                <div class="info-row">
+                    <span class="info-label">Parking:</span>
+                    <span class="info-value">
+                        {{#if property.parking.included}}
+                            {{property.parking.spaces}} space(s) included
+                            {{#if property.parking.monthly_fee}}
+                                (Additional parking: {{formatCurrency property.parking.monthly_fee}}/month)
+                            {{/if}}
+                        {{else}}
+                            Not included
+                        {{/if}}
+                    </span>
+                </div>
+                {{/if}}
+                {{#if property.amenities}}
+                <div class="info-row">
+                    <span class="info-label">Amenities:</span>
+                    <span class="info-value">{{join property.amenities ", "}}</span>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+
+        <!-- Section 3: Lease Terms -->
+        <div class="section">
+            <h2 class="section-title">3. LEASE TERMS</h2>
+            
+            <div class="info-block">
+                <div class="info-row">
+                    <span class="info-label">Lease Type:</span>
+                    <span class="info-value bold">{{formatLeaseType leaseTerms.type}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Start Date:</span>
+                    <span class="info-value highlight">{{formatDate leaseTerms.startDate}}</span>
+                </div>
+                {{#if leaseTerms.endDate}}
+                <div class="info-row">
+                    <span class="info-label">End Date:</span>
+                    <span class="info-value highlight">{{formatDate leaseTerms.endDate}}</span>
+                </div>
+                {{/if}}
+                <div class="info-row">
+                    <span class="info-label">Monthly Rent:</span>
+                    <span class="info-value bold" style="font-size: 14pt; color: #e74c3c;">
+                        {{formatCurrency leaseTerms.rentAmount}}
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Rent Due Date:</span>
+                    <span class="info-value">{{ordinal leaseTerms.dueDate}} day of each month</span>
+                </div>
+            </div>
+
+            {{#if leaseTerms.lateFee.enabled}}
+            <div class="subsection">
+                <h3 class="subsection-title">Late Payment Terms</h3>
+                <div class="info-block">
+                    <div class="info-row">
+                        <span class="info-label">Grace Period:</span>
+                        <span class="info-value">{{leaseTerms.lateFee.gracePeriod}} days</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Late Fee:</span>
+                        <span class="info-value">
+                            {{#if leaseTerms.lateFee.amount}}
+                                {{formatCurrency leaseTerms.lateFee.amount}}
+                            {{else}}
+                                {{leaseTerms.lateFee.percentage}}% of monthly rent
+                            {{/if}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {{/if}}
+
+            <div class="subsection">
+                <h3 class="subsection-title">Security Deposit</h3>
+                <div class="info-block">
+                    <div class="info-row">
+                        <span class="info-label">Amount:</span>
+                        <span class="info-value bold">{{formatCurrency leaseTerms.securityDeposit.amount}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Equivalent to:</span>
+                        <span class="info-value">{{leaseTerms.securityDeposit.monthsRent}} month(s) rent</span>
+                    </div>
+                    {{#if leaseTerms.securityDeposit.holdingAccount}}
+                    <div class="info-row">
+                        <span class="info-label">Holding:</span>
+                        <span class="info-value">Held in separate escrow account as required by state law</span>
+                    </div>
+                    {{/if}}
+                </div>
+            </div>
+
+            {{#if leaseTerms.additionalFees}}
+            <div class="subsection">
+                <h3 class="subsection-title">Additional Fees</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fee Type</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Refundable</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#each leaseTerms.additionalFees}}
+                        <tr>
+                            <td>{{formatFeeType this.type}}</td>
+                            <td>{{this.description}}</td>
+                            <td>{{formatCurrency this.amount}}</td>
+                            <td>{{#if this.refundable}}Yes{{else}}No{{/if}}</td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+            {{/if}}
+        </div>
+
+        <!-- Section 4: Rules and Policies -->
+        <div class="section">
+            <h2 class="section-title">4. PROPERTY RULES AND POLICIES</h2>
+
+            {{#if policies.pets}}
+            <div class="subsection">
+                <h3 class="subsection-title">Pet Policy</h3>
+                <div class="info-block">
+                    <div class="info-row">
+                        <span class="info-label">Pets Allowed:</span>
+                        <span class="info-value">{{#if policies.pets.allowed}}Yes{{else}}No{{/if}}</span>
+                    </div>
+                    {{#if policies.pets.allowed}}
+                        {{#if policies.pets.types}}
+                        <div class="info-row">
+                            <span class="info-label">Allowed Types:</span>
+                            <span class="info-value">{{join policies.pets.types ", "}}</span>
+                        </div>
+                        {{/if}}
+                        {{#if policies.pets.deposit}}
+                        <div class="info-row">
+                            <span class="info-label">Pet Deposit:</span>
+                            <span class="info-value">{{formatCurrency policies.pets.deposit}}</span>
+                        </div>
+                        {{/if}}
+                        {{#if policies.pets.monthlyFee}}
+                        <div class="info-row">
+                            <span class="info-label">Monthly Pet Fee:</span>
+                            <span class="info-value">{{formatCurrency policies.pets.monthlyFee}}</span>
+                        </div>
+                        {{/if}}
+                        {{#if policies.pets.restrictions}}
+                        <div class="info-row">
+                            <span class="info-label">Restrictions:</span>
+                            <span class="info-value">{{policies.pets.restrictions}}</span>
+                        </div>
+                        {{/if}}
+                    {{/if}}
+                </div>
+            </div>
+            {{/if}}
+
+            {{#if policies.smoking}}
+            <div class="subsection">
+                <h3 class="subsection-title">Smoking Policy</h3>
+                <div class="info-block">
+                    <div class="info-row">
+                        <span class="info-label">Smoking Allowed:</span>
+                        <span class="info-value">{{#if policies.smoking.allowed}}Yes{{else}}No{{/if}}</span>
+                    </div>
+                    {{#if policies.smoking.designatedAreas}}
+                    <div class="info-row">
+                        <span class="info-label">Designated Areas:</span>
+                        <span class="info-value">{{policies.smoking.designatedAreas}}</span>
+                    </div>
+                    {{/if}}
+                </div>
+            </div>
+            {{/if}}
+
+            {{#if policies.guests}}
+            <div class="subsection">
+                <h3 class="subsection-title">Guest Policy</h3>
+                <div class="info-block">
+                    {{#if policies.guests.overnightLimit}}
+                    <div class="info-row">
+                        <span class="info-label">Overnight Limit:</span>
+                        <span class="info-value">{{policies.guests.overnightLimit}} days per month</span>
+                    </div>
+                    {{/if}}
+                    {{#if policies.guests.extendedStayLimit}}
+                    <div class="info-row">
+                        <span class="info-label">Extended Stay Limit:</span>
+                        <span class="info-value">{{policies.guests.extendedStayLimit}} consecutive days</span>
+                    </div>
+                    {{/if}}
+                </div>
+            </div>
+            {{/if}}
+
+            {{#if policies.maintenance}}
+            <div class="subsection">
+                <h3 class="subsection-title">Maintenance Responsibilities</h3>
+                
+                {{#if policies.maintenance.tenantResponsibilities}}
+                <div class="info-block">
+                    <div class="bold mb-20">Tenant Responsibilities:</div>
+                    <ul>
+                        {{#each policies.maintenance.tenantResponsibilities}}
+                        <li>{{this}}</li>
+                        {{/each}}
+                    </ul>
+                </div>
+                {{/if}}
+
+                {{#if policies.maintenance.landlordResponsibilities}}
+                <div class="info-block">
+                    <div class="bold mb-20">Landlord Responsibilities:</div>
+                    <ul>
+                        {{#each policies.maintenance.landlordResponsibilities}}
+                        <li>{{this}}</li>
+                        {{/each}}
+                    </ul>
+                </div>
+                {{/if}}
+            </div>
+            {{/if}}
+        </div>
+
+        <!-- Section 5: Terms and Conditions -->
+        <div class="section">
+            <h2 class="section-title">5. TERMS AND CONDITIONS</h2>
+            
+            <div class="terms-list">
+                <div class="term-item">
+                    <div class="term-title">Payment Terms</div>
+                    <div class="term-content">
+                        Rent is due on the {{ordinal leaseTerms.dueDate}} day of each month. Payment should be made via check, money order, 
+                        or electronic transfer to the account specified by the Landlord. Partial payments will not be accepted unless 
+                        agreed to in writing by the Landlord.
+                    </div>
+                </div>
+
+                <div class="term-item">
+                    <div class="term-title">Use of Premises</div>
+                    <div class="term-content">
+                        The premises shall be used solely as a private residential dwelling for the Tenant(s) listed above. 
+                        No business activities that would increase traffic, violate zoning laws, or disturb neighbors are permitted 
+                        without written consent from the Landlord.
+                    </div>
+                </div>
+
+                <div class="term-item">
+                    <div class="term-title">Utilities and Services</div>
+                    <div class="term-content">
+                        Tenant is responsible for payment of all utilities and services, except as otherwise specified in this agreement. 
+                        This includes but is not limited to electricity, gas, water, sewer, trash collection, internet, and cable services 
+                        unless explicitly stated otherwise in writing.
+                    </div>
+                </div>
+
+                <div class="term-item">
+                    <div class="term-title">Property Condition and Maintenance</div>
+                    <div class="term-content">
+                        Tenant acknowledges that the premises are in good condition. Tenant shall maintain the premises in a clean and 
+                        sanitary condition and shall not make any alterations to the property without written consent from the Landlord. 
+                        Normal wear and tear excepted, Tenant shall return the premises in the same condition as received.
+                    </div>
+                </div>
+
+                <div class="term-item">
+                    <div class="term-title">Entry and Inspection</div>
+                    <div class="term-content">
+                        Landlord may enter the premises with {{stateNotice.entryForInspection}} hours notice for inspection, repairs, 
+                        or showing to prospective tenants or buyers. In case of emergency, Landlord may enter without notice. 
+                        Tenant shall not unreasonably withhold consent for entry.
+                    </div>
+                </div>
+
+                <div class="term-item">
+                    <div class="term-title">Termination</div>
+                    <div class="term-content">
+                        {{#if (eq leaseTerms.type 'month_to_month')}}
+                        Either party may terminate this lease with {{stateNotice.monthToMonthTermination}} days written notice.
+                        {{else}}
+                        This lease shall terminate on {{formatDate leaseTerms.endDate}} unless renewed by mutual agreement. 
+                        Early termination may result in forfeiture of security deposit and liability for remaining rent.
+                        {{/if}}
+                    </div>
+                </div>
+
+                <div class="term-item">
+                    <div class="term-title">Security Deposit Return</div>
+                    <div class="term-content">
+                        The security deposit will be returned within {{stateNotice.securityDepositReturn}} days after termination 
+                        of tenancy, less any deductions for damages beyond normal wear and tear, unpaid rent, or other charges 
+                        as permitted by law. An itemized list of deductions will be provided if any portion is withheld.
+                    </div>
+                </div>
+
+                <div class="term-item">
+                    <div class="term-title">Default and Remedies</div>
+                    <div class="term-content">
+                        If Tenant fails to pay rent or violates any term of this lease, Landlord may terminate the tenancy 
+                        with proper notice as required by law. Tenant shall be liable for all costs of enforcement including 
+                        reasonable attorney's fees.
+                    </div>
+                </div>
+
+                <div class="term-item">
+                    <div class="term-title">Governing Law</div>
+                    <div class="term-content">
+                        This lease shall be governed by the laws of the State of {{property.address.state}}. Any disputes 
+                        arising under this lease shall be resolved in the courts of {{property.address.state}}.
+                    </div>
+                </div>
+
+                <div class="term-item">
+                    <div class="term-title">Entire Agreement</div>
+                    <div class="term-content">
+                        This lease constitutes the entire agreement between the parties. No oral agreements have been made. 
+                        This lease may not be modified except in writing signed by all parties.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{#if customTerms}}
+        <!-- Section 6: Additional Terms -->
+        <div class="section">
+            <h2 class="section-title">6. ADDITIONAL TERMS AND CONDITIONS</h2>
+            
+            {{#each customTerms}}
+            <div class="subsection">
+                <h3 class="subsection-title">{{this.title}}</h3>
+                <div class="term-content">{{this.content}}</div>
+            </div>
+            {{/each}}
+        </div>
+        {{/if}}
+
+        {{#if requiredDisclosures}}
+        <!-- Required Disclosures -->
+        <div class="section page-break">
+            <h2 class="section-title">REQUIRED DISCLOSURES</h2>
+            
+            {{#each requiredDisclosures}}
+            <div class="legal-notice">
+                <div class="legal-notice-title">{{this.title}}</div>
+                <div class="legal-notice-content">{{this.content}}</div>
+            </div>
+            {{/each}}
+        </div>
+        {{/if}}
+
+        <!-- Signature Section -->
+        <div class="signature-section">
+            <h2 class="section-title">SIGNATURES AND ACKNOWLEDGMENT</h2>
+            
+            <p class="mb-20">
+                By signing below, all parties acknowledge that they have read, understood, and agree to be bound by 
+                all terms and conditions of this Residential Lease Agreement.
+            </p>
+
+            <!-- Landlord Signature -->
+            <div class="signature-block">
+                <div class="signature-field">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Landlord: {{landlord.name}}</div>
+                    <div class="signature-date">
+                        <div class="signature-line"></div>
+                        <div class="signature-label">Date</div>
+                    </div>
+                </div>
+                
+                {{#if landlord.agent}}
+                <div class="signature-field">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Authorized Agent: {{landlord.agent.name}}</div>
+                    <div class="signature-date">
+                        <div class="signature-line"></div>
+                        <div class="signature-label">Date</div>
+                    </div>
+                </div>
+                {{/if}}
+            </div>
+
+            <!-- Tenant Signatures -->
+            {{#each tenants}}
+            <div class="signature-block">
+                <div class="signature-field">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Tenant: {{this.name}}</div>
+                    <div class="signature-date">
+                        <div class="signature-line"></div>
+                        <div class="signature-label">Date</div>
+                    </div>
+                </div>
+                <div class="signature-field">
+                    <!-- Empty space for alignment -->
+                </div>
+            </div>
+            {{/each}}
+
+            <!-- Witness Section (if required) -->
+            {{#if requiresWitness}}
+            <div class="mt-20">
+                <h3 class="subsection-title">Witnesses</h3>
+                <div class="signature-block">
+                    <div class="signature-field">
+                        <div class="signature-line"></div>
+                        <div class="signature-label">Witness Name</div>
+                        <div class="signature-date">
+                            <div class="signature-line"></div>
+                            <div class="signature-label">Date</div>
+                        </div>
+                    </div>
+                    <div class="signature-field">
+                        <div class="signature-line"></div>
+                        <div class="signature-label">Witness Name</div>
+                        <div class="signature-date">
+                            <div class="signature-line"></div>
+                            <div class="signature-label">Date</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/if}}
+
+            <!-- Footer -->
+            <div class="text-center mt-20 small-text">
+                <p>This document was generated on {{formatDate generatedDate}}</p>
+                <p>Lease Agreement ID: {{leaseId}}</p>
+                {{#if documentVersion}}
+                <p>Document Version: {{documentVersion}}</p>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

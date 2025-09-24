@@ -323,7 +323,7 @@ describe('StripeSyncService', () => {
 			delete process.env.DATABASE_URL
 			delete process.env.STRIPE_SECRET_KEY
 
-			const errorService = new StripeSyncService(logger)
+			const errorService = new StripeSyncService()
 
 			await expect(errorService.onModuleInit()).rejects.toThrow(
 				'Missing required configuration for Stripe Sync Engine: DATABASE_URL and STRIPE_SECRET_KEY are required'

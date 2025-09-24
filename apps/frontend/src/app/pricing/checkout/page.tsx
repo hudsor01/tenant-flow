@@ -4,15 +4,19 @@ import { LoadingDots } from '@/components/magicui/loading-spinner'
 import { CheckoutForm } from '@/components/pricing/checkout-form'
 import { Card, CardContent } from '@/components/ui/card'
 import { StripeProvider } from '@/providers/stripe-provider'
+import { createLogger } from '@repo/shared'
 import { ArrowLeft, CheckCircle, Shield, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 
+const logger = createLogger({ component: 'CheckoutPage' })
+
 const plans = {
 	starter: {
 		name: 'Starter',
 		price: 2900, // $29/month
+		priceId: 'price_starter_monthly', // Replace with actual Stripe price ID
 		description: 'Perfect for small landlords managing up to 10 properties',
 		features: [
 			'Up to 10 properties',
@@ -25,6 +29,7 @@ const plans = {
 	professional: {
 		name: 'Professional',
 		price: 4900, // $49/month
+		priceId: 'price_professional_monthly', // Replace with actual Stripe price ID
 		description: 'Ideal for growing property management businesses',
 		features: [
 			'Up to 50 properties',
@@ -39,6 +44,7 @@ const plans = {
 	enterprise: {
 		name: 'Enterprise',
 		price: 9900, // $99/month
+		priceId: 'price_enterprise_monthly', // Replace with actual Stripe price ID
 		description: 'For large-scale property management operations',
 		features: [
 			'Unlimited properties',
@@ -69,14 +75,22 @@ function CheckoutPageContent() {
 	}
 
 	const handleError = (error: unknown) => {
-		console.error('Payment failed:', error)
+		logger.error('Payment failed during checkout', {
+			action: 'checkout_payment_failed',
+			metadata: {
+				planId,
+				planName: plan.name,
+				amount: plan.price,
+				error: error instanceof Error ? error.message : String(error)
+			}
+		})
 		router.push('/pricing?error=payment_failed')
 	}
 
 	return (
 		<main className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
 			{/* Clean header */}
-			<div className="border-b border-[var(--color-border)] bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+			<div className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
 				<div className="container mx-auto px-4 py-4">
 					<div className="flex items-center justify-between">
 						<Link
@@ -176,7 +190,10 @@ function CheckoutPageContent() {
 
 						{/* Payment form - Right side */}
 						<div>
-							<StripeProvider>
+							<StripeProvider
+								priceId={plan.priceId}
+								mode="subscription"
+							>
 								<CheckoutForm
 									amount={plan.price}
 									currency="usd"
@@ -189,18 +206,6 @@ function CheckoutPageContent() {
 									}}
 									onSuccess={handleSuccess}
 									onError={handleError}
-									business={{
-										name: 'TenantFlow',
-										description: 'Professional Property Management Platform',
-										trustSignals: [
-											'SOC 2 Compliant',
-											'99.9% Uptime',
-											'10,000+ Properties Managed'
-										]
-									}}
-									enableExpressCheckout={true}
-									showTrustSignals={false}
-									showSecurityNotice={true}
 								/>
 							</StripeProvider>
 						</div>

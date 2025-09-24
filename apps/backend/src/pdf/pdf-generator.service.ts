@@ -2,8 +2,7 @@ import {
 	Injectable,
 	InternalServerErrorException,
 	Logger,
-	OnModuleDestroy,
-	Optional
+	OnModuleDestroy
 } from '@nestjs/common'
 import puppeteer from 'puppeteer'
 
@@ -13,11 +12,10 @@ import puppeteer from 'puppeteer'
  */
 @Injectable()
 export class PDFGeneratorService implements OnModuleDestroy {
+	private readonly logger = new Logger(PDFGeneratorService.name)
 	private browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null
 
-	constructor(@Optional() private readonly logger?: Logger) {
-		// Logger context handled automatically via app-level configuration
-	}
+	constructor() {}
 
 	/**
 	 * Initialize browser instance
@@ -26,10 +24,10 @@ export class PDFGeneratorService implements OnModuleDestroy {
 		Awaited<ReturnType<typeof puppeteer.launch>>
 	> {
 		if (!this.browser?.connected) {
-			this.logger?.log('Launching Puppeteer browser')
+			this.logger.log('Launching Puppeteer browser')
 
 			// Use system Chromium in Docker, downloaded Chromium locally
-			const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+			const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH
 
 			this.browser = await puppeteer.launch({
 				headless: true,
@@ -70,7 +68,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			landscape?: boolean
 		}
 	): Promise<Buffer> {
-		this.logger?.log('Generating PDF from HTML content', {
+		this.logger.log('Generating PDF from HTML content', {
 			contentLength: htmlContent.length,
 			format: options?.format || 'A4'
 		})
@@ -103,12 +101,12 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			// Cleanup
 			await page.close()
 
-			this.logger?.log('PDF generated successfully', {
+			this.logger.log('PDF generated successfully', {
 				sizeKB: Math.round(pdfBuffer.length / 1024)
 			})
 			return Buffer.from(pdfBuffer)
 		} catch (error) {
-			this.logger?.error('Error generating PDF:', error)
+			this.logger.error('Error generating PDF:', error)
 			throw new InternalServerErrorException('Failed to generate PDF')
 		}
 	}
@@ -300,7 +298,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 	async onModuleDestroy(): Promise<void> {
 		if (this.browser) {
 			await this.browser.close()
-			this.logger?.log('PDF generator browser closed')
+			this.logger.log('PDF generator browser closed')
 		}
 	}
 }

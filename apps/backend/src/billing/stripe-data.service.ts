@@ -2,8 +2,7 @@ import {
 	BadRequestException,
 	Injectable,
 	InternalServerErrorException,
-	Logger,
-	Optional
+	Logger
 } from '@nestjs/common'
 import type {
 	ChurnAnalytics,
@@ -37,12 +36,11 @@ const STANDARD_SUBSCRIPTION_VALUE = 2999
 
 @Injectable()
 export class StripeDataService {
+	private readonly logger = new Logger(StripeDataService.name)
+
 	constructor(
-		private readonly supabaseService: SupabaseService,
-		@Optional() private readonly logger?: Logger
-	) {
-		// Logger context handled automatically via app-level configuration
-	}
+		private readonly supabaseService: SupabaseService
+	) {}
 
 	/**
 	 * Get customer subscriptions with full relationship data
@@ -52,7 +50,7 @@ export class StripeDataService {
 		customerId: string
 	): Promise<StripeSubscriptionDB[]> {
 		try {
-			this.logger?.log('Fetching customer subscriptions', { customerId })
+			this.logger.log('Fetching customer subscriptions', { customerId })
 
 			const client = this.supabaseService.getAdminClient()
 			const { data, error } = await client.rpc('get_stripe_subscriptions', {
@@ -60,7 +58,7 @@ export class StripeDataService {
 			})
 
 			if (error) {
-				this.logger?.error('Failed to fetch customer subscriptions', {
+				this.logger.error('Failed to fetch customer subscriptions', {
 					error,
 					customerId
 				})
@@ -71,7 +69,7 @@ export class StripeDataService {
 
 			return data || []
 		} catch (error) {
-			this.logger?.error('Error fetching customer subscriptions:', error)
+			this.logger.error('Error fetching customer subscriptions:', error)
 			throw new InternalServerErrorException(
 				'Failed to fetch customer subscriptions'
 			)
@@ -85,7 +83,7 @@ export class StripeDataService {
 	async getCustomer(customerId: string): Promise<StripeCustomerDB> {
 		try {
 			if (!customerId) {
-				this.logger?.error(
+				this.logger.error(
 					'Failed to fetch customer',
 					new BadRequestException('Customer ID is required')
 				)
@@ -98,7 +96,7 @@ export class StripeDataService {
 			})
 
 			if (error) {
-				this.logger?.error('Failed to fetch customer', {
+				this.logger.error('Failed to fetch customer', {
 					error,
 					customerId
 				})
@@ -108,10 +106,10 @@ export class StripeDataService {
 			return data as StripeCustomerDB
 		} catch (error) {
 			if (error instanceof BadRequestException) {
-				this.logger?.error('Failed to fetch customer', error)
+				this.logger.error('Failed to fetch customer', error)
 				throw new InternalServerErrorException('Failed to fetch customer')
 			}
-			this.logger?.error('Error fetching customer:', error)
+			this.logger.error('Error fetching customer:', error)
 			throw new InternalServerErrorException('Failed to fetch customer')
 		}
 	}
@@ -129,7 +127,7 @@ export class StripeDataService {
 			})
 
 			if (error) {
-				this.logger?.error('Failed to fetch prices', {
+				this.logger.error('Failed to fetch prices', {
 					error,
 					activeOnly
 				})
@@ -138,7 +136,7 @@ export class StripeDataService {
 
 			return data || []
 		} catch (error) {
-			this.logger?.error('Error fetching prices:', error)
+			this.logger.error('Error fetching prices:', error)
 			throw new InternalServerErrorException('Failed to fetch prices')
 		}
 	}
@@ -156,7 +154,7 @@ export class StripeDataService {
 			})
 
 			if (error) {
-				this.logger?.error('Failed to fetch products', {
+				this.logger.error('Failed to fetch products', {
 					error,
 					activeOnly
 				})
@@ -165,7 +163,7 @@ export class StripeDataService {
 
 			return data || []
 		} catch (error) {
-			this.logger?.error('Error fetching products:', error)
+			this.logger.error('Error fetching products:', error)
 			throw new InternalServerErrorException('Failed to fetch products')
 		}
 	}
@@ -183,7 +181,7 @@ export class StripeDataService {
 
 			return !error
 		} catch (error) {
-			this.logger?.error('Stripe data service health check failed:', error)
+			this.logger.error('Stripe data service health check failed:', error)
 			return false
 		}
 	}
@@ -197,7 +195,7 @@ export class StripeDataService {
 		endDate: Date
 	): Promise<RevenueAnalytics[]> {
 		try {
-			this.logger?.log('Calculating revenue analytics', { startDate, endDate })
+			this.logger.log('Calculating revenue analytics', { startDate, endDate })
 
 			const client = this.supabaseService.getAdminClient()
 			const { data: paymentIntents, error } = await client.rpc(
@@ -216,7 +214,7 @@ export class StripeDataService {
 			// Ultra-native: Simple aggregation in code, not complex SQL
 			return this.calculateRevenueAnalytics(paymentIntents || [])
 		} catch (error) {
-			this.logger?.error('Error calculating revenue analytics:', error)
+			this.logger.error('Error calculating revenue analytics:', error)
 			throw new InternalServerErrorException(
 				'Failed to calculate revenue analytics'
 			)
@@ -271,7 +269,7 @@ export class StripeDataService {
 	 */
 	async getChurnAnalytics(): Promise<ChurnAnalytics[]> {
 		try {
-			this.logger?.log('Calculating churn analytics')
+			this.logger.log('Calculating churn analytics')
 
 			const client = this.supabaseService.getAdminClient()
 			const { data: subscriptions, error } = await client.rpc(
@@ -288,7 +286,7 @@ export class StripeDataService {
 			// Ultra-native: Simple churn calculation in code
 			return this.calculateChurnAnalytics(subscriptions || [])
 		} catch (error) {
-			this.logger?.error('Error calculating churn analytics:', error)
+			this.logger.error('Error calculating churn analytics:', error)
 			throw new InternalServerErrorException(
 				'Failed to calculate churn analytics'
 			)
@@ -333,7 +331,7 @@ export class StripeDataService {
 	 */
 	async getCustomerLifetimeValue(): Promise<CustomerLifetimeValue[]> {
 		try {
-			this.logger?.log('Calculating customer lifetime value')
+			this.logger.log('Calculating customer lifetime value')
 
 			const client = this.supabaseService.getAdminClient()
 
@@ -355,7 +353,7 @@ export class StripeDataService {
 				subscriptionsResult.data || []
 			)
 		} catch (error) {
-			this.logger?.error('Error calculating customer lifetime value:', error)
+			this.logger.error('Error calculating customer lifetime value:', error)
 			throw new InternalServerErrorException(
 				'Failed to calculate customer lifetime value'
 			)
@@ -439,7 +437,7 @@ export class StripeDataService {
 			// Simple MRR calculation
 			return subscriptions || []
 		} catch (error) {
-			this.logger?.error('Error calculating MRR trend:', error)
+			this.logger.error('Error calculating MRR trend:', error)
 			throw new InternalServerErrorException('Failed to calculate MRR trend')
 		}
 	}
@@ -474,7 +472,7 @@ export class StripeDataService {
 
 			return breakdown
 		} catch (error) {
-			this.logger?.error(
+			this.logger.error(
 				'Error calculating subscription status breakdown:',
 				error
 			)
@@ -495,7 +493,7 @@ export class StripeDataService {
 		expansion_opportunity_score: number
 	}> {
 		try {
-			this.logger?.log('Calculating predictive metrics for customer', {
+			this.logger.log('Calculating predictive metrics for customer', {
 				customerId
 			})
 
@@ -543,7 +541,7 @@ export class StripeDataService {
 				expansion_opportunity_score
 			}
 		} catch (error) {
-			this.logger?.error('Error calculating predictive metrics:', error)
+			this.logger.error('Error calculating predictive metrics:', error)
 			throw new InternalServerErrorException(
 				'Failed to calculate predictive metrics'
 			)

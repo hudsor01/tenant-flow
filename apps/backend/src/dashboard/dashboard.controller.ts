@@ -18,12 +18,11 @@ import { DashboardService } from './dashboard.service'
 // @ApiTags('dashboard')
 @Controller('dashboard')
 export class DashboardController {
+	private readonly logger = new Logger(DashboardController.name)
+
 	constructor(
-		@Optional() private readonly dashboardService?: DashboardService,
-		@Optional() private readonly logger?: Logger
-	) {
-		// Logger context handled automatically via app-level configuration
-	}
+		@Optional() private readonly dashboardService?: DashboardService
+	) {}
 
 	@Get('stats')
 	// @ApiOperation({ summary: 'Get dashboard statistics for authenticated user' })

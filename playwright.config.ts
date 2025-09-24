@@ -69,7 +69,7 @@ export default defineConfig({
 	/* Shared settings for all projects */
 	use: {
 		/* Base URL for the application */
-		baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3005',
+		baseURL: 'https://tenantflow.app',
 
 		/* Collect comprehensive trace for all test runs */
 		trace: 'on',
@@ -91,7 +91,7 @@ export default defineConfig({
 
 		/* Test environment configuration */
 		extraHTTPHeaders: {
-			Authorization: process.env.E2E_API_TOKEN || ''
+			...(process.env.E2E_API_TOKEN ? { Authorization: process.env.E2E_API_TOKEN } : {})
 		},
 
 		/* Viewport size */
@@ -169,11 +169,13 @@ export default defineConfig({
 										DATABASE_URL:
 											process.env.DATABASE_URL_TEST ||
 											process.env.DATABASE_URL ||
-											'',
-										JWT_SECRET: 'test-secret',
-										STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY_TEST || '',
+											'', // Empty string will cause proper error in backend
+										JWT_SECRET: process.env.JWT_SECRET || (() => {
+											throw new Error('JWT_SECRET is required for Playwright tests')
+										})(),
+										STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY_TEST || '', // Empty string will cause proper error
 										STRIPE_WEBHOOK_SECRET:
-											process.env.STRIPE_WEBHOOK_SECRET_TEST || ''
+											process.env.STRIPE_WEBHOOK_SECRET_TEST || '' // Empty string will cause proper error
 									}
 								}
 							]),
@@ -184,9 +186,9 @@ export default defineConfig({
 						timeout: 120000,
 						env: {
 							NODE_ENV: 'test',
-							NEXT_PUBLIC_API_URL: 'http://localhost:8000/api',
+							NEXT_PUBLIC_API_URL: 'https://api.tenantflow.app/api',
 							NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
-								process.env.STRIPE_PUBLISHABLE_KEY_TEST || ''
+								process.env.STRIPE_PUBLISHABLE_KEY_TEST || '' // Empty string will cause proper error in frontend
 						}
 					}
 				],
@@ -202,8 +204,10 @@ export default defineConfig({
 	/* Test metadata */
 	metadata: {
 		project: 'TenantFlow',
-		environment: process.env.NODE_ENV || 'test',
-		version: process.env.npm_package_version || '1.0.0'
+		environment: process.env.NODE_ENV || (() => {
+			throw new Error('NODE_ENV environment variable is required for Playwright tests')
+		})(),
+		version: process.env.npm_package_version || undefined // Let it be undefined if not set
 	}
 })
 
@@ -221,7 +225,7 @@ export const testPatterns = {
 /* Environment-specific configurations */
 export const environments = {
 	development: {
-		baseURL: 'http://localhost:3000',
+		baseURL: 'https://tenantflow.app',
 		workers: 1,
 		retries: 0
 	},

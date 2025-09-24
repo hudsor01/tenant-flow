@@ -8,7 +8,7 @@ function Card({ className, ...props }: React.ComponentProps<'div'>) {
 			data-slot="card"
 			className={cn(
 				// Base styles with token-based radius
-				'bg-card text-card-foreground flex flex-col gap-6 rounded-[16px] border py-6 shadow-sm',
+				'bg-card text-card-foreground flex flex-col gap-6 rounded-[var(--radius-large)] border py-6 shadow-sm',
 				// Enhanced transitions
 				'transition-all duration-200 ease-in-out',
 				// Hover state

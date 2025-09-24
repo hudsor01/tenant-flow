@@ -1,15 +1,8 @@
 import type { Database } from '@repo/shared'
 
-// Use Database schema for billing types - NO DUPLICATION  
+// Use Database schema for billing types - NO DUPLICATION
 export type Subscription = Database['public']['Tables']['Subscription']['Row']
 export type Invoice = Database['public']['Tables']['Invoice']['Row']
-
-// Notification types enum
-export enum NotificationType {
-	PAYMENT = 'payment',
-	BILLING = 'billing',
-	SYSTEM = 'system'
-}
 
 // Minimal types for webhook/notification handling
 export interface PaymentNotificationData {

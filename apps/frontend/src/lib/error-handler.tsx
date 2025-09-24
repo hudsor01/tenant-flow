@@ -142,14 +142,14 @@ export function showErrorToast(error: unknown, context?: ErrorContext): void {
 	const entityType = context?.entityType ? ` ${context.entityType}` : ''
 
 	// Log technical details for debugging
-	logger.error(
-		{
+	logger.error(`Error during${operation}${entityType}`, {
+		action: 'error_handler_invoked',
+		metadata: {
 			error: error instanceof Error ? error.message : String(error),
 			context,
 			userError
-		},
-		`Error during${operation}${entityType}`
-	)
+		}
+	})
 
 	// Show user-friendly toast
 	toast.error(userError.title, {

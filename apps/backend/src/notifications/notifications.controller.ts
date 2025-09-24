@@ -3,6 +3,7 @@ import {
 	Controller,
 	Delete,
 	Get,
+	Logger,
 	Param,
 	Post,
 	Put,
@@ -25,6 +26,8 @@ import { AdminOnly } from '../shared/decorators/auth.decorators'
 @Controller('notifications')
 @UseGuards(AuthGuard)
 export class NotificationsController {
+	private readonly logger = new Logger(NotificationsController.name)
+
 	constructor(
 		private readonly supabase: SupabaseService
 	) {}
