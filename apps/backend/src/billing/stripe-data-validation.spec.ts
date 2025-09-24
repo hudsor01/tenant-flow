@@ -92,7 +92,7 @@ describe('Stripe Data Validation Tests', () => {
 			const client = supabaseService.getAdminClient()
 
 			// Get customer count from database
-			const { data: dbData, error } = await (client as unknown)
+			const { data: dbData, error } = await (client as any)
 				.from('stripe.customers')
 				.select('id', { count: 'exact' })
 
@@ -111,7 +111,7 @@ describe('Stripe Data Validation Tests', () => {
 			const client = supabaseService.getAdminClient()
 
 			// Get subscription data
-			const { data: subscriptions, error } = await (client as unknown)
+			const { data: subscriptions, error } = await (client as any)
 				.from('stripe.subscriptions')
 				.select('id, status, current_period_start, current_period_end')
 				.limit(5)
@@ -141,7 +141,7 @@ describe('Stripe Data Validation Tests', () => {
 			const client = supabaseService.getAdminClient()
 
 			// Get products with their prices
-			const { data: products, error: productsError } = await (client as unknown)
+			const { data: products, error: productsError } = await (client as any)
 				.from('stripe.products')
 				.select('id, name, active')
 				.eq('active', true)
@@ -151,7 +151,7 @@ describe('Stripe Data Validation Tests', () => {
 
 			if (products && products.length > 0) {
 				// Get prices for these products
-				const { data: prices, error: pricesError } = await (client as unknown)
+				const { data: prices, error: pricesError } = await (client as any)
 					.from('stripe.prices')
 					.select('id, product, unit_amount, currency, active')
 					.in(
@@ -179,7 +179,7 @@ describe('Stripe Data Validation Tests', () => {
 			const client = supabaseService.getAdminClient()
 
 			// Find subscriptions with invalid customer references
-			const { data: invalidRefs, error } = await (client as unknown).rpc(
+			const { data: invalidRefs, error } = await (client as any).rpc(
 				'exec_sql',
 				{
 					query: `
@@ -202,7 +202,7 @@ describe('Stripe Data Validation Tests', () => {
 			const client = supabaseService.getAdminClient()
 
 			// Check that created timestamps are reasonable
-			const { data: recentData, error } = await (client as unknown)
+			const { data: recentData, error } = await (client as any)
 				.from('stripe.customers')
 				.select('id, created')
 				.order('created', { ascending: false })
@@ -212,7 +212,7 @@ describe('Stripe Data Validation Tests', () => {
 
 			if (recentData && recentData.length > 0) {
 				recentData.forEach((customer: Record<string, unknown>) => {
-					const createdDate = new Date(customer.created * 1000) // Stripe uses Unix timestamps
+					const createdDate = new Date((customer.created as number) * 1000) // Stripe uses Unix timestamps
 					expect(createdDate.getTime()).toBeLessThanOrEqual(Date.now())
 					expect(createdDate.getTime()).toBeGreaterThan(
 						Date.now() - 365 * 24 * 60 * 60 * 1000
@@ -227,7 +227,7 @@ describe('Stripe Data Validation Tests', () => {
 			const client = supabaseService.getAdminClient()
 
 			// Test various data type consistency
-			const { data: invoices, error } = await (client as unknown)
+			const { data: invoices, error } = await (client as any)
 				.from('stripe.invoices')
 				.select('id, amount_due, amount_paid, currency, status')
 				.limit(10)
@@ -241,8 +241,8 @@ describe('Stripe Data Validation Tests', () => {
 					expect(typeof invoice.amount_paid).toBe('number')
 					expect(invoice.amount_due).toBeGreaterThanOrEqual(0)
 					expect(invoice.amount_paid).toBeGreaterThanOrEqual(0)
-					expect(typeof invoice.currency).toBe('string')
-					expect(invoice.currency.length).toBe(3)
+					expect(typeof (invoice as any).currency).toBe('string')
+					expect((invoice as any).currency.length).toBe(3)
 				})
 			}
 		})
@@ -257,7 +257,7 @@ describe('Stripe Data Validation Tests', () => {
 			const startTime = Date.now()
 
 			// Test query performance on potentially large table
-			const { data: _data, error } = await (client as unknown)
+			const { data: _data, error } = await (client as any)
 				.from('stripe.customers')
 				.select('id, email, created')
 				.order('created', { ascending: false })
@@ -277,7 +277,7 @@ describe('Stripe Data Validation Tests', () => {
 			const startTime = Date.now()
 
 			// Complex query joining customers and subscriptions
-			const { data: _data2, error } = await (client as unknown).rpc(
+			const { data: _data2, error } = await (client as any).rpc(
 				'exec_sql',
 				{
 					query: `

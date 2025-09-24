@@ -7,6 +7,7 @@ import { SilentLogger } from '../__test__/silent-logger'
 import { randomUUID } from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createMock } from '@golevelup/ts-jest'
+import type { AuthServiceValidatedUser, SupabaseWebhookEvent } from '@repo/shared'
 
 // Mock the getPriceId function to avoid supabase client import issues
 jest.mock('@repo/shared', () => ({
@@ -16,13 +17,30 @@ jest.mock('@repo/shared', () => ({
 describe('AuthWebhookController', () => {
 	let controller: AuthWebhookController
 	let authService: jest.Mocked<AuthService>
-	let _supabaseService: jest.Mocked<SupabaseService>
 	let usersService: jest.Mocked<UsersService>
 	let mockSupabaseClient: jest.Mocked<SupabaseClient>
 
 	const mockUserId = randomUUID()
 	const mockUserEmail = 'test@example.com'
 	const mockUserName = 'Test User'
+
+	const mockAuthServiceValidatedUser: AuthServiceValidatedUser = {
+		id: mockUserId,
+		email: mockUserEmail,
+		name: mockUserName,
+		phone: null,
+		bio: null,
+		avatarUrl: null,
+		role: 'TENANT',
+		createdAt: new Date(),
+		updatedAt: new Date(),
+		supabaseId: mockUserId,
+		stripeCustomerId: null,
+		profileComplete: false,
+		lastLoginAt: new Date(),
+		organizationId: null,
+		emailVerified: true
+	}
 
 	const mockWebhookEvent = {
 		type: 'INSERT' as const,
@@ -49,7 +67,7 @@ describe('AuthWebhookController', () => {
 		// Clear all mocks before each test
 		jest.clearAllMocks()
 
-		mockSupabaseClient = createMock<SupabaseClient>()
+		mockSupabaseClient = createMock<SupabaseClient>() as any
 
 		const mockAuthService = createMock<AuthService>()
 
@@ -72,7 +90,6 @@ describe('AuthWebhookController', () => {
 
 		controller = module.get(AuthWebhookController)
 		authService = module.get(AuthService)
-		_supabaseService = module.get(SupabaseService)
 		usersService = module.get(UsersService)
 
 		// Spy on the controller's logger methods
@@ -84,16 +101,15 @@ describe('AuthWebhookController', () => {
 
 	describe('handleSupabaseAuthWebhook', () => {
 		it('processes user INSERT event successfully', async () => {
-			authService.syncUserWithDatabase.mockResolvedValue({
-				id: mockUserId,
-				email: mockUserEmail,
-				role: 'USER'
-			} as Tables<'User'>)
+			authService.syncUserWithDatabase.mockResolvedValue(mockAuthServiceValidatedUser)
 
 			mockSupabaseClient.rpc.mockResolvedValue({
 				data: mockSubscriptionData,
-				error: null
-			} as { data: typeof mockSubscriptionData; error: null })
+				error: null,
+				count: null,
+				status: 200,
+				statusText: 'OK'
+			} as any)
 
 			const result = await controller.handleSupabaseAuthWebhook(mockWebhookEvent, 'Bearer test')
 
@@ -172,8 +188,11 @@ describe('AuthWebhookController', () => {
 
 			mockSupabaseClient.rpc.mockResolvedValue({
 				data: mockSubscriptionData,
-				error: null
-			} as { data: typeof mockSubscriptionData; error: null })
+				error: null,
+				count: null,
+				status: 200,
+				statusText: 'OK'
+			} as any)
 
 			const result = await controller.handleSupabaseAuthWebhook(mockWebhookEvent, 'Bearer test')
 
@@ -213,7 +232,7 @@ describe('AuthWebhookController', () => {
 				}
 			}
 
-			const result = await controller.handleSupabaseAuthWebhook(noEmailEvent, 'Bearer test')
+			const result = await controller.handleSupabaseAuthWebhook(noEmailEvent as unknown as SupabaseWebhookEvent, 'Bearer test')
 
 			expect(result.success).toBe(true)
 			expect(controller['logger'].warn).toHaveBeenCalledWith('User created without email', { userId: mockUserId })
@@ -229,7 +248,7 @@ describe('AuthWebhookController', () => {
 				}
 			}
 
-			const result = await controller.handleSupabaseAuthWebhook(noEmailEvent, 'Bearer test')
+			const result = await controller.handleSupabaseAuthWebhook(noEmailEvent as unknown as SupabaseWebhookEvent, 'Bearer test')
 
 			expect(result.success).toBe(true)
 			expect(mockSupabaseClient.rpc).not.toHaveBeenCalled()
@@ -244,13 +263,9 @@ describe('AuthWebhookController', () => {
 				}
 			}
 
-			authService.syncUserWithDatabase.mockResolvedValue({
-				id: mockUserId,
-				email: mockUserEmail,
-				role: 'USER'
-			} as Tables<'User'>)
+			authService.syncUserWithDatabase.mockResolvedValue(mockAuthServiceValidatedUser)
 
-			const result = await controller.handleSupabaseAuthWebhook(noMetadataEvent, 'Bearer test')
+			const result = await controller.handleSupabaseAuthWebhook(noMetadataEvent as unknown as SupabaseWebhookEvent, 'Bearer test')
 
 			expect(result.success).toBe(true)
 			expect(authService.syncUserWithDatabase).toHaveBeenCalled()
@@ -258,16 +273,15 @@ describe('AuthWebhookController', () => {
 		})
 
 		it('continues when subscription creation fails', async () => {
-			authService.syncUserWithDatabase.mockResolvedValue({
-				id: mockUserId,
-				email: mockUserEmail,
-				role: 'USER'
-			} as Tables<'User'>)
+			authService.syncUserWithDatabase.mockResolvedValue(mockAuthServiceValidatedUser)
 
 			mockSupabaseClient.rpc.mockResolvedValue({
 				data: null,
-				error: { message: 'Stripe API error' }
-			} as { data: typeof mockSubscriptionData; error: null })
+				error: { message: 'Stripe API error' },
+				count: null,
+				status: 400,
+				statusText: 'Bad Request'
+			} as any)
 
 			const result = await controller.handleSupabaseAuthWebhook(mockWebhookEvent, 'Bearer test')
 
@@ -293,16 +307,15 @@ describe('AuthWebhookController', () => {
 		})
 
 		it('updates user with Stripe customer ID when subscription created', async () => {
-			authService.syncUserWithDatabase.mockResolvedValue({
-				id: mockUserId,
-				email: mockUserEmail,
-				role: 'USER'
-			} as Tables<'User'>)
+			authService.syncUserWithDatabase.mockResolvedValue(mockAuthServiceValidatedUser)
 
 			mockSupabaseClient.rpc.mockResolvedValue({
 				data: mockSubscriptionData,
-				error: null
-			} as { data: typeof mockSubscriptionData; error: null })
+				error: null,
+				count: null,
+				status: 200,
+				statusText: 'OK'
+			} as any)
 
 			const result = await controller.handleSupabaseAuthWebhook(mockWebhookEvent, 'Bearer test')
 

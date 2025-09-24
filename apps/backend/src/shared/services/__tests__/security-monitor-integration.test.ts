@@ -127,6 +127,7 @@ describe('SecurityMonitorService - Integration Tests', () => {
 				source: 'auth',
 				description: 'Login attempt failed',
 				ipAddress: '10.0.0.1',
+				metadata: {},
 				resolved: false
 			}
 
@@ -147,10 +148,11 @@ describe('SecurityMonitorService - Integration Tests', () => {
 			mockInsert.mockRejectedValueOnce(new Error('Database connection failed'))
 
 			const testEvent: Omit<SecurityEvent, 'id' | 'timestamp'> = {
-				type: 'critical_error',
+				type: 'malicious_request',
 				severity: 'critical',
 				source: 'system',
 				description: 'Critical security event',
+				metadata: {},
 				resolved: false
 			}
 

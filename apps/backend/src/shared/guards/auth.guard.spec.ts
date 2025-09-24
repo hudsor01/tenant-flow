@@ -98,11 +98,18 @@ describe('AuthGuard', () => {
 
 		mockExecutionContext = {
 			switchToHttp: () => ({
-				getRequest: () => mockRequest
+				getRequest: () => mockRequest,
+				getResponse: jest.fn(),
+				getNext: jest.fn()
 			}),
 			getHandler: jest.fn(),
-			getClass: jest.fn()
-		} as unknown as Reflector
+			getClass: jest.fn(),
+			getArgs: jest.fn(),
+			getArgByIndex: jest.fn(),
+			switchToWs: jest.fn(),
+			switchToRpc: jest.fn(),
+			getType: jest.fn()
+		} as ExecutionContext
 	})
 
 	afterEach(() => {

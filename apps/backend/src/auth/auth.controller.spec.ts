@@ -1,8 +1,8 @@
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { ThrottlerModule } from '@nestjs/throttler'
-import type { ValidatedUser } from '@repo/shared'
-import type { User } from '@supabase/supabase-js'
+import type { AuthServiceValidatedUser, ValidatedUser } from '@repo/shared'
+// import type { User } from '@supabase/supabase-js' // Unused import
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
 
@@ -93,7 +93,7 @@ describe('AuthController', () => {
 				phone: null,
 				bio: null,
 				avatarUrl: null,
-				role: 'user',
+				role: 'TENANT',
 				createdAt: new Date(),
 				updatedAt: new Date(),
 				emailVerified: true,
@@ -102,11 +102,18 @@ describe('AuthController', () => {
 				organizationId: null
 			}
 
-			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(mockUser)
+			const mockReturnedUser: AuthServiceValidatedUser = {
+				...mockUser,
+				role: 'TENANT',
+				profileComplete: true,
+				lastLoginAt: new Date()
+			}
+
+			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(mockReturnedUser)
 
 			const result = await controller.getCurrentUser(mockUser)
 
-			expect(result).toEqual(mockUser)
+			expect(result).toEqual(mockReturnedUser)
 			expect(mockAuthServiceInstance.getUserBySupabaseId).toHaveBeenCalledWith(
 				'user-123'
 			)
@@ -120,7 +127,7 @@ describe('AuthController', () => {
 				phone: null,
 				bio: null,
 				avatarUrl: null,
-				role: 'user',
+				role: 'TENANT',
 				createdAt: new Date(),
 				updatedAt: new Date(),
 				emailVerified: true,
@@ -139,19 +146,26 @@ describe('AuthController', () => {
 
 	describe('refreshToken', () => {
 		it('should refresh token successfully', async () => {
-			const mockToken = {
-				accessToken: 'new-token',
-				refreshToken: 'refresh-token',
-				expiresIn: 3600
+			const mockRefreshResult = {
+				access_token: 'new-token',
+				refresh_token: 'refresh-token',
+				expires_in: 3600,
+				user: {
+					id: 'user-123',
+					email: 'test@example.com',
+					name: 'Test User',
+					profileComplete: true,
+					lastLoginAt: new Date()
+				} as any
 			}
 
 			const body = { refresh_token: 'old-refresh-token' }
 
-			mockAuthServiceInstance.refreshToken.mockResolvedValue(mockToken)
+			mockAuthServiceInstance.refreshToken.mockResolvedValue(mockRefreshResult)
 
 			const result = await controller.refreshToken(body)
 
-			expect(result).toEqual(mockToken)
+			expect(result).toEqual(mockRefreshResult)
 			expect(mockAuthServiceInstance.refreshToken).toHaveBeenCalledWith(
 				'old-refresh-token'
 			)
@@ -181,14 +195,16 @@ describe('AuthController', () => {
 					phone: null,
 					bio: null,
 					avatarUrl: null,
-					role: 'user',
+					role: 'TENANT',
 					createdAt: new Date(),
 					updatedAt: new Date(),
 					emailVerified: true,
 					supabaseId: 'supa-123',
 					stripeCustomerId: null,
-					organizationId: null
-				}
+					organizationId: null,
+					profileComplete: true,
+					lastLoginAt: new Date()
+				} as any
 			}
 
 			mockAuthServiceInstance.login.mockResolvedValue(mockLoginResult)
@@ -281,33 +297,25 @@ describe('AuthController', () => {
 				formType: 'signup' as const
 			}
 
-			const mockDraft = {
-				id: 'draft-id',
-				email: 'test@example.com',
-				name: 'Test User',
-				formType: 'signup',
-				createdAt: new Date(),
-				updatedAt: new Date()
+			const mockSaveDraftResult = {
+				success: true,
+				sessionId: 'draft-id'
 			}
 
-			mockAuthServiceInstance.saveDraft.mockResolvedValue(mockDraft)
+			mockAuthServiceInstance.saveDraft.mockResolvedValue(mockSaveDraftResult)
 
 			const result = await controller.saveDraft(draftDto)
 
-			expect(result).toEqual(mockDraft)
+			expect(result).toEqual(mockSaveDraftResult)
 			expect(mockAuthServiceInstance.saveDraft).toHaveBeenCalledWith(draftDto)
 		})
 	})
 
 	describe('getDraft', () => {
 		it('should retrieve draft successfully', async () => {
-			const mockDraft = {
-				id: 'draft-id',
-				userId: 'user-123',
-				key: 'draft-123',
-				data: { content: 'Test content' },
-				createdAt: new Date(),
-				updatedAt: new Date()
+			const mockDraftResult = {
+				email: 'test@example.com',
+				name: 'Test User'
 			}
 
 			const mockRequest = {
@@ -318,11 +326,11 @@ describe('AuthController', () => {
 
 			const body = { sessionId: 'session-123' }
 
-			mockAuthServiceInstance.getDraft.mockResolvedValue(mockDraft)
+			mockAuthServiceInstance.getDraft.mockResolvedValue(mockDraftResult)
 
 			const result = await controller.getDraft(body, mockRequest)
 
-			expect(result).toEqual(mockDraft)
+			expect(result).toEqual(mockDraftResult)
 			expect(mockAuthServiceInstance.getDraft).toHaveBeenCalledWith('session-123')
 		})
 
