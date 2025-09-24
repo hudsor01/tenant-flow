@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 
 /**
  * Dashboard Page Object Model
@@ -19,7 +19,9 @@ export class DashboardPage {
 		this.statsSection = page.locator('[data-testid="dashboard-stats"]')
 		this.propertyCard = page.locator('[data-testid="property-card"]')
 		this.tenantsList = page.locator('[data-testid="tenants-list"]')
-		this.maintenanceSection = page.locator('[data-testid="maintenance-section"]')
+		this.maintenanceSection = page.locator(
+			'[data-testid="maintenance-section"]'
+		)
 		this.recentActivityFeed = page.locator('[data-testid="activity-feed"]')
 		this.navigationSidebar = page.locator('[data-testid="nav-sidebar"]')
 		this.searchBar = page.locator('[data-testid="search-bar"]')
@@ -37,8 +39,12 @@ export class DashboardPage {
 	 * Verify dashboard loaded successfully
 	 */
 	async verifyLoaded() {
-		await expect(this.statsSection).toBeVisible()
-		await expect(this.page).toHaveURL(/\/dashboard/)
+		// wait for the stats section to be visible instead of using @playwright/test expect
+		await this.statsSection.waitFor({ state: 'visible', timeout: 10000 })
+		const url = this.page.url()
+		if (!/\/dashboard/.test(url)) {
+			throw new Error(`Unexpected URL after navigation: ${url}`)
+		}
 	}
 
 	/**
@@ -46,10 +52,18 @@ export class DashboardPage {
 	 */
 	async getStats() {
 		const stats = {
-			totalProperties: await this.page.locator('[data-testid="stat-total-properties"]').textContent(),
-			totalTenants: await this.page.locator('[data-testid="stat-total-tenants"]').textContent(),
-			occupancyRate: await this.page.locator('[data-testid="stat-occupancy-rate"]').textContent(),
-			monthlyRevenue: await this.page.locator('[data-testid="stat-monthly-revenue"]').textContent()
+			totalProperties: await this.page
+				.locator('[data-testid="stat-total-properties"]')
+				.textContent(),
+			totalTenants: await this.page
+				.locator('[data-testid="stat-total-tenants"]')
+				.textContent(),
+			occupancyRate: await this.page
+				.locator('[data-testid="stat-occupancy-rate"]')
+				.textContent(),
+			monthlyRevenue: await this.page
+				.locator('[data-testid="stat-monthly-revenue"]')
+				.textContent()
 		}
 		return stats
 	}
@@ -71,8 +85,12 @@ export class DashboardPage {
 	/**
 	 * Navigate to a specific section
 	 */
-	async navigateTo(section: 'properties' | 'tenants' | 'maintenance' | 'reports' | 'settings') {
-		await this.navigationSidebar.locator(`[data-testid="nav-${section}"]`).click()
+	async navigateTo(
+		section: 'properties' | 'tenants' | 'maintenance' | 'reports' | 'settings'
+	) {
+		await this.navigationSidebar
+			.locator(`[data-testid="nav-${section}"]`)
+			.click()
 		await this.page.waitForURL(`**/${section}`, { timeout: 10000 })
 	}
 
@@ -80,13 +98,25 @@ export class DashboardPage {
 	 * Get property cards displayed
 	 */
 	async getPropertyCards() {
-		const cards = await this.propertyCard.all()
-		const properties = []
+		// use count() + nth() to iterate locator items
+		const count = await this.propertyCard.count()
+		const properties: Array<{
+			name?: string
+			address?: string
+			units?: string
+		}> = []
 
-		for (const card of cards) {
-			const name = await card.locator('[data-testid="property-name"]').textContent()
-			const address = await card.locator('[data-testid="property-address"]').textContent()
-			const units = await card.locator('[data-testid="property-units"]').textContent()
+		for (let i = 0; i < count; i++) {
+			const card = this.propertyCard.nth(i)
+			const name = await card
+				.locator('[data-testid="property-name"]')
+				.textContent()
+			const address = await card
+				.locator('[data-testid="property-address"]')
+				.textContent()
+			const units = await card
+				.locator('[data-testid="property-units"]')
+				.textContent()
 
 			properties.push({
 				name: name?.trim(),
@@ -102,13 +132,25 @@ export class DashboardPage {
 	 * Get recent activity items
 	 */
 	async getRecentActivity() {
-		const activityItems = await this.recentActivityFeed.locator('[data-testid="activity-item"]').all()
-		const activities = []
+		const itemsLocator = this.recentActivityFeed.locator(
+			'[data-testid="activity-item"]'
+		)
+		const count = await itemsLocator.count()
+		const activities: Array<{
+			type: string | null
+			message?: string
+			timestamp?: string
+		}> = []
 
-		for (const item of activityItems) {
+		for (let i = 0; i < count; i++) {
+			const item = itemsLocator.nth(i)
 			const type = await item.getAttribute('data-activity-type')
-			const message = await item.locator('[data-testid="activity-message"]').textContent()
-			const timestamp = await item.locator('[data-testid="activity-timestamp"]').textContent()
+			const message = await item
+				.locator('[data-testid="activity-message"]')
+				.textContent()
+			const timestamp = await item
+				.locator('[data-testid="activity-timestamp"]')
+				.textContent()
 
 			activities.push({
 				type,
@@ -136,18 +178,24 @@ export class DashboardPage {
 		)
 	}
 
-
 	/**
 	 * Verify dashboard data loaded
 	 */
 	async verifyDataLoaded() {
-		// Wait for stats to have non-zero values
-		await expect(
-			this.page.locator('[data-testid="stat-total-properties"]')
-		).not.toHaveText('0')
+		// wait for stats value to be visible and not '0'
+		const totalPropsText = await this.page
+			.locator('[data-testid="stat-total-properties"]')
+			.textContent()
+		if (totalPropsText?.trim() === '0') {
+			throw new Error(
+				'Dashboard stats appear to be empty (total properties = 0)'
+			)
+		}
 
 		// Verify at least one property card is displayed
-		await expect(this.propertyCard.first()).toBeVisible()
+		await this.propertyCard
+			.first()
+			.waitFor({ state: 'visible', timeout: 10000 })
 	}
 
 	/**
@@ -155,13 +203,22 @@ export class DashboardPage {
 	 */
 	async openQuickActions() {
 		await this.page.click('[data-testid="quick-actions-button"]')
-		await expect(this.page.locator('[data-testid="quick-actions-menu"]')).toBeVisible()
+		await this.page.waitForSelector('[data-testid="quick-actions-menu"]', {
+			state: 'visible',
+			timeout: 5000
+		})
 	}
 
 	/**
 	 * Perform quick action
 	 */
-	async performQuickAction(action: 'add-property' | 'add-tenant' | 'create-maintenance' | 'generate-report') {
+	async performQuickAction(
+		action:
+			| 'add-property'
+			| 'add-tenant'
+			| 'create-maintenance'
+			| 'generate-report'
+	) {
 		await this.openQuickActions()
 		await this.page.click(`[data-testid="quick-action-${action}"]`)
 
@@ -169,9 +226,10 @@ export class DashboardPage {
 		if (action === 'generate-report') {
 			await this.page.waitForURL('**/reports/new', { timeout: 10000 })
 		} else {
-			await expect(
-				this.page.locator(`[data-testid="${action}-modal"]`)
-			).toBeVisible()
+			await this.page.waitForSelector(`[data-testid="${action}-modal"]`, {
+				state: 'visible',
+				timeout: 10000
+			})
 		}
 	}
 }
