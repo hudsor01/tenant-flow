@@ -12,16 +12,28 @@ import { randomUUID } from 'crypto'
 // Set test environment variables before any modules are loaded
 process.env.NODE_ENV = 'test'
 // Production URLs only - no fallback logic, no hardcoded secrets
-if (!process.env.SUPABASE_URL) throw new Error('SUPABASE_URL required for tests')
-if (!process.env.SUPABASE_ANON_KEY) throw new Error('SUPABASE_ANON_KEY required for tests')
-if (!process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('SUPABASE_SERVICE_ROLE_KEY required for tests')
-if (!process.env.SERVICE_ROLE_KEY) process.env.SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-if (!process.env.SUPABASE_JWT_SECRET) throw new Error('SUPABASE_JWT_SECRET required for tests')
+if (!process.env.SUPABASE_URL)
+	throw new Error('SUPABASE_URL required for tests')
+if (!process.env.SUPABASE_ANON_KEY)
+	throw new Error('SUPABASE_ANON_KEY required for tests')
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY)
+	throw new Error('SUPABASE_SERVICE_ROLE_KEY required for tests')
+if (!process.env.SERVICE_ROLE_KEY)
+	process.env.SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+if (!process.env.SUPABASE_JWT_SECRET)
+	throw new Error('SUPABASE_JWT_SECRET required for tests')
 if (!process.env.JWT_SECRET) process.env.JWT_SECRET = 'test-jwt-secret-for-auth'
-if (!process.env.DIRECT_URL) throw new Error('DIRECT_URL required for tests - no localhost fallback')
-if (!process.env.CORS_ORIGINS) process.env.CORS_ORIGINS = 'https://tenantflow.app'
-if (!process.env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY required for tests - no fake fallback')
-if (!process.env.STRIPE_WEBHOOK_SECRET) throw new Error('STRIPE_WEBHOOK_SECRET required for tests - no fake fallback')
+// DIRECT_URL should fall back to DATABASE_URL if not set (same database)
+if (!process.env.DIRECT_URL && process.env.DATABASE_URL)
+	process.env.DIRECT_URL = process.env.DATABASE_URL
+if (!process.env.DIRECT_URL)
+	throw new Error('DIRECT_URL or DATABASE_URL required for tests')
+if (!process.env.CORS_ORIGINS)
+	process.env.CORS_ORIGINS = 'https://tenantflow.app'
+if (!process.env.STRIPE_SECRET_KEY)
+	throw new Error('STRIPE_SECRET_KEY required for tests - no fake fallback')
+if (!process.env.STRIPE_WEBHOOK_SECRET)
+	throw new Error('STRIPE_WEBHOOK_SECRET required for tests - no fake fallback')
 
 // Use actual environment variables (native platform feature)
 export const testSupabase = createClient<Database>(

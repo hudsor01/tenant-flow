@@ -15,7 +15,7 @@
 			},
 			{
 				"include": "pdf/templates/**/*",
-				"outDir": "src/pdf/templates"
+				"outDir": "dist"
 			}
 		],
 		"plugins": []

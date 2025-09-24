@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { SilentLogger } from '../__test__/silent-logger'
@@ -8,29 +7,21 @@ import { PDFGeneratorService } from './pdf-generator.service'
 describe('LeasePDFService', () => {
 	let service: LeasePDFService
 	let mockPDFGenerator: jest.Mocked<PDFGeneratorService>
-	let mockLogger: jest.Mocked<Logger>
 
 	beforeEach(async () => {
 		// Create mock implementations
-			mockPDFGenerator = {
+		mockPDFGenerator = {
 			generatePDF: jest.fn().mockResolvedValue(Buffer.from('mock-pdf-content')),
-			generateInvoicePDF: jest.fn().mockResolvedValue(Buffer.from('mock-invoice-pdf-content')),
-			generateLeaseAgreementPDF: jest.fn().mockResolvedValue(Buffer.from('mock-lease-pdf-content')),
+			generateInvoicePDF: jest
+				.fn()
+				.mockResolvedValue(Buffer.from('mock-invoice-pdf-content')),
+			generateLeaseAgreementPDF: jest
+				.fn()
+				.mockResolvedValue(Buffer.from('mock-lease-pdf-content')),
 			onModuleDestroy: jest.fn().mockResolvedValue(undefined),
 			browser: null,
 			getBrowser: jest.fn()
 		} as unknown as jest.Mocked<PDFGeneratorService>
-
-		mockLogger = {
-			log: jest.fn(),
-			error: jest.fn(),
-			warn: jest.fn(),
-			debug: jest.fn(),
-			verbose: jest.fn(),
-			info: jest.fn(),
-			localInstance: {} as any,
-			fatal: jest.fn()
-		} as unknown as jest.Mocked<Logger>
 
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -38,10 +29,6 @@ describe('LeasePDFService', () => {
 				{
 					provide: PDFGeneratorService,
 					useValue: mockPDFGenerator
-				},
-				{
-					provide: Logger,
-					useValue: mockLogger
 				}
 			]
 		})
@@ -49,6 +36,9 @@ describe('LeasePDFService', () => {
 			.compile()
 
 		service = module.get<LeasePDFService>(LeasePDFService)
+
+		// Spy on the actual logger instance created by the service
+		jest.spyOn(service['logger'], 'error').mockImplementation(() => {})
 	})
 
 	it('should be defined', () => {
@@ -197,26 +187,22 @@ describe('LeasePDFService', () => {
 			}
 
 			await expect(service.generateLeasePDF(leaseData)).rejects.toThrow()
-			expect(mockLogger.error).toHaveBeenCalled()
+			expect(service['logger'].error).toHaveBeenCalled()
 		})
 	})
 
 	describe('generateLeasePdf (controller method)', () => {
 		it('should return PDF buffer with metadata', async () => {
-			const result = await service.generateLeasePdf(
-				'lease-001',
-				'user-001',
-				{
-					property: {
-						address: {
-							street: '789 Oak St',
-							city: 'Los Angeles',
-							state: 'CA',
-							zipCode: '90001'
-						}
+			const result = await service.generateLeasePdf('lease-001', 'user-001', {
+				property: {
+					address: {
+						street: '789 Oak St',
+						city: 'Los Angeles',
+						state: 'CA',
+						zipCode: '90001'
 					}
 				}
-			)
+			})
 
 			expect(result).toHaveProperty('buffer')
 			expect(result).toHaveProperty('filename')
@@ -244,7 +230,7 @@ describe('LeasePDFService', () => {
 			const result = await service.generateLeasePDF(minimalData)
 
 			expect(result).toBeInstanceOf(Buffer)
-			expect(mockLogger.error).not.toHaveBeenCalled()
+			expect(service['logger'].error).not.toHaveBeenCalled()
 		})
 
 		it('should apply state-specific requirements', async () => {

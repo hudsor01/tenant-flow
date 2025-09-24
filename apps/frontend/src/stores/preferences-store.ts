@@ -1,14 +1,15 @@
-import { createStore } from "zustand/vanilla";
+import { createStore } from 'zustand/vanilla'
 
-import type { ThemeMode } from "@repo/shared";
+import { DEFAULT_THEME_MODE } from '@/lib/theme-utils'
+import type { ThemeMode } from '@repo/shared'
 
 export type PreferencesState = {
-  themeMode: ThemeMode;
-  setThemeMode: (mode: ThemeMode) => void;
-};
+	themeMode: ThemeMode
+	setThemeMode: (mode: ThemeMode) => void
+}
 
 export const createPreferencesStore = (init?: Partial<PreferencesState>) =>
-  createStore<PreferencesState>()((set) => ({
-    themeMode: init?.themeMode ?? "dark",
-    setThemeMode: (mode) => set({ themeMode: mode }),
-  }));
+	createStore<PreferencesState>()(set => ({
+		themeMode: init?.themeMode ?? DEFAULT_THEME_MODE,
+		setThemeMode: mode => set({ themeMode: mode })
+	}))

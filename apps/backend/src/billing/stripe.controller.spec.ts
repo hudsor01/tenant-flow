@@ -1,8 +1,12 @@
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
+import { EmailService } from '../shared/services/email.service'
+import { StripeWebhookService } from './stripe-webhook.service'
 import { StripeController } from './stripe.controller'
+import { StripeService } from './stripe.service'
 
 // Create properly typed mock objects
 const createMockSupabaseService = (): jest.Mocked<SupabaseService> => {
@@ -45,6 +49,9 @@ describe('StripeController', () => {
 	let mockStripe: jest.Mocked<Stripe>
 
 	beforeEach(async () => {
+		// Mock setInterval to prevent timer from running in tests
+		jest.useFakeTimers()
+
 		// Create mock instances
 		mockSupabaseService = createMockSupabaseService()
 		mockStripe = createMockStripe()
@@ -55,16 +62,52 @@ describe('StripeController', () => {
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
+				},
+				{
+					provide: EmailService,
+					useValue: {
+						sendEmail: jest.fn().mockResolvedValue(true),
+						sendPaymentSuccessEmail: jest.fn().mockResolvedValue(true),
+						sendSubscriptionEmail: jest.fn().mockResolvedValue(true)
+					}
+				},
+				{
+					provide: StripeWebhookService,
+					useValue: {
+						handleWebhook: jest.fn().mockResolvedValue(true),
+						processEvent: jest.fn().mockResolvedValue(true)
+					}
+				},
+				{
+					provide: EventEmitter2,
+					useValue: {
+						emit: jest.fn(),
+						emitAsync: jest.fn().mockResolvedValue(true)
+					}
+				},
+				{
+					provide: StripeService,
+					useValue: {
+						getStripe: jest.fn(() => mockStripe),
+						createCustomer: jest.fn().mockResolvedValue({ id: 'cus_test' }),
+						createSubscription: jest.fn().mockResolvedValue({ id: 'sub_test' }),
+						getCustomer: jest.fn().mockResolvedValue({ id: 'cus_test' })
+					}
 				}
 			]
 		}).compile()
 
 		controller = module.get<StripeController>(StripeController)
-		// Override the Stripe instance with our mock
-		const controllerWithStripe = controller as unknown as {
-			stripe: jest.Mocked<Stripe>
-		}
-		controllerWithStripe.stripe = mockStripe
+
+		// Spy on the actual logger instance created by the controller
+		jest.spyOn(controller['logger'], 'log').mockImplementation(() => {})
+		jest.spyOn(controller['logger'], 'warn').mockImplementation(() => {})
+		jest.spyOn(controller['logger'], 'error').mockImplementation(() => {})
+	})
+
+	afterEach(() => {
+		jest.clearAllTimers()
+		jest.useRealTimers()
 	})
 
 	describe('createPaymentIntent', () => {

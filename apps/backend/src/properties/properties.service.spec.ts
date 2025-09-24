@@ -526,7 +526,8 @@ describe('PropertiesService', () => {
 			).filter(
 				method =>
 					method !== 'constructor' &&
-					typeof (service as Record<string, unknown>)[method] === 'function'
+					typeof (service as unknown as Record<string, unknown>)[method] ===
+						'function'
 			)
 
 			// Should have core CRUD operations only (no business logic methods)

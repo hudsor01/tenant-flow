@@ -1,11 +1,12 @@
-import type { NextConfig } from 'next'
 import { getCSPString } from '@repo/shared/security/csp-config'
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
 	// Core optimizations
 	reactStrictMode: true,
 	productionBrowserSourceMaps: false,
 	poweredByHeader: false,
+	swcMinify: true,
 
 	// ESLint configuration
 	eslint: {

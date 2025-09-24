@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
@@ -18,7 +17,6 @@ const mockRunMigrations = runMigrations as jest.MockedFunction<
 
 describe('StripeSyncService', () => {
 	let service: StripeSyncService
-	let logger: Logger
 
 	const mockStripeSyncInstance = {
 		config: {},
@@ -35,7 +33,7 @@ describe('StripeSyncService', () => {
 		getLastSync: jest.fn(),
 		forceSync: jest.fn(),
 		cleanup: jest.fn()
-	} as unknown
+	}
 
 	beforeEach(async () => {
 		jest.clearAllMocks()
@@ -73,17 +71,6 @@ describe('StripeSyncService', () => {
 							}
 						})
 					}
-				},
-				{
-					provide: Logger,
-					useValue: {
-						log: jest.fn(),
-						info: jest.fn(),
-						error: jest.fn(),
-						warn: jest.fn(),
-						debug: jest.fn(),
-						verbose: jest.fn()
-					}
 				}
 			]
 		})
@@ -91,7 +78,11 @@ describe('StripeSyncService', () => {
 			.compile()
 
 		service = module.get<StripeSyncService>(StripeSyncService)
-		logger = module.get<Logger>(Logger)
+
+		// Spy on the actual logger instance created by the service
+		jest.spyOn(service['logger'], 'log').mockImplementation(() => {})
+		jest.spyOn(service['logger'], 'error').mockImplementation(() => {})
+		jest.spyOn(service['logger'], 'warn').mockImplementation(() => {})
 	})
 
 	afterEach(() => {
@@ -135,7 +126,7 @@ describe('StripeSyncService', () => {
 			mockRunMigrations.mockResolvedValue(undefined)
 			await service.onModuleInit()
 
-			expect(logger.log).toHaveBeenCalledWith(
+			expect(service['logger'].log).toHaveBeenCalledWith(
 				'Stripe Sync Engine initialized',
 				{
 					schema: 'stripe',
@@ -156,10 +147,10 @@ describe('StripeSyncService', () => {
 				databaseUrl: 'postgresql://test:test@localhost:5432/test',
 				schema: 'stripe'
 			})
-			expect(logger.log).toHaveBeenCalledWith(
+			expect(service['logger'].log).toHaveBeenCalledWith(
 				'Running Stripe Sync Engine migrations...'
 			)
-			expect(logger.log).toHaveBeenCalledWith(
+			expect(service['logger'].log).toHaveBeenCalledWith(
 				'Stripe Sync Engine migrations completed successfully'
 			)
 		})
@@ -169,7 +160,7 @@ describe('StripeSyncService', () => {
 			mockRunMigrations.mockRejectedValue(error)
 
 			await expect(service.onModuleInit()).rejects.toThrow('Migration failed')
-			expect(logger.error).toHaveBeenCalledWith(
+			expect(service['logger'].error).toHaveBeenCalledWith(
 				'Stripe Sync Engine initialization failed:',
 				error
 			)
@@ -224,9 +215,12 @@ describe('StripeSyncService', () => {
 			expect(mockStripeSyncInstance.syncSingleEntity).toHaveBeenCalledWith(
 				entityId
 			)
-			expect(logger.log).toHaveBeenCalledWith('Syncing single Stripe entity:', {
-				entityId
-			})
+			expect(service['logger'].log).toHaveBeenCalledWith(
+				'Syncing single Stripe entity:',
+				{
+					entityId
+				}
+			)
 			expect(result).toEqual(mockResult)
 		})
 	})
@@ -243,10 +237,10 @@ describe('StripeSyncService', () => {
 			const result = await service.backfillData()
 
 			expect(mockStripeSyncInstance.syncBackfill).toHaveBeenCalledTimes(1)
-			expect(logger.log).toHaveBeenCalledWith(
+			expect(service['logger'].log).toHaveBeenCalledWith(
 				'Starting Stripe data backfill...'
 			)
-			expect(logger.log).toHaveBeenCalledWith(
+			expect(service['logger'].log).toHaveBeenCalledWith(
 				'Stripe data backfill completed successfully',
 				expect.objectContaining({
 					duration: expect.stringMatching(/\d+\.\d+s/)
@@ -264,7 +258,7 @@ describe('StripeSyncService', () => {
 			mockStripeSyncInstance.syncBackfill.mockRejectedValue(error)
 
 			await expect(service.backfillData()).rejects.toThrow('Backfill failed')
-			expect(logger.error).toHaveBeenCalledWith(
+			expect(service['logger'].error).toHaveBeenCalledWith(
 				'Stripe data backfill failed:',
 				error
 			)
