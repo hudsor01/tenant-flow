@@ -7,9 +7,7 @@
 			"NODE_OPTIONS": "--max-old-space-size=8192",
 			"NEXT_TELEMETRY_DISABLED": "1",
 			"TURBO_REMOTE_CACHE_READ_ONLY": "false",
-			"TURBO_TEAM": "$TURBO_TEAM",
-			"TURBO_TOKEN": "$TURBO_TOKEN",
-			"TURBO_REMOTE_CACHE_SIGNATURE_KEY": "$TURBO_REMOTE_CACHE_SIGNATURE_KEY"
+			"TURBO_TEAM": "$TURBO_TEAM"
 		}
 	},
 
@@ -30,7 +28,7 @@
 	"rewrites": [
 		{
 			"source": "/api/v1/:path*",
-			"destination": "https://api.tenantflow.app/api/v1/:path*"
+			"destination": "$NEXT_PUBLIC_API_BASE_URL/api/v1/:path*"
 		}
 	],
 

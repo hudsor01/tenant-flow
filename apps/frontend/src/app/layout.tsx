@@ -1,22 +1,27 @@
 import { PostHogPageView } from '@/components/layout/posthog-pageview'
 import { WebVitals } from '@/components/layout/web-vitals'
 import { ErrorBoundary } from '@/components/magicui/error-boundary'
-import PostHogClientProvider from '@/providers/posthog-provider'
-import { QueryProvider } from '@/providers/query-provider'
-import { ThemeProvider } from '@/providers/theme-provider'
-import { AuthStoreProvider } from '@/stores/auth-provider'
+import { Providers } from '@/components/providers'
+import {
+	DEFAULT_THEME_MODE,
+	THEME_MODE_COOKIE_NAME,
+	parseThemeMode
+} from '@/lib/theme-utils'
+import type { ThemeMode } from '@repo/shared'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
+import { cookies } from 'next/headers'
 
 import { Toaster } from 'sonner'
 import './globals.css'
 
 export const metadata: Metadata = {
 	metadataBase: new URL(
-		process.env.NEXT_PUBLIC_APP_URL || (() => {
-			throw new Error('NEXT_PUBLIC_APP_URL is required for metadata base URL')
-		})()
+		process.env.NEXT_PUBLIC_APP_URL ||
+			(() => {
+				throw new Error('NEXT_PUBLIC_APP_URL is required for metadata base URL')
+			})()
 	),
 	title:
 		'TenantFlow - Simplify Property Management | Professional Property Management Software',
@@ -100,13 +105,26 @@ export const metadata: Metadata = {
 	manifest: '/manifest.json'
 }
 
-export default function RootLayout({
+export default async function RootLayout({
 	children
 }: {
 	children: React.ReactNode
 }) {
+	const cookieStore = await cookies()
+	const themePreference = parseThemeMode(
+		cookieStore.get(THEME_MODE_COOKIE_NAME)?.value
+	)
+	const initialThemeMode: ThemeMode = themePreference ?? DEFAULT_THEME_MODE
+	const resolvedTheme = initialThemeMode === 'dark' ? 'dark' : 'light'
+
 	return (
-		<html lang="en" className="light" suppressHydrationWarning>
+		<html
+			lang="en"
+			className={resolvedTheme}
+			data-theme={resolvedTheme}
+			data-theme-preference={initialThemeMode}
+			suppressHydrationWarning
+		>
 			<head>
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<meta name="theme-color" content="var(--color-system-blue)" />
@@ -176,34 +194,22 @@ export default function RootLayout({
 				/>
 			</head>
 			<body>
-				<ThemeProvider
-					attribute="class"
-					defaultTheme="light"
-					enableSystem={false}
-					disableTransitionOnChange
-					forcedTheme="light"
-				>
-					<QueryProvider>
-						<PostHogClientProvider>
-							<AuthStoreProvider>
-								<ErrorBoundary>{children}</ErrorBoundary>
-								<Toaster
-									position="top-right"
-									toastOptions={{
-										className: 'sonner-toast',
-										duration: 4000
-									}}
-									richColors
-									closeButton
-								/>
-							</AuthStoreProvider>
-							<PostHogPageView />
-						</PostHogClientProvider>
-					</QueryProvider>
-					<Analytics />
-					<SpeedInsights />
-					<WebVitals />
-				</ThemeProvider>
+				<Providers initialThemeMode={initialThemeMode}>
+					<ErrorBoundary>{children}</ErrorBoundary>
+					<Toaster
+						position="top-right"
+						toastOptions={{
+							className: 'sonner-toast',
+							duration: 4000
+						}}
+						richColors
+						closeButton
+					/>
+					<PostHogPageView />
+				</Providers>
+				<Analytics />
+				<SpeedInsights />
+				<WebVitals />
 			</body>
 		</html>
 	)

@@ -3,9 +3,10 @@
  * Implements Apple's health check obsession with detailed service monitoring
  */
 
-import { Controller, Get, Inject, Logger } from '@nestjs/common'
+import { Controller, Get, Inject, Logger, Res } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 import type { ServiceHealth, SystemHealth } from '@repo/shared'
+import type { Response } from 'express'
 import { hostname } from 'os'
 import { StripeSyncService } from '../billing/stripe-sync.service'
 import { SupabaseService } from '../database/supabase.service'
@@ -29,7 +30,8 @@ export class HealthController {
 		private readonly stripeFdw: StripeFdwHealthIndicator,
 		private readonly resilience: ResilienceService,
 		private readonly stripeSyncService: StripeSyncService,
-		@Inject('SUPABASE_SERVICE_FOR_HEALTH') private readonly supabaseClient: SupabaseService
+		@Inject('SUPABASE_SERVICE_FOR_HEALTH')
+		private readonly supabaseClient: SupabaseService
 	) {
 		// Factory provider pattern ensures proper injection in Railway deployment
 		this.logger.log('SupabaseService injected via factory provider', {
@@ -40,7 +42,7 @@ export class HealthController {
 
 	@Get()
 	@Public()
-	async check() {
+	async check(@Res() res: Response) {
 		// CRITICAL: This health check MUST verify database connectivity
 		// The entire application depends on Supabase - auth won't work without it
 		this.logger.log('Health check started - checking database connectivity')
@@ -62,7 +64,6 @@ export class HealthController {
 
 			// Determine overall health based on database status
 			const isHealthy = dbHealth.status === 'healthy'
-			const status = isHealthy ? 'ok' : 'unhealthy'
 
 			// Log the result
 			if (!isHealthy) {
@@ -76,16 +77,22 @@ export class HealthController {
 
 			// Return health status with database connectivity info
 			const response = {
-				status,
+				status: isHealthy ? 'ok' : 'unhealthy',
 				timestamp: new Date().toISOString(),
-				environment: process.env.NODE_ENV || (() => {
-					throw new Error('NODE_ENV is required for health check reporting')
-				})(),
+				environment:
+					process.env.NODE_ENV ||
+					(() => {
+						throw new Error('NODE_ENV is required for health check reporting')
+					})(),
 				uptime: process.uptime(),
 				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-				version: process.env.npm_package_version || (() => {
-					throw new Error('npm_package_version not available - ensure package.json version is accessible at runtime')
-				})(),
+				version:
+					process.env.npm_package_version ||
+					(() => {
+						throw new Error(
+							'npm_package_version not available - ensure package.json version is accessible at runtime'
+						)
+					})(),
 				service: 'backend-api',
 				database: {
 					status: dbHealth.status,
@@ -95,49 +102,54 @@ export class HealthController {
 
 			// If database is unhealthy, return 503 Service Unavailable
 			if (!isHealthy) {
-				// Note: In NestJS, we typically throw an exception but for health checks
-				// we need to return the response with proper status code
-				// The caller should handle the response status
-				return {
+				return res.status(503).json({
 					...response,
 					error: 'Database connection failed'
-				}
+				})
 			}
 
-			return response
+			// Return 200 OK when healthy (required by Railway)
+			return res.status(200).json(response)
 		} catch (error) {
 			// Log the actual error for debugging
-			const errorMessage = error instanceof Error ? error.message : String(error)
+			const errorMessage =
+				error instanceof Error ? error.message : String(error)
 			this.logger.error('Health check failed with error', errorMessage)
 
 			// Return unhealthy status with error details
-			return {
+			return res.status(503).json({
 				status: 'unhealthy',
 				timestamp: new Date().toISOString(),
-				environment: process.env.NODE_ENV || (() => {
-					throw new Error('NODE_ENV is required for health check reporting')
-				})(),
+				environment:
+					process.env.NODE_ENV ||
+					(() => {
+						throw new Error('NODE_ENV is required for health check reporting')
+					})(),
 				uptime: process.uptime(),
 				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-				version: process.env.npm_package_version || (() => {
-					throw new Error('npm_package_version not available - ensure package.json version is accessible at runtime')
-				})(),
+				version:
+					process.env.npm_package_version ||
+					(() => {
+						throw new Error(
+							'npm_package_version not available - ensure package.json version is accessible at runtime'
+						)
+					})(),
 				service: 'backend-api',
 				database: {
 					status: 'unhealthy',
 					message: errorMessage
 				},
 				error: errorMessage
-			}
+			})
 		}
 	}
 
 	@Get('check')
 	@Public()
-	async checkEndpoint() {
+	async checkEndpoint(@Res() res: Response) {
 		// Alias for main health endpoint for backward compatibility
 		// This also needs to check database connectivity
-		return this.check()
+		return this.check(res)
 	}
 
 	@Get('ping')
@@ -227,18 +239,29 @@ export class HealthController {
 				services,
 				performance: this.getPerformanceMetrics(),
 				cache: this.resilience.getHealthStatus(),
-				version: process.env.npm_package_version || (() => {
-					throw new Error('npm_package_version not available - ensure package.json version is accessible at runtime')
-				})(),
+				version:
+					process.env.npm_package_version ||
+					(() => {
+						throw new Error(
+							'npm_package_version not available - ensure package.json version is accessible at runtime'
+						)
+					})(),
 				deployment: {
-					environment: process.env.NODE_ENV || (() => {
-					throw new Error('NODE_ENV is required for debug health check reporting')
-				})(),
-					region: process.env.RAILWAY_REGION ||
+					environment:
+						process.env.NODE_ENV ||
+						(() => {
+							throw new Error(
+								'NODE_ENV is required for debug health check reporting'
+							)
+						})(),
+					region:
+						process.env.RAILWAY_REGION ||
 						process.env.VERCEL_REGION ||
 						process.env.FLY_REGION ||
 						(() => {
-							throw new Error('Deployment region not detected - ensure RAILWAY_REGION, VERCEL_REGION, or FLY_REGION is set')
+							throw new Error(
+								'Deployment region not detected - ensure RAILWAY_REGION, VERCEL_REGION, or FLY_REGION is set'
+							)
 						})(),
 					instance: hostname()
 				}

@@ -1,17 +1,17 @@
-import type { TestingModule } from '@nestjs/testing';
-import { Test } from '@nestjs/testing'
-import { SilentLogger } from '../__test__/silent-logger'
 import { BadRequestException } from '@nestjs/common'
-import { LeasesService } from './leases.service'
-import { SupabaseService } from '../database/supabase.service'
-import { Logger } from '@nestjs/common'
+import type { TestingModule } from '@nestjs/testing'
+import { Test } from '@nestjs/testing'
 import { randomUUID } from 'crypto'
+import { SilentLogger } from '../__test__/silent-logger'
+import { SupabaseService } from '../database/supabase.service'
+import { LeasesService } from './leases.service'
 
 describe('LeasesService', () => {
 	let service: LeasesService
 	let mockSupabaseService: jest.Mocked<SupabaseService>
-	let mockLogger: jest.Mocked<Logger>
-	let mockSupabaseClient: jest.Mocked<any>
+	let mockSupabaseClient: jest.Mocked<
+		ReturnType<SupabaseService['getAdminClient']>
+	>
 
 	const generateUUID = () => randomUUID()
 
@@ -21,8 +21,8 @@ describe('LeasesService', () => {
 		unitId: generateUUID(),
 		startDate: '2024-01-01',
 		endDate: '2024-12-31',
-		monthlyRent: 1500.00,
-		securityDeposit: 3000.00,
+		monthlyRent: 1500.0,
+		securityDeposit: 3000.0,
 		paymentFrequency: 'MONTHLY',
 		status: 'ACTIVE',
 		createdAt: new Date().toISOString(),
@@ -30,23 +30,27 @@ describe('LeasesService', () => {
 		...overrides
 	})
 
-	const createMockCreateRequest = (overrides: Record<string, unknown> = {}) => ({
+	const createMockCreateRequest = (
+		overrides: Record<string, unknown> = {}
+	) => ({
 		tenantId: generateUUID(),
 		unitId: generateUUID(),
 		startDate: '2024-01-01',
 		endDate: '2024-12-31',
-		monthlyRent: 1500.00,
-		securityDeposit: 3000.00,
+		monthlyRent: 1500.0,
+		securityDeposit: 3000.0,
 		paymentFrequency: 'MONTHLY' as const,
 		status: 'DRAFT' as const,
 		...overrides
 	})
 
-	const createMockUpdateRequest = (overrides: Record<string, unknown> = {}) => ({
+	const createMockUpdateRequest = (
+		overrides: Record<string, unknown> = {}
+	) => ({
 		startDate: '2024-01-01',
 		endDate: '2024-12-31',
-		monthlyRent: 1600.00,
-		securityDeposit: 3200.00,
+		monthlyRent: 1600.0,
+		securityDeposit: 3200.0,
 		paymentFrequency: 'MONTHLY' as const,
 		status: 'ACTIVE' as const,
 		...overrides
@@ -57,24 +61,13 @@ describe('LeasesService', () => {
 			rpc: jest.fn(() => ({
 				single: jest.fn()
 			}))
-		}
-
-		mockLogger = {
-			log: jest.fn(),
-			error: jest.fn(),
-			warn: jest.fn(),
-			debug: jest.fn(),
-			verbose: jest.fn(),
-			fatal: jest.fn()
-		} as unknown as jest.Mocked<Logger>
+		} as unknown as jest.Mocked<ReturnType<SupabaseService['getAdminClient']>>
 
 		mockSupabaseService = {
 			getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient),
 			onModuleInit: jest.fn(),
 			getUserClient: jest.fn(),
-			checkConnection: jest.fn(),
-			adminClient: mockSupabaseClient,
-			logger: mockLogger
+			checkConnection: jest.fn()
 		} as unknown as jest.Mocked<SupabaseService>
 
 		const module: TestingModule = await Test.createTestingModule({
@@ -82,18 +75,17 @@ describe('LeasesService', () => {
 				LeasesService,
 				{
 					provide: SupabaseService,
-					useValue: mockSupabaseService,
-				},
-				{
-					provide: Logger,
-					useValue: mockLogger,
-				},
-			],
+					useValue: mockSupabaseService
+				}
+			]
 		})
 			.setLogger(new SilentLogger())
 			.compile()
 
 		service = module.get<LeasesService>(LeasesService)
+
+		// Spy on the actual logger instance created by the service
+		jest.spyOn(service['logger'], 'error').mockImplementation(() => {})
 	})
 
 	afterEach(() => {
@@ -176,8 +168,10 @@ describe('LeasesService', () => {
 				error: mockError
 			})
 
-			await expect(service.findAll(userId, query)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith(
+			await expect(service.findAll(userId, query)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
 				{
 					error: {
 						name: 'DatabaseError',
@@ -211,7 +205,9 @@ describe('LeasesService', () => {
 
 			const result = await service.getStats(userId)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_lease_stats', { p_user_id: userId })
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_lease_stats', {
+				p_user_id: userId
+			})
 			expect(mockRpcChain.single).toHaveBeenCalled()
 			expect(result).toEqual(mockStats)
 		})
@@ -228,11 +224,16 @@ describe('LeasesService', () => {
 			}
 			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
 
-			await expect(service.getStats(userId)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to get lease stats', {
-				userId,
-				error: mockError.message
-			})
+			await expect(service.getStats(userId)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to get lease stats',
+				{
+					userId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
@@ -249,10 +250,13 @@ describe('LeasesService', () => {
 
 			const result = await service.getExpiring(userId, days)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_expiring_leases', {
-				p_user_id: userId,
-				p_days: days
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'get_expiring_leases',
+				{
+					p_user_id: userId,
+					p_days: days
+				}
+			)
 			expect(result).toEqual(mockExpiring)
 		})
 
@@ -266,12 +270,17 @@ describe('LeasesService', () => {
 				error: mockError
 			})
 
-			await expect(service.getExpiring(userId, days)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to get expiring leases', {
-				userId,
-				days,
-				error: mockError.message
-			})
+			await expect(service.getExpiring(userId, days)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to get expiring leases',
+				{
+					userId,
+					days,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
@@ -314,11 +323,14 @@ describe('LeasesService', () => {
 			const result = await service.findOne(userId, leaseId)
 
 			expect(result).toBeNull()
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to get lease', {
-				userId,
-				leaseId,
-				error: mockError.message
-			})
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to get lease',
+				{
+					userId,
+					leaseId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
@@ -359,8 +371,8 @@ describe('LeasesService', () => {
 				unitId: generateUUID(),
 				startDate: '2024-01-01',
 				endDate: '2024-12-31',
-				monthlyRent: 1500.00,
-				securityDeposit: 3000.00
+				monthlyRent: 1500.0,
+				securityDeposit: 3000.0
 			}
 			const mockLease = createMockLease()
 
@@ -400,11 +412,16 @@ describe('LeasesService', () => {
 			}
 			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
 
-			await expect(service.create(userId, createRequest)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to create lease', {
-				userId,
-				error: mockError.message
-			})
+			await expect(service.create(userId, createRequest)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to create lease',
+				{
+					userId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
@@ -455,11 +472,14 @@ describe('LeasesService', () => {
 			const result = await service.update(userId, leaseId, updateRequest)
 
 			expect(result).toBeNull()
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to update lease', {
-				userId,
-				leaseId,
-				error: mockError.message
-			})
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to update lease',
+				{
+					userId,
+					leaseId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
@@ -489,12 +509,17 @@ describe('LeasesService', () => {
 				error: mockError
 			})
 
-			await expect(service.remove(userId, leaseId)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to delete lease', {
-				userId,
-				leaseId,
-				error: mockError.message
-			})
+			await expect(service.remove(userId, leaseId)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to delete lease',
+				{
+					userId,
+					leaseId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
@@ -537,12 +562,17 @@ describe('LeasesService', () => {
 			}
 			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
 
-			await expect(service.renew(userId, leaseId, endDate)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to renew lease', {
-				userId,
-				leaseId,
-				error: mockError.message
-			})
+			await expect(service.renew(userId, leaseId, endDate)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to renew lease',
+				{
+					userId,
+					leaseId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
@@ -607,12 +637,17 @@ describe('LeasesService', () => {
 			}
 			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
 
-			await expect(service.terminate(userId, leaseId)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to terminate lease', {
-				userId,
-				leaseId,
-				error: mockError.message
-			})
+			await expect(service.terminate(userId, leaseId)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to terminate lease',
+				{
+					userId,
+					leaseId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 })
