@@ -35,7 +35,7 @@ describe('StripeSyncService', () => {
 		getLastSync: jest.fn(),
 		forceSync: jest.fn(),
 		cleanup: jest.fn()
-	} as any
+	} as unknown
 
 	beforeEach(async () => {
 		jest.clearAllMocks()
@@ -48,7 +48,7 @@ describe('StripeSyncService', () => {
 		process.env.STRIPE_SYNC_AUTO_EXPAND_LISTS = 'true'
 
 		// Setup the mock constructor to return our mock instance
-		mockStripeSync.mockImplementation(() => mockStripeSyncInstance)
+		mockStripeSync.mockImplementation(() => mockStripeSyncInstance as never)
 
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
