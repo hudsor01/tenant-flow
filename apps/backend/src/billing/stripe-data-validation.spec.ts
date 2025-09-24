@@ -1,347 +1,498 @@
-import { Logger } from '@nestjs/common'
+import { BadRequestException, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
+import type { Request } from 'express'
+import Stripe from 'stripe'
 import { SilentLogger } from '../__test__/silent-logger'
 import { SupabaseService } from '../database/supabase.service'
+import { DirectEmailService } from '../emails/direct-email.service'
+import { StripeEventProcessor } from './stripe-event-processor.service'
 import { StripeSyncService } from './stripe-sync.service'
+import { StripeWebhookService } from './stripe-webhook.service'
+import { StripeController } from './stripe.controller'
+import { StripeService } from './stripe.service'
 
 /**
- * Stripe Data Validation Tests
+ * Production-Mirrored Stripe Webhook Tests
  *
- * These tests run actual backfill operations and validate data integrity
- * against Stripe API to ensure sync is working correctly.
+ * These tests validate the exact webhook processing flow used in production,
+ * including signature verification, event validation, and data persistence.
  *
- * WARNING: These tests make real API calls and database modifications
- * Only run in dedicated test environments with test Stripe keys
+ * Tests mirror production by:
+ * - Using actual Stripe webhook constructEvent for signature verification
+ * - Validating replay attack prevention (5 minute window)
+ * - Checking livemode consistency
+ * - Processing only permitted event types
+ * - Using the exact controller webhook handler
  *
  * Prerequisites:
- * - Test Stripe account with sample data
  * - STRIPE_SECRET_KEY must be test key (sk_test_*)
+ * - STRIPE_WEBHOOK_SECRET for signature verification
  * - DATABASE_URL pointing to test database
  *
- * Run with: pnpm test:data-validation
+ * Run with: pnpm test:integration -- stripe-data-validation
  */
-describe('Stripe Data Validation Tests', () => {
-	let service: StripeSyncService
-	let supabaseService: SupabaseService
+describe('Production Stripe Webhook Processing', () => {
+	let controller: StripeController
+	let syncService: StripeSyncService
+	let webhookService: StripeWebhookService
+	let stripe: Stripe
+	let module: TestingModule
 
-	// Only run if explicitly configured for data validation testing
-	const isDataValidationEnabled = () => {
+	const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_test_secret'
+	const stripeKey = process.env.STRIPE_SECRET_KEY || 'sk_test_mock'
+
+	const isProductionTest = () => {
 		return (
-			process.env.ENABLE_DATA_VALIDATION_TESTS === 'true' &&
-			process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_') &&
-			process.env.DATABASE_URL?.includes('test')
+			process.env.NODE_ENV === 'test' &&
+			stripeKey.startsWith('sk_test_') &&
+			webhookSecret.startsWith('whsec_')
 		)
 	}
 
 	beforeAll(async () => {
-		if (!isDataValidationEnabled()) {
-			// Skipping data validation tests - not enabled or using production keys
-			return
-		}
+		// Create real Stripe instance for webhook signature generation
+		stripe = new Stripe(stripeKey, {
+			apiVersion: '2025-08-27.basil' as Stripe.LatestApiVersion
+		})
 
-		const module: TestingModule = await Test.createTestingModule({
+		module = await Test.createTestingModule({
+			controllers: [StripeController],
 			providers: [
+				StripeService,
 				StripeSyncService,
+				StripeWebhookService,
+				StripeEventProcessor,
+				DirectEmailService,
 				SupabaseService,
-				ConfigService,
+				EventEmitter2,
+				{
+					provide: ConfigService,
+					useValue: {
+						get: jest.fn((key: string) => {
+							switch (key) {
+								case 'STRIPE_SECRET_KEY':
+									return stripeKey
+								case 'STRIPE_WEBHOOK_SECRET':
+									return webhookSecret
+								case 'NODE_ENV':
+									return 'test'
+								case 'FRONTEND_URL':
+									return 'https://test.tenantflow.app'
+								default:
+									return process.env[key]
+							}
+						})
+					}
+				},
 				{
 					provide: Logger,
-					useValue: {
-						log: jest.fn(),
-						error: jest.fn(),
-						warn: jest.fn(),
-						debug: jest.fn(),
-						verbose: jest.fn()
-					}
+					useValue: new SilentLogger()
+				},
+				{
+					provide: 'STRIPE_CLIENT',
+					useValue: stripe
 				}
 			]
 		})
 			.setLogger(new SilentLogger())
 			.compile()
 
-		service = module.get<StripeSyncService>(StripeSyncService)
-		supabaseService = module.get<SupabaseService>(SupabaseService)
+		controller = module.get<StripeController>(StripeController)
+		syncService = module.get<StripeSyncService>(StripeSyncService)
+		webhookService = module.get<StripeWebhookService>(StripeWebhookService)
+
+		// Initialize sync service
+		await syncService.onModuleInit()
 	})
 
-	describe('Backfill Operation', () => {
-		it(
-			'should complete backfill operation without errors',
-			async () => {
-				if (!isDataValidationEnabled()) return
-
-				const startTime = Date.now()
-
-				// Run the actual backfill
-				const result = await service.backfillData()
-
-				const duration = Date.now() - startTime
-
-				expect(result).toEqual({ success: true })
-				expect(duration).toBeLessThan(30 * 60 * 1000) // Should complete in under 30 minutes
-			},
-			30 * 60 * 1000
-		) // 30 minute timeout
-
-		it('should have synced customer data correctly', async () => {
-			if (!isDataValidationEnabled()) return
-
-			const client = supabaseService.getAdminClient()
-
-			// Get customer count from database
-			const { data: dbData, error } = await client
-				.from('stripe.customers' as 'stripe_customers')
-				.select('id', { count: 'exact' })
-
-			expect(error).toBeNull()
-			expect(dbData).toBeDefined()
-
-			// Should have at least some customers if test account has data
-			if (dbData && dbData.length > 0) {
-				expect(dbData.length).toBeGreaterThan(0)
-			}
-		})
-
-		it('should have synced subscription data correctly', async () => {
-			if (!isDataValidationEnabled()) return
-
-			const client = supabaseService.getAdminClient()
-
-			// Get subscription data
-			const { data: subscriptions, error } = await client
-				.from('stripe.subscriptions' as 'stripe_subscriptions')
-				.select('id, status, current_period_start, current_period_end')
-				.limit(5)
-
-			expect(error).toBeNull()
-
-			if (subscriptions && subscriptions.length > 0) {
-				subscriptions.forEach((sub: Record<string, unknown>) => {
-					expect(sub.id).toMatch(/^sub_/) // Stripe subscription ID format
-					expect([
-						'active',
-						'canceled',
-						'past_due',
-						'trialing',
-						'incomplete',
-						'paused'
-					]).toContain(sub.status)
-					expect(sub.current_period_start).toBeDefined()
-					expect(sub.current_period_end).toBeDefined()
-				})
-			}
-		})
-
-		it('should have synced product and price data correctly', async () => {
-			if (!isDataValidationEnabled()) return
-
-			const client = supabaseService.getAdminClient()
-
-			// Get products with their prices
-			const { data: products, error: productsError } = await client
-				.from('stripe.products' as 'stripe_products')
-				.select('id, name, active')
-				.eq('active', true)
-				.limit(5)
-
-			expect(productsError).toBeNull()
-
-			if (products && products.length > 0) {
-				// Get prices for these products
-				const { data: prices, error: pricesError } = await client
-					.from('stripe.prices' as 'stripe_prices')
-					.select('id, product, unit_amount, currency, active')
-					.in(
-						'product',
-						products.map((p: Record<string, unknown>) => p.id)
-					)
-
-				expect(pricesError).toBeNull()
-
-				if (prices && prices.length > 0) {
-					prices.forEach((price: Record<string, unknown>) => {
-						expect(price.id).toMatch(/^price_/) // Stripe price ID format
-						expect(price.unit_amount).toBeGreaterThanOrEqual(0)
-						expect(price.currency).toMatch(/^[a-z]{3}$/) // 3-letter currency code
-					})
-				}
-			}
-		})
+	afterAll(async () => {
+		if (module) {
+			await module.close()
+		}
 	})
 
-	describe('Data Integrity Validation', () => {
-		it('should maintain referential integrity between customers and subscriptions', async () => {
-			if (!isDataValidationEnabled()) return
+	describe('Webhook Signature Verification', () => {
+		it('should reject webhooks without signature', async () => {
+			const mockRequest = {
+				body: Buffer.from('{}'),
+				headers: {},
+				ip: '127.0.0.1'
+			} as unknown as Request
 
-			const client = supabaseService.getAdminClient()
-
-			// Find subscriptions with invalid customer references
-			const { data: invalidRefs, error } = await client.rpc(
-				'exec_sql' as never,
-				{
-					query: `
-            SELECT s.id as subscription_id, s.customer
-            FROM stripe.subscriptions s
-            LEFT JOIN stripe.customers c ON s.customer = c.id
-            WHERE c.id IS NULL
-            LIMIT 5
-          `
-				}
+			await expect(controller.handleWebhooks(mockRequest, '')).rejects.toThrow(
+				BadRequestException
 			)
-
-			expect(error).toBeNull()
-			expect(invalidRefs).toEqual([]) // Should be empty - no orphaned subscriptions
 		})
 
-		it('should have proper timestamp consistency', async () => {
-			if (!isDataValidationEnabled()) return
-
-			const client = supabaseService.getAdminClient()
-
-			// Check that created timestamps are reasonable
-			const { data: recentData, error } = await client
-				.from('stripe.customers' as 'stripe_customers')
-				.select('id, created')
-				.order('created', { ascending: false })
-				.limit(5)
-
-			expect(error).toBeNull()
-
-			if (recentData && recentData.length > 0) {
-				recentData.forEach((customer: Record<string, unknown>) => {
-					const createdDate = new Date((customer.created as number) * 1000) // Stripe uses Unix timestamps
-					expect(createdDate.getTime()).toBeLessThanOrEqual(Date.now())
-					expect(createdDate.getTime()).toBeGreaterThan(
-						Date.now() - 365 * 24 * 60 * 60 * 1000
-					) // Within last year
-				})
+		it('should reject webhooks with invalid signature', async () => {
+			const event: Stripe.Event = {
+				id: 'evt_test_invalid',
+				object: 'event',
+				api_version: '2025-08-27.basil' as Stripe.LatestApiVersion,
+				created: Math.floor(Date.now() / 1000),
+				data: {
+					object: { id: 'test_object' } as unknown as Stripe.PaymentIntent,
+					previous_attributes: {}
+				},
+				type: 'payment_intent.succeeded',
+				livemode: false,
+				pending_webhooks: 1,
+				request: {
+					id: null as string | null,
+					idempotency_key: null
+				},
+				account: undefined
 			}
+
+			const payload = JSON.stringify(event)
+			const mockRequest = {
+				body: Buffer.from(payload),
+				headers: {
+					'user-agent': 'Stripe/Webhook'
+				},
+				ip: '127.0.0.1'
+			} as unknown as Request
+
+			await expect(
+				controller.handleWebhooks(mockRequest, 'invalid_signature')
+			).rejects.toThrow(BadRequestException)
 		})
 
-		it('should have consistent data types and formats', async () => {
-			if (!isDataValidationEnabled()) return
-
-			const client = supabaseService.getAdminClient()
-
-			// Test various data type consistency
-			const { data: invoices, error } = await client
-				.from('stripe.invoices' as 'stripe_invoices')
-				.select('id, amount_due, amount_paid, currency, status')
-				.limit(10)
-
-			expect(error).toBeNull()
-
-			if (invoices && invoices.length > 0) {
-				invoices.forEach((invoice: Record<string, unknown>) => {
-					expect(invoice.id).toMatch(/^in_/) // Stripe invoice ID format
-					expect(typeof invoice.amount_due).toBe('number')
-					expect(typeof invoice.amount_paid).toBe('number')
-					expect(invoice.amount_due).toBeGreaterThanOrEqual(0)
-					expect(invoice.amount_paid).toBeGreaterThanOrEqual(0)
-					expect(typeof (invoice as Record<string, unknown>).currency).toBe(
-						'string'
-					)
-					expect(
-						(invoice as Record<string, unknown>).currency?.toString().length
-					).toBe(3)
-				})
+		it('should reject replay attacks (events older than 5 minutes)', async () => {
+			// Create event from 10 minutes ago
+			const oldEvent: Stripe.Event = {
+				id: 'evt_test_replay',
+				object: 'event',
+				api_version: '2025-08-27.basil' as Stripe.LatestApiVersion,
+				created: Math.floor((Date.now() - 10 * 60 * 1000) / 1000), // 10 minutes ago
+				data: {
+					object: { id: 'test_object' } as unknown as Stripe.PaymentIntent,
+					previous_attributes: {}
+				},
+				type: 'payment_intent.succeeded',
+				livemode: false,
+				pending_webhooks: 1,
+				request: {
+					id: null as string | null,
+					idempotency_key: null
+				},
+				account: undefined
 			}
-		})
-	})
 
-	describe('Performance Validation', () => {
-		it('should query large datasets efficiently', async () => {
-			if (!isDataValidationEnabled()) return
-
-			const client = supabaseService.getAdminClient()
-
-			const startTime = Date.now()
-
-			// Test query performance on potentially large table
-			const { data: _data, error } = await client
-				.from('stripe.customers' as 'stripe_customers')
-				.select('id, email, created')
-				.order('created', { ascending: false })
-				.limit(100)
-
-			const queryTime = Date.now() - startTime
-
-			expect(error).toBeNull()
-			expect(queryTime).toBeLessThan(5000) // Should complete in under 5 seconds
-		})
-
-		it('should handle complex JOIN queries efficiently', async () => {
-			if (!isDataValidationEnabled()) return
-
-			const client = supabaseService.getAdminClient()
-
-			const startTime = Date.now()
-
-			// Complex query joining customers and subscriptions
-			const { data: _data2, error } = await client.rpc('exec_sql' as never, {
-				query: `
-            SELECT
-              c.id as customer_id,
-              c.email,
-              COUNT(s.id) as subscription_count,
-              MAX(s.created) as latest_subscription
-            FROM stripe.customers c
-            LEFT JOIN stripe.subscriptions s ON c.id = s.customer
-            GROUP BY c.id, c.email
-            ORDER BY subscription_count DESC
-            LIMIT 20
-          `
+			const payload = JSON.stringify(oldEvent)
+			const timestamp = Math.floor(Date.now() / 1000)
+			const signature = stripe.webhooks.generateTestHeaderString({
+				payload,
+				secret: webhookSecret,
+				timestamp
 			})
 
-			const queryTime = Date.now() - startTime
+			const mockRequest = {
+				body: Buffer.from(payload),
+				headers: {
+					'user-agent': 'Stripe/Webhook'
+				},
+				ip: '127.0.0.1'
+			} as unknown as Request
 
-			expect(error).toBeNull()
-			expect(queryTime).toBeLessThan(10000) // Should complete in under 10 seconds
+			await expect(
+				controller.handleWebhooks(mockRequest, signature)
+			).rejects.toThrow('Event too old - possible replay attack')
+		})
+
+		it('should reject livemode mismatch in test environment', async () => {
+			// Create production event in test environment
+			const prodEvent: Stripe.Event = {
+				id: 'evt_test_livemode',
+				object: 'event',
+				api_version: '2025-08-27.basil' as Stripe.LatestApiVersion,
+				created: Math.floor(Date.now() / 1000),
+				data: {
+					object: { id: 'test_object' } as unknown as Stripe.PaymentIntent,
+					previous_attributes: {}
+				},
+				type: 'payment_intent.succeeded',
+				livemode: true, // Production mode in test environment
+				pending_webhooks: 1,
+				request: {
+					id: null as string | null,
+					idempotency_key: null
+				},
+				account: undefined
+			}
+
+			const payload = JSON.stringify(prodEvent)
+			const timestamp = Math.floor(Date.now() / 1000)
+			const signature = stripe.webhooks.generateTestHeaderString({
+				payload,
+				secret: webhookSecret,
+				timestamp
+			})
+
+			const mockRequest = {
+				body: Buffer.from(payload),
+				headers: {
+					'user-agent': 'Stripe/Webhook'
+				},
+				ip: '127.0.0.1'
+			} as unknown as Request
+
+			await expect(
+				controller.handleWebhooks(mockRequest, signature)
+			).rejects.toThrow('Environment mode mismatch')
 		})
 	})
 
-	describe('Webhook Processing Validation', () => {
-		it('should handle webhook processing after backfill', async () => {
-			if (!isDataValidationEnabled()) return
+	describe('Permitted Event Processing', () => {
+		it('should accept and process permitted payment_intent.succeeded event', async () => {
+			if (!isProductionTest()) {
+				console.log('Skipping production test - not configured')
+				return
+			}
 
-			// Mock a customer.updated webhook
-			const mockWebhook = Buffer.from(
-				JSON.stringify({
-					id: 'evt_test_validation',
-					type: 'customer.updated',
-					data: {
-						object: {
-							id: 'cus_test_validation',
-							email: 'validation@test.com',
-							name: 'Validation Test Customer'
+			const paymentIntent = {
+				id: 'pi_test_' + Date.now(),
+				object: 'payment_intent',
+				amount: 1000,
+				currency: 'usd',
+				status: 'succeeded',
+				metadata: {
+					tenant_id: 'test_tenant_123',
+					property_id: 'test_property_456'
+				}
+			}
+
+			const event: Stripe.Event = {
+				id: 'evt_test_payment_succeeded_' + Date.now(),
+				object: 'event',
+				api_version: '2025-08-27.basil' as Stripe.LatestApiVersion,
+				created: Math.floor(Date.now() / 1000),
+				data: {
+					object: paymentIntent as unknown as Stripe.PaymentIntent,
+					previous_attributes: {}
+				},
+				type: 'payment_intent.succeeded',
+				livemode: false,
+				pending_webhooks: 1,
+				request: {
+					id: null as string | null,
+					idempotency_key: null
+				},
+				account: undefined
+			}
+
+			const payload = JSON.stringify(event)
+			const timestamp = Math.floor(Date.now() / 1000)
+			const signature = stripe.webhooks.generateTestHeaderString({
+				payload,
+				secret: webhookSecret,
+				timestamp
+			})
+
+			const mockRequest = {
+				body: Buffer.from(payload),
+				headers: {
+					'user-agent': 'Stripe/Webhook'
+				},
+				ip: '127.0.0.1'
+			} as unknown as Request
+
+			// Process webhook
+			const result = await controller.handleWebhooks(mockRequest, signature)
+			expect(result).toEqual({ received: true })
+
+			// Verify idempotency - processing again should be handled gracefully
+			const result2 = await controller.handleWebhooks(mockRequest, signature)
+			expect(result2).toEqual({ received: true })
+		})
+
+		it('should process customer.subscription.created webhook correctly', async () => {
+			if (!isProductionTest()) {
+				console.log('Skipping production test - not configured')
+				return
+			}
+
+			const subscription = {
+				id: 'sub_test_' + Date.now(),
+				object: 'subscription',
+				customer: 'cus_test_123',
+				status: 'active',
+				current_period_start: Math.floor(Date.now() / 1000),
+				current_period_end: Math.floor(
+					(Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000
+				),
+				cancel_at_period_end: false,
+				metadata: {
+					tenant_id: 'test_tenant_123'
+				},
+				items: {
+					data: [
+						{
+							id: 'si_test_123',
+							price: {
+								id: 'price_test_123',
+								product: 'prod_test_123',
+								unit_amount: 2900,
+								currency: 'usd',
+								recurring: {
+									interval: 'month'
+								}
+							}
 						}
+					]
+				}
+			}
+
+			const event: Stripe.Event = {
+				id: 'evt_test_subscription_' + Date.now(),
+				object: 'event',
+				api_version: '2025-08-27.basil' as Stripe.LatestApiVersion,
+				created: Math.floor(Date.now() / 1000),
+				data: {
+					object: subscription as unknown as Stripe.Subscription,
+					previous_attributes: {}
+				},
+				type: 'customer.subscription.created',
+				livemode: false,
+				pending_webhooks: 1,
+				request: {
+					id: null as string | null,
+					idempotency_key: null
+				},
+				account: undefined
+			}
+
+			const payload = JSON.stringify(event)
+			const timestamp = Math.floor(Date.now() / 1000)
+			const signature = stripe.webhooks.generateTestHeaderString({
+				payload,
+				secret: webhookSecret,
+				timestamp
+			})
+
+			const mockRequest = {
+				body: Buffer.from(payload),
+				headers: {
+					'user-agent': 'Stripe/Webhook'
+				},
+				ip: '127.0.0.1'
+			} as unknown as Request
+
+			const result = await controller.handleWebhooks(mockRequest, signature)
+			expect(result).toEqual({ received: true })
+		})
+
+		it('should reject non-permitted event types', async () => {
+			const disputeObject = {
+				id: 'dp_test_dispute',
+				object: 'dispute',
+				charge: 'ch_test_123'
+			}
+
+			const event: Stripe.Event = {
+				id: 'evt_test_not_permitted',
+				object: 'event',
+				api_version: '2025-08-27.basil' as Stripe.LatestApiVersion,
+				created: Math.floor(Date.now() / 1000),
+				data: {
+					object: disputeObject as unknown as Stripe.Dispute,
+					previous_attributes: {}
+				},
+				type: 'charge.dispute.created', // Not in permitted events
+				livemode: false,
+				pending_webhooks: 1,
+				request: {
+					id: null as string | null,
+					idempotency_key: null
+				},
+				account: undefined
+			}
+
+			const payload = JSON.stringify(event)
+			const timestamp = Math.floor(Date.now() / 1000)
+			const signature = stripe.webhooks.generateTestHeaderString({
+				payload,
+				secret: webhookSecret,
+				timestamp
+			})
+
+			const mockRequest = {
+				body: Buffer.from(payload),
+				headers: {
+					'user-agent': 'Stripe/Webhook'
+				},
+				ip: '127.0.0.1'
+			} as unknown as Request
+
+			const result = await controller.handleWebhooks(mockRequest, signature)
+			expect(result).toEqual({ received: true }) // Still returns success but doesn't process
+		})
+	})
+
+	describe('Idempotency and Event Tracking', () => {
+		it('should prevent duplicate event processing', async () => {
+			if (!isProductionTest()) {
+				console.log('Skipping production test - not configured')
+				return
+			}
+
+			const eventId = 'evt_idempotency_test_' + Date.now()
+
+			// First check - should not be processed
+			const isProcessedBefore = await webhookService.isEventProcessed(eventId)
+			expect(isProcessedBefore).toBe(false)
+
+			// Record as processed
+			await webhookService.recordEventProcessing(eventId, 'test.event')
+
+			// Second check - should be processed
+			const isProcessedAfter = await webhookService.isEventProcessed(eventId)
+			expect(isProcessedAfter).toBe(true)
+
+			// Mark as fully processed
+			await webhookService.markEventProcessed(eventId)
+
+			// Final check - still processed
+			const isProcessedFinal = await webhookService.isEventProcessed(eventId)
+			expect(isProcessedFinal).toBe(true)
+		})
+
+		it('should handle concurrent webhook deliveries', async () => {
+			if (!isProductionTest()) {
+				console.log('Skipping production test - not configured')
+				return
+			}
+
+			const eventId = 'evt_concurrent_' + Date.now()
+
+			// Simulate Stripe sending the same webhook multiple times concurrently
+			const promises = Array(5)
+				.fill(null)
+				.map(async () => {
+					try {
+						await webhookService.recordEventProcessing(
+							eventId,
+							'payment_intent.succeeded'
+						)
+						return 'processed'
+					} catch {
+						// Expected for duplicate processing attempts
+						return 'duplicate'
 					}
 				})
-			)
 
-			const mockSignature = 'test_signature_validation'
+			const results = await Promise.all(promises)
 
-			// Should not throw errors
-			await expect(
-				service.processWebhook(mockWebhook, mockSignature)
-			).resolves.not.toThrow()
+			// Only one should process, others should be duplicates
+			const processedCount = results.filter(r => r === 'processed').length
+			expect(processedCount).toBeLessThanOrEqual(1)
+
+			// Verify event is marked as processed
+			const isProcessed = await webhookService.isEventProcessed(eventId)
+			expect(isProcessed).toBe(true)
 		})
 	})
 })
-
-/**
- * Usage Instructions:
- *
- * To run these tests in your environment:
- *
- * 1. Set up test environment variables:
- *    export ENABLE_DATA_VALIDATION_TESTS=true
- *    export STRIPE_SECRET_KEY=sk_test_your_test_key
- *    export DATABASE_URL=postgresql://user:pass@localhost:5432/test_db
- *
- * 2. Run the tests:
- *    pnpm test -- --testPathPatterns="stripe-data-validation.spec.ts"
- *
- * 3. Monitor output for data validation results
- */

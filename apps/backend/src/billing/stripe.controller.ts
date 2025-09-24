@@ -29,6 +29,7 @@ import type {
 	CreateSetupIntentRequest,
 	CreateSubscriptionRequest,
 	EmbeddedCheckoutRequest,
+	InvoiceWithSubscription,
 	VerifyCheckoutSessionRequest
 } from './stripe-interfaces'
 import { StripeWebhookService } from './stripe-webhook.service'
@@ -1316,11 +1317,12 @@ export class StripeController {
 			})
 
 			// Extend subscription access if applicable
+			const invoiceWithSub = stripeInvoice as InvoiceWithSubscription
 			const subscriptionId =
-				stripeInvoice.subscription &&
-				typeof stripeInvoice.subscription === 'string'
-					? stripeInvoice.subscription
-					: stripeInvoice.subscription?.toString()
+				invoiceWithSub.subscription &&
+				typeof invoiceWithSub.subscription === 'string'
+					? invoiceWithSub.subscription
+					: (invoiceWithSub.subscription as Stripe.Subscription | undefined)?.id
 			if (subscriptionId && typeof subscriptionId === 'string') {
 				await this.extendSubscriptionAccess(subscriptionId)
 				this.logger.log(
@@ -1367,11 +1369,13 @@ export class StripeController {
 				)
 			} else {
 				// Max retries reached - suspend access
+				const invoiceWithSub = stripeInvoice as InvoiceWithSubscription
 				const subscriptionId =
-					stripeInvoice.subscription &&
-					typeof stripeInvoice.subscription === 'string'
-						? stripeInvoice.subscription
-						: stripeInvoice.subscription?.toString()
+					invoiceWithSub.subscription &&
+					typeof invoiceWithSub.subscription === 'string'
+						? invoiceWithSub.subscription
+						: (invoiceWithSub.subscription as Stripe.Subscription | undefined)
+								?.id
 				if (subscriptionId && typeof subscriptionId === 'string') {
 					await this.suspendSubscriptionAccess(subscriptionId)
 				}

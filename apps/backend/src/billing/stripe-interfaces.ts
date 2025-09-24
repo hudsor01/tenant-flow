@@ -3,6 +3,21 @@
  * Only for request validation - use native Stripe types for responses
  */
 
+import type Stripe from 'stripe'
+
+// Type helper for Invoice with subscription field
+// The subscription field exists but may be null for one-off invoices
+export interface InvoiceWithSubscription extends Stripe.Invoice {
+	subscription?: string | Stripe.Subscription | null
+}
+
+// Type helper for Subscription with period fields
+// These fields exist in the API but TypeScript doesn't recognize them
+export interface SubscriptionWithPeriod extends Stripe.Subscription {
+	current_period_end?: number
+	current_period_start?: number
+}
+
 export interface CreatePaymentIntentRequest {
 	amount: number
 	tenantId: string

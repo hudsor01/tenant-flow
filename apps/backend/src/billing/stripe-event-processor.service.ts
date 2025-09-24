@@ -8,6 +8,10 @@ import {
 	PaymentReceivedEvent
 } from '../notifications/events/notification.events'
 import { EmailService } from '../shared/services/email.service'
+import type {
+	InvoiceWithSubscription,
+	SubscriptionWithPeriod
+} from './stripe-interfaces'
 
 /**
  * Stripe Event Processor Service
@@ -223,8 +227,12 @@ export class StripeEventProcessor {
 					stripeCustomerId: subscription.customer as string,
 					status: subscription.status.toUpperCase() as SubscriptionStatus,
 					userId: user.id,
-					currentPeriodEnd: subscription.current_period_end
-						? new Date(subscription.current_period_end * 1000).toISOString()
+					currentPeriodEnd: (subscription as SubscriptionWithPeriod)
+						.current_period_end
+						? new Date(
+								(subscription as SubscriptionWithPeriod).current_period_end! *
+									1000
+							).toISOString()
 						: undefined,
 					cancelAtPeriodEnd: subscription.cancel_at_period_end
 				},
@@ -280,8 +288,12 @@ export class StripeEventProcessor {
 				.from('Subscription')
 				.update({
 					status: subscription.status.toUpperCase() as SubscriptionStatus,
-					currentPeriodEnd: subscription.current_period_end
-						? new Date(subscription.current_period_end * 1000).toISOString()
+					currentPeriodEnd: (subscription as SubscriptionWithPeriod)
+						.current_period_end
+						? new Date(
+								(subscription as SubscriptionWithPeriod).current_period_end! *
+									1000
+							).toISOString()
 						: undefined,
 					cancelAtPeriodEnd: subscription.cancel_at_period_end
 				})
@@ -426,9 +438,15 @@ export class StripeEventProcessor {
 					'payment.received',
 					new PaymentReceivedEvent(
 						user.id,
-						(invoice.subscription && typeof invoice.subscription === 'string'
-							? invoice.subscription
-							: invoice.subscription?.toString()) || '',
+						((invoice as InvoiceWithSubscription).subscription &&
+						typeof (invoice as InvoiceWithSubscription).subscription ===
+							'string'
+							? ((invoice as InvoiceWithSubscription).subscription as string)
+							: (
+									(invoice as InvoiceWithSubscription).subscription as
+										| Stripe.Subscription
+										| undefined
+								)?.id) || '',
 						invoice.amount_paid,
 						invoice.currency,
 						invoice.hosted_invoice_url || '',
@@ -486,9 +504,14 @@ export class StripeEventProcessor {
 			} else {
 				// Max retries reached - suspend subscription
 				const subscriptionId =
-					invoice.subscription && typeof invoice.subscription === 'string'
-						? invoice.subscription
-						: invoice.subscription?.toString()
+					(invoice as InvoiceWithSubscription).subscription &&
+					typeof (invoice as InvoiceWithSubscription).subscription === 'string'
+						? ((invoice as InvoiceWithSubscription).subscription as string)
+						: (
+								(invoice as InvoiceWithSubscription).subscription as
+									| Stripe.Subscription
+									| undefined
+							)?.id
 				if (subscriptionId && typeof subscriptionId === 'string') {
 					await this.suspendSubscriptionAccess(subscriptionId)
 
@@ -508,9 +531,14 @@ export class StripeEventProcessor {
 				'payment.failed',
 				new PaymentFailedEvent(
 					user.id,
-					(invoice.subscription && typeof invoice.subscription === 'string'
-						? invoice.subscription
-						: invoice.subscription?.toString()) || '',
+					((invoice as InvoiceWithSubscription).subscription &&
+					typeof (invoice as InvoiceWithSubscription).subscription === 'string'
+						? ((invoice as InvoiceWithSubscription).subscription as string)
+						: (
+								(invoice as InvoiceWithSubscription).subscription as
+									| Stripe.Subscription
+									| undefined
+							)?.id) || '',
 					invoice.amount_due,
 					invoice.currency,
 					invoice.hosted_invoice_url || '',
