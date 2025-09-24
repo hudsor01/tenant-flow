@@ -1,20 +1,19 @@
 /**
  * PropertiesService Tests - Following ULTRA NATIVE Architecture Guidelines
- * 
- * - NO ABSTRACTIONS: Test RPC calls directly 
+ *
+ * - NO ABSTRACTIONS: Test RPC calls directly
  * - KISS: Simple, direct test patterns
  * - DRY: Only abstract when reused 2+ places
  * - Production mirror: Test actual service interface
  */
 
+import { BadRequestException, Logger } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
-import { SilentLogger } from '../__test__/silent-logger';
 import { Test } from '@nestjs/testing'
-import { BadRequestException } from '@nestjs/common'
-import { Logger } from '@nestjs/common'
-import { PropertiesService } from './properties.service'
-import { SupabaseService } from '../database/supabase.service'
 import { generateUUID } from '../../test/setup'
+import { SilentLogger } from '../__test__/silent-logger'
+import { SupabaseService } from '../database/supabase.service'
+import { PropertiesService } from './properties.service'
 
 describe('PropertiesService', () => {
   let service: PropertiesService
@@ -22,21 +21,9 @@ describe('PropertiesService', () => {
   let logger: Logger
 
   // Mock Supabase admin client that properly chains rpc().single()
-  const mockSingle = jest.fn()
-  const mockRpc = jest.fn()
   const mockSupabaseClient = {
-    rpc: mockRpc
-  }
-
-  // Helper to setup mock for methods that use .single()
-  const setupSingleMock = (data: any, error: any = null) => {
-    mockSingle.mockResolvedValue({ data, error })
-    mockRpc.mockReturnValue({ single: mockSingle })
-  }
-
-  // Helper to setup mock for methods that don't use .single()
-  const setupDirectMock = (data: any, error: any = null) => {
-    mockRpc.mockResolvedValue({ data, error })
+    rpc: jest.fn().mockReturnThis(),
+    single: jest.fn()
   }
 
   beforeEach(async () => {
@@ -96,11 +83,11 @@ describe('PropertiesService', () => {
 
       const mockData = [{ id: generateUUID(), name: 'Test Property' }]
       // findAll doesn't use .single() - returns data directly
-      setupDirectMock(mockData)
+      mockSupabaseClient.rpc.mockResolvedValue({ data: mockData, error: null })
 
       const result = await service.findAll(userId, query)
 
-      expect(mockRpc).toHaveBeenCalledWith('get_user_properties', {
+      expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_user_properties', {
         p_user_id: userId,
         p_search: 'test property',
         p_limit: 20,
@@ -111,25 +98,33 @@ describe('PropertiesService', () => {
 
     it('should handle undefined query parameters', async () => {
       const userId = generateUUID()
-      const query = {}
+      const query = {
+        search: null,
+        limit: 10,
+        offset: 0
+      }
 
-      setupDirectMock([])
+      mockSupabaseClient.rpc.mockResolvedValue({ data: [], error: null })
 
       await service.findAll(userId, query)
 
-      expect(mockRpc).toHaveBeenCalledWith('get_user_properties', {
+      expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_user_properties', {
         p_user_id: userId,
         p_search: undefined,
-        p_limit: undefined,
-        p_offset: undefined
+        p_limit: 10,
+        p_offset: 0
       })
     })
 
     it('should handle RPC errors correctly with fallback data', async () => {
       const userId = generateUUID()
-      const query = {}
+      const query = {
+        search: null,
+        limit: 10,
+        offset: 0
+      }
 
-      setupDirectMock(null, { message: 'Database connection failed' })
+      mockSupabaseClient.rpc.mockResolvedValue({ data: null, error: { message: 'Database connection failed' } })
 
       const result = await service.findAll(userId, query)
 
@@ -139,7 +134,7 @@ describe('PropertiesService', () => {
       expect(result.length).toBeGreaterThan(0)
       expect(result[0]).toHaveProperty('id', 'prop-001')
       expect(result[0]).toHaveProperty('name', 'Riverside Towers')
-      
+
       // Should log error but continue with fallback
       expect(logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -147,7 +142,7 @@ describe('PropertiesService', () => {
             message: 'Database connection failed'
           }),
           userId,
-          query: {}
+          query: { search: null, limit: 10, offset: 0 }
         }),
         'Failed to get properties with metrics via RPC, using fallback data'
       )
@@ -158,22 +153,20 @@ describe('PropertiesService', () => {
     it('should call get_property_stats RPC correctly', async () => {
       const userId = generateUUID()
       const mockStats = {
-        totalProperties: 2,
-        totalUnits: 3,
-        occupiedUnits: 2,
-        vacantUnits: 1,
+        total: 2,
+        occupied: 2,
+        vacant: 1,
         occupancyRate: 66.7,
-        totalMonthlyRevenue: 3000,
-        averageRentPerUnit: 1500,
-        totalValue: 750000
+        totalMonthlyRent: 3000,
+        averageRent: 1500
       }
 
       // getStats uses .single()
-      setupSingleMock(mockStats)
+      mockSupabaseClient.rpc.mockReturnValue({ single: jest.fn().mockResolvedValue({ data: mockStats, error: null }) })
 
       const result = await service.getStats(userId)
 
-      expect(mockRpc).toHaveBeenCalledWith('get_property_stats', {
+      expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_property_stats', {
         p_user_id: userId
       })
       expect(result).toEqual(mockStats)
@@ -182,20 +175,18 @@ describe('PropertiesService', () => {
     it('should handle stats RPC errors', async () => {
       const userId = generateUUID()
 
-      setupSingleMock(null, { message: 'Stats calculation failed' })
+      mockSupabaseClient.rpc.mockReturnValue({ single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Stats calculation failed' } }) })
 
       const result = await service.getStats(userId)
 
       // Service returns fallback data instead of throwing when RPC fails
       expect(result).toEqual({
-        totalProperties: 2,
-        totalUnits: 3,
-        occupiedUnits: 2,
-        vacantUnits: 1,
+        total: 2,
+        occupied: 2,
+        vacant: 1,
         occupancyRate: 66.7,
-        totalMonthlyRevenue: 3000,
-        averageRentPerUnit: 1500,
-        totalValue: 750000
+        totalMonthlyRent: 3000,
+        averageRent: 1500
       })
       expect(logger.error).toHaveBeenCalledWith(
         {
@@ -223,11 +214,11 @@ describe('PropertiesService', () => {
       }
 
       // findOne uses .single()
-      setupSingleMock(mockProperty)
+      mockSupabaseClient.rpc.mockReturnValue({ single: jest.fn().mockResolvedValue({ data: mockProperty, error: null }) })
 
       const result = await service.findOne(userId, propertyId)
 
-      expect(mockRpc).toHaveBeenCalledWith('get_property_by_id', {
+      expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_property_by_id', {
         p_user_id: userId,
         p_property_id: propertyId
       })
@@ -238,7 +229,7 @@ describe('PropertiesService', () => {
       const userId = generateUUID()
       const propertyId = generateUUID()
 
-      setupSingleMock(null, { message: 'Property not found' })
+      mockSupabaseClient.rpc.mockReturnValue({ single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Property not found' } }) })
 
       const result = await service.findOne(userId, propertyId)
 
@@ -265,7 +256,10 @@ describe('PropertiesService', () => {
       const createRequest = {
         name: 'New Property',
         address: '456 Oak Ave',
-        propertyType: 'HOUSE' as const,
+        city: 'Test City',
+        state: 'TX',
+        zipCode: '75001',
+        propertyType: 'SINGLE_FAMILY' as const,
         description: 'A beautiful single family home'
       }
 
@@ -275,14 +269,14 @@ describe('PropertiesService', () => {
       }
 
       // create uses .single()
-      setupSingleMock(mockCreatedProperty)
+      mockSupabaseClient.rpc.mockReturnValue({ single: jest.fn().mockResolvedValue({ data: mockCreatedProperty, error: null }) })
 
       const result = await service.create(userId, createRequest)
 
-      expect(mockRpc).toHaveBeenCalledWith('create_property', {
+      expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('create_property', {
         p_user_id: userId,
         p_name: createRequest.name,
-        p_address: createRequest.address,
+        p_address: `${createRequest.address}, ${createRequest.city}, ${createRequest.state}, ${createRequest.zipCode}`,
         p_type: createRequest.propertyType,
         p_description: createRequest.description
       })
@@ -294,17 +288,20 @@ describe('PropertiesService', () => {
       const createRequest = {
         name: 'Minimal Property',
         address: '789 Pine St',
+        city: 'Test City',
+        state: 'TX',
+        zipCode: '75001',
         propertyType: 'APARTMENT' as const
       }
 
-      setupSingleMock({ id: generateUUID(), ...createRequest })
+      mockSupabaseClient.rpc.mockReturnValue({ single: jest.fn().mockResolvedValue({ data: { id: generateUUID(), ...createRequest }, error: null }) })
 
       await service.create(userId, createRequest)
 
-      expect(mockRpc).toHaveBeenCalledWith('create_property', {
+      expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('create_property', {
         p_user_id: userId,
         p_name: createRequest.name,
-        p_address: createRequest.address,
+        p_address: `${createRequest.address}, ${createRequest.city}, ${createRequest.state}, ${createRequest.zipCode}`,
         p_type: createRequest.propertyType,
         p_description: undefined
       })
@@ -315,10 +312,13 @@ describe('PropertiesService', () => {
       const createRequest = {
         name: 'Test Property',
         address: '123 Test St',
+        city: 'Test City',
+        state: 'TX',
+        zipCode: '75001',
         propertyType: 'APARTMENT' as const
       }
 
-      setupSingleMock(null, { message: 'Property creation failed' })
+      mockSupabaseClient.rpc.mockReturnValue({ single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Property creation failed' } }) })
 
       await expect(service.create(userId, createRequest)).rejects.toThrow(BadRequestException)
       expect(logger.error).toHaveBeenCalledWith(
@@ -350,15 +350,15 @@ describe('PropertiesService', () => {
       const mockUpdatedProperty = { id: propertyId, ...updateRequest }
 
       // update uses .single()
-      setupSingleMock(mockUpdatedProperty)
+      mockSupabaseClient.rpc.mockReturnValue({ single: jest.fn().mockResolvedValue({ data: mockUpdatedProperty, error: null }) })
 
       const result = await service.update(userId, propertyId, updateRequest)
 
-      expect(mockRpc).toHaveBeenCalledWith('update_property', {
+      expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('update_property', {
         p_user_id: userId,
         p_property_id: propertyId,
         p_name: updateRequest.name,
-        p_address: '999 Updated Ave',
+        p_address: updateRequest.address,
         p_type: updateRequest.propertyType,
         p_description: updateRequest.description
       })
@@ -374,7 +374,7 @@ describe('PropertiesService', () => {
         propertyType: 'APARTMENT' as const
       }
 
-      setupSingleMock(null, { message: 'Update permission denied' })
+      mockSupabaseClient.rpc.mockReturnValue({ single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Update permission denied' } }) })
 
       const result = await service.update(userId, propertyId, updateRequest)
       expect(result).toBeNull()
@@ -399,13 +399,13 @@ describe('PropertiesService', () => {
       const userId = generateUUID()
       const propertyId = generateUUID()
 
-      mockRpc.mockResolvedValue({
+      mockSupabaseClient.rpc.mockResolvedValue({
         error: null
       })
 
       const result = await service.remove(userId, propertyId)
 
-      expect(mockRpc).toHaveBeenCalledWith('delete_property', {
+      expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('delete_property', {
         p_user_id: userId,
         p_property_id: propertyId
       })
@@ -416,7 +416,7 @@ describe('PropertiesService', () => {
       const userId = generateUUID()
       const propertyId = generateUUID()
 
-      mockRpc.mockResolvedValue({
+      mockSupabaseClient.rpc.mockResolvedValue({
         error: { message: 'Cannot delete property with active leases' }
       })
 
@@ -441,18 +441,23 @@ describe('PropertiesService', () => {
       const userId = generateUUID()
 
       // Test that all methods use direct RPC calls
-      setupDirectMock([])
+      mockSupabaseClient.rpc.mockResolvedValue({ data: [], error: null })
 
       // For findOne which uses .single() chaining
-      mockRpc.mockReturnValue({
-        single: mockSingle
+      mockSupabaseClient.rpc.mockReturnValue({
+        single: jest.fn()
       })
 
-      await service.findAll(userId, {})
+      const query = {
+        search: null,
+        limit: 10,
+        offset: 0
+      }
+      await service.findAll(userId, query)
       await service.findOne(userId, generateUUID())
 
       // Verify all calls went through the mocked RPC method
-      expect(mockRpc).toHaveBeenCalledTimes(2)
+      expect(mockSupabaseClient.rpc).toHaveBeenCalledTimes(2)
       expect(supabaseService.getAdminClient).toHaveBeenCalled()
     })
 
@@ -467,7 +472,7 @@ describe('PropertiesService', () => {
 
       // Service should be lean with minimal methods
       const serviceMethods = Object.getOwnPropertyNames(Object.getPrototypeOf(service))
-        .filter(method => method !== 'constructor' && typeof service[method] === 'function')
+        .filter(method => method !== 'constructor' && typeof (service as any)[method] === 'function')
 
       // Should have core CRUD operations only (no business logic methods)
       expect(serviceMethods.length).toBeLessThanOrEqual(20)

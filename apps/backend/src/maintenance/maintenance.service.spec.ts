@@ -1,12 +1,11 @@
-import type { TestingModule } from '@nestjs/testing';
-import { Test } from '@nestjs/testing'
-import { SilentLogger } from '../__test__/silent-logger'
-import { BadRequestException } from '@nestjs/common'
+import { BadRequestException, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { MaintenanceService } from './maintenance.service'
-import { SupabaseService } from '../database/supabase.service'
-import { Logger } from '@nestjs/common'
+import type { TestingModule } from '@nestjs/testing'
+import { Test } from '@nestjs/testing'
 import { randomUUID } from 'crypto'
+import { SilentLogger } from '../__test__/silent-logger'
+import { SupabaseService } from '../database/supabase.service'
+import { MaintenanceService } from './maintenance.service'
 
 describe('MaintenanceService', () => {
 	let service: MaintenanceService
@@ -42,12 +41,20 @@ describe('MaintenanceService', () => {
 		priority: 'HIGH' as const,
 		category: 'HVAC' as const,
 		estimatedCost: 300.00,
+		scheduledDate: undefined,
 		...overrides
 	})
 
 	const createMockUpdateRequest = (overrides: Record<string, unknown> = {}) => ({
 		title: 'Fix broken AC - Updated',
+		description: 'Air conditioning unit not working - updated description',
+		priority: 'HIGH' as const,
+		category: 'HVAC' as const,
 		status: 'IN_PROGRESS' as const,
+		scheduledDate: '2024-02-02T10:00:00Z',
+		completedDate: undefined,
+		estimatedCost: 350.00,
+		actualCost: undefined,
 		notes: 'Technician scheduled for tomorrow',
 		...overrides
 	})
@@ -60,8 +67,11 @@ describe('MaintenanceService', () => {
 		}
 
 		mockSupabaseService = {
+			onModuleInit: jest.fn(),
 			getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient),
-		} as jest.Mocked<SupabaseService>
+			getUserClient: jest.fn().mockReturnValue(mockSupabaseClient),
+			checkConnection: jest.fn(),
+		} as unknown as jest.Mocked<SupabaseService>
 
 		mockLogger = {
 			log: jest.fn(),
@@ -69,11 +79,35 @@ describe('MaintenanceService', () => {
 			warn: jest.fn(),
 			debug: jest.fn(),
 			verbose: jest.fn(),
-		} as jest.Mocked<Logger>
+			localInstance: {} as any,
+			fatal: jest.fn(),
+			options: undefined,
+			registerLocalInstanceRef: jest.fn(),
+		} as unknown as jest.Mocked<Logger>
 
 		mockEventEmitter = {
 			emit: jest.fn(),
-		} as jest.Mocked<SupabaseService>
+			emitAsync: jest.fn(),
+			addListener: jest.fn(),
+			on: jest.fn(),
+			prependListener: jest.fn(),
+			once: jest.fn(),
+			prependOnceListener: jest.fn(),
+			off: jest.fn(),
+			removeListener: jest.fn(),
+			removeAllListeners: jest.fn(),
+			setMaxListeners: jest.fn(),
+			getMaxListeners: jest.fn(),
+			listeners: jest.fn(),
+			rawListeners: jest.fn(),
+			listenerCount: jest.fn(),
+			eventNames: jest.fn(),
+			onAny: jest.fn(),
+			offAny: jest.fn(),
+			many: jest.fn(),
+			onceAny: jest.fn(),
+			hasListeners: jest.fn(),
+		} as unknown as jest.Mocked<EventEmitter2>
 
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -393,7 +427,8 @@ describe('MaintenanceService', () => {
 			const createRequest = {
 				unitId: generateUUID(),
 				title: 'Fix issue',
-				description: 'Something is broken'
+				description: 'Something is broken',
+				scheduledDate: undefined
 			}
 			const mockMaintenance = createMockMaintenance()
 
@@ -614,7 +649,7 @@ describe('MaintenanceService', () => {
 			const maintenanceId = generateUUID()
 			const actualCost = 250.00
 			const notes = 'Replaced faucet cartridge'
-			const mockMaintenance = createMockMaintenance({ 
+			const mockMaintenance = createMockMaintenance({
 				status: 'COMPLETED',
 				actualCost,
 				notes
@@ -689,7 +724,7 @@ describe('MaintenanceService', () => {
 			const userId = generateUUID()
 			const maintenanceId = generateUUID()
 			const reason = 'Duplicate request'
-			const mockMaintenance = createMockMaintenance({ 
+			const mockMaintenance = createMockMaintenance({
 				status: 'CANCELLED',
 				notes: reason
 			})

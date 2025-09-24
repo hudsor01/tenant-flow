@@ -120,7 +120,7 @@ describe('AuthService - Supabase Documentation Compliance', () => {
 
 		mockSupabaseService = {
 			getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient),
-		} as jest.Mocked<SupabaseService>
+		} as unknown as jest.Mocked<SupabaseService>
 
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -206,7 +206,7 @@ describe('AuthService - Supabase Documentation Compliance', () => {
 			]
 
 			for (const invalidToken of invalidTokens) {
-				await expect(service.validateSupabaseToken(invalidToken as unknown))
+				await expect(service.validateSupabaseToken(invalidToken as unknown as string))
 					.rejects.toThrow(UnauthorizedException)
 			}
 

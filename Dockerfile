@@ -46,10 +46,10 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,targ
 ENV TURBO_TELEMETRY_DISABLED=1 \
     NODE_OPTIONS="--max-old-space-size=2048"
 
-# Build only compilation - skip lint/typecheck since CI already did it
-RUN cd packages/shared && npx tsc -p tsconfig.build.json && \
-    cd ../database && npx tsc -p tsconfig.build.json && \
-    cd ../../apps/backend && npx tsc -p tsconfig.build.json
+# Build using standardized commands - uses turbo for caching and parallelization
+RUN pnpm build:shared && \
+    pnpm build:database && \
+    pnpm build:backend
 
 # Ensure runtime has access to Handlebars templates compiled from TypeScript
 RUN mkdir -p apps/backend/dist/pdf/templates \

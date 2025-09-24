@@ -2,6 +2,7 @@ import { ForbiddenException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
+import type { ValidatedUser } from '@repo/shared'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AuthGuard } from './auth.guard'
 
@@ -41,22 +42,30 @@ describe('AuthGuard - Tenant Isolation Security Tests', () => {
 
 	describe('validateTenantIsolation', () => {
 		// Access private methods for testing
-		const getValidateTenantIsolation = () =>
-			(
-				guard as unknown as {
-					validateTenantIsolation: typeof guard.validateTenantIsolation
-				}
-			).validateTenantIsolation.bind(guard)
-		const _getExtractOrganizationId = () =>
-			(
-				guard as unknown as {
-					extractOrganizationId: typeof guard.extractOrganizationId
-				}
-			).extractOrganizationId.bind(guard)
+	const getValidateTenantIsolation = () =>
+			guard['validateTenantIsolation'].bind(guard)
 
 		it('should allow users to access their own organization resources', () => {
-			const user = { id: 'user-123', organizationId: 'user-123', role: 'OWNER' }
-			const request = { params: { userId: 'user-123' }, headers: {} }
+			const user: ValidatedUser = {
+				id: 'user-123',
+				organizationId: 'user-123',
+				role: 'OWNER',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'sub-123',
+				stripeCustomerId: null
+			}
+			const request = {
+				params: { userId: 'user-123' },
+				headers: {},
+				user
+			} as any
 
 			expect(() => {
 				getValidateTenantIsolation()(request, user)
@@ -64,21 +73,53 @@ describe('AuthGuard - Tenant Isolation Security Tests', () => {
 		})
 
 		it('should block cross-tenant access attempts', () => {
-			const user = { id: 'user-123', organizationId: 'user-123', role: 'OWNER' }
-			const request = { params: { userId: 'user-456' }, headers: {} }
+			const user: ValidatedUser = {
+				id: 'user-123',
+				organizationId: 'user-123',
+				role: 'OWNER',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'sub-123',
+				stripeCustomerId: null
+			}
+			const request = {
+				params: { userId: 'user-456' },
+				headers: {},
+				user
+			} as any
 
 			expect(() => {
 				getValidateTenantIsolation()(request, user)
 			}).toThrow(ForbiddenException)
 		})
 
-		it('should allow admin access to any tenant', () => {
-			const admin = {
+			it('should allow admin access to any tenant', () => {
+			const admin: ValidatedUser = {
 				id: 'admin-789',
 				organizationId: 'admin-789',
-				role: 'ADMIN'
+				role: 'ADMIN',
+				email: 'admin@example.com',
+				name: 'Admin User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'sub-admin',
+				stripeCustomerId: null
 			}
-			const request = { params: { userId: 'user-123' }, headers: {} }
+			const request = {
+				params: { userId: 'user-123' },
+				headers: {},
+				user: admin
+			} as any
 
 			expect(() => {
 				getValidateTenantIsolation()(request, admin)
@@ -86,12 +127,26 @@ describe('AuthGuard - Tenant Isolation Security Tests', () => {
 		})
 
 		it('should fix the original vulnerability (null organizationId)', () => {
-			const vulnerableUser = {
+			const vulnerableUser: ValidatedUser = {
 				id: 'user-999',
 				organizationId: null,
-				role: 'OWNER'
+				role: 'OWNER',
+				email: 'vulnerable@example.com',
+				name: 'Vulnerable User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'sub-vulnerable',
+				stripeCustomerId: null
 			}
-			const request = { params: { userId: 'user-123' }, headers: {} }
+			const request = {
+				params: { userId: 'user-123' },
+				headers: {},
+				user: vulnerableUser
+			} as any
 
 			expect(() => {
 				getValidateTenantIsolation()(request, vulnerableUser)
@@ -99,8 +154,28 @@ describe('AuthGuard - Tenant Isolation Security Tests', () => {
 		})
 
 		it('should allow requests with no organization context', () => {
-			const user = { id: 'user-123', organizationId: 'user-123', role: 'OWNER' }
-			const request = { params: {}, query: {}, body: {}, headers: {} }
+			const user: ValidatedUser = {
+				id: 'user-123',
+				organizationId: 'user-123',
+				role: 'OWNER',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'sub-123',
+				stripeCustomerId: null
+			}
+			const request = {
+				params: {},
+				query: {},
+				body: {},
+				headers: {},
+				user
+			} as any
 
 			expect(() => {
 				getValidateTenantIsolation()(request, user)
@@ -108,8 +183,26 @@ describe('AuthGuard - Tenant Isolation Security Tests', () => {
 		})
 
 		it('should block access via query parameters', () => {
-			const user = { id: 'user-123', organizationId: 'user-123', role: 'OWNER' }
-			const request = { query: { organizationId: 'user-456' }, headers: {} }
+			const user: ValidatedUser = {
+				id: 'user-123',
+				organizationId: 'user-123',
+				role: 'OWNER',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'sub-123',
+				stripeCustomerId: null
+			}
+			const request = {
+				query: { organizationId: 'user-456' },
+				headers: {},
+				user
+			} as any
 
 			expect(() => {
 				getValidateTenantIsolation()(request, user)
@@ -117,8 +210,26 @@ describe('AuthGuard - Tenant Isolation Security Tests', () => {
 		})
 
 		it('should block access via request body', () => {
-			const user = { id: 'user-123', organizationId: 'user-123', role: 'OWNER' }
-			const request = { body: { userId: 'user-789' }, headers: {} }
+			const user: ValidatedUser = {
+				id: 'user-123',
+				organizationId: 'user-123',
+				role: 'OWNER',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'sub-123',
+				stripeCustomerId: null
+			}
+			const request = {
+				body: { userId: 'user-789' },
+				headers: {},
+				user
+			} as any
 
 			expect(() => {
 				getValidateTenantIsolation()(request, user)
@@ -128,54 +239,201 @@ describe('AuthGuard - Tenant Isolation Security Tests', () => {
 
 	describe('extractOrganizationId', () => {
 		const getExtractOrganizationId = () =>
-			(
-				guard as unknown as {
-					extractOrganizationId: typeof guard.extractOrganizationId
-				}
-			).extractOrganizationId.bind(guard)
+			guard['extractOrganizationId'].bind(guard)
 
 		it('should extract organizationId from params', () => {
-			const request = { params: { organizationId: 'org-123' }, headers: {} }
+			const user = {
+				id: 'test-user',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				role: 'OWNER',
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'test-supabase-id',
+				stripeCustomerId: null,
+				organizationId: 'test-org'
+			}
+			const request = {
+				params: { organizationId: 'org-123' },
+				headers: {},
+				user
+			} as any
 			expect(getExtractOrganizationId()(request)).toBe('org-123')
 		})
 
 		it('should extract userId from params as organization context', () => {
-			const request = { params: { userId: 'user-456' }, headers: {} }
+			const user = {
+				id: 'test-user',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				role: 'OWNER',
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'test-supabase-id',
+				stripeCustomerId: null,
+				organizationId: 'test-org'
+			}
+			const request = {
+				params: { userId: 'user-456' },
+				headers: {},
+				user
+			} as any
 			expect(getExtractOrganizationId()(request)).toBe('user-456')
 		})
 
 		it('should extract organizationId from query', () => {
-			const request = { query: { organizationId: 'org-789' }, headers: {} }
+			const user = {
+				id: 'test-user',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				role: 'OWNER',
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'test-supabase-id',
+				stripeCustomerId: null,
+				organizationId: 'test-org'
+			}
+			const request = {
+				query: { organizationId: 'org-789' },
+				headers: {},
+				user
+			} as any
 			expect(getExtractOrganizationId()(request)).toBe('org-789')
 		})
 
 		it('should extract userId from query', () => {
-			const request = { query: { userId: 'user-999' }, headers: {} }
+			const user = {
+				id: 'test-user',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				role: 'OWNER',
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'test-supabase-id',
+				stripeCustomerId: null,
+				organizationId: 'test-org'
+			}
+			const request = {
+				query: { userId: 'user-999' },
+				headers: {},
+				user
+			} as any
 			expect(getExtractOrganizationId()(request)).toBe('user-999')
 		})
 
 		it('should extract organizationId from body', () => {
-			const request = { body: { organizationId: 'org-888' }, headers: {} }
+			const user = {
+				id: 'test-user',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				role: 'OWNER',
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'test-supabase-id',
+				stripeCustomerId: null,
+				organizationId: 'test-org'
+			}
+			const request = {
+				body: { organizationId: 'org-888' },
+				headers: {},
+				user
+			} as any
 			expect(getExtractOrganizationId()(request)).toBe('org-888')
 		})
 
 		it('should extract userId from body', () => {
-			const request = { body: { userId: 'user-777' }, headers: {} }
+			const user = {
+				id: 'test-user',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				role: 'OWNER',
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'test-supabase-id',
+				stripeCustomerId: null,
+				organizationId: 'test-org'
+			}
+			const request = {
+				body: { userId: 'user-777' },
+				headers: {},
+				user
+			} as any
 			expect(getExtractOrganizationId()(request)).toBe('user-777')
 		})
 
 		it('should return null when no organization context found', () => {
-			const request = { params: {}, query: {}, body: {}, headers: {} }
+			const user = {
+				id: 'test-user',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				role: 'OWNER',
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'test-supabase-id',
+				stripeCustomerId: null,
+				organizationId: 'test-org'
+			}
+			const request = {
+				params: {},
+				query: {},
+				body: {},
+				headers: {},
+				user
+			} as any
 			expect(getExtractOrganizationId()(request)).toBeNull()
 		})
 
 		it('should prioritize params over query over body', () => {
+			const user = {
+				id: 'test-user',
+				email: 'test@example.com',
+				name: 'Test User',
+				phone: null,
+				bio: null,
+				avatarUrl: null,
+				role: 'OWNER',
+				createdAt: new Date(),
+				updatedAt: new Date(),
+				emailVerified: true,
+				supabaseId: 'test-supabase-id',
+				stripeCustomerId: null,
+				organizationId: 'test-org'
+			}
 			const request = {
 				params: { organizationId: 'params-org' },
 				query: { organizationId: 'query-org' },
 				body: { organizationId: 'body-org' },
-				headers: {}
-			}
+				headers: {},
+				user
+			} as any
 			expect(getExtractOrganizationId()(request)).toBe('params-org')
 		})
 	})

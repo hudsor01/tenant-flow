@@ -127,8 +127,8 @@ describe('SecurityExceptionFilter', () => {
 					getRequest: () => mockRequest,
 					getResponse: () => mockResponse
 				}),
-				getArgs: () => [mockRequest, mockResponse],
-				getArgByIndex: (index: number) => [mockRequest, mockResponse][index],
+				getArgs: <T extends any[] = [Request, Response]>() => [mockRequest, mockResponse] as unknown as T,
+				getArgByIndex: <T>(index: number) => [mockRequest, mockResponse][index] as T,
 				switchToRpc: () => ({
 					getData: () => ({}),
 					getContext: () => ({})
@@ -138,7 +138,7 @@ describe('SecurityExceptionFilter', () => {
 					getClient: () => ({})
 				}),
 				getType: () => 'http'
-			}
+			} as any
 
 			filter.catch(new Error('Internal server error'), mockHost)
 

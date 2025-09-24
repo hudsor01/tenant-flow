@@ -1,10 +1,11 @@
-import type { TestingModule } from '@nestjs/testing';
-import { Test } from '@nestjs/testing'
-import { SilentLogger } from '../__test__/silent-logger'
 import { BadRequestException, NotFoundException } from '@nestjs/common'
+import type { TestingModule } from '@nestjs/testing'
+import { Test } from '@nestjs/testing'
+import type { ValidatedUser } from '@repo/shared'
+import { randomUUID } from 'crypto'
+import { SilentLogger } from '../__test__/silent-logger'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
-import { randomUUID } from 'crypto'
 
 describe('LeasesController', () => {
 	let controller: LeasesController
@@ -12,11 +13,20 @@ describe('LeasesController', () => {
 
 	const generateUUID = () => randomUUID()
 
-	const createMockUser = (overrides: Record<string, unknown> = {}) => ({
+	const createMockUser = (overrides: Partial<ValidatedUser> = {}): ValidatedUser => ({
 		id: generateUUID(),
 		email: 'test@example.com',
 		name: 'Test User',
 		role: 'OWNER' as const,
+		phone: null,
+		avatarUrl: null,
+		supabaseId: generateUUID(),
+		bio: null,
+		stripeCustomerId: null,
+		createdAt: new Date(),
+		updatedAt: new Date(),
+		emailVerified: true,
+		organizationId: generateUUID(),
 		...overrides
 	})
 
@@ -46,7 +56,11 @@ describe('LeasesController', () => {
 			remove: jest.fn(),
 			renew: jest.fn(),
 			terminate: jest.fn(),
-		} as jest.Mocked<SupabaseService>
+			getLeasePerformanceAnalytics: jest.fn(),
+			getLeaseDurationAnalytics: jest.fn(),
+			getLeaseTurnoverAnalytics: jest.fn(),
+			getLeaseRevenueAnalytics: jest.fn(),
+		} as unknown as jest.Mocked<LeasesService>
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [LeasesController],

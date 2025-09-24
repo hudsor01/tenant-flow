@@ -43,8 +43,11 @@ describe('LeasesService', () => {
 	})
 
 	const createMockUpdateRequest = (overrides: Record<string, unknown> = {}) => ({
+		startDate: '2024-01-01',
+		endDate: '2024-12-31',
 		monthlyRent: 1600.00,
 		securityDeposit: 3200.00,
+		paymentFrequency: 'MONTHLY' as const,
 		status: 'ACTIVE' as const,
 		...overrides
 	})
@@ -56,17 +59,23 @@ describe('LeasesService', () => {
 			}))
 		}
 
-		mockSupabaseService = {
-			getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient),
-		} as jest.Mocked<SupabaseService>
-
 		mockLogger = {
 			log: jest.fn(),
 			error: jest.fn(),
 			warn: jest.fn(),
 			debug: jest.fn(),
 			verbose: jest.fn(),
-		} as jest.Mocked<Logger>
+			fatal: jest.fn()
+		} as unknown as jest.Mocked<Logger>
+
+		mockSupabaseService = {
+			getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient),
+			onModuleInit: jest.fn(),
+			getUserClient: jest.fn(),
+			checkConnection: jest.fn(),
+			adminClient: mockSupabaseClient,
+			logger: mockLogger
+		} as unknown as jest.Mocked<SupabaseService>
 
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [

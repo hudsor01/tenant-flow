@@ -4,9 +4,9 @@ export default function Footer() {
 	return (
 		<footer className="bg-white py-4">
 			<div className="max-w-7xl mx-auto px-4">
-				<div className="flex justify-center items-center gap-8 text-sm text-gray-500">
+				<div className="flex justify-center items-center gap-8 text-sm text-[var(--color-text-muted)]">
 					<div className="flex items-center space-x-2">
-						<div className="w-4 h-4 rounded bg-blue-600 flex items-center justify-center">
+						<div className="w-4 h-4 rounded bg-[var(--color-primary)] flex items-center justify-center">
 							<svg
 								viewBox="0 0 24 24"
 								fill="none"
@@ -22,21 +22,21 @@ export default function Footer() {
 								/>
 							</svg>
 						</div>
-						<span className="font-medium text-gray-700">TenantFlow</span>
+						<span className="font-medium text-[var(--color-text)]">TenantFlow</span>
 					</div>
 
 					<Link
 						href="/pricing"
-						className="hover:text-gray-700 transition-colors"
+						className="hover:text-[var(--color-text)] transition-colors"
 					>
 						Pricing
 					</Link>
-					<Link href="/faq" className="hover:text-gray-700 transition-colors">
+					<Link href="/faq" className="hover:text-[var(--color-text)] transition-colors">
 						FAQ
 					</Link>
 					<Link
 						href="/contact"
-						className="hover:text-gray-700 transition-colors"
+						className="hover:text-[var(--color-text)] transition-colors"
 					>
 						Contact
 					</Link>

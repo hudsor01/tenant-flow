@@ -105,7 +105,7 @@ describe('StripeFdwHealthIndicator', () => {
 
       const result = await healthIndicator.checkHealth('stripe_fdw', false);
 
-      expect(result.stripe_fdw.error).toBe('String error');
+      expect(result.stripe_fdw?.error).toBe('String error');
     });
 
     it('should handle unknown error types', async () => {
@@ -114,7 +114,7 @@ describe('StripeFdwHealthIndicator', () => {
 
       const result = await healthIndicator.checkHealth('stripe_fdw', false);
 
-      expect(result.stripe_fdw.error).toBe('Unknown error');
+      expect(result.stripe_fdw?.error).toBe('Unknown error');
     });
 
     it('should include response time in result', async () => {
@@ -122,7 +122,7 @@ describe('StripeFdwHealthIndicator', () => {
 
       const result = await healthIndicator.checkHealth('stripe_fdw', false);
 
-      expect(result.stripe_fdw.responseTime).toMatch(/\d+ms/);
+      expect(result.stripe_fdw?.responseTime).toMatch(/\d+ms/);
     });
   });
 
@@ -159,7 +159,7 @@ describe('StripeFdwHealthIndicator', () => {
 
         const result = await healthIndicator.quickPing('stripe_fdw');
 
-        expect(result.stripe_fdw.status).toBe('down');
+        expect(result.stripe_fdw?.status).toBe('down');
       });
     });
 
@@ -187,17 +187,17 @@ describe('StripeFdwHealthIndicator', () => {
       const standardError = new Error('Standard error');
       jest.spyOn(stripeSyncService, 'isHealthy').mockRejectedValueOnce(standardError);
       let result = await healthIndicator.checkHealth('stripe_fdw', false);
-      expect(result.stripe_fdw.error).toBe('Standard error');
+      expect(result.stripe_fdw?.error).toBe('Standard error');
 
       // Test string errors
       jest.spyOn(stripeSyncService, 'isHealthy').mockRejectedValueOnce('String error');
       result = await healthIndicator.checkHealth('stripe_fdw', false);
-      expect(result.stripe_fdw.error).toBe('String error');
+      expect(result.stripe_fdw?.error).toBe('String error');
 
       // Test unknown error types
       jest.spyOn(stripeSyncService, 'isHealthy').mockRejectedValueOnce({ custom: 'error' });
       result = await healthIndicator.checkHealth('stripe_fdw', false);
-      expect(result.stripe_fdw.error).toBe('Unknown error');
+      expect(result.stripe_fdw?.error).toBe('Unknown error');
     });
 
     it('should log all errors consistently', async () => {
@@ -229,7 +229,7 @@ describe('StripeFdwHealthIndicator', () => {
       );
 
       const result = await healthIndicator.checkHealth('stripe_fdw', false);
-      const responseTime = parseInt(result.stripe_fdw.responseTime.replace('ms', ''));
+      const responseTime = parseInt(result.stripe_fdw?.responseTime?.replace('ms', '') ?? '0');
 
       // Should measure at least the delay time
       expect(responseTime).toBeGreaterThanOrEqual(45); // Allow some margin

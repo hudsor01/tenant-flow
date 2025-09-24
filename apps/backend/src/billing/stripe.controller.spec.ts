@@ -410,10 +410,11 @@ describe('StripeController', () => {
 
 		it('should return 500 for actual Stripe API errors', async () => {
 			const validUuid = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
-			const stripeError = new Error(
-				'Stripe API error'
-			) as Stripe.errors.StripeError
-			stripeError.type = 'StripeAPIError'
+			const stripeError = {
+				message: 'Stripe API error',
+				type: 'StripeAPIError',
+				code: 'api_error'
+			} as Stripe.errors.StripeError
 			;(mockStripe.checkout.sessions.create as jest.Mock).mockRejectedValue(
 				stripeError
 			)

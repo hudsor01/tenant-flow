@@ -241,6 +241,8 @@ describe('TenantsService', () => {
       const userId = generateUUID()
       const tenantId = generateUUID()
       const createRequest = {
+        firstName: 'New',
+        lastName: 'Tenant',
         name: 'New Tenant',
         email: 'tenant@test.com',
         phone: '123-456-7890',
@@ -282,6 +284,8 @@ describe('TenantsService', () => {
     it('should handle undefined optional fields', async () => {
       const userId = generateUUID()
       const createRequest = {
+        firstName: 'New',
+        lastName: 'Tenant',
         name: 'New Tenant',
         email: 'tenant@test.com'
       }
@@ -305,7 +309,12 @@ describe('TenantsService', () => {
 
     it('should handle create errors', async () => {
       const userId = generateUUID()
-      const createRequest = { name: 'Test', email: 'test@test.com' }
+      const createRequest = {
+        firstName: 'Test',
+        lastName: 'User',
+        name: 'Test',
+        email: 'test@test.com'
+      }
 
       mockSupabaseClient.rpc.mockReturnThis()
       mockSupabaseClient.single.mockReturnValue({

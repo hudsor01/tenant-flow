@@ -1,14 +1,14 @@
+import { Logger } from '@nestjs/common'
+import type { HealthCheckResult } from '@nestjs/terminus'
+import { HealthCheckService } from '@nestjs/terminus'
 import type { TestingModule } from '@nestjs/testing'
-import { SilentLogger } from '../__test__/silent-logger';
-import { Test } from '@nestjs/testing';
-import type { HealthCheckResult } from '@nestjs/terminus';
-import { HealthCheckService } from '@nestjs/terminus';
-import { Logger } from '@nestjs/common';
-import { HealthController } from './health.controller';
-import { SupabaseHealthIndicator } from './supabase.health';
-import { StripeFdwHealthIndicator } from './stripe-fdw.health';
-import { StripeSyncService } from '../billing/stripe-sync.service';
-import { ResilienceService } from '../shared/services/resilience.service';
+import { Test } from '@nestjs/testing'
+import { SilentLogger } from '../__test__/silent-logger'
+import { StripeSyncService } from '../billing/stripe-sync.service'
+import { ResilienceService } from '../shared/services/resilience.service'
+import { HealthController } from './health.controller'
+import { StripeFdwHealthIndicator } from './stripe-fdw.health'
+import { SupabaseHealthIndicator } from './supabase.health'
 
 describe('HealthController', () => {
   let controller: HealthController;
@@ -138,7 +138,7 @@ describe('HealthController', () => {
 
       expect(result.status).toBe('unhealthy');
       expect(result.database.status).toBe('unhealthy');
-      expect(result.error).toBe('Database connection failed');
+      expect('error' in result && result.error).toBe('Database connection failed');
     });
 
     it('should log health check initiation with correct environment', async () => {
@@ -221,11 +221,21 @@ describe('HealthController', () => {
       };
 
       jest.spyOn(healthCheckService, 'check').mockResolvedValue(mockReadyResult);
-      jest.spyOn(supabaseHealth, 'quickPing').mockResolvedValue({ 
-        database: { status: 'up', type: 'quick' } 
+      jest.spyOn(supabaseHealth, 'quickPing').mockResolvedValue({
+        database: {
+          status: 'up',
+          responseTime: 10,
+          supabaseStatus: 'healthy' as const,
+          message: undefined
+        }
       });
-      jest.spyOn(stripeFdwHealth, 'quickPing').mockResolvedValue({ 
-        stripe_fdw: { status: 'up', type: 'fdw-quick' } 
+      jest.spyOn(stripeFdwHealth, 'quickPing').mockResolvedValue({
+        stripe_fdw: {
+          status: 'up',
+          responseTime: 15,
+          supabaseStatus: 'healthy' as const,
+          message: undefined
+        }
       });
 
       const result = await controller.ready();
@@ -266,8 +276,8 @@ describe('HealthController', () => {
       const mockStripeResult: HealthCheckResult = {
         status: 'ok',
         info: {
-          stripe_fdw: { 
-            status: 'up', 
+          stripe_fdw: {
+            status: 'up',
             type: 'fdw-detailed',
             realTime: true,
             responseTime: '15ms',
@@ -275,8 +285,8 @@ describe('HealthController', () => {
         },
         error: {},
         details: {
-          stripe_fdw: { 
-            status: 'up', 
+          stripe_fdw: {
+            status: 'up',
             type: 'fdw-detailed',
             realTime: true,
             responseTime: '15ms',
@@ -285,13 +295,13 @@ describe('HealthController', () => {
       };
 
       jest.spyOn(healthCheckService, 'check').mockResolvedValue(mockStripeResult);
-      jest.spyOn(stripeFdwHealth, 'detailedCheck').mockResolvedValue({ 
-        stripe_fdw: { 
-          status: 'up', 
+      jest.spyOn(stripeFdwHealth, 'detailedCheck').mockResolvedValue({
+        stripe_fdw: {
+          status: 'up',
           type: 'fdw-detailed',
           realTime: true,
           responseTime: '15ms',
-        } 
+        }
       });
 
       const result = await controller.stripeCheck();
@@ -308,16 +318,16 @@ describe('HealthController', () => {
         status: 'error',
         info: {},
         error: {
-          stripe_fdw: { 
-            status: 'down', 
+          stripe_fdw: {
+            status: 'down',
             type: 'fdw-detailed',
             error: 'Detailed check failed',
             realTime: false,
           },
         },
         details: {
-          stripe_fdw: { 
-            status: 'down', 
+          stripe_fdw: {
+            status: 'down',
             type: 'fdw-detailed',
             error: 'Detailed check failed',
             realTime: false,
@@ -405,7 +415,7 @@ describe('HealthController', () => {
       });
 
       const startTime = Date.now();
-      
+
       // Simulate multiple concurrent requests
       const promises = Array(10).fill(null).map(() => controller.check());
       await Promise.all(promises);
@@ -426,24 +436,32 @@ describe('HealthController', () => {
       const result = await controller.check();
 
       expect(result.status).toBe('unhealthy');
-      expect(result.error).toBe('Database connection failed');
+      expect((result as any).error).toBe('Database connection failed');
       expect(result.database.status).toBe('unhealthy');
       expect(logger.error).toHaveBeenCalledWith('Health check failed with error', 'Database connection failed');
     });
 
     it('should handle supabase service injection errors gracefully', async () => {
-      // Temporarily set supabaseClient to null to simulate injection failure
-      const originalClient = controller['supabaseClient'];
-      controller['supabaseClient'] = null;
+      // Mock the controller to return null for supabaseClient
+      const originalSupabaseClient = controller['supabaseClient'];
+      Object.defineProperty(controller, 'supabaseClient', {
+        value: null,
+        writable: true,
+        configurable: true
+      });
 
       const result = await controller.check();
 
       expect(result.status).toBe('unhealthy');
-      expect(result.error).toBe('SupabaseService not injected properly');
+      expect((result as any).error).toBe('SupabaseService not injected properly');
       expect(logger.error).toHaveBeenCalledWith('Health check failed with error', 'SupabaseService not injected properly');
 
-      // Restore original client
-      controller['supabaseClient'] = originalClient;
+      // Restore original value
+      Object.defineProperty(controller, 'supabaseClient', {
+        value: originalSupabaseClient,
+        writable: true,
+        configurable: true
+      });
     });
   });
 });
