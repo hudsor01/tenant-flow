@@ -19,15 +19,20 @@ export class SupabaseService implements OnModuleInit {
 
 	onModuleInit() {
 		const supabaseUrl = process.env.SUPABASE_URL
-		// Accept common aliases to avoid env name drift in platforms
-		const supabaseServiceKey =
-			process.env.SERVICE_ROLE_KEY ||
-			process.env.SUPABASE_SERVICE_ROLE_KEY ||
-			process.env.SUPABASE_SERVICE_KEY
+		// Standard service key with platform compatibility validation
+		const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+		// Validate expected aliases exist to prevent deployment issues
+		if (!supabaseServiceKey && process.env.SERVICE_ROLE_KEY) {
+			throw new Error('SERVICE_ROLE_KEY found but SUPABASE_SERVICE_ROLE_KEY is required - update environment configuration')
+		}
+		if (!supabaseServiceKey && process.env.SUPABASE_SERVICE_KEY) {
+			throw new Error('SUPABASE_SERVICE_KEY found but SUPABASE_SERVICE_ROLE_KEY is required - update environment configuration')
+		}
 
 		if (!supabaseUrl || !supabaseServiceKey) {
 			this.logger.error(
-				'Missing Supabase configuration. Ensure SUPABASE_URL and SERVICE_ROLE_KEY are set (via Doppler).',
+				'Missing Supabase configuration. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set (via Doppler).',
 				{
 					issue: 'missing_supabase_env',
 					hasSupabaseUrl: !!supabaseUrl,
@@ -95,7 +100,9 @@ export class SupabaseService implements OnModuleInit {
 		try {
 			// Prefer a lightweight RPC if available; fall back to HEAD on a known table.
 			// Using health_check function with SECURITY DEFINER for consistent permissions
-			const fn = process.env.HEALTH_CHECK_FUNCTION || 'health_check'
+			const fn = process.env.HEALTH_CHECK_FUNCTION || (() => {
+				throw new Error('HEALTH_CHECK_FUNCTION environment variable is required for database health checks')
+			})()
 			try {
 				// Attempt RPC call (must exist in DB). Returns ok=true when reachable.
 				const result = await this.adminClient.rpc(fn as never)
@@ -130,7 +137,9 @@ export class SupabaseService implements OnModuleInit {
 			}
 
 			// Connectivity check: lightweight HEAD count on a canonical table.
-			const table = process.env.HEALTH_CHECK_TABLE || 'User'
+			const table = process.env.HEALTH_CHECK_TABLE || (() => {
+				throw new Error('HEALTH_CHECK_TABLE environment variable is required for database health checks')
+			})()
 			const { error } = await this.adminClient
 				.from(table as never)
 				.select('*', { count: 'exact', head: true })

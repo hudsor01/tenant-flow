@@ -29,7 +29,6 @@
 - **Filter syntax**: `pnpm --filter @repo/package <script>`
 
 ### TYPESCRIPT SHARED TYPES ARCHITECTURE - MANDATORY COMPLIANCE
-
 **ABSOLUTE PROHIBITIONS - ZERO TOLERANCE**
 - **NEVER create new type files** without explicit approval and architectural review
 - **NEVER duplicate type definitions** - search existing types first with `rg -r "TypeName"`
@@ -38,7 +37,6 @@
 - **NEVER break the single source of truth** - consolidation is permanent
 
 **MANDATORY TYPE IMPORT PATTERNS**
-
 CORRECT - Single source imports:
 - import type { ApiResponse, DashboardStats, PropertyStats } from '@repo/shared'
 - import type { User, Property, Unit, Tenant } from '@repo/shared'
@@ -51,7 +49,6 @@ FORBIDDEN - Legacy/removed paths:
 - import type { StorageUploadResult } from '@repo/shared/types/storage' - REMOVED
 
 **CONSOLIDATED TYPE ARCHITECTURE - IMMUTABLE STRUCTURE**
-
 File Structure:
 - core.ts - PRIMARY: All shared types, utilities, patterns
 - index.ts - EXPORT HUB: Single import source
@@ -63,7 +60,6 @@ File Structure:
 - Only minimal essential files allowed
 
 **NATIVE TYPESCRIPT 5.9.2 PATTERNS - USE THESE ONLY**
-
 Required Patterns:
 - Native Result Pattern: ApiResponse with success/error discriminated union
 - Native Template Literals: CamelCase string manipulation types
@@ -72,7 +68,6 @@ Required Patterns:
 - Use built-in TypeScript utilities instead of custom implementations
 
 **TYPE LOCATION RULES - STRICT ENFORCEMENT**
-
 1. **Core Types** (`types/core.ts`):
    - All shared API patterns (ApiResponse, QueryParams, Pagination)
    - Entity types from Supabase (User, Property, Unit, Tenant, etc.)
@@ -95,7 +90,6 @@ Required Patterns:
    - Permission enums, security validation
 
 **MODIFICATION RULES - BREAKING CHANGE PROTOCOL**
-
 **Before Adding ANY Type:**
 1. Search existing: `rg -r "NewTypeName" packages/shared/src/`
 2. Check if native TypeScript utility exists
@@ -116,13 +110,6 @@ Required Patterns:
 - **Zero Circular Dependencies**: Violations break the build immediately
 
 **VALIDATION REQUIREMENTS**
-
-Every type change MUST pass:
-- npm run typecheck - All packages compile
-- npm run build:backend - Backend builds successfully
-- npm run build:frontend - Frontend builds successfully
-- npm run test:unit - Type-dependent tests pass
-
 **MIGRATION ENFORCEMENT - NO LEGACY SUPPORT**
 
 - **Zero Legacy Compatibility**: Old import paths must fail compilation
@@ -210,7 +197,7 @@ When you get "Cannot read properties of undefined (reading 'X')":
 Check logs: `doppler run -- npm run dev` | Find modules: `rg -A5 "@Module" --type ts` | Check providers: `rg "providers.*\[" --type ts`
 
 ### Ultra-Native Patterns
-**Controller**: Service layer + PinoLogger only, delegate to services, use built-in pipes | **Service**: SupabaseService + PinoLogger only, direct RPC calls under 30 lines | **Module**: imports/providers/exports arrays, @Global() for shared services
+**Controller**: Service layer + NestJs Logger only, delegate to services, use built-in pipes | **Service**: SupabaseService + NestJs Logger only, direct RPC calls under 30 lines | **Module**: imports/providers/exports arrays, @Global() for shared services
 
 ### Critical Rules
 **No Abstractions**: Direct PostgreSQL RPC via Supabase, no repositories/DTOs/wrappers | **Built-in NestJS**: ParseUUIDPipe, exceptions, guards only | **Error Handling**: Simple logging + NestJS exceptions
@@ -222,7 +209,6 @@ Check logs: `doppler run -- npm run dev` | Find modules: `rg -A5 "@Module" --typ
 Server starts with "dependencies initialized" | Public endpoints work | Protected endpoints work with auth | No undefined property errors
 
 ### BACKEND IMPLEMENTATION RULES - BATTLE-TESTED PATTERNS
-
 #### ROUTE ORDERING - CRITICAL FOR CORRECT BEHAVIOR
 - Static routes MUST come before dynamic parameter routes
 - Order: /resource/static-path → /resource/:id
@@ -280,7 +266,7 @@ Use Built-in Exceptions:
 - ForbiddenException(message)
 - UnauthorizedException(message)
 
-#### PARAMETER VALIDATION - LAYER APPROPRIATELY
+#### PARAMETER VALIDATION
 Query Parameters:
 ```typescript
 @Query('param', ParseIntPipe) param: number
@@ -324,7 +310,7 @@ Request Pipeline:
 - Cache user context per request
 
 ### UI/UX RULES - GLOBALS.CSS COMPLIANT IMPLEMENTATION
-**CRITICAL**: Full UI/UX implementation standards are defined in `.claude/rules/ui-ux-standards.md`
+**CRITICAL**: Full UI/UX implementation standards
 These rules are MANDATORY and directly align with the production globals.css implementation.
 
 **Core Requirements**:
@@ -335,26 +321,25 @@ These rules are MANDATORY and directly align with the production globals.css imp
 - **Mobile Simplification**: Apply `.simplified-mobile` below 640px breakpoint
 - **Typography**: Strict Roboto Flex scale with 5 hierarchy levels maximum
 - **Colors**: OKLCH color space only for perceptual uniformity
-- **Animation**: 200ms/300ms/500ms timing with reduced-motion support
-- **Accessibility**: 4.5:1 contrast minimum, focus management, keyboard navigation
 
 **Implementation Principles**:
 - Reuse existing pages/layouts/components first
+- Import components/ui components then customize inline to meet use case
 - Use shadcn components vs creating custom
 - Flat component organization in existing folders
-- Central Zustand store instead of component state (except temporary UI states)
+- Central Zustand store instead of component state
 - Direct store access via hooks - no prop drilling
-- Sync Tailwind and Magic UI themes for primary color
+- Sync Shadcn/ui and Magic UI themes for primary color
 - Use shadcn charts for charting needs
 
 **See `.claude/rules/ui-ux-standards.md` for complete 15-point implementation guide**
 
 ### NATIVE PLATFORM REPLACEMENTS
 - **Auth**: Supabase Auth | **Storage**: Supabase Storage | **Real-time**: Supabase Realtime
-- **Jobs**: BullMQ/Vercel Cron | **Email**: Resend API | **Validation**: Zod schemas
+- **Email**: Resend API | **Validation**: Zod schemas
 - **Data**: TanStack Query | **Forms**: React Hook Form | **State**: Zustand
-- **Styles**: Tailwind classes | **Components**: Radix/ShadCN | **Dates**: date-fns
-- **HTTP**: Native fetch
+- **Styles**: Tailwind css variables | **Components**: Radix/ShadCN | **Dates**: date-fns
+- **HTTP**: next.js/react-query
 
 ### UI COMPONENT PATTERNS
 - **Buttons**: Radix Button + Tailwind | **Forms**: Radix Form + React Hook Form
@@ -391,7 +376,6 @@ These rules are MANDATORY and directly align with the production globals.css imp
 - TypeScript 5.9.2 strict, Zod 4.0.17
 
 ## Commands
-
 **Dev**: `npm run dev` | **Clean**: `npm run dev:clean`
 **Quality**: `npm run lint` | `npm run typecheck` | `npm run test:unit`
 **Build**: `npm run build` | `build:frontend` | `build:backend`
@@ -400,7 +384,6 @@ These rules are MANDATORY and directly align with the production globals.css imp
 **Secrets**: prefix commands with doppler
 
 ## Architecture
-
 **State Management**
 - Zustand: Global UI state, session, notifications, theme
 - TanStack Query: Server state, caching, optimistic updates
@@ -418,25 +401,17 @@ These rules are MANDATORY and directly align with the production globals.css imp
 - `shared/`: Guards, decorators, filters, types
 - `auth/`, `billing/`, `properties/`, `tenants/`, `maintenance/`, `dashboard/`: Domain modules
 
-**Data Flow**
-- Read: Component → TanStack Query → API → Backend → Supabase
-- Write: Component → Server Action → Backend → Supabase → Webhook → Cache Update
-- Real-time: Supabase Realtime → Frontend → Cache invalidation
-
 ## Monorepo
-
 - `apps/`: frontend, backend
 - `packages/`: shared (build first), emails, eslint-config, typescript-config
 
 Build dependencies: shared → frontend/backend
 
 ## Deployment
-
 **Frontend (Vercel)**: https://tenantflow.app - Auto-deploys from main
-**Backend (Railway)**: Dockerfile, startCommand = `node apps/backend/dist/main.js`
+**Backend (Railway)**: https://api.tenantflow.app - Dockerfile, startCommand = `node apps/backend/dist/main.js`
 
 ## Critical Files
-
 - `apps/frontend/src/stores/app-store.ts`: Main Zustand store
 - `apps/frontend/src/lib/api-client.ts`: Core API client
 - `apps/frontend/src/lib/query-keys.ts`: TanStack Query cache keys
@@ -444,7 +419,6 @@ Build dependencies: shared → frontend/backend
 - `packages/shared/src/types/`: Shared TypeScript types
 
 ## Testing Strategy
-
 ### MANDATORY TEST COVERAGE
 - **Controllers**: All endpoints with auth, validation, error handling
 - **Services**: All business logic with edge cases and error scenarios
@@ -469,7 +443,6 @@ Build dependencies: shared → frontend/backend
 - Mirror production behavior exactly
 
 ## Success Metrics
-
 Your success = Production-ready code with zero duplication
 Every line must justify its existence
 When in doubt, delete it

@@ -37,6 +37,18 @@ export type ApiResponse<T = unknown> =
 	| { success: true; data: T; error?: never }
 	| { success: false; error: string; data?: never }
 
+// STRIPE TYPES - Using official Stripe Node SDK types
+export interface StripeCheckoutSessionResponse {
+	client_secret: string
+}
+
+export interface StripeSessionStatusResponse {
+	status: string
+	payment_intent_id: string | null
+	payment_status: string | null
+	payment_intent_status: string | null
+}
+
 // Consolidated pagination (single interface)
 export interface Pagination {
 	page?: number

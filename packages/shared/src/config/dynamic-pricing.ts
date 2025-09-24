@@ -133,11 +133,8 @@ export class FrontendPricingService implements DynamicPricingService {
 
 			return config
 		} catch (error) {
-			console.error('Failed to fetch dynamic pricing config:', error)
-
 			// Return cached config if available, otherwise throw
 			if (this.cachedConfig) {
-				console.warn('Using cached pricing config due to fetch error')
 				return this.cachedConfig
 			}
 

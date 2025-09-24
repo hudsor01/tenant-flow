@@ -5,6 +5,8 @@
  * across different environments (development, staging, production)
  */
 
+import { Logger } from '@nestjs/common'
+
 export interface EmailTestConfig {
   environment: "development" | "staging" | "production" | "test";
   mockEmails: boolean;
@@ -27,7 +29,10 @@ export interface EmailTestConfig {
  * Get email test configuration based on environment
  */
 export function getEmailTestConfig(env?: string): EmailTestConfig {
-  const environment = env || process.env.NODE_ENV || "development";
+  const environment = env || process.env.NODE_ENV;
+  if (!environment) {
+    throw new Error('NODE_ENV is required for email test configuration');
+  }
 
   switch (environment) {
     case "test":
@@ -53,7 +58,7 @@ export function getEmailTestConfig(env?: string): EmailTestConfig {
         environment: "development",
         mockEmails: false,
         logEmails: true,
-        redirectAllTo: process.env.DEV_EMAIL_RECIPIENT || "dev@tenantflow.app",
+        redirectAllTo: process.env.DEV_EMAIL_RECIPIENT || undefined,
         rateLimit: {
           maxPerMinute: 30,
           maxPerHour: 500,
@@ -113,6 +118,7 @@ export function getEmailTestConfig(env?: string): EmailTestConfig {
  * Email test utilities
  */
 export class EmailTestUtils {
+  private static readonly logger = new Logger(EmailTestUtils.name)
   private static sentEmails: any[] = [];
   private static emailMetrics = {
     sent: 0,
@@ -128,7 +134,7 @@ export class EmailTestUtils {
     const config = getEmailTestConfig();
 
     if (config.logEmails) {
-      console.log("📧 Mock Email:", {
+      this.logger.log("Mock Email:", {
         to: options.to,
         subject: options.subject,
         template: options.template,

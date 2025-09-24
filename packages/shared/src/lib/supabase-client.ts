@@ -14,10 +14,28 @@ import {
 } from '@supabase/supabase-js'
 import type { Database } from '../types/supabase.js'
 
-const SUPABASE_URL =
-	process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-const SUPABASE_ANON_KEY =
-	process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+// Platform compatibility: Frontend uses NEXT_PUBLIC_*, Backend uses regular env vars
+// At least one of each pair must be defined
+const SUPABASE_URL = (() => {
+	const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+	if (!url) {
+		throw new Error(
+			'SUPABASE_URL environment variable is required (NEXT_PUBLIC_SUPABASE_URL for frontend, SUPABASE_URL for backend)'
+		)
+	}
+	return url
+})()
+
+const SUPABASE_ANON_KEY = (() => {
+	const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+	if (!key) {
+		throw new Error(
+			'SUPABASE_ANON_KEY environment variable is required (NEXT_PUBLIC_SUPABASE_ANON_KEY for frontend, SUPABASE_ANON_KEY for backend)'
+		)
+	}
+	return key
+})()
+
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY
 
 // Create a lazy-initialized client to avoid build-time errors
@@ -25,12 +43,7 @@ let _client: SupabaseClient<Database> | null = null
 
 function getSupabaseClient(): SupabaseClient<Database> {
 	if (!_client) {
-		if (!SUPABASE_URL) {
-			throw new Error('Missing SUPABASE_URL environment variable')
-		}
-		if (!SUPABASE_ANON_KEY) {
-			throw new Error('Missing SUPABASE_ANON_KEY environment variable')
-		}
+		// Environment variables are validated at module load time
 		_client = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
 			auth: {
 				persistSession: true,

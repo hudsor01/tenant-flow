@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 
 @Injectable()
 export class SimpleSecurityService {
+	private readonly logger = new Logger(SimpleSecurityService.name)
+
 	sanitizeInput(input: string): string {
 		// Basic input sanitization
 		return input.trim().replace(/[<>]/g, '')

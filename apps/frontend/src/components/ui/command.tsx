@@ -22,7 +22,7 @@ function Command({
 			data-slot="command"
 			className={cn(
 				// Base styles with token-based radius
-				'bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-[12px]',
+				'bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-[var(--radius-medium)]',
 				// Enhanced transitions
 				'transition-all duration-200 ease-in-out',
 				className
@@ -158,7 +158,7 @@ function CommandItem({
 			data-slot="command-item"
 			className={cn(
 				// Base styles with token-based radius
-				"relative flex cursor-default items-center gap-2 rounded-[8px] px-2 py-1.5 text-sm outline-hidden select-none",
+				"relative flex cursor-default items-center gap-2 rounded-[var(--radius-small)] px-2 py-1.5 text-sm outline-hidden select-none",
 				// Enhanced transitions
 				"transition-all duration-200 ease-in-out",
 				// Selected state

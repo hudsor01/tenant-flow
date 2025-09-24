@@ -81,7 +81,7 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 						{/* Content container with semi-transparent panel */}
 						<div className="relative max-w-lg mx-auto px-8">
 							{/* Semi-transparent white panel with subtle blur */}
-							<div className="absolute inset-0 rounded-3xl bg-white/85 backdrop-blur-sm border border-white/20 shadow-2xl" />
+							<div className="absolute inset-0 rounded-3xl bg-card/85 backdrop-blur-sm border border-border/20 shadow-2xl" />
 
 							<div className="relative text-center space-y-6 py-12 px-8 z-20 transform ease-out animate-in fade-in slide-in-from-bottom-8 transition-all duration-700">
 								{/* Enhanced Logo Icon with better visibility */}
@@ -92,7 +92,7 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 											viewBox="0 0 24 24"
 											fill="none"
 											xmlns="http://www.w3.org/2000/svg"
-											className="w-8 h-8 text-white group-hover:scale-110 transition-all duration-300"
+											className="w-8 h-8 text-primary-foreground group-hover:scale-110 transition-all duration-300"
 										>
 											<path
 												d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
@@ -181,7 +181,7 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 									viewBox="0 0 24 24"
 									fill="none"
 									xmlns="http://www.w3.org/2000/svg"
-									className="w-7 h-7 text-white"
+									className="w-7 h-7 text-primary-foreground"
 								>
 									<path
 										d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"

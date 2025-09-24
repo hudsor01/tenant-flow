@@ -42,18 +42,15 @@ const CRITICAL_ASSETS = [
  * Install event - cache critical assets
  */
 self.addEventListener('install', event => {
-	console.info('Service Worker: Installing...')
 
 	event.waitUntil(
 		caches
 			.open(STATIC_CACHE)
 			.then(cache => {
-				console.info('Service Worker: Caching critical assets')
 				return cache.addAll(CRITICAL_ASSETS)
 			})
 			.then(() => self.skipWaiting())
 			.catch(error => {
-				console.error(
 					'Service Worker: Failed to cache critical assets',
 					error
 				)
@@ -65,7 +62,6 @@ self.addEventListener('install', event => {
  * Activate event - clean up old caches
  */
 self.addEventListener('activate', event => {
-	console.info('Service Worker: Activating...')
 
 	event.waitUntil(
 		caches
@@ -78,7 +74,6 @@ self.addEventListener('activate', event => {
 							cacheName !== STATIC_CACHE &&
 							cacheName !== API_CACHE
 						) {
-							console.info(
 								'Service Worker: Deleting old cache',
 								cacheName
 							)
@@ -203,7 +198,6 @@ async function cacheFirst(request, cacheName) {
 
 		return networkResponse
 	} catch (error) {
-		console.error('Cache first strategy failed:', error)
 		return caches.match(request) || new Response('Offline', { status: 503 })
 	}
 }
@@ -223,7 +217,6 @@ async function networkFirst(request, cacheName) {
 
 		return networkResponse
 	} catch (error) {
-		console.warn('Network failed, trying cache:', error.message)
 		const cachedResponse = await caches.match(request)
 
 		if (cachedResponse) {
@@ -261,7 +254,6 @@ async function staleWhileRevalidate(request, cacheName) {
 			return networkResponse
 		})
 		.catch(error => {
-			console.error('Background fetch failed:', error.message)
 		})
 
 	// Return cached response immediately if available
@@ -283,7 +275,6 @@ self.addEventListener('sync', event => {
 })
 
 async function handleBackgroundSync() {
-	console.info('Service Worker: Handling background sync')
 	// Implement retry logic for failed API calls
 }
 

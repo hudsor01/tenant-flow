@@ -10,17 +10,23 @@ import {
 	Logger,
 	Param,
 	Post,
+	Query,
 	Req,
 	ServiceUnavailableException
 } from '@nestjs/common'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import type { SubscriptionStatus } from '@repo/shared'
 import type { Request } from 'express'
 import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
+import { EmailService } from '../shared/services/email.service'
+import { StripeWebhookService } from './stripe-webhook.service'
+import { StripeService } from './stripe.service'
 import { Public } from '../shared/decorators/public.decorator'
 import type {
 	CreateBillingPortalRequest,
 	CreateCheckoutSessionRequest,
+	EmbeddedCheckoutRequest,
 	CreateConnectedPaymentRequest,
 	CreatePaymentIntentRequest,
 	CreateSetupIntentRequest,
@@ -45,11 +51,17 @@ export class StripeController {
 	private readonly stripe: Stripe
 	private readonly logger = new Logger(StripeController.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {
-		this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-			apiVersion: '2025-08-27.basil', // Latest API version
-			typescript: true
-		})
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly emailService: EmailService,
+		private readonly webhookService: StripeWebhookService,
+		private readonly eventEmitter: EventEmitter2,
+		private readonly stripeService: StripeService
+	) {
+		this.stripe = this.stripeService.getStripe()
+
+		// Schedule cleanup of old webhook events every 24 hours
+		setInterval(() => this.webhookService.cleanupOldEvents(30), 24 * 60 * 60 * 1000)
 	}
 
 	/**
@@ -281,14 +293,43 @@ export class StripeController {
 		]
 
 		if (permittedEvents.includes(event.type)) {
-			try {
-				await this.processStripeEvent(event)
-				this.logger.log(`Successfully processed event: ${event.type}`)
-			} catch (error) {
-				this.logger.error(`Event processing failed: ${event.type}`, error)
+			// Database-backed idempotency check using Supabase
+			if (await this.webhookService.isEventProcessed(event.id)) {
+				this.logger.log(`Event already processed, skipping: ${event.id} (${event.type})`)
+				return { received: true, idempotent: true }
 			}
+
+			// Record event as being processed (database persistence)
+			await this.webhookService.recordEventProcessing(event.id, event.type)
+
+			// Return 200 immediately and process asynchronously
+			// This follows Stripe's best practice to avoid timeouts
+			setImmediate(async () => {
+				try {
+					// Emit event for async processing
+					this.emitStripeEvent(event)
+
+					// Mark as successfully processed in database
+					await this.webhookService.markEventProcessed(event.id)
+
+					this.logger.log(`Event queued for async processing: ${event.type}`, {
+						event_id: event.id,
+						event_type: event.type
+					})
+				} catch (error) {
+					// Log error but don't affect webhook response
+					this.logger.error(`Event processing failed: ${event.type}`, {
+						event_id: event.id,
+						event_type: event.type,
+						error: error instanceof Error ? error.message : String(error),
+						stack: error instanceof Error ? error.stack : undefined
+					})
+				}
+			})
 		} else {
-			this.logger.debug(`Unhandled webhook event type: ${event.type}`)
+			this.logger.debug(`Unhandled webhook event type: ${event.type}`, {
+				event_id: event.id
+			})
 		}
 
 		return { received: true }
@@ -532,6 +573,112 @@ export class StripeController {
 	}
 
 	/**
+	 * Embedded Checkout Session Creation
+	 * Official Pattern: checkout session with ui_mode: "custom" for embedded UI
+	 * Returns client_secret instead of redirect URL
+	 */
+	@Post('create-embedded-checkout-session')
+	@Public()
+	async createEmbeddedCheckoutSession(@Body() body: EmbeddedCheckoutRequest) {
+		// Native validation - CLAUDE.md compliant
+		if (!body.mode) {
+			throw new BadRequestException('mode is required (payment, subscription, or setup)')
+		}
+		if (!['payment', 'subscription', 'setup'].includes(body.mode)) {
+			throw new BadRequestException('mode must be payment, subscription, or setup')
+		}
+		if (!body.domain) {
+			throw new BadRequestException('domain is required')
+		}
+
+		// Validate priceId requirements based on mode
+		if (body.mode === 'payment' || body.mode === 'subscription') {
+			if (!body.priceId) {
+				throw new BadRequestException(`priceId is required for ${body.mode} mode`)
+			}
+			if (!body.priceId.startsWith('price_')) {
+				throw new BadRequestException(
+					'Invalid priceId format. Expected Stripe price ID starting with "price_"'
+				)
+			}
+		}
+
+		// Setup mode should not have priceId
+		if (body.mode === 'setup' && body.priceId) {
+			throw new BadRequestException('priceId should not be provided for setup mode')
+		}
+
+		try {
+			this.logger.log('Creating embedded checkout session', {
+				priceId: body.priceId || 'none (setup mode)',
+				mode: body.mode
+			})
+
+			// Build session configuration based on transaction type
+			const sessionConfig: Stripe.Checkout.SessionCreateParams = {
+				ui_mode: "custom",
+				mode: body.mode,
+				return_url: `${body.domain}/complete?session_id={CHECKOUT_SESSION_ID}`,
+			}
+
+			// Add line_items only for payment and subscription modes
+			if (body.mode === 'payment' || body.mode === 'subscription') {
+				sessionConfig.line_items = [
+					{
+						price: body.priceId,
+						quantity: 1,
+					},
+				]
+			}
+
+			// Following Stripe's exact embedded checkout specification
+			const session = await this.stripe.checkout.sessions.create(sessionConfig)
+
+			this.logger.log('Embedded checkout session created successfully', {
+				sessionId: session.id,
+				mode: body.mode,
+				has_client_secret: !!session.client_secret
+			})
+
+			// Return client_secret as per Stripe's specification
+			return { clientSecret: session.client_secret }
+		} catch (error) {
+			this.logger.error('Failed to create embedded checkout session', error)
+			this.handleStripeError(error as Stripe.errors.StripeError)
+		}
+	}
+
+	/**
+	 * Checkout Session Status Retrieval
+	 * Official Pattern: retrieve session status for return page
+	 */
+	@Get('session-status')
+	async getSessionStatus(@Query('session_id') sessionId: string) {
+		if (!sessionId) {
+			throw new BadRequestException('session_id is required')
+		}
+
+		try {
+			const session = await this.stripe.checkout.sessions.retrieve(sessionId, {
+				expand: ['payment_intent']
+			})
+
+			const paymentIntent = typeof session.payment_intent === 'string'
+				? null
+				: session.payment_intent
+
+			return {
+				status: session.status,
+				payment_status: session.payment_status,
+				payment_intent_id: paymentIntent?.id || null,
+				payment_intent_status: paymentIntent?.status || null
+			}
+		} catch (error) {
+			this.handleStripeError(error as Stripe.errors.StripeError)
+		}
+	}
+
+	/**
 	 * Billing Portal Session Creation
 	 * Official Pattern: customer self-service portal
 	 */
@@ -727,115 +874,216 @@ export class StripeController {
 	}
 
 	/**
-	 * Official Event Processing Pattern
-	 * Comprehensive event handling based on official webhook docs
+	 * Emit Stripe event for async processing
+	 * Uses NestJS EventEmitter2 for decoupled event handling
 	 */
-	private async processStripeEvent(event: Stripe.Event): Promise<void> {
-		switch (event.type) {
-			case 'payment_intent.succeeded':
-				await this.handlePaymentIntentSucceeded(
-					event.data.object as Stripe.PaymentIntent
-				)
-				break
+	private emitStripeEvent(event: Stripe.Event): void {
+		// Emit specific event for detailed handling
+		const eventName = `stripe.${event.type.replace(/\./g, '_')}`
+		this.eventEmitter.emit(eventName, event.data.object, event)
 
-			case 'payment_intent.payment_failed':
-				await this.handlePaymentIntentFailed(
-					event.data.object as Stripe.PaymentIntent
-				)
-				break
+		// Also emit generic event for logging/monitoring
+		this.eventEmitter.emit('stripe.event', event)
 
-			case 'setup_intent.succeeded':
-				await this.handleSetupIntentSucceeded(
-					event.data.object as Stripe.SetupIntent
-				)
-				break
+		this.logger.debug(`Emitted event: ${eventName}`, {
+			event_id: event.id,
+			event_type: event.type
+		})
+	}
 
-			case 'customer.subscription.created':
-				await this.handleSubscriptionCreated(
-					event.data.object as Stripe.Subscription
-				)
-				break
+	// Helper methods for webhook handlers
+	private async getUserById(userId: string) {
+		const supabase = this.supabaseService.getAdminClient()
+		const { data: user, error } = await supabase
+			.from('User')
+			.select('id, email, name')
+			.eq('id', userId)
+			.single()
 
-			case 'customer.subscription.updated':
-				await this.handleSubscriptionUpdated(
-					event.data.object as Stripe.Subscription
-				)
-				break
-
-			case 'customer.subscription.deleted':
-				await this.handleSubscriptionDeleted(
-					event.data.object as Stripe.Subscription
-				)
-				break
-
-			case 'invoice.payment_succeeded':
-				await this.handleInvoicePaymentSucceeded(
-					event.data.object as Stripe.Invoice
-				)
-				break
-
-			case 'invoice.payment_failed':
-				await this.handleInvoicePaymentFailed(
-					event.data.object as Stripe.Invoice
-				)
-				break
-
-			case 'checkout.session.completed':
-				await this.handleCheckoutSessionCompleted(
-					event.data.object as Stripe.Checkout.Session
-				)
-				break
-
-			default:
-				this.logger.debug(`Unhandled event type: ${event.type}`)
+		if (error || !user) {
+			throw new Error(`User not found: ${userId}`)
 		}
+
+		return user
+	}
+
+	private async getUserByStripeCustomerId(stripeCustomerId: string) {
+		const supabase = this.supabaseService.getAdminClient()
+		const { data: user, error } = await supabase
+			.from('User')
+			.select('id, email, name')
+			.eq('stripeCustomerId', stripeCustomerId)
+			.single()
+
+		if (error || !user) {
+			throw new Error(`User not found for Stripe customer: ${stripeCustomerId}`)
+		}
+
+		return user
+	}
+
+	// private generateRetryPaymentUrl(paymentIntentId: string): string {
+	//	if (!process.env.FRONTEND_URL) {
+	//		throw new InternalServerErrorException('FRONTEND_URL not configured')
+	//	}
+	//	const baseUrl = process.env.FRONTEND_URL
+	//	return `${baseUrl}/payment/retry?payment_intent=${paymentIntentId}`
+	// }
+
+	private generateUpdatePaymentMethodUrl(): string {
+		if (!process.env.FRONTEND_URL) {
+			throw new InternalServerErrorException('FRONTEND_URL not configured')
+		}
+		const baseUrl = process.env.FRONTEND_URL
+		return `${baseUrl}/dashboard/settings?tab=billing&action=update-payment-method`
+	}
+
+	// private async updatePaymentStatus(paymentIntentId: string, status: string) {
+	//	const supabase = this.supabaseService.getAdminClient()
+
+	//	// Update RentPayment status based on Stripe payment intent
+	//	await supabase
+	//		.from('RentPayment')
+	//		.update({
+	//			status: status.toUpperCase() as Database['public']['Enums']['RentPaymentStatus'],
+	//			updatedAt: new Date().toISOString()
+	//		})
+	//		.eq('stripePaymentIntentId', paymentIntentId)
+	// }
+
+	private async revokeSubscriptionAccess(stripeCustomerId: string) {
+		const supabase = this.supabaseService.getAdminClient()
+
+		// Update subscription status to cancelled
+		await supabase
+			.from('Subscription')
+			.update({
+				status: 'CANCELED',
+				cancelled_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
+			})
+			.eq('stripeCustomerId', stripeCustomerId)
+
+		// Log access change in UserAccessLog table
+		const userResult = await supabase
+			.from('User')
+			.select('id')
+			.eq('stripeCustomerId', stripeCustomerId)
+			.single()
+
+		if (userResult.data) {
+			await supabase.from('UserAccessLog').insert({
+				userId: userResult.data.id,
+				subscriptionStatus: 'CANCELED',
+				planType: 'NONE',
+				reason: 'Subscription cancelled via Stripe webhook',
+				accessGranted: {}
+			})
+		}
+	}
+
+	private async extendSubscriptionAccess(stripeSubscriptionId: string) {
+		const supabase = this.supabaseService.getAdminClient()
+
+		// Ensure subscription status is active
+		await supabase
+			.from('Subscription')
+			.update({
+				status: 'ACTIVE',
+				updated_at: new Date().toISOString()
+			})
+			.eq('stripeSubscriptionId', stripeSubscriptionId)
+
+		// Update user subscription status
+		const { data: subscription } = await supabase
+			.from('Subscription')
+			.select('userId')
+			.eq('stripeSubscriptionId', stripeSubscriptionId)
+			.single()
+
+		if (subscription?.userId) {
+			await supabase.from('UserAccessLog').insert({
+				userId: subscription.userId,
+				subscriptionStatus: 'ACTIVE',
+				planType: 'PREMIUM',
+				reason: 'Subscription extended via Stripe webhook',
+				accessGranted: { premium_features: true }
+			})
+		}
+	}
+
+	private async suspendSubscriptionAccess(stripeSubscriptionId: string) {
+		const supabase = this.supabaseService.getAdminClient()
+
+		// Update subscription status to suspended
+		await supabase
+			.from('Subscription')
+			.update({
+				status: 'PAST_DUE',
+				updated_at: new Date().toISOString()
+			})
+			.eq('stripeSubscriptionId', stripeSubscriptionId)
+
+		// Update user subscription status
+		const { data: subscription } = await supabase
+			.from('Subscription')
+			.select('userId')
+			.eq('stripeSubscriptionId', stripeSubscriptionId)
+			.single()
+
+		if (subscription?.userId) {
+			await supabase.from('UserAccessLog').insert({
+				userId: subscription.userId,
+				subscriptionStatus: 'PAST_DUE',
+				planType: 'LIMITED',
+				reason: 'Subscription suspended via Stripe webhook',
+				accessGranted: { basic_features_only: true }
+			})
+		}
+	}
+
+	private calculateNextRetryDate(attemptNumber: number): Date | null {
+		// Stripe's retry schedule: 1 day, 3 days, 5 days, 7 days
+		const retrySchedule = [1, 3, 5, 7]
+		const daysToAdd = retrySchedule[attemptNumber] || null
+
+		if (!daysToAdd) return null
+
+		const nextRetry = new Date()
+		nextRetry.setDate(nextRetry.getDate() + daysToAdd)
+		return nextRetry
 	}
 
 	/**
-	 * Event Handlers - Business Logic Implementation
+	 * Get all active products from Stripe
+	 * Dynamic product configuration instead of hardcoding
 	 */
-	private async handlePaymentIntentSucceeded(
-		paymentIntent: Stripe.PaymentIntent
-	) {
-		this.logger.log(`Payment succeeded: ${paymentIntent.id}`, {
-			amount: paymentIntent.amount,
-			tenant_id: paymentIntent.metadata.tenant_id
-		})
+	@Get('products')
+	@HttpCode(HttpStatus.OK)
+	async getProducts() {
+		this.logger.log('Fetching products from Stripe API')
 
 		try {
-			const supabase = this.supabaseService.getAdminClient()
+			const products = await this.stripe.products.list({
+				active: true,
+				limit: 100,
+				expand: ['data.default_price']
+			})
 
-			// Update user payment status if tenant_id is provided
-			if (paymentIntent.metadata.tenant_id) {
-				await supabase
-					.from('User')
-					.update({
-						stripeCustomerId: paymentIntent.customer as string
-					})
-					.eq('id', paymentIntent.metadata.tenant_id)
+			this.logger.log(`Successfully fetched ${products.data.length} products`)
+			return {
+				success: true,
+				products: products.data
+			}
+		} catch (error) {
+			this.logger.error('Failed to fetch products from Stripe', error)
 
-				this.logger.log(
-					`Updated user payment status for: ${paymentIntent.metadata.tenant_id}`
-				)
+			if (error instanceof Stripe.errors.StripeError) {
+				throw new BadRequestException('Failed to fetch products from Stripe: ' + error.message)
 			}
 
-			// Log payment event for audit trail
-			await supabase.from('WebhookEvent').insert({
-				stripeEventId: `pi_succeeded_${paymentIntent.id}`,
-				eventType: 'payment_intent.succeeded',
-				processed_at: new Date().toISOString()
-			})
-		} catch (error) {
-			this.logger.error('Failed to update database for payment success', error)
+			throw new InternalServerErrorException('Internal server error while fetching products')
 		}
-	}
-
-	private async handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
-		this.logger.warn(`Payment failed: ${paymentIntent.id}`, {
-			error: paymentIntent.last_payment_error?.message,
-			tenant_id: paymentIntent.metadata.tenant_id
-		})
-		// TODO: Notify user of payment failure, suggest retry
 	}
 
 	private async handleSetupIntentSucceeded(setupIntent: Stripe.SetupIntent) {
@@ -843,7 +1091,57 @@ export class StripeController {
 			customer: setupIntent.customer,
 			tenant_id: setupIntent.metadata?.tenant_id
 		})
-		// TODO: Save payment method reference, enable auto-billing
+
+		try {
+			const supabase = this.supabaseService.getAdminClient()
+
+			// Get payment method details from Stripe
+			const paymentMethod = await this.stripe.paymentMethods.retrieve(
+				setupIntent.payment_method as string
+			)
+
+			// Save payment method reference
+			await supabase.from('PaymentMethod').upsert({
+				stripePaymentMethodId: setupIntent.payment_method as string,
+				tenantId: setupIntent.metadata?.tenant_id || '',
+				organizationId: setupIntent.metadata?.organization_id || '', // Required field
+				isDefault: true,
+				type: paymentMethod.type,
+				brand: paymentMethod.card?.brand,
+				lastFour: paymentMethod.card?.last4,
+				expiryMonth: paymentMethod.card?.exp_month,
+				expiryYear: paymentMethod.card?.exp_year,
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
+			})
+
+			// Log payment method setup success in access log
+			if (setupIntent.metadata?.tenant_id) {
+				await supabase.from('UserAccessLog').insert({
+					userId: setupIntent.metadata.tenant_id,
+					subscriptionStatus: 'ACTIVE',
+					planType: 'PREMIUM',
+					reason: 'Payment method successfully set up',
+					accessGranted: { auto_billing: true }
+				})
+
+				// Get user for email notification
+				const user = await this.getUserById(setupIntent.metadata.tenant_id)
+
+				// Send confirmation email
+				await this.emailService.sendPaymentMethodSavedEmail({
+					to: user.email,
+					userName: user.name || undefined,
+					lastFour: paymentMethod.card?.last4 || '****',
+					brand: paymentMethod.card?.brand || 'card'
+				})
+
+				this.logger.log(`Payment method saved and auto-billing enabled for user: ${user.email}`)
+			}
+		} catch (error) {
+			this.logger.error('Failed to process setup intent success', error)
+			// Don't throw - webhook should still return success
+		}
 	}
 
 	private async handleSubscriptionCreated(subscription: Stripe.Subscription) {
@@ -950,88 +1248,106 @@ export class StripeController {
 		this.logger.log(`Subscription cancelled: ${subscription.id}`, {
 			customer: subscription.customer
 		})
-		// TODO: Revoke access, send cancellation confirmation
-	}
-
-	private async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
-		this.logger.log(`Invoice paid: ${invoice.id}`, {
-			amount: invoice.amount_paid,
-			customer: invoice.customer
-		})
-		// TODO: Send receipt, extend subscription
-	}
-
-	private async handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
-		this.logger.warn(`Invoice payment failed: ${invoice.id}`, {
-			customer: invoice.customer,
-			attempt_count: invoice.attempt_count
-		})
-		// TODO: Handle payment retry logic, notify user
-	}
-
-	private async handleCheckoutSessionCompleted(
-		session: Stripe.Checkout.Session
-	) {
-		this.logger.log(`Checkout completed: ${session.id}`, {
-			payment_status: session.payment_status,
-			customer: session.customer
-		})
 
 		try {
-			const supabase = this.supabaseService.getAdminClient()
+			// Revoke user access immediately
+			await this.revokeSubscriptionAccess(subscription.customer as string)
 
-			// Log successful checkout session
-			await supabase.from('WebhookEvent').insert({
-				stripeEventId: `checkout_completed_${session.id}`,
-				eventType: 'checkout.session.completed',
-				processed_at: new Date().toISOString()
+			// Send cancellation confirmation email
+			const user = await this.getUserByStripeCustomerId(subscription.customer as string)
+			await this.emailService.sendSubscriptionCancelledEmail({
+				to: user.email,
+				userName: user.name || undefined,
+				planName: subscription.metadata?.planName || 'Subscription',
+				cancellationDate: new Date(subscription.canceled_at! * 1000)
 			})
 
-			// If this created a subscription, link it to the user
-			if (session.subscription && session.customer) {
-				// Here you would typically link the subscription to the authenticated user
-				// This requires additional logic to map Stripe customer to your user ID
-				this.logger.log(
-					`Linking subscription ${session.subscription} to customer ${session.customer}`
-				)
-			}
-
-			this.logger.log(`Processed checkout completion: ${session.id}`)
+			this.logger.log(`Subscription access revoked and cancellation email sent to user: ${user.email}`)
 		} catch (error) {
-			this.logger.error('Failed to process checkout completion', error)
+			this.logger.error('Failed to process subscription cancellation', error)
+			// Don't throw - webhook should still return success
 		}
 	}
 
-	/**
-	 * Get all active products from Stripe
-	 * Dynamic product configuration instead of hardcoding
-	 */
-	@Get('products')
-	@HttpCode(HttpStatus.OK)
-	async getProducts() {
-		this.logger.log('Fetching products from Stripe API')
+	private async handleInvoicePaymentSucceeded(stripeInvoice: Stripe.Invoice) {
+		this.logger.log(`Invoice paid: ${stripeInvoice.id}`, {
+			amount: stripeInvoice.amount_paid,
+			customer: stripeInvoice.customer
+		})
 
 		try {
-			const products = await this.stripe.products.list({
-				active: true,
-				limit: 100,
-				expand: ['data.default_price']
+			// Send receipt email
+			const user = await this.getUserByStripeCustomerId(stripeInvoice.customer as string)
+			await this.emailService.sendInvoiceReceiptEmail({
+				to: user.email,
+				userName: user.name || undefined,
+				invoiceNumber: stripeInvoice.number || `inv_${stripeInvoice.id}`,
+				amount: stripeInvoice.amount_paid,
+				currency: stripeInvoice.currency,
+				invoiceUrl: stripeInvoice.invoice_pdf || `https://dashboard.stripe.com/invoices/${stripeInvoice.id}`
 			})
 
-			this.logger.log(`Successfully fetched ${products.data.length} products`)
+			// Extend subscription access if applicable
+			const subscriptionId = (stripeInvoice as any).subscription
+			if (subscriptionId && typeof subscriptionId === 'string') {
+				await this.extendSubscriptionAccess(subscriptionId)
+				this.logger.log(`Subscription access extended for subscription: ${subscriptionId}`)
+			}
 
-			return {
-				success: true,
-				products: products.data
-			}
+			this.logger.log(`Invoice receipt sent to user: ${user.email}`)
 		} catch (error) {
-			this.logger.error('Failed to fetch products from Stripe', error)
-			if (error instanceof Stripe.errors.StripeError) {
-				this.handleStripeError(error)
-			}
-			throw new InternalServerErrorException('Failed to fetch products')
+			this.logger.error('Failed to process successful invoice payment', error)
+			// Don't throw - webhook should still return success
 		}
 	}
+
+	private async handleInvoicePaymentFailed(stripeInvoice: Stripe.Invoice) {
+		this.logger.warn(`Invoice payment failed: ${stripeInvoice.id}`, {
+			customer: stripeInvoice.customer,
+			attempt_count: stripeInvoice.attempt_count
+		})
+
+		try {
+			// Implement retry logic
+			const maxRetries = 3
+			const currentAttempt = stripeInvoice.attempt_count
+
+			const user = await this.getUserByStripeCustomerId(stripeInvoice.customer as string)
+
+			if (currentAttempt < maxRetries) {
+				// Schedule retry (Stripe handles this automatically)
+				// Notify user of failed payment with retry information
+				await this.emailService.sendInvoicePaymentFailedEmail({
+					to: user.email,
+					userName: user.name || undefined,
+					attemptNumber: currentAttempt,
+					maxRetries,
+					nextRetryDate: this.calculateNextRetryDate(currentAttempt),
+					updatePaymentMethodUrl: this.generateUpdatePaymentMethodUrl()
+				})
+
+				this.logger.log(`Payment retry notification sent to user: ${user.email} (attempt ${currentAttempt}/${maxRetries})`)
+			} else {
+				// Max retries reached - suspend access
+				const subscriptionId = (stripeInvoice as any).subscription
+				if (subscriptionId && typeof subscriptionId === 'string') {
+					await this.suspendSubscriptionAccess(subscriptionId)
+				}
+
+				await this.emailService.sendAccountSuspendedEmail({
+					to: user.email,
+					userName: user.name || undefined,
+					suspensionReason: 'payment_failure'
+				})
+
+				this.logger.warn(`Account suspended due to payment failure for user: ${user.email}`)
+			}
+		} catch (error) {
+			this.logger.error('Failed to process invoice payment failure', error)
+			// Don't throw - webhook should still return success
+		}
+	}
+
 
 	/**
 	 * Get all active prices from Stripe
@@ -1177,6 +1493,8 @@ export class StripeController {
 			)
 		}
 	}
+
+
 
 	/**
 	 * Sanitize metadata values to prevent injection attacks

@@ -6,14 +6,7 @@
  */
 
 import { IsEmail, IsEnum, IsOptional, IsString, Length } from 'class-validator'
-
-export enum ContactFormType {
-	GENERAL_INQUIRY = 'general',
-	SALES = 'sales',
-	SUPPORT = 'support',
-	PARTNERSHIP = 'partnership',
-	DEMO_REQUEST = 'demo'
-}
+import { ContactFormType } from '@repo/shared'
 
 export class ContactFormSubmissionDto {
 	@IsString()

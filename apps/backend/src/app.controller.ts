@@ -4,6 +4,7 @@ import { Public } from './shared/decorators/public.decorator'
 
 @Controller()
 export class AppController {
+
 	constructor(private readonly appService: AppService) {}
 
 	/**

@@ -46,13 +46,12 @@ export interface TenantWithRelations extends Tenant {
  */
 @Injectable()
 export class TenantsService {
+	private readonly logger = new Logger(TenantsService.name)
+
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly logger: Logger,
 		private readonly eventEmitter: EventEmitter2
-	) {
-		// Logger context handled automatically via app-level configuration
-	}
+	) {}
 
 	/**
 	 * Get all tenants for a user using RPC

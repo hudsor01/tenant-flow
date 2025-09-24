@@ -140,7 +140,7 @@ export const PremiumHeroSection = React.forwardRef<
 							{/* Right Column - Property Image */}
 							<BlurFade delay={0.4} inView>
 								<div className="relative">
-									<div className="relative w-full h-[400px] lg:h-[500px] rounded-[24px] overflow-hidden shadow-2xl">
+									<div className="relative w-full h-[400px] lg:h-[500px] rounded-[var(--radius-3xl)] overflow-hidden shadow-2xl">
 										<Image
 											src="https://images.unsplash.com/photo-1558036117-15d82a90b9b1?q=80&w=2070&auto=format&fit=crop"
 											alt="Modern luxury apartment building showcasing TenantFlow property management"

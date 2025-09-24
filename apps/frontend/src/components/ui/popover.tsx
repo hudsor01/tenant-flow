@@ -29,9 +29,9 @@ function PopoverContent({
         data-slot="popover-content"
         align={align}
         sideOffset={sideOffset}
-        className={cn(
-          // Base styles with token-based radius
-          "bg-popover text-popover-foreground z-50 w-72 rounded-[12px] border p-4 shadow-md outline-hidden",
+		className={cn(
+			// Base styles with token-based radius
+			"bg-popover text-popover-foreground z-50 w-72 rounded-[var(--radius-medium)] border p-4 shadow-md outline-hidden",
           // Enhanced animations
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",

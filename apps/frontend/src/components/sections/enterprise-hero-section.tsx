@@ -213,7 +213,7 @@ export function EnterpriseHeroSection({
 									<div className="flex items-center justify-between">
 										<div className="flex items-center gap-3">
 											<div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-												<TrendingUp className="w-4 h-4 text-white" />
+												<TrendingUp className="w-4 h-4 text-primary-foreground" />
 											</div>
 											<span className="font-semibold text-foreground">
 												Enterprise Dashboard

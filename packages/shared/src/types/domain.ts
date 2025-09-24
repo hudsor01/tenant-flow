@@ -7,6 +7,14 @@
 
 // CONTACT DOMAIN
 
+export enum ContactFormType {
+	GENERAL_INQUIRY = 'general',
+	SALES = 'sales',
+	SUPPORT = 'support',
+	PARTNERSHIP = 'partnership',
+	DEMO_REQUEST = 'demo'
+}
+
 export interface ContactFormRequest {
 	name: string
 	email: string
@@ -22,6 +30,14 @@ export interface ContactFormResponse {
 	success: boolean
 	message: string
 	contactId?: string
+}
+
+// NOTIFICATION DOMAIN
+
+export enum NotificationType {
+	PAYMENT = 'payment',
+	BILLING = 'billing',
+	SYSTEM = 'system'
 }
 
 // WEB VITALS DOMAIN
@@ -267,6 +283,36 @@ export interface CSPViolationReport {
 
 export interface CSPReportBody {
 	'csp-report': CSPViolationReport
+}
+
+export interface SecurityEvent {
+	id: string
+	type: string
+	severity: 'low' | 'medium' | 'high' | 'critical'
+	timestamp: string
+	source: string
+	description: string
+	metadata?: Record<string, unknown>
+}
+
+export interface SecurityMetrics {
+	events: SecurityEvent[]
+	alerts: number
+	blocked_ips: string[]
+	totalEvents?: number
+	eventsBySeverity?: {
+		low: number
+		medium: number
+		high: number
+		critical: number
+	}
+	recentTrends?: {
+		lastHour: number
+		last24Hours: number
+		last7Days: number
+	}
+	eventsByType?: Record<string, number>
+	topThreateningIPs?: Array<{ ip: string; count: number }>
 }
 
 // AI DOMAIN - TEMPORARILY REMOVED

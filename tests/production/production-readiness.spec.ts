@@ -202,7 +202,10 @@ test.describe('Security & Performance', () => {
 
 test.describe('API Health & Connectivity', () => {
 	test('health endpoint responds', async ({ request }) => {
-		const backendUrl = process.env.BACKEND_URL || 'http://localhost:3005'
+		if (!process.env.BACKEND_URL) {
+			throw new Error('BACKEND_URL is required for production readiness tests')
+		}
+		const backendUrl = process.env.BACKEND_URL
 
 		try {
 			const response = await request.get(`${backendUrl}/health/ping`)
@@ -216,7 +219,10 @@ test.describe('API Health & Connectivity', () => {
 	})
 
 	test('database connectivity works', async ({ request }) => {
-		const backendUrl = process.env.BACKEND_URL || 'http://localhost:3005'
+		if (!process.env.BACKEND_URL) {
+			throw new Error('BACKEND_URL is required for production readiness tests')
+		}
+		const backendUrl = process.env.BACKEND_URL
 
 		try {
 			const response = await request.get(`${backendUrl}/health/db`)
@@ -278,8 +284,14 @@ test.describe('Monitoring & Observability', () => {
 	})
 
 	test('CORS is properly configured', async ({ request }) => {
-		const backendUrl = process.env.BACKEND_URL || 'http://localhost:3005'
-		const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3005'
+		if (!process.env.BACKEND_URL) {
+			throw new Error('BACKEND_URL is required for production readiness tests')
+		}
+		if (!process.env.FRONTEND_URL) {
+			throw new Error('FRONTEND_URL is required for production readiness tests')
+		}
+		const backendUrl = process.env.BACKEND_URL
+		const frontendUrl = process.env.FRONTEND_URL
 
 		try {
 			const response = await request.fetch(`${backendUrl}/health/ping`, {
@@ -322,7 +334,11 @@ test.describe('Data Integrity & Migrations', () => {
 
 test.describe('Deployment Verification', () => {
 	test('production URLs are accessible', async ({ page }) => {
-		const productionUrl = process.env.VERCEL_URL || 'https://tenantflow.app'
+		const productionUrl = process.env.VERCEL_URL ||
+			process.env.PRODUCTION_URL ||
+			(() => {
+				throw new Error('Production URL not available - ensure VERCEL_URL or PRODUCTION_URL is set for deployment verification')
+			})()
 
 		try {
 			await page.goto(productionUrl, { timeout: 30000 })
@@ -337,7 +353,11 @@ test.describe('Deployment Verification', () => {
 	})
 
 	test('SSL certificate is valid', async ({ request }) => {
-		const productionUrl = process.env.VERCEL_URL || 'https://tenantflow.app'
+		const productionUrl = process.env.VERCEL_URL ||
+			process.env.PRODUCTION_URL ||
+			(() => {
+				throw new Error('Production URL not available - ensure VERCEL_URL or PRODUCTION_URL is set for deployment verification')
+			})()
 
 		try {
 			const response = await request.get(productionUrl)

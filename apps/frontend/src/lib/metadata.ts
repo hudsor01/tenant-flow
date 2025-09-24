@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 
 export const siteMetadata: Metadata = {
 	metadataBase: new URL(
-		process.env.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app'
+		process.env.NEXT_PUBLIC_APP_URL || (() => {
+			throw new Error('NEXT_PUBLIC_APP_URL is required for site metadata')
+		})()
 	),
 	title:
 		'TenantFlow - Simplify Property Management | Professional Property Management Software',

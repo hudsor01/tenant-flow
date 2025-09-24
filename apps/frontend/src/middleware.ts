@@ -5,6 +5,7 @@ import {
 } from '@/lib/auth-constants'
 import { getCSPString } from '@repo/shared/security/csp-config'
 import type { ThemeMode } from '@repo/shared/types/domain'
+import { logger } from '@repo/shared'
 import { NextResponse, type NextRequest } from 'next/server'
 
 /**
@@ -55,8 +56,8 @@ export async function middleware(request: NextRequest) {
 		loginUrl.searchParams.set('redirectTo', pathname)
 
 		if (process.env.NODE_ENV === 'development') {
-			console.info(
-				`[middleware] redirecting unauthenticated user → ${loginUrl}`
+			logger.info(
+				`Middleware - redirecting unauthenticated user → ${loginUrl}`
 			)
 		}
 
@@ -67,8 +68,8 @@ export async function middleware(request: NextRequest) {
 		const dashboardUrl = new URL('/dashboard', request.url)
 
 		if (process.env.NODE_ENV === 'development') {
-			console.info(
-				'[middleware] authenticated user on auth route → dashboard redirect'
+			logger.info(
+				'Middleware - authenticated user on auth route → dashboard redirect'
 			)
 		}
 
@@ -80,7 +81,7 @@ export async function middleware(request: NextRequest) {
 		protectedRoute &&
 		hasSupabaseSession
 	) {
-		console.info(`[middleware] allowing authenticated access to ${pathname}`)
+			logger.info(`Middleware - allowing authenticated access to ${pathname}`)
 	}
 
 	return response

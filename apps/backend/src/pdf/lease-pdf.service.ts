@@ -1,5 +1,4 @@
-import { Injectable, InternalServerErrorException, Optional } from '@nestjs/common'
-import { Logger } from '@nestjs/common'
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
 import * as fs from 'fs'
 import * as path from 'path'
 import type { LeaseFormData } from '@repo/shared'
@@ -17,13 +16,12 @@ import {
  */
 @Injectable()
 export class LeasePDFService {
+	private readonly logger = new Logger(LeasePDFService.name)
 	private templateCache: Map<string, HandlebarsTemplateDelegate> = new Map()
-	
+
 	constructor(
-		private readonly pdfGenerator: PDFGeneratorService,
-		@Optional() private readonly logger?: Logger
+		private readonly pdfGenerator: PDFGeneratorService
 	) {
-		// Logger context handled automatically via app-level configuration
 		this.loadTemplates()
 	}
 
@@ -36,10 +34,10 @@ export class LeasePDFService {
 			const templateString = fs.readFileSync(templatePath, 'utf-8')
 			const compiledTemplate = compileTemplate(templateString)
 			this.templateCache.set('lease-agreement', compiledTemplate)
-			this.logger?.log('Lease templates loaded successfully')
+			this.logger.log('Lease templates loaded successfully')
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
-			this.logger?.error('Failed to load lease templates:', { error: errorMessage })
+			this.logger.error('Failed to load lease templates:', { error: errorMessage })
 			// In production, we might want to throw here to prevent service startup
 			// For now, we'll log and continue
 		}
@@ -79,7 +77,7 @@ export class LeasePDFService {
 		mimeType: string
 		size: number
 	}> {
-		this.logger?.log(
+		this.logger.log(
 			'Generating lease PDF for lease:',
 			leaseId,
 			'user:',
@@ -103,7 +101,7 @@ export class LeasePDFService {
 
 			const filename = `lease-${leaseId}.pdf`
 
-			this.logger?.log('Lease PDF generated successfully')
+			this.logger.log('Lease PDF generated successfully')
 			return {
 				buffer: pdfBuffer,
 				filename,
@@ -111,7 +109,7 @@ export class LeasePDFService {
 				size: pdfBuffer.length
 			}
 		} catch (error) {
-			this.logger?.error('Error generating lease PDF:', error)
+			this.logger.error('Error generating lease PDF:', error)
 			throw new InternalServerErrorException('Failed to generate lease PDF')
 		}
 	}
@@ -135,7 +133,7 @@ export class LeasePDFService {
 			
 			return this.renderTemplate(template, leaseData)
 		} catch (error) {
-			this.logger?.error('Error generating lease HTML:', error)
+			this.logger.error('Error generating lease HTML:', error)
 			throw new InternalServerErrorException('Failed to generate lease agreement HTML')
 		}
 	}

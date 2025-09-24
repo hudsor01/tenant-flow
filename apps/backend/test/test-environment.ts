@@ -10,6 +10,8 @@ import { ConfigModule } from '@nestjs/config'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 
+const moduleLogger = new Logger('TestEnvironment')
+
 export interface TestEnvironmentConfig {
 	database: {
 		url: string
@@ -70,29 +72,60 @@ export function getTestDatabaseConfig(): TestEnvironmentConfig['database'] {
 
 		case 'integration':
 			// Integration tests use real test database
+			if (!process.env.TEST_DATABASE_URL) {
+				throw new Error('TEST_DATABASE_URL is required for integration tests')
+			}
+			if (!process.env.TEST_DATABASE_HOST) {
+				throw new Error('TEST_DATABASE_HOST is required for integration tests')
+			}
+			if (!process.env.TEST_DATABASE_PORT) {
+				throw new Error('TEST_DATABASE_PORT is required for integration tests')
+			}
+			if (!process.env.TEST_DATABASE_NAME) {
+				throw new Error('TEST_DATABASE_NAME is required for integration tests')
+			}
+			if (!process.env.TEST_DATABASE_USER) {
+				throw new Error('TEST_DATABASE_USER is required for integration tests')
+			}
+			if (!process.env.TEST_DATABASE_PASSWORD) {
+				throw new Error('TEST_DATABASE_PASSWORD is required for integration tests')
+			}
 			return {
-				url:
-					process.env.TEST_DATABASE_URL ||
-					'postgresql://postgres:password@localhost:5432/tenantflow_integration_test',
-				host: process.env.TEST_DATABASE_HOST || 'localhost',
-				port: parseInt(process.env.TEST_DATABASE_PORT || '5432', 10),
-				database:
-					process.env.TEST_DATABASE_NAME || 'tenantflow_integration_test',
-				user: process.env.TEST_DATABASE_USER || 'postgres',
-				password: process.env.TEST_DATABASE_PASSWORD || 'password'
+				url: process.env.TEST_DATABASE_URL,
+				host: process.env.TEST_DATABASE_HOST,
+				port: parseInt(process.env.TEST_DATABASE_PORT, 10),
+				database: process.env.TEST_DATABASE_NAME,
+				user: process.env.TEST_DATABASE_USER,
+				password: process.env.TEST_DATABASE_PASSWORD
 			}
 
 		case 'e2e':
 			// E2E tests use dedicated e2e database
+			if (!process.env.E2E_DATABASE_URL) {
+				throw new Error('E2E_DATABASE_URL is required for e2e tests')
+			}
+			if (!process.env.E2E_DATABASE_HOST) {
+				throw new Error('E2E_DATABASE_HOST is required for e2e tests')
+			}
+			if (!process.env.E2E_DATABASE_PORT) {
+				throw new Error('E2E_DATABASE_PORT is required for e2e tests')
+			}
+			if (!process.env.E2E_DATABASE_NAME) {
+				throw new Error('E2E_DATABASE_NAME is required for e2e tests')
+			}
+			if (!process.env.E2E_DATABASE_USER) {
+				throw new Error('E2E_DATABASE_USER is required for e2e tests')
+			}
+			if (!process.env.E2E_DATABASE_PASSWORD) {
+				throw new Error('E2E_DATABASE_PASSWORD is required for e2e tests')
+			}
 			return {
-				url:
-					process.env.E2E_DATABASE_URL ||
-					'postgresql://postgres:password@localhost:5432/tenantflow_e2e_test',
-				host: process.env.E2E_DATABASE_HOST || 'localhost',
-				port: parseInt(process.env.E2E_DATABASE_PORT || '5432', 10),
-				database: process.env.E2E_DATABASE_NAME || 'tenantflow_e2e_test',
-				user: process.env.E2E_DATABASE_USER || 'postgres',
-				password: process.env.E2E_DATABASE_PASSWORD || 'password'
+				url: process.env.E2E_DATABASE_URL,
+				host: process.env.E2E_DATABASE_HOST,
+				port: parseInt(process.env.E2E_DATABASE_PORT, 10),
+				database: process.env.E2E_DATABASE_NAME,
+				user: process.env.E2E_DATABASE_USER,
+				password: process.env.E2E_DATABASE_PASSWORD
 			}
 
 		default:
@@ -117,24 +150,28 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 		}
 	}
 
-	// Integration and E2E tests use real test Supabase project or fallback
+	// Integration and E2E tests use real test Supabase project
+	// Require explicit environment variables - no silent fallbacks
+	const url = process.env.TEST_SUPABASE_URL || process.env.SUPABASE_URL || (() => {
+		throw new Error('TEST_SUPABASE_URL or SUPABASE_URL environment variable is required for integration/e2e tests')
+	})()
+	const anonKey = process.env.TEST_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || (() => {
+		throw new Error('TEST_SUPABASE_ANON_KEY or SUPABASE_ANON_KEY environment variable is required for integration/e2e tests')
+	})()
+	const serviceRoleKey = process.env.TEST_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || (() => {
+		throw new Error('TEST_SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SERVICE_ROLE_KEY environment variable is required for integration/e2e tests')
+	})()
+	const jwtSecret = process.env.TEST_SUPABASE_JWT_SECRET || process.env.SUPABASE_JWT_SECRET || (() => {
+		throw new Error('TEST_SUPABASE_JWT_SECRET or SUPABASE_JWT_SECRET environment variable is required for integration/e2e tests')
+	})()
+
+	// Error handling now done by IIFE patterns above
+
 	return {
-		url:
-			process.env.TEST_SUPABASE_URL ||
-			process.env.SUPABASE_URL ||
-			'https://test-project.supabase.co',
-		anonKey:
-			process.env.TEST_SUPABASE_ANON_KEY ||
-			process.env.SUPABASE_ANON_KEY ||
-			'test_anon_key',
-		serviceRoleKey:
-			process.env.TEST_SUPABASE_SERVICE_ROLE_KEY ||
-			process.env.SUPABASE_SERVICE_ROLE_KEY ||
-			'test_service_role_key',
-		jwtSecret:
-			process.env.TEST_SUPABASE_JWT_SECRET ||
-			process.env.SUPABASE_JWT_SECRET ||
-			'test_jwt_secret'
+		url,
+		anonKey,
+		serviceRoleKey,
+		jwtSecret
 	}
 }
 
@@ -180,17 +217,25 @@ export function getTestStripeConfig(): TestEnvironmentConfig['stripe'] {
 
 	// Warn if using placeholder keys
 	if (secretKey?.includes('Replace')) {
-		console.warn(
-			'[WARNING]  Using placeholder Stripe test keys. See apps/backend/test/stripe-test-setup.md for setup instructions.'
+		moduleLogger.warn(
+			'Using placeholder Stripe test keys. See apps/backend/test/stripe-test-setup.md for setup instructions.'
 		)
 	}
 
+	if (!secretKey) {
+		throw new Error('TEST_STRIPE_SECRET_KEY is required for integration/e2e tests. See apps/backend/test/stripe-test-setup.md for setup instructions.')
+	}
+	if (!webhookSecret) {
+		throw new Error('TEST_STRIPE_WEBHOOK_SECRET is required for integration/e2e tests. See apps/backend/test/stripe-test-setup.md for setup instructions.')
+	}
+	if (!publishableKey) {
+		throw new Error('TEST_STRIPE_PUBLISHABLE_KEY is required for integration/e2e tests. See apps/backend/test/stripe-test-setup.md for setup instructions.')
+	}
+
 	return {
-		secretKey: secretKey || 'sk_test_placeholder_key_see_stripe_test_setup_md',
-		webhookSecret:
-			webhookSecret || 'whsec_placeholder_secret_see_stripe_test_setup_md',
-		publishableKey:
-			publishableKey || 'pk_test_placeholder_key_see_stripe_test_setup_md'
+		secretKey,
+		webhookSecret,
+		publishableKey
 	}
 }
 
@@ -199,9 +244,23 @@ export function getTestStripeConfig(): TestEnvironmentConfig['stripe'] {
  * Uses test/mock email service for all environments
  */
 export function getTestEmailConfig(): TestEnvironmentConfig['email'] {
+	const testEnv = getTestEnvironment()
+
+	if (testEnv === 'unit') {
+		// Unit tests use mocked email service
+		return {
+			resendApiKey: 'mock_resend_api_key_for_unit_tests'
+		}
+	}
+
+	// Integration and E2E tests require real test API key
+	const resendApiKey = process.env.TEST_RESEND_API_KEY
+	if (!resendApiKey) {
+		throw new Error('TEST_RESEND_API_KEY is required for integration/e2e tests')
+	}
+
 	return {
-		resendApiKey:
-			process.env.TEST_RESEND_API_KEY || 'mock_resend_api_key_for_testing'
+		resendApiKey
 	}
 }
 
