@@ -8,7 +8,7 @@
  */
 export enum UserRole {
 	OWNER = 'OWNER',
-	MANAGER = 'MANAGER', 
+	MANAGER = 'MANAGER',
 	TENANT = 'TENANT',
 	ADMIN = 'ADMIN'
 }
@@ -214,6 +214,7 @@ export interface CSPDirectives {
 	'font-src': string[]
 	'connect-src': string[]
 	'frame-src': string[]
+	'worker-src'?: string[]
 	'object-src': string[]
 	'base-uri': string[]
 	'form-action': string[]
