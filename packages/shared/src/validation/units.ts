@@ -1,12 +1,12 @@
 import { z } from 'zod'
-import { Constants } from '../types/supabase-generated'
+import { Constants } from '../types/supabase-generated.js'
 import {
 	nonEmptyStringSchema,
 	nonNegativeNumberSchema,
 	positiveNumberSchema,
 	requiredString,
 	uuidSchema
-} from './common'
+} from './common.js'
 
 // Unit status enum - uses auto-generated Supabase enums
 export const unitStatusSchema = z.enum(

@@ -10,9 +10,7 @@
  * - Data visualization
  */
 
-// =============================================================================
 // TYPOGRAPHY SYSTEM
-// =============================================================================
 
 /**
  * Font families following Tailwind CSS defaults
@@ -190,9 +188,7 @@ export const TYPOGRAPHY_SCALE = {
 	}
 } as const
 
-// =============================================================================
 // SPACING SYSTEM
-// =============================================================================
 
 /**
  * Consistent spacing scale following 8px grid system
@@ -236,9 +232,7 @@ export const SPACING_SCALE = {
 	96: '24rem' // 384px
 } as const
 
-// =============================================================================
 // COLOR SYSTEM
-// =============================================================================
 
 /**
  * Semantic color definitions for consistent theming
@@ -298,9 +292,7 @@ export const SEMANTIC_COLORS = {
 	'sidebar-ring': 'var(--sidebar-ring)'
 } as const
 
-// =============================================================================
 // COMPONENT VARIANTS
-// =============================================================================
 
 /**
  * Standard component sizes for consistent scaling
@@ -369,9 +361,7 @@ export const SHADOW_SCALE = {
 	inner: 'inset 0 2px 4px 0 rgb(0 0 0 / 0.05)'
 } as const
 
-// =============================================================================
 // ANIMATION CONSTANTS
-// =============================================================================
 
 /**
  * Standard animation durations for consistent motion
@@ -396,9 +386,7 @@ export const ANIMATION_EASINGS = {
 	sharp: 'cubic-bezier(0.4, 0, 0.6, 1)'
 } as const
 
-// =============================================================================
 // BREAKPOINT SYSTEM
-// =============================================================================
 
 /**
  * Responsive breakpoints aligned with Tailwind CSS
@@ -423,9 +411,7 @@ export const CONTAINER_SIZES = {
 	'2xl': '1536px'
 } as const
 
-// =============================================================================
 // Z-INDEX SCALE
-// =============================================================================
 
 /**
  * Z-index scale for consistent layering
@@ -446,9 +432,7 @@ export const Z_INDEX_SCALE = {
 	tooltip: 1800
 } as const
 
-// =============================================================================
 // COMPONENT PRESETS
-// =============================================================================
 
 /**
  * Pre-configured component variants for common patterns
@@ -514,9 +498,7 @@ export const COMPONENT_PRESETS = {
 	}
 } as const
 
-// =============================================================================
 // TYPE EXPORTS
-// =============================================================================
 
 export type SpacingSize = keyof typeof SPACING_SCALE
 export type TypographyVariant = keyof typeof TYPOGRAPHY_SCALE

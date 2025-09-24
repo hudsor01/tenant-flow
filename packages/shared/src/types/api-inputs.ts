@@ -4,17 +4,15 @@
  * These types define the structure of data sent to backend endpoints
  */
 
-import type { PLAN_TYPE } from '../constants/billing'
-import type { PropertyQuery, MaintenanceQuery } from './queries'
-import type { Database } from './supabase-generated'
+import type { PLAN_TYPE } from '../constants/billing.js'
+import type { MaintenanceQuery, PropertyQuery } from './queries.js'
+import type { Database } from './supabase-generated.js'
 
 // Define types properly from Database schema
 type Lease = Database['public']['Tables']['Lease']['Row']
 type Property = Database['public']['Tables']['Property']['Row']
 
-// ========================
 // Subscription API Inputs
-// ========================
 
 /**
  * Input for creating a checkout session
@@ -83,13 +81,13 @@ export interface TrialParams {
 	onSuccess?: (subscriptionId: string) => void
 }
 
-// ========================
 // Property API Inputs (Re-exported from properties.ts)
-// ========================
 
 // Define property input types from Database schema
-export type CreatePropertyInput = Database['public']['Tables']['Property']['Insert']
-export type UpdatePropertyInput = Database['public']['Tables']['Property']['Update']
+export type CreatePropertyInput =
+	Database['public']['Tables']['Property']['Insert']
+export type UpdatePropertyInput =
+	Database['public']['Tables']['Property']['Update']
 
 /**
  * Query parameters for filtering properties (extends from queries.ts)
@@ -97,9 +95,7 @@ export type UpdatePropertyInput = Database['public']['Tables']['Property']['Upda
  */
 export type PropertyQueryInput = PropertyQuery
 
-// ========================
 // Unit API Inputs
-// ========================
 
 /**
  * Input for creating a new unit
@@ -113,9 +109,7 @@ export type CreateUnitInput = Database['public']['Tables']['Unit']['Insert']
  */
 export type UpdateUnitInput = Database['public']['Tables']['Unit']['Update']
 
-// ========================
 // Tenant API Inputs
-// ========================
 
 /**
  * Input for creating a new tenant
@@ -129,9 +123,7 @@ export type CreateTenantInput = Database['public']['Tables']['Tenant']['Insert']
  */
 export type UpdateTenantInput = Database['public']['Tables']['Tenant']['Update']
 
-// ========================
 // Lease API Inputs
-// ========================
 
 /**
  * Input for creating a new lease
@@ -145,21 +137,21 @@ export type CreateLeaseInput = Database['public']['Tables']['Lease']['Insert']
  */
 export type UpdateLeaseInput = Database['public']['Tables']['Lease']['Update']
 
-// ========================
 // Maintenance API Inputs
-// ========================
 
 /**
  * Input for creating a maintenance request
  * Uses Supabase generated types for type safety
  */
-export type CreateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Insert']
+export type CreateMaintenanceInput =
+	Database['public']['Tables']['MaintenanceRequest']['Insert']
 
 /**
  * Input for updating a maintenance request
  * Uses Supabase generated types for type safety
  */
-export type UpdateMaintenanceInput = Database['public']['Tables']['MaintenanceRequest']['Update']
+export type UpdateMaintenanceInput =
+	Database['public']['Tables']['MaintenanceRequest']['Update']
 
 /**
  * Query parameters for maintenance request search (extends from queries.ts)
@@ -167,9 +159,7 @@ export type UpdateMaintenanceInput = Database['public']['Tables']['MaintenanceRe
  */
 export type MaintenanceQueryInput = MaintenanceQuery
 
-// ========================
 // Form Data Types (moved from frontend)
-// ========================
 
 // PropertyFormData is now defined in validation/properties.ts as z.infer<typeof propertyFormSchema>
 // This ensures type safety and alignment with React Hook Form zodResolver
@@ -200,7 +190,10 @@ export interface UsePropertyFormDataProps {
  * Form field context types for React Hook Form integration
  */
 export interface FormFieldContextValue<
-	TFieldValues extends Record<string, string | number | boolean | null> = Record<string, string | number | boolean | null>,
+	TFieldValues extends Record<
+		string,
+		string | number | boolean | null
+	> = Record<string, string | number | boolean | null>,
 	TName extends keyof TFieldValues = keyof TFieldValues
 > {
 	name: TName
@@ -210,9 +203,7 @@ export interface FormItemContextValue {
 	id: string
 }
 
-// ========================
 // File Upload Types
-// ========================
 
 /**
  * File upload request structure
@@ -227,9 +218,7 @@ export interface FileUploadRequest {
 // Note: FileUploadResponse is defined in api.ts
 // Note: Invoice types (EmailCaptureData, InvoiceDownloadResponse, InvoiceGenerationRequest) are defined in invoice-lead.ts
 
-// ========================
 // Authentication API Inputs
-// ========================
 
 /**
  * Input for user registration
@@ -295,9 +284,7 @@ export interface AuthCallbackInput {
 	type?: string
 }
 
-// ========================
 // User Management API Inputs
-// ========================
 
 /**
  * Input for ensuring user exists
