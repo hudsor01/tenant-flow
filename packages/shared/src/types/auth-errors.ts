@@ -3,7 +3,7 @@
  * Provides secure, typed error handling for authentication flows
  */
 
-import type { AuthErrorCode } from './auth'
+import type { AuthErrorCode } from './auth.js'
 
 /**
  * Authentication error with detailed typing
@@ -151,22 +151,18 @@ export function sanitizeAuthErrorMessage(error: TypedAuthError): string {
 	const safeMessages: Record<AuthErrorCode, string> = {
 		INVALID_CREDENTIALS: 'Invalid email or password. Please try again.',
 		USER_NOT_FOUND: 'No account found with this email address.',
-		EMAIL_NOT_VERIFIED:
-			'Please verify your email address before signing in.',
+		EMAIL_NOT_VERIFIED: 'Please verify your email address before signing in.',
 		ACCOUNT_LOCKED:
 			'Your account has been temporarily locked. Please contact support.',
 		PASSWORD_TOO_WEAK:
 			'Password must be at least 8 characters with a mix of letters, numbers, and symbols.',
-		EMAIL_ALREADY_EXISTS:
-			'An account with this email address already exists.',
+		EMAIL_ALREADY_EXISTS: 'An account with this email address already exists.',
 		INVALID_TOKEN:
 			'Invalid or expired verification link. Please request a new one.',
-		TOKEN_EXPIRED:
-			'Verification link has expired. Please request a new one.',
+		TOKEN_EXPIRED: 'Verification link has expired. Please request a new one.',
 		RATE_LIMITED:
 			'Too many attempts. Please wait a few minutes before trying again.',
-		NETWORK_ERROR:
-			'Network error. Please check your connection and try again.',
+		NETWORK_ERROR: 'Network error. Please check your connection and try again.',
 		VALIDATION_ERROR: 'Please check your input and try again.',
 		UNKNOWN_ERROR: 'An unexpected error occurred. Please try again.'
 	}

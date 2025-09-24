@@ -1,18 +1,22 @@
 import { z } from 'zod'
+import { Constants } from '../types/supabase-generated.js'
 import {
-	uuidSchema,
 	nonEmptyStringSchema,
-	positiveNumberSchema,
 	nonNegativeNumberSchema,
+	positiveNumberSchema,
+	requiredString,
 	urlSchema,
-	requiredString
-} from './common'
-import { Constants } from '../types/supabase-generated'
+	uuidSchema
+} from './common.js'
 
 // Property type schema - uses auto-generated Supabase enums
-export const propertyTypeSchema = z.enum(Constants.public.Enums.PropertyType as readonly [string, ...string[]])
+export const propertyTypeSchema = z.enum(
+	Constants.public.Enums.PropertyType as readonly [string, ...string[]]
+)
 
-export const propertyStatusSchema = z.enum(Constants.public.Enums.PropertyStatus as readonly [string, ...string[]])
+export const propertyStatusSchema = z.enum(
+	Constants.public.Enums.PropertyStatus as readonly [string, ...string[]]
+)
 
 // Base property input schema (for forms and API creation)
 export const propertyInputSchema = z.object({
@@ -131,7 +135,9 @@ export type PropertyStatusValidation = z.infer<typeof propertyStatusSchema>
 export const propertyFormSchema = z.object({
 	name: requiredString,
 	description: z.string().optional(),
-	propertyType: z.enum(Constants.public.Enums.PropertyType as readonly [string, ...string[]]),
+	propertyType: z.enum(
+		Constants.public.Enums.PropertyType as readonly [string, ...string[]]
+	),
 	address: requiredString,
 	city: requiredString,
 	state: requiredString,

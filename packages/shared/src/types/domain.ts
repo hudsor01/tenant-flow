@@ -5,9 +5,7 @@
  * Reduces type file count while maintaining domain separation
  */
 
-// =============================================================================
 // CONTACT DOMAIN
-// =============================================================================
 
 export interface ContactFormRequest {
 	name: string
@@ -26,9 +24,7 @@ export interface ContactFormResponse {
 	contactId?: string
 }
 
-// =============================================================================
 // WEB VITALS DOMAIN
-// =============================================================================
 
 export enum WebVitalMetricName {
 	CLS = 'CLS',
@@ -57,9 +53,7 @@ export enum WebVitalNavigationType {
 	PRERENDER = 'prerender'
 }
 
-// =============================================================================
 // STRIPE WEBHOOK DOMAIN
-// =============================================================================
 
 export enum StripeWebhookEventType {
 	CUSTOMER_SUBSCRIPTION_CREATED = 'customer.subscription.created',
@@ -72,9 +66,7 @@ export enum StripeWebhookEventType {
 	CHECKOUT_SESSION_COMPLETED = 'checkout.session.completed'
 }
 
-// =============================================================================
 // STORAGE DOMAIN
-// =============================================================================
 
 export interface StorageUploadResult {
 	url: string
@@ -94,9 +86,7 @@ export interface FileUploadOptions {
 export type StorageEntityType = 'property' | 'tenant' | 'maintenance' | 'user'
 export type StorageFileType = 'document' | 'image' | 'avatar'
 
-// =============================================================================
 // STRIPE ANALYTICS DOMAIN
-// =============================================================================
 
 export interface RevenueAnalytics {
 	period: string
@@ -130,9 +120,7 @@ export interface CustomerLifetimeValue {
 	lifetime_days?: number
 }
 
-// =============================================================================
 // WEBSOCKET DOMAIN
-// =============================================================================
 
 export interface WebSocketMessage<
 	T = Record<string, string | number | boolean | null>
@@ -158,9 +146,7 @@ export interface MaintenanceUpdateMessage
 
 export type TypedWebSocketMessage = MaintenanceUpdateMessage | WebSocketMessage
 
-// =============================================================================
 // SESSION DOMAIN
-// =============================================================================
 
 export interface UserSession {
 	id: string
@@ -182,9 +168,7 @@ export interface SessionConfig {
 	sameSite: 'strict' | 'lax' | 'none'
 }
 
-// =============================================================================
 // USER MANAGEMENT DOMAIN
-// =============================================================================
 
 export interface UserManagementConfig {
 	maxLoginAttempts: number
@@ -200,9 +184,7 @@ export interface UserStats {
 	verifiedUsers: number
 }
 
-// =============================================================================
 // THEME DOMAIN
-// =============================================================================
 
 export type ThemeMode = 'light' | 'dark' | 'system'
 
@@ -238,9 +220,7 @@ export interface ColorRationale {
 	reasoning: string
 }
 
-// =============================================================================
 // WEBHOOK DOMAIN
-// =============================================================================
 
 export type StripeWebhookEventTypes =
 	| 'customer.subscription.created'
@@ -268,9 +248,7 @@ export interface WebhookNotification {
 	error?: string
 }
 
-// =============================================================================
 // SECURITY DOMAIN
-// =============================================================================
 
 export interface CSPViolationReport {
 	'document-uri': string
@@ -291,9 +269,8 @@ export interface CSPReportBody {
 	'csp-report': CSPViolationReport
 }
 
-// =============================================================================
 // AI DOMAIN - TEMPORARILY REMOVED
-// =============================================================================
+
 // Note: AI-dependent types temporarily removed due to missing 'ai' package dependency
 // These types can be re-added when AI package is properly configured in the project
 

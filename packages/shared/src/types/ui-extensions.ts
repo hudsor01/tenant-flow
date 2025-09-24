@@ -3,7 +3,7 @@
  * These types extend the database types with additional properties needed by the UI
  */
 
-import type { Invoice, Lease, RentPayment, Tenant } from './supabase'
+import type { Invoice, Lease, RentPayment, Tenant } from './supabase.js'
 
 // Extended Lease type with UI-specific status values
 export interface LeaseUIExtended extends Omit<Lease, 'status' | 'propertyId'> {

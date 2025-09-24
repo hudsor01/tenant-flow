@@ -4,25 +4,22 @@
  */
 
 // Auth validation
-export * from './auth'
-
-// Common validation utilities
-export * from './common'
+export * from './auth.js'
 
 // Document validation
-export * from './documents'
+export * from './documents.js'
 
 // Lease validation
-export * from './leases'
+export * from './leases.js'
 
 // Maintenance validation
-export * from './maintenance'
+export * from './maintenance.js'
 
 // Property validation
-export * from './properties'
+export * from './properties.js'
 
 // Tenant validation
-export * from './tenants'
+export * from './tenants.js'
 
 // Unit validation
-export * from './units'
+export * from './units.js'

@@ -4,10 +4,9 @@
  */
 
 // Import constants from the single source of truth
-import type { USER_ROLE } from '../constants/auth'
-import type { Database } from './supabase-generated'
-import type { ValidatedUser as BackendValidatedUser } from './backend-domain'
-
+import type { USER_ROLE } from '../constants/auth.js'
+import type { ValidatedUser as BackendValidatedUser } from './backend-domain.js'
+import type { Database } from './supabase-generated.js'
 
 // Use Supabase User type directly - matches what we get from auth
 import type { User } from '@supabase/supabase-js'
@@ -27,14 +26,17 @@ export type SubscriptionStatus =
 	| 'INCOMPLETE_EXPIRED'
 
 // Type guard to check if user has organizationId (for when feature is implemented)
-export function hasOrganizationId(user: AuthUser): user is AuthUser & { organizationId: string } {
+export function hasOrganizationId(
+	user: AuthUser
+): user is AuthUser & { organizationId: string } {
 	const userWithOrg = user as AuthUser & { organizationId?: string }
-	return typeof userWithOrg.organizationId === 'string' && userWithOrg.organizationId.length > 0
+	return (
+		typeof userWithOrg.organizationId === 'string' &&
+		userWithOrg.organizationId.length > 0
+	)
 }
 
-// =============================================================================
 // AUTH FORM DATA TYPES - CONSOLIDATED from frontend forms
-// =============================================================================
 
 export interface LoginFormData {
 	email: string
@@ -191,7 +193,7 @@ export interface JwtPayload {
 }
 
 // Re-export ValidatedUser from backend-domain.ts to avoid duplication
-export type { ValidatedUser } from './backend-domain'
+export type { ValidatedUser } from './backend-domain.js'
 
 // Supabase user structure (from Supabase auth.getUser())
 export interface SupabaseUser {
@@ -208,7 +210,11 @@ export interface SupabaseUser {
 }
 
 // Auth service validated user - directly extends database User table type
-export interface AuthServiceValidatedUser extends Omit<Database['public']['Tables']['User']['Row'], 'createdAt' | 'updatedAt'> {
+export interface AuthServiceValidatedUser
+	extends Omit<
+		Database['public']['Tables']['User']['Row'],
+		'createdAt' | 'updatedAt'
+	> {
 	createdAt: Date
 	updatedAt: Date
 	profileComplete: boolean
@@ -217,9 +223,7 @@ export interface AuthServiceValidatedUser extends Omit<Database['public']['Table
 	emailVerified: boolean
 }
 
-// =============================================================================
 // ADDITIONAL AUTH TYPES - MIGRATED from inline definitions
-// =============================================================================
 
 // Backend auth request/response schemas
 export interface LoginRequest {
@@ -272,7 +276,7 @@ export interface ThrottlerRequest {
 	socket?: { remoteAddress?: string }
 }
 
-// MIGRATED from apps/backend/src/auth/auth-webhook.controller.ts  
+// MIGRATED from apps/backend/src/auth/auth-webhook.controller.ts
 export interface SupabaseWebhookEvent {
 	type: 'INSERT' | 'UPDATE' | 'DELETE'
 	table: string
@@ -342,9 +346,7 @@ type FormState<T = Record<string, string | number | boolean | null>> = {
 // Form state type alias for auth forms
 export type AuthFormState = FormState<User>
 
-// =============================================================================
 // FRONTEND AUTH STORE STATE (moved from auth-store.ts)
-// =============================================================================
 
 // Frontend auth store state for Zustand (compatible with Supabase types)
 export interface AuthState {

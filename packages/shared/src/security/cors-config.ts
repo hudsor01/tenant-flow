@@ -24,10 +24,10 @@ export const APP_DOMAINS = {
 		DEVELOPMENT: ['http://localhost:4600', 'http://127.0.0.1:4600']
 	},
 
-	// Railway infrastructure
+	// Railway infrastructure (actual deployment URLs)
 	RAILWAY: {
-		PRODUCTION: ['https://healthcheck.railway.app'],
-		DEVELOPMENT: ['https://healthcheck.railway.app']
+		PRODUCTION: ['https://tenantflow-backend-production.up.railway.app'],
+		DEVELOPMENT: ['https://tenantflow-backend-production.up.railway.app']
 	}
 } as const
 

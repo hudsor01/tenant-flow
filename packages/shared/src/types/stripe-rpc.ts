@@ -5,10 +5,6 @@
  * These match the return types defined in supabase/migrations/20250903_stripe_ultra_native_rpc.sql
  */
 
-// ============================================================================
-// STRIPE CHECKOUT RPC RESPONSE
-// ============================================================================
-
 export interface StripeCheckoutResponse {
 	/** Stripe checkout session ID */
 	sessionId: string
@@ -16,27 +12,15 @@ export interface StripeCheckoutResponse {
 	url: string
 }
 
-// ============================================================================
-// STRIPE PORTAL RPC RESPONSE
-// ============================================================================
-
 export interface StripePortalResponse {
 	/** Customer portal session URL */
 	url: string
 }
 
-// ============================================================================
-// STRIPE SETUP INTENT RPC RESPONSE
-// ============================================================================
-
 export interface StripeSetupIntentResponse {
 	/** Client secret for confirming the setup intent */
 	clientSecret: string
 }
-
-// ============================================================================
-// STRIPE CUSTOMER WITH TRIAL RPC RESPONSE
-// ============================================================================
 
 export interface StripeCustomerTrialResponse {
 	/** Created Stripe customer ID */
@@ -48,10 +32,6 @@ export interface StripeCustomerTrialResponse {
 	/** Trial end timestamp */
 	trialEnd?: string
 }
-
-// ============================================================================
-// STRIPE WEBHOOK VERIFICATION RPC RESPONSE
-// ============================================================================
 
 export interface StripeWebhookVerificationResponse {
 	/** Webhook verification status */
@@ -71,10 +51,6 @@ export interface StripeWebhookVerificationResponse {
 	error?: string
 }
 
-// ============================================================================
-// GENERIC RPC ERROR RESPONSE
-// ============================================================================
-
 export interface RpcErrorResponse {
 	/** Error message */
 	message: string
@@ -83,10 +59,6 @@ export interface RpcErrorResponse {
 	/** HTTP status code */
 	statusCode?: number
 }
-
-// ============================================================================
-// TYPE GUARDS FOR RUNTIME VALIDATION
-// ============================================================================
 
 export function isStripeCheckoutResponse(
 	data: unknown

@@ -3,7 +3,7 @@
  * These are domain types shared between frontend and backend
  */
 
-import type { Database } from './supabase-generated'
+import type { Database } from './supabase-generated.js'
 
 type RequestStatus = Database['public']['Enums']['RequestStatus']
 

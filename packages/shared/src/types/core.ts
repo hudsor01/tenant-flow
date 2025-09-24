@@ -5,9 +5,8 @@
  * to reduce the shared types directory by 75% while improving type safety.
  */
 
-// =============================================================================
 // NATIVE TYPESCRIPT 5.9.2 UTILITY TYPES (replacing custom implementations)
-// =============================================================================
+
 export type DeepReadonly<T> = {
 	readonly [P in keyof T]: T[P] extends Record<string, unknown>
 		? DeepReadonly<T[P]>
@@ -67,7 +66,7 @@ export interface AppError extends Error {
 	context?: Record<string, unknown>
 }
 
-import type { Tables } from './supabase-generated'
+import type { Tables } from './supabase-generated.js'
 
 export type User = Tables<'User'>
 export type Property = Tables<'Property'>
@@ -96,7 +95,7 @@ export type {
 	Tables,
 	TablesInsert,
 	TablesUpdate
-} from './supabase-generated'
+} from './supabase-generated.js'
 
 export type EnvConfig = Record<string, string | number | boolean>
 
@@ -149,9 +148,7 @@ export type TimePeriod =
 	| 'lastYear'
 	| 'custom'
 
-// =============================================================================
 // ESSENTIAL FILE UPLOAD TYPE (not available natively)
-// =============================================================================
 
 export interface FileUpload {
 	file: File
@@ -161,9 +158,7 @@ export interface FileUpload {
 	error?: string
 }
 
-// =============================================================================
 // STATISTICS TYPES (consolidated from stats.ts)
-// =============================================================================
 
 // Base stats interface that all entity stats extend from
 export interface BaseStats {
