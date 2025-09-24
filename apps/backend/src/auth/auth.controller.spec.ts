@@ -2,6 +2,7 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { ThrottlerModule } from '@nestjs/throttler'
 import type { AuthServiceValidatedUser, ValidatedUser } from '@repo/shared'
+import type { Request } from 'express'
 // import type { User } from '@supabase/supabase-js' // Unused import
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
@@ -109,7 +110,9 @@ describe('AuthController', () => {
 				lastLoginAt: new Date()
 			}
 
-			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(mockReturnedUser)
+			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(
+				mockReturnedUser
+			)
 
 			const result = await controller.getCurrentUser(mockUser)
 
@@ -156,7 +159,7 @@ describe('AuthController', () => {
 					name: 'Test User',
 					profileComplete: true,
 					lastLoginAt: new Date()
-				} as any
+				} as unknown as AuthServiceValidatedUser
 			}
 
 			const body = { refresh_token: 'old-refresh-token' }
@@ -182,7 +185,7 @@ describe('AuthController', () => {
 			const mockRequest = {
 				ip: '127.0.0.1',
 				headers: {}
-			} as any
+			} as unknown as Request
 
 			const mockLoginResult = {
 				access_token: 'access-token',
@@ -204,7 +207,7 @@ describe('AuthController', () => {
 					organizationId: null,
 					profileComplete: true,
 					lastLoginAt: new Date()
-				} as any
+				} as unknown as AuthServiceValidatedUser
 			}
 
 			mockAuthServiceInstance.login.mockResolvedValue(mockLoginResult)
@@ -228,7 +231,7 @@ describe('AuthController', () => {
 			const mockRequest = {
 				ip: '127.0.0.1',
 				headers: {}
-			} as any
+			} as unknown as Request
 
 			mockAuthServiceInstance.login.mockRejectedValue(
 				new Error('Invalid login credentials')
@@ -278,14 +281,16 @@ describe('AuthController', () => {
 				headers: {
 					authorization: 'Bearer test-token-123'
 				}
-			} as any
+			} as unknown as Request
 
 			mockAuthServiceInstance.logout.mockResolvedValue(undefined)
 
 			const result = await controller.logout(mockRequest)
 
 			expect(result).toEqual({ success: true })
-			expect(mockAuthServiceInstance.logout).toHaveBeenCalledWith('test-token-123')
+			expect(mockAuthServiceInstance.logout).toHaveBeenCalledWith(
+				'test-token-123'
+			)
 		})
 	})
 
@@ -322,7 +327,7 @@ describe('AuthController', () => {
 				headers: {
 					'x-session-id': 'session-123'
 				}
-			} as any
+			} as unknown as Request
 
 			const body = { sessionId: 'session-123' }
 
@@ -331,7 +336,9 @@ describe('AuthController', () => {
 			const result = await controller.getDraft(body, mockRequest)
 
 			expect(result).toEqual(mockDraftResult)
-			expect(mockAuthServiceInstance.getDraft).toHaveBeenCalledWith('session-123')
+			expect(mockAuthServiceInstance.getDraft).toHaveBeenCalledWith(
+				'session-123'
+			)
 		})
 
 		it('should return null when draft not found', async () => {
@@ -339,7 +346,7 @@ describe('AuthController', () => {
 				headers: {
 					'x-session-id': 'session-456'
 				}
-			} as any
+			} as unknown as Request
 
 			const body = { sessionId: 'session-456' }
 
@@ -348,7 +355,9 @@ describe('AuthController', () => {
 			const result = await controller.getDraft(body, mockRequest)
 
 			expect(result).toBeNull()
-			expect(mockAuthServiceInstance.getDraft).toHaveBeenCalledWith('session-456')
+			expect(mockAuthServiceInstance.getDraft).toHaveBeenCalledWith(
+				'session-456'
+			)
 		})
 	})
 })
