@@ -94,6 +94,11 @@ export class HealthController {
 						)
 					})(),
 				service: 'backend-api',
+				env_vars_loaded: {
+					health_check_function: !!process.env.HEALTH_CHECK_FUNCTION,
+					public_cache_max_age: !!process.env.PUBLIC_CACHE_MAX_AGE,
+					node_env: !!process.env.NODE_ENV
+				},
 				database: {
 					status: dbHealth.status,
 					message: dbHealth.message || 'Database connection healthy'
