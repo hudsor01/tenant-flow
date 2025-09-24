@@ -492,18 +492,48 @@ export class InputSanitizationMiddleware implements NestMiddleware {
 	}
 
 	private sanitizeRequest(req: Request, config: SanitizationConfig): void {
+		// Sanitize query parameters - use Object.defineProperty for read-only properties
 		if (req.query) {
-			req.query = this.sanitizeObject(
+			const sanitizedQuery = this.sanitizeObject(
 				req.query as Record<string, unknown>,
 				config
-			) as typeof req.query
+			)
+			// In production, req.query may be read-only, so we need to use Object.defineProperty
+			try {
+				Object.defineProperty(req, 'query', {
+					value: sanitizedQuery,
+					writable: true,
+					enumerable: true,
+					configurable: true
+				})
+			} catch {
+				// If that fails, try to merge properties individually
+				Object.keys(sanitizedQuery).forEach(key => {
+					;(req.query as Record<string, unknown>)[key] = sanitizedQuery[key]
+				})
+			}
 		}
 
+		// Sanitize request body - use Object.defineProperty for read-only properties
 		if (req.body && typeof req.body === 'object') {
-			req.body = this.sanitizeObject(
+			const sanitizedBody = this.sanitizeObject(
 				req.body as Record<string, unknown>,
 				config
 			)
+			// In production, req.body may be read-only, so we need to use Object.defineProperty
+			try {
+				Object.defineProperty(req, 'body', {
+					value: sanitizedBody,
+					writable: true,
+					enumerable: true,
+					configurable: true
+				})
+			} catch {
+				// If that fails, try to merge properties individually
+				Object.keys(sanitizedBody).forEach(key => {
+					;(req.body as Record<string, unknown>)[key] = sanitizedBody[key]
+				})
+			}
 		}
 	}
 
