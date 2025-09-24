@@ -7,7 +7,7 @@
 
 // PRIMARY EXPORT: Modern TypeScript 5.9.2 Core Types
 // All types exported via types/index.ts which includes core types
-export * from './types'
+export * from './types/index'
 
 // ESSENTIAL UTILITIES (No Wrappers)
 // Browser-only API client (Supabase SSR) - Frontend specific
