@@ -19,6 +19,7 @@
 		"lint:fix": "pnpm lint --fix",
 		"typecheck": "tsc --noEmit",
 		"test:unit": "jest --testMatch=\"**/*.spec.ts\"",
+		"test:unit:clean": "jest --testMatch=\"**/*.spec.ts\" --forceExit",
 		"test:integration": "jest --testMatch=\"**/*.integration.spec.ts\"",
 		"test:watch": "jest --watch",
 		"clean": "rimraf dist coverage .turbo node_modules/.cache"

@@ -1,4 +1,4 @@
-import { BadRequestException, Logger } from '@nestjs/common'
+import { BadRequestException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
@@ -10,9 +10,10 @@ import { MaintenanceService } from './maintenance.service'
 describe('MaintenanceService', () => {
 	let service: MaintenanceService
 	let mockSupabaseService: jest.Mocked<SupabaseService>
-	let mockLogger: jest.Mocked<Logger>
 	let mockEventEmitter: jest.Mocked<EventEmitter2>
-	let mockSupabaseClient: jest.Mocked<any>
+	let mockSupabaseClient: jest.Mocked<
+		ReturnType<SupabaseService['getAdminClient']>
+	>
 
 	const generateUUID = () => randomUUID()
 
@@ -25,7 +26,7 @@ describe('MaintenanceService', () => {
 		category: 'PLUMBING',
 		status: 'PENDING',
 		scheduledDate: '2024-02-01T10:00:00Z',
-		estimatedCost: 150.00,
+		estimatedCost: 150.0,
 		actualCost: null,
 		notes: null,
 		completedDate: null,
@@ -34,18 +35,22 @@ describe('MaintenanceService', () => {
 		...overrides
 	})
 
-	const createMockCreateRequest = (overrides: Record<string, unknown> = {}) => ({
+	const createMockCreateRequest = (
+		overrides: Record<string, unknown> = {}
+	) => ({
 		unitId: generateUUID(),
 		title: 'Fix broken AC',
 		description: 'Air conditioning unit not working',
 		priority: 'HIGH' as const,
 		category: 'HVAC' as const,
-		estimatedCost: 300.00,
+		estimatedCost: 300.0,
 		scheduledDate: undefined,
 		...overrides
 	})
 
-	const createMockUpdateRequest = (overrides: Record<string, unknown> = {}) => ({
+	const createMockUpdateRequest = (
+		overrides: Record<string, unknown> = {}
+	) => ({
 		title: 'Fix broken AC - Updated',
 		description: 'Air conditioning unit not working - updated description',
 		priority: 'HIGH' as const,
@@ -53,7 +58,7 @@ describe('MaintenanceService', () => {
 		status: 'IN_PROGRESS' as const,
 		scheduledDate: '2024-02-02T10:00:00Z',
 		completedDate: undefined,
-		estimatedCost: 350.00,
+		estimatedCost: 350.0,
 		actualCost: undefined,
 		notes: 'Technician scheduled for tomorrow',
 		...overrides
@@ -64,26 +69,16 @@ describe('MaintenanceService', () => {
 			rpc: jest.fn(() => ({
 				single: jest.fn()
 			}))
-		}
+		} as unknown as jest.Mocked<ReturnType<SupabaseService['getAdminClient']>>
 
 		mockSupabaseService = {
 			onModuleInit: jest.fn(),
 			getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient),
 			getUserClient: jest.fn().mockReturnValue(mockSupabaseClient),
-			checkConnection: jest.fn(),
+			checkConnection: jest.fn()
 		} as unknown as jest.Mocked<SupabaseService>
 
-		mockLogger = {
-			log: jest.fn(),
-			error: jest.fn(),
-			warn: jest.fn(),
-			debug: jest.fn(),
-			verbose: jest.fn(),
-			localInstance: {} as any,
-			fatal: jest.fn(),
-			options: undefined,
-			registerLocalInstanceRef: jest.fn(),
-		} as unknown as jest.Mocked<Logger>
+		// We'll spy on the service's logger after instantiation
 
 		mockEventEmitter = {
 			emit: jest.fn(),
@@ -106,7 +101,7 @@ describe('MaintenanceService', () => {
 			offAny: jest.fn(),
 			many: jest.fn(),
 			onceAny: jest.fn(),
-			hasListeners: jest.fn(),
+			hasListeners: jest.fn()
 		} as unknown as jest.Mocked<EventEmitter2>
 
 		const module: TestingModule = await Test.createTestingModule({
@@ -114,22 +109,21 @@ describe('MaintenanceService', () => {
 				MaintenanceService,
 				{
 					provide: SupabaseService,
-					useValue: mockSupabaseService,
-				},
-				{
-					provide: Logger,
-					useValue: mockLogger,
+					useValue: mockSupabaseService
 				},
 				{
 					provide: EventEmitter2,
-					useValue: mockEventEmitter,
-				},
-			],
+					useValue: mockEventEmitter
+				}
+			]
 		})
 			.setLogger(new SilentLogger())
 			.compile()
 
 		service = module.get<MaintenanceService>(MaintenanceService)
+
+		// Spy on the actual logger instance created by the service
+		jest.spyOn(service['logger'], 'error').mockImplementation(() => {})
 	})
 
 	afterEach(() => {
@@ -159,18 +153,21 @@ describe('MaintenanceService', () => {
 
 			const result = await service.findAll(userId, query)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_user_maintenance', {
-				p_user_id: userId,
-				p_unit_id: query.unitId,
-				p_property_id: query.propertyId,
-				p_priority: query.priority,
-				p_category: query.category,
-				p_status: query.status,
-				p_limit: query.limit,
-				p_offset: query.offset,
-				p_sort_by: query.sortBy,
-				p_sort_order: query.sortOrder
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'get_user_maintenance',
+				{
+					p_user_id: userId,
+					p_unit_id: query.unitId,
+					p_property_id: query.propertyId,
+					p_priority: query.priority,
+					p_category: query.category,
+					p_status: query.status,
+					p_limit: query.limit,
+					p_offset: query.offset,
+					p_sort_by: query.sortBy,
+					p_sort_order: query.sortOrder
+				}
+			)
 			expect(result).toEqual(mockMaintenance)
 		})
 
@@ -186,18 +183,21 @@ describe('MaintenanceService', () => {
 
 			const result = await service.findAll(userId, query)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_user_maintenance', {
-				p_user_id: userId,
-				p_unit_id: undefined,
-				p_property_id: undefined,
-				p_priority: undefined,
-				p_category: undefined,
-				p_status: undefined,
-				p_limit: undefined,
-				p_offset: undefined,
-				p_sort_by: undefined,
-				p_sort_order: undefined
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'get_user_maintenance',
+				{
+					p_user_id: userId,
+					p_unit_id: undefined,
+					p_property_id: undefined,
+					p_priority: undefined,
+					p_category: undefined,
+					p_status: undefined,
+					p_limit: undefined,
+					p_offset: undefined,
+					p_sort_by: undefined,
+					p_sort_order: undefined
+				}
+			)
 			expect(result).toEqual(mockMaintenance)
 		})
 
@@ -215,8 +215,10 @@ describe('MaintenanceService', () => {
 				error: mockError
 			})
 
-			await expect(service.findAll(userId, query)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith(
+			await expect(service.findAll(userId, query)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
 				{
 					error: {
 						name: 'DatabaseError',
@@ -251,7 +253,10 @@ describe('MaintenanceService', () => {
 
 			const result = await service.getStats(userId)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_maintenance_stats', { p_user_id: userId })
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'get_maintenance_stats',
+				{ p_user_id: userId }
+			)
 			expect(mockRpcChain.single).toHaveBeenCalled()
 			expect(result).toEqual(mockStats)
 		})
@@ -268,11 +273,16 @@ describe('MaintenanceService', () => {
 			}
 			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
 
-			await expect(service.getStats(userId)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to get maintenance stats', {
-				userId,
-				error: mockError.message
-			})
+			await expect(service.getStats(userId)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to get maintenance stats',
+				{
+					userId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
@@ -288,9 +298,12 @@ describe('MaintenanceService', () => {
 
 			const result = await service.getUrgent(userId)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_urgent_maintenance', {
-				p_user_id: userId
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'get_urgent_maintenance',
+				{
+					p_user_id: userId
+				}
+			)
 			expect(result).toEqual(mockUrgent)
 		})
 
@@ -303,18 +316,25 @@ describe('MaintenanceService', () => {
 				error: mockError
 			})
 
-			await expect(service.getUrgent(userId)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to get urgent maintenance', {
-				userId,
-				error: mockError.message
-			})
+			await expect(service.getUrgent(userId)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to get urgent maintenance',
+				{
+					userId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
 	describe('getOverdue', () => {
 		it('should return overdue maintenance requests', async () => {
 			const userId = generateUUID()
-			const mockOverdue = [createMockMaintenance({ scheduledDate: '2023-12-01T10:00:00Z' })]
+			const mockOverdue = [
+				createMockMaintenance({ scheduledDate: '2023-12-01T10:00:00Z' })
+			]
 
 			mockSupabaseClient.rpc.mockResolvedValue({
 				data: mockOverdue,
@@ -323,9 +343,12 @@ describe('MaintenanceService', () => {
 
 			const result = await service.getOverdue(userId)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_overdue_maintenance', {
-				p_user_id: userId
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'get_overdue_maintenance',
+				{
+					p_user_id: userId
+				}
+			)
 			expect(result).toEqual(mockOverdue)
 		})
 
@@ -338,11 +361,16 @@ describe('MaintenanceService', () => {
 				error: mockError
 			})
 
-			await expect(service.getOverdue(userId)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to get overdue maintenance', {
-				userId,
-				error: mockError.message
-			})
+			await expect(service.getOverdue(userId)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to get overdue maintenance',
+				{
+					userId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
@@ -362,10 +390,13 @@ describe('MaintenanceService', () => {
 
 			const result = await service.findOne(userId, maintenanceId)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_maintenance_by_id', {
-				p_user_id: userId,
-				p_maintenance_id: maintenanceId
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'get_maintenance_by_id',
+				{
+					p_user_id: userId,
+					p_maintenance_id: maintenanceId
+				}
+			)
 			expect(result).toEqual(mockMaintenance)
 		})
 
@@ -385,11 +416,14 @@ describe('MaintenanceService', () => {
 			const result = await service.findOne(userId, maintenanceId)
 
 			expect(result).toBeNull()
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to get maintenance request', {
-				userId,
-				maintenanceId,
-				error: mockError.message
-			})
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to get maintenance request',
+				{
+					userId,
+					maintenanceId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
@@ -409,16 +443,19 @@ describe('MaintenanceService', () => {
 
 			const result = await service.create(userId, createRequest)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('create_maintenance', {
-				p_user_id: userId,
-				p_unit_id: createRequest.unitId,
-				p_title: createRequest.title,
-				p_description: createRequest.description,
-				p_priority: createRequest.priority,
-				p_category: createRequest.category,
-				p_scheduled_date: createRequest.scheduledDate || undefined,
-				p_estimated_cost: createRequest.estimatedCost
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'create_maintenance',
+				{
+					p_user_id: userId,
+					p_unit_id: createRequest.unitId,
+					p_title: createRequest.title,
+					p_description: createRequest.description,
+					p_priority: createRequest.priority,
+					p_category: createRequest.category,
+					p_scheduled_date: createRequest.scheduledDate || undefined,
+					p_estimated_cost: createRequest.estimatedCost
+				}
+			)
 			expect(result).toEqual(mockMaintenance)
 		})
 
@@ -442,16 +479,19 @@ describe('MaintenanceService', () => {
 
 			await service.create(userId, createRequest)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('create_maintenance', {
-				p_user_id: userId,
-				p_unit_id: createRequest.unitId,
-				p_title: createRequest.title,
-				p_description: createRequest.description,
-				p_priority: 'MEDIUM',
-				p_category: 'GENERAL',
-				p_scheduled_date: undefined,
-				p_estimated_cost: undefined
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'create_maintenance',
+				{
+					p_user_id: userId,
+					p_unit_id: createRequest.unitId,
+					p_title: createRequest.title,
+					p_description: createRequest.description,
+					p_priority: 'MEDIUM',
+					p_category: 'GENERAL',
+					p_scheduled_date: undefined,
+					p_estimated_cost: undefined
+				}
+			)
 		})
 
 		it('should throw BadRequestException when creation fails', async () => {
@@ -467,11 +507,16 @@ describe('MaintenanceService', () => {
 			}
 			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
 
-			await expect(service.create(userId, createRequest)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to create maintenance request', {
-				userId,
-				error: mockError.message
-			})
+			await expect(service.create(userId, createRequest)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to create maintenance request',
+				{
+					userId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
@@ -492,20 +537,23 @@ describe('MaintenanceService', () => {
 
 			const result = await service.update(userId, maintenanceId, updateRequest)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('update_maintenance', {
-				p_user_id: userId,
-				p_maintenance_id: maintenanceId,
-				p_title: updateRequest.title,
-				p_description: updateRequest.description,
-				p_priority: updateRequest.priority,
-				p_category: updateRequest.category,
-				p_status: updateRequest.status,
-				p_scheduled_date: updateRequest.scheduledDate,
-				p_completed_date: updateRequest.completedDate,
-				p_estimated_cost: updateRequest.estimatedCost,
-				p_actual_cost: updateRequest.actualCost,
-				p_notes: updateRequest.notes
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'update_maintenance',
+				{
+					p_user_id: userId,
+					p_maintenance_id: maintenanceId,
+					p_title: updateRequest.title,
+					p_description: updateRequest.description,
+					p_priority: updateRequest.priority,
+					p_category: updateRequest.category,
+					p_status: updateRequest.status,
+					p_scheduled_date: updateRequest.scheduledDate,
+					p_completed_date: updateRequest.completedDate,
+					p_estimated_cost: updateRequest.estimatedCost,
+					p_actual_cost: updateRequest.actualCost,
+					p_notes: updateRequest.notes
+				}
+			)
 			expect(result).toEqual(mockMaintenance)
 		})
 
@@ -551,7 +599,10 @@ describe('MaintenanceService', () => {
 		it('should handle URGENT priority mapping to EMERGENCY in event', async () => {
 			const userId = generateUUID()
 			const maintenanceId = generateUUID()
-			const updateRequest = { ...createMockUpdateRequest(), priority: 'URGENT' as const }
+			const updateRequest = {
+				...createMockUpdateRequest(),
+				priority: 'URGENT' as const
+			}
 			// Mock maintenance record without priority field so updateRequest.priority is used
 			const mockMaintenance = {
 				id: generateUUID(),
@@ -562,7 +613,7 @@ describe('MaintenanceService', () => {
 				status: 'PENDING',
 				// Deliberately omit priority field so updateRequest.priority is used
 				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
 			}
 
 			const mockRpcChain = {
@@ -600,11 +651,14 @@ describe('MaintenanceService', () => {
 			const result = await service.update(userId, maintenanceId, updateRequest)
 
 			expect(result).toBeNull()
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to update maintenance request', {
-				userId,
-				maintenanceId,
-				error: mockError.message
-			})
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to update maintenance request',
+				{
+					userId,
+					maintenanceId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
@@ -619,10 +673,13 @@ describe('MaintenanceService', () => {
 
 			await service.remove(userId, maintenanceId)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('delete_maintenance', {
-				p_user_id: userId,
-				p_maintenance_id: maintenanceId
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'delete_maintenance',
+				{
+					p_user_id: userId,
+					p_maintenance_id: maintenanceId
+				}
+			)
 		})
 
 		it('should throw BadRequestException when deletion fails', async () => {
@@ -634,12 +691,17 @@ describe('MaintenanceService', () => {
 				error: mockError
 			})
 
-			await expect(service.remove(userId, maintenanceId)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to delete maintenance request', {
-				userId,
-				maintenanceId,
-				error: mockError.message
-			})
+			await expect(service.remove(userId, maintenanceId)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to delete maintenance request',
+				{
+					userId,
+					maintenanceId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
@@ -647,7 +709,7 @@ describe('MaintenanceService', () => {
 		it('should complete maintenance request successfully', async () => {
 			const userId = generateUUID()
 			const maintenanceId = generateUUID()
-			const actualCost = 250.00
+			const actualCost = 250.0
 			const notes = 'Replaced faucet cartridge'
 			const mockMaintenance = createMockMaintenance({
 				status: 'COMPLETED',
@@ -663,14 +725,22 @@ describe('MaintenanceService', () => {
 			}
 			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
 
-			const result = await service.complete(userId, maintenanceId, actualCost, notes)
+			const result = await service.complete(
+				userId,
+				maintenanceId,
+				actualCost,
+				notes
+			)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('complete_maintenance', {
-				p_user_id: userId,
-				p_maintenance_id: maintenanceId,
-				p_actual_cost: actualCost,
-				p_notes: notes
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'complete_maintenance',
+				{
+					p_user_id: userId,
+					p_maintenance_id: maintenanceId,
+					p_actual_cost: actualCost,
+					p_notes: notes
+				}
+			)
 			expect(result).toEqual(mockMaintenance)
 		})
 
@@ -689,12 +759,15 @@ describe('MaintenanceService', () => {
 
 			await service.complete(userId, maintenanceId)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('complete_maintenance', {
-				p_user_id: userId,
-				p_maintenance_id: maintenanceId,
-				p_actual_cost: undefined,
-				p_notes: undefined
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'complete_maintenance',
+				{
+					p_user_id: userId,
+					p_maintenance_id: maintenanceId,
+					p_actual_cost: undefined,
+					p_notes: undefined
+				}
+			)
 		})
 
 		it('should throw BadRequestException when completion fails', async () => {
@@ -710,12 +783,17 @@ describe('MaintenanceService', () => {
 			}
 			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
 
-			await expect(service.complete(userId, maintenanceId)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to complete maintenance request', {
-				userId,
-				maintenanceId,
-				error: mockError.message
-			})
+			await expect(service.complete(userId, maintenanceId)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to complete maintenance request',
+				{
+					userId,
+					maintenanceId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 
@@ -739,11 +817,14 @@ describe('MaintenanceService', () => {
 
 			const result = await service.cancel(userId, maintenanceId, reason)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('cancel_maintenance', {
-				p_user_id: userId,
-				p_maintenance_id: maintenanceId,
-				p_reason: reason
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'cancel_maintenance',
+				{
+					p_user_id: userId,
+					p_maintenance_id: maintenanceId,
+					p_reason: reason
+				}
+			)
 			expect(result).toEqual(mockMaintenance)
 		})
 
@@ -762,11 +843,14 @@ describe('MaintenanceService', () => {
 
 			const result = await service.cancel(userId, maintenanceId)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('cancel_maintenance', {
-				p_user_id: userId,
-				p_maintenance_id: maintenanceId,
-				p_reason: 'Cancelled by user'
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'cancel_maintenance',
+				{
+					p_user_id: userId,
+					p_maintenance_id: maintenanceId,
+					p_reason: 'Cancelled by user'
+				}
+			)
 			expect(result).toEqual(mockMaintenance)
 		})
 
@@ -783,12 +867,17 @@ describe('MaintenanceService', () => {
 			}
 			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
 
-			await expect(service.cancel(userId, maintenanceId)).rejects.toThrow(BadRequestException)
-			expect(mockLogger.error).toHaveBeenCalledWith('Failed to cancel maintenance request', {
-				userId,
-				maintenanceId,
-				error: mockError.message
-			})
+			await expect(service.cancel(userId, maintenanceId)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].error).toHaveBeenCalledWith(
+				'Failed to cancel maintenance request',
+				{
+					userId,
+					maintenanceId,
+					error: mockError.message
+				}
+			)
 		})
 	})
 })

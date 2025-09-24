@@ -10,7 +10,7 @@ import { APP_DOMAINS } from './cors-config.js'
 // Environment-based CSP domains
 export const CSP_DOMAINS = {
 	// Core application domains (aligned with CORS config)
-	API_DOMAINS: [...APP_DOMAINS.BACKEND.PRODUCTION],
+	API_DOMAINS: [...APP_DOMAINS.BACKEND],
 
 	// Third-party services (production)
 	STRIPE: [
@@ -21,10 +21,7 @@ export const CSP_DOMAINS = {
 
 	SUPABASE: ['https://bshjmbshupiibfiewpxb.supabase.co'],
 
-	POSTHOG: [
-		'https://us.i.posthog.com',
-		'https://us-assets.i.posthog.com'
-	],
+	POSTHOG: ['https://us.i.posthog.com', 'https://us-assets.i.posthog.com'],
 
 	GOOGLE: [
 		'https://fonts.googleapis.com',

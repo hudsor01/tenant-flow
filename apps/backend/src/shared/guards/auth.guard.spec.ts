@@ -278,6 +278,16 @@ describe('AuthGuard', () => {
 			process.env.DISABLE_AUTH = 'true'
 			mockRequest.headers = {} // No auth header
 
+			// Mock logger to suppress expected security violation error
+			const mockLogger = {
+				log: jest.fn(),
+				error: jest.fn(), // This will capture the security violation error
+				warn: jest.fn(),
+				debug: jest.fn(),
+				verbose: jest.fn(),
+				info: jest.fn()
+			}
+
 			// Recreate guard to pick up new env vars with proper providers
 			const module: TestingModule = await Test.createTestingModule({
 				providers: [
@@ -290,17 +300,12 @@ describe('AuthGuard', () => {
 					},
 					{
 						provide: Logger,
-						useValue: {
-							log: jest.fn(),
-							error: jest.fn(),
-							warn: jest.fn(),
-							debug: jest.fn(),
-							verbose: jest.fn(),
-							info: jest.fn()
-						}
+						useValue: mockLogger
 					}
 				]
-			}).compile()
+			})
+				.setLogger(new SilentLogger())
+				.compile()
 			const prodGuard = module.get<AuthGuard>(AuthGuard)
 
 			await expect(prodGuard.canActivate(mockExecutionContext)).rejects.toThrow(

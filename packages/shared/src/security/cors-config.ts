@@ -5,40 +5,65 @@
  * Note: ENABLE_MOCK_AUTH disabled in production for real auth providers
  */
 
-// Application domains configuration
-export const APP_DOMAINS = {
-	// Frontend domains
-	FRONTEND: {
-		PRODUCTION: ['https://tenantflow.app', 'https://www.tenantflow.app'],
-		DEVELOPMENT: [
-			process.env.FRONTEND_URL || (() => {
-				throw new Error('FRONTEND_URL environment variable is required for CORS development configuration')
-			})(),
-			'http://localhost:3000', // Fallback for local dev
-			'http://localhost:3002', // Alternative port
-			'http://127.0.0.1:3000',
-			'http://127.0.0.1:3002'
-		]
-	},
+/**
+ * Get application domains from environment variables ONLY
+ * NO HARDCODED URLS - ALL URLs MUST COME FROM ENVIRONMENT
+ */
+function getApplicationDomains() {
+	const isProduction =
+		process.env.NODE_ENV === 'production' ||
+		process.env.VERCEL === '1' ||
+		process.env.NODE_ENV !== 'development'
 
-	// Backend API domains
-	BACKEND: {
-		PRODUCTION: ['https://api.tenantflow.app'],
-		DEVELOPMENT: [
-			process.env.NEXT_PUBLIC_API_BASE_URL || (() => {
-				throw new Error('NEXT_PUBLIC_API_BASE_URL environment variable is required for CORS backend configuration')
-			})(),
-			'http://localhost:4600', // Fallback for local dev
-			'http://127.0.0.1:4600'
-		]
-	},
+	// Get all URLs from environment variables only
+	const frontendUrl = process.env.NEXT_PUBLIC_APP_URL
+	const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
-	// Railway infrastructure (actual deployment URLs)
-	RAILWAY: {
-		PRODUCTION: ['https://tenantflow-backend-production.up.railway.app'],
-		DEVELOPMENT: ['https://tenantflow-backend-production.up.railway.app']
+	if (isProduction) {
+		// Production: Require all environment variables
+		if (!frontendUrl) {
+			throw new Error(
+				'NEXT_PUBLIC_APP_URL environment variable is required for production CORS'
+			)
+		}
+		if (!backendUrl) {
+			throw new Error(
+				'NEXT_PUBLIC_API_BASE_URL environment variable is required for production CORS'
+			)
+		}
+
+		return {
+			FRONTEND: [
+				frontendUrl,
+				frontendUrl.replace('https://', 'https://www.')
+			].filter(Boolean),
+			BACKEND: [backendUrl].filter(Boolean)
+		}
 	}
-} as const
+
+	// Development: Use environment variables or fail gracefully
+	const developmentOrigins = []
+
+	if (frontendUrl) developmentOrigins.push(frontendUrl)
+	if (backendUrl) developmentOrigins.push(backendUrl)
+
+	// Only add localhost for actual local development (not builds)
+	if (
+		process.env.NODE_ENV === 'development' &&
+		!process.env.VERCEL &&
+		!process.env.CI
+	) {
+		developmentOrigins.push('http://localhost:3000', 'http://localhost:4600')
+	}
+
+	return {
+		FRONTEND: developmentOrigins,
+		BACKEND: developmentOrigins
+	}
+}
+
+// Dynamic domains based on environment
+export const APP_DOMAINS = getApplicationDomains()
 
 /**
  * Get CORS allowed origins for backend
@@ -48,28 +73,28 @@ export function getCORSOrigins(
 ): string[] | boolean {
 	if (environment === 'development') {
 		// SECURITY FIX: Use specific origins even in development
-		return [
-			...APP_DOMAINS.FRONTEND.DEVELOPMENT,
-			...APP_DOMAINS.BACKEND.DEVELOPMENT,
-			...APP_DOMAINS.RAILWAY.DEVELOPMENT
-		]
+		return [...APP_DOMAINS.FRONTEND, ...APP_DOMAINS.BACKEND]
 	}
 
 	return [
-		...APP_DOMAINS.FRONTEND.PRODUCTION,
+		...APP_DOMAINS.FRONTEND,
 		// Allow API calls from the same domain (for server-side operations)
-		...APP_DOMAINS.BACKEND.PRODUCTION,
-		// Allow Railway healthcheck requests
-		...APP_DOMAINS.RAILWAY.PRODUCTION
+		...APP_DOMAINS.BACKEND
 	]
 }
 
 /**
  * Get environment-appropriate CORS origins
+ * Ensures Vercel builds use production configuration
  */
 export function getCORSOriginsForEnv(): string[] | boolean {
-	const env =
-		process.env.NODE_ENV === 'development' ? 'development' : 'production'
+	// Force production for Vercel builds and any non-development environment
+	const isProduction =
+		process.env.NODE_ENV === 'production' ||
+		process.env.VERCEL === '1' ||
+		process.env.NODE_ENV !== 'development'
+
+	const env = isProduction ? 'production' : 'development'
 	return getCORSOrigins(env)
 }
 

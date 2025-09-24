@@ -12,11 +12,17 @@ import { createAuthStore } from './auth-store'
 
 const AuthStoreContext = createContext<StoreApi<AuthState> | null>(null)
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+	throw new Error(
+		'NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required for Supabase authentication.'
+	)
+}
+
 // Create SSR-compatible Supabase client for authentication
-const supabaseClient = createBrowserClient(
-	process.env.NEXT_PUBLIC_SUPABASE_URL!,
-	process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+const supabaseClient = createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 export const AuthStoreProvider = ({
 	children
@@ -134,12 +140,12 @@ export const useAuthStore = <T,>(selector: (state: AuthState) => T): T => {
 		try {
 			return selector(store.getState())
 		} catch (error) {
-				logger.error('AuthProvider - Error in auth store selector', {
-					action: 'auth_store_selector_failed',
-					metadata: {
-						error: error instanceof Error ? error.message : String(error)
-					}
-				})
+			logger.error('AuthProvider - Error in auth store selector', {
+				action: 'auth_store_selector_failed',
+				metadata: {
+					error: error instanceof Error ? error.message : String(error)
+				}
+			})
 			// Return a safe default - adjust based on your AuthState structure
 			return null as T
 		}
@@ -150,12 +156,12 @@ export const useAuthStore = <T,>(selector: (state: AuthState) => T): T => {
 			try {
 				setState(selector(store.getState()))
 			} catch (error) {
-					logger.error('AuthProvider - Error in auth store subscription', {
-						action: 'auth_store_subscription_failed',
-						metadata: {
-							error: error instanceof Error ? error.message : String(error)
-						}
-					})
+				logger.error('AuthProvider - Error in auth store subscription', {
+					action: 'auth_store_subscription_failed',
+					metadata: {
+						error: error instanceof Error ? error.message : String(error)
+					}
+				})
 			}
 		})
 		return unsubscribe

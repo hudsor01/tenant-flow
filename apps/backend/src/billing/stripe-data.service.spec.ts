@@ -1,48 +1,44 @@
-import type { TestingModule } from '@nestjs/testing';
+import {
+	BadRequestException,
+	InternalServerErrorException
+} from '@nestjs/common'
+import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import { StripeDataService } from './stripe-data.service'
-import { SupabaseService } from '../database/supabase.service'
-import { Logger } from '@nestjs/common'
-import { InternalServerErrorException, BadRequestException } from '@nestjs/common'
 import { SilentLogger } from '../__test__/silent-logger'
+import { SupabaseService } from '../database/supabase.service'
+import { StripeDataService } from './stripe-data.service'
 
 describe('StripeDataService - Production Tests', () => {
 	let service: StripeDataService
 	let mockSupabaseService: jest.Mocked<SupabaseService>
-	let mockSupabaseClient: jest.Mocked<any>
-	let mockLogger: jest.Mocked<Logger>
+	let mockSupabaseClient: jest.Mocked<
+		ReturnType<SupabaseService['getAdminClient']>
+	>
 
 	beforeEach(async () => {
 		// Mock Supabase client with RPC method (production uses RPC calls)
 		mockSupabaseClient = {
 			rpc: jest.fn()
-		}
+		} as unknown as jest.Mocked<ReturnType<SupabaseService['getAdminClient']>>
 
 		// Mock SupabaseService
 		mockSupabaseService = {
 			getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient)
 		} as unknown as jest.Mocked<SupabaseService>
 
-		// Mock Logger for optional injection (production pattern)
-		mockLogger = {
-			log: jest.fn(),
-			error: jest.fn(),
-			warn: jest.fn(),
-			debug: jest.fn(),
-			verbose: jest.fn()
-		} as unknown as jest.Mocked<Logger>
-
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				StripeDataService,
-				{ provide: SupabaseService, useValue: mockSupabaseService },
-				{ provide: Logger, useValue: mockLogger }
+				{ provide: SupabaseService, useValue: mockSupabaseService }
 			]
 		})
-		.setLogger(new SilentLogger())
-		.compile()
+			.setLogger(new SilentLogger())
+			.compile()
 
 		service = module.get<StripeDataService>(StripeDataService)
+
+		// Spy on the actual logger instance created by the service
+		jest.spyOn(service['logger'], 'error').mockImplementation(() => {})
 	})
 
 	describe('getCustomerSubscriptions', () => {
@@ -78,7 +74,10 @@ describe('StripeDataService - Production Tests', () => {
 
 			// Assert - Production RPC call pattern
 			expect(mockSupabaseService.getAdminClient).toHaveBeenCalled()
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_stripe_subscriptions', { customer_id: customerId })
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'get_stripe_subscriptions',
+				{ customer_id: customerId }
+			)
 			expect(result).toEqual(mockSubscriptions)
 			expect(result).toHaveLength(2)
 			expect(result[0]?.status).toBe('active')
@@ -99,11 +98,12 @@ describe('StripeDataService - Production Tests', () => {
 			})
 
 			// Act & Assert
-			await expect(service.getCustomerSubscriptions(customerId))
-				.rejects.toThrow(InternalServerErrorException)
+			await expect(
+				service.getCustomerSubscriptions(customerId)
+			).rejects.toThrow(InternalServerErrorException)
 
 			// Production logging pattern: error object directly, not formatted string
-			expect(mockLogger.error).toHaveBeenCalledWith(
+			expect(service['logger'].error).toHaveBeenCalledWith(
 				'Failed to fetch customer subscriptions',
 				{ error: dbError, customerId }
 			)
@@ -132,11 +132,12 @@ describe('StripeDataService - Production Tests', () => {
 			mockSupabaseClient.rpc.mockRejectedValue(thrownError)
 
 			// Act & Assert
-			await expect(service.getCustomerSubscriptions(customerId))
-				.rejects.toThrow(InternalServerErrorException)
+			await expect(
+				service.getCustomerSubscriptions(customerId)
+			).rejects.toThrow(InternalServerErrorException)
 
 			// Production catch block logging pattern
-			expect(mockLogger.error).toHaveBeenCalledWith(
+			expect(service['logger'].error).toHaveBeenCalledWith(
 				'Error fetching customer subscriptions:',
 				thrownError
 			)
@@ -164,7 +165,10 @@ describe('StripeDataService - Production Tests', () => {
 
 			// Assert - Production RPC call pattern
 			expect(mockSupabaseService.getAdminClient).toHaveBeenCalled()
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_stripe_customer_by_id', { customer_id: customerId })
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'get_stripe_customer_by_id',
+				{ customer_id: customerId }
+			)
 			expect(result).toEqual(mockCustomer)
 		})
 
@@ -173,11 +177,12 @@ describe('StripeDataService - Production Tests', () => {
 			const invalidCustomerId = ''
 
 			// Act & Assert
-			await expect(service.getCustomer(invalidCustomerId))
-				.rejects.toThrow(InternalServerErrorException)
+			await expect(service.getCustomer(invalidCustomerId)).rejects.toThrow(
+				InternalServerErrorException
+			)
 
 			// Verify the BadRequestException was caught and re-thrown as InternalServerErrorException
-			expect(mockLogger.error).toHaveBeenCalledWith(
+			expect(service['logger'].error).toHaveBeenCalledWith(
 				'Failed to fetch customer',
 				expect.any(BadRequestException)
 			)
@@ -209,10 +214,11 @@ describe('StripeDataService - Production Tests', () => {
 			})
 
 			// Act & Assert
-			await expect(service.getCustomer(customerId))
-				.rejects.toThrow(InternalServerErrorException)
+			await expect(service.getCustomer(customerId)).rejects.toThrow(
+				InternalServerErrorException
+			)
 
-			expect(mockLogger.error).toHaveBeenCalledWith(
+			expect(service['logger'].error).toHaveBeenCalledWith(
 				'Failed to fetch customer',
 				{ error: dbError, customerId }
 			)
@@ -266,10 +272,11 @@ describe('StripeDataService - Production Tests', () => {
 			})
 
 			// Act & Assert
-			await expect(service.getPrices())
-				.rejects.toThrow(InternalServerErrorException)
+			await expect(service.getPrices()).rejects.toThrow(
+				InternalServerErrorException
+			)
 
-			expect(mockLogger.error).toHaveBeenCalledWith(
+			expect(service['logger'].error).toHaveBeenCalledWith(
 				'Failed to fetch prices',
 				{ error: dbError, activeOnly: true }
 			)
@@ -306,10 +313,13 @@ describe('StripeDataService - Production Tests', () => {
 
 			// Assert - Production RPC call pattern
 			expect(mockSupabaseService.getAdminClient).toHaveBeenCalled()
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_stripe_products', {
-				active_only: false,
-				limit_count: 1000
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'get_stripe_products',
+				{
+					active_only: false,
+					limit_count: 1000
+				}
+			)
 			expect(result).toEqual(mockProducts)
 		})
 
@@ -323,10 +333,11 @@ describe('StripeDataService - Production Tests', () => {
 			})
 
 			// Act & Assert
-			await expect(service.getProducts())
-				.rejects.toThrow(InternalServerErrorException)
+			await expect(service.getProducts()).rejects.toThrow(
+				InternalServerErrorException
+			)
 
-			expect(mockLogger.error).toHaveBeenCalledWith(
+			expect(service['logger'].error).toHaveBeenCalledWith(
 				'Failed to fetch products',
 				{ error: dbError, activeOnly: true }
 			)
@@ -346,7 +357,10 @@ describe('StripeDataService - Production Tests', () => {
 
 			// Assert
 			expect(result).toBe(true)
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_stripe_customers', { limit_count: 1 })
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'get_stripe_customers',
+				{ limit_count: 1 }
+			)
 		})
 
 		it('should return false when RPC call has error', async () => {
@@ -373,7 +387,7 @@ describe('StripeDataService - Production Tests', () => {
 
 			// Assert
 			expect(result).toBe(false)
-			expect(mockLogger.error).toHaveBeenCalledWith(
+			expect(service['logger'].error).toHaveBeenCalledWith(
 				'Stripe data service health check failed:',
 				expect.any(Error)
 			)
@@ -410,7 +424,10 @@ describe('StripeDataService - Production Tests', () => {
 				const result = await service.getRevenueAnalytics(startDate, endDate)
 
 				// Assert
-				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_stripe_payment_intents', { limit_count: 1000 })
+				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+					'get_stripe_payment_intents',
+					{ limit_count: 1000 }
+				)
 				expect(Array.isArray(result)).toBe(true)
 			})
 		})
@@ -440,7 +457,10 @@ describe('StripeDataService - Production Tests', () => {
 				const result = await service.getChurnAnalytics()
 
 				// Assert
-				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_stripe_subscriptions', { limit_count: 1000 })
+				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+					'get_stripe_subscriptions',
+					{ limit_count: 1000 }
+				)
 				expect(Array.isArray(result)).toBe(true)
 			})
 		})
@@ -449,7 +469,14 @@ describe('StripeDataService - Production Tests', () => {
 			it('should call both customer and subscription RPCs for CLV calculation', async () => {
 				// Arrange
 				const mockCustomers = [{ id: 'cus_123', email: 'test@example.com' }]
-				const mockSubscriptions = [{ id: 'sub_123', customer_id: 'cus_123', status: 'active', created_at: '2024-01-01T00:00:00Z' }]
+				const mockSubscriptions = [
+					{
+						id: 'sub_123',
+						customer_id: 'cus_123',
+						status: 'active',
+						created_at: '2024-01-01T00:00:00Z'
+					}
+				]
 
 				mockSupabaseClient.rpc
 					.mockResolvedValueOnce({ data: mockCustomers, error: null })
@@ -459,8 +486,14 @@ describe('StripeDataService - Production Tests', () => {
 				const result = await service.getCustomerLifetimeValue()
 
 				// Assert
-				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_stripe_customers', { limit_count: 1000 })
-				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_stripe_subscriptions', { limit_count: 1000 })
+				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+					'get_stripe_customers',
+					{ limit_count: 1000 }
+				)
+				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+					'get_stripe_subscriptions',
+					{ limit_count: 1000 }
+				)
 				expect(Array.isArray(result)).toBe(true)
 			})
 		})
@@ -486,7 +519,10 @@ describe('StripeDataService - Production Tests', () => {
 				const result = await service.getMRRTrend(months)
 
 				// Assert
-				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_stripe_subscriptions', { limit_count: 600 })
+				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+					'get_stripe_subscriptions',
+					{ limit_count: 600 }
+				)
 				expect(Array.isArray(result)).toBe(true)
 			})
 		})
@@ -509,7 +545,10 @@ describe('StripeDataService - Production Tests', () => {
 				const result = await service.getSubscriptionStatusBreakdown()
 
 				// Assert
-				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_stripe_subscriptions', { limit_count: 1000 })
+				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+					'get_stripe_subscriptions',
+					{ limit_count: 1000 }
+				)
 				expect(result).toEqual({ active: 2, canceled: 1 })
 			})
 		})
