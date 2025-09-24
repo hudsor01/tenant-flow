@@ -3,7 +3,7 @@
  * Helper functions for lease status display and management
  */
 
-import type { Database } from '../types/supabase-generated'
+import type { Database } from '../types/supabase-generated.js'
 
 type LeaseStatus = Database['public']['Enums']['LeaseStatus']
 

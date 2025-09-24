@@ -10,7 +10,7 @@
 		"composite": false,
 		"jsx": "react-jsx",
 		"removeComments": false,
-		"module": "ESNext",
-		"moduleResolution": "Bundler"
+		"module": "Node16",
+		"moduleResolution": "node16"
 	}
 }

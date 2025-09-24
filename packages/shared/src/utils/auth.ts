@@ -3,7 +3,7 @@
  * Helper functions for user role display and management
  */
 
-import type { UserRole } from '../types/security'
+import type { UserRole } from '../types/security.js'
 
 export const getUserRoleLabel = (role: UserRole): string => {
 	const labels: Record<UserRole, string> = {

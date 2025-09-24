@@ -1,5 +1,5 @@
 // Notification types for TenantFlow application
-import type { Database } from './supabase-generated'
+import type { Database } from './supabase-generated.js'
 
 type Priority = Database['public']['Enums']['Priority']
 
@@ -36,31 +36,31 @@ export interface NotificationResponse {
 
 // Frontend notification data structure
 export interface NotificationData {
-  id: string
-  title: string
-  message: string
-  priority: Priority
-  type: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR'
-  read: boolean
-  createdAt: Date
-  updatedAt: Date
+	id: string
+	title: string
+	message: string
+	priority: Priority
+	type: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR'
+	read: boolean
+	createdAt: Date
+	updatedAt: Date
 }
 
 export interface CreateNotificationDto {
-  title: string
-  message: string
-  priority?: Priority
-  type?: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR'
+	title: string
+	message: string
+	priority?: Priority
+	type?: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR'
 }
 
 export interface UpdateNotificationDto {
-  read?: boolean
+	read?: boolean
 }
 
 export interface MaintenanceNotificationData extends NotificationData {
-  maintenanceRequestId?: string
-  propertyId?: string
-  unitId?: string
+	maintenanceRequestId?: string
+	propertyId?: string
+	unitId?: string
 }
 
 // WebSocket types for real-time notifications
@@ -137,9 +137,7 @@ export interface PushNotification {
 	data?: Record<string, string | number | boolean | null>
 }
 
-// =============================================================================
 // BACKEND NOTIFICATION CONTROLLER TYPES - CONSOLIDATED from backend
-// =============================================================================
 
 export interface GetNotificationOptions {
 	unreadOnly?: boolean
@@ -148,19 +146,19 @@ export interface GetNotificationOptions {
 }
 
 export interface CreateNotificationRequest {
-recipientId: string
-title: string
-message: string
-priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
-actionUrl?: string
-data?: Record<string, unknown>
+	recipientId: string
+	title: string
+	message: string
+	priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
+	actionUrl?: string
+	data?: Record<string, unknown>
 }
 
 export interface MaintenanceNotificationRequest {
-recipientId: string
-title: string
-message: string
-type: NotificationType
-unitId: string
-priority: Priority
+	recipientId: string
+	title: string
+	message: string
+	type: NotificationType
+	unitId: string
+	priority: Priority
 }

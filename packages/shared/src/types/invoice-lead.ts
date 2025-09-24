@@ -4,18 +4,14 @@
  */
 
 import { z } from 'zod'
-import { requiredString, emailSchema } from '../validation/common'
-import type { CustomerInvoice, CustomerInvoiceItem } from './invoices'
 import {
-	LEAD_MAGNET_CONFIG,
 	INVOICE_DEFAULTS,
 	INVOICE_NUMBER_PREFIX,
+	LEAD_MAGNET_CONFIG,
 	type LeadMagnetTier
-} from '../constants/invoices'
-
-// ========================
-// Zod Validation Schemas
-// ========================
+} from '../constants/invoices.js'
+import { emailSchema, requiredString } from '../validation/common.js'
+import type { CustomerInvoice, CustomerInvoiceItem } from './invoices.js'
 
 /**
  * Invoice item validation schema
@@ -77,10 +73,6 @@ export const CustomerInvoiceSchema = z.object({
 	isProVersion: z.boolean().default(false)
 })
 
-// ========================
-// Inferred Types from Schemas
-// ========================
-
 /**
  * Type exports - use Zod inference for runtime validation
  * but ensure they match the centralized types
@@ -88,9 +80,7 @@ export const CustomerInvoiceSchema = z.object({
 export type CustomerInvoiceForm = z.infer<typeof CustomerInvoiceSchema>
 export type InvoiceItemForm = z.infer<typeof InvoiceItemSchema>
 
-// ========================
 // Type Compatibility Checks
-// ========================
 
 /**
  * Type assertions to ensure Zod schemas match centralized types
@@ -109,9 +99,7 @@ export type InvoiceItemCheck =
 		? true
 		: false
 
-// ========================
 // Lead Capture Types
-// ========================
 
 /**
  * Email capture data for lead magnets
@@ -142,9 +130,7 @@ export interface InvoiceGenerationRequest {
 	emailCapture?: EmailCaptureData
 }
 
-// ========================
 // Default Templates
-// ========================
 
 /**
  * Default invoice template

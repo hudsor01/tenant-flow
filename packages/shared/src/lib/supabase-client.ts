@@ -12,7 +12,7 @@ import {
 	type SupabaseClient,
 	type User
 } from '@supabase/supabase-js'
-import type { Database } from '../types/supabase'
+import type { Database } from '../types/supabase.js'
 
 const SUPABASE_URL =
 	process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
@@ -139,9 +139,8 @@ export async function signOut(): Promise<{ error: AuthError | null }> {
 	return { error }
 }
 
-// ========================
 // ULTRA-NATIVE Multi-tenant
-// ========================
+
 // Use RLS policies directly - no wrapper classes
 // Example: supabaseClient.from('Property').select('*').eq('organizationId', orgId)
 
@@ -151,7 +150,7 @@ export type {
 	Tables,
 	TablesInsert,
 	TablesUpdate
-} from '../types/supabase-generated'
+} from '../types/supabase-generated.js'
 
 export type {
 	QueryData,
@@ -159,4 +158,4 @@ export type {
 	TenantFlowOrganizationSettings,
 	TenantFlowPropertyMetadata,
 	TenantFlowUserMetadata
-} from '../types/supabase'
+} from '../types/supabase.js'

@@ -3,19 +3,20 @@
  * Extended entity types with proper relations to avoid circular imports
  */
 
-import type { User } from './supabase'
-import type { Database } from './supabase-generated'
+import type { Database } from './supabase-generated.js'
+import type { User } from './supabase.js'
 
 // Define types properly from Database schema
 type Property = Database['public']['Tables']['Property']['Row']
 type Unit = Database['public']['Tables']['Unit']['Row']
 type Tenant = Database['public']['Tables']['Tenant']['Row']
 type Lease = Database['public']['Tables']['Lease']['Row']
-type MaintenanceRequest = Database['public']['Tables']['MaintenanceRequest']['Row']
+type MaintenanceRequest =
+	Database['public']['Tables']['MaintenanceRequest']['Row']
 type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED'
 
-import type { NotificationData } from './notifications'
-import type { Document } from './files'
+import type { Document } from './files.js'
+import type { NotificationData } from './notifications.js'
 
 // Property relations
 export interface PropertyWithDetails extends Property {
@@ -32,7 +33,7 @@ export interface UnitWithDetails extends Unit {
 	currentLease?: Lease
 	tenant?: Tenant
 	maintenanceRequests: MaintenanceRequest[]
-	
+
 	// Computed fields
 	isOccupied?: boolean
 	monthlyRent?: number
@@ -100,7 +101,7 @@ export interface NotificationWithDetails extends NotificationData {
 export interface PropertyWithUnits extends Property {
 	// Core relations - units is ALWAYS included from backend
 	units: Unit[]
-	
+
 	// REQUIRED computed fields - ALL calculated in database
 	totalUnits: number
 	occupiedUnits: number
@@ -233,9 +234,7 @@ export interface NotificationWithRelations extends NotificationData {
 		| null
 }
 
-// =============================================================================
 // ADDITIONAL TYPES FOR COMPONENT COMPATIBILITY
-// =============================================================================
 
 /**
  * PropertyWithFullDetails - Complete property with all relations for detailed views
@@ -245,7 +244,7 @@ export interface PropertyWithFullDetails extends PropertyWithUnits {
 	leases?: LeaseWithDetails[]
 	tenants?: TenantWithDetails[]
 	maintenanceHistory?: MaintenanceRequestWithDetails[]
-	
+
 	// ALL analytics come from PropertyWithUnits base - no duplicates
 }
 
@@ -277,7 +276,7 @@ export interface PropertyFormData {
 	propertyType: Database['public']['Enums']['PropertyType']
 	description?: string
 	imageUrl?: string
-	
+
 	// Form-specific computed fields
 	totalUnits?: number
 	monthlyRent?: number

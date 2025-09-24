@@ -1,16 +1,14 @@
 /**
  * Minimal Stripe Type Definitions
- * 
+ *
  * This file contains ONLY the essential types needed by TenantFlow
  * that are not available from the official Stripe SDK.
- * 
+ *
  * IMPORTANT: Always use official Stripe types directly from 'stripe' package
  * instead of creating duplicate definitions.
  */
 
-// ========================
 // Business Logic Types
-// ========================
 
 /**
  * TenantFlow plan type enumeration
@@ -28,16 +26,14 @@ export type BillingPeriod = 'monthly' | 'annual'
  */
 export type BillingInterval = BillingPeriod
 
-// ========================
 // Webhook Integration Types
-// ========================
 
 /**
  * Webhook event types that TenantFlow processes
  */
 export type StripeWebhookEventType =
 	| 'customer.subscription.created'
-	| 'customer.subscription.updated'  
+	| 'customer.subscription.updated'
 	| 'customer.subscription.deleted'
 	| 'invoice.payment_succeeded'
 	| 'invoice.payment_failed'
@@ -85,21 +81,19 @@ export interface StripeWebhookProcessor {
 	processor: WebhookProcessorFunction
 }
 
-// ========================
 // Native Stripe Types Usage Guide
-// ========================
 
 /**
  * ALWAYS use native Stripe types from the official SDK:
- * 
+ *
  * [OK] CORRECT:
  * import type { Stripe } from 'stripe'
  * const paymentMethod: Stripe.PaymentMethod = ...
  * const customer: Stripe.Customer = ...
  * const subscription: Stripe.Subscription = ...
- * 
+ *
  * [ERROR] DO NOT create custom type duplicates
- * 
+ *
  * For database PaymentMethod table, use:
  * import type { PaymentMethod } from '@repo/shared/types/supabase'
  */
