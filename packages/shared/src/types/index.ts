@@ -19,6 +19,7 @@ export * from './api-errors.js'
 export * from './backend-domain.js'
 export * from './domain.js'
 export type {
+	HealthCheckResponse,
 	HealthCheckResult,
 	PerformanceMetrics,
 	SecurityEvent,
