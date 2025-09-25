@@ -64,19 +64,64 @@ describe('Production Stripe Webhook Processing', () => {
 			apiVersion: '2025-08-27.basil' as Stripe.LatestApiVersion
 		})
 
+		// Track processed events for testing
+		const processedEvents = new Set<string>()
+		const processingEvents = new Set<string>() // Track events being processed
+
 		// Create mock Supabase client for webhook service
 		const mockSupabaseClient = {
-			from: jest.fn(() => ({
-				upsert: jest.fn(() => Promise.resolve({ error: null })),
-				update: jest.fn(() => ({
-					eq: jest.fn(() => Promise.resolve({ error: null }))
-				})),
-				select: jest.fn(() => ({
-					eq: jest.fn(() => ({
-						single: jest.fn(() => Promise.resolve({ data: null, error: null }))
+			from: jest.fn((table: string) => {
+				if (table === 'processed_stripe_events') {
+					return {
+						upsert: jest.fn(data => {
+							// Simulate database upsert with onConflict behavior
+							// The upsert should succeed even if the record exists (that's what onConflict does)
+							const eventId = data.stripe_event_id as string
+
+							// If not already processing, mark as processing
+							if (!processingEvents.has(eventId)) {
+								processingEvents.add(eventId)
+								// Simulate async database operation
+								setTimeout(() => {
+									processedEvents.add(eventId)
+								}, 0)
+							}
+
+							// Always return success (upsert doesn't fail on conflicts)
+							return Promise.resolve({ error: null })
+						}),
+						update: jest.fn(() => ({
+							eq: jest.fn(() => Promise.resolve({ error: null }))
+						})),
+						select: jest.fn(() => ({
+							eq: jest.fn((field: string, value: string) => ({
+								single: jest.fn(() => {
+									// Return data if event is processed, null otherwise
+									const isProcessed =
+										processedEvents.has(value) || processingEvents.has(value)
+									return Promise.resolve({
+										data: isProcessed ? { stripe_event_id: value } : null,
+										error: null
+									})
+								})
+							}))
+						}))
+					}
+				}
+				return {
+					upsert: jest.fn(() => Promise.resolve({ error: null })),
+					update: jest.fn(() => ({
+						eq: jest.fn(() => Promise.resolve({ error: null }))
+					})),
+					select: jest.fn(() => ({
+						eq: jest.fn(() => ({
+							single: jest.fn(() =>
+								Promise.resolve({ data: null, error: null })
+							)
+						}))
 					}))
-				}))
-			}))
+				}
+			})
 		}
 
 		module = await Test.createTestingModule({
