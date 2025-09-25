@@ -97,6 +97,21 @@ export interface RegisterCredentials {
 	fullName?: string
 }
 
+// Client-side auth action types
+export interface SignupData {
+	email: string
+	password: string
+	firstName: string
+	lastName: string
+	company?: string
+}
+
+export interface ClientAuthResponse {
+	success: boolean
+	error?: string
+	data?: unknown
+}
+
 export interface AuthResponse {
 	user: User | AuthUser
 	session?: {

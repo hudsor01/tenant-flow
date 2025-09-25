@@ -1,27 +1,41 @@
-import type { Metadata } from 'next'
+'use client'
+
 import { LoginLayout } from '@/components/auth/login-layout'
-
-
-export const metadata: Metadata = {
-	title: 'Sign Up - TenantFlow',
-	description:
-		'Join forward-thinking property managers using TenantFlow. Start your free trial today - no credit card required.',
-	keywords: [
-		'property management',
-		'tenant management',
-		'real estate',
-		'signup',
-		'free trial'
-	],
-	openGraph: {
-		title: 'Sign Up for TenantFlow - Property Management Platform',
-		description:
-			'Transform your property management with TenantFlow. 30-day free trial, no credit card required.',
-		type: 'website'
-	}
-}
+import { signUp } from '@/lib/auth-actions'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 export default function SignupPage() {
+	const router = useRouter()
+	const [isLoading, setIsLoading] = useState(false)
+
+	const handleSignup = async (data: Record<string, unknown>) => {
+		setIsLoading(true)
+
+		try {
+			const result = await signUp({
+				email: data.email as string,
+				password: data.password as string,
+				firstName: data.firstName as string,
+				lastName: data.lastName as string,
+				company: data.company as string
+			})
+
+			if (result.success) {
+				// Supabase auth will automatically handle the session
+				// Redirect to dashboard or success page
+				router.push('/dashboard')
+			} else {
+				// Handle error - you might want to show a toast or error message
+				alert(`Signup failed: ${result.error}`)
+			}
+		} catch {
+			alert('An unexpected error occurred during signup')
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
 	return (
 		<LoginLayout
 			mode="signup"
@@ -38,6 +52,8 @@ export default function SignupPage() {
 					{ value: 'No CC', label: 'Required' }
 				]
 			}}
+			onSubmit={handleSignup}
+			isLoading={isLoading}
 		/>
 	)
 }
