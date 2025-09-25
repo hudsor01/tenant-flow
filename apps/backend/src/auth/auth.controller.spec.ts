@@ -114,7 +114,14 @@ describe('AuthController', () => {
 				mockReturnedUser
 			)
 
-			const result = await controller.getCurrentUser(mockUser)
+			// Create mock request with cookies for the auth cookie
+			const mockRequest = {
+				cookies: {
+					'sb-bshjmbshupiibfiewpxb-auth-token': 'mock-auth-token'
+				}
+			} as unknown as Request
+
+			const result = await controller.getCurrentUser(mockRequest)
 
 			expect(result).toEqual(mockReturnedUser)
 			expect(mockAuthServiceInstance.getUserBySupabaseId).toHaveBeenCalledWith(
@@ -123,25 +130,18 @@ describe('AuthController', () => {
 		})
 
 		it('should throw NotFoundException when user not found', async () => {
-			const mockUser: ValidatedUser = {
-				id: 'user-123',
-				email: 'test@example.com',
-				name: 'Test User',
-				phone: null,
-				bio: null,
-				avatarUrl: null,
-				role: 'TENANT',
-				createdAt: new Date(),
-				updatedAt: new Date(),
-				emailVerified: true,
-				supabaseId: 'supa-123',
-				stripeCustomerId: null,
-				organizationId: null
-			}
-
 			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(null)
 
-			await expect(controller.getCurrentUser(mockUser)).rejects.toMatchObject({
+			// Create mock request with cookies for the auth cookie
+			const mockRequest = {
+				cookies: {
+					'sb-bshjmbshupiibfiewpxb-auth-token': 'mock-auth-token'
+				}
+			} as unknown as Request
+
+			await expect(
+				controller.getCurrentUser(mockRequest)
+			).rejects.toMatchObject({
 				message: 'User not found'
 			})
 		})

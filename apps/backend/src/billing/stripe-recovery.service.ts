@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Cron, CronExpression } from '@nestjs/schedule'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { Cron, CronExpression } from '@nestjs/schedule'
 import Stripe from 'stripe'
+import { SupabaseService } from '../database/supabase.service'
 import { StripeWebhookService } from './stripe-webhook.service'
 import { StripeService } from './stripe.service'
 
@@ -24,6 +25,7 @@ export class StripeRecoveryService {
 	private readonly MAX_RETRY_ATTEMPTS = 5
 
 	constructor(
+		private readonly supabaseService: SupabaseService,
 		private readonly webhookService: StripeWebhookService,
 		private readonly eventEmitter: EventEmitter2,
 		private readonly stripeService: StripeService
@@ -59,6 +61,7 @@ export class StripeRecoveryService {
 
 	/**
 	 * Get list of failed events from database
+	 * Note: This table only tracks processed events, not failed ones with retry logic
 	 */
 	private async getFailedEvents(): Promise<Array<{
 		stripe_event_id: string
@@ -66,9 +69,10 @@ export class StripeRecoveryService {
 		retry_count: number
 		last_retry_at: string | null
 	}>> {
-		// TODO: Implement once recovery columns are added to database
-		// For now, return empty array to prevent errors
-		this.logger.warn('Recovery columns not yet available in processed_stripe_events table')
+		// Since the actual table doesn't have failure tracking columns,
+		// return empty array to avoid errors. This service would need
+		// proper database schema to function correctly.
+		this.logger.debug('Stripe Recovery Service: No failed events table schema available')
 		return []
 	}
 
@@ -148,23 +152,22 @@ export class StripeRecoveryService {
 
 	/**
 	 * Update retry attempt in database
+	 * Note: Current schema doesn't support retry tracking
 	 */
 	private async updateRetryAttempt(eventId: string, retryCount: number): Promise<void> {
-		// TODO: Implement once recovery columns are added to database
-		// For now, just log the attempt
-		this.logger.warn('Cannot update retry attempt - recovery columns not yet available', {
-			eventId,
-			retryCount
-		})
+		// Since the actual table doesn't have retry tracking columns,
+		// just log the attempt. This would need proper schema to function.
+		this.logger.debug('Stripe Recovery Service: Would update retry attempt', { eventId, retryCount })
 	}
 
 	/**
 	 * Mark event as permanently failed
+	 * Note: Current schema doesn't support failure status tracking
 	 */
 	private async markEventAsPermanentlyFailed(eventId: string, reason: string): Promise<void> {
-		// TODO: Implement once recovery columns are added to database
-		// For now, just log the failure
-		this.logger.error(`Event permanently failed: ${eventId} - ${reason}`)
+		// Since the actual table doesn't have failure tracking columns,
+		// just log the failure. This would need proper schema to function.
+		this.logger.error(`Stripe Recovery Service: Would mark event permanently failed: ${eventId} - ${reason}`)
 	}
 
 	/**
@@ -196,6 +199,7 @@ export class StripeRecoveryService {
 
 	/**
 	 * Get recovery statistics
+	 * Note: Current schema only tracks processed events, not failure states
 	 */
 	async getRecoveryStats(): Promise<{
 		totalFailed: number
@@ -204,14 +208,24 @@ export class StripeRecoveryService {
 		averageRetryCount: number
 		oldestFailedEvent: Date | null
 	}> {
-		// TODO: Implement once recovery columns are added to database
-		// For now, return default stats
-		return {
-			totalFailed: 0,
-			pendingRecovery: 0,
-			permanentlyFailed: 0,
-			averageRetryCount: 0,
-			oldestFailedEvent: null
+		try {
+			// Since the table doesn't track failure states, return basic stats
+			return {
+				totalFailed: 0, // No failure tracking in current schema
+				pendingRecovery: 0, // No retry tracking in current schema
+				permanentlyFailed: 0, // No failure tracking in current schema
+				averageRetryCount: 0, // No retry tracking in current schema
+				oldestFailedEvent: null // Would use processed_at if needed, but table schema doesn't support failure tracking
+			}
+		} catch (error) {
+			this.logger.error('Error getting recovery stats', { error })
+			return {
+				totalFailed: 0,
+				pendingRecovery: 0,
+				permanentlyFailed: 0,
+				averageRetryCount: 0,
+				oldestFailedEvent: null
+			}
 		}
 	}
 

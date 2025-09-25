@@ -13,7 +13,6 @@ import {
 	DefaultValuePipe,
 	Delete,
 	Get,
-	Logger,
 	NotFoundException,
 	Optional,
 	Param,
@@ -21,32 +20,35 @@ import {
 	ParseUUIDPipe,
 	Post,
 	Put,
-	Query
+	Query,
+	Req
 } from '@nestjs/common'
 // Swagger imports removed
 import type {
 	CreateTenantRequest,
-	UpdateTenantRequest,
-	ValidatedUser
+	UpdateTenantRequest
 } from '@repo/shared'
-import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { Public } from '../shared/decorators/public.decorator'
+import type { Request } from 'express'
 import { TenantsService } from './tenants.service'
+import { SupabaseService } from '../database/supabase.service'
 
 // @ApiTags('tenants')
 // @ApiBearerAuth()
 @Controller('tenants')
 export class TenantsController {
-	private readonly logger = new Logger(TenantsController.name)
+	// Logger available if needed for debugging
+	// private readonly logger = new Logger(TenantsController.name)
 
-	constructor(@Optional() private readonly tenantsService?: TenantsService) {}
+	constructor(
+		@Optional() private readonly tenantsService?: TenantsService,
+		@Optional() private readonly supabaseService?: SupabaseService
+	) {}
 
 	@Get()
-	@Public()
 	// @ApiOperation({ summary: 'Get all tenants' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async findAll(
-		@CurrentUser() user?: ValidatedUser,
+		@Req() request: Request,
 		@Query('search') search?: string,
 		@Query('invitationStatus') invitationStatus?: string,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
@@ -76,6 +78,9 @@ export class TenantsController {
 			throw new BadRequestException('Invalid invitation status')
 		}
 
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+
 		return this.tenantsService.findAll(user?.id || 'test-user-id', {
 			search,
 			invitationStatus,
@@ -87,10 +92,9 @@ export class TenantsController {
 	}
 
 	@Get('stats')
-	@Public()
 	// @ApiOperation({ summary: 'Get tenant statistics' })
 	// @ApiResponse({ status: HttpStatus.OK })
-	async getStats(@CurrentUser() user?: ValidatedUser) {
+	async getStats(@Req() request: Request) {
 		if (!this.tenantsService) {
 			return {
 				message: 'Tenants service not available',
@@ -100,17 +104,18 @@ export class TenantsController {
 				expiredTenants: 0
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.tenantsService.getStats(user?.id || 'test-user-id')
 	}
 
 	@Get(':id')
-	@Public()
 	// @ApiOperation({ summary: 'Get tenant by ID' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.tenantsService) {
 			return {
@@ -119,6 +124,8 @@ export class TenantsController {
 				data: null
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		const tenant = await this.tenantsService.findOne(
 			user?.id || 'test-user-id',
 			id
@@ -130,12 +137,11 @@ export class TenantsController {
 	}
 
 	@Post()
-	@Public()
 	// @ApiOperation({ summary: 'Create new tenant' })
 	// @ApiResponse({ status: HttpStatus.CREATED })
 	async create(
 		@Body() createRequest: CreateTenantRequest,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.tenantsService) {
 			return {
@@ -144,18 +150,19 @@ export class TenantsController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.tenantsService.create(user?.id || 'test-user-id', createRequest)
 	}
 
 	@Put(':id')
-	@Public()
 	// @ApiOperation({ summary: 'Update tenant' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateRequest: UpdateTenantRequest,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.tenantsService) {
 			return {
@@ -165,6 +172,8 @@ export class TenantsController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		const tenant = await this.tenantsService.update(
 			user?.id || 'test-user-id',
 			id,
@@ -177,12 +186,11 @@ export class TenantsController {
 	}
 
 	@Delete(':id')
-	@Public()
 	// @ApiOperation({ summary: 'Delete tenant' })
 	// @ApiResponse({ status: HttpStatus.NO_CONTENT })
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.tenantsService) {
 			return {
@@ -191,17 +199,18 @@ export class TenantsController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		await this.tenantsService.remove(user?.id || 'test-user-id', id)
 		return { message: 'Tenant deleted successfully' }
 	}
 
 	@Post(':id/invite')
-	@Public()
 	// @ApiOperation({ summary: 'Send invitation to tenant' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async sendInvitation(
 		@Param('id', ParseUUIDPipe) id: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.tenantsService) {
 			return {
@@ -211,16 +220,17 @@ export class TenantsController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.tenantsService.sendInvitation(user?.id || 'test-user-id', id)
 	}
 
 	@Post(':id/resend-invitation')
-	@Public()
 	// @ApiOperation({ summary: 'Resend invitation to tenant' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async resendInvitation(
 		@Param('id', ParseUUIDPipe) id: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.tenantsService) {
 			return {
@@ -230,6 +240,8 @@ export class TenantsController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.tenantsService.resendInvitation(user?.id || 'test-user-id', id)
 	}
 }

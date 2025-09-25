@@ -13,7 +13,6 @@ import {
 	DefaultValuePipe,
 	Delete,
 	Get,
-	Logger,
 	NotFoundException,
 	Optional,
 	Param,
@@ -21,34 +20,35 @@ import {
 	ParseUUIDPipe,
 	Post,
 	Put,
-	Query
+	Query,
+	Req
 } from '@nestjs/common'
 // Swagger imports removed
 import type {
 	CreateMaintenanceRequest,
-	UpdateMaintenanceRequest,
-	ValidatedUser
+	UpdateMaintenanceRequest
 } from '@repo/shared'
-import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { Public } from '../shared/decorators/public.decorator'
+import type { Request } from 'express'
 import { MaintenanceService } from './maintenance.service'
+import { SupabaseService } from '../database/supabase.service'
 
 // @ApiTags('maintenance')
 // @ApiBearerAuth()
 @Controller('maintenance')
 export class MaintenanceController {
-	private readonly logger = new Logger(MaintenanceController.name)
+	// Logger available if needed for debugging
+	// private readonly logger = new Logger(MaintenanceController.name)
 
 	constructor(
-		@Optional() private readonly maintenanceService?: MaintenanceService
+		@Optional() private readonly maintenanceService?: MaintenanceService,
+		@Optional() private readonly supabaseService?: SupabaseService
 	) {}
 
 	@Get()
-	@Public()
 	// @ApiOperation({ summary: 'Get all maintenance requests' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async findAll(
-		@CurrentUser() user?: ValidatedUser,
+		@Req() request: Request,
 		@Query('unitId') unitId?: string,
 		@Query('propertyId') propertyId?: string,
 		@Query('priority') priority?: string,
@@ -117,6 +117,9 @@ export class MaintenanceController {
 			}
 		}
 
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+
 		return this.maintenanceService.findAll(user?.id || 'test-user-id', {
 			unitId,
 			propertyId,
@@ -131,10 +134,9 @@ export class MaintenanceController {
 	}
 
 	@Get('stats')
-	@Public()
 	// @ApiOperation({ summary: 'Get maintenance statistics' })
 	// @ApiResponse({ status: HttpStatus.OK })
-	async getStats(@CurrentUser() user?: ValidatedUser) {
+	async getStats(@Req() request: Request) {
 		if (!this.maintenanceService) {
 			return {
 				message: 'Maintenance service not available',
@@ -145,45 +147,48 @@ export class MaintenanceController {
 				urgentRequests: 0
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.maintenanceService.getStats(user?.id || 'test-user-id')
 	}
 
 	@Get('urgent')
-	@Public()
 	// @ApiOperation({ summary: 'Get urgent maintenance requests' })
 	// @ApiResponse({ status: HttpStatus.OK })
-	async getUrgent(@CurrentUser() user?: ValidatedUser) {
+	async getUrgent(@Req() request: Request) {
 		if (!this.maintenanceService) {
 			return {
 				message: 'Maintenance service not available',
 				data: []
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.maintenanceService.getUrgent(user?.id || 'test-user-id')
 	}
 
 	@Get('overdue')
-	@Public()
 	// @ApiOperation({ summary: 'Get overdue maintenance requests' })
 	// @ApiResponse({ status: HttpStatus.OK })
-	async getOverdue(@CurrentUser() user?: ValidatedUser) {
+	async getOverdue(@Req() request: Request) {
 		if (!this.maintenanceService) {
 			return {
 				message: 'Maintenance service not available',
 				data: []
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.maintenanceService.getOverdue(user?.id || 'test-user-id')
 	}
 
 	@Get(':id')
-	@Public()
 	// @ApiOperation({ summary: 'Get maintenance request by ID' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.maintenanceService) {
 			return {
@@ -192,6 +197,8 @@ export class MaintenanceController {
 				data: null
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		const maintenance = await this.maintenanceService.findOne(
 			user?.id || 'test-user-id',
 			id
@@ -203,12 +210,11 @@ export class MaintenanceController {
 	}
 
 	@Post()
-	@Public()
 	// @ApiOperation({ summary: 'Create new maintenance request' })
 	// @ApiResponse({ status: HttpStatus.CREATED })
 	async create(
 		@Body() createRequest: CreateMaintenanceRequest,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.maintenanceService) {
 			return {
@@ -217,6 +223,8 @@ export class MaintenanceController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.maintenanceService.create(
 			user?.id || 'test-user-id',
 			createRequest
@@ -224,14 +232,13 @@ export class MaintenanceController {
 	}
 
 	@Put(':id')
-	@Public()
 	// @ApiOperation({ summary: 'Update maintenance request' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateRequest: UpdateMaintenanceRequest,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.maintenanceService) {
 			return {
@@ -241,6 +248,8 @@ export class MaintenanceController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		const maintenance = await this.maintenanceService.update(
 			user?.id || 'test-user-id',
 			id,
@@ -253,12 +262,11 @@ export class MaintenanceController {
 	}
 
 	@Delete(':id')
-	@Public()
 	// @ApiOperation({ summary: 'Delete maintenance request' })
 	// @ApiResponse({ status: HttpStatus.NO_CONTENT })
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.maintenanceService) {
 			return {
@@ -267,19 +275,20 @@ export class MaintenanceController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		await this.maintenanceService.remove(user?.id || 'test-user-id', id)
 		return { message: 'Maintenance request deleted successfully' }
 	}
 
 	@Post(':id/complete')
-	@Public()
 	// @ApiOperation({ summary: 'Mark maintenance request as completed' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async complete(
 		@Param('id', ParseUUIDPipe) id: string,
+		@Req() request: Request,
 		@Body('actualCost') actualCost?: number,
-		@Body('notes') notes?: string,
-		@CurrentUser() user?: ValidatedUser
+		@Body('notes') notes?: string
 	) {
 		if (actualCost && (actualCost < 0 || actualCost > 999999)) {
 			throw new BadRequestException('Actual cost must be between 0 and 999999')
@@ -294,6 +303,8 @@ export class MaintenanceController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.maintenanceService.complete(
 			user?.id || 'test-user-id',
 			id,
@@ -303,13 +314,12 @@ export class MaintenanceController {
 	}
 
 	@Post(':id/cancel')
-	@Public()
 	// @ApiOperation({ summary: 'Cancel maintenance request' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async cancel(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Body('reason') reason?: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request,
+		@Body('reason') reason?: string
 	) {
 		if (!this.maintenanceService) {
 			return {
@@ -320,6 +330,8 @@ export class MaintenanceController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.maintenanceService.cancel(
 			user?.id || 'test-user-id',
 			id,

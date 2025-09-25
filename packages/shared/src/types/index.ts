@@ -71,7 +71,7 @@ export type {
 export type { ControllerApiResponse } from './errors.js'
 
 // Security permissions (business rules)
-export { Permission } from './security.js'
+export type { Permission } from './security.js'
 
 // Essential business constants
 export { USER_ROLE } from '../constants/auth.js'

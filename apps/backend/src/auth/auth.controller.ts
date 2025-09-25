@@ -7,15 +7,11 @@ import {
 	NotFoundException,
 	Post,
 	Req,
-	UnauthorizedException,
-	UseGuards
+	UnauthorizedException
 } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
-import type { ValidatedUser } from '@repo/shared'
 import type { Request } from 'express'
-import { Public } from '../shared/decorators/auth.decorators'
-import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { AuthGuard } from '../shared/guards/auth.guard'
+import { SupabaseService } from '../database/supabase.service'
 import { AuthService } from './auth.service'
 // Using Express JSON Schema validation - no DTOs needed
 // Validation is handled by Express JSON schema at route level
@@ -24,7 +20,10 @@ import { AuthService } from './auth.service'
 export class AuthController {
 	// private readonly logger = new Logger(AuthController.name)
 
-	constructor(private readonly authService: AuthService) {
+	constructor(
+		private readonly authService: AuthService,
+		private readonly supabaseService: SupabaseService
+	) {
 		// Use proper dependency injection for security
 	}
 
@@ -33,7 +32,6 @@ export class AuthController {
 	 * Verifies required env and basic Supabase connectivity
 	 */
 	@Get('health')
-	@Public()
 	@HttpCode(HttpStatus.OK)
 	async health() {
 		const envChecks = {
@@ -70,8 +68,13 @@ export class AuthController {
 	// Profile updates available at: PUT /api/v1/users/profile
 
 	@Get('me')
-	@UseGuards(AuthGuard)
-	async getCurrentUser(@CurrentUser() user: ValidatedUser) {
+	async getCurrentUser(@Req() request: Request) {
+		// Modern 2025 pattern: Validate user using Supabase cookie
+		const user = await this.supabaseService.validateUser(request)
+		if (!user) {
+			throw new UnauthorizedException('Authentication required')
+		}
+
 		const userProfile = await this.authService.getUserBySupabaseId(user.id)
 		if (!userProfile) {
 			throw new NotFoundException('User not found')
@@ -85,7 +88,6 @@ export class AuthController {
 	 * SECURITY: Token refresh is exempt from CSRF as it uses existing valid tokens
 	 */
 	@Post('refresh')
-	@Public()
 	@Throttle({ default: { limit: 20, ttl: 60000 } })
 	@HttpCode(HttpStatus.OK)
 	async refreshToken(@Body() body: { refresh_token: string }) {
@@ -98,7 +100,6 @@ export class AuthController {
 	 * but uses aggressive rate limiting instead
 	 */
 	@Post('login')
-	@Public()
 	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 login attempts per minute
 	@HttpCode(HttpStatus.OK)
 	async login(
@@ -119,7 +120,6 @@ export class AuthController {
 	 * but uses aggressive rate limiting instead
 	 */
 	@Post('register')
-	@Public()
 	@Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 registration attempts per minute
 	@HttpCode(HttpStatus.CREATED)
 	async register(
@@ -144,19 +144,21 @@ export class AuthController {
 	 * Logout endpoint
 	 */
 	@Post('logout')
-	@UseGuards(AuthGuard)
 	@HttpCode(HttpStatus.OK)
 	async logout(@Req() request: Request) {
-		const authHeader = request.headers.authorization
-		if (!authHeader) {
-			throw new UnauthorizedException('No authorization header found')
+		// Modern 2025 pattern: Validate user using Supabase cookie first
+		const user = await this.supabaseService.validateUser(request)
+		if (!user) {
+			throw new UnauthorizedException('Authentication required')
 		}
-		// NATIVE: Extract token with fallback to empty string (matches test expectations)
-		const token = authHeader.startsWith('Bearer ')
+
+		// For logout, we can use the cookie or fallback to Authorization header
+		const authHeader = request.headers.authorization
+		const token = authHeader?.startsWith('Bearer ')
 			? authHeader.substring(7)
 			: ''
+
 		await this.authService.logout(token)
-		// Return native response - NestJS handles this automatically
 		return { success: true }
 	}
 
@@ -165,7 +167,6 @@ export class AuthController {
 	 * React 19 useFormState integration
 	 */
 	@Post('draft')
-	@Public()
 	@Throttle({ default: { limit: 10, ttl: 60000 } })
 	@HttpCode(HttpStatus.OK)
 	async saveDraft(
@@ -184,7 +185,6 @@ export class AuthController {
 	 * React 19 useFormState integration
 	 */
 	@Get('draft/:formType')
-	@Public()
 	@Throttle({ default: { limit: 20, ttl: 60000 } })
 	async getDraft(
 		@Body() body: { sessionId?: string },
