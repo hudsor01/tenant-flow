@@ -156,7 +156,7 @@ jobs:
   deploy-backend:
     name: Deploy Backend to Railway
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     needs: [quality, typecheck, test]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
@@ -172,13 +172,35 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install Railway CLI
-        run: npm install -g @railway/cli@3
+        run: |
+          echo "Installing Railway CLI..."
+          npm install -g @railway/cli@latest
 
       - name: Deploy to Railway
-        run: railway up --service tenantflow-backend --environment production
+        run: |
+          echo "Deploying to Railway production..."
+          railway up --service tenantflow-backend --environment production --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for deployment to complete..."
+          sleep 60
+
+      - name: Health check
+        run: |
+          echo "Checking deployment health..."
+          for i in {1..10}; do
+            if curl -f https://api.tenantflow.app/health; then
+              echo "Deployment successful!"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying in 10s..."
+            sleep 10
+          done
+          echo "Health check failed after 10 attempts"
+          exit 1
 
   # Status check - required for branch protection
   ci-status:
