@@ -15,7 +15,7 @@ import { MetricsService } from './metrics.service'
 import { StripeFdwHealthIndicator } from './stripe-fdw.health'
 import { SupabaseHealthIndicator } from './supabase.health'
 
-@Controller('health')
+@Controller(['health', 'api/v1/health'])
 export class HealthController {
 	private readonly logger = new Logger(HealthController.name)
 
@@ -36,6 +36,7 @@ export class HealthController {
 	@Get('check')
 	@Public()
 	async checkEndpoint(@Res() res: Response) {
+		this.logger.log('Health check alias /check routed to main health handler')
 		return this.check(res)
 	}
 
@@ -118,8 +119,15 @@ export class HealthController {
 	@Get()
 	@Public()
 	async check(@Res() res: Response) {
+		const requestPath = res.req?.originalUrl ?? 'unknown'
+		this.logger.log(`Health check received via ${requestPath}`)
+		const startedAt = Date.now()
 		const healthResult = await this.healthService.checkSystemHealth()
+		const duration = Date.now() - startedAt
 		const statusCode = healthResult.status === 'ok' ? 200 : 503
+		this.logger.log(
+			`Health check completed with status ${statusCode} (${healthResult.status}) in ${duration}ms`
+		)
 		return res.status(statusCode).json(healthResult)
 	}
 }
