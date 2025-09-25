@@ -18,9 +18,9 @@
 		"lint": "eslint \"src/**/*.ts\"",
 		"lint:fix": "pnpm lint --fix",
 		"typecheck": "tsc --noEmit",
-		"test:unit": "jest --testMatch=\"**/*.spec.ts\"",
+		"test:unit": "jest --testMatch=\"**/*.spec.ts\" --forceExit",
 		"test:unit:clean": "jest --testMatch=\"**/*.spec.ts\" --forceExit",
-		"test:integration": "jest --testMatch=\"**/*.integration.spec.ts\"",
+		"test:integration": "jest --testMatch=\"**/*.integration.spec.ts\" --forceExit",
 		"test:watch": "jest --watch",
 		"clean": "rimraf dist coverage .turbo node_modules/.cache"
 	},
