@@ -19,13 +19,11 @@ export class DirectEmailService {
 	private readonly resend: Resend
 	private readonly fromAddress: string
 
-	constructor(
-		private readonly configService: ConfigService<Config>
-	) {
-		const resendKey = this.configService.get('RESEND_API_KEY') as string
+	constructor(private readonly configService: ConfigService<Config>) {
+		const resendKey = this.configService.get('TEST_RESEND_API_KEY') as string
 		if (!resendKey) {
 			throw new InternalServerErrorException(
-				'RESEND_API_KEY is required for email functionality'
+				'TEST_RESEND_API_KEY is required for email functionality'
 			)
 		}
 
@@ -150,7 +148,7 @@ export class DirectEmailService {
         <p>Hi ${name},</p>
         <p>Thank you for signing up for TenantFlow. Your account is ready and you can start managing your properties right away.</p>
         <p>
-          <a href="${process.env.FRONTEND_URL}/dashboard" 
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" 
              style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
             Get Started
           </a>

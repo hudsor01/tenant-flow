@@ -22,13 +22,8 @@ const bootstrapLogger = new Logger('Bootstrap')
 
 async function bootstrap() {
 	const startTime = Date.now()
-	// Railway uses PORT env var, require explicit configuration
-	// Use BACKEND_PORT for local dev override
-	const port = (() => {
-		if (process.env.PORT) return Number(process.env.PORT)
-		if (process.env.BACKEND_PORT) return Number(process.env.BACKEND_PORT)
-		throw new Error('PORT or BACKEND_PORT environment variable is required for server startup')
-	})()
+	// Industry best practice: hardcode default port, let platform override if needed
+	const port = process.env.PORT ? Number(process.env.PORT) : 4600
 
 	// Express adapter with NestJS - zero type casts needed
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -70,7 +65,9 @@ async function bootstrap() {
 	bootstrapLogger.log('CORS enabled')
 
 	// Express middleware already registered via registerExpressMiddleware()
-	bootstrapLogger.log('Express middleware configured with full TypeScript support')
+	bootstrapLogger.log(
+		'Express middleware configured with full TypeScript support'
+	)
 
 	// Security: Apply input sanitization middleware
 	bootstrapLogger.log('Configuring input sanitization...')
@@ -92,9 +89,7 @@ async function bootstrap() {
 
 	// Security: Apply security exception filter
 	bootstrapLogger.log('Configuring security exception filter...')
-	const securityExceptionFilter = new SecurityExceptionFilter(
-		securityMonitor
-	)
+	const securityExceptionFilter = new SecurityExceptionFilter(securityMonitor)
 	app.useGlobalFilters(securityExceptionFilter)
 	bootstrapLogger.log('Security exception filter enabled')
 
@@ -155,7 +150,9 @@ async function bootstrap() {
 	bootstrapLogger.log(`EXPRESS SERVER: Listening on http://0.0.0.0:${port}`)
 	bootstrapLogger.log(`STARTUP: Completed in ${startupTime}s`)
 	bootstrapLogger.log(`ENVIRONMENT: ${process.env.NODE_ENV}`)
-	bootstrapLogger.log('TYPE SAFETY: Zero type casts required with Express adapter')
+	bootstrapLogger.log(
+		'TYPE SAFETY: Zero type casts required with Express adapter'
+	)
 }
 
 // Catch bootstrap errors

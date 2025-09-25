@@ -293,9 +293,11 @@ export class SecurityMonitorService implements OnModuleInit {
 			return
 		}
 
-		const apiKey = process.env.RESEND_API_KEY
+		const apiKey = process.env.TEST_RESEND_API_KEY
 		if (!apiKey) {
-			this.logger.error('Email alert skipped: RESEND_API_KEY not configured')
+			this.logger.error(
+				'Email alert skipped: TEST_RESEND_API_KEY not configured'
+			)
 			return
 		}
 

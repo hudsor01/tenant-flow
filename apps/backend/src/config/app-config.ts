@@ -7,20 +7,22 @@
 
 export const APP_CONFIG = {
 	// Application URLs
-	FRONTEND_URL: process.env.FRONTEND_URL || (() => {
-		throw new Error('FRONTEND_URL environment variable is required')
-	})(),
+	FRONTEND_URL:
+		process.env.NEXT_PUBLIC_APP_URL ||
+		(() => {
+			throw new Error('NEXT_PUBLIC_APP_URL environment variable is required')
+		})(),
 
-	// API Configuration
-	API_PORT: process.env.PORT || (() => {
-		throw new Error('PORT environment variable is required')
-	})(),
+	// API Configuration (hardcoded following industry best practices)
+	API_PORT: 4600, // Hardcoded default, platform can override via process.env.PORT
 	API_PREFIX: '/api',
 
 	// CORS Configuration
-	ALLOWED_ORIGINS: process.env.CORS_ORIGINS?.split(',') || (() => {
-		throw new Error('CORS_ORIGINS environment variable is required')
-	})(),
+	ALLOWED_ORIGINS:
+		process.env.CORS_ORIGINS?.split(',') ||
+		(() => {
+			throw new Error('CORS_ORIGINS environment variable is required')
+		})(),
 
 	// External Services
 	SUPABASE: {
@@ -33,22 +35,25 @@ export const APP_CONFIG = {
 	STRIPE: {
 		SECRET_KEY: process.env.STRIPE_SECRET_KEY,
 		WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-		// Portal return URL
-		PORTAL_RETURN_URL: process.env.STRIPE_PORTAL_RETURN_URL ||
-			process.env.FRONTEND_URL || (() => {
-				throw new Error('STRIPE_PORTAL_RETURN_URL or FRONTEND_URL environment variable is required')
+		// Portal return URL (construct from frontend URL - no separate env var needed)
+		PORTAL_RETURN_URL:
+			process.env.NEXT_PUBLIC_APP_URL + '/billing' ||
+			(() => {
+				throw new Error(
+					'NEXT_PUBLIC_APP_URL environment variable is required for Stripe portal return URL'
+				)
 			})()
 	},
 
 	// Email Configuration
 	EMAIL: {
-		RESEND_API_KEY: process.env.RESEND_API_KEY,
-		FROM_ADDRESS: process.env.EMAIL_FROM_ADDRESS || (() => {
-			throw new Error('EMAIL_FROM_ADDRESS environment variable is required')
-		})(),
-		SUPPORT_EMAIL: process.env.SUPPORT_EMAIL || (() => {
-			throw new Error('SUPPORT_EMAIL environment variable is required')
-		})()
+		RESEND_API_KEY: process.env.TEST_RESEND_API_KEY,
+		FROM_ADDRESS:
+			process.env.TEST_EMAIL_FROM ||
+			(() => {
+				throw new Error('TEST_EMAIL_FROM environment variable is required')
+			})(),
+		SUPPORT_EMAIL: 'support@tenantflow.app' // Hardcoded since not in Doppler
 	},
 
 	// Production Features (always enabled in stable version)
@@ -65,16 +70,12 @@ export const APP_CONFIG = {
 
 	// Security
 	JWT_SECRET: process.env.JWT_SECRET,
-	JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || (() => {
-		throw new Error('JWT_EXPIRES_IN environment variable is required')
-	})(),
+	JWT_EXPIRES_IN: '7d', // Default value since not in Doppler
 
 	// Rate Limiting
 	RATE_LIMIT: {
 		WINDOW_MS: 15 * 60 * 1000, // 15 minutes
-		MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX || (() => {
-			throw new Error('RATE_LIMIT_MAX environment variable is required')
-		})(), 10)
+		MAX_REQUESTS: 100 // Default value since not in Doppler
 	}
 } as const
 
@@ -109,9 +110,7 @@ export function validateConfig(): void {
 
 	// Validate JWT_SECRET length for security
 	if (APP_CONFIG.JWT_SECRET && APP_CONFIG.JWT_SECRET.length < 32) {
-		throw new Error(
-			'JWT_SECRET must be at least 32 characters for security'
-		)
+		throw new Error('JWT_SECRET must be at least 32 characters for security')
 	}
 }
 
