@@ -123,7 +123,7 @@ RUN rm -rf node_modules/**/test \
 USER node
 
 # Railway provides PORT at runtime, default to 4600 for container
-ENV PORT=${PORT:-4600}
+ENV PORT=4600
 # EXPOSE is informational - Railway ignores this and uses their own PORT
 EXPOSE ${PORT}
 
