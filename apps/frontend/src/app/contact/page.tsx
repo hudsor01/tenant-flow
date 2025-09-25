@@ -4,7 +4,7 @@ import { ContactForm } from '@/components/marketing/contact-form'
 import { ContentSection } from '@/components/marketing/content-section'
 import { CtaSection } from '@/components/marketing/cta-section'
 import { FeaturesGrid } from '@/components/marketing/features-grid'
-import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { PremiumHeroSection } from '@/components/sections/hero-section'
 
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { Button } from '@/components/ui/button'
@@ -18,17 +18,14 @@ export default function ContactPage() {
 			<Navbar />
 			<div className="pt-10">
 				{/* Hero Section */}
-				<HeroAuthority
-					title={<>Ready to transform your business?</>}
-					subtitle={
-						<>
-							Join 10,000+ property managers who have transformed their
-							operations with TenantFlow. Our experts will show you exactly how
-							to reduce costs by 32% and automate 80% of daily tasks.
-						</>
-					}
-					primaryCta={{ label: 'Get ROI Report', href: '#contact-form' }}
-					secondaryCta={{ label: 'Schedule Free Call', href: '#options' }}
+				<PremiumHeroSection
+					announcementText="Trusted by 10,000+ property managers"
+					headline="Ready to Transform Your Business?"
+					subheadline="Join property managers who have transformed their operations with TenantFlow. Our experts will show you exactly how to reduce costs by 32% and automate 80% of daily tasks."
+					primaryCTAText="Get Custom ROI Report"
+					primaryCTAHref="#contact-form"
+					secondaryCTAText="Schedule Free Call"
+					secondaryCTAHref="#options"
 				/>
 
 				{/* Enhanced Content Section */}
@@ -117,84 +114,6 @@ export default function ContactPage() {
 
 				{/* CTA Section */}
 				<CtaSection />
-
-				{/* Office Info */}
-				<section className="section-hero">
-					<div className="container mx-auto px-4 max-w-6xl">
-						<div className="text-center mb-16">
-							<h2 className="text-3xl font-bold mb-4">Visit our offices</h2>
-							<p className="text-muted-foreground">
-								We have offices around the world. Stop by for a coffee and chat
-								about property management.
-							</p>
-						</div>
-
-						<div className="grid md:grid-cols-3 gap-8">
-							{[
-								{
-									city: 'San Francisco',
-									address:
-										'123 Market Street\nSuite 500\nSan Francisco, CA 94103',
-									phone: '+1 (555) 123-4567',
-									email: 'sf@tenantflow.com'
-								},
-								{
-									city: 'New York',
-									address: '456 Broadway\nFloor 12\nNew York, NY 10013',
-									phone: '+1 (555) 987-6543',
-									email: 'ny@tenantflow.com'
-								},
-								{
-									city: 'Austin',
-									address: '789 Congress Ave\nBuilding A\nAustin, TX 78701',
-									phone: '+1 (555) 456-7890',
-									email: 'austin@tenantflow.com'
-								}
-							].map((office, index) => (
-								<div key={index} className="text-center p-6 border rounded-lg">
-									<h3 className="text-xl font-semibold mb-4">{office.city}</h3>
-									<div className="space-y-3 text-muted-foreground">
-										<div>
-											<p className="font-medium text-foreground mb-1">
-												Address
-											</p>
-											<p className="whitespace-pre-line text-sm">
-												{office.address}
-											</p>
-										</div>
-										<div>
-											<p className="font-medium text-foreground mb-1">Phone</p>
-											<p className="text-sm">{office.phone}</p>
-										</div>
-										<div>
-											<p className="font-medium text-foreground mb-1">Email</p>
-											<p className="text-sm">{office.email}</p>
-										</div>
-									</div>
-								</div>
-							))}
-						</div>
-					</div>
-				</section>
-
-				{/* FAQ Quick Links */}
-				<section className="section-hero bg-muted/20">
-					<div className="container mx-auto px-4 max-w-4xl text-center">
-						<h2 className="text-2xl font-bold mb-4">Need quick answers?</h2>
-						<p className="text-muted-foreground mb-8">
-							Check out our frequently asked questions or browse our help
-							center.
-						</p>
-						<div className="flex flex-col sm:flex-row gap-4 justify-center">
-							<Button variant="outline" asChild>
-								<a href="/faq">View FAQ</a>
-							</Button>
-							<Button variant="outline" asChild>
-								<a href="#contact-form">Help Center</a>
-							</Button>
-						</div>
-					</div>
-				</section>
 			</div>
 			<Footer />
 		</main>
