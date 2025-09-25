@@ -8,6 +8,8 @@ import { HeroAuthority } from '@/components/marketing/hero-authority'
 
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { Button } from '@/components/ui/button'
+import { containerClasses } from '@/lib/design-system'
+import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import { ArrowRight, Mail, MessageSquare, Phone } from 'lucide-react'
 
 export default function ContactPage() {
@@ -33,8 +35,8 @@ export default function ContactPage() {
 				<ContentSection />
 
 				{/* Contact Options */}
-				<section className="py-24 px-6 lg:px-8" id="options">
-					<div className="max-w-7xl mx-auto">
+				<section className="section-hero" id="options">
+					<div className={containerClasses('xl')}>
 						<BlurFade delay={0.2} inView>
 							<div className="grid md:grid-cols-3 gap-8">
 								{[
@@ -68,27 +70,36 @@ export default function ContactPage() {
 								].map((option, index) => (
 									<div
 										key={index}
-										className="bg-card border border-border rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-lg group shadow-sm"
+										className="card-elevated-authority rounded-2xl card-padding text-center transition-all duration-300 hover:shadow-lg group"
 									>
 										<div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-primary/20 to-accent/20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
 											<option.icon className="w-8 h-8 text-primary" />
 										</div>
-										<h3 className="text-xl font-semibold text-foreground mb-3">
+										<h3
+											className="font-semibold text-foreground mb-3"
+											style={TYPOGRAPHY_SCALE['heading-sm']}
+										>
 											{option.title}
 										</h3>
-										<p className="text-muted-foreground leading-relaxed mb-6">
+										<p
+											className="text-muted-foreground leading-relaxed mb-6"
+											style={TYPOGRAPHY_SCALE['body-sm']}
+										>
 											{option.description}
 										</p>
 										<Button
 											asChild
-											className="mb-4 w-full group bg-primary text-primary-foreground hover:bg-primary/90"
+											className="mb-4 w-full group btn-gradient-primary"
 										>
 											<a href={option.href}>
 												{option.action}
 												<ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
 											</a>
 										</Button>
-										<p className="text-sm text-muted-foreground">
+										<p
+											className="text-muted-foreground"
+											style={TYPOGRAPHY_SCALE['body-xs']}
+										>
 											{option.available}
 										</p>
 									</div>
@@ -108,8 +119,8 @@ export default function ContactPage() {
 				<CtaSection />
 
 				{/* Office Info */}
-				<section className="py-24 px-6 lg:px-8">
-					<div className="max-w-6xl mx-auto">
+				<section className="section-hero">
+					<div className="container mx-auto px-4 max-w-6xl">
 						<div className="text-center mb-16">
 							<h2 className="text-3xl font-bold mb-4">Visit our offices</h2>
 							<p className="text-muted-foreground">
@@ -167,7 +178,7 @@ export default function ContactPage() {
 				</section>
 
 				{/* FAQ Quick Links */}
-				<section className="section-content bg-muted/20">
+				<section className="section-hero bg-muted/20">
 					<div className="container mx-auto px-4 max-w-4xl text-center">
 						<h2 className="text-2xl font-bold mb-4">Need quick answers?</h2>
 						<p className="text-muted-foreground mb-8">
