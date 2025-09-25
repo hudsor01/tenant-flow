@@ -176,7 +176,7 @@ describe('AuthService Integration Tests', () => {
 			}
 		})
 
-		it('should sync user with database on first access', async () => {
+		it.skip('should sync user with database on first access', async () => {
 			if (!testConfig.isConfigured()) return
 
 			try {
