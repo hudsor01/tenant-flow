@@ -146,7 +146,7 @@ export class HealthController {
 			uptime: Math.round(process.uptime()),
 			memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
 			env: process.env.NODE_ENV,
-			port: 4600 // Hardcoded default port
+			port: process.env.PORT ? Number(process.env.PORT) : 4600
 		}
 	}
 
