@@ -17,13 +17,37 @@ interface RequestWithTiming extends Request {
 	id?: string
 }
 
+const DEFAULT_PORT = 4600
+
+function resolvePort(portValue: string | undefined, fallback: number): number {
+	if (!portValue) {
+		return fallback
+	}
+
+	const parsedPort = Number.parseInt(portValue, 10)
+	if (Number.isInteger(parsedPort) && parsedPort >= 0 && parsedPort <= 65535) {
+		return parsedPort
+	}
+
+	return fallback
+}
+
 // Module-level logger for bootstrap operations
 const bootstrapLogger = new Logger('Bootstrap')
 
 async function bootstrap() {
 	const startTime = Date.now()
 	// Industry best practice: hardcode default port, let platform override if needed
-	const port = process.env.PORT ? Number(process.env.PORT) : 4600
+	const port = resolvePort(process.env.PORT, DEFAULT_PORT)
+	if (
+		process.env.PORT &&
+		port === DEFAULT_PORT &&
+		process.env.PORT !== String(DEFAULT_PORT)
+	) {
+		bootstrapLogger.warn(
+			`Invalid PORT value "${process.env.PORT}" - falling back to ${DEFAULT_PORT}`
+		)
+	}
 
 	// Express adapter with NestJS - zero type casts needed
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {

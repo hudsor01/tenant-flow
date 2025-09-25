@@ -83,60 +83,59 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 	if (submitMessage) {
 		return (
 			<section
-				className={`min-h-screen lg:flex ${className}`}
+				className={`min-h-screen flex items-center justify-center bg-background ${className}`}
 				id="contact-form"
 			>
-				<div className="flex flex-col justify-center w-full lg:w-1/2 lg:px-12 xl:px-32 p-8">
-					<div className="max-w-md mx-auto w-full">
-						<div className="p-8 bg-card rounded-2xl border border-border shadow-lg">
-							<div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-								<Check className="w-8 h-8 text-primary" />
-							</div>
-							<h2 className="text-2xl font-bold text-foreground text-center mb-4">
-								Thank You!
-							</h2>
-							<p className="text-muted-foreground text-center mb-6">
-								{submitMessage}
-							</p>
-							<Button
-								onClick={() => setSubmitMessage(null)}
-								variant="outline"
-								className="w-full"
-							>
-								Send Another Message
-							</Button>
+				<div className="max-w-md w-full p-8">
+					<div className="p-8 bg-card rounded-2xl border border-border shadow-lg">
+						<div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+							<Check className="w-8 h-8 text-primary" />
 						</div>
+						<h2 className="text-2xl font-bold text-foreground text-center mb-4">
+							Thank You!
+						</h2>
+						<p className="text-muted-foreground text-center mb-6">
+							{submitMessage}
+						</p>
+						<Button
+							onClick={() => setSubmitMessage(null)}
+							variant="outline"
+							className="w-full"
+						>
+							Send Another Message
+						</Button>
 					</div>
 				</div>
-				<div className="hidden lg:block lg:w-1/2 relative gradient-background"></div>
 			</section>
 		)
 	}
 
 	return (
 		<section
-			className={`relative min-h-screen lg:flex ${className}`}
+			className={`relative min-h-screen lg:flex bg-background ${className}`}
 			id="contact-form"
 		>
-			{/* Left side - Contact Info with Background */}
-			<div className="relative flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-12 xl:px-32 gradient-background">
+			{/* Left side - Contact Info */}
+			<div className="relative flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-12 xl:px-32 bg-muted/30">
 				{/* Content */}
 				<div className="relative z-10">
-					<h1 className="text-3xl font-bold text-white lg:text-4xl">
+					<h1 className="text-3xl font-bold text-foreground lg:text-4xl">
 						Transform Your Property Management
 					</h1>
 
-					<p className="mt-4 text-white/90 text-lg">
+					<p className="mt-4 text-muted-foreground text-lg">
 						Join 10,000+ property managers who've increased NOI by 40% with our
 						enterprise-grade automation platform.
 					</p>
 
 					<div className="mt-8 space-y-6">
 						<div className="flex items-start">
-							<MapPin className="w-6 h-6 text-white/80 mt-1 flex-shrink-0" />
+							<div className="p-2 rounded-lg bg-primary/10">
+								<MapPin className="w-6 h-6 text-primary" />
+							</div>
 							<div className="ml-3">
-								<p className="text-white font-semibold">Headquarters</p>
-								<p className="text-white/80">
+								<p className="text-foreground font-semibold">Headquarters</p>
+								<p className="text-muted-foreground">
 									123 Market Street, Suite 500
 									<br />
 									San Francisco, CA 94103
@@ -145,20 +144,28 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						</div>
 
 						<div className="flex items-start">
-							<Phone className="w-6 h-6 text-white/80 mt-1 flex-shrink-0" />
+							<div className="p-2 rounded-lg bg-primary/10">
+								<Phone className="w-6 h-6 text-primary" />
+							</div>
 							<div className="ml-3">
-								<p className="text-white font-semibold">Sales Hotline</p>
-								<p className="text-white/80">+1 (888) 555-FLOW</p>
-								<p className="text-white/70 text-sm">Mon-Fri, 9AM-6PM PST</p>
+								<p className="text-foreground font-semibold">Sales Hotline</p>
+								<p className="text-muted-foreground">+1 (888) 555-FLOW</p>
+								<p className="text-muted-foreground text-sm">
+									Mon-Fri, 9AM-6PM PST
+								</p>
 							</div>
 						</div>
 
 						<div className="flex items-start">
-							<Mail className="w-6 h-6 text-white/80 mt-1 flex-shrink-0" />
+							<div className="p-2 rounded-lg bg-primary/10">
+								<Mail className="w-6 h-6 text-primary" />
+							</div>
 							<div className="ml-3">
-								<p className="text-white font-semibold">Email Us</p>
-								<p className="text-white/80">sales@tenantflow.app</p>
-								<p className="text-white/70 text-sm">Response within 4 hours</p>
+								<p className="text-foreground font-semibold">Email Us</p>
+								<p className="text-muted-foreground">sales@tenantflow.app</p>
+								<p className="text-muted-foreground text-sm">
+									Response within 4 hours
+								</p>
 							</div>
 						</div>
 					</div>
@@ -166,7 +173,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			</div>
 
 			{/* Right side - Contact Form */}
-			<div className="flex flex-col justify-center w-full card-padding lg:w-1/2 lg:px-16 xl:px-24 bg-card border-l border-border">
+			<div className="flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-16 xl:px-24 bg-background border-l border-border">
 				<div className="max-w-xl mx-auto w-full">
 					<h2 className="text-2xl font-bold text-foreground mb-2">
 						Get Your Custom ROI Report
