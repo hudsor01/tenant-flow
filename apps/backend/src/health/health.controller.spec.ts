@@ -6,21 +6,106 @@ import type { Response } from 'express'
 import { SilentLogger } from '../__test__/silent-logger'
 import { StripeSyncService } from '../billing/stripe-sync.service'
 import { ResilienceService } from '../shared/services/resilience.service'
+import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthController } from './health.controller'
+import { HealthService } from './health.service'
+import { MetricsService } from './metrics.service'
 import { StripeFdwHealthIndicator } from './stripe-fdw.health'
 import { SupabaseHealthIndicator } from './supabase.health'
 
 describe('HealthController', () => {
 	let controller: HealthController
+	let module: TestingModule
 	let healthCheckService: HealthCheckService
 	let supabaseHealth: SupabaseHealthIndicator
 	let stripeFdwHealth: StripeFdwHealthIndicator
 	let mockResponse: Partial<Response>
 
 	beforeEach(async () => {
-		const module: TestingModule = await Test.createTestingModule({
+		module = await Test.createTestingModule({
 			controllers: [HealthController],
 			providers: [
+				{
+					provide: HealthService,
+					useValue: {
+						checkSystemHealth: jest.fn().mockResolvedValue({
+							status: 'ok',
+							timestamp: new Date().toISOString(),
+							environment: 'test',
+							uptime: 120,
+							memory: 30,
+							version: '1.0.0',
+							service: 'backend-api',
+							config_loaded: {
+								node_env: true,
+								cors_origins: true,
+								supabase_url: true
+							},
+							database: {
+								status: 'healthy',
+								message: 'Database connection successful'
+							}
+						}),
+						getPingResponse: jest.fn().mockReturnValue({
+							status: 'ok',
+							timestamp: new Date().toISOString(),
+							uptime: 121,
+							memory: 30,
+							env: 'test',
+							port: 4600
+						})
+					}
+				},
+				{
+					provide: MetricsService,
+					useValue: {
+						getDetailedPerformanceMetrics: jest.fn().mockReturnValue({
+							uptime: 120,
+							memory: {
+								used: 30,
+								free: 10,
+								total: 40,
+								usagePercent: 75
+							},
+							cpu: {
+								user: 100,
+								system: 50
+							},
+							healthCheckHistory: null,
+							thresholds: {
+								memory: { warning: 80, critical: 95 },
+								cache: { memoryLimit: 100_000_000 },
+								responseTime: { warning: 100, critical: 200 }
+							}
+						})
+					}
+				},
+				{
+					provide: CircuitBreakerService,
+					useValue: {
+						getCircuitBreakerStatus: jest.fn().mockReturnValue({
+							timestamp: new Date().toISOString(),
+							services: {
+								database: {
+									open: false,
+									lastSuccess: Date.now(),
+									failureCount: 0
+								},
+								stripe: {
+									open: false,
+									lastSuccess: Date.now(),
+									failureCount: 0
+								},
+								cache: {
+									open: false,
+									lastSuccess: Date.now(),
+									failureCount: 0
+								}
+							},
+							systemStatus: 'healthy'
+						})
+					}
+				},
 				{
 					provide: HealthCheckService,
 					useValue: {
@@ -53,16 +138,6 @@ describe('HealthController', () => {
 					}
 				},
 				{
-					provide: 'SUPABASE_SERVICE_FOR_HEALTH',
-					useValue: {
-						checkConnection: jest.fn().mockResolvedValue({
-							status: 'healthy',
-							message: 'Database connection successful'
-						}),
-						getAdminClient: jest.fn()
-					}
-				},
-				{
 					provide: ResilienceService,
 					useValue: {
 						getHealthStatus: jest.fn().mockReturnValue({
@@ -85,9 +160,7 @@ describe('HealthController', () => {
 			StripeFdwHealthIndicator
 		)
 
-		// Spy on the actual logger instance created by the controller
-		jest.spyOn(controller['logger'], 'log').mockImplementation(() => {})
-		jest.spyOn(controller['logger'], 'error').mockImplementation(() => {})
+		// Logger is handled by SilentLogger in the module
 
 		// Setup mock response for all tests
 		mockResponse = {
@@ -131,17 +204,30 @@ describe('HealthController', () => {
 					message: 'Database connection successful'
 				}
 			})
-			expect(controller['logger'].log).toHaveBeenCalledWith(
-				'Health check started - checking database connectivity'
-			)
+			// Log call is now handled by the HealthService
 		})
 
 		it('should handle health check failures gracefully', async () => {
-			// Mock the supabase service to return unhealthy status
-			const supabaseService = controller['supabaseClient']
-			jest.spyOn(supabaseService, 'checkConnection').mockResolvedValue({
+			// Mock the health service to return unhealthy status
+			const healthService = module.get<HealthService>(HealthService)
+			jest.spyOn(healthService, 'checkSystemHealth').mockResolvedValue({
 				status: 'unhealthy',
-				message: 'Database connection failed'
+				timestamp: new Date().toISOString(),
+				environment: 'test',
+				uptime: 120,
+				memory: 30,
+				version: '1.0.0',
+				service: 'backend-api',
+				config_loaded: {
+					node_env: true,
+					cors_origins: true,
+					supabase_url: true
+				},
+				database: {
+					status: 'unhealthy',
+					message: 'Database connection failed'
+				},
+				error: 'Database connection failed'
 			})
 
 			await controller.check(mockResponse as Response)
@@ -159,15 +245,13 @@ describe('HealthController', () => {
 			)
 		})
 
-		it('should log health check initiation with correct environment', async () => {
+		it('should delegate to health service for health check', async () => {
+			const healthService = module.get<HealthService>(HealthService)
+			const spy = jest.spyOn(healthService, 'checkSystemHealth')
+
 			await controller.check(mockResponse as Response)
 
-			expect(controller['logger'].log).toHaveBeenCalledWith(
-				'Health check started - checking database connectivity'
-			)
-			expect(controller['logger'].log).toHaveBeenCalledWith(
-				'Database connectivity check passed'
-			)
+			expect(spy).toHaveBeenCalledTimes(1)
 		})
 	})
 
@@ -190,59 +274,28 @@ describe('HealthController', () => {
 
 	describe('GET /health/ping', () => {
 		it('should return basic ping response with system information', () => {
-			const originalEnv = process.env.NODE_ENV
-			const originalPort = process.env.PORT
-			process.env.NODE_ENV = 'test'
-			process.env.PORT = '4600'
-
-			// Mock process methods
-			const mockUptime = jest.spyOn(process, 'uptime').mockReturnValue(120.5)
-			const mockMemoryUsage = jest
-				.spyOn(process, 'memoryUsage')
-				.mockReturnValue({
-					rss: 52428800, // 50MB
-					heapTotal: 41943040, // 40MB
-					heapUsed: 31457280, // 30MB
-					external: 1048576, // 1MB
-					arrayBuffers: 524288 // 0.5MB
-				})
-
 			const result = controller.ping()
 
 			expect(result).toMatchObject({
 				status: 'ok',
 				timestamp: expect.any(String),
-				uptime: 121, // Math.round(120.5)
-				memory: 30, // Math.round(31457280 / 1024 / 1024)
+				uptime: 121,
+				memory: 30,
 				env: 'test',
 				port: 4600 // Backend port (not frontend port 3001)
 			})
 
 			// Verify timestamp is a valid ISO string
 			expect(new Date(result.timestamp).toISOString()).toBe(result.timestamp)
-
-			mockUptime.mockRestore()
-			mockMemoryUsage.mockRestore()
-			process.env.NODE_ENV = originalEnv
-			process.env.PORT = originalPort
 		})
 
-		it('should handle missing environment variables gracefully', () => {
-			const originalEnv = process.env.NODE_ENV
-			const originalPort = process.env.PORT
-			delete process.env.NODE_ENV
-			delete process.env.PORT
+		it('should delegate to health service for ping response', () => {
+			const healthService = module.get<HealthService>(HealthService)
+			const spy = jest.spyOn(healthService, 'getPingResponse')
 
-			const result = controller.ping()
+			controller.ping()
 
-			expect(result).toMatchObject({
-				status: 'ok',
-				env: undefined,
-				port: 4600 // Hardcoded default port
-			})
-
-			process.env.NODE_ENV = originalEnv
-			process.env.PORT = originalPort
+			expect(spy).toHaveBeenCalledTimes(1)
 		})
 	})
 
@@ -361,9 +414,6 @@ describe('HealthController', () => {
 			expect(healthCheckService.check).toHaveBeenCalledWith([
 				expect.any(Function)
 			])
-			expect(controller['logger'].log).toHaveBeenCalledWith(
-				'Stripe FDW health check started'
-			)
 		})
 
 		it('should handle Stripe FDW health check failures', async () => {
@@ -397,7 +447,7 @@ describe('HealthController', () => {
 			expect(result.error).toHaveProperty('stripe_fdw')
 		})
 
-		it('should log Stripe health check initiation', async () => {
+		it('should delegate stripe check to health check service', async () => {
 			jest.spyOn(healthCheckService, 'check').mockResolvedValue({
 				status: 'ok',
 				info: {},
@@ -407,9 +457,9 @@ describe('HealthController', () => {
 
 			await controller.stripeCheck()
 
-			expect(controller['logger'].log).toHaveBeenCalledWith(
-				'Stripe FDW health check started'
-			)
+			expect(healthCheckService.check).toHaveBeenCalledWith([
+				expect.any(Function)
+			])
 		})
 	})
 
@@ -500,64 +550,63 @@ describe('HealthController', () => {
 		})
 	})
 
-	describe('Error Handling', () => {
-		it('should handle database connection errors gracefully', async () => {
-			const supabaseService = controller['supabaseClient']
-			jest
-				.spyOn(supabaseService, 'checkConnection')
-				.mockRejectedValue(new Error('Database connection failed'))
+	describe('Additional endpoints', () => {
+		it('should return stripe sync health status', async () => {
+			const result = await controller.checkStripeSyncHealth()
 
-			await controller.check(mockResponse as Response)
-
-			expect(mockResponse.status).toHaveBeenCalledWith(503)
-			expect(mockResponse.json).toHaveBeenCalledWith(
-				expect.objectContaining({
-					status: 'unhealthy',
-					database: {
-						status: 'unhealthy',
-						message: 'Database connection failed'
-					},
-					error: 'Database connection failed'
-				})
-			)
-			expect(controller['logger'].error).toHaveBeenCalledWith(
-				'Health check failed with error',
-				'Database connection failed'
-			)
+			expect(result).toEqual({
+				status: 'healthy',
+				initialized: true,
+				migrationsRun: true,
+				timestamp: expect.any(String)
+			})
 		})
 
-		it('should handle supabase service injection errors gracefully', async () => {
-			// Mock the controller to return null for supabaseClient
-			const originalSupabaseClient = controller['supabaseClient']
-			Object.defineProperty(controller, 'supabaseClient', {
-				value: null,
-				writable: true,
-				configurable: true
+		it('should return performance metrics', () => {
+			const result = controller.performanceMetrics()
+
+			expect(result).toMatchObject({
+				uptime: 120,
+				memory: {
+					used: 30,
+					free: 10,
+					total: 40,
+					usagePercent: 75
+				},
+				cpu: {
+					user: 100,
+					system: 50
+				},
+				cache: {
+					cacheSize: 0,
+					memoryUsage: 50
+				}
 			})
+		})
 
-			await controller.check(mockResponse as Response)
+		it('should return circuit breaker status', () => {
+			const result = controller.circuitBreakerStatus()
 
-			expect(mockResponse.status).toHaveBeenCalledWith(503)
-			expect(mockResponse.json).toHaveBeenCalledWith(
-				expect.objectContaining({
-					status: 'unhealthy',
+			expect(result).toMatchObject({
+				timestamp: expect.any(String),
+				services: {
 					database: {
-						status: 'unhealthy',
-						message: 'SupabaseService not injected properly'
+						open: false,
+						lastSuccess: expect.any(Number),
+						failureCount: 0
 					},
-					error: 'SupabaseService not injected properly'
-				})
-			)
-			expect(controller['logger'].error).toHaveBeenCalledWith(
-				'Health check failed with error',
-				'SupabaseService not injected properly'
-			)
-
-			// Restore original value
-			Object.defineProperty(controller, 'supabaseClient', {
-				value: originalSupabaseClient,
-				writable: true,
-				configurable: true
+					stripe: {
+						open: false,
+						lastSuccess: expect.any(Number),
+						failureCount: 0
+					},
+					cache: {
+						open: false,
+						lastSuccess: expect.any(Number),
+						failureCount: 0
+					}
+				},
+				systemStatus: 'healthy'
 			})
 		})
 	})
