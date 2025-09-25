@@ -108,24 +108,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						</div>
 					</div>
 				</div>
-				<div className="hidden lg:block lg:w-1/2 relative">
-					<div
-						className="absolute inset-0 bg-cover bg-center"
-						style={{
-							backgroundImage: `url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2075&q=80')`
-						}}
-					>
-						<div
-							className="absolute inset-0"
-							style={{
-								background: `linear-gradient(to right,
-									oklch(0.623 0.214 259.815 / 50%) 0%,
-									oklch(0.623 0.214 259.815 / 30%) 40%,
-									oklch(1 0 0 / 10%) 100%)`
-							}}
-						/>
-					</div>
-				</div>
+				<div className="hidden lg:block lg:w-1/2 relative gradient-background"></div>
 			</section>
 		)
 	}
@@ -136,25 +119,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			id="contact-form"
 		>
 			{/* Left side - Contact Info with Background */}
-			<div className="relative flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-12 xl:px-32">
-				{/* Background Image with Overlay */}
-				<div
-					className="absolute inset-0 bg-cover bg-center"
-					style={{
-						backgroundImage: `url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2075&q=80')`
-					}}
-				>
-					<div
-						className="absolute inset-0"
-						style={{
-							background: `linear-gradient(to right,
-								oklch(0.623 0.214 259.815 / 50%) 0%,
-								oklch(0.623 0.214 259.815 / 30%) 40%,
-								oklch(1 0 0 / 10%) 100%)`
-						}}
-					/>
-				</div>
-
+			<div className="relative flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-12 xl:px-32 gradient-background">
 				{/* Content */}
 				<div className="relative z-10">
 					<h1 className="text-3xl font-bold text-white lg:text-4xl">
@@ -201,7 +166,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			</div>
 
 			{/* Right side - Contact Form */}
-			<div className="flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-16 xl:px-24 bg-card border-l border-border">
+			<div className="flex flex-col justify-center w-full card-padding lg:w-1/2 lg:px-16 xl:px-24 bg-card border-l border-border">
 				<div className="max-w-xl mx-auto w-full">
 					<h2 className="text-2xl font-bold text-foreground mb-2">
 						Get Your Custom ROI Report
