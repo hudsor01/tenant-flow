@@ -1,8 +1,6 @@
 import {
 	Body,
 	Controller,
-	InternalServerErrorException,
-	Logger,
 	Post,
 	UsePipes,
 	ValidationPipe
@@ -10,11 +8,12 @@ import {
 // Swagger imports removed
 import type { ContactFormRequest } from '@repo/shared'
 import type { ContactFormResponse } from '../schemas/contact.schemas'
+import { ContactService } from './contact.service'
 
 // @ApiTags('contact')
 @Controller('contact')
 export class ContactController {
-	private readonly logger = new Logger(ContactController.name)
+	constructor(private readonly contactService: ContactService) {}
 
 	@Post()
 	// @ApiOperation({ summary: 'Submit contact form' })
@@ -23,51 +22,6 @@ export class ContactController {
 	async submitContactForm(
 		@Body() dto: ContactFormRequest
 	): Promise<ContactFormResponse> {
-		this.logger.log(
-			{
-				contactForm: {
-					type: dto.type,
-					name: dto.name,
-					email: dto.email,
-					subject: dto.subject,
-					messageLength: dto.message.length
-				}
-			},
-			`Contact form submission from ${dto.email}`
-		)
-
-		try {
-			// In production, this would:
-			// 1. Send email notification to support team
-			// 2. Store in database for tracking
-			// 3. Send auto-reply to user
-			// 4. Create ticket in support system
-
-			// For now, just log and return success
-			// Express middleware will automatically format this response
-			return {
-				message:
-					'Thank you for contacting us. We will get back to you within 4 hours.'
-			}
-		} catch (error: unknown) {
-			this.logger.error(
-				{
-					error: {
-						name: error instanceof Error ? error.constructor.name : 'Unknown',
-						message: error instanceof Error ? error.message : String(error),
-						stack:
-							process.env.NODE_ENV !== 'production' && error instanceof Error
-								? error.stack
-								: undefined
-					},
-					contactForm: {
-						email: dto.email,
-						type: dto.type
-					}
-				},
-				'Failed to process contact form submission'
-			)
-			throw new InternalServerErrorException('Failed to submit contact form')
-		}
+		return this.contactService.processContactForm(dto)
 	}
 }

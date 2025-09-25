@@ -1,319 +1,359 @@
 'use client'
 
-import Footer from '@/components/layout/footer'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { createCheckoutSession } from '@/lib/stripe-client'
-import { ArrowRight, Check } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+// Removed CheckoutForm - now using full Embedded Checkout
+import { CustomerPortalCard } from '@/components/pricing/customer-portal'
+import { StripePricingSection } from '@/components/pricing/stripe-pricing-section'
+import { StripePricingTable } from '@/components/pricing/stripe-pricing-table'
+import { SubscriptionPlans } from '@/components/payments/subscription-plans'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+	ArrowRight,
+	CheckCircle2,
+	Sparkles,
+	CreditCard,
+	Users,
+	BarChart3,
+	Shield,
+	Zap
+} from 'lucide-react'
 
-// Pricing Plans Configuration
-const pricingPlans = [
-	{
-		id: 'starter',
-		name: 'Starter',
-		price: { monthly: 29, yearly: 290 },
-		description: 'Perfect for small property managers',
-		features: [
-			'Up to 5 properties',
-			'Professional tenant management',
-			'Maintenance tracking',
-			'Email support',
-			'Mobile app access',
-			'Basic reporting'
-		],
-		popular: false
-	},
-	{
-		id: 'growth',
-		name: 'Growth',
-		price: { monthly: 79, yearly: 790 },
-		description: 'For expanding property portfolios',
-		features: [
-			'Up to 20 properties',
-			'Advanced analytics & insights',
-			'Automated workflows',
-			'Priority support',
-			'API access',
-			'Custom branding',
-			'Advanced reporting',
-			'Maintenance tracking',
-			'Document management'
-		],
-		popular: true
-	},
-	{
-		id: 'max',
-		name: 'TenantFlow Max',
-		price: { monthly: 299, yearly: 2990 },
-		description: 'Enterprise features for serious professionals',
-		features: [
-			'Unlimited properties',
-			'White-label portal',
-			'Custom integrations',
-			'Dedicated account manager',
-			'24/7 priority support',
-			'Advanced security features',
-			'Custom training',
-			'SLA guarantees'
-		],
-		popular: false
-	}
-]
+export default function PricingComparisonPage() {
+	const [selectedComponent, setSelectedComponent] = useState<string>('all')
 
-export default function PricingPage() {
-	const router = useRouter()
-	const [isYearly, setIsYearly] = useState(false)
+	// Consistent design system styling for all components
+	const componentWrapperClass = cn(
+		'w-full rounded-2xl',
+		'bg-background border border-border',
+		'p-8 lg:p-12',
+		'transition-all duration-200'
+	)
 
-	const priceIds = {
-		starter: {
-			monthly: process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY,
-			yearly: process.env.NEXT_PUBLIC_STRIPE_STARTER_YEARLY
-		},
-		growth: {
-			monthly: process.env.NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY,
-			yearly: process.env.NEXT_PUBLIC_STRIPE_GROWTH_YEARLY
-		},
-		max: {
-			monthly: process.env.NEXT_PUBLIC_STRIPE_MAX_MONTHLY,
-			yearly: process.env.NEXT_PUBLIC_STRIPE_MAX_YEARLY
-		}
-	} as const
+	const sectionHeaderClass = cn(
+		'mb-12 text-center space-y-4',
+		'max-w-3xl mx-auto'
+	)
 
-	const handleSelectPlan = async (planId: string) => {
-		const plan = pricingPlans.find(p => p.id === planId)
-		if (!plan) return
-
-		if (plan.id === 'enterprise' || plan.id === 'max') {
-			toast.info('Connecting you with sales...', {
-				description: "We'll help tailor the best plan."
-			})
-			router.push('/contact?plan=enterprise')
-			return
-		}
-
-		const key = planId as keyof typeof priceIds
-		const priceId = isYearly ? priceIds[key].yearly : priceIds[key].monthly
-		if (!priceId) {
-			toast.error('Stripe price not configured', {
-				description: 'Set NEXT_PUBLIC_PRICE_* env vars.'
-			})
-			return
-		}
-
-		try {
-			toast.loading('Redirecting to secure checkout...', { id: 'checkout' })
-			const data = await createCheckoutSession({
-				priceId,
-				planName: plan.name,
-				description: plan.description
-			})
-			toast.dismiss('checkout')
-			if (data?.url) {
-				window.location.href = data.url
-			} else {
-				throw new Error('Missing checkout URL')
-			}
-		} catch (e) {
-			toast.error('Checkout failed', {
-				description: e instanceof Error ? e.message : 'Unknown error'
-			})
-		}
-	}
+	const componentLabelClass = cn(
+		'inline-flex items-center gap-2',
+		'px-4 py-2 rounded-full',
+		'bg-muted text-muted-foreground',
+		'text-sm font-medium',
+		'border border-border'
+	)
 
 	return (
-		<div className="min-h-screen bg-background">
-			{/* Navigation */}
-			<nav className="fixed top-4 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-6 py-3 backdrop-blur-xl border border-border shadow-lg bg-card/80">
-				<div className="flex items-center justify-between gap-8">
-						<Link
-							href="/"
-							className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
+		<main className="min-h-screen bg-background">
+			{/* Hero Section with Gradient */}
+			<section className="relative overflow-hidden">
+				<div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
+				<div className="container mx-auto px-6 py-24 relative z-10">
+					<div className={sectionHeaderClass}>
+						<Badge
+							variant="outline"
+							className="mb-4 px-4 py-1.5 text-primary border-primary/20 bg-primary/5"
 						>
-						<div className="w-8 h-8 rounded-lg overflow-hidden bg-[var(--color-primary-brand)] border border-border flex items-center justify-center">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								xmlns="http://www.w3.org/2000/svg"
-								className="w-5 h-5 text-primary-foreground"
-							>
-								<path
-									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								/>
-							</svg>
-						</div>
-						<span className="text-xl font-bold text-[var(--color-label-primary)] tracking-tight">
-							TenantFlow
-						</span>
-					</Link>
-
-					<div className="hidden md:flex items-center space-x-1">
-						<Link
-							href="/"
-							className="px-4 py-2 text-[var(--color-label-secondary)] hover:text-[var(--color-label-primary)] font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							Home
-						</Link>
-						<Link
-							href="/faq"
-							className="px-4 py-2 text-[var(--color-label-secondary)] hover:text-[var(--color-label-primary)] font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							FAQ
-						</Link>
-					</div>
-
-					<div className="flex items-center space-x-3">
-						<Link
-							href="/login"
-							className="hidden sm:flex px-4 py-2 text-[var(--color-label-primary)] hover:text-[var(--color-label-primary)] rounded-xl hover:bg-accent transition-all duration-300 font-medium"
-						>
-							Sign In
-						</Link>
-						<Link
-							href="/login"
-							className="flex items-center px-6 py-2.5 bg-[var(--color-primary-brand)] text-primary-foreground font-medium text-sm rounded-xl hover:bg-[var(--color-primary-brand-85)] transition-all duration-200 shadow-lg hover:shadow-xl"
-						>
-							Get Started
-							<ArrowRight className="ml-2 h-4 w-4" />
-						</Link>
-					</div>
-				</div>
-			</nav>
-
-			{/* Main Content */}
-			<div className="pt-32 pb-24 px-4">
-				<div className="max-w-6xl mx-auto">
-					{/* Header */}
-					<div className="text-center mb-16">
-					<div className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-[var(--color-primary-brand-25)] bg-[var(--color-primary-brand-10)] mb-8">
-							<div className="w-2 h-2 bg-[var(--color-success)] rounded-full mr-3 animate-pulse" />
-						<span className="text-[var(--color-label-secondary)] font-medium text-sm">
-								Trusted by 10,000+ property managers
-							</span>
-						</div>
-
-					<h1 className="text-5xl lg:text-6xl font-bold text-[var(--color-label-primary)] mb-6 tracking-tight leading-tight">
-							Simple pricing for
-						<span className="block text-[var(--color-primary-brand)]">every business</span>
+							<Sparkles className="w-3 h-3 mr-2" />
+							Pricing Component Comparison
+						</Badge>
+						<h1 className="text-4xl lg:text-6xl font-bold tracking-tight text-foreground">
+							All Pricing Components
 						</h1>
-
-					<p className="text-xl text-[var(--color-label-secondary)] mb-8 leading-relaxed max-w-2xl mx-auto">
-							Professional property managers increase NOI by 40% with
-							TenantFlow's enterprise-grade automation and analytics.
+						<p className="text-xl text-muted-foreground leading-relaxed">
+							Compare all pricing and billing components side by side with consistent design system styling
 						</p>
-
-						{/* Billing Toggle */}
-						<div className="flex items-center justify-center gap-4 mb-12">
-							<span
-								className={`text-sm font-medium ${!isYearly ? 'text-[var(--color-label-primary)]' : 'text-[var(--color-label-tertiary)]'}`}
-							>
-								Monthly
-							</span>
-							<button
-								onClick={() => setIsYearly(!isYearly)}
-								className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-brand)] focus:ring-offset-2 ${
-									isYearly ? 'bg-[var(--color-primary-brand)]' : 'bg-muted'
-								}`}
-							>
-								<span
-									className={`inline-block h-4 w-4 transform rounded-full bg-card transition-transform ${
-										isYearly ? 'translate-x-6' : 'translate-x-1'
-									}`}
-								/>
-							</button>
-							<span
-								className={`text-sm font-medium ${isYearly ? 'text-[var(--color-label-primary)]' : 'text-[var(--color-label-tertiary)]'}`}
-							>
-								Yearly
-								<span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[var(--color-success-background)] text-[var(--color-success-foreground)]">
-									Save 17%
-								</span>
-							</span>
-						</div>
 					</div>
 
-					{/* Pricing Cards */}
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-						{pricingPlans.map(plan => (
-							<Card
-								key={plan.id}
-								className={`relative bg-card border-2 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 ${
-									plan.popular ? 'border-[var(--color-primary-brand)] scale-105' : 'border-border'
-								}`}
-							>
-								{plan.popular && (
-									<div className="absolute -top-4 left-1/2 -translate-x-1/2">
-										<span className="bg-[var(--color-primary-brand)] text-primary-foreground px-4 py-2 rounded-full text-sm font-semibold">
-											Most Popular
-										</span>
-									</div>
-								)}
-
-								<CardHeader className="p-8 pb-4">
-									<CardTitle className="text-2xl font-bold text-[var(--color-label-primary)] mb-2">
-										{plan.name}
-									</CardTitle>
-									<div className="mb-4">
-										<span className="text-4xl font-bold text-[var(--color-label-primary)]">
-											${isYearly ? plan.price.yearly : plan.price.monthly}
-										</span>
-										<span className="text-[var(--color-label-secondary)] ml-1">
-											/{isYearly ? 'year' : 'month'}
-										</span>
-									</div>
-									<p className="text-[var(--color-label-secondary)]">{plan.description}</p>
-								</CardHeader>
-
-								<CardContent className="p-8 pt-4">
-									<ul className="space-y-4">
-										{plan.features.map((feature, index) => (
-											<li key={index} className="flex items-center gap-3">
-												<div className="flex-shrink-0 w-5 h-5 rounded-full bg-[var(--color-primary-brand-10)] flex items-center justify-center">
-													<Check className="w-3 h-3 text-[var(--color-primary-brand)]" />
-												</div>
-												<span className="text-[var(--color-label-secondary)]">{feature}</span>
-											</li>
-										))}
-									</ul>
-
-								<Button
-									onClick={() => handleSelectPlan(plan.id)}
-									className={`w-full mt-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
-										plan.popular
-											? 'bg-[var(--color-primary-brand)] hover:bg-[var(--color-primary-brand-85)] text-primary-foreground shadow-lg hover:shadow-xl'
-											: 'bg-accent hover:bg-accent/80 text-[var(--color-label-primary)] border-2 border-border hover:border-[var(--color-primary-brand-25)]'
-									}`}
-									>
-										{plan.id === 'max' ? 'Contact Sales' : 'Get Started'}
-										<ArrowRight className="ml-2 h-4 w-4" />
-									</Button>
-								</CardContent>
-							</Card>
-						))}
-					</div>
-
-					{/* Bottom CTA */}
-					<div className="text-center">
-						<p className="text-[var(--color-text-secondary)] mb-2">Questions about our plans?</p>
-						<Button
-							variant="ghost"
-							className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium"
-							onClick={() => router.push('/contact')}
-						>
-							Contact our sales team →
-						</Button>
+					{/* Feature highlights */}
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12">
+						<Card className="border-border/50 bg-card/50 backdrop-blur">
+							<CardContent className="p-6 flex items-center gap-4">
+								<div className="p-3 rounded-xl bg-primary/10">
+									<CheckCircle2 className="w-6 h-6 text-primary" />
+								</div>
+								<div>
+									<p className="font-semibold text-foreground">Consistent Styling</p>
+									<p className="text-sm text-muted-foreground">Design system applied</p>
+								</div>
+							</CardContent>
+						</Card>
+						<Card className="border-border/50 bg-card/50 backdrop-blur">
+							<CardContent className="p-6 flex items-center gap-4">
+								<div className="p-3 rounded-xl bg-accent/10">
+									<BarChart3 className="w-6 h-6 text-accent" />
+								</div>
+								<div>
+									<p className="font-semibold text-foreground">Fair Comparison</p>
+									<p className="text-sm text-muted-foreground">Apples to apples</p>
+								</div>
+							</CardContent>
+						</Card>
+						<Card className="border-border/50 bg-card/50 backdrop-blur">
+							<CardContent className="p-6 flex items-center gap-4">
+								<div className="p-3 rounded-xl bg-primary/10">
+									<Shield className="w-6 h-6 text-primary" />
+								</div>
+								<div>
+									<p className="font-semibold text-foreground">Production Ready</p>
+									<p className="text-sm text-muted-foreground">All components tested</p>
+								</div>
+							</CardContent>
+						</Card>
 					</div>
 				</div>
-			</div>
+			</section>
 
-			<Footer />
-		</div>
+			{/* Component Tabs Navigation */}
+			<section className="container mx-auto px-6 py-12">
+				<Tabs value={selectedComponent} onValueChange={setSelectedComponent} className="w-full">
+					<TabsList className="grid w-full max-w-3xl mx-auto grid-cols-6 h-auto p-1 bg-muted/50">
+						<TabsTrigger
+							value="all"
+							className="data-[state=active]:bg-background data-[state=active]:text-foreground py-3"
+						>
+							All Components
+						</TabsTrigger>
+						<TabsTrigger
+							value="pricing-table"
+							className="data-[state=active]:bg-background data-[state=active]:text-foreground py-3"
+						>
+							Pricing Table
+						</TabsTrigger>
+						<TabsTrigger
+							value="pricing-cards"
+							className="data-[state=active]:bg-background data-[state=active]:text-foreground py-3"
+						>
+							Pricing Cards
+						</TabsTrigger>
+						<TabsTrigger
+							value="checkout"
+							className="data-[state=active]:bg-background data-[state=active]:text-foreground py-3"
+						>
+							Checkout
+						</TabsTrigger>
+						<TabsTrigger
+							value="subscription"
+							className="data-[state=active]:bg-background data-[state=active]:text-foreground py-3"
+						>
+							Plans
+						</TabsTrigger>
+						<TabsTrigger
+							value="portal"
+							className="data-[state=active]:bg-background data-[state=active]:text-foreground py-3"
+						>
+							Portal
+						</TabsTrigger>
+					</TabsList>
+
+					<TabsContent value="all" className="mt-12 space-y-24">
+						{/* Component 1: Stripe Pricing Table */}
+						<section id="stripe-pricing-table" className="scroll-mt-20">
+							<div className="max-w-7xl mx-auto">
+								<div className="mb-8 flex items-center justify-between">
+									<div>
+										<h2 className="text-3xl font-bold text-foreground mb-2">
+											Stripe Pricing Table Component
+										</h2>
+										<p className="text-muted-foreground">
+											Embedded Stripe pricing table with native integration
+										</p>
+									</div>
+									<div className={componentLabelClass}>
+										<CreditCard className="w-4 h-4" />
+										Stripe Embedded
+									</div>
+								</div>
+								<div className={componentWrapperClass}>
+									<StripePricingTable
+										pricingTableId={process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID || "prctbl_1234567890"}
+									/>
+								</div>
+							</div>
+						</section>
+
+						<Separator className="bg-border/50" />
+
+						{/* Component 2: Custom Pricing Cards Section */}
+						<section id="stripe-pricing-section" className="scroll-mt-20">
+							<div className="max-w-7xl mx-auto">
+								<div className="mb-8 flex items-center justify-between">
+									<div>
+										<h2 className="text-3xl font-bold text-foreground mb-2">
+											Custom Pricing Cards Section
+										</h2>
+										<p className="text-muted-foreground">
+											Full-featured pricing section with custom design and animations
+										</p>
+									</div>
+									<div className={componentLabelClass}>
+										<Sparkles className="w-4 h-4" />
+										Custom Design
+									</div>
+								</div>
+								<div className={componentWrapperClass}>
+									<StripePricingSection
+										showHeader={false}
+										className="!p-0"
+									/>
+								</div>
+							</div>
+						</section>
+
+						<Separator className="bg-border/50" />
+
+						{/* Component 3: Checkout Form - Commented out as it requires CheckoutProvider */}
+						{/* <section id="checkout-form" className="scroll-mt-20">
+							<div className="max-w-7xl mx-auto">
+								<div className="mb-8 flex items-center justify-between">
+									<div>
+										<h2 className="text-3xl font-bold text-foreground mb-2">
+											Checkout Form Component
+										</h2>
+										<p className="text-muted-foreground">
+											Stripe checkout form with payment element integration
+										</p>
+									</div>
+									<div className={componentLabelClass}>
+										<CreditCard className="w-4 h-4" />
+										Payment Form
+									</div>
+								</div>
+								<div className={componentWrapperClass}>
+									<div className="max-w-2xl mx-auto">
+										<CheckoutForm
+											priceId="price_example"
+											planName="Growth Plan"
+											amount={99}
+										/>
+									</div>
+								</div>
+							</div>
+						</section>
+
+						<Separator className="bg-border/50" /> */}
+
+						{/* Component 4: Simple Subscription Plans */}
+						<section id="subscription-plans" className="scroll-mt-20">
+							<div className="max-w-7xl mx-auto">
+								<div className="mb-8 flex items-center justify-between">
+									<div>
+										<h2 className="text-3xl font-bold text-foreground mb-2">
+											Simple Subscription Plans
+										</h2>
+										<p className="text-muted-foreground">
+											Minimal subscription plan cards with essential features
+										</p>
+									</div>
+									<div className={componentLabelClass}>
+										<Zap className="w-4 h-4" />
+										Minimal Design
+									</div>
+								</div>
+								<div className={componentWrapperClass}>
+									<SubscriptionPlans />
+								</div>
+							</div>
+						</section>
+
+						<Separator className="bg-border/50" />
+
+						{/* Component 5: Customer Portal Card */}
+						<section id="customer-portal" className="scroll-mt-20">
+							<div className="max-w-7xl mx-auto">
+								<div className="mb-8 flex items-center justify-between">
+									<div>
+										<h2 className="text-3xl font-bold text-foreground mb-2">
+											Customer Portal Management
+										</h2>
+										<p className="text-muted-foreground">
+											Account management and billing portal access component
+										</p>
+									</div>
+									<div className={componentLabelClass}>
+										<Users className="w-4 h-4" />
+										Account Management
+									</div>
+								</div>
+								<div className={componentWrapperClass}>
+									<div className="max-w-5xl mx-auto">
+										<CustomerPortalCard
+											currentPlan="Growth Plan"
+											planTier="growth"
+											showStats={true}
+											showTestimonial={true}
+										/>
+									</div>
+								</div>
+							</div>
+						</section>
+					</TabsContent>
+
+					{/* Individual Tab Contents */}
+					<TabsContent value="pricing-table" className="mt-12">
+						<div className="max-w-7xl mx-auto">
+							<div className={componentWrapperClass}>
+								<StripePricingTable
+									pricingTableId={process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID || "prctbl_1234567890"}
+								/>
+							</div>
+						</div>
+					</TabsContent>
+
+					<TabsContent value="pricing-cards" className="mt-12">
+						<div className="max-w-7xl mx-auto">
+							<div className={componentWrapperClass}>
+								<StripePricingSection
+									showHeader={false}
+									className="!p-0"
+								/>
+							</div>
+						</div>
+					</TabsContent>
+
+					<TabsContent value="checkout" className="mt-12">
+						<div className="max-w-2xl mx-auto">
+							<div className={componentWrapperClass}>
+								<div className="text-center py-12">
+									<h3 className="text-lg font-semibold text-foreground mb-2">
+										Embedded Checkout
+									</h3>
+									<p className="text-muted-foreground">
+										We now use Stripe's full Embedded Checkout experience.
+										<br />
+										Visit the checkout page to see it in action.
+									</p>
+								</div>
+							</div>
+						</div>
+					</TabsContent>
+
+					<TabsContent value="subscription" className="mt-12">
+						<div className="max-w-7xl mx-auto">
+							<div className={componentWrapperClass}>
+								<SubscriptionPlans />
+							</div>
+						</div>
+					</TabsContent>
+
+					<TabsContent value="portal" className="mt-12">
+						<div className="max-w-5xl mx-auto">
+							<div className={componentWrapperClass}>
+								<CustomerPortalCard
+									currentPlan="Growth Plan"
+									planTier="growth"
+									showStats={true}
+									showTestimonial={true}
+								/>
+							</div>
+						</div>
+					</TabsContent>
+				</Tabs>
+			</section>
+
+		</main>
 	)
 }

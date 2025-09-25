@@ -63,7 +63,7 @@ export class TenantFormPage extends BasePage {
 		this.cancelButton = this.page.locator('a[href="/dashboard/tenants"]')
 
 		// Error messages
-		this.errorMessages = this.page.locator('.text-red-500')
+		this.errorMessages = this.page.locator('.text-\\[var\\(--color-error\\)\\]')
 	}
 
 	/**

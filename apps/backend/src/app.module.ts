@@ -14,6 +14,7 @@ import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
 import { StripeModule } from './billing/stripe.module'
 import { validate } from './config/config.schema'
+import { ContactModule } from './contact/contact.module'
 import { DashboardModule } from './dashboard/dashboard.module'
 import { SupabaseModule } from './database/supabase.module'
 import { HealthModule } from './health/health.module'
@@ -88,6 +89,7 @@ import { UsersModule } from './users/users.module'
 		AuthModule,
 		AnalyticsModule,
 		StripeModule,
+		ContactModule,
 		DashboardModule,
 		PropertiesModule,
 		UnitsModule,

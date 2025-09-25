@@ -379,7 +379,9 @@ test.describe('Comprehensive UI/UX Testing Suite', () => {
 			await captureAndCompare(page, 'tenant-form-validation-errors')
 
 			// Check for validation messages
-			const errorMessages = await page.locator('.text-red-500').count()
+			const errorMessages = await page
+				.locator('.text-\\[var\\(--color-error\\)\\]')
+				.count()
 			expect(errorMessages).toBeGreaterThan(0)
 		}
 

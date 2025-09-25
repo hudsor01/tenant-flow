@@ -26,7 +26,7 @@ export class HealthService {
 			})
 
 			if (!this.supabaseClient) {
-				throw new Error('SupabaseService not injected properly')
+				throw new Error('Health check service initialization error [HEALTH-001]')
 			}
 
 			// Check actual database connectivity
@@ -66,7 +66,7 @@ export class HealthService {
 			}
 
 			if (!isHealthy) {
-				response.error = 'Database connection failed'
+				response.error = 'Service dependency check failed [HEALTH-002]'
 			}
 
 			return response
@@ -92,9 +92,9 @@ export class HealthService {
 				},
 				database: {
 					status: 'unhealthy',
-					message: errorMessage
+					message: 'Health check failed [HEALTH-003]'
 				},
-				error: errorMessage
+				error: 'Health check failed [HEALTH-003]'
 			}
 		}
 	}

@@ -388,9 +388,6 @@ const buildStripeAppearance = (): Appearance => {
 			},
 			'.Stepper': {
 				gap: spacing2
-			},
-			'.PaymentElement': {
-				gap: spacing6
 			}
 		}
 	}
@@ -425,14 +422,8 @@ export function StripeProvider({
 	priceId,
 	mode = 'subscription'
 }: StripeProviderProps) {
-	const [appearance, setAppearance] = useState<Appearance>(
-		buildStripeAppearance
-	)
-
-	useEffect(
-		() => observeTheme(() => setAppearance(buildStripeAppearance())),
-		[]
-	)
+	// Note: Appearance customization for Embedded Checkout is done through the Stripe Dashboard
+	// The buildStripeAppearance function is kept for potential future use with Elements
 
 	const { mutateAsync: createClientSecret } = useMutation({
 		mutationFn: async () => {
@@ -459,14 +450,13 @@ export function StripeProvider({
 		return createClientSecret()
 	}, [createClientSecret])
 
+	// Embedded Checkout only accepts fetchClientSecret
+	// Appearance customization is done through the Stripe Dashboard
 	const options = useMemo(
 		() => ({
-			fetchClientSecret,
-			elementsOptions: {
-				appearance
-			}
+			fetchClientSecret
 		}),
-		[appearance, fetchClientSecret]
+		[fetchClientSecret]
 	)
 
 	return (

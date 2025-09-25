@@ -1538,7 +1538,7 @@ export class StripeController {
 				this.handleStripeError(error)
 			}
 			throw new InternalServerErrorException(
-				'Failed to fetch pricing configuration'
+				'Pricing service unavailable [STR-004]'
 			)
 		}
 	}
@@ -1622,15 +1622,15 @@ export class StripeController {
 				)
 
 			case 'StripeAuthenticationError':
-				throw new InternalServerErrorException('Stripe authentication failed')
+				throw new InternalServerErrorException('Payment service authentication error [STR-001]')
 
 			case 'StripePermissionError':
 				throw new InternalServerErrorException(
-					'Insufficient permissions for Stripe operation'
+					'Payment service authorization error [STR-002]'
 				)
 
 			default:
-				throw new InternalServerErrorException('Payment processing error')
+				throw new InternalServerErrorException('Payment processing error [STR-003]')
 		}
 	}
 }

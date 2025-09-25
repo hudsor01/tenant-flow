@@ -31,10 +31,59 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 	})
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [submitMessage, setSubmitMessage] = useState<string | null>(null)
+	const [errors, setErrors] = useState<Record<string, string>>({})
+
+	const validateForm = (): boolean => {
+		const newErrors: Record<string, string> = {}
+
+		// Name validation
+		if (!formData.name.trim()) {
+			newErrors.name = 'Name is required'
+		} else if (formData.name.trim().length < 2) {
+			newErrors.name = 'Name must be at least 2 characters'
+		}
+
+		// Email validation
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+		if (!formData.email.trim()) {
+			newErrors.email = 'Email is required'
+		} else if (!emailRegex.test(formData.email)) {
+			newErrors.email = 'Please enter a valid email address'
+		}
+
+		// Phone validation (optional but must be valid if provided)
+		if (formData.phone && formData.phone.trim()) {
+			const phoneRegex = /^[\d\s()+-]+$/
+			if (!phoneRegex.test(formData.phone)) {
+				newErrors.phone = 'Please enter a valid phone number'
+			}
+		}
+
+		// Subject validation
+		if (!formData.subject) {
+			newErrors.subject = 'Please select what you\'re interested in'
+		}
+
+		// Message validation
+		if (!formData.message.trim()) {
+			newErrors.message = 'Message is required'
+		} else if (formData.message.trim().length < 10) {
+			newErrors.message = 'Message must be at least 10 characters'
+		}
+
+		setErrors(newErrors)
+		return Object.keys(newErrors).length === 0
+	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
+
+		if (!validateForm()) {
+			return
+		}
+
 		setIsSubmitting(true)
+		setErrors({})
 
 		try {
 			const response = await fetch('/api/contact', {
@@ -50,7 +99,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			if (response.ok) {
 				setSubmitMessage(
 					result.message ||
-						'Thank you for contacting us. We will get back to you within 4 hours.'
+						'Thank you for reaching out! Our team will review your message and get back to you within 4 hours.'
 				)
 				setFormData({
 					name: '',
@@ -129,14 +178,14 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 				<div className="absolute inset-0 bg-gradient-to-br from-background/30 via-transparent to-background/20" />
 
 				{/* Glassmorphism Container */}
-				<div className="relative z-10 p-8 rounded-2xl backdrop-blur-lg bg-background/60 dark:bg-gray-900/60 border border-border/20 shadow-2xl">
+				<div className="relative z-10 p-8 rounded-2xl backdrop-blur-lg bg-background/60 dark:bg-[var(--color-fill-primary)]/60 border border-border/20 shadow-2xl">
 					<h1 className="text-3xl font-bold text-foreground lg:text-4xl">
-						Transform Your Property Management
+						Let's Talk About Your Properties
 					</h1>
 
 					<p className="mt-4 text-muted-foreground text-lg">
-						Join 10,000+ property managers who've increased NOI by 40% with our
-						enterprise-grade automation platform.
+						Whether you manage 5 or 500 units, we're here to help streamline your
+						operations and save you time every day.
 					</p>
 
 					<div className="mt-8 space-y-6">
@@ -187,11 +236,11 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			<div className="flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-16 xl:px-24 bg-background border-l border-border">
 				<div className="max-w-xl mx-auto w-full">
 					<h2 className="text-2xl font-bold text-foreground mb-2">
-						Get Your Custom ROI Report
+						Get in Touch
 					</h2>
 					<p className="text-muted-foreground mb-8">
-						Tell us about your portfolio and we'll show you exactly how much
-						TenantFlow can save you.
+						Have questions about TenantFlow? Want to see a demo? We'd love to hear
+						from you. Our team typically responds within 4 hours.
 					</p>
 
 					<form onSubmit={handleSubmit} className="space-y-6">
@@ -207,8 +256,11 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									onChange={e => handleInputChange('name', e.target.value)}
 									placeholder="John Smith"
 									required
-									className="mt-2 bg-background border-border"
+									className={`mt-2 bg-background border-border ${errors.name ? 'border-[var(--color-error-border)]' : ''}`}
 								/>
+								{errors.name && (
+									<p className="mt-1 text-sm text-[var(--color-error)]">{errors.name}</p>
+								)}
 							</div>
 
 							<div>
@@ -222,8 +274,11 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									onChange={e => handleInputChange('email', e.target.value)}
 									placeholder="john@propertyco.com"
 									required
-									className="mt-2 bg-background border-border"
+									className={`mt-2 bg-background border-border ${errors.email ? 'border-[var(--color-error-border)]' : ''}`}
 								/>
+								{errors.email && (
+									<p className="mt-1 text-sm text-[var(--color-error)]">{errors.email}</p>
+								)}
 							</div>
 						</div>
 
@@ -252,41 +307,47 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									value={formData.phone || ''}
 									onChange={e => handleInputChange('phone', e.target.value)}
 									placeholder="+1 (555) 123-4567"
-									className="mt-2 bg-background border-border"
+									className={`mt-2 bg-background border-border ${errors.phone ? 'border-[var(--color-error-border)]' : ''}`}
 								/>
+								{errors.phone && (
+									<p className="mt-1 text-sm text-[var(--color-error)]">{errors.phone}</p>
+								)}
 							</div>
 						</div>
 
 						<div>
 							<Label htmlFor="subject" className="text-foreground">
-								Portfolio Size *
+								I'm interested in... *
 							</Label>
 							<Select
 								value={formData.subject}
 								onValueChange={value => handleInputChange('subject', value)}
 								required
 							>
-								<SelectTrigger className="mt-2 bg-background border-border">
-									<SelectValue placeholder="How many properties do you manage?" />
+								<SelectTrigger className={`mt-2 bg-background border-border ${errors.subject ? 'border-[var(--color-error-border)]' : ''}`}>
+									<SelectValue placeholder="What brings you to TenantFlow?" />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="1-5 properties">
-										1-5 properties (Starter)
+									<SelectItem value="Product Demo">
+										Scheduling a product demo
 									</SelectItem>
-									<SelectItem value="6-20 properties">
-										6-20 properties (Growth)
+									<SelectItem value="Pricing Information">
+										Learning about pricing plans
 									</SelectItem>
-									<SelectItem value="21-100 properties">
-										21-100 properties (Scale)
+									<SelectItem value="Technical Support">
+										Getting technical support
 									</SelectItem>
-									<SelectItem value="100+ properties">
-										100+ properties (Enterprise)
+									<SelectItem value="Partnership">
+										Partnership opportunities
 									</SelectItem>
-									<SelectItem value="Just exploring">
-										Just exploring options
+									<SelectItem value="General Question">
+										General questions about TenantFlow
 									</SelectItem>
 								</SelectContent>
 							</Select>
+							{errors.subject && (
+								<p className="mt-1 text-sm text-[var(--color-error)]">{errors.subject}</p>
+							)}
 						</div>
 
 						<div>
@@ -313,17 +374,20 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 
 						<div>
 							<Label htmlFor="message" className="text-foreground">
-								Tell us about your challenges *
+								How can we help? *
 							</Label>
 							<Textarea
 								id="message"
 								value={formData.message}
 								onChange={e => handleInputChange('message', e.target.value)}
-								placeholder="What are your biggest property management challenges? What features are most important to you?"
+								placeholder="Tell us about your property portfolio, current challenges, or any specific questions you have about TenantFlow..."
 								required
 								rows={5}
-								className="mt-2 resize-none bg-background border-border"
+								className={`mt-2 resize-none bg-background border-border ${errors.message ? 'border-[var(--color-error-border)]' : ''}`}
 							/>
+							{errors.message && (
+								<p className="mt-1 text-sm text-[var(--color-error)]">{errors.message}</p>
+							)}
 						</div>
 
 						<Button
@@ -332,11 +396,11 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 							size="lg"
 							className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
 						>
-							{isSubmitting ? 'Sending...' : 'Get My Custom ROI Report'}
+							{isSubmitting ? 'Sending...' : 'Send Message'}
 						</Button>
 
 						<p className="text-center text-sm text-muted-foreground">
-							Free analysis • No credit card required • Results in 24 hours
+							We typically respond within 4 hours during business hours
 						</p>
 					</form>
 				</div>
