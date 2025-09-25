@@ -188,7 +188,7 @@ jobs:
         run: |
           echo "Checking deployment health..."
           for i in {1..10}; do
-            if curl -f https://api.tenantflow.app/api/v1/health; then
+            if curl -f https://api.tenantflow.app/health; then
               echo "Deployment successful!"
               exit 0
             fi
