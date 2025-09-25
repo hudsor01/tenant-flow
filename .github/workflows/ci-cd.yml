@@ -71,15 +71,11 @@ jobs:
       - name: Type check
         run: pnpm typecheck
 
-  # Unit tests with matrix strategy for different Node versions
+  # Unit tests - Node 22 only (production version)
   test:
-    name: Unit Tests (Node ${{ matrix.node-version }})
+    name: Unit Tests (Node 22)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    strategy:
-      matrix:
-        node-version: ['22', '20'] # Test on current and LTS
-      fail-fast: false # Complete all matrix jobs even if one fails (for full test report)
     env:
       # Test environment variables
       BACKEND_SCHEMAS_DIR: ./supabase/schema-exports
@@ -100,10 +96,10 @@ jobs:
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
       - name: Install dependencies
