@@ -11,45 +11,47 @@ import type { BillingPeriod, PlanType } from '../types/stripe.js'
  * These would normally come from environment variables or database
  */
 export function getPriceId(plan: PlanType, period: BillingPeriod): string {
-	// Production price IDs should come from environment variables
+	// Production price IDs from Doppler (using actual environment variable names)
 	const priceMap: Record<`${PlanType}_${BillingPeriod}`, string> = {
 		FREETRIAL_monthly: 'price_freetrial_monthly',
 		FREETRIAL_annual: 'price_freetrial_annual',
 		STARTER_monthly:
-			process.env.STRIPE_STARTER_MONTHLY_PRICE_ID ||
+			process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY ||
 			(() => {
-				throw new Error('STRIPE_STARTER_MONTHLY_PRICE_ID is required')
+				throw new Error('NEXT_PUBLIC_STRIPE_STARTER_MONTHLY is required')
 			})(),
 		STARTER_annual:
-			process.env.STRIPE_STARTER_ANNUAL_PRICE_ID ||
+			process.env.NEXT_PUBLIC_STRIPE_STARTER_ANNUAL ||
 			(() => {
-				throw new Error('STRIPE_STARTER_ANNUAL_PRICE_ID is required')
+				throw new Error('NEXT_PUBLIC_STRIPE_STARTER_ANNUAL is required')
 			})(),
 		GROWTH_monthly:
-			process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID ||
+			process.env.NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY ||
 			(() => {
-				throw new Error('STRIPE_GROWTH_MONTHLY_PRICE_ID is required')
+				throw new Error('NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY is required')
 			})(),
 		GROWTH_annual:
-			process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID ||
+			process.env.NEXT_PUBLIC_STRIPE_GROWTH_ANNUAL ||
 			(() => {
-				throw new Error('STRIPE_GROWTH_ANNUAL_PRICE_ID is required')
+				throw new Error('NEXT_PUBLIC_STRIPE_GROWTH_ANNUAL is required')
 			})(),
 		TENANTFLOW_MAX_monthly:
-			process.env.STRIPE_MAX_MONTHLY_PRICE_ID ||
+			process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY ||
 			(() => {
-				throw new Error('STRIPE_MAX_MONTHLY_PRICE_ID is required')
+				throw new Error('NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY is required')
 			})(),
 		TENANTFLOW_MAX_annual:
-			process.env.STRIPE_MAX_ANNUAL_PRICE_ID ||
+			process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL ||
 			(() => {
-				throw new Error('STRIPE_MAX_ANNUAL_PRICE_ID is required')
+				throw new Error('NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL is required')
 			})()
 	}
 
 	const priceId = priceMap[`${plan}_${period}`]
 	if (!priceId) {
-		throw new Error(`No price ID configured for plan: ${plan}, period: ${period}`)
+		throw new Error(
+			`No price ID configured for plan: ${plan}, period: ${period}`
+		)
 	}
 	return priceId
 }
