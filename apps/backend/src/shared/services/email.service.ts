@@ -1,49 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Resend } from 'resend'
 
-export interface PaymentFailedEmailData {
+interface EmailData {
 	to: string
-	amount: number
-	currency: string
-	retryUrl: string
 	userName?: string
 }
 
-export interface PaymentMethodSavedEmailData {
-	to: string
-	userName?: string
+interface PaymentMethodSavedEmailData extends EmailData {
 	lastFour: string
 	brand: string
 }
 
-export interface SubscriptionCancelledEmailData {
-	to: string
-	userName?: string
+interface SubscriptionCancelledEmailData extends EmailData {
 	planName: string
 	cancellationDate: Date
 }
 
-export interface InvoiceReceiptEmailData {
-	to: string
-	userName?: string
-	invoiceNumber: string | null
-	amount: number
-	currency: string
-	invoiceUrl: string | null
-}
-
-export interface InvoicePaymentFailedEmailData {
-	to: string
-	userName?: string
-	attemptNumber: number
-	maxRetries: number
-	nextRetryDate: Date | null
-	updatePaymentMethodUrl: string
-}
-
-export interface AccountSuspendedEmailData {
-	to: string
-	userName?: string
+interface AccountSuspendedEmailData extends EmailData {
 	suspensionReason: 'payment_failure' | 'subscription_cancelled'
 }
 
@@ -54,21 +27,31 @@ export class EmailService {
 	private readonly fromEmail = 'TenantFlow <noreply@tenantflow.app>'
 
 	constructor() {
-		if (!process.env.RESEND_API_KEY) {
-			this.logger.warn('RESEND_API_KEY not provided - email service disabled')
+		if (!process.env.TEST_RESEND_API_KEY) {
+			this.logger.warn(
+				'TEST_RESEND_API_KEY not provided - email service disabled'
+			)
 			return
 		}
 
-		this.resend = new Resend(process.env.RESEND_API_KEY)
+		this.resend = new Resend(process.env.TEST_RESEND_API_KEY)
 	}
 
 	private isEmailServiceAvailable(): boolean {
 		return !!this.resend
 	}
 
-	async sendPaymentFailedEmail(data: PaymentFailedEmailData): Promise<void> {
+	async sendPaymentFailedEmail(data: {
+		to: string
+		userName?: string
+		amount: number
+		currency: string
+		retryUrl: string
+	}): Promise<void> {
 		if (!this.isEmailServiceAvailable()) {
-			this.logger.warn('Email service not available - skipping payment failed email')
+			this.logger.warn(
+				'Email service not available - skipping payment failed email'
+			)
 			return
 		}
 
@@ -79,11 +62,11 @@ export class EmailService {
 			}).format(data.amount / 100)
 
 			if (!this.resend) {
-			this.logger.warn('Email service not available - skipping email')
-			return
-		}
+				this.logger.warn('Email service not available - skipping email')
+				return
+			}
 
-		await this.resend.emails.send({
+			await this.resend.emails.send({
 				from: this.fromEmail,
 				to: data.to,
 				subject: 'Payment Failed - Action Required',
@@ -109,19 +92,23 @@ export class EmailService {
 		}
 	}
 
-	async sendPaymentMethodSavedEmail(data: PaymentMethodSavedEmailData): Promise<void> {
+	async sendPaymentMethodSavedEmail(
+		data: PaymentMethodSavedEmailData
+	): Promise<void> {
 		if (!this.isEmailServiceAvailable()) {
-			this.logger.warn('Email service not available - skipping payment method saved email')
+			this.logger.warn(
+				'Email service not available - skipping payment method saved email'
+			)
 			return
 		}
 
 		try {
 			if (!this.resend) {
-			this.logger.warn('Email service not available - skipping email')
-			return
-		}
+				this.logger.warn('Email service not available - skipping email')
+				return
+			}
 
-		await this.resend.emails.send({
+			await this.resend.emails.send({
 				from: this.fromEmail,
 				to: data.to,
 				subject: 'Payment Method Successfully Added',
@@ -144,9 +131,13 @@ export class EmailService {
 		}
 	}
 
-	async sendSubscriptionCancelledEmail(data: SubscriptionCancelledEmailData): Promise<void> {
+	async sendSubscriptionCancelledEmail(
+		data: SubscriptionCancelledEmailData
+	): Promise<void> {
 		if (!this.isEmailServiceAvailable()) {
-			this.logger.warn('Email service not available - skipping subscription cancelled email')
+			this.logger.warn(
+				'Email service not available - skipping subscription cancelled email'
+			)
 			return
 		}
 
@@ -158,14 +149,14 @@ export class EmailService {
 			})
 
 			if (!this.resend) {
-			this.logger.warn('Email service not available - skipping email')
-			return
-		}
+				this.logger.warn('Email service not available - skipping email')
+				return
+			}
 
-		await this.resend.emails.send({
+			await this.resend.emails.send({
 				from: this.fromEmail,
 				to: data.to,
-				subject: 'Subscription Cancelled - We\'re Sorry to See You Go',
+				subject: "Subscription Cancelled - We're Sorry to See You Go",
 				html: `
 					<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
 						<h2 style="color: #dc2626;">Subscription Cancelled</h2>
@@ -186,9 +177,18 @@ export class EmailService {
 		}
 	}
 
-	async sendInvoiceReceiptEmail(data: InvoiceReceiptEmailData): Promise<void> {
+	async sendInvoiceReceiptEmail(data: {
+		to: string
+		userName?: string
+		invoiceNumber: string | null
+		amount: number
+		currency: string
+		invoiceUrl: string | null
+	}): Promise<void> {
 		if (!this.isEmailServiceAvailable()) {
-			this.logger.warn('Email service not available - skipping invoice receipt email')
+			this.logger.warn(
+				'Email service not available - skipping invoice receipt email'
+			)
 			return
 		}
 
@@ -199,11 +199,11 @@ export class EmailService {
 			}).format(data.amount / 100)
 
 			if (!this.resend) {
-			this.logger.warn('Email service not available - skipping email')
-			return
-		}
+				this.logger.warn('Email service not available - skipping email')
+				return
+			}
 
-		await this.resend.emails.send({
+			await this.resend.emails.send({
 				from: this.fromEmail,
 				to: data.to,
 				subject: `Receipt for ${data.invoiceNumber || 'Your Payment'}`,
@@ -228,9 +228,18 @@ export class EmailService {
 		}
 	}
 
-	async sendInvoicePaymentFailedEmail(data: InvoicePaymentFailedEmailData): Promise<void> {
+	async sendInvoicePaymentFailedEmail(data: {
+		to: string
+		userName?: string
+		attemptNumber: number
+		maxRetries: number
+		nextRetryDate: Date | null
+		updatePaymentMethodUrl: string
+	}): Promise<void> {
 		if (!this.isEmailServiceAvailable()) {
-			this.logger.warn('Email service not available - skipping invoice payment failed email')
+			this.logger.warn(
+				'Email service not available - skipping invoice payment failed email'
+			)
 			return
 		}
 
@@ -240,11 +249,11 @@ export class EmailService {
 				: 'Please update your payment method to avoid service interruption.'
 
 			if (!this.resend) {
-			this.logger.warn('Email service not available - skipping email')
-			return
-		}
+				this.logger.warn('Email service not available - skipping email')
+				return
+			}
 
-		await this.resend.emails.send({
+			await this.resend.emails.send({
 				from: this.fromEmail,
 				to: data.to,
 				subject: 'Payment Failed - Update Payment Method',
@@ -270,23 +279,28 @@ export class EmailService {
 		}
 	}
 
-	async sendAccountSuspendedEmail(data: AccountSuspendedEmailData): Promise<void> {
+	async sendAccountSuspendedEmail(
+		data: AccountSuspendedEmailData
+	): Promise<void> {
 		if (!this.isEmailServiceAvailable()) {
-			this.logger.warn('Email service not available - skipping account suspended email')
+			this.logger.warn(
+				'Email service not available - skipping account suspended email'
+			)
 			return
 		}
 
 		try {
-			const reason = data.suspensionReason === 'payment_failure'
-				? 'due to repeated payment failures'
-				: 'due to subscription cancellation'
+			const reason =
+				data.suspensionReason === 'payment_failure'
+					? 'due to repeated payment failures'
+					: 'due to subscription cancellation'
 
 			if (!this.resend) {
-			this.logger.warn('Email service not available - skipping email')
-			return
-		}
+				this.logger.warn('Email service not available - skipping email')
+				return
+			}
 
-		await this.resend.emails.send({
+			await this.resend.emails.send({
 				from: this.fromEmail,
 				to: data.to,
 				subject: 'Account Access Suspended',

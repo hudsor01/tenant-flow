@@ -24,10 +24,14 @@ export class SupabaseService implements OnModuleInit {
 
 		// Validate expected aliases exist to prevent deployment issues
 		if (!supabaseServiceKey && process.env.SERVICE_ROLE_KEY) {
-			throw new Error('SERVICE_ROLE_KEY found but SUPABASE_SERVICE_ROLE_KEY is required - update environment configuration')
+			throw new Error(
+				'SERVICE_ROLE_KEY found but SUPABASE_SERVICE_ROLE_KEY is required - update environment configuration'
+			)
 		}
 		if (!supabaseServiceKey && process.env.SUPABASE_SERVICE_KEY) {
-			throw new Error('SUPABASE_SERVICE_KEY found but SUPABASE_SERVICE_ROLE_KEY is required - update environment configuration')
+			throw new Error(
+				'SUPABASE_SERVICE_KEY found but SUPABASE_SERVICE_ROLE_KEY is required - update environment configuration'
+			)
 		}
 
 		if (!supabaseUrl || !supabaseServiceKey) {
@@ -100,9 +104,7 @@ export class SupabaseService implements OnModuleInit {
 		try {
 			// Prefer a lightweight RPC if available; fall back to HEAD on a known table.
 			// Using health_check function with SECURITY DEFINER for consistent permissions
-			const fn = process.env.HEALTH_CHECK_FUNCTION || (() => {
-				throw new Error('HEALTH_CHECK_FUNCTION environment variable is required for database health checks')
-			})()
+			const fn = 'health_check' // Hardcoded health check function name
 			try {
 				// Attempt RPC call (must exist in DB). Returns ok=true when reachable.
 				const result = await this.adminClient.rpc(fn as never)
@@ -137,9 +139,7 @@ export class SupabaseService implements OnModuleInit {
 			}
 
 			// Connectivity check: lightweight HEAD count on a canonical table.
-			const table = process.env.HEALTH_CHECK_TABLE || (() => {
-				throw new Error('HEALTH_CHECK_TABLE environment variable is required for database health checks')
-			})()
+			const table = 'users' // Use users table for health check
 			const { error } = await this.adminClient
 				.from(table as never)
 				.select('*', { count: 'exact', head: true })

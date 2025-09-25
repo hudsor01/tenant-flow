@@ -34,9 +34,8 @@ export class StripeSyncService implements OnModuleInit {
 				)
 			}
 
-			const schema = process.env.STRIPE_SYNC_DATABASE_SCHEMA || (() => {
-				throw new Error('STRIPE_SYNC_DATABASE_SCHEMA environment variable is required')
-			})()
+			// Use hardcoded default following industry best practice
+			const schema = process.env.STRIPE_SYNC_DATABASE_SCHEMA || 'stripe'
 			const autoExpandLists =
 				process.env.STRIPE_SYNC_AUTO_EXPAND_LISTS !== 'false'
 

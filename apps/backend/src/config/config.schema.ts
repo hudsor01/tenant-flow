@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 /**
  * Environment Configuration using Zod (CLAUDE.md compliant)
- * 
+ *
  * Native Zod validation - no custom DTOs or decorators
  */
 
@@ -38,7 +38,7 @@ const environmentSchema = z.object({
 	STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 	STRIPE_WEBHOOK_SECRET: z.string(),
 
-	// Stripe Sync Engine Configuration
+	// Stripe Sync Engine Configuration (hardcoded industry best practice defaults)
 	STRIPE_SYNC_DATABASE_SCHEMA: z.string().default('stripe'),
 	STRIPE_SYNC_AUTO_EXPAND_LISTS: z.coerce.boolean().default(true),
 	STRIPE_SYNC_BACKFILL_RELATED_ENTITIES: z.coerce.boolean().default(true),
@@ -73,15 +73,21 @@ const environmentSchema = z.object({
 	FROM_EMAIL: z.string().email('Must be a valid email address').optional(),
 
 	// Resend
-	RESEND_API_KEY: z.string().optional(),
-	RESEND_FROM_EMAIL: z.string().email('Must be a valid email address').default('noreply@tenantflow.app'),
+	TEST_RESEND_API_KEY: z.string().optional(),
+	RESEND_FROM_EMAIL: z
+		.string()
+		.email('Must be a valid email address')
+		.default('noreply@tenantflow.app'),
 
 	// Analytics
 	POSTHOG_KEY: z.string().optional(),
 
 	// Security
 	CSRF_SECRET: z.string().optional(),
-	SESSION_SECRET: z.string().min(32, 'Session secret must be at least 32 characters').optional(),
+	SESSION_SECRET: z
+		.string()
+		.min(32, 'Session secret must be at least 32 characters')
+		.optional(),
 
 	// Production Features
 	ENABLE_SWAGGER: z.coerce.boolean().default(false),
@@ -110,7 +116,7 @@ export function validate(config: Record<string, unknown>) {
 		return environmentSchema.parse(config)
 	} catch (error) {
 		if (error instanceof z.ZodError) {
-			const errorMessages = error.issues.map((err) => {
+			const errorMessages = error.issues.map(err => {
 				return `${err.path.join('.')}: ${err.message}`
 			})
 			throw new Error(

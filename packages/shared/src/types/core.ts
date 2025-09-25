@@ -466,3 +466,5 @@ export interface SystemUptime {
 	responseTime: number // Average response time in ms
 	timestamp: string // ISO timestamp of measurement
 }
+
+// Email service uses inline types with Stripe SDK - no shared interfaces needed

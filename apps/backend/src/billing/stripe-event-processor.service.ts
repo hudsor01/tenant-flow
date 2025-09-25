@@ -625,24 +625,24 @@ export class StripeEventProcessor {
 	 * Helper: Generate update payment method URL
 	 */
 	private generateUpdatePaymentMethodUrl(): string {
-		if (!process.env.FRONTEND_URL) {
+		if (!process.env.NEXT_PUBLIC_APP_URL) {
 			throw new Error(
-				'FRONTEND_URL environment variable is required for payment method URLs'
+				'NEXT_PUBLIC_APP_URL environment variable is required for payment method URLs'
 			)
 		}
-		return `${process.env.FRONTEND_URL}/billing/payment-methods`
+		return `${process.env.NEXT_PUBLIC_APP_URL}/billing/payment-methods`
 	}
 
 	/**
 	 * Helper: Generate retry payment URL
 	 */
 	private generateRetryPaymentUrl(): string {
-		if (!process.env.FRONTEND_URL) {
+		if (!process.env.NEXT_PUBLIC_APP_URL) {
 			throw new Error(
-				'FRONTEND_URL environment variable is required for retry payment URLs'
+				'NEXT_PUBLIC_APP_URL environment variable is required for retry payment URLs'
 			)
 		}
-		return `${process.env.FRONTEND_URL}/billing/retry`
+		return `${process.env.NEXT_PUBLIC_APP_URL}/billing/retry`
 	}
 
 	/**

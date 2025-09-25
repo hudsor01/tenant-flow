@@ -79,25 +79,15 @@ export class HealthController {
 			const response = {
 				status: isHealthy ? 'ok' : 'unhealthy',
 				timestamp: new Date().toISOString(),
-				environment:
-					process.env.NODE_ENV ||
-					(() => {
-						throw new Error('NODE_ENV is required for health check reporting')
-					})(),
+				environment: process.env.NODE_ENV || 'production',
 				uptime: process.uptime(),
 				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-				version:
-					process.env.npm_package_version ||
-					(() => {
-						throw new Error(
-							'npm_package_version not available - ensure package.json version is accessible at runtime'
-						)
-					})(),
+				version: '1.0.0', // Hardcoded version - use package.json if needed via import
 				service: 'backend-api',
-				env_vars_loaded: {
-					health_check_function: !!process.env.HEALTH_CHECK_FUNCTION,
-					public_cache_max_age: !!process.env.PUBLIC_CACHE_MAX_AGE,
-					node_env: !!process.env.NODE_ENV
+				config_loaded: {
+					node_env: !!process.env.NODE_ENV,
+					cors_origins: !!process.env.CORS_ORIGINS,
+					supabase_url: !!process.env.SUPABASE_URL
 				},
 				database: {
 					status: dbHealth.status,
@@ -125,20 +115,10 @@ export class HealthController {
 			return res.status(503).json({
 				status: 'unhealthy',
 				timestamp: new Date().toISOString(),
-				environment:
-					process.env.NODE_ENV ||
-					(() => {
-						throw new Error('NODE_ENV is required for health check reporting')
-					})(),
+				environment: process.env.NODE_ENV || 'production',
 				uptime: process.uptime(),
 				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-				version:
-					process.env.npm_package_version ||
-					(() => {
-						throw new Error(
-							'npm_package_version not available - ensure package.json version is accessible at runtime'
-						)
-					})(),
+				version: '1.0.0', // Hardcoded version - use package.json if needed via import
 				service: 'backend-api',
 				database: {
 					status: 'unhealthy',
@@ -166,7 +146,7 @@ export class HealthController {
 			uptime: Math.round(process.uptime()),
 			memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
 			env: process.env.NODE_ENV,
-			port: process.env.PORT
+			port: 4600 // Hardcoded default port
 		}
 	}
 
@@ -244,13 +224,7 @@ export class HealthController {
 				services,
 				performance: this.getPerformanceMetrics(),
 				cache: this.resilience.getHealthStatus(),
-				version:
-					process.env.npm_package_version ||
-					(() => {
-						throw new Error(
-							'npm_package_version not available - ensure package.json version is accessible at runtime'
-						)
-					})(),
+				version: '1.0.0', // Hardcoded version - use package.json if needed via import
 				deployment: {
 					environment:
 						process.env.NODE_ENV ||

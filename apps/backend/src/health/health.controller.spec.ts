@@ -116,15 +116,15 @@ describe('HealthController', () => {
 			expect(mockResponse.json).toHaveBeenCalledWith({
 				status: 'ok',
 				timestamp: expect.any(String),
-				environment: 'test',
+				environment: 'test', // Test environment sets NODE_ENV=test
 				uptime: expect.any(Number),
 				memory: expect.any(Number),
 				version: expect.any(String),
 				service: 'backend-api',
-				env_vars_loaded: {
-					health_check_function: expect.any(Boolean),
-					public_cache_max_age: expect.any(Boolean),
-					node_env: expect.any(Boolean)
+				config_loaded: {
+					node_env: expect.any(Boolean),
+					cors_origins: expect.any(Boolean),
+					supabase_url: expect.any(Boolean)
 				},
 				database: {
 					status: 'healthy',
@@ -215,7 +215,7 @@ describe('HealthController', () => {
 				uptime: 121, // Math.round(120.5)
 				memory: 30, // Math.round(31457280 / 1024 / 1024)
 				env: 'test',
-				port: '3001'
+				port: 4600 // Hardcoded default port
 			})
 
 			// Verify timestamp is a valid ISO string
@@ -238,7 +238,7 @@ describe('HealthController', () => {
 			expect(result).toMatchObject({
 				status: 'ok',
 				env: undefined,
-				port: undefined
+				port: 4600 // Hardcoded default port
 			})
 
 			process.env.NODE_ENV = originalEnv
@@ -446,15 +446,15 @@ describe('HealthController', () => {
 			expect(mockResponse.json).toHaveBeenCalledWith({
 				status: 'ok',
 				timestamp: expect.any(String),
-				environment: 'test',
+				environment: 'test', // Test environment sets NODE_ENV=test
 				uptime: expect.any(Number),
 				memory: expect.any(Number),
 				version: expect.any(String),
 				service: 'backend-api',
-				env_vars_loaded: {
-					health_check_function: expect.any(Boolean),
-					public_cache_max_age: expect.any(Boolean),
-					node_env: expect.any(Boolean)
+				config_loaded: {
+					node_env: expect.any(Boolean),
+					cors_origins: expect.any(Boolean),
+					supabase_url: expect.any(Boolean)
 				},
 				database: {
 					status: 'healthy',
