@@ -45,7 +45,7 @@ export class SupabaseService implements OnModuleInit {
 				}
 			)
 			throw new InternalServerErrorException(
-				'Supabase configuration is missing'
+				'Database service unavailable [SUP-001]'
 			)
 		}
 
@@ -80,7 +80,7 @@ export class SupabaseService implements OnModuleInit {
 
 		if (!supabaseUrl || !supabaseAnonKey) {
 			throw new InternalServerErrorException(
-				'Supabase configuration is missing for user client'
+				'Authentication service unavailable [SUP-002]'
 			)
 		}
 

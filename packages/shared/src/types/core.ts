@@ -467,4 +467,13 @@ export interface SystemUptime {
 	timestamp: string // ISO timestamp of measurement
 }
 
+// Stripe Pricing Component Props
+export interface StripePricingTableProps {
+	pricingTableId?: string
+	clientReferenceId?: string
+	customerEmail?: string
+	customerSessionClientSecret?: string
+	className?: string
+}
+
 // Email service uses inline types with Stripe SDK - no shared interfaces needed

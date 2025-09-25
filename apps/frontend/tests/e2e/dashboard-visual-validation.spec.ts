@@ -137,7 +137,7 @@ test.describe('Dashboard Component Structure Validation', () => {
 		// Sidebar structure
 		const sidebar = page.locator('aside')
 		await expect(sidebar).toBeVisible()
-		await expect(sidebar).toHaveClass(/bg-gray-900/)
+		await expect(sidebar).toHaveClass(/bg-sidebar/)
 		
 		// Main content area
 		const mainContent = page.locator('.mx-auto.max-w-\\[--breakpoint-2xl\\]')
