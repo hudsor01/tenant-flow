@@ -1,9 +1,10 @@
 'use client'
 
 import { LoginLayout } from '@/components/auth/login-layout'
-import { signUp } from '@/lib/auth-actions'
+import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 export default function SignupPage() {
 	const router = useRouter()
@@ -11,26 +12,55 @@ export default function SignupPage() {
 
 	const handleSignup = async (data: Record<string, unknown>) => {
 		setIsLoading(true)
+		const supabase = createClient()
 
 		try {
-			const result = await signUp({
-				email: data.email as string,
-				password: data.password as string,
-				firstName: data.firstName as string,
-				lastName: data.lastName as string,
-				company: data.company as string
+			const { email, password, firstName, lastName, company } = data as {
+				email: string
+				password: string
+				firstName: string
+				lastName: string
+				company?: string
+			}
+
+			const { data: authData, error } = await supabase.auth.signUp({
+				email,
+				password,
+				options: {
+					data: {
+						first_name: firstName,
+						last_name: lastName,
+						company: company || null,
+						full_name: `${firstName} ${lastName}`
+					}
+				}
 			})
 
-			if (result.success) {
-				// Supabase auth will automatically handle the session
-				// Redirect to dashboard or success page
-				router.push('/dashboard')
-			} else {
-				// Handle error - you might want to show a toast or error message
-				alert(`Signup failed: ${result.error}`)
+			if (error) {
+				toast.error('Signup failed', {
+					description: error.message
+				})
+				return
+			}
+
+			if (authData?.user) {
+				// Check if email confirmation is required
+				if (!authData.user.confirmed_at) {
+					toast.success('Account created!', {
+						description: 'Please check your email to confirm your account.'
+					})
+					router.push('/auth/confirm-email')
+				} else {
+					toast.success('Welcome to TenantFlow!', {
+						description: 'Your account has been created successfully.'
+					})
+					router.push('/dashboard')
+				}
 			}
 		} catch {
-			alert('An unexpected error occurred during signup')
+			toast.error('An unexpected error occurred', {
+				description: 'Please try again later.'
+			})
 		} finally {
 			setIsLoading(false)
 		}
