@@ -6,8 +6,8 @@ import { Test } from '@nestjs/testing'
 import type { Request } from 'express'
 import Stripe from 'stripe'
 import { SilentLogger } from '../__test__/silent-logger'
-import { SupabaseModule } from '../database/supabase.module'
-import { SharedModule } from '../shared/shared.module'
+import { SupabaseService } from '../database/supabase.service'
+import { EmailService } from '../shared/services/email.service'
 import { StripeEventProcessor } from './stripe-event-processor.service'
 import { StripeSyncService } from './stripe-sync.service'
 import { StripeWebhookService } from './stripe-webhook.service'
@@ -64,11 +64,23 @@ describe('Production Stripe Webhook Processing', () => {
 			apiVersion: '2025-08-27.basil' as Stripe.LatestApiVersion
 		})
 
+		// Create mock Supabase client for webhook service
+		const mockSupabaseClient = {
+			from: jest.fn(() => ({
+				upsert: jest.fn(() => Promise.resolve({ error: null })),
+				update: jest.fn(() => ({
+					eq: jest.fn(() => Promise.resolve({ error: null }))
+				})),
+				select: jest.fn(() => ({
+					eq: jest.fn(() => ({
+						single: jest.fn(() => Promise.resolve({ data: null, error: null }))
+					}))
+				}))
+			}))
+		}
+
 		module = await Test.createTestingModule({
-			imports: [
-				SupabaseModule, // Required by SharedModule
-				SharedModule // Import SharedModule to mirror production setup (provides EmailService)
-			],
+			imports: [],
 			controllers: [StripeController],
 			providers: [
 				StripeService,
@@ -76,6 +88,23 @@ describe('Production Stripe Webhook Processing', () => {
 				StripeWebhookService,
 				StripeEventProcessor,
 				EventEmitter2,
+				{
+					provide: SupabaseService,
+					useValue: {
+						getAdminClient: jest.fn(() => mockSupabaseClient),
+						from: jest.fn(() => mockSupabaseClient.from()),
+						checkConnection: jest.fn(() =>
+							Promise.resolve({ status: 'healthy' })
+						)
+					}
+				},
+				{
+					provide: EmailService,
+					useValue: {
+						send: jest.fn(() => Promise.resolve({ id: 'mock-email-id' })),
+						sendBulk: jest.fn(() => Promise.resolve({ data: [] }))
+					}
+				},
 				{
 					provide: ConfigService,
 					useValue: {
