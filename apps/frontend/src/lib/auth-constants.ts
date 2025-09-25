@@ -6,6 +6,7 @@
  */
 
 export const SUPABASE_AUTH_COOKIE_CANDIDATES = [
+	'sb-bshjmbshupiibfiewpxb-auth-token',
 	'sb-access-token',
 	'supabase-auth-token',
 	'supabase.auth.token'
