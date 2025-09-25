@@ -7,7 +7,7 @@ echo "🔍 Running fast pre-push validation (typecheck + tests only)..."
 
 # Lightweight pre-push validation - skip expensive builds
 # Only run critical checks that prevent deployment failures
-npx turbo run typecheck test:unit \
+npx turbo run typecheck test:unit:clean \
   --cache-dir=.turbo \
   --filter='[HEAD^1]' \
   --concurrency=10 || {
