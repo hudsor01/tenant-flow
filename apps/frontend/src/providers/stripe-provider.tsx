@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { EmbeddedCheckoutProvider } from '@stripe/react-stripe-js'
 import type { Appearance } from '@stripe/stripe-js'
@@ -45,7 +45,6 @@ const FALLBACK_TOKENS = {
 	spacing2: '0.5rem',
 	spacing3: '0.75rem',
 	spacing4: '1rem',
-	spacing6: '1.5rem',
 	spacing11: '2.75rem',
 	ringWidth: '3px'
 } as const
@@ -84,6 +83,7 @@ const withOpacity = (color: string, opacity: number): string => {
 	return trimmed
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const buildStripeAppearance = (): Appearance => {
 	const styles =
 		typeof window === 'undefined'
@@ -205,11 +205,6 @@ const buildStripeAppearance = (): Appearance => {
 		styles,
 		'--spacing-4',
 		FALLBACK_TOKENS.spacing4
-	)
-	const spacing6 = resolveCssVariable(
-		styles,
-		'--spacing-6',
-		FALLBACK_TOKENS.spacing6
 	)
 	const spacing11 = resolveCssVariable(
 		styles,
@@ -393,6 +388,7 @@ const buildStripeAppearance = (): Appearance => {
 	}
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const observeTheme = (onChange: () => void) => {
 	if (typeof window === 'undefined') {
 		return () => {}

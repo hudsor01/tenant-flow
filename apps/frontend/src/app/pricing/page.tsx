@@ -1,26 +1,25 @@
 'use client'
 
 // Removed CheckoutForm - now using full Embedded Checkout
+import { SubscriptionPlans } from '@/components/payments/subscription-plans'
 import { CustomerPortalCard } from '@/components/pricing/customer-portal'
 import { StripePricingSection } from '@/components/pricing/stripe-pricing-section'
 import { StripePricingTable } from '@/components/pricing/stripe-pricing-table'
-import { SubscriptionPlans } from '@/components/payments/subscription-plans'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
-import { useState } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
 import {
-	ArrowRight,
-	CheckCircle2,
-	Sparkles,
-	CreditCard,
-	Users,
 	BarChart3,
+	CheckCircle2,
+	CreditCard,
 	Shield,
+	Sparkles,
+	Users,
 	Zap
 } from 'lucide-react'
+import { useState } from 'react'
 
 export default function PricingComparisonPage() {
 	const [selectedComponent, setSelectedComponent] = useState<string>('all')
@@ -64,7 +63,8 @@ export default function PricingComparisonPage() {
 							All Pricing Components
 						</h1>
 						<p className="text-xl text-muted-foreground leading-relaxed">
-							Compare all pricing and billing components side by side with consistent design system styling
+							Compare all pricing and billing components side by side with
+							consistent design system styling
 						</p>
 					</div>
 
@@ -76,8 +76,12 @@ export default function PricingComparisonPage() {
 									<CheckCircle2 className="w-6 h-6 text-primary" />
 								</div>
 								<div>
-									<p className="font-semibold text-foreground">Consistent Styling</p>
-									<p className="text-sm text-muted-foreground">Design system applied</p>
+									<p className="font-semibold text-foreground">
+										Consistent Styling
+									</p>
+									<p className="text-sm text-muted-foreground">
+										Design system applied
+									</p>
 								</div>
 							</CardContent>
 						</Card>
@@ -87,8 +91,12 @@ export default function PricingComparisonPage() {
 									<BarChart3 className="w-6 h-6 text-accent" />
 								</div>
 								<div>
-									<p className="font-semibold text-foreground">Fair Comparison</p>
-									<p className="text-sm text-muted-foreground">Apples to apples</p>
+									<p className="font-semibold text-foreground">
+										Fair Comparison
+									</p>
+									<p className="text-sm text-muted-foreground">
+										Apples to apples
+									</p>
 								</div>
 							</CardContent>
 						</Card>
@@ -98,8 +106,12 @@ export default function PricingComparisonPage() {
 									<Shield className="w-6 h-6 text-primary" />
 								</div>
 								<div>
-									<p className="font-semibold text-foreground">Production Ready</p>
-									<p className="text-sm text-muted-foreground">All components tested</p>
+									<p className="font-semibold text-foreground">
+										Production Ready
+									</p>
+									<p className="text-sm text-muted-foreground">
+										All components tested
+									</p>
 								</div>
 							</CardContent>
 						</Card>
@@ -109,7 +121,11 @@ export default function PricingComparisonPage() {
 
 			{/* Component Tabs Navigation */}
 			<section className="container mx-auto px-6 py-12">
-				<Tabs value={selectedComponent} onValueChange={setSelectedComponent} className="w-full">
+				<Tabs
+					value={selectedComponent}
+					onValueChange={setSelectedComponent}
+					className="w-full"
+				>
 					<TabsList className="grid w-full max-w-3xl mx-auto grid-cols-6 h-auto p-1 bg-muted/50">
 						<TabsTrigger
 							value="all"
@@ -169,7 +185,10 @@ export default function PricingComparisonPage() {
 								</div>
 								<div className={componentWrapperClass}>
 									<StripePricingTable
-										pricingTableId={process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID || "prctbl_1234567890"}
+										pricingTableId={
+											process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID ||
+											'prctbl_1234567890'
+										}
 									/>
 								</div>
 							</div>
@@ -186,7 +205,8 @@ export default function PricingComparisonPage() {
 											Custom Pricing Cards Section
 										</h2>
 										<p className="text-muted-foreground">
-											Full-featured pricing section with custom design and animations
+											Full-featured pricing section with custom design and
+											animations
 										</p>
 									</div>
 									<div className={componentLabelClass}>
@@ -195,10 +215,7 @@ export default function PricingComparisonPage() {
 									</div>
 								</div>
 								<div className={componentWrapperClass}>
-									<StripePricingSection
-										showHeader={false}
-										className="!p-0"
-									/>
+									<StripePricingSection showHeader={false} className="!p-0" />
 								</div>
 							</div>
 						</section>
@@ -281,6 +298,13 @@ export default function PricingComparisonPage() {
 								<div className={componentWrapperClass}>
 									<div className="max-w-5xl mx-auto">
 										<CustomerPortalCard
+											title="Manage Your Account"
+											description="Access your billing portal and manage subscription settings"
+											icon={Users}
+											actionText="Open Portal"
+											onAction={() =>
+												window.open('/dashboard/billing', '_blank')
+											}
 											currentPlan="Growth Plan"
 											planTier="growth"
 											showStats={true}
@@ -297,7 +321,10 @@ export default function PricingComparisonPage() {
 						<div className="max-w-7xl mx-auto">
 							<div className={componentWrapperClass}>
 								<StripePricingTable
-									pricingTableId={process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID || "prctbl_1234567890"}
+									pricingTableId={
+										process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID ||
+										'prctbl_1234567890'
+									}
 								/>
 							</div>
 						</div>
@@ -306,10 +333,7 @@ export default function PricingComparisonPage() {
 					<TabsContent value="pricing-cards" className="mt-12">
 						<div className="max-w-7xl mx-auto">
 							<div className={componentWrapperClass}>
-								<StripePricingSection
-									showHeader={false}
-									className="!p-0"
-								/>
+								<StripePricingSection showHeader={false} className="!p-0" />
 							</div>
 						</div>
 					</TabsContent>
@@ -343,6 +367,11 @@ export default function PricingComparisonPage() {
 						<div className="max-w-5xl mx-auto">
 							<div className={componentWrapperClass}>
 								<CustomerPortalCard
+									title="Manage Your Account"
+									description="Access your billing portal and manage subscription settings"
+									icon={Users}
+									actionText="Open Portal"
+									onAction={() => window.open('/dashboard/billing', '_blank')}
 									currentPlan="Growth Plan"
 									planTier="growth"
 									showStats={true}
@@ -353,7 +382,6 @@ export default function PricingComparisonPage() {
 					</TabsContent>
 				</Tabs>
 			</section>
-
 		</main>
 	)
 }
