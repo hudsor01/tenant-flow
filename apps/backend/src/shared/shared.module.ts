@@ -1,34 +1,28 @@
 import { Global, Module } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { AuthGuard } from './guards/auth.guard'
-import { UsageLimitsGuard } from './guards/usage-limits.guard'
 import { ParseOptionalUUIDPipe } from './pipes/parse-optional-uuid.pipe'
 import { EmailService } from './services/email.service'
 import { ResilienceService } from './services/resilience.service'
 import { SecurityMonitorService } from './services/security-monitor.service'
-import { TokenValidationService } from './services/token-validation.service'
 
 /**
- * Shared Module - Production Security Architecture
- * Provides shared services and guards across the backend application
+ * Shared Module - Simplified 2025 Architecture
+ * Provides shared services across the backend application
  *
  * Contains:
- * - TokenValidationService: Ultra-native token validation without circular dependencies
- * - AuthGuard: JWT authentication and role-based access control
- * - UsageLimitsGuard: Rate limiting and usage enforcement
  * - ResilienceService: Cache and fallback patterns for zero-downtime
  * - SecurityMonitorService: Production-grade security monitoring and threat detection
  * - EmailService: Resend email service for payment and user notifications
- * - Reflector: NestJS metadata reflection service for guards
+ * - ParseOptionalUUIDPipe: Common validation pipe
+ * - Reflector: NestJS metadata reflection service
+ *
+ * Auth is now handled directly by Supabase validation - no custom guards needed
  */
 @Global()
 @Module({
 	imports: [],
 	providers: [
 		Reflector,
-		TokenValidationService,
-		UsageLimitsGuard,
-		AuthGuard,
 		ResilienceService,
 		SecurityMonitorService,
 		EmailService,
@@ -36,9 +30,6 @@ import { TokenValidationService } from './services/token-validation.service'
 	],
 	exports: [
 		Reflector,
-		TokenValidationService,
-		UsageLimitsGuard,
-		AuthGuard,
 		ResilienceService,
 		SecurityMonitorService,
 		EmailService,

@@ -4,15 +4,17 @@ import {
 	Logger,
 	NotFoundException,
 	Optional,
-	Query
+	Query,
+	Req,
+	UnauthorizedException
 } from '@nestjs/common'
 // Swagger imports removed
 import type {
-	AuthServiceValidatedUser,
-	ControllerApiResponse
+	ControllerApiResponse,
+	ValidatedUser
 } from '@repo/shared'
-import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { Public } from '../shared/decorators/public.decorator'
+import type { Request } from 'express'
+import { SupabaseService } from '../database/supabase.service'
 import { DashboardService } from './dashboard.service'
 
 // @ApiTags('dashboard')
@@ -21,29 +23,42 @@ export class DashboardController {
 	private readonly logger = new Logger(DashboardController.name)
 
 	constructor(
-		@Optional() private readonly dashboardService?: DashboardService
+		@Optional() private readonly dashboardService?: DashboardService,
+		private readonly supabaseService?: SupabaseService
 	) {}
+
+	/**
+	 * Helper method to validate user from request
+	 */
+	private async validateUser(request: Request): Promise<ValidatedUser> {
+		if (!this.supabaseService) {
+			throw new NotFoundException('Authentication service not available')
+		}
+
+		const user = await this.supabaseService.validateUser(request)
+		if (!user) {
+			throw new UnauthorizedException('Authentication required')
+		}
+
+		return user
+	}
 
 	@Get('stats')
 	// @ApiOperation({ summary: 'Get dashboard statistics for authenticated user' })
 	// @ApiResponse({ status: 200, description: 'Dashboard statistics retrieved successfully' })
-	async getStats(
-		@CurrentUser() user?: AuthServiceValidatedUser
-	): Promise<ControllerApiResponse> {
+	async getStats(@Req() request: Request): Promise<ControllerApiResponse> {
+		const user = await this.validateUser(request)
+
 		this.logger?.log(
 			{
 				action: 'getStats',
-				userId: user?.id
+				userId: user.id
 			},
 			'Getting dashboard stats for authenticated user'
 		)
 
 		if (!this.dashboardService) {
 			throw new NotFoundException('Dashboard service not available')
-		}
-
-		if (!user?.id) {
-			throw new NotFoundException('User not authenticated')
 		}
 
 		const data = await this.dashboardService.getStats(user.id)
@@ -58,14 +73,14 @@ export class DashboardController {
 	@Get('activity')
 	// @ApiOperation({ summary: 'Get recent dashboard activity' })
 	// @ApiResponse({ status: 200, description: 'Dashboard activity retrieved successfully' })
-	async getActivity(
-		@CurrentUser() user?: AuthServiceValidatedUser
-	): Promise<ControllerApiResponse> {
+	async getActivity(@Req() request: Request): Promise<ControllerApiResponse> {
+		const user = await this.validateUser(request)
+
 		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getActivity',
-					userId: user?.id
+					userId: user.id
 				}
 			},
 			'Getting dashboard activity via DashboardService'
@@ -75,9 +90,7 @@ export class DashboardController {
 			throw new NotFoundException('Dashboard service not available')
 		}
 
-		const data = await this.dashboardService.getActivity(
-			user?.id || 'test-user-id'
-		)
+		const data = await this.dashboardService.getActivity(user.id)
 
 		return {
 			success: true,
@@ -140,7 +153,6 @@ export class DashboardController {
 	}
 
 	@Get('billing/health')
-	@Public()
 	// @ApiOperation({ summary: 'Check if billing insights are available' })
 	// @ApiResponse({ status: 200, description: 'Billing insights availability status' })
 	async getBillingHealth(): Promise<ControllerApiResponse> {
@@ -185,13 +197,15 @@ export class DashboardController {
 	// @ApiOperation({ summary: 'Get per-property performance metrics' })
 	// @ApiResponse({ status: 200, description: 'Property performance metrics retrieved successfully' })
 	async getPropertyPerformance(
-		@CurrentUser() user?: AuthServiceValidatedUser
+		@Req() request: Request
 	): Promise<ControllerApiResponse> {
+		const user = await this.validateUser(request)
+
 		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getPropertyPerformance',
-					userId: user?.id || 'test-user-id'
+					userId: user.id
 				}
 			},
 			'Getting property performance via DashboardService'
@@ -201,9 +215,7 @@ export class DashboardController {
 			throw new NotFoundException('Dashboard service not available')
 		}
 
-		const data = await this.dashboardService.getPropertyPerformance(
-			user?.id || 'test-user-id'
-		)
+		const data = await this.dashboardService.getPropertyPerformance(user.id)
 
 		return {
 			success: true,
@@ -214,7 +226,6 @@ export class DashboardController {
 	}
 
 	@Get('uptime')
-	@Public()
 	// @ApiOperation({ summary: 'Get system uptime and SLA metrics' })
 	// @ApiResponse({ status: 200, description: 'System uptime metrics retrieved successfully' })
 	async getUptime(): Promise<ControllerApiResponse> {
