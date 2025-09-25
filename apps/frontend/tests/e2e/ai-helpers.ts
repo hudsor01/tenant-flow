@@ -92,7 +92,7 @@ export class AIHelpers {
 			'.error',
 			'[role="alert"]',
 			'[data-testid="error-message"]',
-			'.text-red-500'
+			'.text-\\[var\\(--color-error\\)\\]'
 		],
 		'success message': [
 			'.success',

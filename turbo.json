@@ -48,6 +48,8 @@
 		"JWT_SECRET",
 
 		// Email (from Doppler)
+		"RESEND_API_KEY",
+		"SUPPORT_EMAIL",
 		"TEST_RESEND_API_KEY",
 		"TEST_EMAIL_FROM",
 

@@ -171,7 +171,9 @@ test.describe('Premium SaaS Pricing Page - Visual & UX Tests', () => {
 
   test('should have proper error handling', async ({ page }) => {
     // Test error states (this would need to trigger errors)
-    const errorMessages = page.locator('[data-testid="error-message"], .text-red-500')
+    const errorMessages = page.locator(
+      '[data-testid="error-message"], .text-\\[var\\(--color-error\\)\\]'
+    )
     // Check that error handling structure exists
   })
 
