@@ -2,31 +2,14 @@
  * Security-related types shared between frontend and backend
  */
 
-/**
- * User roles for RBAC (Role-Based Access Control)
- * Must match Supabase database UserRole enum values
- */
-export enum UserRole {
-	OWNER = 'OWNER',
-	MANAGER = 'MANAGER',
-	TENANT = 'TENANT',
-	ADMIN = 'ADMIN'
-}
+// User roles are consolidated in auth.ts - import from there
+// This ensures single source of truth and prevents duplication
+export type { UserRole } from './auth.js'
+export { USER_ROLE } from '../constants/auth.js'
 
-/**
- * System permissions for fine-grained access control
- */
-export enum Permission {
-	READ_PROPERTIES = 'READ_PROPERTIES',
-	WRITE_PROPERTIES = 'WRITE_PROPERTIES',
-	READ_TENANTS = 'READ_TENANTS',
-	WRITE_TENANTS = 'WRITE_TENANTS',
-	READ_MAINTENANCE = 'READ_MAINTENANCE',
-	WRITE_MAINTENANCE = 'WRITE_MAINTENANCE',
-	READ_FINANCIAL = 'READ_FINANCIAL',
-	WRITE_FINANCIAL = 'WRITE_FINANCIAL',
-	ADMIN_ACCESS = 'ADMIN_ACCESS'
-}
+// System permissions are consolidated in auth.ts - import from there
+// This ensures single source of truth and prevents duplication
+export type { Permission } from './auth.js'
 
 /**
  * Comprehensive security event types for monitoring
