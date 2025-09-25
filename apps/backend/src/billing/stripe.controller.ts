@@ -938,18 +938,20 @@ export class StripeController {
 	}
 
 	// private generateRetryPaymentUrl(paymentIntentId: string): string {
-	//	if (!process.env.FRONTEND_URL) {
-	//		throw new InternalServerErrorException('FRONTEND_URL not configured')
+	//	if (!process.env.NEXT_PUBLIC_APP_URL) {
+	//		throw new InternalServerErrorException('NEXT_PUBLIC_APP_URL not configured')
 	//	}
-	//	const baseUrl = process.env.FRONTEND_URL
+	//	const baseUrl = process.env.NEXT_PUBLIC_APP_URL
 	//	return `${baseUrl}/payment/retry?payment_intent=${paymentIntentId}`
 	// }
 
 	private generateUpdatePaymentMethodUrl(): string {
-		if (!process.env.FRONTEND_URL) {
-			throw new InternalServerErrorException('FRONTEND_URL not configured')
+		if (!process.env.NEXT_PUBLIC_APP_URL) {
+			throw new InternalServerErrorException(
+				'NEXT_PUBLIC_APP_URL not configured'
+			)
 		}
-		const baseUrl = process.env.FRONTEND_URL
+		const baseUrl = process.env.NEXT_PUBLIC_APP_URL
 		return `${baseUrl}/dashboard/settings?tab=billing&action=update-payment-method`
 	}
 

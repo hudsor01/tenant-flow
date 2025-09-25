@@ -1,11 +1,13 @@
 import Footer from '@/components/layout/footer'
 import { Navbar } from '@/components/layout/navbar'
+import { ContactForm } from '@/components/marketing/contact-form'
+import { ContentSection } from '@/components/marketing/content-section'
+import { CtaSection } from '@/components/marketing/cta-section'
+import { FeaturesGrid } from '@/components/marketing/features-grid'
 import { HeroAuthority } from '@/components/marketing/hero-authority'
 
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { Button } from '@/components/ui/button'
-import { containerClasses } from '@/lib/design-system'
-import { TYPOGRAPHY_SCALE } from '@repo/shared'
 import { ArrowRight, Mail, MessageSquare, Phone } from 'lucide-react'
 
 export default function ContactPage() {
@@ -27,9 +29,12 @@ export default function ContactPage() {
 					secondaryCta={{ label: 'Schedule Free Call', href: '#options' }}
 				/>
 
+				{/* Enhanced Content Section */}
+				<ContentSection />
+
 				{/* Contact Options */}
-				<section className="section-hero" id="options">
-					<div className={containerClasses('xl')}>
+				<section className="py-24 px-6 lg:px-8" id="options">
+					<div className="max-w-7xl mx-auto">
 						<BlurFade delay={0.2} inView>
 							<div className="grid md:grid-cols-3 gap-8">
 								{[
@@ -39,7 +44,8 @@ export default function ContactPage() {
 										description:
 											'See exactly how much TenantFlow can save your properties in 90 days',
 										action: 'Get My ROI Report',
-										available: 'Instant results in 2 minutes'
+										available: 'Instant results in 2 minutes',
+										href: '#contact-form'
 									},
 									{
 										icon: Phone,
@@ -47,7 +53,8 @@ export default function ContactPage() {
 										description:
 											'Speak with a property management automation specialist',
 										action: 'Schedule Free Call',
-										available: 'Available Mon-Fri, 9AM-6PM PST'
+										available: 'Available Mon-Fri, 9AM-6PM PST',
+										href: '#contact-form'
 									},
 									{
 										icon: Mail,
@@ -55,36 +62,33 @@ export default function ContactPage() {
 										description:
 											'See TenantFlow configured for your specific portfolio',
 										action: 'Request Demo',
-										available: 'Personalized for your properties'
+										available: 'Personalized for your properties',
+										href: '#contact-form'
 									}
 								].map((option, index) => (
 									<div
 										key={index}
-										className="card-elevated-authority rounded-2xl card-padding text-center transition-all duration-300 hover:shadow-lg group"
+										className="bg-card border border-border rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-lg group shadow-sm"
 									>
 										<div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-primary/20 to-accent/20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
 											<option.icon className="w-8 h-8 text-primary" />
 										</div>
-										<h3
-											className="font-semibold text-foreground mb-3"
-											style={TYPOGRAPHY_SCALE['heading-sm']}
-										>
+										<h3 className="text-xl font-semibold text-foreground mb-3">
 											{option.title}
 										</h3>
-										<p
-											className="text-muted-foreground leading-relaxed mb-6"
-											style={TYPOGRAPHY_SCALE['body-sm']}
-										>
+										<p className="text-muted-foreground leading-relaxed mb-6">
 											{option.description}
 										</p>
-										<Button className="mb-4 w-full group btn-gradient-primary">
-											{option.action}
-											<ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-										</Button>
-										<p
-											className="text-muted-foreground"
-											style={TYPOGRAPHY_SCALE['body-xs']}
+										<Button
+											asChild
+											className="mb-4 w-full group bg-primary text-primary-foreground hover:bg-primary/90"
 										>
+											<a href={option.href}>
+												{option.action}
+												<ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+											</a>
+										</Button>
+										<p className="text-sm text-muted-foreground">
 											{option.available}
 										</p>
 									</div>
@@ -94,135 +98,18 @@ export default function ContactPage() {
 					</div>
 				</section>
 
+				{/* Features Grid */}
+				<FeaturesGrid />
+
 				{/* Contact Form */}
-				<section className="section-hero bg-muted/20" id="contact-form">
-					<div className={containerClasses('lg')}>
-						<BlurFade delay={0.3} inView>
-							<div className="text-center mb-12 space-y-4">
-								<h2
-									className="text-foreground font-bold tracking-tight"
-									style={TYPOGRAPHY_SCALE['heading-xl']}
-								>
-									Get your custom ROI projection in 24 hours
-								</h2>
-								<p
-									className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
-									style={TYPOGRAPHY_SCALE['body-lg']}
-								>
-									Tell us about your portfolio and we'll show you exactly how
-									much TenantFlow can save you. Most property managers see
-									significant cost reductions and improved efficiency within 90
-									days.
-								</p>
-							</div>
+				<ContactForm />
 
-							<div className="card-elevated-authority rounded-2xl card-padding">
-								<form className="space-y-6">
-									<div className="grid md:grid-cols-2 gap-6">
-										<div>
-											<label className="block text-sm font-medium mb-2">
-												First Name
-											</label>
-											<input
-												type="text"
-												className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-												placeholder="Enter your first name"
-											/>
-										</div>
-										<div>
-											<label className="block text-sm font-medium mb-2">
-												Last Name
-											</label>
-											<input
-												type="text"
-												className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-												placeholder="Enter your last name"
-											/>
-										</div>
-									</div>
-
-									<div className="grid md:grid-cols-2 gap-6">
-										<div>
-											<label className="block text-sm font-medium mb-2">
-												Email
-											</label>
-											<input
-												type="email"
-												className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-												placeholder="Enter your email"
-											/>
-										</div>
-										<div>
-											<label className="block text-sm font-medium mb-2">
-												Company
-											</label>
-											<input
-												type="text"
-												className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-												placeholder="Enter your company name"
-											/>
-										</div>
-									</div>
-
-									<div>
-										<label className="block text-sm font-medium mb-2">
-											How can we help?
-										</label>
-										<select className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-											<option value="">
-												How many properties do you manage?
-											</option>
-											<option value="1-5">1-5 properties (Starter Plan)</option>
-											<option value="6-20">
-												6-20 properties (Growth Plan)
-											</option>
-											<option value="21-100">
-												21-100 properties (Scale Plan)
-											</option>
-											<option value="100+">100+ properties (Enterprise)</option>
-											<option value="demo">I want to see a demo first</option>
-											<option value="other">Other inquiry</option>
-										</select>
-									</div>
-
-									<div>
-										<label className="block text-sm font-medium mb-2">
-											Message
-										</label>
-										<textarea
-											rows={6}
-											className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-											placeholder="Tell us more about how we can help you..."
-										></textarea>
-									</div>
-
-									<div className="text-center">
-										<Button
-											variant="default"
-											className="px-8 py-3 text-base font-semibold"
-										>
-											<span className="inline-flex items-center">
-												Get My Custom ROI Report
-												<ArrowRight className="w-4 h-4 ml-2" />
-											</span>
-										</Button>
-										<p
-											className="text-muted-foreground mt-2"
-											style={TYPOGRAPHY_SCALE['body-sm']}
-										>
-											Free analysis • No commitment required • Results in 24
-											hours
-										</p>
-									</div>
-								</form>
-							</div>
-						</BlurFade>
-					</div>
-				</section>
+				{/* CTA Section */}
+				<CtaSection />
 
 				{/* Office Info */}
-				<section className="section-hero">
-					<div className="container mx-auto px-4 max-w-6xl">
+				<section className="py-24 px-6 lg:px-8">
+					<div className="max-w-6xl mx-auto">
 						<div className="text-center mb-16">
 							<h2 className="text-3xl font-bold mb-4">Visit our offices</h2>
 							<p className="text-muted-foreground">
@@ -288,12 +175,12 @@ export default function ContactPage() {
 							center.
 						</p>
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
-							<button className="border border-border px-6 py-2 rounded-lg hover:bg-muted/50 transition-colors">
-								View FAQ
-							</button>
-							<button className="border border-border px-6 py-2 rounded-lg hover:bg-muted/50 transition-colors">
-								Help Center
-							</button>
+							<Button variant="outline" asChild>
+								<a href="/faq">View FAQ</a>
+							</Button>
+							<Button variant="outline" asChild>
+								<a href="#contact-form">Help Center</a>
+							</Button>
 						</div>
 					</div>
 				</section>

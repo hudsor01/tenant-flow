@@ -44,12 +44,8 @@ export class CacheControlInterceptor implements NestInterceptor {
 					'no-store, no-cache, must-revalidate, proxy-revalidate'
 				)
 			} else if (isPublic) {
-				const maxAge = Number(process.env.PUBLIC_CACHE_MAX_AGE || (() => {
-				throw new Error('PUBLIC_CACHE_MAX_AGE environment variable is required')
-			})())
-				const staleWhileRevalidate = Number(process.env.PUBLIC_CACHE_SWR || (() => {
-				throw new Error('PUBLIC_CACHE_SWR environment variable is required')
-			})())
+				const maxAge = 300 // 5 minutes - hardcoded industry standard
+				const staleWhileRevalidate = 60 // 1 minute - hardcoded industry standard
 				reply.header(
 					'Cache-Control',
 					`public, max-age=${maxAge}, s-maxage=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`

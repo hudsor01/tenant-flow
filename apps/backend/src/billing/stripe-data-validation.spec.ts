@@ -53,11 +53,7 @@ describe('Production Stripe Webhook Processing', () => {
 	}
 
 	beforeAll(async () => {
-		// Set required environment variables for StripeSyncService (reads directly from process.env)
-		process.env.STRIPE_SYNC_DATABASE_SCHEMA = 'stripe'
-		process.env.STRIPE_SYNC_AUTO_EXPAND_LISTS = 'true'
-		process.env.STRIPE_SYNC_BACKFILL_RELATED_ENTITIES = 'true'
-		process.env.STRIPE_SYNC_MAX_POSTGRES_CONNECTIONS = '10'
+		// Stripe sync configuration now uses hardcoded defaults from config schema
 
 		// Create real Stripe instance for webhook signature generation
 		stripe = new Stripe(stripeKey, {
@@ -161,7 +157,7 @@ describe('Production Stripe Webhook Processing', () => {
 									return webhookSecret
 								case 'NODE_ENV':
 									return 'test'
-								case 'FRONTEND_URL':
+								case 'NEXT_PUBLIC_APP_URL':
 									return 'https://test.tenantflow.app'
 								case 'RESEND_API_KEY':
 									return 're_test_mock_key'

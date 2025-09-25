@@ -26,12 +26,10 @@ export class PDFGeneratorService implements OnModuleDestroy {
 		if (!this.browser?.connected) {
 			this.logger.log('Launching Puppeteer browser')
 
-			// Use system Chromium in Docker, downloaded Chromium locally
-			const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH
+			// Use default Chromium path (Puppeteer will find it automatically)
 
 			this.browser = await puppeteer.launch({
 				headless: true,
-				executablePath,
 				args: [
 					'--no-sandbox',
 					'--disable-setuid-sandbox',
