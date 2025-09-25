@@ -43,6 +43,7 @@ interface StripePricingSectionProps {
 	className?: string
 	showStats?: boolean
 	compactView?: boolean
+	showHeader?: boolean
 }
 
 // Icon mapping for different plan types

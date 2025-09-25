@@ -70,11 +70,11 @@ function CheckoutPageContent() {
 		}).format(cents / 100)
 	}
 
-	const handleSuccess = () => {
+	const _handleSuccess = () => {
 		router.push('/pricing/success')
 	}
 
-	const handleError = (error: unknown) => {
+	const _handleError = (error: unknown) => {
 		logger.error('Payment failed during checkout', {
 			action: 'checkout_payment_failed',
 			metadata: {
@@ -102,7 +102,9 @@ function CheckoutPageContent() {
 						</Link>
 						<div className="flex items-center gap-2">
 							<Shield className="w-4 h-4 text-[var(--color-success)]" />
-							<span className="text-sm text-[var(--color-text-secondary)]">Secure checkout</span>
+							<span className="text-sm text-[var(--color-text-secondary)]">
+								Secure checkout
+							</span>
 						</div>
 					</div>
 				</div>
@@ -144,7 +146,9 @@ function CheckoutPageContent() {
 											<div className="text-2xl font-bold text-[var(--color-text-primary)]">
 												{formatCurrency(plan.price)}
 											</div>
-											<div className="text-sm text-[var(--color-text-muted)]">per month</div>
+											<div className="text-sm text-[var(--color-text-muted)]">
+												per month
+											</div>
 										</div>
 									</div>
 
@@ -190,14 +194,8 @@ function CheckoutPageContent() {
 
 						{/* Payment form - Right side */}
 						<div>
-							<StripeProvider
-								priceId={plan.priceId}
-								mode="subscription"
-							>
-								<Checkout
-									onSuccess={handleSuccess}
-									onError={handleError}
-								/>
+							<StripeProvider priceId={plan.priceId} mode="subscription">
+								<Checkout />
 							</StripeProvider>
 						</div>
 					</div>
