@@ -1,8 +1,8 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { BlurFade } from '@/components/magicui/blur-fade'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import {
 	animationClasses,
 	cardClasses,
@@ -11,7 +11,6 @@ import {
 } from '@/lib/design-system'
 import { Shield, Star, TrendingUp, Users } from 'lucide-react'
 import * as React from 'react'
-
 
 const testimonials = [
 	{
@@ -54,9 +53,9 @@ const testimonials = [
 
 const trustIndicators = [
 	{ icon: Users, label: '25,000+ Happy Users', color: 'text-primary' },
-	{ icon: Star, label: '4.9/5 Average Rating', color: 'text-accent' },
-	{ icon: TrendingUp, label: '150% Growth Rate', color: 'text-accent' },
-	{ icon: Shield, label: '99.8% Uptime SLA', color: 'text-accent' }
+	{ icon: Star, label: '4.9/5 Average Rating', color: 'text-primary' },
+	{ icon: TrendingUp, label: '150% Growth Rate', color: 'text-primary' },
+	{ icon: Shield, label: '99.8% Uptime SLA', color: 'text-primary' }
 ]
 
 export interface TestimonialsMinimalProps
@@ -156,7 +155,7 @@ export const TestimonialsMinimal = React.forwardRef<
 										{[...Array(testimonial.stars)].map((_, i) => (
 											<Star
 												key={i}
-												className="w-4 h-4 fill-accent text-accent"
+												className="w-4 h-4 fill-primary text-primary"
 											/>
 										))}
 									</div>

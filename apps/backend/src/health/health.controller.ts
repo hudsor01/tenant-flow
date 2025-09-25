@@ -1,66 +1,56 @@
 /**
- * Enhanced Health Controller - Zero-Downtime Architecture
- * Implements Apple's health check obsession with detailed service monitoring
+ * Clean Health Controller - Service Delegation Pattern
+ * Follows NestJS 2025 best practices for clean architecture
  */
 
-import { Controller, Get, Inject, Logger, Res } from '@nestjs/common'
+import { Controller, Get, Logger, Res } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
-import type { ServiceHealth, SystemHealth } from '@repo/shared'
 import type { Response } from 'express'
-import { hostname } from 'os'
 import { StripeSyncService } from '../billing/stripe-sync.service'
-import { SupabaseService } from '../database/supabase.service'
 import { Public } from '../shared/decorators/public.decorator'
 import { ResilienceService } from '../shared/services/resilience.service'
+import { CircuitBreakerService } from './circuit-breaker.service'
+import { HealthService } from './health.service'
+import { MetricsService } from './metrics.service'
 import { StripeFdwHealthIndicator } from './stripe-fdw.health'
 import { SupabaseHealthIndicator } from './supabase.health'
 
 @Controller('health')
 export class HealthController {
-	private lastHealthCheck: SystemHealth | null = null
-	private healthCheckCache = new Map<
-		string,
-		{ result: ServiceHealth; timestamp: number }
-	>()
 	private readonly logger = new Logger(HealthController.name)
 
 	constructor(
+		private readonly healthService: HealthService,
+		private readonly metricsService: MetricsService,
+		private readonly circuitBreakerService: CircuitBreakerService,
 		private readonly health: HealthCheckService,
 		private readonly supabase: SupabaseHealthIndicator,
 		private readonly stripeFdw: StripeFdwHealthIndicator,
 		private readonly resilience: ResilienceService,
-		private readonly stripeSyncService: StripeSyncService,
-		@Inject('SUPABASE_SERVICE_FOR_HEALTH')
-		private readonly supabaseClient: SupabaseService
-	) {
-		// Factory provider pattern ensures proper injection in Railway deployment
-		this.logger.log('SupabaseService injected via factory provider', {
-			isSupabaseServiceDefined: !!this.supabaseClient,
-			constructor: this.supabaseClient?.constructor?.name
-		})
-	}
+		private readonly stripeSyncService: StripeSyncService
+	) {}
 
+	/**
+	 * Backward compatibility alias for main health check
+	 */
 	@Get('check')
 	@Public()
 	async checkEndpoint(@Res() res: Response) {
-		// Alias for main health endpoint for backward compatibility
-		// This also needs to check database connectivity
 		return this.check(res)
 	}
 
+	/**
+	 * Simple ping endpoint for lightweight health checks
+	 */
 	@Get('ping')
 	@Public()
 	ping() {
-		return {
-			status: 'ok',
-			timestamp: new Date().toISOString(),
-			uptime: Math.round(process.uptime()),
-			memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-			env: process.env.NODE_ENV,
-			port: process.env.PORT ? Number(process.env.PORT) : 4600
-		}
+		return this.healthService.getPingResponse()
 	}
 
+	/**
+	 * Kubernetes readiness probe
+	 */
 	@Get('ready')
 	@Public()
 	@HealthCheck()
@@ -72,7 +62,7 @@ export class HealthController {
 	}
 
 	/**
-	 * Comprehensive system health with all services and performance metrics
+	 * Stripe FDW health check
 	 */
 	@Get('stripe')
 	@Public()
@@ -82,6 +72,9 @@ export class HealthController {
 		return this.health.check([() => this.stripeFdw.detailedCheck('stripe_fdw')])
 	}
 
+	/**
+	 * Stripe sync service health
+	 */
 	@Get('stripe-sync')
 	@Public()
 	async checkStripeSyncHealth() {
@@ -94,143 +87,18 @@ export class HealthController {
 		}
 	}
 
-	@Get('system')
-	@Public()
-	async systemHealth(): Promise<SystemHealth> {
-		const startTime = Date.now()
-
-		try {
-			// Parallel health checks for faster response
-			const [databaseHealth, stripeHealth, cacheHealth] =
-				await Promise.allSettled([
-					this.checkDatabaseHealth(),
-					this.checkStripeHealth(),
-					this.checkCacheHealth()
-				])
-
-			const services = {
-				database: this.extractHealthResult(databaseHealth),
-				stripe: this.extractHealthResult(stripeHealth),
-				cache: this.extractHealthResult(cacheHealth)
-			}
-
-			// Overall system status based on critical services
-			const criticalServices = ['database', 'cache']
-			const criticalHealthy = criticalServices.every(
-				service => services[service as keyof typeof services]?.healthy
-			)
-			const allHealthy = Object.values(services).every(
-				service => service.healthy
-			)
-
-			const status = allHealthy
-				? 'healthy'
-				: criticalHealthy
-					? 'degraded'
-					: 'unhealthy'
-
-			const systemHealth: SystemHealth = {
-				status,
-				timestamp: new Date().toISOString(),
-				services,
-				performance: this.getPerformanceMetrics(),
-				cache: this.resilience.getHealthStatus(),
-				version: '1.0.0', // Hardcoded version - use package.json if needed via import
-				deployment: {
-					environment:
-						process.env.NODE_ENV ||
-						(() => {
-							throw new Error(
-								'NODE_ENV is required for debug health check reporting'
-							)
-						})(),
-					region:
-						process.env.RAILWAY_REGION ||
-						process.env.VERCEL_REGION ||
-						process.env.FLY_REGION ||
-						(() => {
-							throw new Error(
-								'Deployment region not detected - ensure RAILWAY_REGION, VERCEL_REGION, or FLY_REGION is set'
-							)
-						})(),
-					instance: hostname()
-				}
-			}
-
-			this.lastHealthCheck = systemHealth
-
-			// Log performance warning if response takes >100ms
-			const responseTime = Date.now() - startTime
-			if (responseTime > 100) {
-				this.logger.warn(`Health check took ${responseTime}ms (target: <100ms)`)
-			}
-
-			return systemHealth
-		} catch (error) {
-			this.logger.error(
-				'System health check failed',
-				error instanceof Error ? error.message : String(error)
-			)
-			throw error
-		}
-	}
-
 	/**
-	 * Service-specific health endpoints for individual monitoring
-	 */
-	@Get('services/database')
-	@Public()
-	async databaseHealth() {
-		return this.getCachedOrFresh(
-			'database',
-			() => this.checkDatabaseHealth(),
-			30_000
-		)
-	}
-
-	@Get('services/stripe')
-	@Public()
-	async stripeHealthCheck() {
-		return this.getCachedOrFresh(
-			'stripe',
-			() => this.checkStripeHealth(),
-			30_000
-		)
-	}
-
-	@Get('services/cache')
-	@Public()
-	async cacheHealthCheck() {
-		return this.getCachedOrFresh(
-			'cache',
-			() => Promise.resolve(this.checkCacheHealth()),
-			10_000
-		)
-	}
-
-	/**
-	 * Performance metrics endpoint for monitoring
+	 * Performance metrics endpoint
 	 */
 	@Get('performance')
 	@Public()
 	performanceMetrics() {
-		const performance = this.getPerformanceMetrics()
+		const performance = this.metricsService.getDetailedPerformanceMetrics()
 		const cache = this.resilience.getHealthStatus()
 
 		return {
 			...performance,
-			cache,
-			healthCheckHistory: this.lastHealthCheck
-				? {
-						lastStatus: this.lastHealthCheck.status,
-						lastCheck: this.lastHealthCheck.timestamp
-					}
-				: null,
-			thresholds: {
-				memory: { warning: 80, critical: 95 },
-				cache: { memoryLimit: 100_000_000 }, // 100MB
-				responseTime: { warning: 100, critical: 200 }
-			}
+			cache
 		}
 	}
 
@@ -240,240 +108,18 @@ export class HealthController {
 	@Get('circuit-breaker')
 	@Public()
 	circuitBreakerStatus() {
-		const services = ['database', 'stripe', 'cache']
-		const status = services.reduce(
-			(acc, service) => {
-				const cached = this.healthCheckCache.get(service)
-				const isStale = !cached || Date.now() - cached.timestamp > 60_000
-
-				acc[service] = {
-					open: isStale || !cached.result.healthy,
-					lastSuccess: cached?.timestamp || null,
-					failureCount: 0 // Implement failure tracking if needed
-				}
-				return acc
-			},
-			{} as Record<
-				string,
-				{
-					open: boolean
-					lastSuccess: number | null
-					failureCount: number
-				}
-			>
-		)
-
-		return {
-			timestamp: new Date().toISOString(),
-			services: status,
-			systemStatus: Object.values(status).some(s => s.open)
-				? 'degraded'
-				: 'healthy'
-		}
-	}
-
-	private async checkDatabaseHealth(): Promise<ServiceHealth> {
-		const startTime = Date.now()
-		try {
-			const result = await this.supabase.pingCheck('database')
-			return {
-				healthy: result.database.status === 'up',
-				responseTime: Date.now() - startTime,
-				lastCheck: new Date().toISOString(),
-				details: result.database
-			}
-		} catch (error) {
-			return {
-				healthy: false,
-				responseTime: Date.now() - startTime,
-				lastCheck: new Date().toISOString(),
-				details: {
-					error: error instanceof Error ? error.message : String(error)
-				}
-			}
-		}
-	}
-
-	private async checkStripeHealth(): Promise<ServiceHealth> {
-		const startTime = Date.now()
-		try {
-			const result = await this.stripeFdw.isHealthy('stripe_fdw')
-			return {
-				healthy: result.stripe_fdw?.status === 'up',
-				responseTime: Date.now() - startTime,
-				lastCheck: new Date().toISOString(),
-				details: result.stripe_fdw
-			}
-		} catch (error) {
-			return {
-				healthy: false,
-				responseTime: Date.now() - startTime,
-				lastCheck: new Date().toISOString(),
-				details: {
-					error: error instanceof Error ? error.message : String(error)
-				}
-			}
-		}
-	}
-
-	private checkCacheHealth(): ServiceHealth {
-		// Simple cache health check based on memory usage
-		const memUsage = process.memoryUsage()
-		return {
-			healthy: memUsage.heapUsed < memUsage.heapTotal * 0.9, // Healthy if under 90% heap
-			responseTime: 1, // In-memory check is instant
-			lastCheck: new Date().toISOString(),
-			details: {
-				heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
-				heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024)
-			}
-		}
-	}
-
-	private getPerformanceMetrics() {
-		const memoryUsage = process.memoryUsage()
-		const cpuUsage = process.cpuUsage()
-
-		return {
-			uptime: Math.round(process.uptime()),
-			memory: {
-				used: Math.round(memoryUsage.heapUsed / 1024 / 1024),
-				free: Math.round(
-					(memoryUsage.heapTotal - memoryUsage.heapUsed) / 1024 / 1024
-				),
-				total: Math.round(memoryUsage.heapTotal / 1024 / 1024),
-				usagePercent: Math.round(
-					(memoryUsage.heapUsed / memoryUsage.heapTotal) * 100
-				)
-			},
-			cpu: {
-				user: Math.round(cpuUsage.user / 1000),
-				system: Math.round(cpuUsage.system / 1000)
-			}
-		}
-	}
-
-	private extractHealthResult(
-		result: PromiseSettledResult<ServiceHealth>
-	): ServiceHealth {
-		if (result.status === 'fulfilled') {
-			return result.value
-		}
-		const error = result.reason as unknown
-		const errorMessage =
-			error instanceof Error ? error.message : 'Unknown error'
-		return {
-			healthy: false,
-			lastCheck: new Date().toISOString(),
-			details: { error: errorMessage }
-		}
-	}
-
-	private async getCachedOrFresh(
-		key: string,
-		fn: () => Promise<ServiceHealth>,
-		maxAge: number
-	): Promise<ServiceHealth> {
-		const cached = this.healthCheckCache.get(key)
-
-		if (cached && Date.now() - cached.timestamp < maxAge) {
-			return cached.result
-		}
-
-		const result = await fn()
-		this.healthCheckCache.set(key, { result, timestamp: Date.now() })
-		return result
+		return this.circuitBreakerService.getCircuitBreakerStatus()
 	}
 
 	/**
-	 * Base health endpoint - MUST be last to avoid intercepting specific routes
+	 * Main health endpoint - MUST be last to avoid intercepting specific routes
+	 * Delegates to HealthService for business logic
 	 */
 	@Get()
 	@Public()
 	async check(@Res() res: Response) {
-		// CRITICAL: This health check MUST verify database connectivity
-		// The entire application depends on Supabase - auth won't work without it
-		this.logger.log('Health check started - checking database connectivity')
-
-		try {
-			// Debug: Check if supabaseService is properly injected
-			this.logger.log('SupabaseService status', {
-				isUndefined: this.supabaseClient === undefined,
-				isNull: this.supabaseClient === null,
-				constructor: this.supabaseClient?.constructor?.name || 'N/A'
-			})
-
-			if (!this.supabaseClient) {
-				throw new Error('SupabaseService not injected properly')
-			}
-
-			// Check actual database connectivity
-			const dbHealth = await this.supabaseClient.checkConnection()
-
-			// Determine overall health based on database status
-			const isHealthy = dbHealth.status === 'healthy'
-
-			// Log the result
-			if (!isHealthy) {
-				this.logger.error('Database connectivity check failed', {
-					status: dbHealth.status,
-					message: dbHealth.message
-				})
-			} else {
-				this.logger.log('Database connectivity check passed')
-			}
-
-			// Return health status with database connectivity info
-			const response = {
-				status: isHealthy ? 'ok' : 'unhealthy',
-				timestamp: new Date().toISOString(),
-				environment: process.env.NODE_ENV || 'production',
-				uptime: process.uptime(),
-				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-				version: '1.0.0', // Hardcoded version - use package.json if needed via import
-				service: 'backend-api',
-				config_loaded: {
-					node_env: !!process.env.NODE_ENV,
-					cors_origins: !!process.env.CORS_ORIGINS,
-					supabase_url: !!process.env.SUPABASE_URL
-				},
-				database: {
-					status: dbHealth.status,
-					message: dbHealth.message || 'Database connection healthy'
-				}
-			}
-
-			// If database is unhealthy, return 503 Service Unavailable
-			if (!isHealthy) {
-				return res.status(503).json({
-					...response,
-					error: 'Database connection failed'
-				})
-			}
-
-			// Return 200 OK when healthy (required by Railway)
-			return res.status(200).json(response)
-		} catch (error) {
-			// Log the actual error for debugging
-			const errorMessage =
-				error instanceof Error ? error.message : String(error)
-			this.logger.error('Health check failed with error', errorMessage)
-
-			// Return unhealthy status with error details
-			return res.status(503).json({
-				status: 'unhealthy',
-				timestamp: new Date().toISOString(),
-				environment: process.env.NODE_ENV || 'production',
-				uptime: process.uptime(),
-				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-				version: '1.0.0', // Hardcoded version - use package.json if needed via import
-				service: 'backend-api',
-				database: {
-					status: 'unhealthy',
-					message: errorMessage
-				},
-				error: errorMessage
-			})
-		}
+		const healthResult = await this.healthService.checkSystemHealth()
+		const statusCode = healthResult.status === 'ok' ? 200 : 503
+		return res.status(statusCode).json(healthResult)
 	}
 }

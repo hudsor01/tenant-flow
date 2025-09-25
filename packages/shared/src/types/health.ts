@@ -48,6 +48,26 @@ export interface HealthCheckResult {
 	message?: string
 }
 
+export interface HealthCheckResponse {
+	status: 'ok' | 'unhealthy'
+	timestamp: string
+	environment: string
+	uptime: number
+	memory: number
+	version: string
+	service: string
+	config_loaded: {
+		node_env: boolean
+		cors_origins: boolean
+		supabase_url: boolean
+	}
+	database: {
+		status: string
+		message: string
+	}
+	error?: string
+}
+
 // Security monitoring types
 export interface SecurityEvent {
 	id: string
