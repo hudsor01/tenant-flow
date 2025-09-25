@@ -1,17 +1,18 @@
-import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createServerClient } from '@supabase/ssr'
-import { logger } from '@repo/shared'
 import type { Database } from '@repo/shared'
+import { logger } from '@repo/shared'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
 	const { searchParams, origin } = new URL(request.url)
 	const code = searchParams.get('code')
 	// if "next" is in param, use it as the redirect URL
-	let next = searchParams.get('next') ?? '/'
+	// Default to dashboard for authenticated users
+	let next = searchParams.get('next') ?? '/dashboard'
 	if (!next.startsWith('/')) {
-		// if "next" is not a relative URL, use the default
-		next = '/'
+		// if "next" is not a relative URL, use the dashboard
+		next = '/dashboard'
 	}
 
 	if (code) {
@@ -42,9 +43,14 @@ export async function GET(request: Request) {
 			const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
 			if (error) {
-				logger.error('OAuth callback error', {
+				logger.error('OAuth callback error - exchangeCodeForSession failed', {
 					action: 'oauth_callback_failed',
-					metadata: { error: error.message }
+					metadata: {
+						error: error.message,
+						errorCode: error.code,
+						errorName: error.name,
+						code: code?.substring(0, 10) + '...' // Log partial code for debugging
+					}
 				})
 				return NextResponse.redirect(`${origin}/login?error=oauth_failed`)
 			}
@@ -70,7 +76,9 @@ export async function GET(request: Request) {
 		} catch (error) {
 			logger.error('OAuth callback error', {
 				action: 'oauth_callback_exception',
-				metadata: { error: error instanceof Error ? error.message : String(error) }
+				metadata: {
+					error: error instanceof Error ? error.message : String(error)
+				}
 			})
 			return NextResponse.redirect(`${origin}/login?error=oauth_failed`)
 		}
