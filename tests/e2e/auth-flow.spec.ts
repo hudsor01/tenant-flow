@@ -130,7 +130,9 @@ test.describe('Authentication Flow', () => {
 		await page.click('button[type="submit"]')
 
 		// Check for validation messages
-		const validationMessages = page.locator('.error-message, [role="alert"], .text-red-500')
+	const validationMessages = page.locator(
+		'.error-message, [role="alert"], .text-\\[var\\(--color-error\\)\\]'
+	)
 		const count = await validationMessages.count()
 		expect(count).toBeGreaterThan(0)
 

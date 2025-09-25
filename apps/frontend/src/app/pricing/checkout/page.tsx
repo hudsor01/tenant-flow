@@ -1,7 +1,7 @@
 'use client'
 
 import { LoadingDots } from '@/components/magicui/loading-spinner'
-import { CheckoutForm } from '@/components/pricing/checkout-form'
+import { Checkout } from '@/components/pricing/checkout'
 import { Card, CardContent } from '@/components/ui/card'
 import { StripeProvider } from '@/providers/stripe-provider'
 import { createLogger } from '@repo/shared'
@@ -194,16 +194,7 @@ function CheckoutPageContent() {
 								priceId={plan.priceId}
 								mode="subscription"
 							>
-								<CheckoutForm
-									amount={plan.price}
-									currency="usd"
-									planName={plan.name}
-									features={plan.features}
-									metadata={{
-										planId: planId,
-										planName: plan.name,
-										billingCycle: 'monthly'
-									}}
+								<Checkout
 									onSuccess={handleSuccess}
 									onError={handleError}
 								/>

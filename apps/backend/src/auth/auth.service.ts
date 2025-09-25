@@ -130,7 +130,7 @@ export class AuthService {
 			.single()
 
 		if (error) {
-			throw new InternalServerErrorException('Failed to sync user data')
+			throw new InternalServerErrorException('User synchronization failed [AUTH-001]')
 		}
 
 		if (isNewUser) {
@@ -211,7 +211,7 @@ export class AuthService {
 			.single()
 
 		if (error) {
-			throw new InternalServerErrorException('Failed to update user profile')
+			throw new InternalServerErrorException('Profile update failed [AUTH-002]')
 		}
 		return {
 			user: {
