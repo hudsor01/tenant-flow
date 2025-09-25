@@ -121,6 +121,11 @@ describe('HealthController', () => {
 				memory: expect.any(Number),
 				version: expect.any(String),
 				service: 'backend-api',
+				env_vars_loaded: {
+					health_check_function: expect.any(Boolean),
+					public_cache_max_age: expect.any(Boolean),
+					node_env: expect.any(Boolean)
+				},
 				database: {
 					status: 'healthy',
 					message: 'Database connection successful'
@@ -446,6 +451,11 @@ describe('HealthController', () => {
 				memory: expect.any(Number),
 				version: expect.any(String),
 				service: 'backend-api',
+				env_vars_loaded: {
+					health_check_function: expect.any(Boolean),
+					public_cache_max_age: expect.any(Boolean),
+					node_env: expect.any(Boolean)
+				},
 				database: {
 					status: 'healthy',
 					message: 'Database connection successful'
