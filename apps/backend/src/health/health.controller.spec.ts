@@ -193,7 +193,7 @@ describe('HealthController', () => {
 			const originalEnv = process.env.NODE_ENV
 			const originalPort = process.env.PORT
 			process.env.NODE_ENV = 'test'
-			process.env.PORT = '3001'
+			process.env.PORT = '4600'
 
 			// Mock process methods
 			const mockUptime = jest.spyOn(process, 'uptime').mockReturnValue(120.5)
@@ -215,7 +215,7 @@ describe('HealthController', () => {
 				uptime: 121, // Math.round(120.5)
 				memory: 30, // Math.round(31457280 / 1024 / 1024)
 				env: 'test',
-				port: 4600 // Hardcoded default port
+				port: 4600 // Backend port (not frontend port 3001)
 			})
 
 			// Verify timestamp is a valid ISO string
