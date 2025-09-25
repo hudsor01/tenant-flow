@@ -5,12 +5,14 @@ import type { ValidatedUser } from '@repo/shared'
 import { randomUUID } from 'crypto'
 import type { Request } from 'express'
 import { SilentLogger } from '../__test__/silent-logger'
+import { SupabaseService } from '../database/supabase.service'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
 
 describe('LeasesController', () => {
 	let controller: LeasesController
 	let mockLeasesService: jest.Mocked<LeasesService>
+	let mockSupabaseService: jest.Mocked<SupabaseService>
 
 	const generateUUID = () => randomUUID()
 
@@ -74,12 +76,22 @@ describe('LeasesController', () => {
 			getLeaseRevenueAnalytics: jest.fn()
 		} as unknown as jest.Mocked<LeasesService>
 
+		mockSupabaseService = {
+			validateUser: jest
+				.fn()
+				.mockImplementation(req => Promise.resolve(req.user))
+		} as unknown as jest.Mocked<SupabaseService>
+
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [LeasesController],
 			providers: [
 				{
 					provide: LeasesService,
 					useValue: mockLeasesService
+				},
+				{
+					provide: SupabaseService,
+					useValue: mockSupabaseService
 				}
 			]
 		})

@@ -4,6 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler'
 import type { AuthServiceValidatedUser, ValidatedUser } from '@repo/shared'
 import type { Request } from 'express'
 // import type { User } from '@supabase/supabase-js' // Unused import
+import { SupabaseService } from '../database/supabase.service'
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
 
@@ -26,10 +27,18 @@ jest.mock('./auth.service', () => {
 describe('AuthController', () => {
 	let controller: AuthController
 	let mockAuthServiceInstance: jest.Mocked<AuthService>
+	let mockSupabaseService: jest.Mocked<SupabaseService>
 
 	beforeEach(async () => {
 		// Clear all mocks before each test
 		jest.clearAllMocks()
+
+		// Create mock SupabaseService
+		mockSupabaseService = {
+			validateUser: jest
+				.fn()
+				.mockImplementation(req => Promise.resolve(req.user))
+		} as unknown as jest.Mocked<SupabaseService>
 
 		const module: TestingModule = await Test.createTestingModule({
 			imports: [
@@ -43,7 +52,13 @@ describe('AuthController', () => {
 				})
 			],
 			controllers: [AuthController],
-			providers: [AuthService]
+			providers: [
+				AuthService,
+				{
+					provide: SupabaseService,
+					useValue: mockSupabaseService
+				}
+			]
 		}).compile()
 
 		controller = module.get<AuthController>(AuthController)
@@ -114,6 +129,9 @@ describe('AuthController', () => {
 				mockReturnedUser
 			)
 
+			// Mock validateUser to return the user
+			mockSupabaseService.validateUser.mockResolvedValue(mockUser)
+
 			// Create mock request with cookies for the auth cookie
 			const mockRequest = {
 				cookies: {
@@ -131,6 +149,11 @@ describe('AuthController', () => {
 
 		it('should throw NotFoundException when user not found', async () => {
 			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(null)
+
+			// Mock validateUser to return a user (needed for auth check)
+			mockSupabaseService.validateUser.mockResolvedValue({
+				id: 'user-123'
+			} as ValidatedUser)
 
 			// Create mock request with cookies for the auth cookie
 			const mockRequest = {
@@ -277,6 +300,11 @@ describe('AuthController', () => {
 
 	describe('logout', () => {
 		it('should logout user successfully', async () => {
+			// Mock validateUser to return a user
+			mockSupabaseService.validateUser.mockResolvedValue({
+				id: 'user-123'
+			} as ValidatedUser)
+
 			const mockRequest = {
 				headers: {
 					authorization: 'Bearer test-token-123'

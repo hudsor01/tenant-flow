@@ -4,12 +4,14 @@ import type { ValidatedUser } from '@repo/shared'
 import { randomUUID } from 'crypto'
 import type { Request } from 'express'
 import { SilentLogger } from '../__test__/silent-logger'
+import { SupabaseService } from '../database/supabase.service'
 import { MaintenanceController } from './maintenance.controller'
 import { MaintenanceService } from './maintenance.service'
 
 describe('MaintenanceController', () => {
 	let controller: MaintenanceController
 	let service: jest.Mocked<MaintenanceService>
+	let mockSupabaseService: jest.Mocked<SupabaseService>
 
 	const createMockUser = (
 		overrides: Partial<ValidatedUser> = {}
@@ -68,9 +70,18 @@ describe('MaintenanceController', () => {
 			cancel: jest.fn()
 		}
 
+		mockSupabaseService = {
+			validateUser: jest
+				.fn()
+				.mockImplementation(req => Promise.resolve(req.user))
+		} as unknown as jest.Mocked<SupabaseService>
+
 		const module = await Test.createTestingModule({
 			controllers: [MaintenanceController],
-			providers: [{ provide: MaintenanceService, useValue: mockService }]
+			providers: [
+				{ provide: MaintenanceService, useValue: mockService },
+				{ provide: SupabaseService, useValue: mockSupabaseService }
+			]
 		})
 			.setLogger(new SilentLogger())
 			.compile()
