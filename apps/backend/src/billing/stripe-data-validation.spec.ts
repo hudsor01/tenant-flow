@@ -137,7 +137,7 @@ describe('Production Stripe Webhook Processing', () => {
 					provide: SupabaseService,
 					useValue: {
 						getAdminClient: jest.fn(() => mockSupabaseClient),
-						from: jest.fn(() => mockSupabaseClient.from()),
+						from: jest.fn((table: string) => mockSupabaseClient.from(table)),
 						checkConnection: jest.fn(() =>
 							Promise.resolve({ status: 'healthy' })
 						)
