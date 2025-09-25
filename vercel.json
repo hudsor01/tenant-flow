@@ -2,6 +2,12 @@
 	"$schema": "https://openapi.vercel.sh/vercel.json",
 	"framework": "nextjs",
 
+	"functions": {
+		"apps/frontend/**/*": {
+			"runtime": "nodejs22.x"
+		}
+	},
+
 	"build": {
 		"env": {
 			"NODE_OPTIONS": "--max-old-space-size=8192",
