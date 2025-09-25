@@ -14,7 +14,8 @@ async function runHealthCheck() {
 	logger.info('Running Supabase Auth Health Check...\n')
 
 	const baseUrl =
-		process.env.NEXT_PUBLIC_SITE_URL || (() => {
+		process.env.NEXT_PUBLIC_SITE_URL ||
+		(() => {
 			throw new Error('NEXT_PUBLIC_SITE_URL is required for auth health check')
 		})()
 	// Backend exposes auth health at /api/v1/auth/health
@@ -23,10 +24,7 @@ async function runHealthCheck() {
 	try {
 		const response = await fetch(healthUrl, {
 			headers: {
-				Accept: 'application/json',
-				...(process.env.AUTH_HEALTH_CHECK_TOKEN && {
-					Authorization: `Bearer ${process.env.AUTH_HEALTH_CHECK_TOKEN}`
-				})
+				Accept: 'application/json'
 			}
 		})
 
@@ -46,13 +44,11 @@ async function runHealthCheck() {
 		logger.info(`Uptime: ${Math.floor(data.uptime / 60)} minutes`)
 		logger.info('\nSystem Services:')
 
-		// Display each service status
-		Object.entries(data.services).forEach(([serviceName, status]) => {
-			const icon = status === 'up' ? '[OK]' : '[ERROR]'
-			const displayName =
-				serviceName.charAt(0).toUpperCase() + serviceName.slice(1)
-			logger.info(`  ${icon} ${displayName}: ${status.toUpperCase()}`)
-		})
+		// Display database status from new health check format
+		const databaseIcon = data.database.status === 'healthy' ? '[OK]' : '[ERROR]'
+		logger.info(
+			`  ${databaseIcon} Database: ${data.database.status.toUpperCase()}`
+		)
 
 		logger.info('\n' + '='.repeat(60))
 
