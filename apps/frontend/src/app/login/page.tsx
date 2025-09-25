@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/client'
 import type { LoginCredentials } from '@repo/shared'
 import { createLogger } from '@repo/shared'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 
 import { ForgotPasswordModal } from '@/components/auth/forgot-password-modal'
 import { LoginLayout } from '@/components/auth/login-layout'
@@ -13,7 +13,7 @@ import { loginAction } from './actions'
 
 const logger = createLogger({ component: 'LoginPage' })
 
-export default function LoginPage() {
+function LoginPageContent() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 	const [showForgotPassword, setShowForgotPassword] = useState(false)
@@ -21,7 +21,10 @@ export default function LoginPage() {
 	const searchParams = useSearchParams()
 
 	useEffect(() => {
-		const error = searchParams?.get('error')
+		// Check if searchParams is available before using it
+		if (!searchParams) return
+
+		const error = searchParams.get('error')
 		if (error === 'oauth_failed') {
 			toast.error('Authentication failed', {
 				description:
@@ -188,5 +191,14 @@ export default function LoginPage() {
 				onOpenChange={setShowForgotPassword}
 			/>
 		</>
+	)
+}
+
+// Wrap the component in Suspense to handle useSearchParams properly
+export default function LoginPage() {
+	return (
+		<Suspense fallback={<div>Loading...</div>}>
+			<LoginPageContent />
+		</Suspense>
 	)
 }
