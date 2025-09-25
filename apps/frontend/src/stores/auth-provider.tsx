@@ -1,28 +1,17 @@
 'use client'
 
-import { createBrowserClient } from '@supabase/ssr'
-import React, { createContext, useContext, useEffect, useRef } from 'react'
-import { type StoreApi } from 'zustand'
-
-import { ALL_AUTH_COOKIE_PATTERNS } from '@/lib/auth-constants'
+import { createClient } from '@/utils/supabase/client'
 import { logger } from '@repo/shared'
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
+import React, { createContext, useContext, useEffect, useRef } from 'react'
+import { type StoreApi } from 'zustand'
 import type { AuthState } from './auth-store'
 import { createAuthStore } from './auth-store'
 
 const AuthStoreContext = createContext<StoreApi<AuthState> | null>(null)
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-	throw new Error(
-		'NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required for Supabase authentication.'
-	)
-}
-
-// Create SSR-compatible Supabase client for authentication
-const supabaseClient = createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+// Create browser client for authentication
+const supabaseClient = createClient()
 
 export const AuthStoreProvider = ({
 	children
@@ -36,69 +25,7 @@ export const AuthStoreProvider = ({
 	useEffect(() => {
 		const store = storeRef.current!
 
-		// Check for mock authentication first (development only)
-		const checkMockAuth = () => {
-			if (
-				process.env.NODE_ENV === 'development' &&
-				process.env.NEXT_PUBLIC_ENABLE_MOCK_AUTH === 'true'
-			) {
-				// Check for mock auth cookies
-				const mockToken = document.cookie
-					.split('; ')
-					.find(row =>
-						ALL_AUTH_COOKIE_PATTERNS.some(pattern =>
-							row.startsWith(`${pattern}=`)
-						)
-					)
-
-				if (mockToken) {
-					// Create mock session for auth store
-					const mockSession = {
-						access_token: 'mock-dev-token-123',
-						refresh_token: 'mock-dev-refresh-token-123',
-						expires_in: 3600,
-						expires_at: Math.floor(Date.now() / 1000) + 3600,
-						token_type: 'bearer',
-						user: {
-							id: 'mock-user-dev-123',
-							email: 'test@tenantflow.dev',
-							created_at: new Date().toISOString(),
-							updated_at: new Date().toISOString(),
-							last_sign_in_at: new Date().toISOString(),
-							email_confirmed_at: new Date().toISOString(),
-							phone: null,
-							confirmed_at: new Date().toISOString(),
-							recovery_sent_at: null,
-							new_email: null,
-							invited_at: null,
-							action_link: null,
-							email_change: null,
-							email_change_sent_at: null,
-							email_change_confirm_status: 0,
-							banned_until: null,
-							reauthentication_sent_at: null,
-							is_anonymous: false,
-							app_metadata: {},
-							user_metadata: {},
-							aud: 'authenticated',
-							role: 'authenticated'
-						}
-					} as unknown as Session
-
-					store.getState().setSession(mockSession)
-					store.getState().setLoading(false)
-					return true
-				}
-			}
-			return false
-		}
-
-		// Try mock auth first, fallback to real Supabase
-		if (checkMockAuth()) {
-			return // Early return for mock auth
-		}
-
-		// Get initial session
+		// Get initial session from Supabase
 		supabaseClient.auth
 			.getSession()
 			.then(({ data: { session } }: { data: { session: Session | null } }) => {
@@ -113,6 +40,14 @@ export const AuthStoreProvider = ({
 			async (event: AuthChangeEvent, session: Session | null) => {
 				store.getState().setSession(session)
 				store.getState().setLoading(false)
+
+				// Log auth events for debugging
+				if (process.env.NODE_ENV === 'development') {
+					logger.info('Auth state changed', {
+						action: 'auth_state_change',
+						metadata: { event, userId: session?.user?.id }
+					})
+				}
 			}
 		)
 
@@ -126,43 +61,28 @@ export const AuthStoreProvider = ({
 	)
 }
 
-export const useAuthStore = <T,>(selector: (state: AuthState) => T): T => {
+export function useAuthStore<T>(selector: (state: AuthState) => T): T {
 	const store = useContext(AuthStoreContext)
-	if (!store) throw new Error('Missing AuthStoreProvider')
 
-	// Validate selector function
-	if (typeof selector !== 'function') {
-		throw new Error('useAuthStore requires a selector function')
+	if (!store) {
+		throw new Error('Missing AuthStoreProvider')
 	}
 
-	// Simple subscription pattern that works with SSR
-	const [state, setState] = React.useState(() => {
-		try {
-			return selector(store.getState())
-		} catch (error) {
-			logger.error('AuthProvider - Error in auth store selector', {
-				action: 'auth_store_selector_failed',
-				metadata: {
-					error: error instanceof Error ? error.message : String(error)
-				}
-			})
-			// Return a safe default - adjust based on your AuthState structure
-			return null as T
-		}
-	})
-
-	React.useEffect(() => {
-		const unsubscribe = store.subscribe(() => {
-			try {
-				setState(selector(store.getState()))
-			} catch (error) {
-				logger.error('AuthProvider - Error in auth store subscription', {
-					action: 'auth_store_subscription_failed',
-					metadata: {
-						error: error instanceof Error ? error.message : String(error)
-					}
-				})
+	// Use the proper zustand hook if available
+	if ('use' in store) {
+		const storeUse = (
+			store as unknown as {
+				use: <U>(selector: (state: AuthState) => U) => U
 			}
+		).use
+		return storeUse(selector)
+	}
+
+	// Fallback for compatibility
+	const [state, setState] = React.useState(() => selector(store.getState()))
+	React.useEffect(() => {
+		const unsubscribe = store.subscribe((state: AuthState) => {
+			setState(selector(state))
 		})
 		return unsubscribe
 	}, [store, selector])

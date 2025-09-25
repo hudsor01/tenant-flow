@@ -110,16 +110,16 @@ export default function LoginPage() {
 	const handleGoogleLogin = async () => {
 		setIsGoogleLoading(true)
 		try {
-			const { error } = await supabaseClient.auth.signInWithOAuth({
-				provider: 'google',
-				options: {
-					redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
-					queryParams: {
-						access_type: 'offline',
-						prompt: 'consent',
-						scope: 'openid email profile'
-					}
+			logger.info('Initiating Google OAuth login', {
+				action: 'google_oauth_init',
+				metadata: {
+					origin: window.location.origin
 				}
+			})
+
+			// Simple OAuth call - Supabase handles the redirect URL automatically
+			const { error } = await supabaseClient.auth.signInWithOAuth({
+				provider: 'google'
 			})
 
 			if (error) {
