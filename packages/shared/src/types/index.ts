@@ -34,8 +34,10 @@ export type {
 	AuthFormState,
 	AuthResponse,
 	AuthUser,
+	ClientAuthResponse,
 	LoginCredentials,
 	RegisterCredentials,
+	SignupData,
 	SubscriptionStatus,
 	SupabaseWebhookEvent,
 	UserRole
