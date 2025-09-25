@@ -48,6 +48,9 @@ async function bootstrap() {
 			`Invalid PORT value "${process.env.PORT}" - falling back to ${DEFAULT_PORT}`
 		)
 	}
+	bootstrapLogger.log(
+		`Port configuration -> env="${process.env.PORT ?? 'undefined'}", resolved=${port}`
+	)
 
 	// Express adapter with NestJS - zero type casts needed
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -82,6 +85,10 @@ async function bootstrap() {
 			{ path: '/', method: RequestMethod.ALL }
 		]
 	})
+	const healthPaths = HEALTH_PATHS.join(', ')
+	bootstrapLogger.log(
+		`Health endpoints registered without prefix at: ${healthPaths}`
+	)
 
 	// Configure CORS using NestJS built-in support
 	bootstrapLogger.log('Configuring CORS...')
@@ -169,6 +176,7 @@ async function bootstrap() {
 
 	// Start server
 	await app.listen(port, '0.0.0.0')
+	bootstrapLogger.log(`Listening on port ${port} (bind 0.0.0.0)`)
 
 	const startupTime = ((Date.now() - startTime) / 1000).toFixed(2)
 	bootstrapLogger.log(`EXPRESS SERVER: Listening on http://0.0.0.0:${port}`)

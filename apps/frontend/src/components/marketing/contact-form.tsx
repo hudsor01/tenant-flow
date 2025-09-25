@@ -115,10 +115,21 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			className={`relative min-h-screen lg:flex bg-background ${className}`}
 			id="contact-form"
 		>
-			{/* Left side - Contact Info */}
-			<div className="relative flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-12 xl:px-32 bg-muted/30">
-				{/* Content */}
-				<div className="relative z-10">
+			{/* Left side - Contact Info with Image Background */}
+			<div className="relative flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-12 xl:px-32 overflow-hidden">
+				{/* Background Image - Warm modern residential building */}
+				<div
+					className="absolute inset-0 bg-cover bg-center"
+					style={{
+						backgroundImage: `url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop')`
+					}}
+				/>
+
+				{/* Subtle gradient overlay for text contrast */}
+				<div className="absolute inset-0 bg-gradient-to-br from-background/30 via-transparent to-background/20" />
+
+				{/* Glassmorphism Container */}
+				<div className="relative z-10 p-8 rounded-2xl backdrop-blur-lg bg-background/60 dark:bg-gray-900/60 border border-border/20 shadow-2xl">
 					<h1 className="text-3xl font-bold text-foreground lg:text-4xl">
 						Transform Your Property Management
 					</h1>
@@ -130,7 +141,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 
 					<div className="mt-8 space-y-6">
 						<div className="flex items-start">
-							<div className="p-2 rounded-lg bg-primary/10">
+							<div className="p-2 rounded-lg bg-primary/10 backdrop-blur-sm">
 								<MapPin className="w-6 h-6 text-primary" />
 							</div>
 							<div className="ml-3">
@@ -144,7 +155,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						</div>
 
 						<div className="flex items-start">
-							<div className="p-2 rounded-lg bg-primary/10">
+							<div className="p-2 rounded-lg bg-primary/10 backdrop-blur-sm">
 								<Phone className="w-6 h-6 text-primary" />
 							</div>
 							<div className="ml-3">
@@ -157,7 +168,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						</div>
 
 						<div className="flex items-start">
-							<div className="p-2 rounded-lg bg-primary/10">
+							<div className="p-2 rounded-lg bg-primary/10 backdrop-blur-sm">
 								<Mail className="w-6 h-6 text-primary" />
 							</div>
 							<div className="ml-3">
