@@ -1,3 +1,7 @@
+import {
+	PROTECTED_ROUTE_PREFIXES,
+	PUBLIC_AUTH_ROUTES
+} from '@/lib/auth-constants'
 import type { Database } from '@repo/shared'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
@@ -35,13 +39,14 @@ export async function updateSession(request: NextRequest) {
 		data: { user }
 	} = await supabase.auth.getUser()
 
-	// Define protected routes and auth routes
+	// Check route protection using centralized constants
 	const pathname = request.nextUrl.pathname
-	const isProtectedRoute = pathname.startsWith('/dashboard')
-	const isAuthRoute =
-		pathname === '/login' ||
-		pathname === '/signup' ||
-		pathname === '/auth/register'
+	const isProtectedRoute = PROTECTED_ROUTE_PREFIXES.some(
+		prefix => pathname === prefix || pathname.startsWith(`${prefix}/`)
+	)
+	const isAuthRoute = PUBLIC_AUTH_ROUTES.includes(
+		pathname as (typeof PUBLIC_AUTH_ROUTES)[number]
+	)
 
 	// Redirect unauthenticated users from protected routes to login
 	if (!user && isProtectedRoute) {

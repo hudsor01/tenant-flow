@@ -68,6 +68,15 @@ export function useAuthStore<T>(selector: (state: AuthState) => T): T {
 		throw new Error('Missing AuthStoreProvider')
 	}
 
+	// Always call hooks first (React Hooks rules)
+	const [state, setState] = React.useState(() => selector(store.getState()))
+	React.useEffect(() => {
+		const unsubscribe = store.subscribe((state: AuthState) => {
+			setState(selector(state))
+		})
+		return unsubscribe
+	}, [store, selector])
+
 	// Use the proper zustand hook if available
 	if ('use' in store) {
 		const storeUse = (
@@ -78,14 +87,6 @@ export function useAuthStore<T>(selector: (state: AuthState) => T): T {
 		return storeUse(selector)
 	}
 
-	// Fallback for compatibility
-	const [state, setState] = React.useState(() => selector(store.getState()))
-	React.useEffect(() => {
-		const unsubscribe = store.subscribe((state: AuthState) => {
-			setState(selector(state))
-		})
-		return unsubscribe
-	}, [store, selector])
-
+	// Return the state from hooks
 	return state
 }

@@ -1,7 +1,8 @@
 'use client'
 
+import { createClient } from '@/utils/supabase/client'
 import type { LoginCredentials } from '@repo/shared'
-import { createLogger, supabaseClient } from '@repo/shared'
+import { createLogger } from '@repo/shared'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -110,6 +111,8 @@ export default function LoginPage() {
 	const handleGoogleLogin = async () => {
 		setIsGoogleLoading(true)
 		try {
+			const supabase = createClient()
+
 			logger.info('Initiating Google OAuth login', {
 				action: 'google_oauth_init',
 				metadata: {
@@ -117,9 +120,12 @@ export default function LoginPage() {
 				}
 			})
 
-			// Simple OAuth call - Supabase handles the redirect URL automatically
-			const { error } = await supabaseClient.auth.signInWithOAuth({
-				provider: 'google'
+			// OAuth with redirectTo for proper callback handling
+			const { error } = await supabase.auth.signInWithOAuth({
+				provider: 'google',
+				options: {
+					redirectTo: `${window.location.origin}/auth/callback`
+				}
 			})
 
 			if (error) {
