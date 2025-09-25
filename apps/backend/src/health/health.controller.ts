@@ -40,95 +40,6 @@ export class HealthController {
 		})
 	}
 
-	@Get()
-	@Public()
-	async check(@Res() res: Response) {
-		// CRITICAL: This health check MUST verify database connectivity
-		// The entire application depends on Supabase - auth won't work without it
-		this.logger.log('Health check started - checking database connectivity')
-
-		try {
-			// Debug: Check if supabaseService is properly injected
-			this.logger.log('SupabaseService status', {
-				isUndefined: this.supabaseClient === undefined,
-				isNull: this.supabaseClient === null,
-				constructor: this.supabaseClient?.constructor?.name || 'N/A'
-			})
-
-			if (!this.supabaseClient) {
-				throw new Error('SupabaseService not injected properly')
-			}
-
-			// Check actual database connectivity
-			const dbHealth = await this.supabaseClient.checkConnection()
-
-			// Determine overall health based on database status
-			const isHealthy = dbHealth.status === 'healthy'
-
-			// Log the result
-			if (!isHealthy) {
-				this.logger.error('Database connectivity check failed', {
-					status: dbHealth.status,
-					message: dbHealth.message
-				})
-			} else {
-				this.logger.log('Database connectivity check passed')
-			}
-
-			// Return health status with database connectivity info
-			const response = {
-				status: isHealthy ? 'ok' : 'unhealthy',
-				timestamp: new Date().toISOString(),
-				environment: process.env.NODE_ENV || 'production',
-				uptime: process.uptime(),
-				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-				version: '1.0.0', // Hardcoded version - use package.json if needed via import
-				service: 'backend-api',
-				config_loaded: {
-					node_env: !!process.env.NODE_ENV,
-					cors_origins: !!process.env.CORS_ORIGINS,
-					supabase_url: !!process.env.SUPABASE_URL
-				},
-				database: {
-					status: dbHealth.status,
-					message: dbHealth.message || 'Database connection healthy'
-				}
-			}
-
-			// If database is unhealthy, return 503 Service Unavailable
-			if (!isHealthy) {
-				return res.status(503).json({
-					...response,
-					error: 'Database connection failed'
-				})
-			}
-
-			// Return 200 OK when healthy (required by Railway)
-			return res.status(200).json(response)
-		} catch (error) {
-			// Log the actual error for debugging
-			const errorMessage =
-				error instanceof Error ? error.message : String(error)
-			this.logger.error('Health check failed with error', errorMessage)
-
-			// Return unhealthy status with error details
-			return res.status(503).json({
-				status: 'unhealthy',
-				timestamp: new Date().toISOString(),
-				environment: process.env.NODE_ENV || 'production',
-				uptime: process.uptime(),
-				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-				version: '1.0.0', // Hardcoded version - use package.json if needed via import
-				service: 'backend-api',
-				database: {
-					status: 'unhealthy',
-					message: errorMessage
-				},
-				error: errorMessage
-			})
-		}
-	}
-
 	@Get('check')
 	@Public()
 	async checkEndpoint(@Res() res: Response) {
@@ -472,5 +383,97 @@ export class HealthController {
 		const result = await fn()
 		this.healthCheckCache.set(key, { result, timestamp: Date.now() })
 		return result
+	}
+
+	/**
+	 * Base health endpoint - MUST be last to avoid intercepting specific routes
+	 */
+	@Get()
+	@Public()
+	async check(@Res() res: Response) {
+		// CRITICAL: This health check MUST verify database connectivity
+		// The entire application depends on Supabase - auth won't work without it
+		this.logger.log('Health check started - checking database connectivity')
+
+		try {
+			// Debug: Check if supabaseService is properly injected
+			this.logger.log('SupabaseService status', {
+				isUndefined: this.supabaseClient === undefined,
+				isNull: this.supabaseClient === null,
+				constructor: this.supabaseClient?.constructor?.name || 'N/A'
+			})
+
+			if (!this.supabaseClient) {
+				throw new Error('SupabaseService not injected properly')
+			}
+
+			// Check actual database connectivity
+			const dbHealth = await this.supabaseClient.checkConnection()
+
+			// Determine overall health based on database status
+			const isHealthy = dbHealth.status === 'healthy'
+
+			// Log the result
+			if (!isHealthy) {
+				this.logger.error('Database connectivity check failed', {
+					status: dbHealth.status,
+					message: dbHealth.message
+				})
+			} else {
+				this.logger.log('Database connectivity check passed')
+			}
+
+			// Return health status with database connectivity info
+			const response = {
+				status: isHealthy ? 'ok' : 'unhealthy',
+				timestamp: new Date().toISOString(),
+				environment: process.env.NODE_ENV || 'production',
+				uptime: process.uptime(),
+				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+				version: '1.0.0', // Hardcoded version - use package.json if needed via import
+				service: 'backend-api',
+				config_loaded: {
+					node_env: !!process.env.NODE_ENV,
+					cors_origins: !!process.env.CORS_ORIGINS,
+					supabase_url: !!process.env.SUPABASE_URL
+				},
+				database: {
+					status: dbHealth.status,
+					message: dbHealth.message || 'Database connection healthy'
+				}
+			}
+
+			// If database is unhealthy, return 503 Service Unavailable
+			if (!isHealthy) {
+				return res.status(503).json({
+					...response,
+					error: 'Database connection failed'
+				})
+			}
+
+			// Return 200 OK when healthy (required by Railway)
+			return res.status(200).json(response)
+		} catch (error) {
+			// Log the actual error for debugging
+			const errorMessage =
+				error instanceof Error ? error.message : String(error)
+			this.logger.error('Health check failed with error', errorMessage)
+
+			// Return unhealthy status with error details
+			return res.status(503).json({
+				status: 'unhealthy',
+				timestamp: new Date().toISOString(),
+				environment: process.env.NODE_ENV || 'production',
+				uptime: process.uptime(),
+				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+				version: '1.0.0', // Hardcoded version - use package.json if needed via import
+				service: 'backend-api',
+				database: {
+					status: 'unhealthy',
+					message: errorMessage
+				},
+				error: errorMessage
+			})
+		}
 	}
 }
