@@ -123,7 +123,10 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 	}
 
 	return (
-		<section className={`min-h-screen lg:flex ${className}`} id="contact-form">
+		<section
+			className={`relative min-h-screen lg:flex ${className}`}
+			id="contact-form"
+		>
 			{/* Left side - Contact Info with Background */}
 			<div className="relative flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-12 xl:px-32">
 				{/* Background Image with Overlay */}
@@ -133,7 +136,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						backgroundImage: `url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2073&q=80')`
 					}}
 				>
-					<div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70" />
+					<div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 via-blue-500/85 to-purple-600/80" />
 				</div>
 
 				{/* Content */}
@@ -182,8 +185,8 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			</div>
 
 			{/* Right side - Contact Form */}
-			<div className="flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-12 xl:px-24 bg-background">
-				<div className="max-w-lg mx-auto w-full">
+			<div className="flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-16 xl:px-24 bg-white dark:bg-gray-900">
+				<div className="max-w-xl mx-auto w-full">
 					<h2 className="text-2xl font-bold text-foreground mb-2">
 						Get Your Custom ROI Report
 					</h2>
@@ -205,7 +208,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									onChange={e => handleInputChange('name', e.target.value)}
 									placeholder="John Smith"
 									required
-									className="mt-2 bg-background border-input"
+									className="mt-2 bg-background border-border"
 								/>
 							</div>
 
@@ -220,7 +223,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									onChange={e => handleInputChange('email', e.target.value)}
 									placeholder="john@propertyco.com"
 									required
-									className="mt-2 bg-background border-input"
+									className="mt-2 bg-background border-border"
 								/>
 							</div>
 						</div>
@@ -236,7 +239,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									value={formData.company || ''}
 									onChange={e => handleInputChange('company', e.target.value)}
 									placeholder="Property Management Co"
-									className="mt-2 bg-background border-input"
+									className="mt-2 bg-background border-border"
 								/>
 							</div>
 
@@ -250,7 +253,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									value={formData.phone || ''}
 									onChange={e => handleInputChange('phone', e.target.value)}
 									placeholder="+1 (555) 123-4567"
-									className="mt-2 bg-background border-input"
+									className="mt-2 bg-background border-border"
 								/>
 							</div>
 						</div>
@@ -264,7 +267,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								onValueChange={value => handleInputChange('subject', value)}
 								required
 							>
-								<SelectTrigger className="mt-2 bg-background border-input">
+								<SelectTrigger className="mt-2 bg-background border-border">
 									<SelectValue placeholder="How many properties do you manage?" />
 								</SelectTrigger>
 								<SelectContent>
@@ -295,7 +298,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								value={formData.type}
 								onValueChange={value => handleInputChange('type', value)}
 							>
-								<SelectTrigger className="mt-2 bg-background border-input">
+								<SelectTrigger className="mt-2 bg-background border-border">
 									<SelectValue placeholder="Select an option" />
 								</SelectTrigger>
 								<SelectContent>
@@ -320,7 +323,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								placeholder="What are your biggest property management challenges? What features are most important to you?"
 								required
 								rows={5}
-								className="mt-2 resize-none bg-background border-input"
+								className="mt-2 resize-none bg-background border-border"
 							/>
 						</div>
 
