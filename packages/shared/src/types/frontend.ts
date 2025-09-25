@@ -36,6 +36,19 @@ export interface SVGPatternProps {
 	children?: React.ReactNode
 }
 
+export interface DotPatternProps extends React.SVGProps<SVGSVGElement> {
+	width?: number
+	height?: number
+	x?: number
+	y?: number
+	cx?: number
+	cy?: number
+	cr?: number
+	className?: string
+	glow?: boolean
+	[key: string]: unknown
+}
+
 export interface ThemeColors {
 	primary: string
 	secondary: string

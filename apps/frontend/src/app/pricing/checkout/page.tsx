@@ -4,13 +4,10 @@ import { LoadingDots } from '@/components/magicui/loading-spinner'
 import { Checkout } from '@/components/pricing/checkout'
 import { Card, CardContent } from '@/components/ui/card'
 import { StripeProvider } from '@/providers/stripe-provider'
-import { createLogger } from '@repo/shared'
 import { ArrowLeft, CheckCircle, Shield, Zap } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
-
-const logger = createLogger({ component: 'CheckoutPage' })
 
 const plans = {
 	starter: {
@@ -58,7 +55,6 @@ const plans = {
 }
 
 function CheckoutPageContent() {
-	const router = useRouter()
 	const searchParams = useSearchParams()
 	const planId = searchParams.get('plan') || 'professional'
 	const plan = plans[planId as keyof typeof plans] || plans.professional
@@ -70,22 +66,7 @@ function CheckoutPageContent() {
 		}).format(cents / 100)
 	}
 
-	const _handleSuccess = () => {
-		router.push('/pricing/success')
-	}
-
-	const _handleError = (error: unknown) => {
-		logger.error('Payment failed during checkout', {
-			action: 'checkout_payment_failed',
-			metadata: {
-				planId,
-				planName: plan.name,
-				amount: plan.price,
-				error: error instanceof Error ? error.message : String(error)
-			}
-		})
-		router.push('/pricing?error=payment_failed')
-	}
+	// Note: Stripe embedded checkout handles success/error redirects automatically
 
 	return (
 		<main className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
