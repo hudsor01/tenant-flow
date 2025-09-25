@@ -19,7 +19,6 @@ import {
 	DefaultValuePipe,
 	Delete,
 	Get,
-	Logger,
 	NotFoundException,
 	Optional,
 	Param,
@@ -27,29 +26,32 @@ import {
 	ParseUUIDPipe,
 	Post,
 	Put,
-	Query
+	Query,
+	Req
 } from '@nestjs/common'
 import type {
 	CreateUnitRequest,
-	UpdateUnitRequest,
-	ValidatedUser
+	UpdateUnitRequest
 } from '@repo/shared'
-import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { Public } from '../shared/decorators/public.decorator'
+import type { Request } from 'express'
 import { UnitsService } from './units.service'
+import { SupabaseService } from '../database/supabase.service'
 
 @Controller('units')
 export class UnitsController {
-	private readonly logger = new Logger(UnitsController.name)
+	// Logger available if needed for debugging
+	// private readonly logger = new Logger(UnitsController.name)
 
-	constructor(@Optional() private readonly unitsService?: UnitsService) {}
+	constructor(
+		@Optional() private readonly unitsService?: UnitsService,
+		@Optional() private readonly supabaseService?: SupabaseService
+	) {}
 
 	/**
 	 * Get all units for the authenticated user
 	 * Uses built-in pipes for automatic validation
 	 */
 	@Get()
-	@Public()
 	async findAll(
 		@Query('propertyId', new DefaultValuePipe(null))
 		propertyId: string | null,
@@ -59,7 +61,7 @@ export class UnitsController {
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
 		@Query('sortBy', new DefaultValuePipe('createdAt')) sortBy: string,
 		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		// Validate enum values using native JavaScript
 		if (
@@ -89,6 +91,9 @@ export class UnitsController {
 			}
 		}
 
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+
 		return this.unitsService.findAll(user?.id || 'test-user-id', {
 			propertyId,
 			status,
@@ -105,8 +110,7 @@ export class UnitsController {
 	 * Direct RPC call to PostgreSQL
 	 */
 	@Get('stats')
-	@Public()
-	async getStats(@CurrentUser() user?: ValidatedUser) {
+	async getStats(@Req() request: Request) {
 		if (!this.unitsService) {
 			return {
 				message: 'Units service not available',
@@ -117,6 +121,8 @@ export class UnitsController {
 				reservedUnits: 0
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.unitsService.getStats(user?.id || 'test-user-id')
 	}
 
@@ -125,10 +131,9 @@ export class UnitsController {
 	 * Uses ParseUUIDPipe for automatic UUID validation
 	 */
 	@Get('by-property/:propertyId')
-	@Public()
 	async findByProperty(
 		@Param('propertyId', ParseUUIDPipe) propertyId: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.unitsService) {
 			return {
@@ -137,6 +142,8 @@ export class UnitsController {
 				data: []
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.unitsService.findByProperty(
 			user?.id || 'test-user-id',
 			propertyId
@@ -148,10 +155,9 @@ export class UnitsController {
 	 * Built-in UUID validation
 	 */
 	@Get(':id')
-	@Public()
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.unitsService) {
 			return {
@@ -160,6 +166,8 @@ export class UnitsController {
 				data: null
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		const unit = await this.unitsService.findOne(user?.id || 'test-user-id', id)
 		if (!unit) {
 			throw new NotFoundException('Unit not found')
@@ -172,10 +180,9 @@ export class UnitsController {
 	 * JSON Schema validation via Express
 	 */
 	@Post()
-	@Public()
 	async create(
 		@Body() createUnitRequest: CreateUnitRequest,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.unitsService) {
 			return {
@@ -184,6 +191,8 @@ export class UnitsController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.unitsService.create(
 			user?.id || 'test-user-id',
 			createUnitRequest
@@ -195,11 +204,10 @@ export class UnitsController {
 	 * Built-in UUID validation + JSON Schema for body
 	 */
 	@Put(':id')
-	@Public()
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateUnitRequest: UpdateUnitRequest,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.unitsService) {
 			return {
@@ -209,6 +217,8 @@ export class UnitsController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		const unit = await this.unitsService.update(
 			user?.id || 'test-user-id',
 			id,
@@ -225,10 +235,9 @@ export class UnitsController {
 	 * Simple and direct
 	 */
 	@Delete(':id')
-	@Public()
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.unitsService) {
 			return {
@@ -237,6 +246,8 @@ export class UnitsController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		await this.unitsService.remove(user?.id || 'test-user-id', id)
 		return { message: 'Unit deleted successfully' }
 	}

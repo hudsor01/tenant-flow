@@ -21,17 +21,17 @@ import {
 	ParseUUIDPipe,
 	Post,
 	Put,
-	Query
+	Query,
+	Req
 } from '@nestjs/common'
 // Swagger imports removed
 import type {
 	CreateLeaseRequest,
-	UpdateLeaseRequest,
-	ValidatedUser
+	UpdateLeaseRequest
 } from '@repo/shared'
-import { CurrentUser } from '../shared/decorators/current-user.decorator'
-import { Public } from '../shared/decorators/public.decorator'
+import type { Request } from 'express'
 import { LeasesService } from './leases.service'
+import { SupabaseService } from '../database/supabase.service'
 
 // @ApiTags('leases')
 // @ApiBearerAuth()
@@ -39,14 +39,16 @@ import { LeasesService } from './leases.service'
 export class LeasesController {
 	private readonly logger = new Logger(LeasesController.name)
 
-	constructor(@Optional() private readonly leasesService?: LeasesService) {}
+	constructor(
+		@Optional() private readonly leasesService?: LeasesService,
+		@Optional() private readonly supabaseService?: SupabaseService
+	) {}
 
 	@Get()
-	@Public()
 	// @ApiOperation({ summary: 'Get all leases' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async findAll(
-		@CurrentUser() user?: ValidatedUser,
+		@Req() request: Request,
 		@Query('tenantId') tenantId?: string,
 		@Query('unitId') unitId?: string,
 		@Query('propertyId') propertyId?: string,
@@ -105,6 +107,9 @@ export class LeasesController {
 			}
 		}
 
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+
 		return this.leasesService.findAll(user?.id || 'test-user-id', {
 			tenantId,
 			unitId,
@@ -118,10 +123,9 @@ export class LeasesController {
 	}
 
 	@Get('stats')
-	@Public()
 	// @ApiOperation({ summary: 'Get lease statistics' })
 	// @ApiResponse({ status: HttpStatus.OK })
-	async getStats(@CurrentUser() user?: ValidatedUser) {
+	async getStats(@Req() request: Request) {
 		if (!this.leasesService) {
 			return {
 				message: 'Leases service not available',
@@ -131,15 +135,16 @@ export class LeasesController {
 				draftLeases: 0
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.leasesService.getStats(user?.id || 'test-user-id')
 	}
 
 	@Get('analytics/performance')
-	@Public()
 	// @ApiOperation({ summary: 'Get per-lease performance analytics' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeasePerformanceAnalytics(
-		@CurrentUser() user?: ValidatedUser,
+		@Req() request: Request,
 		@Query('leaseId') leaseId?: string,
 		@Query('propertyId') propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('90d')) timeframe?: string
@@ -179,6 +184,9 @@ export class LeasesController {
 			}
 		}
 
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+
 		return this.leasesService.getLeasePerformanceAnalytics(
 			user?.id || 'test-user-id',
 			{
@@ -190,11 +198,10 @@ export class LeasesController {
 	}
 
 	@Get('analytics/duration')
-	@Public()
 	// @ApiOperation({ summary: 'Get lease duration and renewal analytics' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseDurationAnalytics(
-		@CurrentUser() user?: ValidatedUser,
+		@Req() request: Request,
 		@Query('propertyId') propertyId?: string,
 		@Query('period', new DefaultValuePipe('yearly')) period?: string
 	) {
@@ -224,6 +231,9 @@ export class LeasesController {
 			}
 		}
 
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+
 		return this.leasesService.getLeaseDurationAnalytics(
 			user?.id || 'test-user-id',
 			{
@@ -234,11 +244,10 @@ export class LeasesController {
 	}
 
 	@Get('analytics/turnover')
-	@Public()
 	// @ApiOperation({ summary: 'Get lease turnover and retention analytics' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseTurnoverAnalytics(
-		@CurrentUser() user?: ValidatedUser,
+		@Req() request: Request,
 		@Query('propertyId') propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
 	) {
@@ -268,6 +277,9 @@ export class LeasesController {
 			}
 		}
 
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+
 		return this.leasesService.getLeaseTurnoverAnalytics(
 			user?.id || 'test-user-id',
 			{
@@ -278,11 +290,10 @@ export class LeasesController {
 	}
 
 	@Get('analytics/revenue')
-	@Public()
 	// @ApiOperation({ summary: 'Get per-lease revenue analytics and trends' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseRevenueAnalytics(
-		@CurrentUser() user?: ValidatedUser,
+		@Req() request: Request,
 		@Query('leaseId') leaseId?: string,
 		@Query('propertyId') propertyId?: string,
 		@Query('period', new DefaultValuePipe('monthly')) period?: string
@@ -322,6 +333,9 @@ export class LeasesController {
 			}
 		}
 
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+
 		return this.leasesService.getLeaseRevenueAnalytics(
 			user?.id || 'test-user-id',
 			{
@@ -333,11 +347,10 @@ export class LeasesController {
 	}
 
 	@Get('expiring')
-	@Public()
 	// @ApiOperation({ summary: 'Get expiring leases' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async getExpiring(
-		@CurrentUser() user?: ValidatedUser,
+		@Req() request: Request,
 		@Query('days', new DefaultValuePipe(30), ParseIntPipe) days?: number
 	) {
 		if (days && (days < 1 || days > 365)) {
@@ -350,6 +363,8 @@ export class LeasesController {
 				days: days ?? 30
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.leasesService.getExpiring(
 			user?.id || 'test-user-id',
 			days ?? 30
@@ -357,13 +372,12 @@ export class LeasesController {
 	}
 
 	@Get(':id')
-	@Public()
 	// @ApiOperation({ summary: 'Get lease by ID' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.leasesService) {
 			return {
@@ -372,6 +386,8 @@ export class LeasesController {
 				data: null
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		const lease = await this.leasesService.findOne(
 			user?.id || 'test-user-id',
 			id
@@ -383,12 +399,11 @@ export class LeasesController {
 	}
 
 	@Post()
-	@Public()
 	// @ApiOperation({ summary: 'Create new lease' })
 	// @ApiResponse({ status: HttpStatus.CREATED })
 	async create(
 		@Body() createRequest: CreateLeaseRequest,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.leasesService) {
 			return {
@@ -397,18 +412,19 @@ export class LeasesController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.leasesService.create(user?.id || 'test-user-id', createRequest)
 	}
 
 	@Put(':id')
-	@Public()
 	// @ApiOperation({ summary: 'Update lease' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateRequest: UpdateLeaseRequest,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.leasesService) {
 			return {
@@ -418,6 +434,8 @@ export class LeasesController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		const lease = await this.leasesService.update(
 			user?.id || 'test-user-id',
 			id,
@@ -430,12 +448,11 @@ export class LeasesController {
 	}
 
 	@Delete(':id')
-	@Public()
 	// @ApiOperation({ summary: 'Delete lease' })
 	// @ApiResponse({ status: HttpStatus.NO_CONTENT })
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		if (!this.leasesService) {
 			return {
@@ -444,18 +461,19 @@ export class LeasesController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		await this.leasesService.remove(user?.id || 'test-user-id', id)
 		return { message: 'Lease deleted successfully' }
 	}
 
 	@Post(':id/renew')
-	@Public()
 	// @ApiOperation({ summary: 'Renew lease' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async renew(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body('endDate') endDate: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request
 	) {
 		// Validate date format
 		if (!endDate || !endDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -470,17 +488,18 @@ export class LeasesController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.leasesService.renew(user?.id || 'test-user-id', id, endDate)
 	}
 
 	@Post(':id/terminate')
-	@Public()
 	// @ApiOperation({ summary: 'Terminate lease' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async terminate(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Body('reason') reason?: string,
-		@CurrentUser() user?: ValidatedUser
+		@Req() request: Request,
+		@Body('reason') reason?: string
 	) {
 		if (!this.leasesService) {
 			return {
@@ -491,6 +510,8 @@ export class LeasesController {
 				success: false
 			}
 		}
+		// Modern 2025 pattern: Direct Supabase validation
+		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
 		return this.leasesService.terminate(user?.id || 'test-user-id', id, reason)
 	}
 }

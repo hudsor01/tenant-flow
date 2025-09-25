@@ -58,7 +58,7 @@ export class StripeWebhookService {
 	 * Prevents concurrent processing of the same event
 	 */
 	async recordEventProcessing(eventId: string, eventType: string): Promise<void> {
-		try {
+	try {
 			const client = this.supabaseService.getAdminClient()
 
 			// Use upsert with onConflict to handle race conditions
@@ -67,7 +67,8 @@ export class StripeWebhookService {
 				.upsert({
 					stripe_event_id: eventId,
 					event_type: eventType,
-					processed_at: new Date().toISOString()
+					processed_at: new Date().toISOString(),
+					status: 'processed' as const
 				}, {
 					onConflict: 'stripe_event_id'
 				})
@@ -89,12 +90,12 @@ export class StripeWebhookService {
 				error
 			})
 			throw error
-		}
+	}
 	}
 
 	/**
 	 * Mark an event as successfully processed
-	 * Updates the processed_at timestamp
+	 * Updates the processed_at timestamp and status
 	 */
 	async markEventProcessed(eventId: string): Promise<void> {
 		try {
@@ -103,7 +104,8 @@ export class StripeWebhookService {
 			const { error } = await client
 				.from('processed_stripe_events')
 				.update({
-					processed_at: new Date().toISOString()
+					processed_at: new Date().toISOString(),
+					status: 'processed' as const
 				})
 				.eq('stripe_event_id', eventId)
 
@@ -122,7 +124,7 @@ export class StripeWebhookService {
 				error
 			})
 			throw error
-		}
+	}
 	}
 
 	/**

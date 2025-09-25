@@ -4,8 +4,9 @@ import {
 	Logger,
 	OnModuleInit
 } from '@nestjs/common'
-import type { Database } from '@repo/shared'
+import type { Database, ValidatedUser } from '@repo/shared'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import type { Request } from 'express'
 
 @Injectable()
 export class SupabaseService implements OnModuleInit {
@@ -95,6 +96,70 @@ export class SupabaseService implements OnModuleInit {
 				}
 			}
 		})
+	}
+
+	/**
+	 * Validates a user by reading the Supabase auth cookie and verifying it
+	 * Modern 2025 pattern using Supabase SSR cookies instead of JWT headers
+	 */
+	async validateUser(req: Request): Promise<ValidatedUser | null> {
+		try {
+			// Extract Supabase auth cookie (format: sb-{project-ref}-auth-token)
+			const cookieName = `sb-${process.env.SUPABASE_PROJECT_REF || 'bshjmbshupiibfiewpxb'}-auth-token`
+			const authCookie = req.cookies?.[cookieName] as string | undefined
+
+			if (!authCookie) {
+				this.logger.debug('No Supabase auth cookie found')
+				return null
+			}
+
+			// Validate the token using admin client
+			const { data: { user: supabaseUser }, error } = await this.adminClient.auth.getUser(authCookie)
+
+			if (error || !supabaseUser?.id) {
+				this.logger.debug('Invalid Supabase auth token', { error: error?.message })
+				return null
+			}
+
+			// Query our User table to get the complete user record
+			const { data: dbUser, error: dbError } = await this.adminClient
+				.from('User')
+				.select('*')
+				.eq('supabaseId', supabaseUser.id)
+				.single()
+
+			if (dbError || !dbUser) {
+				this.logger.debug('User not found in database', {
+					supabaseId: supabaseUser.id,
+					error: dbError?.message
+				})
+				return null
+			}
+
+			// Map database user to ValidatedUser format
+			const validatedUser: ValidatedUser = {
+				id: dbUser.id,
+				email: dbUser.email,
+				name: dbUser.name,
+				phone: dbUser.phone,
+				bio: dbUser.bio,
+				avatarUrl: dbUser.avatarUrl,
+				role: dbUser.role,
+				createdAt: new Date(dbUser.createdAt),
+				updatedAt: new Date(dbUser.updatedAt),
+				emailVerified: !!supabaseUser.email_confirmed_at,
+				supabaseId: dbUser.supabaseId,
+				stripeCustomerId: dbUser.stripeCustomerId,
+				organizationId: null // Organization feature not implemented yet
+			}
+
+			return validatedUser
+		} catch (error) {
+			this.logger.error('Error validating user', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+			return null
+		}
 	}
 
 	async checkConnection(): Promise<{

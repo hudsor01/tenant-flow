@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear TenantFlow Auth State</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f9fafb;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #111827;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #dc2626;
+        }
+        button.safe {
+            background: #3b82f6;
+        }
+        button.safe:hover {
+            background: #2563eb;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #f3f4f6;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Clear TenantFlow Auth State</h1>
+        <p>Use this tool to clear any problematic authentication state that might be causing redirect issues.</p>
+
+        <div style="margin: 20px 0;">
+            <h3>Quick Actions</h3>
+            <button class="safe" onclick="checkCurrentState()">Check Current State</button>
+            <button onclick="clearAuthState()">Clear All Auth State</button>
+            <button onclick="clearCookies()">Clear Supabase Cookies</button>
+            <button class="safe" onclick="testLogin()">Test Login Page Access</button>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const supabaseUrl = 'https://bshjmbshupiibfiewpxb.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGptYnNodXBpaWJmaWV3cHhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0MDc1MDYsImV4cCI6MjA2Mzk4MzUwNn0.K9cR4SN_MtutRWPJsymtAtlHpEJFyfnQgtu8BjQRqko';
+
+        const { createClient } = supabase;
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+        async function checkCurrentState() {
+            showResult('Checking authentication state...', 'info');
+
+            try {
+                // Check session
+                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+
+                // Check user
+                const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+
+                // Check cookies
+                const cookies = document.cookie.split(';').filter(c =>
+                    c.includes('sb-') || c.includes('auth')
+                );
+
+                const state = {
+                    session: session ? 'Active' : 'None',
+                    sessionDetails: session ? {
+                        userId: session.user?.id,
+                        email: session.user?.email,
+                        expiresAt: new Date(session.expires_at * 1000).toLocaleString()
+                    } : null,
+                    user: user ? 'Found' : 'None',
+                    userDetails: user ? {
+                        id: user.id,
+                        email: user.email
+                    } : null,
+                    cookies: cookies.length > 0 ? cookies.map(c => c.trim()) : ['No auth cookies found'],
+                    sessionError: sessionError?.message,
+                    userError: userError?.message
+                };
+
+                showResult(`Current State:\n${JSON.stringify(state, null, 2)}`, 'info');
+            } catch (error) {
+                showResult(`Error checking state: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearAuthState() {
+            showResult('Clearing all authentication state...', 'info');
+
+            try {
+                // Sign out from Supabase
+                const { error } = await supabaseClient.auth.signOut();
+
+                // Clear all cookies
+                document.cookie.split(';').forEach(cookie => {
+                    const eqPos = cookie.indexOf('=');
+                    const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                    if (name.includes('sb-') || name.includes('auth')) {
+                        // Clear for all possible paths and domains
+                        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.tenantflow.app`;
+                        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=tenantflow.app`;
+                        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost`;
+                    }
+                });
+
+                // Clear localStorage
+                localStorage.removeItem('supabase.auth.token');
+                Object.keys(localStorage).forEach(key => {
+                    if (key.includes('supabase') || key.includes('auth')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+
+                // Clear sessionStorage
+                Object.keys(sessionStorage).forEach(key => {
+                    if (key.includes('supabase') || key.includes('auth')) {
+                        sessionStorage.removeItem(key);
+                    }
+                });
+
+                showResult('Successfully cleared all auth state!\n\nYou should now be able to:\n1. Navigate to /login without being redirected\n2. Sign in fresh without any cached state issues\n\nTry visiting the login page now.', 'success');
+            } catch (error) {
+                showResult(`Error clearing state: ${error.message}`, 'error');
+            }
+        }
+
+        function clearCookies() {
+            showResult('Clearing Supabase cookies...', 'info');
+
+            const clearedCookies = [];
+            document.cookie.split(';').forEach(cookie => {
+                const eqPos = cookie.indexOf('=');
+                const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                if (name.includes('sb-') || name.includes('auth')) {
+                    // Clear for all possible paths
+                    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/auth;`;
+                    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/auth/callback;`;
+                    clearedCookies.push(name);
+                }
+            });
+
+            if (clearedCookies.length > 0) {
+                showResult(`Cleared cookies:\n${clearedCookies.join('\n')}\n\nCookies have been cleared. Try accessing /login now.`, 'success');
+            } else {
+                showResult('No auth cookies found to clear.', 'info');
+            }
+        }
+
+        function testLogin() {
+            showResult('Testing login page access...\n\nOpening /login in a new tab.\nIf you get redirected to /dashboard, there may still be auth state issues.', 'info');
+            window.open('/login', '_blank');
+        }
+
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result ${type}`;
+            resultDiv.textContent = message;
+        }
+
+        // Check state on load
+        document.addEventListener('DOMContentLoaded', () => {
+            checkCurrentState();
+        });
+    </script>
+</body>
+</html>

@@ -13,7 +13,9 @@ describe('LeasesController', () => {
 
 	const generateUUID = () => randomUUID()
 
-	const createMockUser = (overrides: Partial<ValidatedUser> = {}): ValidatedUser => ({
+	const createMockUser = (
+		overrides: Partial<ValidatedUser> = {}
+	): ValidatedUser => ({
 		id: generateUUID(),
 		email: 'test@example.com',
 		name: 'Test User',
@@ -30,14 +32,23 @@ describe('LeasesController', () => {
 		...overrides
 	})
 
+	const createMockRequest = (user?: ValidatedUser) =>
+		({
+			user,
+			headers: {},
+			query: {},
+			params: {},
+			body: {}
+		}) as unknown as Request
+
 	const createMockLease = (overrides: Record<string, unknown> = {}) => ({
 		id: generateUUID(),
 		tenantId: generateUUID(),
 		unitId: generateUUID(),
 		startDate: '2024-01-01',
 		endDate: '2024-12-31',
-		monthlyRent: 1500.00,
-		securityDeposit: 3000.00,
+		monthlyRent: 1500.0,
+		securityDeposit: 3000.0,
 		paymentFrequency: 'MONTHLY',
 		status: 'ACTIVE',
 		createdAt: new Date().toISOString(),
@@ -59,7 +70,7 @@ describe('LeasesController', () => {
 			getLeasePerformanceAnalytics: jest.fn(),
 			getLeaseDurationAnalytics: jest.fn(),
 			getLeaseTurnoverAnalytics: jest.fn(),
-			getLeaseRevenueAnalytics: jest.fn(),
+			getLeaseRevenueAnalytics: jest.fn()
 		} as unknown as jest.Mocked<LeasesService>
 
 		const module: TestingModule = await Test.createTestingModule({
@@ -67,9 +78,9 @@ describe('LeasesController', () => {
 			providers: [
 				{
 					provide: LeasesService,
-					useValue: mockLeasesService,
-				},
-			],
+					useValue: mockLeasesService
+				}
+			]
 		})
 			.setLogger(new SilentLogger())
 			.compile()
@@ -84,18 +95,19 @@ describe('LeasesController', () => {
 	describe('findAll', () => {
 		it('should return all leases with default pagination', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const mockLeases = [createMockLease(), createMockLease()]
 			mockLeasesService.findAll.mockResolvedValue(mockLeases)
 
 			// DefaultValuePipe applies defaults in NestJS, but not in unit tests
 			const result = await controller.findAll(
-				user,
+				mockRequest,
 				undefined,
 				undefined,
 				undefined,
 				undefined,
 				10, // Default from pipe
-				0,  // Default from pipe
+				0, // Default from pipe
 				'createdAt', // Default from pipe
 				'desc' // Default from pipe
 			)
@@ -115,6 +127,7 @@ describe('LeasesController', () => {
 
 		it('should return filtered leases with custom parameters', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const tenantId = generateUUID()
 			const unitId = generateUUID()
 			const propertyId = generateUUID()
@@ -122,7 +135,7 @@ describe('LeasesController', () => {
 			mockLeasesService.findAll.mockResolvedValue(mockLeases)
 
 			const result = await controller.findAll(
-				user,
+				mockRequest,
 				tenantId,
 				unitId,
 				propertyId,
@@ -148,50 +161,86 @@ describe('LeasesController', () => {
 
 		it('should validate tenant ID format', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 
 			await expect(
-				controller.findAll(user, 'invalid-uuid')
+				controller.findAll(mockRequest, 'invalid-uuid')
 			).rejects.toThrow(BadRequestException)
 		})
 
 		it('should validate unit ID format', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const validTenantId = generateUUID()
 
 			await expect(
-				controller.findAll(user, validTenantId, 'invalid-uuid')
+				controller.findAll(mockRequest, validTenantId, 'invalid-uuid')
 			).rejects.toThrow(BadRequestException)
 		})
 
 		it('should validate property ID format', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const validTenantId = generateUUID()
 			const validUnitId = generateUUID()
 
 			await expect(
-				controller.findAll(user, validTenantId, validUnitId, 'invalid-uuid')
+				controller.findAll(
+					mockRequest,
+					validTenantId,
+					validUnitId,
+					'invalid-uuid'
+				)
 			).rejects.toThrow(BadRequestException)
 		})
 
 		it('should validate lease status enum', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 
 			await expect(
-				controller.findAll(user, undefined, undefined, undefined, 'INVALID_STATUS')
+				controller.findAll(
+					mockRequest,
+					undefined,
+					undefined,
+					undefined,
+					'INVALID_STATUS'
+				)
 			).rejects.toThrow(BadRequestException)
 		})
 
 		it('should validate limit range', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const mockLeases = [createMockLease()]
 			mockLeasesService.findAll.mockResolvedValue(mockLeases)
 
 			// 0 is falsy, so validation doesn't trigger (this is correct behavior)
-			await controller.findAll(user, undefined, undefined, undefined, undefined, 0, 0, 'createdAt', 'desc')
+			await controller.findAll(
+				mockRequest,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				0,
+				0,
+				'createdAt',
+				'desc'
+			)
 
 			// 51 should fail validation
 			await expect(
-				controller.findAll(user, undefined, undefined, undefined, undefined, 51, 0, 'createdAt', 'desc')
+				controller.findAll(
+					mockRequest,
+					undefined,
+					undefined,
+					undefined,
+					undefined,
+					51,
+					0,
+					'createdAt',
+					'desc'
+				)
 			).rejects.toThrow(BadRequestException)
 		})
 	})
@@ -199,6 +248,7 @@ describe('LeasesController', () => {
 	describe('getStats', () => {
 		it('should return lease statistics', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const mockStats = {
 				total: 25,
 				active: 20,
@@ -207,7 +257,7 @@ describe('LeasesController', () => {
 			}
 			mockLeasesService.getStats.mockResolvedValue(mockStats)
 
-			const result = await controller.getStats(user)
+			const result = await controller.getStats(mockRequest)
 
 			expect(mockLeasesService.getStats).toHaveBeenCalledWith(user.id)
 			expect(result).toEqual(mockStats)
@@ -217,11 +267,12 @@ describe('LeasesController', () => {
 	describe('getExpiring', () => {
 		it('should return expiring leases with default days', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const mockExpiring = [createMockLease()]
 			mockLeasesService.getExpiring.mockResolvedValue(mockExpiring)
 
 			// DefaultValuePipe applies defaults in NestJS, but not in unit tests
-			const result = await controller.getExpiring(user, 30)
+			const result = await controller.getExpiring(mockRequest, 30)
 
 			expect(mockLeasesService.getExpiring).toHaveBeenCalledWith(user.id, 30)
 			expect(result).toEqual(mockExpiring)
@@ -229,10 +280,11 @@ describe('LeasesController', () => {
 
 		it('should return expiring leases with custom days', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const mockExpiring = [createMockLease()]
 			mockLeasesService.getExpiring.mockResolvedValue(mockExpiring)
 
-			const result = await controller.getExpiring(user, 60)
+			const result = await controller.getExpiring(mockRequest, 60)
 
 			expect(mockLeasesService.getExpiring).toHaveBeenCalledWith(user.id, 60)
 			expect(result).toEqual(mockExpiring)
@@ -240,27 +292,29 @@ describe('LeasesController', () => {
 
 		it('should validate days range', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const mockExpiring = [createMockLease()]
 			mockLeasesService.getExpiring.mockResolvedValue(mockExpiring)
 
 			// 0 is falsy, so validation doesn't trigger (this is correct behavior)
-			await controller.getExpiring(user, 0)
+			await controller.getExpiring(mockRequest, 0)
 
 			// 366 should fail validation
-			await expect(
-				controller.getExpiring(user, 366)
-			).rejects.toThrow(BadRequestException)
+			await expect(controller.getExpiring(mockRequest, 366)).rejects.toThrow(
+				BadRequestException
+			)
 		})
 	})
 
 	describe('findOne', () => {
 		it('should return lease by ID', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const leaseId = generateUUID()
 			const mockLease = createMockLease({ id: leaseId })
 			mockLeasesService.findOne.mockResolvedValue(mockLease)
 
-			const result = await controller.findOne(leaseId, user)
+			const result = await controller.findOne(leaseId, mockRequest)
 
 			expect(mockLeasesService.findOne).toHaveBeenCalledWith(user.id, leaseId)
 			expect(result).toEqual(mockLease)
@@ -268,34 +322,39 @@ describe('LeasesController', () => {
 
 		it('should throw NotFoundException when lease not found', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const leaseId = generateUUID()
 			mockLeasesService.findOne.mockResolvedValue(null)
 
-			await expect(
-				controller.findOne(leaseId, user)
-			).rejects.toThrow(NotFoundException)
+			await expect(controller.findOne(leaseId, mockRequest)).rejects.toThrow(
+				NotFoundException
+			)
 		})
 	})
 
 	describe('create', () => {
 		it('should create new lease', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const createRequest = {
 				tenantId: generateUUID(),
 				unitId: generateUUID(),
 				startDate: '2024-01-01',
 				endDate: '2024-12-31',
-				monthlyRent: 1500.00,
-				securityDeposit: 3000.00,
+				monthlyRent: 1500.0,
+				securityDeposit: 3000.0,
 				paymentFrequency: 'MONTHLY' as const,
 				status: 'DRAFT' as const
 			}
 			const mockLease = createMockLease()
 			mockLeasesService.create.mockResolvedValue(mockLease)
 
-			const result = await controller.create(createRequest, user)
+			const result = await controller.create(createRequest, mockRequest)
 
-			expect(mockLeasesService.create).toHaveBeenCalledWith(user.id, createRequest)
+			expect(mockLeasesService.create).toHaveBeenCalledWith(
+				user.id,
+				createRequest
+			)
 			expect(result).toEqual(mockLease)
 		})
 	})
@@ -303,29 +362,39 @@ describe('LeasesController', () => {
 	describe('update', () => {
 		it('should update existing lease', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const leaseId = generateUUID()
 			const updateRequest = {
-				monthlyRent: 1600.00,
-				securityDeposit: 3200.00,
+				monthlyRent: 1600.0,
+				securityDeposit: 3200.0,
 				status: 'ACTIVE' as const
 			}
 			const mockLease = createMockLease({ ...updateRequest })
 			mockLeasesService.update.mockResolvedValue(mockLease)
 
-			const result = await controller.update(leaseId, updateRequest, user)
+			const result = await controller.update(
+				leaseId,
+				updateRequest,
+				mockRequest
+			)
 
-			expect(mockLeasesService.update).toHaveBeenCalledWith(user.id, leaseId, updateRequest)
+			expect(mockLeasesService.update).toHaveBeenCalledWith(
+				user.id,
+				leaseId,
+				updateRequest
+			)
 			expect(result).toEqual(mockLease)
 		})
 
 		it('should throw NotFoundException when lease not found', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const leaseId = generateUUID()
-			const updateRequest = { monthlyRent: 1600.00 }
+			const updateRequest = { monthlyRent: 1600.0 }
 			mockLeasesService.update.mockResolvedValue(null)
 
 			await expect(
-				controller.update(leaseId, updateRequest, user)
+				controller.update(leaseId, updateRequest, mockRequest)
 			).rejects.toThrow(NotFoundException)
 		})
 	})
@@ -333,10 +402,11 @@ describe('LeasesController', () => {
 	describe('remove', () => {
 		it('should delete lease', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const leaseId = generateUUID()
 			mockLeasesService.remove.mockResolvedValue(undefined)
 
-			await controller.remove(leaseId, user)
+			await controller.remove(leaseId, mockRequest)
 
 			expect(mockLeasesService.remove).toHaveBeenCalledWith(user.id, leaseId)
 		})
@@ -345,58 +415,74 @@ describe('LeasesController', () => {
 	describe('renew', () => {
 		it('should renew lease with valid end date', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const leaseId = generateUUID()
 			const endDate = '2025-12-31'
 			const mockLease = createMockLease({ endDate })
 			mockLeasesService.renew.mockResolvedValue(mockLease)
 
-			const result = await controller.renew(leaseId, endDate, user)
+			const result = await controller.renew(leaseId, endDate, mockRequest)
 
-			expect(mockLeasesService.renew).toHaveBeenCalledWith(user.id, leaseId, endDate)
+			expect(mockLeasesService.renew).toHaveBeenCalledWith(
+				user.id,
+				leaseId,
+				endDate
+			)
 			expect(result).toEqual(mockLease)
 		})
 
 		it('should validate date format', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const leaseId = generateUUID()
 
 			await expect(
-				controller.renew(leaseId, 'invalid-date', user)
+				controller.renew(leaseId, 'invalid-date', mockRequest)
 			).rejects.toThrow(BadRequestException)
 
 			await expect(
-				controller.renew(leaseId, '01/01/2025', user)
+				controller.renew(leaseId, '01/01/2025', mockRequest)
 			).rejects.toThrow(BadRequestException)
 
-			await expect(
-				controller.renew(leaseId, '', user)
-			).rejects.toThrow(BadRequestException)
+			await expect(controller.renew(leaseId, '', mockRequest)).rejects.toThrow(
+				BadRequestException
+			)
 		})
 	})
 
 	describe('terminate', () => {
 		it('should terminate lease with reason', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const leaseId = generateUUID()
 			const reason = 'Tenant violation'
 			const mockLease = createMockLease({ status: 'TERMINATED' })
 			mockLeasesService.terminate.mockResolvedValue(mockLease)
 
-			const result = await controller.terminate(leaseId, reason, user)
+			const result = await controller.terminate(leaseId, mockRequest, reason)
 
-			expect(mockLeasesService.terminate).toHaveBeenCalledWith(user.id, leaseId, reason)
+			expect(mockLeasesService.terminate).toHaveBeenCalledWith(
+				user.id,
+				leaseId,
+				reason
+			)
 			expect(result).toEqual(mockLease)
 		})
 
 		it('should terminate lease without reason', async () => {
 			const user = createMockUser()
+			const mockRequest = createMockRequest(user)
 			const leaseId = generateUUID()
 			const mockLease = createMockLease({ status: 'TERMINATED' })
 			mockLeasesService.terminate.mockResolvedValue(mockLease)
 
-			const result = await controller.terminate(leaseId, undefined, user)
+			const result = await controller.terminate(leaseId, mockRequest, undefined)
 
-			expect(mockLeasesService.terminate).toHaveBeenCalledWith(user.id, leaseId, undefined)
+			expect(mockLeasesService.terminate).toHaveBeenCalledWith(
+				user.id,
+				leaseId,
+				undefined
+			)
 			expect(result).toEqual(mockLease)
 		})
 	})

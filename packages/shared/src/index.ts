@@ -66,7 +66,7 @@ export {
 // ESSENTIAL DOMAIN CONSTANTS
 export { USER_ROLE } from './constants/auth.js'
 export { PLANS, PLAN_TYPE } from './constants/billing.js'
-export { Permission } from './types/security.js'
+export type { Permission } from './types/security.js'
 
 export {
 	ANIMATION_DURATIONS,

@@ -35,9 +35,13 @@ export async function updateSession(request: NextRequest) {
 	)
 
 	// This will refresh the session if expired - required for Server Components
+	// IMPORTANT: Check session first to ensure it's valid, not just that a user exists
 	const {
-		data: { user }
-	} = await supabase.auth.getUser()
+		data: { session }
+	} = await supabase.auth.getSession()
+
+	// Only consider user authenticated if there's a valid session
+	const user = session?.user ?? null
 
 	// Check route protection using centralized constants
 	const pathname = request.nextUrl.pathname
@@ -57,7 +61,8 @@ export async function updateSession(request: NextRequest) {
 	}
 
 	// Redirect authenticated users from auth routes to dashboard
-	if (user && isAuthRoute) {
+	// Only redirect if we have a valid session with a user
+	if (user && session && isAuthRoute) {
 		const url = request.nextUrl.clone()
 		url.pathname = '/dashboard'
 		return NextResponse.redirect(url)

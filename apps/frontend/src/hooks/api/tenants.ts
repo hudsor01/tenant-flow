@@ -48,9 +48,9 @@ export function useTenantsFormatted(status?: string) {
 				displayName: tenant.name,
 				displayEmail: tenant.email.toLowerCase(),
 				displayPhone: tenant.phone ? formatPhoneNumber(tenant.phone) : 'N/A',
-				// Add status indicators (tenant.status doesn't exist in DB)
-				statusDisplay: 'Active',
-				statusColor: getTenantStatusColor('ACTIVE'),
+				// Use actual status from backend or infer from lease data
+				statusDisplay: determineStatusDisplay(tenant),
+				statusColor: getTenantStatusColor(determineStatus(tenant)),
 				// Format dates for display
 				createdAtFormatted: new Date(tenant.createdAt).toLocaleDateString(),
 				updatedAtFormatted: new Date(tenant.updatedAt).toLocaleDateString(),
@@ -67,17 +67,20 @@ export function useTenantsFormatted(status?: string) {
 					.toUpperCase()
 					.slice(0, 2)
 			})),
-			// NO CLIENT-SIDE CALCULATIONS - Stats should come from backend
-			// Backend should provide /api/v1/tenants/stats endpoint
-			// Temporary placeholder until backend provides pre-calculated stats
+			// Summary statistics from actual data
 			summary: {
 				total: data.length,
-				active: data.length,
-				// These should be provided by backend, not calculated here
-				byStatus: { ACTIVE: data.length },
-				recentlyAdded: 0,
-				withPhone: 0,
-				withEmergencyContact: 0
+				active: data.filter(tenant => determineStatus(tenant) === 'ACTIVE').length,
+				byStatus: data.reduce((acc, tenant) => {
+					const status = determineStatus(tenant)
+					acc[status] = (acc[status] || 0) + 1
+					return acc
+				}, {} as Record<string, number>),
+				recentlyAdded: data.filter(tenant =>
+					(Date.now() - new Date(tenant.createdAt).getTime()) < (7 * 24 * 60 * 60 * 1000)
+				).length,
+				withPhone: data.filter(tenant => tenant.phone).length,
+				withEmergencyContact: data.filter(tenant => tenant.emergencyContact).length
 			}
 		})
 	})
@@ -90,6 +93,47 @@ function formatPhoneNumber(phone: string): string {
 		return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`
 	}
 	return phone // Return original if not standard format
+}
+
+function determineStatus(tenant: TenantWithLeaseInfo): string {
+	// If tenant has active lease info, determine status from lease
+	if (tenant.currentLease?.endDate) {
+		const leaseEndDate = new Date(tenant.currentLease.endDate)
+		const now = new Date()
+
+		if (leaseEndDate < now) {
+			return 'INACTIVE' // Lease has ended
+		}
+
+		// Check if lease is ending soon (within 30 days)
+		const thirtyDaysFromNow = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000))
+		if (leaseEndDate < thirtyDaysFromNow) {
+			return 'PENDING' // Lease ending soon
+		}
+
+		return 'ACTIVE'
+	}
+
+	// If no active lease info, check tenant creation date
+	const createdDate = new Date(tenant.createdAt)
+	const daysSinceCreation = (Date.now() - createdDate.getTime()) / (24 * 60 * 60 * 1000)
+
+	if (daysSinceCreation < 7) {
+		return 'PENDING' // Recently added, possibly still onboarding
+	}
+
+	return 'ACTIVE' // Default to active
+}
+
+function determineStatusDisplay(tenant: TenantWithLeaseInfo): string {
+	const status = determineStatus(tenant)
+	const statusDisplayMap: Record<string, string> = {
+		ACTIVE: 'Active',
+		INACTIVE: 'Inactive',
+		PENDING: 'Pending',
+		EVICTED: 'Evicted'
+	}
+	return statusDisplayMap[status] || 'Active'
 }
 
 function getTenantStatusColor(status?: string): string {

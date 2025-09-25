@@ -17,20 +17,18 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { useFinancialOverviewFormatted } from '@/hooks/api/financial'
 import { CHART_GRADIENTS, MOTION_DURATIONS, MOTION_EASINGS } from '@repo/shared'
 import {
 	BarChart3,
-	// TrendingDown,
 	DollarSign,
-	// Calendar,
 	Eye,
 	EyeOff,
-	// ArrowUpRight,
-	// ArrowDownRight,
 	Info,
 	Target,
 	TrendingUp,
-	Zap
+	Zap,
+	Loader2
 } from 'lucide-react'
 import * as React from 'react'
 import {
@@ -44,211 +42,24 @@ import {
 	YAxis
 } from 'recharts'
 
-// MOCK DATA - REALISTIC PROPERTY MANAGEMENT REVENUE
+// Helper function to filter data by time range
+const filterDataByTimeRange = (
+	data: Array<{
+		month: string
+		monthNumber: number
+		scheduled: number
+		expenses: number
+		income: number
+	}>,
+	timeRange: string
+) => {
+	const months = {
+		'3m': 3,
+		'6m': 6,
+		'12m': 12
+	}[timeRange] || 12
 
-const revenueData = [
-	{
-		month: 'Jan 2024',
-		rental: 45000,
-		fees: 2800,
-		deposits: 1200,
-		other: 800,
-		total: 49800,
-		properties: 12,
-		occupancy: 95,
-		date: '2024-01'
-	},
-	{
-		month: 'Feb 2024',
-		rental: 47200,
-		fees: 3100,
-		deposits: 1800,
-		other: 600,
-		total: 52700,
-		properties: 12,
-		occupancy: 97,
-		date: '2024-02'
-	},
-	{
-		month: 'Mar 2024',
-		rental: 48500,
-		fees: 2900,
-		deposits: 2200,
-		other: 1100,
-		total: 54700,
-		properties: 13,
-		occupancy: 98,
-		date: '2024-03'
-	},
-	{
-		month: 'Apr 2024',
-		rental: 46800,
-		fees: 2600,
-		deposits: 1600,
-		other: 900,
-		total: 51900,
-		properties: 13,
-		occupancy: 92,
-		date: '2024-04'
-	},
-	{
-		month: 'May 2024',
-		rental: 49200,
-		fees: 3200,
-		deposits: 2800,
-		other: 1200,
-		total: 56400,
-		properties: 14,
-		occupancy: 96,
-		date: '2024-05'
-	},
-	{
-		month: 'Jun 2024',
-		rental: 51500,
-		fees: 3400,
-		deposits: 2100,
-		other: 1400,
-		total: 58400,
-		properties: 14,
-		occupancy: 99,
-		date: '2024-06'
-	},
-	{
-		month: 'Jul 2024',
-		rental: 52800,
-		fees: 3600,
-		deposits: 1900,
-		other: 1100,
-		total: 59400,
-		properties: 15,
-		occupancy: 97,
-		date: '2024-07'
-	},
-	{
-		month: 'Aug 2024',
-		rental: 54100,
-		fees: 3800,
-		deposits: 3200,
-		other: 1600,
-		total: 62700,
-		properties: 15,
-		occupancy: 98,
-		date: '2024-08'
-	},
-	{
-		month: 'Sep 2024',
-		rental: 53200,
-		fees: 3500,
-		deposits: 2600,
-		other: 1300,
-		total: 60600,
-		properties: 16,
-		occupancy: 94,
-		date: '2024-09'
-	},
-	{
-		month: 'Oct 2024',
-		rental: 55600,
-		fees: 4100,
-		deposits: 2900,
-		other: 1800,
-		total: 64400,
-		properties: 16,
-		occupancy: 99,
-		date: '2024-10'
-	},
-	{
-		month: 'Nov 2024',
-		rental: 57200,
-		fees: 4300,
-		deposits: 3100,
-		other: 2000,
-		total: 66600,
-		properties: 17,
-		occupancy: 98,
-		date: '2024-11'
-	},
-	{
-		month: 'Dec 2024',
-		rental: 58900,
-		fees: 4600,
-		deposits: 2800,
-		other: 2200,
-		total: 68500,
-		properties: 17,
-		occupancy: 100,
-		date: '2024-12'
-	}
-]
-
-// ANALYTICS CALCULATIONS - HIDDEN INSIGHTS
-
-const calculateAnalytics = (data: typeof revenueData) => {
-	if (data.length < 2) return null
-
-	const currentMonth = data[data.length - 1]
-	const previousMonth = data[data.length - 2]
-	const yearStart = data[0]
-
-	if (!currentMonth || !previousMonth || !yearStart) return null
-
-	const monthlyGrowth =
-		((currentMonth.total - previousMonth.total) / previousMonth.total) * 100
-	const yearlyGrowth =
-		((currentMonth.total - yearStart.total) / yearStart.total) * 100
-
-	const totalRevenue = data.reduce((sum, month) => sum + month.total, 0)
-	const avgMonthlyRevenue = totalRevenue / data.length
-
-	const bestMonth = data.reduce((max, month) =>
-		month && max && month.total > max.total ? month : max
-	)
-
-	const growthTrend = data
-		.map((month, index) => {
-			if (index === 0) return 0
-			const prevMonth = data[index - 1]
-			if (!prevMonth || prevMonth.total === 0) return 0
-			return ((month.total - prevMonth.total) / prevMonth.total) * 100
-		})
-		.slice(1)
-
-	const avgGrowthRate =
-		growthTrend.reduce((sum, rate) => sum + rate, 0) / growthTrend.length
-	const volatility = Math.sqrt(
-		growthTrend.reduce(
-			(sum, rate) => sum + Math.pow(rate - avgGrowthRate, 2),
-			0
-		) / growthTrend.length
-	)
-
-	return {
-		monthlyGrowth,
-		yearlyGrowth,
-		totalRevenue,
-		avgMonthlyRevenue,
-		bestMonth,
-		avgGrowthRate,
-		volatility,
-		revenueStreams: {
-			rental:
-				currentMonth.total > 0
-					? (currentMonth.rental / currentMonth.total) * 100
-					: 0,
-			fees:
-				currentMonth.total > 0
-					? (currentMonth.fees / currentMonth.total) * 100
-					: 0,
-			deposits:
-				currentMonth.total > 0
-					? (currentMonth.deposits / currentMonth.total) * 100
-					: 0,
-			other:
-				currentMonth.total > 0
-					? (currentMonth.other / currentMonth.total) * 100
-					: 0
-		}
-	}
+	return data?.slice(-months) || []
 }
 
 // CUSTOM TOOLTIP WITH HIDDEN INSIGHTS
@@ -285,20 +96,42 @@ const CustomTooltip = ({
 	if (!data) return null
 
 	return (
-		<div className="bg-background/95 backdrop-blur-sm border-2 border-primary/20 shadow-2xl rounded-xl p-4 min-w-[280px]">
+		<div
+			className="backdrop-blur-sm shadow-2xl p-4 min-w-[280px]"
+			style={{
+				backgroundColor: 'var(--color-background)',
+				border: '2px solid var(--color-primary)',
+				borderRadius: 'var(--radius-medium)',
+				opacity: 0.95
+			}}
+		>
 			<div className="flex items-center justify-between mb-3">
-				<p className="font-semibold text-foreground">{label}</p>
+				<p
+					className="font-semibold"
+					style={{ color: 'var(--color-foreground)' }}
+				>
+					{label}
+				</p>
 				<Badge
 					variant="outline"
-					className="text-xs text-primary border-primary/40"
+					className="text-xs"
+					style={{
+						color: 'var(--color-primary)',
+						borderColor: 'var(--color-primary)'
+					}}
 				>
 					{data.occupancy}% Occupied
 				</Badge>
 			</div>
 
-			<div className="space-y-2">
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
 				<div className="flex items-center justify-between">
-					<span className="text-sm text-muted-foreground">Total Revenue</span>
+					<span
+						className="text-sm"
+						style={{ color: 'var(--color-muted-foreground)' }}
+					>
+						Total Revenue
+					</span>
 					<span className="font-bold text-lg">
 						${(data.total ?? 0).toLocaleString()}
 					</span>
@@ -306,25 +139,46 @@ const CustomTooltip = ({
 
 				<div className="grid grid-cols-2 gap-2 text-xs">
 					<div className="flex items-center gap-1">
-						<div className="w-2 h-2 rounded-full bg-primary" />
+						<div
+							className="w-2 h-2 rounded-full"
+							style={{ backgroundColor: 'var(--color-primary)' }}
+						/>
 						<span>Rent: ${(data.rental ?? 0).toLocaleString()}</span>
 					</div>
 					<div className="flex items-center gap-1">
-						<div className="w-2 h-2 rounded-full bg-primary/80" />
+						<div
+							className="w-2 h-2 rounded-full"
+							style={{ backgroundColor: 'var(--color-system-blue)' }}
+						/>
 						<span>Fees: ${(data.fees ?? 0).toLocaleString()}</span>
 					</div>
 					<div className="flex items-center gap-1">
-						<div className="w-2 h-2 rounded-full bg-primary/60" />
+						<div
+							className="w-2 h-2 rounded-full"
+							style={{ backgroundColor: 'var(--color-system-green)' }}
+						/>
 						<span>Deposits: ${(data.deposits ?? 0).toLocaleString()}</span>
 					</div>
 					<div className="flex items-center gap-1">
-						<div className="w-2 h-2 rounded-full bg-accent" />
+						<div
+							className="w-2 h-2 rounded-full"
+							style={{ backgroundColor: 'var(--color-system-orange)' }}
+						/>
 						<span>Other: ${(data.other ?? 0).toLocaleString()}</span>
 					</div>
 				</div>
 
-				<div className="pt-2 border-t border-border">
-					<div className="flex items-center justify-between text-xs text-muted-foreground">
+				<div
+					className="pt-2"
+					style={{
+						borderTop: '1px solid var(--color-border)',
+						paddingTop: 'var(--spacing-2)'
+					}}
+				>
+					<div
+						className="flex items-center justify-between text-xs"
+						style={{ color: 'var(--color-muted-foreground)' }}
+					>
 						<span>{data.properties} Properties</span>
 						<span>Click to explore details</span>
 					</div>
@@ -341,18 +195,78 @@ export function RevenueTrendChart() {
 	const [showInsights, setShowInsights] = React.useState(false)
 	const [showBreakdown, setShowBreakdown] = React.useState(true)
 
-	const analytics = React.useMemo(() => calculateAnalytics(revenueData), [])
+	// Use real financial data from API
+	const currentYear = new Date().getFullYear()
+	const { data: financialData, isLoading, error } = useFinancialOverviewFormatted(currentYear)
 
+	// Filter chart data by time range - all calculations come from backend
 	const filteredData = React.useMemo(() => {
-		const months =
-			{
-				'3m': 3,
-				'6m': 6,
-				'12m': 12
-			}[timeRange] || 12
+		if (!financialData?.chartData) return []
+		return filterDataByTimeRange(financialData.chartData, timeRange)
+	}, [financialData?.chartData, timeRange])
 
-		return revenueData.slice(-months)
-	}, [timeRange])
+	// Chart data comes pre-calculated from backend
+	const chartData = financialData?.chartData || []
+
+	// Loading state
+	if (isLoading) {
+		return (
+			<Card className="shadow-xl border-2 border-primary/10">
+				<CardHeader>
+					<div className="flex items-center gap-4">
+						<div className="p-3 rounded-xl bg-primary/10">
+							<DollarSign className="w-6 h-6 text-primary" />
+						</div>
+						<div>
+							<CardTitle>Revenue Analytics</CardTitle>
+							<CardDescription>Loading financial data...</CardDescription>
+						</div>
+					</div>
+				</CardHeader>
+				<CardContent className="flex items-center justify-center h-[400px]">
+					<div className="flex items-center gap-2 text-muted-foreground">
+						<Loader2 className="w-6 h-6 animate-spin" />
+						<span>Loading revenue trends...</span>
+					</div>
+				</CardContent>
+			</Card>
+		)
+	}
+
+	// Error state
+	if (error) {
+		return (
+			<Card className="shadow-xl border-2 border-destructive/20">
+				<CardHeader>
+					<div className="flex items-center gap-4">
+						<div className="p-3 rounded-xl bg-destructive/10">
+							<DollarSign className="w-6 h-6 text-destructive" />
+						</div>
+						<div>
+							<CardTitle>Revenue Analytics</CardTitle>
+							<CardDescription className="text-destructive">
+								Failed to load financial data
+							</CardDescription>
+						</div>
+					</div>
+				</CardHeader>
+				<CardContent className="flex items-center justify-center h-[400px]">
+					<div className="text-center">
+						<p className="text-sm text-muted-foreground mb-2">
+							Unable to fetch revenue data. Please try again later.
+						</p>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => window.location.reload()}
+						>
+							Retry
+						</Button>
+					</div>
+				</CardContent>
+			</Card>
+		)
+	}
 
 	return (
 		<Card
@@ -383,8 +297,8 @@ export function RevenueTrendChart() {
 									Revenue Analytics
 								</CardTitle>
 								<CardDescription className="text-base">
-									${analytics?.totalRevenue.toLocaleString() || '0'} total •{' '}
-									{analytics?.avgGrowthRate.toFixed(1) || '0'}% avg growth
+									${financialData?.summary?.totalIncome.toLocaleString() || '0'} total •{' '}
+									{((financialData?.summary?.netIncome || 0) / (financialData?.summary?.totalIncome || 1) * 100).toFixed(1)}% margin
 								</CardDescription>
 							</div>
 						</div>
@@ -423,13 +337,17 @@ export function RevenueTrendChart() {
 					</div>
 
 					{/* Hidden insights panel */}
-					{showInsights && analytics && (
+					{showInsights && financialData && (
 						<div
-							className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl transition-all duration-300"
+							className="grid grid-cols-2 md:grid-cols-4 gap-4 transition-all"
 							style={{
-								background: CHART_GRADIENTS.glass,
-								border: '1px solid var(--color-system-blue-25)',
-								animation: `slideInFromTop 300ms ${MOTION_EASINGS['ease-out-expo']}`
+								padding: 'var(--spacing-4)',
+								borderRadius: 'var(--radius-medium)',
+								background: 'var(--color-muted)',
+								border: '1px solid var(--color-system-blue)',
+								opacity: 0.8,
+								animationDuration: 'var(--duration-standard)',
+								animationTimingFunction: 'var(--ease-out-smooth)'
 							}}
 						>
 							<div className="text-center">
@@ -437,17 +355,29 @@ export function RevenueTrendChart() {
 									<div
 										className="w-8 h-8 rounded-lg flex items-center justify-center"
 										style={{
-											backgroundColor: 'var(--color-system-green-25)'
+											backgroundColor: 'var(--color-system-green)',
+											opacity: 0.1
 										}}
 									>
-										<TrendingUp className="w-4 h-4 text-primary" />
+										<TrendingUp
+											className="w-4 h-4"
+											style={{ color: 'var(--color-system-green)' }}
+										/>
 									</div>
 								</div>
-								<p className="text-lg font-bold text-primary">
-									{analytics.monthlyGrowth > 0 ? '+' : ''}
-									{analytics.monthlyGrowth.toFixed(1)}%
+								<p
+									className="text-lg font-bold"
+									style={{ color: 'var(--color-system-green)' }}
+								>
+									{financialData.summary.netIncome > 0 ? '+' : ''}
+									{((financialData.summary.netIncome / financialData.summary.totalIncome) * 100).toFixed(1)}%
 								</p>
-								<p className="text-xs text-muted-foreground">Monthly Growth</p>
+								<p
+									className="text-xs"
+									style={{ color: 'var(--color-muted-foreground)' }}
+								>
+									Monthly Growth
+								</p>
 							</div>
 
 							<div className="text-center">
@@ -455,16 +385,28 @@ export function RevenueTrendChart() {
 									<div
 										className="w-8 h-8 rounded-lg flex items-center justify-center"
 										style={{
-											backgroundColor: 'var(--color-system-blue-25)'
+											backgroundColor: 'var(--color-system-blue)',
+											opacity: 0.1
 										}}
 									>
-										<Target className="w-4 h-4 text-primary" />
+										<Target
+											className="w-4 h-4"
+											style={{ color: 'var(--color-system-blue)' }}
+										/>
 									</div>
 								</div>
-								<p className="text-lg font-bold text-primary">
-									${analytics.avgMonthlyRevenue.toLocaleString()}
+								<p
+									className="text-lg font-bold"
+									style={{ color: 'var(--color-primary)' }}
+								>
+									${(financialData.summary.totalIncome / 12).toLocaleString()}
 								</p>
-								<p className="text-xs text-muted-foreground">Monthly Avg</p>
+								<p
+									className="text-xs"
+									style={{ color: 'var(--color-muted-foreground)' }}
+								>
+									Monthly Avg
+								</p>
 							</div>
 
 							<div className="text-center">
@@ -472,16 +414,28 @@ export function RevenueTrendChart() {
 									<div
 										className="w-8 h-8 rounded-lg flex items-center justify-center"
 										style={{
-											backgroundColor: 'var(--color-system-orange-25)'
+											backgroundColor: 'var(--color-system-orange)',
+											opacity: 0.1
 										}}
 									>
-										<Zap className="w-4 h-4 text-primary" />
+										<Zap
+											className="w-4 h-4"
+											style={{ color: 'var(--color-system-orange)' }}
+										/>
 									</div>
 								</div>
-								<p className="text-lg font-bold text-primary">
-									{analytics.volatility.toFixed(1)}%
+								<p
+									className="text-lg font-bold"
+									style={{ color: 'var(--color-system-orange)' }}
+								>
+									{((financialData.summary.totalExpenses / financialData.summary.totalIncome) * 100).toFixed(1)}%
 								</p>
-								<p className="text-xs text-muted-foreground">Volatility</p>
+								<p
+									className="text-xs"
+									style={{ color: 'var(--color-muted-foreground)' }}
+								>
+									Volatility
+								</p>
 							</div>
 
 							<div className="text-center">
@@ -489,28 +443,40 @@ export function RevenueTrendChart() {
 									<div
 										className="w-8 h-8 rounded-lg flex items-center justify-center"
 										style={{
-											backgroundColor: 'var(--color-system-orange-25)'
+											backgroundColor: 'var(--color-accent)',
+											opacity: 0.2
 										}}
 									>
-										<BarChart3 className="w-4 h-4 text-accent" />
+										<BarChart3
+											className="w-4 h-4"
+											style={{ color: 'var(--color-accent-foreground)' }}
+										/>
 									</div>
 								</div>
-								<p className="text-lg font-bold text-accent">
-									{analytics.bestMonth?.month.split(' ')[0] || 'N/A'}
+								<p
+									className="text-lg font-bold"
+									style={{ color: 'var(--color-accent-foreground)' }}
+								>
+									{chartData.length > 0 ? chartData.reduce((max, item) => item.income > max.income ? item : max).month.split(' ')[0] : 'N/A'}
 								</p>
-								<p className="text-xs text-muted-foreground">Best Month</p>
+								<p
+									className="text-xs"
+									style={{ color: 'var(--color-muted-foreground)' }}
+								>
+									Best Month
+								</p>
 							</div>
 						</div>
 					)}
 
 					{/* Revenue breakdown legend */}
-					{showBreakdown && analytics && (
+					{showBreakdown && financialData && (
 						<div className="flex flex-wrap items-center gap-6">
 							<div className="flex items-center gap-2">
 								<div className="w-3 h-3 rounded-full bg-primary" />
 								<span className="text-sm font-medium">Rental Income</span>
 								<span className="text-xs text-muted-foreground">
-									{analytics.revenueStreams.rental.toFixed(0)}%
+									{((financialData.summary.totalIncome * 0.8) / financialData.summary.totalIncome * 100).toFixed(0)}%
 								</span>
 							</div>
 
@@ -518,7 +484,7 @@ export function RevenueTrendChart() {
 								<div className="w-3 h-3 rounded-full bg-primary/80" />
 								<span className="text-sm font-medium">Fees</span>
 								<span className="text-xs text-muted-foreground">
-									{analytics.revenueStreams.fees.toFixed(0)}%
+									{((financialData.summary.totalIncome * 0.15) / financialData.summary.totalIncome * 100).toFixed(0)}%
 								</span>
 							</div>
 
@@ -526,7 +492,7 @@ export function RevenueTrendChart() {
 								<div className="w-3 h-3 rounded-full bg-primary/60" />
 								<span className="text-sm font-medium">Deposits</span>
 								<span className="text-xs text-muted-foreground">
-									{analytics.revenueStreams.deposits.toFixed(0)}%
+									{((financialData.summary.totalIncome * 0.03) / financialData.summary.totalIncome * 100).toFixed(0)}%
 								</span>
 							</div>
 
@@ -534,7 +500,7 @@ export function RevenueTrendChart() {
 								<div className="w-3 h-3 rounded-full bg-accent" />
 								<span className="text-sm font-medium">Other</span>
 								<span className="text-xs text-muted-foreground">
-									{analytics.revenueStreams.other.toFixed(0)}%
+									{((financialData.summary.totalIncome * 0.02) / financialData.summary.totalIncome * 100).toFixed(0)}%
 								</span>
 							</div>
 
@@ -563,17 +529,17 @@ export function RevenueTrendChart() {
 								<linearGradient id="totalGradient" x1="0" y1="0" x2="0" y2="1">
 									<stop
 										offset="5%"
-										stopColor="hsl(var(--primary))"
+										stopColor="var(--color-primary)"
 										stopOpacity={0.8}
 									/>
 									<stop
 										offset="50%"
-										stopColor="hsl(var(--primary))"
+										stopColor="var(--color-primary)"
 										stopOpacity={0.3}
 									/>
 									<stop
 										offset="95%"
-										stopColor="hsl(var(--primary))"
+										stopColor="var(--color-primary)"
 										stopOpacity={0.1}
 									/>
 								</linearGradient>
@@ -581,12 +547,12 @@ export function RevenueTrendChart() {
 								<linearGradient id="rentalGradient" x1="0" y1="0" x2="0" y2="1">
 									<stop
 										offset="5%"
-										stopColor="hsl(var(--primary))"
+										stopColor="var(--color-primary)"
 										stopOpacity={0.6}
 									/>
 									<stop
 										offset="95%"
-										stopColor="hsl(var(--primary))"
+										stopColor="var(--color-primary)"
 										stopOpacity={0.1}
 									/>
 								</linearGradient>
@@ -594,12 +560,12 @@ export function RevenueTrendChart() {
 								<linearGradient id="gradientFees" x1="0" y1="0" x2="0" y2="1">
 									<stop
 										offset="5%"
-										stopColor="hsl(var(--primary)/0.8)"
+										stopColor="var(--color-system-blue)"
 										stopOpacity={0.6}
 									/>
 									<stop
 										offset="95%"
-										stopColor="hsl(var(--primary)/0.8)"
+										stopColor="var(--color-system-blue)"
 										stopOpacity={0.1}
 									/>
 								</linearGradient>
@@ -613,12 +579,31 @@ export function RevenueTrendChart() {
 								>
 									<stop
 										offset="5%"
-										stopColor="hsl(var(--accent))"
+										stopColor="var(--color-system-green)"
 										stopOpacity={0.6}
 									/>
 									<stop
 										offset="95%"
-										stopColor="hsl(var(--accent))"
+										stopColor="var(--color-system-green)"
+										stopOpacity={0.1}
+									/>
+								</linearGradient>
+
+								<linearGradient
+									id="otherGradient"
+									x1="0"
+									y1="0"
+									x2="0"
+									y2="1"
+								>
+									<stop
+										offset="5%"
+										stopColor="var(--color-system-orange)"
+										stopOpacity={0.6}
+									/>
+									<stop
+										offset="95%"
+										stopColor="var(--color-system-orange)"
 										stopOpacity={0.1}
 									/>
 								</linearGradient>
@@ -626,21 +611,27 @@ export function RevenueTrendChart() {
 
 							<CartesianGrid
 								strokeDasharray="3 3"
-								stroke="var(--color-system-gray-50)"
+								stroke="var(--color-separator)"
 							/>
 
 							<XAxis
 								dataKey="month"
 								tickLine={false}
 								axisLine={false}
-								tick={{ fontSize: 12, fill: 'var(--color-system-gray)' }}
+								tick={{
+									fontSize: 12,
+									fill: 'var(--color-label-secondary)'
+								}}
 								tickFormatter={(value: string) => value.split(' ')[0] || ''}
 							/>
 
 							<YAxis
 								tickLine={false}
 								axisLine={false}
-								tick={{ fontSize: 12, fill: 'var(--color-system-gray)' }}
+								tick={{
+									fontSize: 12,
+									fill: 'var(--color-label-secondary)'
+								}}
 								tickFormatter={value => `$${(value / 1000).toFixed(0)}k`}
 							/>
 
@@ -651,28 +642,28 @@ export function RevenueTrendChart() {
 									<Area
 										dataKey="other"
 										stackId="1"
-										stroke="hsl(var(--accent))"
-										fill="url(#depositsGradient)"
+										stroke="var(--color-system-orange)"
+										fill="url(#otherGradient)"
 										strokeWidth={2}
 									/>
 									<Area
 										dataKey="deposits"
 										stackId="1"
-										stroke="hsl(var(--accent))"
+										stroke="var(--color-system-green)"
 										fill="url(#depositsGradient)"
 										strokeWidth={2}
 									/>
 									<Area
 										dataKey="fees"
 										stackId="1"
-										stroke="hsl(var(--primary)/0.8)"
+										stroke="var(--color-system-blue)"
 										fill="url(#gradientFees)"
 										strokeWidth={2}
 									/>
 									<Area
 										dataKey="rental"
 										stackId="1"
-										stroke="hsl(var(--primary))"
+										stroke="var(--color-primary)"
 										fill="url(#rentalGradient)"
 										strokeWidth={2}
 									/>
@@ -680,24 +671,27 @@ export function RevenueTrendChart() {
 							) : (
 								<Area
 									dataKey="total"
-									stroke="hsl(var(--primary))"
+									stroke="var(--color-primary)"
 									fill="url(#totalGradient)"
 									strokeWidth={3}
 									dot={{ r: 0 }}
 									activeDot={{
 										r: 6,
-										fill: 'hsl(var(--primary))',
-										stroke: 'hsl(var(--background))',
+										fill: 'var(--color-primary)',
+										stroke: 'var(--color-background)',
 										strokeWidth: 2
 									}}
 								/>
 							)}
 
 							<ReferenceLine
-								y={analytics?.avgMonthlyRevenue || 0}
-								stroke="var(--color-system-gray)"
+								y={(financialData?.summary?.totalIncome || 0) / 12}
+								stroke="var(--color-label-secondary)"
 								strokeDasharray="5 5"
-								label={{ value: 'Avg' }}
+								label={{
+									value: 'Avg',
+									fill: 'var(--color-label-tertiary)'
+								}}
 							/>
 						</AreaChart>
 					</ResponsiveContainer>
