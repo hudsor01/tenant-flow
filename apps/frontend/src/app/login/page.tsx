@@ -124,10 +124,15 @@ function LoginPageContent() {
 			})
 
 			// OAuth with redirectTo for proper callback handling
+			// Use the configured app URL for OAuth redirect to match Supabase settings
+			const redirectUrl = process.env.NODE_ENV === 'development'
+				? 'http://localhost:3000/auth/callback'
+				: `${window.location.origin}/auth/callback`
+
 			const { error } = await supabase.auth.signInWithOAuth({
 				provider: 'google',
 				options: {
-					redirectTo: `${window.location.origin}/auth/callback`
+					redirectTo: redirectUrl
 				}
 			})
 
