@@ -6,6 +6,19 @@
 import type * as React from 'react'
 import type { Property, Tenant } from './core.js'
 
+// DASHBOARD COMPONENT TYPES
+export interface AnimatedMetricCardProps {
+	title: string
+	value: number
+	formatValue: (value: number) => string
+	borderColor: string
+	textColor: string
+	trend: string
+	description: string
+	icon: React.ReactNode
+	delay?: number
+}
+
 // AUTH FORM TYPES
 
 export interface AuthFormProps {
