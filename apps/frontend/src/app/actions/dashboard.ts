@@ -19,6 +19,21 @@ export async function getDashboardStats() {
 		const stats = await serverFetch<DashboardStats>('/api/v1/dashboard/stats')
 		return { success: true, data: stats }
 	} catch (error) {
+		// Check if this is an authentication error
+		const isAuthError =
+			error instanceof Error &&
+			(error.message.includes('401') ||
+				error.message.includes('Authentication required'))
+
+		if (isAuthError) {
+			// For authentication errors, redirect to login instead of showing mock data
+			return {
+				success: false,
+				error: 'Authentication required',
+				shouldRedirect: '/login'
+			}
+		}
+
 		return {
 			success: false,
 			error:

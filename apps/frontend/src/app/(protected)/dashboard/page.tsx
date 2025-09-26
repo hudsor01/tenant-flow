@@ -152,6 +152,16 @@ export default async function Page() {
 		activity = result.data.activity
 		chartData = result.data.chartData
 	} else {
+		// If authentication failed, redirect to login
+		if (
+			!result.success &&
+			'shouldRedirect' in result &&
+			result.shouldRedirect
+		) {
+			const { redirect } = await import('next/navigation')
+			redirect(result.shouldRedirect)
+		}
+
 		logger.error('Failed to fetch dashboard data', {
 			metadata: {
 				error: result.success ? 'No data returned' : result.error

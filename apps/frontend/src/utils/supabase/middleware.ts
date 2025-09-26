@@ -35,13 +35,19 @@ export async function updateSession(request: NextRequest) {
 	)
 
 	// This will refresh the session if expired - required for Server Components
-	// IMPORTANT: Check session first to ensure it's valid, not just that a user exists
+	// IMPORTANT: Use getUser() to validate the session with Supabase instead of just checking local storage
+	const {
+		data: { user },
+		error
+	} = await supabase.auth.getUser()
+
+	// Get session info for expiration checks
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()
 
-	// Only consider user authenticated if there's a valid session
-	const user = session?.user ?? null
+	// Only consider user authenticated if getUser() succeeds (validates with Supabase)
+	const isAuthenticated = !error && user && session
 
 	// Check route protection using centralized constants
 	const pathname = request.nextUrl.pathname
@@ -53,7 +59,7 @@ export async function updateSession(request: NextRequest) {
 	)
 
 	// Redirect unauthenticated users from protected routes to login
-	if (!user && isProtectedRoute) {
+	if (!isAuthenticated && isProtectedRoute) {
 		const url = request.nextUrl.clone()
 		url.pathname = '/login'
 		url.searchParams.set('redirectTo', pathname)
@@ -61,17 +67,11 @@ export async function updateSession(request: NextRequest) {
 	}
 
 	// Redirect authenticated users from auth routes to dashboard
-	// Only redirect if we have a valid, non-expired session with a user
-	if (user && session && isAuthRoute) {
-		// Check if session is actually valid and not expired
-		const now = Math.floor(Date.now() / 1000)
-		const isSessionValid = session.expires_at && session.expires_at > now
-
-		if (isSessionValid) {
-			const url = request.nextUrl.clone()
-			url.pathname = '/dashboard'
-			return NextResponse.redirect(url)
-		}
+	// Only redirect if authentication is valid (validated with Supabase)
+	if (isAuthenticated && isAuthRoute) {
+		const url = request.nextUrl.clone()
+		url.pathname = '/dashboard'
+		return NextResponse.redirect(url)
 	}
 
 	return supabaseResponse
