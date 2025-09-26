@@ -1,12 +1,12 @@
 'use client'
 
-import { IconInnerShadowTop } from '@tabler/icons-react'
+import { Home } from 'lucide-react'
 import * as React from 'react'
 
-import { NavDocuments } from '@/components/nav-documents'
-import { NavMain } from '@/components/nav-main'
-import { NavSecondary } from '@/components/nav-secondary'
-import { NavUser } from '@/components/nav-user'
+import { NavDocuments } from '@/components/dashboard-01/nav-documents'
+import { NavMain } from '@/components/dashboard-01/nav-main'
+import { NavSecondary } from '@/components/dashboard-01/nav-secondary'
+import { NavUser } from '@/components/dashboard-01/nav-user'
 import {
 	Sidebar,
 	SidebarContent,
@@ -40,7 +40,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 							className="data-[slot=sidebar-menu-button]:!p-1.5"
 						>
 							<a href="#">
-								<IconInnerShadowTop className="!size-5" />
+								<Home className="size-5" />
 								<span className="text-base font-semibold">TenantFlow</span>
 							</a>
 						</SidebarMenuButton>
