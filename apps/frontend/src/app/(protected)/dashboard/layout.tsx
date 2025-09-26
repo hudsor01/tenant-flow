@@ -1,4 +1,3 @@
-import { AuthCheck } from '@/components/auth/auth-check'
 import { AppSidebar } from '@/components/dashboard-01/app-sidebar'
 import { SiteHeader } from '@/components/dashboard-01/site-header'
 import { ViewTransitionsProvider } from '@/components/providers/view-transitions-provider'
@@ -7,30 +6,29 @@ import type { ReactNode } from 'react'
 
 import './dashboard.css'
 
-// Server Component Layout with Sidebar Navigation
+// Dashboard Layout - Navigation and UI Structure Only
+// Auth is handled by (protected)/layout.tsx
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	return (
-		<AuthCheck>
-			<ViewTransitionsProvider>
-				<SidebarProvider
-					style={
-						{
-							'--sidebar-width': 'calc(var(--spacing) * 72)',
-							'--header-height': 'calc(var(--spacing) * 12)'
-						} as React.CSSProperties
-					}
-				>
-					<AppSidebar variant="inset" />
-					<SidebarInset>
-						<SiteHeader />
-						<div className="flex flex-1 flex-col">
-							<div className="@container/main flex flex-1 flex-col gap-2">
-								{children}
-							</div>
+		<ViewTransitionsProvider>
+			<SidebarProvider
+				style={
+					{
+						'--sidebar-width': 'calc(var(--spacing) * 72)',
+						'--header-height': 'calc(var(--spacing) * 12)'
+					} as React.CSSProperties
+				}
+			>
+				<AppSidebar variant="inset" />
+				<SidebarInset>
+					<SiteHeader />
+					<div className="flex flex-1 flex-col">
+						<div className="@container/main flex flex-1 flex-col gap-2">
+							{children}
 						</div>
-					</SidebarInset>
-				</SidebarProvider>
-			</ViewTransitionsProvider>
-		</AuthCheck>
+					</div>
+				</SidebarInset>
+			</SidebarProvider>
+		</ViewTransitionsProvider>
 	)
 }
