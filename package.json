@@ -78,16 +78,19 @@
 	"devDependencies": {
 		"@commitlint/cli": "19.8.1",
 		"@commitlint/config-conventional": "19.8.1",
+		"@eslint/eslintrc": "^3.3.1",
 		"@eslint/js": "9.36.0",
 		"@eslint/object-schema": "2.1.6",
 		"@eslint/plugin-kit": "0.4.0",
 		"@humanfs/node": "0.16.7",
 		"@repo/eslint-config": "workspace:*",
+		"@supabase/supabase-js": "catalog:",
 		"@types/node": "24.5.2",
 		"@typescript-eslint/eslint-plugin": "^8.44.1",
 		"@typescript-eslint/parser": "^8.44.1",
 		"babel-plugin-react-compiler": "19.1.0-rc.3",
 		"eslint": "^9.36.0",
+		"eslint-config-next": "15.5.4",
 		"eslint-config-prettier": "10.1.8",
 		"eslint-config-turbo": "^2.5.8",
 		"eslint-plugin-turbo": "^2.5.8",
@@ -100,9 +103,7 @@
 		"tsx": "4.20.5",
 		"turbo": "2.5.8",
 		"typescript": "5.9.2",
-		"typescript-eslint": "^8.44.1",
-		"eslint-config-next": "15.5.4",
-		"@eslint/eslintrc": "^3.3.1"
+		"typescript-eslint": "^8.44.1"
 	},
 	"optionalDependencies": {
 		"@tailwindcss/oxide-linux-arm64-gnu": "4.1.13",

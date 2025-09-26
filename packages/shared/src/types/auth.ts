@@ -377,3 +377,17 @@ export interface AuthState {
 	setLoading: (loading: boolean) => void
 	signOut: () => void
 }
+
+// AUTH FORM PROPS TYPES
+
+export interface AuthFormProps {
+	onSubmit?: (data: LoginFormData | SignupFormData) => Promise<void> | void
+	onForgotPassword?: () => void
+	onSignUp?: () => void
+	onLogin?: () => void
+	onGoogleLogin?: () => Promise<void> | void
+	onGoogleSignUp?: () => Promise<void> | void
+	isLoading?: boolean
+	isGoogleLoading?: boolean
+	className?: string
+}

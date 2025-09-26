@@ -53,7 +53,7 @@ export default async function PropertiesPage({
 
 				<MetricsCard
 					title="Occupancy Rate"
-					value={`${stats.occupancyRate.toFixed(1)}%`}
+					value={`${(stats.occupancyRate ?? 0).toFixed(1)}%`}
 					description={`${stats.occupiedUnits} of ${stats.totalUnits} units occupied`}
 					status="Stable occupancy rate"
 					statusIcon={TrendingUp}
@@ -179,7 +179,7 @@ export default async function PropertiesPage({
 															{property.occupiedUnits}/{property.totalUnits}
 														</span>
 														<Badge variant="secondary" className="text-xs">
-															{property.occupancyRate.toFixed(0)}%
+															{property.occupancyRate?.toFixed(0) ?? '0'}%
 														</Badge>
 													</div>
 												</TableCell>
