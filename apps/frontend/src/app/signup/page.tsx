@@ -82,8 +82,10 @@ export default function SignupPage() {
 					{ value: 'No CC', label: 'Required' }
 				]
 			}}
-			onSubmit={handleSignup}
-			isLoading={isLoading}
+			authProps={{
+				onSubmit: handleSignup,
+				isLoading
+			}}
 		/>
 	)
 }

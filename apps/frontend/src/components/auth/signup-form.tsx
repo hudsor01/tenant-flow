@@ -53,7 +53,7 @@ export function SignupForm({
 			// Validate the form data against our schema
 			const result = signupFormSchema.safeParse(value)
 			if (!result.success) {
-				const firstError = result.error.errors[0]
+				const firstError = result.error.issues[0] // Use .issues not .errors for Zod
 				toast.error('Validation failed', {
 					description: firstError?.message || 'Please check your input'
 				})
