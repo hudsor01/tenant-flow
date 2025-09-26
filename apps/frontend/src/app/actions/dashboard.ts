@@ -3,6 +3,7 @@
 import { serverFetch } from '@/lib/api/server'
 import type { DashboardStats } from '@repo/shared'
 import { revalidatePath } from 'next/cache'
+import { cache } from 'react'
 
 /**
  * Server Actions for Dashboard
@@ -13,17 +14,19 @@ import { revalidatePath } from 'next/cache'
 /**
  * Get dashboard statistics
  * Uses server-side authentication via serverFetch
+ * Cached to prevent duplicate calls during render
  */
-export async function getDashboardStats() {
+export const getDashboardStats = cache(async () => {
 	try {
 		const stats = await serverFetch<DashboardStats>('/api/v1/dashboard/stats')
 		return { success: true, data: stats }
 	} catch (error) {
 		// Check if this is an authentication error
+		const errorMessage = error instanceof Error ? error.message : String(error)
 		const isAuthError =
-			error instanceof Error &&
-			(error.message.includes('401') ||
-				error.message.includes('Authentication required'))
+			errorMessage.includes('401') ||
+			errorMessage.includes('Authentication required') ||
+			errorMessage.includes('Unauthorized')
 
 		if (isAuthError) {
 			// For authentication errors, redirect to login instead of showing mock data
@@ -36,34 +39,43 @@ export async function getDashboardStats() {
 
 		return {
 			success: false,
-			error:
-				error instanceof Error
-					? error.message
-					: 'Failed to fetch dashboard stats'
+			error: errorMessage || 'Failed to fetch dashboard stats'
 		}
 	}
-}
+})
 
 /**
  * Get dashboard activity feed
  * Returns recent activity across properties, tenants, leases
+ * Cached to prevent duplicate calls during render
  */
-export async function getDashboardActivity() {
+export const getDashboardActivity = cache(async () => {
 	try {
 		const activity = await serverFetch<{ activities: Array<unknown> }>(
 			'/api/v1/dashboard/activity'
 		)
 		return { success: true, data: activity }
 	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : String(error)
+		const isAuthError =
+			errorMessage.includes('401') ||
+			errorMessage.includes('Authentication required') ||
+			errorMessage.includes('Unauthorized')
+
+		if (isAuthError) {
+			return {
+				success: false,
+				error: 'Authentication required',
+				shouldRedirect: '/login'
+			}
+		}
+
 		return {
 			success: false,
-			error:
-				error instanceof Error
-					? error.message
-					: 'Failed to fetch dashboard activity'
+			error: errorMessage || 'Failed to fetch dashboard activity'
 		}
 	}
-}
+})
 
 /**
  * Get property performance metrics
@@ -89,19 +101,34 @@ export async function getPropertyPerformance() {
 /**
  * Combined dashboard data fetcher
  * Fetches all dashboard data in parallel for server-side rendering
+ * Cached to prevent duplicate calls during render
  */
-export async function getDashboardData() {
+export const getDashboardData = cache(async () => {
 	try {
 		const [statsResult, activityResult] = await Promise.all([
 			getDashboardStats(),
 			getDashboardActivity()
 		])
 
-		// If either request failed, use fallback
+		// Check for authentication errors first
+		const hasAuthError =
+			(!statsResult.success && 'shouldRedirect' in statsResult) ||
+			(!activityResult.success && 'shouldRedirect' in activityResult)
+
+		if (hasAuthError) {
+			const redirectResult = statsResult.success ? activityResult : statsResult
+			return {
+				success: false,
+				error: (redirectResult as { error: string }).error,
+				shouldRedirect: (redirectResult as { shouldRedirect: string }).shouldRedirect
+			}
+		}
+
+		// If either request failed for other reasons, use fallback
 		if (!statsResult.success || !activityResult.success) {
 			return {
 				success: false,
-				error: statsResult.error || activityResult.error
+				error: statsResult.success ? activityResult.error : statsResult.error
 			}
 		}
 
@@ -122,7 +149,7 @@ export async function getDashboardData() {
 					: 'Failed to fetch dashboard data'
 		}
 	}
-}
+})
 
 /**
  * Revalidate dashboard cache
