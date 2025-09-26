@@ -84,18 +84,21 @@ export async function serverFetch<T>(
 	})
 
 	if (!response.ok) {
+		// Log the error details for debugging
+		const errorText = await response.text()
+		logger.error('API request failed', {
+			metadata: {
+				status: response.status,
+				endpoint,
+				statusText: response.statusText,
+				errorText: errorText.substring(0, 500) // Log first 500 chars for debugging
+			}
+		})
+
 		// In production, don't expose detailed error messages to prevent leaking sensitive info
 		if (process.env.NODE_ENV === 'production') {
-			logger.error('API request failed in production', {
-				metadata: {
-					status: response.status,
-					endpoint,
-					statusText: response.statusText
-				}
-			})
 			throw new Error(`API request failed with status ${response.status}`)
 		} else {
-			const errorText = await response.text()
 			throw new Error(
 				`API Error (${response.status}): ${errorText || response.statusText}`
 			)
