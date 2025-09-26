@@ -32,7 +32,6 @@ export interface CreateSetupIntentRequest {
 	customerName?: string
 }
 
-// Import large interfaces from shared types
 export type {
 	CreateCheckoutSessionRequest,
 	CreateConnectedPaymentRequest,
@@ -54,5 +53,3 @@ export interface CreateBillingPortalRequest {
 export interface VerifyCheckoutSessionRequest {
 	sessionId: string
 }
-
-// Use Stripe.StripeError directly instead of custom interface

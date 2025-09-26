@@ -3,7 +3,6 @@ import { Test } from '@nestjs/testing'
 import { ThrottlerModule } from '@nestjs/throttler'
 import type { AuthServiceValidatedUser, ValidatedUser } from '@repo/shared'
 import type { Request } from 'express'
-// import type { User } from '@supabase/supabase-js' // Unused import
 import { SupabaseService } from '../database/supabase.service'
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
