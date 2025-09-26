@@ -173,9 +173,8 @@ class EmailTestRunner {
 		const startTime = Date.now()
 
 		try {
-			// Import and run performance tests
 			const { EmailTemplateService } = await import(
-				'../../src/email/email-template.service'
+				'../../src/emails/email-template.service'
 			)
 			const service = new EmailTemplateService()
 
@@ -251,7 +250,9 @@ class EmailTestRunner {
 
 		// Summary
 		this.logger.log('\n[METRICS] Summary:')
-		this.logger.log(`   Total Tests: ${totalPassed + totalFailed + totalSkipped}`)
+		this.logger.log(
+			`   Total Tests: ${totalPassed + totalFailed + totalSkipped}`
+		)
 		this.logger.log(`   [OK] Passed: ${totalPassed}`)
 		this.logger.log(`   [ERROR] Failed: ${totalFailed}`)
 		this.logger.log(`   ⏭️  Skipped: ${totalSkipped}`)
@@ -319,7 +320,9 @@ class EmailTestRunner {
 			this.logger.log('   [WARNING]  Coverage below 80%, add more tests')
 		}
 		if (this.results.some(r => r.duration > 30000)) {
-			this.logger.log('   [WARNING]  Some tests taking >30s, consider optimization')
+			this.logger.log(
+				'   [WARNING]  Some tests taking >30s, consider optimization'
+			)
 		}
 
 		// Save report to file
