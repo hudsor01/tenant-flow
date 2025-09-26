@@ -183,12 +183,14 @@ function LoginPageContent() {
 						{ value: 'SOC 2', label: 'Security\nCompliant' }
 					]
 				}}
-				onSubmit={handleSubmit}
-				onForgotPassword={handleForgotPassword}
-				onSignUp={handleSignUp}
-				onGoogleLogin={handleGoogleLogin}
-				isLoading={isLoading}
-				isGoogleLoading={isGoogleLoading}
+				authProps={{
+					onSubmit: handleSubmit,
+					onForgotPassword: handleForgotPassword,
+					onSignUp: handleSignUp,
+					onGoogleLogin: handleGoogleLogin,
+					isLoading,
+					isGoogleLoading
+				}}
 			/>
 
 			<ForgotPasswordModal
