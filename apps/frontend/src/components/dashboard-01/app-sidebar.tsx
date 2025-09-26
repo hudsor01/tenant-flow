@@ -3,7 +3,6 @@
 import {
 	BarChart3,
 	Building2,
-	FileCheck,
 	FileText,
 	Home,
 	PieChart,
@@ -104,11 +103,6 @@ const data: {
 		{
 			name: 'Lease Template',
 			url: '/dashboard/documents/lease-template',
-			icon: FileCheck
-		},
-		{
-			name: 'Property Guide',
-			url: '/dashboard/documents/property-guide',
 			icon: FileText
 		}
 	]
