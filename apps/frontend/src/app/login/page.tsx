@@ -47,8 +47,11 @@ function LoginPageContent() {
 				password: data.password as string
 			}
 
+			// Get the redirectTo parameter from URL
+			const redirectTo = searchParams?.get('redirectTo') || undefined
+
 			// Use server action for proper cookie-based authentication
-			const result = await loginAction(credentials)
+			const result = await loginAction(credentials, redirectTo)
 
 			if (!result.success) {
 				logger.error('Login failed', {

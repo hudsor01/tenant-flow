@@ -66,11 +66,25 @@ export async function updateSession(request: NextRequest) {
 		return NextResponse.redirect(url)
 	}
 
-	// Redirect authenticated users from auth routes to dashboard
+	// Redirect authenticated users from auth routes to dashboard or intended destination
 	// Only redirect if authentication is valid (validated with Supabase)
 	if (isAuthenticated && isAuthRoute) {
 		const url = request.nextUrl.clone()
+
+		// Check if there's a redirectTo parameter - if so, use it instead of default dashboard
+		const redirectTo = request.nextUrl.searchParams.get('redirectTo')
+		if (redirectTo && redirectTo !== pathname) {
+			// Validate the redirect path is internal and safe
+			if (redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
+				url.pathname = redirectTo
+				url.search = '' // Clear search params
+				return NextResponse.redirect(url)
+			}
+		}
+
+		// Default redirect to dashboard if no valid redirectTo
 		url.pathname = '/dashboard'
+		url.search = '' // Clear search params
 		return NextResponse.redirect(url)
 	}
 
