@@ -1,26 +1,12 @@
+import { getDashboardData } from '@/app/actions/dashboard'
 import { ChartArea } from '@/components/dashboard/chart-area'
 import { DataTable } from '@/components/dashboard/data-table'
 import { Card } from '@/components/ui/card'
-import { dashboardApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Building2, DollarSign, Users, Wrench } from 'lucide-react'
 
 const logger = createLogger({ component: 'DashboardPage' })
-
-// Simple dashboard data fetcher
-async function getDashboardData() {
-	const [stats, activity] = await Promise.all([
-		dashboardApi.getStats(),
-		dashboardApi.getActivity()
-	])
-
-	return {
-		stats,
-		activity,
-		chartData: []
-	}
-}
 
 // Fallback data for when API is unavailable
 const fallbackData = {
@@ -149,18 +135,24 @@ const formatCurrency = (amount: number) => {
 }
 
 export default async function Page() {
-	// Fetch dashboard data server-side
-	let dashboardData
-	try {
-		dashboardData = await getDashboardData()
-	} catch (error) {
-		logger.error('Failed to fetch dashboard data', {
-			message: error instanceof Error ? error.message : String(error)
-		})
-		dashboardData = fallbackData
-	}
+	// Fetch dashboard data server-side using Server Actions
+	const result = await getDashboardData()
 
-	const { stats, activity, chartData } = dashboardData
+	let stats, activity, chartData
+	if (result.success && result.data) {
+		stats = result.data.stats
+		activity = result.data.activity
+		chartData = result.data.chartData
+	} else {
+		logger.error('Failed to fetch dashboard data', {
+			metadata: {
+				error: result.success ? 'No data returned' : result.error
+			}
+		})
+		stats = fallbackData.stats
+		activity = fallbackData.activity
+		chartData = fallbackData.chartData
+	}
 
 	return (
 		<div
@@ -344,9 +336,9 @@ export default async function Page() {
 
 			{/* Activity Table */}
 			<div style={{ width: '100%' }}>
-				<DataTable
+				<DataTable<ActivityRow, unknown>
 					columns={activityColumns}
-					data={activity?.activities || []}
+					data={(activity?.activities || []) as ActivityRow[]}
 					title="Recent Activity"
 					description="Latest updates across your properties"
 				/>
