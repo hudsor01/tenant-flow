@@ -18,13 +18,80 @@ interface DashboardClientProps {
 		expenses: number
 	}>
 	activityData: ActivityRow[]
-	activityColumns: ColumnDef<ActivityRow>[]
 }
+
+// Column definitions for the activity table - moved to Client Component
+const activityColumns: ColumnDef<ActivityRow>[] = [
+	{
+		accessorKey: 'type',
+		header: 'Type',
+		cell: ({ row }) => (
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					gap: 'var(--spacing-2)'
+				}}
+			>
+				<span
+					style={{
+						display: 'inline-block',
+						width: '8px',
+						height: '8px',
+						borderRadius: '50%',
+						background:
+							row.original.type === 'Property'
+								? 'var(--color-system-blue)'
+								: row.original.type === 'Tenant'
+									? 'var(--color-system-green)'
+									: row.original.type === 'Lease'
+										? 'var(--color-system-yellow)'
+										: 'var(--color-system-orange)'
+					}}
+				/>
+				<span>{row.original.type}</span>
+			</div>
+		)
+	},
+	{
+		accessorKey: 'action',
+		header: 'Action'
+	},
+	{
+		accessorKey: 'details',
+		header: 'Details',
+		cell: ({ row }) => (
+			<span
+				style={{
+					fontSize: 'var(--font-caption-1)',
+					color: 'var(--color-label-secondary)'
+				}}
+			>
+				{row.original.details}
+			</span>
+		)
+	},
+	{
+		accessorKey: 'timestamp',
+		header: 'Time',
+		cell: ({ row }) => (
+			<span
+				style={{
+					fontSize: 'var(--font-caption-1)',
+					color: 'var(--color-label-tertiary)'
+				}}
+			>
+				{row.original.timestamp
+					? new Date(row.original.timestamp).toISOString().slice(11, 16)
+					: '--:--'}
+			</span>
+		)
+	}
+]
 
 export function DashboardClient({
 	chartData,
-	activityData,
-	activityColumns
+	activityData
 }: DashboardClientProps) {
 	return (
 		<>
