@@ -33,21 +33,42 @@ export const dashboardServerApi = {
 		),
 
 	// System uptime
-	getUptime: () => serverFetch<SystemUptime>('/api/v1/dashboard/uptime')
+	getUptime: () => serverFetch<SystemUptime>('/api/v1/dashboard/uptime'),
+
+	// Maintenance statistics
+	getMaintenanceStats: () =>
+		serverFetch<{
+			open: number
+			inProgress: number
+			completedToday: number
+			avgResolutionTime: number
+		}>('/api/v1/dashboard/maintenance-stats'),
+
+	// Chart data for revenue/expenses
+	getChartData: () =>
+		serverFetch<
+			Array<{
+				date: string
+				revenue: number
+				expenses: number
+			}>
+		>('/api/v1/dashboard/chart-data')
 }
 
 /**
  * Parallel fetch all dashboard data for optimal performance
  */
 export async function getAllDashboardData() {
-	const [stats, performance, activity, uptime] = await Promise.all([
+	const [stats, activity] = await Promise.all([
 		dashboardServerApi.getStats(),
-		dashboardServerApi.getPropertyPerformance(),
-		dashboardServerApi.getActivity(),
-		dashboardServerApi.getUptime()
+		dashboardServerApi.getActivity()
 	])
 
-	return { stats, performance, activity, uptime }
+	return {
+		stats,
+		activity,
+		chartData: [] // Empty chart data for now
+	}
 }
 
 /**

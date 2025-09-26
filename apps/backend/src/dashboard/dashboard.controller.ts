@@ -9,10 +9,7 @@ import {
 	UnauthorizedException
 } from '@nestjs/common'
 // Swagger imports removed
-import type {
-	ControllerApiResponse,
-	ValidatedUser
-} from '@repo/shared'
+import type { ControllerApiResponse, ValidatedUser } from '@repo/shared'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { DashboardService } from './dashboard.service'
