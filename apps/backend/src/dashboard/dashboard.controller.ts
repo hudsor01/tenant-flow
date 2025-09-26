@@ -1,15 +1,15 @@
 import {
-	Controller,
-	Get,
-	Logger,
-	NotFoundException,
-	Optional,
-	Query,
-	Req,
-	UnauthorizedException
+    Controller,
+    Get,
+    Logger,
+    NotFoundException,
+    Optional,
+    Query,
+    Req,
+    UnauthorizedException
 } from '@nestjs/common'
 // Swagger imports removed
-import type { ControllerApiResponse, ValidatedUser } from '@repo/shared'
+import type { ControllerApiResponse, authUser } from '@repo/shared'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { DashboardService } from './dashboard.service'
@@ -27,7 +27,7 @@ export class DashboardController {
 	/**
 	 * Helper method to validate user from request
 	 */
-	private async validateUser(request: Request): Promise<ValidatedUser> {
+	private async validateUser(request: Request): Promise<authUser> {
 		if (!this.supabaseService) {
 			throw new NotFoundException('Authentication service not available')
 		}

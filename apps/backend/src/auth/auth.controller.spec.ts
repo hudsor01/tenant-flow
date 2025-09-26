@@ -1,7 +1,7 @@
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { ThrottlerModule } from '@nestjs/throttler'
-import type { AuthServiceValidatedUser, ValidatedUser } from '@repo/shared'
+import type { AuthServiceauthUser, authUser } from '@repo/shared'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { AuthController } from './auth.controller'
@@ -101,7 +101,7 @@ describe('AuthController', () => {
 
 	describe('getCurrentUser', () => {
 		it('should return user profile when user is validated', async () => {
-			const mockUser: ValidatedUser = {
+			const mockUser: authUser = {
 				id: 'user-123',
 				email: 'test@example.com',
 				name: 'Test User',
@@ -117,7 +117,7 @@ describe('AuthController', () => {
 				organizationId: null
 			}
 
-			const mockReturnedUser: AuthServiceValidatedUser = {
+			const mockReturnedUser: AuthServiceauthUser = {
 				...mockUser,
 				role: 'TENANT',
 				profileComplete: true,
@@ -152,7 +152,7 @@ describe('AuthController', () => {
 			// Mock validateUser to return a user (needed for auth check)
 			mockSupabaseService.validateUser.mockResolvedValue({
 				id: 'user-123'
-			} as ValidatedUser)
+			} as authUser)
 
 			// Create mock request with cookies for the auth cookie
 			const mockRequest = {
@@ -181,7 +181,7 @@ describe('AuthController', () => {
 					name: 'Test User',
 					profileComplete: true,
 					lastLoginAt: new Date()
-				} as unknown as AuthServiceValidatedUser
+				} as unknown as AuthServiceauthUser
 			}
 
 			const body = { refresh_token: 'old-refresh-token' }
@@ -229,7 +229,7 @@ describe('AuthController', () => {
 					organizationId: null,
 					profileComplete: true,
 					lastLoginAt: new Date()
-				} as unknown as AuthServiceValidatedUser
+				} as unknown as AuthServiceauthUser
 			}
 
 			mockAuthServiceInstance.login.mockResolvedValue(mockLoginResult)
@@ -301,7 +301,7 @@ describe('AuthController', () => {
 			// Mock validateUser to return a user
 			mockSupabaseService.validateUser.mockResolvedValue({
 				id: 'user-123'
-			} as ValidatedUser)
+			} as authUser)
 
 			const mockRequest = {
 				headers: {
@@ -359,7 +359,7 @@ describe('AuthController', () => {
 
 			mockAuthServiceInstance.getDraft.mockResolvedValue(mockDraftResult)
 
-			const result = await controller.getDraft(body, mockRequest)
+			const result = await controller.getDraft('signup', mockRequest)
 
 			expect(result).toEqual(mockDraftResult)
 			expect(mockAuthServiceInstance.getDraft).toHaveBeenCalledWith(
@@ -378,7 +378,7 @@ describe('AuthController', () => {
 
 			mockAuthServiceInstance.getDraft.mockResolvedValue(null)
 
-			const result = await controller.getDraft(body, mockRequest)
+			const result = await controller.getDraft('signup', mockRequest)
 
 			expect(result).toBeNull()
 			expect(mockAuthServiceInstance.getDraft).toHaveBeenCalledWith(

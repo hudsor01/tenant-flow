@@ -5,12 +5,12 @@
 
 // Import constants from the single source of truth
 import type { USER_ROLE } from '../constants/auth.js'
-import type { ValidatedUser as BackendValidatedUser } from './backend-domain.js'
+import type { authUser as BackendauthUser } from './backend-domain.js'
 import type { Database } from './supabase-generated.js'
 
 // Use Supabase User type directly - matches what we get from auth
 import type { User } from '@supabase/supabase-js'
-export type AuthUser = User
+export type authUser = User
 
 // User role type derived from constants
 export type UserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE]
@@ -27,9 +27,9 @@ export type SubscriptionStatus =
 
 // Type guard to check if user has organizationId (for when feature is implemented)
 export function hasOrganizationId(
-	user: AuthUser
-): user is AuthUser & { organizationId: string } {
-	const userWithOrg = user as AuthUser & { organizationId?: string }
+	user: authUser
+): user is authUser & { organizationId: string } {
+	const userWithOrg = user as authUser & { organizationId?: string }
 	return (
 		typeof userWithOrg.organizationId === 'string' &&
 		userWithOrg.organizationId.length > 0
@@ -113,7 +113,7 @@ export interface ClientAuthResponse {
 }
 
 export interface AuthResponse {
-	user: User | AuthUser
+	user: User | authUser
 	session?: {
 		access_token: string
 		refresh_token: string
@@ -207,8 +207,13 @@ export interface JwtPayload {
 	exp?: number
 }
 
-// Re-export ValidatedUser from backend-domain.ts to avoid duplication
-export type { ValidatedUser } from './backend-domain.js'
+// Note: authUser is defined as type alias above (line 13): export type authUser = User
+
+// Google OAuth user type - extends Supabase's User with Google-specific fields
+export interface GoogleOAuthUser extends AuthUser {
+	name?: string
+	picture?: string
+}
 
 // Supabase user structure (from Supabase auth.getUser())
 export interface SupabaseUser {
@@ -225,7 +230,7 @@ export interface SupabaseUser {
 }
 
 // Auth service validated user - directly extends database User table type
-export interface AuthServiceValidatedUser
+export interface AuthServiceauthUser
 	extends Omit<
 		Database['public']['Tables']['User']['Row'],
 		'createdAt' | 'updatedAt'
@@ -271,7 +276,7 @@ export interface ChangePasswordRequest {
 // Extended auth context and guard types
 // MIGRATED from apps/backend/src/shared/guards/auth.guard.ts
 export interface AuthenticatedRequest {
-	user: BackendValidatedUser
+	user: BackendauthUser
 	// Additional authenticated request context could be added here with specific types
 }
 
@@ -310,7 +315,7 @@ export interface SupabaseWebhookEvent {
 }
 
 export interface AuthContextType {
-	user: AuthUser | null
+	user: authUser | null
 	loading: boolean
 	signIn: (credentials: LoginCredentials) => Promise<void>
 	signOut: () => Promise<void>
@@ -368,11 +373,11 @@ export type AuthFormState = FormState<User>
 
 // Frontend auth store state for Zustand (compatible with Supabase types)
 export interface AuthState {
-	user: AuthUser | null // Support both Supabase User and AuthUser
+	user: authUser | null // Support both Supabase User and authUser
 	session: AuthSession | null // Use AuthSession for Supabase compatibility
 	isAuthenticated: boolean
 	isLoading: boolean
-	setUser: (user: AuthUser | null) => void
+	setUser: (user: authUser | null) => void
 	setSession: (session: AuthSession | null) => void
 	setLoading: (loading: boolean) => void
 	signOut: () => void
