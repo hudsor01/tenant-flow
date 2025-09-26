@@ -35,8 +35,8 @@ import {
 } from '@/components/ui/table'
 
 // Custom Components
-import { ChartAreaInteractive } from '@/components/charts/chart-area-interactive'
 import { MetricsCard } from '@/components/charts/metrics-card'
+import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
 import { formatCurrency } from '@/lib/utils'
 
 export default async function TenantsPage() {

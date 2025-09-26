@@ -1,6 +1,6 @@
 'use client'
 
-import { ChartAreaInteractive } from '@/components/charts/chart-area-interactive'
+import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
 import { CreateLeaseDialog } from '@/components/leases/create-lease-dialog'
 import { LeaseActionButtons } from '@/components/leases/lease-action-buttons'
 import { LoadingSpinner } from '@/components/magicui/loading-spinner'
