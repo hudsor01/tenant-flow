@@ -97,27 +97,29 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 
 								{/* Stats grid with dark text */}
 								<div className="grid grid-cols-3 gap-6 pt-6">
-									{content.stats.map((stat, index) => (
-										<div
-											key={index}
-											className="text-center group animate-in fade-in slide-in-from-bottom-4 duration-500"
-											style={{ animationDelay: `${400 + index * 100}ms` }}
-										>
+									{content.stats.map(
+										(stat: { value: string; label: string }, index: number) => (
 											<div
-												className="text-foreground font-bold mb-1 group-hover:scale-105 transition-transform duration-300"
-												style={TYPOGRAPHY_SCALE['heading-md']}
+												key={index}
+												className="text-center group animate-in fade-in slide-in-from-bottom-4 duration-500"
+												style={{ animationDelay: `${400 + index * 100}ms` }}
 											>
-												{stat.value}
+												<div
+													className="text-foreground font-bold mb-1 group-hover:scale-105 transition-transform duration-300"
+													style={TYPOGRAPHY_SCALE['heading-md']}
+												>
+													{stat.value}
+												</div>
+												<div
+													className="text-muted-foreground leading-tight font-medium group-hover:text-foreground transition-colors duration-300"
+													style={TYPOGRAPHY_SCALE['ui-caption']}
+													dangerouslySetInnerHTML={{
+														__html: stat.label.replace('\n', '<br />')
+													}}
+												/>
 											</div>
-											<div
-												className="text-muted-foreground leading-tight font-medium group-hover:text-foreground transition-colors duration-300"
-												style={TYPOGRAPHY_SCALE['ui-caption']}
-												dangerouslySetInnerHTML={{
-													__html: stat.label.replace('\n', '<br />')
-												}}
-											/>
-										</div>
-									))}
+										)
+									)}
 								</div>
 							</div>
 						</div>
