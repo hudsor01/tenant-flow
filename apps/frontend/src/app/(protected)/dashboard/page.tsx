@@ -115,22 +115,19 @@ const activityColumns: ColumnDef<ActivityRow>[] = [
 					color: 'var(--color-label-tertiary)'
 				}}
 			>
-				{new Date(row.original.timestamp).toLocaleTimeString([], {
-					hour: '2-digit',
-					minute: '2-digit'
-				})}
+				{row.original.timestamp
+					? new Date(row.original.timestamp).toISOString().slice(11, 16)
+					: '--:--'}
 			</span>
 		)
 	}
 ]
 
-// Format currency helper
+// SSR-safe currency formatter - deterministic output
 const formatCurrency = (amount: number) => {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD',
-		minimumFractionDigits: 0
-	}).format(amount)
+	const dollars = Math.floor(amount)
+	// Use basic number formatting without locale dependency
+	return `$${dollars.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
 }
 
 export default async function Page() {
@@ -201,7 +198,9 @@ export default async function Page() {
 								color: 'var(--color-label-primary)'
 							}}
 						>
-							{stats?.properties?.total?.toLocaleString() || 0}
+							{stats?.properties?.total
+								?.toString()
+								.replace(/\B(?=(\d{3})+(?!\d))/g, ',') || '0'}
 						</p>
 					</div>
 				</Card>
@@ -240,7 +239,9 @@ export default async function Page() {
 								color: 'var(--color-label-primary)'
 							}}
 						>
-							{stats?.tenants?.active?.toLocaleString() || 0}
+							{stats?.tenants?.active
+								?.toString()
+								.replace(/\B(?=(\d{3})+(?!\d))/g, ',') || '0'}
 						</p>
 					</div>
 				</Card>
@@ -318,7 +319,9 @@ export default async function Page() {
 								color: 'var(--color-label-primary)'
 							}}
 						>
-							{stats?.maintenance?.total?.toLocaleString() || 0}
+							{stats?.maintenance?.total
+								?.toString()
+								.replace(/\B(?=(\d{3})+(?!\d))/g, ',') || '0'}
 						</p>
 					</div>
 				</Card>
