@@ -403,7 +403,9 @@ export class AuthService {
 			if (error.message.includes('already registered')) {
 				throw new BadRequestException('User with this email already exists')
 			}
-			throw new BadRequestException(error.message)
+			// Log the actual error for debugging tests
+			this.logger.error('Database error creating user:', error.message)
+			throw new BadRequestException(error.message || 'Database error creating new user')
 		}
 
 		if (!data.user.id || !data.user.email) {
