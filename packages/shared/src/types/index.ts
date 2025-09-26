@@ -77,6 +77,9 @@ export type { Permission } from './security.js'
 export { USER_ROLE } from '../constants/auth.js'
 export { PLANS, PLAN_TYPE } from '../constants/billing.js'
 
+// Frontend types (required for analytics)
+export * from './frontend.js'
+
 // NO LEGACY COMPATIBILITY - Use core types directly
 
 // ESSENTIAL UTILITIES ONLY - Minimal necessary type utilities
@@ -99,7 +102,6 @@ export type Numberify<T> = { [K in keyof T]: number }
 // - utilities.ts → core.ts
 // - api.ts → core.ts (ApiResponse consolidated)
 // - responses.ts → core.ts
-// - frontend.ts → native React types + core.ts
 // - errors.ts → core.ts (simplified error handling)
 //
 // REMOVED PATTERNS (use native TypeScript):

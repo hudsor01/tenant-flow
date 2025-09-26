@@ -10,11 +10,15 @@ import {
 	UnauthorizedException
 } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
+import type {
+	LoginRequest,
+	RefreshTokenRequest,
+	RegisterRequest
+} from '@repo/shared'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
+import { RouteSchema } from '../shared/decorators/route-schema.decorator'
 import { AuthService } from './auth.service'
-// Using Express JSON Schema validation - no DTOs needed
-// Validation is handled by Express JSON schema at route level
 
 @Controller('auth')
 export class AuthController {
@@ -53,9 +57,13 @@ export class AuthController {
 		return {
 			status: healthy ? 'healthy' : 'unhealthy',
 			timestamp: new Date().toISOString(),
-			environment: process.env.NODE_ENV || (() => {
-				throw new Error('NODE_ENV is required for auth health check reporting')
-			})(),
+			environment:
+				process.env.NODE_ENV ||
+				(() => {
+					throw new Error(
+						'NODE_ENV is required for auth health check reporting'
+					)
+				})(),
 			checks: {
 				...envChecks,
 				supabase_connection: connected
@@ -90,7 +98,19 @@ export class AuthController {
 	@Post('refresh')
 	@Throttle({ default: { limit: 20, ttl: 60000 } })
 	@HttpCode(HttpStatus.OK)
-	async refreshToken(@Body() body: { refresh_token: string }) {
+	@RouteSchema({
+		method: 'POST',
+		path: 'auth/refresh',
+		schema: {
+			type: 'object',
+			properties: {
+				refresh_token: { type: 'string', minLength: 1 }
+			},
+			required: ['refresh_token'],
+			additionalProperties: false
+		}
+	})
+	async refreshToken(@Body() body: RefreshTokenRequest) {
 		return this.authService.refreshToken(body.refresh_token)
 	}
 
@@ -102,10 +122,21 @@ export class AuthController {
 	@Post('login')
 	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 login attempts per minute
 	@HttpCode(HttpStatus.OK)
-	async login(
-		@Body() body: { email: string; password: string },
-		@Req() request: Request
-	) {
+	@RouteSchema({
+		method: 'POST',
+		path: 'auth/login',
+		schema: {
+			type: 'object',
+			properties: {
+				email: { type: 'string', format: 'email' },
+				password: { type: 'string', minLength: 8 },
+				rememberMe: { type: 'boolean', nullable: true }
+			},
+			required: ['email', 'password'],
+			additionalProperties: false
+		}
+	})
+	async login(@Body() body: LoginRequest, @Req() request: Request) {
 		const forwardedFor = request.headers['x-forwarded-for']
 		const ip =
 			request.ip ||
@@ -122,20 +153,27 @@ export class AuthController {
 	@Post('register')
 	@Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 registration attempts per minute
 	@HttpCode(HttpStatus.CREATED)
-	async register(
-		@Body()
-		body: {
-			email: string
-			password: string
-			firstName: string
-			lastName: string
+	@RouteSchema({
+		method: 'POST',
+		path: 'auth/register',
+		schema: {
+			type: 'object',
+			properties: {
+				email: { type: 'string', format: 'email' },
+				password: { type: 'string', minLength: 8 },
+				fullName: { type: 'string', minLength: 1, nullable: true },
+				companyName: { type: 'string', nullable: true }
+			},
+			required: ['email', 'password'],
+			additionalProperties: false
 		}
-	) {
-		// Transform firstName/lastName to name for service compatibility
+	})
+	async register(@Body() body: RegisterRequest) {
+		// Use name directly from RegisterRequest
 		const userData = {
 			email: body.email,
 			password: body.password,
-			name: `${body.firstName} ${body.lastName}`.trim()
+			name: body.name || ''
 		}
 		return this.authService.createUser(userData)
 	}
@@ -169,6 +207,20 @@ export class AuthController {
 	@Post('draft')
 	@Throttle({ default: { limit: 10, ttl: 60000 } })
 	@HttpCode(HttpStatus.OK)
+	@RouteSchema({
+		method: 'POST',
+		path: 'auth/draft',
+		schema: {
+			type: 'object',
+			properties: {
+				email: { type: 'string', format: 'email', nullable: true },
+				name: { type: 'string', nullable: true },
+				formType: { enum: ['signup', 'login', 'reset'] }
+			},
+			required: ['formType'],
+			additionalProperties: false
+		}
+	})
 	async saveDraft(
 		@Body()
 		body: {

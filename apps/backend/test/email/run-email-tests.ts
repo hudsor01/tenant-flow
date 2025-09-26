@@ -180,10 +180,10 @@ class EmailTestRunner {
 
 			// Test template rendering performance
 			const templates = [
-				'welcome',
-				'tenant-invitation',
-				'payment-reminder',
-				'lease-expiration'
+				'subscriptionCreated',
+				'subscriptionCancelled',
+				'paymentFailed',
+				'trialEndingSoon'
 			]
 			const renderTimes: number[] = []
 
@@ -191,17 +191,17 @@ class EmailTestRunner {
 				const templateStart = Date.now()
 
 				await service.renderTemplate(template as any, {
-					email: 'perf@test.com',
-					name: 'Performance Test',
-					tenantName: 'Test Tenant',
-					propertyAddress: '123 Test St',
-					invitationLink: 'https://test.com',
-					landlordName: 'Test Landlord',
-					amountDue: 1000,
-					dueDate: new Date().toISOString(),
-					paymentLink: 'https://pay.test.com',
-					expirationDate: new Date().toISOString(),
-					renewalLink: 'https://renew.test.com'
+					to: 'perf@test.com',
+					customerName: 'Performance Test',
+					planName: 'Pro Plan',
+					amount: 9999,
+					currency: 'usd',
+					interval: 'month',
+					nextBillingDate: new Date(
+						Date.now() + 30 * 24 * 60 * 1000
+					).toISOString(),
+					trialEndDate: new Date(Date.now() + 7 * 24 * 60 * 1000).toISOString(),
+					failureReason: 'Insufficient funds'
 				})
 
 				const renderTime = Date.now() - templateStart

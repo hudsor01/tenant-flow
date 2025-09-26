@@ -270,8 +270,7 @@ describe('AuthController', () => {
 			const registerDto = {
 				email: 'new@example.com',
 				password: 'password123',
-				firstName: 'New',
-				lastName: 'User'
+				name: 'New User'
 			}
 
 			const mockRegisterResult = {
