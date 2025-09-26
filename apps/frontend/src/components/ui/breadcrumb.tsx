@@ -43,17 +43,7 @@ function BreadcrumbLink({
 	return (
 		<Comp
 			data-slot="breadcrumb-link"
-			className={cn(
-				// Enhanced transitions
-				'transition-all duration-200 ease-in-out',
-				// Hover state
-				'hover:text-foreground hover:underline hover:underline-offset-4',
-				// Focus state
-				'focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-4',
-				// Active state
-				'active:opacity-70 active:duration-150',
-				className
-			)}
+			className={cn('hover:text-foreground transition-colors', className)}
 			{...props}
 		/>
 	)
@@ -99,15 +89,7 @@ function BreadcrumbEllipsis({
 			data-slot="breadcrumb-ellipsis"
 			role="presentation"
 			aria-hidden="true"
-			className={cn(
-				// Base styles with token-based radius
-				'flex size-9 items-center justify-center rounded-[var(--radius-small)]',
-				// Enhanced transitions
-				'transition-all duration-200 ease-in-out',
-				// Hover state
-				'hover:bg-accent hover:text-accent-foreground',
-				className
-			)}
+			className={cn('flex size-9 items-center justify-center', className)}
 			{...props}
 		>
 			<MoreHorizontal className="size-4" />
