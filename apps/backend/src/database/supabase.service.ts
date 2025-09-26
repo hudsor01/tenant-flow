@@ -137,23 +137,8 @@ export class SupabaseService implements OnModuleInit {
 			}
 
 			// Map database user to authUser format
-			const authUser: authUser = {
-				id: dbUser.id,
-				email: dbUser.email,
-				name: dbUser.name,
-				phone: dbUser.phone,
-				bio: dbUser.bio,
-				avatarUrl: dbUser.avatarUrl,
-				role: dbUser.role,
-				createdAt: new Date(dbUser.createdAt),
-				updatedAt: new Date(dbUser.updatedAt),
-				emailVerified: !!supabaseUser.email_confirmed_at,
-				supabaseId: dbUser.supabaseId,
-				stripeCustomerId: dbUser.stripeCustomerId,
-				organizationId: null // Organization feature not implemented yet
-			}
-
-			return authUser
+			// Return the Supabase User directly - authUser is just an alias for Supabase's User type
+			return supabaseUser
 		} catch (error) {
 			this.logger.error('Error validating user', {
 				error: error instanceof Error ? error.message : String(error)
