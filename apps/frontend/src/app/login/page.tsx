@@ -1,7 +1,11 @@
 'use client'
 
 import { createClient } from '@/utils/supabase/client'
-import type { LoginCredentials } from '@repo/shared'
+import type {
+	LoginCredentials,
+	LoginFormData,
+	SignupFormData
+} from '@repo/shared'
 import { createLogger } from '@repo/shared'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
@@ -34,7 +38,7 @@ function LoginPageContent() {
 		}
 	}, [searchParams, router])
 
-	const handleSubmit = async (data: Record<string, unknown>) => {
+	const handleSubmit = async (data: LoginFormData | SignupFormData) => {
 		setIsLoading(true)
 		try {
 			// Validate and cast the data to LoginCredentials
@@ -125,9 +129,10 @@ function LoginPageContent() {
 
 			// OAuth with redirectTo for proper callback handling
 			// Use the configured app URL for OAuth redirect to match Supabase settings
-			const redirectUrl = process.env.NODE_ENV === 'development'
-				? 'http://localhost:3000/auth/callback'
-				: `${window.location.origin}/auth/callback`
+			const redirectUrl =
+				process.env.NODE_ENV === 'development'
+					? 'http://localhost:3000/auth/callback'
+					: `${window.location.origin}/auth/callback`
 
 			const { error } = await supabase.auth.signInWithOAuth({
 				provider: 'google',
