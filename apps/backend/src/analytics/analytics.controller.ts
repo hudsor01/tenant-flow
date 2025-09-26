@@ -4,33 +4,12 @@ import {
 	HttpCode,
 	HttpStatus,
 	Logger,
-	Post
+	Post,
+	SetMetadata
 } from '@nestjs/common'
 import type { WebVitalData } from '@repo/shared'
 // Swagger imports removed
-import { Public } from '../shared/decorators/public.decorator'
-import { RouteSchema } from '../shared/decorators/route-schema.decorator'
 import { AnalyticsService } from './analytics.service'
-
-// JSON Schema for web vitals validation
-const webVitalsSchema = {
-	type: 'object',
-	properties: {
-		name: { enum: ['FCP', 'LCP', 'CLS', 'FID', 'TTFB', 'INP'] },
-		value: { type: 'number' },
-		rating: { enum: ['good', 'needs-improvement', 'poor'] },
-		delta: { type: 'number' },
-		id: { type: 'string' },
-		label: { enum: ['web-vital', 'custom'], nullable: true },
-		navigationType: { type: 'string', nullable: true },
-		page: { type: 'string', nullable: true },
-		timestamp: { type: 'string', format: 'date-time', nullable: true },
-		sessionId: { type: 'string', nullable: true },
-		userId: { type: 'string', nullable: true }
-	},
-	required: ['name', 'value', 'rating', 'delta', 'id'],
-	additionalProperties: false
-}
 
 // @ApiTags('analytics')
 @Controller('analytics')
@@ -40,16 +19,28 @@ export class AnalyticsController {
 	constructor(private readonly analyticsService: AnalyticsService) {}
 
 	@Post('web-vitals')
-	@Public()
+	@SetMetadata('isPublic', true)
 	@HttpCode(HttpStatus.ACCEPTED)
-	@RouteSchema({
-		method: 'POST',
-		path: 'analytics/web-vitals',
-		schema: webVitalsSchema
-	})
 	// @ApiOperation({ summary: 'Collect web vitals metrics from the frontend' })
 	// @ApiResponse({ status: HttpStatus.ACCEPTED, description: 'Metric accepted' })
 	async reportWebVitals(@Body() payload: WebVitalData) {
+		// Manual validation for web vitals data
+		if (!payload || typeof payload !== 'object') {
+			throw new Error('Invalid payload')
+		}
+
+		const validNames = ['FCP', 'LCP', 'CLS', 'FID', 'TTFB', 'INP']
+		const validRatings = ['good', 'needs-improvement', 'poor']
+
+		if (
+			!validNames.includes(payload.name) ||
+			typeof payload.value !== 'number' ||
+			!validRatings.includes(payload.rating) ||
+			typeof payload.delta !== 'number' ||
+			typeof payload.id !== 'string'
+		) {
+			throw new Error('Invalid web vitals data')
+		}
 		const { userId, sessionId } = payload
 		const distinctId = userId ?? sessionId ?? payload.id
 
