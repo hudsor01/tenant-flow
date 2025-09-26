@@ -1,6 +1,5 @@
 import { getDashboardData } from '@/app/actions/dashboard'
-import { ChartArea } from '@/components/dashboard/chart-area'
-import { DataTable } from '@/components/dashboard/data-table'
+import { DashboardClient } from '@/components/dashboard/dashboard-client'
 import { Card } from '@/components/ui/card'
 import { createLogger } from '@repo/shared'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -325,24 +324,12 @@ export default async function Page() {
 				</Card>
 			</div>
 
-			{/* Chart Section */}
-			<div style={{ width: '100%' }}>
-				<ChartArea
-					data={chartData || []}
-					title="Revenue & Expenses"
-					description="Monthly revenue and expenses overview"
-				/>
-			</div>
-
-			{/* Activity Table */}
-			<div style={{ width: '100%' }}>
-				<DataTable<ActivityRow, unknown>
-					columns={activityColumns}
-					data={(activity?.activities || []) as ActivityRow[]}
-					title="Recent Activity"
-					description="Latest updates across your properties"
-				/>
-			</div>
+			{/* Client Components Wrapper - Fixes Hydration Error */}
+			<DashboardClient
+				chartData={chartData || []}
+				activityData={(activity?.activities || []) as ActivityRow[]}
+				activityColumns={activityColumns}
+			/>
 		</div>
 	)
 }
