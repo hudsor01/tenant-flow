@@ -10,7 +10,7 @@ import type { Database } from './supabase-generated.js'
 
 // BACKEND CONTEXT TYPES
 
-export interface ValidatedUser {
+export interface authUser {
 	id: string
 	email: string
 	name: string | null
@@ -29,10 +29,10 @@ export interface ValidatedUser {
 export interface Context {
 	req: Request
 	res: Response
-	user?: ValidatedUser
+	user?: authUser
 }
 
-export type AuthenticatedContext = Context & { user: ValidatedUser }
+export type AuthenticatedContext = Context & { user: authUser }
 
 export interface RequestContext {
 	requestId: string

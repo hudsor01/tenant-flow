@@ -1,14 +1,14 @@
 import {
-	BadRequestException,
-	Injectable,
-	InternalServerErrorException,
-	Logger,
-	UnauthorizedException
+    BadRequestException,
+    Injectable,
+    InternalServerErrorException,
+    Logger,
+    UnauthorizedException
 } from '@nestjs/common'
-import type { AuthServiceValidatedUser, Database, UserRole } from '@repo/shared'
+import type { AuthServiceauthUser, Database, UserRole } from '@repo/shared'
 import type {
-	SupabaseClient,
-	User as SupabaseUser
+    SupabaseClient,
+    User as SupabaseUser
 } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
 
@@ -40,7 +40,7 @@ export class AuthService {
 
 	async validateSupabaseToken(
 		token: string
-	): Promise<AuthServiceValidatedUser> {
+	): Promise<AuthServiceauthUser> {
 		if (!token || typeof token !== 'string') {
 			throw new UnauthorizedException('Invalid token format')
 		}
@@ -89,7 +89,7 @@ export class AuthService {
 
 	async syncUserWithDatabase(
 		supabaseUser: SupabaseUser
-	): Promise<AuthServiceValidatedUser> {
+	): Promise<AuthServiceauthUser> {
 		if (!supabaseUser.email) {
 			throw new UnauthorizedException('User email is required')
 		}
@@ -165,7 +165,7 @@ export class AuthService {
 
 	async getUserBySupabaseId(
 		supabaseId: string
-	): Promise<AuthServiceValidatedUser | null> {
+	): Promise<AuthServiceauthUser | null> {
 		const adminClient = this.adminClient
 		const { data: user } = await adminClient
 			.from('User')
@@ -201,7 +201,7 @@ export class AuthService {
 			bio?: string
 			avatarUrl?: string
 		}
-	): Promise<{ user: AuthServiceValidatedUser }> {
+	): Promise<{ user: AuthServiceauthUser }> {
 		const adminClient = this.adminClient
 		const { data: user, error } = await adminClient
 			.from('User')
@@ -236,7 +236,7 @@ export class AuthService {
 
 	async validateTokenAndGetUser(
 		token: string
-	): Promise<AuthServiceValidatedUser> {
+	): Promise<AuthServiceauthUser> {
 		try {
 			const {
 				data: { user },
@@ -301,7 +301,7 @@ export class AuthService {
 
 	async getUserByEmail(
 		email: string
-	): Promise<AuthServiceValidatedUser | null> {
+	): Promise<AuthServiceauthUser | null> {
 		const adminClient = this.adminClient
 		const { data: user } = await adminClient
 			.from('User')
@@ -455,7 +455,7 @@ export class AuthService {
 		access_token: string
 		refresh_token: string
 		expires_in: number
-		user: AuthServiceValidatedUser
+		user: AuthServiceauthUser
 	}> {
 		const { data, error } = await this.adminClient.auth.refreshSession({
 			refresh_token: refreshToken
@@ -465,7 +465,7 @@ export class AuthService {
 			throw new BadRequestException('Invalid or expired refresh token')
 		}
 
-		const validatedUser = await this.validateSupabaseToken(
+		const authUser = await this.validateSupabaseToken(
 			data.session.access_token
 		)
 
@@ -473,7 +473,7 @@ export class AuthService {
 			access_token: data.session.access_token,
 			refresh_token: data.session.refresh_token,
 			expires_in: data.session.expires_in,
-			user: validatedUser
+			user: authUser
 		}
 	}
 
@@ -485,7 +485,7 @@ export class AuthService {
 		access_token: string
 		refresh_token: string
 		expires_in: number
-		user: AuthServiceValidatedUser
+		user: AuthServiceauthUser
 	}> {
 		this.logger.log(`Auth attempt for email: ${email} from IP: ${ip}`)
 
@@ -526,17 +526,17 @@ export class AuthService {
 			throw new BadRequestException('Login failed')
 		}
 
-		const validatedUser = await this.validateSupabaseToken(
+		const authUser = await this.validateSupabaseToken(
 			data.session.access_token
 		)
 
-		this.logger.log(`Auth success for user: ${validatedUser.id} from IP: ${ip}`)
+		this.logger.log(`Auth success for user: ${authUser.id} from IP: ${ip}`)
 
 		return {
 			access_token: data.session.access_token,
 			refresh_token: data.session.refresh_token,
 			expires_in: data.session.expires_in,
-			user: validatedUser
+			user: authUser
 		}
 	}
 

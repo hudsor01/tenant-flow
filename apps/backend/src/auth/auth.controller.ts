@@ -6,6 +6,7 @@ import {
 	HttpCode,
 	HttpStatus,
 	NotFoundException,
+	Param,
 	Post,
 	Req,
 	UnauthorizedException
@@ -194,11 +195,10 @@ export class AuthController {
 	@Get('draft/:formType')
 	@Throttle({ default: { limit: 20, ttl: 60000 } })
 	async getDraft(
-		@Body() body: { sessionId?: string },
+		@Param('formType') formType: string,
 		@Req() request: Request
 	) {
-		const sessionId =
-			body.sessionId || (request.headers['x-session-id'] as string)
+		const sessionId = request.headers['x-session-id'] as string
 		return this.authService.getDraft(sessionId)
 	}
 }
