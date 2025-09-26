@@ -78,8 +78,9 @@ export async function serverFetch<T>(
 	const response = await fetch(`${API_BASE_URL}${endpoint}`, {
 		...options,
 		headers,
-		// Use no-store for dashboard data that should be fresh
-		cache: options?.cache || 'no-store'
+		// Use revalidation caching instead of no-store to prevent excessive calls
+		next: { revalidate: 30 }, // Cache for 30 seconds
+		cache: options?.cache || 'default'
 	})
 
 	if (!response.ok) {

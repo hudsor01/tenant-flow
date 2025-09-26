@@ -1,32 +1,19 @@
 'use client'
 
 import { cn } from '@/lib/design-system'
-import { TYPOGRAPHY_SCALE } from '@repo/shared'
+import { TYPOGRAPHY_SCALE, type AuthFormProps } from '@repo/shared'
 import { Lock, Smartphone, Zap } from 'lucide-react'
 import Image from 'next/image'
 import * as React from 'react'
 import { LoginForm } from './login-form'
+import { SignupForm } from './signup-form'
 
-interface LoginLayoutProps
-	extends Omit<React.ComponentProps<'div'>, 'content' | 'onSubmit'> {
+// Keep interface small to avoid ESLint rule - compose props instead of extending
+interface LoginLayoutProps extends Omit<React.ComponentProps<'div'>, 'content'> {
 	mode?: 'login' | 'signup'
-	onSubmit?: (data: Record<string, unknown>) => void | Promise<void>
-	onForgotPassword?: () => void
-	onSignUp?: () => void
-	onLogin?: () => void
-	onGoogleLogin?: () => void | Promise<void>
-	onGoogleSignUp?: () => void | Promise<void>
-	isLoading?: boolean
-	isGoogleLoading?: boolean
 	imageOnRight?: boolean
 	imageUrl?: string
-	title?: string
-	subtitle?: string
-	content?: {
-		heading: string
-		description: string
-		stats: Array<{ value: string; label: string }>
-	}
+	authProps?: AuthFormProps
 }
 
 export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
@@ -36,8 +23,10 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 			onSubmit: _onSubmit,
 			onForgotPassword: _onForgotPassword,
 			onSignUp: _onSignUp,
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			onLogin: _onLogin,
 			onGoogleLogin: _onGoogleLogin,
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			onGoogleSignUp: _onGoogleSignUp,
 			isLoading: _isLoading = false,
 			isGoogleLoading: _isGoogleLoading = false,
@@ -208,11 +197,7 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 					<div>
 						{mode === 'login' ? (
 							<LoginForm
-								onSubmit={
-									_onSubmit as (
-										data: Record<string, unknown>
-									) => void | Promise<void>
-								}
+								onSubmit={_onSubmit}
 								onForgotPassword={_onForgotPassword}
 								onSignUp={_onSignUp}
 								onGoogleLogin={_onGoogleLogin}
@@ -220,17 +205,9 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 								isGoogleLoading={_isGoogleLoading}
 							/>
 						) : (
-							<LoginForm
-								mode="signup"
-								onSubmit={
-									_onSubmit as (
-										data: Record<string, unknown>
-									) => void | Promise<void>
-								}
-								onLogin={_onLogin}
-								onGoogleLogin={_onGoogleSignUp}
+							<SignupForm
+								onSubmit={_onSubmit}
 								isLoading={_isLoading}
-								isGoogleLoading={_isGoogleLoading}
 							/>
 						)}
 					</div>
