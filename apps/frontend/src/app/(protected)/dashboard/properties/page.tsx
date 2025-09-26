@@ -24,8 +24,8 @@ import {
 } from '@/components/ui/table'
 
 // Custom Components
-import { ChartAreaInteractive } from '@/components/charts/chart-area-interactive'
 import { MetricsCard } from '@/components/charts/metrics-card'
+import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
 import { PropertyEditViewButtons } from '@/components/properties/edit-button'
 
 export default async function PropertiesPage({

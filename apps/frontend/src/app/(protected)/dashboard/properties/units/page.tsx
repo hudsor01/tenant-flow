@@ -1,6 +1,6 @@
 'use client'
 
-import { ChartAreaInteractive } from '@/components/charts/chart-area-interactive'
+import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
 import { Button } from '@/components/ui/button'
 import {
 	Dialog,
