@@ -61,11 +61,17 @@ export async function updateSession(request: NextRequest) {
 	}
 
 	// Redirect authenticated users from auth routes to dashboard
-	// Only redirect if we have a valid session with a user
+	// Only redirect if we have a valid, non-expired session with a user
 	if (user && session && isAuthRoute) {
-		const url = request.nextUrl.clone()
-		url.pathname = '/dashboard'
-		return NextResponse.redirect(url)
+		// Check if session is actually valid and not expired
+		const now = Math.floor(Date.now() / 1000)
+		const isSessionValid = session.expires_at && session.expires_at > now
+
+		if (isSessionValid) {
+			const url = request.nextUrl.clone()
+			url.pathname = '/dashboard'
+			return NextResponse.redirect(url)
+		}
 	}
 
 	return supabaseResponse
