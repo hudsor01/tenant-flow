@@ -1,6 +1,22 @@
 . "$(dirname -- "$0")/init.sh"
 
 # Husky v9.1.7 optimized pre-commit hook
-# Uses lint-staged for maximum efficiency
+# Comprehensive validation before commit
 
+echo "🔍 Running pre-commit validation (lint + typecheck + tests)..."
+
+# Run lint-staged first for immediate feedback
 npx lint-staged
+
+# Run comprehensive checks on all changed files
+npx turbo run typecheck test:unit \
+  --cache-dir=.turbo \
+  --filter='[HEAD^1]' \
+  --concurrency=10 || {
+    echo "❌ Pre-commit checks failed!"
+    echo "Fix errors before committing."
+    echo "Use 'git commit --no-verify' to bypass (not recommended)."
+    exit 1
+}
+
+echo "✅ All pre-commit checks passed!"
