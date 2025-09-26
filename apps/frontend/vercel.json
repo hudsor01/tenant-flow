@@ -159,8 +159,5 @@
 		"deploymentEnabled": {
 			"main": true
 		}
-	},
-	"production": {
-		"branch": "main"
 	}
 }
