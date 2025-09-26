@@ -2,7 +2,6 @@ import { getDashboardData } from '@/app/actions/dashboard'
 import { DashboardClient } from '@/components/dashboard/dashboard-client'
 import { Card } from '@/components/ui/card'
 import { createLogger } from '@repo/shared'
-import type { ColumnDef } from '@tanstack/react-table'
 import { Building2, DollarSign, Users, Wrench } from 'lucide-react'
 
 const logger = createLogger({ component: 'DashboardPage' })
@@ -54,75 +53,6 @@ interface ActivityRow {
 	timestamp: string
 }
 
-// Column definitions for the activity table
-const activityColumns: ColumnDef<ActivityRow>[] = [
-	{
-		accessorKey: 'type',
-		header: 'Type',
-		cell: ({ row }) => (
-			<div
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					gap: 'var(--spacing-2)'
-				}}
-			>
-				<span
-					style={{
-						display: 'inline-block',
-						width: '8px',
-						height: '8px',
-						borderRadius: '50%',
-						background:
-							row.original.type === 'Property'
-								? 'var(--color-system-blue)'
-								: row.original.type === 'Tenant'
-									? 'var(--color-system-green)'
-									: row.original.type === 'Lease'
-										? 'var(--color-system-yellow)'
-										: 'var(--color-system-orange)'
-					}}
-				/>
-				<span>{row.original.type}</span>
-			</div>
-		)
-	},
-	{
-		accessorKey: 'action',
-		header: 'Action'
-	},
-	{
-		accessorKey: 'details',
-		header: 'Details',
-		cell: ({ row }) => (
-			<span
-				style={{
-					fontSize: 'var(--font-caption-1)',
-					color: 'var(--color-label-secondary)'
-				}}
-			>
-				{row.original.details}
-			</span>
-		)
-	},
-	{
-		accessorKey: 'timestamp',
-		header: 'Time',
-		cell: ({ row }) => (
-			<span
-				style={{
-					fontSize: 'var(--font-caption-1)',
-					color: 'var(--color-label-tertiary)'
-				}}
-			>
-				{row.original.timestamp
-					? new Date(row.original.timestamp).toISOString().slice(11, 16)
-					: '--:--'}
-			</span>
-		)
-	}
-]
-
 // SSR-safe currency formatter - deterministic output
 const formatCurrency = (amount: number) => {
 	const dollars = Math.floor(amount)
@@ -139,8 +69,14 @@ export default async function Page() {
 		// Catch any server component rendering errors
 		logger.error('Server component error in dashboard', {
 			metadata: {
-				error: error instanceof Error ? error.message : 'Unknown server error',
-				stack: error instanceof Error ? error.stack : undefined
+				error:
+					error instanceof Error
+						? error.message
+						: error || 'Unknown server error',
+				stack: error instanceof Error ? error.stack : undefined,
+				errorType: typeof error,
+				errorName: error instanceof Error ? error.name : 'NonErrorType',
+				hasError: !!error
 			}
 		})
 		result = { success: false, error: 'Server component failed to render' }
@@ -164,7 +100,12 @@ export default async function Page() {
 
 		logger.error('Failed to fetch dashboard data', {
 			metadata: {
-				error: result.success ? 'No data returned' : result.error
+				error: result.success
+					? 'No data returned'
+					: result.error || 'Unknown API error',
+				hasResult: !!result,
+				resultType: typeof result,
+				resultKeys: result ? Object.keys(result) : []
 			}
 		})
 		stats = fallbackData.stats
@@ -353,7 +294,6 @@ export default async function Page() {
 			<DashboardClient
 				chartData={chartData || []}
 				activityData={(activity?.activities || []) as ActivityRow[]}
-				activityColumns={activityColumns}
 			/>
 		</div>
 	)
