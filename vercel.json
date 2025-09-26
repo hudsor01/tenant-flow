@@ -218,6 +218,11 @@
 
 	"github": {
 		"enabled": true,
-		"autoAlias": false
+		"autoAlias": false,
+		"autoJobCancelation": true
+	},
+
+	"production": {
+		"branch": "main"
 	}
 }
