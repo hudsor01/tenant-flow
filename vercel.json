@@ -220,9 +220,5 @@
 		"enabled": true,
 		"autoAlias": false,
 		"autoJobCancelation": true
-	},
-
-	"production": {
-		"branch": "main"
 	}
 }
