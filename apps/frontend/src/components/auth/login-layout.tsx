@@ -14,22 +14,20 @@ interface LoginLayoutProps extends Omit<React.ComponentProps<'div'>, 'content'> 
 	imageOnRight?: boolean
 	imageUrl?: string
 	authProps?: AuthFormProps
+	title?: string
+	subtitle?: string
+	content?: {
+		heading: string
+		description: string
+		stats: Array<{ value: string; label: string }>
+	}
 }
 
 export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 	(
 		{
 			mode = 'login',
-			onSubmit: _onSubmit,
-			onForgotPassword: _onForgotPassword,
-			onSignUp: _onSignUp,
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			onLogin: _onLogin,
-			onGoogleLogin: _onGoogleLogin,
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			onGoogleSignUp: _onGoogleSignUp,
-			isLoading: _isLoading = false,
-			isGoogleLoading: _isGoogleLoading = false,
+			authProps,
 			imageOnRight = false,
 			imageUrl = 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80',
 			title = 'Welcome Back',
@@ -196,18 +194,11 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 					{/* Auth Form with better spacing */}
 					<div>
 						{mode === 'login' ? (
-							<LoginForm
-								onSubmit={_onSubmit}
-								onForgotPassword={_onForgotPassword}
-								onSignUp={_onSignUp}
-								onGoogleLogin={_onGoogleLogin}
-								isLoading={_isLoading}
-								isGoogleLoading={_isGoogleLoading}
-							/>
+							<LoginForm {...authProps} />
 						) : (
 							<SignupForm
-								onSubmit={_onSubmit}
-								isLoading={_isLoading}
+								onSubmit={authProps?.onSubmit}
+								isLoading={authProps?.isLoading}
 							/>
 						)}
 					</div>
