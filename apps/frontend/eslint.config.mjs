@@ -1,13 +1,13 @@
 /**
  * Frontend ESLint Configuration - Native ESLint 9 Flat Config
- * Uses shared base config from @repo/eslint-config following official best practices
+ * Uses modern 2024 best practices with dedicated tsconfig.eslint.json for test file inclusion
  *
  * Based on:
  * - ESLint v9 flat config documentation
  * - TypeScript ESLint v8 official recommendations
  * - Next.js 15 + React 19 compatibility
+ * - 2024 monorepo patterns with separate lint/build configs
  */
-
 
 import nextPlugin from '@next/eslint-plugin-next'
 import tseslint from '@typescript-eslint/eslint-plugin'
@@ -16,7 +16,6 @@ import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import colorTokensConfig from './color-tokens.eslint.js'
 
 export default [
-
 	{
 		name: 'frontend/next.js-plugin',
 		files: ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
@@ -30,16 +29,8 @@ export default [
 		}
 	},
 	{
-		name: 'ignore-orphaned-test-files',
+		name: 'ignore-standard-files',
 		ignores: [
-			'@/components/forms/__tests__/**',
-			'@/components/tenants/__tests__/**',
-			'@/hooks/api/__tests__/**',
-			'tests/**', // All test files outside src directory
-			'@/lib/auth/__tests__/**',
-			'@/lib/__tests__/**', // Test files not in tsconfig
-			'@/smoke.spec.tsx',
-			'@/test/**',
 			'*.config.js',
 			'*.config.mjs',
 			'*.config.cjs',
@@ -50,6 +41,8 @@ export default [
 			'eslint.config.mjs',
 			'next-sitemap.config.js',
 			'playwright.config.ts',
+			'tests/global-setup.ts',
+			'tests/**.ts',
 			'scripts/**',
 			'playwright-report/**',
 			'test-results/**'
@@ -65,7 +58,7 @@ export default [
 		languageOptions: {
 			parser: tsParser,
 			parserOptions: {
-				project: './tsconfig.json',
+				project: './tsconfig.eslint.json',
 				tsconfigRootDir: import.meta.dirname,
 				ecmaFeatures: {
 					jsx: true
@@ -121,7 +114,8 @@ export default [
 			'**/*.spec.ts',
 			'**/*.spec.tsx',
 			'**/test/**/*.ts',
-			'**/test/**/*.tsx'
+			'**/test/**/*.tsx',
+			'tests/**/*.ts'
 		],
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'error',
