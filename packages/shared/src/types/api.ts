@@ -232,7 +232,6 @@ export interface DashboardStats {
 	}
 }
 
-// Dashboard activity item for recent activity feed
 export interface ActivityItem {
 	id: string
 	type: 'property' | 'tenant' | 'lease' | 'maintenance' | 'payment'
@@ -245,7 +244,6 @@ export interface ActivityItem {
 	metadata?: Record<string, unknown>
 }
 
-// MIGRATED from apps/backend/src/dashboard/dashboard.service.ts
 export interface DashboardActivity {
 	activities: {
 		id: string
