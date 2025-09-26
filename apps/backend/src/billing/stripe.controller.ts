@@ -12,14 +12,14 @@ import {
 	Post,
 	Query,
 	Req,
-	ServiceUnavailableException
+	ServiceUnavailableException,
+	SetMetadata
 } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type { SubscriptionStatus } from '@repo/shared'
 import type { Request } from 'express'
 import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
-import { Public } from '../shared/decorators/public.decorator'
 import { EmailService } from '../shared/services/email.service'
 import type {
 	CreateBillingPortalRequest,
@@ -155,7 +155,7 @@ export class StripeController {
 	 * - Comprehensive security monitoring
 	 */
 	@Post('webhook')
-	@Public()
+	@SetMetadata('isPublic', true)
 	@HttpCode(HttpStatus.OK)
 	async handleWebhooks(
 		@Req() req: Request,
@@ -496,7 +496,7 @@ export class StripeController {
 	 * Official Pattern: checkout session with success/cancel URLs
 	 */
 	@Post('create-checkout-session')
-	@Public()
+	@SetMetadata('isPublic', true)
 	async createCheckoutSession(@Body() body: CreateCheckoutSessionRequest) {
 		// Native validation - CLAUDE.md compliant
 		if (!body.productName) {
@@ -584,7 +584,7 @@ export class StripeController {
 	 * Returns client_secret instead of redirect URL
 	 */
 	@Post('create-embedded-checkout-session')
-	@Public()
+	@SetMetadata('isPublic', true)
 	async createEmbeddedCheckoutSession(@Body() body: EmbeddedCheckoutRequest) {
 		// Native validation - CLAUDE.md compliant
 		if (!body.mode) {
@@ -1622,7 +1622,9 @@ export class StripeController {
 				)
 
 			case 'StripeAuthenticationError':
-				throw new InternalServerErrorException('Payment service authentication error [STR-001]')
+				throw new InternalServerErrorException(
+					'Payment service authentication error [STR-001]'
+				)
 
 			case 'StripePermissionError':
 				throw new InternalServerErrorException(
@@ -1630,7 +1632,9 @@ export class StripeController {
 				)
 
 			default:
-				throw new InternalServerErrorException('Payment processing error [STR-003]')
+				throw new InternalServerErrorException(
+					'Payment processing error [STR-003]'
+				)
 		}
 	}
 }

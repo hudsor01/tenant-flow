@@ -1,7 +1,13 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	HttpCode,
+	HttpStatus,
+	Post,
+	SetMetadata
+} from '@nestjs/common'
 import type { ContactFormRequest, ContactFormResponse } from '@repo/shared'
-import { Public } from '../shared/decorators/public.decorator'
-import { RouteSchema } from '../shared/decorators/route-schema.decorator'
 import { ContactService } from './contact.service'
 
 // @ApiTags('contact')
@@ -10,35 +16,63 @@ export class ContactController {
 	constructor(private readonly contactService: ContactService) {}
 
 	@Post()
-	@Public() // Contact forms should be publicly accessible
+	@SetMetadata('isPublic', true) // Contact forms should be publicly accessible
 	@HttpCode(HttpStatus.OK)
-	@RouteSchema({
-		method: 'POST',
-		path: 'contact',
-		schema: {
-			type: 'object',
-			properties: {
-				name: { type: 'string', minLength: 1, maxLength: 100 },
-				email: { type: 'string', format: 'email' },
-				subject: { type: 'string', minLength: 1, maxLength: 200 },
-				message: { type: 'string', minLength: 10, maxLength: 5000 },
-				type: { enum: ['sales', 'support', 'general'] },
-				phone: {
-					type: 'string',
-					pattern:
-						'^[\\+]?[(]?[0-9]{1,3}[)]?[-\\s\\.]?[(]?[0-9]{1,4}[)]?[-\\s\\.]?[0-9]{1,4}[-\\s\\.]?[0-9]{1,9}$',
-					nullable: true
-				},
-				company: { type: 'string', maxLength: 100, nullable: true },
-				urgency: { enum: ['LOW', 'MEDIUM', 'HIGH'], nullable: true }
-			},
-			required: ['name', 'email', 'subject', 'message', 'type'],
-			additionalProperties: false
-		}
-	})
 	async submitContactForm(
 		@Body() dto: ContactFormRequest
 	): Promise<ContactFormResponse> {
+		// Manual validation for contact form data
+		if (!dto || typeof dto !== 'object') {
+			throw new BadRequestException('Invalid contact form data')
+		}
+
+		if (
+			!dto.name ||
+			typeof dto.name !== 'string' ||
+			dto.name.trim().length === 0 ||
+			dto.name.length > 100
+		) {
+			throw new BadRequestException(
+				'Name is required and must be 1-100 characters'
+			)
+		}
+
+		if (
+			!dto.email ||
+			typeof dto.email !== 'string' ||
+			!dto.email.includes('@')
+		) {
+			throw new BadRequestException('Valid email address is required')
+		}
+
+		if (
+			!dto.subject ||
+			typeof dto.subject !== 'string' ||
+			dto.subject.trim().length === 0 ||
+			dto.subject.length > 200
+		) {
+			throw new BadRequestException(
+				'Subject is required and must be 1-200 characters'
+			)
+		}
+
+		if (
+			!dto.message ||
+			typeof dto.message !== 'string' ||
+			dto.message.trim().length < 10 ||
+			dto.message.length > 5000
+		) {
+			throw new BadRequestException(
+				'Message is required and must be 10-5000 characters'
+			)
+		}
+
+		const validTypes = ['sales', 'support', 'general']
+		if (!dto.type || !validTypes.includes(dto.type)) {
+			throw new BadRequestException(
+				'Type must be one of: sales, support, general'
+			)
+		}
 		return this.contactService.processContactForm(dto)
 	}
 }

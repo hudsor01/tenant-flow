@@ -1,10 +1,16 @@
-import { Body, Controller, Headers, HttpCode, Post } from '@nestjs/common'
+import {
+	Body,
+	Controller,
+	Headers,
+	HttpCode,
+	Logger,
+	Post,
+	SetMetadata
+} from '@nestjs/common'
+import type { SupabaseWebhookEvent } from '@repo/shared'
 import { getPriceId } from '@repo/shared'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
-import type { SupabaseWebhookEvent } from '@repo/shared'
-import { Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
-import { Public } from '../shared/decorators/public.decorator'
 import { UsersService } from '../users/users.service'
 import { AuthService } from './auth.service'
 
@@ -19,7 +25,7 @@ export class AuthWebhookController {
 	) {}
 
 	@Post('supabase')
-	@Public()
+	@SetMetadata('isPublic', true)
 	@HttpCode(200)
 	async handleSupabaseAuthWebhook(
 		@Body() event: SupabaseWebhookEvent,
@@ -175,14 +181,11 @@ export class AuthWebhookController {
 				subscriptionId?: string
 			} | null
 
-			this.logger.log(
-				'Stripe customer and subscription created successfully',
-				{
-					userId,
-					customerId: responseData?.customerId,
-					subscriptionId: responseData?.subscriptionId
-				}
-			)
+			this.logger.log('Stripe customer and subscription created successfully', {
+				userId,
+				customerId: responseData?.customerId,
+				subscriptionId: responseData?.subscriptionId
+			})
 
 			// Update user record with Stripe customer ID
 			if (responseData?.customerId) {

@@ -1,4 +1,5 @@
 import {
+	BadRequestException,
 	Body,
 	Controller,
 	Get,
@@ -17,7 +18,6 @@ import type {
 } from '@repo/shared'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
-import { RouteSchema } from '../shared/decorators/route-schema.decorator'
 import { AuthService } from './auth.service'
 
 @Controller('auth')
@@ -98,19 +98,17 @@ export class AuthController {
 	@Post('refresh')
 	@Throttle({ default: { limit: 20, ttl: 60000 } })
 	@HttpCode(HttpStatus.OK)
-	@RouteSchema({
-		method: 'POST',
-		path: 'auth/refresh',
-		schema: {
-			type: 'object',
-			properties: {
-				refresh_token: { type: 'string', minLength: 1 }
-			},
-			required: ['refresh_token'],
-			additionalProperties: false
-		}
-	})
 	async refreshToken(@Body() body: RefreshTokenRequest) {
+		// Manual validation for refresh token
+		if (
+			!body ||
+			typeof body !== 'object' ||
+			!body.refresh_token ||
+			typeof body.refresh_token !== 'string' ||
+			body.refresh_token.trim().length === 0
+		) {
+			throw new BadRequestException('Valid refresh_token is required')
+		}
 		return this.authService.refreshToken(body.refresh_token)
 	}
 
@@ -122,20 +120,6 @@ export class AuthController {
 	@Post('login')
 	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 login attempts per minute
 	@HttpCode(HttpStatus.OK)
-	@RouteSchema({
-		method: 'POST',
-		path: 'auth/login',
-		schema: {
-			type: 'object',
-			properties: {
-				email: { type: 'string', format: 'email' },
-				password: { type: 'string', minLength: 8 },
-				rememberMe: { type: 'boolean', nullable: true }
-			},
-			required: ['email', 'password'],
-			additionalProperties: false
-		}
-	})
 	async login(@Body() body: LoginRequest, @Req() request: Request) {
 		const forwardedFor = request.headers['x-forwarded-for']
 		const ip =
@@ -153,21 +137,6 @@ export class AuthController {
 	@Post('register')
 	@Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 registration attempts per minute
 	@HttpCode(HttpStatus.CREATED)
-	@RouteSchema({
-		method: 'POST',
-		path: 'auth/register',
-		schema: {
-			type: 'object',
-			properties: {
-				email: { type: 'string', format: 'email' },
-				password: { type: 'string', minLength: 8 },
-				fullName: { type: 'string', minLength: 1, nullable: true },
-				companyName: { type: 'string', nullable: true }
-			},
-			required: ['email', 'password'],
-			additionalProperties: false
-		}
-	})
 	async register(@Body() body: RegisterRequest) {
 		// Use name directly from RegisterRequest
 		const userData = {
@@ -207,20 +176,6 @@ export class AuthController {
 	@Post('draft')
 	@Throttle({ default: { limit: 10, ttl: 60000 } })
 	@HttpCode(HttpStatus.OK)
-	@RouteSchema({
-		method: 'POST',
-		path: 'auth/draft',
-		schema: {
-			type: 'object',
-			properties: {
-				email: { type: 'string', format: 'email', nullable: true },
-				name: { type: 'string', nullable: true },
-				formType: { enum: ['signup', 'login', 'reset'] }
-			},
-			required: ['formType'],
-			additionalProperties: false
-		}
-	})
 	async saveDraft(
 		@Body()
 		body: {

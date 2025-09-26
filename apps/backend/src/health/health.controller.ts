@@ -3,11 +3,10 @@
  * Follows NestJS 2025 best practices for clean architecture
  */
 
-import { Controller, Get, Logger, Res } from '@nestjs/common'
+import { Controller, Get, Logger, Res, SetMetadata } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 import type { Response } from 'express'
 import { StripeSyncService } from '../billing/stripe-sync.service'
-import { Public } from '../shared/decorators/public.decorator'
 import { ResilienceService } from '../shared/services/resilience.service'
 import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthService } from './health.service'
@@ -34,7 +33,7 @@ export class HealthController {
 	 * Backward compatibility alias for main health check
 	 */
 	@Get('check')
-	@Public()
+	@SetMetadata('isPublic', true)
 	async checkEndpoint(@Res() res: Response) {
 		this.logger.log('Health check alias /check routed to main health handler')
 		return this.check(res)
@@ -44,7 +43,7 @@ export class HealthController {
 	 * Simple ping endpoint for lightweight health checks
 	 */
 	@Get('ping')
-	@Public()
+	@SetMetadata('isPublic', true)
 	ping() {
 		return this.healthService.getPingResponse()
 	}
@@ -53,7 +52,7 @@ export class HealthController {
 	 * Kubernetes readiness probe
 	 */
 	@Get('ready')
-	@Public()
+	@SetMetadata('isPublic', true)
 	@HealthCheck()
 	ready() {
 		return this.health.check([
@@ -66,7 +65,7 @@ export class HealthController {
 	 * Stripe FDW health check
 	 */
 	@Get('stripe')
-	@Public()
+	@SetMetadata('isPublic', true)
 	@HealthCheck()
 	async stripeCheck() {
 		this.logger.log('Stripe FDW health check started')
@@ -77,7 +76,7 @@ export class HealthController {
 	 * Stripe sync service health
 	 */
 	@Get('stripe-sync')
-	@Public()
+	@SetMetadata('isPublic', true)
 	async checkStripeSyncHealth() {
 		const health = this.stripeSyncService.getHealthStatus()
 		return {
@@ -92,7 +91,7 @@ export class HealthController {
 	 * Performance metrics endpoint
 	 */
 	@Get('performance')
-	@Public()
+	@SetMetadata('isPublic', true)
 	performanceMetrics() {
 		const performance = this.metricsService.getDetailedPerformanceMetrics()
 		const cache = this.resilience.getHealthStatus()
@@ -107,7 +106,7 @@ export class HealthController {
 	 * Circuit breaker status for zero-downtime deployments
 	 */
 	@Get('circuit-breaker')
-	@Public()
+	@SetMetadata('isPublic', true)
 	circuitBreakerStatus() {
 		return this.circuitBreakerService.getCircuitBreakerStatus()
 	}
@@ -117,7 +116,7 @@ export class HealthController {
 	 * Delegates to HealthService for business logic
 	 */
 	@Get()
-	@Public()
+	@SetMetadata('isPublic', true)
 	async check(@Res() res: Response) {
 		const requestPath = res.req?.originalUrl ?? 'unknown'
 		this.logger.log(`Health check received via ${requestPath}`)

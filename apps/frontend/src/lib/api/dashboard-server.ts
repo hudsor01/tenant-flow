@@ -213,3 +213,69 @@ export async function getMaintenancePageData() {
 	)
 	return maintenanceData || { data: [] }
 }
+
+/**
+ * Main dashboard page data - comprehensive overview
+ */
+export async function getDashboardPageData() {
+	const [
+		dashboardStats,
+		propertyStats,
+		tenantStats,
+		leaseStats,
+		recentActivity
+	] = await Promise.all([
+		dashboardServerApi.getStats(),
+		serverFetch<{
+			totalProperties: number
+			totalUnits: number
+			occupiedUnits: number
+			occupancyRate: number
+			totalRevenue: number
+			vacantUnits: number
+			maintenanceUnits: number
+		}>('/api/v1/properties/stats'),
+		serverFetch<TenantStats>('/api/v1/tenants/stats'),
+		getLeaseStats(),
+		dashboardServerApi.getActivity()
+	])
+
+	return {
+		dashboardStats: dashboardStats || {
+			totalProperties: 0,
+			totalTenants: 0,
+			monthlyRevenue: 0,
+			occupancyRate: 0,
+			maintenanceRequests: 0,
+			totalUnits: 0
+		},
+		propertyStats: propertyStats || {
+			totalProperties: 0,
+			totalUnits: 0,
+			occupiedUnits: 0,
+			occupancyRate: 0,
+			totalRevenue: 0,
+			vacantUnits: 0,
+			maintenanceUnits: 0
+		},
+		tenantStats: tenantStats || {
+			totalTenants: 0,
+			activeTenants: 0,
+			currentPayments: 0,
+			latePayments: 0,
+			totalRent: 0,
+			avgRent: 0,
+			recentAdditions: 0,
+			withContactInfo: 0
+		},
+		leaseStats: leaseStats || {
+			data: {
+				totalLeases: 0,
+				activeLeases: 0,
+				totalMonthlyRent: 0,
+				averageRent: 0
+			}
+		},
+		recentActivity: recentActivity || { activities: [] }
+	}
+}

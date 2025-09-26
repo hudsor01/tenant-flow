@@ -1,17 +1,15 @@
-import { Controller, Get } from '@nestjs/common'
+import { Controller, Get, SetMetadata } from '@nestjs/common'
 import { AppService } from './app.service'
-import { Public } from './shared/decorators/public.decorator'
 
 @Controller()
 export class AppController {
-
 	constructor(private readonly appService: AppService) {}
 
 	/**
 	 * API test endpoint
 	 */
 	@Get('api')
-	@Public()
+	@SetMetadata('isPublic', true)
 	getHello(): string {
 		return this.appService.getHello()
 	}

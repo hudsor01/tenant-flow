@@ -24,12 +24,10 @@ import {
 	Post,
 	Put,
 	Query,
-	Request
+	Request,
+	SetMetadata
 } from '@nestjs/common'
 import type { CreatePropertyRequest, UpdatePropertyRequest } from '@repo/shared'
-import { propertyRouteSchemas } from '../schemas/properties.schema'
-import { Public } from '../shared/decorators/public.decorator'
-import { RouteSchema } from '../shared/decorators/route-schema.decorator'
 import { ParseOptionalUUIDPipe } from '../shared/pipes/parse-optional-uuid.pipe'
 import type { AuthenticatedRequest } from '../shared/types/express-request.types'
 import { PropertiesService } from './properties.service'
@@ -51,11 +49,6 @@ export class PropertiesController {
 	 * Built-in pipes handle all validation
 	 */
 	@Get()
-	@RouteSchema({
-		method: 'GET',
-		path: 'properties',
-		schema: propertyRouteSchemas.findAll
-	})
 	async findAll(
 		@Query('search', new DefaultValuePipe(null)) search: string | null,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -110,11 +103,6 @@ export class PropertiesController {
 	 * MUST BE BEFORE /:id route to avoid route conflict
 	 */
 	@Get('with-units')
-	@RouteSchema({
-		method: 'GET',
-		path: 'properties/with-units',
-		schema: propertyRouteSchemas.findAll
-	})
 	async findAllWithUnits(
 		@Query('search', new DefaultValuePipe(null)) search: string | null,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
@@ -145,7 +133,7 @@ export class PropertiesController {
 	 * ParseUUIDPipe validates the ID format
 	 */
 	@Get(':id')
-	@Public()
+	@SetMetadata('isPublic', true)
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Request() req: AuthenticatedRequest
@@ -170,11 +158,6 @@ export class PropertiesController {
 	 * JSON Schema validation via Express
 	 */
 	@Post()
-	@RouteSchema({
-		method: 'POST',
-		path: 'properties',
-		schema: propertyRouteSchemas.create
-	})
 	async create(
 		@Body() createPropertyRequest: CreatePropertyRequest,
 		@Request() req: AuthenticatedRequest
@@ -195,11 +178,6 @@ export class PropertiesController {
 	 * Combination of UUID validation and JSON Schema
 	 */
 	@Put(':id')
-	@RouteSchema({
-		method: 'PUT',
-		path: 'properties/:id',
-		schema: propertyRouteSchemas.update
-	})
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updatePropertyRequest: UpdatePropertyRequest,

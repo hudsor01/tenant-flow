@@ -3,6 +3,9 @@
 	"ui": "tui",
 	"cacheDir": ".turbo",
 	"concurrency": "10",
+	"remoteCache": {
+		"enabled": false
+	},
 	"globalEnv": [
 		// Framework essentials (auto-detected)
 		"CI",
