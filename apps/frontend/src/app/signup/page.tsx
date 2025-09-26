@@ -2,6 +2,7 @@
 
 import { LoginLayout } from '@/components/auth/login-layout'
 import { createClient } from '@/utils/supabase/client'
+import type { LoginFormData, SignupFormData } from '@repo/shared'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -10,7 +11,7 @@ export default function SignupPage() {
 	const router = useRouter()
 	const [isLoading, setIsLoading] = useState(false)
 
-	const handleSignup = async (data: Record<string, unknown>) => {
+	const handleSignup = async (data: LoginFormData | SignupFormData) => {
 		setIsLoading(true)
 		const supabase = createClient()
 
