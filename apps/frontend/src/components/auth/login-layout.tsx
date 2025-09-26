@@ -1,27 +1,14 @@
 'use client'
 
 import { cn } from '@/lib/design-system'
-import { TYPOGRAPHY_SCALE, type AuthFormProps } from '@repo/shared'
+import { TYPOGRAPHY_SCALE, type LoginLayoutProps } from '@repo/shared'
 import { Lock, Smartphone, Zap } from 'lucide-react'
 import Image from 'next/image'
 import * as React from 'react'
 import { LoginForm } from './login-form'
 import { SignupForm } from './signup-form'
 
-// Keep interface small to avoid ESLint rule - compose props instead of extending
-interface LoginLayoutProps extends Omit<React.ComponentProps<'div'>, 'content'> {
-	mode?: 'login' | 'signup'
-	imageOnRight?: boolean
-	imageUrl?: string
-	authProps?: AuthFormProps
-	title?: string
-	subtitle?: string
-	content?: {
-		heading: string
-		description: string
-		stats: Array<{ value: string; label: string }>
-	}
-}
+// LoginLayoutProps is now imported from @repo/shared to comply with ESLint rules
 
 export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 	(
