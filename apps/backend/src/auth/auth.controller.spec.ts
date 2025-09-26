@@ -6,6 +6,7 @@ import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
+import { createMockUser, createMockAuthServiceUser } from '../test-utils/mocks'
 
 // Mock the AuthService class entirely since it's directly instantiated
 jest.mock('./auth.service', () => {
@@ -101,28 +102,22 @@ describe('AuthController', () => {
 
 	describe('getCurrentUser', () => {
 		it('should return user profile when user is validated', async () => {
-			const mockUser: authUser = {
+			const mockUser: authUser = createMockUser({
+				id: 'user-123',
+				user_metadata: {
+					email: 'test@example.com',
+					name: 'Test User'
+				}
+			})
+
+			const mockReturnedUser: AuthServiceauthUser = createMockAuthServiceUser({
 				id: 'user-123',
 				email: 'test@example.com',
 				name: 'Test User',
-				phone: null,
-				bio: null,
-				avatarUrl: null,
-				role: 'TENANT',
-				createdAt: new Date(),
-				updatedAt: new Date(),
-				emailVerified: true,
-				supabaseId: 'supa-123',
-				stripeCustomerId: null,
-				organizationId: null
-			}
-
-			const mockReturnedUser: AuthServiceauthUser = {
-				...mockUser,
 				role: 'TENANT',
 				profileComplete: true,
 				lastLoginAt: new Date()
-			}
+			})
 
 			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(
 				mockReturnedUser
@@ -150,9 +145,9 @@ describe('AuthController', () => {
 			mockAuthServiceInstance.getUserBySupabaseId.mockResolvedValue(null)
 
 			// Mock validateUser to return a user (needed for auth check)
-			mockSupabaseService.validateUser.mockResolvedValue({
-				id: 'user-123'
-			} as authUser)
+			mockSupabaseService.validateUser.mockResolvedValue(
+				createMockUser({ id: 'user-123' })
+			)
 
 			// Create mock request with cookies for the auth cookie
 			const mockRequest = {

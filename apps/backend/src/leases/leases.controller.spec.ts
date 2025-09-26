@@ -8,6 +8,7 @@ import { SilentLogger } from '../__test__/silent-logger'
 import { SupabaseService } from '../database/supabase.service'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
+import { createMockUser, createMockDashboardStats, createMockPropertyStats, createMockPropertyRequest, createMockTenantRequest, createMockUnitRequest } from '../test-utils/mocks'
 
 describe('LeasesController', () => {
 	let controller: LeasesController
@@ -16,24 +17,11 @@ describe('LeasesController', () => {
 
 	const generateUUID = () => randomUUID()
 
-	const createMockUser = (
-		overrides: Partial<authUser> = {}
-	): authUser => ({
-		id: generateUUID(),
-		email: 'test@example.com',
-		name: 'Test User',
-		role: 'OWNER' as const,
-		phone: null,
-		avatarUrl: null,
-		supabaseId: generateUUID(),
-		bio: null,
-		stripeCustomerId: null,
-		createdAt: new Date(),
-		updatedAt: new Date(),
-		emailVerified: true,
-		organizationId: generateUUID(),
-		...overrides
-	})
+	const createTestUser = (overrides: Partial<authUser> = {}): authUser =>
+		createMockUser({
+			id: generateUUID(),
+			...overrides
+		} as any)
 
 	const createMockRequest = (user?: authUser) =>
 		({
