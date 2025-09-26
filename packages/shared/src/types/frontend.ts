@@ -137,6 +137,8 @@ export interface WebVitalData {
 	navigationType?: string
 	page: string
 	timestamp: string
+	sessionId?: string
+	userId?: string
 }
 
 // HEALTH CHECK TYPES

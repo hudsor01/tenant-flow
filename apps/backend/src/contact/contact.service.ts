@@ -14,7 +14,9 @@ export class ContactService {
 	constructor() {
 		const apiKey = process.env.RESEND_API_KEY
 		if (!apiKey) {
-			this.logger.warn('RESEND_API_KEY not configured - emails will not be sent')
+			this.logger.warn(
+				'RESEND_API_KEY not configured - emails will not be sent'
+			)
 		}
 		this.resend = new Resend(apiKey || 'dummy-key')
 	}
@@ -28,19 +30,24 @@ export class ContactService {
 			}
 
 			// Log the submission
-			this.logger.log({
-				contactForm: {
-					name: dto.name,
-					email: dto.email,
-					company: dto.company,
-					subject: dto.subject,
-					type: dto.type,
-					messageLength: dto.message.length
-				}
-			}, `Contact form submission from ${dto.email}`)
+			this.logger.log(
+				{
+					contactForm: {
+						name: dto.name,
+						email: dto.email,
+						company: dto.company,
+						subject: dto.subject,
+						type: dto.type,
+						messageLength: dto.message.length
+					}
+				},
+				`Contact form submission from ${dto.email}`
+			)
 
 			return {
-				message: 'Thank you for reaching out! Our team will review your message and get back to you within 4 hours.'
+				success: true,
+				message:
+					'Thank you for reaching out! Our team will review your message and get back to you within 4 hours.'
 			}
 		} catch (error) {
 			this.logger.error(
@@ -50,7 +57,9 @@ export class ContactService {
 				},
 				'Failed to process contact form'
 			)
-			throw new InternalServerErrorException('Contact submission failed [CONTACT-001]')
+			throw new InternalServerErrorException(
+				'Contact submission failed [CONTACT-001]'
+			)
 		}
 	}
 

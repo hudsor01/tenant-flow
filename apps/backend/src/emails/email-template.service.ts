@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { EmailParams, emailTemplates } from './email-templates'
 
+interface EmailTemplateResult {
+	to: string
+	subject: string
+	html: string
+}
+
 @Injectable()
 export class EmailTemplateService {
 	/**
@@ -9,7 +15,7 @@ export class EmailTemplateService {
 	renderTemplate(
 		templateName: keyof typeof emailTemplates,
 		params: EmailParams
-	): React.ReactElement {
+	): EmailTemplateResult {
 		const template = emailTemplates[templateName]
 		if (!template) {
 			throw new Error(`Template '${templateName}' not found`)
