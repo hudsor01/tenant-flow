@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
-import type { ValidatedUser } from '@repo/shared'
+import type { authUser } from '@repo/shared'
 import { randomUUID } from 'crypto'
 import type { Request } from 'express'
 import { SilentLogger } from '../__test__/silent-logger'
@@ -14,8 +14,8 @@ describe('MaintenanceController', () => {
 	let mockSupabaseService: jest.Mocked<SupabaseService>
 
 	const createMockUser = (
-		overrides: Partial<ValidatedUser> = {}
-	): ValidatedUser => ({
+		overrides: Partial<authUser> = {}
+	): authUser => ({
 		id: randomUUID(),
 		email: 'test@example.com',
 		name: 'Test User',
@@ -35,7 +35,7 @@ describe('MaintenanceController', () => {
 	const mockUser = createMockUser()
 
 	// Create mock request for tests
-	const createMockRequest = (user?: ValidatedUser) =>
+	const createMockRequest = (user?: authUser) =>
 		({
 			user,
 			cookies: {

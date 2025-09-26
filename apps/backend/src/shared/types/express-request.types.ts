@@ -3,12 +3,12 @@
  * Express-specific request type definitions for NestJS backend
  */
 
-import type { ValidatedUser } from '@repo/shared'
+import type { authUser } from '@repo/shared'
 import type { Request } from 'express'
 
 // Authenticated request with user attached
 export interface AuthenticatedRequest extends Request {
-	user: ValidatedUser
+	user: authUser
 	startTime?: number
 }
 

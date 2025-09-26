@@ -1,14 +1,14 @@
 import {
-	CanActivate,
-	ExecutionContext,
-	Injectable,
-	Logger,
+    CanActivate,
+    ExecutionContext,
+    Injectable,
+    Logger,
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import type { UserRole, AuthUser } from '@repo/shared'
+import type { UserRole, authUser } from '@repo/shared'
 
 interface RequestWithUser {
-	user?: AuthUser
+	user?: authUser
 	params?: Record<string, string>
 	query?: Record<string, string>
 	body?: Record<string, unknown>
@@ -68,7 +68,7 @@ export class RolesGuard implements CanActivate {
 
 	private validateAdminAccess(
 		request: RequestWithUser,
-		user: AuthUser
+		user: authUser
 	): boolean {
 		if (user.role !== 'ADMIN') {
 			this.logger.warn('Admin access denied: User is not admin', {
@@ -85,7 +85,7 @@ export class RolesGuard implements CanActivate {
 				'Admin access denied: Tenant isolation violation',
 				{
 					userId: user.id,
-					userOrganizationId: (user as AuthUser & { organizationId?: string }).organizationId ?? null,
+					userOrganizationId: (user as authUser & { organizationId?: string }).organizationId ?? null,
 					route: request.route?.path ?? 'unknown route',
 					ip: request.ip
 				}
@@ -98,7 +98,7 @@ export class RolesGuard implements CanActivate {
 
 	private validateTenantIsolation(
 		request: RequestWithUser,
-		user: AuthUser
+		user: authUser
 	): boolean {
 		const requestedOrgId = this.extractOrganizationId(request)
 
@@ -109,7 +109,7 @@ export class RolesGuard implements CanActivate {
 
 		// If user has no organization ID (current system doesn't have orgs), allow access
 		// This maintains backward compatibility while allowing future org implementation
-		const userWithOrg = user as AuthUser & { organizationId?: string }
+		const userWithOrg = user as authUser & { organizationId?: string }
 		if (!userWithOrg.organizationId) {
 			return true
 		}
@@ -129,7 +129,7 @@ export class RolesGuard implements CanActivate {
 		)
 	}
 
-	private isValidUserObject(user: unknown): user is AuthUser {
+	private isValidUserObject(user: unknown): user is authUser {
 		if (!user || typeof user !== 'object') {
 			return false
 		}

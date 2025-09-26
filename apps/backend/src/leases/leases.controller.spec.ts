@@ -1,7 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { ValidatedUser } from '@repo/shared'
+import type { authUser } from '@repo/shared'
 import { randomUUID } from 'crypto'
 import type { Request } from 'express'
 import { SilentLogger } from '../__test__/silent-logger'
@@ -17,8 +17,8 @@ describe('LeasesController', () => {
 	const generateUUID = () => randomUUID()
 
 	const createMockUser = (
-		overrides: Partial<ValidatedUser> = {}
-	): ValidatedUser => ({
+		overrides: Partial<authUser> = {}
+	): authUser => ({
 		id: generateUUID(),
 		email: 'test@example.com',
 		name: 'Test User',
@@ -35,7 +35,7 @@ describe('LeasesController', () => {
 		...overrides
 	})
 
-	const createMockRequest = (user?: ValidatedUser) =>
+	const createMockRequest = (user?: authUser) =>
 		({
 			user,
 			headers: {},

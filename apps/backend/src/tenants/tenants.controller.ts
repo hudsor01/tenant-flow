@@ -67,7 +67,7 @@ export class TenantsController {
 		}
 
 		// Built-in validation through pipes
-		if (limit && (limit < 1 || limit > 50)) {
+		if (limit !== undefined && (limit < 1 || limit > 50)) {
 			throw new BadRequestException('Limit must be between 1 and 50')
 		}
 

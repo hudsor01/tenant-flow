@@ -1,12 +1,12 @@
 import { createMock } from '@golevelup/ts-jest'
 import { Test } from '@nestjs/testing'
 import type {
-	AuthServiceValidatedUser,
-	SupabaseWebhookEvent
+    AuthServiceauthUser,
+    SupabaseWebhookEvent
 } from '@repo/shared'
 import type {
-	PostgrestSingleResponse,
-	SupabaseClient
+    PostgrestSingleResponse,
+    SupabaseClient
 } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
 import { SilentLogger } from '../__test__/silent-logger'
@@ -30,7 +30,7 @@ describe('AuthWebhookController', () => {
 	const mockUserEmail = 'test@example.com'
 	const mockUserName = 'Test User'
 
-	const mockAuthServiceValidatedUser: AuthServiceValidatedUser = {
+	const mockAuthServiceauthUser: AuthServiceauthUser = {
 		id: mockUserId,
 		email: mockUserEmail,
 		name: mockUserName,
@@ -114,7 +114,7 @@ describe('AuthWebhookController', () => {
 	describe('handleSupabaseAuthWebhook', () => {
 		it('processes user INSERT event successfully', async () => {
 			authService.syncUserWithDatabase.mockResolvedValue(
-				mockAuthServiceValidatedUser
+				mockAuthServiceauthUser
 			)
 
 			mockSupabaseClient.rpc.mockResolvedValue({
@@ -324,7 +324,7 @@ describe('AuthWebhookController', () => {
 			}
 
 			authService.syncUserWithDatabase.mockResolvedValue(
-				mockAuthServiceValidatedUser
+				mockAuthServiceauthUser
 			)
 
 			const result = await controller.handleSupabaseAuthWebhook(
@@ -339,7 +339,7 @@ describe('AuthWebhookController', () => {
 
 		it('continues when subscription creation fails', async () => {
 			authService.syncUserWithDatabase.mockResolvedValue(
-				mockAuthServiceValidatedUser
+				mockAuthServiceauthUser
 			)
 
 			mockSupabaseClient.rpc.mockResolvedValue({
@@ -378,7 +378,7 @@ describe('AuthWebhookController', () => {
 
 		it('updates user with Stripe customer ID when subscription created', async () => {
 			authService.syncUserWithDatabase.mockResolvedValue(
-				mockAuthServiceValidatedUser
+				mockAuthServiceauthUser
 			)
 
 			mockSupabaseClient.rpc.mockResolvedValue({

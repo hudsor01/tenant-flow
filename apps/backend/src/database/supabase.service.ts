@@ -1,10 +1,10 @@
 import {
-	Injectable,
-	InternalServerErrorException,
-	Logger,
-	OnModuleInit
+    Injectable,
+    InternalServerErrorException,
+    Logger,
+    OnModuleInit
 } from '@nestjs/common'
-import type { Database, ValidatedUser } from '@repo/shared'
+import type { authUser, Database } from '@repo/shared'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { Request } from 'express'
 
@@ -102,7 +102,7 @@ export class SupabaseService implements OnModuleInit {
 	 * Validates a user by reading the Supabase auth cookie and verifying it
 	 * Modern 2025 pattern using Supabase SSR cookies instead of JWT headers
 	 */
-	async validateUser(req: Request): Promise<ValidatedUser | null> {
+	async validateUser(req: Request): Promise<authUser | null> {
 		try {
 			// Extract Supabase auth cookie (format: sb-{project-ref}-auth-token)
 			const cookieName = `sb-${process.env.SUPABASE_PROJECT_REF || 'bshjmbshupiibfiewpxb'}-auth-token`
@@ -136,8 +136,8 @@ export class SupabaseService implements OnModuleInit {
 				return null
 			}
 
-			// Map database user to ValidatedUser format
-			const validatedUser: ValidatedUser = {
+			// Map database user to authUser format
+			const authUser: authUser = {
 				id: dbUser.id,
 				email: dbUser.email,
 				name: dbUser.name,
@@ -153,7 +153,7 @@ export class SupabaseService implements OnModuleInit {
 				organizationId: null // Organization feature not implemented yet
 			}
 
-			return validatedUser
+			return authUser
 		} catch (error) {
 			this.logger.error('Error validating user', {
 				error: error instanceof Error ? error.message : String(error)

@@ -6,7 +6,7 @@
 -- Replaces 3 duplicated token validation methods in auth service and guard
 CREATE OR REPLACE FUNCTION auth_validate_token_and_get_user(p_token TEXT)
 RETURNS TABLE (
-  -- Core user fields matching AuthServiceValidatedUser interface
+  -- Core user fields matching AuthServiceauthUser interface
   id TEXT,
   email TEXT,
   name TEXT,

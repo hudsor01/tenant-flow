@@ -1,8 +1,8 @@
-import type { AuthState, AuthUser } from '@repo/shared'
+import type { AuthState, authUser } from '@repo/shared'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { createStore } from 'zustand/vanilla'
 
-export type { AuthState, AuthUser }
+export type { AuthState, authUser }
 
 export const createAuthStore = (init?: Partial<AuthState>) =>
 	createStore<AuthState>()(
@@ -19,7 +19,7 @@ export const createAuthStore = (init?: Partial<AuthState>) =>
 			setSession: session =>
 				set({
 					session,
-					user: (session?.user as AuthUser | null) ?? null,
+					user: (session?.user as authUser | null) ?? null,
 					isAuthenticated: !!session?.user
 				}),
 			setLoading: loading => set({ isLoading: loading }),

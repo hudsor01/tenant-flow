@@ -40,12 +40,12 @@
 CORRECT - Single source imports:
 - import type { ApiResponse, DashboardStats, PropertyStats } from '@repo/shared'
 - import type { User, Property, Unit, Tenant } from '@repo/shared'
-- import type { ValidatedUser, AuthUser } from '@repo/shared'
+- import type { authUser, authUser } from '@repo/shared'
 
 FORBIDDEN - Legacy/removed paths:
 - import type { ApiResponse } from '@repo/shared/types/common' - REMOVED
 - import type { TenantStats } from '@repo/shared/types/stats' - REMOVED
-- import type { ValidatedUser } from '@repo/shared/types/backend' - REMOVED
+- import type { authUser } from '@repo/shared/types/backend' - REMOVED
 - import type { StorageUploadResult } from '@repo/shared/types/storage' - REMOVED
 
 **CONSOLIDATED TYPE ARCHITECTURE - IMMUTABLE STRUCTURE**
@@ -80,12 +80,12 @@ Required Patterns:
    - Theme types, webhook event types
 
 3. **Backend Types** (`types/backend-domain.ts`):
-   - ValidatedUser, Context, AuthenticatedContext
+   - authUser, Context, AuthenticatedContext
    - Router output interfaces, config types
    - Performance metrics, health checks
 
 4. **Auth Types** (`types/auth.ts`):
-   - AuthUser, LoginCredentials, RegisterCredentials
+   - authUser, LoginCredentials, RegisterCredentials
    - JWT payload types, authentication flows
    - Permission enums, security validation
 
@@ -146,10 +146,10 @@ OLD to NEW Migration Examples:
 Before - Scattered imports:
 - import { ApiResponse } from '@repo/shared/types/common'
 - import { TenantStats } from '@repo/shared/types/stats'
-- import { ValidatedUser } from '@repo/shared/types/backend'
+- import { authUser } from '@repo/shared/types/backend'
 
 After - Single consolidated import:
-- import type { ApiResponse, TenantStats, ValidatedUser } from '@repo/shared'
+- import type { ApiResponse, TenantStats, authUser } from '@repo/shared'
 
 Before - Custom utility types:
 - type MyDeepPartial<T> = { [P in keyof T]?: MyDeepPartial<T[P]> }
