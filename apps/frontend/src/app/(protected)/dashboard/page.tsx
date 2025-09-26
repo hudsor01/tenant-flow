@@ -95,7 +95,7 @@ export default async function Page() {
 			result.shouldRedirect
 		) {
 			const { redirect } = await import('next/navigation')
-			redirect(result.shouldRedirect)
+			redirect(result.shouldRedirect as string)
 		}
 
 		logger.error('Failed to fetch dashboard data', {
