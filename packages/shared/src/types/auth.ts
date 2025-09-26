@@ -210,7 +210,7 @@ export interface JwtPayload {
 // Note: authUser is defined as type alias above (line 13): export type authUser = User
 
 // Google OAuth user type - extends Supabase's User with Google-specific fields
-export interface GoogleOAuthUser extends AuthUser {
+export interface GoogleOAuthUser extends authUser {
 	name?: string
 	picture?: string
 }
