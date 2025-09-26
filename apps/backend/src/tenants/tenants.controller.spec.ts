@@ -6,6 +6,7 @@ import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { TenantsController } from './tenants.controller'
 import { TenantsService } from './tenants.service'
+import { createMockUser, createMockDashboardStats, createMockPropertyStats, createMockPropertyRequest, createMockTenantRequest, createMockUnitRequest } from '../test-utils/mocks'
 
 // Mock the services
 jest.mock('./tenants.service', () => {
@@ -36,10 +37,7 @@ describe('TenantsController', () => {
 	let mockTenantsServiceInstance: jest.Mocked<TenantsService>
 	let mockSupabaseServiceInstance: jest.Mocked<SupabaseService>
 
-	const mockUser: authUser = {
-		id: 'user-123',
-		email: 'test@example.com'
-	}
+	const mockUser = createMockUser({ id: 'user-123' })
 
 	const mockRequest = {} as Request
 
