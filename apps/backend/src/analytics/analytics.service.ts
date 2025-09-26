@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import type { WebVitalData } from '@repo/shared'
 import type { Config } from '../config/config.schema'
-import type { WebVitalsDto } from './dto/web-vitals.dto'
 
 @Injectable()
 export class AnalyticsService {
@@ -57,7 +57,7 @@ export class AnalyticsService {
 		})
 	}
 
-	recordWebVitalMetric(metric: WebVitalsDto, distinctId?: string) {
+	recordWebVitalMetric(metric: WebVitalData, distinctId?: string) {
 		const { userId, sessionId, ...properties } = metric
 		const eventProperties: Record<string, unknown> = {
 			...properties,
