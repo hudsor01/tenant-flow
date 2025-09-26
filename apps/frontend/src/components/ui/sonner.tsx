@@ -1,29 +1,26 @@
 'use client'
 
-import { toast } from 'sonner'
-import { createLogger } from '@repo/shared'
+import { useTheme } from 'next-themes'
+import type { ToasterProps } from 'sonner'
+import { Toaster as Sonner } from 'sonner'
 
-import { Button } from '@/components/ui/button'
+const Toaster = ({ ...props }: ToasterProps) => {
+	const { theme = 'system' } = useTheme()
 
-const logger = createLogger({ component: 'SonnerDemo' })
-
-export function SonnerDemo() {
 	return (
-		<Button
-			variant="outline"
-			onClick={() =>
-				toast('Event has been created', {
-					description: 'Sunday, December 03, 2023 at 9:00 AM',
-					action: {
-						label: 'Undo',
-						onClick: () => logger.info('Toast undo action triggered', {
-							action: 'toast_undo_clicked'
-						})
-					}
-				})
+		<Sonner
+			theme={theme as ToasterProps['theme']}
+			className="toaster group"
+			style={
+				{
+					'--normal-bg': 'var(--popover)',
+					'--normal-text': 'var(--popover-foreground)',
+					'--normal-border': 'var(--border)'
+				} as React.CSSProperties
 			}
-		>
-			Show Toast
-		</Button>
+			{...props}
+		/>
 	)
 }
+
+export { Toaster }

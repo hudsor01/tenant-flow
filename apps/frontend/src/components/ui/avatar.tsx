@@ -1,3 +1,5 @@
+'use client'
+
 import * as AvatarPrimitive from '@radix-ui/react-avatar'
 import * as React from 'react'
 
@@ -10,16 +12,8 @@ function Avatar({
 	return (
 		<AvatarPrimitive.Root
 			data-slot="avatar"
-			data-tokens="applied"
 			className={cn(
-				// Base styles
 				'relative flex size-8 shrink-0 overflow-hidden rounded-full',
-				// Enhanced transitions
-				'transition-all duration-[var(--duration-quick)] ease-in-out',
-				// Hover state
-				'hover:scale-[1.05] hover:shadow-[var(--shadow-small)]',
-				// Focus state
-				'focus-visible:outline-none focus-visible:ring-[var(--focus-ring-width)] focus-visible:ring-[var(--focus-ring-color)] focus-visible:ring-offset-[var(--focus-ring-offset)]',
 				className
 			)}
 			{...props}
@@ -34,14 +28,7 @@ function AvatarImage({
 	return (
 		<AvatarPrimitive.Image
 			data-slot="avatar-image"
-			data-tokens="applied"
-			className={cn(
-				// Base styles
-				'aspect-square size-full',
-				// Smooth image loading
-				'transition-opacity duration-[var(--duration-standard)] ease-in-out',
-				className
-			)}
+			className={cn('aspect-square size-full', className)}
 			{...props}
 		/>
 	)
@@ -54,14 +41,8 @@ function AvatarFallback({
 	return (
 		<AvatarPrimitive.Fallback
 			data-slot="avatar-fallback"
-			data-tokens="applied"
 			className={cn(
-				// Base styles
-				'bg-[var(--color-fill-primary)] flex size-full items-center justify-center rounded-full',
-				// Enhanced transitions for smooth appearance
-				'transition-all duration-[var(--duration-quick)] ease-in-out',
-				// Animation when fallback appears
-				'animate-in fade-in-0 zoom-in-95',
+				'bg-muted flex size-full items-center justify-center rounded-full',
 				className
 			)}
 			{...props}
