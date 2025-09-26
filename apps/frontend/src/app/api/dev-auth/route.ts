@@ -2,14 +2,27 @@
  * Development Authentication Bypass
  * Creates a mock authenticated session for testing dashboard functionality
  */
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
 	try {
-		const cookieStore = cookies()
-		const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+		const cookieStore = await cookies()
+		const supabase = createServerClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+			{
+				cookies: {
+					getAll: () => cookieStore.getAll(),
+					setAll: cookiesToSet => {
+						cookiesToSet.forEach(({ name, value, options }) => {
+							cookieStore.set(name, value, options)
+						})
+					}
+				}
+			}
+		)
 
 		// Sign in with a test user (this would need to exist in your Supabase auth)
 		const { error } = await supabase.auth.signInWithPassword({
@@ -49,8 +62,21 @@ export async function GET() {
 
 export async function POST() {
 	try {
-		const cookieStore = cookies()
-		const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+		const cookieStore = await cookies()
+		const supabase = createServerClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+			{
+				cookies: {
+					getAll: () => cookieStore.getAll(),
+					setAll: cookiesToSet => {
+						cookiesToSet.forEach(({ name, value, options }) => {
+							cookieStore.set(name, value, options)
+						})
+					}
+				}
+			}
+		)
 
 		// Clear any existing session
 		await supabase.auth.signOut()
