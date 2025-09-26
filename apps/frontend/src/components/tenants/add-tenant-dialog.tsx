@@ -78,7 +78,7 @@ export function AddTenantDialog({
 		<Dialog open={open} onOpenChange={setOpen}>
 			{showTrigger && (
 				<DialogTrigger asChild>
-					<Button variant="success" className="flex items-center gap-2">
+					<Button variant="default" className="flex items-center gap-2">
 						<Users className="size-4" />
 						Add Tenant
 					</Button>
