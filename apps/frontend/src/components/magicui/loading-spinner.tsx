@@ -2,34 +2,35 @@
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/design-system'
-import { Loader2, RefreshCw, RotateCw } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 interface LoadingSpinnerProps {
 	size?: 'sm' | 'default' | 'lg' | 'xl'
 	variant?: 'default' | 'primary' | 'muted'
 	className?: string
-	text?: string
-	icon?: 'loader' | 'refresh' | 'rotate'
 }
 
+// Design System Compliance: Using standard Tailwind size classes
 const sizeClasses = {
-	sm: 'w-4 h-4',
-	default: 'w-6 h-6',
-	lg: 'w-8 h-8',
-	xl: 'w-12 h-12'
+	sm: 'w-4 h-4', // 16px - Touch accessible
+	default: 'w-6 h-6', // 24px - Standard
+	lg: 'w-8 h-8', // 32px - Prominent
+	xl: 'w-12 h-12' // 48px - Page level
 }
 
+// OKLCH Color System Compliance: Using design system color tokens
 const variantClasses = {
-	default: 'text-foreground',
-	primary: 'text-[var(--color-label-primary)]',
+	default: 'text-[var(--color-label-secondary)]',
+	primary: 'text-[var(--color-accent-main)]',
 	muted: 'text-[var(--color-label-tertiary)]'
 }
 
+// Typography System: Using Roboto Flex scale from globals.css
 const textSizeClasses = {
-	sm: 'text-xs',
-	default: 'text-sm',
-	lg: 'text-base',
-	xl: 'text-lg'
+	sm: 'text-[var(--font-footnote)]', // 10px
+	default: 'text-[var(--font-body)]', // 13px
+	lg: 'text-[var(--font-title-3)]', // 15px
+	xl: 'text-[var(--font-title-2)]' // 17px
 }
 
 function LoadingSpinner({
@@ -37,21 +38,17 @@ function LoadingSpinner({
 	variant = 'default',
 	className,
 	text,
-	icon = 'loader',
 	...props
-}: LoadingSpinnerProps & React.HTMLAttributes<HTMLDivElement>) {
-	const IconComponent = {
-		loader: Loader2,
-		refresh: RefreshCw,
-		rotate: RotateCw
-	}[icon]
+}: LoadingSpinnerProps &
+	React.HTMLAttributes<HTMLDivElement> & { text?: string }) {
+	const IconComponent = Loader2
 
 	const content = (
 		<div
 			data-tokens="applied"
 			className={cn(
 				'flex items-center justify-center',
-				text ? 'flex-col gap-[var(--spacing-3)]' : '',
+				text ? 'flex-col gap-3' : '', // gap-3 = 0.75rem = var(--spacing-3)
 				className
 			)}
 			{...props}
@@ -61,8 +58,8 @@ function LoadingSpinner({
 				className={cn(
 					sizeClasses[size],
 					variantClasses[variant],
-					// Smooth spinner rotation with satisfying timing
-					'animate-spin [animation-duration:var(--duration-breathe)] [animation-timing-function:linear]'
+					// Design System Animation: Using actual globals.css variables
+					'animate-spin [animation-duration:var(--duration-1000)] [animation-timing-function:var(--ease-linear)]'
 				)}
 			/>
 			{text && (
@@ -71,9 +68,10 @@ function LoadingSpinner({
 					className={cn(
 						textSizeClasses[size],
 						variantClasses[variant],
-						'font-medium',
-						// Breathing animation for text
-						'animate-pulse [animation-duration:var(--duration-breathe)] [animation-timing-function:var(--ease-in-out-circ)]'
+						// Design System Typography: Roboto Flex medium weight
+						'font-medium tracking-[var(--tracking-body)] leading-[var(--line-height-body)]',
+						// Design System Animation: Using actual globals.css variables
+						'animate-pulse [animation-duration:var(--duration-500)] [animation-timing-function:var(--ease-in-out)]'
 					)}
 				>
 					{text}
@@ -120,24 +118,21 @@ function ButtonLoader({
 	className,
 	disabled,
 	variant,
-	icon,
 	...props
 }: LoadingSpinnerProps &
-	React.ButtonHTMLAttributes<HTMLButtonElement> & { disabled?: boolean }) {
+	React.ButtonHTMLAttributes<HTMLButtonElement> & {
+		disabled?: boolean
+		text?: string
+	}) {
 	return (
 		<Button
 			disabled={disabled}
 			variant="ghost"
 			data-tokens="applied"
-			className={cn('gap-[var(--spacing-2)] pointer-events-none', className)}
+			className={cn('gap-2 pointer-events-none', className)} // gap-2 = 0.5rem = var(--spacing-2)
 			{...props}
 		>
-			<LoadingSpinner
-				size={size}
-				variant={variant}
-				icon={icon}
-				className="text-current"
-			/>
+			<LoadingSpinner size={size} variant={variant} className="text-current" />
 			{text && <span>{text}</span>}
 		</Button>
 	)
@@ -157,7 +152,9 @@ function SectionLoader({
 		<div data-tokens="applied" className={cn('relative', className)} {...props}>
 			{/* Glass Backdrop */}
 			<div className="absolute inset-0 glass z-10 flex items-center justify-center rounded-[var(--radius-large)]">
-				<div className="card-elevated p-[var(--spacing-6)]">
+				<div className="card-elevated p-6">
+					{' '}
+					{/* p-6 = 1.5rem = var(--spacing-6) */}
 					<LoadingSpinner size="lg" variant="primary" text={text} />
 				</div>
 			</div>
@@ -180,7 +177,7 @@ function InlineLoader({
 		<div
 			data-tokens="applied"
 			className={cn(
-				'inline-flex items-center gap-[var(--spacing-2)]',
+				'inline-flex items-center gap-2', // gap-2 = 0.5rem = var(--spacing-2)
 				className
 			)}
 			{...props}
@@ -212,9 +209,9 @@ function LoadingDots({
 	}[size]
 
 	const dotSpacing = {
-		sm: 'gap-1',
-		default: 'gap-1.5',
-		lg: 'gap-[var(--spacing-2)]'
+		sm: 'gap-1', // gap-1 = 0.25rem = var(--spacing-1)
+		default: 'gap-1.5', // gap-1.5 = 0.375rem = var(--spacing-1_5)
+		lg: 'gap-2' // gap-2 = 0.5rem = var(--spacing-2)
 	}[size]
 
 	const dots = (
@@ -229,8 +226,8 @@ function LoadingDots({
 					dotSize,
 					'rounded-full animate-bounce bg-current',
 					variantClasses[variant],
-					// Satisfying bounce with spring easing
-					'[animation-duration:var(--duration-breathe)] [animation-timing-function:var(--ease-spring)]'
+					// Design System Animation: Using actual globals.css variables
+					'[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)]'
 				)}
 				style={{ animationDelay: '0ms' }}
 			/>
@@ -240,7 +237,7 @@ function LoadingDots({
 					dotSize,
 					'rounded-full animate-bounce bg-current',
 					variantClasses[variant],
-					'[animation-duration:var(--duration-breathe)] [animation-timing-function:var(--ease-spring)]'
+					'[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)]'
 				)}
 				style={{ animationDelay: '200ms' }}
 			/>
@@ -250,7 +247,7 @@ function LoadingDots({
 					dotSize,
 					'rounded-full animate-bounce bg-current',
 					variantClasses[variant],
-					'[animation-duration:var(--duration-breathe)] [animation-timing-function:var(--ease-spring)]'
+					'[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)]'
 				)}
 				style={{ animationDelay: '400ms' }}
 			/>
