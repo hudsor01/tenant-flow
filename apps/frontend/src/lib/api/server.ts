@@ -3,12 +3,14 @@
  * Uses existing Supabase authentication pattern
  */
 import type { Database } from '@repo/shared'
+import { createLogger } from '@repo/shared'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (() => {
-	throw new Error('NEXT_PUBLIC_API_BASE_URL is required for server-side API calls')
-})()
+const logger = createLogger({ component: 'ServerAPI' })
+
+const API_BASE_URL =
+	process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.tenantflow.app'
 
 /**
  * Server-side fetch with Supabase authentication
@@ -63,10 +65,22 @@ export async function serverFetch<T>(
 	})
 
 	if (!response.ok) {
-		const errorText = await response.text()
-		throw new Error(
-			`API Error (${response.status}): ${errorText || response.statusText}`
-		)
+		// In production, don't expose detailed error messages to prevent leaking sensitive info
+		if (process.env.NODE_ENV === 'production') {
+			logger.error('API request failed in production', {
+				metadata: {
+					status: response.status,
+					endpoint,
+					statusText: response.statusText
+				}
+			})
+			throw new Error(`API request failed with status ${response.status}`)
+		} else {
+			const errorText = await response.text()
+			throw new Error(
+				`API Error (${response.status}): ${errorText || response.statusText}`
+			)
+		}
 	}
 
 	const data = await response.json()

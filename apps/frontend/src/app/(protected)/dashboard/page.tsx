@@ -131,8 +131,20 @@ const formatCurrency = (amount: number) => {
 }
 
 export default async function Page() {
-	// Fetch dashboard data server-side using Server Actions
-	const result = await getDashboardData()
+	let result
+	try {
+		// Fetch dashboard data server-side using Server Actions
+		result = await getDashboardData()
+	} catch (error) {
+		// Catch any server component rendering errors
+		logger.error('Server component error in dashboard', {
+			metadata: {
+				error: error instanceof Error ? error.message : 'Unknown server error',
+				stack: error instanceof Error ? error.stack : undefined
+			}
+		})
+		result = { success: false, error: 'Server component failed to render' }
+	}
 
 	let stats, activity, chartData
 	if (result.success && result.data) {
