@@ -391,3 +391,19 @@ export interface AuthFormProps {
 	isGoogleLoading?: boolean
 	className?: string
 }
+
+// LOGIN LAYOUT PROPS - UI component configuration
+export interface LoginLayoutProps {
+	mode?: 'login' | 'signup'
+	imageOnRight?: boolean
+	imageUrl?: string
+	authProps?: AuthFormProps
+	title?: string
+	subtitle?: string
+	content?: {
+		heading: string
+		description: string
+		stats: Array<{ value: string; label: string }>
+	}
+	className?: string
+}
