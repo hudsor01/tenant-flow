@@ -39,6 +39,16 @@ export async function serverFetch<T>(
 		data: { session }
 	} = await supabase.auth.getSession()
 
+	// Debug authentication in production
+	logger.debug('serverFetch session check', {
+		metadata: {
+			hasSession: !!session,
+			hasAccessToken: !!session?.access_token,
+			endpoint,
+			environment: process.env.NODE_ENV
+		}
+	})
+
 	// Make API request with Bearer token if available
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json'
@@ -55,6 +65,14 @@ export async function serverFetch<T>(
 
 	if (session?.access_token) {
 		headers['Authorization'] = `Bearer ${session.access_token}`
+	} else {
+		logger.warn('No valid session found for API request', {
+			metadata: {
+				endpoint,
+				hasSession: !!session,
+				cookieCount: cookieStore.getAll().length
+			}
+		})
 	}
 
 	const response = await fetch(`${API_BASE_URL}${endpoint}`, {
