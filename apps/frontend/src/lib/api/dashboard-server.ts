@@ -145,6 +145,7 @@ export async function getAnalyticsPageData() {
  * Properties page data - parallel fetch WITH STATS
  * All calculations done by backend/database
  * PropertyWithUnits includes all unit metrics pre-calculated
+ * Handles errors gracefully with fallback values
  */
 export async function getPropertiesPageData(status?: string) {
 	const endpoint = status
@@ -153,7 +154,7 @@ export async function getPropertiesPageData(status?: string) {
 
 	// Fetch properties (with units embedded) AND pre-calculated stats
 	// NO NEED to fetch units separately - PropertyWithUnits has everything
-	const [properties, propertyStats] = await Promise.all([
+	const [propertiesResult, propertyStatsResult] = await Promise.allSettled([
 		serverFetch<PropertyWithUnits[]>(endpoint),
 		serverFetch<{
 			totalProperties: number
@@ -166,17 +167,26 @@ export async function getPropertiesPageData(status?: string) {
 		}>('/api/v1/properties/stats')
 	])
 
+	// Extract values with fallbacks for failed requests
+	const properties =
+		propertiesResult.status === 'fulfilled' ? propertiesResult.value || [] : []
+
+	const stats =
+		propertyStatsResult.status === 'fulfilled'
+			? propertyStatsResult.value
+			: {
+					totalProperties: 0,
+					totalUnits: 0,
+					occupiedUnits: 0,
+					occupancyRate: 0,
+					totalRevenue: 0,
+					vacantUnits: 0,
+					maintenanceUnits: 0
+				}
+
 	return {
-		properties: properties || [],
-		stats: propertyStats || {
-			totalProperties: 0,
-			totalUnits: 0,
-			occupiedUnits: 0,
-			occupancyRate: 0,
-			totalRevenue: 0,
-			vacantUnits: 0,
-			maintenanceUnits: 0
-		}
+		properties,
+		stats
 	}
 }
 
@@ -216,15 +226,17 @@ export async function getMaintenancePageData() {
 
 /**
  * Main dashboard page data - comprehensive overview
+ * Handles errors gracefully with fallback values
  */
 export async function getDashboardPageData() {
+	// Fetch data with error handling for each request
 	const [
-		dashboardStats,
-		propertyStats,
-		tenantStats,
-		leaseStats,
-		recentActivity
-	] = await Promise.all([
+		dashboardStatsResult,
+		propertyStatsResult,
+		tenantStatsResult,
+		leaseStatsResult,
+		recentActivityResult
+	] = await Promise.allSettled([
 		dashboardServerApi.getStats(),
 		serverFetch<{
 			totalProperties: number
@@ -240,42 +252,72 @@ export async function getDashboardPageData() {
 		dashboardServerApi.getActivity()
 	])
 
+	// Extract values with fallbacks for failed requests
+	const dashboardStats =
+		dashboardStatsResult.status === 'fulfilled'
+			? dashboardStatsResult.value
+			: {
+					totalProperties: 0,
+					totalTenants: 0,
+					monthlyRevenue: 0,
+					occupancyRate: 0,
+					maintenanceRequests: 0,
+					totalUnits: 0,
+					totalRevenue: 0,
+					revenue: { monthly: 0 },
+					maintenance: { open: 0 }
+				}
+
+	const propertyStats =
+		propertyStatsResult.status === 'fulfilled'
+			? propertyStatsResult.value
+			: {
+					totalProperties: 0,
+					totalUnits: 0,
+					occupiedUnits: 0,
+					occupancyRate: 0,
+					totalRevenue: 0,
+					vacantUnits: 0,
+					maintenanceUnits: 0
+				}
+
+	const tenantStats =
+		tenantStatsResult.status === 'fulfilled'
+			? tenantStatsResult.value
+			: {
+					totalTenants: 0,
+					activeTenants: 0,
+					currentPayments: 0,
+					latePayments: 0,
+					totalRent: 0,
+					avgRent: 0,
+					recentAdditions: 0,
+					withContactInfo: 0
+				}
+
+	const leaseStats =
+		leaseStatsResult.status === 'fulfilled'
+			? leaseStatsResult.value
+			: {
+					data: {
+						totalLeases: 0,
+						activeLeases: 0,
+						totalMonthlyRent: 0,
+						averageRent: 0
+					},
+					activeLeases: 0
+				}
+
+	const recentActivity =
+		recentActivityResult.status === 'fulfilled'
+			? recentActivityResult.value
+			: { activities: [] }
+
 	return {
-		dashboardStats: dashboardStats || {
-			totalProperties: 0,
-			totalTenants: 0,
-			monthlyRevenue: 0,
-			occupancyRate: 0,
-			maintenanceRequests: 0,
-			totalUnits: 0
-		},
-		propertyStats: propertyStats || {
-			totalProperties: 0,
-			totalUnits: 0,
-			occupiedUnits: 0,
-			occupancyRate: 0,
-			totalRevenue: 0,
-			vacantUnits: 0,
-			maintenanceUnits: 0
-		},
-		tenantStats: tenantStats || {
-			totalTenants: 0,
-			activeTenants: 0,
-			currentPayments: 0,
-			latePayments: 0,
-			totalRent: 0,
-			avgRent: 0,
-			recentAdditions: 0,
-			withContactInfo: 0
-		},
-		leaseStats: leaseStats || {
-			data: {
-				totalLeases: 0,
-				activeLeases: 0,
-				totalMonthlyRent: 0,
-				averageRent: 0
-			}
-		},
-		recentActivity: recentActivity || { activities: [] }
+		dashboardStats,
+		propertyStats,
+		tenantStats,
+		leaseStats,
+		recentActivity
 	}
 }

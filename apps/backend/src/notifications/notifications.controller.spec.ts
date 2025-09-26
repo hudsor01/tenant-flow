@@ -1,11 +1,10 @@
 import { BadRequestException, UnauthorizedException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { authUser } from '@repo/shared'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { NotificationsController } from './notifications.controller'
-import { createMockUser, createMockDashboardStats, createMockPropertyStats, createMockPropertyRequest, createMockTenantRequest, createMockUnitRequest } from '../test-utils/mocks'
+import { createMockUser } from '../test-utils/mocks'
 
 // Mock the SupabaseService
 jest.mock('../database/supabase.service', () => {
@@ -247,7 +246,7 @@ describe('NotificationsController', () => {
 			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
 
 			// Set up the specific mock for error case
-			const mockChain = {
+			const mockChain: any = {
 				from: jest.fn(() => mockChain),
 				update: jest.fn(() => mockChain),
 				eq: jest.fn(() => mockChain)
@@ -323,7 +322,7 @@ describe('NotificationsController', () => {
 			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
 
 			// Set up the specific mock for error case
-			const mockChain = {
+			const mockChain: any = {
 				from: jest.fn(() => mockChain),
 				delete: jest.fn(() => mockChain),
 				eq: jest.fn(() => mockChain)
