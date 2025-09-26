@@ -6,6 +6,7 @@ import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { DashboardController } from './dashboard.controller'
 import { DashboardService } from './dashboard.service'
+import { createMockUser, createMockDashboardStats, createMockPropertyStats, createMockPropertyRequest, createMockTenantRequest, createMockUnitRequest } from '../test-utils/mocks'
 
 // Mock the services
 jest.mock('./dashboard.service', () => {
@@ -34,21 +35,7 @@ describe('DashboardController', () => {
 	let mockDashboardServiceInstance: jest.Mocked<DashboardService>
 	let mockSupabaseServiceInstance: jest.Mocked<SupabaseService>
 
-	const mockUser: authUser = {
-		id: 'user-123',
-		email: 'test@example.com',
-		name: 'Test User',
-		phone: null,
-		bio: null,
-		avatarUrl: null,
-		role: 'PROPERTY_MANAGER',
-		createdAt: new Date(),
-		updatedAt: new Date(),
-		emailVerified: true,
-		supabaseId: 'supabase-123',
-		stripeCustomerId: null,
-		organizationId: null
-	}
+	const mockUser = createMockUser({ id: 'user-123' })
 
 	const mockRequest = {} as Request
 
@@ -75,12 +62,7 @@ describe('DashboardController', () => {
 
 	describe('getStats', () => {
 		it('should return dashboard stats for authenticated user', async () => {
-			const mockStats = {
-				totalProperties: 5,
-				totalUnits: 20,
-				totalTenants: 18,
-				monthlyRevenue: 15000
-			}
+			const mockStats = createMockDashboardStats()
 
 			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
 			mockDashboardServiceInstance.getStats.mockResolvedValue(mockStats)
@@ -134,7 +116,9 @@ describe('DashboardController', () => {
 			]
 
 			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
-			mockDashboardServiceInstance.getActivity.mockResolvedValue(mockActivity)
+			mockDashboardServiceInstance.getActivity.mockResolvedValue({
+				activities: mockActivity
+			})
 
 			const result = await controller.getActivity(mockRequest)
 
@@ -146,7 +130,7 @@ describe('DashboardController', () => {
 			)
 			expect(result).toEqual({
 				success: true,
-				data: mockActivity,
+				data: { activities: mockActivity },
 				message: 'Dashboard activity retrieved successfully',
 				timestamp: expect.any(Date)
 			})

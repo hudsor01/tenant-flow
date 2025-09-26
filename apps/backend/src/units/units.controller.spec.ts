@@ -6,6 +6,7 @@ import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { UnitsController } from './units.controller'
 import { UnitsService } from './units.service'
+import { createMockUser, createMockDashboardStats, createMockPropertyStats, createMockPropertyRequest, createMockTenantRequest, createMockUnitRequest } from '../test-utils/mocks'
 
 // Mock the services
 jest.mock('./units.service', () => {
@@ -35,10 +36,7 @@ describe('UnitsController', () => {
 	let mockUnitsServiceInstance: jest.Mocked<UnitsService>
 	let mockSupabaseServiceInstance: jest.Mocked<SupabaseService>
 
-	const mockUser: authUser = {
-		id: 'user-123',
-		email: 'test@example.com'
-	}
+	const mockUser = createMockUser({ id: 'user-123' })
 
 	const mockRequest = {} as Request
 
@@ -48,7 +46,7 @@ describe('UnitsController', () => {
 		bedrooms: 2,
 		bathrooms: 1,
 		rent: 1500,
-		status: 'VACANT'
+		status: 'AVAILABLE'
 	}
 
 	const validUpdateUnitRequest: UpdateUnitRequest = {
@@ -143,7 +141,7 @@ describe('UnitsController', () => {
 				mockUser.id,
 				{
 					propertyId: 'property-123',
-					status: 'VACANT',
+					status: 'AVAILABLE',
 					search: 'apartment',
 					limit: 20,
 					offset: 10,

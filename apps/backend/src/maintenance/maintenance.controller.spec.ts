@@ -7,30 +7,18 @@ import { SilentLogger } from '../__test__/silent-logger'
 import { SupabaseService } from '../database/supabase.service'
 import { MaintenanceController } from './maintenance.controller'
 import { MaintenanceService } from './maintenance.service'
+import { createMockUser, createMockDashboardStats, createMockPropertyStats, createMockPropertyRequest, createMockTenantRequest, createMockUnitRequest } from '../test-utils/mocks'
 
 describe('MaintenanceController', () => {
 	let controller: MaintenanceController
 	let service: jest.Mocked<MaintenanceService>
 	let mockSupabaseService: jest.Mocked<SupabaseService>
 
-	const createMockUser = (
-		overrides: Partial<authUser> = {}
-	): authUser => ({
-		id: randomUUID(),
-		email: 'test@example.com',
-		name: 'Test User',
-		phone: null,
-		avatarUrl: 'https://example.com/avatar.jpg',
-		role: 'OWNER' as const,
-		supabaseId: randomUUID(),
-		bio: null,
-		stripeCustomerId: null,
-		createdAt: new Date(),
-		updatedAt: new Date(),
-		emailVerified: true,
-		organizationId: randomUUID(),
-		...overrides
-	})
+	const createTestUser = (overrides: Partial<authUser> = {}): authUser =>
+		createMockUser({
+			id: randomUUID(),
+			...overrides
+		} as any)
 
 	const mockUser = createMockUser()
 

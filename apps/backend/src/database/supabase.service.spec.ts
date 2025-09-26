@@ -15,6 +15,7 @@ import { Test } from '@nestjs/testing'
 import { Logger } from '@nestjs/common'
 import { InternalServerErrorException } from '@nestjs/common'
 import { SupabaseService } from './supabase.service'
+import { createMockUser, createMockDashboardStats, createMockPropertyStats, createMockPropertyRequest, createMockTenantRequest, createMockUnitRequest } from '../test-utils/mocks'
 
 describe('SupabaseService', () => {
   let service: SupabaseService

@@ -5,6 +5,7 @@ import type { CreatePropertyRequest, UpdatePropertyRequest } from '@repo/shared'
 import type { AuthenticatedRequest } from '../shared/types/express-request.types'
 import { PropertiesController } from './properties.controller'
 import { PropertiesService } from './properties.service'
+import { createMockUser, createMockDashboardStats, createMockPropertyStats, createMockPropertyRequest, createMockTenantRequest, createMockUnitRequest } from '../test-utils/mocks'
 
 // Mock the PropertiesService
 jest.mock('./properties.service', () => {
@@ -29,7 +30,7 @@ describe('PropertiesController', () => {
 	let controller: PropertiesController
 	let mockPropertiesServiceInstance: jest.Mocked<PropertiesService>
 
-	const mockUser = { id: 'user-123', email: 'test@example.com' }
+	const mockUser = createMockUser({ id: 'user-123' })
 	const mockRequest = { user: mockUser } as AuthenticatedRequest
 
 	const validCreatePropertyRequest: CreatePropertyRequest = {

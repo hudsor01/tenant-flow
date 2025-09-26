@@ -5,6 +5,7 @@ import type { authUser } from '@repo/shared'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { NotificationsController } from './notifications.controller'
+import { createMockUser, createMockDashboardStats, createMockPropertyStats, createMockPropertyRequest, createMockTenantRequest, createMockUnitRequest } from '../test-utils/mocks'
 
 // Mock the SupabaseService
 jest.mock('../database/supabase.service', () => {
@@ -23,10 +24,7 @@ describe('NotificationsController', () => {
 	let mockSupabaseServiceInstance: jest.Mocked<SupabaseService>
 	let mockSupabaseClient: any
 
-	const mockUser: authUser = {
-		id: 'user-123',
-		email: 'test@example.com'
-	}
+	const mockUser = createMockUser({ id: 'user-123' })
 
 	const mockRequest = {} as Request
 
@@ -207,7 +205,7 @@ describe('NotificationsController', () => {
 			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
 
 			// Set up the specific mock for this test
-			const mockChain = {
+			const mockChain: any = {
 				from: jest.fn(() => mockChain),
 				update: jest.fn(() => mockChain),
 				eq: jest.fn(() => mockChain)
