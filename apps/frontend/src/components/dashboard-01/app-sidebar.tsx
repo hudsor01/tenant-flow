@@ -12,6 +12,7 @@ import {
 	Wrench,
 	type LucideIcon
 } from 'lucide-react'
+import Link from 'next/link'
 import * as React from 'react'
 
 import { NavDocuments } from '@/components/dashboard-01/nav-documents'
@@ -123,10 +124,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 							asChild
 							className="data-[slot=sidebar-menu-button]:!p-1.5"
 						>
-							<a href="#">
+							<Link href="/">
 								<Home className="size-5" />
 								<span className="text-base font-semibold">TenantFlow</span>
-							</a>
+							</Link>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
 				</SidebarMenu>

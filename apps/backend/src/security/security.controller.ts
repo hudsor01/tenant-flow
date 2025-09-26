@@ -16,14 +16,10 @@ import {
 	HttpStatus,
 	Logger,
 	Param,
-	Post
+	Post,
+	SetMetadata
 } from '@nestjs/common'
-import type {
-	CSPReportBody as CSPReport,
-	SecurityMetrics
-} from '@repo/shared'
-import { AdminOnly } from '../shared/decorators/admin-only.decorator'
-import { Public } from '../shared/decorators/public.decorator'
+import type { CSPReportBody as CSPReport, SecurityMetrics } from '@repo/shared'
 
 @Controller('security')
 export class SecurityController {
@@ -36,7 +32,7 @@ export class SecurityController {
 	 * Receives CSP violation reports from browsers
 	 */
 	@Post('csp-report')
-	@Public()
+	@SetMetadata('isPublic', true)
 	@HttpCode(HttpStatus.NO_CONTENT)
 	async handleCSPReport(@Body() report: CSPReport): Promise<void> {
 		this.logger.warn('CSP violation reported', {
@@ -69,7 +65,7 @@ export class SecurityController {
 	 * Returns comprehensive security metrics for monitoring
 	 */
 	@Get('metrics')
-	@AdminOnly()
+	@SetMetadata('admin-only', true)
 	async getSecurityMetrics() {
 		const metrics: SecurityMetrics = {
 			totalEvents: 0,
@@ -117,7 +113,7 @@ export class SecurityController {
 	 * Allows admins to mark security events as resolved
 	 */
 	@Post('events/:eventId/resolve')
-	@AdminOnly()
+	@SetMetadata('admin-only', true)
 	async resolveSecurityEvent(
 		@Param('eventId') eventId: string,
 		@Body() body: { resolution: string }
@@ -142,7 +138,7 @@ export class SecurityController {
 	 * Returns status of security monitoring systems
 	 */
 	@Get('health')
-	@AdminOnly()
+	@SetMetadata('admin-only', true)
 	async getSecurityHealth() {
 		const metrics: SecurityMetrics = {
 			totalEvents: 0,
@@ -213,7 +209,7 @@ export class SecurityController {
 	 * Returns data for security monitoring dashboard
 	 */
 	@Get('dashboard')
-	@AdminOnly()
+	@SetMetadata('admin-only', true)
 	async getSecurityDashboard() {
 		const metrics: SecurityMetrics = {
 			totalEvents: 0,
@@ -274,7 +270,7 @@ export class SecurityController {
 	 * Returns status of all security components
 	 */
 	@Get('status')
-	@AdminOnly()
+	@SetMetadata('admin-only', true)
 	async getSecurityStatus() {
 		return {
 			success: true,
