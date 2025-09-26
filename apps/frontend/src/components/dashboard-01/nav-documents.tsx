@@ -1,20 +1,18 @@
 'use client'
 
-import { Separator } from '@/components/ui/separator'
 import {
-	FolderOpen,
-	MoreHorizontal,
-	Share2,
-	Trash2,
-	type LucideIcon
-} from 'lucide-react'
-import Link from 'next/link'
-import * as React from 'react'
+	IconDots,
+	IconFolder,
+	IconShare3,
+	IconTrash,
+	type Icon
+} from '@tabler/icons-react'
 
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import {
@@ -26,40 +24,29 @@ import {
 	SidebarMenuItem,
 	useSidebar
 } from '@/components/ui/sidebar'
-import { cn } from '@/lib/utils'
 
-interface NavDocumentsProps extends React.ComponentProps<typeof SidebarGroup> {
+export function NavDocuments({
+	items
+}: {
 	items: {
 		name: string
 		url: string
-		icon: LucideIcon
+		icon: Icon
 	}[]
-}
-
-export const NavDocuments = React.forwardRef<
-	React.ElementRef<typeof SidebarGroup>,
-	NavDocumentsProps
->(({ items, className, ...props }, ref) => {
+}) {
 	const { isMobile } = useSidebar()
 
 	return (
-		<SidebarGroup
-			ref={ref}
-			className={cn('group-data-[collapsible=icon]:hidden', className)}
-			{...props}
-		>
+		<SidebarGroup className="group-data-[collapsible=icon]:hidden">
 			<SidebarGroupLabel>Documents</SidebarGroupLabel>
 			<SidebarMenu>
 				{items.map(item => (
 					<SidebarMenuItem key={item.name}>
 						<SidebarMenuButton asChild>
-							<Link
-								href={item.url}
-								className="transition-colors hover:text-primary"
-							>
-								<item.icon className="size-4" />
+							<a href={item.url}>
+								<item.icon />
 								<span>{item.name}</span>
-							</Link>
+							</a>
 						</SidebarMenuButton>
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
@@ -67,26 +54,26 @@ export const NavDocuments = React.forwardRef<
 									showOnHover
 									className="data-[state=open]:bg-accent rounded-sm"
 								>
-									<MoreHorizontal />
+									<IconDots />
 									<span className="sr-only">More</span>
 								</SidebarMenuAction>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
-								className="w-24 rounded-lg border-border/50 shadow-lg"
+								className="w-24 rounded-lg"
 								side={isMobile ? 'bottom' : 'right'}
 								align={isMobile ? 'end' : 'start'}
 							>
-								<DropdownMenuItem className="gap-2 hover:bg-accent/50 transition-colors">
-									<FolderOpen className="size-4" />
+								<DropdownMenuItem>
+									<IconFolder />
 									<span>Open</span>
 								</DropdownMenuItem>
-								<DropdownMenuItem className="gap-2 hover:bg-accent/50 transition-colors">
-									<Share2 className="size-4" />
+								<DropdownMenuItem>
+									<IconShare3 />
 									<span>Share</span>
 								</DropdownMenuItem>
-								<Separator className="my-1" />
-								<DropdownMenuItem className="gap-2 hover:bg-destructive/10 hover:text-destructive transition-colors">
-									<Trash2 className="size-4" />
+								<DropdownMenuSeparator />
+								<DropdownMenuItem variant="destructive">
+									<IconTrash />
 									<span>Delete</span>
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -95,12 +82,11 @@ export const NavDocuments = React.forwardRef<
 				))}
 				<SidebarMenuItem>
 					<SidebarMenuButton className="text-sidebar-foreground/70">
-						<MoreHorizontal className="text-sidebar-foreground/70" />
+						<IconDots className="text-sidebar-foreground/70" />
 						<span>More</span>
 					</SidebarMenuButton>
 				</SidebarMenuItem>
 			</SidebarMenu>
 		</SidebarGroup>
 	)
-})
-NavDocuments.displayName = 'NavDocuments'
+}
