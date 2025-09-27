@@ -10,28 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { maintenanceApi, propertiesApi, unitsApi } from '@/lib/api-client'
-import type { MaintenanceRequestInput } from '@repo/shared'
 import { toast } from 'sonner'
-
-const maintenanceSchema = z.object({
-  title: z.string().min(5, 'Title must be at least 5 characters').max(200, 'Title cannot exceed 200 characters'),
-  description: z.string().min(10, 'Description must be at least 10 characters').max(2000, 'Description cannot exceed 2000 characters'),
-  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY']),
-  category: z.string().min(1, 'Category is required'),
-  unitId: z.string().min(1, 'Unit is required'),
-  tenantId: z.string().optional(),
-  assignedTo: z.string().optional(),
-  estimatedCost: z.number().optional(),
-  images: z.array(z.string()).optional(),
-  notes: z.string().max(1000, 'Notes cannot exceed 1000 characters').optional(),
-  scheduledDate: z.string().optional(),
-  accessInstructions: z.string().max(500, 'Access instructions cannot exceed 500 characters').optional()
-})
-
-type MaintenanceFormData = z.infer<typeof maintenanceSchema>
+import { maintenanceRequestInputSchema, type MaintenanceRequestInput } from '@repo/shared/validation'
 
 export function CreateMaintenanceDialog() {
   const [open, setOpen] = useState(false)
@@ -49,21 +31,20 @@ export function CreateMaintenanceDialog() {
     enabled: !!selectedPropertyId
   })
 
-  const form = useForm<MaintenanceFormData>({
-    resolver: zodResolver(maintenanceSchema),
+  const form = useForm({
+    resolver: zodResolver(maintenanceRequestInputSchema),
     defaultValues: {
       title: '',
       description: '',
       priority: 'MEDIUM',
       category: '',
       unitId: '',
-      tenantId: undefined,
       assignedTo: undefined,
       estimatedCost: undefined,
-      images: undefined,
+      photos: [],
       notes: undefined,
-      scheduledDate: undefined,
-      accessInstructions: undefined
+      preferredDate: undefined,
+      allowEntry: false
     }
   })
 
@@ -81,11 +62,11 @@ export function CreateMaintenanceDialog() {
     }
   })
 
-  const onSubmit = (data: MaintenanceFormData) => {
+  const onSubmit = (data: MaintenanceRequestInput) => {
     const requestData = {
       ...data,
-      images: data.images || [],
-      scheduledDate: data.scheduledDate && data.scheduledDate.trim() !== '' ? data.scheduledDate : undefined
+      photos: data.photos || [],
+      preferredDate: data.preferredDate
     }
     createMutation.mutate(requestData as MaintenanceRequestInput)
   }
@@ -115,7 +96,7 @@ export function CreateMaintenanceDialog() {
         <DialogHeader>
           <DialogTitle>Create Maintenance Request</DialogTitle>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit((data) => onSubmit(data as MaintenanceRequestInput))} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="propertyId">Property</Label>
             <Select
@@ -231,6 +212,27 @@ export function CreateMaintenanceDialog() {
               {...form.register('estimatedCost', { valueAsNumber: true })}
               placeholder="250"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="preferredDate">Preferred Date (Optional)</Label>
+            <Input
+              id="preferredDate"
+              type="date"
+              {...form.register('preferredDate')}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="allowEntry" className="flex items-center gap-2">
+              <input
+                id="allowEntry"
+                type="checkbox"
+                {...form.register('allowEntry')}
+                className="rounded border border-input"
+              />
+              Allow entry when tenant is not present
+            </Label>
           </div>
 
           <div className="flex justify-end gap-2">

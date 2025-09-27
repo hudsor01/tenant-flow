@@ -6,25 +6,8 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { ANIMATION_DURATIONS, cardClasses, cn } from '@/lib/utils'
-import type { LucideIcon } from 'lucide-react'
+import type { MetricsCardProps } from '@repo/shared'
 import * as React from 'react'
-
-interface MetricsCardProps extends React.ComponentProps<'div'> {
-	title: string
-	value: string | number
-	description?: string
-	status?: string
-	statusIcon?: LucideIcon
-	icon: LucideIcon
-	colorVariant:
-		| 'success'
-		| 'primary'
-		| 'revenue'
-		| 'property'
-		| 'warning'
-		| 'info'
-	trend?: 'up' | 'down' | 'stable'
-}
 
 const colorMap = {
 	success: 'chart-1',
@@ -75,8 +58,7 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 								style={{ backgroundColor: `var(--${chartColor})/10` }}
 							>
 								<Icon
-									className="size-4"
-									style={{ color: `var(--${chartColor})` }}
+									className={cn("size-4", `text-[var(--${chartColor})]`)}
 								/>
 							</div>
 						)}

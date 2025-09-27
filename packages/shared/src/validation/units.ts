@@ -30,14 +30,22 @@ export const unitInputSchema = z.object({
 		.max(20, 'Maximum 20 bathrooms allowed')
 		.optional(),
 
-	squareFootage: positiveNumberSchema
-		.int('Square footage must be a whole number')
-		.max(50000, 'Square footage seems unrealistic')
+	squareFeet: positiveNumberSchema
+		.int('Square feet must be a whole number')
+		.max(50000, 'Square feet seems unrealistic')
 		.optional(),
 
 	rent: nonNegativeNumberSchema
 		.max(100000, 'Rent amount seems unrealistic')
 		.optional(),
+
+	lastInspectionDate: z
+		.string()
+		.optional()
+		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
+			message: 'Please enter a valid inspection date'
+		})
+		.transform((val: string | undefined) => (val ? new Date(val) : undefined)),
 
 	deposit: nonNegativeNumberSchema
 		.max(100000, 'Deposit amount seems unrealistic')
@@ -80,8 +88,8 @@ export const unitQuerySchema = z.object({
 	maxRent: nonNegativeNumberSchema.optional(),
 	bedrooms: positiveNumberSchema.int().optional(),
 	bathrooms: positiveNumberSchema.optional(),
-	minSquareFootage: positiveNumberSchema.int().optional(),
-	maxSquareFootage: positiveNumberSchema.int().optional(),
+	minSquareFeet: positiveNumberSchema.int().optional(),
+	maxSquareFeet: positiveNumberSchema.int().optional(),
 	tenantId: uuidSchema.optional(),
 	isVacant: z.boolean().optional(),
 	sortBy: z
@@ -90,7 +98,7 @@ export const unitQuerySchema = z.object({
 			'rent',
 			'bedrooms',
 			'bathrooms',
-			'squareFootage',
+			'squareFeet',
 			'createdAt'
 		])
 		.optional(),
@@ -136,7 +144,7 @@ export const unitFormSchema = z
 			.transform((val: string | undefined) =>
 				val ? parseFloat(val) : undefined
 			),
-		squareFootage: z
+		squareFeet: z
 			.string()
 			.optional()
 			.transform((val: string | undefined) =>
@@ -155,11 +163,13 @@ export const unitFormSchema = z
 				val ? parseFloat(val) : undefined
 			),
 		description: z.string().optional(),
+		lastInspectionDate: z.string().optional().or(z.literal('')),
 		tenantId: z.string().optional().or(z.literal(''))
 	})
-	.transform((data: { tenantId?: string; [key: string]: unknown }) => ({
+	.transform((data: { tenantId?: string; lastInspectionDate?: string; [key: string]: unknown }) => ({
 		...data,
-		tenantId: data.tenantId === '' ? undefined : data.tenantId
+		tenantId: data.tenantId === '' ? undefined : data.tenantId,
+		lastInspectionDate: data.lastInspectionDate === '' ? undefined : data.lastInspectionDate
 	}))
 
 export type UnitFormData = z.input<typeof unitFormSchema>

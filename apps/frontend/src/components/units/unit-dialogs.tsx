@@ -30,13 +30,10 @@ import {
 } from '@/lib/utils'
 import type { Database } from '@repo/shared'
 import {
-	nonNegativeNumberSchema,
-	positiveNumberSchema,
-	requiredString,
-	unitStatusSchema,
 	createLogger
 } from '@repo/shared'
-import { useForm } from '@tanstack/react-form'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import type { LucideIcon } from 'lucide-react'
 import {
 	AlertTriangle,
@@ -55,32 +52,11 @@ import {
 } from 'lucide-react'
 import * as React from 'react'
 import { toast } from 'sonner'
+import { unitEditFormSchema } from '@repo/shared/validation'
 import { z } from 'zod'
 
 type UnitRow = Database['public']['Tables']['Unit']['Row']
 type UnitStatus = Database['public']['Enums']['UnitStatus']
-
-// TanStack Form validation schema for unit updates
-const unitEditFormSchema = z.object({
-	unitNumber: requiredString
-		.min(1, 'Unit number is required')
-		.max(20, 'Unit number cannot exceed 20 characters'),
-	bedrooms: positiveNumberSchema
-		.int('Bedrooms must be a whole number')
-		.max(20, 'Maximum 20 bedrooms allowed')
-		.optional(),
-	bathrooms: positiveNumberSchema
-		.max(20, 'Maximum 20 bathrooms allowed')
-		.optional(),
-	squareFeet: positiveNumberSchema
-		.int('Square feet must be a whole number')
-		.max(50000, 'Square feet seems unrealistic')
-		.optional()
-		.nullable(),
-	rent: nonNegativeNumberSchema.max(100000, 'Rent amount seems unrealistic'),
-	status: unitStatusSchema,
-	lastInspectionDate: z.string().nullable().optional()
-})
 
 type UnitEditFormData = z.infer<typeof unitEditFormSchema>
 
@@ -540,8 +516,9 @@ export function UnitEditDialog({
 	const logger = createLogger({ component: 'UnitEditDialog' })
 	const updateUnit = useUpdateUnit()
 
-	// TanStack Form with direct Zod validation
-	const form = useForm({
+	// React Hook Form with Zod validation
+	const form = useForm<UnitEditFormData>({
+		resolver: zodResolver(unitEditFormSchema),
 		defaultValues: {
 			unitNumber: unit.unitNumber,
 			bedrooms: unit.bedrooms || undefined,
@@ -550,55 +527,50 @@ export function UnitEditDialog({
 			rent: unit.rent,
 			status: unit.status,
 			lastInspectionDate: unit.lastInspectionDate
-		} as UnitEditFormData,
-		onSubmit: async ({ value }) => {
-			try {
-				await updateUnit.mutateAsync({
-					id: unit.id,
-					values: {
-						unitNumber: value.unitNumber,
-						bedrooms: value.bedrooms || undefined,
-						bathrooms: value.bathrooms || undefined,
-						squareFeet: value.squareFeet,
-						rent: value.rent,
-						status: value.status as
-							| 'MAINTENANCE'
-							| 'VACANT'
-							| 'OCCUPIED'
-							| 'RESERVED',
-						lastInspectionDate: value.lastInspectionDate
-					}
-				})
-
-				toast.success('Unit updated successfully')
-				onOpenChange(false)
-			} catch (error) {
-				logger.error('Unit update operation failed', {
-					action: 'unit_update_failed',
-					metadata: {
-						unitId: unit.id,
-						error: error instanceof Error ? error.message : String(error)
-					}
-				})
-				toast.error('Failed to update unit. Please try again.')
-			}
-		},
-		validators: {
-			onChange: unitEditFormSchema
 		}
 	})
+
+	const onSubmit = async (data: UnitEditFormData) => {
+		try {
+			await updateUnit.mutateAsync({
+				id: unit.id,
+				values: {
+					unitNumber: data.unitNumber,
+					bedrooms: data.bedrooms || undefined,
+					bathrooms: data.bathrooms || undefined,
+					squareFeet: data.squareFeet,
+					rent: data.rent,
+					status: data.status,
+					lastInspectionDate: data.lastInspectionDate
+				}
+			})
+
+			toast.success('Unit updated successfully')
+			onOpenChange(false)
+		} catch (error) {
+			logger.error('Unit update operation failed', {
+				action: 'unit_update_failed',
+				metadata: {
+					unitId: unit.id,
+					error: error instanceof Error ? error.message : String(error)
+				}
+			})
+			toast.error('Failed to update unit. Please try again.')
+		}
+	}
 
 	// Reset form when dialog opens with fresh unit data
 	React.useEffect(() => {
 		if (open) {
-			form.reset()
-			form.setFieldValue('unitNumber', unit.unitNumber)
-			form.setFieldValue('bedrooms', unit.bedrooms || undefined)
-			form.setFieldValue('bathrooms', unit.bathrooms || undefined)
-			form.setFieldValue('squareFeet', unit.squareFeet)
-			form.setFieldValue('rent', unit.rent)
-			form.setFieldValue('status', unit.status)
-			form.setFieldValue('lastInspectionDate', unit.lastInspectionDate)
+			form.reset({
+				unitNumber: unit.unitNumber,
+				bedrooms: unit.bedrooms || undefined,
+				bathrooms: unit.bathrooms || undefined,
+				squareFeet: unit.squareFeet,
+				rent: unit.rent,
+				status: unit.status,
+				lastInspectionDate: unit.lastInspectionDate
+			})
 		}
 	}, [open, unit, form])
 
@@ -643,90 +615,79 @@ export function UnitEditDialog({
 				</DialogHeader>
 
 				<form
-					onSubmit={e => {
-						e.preventDefault()
-						form.handleSubmit()
-					}}
+					onSubmit={form.handleSubmit(onSubmit)}
 					className="space-y-6"
 				>
 					<div className="grid grid-cols-2 gap-6">
-						<form.Field name="unitNumber">
-							{field => (
-								<div className="space-y-3">
-									<Label
-										htmlFor="unitNumber"
-										className="text-sm font-semibold text-foreground flex items-center gap-2"
-										style={{
-											fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
-											lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
-										}}
-									>
-										<Home
-											className="h-4 w-4 text-muted-foreground"
-											aria-hidden
-										/>
-										<span>Unit Number</span>
-										<span className="text-destructive">*</span>
-									</Label>
-									<Input
-										id="unitNumber"
-										placeholder="e.g., 101, A1, Suite 200"
-										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-										disabled={form.state.isSubmitting}
-										className={cn(
-											inputClasses('default'),
-											'rounded-8px',
-											`transition-fast`,
-											field.state.meta.errors
-												? 'border-destructive focus:border-destructive bg-destructive/10'
-												: 'focus:border-primary hover:border-muted-foreground'
-										)}
-									/>
-									{field.state.meta.errors && (
-										<div
-											className={cn(
-												'text-sm text-destructive font-medium flex items-center gap-2 p-2 rounded-6px',
-												'bg-destructive/10 border border-destructive/20'
-											)}
-										>
-											<AlertTriangle className="h-4 w-4" aria-hidden />
-											{field.state.meta.errors.join(', ')}
-										</div>
+						<div className="space-y-3">
+							<Label
+								htmlFor="unitNumber"
+								className="text-sm font-semibold text-foreground flex items-center gap-2"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
+								}}
+							>
+								<Home
+									className="h-4 w-4 text-muted-foreground"
+									aria-hidden
+								/>
+								<span>Unit Number</span>
+								<span className="text-destructive">*</span>
+							</Label>
+							<Input
+								id="unitNumber"
+								placeholder="e.g., 101, A1, Suite 200"
+								{...form.register('unitNumber')}
+								disabled={form.formState.isSubmitting}
+								className={cn(
+									inputClasses('default'),
+									'rounded-8px',
+									`transition-fast`,
+									form.formState.errors.unitNumber
+										? 'border-destructive focus:border-destructive bg-destructive/10'
+										: 'focus:border-primary hover:border-muted-foreground'
+								)}
+							/>
+							{form.formState.errors.unitNumber && (
+								<div
+									className={cn(
+										'text-sm text-destructive font-medium flex items-center gap-2 p-2 rounded-6px',
+										'bg-destructive/10 border border-destructive/20'
 									)}
+								>
+									<AlertTriangle className="h-4 w-4" aria-hidden />
+									{form.formState.errors.unitNumber.message}
 								</div>
 							)}
-						</form.Field>
+						</div>
 
-						<form.Field name="status">
-							{field => (
-								<div className="space-y-3">
-									<Label
-										htmlFor="status"
-										className="text-sm font-semibold text-foreground flex items-center gap-2"
-										style={{
-											fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
-											lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
-										}}
-									>
-										<BarChart3
-											className="h-4 w-4 text-muted-foreground"
-											aria-hidden
-										/>
-										<span>Status</span>
-										<span className="text-destructive">*</span>
-									</Label>
-									<Select
-										value={field.state.value}
-										onValueChange={field.handleChange}
-										disabled={form.state.isSubmitting}
-									>
+						<div className="space-y-3">
+							<Label
+								htmlFor="status"
+								className="text-sm font-semibold text-foreground flex items-center gap-2"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
+								}}
+							>
+								<BarChart3
+									className="h-4 w-4 text-muted-foreground"
+									aria-hidden
+								/>
+								<span>Status</span>
+								<span className="text-destructive">*</span>
+							</Label>
+							<Controller
+								name="status"
+								control={form.control}
+								render={({ field }) => (
+									<Select value={field.value} onValueChange={field.onChange} disabled={form.formState.isSubmitting}>
 										<SelectTrigger
 											className={cn(
 												'rounded-8px h-11',
 												`transition-fast`,
-												field.state.meta.errors
+												form.formState.errors.status
 													? 'border-destructive focus:border-destructive bg-destructive/10'
 													: 'focus:border-primary hover:border-muted-foreground'
 											)}
@@ -761,220 +722,176 @@ export function UnitEditDialog({
 											})}
 										</SelectContent>
 									</Select>
-									{field.state.meta.errors && (
-										<div
-											className={cn(
-												'text-sm text-destructive font-medium flex items-center gap-2 p-2 rounded-6px',
-												'bg-destructive/10 border border-destructive/20'
-											)}
-										>
-											<AlertTriangle className="h-4 w-4" aria-hidden />
-											{field.state.meta.errors.join(', ')}
-										</div>
-									)}
-								</div>
-							)}
-						</form.Field>
-					</div>
-
-					<div className="grid grid-cols-2 gap-6">
-						<form.Field name="bedrooms">
-							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="bedrooms" className="text-sm font-medium">
-										Bedrooms
-									</Label>
-									<Input
-										id="bedrooms"
-										type="number"
-										min="0"
-										max="20"
-										step="1"
-										placeholder="e.g., 2"
-										value={field.state.value || ''}
-										onChange={e =>
-											field.handleChange(
-												parseInt(e.target.value, 10) || undefined
-											)
-										}
-										onBlur={field.handleBlur}
-										disabled={form.state.isSubmitting}
-										className={`${field.state.meta.errors ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}
-									/>
-									<p className="text-xs text-muted-foreground">
-										Number of bedrooms (0-20)
-									</p>
-									{field.state.meta.errors && (
-										<div className="text-sm text-destructive font-medium flex items-center gap-1">
-											<AlertTriangle className="h-4 w-4" aria-hidden />
-											{field.state.meta.errors.join(', ')}
-										</div>
-									)}
-								</div>
-							)}
-						</form.Field>
-
-						<form.Field name="bathrooms">
-							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="bathrooms" className="text-sm font-medium">
-										Bathrooms
-									</Label>
-									<Input
-										id="bathrooms"
-										type="number"
-										min="0"
-										max="20"
-										step="0.5"
-										placeholder="e.g., 1.5"
-										value={field.state.value || ''}
-										onChange={e =>
-											field.handleChange(
-												parseFloat(e.target.value) || undefined
-											)
-										}
-										onBlur={field.handleBlur}
-										disabled={form.state.isSubmitting}
-										className={`${field.state.meta.errors ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}
-									/>
-									<p className="text-xs text-muted-foreground">
-										Include half-baths (e.g., 1.5)
-									</p>
-									{field.state.meta.errors && (
-										<div className="text-sm text-destructive font-medium flex items-center gap-1">
-											<AlertTriangle className="h-4 w-4" aria-hidden />
-											{field.state.meta.errors.join(', ')}
-										</div>
-									)}
-								</div>
-							)}
-						</form.Field>
-					</div>
-
-					<div className="grid grid-cols-2 gap-6">
-						<form.Field name="squareFeet">
-							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="squareFeet" className="text-sm font-medium">
-										Square Feet
-									</Label>
-									<Input
-										id="squareFeet"
-										type="number"
-										min="0"
-										max="50000"
-										step="1"
-										placeholder="e.g., 800"
-										value={field.state.value || ''}
-										onChange={e =>
-											field.handleChange(parseInt(e.target.value, 10) || null)
-										}
-										onBlur={field.handleBlur}
-										disabled={form.state.isSubmitting}
-										className={`${field.state.meta.errors ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}
-									/>
-									<p className="text-xs text-muted-foreground">
-										Optional - total floor area in square feet
-									</p>
-									{field.state.meta.errors && (
-										<div className="text-sm text-destructive font-medium flex items-center gap-1">
-											<AlertTriangle className="h-4 w-4" aria-hidden />
-											{field.state.meta.errors.join(', ')}
-										</div>
-									)}
-								</div>
-							)}
-						</form.Field>
-
-						<form.Field name="rent">
-							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="rent" className="text-sm font-medium">
-										Monthly Rent <span className="text-destructive">*</span>
-									</Label>
-									<div className="relative">
-										<span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">
-											$
-										</span>
-										<Input
-											id="rent"
-											type="number"
-											min="0"
-											max="100000"
-											step="0.01"
-											placeholder="1200.00"
-											value={field.state.value}
-											onChange={e =>
-												field.handleChange(parseFloat(e.target.value) || 0)
-											}
-											onBlur={field.handleBlur}
-											disabled={form.state.isSubmitting}
-											className={`pl-7 ${field.state.meta.errors ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}
-										/>
-									</div>
-									<p className="text-xs text-muted-foreground">
-										Monthly rental amount in USD
-									</p>
-									{field.state.meta.errors && (
-										<div className="text-sm text-destructive font-medium flex items-center gap-1">
-											<AlertTriangle className="h-4 w-4" aria-hidden />
-											{field.state.meta.errors.join(', ')}
-										</div>
-									)}
-								</div>
-							)}
-						</form.Field>
-					</div>
-
-					<form.Field name="lastInspectionDate">
-						{field => (
-							<div className="space-y-2">
-								<Label
-									htmlFor="lastInspectionDate"
-									className="text-sm font-medium"
-								>
-									Last Inspection Date
-								</Label>
-								<Input
-									id="lastInspectionDate"
-									type="date"
-									value={
-										field.state.value ? field.state.value.split('T')[0] : ''
-									}
-									onChange={e => field.handleChange(e.target.value || null)}
-									onBlur={field.handleBlur}
-									disabled={form.state.isSubmitting}
-									className={`${field.state.meta.errors ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}
-								/>
-								<p className="text-xs text-muted-foreground">
-									Optional - date of the most recent property inspection
-								</p>
-								{field.state.meta.errors && (
-									<div className="text-sm text-destructive font-medium flex items-center gap-1">
-										<AlertTriangle className="h-4 w-4" aria-hidden />
-										{field.state.meta.errors.join(', ')}
-									</div>
 								)}
+							/>
+							{form.formState.errors.status && (
+								<div
+									className={cn(
+										'text-sm text-destructive font-medium flex items-center gap-2 p-2 rounded-6px',
+										'bg-destructive/10 border border-destructive/20'
+									)}
+								>
+									<AlertTriangle className="h-4 w-4" aria-hidden />
+									{form.formState.errors.status.message}
+								</div>
+							)}
+						</div>
+					</div>
+
+					<div className="grid grid-cols-2 gap-6">
+						<div className="space-y-2">
+							<Label htmlFor="bedrooms" className="text-sm font-medium">
+								Bedrooms
+							</Label>
+							<Input
+								id="bedrooms"
+								type="number"
+								min="0"
+								max="20"
+								step="1"
+								placeholder="e.g., 2"
+								{...form.register('bedrooms', { valueAsNumber: true })}
+								disabled={form.formState.isSubmitting}
+								className={form.formState.errors.bedrooms ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}
+							/>
+							<p className="text-xs text-muted-foreground">
+								Number of bedrooms (0-20)
+							</p>
+							{form.formState.errors.bedrooms && (
+								<div className="text-sm text-destructive font-medium flex items-center gap-1">
+									<AlertTriangle className="h-4 w-4" aria-hidden />
+									{form.formState.errors.bedrooms.message}
+								</div>
+							)}
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="bathrooms" className="text-sm font-medium">
+								Bathrooms
+							</Label>
+							<Input
+								id="bathrooms"
+								type="number"
+								min="0"
+								max="20"
+								step="0.5"
+								placeholder="e.g., 1.5"
+								{...form.register('bathrooms', { valueAsNumber: true })}
+								disabled={form.formState.isSubmitting}
+								className={form.formState.errors.bathrooms ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}
+							/>
+							<p className="text-xs text-muted-foreground">
+								Include half-baths (e.g., 1.5)
+							</p>
+							{form.formState.errors.bathrooms && (
+								<div className="text-sm text-destructive font-medium flex items-center gap-1">
+									<AlertTriangle className="h-4 w-4" aria-hidden />
+									{form.formState.errors.bathrooms.message}
+								</div>
+							)}
+						</div>
+					</div>
+
+					<div className="grid grid-cols-2 gap-6">
+						<div className="space-y-2">
+							<Label htmlFor="squareFeet" className="text-sm font-medium">
+								Square Feet
+							</Label>
+							<Input
+								id="squareFeet"
+								type="number"
+								min="0"
+								max="50000"
+								step="1"
+								placeholder="e.g., 800"
+								{...form.register('squareFeet', { valueAsNumber: true })}
+								disabled={form.formState.isSubmitting}
+								className={form.formState.errors.squareFeet ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}
+							/>
+							<p className="text-xs text-muted-foreground">
+								Optional - total floor area in square feet
+							</p>
+							{form.formState.errors.squareFeet && (
+								<div className="text-sm text-destructive font-medium flex items-center gap-1">
+									<AlertTriangle className="h-4 w-4" aria-hidden />
+									{form.formState.errors.squareFeet.message}
+								</div>
+							)}
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="rent" className="text-sm font-medium">
+								Monthly Rent <span className="text-destructive">*</span>
+							</Label>
+							<div className="relative">
+								<span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">
+									$
+								</span>
+								<Input
+									id="rent"
+									type="number"
+									min="0"
+									max="100000"
+									step="0.01"
+									placeholder="1200.00"
+									{...form.register('rent', { valueAsNumber: true })}
+									disabled={form.formState.isSubmitting}
+									className={`pl-7 ${form.formState.errors.rent ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}
+								/>
+							</div>
+							<p className="text-xs text-muted-foreground">
+								Monthly rental amount in USD
+							</p>
+							{form.formState.errors.rent && (
+								<div className="text-sm text-destructive font-medium flex items-center gap-1">
+									<AlertTriangle className="h-4 w-4" aria-hidden />
+									{form.formState.errors.rent.message}
+								</div>
+							)}
+						</div>
+					</div>
+
+					<div className="space-y-2">
+						<Label
+							htmlFor="lastInspectionDate"
+							className="text-sm font-medium"
+						>
+							Last Inspection Date
+						</Label>
+						<Input
+							id="lastInspectionDate"
+							type="date"
+							{...form.register('lastInspectionDate')}
+							disabled={form.formState.isSubmitting}
+							className={form.formState.errors.lastInspectionDate ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}
+						/>
+						<p className="text-xs text-muted-foreground">
+							Optional - date of the most recent property inspection
+						</p>
+						{form.formState.errors.lastInspectionDate && (
+							<div className="text-sm text-destructive font-medium flex items-center gap-1">
+								<AlertTriangle className="h-4 w-4" aria-hidden />
+								{form.formState.errors.lastInspectionDate.message}
 							</div>
 						)}
-					</form.Field>
+					</div>
 
 					<DialogFooter className="flex gap-3 pt-6">
 						<Button
 							type="button"
 							variant="outline"
 							onClick={() => onOpenChange(false)}
-							disabled={form.state.isSubmitting}
+							disabled={form.formState.isSubmitting}
 							className="min-w-[100px]"
 						>
 							Cancel
 						</Button>
 						<Button
 							type="submit"
-							disabled={form.state.isSubmitting || !form.state.canSubmit}
+							disabled={form.formState.isSubmitting || !form.formState.isValid}
 							className="min-w-[120px] bg-primary hover:bg-primary/90 text-primary-foreground"
 						>
-							{form.state.isSubmitting ? (
+							{form.formState.isSubmitting ? (
 								<>
 									<div className="w-4 h-4 mr-2 border-2 border-current border-t-transparent animate-spin rounded-full" />
 									Updating...

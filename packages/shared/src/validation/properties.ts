@@ -158,7 +158,8 @@ export const propertyFormSchema = z.object({
 // Transform function for converting form data to API format
 // Separated from schema to avoid zodResolver conflicts
 export const transformPropertyFormData = (
-	data: PropertyFormData
+	data: PropertyFormData,
+	ownerId: string = ''
 ): {
 	name: string
 	description: string
@@ -167,6 +168,7 @@ export const transformPropertyFormData = (
 	city: string
 	state: string
 	zipCode: string
+	ownerId: string
 	bedrooms?: number
 	bathrooms?: number
 	squareFootage?: number
@@ -182,6 +184,7 @@ export const transformPropertyFormData = (
 	city: data.city,
 	state: data.state,
 	zipCode: data.zipCode,
+	ownerId,
 	bedrooms: data.bedrooms ? parseInt(data.bedrooms, 10) : undefined,
 	bathrooms: data.bathrooms ? parseFloat(data.bathrooms) : undefined,
 	squareFootage: data.squareFootage

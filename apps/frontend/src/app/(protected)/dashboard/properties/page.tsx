@@ -1,12 +1,11 @@
 import type { PropertyWithUnits } from '@repo/shared'
-import { Building, DollarSign, Plus, TrendingUp } from 'lucide-react'
+import { Building, DollarSign, TrendingUp } from 'lucide-react'
 
 // Server API
 import { getPropertiesPageData } from '@/lib/api/dashboard-server'
 
 // UI Components
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
 	Select,
 	SelectContent,
@@ -27,6 +26,7 @@ import {
 import { MetricsCard } from '@/components/charts/metrics-card'
 import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
 import { PropertyEditViewButtons } from '@/components/properties/edit-button'
+import { CreatePropertyDialog } from '@/components/properties/create-property-dialog'
 
 export default async function PropertiesPage({
 	searchParams
@@ -109,20 +109,7 @@ export default async function PropertiesPage({
 								{properties.length} properties in your portfolio
 							</p>
 						</div>
-						<Button
-							variant="default"
-							className="flex items-center gap-2"
-							style={{
-								background: 'var(--color-primary-brand)',
-								color: 'white',
-								borderRadius: 'var(--radius-medium)',
-								padding: 'var(--spacing-2) var(--spacing-4)',
-								transition: 'all var(--duration-quick) var(--ease-smooth)'
-							}}
-						>
-							<Plus className="size-4" />
-							New Property
-						</Button>
+						<CreatePropertyDialog />
 					</div>
 
 					{/* Interactive Chart */}
@@ -202,21 +189,7 @@ export default async function PropertiesPage({
 												<p className="text-muted-foreground">
 													No properties found.
 												</p>
-												<Button
-													variant="default"
-													className="flex items-center gap-2"
-													style={{
-														background: 'var(--color-primary-brand)',
-														color: 'white',
-														borderRadius: 'var(--radius-medium)',
-														padding: 'var(--spacing-2) var(--spacing-4)',
-														transition:
-															'all var(--duration-quick) var(--ease-smooth)'
-													}}
-												>
-													<Plus className="size-4" />
-													New Property
-												</Button>
+												<CreatePropertyDialog />
 											</div>
 										</TableCell>
 									</TableRow>

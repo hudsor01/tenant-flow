@@ -77,7 +77,7 @@ function filterCSPViolation(report: CSPViolationReport): boolean {
     'ms-browser-extension://',
     'data:application/font',
     'about:blank',
-    'javascript:' + 'void(0)',
+    'javascript:void',
     // Browser injected scripts
     'translate.google.com',
     'translate.googleapis.com',
@@ -175,6 +175,7 @@ async function logToSecurityMonitoring(
 /**
  * Store security event in database for audit trail
  */
+// eslint-disable-next-line type-centralization/no-inline-types
 interface SecurityEvent {
   type: string
   severity: string

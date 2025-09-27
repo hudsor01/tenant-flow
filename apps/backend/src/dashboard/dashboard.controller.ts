@@ -21,7 +21,7 @@ export class DashboardController {
 
 	constructor(
 		@Optional() private readonly dashboardService?: DashboardService,
-		private readonly supabaseService?: SupabaseService
+		@Optional() private readonly supabaseService?: SupabaseService
 	) {}
 
 	/**

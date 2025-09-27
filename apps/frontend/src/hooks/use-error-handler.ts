@@ -3,10 +3,8 @@
  * Provides standardized error handling patterns for TanStack Query mutations
  */
 
-import {
-	createMutationErrorHandler,
-	type ErrorContext
-} from '@/lib/error-handler'
+import { createMutationErrorHandler } from '@/lib/error-handler'
+import type { ErrorContext } from '@repo/shared'
 import { useMutation, type UseMutationOptions } from '@tanstack/react-query'
 
 /**
