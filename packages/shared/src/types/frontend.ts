@@ -5,6 +5,7 @@
 
 import type * as React from 'react'
 import type { Property, Tenant } from './core.js'
+import type { PricingConfig, PlanId } from '../config/pricing.js'
 
 // DASHBOARD COMPONENT TYPES
 export interface AnimatedMetricCardProps {
@@ -435,17 +436,10 @@ export interface ShimmerButtonProps
 // PRICING HOOK TYPES
 
 export interface UsePricingReturn {
-	prices: Array<{
-		id: string
-		name: string
-		price: number
-		currency: string
-		interval: string
-		features: string[]
-	}>
+	plans: Array<PricingConfig>
 	isLoading: boolean
 	error: string | null
-	refreshPrices: () => void
-	getPrice: (priceId: string) => { id: string; name: string; price: number } | null
-	formatPrice: (price: number, currency: string) => string
+	getPlan: (planId: PlanId) => PricingConfig | undefined
+	getPrice: (planId: PlanId, period: 'monthly' | 'annual') => string
+	getStripeId: (planId: PlanId, period: 'monthly' | 'annual') => string | null
 }

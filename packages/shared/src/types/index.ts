@@ -22,41 +22,43 @@ export * from './api-errors.js'
 export * from './backend-domain.js'
 export * from './domain.js'
 export type {
-    HealthCheckResponse,
-    HealthCheckResult,
-    PerformanceMetrics,
-    SecurityEvent,
-    SecurityEventType,
-    SecurityMetrics,
-    ServiceHealth,
-    SystemHealth
+	HealthCheckResponse,
+	HealthCheckResult,
+	PerformanceMetrics,
+	SecurityEvent,
+	SecurityEventType,
+	SecurityMetrics,
+	ServiceHealth,
+	SystemHealth
 } from './health.js'
 
 // Auth types (domain-specific business logic)
 export type {
-    AuthFormState,
-    AuthResponse, ClientAuthResponse,
-    LoginCredentials,
-    LoginFormData,
-    LoginLayoutProps,
-    RegisterCredentials,
-    SignupData,
-    SignupFormData,
-    SubscriptionStatus,
-    SupabaseWebhookEvent,
-    UserRole, authUser
+	AuthFormState,
+	AuthResponse,
+	ClientAuthResponse,
+	LoginCredentials,
+	LoginFormData,
+	LoginLayoutProps,
+	RegisterCredentials,
+	SignupData,
+	SignupFormData,
+	SubscriptionStatus,
+	SupabaseWebhookEvent,
+	UserRole,
+	authUser
 } from './auth.js'
 
 // Validation types (Zod integration) - correct imports
 export type {
-    MaintenanceRequestInput,
-    MaintenanceRequestUpdate
+	MaintenanceRequestInput,
+	MaintenanceRequestUpdate
 } from '../validation/maintenance.js'
 
 export type {
-    UnitFormData,
-    UnitInput,
-    UnitUpdate
+	UnitFormData,
+	UnitInput,
+	UnitUpdate
 } from '../validation/units.js'
 
 export type { PropertyInput, PropertyUpdate } from '../validation/properties.js'
@@ -67,8 +69,8 @@ export type { LeaseInput, LeaseUpdate } from '../validation/leases.js'
 
 // Lease generator types
 export type {
-    LeaseFormData,
-    StateLeaseRequirements
+	LeaseFormData,
+	StateLeaseRequirements
 } from './lease-generator.types.js'
 
 // Controller response types (from errors.ts)
@@ -83,6 +85,12 @@ export { PLANS, PLAN_TYPE } from '../constants/billing.js'
 
 // Frontend types (required for analytics)
 export * from './frontend.js'
+
+// Frontend UI component types
+export * from './frontend-ui.js'
+
+// Email and testing types
+export * from './email-test.js'
 
 // NO LEGACY COMPATIBILITY - Use core types directly
 

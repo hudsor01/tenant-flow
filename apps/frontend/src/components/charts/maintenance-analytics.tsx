@@ -21,6 +21,7 @@ import { useMaintenanceMetrics } from '@/hooks/api/maintenance-analytics'
 import { cn } from '@/lib/utils'
 import {
 	CHART_GRADIENTS,
+	MaintenanceAnalyticsData,
 	MOTION_DURATIONS,
 	MOTION_EASINGS,
 	SYSTEM_COLORS
@@ -489,11 +490,14 @@ export function MaintenanceAnalytics() {
 	const [filterStatus, setFilterStatus] = React.useState<string>('all')
 
 	// Use server-side analytics instead of frontend calculations
-	const { data: analytics, isLoading, error } = useMaintenanceMetrics(
+	const { data: rawAnalytics, isLoading, error } = useMaintenanceMetrics(
 		undefined, // propertyId - can be added as prop
 		'30d',      // timeframe
 		filterStatus === 'all' ? undefined : filterStatus
 	)
+
+	// Type cast the analytics data
+	const analytics = rawAnalytics as MaintenanceAnalyticsData
 
 	const filteredRequests = React.useMemo(() => {
 		return maintenanceData.filter(request => {
@@ -553,7 +557,7 @@ export function MaintenanceAnalytics() {
 	}
 
 	// Use server-calculated breakdowns instead of frontend calculations
-	const categoryData = analytics?.categoryBreakdown ? Object.entries(analytics.categoryBreakdown!).map(
+	const categoryData = analytics?.categoryBreakdown ? Object.entries(analytics.categoryBreakdown || {}).map(
 		([name, value]) => ({
 			name,
 			value,
@@ -567,7 +571,7 @@ export function MaintenanceAnalytics() {
 		})
 	) : []
 
-	const statusData = analytics?.statusBreakdown ? Object.entries(analytics.statusBreakdown!).map(
+	const statusData = analytics?.statusBreakdown ? Object.entries(analytics.statusBreakdown || {}).map(
 		([name, value]) => ({
 			name,
 			value,
@@ -609,8 +613,8 @@ export function MaintenanceAnalytics() {
 									Maintenance Analytics
 								</CardTitle>
 								<CardDescription className="text-base">
-									{analytics?.completionRate?.toFixed(1) || 0}% completion rate •{' '}
-									{analytics?.avgResponseTime?.toFixed(1) || 0}h avg response
+									{(analytics?.completionRate || 0).toFixed(1)}% completion rate •{' '}
+									{(analytics?.avgResponseTime || 0).toFixed(1)}h avg response
 								</CardDescription>
 							</div>
 						</div>
@@ -676,7 +680,7 @@ export function MaintenanceAnalytics() {
 									className="text-lg font-bold"
 									style={{ color: SYSTEM_COLORS.success }}
 								>
-									{analytics?.completionRate?.toFixed(0) || 0}%
+									{(analytics?.completionRate || 0).toFixed(0)}%
 								</p>
 								<p className="text-xs text-muted-foreground">Completion Rate</p>
 							</div>
@@ -699,7 +703,7 @@ export function MaintenanceAnalytics() {
 									className="text-lg font-bold"
 									style={{ color: SYSTEM_COLORS.primary }}
 								>
-									{analytics?.avgResponseTime?.toFixed(1) || 0}h
+									{(analytics?.avgResponseTime || 0).toFixed(1)}h
 								</p>
 								<p className="text-xs text-muted-foreground">Avg Response</p>
 							</div>
@@ -711,7 +715,7 @@ export function MaintenanceAnalytics() {
 									</div>
 								</div>
 								<p className="text-lg font-bold text-[var(--color-system-blue)]">
-									{analytics?.avgSatisfaction?.toFixed(1) || 0}
+									{(analytics?.avgSatisfaction || 0).toFixed(1)}
 								</p>
 								<p className="text-xs text-muted-foreground">Satisfaction</p>
 							</div>

@@ -11,22 +11,18 @@
 
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common'
 import type { Request, Response } from 'express'
+import type { RateLimitWindow, RateLimitConfig } from '@repo/shared'
 
-interface RateLimitWindow {
-	requests: number
-	resetTime: number
+// Extend the shared interfaces for local needs
+interface ExtendedRateLimitWindow extends RateLimitWindow {
 	firstRequest: number
 }
 
-interface RateLimitConfig {
-	windowMs: number
-	maxRequests: number
+interface ExtendedRateLimitConfig extends RateLimitConfig {
 	burst?: number
-	skipSuccessfulRequests?: boolean
-	skipFailedRequests?: boolean
 }
 
-const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
+const RATE_LIMIT_CONFIGS: Record<string, ExtendedRateLimitConfig> = {
 	// General API endpoints
 	DEFAULT: {
 		windowMs: 15 * 60 * 1000, // 15 minutes
@@ -68,7 +64,7 @@ const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {
 	private readonly logger = new Logger(RateLimitMiddleware.name)
-	private readonly rateLimitStore = new Map<string, RateLimitWindow>()
+	private readonly rateLimitStore = new Map<string, ExtendedRateLimitWindow>()
 
 	// Track IPs with suspicious activity
 	private readonly suspiciousIPs = new Set<string>()
@@ -225,7 +221,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 	private handleRateLimitExceeded(
 		clientIP: string,
 		req: Request,
-		config: RateLimitConfig
+		config: ExtendedRateLimitConfig
 	): void {
 		this.logger.warn('Rate limit exceeded', {
 			operation: 'rate_limit_exceeded',

@@ -62,7 +62,7 @@ describe('NotificationsController', () => {
 			SupabaseService
 		) as jest.Mocked<SupabaseService>
 
-		mockSupabaseServiceInstance.getAdminClient.mockReturnValue(mockSupabaseClient)
+		mockSupabaseServiceInstance.getAdminClient.mockReturnValue(mockSupabaseClient as any)
 	})
 
 	it('should be defined', () => {

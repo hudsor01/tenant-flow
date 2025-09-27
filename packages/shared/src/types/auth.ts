@@ -45,6 +45,9 @@ export interface SignupFormData {
 	password: string
 	confirmPassword: string
 	fullName: string
+	firstName?: string
+	lastName?: string
+	company?: string
 	companyName?: string
 	acceptTerms: boolean
 }
