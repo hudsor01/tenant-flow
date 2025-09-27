@@ -34,17 +34,32 @@ const GENERATED_SCHEMA_NAMES = [
   'refreshTokenSchema',
   'authResponseSchema',
   'userProfileResponseSchema',
-  
+
   // Shared schemas (should come from @repo/shared/validation)
   'propertyInputSchema',
   'propertyFormSchema',
-  'tenantInputSchema', 
+  'propertySchema',
+  'editPropertySchema',
+  'tenantInputSchema',
   'tenantFormSchema',
+  'tenantSchema',
+  'editTenantSchema',
   'unitInputSchema',
   'unitFormSchema',
+  'unitEditFormSchema',
   'maintenanceRequestInputSchema',
   'maintenanceRequestFormSchema',
-  'leaseInputSchema'
+  'maintenanceSchema',
+  'updateMaintenanceSchema',
+  'statusUpdateSchema',
+  'leaseInputSchema',
+  'leaseSchema',
+  'editLeaseSchema',
+  'contactFormZodSchema',
+  'contactFormResponseZodSchema',
+  'loginZodSchema',
+  'registerZodSchema',
+  'propertyZodSchema'
 ]
 
 export default createRule({
@@ -159,13 +174,13 @@ export default createRule({
         if (!node.id || node.id.type !== 'Identifier' || !node.init) return
 
         const schemaName = node.id.name
-        
+
         // Skip allowed manual schemas
         if (allowManualSchemas.includes(schemaName)) return
 
         // Check if this looks like a schema definition
         const initCode = sourceCode.getText(node.init)
-        if (initCode.includes('z.object') || initCode.includes('z.string') || initCode.includes('z.number')) {
+        if (initCode.includes('z.object') || initCode.includes('z.string') || initCode.includes('z.number') || initCode.includes('z.enum') || initCode.includes('z.array') || initCode.includes('z.union') || initCode.includes('z.literal')) {
           // Check if this schema name should be generated
           if (GENERATED_SCHEMA_NAMES.includes(schemaName)) {
             const sourceFile = getExpectedSourceFile(schemaName)
@@ -174,8 +189,45 @@ export default createRule({
               messageId: 'useGeneratedSchema',
               data: { schemaName, sourceFile }
             })
-          } else if (schemaName.endsWith('Schema')) {
-            manualSchemas.push({ node, schemaName, initCode })
+          } else if (schemaName.endsWith('Schema') || schemaName.includes('schema') || schemaName.endsWith('ZodSchema') || initCode.includes('email') || initCode.includes('password') || initCode.includes('name')) {
+            // Flag any schema-like patterns that might need to be centralized
+            context.report({
+              node,
+              messageId: 'preferSharedValidation'
+            })
+          }
+        }
+      },
+
+      // Also check const declarations with object patterns
+      ObjectExpression(node) {
+        // Check if this is inside a variable declarator that looks like a schema
+        const parent = node.parent
+        if (parent && parent.type === 'VariableDeclarator' && parent.id && parent.id.type === 'Identifier') {
+          const schemaName = parent.id.name
+          if ((schemaName.endsWith('Schema') || schemaName.includes('schema')) && !allowManualSchemas.includes(schemaName)) {
+            // Check if the object has schema-like properties
+            const hasSchemaProps = node.properties.some(prop => {
+              if (prop.type === 'Property' && prop.key && prop.key.type === 'Identifier') {
+                const propName = prop.key.name
+                return ['email', 'password', 'name', 'id', 'title', 'description'].includes(propName)
+              }
+              return false
+            })
+
+            if (hasSchemaProps && GENERATED_SCHEMA_NAMES.includes(schemaName)) {
+              const sourceFile = getExpectedSourceFile(schemaName)
+              context.report({
+                node: parent,
+                messageId: 'useGeneratedSchema',
+                data: { schemaName, sourceFile }
+              })
+            } else if (hasSchemaProps) {
+              context.report({
+                node: parent,
+                messageId: 'preferSharedValidation'
+              })
+            }
           }
         }
       },

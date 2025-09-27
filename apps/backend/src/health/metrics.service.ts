@@ -91,6 +91,10 @@ export class MetricsService {
 				memory: { warning: 80, critical: 95 },
 				cache: { memoryLimit: 100_000_000 }, // 100MB
 				responseTime: { warning: 100, critical: 200 }
+			},
+			cache: {
+				cacheSize: 0,
+				memoryUsage: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
 			}
 		}
 	}
