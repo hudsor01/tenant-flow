@@ -4,11 +4,12 @@ import { PasswordStrength } from '@/components/auth/password-strength'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useFormProgress } from '@/hooks/use-form-progress'
 import { cn } from '@/lib/design-system'
 import { type AuthFormProps } from '@repo/shared'
 import { useForm } from '@tanstack/react-form'
 import { EyeIcon, EyeOffIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -40,12 +41,20 @@ export function SignupForm({
 }: Pick<AuthFormProps, 'className' | 'onSubmit' | 'isLoading'>) {
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
+	// Form progress persistence (only saves safe data - no passwords)
+	const {
+		data: progressData,
+		saveProgress,
+		clearProgress,
+		isLoading: progressLoading
+	} = useFormProgress('signup')
+
 	const form = useForm({
 		defaultValues: {
-			firstName: '',
-			lastName: '',
-			company: '',
-			email: '',
+			firstName: progressData?.firstName || '',
+			lastName: progressData?.lastName || '',
+			company: progressData?.company || '',
+			email: progressData?.email || '',
 			password: '',
 			confirmPassword: ''
 		},
@@ -62,16 +71,50 @@ export function SignupForm({
 
 			try {
 				await onSubmit?.(value)
+				// Clear progress on successful signup
+				clearProgress()
 			} catch (error) {
 				toast.error('Sign up failed', {
-					description: error instanceof Error ? error.message : 'Please try again'
+					description:
+						error instanceof Error ? error.message : 'Please try again'
 				})
 			}
 		}
 	})
 
+	// Auto-save progress when form fields change (excluding passwords)
+	useEffect(() => {
+		const values = form.state.values
+		if (values.firstName || values.lastName || values.company || values.email) {
+			const safeData = {
+				firstName: values.firstName,
+				lastName: values.lastName,
+				company: values.company,
+				email: values.email
+			}
+			saveProgress(safeData)
+		}
+	}, [form.state.values, saveProgress])
+
 	return (
 		<div className={cn('w-full', className)}>
+			{/* Progress restoration indicator */}
+			{progressLoading && (
+				<div className="mb-4 p-3 bg-muted rounded-md">
+					<p className="text-sm text-muted-foreground">
+						Restoring your progress...
+					</p>
+				</div>
+			)}
+
+			{progressData && !progressLoading && (
+				<div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-md">
+					<p className="text-sm text-primary">
+						Welcome back! Your progress has been restored.
+					</p>
+				</div>
+			)}
+
 			<form
 				onSubmit={e => {
 					e.preventDefault()
