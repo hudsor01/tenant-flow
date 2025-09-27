@@ -21,7 +21,7 @@ import {
 import { useDeleteUnit } from '@/hooks/api/units'
 import { ANIMATION_DURATIONS, TYPOGRAPHY_SCALE } from '@/lib/design-system'
 import { buttonClasses, cardClasses, cn, inputClasses } from '@/lib/utils'
-import type { UnitStats, UnitRow } from '@repo/shared'
+import type { UnitRow, UnitStats } from '@repo/shared'
 import { createLogger } from '@repo/shared'
 import type { Column, ColumnDef } from '@tanstack/react-table'
 import {
@@ -47,6 +47,9 @@ import {
 import * as React from 'react'
 import { toast } from 'sonner'
 import { UnitEditDialog, UnitViewDialog } from './unit-dialogs'
+
+// Re-export UnitRow for use in other components
+export type { UnitRow }
 
 // Enhanced unit type with comprehensive information - now imported from @repo/shared
 

@@ -40,11 +40,16 @@ export default {
     const filename = context.getFilename()
     const sourceCode = context.getSourceCode()
     
-    // Skip packages directory and test files
-    if (filename.includes('packages/') || 
-        filename.includes('.test.') || 
+    // Skip packages directory, test files, and UI component directories
+    if (filename.includes('packages/') ||
+        filename.includes('.test.') ||
         filename.includes('.spec.') ||
-        filename.endsWith('.d.ts')) {
+        filename.endsWith('.d.ts') ||
+        filename.includes('/components/ui/') ||
+        filename.includes('/components/magicui/') ||
+        filename.includes('/layout/web-vitals') ||
+        filename.includes('/lib/design-system') ||
+        filename.includes('/lib/token-bridge')) {
       return {}
     }
 

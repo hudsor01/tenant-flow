@@ -9,7 +9,6 @@ import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthController } from './health.controller'
 import { HealthService } from './health.service'
 import { MetricsService } from './metrics.service'
-import { StripeFdwHealthIndicator } from './stripe-fdw.health'
 import { SupabaseHealthIndicator } from './supabase.health'
 
 describe('HealthController', () => {
@@ -17,7 +16,6 @@ describe('HealthController', () => {
 	let module: TestingModule
 	let healthCheckService: HealthCheckService
 	let supabaseHealth: SupabaseHealthIndicator
-	let stripeFdwHealth: StripeFdwHealthIndicator
 	let mockResponse: Partial<Response>
 
 	beforeEach(async () => {
@@ -123,14 +121,6 @@ describe('HealthController', () => {
 					}
 				},
 				{
-					provide: StripeFdwHealthIndicator,
-					useValue: {
-						isHealthy: jest.fn(),
-						quickPing: jest.fn(),
-						detailedCheck: jest.fn()
-					}
-				},
-				{
 					provide: StripeSyncService,
 					useValue: {
 						getHealthStatus: jest.fn().mockReturnValue({
@@ -139,7 +129,7 @@ describe('HealthController', () => {
 						}),
 						testConnection: jest.fn().mockResolvedValue(true)
 					}
-				},
+				}
 			]
 		})
 			.setLogger(new SilentLogger())
@@ -149,9 +139,6 @@ describe('HealthController', () => {
 		healthCheckService = module.get<HealthCheckService>(HealthCheckService)
 		supabaseHealth = module.get<SupabaseHealthIndicator>(
 			SupabaseHealthIndicator
-		)
-		stripeFdwHealth = module.get<StripeFdwHealthIndicator>(
-			StripeFdwHealthIndicator
 		)
 
 		// Logger is handled by SilentLogger in the module
@@ -294,17 +281,15 @@ describe('HealthController', () => {
 	})
 
 	describe('GET /health/ready', () => {
-		it('should perform readiness check with both database and Stripe FDW quick pings', async () => {
+		it('should perform readiness check with database quick ping', async () => {
 			const mockReadyResult: HealthCheckResult = {
 				status: 'ok',
 				info: {
-					database: { status: 'up', type: 'quick' },
-					stripe_fdw: { status: 'up', type: 'fdw-quick' }
+					database: { status: 'up', type: 'quick' }
 				},
 				error: {},
 				details: {
-					database: { status: 'up', type: 'quick' },
-					stripe_fdw: { status: 'up', type: 'fdw-quick' }
+					database: { status: 'up', type: 'quick' }
 				}
 			}
 
@@ -317,20 +302,11 @@ describe('HealthController', () => {
 					message: undefined
 				}
 			})
-			jest.spyOn(stripeFdwHealth, 'quickPing').mockResolvedValue({
-				stripe_fdw: {
-					status: 'up',
-					responseTime: 15,
-					supabaseStatus: 'healthy' as const,
-					message: undefined
-				}
-			})
 
 			const result = await controller.ready()
 
 			expect(result).toEqual(mockReadyResult)
 			expect(healthCheckService.check).toHaveBeenCalledWith([
-				expect.any(Function),
 				expect.any(Function)
 			])
 		})
@@ -338,22 +314,19 @@ describe('HealthController', () => {
 		it('should handle readiness check failures', async () => {
 			const mockErrorResult: HealthCheckResult = {
 				status: 'error',
-				info: {
-					database: { status: 'up', type: 'quick' }
-				},
+				info: {},
 				error: {
-					stripe_fdw: {
+					database: {
 						status: 'down',
-						type: 'fdw-quick',
-						error: 'Quick ping failed'
+						type: 'quick',
+						error: 'Database quick ping failed'
 					}
 				},
 				details: {
-					database: { status: 'up', type: 'quick' },
-					stripe_fdw: {
+					database: {
 						status: 'down',
-						type: 'fdw-quick',
-						error: 'Quick ping failed'
+						type: 'quick',
+						error: 'Database quick ping failed'
 					}
 				}
 			}
@@ -364,96 +337,6 @@ describe('HealthController', () => {
 
 			expect(result).toEqual(mockErrorResult)
 			expect(result.status).toBe('error')
-		})
-	})
-
-	describe('GET /health/stripe', () => {
-		it('should perform detailed Stripe FDW health check', async () => {
-			const mockStripeResult: HealthCheckResult = {
-				status: 'ok',
-				info: {
-					stripe_fdw: {
-						status: 'up',
-						type: 'fdw-detailed',
-						realTime: true,
-						responseTime: '15ms'
-					}
-				},
-				error: {},
-				details: {
-					stripe_fdw: {
-						status: 'up',
-						type: 'fdw-detailed',
-						realTime: true,
-						responseTime: '15ms'
-					}
-				}
-			}
-
-			jest
-				.spyOn(healthCheckService, 'check')
-				.mockResolvedValue(mockStripeResult)
-			jest.spyOn(stripeFdwHealth, 'detailedCheck').mockResolvedValue({
-				stripe_fdw: {
-					status: 'up',
-					type: 'fdw-detailed',
-					realTime: true,
-					responseTime: '15ms'
-				}
-			})
-
-			const result = await controller.stripeCheck()
-
-			expect(result).toEqual(mockStripeResult)
-			expect(healthCheckService.check).toHaveBeenCalledWith([
-				expect.any(Function)
-			])
-		})
-
-		it('should handle Stripe FDW health check failures', async () => {
-			const mockErrorResult: HealthCheckResult = {
-				status: 'error',
-				info: {},
-				error: {
-					stripe_fdw: {
-						status: 'down',
-						type: 'fdw-detailed',
-						error: 'Detailed check failed',
-						realTime: false
-					}
-				},
-				details: {
-					stripe_fdw: {
-						status: 'down',
-						type: 'fdw-detailed',
-						error: 'Detailed check failed',
-						realTime: false
-					}
-				}
-			}
-
-			jest.spyOn(healthCheckService, 'check').mockResolvedValue(mockErrorResult)
-
-			const result = await controller.stripeCheck()
-
-			expect(result).toEqual(mockErrorResult)
-			expect(result.status).toBe('error')
-			expect(result.error).toHaveProperty('stripe_fdw')
-		})
-
-		it('should delegate stripe check to health check service', async () => {
-			jest.spyOn(healthCheckService, 'check').mockResolvedValue({
-				status: 'ok',
-				info: {},
-				error: {},
-				details: {}
-			})
-
-			await controller.stripeCheck()
-
-			expect(healthCheckService.check).toHaveBeenCalledWith([
-				expect.any(Function)
-			])
 		})
 	})
 
@@ -462,13 +345,11 @@ describe('HealthController', () => {
 			const mockHealthCheckResult: HealthCheckResult = {
 				status: 'ok',
 				info: {
-					database: { status: 'up' },
-					stripe_fdw: { status: 'up' }
+					database: { status: 'up' }
 				},
 				error: {},
 				details: {
-					database: { status: 'up' },
-					stripe_fdw: { status: 'up' }
+					database: { status: 'up' }
 				}
 			}
 
@@ -477,10 +358,7 @@ describe('HealthController', () => {
 				.mockResolvedValue(mockHealthCheckResult)
 
 			// Simulate concurrent requests
-			const [readyResult, stripeResult] = await Promise.all([
-				controller.ready(),
-				controller.stripeCheck()
-			])
+			const readyResult = await controller.ready()
 
 			// check() needs to be called separately with response
 			await controller.check(mockResponse as Response)
@@ -506,12 +384,11 @@ describe('HealthController', () => {
 				}
 			})
 
-			// ready() and stripeCheck() return HealthCheckResult format
+			// ready() returns HealthCheckResult format
 			expect(readyResult).toEqual(mockHealthCheckResult)
-			expect(stripeResult).toEqual(mockHealthCheckResult)
 
-			// Verify health check service was called for ready and stripe endpoints
-			expect(healthCheckService.check).toHaveBeenCalledTimes(2)
+			// Verify health check service was called for ready endpoint
+			expect(healthCheckService.check).toHaveBeenCalledTimes(1)
 		})
 
 		it('should maintain performance under load', async () => {

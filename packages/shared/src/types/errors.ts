@@ -170,8 +170,26 @@ export type AsyncResult<T> =
 
 // Error context for debugging
 export interface ErrorContext {
+	operation?: string
+	entityType?: 'property' | 'tenant' | 'lease' | 'maintenance' | 'user'
+	entityId?: string
 	userId?: string
-	component?: string
-	action?: string
-	additionalData?: Record<string, string | number | boolean | null>
+	metadata?: Record<string, unknown>
 }
+
+// User-friendly error for UI display
+export interface UserFriendlyError {
+	title: string
+	message: string
+	action?: string
+	canRetry: boolean
+	severity: 'low' | 'medium' | 'high' | 'critical'
+}
+
+// Error type for categorization
+export type ErrorType =
+	| 'network'
+	| 'validation'
+	| 'permission'
+	| 'notFound'
+	| 'server'

@@ -10,7 +10,6 @@ import { StripeSyncService } from '../billing/stripe-sync.service'
 import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthService } from './health.service'
 import { MetricsService } from './metrics.service'
-import { StripeFdwHealthIndicator } from './stripe-fdw.health'
 import { SupabaseHealthIndicator } from './supabase.health'
 
 @Controller(['health', 'api/v1/health'])
@@ -23,7 +22,6 @@ export class HealthController {
 		private readonly circuitBreakerService: CircuitBreakerService,
 		private readonly health: HealthCheckService,
 		private readonly supabase: SupabaseHealthIndicator,
-		private readonly stripeFdw: StripeFdwHealthIndicator,
 		private readonly stripeSyncService: StripeSyncService
 	) {}
 
@@ -53,21 +51,7 @@ export class HealthController {
 	@SetMetadata('isPublic', true)
 	@HealthCheck()
 	ready() {
-		return this.health.check([
-			() => this.supabase.quickPing('database'),
-			() => this.stripeFdw.quickPing('stripe_fdw')
-		])
-	}
-
-	/**
-	 * Stripe FDW health check
-	 */
-	@Get('stripe')
-	@SetMetadata('isPublic', true)
-	@HealthCheck()
-	async stripeCheck() {
-		this.logger.log('Stripe FDW health check started')
-		return this.health.check([() => this.stripeFdw.detailedCheck('stripe_fdw')])
+		return this.health.check([() => this.supabase.quickPing('database')])
 	}
 
 	/**

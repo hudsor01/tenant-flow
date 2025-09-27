@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Constants } from '../types/supabase-generated.js'
+import { Constants, type Database } from '../types/supabase-generated.js'
 import {
 	nonEmptyStringSchema,
 	nonNegativeNumberSchema,
@@ -13,7 +13,7 @@ export const unitStatusSchema = z.enum(
 	Constants.public.Enums.UnitStatus as readonly [string, ...string[]]
 )
 
-// Base unit input schema (for forms and API creation)
+// Base unit input schema (for forms and API creation) - matches database exactly
 export const unitInputSchema = z.object({
 	propertyId: uuidSchema,
 
@@ -24,59 +24,33 @@ export const unitInputSchema = z.object({
 	bedrooms: positiveNumberSchema
 		.int('Bedrooms must be a whole number')
 		.max(20, 'Maximum 20 bedrooms allowed')
-		.optional(),
+		.default(1),
 
 	bathrooms: positiveNumberSchema
 		.max(20, 'Maximum 20 bathrooms allowed')
-		.optional(),
+		.default(1),
 
 	squareFeet: positiveNumberSchema
 		.int('Square feet must be a whole number')
 		.max(50000, 'Square feet seems unrealistic')
 		.optional(),
 
-	rent: nonNegativeNumberSchema
-		.max(100000, 'Rent amount seems unrealistic')
-		.optional(),
+	rent: nonNegativeNumberSchema.max(100000, 'Rent amount seems unrealistic'),
 
-	lastInspectionDate: z
-		.string()
-		.optional()
-		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
-			message: 'Please enter a valid inspection date'
-		})
-		.transform((val: string | undefined) => (val ? new Date(val) : undefined)),
-
-	deposit: nonNegativeNumberSchema
-		.max(100000, 'Deposit amount seems unrealistic')
-		.optional(),
-
-	description: z
-		.string()
-		.max(1000, 'Description cannot exceed 1000 characters')
-		.optional(),
-
-	amenities: z.array(z.string()).optional().default([]),
-
-	images: z.array(z.string().url()).optional().default([]),
-
-	// Optional current tenant assignment
-	tenantId: uuidSchema.optional()
+	lastInspectionDate: z.string().optional()
 })
 
 // Full unit schema (includes server-generated fields)
 export const unitSchema = unitInputSchema.extend({
 	id: uuidSchema,
-	ownerId: uuidSchema,
 	status: unitStatusSchema.default('VACANT' as const),
-	createdAt: z.date(),
-	updatedAt: z.date()
+	createdAt: z.string(),
+	updatedAt: z.string()
 })
 
 // Unit update schema (partial input)
 export const unitUpdateSchema = unitInputSchema.partial().extend({
-	status: unitStatusSchema.optional(),
-	tenantId: uuidSchema.optional().or(z.null()) // Allow null to unassign tenant
+	status: unitStatusSchema.optional()
 })
 
 // Unit query schema (for search/filtering)
@@ -90,8 +64,6 @@ export const unitQuerySchema = z.object({
 	bathrooms: positiveNumberSchema.optional(),
 	minSquareFeet: positiveNumberSchema.int().optional(),
 	maxSquareFeet: positiveNumberSchema.int().optional(),
-	tenantId: uuidSchema.optional(),
-	isVacant: z.boolean().optional(),
 	sortBy: z
 		.enum([
 			'unitNumber',
@@ -127,50 +99,32 @@ export type UnitQuery = z.infer<typeof unitQuerySchema>
 export type UnitStats = z.infer<typeof unitStatsSchema>
 export type UnitStatus = z.infer<typeof unitStatusSchema>
 
-// Frontend-specific form schema (handles string inputs from HTML forms)
-export const unitFormSchema = z
-	.object({
-		propertyId: requiredString,
-		unitNumber: requiredString,
-		bedrooms: z
-			.string()
-			.optional()
-			.transform((val: string | undefined) =>
-				val ? parseInt(val, 10) : undefined
-			),
-		bathrooms: z
-			.string()
-			.optional()
-			.transform((val: string | undefined) =>
-				val ? parseFloat(val) : undefined
-			),
-		squareFeet: z
-			.string()
-			.optional()
-			.transform((val: string | undefined) =>
-				val ? parseInt(val, 10) : undefined
-			),
-		rent: z
-			.string()
-			.optional()
-			.transform((val: string | undefined) =>
-				val ? parseFloat(val) : undefined
-			),
-		deposit: z
-			.string()
-			.optional()
-			.transform((val: string | undefined) =>
-				val ? parseFloat(val) : undefined
-			),
-		description: z.string().optional(),
-		lastInspectionDate: z.string().optional().or(z.literal('')),
-		tenantId: z.string().optional().or(z.literal(''))
-	})
-	.transform((data: { tenantId?: string; lastInspectionDate?: string; [key: string]: unknown }) => ({
-		...data,
-		tenantId: data.tenantId === '' ? undefined : data.tenantId,
-		lastInspectionDate: data.lastInspectionDate === '' ? undefined : data.lastInspectionDate
-	}))
+// Frontend-specific form schema (handles string inputs from HTML forms) - matches database exactly
+export const unitFormSchema = z.object({
+	propertyId: requiredString,
+	unitNumber: requiredString,
+	bedrooms: z.string().optional(),
+	bathrooms: z.string().optional(),
+	squareFeet: z.string().optional(),
+	rent: z.string().optional(),
+	lastInspectionDate: z.string().optional(),
+	status: unitStatusSchema.optional()
+})
 
-export type UnitFormData = z.input<typeof unitFormSchema>
-export type UnitFormOutput = z.output<typeof unitFormSchema>
+// Transform function for converting form data to API format - matches database exactly
+export const transformUnitFormData = (data: UnitFormData) => ({
+	propertyId: data.propertyId,
+	unitNumber: data.unitNumber,
+	bedrooms: data.bedrooms ? parseInt(data.bedrooms, 10) : 1,
+	bathrooms: data.bathrooms ? parseFloat(data.bathrooms) : 1,
+	squareFeet: data.squareFeet ? parseInt(data.squareFeet, 10) : undefined,
+	rent: data.rent ? parseFloat(data.rent) : 0,
+	lastInspectionDate:
+		data.lastInspectionDate && data.lastInspectionDate !== ''
+			? data.lastInspectionDate
+			: undefined,
+	status: data.status as Database['public']['Enums']['UnitStatus']
+})
+
+export type UnitFormData = z.infer<typeof unitFormSchema>
+export type TransformedUnitData = ReturnType<typeof transformUnitFormData>

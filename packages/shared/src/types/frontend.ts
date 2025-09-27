@@ -4,8 +4,8 @@
  */
 
 import type * as React from 'react'
+import type { PlanId, PricingConfig } from '../config/pricing.js'
 import type { Property, Tenant } from './core.js'
-import type { PricingConfig, PlanId } from '../config/pricing.js'
 
 // DASHBOARD COMPONENT TYPES
 export interface AnimatedMetricCardProps {
@@ -20,22 +20,7 @@ export interface AnimatedMetricCardProps {
 	delay?: number
 }
 
-export interface MetricsCardProps extends React.ComponentProps<'div'> {
-	title: string
-	value: string | number
-	description?: string
-	status?: string
-	statusIcon?: React.ComponentType<{ className?: string }>
-	icon: React.ComponentType<{ className?: string }>
-	colorVariant:
-		| 'success'
-		| 'primary'
-		| 'revenue'
-		| 'property'
-		| 'warning'
-		| 'info'
-	trend?: 'up' | 'down' | 'stable'
-}
+// Note: MetricsCardProps moved to frontend-ui.ts to avoid duplicate exports
 
 // UI STORE TYPES
 
@@ -105,25 +90,13 @@ export interface UIStore {
 	triggerRefresh: (entity: keyof UIStore['refreshTriggers']) => void
 }
 
-// ERROR HANDLING TYPES
-
-export interface ErrorContext {
-	operation?: string
-	entityType?: 'property' | 'tenant' | 'lease' | 'maintenance' | 'user'
-	entityId?: string
-	userId?: string
-	metadata?: Record<string, unknown>
-}
-
-export interface UserFriendlyError {
-	title: string
-	message: string
-	action?: string
-	canRetry: boolean
-	severity: 'low' | 'medium' | 'high' | 'critical'
-}
-
-export type ErrorType = 'network' | 'validation' | 'permission' | 'notFound' | 'server'
+// Note: ErrorContext and UserFriendlyError moved to frontend-ui.ts to avoid duplicate exports
+export type ErrorType =
+	| 'network'
+	| 'validation'
+	| 'permission'
+	| 'notFound'
+	| 'server'
 
 // AUTH FORM TYPES
 
@@ -548,3 +521,35 @@ export interface UsePricingReturn {
 	getPrice: (planId: PlanId, period: 'monthly' | 'annual') => string
 	getStripeId: (planId: PlanId, period: 'monthly' | 'annual') => string | null
 }
+
+// DATA TABLE ROW TYPES - Extended database types for UI display
+
+import type { Database } from './core.js'
+
+export type UnitRow = Database['public']['Tables']['Unit']['Row'] & {
+	property?: {
+		name: string
+		address: string
+	}
+	tenant?: {
+		name: string
+		email: string
+		phone?: string
+	} | null
+	lease?: {
+		startDate: string
+		endDate: string
+		rentAmount: number
+		status: Database['public']['Enums']['LeaseStatus']
+	} | null
+	// Optional enhancement fields for UI display
+	marketValue?: number
+	lastUpdated?: string
+}
+
+export type MaintenanceRequestRow =
+	Database['public']['Tables']['MaintenanceRequest']['Row'] & {
+		property: { name: string } | null
+		unit: { name: string } | null
+		assignedTo: { name: string } | null
+	}
