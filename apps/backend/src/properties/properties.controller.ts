@@ -8,25 +8,26 @@
  * - Direct PostgreSQL RPC calls
  */
 
-import {
-	BadRequestException,
-	Body,
-	Controller,
-	DefaultValuePipe,
-	Delete,
-	Get,
-	Logger,
-	NotFoundException,
-	Optional,
-	Param,
-	ParseIntPipe,
-	ParseUUIDPipe,
-	Post,
-	Put,
-	Query,
-	Request,
-	SetMetadata
-} from '@nestjs/common'
+import
+  {
+    BadRequestException,
+    Body,
+    Controller,
+    DefaultValuePipe,
+    Delete,
+    Get,
+    Logger,
+    NotFoundException,
+    Optional,
+    Param,
+    ParseIntPipe,
+    ParseUUIDPipe,
+    Post,
+    Put,
+    Query,
+    Request,
+    SetMetadata
+  } from '@nestjs/common'
 import type { CreatePropertyRequest, UpdatePropertyRequest } from '@repo/shared'
 import { ParseOptionalUUIDPipe } from '../shared/pipes/parse-optional-uuid.pipe'
 import type { AuthenticatedRequest } from '../shared/types/express-request.types'
@@ -108,7 +109,7 @@ export class PropertiesController {
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
 		@Request() req: AuthenticatedRequest
-	): Promise<unknown> {
+	) {
 		if (!this.propertiesService) {
 			return {
 				message: 'Properties service not available',
@@ -121,11 +122,19 @@ export class PropertiesController {
 		const safeLimit = Math.max(1, Math.min(limit, 50))
 		const safeOffset = Math.max(0, offset)
 		const userId = req.user?.id || 'test-user-id'
-		return this.propertiesService.findAllWithUnits(userId, {
+		const properties = await this.propertiesService.findAllWithUnits(userId, {
 			search,
 			limit: safeLimit,
 			offset: safeOffset
 		})
+
+		// Return paginated response for consistency with other endpoints
+		return {
+			data: properties,
+			total: properties.length, // This should ideally come from the service with proper pagination
+			limit: safeLimit,
+			offset: safeOffset
+		}
 	}
 
 	/**

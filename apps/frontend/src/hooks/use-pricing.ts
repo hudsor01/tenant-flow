@@ -10,17 +10,10 @@ import {
   getPricingPlan,
   getStripePriceId,
   type PlanId,
-  type PricingConfig
+  type UsePricingReturn
 } from '@repo/shared'
 
-interface UsePricingReturn {
-  plans: PricingConfig[]
-  getPlan: (planId: PlanId) => PricingConfig | undefined
-  getPrice: (planId: PlanId, period: 'monthly' | 'annual') => string
-  getStripeId: (planId: PlanId, period: 'monthly' | 'annual') => string | null
-  isLoading: false // Always false for static pricing
-  error: null // Never has errors for static pricing
-}
+// UsePricingReturn type imported from @repo/shared
 
 /**
  * Hook to get fixed pricing configuration

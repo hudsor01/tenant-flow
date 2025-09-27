@@ -75,7 +75,11 @@ export const getDashboardStats = cache(async () => {
 		const stats: DashboardStats = {
 			properties: {
 				total: properties.data?.length || 0,
-				maintenance: pendingMaintenance.length
+				occupied: 0, // TODO: Calculate from units
+				vacant: 0, // TODO: Calculate from units
+				occupancyRate: 0, // TODO: Calculate from units
+				totalMonthlyRent: 0, // TODO: Calculate from units
+				averageRent: 0 // TODO: Calculate from units
 			},
 			tenants: {
 				total: tenants.data?.length || 0,
@@ -93,15 +97,29 @@ export const getDashboardStats = cache(async () => {
 				occupancyRate: units.data?.length
 					? (occupiedUnits.length / units.data.length) * 100
 					: 0,
-				underMaintenance: 0,
-				reserved: 0,
-				turnoverRate: 0
+				occupancyChange: 0, // TODO: Calculate period-over-period change
+				totalPotentialRent: 0, // TODO: Calculate
+				totalActualRent: monthlyRevenue
 			},
 			leases: {
 				total: leases.data?.length || 0,
 				active: activeLeases.length,
-				expiring: 0,
-				new: 0
+				expired: 0, // TODO: Calculate expired leases
+				expiringSoon: 0 // TODO: Calculate leases expiring soon
+			},
+			maintenance: {
+				total: pendingMaintenance.length,
+				open: pendingMaintenance.length,
+				inProgress: 0, // TODO: Calculate from status
+				completed: 0, // TODO: Calculate from status
+				completedToday: 0, // TODO: Calculate from today's completed requests
+				avgResolutionTime: 0, // TODO: Calculate average resolution time
+				byPriority: {
+					low: 0, // TODO: Calculate by priority
+					medium: 0,
+					high: 0,
+					emergency: 0
+				}
 			},
 			revenue: {
 				monthly: monthlyRevenue,
@@ -311,7 +329,6 @@ export async function getPropertyPerformance() {
 				Unit(
 					id,
 					status,
-					monthlyRent,
 					Lease(
 						id,
 						status,

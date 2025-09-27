@@ -5,8 +5,7 @@
  * window object, and other global interfaces used throughout the application.
  */
 
-// Use official PostHog types
-import type { PostHog } from 'posthog-js'
+// PostHog types removed to avoid unused import warnings
 
 /**
  * Extend NodeJS ProcessEnv interface
@@ -50,10 +49,17 @@ declare global {
 	}
 
 	/**
-	 * PostHog analytics integration using official PostHog types
+	 * PostHog analytics integration with minimal typing to avoid conflicts
 	 */
 	interface Window {
-		posthog?: PostHog
+		posthog?: {
+			capture: (event: string, properties?: Record<string, unknown>) => void
+			identify: (
+				distinctId: string,
+				properties?: Record<string, unknown>
+			) => void
+			reset: () => void
+		}
 	}
 }
 

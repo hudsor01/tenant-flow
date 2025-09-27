@@ -264,6 +264,15 @@ export interface MaintenanceStats extends BaseStats {
 	}
 }
 
+export interface MaintenanceAnalyticsData {
+	categoryBreakdown?: Record<string, number>
+	statusBreakdown?: Record<string, number>
+	completionRate?: number
+	avgResponseTime?: number
+	avgSatisfaction?: number
+	totalCost?: number
+}
+
 // Dashboard aggregated statistics (comprehensive version)
 export interface DashboardStats {
 	properties: PropertyStats
@@ -320,6 +329,9 @@ export interface DashboardFinancialStats {
 	monthlyExpensesFormatted?: string
 	monthlyExpenses?: number
 	expenseChange?: number
+	netOperatingIncome?: number
+	noiGrowth?: number
+	profitMargin?: number
 }
 
 // Cache system types
@@ -477,3 +489,64 @@ export interface StripePricingTableProps {
 }
 
 // Email service uses inline types with Stripe SDK - no shared interfaces needed
+
+// ANALYTICS RPC RESPONSE TYPES - For backend controller type safety
+
+// Financial Analytics RPC Responses
+export interface FinancialMetrics {
+	revenue: number
+	expenses: number
+	netIncome: number
+	profitMargin: number
+	period: string
+}
+
+export interface PropertyFinancialMetrics {
+	propertyId: string
+	propertyName: string
+	revenue: number
+	expenses: number
+	netIncome: number
+	roi: number
+	period: string
+}
+
+export interface DashboardSummary {
+	totalRevenue: number
+	totalExpenses: number
+	netIncome: number
+	propertyCount: number
+	occupancyRate: number
+	avgRoi: number
+}
+
+// Maintenance Analytics RPC Responses
+export interface MaintenanceMetrics {
+	totalCost: number
+	avgCost: number
+	totalRequests: number
+	emergencyCount: number
+	highPriorityCount: number
+	completedRequests: number
+	pendingRequests: number
+	averageResolutionTime: number
+}
+
+export interface MaintenanceCostSummary {
+	totalCost: number
+	avgCost: number
+	totalRequests: number
+	emergencyCount: number
+	highPriorityCount: number
+}
+
+export interface MaintenancePerformance {
+	propertyId: string
+	propertyName: string
+	totalRequests: number
+	completedRequests: number
+	pendingRequests: number
+	averageResolutionTime: number
+	totalCost: number
+	emergencyRequests: number
+}

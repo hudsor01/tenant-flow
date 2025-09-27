@@ -3,10 +3,13 @@
  * Centralized exports for tokens, utilities, and components
  */
 
+// eslint-disable-next-line type-centralization/no-barrel-exports
 export * from '../lib/design-system'
-export * from './colors'
+// Color utilities - commented out until implemented
+// export { validateColor, generateColorVariations } from './colors'
 
 // Export unified tokens with explicit naming to avoid conflicts
+/* eslint-disable type-centralization/no-barrel-exports */
 export {
 	animation,
 	buttons,

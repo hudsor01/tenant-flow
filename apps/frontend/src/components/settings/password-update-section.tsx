@@ -34,7 +34,7 @@ export function PasswordUpdateSection() {
 		if (!pwd) return 0
 
 		try {
-			const { data, error } = await supabaseClient
+			const { data, error } = await (supabaseClient as { rpc: (name: string, params: { p_password: string }) => Promise<{ data: { strength: number } | null; error: unknown }> })
 				.rpc('validate_password_strength', { p_password: pwd })
 
 			if (error) {
@@ -42,7 +42,7 @@ export function PasswordUpdateSection() {
 				return 0
 			}
 
-			return data?.strength || 0
+			return (data as { strength: number } | null)?.strength || 0
 		} catch {
 			// Password validation failed
 			return 0
@@ -100,11 +100,11 @@ export function PasswordUpdateSection() {
 			}
 
 			// Use backend RPC for password validation
-			const { data: validationResult, error: validationError } = await supabaseClient
+			const { data: validationResult, error: validationError } = await (supabaseClient as { rpc: (name: string, params: { p_password: string }) => Promise<{ data: { isValid: boolean; reason?: string } | null; error: unknown }> })
 				.rpc('validate_password_strength', { p_password: password })
 
-			if (validationError || !validationResult?.isValid) {
-				throw new Error(validationResult?.reason || 'Password is too weak. Please use a stronger password.')
+			if (validationError || !(validationResult as { isValid: boolean; reason?: string } | null)?.isValid) {
+				throw new Error((validationResult as { isValid: boolean; reason?: string } | null)?.reason || 'Password is too weak. Please use a stronger password.')
 			}
 
 			// First verify current password by reauthenticating

@@ -37,12 +37,22 @@ export function useTenants(status?: string) {
 					startDate,
 					endDate,
 					monthlyRent,
+					securityDeposit,
 					status,
+					terms,
 					Unit(
+						id,
 						unitNumber,
+						bedrooms,
+						bathrooms,
+						squareFeet,
 						Property(
+							id,
 							name,
-							address
+							address,
+							city,
+							state,
+							zipCode
 						)
 					)
 				)
@@ -53,12 +63,62 @@ export function useTenants(status?: string) {
 		if (error) throw error
 
 		// Transform to match TenantWithLeaseInfo shape
-		const transformedData = (data || []).map(tenant => ({
-			...tenant,
-			currentLease: tenant.Leases?.[0] || null,
-			propertyName: tenant.Leases?.[0]?.Unit?.Property?.name || null,
-			unitNumber: tenant.Leases?.[0]?.Unit?.unitNumber || null
-		})) as TenantWithLeaseInfo[]
+		const transformedData = (data || []).map(tenant => {
+			const lease = tenant.Leases?.[0]
+			const unit = lease?.Unit
+			const property = unit?.Property
+
+			return {
+				// Base tenant fields
+				id: tenant.id,
+				name: tenant.name,
+				email: tenant.email,
+				phone: tenant.phone,
+				avatarUrl: tenant.avatarUrl,
+				emergencyContact: tenant.emergencyContact,
+				createdAt: tenant.createdAt,
+				updatedAt: tenant.updatedAt,
+
+				// Current lease information
+				currentLease: lease ? {
+					id: lease.id,
+					startDate: lease.startDate,
+					endDate: lease.endDate,
+					rentAmount: lease.monthlyRent || 0,
+					securityDeposit: lease.securityDeposit || 0,
+					status: lease.status,
+					terms: lease.terms
+				} : null,
+
+				// Unit information
+				unit: unit ? {
+					id: unit.id,
+					unitNumber: unit.unitNumber,
+					bedrooms: unit.bedrooms,
+					bathrooms: unit.bathrooms,
+					squareFootage: unit.squareFeet
+				} : null,
+
+				// Property information
+				property: property ? {
+					id: property.id,
+					name: property.name,
+					address: property.address,
+					city: property.city,
+					state: property.state,
+					zipCode: property.zipCode
+				} : null,
+
+				// Derived fields for UI display
+				monthlyRent: lease?.monthlyRent || 0,
+				leaseStatus: lease?.status || 'NO_LEASE',
+				paymentStatus: 'CURRENT', // Default - would need payment data to determine
+				unitDisplay: unit ? `${property?.name || 'Unknown'} - ${unit.unitNumber}` : 'No Unit',
+				propertyDisplay: property?.name || 'No Property',
+				leaseStart: lease?.startDate || null,
+				leaseEnd: lease?.endDate || null
+			}
+		}) as TenantWithLeaseInfo[]
 
 		return transformedData
 	}
@@ -90,12 +150,22 @@ export function useTenantsFormatted(status?: string) {
 						startDate,
 						endDate,
 						monthlyRent,
+						securityDeposit,
 						status,
+						terms,
 						Unit(
+							id,
 							unitNumber,
+							bedrooms,
+							bathrooms,
+							squareFeet,
 							Property(
+								id,
 								name,
-								address
+								address,
+								city,
+								state,
+								zipCode
 							)
 						)
 					)
@@ -106,12 +176,62 @@ export function useTenantsFormatted(status?: string) {
 			if (error) throw error
 
 			// Transform to match TenantWithLeaseInfo shape
-			return (data || []).map(tenant => ({
-				...tenant,
-				currentLease: tenant.Leases?.[0] || null,
-				propertyName: tenant.Leases?.[0]?.Unit?.Property?.name || null,
-				unitNumber: tenant.Leases?.[0]?.Unit?.unitNumber || null
-			})) as TenantWithLeaseInfo[]
+			return (data || []).map(tenant => {
+				const lease = tenant.Leases?.[0]
+				const unit = lease?.Unit
+				const property = unit?.Property
+
+				return {
+					// Base tenant fields
+					id: tenant.id,
+					name: tenant.name,
+					email: tenant.email,
+					phone: tenant.phone,
+					avatarUrl: tenant.avatarUrl,
+					emergencyContact: tenant.emergencyContact,
+					createdAt: tenant.createdAt,
+					updatedAt: tenant.updatedAt,
+
+					// Current lease information
+					currentLease: lease ? {
+						id: lease.id,
+						startDate: lease.startDate,
+						endDate: lease.endDate,
+						rentAmount: lease.monthlyRent || 0,
+						securityDeposit: lease.securityDeposit || 0,
+						status: lease.status,
+						terms: lease.terms
+					} : null,
+
+					// Unit information
+					unit: unit ? {
+						id: unit.id,
+						unitNumber: unit.unitNumber,
+						bedrooms: unit.bedrooms,
+						bathrooms: unit.bathrooms,
+						squareFootage: unit.squareFeet
+					} : null,
+
+					// Property information
+					property: property ? {
+						id: property.id,
+						name: property.name,
+						address: property.address,
+						city: property.city,
+						state: property.state,
+						zipCode: property.zipCode
+					} : null,
+
+					// Derived fields for UI display
+					monthlyRent: lease?.monthlyRent || 0,
+					leaseStatus: lease?.status || 'NO_LEASE',
+					paymentStatus: 'CURRENT', // Default - would need payment data to determine
+					unitDisplay: unit ? `${property?.name || 'Unknown'} - ${unit.unitNumber}` : 'No Unit',
+					propertyDisplay: property?.name || 'No Property',
+					leaseStart: lease?.startDate || null,
+					leaseEnd: lease?.endDate || null
+				}
+			}) as TenantWithLeaseInfo[]
 		},
 		select: (data: TenantWithLeaseInfo[]) => ({
 			tenants: data.map((tenant: TenantWithLeaseInfo) => ({
@@ -236,15 +356,20 @@ export function useTenantStats() {
 			const tenants = data || []
 			const now = new Date()
 
+			const activeTenants = tenants.filter(t =>
+				t.Leases?.some((l) => l.status === 'ACTIVE')
+			).length
+			const newTenants = tenants.filter(t => {
+				const daysSinceCreation = (now.getTime() - new Date(t.createdAt).getTime()) / (24 * 60 * 60 * 1000)
+				return daysSinceCreation <= 30
+			}).length
+
 			return {
 				total: tenants.length,
-				active: tenants.filter(t =>
-					t.Leases?.some((l) => l.status === 'ACTIVE')
-				).length,
-				new: tenants.filter(t => {
-					const daysSinceCreation = (now.getTime() - new Date(t.createdAt).getTime()) / (24 * 60 * 60 * 1000)
-					return daysSinceCreation <= 30
-				}).length,
+				active: activeTenants,
+				inactive: tenants.length - activeTenants,
+				newThisMonth: newTenants,
+				new: newTenants,
 				churnRate: 0 // Would need historical data to calculate
 			} as TenantStats
 		}

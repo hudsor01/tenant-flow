@@ -1,11 +1,11 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { CreatePropertyRequest, UpdatePropertyRequest, Property } from '@repo/shared'
+import type { CreatePropertyRequest, Property, UpdatePropertyRequest } from '@repo/shared'
 import type { AuthenticatedRequest } from '../shared/types/express-request.types'
+import { createMockUser } from '../test-utils/mocks'
 import { PropertiesController } from './properties.controller'
 import { PropertiesService } from './properties.service'
-import { createMockUser } from '../test-utils/mocks'
 
 // Mock the PropertiesService
 jest.mock('./properties.service', () => {
@@ -220,17 +220,28 @@ describe('PropertiesController', () => {
 		})
 	})
 
-	describe.skip('findAllWithUnits', () => {
+	describe('findAllWithUnits', () => {
 		it('should return properties with units', async () => {
-			const mockPropertiesWithUnits = {
-				data: [{ id: 'prop-1', name: 'Property 1', units: [] }],
-				total: 1,
-				limit: 10,
-				offset: 0
-			}
+			const mockProperties = [
+				{
+					id: 'prop-1',
+					name: 'Property 1',
+					address: '123 Test St',
+					city: 'Test City',
+					state: 'TS',
+					zipCode: '12345',
+					ownerId: 'user-123',
+					propertyType: 'APARTMENT' as const,
+					status: 'ACTIVE' as const,
+					imageUrl: null,
+					description: null,
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString()
+				}
+			]
 
 			mockPropertiesServiceInstance.findAllWithUnits.mockResolvedValue(
-				mockPropertiesWithUnits
+				mockProperties
 			)
 
 			const result = await controller.findAllWithUnits(null, 10, 0, mockRequest)
@@ -243,15 +254,34 @@ describe('PropertiesController', () => {
 					offset: 0
 				}
 			)
-			expect(result).toEqual(mockPropertiesWithUnits)
+			expect(result).toEqual({
+				data: mockProperties,
+				total: mockProperties.length,
+				limit: 10,
+				offset: 0
+			})
 		})
 	})
 
-	describe.skip('findOne', () => {
+	describe('findOne', () => {
 		const propertyId = 'property-123'
 
-		it('should return single property', async () => {
-			const mockProperty = { id: propertyId, name: 'Test Property' }
+			it('should return single property', async () => {
+			const mockProperty = {
+				id: propertyId,
+				name: 'Test Property',
+				address: '123 Test St',
+				city: 'Test City',
+				state: 'TS',
+				zipCode: '12345',
+				ownerId: 'user-123',
+				propertyType: 'APARTMENT' as const,
+				status: 'ACTIVE' as const,
+				imageUrl: null,
+				description: null,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			} as Property
 
 			mockPropertiesServiceInstance.findOne.mockResolvedValue(mockProperty)
 
@@ -288,12 +318,23 @@ describe('PropertiesController', () => {
 		})
 	})
 
-	describe.skip('create', () => {
+	describe('create', () => {
 		it('should create new property', async () => {
 			const mockCreatedProperty = {
 				id: 'prop-new',
-				...validCreatePropertyRequest
-			}
+				name: validCreatePropertyRequest.name,
+				address: validCreatePropertyRequest.address,
+				city: validCreatePropertyRequest.city,
+				state: validCreatePropertyRequest.state,
+				zipCode: validCreatePropertyRequest.zipCode,
+				ownerId: 'user-123',
+				propertyType: validCreatePropertyRequest.type,
+				status: 'ACTIVE' as const,
+				imageUrl: null,
+				description: null,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			} as Property
 
 			mockPropertiesServiceInstance.create.mockResolvedValue(
 				mockCreatedProperty
@@ -327,14 +368,25 @@ describe('PropertiesController', () => {
 		})
 	})
 
-	describe.skip('update', () => {
+	describe('update', () => {
 		const propertyId = 'property-123'
 
 		it('should update existing property', async () => {
 			const mockUpdatedProperty = {
 				id: propertyId,
-				...validUpdatePropertyRequest
-			}
+				name: validUpdatePropertyRequest.name,
+				address: '123 Test St',
+				city: 'Test City',
+				state: 'TS',
+				zipCode: '12345',
+				ownerId: 'user-123',
+				propertyType: 'APARTMENT' as const,
+				status: 'ACTIVE' as const,
+				imageUrl: null,
+				description: null,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			} as Property
 
 			mockPropertiesServiceInstance.update.mockResolvedValue(
 				mockUpdatedProperty
@@ -380,11 +432,11 @@ describe('PropertiesController', () => {
 		})
 	})
 
-	describe.skip('remove', () => {
+	describe('remove', () => {
 		const propertyId = 'property-123'
 
-		it('should delete property successfully', async () => {
-			mockPropertiesServiceInstance.remove.mockResolvedValue(undefined)
+			it('should delete property successfully', async () => {
+			mockPropertiesServiceInstance.remove.mockResolvedValue({ success: true, message: 'Property deleted successfully' })
 
 			const result = await controller.remove(propertyId, mockRequest)
 
@@ -393,7 +445,7 @@ describe('PropertiesController', () => {
 				propertyId
 			)
 			expect(result).toEqual({ message: 'Property deleted successfully' })
-		})
+	})
 
 		it('should handle service unavailable', async () => {
 			const controllerWithoutService = new PropertiesController()
@@ -411,9 +463,20 @@ describe('PropertiesController', () => {
 		})
 	})
 
-	describe.skip('getPropertyPerformanceAnalytics', () => {
-		it('should return performance analytics with default parameters', async () => {
-			const mockAnalytics = { performance: 'data' }
+	describe('getPropertyPerformanceAnalytics', () => {
+			it('should return performance analytics with default parameters', async () => {
+			const mockAnalytics = [
+				{
+					propertyId: 'prop-001',
+					propertyName: 'Riverside Towers',
+					period: '2024-01',
+					occupancyRate: 91.7,
+					revenue: 2640,
+					expenses: 8200,
+					netIncome: 18200,
+					roi: 2.4
+				}
+			]
 
 			mockPropertiesServiceInstance.getPropertyPerformanceAnalytics.mockResolvedValue(
 				mockAnalytics
@@ -448,7 +511,18 @@ describe('PropertiesController', () => {
 
 			for (const timeframe of validTimeframes) {
 				mockPropertiesServiceInstance.getPropertyPerformanceAnalytics.mockResolvedValue(
-					{}
+					[
+						{
+							propertyId: 'prop-001',
+							propertyName: 'Riverside Towers',
+							period: '2024-01',
+							occupancyRate: 91.7,
+							revenue: 26400,
+							expenses: 8200,
+							netIncome: 18200,
+							roi: 2.4
+						}
+					]
 				)
 
 				await expect(
@@ -462,9 +536,20 @@ describe('PropertiesController', () => {
 		})
 	})
 
-	describe.skip('getPropertyOccupancyAnalytics', () => {
-		it('should return occupancy analytics with default parameters', async () => {
-			const mockAnalytics = { occupancy: 'data' }
+	describe('getPropertyOccupancyAnalytics', () => {
+			it('should return occupancy analytics with default parameters', async () => {
+			const mockAnalytics = [
+				{
+					propertyId: 'prop-001',
+					propertyName: 'Riverside Towers',
+					period: '2024-01',
+					occupancyRate: 91.7,
+					unitsOccupied: 22,
+					unitsTotal: 24,
+					moveIns: 3,
+					moveOuts: 1
+				}
+			]
 
 			mockPropertiesServiceInstance.getPropertyOccupancyAnalytics.mockResolvedValue(
 				mockAnalytics
@@ -496,7 +581,18 @@ describe('PropertiesController', () => {
 
 			for (const period of validPeriods) {
 				mockPropertiesServiceInstance.getPropertyOccupancyAnalytics.mockResolvedValue(
-					{}
+					[
+						{
+							propertyId: 'prop-001',
+							propertyName: 'Riverside Towers',
+							period: '2024-01',
+							occupancyRate: 91.7,
+							unitsOccupied: 22,
+							unitsTotal: 24,
+							moveIns: 3,
+							moveOuts: 1
+						}
+					]
 				)
 
 				await expect(
@@ -510,9 +606,22 @@ describe('PropertiesController', () => {
 		})
 	})
 
-	describe.skip('getPropertyFinancialAnalytics', () => {
-		it('should return financial analytics with default parameters', async () => {
-			const mockAnalytics = { financial: 'data' }
+	describe('getPropertyFinancialAnalytics', () => {
+			it('should return financial analytics with default parameters', async () => {
+			const mockAnalytics = [
+				{
+					propertyId: 'prop-001',
+					propertyName: 'Riverside Towers',
+					period: '2024-01',
+					revenue: 26400,
+					expenses: 8200,
+					netIncome: 18200,
+					operatingExpenses: 6500,
+					maintenanceExpenses: 1200,
+					capexExpenses: 500,
+					cashFlow: 17700
+				}
+			]
 
 			mockPropertiesServiceInstance.getPropertyFinancialAnalytics.mockResolvedValue(
 				mockAnalytics
@@ -544,7 +653,20 @@ describe('PropertiesController', () => {
 
 			for (const timeframe of validTimeframes) {
 				mockPropertiesServiceInstance.getPropertyFinancialAnalytics.mockResolvedValue(
-					{}
+					[
+						{
+							propertyId: 'prop-001',
+							propertyName: 'Riverside Towers',
+							period: '2024-01',
+							revenue: 26400,
+							expenses: 8200,
+							netIncome: 18200,
+							operatingExpenses: 6500,
+							maintenanceExpenses: 1200,
+							capexExpenses: 500,
+							cashFlow: 17700
+						}
+					]
 				)
 
 				await expect(
@@ -558,9 +680,23 @@ describe('PropertiesController', () => {
 		})
 	})
 
-	describe.skip('getPropertyMaintenanceAnalytics', () => {
-		it('should return maintenance analytics with default parameters', async () => {
-			const mockAnalytics = { maintenance: 'data' }
+	describe('getPropertyMaintenanceAnalytics', () => {
+			it('should return maintenance analytics with default parameters', async () => {
+			const mockAnalytics = [
+				{
+					propertyId: 'prop-001',
+					propertyName: 'Riverside Towers',
+					period: '2024-01',
+					totalRequests: 15,
+					completedRequests: 12,
+					pendingRequests: 3,
+					averageResolutionTime: 3.2,
+					totalCost: 1200,
+					averageCostPerRequest: 80,
+					emergencyRequests: 2,
+					preventiveMaintenanceCost: 400
+				}
+			]
 
 			mockPropertiesServiceInstance.getPropertyMaintenanceAnalytics.mockResolvedValue(
 				mockAnalytics
@@ -594,7 +730,19 @@ describe('PropertiesController', () => {
 
 			for (const timeframe of validTimeframes) {
 				mockPropertiesServiceInstance.getPropertyMaintenanceAnalytics.mockResolvedValue(
-					{}
+					[{
+						propertyId: 'prop-001',
+						propertyName: 'Test Property',
+						period: '2024-01',
+						totalRequests: 5,
+						completedRequests: 4,
+						pendingRequests: 1,
+						averageResolutionTime: 24,
+						totalCost: 1000,
+						averageCostPerRequest: 200,
+						emergencyRequests: 0,
+						preventiveMaintenanceCost: 300
+					}]
 				)
 
 				await expect(

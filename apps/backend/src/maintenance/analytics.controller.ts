@@ -8,6 +8,11 @@ import {
 } from '@nestjs/common'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
+import type {
+	MaintenanceMetrics,
+	MaintenanceCostSummary,
+	MaintenancePerformance
+} from '@repo/shared'
 
 /**
  * Maintenance Analytics Controller
@@ -30,7 +35,7 @@ export class MaintenanceAnalyticsController {
 		@Query('propertyId') propertyId?: string,
 		@Query('timeframe') timeframe = '30d',
 		@Query('status') _status?: string
-	) {
+	): Promise<MaintenanceMetrics> {
 		const user = await this.supabaseService.getUser(req)
 		if (!user) {
 			throw new BadRequestException('User not authenticated')
@@ -48,7 +53,7 @@ export class MaintenanceAnalyticsController {
 		const { data, error } = await client
 			.rpc('calculate_maintenance_metrics', {
 				p_user_id: user.id,
-				p_property_id: propertyId || null,
+				p_property_id: propertyId || undefined,
 				p_start_date: startDate.toISOString().split('T')[0],
 				p_end_date: endDate.toISOString().split('T')[0]
 			})
@@ -58,7 +63,17 @@ export class MaintenanceAnalyticsController {
 			throw new BadRequestException('Failed to fetch maintenance data')
 		}
 
-		return data
+		// Type assertion for the RPC response
+		return (data as unknown as MaintenanceMetrics) || {
+			totalCost: 0,
+			avgCost: 0,
+			totalRequests: 0,
+			emergencyCount: 0,
+			highPriorityCount: 0,
+			completedRequests: 0,
+			pendingRequests: 0,
+			averageResolutionTime: 0
+		}
 	}
 
 	/**
@@ -69,7 +84,7 @@ export class MaintenanceAnalyticsController {
 		@Req() req: Request,
 		@Query('propertyId') propertyId?: string,
 		@Query('timeframe') timeframe = '30d'
-	) {
+	): Promise<MaintenanceCostSummary> {
 		const user = await this.supabaseService.getUser(req)
 		if (!user) {
 			throw new BadRequestException('User not authenticated')
@@ -87,7 +102,7 @@ export class MaintenanceAnalyticsController {
 		const { data, error } = await client
 			.rpc('calculate_maintenance_metrics', {
 				p_user_id: user.id,
-				p_property_id: propertyId || null,
+				p_property_id: propertyId || undefined,
 				p_start_date: startDate.toISOString().split('T')[0],
 				p_end_date: endDate.toISOString().split('T')[0]
 			})
@@ -97,8 +112,8 @@ export class MaintenanceAnalyticsController {
 			throw new BadRequestException('Failed to fetch cost data')
 		}
 
-		// Extract cost-specific data from RPC result
-		const result = data
+		// Type assertion for the RPC response
+		const result = data as unknown as MaintenanceMetrics
 
 		return {
 			totalCost: result.totalCost,
@@ -117,7 +132,7 @@ export class MaintenanceAnalyticsController {
 		@Req() req: Request,
 		@Query('propertyId') propertyId?: string,
 		@Query('period') period = 'monthly'
-	) {
+	): Promise<MaintenancePerformance[]> {
 		const user = await this.supabaseService.getUser(req)
 		if (!user) {
 			throw new BadRequestException('User not authenticated')
@@ -126,19 +141,35 @@ export class MaintenanceAnalyticsController {
 		const client = this.supabaseService.getAdminClient()
 
 		// Use PostgreSQL RPC function for property performance
-		const { data, error } = await client
-			.rpc('calculate_property_performance', {
-				p_user_id: user.id,
-				p_property_id: propertyId || null,
-				p_period: period
-			})
+		let data, error
+
+		if (propertyId) {
+			const result = await client
+				.rpc('calculate_property_performance', {
+					p_user_id: user.id,
+					p_period: period as string,
+					p_property_id: propertyId
+				})
+			data = result.data
+			error = result.error
+		} else {
+			const result = await client
+				.rpc('calculate_property_performance', {
+					p_user_id: user.id,
+					p_period: period as string,
+					p_property_id: '' // Default empty string for all properties
+				})
+			data = result.data
+			error = result.error
+		}
 
 		if (error) {
 			this.logger.error('Failed to calculate performance analytics', error)
 			throw new BadRequestException('Failed to fetch performance data')
 		}
 
-		return data
+		// Type assertion for the RPC response
+		return (data as unknown as MaintenancePerformance[]) || []
 	}
 
 	// Utility method to parse time range
