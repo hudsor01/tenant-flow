@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
@@ -86,6 +86,9 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Tenant</DialogTitle>
+            <DialogDescription>
+              Update tenant information including contact details and emergency contacts.
+            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -173,6 +176,9 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
               </div>
               {tenant.name}
             </DialogTitle>
+            <DialogDescription>
+              View complete tenant information including contact details, property, and lease information.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">

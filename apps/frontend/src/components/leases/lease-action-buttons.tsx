@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -122,6 +122,9 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit Lease Agreement</DialogTitle>
+            <DialogDescription>
+              Update lease terms including dates, rent amount, and conditions.
+            </DialogDescription>
           </DialogHeader>
 
           <form
@@ -265,6 +268,9 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Renew Lease Agreement</DialogTitle>
+            <DialogDescription>
+              Extend the lease period and update rental terms for the tenant.
+            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={(e) => {
@@ -338,6 +344,9 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
               <FileText className="w-5 h-5" />
               Lease Agreement
             </DialogTitle>
+            <DialogDescription>
+              View complete lease agreement details including terms, financial information, and status.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">
