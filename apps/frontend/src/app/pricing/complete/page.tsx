@@ -1,15 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { LoadingDots } from '@/components/magicui/loading-spinner'
-import { apiClient } from '@/lib/api-client'
-import { createLogger, type StripeSessionStatusResponse } from '@repo/shared'
-
-const logger = createLogger({ component: 'CompletePage' })
+import { useSessionStatus } from '@/hooks/api/use-payment-verification'
 
 // Success Icon as per Stripe specification
 const SuccessIcon = () => (
@@ -52,62 +48,58 @@ const ExternalLinkIcon = () => (
 )
 
 export default function CompletePage() {
-	// State following Stripe's exact specification
-	const [status, setStatus] = useState<string | null>(null)
-	const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null)
-	const [paymentStatus, setPaymentStatus] = useState<string | null>(null)
-	const [paymentIntentStatus, setPaymentIntentStatus] = useState<string | null>(null)
-	const [iconColor, setIconColor] = useState('')
-	const [icon, setIcon] = useState<React.ReactNode>(null)
-	const [text, setText] = useState('')
-	const [loading, setLoading] = useState(true)
-
 	const searchParams = useSearchParams()
+	const sessionId = searchParams.get('session_id')
 
-	useEffect(() => {
-		const sessionId = searchParams.get('session_id')
+	// Use TanStack Query for session status
+	const {
+		data: sessionData,
+		isLoading,
+		error: sessionError
+	} = useSessionStatus(sessionId)
 
+	// Derived state based on query results
+	const getDisplayState = () => {
 		if (!sessionId) {
-			setText('Invalid session - missing session ID')
-			setIconColor('var(--color-destructive)')
-			setIcon(<ErrorIcon />)
-			setLoading(false)
-			return
+			return {
+				text: 'Invalid session - missing session ID',
+				iconColor: 'var(--color-destructive)',
+				icon: <ErrorIcon />
+			}
 		}
 
-		// Fetch session status as per Stripe specification using our API client
-		apiClient<StripeSessionStatusResponse>(`/stripe/session-status?session_id=${sessionId}`)
-			.then((data) => {
-				setStatus(data.status)
-				setPaymentIntentId(data.payment_intent_id)
-				setPaymentStatus(data.payment_status)
-				setPaymentIntentStatus(data.payment_intent_status)
+		if (sessionError) {
+			return {
+				text: 'Error retrieving payment status',
+				iconColor: 'var(--color-destructive)',
+				icon: <ErrorIcon />
+			}
+		}
 
-				// Handle session status as per Stripe documentation
-				if (data.status === 'complete') {
-					setIconColor('var(--color-success)')
-					setIcon(<SuccessIcon />)
-					setText('Payment succeeded')
-				} else {
-					setIconColor('var(--color-destructive)')
-					setIcon(<ErrorIcon />)
-					setText('Something went wrong, please try again.')
-				}
-				setLoading(false)
-			})
-			.catch((error) => {
-				logger.error('Error fetching session status', {
-					action: 'fetch_session_status_failed',
-					metadata: {
-						error: error instanceof Error ? error.message : String(error)
-					}
-				})
-				setIconColor('var(--color-destructive)')
-				setIcon(<ErrorIcon />)
-				setText('Error retrieving payment status')
-				setLoading(false)
-			})
-	}, [searchParams])
+		if (sessionData?.status === 'complete') {
+			return {
+				text: 'Payment succeeded',
+				iconColor: 'var(--color-success)',
+				icon: <SuccessIcon />
+			}
+		} else if (sessionData) {
+			return {
+				text: 'Something went wrong, please try again.',
+				iconColor: 'var(--color-destructive)',
+				icon: <ErrorIcon />
+			}
+		}
+
+		// Loading state
+		return {
+			text: '',
+			iconColor: '',
+			icon: null
+		}
+	}
+
+	const { text, iconColor, icon } = getDisplayState()
+	const loading = isLoading && !!sessionId
 
 	if (loading) {
 		return (
@@ -158,7 +150,7 @@ export default function CompletePage() {
 														Payment Intent ID
 													</td>
 													<td id="intent-id" className="text-right py-2 text-[var(--color-text-primary)] font-mono text-sm">
-														{paymentIntentId || 'N/A'}
+														{sessionData?.payment_intent_id || 'N/A'}
 													</td>
 												</tr>
 												<tr className="border-b border-[var(--color-border)] last:border-b-0">
@@ -166,7 +158,7 @@ export default function CompletePage() {
 														Status
 													</td>
 													<td id="intent-status" className="text-right py-2 text-[var(--color-text-primary)] capitalize">
-														{status || 'Unknown'}
+														{sessionData?.status || 'Unknown'}
 													</td>
 												</tr>
 												<tr className="border-b border-[var(--color-border)] last:border-b-0">
@@ -174,7 +166,7 @@ export default function CompletePage() {
 														Payment Status
 													</td>
 													<td id="session-status" className="text-right py-2 text-[var(--color-text-primary)] capitalize">
-														{paymentStatus || 'Unknown'}
+														{sessionData?.payment_status || 'Unknown'}
 													</td>
 												</tr>
 												<tr className="border-b border-[var(--color-border)] last:border-b-0">
@@ -182,7 +174,7 @@ export default function CompletePage() {
 														Payment Intent Status
 													</td>
 													<td id="payment-intent-status" className="text-right py-2 text-[var(--color-text-primary)] capitalize">
-														{paymentIntentStatus || 'Unknown'}
+														{sessionData?.payment_intent_status || 'Unknown'}
 													</td>
 												</tr>
 											</tbody>
@@ -192,9 +184,9 @@ export default function CompletePage() {
 
 								{/* Action Buttons */}
 								<div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-									{paymentIntentId && (
+									{sessionData?.payment_intent_id && (
 										<a
-											href={`https://dashboard.stripe.com/payments/${paymentIntentId}`}
+											href={`https://dashboard.stripe.com/payments/${sessionData.payment_intent_id}`}
 											id="view-details"
 											rel="noopener noreferrer"
 											target="_blank"
@@ -216,7 +208,7 @@ export default function CompletePage() {
 					</Card>
 
 					{/* Success Message */}
-					{status === 'complete' && (
+					{sessionData?.status === 'complete' && (
 						<div className="text-center mt-8">
 							<p className="text-[var(--color-text-secondary)]">
 								Welcome to TenantFlow! Your subscription is now active.

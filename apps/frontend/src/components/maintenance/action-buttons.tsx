@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Eye, MapPin, Calendar, DollarSign, User, AlertTriangle, Wrench, Clock } from 'lucide-react'
 import type { Tables } from '@repo/shared'
@@ -80,6 +80,9 @@ export function MaintenanceActionButtons({ maintenance }: MaintenanceActionButto
               <Wrench className="w-5 h-5" />
               {maintenance.title}
             </DialogTitle>
+            <DialogDescription>
+              View detailed maintenance request information including status, priority, and assignment details.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">

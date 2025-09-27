@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -124,6 +124,9 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
             <DialogTitle className="text-gradient">
               Edit Property
             </DialogTitle>
+            <DialogDescription>
+              Update property information including name, address, and property type.
+            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -230,6 +233,9 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
               <Building className="w-5 h-5" />
               {property.name}
             </DialogTitle>
+            <DialogDescription>
+              View detailed property information including location, type, and status.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">
