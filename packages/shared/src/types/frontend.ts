@@ -431,3 +431,21 @@ export interface ShimmerButtonProps
 	iconPosition?: 'left' | 'right'
 	asChild?: boolean
 }
+
+// PRICING HOOK TYPES
+
+export interface UsePricingReturn {
+	prices: Array<{
+		id: string
+		name: string
+		price: number
+		currency: string
+		interval: string
+		features: string[]
+	}>
+	isLoading: boolean
+	error: string | null
+	refreshPrices: () => void
+	getPrice: (priceId: string) => { id: string; name: string; price: number } | null
+	formatPrice: (price: number, currency: string) => string
+}

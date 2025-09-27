@@ -60,17 +60,24 @@ export class DashboardService {
 			}
 		}
 
+		const startTime = Date.now()
 		try {
+			this.logger.log('Fetching dashboard stats', { userId })
+
 			// ULTRA-NATIVE: Single consolidated RPC call for all dashboard stats
 			const { data, error } = await this.supabase
 				.getAdminClient()
 				.rpc('get_dashboard_stats', { user_id_param: userId })
 
 			if (error) {
-				this.logger?.warn(
-					{ userId, error: error.message },
-					'Consolidated dashboard stats failed, using fallback'
-				)
+				this.logger.error('Consolidated dashboard stats RPC failed', {
+					userId,
+					error: error.message,
+					errorCode: error.code,
+					errorDetails: error.details,
+					errorHint: error.hint,
+					duration: `${Date.now() - startTime}ms`
+				})
 
 				// Fallback to individual calls only if consolidated function fails
 				const [properties, tenants, units, leases, maintenance, revenue] =

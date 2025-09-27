@@ -5,7 +5,6 @@ import { Test } from '@nestjs/testing'
 import type { Response } from 'express'
 import { SilentLogger } from '../__test__/silent-logger'
 import { StripeSyncService } from '../billing/stripe-sync.service'
-import { ResilienceService } from '../shared/services/resilience.service'
 import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthController } from './health.controller'
 import { HealthService } from './health.service'
@@ -137,15 +136,6 @@ describe('HealthController', () => {
 						testConnection: jest.fn().mockResolvedValue(true)
 					}
 				},
-				{
-					provide: ResilienceService,
-					useValue: {
-						getHealthStatus: jest.fn().mockReturnValue({
-							cacheSize: 0,
-							memoryUsage: 50
-						})
-					}
-				}
 			]
 		})
 			.setLogger(new SilentLogger())

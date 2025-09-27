@@ -3,7 +3,6 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
-import { EmailService } from '../shared/services/email.service'
 import { StripeWebhookService } from './stripe-webhook.service'
 import { StripeController } from './stripe.controller'
 import { StripeService } from './stripe.service'
@@ -62,14 +61,6 @@ describe('StripeController', () => {
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
-				},
-				{
-					provide: EmailService,
-					useValue: {
-						sendEmail: jest.fn().mockResolvedValue(true),
-						sendPaymentSuccessEmail: jest.fn().mockResolvedValue(true),
-						sendSubscriptionEmail: jest.fn().mockResolvedValue(true)
-					}
 				},
 				{
 					provide: StripeWebhookService,

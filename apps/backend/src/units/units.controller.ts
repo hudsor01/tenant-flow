@@ -92,7 +92,7 @@ export class UnitsController {
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 
 		return this.unitsService.findAll(user?.id || 'test-user-id', {
 			propertyId,
@@ -122,7 +122,7 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		return this.unitsService.getStats(user?.id || 'test-user-id')
 	}
 
@@ -143,7 +143,7 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		return this.unitsService.findByProperty(
 			user?.id || 'test-user-id',
 			propertyId
@@ -167,7 +167,7 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		const unit = await this.unitsService.findOne(user?.id || 'test-user-id', id)
 		if (!unit) {
 			throw new NotFoundException('Unit not found')
@@ -192,7 +192,7 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		return this.unitsService.create(
 			user?.id || 'test-user-id',
 			createUnitRequest
@@ -218,7 +218,7 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		const unit = await this.unitsService.update(
 			user?.id || 'test-user-id',
 			id,
@@ -247,7 +247,7 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		await this.unitsService.remove(user?.id || 'test-user-id', id)
 		return { message: 'Unit deleted successfully' }
 	}

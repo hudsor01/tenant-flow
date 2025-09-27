@@ -25,7 +25,7 @@ export const defaultTypeProvider: ExpressTypeProvider = {
 		fromObject: (object: Record<string, unknown>) => object
 	},
 	validator: {
-		isValid: () => true // Minimal implementation
+		isValid: () => true
 	}
 }
 

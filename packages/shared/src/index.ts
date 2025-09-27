@@ -27,26 +27,12 @@ export {
 export { getCORSConfig } from './security/cors-config.js'
 export { getCSPString } from './security/csp-config.js'
 export {
-    formatPrice,
     getAllPlans,
-    getAnnualSavings,
     getPriceId
 } from './stripe/config.js'
 export { formatCurrency } from './utils/currency.js'
 
-// PRICING CONFIGURATION (Static + Dynamic)
-export {
-    FrontendPricingService,
-    calculateAnnualSavings as calculateAnnualSavingsPercentage,
-    dynamicPlanToPricingConfig,
-    findPlanByPriceId,
-    formatPrice as formatDynamicPrice,
-    getPriceIdForPlan,
-    type DynamicPlan,
-    type DynamicPricingConfig,
-    type DynamicPricingService,
-    type UseDynamicPricingReturn
-} from './config/dynamic-pricing.js'
+// PRICING CONFIGURATION (Static Only)
 export * from './config/pricing.js'
 
 export {
@@ -185,13 +171,11 @@ export { unitStatusSchema } from './validation/units.js'
 export type {
     AuthFormState,
     AuthResponse,
-    AuthServiceauthUser,
     AuthState,
     GoogleOAuthUser,
     LoginCredentials,
     RefreshTokenRequest,
     RegisterCredentials,
-    SupabaseUser,
     SupabaseWebhookEvent,
     UserRole,
     authUser

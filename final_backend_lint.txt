@@ -1,0 +1,31 @@
+
+> @repo/backend@0.0.2 lint /Users/richard/Developer/tenant-flow/apps/backend
+> eslint "src/**/*.ts"
+
+[0m[0m
+[0m[4m/Users/richard/Developer/tenant-flow/apps/backend/src/financial/analytics.controller.ts[24m[0m
+[0m   [2m44:11[22m  [33mwarning[39m  Unsafe object destructuring of a property with an `any` value  [2m@typescript-eslint/no-unsafe-assignment[22m[0m
+[0m   [2m57:3[22m   [33mwarning[39m  Unsafe return of a value of type `any`                         [2m@typescript-eslint/no-unsafe-return[22m[0m
+[0m   [2m74:11[22m  [33mwarning[39m  Unsafe object destructuring of a property with an `any` value  [2m@typescript-eslint/no-unsafe-assignment[22m[0m
+[0m   [2m85:3[22m   [33mwarning[39m  Unsafe return of a value of type `any`                         [2m@typescript-eslint/no-unsafe-return[22m[0m
+[0m  [2m106:11[22m  [33mwarning[39m  Unsafe object destructuring of a property with an `any` value  [2m@typescript-eslint/no-unsafe-assignment[22m[0m
+[0m  [2m119:3[22m   [33mwarning[39m  Unsafe return of a value of type `any`                         [2m@typescript-eslint/no-unsafe-return[22m[0m
+[0m  [2m139:11[22m  [33mwarning[39m  Unsafe object destructuring of a property with an `any` value  [2m@typescript-eslint/no-unsafe-assignment[22m[0m
+[0m  [2m151:3[22m   [33mwarning[39m  Unsafe return of a value of type `any`                         [2m@typescript-eslint/no-unsafe-return[22m[0m
+[0m[0m
+[0m[4m/Users/richard/Developer/tenant-flow/apps/backend/src/main.ts[24m[0m
+[0m  [2m154:7[22m   [33mwarning[39m  Unsafe assignment of an `any` value                [2m@typescript-eslint/no-unsafe-assignment[22m[0m
+[0m  [2m154:37[22m  [33mwarning[39m  Unsafe call of a(n) `any` typed value              [2m@typescript-eslint/no-unsafe-call[22m[0m
+[0m  [2m154:37[22m  [33mwarning[39m  Unsafe call of a(n) `any` typed value              [2m@typescript-eslint/no-unsafe-call[22m[0m
+[0m  [2m154:43[22m  [33mwarning[39m  Unsafe member access .toString on an `any` value   [2m@typescript-eslint/no-unsafe-member-access[22m[0m
+[0m  [2m154:54[22m  [33mwarning[39m  Unsafe member access .substring on an `any` value  [2m@typescript-eslint/no-unsafe-member-access[22m[0m
+[0m[0m
+[0m[4m/Users/richard/Developer/tenant-flow/apps/backend/src/maintenance/analytics.controller.ts[24m[0m
+[0m  [2m104:4[22m  [33mwarning[39m  Unsafe assignment of an error typed value  [2m@typescript-eslint/no-unsafe-assignment[22m[0m
+[0m  [2m105:4[22m  [33mwarning[39m  Unsafe assignment of an error typed value  [2m@typescript-eslint/no-unsafe-assignment[22m[0m
+[0m  [2m106:4[22m  [33mwarning[39m  Unsafe assignment of an error typed value  [2m@typescript-eslint/no-unsafe-assignment[22m[0m
+[0m  [2m107:4[22m  [33mwarning[39m  Unsafe assignment of an error typed value  [2m@typescript-eslint/no-unsafe-assignment[22m[0m
+[0m  [2m108:4[22m  [33mwarning[39m  Unsafe assignment of an error typed value  [2m@typescript-eslint/no-unsafe-assignment[22m[0m
+[0m[0m
+[0m[33m[1m✖ 18 problems (0 errors, 18 warnings)[22m[39m[0m
+[0m[33m[1m[22m[39m[0m
