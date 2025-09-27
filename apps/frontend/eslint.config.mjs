@@ -14,6 +14,12 @@ import tseslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import colorTokensConfig from './color-tokens.eslint.js'
+import { createRequire } from 'module'
+
+// Import custom architecture rules from root
+const require = createRequire(import.meta.url)
+const noBarrelExports = require('../../.eslint/rules/no-barrel-exports.js').default
+const noInlineTypes = require('../../.eslint/rules/no-inline-types.js').default
 
 export default [
 	{
@@ -170,6 +176,31 @@ export default [
 			'color-tokens/no-prohibited-colors': 'error',
 			'color-tokens/no-hardcoded-tailwind-colors': 'error',
 			'color-tokens/no-hardcoded-color-functions': 'error'
+		}
+	},
+	{
+		name: 'frontend/architecture-enforcement',
+		files: ['**/*.ts', '**/*.tsx'],
+		ignores: [
+			'**/*.test.*',
+			'**/*.spec.*',
+			'**/*.config.*',
+			'**/*.d.ts',
+			'**/node_modules/**',
+			'**/dist/**',
+			'**/build/**'
+		],
+		plugins: {
+			'type-centralization': {
+				rules: {
+					'no-inline-types': noInlineTypes,
+					'no-barrel-exports': noBarrelExports
+				}
+			}
+		},
+		rules: {
+			'type-centralization/no-inline-types': 'error',
+			'type-centralization/no-barrel-exports': 'error'
 		}
 	}
 ]

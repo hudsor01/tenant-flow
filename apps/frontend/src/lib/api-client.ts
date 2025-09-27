@@ -42,9 +42,14 @@ type UnitUpdate = TablesUpdate<'Unit'>
 // In production, environment variables are required for proper deployment
 // In development, falls back to local backend port
 function getApiBaseUrl(): string {
-	return process.env.NEXT_PUBLIC_API_BASE_URL || (() => {
-		throw new Error('NEXT_PUBLIC_API_BASE_URL is required for API client configuration')
-	})()
+	return (
+		process.env.NEXT_PUBLIC_API_BASE_URL ||
+		(() => {
+			throw new Error(
+				'NEXT_PUBLIC_API_BASE_URL is required for API client configuration'
+			)
+		})()
+	)
 }
 
 export const API_BASE_URL = getApiBaseUrl()
@@ -288,7 +293,9 @@ export const maintenanceApi = {
 			params.set('timeframe', timeframe)
 			if (status) params.set('status', status)
 
-			return apiClient(`${API_BASE_URL}/maintenance/analytics/metrics?${params}`)
+			return apiClient(
+				`${API_BASE_URL}/maintenance/analytics/metrics?${params}`
+			)
 		},
 
 		getCostSummary: (propertyId?: string, timeframe = '30d') => {
@@ -296,7 +303,9 @@ export const maintenanceApi = {
 			if (propertyId) params.set('propertyId', propertyId)
 			params.set('timeframe', timeframe)
 
-			return apiClient(`${API_BASE_URL}/maintenance/analytics/cost-summary?${params}`)
+			return apiClient(
+				`${API_BASE_URL}/maintenance/analytics/cost-summary?${params}`
+			)
 		},
 
 		getPerformance: (propertyId?: string, period = 'monthly') => {
@@ -304,7 +313,9 @@ export const maintenanceApi = {
 			if (propertyId) params.set('propertyId', propertyId)
 			params.set('period', period)
 
-			return apiClient(`${API_BASE_URL}/maintenance/analytics/performance?${params}`)
+			return apiClient(
+				`${API_BASE_URL}/maintenance/analytics/performance?${params}`
+			)
 		}
 	}
 }
@@ -318,7 +329,9 @@ export const visitorAnalyticsApi = {
 		params.set('timeRange', timeRange)
 		if (propertyId) params.set('propertyId', propertyId)
 
-		return apiClient(`${API_BASE_URL}/analytics/visitor/property-interest?${params}`)
+		return apiClient(
+			`${API_BASE_URL}/analytics/visitor/property-interest?${params}`
+		)
 	},
 
 	getInquiryMetrics: (timeRange = '30d', propertyId?: string) => {
@@ -326,7 +339,9 @@ export const visitorAnalyticsApi = {
 		params.set('timeRange', timeRange)
 		if (propertyId) params.set('propertyId', propertyId)
 
-		return apiClient(`${API_BASE_URL}/analytics/visitor/inquiry-metrics?${params}`)
+		return apiClient(
+			`${API_BASE_URL}/analytics/visitor/inquiry-metrics?${params}`
+		)
 	},
 
 	getViewingMetrics: (timeRange = '30d', propertyId?: string) => {
@@ -334,7 +349,9 @@ export const visitorAnalyticsApi = {
 		params.set('timeRange', timeRange)
 		if (propertyId) params.set('propertyId', propertyId)
 
-		return apiClient(`${API_BASE_URL}/analytics/visitor/viewing-metrics?${params}`)
+		return apiClient(
+			`${API_BASE_URL}/analytics/visitor/viewing-metrics?${params}`
+		)
 	},
 
 	getComparativeAnalytics: (currentPeriod = '30d', previousPeriod = '30d') => {
@@ -346,89 +363,6 @@ export const visitorAnalyticsApi = {
 	}
 }
 
-/**
- * Authentication API endpoints
- */
-export const authApi = {
-	register: (data: {
-		email: string
-		firstName: string
-		lastName: string
-		password: string
-	}) =>
-		apiClient<{
-			user: { id: string; email: string; name: string }
-			access_token: string
-			refresh_token: string
-		}>(`${API_BASE_URL}/api/v1/auth/register`, {
-			method: 'POST',
-			body: JSON.stringify(data)
-		}),
-
-	login: (data: { email: string; password: string }) =>
-		apiClient<{
-			access_token: string
-			refresh_token: string
-			expires_in: number
-			user: { id: string; email: string; name?: string }
-		}>(`${API_BASE_URL}/api/v1/auth/login`, {
-			method: 'POST',
-			body: JSON.stringify(data)
-		}),
-
-	logout: (token: string) =>
-		apiClient<{ success: boolean }>(`${API_BASE_URL}/api/v1/auth/logout`, {
-			method: 'POST',
-			headers: {
-				Authorization: `Bearer ${token}`
-			}
-		}),
-
-	refreshToken: (refresh_token: string) =>
-		apiClient<{
-			access_token: string
-			refresh_token: string
-			expires_in: number
-		}>(`${API_BASE_URL}/api/v1/auth/refresh`, {
-			method: 'POST',
-			body: JSON.stringify({ refresh_token })
-		}),
-
-	getCurrentUser: (token: string) =>
-		apiClient<{ id: string; email: string; name?: string; role?: string }>(
-			`${API_BASE_URL}/api/v1/auth/me`,
-			{
-				headers: {
-					Authorization: `Bearer ${token}`
-				}
-			}
-		)
-}
-
-/**
- * Auth form draft API for React 19 useFormState integration
- */
-export const authDraftApi = {
-	save: (data: {
-		email?: string
-		name?: string
-		formType: 'signup' | 'login' | 'reset'
-	}) =>
-		apiClient<{ success: boolean; sessionId: string }>(
-			`${API_BASE_URL}/api/v1/auth/draft`,
-			{
-				method: 'POST',
-				body: JSON.stringify(data)
-			}
-		),
-
-	load: (formType: 'signup' | 'login' | 'reset', sessionId?: string) =>
-		apiClient<{ email?: string; name?: string } | null>(
-			`${API_BASE_URL}/api/v1/auth/draft/${formType}`,
-			sessionId
-				? {
-						headers: { 'x-session-id': sessionId }
-					}
-				: undefined
-		)
-}
+// Note: Authentication is handled directly via Supabase Auth
+// See use-supabase-auth.ts for all authentication operations
+// No backend auth proxy needed - uses native Supabase client integration
