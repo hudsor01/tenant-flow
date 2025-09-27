@@ -74,7 +74,11 @@ export type {
 } from './lease-generator.types.js'
 
 // Controller response types (from errors.ts)
-export type { ControllerApiResponse } from './errors.js'
+export type {
+	ControllerApiResponse,
+	ErrorContext,
+	UserFriendlyError
+} from './errors.js'
 
 // Security permissions (business rules)
 export type { Permission } from './security.js'
@@ -83,7 +87,7 @@ export type { Permission } from './security.js'
 export { USER_ROLE } from '../constants/auth.js'
 export { PLANS, PLAN_TYPE } from '../constants/billing.js'
 
-// Frontend types (required for analytics)
+// Frontend types (required for analytics) - includes ErrorContext, UserFriendlyError, ErrorType
 export * from './frontend.js'
 
 // Frontend UI component types

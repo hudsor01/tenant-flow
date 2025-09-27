@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Constants } from '../types/supabase-generated.js'
+import { Constants, type Database } from '../types/supabase-generated.js'
 import {
 	nonEmptyStringSchema,
 	nonNegativeNumberSchema,
@@ -156,47 +156,21 @@ export const propertyFormSchema = z.object({
 })
 
 // Transform function for converting form data to API format
-// Separated from schema to avoid zodResolver conflicts
+// Returns PropertyInsert type compatible with Supabase
 export const transformPropertyFormData = (
 	data: PropertyFormData,
 	ownerId: string = ''
-): {
-	name: string
-	description: string
-	propertyType: z.infer<typeof propertyTypeSchema>
-	address: string
-	city: string
-	state: string
-	zipCode: string
-	ownerId: string
-	bedrooms?: number
-	bathrooms?: number
-	squareFootage?: number
-	rent?: number
-	deposit?: number
-	images: string[]
-	amenities: string[]
-} => ({
+) => ({
 	name: data.name,
-	description: data.description || '',
-	propertyType: data.propertyType,
+	description: data.description || null,
+	propertyType:
+		data.propertyType as Database['public']['Enums']['PropertyType'],
 	address: data.address,
 	city: data.city,
 	state: data.state,
 	zipCode: data.zipCode,
 	ownerId,
-	bedrooms: data.bedrooms ? parseInt(data.bedrooms, 10) : undefined,
-	bathrooms: data.bathrooms ? parseFloat(data.bathrooms) : undefined,
-	squareFootage: data.squareFootage
-		? parseInt(data.squareFootage, 10)
-		: undefined,
-	rent: data.rent ? parseFloat(data.rent) : undefined,
-	deposit: data.deposit ? parseFloat(data.deposit) : undefined,
-	images: data.imageUrl ? [data.imageUrl] : [],
-	amenities: [
-		...(data.hasGarage ? ['garage'] : []),
-		...(data.hasPool ? ['pool'] : [])
-	]
+	imageUrl: data.imageUrl || null
 })
 
 export type PropertyFormData = z.infer<typeof propertyFormSchema>

@@ -20,12 +20,16 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { maintenanceApi } from '@/lib/api-client'
 import { zodResolver } from '@hookform/resolvers/zod'
+import {
+	maintenanceRequestUpdateSchema,
+	type MaintenancePriorityValidation,
+	type MaintenanceRequestUpdate
+} from '@repo/shared/validation/maintenance'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Edit } from 'lucide-react'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { maintenanceRequestUpdateSchema, type MaintenanceRequestUpdate, type MaintenancePriorityValidation } from '@repo/shared/validation'
 
 interface EditMaintenanceButtonProps {
 	maintenance: {
@@ -108,7 +112,12 @@ export function EditMaintenanceButton({
 				<DialogHeader>
 					<DialogTitle>Edit Maintenance Request</DialogTitle>
 				</DialogHeader>
-				<form onSubmit={form.handleSubmit((data) => onSubmit(data as MaintenanceRequestUpdate))} className="space-y-4">
+				<form
+					onSubmit={form.handleSubmit(data =>
+						onSubmit(data as MaintenanceRequestUpdate)
+					)}
+					className="space-y-4"
+				>
 					<div className="space-y-2">
 						<Label htmlFor="title">Title</Label>
 						<Input
