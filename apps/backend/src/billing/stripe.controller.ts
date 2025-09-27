@@ -20,7 +20,6 @@ import type { SubscriptionStatus } from '@repo/shared'
 import type { Request } from 'express'
 import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
-import { EmailService } from '../shared/services/email.service'
 import type {
 	CreateBillingPortalRequest,
 	CreateCheckoutSessionRequest,
@@ -54,7 +53,6 @@ export class StripeController {
 
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly emailService: EmailService,
 		private readonly webhookService: StripeWebhookService,
 		private readonly eventEmitter: EventEmitter2,
 		private readonly stripeService: StripeService
@@ -1149,10 +1147,10 @@ export class StripeController {
 				// Get user for email notification
 				const user = await this.getUserById(setupIntent.metadata.tenant_id)
 
-				// Send confirmation email
-				await this.emailService.sendPaymentMethodSavedEmail({
-					to: user.email,
-					userName: user.name || undefined,
+				// Log payment method saved (email functionality removed per NO ABSTRACTIONS)
+				this.logger.log('Payment method saved', {
+					userId: user.id,
+					email: user.email,
 					lastFour: paymentMethod.card?.last4 || '****',
 					brand: paymentMethod.card?.brand || 'card'
 				})
@@ -1280,9 +1278,10 @@ export class StripeController {
 			const user = await this.getUserByStripeCustomerId(
 				subscription.customer as string
 			)
-			await this.emailService.sendSubscriptionCancelledEmail({
-				to: user.email,
-				userName: user.name || undefined,
+			// Log subscription cancelled (email functionality removed per NO ABSTRACTIONS)
+			this.logger.log('Subscription cancelled notification', {
+				userId: user.id,
+				email: user.email,
 				planName: subscription.metadata?.planName || 'Subscription',
 				cancellationDate: new Date(subscription.canceled_at! * 1000)
 			})
@@ -1307,15 +1306,14 @@ export class StripeController {
 			const user = await this.getUserByStripeCustomerId(
 				stripeInvoice.customer as string
 			)
-			await this.emailService.sendInvoiceReceiptEmail({
-				to: user.email,
-				userName: user.name || undefined,
+			// Log invoice receipt (email functionality removed per NO ABSTRACTIONS)
+			this.logger.log('Invoice receipt notification', {
+				userId: user.id,
+				email: user.email,
 				invoiceNumber: stripeInvoice.number || `inv_${stripeInvoice.id}`,
 				amount: stripeInvoice.amount_paid,
 				currency: stripeInvoice.currency,
-				invoiceUrl:
-					stripeInvoice.invoice_pdf ||
-					`https://dashboard.stripe.com/invoices/${stripeInvoice.id}`
+				invoiceUrl: stripeInvoice.invoice_pdf || `https://dashboard.stripe.com/invoices/${stripeInvoice.id}`
 			})
 
 			// Extend subscription access if applicable
@@ -1356,10 +1354,10 @@ export class StripeController {
 
 			if (currentAttempt < maxRetries) {
 				// Schedule retry (Stripe handles this automatically)
-				// Notify user of failed payment with retry information
-				await this.emailService.sendInvoicePaymentFailedEmail({
-					to: user.email,
-					userName: user.name || undefined,
+				// Log payment failure notification (email functionality removed per NO ABSTRACTIONS)
+				this.logger.log('Invoice payment failed notification', {
+					userId: user.id,
+					email: user.email,
 					attemptNumber: currentAttempt,
 					maxRetries,
 					nextRetryDate: this.calculateNextRetryDate(currentAttempt),
@@ -1382,9 +1380,10 @@ export class StripeController {
 					await this.suspendSubscriptionAccess(subscriptionId)
 				}
 
-				await this.emailService.sendAccountSuspendedEmail({
-					to: user.email,
-					userName: user.name || undefined,
+				// Log account suspension notification (email functionality removed per NO ABSTRACTIONS)
+				this.logger.log('Account suspended notification', {
+					userId: user.id,
+					email: user.email,
 					suspensionReason: 'payment_failure'
 				})
 

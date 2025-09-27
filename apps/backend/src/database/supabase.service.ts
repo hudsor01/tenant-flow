@@ -99,49 +99,83 @@ export class SupabaseService implements OnModuleInit {
 	}
 
 	/**
-	 * Validates a user by reading the Supabase auth cookie and verifying it
-	 * Modern 2025 pattern using Supabase SSR cookies instead of JWT headers
+	 * Get authenticated user from request
+	 * Uses Supabase's native auth.getUser() method as per official docs
+	 * Supports both Authorization header (Bearer token) and SSR cookies
 	 */
-	async validateUser(req: Request): Promise<authUser | null> {
+	async getUser(req: Request): Promise<authUser | null> {
+		const startTime = Date.now()
 		try {
-			// Extract Supabase auth cookie (format: sb-{project-ref}-auth-token)
-			const cookieName = `sb-${process.env.SUPABASE_PROJECT_REF || 'bshjmbshupiibfiewpxb'}-auth-token`
-			const authCookie = req.cookies?.[cookieName] as string | undefined
+			let token: string | undefined
 
-			if (!authCookie) {
-				this.logger.debug('No Supabase auth cookie found')
-				return null
+			// First check Authorization header (standard pattern for APIs)
+			const authHeader = req.headers.authorization
+			if (authHeader?.startsWith('Bearer ')) {
+				token = authHeader.replace('Bearer ', '')
+				this.logger.log('Using token from Authorization header', {
+					endpoint: req.path,
+					method: req.method
+				})
 			}
 
-			// Validate the token using admin client
-			const { data: { user: supabaseUser }, error } = await this.adminClient.auth.getUser(authCookie)
+			// Fallback to cookie if no Authorization header (SSR pattern)
+			if (!token) {
+				const cookieName = `sb-${process.env.SUPABASE_PROJECT_REF || 'bshjmbshupiibfiewpxb'}-auth-token`
+				token = req.cookies?.[cookieName] as string | undefined
 
-			if (error || !supabaseUser?.id) {
-				this.logger.debug('Invalid Supabase auth token', { error: error?.message })
-				return null
+				if (token) {
+					this.logger.log('Using token from SSR cookie', {
+						endpoint: req.path,
+						method: req.method,
+						cookieName
+					})
+				}
 			}
 
-			// Query our User table to get the complete user record
-			const { data: dbUser, error: dbError } = await this.adminClient
-				.from('User')
-				.select('*')
-				.eq('supabaseId', supabaseUser.id)
-				.single()
-
-			if (dbError || !dbUser) {
-				this.logger.debug('User not found in database', {
-					supabaseId: supabaseUser.id,
-					error: dbError?.message
+			if (!token) {
+				this.logger.warn('No auth token found in request', {
+					endpoint: req.path,
+					hasAuthHeader: !!authHeader,
+					availableCookies: Object.keys(req.cookies || {}),
+					headers: {
+						origin: req.headers.origin,
+						referer: req.headers.referer
+					}
 				})
 				return null
 			}
 
-			// Map database user to authUser format
-			// Return the Supabase User directly - authUser is just an alias for Supabase's User type
-			return supabaseUser
+			// Use Supabase's native auth.getUser() with the token
+			// This sends a request to Supabase Auth server to validate the token
+			const { data: { user }, error } = await this.adminClient.auth.getUser(token)
+
+			if (error || !user) {
+				this.logger.warn('Token validation failed via auth.getUser()', {
+					error: error?.message,
+					errorCode: error?.code,
+					endpoint: req.path,
+					tokenLength: token?.length
+				})
+				return null
+			}
+
+			const duration = Date.now() - startTime
+			this.logger.log('User authenticated successfully', {
+				userId: user.id,
+				email: user.email,
+				endpoint: req.path,
+				duration: `${duration}ms`
+			})
+
+			// Return the Supabase User directly
+			return user
 		} catch (error) {
-			this.logger.error('Error validating user', {
-				error: error instanceof Error ? error.message : String(error)
+			const duration = Date.now() - startTime
+			this.logger.error('Error in getUser()', {
+				error: error instanceof Error ? error.message : String(error),
+				stack: error instanceof Error ? error.stack?.split('\n').slice(0, 3).join('\n') : undefined,
+				endpoint: req.path,
+				duration: `${duration}ms`
 			})
 			return null
 		}

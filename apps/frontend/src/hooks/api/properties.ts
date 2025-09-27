@@ -1,6 +1,6 @@
 'use client'
 
-import { propertiesApi, dashboardApi } from '@/lib/api-client'
+import { createClient } from '@/utils/supabase/client'
 import type { Database, PropertyPerformance } from '@repo/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { dashboardKeys } from './use-dashboard'
@@ -12,10 +12,29 @@ type UpdateProperty = Database['public']['Tables']['Property']['Update']
 
 type PropertyStatus = Database['public']['Enums']['PropertyStatus']
 
+const supabase = createClient()
+
 export function useProperties(status?: PropertyStatus) {
     return useQuery({
         queryKey: ['properties', status ?? 'ALL'],
-        queryFn: async () => propertiesApi.list(status ? { status } : undefined)
+        queryFn: async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) throw new Error('Not authenticated')
+
+            let query = supabase
+                .from('Property')
+                .select('*')
+                .eq('ownerId', user.id)
+                .order('createdAt', { ascending: false })
+
+            if (status) {
+                query = query.eq('status', status)
+            }
+
+            const { data, error } = await query
+            if (error) throw error
+            return data
+        }
     })
 }
 
@@ -24,8 +43,18 @@ export function usePropertyPerformance() {
   return useQuery<PropertyPerformance[]>({
     queryKey: ['properties', 'analytics'],
     queryFn: async () => {
-      const properties = await dashboardApi.getPropertyPerformance()
-      return properties
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+
+      // Use RPC function for property performance calculations
+      const { data, error } = await supabase
+        .rpc('get_property_performance', {
+          p_user_id: user.id
+        })
+
+      if (error) throw error
+      // Cast Json[] to PropertyPerformance[]
+      return (data as unknown as PropertyPerformance[]) || []
     },
     staleTime: 2 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
@@ -37,7 +66,24 @@ export function usePropertyPerformance() {
 export function usePropertiesFormatted(status?: PropertyStatus) {
     return useQuery({
         queryKey: ['properties', status ?? 'ALL'],
-        queryFn: async () => propertiesApi.list(status ? { status } : undefined),
+        queryFn: async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) throw new Error('Not authenticated')
+
+            let query = supabase
+                .from('Property')
+                .select('*')
+                .eq('ownerId', user.id)
+                .order('createdAt', { ascending: false })
+
+            if (status) {
+                query = query.eq('status', status)
+            }
+
+            const { data, error } = await query
+            if (error) throw error
+            return data || []
+        },
         select: (data: _Property[]) => ({
             properties: data.map((property: _Property) => ({
                 ...property,
@@ -89,7 +135,19 @@ function getPropertyStatusColor(status?: string): string {
 export function useCreateProperty() {
     const qc = useQueryClient()
     return useMutation({
-        mutationFn: async (values: InsertProperty) => propertiesApi.create(values),
+        mutationFn: async (values: InsertProperty) => {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) throw new Error('Not authenticated')
+
+            const { data, error } = await supabase
+                .from('Property')
+                .insert({ ...values, ownerId: user.id })
+                .select()
+                .single()
+
+            if (error) throw error
+            return data
+        },
         onMutate: async (newProperty) => {
             // Cancel outgoing refetches to prevent optimistic update conflicts
             await qc.cancelQueries({ queryKey: ['properties'] })
@@ -149,8 +207,21 @@ export function useCreateProperty() {
 export function useUpdateProperty() {
     const qc = useQueryClient()
     return useMutation({
-        mutationFn: async ({ id, values }: { id: string; values: UpdateProperty }) =>
-            propertiesApi.update(id, values),
+        mutationFn: async ({ id, values }: { id: string; values: UpdateProperty }) => {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) throw new Error('Not authenticated')
+
+            const { data, error } = await supabase
+                .from('Property')
+                .update(values)
+                .eq('id', id)
+                .eq('ownerId', user.id) // RLS check
+                .select()
+                .single()
+
+            if (error) throw error
+            return data
+        },
         onMutate: async ({ id, values }) => {
             // Cancel outgoing refetches
             await qc.cancelQueries({ queryKey: ['properties'] })
@@ -191,7 +262,16 @@ export function useDeleteProperty() {
     const qc = useQueryClient()
     return useMutation({
         mutationFn: async (id: string) => {
-            await propertiesApi.remove(id)
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) throw new Error('Not authenticated')
+
+            const { error } = await supabase
+                .from('Property')
+                .delete()
+                .eq('id', id)
+                .eq('ownerId', user.id) // RLS check
+
+            if (error) throw error
             return true
         },
         onMutate: async (id) => {

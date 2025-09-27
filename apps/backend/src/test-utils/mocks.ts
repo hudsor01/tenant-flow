@@ -1,6 +1,5 @@
 import type { User } from '@supabase/supabase-js'
 import type {
-	AuthServiceauthUser,
 	CreatePropertyRequest,
 	CreateTenantRequest,
 	CreateUnitRequest,
@@ -11,6 +10,9 @@ import type {
 	TenantStats,
 	UnitStats
 } from '@repo/shared'
+import type { Database } from '@repo/shared'
+
+type DatabaseUser = Database['public']['Tables']['User']['Row']
 
 /**
  * Creates a mock Supabase User object for testing
@@ -27,30 +29,31 @@ export function createMockUser(overrides?: Partial<User>): User {
 }
 
 /**
- * Creates a mock AuthServiceauthUser for testing
+ * Creates a mock Database User for testing
  */
-export function createMockAuthServiceUser(
-	overrides?: Partial<AuthServiceauthUser>
-): AuthServiceauthUser {
+export function createMockDatabaseUser(
+	overrides?: Partial<DatabaseUser>
+): DatabaseUser {
 	const now = new Date()
 	return {
 		id: 'user-123',
 		email: 'test@example.com',
 		name: 'Test User',
+		firstName: 'Test',
+		lastName: 'User',
 		phone: null,
 		bio: null,
 		avatarUrl: null,
 		role: 'TENANT',
 		createdAt: now,
 		updatedAt: now,
-		emailVerified: true,
 		supabaseId: 'supa-123',
 		stripeCustomerId: null,
-		organizationId: null,
+		orgId: null,
 		profileComplete: true,
 		lastLoginAt: now,
 		...overrides
-	}
+	} as DatabaseUser
 }
 
 /**
@@ -208,7 +211,6 @@ export function createMockTenantRequest(
 		lastName: 'Doe',
 		email: 'john@example.com',
 		phone: '123-456-7890',
-		propertyId: 'property-123',
 		...overrides
 	}
 }

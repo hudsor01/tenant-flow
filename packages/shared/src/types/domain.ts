@@ -7,13 +7,16 @@
 
 // CONTACT DOMAIN
 
-export enum ContactFormType {
-	GENERAL_INQUIRY = 'general',
-	SALES = 'sales',
-	SUPPORT = 'support',
-	PARTNERSHIP = 'partnership',
-	DEMO_REQUEST = 'demo'
-}
+// UI-only const for contact form types (not stored in database)
+export const ContactFormType = {
+	GENERAL_INQUIRY: 'general',
+	SALES: 'sales',
+	SUPPORT: 'support',
+	PARTNERSHIP: 'partnership',
+	DEMO_REQUEST: 'demo'
+} as const
+
+export type ContactFormTypeValue = typeof ContactFormType[keyof typeof ContactFormType]
 
 export interface ContactFormRequest {
 	name: string
@@ -34,53 +37,65 @@ export interface ContactFormResponse {
 
 // NOTIFICATION DOMAIN
 
-export enum NotificationType {
-	PAYMENT = 'payment',
-	BILLING = 'billing',
-	SYSTEM = 'system'
-}
+// UI-only const for notification types
+export const NotificationType = {
+	PAYMENT: 'payment',
+	BILLING: 'billing',
+	SYSTEM: 'system'
+} as const
+
+export type NotificationTypeValue = typeof NotificationType[keyof typeof NotificationType]
 
 // WEB VITALS DOMAIN
 
-export enum WebVitalMetricName {
-	CLS = 'CLS',
-	FCP = 'FCP',
-	FID = 'FID',
-	INP = 'INP',
-	LCP = 'LCP',
-	TTFB = 'TTFB'
-}
+// UI-only constants for web vitals (browser metrics, not stored in DB)
+export const WebVitalMetricName = {
+	CLS: 'CLS',
+	FCP: 'FCP',
+	FID: 'FID',
+	INP: 'INP',
+	LCP: 'LCP',
+	TTFB: 'TTFB'
+} as const
 
-export enum WebVitalRating {
-	GOOD = 'good',
-	NEEDS_IMPROVEMENT = 'needs-improvement',
-	POOR = 'poor'
-}
+export const WebVitalRating = {
+	GOOD: 'good',
+	NEEDS_IMPROVEMENT: 'needs-improvement',
+	POOR: 'poor'
+} as const
 
-export enum WebVitalLabel {
-	WEB_VITAL = 'web-vital',
-	CUSTOM = 'custom'
-}
+export const WebVitalLabel = {
+	WEB_VITAL: 'web-vital',
+	CUSTOM: 'custom'
+} as const
 
-export enum WebVitalNavigationType {
-	NAVIGATE = 'navigate',
-	RELOAD = 'reload',
-	BACK_FORWARD = 'back-forward',
-	PRERENDER = 'prerender'
-}
+export const WebVitalNavigationType = {
+	NAVIGATE: 'navigate',
+	RELOAD: 'reload',
+	BACK_FORWARD: 'back-forward',
+	PRERENDER: 'prerender'
+} as const
+
+export type WebVitalMetricNameValue = typeof WebVitalMetricName[keyof typeof WebVitalMetricName]
+export type WebVitalRatingValue = typeof WebVitalRating[keyof typeof WebVitalRating]
+export type WebVitalLabelValue = typeof WebVitalLabel[keyof typeof WebVitalLabel]
+export type WebVitalNavigationTypeValue = typeof WebVitalNavigationType[keyof typeof WebVitalNavigationType]
 
 // STRIPE WEBHOOK DOMAIN
 
-export enum StripeWebhookEventType {
-	CUSTOMER_SUBSCRIPTION_CREATED = 'customer.subscription.created',
-	CUSTOMER_SUBSCRIPTION_UPDATED = 'customer.subscription.updated',
-	CUSTOMER_SUBSCRIPTION_DELETED = 'customer.subscription.deleted',
-	CUSTOMER_CREATED = 'customer.created',
-	CUSTOMER_UPDATED = 'customer.updated',
-	INVOICE_PAYMENT_SUCCEEDED = 'invoice.payment_succeeded',
-	INVOICE_PAYMENT_FAILED = 'invoice.payment_failed',
-	CHECKOUT_SESSION_COMPLETED = 'checkout.session.completed'
-}
+// Use Stripe SDK types directly when available, or const for known webhook event types
+export const StripeWebhookEventType = {
+	CUSTOMER_SUBSCRIPTION_CREATED: 'customer.subscription.created',
+	CUSTOMER_SUBSCRIPTION_UPDATED: 'customer.subscription.updated',
+	CUSTOMER_SUBSCRIPTION_DELETED: 'customer.subscription.deleted',
+	CUSTOMER_CREATED: 'customer.created',
+	CUSTOMER_UPDATED: 'customer.updated',
+	INVOICE_PAYMENT_SUCCEEDED: 'invoice.payment_succeeded',
+	INVOICE_PAYMENT_FAILED: 'invoice.payment_failed',
+	CHECKOUT_SESSION_COMPLETED: 'checkout.session.completed'
+} as const
+
+export type StripeWebhookEventTypeValue = typeof StripeWebhookEventType[keyof typeof StripeWebhookEventType]
 
 // STORAGE DOMAIN
 
@@ -247,7 +262,7 @@ export type StripeWebhookEventTypes =
 
 export interface StripeWebhookEvent {
 	id: string
-	type: StripeWebhookEventType
+	type: StripeWebhookEventTypeValue
 	data: {
 		object: Record<string, unknown>
 	}

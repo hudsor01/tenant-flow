@@ -3,19 +3,21 @@ import type { Database } from './supabase-generated.js'
 
 type Priority = Database['public']['Enums']['Priority']
 
-// Notification type enum
-export enum NotificationType {
-	MAINTENANCE = 'MAINTENANCE',
-	LEASE = 'LEASE',
-	PAYMENT = 'PAYMENT',
-	GENERAL = 'GENERAL',
-	SYSTEM = 'SYSTEM',
-	INFO = 'INFO' // Add INFO for compatibility
-}
+// UI-only notification type constants (not stored in database)
+export const NotificationType = {
+	MAINTENANCE: 'MAINTENANCE',
+	LEASE: 'LEASE',
+	PAYMENT: 'PAYMENT',
+	GENERAL: 'GENERAL',
+	SYSTEM: 'SYSTEM',
+	INFO: 'INFO' // Add INFO for compatibility
+} as const
+
+export type NotificationTypeValue = typeof NotificationType[keyof typeof NotificationType]
 
 // API Request/Response types (consolidated from frontend)
 export interface NotificationRequest {
-	type: NotificationType
+	type: NotificationTypeValue
 	title: string
 	message: string
 	recipientId?: string
@@ -105,20 +107,15 @@ export interface NotificationPreferences {
 	}
 }
 
-// Notification priority enum
-export enum NotificationPriority {
-	LOW = 'LOW',
-	MEDIUM = 'MEDIUM',
-	HIGH = 'HIGH',
-	URGENT = 'URGENT'
-}
-
+// Notification priority constants
 export const NOTIFICATION_PRIORITY = {
 	LOW: 'LOW',
 	MEDIUM: 'MEDIUM',
 	HIGH: 'HIGH',
 	URGENT: 'URGENT'
 } as const
+
+export type NotificationPriorityValue = typeof NOTIFICATION_PRIORITY[keyof typeof NOTIFICATION_PRIORITY]
 
 export const NOTIFICATION_PRIORITY_OPTIONS = [
 	{ value: 'LOW', label: 'Low' },
@@ -158,7 +155,7 @@ export interface MaintenanceNotificationRequest {
 	recipientId: string
 	title: string
 	message: string
-	type: NotificationType
+	type: NotificationTypeValue
 	unitId: string
 	priority: Priority
 }

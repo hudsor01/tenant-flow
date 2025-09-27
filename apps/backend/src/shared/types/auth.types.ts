@@ -1,8 +1,5 @@
-// Import all auth types from shared package to avoid duplication
+// Import auth types from shared package
 export type {
-	authUser,
-	AuthServiceauthUser,
-	GoogleOAuthUser,
-	SupabaseUser,
-	UserRole
+  authUser, Database, GoogleOAuthUser,
+  UserRole
 } from '@repo/shared'

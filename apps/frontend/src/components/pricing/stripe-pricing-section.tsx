@@ -129,10 +129,7 @@ export function StripePricingSection({
 
 				const monthlyPrice = plan.price.monthly / 100
 				const yearlyPrice = plan.price.annual / 100
-				const monthlySavings = monthlyPrice * 12 - yearlyPrice
-				const savingsPercentage = Math.round(
-					(monthlySavings / (monthlyPrice * 12)) * 100
-				)
+				// Stripe already provides pricing - no calculation needed
 
 				// Get UI enhancement data dynamically based on plan ID
 				const icon = planIconMap[plan.planId] || Rocket
@@ -156,9 +153,10 @@ export function StripePricingSection({
 					highlight,
 					name: plan.name || '',
 					planId: plan.planId,
-					monthlySavings,
+					// Pricing data from Stripe - no calculations needed
+					monthlySavings: 0, // Will be removed once component is updated
 					yearlySavings: yearlyPrice,
-					savingsPercentage,
+					savingsPercentage: 0, // Will be removed once component is updated
 					formattedPrice: isYearly
 						? `$${Math.floor(yearlyPrice / 12)}`
 						: `$${monthlyPrice}`,

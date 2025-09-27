@@ -197,13 +197,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 
 	private getEndpointType(url: string): string {
 		// Categorize endpoints for appropriate rate limiting
-		if (
-			url.includes('/auth/') ||
-			url.includes('/login') ||
-			url.includes('/register')
-		) {
-			return 'AUTH'
-		}
+		// Note: Auth endpoints removed - using direct Supabase auth
 
 		if (
 			url.includes('/stripe/') ||

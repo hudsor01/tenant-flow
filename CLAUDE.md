@@ -157,6 +157,42 @@ Before - Custom utility types:
 After - Native TypeScript utilities:
 - import type { DeepPartial } from '@repo/shared'
 
+### ENUM STANDARDIZATION - MANDATORY COMPLIANCE
+**SINGLE SOURCE OF TRUTH**: Database enums via Supabase generated types only
+
+**FORBIDDEN - NO EXCEPTIONS**:
+- Creating TypeScript enum definitions (enum MyEnum { ... })
+- Duplicating database enum values in code
+- Creating union types that mirror database enums
+- Using string literals instead of generated enum types
+
+**REQUIRED PATTERNS**:
+```typescript
+// CORRECT - Direct usage from generated types
+import type { Database } from '@repo/shared'
+type UnitStatus = Database['public']['Enums']['UnitStatus']
+
+// CORRECT - Inline type extraction
+const status: Database['public']['Enums']['LeaseStatus'] = 'ACTIVE'
+
+// CORRECT - In function parameters
+function updateUnit(status: Database['public']['Enums']['UnitStatus']) { }
+```
+
+**ENUM CATEGORIES**:
+1. **Database Enums** (Use Supabase generated types):
+   - All domain enums that exist in database
+   - Examples: UnitStatus, LeaseStatus, PropertyType, RequestStatus
+
+2. **UI-Only Enums** (String literals only):
+   - Frontend-specific values never stored in database
+   - Use const objects with 'as const' assertion
+   - Example: `const SortOrder = { ASC: 'asc', DESC: 'desc' } as const`
+
+3. **External API Enums** (Type from API response):
+   - Stripe, third-party service enums
+   - Import from SDK types or define as string literals
+
 ### BACKEND RULES (Ultra-Native + Official NestJS Ecosystem)
 **CORE PHILOSOPHY**: Use official NestJS ecosystem packages directly, never create custom abstractions. Maintain 75% code reduction by avoiding unnecessary layers.
 

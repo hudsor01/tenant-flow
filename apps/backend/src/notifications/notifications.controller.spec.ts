@@ -10,7 +10,7 @@ import { createMockUser } from '../test-utils/mocks'
 jest.mock('../database/supabase.service', () => {
 	return {
 		SupabaseService: jest.fn().mockImplementation(() => ({
-			validateUser: jest.fn(),
+			getUser: jest.fn(),
 			getAdminClient: jest.fn(() => ({
 				from: jest.fn()
 			}))
@@ -21,7 +21,17 @@ jest.mock('../database/supabase.service', () => {
 describe('NotificationsController', () => {
 	let controller: NotificationsController
 	let mockSupabaseServiceInstance: jest.Mocked<SupabaseService>
-	let mockSupabaseClient: any
+	let mockSupabaseClient: {
+		from: jest.Mock
+		select: jest.Mock
+		insert: jest.Mock
+		update: jest.Mock
+		delete: jest.Mock
+		eq: jest.Mock
+		order: jest.Mock
+		range: jest.Mock
+		single: jest.Mock
+	}
 
 	const mockUser = createMockUser({ id: 'user-123' })
 
@@ -73,7 +83,7 @@ describe('NotificationsController', () => {
 				}
 			]
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockSupabaseClient.range.mockReturnValue({
 				data: mockNotifications,
 				error: null
@@ -81,7 +91,7 @@ describe('NotificationsController', () => {
 
 			const result = await controller.getNotifications(mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockSupabaseClient.from).toHaveBeenCalledWith('InAppNotification')
@@ -90,7 +100,7 @@ describe('NotificationsController', () => {
 		})
 
 		it('should handle custom limit and offset parameters', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockSupabaseClient.range.mockReturnValue({ data: [], error: null })
 
 			await controller.getNotifications(mockRequest, '20', '5')
@@ -99,7 +109,7 @@ describe('NotificationsController', () => {
 		})
 
 		it('should throw UnauthorizedException when user validation fails', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(null)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(null)
 
 			await expect(
 				controller.getNotifications(mockRequest)
@@ -107,7 +117,7 @@ describe('NotificationsController', () => {
 		})
 
 		it('should throw BadRequestException when database query fails', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockSupabaseClient.range.mockReturnValue({
 				data: null,
 				error: { message: 'Database error' }
@@ -119,7 +129,7 @@ describe('NotificationsController', () => {
 		})
 
 		it('should return empty array when no notifications found', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockSupabaseClient.range.mockReturnValue({ data: null, error: null })
 
 			const result = await controller.getNotifications(mockRequest)
@@ -201,7 +211,7 @@ describe('NotificationsController', () => {
 		const notificationId = 'notif-123'
 
 		it('should mark notification as read for authenticated user', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 
 			// Set up the specific mock for this test
 			const mockChain: any = {
@@ -212,7 +222,7 @@ describe('NotificationsController', () => {
 
 			// The final .eq() call should return { error: null }
 			let callCount = 0
-			mockChain.eq.mockImplementation(() => {
+			mockChain.eq.mockImplementation((): any => {
 				callCount++
 				if (callCount === 2) {
 					return { error: null }
@@ -224,7 +234,7 @@ describe('NotificationsController', () => {
 
 			const result = await controller.markAsRead(notificationId, mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockChain.from).toHaveBeenCalledWith('InAppNotification')
@@ -235,7 +245,7 @@ describe('NotificationsController', () => {
 		})
 
 		it('should throw UnauthorizedException when user validation fails', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(null)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(null)
 
 			await expect(
 				controller.markAsRead(notificationId, mockRequest)
@@ -243,7 +253,7 @@ describe('NotificationsController', () => {
 		})
 
 		it('should throw BadRequestException when update fails', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 
 			// Set up the specific mock for error case
 			const mockChain: any = {
@@ -254,7 +264,7 @@ describe('NotificationsController', () => {
 
 			// The final .eq() call should return an error
 			let callCount = 0
-			mockChain.eq.mockImplementation(() => {
+			mockChain.eq.mockImplementation((): any => {
 				callCount++
 				if (callCount === 2) {
 					return { error: { message: 'Update failed' } }
@@ -274,10 +284,10 @@ describe('NotificationsController', () => {
 		const notificationId = 'notif-123'
 
 		it('should delete notification for authenticated user', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 
 			// Set up the specific mock for this test
-			const mockChain = {
+			const mockChain: any = {
 				from: jest.fn(() => mockChain),
 				delete: jest.fn(() => mockChain),
 				eq: jest.fn(() => mockChain)
@@ -285,7 +295,7 @@ describe('NotificationsController', () => {
 
 			// The final .eq() call should return { error: null }
 			let callCount = 0
-			mockChain.eq.mockImplementation(() => {
+			mockChain.eq.mockImplementation((): any => {
 				callCount++
 				if (callCount === 2) {
 					return { error: null }
@@ -300,7 +310,7 @@ describe('NotificationsController', () => {
 				mockRequest
 			)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockChain.from).toHaveBeenCalledWith('InAppNotification')
@@ -311,7 +321,7 @@ describe('NotificationsController', () => {
 		})
 
 		it('should throw UnauthorizedException when user validation fails', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(null)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(null)
 
 			await expect(
 				controller.deleteNotification(notificationId, mockRequest)
@@ -319,7 +329,7 @@ describe('NotificationsController', () => {
 		})
 
 		it('should throw BadRequestException when deletion fails', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 
 			// Set up the specific mock for error case
 			const mockChain: any = {
@@ -330,7 +340,7 @@ describe('NotificationsController', () => {
 
 			// The final .eq() call should return an error
 			let callCount = 0
-			mockChain.eq.mockImplementation(() => {
+			mockChain.eq.mockImplementation((): any => {
 				callCount++
 				if (callCount === 2) {
 					return { error: { message: 'Deletion failed' } }

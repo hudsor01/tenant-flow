@@ -7,7 +7,6 @@ import {
 	PaymentFailedEvent,
 	PaymentReceivedEvent
 } from '../notifications/events/notification.events'
-import { EmailService } from '../shared/services/email.service'
 import type {
 	InvoiceWithSubscription,
 	SubscriptionWithPeriod
@@ -26,7 +25,6 @@ export class StripeEventProcessor {
 
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly emailService: EmailService,
 		private readonly eventEmitter: EventEmitter2
 	) {}
 
@@ -115,10 +113,10 @@ export class StripeEventProcessor {
 				)
 			}
 
-			// Send email notification
+			// Log payment failed notification (email functionality removed per NO ABSTRACTIONS)
 			if (paymentIntent.metadata?.user_email) {
-				await this.emailService.sendPaymentFailedEmail({
-					to: paymentIntent.metadata.user_email,
+				this.logger.log('Payment failed notification', {
+					email: paymentIntent.metadata.user_email,
 					userName: paymentIntent.metadata.user_name,
 					amount: paymentIntent.amount,
 					currency: paymentIntent.currency,
@@ -170,12 +168,10 @@ export class StripeEventProcessor {
 					})
 				}
 
-				// Send confirmation email
+				// Log payment method saved notification (email functionality removed per NO ABSTRACTIONS)
 				if (setupIntent.metadata?.user_email) {
-					// const paymentMethod = setupIntent.payment_method as string
-					// In production, you would fetch payment method details from Stripe
-					await this.emailService.sendPaymentMethodSavedEmail({
-						to: setupIntent.metadata.user_email,
+					this.logger.log('Payment method saved notification', {
+						email: setupIntent.metadata.user_email,
 						userName: setupIntent.metadata.user_name,
 						lastFour: '****', // Would be fetched from payment method
 						brand: 'Card' // Would be fetched from payment method
@@ -384,11 +380,11 @@ export class StripeEventProcessor {
 				accessGranted: {}
 			})
 
-			// Send cancellation email
+			// Log subscription cancelled notification (email functionality removed per NO ABSTRACTIONS)
 			const userRecord = subRecord.User
 			if (userRecord?.email) {
-				await this.emailService.sendSubscriptionCancelledEmail({
-					to: userRecord.email,
+				this.logger.log('Subscription cancelled notification', {
+					email: userRecord.email,
 					userName: userRecord.name || undefined,
 					planName: 'TenantFlow Pro', // Would fetch from subscription items
 					cancellationDate: new Date()
@@ -422,8 +418,9 @@ export class StripeEventProcessor {
 			)
 
 			if (user?.email) {
-				await this.emailService.sendInvoiceReceiptEmail({
-					to: user.email,
+				// Log invoice receipt notification (email functionality removed per NO ABSTRACTIONS)
+				this.logger.log('Invoice receipt notification', {
+					email: user.email,
 					userName: user.name || undefined,
 					invoiceNumber: invoice.number || null,
 					amount: invoice.amount_paid,
@@ -490,10 +487,10 @@ export class StripeEventProcessor {
 			}
 
 			if (currentAttempt < maxRetries) {
-				// Notify user of failed payment with retry information
+				// Log payment failed notification (email functionality removed per NO ABSTRACTIONS)
 				if (user.email) {
-					await this.emailService.sendInvoicePaymentFailedEmail({
-						to: user.email,
+					this.logger.log('Invoice payment failed notification', {
+						email: user.email,
 						userName: user.name || undefined,
 						attemptNumber: currentAttempt,
 						maxRetries,
@@ -515,10 +512,10 @@ export class StripeEventProcessor {
 				if (subscriptionId && typeof subscriptionId === 'string') {
 					await this.suspendSubscriptionAccess(subscriptionId)
 
-					// Send account suspended email
+					// Log account suspended notification (email functionality removed per NO ABSTRACTIONS)
 					if (user.email) {
-						await this.emailService.sendAccountSuspendedEmail({
-							to: user.email,
+						this.logger.log('Account suspended notification', {
+							email: user.email,
 							userName: user.name || undefined,
 							suspensionReason: 'payment_failure'
 						})

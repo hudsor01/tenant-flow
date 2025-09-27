@@ -59,7 +59,7 @@ describe('MaintenanceController', () => {
 		}
 
 		mockSupabaseService = {
-			validateUser: jest
+			getUser: jest
 				.fn()
 				.mockImplementation(req => Promise.resolve(req.user))
 		} as unknown as jest.Mocked<SupabaseService>

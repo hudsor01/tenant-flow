@@ -64,39 +64,6 @@ export function getAllPlans() {
 	return PLANS
 }
 
-/**
- * Format price in cents to dollar string
- * @param priceInCents - Price in cents (e.g., 2900 = $29.00)
- * @param period - Billing period for display
- */
-export function formatPrice(
-	priceInCents: number,
-	period: BillingPeriod
-): string {
-	if (priceInCents === 0) {
-		return 'Free'
-	}
 
-	const dollars = priceInCents / 100
-	const periodDisplay = period === 'monthly' ? '/month' : '/year'
 
-	return `$${dollars.toFixed(0)}${periodDisplay}`
-}
 
-/**
- * Calculate annual savings percentage
- * @param monthlyPrice - Monthly price in cents
- * @param annualPrice - Annual price in cents
- */
-export function getAnnualSavings(
-	monthlyPrice: number,
-	annualPrice: number
-): number {
-	if (monthlyPrice === 0 || annualPrice === 0) {
-		return 0
-	}
-
-	const yearlyEquivalent = monthlyPrice * 12
-	const savings = (yearlyEquivalent - annualPrice) / yearlyEquivalent
-	return Math.round(savings * 100)
-}

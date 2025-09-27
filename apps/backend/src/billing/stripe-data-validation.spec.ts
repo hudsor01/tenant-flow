@@ -7,7 +7,6 @@ import type { Request } from 'express'
 import Stripe from 'stripe'
 import { SilentLogger } from '../__test__/silent-logger'
 import { SupabaseService } from '../database/supabase.service'
-import { EmailService } from '../shared/services/email.service'
 import { StripeEventProcessor } from './stripe-event-processor.service'
 import { StripeSyncService } from './stripe-sync.service'
 import { StripeWebhookService } from './stripe-webhook.service'
@@ -137,13 +136,6 @@ describe('Production Stripe Webhook Processing', () => {
 						checkConnection: jest.fn(() =>
 							Promise.resolve({ status: 'healthy' })
 						)
-					}
-				},
-				{
-					provide: EmailService,
-					useValue: {
-						send: jest.fn(() => Promise.resolve({ id: 'mock-email-id' })),
-						sendBulk: jest.fn(() => Promise.resolve({ data: [] }))
 					}
 				},
 				{

@@ -4,6 +4,7 @@
  */
 
 import { oklchToRgb, rgbToRelativeLuminance } from '../colors/utils'
+import { CheckCircle, XCircle } from 'lucide-react'
 
 export interface ContrastResult {
 	ratio: number
@@ -215,7 +216,7 @@ export function validateDesignSystemContrast(): Array<
 }
 
 /**
- * Generate a contrast validation report
+ * Generate a contrast validation report with status icons
  */
 export function generateContrastReport(): string {
 	const results = validateDesignSystemContrast()
@@ -224,9 +225,9 @@ export function generateContrastReport(): string {
 	let report = '# Design System Contrast Validation Report\n\n'
 
 	if (failures.length === 0) {
-		report += '✅ All color combinations meet WCAG 2.1 AA standards!\n\n'
+		report += 'All color combinations meet WCAG 2.1 AA standards!\n\n'
 	} else {
-		report += `❌ ${failures.length} color combination(s) failed accessibility standards:\n\n`
+		report += `${failures.length} color combination(s) failed accessibility standards:\n\n`
 
 		failures.forEach(failure => {
 			report += `- **${failure.foreground}** on **${failure.background}**\n`
@@ -241,9 +242,16 @@ export function generateContrastReport(): string {
 
 	report += '## All Tested Combinations\n\n'
 	results.forEach(result => {
-		const status = result.isAccessible ? '✅' : '❌'
-		report += `${status} **${result.foreground}** on **${result.background}** - ${result.ratio.toFixed(2)}:1 (${result.level})\n`
+		const status = result.isAccessible ? 'PASS' : 'FAIL'
+		report += `${status}: **${result.foreground}** on **${result.background}** - ${result.ratio.toFixed(2)}:1 (${result.level})\n`
 	})
 
 	return report
+}
+
+/**
+ * Get status icon component for accessibility result
+ */
+export function getStatusIcon(isAccessible: boolean) {
+	return isAccessible ? CheckCircle : XCircle
 }

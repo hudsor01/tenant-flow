@@ -29,20 +29,30 @@ export function PasswordUpdateSection() {
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 	const [passwordStrength, setPasswordStrength] = useState(0)
 
-	// Password strength calculation
-	const calculatePasswordStrength = (pwd: string) => {
-		let strength = 0
-		if (pwd.length >= 8) strength++
-		if (/[A-Z]/.test(pwd)) strength++
-		if (/[a-z]/.test(pwd)) strength++
-		if (/\d/.test(pwd)) strength++
-		if (/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) strength++
-		return strength
+	// Password strength validation using backend RPC
+	const validatePasswordStrength = async (pwd: string) => {
+		if (!pwd) return 0
+
+		try {
+			const { data, error } = await supabaseClient
+				.rpc('validate_password_strength', { p_password: pwd })
+
+			if (error) {
+				// Password validation error
+				return 0
+			}
+
+			return data?.strength || 0
+		} catch {
+			// Password validation failed
+			return 0
+		}
 	}
 
-	const handlePasswordChange = (value: string) => {
+	const handlePasswordChange = async (value: string) => {
 		setPassword(value)
-		setPasswordStrength(calculatePasswordStrength(value))
+		const strength = await validatePasswordStrength(value)
+		setPasswordStrength(strength)
 	}
 
 	const getStrengthColor = (strength: number) => {
@@ -89,9 +99,12 @@ export function PasswordUpdateSection() {
 				throw new Error('Passwords do not match')
 			}
 
-			// Validate password strength
-			if (passwordStrength < 3) {
-				throw new Error('Password is too weak. Please use a stronger password.')
+			// Use backend RPC for password validation
+			const { data: validationResult, error: validationError } = await supabaseClient
+				.rpc('validate_password_strength', { p_password: password })
+
+			if (validationError || !validationResult?.isValid) {
+				throw new Error(validationResult?.reason || 'Password is too weak. Please use a stronger password.')
 			}
 
 			// First verify current password by reauthenticating

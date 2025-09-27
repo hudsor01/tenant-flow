@@ -25,15 +25,30 @@ export class DashboardController {
 	) {}
 
 	/**
-	 * Helper method to validate user from request
+	 * Helper method to get authenticated user from request
+	 * Uses Supabase's native auth.getUser() method
 	 */
-	private async validateUser(request: Request): Promise<authUser> {
+	private async getAuthenticatedUser(request: Request): Promise<authUser> {
 		if (!this.supabaseService) {
+			this.logger.error('SupabaseService not available in DashboardController', {
+				endpoint: request.path,
+				method: request.method
+			})
 			throw new NotFoundException('Authentication service not available')
 		}
 
-		const user = await this.supabaseService.validateUser(request)
+		const user = await this.supabaseService.getUser(request)
 		if (!user) {
+			this.logger.warn('User authentication failed in DashboardController', {
+				endpoint: request.path,
+				method: request.method,
+				headers: {
+					origin: request.headers.origin,
+					referer: request.headers.referer,
+					hasAuthHeader: !!request.headers.authorization,
+					cookieCount: Object.keys(request.cookies || {}).length
+				}
+			})
 			throw new UnauthorizedException('Authentication required')
 		}
 
@@ -44,7 +59,7 @@ export class DashboardController {
 	// @ApiOperation({ summary: 'Get dashboard statistics for authenticated user' })
 	// @ApiResponse({ status: 200, description: 'Dashboard statistics retrieved successfully' })
 	async getStats(@Req() request: Request): Promise<ControllerApiResponse> {
-		const user = await this.validateUser(request)
+		const user = await this.getAuthenticatedUser(request)
 
 		this.logger?.log(
 			{
@@ -71,7 +86,7 @@ export class DashboardController {
 	// @ApiOperation({ summary: 'Get recent dashboard activity' })
 	// @ApiResponse({ status: 200, description: 'Dashboard activity retrieved successfully' })
 	async getActivity(@Req() request: Request): Promise<ControllerApiResponse> {
-		const user = await this.validateUser(request)
+		const user = await this.getAuthenticatedUser(request)
 
 		this.logger?.log(
 			{
@@ -196,7 +211,7 @@ export class DashboardController {
 	async getPropertyPerformance(
 		@Req() request: Request
 	): Promise<ControllerApiResponse> {
-		const user = await this.validateUser(request)
+		const user = await this.getAuthenticatedUser(request)
 
 		this.logger?.log(
 			{

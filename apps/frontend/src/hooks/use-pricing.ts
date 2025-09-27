@@ -9,7 +9,6 @@ import {
   getAllPricingPlans,
   getPricingPlan,
   getStripePriceId,
-  calculateAnnualSavings,
   type PlanId,
   type PricingConfig
 } from '@repo/shared'
@@ -19,7 +18,6 @@ interface UsePricingReturn {
   getPlan: (planId: PlanId) => PricingConfig | undefined
   getPrice: (planId: PlanId, period: 'monthly' | 'annual') => string
   getStripeId: (planId: PlanId, period: 'monthly' | 'annual') => string | null
-  calculateSavings: (monthlyPrice: number) => number
   isLoading: false // Always false for static pricing
   error: null // Never has errors for static pricing
 }
@@ -55,7 +53,6 @@ export function usePricing(): UsePricingReturn {
     getPlan,
     getPrice,
     getStripeId,
-    calculateSavings: calculateAnnualSavings,
     isLoading: false,
     error: null
   }

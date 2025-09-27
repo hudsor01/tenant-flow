@@ -1,27 +1,120 @@
 'use server'
 
-import { serverFetch } from '@/lib/api/server'
+import { createClient } from '@/utils/supabase/server'
 import type { DashboardStats } from '@repo/shared'
 import { revalidatePath } from 'next/cache'
 import { cache } from 'react'
 
 /**
  * Server Actions for Dashboard
- * Follows established Next.js 15 Server Actions pattern
- * Uses serverFetch for authenticated backend communication
+ * Uses direct Supabase queries instead of backend API
  */
 
 /**
  * Get dashboard statistics
- * Uses server-side authentication via serverFetch
+ * Uses Supabase RPC function or falls back to aggregation
  * Cached to prevent duplicate calls during render
  */
 export const getDashboardStats = cache(async () => {
 	try {
-		const stats = await serverFetch<DashboardStats>('/api/v1/dashboard/stats')
+		const supabase = await createClient()
+		const { data: { user } } = await supabase.auth.getUser()
+
+		if (!user) {
+			return {
+				success: false,
+				error: 'Authentication required',
+				shouldRedirect: '/login'
+			}
+		}
+
+		// Try RPC function first
+		const { data: rpcData, error: rpcError } = await supabase
+			.rpc('get_dashboard_summary', {
+				p_user_id: user.id
+			})
+
+		if (!rpcError && rpcData) {
+			// Cast the Json response to DashboardStats
+			const stats = rpcData as unknown as DashboardStats
+			return { success: true, data: stats }
+		}
+
+		// Fallback to manual aggregation
+		const [properties, tenants, units, leases, maintenanceRequests] = await Promise.all([
+			supabase.from('Property').select('id, name').eq('ownerId', user.id),
+			supabase.from('Tenant').select('id, createdAt').eq('userId', user.id),
+			supabase
+				.from('Unit')
+				.select('id, status, Property!inner(ownerId)')
+				.eq('Property.ownerId', user.id),
+			supabase
+				.from('Lease')
+				.select('id, status, monthlyRent, Unit!inner(Property!inner(ownerId))')
+				.eq('Unit.Property.ownerId', user.id),
+			supabase
+				.from('MaintenanceRequest')
+				.select('id, status, Unit!inner(Property!inner(ownerId))')
+				.eq('Unit.Property.ownerId', user.id)
+		])
+
+		// Calculate statistics
+		const activeLeases = leases.data?.filter(l => l.status === 'ACTIVE') || []
+		const monthlyRevenue = activeLeases.reduce((sum, l) => sum + (l.monthlyRent || 0), 0)
+		const occupiedUnits = units.data?.filter(u => u.status === 'OCCUPIED') || []
+		const vacantUnits = units.data?.filter(u => u.status === 'VACANT') || []
+		const pendingMaintenance = maintenanceRequests.data?.filter(m => m.status === 'OPEN') || []
+
+		// Calculate new tenants (last 30 days)
+		const thirtyDaysAgo = new Date()
+		thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+		const newTenants = tenants.data?.filter(
+			t => new Date(t.createdAt) > thirtyDaysAgo
+		) || []
+
+		const stats: DashboardStats = {
+			properties: {
+				total: properties.data?.length || 0,
+				maintenance: pendingMaintenance.length
+			},
+			tenants: {
+				total: tenants.data?.length || 0,
+				active: activeLeases.length,
+				inactive: tenants.data?.length ? tenants.data.length - activeLeases.length : 0,
+				newThisMonth: newTenants.length
+			},
+			units: {
+				total: units.data?.length || 0,
+				occupied: occupiedUnits.length,
+				vacant: vacantUnits.length,
+				maintenance: 0,
+				averageRent: monthlyRevenue / (activeLeases.length || 1),
+				available: vacantUnits.length,
+				occupancyRate: units.data?.length
+					? (occupiedUnits.length / units.data.length) * 100
+					: 0,
+				underMaintenance: 0,
+				reserved: 0,
+				turnoverRate: 0
+			},
+			leases: {
+				total: leases.data?.length || 0,
+				active: activeLeases.length,
+				expiring: 0,
+				new: 0
+			},
+			revenue: {
+				monthly: monthlyRevenue,
+				yearly: monthlyRevenue * 12,
+				growth: 0 // Would need historical data
+			},
+			occupancyRate: units.data?.length
+				? (occupiedUnits.length / units.data.length) * 100
+				: 0
+		}
+
 		return { success: true, data: stats }
 	} catch (error) {
-		// Check if this is an authentication error
 		const errorMessage = error instanceof Error ? error.message : String(error)
 		const isAuthError =
 			errorMessage.includes('401') ||
@@ -29,7 +122,6 @@ export const getDashboardStats = cache(async () => {
 			errorMessage.includes('Unauthorized')
 
 		if (isAuthError) {
-			// For authentication errors, redirect to login instead of showing mock data
 			return {
 				success: false,
 				error: 'Authentication required',
@@ -51,10 +143,115 @@ export const getDashboardStats = cache(async () => {
  */
 export const getDashboardActivity = cache(async () => {
 	try {
-		const activity = await serverFetch<{ activities: Array<unknown> }>(
-			'/api/v1/dashboard/activity'
+		const supabase = await createClient()
+		const { data: { user } } = await supabase.auth.getUser()
+
+		if (!user) {
+			return {
+				success: false,
+				error: 'Authentication required',
+				shouldRedirect: '/login'
+			}
+		}
+
+		// Get recent activities from various tables
+		const [recentProperties, recentTenants, recentLeases, recentMaintenance] = await Promise.all([
+			supabase
+				.from('Property')
+				.select('id, name, createdAt')
+				.eq('ownerId', user.id)
+				.order('createdAt', { ascending: false })
+				.limit(5),
+			supabase
+				.from('Tenant')
+				.select('id, name, createdAt')
+				.eq('userId', user.id)
+				.order('createdAt', { ascending: false })
+				.limit(5),
+			supabase
+				.from('Lease')
+				.select(`
+					id,
+					createdAt,
+					Tenant(name),
+					Unit(unitNumber, Property!inner(name, ownerId))
+				`)
+				.eq('Unit.Property.ownerId', user.id)
+				.order('createdAt', { ascending: false })
+				.limit(5),
+			supabase
+				.from('MaintenanceRequest')
+				.select(`
+					id,
+					title,
+					createdAt,
+					status,
+					Unit(unitNumber, Property!inner(name, ownerId))
+				`)
+				.eq('Unit.Property.ownerId', user.id)
+				.order('createdAt', { ascending: false })
+				.limit(5)
+		])
+
+		// Combine and format activities
+		const activities: Array<{
+			id: string
+			type: string
+			description: string
+			timestamp: string
+		}> = []
+
+		// Add property activities
+		recentProperties.data?.forEach(property => {
+			activities.push({
+				id: `property-${property.id}`,
+				type: 'property',
+				description: `New property added: ${property.name}`,
+				timestamp: property.createdAt
+			})
+		})
+
+		// Add tenant activities
+		recentTenants.data?.forEach(tenant => {
+			activities.push({
+				id: `tenant-${tenant.id}`,
+				type: 'tenant',
+				description: `New tenant added: ${tenant.name}`,
+				timestamp: tenant.createdAt
+			})
+		})
+
+		// Add lease activities
+		recentLeases.data?.forEach(lease => {
+			if (lease.Tenant && lease.Unit) {
+				activities.push({
+					id: `lease-${lease.id}`,
+					type: 'lease',
+					description: `Lease created for ${lease.Tenant.name} - Unit ${lease.Unit.unitNumber}`,
+					timestamp: lease.createdAt
+				})
+			}
+		})
+
+		// Add maintenance activities
+		recentMaintenance.data?.forEach(request => {
+			if (request.Unit) {
+				activities.push({
+					id: `maintenance-${request.id}`,
+					type: 'maintenance',
+					description: `Maintenance: ${request.title} - Unit ${request.Unit.unitNumber}`,
+					timestamp: request.createdAt
+				})
+			}
+		})
+
+		// Sort by timestamp and take top 10
+		activities.sort((a, b) =>
+			new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
 		)
-		return { success: true, data: activity }
+		const recentActivities = activities.slice(0, 10)
+
+		return { success: true, data: { activities: recentActivities } }
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error)
 		const isAuthError =
@@ -79,13 +276,74 @@ export const getDashboardActivity = cache(async () => {
 
 /**
  * Get property performance metrics
- * Backend calculates per-property performance data
+ * Uses Supabase RPC or aggregation
  */
 export async function getPropertyPerformance() {
 	try {
-		const performance = await serverFetch(
-			'/api/v1/dashboard/property-performance'
-		)
+		const supabase = await createClient()
+		const { data: { user } } = await supabase.auth.getUser()
+
+		if (!user) {
+			return {
+				success: false,
+				error: 'Authentication required',
+				shouldRedirect: '/login'
+			}
+		}
+
+		// Try RPC function first
+		const { data, error } = await supabase
+			.rpc('get_property_performance', {
+				p_user_id: user.id
+			})
+
+		if (!error && data) {
+			return { success: true, data }
+		}
+
+		// Fallback: Get properties with their units and leases
+		const { data: properties } = await supabase
+			.from('Property')
+			.select(`
+				id,
+				name,
+				address,
+				Unit(
+					id,
+					status,
+					monthlyRent,
+					Lease(
+						id,
+						status,
+						monthlyRent
+					)
+				)
+			`)
+			.eq('ownerId', user.id)
+
+		const performance = properties?.map(property => {
+			const totalUnits = property.Unit?.length || 0
+			const occupiedUnits = property.Unit?.filter(
+				(u) => u.status === 'OCCUPIED'
+			).length || 0
+			const monthlyRevenue = property.Unit?.reduce((sum: number, unit) => {
+				const activeLease = unit.Lease?.find((l) => l.status === 'ACTIVE')
+				return sum + (activeLease?.monthlyRent || 0)
+			}, 0) || 0
+
+			return {
+				propertyId: property.id,
+				propertyName: property.name,
+				address: property.address,
+				totalUnits,
+				occupiedUnits,
+				vacantUnits: totalUnits - occupiedUnits,
+				occupancyRate: totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0,
+				monthlyRevenue,
+				annualRevenue: monthlyRevenue * 12
+			}
+		}) || []
+
 		return { success: true, data: performance }
 	} catch (error) {
 		return {
@@ -137,7 +395,7 @@ export const getDashboardData = cache(async () => {
 			data: {
 				stats: statsResult.data,
 				activity: activityResult.data,
-				chartData: [] // TODO: Add chart data endpoint
+				chartData: [] // TODO: Add chart data via Supabase
 			}
 		}
 	} catch (error) {

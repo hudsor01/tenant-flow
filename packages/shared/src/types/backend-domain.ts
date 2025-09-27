@@ -237,15 +237,8 @@ export interface LeaseQueryRequest {
 	sortOrder?: 'asc' | 'desc'
 }
 
-// Maintenance types
-export type MaintenanceCategory =
-	| 'PLUMBING'
-	| 'ELECTRICAL'
-	| 'HVAC'
-	| 'APPLIANCE'
-	| 'STRUCTURAL'
-	| 'GENERAL'
-	| 'OTHER'
+// MaintenanceCategory from database enums (Database already imported above)
+type MaintenanceCategory = Database['public']['Enums']['MaintenanceCategory']
 
 export interface CreateMaintenanceRequest {
 	unitId: string

@@ -17,8 +17,8 @@ import {
 } from 'lucide-react'
 
 export default async function AnalyticsPage() {
-	// Fetch real dashboard data from API server-side
-	const { dashboardStats: dashboardData, propertyPerformance: propertyData } =
+	// Fetch real dashboard data from API server-side (includes NOI calculations from backend)
+	const { dashboardStats: dashboardData, propertyPerformance: propertyData, financialStats } =
 		await getAnalyticsPageData()
 
 	// Format currency values
@@ -29,17 +29,6 @@ export default async function AnalyticsPage() {
 		const formatted = `${Math.abs(value).toFixed(1)}%`
 		if (!includeSign) return formatted
 		return value >= 0 ? `+${formatted}` : `-${formatted}`
-	}
-
-	// Calculate Net Operating Income (Revenue - Expenses) and profit margin
-	const calculateNetOperatingIncome = () => {
-		const monthlyRevenue = dashboardData?.revenue?.monthly || 0
-		// For demo purposes, estimate expenses as 25% of revenue (typical property management)
-		const estimatedExpenses = monthlyRevenue * 0.25
-		const netIncome = monthlyRevenue - estimatedExpenses
-		const profitMargin =
-			monthlyRevenue > 0 ? (netIncome / monthlyRevenue) * 100 : 0
-		return { netIncome, profitMargin }
 	}
 
 	return (
@@ -176,7 +165,7 @@ export default async function AnalyticsPage() {
 						<h3 className="font-semibold">Net Operating Income</h3>
 					</div>
 					<div className="text-3xl font-bold mb-1">
-						{formatCurrency(calculateNetOperatingIncome().netIncome)}
+						{formatCurrency(financialStats?.netOperatingIncome || 0)}
 					</div>
 					<div className="flex items-center gap-2">
 						<Badge
@@ -187,16 +176,15 @@ export default async function AnalyticsPage() {
 								color: 'var(--chart-3)'
 							}}
 						>
-							{(dashboardData?.revenue?.growth || 0) >= 0 ? (
+							{(financialStats?.noiGrowth || 0) >= 0 ? (
 								<TrendingUp className="size-3 mr-1" />
 							) : (
 								<TrendingDown className="size-3 mr-1" />
 							)}
-							{formatPercentage(dashboardData?.revenue?.growth || 0)}
+							{formatPercentage(financialStats?.noiGrowth || 0)}
 						</Badge>
 						<p className="text-muted-foreground text-sm">
-							{calculateNetOperatingIncome().profitMargin.toFixed(1)}% profit
-							margin
+							{(financialStats?.profitMargin || 0).toFixed(1)}% profit margin
 						</p>
 					</div>
 				</Card>

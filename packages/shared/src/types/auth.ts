@@ -6,7 +6,6 @@
 // Import constants from the single source of truth
 import type { USER_ROLE } from '../constants/auth.js'
 import type { authUser as BackendauthUser } from './backend-domain.js'
-import type { Database } from './supabase-generated.js'
 
 // Use Supabase User type directly - matches what we get from auth
 import type { User } from '@supabase/supabase-js'
@@ -25,7 +24,6 @@ export type SubscriptionStatus =
 	| 'INCOMPLETE'
 	| 'INCOMPLETE_EXPIRED'
 
-// Type guard to check if user has organizationId (for when feature is implemented)
 export function hasOrganizationId(
 	user: authUser
 ): user is authUser & { organizationId: string } {
@@ -35,8 +33,6 @@ export function hasOrganizationId(
 		userWithOrg.organizationId.length > 0
 	)
 }
-
-// AUTH FORM DATA TYPES - CONSOLIDATED from frontend forms
 
 export interface LoginFormData {
 	email: string
@@ -207,43 +203,11 @@ export interface JwtPayload {
 	exp?: number
 }
 
-// Note: authUser is defined as type alias above (line 13): export type authUser = User
-
 // Google OAuth user type - extends Supabase's User with Google-specific fields
 export interface GoogleOAuthUser extends authUser {
 	name?: string
 	picture?: string
 }
-
-// Supabase user structure (from Supabase auth.getUser())
-export interface SupabaseUser {
-	id: string
-	email?: string
-	email_confirmed_at?: string
-	user_metadata?: {
-		name?: string
-		full_name?: string
-		avatar_url?: string
-	}
-	created_at?: string
-	updated_at?: string
-}
-
-// Auth service validated user - directly extends database User table type
-export interface AuthServiceauthUser
-	extends Omit<
-		Database['public']['Tables']['User']['Row'],
-		'createdAt' | 'updatedAt'
-	> {
-	createdAt: Date
-	updatedAt: Date
-	profileComplete: boolean
-	lastLoginAt: Date
-	organizationId: string | null | undefined
-	emailVerified: boolean
-}
-
-// ADDITIONAL AUTH TYPES - MIGRATED from inline definitions
 
 // Backend auth request/response schemas
 export interface LoginRequest {

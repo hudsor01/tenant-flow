@@ -118,7 +118,7 @@ export class MaintenanceController {
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 
 		return this.maintenanceService.findAll(user?.id || 'test-user-id', {
 			unitId,
@@ -148,7 +148,7 @@ export class MaintenanceController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		return this.maintenanceService.getStats(user?.id || 'test-user-id')
 	}
 
@@ -163,7 +163,7 @@ export class MaintenanceController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		return this.maintenanceService.getUrgent(user?.id || 'test-user-id')
 	}
 
@@ -178,7 +178,7 @@ export class MaintenanceController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		return this.maintenanceService.getOverdue(user?.id || 'test-user-id')
 	}
 
@@ -198,7 +198,7 @@ export class MaintenanceController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		const maintenance = await this.maintenanceService.findOne(
 			user?.id || 'test-user-id',
 			id
@@ -224,7 +224,7 @@ export class MaintenanceController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		return this.maintenanceService.create(
 			user?.id || 'test-user-id',
 			createRequest
@@ -249,7 +249,7 @@ export class MaintenanceController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		const maintenance = await this.maintenanceService.update(
 			user?.id || 'test-user-id',
 			id,
@@ -276,7 +276,7 @@ export class MaintenanceController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		await this.maintenanceService.remove(user?.id || 'test-user-id', id)
 		return { message: 'Maintenance request deleted successfully' }
 	}
@@ -304,7 +304,7 @@ export class MaintenanceController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		return this.maintenanceService.complete(
 			user?.id || 'test-user-id',
 			id,
@@ -331,7 +331,7 @@ export class MaintenanceController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		return this.maintenanceService.cancel(
 			user?.id || 'test-user-id',
 			id,

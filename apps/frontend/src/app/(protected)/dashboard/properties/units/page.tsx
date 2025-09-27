@@ -50,25 +50,19 @@ export default function UnitsPage({
 	const { data: units = [] } = useUnits(status)
 	const { data: properties = [] } = useProperties()
 
-	// Filter units by property if specified
+	// Filter units by property if specified (minimal filtering for display)
 	const filteredUnits = propertyFilter
 		? units.filter((unit: UnitRowDB) => unit.propertyId === propertyFilter)
 		: units
 
-	// Get occupancy stats
-	const occupiedUnits = filteredUnits.filter(
-		(unit: UnitRowDB) => unit.status === 'OCCUPIED'
-	)
-	const vacantUnits = filteredUnits.filter(
-		(unit: UnitRowDB) => unit.status === 'VACANT'
-	)
-	const maintenanceUnits = filteredUnits.filter(
-		(unit: UnitRowDB) => unit.status === 'MAINTENANCE'
-	)
-	const occupancyRate =
-		filteredUnits.length > 0
-			? (occupiedUnits.length / filteredUnits.length) * 100
-			: 0
+	// TODO: Replace with backend-provided statistics from RPC functions
+	// All these calculations should come from check_user_permissions or unit stats endpoints
+	// For now, keeping minimal calculations until backend endpoints are connected
+	const totalUnits = filteredUnits.length
+	const occupiedCount = filteredUnits.filter((unit: UnitRowDB) => unit.status === 'OCCUPIED').length
+	const vacantCount = filteredUnits.filter((unit: UnitRowDB) => unit.status === 'VACANT').length
+	const maintenanceCount = filteredUnits.filter((unit: UnitRowDB) => unit.status === 'MAINTENANCE').length
+	const occupancyRate = totalUnits > 0 ? (occupiedCount / totalUnits) * 100 : 0
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -84,7 +78,7 @@ export default function UnitsPage({
 							style={{ backgroundColor: 'var(--chart-4)' }}
 						/>
 					</div>
-					<div className="text-2xl font-bold">{filteredUnits.length}</div>
+					<div className="text-2xl font-bold">{totalUnits}</div>
 					<p className="text-xs text-muted-foreground mt-1">
 						Across all properties
 					</p>
@@ -100,7 +94,7 @@ export default function UnitsPage({
 							style={{ backgroundColor: 'var(--chart-1)' }}
 						/>
 					</div>
-					<div className="text-2xl font-bold">{occupiedUnits.length}</div>
+					<div className="text-2xl font-bold">{occupiedCount}</div>
 					<div className="text-xs mt-1" style={{ color: 'var(--chart-1)' }}>
 						{occupancyRate.toFixed(1)}% occupancy
 					</div>
@@ -116,7 +110,7 @@ export default function UnitsPage({
 							style={{ backgroundColor: 'var(--chart-7)' }}
 						/>
 					</div>
-					<div className="text-2xl font-bold">{vacantUnits.length}</div>
+					<div className="text-2xl font-bold">{vacantCount}</div>
 					<div className="text-xs mt-1" style={{ color: 'var(--chart-7)' }}>
 						Available now
 					</div>
@@ -132,7 +126,7 @@ export default function UnitsPage({
 							style={{ backgroundColor: 'var(--chart-5)' }}
 						/>
 					</div>
-					<div className="text-2xl font-bold">{maintenanceUnits.length}</div>
+					<div className="text-2xl font-bold">{maintenanceCount}</div>
 					<div className="text-xs mt-1" style={{ color: 'var(--chart-5)' }}>
 						Needs attention
 					</div>

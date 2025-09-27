@@ -100,28 +100,8 @@ async function bootstrap() {
 		'Express middleware configured with full TypeScript support'
 	)
 
-	// Security: Apply input sanitization middleware
-	bootstrapLogger.log('Configuring input sanitization...')
-	const [
-		{ InputSanitizationMiddleware },
-		{ SecurityMonitorService },
-		{ SecurityExceptionFilter }
-	] = await Promise.all([
-		import('./shared/middleware/input-sanitization.middleware.js'),
-		import('./shared/services/security-monitor.service.js'),
-		import('./shared/filters/security-exception.filter.js')
-	])
-	const securityMonitor = await app.resolve(SecurityMonitorService)
-	const inputSanitizationMiddleware = new InputSanitizationMiddleware(
-		securityMonitor
-	)
-	app.use(inputSanitizationMiddleware.use.bind(inputSanitizationMiddleware))
-	bootstrapLogger.log('Input sanitization enabled')
-
-	// Security: Apply security exception filter
-	bootstrapLogger.log('Configuring security exception filter...')
-	const securityExceptionFilter = new SecurityExceptionFilter(securityMonitor)
-	app.useGlobalFilters(securityExceptionFilter)
+	// Security: Using built-in NestJS validation and exception handling
+	bootstrapLogger.log('Security: Using native NestJS validation')
 	bootstrapLogger.log('Security exception filter enabled')
 
 	// Global validation pipe with enhanced security
@@ -151,14 +131,34 @@ async function bootstrap() {
 		next()
 	})
 
-	// Express response logging middleware
+	// Express response logging middleware with enhanced error details
 	app.use((req: RequestWithTiming, res: Response, next: () => void) => {
 		const originalSend = res.send
 		res.send = function (body) {
 			const duration = Date.now() - (req.startTime ?? Date.now())
-			bootstrapLogger.log(
-				`${req.method} ${req.url} -> ${res.statusCode} in ${duration}ms`
-			)
+
+			// Enhanced logging for errors
+			if (res.statusCode >= 400) {
+				bootstrapLogger.warn(
+					`${req.method} ${req.url} -> ${res.statusCode} in ${duration}ms`,
+					{
+						statusCode: res.statusCode,
+						path: req.url,
+						method: req.method,
+						duration: `${duration}ms`,
+						headers: {
+							origin: req.headers.origin,
+							referer: req.headers.referer,
+							userAgent: req.headers['user-agent']?.substring(0, 100)
+						},
+						body: res.statusCode >= 500 ? body?.toString().substring(0, 500) : undefined
+					}
+				)
+			} else {
+				bootstrapLogger.log(
+					`${req.method} ${req.url} -> ${res.statusCode} in ${duration}ms`
+				)
+			}
 			return originalSend.call(this, body)
 		}
 		next()
@@ -169,8 +169,21 @@ async function bootstrap() {
 		next()
 	})
 
-	app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-		bootstrapLogger.error(`Unhandled error: ${err.message}`, err.stack)
+	app.use((err: Error, req: RequestWithTiming, res: Response, _next: NextFunction) => {
+		const duration = Date.now() - (req.startTime ?? Date.now())
+		bootstrapLogger.error('Unhandled error in Express middleware', {
+			error: err.message,
+			stack: err.stack?.split('\n').slice(0, 5).join('\n'),
+			path: req.url,
+			method: req.method,
+			requestId: req.id,
+			duration: `${duration}ms`,
+			headers: {
+				origin: req.headers.origin,
+				referer: req.headers.referer,
+				userAgent: req.headers['user-agent']?.substring(0, 100)
+			}
+		})
 		res.status(500).send('Internal Server Error')
 	})
 

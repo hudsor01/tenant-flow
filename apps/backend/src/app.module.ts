@@ -11,12 +11,12 @@ import { v4 as uuidv4 } from 'uuid'
 import { AnalyticsModule } from './analytics/analytics.module'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { AuthModule } from './auth/auth.module'
 import { StripeModule } from './billing/stripe.module'
 import { validate } from './config/config.schema'
 import { ContactModule } from './contact/contact.module'
 import { DashboardModule } from './dashboard/dashboard.module'
 import { SupabaseModule } from './database/supabase.module'
+import { FinancialModule } from './financial/financial.module'
 import { HealthModule } from './health/health.module'
 import { CacheControlInterceptor } from './interceptors/cache-control.interceptor'
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor'
@@ -86,11 +86,11 @@ import { UsersModule } from './users/users.module'
 		HealthModule,
 
 		// Business modules that depend on global services
-		AuthModule,
 		AnalyticsModule,
 		StripeModule,
 		ContactModule,
 		DashboardModule,
+		FinancialModule,
 		PropertiesModule,
 		UnitsModule,
 		TenantsModule,
