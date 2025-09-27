@@ -2681,8 +2681,24 @@ export type Database = {
         }
         Returns: Json
       }
+      calculate_monthly_metrics: {
+        Args: { p_user_id: string; p_year?: number }
+        Returns: Json
+      }
+      calculate_net_operating_income: {
+        Args: { p_period?: string; p_user_id: string }
+        Returns: Json
+      }
       calculate_property_performance: {
         Args: { p_period?: string; p_property_id: string; p_user_id: string }
+        Returns: Json
+      }
+      calculate_visitor_analytics_full: {
+        Args: {
+          p_property_id?: string
+          p_time_range?: string
+          p_user_id: string
+        }
         Returns: Json
       }
       can: {
@@ -2951,6 +2967,10 @@ export type Database = {
       }
       get_database_performance_stats: {
         Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_entity_permissions: {
+        Args: { p_entity_id: string; p_entity_type: string; p_user_id: string }
         Returns: Json
       }
       get_expense_summary: {
@@ -4106,6 +4126,10 @@ export type Database = {
       users_are: {
         Args: { "": unknown[] }
         Returns: string
+      }
+      validate_password_strength: {
+        Args: { p_password: string }
+        Returns: Json
       }
       verify_security_compliance: {
         Args: Record<PropertyKey, never>

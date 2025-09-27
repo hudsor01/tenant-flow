@@ -4,7 +4,6 @@ import {
 	nonEmptyStringSchema,
 	nonNegativeNumberSchema,
 	requiredString,
-	urlSchema,
 	uuidSchema
 } from './common.js'
 
@@ -35,55 +34,47 @@ export const maintenanceRequestInputSchema = z.object({
 
 	priority: maintenancePrioritySchema.default('MEDIUM' as const),
 
-	category: maintenanceCategorySchema.default('GENERAL' as const),
+	category: z.string().optional(), // Database shows this as string | null, not enum
 
 	unitId: uuidSchema,
-
-	tenantId: uuidSchema.optional(),
 
 	// Optional assignment
 	assignedTo: uuidSchema.optional(),
 
-	// Estimated cost
+	// Request details
+	requestedBy: uuidSchema.optional(),
+	contactPhone: z.string().optional(),
+	allowEntry: z.boolean().optional().default(false),
+
+	// Cost information
 	estimatedCost: nonNegativeNumberSchema
 		.max(1000000, 'Estimated cost seems unrealistic')
 		.optional(),
 
-	// Images/attachments
-	images: z.array(urlSchema).optional().default([]),
+	// Photos/attachments (database field is 'photos', not 'images')
+	photos: z.array(z.string()).optional().default([]),
 
 	// Additional notes
 	notes: z.string().max(1000, 'Notes cannot exceed 1000 characters').optional(),
 
-	// Scheduled/preferred completion date
-	scheduledDate: z
+	// Preferred completion date (database field is 'preferredDate', not 'scheduledDate')
+	preferredDate: z
 		.string()
 		.optional()
 		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
-			message: 'Please enter a valid scheduled date'
+			message: 'Please enter a valid preferred date'
 		})
-		.transform((val: string | undefined) => (val ? new Date(val) : undefined)),
-
-	// Tenant access info
-	accessInstructions: z
-		.string()
-		.max(500, 'Access instructions cannot exceed 500 characters')
-		.optional()
+		.transform((val: string | undefined) => (val ? new Date(val) : undefined))
 })
 
 // Full maintenance request schema (includes server-generated fields)
 export const maintenanceRequestSchema = maintenanceRequestInputSchema.extend({
 	id: uuidSchema,
-	ownerId: uuidSchema,
 	status: maintenanceStatusSchema.default('OPEN' as const),
 
 	// Completion info
 	completedAt: z.date().optional(),
 	actualCost: nonNegativeNumberSchema.optional(),
-
-	// Vendor/contractor info
-	vendorId: uuidSchema.optional(),
-	vendorNotes: z.string().optional(),
 
 	createdAt: z.date(),
 	updatedAt: z.date()
@@ -103,20 +94,18 @@ export const maintenanceRequestUpdateSchema = maintenanceRequestInputSchema
 			})
 			.transform((val: string | undefined) =>
 				val ? new Date(val) : undefined
-			),
-		vendorId: uuidSchema.optional(),
-		vendorNotes: z.string().max(1000).optional()
+			)
 	})
 
 // Maintenance request query schema (for search/filtering)
 export const maintenanceRequestQuerySchema = z.object({
 	search: z.string().optional(),
 	unitId: uuidSchema.optional(),
-	tenantId: uuidSchema.optional(),
+	requestedBy: uuidSchema.optional(),
 	assignedTo: uuidSchema.optional(),
 	status: maintenanceStatusSchema.optional(),
 	priority: maintenancePrioritySchema.optional(),
-	category: maintenanceCategorySchema.optional(),
+	category: z.string().optional(), // Database shows this as string, not enum
 	dateFrom: z
 		.string()
 		.optional()
@@ -137,7 +126,7 @@ export const maintenanceRequestQuerySchema = z.object({
 			'priority',
 			'status',
 			'createdAt',
-			'scheduledDate',
+			'preferredDate',
 			'estimatedCost'
 		])
 		.optional(),
@@ -188,35 +177,36 @@ export const maintenanceRequestFormSchema = z
 		title: requiredString,
 		description: requiredString,
 		priority: z.string().default('MEDIUM'),
-		category: z.string().default('GENERAL'),
+		category: z.string().optional().or(z.literal('')),
 		unitId: requiredString,
-		tenantId: z.string().optional().or(z.literal('')),
+		requestedBy: z.string().optional().or(z.literal('')),
 		assignedTo: z.string().optional().or(z.literal('')),
+		contactPhone: z.string().optional(),
+		allowEntry: z.boolean().optional().default(false),
 		estimatedCost: z
 			.string()
 			.optional()
 			.transform((val: string | undefined) =>
 				val ? parseFloat(val) : undefined
 			),
-		scheduledDate: z.string().optional().or(z.literal('')),
-		accessInstructions: z.string().optional(),
+		preferredDate: z.string().optional().or(z.literal('')),
 		notes: z.string().optional()
 	})
 	.transform(
 		(data: {
 			priority: string
-			category: string
-			tenantId?: string
+			category?: string
+			requestedBy?: string
 			assignedTo?: string
-			scheduledDate?: string
+			preferredDate?: string
 			[key: string]: unknown
 		}) => ({
 			...data,
 			priority: data.priority as MaintenancePriorityValidation,
-			category: data.category as MaintenanceCategoryValidation,
-			tenantId: data.tenantId === '' ? undefined : data.tenantId,
+			category: data.category === '' ? undefined : data.category,
+			requestedBy: data.requestedBy === '' ? undefined : data.requestedBy,
 			assignedTo: data.assignedTo === '' ? undefined : data.assignedTo,
-			scheduledDate: data.scheduledDate === '' ? undefined : data.scheduledDate
+			preferredDate: data.preferredDate === '' ? undefined : data.preferredDate
 		})
 	)
 

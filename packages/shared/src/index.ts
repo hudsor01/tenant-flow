@@ -54,6 +54,12 @@ export { USER_ROLE } from './constants/auth.js'
 export { PLANS, PLAN_TYPE } from './constants/billing.js'
 export type { Permission } from './types/security.js'
 
+// Lease Generator Types (for PDF generation feature)
+export type {
+	LeaseFormData as LeaseGeneratorFormData,
+	StateLeaseRequirements
+} from './types/lease-generator.types.js'
+
 export {
     ANIMATION_DURATIONS,
     ANIMATION_EASINGS,
@@ -152,10 +158,6 @@ export const MAINTENANCE_CATEGORY = {
 } as const
 
 // ESSENTIAL VALIDATION (Domain-Specific Only)
-export type {
-    LeaseFormData,
-    StateLeaseRequirements
-} from './types/lease-generator.types.js'
 export {
     emailSchema,
     nonNegativeNumberSchema,
@@ -190,3 +192,46 @@ export * from './types/frontend.js'
 
 // VALIDATION SCHEMAS
 export { loginZodSchema, registerZodSchema } from './validation/auth.js'
+export {
+  leaseInputSchema,
+  leaseUpdateSchema,
+  leaseRenewalSchema,
+  leaseTerminationSchema,
+  type LeaseFormData,
+  type LeaseRenewalData,
+  type LeaseTerminationData,
+  type CreateLeaseInput,
+  type UpdateLeaseInput
+} from './validation/leases.js'
+export {
+  tenantInputSchema,
+  tenantUpdateSchema,
+  tenantFormSchema,
+  type TenantInput,
+  type TenantUpdate,
+  type TenantFormData
+} from './validation/tenants.js'
+export {
+  propertyInputSchema,
+  propertyUpdateSchema,
+  propertyFormSchema,
+  type PropertyInput,
+  type PropertyUpdate,
+  type PropertyFormData
+} from './validation/properties.js'
+export {
+  maintenanceRequestInputSchema,
+  maintenanceRequestUpdateSchema,
+  maintenanceRequestFormSchema,
+  type MaintenanceRequestInput,
+  type MaintenanceRequestUpdate,
+  type MaintenanceRequestFormData
+} from './validation/maintenance.js'
+export {
+  unitInputSchema,
+  unitUpdateSchema,
+  unitFormSchema,
+  type UnitInput,
+  type UnitUpdate,
+  type UnitFormData
+} from './validation/units.js'

@@ -91,15 +91,7 @@ export class HealthController {
 	@Get('performance')
 	@SetMetadata('isPublic', true)
 	performanceMetrics() {
-		const performance = this.metricsService.getDetailedPerformanceMetrics()
-
-		return {
-			...performance,
-			cache: {
-				cacheSize: 0,
-				memoryUsage: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
-			}
-		}
+		return this.metricsService.getDetailedPerformanceMetrics()
 	}
 
 	/**

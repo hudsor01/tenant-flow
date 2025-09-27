@@ -10,6 +10,7 @@ import {
 } from '@/lib/design-system'
 import { forwardRef } from 'react'
 
+// eslint-disable-next-line type-centralization/no-inline-types
 interface GoogleButtonProps extends React.ComponentProps<typeof Button> {
 	isLoading?: boolean
 	loadingText?: string

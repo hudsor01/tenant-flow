@@ -8,13 +8,12 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Edit, Eye, RotateCcw, Calendar, DollarSign, FileText, Building, Users } from 'lucide-react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useForm } from '@tanstack/react-form'
 import { leasesApi } from '@/lib/api-client'
 import { toast } from 'sonner'
 import type { Tables } from '@repo/shared'
+import { leaseUpdateSchema, type LeaseUpdate } from '@repo/shared/validation/leases'
 
 type Lease = Tables<'Lease'>
 
@@ -22,36 +21,40 @@ interface LeaseActionButtonsProps {
   lease: Lease
 }
 
-const editLeaseSchema = z.object({
-  startDate: z.string().min(1, 'Start date is required'),
-  endDate: z.string().min(1, 'End date is required'),
-  rentAmount: z.number().min(1, 'Rent amount must be greater than 0'),
-  securityDeposit: z.number().min(0, 'Security deposit cannot be negative'),
-  terms: z.string().optional()
-})
-
-type EditLeaseFormData = z.infer<typeof editLeaseSchema>
-
 export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
   const [viewOpen, setViewOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [renewOpen, setRenewOpen] = useState(false)
   const queryClient = useQueryClient()
 
-  const form = useForm<EditLeaseFormData>({
-    resolver: zodResolver(editLeaseSchema),
+  const form = useForm({
     defaultValues: {
       startDate: lease.startDate,
       endDate: lease.endDate,
       rentAmount: lease.rentAmount,
       securityDeposit: lease.securityDeposit,
       terms: lease.terms || ''
+    },
+    onSubmit: async ({ value }) => {
+      updateMutation.mutate(value)
+    },
+    validators: {
+      onChange: ({ value }) => {
+        const result = leaseUpdateSchema.safeParse(value)
+        if (!result.success) {
+          return result.error.format()
+        }
+        return undefined
+      }
     }
   })
 
   const updateMutation = useMutation({
-    mutationFn: (data: EditLeaseFormData) =>
-      leasesApi.updateLeaseWithFinancialCalculations(lease.id, data),
+    mutationFn: (data: LeaseUpdate) =>
+      leasesApi.updateLeaseWithFinancialCalculations(lease.id, {
+        ...data,
+        status: data.status as Tables<'Lease'>['status']
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leases'] })
       toast.success('Lease updated successfully')
@@ -96,9 +99,6 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
     }
   })
 
-  const onSubmit = (data: EditLeaseFormData) => {
-    updateMutation.mutate(data)
-  }
 
   const handleRenew = (data: { endDate: string; rentAmount: number }) => {
     renewMutation.mutate(data)
@@ -124,75 +124,116 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
             <DialogTitle>Edit Lease Agreement</DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={e => {
+              e.preventDefault()
+              form.handleSubmit()
+            }}
+            className="space-y-4"
+          >
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-startDate">Start Date</Label>
-                <Input
-                  id="edit-startDate"
-                  type="date"
-                  {...form.register('startDate')}
-                />
-                {form.formState.errors.startDate && (
-                  <p className="text-sm text-destructive">
-                    {form.formState.errors.startDate.message}
-                  </p>
+              <form.Field name="startDate">
+                {field => (
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-startDate">Start Date</Label>
+                    <Input
+                      id="edit-startDate"
+                      type="date"
+                      value={field.state.value}
+                      onChange={e => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                    {field.state.meta.errors?.length ? (
+                      <p className="text-sm text-destructive">
+                        {String(field.state.meta.errors[0])}
+                      </p>
+                    ) : null}
+                  </div>
                 )}
-              </div>
+              </form.Field>
 
-              <div className="space-y-2">
-                <Label htmlFor="edit-endDate">End Date</Label>
-                <Input
-                  id="edit-endDate"
-                  type="date"
-                  {...form.register('endDate')}
-                />
-                {form.formState.errors.endDate && (
-                  <p className="text-sm text-destructive">
-                    {form.formState.errors.endDate.message}
-                  </p>
+              <form.Field name="endDate">
+                {field => (
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-endDate">End Date</Label>
+                    <Input
+                      id="edit-endDate"
+                      type="date"
+                      value={field.state.value}
+                      onChange={e => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                    {field.state.meta.errors?.length ? (
+                      <p className="text-sm text-destructive">
+                        {String(field.state.meta.errors[0])}
+                      </p>
+                    ) : null}
+                  </div>
                 )}
-              </div>
+              </form.Field>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-rentAmount">Monthly Rent</Label>
-                <Input
-                  id="edit-rentAmount"
-                  type="number"
-                  {...form.register('rentAmount', { valueAsNumber: true })}
-                />
-                {form.formState.errors.rentAmount && (
-                  <p className="text-sm text-destructive">
-                    {form.formState.errors.rentAmount.message}
-                  </p>
+              <form.Field name="rentAmount">
+                {field => (
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-rentAmount">Monthly Rent</Label>
+                    <Input
+                      id="edit-rentAmount"
+                      type="number"
+                      value={field.state.value}
+                      onChange={e => field.handleChange(Number(e.target.value))}
+                      onBlur={field.handleBlur}
+                    />
+                    {field.state.meta.errors?.length ? (
+                      <p className="text-sm text-destructive">
+                        {String(field.state.meta.errors[0])}
+                      </p>
+                    ) : null}
+                  </div>
                 )}
-              </div>
+              </form.Field>
 
-              <div className="space-y-2">
-                <Label htmlFor="edit-securityDeposit">Security Deposit</Label>
-                <Input
-                  id="edit-securityDeposit"
-                  type="number"
-                  {...form.register('securityDeposit', { valueAsNumber: true })}
-                />
-                {form.formState.errors.securityDeposit && (
-                  <p className="text-sm text-destructive">
-                    {form.formState.errors.securityDeposit.message}
-                  </p>
+              <form.Field name="securityDeposit">
+                {field => (
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-securityDeposit">Security Deposit</Label>
+                    <Input
+                      id="edit-securityDeposit"
+                      type="number"
+                      value={field.state.value}
+                      onChange={e => field.handleChange(Number(e.target.value))}
+                      onBlur={field.handleBlur}
+                    />
+                    {field.state.meta.errors?.length ? (
+                      <p className="text-sm text-destructive">
+                        {String(field.state.meta.errors[0])}
+                      </p>
+                    ) : null}
+                  </div>
                 )}
-              </div>
+              </form.Field>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-terms">Terms & Conditions</Label>
-              <Textarea
-                id="edit-terms"
-                {...form.register('terms')}
-                rows={3}
-              />
-            </div>
+            <form.Field name="terms">
+              {field => (
+                <div className="space-y-2">
+                  <Label htmlFor="edit-terms">Terms & Conditions</Label>
+                  <Textarea
+                    id="edit-terms"
+                    value={field.state.value}
+                    onChange={e => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    rows={3}
+                  />
+                  {field.state.meta.errors?.length ? (
+                    <p className="text-sm text-destructive">
+                      {String(field.state.meta.errors[0])}
+                    </p>
+                  ) : null}
+                </div>
+              )}
+            </form.Field>
 
             <div className="flex justify-end gap-2 pt-2">
               <Button

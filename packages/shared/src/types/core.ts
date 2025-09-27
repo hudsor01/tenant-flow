@@ -550,3 +550,19 @@ export interface MaintenancePerformance {
 	totalCost: number
 	emergencyRequests: number
 }
+
+// FORM PROGRESS TYPES - Frontend form state persistence
+
+export type FormProgressData = {
+	email?: string
+	name?: string
+	firstName?: string
+	lastName?: string
+	company?: string
+	phone?: string
+	subject?: string
+	message?: string
+	type?: string
+	password?: string
+	confirmPassword?: string
+}

@@ -20,37 +20,12 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { maintenanceApi } from '@/lib/api-client'
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { MaintenanceRequestUpdate } from '@repo/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Edit } from 'lucide-react'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { z } from 'zod'
-
-const updateMaintenanceSchema = z.object({
-	title: z
-		.string()
-		.min(5, 'Title must be at least 5 characters')
-		.max(200, 'Title cannot exceed 200 characters')
-		.optional(),
-	description: z
-		.string()
-		.min(10, 'Description must be at least 10 characters')
-		.max(2000, 'Description cannot exceed 2000 characters')
-		.optional(),
-	priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY']).optional(),
-	category: z.string().optional(),
-	estimatedCost: z.number().optional(),
-	notes: z.string().max(1000, 'Notes cannot exceed 1000 characters').optional(),
-	scheduledDate: z.string().optional(),
-	accessInstructions: z
-		.string()
-		.max(500, 'Access instructions cannot exceed 500 characters')
-		.optional()
-})
-
-type UpdateMaintenanceFormData = z.infer<typeof updateMaintenanceSchema>
+import { maintenanceRequestUpdateSchema, type MaintenanceRequestUpdate, type MaintenancePriorityValidation } from '@repo/shared/validation'
 
 interface EditMaintenanceButtonProps {
 	maintenance: {
@@ -58,11 +33,11 @@ interface EditMaintenanceButtonProps {
 		title: string
 		description: string
 		priority: string
-		category: string
-		estimatedCost?: number
-		notes?: string
-		scheduledDate?: string
-		accessInstructions?: string
+		category: string | null
+		estimatedCost?: number | null
+		notes?: string | null
+		preferredDate?: string | null
+		allowEntry?: boolean | null
 	}
 }
 
@@ -72,17 +47,17 @@ export function EditMaintenanceButton({
 	const [open, setOpen] = useState(false)
 	const queryClient = useQueryClient()
 
-	const form = useForm<UpdateMaintenanceFormData>({
-		resolver: zodResolver(updateMaintenanceSchema),
+	const form = useForm({
+		resolver: zodResolver(maintenanceRequestUpdateSchema),
 		defaultValues: {
 			title: maintenance.title,
 			description: maintenance.description,
-			priority: maintenance.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY',
-			category: maintenance.category,
-			estimatedCost: maintenance.estimatedCost,
+			priority: maintenance.priority as MaintenancePriorityValidation,
+			category: maintenance.category || '',
+			estimatedCost: maintenance.estimatedCost || undefined,
 			notes: maintenance.notes || '',
-			scheduledDate: maintenance.scheduledDate || '',
-			accessInstructions: maintenance.accessInstructions || ''
+			preferredDate: maintenance.preferredDate || '',
+			allowEntry: maintenance.allowEntry || false
 		}
 	})
 
@@ -101,15 +76,11 @@ export function EditMaintenanceButton({
 		}
 	})
 
-	const onSubmit = (data: UpdateMaintenanceFormData) => {
+	const onSubmit = (data: MaintenanceRequestUpdate) => {
 		const updateData = {
-			...data,
-			scheduledDate:
-				data.scheduledDate && data.scheduledDate.trim() !== ''
-					? data.scheduledDate
-					: undefined
+			...data
 		}
-		updateMutation.mutate(updateData as MaintenanceRequestUpdate)
+		updateMutation.mutate(updateData)
 	}
 
 	const categories = [
@@ -137,7 +108,7 @@ export function EditMaintenanceButton({
 				<DialogHeader>
 					<DialogTitle>Edit Maintenance Request</DialogTitle>
 				</DialogHeader>
-				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+				<form onSubmit={form.handleSubmit((data) => onSubmit(data as MaintenanceRequestUpdate))} className="space-y-4">
 					<div className="space-y-2">
 						<Label htmlFor="title">Title</Label>
 						<Input
@@ -223,11 +194,11 @@ export function EditMaintenanceButton({
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="scheduledDate">Scheduled Date (Optional)</Label>
+						<Label htmlFor="preferredDate">Preferred Date (Optional)</Label>
 						<Input
-							id="scheduledDate"
+							id="preferredDate"
 							type="date"
-							{...form.register('scheduledDate')}
+							{...form.register('preferredDate')}
 						/>
 					</div>
 
@@ -242,15 +213,15 @@ export function EditMaintenanceButton({
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="accessInstructions">
-							Access Instructions (Optional)
+						<Label htmlFor="allowEntry" className="flex items-center gap-2">
+							<input
+								id="allowEntry"
+								type="checkbox"
+								{...form.register('allowEntry')}
+								className="rounded border border-input"
+							/>
+							Allow entry when tenant is not present
 						</Label>
-						<Textarea
-							id="accessInstructions"
-							{...form.register('accessInstructions')}
-							placeholder="How to access the unit/area..."
-							rows={2}
-						/>
 					</div>
 
 					<div className="flex justify-end gap-2">

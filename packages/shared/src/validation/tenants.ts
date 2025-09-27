@@ -1,133 +1,54 @@
 import { z } from 'zod'
-import { Constants } from '../types/supabase-generated.js'
 import {
 	emailSchema,
 	nonEmptyStringSchema,
 	phoneSchema,
-	requiredString,
 	uuidSchema
 } from './common.js'
 
-// Tenant status enum - uses auto-generated Supabase enums
-export const tenantStatusSchema = z.enum(
-	Constants.public.Enums.TenantStatus as readonly [string, ...string[]]
-)
-
-// Emergency contact schema
+// Emergency contact is just a text field in the database
 export const emergencyContactSchema = z
-	.object({
-		name: nonEmptyStringSchema.max(
-			100,
-			'Emergency contact name cannot exceed 100 characters'
-		),
-		phone: phoneSchema.refine((val: string) => val && val.length > 0, {
-			message: 'Emergency contact phone is required'
-		}),
-		relationship: nonEmptyStringSchema.max(
-			50,
-			'Relationship cannot exceed 50 characters'
-		)
-	})
+	.string()
+	.max(500, 'Emergency contact info cannot exceed 500 characters')
 	.optional()
 
-// Base tenant object schema (without refinements)
+// Base tenant object schema - matches Supabase Tenant table exactly
 const tenantBaseSchema = z.object({
 	email: emailSchema,
-
+	name: nonEmptyStringSchema
+		.max(200, 'Name cannot exceed 200 characters')
+		.optional(), // nullable in database
 	firstName: nonEmptyStringSchema
-		.min(1, 'First name is required')
-		.max(50, 'First name cannot exceed 50 characters'),
-
+		.max(100, 'First name cannot exceed 100 characters')
+		.optional(), // nullable in database
 	lastName: nonEmptyStringSchema
-		.min(1, 'Last name is required')
-		.max(50, 'Last name cannot exceed 50 characters'),
-
+		.max(100, 'Last name cannot exceed 100 characters')
+		.optional(), // nullable in database
 	phone: phoneSchema.optional(),
-
-	dateOfBirth: z
-		.string()
-		.optional()
-		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
-			message: 'Please enter a valid date of birth'
-		})
-		.transform((val: string | undefined) => (val ? new Date(val) : undefined)),
-
 	emergencyContact: emergencyContactSchema,
-
-	// Optional property/unit associations
-	propertyId: uuidSchema.optional(),
-	unitId: uuidSchema.optional(),
-
-	// Optional lease dates for context
-	leaseStartDate: z
-		.string()
-		.optional()
-		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
-			message: 'Please enter a valid lease start date'
-		})
-		.transform((val: string | undefined) => (val ? new Date(val) : undefined)),
-
-	leaseEndDate: z
-		.string()
-		.optional()
-		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
-			message: 'Please enter a valid lease end date'
-		})
-		.transform((val: string | undefined) => (val ? new Date(val) : undefined)),
-
-	notes: z.string().max(1000, 'Notes cannot exceed 1000 characters').optional()
+	avatarUrl: z.string().url().optional(),
+	userId: uuidSchema.optional()
 })
 
 // Base tenant input schema (for forms and API creation)
-export const tenantInputSchema = tenantBaseSchema.refine(
-	(data: { leaseStartDate?: Date; leaseEndDate?: Date }) => {
-		// Validate lease date logic
-		if (data.leaseStartDate && data.leaseEndDate) {
-			return data.leaseEndDate > data.leaseStartDate
-		}
-		return true
-	},
-	{
-		message: 'Lease end date must be after start date',
-		path: ['leaseEndDate']
-	}
-)
+export const tenantInputSchema = tenantBaseSchema
 
 // Full tenant schema (includes server-generated fields)
 export const tenantSchema = tenantBaseSchema.extend({
 	id: uuidSchema,
-	ownerId: uuidSchema,
-	status: tenantStatusSchema.default('PENDING' as const),
 	createdAt: z.date(),
 	updatedAt: z.date()
 })
 
 // Tenant update schema (partial input)
-export const tenantUpdateSchema = tenantBaseSchema.partial().extend({
-	status: tenantStatusSchema.optional()
-})
+export const tenantUpdateSchema = tenantBaseSchema.partial()
 
 // Tenant query schema (for search/filtering)
 export const tenantQuerySchema = z.object({
 	search: z.string().optional(),
-	propertyId: uuidSchema.optional(),
-	unitId: uuidSchema.optional(),
-	status: tenantStatusSchema.optional(),
-	leaseStatus: z.enum(['ACTIVE', 'EXPIRED', 'TERMINATED']).optional(),
-	moveInDateFrom: z
-		.string()
-		.optional()
-		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
-			message: 'Invalid move-in date format'
-		}),
-	moveInDateTo: z
-		.string()
-		.optional()
-		.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
-			message: 'Invalid move-in date format'
-		}),
+	userId: uuidSchema.optional(),
 	sortBy: z
-		.enum(['firstName', 'lastName', 'email', 'createdAt', 'leaseStartDate'])
+		.enum(['name', 'firstName', 'lastName', 'email', 'createdAt'])
 		.optional(),
 	sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
 	page: z.coerce.number().int().positive().default(1),
@@ -136,11 +57,7 @@ export const tenantQuerySchema = z.object({
 
 // Tenant statistics schema
 export const tenantStatsSchema = z.object({
-	total: z.number().nonnegative(),
-	active: z.number().nonnegative(),
-	inactive: z.number().nonnegative(),
-	pending: z.number().nonnegative(),
-	former: z.number().nonnegative()
+	total: z.number().nonnegative()
 })
 
 // Export types
@@ -149,66 +66,22 @@ export type Tenant = z.infer<typeof tenantSchema>
 export type TenantUpdate = z.infer<typeof tenantUpdateSchema>
 export type TenantQuery = z.infer<typeof tenantQuerySchema>
 export type TenantStats = z.infer<typeof tenantStatsSchema>
-export type TenantStatus = z.infer<typeof tenantStatusSchema>
 export type EmergencyContact = z.infer<typeof emergencyContactSchema>
 
 // Frontend-specific form schema (handles string inputs from HTML forms)
-export const tenantFormSchema = z
-	.object({
-		email: z
-			.string()
-			.min(1, 'Email is required')
-			.email('Please enter a valid email'),
-		firstName: requiredString,
-		lastName: requiredString,
-		phone: z.string().optional(),
-		dateOfBirth: z.string().optional(),
-		propertyId: z.string().optional(),
-		unitId: z.string().optional(),
-		leaseStartDate: z.string().optional(),
-		leaseEndDate: z.string().optional(),
-		notes: z.string().optional(),
-		// Emergency contact as nested object in form
-		emergencyContactName: z.string().optional(),
-		emergencyContactPhone: z.string().optional(),
-		emergencyContactRelationship: z.string().optional()
-	})
-	.transform(
-		(data: {
-			email: string
-			firstName: string
-			lastName: string
-			phone?: string
-			dateOfBirth?: string
-			propertyId?: string
-			unitId?: string
-			leaseStartDate?: string
-			leaseEndDate?: string
-			notes?: string
-			emergencyContactName?: string
-			emergencyContactPhone?: string
-			emergencyContactRelationship?: string
-		}) => ({
-			email: data.email,
-			firstName: data.firstName,
-			lastName: data.lastName,
-			phone: data.phone,
-			dateOfBirth: data.dateOfBirth,
-			propertyId: data.propertyId,
-			unitId: data.unitId,
-			leaseStartDate: data.leaseStartDate,
-			leaseEndDate: data.leaseEndDate,
-			notes: data.notes,
-			emergencyContact:
-				data.emergencyContactName && data.emergencyContactPhone
-					? {
-							name: data.emergencyContactName,
-							phone: data.emergencyContactPhone,
-							relationship: data.emergencyContactRelationship ?? ''
-						}
-					: undefined
-		})
-	)
+export const tenantFormSchema = z.object({
+	email: z
+		.string()
+		.min(1, 'Email is required')
+		.email('Please enter a valid email'),
+	name: z.string().optional(),
+	firstName: z.string().optional(),
+	lastName: z.string().optional(),
+	phone: z.string().optional(),
+	emergencyContact: z.string().optional(),
+	avatarUrl: z.string().url().optional(),
+	userId: z.string().optional()
+})
 
 export type TenantFormData = z.input<typeof tenantFormSchema>
 export type TenantFormOutput = z.output<typeof tenantFormSchema>

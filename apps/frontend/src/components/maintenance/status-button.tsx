@@ -10,19 +10,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Settings } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { maintenanceApi } from '@/lib/api-client'
-import type { MaintenanceRequestUpdate } from '@repo/shared'
 import { toast } from 'sonner'
-
-const statusUpdateSchema = z.object({
-  status: z.enum(['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELED', 'ON_HOLD']),
-  actualCost: z.number().optional(),
-  notes: z.string().optional()
-})
-
-type StatusUpdateFormData = z.infer<typeof statusUpdateSchema>
+import { maintenanceRequestUpdateSchema, type MaintenanceRequestUpdate, type MaintenanceStatusValidation } from '@repo/shared/validation'
 
 interface StatusUpdateButtonProps {
   maintenance: {
@@ -36,27 +27,23 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
   const [open, setOpen] = useState(false)
   const queryClient = useQueryClient()
 
-  const form = useForm<StatusUpdateFormData>({
-    resolver: zodResolver(statusUpdateSchema),
+  const form = useForm({
+    resolver: zodResolver(maintenanceRequestUpdateSchema),
     defaultValues: {
-      status: maintenance.status as 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED' | 'ON_HOLD',
+      status: maintenance.status as MaintenanceStatusValidation,
       actualCost: undefined,
       notes: ''
     }
   })
 
   const updateMutation = useMutation({
-    mutationFn: async (data: StatusUpdateFormData) => {
+    mutationFn: async (data: MaintenanceRequestUpdate) => {
       if (data.status === 'COMPLETED') {
         return maintenanceApi.complete(maintenance.id, data.actualCost, data.notes)
       } else if (data.status === 'CANCELED') {
         return maintenanceApi.cancel(maintenance.id, data.notes)
       } else {
-        return maintenanceApi.update(maintenance.id, {
-          status: data.status,
-          actualCost: data.actualCost,
-          notes: data.notes
-        } as MaintenanceRequestUpdate)
+        return maintenanceApi.update(maintenance.id, data)
       }
     },
     onSuccess: () => {
@@ -71,7 +58,7 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
     }
   })
 
-  const onSubmit = (data: StatusUpdateFormData) => {
+  const onSubmit = (data: MaintenanceRequestUpdate) => {
     updateMutation.mutate(data)
   }
 
@@ -89,7 +76,7 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
         <DialogHeader>
           <DialogTitle>Update Status</DialogTitle>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit((data) => onSubmit(data as MaintenanceRequestUpdate))} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
             <Controller

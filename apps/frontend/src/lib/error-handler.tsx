@@ -5,23 +5,8 @@
  */
 
 import { logger } from '@repo/shared'
+import type { ErrorContext, UserFriendlyError } from '@repo/shared'
 import { toast } from 'sonner'
-
-export interface ErrorContext {
-	operation?: string
-	entityType?: 'property' | 'tenant' | 'lease' | 'maintenance' | 'user'
-	entityId?: string
-	userId?: string
-	metadata?: Record<string, unknown>
-}
-
-export interface UserFriendlyError {
-	title: string
-	message: string
-	action?: string
-	canRetry: boolean
-	severity: 'low' | 'medium' | 'high' | 'critical'
-}
 
 export class TenantFlowError extends Error {
 	constructor(

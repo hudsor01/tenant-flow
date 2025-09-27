@@ -37,32 +37,18 @@ export const leaseTypeEnum = z.enum(
 
 export const smokingPolicyEnum = z.enum(['ALLOWED', 'NOT_ALLOWED'])
 
-// Base lease object schema (without refinements)
+// Base lease object schema (without refinements) - matches Supabase Lease table exactly
 const leaseBaseSchema = z.object({
-	propertyId: uuidString,
-	unitId: uuidString.optional().or(z.null()),
+	unitId: uuidString,
 	tenantId: uuidString,
 	startDate: dateString,
 	endDate: dateString,
-	monthlyRent: positiveMoneyAmount,
-	securityDeposit: positiveMoneyAmount.default(0),
-	leaseTerm: z
-		.number()
-		.min(1, 'Lease term must be at least 1 month')
-		.max(60, 'Lease term cannot exceed 60 months')
-		.optional(),
+	rentAmount: positiveMoneyAmount,
+	securityDeposit: positiveMoneyAmount,
+	terms: z.string().optional().nullable(),
 	status: leaseStatusEnum.default('DRAFT' as const),
-	leaseType: leaseTypeEnum.default('FIXED_TERM' as const),
-	petPolicy: z.string().optional(),
-	smokingPolicy: smokingPolicyEnum.optional(),
-	utilities: z.array(z.string()).optional().default([]),
-	additionalTerms: z.string().optional(),
-	lateFeeDays: z
-		.number()
-		.min(0, 'Late fee days must be positive')
-		.max(30, 'Late fee days cannot exceed 30')
-		.optional(),
-	lateFeeAmount: positiveMoneyAmount.optional()
+	propertyId: uuidString.optional().nullable(),
+	monthlyRent: positiveMoneyAmount.optional().nullable()
 })
 
 // Main lease input schema (with refinements)

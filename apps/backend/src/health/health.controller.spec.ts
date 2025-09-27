@@ -75,6 +75,10 @@ describe('HealthController', () => {
 								memory: { warning: 80, critical: 95 },
 								cache: { memoryLimit: 100_000_000 },
 								responseTime: { warning: 100, critical: 200 }
+							},
+							cache: {
+								cacheSize: 0,
+								memoryUsage: 50
 							}
 						})
 					}
