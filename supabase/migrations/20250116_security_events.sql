@@ -8,11 +8,11 @@ CREATE TABLE IF NOT EXISTS "SecurityEvent" (
     metadata JSONB DEFAULT '{}',
     "ipAddress" TEXT,
     "userAgent" TEXT,
-    "userId" UUID REFERENCES "User"(id) ON DELETE SET NULL,
+    "userId" TEXT REFERENCES "User"(id) ON DELETE SET NULL,
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     resolved BOOLEAN DEFAULT FALSE,
     "resolvedAt" TIMESTAMPTZ,
-    "resolvedBy" UUID REFERENCES "User"(id) ON DELETE SET NULL,
+    "resolvedBy" TEXT REFERENCES "User"(id) ON DELETE SET NULL,
     "resolutionNotes" TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -43,9 +43,9 @@ CREATE POLICY "Users can view their own security events"
 ON "SecurityEvent"
 FOR SELECT
 TO authenticated
-USING ("userId" = auth.uid());
+USING ("userId" = (SELECT id FROM "User" WHERE "supabaseId" = auth.uid()));
 
--- Policy for admin users (assuming we have an is_admin function)
+-- Policy for admin users
 CREATE POLICY "Admins can view all security events"
 ON "SecurityEvent"
 FOR SELECT
@@ -53,8 +53,8 @@ TO authenticated
 USING (
     EXISTS (
         SELECT 1 FROM "User"
-        WHERE id = auth.uid()
-        AND role = 'admin'
+        WHERE "supabaseId" = auth.uid()
+        AND role = 'ADMIN'
     )
 );
 
@@ -83,7 +83,7 @@ BEGIN
     SET
         resolved = TRUE,
         "resolvedAt" = NOW(),
-        "resolvedBy" = auth.uid(),
+        "resolvedBy" = (SELECT id FROM "User" WHERE "supabaseId" = auth.uid()),
         "resolutionNotes" = notes
     WHERE id = event_id
     AND resolved = FALSE;

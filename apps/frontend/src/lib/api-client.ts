@@ -74,36 +74,36 @@ export const dashboardApi = {
 export const financialApi = {
 	getOverview: (year?: number): Promise<FinancialOverviewResponse> =>
 		apiClient<FinancialOverviewResponse>(
-			`${API_BASE_URL}/api/v1/financial/overview${year ? `?year=${year}` : ''}`
+			`${API_BASE_URL}/financial/analytics/revenue-trends${year ? `?year=${year}` : ''}`
 		),
 
 	getOverviewWithCalculations: (
 		year?: number
 	): Promise<FinancialOverviewResponse> =>
 		apiClient<FinancialOverviewResponse>(
-			`${API_BASE_URL}/api/v1/financial/overview-calculated${year ? `?year=${year}` : ''}`
+			`${API_BASE_URL}/financial/analytics/revenue-trends${year ? `?year=${year}` : ''}`
 		),
 
 	getExpenseSummary: (year?: number): Promise<ExpenseSummaryResponse> =>
 		apiClient<ExpenseSummaryResponse>(
-			`${API_BASE_URL}/api/v1/financial/expenses${year ? `?year=${year}` : ''}`
+			`${API_BASE_URL}/financial/analytics/expense-breakdown${year ? `?year=${year}` : ''}`
 		),
 
 	getExpenseSummaryWithPercentages: (
 		year?: number
 	): Promise<ExpenseSummaryResponse> =>
 		apiClient<ExpenseSummaryResponse>(
-			`${API_BASE_URL}/api/v1/financial/expenses-calculated${year ? `?year=${year}` : ''}`
+			`${API_BASE_URL}/financial/analytics/expense-breakdown${year ? `?year=${year}` : ''}`
 		),
 
 	getDashboardStats: (): Promise<DashboardFinancialStats> =>
 		apiClient<DashboardFinancialStats>(
-			`${API_BASE_URL}/api/v1/financial/dashboard-stats`
+			`${API_BASE_URL}/financial/analytics/dashboard-metrics`
 		),
 
 	getDashboardFinancialStatsCalculated: (): Promise<DashboardFinancialStats> =>
 		apiClient<DashboardFinancialStats>(
-			`${API_BASE_URL}/api/v1/financial/dashboard-stats-calculated`
+			`${API_BASE_URL}/financial/analytics/dashboard-metrics`
 		)
 }
 
@@ -278,7 +278,72 @@ export const maintenanceApi = {
 			}
 		),
 	stats: () =>
-		apiClient<MaintenanceStats>(`${API_BASE_URL}/api/v1/maintenance/stats`)
+		apiClient<MaintenanceStats>(`${API_BASE_URL}/api/v1/maintenance/stats`),
+
+	// New analytics endpoints using PostgreSQL RPC functions
+	analytics: {
+		getMetrics: (propertyId?: string, timeframe = '30d', status?: string) => {
+			const params = new URLSearchParams()
+			if (propertyId) params.set('propertyId', propertyId)
+			params.set('timeframe', timeframe)
+			if (status) params.set('status', status)
+
+			return apiClient(`${API_BASE_URL}/maintenance/analytics/metrics?${params}`)
+		},
+
+		getCostSummary: (propertyId?: string, timeframe = '30d') => {
+			const params = new URLSearchParams()
+			if (propertyId) params.set('propertyId', propertyId)
+			params.set('timeframe', timeframe)
+
+			return apiClient(`${API_BASE_URL}/maintenance/analytics/cost-summary?${params}`)
+		},
+
+		getPerformance: (propertyId?: string, period = 'monthly') => {
+			const params = new URLSearchParams()
+			if (propertyId) params.set('propertyId', propertyId)
+			params.set('period', period)
+
+			return apiClient(`${API_BASE_URL}/maintenance/analytics/performance?${params}`)
+		}
+	}
+}
+
+/**
+ * Visitor Analytics API endpoints - all calculations done server-side
+ */
+export const visitorAnalyticsApi = {
+	getPropertyInterest: (timeRange = '30d', propertyId?: string) => {
+		const params = new URLSearchParams()
+		params.set('timeRange', timeRange)
+		if (propertyId) params.set('propertyId', propertyId)
+
+		return apiClient(`${API_BASE_URL}/analytics/visitor/property-interest?${params}`)
+	},
+
+	getInquiryMetrics: (timeRange = '30d', propertyId?: string) => {
+		const params = new URLSearchParams()
+		params.set('timeRange', timeRange)
+		if (propertyId) params.set('propertyId', propertyId)
+
+		return apiClient(`${API_BASE_URL}/analytics/visitor/inquiry-metrics?${params}`)
+	},
+
+	getViewingMetrics: (timeRange = '30d', propertyId?: string) => {
+		const params = new URLSearchParams()
+		params.set('timeRange', timeRange)
+		if (propertyId) params.set('propertyId', propertyId)
+
+		return apiClient(`${API_BASE_URL}/analytics/visitor/viewing-metrics?${params}`)
+	},
+
+	getComparativeAnalytics: (currentPeriod = '30d', previousPeriod = '30d') => {
+		const params = new URLSearchParams()
+		params.set('currentPeriod', currentPeriod)
+		params.set('previousPeriod', previousPeriod)
+
+		return apiClient(`${API_BASE_URL}/analytics/visitor/comparative?${params}`)
+	}
 }
 
 /**

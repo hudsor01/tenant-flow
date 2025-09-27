@@ -1,12 +1,12 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { CreateUnitRequest, UpdateUnitRequest, authUser } from '@repo/shared'
+import type { CreateUnitRequest, UpdateUnitRequest } from '@repo/shared'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { UnitsController } from './units.controller'
 import { UnitsService } from './units.service'
-import { createMockUser, createMockDashboardStats, createMockPropertyStats, createMockPropertyRequest, createMockTenantRequest, createMockUnitRequest } from '../test-utils/mocks'
+import { createMockUser } from '../test-utils/mocks'
 
 // Mock the services
 jest.mock('./units.service', () => {
@@ -26,7 +26,7 @@ jest.mock('./units.service', () => {
 jest.mock('../database/supabase.service', () => {
 	return {
 		SupabaseService: jest.fn().mockImplementation(() => ({
-			validateUser: jest.fn()
+			getUser: jest.fn()
 		}))
 	}
 })
@@ -83,7 +83,7 @@ describe('UnitsController', () => {
 				offset: 0
 			}
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits)
 
 			const result = await controller.findAll(
@@ -97,7 +97,7 @@ describe('UnitsController', () => {
 				mockRequest
 			)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockUnitsServiceInstance.findAll).toHaveBeenCalledWith(
@@ -123,7 +123,7 @@ describe('UnitsController', () => {
 				offset: 10
 			}
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits)
 
 			await controller.findAll(
@@ -141,7 +141,7 @@ describe('UnitsController', () => {
 				mockUser.id,
 				{
 					propertyId: 'property-123',
-					status: 'AVAILABLE',
+					status: 'VACANT',
 					search: 'apartment',
 					limit: 20,
 					offset: 10,
@@ -152,7 +152,7 @@ describe('UnitsController', () => {
 		})
 
 		it('should validate status parameter', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 
 			await expect(
 				controller.findAll(
@@ -171,7 +171,7 @@ describe('UnitsController', () => {
 		it('should accept valid status values', async () => {
 			const validStatuses = ['VACANT', 'OCCUPIED', 'MAINTENANCE', 'RESERVED']
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.findAll.mockResolvedValue({
 				data: [],
 				total: 0,
@@ -196,7 +196,7 @@ describe('UnitsController', () => {
 		})
 
 		it('should validate sortBy parameter', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 
 			await expect(
 				controller.findAll(
@@ -215,7 +215,7 @@ describe('UnitsController', () => {
 		it('should accept valid sortBy values', async () => {
 			const validSortBy = ['createdAt', 'unitNumber', 'bedrooms', 'rent', 'status']
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.findAll.mockResolvedValue({
 				data: [],
 				total: 0,
@@ -240,7 +240,7 @@ describe('UnitsController', () => {
 		})
 
 		it('should validate sortOrder parameter', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 
 			await expect(
 				controller.findAll(
@@ -290,12 +290,12 @@ describe('UnitsController', () => {
 				reservedUnits: 2
 			}
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.getStats.mockResolvedValue(mockStats)
 
 			const result = await controller.getStats(mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockUnitsServiceInstance.getStats).toHaveBeenCalledWith(
@@ -329,12 +329,12 @@ describe('UnitsController', () => {
 				{ id: 'unit-2', unitNumber: '1B', propertyId }
 			]
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.findByProperty.mockResolvedValue(mockUnits)
 
 			const result = await controller.findByProperty(propertyId, mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockUnitsServiceInstance.findByProperty).toHaveBeenCalledWith(
@@ -366,12 +366,12 @@ describe('UnitsController', () => {
 		it('should return single unit', async () => {
 			const mockUnit = { id: unitId, unitNumber: '2A', bedrooms: 2 }
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.findOne.mockResolvedValue(mockUnit)
 
 			const result = await controller.findOne(unitId, mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockUnitsServiceInstance.findOne).toHaveBeenCalledWith(
@@ -382,7 +382,7 @@ describe('UnitsController', () => {
 		})
 
 		it('should throw NotFoundException when unit not found', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.findOne.mockResolvedValue(null)
 
 			await expect(controller.findOne(unitId, mockRequest)).rejects.toThrow(
@@ -413,7 +413,7 @@ describe('UnitsController', () => {
 				...validCreateUnitRequest
 			}
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.create.mockResolvedValue(mockCreatedUnit)
 
 			const result = await controller.create(
@@ -421,7 +421,7 @@ describe('UnitsController', () => {
 				mockRequest
 			)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockUnitsServiceInstance.create).toHaveBeenCalledWith(
@@ -456,7 +456,7 @@ describe('UnitsController', () => {
 				...validUpdateUnitRequest
 			}
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.update.mockResolvedValue(mockUpdatedUnit)
 
 			const result = await controller.update(
@@ -465,7 +465,7 @@ describe('UnitsController', () => {
 				mockRequest
 			)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockUnitsServiceInstance.update).toHaveBeenCalledWith(
@@ -477,7 +477,7 @@ describe('UnitsController', () => {
 		})
 
 		it('should throw NotFoundException when unit not found', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.update.mockResolvedValue(null)
 
 			await expect(
@@ -507,12 +507,12 @@ describe('UnitsController', () => {
 		const unitId = 'unit-123'
 
 		it('should delete unit successfully', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.remove.mockResolvedValue(undefined)
 
 			const result = await controller.remove(unitId, mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockUnitsServiceInstance.remove).toHaveBeenCalledWith(
@@ -540,7 +540,7 @@ describe('UnitsController', () => {
 
 	describe('user validation fallback behavior', () => {
 		it('should use fallback user ID when user validation fails', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(null)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(null)
 			mockUnitsServiceInstance.findAll.mockResolvedValue({
 				data: [],
 				total: 0,

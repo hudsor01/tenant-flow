@@ -7,7 +7,6 @@ import { Controller, Get, Logger, Res, SetMetadata } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 import type { Response } from 'express'
 import { StripeSyncService } from '../billing/stripe-sync.service'
-import { ResilienceService } from '../shared/services/resilience.service'
 import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthService } from './health.service'
 import { MetricsService } from './metrics.service'
@@ -25,7 +24,6 @@ export class HealthController {
 		private readonly health: HealthCheckService,
 		private readonly supabase: SupabaseHealthIndicator,
 		private readonly stripeFdw: StripeFdwHealthIndicator,
-		private readonly resilience: ResilienceService,
 		private readonly stripeSyncService: StripeSyncService
 	) {}
 
@@ -94,11 +92,13 @@ export class HealthController {
 	@SetMetadata('isPublic', true)
 	performanceMetrics() {
 		const performance = this.metricsService.getDetailedPerformanceMetrics()
-		const cache = this.resilience.getHealthStatus()
 
 		return {
 			...performance,
-			cache
+			cache: {
+				cacheSize: 0,
+				memoryUsage: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
+			}
 		}
 	}
 

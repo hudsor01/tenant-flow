@@ -33,8 +33,8 @@ export class NotificationsController {
 		@Query('limit') limit = '10',
 		@Query('offset') offset = '0'
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const user = await this.supabase.validateUser(request)
+		// Use Supabase's native auth.getUser() pattern
+		const user = await this.supabase.getUser(request)
 		if (!user) {
 			throw new UnauthorizedException('Authentication required')
 		}
@@ -89,8 +89,8 @@ export class NotificationsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() request: Request
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const user = await this.supabase.validateUser(request)
+		// Use Supabase's native auth.getUser() pattern
+		const user = await this.supabase.getUser(request)
 		if (!user) {
 			throw new UnauthorizedException('Authentication required')
 		}
@@ -110,8 +110,8 @@ export class NotificationsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() request: Request
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const user = await this.supabase.validateUser(request)
+		// Use Supabase's native auth.getUser() pattern
+		const user = await this.supabase.getUser(request)
 		if (!user) {
 			throw new UnauthorizedException('Authentication required')
 		}

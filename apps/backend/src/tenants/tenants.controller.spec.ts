@@ -1,12 +1,12 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { CreateTenantRequest, UpdateTenantRequest, authUser } from '@repo/shared'
+import type { CreateTenantRequest, UpdateTenantRequest } from '@repo/shared'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { TenantsController } from './tenants.controller'
 import { TenantsService } from './tenants.service'
-import { createMockUser, createMockDashboardStats, createMockPropertyStats, createMockPropertyRequest, createMockTenantRequest, createMockUnitRequest } from '../test-utils/mocks'
+import { createMockUser } from '../test-utils/mocks'
 
 // Mock the services
 jest.mock('./tenants.service', () => {
@@ -27,7 +27,7 @@ jest.mock('./tenants.service', () => {
 jest.mock('../database/supabase.service', () => {
 	return {
 		SupabaseService: jest.fn().mockImplementation(() => ({
-			validateUser: jest.fn()
+			getUser: jest.fn()
 		}))
 	}
 })
@@ -45,8 +45,7 @@ describe('TenantsController', () => {
 		firstName: 'John',
 		lastName: 'Doe',
 		email: 'john@example.com',
-		phone: '+1234567890',
-		unitId: 'unit-123'
+		phone: '+1234567890'
 	}
 
 	const validUpdateTenantRequest: UpdateTenantRequest = {
@@ -83,12 +82,12 @@ describe('TenantsController', () => {
 				offset: 0
 			}
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.findAll.mockResolvedValue(mockTenants)
 
 			const result = await controller.findAll(mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockTenantsServiceInstance.findAll).toHaveBeenCalledWith(
@@ -113,7 +112,7 @@ describe('TenantsController', () => {
 				offset: 10
 			}
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.findAll.mockResolvedValue(mockTenants)
 
 			await controller.findAll(
@@ -140,7 +139,7 @@ describe('TenantsController', () => {
 		})
 
 		it('should validate limit parameter', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 
 			// Test with limit too high (100)
 			await expect(
@@ -154,7 +153,7 @@ describe('TenantsController', () => {
 		})
 
 		it('should validate invitation status parameter', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 
 			await expect(
 				controller.findAll(mockRequest, undefined, 'INVALID_STATUS')
@@ -164,7 +163,7 @@ describe('TenantsController', () => {
 		it('should accept valid invitation statuses', async () => {
 			const validStatuses = ['PENDING', 'SENT', 'ACCEPTED', 'EXPIRED']
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.findAll.mockResolvedValue({
 				data: [],
 				total: 0,
@@ -194,7 +193,7 @@ describe('TenantsController', () => {
 		})
 
 		it('should use fallback user ID when user validation fails', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(null)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(null)
 			mockTenantsServiceInstance.findAll.mockResolvedValue({
 				data: [],
 				total: 0,
@@ -220,12 +219,12 @@ describe('TenantsController', () => {
 				expiredTenants: 2
 			}
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.getStats.mockResolvedValue(mockStats)
 
 			const result = await controller.getStats(mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockTenantsServiceInstance.getStats).toHaveBeenCalledWith(
@@ -255,12 +254,12 @@ describe('TenantsController', () => {
 		it('should return single tenant', async () => {
 			const mockTenant = { id: tenantId, firstName: 'John', lastName: 'Doe' }
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.findOne.mockResolvedValue(mockTenant)
 
 			const result = await controller.findOne(tenantId, mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockTenantsServiceInstance.findOne).toHaveBeenCalledWith(
@@ -271,7 +270,7 @@ describe('TenantsController', () => {
 		})
 
 		it('should throw NotFoundException when tenant not found', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.findOne.mockResolvedValue(null)
 
 			await expect(controller.findOne(tenantId, mockRequest)).rejects.toThrow(
@@ -302,7 +301,7 @@ describe('TenantsController', () => {
 				...validCreateTenantRequest
 			}
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.create.mockResolvedValue(mockCreatedTenant)
 
 			const result = await controller.create(
@@ -310,7 +309,7 @@ describe('TenantsController', () => {
 				mockRequest
 			)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockTenantsServiceInstance.create).toHaveBeenCalledWith(
@@ -345,7 +344,7 @@ describe('TenantsController', () => {
 				...validUpdateTenantRequest
 			}
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.update.mockResolvedValue(mockUpdatedTenant)
 
 			const result = await controller.update(
@@ -354,7 +353,7 @@ describe('TenantsController', () => {
 				mockRequest
 			)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockTenantsServiceInstance.update).toHaveBeenCalledWith(
@@ -366,7 +365,7 @@ describe('TenantsController', () => {
 		})
 
 		it('should throw NotFoundException when tenant not found', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.update.mockResolvedValue(null)
 
 			await expect(
@@ -396,12 +395,12 @@ describe('TenantsController', () => {
 		const tenantId = 'tenant-123'
 
 		it('should delete tenant successfully', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.remove.mockResolvedValue(undefined)
 
 			const result = await controller.remove(tenantId, mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockTenantsServiceInstance.remove).toHaveBeenCalledWith(
@@ -436,14 +435,14 @@ describe('TenantsController', () => {
 				message: 'Invitation sent successfully'
 			}
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.sendInvitation.mockResolvedValue(
 				mockInvitationResult
 			)
 
 			const result = await controller.sendInvitation(tenantId, mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockTenantsServiceInstance.sendInvitation).toHaveBeenCalledWith(
@@ -479,14 +478,14 @@ describe('TenantsController', () => {
 				message: 'Invitation resent successfully'
 			}
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.resendInvitation.mockResolvedValue(
 				mockResendResult
 			)
 
 			const result = await controller.resendInvitation(tenantId, mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockTenantsServiceInstance.resendInvitation).toHaveBeenCalledWith(
