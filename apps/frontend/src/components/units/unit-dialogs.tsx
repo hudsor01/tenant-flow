@@ -28,12 +28,14 @@ import {
 	inputClasses,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
-import type { Database } from '@repo/shared'
-import {
-	createLogger
-} from '@repo/shared'
-import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import type { Database } from '@repo/shared'
+import { createLogger } from '@repo/shared'
+import {
+	transformUnitFormData,
+	unitFormSchema,
+	type UnitFormData
+} from '@repo/shared/validation/units'
 import type { LucideIcon } from 'lucide-react'
 import {
 	AlertTriangle,
@@ -51,14 +53,13 @@ import {
 	Wrench
 } from 'lucide-react'
 import * as React from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-import { unitEditFormSchema } from '@repo/shared/validation'
-import { z } from 'zod'
 
 type UnitRow = Database['public']['Tables']['Unit']['Row']
 type UnitStatus = Database['public']['Enums']['UnitStatus']
 
-type UnitEditFormData = z.infer<typeof unitEditFormSchema>
+// Using the UnitFormData from shared package
 
 interface UnitViewDialogProps {
 	unit: UnitRow
@@ -517,31 +518,34 @@ export function UnitEditDialog({
 	const updateUnit = useUpdateUnit()
 
 	// React Hook Form with Zod validation
-	const form = useForm<UnitEditFormData>({
-		resolver: zodResolver(unitEditFormSchema),
+	const form = useForm<UnitFormData>({
+		resolver: zodResolver(unitFormSchema),
 		defaultValues: {
+			propertyId: unit.propertyId,
 			unitNumber: unit.unitNumber,
-			bedrooms: unit.bedrooms || undefined,
-			bathrooms: unit.bathrooms || undefined,
-			squareFeet: unit.squareFeet,
-			rent: unit.rent,
-			status: unit.status,
-			lastInspectionDate: unit.lastInspectionDate
+			bedrooms: unit.bedrooms?.toString() || '',
+			bathrooms: unit.bathrooms?.toString() || '',
+			squareFeet: unit.squareFeet?.toString() || '',
+			rent: unit.rent?.toString() || '',
+			lastInspectionDate: unit.lastInspectionDate || '',
+			status: unit.status
 		}
 	})
 
-	const onSubmit = async (data: UnitEditFormData) => {
+	const onSubmit = async (data: UnitFormData) => {
 		try {
+			// Transform the form data to the correct types
+			const transformedData = transformUnitFormData(data)
 			await updateUnit.mutateAsync({
 				id: unit.id,
 				values: {
-					unitNumber: data.unitNumber,
-					bedrooms: data.bedrooms || undefined,
-					bathrooms: data.bathrooms || undefined,
-					squareFeet: data.squareFeet,
-					rent: data.rent,
-					status: data.status,
-					lastInspectionDate: data.lastInspectionDate
+					unitNumber: transformedData.unitNumber,
+					bedrooms: transformedData.bedrooms,
+					bathrooms: transformedData.bathrooms,
+					squareFeet: transformedData.squareFeet,
+					rent: transformedData.rent,
+					status: transformedData.status,
+					lastInspectionDate: transformedData.lastInspectionDate
 				}
 			})
 
@@ -563,13 +567,14 @@ export function UnitEditDialog({
 	React.useEffect(() => {
 		if (open) {
 			form.reset({
+				propertyId: unit.propertyId,
 				unitNumber: unit.unitNumber,
-				bedrooms: unit.bedrooms || undefined,
-				bathrooms: unit.bathrooms || undefined,
-				squareFeet: unit.squareFeet,
-				rent: unit.rent,
+				bedrooms: unit.bedrooms?.toString() || '',
+				bathrooms: unit.bathrooms?.toString() || '',
+				squareFeet: unit.squareFeet?.toString() || '',
+				rent: unit.rent?.toString() || '',
 				status: unit.status,
-				lastInspectionDate: unit.lastInspectionDate
+				lastInspectionDate: unit.lastInspectionDate || ''
 			})
 		}
 	}, [open, unit, form])
@@ -614,10 +619,7 @@ export function UnitEditDialog({
 					</DialogDescription>
 				</DialogHeader>
 
-				<form
-					onSubmit={form.handleSubmit(onSubmit)}
-					className="space-y-6"
-				>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 					<div className="grid grid-cols-2 gap-6">
 						<div className="space-y-3">
 							<Label
@@ -628,10 +630,7 @@ export function UnitEditDialog({
 									lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
 								}}
 							>
-								<Home
-									className="h-4 w-4 text-muted-foreground"
-									aria-hidden
-								/>
+								<Home className="h-4 w-4 text-muted-foreground" aria-hidden />
 								<span>Unit Number</span>
 								<span className="text-destructive">*</span>
 							</Label>
@@ -682,7 +681,11 @@ export function UnitEditDialog({
 								name="status"
 								control={form.control}
 								render={({ field }) => (
-									<Select value={field.value} onValueChange={field.onChange} disabled={form.formState.isSubmitting}>
+									<Select
+										value={field.value}
+										onValueChange={field.onChange}
+										disabled={form.formState.isSubmitting}
+									>
 										<SelectTrigger
 											className={cn(
 												'rounded-8px h-11',
@@ -752,7 +755,11 @@ export function UnitEditDialog({
 								placeholder="e.g., 2"
 								{...form.register('bedrooms', { valueAsNumber: true })}
 								disabled={form.formState.isSubmitting}
-								className={form.formState.errors.bedrooms ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}
+								className={
+									form.formState.errors.bedrooms
+										? 'border-destructive focus:border-destructive'
+										: 'focus:border-primary'
+								}
 							/>
 							<p className="text-xs text-muted-foreground">
 								Number of bedrooms (0-20)
@@ -778,7 +785,11 @@ export function UnitEditDialog({
 								placeholder="e.g., 1.5"
 								{...form.register('bathrooms', { valueAsNumber: true })}
 								disabled={form.formState.isSubmitting}
-								className={form.formState.errors.bathrooms ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}
+								className={
+									form.formState.errors.bathrooms
+										? 'border-destructive focus:border-destructive'
+										: 'focus:border-primary'
+								}
 							/>
 							<p className="text-xs text-muted-foreground">
 								Include half-baths (e.g., 1.5)
@@ -806,7 +817,11 @@ export function UnitEditDialog({
 								placeholder="e.g., 800"
 								{...form.register('squareFeet', { valueAsNumber: true })}
 								disabled={form.formState.isSubmitting}
-								className={form.formState.errors.squareFeet ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}
+								className={
+									form.formState.errors.squareFeet
+										? 'border-destructive focus:border-destructive'
+										: 'focus:border-primary'
+								}
 							/>
 							<p className="text-xs text-muted-foreground">
 								Optional - total floor area in square feet
@@ -852,10 +867,7 @@ export function UnitEditDialog({
 					</div>
 
 					<div className="space-y-2">
-						<Label
-							htmlFor="lastInspectionDate"
-							className="text-sm font-medium"
-						>
+						<Label htmlFor="lastInspectionDate" className="text-sm font-medium">
 							Last Inspection Date
 						</Label>
 						<Input
@@ -863,7 +875,11 @@ export function UnitEditDialog({
 							type="date"
 							{...form.register('lastInspectionDate')}
 							disabled={form.formState.isSubmitting}
-							className={form.formState.errors.lastInspectionDate ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}
+							className={
+								form.formState.errors.lastInspectionDate
+									? 'border-destructive focus:border-destructive'
+									: 'focus:border-primary'
+							}
 						/>
 						<p className="text-xs text-muted-foreground">
 							Optional - date of the most recent property inspection
