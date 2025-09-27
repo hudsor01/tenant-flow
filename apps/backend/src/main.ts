@@ -134,11 +134,21 @@ async function bootstrap() {
 	// Express response logging middleware with enhanced error details
 	app.use((req: RequestWithTiming, res: Response, next: () => void) => {
 		const originalSend = res.send
-		res.send = function (body) {
+		res.send = function (body: unknown) {
 			const duration = Date.now() - (req.startTime ?? Date.now())
 
 			// Enhanced logging for errors
 			if (res.statusCode >= 400) {
+				// Safely convert body to string for logging
+				let bodyString: string | undefined
+				if (res.statusCode >= 500 && body !== null) {
+					try {
+						bodyString = String(body).substring(0, 500)
+					} catch {
+						bodyString = '[Unable to stringify body]'
+					}
+				}
+
 				bootstrapLogger.warn(
 					`${req.method} ${req.url} -> ${res.statusCode} in ${duration}ms`,
 					{
@@ -151,7 +161,7 @@ async function bootstrap() {
 							referer: req.headers.referer,
 							userAgent: req.headers['user-agent']?.substring(0, 100)
 						},
-						body: res.statusCode >= 500 ? body?.toString().substring(0, 500) : undefined
+						body: bodyString
 					}
 				)
 			} else {
