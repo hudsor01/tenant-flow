@@ -13,8 +13,25 @@ const nextConfig: NextConfig = {
 		ignoreDuringBuilds: false
 	},
 
-	// Webpack configuration to suppress Supabase Edge Runtime warnings
-	webpack: (config, { isServer }) => {
+	// Webpack configuration with cache optimization and performance improvements
+	webpack: (config, { isServer, dev }) => {
+		// Optimize webpack cache for large projects with many dependencies
+		// This addresses the "Serializing big strings (108kiB)" performance warning
+		if (config.cache && typeof config.cache === 'object') {
+			// Enable gzip compression to reduce cache serialization size
+			config.cache.compression = 'gzip'
+
+			// Optimize memory management for development builds
+			if (dev) {
+				// Limit memory cache generations to prevent excessive memory usage
+				config.cache.maxMemoryGenerations = 1
+				// Allow collecting unused memory for better performance
+				config.cache.allowCollectingMemory = true
+				// Set reasonable memory limits to prevent large string serialization
+				config.cache.maxAge = 300000 // 5 minutes in development
+			}
+		}
+
 		// Suppress specific warnings from Supabase libraries in Edge Runtime
 		if (!isServer) {
 			config.ignoreWarnings = [
@@ -24,16 +41,47 @@ const nextConfig: NextConfig = {
 				}
 			]
 		}
+
 		return config
 	},
 
 	// Experimental performance optimizations
 	experimental: {
+		// Optimize imports for large packages to reduce webpack bundle analysis overhead
 		optimizePackageImports: [
+			// Icon libraries (already optimized)
 			'@radix-ui/react-icons',
 			'lucide-react',
-			'@tabler/icons-react'
+			'@tabler/icons-react',
+			// UI component libraries that contribute to large cache strings
+			'@radix-ui/react-dialog',
+			'@radix-ui/react-dropdown-menu',
+			'@radix-ui/react-select',
+			'@radix-ui/react-popover',
+			'@radix-ui/react-tooltip',
+			'@radix-ui/react-accordion',
+			'@radix-ui/react-tabs',
+			'@radix-ui/react-avatar',
+			'@radix-ui/react-checkbox',
+			'@radix-ui/react-slider',
+			'@radix-ui/react-switch',
+			'@radix-ui/react-toggle',
+			'@radix-ui/react-progress',
+			'@radix-ui/react-scroll-area',
+			// TanStack libraries
+			'@tanstack/react-query',
+			'@tanstack/react-table',
+			'@tanstack/react-form',
+			'@tanstack/react-virtual',
+			// Other large dependencies
+			'recharts',
+			'react-hook-form',
+			'@hookform/resolvers',
+			'date-fns',
+			'lodash',
+			'zod'
 		],
+		// Enable server components HMR cache for faster development
 		serverComponentsHmrCache: true
 	},
 
