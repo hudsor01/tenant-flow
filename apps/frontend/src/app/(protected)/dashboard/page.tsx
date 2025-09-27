@@ -1,100 +1,166 @@
-import { MetricsCard } from '@/components/charts/metrics-card'
+'use client'
+
 import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
-import { DataTable } from '@/components/dashboard-01/data-table'
-import { getDashboardPageData } from '@/lib/api/dashboard-server'
-import {
-	Building,
-	DollarSign,
-	FileText,
-	TrendingUp,
-	Users,
-	Wrench
-} from 'lucide-react'
+import { SectionCards } from '@/components/dashboard-01/section-cards'
+import { ActivityFeed } from '@/components/dashboard-01/activity-feed'
+import { PropertyPerformanceTable } from '@/components/dashboard-01/property-performance-table'
+import { QuickActions } from '@/components/dashboard-01/quick-actions'
+import { useDashboardPageData } from '@/hooks/api/use-dashboard'
+import { PageLoader } from '@/components/magicui/loading-spinner'
 
-// Enable ISR with 60 second revalidation for better performance
-export const revalidate = 60
+export default function Page() {
+	// Use TanStack Query for client-side data fetching with proper auth
+	const { dashboardStats, propertyStats, leaseStats, isLoading, error } = useDashboardPageData()
 
-// Enable dynamic rendering for authenticated content
-export const dynamic = 'force-dynamic'
+	// Show loading state while data is fetching
+	if (isLoading) {
+		return <PageLoader text="Loading dashboard..." />
+	}
 
-export default async function Page() {
-	// Fetch all dashboard data server-side for better performance
-	const { dashboardStats, propertyStats, leaseStats } =
-		await getDashboardPageData()
+	// Show error state if any queries failed
+	if (error) {
+		return (
+			<div className="flex items-center justify-center min-h-[400px]">
+				<div className="text-center">
+					<h2 className="text-xl font-semibold mb-2">Failed to load dashboard data</h2>
+					<p className="text-muted-foreground">Please try refreshing the page</p>
+				</div>
+			</div>
+		)
+	}
+
+	// Provide fallback data for components if queries are still pending
+	const safeDashboardStats = dashboardStats || {
+		totalProperties: 0,
+		totalTenants: 0,
+		monthlyRevenue: 0,
+		occupancyRate: 0,
+		maintenanceRequests: 0,
+		totalUnits: 0,
+		totalRevenue: 0,
+		revenue: { monthly: 0, yearly: 0, growth: 0 },
+		maintenance: {
+			open: 0,
+			inProgress: 0,
+			completed: 0,
+			completedToday: 0,
+			avgResolutionTime: 0,
+			byPriority: { low: 0, medium: 0, high: 0, emergency: 0 }
+		},
+		properties: {
+			total: 0,
+			occupied: 0,
+			vacant: 0,
+			occupancyRate: 0,
+			totalMonthlyRent: 0,
+			averageRent: 0
+		},
+		tenants: {
+			total: 0,
+			active: 0,
+			inactive: 0,
+			newThisMonth: 0
+		},
+		units: {
+			total: 0,
+			available: 0,
+			occupied: 0,
+			underMaintenance: 0,
+			occupancyRate: 0
+		},
+		leases: {
+			active: 0,
+			expiring: 0,
+			expired: 0
+		}
+	}
+
+	const safePropertyStats = propertyStats || {
+		totalProperties: 0,
+		totalUnits: 0,
+		occupiedUnits: 0,
+		occupancyRate: 0,
+		totalRevenue: 0,
+		vacantUnits: 0,
+		maintenanceUnits: 0
+	}
+
+	const safeLeaseStats = leaseStats || {
+		totalLeases: 0,
+		activeLeases: 0,
+		expiredLeases: 0,
+		terminatedLeases: 0,
+		totalMonthlyRent: 0,
+		averageRent: 0,
+		totalSecurityDeposits: 0
+	}
 
 	return (
-		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-			{/* Dashboard Overview Metrics */}
-			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-				<MetricsCard
-					title="Total Properties"
-					value={
-						dashboardStats.totalProperties || propertyStats.totalProperties || 0
-					}
-					description="Portfolio properties"
-					icon={Building}
-					colorVariant="property"
-				/>
-
-				<MetricsCard
-					title="Total Tenants"
-					value={dashboardStats.totalTenants || 0}
-					description="Active tenants"
-					icon={Users}
-					colorVariant="primary"
-				/>
-
-				<MetricsCard
-					title="Monthly Revenue"
-					value={new Intl.NumberFormat('en-US', {
-						style: 'currency',
-						currency: 'USD',
-						maximumFractionDigits: 0
-					}).format(
-						dashboardStats.revenue?.monthly ||
-							dashboardStats.totalRevenue ||
-							propertyStats.totalRevenue ||
-							0
-					)}
-					description="Current month"
-					icon={DollarSign}
-					colorVariant="revenue"
-				/>
-
-				<MetricsCard
-					title="Occupancy Rate"
-					value={`${(dashboardStats.occupancyRate || propertyStats.occupancyRate || 0).toFixed(1)}%`}
-					description={`${propertyStats.occupiedUnits || 0} of ${propertyStats.totalUnits || 0} units`}
-					icon={TrendingUp}
-					colorVariant="success"
-				/>
-
-				<MetricsCard
-					title="Active Leases"
-					value={leaseStats.activeLeases || 0}
-					description="Current agreements"
-					icon={FileText}
-					colorVariant="info"
-				/>
-
-				<MetricsCard
-					title="Maintenance"
-					value={
-						dashboardStats.maintenanceRequests ||
-						dashboardStats.maintenance?.open ||
-						0
-					}
-					description="Open requests"
-					icon={Wrench}
-					colorVariant="warning"
-				/>
+		<div className="@container/main flex min-h-screen w-full flex-col">
+			{/* Top Metrics Cards Section */}
+			<div className="border-b bg-background px-4 py-6 lg:px-6 lg:py-8">
+				<div className="mx-auto max-w-[1600px]">
+					<SectionCards
+						dashboardStats={safeDashboardStats}
+						propertyStats={safePropertyStats}
+						leaseStats={safeLeaseStats}
+					/>
+				</div>
 			</div>
 
-			<div className="px-4 lg:px-6">
-				<ChartAreaInteractive />
-			</div>
+			{/* Main Content Area with Professional Grid Layout */}
+			<div className="flex-1 px-4 py-6 lg:px-6 lg:py-8">
+				<div className="mx-auto max-w-[1600px] space-y-8">
+					{/* Primary Chart Section - Full Width Focal Point */}
+					<div className="w-full">
+						<ChartAreaInteractive className="w-full" />
+					</div>
 
-			<DataTable data={[]} />
+					{/* Two-Column Layout for Secondary Content */}
+					<div className="grid gap-8 lg:grid-cols-3">
+						{/* Main Content Area - 2/3 Width */}
+						<div className="lg:col-span-2">
+							<div className="space-y-6">
+								{/* Recent Activity Section */}
+								<div className="rounded-lg border bg-card">
+									<div className="border-b px-6 py-4">
+										<h3 className="text-lg font-semibold">Recent Activity</h3>
+										<p className="text-sm text-muted-foreground">Latest updates across your properties</p>
+									</div>
+									<div className="p-6">
+										<ActivityFeed />
+									</div>
+								</div>
+
+								{/* Property Performance Summary */}
+								<div className="rounded-lg border bg-card">
+									<div className="border-b px-6 py-4">
+										<h3 className="text-lg font-semibold">Property Performance</h3>
+										<p className="text-sm text-muted-foreground">Top performing properties this month</p>
+									</div>
+									<div className="p-6">
+										<PropertyPerformanceTable />
+									</div>
+								</div>
+							</div>
+						</div>
+
+						{/* Sidebar - 1/3 Width */}
+						<div className="space-y-6">
+							{/* Quick Actions */}
+							<div className="rounded-lg border bg-card">
+								<div className="border-b px-6 py-4">
+									<h3 className="text-lg font-semibold">Quick Actions</h3>
+								</div>
+								<div className="p-6">
+									<QuickActions />
+								</div>
+							</div>
+
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	)
 }

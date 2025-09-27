@@ -1,82 +1,68 @@
 'use client'
 
-import { createClient } from '@/utils/supabase/client'
-import { logger } from '@repo/shared'
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
-import React, { createContext, useContext, useEffect, useRef } from 'react'
-import { type StoreApi } from 'zustand'
-import type { AuthState } from './auth-store'
-import { createAuthStore } from './auth-store'
+import { useAuthStateListener, useIsAuthenticated } from '@/hooks/api/use-auth'
+import type { Session } from '@supabase/supabase-js'
+import type { ReactNode } from 'react'
+import React, { createContext, useContext } from 'react'
 
-const AuthStoreContext = createContext<StoreApi<AuthState> | null>(null)
+// Auth context for derived state access
+interface AuthContextType {
+	isAuthenticated: boolean
+	isLoading: boolean
+	session: Session | null
+}
 
-// Create browser client for authentication
-const supabaseClient = createClient()
+const AuthContext = createContext<AuthContextType | null>(null)
 
 export const AuthStoreProvider = ({
 	children
 }: {
-	children: React.ReactNode
+	children: ReactNode
 }) => {
-	const storeRef = useRef<StoreApi<AuthState> | null>(null)
+	// Set up auth state listener (replaces useEffect)
+	useAuthStateListener()
 
-	storeRef.current ??= createAuthStore({ isLoading: true })
-
-	useEffect(() => {
-		const store = storeRef.current!
-
-		// Get initial session from Supabase
-		supabaseClient.auth
-			.getSession()
-			.then(({ data: { session } }: { data: { session: Session | null } }) => {
-				store.getState().setSession(session)
-				store.getState().setLoading(false)
-			})
-
-		// Listen for auth changes
-		const {
-			data: { subscription }
-		} = supabaseClient.auth.onAuthStateChange(
-			async (event: AuthChangeEvent, session: Session | null) => {
-				store.getState().setSession(session)
-				store.getState().setLoading(false)
-
-				// Log auth events for debugging
-				if (process.env.NODE_ENV === 'development') {
-					logger.info('Auth state changed', {
-						action: 'auth_state_change',
-						metadata: { event, userId: session?.user?.id }
-					})
-				}
-			}
-		)
-
-		return () => subscription.unsubscribe()
-	}, [])
+	// Get auth state from TanStack Query
+	const authState = useIsAuthenticated()
 
 	return (
-		<AuthStoreContext.Provider value={storeRef.current}>
+		<AuthContext.Provider value={authState}>
 			{children}
-		</AuthStoreContext.Provider>
+		</AuthContext.Provider>
 	)
 }
 
-export function useAuthStore<T>(selector: (state: AuthState) => T): T {
-	const store = useContext(AuthStoreContext)
+// Hook to access auth state (replaces useAuthStore)
+export function useAuth() {
+	const context = useContext(AuthContext)
 
-	if (!store) {
-		throw new Error('Missing AuthStoreProvider')
+	if (!context) {
+		throw new Error('useAuth must be used within AuthStoreProvider')
 	}
 
-	// Use native Zustand selector pattern - much simpler
-	const [state, setState] = React.useState(() => selector(store.getState()))
+	return context
+}
 
-	React.useEffect(() => {
-		const unsubscribe = store.subscribe((state: AuthState) => {
-			setState(selector(state))
-		})
-		return unsubscribe
-	}, [store, selector])
+// Legacy compatibility hook (use useAuth instead)
+interface LegacyAuthState {
+	isLoading: boolean
+	session: Session | null
+	isAuthenticated: boolean
+	setSession: () => void
+	setLoading: () => void
+}
 
-	return state
+export function useAuthStore<T>(selector: (state: LegacyAuthState) => T): T {
+	const { isAuthenticated, isLoading, session } = useAuth()
+
+	// Mock the old store structure for compatibility
+	const mockState: LegacyAuthState = {
+		isLoading,
+		session,
+		isAuthenticated,
+		setSession: () => {}, // No-op, handled by TanStack Query
+		setLoading: () => {} // No-op, handled by TanStack Query
+	}
+
+	return selector(mockState)
 }

@@ -18,6 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger
@@ -203,6 +204,9 @@ export function CreatePropertyDialog() {
 						<Building className="w-5 h-5" />
 						Create New Property
 					</DialogTitle>
+					<DialogDescription>
+						Add a new property to your portfolio with basic information, details, and financial data.
+					</DialogDescription>
 				</DialogHeader>
 
 				{/* Progress Indicator */}
