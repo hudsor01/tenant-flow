@@ -3,18 +3,20 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Eye, Edit, Building, MapPin, Calendar, DollarSign } from 'lucide-react'
+import { Eye, Edit, Building, MapPin, Calendar, DollarSign, Trash2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { propertiesApi } from '@/lib/api-client'
 import { toast } from 'sonner'
 import type { Tables, TablesUpdate } from '@repo/shared'
+import { propertyUpdateSchema, type PropertyUpdate as PropertyUpdateType } from '@repo/shared/validation/properties'
+import { createLogger } from '@repo/shared'
 
 type Property = Tables<'Property'>
 type PropertyUpdate = TablesUpdate<'Property'>
@@ -23,24 +25,14 @@ interface PropertyActionsProps {
   property: Property
 }
 
-const editPropertySchema = z.object({
-  name: z.string().min(1, 'Property name is required'),
-  address: z.string().min(1, 'Address is required'),
-  city: z.string().min(1, 'City is required'),
-  state: z.string().min(1, 'State is required'),
-  zipCode: z.string().min(1, 'Zip code is required'),
-  propertyType: z.enum(['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL', 'CONDO', 'TOWNHOUSE', 'OTHER'])
-})
-
-type EditPropertyFormData = z.infer<typeof editPropertySchema>
-
 export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
   const [viewOpen, setViewOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const queryClient = useQueryClient()
+  const logger = createLogger({ component: 'PropertyEditViewButtons' })
 
-  const form = useForm<EditPropertyFormData>({
-    resolver: zodResolver(editPropertySchema),
+  const form = useForm<PropertyUpdateType>({
+    resolver: zodResolver(propertyUpdateSchema),
     defaultValues: {
       name: property.name,
       address: property.address,
@@ -52,7 +44,7 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
   })
 
   const updateMutation = useMutation({
-    mutationFn: (data: PropertyUpdate) => propertiesApi.update(property.id, data),
+    mutationFn: (data: PropertyUpdateType) => propertiesApi.update(property.id, data as PropertyUpdate),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['properties'] })
       toast.success('Property updated successfully')
@@ -64,17 +56,67 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
     }
   })
 
-  const onSubmit = (data: EditPropertyFormData) => {
+  const deleteMutation = useMutation({
+    mutationFn: () => propertiesApi.remove(property.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] })
+      toast.success('Property deleted successfully')
+    },
+    onError: (error) => {
+      toast.error('Failed to delete property')
+      logger.error('Failed to delete property', { action: 'deleteProperty' }, error)
+    },
+    meta: {
+      operation: 'delete',
+      entityType: 'property'
+    }
+  })
+
+  const onSubmit = (data: PropertyUpdateType) => {
     updateMutation.mutate(data)
   }
 
   return (
     <div className="flex items-center gap-1">
+      {/* View Button & Dialog */}
+      <Button variant="outline" size="sm" onClick={() => setViewOpen(true)}>
+        <Eye className="w-4 h-4" />
+        View
+      </Button>
+
       {/* Edit Button & Dialog */}
       <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
         <Edit className="w-4 h-4" />
         Edit
       </Button>
+
+      {/* Delete Button & Dialog */}
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+            <Trash2 className="w-4 h-4" />
+            Delete
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Property</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{property.name}"? This action cannot be undone and will remove all associated data including units, leases, and maintenance records.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteMutation.mutate()}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete Property'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-lg">
@@ -147,7 +189,7 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
               <Label htmlFor="edit-propertyType">Property Type</Label>
               <Select
                 value={form.watch('propertyType')}
-                onValueChange={(value) => form.setValue('propertyType', value as EditPropertyFormData['propertyType'])}
+                onValueChange={(value) => form.setValue('propertyType', value as PropertyUpdateType['propertyType'])}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -181,11 +223,6 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
       </Dialog>
 
       {/* View Button & Dialog */}
-      <Button variant="outline" size="sm" onClick={() => setViewOpen(true)}>
-        <Eye className="w-4 h-4" />
-        View
-      </Button>
-
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>

@@ -10,7 +10,7 @@ import {
 	Post,
 	Res
 } from '@nestjs/common'
-import type { LeaseFormData } from '@repo/shared'
+import type { LeaseGeneratorFormData as LeaseFormData } from '@repo/shared'
 import type { Response } from 'express'
 import { LeasePDFService } from '../pdf/lease-pdf.service'
 

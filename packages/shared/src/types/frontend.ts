@@ -20,6 +20,111 @@ export interface AnimatedMetricCardProps {
 	delay?: number
 }
 
+export interface MetricsCardProps extends React.ComponentProps<'div'> {
+	title: string
+	value: string | number
+	description?: string
+	status?: string
+	statusIcon?: React.ComponentType<{ className?: string }>
+	icon: React.ComponentType<{ className?: string }>
+	colorVariant:
+		| 'success'
+		| 'primary'
+		| 'revenue'
+		| 'property'
+		| 'warning'
+		| 'info'
+	trend?: 'up' | 'down' | 'stable'
+}
+
+// UI STORE TYPES
+
+export interface FormProgress {
+	currentStep: number
+	totalSteps: number
+	completedSteps: number[]
+	formData: Record<string, unknown>
+	formType: 'property' | 'tenant' | 'lease' | 'maintenance' | null
+}
+
+export interface ModalState {
+	createProperty: boolean
+	createTenant: boolean
+	createLease: boolean
+	createMaintenance: boolean
+	editMode: { type: string; id: string } | null
+	viewMode: { type: string; id: string } | null
+	deleteConfirmation: { type: string; id: string; name: string } | null
+}
+
+export interface NotificationState {
+	show: boolean
+	type: 'success' | 'error' | 'info' | 'warning'
+	title: string
+	message: string
+	duration?: number
+}
+
+export interface UIStore {
+	// Form Progress State
+	formProgress: FormProgress
+	setFormProgress: (progress: Partial<FormProgress>) => void
+	resetFormProgress: () => void
+	nextStep: () => void
+	previousStep: () => void
+	completeStep: (stepNumber: number) => void
+	setFormData: (data: Record<string, unknown>) => void
+
+	// Modal State
+	modals: ModalState
+	openModal: (modalType: keyof ModalState, data?: unknown) => void
+	closeModal: (modalType: keyof ModalState) => void
+	closeAllModals: () => void
+
+	// Notification State
+	notification: NotificationState
+	showNotification: (notification: Omit<NotificationState, 'show'>) => void
+	hideNotification: () => void
+
+	// Loading States
+	loading: {
+		global: boolean
+		create: boolean
+		update: boolean
+		delete: boolean
+	}
+	setLoading: (type: keyof UIStore['loading'], state: boolean) => void
+
+	// Data Refresh Triggers
+	refreshTriggers: {
+		properties: number
+		tenants: number
+		leases: number
+		maintenance: number
+	}
+	triggerRefresh: (entity: keyof UIStore['refreshTriggers']) => void
+}
+
+// ERROR HANDLING TYPES
+
+export interface ErrorContext {
+	operation?: string
+	entityType?: 'property' | 'tenant' | 'lease' | 'maintenance' | 'user'
+	entityId?: string
+	userId?: string
+	metadata?: Record<string, unknown>
+}
+
+export interface UserFriendlyError {
+	title: string
+	message: string
+	action?: string
+	canRetry: boolean
+	severity: 'low' | 'medium' | 'high' | 'critical'
+}
+
+export type ErrorType = 'network' | 'validation' | 'permission' | 'notFound' | 'server'
+
 // AUTH FORM TYPES
 
 export interface AuthFormProps {

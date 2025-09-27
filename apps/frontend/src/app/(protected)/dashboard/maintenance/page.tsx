@@ -1,4 +1,5 @@
 import { CreateMaintenanceDialog } from '@/components/maintenance/create-maintenance-dialog'
+import { MaintenanceActionButtons } from '@/components/maintenance/action-buttons'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -238,9 +239,7 @@ export default async function MaintenancePage() {
 									<TableRow key={request.id} className="hover:bg-muted/30">
 										<TableCell className="font-medium">{request.id}</TableCell>
 										<TableCell>
-											{typeof request.property === 'string'
-												? request.property
-												: request.property?.name || 'No Property'}
+											{request.property?.name || 'No Property'}
 										</TableCell>
 										<TableCell>
 											{request.unitId ? `Unit ${request.unitId}` : 'No Unit'}
@@ -268,10 +267,7 @@ export default async function MaintenancePage() {
 												: 'No date'}
 										</TableCell>
 										<TableCell>
-											{/* Placeholder for actions; replace with a component like MaintenanceActionButtons if available */}
-											<Button size="sm" variant="outline">
-												View
-											</Button>
+											<MaintenanceActionButtons maintenance={request} />
 										</TableCell>
 									</TableRow>
 								))

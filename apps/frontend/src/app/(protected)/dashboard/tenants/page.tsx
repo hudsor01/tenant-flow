@@ -1,13 +1,6 @@
 import type { TenantWithLeaseInfo } from '@repo/shared'
 import {
 	CreditCard,
-	Edit3,
-	Eye,
-	Mail,
-	MoreVertical,
-	Phone,
-	Plus,
-	Trash2,
 	TrendingUp,
 	Users
 } from 'lucide-react'
@@ -17,14 +10,6 @@ import { getTenantsPageData } from '@/lib/api/dashboard-server'
 
 // UI Components
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
 import {
 	Table,
 	TableBody,
@@ -37,6 +22,8 @@ import {
 // Custom Components
 import { MetricsCard } from '@/components/charts/metrics-card'
 import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
+import { TenantEditViewButtons } from '@/components/tenants/edit-button'
+import { CreateTenantDialog } from '@/components/tenants/create-dialog'
 import { formatCurrency } from '@/lib/utils'
 
 export default async function TenantsPage() {
@@ -95,20 +82,7 @@ export default async function TenantsPage() {
 						</p>
 					</div>
 
-					<Button
-						variant="default"
-						className="flex items-center gap-2"
-						style={{
-							background: 'var(--color-primary-brand)',
-							color: 'white',
-							borderRadius: 'var(--radius-medium)',
-							padding: 'var(--spacing-2) var(--spacing-4)',
-							transition: 'all var(--duration-quick) var(--ease-smooth)'
-						}}
-					>
-						<Plus className="size-4" />
-						Add Tenant
-					</Button>
+					<CreateTenantDialog />
 				</div>
 
 				<div className="space-y-6">
@@ -179,40 +153,7 @@ export default async function TenantsPage() {
 														: '—'}
 												</TableCell>
 												<TableCell>
-													<DropdownMenu>
-														<DropdownMenuTrigger asChild>
-															<Button
-																variant="ghost"
-																size="icon"
-																className="size-8"
-															>
-																<MoreVertical className="size-4" />
-															</Button>
-														</DropdownMenuTrigger>
-														<DropdownMenuContent align="end">
-															<DropdownMenuItem>
-																<Eye className="size-4 mr-2" />
-																View Details
-															</DropdownMenuItem>
-															<DropdownMenuItem>
-																<Edit3 className="size-4 mr-2" />
-																Edit
-															</DropdownMenuItem>
-															<DropdownMenuItem>
-																<Mail className="size-4 mr-2" />
-																Send Email
-															</DropdownMenuItem>
-															<DropdownMenuItem>
-																<Phone className="size-4 mr-2" />
-																Call
-															</DropdownMenuItem>
-															<DropdownMenuSeparator />
-															<DropdownMenuItem className="text-destructive">
-																<Trash2 className="size-4 mr-2" />
-																Delete
-															</DropdownMenuItem>
-														</DropdownMenuContent>
-													</DropdownMenu>
+													<TenantEditViewButtons tenant={tenant} />
 												</TableCell>
 											</TableRow>
 										)
@@ -225,21 +166,7 @@ export default async function TenantsPage() {
 												<p className="text-muted-foreground">
 													No tenants found.
 												</p>
-												<Button
-													variant="default"
-													className="flex items-center gap-2"
-													style={{
-														background: 'var(--color-primary-brand)',
-														color: 'white',
-														borderRadius: 'var(--radius-medium)',
-														padding: 'var(--spacing-2) var(--spacing-4)',
-														transition:
-															'all var(--duration-quick) var(--ease-smooth)'
-													}}
-												>
-													<Plus className="size-4" />
-													Add First Tenant
-												</Button>
+												<CreateTenantDialog />
 											</div>
 										</TableCell>
 									</TableRow>

@@ -9,42 +9,33 @@ import { Badge } from '@/components/ui/badge'
 import { Eye, Edit, Trash2, Send, Mail, Phone, Building, MapPin, Calendar, DollarSign } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { tenantsApi } from '@/lib/api-client'
 import { toast } from 'sonner'
-import type { TenantWithLeaseInfo } from '@repo/shared'
+import { tenantUpdateSchema, type TenantUpdate, type TenantWithLeaseInfo } from '@repo/shared'
 
 interface TenantActionButtonsProps {
   tenant: TenantWithLeaseInfo
 }
-
-const editTenantSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Valid email required'),
-  phone: z.string().optional(),
-  emergencyContact: z.string().optional()
-})
-
-type EditTenantFormData = z.infer<typeof editTenantSchema>
 
 export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
   const [viewOpen, setViewOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const queryClient = useQueryClient()
 
-  const form = useForm<EditTenantFormData>({
-    resolver: zodResolver(editTenantSchema),
+  const form = useForm<TenantUpdate>({
+    resolver: zodResolver(tenantUpdateSchema),
     defaultValues: {
-      name: tenant.name,
+      firstName: tenant.name?.split(' ')[0] || '',
+      lastName: tenant.name?.split(' ').slice(1).join(' ') || '',
       email: tenant.email,
       phone: tenant.phone || '',
-      emergencyContact: tenant.emergencyContact || ''
+      emergencyContact: tenant.emergencyContact || undefined
     }
   })
 
   const updateMutation = useMutation({
-    mutationFn: (data: EditTenantFormData) => tenantsApi.update(tenant.id, data),
+    mutationFn: (data: TenantUpdate) => tenantsApi.update(tenant.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenants'] })
       toast.success('Tenant updated successfully')
@@ -80,7 +71,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
     }
   })
 
-  const onSubmit = (data: EditTenantFormData) => {
+  const onSubmit = (data: TenantUpdate) => {
     updateMutation.mutate(data)
   }
 
@@ -99,15 +90,29 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Full Name</Label>
+              <Label htmlFor="edit-firstName">First Name</Label>
               <Input
-                id="edit-name"
-                {...form.register('name')}
-                placeholder="John Smith"
+                id="edit-firstName"
+                {...form.register('firstName')}
+                placeholder="John"
               />
-              {form.formState.errors.name && (
+              {form.formState.errors.firstName && (
                 <p className="text-sm text-destructive">
-                  {form.formState.errors.name.message}
+                  {form.formState.errors.firstName.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-lastName">Last Name</Label>
+              <Input
+                id="edit-lastName"
+                {...form.register('lastName')}
+                placeholder="Smith"
+              />
+              {form.formState.errors.lastName && (
+                <p className="text-sm text-destructive">
+                  {form.formState.errors.lastName.message}
                 </p>
               )}
             </div>
@@ -133,15 +138,6 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
                 id="edit-phone"
                 {...form.register('phone')}
                 placeholder="(555) 123-4567"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-emergencyContact">Emergency Contact (Optional)</Label>
-              <Input
-                id="edit-emergencyContact"
-                {...form.register('emergencyContact')}
-                placeholder="Jane Smith - (555) 987-6543"
               />
             </div>
 
@@ -172,7 +168,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
             <DialogTitle className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="text-xs font-semibold text-primary">
-                  {tenant.name.split(' ').map(n => n[0]).join('')}
+                  {(tenant.name || '').split(' ').map(n => n[0]).join('')}
                 </span>
               </div>
               {tenant.name}
