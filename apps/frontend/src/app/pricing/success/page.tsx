@@ -4,70 +4,47 @@ import Footer from '@/components/layout/footer'
 import { Navbar } from '@/components/layout/navbar'
 import { HeroAuthority } from '@/components/marketing/hero-authority'
 import { CustomerPortalButton } from '@/components/pricing/customer-portal'
-
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { API_BASE_URL } from '@/lib/api-client'
-import type { SubscriptionData } from '@/types/stripe'
-import { createLogger } from '@repo/shared'
+import { usePaymentVerification } from '@/hooks/api/use-payment-verification'
 import { CheckCircle, Home } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { toast } from 'sonner'
-
-const logger = createLogger({ component: 'CheckoutSuccessPage' })
 
 export default function CheckoutSuccessPage() {
 	const searchParams = useSearchParams()
 	const sessionId = searchParams?.get('session_id')
-	const [isVerifying, setIsVerifying] = useState(true)
-	const [subscription, setSubscription] = useState<SubscriptionData | null>(
-		null
-	)
+
+	// Use TanStack Query for payment verification
+	const {
+		data: verificationData,
+		isLoading: isVerifying,
+		error: verificationError,
+		isSuccess
+	} = usePaymentVerification(sessionId)
+
+	const subscription = verificationData?.subscription
+
+	// Handle success/error notifications
+	useEffect(() => {
+		if (isSuccess && subscription) {
+			toast.success('Payment successful! Welcome to your new plan.')
+		}
+	}, [isSuccess, subscription])
 
 	useEffect(() => {
-		const verifyPayment = async () => {
-			if (!sessionId) {
-				toast.error('No session ID found')
-				setIsVerifying(false)
-				return
-			}
-
-			try {
-				// Verify the checkout session with your backend
-				const response = await fetch(`${API_BASE_URL}/stripe/verify-session`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${localStorage.getItem('auth-token') || ''}`
-					},
-					body: JSON.stringify({ sessionId })
-				})
-
-				if (response.ok) {
-					const data = await response.json()
-					setSubscription(data.subscription)
-					toast.success('Payment successful! Welcome to your new plan.')
-				} else {
-					toast.error('Failed to verify payment')
-				}
-			} catch (error) {
-				logger.error('Payment verification failed', {
-					action: 'payment_verification_failed',
-					metadata: {
-						sessionId,
-						error: error instanceof Error ? error.message : String(error)
-					}
-				})
-				toast.error('Failed to verify payment')
-			} finally {
-				setIsVerifying(false)
-			}
+		if (verificationError) {
+			toast.error('Failed to verify payment')
 		}
+	}, [verificationError])
 
-		verifyPayment()
+	useEffect(() => {
+		if (!sessionId) {
+			toast.error('No session ID found')
+		}
 	}, [sessionId])
 
 	if (isVerifying) {

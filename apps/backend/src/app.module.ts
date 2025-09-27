@@ -27,6 +27,7 @@ import { PropertiesModule } from './properties/properties.module'
 import { SecurityModule } from './security/security.module'
 import { SharedModule } from './shared/shared.module'
 import { TenantsModule } from './tenants/tenants.module'
+import { TasksModule } from './tasks/tasks.module'
 import { UnitsModule } from './units/units.module'
 import { UsersModule } from './users/users.module'
 
@@ -97,6 +98,7 @@ import { UsersModule } from './users/users.module'
 		LeasesModule,
 		MaintenanceModule,
 		NotificationsModule,
+		TasksModule,
 		UsersModule,
 		SecurityModule
 	],
