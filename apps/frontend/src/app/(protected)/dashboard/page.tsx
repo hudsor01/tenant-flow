@@ -29,81 +29,15 @@ export default function Page() {
 		)
 	}
 
-	// Provide fallback data for components if queries are still pending
-	const safeDashboardStats = dashboardStats || {
-		totalProperties: 0,
-		totalTenants: 0,
-		monthlyRevenue: 0,
-		occupancyRate: 0,
-		maintenanceRequests: 0,
-		totalUnits: 0,
-		totalRevenue: 0,
-		revenue: { monthly: 0, yearly: 0, growth: 0 },
-		maintenance: {
-			open: 0,
-			inProgress: 0,
-			completed: 0,
-			completedToday: 0,
-			avgResolutionTime: 0,
-			byPriority: { low: 0, medium: 0, high: 0, emergency: 0 }
-		},
-		properties: {
-			total: 0,
-			occupied: 0,
-			vacant: 0,
-			occupancyRate: 0,
-			totalMonthlyRent: 0,
-			averageRent: 0
-		},
-		tenants: {
-			total: 0,
-			active: 0,
-			inactive: 0,
-			newThisMonth: 0
-		},
-		units: {
-			total: 0,
-			available: 0,
-			occupied: 0,
-			underMaintenance: 0,
-			occupancyRate: 0
-		},
-		leases: {
-			active: 0,
-			expiring: 0,
-			expired: 0
-		}
-	}
-
-	const safePropertyStats = propertyStats || {
-		totalProperties: 0,
-		totalUnits: 0,
-		occupiedUnits: 0,
-		occupancyRate: 0,
-		totalRevenue: 0,
-		vacantUnits: 0,
-		maintenanceUnits: 0
-	}
-
-	const safeLeaseStats = leaseStats || {
-		totalLeases: 0,
-		activeLeases: 0,
-		expiredLeases: 0,
-		terminatedLeases: 0,
-		totalMonthlyRent: 0,
-		averageRent: 0,
-		totalSecurityDeposits: 0
-	}
-
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
 			{/* Top Metrics Cards Section */}
 			<div className="border-b bg-background px-4 py-6 lg:px-6 lg:py-8">
 				<div className="mx-auto max-w-[1600px]">
 					<SectionCards
-						dashboardStats={safeDashboardStats}
-						propertyStats={safePropertyStats}
-						leaseStats={safeLeaseStats}
+						dashboardStats={dashboardStats}
+						propertyStats={propertyStats}
+						leaseStats={leaseStats}
 					/>
 				</div>
 			</div>

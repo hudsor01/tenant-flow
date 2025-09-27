@@ -9,7 +9,7 @@ import React, { createContext, useContext } from 'react'
 interface AuthContextType {
 	isAuthenticated: boolean
 	isLoading: boolean
-	session: Session | null
+	session: Session | null | undefined
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -46,7 +46,7 @@ export function useAuth() {
 // Legacy compatibility hook (use useAuth instead)
 interface LegacyAuthState {
 	isLoading: boolean
-	session: Session | null
+	session: Session | null | undefined
 	isAuthenticated: boolean
 	setSession: () => void
 	setLoading: () => void
