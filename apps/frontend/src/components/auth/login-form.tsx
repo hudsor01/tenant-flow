@@ -5,9 +5,11 @@ import { PasswordInput } from '@/components/auth/password-input'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useFormProgress } from '@/hooks/use-form-progress'
 import { cn } from '@/lib/design-system'
 import { loginZodSchema, type AuthFormProps } from '@repo/shared'
 import { useForm } from '@tanstack/react-form'
+import { useEffect } from 'react'
 import { toast } from 'sonner'
 
 export function LoginForm({
@@ -19,17 +21,28 @@ export function LoginForm({
 	isLoading,
 	isGoogleLoading
 }: Omit<AuthFormProps, 'mode' | 'onLogin'>) {
+	// Form progress persistence (only saves email - no passwords)
+	const {
+		data: progressData,
+		saveProgress,
+		clearProgress,
+		isLoading: progressLoading
+	} = useFormProgress('login')
+
 	const form = useForm({
 		defaultValues: {
-			email: '',
+			email: progressData?.email || '',
 			password: ''
 		},
 		onSubmit: async ({ value }) => {
 			try {
 				await onSubmit?.(value)
+				// Clear progress on successful login
+				clearProgress()
 			} catch (error) {
 				toast.error('Sign in failed', {
-					description: error instanceof Error ? error.message : 'Please try again'
+					description:
+						error instanceof Error ? error.message : 'Please try again'
 				})
 			}
 		},
@@ -38,8 +51,33 @@ export function LoginForm({
 		}
 	})
 
+	// Auto-save progress when email changes (exclude password)
+	useEffect(() => {
+		const email = form.state.values.email
+		if (email) {
+			saveProgress({ email })
+		}
+	}, [form.state.values.email, saveProgress])
+
 	return (
 		<div className={cn('w-full', className)}>
+			{/* Progress restoration indicator */}
+			{progressLoading && (
+				<div className="mb-4 p-3 bg-muted rounded-md">
+					<p className="text-sm text-muted-foreground">
+						Restoring your progress...
+					</p>
+				</div>
+			)}
+
+			{progressData && !progressLoading && (
+				<div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-md">
+					<p className="text-sm text-primary">
+						Welcome back! Your email has been restored.
+					</p>
+				</div>
+			)}
+
 			<form
 				onSubmit={e => {
 					e.preventDefault()

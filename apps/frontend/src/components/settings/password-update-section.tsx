@@ -29,29 +29,32 @@ export function PasswordUpdateSection() {
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 	const [passwordStrength, setPasswordStrength] = useState(0)
 
-	// Password strength validation using backend RPC
-	const validatePasswordStrength = async (pwd: string) => {
+	// Client-side password strength validation (ultra-native approach)
+	const validatePasswordStrength = (pwd: string) => {
 		if (!pwd) return 0
 
-		try {
-			const { data, error } = await (supabaseClient as { rpc: (name: string, params: { p_password: string }) => Promise<{ data: { strength: number } | null; error: unknown }> })
-				.rpc('validate_password_strength', { p_password: pwd })
+		let score = 0
 
-			if (error) {
-				// Password validation error
-				return 0
-			}
+		// Length requirements
+		if (pwd.length >= 8) score += 1
+		if (pwd.length >= 12) score += 1
 
-			return (data as { strength: number } | null)?.strength || 0
-		} catch {
-			// Password validation failed
-			return 0
-		}
+		// Character variety
+		if (/[a-z]/.test(pwd)) score += 1
+		if (/[A-Z]/.test(pwd)) score += 1
+		if (/[0-9]/.test(pwd)) score += 1
+		if (/[^A-Za-z0-9]/.test(pwd)) score += 1
+
+		// Common patterns (deduct points)
+		if (/(.)\1{2,}/.test(pwd)) score -= 1 // Repeated characters
+		if (/123|abc|qwe/i.test(pwd)) score -= 1 // Sequential patterns
+
+		return Math.max(0, Math.min(5, score))
 	}
 
-	const handlePasswordChange = async (value: string) => {
+	const handlePasswordChange = (value: string) => {
 		setPassword(value)
-		const strength = await validatePasswordStrength(value)
+		const strength = validatePasswordStrength(value)
 		setPasswordStrength(strength)
 	}
 
@@ -99,12 +102,12 @@ export function PasswordUpdateSection() {
 				throw new Error('Passwords do not match')
 			}
 
-			// Use backend RPC for password validation
-			const { data: validationResult, error: validationError } = await (supabaseClient as { rpc: (name: string, params: { p_password: string }) => Promise<{ data: { isValid: boolean; reason?: string } | null; error: unknown }> })
-				.rpc('validate_password_strength', { p_password: password })
-
-			if (validationError || !(validationResult as { isValid: boolean; reason?: string } | null)?.isValid) {
-				throw new Error((validationResult as { isValid: boolean; reason?: string } | null)?.reason || 'Password is too weak. Please use a stronger password.')
+			// Client-side password validation (ultra-native)
+			const strength = validatePasswordStrength(password)
+			if (strength < 3) {
+				throw new Error(
+					'Password is too weak. Please use a stronger password with at least 8 characters, uppercase, lowercase, numbers, and symbols.'
+				)
 			}
 
 			// First verify current password by reauthenticating

@@ -11,27 +11,66 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useFormWithProgress } from '@/hooks/use-form-progress'
 import type { ContactFormRequest } from '@repo/shared'
+import { createLogger } from '@repo/shared'
 import { Check, Mail, MapPin, Phone } from 'lucide-react'
 import { useState } from 'react'
+
+const logger = createLogger({ component: 'ContactForm' })
 
 interface ContactFormProps {
 	className?: string
 }
 
 export function ContactForm({ className = '' }: ContactFormProps) {
-	const [formData, setFormData] = useState<ContactFormRequest>({
-		name: '',
-		email: '',
-		subject: '',
-		message: '',
-		type: 'sales',
-		company: '',
-		phone: ''
-	})
-	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [submitMessage, setSubmitMessage] = useState<string | null>(null)
 	const [errors, setErrors] = useState<Record<string, string>>({})
+
+	// Initialize form with progress persistence
+	const {
+		formData,
+		updateField,
+		handleSubmit: handleFormSubmit,
+		isSubmitting,
+		submitError,
+		isHydrated
+	} = useFormWithProgress<ContactFormRequest>(
+		'contact',
+		async (data: ContactFormRequest) => {
+			if (!validateForm()) {
+				throw new Error('Please check your input')
+			}
+
+			const response = await fetch('/api/contact', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(data)
+			})
+
+			const result = await response.json()
+
+			if (!response.ok) {
+				throw new Error(result.error || 'Failed to submit form')
+			}
+
+			setSubmitMessage(
+				result.message ||
+					'Thank you for reaching out! Our team will review your message and get back to you within 4 hours.'
+			)
+		},
+		{
+			name: '',
+			email: '',
+			subject: '',
+			message: '',
+			type: 'sales',
+			company: '',
+			phone: ''
+		}
+	)
 
 	const validateForm = (): boolean => {
 		const newErrors: Record<string, string> = {}
@@ -61,7 +100,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 
 		// Subject validation
 		if (!formData.subject) {
-			newErrors.subject = 'Please select what you\'re interested in'
+			newErrors.subject = "Please select what you're interested in"
 		}
 
 		// Message validation
@@ -77,48 +116,21 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
-
-		if (!validateForm()) {
-			return
-		}
-
-		setIsSubmitting(true)
 		setErrors({})
 
 		try {
-			const response = await fetch('/api/contact', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(formData)
+			await handleFormSubmit(formData)
+		} catch (error) {
+			// Error handling is managed by useFormWithProgress
+			logger.error('Form submission error', {
+				action: 'contact_form_submit_failed',
+				metadata: {
+					hasName: !!formData.name,
+					hasEmail: !!formData.email,
+					hasSubject: !!formData.subject,
+					error: error instanceof Error ? error.message : String(error)
+				}
 			})
-
-			const result = await response.json()
-
-			if (response.ok) {
-				setSubmitMessage(
-					result.message ||
-						'Thank you for reaching out! Our team will review your message and get back to you within 4 hours.'
-				)
-				setFormData({
-					name: '',
-					email: '',
-					subject: '',
-					message: '',
-					type: 'sales',
-					company: '',
-					phone: ''
-				})
-			} else {
-				throw new Error(result.error || 'Failed to submit form')
-			}
-		} catch {
-			setSubmitMessage(
-				'Sorry, there was an error submitting your message. Please try again.'
-			)
-		} finally {
-			setIsSubmitting(false)
 		}
 	}
 
@@ -126,7 +138,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 		field: keyof ContactFormRequest,
 		value: string
 	) => {
-		setFormData(prev => ({ ...prev, [field]: value }))
+		updateField(field, value)
 	}
 
 	if (submitMessage) {
@@ -184,8 +196,8 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 					</h1>
 
 					<p className="mt-4 text-muted-foreground text-lg">
-						Whether you manage 5 or 500 units, we're here to help streamline your
-						operations and save you time every day.
+						Whether you manage 5 or 500 units, we're here to help streamline
+						your operations and save you time every day.
 					</p>
 
 					<div className="mt-8 space-y-6">
@@ -239,9 +251,25 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						Get in Touch
 					</h2>
 					<p className="text-muted-foreground mb-8">
-						Have questions about TenantFlow? Want to see a demo? We'd love to hear
-						from you. Our team typically responds within 4 hours.
+						Have questions about TenantFlow? Want to see a demo? We'd love to
+						hear from you. Our team typically responds within 4 hours.
 					</p>
+
+					{/* Progress indicator */}
+					{!isHydrated && (
+						<div className="mb-4 p-3 bg-muted rounded-md">
+							<p className="text-sm text-muted-foreground">
+								Restoring your progress...
+							</p>
+						</div>
+					)}
+
+					{/* Error display */}
+					{submitError && (
+						<div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+							<p className="text-sm text-destructive">{submitError}</p>
+						</div>
+					)}
 
 					<form onSubmit={handleSubmit} className="space-y-6">
 						<div className="grid md:grid-cols-2 gap-4">
@@ -259,7 +287,9 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									className={`mt-2 bg-background border-border ${errors.name ? 'border-[var(--color-error-border)]' : ''}`}
 								/>
 								{errors.name && (
-									<p className="mt-1 text-sm text-[var(--color-error)]">{errors.name}</p>
+									<p className="mt-1 text-sm text-[var(--color-error)]">
+										{errors.name}
+									</p>
 								)}
 							</div>
 
@@ -277,7 +307,9 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									className={`mt-2 bg-background border-border ${errors.email ? 'border-[var(--color-error-border)]' : ''}`}
 								/>
 								{errors.email && (
-									<p className="mt-1 text-sm text-[var(--color-error)]">{errors.email}</p>
+									<p className="mt-1 text-sm text-[var(--color-error)]">
+										{errors.email}
+									</p>
 								)}
 							</div>
 						</div>
@@ -310,7 +342,9 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									className={`mt-2 bg-background border-border ${errors.phone ? 'border-[var(--color-error-border)]' : ''}`}
 								/>
 								{errors.phone && (
-									<p className="mt-1 text-sm text-[var(--color-error)]">{errors.phone}</p>
+									<p className="mt-1 text-sm text-[var(--color-error)]">
+										{errors.phone}
+									</p>
 								)}
 							</div>
 						</div>
@@ -324,7 +358,9 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								onValueChange={value => handleInputChange('subject', value)}
 								required
 							>
-								<SelectTrigger className={`mt-2 bg-background border-border ${errors.subject ? 'border-[var(--color-error-border)]' : ''}`}>
+								<SelectTrigger
+									className={`mt-2 bg-background border-border ${errors.subject ? 'border-[var(--color-error-border)]' : ''}`}
+								>
 									<SelectValue placeholder="What brings you to TenantFlow?" />
 								</SelectTrigger>
 								<SelectContent>
@@ -346,7 +382,9 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								</SelectContent>
 							</Select>
 							{errors.subject && (
-								<p className="mt-1 text-sm text-[var(--color-error)]">{errors.subject}</p>
+								<p className="mt-1 text-sm text-[var(--color-error)]">
+									{errors.subject}
+								</p>
 							)}
 						</div>
 
@@ -386,7 +424,9 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								className={`mt-2 resize-none bg-background border-border ${errors.message ? 'border-[var(--color-error-border)]' : ''}`}
 							/>
 							{errors.message && (
-								<p className="mt-1 text-sm text-[var(--color-error)]">{errors.message}</p>
+								<p className="mt-1 text-sm text-[var(--color-error)]">
+									{errors.message}
+								</p>
 							)}
 						</div>
 
