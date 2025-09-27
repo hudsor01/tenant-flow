@@ -68,11 +68,12 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 		const [isMounted, setIsMounted] = useState(false)
 
 		// Auth state
-		const { user, isAuthenticated, isLoading } = useAuthStore(state => ({
-			user: state.user,
+		const { session, isAuthenticated, isLoading } = useAuthStore(state => ({
+			session: state.session,
 			isAuthenticated: state.isAuthenticated,
 			isLoading: state.isLoading
 		}))
+		const user = session?.user
 
 		// Prevent hydration mismatch by only rendering auth content after mount
 		useEffect(() => {

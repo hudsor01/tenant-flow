@@ -58,7 +58,7 @@ export function ActivityFeed() {
 	const { data, isLoading, error } = useDashboardActivity()
 
 	// Extract activities array from the response
-	const activities = data?.activities || []
+	const activities: any[] = data?.activities || []
 
 	if (isLoading) {
 		return (

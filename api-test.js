@@ -18,9 +18,9 @@ const DASHBOARD_ENDPOINTS = [
   { name: 'Property Stats', path: '/api/v1/properties/stats' },
   { name: 'Tenant Stats', path: '/api/v1/tenants/stats' },
   { name: 'Lease Stats', path: '/api/v1/leases/stats' },
-  { name: 'Upcoming Tasks', path: '/api/v1/tasks/upcoming' },
-  { name: 'Financial Chart Data (6m)', path: '/api/v1/financial/chart-data?range=6m' },
-  { name: 'Financial Chart Data (1y)', path: '/api/v1/financial/chart-data?range=1y' },
+  { name: 'Revenue Trends (Current Year)', path: '/api/v1/financial/analytics/revenue-trends' },
+  { name: 'Revenue Trends (2024)', path: '/api/v1/financial/analytics/revenue-trends?year=2024' },
+  { name: 'Maintenance Stats', path: '/api/v1/maintenance/stats' },
 ];
 
 // Colors for terminal output
