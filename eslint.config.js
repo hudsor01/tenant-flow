@@ -9,6 +9,7 @@
 import globals from 'globals'
 import noBarrelExports from './.eslint/rules/no-barrel-exports.js'
 import noInlineTypes from './.eslint/rules/no-inline-types.js'
+import enforceSchemaGeneration from './.eslint/rules/enforce-schema-generation.js'
 import baseConfig from './packages/eslint-config/base.js'
 
 /**
@@ -113,6 +114,32 @@ export default [
 		rules: {
 			'type-centralization/no-inline-types': 'error',
 			'type-centralization/no-barrel-exports': 'error'
+		}
+	},
+	// Schema Generation Enforcement - PRODUCTION READY
+	{
+		name: 'apps/schema-generation-enforcement',
+		files: ['apps/frontend/**/*.{ts,tsx}', 'apps/backend/**/*.ts'],
+		ignores: [
+			'**/*.test.*',
+			'**/*.spec.*',
+			'**/*.config.*',
+			'**/*.d.ts',
+			'**/node_modules/**',
+			'**/dist/**',
+			'**/build/**',
+			'**/generated/**',
+			'packages/database/src/generated/**'
+		],
+		plugins: {
+			'architecture': {
+				rules: {
+					'enforce-schema-generation': enforceSchemaGeneration
+				}
+			}
+		},
+		rules: {
+			'architecture/enforce-schema-generation': 'error' // Block builds on schema violations
 		}
 	},
 	// FRONTEND LOGGING ENFORCEMENT - NO CONSOLE USAGE
