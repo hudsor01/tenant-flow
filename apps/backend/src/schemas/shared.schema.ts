@@ -86,7 +86,7 @@ export const successResponseSchema: JSONSchema = {
 	properties: {
 		success: {
 			type: 'boolean',
-			const: true
+			enum: [true]
 		},
 		message: {
 			type: 'string'

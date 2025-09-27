@@ -8,6 +8,54 @@
 import type { Request, Response } from 'express'
 import type { Database } from './supabase-generated.js'
 
+// Basic Stripe type declarations to avoid external dependencies
+export interface StripeInvoice {
+	subscription?: string | StripeSubscription | null
+}
+
+export interface StripeSubscription {
+	current_period_end?: number
+	current_period_start?: number
+}
+
+// TYPE PROVIDER INTERFACES
+
+export interface TypeProvider {
+	output: Record<string, unknown>
+	input: Record<string, unknown>
+}
+
+export interface ExpressTypeProvider extends TypeProvider {
+	output: Record<string, unknown>
+	input: Record<string, unknown>
+	serializer?: {
+		fromArray: (array: unknown[]) => unknown
+		fromObject: (object: Record<string, unknown>) => unknown
+	}
+}
+
+export interface JSONSchema {
+	type?: string | string[]
+	properties?: Record<string, JSONSchema>
+	required?: string[]
+	additionalProperties?: boolean | JSONSchema
+	items?: JSONSchema
+	enum?: unknown[]
+	format?: string
+	pattern?: string
+	minimum?: number
+	maximum?: number
+	minLength?: number
+	maxLength?: number
+	description?: string
+	oneOf?: JSONSchema[]
+	anyOf?: JSONSchema[]
+	allOf?: JSONSchema[]
+	$ref?: string
+	examples?: unknown[]
+	default?: unknown
+}
+
 // BACKEND CONTEXT TYPES
 
 export interface authUser {
@@ -769,5 +817,274 @@ export type StripeSubscriptionStatus =
 	| 'UNPAID'
 	| 'INCOMPLETE'
 	| 'INCOMPLETE_EXPIRED'
+
+// EXPRESS REQUEST TYPES - CONSOLIDATED FROM APPS
+
+// Authenticated request with user attached
+export interface AuthenticatedRequest extends Request {
+	user: authUser
+	startTime?: number
+	id?: string
+}
+
+// Raw request body for webhooks
+export interface RawBodyRequest extends Request {
+	rawBody?: Buffer
+}
+
+// Combined authenticated request with raw body support
+export interface AuthenticatedRawRequest extends AuthenticatedRequest {
+	rawBody?: Buffer
+}
+
+// Organization-scoped request
+export interface OrganizationRequest extends AuthenticatedRequest {
+	organizationId: string
+}
+
+// Request with timing information
+export interface TimedRequest extends Request {
+	startTime: number
+	duration?: number
+	id?: string
+}
+
+// Security context for request monitoring
+export interface SecurityContextRequest extends Request {
+	securityContext?: {
+		riskLevel: 'low' | 'medium' | 'high'
+		threatIndicators: string[]
+		blockRequests: boolean
+	}
+}
+
+// Request with user attached (legacy compat)
+export interface RequestWithUser {
+	user?: authUser
+	params?: Record<string, string>
+}
+
+// Throttler request interface
+export interface ThrottlerRequest {
+	headers: Record<string, string | string[] | undefined>
+	ip?: string
+	user?: { id: string }
+}
+
+// Rate limiting interfaces
+export interface RateLimitWindow {
+	requests: number
+	resetTime: number
+}
+
+export interface RateLimitConfig {
+	windowMs: number
+	maxRequests: number
+	keyGenerator?: (req: Request) => string
+	skipSuccessfulRequests?: boolean
+	skipFailedRequests?: boolean
+}
+
+// Removed duplicate - JSONSchema already defined above
+
+// Removed duplicate TypeProvider and ExpressTypeProvider - already defined above
+
+// REQUEST TIMING AND PERFORMANCE
+
+export interface RequestWithTiming extends Request {
+	startTime?: number
+	id?: string
+}
+
+export interface PerformanceMetrics {
+	uptime: number
+	memory: {
+		used: number
+		free: number
+		usagePercentage: number
+	}
+	cpu: {
+		user: number
+		system: number
+	}
+	requests: {
+		total: number
+		successful: number
+		failed: number
+		avgResponseTime: number
+	}
+}
+
+export interface CircuitBreakerStatus {
+	timestamp: string
+	services: Record<string, ServiceHealth>
+	overall: 'healthy' | 'degraded' | 'unhealthy'
+}
+
+// STRIPE WEBHOOK AND BILLING TYPES
+
+export interface InvoiceWithSubscription extends StripeInvoice {
+	subscription?: string | StripeSubscription | null
+}
+
+export interface SubscriptionWithPeriod extends StripeSubscription {
+	current_period_end?: number
+	current_period_start?: number
+}
+
+export interface BackendCreatePaymentIntentRequest {
+	amount: number
+	tenantId: string
+}
+
+export interface CreateSetupIntentRequest {
+	tenantId: string
+	customerId?: string
+}
+
+export interface EmbeddedCheckoutRequest {
+	priceId?: string // Required for payment/subscription, not needed for setup
+	domain: string
+}
+
+export interface CreateBillingPortalRequest {
+	customerId: string
+	returnUrl: string
+}
+
+export interface VerifyCheckoutSessionRequest {
+	sessionId: string
+}
+
+// SUBSCRIPTION EVENT TYPES
+
+export interface BaseSubscriptionEvent {
+	userId: string
+	subscriptionId: string
+	timestamp?: Date
+}
+
+export interface SubscriptionCreatedEvent extends BaseSubscriptionEvent {
+	planType: string
+	status?: string
+}
+
+export interface SubscriptionUpdatedEvent extends BaseSubscriptionEvent {
+	previousStatus?: string
+	newStatus?: string
+	planType?: string
+}
+
+export interface SubscriptionCanceledEvent extends BaseSubscriptionEvent {
+	canceledAt?: Date
+	cancelationReason?: string
+}
+
+export interface TrialWillEndEvent extends BaseSubscriptionEvent {
+	trialEndDate: Date
+	planType: string
+}
+
+export interface PaymentFailedEvent extends BaseSubscriptionEvent {
+	paymentIntentId: string
+	error: string
+	attemptCount?: number
+}
+
+export interface PaymentSucceededEvent extends BaseSubscriptionEvent {
+	paymentIntentId: string
+	amount: number
+	currency?: string
+}
+
+// REGISTERED ROUTE SCHEMA
+
+export type HttpMethod =
+	| 'GET'
+	| 'POST'
+	| 'PUT'
+	| 'PATCH'
+	| 'DELETE'
+	| 'HEAD'
+	| 'OPTIONS'
+
+export interface RegisteredRouteSchema {
+	method: HttpMethod
+	path: string
+	controller: string
+	handler: string
+	isPublic: boolean
+	requiredRoles?: string[]
+	schema?: JSONSchema
+}
+
+// EXPRESS ROUTER INTERFACES
+
+export interface ExpressRoute {
+	path: string
+	methods: Record<string, boolean>
+}
+
+export interface ExpressLayer {
+	route?: ExpressRoute
+	path?: string
+	name?: string
+}
+
+export interface ExpressRouter {
+	stack: ExpressLayer[]
+}
+
+// VALIDATION AND ENV TYPES
+
+export interface RequiredEnvVars {
+	DATABASE_URL: string
+	DIRECT_URL: string
+	SUPABASE_URL: string
+	SERVICE_ROLE_KEY: string
+	SUPABASE_ANON_KEY: string
+	NEXTAUTH_SECRET: string
+	NEXTAUTH_URL: string
+}
+
+export interface ValidationResult {
+	success: boolean
+	message: string
+	data?: unknown
+	errors?: string[]
+}
+
+// MINIMAL BILLING TYPES
+
+export interface PaymentNotificationData {
+	subscriptionId: string
+	customerId: string
+	amount?: number
+	status?: string
+}
+
+export interface MinimalSubscription {
+	id: string
+	customer: string | { id: string }
+	status: string
+	current_period_end?: number
+}
+
+export interface MinimalInvoice {
+	id: string
+	subscriptionId: string
+	customerId: string
+	amount?: number
+	status?: string
+}
+
+// EXPRESS PERFORMANCE SERIALIZER
+
+export interface SerializerMetrics {
+	dateSerializationCount: number
+	currencySerializationCount: number
+	totalSerializations: number
+	avgSerializationTime: number
+}
 
 // Express migration complete
