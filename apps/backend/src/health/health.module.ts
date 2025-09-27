@@ -7,7 +7,6 @@ import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthController } from './health.controller'
 import { HealthService } from './health.service'
 import { MetricsService } from './metrics.service'
-import { StripeFdwHealthIndicator } from './stripe-fdw.health'
 import { SupabaseHealthIndicator } from './supabase.health'
 
 // Factory provider pattern for explicit SupabaseService injection
@@ -31,7 +30,6 @@ const SupabaseServiceFactory = {
 		MetricsService,
 		CircuitBreakerService,
 		SupabaseHealthIndicator,
-		StripeFdwHealthIndicator,
 		SupabaseServiceFactory
 	],
 	exports: []

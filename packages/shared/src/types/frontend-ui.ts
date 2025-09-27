@@ -6,6 +6,7 @@
  */
 
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import type { TenantWithLeaseInfo } from './core.js'
 import type { Database } from './supabase-generated.js'
 
 // COMMON UI COMPONENT PROPS
@@ -71,10 +72,18 @@ export interface StrengthRule {
 export interface MetricsCardProps extends React.ComponentProps<'div'> {
 	title: string
 	value: string | number
-	change?: number
-	changeType?: 'positive' | 'negative' | 'neutral'
-	subtitle?: string
-	icon?: ReactNode
+	description?: string
+	status?: string
+	statusIcon?: React.ComponentType<{ className?: string }>
+	icon: React.ComponentType<{ className?: string }>
+	colorVariant:
+		| 'success'
+		| 'primary'
+		| 'revenue'
+		| 'property'
+		| 'warning'
+		| 'info'
+	trend?: 'up' | 'down' | 'stable'
 }
 
 export interface PropertyInterestDataPoint {
@@ -481,10 +490,6 @@ export interface TestimonialsMinimalProps
 
 // TENANT MANAGEMENT COMPONENTS
 
-type TenantWithLeaseInfo = Database['public']['Tables']['Tenant']['Row'] & {
-	leases?: Database['public']['Tables']['Lease']['Row'][]
-}
-
 export interface AddTenantDialogProps {
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
@@ -579,18 +584,7 @@ export interface ApiAuthResult {
 	error?: string
 }
 
-// ERROR HANDLING
-
-export interface ErrorContext {
-	operation?: string
-	entityType?: 'property' | 'tenant' | 'lease' | 'maintenance' | 'user'
-}
-
-export interface UserFriendlyError {
-	title: string
-	message: string
-	code?: string
-}
+// Note: Error handling types moved to errors.ts to avoid duplicate exports
 
 // RATE LIMITING (FRONTEND)
 
