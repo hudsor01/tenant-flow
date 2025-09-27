@@ -29,10 +29,9 @@ export default function SignupPage() {
 				password,
 				options: {
 					data: {
-						first_name: firstName,
-						last_name: lastName,
-						company: company || null,
-						full_name: `${firstName} ${lastName}`
+						firstName,
+						lastName,
+						company: company || null
 					}
 				}
 			})

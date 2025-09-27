@@ -14,6 +14,9 @@ export * from './core.js'
 // Supabase generated types (required)
 export * from './supabase-generated.js'
 
+// Database enum type exports for convenience
+export * from './enums.js'
+
 // Consolidated domain types
 export * from './api-errors.js'
 export * from './backend-domain.js'

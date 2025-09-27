@@ -3,7 +3,6 @@ import { TerminusModule } from '@nestjs/terminus'
 import { StripeModule } from '../billing/stripe.module'
 import { SupabaseModule } from '../database/supabase.module'
 import { SupabaseService } from '../database/supabase.service'
-import { ResilienceService } from '../shared/services/resilience.service'
 import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthController } from './health.controller'
 import { HealthService } from './health.service'
@@ -33,7 +32,6 @@ const SupabaseServiceFactory = {
 		CircuitBreakerService,
 		SupabaseHealthIndicator,
 		StripeFdwHealthIndicator,
-		ResilienceService,
 		SupabaseServiceFactory
 	],
 	exports: []

@@ -1,6 +1,6 @@
 'use client'
 
-import { tenantsApi } from '@/lib/api-client'
+import { createClient } from '@/utils/supabase/client'
 import type { Database, TenantStats, TenantWithLeaseInfo } from '@repo/shared'
 import {
 	useMutation,
@@ -16,13 +16,51 @@ type InsertTenant = Database['public']['Tables']['Tenant']['Insert']
 
 type UpdateTenant = Database['public']['Tables']['Tenant']['Update']
 
+const supabase = createClient()
+
 export function useTenants(status?: string) {
 	const key = ['tenants-analytics', status ?? 'ALL'] as [string, string]
 	const listFn: QueryFunction<
 		TenantWithLeaseInfo[],
 		[string, string]
 	> = async () => {
-		return tenantsApi.getTenantsWithAnalytics()
+		const { data: { user } } = await supabase.auth.getUser()
+		if (!user) throw new Error('Not authenticated')
+
+		// Get tenants with their lease info via join
+		const { data, error } = await supabase
+			.from('Tenant')
+			.select(`
+				*,
+				Leases:Lease(
+					id,
+					startDate,
+					endDate,
+					monthlyRent,
+					status,
+					Unit(
+						unitNumber,
+						Property(
+							name,
+							address
+						)
+					)
+				)
+			`)
+			.eq('userId', user.id)
+			.order('createdAt', { ascending: false })
+
+		if (error) throw error
+
+		// Transform to match TenantWithLeaseInfo shape
+		const transformedData = (data || []).map(tenant => ({
+			...tenant,
+			currentLease: tenant.Leases?.[0] || null,
+			propertyName: tenant.Leases?.[0]?.Unit?.Property?.name || null,
+			unitNumber: tenant.Leases?.[0]?.Unit?.unitNumber || null
+		})) as TenantWithLeaseInfo[]
+
+		return transformedData
 	}
 
 	// Cast to loosen React Query's generic inference for this enriched shape
@@ -39,7 +77,41 @@ export function useTenantsFormatted(status?: string) {
 	return useQuery({
 		queryKey: ['tenants', status ?? 'ALL'],
 		queryFn: async () => {
-			return tenantsApi.list(status ? { status } : undefined)
+			const { data: { user } } = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+
+			// Get tenants with their lease info
+			const { data, error } = await supabase
+				.from('Tenant')
+				.select(`
+					*,
+					Leases:Lease(
+						id,
+						startDate,
+						endDate,
+						monthlyRent,
+						status,
+						Unit(
+							unitNumber,
+							Property(
+								name,
+								address
+							)
+						)
+					)
+				`)
+				.eq('userId', user.id)
+				.order('createdAt', { ascending: false })
+
+			if (error) throw error
+
+			// Transform to match TenantWithLeaseInfo shape
+			return (data || []).map(tenant => ({
+				...tenant,
+				currentLease: tenant.Leases?.[0] || null,
+				propertyName: tenant.Leases?.[0]?.Unit?.Property?.name || null,
+				unitNumber: tenant.Leases?.[0]?.Unit?.unitNumber || null
+			})) as TenantWithLeaseInfo[]
 		},
 		select: (data: TenantWithLeaseInfo[]) => ({
 			tenants: data.map((tenant: TenantWithLeaseInfo) => ({
@@ -150,7 +222,31 @@ export function useTenantStats() {
 	return useQuery({
 		queryKey: ['tenants', 'stats'],
 		queryFn: async () => {
-			return tenantsApi.stats()
+			const { data: { user } } = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+
+			// Get tenant statistics
+			const { data, error } = await supabase
+				.from('Tenant')
+				.select('id, createdAt, Leases:Lease(status)')
+				.eq('userId', user.id)
+
+			if (error) throw error
+
+			const tenants = data || []
+			const now = new Date()
+
+			return {
+				total: tenants.length,
+				active: tenants.filter(t =>
+					t.Leases?.some((l) => l.status === 'ACTIVE')
+				).length,
+				new: tenants.filter(t => {
+					const daysSinceCreation = (now.getTime() - new Date(t.createdAt).getTime()) / (24 * 60 * 60 * 1000)
+					return daysSinceCreation <= 30
+				}).length,
+				churnRate: 0 // Would need historical data to calculate
+			} as TenantStats
 		}
 	})
 }
@@ -158,7 +254,19 @@ export function useTenantStats() {
 export function useCreateTenant() {
 	const qc = useQueryClient()
 	return useMutation({
-		mutationFn: async (values: InsertTenant) => tenantsApi.create(values),
+		mutationFn: async (values: InsertTenant) => {
+			const { data: { user } } = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+
+			const { data, error } = await supabase
+				.from('Tenant')
+				.insert({ ...values, userId: user.id })
+				.select()
+				.single()
+
+			if (error) throw error
+			return data
+		},
 		onMutate: async newTenant => {
 			// Cancel outgoing refetches to prevent optimistic update conflicts
 			await qc.cancelQueries({ queryKey: ['tenants'] })
@@ -171,6 +279,9 @@ export function useCreateTenant() {
 				const optimisticTenant: _Tenant = {
 					id: `temp-${Date.now()}`, // Temporary ID until server response
 					...newTenant,
+					firstName: newTenant.firstName || null,
+					lastName: newTenant.lastName || null,
+					name: newTenant.name || null,
 					avatarUrl: newTenant.avatarUrl || null,
 					phone: newTenant.phone || null,
 					emergencyContact: newTenant.emergencyContact || null,
@@ -219,8 +330,21 @@ export function useCreateTenant() {
 export function useUpdateTenant() {
 	const qc = useQueryClient()
 	return useMutation({
-		mutationFn: async ({ id, values }: { id: string; values: UpdateTenant }) =>
-			tenantsApi.update(id, values),
+		mutationFn: async ({ id, values }: { id: string; values: UpdateTenant }) => {
+			const { data: { user } } = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+
+			const { data, error } = await supabase
+				.from('Tenant')
+				.update(values)
+				.eq('id', id)
+				.eq('userId', user.id) // RLS check
+				.select()
+				.single()
+
+			if (error) throw error
+			return data
+		},
 		onMutate: async ({ id, values }) => {
 			// Cancel outgoing refetches
 			await qc.cancelQueries({ queryKey: ['tenants'] })
@@ -261,7 +385,16 @@ export function useDeleteTenant() {
 	const qc = useQueryClient()
 	return useMutation({
 		mutationFn: async (id: string) => {
-			await tenantsApi.remove(id)
+			const { data: { user } } = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+
+			const { error } = await supabase
+				.from('Tenant')
+				.delete()
+				.eq('id', id)
+				.eq('userId', user.id) // RLS check
+
+			if (error) throw error
 			return true
 		},
 		onMutate: async id => {

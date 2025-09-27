@@ -25,7 +25,7 @@ jest.mock('./dashboard.service', () => {
 jest.mock('../database/supabase.service', () => {
 	return {
 		SupabaseService: jest.fn().mockImplementation(() => ({
-			validateUser: jest.fn()
+			getUser: jest.fn()
 		}))
 	}
 })
@@ -37,7 +37,15 @@ describe('DashboardController', () => {
 
 	const mockUser = createMockUser({ id: 'user-123' })
 
-	const mockRequest = {} as Request
+	const mockRequest = {
+		headers: {
+			origin: 'http://localhost:3000',
+			referer: 'http://localhost:3000/dashboard'
+		},
+		cookies: {},
+		path: '/api/v1/dashboard',
+		method: 'GET'
+	} as unknown as Request
 
 	beforeEach(async () => {
 		jest.clearAllMocks()
@@ -64,12 +72,12 @@ describe('DashboardController', () => {
 		it('should return dashboard stats for authenticated user', async () => {
 			const mockStats = createMockDashboardStats()
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockDashboardServiceInstance.getStats.mockResolvedValue(mockStats)
 
 			const result = await controller.getStats(mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockDashboardServiceInstance.getStats).toHaveBeenCalledWith(
@@ -84,7 +92,7 @@ describe('DashboardController', () => {
 		})
 
 		it('should throw UnauthorizedException when user validation fails', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(null)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(null)
 
 			await expect(controller.getStats(mockRequest)).rejects.toThrow(
 				UnauthorizedException
@@ -96,7 +104,7 @@ describe('DashboardController', () => {
 				undefined,
 				mockSupabaseServiceInstance
 			)
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 
 			await expect(
 				controllerWithoutService.getStats(mockRequest)
@@ -115,14 +123,14 @@ describe('DashboardController', () => {
 				}
 			]
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockDashboardServiceInstance.getActivity.mockResolvedValue({
 				activities: mockActivity
 			})
 
 			const result = await controller.getActivity(mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(mockDashboardServiceInstance.getActivity).toHaveBeenCalledWith(
@@ -137,7 +145,7 @@ describe('DashboardController', () => {
 		})
 
 		it('should throw UnauthorizedException when user validation fails', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(null)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(null)
 
 			await expect(controller.getActivity(mockRequest)).rejects.toThrow(
 				UnauthorizedException
@@ -277,14 +285,14 @@ describe('DashboardController', () => {
 				}
 			]
 
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(mockUser)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockDashboardServiceInstance.getPropertyPerformance.mockResolvedValue(
 				mockPerformance
 			)
 
 			const result = await controller.getPropertyPerformance(mockRequest)
 
-			expect(mockSupabaseServiceInstance.validateUser).toHaveBeenCalledWith(
+			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
 			expect(
@@ -299,7 +307,7 @@ describe('DashboardController', () => {
 		})
 
 		it('should throw UnauthorizedException when user validation fails', async () => {
-			mockSupabaseServiceInstance.validateUser.mockResolvedValue(null)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(null)
 
 			await expect(
 				controller.getPropertyPerformance(mockRequest)
@@ -337,7 +345,7 @@ describe('DashboardController', () => {
 		})
 	})
 
-	describe('validateUser helper method', () => {
+	describe('getUser helper method', () => {
 		it('should throw NotFoundException when supabase service is not available', async () => {
 			const controllerWithoutSupabase = new DashboardController(
 				mockDashboardServiceInstance

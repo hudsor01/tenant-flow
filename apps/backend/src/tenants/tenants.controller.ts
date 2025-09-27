@@ -78,8 +78,8 @@ export class TenantsController {
 			throw new BadRequestException('Invalid invitation status')
 		}
 
-		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		// Use Supabase's native auth.getUser() pattern
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 
 		return this.tenantsService.findAll(user?.id || 'test-user-id', {
 			search,
@@ -104,8 +104,8 @@ export class TenantsController {
 				expiredTenants: 0
 			}
 		}
-		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		// Use Supabase's native auth.getUser() pattern
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		return this.tenantsService.getStats(user?.id || 'test-user-id')
 	}
 
@@ -124,8 +124,8 @@ export class TenantsController {
 				data: null
 			}
 		}
-		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		// Use Supabase's native auth.getUser() pattern
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		const tenant = await this.tenantsService.findOne(
 			user?.id || 'test-user-id',
 			id
@@ -150,8 +150,8 @@ export class TenantsController {
 				success: false
 			}
 		}
-		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		// Use Supabase's native auth.getUser() pattern
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		return this.tenantsService.create(user?.id || 'test-user-id', createRequest)
 	}
 
@@ -172,8 +172,8 @@ export class TenantsController {
 				success: false
 			}
 		}
-		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		// Use Supabase's native auth.getUser() pattern
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		const tenant = await this.tenantsService.update(
 			user?.id || 'test-user-id',
 			id,
@@ -199,8 +199,8 @@ export class TenantsController {
 				success: false
 			}
 		}
-		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		// Use Supabase's native auth.getUser() pattern
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		await this.tenantsService.remove(user?.id || 'test-user-id', id)
 		return { message: 'Tenant deleted successfully' }
 	}
@@ -220,8 +220,8 @@ export class TenantsController {
 				success: false
 			}
 		}
-		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		// Use Supabase's native auth.getUser() pattern
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		return this.tenantsService.sendInvitation(user?.id || 'test-user-id', id)
 	}
 
@@ -240,8 +240,8 @@ export class TenantsController {
 				success: false
 			}
 		}
-		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.validateUser(request) : null
+		// Use Supabase's native auth.getUser() pattern
+		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
 		return this.tenantsService.resendInvitation(user?.id || 'test-user-id', id)
 	}
 }

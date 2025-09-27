@@ -17,6 +17,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select'
+import { useMaintenanceMetrics } from '@/hooks/api/maintenance-analytics'
 import { cn } from '@/lib/utils'
 import {
 	CHART_GRADIENTS,
@@ -212,86 +213,8 @@ const maintenanceTrends = [
 	}
 ]
 
-// ANALYTICS CALCULATIONS
-
-const calculateMaintenanceAnalytics = (data: typeof maintenanceData) => {
-	const totalRequests = data.length
-	const completedRequests = data.filter(
-		req => req.status === 'Completed'
-	).length
-	const completionRate = (completedRequests / totalRequests) * 100
-
-	const avgResponseTime =
-		data.reduce((sum, req) => sum + (req.responseTime || 0), 0) /
-		data.filter(req => req.responseTime).length
-
-	const avgCompletionTime =
-		data.reduce((sum, req) => sum + (req.completionTime || 0), 0) /
-		data.filter(req => req.completionTime).length
-
-	const avgSatisfaction =
-		data.reduce((sum, req) => sum + (req.satisfaction || 0), 0) /
-		data.filter(req => req.satisfaction).length
-
-	const totalCost = data.reduce(
-		(sum, req) => sum + (req.actualCost || req.estimatedCost || 0),
-		0
-	)
-
-	const categoryBreakdown = data.reduce(
-		(acc, req) => {
-			acc[req.category] = (acc[req.category] || 0) + 1
-			return acc
-		},
-		{} as Record<string, number>
-	)
-
-	const priorityBreakdown = data.reduce(
-		(acc, req) => {
-			acc[req.priority] = (acc[req.priority] || 0) + 1
-			return acc
-		},
-		{} as Record<string, number>
-	)
-
-	const statusBreakdown = data.reduce(
-		(acc, req) => {
-			acc[req.status] = (acc[req.status] || 0) + 1
-			return acc
-		},
-		{} as Record<string, number>
-	)
-
-	const avgUrgency =
-		data.reduce((sum, req) => sum + req.urgency, 0) / data.length
-
-	const topProperties = Object.entries(
-		data.reduce(
-			(acc, req) => {
-				acc[req.property] = (acc[req.property] || 0) + 1
-				return acc
-			},
-			{} as Record<string, number>
-		)
-	)
-		.sort(([, a], [, b]) => b - a)
-		.slice(0, 3)
-
-	return {
-		totalRequests,
-		completedRequests,
-		completionRate,
-		avgResponseTime,
-		avgCompletionTime,
-		avgSatisfaction,
-		totalCost,
-		categoryBreakdown,
-		priorityBreakdown,
-		statusBreakdown,
-		avgUrgency,
-		topProperties
-	}
-}
+// ANALYTICS CALCULATIONS - NOW DONE SERVER-SIDE
+// All calculations moved to backend PostgreSQL RPC functions
 
 // REQUEST DETAIL CARD
 
@@ -565,9 +488,11 @@ export function MaintenanceAnalytics() {
 	const [filterCategory, setFilterCategory] = React.useState<string>('all')
 	const [filterStatus, setFilterStatus] = React.useState<string>('all')
 
-	const analytics = React.useMemo(
-		() => calculateMaintenanceAnalytics(maintenanceData),
-		[]
+	// Use server-side analytics instead of frontend calculations
+	const { data: analytics, isLoading, error } = useMaintenanceMetrics(
+		undefined, // propertyId - can be added as prop
+		'30d',      // timeframe
+		filterStatus === 'all' ? undefined : filterStatus
 	)
 
 	const filteredRequests = React.useMemo(() => {
@@ -580,7 +505,55 @@ export function MaintenanceAnalytics() {
 		})
 	}, [filterCategory, filterStatus])
 
-	const categoryData = Object.entries(analytics.categoryBreakdown).map(
+	// Loading and error handling for server-side analytics
+	if (isLoading) {
+		return (
+			<Card className="shadow-xl border-2 border-primary/10">
+				<CardHeader>
+					<div className="flex items-center gap-4">
+						<div className="p-3 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30">
+							<Wrench className="w-6 h-6 text-muted-foreground" />
+						</div>
+						<div>
+							<CardTitle>Maintenance Analytics</CardTitle>
+							<CardDescription>Loading analytics data...</CardDescription>
+						</div>
+					</div>
+				</CardHeader>
+				<CardContent>
+					<div className="flex items-center justify-center h-64">
+						<div className="text-muted-foreground">Loading maintenance analytics...</div>
+					</div>
+				</CardContent>
+			</Card>
+		)
+	}
+
+	if (error || !analytics) {
+		return (
+			<Card className="shadow-xl border-2 border-destructive/10">
+				<CardHeader>
+					<div className="flex items-center gap-4">
+						<div className="p-3 rounded-xl bg-destructive/10">
+							<AlertTriangle className="w-6 h-6 text-destructive" />
+						</div>
+						<div>
+							<CardTitle>Maintenance Analytics</CardTitle>
+							<CardDescription>Failed to load analytics data</CardDescription>
+						</div>
+					</div>
+				</CardHeader>
+				<CardContent>
+					<div className="flex items-center justify-center h-64">
+						<div className="text-destructive">Error loading maintenance analytics</div>
+					</div>
+				</CardContent>
+			</Card>
+		)
+	}
+
+	// Use server-calculated breakdowns instead of frontend calculations
+	const categoryData = analytics?.categoryBreakdown ? Object.entries(analytics.categoryBreakdown!).map(
 		([name, value]) => ({
 			name,
 			value,
@@ -592,9 +565,9 @@ export function MaintenanceAnalytics() {
 					Appliances: 'hsl(var(--accent))'
 				}[name] || 'hsl(var(--muted-foreground))'
 		})
-	)
+	) : []
 
-	const statusData = Object.entries(analytics.statusBreakdown).map(
+	const statusData = analytics?.statusBreakdown ? Object.entries(analytics.statusBreakdown!).map(
 		([name, value]) => ({
 			name,
 			value,
@@ -606,7 +579,7 @@ export function MaintenanceAnalytics() {
 					Pending: 'hsl(var(--accent))'
 				}[name] || 'hsl(var(--muted-foreground))'
 		})
-	)
+	) : []
 
 	return (
 		<Card
@@ -636,8 +609,8 @@ export function MaintenanceAnalytics() {
 									Maintenance Analytics
 								</CardTitle>
 								<CardDescription className="text-base">
-									{analytics.completionRate.toFixed(1)}% completion rate •{' '}
-									{analytics.avgResponseTime.toFixed(1)}h avg response
+									{analytics?.completionRate?.toFixed(1) || 0}% completion rate •{' '}
+									{analytics?.avgResponseTime?.toFixed(1) || 0}h avg response
 								</CardDescription>
 							</div>
 						</div>
@@ -703,7 +676,7 @@ export function MaintenanceAnalytics() {
 									className="text-lg font-bold"
 									style={{ color: SYSTEM_COLORS.success }}
 								>
-									{analytics.completionRate.toFixed(0)}%
+									{analytics?.completionRate?.toFixed(0) || 0}%
 								</p>
 								<p className="text-xs text-muted-foreground">Completion Rate</p>
 							</div>
@@ -726,7 +699,7 @@ export function MaintenanceAnalytics() {
 									className="text-lg font-bold"
 									style={{ color: SYSTEM_COLORS.primary }}
 								>
-									{analytics.avgResponseTime.toFixed(1)}h
+									{analytics?.avgResponseTime?.toFixed(1) || 0}h
 								</p>
 								<p className="text-xs text-muted-foreground">Avg Response</p>
 							</div>
@@ -738,7 +711,7 @@ export function MaintenanceAnalytics() {
 									</div>
 								</div>
 								<p className="text-lg font-bold text-[var(--color-system-blue)]">
-									{analytics.avgSatisfaction.toFixed(1)}
+									{analytics?.avgSatisfaction?.toFixed(1) || 0}
 								</p>
 								<p className="text-xs text-muted-foreground">Satisfaction</p>
 							</div>
@@ -761,7 +734,7 @@ export function MaintenanceAnalytics() {
 									className="text-lg font-bold"
 									style={{ color: SYSTEM_COLORS.error }}
 								>
-									${analytics.totalCost}
+									${analytics?.totalCost || 0}
 								</p>
 								<p className="text-xs text-muted-foreground">Total Cost</p>
 							</div>
