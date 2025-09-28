@@ -215,6 +215,32 @@ export async function getTenantsPageData() {
 }
 
 /**
+ * Leases page data - parallel fetch with stats
+ */
+export async function getLeasesPageData() {
+	const [leasesResult, leaseStatsResult] = await Promise.allSettled([
+		serverFetch<Array<import('@repo/shared').Database['public']['Tables']['Lease']['Row']>>('/api/v1/leases'),
+		serverFetch<LeaseStatsResponse>('/api/v1/leases/stats')
+	])
+
+	// Extract values with fallbacks for failed requests
+	const leases = leasesResult.status === 'fulfilled' ? leasesResult.value || [] : []
+	const stats = leaseStatsResult.status === 'fulfilled'
+		? leaseStatsResult.value
+		: {
+			totalLeases: 0,
+			activeLeases: 0,
+			totalMonthlyRent: 0,
+			averageRent: 0
+		}
+
+	return {
+		leases,
+		stats: stats // LeaseStatsResponse should already be the correct format
+	}
+}
+
+/**
  * Maintenance page data
  */
 export async function getMaintenancePageData() {

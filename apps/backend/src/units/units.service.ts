@@ -1,204 +1,307 @@
 /**
- *  ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION
+ * Units Service - Repository Pattern Implementation
  *
- * This file implements DIRECT PostgreSQL RPC calls ONLY:
- * [OK] Single RPC call per method (<30 lines each)
- * [OK] Direct Supabase client calls with automatic RLS
- * [OK] Native NestJS exception handling only
- *
- * FORBIDDEN: Service orchestration, repositories, query builders
- * FORBIDDEN: Custom error handlers, response formatters, data mappers
- * FORBIDDEN: Business logic layers, validation services, helper methods
- *
- * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
+ * - NO ABSTRACTIONS: Service delegates to repository directly
+ * - KISS: Simple, focused service methods
+ * - DRY: Repository handles data access logic
+ * - Production mirror: Matches controller interface exactly
  */
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import type { CreateUnitRequest, UpdateUnitRequest } from '@repo/shared'
-import { SupabaseService } from '../database/supabase.service'
+import { BadRequestException, Injectable, Logger, Inject } from '@nestjs/common'
+import type {
+	CreateUnitRequest,
+	UpdateUnitRequest,
+	Unit,
+	UnitStats,
+	UnitInput,
+	Database
+} from '@repo/shared'
+import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
+import type { IUnitsRepository, UnitQueryOptions } from '../repositories/interfaces/units-repository.interface'
 
 @Injectable()
 export class UnitsService {
 	private readonly logger = new Logger(UnitsService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(
+		@Inject(REPOSITORY_TOKENS.UNITS)
+		private readonly unitsRepository: IUnitsRepository
+	) {}
 
 	/**
-	 * Get all units for a user using RPC
+	 * Get all units for a user via repository
 	 */
-	async findAll(userId: string, query: Record<string, unknown>) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_user_units', {
-				p_user_id: userId,
-				p_property_id: query.propertyId as string | undefined,
-				p_status: query.status as string | undefined,
-				p_search: query.search as string | undefined,
-				p_limit: query.limit as number | undefined,
-				p_offset: query.offset as number | undefined,
-				p_sort_by: query.sortBy as string | undefined,
-				p_sort_order: query.sortOrder as string | undefined
-			})
+	async findAll(userId: string, query: Record<string, unknown>): Promise<Unit[]> {
+		try {
+			if (!userId) {
+				this.logger.warn('Find all units requested without userId')
+				throw new BadRequestException('User ID is required')
+			}
 
-		if (error) {
-			this.logger?.error('Failed to get units', {
+			const options: UnitQueryOptions = {
+				search: query.search as string,
+				propertyId: query.propertyId as string,
+				status: query.status as Database['public']['Enums']['UnitStatus'],
+				type: query.type as string,
+				limit: query.limit as number,
+				offset: query.offset as number,
+				sort: query.sortBy as string,
+				order: query.sortOrder as 'asc' | 'desc'
+			}
+
+			this.logger.log('Finding all units via repository', { userId, options })
+
+			return await this.unitsRepository.findByUserIdWithSearch(userId, options)
+		} catch (error) {
+			this.logger.error('Units service failed to find all units', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
-				error: error.message
+				query
 			})
-			throw new BadRequestException('Failed to retrieve units')
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to fetch units'
+			)
 		}
-
-		return data
 	}
 
 	/**
-	 * Get unit statistics using RPC
+	 * Get unit statistics via repository
 	 */
-	async getStats(userId: string) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_unit_stats', { p_user_id: userId })
-			.single()
+	async getStats(userId: string): Promise<UnitStats> {
+		try {
+			if (!userId) {
+				this.logger.warn('Unit stats requested without userId')
+				throw new BadRequestException('User ID is required')
+			}
 
-		if (error) {
-			this.logger?.error('Failed to get unit stats', {
-				userId,
-				error: error.message
+			this.logger.log('Getting unit stats via repository', { userId })
+
+			return await this.unitsRepository.getStats(userId)
+		} catch (error) {
+			this.logger.error('Units service failed to get stats', {
+				error: error instanceof Error ? error.message : String(error),
+				userId
 			})
-			throw new BadRequestException('Failed to retrieve unit statistics')
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to get unit statistics'
+			)
 		}
-
-		return data
 	}
 
 	/**
-	 * Get units by property using RPC
+	 * Get units by property via repository
 	 */
-	async findByProperty(userId: string, propertyId: string) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_property_units', {
-				p_user_id: userId,
-				p_property_id: propertyId
-			})
+	async findByProperty(userId: string, propertyId: string): Promise<Unit[]> {
+		try {
+			if (!userId || !propertyId) {
+				this.logger.warn('Find by property called with missing parameters', { userId, propertyId })
+				throw new BadRequestException('User ID and property ID are required')
+			}
 
-		if (error) {
-			this.logger?.error('Failed to get property units', {
+			this.logger.log('Finding units by property via repository', { userId, propertyId })
+
+			return await this.unitsRepository.findByPropertyId(propertyId)
+		} catch (error) {
+			this.logger.error('Units service failed to find units by property', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
-				propertyId,
-				error: error.message
+				propertyId
 			})
-			throw new BadRequestException('Failed to retrieve property units')
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to retrieve property units'
+			)
 		}
-
-		return data
 	}
 
 	/**
-	 * Get single unit using RPC
+	 * Find one unit by ID via repository
 	 */
-	async findOne(userId: string, unitId: string) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_unit_by_id', {
-				p_user_id: userId,
-				p_unit_id: unitId
-			})
-			.single()
+	async findOne(userId: string, unitId: string): Promise<Unit | null> {
+		try {
+			if (!userId || !unitId) {
+				this.logger.warn('Find one unit called with missing parameters', { userId, unitId })
+				return null
+			}
 
-		if (error) {
-			this.logger?.error('Failed to get unit', {
+			this.logger.log('Finding one unit via repository', { userId, unitId })
+
+			const unit = await this.unitsRepository.findById(unitId)
+
+			// Note: Unit ownership is verified via property ownership in repository RLS policies
+
+			return unit
+		} catch (error) {
+			this.logger.error('Units service failed to find one unit', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
-				unitId,
-				error: error.message
+				unitId
 			})
 			return null
 		}
-
-		return data
 	}
 
 	/**
-	 * Create unit using RPC
+	 * Create unit via repository
 	 */
-	async create(userId: string, createRequest: CreateUnitRequest) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('create_unit', {
-				p_user_id: userId,
-				p_property_id: createRequest.propertyId,
-				p_unit_number: createRequest.unitNumber,
-				p_bedrooms: createRequest.bedrooms,
-				p_bathrooms: createRequest.bathrooms,
-				p_square_feet: createRequest.squareFeet || undefined,
-				p_rent: createRequest.rent || createRequest.rentAmount,
-				p_status: createRequest.status || 'VACANT'
-			})
-			.single()
+	async create(userId: string, createRequest: CreateUnitRequest): Promise<Unit> {
+		try {
+			if (!userId || !createRequest.propertyId || !createRequest.unitNumber) {
+				this.logger.warn('Create unit called with missing parameters', { userId, createRequest })
+				throw new BadRequestException('User ID, property ID, and unit number are required')
+			}
 
-		if (error) {
-			this.logger?.error('Failed to create unit', {
+			this.logger.log('Creating unit via repository', { userId, createRequest })
+
+			// Convert CreateUnitRequest to UnitInput
+			const unitData: UnitInput = {
+				propertyId: createRequest.propertyId,
+				unitNumber: createRequest.unitNumber,
+				bedrooms: createRequest.bedrooms || 1,
+				bathrooms: createRequest.bathrooms || 1,
+				squareFeet: createRequest.squareFeet,
+				rent: createRequest.rent || createRequest.rentAmount || 0
+			}
+
+			return await this.unitsRepository.create(userId, unitData)
+		} catch (error) {
+			this.logger.error('Units service failed to create unit', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
-				error: error.message
+				createRequest
 			})
-			throw new BadRequestException('Failed to create unit')
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to create unit'
+			)
 		}
-
-		return data
 	}
 
 	/**
-	 * Update unit using RPC
+	 * Update unit via repository
 	 */
-	async update(
-		userId: string,
-		unitId: string,
-		updateRequest: UpdateUnitRequest
-	) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('update_unit', {
-				p_user_id: userId,
-				p_unit_id: unitId,
-				p_unit_number: updateRequest.unitNumber,
-				p_bedrooms: updateRequest.bedrooms,
-				p_bathrooms: updateRequest.bathrooms,
-				p_square_feet: updateRequest.squareFeet,
-				p_rent: updateRequest.rent || updateRequest.rentAmount,
-				p_status: updateRequest.status
-			})
-			.single()
+	async update(userId: string, unitId: string, updateRequest: UpdateUnitRequest): Promise<Unit | null> {
+		try {
+			if (!userId || !unitId) {
+				this.logger.warn('Update unit called with missing parameters', { userId, unitId })
+				return null
+			}
 
-		if (error) {
-			this.logger?.error('Failed to update unit', {
+			// Note: Unit ownership is verified via property ownership in repository RLS policies
+
+			this.logger.log('Updating unit via repository', { userId, unitId, updateRequest })
+
+			return await this.unitsRepository.update(unitId, updateRequest)
+		} catch (error) {
+			this.logger.error('Units service failed to update unit', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
 				unitId,
-				error: error.message
+				updateRequest
 			})
 			return null
 		}
-
-		return data
 	}
 
 	/**
-	 * Delete unit using RPC
+	 * Remove unit via repository
 	 */
-	async remove(userId: string, unitId: string) {
-		const { error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('delete_unit', {
-				p_user_id: userId,
-				p_unit_id: unitId
-			})
+	async remove(userId: string, unitId: string): Promise<void> {
+		try {
+			if (!userId || !unitId) {
+				this.logger.warn('Remove unit called with missing parameters', { userId, unitId })
+				throw new BadRequestException('User ID and unit ID are required')
+			}
 
-		if (error) {
-			this.logger?.error('Failed to delete unit', {
+			this.logger.log('Removing unit via repository', { userId, unitId })
+
+			const result = await this.unitsRepository.softDelete(userId, unitId)
+
+			if (!result.success) {
+				throw new BadRequestException(result.message)
+			}
+		} catch (error) {
+			this.logger.error('Units service failed to remove unit', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				unitId
+			})
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to remove unit'
+			)
+		}
+	}
+
+	/**
+	 * Get units analytics via repository
+	 */
+	async getAnalytics(userId: string, options: { propertyId?: string; timeframe: string }): Promise<unknown[]> {
+		try {
+			if (!userId) {
+				this.logger.warn('Unit analytics requested without userId')
+				throw new BadRequestException('User ID is required')
+			}
+
+			this.logger.log('Getting unit analytics via repository', { userId, options })
+
+			return await this.unitsRepository.getAnalytics(userId, options)
+		} catch (error) {
+			this.logger.error('Units service failed to get analytics', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				options
+			})
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to get unit analytics'
+			)
+		}
+	}
+
+	/**
+	 * Get available units for a property via repository
+	 */
+	async getAvailable(propertyId: string): Promise<Unit[]> {
+		try {
+			if (!propertyId) {
+				this.logger.warn('Available units requested without propertyId')
+				throw new BadRequestException('Property ID is required')
+			}
+
+			this.logger.log('Getting available units via repository', { propertyId })
+
+			return await this.unitsRepository.getAvailableUnits(propertyId)
+		} catch (error) {
+			this.logger.error('Units service failed to get available units', {
+				error: error instanceof Error ? error.message : String(error),
+				propertyId
+			})
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to get available units'
+			)
+		}
+	}
+
+	/**
+	 * Update unit status via repository
+	 */
+	async updateStatus(userId: string, unitId: string, status: Database['public']['Enums']['UnitStatus']): Promise<Unit | null> {
+		try {
+			if (!userId || !unitId || !status) {
+				this.logger.warn('Update unit status called with missing parameters', { userId, unitId, status })
+				return null
+			}
+
+			// Note: Unit ownership is verified via property ownership in repository RLS policies
+
+			this.logger.log('Updating unit status via repository', { userId, unitId, status })
+
+			return await this.unitsRepository.updateStatus(unitId, status)
+		} catch (error) {
+			this.logger.error('Units service failed to update unit status', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
 				unitId,
-				error: error.message
+				status
 			})
-			throw new BadRequestException('Failed to delete unit')
+			return null
 		}
 	}
 }

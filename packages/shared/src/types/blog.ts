@@ -3,41 +3,34 @@
  * All types related to blog articles, tags, and content management
  */
 
-// Blog category enum
-export type BlogCategory =
-	| 'PROPERTY_MANAGEMENT'
-	| 'REAL_ESTATE'
-	| 'LANDLORD_TIPS'
-	| 'TENANT_RESOURCES'
-	| 'LEGAL_ADVICE'
-	| 'MAINTENANCE'
-	| 'TECHNOLOGY'
-	| 'MARKET_TRENDS'
-	| 'INDUSTRY_NEWS'
-	| 'COMPANY_NEWS'
+import type { Database } from './supabase-generated.js'
+
+// Use Supabase BlogCategory enum instead of custom duplicate
+export type BlogCategory = Database['public']['Enums']['BlogCategory']
 
 export const BLOG_CATEGORY = {
 	PROPERTY_MANAGEMENT: 'PROPERTY_MANAGEMENT',
-	REAL_ESTATE: 'REAL_ESTATE',
-	LANDLORD_TIPS: 'LANDLORD_TIPS',
-	TENANT_RESOURCES: 'TENANT_RESOURCES',
-	LEGAL_ADVICE: 'LEGAL_ADVICE',
-	MAINTENANCE: 'MAINTENANCE',
-	TECHNOLOGY: 'TECHNOLOGY',
-	MARKET_TRENDS: 'MARKET_TRENDS',
-	INDUSTRY_NEWS: 'INDUSTRY_NEWS',
-	COMPANY_NEWS: 'COMPANY_NEWS'
+	LEGAL_COMPLIANCE: 'LEGAL_COMPLIANCE',
+	FINANCIAL_MANAGEMENT: 'FINANCIAL_MANAGEMENT',
+	PROPERTY_MAINTENANCE: 'PROPERTY_MAINTENANCE',
+	SOFTWARE_REVIEWS: 'SOFTWARE_REVIEWS',
+	TENANT_RELATIONS: 'TENANT_RELATIONS',
+	MARKETING: 'MARKETING',
+	REAL_ESTATE_INVESTMENT: 'REAL_ESTATE_INVESTMENT',
+	TAX_PLANNING: 'TAX_PLANNING',
+	AUTOMATION: 'AUTOMATION'
 } as const
 
 export const BLOG_CATEGORY_OPTIONS = Object.values(BLOG_CATEGORY)
 
-// Blog status enum
-export type BlogStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
+// Use Supabase BlogStatus enum instead of custom duplicate
+export type BlogStatus = Database['public']['Enums']['BlogStatus']
 
 export const BLOG_STATUS = {
 	DRAFT: 'DRAFT',
 	PUBLISHED: 'PUBLISHED',
-	ARCHIVED: 'ARCHIVED'
+	ARCHIVED: 'ARCHIVED',
+	SCHEDULED: 'SCHEDULED'
 } as const
 
 export const BLOG_STATUS_OPTIONS = Object.values(BLOG_STATUS)
@@ -46,15 +39,15 @@ export const BLOG_STATUS_OPTIONS = Object.values(BLOG_STATUS)
 export const getBlogCategoryLabel = (category: BlogCategory): string => {
 	const labels: Record<BlogCategory, string> = {
 		PROPERTY_MANAGEMENT: 'Property Management',
-		REAL_ESTATE: 'Real Estate',
-		LANDLORD_TIPS: 'Landlord Tips',
-		TENANT_RESOURCES: 'Tenant Resources',
-		LEGAL_ADVICE: 'Legal Advice',
-		MAINTENANCE: 'Maintenance',
-		TECHNOLOGY: 'Technology',
-		MARKET_TRENDS: 'Market Trends',
-		INDUSTRY_NEWS: 'Industry News',
-		COMPANY_NEWS: 'Company News'
+		LEGAL_COMPLIANCE: 'Legal Compliance',
+		FINANCIAL_MANAGEMENT: 'Financial Management',
+		PROPERTY_MAINTENANCE: 'Property Maintenance',
+		SOFTWARE_REVIEWS: 'Software Reviews',
+		TENANT_RELATIONS: 'Tenant Relations',
+		MARKETING: 'Marketing',
+		REAL_ESTATE_INVESTMENT: 'Real Estate Investment',
+		TAX_PLANNING: 'Tax Planning',
+		AUTOMATION: 'Automation'
 	}
 	return labels[category] || category
 }
@@ -63,7 +56,8 @@ export const getBlogStatusLabel = (status: BlogStatus): string => {
 	const labels: Record<BlogStatus, string> = {
 		DRAFT: 'Draft',
 		PUBLISHED: 'Published',
-		ARCHIVED: 'Archived'
+		ARCHIVED: 'Archived',
+		SCHEDULED: 'Scheduled'
 	}
 	return labels[status] || status
 }
@@ -72,35 +66,14 @@ export const getBlogStatusColor = (status: BlogStatus): string => {
 	const colors: Record<BlogStatus, string> = {
 		DRAFT: 'bg-gray-100 text-gray-800',
 		PUBLISHED: 'bg-green-100 text-green-800',
-		ARCHIVED: 'bg-yellow-100 text-yellow-800'
+		ARCHIVED: 'bg-yellow-100 text-yellow-800',
+		SCHEDULED: 'bg-blue-100 text-blue-800'
 	}
 	return colors[status] || 'bg-gray-100 text-gray-800'
 }
 
-// Blog entity types
-export interface BlogArticle {
-	id: string
-	title: string
-	slug: string
-	description: string
-	content: string
-	excerpt: string | null
-	authorId: string | null
-	authorName: string
-	metaTitle: string | null
-	metaDescription: string | null
-	ogImage: string | null
-	category: BlogCategory
-	status: BlogStatus
-	featured: boolean
-	publishedAt: Date | null
-	viewCount: number
-	readTime: number | null
-	searchKeywords: string[]
-	lastIndexed: Date | null
-	createdAt: Date
-	updatedAt: Date
-}
+// Use Supabase table types instead of duplicating
+export type BlogArticle = Database['public']['Tables']['BlogArticle']['Row']
 
 export interface BlogArticleWithDetails extends Omit<BlogArticle, 'tags'> {
 	author?: {
@@ -121,16 +94,10 @@ export interface BlogArticleWithDetails extends Omit<BlogArticle, 'tags'> {
 	metaTitle: string | null
 	metaDescription: string | null
 	searchKeywords: string[]
-	lastIndexed: Date | null
+	lastIndexed: string | null
 }
 
-export interface BlogTag {
-	id: string
-	name: string
-	slug: string
-	color: string | null
-	createdAt: Date
-}
+export type BlogTag = Database['public']['Tables']['BlogTag']['Row']
 
 // Blog article list item for efficient loading
 export interface BlogArticleListItem {
@@ -143,12 +110,12 @@ export interface BlogArticleListItem {
 	category: BlogCategory
 	status: BlogStatus
 	featured: boolean
-	publishedAt: Date | null
+	publishedAt: string | null
 	readTime: number | null
 	viewCount: number
 	ogImage: string | null
-	createdAt: Date
-	updatedAt: Date
+	createdAt: string
+	updatedAt: string
 	tags: BlogTag[]
 }
 
@@ -167,7 +134,7 @@ export interface BlogArticleInput {
 	tagIds?: string[]
 	status: BlogStatus
 	featured?: boolean
-	publishedAt?: Date
+	publishedAt?: string
 	readTime?: number
 	searchKeywords?: string[]
 }
@@ -180,8 +147,8 @@ export interface BlogFilters {
 	tags?: string[]
 	authorId?: string
 	search?: string
-	dateFrom?: Date
-	dateTo?: Date
+	dateFrom?: string
+	dateTo?: string
 }
 
 // Blog pagination
@@ -207,7 +174,7 @@ export interface BlogAnalytics {
 		id: string
 		title: string
 		action: 'created' | 'updated' | 'published'
-		timestamp: Date
+		timestamp: string
 	}>
 }
 
@@ -218,8 +185,8 @@ export interface BlogSEOData {
 	keywords: string[]
 	ogImage?: string
 	canonicalUrl: string
-	publishedAt?: Date
-	updatedAt: Date
+	publishedAt?: string
+	updatedAt: string
 	author: string
 	category: BlogCategory
 	readTime?: number

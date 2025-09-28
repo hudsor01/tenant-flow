@@ -48,13 +48,21 @@ export function SectionCards({ dashboardStats, propertyStats, leaseStats }: Sect
 	const maintenanceRequests = dashboardStats?.maintenance?.open || 0
 
 	return (
-		<div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+		<div
+			className="grid grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-4"
+			style={{
+				gap: 'var(--dashboard-card-gap)',
+				padding: '0 var(--dashboard-content-padding)'
+			}}
+		>
 			<MetricsCard
 				title="Total Properties"
 				value={totalProperties}
 				description="Portfolio properties"
 				icon={Building}
 				colorVariant="property"
+				role="region"
+				aria-label="Total Properties metric"
 			/>
 
 			<MetricsCard
@@ -63,6 +71,8 @@ export function SectionCards({ dashboardStats, propertyStats, leaseStats }: Sect
 				description="Active tenants"
 				icon={Users}
 				colorVariant="primary"
+				role="region"
+				aria-label="Total Tenants metric"
 			/>
 
 			<MetricsCard
@@ -71,6 +81,8 @@ export function SectionCards({ dashboardStats, propertyStats, leaseStats }: Sect
 				description="Current month"
 				icon={DollarSign}
 				colorVariant="revenue"
+				role="region"
+				aria-label="Monthly Revenue metric"
 			/>
 
 			<MetricsCard
@@ -79,6 +91,8 @@ export function SectionCards({ dashboardStats, propertyStats, leaseStats }: Sect
 				description={`${occupiedUnits} of ${totalUnits} units occupied`}
 				icon={TrendingUp}
 				colorVariant="success"
+				role="region"
+				aria-label="Occupancy Rate metric"
 			/>
 
 			<MetricsCard
@@ -87,6 +101,8 @@ export function SectionCards({ dashboardStats, propertyStats, leaseStats }: Sect
 				description="Current agreements"
 				icon={FileText}
 				colorVariant="info"
+				role="region"
+				aria-label="Active Leases metric"
 			/>
 
 			<MetricsCard
@@ -95,6 +111,8 @@ export function SectionCards({ dashboardStats, propertyStats, leaseStats }: Sect
 				description="Open requests"
 				icon={Wrench}
 				colorVariant="warning"
+				role="region"
+				aria-label="Maintenance Requests metric"
 			/>
 		</div>
 	)

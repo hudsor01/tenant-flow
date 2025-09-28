@@ -6,14 +6,16 @@ import { LeasePDFService } from '../pdf/lease-pdf.service'
 import { SupabaseModule } from '../database/supabase.module'
 import { PDFModule } from '../pdf/pdf.module'
 import { SharedModule } from '../shared/shared.module'
+import { RepositoriesModule } from '../repositories/repositories.module'
 
 /**
- * Leases module - Simplified with direct Supabase usage
- * No repositories, minimal dependencies
+ * Leases module - Repository pattern implementation
+ * Clean separation of concerns with repository layer
  */
 @Module({
 	imports: [
 		SupabaseModule,
+		RepositoriesModule,
 		PDFModule, // For lease PDF generation
 		SharedModule
 	],

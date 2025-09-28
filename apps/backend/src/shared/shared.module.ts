@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { ParseOptionalUUIDPipe } from './pipes/parse-optional-uuid.pipe'
+import { AuthModule } from './auth/auth.module'
 
 /**
  * Shared Module - Ultra-Native 2025 Architecture
@@ -18,14 +19,15 @@ import { ParseOptionalUUIDPipe } from './pipes/parse-optional-uuid.pipe'
  */
 @Global()
 @Module({
-	imports: [],
+	imports: [AuthModule],
 	providers: [
 		Reflector,
 		ParseOptionalUUIDPipe
 	],
 	exports: [
 		Reflector,
-		ParseOptionalUUIDPipe
+		ParseOptionalUUIDPipe,
+		AuthModule
 	]
 })
 export class SharedModule {}

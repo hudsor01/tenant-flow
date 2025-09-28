@@ -1,20 +1,21 @@
 /**
- * Properties Service - Ultra-Native Implementation
+ * Properties Service - Layered Architecture Implementation
  *
- * Uses PostgreSQL RPC functions for ALL operations
- * No complex orchestration - just direct DB calls with RLS
- * Each method is <30 lines (just RPC call + error handling)
+ * Uses repository pattern for data access abstraction
+ * Business logic separated from database operations
+ * Clean separation of concerns and testable design
  */
 
 import { CacheKey, CacheTTL } from '@nestjs/cache-manager'
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, Inject } from '@nestjs/common'
 import type {
   CreatePropertyRequest,
   Property,
   PropertyStats,
   UpdatePropertyRequest
 } from '@repo/shared'
-import { SupabaseService } from '../database/supabase.service'
+import type { IPropertiesRepository } from '../repositories/interfaces/properties-repository.interface'
+import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 
 // Type alias for properties with units - using Property for now since PropertyWithUnits not defined
 type PropertyWithUnits = Property
@@ -24,112 +25,112 @@ export class PropertiesService {
 	private readonly logger = new Logger(PropertiesService.name)
 
 	constructor(
-		private readonly supabaseService: SupabaseService
+		@Inject(REPOSITORY_TOKENS.PROPERTIES)
+		private readonly propertiesRepository: IPropertiesRepository
 	) {}
 
 	/**
-	 * Get all properties with CALCULATED METRICS using RPC
-	 * ALL business logic is in the database - NO calculations here
+	 * Get all properties with search and pagination
+	 * Uses repository pattern for clean data access
 	 */
 	async findAll(
 		userId: string,
 		query: { search?: string | null; limit: number; offset: number }
 	): Promise<Property[]> {
 		try {
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.rpc('get_user_properties', {
-					p_user_id: userId,
-					p_search: query.search || undefined,
-					p_limit: query.limit,
-					p_offset: query.offset
-				})
-
-			if (error) throw error
-			return (data as unknown as Property[]) || []
+			return await this.propertiesRepository.findByUserIdWithSearch(userId, {
+				search: query.search,
+				limit: query.limit,
+				offset: query.offset
+			})
 		} catch (error) {
-			this.logger.error(
-				{ error, userId, query },
-				'Failed to get properties with metrics via RPC, using fallback data'
-			)
-			// Fallback data as per test expectations
-			return [
-				{
-					id: 'prop-001',
-					name: 'Riverside Towers',
-					address: '123 Riverside Dr',
-					city: 'Anytown',
-					state: 'CA',
-					zipCode: '90210',
-					propertyType: 'APARTMENT' as const,
-					description: 'Luxury apartment complex',
-					imageUrl: null,
-					ownerId: userId,
-					status: 'ACTIVE' as const,
-					createdAt: '2023-01-01T00:00:00Z',
-					updatedAt: '2023-01-01T00:00:00Z'
-				}
-			]
+			this.logger.error('Failed to get properties via repository', { error, userId, query })
+			// Return empty array for zero state
+			return []
 		}
 	}
 
 
 	/**
-	 * Get single property using RPC
+	 * Get single property by ID
+	 * Includes business logic validation
 	 */
 	async findOne(userId: string, propertyId: string): Promise<Property | null> {
 		try {
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.rpc('get_property_by_id', {
-					p_user_id: userId,
-					p_property_id: propertyId
-				})
-				.single()
+			// Business logic: Validate property ID format
+			if (!propertyId || typeof propertyId !== 'string') {
+				throw new BadRequestException('Invalid property ID')
+			}
 
-			if (error) throw error
-			return (data as unknown as Property) || null
+			const property = await this.propertiesRepository.findById(propertyId)
+
+			// Business logic: Verify ownership
+			if (property && property.ownerId !== userId) {
+				this.logger.warn('Access denied: Property not owned by user', { userId, propertyId })
+				return null
+			}
+
+			return property
 		} catch (error) {
-			this.logger.error(
-				{ error, userId, propertyId },
-				'Failed to get property by ID via RPC'
-			)
-			return null
+			this.logger.error('Failed to get property by ID', { error, userId, propertyId })
+			throw new BadRequestException('Failed to retrieve property')
 		}
 	}
 
 	/**
-	 * Create property using RPC
+	 * Create property with business validation
+	 * Implements proper business rules and validation
 	 */
 	async create(
 		userId: string,
 		request: CreatePropertyRequest
 	): Promise<Property> {
 		try {
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.rpc('create_property', {
-					p_user_id: userId,
-					p_name: request.name,
-					p_address: `${request.address}, ${request.city}, ${request.state}, ${request.zipCode}`,
-					p_type: request.propertyType,
-					p_description: request.description || undefined
-				})
-				.single()
+			// Business logic: Validate required fields
+			if (!request.name?.trim()) {
+				throw new BadRequestException('Property name is required')
+			}
 
-			if (error) throw error
-			return (data as unknown as Property)
+			if (!request.address?.trim()) {
+				throw new BadRequestException('Property address is required')
+			}
+
+			if (!request.city?.trim() || !request.state?.trim() || !request.zipCode?.trim()) {
+				throw new BadRequestException('City, state, and zip code are required')
+			}
+
+			// Business logic: Validate property type
+			const validPropertyTypes = ['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL', 'CONDO']
+			if (!request.propertyType || !validPropertyTypes.includes(request.propertyType)) {
+				throw new BadRequestException('Invalid property type')
+			}
+
+			// Business logic: Sanitize inputs
+			const sanitizedRequest = {
+				...request,
+				name: request.name.trim(),
+				address: request.address.trim(),
+				city: request.city.trim(),
+				state: request.state.trim(),
+				zipCode: request.zipCode.trim(),
+				description: request.description?.trim() || undefined
+			}
+
+			return await this.propertiesRepository.create(userId, sanitizedRequest)
 		} catch (error) {
-			this.logger.error(
-				{ error, userId, createRequest: request },
-				'Failed to create property via RPC'
-			)
+			this.logger.error('Failed to create property', { error, userId, request })
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
 			throw new BadRequestException('Failed to create property')
 		}
 	}
 
 	/**
-	 * Update property using RPC
+	 * Update property with ownership verification and validation
+	 * Implements business rules for property updates
 	 */
 	async update(
 		userId: string,
@@ -137,142 +138,132 @@ export class PropertiesService {
 		request: UpdatePropertyRequest
 	): Promise<Property | null> {
 		try {
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.rpc('update_property', {
-					p_user_id: userId,
-					p_property_id: propertyId,
-					p_name: request.name,
-					p_address: request.address,
-					p_type: request.propertyType,
-					p_description: request.description
-				})
-				.single()
+			// Business logic: Verify ownership first
+			const existingProperty = await this.findOne(userId, propertyId)
+			if (!existingProperty) {
+				throw new BadRequestException('Property not found or access denied')
+			}
 
-			if (error) throw error
-			return (data as unknown as Property) || null
+			// Business logic: Validate update fields if provided
+			if (request.name && !request.name.trim()) {
+				throw new BadRequestException('Property name cannot be empty')
+			}
+
+			if (request.propertyType) {
+				const validPropertyTypes = ['APARTMENT', 'HOUSE', 'CONDO', 'TOWNHOUSE', 'COMMERCIAL']
+				if (!validPropertyTypes.includes(request.propertyType)) {
+					throw new BadRequestException('Invalid property type')
+				}
+			}
+
+			// Business logic: Sanitize inputs
+			const sanitizedRequest = {
+				...request,
+				name: request.name?.trim(),
+				address: request.address?.trim(),
+				city: request.city?.trim(),
+				state: request.state?.trim(),
+				zipCode: request.zipCode?.trim(),
+				description: request.description?.trim()
+			}
+
+			return await this.propertiesRepository.update(propertyId, sanitizedRequest)
 		} catch (error) {
-			this.logger.error(
-				{ error, userId, propertyId, updateRequest: request },
-				'Failed to update property via RPC'
-			)
-			return null
+			this.logger.error('Failed to update property', { error, userId, propertyId, request })
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
+			throw new BadRequestException('Failed to update property')
 		}
 	}
 
 	/**
-	 * Delete property using RPC
+	 * Delete property with ownership verification
+	 * Implements business rules for property deletion
 	 */
 	async remove(
 		userId: string,
 		propertyId: string
 	): Promise<{ success: boolean; message: string }> {
 		try {
-			const { error } = await this.supabaseService
-				.getAdminClient()
-				.rpc('delete_property', {
-					p_user_id: userId,
-					p_property_id: propertyId
-				})
+			// Business logic: Verify ownership first
+			const existingProperty = await this.findOne(userId, propertyId)
+			if (!existingProperty) {
+				throw new BadRequestException('Property not found or access denied')
+			}
 
-			if (error) throw error
-			return { success: true, message: 'Property deleted successfully' }
+			// Business logic: Could add checks for dependencies here
+			// For example: Check if property has active leases
+			// const activeLeases = await this.leasesRepository.findActiveByPropertyId(propertyId)
+			// if (activeLeases.length > 0) {
+			//   throw new BadRequestException('Cannot delete property with active leases')
+			// }
+
+			return await this.propertiesRepository.softDelete(userId, propertyId)
 		} catch (error) {
-			this.logger.error(
-				{ error, userId, propertyId },
-				'Failed to delete property via RPC'
-			)
+			this.logger.error('Failed to delete property', { error, userId, propertyId })
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
 			throw new BadRequestException('Failed to delete property')
 		}
 	}
 
 	/**
-	 * Get property statistics using RPC with native NestJS caching
-	 * Cached for 30 seconds to improve dashboard performance
+	 * Get property statistics with caching
+	 * Uses repository pattern with business logic fallback
 	 */
 	@CacheKey('property-stats')
 	@CacheTTL(30) // 30 seconds
 	async getStats(userId: string): Promise<PropertyStats> {
 		try {
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.rpc('get_property_stats', { p_user_id: userId })
-				.single()
-
-			if (error) {
-				this.logger?.error(
-					{
-						error: {
-							message: error.message,
-							code: error.code,
-							hint: error.hint
-						},
-						userId
-					},
-					'Failed to get property stats via RPC, using fallback data'
-				)
-				return this.getFallbackPropertyStats()
-			}
-
-			return (data as unknown as PropertyStats) || this.getFallbackPropertyStats()
+			return await this.propertiesRepository.getStats(userId)
 		} catch (error) {
-			this.logger?.error(
-				{ error, userId },
-				'Unexpected error getting property stats, using fallback data'
-			)
-			return this.getFallbackPropertyStats()
+			this.logger.error('Failed to get property stats via repository', { error, userId })
+			// Return zero stats for zero state
+			return {
+				total: 0,
+				occupied: 0,
+				vacant: 0,
+				occupancyRate: 0,
+				totalMonthlyRent: 0,
+				averageRent: 0
+			}
 		}
 	}
 
 	/**
-	 * Get all properties with their units and statistics using RPC
-	 * ALL business logic is in the database - NO calculations here
+	 * Get all properties with their units and analytics
+	 * Uses repository pattern with business logic validation
 	 */
 	async findAllWithUnits(
 		userId: string,
 		query: { search: string | null; limit: number; offset: number }
 	): Promise<PropertyWithUnits[]> {
 		try {
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.rpc('get_user_properties', {
-					p_user_id: userId,
-					p_search: query.search || undefined,
-					p_limit: query.limit,
-					p_offset: query.offset
-				})
+			// Business logic: Validate pagination parameters
+			const limit = Math.min(Math.max(query.limit || 10, 1), 100) // Limit between 1-100
+			const offset = Math.max(query.offset || 0, 0) // Non-negative offset
 
-			if (error) {
-				this.logger?.error(
-					{
-						error: {
-							message: error.message,
-							code: error.code,
-							hint: error.hint
-						},
-						userId,
-						query
-					},
-					'Failed to get properties with units via RPC, using fallback data'
-				)
-				return this.getFallbackProperties()
-			}
-
-			// Data comes with ALL metrics and units pre-calculated from DB
-			// NO business logic transformations allowed here
-			return (data as unknown as PropertyWithUnits[]) || []
+			return await this.propertiesRepository.findAllWithUnits(userId, {
+				search: query.search,
+				limit,
+				offset
+			})
 		} catch (error) {
-			this.logger?.error(
-				{ error, userId, query },
-				'Unexpected error getting properties with units, using fallback data'
-			)
-			return this.getFallbackProperties()
+			this.logger.error('Failed to get properties with units via repository', { error, userId, query })
+			// Return empty array for zero state
+			return []
 		}
 	}
 
 	/**
 	 * Get property performance analytics
-	 * Uses RPC for detailed per-property metrics and calculations
+	 * Uses repository pattern with business validation
 	 */
 	async getPropertyPerformanceAnalytics(
 		userId: string,
@@ -283,350 +274,124 @@ export class PropertiesService {
 		}
 	) {
 		try {
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.rpc('get_property_performance_analytics', {
-					p_user_id: userId,
-					p_property_id: query.propertyId || undefined,
-					p_timeframe: query.timeframe,
-					p_limit: query.limit || 10
-				})
-
-			if (error) {
-				this.logger?.error(
-					{
-						error: {
-							message: error.message,
-							code: error.code,
-							hint: error.hint
-						},
-						userId,
-						query
-					},
-					'Failed to get property performance analytics via RPC, using fallback data'
-				)
-				return this.getFallbackPerformanceAnalytics()
+			// Business logic: Validate timeframe
+			const validTimeframes = ['7d', '30d', '90d', '180d', '365d']
+			if (!validTimeframes.includes(query.timeframe)) {
+				throw new BadRequestException('Invalid timeframe. Must be one of: 7d, 30d, 90d, 180d, 365d')
 			}
 
-			return data || []
+			// Business logic: Validate limit
+			const limit = Math.min(Math.max(query.limit || 10, 1), 50)
+
+			return await this.propertiesRepository.getPerformanceAnalytics(userId, {
+				propertyId: query.propertyId,
+				timeframe: query.timeframe,
+				limit
+			})
 		} catch (error) {
-			this.logger?.error(
-				{ error, userId, query },
-				'Unexpected error getting performance analytics, using fallback data'
-			)
-			return this.getFallbackPerformanceAnalytics()
+			this.logger.error('Failed to get performance analytics via repository', { error, userId, query })
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
+			// Return empty array for zero state
+			return []
 		}
 	}
 
+
 	/**
 	 * Get property occupancy analytics
-	 * Tracks occupancy trends over time per property
+	 * Uses repository pattern with business validation
 	 */
 	async getPropertyOccupancyAnalytics(
 		userId: string,
-		query: {
-			propertyId?: string
-			period: string
-		}
+		query: { propertyId?: string; period: string }
 	) {
 		try {
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.rpc('get_property_occupancy_analytics', {
-					p_user_id: userId,
-					p_property_id: query.propertyId || undefined,
-					p_period: query.period
-				})
-
-			if (error) {
-				this.logger?.error(
-					{
-						error: {
-							message: error.message,
-							code: error.code,
-							hint: error.hint
-						},
-						userId,
-						query
-					},
-					'Failed to get property occupancy analytics via RPC, using fallback data'
-				)
-				return this.getFallbackOccupancyAnalytics()
+			// Business logic: Validate period
+			const validPeriods = ['daily', 'weekly', 'monthly', 'quarterly', 'yearly']
+			if (!validPeriods.includes(query.period)) {
+				throw new BadRequestException('Invalid period. Must be one of: daily, weekly, monthly, quarterly, yearly')
 			}
 
-			return data || []
+			return await this.propertiesRepository.getOccupancyAnalytics(userId, {
+				propertyId: query.propertyId,
+				period: query.period
+			})
 		} catch (error) {
-			this.logger?.error(
-				{ error, userId, query },
-				'Unexpected error getting occupancy analytics, using fallback data'
-			)
-			return this.getFallbackOccupancyAnalytics()
+			this.logger.error('Failed to get occupancy analytics via repository', { error, userId, query })
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
+			// Return empty array for zero state
+			return []
 		}
 	}
 
 	/**
 	 * Get property financial analytics
-	 * Revenue, expenses, and profitability metrics per property
+	 * Uses repository pattern with business validation
 	 */
 	async getPropertyFinancialAnalytics(
 		userId: string,
-		query: {
-			propertyId?: string
-			timeframe: string
-		}
+		query: { propertyId?: string; timeframe: string }
 	) {
 		try {
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.rpc('get_property_financial_analytics', {
-					p_user_id: userId,
-					p_property_id: query.propertyId || undefined,
-					p_timeframe: query.timeframe
-				})
-
-			if (error) {
-				this.logger?.error(
-					{
-						error: {
-							message: error.message,
-							code: error.code,
-							hint: error.hint
-						},
-						userId,
-						query
-					},
-					'Failed to get property financial analytics via RPC, using fallback data'
-				)
-				return this.getFallbackFinancialAnalytics()
+			// Business logic: Validate timeframe
+			const validTimeframes = ['7d', '30d', '90d', '180d', '365d']
+			if (!validTimeframes.includes(query.timeframe)) {
+				throw new BadRequestException('Invalid timeframe. Must be one of: 7d, 30d, 90d, 180d, 365d')
 			}
 
-			return data || []
+			return await this.propertiesRepository.getFinancialAnalytics(userId, {
+				propertyId: query.propertyId,
+				timeframe: query.timeframe
+			})
 		} catch (error) {
-			this.logger?.error(
-				{ error, userId, query },
-				'Unexpected error getting financial analytics, using fallback data'
-			)
-			return this.getFallbackFinancialAnalytics()
+			this.logger.error('Failed to get financial analytics via repository', { error, userId, query })
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
+			// Return empty array for zero state
+			return []
 		}
 	}
 
 	/**
 	 * Get property maintenance analytics
-	 * Maintenance costs, frequency, and trends per property
+	 * Uses repository pattern with business validation
 	 */
 	async getPropertyMaintenanceAnalytics(
 		userId: string,
-		query: {
-			propertyId?: string
-			timeframe: string
-		}
+		query: { propertyId?: string; timeframe: string }
 	) {
 		try {
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.rpc('get_property_maintenance_analytics', {
-					p_user_id: userId,
-					p_property_id: query.propertyId || undefined,
-					p_timeframe: query.timeframe
-				})
-
-			if (error) {
-				this.logger?.error(
-					{
-						error: {
-							message: error.message,
-							code: error.code,
-							hint: error.hint
-						},
-						userId,
-						query
-					},
-					'Failed to get property maintenance analytics via RPC, using fallback data'
-				)
-				return this.getFallbackMaintenanceAnalytics()
+			// Business logic: Validate timeframe
+			const validTimeframes = ['7d', '30d', '90d', '180d', '365d']
+			if (!validTimeframes.includes(query.timeframe)) {
+				throw new BadRequestException('Invalid timeframe. Must be one of: 7d, 30d, 90d, 180d, 365d')
 			}
 
-			return data || []
+			return await this.propertiesRepository.getMaintenanceAnalytics(userId, {
+				propertyId: query.propertyId,
+				timeframe: query.timeframe
+			})
 		} catch (error) {
-			this.logger?.error(
-				{ error, userId, query },
-				'Unexpected error getting maintenance analytics, using fallback data'
-			)
-			return this.getFallbackMaintenanceAnalytics()
+			this.logger.error('Failed to get maintenance analytics via repository', { error, userId, query })
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
+			// Return empty array for zero state
+			return []
 		}
 	}
 
-	/**
-	 * Fallback property data for battle testing
-	 */
-	private getFallbackProperties(): PropertyWithUnits[] {
-		return [
-			{
-				id: 'prop-001',
-				name: 'Riverside Towers',
-				address: '123 River Street, Downtown',
-				city: 'Downtown',
-				state: 'CA',
-				zipCode: '12345',
-				propertyType: 'APARTMENT',
-				status: 'ACTIVE',
-				description: 'Modern apartment complex with river views',
-				imageUrl: null,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-				ownerId: 'test-user-id'
-			},
-			{
-				id: 'prop-002',
-				name: 'Sunset Gardens',
-				address: '456 Sunset Boulevard, Westside',
-				city: 'Westside',
-				state: 'CA',
-				zipCode: '67890',
-				propertyType: 'TOWNHOUSE',
-				status: 'ACTIVE',
-				description: 'Luxury townhomes in quiet neighborhood',
-				imageUrl: null,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-				ownerId: 'test-user-id'
-			}
-		]
-	}
-
-	/**
-	 * Fallback property statistics for battle testing
-	 */
-	private getFallbackPropertyStats(): PropertyStats {
-		return {
-			total: 2,
-			occupied: 2,
-			vacant: 1,
-			occupancyRate: 66.7,
-			totalMonthlyRent: 3000,
-			averageRent: 1500
-		}
-	}
-
-	/**
-	 * Fallback performance analytics for battle testing
-	 */
-	private getFallbackPerformanceAnalytics() {
-		return [
-			{
-				propertyId: 'prop-001',
-				propertyName: 'Riverside Towers',
-				period: '2024-01',
-				occupancyRate: 91.7,
-				revenue: 26400,
-				expenses: 8200,
-				netIncome: 18200,
-				roi: 2.4
-			},
-			{
-				propertyId: 'prop-002',
-				propertyName: 'Sunset Gardens',
-				period: '2024-01',
-				occupancyRate: 100,
-				revenue: 1800,
-				expenses: 400,
-				netIncome: 1400,
-				roi: 3.5
-			}
-		]
-	}
-
-	/**
-	 * Fallback occupancy analytics for battle testing
-	 */
-	private getFallbackOccupancyAnalytics() {
-		return [
-			{
-				propertyId: 'prop-001',
-				propertyName: 'Riverside Towers',
-				period: '2024-01',
-				occupancyRate: 91.7,
-				unitsOccupied: 22,
-				unitsTotal: 24,
-				moveIns: 3,
-				moveOuts: 1
-			},
-			{
-				propertyId: 'prop-002',
-				propertyName: 'Sunset Gardens',
-				period: '2024-01',
-				occupancyRate: 100,
-				unitsOccupied: 1,
-				unitsTotal: 1,
-				moveIns: 0,
-				moveOuts: 0
-			}
-		]
-	}
-
-	/**
-	 * Fallback financial analytics for battle testing
-	 */
-	private getFallbackFinancialAnalytics() {
-		return [
-			{
-				propertyId: 'prop-001',
-				propertyName: 'Riverside Towers',
-				period: '2024-01',
-				revenue: 26400,
-				expenses: 8200,
-				netIncome: 18200,
-				operatingExpenses: 6500,
-				maintenanceExpenses: 1200,
-				capexExpenses: 500,
-				cashFlow: 17700
-			},
-			{
-				propertyId: 'prop-002',
-				propertyName: 'Sunset Gardens',
-				period: '2024-01',
-				revenue: 1800,
-				expenses: 400,
-				netIncome: 1400,
-				operatingExpenses: 250,
-				maintenanceExpenses: 100,
-				capexExpenses: 50,
-				cashFlow: 1350
-			}
-		]
-	}
-
-	/**
-	 * Fallback maintenance analytics for battle testing
-	 */
-	private getFallbackMaintenanceAnalytics() {
-		return [
-			{
-				propertyId: 'prop-001',
-				propertyName: 'Riverside Towers',
-				period: '2024-01',
-				totalRequests: 15,
-				completedRequests: 12,
-				pendingRequests: 3,
-				averageResolutionTime: 3.2,
-				totalCost: 1200,
-				averageCostPerRequest: 80,
-				emergencyRequests: 2,
-				preventiveMaintenanceCost: 400
-			},
-			{
-				propertyId: 'prop-002',
-				propertyName: 'Sunset Gardens',
-				period: '2024-01',
-				totalRequests: 2,
-				completedRequests: 2,
-				pendingRequests: 0,
-				averageResolutionTime: 1.5,
-				totalCost: 100,
-				averageCostPerRequest: 50,
-				emergencyRequests: 0,
-				preventiveMaintenanceCost: 50
-			}
-		]
-	}
 }

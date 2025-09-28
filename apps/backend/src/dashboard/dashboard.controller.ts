@@ -2,8 +2,6 @@ import {
     Controller,
     Get,
     Logger,
-    NotFoundException,
-    Optional,
     Query,
     Req,
     UnauthorizedException
@@ -20,8 +18,8 @@ export class DashboardController {
 	private readonly logger = new Logger(DashboardController.name)
 
 	constructor(
-		@Optional() private readonly dashboardService?: DashboardService,
-		@Optional() private readonly supabaseService?: SupabaseService
+		private readonly dashboardService: DashboardService,
+		private readonly supabaseService: SupabaseService
 	) {}
 
 	/**
@@ -29,14 +27,6 @@ export class DashboardController {
 	 * Uses Supabase's native auth.getUser() method
 	 */
 	private async getAuthenticatedUser(request: Request): Promise<authUser> {
-		if (!this.supabaseService) {
-			this.logger.error('SupabaseService not available in DashboardController', {
-				endpoint: request.path,
-				method: request.method
-			})
-			throw new NotFoundException('Authentication service not available')
-		}
-
 		const user = await this.supabaseService.getUser(request)
 		if (!user) {
 			this.logger.warn('User authentication failed in DashboardController', {
@@ -69,10 +59,6 @@ export class DashboardController {
 			'Getting dashboard stats for authenticated user'
 		)
 
-		if (!this.dashboardService) {
-			throw new NotFoundException('Dashboard service not available')
-		}
-
 		const data = await this.dashboardService.getStats(user.id)
 		return {
 			success: true,
@@ -97,10 +83,6 @@ export class DashboardController {
 			},
 			'Getting dashboard activity via DashboardService'
 		)
-
-		if (!this.dashboardService) {
-			throw new NotFoundException('Dashboard service not available')
-		}
 
 		const data = await this.dashboardService.getActivity(user.id)
 
@@ -131,10 +113,6 @@ export class DashboardController {
 			},
 			'Getting billing insights via DashboardService'
 		)
-
-		if (!this.dashboardService) {
-			throw new NotFoundException('Dashboard service not available')
-		}
 
 		const parsedStartDate = startDate ? new Date(startDate) : undefined
 		const parsedEndDate = endDate ? new Date(endDate) : undefined
@@ -176,10 +154,6 @@ export class DashboardController {
 			},
 			'Checking billing insights availability via DashboardService'
 		)
-
-		if (!this.dashboardService) {
-			throw new NotFoundException('Dashboard service not available')
-		}
 
 		const isAvailable = await this.dashboardService.isBillingInsightsAvailable()
 
@@ -223,10 +197,6 @@ export class DashboardController {
 			'Getting property performance via DashboardService'
 		)
 
-		if (!this.dashboardService) {
-			throw new NotFoundException('Dashboard service not available')
-		}
-
 		const data = await this.dashboardService.getPropertyPerformance(user.id)
 
 		return {
@@ -249,10 +219,6 @@ export class DashboardController {
 			},
 			'Getting system uptime metrics via DashboardService'
 		)
-
-		if (!this.dashboardService) {
-			throw new NotFoundException('Dashboard service not available')
-		}
 
 		const data = await this.dashboardService.getUptime()
 

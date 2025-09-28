@@ -99,17 +99,6 @@ describe('DashboardController', () => {
 			)
 		})
 
-		it('should throw NotFoundException when dashboard service is not available', async () => {
-			const controllerWithoutService = new DashboardController(
-				undefined,
-				mockSupabaseServiceInstance
-			)
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-
-			await expect(
-				controllerWithoutService.getStats(mockRequest)
-			).rejects.toThrow(NotFoundException)
-		})
 	})
 
 	describe('getActivity', () => {
@@ -216,13 +205,6 @@ describe('DashboardController', () => {
 			})
 		})
 
-		it('should throw NotFoundException when dashboard service is not available', async () => {
-			const controllerWithoutService = new DashboardController()
-
-			await expect(
-				controllerWithoutService.getBillingInsights('2024-01-01', '2024-01-31')
-			).rejects.toThrow(NotFoundException)
-		})
 	})
 
 	describe('getBillingHealth', () => {
@@ -278,10 +260,20 @@ describe('DashboardController', () => {
 		it('should return property performance for authenticated user', async () => {
 			const mockPerformance = [
 				{
+					property: 'Property A',
 					propertyId: 'prop-1',
-					name: 'Property A',
-					occupancyRate: 0.95,
-					monthlyRevenue: 8000
+					units: 20,
+					totalUnits: 20,
+					occupiedUnits: 19,
+					vacantUnits: 1,
+					occupancy: '95%',
+					occupancyRate: 95.0,
+					revenue: 8000,
+					monthlyRevenue: 8000,
+					potentialRevenue: 8400,
+					address: '123 Main St',
+					propertyType: 'APARTMENT',
+					status: 'PARTIAL' as const
 				}
 			]
 
@@ -319,8 +311,13 @@ describe('DashboardController', () => {
 		it('should return system uptime metrics', async () => {
 			const mockUptime = {
 				uptime: '99.9%',
-				currentStatus: 'operational',
-				lastIncident: null
+				uptimePercentage: 99.9,
+				sla: '99.5%',
+				slaStatus: 'excellent' as const,
+				status: 'operational' as const,
+				lastIncident: null,
+				responseTime: 150,
+				timestamp: new Date().toISOString()
 			}
 
 			mockDashboardServiceInstance.getUptime.mockResolvedValue(mockUptime)
@@ -336,24 +333,6 @@ describe('DashboardController', () => {
 			})
 		})
 
-		it('should throw NotFoundException when dashboard service is not available', async () => {
-			const controllerWithoutService = new DashboardController()
-
-			await expect(controllerWithoutService.getUptime()).rejects.toThrow(
-				NotFoundException
-			)
-		})
 	})
 
-	describe('getUser helper method', () => {
-		it('should throw NotFoundException when supabase service is not available', async () => {
-			const controllerWithoutSupabase = new DashboardController(
-				mockDashboardServiceInstance
-			)
-
-			await expect(
-				controllerWithoutSupabase.getStats(mockRequest)
-			).rejects.toThrow(NotFoundException)
-		})
-	})
 })
