@@ -1,126 +1,15 @@
 'use client'
 
+import { authQueryKeys } from '@/stores/auth-provider'
 import { createClient } from '@/utils/supabase/client'
 import { logger } from '@repo/shared'
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import type { Session, User } from '@supabase/supabase-js'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 // Create browser client for authentication
 const supabaseClient = createClient()
 
-// Query keys for auth
-export const authQueryKeys = {
-	session: ['auth', 'session'] as const,
-	user: ['auth', 'user'] as const
-}
-
-// Get current session with TanStack Query
-export function useAuthSession(options: { throwOnError?: boolean } = {}) {
-	return useQuery({
-		queryKey: authQueryKeys.session,
-		queryFn: async () => {
-			const { data: { session }, error } = await supabaseClient.auth.getSession()
-			if (error) {
-				logger.error('Failed to get auth session', {
-					action: 'get_session_error',
-					metadata: { error: error.message }
-				})
-				throw error
-			}
-			return session
-		},
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		retry: 1,
-		refetchOnWindowFocus: true,
-		throwOnError: options.throwOnError ?? false
-	})
-}
-
-// Get current user with TanStack Query
-export function useAuthUser(options: { throwOnError?: boolean } = {}) {
-	return useQuery({
-		queryKey: authQueryKeys.user,
-		queryFn: async () => {
-			const { data: { user }, error } = await supabaseClient.auth.getUser()
-			if (error) {
-				logger.error('Failed to get auth user', {
-					action: 'get_user_error',
-					metadata: { error: error.message }
-				})
-				throw error
-			}
-			return user
-		},
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		retry: 1,
-		refetchOnWindowFocus: true,
-		throwOnError: options.throwOnError ?? false
-	})
-}
-
-// Hook to set up auth state change listener
-export function useAuthStateListener() {
-	const queryClient = useQueryClient()
-
-	useEffect(() => {
-		const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
-			async (event: AuthChangeEvent, session: Session | null) => {
-				// Update session query cache
-				queryClient.setQueryData(authQueryKeys.session, session)
-
-				// Update user query cache
-				if (session?.user) {
-					queryClient.setQueryData(authQueryKeys.user, session.user)
-				} else {
-					queryClient.setQueryData(authQueryKeys.user, null)
-				}
-
-				// Invalidate related queries on auth change
-				if (event === 'SIGNED_IN') {
-					queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-					queryClient.invalidateQueries({ queryKey: ['properties'] })
-					queryClient.invalidateQueries({ queryKey: ['billing'] })
-				} else if (event === 'SIGNED_OUT') {
-					queryClient.clear() // Clear all queries on sign out
-				}
-
-				// Log auth events for debugging
-				if (process.env.NODE_ENV === 'development') {
-					logger.info('Auth state changed', {
-						action: 'auth_state_change',
-						metadata: { event, userId: session?.user?.id }
-					})
-				}
-			}
-		)
-
-		return () => subscription.unsubscribe()
-	}, [queryClient])
-}
-
-// Derived auth state hooks
-export function useIsAuthenticated() {
-	const { data: session, isLoading } = useAuthSession()
-	return {
-		isAuthenticated: !!session?.user,
-		isLoading,
-		session
-	}
-}
-
-export function useRequireAuth() {
-	const { isAuthenticated, isLoading, session } = useIsAuthenticated()
-
-	return {
-		isAuthenticated,
-		isLoading,
-		session,
-		user: session?.user ?? null
-	}
-}
-
-// Enhanced cache invalidation utilities
+// Enhanced cache invalidation utilities (keep React Query benefits)
 export function useAuthCacheUtils() {
 	const queryClient = useQueryClient()
 
@@ -162,18 +51,15 @@ export function useAuthCacheUtils() {
 	}
 }
 
-// Auth mutations for better cache management
+// Auth mutations for better cache management (keep React Query mutation benefits)
 export function useSignOut() {
-	const { clearAuthData } = useAuthCacheUtils()
-
 	return useMutation({
 		mutationFn: async () => {
 			const { error } = await supabaseClient.auth.signOut()
 			if (error) throw error
 		},
 		onSuccess: () => {
-			// Clear all cached data on sign out
-			clearAuthData()
+			// Auth state will be automatically handled by onAuthStateChange in AuthProvider
 			logger.info('User signed out successfully', {
 				action: 'sign_out_success'
 			})
@@ -185,4 +71,18 @@ export function useSignOut() {
 			})
 		}
 	})
+}
+
+// Simple auth hook that aligns with official Supabase patterns but keeps React Query benefits
+export function useCurrentUser() {
+	const queryClient = useQueryClient()
+	const sessionData = queryClient.getQueryData(authQueryKeys.session) as Session | null | undefined
+	const userData = queryClient.getQueryData(authQueryKeys.user) as User | null | undefined
+
+	return {
+		user: userData || sessionData?.user || null,
+		userId: userData?.id || sessionData?.user?.id || null,
+		session: sessionData,
+		isAuthenticated: !!(userData || sessionData?.user)
+	}
 }

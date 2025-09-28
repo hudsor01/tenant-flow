@@ -36,12 +36,14 @@ describe('LeasesController', () => {
 		id: generateUUID(),
 		tenantId: generateUUID(),
 		unitId: generateUUID(),
+		propertyId: generateUUID(),
 		startDate: '2024-01-01',
 		endDate: '2024-12-31',
 		monthlyRent: 1500.0,
+		rentAmount: 1500.0,
 		securityDeposit: 3000.0,
-		paymentFrequency: 'MONTHLY',
-		status: 'ACTIVE',
+		status: 'ACTIVE' as const,
+		terms: 'Standard lease terms',
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 		...overrides
@@ -427,7 +429,7 @@ describe('LeasesController', () => {
 			expect(mockLeasesService.renew).toHaveBeenCalledWith(
 				user.id,
 				leaseId,
-				endDate
+				{ endDate }
 			)
 			expect(result).toEqual(mockLease)
 		})
@@ -465,6 +467,7 @@ describe('LeasesController', () => {
 			expect(mockLeasesService.terminate).toHaveBeenCalledWith(
 				user.id,
 				leaseId,
+				expect.any(Date),
 				reason
 			)
 			expect(result).toEqual(mockLease)
@@ -482,6 +485,7 @@ describe('LeasesController', () => {
 			expect(mockLeasesService.terminate).toHaveBeenCalledWith(
 				user.id,
 				leaseId,
+				expect.any(Date),
 				undefined
 			)
 			expect(result).toEqual(mockLease)

@@ -146,32 +146,26 @@ export function ChartAreaInteractive({
 			<div className="grid grid-cols-2 gap-4 p-6 pb-0 lg:grid-cols-4">
 				<div className="space-y-1">
 					<p className="text-sm text-muted-foreground">Total Revenue</p>
-					<p className="text-lg font-semibold text-green-600">
+					<p className="text-lg font-semibold" style={{ color: 'var(--color-metric-success)' }}>
 						${totalRevenue.toLocaleString()}
 					</p>
 				</div>
 				<div className="space-y-1">
 					<p className="text-sm text-muted-foreground">Total Expenses</p>
-					<p className="text-lg font-semibold text-red-600">
+					<p className="text-lg font-semibold" style={{ color: 'var(--color-metric-warning)' }}>
 						${totalExpenses.toLocaleString()}
 					</p>
 				</div>
 				<div className="space-y-1">
 					<p className="text-sm text-muted-foreground">Net Profit</p>
-					<p className={cn(
-						"text-lg font-semibold flex items-center gap-1",
-						netProfit >= 0 ? "text-green-600" : "text-red-600"
-					)}>
+					<p className="text-lg font-semibold flex items-center gap-1" style={{ color: netProfit >= 0 ? 'var(--color-metric-success)' : 'var(--color-metric-warning)' }}>
 						{netProfit >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
 						${Math.abs(netProfit).toLocaleString()}
 					</p>
 				</div>
 				<div className="space-y-1">
 					<p className="text-sm text-muted-foreground">Profit Margin</p>
-					<p className={cn(
-						"text-lg font-semibold",
-						profitMargin >= 0 ? "text-green-600" : "text-red-600"
-					)}>
+					<p className="text-lg font-semibold" style={{ color: profitMargin >= 0 ? 'var(--color-metric-success)' : 'var(--color-metric-warning)' }}>
 						{profitMargin.toFixed(1)}%
 					</p>
 				</div>

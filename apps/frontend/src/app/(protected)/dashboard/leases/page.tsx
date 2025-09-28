@@ -1,9 +1,6 @@
-'use client'
-
 import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
 import { CreateLeaseDialog } from '@/components/leases/create-lease-dialog'
 import { LeaseActionButtons } from '@/components/leases/lease-action-buttons'
-import { LoadingSpinner } from '@/components/magicui/loading-spinner'
 import { Button } from '@/components/ui/button'
 import {
 	Table,
@@ -13,35 +10,17 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import { useLeases, useLeaseStats } from '@/hooks/api/leases'
+import { getLeasesPageData } from '@/lib/api/dashboard-server'
 import type { Database } from '@repo/shared'
 import { AlertTriangle, FileText } from 'lucide-react'
 
 type Lease = Database['public']['Tables']['Lease']['Row']
 
-export default function LeasesPage() {
-	const { data: leases, isLoading: leasesLoading } = useLeases()
-	const { data: leaseStats, isLoading: statsLoading } = useLeaseStats()
+export default async function LeasesPage() {
+	// Fetch data server-side with stats
+	const { leases, stats } = await getLeasesPageData()
 
-	// Loading state
-	if (leasesLoading || statsLoading) {
-		return (
-			<div className="flex items-center justify-center h-32">
-				<LoadingSpinner variant="primary" />
-			</div>
-		)
-	}
-
-	// Fallback to empty array/object if no data
-	const leasesData = leases || []
-	const statsData = leaseStats || {
-		totalLeases: 0,
-		activeLeases: 0,
-		totalMonthlyRent: 0,
-		averageRent: 0
-	}
-
-	// All calculations now done in database - no frontend business logic!
+	// All calculations done in database - no frontend business logic!
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -57,7 +36,7 @@ export default function LeasesPage() {
 							style={{ backgroundColor: 'var(--chart-4)' }}
 						/>
 					</div>
-					<div className="text-2xl font-bold">{statsData.totalLeases}</div>
+					<div className="text-2xl font-bold">{stats.totalLeases}</div>
 					<p className="text-xs text-muted-foreground mt-1">All agreements</p>
 				</div>
 
@@ -71,7 +50,7 @@ export default function LeasesPage() {
 							style={{ backgroundColor: 'var(--chart-1)' }}
 						/>
 					</div>
-					<div className="text-2xl font-bold">{statsData.activeLeases}</div>
+					<div className="text-2xl font-bold">{stats.activeLeases}</div>
 					<div className="text-xs mt-1" style={{ color: 'var(--chart-1)' }}>
 						Currently active
 					</div>
@@ -116,7 +95,7 @@ export default function LeasesPage() {
 							style: 'currency',
 							currency: 'USD',
 							maximumFractionDigits: 0
-						}).format(statsData.totalMonthlyRent)}
+						}).format(stats.totalMonthlyRent)}
 					</div>
 					<div className="text-xs mt-1 text-muted-foreground">
 						From all leases
@@ -157,8 +136,8 @@ export default function LeasesPage() {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{leasesData.length > 0 ? (
-								leasesData.map((lease: Lease) => (
+							{leases.length > 0 ? (
+								leases.map((lease: Lease) => (
 									<TableRow key={lease.id} className="hover:bg-muted/30">
 										<TableCell className="font-medium">
 											{lease.tenantId || 'No Tenant'}
