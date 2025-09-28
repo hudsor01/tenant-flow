@@ -171,6 +171,53 @@
 	--color-brand-meta-accent: #0081fb;
 	--color-brand-stripe: #635bff;
 
+	/* Dashboard Metric Color System - Premium Semantic Tokens */
+	--color-metric-primary: var(--color-primary-brand);
+	--color-metric-primary-bg: var(--color-primary-brand-10);
+	--color-metric-primary-border: var(--color-primary-brand-15);
+	--color-metric-primary-text: var(--color-primary-brand-85);
+
+	--color-metric-success: var(--color-system-green);
+	--color-metric-success-bg: var(--color-system-green-10);
+	--color-metric-success-border: var(--color-system-green-15);
+	--color-metric-success-text: var(--color-system-green-85);
+
+	--color-metric-revenue: var(--color-system-blue);
+	--color-metric-revenue-bg: var(--color-system-blue-10);
+	--color-metric-revenue-border: var(--color-system-blue-15);
+	--color-metric-revenue-text: var(--color-system-blue-85);
+
+	--color-metric-warning: var(--color-system-orange);
+	--color-metric-warning-bg: var(--color-system-orange-10);
+	--color-metric-warning-border: var(--color-system-orange-15);
+	--color-metric-warning-text: var(--color-system-orange-85);
+
+	--color-metric-info: var(--color-system-mint);
+	--color-metric-info-bg: var(--color-system-mint-10);
+	--color-metric-info-border: var(--color-system-mint-15);
+	--color-metric-info-text: var(--color-system-mint-85);
+
+	--color-metric-neutral: var(--color-label-secondary);
+	--color-metric-neutral-bg: var(--color-fill-secondary);
+	--color-metric-neutral-border: var(--color-fill-tertiary);
+	--color-metric-neutral-text: var(--color-label-primary);
+
+	/* Dashboard Layout & Animation Tokens */
+	--dashboard-section-gap: var(--spacing-8);
+	--dashboard-card-gap: var(--spacing-6);
+	--dashboard-content-padding: var(--spacing-6);
+	--dashboard-border-radius: 12px;
+	--dashboard-transition: all 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	--dashboard-hover-scale: 1.02;
+	--dashboard-shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.1);
+
+	/* Premium Typography Scales for Dashboard */
+	--dashboard-metric-title: var(--font-large-title);
+	--dashboard-metric-value: var(--font-title-1);
+	--dashboard-section-title: var(--font-title-2);
+	--dashboard-body: var(--font-body);
+	--dashboard-caption: var(--font-footnote);
+
 	/* Background Secondary for gradients */
 	--color-background-secondary: oklch(1 0 0 / 10%);
 

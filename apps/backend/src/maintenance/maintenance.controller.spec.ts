@@ -1,13 +1,13 @@
 import { NotFoundException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
-import type { authUser } from '@repo/shared'
+import type { authUser, Database } from '@repo/shared'
 import { randomUUID } from 'crypto'
 import type { Request } from 'express'
 import { SilentLogger } from '../__test__/silent-logger'
 import { SupabaseService } from '../database/supabase.service'
 import { MaintenanceController } from './maintenance.controller'
 import { MaintenanceService } from './maintenance.service'
-import { createMockUser, createMockDashboardStats, createMockPropertyStats, createMockPropertyRequest, createMockTenantRequest, createMockUnitRequest } from '../test-utils/mocks'
+import { createMockUser, createMockMaintenanceRequest } from '../test-utils/mocks'
 
 describe('MaintenanceController', () => {
 	let controller: MaintenanceController
@@ -35,14 +35,7 @@ describe('MaintenanceController', () => {
 			body: {}
 		}) as unknown as Request
 
-	const mockMaintenanceRequest = {
-		id: randomUUID(),
-		unitId: randomUUID(),
-		title: 'Fix leak',
-		priority: 'HIGH',
-		category: 'PLUMBING',
-		status: 'PENDING'
-	}
+
 
 	beforeEach(async () => {
 		const mockService = {
@@ -80,9 +73,10 @@ describe('MaintenanceController', () => {
 
 	describe('findAll', () => {
 		it('returns maintenance requests', async () => {
-			service.findAll.mockResolvedValue([mockMaintenanceRequest])
+			const requests = [createMockMaintenanceRequest()]
+			service.findAll.mockResolvedValue(requests)
 			const result = await controller.findAll(createMockRequest())
-			expect(result).toEqual([mockMaintenanceRequest])
+			expect(result).toEqual(requests)
 			expect(service.findAll).toHaveBeenCalledWith(
 				'test-user-id',
 				expect.any(Object)
@@ -140,7 +134,8 @@ describe('MaintenanceController', () => {
 
 			it('accepts limit of 0 (falsy bypass)', async () => {
 				// Current production behavior: limit 0 bypasses validation due to falsy check
-				service.findAll.mockResolvedValue([mockMaintenanceRequest])
+				const requests = [createMockMaintenanceRequest()]
+				service.findAll.mockResolvedValue(requests)
 				const validUuid = randomUUID()
 				const result = await controller.findAll(
 					createMockRequest(),
@@ -148,10 +143,10 @@ describe('MaintenanceController', () => {
 					validUuid,
 					'HIGH',
 					'PLUMBING',
-					'PENDING',
+					'OPEN',
 					0
 				)
-				expect(result).toEqual([mockMaintenanceRequest])
+				expect(result).toEqual(requests)
 			})
 
 			it('validates limit too high', async () => {
@@ -163,7 +158,7 @@ describe('MaintenanceController', () => {
 						validUuid,
 						'HIGH',
 						'PLUMBING',
-						'PENDING',
+						'OPEN',
 						101
 					)
 				).rejects.toThrow('Limit must be between 1 and 50')
@@ -173,12 +168,13 @@ describe('MaintenanceController', () => {
 
 	describe('findOne', () => {
 		it('returns single maintenance request', async () => {
-			service.findOne.mockResolvedValue(mockMaintenanceRequest)
+			const mockRequest = createMockMaintenanceRequest()
+			service.findOne.mockResolvedValue(mockRequest)
 			const result = await controller.findOne(
-				mockMaintenanceRequest.id,
+				mockRequest.id,
 				createMockRequest(mockUser)
 			)
-			expect(result).toEqual(mockMaintenanceRequest)
+			expect(result).toEqual(mockRequest)
 		})
 
 		it('throws NotFoundException when not found', async () => {
@@ -198,6 +194,7 @@ describe('MaintenanceController', () => {
 				priority: 'MEDIUM' as const,
 				category: 'GENERAL' as const
 			}
+			const mockMaintenanceRequest = createMockMaintenanceRequest()
 			service.create.mockResolvedValue(mockMaintenanceRequest)
 			const result = await controller.create(
 				createData,
@@ -209,10 +206,10 @@ describe('MaintenanceController', () => {
 
 	describe('update', () => {
 		it('updates maintenance request', async () => {
-			const updated = { ...mockMaintenanceRequest, title: 'Updated' }
+			const updated = { ...createMockMaintenanceRequest(), title: 'Updated' }
 			service.update.mockResolvedValue(updated)
 			const result = await controller.update(
-				mockMaintenanceRequest.id,
+				createMockMaintenanceRequest().id,
 				{ title: 'Updated' },
 				createMockRequest(mockUser)
 			)
@@ -229,6 +226,7 @@ describe('MaintenanceController', () => {
 
 	describe('remove', () => {
 		it('removes maintenance request', async () => {
+			const mockMaintenanceRequest = createMockMaintenanceRequest()
 			service.remove.mockResolvedValue(undefined)
 			await controller.remove(
 				mockMaintenanceRequest.id,
@@ -243,7 +241,20 @@ describe('MaintenanceController', () => {
 
 	describe('getStats', () => {
 		it('returns stats', async () => {
-			const stats = { total: 10, pending: 5 }
+			const stats = {
+				total: 10,
+				open: 3,
+				inProgress: 2,
+				completed: 5,
+				completedToday: 1,
+				avgResolutionTime: 24,
+				byPriority: {
+					low: 2,
+					medium: 4,
+					high: 3,
+					emergency: 1
+				}
+			}
 			service.getStats.mockResolvedValue(stats)
 			const result = await controller.getStats(createMockRequest(mockUser))
 			expect(result).toEqual(stats)
@@ -252,7 +263,7 @@ describe('MaintenanceController', () => {
 
 	describe('getUrgent', () => {
 		it('returns urgent maintenance requests', async () => {
-			const urgent = [{ ...mockMaintenanceRequest, priority: 'URGENT' }]
+			const urgent = [{ ...createMockMaintenanceRequest(), priority: 'EMERGENCY' as Database['public']['Enums']['Priority'] }]
 			service.getUrgent.mockResolvedValue(urgent)
 			const result = await controller.getUrgent(createMockRequest(mockUser))
 			expect(result).toEqual(urgent)
@@ -261,7 +272,7 @@ describe('MaintenanceController', () => {
 
 	describe('getOverdue', () => {
 		it('returns overdue maintenance requests', async () => {
-			const overdue = [{ ...mockMaintenanceRequest, status: 'OVERDUE' }]
+			const overdue = [{ ...createMockMaintenanceRequest(), status: 'ON_HOLD' as Database['public']['Enums']['RequestStatus'] }]
 			service.getOverdue.mockResolvedValue(overdue)
 			const result = await controller.getOverdue(createMockRequest(mockUser))
 			expect(result).toEqual(overdue)
@@ -270,10 +281,10 @@ describe('MaintenanceController', () => {
 
 	describe('complete', () => {
 		it('completes request', async () => {
-			const completed = { ...mockMaintenanceRequest, status: 'COMPLETED' }
+			const completed = { ...createMockMaintenanceRequest(), status: 'COMPLETED' as Database['public']['Enums']['RequestStatus'] }
 			service.complete.mockResolvedValue(completed)
 			const result = await controller.complete(
-				mockMaintenanceRequest.id,
+				createMockMaintenanceRequest().id,
 				createMockRequest(mockUser),
 				undefined,
 				undefined
@@ -282,7 +293,8 @@ describe('MaintenanceController', () => {
 		})
 
 		it('completes with valid actualCost', async () => {
-			const completed = { ...mockMaintenanceRequest, status: 'COMPLETED' }
+			const mockMaintenanceRequest = createMockMaintenanceRequest()
+			const completed = { ...mockMaintenanceRequest, status: 'COMPLETED' as Database['public']['Enums']['RequestStatus'] }
 			service.complete.mockResolvedValue(completed)
 			// Correct parameter order: (id, request, actualCost, notes)
 			const result = await controller.complete(
@@ -304,7 +316,7 @@ describe('MaintenanceController', () => {
 			// Correct parameter order: (id, request, actualCost, notes)
 			await expect(
 				controller.complete(
-					mockMaintenanceRequest.id,
+					createMockMaintenanceRequest().id,
 					createMockRequest(mockUser),
 					-1,
 					undefined
@@ -316,7 +328,7 @@ describe('MaintenanceController', () => {
 			// Correct parameter order: (id, request, actualCost, notes)
 			await expect(
 				controller.complete(
-					mockMaintenanceRequest.id,
+					createMockMaintenanceRequest().id,
 					createMockRequest(mockUser),
 					1000000,
 					undefined
@@ -327,10 +339,10 @@ describe('MaintenanceController', () => {
 
 	describe('cancel', () => {
 		it('cancels request', async () => {
-			const cancelled = { ...mockMaintenanceRequest, status: 'CANCELLED' }
+			const cancelled = { ...createMockMaintenanceRequest(), status: 'CANCELED' as Database['public']['Enums']['RequestStatus'] }
 			service.cancel.mockResolvedValue(cancelled)
 			const result = await controller.cancel(
-				mockMaintenanceRequest.id,
+				createMockMaintenanceRequest().id,
 				createMockRequest(mockUser),
 				undefined
 			)

@@ -2,30 +2,33 @@
 
 import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
 import { Button } from '@/components/ui/button'
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger
-} from '@/components/ui/dialog'
+import
+  {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger
+  } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '@/components/ui/table'
+import
+  {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+  } from '@/components/ui/select'
+import
+  {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+  } from '@/components/ui/table'
 import { unitColumns, type UnitRow } from '@/components/units/units-columns'
 import { useProperties } from '@/hooks/api/properties'
 import { useCreateUnit, useUnits } from '@/hooks/api/units'
@@ -56,8 +59,6 @@ export default function UnitsPage({
 		: units
 
 	// TODO: Replace with backend-provided statistics from RPC functions
-	// All these calculations should come from check_user_permissions or unit stats endpoints
-	// For now, keeping minimal calculations until backend endpoints are connected
 	const totalUnits = filteredUnits.length
 	const occupiedCount = filteredUnits.filter((unit: UnitRowDB) => unit.status === 'OCCUPIED').length
 	const vacantCount = filteredUnits.filter((unit: UnitRowDB) => unit.status === 'VACANT').length

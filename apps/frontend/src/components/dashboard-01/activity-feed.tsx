@@ -1,6 +1,5 @@
 'use client'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,22 +13,58 @@ import {
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { useDashboardActivity } from '@/hooks/api/use-dashboard'
+import type { Tables } from '@repo/shared'
+
+type Activity = Tables<'Activity'>
 
 const getActivityBadge = (type: string) => {
-	switch (type) {
-		case 'payment':
-			return <Badge variant="outline" className="text-green-600 border-green-200">Payment</Badge>
-		case 'maintenance':
-			return <Badge variant="outline" className="text-blue-600 border-blue-200">Maintenance</Badge>
-		case 'lease':
-			return <Badge variant="outline" className="text-purple-600 border-purple-200">Lease</Badge>
-		case 'property':
-			return <Badge variant="outline" className="text-indigo-600 border-indigo-200">Property</Badge>
-		case 'tenant':
-			return <Badge variant="outline" className="text-orange-600 border-orange-200">Tenant</Badge>
-		default:
-			return <Badge variant="outline">Activity</Badge>
+	const badgeStyles = {
+		payment: {
+			color: 'var(--color-metric-success)',
+			backgroundColor: 'var(--color-metric-success-bg)',
+			borderColor: 'var(--color-metric-success-border)'
+		},
+		maintenance: {
+			color: 'var(--color-metric-info)',
+			backgroundColor: 'var(--color-metric-info-bg)',
+			borderColor: 'var(--color-metric-info-border)'
+		},
+		lease: {
+			color: 'var(--color-metric-primary)',
+			backgroundColor: 'var(--color-metric-primary-bg)',
+			borderColor: 'var(--color-metric-primary-border)'
+		},
+		property: {
+			color: 'var(--color-metric-revenue)',
+			backgroundColor: 'var(--color-metric-revenue-bg)',
+			borderColor: 'var(--color-metric-revenue-border)'
+		},
+		tenant: {
+			color: 'var(--color-metric-warning)',
+			backgroundColor: 'var(--color-metric-warning-bg)',
+			borderColor: 'var(--color-metric-warning-border)'
+		}
 	}
+
+	const style = badgeStyles[type as keyof typeof badgeStyles] || {
+		color: 'var(--color-metric-neutral)',
+		backgroundColor: 'var(--color-metric-neutral-bg)',
+		borderColor: 'var(--color-metric-neutral-border)'
+	}
+
+	const labels = {
+		payment: 'Payment',
+		maintenance: 'Maintenance',
+		lease: 'Lease',
+		property: 'Property',
+		tenant: 'Tenant'
+	}
+
+	return (
+		<Badge variant="outline" style={style}>
+			{labels[type as keyof typeof labels] || 'Activity'}
+		</Badge>
+	)
 }
 
 const getIconForType = (type: string) => {
@@ -44,13 +79,32 @@ const getIconForType = (type: string) => {
 }
 
 const getColorForType = (type: string) => {
-	switch (type) {
-		case 'payment': return { color: 'text-green-600', bgColor: 'bg-green-50' }
-		case 'maintenance': return { color: 'text-blue-600', bgColor: 'bg-blue-50' }
-		case 'lease': return { color: 'text-purple-600', bgColor: 'bg-purple-50' }
-		case 'property': return { color: 'text-indigo-600', bgColor: 'bg-indigo-50' }
-		case 'tenant': return { color: 'text-orange-600', bgColor: 'bg-orange-50' }
-		default: return { color: 'text-gray-600', bgColor: 'bg-gray-50' }
+	const colorMap = {
+		payment: {
+			color: 'var(--color-metric-success)',
+			bgColor: 'var(--color-metric-success-bg)'
+		},
+		maintenance: {
+			color: 'var(--color-metric-info)',
+			bgColor: 'var(--color-metric-info-bg)'
+		},
+		lease: {
+			color: 'var(--color-metric-primary)',
+			bgColor: 'var(--color-metric-primary-bg)'
+		},
+		property: {
+			color: 'var(--color-metric-revenue)',
+			bgColor: 'var(--color-metric-revenue-bg)'
+		},
+		tenant: {
+			color: 'var(--color-metric-warning)',
+			bgColor: 'var(--color-metric-warning-bg)'
+		}
+	}
+
+	return colorMap[type as keyof typeof colorMap] || {
+		color: 'var(--color-metric-neutral)',
+		bgColor: 'var(--color-metric-neutral-bg)'
 	}
 }
 
@@ -58,13 +112,21 @@ export function ActivityFeed() {
 	const { data, isLoading, error } = useDashboardActivity()
 
 	// Extract activities array from the response
-	const activities: any[] = data?.activities || []
+	const activities: Activity[] = data?.activities || []
 
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center py-8">
 				<Loader2 className="h-6 w-6 animate-spin" />
-				<span className="ml-2 text-sm text-muted-foreground">Loading activities...</span>
+				<span
+					className="ml-2 text-muted-foreground"
+					style={{
+						fontSize: 'var(--font-body)',
+						lineHeight: 'var(--line-height-body)'
+					}}
+				>
+					Loading activities...
+				</span>
 			</div>
 		)
 	}
@@ -87,57 +149,64 @@ export function ActivityFeed() {
 
 	return (
 		<div className="space-y-4">
-			{activities.map((activity: {
-				id: string | number
-				type: string
-				title: string
-				description?: string
-				timestamp?: string
-				user?: {
-					name: string
-					avatar?: string
-					initials?: string
-				}
-			}) => {
-				const Icon = getIconForType(activity.type)
-				const { color, bgColor } = getColorForType(activity.type)
+			{activities.map((activity: Activity) => {
+				const Icon = getIconForType(activity.entityType)
+				const { color, bgColor } = getColorForType(activity.entityType)
 
 				return (
-					<div key={activity.id} className="flex items-start gap-4">
+					<div key={activity.id} className="flex items-start gap-4 p-3 rounded-lg hover:bg-[var(--color-muted)] transition-colors duration-200">
 						{/* Activity Icon */}
-						<div className={`flex h-10 w-10 items-center justify-center rounded-full ${bgColor}`}>
-							<Icon className={`h-4 w-4 ${color}`} />
+						<div
+							className="flex h-10 w-10 items-center justify-center rounded-full border"
+							style={{
+								backgroundColor: bgColor,
+								borderColor: `color-mix(in oklab, ${color} 20%, transparent)`
+							}}
+						>
+							<Icon
+								className="h-4 w-4"
+								style={{ color }}
+							/>
 						</div>
 
 						{/* Activity Content */}
 						<div className="min-w-0 flex-1">
 							<div className="flex items-start justify-between gap-2">
 								<div className="min-w-0 flex-1">
-									<div className="flex items-center gap-2 mb-1">
-										<p className="text-sm font-medium text-foreground">
-											{activity.title}
+									<div className="flex items-center gap-2 mb-2">
+										<p
+											className="font-medium"
+											style={{
+												color: 'var(--color-label-primary)',
+												fontSize: 'var(--font-body)',
+												lineHeight: 'var(--line-height-body)'
+											}}
+										>
+											{activity.action}
 										</p>
-										{getActivityBadge(activity.type)}
+										{getActivityBadge(activity.entityType)}
 									</div>
-									<p className="text-sm text-muted-foreground mb-2">
-										{activity.description}
+									<p
+										className="mb-2"
+										style={{
+											color: 'var(--color-label-secondary)',
+											fontSize: 'var(--font-body)',
+											lineHeight: 'var(--line-height-body)'
+										}}
+									>
+										{activity.entityName ? `${activity.entityName} (${activity.entityId})` : activity.entityId}
 									</p>
-									<div className="flex items-center gap-2 text-xs text-muted-foreground">
-										{activity.user && (
-											<>
-												<Avatar className="h-5 w-5">
-													<AvatarImage src={activity.user.avatar} />
-													<AvatarFallback className="text-[10px]">
-														{activity.user.initials}
-													</AvatarFallback>
-												</Avatar>
-												<span>{activity.user.name}</span>
-												<span>•</span>
-											</>
-										)}
-										<span className="flex items-center gap-1">
+									<div className="flex items-center gap-2">
+										<span
+											className="flex items-center gap-1"
+											style={{
+												color: 'var(--color-label-tertiary)',
+												fontSize: 'var(--font-footnote)',
+												lineHeight: 'var(--line-height-footnote)'
+											}}
+										>
 											<Clock className="h-3 w-3" />
-											{activity.timestamp && formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+											{formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
 										</span>
 									</div>
 								</div>

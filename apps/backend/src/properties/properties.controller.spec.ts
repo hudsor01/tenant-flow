@@ -690,11 +690,10 @@ describe('PropertiesController', () => {
 					totalRequests: 15,
 					completedRequests: 12,
 					pendingRequests: 3,
-					averageResolutionTime: 3.2,
+					avgResolutionTime: 3.2,
 					totalCost: 1200,
-					averageCostPerRequest: 80,
-					emergencyRequests: 2,
-					preventiveMaintenanceCost: 400
+					avgCost: 80,
+					emergencyRequests: 2
 				}
 			]
 
@@ -737,11 +736,10 @@ describe('PropertiesController', () => {
 						totalRequests: 5,
 						completedRequests: 4,
 						pendingRequests: 1,
-						averageResolutionTime: 24,
+						avgResolutionTime: 24,
 						totalCost: 1000,
-						averageCostPerRequest: 200,
-						emergencyRequests: 0,
-						preventiveMaintenanceCost: 300
+						avgCost: 200,
+						emergencyRequests: 0
 					}]
 				)
 
@@ -759,19 +757,10 @@ describe('PropertiesController', () => {
 	describe('request handling with missing user', () => {
 		const mockRequestWithoutUser = {} as AuthenticatedRequest
 
-		it('should use fallback user ID when user is not available', async () => {
-			mockPropertiesServiceInstance.findAll.mockResolvedValue([] as Property[])
-
-			await controller.findAll(null, 10, 0, mockRequestWithoutUser)
-
-			expect(mockPropertiesServiceInstance.findAll).toHaveBeenCalledWith(
-				'test-user-id',
-				{
-					search: null,
-					limit: 10,
-					offset: 0
-				}
-			)
+		it('should throw BadRequestException when user is not available', async () => {
+			await expect(
+				controller.findAll(null, 10, 0, mockRequestWithoutUser)
+			).rejects.toThrow(BadRequestException)
 		})
 	})
 })

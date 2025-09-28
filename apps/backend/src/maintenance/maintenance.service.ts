@@ -1,18 +1,23 @@
 /**
- *  ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION
+ * Maintenance Service - Repository Pattern Implementation
  *
- * DIRECT PostgreSQL RPC calls ONLY. Each method <30 lines.
- * FORBIDDEN: Service layers, repositories, business logic classes
- * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
+ * - NO ABSTRACTIONS: Service delegates to repository directly
+ * - KISS: Simple, focused service methods
+ * - DRY: Repository handles data access logic
+ * - Production mirror: Matches controller interface exactly
  */
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, Inject } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	CreateMaintenanceRequest,
-	UpdateMaintenanceRequest
+	UpdateMaintenanceRequest,
+	MaintenanceRequest,
+	MaintenanceStats,
+	Database
 } from '@repo/shared'
-import { SupabaseService } from '../database/supabase.service'
+import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
+import type { IMaintenanceRepository, MaintenanceQueryOptions } from '../repositories/interfaces/maintenance-repository.interface'
 import { MaintenanceUpdatedEvent } from '../notifications/events/notification.events'
 
 @Injectable()
@@ -20,310 +25,330 @@ export class MaintenanceService {
 	private readonly logger = new Logger(MaintenanceService.name)
 
 	constructor(
-		private readonly supabaseService: SupabaseService,
+		@Inject(REPOSITORY_TOKENS.MAINTENANCE)
+		private readonly maintenanceRepository: IMaintenanceRepository,
 		private readonly eventEmitter: EventEmitter2
 	) {}
 
 	/**
-	 * Get all maintenance requests for a user using RPC
+	 * Get all maintenance requests for a user via repository
 	 */
-	async findAll(userId: string, query: Record<string, unknown>) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_user_maintenance', {
-				p_user_id: userId,
-				p_unit_id: query.unitId as string | undefined,
-				p_property_id: query.propertyId as string | undefined,
-				p_priority: query.priority as string | undefined,
-				p_category: query.category as string | undefined,
-				p_status: query.status as string | undefined,
-				p_limit: query.limit as number | undefined,
-				p_offset: query.offset as number | undefined,
-				p_sort_by: query.sortBy as string | undefined,
-				p_sort_order: query.sortOrder as string | undefined
-			})
-
-		if (error) {
-			this.logger.error(
-				{
-					error: {
-						name: error.constructor.name,
-						message: error.message,
-						code: error.code
-					},
-					maintenance: {
-						userId,
-						query
-					}
-				},
-				'Failed to get maintenance requests'
-			)
-			throw new BadRequestException('Failed to retrieve maintenance requests')
-		}
-
-		return data
-	}
-
-	/**
-	 * Get maintenance statistics using RPC
-	 */
-	async getStats(userId: string) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_maintenance_stats', { p_user_id: userId })
-			.single()
-
-		if (error) {
-			this.logger.error('Failed to get maintenance stats', {
-				userId,
-				error: error.message
-			})
-			throw new BadRequestException('Failed to retrieve maintenance statistics')
-		}
-
-		return data
-	}
-
-	/**
-	 * Get urgent maintenance requests using RPC
-	 */
-	async getUrgent(userId: string) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_urgent_maintenance', { p_user_id: userId })
-
-		if (error) {
-			this.logger.error('Failed to get urgent maintenance', {
-				userId,
-				error: error.message
-			})
-			throw new BadRequestException(
-				'Failed to retrieve urgent maintenance requests'
-			)
-		}
-
-		return data
-	}
-
-	/**
-	 * Get overdue maintenance requests using RPC
-	 */
-	async getOverdue(userId: string) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_overdue_maintenance', { p_user_id: userId })
-
-		if (error) {
-			this.logger.error('Failed to get overdue maintenance', {
-				userId,
-				error: error.message
-			})
-			throw new BadRequestException(
-				'Failed to retrieve overdue maintenance requests'
-			)
-		}
-
-		return data
-	}
-
-	/**
-	 * Get single maintenance request using RPC
-	 */
-	async findOne(userId: string, maintenanceId: string) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_maintenance_by_id', {
-				p_user_id: userId,
-				p_maintenance_id: maintenanceId
-			})
-			.single()
-
-		if (error) {
-			this.logger.error('Failed to get maintenance request', {
-				userId,
-				maintenanceId,
-				error: error.message
-			})
-			return null
-		}
-
-		return data
-	}
-
-	/**
-	 * Create maintenance request using RPC
-	 */
-	async create(userId: string, createRequest: CreateMaintenanceRequest) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('create_maintenance', {
-				p_user_id: userId,
-				p_unit_id: createRequest.unitId,
-				p_title: createRequest.title,
-				p_description: createRequest.description,
-				p_priority: createRequest.priority || 'MEDIUM',
-				p_category: createRequest.category || 'GENERAL',
-				p_scheduled_date: createRequest.scheduledDate || undefined,
-				p_estimated_cost: createRequest.estimatedCost || undefined
-			})
-			.single()
-
-		if (error) {
-			this.logger.error('Failed to create maintenance request', {
-				userId,
-				error: error.message
-			})
-			throw new BadRequestException('Failed to create maintenance request')
-		}
-
-		return data
-	}
-
-	/**
-	 * Update maintenance request using RPC
-	 */
-	async update(
-		userId: string,
-		maintenanceId: string,
-		updateRequest: UpdateMaintenanceRequest
-	) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('update_maintenance', {
-				p_user_id: userId,
-				p_maintenance_id: maintenanceId,
-				p_title: updateRequest.title,
-				p_description: updateRequest.description,
-				p_priority: updateRequest.priority,
-				p_category: updateRequest.category,
-				p_status: updateRequest.status,
-				p_scheduled_date: updateRequest.scheduledDate,
-				p_completed_date: updateRequest.completedDate,
-				p_estimated_cost: updateRequest.estimatedCost,
-				p_actual_cost: updateRequest.actualCost,
-				p_notes: updateRequest.notes
-			})
-			.single()
-
-		if (error) {
-			this.logger.error('Failed to update maintenance request', {
-				userId,
-				maintenanceId,
-				error: error.message
-			})
-			return null
-		}
-
-		// Emit event for notification service using native EventEmitter2
-		if (data) {
-			const maintenanceRecord = data as {
-				title?: string
-				status?: string
-				priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
-				property_name?: string
-				unit_number?: string
-				description?: string
+	async findAll(userId: string, query: Record<string, unknown>): Promise<MaintenanceRequest[]> {
+		try {
+			if (!userId) {
+				this.logger.warn('Find all maintenance requests requested without userId')
+				throw new BadRequestException('User ID is required')
 			}
-			this.eventEmitter.emit(
-				'maintenance.updated',
-				new MaintenanceUpdatedEvent(
-					userId,
-					maintenanceId,
-					maintenanceRecord.title ||
-						updateRequest.title ||
-						'Maintenance Request',
-					maintenanceRecord.status || updateRequest.status || 'PENDING',
-					maintenanceRecord.priority ||
-						(updateRequest.priority === 'URGENT'
-							? 'EMERGENCY'
-							: updateRequest.priority) ||
-						'MEDIUM',
-					maintenanceRecord.property_name || 'Property',
-					maintenanceRecord.unit_number || 'Unit',
-					maintenanceRecord.description ||
-						updateRequest.description ||
-						'Maintenance request updated'
-				)
+
+			const options: MaintenanceQueryOptions = {
+				search: query.search as string,
+				propertyId: query.propertyId as string,
+				unitId: query.unitId as string,
+				tenantId: query.tenantId as string,
+				status: query.status as string,
+				priority: query.priority as Database['public']['Enums']['Priority'],
+				category: query.category as Database['public']['Enums']['MaintenanceCategory'],
+				assignedTo: query.assignedTo as string,
+				dateFrom: query.dateFrom ? new Date(query.dateFrom as string) : undefined,
+				dateTo: query.dateTo ? new Date(query.dateTo as string) : undefined,
+				limit: query.limit as number,
+				offset: query.offset as number,
+				sort: query.sortBy as string,
+				order: query.sortOrder as 'asc' | 'desc'
+			}
+
+			this.logger.log('Finding all maintenance requests via repository', { userId, options })
+
+			return await this.maintenanceRepository.findByUserIdWithSearch(userId, options)
+		} catch (error) {
+			this.logger.error('Maintenance service failed to find all maintenance requests', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				query
+			})
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to fetch maintenance requests'
 			)
 		}
-
-		return data
 	}
 
 	/**
-	 * Delete maintenance request using RPC
+	 * Get maintenance statistics via repository
 	 */
-	async remove(userId: string, maintenanceId: string) {
-		const { error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('delete_maintenance', {
-				p_user_id: userId,
-				p_maintenance_id: maintenanceId
-			})
+	async getStats(userId: string): Promise<MaintenanceStats> {
+		try {
+			if (!userId) {
+				this.logger.warn('Maintenance stats requested without userId')
+				throw new BadRequestException('User ID is required')
+			}
 
-		if (error) {
-			this.logger.error('Failed to delete maintenance request', {
-				userId,
-				maintenanceId,
-				error: error.message
+			this.logger.log('Getting maintenance stats via repository', { userId })
+
+			return await this.maintenanceRepository.getStats(userId)
+		} catch (error) {
+			this.logger.error('Maintenance service failed to get stats', {
+				error: error instanceof Error ? error.message : String(error),
+				userId
 			})
-			throw new BadRequestException('Failed to delete maintenance request')
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to get maintenance statistics'
+			)
 		}
 	}
 
 	/**
-	 * Complete maintenance request using RPC
+	 * Get urgent maintenance requests via repository
 	 */
-	async complete(
-		userId: string,
-		maintenanceId: string,
-		actualCost?: number,
-		notes?: string
-	) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('complete_maintenance', {
-				p_user_id: userId,
-				p_maintenance_id: maintenanceId,
-				p_actual_cost: actualCost || undefined,
-				p_notes: notes || undefined
-			})
-			.single()
+	async getUrgent(userId: string): Promise<MaintenanceRequest[]> {
+		try {
+			if (!userId) {
+				this.logger.warn('Urgent maintenance requests requested without userId')
+				throw new BadRequestException('User ID is required')
+			}
 
-		if (error) {
-			this.logger.error('Failed to complete maintenance request', {
-				userId,
-				maintenanceId,
-				error: error.message
+			this.logger.log('Getting urgent maintenance requests via repository', { userId })
+
+			return await this.maintenanceRepository.getHighPriorityRequests(userId)
+		} catch (error) {
+			this.logger.error('Maintenance service failed to get urgent requests', {
+				error: error instanceof Error ? error.message : String(error),
+				userId
 			})
-			throw new BadRequestException('Failed to complete maintenance request')
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to get urgent maintenance requests'
+			)
 		}
-
-		return data
 	}
 
 	/**
-	 * Cancel maintenance request using RPC
+	 * Get overdue maintenance requests via repository
 	 */
-	async cancel(userId: string, maintenanceId: string, reason?: string) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('cancel_maintenance', {
-				p_user_id: userId,
-				p_maintenance_id: maintenanceId,
-				p_reason: reason || 'Cancelled by user'
-			})
-			.single()
+	async getOverdue(userId: string): Promise<MaintenanceRequest[]> {
+		try {
+			if (!userId) {
+				this.logger.warn('Overdue maintenance requests requested without userId')
+				throw new BadRequestException('User ID is required')
+			}
 
-		if (error) {
-			this.logger.error('Failed to cancel maintenance request', {
+			this.logger.log('Getting overdue maintenance requests via repository', { userId })
+
+			return await this.maintenanceRepository.getOverdueRequests(userId)
+		} catch (error) {
+			this.logger.error('Maintenance service failed to get overdue requests', {
+				error: error instanceof Error ? error.message : String(error),
+				userId
+			})
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to get overdue maintenance requests'
+			)
+		}
+	}
+
+	/**
+	 * Find one maintenance request by ID via repository
+	 */
+	async findOne(userId: string, maintenanceId: string): Promise<MaintenanceRequest | null> {
+		try {
+			if (!userId || !maintenanceId) {
+				this.logger.warn('Find one maintenance request called with missing parameters', { userId, maintenanceId })
+				return null
+			}
+
+			this.logger.log('Finding one maintenance request via repository', { userId, maintenanceId })
+
+			const maintenance = await this.maintenanceRepository.findById(maintenanceId)
+
+			// Note: Maintenance ownership is verified via property ownership in repository RLS policies
+
+			return maintenance
+		} catch (error) {
+			this.logger.error('Maintenance service failed to find one maintenance request', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				maintenanceId
+			})
+			return null
+		}
+	}
+
+	/**
+	 * Create maintenance request via repository with event emission
+	 */
+	async create(userId: string, createRequest: CreateMaintenanceRequest): Promise<MaintenanceRequest> {
+		try {
+			if (!userId || !createRequest.title) {
+				this.logger.warn('Create maintenance request called with missing parameters', { userId, createRequest })
+				throw new BadRequestException('User ID and title are required')
+			}
+
+			this.logger.log('Creating maintenance request via repository', { userId, createRequest })
+
+			// Convert CreateMaintenanceRequest to repository input format
+			const maintenanceInput = {
+				title: createRequest.title,
+				description: createRequest.description,
+				priority: createRequest.priority || 'MEDIUM',
+				unitId: createRequest.unitId,
+				allowEntry: true, // Default value
+				photos: [], // Default empty array
+				preferredDate: createRequest.scheduledDate ? new Date(createRequest.scheduledDate) : undefined,
+				category: createRequest.category,
+				estimatedCost: createRequest.estimatedCost
+			}
+
+			const maintenance = await this.maintenanceRepository.create(userId, maintenanceInput)
+
+			// Emit maintenance created event
+			this.eventEmitter.emit('maintenance.created', {
+				userId,
+				maintenanceId: maintenance.id,
+				maintenanceTitle: maintenance.title,
+				priority: maintenance.priority,
+				unitId: maintenance.unitId
+			})
+
+			return maintenance
+		} catch (error) {
+			this.logger.error('Maintenance service failed to create maintenance request', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				createRequest
+			})
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to create maintenance request'
+			)
+		}
+	}
+
+	/**
+	 * Update maintenance request via repository
+	 */
+	async update(userId: string, maintenanceId: string, updateRequest: UpdateMaintenanceRequest): Promise<MaintenanceRequest | null> {
+		try {
+			if (!userId || !maintenanceId) {
+				this.logger.warn('Update maintenance request called with missing parameters', { userId, maintenanceId })
+				return null
+			}
+
+			// Note: Maintenance ownership is verified via unit ownership in repository RLS policies
+			const existing = await this.maintenanceRepository.findById(maintenanceId)
+			if (!existing) {
+				this.logger.warn('Maintenance request not found', { userId, maintenanceId })
+				return null
+			}
+
+			this.logger.log('Updating maintenance request via repository', { userId, maintenanceId, updateRequest })
+
+			// Convert UpdateMaintenanceRequest to repository input format
+			const updateInput = {
+				...updateRequest,
+				completedAt: updateRequest.completedDate ? new Date(updateRequest.completedDate) : undefined
+			}
+
+			const updated = await this.maintenanceRepository.update(maintenanceId, updateInput)
+
+			if (updated) {
+				// Emit maintenance updated event with minimal data
+				// TODO: Fetch property and unit names if needed for rich notifications
+				this.eventEmitter.emit('maintenance.updated', new MaintenanceUpdatedEvent(
+					userId,
+					updated.id,
+					updated.title,
+					updated.status,
+					updated.priority,
+					'Unknown Property', // TODO: Get property name
+					'Unknown Unit', // TODO: Get unit number
+					updated.description
+				))
+			}
+
+			return updated
+		} catch (error) {
+			this.logger.error('Maintenance service failed to update maintenance request', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
 				maintenanceId,
-				error: error.message
+				updateRequest
 			})
-			throw new BadRequestException('Failed to cancel maintenance request')
+			return null
 		}
+	}
 
-		return data
+	/**
+	 * Remove maintenance request via repository
+	 */
+	async remove(userId: string, maintenanceId: string): Promise<void> {
+		try {
+			if (!userId || !maintenanceId) {
+				this.logger.warn('Remove maintenance request called with missing parameters', { userId, maintenanceId })
+				throw new BadRequestException('User ID and maintenance ID are required')
+			}
+
+			this.logger.log('Removing maintenance request via repository', { userId, maintenanceId })
+
+			const result = await this.maintenanceRepository.softDelete(userId, maintenanceId)
+
+			if (!result.success) {
+				throw new BadRequestException(result.message)
+			}
+		} catch (error) {
+			this.logger.error('Maintenance service failed to remove maintenance request', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				maintenanceId
+			})
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to remove maintenance request'
+			)
+		}
+	}
+
+	/**
+	 * Complete maintenance request via repository
+	 */
+	async complete(userId: string, maintenanceId: string, actualCost?: number, notes?: string): Promise<MaintenanceRequest | null> {
+		try {
+			if (!userId || !maintenanceId) {
+				this.logger.warn('Complete maintenance request called with missing parameters', { userId, maintenanceId })
+				return null
+			}
+
+			this.logger.log('Completing maintenance request via repository', { userId, maintenanceId, actualCost, notes })
+
+			return await this.maintenanceRepository.updateStatus(maintenanceId, 'COMPLETED', userId, notes)
+		} catch (error) {
+			this.logger.error('Maintenance service failed to complete maintenance request', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				maintenanceId,
+				actualCost,
+				notes
+			})
+			return null
+		}
+	}
+
+	/**
+	 * Cancel maintenance request via repository
+	 */
+	async cancel(userId: string, maintenanceId: string, reason?: string): Promise<MaintenanceRequest | null> {
+		try {
+			if (!userId || !maintenanceId) {
+				this.logger.warn('Cancel maintenance request called with missing parameters', { userId, maintenanceId })
+				return null
+			}
+
+			this.logger.log('Cancelling maintenance request via repository', { userId, maintenanceId, reason })
+
+			return await this.maintenanceRepository.updateStatus(maintenanceId, 'CANCELED', userId, reason)
+		} catch (error) {
+			this.logger.error('Maintenance service failed to cancel maintenance request', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				maintenanceId,
+				reason
+			})
+			return null
+		}
 	}
 }

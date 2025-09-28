@@ -4,7 +4,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { dashboardApi, API_BASE_URL } from '@/lib/api-client'
 import { apiClient } from '@repo/shared'
-import type { TenantStats, LeaseStatsResponse } from '@repo/shared'
+import type { TenantStats, LeaseStatsResponse, FinancialMetrics } from '@repo/shared'
 
 /**
  * Query keys for dashboard endpoints
@@ -166,16 +166,15 @@ export function useFinancialChartData(timeRange: string = '6m') {
     queryFn: async () => {
       // Map timeRange to year for the revenue-trends endpoint
       const currentYear = new Date().getFullYear()
-      const data = await apiClient<{ date: string, revenue: number, expenses: number, profit: number }[]>(`${API_BASE_URL}/api/v1/financial/analytics/revenue-trends?year=${currentYear}`)
+      const data = await apiClient<FinancialMetrics[]>(`${API_BASE_URL}/api/v1/financial/analytics/revenue-trends?year=${currentYear}`)
 
-      // Transform the response to the expected chart format
-      // If data is an array, use it directly, otherwise create mock data
+      // Transform FinancialMetrics to chart format
       if (Array.isArray(data)) {
-        return data.map((item: { date?: string, month?: string, revenue?: number, totalRevenue?: number, expenses?: number, totalExpenses?: number, profit?: number }) => ({
-          date: item.date || item.month || '',
-          revenue: item.revenue || item.totalRevenue || 0,
-          expenses: item.expenses || item.totalExpenses || 0,
-          profit: (item.revenue || item.totalRevenue || 0) - (item.expenses || item.totalExpenses || 0)
+        return data.map((item: FinancialMetrics) => ({
+          date: item.period,
+          revenue: item.revenue,
+          expenses: item.expenses,
+          profit: item.netIncome
         }))
       }
 

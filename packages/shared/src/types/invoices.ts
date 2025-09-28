@@ -20,14 +20,9 @@ export interface CustomerInvoiceForm {
 	items: CustomerInvoiceItem[] // Added this line
 }
 
-// Customer invoice status enum
-export type CustomerInvoiceStatus =
-	| 'DRAFT'
-	| 'SENT'
-	| 'VIEWED'
-	| 'PAID'
-	| 'OVERDUE'
-	| 'CANCELLED'
+// Use Supabase CustomerInvoiceStatus instead of custom duplicate
+import type { Database } from './supabase-generated.js'
+export type CustomerInvoiceStatus = Database['public']['Enums']['CustomerInvoiceStatus']
 
 export const CUSTOMER_INVOICE_STATUS = {
 	DRAFT: 'DRAFT',
@@ -71,51 +66,9 @@ export const getCustomerInvoiceStatusColor = (
 	return colors[status] || 'bg-gray-100 text-gray-800'
 }
 
-// Customer invoice entity types
-export interface CustomerInvoice {
-	id: string
-	invoiceNumber: string
-	status: CustomerInvoiceStatus
-	businessName: string
-	businessEmail: string
-	businessAddress: string | null
-	businessCity: string | null
-	businessState: string | null
-	businessZip: string | null
-	businessPhone: string | null
-	businessLogo: string | null
-	clientName: string
-	clientEmail: string
-	clientAddress: string | null
-	clientCity: string | null
-	clientState: string | null
-	clientZip: string | null
-	issueDate: Date
-	dueDate: Date
-	subtotal: number
-	taxRate: number
-	taxAmount: number
-	total: number
-	notes: string | null
-	terms: string | null
-	emailCaptured: string | null
-	downloadCount: number
-	isProVersion: boolean
-	userAgent: string | null
-	ipAddress: string | null
-	createdAt: Date
-	updatedAt: Date
-}
-
-export interface CustomerInvoiceItem {
-	id: string
-	invoiceId: string
-	description: string
-	quantity: number
-	unitPrice: number
-	total: number
-	createdAt: Date
-}
+// Use Supabase table types instead of duplicating
+export type CustomerInvoice = Database['public']['Tables']['CustomerInvoice']['Row']
+export type CustomerInvoiceItem = Database['public']['Tables']['CustomerInvoiceItem']['Row']
 
 // Invoice lead capture types
 export interface InvoiceLeadCapture {

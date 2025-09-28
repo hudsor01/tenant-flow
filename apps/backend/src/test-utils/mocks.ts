@@ -8,7 +8,12 @@ import type {
 	MaintenanceStats,
 	PropertyStats,
 	TenantStats,
-	UnitStats
+	UnitStats,
+	Property,
+	Unit,
+	Tenant,
+	Lease,
+	MaintenanceRequest
 } from '@repo/shared'
 import type { Database } from '@repo/shared'
 
@@ -211,6 +216,103 @@ export function createMockTenantRequest(
 		lastName: 'Doe',
 		email: 'john@example.com',
 		phone: '123-456-7890',
+		...overrides
+	}
+}
+// Additional mock creation functions for entity types
+export function createMockProperty(overrides?: Partial<Property>): Property {
+	return {
+		id: 'property-' + Math.random().toString(36).substr(2, 9),
+		ownerId: 'user-123',
+		name: overrides?.name || 'Test Property',
+		address: overrides?.address || '123 Main St',
+		city: overrides?.city || 'Test City',
+		state: overrides?.state || 'TS',
+		zipCode: overrides?.zipCode || '12345',
+		propertyType: overrides?.propertyType || 'SINGLE_FAMILY',
+		description: overrides?.description || null,
+		imageUrl: overrides?.imageUrl || null,
+		status: overrides?.status || 'ACTIVE',
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+		...overrides
+	}
+}
+
+export function createMockUnit(overrides?: Partial<Unit>): Unit {
+	return {
+		id: 'unit-' + Math.random().toString(36).substr(2, 9),
+		propertyId: overrides?.propertyId || 'property-123',
+		unitNumber: overrides?.unitNumber || '101',
+		status: (overrides?.status as Database['public']['Enums']['UnitStatus']) || 'OCCUPIED',
+		rent: overrides?.rent || 1500,
+		bedrooms: overrides?.bedrooms || 2,
+		bathrooms: overrides?.bathrooms || 1,
+		squareFeet: overrides?.squareFeet || 900,
+		lastInspectionDate: overrides?.lastInspectionDate || null,
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+		...overrides
+	}
+}
+
+export function createMockTenant(overrides?: Partial<Tenant>): Tenant {
+	return {
+		id: 'tenant-' + Math.random().toString(36).substr(2, 9),
+		userId: overrides?.userId || null,
+		firstName: overrides?.firstName || 'John',
+		lastName: overrides?.lastName || 'Doe',
+		email: overrides?.email || 'john.doe@example.com',
+		phone: overrides?.phone || '555-0123',
+		name: overrides?.name || null,
+		avatarUrl: overrides?.avatarUrl || null,
+		emergencyContact: overrides?.emergencyContact || null,
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+		...overrides
+	}
+}
+
+export function createMockLease(overrides?: Partial<Lease>): Lease {
+	return {
+		id: 'lease-' + Math.random().toString(36).substr(2, 9),
+		unitId: overrides?.unitId || 'unit-123',
+		tenantId: overrides?.tenantId || 'tenant-123',
+		startDate: overrides?.startDate || new Date().toISOString(),
+		endDate: overrides?.endDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+		rentAmount: overrides?.rentAmount || 1500,
+		monthlyRent: overrides?.monthlyRent || 1500,
+		securityDeposit: overrides?.securityDeposit || 1500,
+		propertyId: overrides?.propertyId || null,
+		terms: overrides?.terms || null,
+		status: (overrides?.status as Database['public']['Enums']['LeaseStatus']) || 'ACTIVE',
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+		...overrides
+	}
+}
+
+export function createMockMaintenanceRequest(overrides?: Partial<MaintenanceRequest>): MaintenanceRequest {
+	return {
+		id: 'maintenance-' + Math.random().toString(36).substr(2, 9),
+		unitId: overrides?.unitId || 'unit-123',
+		title: overrides?.title || 'Fix leak',
+		description: overrides?.description || 'Urgent leak repair needed',
+		priority: overrides?.priority || ('HIGH' as Database['public']['Enums']['Priority']),
+		category: overrides?.category || null,
+		status: (overrides?.status as Database['public']['Enums']['RequestStatus']) || 'OPEN',
+		allowEntry: overrides?.allowEntry || false,
+		actualCost: overrides?.actualCost || null,
+		assignedTo: overrides?.assignedTo || null,
+		completedAt: overrides?.completedAt || null,
+		contactPhone: overrides?.contactPhone || null,
+		preferredDate: overrides?.preferredDate || null,
+		estimatedCost: overrides?.estimatedCost || null,
+		notes: overrides?.notes || null,
+		photos: overrides?.photos || null,
+		requestedBy: overrides?.requestedBy || null,
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
 		...overrides
 	}
 }

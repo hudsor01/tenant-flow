@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common'
 import { DashboardController } from './dashboard.controller'
 import { DashboardService } from './dashboard.service'
-import { SupabaseModule } from '../database/supabase.module'
+import { RepositoriesModule } from '../repositories/repositories.module'
 
 /**
- * Dashboard Module - Proper NestJS Service Layer Pattern
- * Controller → Service → Database
- * DashboardService handles all business logic and RPC calls
+ * Dashboard Module - Repository Pattern Implementation
+ * Controller → Service → Repository → Database
+ * DashboardService uses IDashboardRepository for data access
  */
 @Module({
-	imports: [SupabaseModule],
+	imports: [RepositoriesModule],
 	controllers: [DashboardController],
 	providers: [DashboardService]
 })

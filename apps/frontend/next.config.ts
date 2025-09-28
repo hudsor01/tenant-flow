@@ -3,7 +3,7 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
 	// Core optimizations
-	reactStrictMode: true,
+	reactStrictMode: true, // RE-ENABLED: Auth fix verified compatible
 	productionBrowserSourceMaps: false,
 	poweredByHeader: false,
 

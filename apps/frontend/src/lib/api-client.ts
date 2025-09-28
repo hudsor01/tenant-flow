@@ -24,6 +24,7 @@ import { apiClient } from '@repo/shared'
 import type { Tables, TablesInsert, TablesUpdate } from '@repo/shared'
 
 // Use native Supabase table types for API operations
+type Activity = Tables<'Activity'>
 type Lease = Tables<'Lease'>
 type Property = Tables<'Property'>
 type Tenant = Tables<'Tenant'>
@@ -61,7 +62,7 @@ export const dashboardApi = {
 	getStats: (): Promise<DashboardStats> =>
 		apiClient<DashboardStats>(`${API_BASE_URL}/api/v1/dashboard/stats`),
 
-	getActivity: (): Promise<{ activities: Array<unknown> }> =>
+	getActivity: (): Promise<{ activities: Activity[] }> =>
 		apiClient(`${API_BASE_URL}/api/v1/dashboard/activity`),
 
 	getPropertyPerformance: (): Promise<PropertyPerformance[]> =>

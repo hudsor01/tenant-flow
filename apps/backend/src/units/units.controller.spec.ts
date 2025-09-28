@@ -40,6 +40,27 @@ describe('UnitsController', () => {
 
 	const mockRequest = {} as Request
 
+	const generateUUID = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+		const r = Math.random() * 16 | 0
+		const v = c === 'x' ? r : (r & 0x3 | 0x8)
+		return v.toString(16)
+	})
+
+	const createMockUnit = (overrides: Record<string, unknown> = {}) => ({
+		id: generateUUID(),
+		unitNumber: '1A',
+		propertyId: generateUUID(),
+		bedrooms: 2,
+		bathrooms: 1,
+		rent: 1500,
+		squareFeet: 800,
+		status: 'VACANT' as const,
+		lastInspectionDate: null,
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+		...overrides
+	})
+
 	const validCreateUnitRequest: CreateUnitRequest = {
 		propertyId: 'property-123',
 		unitNumber: '2A',
@@ -76,12 +97,7 @@ describe('UnitsController', () => {
 
 	describe('findAll', () => {
 		it('should return units with default parameters', async () => {
-			const mockUnits = {
-				data: [{ id: 'unit-1', unitNumber: '1A', bedrooms: 2 }],
-				total: 1,
-				limit: 10,
-				offset: 0
-			}
+			const mockUnits = [createMockUnit()]
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits)
@@ -116,12 +132,7 @@ describe('UnitsController', () => {
 		})
 
 		it('should handle all query parameters', async () => {
-			const mockUnits = {
-				data: [],
-				total: 0,
-				limit: 20,
-				offset: 10
-			}
+			const mockUnits: any[] = []
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits)
@@ -172,12 +183,7 @@ describe('UnitsController', () => {
 			const validStatuses = ['VACANT', 'OCCUPIED', 'MAINTENANCE', 'RESERVED']
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockUnitsServiceInstance.findAll.mockResolvedValue({
-				data: [],
-				total: 0,
-				limit: 10,
-				offset: 0
-			})
+			mockUnitsServiceInstance.findAll.mockResolvedValue([])
 
 			for (const status of validStatuses) {
 				await expect(
@@ -216,12 +222,7 @@ describe('UnitsController', () => {
 			const validSortBy = ['createdAt', 'unitNumber', 'bedrooms', 'rent', 'status']
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockUnitsServiceInstance.findAll.mockResolvedValue({
-				data: [],
-				total: 0,
-				limit: 10,
-				offset: 0
-			})
+			mockUnitsServiceInstance.findAll.mockResolvedValue([])
 
 			for (const sortBy of validSortBy) {
 				await expect(
@@ -283,11 +284,18 @@ describe('UnitsController', () => {
 	describe('getStats', () => {
 		it('should return unit statistics', async () => {
 			const mockStats = {
-				totalUnits: 50,
-				vacantUnits: 5,
-				occupiedUnits: 40,
-				maintenanceUnits: 3,
-				reservedUnits: 2
+				total: 50,
+				vacant: 5,
+				occupied: 40,
+				maintenance: 3,
+				unavailable: 2,
+				available: 5,
+				occupancyRate: 80,
+				occupancyChange: 5,
+				averageRent: 1500,
+				totalRent: 75000,
+				totalPotentialRent: 75000,
+				totalActualRent: 60000
 			}
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
@@ -325,8 +333,8 @@ describe('UnitsController', () => {
 
 		it('should return units for property', async () => {
 			const mockUnits = [
-				{ id: 'unit-1', unitNumber: '1A', propertyId },
-				{ id: 'unit-2', unitNumber: '1B', propertyId }
+				createMockUnit({ id: 'unit-1', unitNumber: '1A', propertyId }),
+				createMockUnit({ id: 'unit-2', unitNumber: '1B', propertyId })
 			]
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
@@ -364,7 +372,7 @@ describe('UnitsController', () => {
 		const unitId = 'unit-123'
 
 		it('should return single unit', async () => {
-			const mockUnit = { id: unitId, unitNumber: '2A', bedrooms: 2 }
+			const mockUnit = createMockUnit({ id: unitId, unitNumber: '2A', bedrooms: 2 })
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.findOne.mockResolvedValue(mockUnit)
@@ -408,10 +416,10 @@ describe('UnitsController', () => {
 
 	describe('create', () => {
 		it('should create new unit', async () => {
-			const mockCreatedUnit = {
+			const mockCreatedUnit = createMockUnit({
 				id: 'unit-new',
 				...validCreateUnitRequest
-			}
+			})
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.create.mockResolvedValue(mockCreatedUnit)
@@ -451,10 +459,10 @@ describe('UnitsController', () => {
 		const unitId = 'unit-123'
 
 		it('should update existing unit', async () => {
-			const mockUpdatedUnit = {
+			const mockUpdatedUnit = createMockUnit({
 				id: unitId,
 				...validUpdateUnitRequest
-			}
+			})
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.update.mockResolvedValue(mockUpdatedUnit)
@@ -541,12 +549,7 @@ describe('UnitsController', () => {
 	describe('user validation fallback behavior', () => {
 		it('should use fallback user ID when user validation fails', async () => {
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(null)
-			mockUnitsServiceInstance.findAll.mockResolvedValue({
-				data: [],
-				total: 0,
-				limit: 10,
-				offset: 0
-			})
+			mockUnitsServiceInstance.findAll.mockResolvedValue([])
 
 			await controller.findAll(
 				null,
@@ -571,11 +574,16 @@ describe('UnitsController', () => {
 			)
 
 			mockUnitsServiceInstance.getStats.mockResolvedValue({
-				totalUnits: 0,
-				vacantUnits: 0,
-				occupiedUnits: 0,
-				maintenanceUnits: 0,
-				reservedUnits: 0
+				total: 0,
+				vacant: 0,
+				occupied: 0,
+				maintenance: 0,
+				available: 0,
+				occupancyRate: 0,
+				occupancyChange: 0,
+				averageRent: 0,
+				totalPotentialRent: 0,
+				totalActualRent: 0
 			})
 
 			await controllerWithoutSupabase.getStats(mockRequest)

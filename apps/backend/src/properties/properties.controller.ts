@@ -65,10 +65,16 @@ export class PropertiesController {
 				offset
 			}
 		}
+
+		// Authentication is required for this endpoint
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
 		// Clamp limit/offset to safe bounds
 		const safeLimit = Math.max(1, Math.min(limit, 50))
 		const safeOffset = Math.max(0, offset)
-		const userId = req.user?.id || 'test-user-id'
+		const userId = req.user.id
 		return this.propertiesService.findAll(userId, {
 			search,
 			limit: safeLimit,
@@ -94,7 +100,13 @@ export class PropertiesController {
 				totalRent: 0
 			}
 		}
-		const userId = req.user?.id || 'test-user-id'
+
+		// Authentication is required for this endpoint
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		const userId = req.user.id
 		return this.propertiesService.getStats(userId)
 	}
 
@@ -121,7 +133,7 @@ export class PropertiesController {
 		}
 		const safeLimit = Math.max(1, Math.min(limit, 50))
 		const safeOffset = Math.max(0, offset)
-		const userId = req.user?.id || 'test-user-id'
+		const userId = req.user?.id
 		const properties = await this.propertiesService.findAllWithUnits(userId, {
 			search,
 			limit: safeLimit,
@@ -154,7 +166,7 @@ export class PropertiesController {
 				data: null
 			}
 		}
-		const userId = req.user?.id || 'test-user-id'
+		const userId = req.user?.id
 		const property = await this.propertiesService.findOne(userId, id)
 		if (!property) {
 			throw new NotFoundException('Property not found')
@@ -178,7 +190,7 @@ export class PropertiesController {
 				success: false
 			}
 		}
-		const userId = req.user?.id || 'test-user-id'
+		const userId = req.user?.id
 		return this.propertiesService.create(userId, createPropertyRequest)
 	}
 
@@ -200,7 +212,7 @@ export class PropertiesController {
 				success: false
 			}
 		}
-		const userId = req.user?.id || 'test-user-id'
+		const userId = req.user?.id
 		const property = await this.propertiesService.update(
 			userId,
 			id,
@@ -228,7 +240,7 @@ export class PropertiesController {
 				success: false
 			}
 		}
-		const userId = req.user?.id || 'test-user-id'
+		const userId = req.user?.id
 		await this.propertiesService.remove(userId, id)
 		return { message: 'Property deleted successfully' }
 	}
@@ -260,7 +272,7 @@ export class PropertiesController {
 			)
 		}
 
-		const userId = req.user?.id || 'test-user-id'
+		const userId = req.user?.id
 		return this.propertiesService.getPropertyPerformanceAnalytics(userId, {
 			propertyId,
 			timeframe: timeframe ?? '30d',
@@ -296,7 +308,7 @@ export class PropertiesController {
 			)
 		}
 
-		const userId = req.user?.id || 'test-user-id'
+		const userId = req.user?.id
 		return this.propertiesService.getPropertyOccupancyAnalytics(userId, {
 			propertyId,
 			period: period ?? 'monthly'
@@ -329,7 +341,7 @@ export class PropertiesController {
 			)
 		}
 
-		const userId = req.user?.id || 'test-user-id'
+		const userId = req.user?.id
 		return this.propertiesService.getPropertyFinancialAnalytics(userId, {
 			propertyId,
 			timeframe: timeframe ?? '12m'
@@ -362,7 +374,7 @@ export class PropertiesController {
 			)
 		}
 
-		const userId = req.user?.id || 'test-user-id'
+		const userId = req.user?.id
 		return this.propertiesService.getPropertyMaintenanceAnalytics(userId, {
 			propertyId,
 			timeframe: timeframe ?? '6m'

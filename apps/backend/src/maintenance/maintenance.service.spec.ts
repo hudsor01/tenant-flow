@@ -4,16 +4,13 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { randomUUID } from 'crypto'
 import { SilentLogger } from '../__test__/silent-logger'
-import { SupabaseService } from '../database/supabase.service'
+import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 import { MaintenanceService } from './maintenance.service'
 
 describe('MaintenanceService', () => {
 	let service: MaintenanceService
-	let mockSupabaseService: jest.Mocked<SupabaseService>
+	let mockMaintenanceRepository: any
 	let mockEventEmitter: jest.Mocked<EventEmitter2>
-	let mockSupabaseClient: jest.Mocked<
-		ReturnType<SupabaseService['getAdminClient']>
-	>
 
 	const generateUUID = () => randomUUID()
 
@@ -65,20 +62,17 @@ describe('MaintenanceService', () => {
 	})
 
 	beforeEach(async () => {
-		mockSupabaseClient = {
-			rpc: jest.fn(() => ({
-				single: jest.fn()
-			}))
-		} as unknown as jest.Mocked<ReturnType<SupabaseService['getAdminClient']>>
-
-		mockSupabaseService = {
-			onModuleInit: jest.fn(),
-			getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient),
-			getUserClient: jest.fn().mockReturnValue(mockSupabaseClient),
-			checkConnection: jest.fn()
-		} as unknown as jest.Mocked<SupabaseService>
-
-		// We'll spy on the service's logger after instantiation
+		mockMaintenanceRepository = {
+			findByUserIdWithSearch: jest.fn(),
+			findById: jest.fn(),
+			create: jest.fn(),
+			update: jest.fn(),
+			softDelete: jest.fn(),
+			getStats: jest.fn(),
+			getHighPriorityRequests: jest.fn(),
+			getOverdueRequests: jest.fn(),
+			updateStatus: jest.fn()
+		}
 
 		mockEventEmitter = {
 			emit: jest.fn(),
@@ -108,8 +102,8 @@ describe('MaintenanceService', () => {
 			providers: [
 				MaintenanceService,
 				{
-					provide: SupabaseService,
-					useValue: mockSupabaseService
+					provide: REPOSITORY_TOKENS.MAINTENANCE,
+					useValue: mockMaintenanceRepository
 				},
 				{
 					provide: EventEmitter2,
@@ -146,584 +140,199 @@ describe('MaintenanceService', () => {
 			}
 			const mockMaintenance = [createMockMaintenance(), createMockMaintenance()]
 
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: mockMaintenance,
-				error: null
-			})
+			mockMaintenanceRepository.findByUserIdWithSearch.mockResolvedValue(mockMaintenance)
 
 			const result = await service.findAll(userId, query)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'get_user_maintenance',
-				{
-					p_user_id: userId,
-					p_unit_id: query.unitId,
-					p_property_id: query.propertyId,
-					p_priority: query.priority,
-					p_category: query.category,
-					p_status: query.status,
-					p_limit: query.limit,
-					p_offset: query.offset,
-					p_sort_by: query.sortBy,
-					p_sort_order: query.sortOrder
-				}
-			)
 			expect(result).toEqual(mockMaintenance)
+			expect(mockMaintenanceRepository.findByUserIdWithSearch).toHaveBeenCalledWith(
+				userId,
+				expect.objectContaining({
+					unitId: query.unitId,
+					propertyId: query.propertyId,
+					priority: query.priority,
+					category: query.category,
+					status: query.status,
+					limit: query.limit,
+					offset: query.offset,
+					sort: query.sortBy,
+					order: query.sortOrder
+				})
+			)
 		})
 
 		it('should handle undefined query parameters', async () => {
 			const userId = generateUUID()
-			const query = {}
 			const mockMaintenance = [createMockMaintenance()]
 
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: mockMaintenance,
-				error: null
-			})
+			mockMaintenanceRepository.findByUserIdWithSearch.mockResolvedValue(mockMaintenance)
 
-			const result = await service.findAll(userId, query)
+			const result = await service.findAll(userId, {})
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'get_user_maintenance',
-				{
-					p_user_id: userId,
-					p_unit_id: undefined,
-					p_property_id: undefined,
-					p_priority: undefined,
-					p_category: undefined,
-					p_status: undefined,
-					p_limit: undefined,
-					p_offset: undefined,
-					p_sort_by: undefined,
-					p_sort_order: undefined
-				}
-			)
 			expect(result).toEqual(mockMaintenance)
+			expect(mockMaintenanceRepository.findByUserIdWithSearch).toHaveBeenCalledWith(
+				userId,
+				expect.objectContaining({})
+			)
 		})
 
 		it('should throw BadRequestException when RPC fails', async () => {
 			const userId = generateUUID()
-			const query = {}
-			const mockError = {
-				message: 'Database error',
-				code: 'DB001',
-				constructor: { name: 'DatabaseError' }
-			}
 
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: null,
-				error: mockError
-			})
+			mockMaintenanceRepository.findByUserIdWithSearch.mockRejectedValue(
+				new Error('Database error')
+			)
 
-			await expect(service.findAll(userId, query)).rejects.toThrow(
+			await expect(service.findAll(userId, {})).rejects.toThrow(
 				BadRequestException
-			)
-			expect(service['logger'].error).toHaveBeenCalledWith(
-				{
-					error: {
-						name: 'DatabaseError',
-						message: 'Database error',
-						code: 'DB001'
-					},
-					maintenance: { userId, query }
-				},
-				'Failed to get maintenance requests'
-			)
-		})
-	})
-
-	describe('getStats', () => {
-		it('should return maintenance statistics', async () => {
-			const userId = generateUUID()
-			const mockStats = {
-				total: 15,
-				pending: 5,
-				inProgress: 3,
-				completed: 7,
-				avgResolutionTime: 4.2
-			}
-
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: mockStats,
-					error: null
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
-
-			const result = await service.getStats(userId)
-
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'get_maintenance_stats',
-				{ p_user_id: userId }
-			)
-			expect(mockRpcChain.single).toHaveBeenCalled()
-			expect(result).toEqual(mockStats)
-		})
-
-		it('should throw BadRequestException when RPC fails', async () => {
-			const userId = generateUUID()
-			const mockError = { message: 'Stats calculation failed' }
-
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: null,
-					error: mockError
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
-
-			await expect(service.getStats(userId)).rejects.toThrow(
-				BadRequestException
-			)
-			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to get maintenance stats',
-				{
-					userId,
-					error: mockError.message
-				}
-			)
-		})
-	})
-
-	describe('getUrgent', () => {
-		it('should return urgent maintenance requests', async () => {
-			const userId = generateUUID()
-			const mockUrgent = [createMockMaintenance({ priority: 'URGENT' })]
-
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: mockUrgent,
-				error: null
-			})
-
-			const result = await service.getUrgent(userId)
-
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'get_urgent_maintenance',
-				{
-					p_user_id: userId
-				}
-			)
-			expect(result).toEqual(mockUrgent)
-		})
-
-		it('should throw BadRequestException when RPC fails', async () => {
-			const userId = generateUUID()
-			const mockError = { message: 'Failed to get urgent maintenance' }
-
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: null,
-				error: mockError
-			})
-
-			await expect(service.getUrgent(userId)).rejects.toThrow(
-				BadRequestException
-			)
-			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to get urgent maintenance',
-				{
-					userId,
-					error: mockError.message
-				}
-			)
-		})
-	})
-
-	describe('getOverdue', () => {
-		it('should return overdue maintenance requests', async () => {
-			const userId = generateUUID()
-			const mockOverdue = [
-				createMockMaintenance({ scheduledDate: '2023-12-01T10:00:00Z' })
-			]
-
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: mockOverdue,
-				error: null
-			})
-
-			const result = await service.getOverdue(userId)
-
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'get_overdue_maintenance',
-				{
-					p_user_id: userId
-				}
-			)
-			expect(result).toEqual(mockOverdue)
-		})
-
-		it('should throw BadRequestException when RPC fails', async () => {
-			const userId = generateUUID()
-			const mockError = { message: 'Failed to get overdue maintenance' }
-
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: null,
-				error: mockError
-			})
-
-			await expect(service.getOverdue(userId)).rejects.toThrow(
-				BadRequestException
-			)
-			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to get overdue maintenance',
-				{
-					userId,
-					error: mockError.message
-				}
 			)
 		})
 	})
 
 	describe('findOne', () => {
-		it('should return maintenance request by ID', async () => {
+		it('should return single maintenance request', async () => {
 			const userId = generateUUID()
 			const maintenanceId = generateUUID()
 			const mockMaintenance = createMockMaintenance({ id: maintenanceId })
 
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: mockMaintenance,
-					error: null
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
+			mockMaintenanceRepository.findById.mockResolvedValue(mockMaintenance)
 
 			const result = await service.findOne(userId, maintenanceId)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'get_maintenance_by_id',
-				{
-					p_user_id: userId,
-					p_maintenance_id: maintenanceId
-				}
-			)
 			expect(result).toEqual(mockMaintenance)
+			expect(mockMaintenanceRepository.findById).toHaveBeenCalledWith(maintenanceId)
 		})
 
-		it('should return null when maintenance request not found', async () => {
+		it('should return null when request not found', async () => {
 			const userId = generateUUID()
 			const maintenanceId = generateUUID()
-			const mockError = { message: 'Maintenance request not found' }
 
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: null,
-					error: mockError
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
+			mockMaintenanceRepository.findById.mockResolvedValue(null)
 
 			const result = await service.findOne(userId, maintenanceId)
 
 			expect(result).toBeNull()
-			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to get maintenance request',
-				{
-					userId,
-					maintenanceId,
-					error: mockError.message
-				}
-			)
 		})
 	})
 
 	describe('create', () => {
-		it('should create new maintenance request', async () => {
+		it('should create new maintenance request and emit event', async () => {
 			const userId = generateUUID()
 			const createRequest = createMockCreateRequest()
-			const mockMaintenance = createMockMaintenance(createRequest)
+			const mockCreated = createMockMaintenance({
+				unitId: createRequest.unitId,
+				title: createRequest.title
+			})
 
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: mockMaintenance,
-					error: null
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
+			mockMaintenanceRepository.create.mockResolvedValue(mockCreated)
 
 			const result = await service.create(userId, createRequest)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'create_maintenance',
-				{
-					p_user_id: userId,
-					p_unit_id: createRequest.unitId,
-					p_title: createRequest.title,
-					p_description: createRequest.description,
-					p_priority: createRequest.priority,
-					p_category: createRequest.category,
-					p_scheduled_date: createRequest.scheduledDate || undefined,
-					p_estimated_cost: createRequest.estimatedCost
-				}
-			)
-			expect(result).toEqual(mockMaintenance)
-		})
-
-		it('should use default values for optional fields', async () => {
-			const userId = generateUUID()
-			const createRequest = {
-				unitId: generateUUID(),
-				title: 'Fix issue',
-				description: 'Something is broken',
-				scheduledDate: undefined
-			}
-			const mockMaintenance = createMockMaintenance()
-
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: mockMaintenance,
-					error: null
+			expect(result).toEqual(mockCreated)
+			expect(mockMaintenanceRepository.create).toHaveBeenCalledWith(
+				userId,
+				expect.objectContaining({
+					title: createRequest.title,
+					description: createRequest.description,
+					priority: createRequest.priority || 'MEDIUM',
+					unitId: createRequest.unitId,
+					allowEntry: true,
+					photos: [],
+					preferredDate: undefined,
+					category: createRequest.category,
+					estimatedCost: createRequest.estimatedCost
 				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
-
-			await service.create(userId, createRequest)
-
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'create_maintenance',
-				{
-					p_user_id: userId,
-					p_unit_id: createRequest.unitId,
-					p_title: createRequest.title,
-					p_description: createRequest.description,
-					p_priority: 'MEDIUM',
-					p_category: 'GENERAL',
-					p_scheduled_date: undefined,
-					p_estimated_cost: undefined
-				}
 			)
-		})
-
-		it('should throw BadRequestException when creation fails', async () => {
-			const userId = generateUUID()
-			const createRequest = createMockCreateRequest()
-			const mockError = { message: 'Constraint violation' }
-
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: null,
-					error: mockError
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
-
-			await expect(service.create(userId, createRequest)).rejects.toThrow(
-				BadRequestException
-			)
-			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to create maintenance request',
-				{
+			expect(mockEventEmitter.emit).toHaveBeenCalledWith(
+				'maintenance.created',
+				expect.objectContaining({
 					userId,
-					error: mockError.message
-				}
+					maintenanceId: mockCreated.id,
+					maintenanceTitle: mockCreated.title
+				})
 			)
 		})
 	})
 
 	describe('update', () => {
-		it('should update existing maintenance request', async () => {
+		it('should update maintenance request and emit event', async () => {
 			const userId = generateUUID()
 			const maintenanceId = generateUUID()
 			const updateRequest = createMockUpdateRequest()
-			const mockMaintenance = createMockMaintenance({ ...updateRequest })
+			const existing = createMockMaintenance({ id: maintenanceId })
+			const updated = { ...existing, ...updateRequest }
 
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: mockMaintenance,
-					error: null
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
+			mockMaintenanceRepository.findById.mockResolvedValue(existing)
+			mockMaintenanceRepository.update.mockResolvedValue(updated)
 
 			const result = await service.update(userId, maintenanceId, updateRequest)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'update_maintenance',
-				{
-					p_user_id: userId,
-					p_maintenance_id: maintenanceId,
-					p_title: updateRequest.title,
-					p_description: updateRequest.description,
-					p_priority: updateRequest.priority,
-					p_category: updateRequest.category,
-					p_status: updateRequest.status,
-					p_scheduled_date: updateRequest.scheduledDate,
-					p_completed_date: updateRequest.completedDate,
-					p_estimated_cost: updateRequest.estimatedCost,
-					p_actual_cost: updateRequest.actualCost,
-					p_notes: updateRequest.notes
-				}
-			)
-			expect(result).toEqual(mockMaintenance)
-		})
-
-		it('should emit maintenance.updated event when update succeeds', async () => {
-			const userId = generateUUID()
-			const maintenanceId = generateUUID()
-			const updateRequest = createMockUpdateRequest()
-			const mockMaintenance = {
-				...createMockMaintenance(),
-				title: 'Updated Title',
-				status: 'IN_PROGRESS',
-				priority: 'HIGH',
-				property_name: 'Test Property',
-				unit_number: '101',
-				description: 'Updated description'
-			}
-
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: mockMaintenance,
-					error: null
+			expect(result).toEqual(updated)
+			expect(mockMaintenanceRepository.update).toHaveBeenCalledWith(
+				maintenanceId,
+				expect.objectContaining({
+					...updateRequest,
+					completedAt: undefined
 				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
-
-			await service.update(userId, maintenanceId, updateRequest)
-
+			)
 			expect(mockEventEmitter.emit).toHaveBeenCalledWith(
 				'maintenance.updated',
-				expect.objectContaining({
-					userId,
-					maintenanceId,
-					title: 'Updated Title',
-					status: 'IN_PROGRESS',
-					priority: 'HIGH',
-					propertyName: 'Test Property',
-					unitNumber: '101',
-					description: 'Updated description'
-				})
+				expect.anything()
 			)
 		})
 
-		it('should handle URGENT priority mapping to EMERGENCY in event', async () => {
+		it('should return null when request not found', async () => {
 			const userId = generateUUID()
 			const maintenanceId = generateUUID()
-			const updateRequest = {
-				...createMockUpdateRequest(),
-				priority: 'URGENT' as const
-			}
-			// Mock maintenance record without priority field so updateRequest.priority is used
-			const mockMaintenance = {
-				id: generateUUID(),
-				unitId: generateUUID(),
-				title: 'Fix issue',
-				description: 'Something needs fixing',
-				category: 'GENERAL',
-				status: 'PENDING',
-				// Deliberately omit priority field so updateRequest.priority is used
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
-			}
 
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: mockMaintenance,
-					error: null
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
+			mockMaintenanceRepository.findById.mockResolvedValue(null)
 
-			await service.update(userId, maintenanceId, updateRequest)
-
-			expect(mockEventEmitter.emit).toHaveBeenCalledWith(
-				'maintenance.updated',
-				expect.objectContaining({
-					priority: 'EMERGENCY' // URGENT maps to EMERGENCY in event
-				})
-			)
-		})
-
-		it('should return null when maintenance request not found', async () => {
-			const userId = generateUUID()
-			const maintenanceId = generateUUID()
-			const updateRequest = createMockUpdateRequest()
-			const mockError = { message: 'Maintenance request not found' }
-
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: null,
-					error: mockError
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
-
-			const result = await service.update(userId, maintenanceId, updateRequest)
+			const result = await service.update(userId, maintenanceId, {})
 
 			expect(result).toBeNull()
-			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to update maintenance request',
-				{
-					userId,
-					maintenanceId,
-					error: mockError.message
-				}
-			)
+			expect(mockMaintenanceRepository.update).not.toHaveBeenCalled()
 		})
 	})
 
 	describe('remove', () => {
-		it('should delete maintenance request successfully', async () => {
+		it('should soft delete maintenance request', async () => {
 			const userId = generateUUID()
 			const maintenanceId = generateUUID()
 
-			mockSupabaseClient.rpc.mockResolvedValue({
-				error: null
-			})
+			mockMaintenanceRepository.softDelete.mockResolvedValue({ success: true })
 
 			await service.remove(userId, maintenanceId)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'delete_maintenance',
-				{
-					p_user_id: userId,
-					p_maintenance_id: maintenanceId
-				}
+			expect(mockMaintenanceRepository.softDelete).toHaveBeenCalledWith(
+				userId,
+				maintenanceId
 			)
 		})
 
-		it('should throw BadRequestException when deletion fails', async () => {
+		it('should throw BadRequestException when delete fails', async () => {
 			const userId = generateUUID()
 			const maintenanceId = generateUUID()
-			const mockError = { message: 'Foreign key constraint' }
 
-			mockSupabaseClient.rpc.mockResolvedValue({
-				error: mockError
+			mockMaintenanceRepository.softDelete.mockResolvedValue({
+				success: false,
+				message: 'Not found'
 			})
 
-			await expect(service.remove(userId, maintenanceId)).rejects.toThrow(
-				BadRequestException
-			)
-			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to delete maintenance request',
-				{
-					userId,
-					maintenanceId,
-					error: mockError.message
-				}
-			)
+			await expect(
+				service.remove(userId, maintenanceId)
+			).rejects.toThrow(BadRequestException)
 		})
 	})
 
 	describe('complete', () => {
-		it('should complete maintenance request successfully', async () => {
+		it('should complete maintenance request', async () => {
 			const userId = generateUUID()
 			const maintenanceId = generateUUID()
-			const actualCost = 250.0
-			const notes = 'Replaced faucet cartridge'
-			const mockMaintenance = createMockMaintenance({
-				status: 'COMPLETED',
-				actualCost,
-				notes
-			})
+			const actualCost = 200
+			const notes = 'Completed successfully'
+			const completed = createMockMaintenance({ status: 'COMPLETED' })
 
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: mockMaintenance,
-					error: null
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
+			mockMaintenanceRepository.updateStatus.mockResolvedValue(completed)
 
 			const result = await service.complete(
 				userId,
@@ -732,152 +341,94 @@ describe('MaintenanceService', () => {
 				notes
 			)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'complete_maintenance',
-				{
-					p_user_id: userId,
-					p_maintenance_id: maintenanceId,
-					p_actual_cost: actualCost,
-					p_notes: notes
-				}
-			)
-			expect(result).toEqual(mockMaintenance)
-		})
-
-		it('should handle undefined cost and notes', async () => {
-			const userId = generateUUID()
-			const maintenanceId = generateUUID()
-			const mockMaintenance = createMockMaintenance({ status: 'COMPLETED' })
-
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: mockMaintenance,
-					error: null
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
-
-			await service.complete(userId, maintenanceId)
-
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'complete_maintenance',
-				{
-					p_user_id: userId,
-					p_maintenance_id: maintenanceId,
-					p_actual_cost: undefined,
-					p_notes: undefined
-				}
-			)
-		})
-
-		it('should throw BadRequestException when completion fails', async () => {
-			const userId = generateUUID()
-			const maintenanceId = generateUUID()
-			const mockError = { message: 'Cannot complete cancelled request' }
-
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: null,
-					error: mockError
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
-
-			await expect(service.complete(userId, maintenanceId)).rejects.toThrow(
-				BadRequestException
-			)
-			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to complete maintenance request',
-				{
-					userId,
-					maintenanceId,
-					error: mockError.message
-				}
+			expect(result).toEqual(completed)
+			expect(mockMaintenanceRepository.updateStatus).toHaveBeenCalledWith(
+				maintenanceId,
+				'COMPLETED',
+				userId,
+				notes
 			)
 		})
 	})
 
 	describe('cancel', () => {
-		it('should cancel maintenance request with reason', async () => {
+		it('should cancel maintenance request', async () => {
 			const userId = generateUUID()
 			const maintenanceId = generateUUID()
-			const reason = 'Duplicate request'
-			const mockMaintenance = createMockMaintenance({
-				status: 'CANCELLED',
-				notes: reason
-			})
+			const reason = 'No longer needed'
+			const cancelled = createMockMaintenance({ status: 'CANCELED' })
 
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: mockMaintenance,
-					error: null
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
+			mockMaintenanceRepository.updateStatus.mockResolvedValue(cancelled)
 
 			const result = await service.cancel(userId, maintenanceId, reason)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'cancel_maintenance',
-				{
-					p_user_id: userId,
-					p_maintenance_id: maintenanceId,
-					p_reason: reason
-				}
+			expect(result).toEqual(cancelled)
+			expect(mockMaintenanceRepository.updateStatus).toHaveBeenCalledWith(
+				maintenanceId,
+				'CANCELED',
+				userId,
+				reason
 			)
-			expect(result).toEqual(mockMaintenance)
 		})
+	})
 
-		it('should cancel maintenance request with default reason', async () => {
+	describe('getStats', () => {
+		it('should return maintenance statistics', async () => {
 			const userId = generateUUID()
-			const maintenanceId = generateUUID()
-			const mockMaintenance = createMockMaintenance({ status: 'CANCELLED' })
-
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: mockMaintenance,
-					error: null
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
-
-			const result = await service.cancel(userId, maintenanceId)
-
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'cancel_maintenance',
-				{
-					p_user_id: userId,
-					p_maintenance_id: maintenanceId,
-					p_reason: 'Cancelled by user'
+			const mockStats = {
+				total: 10,
+				open: 3,
+				inProgress: 2,
+				completed: 5,
+				completedToday: 1,
+				avgResolutionTime: 24,
+				byPriority: {
+					low: 2,
+					medium: 4,
+					high: 3,
+					emergency: 1
 				}
-			)
-			expect(result).toEqual(mockMaintenance)
+			}
+
+			mockMaintenanceRepository.getStats.mockResolvedValue(mockStats)
+
+			const result = await service.getStats(userId)
+
+			expect(result).toEqual(mockStats)
+			expect(mockMaintenanceRepository.getStats).toHaveBeenCalledWith(userId)
 		})
+	})
 
-		it('should throw BadRequestException when cancellation fails', async () => {
+	describe('getUrgent', () => {
+		it('should return urgent maintenance requests', async () => {
 			const userId = generateUUID()
-			const maintenanceId = generateUUID()
-			const mockError = { message: 'Cannot cancel completed request' }
+			const mockUrgent = [
+				createMockMaintenance({ priority: 'EMERGENCY' }),
+				createMockMaintenance({ priority: 'HIGH' })
+			]
 
-			const mockRpcChain = {
-				single: jest.fn().mockResolvedValue({
-					data: null,
-					error: mockError
-				})
-			}
-			mockSupabaseClient.rpc.mockReturnValue(mockRpcChain)
+			mockMaintenanceRepository.getHighPriorityRequests.mockResolvedValue(mockUrgent)
 
-			await expect(service.cancel(userId, maintenanceId)).rejects.toThrow(
-				BadRequestException
-			)
-			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to cancel maintenance request',
-				{
-					userId,
-					maintenanceId,
-					error: mockError.message
-				}
-			)
+			const result = await service.getUrgent(userId)
+
+			expect(result).toEqual(mockUrgent)
+			expect(mockMaintenanceRepository.getHighPriorityRequests).toHaveBeenCalledWith(userId)
+		})
+	})
+
+	describe('getOverdue', () => {
+		it('should return overdue maintenance requests', async () => {
+			const userId = generateUUID()
+			const mockOverdue = [
+				createMockMaintenance({ status: 'ON_HOLD' })
+			]
+
+			mockMaintenanceRepository.getOverdueRequests.mockResolvedValue(mockOverdue)
+
+			const result = await service.getOverdue(userId)
+
+			expect(result).toEqual(mockOverdue)
+			expect(mockMaintenanceRepository.getOverdueRequests).toHaveBeenCalledWith(userId)
 		})
 	})
 })

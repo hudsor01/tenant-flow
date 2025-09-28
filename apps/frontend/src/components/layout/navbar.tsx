@@ -1,10 +1,10 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { useAuthStore } from '@/stores/auth-provider'
+import { useAuth } from '@/stores/auth-provider'
+import { useSignOut } from '@/hooks/api/use-auth'
 import { useSpring, useTransition } from '@react-spring/core'
 import { animated } from '@react-spring/web'
-import { logger, supabaseClient } from '@repo/shared'
 import { ArrowRight, ChevronDown, Menu, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -67,13 +67,11 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 		)
 		const [isMounted, setIsMounted] = useState(false)
 
-		// Auth state
-		const { session, isAuthenticated, isLoading } = useAuthStore(state => ({
-			session: state.session,
-			isAuthenticated: state.isAuthenticated,
-			isLoading: state.isLoading
-		}))
-		const user = session?.user
+		// Auth state - now includes user directly from improved auth context
+		const { isAuthenticated, isLoading, user } = useAuth()
+
+		// Use improved sign out mutation with React Query benefits
+		const signOutMutation = useSignOut()
 
 		// Prevent hydration mismatch by only rendering auth content after mount
 		useEffect(() => {
@@ -122,17 +120,13 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 			setOpenDropdown(openDropdown === itemName ? null : itemName)
 		}
 
-		const handleSignOut = async () => {
-			const { error } = await supabaseClient.auth.signOut()
-			if (error) {
-					logger.error('Navbar - Error signing out', {
-						action: 'signout_failed',
-						metadata: {
-							error: error.message
-						}
-					})
-			}
-			setIsOpen(false)
+		const handleSignOut = () => {
+			// Use improved sign out with React Query mutation benefits
+			signOutMutation.mutate(undefined, {
+				onSettled: () => {
+					setIsOpen(false)
+				}
+			})
 		}
 
 		// React Spring animations

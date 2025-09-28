@@ -490,7 +490,7 @@ export class LeasesController {
 		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
-		return this.leasesService.renew(user?.id || 'test-user-id', id, endDate)
+		return this.leasesService.renew(user?.id || 'test-user-id', id, { endDate })
 	}
 
 	@Post(':id/terminate')
@@ -512,6 +512,6 @@ export class LeasesController {
 		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
-		return this.leasesService.terminate(user?.id || 'test-user-id', id, reason)
+		return this.leasesService.terminate(user?.id || 'test-user-id', id, new Date(), reason)
 	}
 }

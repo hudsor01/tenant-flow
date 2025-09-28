@@ -10,7 +10,16 @@ export function SiteHeader() {
 					orientation="vertical"
 					className="mx-2 data-[orientation=vertical]:h-4"
 				/>
-				<h1 className="text-base font-medium">Dashboard</h1>
+				<h1
+					className="font-medium"
+					style={{
+						fontSize: 'var(--font-title-2)',
+						lineHeight: 'var(--line-height-title-2)',
+						color: 'var(--color-label-primary)'
+					}}
+				>
+					Dashboard
+				</h1>
 			</div>
 		</header>
 	)

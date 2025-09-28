@@ -14,15 +14,9 @@ export type authUser = User
 // User role type derived from constants
 export type UserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE]
 
-// Subscription status type
-export type SubscriptionStatus =
-	| 'ACTIVE'
-	| 'TRIALING'
-	| 'PAST_DUE'
-	| 'CANCELED'
-	| 'UNPAID'
-	| 'INCOMPLETE'
-	| 'INCOMPLETE_EXPIRED'
+// Use Supabase SubStatus instead of custom SubscriptionStatus
+import type { Database } from './supabase-generated.js'
+export type SubscriptionStatus = Database['public']['Enums']['SubStatus']
 
 export function hasOrganizationId(
 	user: authUser
@@ -291,25 +285,28 @@ export interface AuthContextType {
 
 // Permission and role enums (consolidated from security.ts)
 
-export enum Permission {
-	READ_PROPERTIES = 'READ_PROPERTIES',
-	WRITE_PROPERTIES = 'WRITE_PROPERTIES',
-	DELETE_PROPERTIES = 'DELETE_PROPERTIES',
-	READ_TENANTS = 'READ_TENANTS',
-	WRITE_TENANTS = 'WRITE_TENANTS',
-	DELETE_TENANTS = 'DELETE_TENANTS',
-	READ_LEASES = 'READ_LEASES',
-	WRITE_LEASES = 'WRITE_LEASES',
-	DELETE_LEASES = 'DELETE_LEASES',
-	READ_MAINTENANCE = 'READ_MAINTENANCE',
-	WRITE_MAINTENANCE = 'WRITE_MAINTENANCE',
-	DELETE_MAINTENANCE = 'DELETE_MAINTENANCE',
-	READ_FINANCIAL = 'READ_FINANCIAL',
-	WRITE_FINANCIAL = 'WRITE_FINANCIAL',
-	ADMIN_ACCESS = 'ADMIN_ACCESS',
-	MANAGE_BILLING = 'MANAGE_BILLING',
-	MANAGE_USERS = 'MANAGE_USERS'
-}
+// Use const object instead of TypeScript enum (ENUM STANDARDIZATION compliance)
+export const Permission = {
+	READ_PROPERTIES: 'READ_PROPERTIES',
+	WRITE_PROPERTIES: 'WRITE_PROPERTIES',
+	DELETE_PROPERTIES: 'DELETE_PROPERTIES',
+	READ_TENANTS: 'READ_TENANTS',
+	WRITE_TENANTS: 'WRITE_TENANTS',
+	DELETE_TENANTS: 'DELETE_TENANTS',
+	READ_LEASES: 'READ_LEASES',
+	WRITE_LEASES: 'WRITE_LEASES',
+	DELETE_LEASES: 'DELETE_LEASES',
+	READ_MAINTENANCE: 'READ_MAINTENANCE',
+	WRITE_MAINTENANCE: 'WRITE_MAINTENANCE',
+	DELETE_MAINTENANCE: 'DELETE_MAINTENANCE',
+	READ_FINANCIAL: 'READ_FINANCIAL',
+	WRITE_FINANCIAL: 'WRITE_FINANCIAL',
+	ADMIN_ACCESS: 'ADMIN_ACCESS',
+	MANAGE_BILLING: 'MANAGE_BILLING',
+	MANAGE_USERS: 'MANAGE_USERS'
+} as const
+
+export type PermissionValue = typeof Permission[keyof typeof Permission]
 
 // Security validation and context types
 export interface SecurityValidationResult {
@@ -320,7 +317,7 @@ export interface SecurityValidationResult {
 
 export interface AuthContext {
 	user: User | null
-	permissions: Permission[]
+	permissions: PermissionValue[]
 	roles: UserRole[]
 }
 

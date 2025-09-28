@@ -97,7 +97,7 @@ export class MaintenanceController {
 		}
 		if (
 			status &&
-			!['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'].includes(status)
+			!['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELED', 'ON_HOLD'].includes(status)
 		) {
 			throw new BadRequestException('Invalid status')
 		}

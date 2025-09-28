@@ -1,7 +1,7 @@
 /**
- * TenantsService Tests - Following ULTRA NATIVE Architecture Guidelines
+ * TenantsService Tests - Repository Pattern Implementation
  *
- * - NO ABSTRACTIONS: Test RPC calls directly
+ * - NO ABSTRACTIONS: Test repository interface directly
  * - KISS: Simple, direct test patterns
  * - DRY: Only abstract when reused 2+ places
  * - Production mirror: Test actual service interface
@@ -11,41 +11,44 @@ import { BadRequestException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
+import type { Tenant, CreateTenantRequest, UpdateTenantRequest, TenantStats } from '@repo/shared'
 import { generateUUID } from '../../test/setup'
 import { SilentLogger } from '../__test__/silent-logger'
-import { SupabaseService } from '../database/supabase.service'
+import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
+import type { ITenantsRepository } from '../repositories/interfaces/tenants-repository.interface'
 import { TenantsService } from './tenants.service'
 
 describe('TenantsService', () => {
 	let service: TenantsService
-	let supabaseService: SupabaseService
+	let mockTenantsRepository: jest.Mocked<ITenantsRepository>
 	let eventEmitter: EventEmitter2
-
-	// Mock Supabase admin client
-	const mockSupabaseClient = {
-		rpc: jest.fn().mockReturnThis(),
-		single: jest.fn()
-	}
 
 	beforeEach(async () => {
 		jest.clearAllMocks()
 
-		const mockSupabaseService = {
-			getAdminClient: jest.fn(() => mockSupabaseClient)
+		// Mock repository implementation
+		const mockRepository: jest.Mocked<ITenantsRepository> = {
+			findByUserIdWithSearch: jest.fn(),
+			findById: jest.fn(),
+			findByPropertyId: jest.fn(),
+			create: jest.fn(),
+			update: jest.fn(),
+			softDelete: jest.fn(),
+			getStats: jest.fn(),
+			getAnalytics: jest.fn(),
+			getActivity: jest.fn()
 		}
 
 		const mockEventEmitter = {
 			emit: jest.fn()
 		}
 
-		// We'll spy on the service's logger after instantiation
-
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				TenantsService,
 				{
-					provide: SupabaseService,
-					useValue: mockSupabaseService
+					provide: REPOSITORY_TOKENS.TENANTS,
+					useValue: mockRepository
 				},
 				{
 					provide: EventEmitter2,
@@ -57,11 +60,13 @@ describe('TenantsService', () => {
 			.compile()
 
 		service = module.get<TenantsService>(TenantsService)
-		supabaseService = module.get<SupabaseService>(SupabaseService)
+		mockTenantsRepository = module.get<ITenantsRepository>(REPOSITORY_TOKENS.TENANTS) as jest.Mocked<ITenantsRepository>
 		eventEmitter = module.get<EventEmitter2>(EventEmitter2)
 
 		// Spy on the actual logger instance created by the service
 		jest.spyOn(service['logger'], 'error').mockImplementation(() => {})
+		jest.spyOn(service['logger'], 'warn').mockImplementation(() => {})
+		jest.spyOn(service['logger'], 'log').mockImplementation(() => {})
 	})
 
 	describe('Service Initialization', () => {
@@ -70,216 +75,255 @@ describe('TenantsService', () => {
 		})
 
 		it('should have access to required dependencies', () => {
-			expect(supabaseService.getAdminClient).toBeDefined()
+			expect(mockTenantsRepository).toBeDefined()
 			expect(eventEmitter.emit).toBeDefined()
 			expect(service['logger'].error).toBeDefined()
 		})
 	})
 
-	describe('findAll - RPC Call Pattern', () => {
-		it('should call get_user_tenants RPC with correct parameters', async () => {
+	describe('findAll - Repository Pattern', () => {
+		it('should call repository findByUserIdWithSearch with correct parameters', async () => {
 			const userId = generateUUID()
 			const query = {
 				search: 'test',
 				invitationStatus: 'PENDING',
 				limit: 10,
-				offset: 0,
+				offset: undefined,
 				sortBy: 'name',
 				sortOrder: 'asc'
 			}
 
-			const mockData = [{ id: generateUUID(), name: 'Test Tenant' }]
-			mockSupabaseClient.rpc.mockReturnValue({
-				data: mockData,
-				error: null
-			})
+			const mockData: Tenant[] = [{
+				id: generateUUID(),
+				firstName: 'Test',
+				lastName: 'Tenant',
+				email: 'test@example.com',
+				phone: null,
+				avatarUrl: null,
+				name: null,
+				emergencyContact: null,
+				userId: null,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			}]
+
+			mockTenantsRepository.findByUserIdWithSearch.mockResolvedValue(mockData)
 
 			const result = await service.findAll(userId, query)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_user_tenants', {
-				p_user_id: userId,
-				p_search: 'test',
-				p_invitation_status: 'PENDING',
-				p_limit: 10,
-				p_offset: 0,
-				p_sort_by: 'name',
-				p_sort_order: 'asc'
+			expect(mockTenantsRepository.findByUserIdWithSearch).toHaveBeenCalledWith(userId, {
+				search: 'test',
+				limit: 10,
+				offset: undefined,
+				status: 'PENDING'
 			})
 			expect(result).toEqual(mockData)
 		})
 
-		it('should handle RPC errors correctly', async () => {
+		it('should handle repository errors correctly', async () => {
 			const userId = generateUUID()
 			const query = {}
 
-			mockSupabaseClient.rpc.mockReturnValue({
-				data: null,
-				error: { message: 'Database error' }
-			})
+			mockTenantsRepository.findByUserIdWithSearch.mockRejectedValue(
+				new Error('Database error')
+			)
 
 			await expect(service.findAll(userId, query)).rejects.toThrow(
 				BadRequestException
 			)
 			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to get tenants',
-				{
-					userId,
-					error: 'Database error'
-				}
+				'Tenants service failed to find all tenants',
+				expect.objectContaining({
+					error: 'Database error',
+					userId
+				})
 			)
 		})
 
-		it('should handle undefined query parameters', async () => {
-			const userId = generateUUID()
-			const query = { search: undefined, limit: undefined }
+		it('should handle missing userId', async () => {
+			const query = {}
 
-			mockSupabaseClient.rpc.mockReturnValue({
-				data: [],
-				error: null
-			})
-
-			await service.findAll(userId, query)
-
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_user_tenants', {
-				p_user_id: userId,
-				p_search: undefined,
-				p_invitation_status: undefined,
-				p_limit: undefined,
-				p_offset: undefined,
-				p_sort_by: undefined,
-				p_sort_order: undefined
-			})
+			await expect(service.findAll('', query)).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].warn).toHaveBeenCalledWith(
+				'Find all tenants requested without userId'
+			)
 		})
 	})
 
-	describe('getStats - RPC Call Pattern', () => {
-		it('should call get_tenant_stats RPC correctly', async () => {
+	describe('getStats - Repository Pattern', () => {
+		it('should call repository getStats correctly', async () => {
 			const userId = generateUUID()
-			const mockStats = { total: 5, active: 3, pending: 2 }
+			const mockStats: TenantStats = {
+				total: 5,
+				active: 3,
+				inactive: 2,
+				newThisMonth: 1
+			}
 
-			mockSupabaseClient.rpc.mockReturnThis()
-			mockSupabaseClient.single.mockReturnValue({
-				data: mockStats,
-				error: null
-			})
+			mockTenantsRepository.getStats.mockResolvedValue(mockStats)
 
 			const result = await service.getStats(userId)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_tenant_stats', {
-				p_user_id: userId
-			})
-			expect(mockSupabaseClient.single).toHaveBeenCalled()
+			expect(mockTenantsRepository.getStats).toHaveBeenCalledWith(userId)
 			expect(result).toEqual(mockStats)
 		})
 
-		it('should handle stats RPC errors', async () => {
+		it('should handle repository errors', async () => {
 			const userId = generateUUID()
 
-			mockSupabaseClient.rpc.mockReturnThis()
-			mockSupabaseClient.single.mockReturnValue({
-				data: null,
-				error: { message: 'Stats error' }
-			})
+			mockTenantsRepository.getStats.mockRejectedValue(
+				new Error('Stats error')
+			)
 
 			await expect(service.getStats(userId)).rejects.toThrow(
 				BadRequestException
 			)
 			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to get tenant stats',
-				{
-					userId,
-					error: 'Stats error'
-				}
+				'Tenants service failed to get stats',
+				expect.objectContaining({
+					error: 'Stats error',
+					userId
+				})
+			)
+		})
+
+		it('should handle missing userId', async () => {
+			await expect(service.getStats('')).rejects.toThrow(
+				BadRequestException
+			)
+			expect(service['logger'].warn).toHaveBeenCalledWith(
+				'Tenant stats requested without userId'
 			)
 		})
 	})
 
-	describe('findOne - RPC Call Pattern', () => {
-		it('should call get_tenant_by_id RPC correctly', async () => {
+	describe('findOne - Repository Pattern', () => {
+		it('should call repository findById and verify ownership', async () => {
 			const userId = generateUUID()
 			const tenantId = generateUUID()
-			const mockTenant = { id: tenantId, name: 'Test Tenant' }
+			const mockTenant: Tenant = {
+				id: tenantId,
+				firstName: 'Test',
+				lastName: 'Tenant',
+				email: 'test@example.com',
+				phone: null,
+				avatarUrl: null,
+				name: null,
+				emergencyContact: null,
+				userId: userId,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			}
 
-			mockSupabaseClient.rpc.mockReturnThis()
-			mockSupabaseClient.single.mockReturnValue({
-				data: mockTenant,
-				error: null
-			})
+			mockTenantsRepository.findById.mockResolvedValue(mockTenant)
 
 			const result = await service.findOne(userId, tenantId)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_tenant_by_id', {
-				p_user_id: userId,
-				p_tenant_id: tenantId
-			})
+			expect(mockTenantsRepository.findById).toHaveBeenCalledWith(tenantId)
 			expect(result).toEqual(mockTenant)
 		})
 
-		it('should return null on error without throwing', async () => {
+		it('should return null for unauthorized access', async () => {
+			const userId = generateUUID()
+			const tenantId = generateUUID()
+			const otherUserId = generateUUID()
+			const mockTenant: Tenant = {
+				id: tenantId,
+				firstName: 'Test',
+				lastName: 'Tenant',
+				email: 'test@example.com',
+				phone: null,
+				avatarUrl: null,
+				name: null,
+				emergencyContact: null,
+				userId: otherUserId, // Different user ID
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			}
+
+			mockTenantsRepository.findById.mockResolvedValue(mockTenant)
+
+			const result = await service.findOne(userId, tenantId)
+
+			expect(result).toBeNull()
+			expect(service['logger'].warn).toHaveBeenCalledWith(
+				'Unauthorized access attempt to tenant',
+				{ userId, tenantId }
+			)
+		})
+
+		it('should return null when tenant not found', async () => {
 			const userId = generateUUID()
 			const tenantId = generateUUID()
 
-			mockSupabaseClient.rpc.mockReturnThis()
-			mockSupabaseClient.single.mockReturnValue({
-				data: null,
-				error: { message: 'Not found' }
-			})
+			mockTenantsRepository.findById.mockResolvedValue(null)
+
+			const result = await service.findOne(userId, tenantId)
+
+			expect(result).toBeNull()
+		})
+
+		it('should handle repository errors gracefully', async () => {
+			const userId = generateUUID()
+			const tenantId = generateUUID()
+
+			mockTenantsRepository.findById.mockRejectedValue(
+				new Error('Database error')
+			)
 
 			const result = await service.findOne(userId, tenantId)
 
 			expect(result).toBeNull()
 			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to get tenant',
-				{
+				'Tenants service failed to find one tenant',
+				expect.objectContaining({
+					error: 'Database error',
 					userId,
-					tenantId,
-					error: 'Not found'
-				}
+					tenantId
+				})
 			)
 		})
 	})
 
-	describe('create - RPC Call with Event Emission', () => {
-		it('should call create_tenant RPC and emit event', async () => {
+	describe('create - Repository Pattern with Event Emission', () => {
+		it('should call repository create and emit event', async () => {
 			const userId = generateUUID()
 			const tenantId = generateUUID()
-			const createRequest = {
+			const createRequest: CreateTenantRequest = {
 				firstName: 'New',
 				lastName: 'Tenant',
-				name: 'New Tenant',
 				email: 'tenant@test.com',
-				phone: '123-456-7890',
-				emergencyContact: 'emergency@test.com'
+				phone: '123-456-7890'
 			}
 
-			const mockCreatedTenant = {
+			const mockCreatedTenant: Tenant = {
 				id: tenantId,
-				name: createRequest.name,
-				email: createRequest.email
+				firstName: createRequest.firstName,
+				lastName: createRequest.lastName,
+				email: createRequest.email,
+				phone: createRequest.phone ?? null,
+				avatarUrl: null,
+				name: null,
+				emergencyContact: null,
+				userId: userId,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
 			}
 
-			mockSupabaseClient.rpc.mockReturnThis()
-			mockSupabaseClient.single.mockReturnValue({
-				data: mockCreatedTenant,
-				error: null
-			})
+			mockTenantsRepository.create.mockResolvedValue(mockCreatedTenant)
 
 			const result = await service.create(userId, createRequest)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('create_tenant', {
-				p_user_id: userId,
-				p_name: createRequest.name,
-				p_email: createRequest.email,
-				p_phone: createRequest.phone,
-				p_emergency_contact: createRequest.emergencyContact
-			})
+			expect(mockTenantsRepository.create).toHaveBeenCalledWith(userId, createRequest)
 
 			expect(eventEmitter.emit).toHaveBeenCalledWith(
 				'tenant.created',
 				expect.objectContaining({
 					userId,
 					tenantId: mockCreatedTenant.id,
-					tenantName: mockCreatedTenant.name,
+					tenantName: `${mockCreatedTenant.firstName} ${mockCreatedTenant.lastName}`,
 					tenantEmail: mockCreatedTenant.email
 				})
 			)
@@ -287,214 +331,199 @@ describe('TenantsService', () => {
 			expect(result).toEqual(mockCreatedTenant)
 		})
 
-		it('should handle undefined optional fields', async () => {
-			const userId = generateUUID()
-			const createRequest = {
-				firstName: 'New',
-				lastName: 'Tenant',
-				name: 'New Tenant',
-				email: 'tenant@test.com'
-			}
-
-			mockSupabaseClient.rpc.mockReturnThis()
-			mockSupabaseClient.single.mockReturnValue({
-				data: {
-					id: generateUUID(),
-					name: 'New Tenant',
-					email: 'tenant@test.com'
-				},
-				error: null
-			})
-
-			await service.create(userId, createRequest)
-
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('create_tenant', {
-				p_user_id: userId,
-				p_name: createRequest.name,
-				p_email: createRequest.email,
-				p_phone: undefined,
-				p_emergency_contact: undefined
-			})
-		})
-
 		it('should handle create errors', async () => {
 			const userId = generateUUID()
-			const createRequest = {
+			const createRequest: CreateTenantRequest = {
 				firstName: 'Test',
 				lastName: 'User',
-				name: 'Test',
 				email: 'test@test.com'
 			}
 
-			mockSupabaseClient.rpc.mockReturnThis()
-			mockSupabaseClient.single.mockReturnValue({
-				data: null,
-				error: { message: 'Create failed' }
-			})
+			mockTenantsRepository.create.mockRejectedValue(
+				new Error('Create failed')
+			)
 
 			await expect(service.create(userId, createRequest)).rejects.toThrow(
 				BadRequestException
 			)
 			expect(eventEmitter.emit).not.toHaveBeenCalled()
 		})
-	})
 
-	describe('update - RPC Call Pattern', () => {
-		it('should call update_tenant RPC correctly', async () => {
-			const userId = generateUUID()
-			const tenantId = generateUUID()
-			const updateRequest = {
-				name: 'Updated Tenant',
-				email: 'updated@test.com',
-				phone: '987-654-3210',
-				emergencyContact: 'new-emergency@test.com'
+		it('should handle missing userId or email', async () => {
+			const createRequest: CreateTenantRequest = {
+				firstName: 'Test',
+				lastName: 'User',
+				email: 'test@test.com'
 			}
 
-			const mockUpdatedTenant = { id: tenantId, ...updateRequest }
+			await expect(service.create('', createRequest)).rejects.toThrow(
+				BadRequestException
+			)
 
-			mockSupabaseClient.rpc.mockReturnThis()
-			mockSupabaseClient.single.mockReturnValue({
-				data: mockUpdatedTenant,
-				error: null
-			})
-
-			const result = await service.update(userId, tenantId, updateRequest)
-
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('update_tenant', {
-				p_user_id: userId,
-				p_tenant_id: tenantId,
-				p_name: updateRequest.name,
-				p_email: updateRequest.email,
-				p_phone: updateRequest.phone,
-				p_emergency_contact: updateRequest.emergencyContact
-			})
-			expect(result).toEqual(mockUpdatedTenant)
-		})
-
-		it('should return null on update error', async () => {
-			const userId = generateUUID()
-			const tenantId = generateUUID()
-			const updateRequest = { name: 'Test', email: 'test@test.com' }
-
-			mockSupabaseClient.rpc.mockReturnThis()
-			mockSupabaseClient.single.mockReturnValue({
-				data: null,
-				error: { message: 'Update failed' }
-			})
-
-			const result = await service.update(userId, tenantId, updateRequest)
-
-			expect(result).toBeNull()
-			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to update tenant',
-				{
-					userId,
-					tenantId,
-					error: 'Update failed'
-				}
+			const invalidRequest = { ...createRequest, email: '' }
+			await expect(service.create('user-id', invalidRequest as CreateTenantRequest)).rejects.toThrow(
+				BadRequestException
 			)
 		})
 	})
 
-	describe('remove - RPC Call Pattern', () => {
-		it('should call delete_tenant RPC correctly', async () => {
+	describe('update - Repository Pattern', () => {
+		it('should verify ownership and call repository update', async () => {
+			const userId = generateUUID()
+			const tenantId = generateUUID()
+			const updateRequest: UpdateTenantRequest = {
+				firstName: 'Updated',
+				lastName: 'Tenant',
+				email: 'updated@test.com',
+				phone: '987-654-3210'
+			}
+
+			const existingTenant: Tenant = {
+				id: tenantId,
+				firstName: 'Old',
+				lastName: 'Tenant',
+				email: 'old@test.com',
+				phone: null,
+				avatarUrl: null,
+				name: null,
+				emergencyContact: null,
+				userId: userId,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			}
+
+			const mockUpdatedTenant: Tenant = {
+				...existingTenant,
+				...updateRequest,
+				updatedAt: new Date().toISOString()
+			}
+
+			mockTenantsRepository.findById.mockResolvedValue(existingTenant)
+			mockTenantsRepository.update.mockResolvedValue(mockUpdatedTenant)
+
+			const result = await service.update(userId, tenantId, updateRequest)
+
+			expect(mockTenantsRepository.findById).toHaveBeenCalledWith(tenantId)
+			expect(mockTenantsRepository.update).toHaveBeenCalledWith(tenantId, updateRequest)
+			expect(result).toEqual(mockUpdatedTenant)
+		})
+
+		it('should return null for unauthorized access', async () => {
+			const userId = generateUUID()
+			const tenantId = generateUUID()
+			const otherUserId = generateUUID()
+			const updateRequest: UpdateTenantRequest = {
+				firstName: 'Updated',
+				lastName: 'Tenant'
+			}
+
+			const existingTenant: Tenant = {
+				id: tenantId,
+				firstName: 'Old',
+				lastName: 'Tenant',
+				email: 'old@test.com',
+				phone: null,
+				avatarUrl: null,
+				name: null,
+				emergencyContact: null,
+				userId: otherUserId, // Different user ID
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			}
+
+			mockTenantsRepository.findById.mockResolvedValue(existingTenant)
+
+			const result = await service.update(userId, tenantId, updateRequest)
+
+			expect(result).toBeNull()
+			expect(service['logger'].warn).toHaveBeenCalledWith(
+				'Unauthorized update attempt on tenant',
+				{ userId, tenantId }
+			)
+			expect(mockTenantsRepository.update).not.toHaveBeenCalled()
+		})
+
+		it('should return null when tenant not found', async () => {
+			const userId = generateUUID()
+			const tenantId = generateUUID()
+			const updateRequest: UpdateTenantRequest = {
+				firstName: 'Updated'
+			}
+
+			mockTenantsRepository.findById.mockResolvedValue(null)
+
+			const result = await service.update(userId, tenantId, updateRequest)
+
+			expect(result).toBeNull()
+			expect(mockTenantsRepository.update).not.toHaveBeenCalled()
+		})
+	})
+
+	describe('remove - Repository Pattern', () => {
+		it('should call repository softDelete correctly', async () => {
 			const userId = generateUUID()
 			const tenantId = generateUUID()
 
-			mockSupabaseClient.rpc.mockReturnValue({
-				error: null
+			mockTenantsRepository.softDelete.mockResolvedValue({
+				success: true,
+				message: 'Tenant deleted successfully'
 			})
 
 			await service.remove(userId, tenantId)
 
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('delete_tenant', {
-				p_user_id: userId,
-				p_tenant_id: tenantId
-			})
+			expect(mockTenantsRepository.softDelete).toHaveBeenCalledWith(userId, tenantId)
 		})
 
 		it('should handle delete errors', async () => {
 			const userId = generateUUID()
 			const tenantId = generateUUID()
 
-			mockSupabaseClient.rpc.mockReturnValue({
-				error: { message: 'Delete failed' }
+			mockTenantsRepository.softDelete.mockResolvedValue({
+				success: false,
+				message: 'Delete failed'
 			})
 
 			await expect(service.remove(userId, tenantId)).rejects.toThrow(
 				BadRequestException
 			)
+		})
+
+		it('should handle repository errors', async () => {
+			const userId = generateUUID()
+			const tenantId = generateUUID()
+
+			mockTenantsRepository.softDelete.mockRejectedValue(
+				new Error('Database error')
+			)
+
+			await expect(service.remove(userId, tenantId)).rejects.toThrow(
+				BadRequestException
+			)
 			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to delete tenant',
-				{
+				'Tenants service failed to remove tenant',
+				expect.objectContaining({
+					error: 'Database error',
 					userId,
-					tenantId,
-					error: 'Delete failed'
-				}
+					tenantId
+				})
 			)
 		})
 	})
 
-	describe('Invitation Methods - RPC Call Patterns', () => {
-		it('should send invitation via RPC', async () => {
+	describe('Invitation Methods - Not Yet Migrated', () => {
+		it('should throw error for sendInvitation (not yet migrated)', async () => {
 			const userId = generateUUID()
 			const tenantId = generateUUID()
-			const mockResult = { success: true }
-
-			mockSupabaseClient.rpc.mockReturnThis()
-			mockSupabaseClient.single.mockReturnValue({
-				data: mockResult,
-				error: null
-			})
-
-			const result = await service.sendInvitation(userId, tenantId)
-
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'send_tenant_invitation',
-				{
-					p_user_id: userId,
-					p_tenant_id: tenantId
-				}
-			)
-			expect(result).toEqual(mockResult)
-		})
-
-		it('should resend invitation via RPC', async () => {
-			const userId = generateUUID()
-			const tenantId = generateUUID()
-			const mockResult = { success: true }
-
-			mockSupabaseClient.rpc.mockReturnThis()
-			mockSupabaseClient.single.mockReturnValue({
-				data: mockResult,
-				error: null
-			})
-
-			const result = await service.resendInvitation(userId, tenantId)
-
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'resend_tenant_invitation',
-				{
-					p_user_id: userId,
-					p_tenant_id: tenantId
-				}
-			)
-			expect(result).toEqual(mockResult)
-		})
-
-		it('should handle invitation errors', async () => {
-			const userId = generateUUID()
-			const tenantId = generateUUID()
-
-			mockSupabaseClient.rpc.mockReturnThis()
-			mockSupabaseClient.single.mockReturnValue({
-				data: null,
-				error: { message: 'Invitation failed' }
-			})
 
 			await expect(service.sendInvitation(userId, tenantId)).rejects.toThrow(
 				BadRequestException
 			)
+		})
+
+		it('should throw error for resendInvitation (not yet migrated)', async () => {
+			const userId = generateUUID()
+			const tenantId = generateUUID()
+
 			await expect(service.resendInvitation(userId, tenantId)).rejects.toThrow(
 				BadRequestException
 			)

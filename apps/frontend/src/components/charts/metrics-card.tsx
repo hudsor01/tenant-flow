@@ -5,17 +5,18 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { ANIMATION_DURATIONS, cardClasses, cn } from '@/lib/utils'
+import { cardClasses, cn } from '@/lib/utils'
 import type { MetricsCardProps } from '@repo/shared'
 import * as React from 'react'
 
 const colorMap = {
-	success: 'chart-1',
-	primary: 'chart-2',
-	revenue: 'chart-3',
-	property: 'chart-4',
-	warning: 'chart-10',
-	info: 'chart-1'
+	success: 'metric-success',
+	primary: 'metric-primary',
+	revenue: 'metric-revenue',
+	property: 'metric-primary',
+	warning: 'metric-warning',
+	info: 'metric-info',
+	neutral: 'metric-neutral'
 } as const
 
 export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
@@ -33,55 +34,102 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 		},
 		ref
 	) => {
-		const chartColor = colorMap[colorVariant]
+		const colorToken = colorMap[colorVariant]
 
 		return (
 			<Card
 				ref={ref}
 				className={cn(
 					cardClasses('interactive'),
-					'dashboard-metric-card @container/card border-l-4 transform-gpu will-change-transform touch-manipulation active:scale-[0.99]',
+					'dashboard-metric-card @container/card transform-gpu will-change-transform touch-manipulation active:scale-[0.99]',
+					'border-l-[3px] hover:shadow-md transition-all duration-200 ease-out',
 					className
 				)}
 				style={{
-					borderLeftColor: `var(--${chartColor})`,
-					transition: `all ${ANIMATION_DURATIONS.default} ease-out`
+					borderLeftColor: `var(--color-${colorToken})`,
+					backgroundColor: `var(--color-${colorToken}-bg)`,
+					minHeight: '120px',
+					padding: 'var(--spacing-6)'
 				}}
 				{...props}
 			>
-				<CardHeader>
-					<div className="flex items-center justify-between">
-						<CardDescription>{title}</CardDescription>
+				<CardHeader
+					style={{
+						padding: '0',
+						gap: 'var(--spacing-4)'
+					}}
+				>
+					<div
+						className="flex items-center justify-between"
+						style={{ gap: 'var(--spacing-3)' }}
+					>
+						<CardDescription
+							className="font-medium"
+							style={{
+								color: 'var(--color-label-secondary)',
+								fontSize: 'var(--font-body)',
+								lineHeight: 'var(--line-height-body)'
+							}}
+						>
+							{title}
+						</CardDescription>
 						{Icon && (
 							<div
-								className="p-2 rounded-lg bg-muted/50"
-								style={{ backgroundColor: `var(--${chartColor})/10` }}
+								className="flex shrink-0 items-center justify-center rounded-lg"
+								style={{
+									backgroundColor: `var(--color-${colorToken}-bg)`,
+									border: `1px solid var(--color-${colorToken}-border)`,
+									width: '40px',
+									height: '40px'
+								}}
 							>
-								<Icon
-									className={cn("size-4", `text-[var(--${chartColor})]`)}
-								/>
+								<Icon className="h-5 w-5" />
 							</div>
 						)}
 					</div>
 					<CardTitle
-						className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl"
-						style={{ color: `var(--${chartColor})` }}
+						className="tabular-nums @[250px]/card:text-3xl font-semibold"
+						style={{
+							color: `var(--color-${colorToken}-text)`,
+							fontSize: 'var(--font-large-title)',
+							lineHeight: 'var(--line-height-large-title)'
+						}}
 					>
 						{value}
 					</CardTitle>
 				</CardHeader>
 				{(status || description) && (
-					<CardFooter className="flex-col items-start gap-1.5 text-sm">
+					<CardFooter
+						className="flex-col items-start"
+						style={{
+							padding: '0',
+							paddingTop: 'var(--spacing-4)',
+							gap: 'var(--spacing-2)'
+						}}
+					>
 						{status && StatusIcon && (
 							<div
-								className="line-clamp-1 flex gap-2 font-medium"
-								style={{ color: `var(--${chartColor})` }}
+								className="line-clamp-1 flex font-medium"
+								style={{
+									color: `var(--color-${colorToken})`,
+									gap: 'var(--spacing-2)',
+									fontSize: 'var(--font-body)',
+									lineHeight: 'var(--line-height-body)'
+								}}
 							>
-								{status} <StatusIcon className="size-4" />
+								{status} <StatusIcon className="h-4 w-4" aria-hidden="true" />
 							</div>
 						)}
 						{description && (
-							<div className="text-muted-foreground">{description}</div>
+							<div
+								style={{
+									color: 'var(--color-label-secondary)',
+									fontSize: 'var(--font-body)',
+									lineHeight: 'var(--line-height-body)'
+								}}
+							>
+								{description}
+							</div>
 						)}
 					</CardFooter>
 				)}

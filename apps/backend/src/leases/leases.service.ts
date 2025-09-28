@@ -1,428 +1,446 @@
 /**
- * ULTRA-NATIVE SERVICE - DO NOT ADD ORCHESTRATION
+ * Leases Service - Repository Pattern Implementation
  *
- * DIRECT PostgreSQL RPC calls ONLY. Each method <30 lines.
- * FORBIDDEN: Service layers, repositories, business logic classes
- * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
+ * - NO ABSTRACTIONS: Service delegates to repository directly
+ * - KISS: Simple, focused service methods
+ * - DRY: Repository handles data access logic
+ * - Production mirror: Matches controller interface exactly
  */
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, Inject } from '@nestjs/common'
 import type {
 	CreateLeaseRequest,
-	Tables,
-	UpdateLeaseRequest
+	UpdateLeaseRequest,
+	Lease,
+	LeaseStats,
+	LeaseInput,
+	Database
 } from '@repo/shared'
-import { SupabaseService } from '../database/supabase.service'
-
-// Use native Supabase table types
-type Lease = Tables<'Lease'>
-type Unit = Tables<'Unit'>
-type Property = Tables<'Property'>
-type Tenant = Tables<'Tenant'>
-
-export interface LeaseWithRelations extends Lease {
-	Unit?: Unit & {
-		Property?: Property
-	}
-	Tenant?: Tenant
-}
-
-export interface LeaseQueryOptions {
-	status?: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
-	unitId?: string
-	tenantId?: string
-	startDateFrom?: string
-	startDateTo?: string
-	endDateFrom?: string
-	endDateTo?: string
-	search?: string
-	limit?: number
-	offset?: number
-}
+import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
+import type { ILeasesRepository, LeaseQueryOptions } from '../repositories/interfaces/leases-repository.interface'
 
 /**
- * Leases service - Direct Supabase implementation following KISS principle
- * No abstraction layers, no base classes, just simple CRUD operations
+ * Leases service - Repository pattern implementation following KISS principle
+ * Clean separation of concerns with repository layer
  */
 @Injectable()
 export class LeasesService {
 	private readonly logger = new Logger(LeasesService.name)
 
 	constructor(
-		private readonly supabaseService: SupabaseService
+		@Inject(REPOSITORY_TOKENS.LEASES)
+		private readonly leasesRepository: ILeasesRepository
 	) {}
 
 	/**
-	 * Get all leases for a user using RPC
+	 * Get all leases for a user via repository
 	 */
-	async findAll(userId: string, query: Record<string, unknown>) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_user_leases', {
-				p_user_id: userId,
-				p_tenant_id: query.tenantId as string | undefined,
-				p_unit_id: query.unitId as string | undefined,
-				p_property_id: query.propertyId as string | undefined,
-				p_status: query.status as string | undefined,
-				p_limit: query.limit as number | undefined,
-				p_offset: query.offset as number | undefined,
-				p_sort_by: query.sortBy as string | undefined,
-				p_sort_order: query.sortOrder as string | undefined
-			})
+	async findAll(userId: string, query: Record<string, unknown>): Promise<Lease[]> {
+		try {
+			if (!userId) {
+				this.logger.warn('Find all leases requested without userId')
+				throw new BadRequestException('User ID is required')
+			}
 
-		if (error) {
-			this.logger.error(
-				{
-					error: {
-						name: error.constructor?.name || 'DatabaseError',
-						message: error.message,
-						code: error.code
-					},
-					leases: { userId, query }
-				},
-				'Failed to get leases'
+			const options: LeaseQueryOptions = {
+				search: query.search as string,
+				propertyId: query.propertyId as string,
+				tenantId: query.tenantId as string,
+				status: query.status as Database['public']['Enums']['LeaseStatus'],
+				startDate: query.startDate ? new Date(query.startDate as string) : undefined,
+				endDate: query.endDate ? new Date(query.endDate as string) : undefined,
+				limit: query.limit as number,
+				offset: query.offset as number,
+				sort: query.sortBy as string,
+				order: query.sortOrder as 'asc' | 'desc'
+			}
+
+			this.logger.log('Finding all leases via repository', { userId, options })
+
+			return await this.leasesRepository.findByUserIdWithSearch(userId, options)
+		} catch (error) {
+			this.logger.error('Leases service failed to find all leases', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				query
+			})
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to fetch leases'
 			)
-			throw new BadRequestException('Failed to retrieve leases')
 		}
-
-		return data
 	}
 
 	/**
-	 * Get lease statistics using RPC
+	 * Get lease statistics via repository
 	 */
-	async getStats(userId: string) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_lease_stats', { p_user_id: userId })
-			.single()
+	async getStats(userId: string): Promise<LeaseStats> {
+		try {
+			if (!userId) {
+				this.logger.warn('Lease stats requested without userId')
+				throw new BadRequestException('User ID is required')
+			}
 
-		if (error) {
-			this.logger.error('Failed to get lease stats', {
-				userId,
-				error: error.message
+			this.logger.log('Getting lease stats via repository', { userId })
+
+			return await this.leasesRepository.getStats(userId)
+		} catch (error) {
+			this.logger.error('Leases service failed to get stats', {
+				error: error instanceof Error ? error.message : String(error),
+				userId
 			})
-			throw new BadRequestException('Failed to retrieve lease statistics')
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to get lease statistics'
+			)
 		}
-
-		return data
 	}
 
 	/**
-	 * Get expiring leases using RPC
+	 * Get leases expiring soon via repository
 	 */
-	async getExpiring(userId: string, days: number) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_expiring_leases', {
-				p_user_id: userId,
-				p_days: days
-			})
+	async getExpiring(userId: string, days: number = 30): Promise<Lease[]> {
+		try {
+			if (!userId) {
+				this.logger.warn('Expiring leases requested without userId')
+				throw new BadRequestException('User ID is required')
+			}
 
-		if (error) {
-			this.logger.error('Failed to get expiring leases', {
+			this.logger.log('Getting expiring leases via repository', { userId, days })
+
+			return await this.leasesRepository.getExpiringSoon(userId, days)
+		} catch (error) {
+			this.logger.error('Leases service failed to get expiring leases', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
-				days,
-				error: error.message
+				days
 			})
-			throw new BadRequestException('Failed to retrieve expiring leases')
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to get expiring leases'
+			)
 		}
-
-		return data
 	}
 
 	/**
-	 * Get single lease using RPC
+	 * Find one lease by ID via repository
 	 */
-	async findOne(userId: string, leaseId: string) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_lease_by_id', {
-				p_user_id: userId,
-				p_lease_id: leaseId
-			})
-			.single()
+	async findOne(userId: string, leaseId: string): Promise<Lease | null> {
+		try {
+			if (!userId || !leaseId) {
+				this.logger.warn('Find one lease called with missing parameters', { userId, leaseId })
+				return null
+			}
 
-		if (error) {
-			this.logger.error('Failed to get lease', {
+			this.logger.log('Finding one lease via repository', { userId, leaseId })
+
+			const lease = await this.leasesRepository.findById(leaseId)
+
+			// Note: Lease ownership is verified via property ownership in repository RLS policies
+
+			return lease
+		} catch (error) {
+			this.logger.error('Leases service failed to find one lease', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
-				leaseId,
-				error: error.message
+				leaseId
 			})
 			return null
 		}
-
-		return data
 	}
 
 	/**
-	 * Create lease using RPC
+	 * Create lease via repository
 	 */
-	async create(userId: string, createRequest: CreateLeaseRequest) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('create_lease', {
-				p_user_id: userId,
-				p_tenant_id: createRequest.tenantId,
-				p_unit_id: createRequest.unitId,
-				p_start_date: createRequest.startDate,
-				p_end_date: createRequest.endDate,
-				p_rentamount: createRequest.monthlyRent,
-				p_security_deposit: createRequest.securityDeposit,
-				p_payment_frequency: createRequest.paymentFrequency || 'MONTHLY',
-				p_status: createRequest.status || 'DRAFT'
-			})
-			.single()
+	async create(userId: string, createRequest: CreateLeaseRequest): Promise<Lease> {
+		try {
+			if (!userId || !createRequest.tenantId || !createRequest.unitId) {
+				this.logger.warn('Create lease called with missing parameters', { userId, createRequest })
+				throw new BadRequestException('User ID, tenant ID, and unit ID are required')
+			}
 
-		if (error) {
-			this.logger.error('Failed to create lease', {
+			this.logger.log('Creating lease via repository', { userId, createRequest })
+
+			// Convert CreateLeaseRequest to LeaseInput
+			const leaseData: LeaseInput = {
+				tenantId: createRequest.tenantId,
+				unitId: createRequest.unitId,
+				startDate: createRequest.startDate,
+				endDate: createRequest.endDate,
+				rentAmount: createRequest.monthlyRent,
+				securityDeposit: createRequest.securityDeposit,
+				status: createRequest.status || 'DRAFT'
+			}
+
+			return await this.leasesRepository.create(userId, leaseData)
+		} catch (error) {
+			this.logger.error('Leases service failed to create lease', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
-				error: error.message
+				createRequest
 			})
-			throw new BadRequestException('Failed to create lease')
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to create lease'
+			)
 		}
-
-		return data
 	}
 
 	/**
-	 * Update lease using RPC
+	 * Update lease via repository
 	 */
-	async update(
-		userId: string,
-		leaseId: string,
-		updateRequest: UpdateLeaseRequest
-	) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('update_lease', {
-				p_user_id: userId,
-				p_lease_id: leaseId,
-				p_start_date: updateRequest.startDate,
-				p_end_date: updateRequest.endDate,
-				p_rentamount: updateRequest.monthlyRent,
-				p_security_deposit: updateRequest.securityDeposit,
-				p_payment_frequency: updateRequest.paymentFrequency,
-				p_status: updateRequest.status
-			})
-			.single()
+	async update(userId: string, leaseId: string, updateRequest: UpdateLeaseRequest): Promise<Lease | null> {
+		try {
+			if (!userId || !leaseId) {
+				this.logger.warn('Update lease called with missing parameters', { userId, leaseId })
+				return null
+			}
 
-		if (error) {
-			this.logger.error('Failed to update lease', {
+			// Note: Lease ownership is verified via property ownership in repository RLS policies
+
+			this.logger.log('Updating lease via repository', { userId, leaseId, updateRequest })
+
+			return await this.leasesRepository.update(leaseId, updateRequest)
+		} catch (error) {
+			this.logger.error('Leases service failed to update lease', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
 				leaseId,
-				error: error.message
+				updateRequest
 			})
 			return null
 		}
-
-		return data
 	}
 
 	/**
-	 * Delete lease using RPC
+	 * Remove lease via repository
 	 */
-	async remove(userId: string, leaseId: string) {
-		const { error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('delete_lease', {
-				p_user_id: userId,
-				p_lease_id: leaseId
-			})
+	async remove(userId: string, leaseId: string): Promise<void> {
+		try {
+			if (!userId || !leaseId) {
+				this.logger.warn('Remove lease called with missing parameters', { userId, leaseId })
+				throw new BadRequestException('User ID and lease ID are required')
+			}
 
-		if (error) {
-			this.logger.error('Failed to delete lease', {
+			this.logger.log('Removing lease via repository', { userId, leaseId })
+
+			const result = await this.leasesRepository.softDelete(userId, leaseId)
+
+			if (!result.success) {
+				throw new BadRequestException(result.message)
+			}
+		} catch (error) {
+			this.logger.error('Leases service failed to remove lease', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				leaseId
+			})
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to remove lease'
+			)
+		}
+	}
+
+	/**
+	 * Renew lease via repository
+	 */
+	async renew(userId: string, leaseId: string, renewalData: Partial<LeaseInput>): Promise<Lease> {
+		try {
+			if (!userId || !leaseId) {
+				this.logger.warn('Renew lease called with missing parameters', { userId, leaseId })
+				throw new BadRequestException('User ID and lease ID are required')
+			}
+
+			// Note: Lease ownership is verified via property ownership in repository RLS policies
+
+			this.logger.log('Renewing lease via repository', { userId, leaseId, renewalData })
+
+			return await this.leasesRepository.renewLease(leaseId, renewalData)
+		} catch (error) {
+			this.logger.error('Leases service failed to renew lease', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
 				leaseId,
-				error: error.message
+				renewalData
 			})
-			throw new BadRequestException('Failed to delete lease')
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to renew lease'
+			)
 		}
 	}
 
 	/**
-	 * Renew lease using RPC
+	 * Terminate lease via repository
 	 */
-	async renew(userId: string, leaseId: string, endDate: string) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('renew_lease', {
-				p_user_id: userId,
-				p_lease_id: leaseId,
-				p_new_end_date: endDate
-			})
-			.single()
+	async terminate(userId: string, leaseId: string, terminationDate: Date, reason?: string): Promise<Lease | null> {
+		try {
+			if (!userId || !leaseId) {
+				this.logger.warn('Terminate lease called with missing parameters', { userId, leaseId })
+				return null
+			}
 
-		if (error) {
-			this.logger.error('Failed to renew lease', {
+			// Note: Lease ownership is verified via property ownership in repository RLS policies
+
+			this.logger.log('Terminating lease via repository', { userId, leaseId, terminationDate, reason })
+
+			return await this.leasesRepository.terminateLease(leaseId, terminationDate, reason)
+		} catch (error) {
+			this.logger.error('Leases service failed to terminate lease', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
 				leaseId,
-				error: error.message
+				terminationDate,
+				reason
 			})
-			throw new BadRequestException('Failed to renew lease')
+			return null
 		}
-
-		return data
 	}
 
 	/**
-	 * Terminate lease using RPC
+	 * Get lease analytics via repository
 	 */
-	async terminate(userId: string, leaseId: string, reason?: string) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('terminate_lease', {
-				p_user_id: userId,
-				p_lease_id: leaseId,
-				p_reason: reason || 'Terminated by landlord'
-			})
-			.single()
+	async getAnalytics(userId: string, options: { propertyId?: string; timeframe: string }): Promise<unknown[]> {
+		try {
+			if (!userId) {
+				this.logger.warn('Lease analytics requested without userId')
+				throw new BadRequestException('User ID is required')
+			}
 
-		if (error) {
-			this.logger.error('Failed to terminate lease', {
+			this.logger.log('Getting lease analytics via repository', { userId, options })
+
+			return await this.leasesRepository.getAnalytics(userId, options)
+		} catch (error) {
+			this.logger.error('Leases service failed to get analytics', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
-				leaseId,
-				error: error.message
-			})
-			throw new BadRequestException('Failed to terminate lease')
-		}
-
-		return data
-	}
-
-	/**
-	 * Get lease performance analytics
-	 * Per-lease metrics and detailed performance data
-	 */
-	async getLeasePerformanceAnalytics(
-		userId: string,
-		query: {
-			leaseId?: string
-			propertyId?: string
-			timeframe: string
-		}
-	) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_lease_performance_analytics', {
-				p_user_id: userId,
-				p_lease_id: query.leaseId || undefined,
-				p_property_id: query.propertyId || undefined,
-				p_timeframe: query.timeframe
-			})
-
-		if (error) {
-			this.logger.error('Failed to get lease performance analytics', {
-				userId,
-				query,
-				error: error.message
+				options
 			})
 			throw new BadRequestException(
-				'Failed to retrieve lease performance analytics'
+				error instanceof Error ? error.message : 'Failed to get lease analytics'
 			)
 		}
-
-		return data || []
 	}
 
 	/**
-	 * Get lease duration and renewal analytics
-	 * Analysis of lease terms and renewal patterns
+	 * Get lease payment history via repository
 	 */
-	async getLeaseDurationAnalytics(
-		userId: string,
-		query: {
-			propertyId?: string
-			period: string
-		}
-	) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_lease_duration_analytics', {
-				p_user_id: userId,
-				p_property_id: query.propertyId || undefined,
-				p_period: query.period
-			})
+	async getPaymentHistory(userId: string, leaseId: string): Promise<unknown[]> {
+		try {
+			if (!userId || !leaseId) {
+				this.logger.warn('Payment history requested with missing parameters', { userId, leaseId })
+				throw new BadRequestException('User ID and lease ID are required')
+			}
 
-		if (error) {
-			this.logger.error('Failed to get lease duration analytics', {
+			// Note: Lease ownership is verified via property ownership in repository RLS policies
+
+			this.logger.log('Getting lease payment history via repository', { userId, leaseId })
+
+			return await this.leasesRepository.getPaymentHistory(leaseId)
+		} catch (error) {
+			this.logger.error('Leases service failed to get payment history', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
-				query,
-				error: error.message
+				leaseId
 			})
 			throw new BadRequestException(
-				'Failed to retrieve lease duration analytics'
+				error instanceof Error ? error.message : 'Failed to get payment history'
 			)
 		}
-
-		return data || []
 	}
 
 	/**
-	 * Get lease turnover and retention analytics
-	 * Tenant turnover rates and retention metrics
+	 * Get lease performance analytics via repository
 	 */
-	async getLeaseTurnoverAnalytics(
-		userId: string,
-		query: {
-			propertyId?: string
-			timeframe: string
-		}
-	) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_lease_turnover_analytics', {
-				p_user_id: userId,
-				p_property_id: query.propertyId || undefined,
-				p_timeframe: query.timeframe
-			})
+	async getLeasePerformanceAnalytics(userId: string, options: { leaseId?: string; propertyId?: string; timeframe: string }): Promise<unknown[]> {
+		try {
+			if (!userId) {
+				this.logger.warn('Lease performance analytics requested without userId')
+				throw new BadRequestException('User ID is required')
+			}
 
-		if (error) {
-			this.logger.error('Failed to get lease turnover analytics', {
+			this.logger.log('Getting lease performance analytics via repository', { userId, options })
+
+			return await this.leasesRepository.getAnalytics(userId, options)
+		} catch (error) {
+			this.logger.error('Leases service failed to get performance analytics', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
-				query,
-				error: error.message
+				options
 			})
 			throw new BadRequestException(
-				'Failed to retrieve lease turnover analytics'
+				error instanceof Error ? error.message : 'Failed to get lease performance analytics'
 			)
 		}
-
-		return data || []
 	}
 
 	/**
-	 * Get lease revenue analytics
-	 * Per-lease revenue trends and payment analytics
+	 * Get lease duration analytics via repository
 	 */
-	async getLeaseRevenueAnalytics(
-		userId: string,
-		query: {
-			leaseId?: string
-			propertyId?: string
-			period: string
-		}
-	) {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('get_lease_revenue_analytics', {
-				p_user_id: userId,
-				p_lease_id: query.leaseId || undefined,
-				p_property_id: query.propertyId || undefined,
-				p_period: query.period
-			})
+	async getLeaseDurationAnalytics(userId: string, options: { propertyId?: string; period: string }): Promise<unknown[]> {
+		try {
+			if (!userId) {
+				this.logger.warn('Lease duration analytics requested without userId')
+				throw new BadRequestException('User ID is required')
+			}
 
-		if (error) {
-			this.logger.error('Failed to get lease revenue analytics', {
+			this.logger.log('Getting lease duration analytics via repository', { userId, options })
+
+			return await this.leasesRepository.getAnalytics(userId, { ...options, timeframe: options.period })
+		} catch (error) {
+			this.logger.error('Leases service failed to get duration analytics', {
+				error: error instanceof Error ? error.message : String(error),
 				userId,
-				query,
-				error: error.message
+				options
 			})
 			throw new BadRequestException(
-				'Failed to retrieve lease revenue analytics'
+				error instanceof Error ? error.message : 'Failed to get lease duration analytics'
 			)
 		}
+	}
 
-		return data || []
+	/**
+	 * Get lease turnover analytics via repository
+	 */
+	async getLeaseTurnoverAnalytics(userId: string, options: { propertyId?: string; timeframe: string }): Promise<unknown[]> {
+		try {
+			if (!userId) {
+				this.logger.warn('Lease turnover analytics requested without userId')
+				throw new BadRequestException('User ID is required')
+			}
+
+			this.logger.log('Getting lease turnover analytics via repository', { userId, options })
+
+			return await this.leasesRepository.getAnalytics(userId, options)
+		} catch (error) {
+			this.logger.error('Leases service failed to get turnover analytics', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				options
+			})
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to get lease turnover analytics'
+			)
+		}
+	}
+
+	/**
+	 * Get lease revenue analytics via repository
+	 */
+	async getLeaseRevenueAnalytics(userId: string, options: { leaseId?: string; propertyId?: string; period: string }): Promise<unknown[]> {
+		try {
+			if (!userId) {
+				this.logger.warn('Lease revenue analytics requested without userId')
+				throw new BadRequestException('User ID is required')
+			}
+
+			this.logger.log('Getting lease revenue analytics via repository', { userId, options })
+
+			return await this.leasesRepository.getAnalytics(userId, { ...options, timeframe: options.period })
+		} catch (error) {
+			this.logger.error('Leases service failed to get revenue analytics', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				options
+			})
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to get lease revenue analytics'
+			)
+		}
 	}
 }
