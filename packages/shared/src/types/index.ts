@@ -11,9 +11,7 @@ export * from './core.js'
 
 // CONSOLIDATED DOMAIN FILES - Aggressive consolidation complete
 
-// Supabase generated types (required)
-export * from './supabase-generated.js'
-export * from './supabase.js'
+// Supabase generated types (exported from core.ts to avoid conflicts)
 
 // Database enum types available directly from Supabase via core.ts
 
