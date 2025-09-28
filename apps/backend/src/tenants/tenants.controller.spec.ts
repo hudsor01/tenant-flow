@@ -1,7 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { CreateTenantRequest, UpdateTenantRequest } from '@repo/shared'
+import type { CreateTenantRequest, UpdateTenantRequest, Tenant } from '@repo/shared'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { TenantsController } from './tenants.controller'
@@ -41,7 +41,7 @@ describe('TenantsController', () => {
 
 	const mockRequest = {} as Request
 
-	const createMockTenant = (overrides: any = {}) => ({
+	const createMockTenant = (overrides: Partial<Tenant> = {}): Tenant => ({
 		id: 'tenant-default',
 		firstName: 'John',
 		lastName: 'Doe',
@@ -115,7 +115,7 @@ describe('TenantsController', () => {
 		})
 
 		it('should handle all query parameters', async () => {
-			const mockTenants: any[] = []
+			const mockTenants: Tenant[] = []
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.findAll.mockResolvedValue(mockTenants)

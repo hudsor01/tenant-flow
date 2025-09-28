@@ -1,13 +1,19 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing'
-import { BadRequestException } from '@nestjs/common'
 import { UnitsService } from './units.service'
 import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 import { createMockUnit } from '../test-utils/mocks'
 
 describe('UnitsService', () => {
 	let service: UnitsService
-	let mockUnitsRepository: any
+	let mockUnitsRepository: {
+		findByUserIdWithSearch: jest.Mock
+		findById: jest.Mock
+		create: jest.Mock
+		update: jest.Mock
+		softDelete: jest.Mock
+		getStats: jest.Mock
+	}
 
 	const mockUser = {
 		id: 'user-123',

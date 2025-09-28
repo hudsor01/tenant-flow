@@ -1,7 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { CreateUnitRequest, UpdateUnitRequest } from '@repo/shared'
+import type { CreateUnitRequest, UpdateUnitRequest, Unit } from '@repo/shared'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { UnitsController } from './units.controller'
@@ -132,7 +132,7 @@ describe('UnitsController', () => {
 		})
 
 		it('should handle all query parameters', async () => {
-			const mockUnits: any[] = []
+			const mockUnits: Unit[] = []
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits)
