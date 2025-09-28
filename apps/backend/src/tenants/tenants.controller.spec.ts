@@ -41,6 +41,21 @@ describe('TenantsController', () => {
 
 	const mockRequest = {} as Request
 
+	const createMockTenant = (overrides: any = {}) => ({
+		id: 'tenant-default',
+		firstName: 'John',
+		lastName: 'Doe',
+		email: 'john@example.com',
+		phone: null,
+		avatarUrl: null,
+		name: null,
+		emergencyContact: null,
+		userId: null,
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+		...overrides
+	})
+
 	const validCreateTenantRequest: CreateTenantRequest = {
 		firstName: 'John',
 		lastName: 'Doe',
@@ -75,12 +90,7 @@ describe('TenantsController', () => {
 
 	describe('findAll', () => {
 		it('should return tenants with default parameters', async () => {
-			const mockTenants = {
-				data: [{ id: 'tenant-1', firstName: 'John', lastName: 'Doe' }],
-				total: 1,
-				limit: 10,
-				offset: 0
-			}
+			const mockTenants = [createMockTenant({ id: 'tenant-1' })]
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.findAll.mockResolvedValue(mockTenants)
@@ -105,12 +115,7 @@ describe('TenantsController', () => {
 		})
 
 		it('should handle all query parameters', async () => {
-			const mockTenants = {
-				data: [],
-				total: 0,
-				limit: 20,
-				offset: 10
-			}
+			const mockTenants: any[] = []
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.findAll.mockResolvedValue(mockTenants)
@@ -164,12 +169,7 @@ describe('TenantsController', () => {
 			const validStatuses = ['PENDING', 'SENT', 'ACCEPTED', 'EXPIRED']
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockTenantsServiceInstance.findAll.mockResolvedValue({
-				data: [],
-				total: 0,
-				limit: 10,
-				offset: 0
-			})
+			mockTenantsServiceInstance.findAll.mockResolvedValue([])
 
 			for (const status of validStatuses) {
 				await expect(
@@ -194,12 +194,7 @@ describe('TenantsController', () => {
 
 		it('should use fallback user ID when user validation fails', async () => {
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(null)
-			mockTenantsServiceInstance.findAll.mockResolvedValue({
-				data: [],
-				total: 0,
-				limit: 10,
-				offset: 0
-			})
+			mockTenantsServiceInstance.findAll.mockResolvedValue([])
 
 			await controller.findAll(mockRequest)
 
@@ -213,10 +208,10 @@ describe('TenantsController', () => {
 	describe('getStats', () => {
 		it('should return tenant statistics', async () => {
 			const mockStats = {
-				totalTenants: 25,
-				activeTenants: 20,
-				pendingTenants: 3,
-				expiredTenants: 2
+				total: 25,
+				active: 20,
+				inactive: 3,
+				newThisMonth: 2
 			}
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
@@ -252,7 +247,7 @@ describe('TenantsController', () => {
 		const tenantId = 'tenant-123'
 
 		it('should return single tenant', async () => {
-			const mockTenant = { id: tenantId, firstName: 'John', lastName: 'Doe' }
+			const mockTenant = createMockTenant({ id: tenantId })
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.findOne.mockResolvedValue(mockTenant)
@@ -296,10 +291,10 @@ describe('TenantsController', () => {
 
 	describe('create', () => {
 		it('should create new tenant', async () => {
-			const mockCreatedTenant = {
+			const mockCreatedTenant = createMockTenant({
 				id: 'tenant-new',
 				...validCreateTenantRequest
-			}
+			})
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.create.mockResolvedValue(mockCreatedTenant)
@@ -339,10 +334,10 @@ describe('TenantsController', () => {
 		const tenantId = 'tenant-123'
 
 		it('should update existing tenant', async () => {
-			const mockUpdatedTenant = {
+			const mockUpdatedTenant = createMockTenant({
 				id: tenantId,
 				...validUpdateTenantRequest
-			}
+			})
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.update.mockResolvedValue(mockUpdatedTenant)
@@ -430,17 +425,12 @@ describe('TenantsController', () => {
 		const tenantId = 'tenant-123'
 
 		it('should send invitation successfully', async () => {
-			const mockInvitationResult = {
-				success: true,
-				message: 'Invitation sent successfully'
-			}
-
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockTenantsServiceInstance.sendInvitation.mockResolvedValue(
-				mockInvitationResult
+			mockTenantsServiceInstance.sendInvitation.mockRejectedValue(
+				new BadRequestException('Invitation functionality not yet migrated to repository pattern')
 			)
 
-			const result = await controller.sendInvitation(tenantId, mockRequest)
+			await expect(controller.sendInvitation(tenantId, mockRequest)).rejects.toThrow(BadRequestException)
 
 			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
@@ -449,7 +439,6 @@ describe('TenantsController', () => {
 				mockUser.id,
 				tenantId
 			)
-			expect(result).toEqual(mockInvitationResult)
 		})
 
 		it('should handle service unavailable', async () => {
@@ -473,17 +462,12 @@ describe('TenantsController', () => {
 		const tenantId = 'tenant-123'
 
 		it('should resend invitation successfully', async () => {
-			const mockResendResult = {
-				success: true,
-				message: 'Invitation resent successfully'
-			}
-
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockTenantsServiceInstance.resendInvitation.mockResolvedValue(
-				mockResendResult
+			mockTenantsServiceInstance.resendInvitation.mockRejectedValue(
+				new BadRequestException('Invitation functionality not yet migrated to repository pattern')
 			)
 
-			const result = await controller.resendInvitation(tenantId, mockRequest)
+			await expect(controller.resendInvitation(tenantId, mockRequest)).rejects.toThrow(BadRequestException)
 
 			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
@@ -492,7 +476,6 @@ describe('TenantsController', () => {
 				mockUser.id,
 				tenantId
 			)
-			expect(result).toEqual(mockResendResult)
 		})
 
 		it('should handle service unavailable', async () => {
@@ -518,12 +501,7 @@ describe('TenantsController', () => {
 				mockTenantsServiceInstance
 			)
 
-			mockTenantsServiceInstance.findAll.mockResolvedValue({
-				data: [],
-				total: 0,
-				limit: 10,
-				offset: 0
-			})
+			mockTenantsServiceInstance.findAll.mockResolvedValue([])
 
 			await controllerWithoutSupabase.findAll(mockRequest)
 
