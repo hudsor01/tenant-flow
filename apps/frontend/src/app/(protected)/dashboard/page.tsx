@@ -61,7 +61,7 @@ export default async function DashboardPage() {
 						} as React.CSSProperties
 					}
 				>
-					<ChartsSection stats={stats} />
+					<ChartsSection />
 
 					<div
 						className="grid lg:grid-cols-3"

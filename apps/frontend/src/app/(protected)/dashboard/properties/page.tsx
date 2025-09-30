@@ -3,23 +3,21 @@ import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-inter
 import { CreatePropertyDialog } from '@/components/properties/create-property-dialog'
 import { PropertyEditViewButtons } from '@/components/properties/edit-button'
 import { Badge } from '@/components/ui/badge'
-import
-  {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-  } from '@/components/ui/select'
-import
-  {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow
-  } from '@/components/ui/table'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow
+} from '@/components/ui/table'
 import { getPropertiesPageData } from '@/lib/api/dashboard-server'
 import type { PropertyWithUnits } from '@repo/shared/types/relations'
 import { Building, DollarSign, TrendingUp } from 'lucide-react'
@@ -37,7 +35,7 @@ export default async function PropertiesPage({
 			<div className="dashboard-section dashboard-cards-container grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-3">
 				<MetricsCard
 					title="Total Properties"
-					value={stats.totalProperties}
+					value={stats.totalProperties ?? 0}
 					description="Active portfolio properties"
 					icon={Building}
 					colorVariant="property"
@@ -46,7 +44,7 @@ export default async function PropertiesPage({
 				<MetricsCard
 					title="Occupancy Rate"
 					value={`${(stats.occupancyRate ?? 0).toFixed(1)}%`}
-					description={`${stats.occupiedUnits} of ${stats.totalUnits} units occupied`}
+					description={`${stats.occupiedUnits ?? 0} of ${stats.totalUnits ?? 0} units occupied`}
 					status="Stable occupancy rate"
 					statusIcon={TrendingUp}
 					icon={TrendingUp}
@@ -59,7 +57,7 @@ export default async function PropertiesPage({
 						style: 'currency',
 						currency: 'USD',
 						maximumFractionDigits: 0
-					}).format(stats.totalRevenue)}
+					}).format(stats.totalRevenue ?? 0)}
 					description="Total rent from all units"
 					icon={DollarSign}
 					colorVariant="revenue"
