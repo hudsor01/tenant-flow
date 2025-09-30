@@ -1,5 +1,7 @@
-import { CreateMaintenanceDialog } from '@/components/maintenance/create-maintenance-dialog'
+import { EnhancedMetricsCard } from '@/components/charts/enhanced-metrics-card'
 import { MaintenanceActionButtons } from '@/components/maintenance/action-buttons'
+import { CreateMaintenanceDialog } from '@/components/maintenance/create-maintenance-dialog'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -19,6 +21,7 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { getMaintenancePageData } from '@/lib/api/dashboard-server'
+import { cn } from '@/lib/utils'
 import {
 	AlertCircle,
 	Calendar,
@@ -30,6 +33,24 @@ import {
 	User,
 	Wrench
 } from 'lucide-react'
+
+const getStatusStyles = (status: string) => {
+	const styles = {
+		OPEN: 'bg-[var(--color-system-yellow-10)] text-[var(--color-system-yellow)] border-[var(--color-system-yellow)]',
+		IN_PROGRESS:
+			'bg-[var(--color-system-blue-10)] text-[var(--color-system-blue)] border-[var(--color-system-blue)]',
+		COMPLETED:
+			'bg-[var(--color-system-green-10)] text-[var(--color-system-green)] border-[var(--color-system-green)]',
+		CANCELED:
+			'bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)] border-[var(--color-border-secondary)]',
+		ON_HOLD:
+			'bg-[var(--color-fill-secondary)] text-[var(--color-label-secondary)] border-[var(--color-border-secondary)]'
+	}
+	return (
+		styles[status as keyof typeof styles] ||
+		'bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)] border-[var(--color-border-secondary)]'
+	)
+}
 
 export default async function MaintenancePage() {
 	const maintenanceResponse = await getMaintenancePageData()
@@ -45,7 +66,25 @@ export default async function MaintenancePage() {
 		(sum: number, item) => sum + (item.estimatedCost || 0),
 		0
 	)
-	const avgResponseTime = '2.4 hours'
+
+	// Calculate average response time from actual data
+	const completedWithResponseTime = maintenanceData.filter(
+		item => item.status === 'COMPLETED' && item.createdAt && item.updatedAt
+	)
+	const avgResponseTime =
+		completedWithResponseTime.length > 0
+			? (() => {
+					const avgHours =
+						completedWithResponseTime.reduce((sum, item) => {
+							const responseTime =
+								(new Date(item.updatedAt!).getTime() -
+									new Date(item.createdAt!).getTime()) /
+								(1000 * 60 * 60)
+							return sum + responseTime
+						}, 0) / completedWithResponseTime.length
+					return `${avgHours.toFixed(1)} hours`
+				})()
+			: 'N/A'
 
 	return (
 		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -70,93 +109,37 @@ export default async function MaintenancePage() {
 
 			{/* Status Overview Cards */}
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-				{/* Pending Requests */}
-				<Card
-					className="p-6 border shadow-sm"
-					style={{ borderLeftColor: 'var(--chart-3)', borderLeftWidth: '4px' }}
-				>
-					<div className="flex items-center gap-3 mb-4">
-						<div
-							className="w-10 h-10 rounded-full flex items-center justify-center"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-3) 15%, transparent)'
-							}}
-						>
-							<AlertCircle className="size-5" />
-						</div>
-						<h3 className="font-semibold">Pending Requests</h3>
-					</div>
-					<div className="text-3xl font-bold mb-1">{openRequests}</div>
-					<p className="text-muted-foreground text-sm">Awaiting assignment</p>
-				</Card>
+				<EnhancedMetricsCard
+					title="Pending Requests"
+					value={`${openRequests}`}
+					description="Awaiting assignment"
+					icon={AlertCircle}
+					colorVariant="warning"
+				/>
 
-				{/* In Progress */}
-				<Card
-					className="p-6 border shadow-sm"
-					style={{ borderLeftColor: 'var(--chart-4)', borderLeftWidth: '4px' }}
-				>
-					<div className="flex items-center gap-3 mb-4">
-						<div
-							className="w-10 h-10 rounded-full flex items-center justify-center"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-4) 15%, transparent)'
-							}}
-						>
-							<Wrench className="size-5" />
-						</div>
-						<h3 className="font-semibold">In Progress</h3>
-					</div>
-					<div className="text-3xl font-bold mb-1">{inProgress}</div>
-					<p className="text-muted-foreground text-sm">
-						Currently being worked on
-					</p>
-				</Card>
+				<EnhancedMetricsCard
+					title="In Progress"
+					value={`${inProgress}`}
+					description="Currently being worked on"
+					icon={Wrench}
+					colorVariant="info"
+				/>
 
-				{/* Total Cost */}
-				<Card
-					className="p-6 border shadow-sm"
-					style={{ borderLeftColor: 'var(--chart-5)', borderLeftWidth: '4px' }}
-				>
-					<div className="flex items-center gap-3 mb-4">
-						<div
-							className="w-10 h-10 rounded-full flex items-center justify-center"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-5) 15%, transparent)'
-							}}
-						>
-							<DollarSign className="size-5" />
-						</div>
-						<h3 className="font-semibold">Total Cost</h3>
-					</div>
-					<div className="text-3xl font-bold mb-1">
-						${totalCost.toLocaleString()}
-					</div>
-					<p className="text-muted-foreground text-sm">This month</p>
-				</Card>
+				<EnhancedMetricsCard
+					title="Total Cost"
+					value={`$${totalCost.toLocaleString()}`}
+					description="This month"
+					icon={DollarSign}
+					colorVariant="revenue"
+				/>
 
-				{/* Avg Response Time */}
-				<Card
-					className="p-6 border shadow-sm"
-					style={{ borderLeftColor: 'var(--chart-1)', borderLeftWidth: '4px' }}
-				>
-					<div className="flex items-center gap-3 mb-4">
-						<div
-							className="w-10 h-10 rounded-full flex items-center justify-center"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-1) 15%, transparent)'
-							}}
-						>
-							<Clock className="size-5" />
-						</div>
-						<h3 className="font-semibold">Avg Response</h3>
-					</div>
-					<div className="text-3xl font-bold mb-1">{avgResponseTime}</div>
-					<p className="text-muted-foreground text-sm">Response time</p>
-				</Card>
+				<EnhancedMetricsCard
+					title="Avg Response"
+					value={avgResponseTime}
+					description="Response time"
+					icon={Clock}
+					colorVariant="warning"
+				/>
 			</div>
 
 			{/* Filters */}
@@ -247,19 +230,14 @@ export default async function MaintenancePage() {
 										<TableCell>{request.category || 'No Category'}</TableCell>
 										<TableCell>{request.priority || 'No Priority'}</TableCell>
 										<TableCell>
-											<span
-												className={`px-2 py-1 rounded-full text-xs ${
-													request.status === 'OPEN'
-														? 'bg-[var(--color-system-yellow-10)] text-[var(--color-system-yellow)]'
-														: request.status === 'IN_PROGRESS'
-															? 'bg-[var(--color-system-blue-10)] text-[var(--color-system-blue)]'
-															: request.status === 'COMPLETED'
-																? 'bg-[var(--color-system-green-10)] text-[var(--color-system-green)]'
-																: 'bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)]'
-												}`}
+											<Badge
+												variant="outline"
+												className={cn(
+													getStatusStyles(request.status || 'UNKNOWN')
+												)}
 											>
-												{request.status || 'No Status'}
-											</span>
+												{request.status || 'Unknown'}
+											</Badge>
 										</TableCell>
 										<TableCell className="text-sm text-muted-foreground">
 											{request.createdAt

@@ -3,9 +3,29 @@
 import { MetricsCard } from '@/components/charts/metrics-card'
 import { ModernExplodedPieChart } from '@/components/charts/modern-exploded-pie-chart'
 import { PropertyPerformanceBarChart } from '@/components/charts/property-performance-bar-chart'
+import type { DashboardStats } from '@repo/shared/types/core'
 import { Building, DollarSign, TrendingUp, Users } from 'lucide-react'
 
-export function ChartsSection() {
+interface ChartsSectionProps {
+	stats?: Partial<DashboardStats>
+}
+
+export function ChartsSection({ stats = {} }: ChartsSectionProps) {
+	const totalRevenue = stats.revenue?.monthly || 0
+	const revenueGrowth = stats.revenue?.growth || 0
+	const totalProperties = stats.properties?.total || 0
+	const occupancyRate = stats.units?.occupancyRate || 0
+	const totalTenants = stats.tenants?.active || 0
+
+	const formatCurrency = (amount: number) => {
+		return new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD',
+			minimumFractionDigits: 0,
+			maximumFractionDigits: 0
+		}).format(amount)
+	}
+
 	return (
 		<div
 			className="w-full"
@@ -27,36 +47,36 @@ export function ChartsSection() {
 				>
 					<MetricsCard
 						title="Total Revenue"
-						value="$152,000"
+						value={formatCurrency(totalRevenue)}
 						description="Monthly recurring revenue"
-						status="+12.5% from last month"
+						status={`${revenueGrowth >= 0 ? '+' : ''}${revenueGrowth.toFixed(1)}% from last month`}
 						icon={DollarSign}
 						colorVariant="revenue"
-						trend="up"
+						trend={revenueGrowth >= 0 ? 'up' : 'down'}
 					/>
 					<MetricsCard
 						title="Active Properties"
-						value={45}
+						value={totalProperties}
 						description="Properties under management"
-						status="+8.2% from last month"
+						status={`${stats.properties?.total || 0} total properties`}
 						icon={Building}
 						colorVariant="property"
 						trend="up"
 					/>
 					<MetricsCard
 						title="Occupancy Rate"
-						value="94%"
+						value={`${occupancyRate.toFixed(1)}%`}
 						description="Current occupancy percentage"
-						status="-2.1% from last month"
+						status={`${stats.units?.occupied || 0} of ${stats.units?.total || 0} units`}
 						icon={TrendingUp}
-						colorVariant="warning"
-						trend="down"
+						colorVariant={occupancyRate >= 90 ? 'success' : 'warning'}
+						trend={occupancyRate >= 90 ? 'up' : 'down'}
 					/>
 					<MetricsCard
 						title="Total Tenants"
-						value={287}
+						value={totalTenants}
 						description="Active tenants across portfolio"
-						status="+5.3% from last month"
+						status={`${stats.tenants?.total || 0} total registered`}
 						icon={Users}
 						colorVariant="info"
 						trend="up"

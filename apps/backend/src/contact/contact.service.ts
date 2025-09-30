@@ -9,17 +9,18 @@ import { Resend } from 'resend'
 @Injectable()
 export class ContactService {
 	private readonly logger = new Logger(ContactService.name)
-	private readonly resend: Resend
+	private readonly resend: Resend | null
 
 	constructor() {
 		const apiKey = process.env.RESEND_API_KEY
 		if (!apiKey) {
-			this.logger.error('RESEND_API_KEY not configured - aborting contact service initialization')
-			throw new InternalServerErrorException(
-				'Email service unavailable [CONTACT-SETUP-001]'
+			this.logger.warn(
+				'RESEND_API_KEY not configured - email functionality will be disabled'
 			)
+			this.resend = null
+		} else {
+			this.resend = new Resend(apiKey)
 		}
-		this.resend = new Resend(apiKey)
 	}
 
 	async processContactForm(dto: ContactFormRequest) {
@@ -65,6 +66,8 @@ export class ContactService {
 	}
 
 	private async sendNotificationToTeam(dto: ContactFormRequest) {
+		if (!this.resend) return
+
 		const supportEmail = process.env.SUPPORT_EMAIL || 'support@tenantflow.app'
 
 		const emailHtml = `
@@ -92,6 +95,8 @@ export class ContactService {
 	}
 
 	private async sendConfirmationToUser(dto: ContactFormRequest) {
+		if (!this.resend) return
+
 		const emailHtml = `
 			<h2>Thank you for contacting TenantFlow!</h2>
 			<p>Hi ${dto.name},</p>
