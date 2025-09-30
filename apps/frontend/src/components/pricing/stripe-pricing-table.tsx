@@ -1,116 +1,185 @@
 'use client'
 
-import React, { useEffect, useRef } from 'react'
+import { safeScript } from '@/lib/dom-utils'
 import { cn } from '@/lib/utils'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { StripePricingTableProps } from '@repo/shared/types/core'
+import { useEffect, useMemo, useState } from 'react'
 
 const logger = createLogger({ component: 'StripePricingTable' })
 
 export function StripePricingTable({
-  pricingTableId = 'prctbl_placeholder', // Default placeholder ID
-  clientReferenceId,
-  customerEmail,
-  customerSessionClientSecret,
-  className
+	pricingTableId = 'prctbl_placeholder', // Default placeholder ID
+	clientReferenceId,
+	customerEmail,
+	customerSessionClientSecret,
+	className
 }: StripePricingTableProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
+	const [isScriptLoaded, setIsScriptLoaded] = useState(false)
+	const isPlaceholderId = useMemo(
+		() =>
+			pricingTableId === 'prctbl_placeholder' ||
+			pricingTableId === 'prctbl_1234567890',
+		[pricingTableId]
+	)
 
-  useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
+	const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 
-    // Show helpful message in development if using placeholder or getting error
-    if (pricingTableId === 'prctbl_placeholder' || pricingTableId === 'prctbl_1234567890') {
-      container.innerHTML = `
-        <div style="padding: 3rem; text-align: center; border: 2px dashed var(--color-border); border-radius: 0.75rem; background: var(--color-fill-secondary);">
-          <h3 style="font-weight: 600; margin-bottom: 1rem; color: var(--color-label-primary); font-size: 1.25rem;">
-            Stripe Pricing Table Configuration Required
-          </h3>
-          <p style="color: var(--color-label-secondary); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-            Stripe Pricing Tables provide a no-code solution for displaying your products and prices.
-            To use this component, you need to create a pricing table in your Stripe Dashboard.
-          </p>
-          <div style="background: var(--color-fill-primary); border-radius: 0.5rem; padding: 1.5rem; max-width: 600px; margin: 0 auto;">
-            <h4 style="font-weight: 500; margin-bottom: 1rem; color: var(--color-label-primary);">Setup Instructions:</h4>
-            <ol style="text-align: left; color: var(--color-label-secondary); line-height: 1.8;">
-              <li><strong>1.</strong> Go to <a href="https://dashboard.stripe.com/pricing-tables" target="_blank" style="color: var(--color-primary-brand); text-decoration: underline;">Stripe Dashboard → Pricing tables</a></li>
-              <li><strong>2.</strong> Click "Create pricing table"</li>
-              <li><strong>3.</strong> Add your products (Starter: $29, Growth: $79, Max: $299)</li>
-              <li><strong>4.</strong> Configure appearance to match your brand</li>
-              <li><strong>5.</strong> Copy the pricing table ID (starts with prctbl_)</li>
-              <li><strong>6.</strong> Add to Doppler: <code style="background: var(--color-fill-secondary); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">doppler secrets set STRIPE_PRICING_TABLE_ID prctbl_xxxxx</code></li>
-            </ol>
-          </div>
-          <div style="margin-top: 1.5rem; padding: 1rem; background: var(--color-system-yellow-bg); border-radius: 0.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-            <p style="color: var(--color-system-yellow); font-size: 0.875rem;">
-              <strong>Note:</strong> Pricing tables are created in the Stripe Dashboard, not via API.
-              They provide built-in checkout, customer portal links, and automatic tax calculation.
-            </p>
-          </div>
-        </div>
-      `
-      logger.info('Stripe pricing table needs configuration', {
-        action: 'stripe_pricing_table_placeholder',
-        metadata: { pricingTableId }
-      })
-      return
-    }
+	useEffect(() => {
+		if (isPlaceholderId) {
+			logger.info('Stripe pricing table needs configuration', {
+				action: 'stripe_pricing_table_placeholder',
+				metadata: { pricingTableId }
+			})
+			return
+		}
 
-    // Load Stripe pricing table script if not already loaded
-    const loadScript = async () => {
-      if (!document.querySelector('script[src*="pricing-table"]')) {
-        const script = document.createElement('script')
-        script.async = true
-        script.src = 'https://js.stripe.com/v3/pricing-table.js'
-        document.head.appendChild(script)
-        
-        // Wait for script to load
-        await new Promise<void>((resolve) => {
-          script.onload = () => resolve()
-          script.onerror = () => resolve() // Continue even if script fails
-        })
-      }
+		if (!publishableKey) {
+			logger.error('Missing publishable key for Stripe pricing table', {
+				action: 'stripe_pricing_table_missing_key',
+				metadata: { pricingTableId }
+			})
+			return
+		}
 
-      // Create the pricing table element
-      const pricingTable = document.createElement('stripe-pricing-table') as HTMLElement
-      pricingTable.setAttribute('pricing-table-id', pricingTableId)
-      pricingTable.setAttribute('publishable-key',
-        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || (() => {
-          throw new Error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is required for Stripe pricing table')
-        })()
-      )
-      
-      if (clientReferenceId) {
-        pricingTable.setAttribute('client-reference-id', clientReferenceId)
-      }
-      if (customerEmail) {
-        pricingTable.setAttribute('customer-email', customerEmail)
-      }
-      if (customerSessionClientSecret) {
-        pricingTable.setAttribute('customer-session-client-secret', customerSessionClientSecret)
-      }
+		let isMounted = true
 
-      // Clear container and append new element
-      container.innerHTML = ''
-      container.appendChild(pricingTable)
-    }
+		const loadScript = async () => {
+			const loaded = await safeScript.load(
+				'https://js.stripe.com/v3/pricing-table.js'
+			)
+			if (isMounted) {
+				setIsScriptLoaded(loaded)
+			}
+			if (!loaded) {
+				logger.error('Failed to load Stripe pricing table script', {
+					action: 'stripe_script_load_failed',
+					metadata: { pricingTableId }
+				})
+			}
+		}
 
-    loadScript().catch((error) => {
-      logger.error('Failed to load Stripe pricing table script', {
-        action: 'stripe_script_load_failed',
-        metadata: {
-          pricingTableId,
-          error: error instanceof Error ? error.message : String(error)
-        }
-      })
-    })
-  }, [pricingTableId, clientReferenceId, customerEmail, customerSessionClientSecret])
+		loadScript().catch(error => {
+			if (!isMounted) return
+			logger.error(
+				'Unexpected error while loading Stripe pricing table script',
+				{
+					action: 'stripe_script_load_error',
+					metadata: {
+						pricingTableId,
+						error: error instanceof Error ? error.message : String(error)
+					}
+				}
+			)
+		})
 
-  return (
-    <div 
-      ref={containerRef}
-      className={cn('stripe-pricing-table-container', className)}
-    />
-  )
+		return () => {
+			isMounted = false
+		}
+	}, [isPlaceholderId, pricingTableId, publishableKey])
+
+	if (isPlaceholderId) {
+		return (
+			<div className={cn('stripe-pricing-table-container', className)}>
+				<StripePricingTablePlaceholder pricingTableId={pricingTableId} />
+			</div>
+		)
+	}
+
+	if (!publishableKey) {
+		return (
+			<div className={cn('stripe-pricing-table-container', className)}>
+				<ConfigurationErrorMessage />
+			</div>
+		)
+	}
+
+	return (
+		<div className={cn('stripe-pricing-table-container', className)}>
+			{isScriptLoaded ? (
+				<stripe-pricing-table
+					pricing-table-id={pricingTableId}
+					publishable-key={publishableKey}
+					{...(clientReferenceId
+						? { 'client-reference-id': clientReferenceId }
+						: {})}
+					{...(customerEmail ? { 'customer-email': customerEmail } : {})}
+					{...(customerSessionClientSecret
+						? { 'customer-session-client-secret': customerSessionClientSecret }
+						: {})}
+				/>
+			) : (
+				<LoadingMessage />
+			)}
+		</div>
+	)
+}
+
+function LoadingMessage() {
+	return (
+		<div className="rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-fill-secondary)] p-6 text-center text-sm text-[var(--color-label-secondary)]">
+			Preparing secure Stripe pricing table…
+		</div>
+	)
+}
+
+function ConfigurationErrorMessage() {
+	return (
+		<div className="rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-fill-secondary)] p-6 text-center text-sm text-[var(--color-label-secondary)]">
+			Stripe publishable key is missing. Add{' '}
+			<code className="rounded bg-[var(--color-fill-primary)] px-1 py-0.5 text-xs">
+				NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+			</code>{' '}
+			to Doppler configuration.
+		</div>
+	)
+}
+
+function StripePricingTablePlaceholder({
+	pricingTableId
+}: {
+	pricingTableId: string
+}) {
+	return (
+		<div className="rounded-xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-fill-secondary)] p-10 text-left text-[var(--color-label-secondary)]">
+			<h3 className="mb-4 text-center text-xl font-semibold text-[var(--color-label-primary)]">
+				Stripe Pricing Table Configuration Required
+			</h3>
+			<p className="mx-auto mb-6 max-w-2xl text-center">
+				Stripe pricing tables provide a secure, no-code checkout experience.
+				Configure your pricing table in the Stripe Dashboard and update Doppler
+				with the generated ID.
+			</p>
+			<div className="mx-auto max-w-2xl rounded-lg bg-[var(--color-fill-primary)] p-6">
+				<h4 className="mb-3 font-medium text-[var(--color-label-primary)]">
+					Setup Instructions
+				</h4>
+				<ol className="list-decimal space-y-2 pl-6 text-sm">
+					<li>
+						Visit{' '}
+						<a
+							className="text-[var(--color-primary-brand)] underline"
+							href="https://dashboard.stripe.com/pricing-tables"
+							rel="noreferrer"
+							target="_blank"
+						>
+							Stripe Dashboard → Pricing tables
+						</a>
+					</li>
+					<li>Create a pricing table and add your products</li>
+					<li>Copy the generated pricing table ID (starts with prctbl_)</li>
+					<li>
+						Update Doppler:
+						<code className="ml-1 rounded bg-[var(--color-fill-secondary)] px-1 py-0.5 text-xs">
+							doppler secrets set STRIPE_PRICING_TABLE_ID {pricingTableId}
+						</code>
+					</li>
+				</ol>
+			</div>
+			<div className="mx-auto mt-6 max-w-2xl rounded-lg bg-[var(--color-system-yellow-bg)] p-4 text-sm text-[var(--color-system-yellow)]">
+				<strong>Note:</strong> Pricing tables include secure checkout, customer
+				portal links, and automatic tax calculation.
+			</div>
+		</div>
+	)
 }
