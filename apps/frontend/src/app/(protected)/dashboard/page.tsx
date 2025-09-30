@@ -1,12 +1,30 @@
-'use client'
-
+import { getDashboardData } from '@/app/actions/dashboard'
 import { ActivitySection } from '@/components/dashboard-01/activity-section'
 import { ChartsSection } from '@/components/dashboard-01/charts-section'
-import { SectionCards } from '@/components/dashboard-01/section-cards'
 import { PerformanceSection } from '@/components/dashboard-01/performance-section'
 import { QuickActionsSection } from '@/components/dashboard-01/quick-actions-section'
+import { SectionCards } from '@/components/dashboard-01/section-cards'
+import { redirect } from 'next/navigation'
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+	const result = await getDashboardData()
+
+	if (!result.success) {
+		if ('shouldRedirect' in result && result.shouldRedirect) {
+			redirect(result.shouldRedirect)
+		}
+		// Show error state or redirect to error page
+		return (
+			<div className="flex min-h-screen items-center justify-center">
+				<p className="text-muted-foreground">
+					Failed to load dashboard data. Please try again.
+				</p>
+			</div>
+		)
+	}
+
+	const dashboardData = result.data
+	const stats = dashboardData?.stats
 
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
@@ -24,7 +42,7 @@ export default function DashboardPage() {
 						paddingBottom: 'var(--spacing-4)'
 					}}
 				>
-					<SectionCards />
+					<SectionCards stats={stats} />
 				</div>
 			</div>
 			<div
@@ -37,9 +55,13 @@ export default function DashboardPage() {
 			>
 				<div
 					className="mx-auto max-w-[1600px] space-y-8"
-					style={{ '--space-y': 'var(--dashboard-section-gap)' } as React.CSSProperties}
+					style={
+						{
+							'--space-y': 'var(--dashboard-section-gap)'
+						} as React.CSSProperties
+					}
 				>
-					<ChartsSection />
+					<ChartsSection stats={stats} />
 
 					<div
 						className="grid lg:grid-cols-3"
