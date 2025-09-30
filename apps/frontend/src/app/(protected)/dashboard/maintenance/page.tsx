@@ -1,4 +1,4 @@
-import { EnhancedMetricsCard } from '@/components/charts/enhanced-metrics-card'
+import { MetricsCard } from '@/components/charts/metrics-card'
 import { MaintenanceActionButtons } from '@/components/maintenance/action-buttons'
 import { CreateMaintenanceDialog } from '@/components/maintenance/create-maintenance-dialog'
 import { Badge } from '@/components/ui/badge'
@@ -109,7 +109,7 @@ export default async function MaintenancePage() {
 
 			{/* Status Overview Cards */}
 			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
-				<EnhancedMetricsCard
+				<MetricsCard
 					title="Pending Requests"
 					value={`${openRequests}`}
 					description="Awaiting assignment"
@@ -117,7 +117,7 @@ export default async function MaintenancePage() {
 					colorVariant="warning"
 				/>
 
-				<EnhancedMetricsCard
+				<MetricsCard
 					title="In Progress"
 					value={`${inProgress}`}
 					description="Currently being worked on"
@@ -125,7 +125,7 @@ export default async function MaintenancePage() {
 					colorVariant="info"
 				/>
 
-				<EnhancedMetricsCard
+				<MetricsCard
 					title="Total Cost"
 					value={`$${totalCost.toLocaleString()}`}
 					description="This month"
@@ -133,7 +133,7 @@ export default async function MaintenancePage() {
 					colorVariant="revenue"
 				/>
 
-				<EnhancedMetricsCard
+				<MetricsCard
 					title="Avg Response"
 					value={avgResponseTime}
 					description="Response time"
