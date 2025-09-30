@@ -34,8 +34,8 @@ import type {
 	UpdateUnitRequest
 } from '@repo/shared/types/backend-domain'
 import type { Request } from 'express'
-import { UnitsService } from './units.service'
 import { SupabaseService } from '../database/supabase.service'
+import { UnitsService } from './units.service'
 
 @Controller('units')
 export class UnitsController {
@@ -63,12 +63,16 @@ export class UnitsController {
 		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder: string,
 		@Req() request: Request
 	) {
-		// Validate enum values using native JavaScript
-		if (
-			status &&
-			!['VACANT', 'OCCUPIED', 'MAINTENANCE', 'RESERVED'].includes(status)
-		) {
-			throw new BadRequestException('Invalid status value')
+		// Validate enum values using native JavaScript (accept both cases)
+		if (status) {
+			const upperStatus = status.toUpperCase()
+			if (
+				!['VACANT', 'OCCUPIED', 'MAINTENANCE', 'RESERVED'].includes(upperStatus)
+			) {
+				throw new BadRequestException('Invalid status value')
+			}
+			// Normalize to uppercase for database query
+			status = upperStatus
 		}
 		if (
 			!['createdAt', 'unitNumber', 'bedrooms', 'rent', 'status'].includes(
@@ -92,7 +96,9 @@ export class UnitsController {
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 
 		return this.unitsService.findAll(user?.id || 'test-user-id', {
 			propertyId,
@@ -122,7 +128,9 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 		return this.unitsService.getStats(user?.id || 'test-user-id')
 	}
 
@@ -143,7 +151,9 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 		return this.unitsService.findByProperty(
 			user?.id || 'test-user-id',
 			propertyId
@@ -167,7 +177,9 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 		const unit = await this.unitsService.findOne(user?.id || 'test-user-id', id)
 		if (!unit) {
 			throw new NotFoundException('Unit not found')
@@ -192,7 +204,9 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 		return this.unitsService.create(
 			user?.id || 'test-user-id',
 			createUnitRequest
@@ -218,7 +232,9 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 		const unit = await this.unitsService.update(
 			user?.id || 'test-user-id',
 			id,
@@ -247,7 +263,9 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 		await this.unitsService.remove(user?.id || 'test-user-id', id)
 		return { message: 'Unit deleted successfully' }
 	}
