@@ -102,12 +102,12 @@ export default async function AnalyticsPage() {
 
 				<EnhancedMetricsCard
 					title="Net Operating Income"
-					value={formatCurrency(financialStats?.netOperatingIncome || 0)}
-					description={`${(financialStats?.profitMargin || 0).toFixed(1)}% profit margin`}
+					value={formatCurrency(financialStats?.netIncome || 0)}
+					description={`${(financialStats?.avgRoi || 0).toFixed(1)}% ROI`}
 					change={{
-						value: formatPercentage(financialStats?.noiGrowth || 0),
-						trend: (financialStats?.noiGrowth || 0) >= 0 ? 'up' : 'down',
-						period: 'year over year'
+						value: formatPercentage(financialStats?.avgRoi || 0),
+						trend: (financialStats?.avgRoi || 0) >= 0 ? 'up' : 'down',
+						period: 'average return'
 					}}
 					icon={BarChart3}
 					colorVariant="success"
