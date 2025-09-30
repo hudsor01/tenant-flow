@@ -5,6 +5,21 @@
 
 import type { BillingPeriod } from '../types/stripe.js'
 
+export interface BillingPlan {
+	id: string
+	name: string
+	description: string
+	price: {
+		monthly: number
+		annual: number
+	}
+	features: string[]
+	propertyLimit: number
+	storageLimit: number
+	apiCallLimit: number
+	priority: boolean
+}
+
 // Plan type enum
 export const PLAN_TYPE = {
 	FREETRIAL: 'FREETRIAL',
@@ -29,7 +44,7 @@ export const SUB_STATUS = {
 export type SubStatus = (typeof SUB_STATUS)[keyof typeof SUB_STATUS]
 
 // Plan configuration data
-export const PLANS = [
+export const PLANS: BillingPlan[] = [
 	{
 		id: 'FREETRIAL',
 		name: 'Free Trial',
