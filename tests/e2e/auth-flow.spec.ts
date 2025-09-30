@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { randomBytes } from 'crypto'
 
 /**
@@ -59,7 +59,7 @@ test.describe('Authentication Flow', () => {
 
 	test('should handle login with valid credentials', async ({ page }) => {
 		// Navigate to login
-		await page.goto('/auth/login')
+		await page.goto('/login')
 
 		// Use test account credentials - must be provided via environment
 		const testEmail = process.env.E2E_TEST_EMAIL || (() => {
@@ -85,7 +85,7 @@ test.describe('Authentication Flow', () => {
 
 	test('should handle login with invalid credentials', async ({ page }) => {
 		// Navigate to login
-		await page.goto('/auth/login')
+		await page.goto('/login')
 
 		// Fill with invalid credentials
 		await fillAuthForm(page, 'invalid@example.com', 'WrongPassword123!')
@@ -103,7 +103,7 @@ test.describe('Authentication Flow', () => {
 
 	test('should handle password reset flow', async ({ page }) => {
 		// Navigate to login
-		await page.goto('/auth/login')
+		await page.goto('/login')
 
 		// Click forgot password
 		await page.click('text=/forgot|reset/i')
@@ -146,7 +146,7 @@ test.describe('Authentication Flow', () => {
 
 	test('should handle OAuth login flow', async ({ page }) => {
 		// Navigate to login
-		await page.goto('/auth/login')
+		await page.goto('/login')
 
 		// Check for OAuth buttons
 		const googleButton = page.locator('button:has-text("Google"), button[aria-label*="Google"]')
@@ -172,7 +172,7 @@ test.describe('Authentication Flow', () => {
 		}
 
 		// Login first
-		await page.goto('/auth/login')
+		await page.goto('')
 		await fillAuthForm(page, process.env.E2E_TEST_EMAIL, process.env.E2E_TEST_PASSWORD!)
 		await page.click('button[type="submit"]')
 		await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
@@ -200,7 +200,7 @@ test.describe('Authentication Flow', () => {
 		}
 
 		// Login first
-		await page.goto('/auth/login')
+		await page.goto('')
 		await fillAuthForm(page, process.env.E2E_TEST_EMAIL, process.env.E2E_TEST_PASSWORD!)
 		await page.click('button[type="submit"]')
 		await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
@@ -246,7 +246,7 @@ test.describe('Authentication Flow', () => {
 
 	test('should handle rate limiting gracefully', async ({ page }) => {
 		// Navigate to login
-		await page.goto('/auth/login')
+		await page.goto('')
 
 		// Attempt multiple failed logins
 		for (let i = 0; i < 5; i++) {
@@ -291,7 +291,7 @@ test.describe('Protected Routes', () => {
 			'/features',
 			'/contact',
 			'/blog',
-			'/auth/login',
+			'/login',
 			'/signup'
 		]
 
@@ -312,7 +312,7 @@ test.describe('Session Management', () => {
 		}
 
 		// Login
-		await page.goto('/auth/login')
+		await page.goto('')
 		await fillAuthForm(page, process.env.E2E_TEST_EMAIL, process.env.E2E_TEST_PASSWORD!)
 		await page.click('button[type="submit"]')
 		await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
@@ -343,13 +343,13 @@ test.describe('Session Management', () => {
 
 		try {
 			// Login in first context
-			await page1.goto('/auth/login')
+			await page1.goto('')
 			await fillAuthForm(page1, process.env.E2E_TEST_EMAIL, process.env.E2E_TEST_PASSWORD!)
 			await page1.click('button[type="submit"]')
 			await expect(page1).toHaveURL(/\/dashboard/, { timeout: 10000 })
 
 			// Login in second context
-			await page2.goto('/auth/login')
+			await page2.goto('')
 			await fillAuthForm(page2, process.env.E2E_TEST_EMAIL, process.env.E2E_TEST_PASSWORD!)
 			await page2.click('button[type="submit"]')
 			await expect(page2).toHaveURL(/\/dashboard/, { timeout: 10000 })

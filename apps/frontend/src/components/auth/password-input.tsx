@@ -7,6 +7,7 @@ import * as React from 'react'
 export interface PasswordInputProps
 	extends React.InputHTMLAttributes<HTMLInputElement> {
 	label?: string
+	'data-testid'?: string
 }
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
@@ -36,6 +37,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
 						id={inputId}
 						type={showPassword ? 'text' : 'password'}
 						data-tokens="applied"
+						data-testid={props['data-testid'] || 'password-input'}
 						className={cn(
 							// Base layout and sizing using design tokens
 							'flex w-full',

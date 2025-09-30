@@ -14,7 +14,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { NestExpressApplication } from '@nestjs/platform-express'
-import type { EndpointAudit, SecurityAuditReport } from '@repo/shared'
+import type { EndpointAudit, SecurityAuditReport } from '@repo/shared/types/backend-domain'
 import * as fs from 'fs'
 import * as path from 'path'
 import { AppModule } from '../../app.module'
@@ -332,7 +332,7 @@ class SecurityAuditService {
 			'/health',
 			'/ping',
 			'/webhook',
-			'/auth/login',
+			'/login',
 			'/auth/register',
 			'/auth/confirm',
 			'/auth/oauth'
@@ -413,7 +413,7 @@ class SecurityAuditService {
 
 	private getEndpointDescription(path: string): string {
 		const descriptions: Record<string, string> = {
-			'/auth/login': 'User authentication endpoint',
+			'/login': 'User authentication endpoint',
 			'/auth/register': 'User registration endpoint',
 			'/stripe/webhook': 'Stripe webhook handler',
 			'/health': 'Health check endpoint',

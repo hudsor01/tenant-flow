@@ -1,6 +1,4 @@
 import { z } from 'zod'
-import type { Database } from '@repo/shared'
-import { Constants } from '@repo/shared'
 
 /**
  * Property Validation Schemas
@@ -48,7 +46,7 @@ const propertyBaseSchema = z.object({
 		.transform(val => val?.trim() ?? undefined),
 
 	propertyType: z
-		.enum(Constants.public.Enums.PropertyType as readonly [Database['public']['Enums']['PropertyType'], ...Database['public']['Enums']['PropertyType'][]])
+		.enum(['SINGLE_FAMILY', 'MULTI_FAMILY', 'APARTMENT', 'CONDO', 'TOWNHOUSE', 'COMMERCIAL'] as const)
 		.default('SINGLE_FAMILY' as const),
 
 	imageUrl: z
@@ -91,12 +89,7 @@ export const updatePropertySchema = propertyBaseSchema.partial().extend({
 export const queryPropertySchema = z
 	.object({
 		propertyType: z
-			.enum(
-				Constants.public.Enums.PropertyType as readonly [
-					Database['public']['Enums']['PropertyType'],
-					...Database['public']['Enums']['PropertyType'][]
-				]
-			)
+			.enum(['SINGLE_FAMILY', 'MULTI_FAMILY', 'APARTMENT', 'CONDO', 'TOWNHOUSE', 'COMMERCIAL'] as const)
 			.optional(),
 		search: z
 			.string()

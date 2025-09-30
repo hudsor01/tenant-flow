@@ -14,19 +14,9 @@ test.describe('Dashboard Screenshot', () => {
 		// Wait for any potential loading states to complete
 		await page.waitForTimeout(2000)
 
-		// Screenshot removed - visual validation no longer needed
-
 		// Verify we're on the dashboard page
 		expect(page.url()).toContain('/dashboard')
 
-		// Look for dashboard indicators (cards, metrics, etc.)
-		const title = await page.title()
-		console.log('Page title:', title)
-
-		// Check if we can find any Card components or dashboard content
-		const cardElements = await page.locator('[class*="card"]').count()
-		console.log('Found card-like elements:', cardElements)
-
-		// Screenshot removed - viewport visual validation no longer needed
+		// Test passes if we successfully navigate to dashboard
 	})
 })

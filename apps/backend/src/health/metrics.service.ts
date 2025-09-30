@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import type { ServiceHealth, SystemHealth } from '@repo/shared'
+import type { ServiceHealth, SystemHealth } from '@repo/shared/types/health'
 
 export interface PerformanceMetrics {
 	uptime: number

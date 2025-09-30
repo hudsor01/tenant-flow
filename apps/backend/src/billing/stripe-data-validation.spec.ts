@@ -164,14 +164,18 @@ describe('Production Stripe Webhook Processing', () => {
 									return (
 										process.env.TEST_SUPABASE_URL || 'https://test.supabase.co'
 									)
-								case 'SERVICE_ROLE_KEY':
+								case 'SUPABASE_SERVICE_ROLE_KEY':
 									return (
 										process.env.TEST_SERVICE_ROLE_KEY || 'test_service_role_key'
 									)
-								case 'JWT_SECRET':
+								case 'SUPABASE_JWT_SECRET':
 									return (
 										process.env.TEST_SUPABASE_JWT_SECRET ||
 										'test_jwt_secret_32_characters_minimum'
+									)
+								case 'JWT_SECRET':
+									return (
+										process.env.TEST_JWT_SECRET || 'test_application_jwt_secret_32_chars'
 									)
 								case 'SUPABASE_ANON_KEY':
 									return process.env.TEST_SUPABASE_ANON_KEY || 'test_anon_key'
@@ -424,7 +428,7 @@ describe('Production Stripe Webhook Processing', () => {
 				current_period_end: Math.floor(
 					(Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000
 				),
-				cancel_at_period_end: false,
+				cancelAt_period_end: false,
 				metadata: {
 					tenant_id: 'test_tenant_123'
 				},

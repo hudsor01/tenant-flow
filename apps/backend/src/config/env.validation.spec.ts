@@ -35,7 +35,9 @@ describe('Environment Validation', () => {
 	describe('Required Environment Variables', () => {
 		it('should pass validation when all required variables are present', () => {
 			// Set all required environment variables
-			process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/testdb'
+			process.env.DATABASE_URL =
+				process.env.TEST_DATABASE_URL ||
+				'postgresql://user:pass@localhost:5432/testdb'
 			process.env.DIRECT_URL = 'postgresql://user:pass@localhost:5432/testdb'
 			process.env.JWT_SECRET = 'a'.repeat(32)
 			process.env.SUPABASE_URL = 'https://project.supabase.co'
@@ -94,10 +96,11 @@ describe('Environment Validation', () => {
 			delete process.env.SERVICE_ROLE_KEY
 			delete process.env.SUPABASE_SERVICE_ROLE_KEY
 			delete process.env.SUPABASE_SERVICE_KEY
+			delete process.env.SUPABASE_JWT_SECRET
 			delete process.env.CORS_ORIGINS
 
 			expect(() => validateEnvironment()).toThrow(
-				'Critical environment variables missing: SUPABASE_URL, SERVICE_ROLE_KEY, JWT_SECRET, CORS_ORIGINS'
+				'Critical environment variables missing: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_JWT_SECRET, JWT_SECRET, CORS_ORIGINS'
 			)
 		})
 	})
@@ -109,6 +112,7 @@ describe('Environment Validation', () => {
 			process.env.JWT_SECRET = 'a'.repeat(32)
 			process.env.SUPABASE_URL = 'https://project.supabase.co'
 			process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key'
+			process.env.SUPABASE_JWT_SECRET = 'b'.repeat(32)
 		})
 
 		it('should validate single CORS origin', () => {

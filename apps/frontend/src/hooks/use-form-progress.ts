@@ -6,7 +6,8 @@
 
 'use client'
 
-import { createLogger, type FormProgressData } from '@repo/shared'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+import type { FormProgressData } from '@repo/shared/types/core'
 import { startTransition, useDeferredValue, useEffect, useState } from 'react'
 
 const logger = createLogger({ component: 'FormProgressHook' })

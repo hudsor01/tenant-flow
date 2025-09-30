@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Component } from 'react'
-import { logger } from '@repo/shared'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'ErrorBoundary' })
 
 interface Props {
 	children: ReactNode

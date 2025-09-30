@@ -5,13 +5,14 @@
  * Use these instead of raw createClient calls throughout the application.
  */
 
-import {
-	createClient,
-	type AuthError,
-	type Session,
-	type SupabaseClient,
-	type User
-} from '@supabase/supabase-js'
+import
+  {
+    createClient,
+    type AuthError,
+    type Session,
+    type SupabaseClient,
+    type User
+  } from '@supabase/supabase-js'
 import type { Database } from '../types/supabase.js'
 
 // Platform compatibility: Frontend uses NEXT_PUBLIC_*, Backend uses regular env vars
@@ -158,17 +159,17 @@ export async function signOut(): Promise<{ error: AuthError | null }> {
 // Example: supabaseClient.from('Property').select('*').eq('organizationId', orgId)
 
 export type {
-	Database,
-	Enums,
-	Tables,
-	TablesInsert,
-	TablesUpdate
+  Database,
+  Enums,
+  Tables,
+  TablesInsert,
+  TablesUpdate
 } from '../types/supabase-generated.js'
 
 export type {
-	QueryData,
-	QueryError,
-	TenantFlowOrganizationSettings,
-	TenantFlowPropertyMetadata,
-	TenantFlowUserMetadata
+  QueryData,
+  QueryError,
+  TenantFlowOrganizationSettings,
+  TenantFlowPropertyMetadata,
+  TenantFlowUserMetadata
 } from '../types/supabase.js'

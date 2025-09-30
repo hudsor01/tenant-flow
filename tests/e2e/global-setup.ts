@@ -6,6 +6,17 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+const shouldLog = process.env.PLAYWRIGHT_VERBOSE === 'true'
+const logInfo = (message: string) => {
+	if (!shouldLog) return
+	process.stdout.write(`${message}\n`)
+}
+const logError = (message: string, error: unknown) => {
+	if (!shouldLog) return
+	const details = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+	process.stderr.write(`${message}: ${details}\n`)
+}
+
 /**
  * Global setup for Playwright tests
  * Handles authentication and stores auth state for reuse across tests
@@ -68,7 +79,7 @@ async function globalSetup(config: FullConfig) {
 
 		// Authenticate each user role
 		for (const userRole of userRoles) {
-			console.log(`Setting up auth for ${userRole.role}...`)
+			logInfo(`Setting up auth for ${userRole.role}...`)
 
 			const page = await browser.newPage({
 				baseURL: baseURL || use?.baseURL
@@ -102,13 +113,13 @@ async function globalSetup(config: FullConfig) {
 					path: userRole.storageStatePath
 				})
 
-				console.log(`✅ Auth setup complete for ${userRole.role}`)
+				logInfo(`Auth setup complete for ${userRole.role}`)
 			} catch (error) {
-				console.error(`❌ Failed to setup auth for ${userRole.role}:`, error)
+				logError(`Failed to setup auth for ${userRole.role}`, error)
 
 				// Create a minimal auth state if login fails (for dev/testing)
 				if (process.env.SKIP_AUTH_SETUP === 'true') {
-					console.log(`⚠️  Creating mock auth state for ${userRole.role}`)
+					logInfo(`Creating mock auth state for ${userRole.role}`)
 					const mockAuthState = {
 						cookies: [],
 						origins: [
@@ -133,9 +144,9 @@ async function globalSetup(config: FullConfig) {
 			}
 		}
 
-		console.log('✅ Global setup complete')
+		logInfo('Global setup complete')
 	} catch (error) {
-		console.error('❌ Global setup failed:', error)
+		logError('Global setup failed', error)
 		throw error
 	} finally {
 		await browser.close()

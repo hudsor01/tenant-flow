@@ -1,9 +1,10 @@
 'use client'
 
-import { supabaseClient } from '@repo/shared'
+import { logger } from '@repo/shared/lib/frontend-logger'
+import { supabaseClient } from '@repo/shared/lib/supabase-client'
+import type { Tables } from '@repo/shared/types/supabase'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import { useInfiniteQuery as useTanStackInfiniteQuery } from '@tanstack/react-query'
-import type { Database, Tables } from '@repo/shared'
-import { logger } from '@repo/shared'
 
 const supabase = supabaseClient
 
@@ -32,7 +33,7 @@ interface InfiniteQueryPage<TData> {
  * Native TanStack Query infinite query for Supabase tables
  * Replaces custom implementation with native TanStack features:
  * - Automatic caching and stale-while-revalidate
- * - Built-in error boundaries and retry logic  
+ * - Built-in error boundaries and retry logic
  * - Native loading and fetching states
  * - Optimistic updates and cache management
  * - Background refetch and focus management
@@ -47,13 +48,13 @@ function useInfiniteQuery<
     queryKey: ['infinite', tableName, columns, pageSize, trailingQuery?.toString()],
     queryFn: async ({ pageParam = 0 }): Promise<InfiniteQueryPage<TData>> => {
       const skip = pageParam as number
-      
+
       let query = supabase.from(tableName).select(columns, { count: 'exact' })
 
       if (trailingQuery) {
         query = trailingQuery(query) as typeof query
       }
-      
+
       const { data, count, error } = await query.range(skip, skip + pageSize - 1)
 
       if (error) {
@@ -65,7 +66,7 @@ function useInfiniteQuery<
       }
 
       return {
-        data: (data || []) as TData[],
+        data: (data as unknown as TData[]) || [],
         count: count || 0,
         nextCursor: (data?.length === pageSize && (skip + pageSize) < (count || 0)) ? skip + pageSize : undefined
       }
@@ -101,11 +102,7 @@ function useInfiniteQuery<
   }
 }
 
-export {
-  useInfiniteQuery,
-  type QueryModifier,
-  type TableRow,
-  type TableName,
-  type UseInfiniteQueryProps,
-  type InfiniteQueryPage
+export
+{
+  useInfiniteQuery, type InfiniteQueryPage, type QueryModifier, type TableName, type TableRow, type UseInfiniteQueryProps
 }

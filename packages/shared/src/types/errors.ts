@@ -69,6 +69,9 @@ export interface BusinessError extends BaseError {
 		| 'SUBSCRIPTION_REQUIRED'
 }
 
+// Export just the code type for usage in business exceptions
+export type BusinessErrorCode = BusinessError['code']
+
 // File upload errors
 export interface FileUploadError extends BaseError {
 	type: 'FILE_UPLOAD_ERROR'

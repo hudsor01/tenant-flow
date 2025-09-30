@@ -2,7 +2,7 @@
 
 import Footer from '@/components/layout/footer'
 import { Navbar } from '@/components/layout/navbar'
-import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { HeroSection } from '@/components/sections/hero-section'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,24 +11,18 @@ import Link from 'next/link'
 
 export default function CheckoutCancelPage() {
 	return (
-		<main className="min-h-screen gradient-authority">
+		<main className="min-h-screen bg-primary">
 			<Navbar />
 
-			{/* Hero Authority Section */}
-			<HeroAuthority
-				title={<>Payment Cancelled</>}
-				subtitle={
-					<>
-						No worries! Your payment was cancelled and you haven't been charged.
-						You can try again anytime or contact our support team for
-						assistance.
-					</>
-				}
+			{/* Hero Section */}
+			<HeroSection
+				title="Payment Cancelled"
+				subtitle="No worries! Your payment was cancelled and you haven't been charged. You can try again anytime or contact our support team for assistance."
 				primaryCta={{ label: 'Back to Pricing', href: '/pricing' }}
 				secondaryCta={{ label: 'Contact Support', href: '/contact' }}
 			/>
 
-			<div className="pt-20">
+			<div className="section-content">
 				<div className="container mx-auto px-4 section-content max-w-2xl">
 					<Card className="text-center card-elevated-authority">
 						<CardHeader className="pb-8">

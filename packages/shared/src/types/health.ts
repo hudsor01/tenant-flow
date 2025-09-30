@@ -106,17 +106,7 @@ export type SecurityEventType =
 	| 'suspicious_activity'
 	| 'account_takeover'
 
-export interface SecurityMetrics {
-	totalEvents: number
-	eventsBySeverity: Record<'low' | 'medium' | 'high' | 'critical', number>
-	eventsByType: Record<SecurityEventType, number>
-	topThreateningIPs: Array<{ ip: string; count: number }>
-	recentTrends: {
-		lastHour: number
-		last24Hours: number
-		last7Days: number
-	}
-}
+// SecurityMetrics moved to security.ts to eliminate duplication
 
 // Performance monitoring types
 export interface PerformanceMetrics {

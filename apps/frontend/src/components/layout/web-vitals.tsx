@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { onCLS, onFCP, onINP, onLCP, onTTFB, type Metric } from 'web-vitals'
-import { createLogger } from '@repo/shared'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'WebVitals' })
 

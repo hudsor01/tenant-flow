@@ -1,14 +1,14 @@
 'use client'
 
+import { LoginForm } from '@/components/auth/login-form'
+import { SignupForm } from '@/components/auth/signup-form'
 import { cn } from '@/lib/design-system'
-import { TYPOGRAPHY_SCALE, type LoginLayoutProps } from '@repo/shared'
+import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
+import type { LoginLayoutProps } from '@repo/shared/types/auth'
 import { Lock, Smartphone, Zap } from 'lucide-react'
 import Image from 'next/image'
 import * as React from 'react'
-import { LoginForm } from './login-form'
-import { SignupForm } from './signup-form'
 
-// LoginLayoutProps is now imported from @repo/shared to comply with ESLint rules
 
 export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 	(
@@ -182,14 +182,11 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 
 					{/* Auth Form with better spacing */}
 					<div>
-						{mode === 'login' ? (
-							<LoginForm {...authProps} />
-						) : (
-							<SignupForm
-								onSubmit={authProps?.onSubmit}
-								isLoading={authProps?.isLoading}
-							/>
-						)}
+					{mode === 'login' ? (
+						<LoginForm className="w-full" {...authProps} />
+					) : (
+						<SignupForm className="w-full" onSubmit={authProps?.onSubmit} isLoading={authProps?.isLoading} />
+					)}
 					</div>
 
 					{/* Refined Trust Indicators */}

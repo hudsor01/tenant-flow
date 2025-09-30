@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { randomBytes } from 'crypto'
 
 /**
@@ -349,7 +349,7 @@ test.describe('Post-Signup Experience', () => {
 		}
 
 		// Complete signup flow (using existing account)
-		await page.goto('/auth/login')
+		await page.goto('')
 		await page.fill('input[name="email"]', process.env.E2E_TEST_EMAIL)
 		await page.fill('input[name="password"]', process.env.E2E_TEST_PASSWORD!)
 		await page.click('button[type="submit"]')
@@ -373,7 +373,7 @@ test.describe('Post-Signup Experience', () => {
 		}
 	})
 
-	test('should have access to features based on selected plan', async ({ page }) => {
+	test('should have access to features based on selected plan', async ({ page }, testInfo) => {
 		// Skip if no test credentials
 		if (!process.env.E2E_TEST_EMAIL) {
 			test.skip()
@@ -381,7 +381,7 @@ test.describe('Post-Signup Experience', () => {
 		}
 
 		// Login
-		await page.goto('/auth/login')
+		await page.goto('')
 		await page.fill('input[name="email"]', process.env.E2E_TEST_EMAIL)
 		await page.fill('input[name="password"]', process.env.E2E_TEST_PASSWORD!)
 		await page.click('button[type="submit"]')
@@ -396,6 +396,7 @@ test.describe('Post-Signup Experience', () => {
 			{ name: 'Leases', url: '/dashboard/leases' },
 			{ name: 'Maintenance', url: '/dashboard/maintenance' }
 		]
+		const gatedFeatures: string[] = []
 
 		for (const feature of features) {
 			// Try to navigate to feature
@@ -407,11 +408,18 @@ test.describe('Post-Signup Experience', () => {
 
 			if (titleText?.toLowerCase().includes('upgrade')) {
 				// Feature requires upgrade
-				console.log(`${feature.name} requires plan upgrade`)
+				gatedFeatures.push(feature.name)
 			} else {
 				// Feature is accessible
 				expect(page.url()).toContain(feature.url)
 			}
+		}
+
+		if (gatedFeatures.length > 0) {
+			testInfo.annotations.push({
+				type: 'upgrade-required',
+				description: `Plan upgrade required for: ${gatedFeatures.join(', ')}`
+			})
 		}
 	})
 })

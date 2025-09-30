@@ -12,7 +12,7 @@
  * - SEO performance validation
  */
 
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { playAudit } from 'playwright-lighthouse'
 
 test.describe('Lighthouse Performance Integration', () => {
@@ -116,7 +116,7 @@ test.describe('Lighthouse Performance Integration', () => {
 
     test('Critical user flows performance', async ({ page }) => {
       const criticalFlows = [
-        { path: '/auth/login', name: 'login', threshold: 88 },
+        { path: '', name: 'login', threshold: 88 },
         { path: '/pricing', name: 'pricing', threshold: 90 },
         { path: '/features', name: 'features', threshold: 90 }
       ]

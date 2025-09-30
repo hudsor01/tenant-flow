@@ -6,35 +6,36 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
+import
+  {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+  } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
-import {
-	AlertTriangle,
-	Bell,
-	CreditCard,
-	Download,
-	Globe,
-	RefreshCw,
-	Save,
-	Settings,
-	Shield,
-	Trash2,
-	Upload,
-	User
-} from 'lucide-react'
+import
+  {
+    AlertTriangle,
+    Bell,
+    CreditCard,
+    Download,
+    Globe,
+    RefreshCw,
+    Save,
+    Settings,
+    Shield,
+    Trash2,
+    Upload,
+    User
+  } from 'lucide-react'
 
 export default function SettingsPage() {
 	return (
 		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-			{/* Page Header */}
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold text-gradient-authority">
@@ -83,14 +84,13 @@ export default function SettingsPage() {
 					</TabsTrigger>
 				</TabsList>
 
-				{/* Profile Settings */}
 				<TabsContent value="profile" className="space-y-6">
 					<Card className="p-6 border shadow-sm">
 						<h3 className="text-lg font-semibold mb-4">Profile Information</h3>
 						<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 							<div className="space-y-2">
 								<Label htmlFor="firstName">First Name</Label>
-								<Input id="firstName" defaultValue="John" />
+								<Input id="firstName" defaultValue="Johnathan" />
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="lastName">Last Name</Label>
@@ -101,7 +101,7 @@ export default function SettingsPage() {
 								<Input
 									id="email"
 									type="email"
-									defaultValue="john.doe@example.com"
+									defaultValue="john.doe@placeholder.com"
 								/>
 							</div>
 							<div className="space-y-2">
@@ -139,7 +139,6 @@ export default function SettingsPage() {
 					</Card>
 				</TabsContent>
 
-				{/* Notification Settings */}
 				<TabsContent value="notifications" className="space-y-6">
 					<Card className="p-6 border shadow-sm">
 						<h3 className="text-lg font-semibold mb-4">Email Notifications</h3>
@@ -208,7 +207,6 @@ export default function SettingsPage() {
 					</Card>
 				</TabsContent>
 
-				{/* Security Settings */}
 				<TabsContent value="security" className="space-y-6">
 					<PasswordUpdateSection />
 
@@ -274,7 +272,6 @@ export default function SettingsPage() {
 					</Card>
 				</TabsContent>
 
-				{/* Billing Settings */}
 				<TabsContent value="billing" className="space-y-6">
 					<Card className="p-6 border shadow-sm">
 						<h3 className="text-lg font-semibold mb-4">Subscription Plan</h3>
@@ -344,7 +341,6 @@ export default function SettingsPage() {
 					</Card>
 				</TabsContent>
 
-				{/* System Settings */}
 				<TabsContent value="system" className="space-y-6">
 					<Card className="p-6 border shadow-sm">
 						<h3 className="text-lg font-semibold mb-4">Data Management</h3>

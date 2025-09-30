@@ -3,7 +3,7 @@
  * Provides consistent test data for property CRUD operations and optimistic updates
  */
 
-import type { Database } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
 
 type Property = Database['public']['Tables']['Property']['Row']
 type InsertProperty = Database['public']['Tables']['Property']['Insert']

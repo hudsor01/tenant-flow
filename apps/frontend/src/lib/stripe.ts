@@ -1,7 +1,7 @@
 "use client"
 
 import { loadStripe, type Stripe } from '@stripe/stripe-js'
-import { createLogger } from '@repo/shared'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'StripeClient' })
 

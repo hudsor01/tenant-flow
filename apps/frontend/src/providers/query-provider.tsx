@@ -4,7 +4,7 @@ import {
 	createErrorBoundaryFallback,
 	showErrorToast
 } from '@/lib/error-handler'
-import { logger } from '@repo/shared'
+import { logger } from '@repo/shared/lib/frontend-logger'
 import {
 	QueryClient,
 	QueryClientProvider,

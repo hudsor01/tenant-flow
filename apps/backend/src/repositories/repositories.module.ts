@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { SupabaseModule } from '../database/supabase.module';
+import { AnalyticsModule } from '../analytics/analytics.module';
 import { SupabasePropertiesRepository } from './supabase/supabase-properties.repository';
 import { SupabaseDashboardRepository } from './supabase/supabase-dashboard.repository';
 import { SupabaseTenantsRepository } from './supabase/supabase-tenants.repository';
@@ -6,6 +8,8 @@ import { SupabaseUnitsRepository } from './supabase/supabase-units.repository';
 import { SupabaseLeasesRepository } from './supabase/supabase-leases.repository';
 import { SupabaseMaintenanceRepository } from './supabase/supabase-maintenance.repository';
 import { SupabaseActivityRepository } from './supabase/supabase-activity.repository';
+import { SupabaseBillingRepository } from './supabase/supabase-billing.repository';
+import { SupabaseSecurityRepository } from './supabase/supabase-security.repository';
 
 /**
  * Repository provider tokens for dependency injection
@@ -19,6 +23,8 @@ export const REPOSITORY_TOKENS = {
   LEASES: 'ILeasesRepository',
   MAINTENANCE: 'IMaintenanceRepository',
   ACTIVITY: 'IActivityRepository',
+  BILLING: 'IBillingRepository',
+  SECURITY: 'ISecurityRepository',
 } as const;
 
 /**
@@ -26,6 +32,7 @@ export const REPOSITORY_TOKENS = {
  * Configures dependency injection for all repository implementations
  */
 @Module({
+  imports: [SupabaseModule, AnalyticsModule],
   providers: [
     // Properties repository
     {
@@ -62,6 +69,16 @@ export const REPOSITORY_TOKENS = {
       provide: REPOSITORY_TOKENS.ACTIVITY,
       useClass: SupabaseActivityRepository,
     },
+    // Billing repository
+    {
+      provide: REPOSITORY_TOKENS.BILLING,
+      useClass: SupabaseBillingRepository,
+    },
+    // Security repository
+    {
+      provide: REPOSITORY_TOKENS.SECURITY,
+      useClass: SupabaseSecurityRepository,
+    },
   ],
   exports: [
     REPOSITORY_TOKENS.PROPERTIES,
@@ -71,6 +88,8 @@ export const REPOSITORY_TOKENS = {
     REPOSITORY_TOKENS.LEASES,
     REPOSITORY_TOKENS.MAINTENANCE,
     REPOSITORY_TOKENS.ACTIVITY,
+    REPOSITORY_TOKENS.BILLING,
+    REPOSITORY_TOKENS.SECURITY,
   ],
 })
 export class RepositoriesModule {}

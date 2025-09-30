@@ -4,24 +4,21 @@
  * Provides frontend-specific implementations with tailwind-merge integration
  */
 
-import {
-	generateCSSCustomProperties,
-	getToken,
-	cssVar as tokenCssVar,
-	tokens
-} from '@/design-system/tokens/unified'
-import {
-	SEMANTIC_COLORS,
-	type AnimationType,
-	type BadgeSize,
-	type BadgeVariant,
-	type ButtonVariant,
-	type ComponentSize,
-	type ContainerSize,
-	type GridColumnsConfig,
-	type ResponsiveValuesConfig,
-	type StatusType
-} from '@repo/shared'
+import
+  {
+    SEMANTIC_COLORS,
+    type ComponentSize
+  } from '@repo/shared/constants/design-system'
+import type {
+  AnimationType,
+  BadgeSize,
+  BadgeVariant,
+  ButtonVariant,
+  ContainerSize,
+  GridColumnsConfig,
+  ResponsiveValuesConfig,
+  StatusType
+} from '@repo/shared/types/frontend'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
@@ -473,34 +470,23 @@ export function generateId(prefix = 'id'): string {
 }
 
 // ============================================================================
-// ENHANCED TOKEN UTILITIES
+// THEME UTILITIES
 // ============================================================================
 
 /**
- * Generate CSS custom properties from unified design tokens
- * @returns CSS custom properties object ready for injection
+ * Generate CSS custom properties for theme values
+ * @param theme - Theme configuration object
+ * @returns CSS custom properties object
  */
-export function getThemeCSS(): Record<string, string> {
-	return generateCSSCustomProperties(tokens)
-}
+export function getThemeCSS(theme?: Record<string, string>): Record<string, string> {
+	if (!theme) return {}
+	const css: Record<string, string> = {}
 
-/**
- * Get design token value with type safety
- * @param path - Token path (e.g., 'colors.primary.main')
- * @param fallback - Fallback value if token not found
- * @returns Token value or fallback
- */
-export function useToken<T>(path: string, fallback?: T): T | undefined {
-	return getToken(path, fallback)
-}
+	for (const [key, value] of Object.entries(theme)) {
+		css[`--${key}`] = value
+	}
 
-/**
- * Create CSS variable reference for design tokens
- * @param path - Token path
- * @returns CSS var() reference
- */
-export function useTokenVar(path: string): string {
-	return tokenCssVar(path)
+	return css
 }
 
 /**
@@ -601,21 +587,17 @@ export function typographyClasses(
 }
 
 /**
- * Apply unified design tokens to inline styles
- * @param tokenPath - Path to design token
+ * Apply design token values to inline styles
+ * @param tokenValue - Design token value
  * @param property - CSS property name
  * @returns CSS style object
  */
 export function applyToken(
-	tokenPath: string,
+	tokenValue: string,
 	property: string
 ): React.CSSProperties {
-	const value = getToken(tokenPath)
-	return value ? { [property]: value } : {}
+	return { [property]: tokenValue }
 }
 
-// Export all utilities from shared package
-export * from '@repo/shared'
-
-// Export unified tokens for direct access
-export { tokens }
+// Re-export design system constants for Magic UI components
+export { ANIMATION_DURATIONS, TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'

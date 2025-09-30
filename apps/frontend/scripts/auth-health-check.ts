@@ -5,8 +5,8 @@
  * Usage: pnpm auth:health
  */
 
-import type { HealthCheckResponse } from '@repo/shared'
-import { logger } from '@repo/shared'
+import type { HealthCheckResponse } from '@repo/shared/types/health.js'
+import { logger } from '@repo/shared/lib/frontend-logger.js'
 
 // Environment variables are loaded via Doppler when script is run with 'doppler run --'
 

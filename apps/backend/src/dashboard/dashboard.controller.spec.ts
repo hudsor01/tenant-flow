@@ -1,7 +1,7 @@
 import { NotFoundException, UnauthorizedException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { authUser } from '@repo/shared'
+import type { authUser } from '@repo/shared/types/auth'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { DashboardController } from './dashboard.controller'
@@ -150,16 +150,19 @@ describe('DashboardController', () => {
 				mrr: 12000
 			}
 
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockDashboardServiceInstance.getBillingInsights.mockResolvedValue(
 				mockInsights
 			)
 
 			const result = await controller.getBillingInsights(
+				mockRequest,
 				'2024-01-01',
 				'2024-01-31'
 			)
 
 			expect(mockDashboardServiceInstance.getBillingInsights).toHaveBeenCalledWith(
+				mockUser.id,
 				new Date('2024-01-01'),
 				new Date('2024-01-31')
 			)
@@ -178,13 +181,15 @@ describe('DashboardController', () => {
 				mrr: 12000
 			}
 
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockDashboardServiceInstance.getBillingInsights.mockResolvedValue(
 				mockInsights
 			)
 
-			const result = await controller.getBillingInsights()
+			const result = await controller.getBillingInsights(mockRequest)
 
 			expect(mockDashboardServiceInstance.getBillingInsights).toHaveBeenCalledWith(
+				mockUser.id,
 				undefined,
 				undefined
 			)
@@ -192,7 +197,10 @@ describe('DashboardController', () => {
 		})
 
 		it('should return error for invalid date format', async () => {
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
+
 			const result = await controller.getBillingInsights(
+				mockRequest,
 				'invalid-date',
 				'2024-01-31'
 			)

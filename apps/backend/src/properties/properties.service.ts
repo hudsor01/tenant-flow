@@ -8,13 +8,11 @@
 
 import { CacheKey, CacheTTL } from '@nestjs/cache-manager'
 import { BadRequestException, Injectable, Logger, Inject } from '@nestjs/common'
-import type {
-  CreatePropertyRequest,
-  Property,
-  PropertyStats,
-  UpdatePropertyRequest
-} from '@repo/shared'
+import type { CreatePropertyRequest, UpdatePropertyRequest } from '@repo/shared/types/backend-domain'
+import type { Property } from '@repo/shared/types/core'
+import type { PropertyStats } from '@repo/shared/types/core'
 import type { IPropertiesRepository } from '../repositories/interfaces/properties-repository.interface'
+import type { IUnitsRepository } from '../repositories/interfaces/units-repository.interface'
 import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 
 // Type alias for properties with units - using Property for now since PropertyWithUnits not defined
@@ -26,7 +24,9 @@ export class PropertiesService {
 
 	constructor(
 		@Inject(REPOSITORY_TOKENS.PROPERTIES)
-		private readonly propertiesRepository: IPropertiesRepository
+		private readonly propertiesRepository: IPropertiesRepository,
+		@Inject(REPOSITORY_TOKENS.UNITS)
+		private readonly unitsRepository: IUnitsRepository
 	) {}
 
 	/**
@@ -390,6 +390,37 @@ export class PropertiesService {
 			}
 
 			// Return empty array for zero state
+			return []
+		}
+	}
+
+	/**
+	 * Get property units - replaces get_property_units function
+	 * Uses repository pattern instead of database function
+	 */
+	async getPropertyUnits(userId: string, propertyId: string): Promise<unknown[]> {
+		try {
+			this.logger.log('Getting property units via repository', { userId, propertyId })
+
+			// Business logic: Verify ownership first
+			const property = await this.findOne(userId, propertyId)
+			if (!property) {
+				throw new BadRequestException('Property not found or access denied')
+			}
+
+			// Get units for this property via units repository
+			return await this.unitsRepository.findByPropertyId(propertyId)
+		} catch (error) {
+			this.logger.error('Failed to get property units', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				propertyId
+			})
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
 			return []
 		}
 	}

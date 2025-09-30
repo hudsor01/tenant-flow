@@ -2,18 +2,18 @@
 
 import { createClient } from '@/utils/supabase/client'
 import type {
-	LoginCredentials,
-	LoginFormData,
-	SignupFormData
-} from '@repo/shared'
-import { createLogger } from '@repo/shared'
+  LoginCredentials,
+  LoginFormData,
+  SignupFormData
+} from '@repo/shared/types/auth'
+import { createLogger } from '@repo/shared/lib/frontend-logger.js'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 
+import { loginAction } from '@/app/login/actions'
 import { ForgotPasswordModal } from '@/components/auth/forgot-password-modal'
 import { LoginLayout } from '@/components/auth/login-layout'
 import { toast } from 'sonner'
-import { loginAction } from './actions'
 
 const logger = createLogger({ component: 'LoginPage' })
 
@@ -178,17 +178,17 @@ function LoginPageContent() {
 		<>
 			<LoginLayout
 				mode="login"
-				title="Welcome Back"
-				subtitle="Sign in to your TenantFlow account to continue managing your properties"
+				title="Welcome Back to Your $30,000 Annual Savings"
+				subtitle="Your properties are generating 40% more NOI while you've been away. Let's keep that momentum going."
 				imageUrl="https://images.unsplash.com/photo-1582407947304-fd86f028f716?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80"
 				content={{
-					heading: 'Professional Property Management Made Simple',
+					heading: 'Your Success Dashboard Awaits',
 					description:
-						'Cut administrative tasks by 75% and focus on growing your portfolio. Welcome back to efficient property management.',
+						'Join 10,000+ property managers who check their dashboard daily to see vacancy rates drop, NOI increase, and hours saved multiply.',
 					stats: [
-						{ value: '75%', label: 'Time\nSaved' },
-						{ value: '99.9%', label: 'Platform\nUptime' },
-						{ value: 'SOC 2', label: 'Security\nCompliant' }
+						{ value: '$2.4K+', label: 'Saved Per\nProperty' },
+						{ value: '98.7%', label: 'Customer\nSuccess' },
+						{ value: '90 sec', label: 'Support\nResponse' }
 					]
 				}}
 				authProps={{

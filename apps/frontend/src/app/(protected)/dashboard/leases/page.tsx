@@ -11,7 +11,7 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { getLeasesPageData } from '@/lib/api/dashboard-server'
-import type { Database } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import { AlertTriangle, FileText } from 'lucide-react'
 
 type Lease = Database['public']['Tables']['Lease']['Row']

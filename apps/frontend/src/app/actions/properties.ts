@@ -1,8 +1,8 @@
 'use server'
 
 import { serverFetch } from '@/lib/api/server'
-import type { Property } from '@repo/shared'
 import { revalidatePath } from 'next/cache'
+import type { Property } from '@repo/shared/types/supabase'
 
 /**
  * Server Actions for Properties

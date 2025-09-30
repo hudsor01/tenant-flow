@@ -75,8 +75,8 @@ ALTER FUNCTION public.mark_all_notifications_read(user_id text) SET search_path 
 ALTER FUNCTION public.execute_stripe_fdw_query(sql_query text) SET search_path = 'public';
 ALTER FUNCTION public.get_stripe_customer_by_id(customer_id text) SET search_path = 'public';
 ALTER FUNCTION public.get_stripe_customers(limit_count integer) SET search_path = 'public';
-ALTER FUNCTION public.get_stripe_payment_intents(customer_id text, limit_count integer) SET search_path = 'public';
-ALTER FUNCTION public.get_stripe_prices(product_id text, active_only boolean, limit_count integer) SET search_path = 'public';
+-- REMOVED: ALTER statements for get_stripe_payment_intents and get_stripe_prices
+-- These RPC functions have been replaced with direct table queries in the billing repository
 ALTER FUNCTION public.get_stripe_products(active_only boolean, limit_count integer) SET search_path = 'public';
 ALTER FUNCTION public.get_stripe_subscription_analytics() SET search_path = 'public';
 ALTER FUNCTION public.get_stripe_subscriptions(customer_id text, limit_count integer) SET search_path = 'public';

@@ -1,18 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type {
-  Lease,
-  LeaseInput,
-  LeaseUpdate,
-  LeaseStats,
-  TablesInsert,
-  TablesUpdate,
-  Database,
-  RentPayment
-} from '@repo/shared';
+    Database,
+    TablesInsert,
+    TablesUpdate
+} from '@repo/shared/types/supabase-generated';
+import type {
+    Lease,
+    RentPayment
+} from '@repo/shared/types/supabase';
+import type {
+    LeaseStats
+} from '@repo/shared/types/core';
+import type {
+    CreateLeaseInput as LeaseInput,
+    UpdateLeaseInput as LeaseUpdate
+} from '@repo/shared/types/api-inputs';
 import { SupabaseService } from '../../database/supabase.service';
 import {
-  ILeasesRepository,
-  LeaseQueryOptions
+    ILeasesRepository,
+    LeaseQueryOptions
 } from '../interfaces/leases-repository.interface';
 
 @Injectable()
@@ -282,7 +288,7 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
     try {
       this.logger.log('Getting lease stats via DIRECT table query', { userId });
 
-      // DIRECT query - NO RPC BULLSHIT
+      // DIRECT query -
       const { data, error } = await this.supabase
         .getAdminClient()
         .from('Lease')
@@ -322,7 +328,7 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
     try {
       this.logger.log('Getting lease analytics via DIRECT table query', { userId, options });
 
-      // DIRECT query - NO RPC BULLSHIT
+      // DIRECT query -
       let query = this.supabase
         .getAdminClient()
         .from('Lease')
@@ -510,9 +516,9 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 
       const { data, error } = await this.supabase
         .getAdminClient()
-        .from('RentPayment')
+        .from('RentPayments')
         .select('*')
-        .eq('rentChargeId', leaseId)
+        .eq('rentDueId', leaseId)
         .order('createdAt', { ascending: false });
 
       if (error) {
