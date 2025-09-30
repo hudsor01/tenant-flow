@@ -4,14 +4,13 @@
  */
 import { serverFetch } from '@/lib/api/server'
 import type {
-  DashboardFinancialStats,
-  DashboardStats,
-  LeaseStatsResponse,
-  MaintenanceRequestResponse,
-  PropertyPerformance,
-  SystemUptime,
-  TenantStats,
-  TenantWithLeaseInfo
+	DashboardStats,
+	LeaseStatsResponse,
+	MaintenanceRequestResponse,
+	PropertyPerformance,
+	SystemUptime,
+	TenantStats,
+	TenantWithLeaseInfo
 } from '@repo/shared/types/core.js'
 import type { PropertyWithUnits } from '@repo/shared/types/relations.js'
 import type { Database } from '@repo/shared/types/supabase-generated.js'
@@ -43,17 +42,7 @@ export const dashboardServerApi = {
 			inProgress: number
 			completedToday: number
 			avgResolutionTime: number
-		}>('/api/v1/dashboard/maintenance-stats'),
-
-	// Chart data for revenue/expenses
-	getChartData: () =>
-		serverFetch<
-			Array<{
-				date: string
-				revenue: number
-				expenses: number
-			}>
-		>('/api/v1/dashboard/chart-data')
+		}>('/api/v1/dashboard/maintenance-analytics')
 }
 
 /**
@@ -67,8 +56,7 @@ export async function getAllDashboardData() {
 
 	return {
 		stats,
-		activity,
-		chartData: [] // Empty chart data for now
+		activity
 	}
 }
 
@@ -76,9 +64,14 @@ export async function getAllDashboardData() {
  * Financial dashboard data
  */
 export async function getFinancialDashboardData() {
-	const financialStats = await serverFetch<DashboardFinancialStats>(
-		'/api/v1/financial/dashboard-stats-calculated'
-	)
+	const financialStats = await serverFetch<{
+		totalRevenue: number
+		totalExpenses: number
+		netIncome: number
+		propertyCount: number
+		occupancyRate: number
+		avgRoi: number
+	}>('/api/v1/financial/analytics/dashboard-metrics')
 	return financialStats
 }
 
@@ -93,12 +86,10 @@ export async function getPropertiesWithAnalytics() {
 }
 
 /**
- * Tenants with analytics
+ * Tenants with analytics (uses base tenants endpoint)
  */
 export async function getTenantsWithAnalytics() {
-	const tenants = await serverFetch<TenantWithLeaseInfo[]>(
-		'/api/v1/tenants/analytics'
-	)
+	const tenants = await serverFetch<TenantWithLeaseInfo[]>('/api/v1/tenants')
 	return tenants
 }
 
@@ -196,7 +187,7 @@ export async function getPropertiesPageData(status?: string) {
  */
 export async function getTenantsPageData() {
 	const [tenants, tenantStats] = await Promise.all([
-		serverFetch<TenantWithLeaseInfo[]>('/api/v1/tenants/analytics'),
+		serverFetch<TenantWithLeaseInfo[]>('/api/v1/tenants'),
 		serverFetch<TenantStats>('/api/v1/tenants/stats')
 	])
 
@@ -220,20 +211,24 @@ export async function getTenantsPageData() {
  */
 export async function getLeasesPageData() {
 	const [leasesResult, leaseStatsResult] = await Promise.allSettled([
-		serverFetch<Array<Database['public']['Tables']['Lease']['Row']>>('/api/v1/leases'),
+		serverFetch<Array<Database['public']['Tables']['Lease']['Row']>>(
+			'/api/v1/leases'
+		),
 		serverFetch<LeaseStatsResponse>('/api/v1/leases/stats')
 	])
 
 	// Extract values with fallbacks for failed requests
-	const leases = leasesResult.status === 'fulfilled' ? leasesResult.value || [] : []
-	const stats = leaseStatsResult.status === 'fulfilled'
-		? leaseStatsResult.value
-		: {
-			totalLeases: 0,
-			activeLeases: 0,
-			totalMonthlyRent: 0,
-			averageRent: 0
-		}
+	const leases =
+		leasesResult.status === 'fulfilled' ? leasesResult.value || [] : []
+	const stats =
+		leaseStatsResult.status === 'fulfilled'
+			? leaseStatsResult.value
+			: {
+					totalLeases: 0,
+					activeLeases: 0,
+					totalMonthlyRent: 0,
+					averageRent: 0
+				}
 
 	return {
 		leases,

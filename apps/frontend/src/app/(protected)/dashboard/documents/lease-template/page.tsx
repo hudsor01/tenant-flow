@@ -1,6 +1,5 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
 import {
 	Card,
 	CardContent,
@@ -8,22 +7,9 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { Download, Eye, FileText, Info } from 'lucide-react'
+import { FileText, Info } from 'lucide-react'
 
 export default function LeaseTemplatePage() {
-	const handlePreview = () => {
-		// Open preview in new tab
-		window.open(
-			`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/lease/preview/sample-lease.pdf`,
-			'_blank'
-		)
-	}
-
-	const handleDownload = () => {
-		// Trigger download
-		window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/lease/download/sample-lease.pdf`
-	}
-
 	return (
 		<div className="container mx-auto py-6 space-y-6">
 			<div className="flex items-center gap-3">
@@ -95,28 +81,15 @@ export default function LeaseTemplatePage() {
 					<CardHeader>
 						<CardTitle>Template Actions</CardTitle>
 						<CardDescription>
-							Preview or download the lease agreement template
+							Generate customized lease agreements
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<Button
-							onClick={handlePreview}
-							variant="outline"
-							className="w-full justify-start"
-						>
-							<Eye className="h-4 w-4 mr-2" />
-							Preview Template
-						</Button>
-						<Button onClick={handleDownload} className="w-full justify-start">
-							<Download className="h-4 w-4 mr-2" />
-							Download Sample PDF
-						</Button>
-						<div className="pt-4 border-t">
+						<div className="pt-4">
 							<p className="text-sm text-muted-foreground">
-								<strong>Note:</strong> This template uses sample data for
-								demonstration. To generate customized lease agreements with your
-								property and tenant data, use the lease generator in the Leases
-								section.
+								<strong>Note:</strong> To generate customized lease agreements
+								with your property and tenant data, use the lease generator in
+								the Leases section.
 							</p>
 						</div>
 					</CardContent>
