@@ -6,9 +6,11 @@
  * COMPATIBILITY: Server-side rendering safe
  */
 
-/* eslint-disable no-restricted-syntax */
-// This file is allowed to use console and direct document access
-// as it provides the secure abstraction layer for the rest of the application
+// This file centralizes safe DOM utilities to avoid direct document access elsewhere.
+
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const domLogger = createLogger({ component: 'DomUtils' })
 
 /**
  * Cookie operations with security validation
@@ -128,7 +130,9 @@ export const safeDom = {
 		] as const
 
 		if (!(allowedElements as readonly string[]).includes(tagName as string)) {
-			console.warn(`Element type '${tagName}' is not allowed`)
+			domLogger.warn('Attempted to create disallowed element', {
+				metadata: { tag: tagName }
+			})
 			return null
 		}
 
@@ -139,7 +143,9 @@ export const safeDom = {
 			Object.entries(options.attributes).forEach(([key, value]) => {
 				// Validate attribute names (no script-related attributes)
 				if (/^(on|javascript:|data:)/i.test(key)) {
-					console.warn(`Attribute '${key}' is not allowed`)
+					domLogger.warn('Rejected unsafe element attribute', {
+						metadata: { attribute: key, tag: tagName }
+					})
 					return
 				}
 				element.setAttribute(key, value)
@@ -166,14 +172,18 @@ export const safeDom = {
 
 		// Basic selector validation - prevent script injection
 		if (/javascript:|<script|<iframe|<object|<embed/i.test(selector)) {
-			console.warn(`Selector '${selector}' contains potentially unsafe content`)
+			domLogger.warn('Rejected unsafe selector', {
+				metadata: { selector }
+			})
 			return null
 		}
 
 		try {
 			return document.querySelector(selector)
 		} catch {
-			console.warn(`Invalid selector: ${selector}`)
+			domLogger.warn('Invalid selector query', {
+				metadata: { selector }
+			})
 			return null
 		}
 	},
@@ -187,14 +197,18 @@ export const safeDom = {
 
 		// Basic selector validation
 		if (/javascript:|<script|<iframe|<object|<embed/i.test(selector)) {
-			console.warn(`Selector '${selector}' contains potentially unsafe content`)
+			domLogger.warn('Rejected unsafe selector', {
+				metadata: { selector }
+			})
 			return null
 		}
 
 		try {
 			return document.querySelectorAll(selector)
 		} catch {
-			console.warn(`Invalid selector: ${selector}`)
+			domLogger.warn('Invalid selector query', {
+				metadata: { selector }
+			})
 			return null
 		}
 	}
@@ -243,7 +257,9 @@ export const safeDocumentElement = {
 		// Validate attribute names
 		const sanitizedName = name.replace(/[^a-zA-Z0-9-_]/g, '')
 		if (!sanitizedName || /^on|javascript:/i.test(name)) {
-			console.warn(`Attribute '${name}' is not allowed`)
+			domLogger.warn('Rejected unsafe document element attribute', {
+				metadata: { attribute: name }
+			})
 			return
 		}
 
@@ -260,7 +276,7 @@ export const safeDocumentElement = {
 		try {
 			return window.getComputedStyle(document.documentElement)
 		} catch {
-			console.warn('Failed to get computed style')
+			domLogger.warn('Failed to read computed styles from documentElement')
 			return null
 		}
 	}
@@ -299,7 +315,9 @@ export const safeScript = {
 
 			// Must be HTTPS
 			if (url.protocol !== 'https:') {
-				console.warn(`Script source must use HTTPS: ${src}`)
+				domLogger.warn('Blocked non-HTTPS script source', {
+					metadata: { src }
+				})
 				return false
 			}
 
@@ -307,11 +325,15 @@ export const safeScript = {
 			isAllowed = allowedDomains.some(domain => url.hostname === domain)
 
 			if (!isAllowed) {
-				console.warn(`Script domain not allowed: ${url.hostname}`)
+				domLogger.warn('Blocked script from disallowed domain', {
+					metadata: { host: url.hostname, src }
+				})
 				return false
 			}
 		} catch {
-			console.warn(`Invalid script URL: ${src}`)
+			domLogger.warn('Invalid script URL', {
+				metadata: { src }
+			})
 			return false
 		}
 
@@ -337,7 +359,9 @@ export const safeScript = {
 
 			script.onload = () => resolve(true)
 			script.onerror = () => {
-				console.warn(`Failed to load script: ${src}`)
+				domLogger.error('Failed to load script', {
+					metadata: { src }
+				})
 				resolve(false)
 			}
 
@@ -381,7 +405,9 @@ export const safeDocumentEvents = {
 		]
 
 		if (!allowedEvents.includes(type as string)) {
-			console.warn(`Event type '${type}' is not allowed`)
+			domLogger.warn('Rejected unsafe document event type', {
+				metadata: { type }
+			})
 			return
 		}
 
