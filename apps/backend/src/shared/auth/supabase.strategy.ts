@@ -9,23 +9,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { createClient } from '@supabase/supabase-js'
-import type { authUser } from '@repo/shared/types/auth'
-
-interface JwtPayload {
-  sub: string
-  email: string
-  role?: string
-  aud: string
-  iss: string
-  iat: number
-  exp: number
-  user_metadata?: {
-    firstName?: string
-    lastName?: string
-    company?: string
-    role?: string
-  }
-}
+import type { JwtPayload, authUser } from '@repo/shared/types/auth'
 
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
@@ -52,23 +36,25 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 
     // Verify the token is from our Supabase instance
     const supabaseUrl = process.env.SUPABASE_URL
-    if (supabaseUrl && payload.iss !== `${supabaseUrl}/auth/v1`) {
-      this.logger.warn('JWT issuer mismatch', { issuer: payload.iss })
+    const iss = (payload as { iss?: string }).iss
+    if (supabaseUrl && iss !== `${supabaseUrl}/auth/v1`) {
+      this.logger.warn('JWT issuer mismatch', { issuer: iss })
       throw new Error('Invalid token issuer')
     }
 
     // Create full Supabase User object from JWT payload
+    const payloadWithMetadata = payload as { aud?: string; role?: string; email?: string; user_metadata?: Record<string, unknown> }
     const user: authUser = {
       id: payload.sub,
-      aud: payload.aud,
-      role: payload.role,
-      email: payload.email,
+      aud: payloadWithMetadata.aud,
+      role: payloadWithMetadata.role,
+      email: payloadWithMetadata.email,
       email_confirmed_at: new Date().toISOString(),
       phone: undefined,
       confirmed_at: new Date().toISOString(),
       last_sign_in_at: new Date().toISOString(),
       app_metadata: {},
-      user_metadata: payload.user_metadata || {},
+      user_metadata: payloadWithMetadata.user_metadata || {},
       identities: [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

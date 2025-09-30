@@ -5,7 +5,7 @@ import type {
     SystemUptime
 } from '@repo/shared/types/core';
 import { SupabaseService } from '../../database/supabase.service';
-import type { ActivityQueryOptions } from '../interfaces/activity-repository.interface';
+import type { Activity, ActivityQueryOptions } from '../interfaces/activity-repository.interface';
 import {
     BillingInsightsOptions,
     IDashboardRepository
@@ -43,7 +43,7 @@ export class SupabaseDashboardRepository implements IDashboardRepository {
     }
   }
 
-  async getActivity(userId: string, options?: ActivityQueryOptions): Promise<{ activities: unknown[] }> {
+  async getActivity(userId: string, options?: ActivityQueryOptions): Promise<{ activities: Activity[] }> {
     try {
       this.logger.log('Fetching dashboard activity via DIRECT table query', { userId });
 
@@ -63,7 +63,7 @@ export class SupabaseDashboardRepository implements IDashboardRepository {
         return { activities: [] };
       }
 
-      return { activities: data || [] };
+      return { activities: (data || []) as Activity[] };
     } catch (error) {
       this.logger.error(`Database error in getActivity: ${error instanceof Error ? error.message : String(error)}`, {
         userId,

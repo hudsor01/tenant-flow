@@ -1,9 +1,12 @@
-export {
+export type {
   BaseRepository,
-  RepositoryError,
-  EntityNotFoundError,
-  DuplicateEntityError,
   PaginationOptions,
   SortOptions,
   BaseFilterOptions
+} from '@repo/shared/types/repository-base'
+
+export {
+  RepositoryError,
+  EntityNotFoundError,
+  DuplicateEntityError
 } from '@repo/shared/types/repository-base'

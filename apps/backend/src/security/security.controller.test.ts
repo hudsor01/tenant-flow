@@ -3,16 +3,19 @@ import {
 	SecurityEventSeverity,
 	SecurityEventType
 } from '@repo/shared/types/security'
+import type { CSPReportBody } from '@repo/shared/types/domain'
 import type { ISecurityRepository } from '../repositories/interfaces/security-repository.interface'
 import { securityAuditLogFixture } from './__fixtures__/security-audit-logs.fixture'
 import { SecurityController } from './security.controller'
 import { SecurityMetricsService } from './security-metrics.service'
 
+type LoggerMethods = Pick<Logger, 'warn' | 'log' | 'error' | 'debug'>
+
 describe('SecurityController', () => {
   let controller: SecurityController
   let securityMetricsService: SecurityMetricsService
   let mockSecurityRepository: jest.Mocked<ISecurityRepository>
-  let mockLogger: { warn: jest.Mock; log: jest.Mock; error: jest.Mock; debug: jest.Mock } & Logger
+  let mockLogger: jest.Mocked<LoggerMethods>
 
   beforeEach(() => {
     mockLogger = {
@@ -20,7 +23,7 @@ describe('SecurityController', () => {
       log: jest.fn(),
       error: jest.fn(),
       debug: jest.fn()
-    } as unknown as typeof mockLogger & Logger
+    }
 
     mockSecurityRepository = {
       fetchAuditLogs: jest.fn().mockResolvedValue(securityAuditLogFixture)
@@ -28,8 +31,12 @@ describe('SecurityController', () => {
 
     securityMetricsService = new SecurityMetricsService(mockSecurityRepository)
     controller = new SecurityController(securityMetricsService)
-    // Mock logger using Jest spy on the private property
-    jest.spyOn(controller as any, 'logger', 'get').mockReturnValue(mockLogger)
+
+    Object.defineProperty(controller, 'logger', {
+      configurable: true,
+      get: () => mockLogger as unknown as Logger,
+      set: () => undefined
+    })
   })
 
   afterEach(() => {
@@ -37,7 +44,7 @@ describe('SecurityController', () => {
   })
 
   it('handles CSP report and logs warnings', async () => {
-    const report = {
+    const report: CSPReportBody = {
       'csp-report': {
         'document-uri': 'https://example.com/page',
         referrer: '',
@@ -54,11 +61,11 @@ describe('SecurityController', () => {
       }
     }
 
-    await expect(controller.handleCSPReport(report as any)).resolves.toBeUndefined()
+    await expect(controller.handleCSPReport(report)).resolves.toBeUndefined()
     expect(mockLogger.warn).toHaveBeenCalled()
     const warnCall = mockLogger.warn.mock.calls[0]
-    expect(warnCall[0]).toBe('CSP violation reported')
-    expect(warnCall[1]).toMatchObject({ violatedDirective: "script-src 'self'" })
+    expect(warnCall?.[0]).toBe('CSP violation reported')
+    expect(warnCall?.[1]).toMatchObject({ violatedDirective: "script-src 'self'" })
   })
 
   it('returns security metrics structure', async () => {

@@ -1,24 +1,19 @@
 import { PLAN_TYPE } from '@repo/shared/constants/billing'
-
-export interface BillingPlan {
-	id: string
-	name: string
-	price: number
-	propertyLimit: number
-	stripePriceId?: string | null
-	stripePriceIds: {
-		monthly: string | null
-		annual: string | null
-	}
-}
+import type { BillingPlan } from '@repo/shared/constants/billing'
 
 // Simple constant object - no class abstraction needed
 export const BILLING_PLANS: Record<string, BillingPlan> = {
 	[PLAN_TYPE.FREETRIAL]: {
 		id: PLAN_TYPE.FREETRIAL,
 		name: 'Free Trial',
-		price: 0,
+		description: '14-day free trial with 2 properties',
+		price: {
+			monthly: 0,
+			annual: 0
+		},
+		features: ['2 properties', 'Basic features', '14-day trial'],
 		propertyLimit: 2,
+		storageLimit: 1,
 		stripePriceId: null,
 		stripePriceIds: {
 			monthly: null,
@@ -28,8 +23,14 @@ export const BILLING_PLANS: Record<string, BillingPlan> = {
 	[PLAN_TYPE.STARTER]: {
 		id: PLAN_TYPE.STARTER,
 		name: 'Starter',
-		price: 19,
+		description: 'Perfect for small landlords',
+		price: {
+			monthly: 19,
+			annual: 190
+		},
+		features: ['10 properties', 'Standard features', 'Email support'],
 		propertyLimit: 10,
+		storageLimit: 5,
 		stripePriceId: process.env.STRIPE_STARTER_MONTHLY ?? null,
 		stripePriceIds: {
 			monthly: process.env.STRIPE_STARTER_MONTHLY ?? null,
@@ -39,8 +40,14 @@ export const BILLING_PLANS: Record<string, BillingPlan> = {
 	[PLAN_TYPE.GROWTH]: {
 		id: PLAN_TYPE.GROWTH,
 		name: 'Growth',
-		price: 49,
+		description: 'For growing property managers',
+		price: {
+			monthly: 49,
+			annual: 490
+		},
+		features: ['50 properties', 'Advanced features', 'Priority support'],
 		propertyLimit: 50,
+		storageLimit: 25,
 		stripePriceId: process.env.STRIPE_GROWTH_MONTHLY ?? null,
 		stripePriceIds: {
 			monthly: process.env.STRIPE_GROWTH_MONTHLY ?? null,
@@ -50,8 +57,14 @@ export const BILLING_PLANS: Record<string, BillingPlan> = {
 	[PLAN_TYPE.TENANTFLOW_MAX]: {
 		id: PLAN_TYPE.TENANTFLOW_MAX,
 		name: 'TenantFlow Max',
-		price: 99,
+		description: 'For large property portfolios',
+		price: {
+			monthly: 99,
+			annual: 990
+		},
+		features: ['200 properties', 'Enterprise features', '24/7 support'],
 		propertyLimit: 200,
+		storageLimit: 100,
 		stripePriceId: process.env.STRIPE_MAX_MONTHLY ?? null,
 		stripePriceIds: {
 			monthly: process.env.STRIPE_MAX_MONTHLY ?? null,

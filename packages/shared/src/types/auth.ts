@@ -248,6 +248,8 @@ export interface RequestWithUser {
 	query?: Record<string, string>
 	body?: Record<string, string | number | boolean | null> // HTTP request bodies have constrained JSON values
 	ip?: string
+	route?: { path?: string }
+	method?: string
 }
 
 // MIGRATED from apps/backend/src/shared/guards/throttler-proxy.guard.ts

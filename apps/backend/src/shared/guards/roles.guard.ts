@@ -5,18 +5,7 @@ import {
     Logger,
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import type { UserRole, authUser } from '@repo/shared/types/auth'
-
-interface RequestWithUser {
-	user?: authUser
-	params?: Record<string, string>
-	query?: Record<string, string>
-	body?: Record<string, unknown>
-	ip?: string
-	route?: { path?: string }
-	method?: string
-	get?: (header: string) => string | undefined
-}
+import type { RequestWithUser, UserRole, authUser } from '@repo/shared/types/auth'
 
 /**
  * Guard that handles both role-based and admin access control

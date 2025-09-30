@@ -11,18 +11,12 @@ import { BadRequestException, Injectable, Logger, Inject } from '@nestjs/common'
 import type { CreateUnitRequest, UpdateUnitRequest } from '@repo/shared/types/backend-domain'
 import type { Unit, UnitStats } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
-
-// UnitInput interface - should be added to shared types in Phase 2
-interface UnitInput {
-	propertyId: string
-	unitNumber: string
-	bedrooms: number
-	bathrooms: number
-	squareFeet?: number
-	rent: number
-}
 import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
-import type { IUnitsRepository, UnitQueryOptions } from '../repositories/interfaces/units-repository.interface'
+import type {
+	IUnitsRepository,
+	UnitInput,
+	UnitQueryOptions
+} from '../repositories/interfaces/units-repository.interface'
 
 @Injectable()
 export class UnitsService {
