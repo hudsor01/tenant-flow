@@ -6,8 +6,6 @@ import type { ReactNode } from 'react'
 
 import './dashboard.css'
 
-// Dashboard Layout - Navigation and UI Structure Only
-// Auth is handled by (protected)/layout.tsx
 export default function DashboardLayout({ children }: { children: ReactNode }) {
 	return (
 		<ViewTransitionsProvider>

@@ -12,7 +12,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { tenantsApi } from '@/lib/api-client'
 import { toast } from 'sonner'
-import { tenantUpdateSchema, type TenantUpdate, type TenantWithLeaseInfo } from '@repo/shared'
+import { tenantUpdateSchema, type TenantUpdate } from '@repo/shared/validation/tenants'
+import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
 
 interface TenantActionButtonsProps {
   tenant: TenantWithLeaseInfo
@@ -28,9 +29,9 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
     defaultValues: {
       firstName: tenant.name?.split(' ')[0] || '',
       lastName: tenant.name?.split(' ').slice(1).join(' ') || '',
-      email: tenant.email,
+      email: tenant.email || '',
       phone: tenant.phone || '',
-      emergencyContact: tenant.emergencyContact || undefined
+      emergencyContact: tenant.emergencyContact || ''
     }
   })
 
@@ -171,7 +172,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
             <DialogTitle className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="text-xs font-semibold text-primary">
-                  {(tenant.name || '').split(' ').map(n => n[0]).join('')}
+                  {(tenant.name || '').split(' ').map((n: string) => n[0]).join('')}
                 </span>
               </div>
               {tenant.name}

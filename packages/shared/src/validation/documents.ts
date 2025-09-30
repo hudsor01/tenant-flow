@@ -1,10 +1,11 @@
 import { z } from 'zod'
-import {
-	nonEmptyStringSchema,
-	nonNegativeNumberSchema,
-	urlSchema,
-	uuidSchema
-} from './common.js'
+import
+  {
+    nonEmptyStringSchema,
+    nonNegativeNumberSchema,
+    urlSchema,
+    uuidSchema
+  } from './common.js'
 
 // Document type enum (should match database enum)
 export const documentTypeSchema = z.enum([

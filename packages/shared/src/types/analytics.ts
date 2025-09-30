@@ -77,3 +77,11 @@ export type TenantFlowEvent =
 	| 'security_alert_distributed_attack'
 	| 'security_alert_credential_stuffing'
 	| 'security_rate_limit_stats'
+
+export interface PropertyPerformanceData {
+  name: string
+  occupancy: number
+  revenue: number
+  units: number
+  maintenance: number
+}

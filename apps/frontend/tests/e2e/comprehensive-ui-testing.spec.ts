@@ -3,9 +3,17 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 
 // Test configuration
-const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || (() => {
-	throw new Error('PLAYWRIGHT_TEST_BASE_URL environment variable is required for comprehensive UI testing')
-})()
+const resolveBaseUrl = () => {
+	const fromPlaywright = process.env.PLAYWRIGHT_TEST_BASE_URL
+	if (fromPlaywright) return fromPlaywright
+
+	const fromNextPublic = process.env.NEXT_PUBLIC_APP_URL
+	if (fromNextPublic) return fromNextPublic
+
+	return 'http://localhost:3000'
+}
+
+const BASE_URL = resolveBaseUrl()
 const SCREENSHOT_DIR = 'test-results/screenshots'
 const CONSOLE_LOG_DIR = 'test-results/console-logs'
 

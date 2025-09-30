@@ -3,25 +3,24 @@
  * Integrates with shared API client and backend endpoints
  */
 import type {
-	DashboardFinancialStats,
 	DashboardStats,
+	LeaseStatsResponse,
+	TenantStats,
+	PropertyPerformance,
+	MaintenanceStats,
+	DashboardFinancialStats,
 	ExpenseSummaryResponse,
 	FinancialOverviewResponse,
-	LeaseStatsResponse,
+	TenantWithLeaseInfo,
 	MaintenanceRequest,
-	MaintenanceRequestInput,
 	MaintenanceRequestResponse,
-	MaintenanceRequestUpdate,
-	MaintenanceStats,
-	PropertyPerformance,
-	PropertyWithUnits,
-	SystemUptime,
-	TenantStats,
-	TenantWithLeaseInfo
-} from '@repo/shared'
-import { apiClient } from '@repo/shared'
+	SystemUptime
+} from '@repo/shared/types/core'
 
-import type { Tables, TablesInsert, TablesUpdate } from '@repo/shared'
+import type { PropertyWithUnits } from '@repo/shared/types/relations'
+import type { MaintenanceRequestInput, MaintenanceRequestUpdate } from '@repo/shared/validation/maintenance'
+import { apiClient } from '@repo/shared/utils/api-client'
+import type { Tables, TablesInsert, TablesUpdate } from '@repo/shared/types/supabase'
 
 // Use native Supabase table types for API operations
 type Activity = Tables<'Activity'>
@@ -71,7 +70,36 @@ export const dashboardApi = {
 		),
 
 	getUptime: (): Promise<SystemUptime> =>
-		apiClient<SystemUptime>(`${API_BASE_URL}/api/v1/dashboard/uptime`)
+		apiClient<SystemUptime>(`${API_BASE_URL}/api/v1/dashboard/uptime`),
+
+	// Optimized analytics endpoints using new RPC functions
+	getOccupancyTrends: (months: number = 12) =>
+		apiClient<Array<{
+			month: string;
+			occupancy_rate: number;
+			total_units: number;
+			occupied_units: number;
+		}>>(`${API_BASE_URL}/api/v1/dashboard/occupancy-trends?months=${months}`),
+
+	getRevenueTrends: (months: number = 12) =>
+		apiClient<Array<{
+			month: string;
+			revenue: number;
+			growth: number;
+			previous_period_revenue: number;
+		}>>(`${API_BASE_URL}/api/v1/dashboard/revenue-trends?months=${months}`),
+
+	getMaintenanceAnalytics: () =>
+		apiClient<{
+			avgResolutionTime: number;
+			completionRate: number;
+			priorityBreakdown: Record<string, number>;
+			trendsOverTime: Array<{
+				month: string;
+				completed: number;
+				avgResolutionDays: number;
+			}>;
+		}>(`${API_BASE_URL}/api/v1/dashboard/maintenance-analytics`)
 }
 
 /**
@@ -154,6 +182,15 @@ export const unitsApi = {
 		apiClient<Unit[]>(
 			`${API_BASE_URL}/api/v1/units${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`
 		),
+	stats: () =>
+		apiClient<{
+			totalUnits: number
+			vacantUnits: number
+			occupiedUnits: number
+			maintenanceUnits: number
+			reservedUnits: number
+			occupancyRate: number
+		}>(`${API_BASE_URL}/api/v1/units/stats`),
 	create: (body: UnitInsert) =>
 		apiClient<Unit>(`${API_BASE_URL}/api/v1/units`, {
 			method: 'POST',
@@ -322,9 +359,61 @@ export const maintenanceApi = {
 }
 
 /**
+ * Stripe API endpoints
+ * Fetches live pricing data from Stripe SDK via backend
+ */
+export const stripeApi = {
+	getProducts: () =>
+		apiClient<{
+			success: boolean
+			products: Array<{
+				id: string
+				name: string
+				description: string | null
+				active: boolean
+				metadata: Record<string, string>
+				default_price?: {
+					id: string
+					unit_amount: number
+					currency: string
+					recurring: {
+						interval: 'month' | 'year'
+						interval_count: number
+					} | null
+				}
+				prices?: Array<{
+					id: string
+					unit_amount: number
+					currency: string
+					recurring: {
+						interval: 'month' | 'year'
+						interval_count: number
+					} | null
+				}>
+			}>
+		}>(`${API_BASE_URL}/api/v1/stripe/products`),
+
+	getPrices: () =>
+		apiClient<{
+			success: boolean
+			prices: Array<{
+				id: string
+				product: string
+				unit_amount: number
+				currency: string
+				recurring: {
+					interval: 'month' | 'year'
+					interval_count: number
+				} | null
+				active: boolean
+			}>
+		}>(`${API_BASE_URL}/api/v1/stripe/prices`)
+}
+
+/**
  * Visitor Analytics API endpoints - REMOVED
  * These endpoints do not exist in the backend and were causing 400/404 errors
- * TODO: Implement visitor analytics backend endpoints if needed in the future
+ * Visitor analytics endpoints can be registered here once the backend exposes them.
  */
 // export const visitorAnalyticsApi = {
 // 	getPropertyInterest: (timeRange = '30d', propertyId?: string) => {

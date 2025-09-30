@@ -18,7 +18,6 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
 				SUPABASE_ANON_KEY: 'anon-key',
@@ -62,7 +61,22 @@ describe('Configuration Schema Validation', () => {
 			expect(() => validate(config)).toThrow('JWT secret must be at least 32 characters')
 		})
 
-		// Note: SUPABASE_JWT_SECRET validation removed as it's not defined in the schema
+		it('should throw error for short SUPABASE_JWT_SECRET', () => {
+			const config = {
+				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
+				JWT_SECRET: 'a'.repeat(32),
+				SUPABASE_URL: 'https://project.supabase.co',
+				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
+				SUPABASE_JWT_SECRET: 'short',
+				SUPABASE_ANON_KEY: 'anon-key',
+				STRIPE_SECRET_KEY: 'sk_test_123',
+				STRIPE_WEBHOOK_SECRET: 'whsec_123'
+			}
+
+			expect(() => validate(config)).toThrow(
+				'Supabase JWT secret must be at least 32 characters'
+			)
+		})
 
 		it('should throw error for invalid SUPABASE_URL', () => {
 			const config = {

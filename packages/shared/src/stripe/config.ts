@@ -63,7 +63,3 @@ export function getPriceId(plan: PlanType, period: BillingPeriod): string {
 export function getAllPlans() {
 	return PLANS
 }
-
-
-
-

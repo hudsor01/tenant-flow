@@ -4,7 +4,7 @@
  */
 
 import { createMutationErrorHandler } from '@/lib/error-handler'
-import type { ErrorContext } from '@repo/shared'
+import type { ErrorContext } from '@repo/shared/types/errors'
 import { useMutation, type UseMutationOptions } from '@tanstack/react-query'
 
 /**

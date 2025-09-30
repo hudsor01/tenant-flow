@@ -3,7 +3,7 @@
  * Ensures WCAG 2.1 AA compliance for all color combinations in the design token system
  */
 
-import { oklchToRgb, rgbToRelativeLuminance } from '../colors/utils'
+import { oklchToRgb, rgbToRelativeLuminance } from '@/design-system/colors/utils'
 import { CheckCircle, XCircle } from 'lucide-react'
 
 export interface ContrastResult {

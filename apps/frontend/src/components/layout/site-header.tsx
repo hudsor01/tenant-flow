@@ -6,12 +6,6 @@ import { cn } from '@/lib/utils'
 import { Search } from 'lucide-react'
 import * as React from 'react'
 
-const userData = {
-	name: 'TenantFlow User',
-	email: 'user@tenantflow.app',
-	avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=TenantFlow'
-}
-
 type SiteHeaderProps = React.ComponentProps<'header'>
 
 export const SiteHeader = React.forwardRef<HTMLElement, SiteHeaderProps>(
@@ -45,7 +39,7 @@ export const SiteHeader = React.forwardRef<HTMLElement, SiteHeaderProps>(
 
 					{/* User Avatar */}
 					<div className="ml-auto flex items-center gap-2">
-						<NavUser user={userData} />
+						<NavUser />
 					</div>
 				</div>
 			</header>

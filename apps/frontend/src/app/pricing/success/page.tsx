@@ -2,7 +2,7 @@
 
 import Footer from '@/components/layout/footer'
 import { Navbar } from '@/components/layout/navbar'
-import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { HeroSection } from '@/components/sections/hero-section'
 import { CustomerPortalButton } from '@/components/pricing/customer-portal'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -51,7 +51,7 @@ export default function CheckoutSuccessPage() {
 		return (
 			<main className="min-h-screen bg-background">
 				<Navbar />
-				<div className="pt-20 flex items-center justify-center min-h-[60vh]">
+				<div className="section-content flex items-center justify-center min-h-[60vh]">
 					<div className="text-center">
 						<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
 						<h2 className="text-xl font-semibold mb-2">
@@ -67,25 +67,20 @@ export default function CheckoutSuccessPage() {
 	}
 
 	return (
-		<main className="min-h-screen gradient-authority">
+		<main className="min-h-screen bg-primary">
 			<Navbar />
 
-			{/* Hero Authority Section */}
-			<HeroAuthority
-				title={<>Payment Successful!</>}
-				subtitle={
-					<>
-						Welcome to TenantFlow! Your subscription is now active and ready to
-						use. Start managing your properties with enterprise-grade tools.
-					</>
-				}
+			{/* Hero Section */}
+			<HeroSection
+				title="Payment Successful!"
+				subtitle="Welcome to TenantFlow! Your subscription is now active and ready to use. Start managing your properties with enterprise-grade tools."
 				primaryCta={{ label: 'Go to Dashboard', href: '/dashboard' }}
 				secondaryCta={{ label: 'Contact Support', href: '/contact' }}
 			/>
 
-			<div className="pt-20">
-				<div className="container mx-auto px-4 section-content max-w-2xl">
-					<Card className="text-center card-elevated-authority">
+			<div className="section-content">
+				<div className="max-w-2xl mx-auto px-6 lg:px-8">
+					<Card className="text-center shadow-2xl border-2 border-border/50">
 						<CardHeader className="pb-8">
 							<div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
 								<CheckCircle className="w-8 h-8 text-accent" />

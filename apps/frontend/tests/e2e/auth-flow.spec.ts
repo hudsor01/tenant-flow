@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Authentication Flow - Production Scenarios', () => {
 	test('password visibility toggle works correctly', async ({ page }) => {
-		await page.goto('/auth/login')
+		await page.goto('/login')
 		
 		// Wait for the page to be fully loaded
 		await page.waitForLoadState('networkidle')
@@ -41,21 +41,21 @@ test.describe('Authentication Flow - Production Scenarios', () => {
 		await page.goto('/dashboard')
 		
 		// Should redirect to login
-		await expect(page).toHaveURL(/.*\/auth\/login/)
-		// More specific selector for the Sign In heading, not the button
-		await expect(page.locator('h1:has-text("Sign In"), h2:has-text("Sign In")')).toBeVisible()
+		await expect(page).toHaveURL(/.*\/login/)
+		// Ensure the login form is available
+		await expect(page.getByTestId('login-button')).toBeVisible()
 	})
 
 	test('link between login and signup pages works', async ({ page }) => {
 		// Start at login page
-		await page.goto('/auth/login')
-		
-		// Click sign up link - look for the link specifically, not any text
-		await page.click('a:has-text("Sign up")')
-		await expect(page).toHaveURL(/.*\/auth\/signup/)
-		
+		await page.goto('/login')
+
+		// Click sign up link using explicit test id
+		await page.getByTestId('signup-link').click()
+		await expect(page).toHaveURL(/.*\/signup/)
+
 		// Navigate back to login from signup - look for the link specifically
-		await page.click('a:has-text("Sign in")')
-		await expect(page).toHaveURL(/.*\/auth\/login/)
+		await page.getByRole('link', { name: 'Sign in' }).click()
+		await expect(page).toHaveURL(/.*\/login/)
 	})
 })

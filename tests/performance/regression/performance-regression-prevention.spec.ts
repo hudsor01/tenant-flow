@@ -12,8 +12,8 @@
  * - CI-optimized test execution
  */
 
-import { test, expect } from '@playwright/test'
-import { PerformanceTestUtils, PerformanceAssertions } from '../performance-test-utilities'
+import { expect, test } from '@playwright/test'
+import { PerformanceTestUtils } from '../performance-test-utilities'
 
 test.describe('Performance Regression Prevention - CI Suite', () => {
   let performanceUtils: PerformanceTestUtils
@@ -420,7 +420,7 @@ test.describe('Performance Regression Prevention - CI Suite', () => {
     test('All critical interactions pass 200ms gate', async ({ page }) => {
       const criticalGates = [
         { path: '/', selector: 'button:has-text("Get Started")', name: 'homepage_cta' },
-        { path: '/auth/login', selector: 'button[type="submit"]', name: 'login_submit' },
+        { path: '', selector: 'button[type="submit"]', name: 'login_submit' },
         { path: '/dashboard', selector: '[data-testid*="nav-"]', name: 'dashboard_nav', type: 'hover' }
       ]
 

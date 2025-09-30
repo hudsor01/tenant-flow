@@ -2,7 +2,7 @@ import {
 	PROTECTED_ROUTE_PREFIXES,
 	PUBLIC_AUTH_ROUTES
 } from '@/lib/auth-constants'
-import type { Database } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 

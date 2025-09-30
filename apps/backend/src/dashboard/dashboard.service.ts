@@ -1,11 +1,8 @@
 import { Injectable, Logger, Inject } from '@nestjs/common'
-import type {
-	DashboardStats,
-	PropertyPerformance,
-	SystemUptime
-} from '@repo/shared'
+import type { DashboardStats, PropertyPerformance, SystemUptime } from '@repo/shared/types/core'
 import type { IDashboardRepository } from '../repositories/interfaces/dashboard-repository.interface'
 import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
+import { DashboardAnalyticsService } from '../analytics/dashboard-analytics.service'
 
 @Injectable()
 export class DashboardService {
@@ -13,7 +10,8 @@ export class DashboardService {
 
 	constructor(
 		@Inject(REPOSITORY_TOKENS.DASHBOARD)
-		private readonly dashboardRepository: IDashboardRepository
+		private readonly dashboardRepository: IDashboardRepository,
+		private readonly dashboardAnalyticsService: DashboardAnalyticsService
 	) {}
 
 	/**
@@ -145,12 +143,13 @@ export class DashboardService {
 	 * Delegates to repository layer for clean data access
 	 */
 	async getBillingInsights(
+		userId: string,
 		startDate?: Date,
 		endDate?: Date
 	): Promise<Record<string, unknown> | null> {
 		try {
-			this.logger.log('Fetching billing insights via repository', { startDate, endDate })
-			return await this.dashboardRepository.getBillingInsights({ startDate, endDate })
+			this.logger.log('Fetching billing insights via repository', { userId, startDate, endDate })
+			return await this.dashboardRepository.getBillingInsights(userId, { startDate, endDate })
 		} catch (error) {
 			this.logger.error('Dashboard service failed to get billing insights', {
 				error: error instanceof Error ? error.message : String(error),
@@ -214,6 +213,137 @@ export class DashboardService {
 				lastIncident: null,
 				responseTime: 150,
 				timestamp: new Date().toISOString()
+			}
+		}
+	}
+
+	/**
+	 * Get dashboard metrics - replaces get_dashboard_metrics function
+	 * Uses repository pattern instead of database function
+	 */
+	async getMetrics(userId: string): Promise<Record<string, unknown>> {
+		try {
+			this.logger.log('Fetching dashboard metrics via repository', { userId })
+
+			// Use existing getStats method as foundation
+			const stats = await this.getStats(userId)
+
+			// Return metrics format expected by frontend
+			return {
+				totalProperties: stats.properties.total,
+				totalUnits: stats.units.total,
+				totalTenants: stats.tenants.total,
+				totalLeases: stats.leases.total,
+				occupancyRate: stats.units.occupancyRate,
+				monthlyRevenue: stats.revenue.monthly,
+				maintenanceRequests: stats.maintenance.total,
+				timestamp: new Date().toISOString()
+			}
+		} catch (error) {
+			this.logger.error('Dashboard service failed to get metrics', {
+				error: error instanceof Error ? error.message : String(error),
+				userId
+			})
+			return {}
+		}
+	}
+
+	/**
+	 * Get dashboard summary - replaces get_dashboard_summary function
+	 * Uses repository pattern instead of database function
+	 */
+	async getSummary(userId: string): Promise<Record<string, unknown>> {
+		try {
+			this.logger.log('Fetching dashboard summary via repository', { userId })
+
+			// Combine multiple repository calls for comprehensive summary
+			const [stats, activity, propertyPerformance] = await Promise.all([
+				this.getStats(userId),
+				this.getActivity(userId),
+				this.getPropertyPerformance(userId)
+			])
+
+			return {
+				overview: {
+					properties: stats.properties.total,
+					units: stats.units.total,
+					tenants: stats.tenants.active,
+					occupancyRate: stats.units.occupancyRate
+				},
+				revenue: {
+					monthly: stats.revenue.monthly,
+					yearly: stats.revenue.yearly,
+					growth: stats.revenue.growth
+				},
+				maintenance: {
+					open: stats.maintenance.open,
+					inProgress: stats.maintenance.inProgress,
+					avgResolutionTime: stats.maintenance.avgResolutionTime
+				},
+				recentActivity: activity.activities.slice(0, 5),
+				topPerformingProperties: propertyPerformance.slice(0, 3),
+				timestamp: new Date().toISOString()
+			}
+		} catch (error) {
+			this.logger.error('Dashboard service failed to get summary', {
+				error: error instanceof Error ? error.message : String(error),
+				userId
+			})
+			return {}
+		}
+	}
+
+	/**
+	 * Get occupancy trends using optimized RPC function
+	 */
+	async getOccupancyTrends(userId: string, months: number = 12) {
+		try {
+			this.logger.log('Fetching occupancy trends via analytics service', { userId, months })
+			return await this.dashboardAnalyticsService.getOccupancyTrends(userId, months)
+		} catch (error) {
+			this.logger.error('Dashboard service failed to get occupancy trends', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				months
+			})
+			return []
+		}
+	}
+
+	/**
+	 * Get revenue trends using optimized RPC function
+	 */
+	async getRevenueTrends(userId: string, months: number = 12) {
+		try {
+			this.logger.log('Fetching revenue trends via analytics service', { userId, months })
+			return await this.dashboardAnalyticsService.getRevenueTrends(userId, months)
+		} catch (error) {
+			this.logger.error('Dashboard service failed to get revenue trends', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				months
+			})
+			return []
+		}
+	}
+
+	/**
+	 * Get maintenance analytics using optimized RPC function
+	 */
+	async getMaintenanceAnalytics(userId: string) {
+		try {
+			this.logger.log('Fetching maintenance analytics via analytics service', { userId })
+			return await this.dashboardAnalyticsService.getMaintenanceAnalytics(userId)
+		} catch (error) {
+			this.logger.error('Dashboard service failed to get maintenance analytics', {
+				error: error instanceof Error ? error.message : String(error),
+				userId
+			})
+			return {
+				avgResolutionTime: 0,
+				completionRate: 0,
+				priorityBreakdown: {},
+				trendsOverTime: []
 			}
 		}
 	}

@@ -5,15 +5,16 @@ import { createContext, useContext, useEffect, useRef } from 'react'
 
 import { useStore, type StoreApi } from 'zustand'
 
-import {
-	getStoredThemeMode,
-	persistThemeMode,
-	updateThemeMode
-} from '@/lib/theme-utils'
-import type { ThemeMode } from '@repo/shared'
+import
+  {
+    getStoredThemeMode,
+    persistThemeMode,
+    updateThemeMode
+  } from '@/lib/theme-utils'
+import type { ThemeMode } from '@repo/shared/types/domain'
 
-import type { PreferencesState } from './preferences-store'
-import { createPreferencesStore } from './preferences-store'
+import type { PreferencesState } from '@/stores/preferences-store'
+import { createPreferencesStore } from '@/stores/preferences-store'
 
 const PreferencesStoreContext =
 	createContext<StoreApi<PreferencesState> | null>(null)

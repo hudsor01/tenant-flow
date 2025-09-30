@@ -7,7 +7,7 @@ import {
 	Post,
 	SetMetadata
 } from '@nestjs/common'
-import type { WebVitalData } from '@repo/shared'
+import type { WebVitalData } from '@repo/shared/types/frontend'
 // Swagger imports removed
 import { AnalyticsService } from './analytics.service'
 

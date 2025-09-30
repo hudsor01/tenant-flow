@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus } from '@nestjs/common'
-import type { BusinessErrorCode } from '@repo/shared'
+import type { BusinessErrorCode } from '@repo/shared/types/errors'
 
 /**
  * Business Exception for domain-specific errors

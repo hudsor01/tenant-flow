@@ -1,6 +1,8 @@
-// Database package - Health utilities for Supabase database
-// This package provides minimal database utilities without circular dependencies
+/**
+ * TenantFlow Database Package
+ *
+ * Provides database health check utilities for the monorepo.
+ * This barrel export is required for proper package resolution.
+ */
 
-// Export health check utilities
-export { checkDatabaseConnection } from './health'
-export type { DatabaseHealthResult } from './health'
+export * from './health.js'

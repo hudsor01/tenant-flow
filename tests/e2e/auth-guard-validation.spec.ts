@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 /**
  * E2E Test Suite: Global AuthGuard Validation
@@ -25,7 +25,7 @@ test.describe('Global AuthGuard Validation', () => {
 		expect(healthResponse.status()).toBe(200)
 
 		// Login endpoint (POST with invalid credentials to test it's accessible)
-		const loginResponse = await request.post(`${baseURL}/auth/login`, {
+		const loginResponse = await request.post(`${baseURL}`, {
 			data: {
 				email: 'test@example.com',
 				password: 'wrong'

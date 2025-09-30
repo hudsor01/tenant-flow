@@ -12,8 +12,8 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useFormWithProgress } from '@/hooks/use-form-progress'
-import type { ContactFormRequest } from '@repo/shared'
-import { createLogger } from '@repo/shared'
+import type { ContactFormRequest } from '@repo/shared/types/domain'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { Check, Mail, MapPin, Phone } from 'lucide-react'
 import { useState } from 'react'
 
@@ -190,7 +190,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 				<div className="absolute inset-0 bg-gradient-to-br from-background/30 via-transparent to-background/20" />
 
 				{/* Glassmorphism Container */}
-				<div className="relative z-10 p-8 rounded-2xl backdrop-blur-lg bg-background/60 dark:bg-[var(--color-fill-primary)]/60 border border-border/20 shadow-2xl">
+				<div className="relative z-10 p-8 rounded-2xl backdrop-blur-lg bg-background/60 dark:bg-card/60 border border-border/20 shadow-2xl">
 					<h1 className="text-3xl font-bold text-foreground lg:text-4xl">
 						Let's Talk About Your Properties
 					</h1>
@@ -284,10 +284,10 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									onChange={e => handleInputChange('name', e.target.value)}
 									placeholder="John Smith"
 									required
-									className={`mt-2 bg-background border-border ${errors.name ? 'border-[var(--color-error-border)]' : ''}`}
+									className={`mt-2 bg-background border-border ${errors.name ? 'border-destructive' : ''}`}
 								/>
 								{errors.name && (
-									<p className="mt-1 text-sm text-[var(--color-error)]">
+									<p className="mt-1 text-sm text-destructive">
 										{errors.name}
 									</p>
 								)}
@@ -304,10 +304,10 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									onChange={e => handleInputChange('email', e.target.value)}
 									placeholder="john@propertyco.com"
 									required
-									className={`mt-2 bg-background border-border ${errors.email ? 'border-[var(--color-error-border)]' : ''}`}
+									className={`mt-2 bg-background border-border ${errors.email ? 'border-destructive' : ''}`}
 								/>
 								{errors.email && (
-									<p className="mt-1 text-sm text-[var(--color-error)]">
+									<p className="mt-1 text-sm text-destructive">
 										{errors.email}
 									</p>
 								)}
@@ -339,10 +339,10 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									value={formData.phone || ''}
 									onChange={e => handleInputChange('phone', e.target.value)}
 									placeholder="+1 (555) 123-4567"
-									className={`mt-2 bg-background border-border ${errors.phone ? 'border-[var(--color-error-border)]' : ''}`}
+									className={`mt-2 bg-background border-border ${errors.phone ? 'border-destructive' : ''}`}
 								/>
 								{errors.phone && (
-									<p className="mt-1 text-sm text-[var(--color-error)]">
+									<p className="mt-1 text-sm text-destructive">
 										{errors.phone}
 									</p>
 								)}
@@ -359,7 +359,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								required
 							>
 								<SelectTrigger
-									className={`mt-2 bg-background border-border ${errors.subject ? 'border-[var(--color-error-border)]' : ''}`}
+									className={`mt-2 bg-background border-border ${errors.subject ? 'border-destructive' : ''}`}
 								>
 									<SelectValue placeholder="What brings you to TenantFlow?" />
 								</SelectTrigger>
@@ -382,7 +382,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								</SelectContent>
 							</Select>
 							{errors.subject && (
-								<p className="mt-1 text-sm text-[var(--color-error)]">
+								<p className="mt-1 text-sm text-destructive">
 									{errors.subject}
 								</p>
 							)}
@@ -421,10 +421,10 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								placeholder="Tell us about your property portfolio, current challenges, or any specific questions you have about TenantFlow..."
 								required
 								rows={5}
-								className={`mt-2 resize-none bg-background border-border ${errors.message ? 'border-[var(--color-error-border)]' : ''}`}
+								className={`mt-2 resize-none bg-background border-border ${errors.message ? 'border-destructive' : ''}`}
 							/>
 							{errors.message && (
-								<p className="mt-1 text-sm text-[var(--color-error)]">
+								<p className="mt-1 text-sm text-destructive">
 									{errors.message}
 								</p>
 							)}

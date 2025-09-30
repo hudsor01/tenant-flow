@@ -1,11 +1,9 @@
-import type {
-  Tenant,
-  TenantInput,
-  TenantUpdate,
-  TenantStats,
-  QueryParams,
-  Activity
-} from '@repo/shared';
+import type { Database, Tables } from '@repo/shared/types/supabase-generated';
+import type { QueryParams, TenantStats, Tenant } from '@repo/shared/types/core';
+
+// Type aliases for Input/Update using database schema
+export type TenantInput = Database['public']['Tables']['Tenant']['Insert'];
+export type TenantUpdate = Database['public']['Tables']['Tenant']['Update'];
 
 /**
  * Tenant query options - extends standard QueryParams with tenant-specific filters
@@ -63,5 +61,5 @@ export interface ITenantsRepository {
   /**
    * Get tenant activity history
    */
-  getActivity(userId: string, tenantId: string): Promise<Activity[]>;
+  getActivity(userId: string, tenantId: string): Promise<Tables<'Activity'>[]>;
 }

@@ -1,28 +1,26 @@
 'use client'
 
 import Footer from '@/components/layout/footer'
-import { Navbar } from '@/components/layout/navbar'
 import { BlurFade } from '@/components/magicui/blur-fade'
-import { HeroAuthority } from '@/components/marketing/hero-authority'
-import { FeaturesSection } from '@/components/sections/features-section'
-
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { cn, containerClasses } from '@/lib/design-system'
-import { TYPOGRAPHY_SCALE } from '@repo/shared'
-import {
-	ArrowRight,
-	BarChart3,
-	Check,
-	ChevronRight,
-	Clock,
-	Shield,
-	Star,
-	TrendingUp,
-	Users,
-	Zap
-} from 'lucide-react'
+import { GridBackground } from '@/components/ui/grid-background'
+import { cn } from '@/lib/utils'
+import
+  {
+    ArrowRight,
+    BarChart3,
+    Check,
+    ChevronRight,
+    Clock,
+    Shield,
+    Star,
+    TrendingUp,
+    Users,
+    Zap
+  } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 // (Video dialog removed — no video assets available)
@@ -88,22 +86,95 @@ export default function FeaturesPage() {
 	]
 
 	return (
-		<div className="min-h-screen bg-background">
-			<Navbar />
+		<div className="relative min-h-screen flex flex-col">
+			{/* Full page grid background */}
+			<GridBackground className="fixed inset-0 -z-10" />
 
-			{/* Hero Authority Section */}
-			<HeroAuthority
-				title={<>Transform your portfolio into a profit powerhouse</>}
-				subtitle={
-					<>
-						Join 10,000+ property managers who've increased NOI by 40% with
-						enterprise-grade automation and AI-powered analytics. ROI guaranteed
-						in 90 days.
-					</>
-				}
-				primaryCta={{ label: 'Start Free Trial', href: '/signup' }}
-				secondaryCta={{ label: 'See it in action', href: '/contact' }}
-			/>
+			{/* Navigation */}
+			<nav className="fixed top-6 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
+				<div className="flex items-center justify-between gap-12">
+					<Link
+						href="/"
+						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
+					>
+						<div className="w-8 h-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+								className="w-5 h-5 text-primary-foreground"
+							>
+								<path
+									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
+						</div>
+						<span className="text-xl font-bold text-foreground tracking-tight">
+							TenantFlow
+						</span>
+					</Link>
+
+					<div className="hidden md:flex items-center space-x-1">
+						<Link
+							href="/features"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							Features
+						</Link>
+						<Link
+							href="/pricing"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							Pricing
+						</Link>
+						<Link
+							href="/about"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							About
+						</Link>
+						<Link
+							href="/blog"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							Blog
+						</Link>
+						<Link
+							href="/faq"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							FAQ
+						</Link>
+						<Link
+							href="/contact"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							Contact
+						</Link>
+					</div>
+
+					<div className="flex items-center space-x-3">
+						<Link
+							href="/login"
+							className="hidden sm:flex px-4 py-2 text-foreground rounded-xl hover:bg-accent transition-all duration-300 font-medium"
+						>
+							Sign In
+						</Link>
+						<Link
+							href="/login"
+							className="flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
+						>
+							Get Started
+							<ArrowRight className="ml-2 h-4 w-4" />
+						</Link>
+					</div>
+				</div>
+			</nav>
+
 
 			{/* Sticky CTA */}
 			<div
@@ -127,7 +198,7 @@ export default function FeaturesPage() {
 			</div>
 
 			{/* Hero Section with Modern Background */}
-			<section className="relative pt-24 pb-16 overflow-hidden">
+			<section className="relative page-content pb-16 overflow-hidden">
 				{/* Modern gradient background */}
 				<div className="absolute inset-0 bg-gradient-to-br from-background via-primary/[0.02] to-background">
 					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)_/_0.05),transparent_50%)] bg-[length:100%_100%]" />
@@ -137,7 +208,7 @@ export default function FeaturesPage() {
 				{/* Subtle pattern overlay */}
 				<div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,hsl(var(--foreground))_1px,transparent_0)] bg-[size:32px_32px]" />
 
-				<div className={cn(containerClasses('xl'), 'relative z-10')}>
+				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 					<BlurFade delay={0.1} inView>
 						<div className="text-center max-w-5xl mx-auto space-y-8">
 							{/* Trust Band - Moved to prominent position */}
@@ -168,12 +239,7 @@ export default function FeaturesPage() {
 
 							{/* Strengthened headline with premium typography */}
 							<h1
-								className="text-foreground font-bold tracking-tight leading-[1.1]"
-								style={{
-									fontSize: 'clamp(2.5rem, 5vw, 4.5rem)',
-									fontWeight: 800,
-									lineHeight: 1.1
-								}}
+								className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground"
 							>
 								Transform your portfolio into a{' '}
 								<span className="relative inline-block">
@@ -202,11 +268,7 @@ export default function FeaturesPage() {
 								>
 									<a href="/signup" aria-label="Start free trial">
 										<div
-											className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-											style={{
-												backgroundColor:
-													'color-mix(in oklab, var(--color-fill-primary) 40%, transparent)'
-											}}
+											className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50"
 										/>
 										<span className="relative z-10 flex items-center">
 											Start Free Trial
@@ -242,7 +304,7 @@ export default function FeaturesPage() {
 
 			{/* Feature callouts (concise horizontal pills) */}
 			<section className="pb-10">
-				<div className={containerClasses('xl')}>
+				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="grid gap-3 md:grid-cols-3">
 						<FeaturePill
 							icon={<BarChart3 className="w-5 h-5" />}
@@ -264,8 +326,8 @@ export default function FeaturesPage() {
 			</section>
 
 			{/* Trust Indicators with Customer Testimonials */}
-			<section className="py-12 bg-gradient-to-r from-primary/[0.02] via-background to-primary/[0.02]">
-				<div className={containerClasses('xl')}>
+			<section className="section-compact bg-gradient-to-r from-primary/[0.02] via-background to-primary/[0.02]">
+				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.2} inView>
 						<div className="text-center space-y-8">
 							{/* Press mentions and awards */}
@@ -289,11 +351,7 @@ export default function FeaturesPage() {
 							{/* Rotating testimonial */}
 							<div className="max-w-4xl mx-auto">
 								<div
-									className="relative rounded-2xl p-8 border border-primary/10 backdrop-blur-sm"
-									style={{
-										backgroundColor:
-											'color-mix(in oklab, var(--color-fill-primary) 65%, transparent)'
-									}}
+									className="relative rounded-2xl p-8 border border-primary/10 backdrop-blur-sm bg-card/50"
 								>
 									<>
 										<blockquote className="text-xl text-foreground font-medium leading-relaxed mb-6">
@@ -340,17 +398,16 @@ export default function FeaturesPage() {
 				</div>
 			</section>
 
-			{/* Canonical Bento features grid */}
-			<FeaturesSection />
+			{/* Canonical Bento features grid - Removed: Component deleted during refactoring */}
 
 			{/* Transformation Journey - Redesigned Feature Callouts */}
-			<section className="py-20">
-				<div className={containerClasses('xl')}>
+			<section className="section-content">
+				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.3} inView>
 						<div className="text-center mb-16 space-y-6">
 							<h2
-								className="text-foreground font-bold tracking-tight"
-								style={TYPOGRAPHY_SCALE['display-lg']}
+								className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
+								
 							>
 								Your 3-step transformation to{' '}
 								<span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
@@ -398,9 +455,9 @@ export default function FeaturesPage() {
 									<div
 										className={cn(
 											'rounded-xl border p-4 mb-4 transition-colors',
-											'bg-[var(--color-fill-primary)]',
-											'dark:bg-[var(--color-fill-secondary)]',
-											'border-[var(--color-accent-25)]'
+											'bg-card/50',
+											'dark:bg-muted/50',
+											'border-accent/25'
 										)}
 									>
 										<div className="text-2xl font-bold text-accent">65%</div>
@@ -448,9 +505,9 @@ export default function FeaturesPage() {
 									<div
 										className={cn(
 											'rounded-xl border p-4 mb-4 transition-colors',
-											'bg-[var(--color-fill-primary)]',
-											'dark:bg-[var(--color-fill-secondary)]',
-											'border-[var(--color-primary-brand-25)]'
+											'bg-card/50',
+											'dark:bg-muted/50',
+											'border-primary/25'
 										)}
 									>
 										<div className="text-2xl font-bold text-primary">25+</div>
@@ -498,9 +555,9 @@ export default function FeaturesPage() {
 									<div
 										className={cn(
 											'rounded-xl border p-4 mb-4 transition-colors',
-											'bg-[var(--color-fill-primary)]',
-											'dark:bg-[var(--color-fill-secondary)]',
-											'border-[var(--color-separator)]'
+											'bg-card/50',
+											'dark:bg-muted/50',
+											'border-border'
 										)}
 									>
 										<div className="text-2xl font-bold text-primary">SOC 2</div>
@@ -531,14 +588,12 @@ export default function FeaturesPage() {
 			</section>
 
 			{/* Results Proof Section */}
-			<section className="py-20 bg-gradient-to-br from-primary/[0.02] via-background to-accent/[0.02]">
-				<div className={containerClasses('xl')}>
+			<section className="section-content bg-gradient-to-br from-primary/[0.02] via-background to-accent/[0.02]">
+				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.4} inView>
 						<div className="text-center mb-16">
 							<h2
-								className="text-foreground font-bold tracking-tight mb-6"
-								style={TYPOGRAPHY_SCALE['display-lg']}
-							>
+								className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-6" >
 								Real results from real property managers
 							</h2>
 							<p className="text-muted-foreground text-lg max-w-3xl mx-auto">
@@ -596,18 +651,18 @@ export default function FeaturesPage() {
 			</section>
 
 			{/* Final CTA Section with Enhanced Design */}
-			<section className="py-20 relative overflow-hidden">
+			<section className="section-content relative overflow-hidden">
 				{/* Enhanced background */}
 				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5">
 					<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary)_/_0.1),transparent_70%)]" />
 				</div>
 
-				<div className={cn(containerClasses('lg'), 'relative z-10')}>
+				<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
 					<BlurFade delay={0.5} inView>
 						<div className="text-center space-y-8">
 							<h2
 								className="font-bold tracking-tight leading-tight"
-								style={TYPOGRAPHY_SCALE['display-lg']}
+								
 							>
 								Start your transformation{' '}
 								<span className="bg-gradient-to-r from-primary via-primary/90 to-accent bg-clip-text text-transparent">
@@ -631,11 +686,7 @@ export default function FeaturesPage() {
 								>
 									<a href="/signup" aria-label="Start free trial">
 										<div
-											className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-											style={{
-												backgroundColor:
-													'color-mix(in oklab, var(--color-fill-primary) 40%, transparent)'
-											}}
+											className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50"
 										/>
 										<span className="relative z-10 flex items-center">
 											Start Free Trial

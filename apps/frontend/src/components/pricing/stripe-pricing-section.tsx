@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-import { usePricing } from '@/hooks/use-pricing'
+import { useStripeProducts, formatStripePrice, calculateAnnualSavings } from '@/hooks/use-stripe-products'
 import { checkoutRateLimiter } from '@/lib/security'
 import { createCheckoutSession, isUserAuthenticated } from '@/lib/stripe-client'
 import {
@@ -16,8 +16,8 @@ import {
 	cn,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
-import { type PricingUIData, createLogger } from '@repo/shared'
-import { type PricingConfig } from '@repo/shared/config/pricing'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+import type { PricingUIData } from '@repo/shared/types/frontend'
 import { useMutation } from '@tanstack/react-query'
 import {
 	ArrowRight,
@@ -94,87 +94,81 @@ export function StripePricingSection({
 	const logger = createLogger({ component: 'StripePricingSection' })
 	const [isYearly, setIsYearly] = useState(false)
 
-	// Use simple fixed pricing (no more over-engineered dynamic system)
-	const { plans, getStripeId } = usePricing()
-	const activePlans = plans
+	// Fetch real pricing data from Stripe via backend
+	const { products, isLoading, error } = useStripeProducts()
+	const activePlans = products
 
-	// Calculate savings and format pricing - MOVED UP TO FIX HOOKS RULES
+	// Transform real Stripe data into UI format
 	const pricingData = useMemo((): (PricingUIData & {
 		name: string
 		planId: string
+		stripeMonthlyPriceId?: string
+		stripeAnnualPriceId?: string
 	})[] => {
-		return activePlans.map(
-			(plan): PricingUIData & { name: string; planId: string } => {
-				if (!plan.price)
-					return {
-						name: plan.name || '',
-						planId: plan.planId,
-						icon: planIconMap[plan.planId] || Rocket,
-						popular: popularPlans.includes(plan.planId),
-						tier: planTierMap[plan.planId] || 'standard',
-						tagline: plan.description || '',
-						enhanced_features: plan.features.map(f => ({
-							text: f,
-							highlight: false
-						})),
-						benefits: [],
-						cta: planCtaMap[plan.planId] || 'Get Started',
-						highlight: planHighlightMap[plan.planId] || '',
-						monthlySavings: 0,
-						yearlySavings: 0,
-						savingsPercentage: 0,
-						formattedPrice: '$0',
-						fullYearPrice: '$0'
-					}
+		return activePlans.map(product => {
+			// Extract plan ID from metadata or use lowercase name
+			const planId = product.metadata.planId || product.name.toLowerCase().replace(/\s+/g, '')
 
-				const monthlyPrice = plan.price.monthly / 100
-				const yearlyPrice = plan.price.annual / 100
-				// Stripe already provides pricing - no calculation needed
+			// Get pricing from Stripe (already in cents)
+			const monthlyPrice = product.prices.monthly?.unit_amount || 0
+			const annualPrice = product.prices.annual?.unit_amount || 0
 
-				// Get UI enhancement data dynamically based on plan ID
-				const icon = planIconMap[plan.planId] || Rocket
-				const tier = planTierMap[plan.planId] || 'standard'
-				const popular = popularPlans.includes(plan.planId)
-				const cta = planCtaMap[plan.planId] || 'Get Started'
-				const highlight = planHighlightMap[plan.planId] || ''
+			// Calculate savings
+			const savings = calculateAnnualSavings(monthlyPrice, annualPrice)
 
-				return {
-					...plan,
-					icon,
-					popular,
-					tier,
-					tagline: plan.description || '',
-					enhanced_features: plan.features.map(f => ({
-						text: f,
-						highlight: false
-					})),
-					benefits: [],
-					cta,
-					highlight,
-					name: plan.name || '',
-					planId: plan.planId,
-					// Pricing data from Stripe - no calculations needed
-					monthlySavings: 0, // Will be removed once component is updated
-					yearlySavings: yearlyPrice,
-					savingsPercentage: 0, // Will be removed once component is updated
-					formattedPrice: isYearly
-						? `$${Math.floor(yearlyPrice / 12)}`
-						: `$${monthlyPrice}`,
-					fullYearPrice: `$${yearlyPrice}`
-				}
+			// Get UI enhancement data
+			const icon = planIconMap[planId] || Rocket
+			const tier = planTierMap[planId] || 'standard'
+			const popular = popularPlans.includes(planId)
+			const cta = planCtaMap[planId] || 'Get Started'
+			const highlight = planHighlightMap[planId] || ''
+
+			// Extract features from metadata
+			const featuresString = product.metadata.features || ''
+			const features = featuresString ? featuresString.split(',').map(f => f.trim()) : []
+
+			return {
+				name: product.name,
+				planId,
+				stripeMonthlyPriceId: product.prices.monthly?.id,
+				stripeAnnualPriceId: product.prices.annual?.id,
+				icon,
+				popular,
+				tier,
+				tagline: product.description || '',
+				enhanced_features: features.map(text => ({
+					text,
+					highlight: false
+				})),
+				benefits: [],
+				cta,
+				highlight,
+				monthlySavings: 0,
+				yearlySavings: annualPrice / 100,
+				savingsPercentage: savings.savingsPercent,
+				formattedPrice: isYearly
+					? formatStripePrice(Math.floor(annualPrice / 12))
+					: formatStripePrice(monthlyPrice),
+				fullYearPrice: formatStripePrice(annualPrice)
 			}
-		)
+		})
 	}, [activePlans, isYearly])
 
 	const subscriptionMutation = useMutation({
-		mutationFn: async (planId: string) => {
-			if (planId === 'freetrial') {
+		mutationFn: async (planData: {
+			planId: string
+			planName: string
+			description: string | null
+			monthlyPriceId?: string
+			annualPriceId?: string
+		}) => {
+			if (planData.planId === 'freetrial') {
 				// Handle free trial
 				window.location.href = '/auth/register'
 				return { success: true }
 			}
 
-			if (planId === 'max') {
+			if (planData.planId === 'max') {
 				// Handle enterprise contact
 				window.location.href = '/contact'
 				return { success: true }
@@ -194,33 +188,22 @@ export function StripePricingSection({
 				throw new Error('Please sign in to subscribe to a plan')
 			}
 
-			// Validate plan exists in our pricing data
-			const selectedPlan = activePlans.find(
-				(p: PricingConfig) => p.planId === planId
-			)
-			if (!selectedPlan) {
-				throw new Error(`Invalid plan selected: ${planId}`)
-			}
-
-			// Get the appropriate Stripe price ID for the selected plan and billing period
-			const stripePriceId = getStripeId(
-				selectedPlan.planId,
-				isYearly ? 'annual' : 'monthly'
-			)
+			// Get the appropriate Stripe price ID
+			const stripePriceId = isYearly ? planData.annualPriceId : planData.monthlyPriceId
 			if (!stripePriceId) {
 				throw new Error(
-					`No ${isYearly ? 'annual' : 'monthly'} price configured for ${planId} plan`
+					`No ${isYearly ? 'annual' : 'monthly'} price configured for ${planData.planName} plan`
 				)
 			}
 
 			// Show loading toast
 			toast.loading('Creating checkout session...', { id: 'checkout' })
 
-			// Create checkout session via Supabase Edge Function
+			// Create checkout session via backend
 			const checkoutData = {
 				priceId: stripePriceId,
-				planName: selectedPlan.name,
-				description: selectedPlan.description
+				planName: planData.planName,
+				description: planData.description || undefined
 			}
 
 			const { url } = await createCheckoutSession(checkoutData)
@@ -248,12 +231,49 @@ export function StripePricingSection({
 		}
 	})
 
-	const handleSubscribe = async (planId: string) => {
-		subscriptionMutation.mutate(planId)
+	const handleSubscribe = async (plan: {
+		planId: string
+		name: string
+		tagline: string
+		stripeMonthlyPriceId?: string
+		stripeAnnualPriceId?: string
+	}) => {
+		subscriptionMutation.mutate({
+			planId: plan.planId,
+			planName: plan.name,
+			description: plan.tagline,
+			monthlyPriceId: plan.stripeMonthlyPriceId,
+			annualPriceId: plan.stripeAnnualPriceId
+		})
 	}
 
-	// Fixed pricing never loads or has errors
-	// This component is now much simpler!
+	// Show loading state while fetching from Stripe
+	if (isLoading) {
+		return (
+			<section className={cn('relative section-hero', className)}>
+				<div className="container px-4 mx-auto">
+					<div className="flex items-center justify-center py-20">
+						<Loader2 className="w-8 h-8 animate-spin text-primary" />
+					</div>
+				</div>
+			</section>
+		)
+	}
+
+	// Show error state if Stripe API fails
+	if (error) {
+		return (
+			<section className={cn('relative section-hero', className)}>
+				<div className="container px-4 mx-auto">
+					<div className="text-center py-20">
+						<p className="text-muted-foreground">
+							Unable to load pricing. Please try again later.
+						</p>
+					</div>
+				</div>
+			</section>
+		)
+	}
 
 	return (
 		<section
@@ -649,7 +669,7 @@ export function StripePricingSection({
 												'transform hover:scale-[1.02] active:scale-[0.98]'
 											)}
 											disabled={subscriptionMutation.isPending}
-											onClick={() => handleSubscribe(plan.planId!)}
+											onClick={() => handleSubscribe(plan)}
 											style={{
 												transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`
 											}}
@@ -677,7 +697,7 @@ export function StripePricingSection({
 													: 'hover:scale-[1.02]'
 											)}
 											disabled={subscriptionMutation.isPending}
-											onClick={() => handleSubscribe(plan.planId!)}
+											onClick={() => handleSubscribe(plan)}
 											style={{
 												transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`
 											}}

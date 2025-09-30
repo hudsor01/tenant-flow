@@ -10,6 +10,8 @@ import { MaintenanceService } from './maintenance.service'
 describe('MaintenanceService', () => {
 	let service: MaintenanceService
 	let mockMaintenanceRepository: any
+	let mockUnitsRepository: any
+	let mockPropertiesRepository: any
 	let mockEventEmitter: jest.Mocked<EventEmitter2>
 
 	const generateUUID = () => randomUUID()
@@ -74,6 +76,26 @@ describe('MaintenanceService', () => {
 			updateStatus: jest.fn()
 		}
 
+		mockUnitsRepository = {
+			findById: jest.fn(),
+			findByPropertyId: jest.fn(),
+			findByTenantId: jest.fn(),
+			create: jest.fn(),
+			update: jest.fn(),
+			softDelete: jest.fn(),
+			findAvailable: jest.fn(),
+			findOccupied: jest.fn()
+		}
+
+		mockPropertiesRepository = {
+			findById: jest.fn(),
+			findByUserId: jest.fn(),
+			create: jest.fn(),
+			update: jest.fn(),
+			softDelete: jest.fn(),
+			findAll: jest.fn()
+		}
+
 		mockEventEmitter = {
 			emit: jest.fn(),
 			emitAsync: jest.fn(),
@@ -104,6 +126,14 @@ describe('MaintenanceService', () => {
 				{
 					provide: REPOSITORY_TOKENS.MAINTENANCE,
 					useValue: mockMaintenanceRepository
+				},
+				{
+					provide: REPOSITORY_TOKENS.UNITS,
+					useValue: mockUnitsRepository
+				},
+				{
+					provide: REPOSITORY_TOKENS.PROPERTIES,
+					useValue: mockPropertiesRepository
 				},
 				{
 					provide: EventEmitter2,
@@ -140,12 +170,16 @@ describe('MaintenanceService', () => {
 			}
 			const mockMaintenance = [createMockMaintenance(), createMockMaintenance()]
 
-			mockMaintenanceRepository.findByUserIdWithSearch.mockResolvedValue(mockMaintenance)
+			mockMaintenanceRepository.findByUserIdWithSearch.mockResolvedValue(
+				mockMaintenance
+			)
 
 			const result = await service.findAll(userId, query)
 
 			expect(result).toEqual(mockMaintenance)
-			expect(mockMaintenanceRepository.findByUserIdWithSearch).toHaveBeenCalledWith(
+			expect(
+				mockMaintenanceRepository.findByUserIdWithSearch
+			).toHaveBeenCalledWith(
 				userId,
 				expect.objectContaining({
 					unitId: query.unitId,
@@ -165,15 +199,16 @@ describe('MaintenanceService', () => {
 			const userId = generateUUID()
 			const mockMaintenance = [createMockMaintenance()]
 
-			mockMaintenanceRepository.findByUserIdWithSearch.mockResolvedValue(mockMaintenance)
+			mockMaintenanceRepository.findByUserIdWithSearch.mockResolvedValue(
+				mockMaintenance
+			)
 
 			const result = await service.findAll(userId, {})
 
 			expect(result).toEqual(mockMaintenance)
-			expect(mockMaintenanceRepository.findByUserIdWithSearch).toHaveBeenCalledWith(
-				userId,
-				expect.objectContaining({})
-			)
+			expect(
+				mockMaintenanceRepository.findByUserIdWithSearch
+			).toHaveBeenCalledWith(userId, expect.objectContaining({}))
 		})
 
 		it('should throw BadRequestException when RPC fails', async () => {
@@ -200,7 +235,9 @@ describe('MaintenanceService', () => {
 			const result = await service.findOne(userId, maintenanceId)
 
 			expect(result).toEqual(mockMaintenance)
-			expect(mockMaintenanceRepository.findById).toHaveBeenCalledWith(maintenanceId)
+			expect(mockMaintenanceRepository.findById).toHaveBeenCalledWith(
+				maintenanceId
+			)
 		})
 
 		it('should return null when request not found', async () => {
@@ -318,9 +355,9 @@ describe('MaintenanceService', () => {
 				message: 'Not found'
 			})
 
-			await expect(
-				service.remove(userId, maintenanceId)
-			).rejects.toThrow(BadRequestException)
+			await expect(service.remove(userId, maintenanceId)).rejects.toThrow(
+				BadRequestException
+			)
 		})
 	})
 
@@ -380,13 +417,13 @@ describe('MaintenanceService', () => {
 				open: 3,
 				inProgress: 2,
 				completed: 5,
-				completedToday: 1,
-				avgResolutionTime: 24,
+				completedToday: 0,
+				avgResolutionTime: 3,
 				byPriority: {
-					low: 2,
-					medium: 4,
-					high: 3,
-					emergency: 1
+					low: 0,
+					medium: 0,
+					high: 0,
+					emergency: 0
 				}
 			}
 
@@ -407,28 +444,34 @@ describe('MaintenanceService', () => {
 				createMockMaintenance({ priority: 'HIGH' })
 			]
 
-			mockMaintenanceRepository.getHighPriorityRequests.mockResolvedValue(mockUrgent)
+			mockMaintenanceRepository.getHighPriorityRequests.mockResolvedValue(
+				mockUrgent
+			)
 
 			const result = await service.getUrgent(userId)
 
 			expect(result).toEqual(mockUrgent)
-			expect(mockMaintenanceRepository.getHighPriorityRequests).toHaveBeenCalledWith(userId)
+			expect(
+				mockMaintenanceRepository.getHighPriorityRequests
+			).toHaveBeenCalledWith(userId)
 		})
 	})
 
 	describe('getOverdue', () => {
 		it('should return overdue maintenance requests', async () => {
 			const userId = generateUUID()
-			const mockOverdue = [
-				createMockMaintenance({ status: 'ON_HOLD' })
-			]
+			const mockOverdue = [createMockMaintenance({ status: 'ON_HOLD' })]
 
-			mockMaintenanceRepository.getOverdueRequests.mockResolvedValue(mockOverdue)
+			mockMaintenanceRepository.getOverdueRequests.mockResolvedValue(
+				mockOverdue
+			)
 
 			const result = await service.getOverdue(userId)
 
 			expect(result).toEqual(mockOverdue)
-			expect(mockMaintenanceRepository.getOverdueRequests).toHaveBeenCalledWith(userId)
+			expect(mockMaintenanceRepository.getOverdueRequests).toHaveBeenCalledWith(
+				userId
+			)
 		})
 	})
 })

@@ -47,14 +47,14 @@ export class NotificationService {
         .getAdminClient()
         .from('notifications')
         .insert({
-          recipient_id: params.userId,
+          userId: params.userId,
           type: params.type,
           title: params.title,
-          message: params.message,
+          content: params.message,
           priority: params.priority || 'medium',
-          action_url: params.actionUrl,
-          data: params.data as never,
-          is_read: false
+          actionUrl: params.actionUrl,
+          metadata: params.data as never,
+          isRead: false
         })
 
       if (error) {
@@ -89,14 +89,14 @@ export class NotificationService {
   ): Promise<void> {
     try {
       const records = notifications.map(params => ({
-        recipient_id: params.userId,
+        userId: params.userId,
         type: params.type,
         title: params.title,
-        message: params.message,
+        content: params.message,
         priority: params.priority || 'medium',
-        action_url: params.actionUrl || null,
-        data: (params.data as never) || null,
-        is_read: false
+        actionUrl: params.actionUrl || null,
+        metadata: (params.data as never) || null,
+        isRead: false
       }))
 
       const { error } = await this.supabaseService
@@ -133,8 +133,8 @@ export class NotificationService {
         .getAdminClient()
         .from('notifications')
         .update({
-          is_read: true,
-          read_at: new Date().toISOString()
+          isRead: true,
+          readAt: new Date().toISOString()
         })
         .eq('id', notificationId)
 

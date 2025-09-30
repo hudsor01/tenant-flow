@@ -16,7 +16,7 @@ import {
 	SetMetadata
 } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import type { SubscriptionStatus } from '@repo/shared'
+import type { SubscriptionStatus } from '@repo/shared/types/auth'
 import type { Request } from 'express'
 import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
@@ -848,7 +848,7 @@ export class StripeController {
 						(subData as unknown as { current_period_end: number })
 							.current_period_end
 					),
-					cancel_at_period_end: subData.cancel_at_period_end,
+					cancelAt_period_end: subData.cancel_at_period_end,
 					items: subData.items.data.map(item => ({
 						id: item.id,
 						price: {
@@ -1223,7 +1223,7 @@ export class StripeController {
 	private async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 		this.logger.log(`Subscription updated: ${subscription.id}`, {
 			status: subscription.status,
-			cancel_at_period_end: subscription.cancel_at_period_end
+			cancelAt_period_end: subscription.cancel_at_period_end
 		})
 
 		try {
@@ -1313,7 +1313,9 @@ export class StripeController {
 				invoiceNumber: stripeInvoice.number || `inv_${stripeInvoice.id}`,
 				amount: stripeInvoice.amount_paid,
 				currency: stripeInvoice.currency,
-				invoiceUrl: stripeInvoice.invoice_pdf || `https://dashboard.stripe.com/invoices/${stripeInvoice.id}`
+				invoiceUrl:
+					stripeInvoice.invoice_pdf ||
+					`https://dashboard.stripe.com/invoices/${stripeInvoice.id}`
 			})
 
 			// Extend subscription access if applicable

@@ -1,54 +1,93 @@
 import { expect, test } from '@playwright/test'
+import { mkdirSync, writeFileSync } from 'fs'
+import { join } from 'path'
+
+const resolveBaseUrl = () => {
+  const explicitBase = process.env.PLAYWRIGHT_TEST_BASE_URL
+  if (explicitBase) return explicitBase
+
+  const nextPublic = process.env.NEXT_PUBLIC_APP_URL
+  if (nextPublic) return nextPublic
+
+  return 'http://localhost:3000'
+}
+
+const RESULTS_DIR = 'test-results'
+const PRICING_DIR = join(RESULTS_DIR, 'pricing')
+mkdirSync(PRICING_DIR, { recursive: true })
+
+interface PricingAssessmentSummary {
+  pageTitle: string
+  hasNavbar: boolean
+  hasPricingSection: boolean
+  buttonCount: number
+  headingCount: number
+  imageCount: number
+  containsPricingCopy: boolean
+  containsPlanCopy: boolean
+}
 
 test.describe('Pricing Page Quality Assessment', () => {
-	test('should evaluate current pricing page quality', async ({ page }) => {
-		// Navigate to pricing page
-		await page.goto('http://localhost:3005/pricing')
-		await page.waitForLoadState('networkidle')
+  test('captures current pricing page baseline', async ({ page }, testInfo) => {
+    const baseUrl = resolveBaseUrl()
+    const targetUrl = `${baseUrl.replace(/\/$/, '')}/pricing`
 
-		// Take screenshot for visual assessment
-		await page.screenshot({
-			path: 'test-results/current-pricing-page.png',
-			fullPage: true
-		})
+    await page.goto(targetUrl)
+    await page.waitForLoadState('networkidle')
 
-		// Basic checks
-		const title = await page.title()
+    const pageTitle = await page.title()
 
-		// Check for basic elements
-		const hasNavbar = (await page.locator('nav').count()) > 0
-		const hasPricingSection = (await page.locator('section').count()) > 0
-		const hasButtons = (await page.locator('button').count()) > 0
+    const [hasNavbar, hasPricingSection, buttonCount, imageCount, headingCount, pageText] = await Promise.all([
+      page.locator('nav').count().then(count => count > 0),
+      page.locator('section').count().then(count => count > 0),
+      page.locator('button').count(),
+      page.locator('img').count(),
+      page.locator('h1, h2, h3').count(),
+      page.locator('body').innerText()
+    ])
 
+    const summary: PricingAssessmentSummary = {
+      pageTitle,
+      hasNavbar,
+      hasPricingSection,
+      buttonCount,
+      headingCount,
+      imageCount,
+      containsPricingCopy: pageText.toLowerCase().includes('pricing'),
+      containsPlanCopy: pageText.toLowerCase().includes('plan')
+    }
 
-		// Check for text content
-		const pageText = await page.locator('body').textContent()
-			'Page contains pricing text:',
-			pageText?.toLowerCase().includes('pricing')
-		)
-			'Page contains plan text:',
-			pageText?.toLowerCase().includes('plan')
-		)
+    const summaryPath = join(PRICING_DIR, 'pricing-summary.json')
+    writeFileSync(summaryPath, JSON.stringify(summary, null, 2))
 
-		// Check for visual elements
-		const images = await page.locator('img').count()
-		const headings = await page.locator('h1, h2, h3').count()
+    await testInfo.attach('pricing-summary', {
+      contentType: 'application/json',
+      body: Buffer.from(JSON.stringify(summary, null, 2))
+    })
 
+    const desktopScreenshot = await page.screenshot({
+      path: join(PRICING_DIR, 'pricing-desktop.png'),
+      fullPage: true
+    })
 
-		// Check for responsive design
-		await page.setViewportSize({ width: 375, height: 667 })
-		await page.screenshot({
-			path: 'test-results/current-pricing-mobile.png',
-			fullPage: true
-		})
+    await testInfo.attach('pricing-desktop', {
+      contentType: 'image/png',
+      body: desktopScreenshot
+    })
 
-		await page.setViewportSize({ width: 1920, height: 1080 })
-		await page.screenshot({
-			path: 'test-results/current-pricing-desktop.png',
-			fullPage: true
-		})
+    await page.setViewportSize({ width: 375, height: 667 })
+    const mobileScreenshot = await page.screenshot({
+      path: join(PRICING_DIR, 'pricing-mobile.png'),
+      fullPage: true
+    })
 
-		// Always pass this test - it's for assessment
-		expect(true).toBe(true)
-	})
+    await testInfo.attach('pricing-mobile', {
+      contentType: 'image/png',
+      body: mobileScreenshot
+    })
+
+    await page.setViewportSize({ width: 1920, height: 1080 })
+
+    expect(summary.hasPricingSection || summary.containsPricingCopy).toBeTruthy()
+  })
 })

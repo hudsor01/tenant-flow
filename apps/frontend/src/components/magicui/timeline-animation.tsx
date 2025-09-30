@@ -9,7 +9,7 @@ type TimelineContentProps = {
 	className?: string
 	timelineRef: React.RefObject<HTMLElement | null>
 	once?: boolean
-	customVariants?: Record<string, unknown>
+	customVariants?: (isInView: boolean, animationNum: number) => Record<string, unknown>
 } & React.HTMLAttributes<HTMLDivElement>
 
 export const TimelineContent = ({
@@ -18,6 +18,7 @@ export const TimelineContent = ({
 	timelineRef,
 	className,
 	once = false,
+	customVariants,
 	...props
 }: TimelineContentProps) => {
 	const [isInView, setIsInView] = useState(false)
@@ -44,13 +45,15 @@ export const TimelineContent = ({
 		return () => observer.disconnect()
 	}, [timelineRef, once])
 
-	const spring = useSpring({
+	const defaultVariants = {
 		opacity: isInView ? 1 : 0,
 		filter: isInView ? 'blur(0px)' : 'blur(20px)',
 		transform: `translateY(${isInView ? 0 : 20}px)`,
 		delay: animationNum * 500,
 		config: { tension: 280, friction: 60 }
-	})
+	}
+
+	const spring = useSpring(customVariants ? customVariants(isInView, animationNum) : defaultVariants)
 
 	return (
 		<animated.div style={spring} className={className} {...props}>

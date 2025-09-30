@@ -1,8 +1,11 @@
+'use client'
+
 import Footer from '@/components/layout/footer'
-import { Navbar } from '@/components/layout/navbar'
-import { HeroAuthority } from '@/components/marketing/hero-authority'
+import { HeroSection } from '@/components/sections/hero-section'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { GridBackground } from '@/components/ui/grid-background'
+import { getAllBlogPosts } from '@/lib/blog-posts'
 import {
 	ArrowRight,
 	BarChart3,
@@ -15,64 +18,155 @@ import {
 import Link from 'next/link'
 
 export default function BlogPage() {
+	const blogPosts = getAllBlogPosts()
 	return (
-		<main className="min-h-screen bg-background">
-			<Navbar />
+		<div className="relative min-h-screen flex flex-col">
+			{/* Full page grid background */}
+			<GridBackground className="fixed inset-0 -z-10" />
+
+			{/* Navigation */}
+			<nav className="fixed top-6 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
+				<div className="flex items-center justify-between gap-12">
+					<Link
+						href="/"
+						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
+					>
+						<div className="w-8 h-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+								className="w-5 h-5 text-primary-foreground"
+							>
+								<path
+									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
+						</div>
+						<span className="text-xl font-bold text-foreground tracking-tight">
+							TenantFlow
+						</span>
+					</Link>
+
+					<div className="hidden md:flex items-center space-x-1">
+						<Link
+							href="/features"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							Features
+						</Link>
+						<Link
+							href="/pricing"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							Pricing
+						</Link>
+						<Link
+							href="/about"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							About
+						</Link>
+						<Link
+							href="/blog"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							Blog
+						</Link>
+						<Link
+							href="/faq"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							FAQ
+						</Link>
+						<Link
+							href="/contact"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							Contact
+						</Link>
+					</div>
+
+					<div className="flex items-center space-x-3">
+						<Link
+							href="/login"
+							className="hidden sm:flex px-4 py-2 text-foreground rounded-xl hover:bg-accent transition-all duration-300 font-medium"
+						>
+							Sign In
+						</Link>
+						<Link
+							href="/login"
+							className="flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
+						>
+							Get Started
+							<ArrowRight className="ml-2 h-4 w-4" />
+						</Link>
+					</div>
+				</div>
+			</nav>
+
+			<main className="flex-1">
 
 			{/* Hero Section */}
-			<HeroAuthority
-				title={<>Master property management with expert insights</>}
-				subtitle={
-					<>
-						Learn the proven strategies that help property managers increase NOI
-						by 40%, reduce costs by 32%, and automate 80% of daily tasks.
-					</>
-				}
+			<HeroSection
+				trustBadge="50,000+ downloads from property managers"
+				title="Free guides to save"
+				titleHighlight="$30,000+ annually"
+				subtitle="Proven playbooks used by 10,000+ property managers to increase NOI by 40%, cut costs by 32%, and reclaim 20+ hours weekly. No fluff, just results."
 				primaryCta={{
-					label: 'Start 14-day transformation',
+					label: 'Get Instant Access to All Guides',
 					href: '/signup'
 				}}
-				secondaryCta={{ label: 'Get ROI calculator', href: '/pricing' }}
+				secondaryCta={{ label: 'Calculate Your Savings', href: '/pricing' }}
+				trustSignals="50,000+ downloads • 40% NOI increase • 32% cost reduction"
+				image={{
+					src: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2070&auto=format&fit=crop',
+					alt: 'Content creation workspace for property management resources'
+				}}
 			/>
 
 			{/* Featured Article - High-Converting Content */}
 			<section className="section-hero">
-				<div className="container mx-auto px-6 max-w-6xl">
-					<div className="card-elevated-authority rounded-2xl card-padding md:p-12">
+				<div className="max-w-6xl mx-auto px-6 lg:px-8">
+					<div className="bg-card rounded-2xl p-8 md:p-12 border border-border/50 shadow-lg">
 						<div className="grid md:grid-cols-2 gap-8 items-center">
 							<div>
 								<Badge className="mb-4 bg-primary/10 text-primary">
 									<TrendingUp className="w-3 h-3 mr-1" />
-									Most Popular Guide
+									Downloaded 50,000+ Times
 								</Badge>
 								<h2 className="text-4xl font-bold mb-4">
-									How to Increase Your NOI by 40% in 90 Days
+									The $30,000 Property Management Savings Playbook
 								</h2>
 								<p className="text-muted-foreground mb-6 text-lg">
-									The complete step-by-step guide used by 10,000+ property
-									managers to dramatically increase their net operating income
-									with TenantFlow's proven automation strategies.
+									The exact 90-day blueprint our top 1% of users follow to save 
+									$2,400+ per property annually. Includes templates, calculators, 
+									and step-by-step automation workflows.
 								</p>
 								<div className="flex items-center gap-6 mb-6">
 									<div className="flex items-center gap-2">
 										<Clock className="w-4 h-4 text-accent" />
 										<span className="text-sm text-muted-foreground">
-											12 min read
+											15 min to implement
 										</span>
 									</div>
 									<div className="flex items-center gap-2">
 										<Users className="w-4 h-4 text-primary" />
 										<span className="text-sm text-muted-foreground">
-											50K+ readers
+											$2.4M+ saved by readers
 										</span>
 									</div>
 								</div>
-								<Button size="lg" className="px-8 btn-gradient-primary">
+								<Button size="lg" className="px-8">
 									Read Complete Guide
 									<ArrowRight className="w-5 h-5 ml-2" />
 								</Button>
 							</div>
-							<div className="card-elevated-authority rounded-xl card-padding">
+							<div className="bg-card rounded-xl p-8 border border-border/50 shadow-md">
 								<div className="text-center">
 									<div className="text-4xl font-bold text-primary mb-2">
 										40%
@@ -106,7 +200,7 @@ export default function BlogPage() {
 
 			{/* Results-Focused Categories */}
 			<section className="section-hero bg-muted/20">
-				<div className="container mx-auto px-6 max-w-6xl">
+				<div className="max-w-6xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-16">
 						<h2 className="text-4xl font-bold mb-4">Learn what works</h2>
 						<p className="text-xl text-muted-foreground">
@@ -148,7 +242,7 @@ export default function BlogPage() {
 							<Link
 								key={index}
 								href={`/blog/category/${category.name.toLowerCase().replace(' ', '-')}`}
-								className="card-elevated-authority card-padding rounded-lg transition-all duration-300 text-center group hover:-translate-y-1"
+								className="bg-card p-8 rounded-lg border border-border/50 shadow-md transition-all duration-300 text-center group hover:-translate-y-1"
 							>
 								<div
 									className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${category.color.replace('text-primary', 'bg-primary/10').replace('text-accent', 'bg-accent/10')}`}
@@ -174,7 +268,7 @@ export default function BlogPage() {
 
 			{/* High-Converting Articles */}
 			<section className="section-hero">
-				<div className="container mx-auto px-6 max-w-6xl">
+				<div className="max-w-6xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-16">
 						<h2 className="text-4xl font-bold mb-4">
 							Latest strategies that work
@@ -185,70 +279,33 @@ export default function BlogPage() {
 					</div>
 
 					<div className="grid md:grid-cols-3 gap-8">
-						{[
-							{
-								title:
-									'Cut Maintenance Costs by 32% with Smart Vendor Management',
-								excerpt:
-									'Learn the exact vendor automation strategies that top property managers use to reduce maintenance costs while improving response times by 75%.',
-								category: 'Cost Reduction',
-								readTime: '8 min read',
-								date: 'Mar 15, 2024',
-								results: '32% cost savings',
-								color: 'text-primary',
-								badge: 'bg-primary/10 text-primary'
-							},
-							{
-								title:
-									'Reduce Vacancy Time by 65%: The Complete Tenant Placement System',
-								excerpt:
-									'The step-by-step process for faster tenant screening and placement that reduces vacancy periods from weeks to days.',
-								category: 'Revenue Growth',
-								readTime: '10 min read',
-								date: 'Mar 12, 2024',
-								results: '65% faster filling',
-								color: 'text-accent',
-								badge: 'bg-accent/10 text-accent'
-							},
-							{
-								title:
-									'Save 20+ Hours Per Week: Complete Task Automation Blueprint',
-								excerpt:
-									'How property managers automate maintenance tracking, lease renewals, and tenant communications to reclaim their time and scale operations.',
-								category: 'Automation',
-								readTime: '12 min read',
-								date: 'Mar 10, 2024',
-								results: '20+ hours saved',
-								color: 'text-primary',
-								badge: 'bg-primary/10 text-primary'
-							}
-						].map((article, index) => (
+						{blogPosts.map((post) => (
 							<Link
-								key={index}
-								href={`/blog/${article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
-								className="card-elevated-authority rounded-xl card-padding transition-all duration-300 group hover:-translate-y-1"
+								key={post.slug}
+								href={`/blog/${post.slug}`}
+								className="bg-card rounded-xl p-8 border border-border/50 shadow-md transition-all duration-300 group hover:-translate-y-1"
 							>
 								<div className="flex items-center justify-between mb-4">
-									<Badge className={article.badge}>{article.category}</Badge>
+									<Badge className="bg-primary/10 text-primary">{post.category}</Badge>
 									<div className="text-sm text-muted-foreground">
-										{article.readTime}
+										{post.readTime}
 									</div>
 								</div>
 
 								<h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors leading-tight">
-									{article.title}
+									{post.title}
 								</h3>
 
 								<p className="text-muted-foreground mb-4 leading-relaxed">
-									{article.excerpt}
+									{post.excerpt}
 								</p>
 
 								<div className="flex items-center justify-between">
-									<div className={`text-sm font-semibold ${article.color}`}>
-										✓ {article.results}
+									<div className="text-sm font-semibold text-primary">
+										Read Article
 									</div>
 									<div className="text-sm text-muted-foreground">
-										{article.date}
+										{post.date}
 									</div>
 								</div>
 							</Link>
@@ -259,7 +316,7 @@ export default function BlogPage() {
 						<Button
 							size="lg"
 							variant="outline"
-							className="px-8 btn-gradient-primary"
+							className="px-8"
 						>
 							View All Success Strategies
 							<ArrowRight className="w-5 h-5 ml-2" />
@@ -269,8 +326,8 @@ export default function BlogPage() {
 			</section>
 
 			{/* Newsletter with Strong Value Prop */}
-			<section className="section-content gradient-authority">
-				<div className="container mx-auto px-6 text-center max-w-4xl">
+			<section className="section-content bg-primary">
+				<div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
 					<h2 className="text-4xl font-bold text-primary-foreground mb-4">
 						Get the strategies that increase NOI by 40%
 					</h2>
@@ -294,8 +351,9 @@ export default function BlogPage() {
 					</p>
 				</div>
 			</section>
+			</main>
 
 			<Footer />
-		</main>
+		</div>
 	)
 }

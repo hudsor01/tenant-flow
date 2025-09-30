@@ -23,8 +23,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { tenantsApi } from '@/lib/api-client'
-import type { TenantWithLeaseInfo } from '@repo/shared'
-import { createLogger } from '@repo/shared'
+import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	tenantUpdateSchema,
 	type TenantUpdate

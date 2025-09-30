@@ -1,7 +1,13 @@
 import { test, expect } from '@playwright/test'
 
+const isSuccessToast = (text: string | null): boolean => {
+	if (!text) return false
+	const normalized = text.toLowerCase()
+	return normalized.includes('welcome') || normalized.includes('success')
+}
+
 test.describe('Login Flow', () => {
-  test('should successfully login and navigate to dashboard', async ({ page }) => {
+  test('should successfully login and navigate to dashboard', async ({ page }, testInfo) => {
     if (!process.env.NEXT_PUBLIC_APP_URL) {
       throw new Error('NEXT_PUBLIC_APP_URL is required for login flow tests')
     }
@@ -21,53 +27,27 @@ test.describe('Login Flow', () => {
     // Click login button
     await page.click('button[type="submit"]')
 
-    // Wait for navigation or error
-    await page.waitForTimeout(2000)
-
-    // Check for toast notification
     const toastLocator = page.locator('[role="alert"]').first()
-    const hasToast = await toastLocator.isVisible().catch(() => false)
 
-    if (hasToast) {
-      const toastText = await toastLocator.textContent()
-      console.log('Toast notification:', toastText)
+    const [toastText, navigatedToDashboard] = await Promise.all([
+		toastLocator.textContent({ timeout: 5000 }).catch(() => null),
+		page.waitForURL('**/dashboard', { timeout: 5000 }).then(() => true).catch(() => false)
+	])
 
-      // Check if it's a success toast
-      const isSuccess = toastText?.toLowerCase().includes('welcome') ||
-                       toastText?.toLowerCase().includes('success')
-
-      if (isSuccess) {
-        console.log('✅ Login successful - toast shown')
-
-        // Wait for dashboard redirect
-        await page.waitForURL('**/dashboard', { timeout: 5000 }).catch(() => {
-          console.log('⚠️ Dashboard redirect did not occur')
-        })
-
-        // Verify we're on dashboard
-        const currentUrl = page.url()
-        if (currentUrl.includes('/dashboard')) {
-          console.log('✅ Successfully routed to dashboard:', currentUrl)
-        } else {
-          console.log('❌ Not routed to dashboard. Current URL:', currentUrl)
-        }
-      } else {
-        console.log('❌ Login failed - error toast shown:', toastText)
-      }
-    } else {
-      console.log('⚠️ No toast notification found')
-
-      // Check if we were redirected anyway
-      const currentUrl = page.url()
-      if (currentUrl.includes('/dashboard')) {
-        console.log('✅ Routed to dashboard (no toast):', currentUrl)
-      } else {
-        console.log('❌ Login may have failed. Current URL:', currentUrl)
-      }
+    if (toastText && !isSuccessToast(toastText)) {
+		throw new Error(`Unexpected toast content after login attempt: ${toastText}`)
     }
 
-    // Take a screenshot for verification
-    await page.screenshot({ path: 'login-test-result.png', fullPage: true })
-    console.log('📸 Screenshot saved as login-test-result.png')
+    if (!navigatedToDashboard) {
+		await expect(page).toHaveURL(/\/dashboard/, {
+			message: 'Expected dashboard navigation after login'
+		})
+    }
+
+    const screenshot = await page.screenshot({ fullPage: true })
+    await testInfo.attach('login-flow-result', {
+		contentType: 'image/png',
+		body: screenshot
+    })
   })
 })

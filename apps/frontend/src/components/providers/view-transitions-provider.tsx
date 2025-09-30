@@ -1,28 +1,21 @@
 'use client'
 
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useEffect, useTransition, type ReactNode } from 'react'
 
 interface ViewTransitionsProviderProps {
 	children: ReactNode
 }
 
-// Extend the Document interface for View Transitions API support
-// Using module augmentation to avoid conflicts with existing types
-
 export function ViewTransitionsProvider({ children }: ViewTransitionsProviderProps) {
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const pathname = usePathname()
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [isPending, startTransition] = useTransition()
 
 	useEffect(() => {
-		// Add CSS for view transitions if supported
-		// Type cast to any to avoid TypeScript conflicts with existing Document types
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const doc = document as any
+		if (typeof document === 'undefined') {
+			return undefined
+		}
 
-		if (typeof document !== 'undefined' && 'startViewTransition' in doc) {
+		if (typeof document.startViewTransition === 'function') {
 			// Add view transition styles
 			const style = document.createElement('style')
 			style.textContent = `
@@ -67,7 +60,7 @@ export function ViewTransitionsProvider({ children }: ViewTransitionsProviderPro
 					animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 				}
 			`
-			document.head.appendChild(style)
+				document.head.appendChild(style)
 
 			return () => {
 				if (style.parentNode) {
@@ -84,8 +77,8 @@ export function ViewTransitionsProvider({ children }: ViewTransitionsProviderPro
 
 		const handleClick = (e: MouseEvent) => {
 			// Only handle internal navigation links
-			const target = e.target as HTMLElement
-			const link = target.closest('a')
+			const target = e.target as HTMLElement | null
+			const link = target?.closest('a')
 
 			if (!link || !link.href || link.target === '_blank') return
 
@@ -96,15 +89,17 @@ export function ViewTransitionsProvider({ children }: ViewTransitionsProviderPro
 			e.preventDefault()
 
 			// Start view transition if supported
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const doc = document as any
-			if ('startViewTransition' in doc) {
-				doc.startViewTransition(() => {
-					window.location.href = link.href
+			const navigate = () => {
+				window.location.href = link.href
+			}
+
+			const { startViewTransition } = document
+			if (typeof startViewTransition === 'function') {
+				startTransition(() => {
+					startViewTransition.call(document, navigate)
 				})
 			} else {
-				// Fallback to normal navigation
-				window.location.href = link.href
+				startTransition(navigate)
 			}
 		}
 
@@ -131,16 +126,21 @@ export function ViewTransitionsProvider({ children }: ViewTransitionsProviderPro
 // Hook to use view transitions programmatically
 export function useViewTransition() {
 	const router = useRouter()
+	const [, startTransition] = useTransition()
 
 	const navigate = (href: string) => {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const doc = document as any
-		if ('startViewTransition' in doc) {
-			doc.startViewTransition(() => {
-				router.push(href)
+		const doc = typeof document === 'undefined' ? undefined : document
+		const performNavigation = () => {
+			router.push(href)
+		}
+
+		if (doc && typeof doc.startViewTransition === 'function') {
+			const { startViewTransition } = doc
+			startTransition(() => {
+				startViewTransition.call(doc, performNavigation)
 			})
 		} else {
-			router.push(href)
+			startTransition(performNavigation)
 		}
 	}
 

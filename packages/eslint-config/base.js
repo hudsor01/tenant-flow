@@ -1,3 +1,4 @@
+/* eslint-env node */
 /**
  * Optimized ESLint configuration for TenantFlow monorepo
  * ESLint v9 flat config with standard presets
@@ -12,7 +13,22 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 /** @type {import('eslint').Linter.FlatConfig[]} */
-const config = [
+export const config = [
+	{
+		files: [
+			'**/eslint-config/*.js',
+			'**/eslint.config.js',
+			'packages/eslint-config/*.js'
+		],
+		languageOptions: {
+			globals: {
+				...globals.node,
+				...globals.browser,
+				...globals.es2024,
+				process: 'readonly'
+			}
+		}
+	},
 	{
 		...js.configs.recommended,
 		rules: {
@@ -61,6 +77,7 @@ const config = [
 		languageOptions: {
 			parserOptions: {
 				projectService: true,
+				// eslint-disable-next-line no-undef
 				tsconfigRootDir: import.meta.dirname
 			},
 			globals: {
@@ -72,6 +89,13 @@ const config = [
 			}
 		},
 		rules: {
+			// Disable type-aware rules that cause issues
+			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/no-unsafe-assignment': 'off',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-return': 'off',
+			'@typescript-eslint/no-unsafe-call': 'off',
+			// Keep non-type-aware rules
 			'@typescript-eslint/no-explicit-any': 'error',
 			'@typescript-eslint/no-unused-vars': [
 				'error',

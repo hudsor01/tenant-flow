@@ -1,25 +1,16 @@
-"use client";
+"use client"
 
-import type { ComponentPropsWithoutRef} from "react";
-import { useEffect, useRef, useState, useCallback } from "react";
-import {
-  cn,
-  TYPOGRAPHY_SCALE
-} from "@/lib/utils";
-import type { TypographyVariant } from '@repo/shared';
+import { ComponentPropsWithoutRef, RefObject, useEffect, useRef, useState } from "react"
+import { useSpring, animated } from "@react-spring/web"
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer"
+import { cn } from "@/lib/utils"
 
 interface NumberTickerProps extends ComponentPropsWithoutRef<"span"> {
-  value: number;
-  startValue?: number;
-  direction?: "up" | "down";
-  delay?: number;
-  decimalPlaces?: number;
-  size?: TypographyVariant;
-  variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'muted';
-  animationDuration?: number;
-  prefix?: string;
-  suffix?: string;
-  enableIntersectionObserver?: boolean;
+  value: number
+  startValue?: number
+  direction?: "up" | "down"
+  delay?: number
+  decimalPlaces?: number
 }
 
 export function NumberTicker({
@@ -29,126 +20,52 @@ export function NumberTicker({
   delay = 0,
   className,
   decimalPlaces = 0,
-  size = 'sf-callout',
-  variant = 'default',
-  animationDuration = 1000,
-  prefix = '',
-  suffix = '',
-  enableIntersectionObserver = true,
   ...props
 }: NumberTickerProps) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [isMounted, setIsMounted] = useState(false);
-  const [currentValue, setCurrentValue] = useState(direction === "down" ? value : startValue);
-  const [isInView, setIsInView] = useState(!enableIntersectionObserver);
+  const ref = useRef<HTMLSpanElement>(null)
+  const [hasAnimated, setHasAnimated] = useState(false)
+  const { isIntersecting } = useIntersectionObserver(ref as RefObject<Element>, {
+    threshold: 0.1,
+    rootMargin: "0px",
+  })
 
-  // Enhanced variant configurations with design system integration
-  const variants = {
-    default: 'text-foreground',
-    primary: 'text-primary font-semibold',
-    success: 'text-accent dark:text-accent/80 font-semibold',
-    warning: 'text-muted-foreground dark:text-muted-foreground/80 font-semibold',
-    danger: 'text-destructive dark:text-destructive/80 font-semibold',
-    muted: 'text-muted-foreground'
-  }
+  const from = direction === "down" ? value : startValue
+  const to = direction === "down" ? startValue : value
+
+  const { number } = useSpring({
+    from: { number: from },
+    to: { number: hasAnimated ? to : from },
+    delay: delay * 1000,
+    config: {
+      tension: 100,
+      friction: 60,
+      precision: 0.01
+    },
+  })
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Enhanced intersection observer implementation
-  useEffect(() => {
-    if (!ref.current || !enableIntersectionObserver) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
-      },
-      { 
-        threshold: 0.1,
-        rootMargin: '50px'
-      }
-    );
-
-    observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [enableIntersectionObserver]);
-
-  // Enhanced animation with configurable duration and easing
-  useEffect(() => {
-    if (!isInView) return;
-
-    const timer = setTimeout(() => {
-      const targetValue = direction === "down" ? startValue : value;
-      const startVal = direction === "down" ? value : startValue;
-      const startTime = Date.now();
-
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / animationDuration, 1);
-        
-        // Enhanced easing function (ease-out cubic)
-        const easeOutCubic = 1 - Math.pow(1 - progress, 3);
-        const current = startVal + (targetValue - startVal) * easeOutCubic;
-        
-        setCurrentValue(current);
-
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        }
-      };
-
-      animate();
-    }, delay * 1000);
-
-    return () => clearTimeout(timer);
-  }, [isInView, value, startValue, direction, delay, animationDuration]);
-
-  const formatNumber = useCallback((num: number) => {
-    return Intl.NumberFormat("en-US", {
-      minimumFractionDigits: decimalPlaces,
-      maximumFractionDigits: decimalPlaces,
-    }).format(Number(num.toFixed(decimalPlaces)));
-  }, [decimalPlaces]);
-
-  // Get typography styles from design system
-  const typographyStyle = TYPOGRAPHY_SCALE[size as keyof typeof TYPOGRAPHY_SCALE] || TYPOGRAPHY_SCALE['body-md'];
-
-  // Enhanced number formatting with prefix/suffix support
-  const formatDisplayValue = useCallback((num: number) => {
-    return `${prefix}${formatNumber(num)}${suffix}`;
-  }, [prefix, suffix, formatNumber]);
-
-  // Prevent hydration mismatch by showing initial value on server
-  if (!isMounted) {
-    return (
-      <span
-        className={cn("inline-block tabular-nums tracking-wider",
-          variants[variant],
-          className
-        )}
-        style={typographyStyle}
-        {...props}
-      >
-        {formatDisplayValue(startValue)}
-      </span>
-    );
-  }
+    if (isIntersecting && !hasAnimated) {
+      setHasAnimated(true)
+    }
+  }, [isIntersecting, hasAnimated])
 
   return (
-    <span
+    <animated.span
       ref={ref}
-      className={cn("inline-block tabular-nums tracking-wider transition-all",
-        variants[variant],
+      className={cn(
+        "inline-block tabular-nums tracking-wider",
         className
       )}
-      style={typographyStyle}
       {...props}
     >
-      {formatDisplayValue(currentValue)}
-    </span>
-  );
+      {number.to((n) =>
+        Intl.NumberFormat("en-US", {
+          minimumFractionDigits: decimalPlaces,
+          maximumFractionDigits: decimalPlaces,
+        }).format(n)
+      )}
+    </animated.span>
+  )
 }
+
+export default NumberTicker

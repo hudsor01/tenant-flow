@@ -1,4 +1,4 @@
-import type { AuthState, authUser } from '@repo/shared'
+import type { AuthState, authUser } from '@repo/shared/types/auth'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { createStore } from 'zustand/vanilla'
 

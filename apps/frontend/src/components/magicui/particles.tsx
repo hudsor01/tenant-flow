@@ -5,7 +5,7 @@ import {
 } from '@/lib/design-system'
 import { useEffect, useRef, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import type { ComponentProps } from '@repo/shared'
+import React from 'react'
 
 interface ParticleType {
 	x: number
@@ -18,7 +18,7 @@ interface ParticleType {
 	alpha: number
 }
 
-interface ParticlesProps extends ComponentProps {
+interface ParticlesProps extends React.HTMLAttributes<HTMLDivElement> {
 	quantity?: number
 	staticity?: number
 	ease?: number
@@ -193,10 +193,11 @@ function ParticlesComponent({
 					particle.x, particle.y, 0,
 					particle.x, particle.y, glowSize
 				)
-				// Use CSS custom properties for semantic colors
-				gradient.addColorStop(0, `hsl(var(--foreground) / ${particle.alpha * 0.8})`)
-				gradient.addColorStop(0.5, `hsl(var(--foreground) / ${particle.alpha * 0.2})`)
-				gradient.addColorStop(1, `hsl(var(--foreground) / 0)`)
+				// Canvas API requires rgba format for gradients
+				const baseAlpha = particle.alpha * 0.8
+				gradient.addColorStop(0, `oklch(0.5 0.1 280 / ${baseAlpha})`)
+				gradient.addColorStop(0.5, `oklch(0.5 0.1 280 / ${particle.alpha * 0.2})`)
+				gradient.addColorStop(1, `oklch(0.5 0.1 280 / 0)`)
 
 				ctx.fillStyle = gradient
 				ctx.beginPath()
@@ -204,8 +205,8 @@ function ParticlesComponent({
 				ctx.fill()
 			}
 
-			// Main particle - use semantic color
-			ctx.fillStyle = `hsl(var(--foreground) / ${particle.alpha})`
+			// Main particle - use oklch for consistency with design system
+			ctx.fillStyle = `oklch(0.5 0.1 280 / ${particle.alpha})`
 			ctx.beginPath()
 			ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
 			ctx.fill()
@@ -214,7 +215,7 @@ function ParticlesComponent({
 		const animate = () => {
 			// Fade out animation instead of clear for smoother effect
 			if (preset === 'floating' || preset === 'subtle') {
-				ctx.fillStyle = 'hsl(var(--foreground) / 0.05)'
+				ctx.fillStyle = 'oklch(1 0 0 / 0.05)'
 				ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight)
 			} else {
 				ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight)

@@ -25,7 +25,7 @@ CREATE FOREIGN TABLE IF NOT EXISTS stripe_subscriptions (
   current_period_end bigint,
   trial_start bigint,
   trial_end bigint,
-  cancel_at bigint,
+  cancelAt bigint,
   canceled_at bigint,
   created bigint,
   metadata jsonb,
@@ -141,7 +141,7 @@ GRANT SELECT ON stripe_events TO authenticated, service_role;
 
 -- Create a view for active subscriptions with customer info
 CREATE OR REPLACE VIEW active_subscriptions AS
-SELECT 
+SELECT
   s.id,
   s.customer,
   c.email as customer_email,

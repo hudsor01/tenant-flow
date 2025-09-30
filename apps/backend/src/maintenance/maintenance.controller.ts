@@ -27,7 +27,7 @@ import {
 import type {
 	CreateMaintenanceRequest,
 	UpdateMaintenanceRequest
-} from '@repo/shared'
+} from '@repo/shared/types/backend-domain'
 import type { Request } from 'express'
 import { MaintenanceService } from './maintenance.service'
 import { SupabaseService } from '../database/supabase.service'

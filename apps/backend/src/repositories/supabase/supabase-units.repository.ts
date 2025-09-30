@@ -1,17 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type {
-  Unit,
-  UnitInput,
-  UnitUpdate,
-  UnitStats,
-  TablesInsert,
-  TablesUpdate,
-  Database
-} from '@repo/shared';
+    Database,
+    TablesInsert,
+    TablesUpdate
+} from '@repo/shared/types/supabase-generated';
+import type {
+    Unit
+} from '@repo/shared/types/supabase';
+import type {
+    UnitInput,
+    UnitStats,
+    UnitUpdate
+} from '@repo/shared/types/core';
 import { SupabaseService } from '../../database/supabase.service';
 import {
-  IUnitsRepository,
-  UnitQueryOptions
+    IUnitsRepository,
+    UnitQueryOptions
 } from '../interfaces/units-repository.interface';
 
 @Injectable()
@@ -245,7 +249,7 @@ export class SupabaseUnitsRepository implements IUnitsRepository {
     try {
       this.logger.log('Getting unit stats via DIRECT table query', { userId });
 
-      // DIRECT query - NO RPC BULLSHIT
+      // DIRECT query -
       const { data, error } = await this.supabase
         .getAdminClient()
         .from('Unit')
@@ -285,7 +289,7 @@ export class SupabaseUnitsRepository implements IUnitsRepository {
         averageRent: units.length > 0 ? Math.round(totalRent / units.length) : 0,
         available: vacantUnits.length,
         occupancyRate: units.length > 0 ? Math.round((occupiedUnits.length / units.length) * 100) : 0,
-        occupancyChange: 0, // TODO: Calculate from historical data
+        occupancyChange: 0, // Historical trend calculation will be enabled when data snapshots are available
         totalPotentialRent: totalRent,
         totalActualRent: actualRent
       };
@@ -346,7 +350,7 @@ export class SupabaseUnitsRepository implements IUnitsRepository {
     try {
       this.logger.log('Getting unit occupancy analytics via DIRECT table query', { userId, options });
 
-      // DIRECT query - NO RPC BULLSHIT
+      // DIRECT query -
       let query = this.supabase
         .getAdminClient()
         .from('Unit')

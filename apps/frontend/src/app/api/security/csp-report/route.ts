@@ -1,8 +1,8 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { rateLimiter } from '@/lib/rate-limiter'
-import type { CSPViolationReport, CSPReportBody } from '@repo/shared'
-import { createLogger } from '@repo/shared'
+import type { CSPViolationReport, CSPReportBody } from '@repo/shared/types/domain'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'CSPReportAPI' })
 

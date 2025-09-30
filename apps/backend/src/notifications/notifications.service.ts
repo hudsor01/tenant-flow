@@ -2,15 +2,15 @@ import { Injectable, BadRequestException } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
-import type { Database } from '@repo/shared'
-import type { MaintenanceNotificationData } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
+import type { MaintenanceNotificationData } from '@repo/shared/types/notifications'
 import { z } from 'zod'
 import {
 	uuidSchema,
 	requiredString,
 	requiredTitle,
 	requiredDescription
-} from '@repo/shared'
+} from '@repo/shared/validation/common'
 import {
 	MaintenanceUpdatedEvent,
 	PaymentReceivedEvent,
@@ -181,10 +181,10 @@ export class NotificationsService {
 			)
 		}
 
-		// Store notification in database using existing InAppNotification table
+		// Store notification in database using existing notifications table
 		const { error } = await this.supabaseService
 			.getAdminClient()
-			.from('InAppNotification')
+			.from('notifications')
 			.insert({
 				userId: notification.recipientId,
 				title: notification.title,
@@ -311,10 +311,10 @@ notification: { recipientId: string; type: string; title: string }
 	 */
 	async getUnreadNotifications(
 		userId: string
-	): Promise<Database['public']['Tables']['InAppNotification']['Row'][]> {
+	): Promise<Database['public']['Tables']['notifications']['Row'][]> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
-			.from('InAppNotification')
+			.from('notifications')
 			.select('*')
 			.eq('userId', userId)
 			.eq('isRead', false)
@@ -333,10 +333,10 @@ notification: { recipientId: string; type: string; title: string }
 	async markAsRead(
 		notificationId: string,
 		userId: string
-	): Promise<Database['public']['Tables']['InAppNotification']['Row']> {
+	): Promise<Database['public']['Tables']['notifications']['Row']> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
-			.from('InAppNotification')
+			.from('notifications')
 			.update({ isRead: true, readAt: new Date().toISOString() })
 			.eq('id', notificationId)
 			.eq('userId', userId)
@@ -356,10 +356,10 @@ notification: { recipientId: string; type: string; title: string }
 	async cancelNotification(
 		notificationId: string,
 		userId: string
-	): Promise<Database['public']['Tables']['InAppNotification']['Row']> {
+	): Promise<Database['public']['Tables']['notifications']['Row']> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
-			.from('InAppNotification')
+			.from('notifications')
 			.update({
 				metadata: {
 					cancelled: true,
@@ -397,13 +397,77 @@ notification: { recipientId: string; type: string; title: string }
 
 		const { error } = await this.supabaseService
 			.getAdminClient()
-			.from('InAppNotification')
+			.from('notifications')
 			.delete()
 			.lt('createdAt', cutoffDate.toISOString())
 			.eq('isRead', true)
 
 		if (error) {
 			throw error
+		}
+	}
+
+	/**
+	 * Get unread notification count - replaces get_unread_notification_count function
+	 * Uses direct table query instead of database function
+	 */
+	async getUnreadCount(userId: string): Promise<number> {
+		try {
+			this.logger.log('Getting unread notification count via direct query', { userId })
+
+			const { count, error } = await this.supabaseService
+				.getAdminClient()
+				.from('notifications')
+				.select('*', { count: 'exact', head: true })
+				.eq('userId', userId)
+				.eq('isRead', false)
+
+			if (error) {
+				this.logger.error('Failed to get unread notification count', { error, userId })
+				return 0
+			}
+
+			return count || 0
+		} catch (error) {
+			this.logger.error('Error getting unread notification count', {
+				error: error instanceof Error ? error.message : String(error),
+				userId
+			})
+			return 0
+		}
+	}
+
+	/**
+	 * Mark all notifications as read - replaces mark_all_notifications_read function
+	 * Uses direct table update instead of database function
+	 */
+	async markAllAsRead(userId: string): Promise<number> {
+		try {
+			this.logger.log('Marking all notifications as read via direct query', { userId })
+
+			const { count, error } = await this.supabaseService
+				.getAdminClient()
+				.from('notifications')
+				.update({
+					isRead: true,
+					read_at: new Date().toISOString()
+				})
+				.eq('user_id', userId)
+				.eq('isRead', false)
+				.select('*')
+
+			if (error) {
+				this.logger.error('Failed to mark all notifications as read', { error, userId })
+				return 0
+			}
+
+			return count || 0
+		} catch (error) {
+			this.logger.error('Error marking all notifications as read', {
+				error: error instanceof Error ? error.message : String(error),
+				userId
+			})
+			return 0
 		}
 	}
 
@@ -608,7 +672,7 @@ notification: { recipientId: string; type: string; title: string }
 	): Promise<void> {
 		const { error } = await this.supabaseService
 			.getAdminClient()
-			.from('InAppNotification')
+			.from('notifications')
 			.insert({
 				userId,
 				title,
@@ -641,7 +705,7 @@ notification: { recipientId: string; type: string; title: string }
 	): Promise<void> {
 		const { error } = await this.supabaseService
 			.getAdminClient()
-			.from('InAppNotification')
+			.from('notifications')
 			.insert({
 				userId,
 				title,

@@ -10,8 +10,8 @@
  */
 
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common'
+import type { RateLimitConfig, RateLimitWindow } from '@repo/shared/types/backend-domain'
 import type { Request, Response } from 'express'
-import type { RateLimitWindow, RateLimitConfig } from '@repo/shared'
 
 // Extend the shared interfaces for local needs
 interface ExtendedRateLimitWindow extends RateLimitWindow {

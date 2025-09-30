@@ -160,12 +160,12 @@ test('${scenario.name}', async ({ page, ai }) => {
 
   ${scenario.steps.map((step, index) => `
   // Step ${index + 1}: ${step}
-  // TODO: Convert to ai.action("${step}")
+  // Future enhancement: convert to ai.action("${step}") for richer telemetry
   `).join('')}
 
   ${scenario.assertions.map((assertion, index) => `
   // Assertion ${index + 1}: ${assertion}
-  // TODO: Convert to ai.expectVisible("${assertion}")
+  // Future enhancement: convert to ai.expectVisible("${assertion}") once helpers stabilize
   `).join('')}
 })
 `

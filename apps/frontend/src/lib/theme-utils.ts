@@ -1,8 +1,8 @@
 import type {
 	TailwindColorName,
-	TailwindRadiusValue,
-	ThemeMode
-} from '@repo/shared'
+	TailwindRadiusValue
+} from '@repo/shared/types/frontend'
+import type { ThemeMode } from '@repo/shared/types/domain'
 
 export function getSavedThemeColor(): TailwindColorName {
 	if (typeof window === 'undefined') return 'blue'

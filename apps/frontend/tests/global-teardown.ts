@@ -1,5 +1,5 @@
 import { FullConfig } from '@playwright/test'
-import { logger } from '@repo/shared'
+import { logger } from '@repo/shared/lib/frontend-logger'
 
 async function globalTeardown(config: FullConfig) {
 	logger.info('🧹 Starting Playwright global teardown...')

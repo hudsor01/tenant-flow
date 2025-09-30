@@ -12,8 +12,8 @@
  */
 
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common'
-import type { SecurityHeadersConfig } from '@repo/shared'
-import { getCSPString } from '@repo/shared'
+import type { SecurityHeadersConfig } from '@repo/shared/types/backend-domain'
+import { getCSPString } from '@repo/shared/security/csp-config'
 import type { Request, Response } from 'express'
 
 const SECURITY_CONFIG: SecurityHeadersConfig = {

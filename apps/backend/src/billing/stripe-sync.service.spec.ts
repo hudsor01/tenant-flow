@@ -17,6 +17,7 @@ const mockRunMigrations = runMigrations as jest.MockedFunction<
 
 describe('StripeSyncService', () => {
 	let service: StripeSyncService
+	let originalEnv: NodeJS.ProcessEnv
 
 	const mockStripeSyncInstance = {
 		config: {},
@@ -26,7 +27,6 @@ describe('StripeSyncService', () => {
 		processWebhook: jest.fn(),
 		syncSingleEntity: jest.fn(),
 		syncBackfill: jest.fn(),
-		// Add other methods that might be expected by the StripeSync interface
 		connect: jest.fn(),
 		disconnect: jest.fn(),
 		getSyncStatus: jest.fn(),
@@ -38,7 +38,10 @@ describe('StripeSyncService', () => {
 	beforeEach(async () => {
 		jest.clearAllMocks()
 
-		// Mock environment variables
+		// Store original environment variables
+		originalEnv = { ...process.env }
+
+		// Override with test values - force override even if production values exist
 		process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
 		process.env.STRIPE_SECRET_KEY = 'sk_test_mock_stripe_key_for_testing'
 		process.env.STRIPE_WEBHOOK_SECRET = 'whsec_mock_webhook_secret_for_testing'
@@ -86,12 +89,8 @@ describe('StripeSyncService', () => {
 	})
 
 	afterEach(() => {
-		// Clean up environment variables
-		delete process.env.DATABASE_URL
-		delete process.env.STRIPE_SECRET_KEY
-		delete process.env.STRIPE_WEBHOOK_SECRET
-		delete process.env.STRIPE_SYNC_DATABASE_SCHEMA
-		delete process.env.STRIPE_SYNC_AUTO_EXPAND_LISTS
+		// Restore original environment variables to prevent test pollution
+		process.env = originalEnv
 	})
 
 	describe('Initialization', () => {

@@ -33,7 +33,8 @@ module.exports = {
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
 		'^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
-		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src'
+		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src',
+		'^(\\.{1,2}/.*)\\.js$': '$1'
 	},
 	setupFilesAfterEnv,
 	testTimeout: 10000,
@@ -52,7 +53,7 @@ module.exports = {
 				tsconfig: {
 					module: 'commonjs',
 					target: 'es2022',
-					moduleResolution: 'node',
+					moduleResolution: 'nodenext',
 					allowSyntheticDefaultImports: true,
 					esModuleInterop: true,
 					skipLibCheck: true,

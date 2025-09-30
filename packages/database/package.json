@@ -1,37 +1,32 @@
 {
+	"$schema": "https://json.schemastore.org/package.json",
 	"name": "@repo/database",
 	"version": "0.1.0",
 	"private": true,
 	"description": "Database utilities and types for TenantFlow monorepo",
 	"type": "module",
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
 	"files": [
 		"dist/**"
 	],
 	"scripts": {
 		"build": "tsc",
 		"dev": "tsc --watch",
-		"generate": "drizzle-kit generate",
-		"migrate": "drizzle-kit migrate",
-		"studio": "drizzle-kit studio",
-		"push": "drizzle-kit push",
 		"typecheck": "tsc --noEmit",
 		"lint": "eslint \"src/**/*.ts\"",
 		"lint:fix": "pnpm lint --fix",
-		"clean": "rimraf dist .turbo migrations/.cache"
+		"clean": "rimraf dist .turbo"
 	},
 	"dependencies": {
-		"@supabase/supabase-js": "^2.57.4"
+		"@supabase/supabase-js": "^2.58.0"
 	},
 	"devDependencies": {
 		"@repo/typescript-config": "workspace:*",
-		"@types/node": "^24.5.2",
+		"@types/node": "^24.6.0",
 		"eslint": "9.36.0",
 		"globals": "16.4.0",
 		"rimraf": "6.0.1",
 		"typescript": "^5.9.2",
-		"typescript-eslint": "8.44.0"
+		"typescript-eslint": "8.45.0"
 	},
 	"overrides": {
 		"minimatch": "^10.0.3"

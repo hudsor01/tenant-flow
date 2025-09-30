@@ -1,6 +1,7 @@
 import { NotFoundException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
-import type { authUser, Database } from '@repo/shared'
+import type { authUser } from '@repo/shared/types/auth'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import { randomUUID } from 'crypto'
 import type { Request } from 'express'
 import { SilentLogger } from '../__test__/silent-logger'

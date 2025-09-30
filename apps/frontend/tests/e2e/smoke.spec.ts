@@ -33,7 +33,7 @@ test.describe('Critical User Journey', () => {
     // This tests the critical path without the complexity of email confirmation
     
     // Step 1: Navigate to signup page
-    await page.goto('/auth/signup')
+    await page.goto('/signup')
     await expect(page).toHaveTitle(/TenantFlow/i)
 
     // Step 2: Test form validation (empty form should show errors)

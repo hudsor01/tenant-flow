@@ -1,8 +1,17 @@
-import { SecurityController } from './security.controller'
 import type { Logger } from '@nestjs/common'
+import {
+	SecurityEventSeverity,
+	SecurityEventType
+} from '@repo/shared/types/security'
+import type { ISecurityRepository } from '../repositories/interfaces/security-repository.interface'
+import { securityAuditLogFixture } from './__fixtures__/security-audit-logs.fixture'
+import { SecurityController } from './security.controller'
+import { SecurityMetricsService } from './security-metrics.service'
 
 describe('SecurityController', () => {
   let controller: SecurityController
+  let securityMetricsService: SecurityMetricsService
+  let mockSecurityRepository: jest.Mocked<ISecurityRepository>
   let mockLogger: { warn: jest.Mock; log: jest.Mock; error: jest.Mock; debug: jest.Mock } & Logger
 
   beforeEach(() => {
@@ -13,7 +22,14 @@ describe('SecurityController', () => {
       debug: jest.fn()
     } as unknown as typeof mockLogger & Logger
 
-    controller = new SecurityController()
+    mockSecurityRepository = {
+      fetchAuditLogs: jest.fn().mockResolvedValue(securityAuditLogFixture)
+    } as unknown as jest.Mocked<ISecurityRepository>
+
+    securityMetricsService = new SecurityMetricsService(mockSecurityRepository)
+    controller = new SecurityController(securityMetricsService)
+    // Mock logger using Jest spy on the private property
+    jest.spyOn(controller as any, 'logger', 'get').mockReturnValue(mockLogger)
   })
 
   afterEach(() => {
@@ -40,19 +56,18 @@ describe('SecurityController', () => {
 
     await expect(controller.handleCSPReport(report as any)).resolves.toBeUndefined()
     expect(mockLogger.warn).toHaveBeenCalled()
-    // first warn call is the summary
-    expect(mockLogger.warn.mock.calls[0][0]).toBe('CSP violation reported')
-    // second warn call logs detailed CSP Violation
-    expect(mockLogger.warn.mock.calls[1][0]).toBe('CSP Violation:')
+    const warnCall = mockLogger.warn.mock.calls[0]
+    expect(warnCall[0]).toBe('CSP violation reported')
+    expect(warnCall[1]).toMatchObject({ violatedDirective: "script-src 'self'" })
   })
 
   it('returns security metrics structure', async () => {
     const res = await controller.getSecurityMetrics()
     expect(res).toHaveProperty('success', true)
-    expect(res).toHaveProperty('data')
-    expect(res.data).toHaveProperty('events')
-    expect(res).toHaveProperty('timestamp')
-    expect(mockLogger.log).toHaveBeenCalledWith('Security metrics requested', expect.any(Object))
+    expect(res.data.totalEvents).toBe(securityAuditLogFixture.length)
+    expect(res.data.eventsByType[SecurityEventType.AUTH_FAILURE]).toBe(1)
+    expect(res.data.eventsBySeverity[SecurityEventSeverity.CRITICAL]).toBe(1)
+    expect(mockLogger.log).toHaveBeenCalledWith('Security metrics requested')
   })
 
   it('resolves a security event and logs resolution', async () => {
@@ -64,26 +79,30 @@ describe('SecurityController', () => {
     expect(res).toHaveProperty('message', 'Security event resolved')
     // verify logging occurred for resolution
     expect(mockLogger.log).toHaveBeenCalled()
-    // one of the log calls should include the resolution string
-    const logged = mockLogger.log.mock.calls.flat().join(' ')
-    expect(logged).toContain(body.resolution)
+    const resolutionCall = mockLogger.log.mock.calls.find(call => call[0] === 'Security event resolved')
+    expect(resolutionCall?.[1]).toMatchObject({ resolution: body.resolution })
   })
 
   it('returns security health with status and alerts', async () => {
     const res = await controller.getSecurityHealth()
-    expect(res).toHaveProperty('status')
-    expect(res).toHaveProperty('alerts')
-    expect(Array.isArray(res.alerts)).toBe(true)
-    expect(res).toHaveProperty('metrics')
-    expect(res).toHaveProperty('timestamp')
+    expect(res.status).toBe('critical')
+    expect(res.alerts).toEqual(
+      expect.arrayContaining([
+        '1 critical security events require immediate attention',
+        '2 potentially malicious requests were blocked'
+      ])
+    )
+    expect(res.metrics.totalEvents).toBe(securityAuditLogFixture.length)
   })
 
   it('returns dashboard data with overview and trends', async () => {
     const res = await controller.getSecurityDashboard()
     expect(res).toHaveProperty('success', true)
     expect(res).toHaveProperty('data')
-    expect(res.data).toHaveProperty('overview')
-    expect(res.data).toHaveProperty('trends')
+    expect(res.data.overview.totalEvents).toBe(securityAuditLogFixture.length)
+    expect(res.data.overview.criticalEvents).toBe(1)
+    expect(Array.isArray(res.data.trends)).toBe(true)
+    expect(Array.isArray(res.data.topThreateningIPs)).toBe(true)
     expect(res).toHaveProperty('timestamp')
   })
 

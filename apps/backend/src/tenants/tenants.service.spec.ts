@@ -11,11 +11,12 @@ import { BadRequestException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { Tenant, CreateTenantRequest, UpdateTenantRequest, TenantStats } from '@repo/shared'
+import type { CreateTenantRequest, UpdateTenantRequest } from '@repo/shared/types/backend-domain'
+import type { Tenant, TenantStats } from '@repo/shared/types/core'
 import { generateUUID } from '../../test/setup'
 import { SilentLogger } from '../__test__/silent-logger'
-import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 import type { ITenantsRepository } from '../repositories/interfaces/tenants-repository.interface'
+import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 import { TenantsService } from './tenants.service'
 
 describe('TenantsService', () => {
@@ -510,23 +511,177 @@ describe('TenantsService', () => {
 		})
 	})
 
-	describe('Invitation Methods - Not Yet Migrated', () => {
-		it('should throw error for sendInvitation (not yet migrated)', async () => {
+	describe('sendTenantInvitation - Repository Pattern', () => {
+		it('should send invitation successfully', async () => {
+			const userId = generateUUID()
+			const tenantId = generateUUID()
+			const mockTenant = {
+				id: tenantId,
+				firstName: 'Test',
+				lastName: 'Tenant',
+				name: 'Test Tenant',
+				email: 'test@example.com',
+				phone: '+1234567890',
+				avatarUrl: null,
+				emergencyContact: 'Emergency Contact',
+				userId: userId,
+				invitationStatus: null,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			}
+
+			mockTenantsRepository.findById.mockResolvedValue(mockTenant)
+
+			const result = await service.sendTenantInvitation(userId, tenantId)
+
+			expect(mockTenantsRepository.findById).toHaveBeenCalledWith(tenantId)
+			expect(mockTenantsRepository.update).not.toHaveBeenCalled()
+			expect(eventEmitter.emit).toHaveBeenCalledWith(
+				'tenant.invitation.sent',
+				expect.objectContaining({
+					userId,
+					tenantId,
+					invitationToken: expect.any(String),
+					email: expect.objectContaining({
+						to: mockTenant.email,
+						subject: expect.stringContaining('Tenant Portal Invitation')
+					})
+				})
+			)
+			expect(result).toMatchObject({
+				success: true,
+				message: 'Invitation sent successfully',
+				invitationToken: expect.any(String),
+				invitationLink: expect.stringContaining('/tenant/invitation/'),
+				sentAt: expect.any(String)
+			})
+		})
+
+		it('should return error when tenant not found', async () => {
 			const userId = generateUUID()
 			const tenantId = generateUUID()
 
-			await expect(service.sendInvitation(userId, tenantId)).rejects.toThrow(
+			mockTenantsRepository.findById.mockResolvedValue(null)
+
+			await expect(service.sendTenantInvitation(userId, tenantId)).rejects.toThrow(
 				BadRequestException
 			)
 		})
 
-		it('should throw error for resendInvitation (not yet migrated)', async () => {
+		it('should still send invitation when status already exists', async () => {
 			const userId = generateUUID()
 			const tenantId = generateUUID()
+			const mockTenant = {
+				id: tenantId,
+				firstName: 'Test',
+				lastName: 'Tenant',
+				name: 'Test Tenant',
+				email: 'test@example.com',
+				phone: '+1234567890',
+				avatarUrl: null,
+				emergencyContact: 'Emergency Contact',
+				userId: userId,
+				invitationStatus: 'SENT',
+				invitationToken: 'existing-token',
+				invitationSentAt: new Date().toISOString(),
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			}
+
+			mockTenantsRepository.findById.mockResolvedValue(mockTenant)
+
+			const result = await service.sendTenantInvitation(userId, tenantId)
+
+			expect(result).toMatchObject({
+				success: true,
+				message: 'Invitation sent successfully',
+				invitationToken: expect.any(String),
+				invitationLink: expect.stringContaining('/tenant/invitation/')
+			})
+			expect(eventEmitter.emit).toHaveBeenCalledWith(
+				'tenant.invitation.sent',
+				expect.objectContaining({
+					userId,
+					tenantId,
+					invitationToken: expect.any(String)
+				})
+			)
+		})
+	})
+
+	describe('resendInvitation - Repository Pattern', () => {
+		it('should resend invitation successfully', async () => {
+			const userId = generateUUID()
+			const tenantId = generateUUID()
+			const mockTenant = {
+				id: tenantId,
+				firstName: 'Test',
+				lastName: 'Tenant',
+				name: 'Test Tenant',
+				email: 'test@example.com',
+				phone: '+1234567890',
+				avatarUrl: null,
+				emergencyContact: 'Emergency Contact',
+				userId: userId,
+				invitationStatus: 'PENDING',
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			}
+
+			mockTenantsRepository.findById.mockResolvedValue(mockTenant)
+			const sendInvitationSpy = jest.spyOn(service, 'sendTenantInvitation')
+
+			const result = await service.resendInvitation(userId, tenantId)
+
+			expect(sendInvitationSpy).toHaveBeenCalledWith(userId, tenantId)
+			expect(result).toMatchObject({
+				success: true,
+				message: 'Invitation sent successfully',
+				invitationToken: expect.any(String),
+				invitationLink: expect.stringContaining('/tenant/invitation/'),
+				sentAt: expect.any(String)
+			})
+			sendInvitationSpy.mockRestore()
+		})
+
+		it('should return error when tenant not found', async () => {
+			const userId = generateUUID()
+			const tenantId = generateUUID()
+
+			mockTenantsRepository.findById.mockResolvedValue(null)
 
 			await expect(service.resendInvitation(userId, tenantId)).rejects.toThrow(
 				BadRequestException
 			)
+		})
+
+		it('should allow resending even when previous invitation was accepted', async () => {
+			const userId = generateUUID()
+			const tenantId = generateUUID()
+			const mockTenant = {
+				id: tenantId,
+				firstName: 'Test',
+				lastName: 'Tenant',
+				name: 'Test Tenant',
+				email: 'test@example.com',
+				phone: '+1234567890',
+				avatarUrl: null,
+				emergencyContact: 'Emergency Contact',
+				userId: userId,
+				invitationStatus: 'ACCEPTED',
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			}
+
+			mockTenantsRepository.findById.mockResolvedValue(mockTenant)
+
+			const result = await service.resendInvitation(userId, tenantId)
+
+			expect(result).toMatchObject({
+				success: true,
+				message: 'Invitation sent successfully',
+				invitationToken: expect.any(String)
+			})
 		})
 	})
 })

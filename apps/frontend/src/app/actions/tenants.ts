@@ -1,8 +1,8 @@
 'use server'
 
 import { serverFetch } from '@/lib/api/server'
-import type { Tenant } from '@repo/shared'
 import { revalidatePath } from 'next/cache'
+import type { Tenant } from '@repo/shared/types/supabase'
 
 /**
  * Server Actions for Tenants

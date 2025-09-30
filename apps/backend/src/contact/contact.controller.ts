@@ -7,7 +7,7 @@ import {
 	Post,
 	SetMetadata
 } from '@nestjs/common'
-import type { ContactFormRequest, ContactFormResponse } from '@repo/shared'
+import type { ContactFormRequest, ContactFormResponse } from '@repo/shared/types/domain'
 import { ContactService } from './contact.service'
 
 // @ApiTags('contact')

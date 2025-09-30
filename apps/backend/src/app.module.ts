@@ -28,6 +28,7 @@ import { PropertiesModule } from './properties/properties.module'
 import { RepositoriesModule } from './repositories/repositories.module'
 import { SecurityModule } from './security/security.module'
 import { SharedModule } from './shared/shared.module'
+import { ServicesModule } from './shared/services/services.module'
 import { TenantsModule } from './tenants/tenants.module'
 import { UnitsModule } from './units/units.module'
 import { UsersModule } from './users/users.module'
@@ -86,6 +87,7 @@ import { UsersModule } from './users/users.module'
 		SupabaseModule,
 		SharedModule,
 		RepositoriesModule,
+		ServicesModule,
 		HealthModule,
 
 		// Business modules that depend on global services

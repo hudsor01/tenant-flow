@@ -4,14 +4,12 @@ import { AppSidebar } from '@/components/dashboard-01/app-sidebar'
 import { SiteHeader } from '@/components/dashboard-01/site-header'
 import { Button } from '@/components/ui/button'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { createLogger } from '@repo/shared'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { AlertCircle } from 'lucide-react'
 import { useEffect } from 'react'
 
 const logger = createLogger({ component: 'DashboardError' })
 
-// Dashboard Error Boundary
-// Shows error state while keeping sidebar navigation available
 export default function DashboardError({
 	error,
 	reset

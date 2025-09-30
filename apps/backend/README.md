@@ -228,7 +228,7 @@ npm run claude:check     # Full quality check
 ## [SUPPORT] Support
 
 ### Health Check URLs
-- Development: `http://localhost:3000/health`
+- Development: `http://localhost:4600/health` (when using Doppler local development)
 - Production: `https://api.tenantflow.app/health`
 
 ### Troubleshooting

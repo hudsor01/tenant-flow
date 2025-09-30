@@ -16,7 +16,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 
-import type { DataTableProps } from '@repo/shared'
+import type { DataTableProps } from '@repo/shared/types/frontend'
 
 export function useDataTableInstance<TData, TValue>({
 	data,

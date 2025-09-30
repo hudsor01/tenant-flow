@@ -1,4 +1,4 @@
-import type { ContactFormRequest } from '@repo/shared'
+import type { ContactFormRequest } from '@repo/shared/types/domain'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 

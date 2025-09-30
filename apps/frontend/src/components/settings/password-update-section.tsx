@@ -6,16 +6,16 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { cn } from '@/lib/design-system'
-import { supabaseClient, TYPOGRAPHY_SCALE } from '@repo/shared'
+import { cn, TYPOGRAPHY_SCALE } from '@/lib/design-system'
+import { supabaseClient } from '@repo/shared/lib/supabase-client'
 import { useMutation } from '@tanstack/react-query'
 import {
-	AlertTriangle,
-	CheckCircle2,
-	Eye,
-	EyeOff,
-	Key,
-	Shield
+    AlertTriangle,
+    CheckCircle2,
+    Eye,
+    EyeOff,
+    Key,
+    Shield
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'

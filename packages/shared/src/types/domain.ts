@@ -310,25 +310,7 @@ export interface SecurityEvent {
 	metadata?: Record<string, unknown>
 }
 
-export interface SecurityMetrics {
-	events: SecurityEvent[]
-	alerts: number
-	blocked_ips: string[]
-	totalEvents?: number
-	eventsBySeverity?: {
-		low: number
-		medium: number
-		high: number
-		critical: number
-	}
-	recentTrends?: {
-		lastHour: number
-		last24Hours: number
-		last7Days: number
-	}
-	eventsByType?: Record<string, number>
-	topThreateningIPs?: Array<{ ip: string; count: number }>
-}
+// SecurityMetrics moved to security.ts to eliminate duplication
 
 // AI DOMAIN - TEMPORARILY REMOVED
 

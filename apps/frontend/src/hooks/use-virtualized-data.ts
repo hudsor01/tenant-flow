@@ -1,6 +1,8 @@
 'use client'
 
-import type { Database, TenantWithLeaseInfo, PropertyWithUnits } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
+import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
+import type { PropertyWithUnits } from '@repo/shared/types/relations'
 import { useQuery } from '@tanstack/react-query'
 import { propertiesApi, tenantsApi } from '@/lib/api-client'
 

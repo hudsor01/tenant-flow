@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useFormProgress } from '@/hooks/use-form-progress'
 import { cn } from '@/lib/design-system'
-import { loginZodSchema, type AuthFormProps } from '@repo/shared'
+import { loginZodSchema } from '@repo/shared/validation/auth'
+import type { AuthFormProps } from '@repo/shared/types/frontend'
 import { useForm } from '@tanstack/react-form'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
@@ -92,6 +93,7 @@ export function LoginForm({
 							<Label htmlFor="email">Email address</Label>
 							<Input
 								id="email"
+								data-testid="email-input"
 								type="email"
 								placeholder="Enter your email"
 								value={field.state.value}
@@ -121,6 +123,7 @@ export function LoginForm({
 							<PasswordInput
 								label="Password"
 								id="password"
+								data-testid="password-input"
 								placeholder="Enter your password"
 								value={field.state.value}
 								onChange={e => field.handleChange(e.target.value)}
@@ -147,6 +150,7 @@ export function LoginForm({
 					{/* Submit Button */}
 					<Button
 						type="submit"
+						data-testid="login-button"
 						className="w-full h-11 text-sm font-medium"
 						disabled={isLoading || form.state.isSubmitting}
 					>
@@ -181,6 +185,7 @@ export function LoginForm({
 							type="button"
 							onClick={onForgotPassword}
 							className="hover:text-foreground transition-colors"
+							data-testid="forgot-password-link"
 						>
 							Forgot password?
 						</button>
@@ -188,6 +193,7 @@ export function LoginForm({
 							type="button"
 							onClick={onSignUp}
 							className="hover:text-foreground transition-colors"
+							data-testid="signup-link"
 						>
 							Create account
 						</button>

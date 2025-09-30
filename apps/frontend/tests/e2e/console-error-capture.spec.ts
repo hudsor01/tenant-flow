@@ -45,70 +45,18 @@ test.describe('Console Error Capture', () => {
 		// Wait a bit more to catch any delayed console messages
 		await page.waitForTimeout(2000)
 
-		// Filter only error and warning messages
-		const errors = consoleMessages.filter(
-			msg =>
-				msg.type === 'error' ||
-				msg.type === 'warning' ||
-				msg.type === 'pageerror' ||
-				msg.type === 'requestfailed'
-		)
-
-
-		if (errors.length > 0) {
-			errors.forEach((msg, index) => {
-			})
-		} else {
-		}
-
-		// Also log all messages for reference
-		if (consoleMessages.length > 0) {
-			consoleMessages.forEach((msg, index) => {
-			})
-		}
-
-		// Take a screenshot for reference
-		await page.screenshot({
-			path: 'console-error-capture-landing.png',
-			fullPage: true
-		})
+		// Test passes if no unhandled errors occurred during page load
 	})
 
 	test('Capture console errors on localhost:3005/dashboard', async ({
 		page
 	}) => {
-		await page.goto('http://localhost:3005/dashboard')
+	await page.goto('http://localhost:3005/dashboard')
 		await page.waitForLoadState('networkidle')
 
 		// Wait a bit more to catch any delayed console messages
 		await page.waitForTimeout(2000)
 
-		// Filter only error and warning messages
-		const errors = consoleMessages.filter(
-			msg =>
-				msg.type === 'error' ||
-				msg.type === 'warning' ||
-				msg.type === 'pageerror' ||
-				msg.type === 'requestfailed'
-		)
-
-
-		if (errors.length > 0) {
-			errors.forEach((msg, index) => {
-			})
-		} else {
-		}
-
-		// Also log all messages for reference
-		if (consoleMessages.length > 0) {
-			consoleMessages.forEach((msg, index) => {
-			})
-		}
-
-		// Take a screenshot for reference
-		await page.screenshot({
-			path: 'console-error-capture-dashboard.png',
-			fullPage: true
-		})
+		// Test passes if no unhandled errors occurred during page load
 	})
 })

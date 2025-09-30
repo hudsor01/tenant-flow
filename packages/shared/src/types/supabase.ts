@@ -37,9 +37,9 @@ export type MaintenanceRequest =
 	Database['public']['Tables']['MaintenanceRequest']['Row']
 export type Document = Database['public']['Tables']['Document']['Row']
 export type Activity = Database['public']['Tables']['Activity']['Row']
-export type TenantFlowNotification =
-	Database['public']['Tables']['InAppNotification']['Row']
-export type RentPayment = Database['public']['Tables']['RentPayment']['Row']
+// InAppNotification table doesn't exist in current schema
+// export type TenantFlowNotification = Database['public']['Tables']['InAppNotification']['Row']
+export type RentPayment = Database['public']['Tables']['RentPayments']['Row']
 export type PaymentMethod = Database['public']['Tables']['PaymentMethod']['Row']
 
 // Insert type aliases - LEGACY
@@ -115,7 +115,7 @@ export interface TenantFlowPropertyMetadata {
 }
 
 // ULTRA-NATIVE: Import helpers directly from generated file
-// Use: import type { Tables, TablesInsert, TablesUpdate } from './supabase-generated.js'
+// Use: import type { Tables, TablesInsert, TablesUpdate } from './supabase-generated'
 
 // Query Result Helpers (Official Supabase Pattern)
 

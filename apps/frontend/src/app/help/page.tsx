@@ -1,7 +1,7 @@
-import Footer from '@/components/layout/footer'
-import { Navbar } from '@/components/layout/navbar'
-import { HeroAuthority } from '@/components/marketing/hero-authority'
+'use client'
 
+import Footer from '@/components/layout/footer'
+import { HeroSection } from '@/components/sections/hero-section'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,6 +11,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
+import { GridBackground } from '@/components/ui/grid-background'
 import {
 	ArrowRight,
 	Book,
@@ -21,43 +22,133 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
+import Link from 'next/link'
 
 export default function HelpPage() {
 	return (
-		<div className="min-h-screen bg-background">
-			<Navbar />
+		<div className="relative min-h-screen flex flex-col">
+			{/* Full page grid background */}
+			<GridBackground className="fixed inset-0 -z-10" />
+
+			{/* Navigation */}
+			<nav className="fixed top-6 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
+				<div className="flex items-center justify-between gap-12">
+					<Link
+						href="/"
+						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
+					>
+						<div className="w-8 h-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+								className="w-5 h-5 text-primary-foreground"
+							>
+								<path
+									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
+						</div>
+						<span className="text-xl font-bold text-foreground tracking-tight">
+							TenantFlow
+						</span>
+					</Link>
+
+					<div className="hidden md:flex items-center space-x-1">
+						<Link
+							href="/features"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							Features
+						</Link>
+						<Link
+							href="/pricing"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							Pricing
+						</Link>
+						<Link
+							href="/about"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							About
+						</Link>
+						<Link
+							href="/blog"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							Blog
+						</Link>
+						<Link
+							href="/faq"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							FAQ
+						</Link>
+						<Link
+							href="/contact"
+							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
+						>
+							Contact
+						</Link>
+					</div>
+
+					<div className="flex items-center space-x-3">
+						<Link
+							href="/login"
+							className="hidden sm:flex px-4 py-2 text-foreground rounded-xl hover:bg-accent transition-all duration-300 font-medium"
+						>
+							Sign In
+						</Link>
+						<Link
+							href="/login"
+							className="flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
+						>
+							Get Started
+							<ArrowRight className="ml-2 h-4 w-4" />
+						</Link>
+					</div>
+				</div>
+			</nav>
+
+			<main className="flex-1">
 
 			{/* Hero Section */}
-			<HeroAuthority
-				title={<>Get help increasing your NOI by 40%</>}
-				subtitle={
-					<>
-						Our property management experts are here to help you reduce costs by
-						32%, automate 80% of tasks, and guarantee ROI in 90 days.
-					</>
-				}
+			<HeroSection
+				trustBadge="Expert support team standing by"
+				title="We guarantee your success"
+				titleHighlight="or your money back"
+				subtitle="Get white-glove support from property management experts who've helped 10,000+ managers save $30,000+ annually. Average response time: 90 seconds. Success rate: 98.7%."
 				primaryCta={{
-					label: 'Start 14-day transformation',
+					label: 'Get Instant Expert Help',
 					href: '/signup'
 				}}
-				secondaryCta={{ label: 'Schedule Expert Call', href: '/contact' }}
+				secondaryCta={{ label: 'Schedule Success Call', href: '/contact' }}
+				trustSignals="24/7 Expert Support • 90-second response • 98.7% success rate"
+				image={{
+					src: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=2074&auto=format&fit=crop',
+					alt: 'Professional customer support team helping property managers'
+				}}
 			/>
 
 			{/* Support Options */}
 			<section className="section-hero">
-				<div className="container mx-auto px-6 max-w-6xl">
+				<div className="max-w-6xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-16">
 						<h2 className="text-4xl font-bold mb-4">
-							Expert support for maximum ROI
+							Your success team is standing by
 						</h2>
 						<p className="text-xl text-muted-foreground">
-							Get help from property management automation specialists who
-							understand your challenges
+							Average customer saves $30,000 in year one with our expert guidance
 						</p>
 					</div>
 
 					<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-						<Card className="text-center card-elevated-authority transition-shadow">
+						<Card className="text-center bg-card border border-border/50 shadow-md transition-shadow">
 							<CardHeader>
 								<div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
 									<MessageCircle className="w-8 h-8 text-primary" />
@@ -82,7 +173,7 @@ export default function HelpPage() {
 							</CardContent>
 						</Card>
 
-						<Card className="text-center card-elevated-authority transition-shadow">
+						<Card className="text-center bg-card border border-border/50 shadow-md transition-shadow">
 							<CardHeader>
 								<div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
 									<Phone className="w-8 h-8 text-accent" />
@@ -102,7 +193,7 @@ export default function HelpPage() {
 							</CardContent>
 						</Card>
 
-						<Card className="text-center card-elevated-authority transition-shadow">
+						<Card className="text-center bg-card border border-border/50 shadow-md transition-shadow">
 							<CardHeader>
 								<div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
 									<Book className="w-8 h-8 text-primary" />
@@ -122,7 +213,7 @@ export default function HelpPage() {
 							</CardContent>
 						</Card>
 
-						<Card className="text-center card-elevated-authority transition-shadow">
+						<Card className="text-center bg-card border border-border/50 shadow-md transition-shadow">
 							<CardHeader>
 								<div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
 									<Mail className="w-8 h-8 text-accent" />
@@ -147,9 +238,9 @@ export default function HelpPage() {
 
 			{/* Success Stories */}
 			<section className="section-hero bg-muted/20">
-				<div className="container mx-auto px-6 max-w-6xl">
+				<div className="max-w-6xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-16">
-						<h2 className="text-4xl font-bold mb-4 text-gradient-authority">
+						<h2 className="text-4xl font-bold mb-4">
 							Success stories from our clients
 						</h2>
 						<p className="text-xl text-muted-foreground">
@@ -159,8 +250,8 @@ export default function HelpPage() {
 					</div>
 
 					<div className="grid md:grid-cols-3 gap-8">
-						<Card className="card-elevated-authority">
-							<CardContent className="card-padding">
+						<Card className="bg-card border border-border/50 shadow-md">
+							<CardContent className="p-6">
 								<div className="flex items-center mb-4">
 									<TrendingUp className="w-8 h-8 text-primary mr-3" />
 									<div>
@@ -181,8 +272,8 @@ export default function HelpPage() {
 							</CardContent>
 						</Card>
 
-						<Card className="card-elevated-authority">
-							<CardContent className="card-padding">
+						<Card className="bg-card border border-border/50 shadow-md">
+							<CardContent className="p-6">
 								<div className="flex items-center mb-4">
 									<Clock className="w-8 h-8 text-accent mr-3" />
 									<div>
@@ -203,8 +294,8 @@ export default function HelpPage() {
 							</CardContent>
 						</Card>
 
-						<Card className="card-elevated-authority">
-							<CardContent className="card-padding">
+						<Card className="bg-card border border-border/50 shadow-md">
+							<CardContent className="p-6">
 								<div className="flex items-center mb-4">
 									<Users className="w-8 h-8 text-primary mr-3" />
 									<div>
@@ -230,9 +321,9 @@ export default function HelpPage() {
 
 			{/* Popular Resources */}
 			<section className="section-hero">
-				<div className="container mx-auto px-6 max-w-4xl">
+				<div className="max-w-4xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-16">
-						<h2 className="text-4xl font-bold mb-4 text-gradient-authority">
+						<h2 className="text-4xl font-bold mb-4">
 							Popular resources
 						</h2>
 						<p className="text-xl text-muted-foreground">
@@ -273,7 +364,7 @@ export default function HelpPage() {
 						].map((resource, index) => (
 							<Card
 								key={index}
-								className="card-elevated-authority transition-shadow"
+								className="bg-card border border-border/50 shadow-md transition-shadow"
 							>
 								<CardContent className="p-6">
 									<div className="flex items-start justify-between mb-4">
@@ -299,8 +390,8 @@ export default function HelpPage() {
 			</section>
 
 			{/* CTA Section */}
-			<section className="section-content gradient-authority">
-				<div className="container mx-auto px-6 max-w-4xl text-center">
+			<section className="section-content bg-primary">
+				<div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
 					<h2 className="text-4xl font-bold text-primary-foreground mb-4">
 						Ready to stop losing money?
 					</h2>
@@ -313,7 +404,7 @@ export default function HelpPage() {
 						<Button
 							size="lg"
 							variant="secondary"
-							className="px-8 btn-gradient-primary"
+							className="px-8"
 						>
 							Start 14-day transformation
 							<ArrowRight className="w-5 h-5 ml-2" />
@@ -321,13 +412,14 @@ export default function HelpPage() {
 						<Button
 							size="lg"
 							variant="outline"
-							className="px-8 btn-gradient-primary"
+							className="px-8"
 						>
 							Talk to an Expert
 						</Button>
 					</div>
 				</div>
 			</section>
+			</main>
 
 			<Footer />
 		</div>

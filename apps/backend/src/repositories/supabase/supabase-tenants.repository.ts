@@ -1,17 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { Tenant } from '@repo/shared/types/supabase';
 import type {
-  Tenant,
-  TenantInput,
-  TenantUpdate,
-  TenantStats,
-  Activity,
-  TablesInsert,
-  TablesUpdate
-} from '@repo/shared';
+    TablesInsert,
+    TablesUpdate,
+    Tables
+} from '@repo/shared/types/supabase-generated';
+import type {
+    TenantInput,
+    TenantStats,
+    TenantUpdate
+} from '@repo/shared/types/core';
 import { SupabaseService } from '../../database/supabase.service';
 import {
-  ITenantsRepository,
-  TenantQueryOptions
+    ITenantsRepository,
+    TenantQueryOptions
 } from '../interfaces/tenants-repository.interface';
 
 @Injectable()
@@ -243,7 +245,7 @@ export class SupabaseTenantsRepository implements ITenantsRepository {
     try {
       this.logger.log('Getting tenant stats via DIRECT table query', { userId });
 
-      // DIRECT query - NO RPC BULLSHIT
+      // DIRECT query -
       const { data, error } = await this.supabase
         .getAdminClient()
         .from('Tenant')
@@ -279,7 +281,7 @@ export class SupabaseTenantsRepository implements ITenantsRepository {
     try {
       this.logger.log('Getting tenant analytics via DIRECT table query', { userId, options });
 
-      // DIRECT query - NO RPC BULLSHIT
+      // DIRECT query -
       const query = this.supabase
         .getAdminClient()
         .from('Tenant')
@@ -307,7 +309,7 @@ export class SupabaseTenantsRepository implements ITenantsRepository {
     }
   }
 
-  async getActivity(userId: string, tenantId: string): Promise<Activity[]> {
+  async getActivity(userId: string, tenantId: string): Promise<Tables<'Activity'>[]> {
     try {
       this.logger.log('Getting tenant activity via repository', { userId, tenantId });
 
@@ -330,7 +332,7 @@ export class SupabaseTenantsRepository implements ITenantsRepository {
         return [];
       }
 
-      return (data || []) as Activity[];
+      return data || [];
     } catch (error) {
       this.logger.error(`Database error in getActivity: ${error instanceof Error ? error.message : String(error)}`, {
         userId,

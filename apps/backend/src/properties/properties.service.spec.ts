@@ -27,12 +27,29 @@ describe('PropertiesService', () => {
 			restore: jest.fn(),
 		}
 
+		// Mock units repository
+		const mockUnitsRepository = {
+			findByPropertyId: jest.fn(),
+			findByUserId: jest.fn(),
+			findById: jest.fn(),
+			create: jest.fn(),
+			update: jest.fn(),
+			delete: jest.fn(),
+			getOccupancyStats: jest.fn(),
+			archive: jest.fn(),
+			restore: jest.fn(),
+		}
+
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				PropertiesService,
 				{
 					provide: REPOSITORY_TOKENS.PROPERTIES,
 					useValue: mockPropertiesRepository
+				},
+				{
+					provide: REPOSITORY_TOKENS.UNITS,
+					useValue: mockUnitsRepository
 				}
 			]
 		}).compile()
@@ -150,12 +167,11 @@ describe('PropertiesService', () => {
 		it('should return property statistics', async () => {
 			const mockStats = {
 				total: 5,
-				totalUnits: 20,
-				occupiedUnits: 15,
-				vacantUnits: 5,
+				occupied: 15,
+				vacant: 5,
 				occupancyRate: 75,
-				totalRent: 30000,
-				collectedRent: 25000
+				totalMonthlyRent: 30000,
+				averageRent: 2000
 			}
 			mockPropertiesRepository.getStats.mockResolvedValue(mockStats)
 

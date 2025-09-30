@@ -2,7 +2,7 @@
 
 import { LoginLayout } from '@/components/auth/login-layout'
 import { createClient } from '@/utils/supabase/client'
-import type { LoginFormData, SignupFormData } from '@repo/shared'
+import type { LoginFormData, SignupFormData } from '@repo/shared/types/auth'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -69,17 +69,17 @@ export default function SignupPage() {
 	return (
 		<LoginLayout
 			mode="signup"
-			title="Create Your Account"
-			subtitle="Start managing properties more efficiently in minutes"
+			title="Start Saving $30,000 Annually in 2 Minutes"
+			subtitle="Join 10,000+ property managers already saving 20+ hours weekly. No credit card. No commitment. Just results."
 			imageUrl="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
 			content={{
-				heading: 'Start Your Free Trial',
+				heading: 'Your 14-Day Transformation Starts Now',
 				description:
-					'Reduce time spent on paperwork by 75% and increase tenant satisfaction. See why property managers are switching to TenantFlow.',
+					'Most users see measurable ROI in 7 days. We guarantee 40% NOI increase in 90 days or your money back. No setup fees, no contracts, cancel anytime.',
 				stats: [
-					{ value: '75%', label: 'Less\nPaperwork' },
-					{ value: '30-Day', label: 'Free\nTrial' },
-					{ value: 'No CC', label: 'Required' }
+					{ value: '$2,400', label: 'Saved Per\nProperty' },
+					{ value: '7 days', label: 'To First\nROI' },
+					{ value: '60-day', label: 'Money-back\nGuarantee' }
 				]
 			}}
 			authProps={{

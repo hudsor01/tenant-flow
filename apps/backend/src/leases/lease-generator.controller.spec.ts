@@ -1,7 +1,7 @@
 import { BadRequestException, InternalServerErrorException, Logger } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import type { Response } from 'express'
-import type { LeaseGeneratorFormData as LeaseFormData } from '@repo/shared'
+import type { LeaseFormData } from '@repo/shared/types/lease-generator.types'
 import { SilentLogger } from '../__test__/silent-logger'
 import { LeasePDFService } from '../pdf/lease-pdf.service'
 import { LeaseGeneratorController } from './lease-generator.controller'

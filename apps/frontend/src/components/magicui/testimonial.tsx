@@ -1,32 +1,36 @@
 'use client'
 import { TimelineContent } from '@/components/magicui/timeline-animation'
+import { BorderBeam } from '@/components/magicui/border-beam'
 import Image from 'next/image'
 import { useRef } from 'react'
 
 function ClientFeedback() {
 	const testimonialRef = useRef<HTMLDivElement>(null)
 
-	const revealVariants = {
-		visible: (i: number) => ({
-			y: 0,
-			opacity: 1,
-			filter: 'blur(0px)',
-			transition: {
-				delay: i * 0.4,
-				duration: 0.5
+	const revealVariants = (isInView: boolean, animationNum: number) => {
+		if (isInView) {
+			return {
+				y: 0,
+				opacity: 1,
+				filter: 'blur(0px)',
+				transition: {
+					delay: animationNum * 0.4,
+					duration: 0.5
+				}
 			}
-		}),
-		hidden: {
-			filter: 'blur(10px)',
-			y: -20,
-			opacity: 0
+		} else {
+			return {
+				filter: 'blur(10px)',
+				y: -20,
+				opacity: 0
+			}
 		}
 	}
 
 	return (
 		<main className="w-full bg-background">
 			<section
-				className="relative  h-full container text-foreground mx-auto  rounded-[var(--radius-large)]  py-14 bg-background"
+				className="relative  h-full container text-foreground mx-auto  rounded  py-8 bg-background"
 				ref={testimonialRef}
 			>
 				<article className={'max-w-screen-md mx-auto text-center space-y-2 '}>
@@ -50,14 +54,15 @@ function ClientFeedback() {
 						</p>
 					</TimelineContent>
 				</article>
-				<div className="lg:grid lg:grid-cols-3  gap-[var(--spacing-2)] flex flex-col w-full lg:py-10 pt-10 pb-4 lg:px-10 px-4">
+				<div className="lg:grid lg:grid-cols-3  gap-[var(--spacing-2)] flex flex-col w-full lg:py-6 pt-6 pb-4 lg:px-10 px-4">
 					<div className="md:flex lg:flex-col lg:space-y-2 h-full lg:gap-0 gap-[var(--spacing-2)] ">
 						<TimelineContent
 							animationNum={0}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className=" lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden rounded-[var(--radius-large)] border border-[var(--color-separator)] p-5"
+							className=" lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
 						>
+							<BorderBeam size={250} duration={12} delay={9} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 							<div className="absolute bottom-0 left-0 right-0 top-0 bg-grid-pattern opacity-30"></div>
 							<article className="mt-auto relative z-10">
 								<p>
@@ -79,7 +84,7 @@ function ClientFeedback() {
 										alt="Sarah Martinez"
 										width={200}
 										height={200}
-										className="w-16 h-16 rounded-[var(--radius-xlarge)] object-cover"
+										className="w-16 h-16 rounded object-cover"
 									/>
 								</div>
 							</article>
@@ -88,8 +93,9 @@ function ClientFeedback() {
 							animationNum={1}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className="lg:flex-[3] flex-[4] lg:h-fit  lg:shrink-0 flex flex-col justify-between relative bg-[var(--color-accent-main)] text-primary-foreground overflow-hidden rounded-[var(--radius-large)] border border-[var(--color-separator)] p-5"
+							className="lg:flex-[3] flex-[4] lg:h-fit  lg:shrink-0 flex flex-col justify-between relative bg-[var(--color-accent-main)] text-primary-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
 						>
+							<BorderBeam size={200} duration={10} delay={5} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 							<article className="mt-auto">
 								<p>
 									"Our tenant satisfaction scores increased by 40% since
@@ -108,7 +114,7 @@ function ClientFeedback() {
 										alt="Michael Chen"
 										width={200}
 										height={200}
-										className="w-16 h-16 rounded-[var(--radius-xlarge)] object-cover"
+										className="w-16 h-16 rounded object-cover"
 									/>
 								</div>
 							</article>
@@ -119,8 +125,9 @@ function ClientFeedback() {
 							animationNum={2}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded-[var(--radius-large)] border border-[var(--color-separator)] p-5"
+							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
 						>
+							<BorderBeam size={180} duration={8} delay={3} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 							<article className="mt-auto">
 								<p className="2xl:text-base text-sm">
 									"The financial reporting features give us complete visibility
@@ -141,7 +148,7 @@ function ClientFeedback() {
 										alt="Jessica Thompson"
 										width={200}
 										height={200}
-										className="lg:w-16 lg:h-16 w-12 h-12 rounded-[var(--radius-xlarge)] object-cover"
+										className="lg:w-16 lg:h-16 w-12 h-12 rounded object-cover"
 									/>
 								</div>
 							</article>
@@ -150,8 +157,9 @@ function ClientFeedback() {
 							animationNum={3}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded-[var(--radius-large)] border border-[var(--color-separator)] p-5"
+							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
 						>
+							<BorderBeam size={180} duration={8} delay={7} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 							<article className="mt-auto">
 								<p className="2xl:text-base text-sm">
 									"Automated lease renewals and rent increases saved us
@@ -172,7 +180,7 @@ function ClientFeedback() {
 										alt="David Park"
 										width={200}
 										height={200}
-										className="lg:w-16 lg:h-16 w-12 h-12 rounded-[var(--radius-xlarge)] object-cover"
+										className="lg:w-16 lg:h-16 w-12 h-12 rounded object-cover"
 									/>
 								</div>
 							</article>
@@ -181,8 +189,9 @@ function ClientFeedback() {
 							animationNum={4}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded-[var(--radius-large)] border border-[var(--color-separator)] p-5"
+							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
 						>
+							<BorderBeam size={180} duration={8} delay={11} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 							<article className="mt-auto">
 								<p className="2xl:text-base text-sm">
 									"The tenant screening process is incredibly thorough yet fast.
@@ -202,7 +211,7 @@ function ClientFeedback() {
 										alt="Amanda Rodriguez"
 										width={200}
 										height={200}
-										className="lg:w-16 lg:h-16 w-12 h-12 rounded-[var(--radius-xlarge)] object-cover"
+										className="lg:w-16 lg:h-16 w-12 h-12 rounded object-cover"
 									/>
 								</div>
 							</article>
@@ -213,8 +222,9 @@ function ClientFeedback() {
 							animationNum={5}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className=" lg:flex-[3] flex-[4] flex flex-col justify-between relative bg-[var(--color-accent-main)] text-primary-foreground overflow-hidden rounded-[var(--radius-large)] border border-[var(--color-separator)] p-5"
+							className=" lg:flex-[3] flex-[4] flex flex-col justify-between relative bg-[var(--color-accent-main)] text-primary-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
 						>
+							<BorderBeam size={200} duration={10} delay={13} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 							<article className="mt-auto">
 								<p>
 									"TenantFlow has been instrumental in scaling our property
@@ -232,7 +242,7 @@ function ClientFeedback() {
 										alt="Robert Kim"
 										width={200}
 										height={200}
-										className="w-16 h-16 rounded-[var(--radius-xlarge)] object-cover"
+										className="w-16 h-16 rounded object-cover"
 									/>
 								</div>
 							</article>
@@ -241,8 +251,9 @@ function ClientFeedback() {
 							animationNum={6}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className="lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden rounded-[var(--radius-large)] border border-[var(--color-separator)] p-5"
+							className="lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
 						>
+							<BorderBeam size={250} duration={12} delay={15} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 							<div className="absolute bottom-0 left-0 right-0 top-0 bg-grid-pattern opacity-30"></div>
 							<article className="mt-auto relative z-10">
 								<p>
@@ -262,7 +273,7 @@ function ClientFeedback() {
 										alt="Lisa Walsh"
 										width={200}
 										height={200}
-										className="w-16 h-16 rounded-[var(--radius-xlarge)] object-cover"
+										className="w-16 h-16 rounded object-cover"
 									/>
 								</div>
 							</article>
@@ -270,9 +281,6 @@ function ClientFeedback() {
 					</div>
 				</div>
 
-				<div className="absolute border-b-2 border-[var(--color-separator)] bottom-4 h-16 z-[2] md:w-full w-[90%] md:left-0 left-[5%]">
-					<div className="container mx-auto w-full h-full relative before:absolute before:-left-2 before:-bottom-2 before:w-4 before:h-4 before:bg-background before:shadow-[var(--shadow-small)] before:border border-[var(--color-separator)] before:border-[var(--color-separator)] after:absolute after:-right-2 after:-bottom-2 after:w-4 after:h-4 after:bg-background after:shadow-[var(--shadow-small)] after:border after:border-[var(--color-separator)] "></div>
-				</div>
 			</section>
 		</main>
 	)

@@ -40,7 +40,16 @@ module.exports = {
       avoidCustomMiddleware: 'Use platform middleware (NestJS, Fastify, Next.js) instead of custom implementations',
       avoidFactoryPattern: 'Avoid factory patterns. Use direct instantiation or platform DI',
       avoidCustomValidation: 'Use Zod schemas directly instead of custom validation wrappers',
-      preferPlatformHooks: 'Use React 19 built-in hooks instead of custom state management'
+      preferPlatformHooks: 'Use React 19 built-in hooks instead of custom state management',
+      missingSupabaseErrorHandling: 'Supabase operations must check for errors: if (error) { ... }',
+      missingSupabaseNullCheck: 'Check if data exists before accessing: data?.length or data || []',
+      bypassingRepositoryPattern: 'Use repository methods instead of direct Supabase calls in services/controllers',
+      directRPCInService: 'RPC calls should only be in repositories. Use repository methods in services.',
+      missingInputValidation: 'Controller methods with user input must validate using Zod schemas',
+      missingErrorBoundary: 'Async functions with external calls must have try/catch error handling',
+      missingPagination: 'Public endpoints should use pagination (.limit() and .range())',
+      nPlusOneQuery: 'Avoid database queries inside loops. Use batch operations or joins.',
+      selectAllLargeTable: 'Avoid SELECT * on large tables. Specify needed columns.'
     }
   },
 
@@ -89,6 +98,92 @@ module.exports = {
           return null;
         }
       });
+    }
+
+    // SMART DETECTION HELPERS FOR REAL ARCHITECTURE ISSUES
+
+    function isSupabaseCall(node) {
+      if (node.type !== 'AwaitExpression' || !node.argument?.callee) return false
+      const callChain = context.getSourceCode().getText(node.argument)
+      return callChain.includes('.from(') || callChain.includes('.rpc(') || callChain.includes('supabase')
+    }
+
+    function hasErrorHandling(node) {
+      // Look for destructuring with error: { data, error }
+      let parent = node.parent
+      while (parent && parent.type !== 'Program') {
+        if (parent.type === 'VariableDeclarator' && parent.id?.type === 'ObjectPattern') {
+          const hasErrorProp = parent.id.properties.some(prop =>
+            prop.key?.name === 'error'
+          )
+          if (hasErrorProp) {
+            // Check if error is handled in the same scope
+            return hasErrorCheckInScope(parent)
+          }
+        }
+        parent = parent.parent
+      }
+      return false
+    }
+
+    function hasErrorCheckInScope(node) {
+      const scope = context.getScope()
+      const sourceCode = context.getSourceCode()
+      const blockParent = findBlockParent(node)
+      if (!blockParent) return false
+
+      const blockText = sourceCode.getText(blockParent)
+      return /if\s*\(\s*error\s*\)/.test(blockText) || /error\s*&&/.test(blockText)
+    }
+
+    function findBlockParent(node) {
+      let parent = node.parent
+      while (parent) {
+        if (parent.type === 'BlockStatement' || parent.type === 'Program') {
+          return parent
+        }
+        parent = parent.parent
+      }
+      return null
+    }
+
+    function isSupabaseDataAccess(node) {
+      if (node.type !== 'MemberExpression') return false
+      return node.property?.name === 'length' ||
+             node.property?.name === 'map' ||
+             node.property?.name === 'filter'
+    }
+
+    function hasNullCheck(node) {
+      // Check for optional chaining or null checks
+      return node.optional ||
+             node.object?.type === 'LogicalExpression' ||
+             context.getSourceCode().getText(node).includes('?.') ||
+             context.getSourceCode().getText(node).includes('|| []')
+    }
+
+    function isRepositoryFile(filename) {
+      return filename.includes('repository') ||
+             filename.includes('/repositories/')
+    }
+
+    function isServiceOrController(filename) {
+      return filename.includes('.service.') ||
+             filename.includes('.controller.') ||
+             filename.includes('/services/') ||
+             filename.includes('/controllers/')
+    }
+
+    function isControllerMethod(node) {
+      // Check if this is a method in a controller class
+      return node.type === 'MethodDefinition' &&
+             filename.includes('.controller.') &&
+             node.decorators?.some(decorator =>
+               decorator.expression?.callee?.name === 'Post' ||
+               decorator.expression?.callee?.name === 'Get' ||
+               decorator.expression?.callee?.name === 'Put' ||
+               decorator.expression?.callee?.name === 'Delete'
+             )
     }
 
     return {
@@ -180,11 +275,108 @@ module.exports = {
             // Empty dependency array might be replaced with React 19 features
             const sourceCode = context.getSourceCode();
             const effectBody = sourceCode.getText(node.arguments[0]);
-            
+
             if (effectBody.includes('fetch') || effectBody.includes('load')) {
               reportNativeAlternative(node, 'preferPlatformHooks', 'React 19 use() hook for data fetching');
             }
           }
+        }
+      },
+
+      // SMART SUPABASE ERROR HANDLING DETECTION
+      AwaitExpression(node) {
+        if (isSupabaseCall(node) && !hasErrorHandling(node)) {
+          context.report({
+            node,
+            messageId: 'missingSupabaseErrorHandling'
+          })
+        }
+      },
+
+      // SMART SUPABASE DATA ACCESS DETECTION
+      MemberExpression(node) {
+        if (isSupabaseDataAccess(node) && !hasNullCheck(node)) {
+          context.report({
+            node,
+            messageId: 'missingSupabaseNullCheck'
+          })
+        }
+      },
+
+      // REPOSITORY PATTERN ENFORCEMENT
+      CallExpression(node) {
+        const callText = context.getSourceCode().getText(node)
+
+        // Flag direct Supabase usage outside repositories
+        if ((callText.includes('.from(') || callText.includes('supabase')) &&
+            isServiceOrController(filename) &&
+            !isRepositoryFile(filename)) {
+          context.report({
+            node,
+            messageId: 'bypassingRepositoryPattern'
+          })
+        }
+
+        // Flag RPC calls outside repositories
+        if (callText.includes('.rpc(') && !isRepositoryFile(filename)) {
+          context.report({
+            node,
+            messageId: 'directRPCInService'
+          })
+        }
+
+        // Performance: Check for missing pagination on public endpoints
+        if (callText.includes('.select(') &&
+            !callText.includes('.limit(') &&
+            isControllerMethod(node.parent)) {
+          context.report({
+            node,
+            messageId: 'missingPagination'
+          })
+        }
+
+        // Performance: Check for SELECT * on large tables
+        if (callText.includes('.select(\'*\')') || callText.includes('.select("*")')) {
+          const tableMatch = callText.match(/\.from\(['"`](\w+)['"`]\)/)
+          const tableName = tableMatch?.[1]
+          const largeTables = ['Activity', 'RentPayment', 'MaintenanceRequest', 'Lease']
+
+          if (tableName && largeTables.includes(tableName)) {
+            context.report({
+              node,
+              messageId: 'selectAllLargeTable'
+            })
+          }
+        }
+      },
+
+      // N+1 QUERY DETECTION
+      'ForStatement > BlockStatement CallExpression, ForInStatement > BlockStatement CallExpression, ForOfStatement > BlockStatement CallExpression'(node) {
+        const callText = context.getSourceCode().getText(node)
+        if (callText.includes('supabase') || callText.includes('.from(')) {
+          context.report({
+            node,
+            messageId: 'nPlusOneQuery'
+          })
+        }
+      },
+
+      // MISSING ERROR BOUNDARIES
+      'FunctionDeclaration[async=true], ArrowFunctionExpression[async=true]'(node) {
+        const sourceCode = context.getSourceCode()
+        const functionBody = sourceCode.getText(node.body || node)
+
+        const hasExternalCalls = functionBody.includes('supabase') ||
+                                functionBody.includes('fetch') ||
+                                functionBody.includes('await')
+
+        const hasTryCatch = functionBody.includes('try') && functionBody.includes('catch')
+
+        if (hasExternalCalls && !hasTryCatch && isServiceOrController(filename)) {
+          context.report({
+            node,
+            messageId: 'missingErrorBoundary'
+          })
         }
       }
     };

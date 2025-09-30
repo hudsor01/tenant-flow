@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
-import type { UIStore, FormProgress, ModalState, NotificationState } from '@repo/shared'
+import type { UIStore, FormProgress, ModalState, NotificationState } from '@repo/shared/types/frontend'
 
 const initialFormProgress: FormProgress = {
   currentStep: 1,

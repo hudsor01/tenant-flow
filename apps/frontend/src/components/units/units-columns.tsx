@@ -1,52 +1,57 @@
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle
-} from '@/components/ui/alert-dialog'
+import
+  {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+  } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { useDeleteUnit } from '@/hooks/api/units'
+import
+  {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
+  } from '@/components/ui/dropdown-menu'
+import { UnitEditDialog, UnitViewDialog } from '@/components/units/unit-dialogs'
+import { unitsApi } from '@/lib/api-client'
 import { ANIMATION_DURATIONS, TYPOGRAPHY_SCALE } from '@/lib/design-system'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { buttonClasses, cardClasses, cn, inputClasses } from '@/lib/utils'
-import type { UnitRow, UnitStats } from '@repo/shared'
-import { createLogger } from '@repo/shared'
 import type { Column, ColumnDef } from '@tanstack/react-table'
-import {
-	AlertTriangle,
-	ArrowDown,
-	ArrowUp,
-	ArrowUpDown,
-	Bath,
-	Bed,
-	Calendar,
-	DollarSign,
-	EditIcon,
-	EyeIcon,
-	Home,
-	MapPin,
-	Maximize2,
-	MoreHorizontalIcon,
-	Star,
-	TrashIcon,
-	TrendingUp,
-	Users
-} from 'lucide-react'
+import
+  {
+    AlertTriangle,
+    ArrowDown,
+    ArrowUp,
+    ArrowUpDown,
+    Bath,
+    Bed,
+    Calendar,
+    DollarSign,
+    EditIcon,
+    EyeIcon,
+    Home,
+    MapPin,
+    Maximize2,
+    MoreHorizontalIcon,
+    Star,
+    TrashIcon,
+    TrendingUp,
+    Users
+  } from 'lucide-react'
 import * as React from 'react'
 import { toast } from 'sonner'
-import { UnitEditDialog, UnitViewDialog } from './unit-dialogs'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+import type { UnitStats } from '@repo/shared/types/core'
+import type { UnitRow } from '@repo/shared/types/frontend'
 
 // Re-export UnitRow for use in other components
 export type { UnitRow }
@@ -236,7 +241,18 @@ function UnitActions({ unit }: UnitActionsProps) {
 	const [deleteOpen, setDeleteOpen] = React.useState(false)
 	const [isDeleting, setIsDeleting] = React.useState(false)
 
-	const deleteUnit = useDeleteUnit()
+	const qc = useQueryClient()
+	const deleteUnit = useMutation({
+		mutationFn: (id: string) => unitsApi.remove(id),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ['units'] })
+			qc.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
+			toast.success('Unit deleted successfully')
+		},
+		onError: (error: Error) => {
+			toast.error('Failed to delete unit', { description: error.message })
+		}
+	})
 
 	const handleDelete = async () => {
 		setIsDeleting(true)

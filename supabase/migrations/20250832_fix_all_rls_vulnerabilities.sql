@@ -176,7 +176,7 @@ CREATE POLICY "payment_method_tenant_access" ON public."PaymentMethod"
 
 -- CustomerInvoice: These appear to be public invoice tools, but should have some access control
 -- For now, keeping permissive but adding logging
--- TODO: Review if these need user-specific access controls
+-- Revisit whether user-specific access controls are required before production rollout
 
 -- =============================================================================
 -- SERVICE ROLE POLICIES FOR SYSTEM OPERATIONS

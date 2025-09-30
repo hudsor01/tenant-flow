@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { ContactFormRequest } from '@repo/shared'
+import type { ContactFormRequest } from '@repo/shared/types/domain'
 import { ContactController } from './contact.controller'
 import { ContactService } from './contact.service'
 

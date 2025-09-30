@@ -3,15 +3,16 @@
  * Replaces over-engineered dynamic pricing system
  */
 
+import
+  {
+    PRICING_PLANS,
+    getAllPricingPlans,
+    getPricingPlan,
+    getStripePriceId,
+    type PlanId
+  } from '@repo/shared/config/pricing'
+import type { UsePricingReturn } from '@repo/shared/types/frontend'
 import { useMemo } from 'react'
-import {
-  PRICING_PLANS,
-  getAllPricingPlans,
-  getPricingPlan,
-  getStripePriceId,
-  type PlanId,
-  type UsePricingReturn
-} from '@repo/shared'
 
 // UsePricingReturn type imported from @repo/shared
 

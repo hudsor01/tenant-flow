@@ -28,7 +28,7 @@ import
     Request,
     SetMetadata
   } from '@nestjs/common'
-import type { CreatePropertyRequest, UpdatePropertyRequest } from '@repo/shared'
+import type { CreatePropertyRequest, UpdatePropertyRequest } from '@repo/shared/types/backend-domain'
 import { ParseOptionalUUIDPipe } from '../shared/pipes/parse-optional-uuid.pipe'
 import type { AuthenticatedRequest } from '../shared/types/express-request.types'
 import { PropertiesService } from './properties.service'

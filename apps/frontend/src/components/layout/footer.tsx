@@ -4,9 +4,9 @@ export default function Footer() {
 	return (
 		<footer className="bg-background py-4">
 			<div className="max-w-7xl mx-auto px-4">
-				<div className="flex justify-center items-center gap-8 text-sm text-[var(--color-label-tertiary)]">
+				<div className="flex justify-center items-center gap-8 text-sm text-muted-foreground">
 					<div className="flex items-center space-x-2">
-						<div className="w-4 h-4 rounded bg-[var(--color-primary-brand)] flex items-center justify-center">
+						<div className="w-4 h-4 rounded bg-primary flex items-center justify-center">
 							<svg
 								viewBox="0 0 24 24"
 								fill="none"
@@ -22,26 +22,35 @@ export default function Footer() {
 								/>
 							</svg>
 						</div>
-						<span className="font-medium text-[var(--color-label-secondary)]">TenantFlow</span>
+						<span className="font-medium text-foreground">TenantFlow</span>
 					</div>
 
 					<Link
-						href="/pricing"
-						className="hover:text-[var(--color-label-primary)] transition-colors"
+						href="/terms"
+						className="hover:text-foreground transition-colors"
 					>
-						Pricing
+						Terms
 					</Link>
-					<Link href="/faq" className="hover:text-[var(--color-label-primary)] transition-colors">
-						FAQ
+					<Link href="/privacy" className="hover:text-foreground transition-colors">
+						Privacy
 					</Link>
 					<Link
-						href="/contact"
-						className="hover:text-[var(--color-label-primary)] transition-colors"
+						href="/help"
+						className="hover:text-foreground transition-colors"
 					>
-						Contact
+						Help
 					</Link>
 
-					<span>© 2024 TenantFlow. All rights reserved.</span>
+					<Link
+						href="https://hudsondigitalsolutions.com"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="hover:text-foreground transition-colors"
+					>
+						Powered by Hudson Digital
+					</Link>
+
+					<span>© 2025 TenantFlow. All rights reserved.</span>
 				</div>
 			</div>
 		</footer>

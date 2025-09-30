@@ -2,7 +2,7 @@
 
 import { authQueryKeys } from '@/stores/auth-provider'
 import { createClient } from '@/utils/supabase/client'
-import { logger } from '@repo/shared'
+import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Session, User } from '@supabase/supabase-js'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 

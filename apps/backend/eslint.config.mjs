@@ -17,7 +17,7 @@ export default [
 		files: ['**/*.ts'],
 		languageOptions: {
 			parserOptions: {
-				project: ['./tsconfig.eslint.json'],
+				project: './tsconfig.json',
 				tsconfigRootDir: import.meta.dirname
 			},
 			globals: {
@@ -29,12 +29,7 @@ export default [
 				__filename: 'readonly'
 			}
 		},
-		settings: {
-			'typescript-eslint': {
-				projectService: true,
-				maximumTypeCheckingDepth: 5
-			}
-		},
+		settings: {},
 		rules: {
 			// Console usage should be replaced with NestJS Logger
 			'no-console': 'error',
@@ -53,18 +48,7 @@ export default [
 			'@typescript-eslint/explicit-module-boundary-types': 'off',
 			'@typescript-eslint/no-empty-function': 'off',
 			'@typescript-eslint/no-namespace': 'off',
-			'@typescript-eslint/no-unsafe-assignment': 'warn',
-			'@typescript-eslint/no-unsafe-member-access': 'warn',
-			'@typescript-eslint/no-unsafe-call': 'warn',
-			'@typescript-eslint/no-unsafe-return': 'warn',
-			'@typescript-eslint/no-unsafe-argument': 'warn',
-			'@typescript-eslint/no-floating-promises': 'off',
-			'@typescript-eslint/no-misused-promises': 'off',
-			'@typescript-eslint/require-await': 'off',
-			'@typescript-eslint/await-thenable': 'off',
-			'@typescript-eslint/unbound-method': 'off',
-			'@typescript-eslint/restrict-template-expressions': 'off',
-			'@typescript-eslint/no-base-to-string': 'off'
+
 		}
 	},
 	{
@@ -110,11 +94,7 @@ export default [
 		},
 		rules: {
 			'no-console': 'off',
-			'@typescript-eslint/no-unsafe-assignment': 'off',
-			'@typescript-eslint/no-unsafe-member-access': 'off',
-			'@typescript-eslint/no-unsafe-call': 'off',
-			'@typescript-eslint/no-unsafe-return': 'off',
-			'@typescript-eslint/no-unsafe-argument': 'off'
+
 		}
 	},
 	{

@@ -94,7 +94,7 @@ describe('NotificationsController', () => {
 			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
-			expect(mockSupabaseClient.from).toHaveBeenCalledWith('InAppNotification')
+			expect(mockSupabaseClient.from).toHaveBeenCalledWith('notifications')
 			expect(mockSupabaseClient.eq).toHaveBeenCalledWith('userId', mockUser.id)
 			expect(result).toEqual({ notifications: mockNotifications })
 		})
@@ -163,7 +163,7 @@ describe('NotificationsController', () => {
 
 			const result = await controller.createNotification(validNotificationData)
 
-			expect(mockSupabaseClient.from).toHaveBeenCalledWith('InAppNotification')
+			expect(mockSupabaseClient.from).toHaveBeenCalledWith('notifications')
 			expect(mockSupabaseClient.insert).toHaveBeenCalledWith({
 				...validNotificationData,
 				isRead: false
@@ -237,7 +237,7 @@ describe('NotificationsController', () => {
 			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
-			expect(mockChain.from).toHaveBeenCalledWith('InAppNotification')
+			expect(mockChain.from).toHaveBeenCalledWith('notifications')
 			expect(mockChain.update).toHaveBeenCalledWith({ isRead: true })
 			expect(mockChain.eq).toHaveBeenCalledWith('id', notificationId)
 			expect(mockChain.eq).toHaveBeenCalledWith('userId', mockUser.id)
@@ -313,7 +313,7 @@ describe('NotificationsController', () => {
 			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
-			expect(mockChain.from).toHaveBeenCalledWith('InAppNotification')
+			expect(mockChain.from).toHaveBeenCalledWith('notifications')
 			expect(mockChain.delete).toHaveBeenCalled()
 			expect(mockChain.eq).toHaveBeenCalledWith('id', notificationId)
 			expect(mockChain.eq).toHaveBeenCalledWith('userId', mockUser.id)

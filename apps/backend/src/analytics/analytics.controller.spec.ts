@@ -1,6 +1,6 @@
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { WebVitalData } from '@repo/shared'
+import type { WebVitalData } from '@repo/shared/types/frontend'
 import { AnalyticsController } from './analytics.controller'
 import { AnalyticsService } from './analytics.service'
 

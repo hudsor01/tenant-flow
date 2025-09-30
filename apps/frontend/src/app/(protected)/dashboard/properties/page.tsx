@@ -1,32 +1,28 @@
-import type { PropertyWithUnits } from '@repo/shared'
-import { Building, DollarSign, TrendingUp } from 'lucide-react'
-
-// Server API
-import { getPropertiesPageData } from '@/lib/api/dashboard-server'
-
-// UI Components
-import { Badge } from '@/components/ui/badge'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '@/components/ui/table'
-
-// Custom Components
 import { MetricsCard } from '@/components/charts/metrics-card'
 import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
-import { PropertyEditViewButtons } from '@/components/properties/edit-button'
 import { CreatePropertyDialog } from '@/components/properties/create-property-dialog'
+import { PropertyEditViewButtons } from '@/components/properties/edit-button'
+import { Badge } from '@/components/ui/badge'
+import
+  {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+  } from '@/components/ui/select'
+import
+  {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+  } from '@/components/ui/table'
+import { getPropertiesPageData } from '@/lib/api/dashboard-server'
+import type { PropertyWithUnits } from '@repo/shared/types/relations'
+import { Building, DollarSign, TrendingUp } from 'lucide-react'
 
 export default async function PropertiesPage({
 	searchParams
@@ -34,14 +30,10 @@ export default async function PropertiesPage({
 	searchParams: Promise<{ status?: string }>
 }) {
 	const { status } = await searchParams
-
-	// Fetch data server-side WITH PRE-CALCULATED STATS
-	// NO CLIENT-SIDE CALCULATIONS - all metrics from backend
 	const { properties, stats } = await getPropertiesPageData(status)
 
 	return (
 		<div className="dashboard-root dashboard-main flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-			{/* Properties Metrics Cards */}
 			<div className="dashboard-section dashboard-cards-container grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-3">
 				<MetricsCard
 					title="Total Properties"

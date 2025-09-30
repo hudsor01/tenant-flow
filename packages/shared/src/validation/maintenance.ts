@@ -1,11 +1,12 @@
 import { z } from 'zod'
 import { Constants } from '../types/supabase-generated.js'
-import {
-	nonEmptyStringSchema,
-	nonNegativeNumberSchema,
-	requiredString,
-	uuidSchema
-} from './common.js'
+import
+  {
+    nonEmptyStringSchema,
+    nonNegativeNumberSchema,
+    requiredString,
+    uuidSchema
+  } from './common.js'
 
 // Maintenance priority enum - uses auto-generated Supabase enums
 export const maintenancePrioritySchema = z.enum(

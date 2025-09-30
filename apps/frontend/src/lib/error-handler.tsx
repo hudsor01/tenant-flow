@@ -4,8 +4,8 @@
  * Professional UX with clear messaging and recovery options
  */
 
-import { logger } from '@repo/shared'
-import type { ErrorContext, UserFriendlyError } from '@repo/shared'
+import { logger } from '@repo/shared/lib/frontend-logger.js'
+import type { ErrorContext, UserFriendlyError } from '@repo/shared/types/errors.js'
 import { toast } from 'sonner'
 
 export class TenantFlowError extends Error {

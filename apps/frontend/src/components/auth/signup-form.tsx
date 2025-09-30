@@ -6,33 +6,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useFormProgress } from '@/hooks/use-form-progress'
 import { cn } from '@/lib/design-system'
-import { type AuthFormProps } from '@repo/shared'
+import type { AuthFormProps } from '@repo/shared/types/frontend'
+import { signupFormSchema } from '@repo/shared/validation/auth'
 import { useForm } from '@tanstack/react-form'
 import { EyeIcon, EyeOffIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { z } from 'zod'
-
-// Extended signup schema with all required fields
-const signupFormSchema = z
-	.object({
-		firstName: z.string().min(1, 'First name is required'),
-		lastName: z.string().min(1, 'Last name is required'),
-		company: z.string().min(1, 'Company name is required'),
-		email: z.string().email('Please enter a valid email address'),
-		password: z
-			.string()
-			.min(8, 'Password must be at least 8 characters')
-			.regex(
-				/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-				'Password must contain uppercase, lowercase, and number'
-			),
-		confirmPassword: z.string()
-	})
-	.refine(data => data.password === data.confirmPassword, {
-		message: "Passwords don't match",
-		path: ['confirmPassword']
-	})
 
 export function SignupForm({
 	className,
@@ -130,6 +109,7 @@ export function SignupForm({
 								<Label htmlFor="firstName">First name</Label>
 								<Input
 									id="firstName"
+									data-testid="name-input"
 									placeholder="John"
 									value={field.state.value}
 									onChange={e => field.handleChange(e.target.value)}
@@ -212,8 +192,9 @@ export function SignupForm({
 					{field => (
 						<div className="space-y-2">
 							<Label htmlFor="email">Email address</Label>
-							<Input
-								id="email"
+								<Input
+									id="email"
+									data-testid="email-input"
 								type="email"
 								placeholder="john@example.com"
 								value={field.state.value}
@@ -245,9 +226,10 @@ export function SignupForm({
 				<form.Field name="password">
 					{field => (
 						<div className="space-y-2">
-							<PasswordStrength
-								label="Password"
-								id="password"
+								<PasswordStrength
+									label="Password"
+									id="password"
+									data-testid="password-input"
 								placeholder="Create a secure password"
 								value={field.state.value}
 								onChange={e => field.handleChange(e.target.value)}
@@ -277,9 +259,10 @@ export function SignupForm({
 						<div className="space-y-2">
 							<Label htmlFor="confirmPassword">Confirm password</Label>
 							<div className="relative">
-								<Input
-									id="confirmPassword"
-									type={showConfirmPassword ? 'text' : 'password'}
+									<Input
+										id="confirmPassword"
+										type={showConfirmPassword ? 'text' : 'password'}
+										data-testid="confirm-password-input"
 									placeholder="Re-enter your password"
 									value={field.state.value}
 									onChange={e => field.handleChange(e.target.value)}
@@ -318,6 +301,7 @@ export function SignupForm({
 				<div className="space-y-4 pt-3">
 					<Button
 						type="submit"
+						data-testid="signup-button"
 						className="w-full h-11 text-sm font-medium"
 						disabled={isLoading || form.state.isSubmitting}
 					>

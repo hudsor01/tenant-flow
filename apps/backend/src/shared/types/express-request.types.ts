@@ -3,7 +3,7 @@
  * Express-specific request type definitions for NestJS backend
  */
 
-import type { authUser } from '@repo/shared'
+import type { authUser } from '@repo/shared/types/auth'
 import type { Request } from 'express'
 
 // Authenticated request with user attached

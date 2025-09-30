@@ -32,7 +32,7 @@ import {
 import type {
 	CreateUnitRequest,
 	UpdateUnitRequest
-} from '@repo/shared'
+} from '@repo/shared/types/backend-domain'
 import type { Request } from 'express'
 import { UnitsService } from './units.service'
 import { SupabaseService } from '../database/supabase.service'

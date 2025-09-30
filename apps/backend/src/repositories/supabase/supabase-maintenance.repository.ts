@@ -1,17 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type {
-  MaintenanceRequest,
-  MaintenanceRequestInput,
-  MaintenanceRequestUpdate,
-  MaintenanceStats,
-  TablesInsert,
-  TablesUpdate,
-  Database
-} from '@repo/shared';
+    Database,
+    TablesInsert,
+    TablesUpdate
+} from '@repo/shared/types/supabase-generated';
+import type {
+    MaintenanceRequest
+} from '@repo/shared/types/supabase';
+import type {
+    MaintenanceRequestInput,
+    MaintenanceRequestUpdate,
+    MaintenanceStats
+} from '@repo/shared/types/core';
 import { SupabaseService } from '../../database/supabase.service';
 import {
-  IMaintenanceRepository,
-  MaintenanceQueryOptions
+    IMaintenanceRepository,
+    MaintenanceQueryOptions
 } from '../interfaces/maintenance-repository.interface';
 
 @Injectable()
@@ -222,7 +226,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
         .from('MaintenanceRequest')
         .insert({
           ...requestData,
-          preferredDate: requestData.preferredDate ? requestData.preferredDate.toISOString() : null,
+          preferredDate: requestData.preferredDate ? new Date(requestData.preferredDate).toISOString() : null,
           status: 'OPEN' as Database['public']['Enums']['RequestStatus'],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -259,12 +263,12 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
         .from('MaintenanceRequest')
         .update({
           ...requestData,
-          preferredDate: requestData.preferredDate ? requestData.preferredDate.toISOString() : undefined,
-          completedAt: requestData.completedAt ? requestData.completedAt.toISOString() : undefined,
+          preferredDate: requestData.preferredDate,
+          completedAt: requestData.completedAt,
           priority: requestData.priority ? requestData.priority as Database['public']['Enums']['Priority'] : undefined,
           category: requestData.category ? requestData.category as Database['public']['Enums']['MaintenanceCategory'] : undefined,
-          status: requestData.status ? (requestData.status === 'CANCELLED' ? 'CANCELED' as Database['public']['Enums']['RequestStatus'] :
-                  requestData.status === 'PENDING' ? 'OPEN' as Database['public']['Enums']['RequestStatus'] :
+          status: requestData.status ? (requestData.status === 'CANCELED' ? 'CANCELED' as Database['public']['Enums']['RequestStatus'] :
+                  requestData.status === 'OPEN' ? 'OPEN' as Database['public']['Enums']['RequestStatus'] :
                   requestData.status as Database['public']['Enums']['RequestStatus']) : undefined,
           updatedAt: new Date().toISOString()
         })
@@ -334,7 +338,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
     try {
       this.logger.log('Getting maintenance stats via DIRECT table query', { userId });
 
-      // DIRECT query - NO RPC BULLSHIT
+      // DIRECT query -
       const { data, error } = await this.supabase
         .getAdminClient()
         .from('MaintenanceRequest')
@@ -370,7 +374,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
         inProgress: inProgressRequests.length,
         completed: completedRequests.length,
         completedToday: completedToday.length,
-        avgResolutionTime: 0, // TODO: Calculate average resolution time
+        avgResolutionTime: 0, // Resolution timing will be calculated once close date tracking is available
         byPriority: {
           low: requests.filter(r => r.priority === 'LOW').length,
           medium: requests.filter(r => r.priority === 'MEDIUM').length,
@@ -399,15 +403,16 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
     try {
       this.logger.log('Getting maintenance analytics via DIRECT table query', { userId, options });
 
-      // DIRECT query - NO RPC BULLSHIT
+      // DIRECT query -
       let query = this.supabase
         .getAdminClient()
         .from('MaintenanceRequest')
         .select('*')
         .eq('userId', userId);
 
-      if (options.propertyId) {
-        query = query.eq('propertyId', options.propertyId);
+      const startDate = this.calculateStartDate(options.timeframe);
+      if (startDate) {
+        query = query.gte('createdAt', startDate.toISOString());
       }
 
       const { data, error } = await query;
@@ -429,6 +434,47 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
       });
       return [];
     }
+  }
+
+  private calculateStartDate(timeframe: string) {
+    if (!timeframe) {
+      return null;
+    }
+
+    const lower = timeframe.toLowerCase();
+    if (lower === 'all' || lower === 'lifetime') {
+      return null;
+    }
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const match = lower.match(/^(\d+)([dmy])$/);
+    if (match) {
+      const value = parseInt(match[1]!, 10);
+      const unit = match[2]!;
+      const days = unit === 'd' ? value : unit === 'm' ? value * 30 : value * 365;
+      now.setDate(now.getDate() - days);
+      return now;
+    }
+
+    switch (lower) {
+      case 'monthly':
+        now.setMonth(now.getMonth() - 1);
+        break;
+      case 'quarterly':
+        now.setMonth(now.getMonth() - 3);
+        break;
+      case 'yearly':
+      case 'annually':
+        now.setFullYear(now.getFullYear() - 1);
+        break;
+      default:
+        now.setMonth(now.getMonth() - 1);
+        break;
+    }
+
+    return now;
   }
 
   async getOverdueRequests(userId: string): Promise<MaintenanceRequest[]> {
@@ -593,7 +639,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
     try {
       this.logger.log('Adding work log to maintenance request via repository', { requestId, workLog });
 
-      // TODO: Implement work log functionality when MaintenanceWorkLog table is available
+      // Work log functionality will be added when the MaintenanceWorkLog table is provisioned
       this.logger.log('Work log functionality not yet implemented', { requestId, workLog });
 
       // Then, update the maintenance request timestamp
@@ -630,7 +676,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
     try {
       this.logger.log('Getting maintenance cost analytics via DIRECT table query', { userId, options });
 
-      // DIRECT query - NO RPC BULLSHIT
+      // DIRECT query -
       let query = this.supabase
         .getAdminClient()
         .from('MaintenanceRequest')
@@ -666,7 +712,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
     try {
       this.logger.log('Getting contractor performance metrics via repository', { userId, contractorId });
 
-      // TODO: Implement contractor performance RPC when function is available
+      // Contractor performance metrics rely on the contractor analytics RPC; hook it up once deployed
       this.logger.log('Contractor performance RPC not yet implemented', { userId, contractorId });
       return [];
     } catch (error) {

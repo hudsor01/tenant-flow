@@ -1,6 +1,6 @@
 'use server'
 
-import type { LoginCredentials } from '@repo/shared'
+import type { LoginCredentials } from '@repo/shared/types/auth'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'

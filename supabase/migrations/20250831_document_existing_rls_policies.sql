@@ -298,7 +298,7 @@ CREATE POLICY "Service role can manage invoice leads" ON public."InvoiceLeadCapt
 -- CustomerInvoice & CustomerInvoiceItem Tables
 -- These appear to be public invoice generation tools
 -- Current policies allow any authenticated user access
--- TODO: Review if these need more restrictive access controls
+-- Confirm whether tighter access controls are required before production deploys
 */
 
 -- =============================================================================

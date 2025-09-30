@@ -2,8 +2,8 @@
 
 import React, { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
-import { createLogger } from '@repo/shared'
-import type { StripePricingTableProps } from '@repo/shared'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+import type { StripePricingTableProps } from '@repo/shared/types/core'
 
 const logger = createLogger({ component: 'StripePricingTable' })
 

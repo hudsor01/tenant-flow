@@ -4,7 +4,7 @@
  */
 
 import { expect, test } from '@playwright/test'
-import { logger } from '@repo/shared'
+import { logger } from '@repo/shared/lib/frontend-logger'
 import {
 	UIUXWorkflow,
 	runCompleteUIUXWorkflow
@@ -166,7 +166,7 @@ test.describe('📸 Visual Regression', () => {
 		const pages = [
 			{ url: 'http://localhost:3005', name: 'landing' },
 			{ url: 'http://localhost:3005/pricing', name: 'pricing' },
-			{ url: 'http://localhost:3005/auth/login', name: 'login' }
+			{ url: 'http://localhost:3005/login', name: 'login' }
 		]
 
 		for (const pageInfo of pages) {
@@ -200,7 +200,7 @@ test.describe('🚀 Quick Smoke Test', () => {
 		const pages = [
 			'http://localhost:3005',
 			'http://localhost:3005/pricing',
-			'http://localhost:3005/auth/login'
+			'http://localhost:3005/login'
 		]
 
 		for (const url of pages) {

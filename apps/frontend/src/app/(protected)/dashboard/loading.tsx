@@ -1,10 +1,8 @@
 import { AppSidebar } from '@/components/dashboard-01/app-sidebar'
 import { SiteHeader } from '@/components/dashboard-01/site-header'
-import { LoadingSpinner } from '@/components/magicui/loading-spinner'
+import { LoadingState } from '@/components/ui/loading-state'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 
-// Dashboard Loading State
-// Shows loading with sidebar navigation intact
 export default function DashboardLoading() {
 	return (
 		<SidebarProvider
@@ -21,11 +19,7 @@ export default function DashboardLoading() {
 				<div className="flex flex-1 flex-col">
 					<div className="@container/main flex flex-1 flex-col gap-2">
 						<div className="flex h-[500px] w-full items-center justify-center">
-							<LoadingSpinner
-								size="xl"
-								variant="primary"
-								text="Loading dashboard..."
-							/>
+							<LoadingState text="Loading dashboard..." size="lg" />
 						</div>
 					</div>
 				</div>

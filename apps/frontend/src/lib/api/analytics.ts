@@ -3,7 +3,7 @@
  * Consumes backend analytics controllers with RPC calculations
  * Replaces all frontend calculation logic
  */
-import { serverFetch } from './server'
+import { serverFetch } from '@/lib/api/server'
 
 // Financial Analytics API
 export const financialAnalytics = {

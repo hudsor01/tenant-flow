@@ -1,29 +1,38 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type {
-  Property,
-  PropertyStats,
-  CreatePropertyRequest,
-  UpdatePropertyRequest,
-  Database,
-  Unit,
-  MaintenanceRequest
-} from '@repo/shared';
+    CreatePropertyRequest,
+    UpdatePropertyRequest
+} from '@repo/shared/types/backend-domain';
+import type {
+    Database
+} from '@repo/shared/types/supabase-generated';
+import type {
+    MaintenanceRequest,
+    Property,
+    Unit
+} from '@repo/shared/types/supabase';
+import type {
+    PropertyStats
+} from '@repo/shared/types/core';
 import { SupabaseService } from '../../database/supabase.service';
 import {
-  IPropertiesRepository,
-  PropertyFilterOptions,
-  PropertySearchOptions,
-  PropertyAnalyticsOptions,
-  PropertyPerformanceAnalytics,
-  PropertyOccupancyAnalytics,
-  PropertyFinancialAnalytics,
-  PropertyMaintenanceAnalytics
-} from '../interfaces/properties-repository.interface';
-import {
-  RepositoryError,
-  EntityNotFoundError,
-  DuplicateEntityError
+    DuplicateEntityError,
+    EntityNotFoundError,
+    RepositoryError
 } from '../interfaces/base-repository.interface';
+import {
+    IPropertiesRepository,
+    PropertyAnalyticsOptions,
+    PropertyFilterOptions,
+    PropertyFinancialAnalytics,
+    PropertyMaintenanceAnalytics,
+    PropertyOccupancyAnalytics,
+    PropertyPerformanceAnalytics,
+    PropertySearchOptions
+} from '../interfaces/properties-repository.interface';
+import type { Tables } from '@repo/shared/types/supabase';
+
+type ExpenseRecord = Tables<'Expense'>;
 
 @Injectable()
 export class SupabasePropertiesRepository implements IPropertiesRepository {
@@ -398,7 +407,7 @@ export class SupabasePropertiesRepository implements IPropertiesRepository {
     try {
       this.logger.log('Getting property stats via DIRECT table queries', { userId });
 
-      // DIRECT queries - NO RPC BULLSHIT
+      // DIRECT queries -
       const [properties, units] = await Promise.all([
         this.supabase.getAdminClient().from('Property').select('*').eq('ownerId', userId),
         this.supabase.getAdminClient().from('Unit').select('*').eq('userId', userId)
@@ -470,23 +479,30 @@ export class SupabasePropertiesRepository implements IPropertiesRepository {
         throw new RepositoryError(`Failed to get performance analytics: ${error.message}`, error);
       }
 
-      // Calculate performance analytics with proper typing
-      const analytics: PropertyPerformanceAnalytics[] = (data || []).map(property => {
+      const properties = data || [];
+      const propertyIds = properties.map(property => property.id);
+      const { startDate, endDate } = this.calculateDateRange(options.timeframe || '12m');
+      const expenses = await this.fetchExpenses(propertyIds, startDate, endDate);
+      const expensesByProperty = this.groupExpensesByProperty(expenses);
+      const timeframeMonths = this.convertTimeframeToMonths(options.timeframe || '12m');
+
+      const analytics: PropertyPerformanceAnalytics[] = properties.map(property => {
         const units = (property.Unit || []) as Unit[];
-        const occupiedUnits = units.filter((u) => u.status === 'OCCUPIED');
+        const totalUnits = units.length;
+        const occupiedUnits = units.filter(u => u.status === 'OCCUPIED');
         const monthlyRevenue = occupiedUnits.reduce((sum, unit) => sum + (unit.rent || 0), 0);
-        const revenue = monthlyRevenue * 12; // Annual revenue
-        const expenses = 0; // TODO: Calculate from actual expense data
-        const netIncome = revenue - expenses;
+        const revenue = monthlyRevenue * timeframeMonths;
+        const expensesTotal = expensesByProperty.get(property.id) ?? 0;
+        const netIncome = revenue - expensesTotal;
 
         return {
           propertyId: property.id,
           propertyName: property.name,
-          period: options.period || 'monthly',
-          occupancyRate: units.length > 0 ? Math.round((occupiedUnits.length / units.length) * 100) : 0,
-          revenue: revenue,
-          expenses: expenses,
-          netIncome: netIncome,
+          period: options.period || options.timeframe || 'custom',
+          occupancyRate: totalUnits > 0 ? Math.round((occupiedUnits.length / totalUnits) * 100) : 0,
+          revenue,
+          expenses: expensesTotal,
+          netIncome,
           roi: revenue > 0 ? Math.round((netIncome / revenue) * 100) : 0
         };
       });
@@ -527,16 +543,49 @@ export class SupabasePropertiesRepository implements IPropertiesRepository {
         throw new RepositoryError(`Failed to get occupancy analytics: ${error.message}`, error);
       }
 
-      // Calculate occupancy analytics with proper typing
-      const analytics: PropertyOccupancyAnalytics[] = (data || []).map(property => {
-        const units = property.Unit || [];
-        const statusCounts = (units as Unit[]).reduce((acc: Record<string, number>, unit) => {
+      const properties = data || [];
+      const units = properties.flatMap(property => (property.Unit || []) as Unit[]);
+      const unitIds = units.map(unit => unit.id);
+      const unitToProperty = new Map<string, string>();
+      for (const unit of units) {
+        if (unit.id && unit.propertyId) {
+          unitToProperty.set(unit.id, unit.propertyId);
+        }
+      }
+
+      const { startDate, endDate } = this.calculatePeriodRange(options.period || 'monthly');
+      const leases = await this.fetchLeases(unitIds, startDate, endDate);
+
+      const moveCounts = new Map<string, { moveIns: number; moveOuts: number }>();
+      for (const lease of leases) {
+        const propertyId = unitToProperty.get(lease.unitId ?? '');
+        if (!propertyId) {
+          continue;
+        }
+        if (!moveCounts.has(propertyId)) {
+          moveCounts.set(propertyId, { moveIns: 0, moveOuts: 0 });
+        }
+        const counts = moveCounts.get(propertyId)!;
+        const start = new Date(lease.startDate);
+        const end = new Date(lease.endDate);
+        if (startDate && start >= startDate && (!endDate || start <= endDate)) {
+          counts.moveIns += 1;
+        }
+        if (endDate && end >= startDate! && end <= endDate) {
+          counts.moveOuts += 1;
+        }
+      }
+
+      const analytics: PropertyOccupancyAnalytics[] = properties.map(property => {
+        const propertyUnits = (property.Unit || []) as Unit[];
+        const statusCounts = propertyUnits.reduce((acc: Record<string, number>, unit) => {
           acc[unit.status] = (acc[unit.status] || 0) + 1;
           return acc;
         }, {});
 
         const occupiedUnits = statusCounts.OCCUPIED || 0;
-        const totalUnits = units.length;
+        const totalUnits = propertyUnits.length;
+        const counts = moveCounts.get(property.id) || { moveIns: 0, moveOuts: 0 };
 
         return {
           propertyId: property.id,
@@ -545,8 +594,8 @@ export class SupabasePropertiesRepository implements IPropertiesRepository {
           occupancyRate: totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0,
           unitsOccupied: occupiedUnits,
           unitsTotal: totalUnits,
-          moveIns: 0, // TODO: Calculate from lease data
-          moveOuts: 0 // TODO: Calculate from lease data
+          moveIns: counts.moveIns,
+          moveOuts: counts.moveOuts
         };
       });
 
@@ -586,31 +635,40 @@ export class SupabasePropertiesRepository implements IPropertiesRepository {
         throw new RepositoryError(`Failed to get financial analytics: ${error.message}`, error);
       }
 
-      // Calculate financial analytics with proper typing
-      const analytics: PropertyFinancialAnalytics[] = (data || []).map(property => {
-        const units = property.Unit || [];
+      const properties = data || [];
+      const propertyIds = properties.map(property => property.id);
+      const { startDate, endDate } = this.calculateDateRange(options.timeframe || '12m');
+      const expenses = await this.fetchExpenses(propertyIds, startDate, endDate);
+      const expensesByProperty = this.groupExpensesByCategory(expenses);
+      const timeframeMonths = this.convertTimeframeToMonths(options.timeframe || '12m');
 
-        const occupiedUnits = (units as Unit[]).filter((u) => u.status === 'OCCUPIED');
+      const analytics: PropertyFinancialAnalytics[] = properties.map(property => {
+        const units = (property.Unit || []) as Unit[];
+        const occupiedUnits = units.filter(unit => unit.status === 'OCCUPIED');
+        const monthlyRevenue = occupiedUnits.reduce((sum, unit) => sum + (unit.rent || 0), 0);
+        const revenue = monthlyRevenue * timeframeMonths;
 
-        const revenue = occupiedUnits.reduce((sum: number, unit) => sum + (unit.rent || 0), 0) * 12; // Annual
-        const expenses = 0; // TODO: Calculate from actual expense data
-        const netIncome = revenue - expenses;
-        const operatingExpenses = 0; // TODO: Calculate from expense categories
-        const maintenanceExpenses = 0; // TODO: Calculate from maintenance requests
-        const capexExpenses = 0; // TODO: Calculate from capital expenditures
+        const expenseSummary = expensesByProperty.get(property.id) || {
+          total: 0,
+          operating: 0,
+          maintenance: 0,
+          capex: 0
+        };
+
+        const netIncome = revenue - expenseSummary.total;
         const cashFlow = netIncome;
 
         return {
           propertyId: property.id,
           propertyName: property.name,
-          period: options.period || 'monthly',
-          revenue: revenue,
-          expenses: expenses,
-          netIncome: netIncome,
-          operatingExpenses: operatingExpenses,
-          maintenanceExpenses: maintenanceExpenses,
-          capexExpenses: capexExpenses,
-          cashFlow: cashFlow
+          period: options.period || options.timeframe || 'custom',
+          revenue,
+          expenses: expenseSummary.total,
+          netIncome,
+          operatingExpenses: expenseSummary.operating,
+          maintenanceExpenses: expenseSummary.maintenance,
+          capexExpenses: expenseSummary.capex,
+          cashFlow
         };
       });
 
@@ -619,6 +677,252 @@ export class SupabasePropertiesRepository implements IPropertiesRepository {
       this.logger.error('Database error in getFinancialAnalytics', { userId, options, error });
       if (error instanceof RepositoryError) throw error;
       throw new RepositoryError('Database operation failed');
+    }
+  }
+
+  private async fetchExpenses(propertyIds: string[], startDate?: Date | null, endDate?: Date | null) {
+    if (!propertyIds.length) {
+      return [] as ExpenseRecord[];
+    }
+
+    try {
+      let query = this.supabase
+        .getAdminClient()
+        .from('Expense')
+        .select('*')
+        .in('propertyId', propertyIds);
+
+      if (startDate) {
+        query = query.gte('date', startDate.toISOString());
+      }
+      if (endDate) {
+        query = query.lte('date', endDate.toISOString());
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        this.logger.error('Expense query failed for property analytics', {
+          error: error.message,
+          propertyIds,
+          startDate: startDate?.toISOString(),
+          endDate: endDate?.toISOString()
+        });
+        return [];
+      }
+
+      return (data as ExpenseRecord[]) ?? [];
+    } catch (error) {
+      this.logger.error('Unexpected error fetching expenses for property analytics', {
+        error: error instanceof Error ? error.message : String(error),
+        propertyIds,
+        startDate: startDate?.toISOString(),
+        endDate: endDate?.toISOString()
+      });
+      return [];
+    }
+  }
+
+  private groupExpensesByProperty(expenses: ExpenseRecord[]) {
+    const map = new Map<string, number>();
+    for (const expense of expenses) {
+      if (!expense.propertyId) {
+        continue;
+      }
+      map.set(expense.propertyId, (map.get(expense.propertyId) ?? 0) + (expense.amount ?? 0));
+    }
+    return map;
+  }
+
+  private groupExpensesByCategory(expenses: ExpenseRecord[]) {
+    const map = new Map<string, { total: number; operating: number; maintenance: number; capex: number }>();
+
+    for (const expense of expenses) {
+      if (!expense.propertyId) {
+        continue;
+      }
+
+      if (!map.has(expense.propertyId)) {
+        map.set(expense.propertyId, { total: 0, operating: 0, maintenance: 0, capex: 0 });
+      }
+
+      const summary = map.get(expense.propertyId)!;
+      const amount = expense.amount ?? 0;
+      summary.total += amount;
+
+      const category = expense.category?.toLowerCase() ?? '';
+      if (category.includes('maintenance') || category.includes('repair')) {
+        summary.maintenance += amount;
+      } else if (category.includes('capex') || category.includes('capital') || category.includes('improvement')) {
+        summary.capex += amount;
+      } else {
+        summary.operating += amount;
+      }
+    }
+
+    return map;
+  }
+
+  private calculateDateRange(timeframe: string) {
+    const lower = (timeframe || '12m').toLowerCase();
+    if (lower === 'all' || lower === 'lifetime') {
+      return { startDate: null, endDate: null };
+    }
+
+    const now = new Date();
+    now.setHours(23, 59, 59, 999);
+
+    const match = lower.match(/^(\d+)([dmy])$/);
+    if (match) {
+      const value = parseInt(match[1]!, 10);
+      const unit = match[2]!;
+      const start = new Date(now);
+      if (unit === 'd') {
+        start.setDate(start.getDate() - value);
+      } else if (unit === 'm') {
+        start.setMonth(start.getMonth() - value);
+      } else {
+        start.setFullYear(start.getFullYear() - value);
+      }
+      start.setHours(0, 0, 0, 0);
+      return { startDate: start, endDate: now };
+    }
+
+    switch (lower) {
+      case 'weekly': {
+        const start = new Date(now);
+        start.setDate(start.getDate() - 7);
+        start.setHours(0, 0, 0, 0);
+        return { startDate: start, endDate: now };
+      }
+      case 'monthly': {
+        const start = new Date(now);
+        start.setMonth(start.getMonth() - 1);
+        start.setHours(0, 0, 0, 0);
+        return { startDate: start, endDate: now };
+      }
+      case 'quarterly': {
+        const start = new Date(now);
+        start.setMonth(start.getMonth() - 3);
+        start.setHours(0, 0, 0, 0);
+        return { startDate: start, endDate: now };
+      }
+      case 'yearly':
+      case 'annually':
+      default: {
+        const start = new Date(now);
+        start.setFullYear(start.getFullYear() - 1);
+        start.setHours(0, 0, 0, 0);
+        return { startDate: start, endDate: now };
+      }
+    }
+  }
+
+  private convertTimeframeToMonths(timeframe: string) {
+    const lower = (timeframe || '12m').toLowerCase();
+    if (lower === 'all' || lower === 'lifetime') {
+      return 12;
+    }
+
+    const match = lower.match(/^(\d+)([dmy])$/);
+    if (match) {
+      const value = parseInt(match[1]!, 10);
+      const unit = match[2]!;
+      if (unit === 'd') {
+        return value / 30;
+      }
+      if (unit === 'm') {
+        return value;
+      }
+      if (unit === 'y') {
+        return value * 12;
+      }
+    }
+
+    switch (lower) {
+      case 'weekly':
+        return 0.25;
+      case 'monthly':
+        return 1;
+      case 'quarterly':
+        return 3;
+      case 'yearly':
+      case 'annually':
+        return 12;
+      default:
+        return 12;
+    }
+  }
+
+  private calculatePeriodRange(period: string) {
+    const now = new Date();
+    now.setHours(23, 59, 59, 999);
+    const start = new Date(now);
+
+    switch (period.toLowerCase()) {
+      case 'daily':
+        start.setDate(start.getDate() - 1);
+        break;
+      case 'weekly':
+        start.setDate(start.getDate() - 7);
+        break;
+      case 'monthly':
+        start.setMonth(start.getMonth() - 1);
+        break;
+      case 'quarterly':
+        start.setMonth(start.getMonth() - 3);
+        break;
+      case 'yearly':
+        start.setFullYear(start.getFullYear() - 1);
+        break;
+      default:
+        start.setMonth(start.getMonth() - 1);
+        break;
+    }
+
+    start.setHours(0, 0, 0, 0);
+
+    return { startDate: start, endDate: now };
+  }
+
+  private async fetchLeases(unitIds: string[], startDate?: Date | null, endDate?: Date | null) {
+    if (!unitIds.length) {
+      return [] as Tables<'Lease'>[];
+    }
+
+    try {
+      let query = this.supabase
+        .getAdminClient()
+        .from('Lease')
+        .select('*')
+        .in('unitId', unitIds);
+
+      if (startDate) {
+        query = query.gte('startDate', startDate.toISOString());
+      }
+      if (endDate) {
+        query = query.lte('endDate', endDate.toISOString());
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        this.logger.error('Lease query failed for occupancy analytics', {
+          error: error.message,
+          unitCount: unitIds.length,
+          startDate: startDate?.toISOString(),
+          endDate: endDate?.toISOString()
+        });
+        return [];
+      }
+
+      return (data as Tables<'Lease'>[]) ?? [];
+    } catch (error) {
+      this.logger.error('Unexpected error fetching leases for occupancy analytics', {
+        error: error instanceof Error ? error.message : String(error),
+        unitCount: unitIds.length,
+        startDate: startDate?.toISOString(),
+        endDate: endDate?.toISOString()
+      });
+      return [];
     }
   }
 
@@ -699,7 +1003,7 @@ export class SupabasePropertiesRepository implements IPropertiesRepository {
           totalRequests: requests.length,
           completedRequests: completedRequests,
           pendingRequests: pendingRequests,
-          avgResolutionTime: 0, // TODO: Calculate from completion dates
+          avgResolutionTime: 0, // Average resolution time pending once completion timestamps are available
           totalCost: totalCost,
           avgCost: avgCost,
           emergencyRequests: emergencyRequests

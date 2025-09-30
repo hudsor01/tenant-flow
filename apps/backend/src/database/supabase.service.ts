@@ -4,7 +4,8 @@ import {
     Logger,
     OnModuleInit
 } from '@nestjs/common'
-import type { authUser, Database } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
+import type { authUser } from '@repo/shared/types/auth'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { Request } from 'express'
 
@@ -121,14 +122,26 @@ export class SupabaseService implements OnModuleInit {
 			// Fallback to cookie if no Authorization header (SSR pattern)
 			if (!token) {
 				const cookieName = `sb-${process.env.SUPABASE_PROJECT_REF || 'bshjmbshupiibfiewpxb'}-auth-token`
-				token = req.cookies?.[cookieName] as string | undefined
+				const cookieValue = req.cookies?.[cookieName] as string | undefined
 
-				if (token) {
+				if (cookieValue) {
+					const extractedToken = this.extractAccessTokenFromCookie(cookieValue)
+					token = extractedToken
+
 					this.logger.log('Using token from SSR cookie', {
 						endpoint: req.path,
 						method: req.method,
-						cookieName
+						cookieName,
+						hadExtractableToken: !!extractedToken
 					})
+
+					if (!extractedToken) {
+						this.logger.warn('Supabase auth cookie present but no access token extracted', {
+							endpoint: req.path,
+							cookieName,
+							cookieLength: cookieValue.length
+						})
+					}
 				}
 			}
 
@@ -179,6 +192,77 @@ export class SupabaseService implements OnModuleInit {
 			})
 			return null
 		}
+	}
+
+	private extractAccessTokenFromCookie(cookieValue: string): string | undefined {
+		const candidates = new Set<string>()
+		if (cookieValue) {
+			candidates.add(cookieValue)
+			try {
+				const decoded = decodeURIComponent(cookieValue)
+				candidates.add(decoded)
+			} catch {
+				// Silently ignore decoding errors
+			}
+		}
+
+		for (const candidate of candidates) {
+			try {
+				const parsed = JSON.parse(candidate)
+
+				if (typeof parsed === 'string') {
+					// Some environments double-stringify; recurse once
+					try {
+						const innerParsed = JSON.parse(parsed)
+						const token = this.extractAccessTokenFromParsedCookie(innerParsed)
+						if (token) return token
+					} catch {
+						// Silently ignore nested parsing errors
+					}
+				}
+
+				const token = this.extractAccessTokenFromParsedCookie(parsed)
+				if (token) return token
+			} catch {
+				// Ignore JSON parse errors for this candidate
+			}
+		}
+
+		// Final fallback: attempt regex search for access_token pattern
+		for (const candidate of candidates) {
+			const match = candidate.match(/"access[_-]?token"\s*:\s*"([^"]+)"/)
+			if (match?.[1]) {
+				return match[1]
+			}
+		}
+
+		return undefined
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	private extractAccessTokenFromParsedCookie(parsed: any): string | undefined {
+		if (!parsed) return undefined
+
+		const possibleSessions = [
+			parsed.currentSession,
+			parsed.session,
+			parsed,
+			Array.isArray(parsed) ? parsed[0] : undefined
+		]
+
+		for (const session of possibleSessions) {
+			if (!session || typeof session !== 'object') continue
+			const directToken =
+				session.access_token ||
+				session.accessToken ||
+				session['access-token']
+
+			if (typeof directToken === 'string' && directToken.length > 0) {
+				return directToken
+			}
+		}
+
+		return undefined
 	}
 
 	async checkConnection(): Promise<{

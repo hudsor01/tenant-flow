@@ -28,7 +28,7 @@ import {
 import type {
 	CreateLeaseRequest,
 	UpdateLeaseRequest
-} from '@repo/shared'
+} from '@repo/shared/types/backend-domain'
 import type { Request } from 'express'
 import { LeasesService } from './leases.service'
 import { SupabaseService } from '../database/supabase.service'

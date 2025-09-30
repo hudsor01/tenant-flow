@@ -11,7 +11,8 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { supabaseClient, createLogger } from '@repo/shared'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { supabaseClient } from '@repo/shared/lib/supabase-client'
 import { useMutation } from '@tanstack/react-query'
 
 const logger = createLogger({ component: 'ForgotPasswordModal' })

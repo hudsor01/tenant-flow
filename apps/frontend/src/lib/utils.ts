@@ -16,39 +16,41 @@ import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 // Re-export design system utilities for easy access
-export {
-	animationClasses,
-	badgeClasses,
-	buttonClasses,
-	cardClasses,
-	containerClasses,
-	formErrorClasses,
-	formFieldClasses,
-	formLabelClasses,
-	generateThemeCSS,
-	getSemanticColor,
-	glassClasses,
-	gridClasses,
-	inputClasses,
-	premiumButtonClasses,
-	responsiveClasses,
-	shadowClasses,
-	statusClasses,
-	tableClasses,
-	transitionClasses,
-	typographyClasses
-} from './design-system'
+export
+{
+  animationClasses,
+  badgeClasses,
+  buttonClasses,
+  cardClasses,
+  containerClasses,
+  formErrorClasses,
+  formFieldClasses,
+  formLabelClasses,
+  generateThemeCSS,
+  getSemanticColor,
+  glassClasses,
+  gridClasses,
+  inputClasses,
+  premiumButtonClasses,
+  responsiveClasses,
+  shadowClasses,
+  statusClasses,
+  tableClasses,
+  transitionClasses,
+  typographyClasses
+} from '@/lib/design-system'
 
 // Re-export shared design system constants
-export {
-	ANIMATION_DURATIONS,
-	BREAKPOINTS,
-	COMPONENT_SIZES,
-	SEMANTIC_COLORS,
-	SHADOW_SCALE,
-	SPACING_SCALE,
-	TYPOGRAPHY_SCALE
-} from '@repo/shared'
+export
+{
+  ANIMATION_DURATIONS,
+  BREAKPOINTS,
+  COMPONENT_SIZES,
+  SEMANTIC_COLORS,
+  SHADOW_SCALE,
+  SPACING_SCALE,
+  TYPOGRAPHY_SCALE
+} from '@repo/shared/constants/design-system'
 
 /**
  * Enhanced className utility with intelligent Tailwind class merging

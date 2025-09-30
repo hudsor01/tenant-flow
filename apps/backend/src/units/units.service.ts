@@ -8,14 +8,19 @@
  */
 
 import { BadRequestException, Injectable, Logger, Inject } from '@nestjs/common'
-import type {
-	CreateUnitRequest,
-	UpdateUnitRequest,
-	Unit,
-	UnitStats,
-	UnitInput,
-	Database
-} from '@repo/shared'
+import type { CreateUnitRequest, UpdateUnitRequest } from '@repo/shared/types/backend-domain'
+import type { Unit, UnitStats } from '@repo/shared/types/core'
+import type { Database } from '@repo/shared/types/supabase-generated'
+
+// UnitInput interface - should be added to shared types in Phase 2
+interface UnitInput {
+	propertyId: string
+	unitNumber: string
+	bedrooms: number
+	bathrooms: number
+	squareFeet?: number
+	rent: number
+}
 import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 import type { IUnitsRepository, UnitQueryOptions } from '../repositories/interfaces/units-repository.interface'
 
@@ -302,6 +307,80 @@ export class UnitsService {
 				status
 			})
 			return null
+		}
+	}
+
+	/**
+	 * Get unit statistics - replaces get_unit_statistics function
+	 * Uses repository pattern instead of database function
+	 */
+	async getUnitStatistics(userId: string, propertyId?: string): Promise<Record<string, unknown>> {
+		try {
+			this.logger.log('Getting unit statistics via repository', { userId, propertyId })
+
+			// Get unit stats and analytics via repository
+			const [stats, analytics] = await Promise.all([
+				this.unitsRepository.getStats(userId),
+				this.unitsRepository.getAnalytics(userId, {
+					propertyId,
+					timeframe: '12m'
+				})
+			])
+
+			// Calculate additional statistics from analytics data
+			const totalUnits = analytics.length
+			const occupiedUnits = analytics.filter((unit: Unit) => unit.status === 'OCCUPIED').length
+			const vacantUnits = analytics.filter((unit: Unit) => unit.status === 'VACANT').length
+			const maintenanceUnits = analytics.filter((unit: Unit) => unit.status === 'MAINTENANCE').length
+
+			// Calculate average rent
+			const totalRent = analytics.reduce((sum: number, unit: Unit) => {
+				return sum + (unit.rent || 0)
+			}, 0)
+			const averageRent = totalUnits > 0 ? totalRent / totalUnits : 0
+
+			// Calculate occupancy rate
+			const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+
+			return {
+				summary: {
+					total: stats.total,
+					occupied: stats.occupied,
+					vacant: stats.vacant,
+					maintenance: stats.maintenance || maintenanceUnits,
+					occupancyRate: stats.occupancyRate,
+					averageRent: stats.averageRent || averageRent
+				},
+				breakdown: {
+					byStatus: {
+						occupied: occupiedUnits,
+						vacant: vacantUnits,
+						maintenance: maintenanceUnits,
+						available: stats.available || vacantUnits
+					},
+					byProperty: propertyId ? {
+						propertyId,
+						totalUnits,
+						occupiedUnits,
+						vacantUnits,
+						occupancyRate
+					} : null
+				},
+				financial: {
+					totalPotentialRent: stats.totalPotentialRent || totalRent,
+					totalActualRent: stats.totalActualRent || (occupiedUnits * averageRent),
+					averageRent,
+					totalRent
+				},
+				timestamp: new Date().toISOString()
+			}
+		} catch (error) {
+			this.logger.error('Failed to get unit statistics', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				propertyId
+			})
+			return {}
 		}
 	}
 }

@@ -82,26 +82,26 @@ export interface UpdateUserProfileInput {
 
 // Import from api-inputs.ts for consistent type usage
 import type {
-	CreateLeaseInput,
-	CreatePropertyInput,
-	CreateTenantInput,
-	CreateUnitInput,
-	UpdateLeaseInput,
-	UpdatePropertyInput,
-	UpdateTenantInput,
-	UpdateUnitInput
+  CreateLeaseInput,
+  CreatePropertyInput,
+  CreateTenantInput,
+  CreateUnitInput,
+  UpdateLeaseInput,
+  UpdatePropertyInput,
+  UpdateTenantInput,
+  UpdateUnitInput
 } from './api-inputs.js'
 
 // Direct re-exports - use Input types consistently
 export type {
-	CreateLeaseInput,
-	CreatePropertyInput,
-	CreateTenantInput,
-	CreateUnitInput,
-	UpdateLeaseInput,
-	UpdatePropertyInput,
-	UpdateTenantInput,
-	UpdateUnitInput
+  CreateLeaseInput,
+  CreatePropertyInput,
+  CreateTenantInput,
+  CreateUnitInput,
+  UpdateLeaseInput,
+  UpdatePropertyInput,
+  UpdateTenantInput,
+  UpdateUnitInput
 }
 
 export interface UnitStats {
@@ -188,49 +188,17 @@ export interface FileUploadResponse {
 
 // Query parameters for API calls - using comprehensive query types from queries.ts
 export type {
-	LeaseQuery,
-	MaintenanceQuery,
-	NotificationQuery,
-	PropertyQuery,
-	TenantQuery,
-	UnitQuery
+  LeaseQuery,
+  MaintenanceQuery,
+  NotificationQuery,
+  PropertyQuery,
+  TenantQuery,
+  UnitQuery
 } from './queries.js'
 
 // Note: *WithDetails types are defined in relations.ts to avoid circular imports
 
-// Dashboard statistics
-export interface DashboardStats {
-	properties: {
-		total: number
-		owned: number
-		rented: number
-		available: number
-		maintenance: number
-	}
-	tenants: {
-		total: number
-		active: number
-		inactive: number
-	}
-	units: UnitStats
-	leases: LeaseStats
-	maintenanceRequests: {
-		total: number
-		open: number
-		inProgress: number
-		completed: number
-	}
-	notifications: {
-		total: number
-		unread: number
-	}
-	// Additional properties needed by tests
-	revenue: {
-		total: number
-		monthly: number
-		collected: number
-	}
-}
+// DashboardStats moved to core.ts to follow single source of truth architecture
 
 export interface ActivityItem {
 	id: string

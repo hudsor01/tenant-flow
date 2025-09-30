@@ -1,39 +1,39 @@
-import type { TenantWithLeaseInfo } from '@repo/shared'
-import {
-	CreditCard,
-	TrendingUp,
-	Users
-} from 'lucide-react'
+import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
+import
+  {
+    CreditCard,
+    TrendingUp,
+    Users
+  } from 'lucide-react'
 
 // Server API
 import { getTenantsPageData } from '@/lib/api/dashboard-server'
 
 // UI Components
 import { Badge } from '@/components/ui/badge'
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '@/components/ui/table'
+import
+  {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+  } from '@/components/ui/table'
 
 // Custom Components
 import { MetricsCard } from '@/components/charts/metrics-card'
 import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
-import { TenantEditViewButtons } from '@/components/tenants/edit-button'
 import { CreateTenantDialog } from '@/components/tenants/create-dialog'
+import { TenantEditViewButtons } from '@/components/tenants/edit-button'
 import { formatCurrency } from '@/lib/utils'
 
 export default async function TenantsPage() {
-	// Fetch data server-side WITH PRE-CALCULATED STATS
-	// NO CLIENT-SIDE CALCULATIONS - all metrics from backend
 	const { tenants, stats } = await getTenantsPageData()
 
 	return (
 		<div className="dashboard-root dashboard-main flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-			{/* Tenant Metrics Cards - Using DB-calculated stats */}
+
 			<div className="dashboard-section dashboard-cards-container grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-2 lg:grid-cols-4">
 				<MetricsCard
 					title="Total Tenants"
@@ -70,7 +70,6 @@ export default async function TenantsPage() {
 				/>
 			</div>
 
-			{/* Tenants Content */}
 			<div className="px-4 lg:px-6">
 				<div className="flex items-center justify-between mb-6">
 					<div>
@@ -95,7 +94,6 @@ export default async function TenantsPage() {
 						</div>
 					</div>
 
-					{/* Interactive Chart */}
 					<ChartAreaInteractive className="mb-6" />
 
 					<div className="rounded-md border bg-card shadow-sm">
@@ -117,8 +115,7 @@ export default async function TenantsPage() {
 							<TableBody>
 								{tenants?.length ? (
 									tenants.map((tenant: TenantWithLeaseInfo) => {
-										// All metrics come pre-calculated from backend
-										// NO CLIENT-SIDE CALCULATIONS
+
 										const propertyName = tenant.property?.name || '—'
 										const rentAmount = tenant.currentLease?.rentAmount || 0
 

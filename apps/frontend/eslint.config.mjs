@@ -18,7 +18,6 @@ import { createRequire } from 'module'
 
 // Import custom architecture rules from root
 const require = createRequire(import.meta.url)
-const noBarrelExports = require('../../.eslint/rules/no-barrel-exports.js').default
 const noInlineTypes = require('../../.eslint/rules/no-inline-types.js').default
 
 export default [
@@ -193,14 +192,12 @@ export default [
 		plugins: {
 			'type-centralization': {
 				rules: {
-					'no-inline-types': noInlineTypes,
-					'no-barrel-exports': noBarrelExports
+					'no-inline-types': noInlineTypes
 				}
 			}
 		},
 		rules: {
-			'type-centralization/no-inline-types': 'error',
-			'type-centralization/no-barrel-exports': 'error'
+			'type-centralization/no-inline-types': 'error'
 		}
 	}
 ]

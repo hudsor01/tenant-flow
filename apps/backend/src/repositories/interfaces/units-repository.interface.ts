@@ -1,11 +1,9 @@
-import type {
-  Unit,
-  UnitInput,
-  UnitUpdate,
-  UnitStats,
-  QueryParams,
-  Database
-} from '@repo/shared';
+import type { Database } from '@repo/shared/types/supabase-generated';
+import type { QueryParams, UnitStats, Unit } from '@repo/shared/types/core';
+
+// Type aliases for Input/Update using database schema
+export type UnitInput = Database['public']['Tables']['Unit']['Insert'];
+export type UnitUpdate = Database['public']['Tables']['Unit']['Update'];
 
 /**
  * Unit query options - extends standard QueryParams with unit-specific filters

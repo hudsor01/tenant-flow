@@ -5,9 +5,20 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') as string, {
   apiVersion: '2024-11-20'
 })
 
-const cryptoProvider = Stripe.createSubtleCryptoProvider()
+type LogContext = Record<string, unknown>
 
-console.log('Stripe Checkout Edge Function initialized')
+const logError = (message: string, context?: LogContext) => {
+	const payload = { level: 'error', message, ...(context ?? {}) }
+	console.error(JSON.stringify(payload))
+}
+
+const logDebug = (message: string, context?: LogContext) => {
+	if (Deno.env.get('NODE_ENV') !== 'development') return
+	const payload = { level: 'debug', message, ...(context ?? {}) }
+	console.info(JSON.stringify(payload))
+}
+
+logDebug('Stripe Checkout Edge Function initialized')
 
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight requests
@@ -54,7 +65,10 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
 
     if (authError || !user?.email) {
-      console.error('Auth error:', authError)
+      logError('Stripe checkout authentication failed', {
+        error: authError?.message ?? 'Unknown authentication error',
+        hasUserEmail: Boolean(user?.email)
+      })
       return new Response(JSON.stringify({ error: 'Authentication failed' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' }
@@ -111,7 +125,10 @@ Deno.serve(async (req: Request) => {
       }
     })
 
-    console.log(`✅ Checkout session created: ${session.id} for user: ${user.email}`)
+    logDebug('Checkout session created', {
+      sessionId: session.id,
+      userId: user.id
+    })
 
     return new Response(JSON.stringify({
       sessionId: session.id,
@@ -124,10 +141,13 @@ Deno.serve(async (req: Request) => {
     })
 
   } catch (err) {
-    console.error('❌ Stripe checkout error:', err)
-    
     const errorMessage = err instanceof Error ? err.message : 'Checkout creation failed'
     const statusCode = err instanceof Error && err.message.includes('Invalid') ? 400 : 500
+
+    logError('Stripe checkout session creation failed', {
+      error: errorMessage,
+      statusCode
+    })
 
     return new Response(JSON.stringify({ 
       error: errorMessage,

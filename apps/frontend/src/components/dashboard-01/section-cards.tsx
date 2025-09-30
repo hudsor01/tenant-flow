@@ -1,119 +1,102 @@
-import { MetricsCard } from '@/components/charts/metrics-card'
+import { TrendingDown, TrendingUp } from "lucide-react"
+
+import { Badge } from "@/components/ui/badge"
 import {
-	Building,
-	DollarSign,
-	FileText,
-	TrendingUp,
-	Users,
-	Wrench
-} from 'lucide-react'
-import type { DashboardStats, LeaseStatsResponse } from '@repo/shared'
+  Card,
+  CardAction,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
-interface SectionCardsProps {
-	dashboardStats?: DashboardStats | null
-	propertyStats?: {
-		totalProperties: number
-		totalUnits: number
-		occupiedUnits: number
-		occupancyRate: number
-		totalRevenue: number
-		vacantUnits: number
-		maintenanceUnits: number
-	} | null
-	leaseStats?: LeaseStatsResponse | null
-}
-
-// Native formatters using Intl API
-const currencyFormatter = new Intl.NumberFormat('en-US', {
-	style: 'currency',
-	currency: 'USD',
-	maximumFractionDigits: 0
-})
-
-const percentageFormatter = new Intl.NumberFormat('en-US', {
-	style: 'percent',
-	minimumFractionDigits: 1,
-	maximumFractionDigits: 1
-})
-
-export function SectionCards({ dashboardStats, propertyStats, leaseStats }: SectionCardsProps) {
-	// Extract data from actual API responses - no fallbacks, just use real data
-	const totalProperties = propertyStats?.totalProperties || 0
-	const totalTenants = dashboardStats?.tenants?.total || dashboardStats?.totalTenants || 0
-	const monthlyRevenue = dashboardStats?.revenue?.monthly || propertyStats?.totalRevenue || 0
-	const occupancyRate = propertyStats?.occupancyRate || 0
-	const occupiedUnits = propertyStats?.occupiedUnits || 0
-	const totalUnits = propertyStats?.totalUnits || 0
-	const activeLeases = leaseStats?.activeLeases || 0
-	const maintenanceRequests = dashboardStats?.maintenance?.open || 0
-
-	return (
-		<div
-			className="grid grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-4"
-			style={{
-				gap: 'var(--dashboard-card-gap)',
-				padding: '0 var(--dashboard-content-padding)'
-			}}
-		>
-			<MetricsCard
-				title="Total Properties"
-				value={totalProperties}
-				description="Portfolio properties"
-				icon={Building}
-				colorVariant="property"
-				role="region"
-				aria-label="Total Properties metric"
-			/>
-
-			<MetricsCard
-				title="Total Tenants"
-				value={totalTenants}
-				description="Active tenants"
-				icon={Users}
-				colorVariant="primary"
-				role="region"
-				aria-label="Total Tenants metric"
-			/>
-
-			<MetricsCard
-				title="Monthly Revenue"
-				value={currencyFormatter.format(monthlyRevenue)}
-				description="Current month"
-				icon={DollarSign}
-				colorVariant="revenue"
-				role="region"
-				aria-label="Monthly Revenue metric"
-			/>
-
-			<MetricsCard
-				title="Occupancy Rate"
-				value={percentageFormatter.format(occupancyRate / 100)}
-				description={`${occupiedUnits} of ${totalUnits} units occupied`}
-				icon={TrendingUp}
-				colorVariant="success"
-				role="region"
-				aria-label="Occupancy Rate metric"
-			/>
-
-			<MetricsCard
-				title="Active Leases"
-				value={activeLeases}
-				description="Current agreements"
-				icon={FileText}
-				colorVariant="info"
-				role="region"
-				aria-label="Active Leases metric"
-			/>
-
-			<MetricsCard
-				title="Maintenance Requests"
-				value={maintenanceRequests}
-				description="Open requests"
-				icon={Wrench}
-				colorVariant="warning"
-				role="region"
-				aria-label="Maintenance Requests metric"
-			/>
-		</div>
-	)
+export function SectionCards() {
+  return (
+    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Total Revenue</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            $1,250.00
+          </CardTitle>
+          <CardAction>
+            <Badge variant="outline">
+              <TrendingUp />
+              +12.5%
+            </Badge>
+          </CardAction>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            Trending up this month <TrendingUp className="size-4" />
+          </div>
+          <div className="text-muted-foreground">
+            Visitors for the last 6 months
+          </div>
+        </CardFooter>
+      </Card>
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>New Customers</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            1,234
+          </CardTitle>
+          <CardAction>
+            <Badge variant="outline">
+              <TrendingDown />
+              -20%
+            </Badge>
+          </CardAction>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            Down 20% this period <TrendingDown className="size-4" />
+          </div>
+          <div className="text-muted-foreground">
+            Acquisition needs attention
+          </div>
+        </CardFooter>
+      </Card>
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Active Accounts</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            45,678
+          </CardTitle>
+          <CardAction>
+            <Badge variant="outline">
+              <TrendingUp />
+              +12.5%
+            </Badge>
+          </CardAction>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            Strong user retention <TrendingUp className="size-4" />
+          </div>
+          <div className="text-muted-foreground">Engagement exceed targets</div>
+        </CardFooter>
+      </Card>
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Growth Rate</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            4.5%
+          </CardTitle>
+          <CardAction>
+            <Badge variant="outline">
+              <TrendingUp />
+              +4.5%
+            </Badge>
+          </CardAction>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 flex gap-2 font-medium">
+            Steady performance increase <TrendingUp className="size-4" />
+          </div>
+          <div className="text-muted-foreground">Meets growth projections</div>
+        </CardFooter>
+      </Card>
+    </div>
+  )
 }

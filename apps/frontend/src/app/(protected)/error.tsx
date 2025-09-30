@@ -1,14 +1,12 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { createLogger } from '@repo/shared'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { AlertCircle } from 'lucide-react'
 import { useEffect } from 'react'
 
 const logger = createLogger({ component: 'ProtectedError' })
 
-// Protected Routes Error Boundary
-// Handles authentication failures and protected route errors
 export default function ProtectedError({
 	error,
 	reset

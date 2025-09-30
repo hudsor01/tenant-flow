@@ -1,13 +1,14 @@
 import { z } from 'zod'
 import { Constants, type Database } from '../types/supabase-generated.js'
-import {
-	nonEmptyStringSchema,
-	nonNegativeNumberSchema,
-	positiveNumberSchema,
-	requiredString,
-	urlSchema,
-	uuidSchema
-} from './common.js'
+import
+  {
+    nonEmptyStringSchema,
+    nonNegativeNumberSchema,
+    positiveNumberSchema,
+    requiredString,
+    urlSchema,
+    uuidSchema
+  } from './common.js'
 
 // Property type schema - uses auto-generated Supabase enums
 export const propertyTypeSchema = z.enum(

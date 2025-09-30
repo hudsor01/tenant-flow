@@ -16,10 +16,10 @@ import {
 	buttonClasses,
 	cardClasses,
 	cn,
-	inputClasses,
-	TYPOGRAPHY_SCALE
+	inputClasses
 } from '@/lib/utils'
-import { supabaseClient } from '@repo/shared'
+import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
+import { supabaseClient } from '@repo/shared/lib/supabase-client'
 import { useMutation } from '@tanstack/react-query'
 import {
 	AlertTriangle,

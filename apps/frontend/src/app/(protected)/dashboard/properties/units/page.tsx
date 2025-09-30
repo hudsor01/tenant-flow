@@ -30,12 +30,13 @@ import
     TableRow
   } from '@/components/ui/table'
 import { unitColumns, type UnitRow } from '@/components/units/units-columns'
-import { useProperties } from '@/hooks/api/properties'
-import { useCreateUnit, useUnits } from '@/hooks/api/units'
-import type { Database } from '@repo/shared'
+import { propertiesApi, unitsApi } from '@/lib/api-client'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import type { ColumnDef } from '@tanstack/react-table'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { DoorOpen, Filter, Plus } from 'lucide-react'
 import { useRef } from 'react'
+import { toast } from 'sonner'
 
 type InsertUnit = Database['public']['Tables']['Unit']['Insert']
 type UnitStatus = Database['public']['Enums']['UnitStatus']
@@ -50,20 +51,33 @@ export default function UnitsPage({
 	const status = searchParams?.status as UnitStatus | undefined
 	const propertyFilter = searchParams?.property
 
-	const { data: units = [] } = useUnits(status)
-	const { data: properties = [] } = useProperties()
+	const { data: units = [] } = useQuery({
+		queryKey: ['units', status],
+		queryFn: () => unitsApi.list(status ? { status } : undefined)
+	})
 
-	// Filter units by property if specified (minimal filtering for display)
+	const { data: properties = [] } = useQuery({
+		queryKey: ['properties'],
+		queryFn: () => propertiesApi.list()
+	})
+
+	// Use backend RPC functions for statistics - NO CLIENT-SIDE CALCULATIONS
+	const { data: unitsStats } = useQuery({
+		queryKey: ['units', 'stats'],
+		queryFn: unitsApi.stats
+	})
+
+	// Filter units by property if specified (display only)
 	const filteredUnits = propertyFilter
 		? units.filter((unit: UnitRowDB) => unit.propertyId === propertyFilter)
 		: units
 
-	// TODO: Replace with backend-provided statistics from RPC functions
-	const totalUnits = filteredUnits.length
-	const occupiedCount = filteredUnits.filter((unit: UnitRowDB) => unit.status === 'OCCUPIED').length
-	const vacantCount = filteredUnits.filter((unit: UnitRowDB) => unit.status === 'VACANT').length
-	const maintenanceCount = filteredUnits.filter((unit: UnitRowDB) => unit.status === 'MAINTENANCE').length
-	const occupancyRate = totalUnits > 0 ? (occupiedCount / totalUnits) * 100 : 0
+	// Use backend statistics directly - trust the database calculations
+	const totalUnits = unitsStats?.totalUnits ?? 0
+	const occupiedCount = unitsStats?.occupiedUnits ?? 0
+	const vacantCount = unitsStats?.vacantUnits ?? 0
+	const maintenanceCount = unitsStats?.maintenanceUnits ?? 0
+	const occupancyRate = unitsStats?.occupancyRate ?? 0
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -266,8 +280,24 @@ function UnitsTable({
 }
 
 function NewUnitButton() {
-	const create = useCreateUnit()
-	const { data: properties = [] } = useProperties()
+	const qc = useQueryClient()
+	const { data: properties = [] } = useQuery({
+		queryKey: ['properties'],
+		queryFn: () => propertiesApi.list()
+	})
+
+	const create = useMutation({
+		mutationFn: (values: InsertUnit) => unitsApi.create(values),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ['units'] })
+			qc.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
+			toast.success('Unit created successfully')
+		},
+		onError: (error: Error) => {
+			toast.error('Failed to create unit', { description: error.message })
+		}
+	})
+
 	const closeButtonRef = useRef<HTMLButtonElement>(null)
 
 	async function onSubmit(form: HTMLFormElement) {

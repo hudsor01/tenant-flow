@@ -12,7 +12,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from '@tanstack/react-form'
 import { leasesApi } from '@/lib/api-client'
 import { toast } from 'sonner'
-import type { Tables } from '@repo/shared'
+import type { Tables } from '@repo/shared/types/supabase'
 import { leaseUpdateSchema, type LeaseUpdate } from '@repo/shared/validation/leases'
 
 type Lease = Tables<'Lease'>
