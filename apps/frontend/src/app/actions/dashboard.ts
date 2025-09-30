@@ -1,8 +1,8 @@
 'use server'
 
+import { dashboardServerApi } from '@/lib/api/dashboard-server'
 import { revalidatePath } from 'next/cache'
 import { cache } from 'react'
-import { dashboardApi } from '../../lib/api-client'
 
 /**
  * Get dashboard statistics
@@ -11,7 +11,7 @@ import { dashboardApi } from '../../lib/api-client'
  */
 export const getDashboardStats = cache(async () => {
 	try {
-		const stats = await dashboardApi.getStats()
+		const stats = await dashboardServerApi.getStats()
 		return { success: true, data: stats }
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error)
@@ -42,7 +42,7 @@ export const getDashboardStats = cache(async () => {
  */
 export const getDashboardActivity = cache(async () => {
 	try {
-		const activityData = await dashboardApi.getActivity()
+		const activityData = await dashboardServerApi.getActivity()
 		return { success: true, data: activityData }
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error)
@@ -72,7 +72,7 @@ export const getDashboardActivity = cache(async () => {
  */
 export async function getPropertyPerformance() {
 	try {
-		const performance = await dashboardApi.getPropertyPerformance()
+		const performance = await dashboardServerApi.getPropertyPerformance()
 		return { success: true, data: performance }
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error)
