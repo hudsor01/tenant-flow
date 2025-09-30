@@ -1,7 +1,8 @@
+import { MetricsCard } from '@/components/charts/metrics-card'
 import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
 import { CreateLeaseDialog } from '@/components/leases/create-lease-dialog'
 import { LeaseActionButtons } from '@/components/leases/lease-action-buttons'
-import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
 	Table,
 	TableBody,
@@ -11,10 +12,28 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { getLeasesPageData } from '@/lib/api/dashboard-server'
+import { cn } from '@/lib/utils'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import { AlertTriangle, FileText } from 'lucide-react'
+import { Clock, DollarSign, FileCheck, FileText } from 'lucide-react'
 
 type Lease = Database['public']['Tables']['Lease']['Row']
+
+const getLeaseStatusStyles = (status: string) => {
+	const styles = {
+		ACTIVE:
+			'bg-[var(--color-system-green-10)] text-[var(--color-system-green)] border-[var(--color-system-green)]',
+		EXPIRED:
+			'bg-[var(--color-system-red-10)] text-[var(--color-system-red)] border-[var(--color-system-red)]',
+		TERMINATED:
+			'bg-[var(--color-fill-tertiary)] text-[var(--color-label-secondary)] border-[var(--color-border-secondary)]',
+		PENDING:
+			'bg-[var(--color-system-yellow-10)] text-[var(--color-system-yellow)] border-[var(--color-system-yellow)]'
+	}
+	return (
+		styles[status as keyof typeof styles] ||
+		'bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)] border-[var(--color-border-secondary)]'
+	)
+}
 
 export default async function LeasesPage() {
 	// Fetch data server-side with stats
@@ -26,81 +45,41 @@ export default async function LeasesPage() {
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 			{/* Lease Metrics Cards */}
 			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
-				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex items-center justify-between mb-2">
-						<h3 className="text-sm font-medium text-muted-foreground">
-							Total Leases
-						</h3>
-						<div
-							className="w-2 h-2 rounded-full"
-							style={{ backgroundColor: 'var(--chart-4)' }}
-						/>
-					</div>
-					<div className="text-2xl font-bold">{stats.totalLeases}</div>
-					<p className="text-xs text-muted-foreground mt-1">All agreements</p>
-				</div>
+				<MetricsCard
+					title="Total Leases"
+					value={stats.totalLeases}
+					description="All agreements"
+					icon={FileText}
+					colorVariant="info"
+				/>
 
-				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex items-center justify-between mb-2">
-						<h3 className="text-sm font-medium text-muted-foreground">
-							Active Leases
-						</h3>
-						<div
-							className="w-2 h-2 rounded-full"
-							style={{ backgroundColor: 'var(--chart-1)' }}
-						/>
-					</div>
-					<div className="text-2xl font-bold">{stats.activeLeases}</div>
-					<div className="text-xs mt-1" style={{ color: 'var(--chart-1)' }}>
-						Currently active
-					</div>
-				</div>
+				<MetricsCard
+					title="Active Leases"
+					value={stats.activeLeases}
+					description="Currently active"
+					icon={FileCheck}
+					colorVariant="success"
+				/>
 
-				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex items-center justify-between mb-2">
-						<h3 className="text-sm font-medium text-muted-foreground">
-							Expiring Soon
-						</h3>
-						<div
-							className="w-2 h-2 rounded-full"
-							style={{ backgroundColor: 'var(--chart-5)' }}
-						/>
-					</div>
-					<div
-						className="text-2xl font-bold"
-						style={{ color: 'var(--chart-5)' }}
-					>
-						0
-					</div>
-					<div className="text-xs mt-1 text-muted-foreground">
-						Within 60 days
-					</div>
-				</div>
+				<MetricsCard
+					title="Expiring Soon"
+					value="0"
+					description="Within 60 days"
+					icon={Clock}
+					colorVariant="warning"
+				/>
 
-				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex items-center justify-between mb-2">
-						<h3 className="text-sm font-medium text-muted-foreground">
-							Monthly Revenue
-						</h3>
-						<div
-							className="w-2 h-2 rounded-full"
-							style={{ backgroundColor: 'var(--chart-3)' }}
-						/>
-					</div>
-					<div
-						className="text-2xl font-bold"
-						style={{ color: 'var(--chart-3)' }}
-					>
-						{new Intl.NumberFormat('en-US', {
-							style: 'currency',
-							currency: 'USD',
-							maximumFractionDigits: 0
-						}).format(stats.totalMonthlyRent)}
-					</div>
-					<div className="text-xs mt-1 text-muted-foreground">
-						From all leases
-					</div>
-				</div>
+				<MetricsCard
+					title="Monthly Revenue"
+					value={new Intl.NumberFormat('en-US', {
+						style: 'currency',
+						currency: 'USD',
+						maximumFractionDigits: 0
+					}).format(stats.totalMonthlyRent)}
+					description="From all leases"
+					icon={DollarSign}
+					colorVariant="revenue"
+				/>
 			</div>
 
 			{/* Leases Content */}
@@ -162,19 +141,14 @@ export default async function LeasesPage() {
 												: 'No date'}
 										</TableCell>
 										<TableCell>
-											<span
-												className={`px-2 py-1 rounded-full text-xs ${
-													lease.status === 'ACTIVE'
-														? 'bg-[var(--color-system-green-10)] text-[var(--color-system-green)]'
-														: lease.status === 'EXPIRED'
-															? 'bg-[var(--color-system-red-10)] text-[var(--color-system-red)]'
-															: lease.status === 'TERMINATED'
-																? 'bg-[var(--color-fill-tertiary)] text-[var(--color-label-secondary)]'
-																: 'bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)]'
-												}`}
+											<Badge
+												variant="outline"
+												className={cn(
+													getLeaseStatusStyles(lease.status || 'UNKNOWN')
+												)}
 											>
-												{lease.status || 'No Status'}
-											</span>
+												{lease.status || 'Unknown'}
+											</Badge>
 										</TableCell>
 										<TableCell>
 											<LeaseActionButtons lease={lease} />
@@ -194,30 +168,6 @@ export default async function LeasesPage() {
 							)}
 						</TableBody>
 					</Table>
-				</div>
-
-				{/* Upcoming Actions */}
-				<div className="mt-6 p-4 rounded-lg border bg-card/50">
-					<h3 className="font-semibold mb-3 flex items-center gap-2">
-						<AlertTriangle className="size-4 text-accent" />
-						Upcoming Actions Required
-					</h3>
-					<div className="space-y-2 text-sm">
-						<div className="flex items-center justify-between p-2 rounded bg-accent/10 border border-accent/20">
-							<span>
-								Michael Chen's lease expires in 30 days - Contact for renewal
-							</span>
-							<Button size="sm" variant="outline">
-								Contact
-							</Button>
-						</div>
-						<div className="flex items-center justify-between p-2 rounded bg-primary/10 border border-primary/20">
-							<span>David Kim has renewal pending - Review and process</span>
-							<Button size="sm" variant="outline">
-								Process
-							</Button>
-						</div>
-					</div>
 				</div>
 			</div>
 		</div>

@@ -1,3 +1,4 @@
+import { EnhancedMetricsCard } from '@/components/charts/enhanced-metrics-card'
 import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -18,8 +19,11 @@ import {
 
 export default async function AnalyticsPage() {
 	// Fetch real dashboard data from API server-side (includes NOI calculations from backend)
-	const { dashboardStats: dashboardData, propertyPerformance: propertyData, financialStats } =
-		await getAnalyticsPageData()
+	const {
+		dashboardStats: dashboardData,
+		propertyPerformance: propertyData,
+		financialStats
+	} = await getAnalyticsPageData()
 
 	// Format currency values
 	const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`
@@ -61,175 +65,68 @@ export default async function AnalyticsPage() {
 
 			{/* Key Metrics Cards */}
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-				{/* Total Revenue */}
-				<Card
-					className="p-6 border shadow-sm"
-					style={{ borderLeftColor: 'var(--chart-1)', borderLeftWidth: '4px' }}
-				>
-					<div className="flex items-center gap-3 mb-4">
-						<div
-							className="w-10 h-10 rounded-full flex items-center justify-center"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-1) 15%, transparent)'
-							}}
-						>
-							<DollarSign className="size-5" />
-						</div>
-						<h3 className="font-semibold">Total Revenue</h3>
-					</div>
-					<div className="text-3xl font-bold mb-1">
-						{dashboardData?.revenue?.yearly
+				<EnhancedMetricsCard
+					title="Total Revenue"
+					value={
+						dashboardData?.revenue?.yearly
 							? formatCurrency(dashboardData.revenue.yearly)
-							: '$0'}
-					</div>
-					<div className="flex items-center gap-2">
-						<Badge
-							className="text-xs"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-1) 20%, transparent)',
-								color: 'var(--chart-1)'
-							}}
-						>
-							{(dashboardData?.revenue?.growth || 0) >= 0 ? (
-								<TrendingUp className="size-3 mr-1" />
-							) : (
-								<TrendingDown className="size-3 mr-1" />
-							)}
-							{formatPercentage(dashboardData?.revenue?.growth || 0)}
-						</Badge>
-						<p className="text-muted-foreground text-sm">vs last 6 months</p>
-					</div>
-				</Card>
+							: '$0'
+					}
+					description="Annual revenue across all properties"
+					change={{
+						value: formatPercentage(dashboardData?.revenue?.growth || 0),
+						trend: (dashboardData?.revenue?.growth || 0) >= 0 ? 'up' : 'down',
+						period: 'vs last 6 months'
+					}}
+					icon={DollarSign}
+					colorVariant="revenue"
+				/>
 
-				{/* Average Occupancy */}
-				<Card
-					className="p-6 border shadow-sm"
-					style={{ borderLeftColor: 'var(--chart-2)', borderLeftWidth: '4px' }}
-				>
-					<div className="flex items-center gap-3 mb-4">
-						<div
-							className="w-10 h-10 rounded-full flex items-center justify-center"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-2) 15%, transparent)'
-							}}
-						>
-							<Users className="size-5" />
-						</div>
-						<h3 className="font-semibold">Avg Occupancy</h3>
-					</div>
-					<div className="text-3xl font-bold mb-1">
-						{dashboardData?.units?.occupancyRate
+				<EnhancedMetricsCard
+					title="Avg Occupancy"
+					value={
+						dashboardData?.units?.occupancyRate
 							? `${dashboardData.units.occupancyRate.toFixed(1)}%`
-							: '0.0%'}
-					</div>
-					<div className="flex items-center gap-2">
-						<Badge
-							className="text-xs"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-2) 20%, transparent)',
-								color: 'var(--chart-2)'
-							}}
-						>
-							{(dashboardData?.units?.occupancyChange || 0) >= 0 ? (
-								<TrendingUp className="size-3 mr-1" />
-							) : (
-								<TrendingDown className="size-3 mr-1" />
-							)}
-							{formatPercentage(dashboardData?.units?.occupancyChange || 0)}
-						</Badge>
-						<p className="text-muted-foreground text-sm">
-							industry benchmark: 89%
-						</p>
-					</div>
-				</Card>
+							: '0.0%'
+					}
+					description="Average occupancy rate across portfolio"
+					change={{
+						value: formatPercentage(dashboardData?.units?.occupancyChange || 0),
+						trend:
+							(dashboardData?.units?.occupancyChange || 0) >= 0 ? 'up' : 'down',
+						period: 'industry benchmark: 89%'
+					}}
+					icon={Users}
+					colorVariant="info"
+				/>
 
-				{/* Net Operating Income */}
-				<Card
-					className="p-6 border shadow-sm"
-					style={{ borderLeftColor: 'var(--chart-3)', borderLeftWidth: '4px' }}
-				>
-					<div className="flex items-center gap-3 mb-4">
-						<div
-							className="w-10 h-10 rounded-full flex items-center justify-center"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-3) 15%, transparent)'
-							}}
-						>
-							<BarChart3 className="size-5" />
-						</div>
-						<h3 className="font-semibold">Net Operating Income</h3>
-					</div>
-					<div className="text-3xl font-bold mb-1">
-						{formatCurrency(financialStats?.netOperatingIncome || 0)}
-					</div>
-					<div className="flex items-center gap-2">
-						<Badge
-							className="text-xs"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-3) 20%, transparent)',
-								color: 'var(--chart-3)'
-							}}
-						>
-							{(financialStats?.noiGrowth || 0) >= 0 ? (
-								<TrendingUp className="size-3 mr-1" />
-							) : (
-								<TrendingDown className="size-3 mr-1" />
-							)}
-							{formatPercentage(financialStats?.noiGrowth || 0)}
-						</Badge>
-						<p className="text-muted-foreground text-sm">
-							{(financialStats?.profitMargin || 0).toFixed(1)}% profit margin
-						</p>
-					</div>
-				</Card>
+				<EnhancedMetricsCard
+					title="Net Operating Income"
+					value={formatCurrency(financialStats?.netOperatingIncome || 0)}
+					description={`${(financialStats?.profitMargin || 0).toFixed(1)}% profit margin`}
+					change={{
+						value: formatPercentage(financialStats?.noiGrowth || 0),
+						trend: (financialStats?.noiGrowth || 0) >= 0 ? 'up' : 'down',
+						period: 'year over year'
+					}}
+					icon={BarChart3}
+					colorVariant="success"
+				/>
 
-				{/* Portfolio Growth */}
-				<Card
-					className="p-6 border shadow-sm"
-					style={{ borderLeftColor: 'var(--chart-4)', borderLeftWidth: '4px' }}
-				>
-					<div className="flex items-center gap-3 mb-4">
-						<div
-							className="w-10 h-10 rounded-full flex items-center justify-center"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-4) 15%, transparent)'
-							}}
-						>
-							<Building className="size-5" />
-						</div>
-						<h3 className="font-semibold">Portfolio Growth</h3>
-					</div>
-					<div className="text-3xl font-bold mb-1">
-						{dashboardData?.properties?.total || 0}
-					</div>
-					<div className="flex items-center gap-2">
-						<Badge
-							className="text-xs"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-4) 20%, transparent)',
-								color: 'var(--chart-4)'
-							}}
-						>
-							<TrendingUp className="size-3 mr-1" />
-							{dashboardData?.properties?.total
-								? '+' +
-									((dashboardData.properties.total / 10) * 100).toFixed(1) +
-									'%'
-								: '+0.0%'}
-						</Badge>
-						<p className="text-muted-foreground text-sm">
-							total properties managed
-						</p>
-					</div>
-				</Card>
+				<EnhancedMetricsCard
+					title="Portfolio Growth"
+					value={`${dashboardData?.properties?.total || 0}`}
+					description="Total properties managed"
+					change={{
+						value: dashboardData?.properties?.total
+							? `+${((dashboardData.properties.total / 10) * 100).toFixed(1)}%`
+							: '+0.0%',
+						trend: 'up',
+						period: 'total properties managed'
+					}}
+					icon={Building}
+					colorVariant="primary"
+				/>
 			</div>
 
 			{/* Charts Section */}
@@ -323,64 +220,6 @@ export default async function AnalyticsPage() {
 					</div>
 				</Card>
 			</div>
-
-			{/* Performance Insights */}
-			<Card className="p-6 border shadow-sm">
-				<h3 className="text-lg font-semibold mb-4">Performance Insights</h3>
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-					<div className="space-y-3">
-						<h4 className="font-medium text-primary">Key Strengths</h4>
-						<ul className="space-y-2 text-sm text-muted-foreground">
-							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
-								Occupancy rate exceeds industry benchmark by 4.2%
-							</li>
-							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
-								Revenue growth consistently outpacing expenses
-							</li>
-							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
-								Portfolio expansion ahead of 2024 targets
-							</li>
-						</ul>
-					</div>
-					<div className="space-y-3">
-						<h4 className="font-medium text-accent">Areas for Improvement</h4>
-						<ul className="space-y-2 text-sm text-muted-foreground">
-							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></div>
-								March occupancy dipped below 90%
-							</li>
-							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></div>
-								Maintenance costs trending upward
-							</li>
-							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-accent mt-2"></div>
-								Riverside Towers underperforming
-							</li>
-						</ul>
-					</div>
-					<div className="space-y-3">
-						<h4 className="font-medium text-primary">Recommendations</h4>
-						<ul className="space-y-2 text-sm text-muted-foreground">
-							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
-								Focus marketing efforts on March vacancy spike
-							</li>
-							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
-								Implement preventive maintenance program
-							</li>
-							<li className="flex items-start gap-2">
-								<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
-								Review Riverside Towers pricing strategy
-							</li>
-						</ul>
-					</div>
-				</div>
-			</Card>
 		</div>
 	)
 }

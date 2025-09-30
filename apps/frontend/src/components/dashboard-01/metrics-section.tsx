@@ -1,8 +1,12 @@
 'use client'
 
-import { SectionCards } from '@/components/dashboard-01/section-cards'
-import { useDashboardStats, usePropertyStats, useLeaseStats } from '@/hooks/api/use-dashboard'
 import { MetricsCardSkeleton } from '@/components/charts/metrics-card-skeleton'
+import { SectionCards } from '@/components/dashboard-01/section-cards'
+import {
+	useDashboardStats,
+	useLeaseStats,
+	usePropertyStats
+} from '@/hooks/api/use-dashboard'
 
 /**
  * MetricsSection - Single Responsibility: Display key metrics cards
@@ -16,8 +20,12 @@ export function MetricsSection() {
 	const leaseStats = useLeaseStats()
 
 	// Show loading state while any metrics data is fetching
-	const isLoading = dashboardStats.isLoading || propertyStats.isLoading || leaseStats.isLoading
+	const isLoading =
+		dashboardStats.isLoading || propertyStats.isLoading || leaseStats.isLoading
 	const error = dashboardStats.error || propertyStats.error || leaseStats.error
+
+	// Combine stats data for SectionCards
+	const stats = dashboardStats.data
 
 	if (isLoading) {
 		return (
@@ -56,7 +64,9 @@ export function MetricsSection() {
 			<div className="border-b bg-background px-4 py-6 lg:px-6 lg:py-8">
 				<div className="mx-auto max-w-[1600px] flex justify-center">
 					<div className="text-center">
-						<p className="text-sm text-muted-foreground">Unable to load metrics</p>
+						<p className="text-sm text-muted-foreground">
+							Unable to load metrics
+						</p>
 					</div>
 				</div>
 			</div>
@@ -78,7 +88,7 @@ export function MetricsSection() {
 					paddingBottom: 'var(--spacing-4)'
 				}}
 			>
-				<SectionCards />
+				<SectionCards stats={stats} />
 			</div>
 		</div>
 	)

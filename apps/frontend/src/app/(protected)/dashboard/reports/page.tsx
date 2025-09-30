@@ -1,35 +1,34 @@
 'use client'
 
+import { MetricsCard } from '@/components/charts/metrics-card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import
-  {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-  } from '@/components/ui/select'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
 import { Table } from '@/components/ui/table'
-import
-  {
-    Building,
-    Calendar,
-    Clock,
-    DollarSign,
-    Download,
-    FileSpreadsheet,
-    FileText,
-    Filter,
-    Mail,
-    Plus,
-    Printer,
-    Search,
-    TrendingUp,
-    Users
-  } from 'lucide-react'
+import {
+	Building,
+	Calendar,
+	Clock,
+	DollarSign,
+	Download,
+	FileSpreadsheet,
+	FileText,
+	Filter,
+	Mail,
+	Plus,
+	Printer,
+	Search,
+	TrendingUp,
+	Users
+} from 'lucide-react'
 
 const availableReports = [
 	{
@@ -146,87 +145,37 @@ export default function ReportsPage() {
 			</div>
 
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-				<Card
-					className="p-6 border shadow-sm"
-					style={{ borderLeftColor: 'var(--chart-1)', borderLeftWidth: '4px' }}
-				>
-					<div className="flex items-center gap-3 mb-4">
-						<div
-							className="w-10 h-10 rounded-full flex items-center justify-center"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-1) 15%, transparent)'
-							}}
-						>
-							<FileText className="size-5" />
-						</div>
-						<h3 className="font-semibold">Total Reports</h3>
-					</div>
-					<div className="text-3xl font-bold mb-1">248</div>
-					<p className="text-muted-foreground text-sm">Generated this year</p>
-				</Card>
+				<MetricsCard
+					title="Total Reports"
+					value="248"
+					description="Generated this year"
+					icon={FileText}
+					colorVariant="info"
+				/>
 
-				<Card
-					className="p-6 border shadow-sm"
-					style={{ borderLeftColor: 'var(--chart-2)', borderLeftWidth: '4px' }}
-				>
-					<div className="flex items-center gap-3 mb-4">
-						<div
-							className="w-10 h-10 rounded-full flex items-center justify-center"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-2) 15%, transparent)'
-							}}
-						>
-							<Clock className="size-5" />
-						</div>
-						<h3 className="font-semibold">Scheduled</h3>
-					</div>
-					<div className="text-3xl font-bold mb-1">12</div>
-					<p className="text-muted-foreground text-sm">
-						Automatic reports active
-					</p>
-				</Card>
+				<MetricsCard
+					title="Scheduled"
+					value="12"
+					description="Automatic reports active"
+					icon={Clock}
+					colorVariant="warning"
+				/>
 
-				<Card
-					className="p-6 border shadow-sm"
-					style={{ borderLeftColor: 'var(--chart-3)', borderLeftWidth: '4px' }}
-				>
-					<div className="flex items-center gap-3 mb-4">
-						<div
-							className="w-10 h-10 rounded-full flex items-center justify-center"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-3) 15%, transparent)'
-							}}
-						>
-							<Download className="size-5" />
-						</div>
-						<h3 className="font-semibold">Downloads</h3>
-					</div>
-					<div className="text-3xl font-bold mb-1">89</div>
-					<p className="text-muted-foreground text-sm">Past 30 days</p>
-				</Card>
+				<MetricsCard
+					title="Downloads"
+					value="89"
+					description="Past 30 days"
+					icon={Download}
+					colorVariant="success"
+				/>
 
-				<Card
-					className="p-6 border shadow-sm"
-					style={{ borderLeftColor: 'var(--chart-4)', borderLeftWidth: '4px' }}
-				>
-					<div className="flex items-center gap-3 mb-4">
-						<div
-							className="w-10 h-10 rounded-full flex items-center justify-center"
-							style={{
-								backgroundColor:
-									'color-mix(in oklab, var(--chart-4) 15%, transparent)'
-							}}
-						>
-							<Clock className="size-5" />
-						</div>
-						<h3 className="font-semibold">Pending</h3>
-					</div>
-					<div className="text-3xl font-bold mb-1">3</div>
-					<p className="text-muted-foreground text-sm">Currently processing</p>
-				</Card>
+				<MetricsCard
+					title="Pending"
+					value="3"
+					description="Currently processing"
+					icon={Clock}
+					colorVariant="warning"
+				/>
 			</div>
 
 			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
