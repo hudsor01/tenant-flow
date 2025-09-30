@@ -77,7 +77,7 @@ export const config = [
 		languageOptions: {
 			parserOptions: {
 				projectService: true,
-				// eslint-disable-next-line no-undef
+
 				tsconfigRootDir: import.meta.dirname
 			},
 			globals: {
@@ -120,6 +120,11 @@ export const config = [
 	{
 		name: 'base/tests',
 		files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
+		languageOptions: {
+			parserOptions: {
+				projectService: false
+			}
+		},
 		rules: {
 			'no-console': 'off',
 			'@typescript-eslint/no-explicit-any': 'off',
@@ -128,6 +133,23 @@ export const config = [
 			'@typescript-eslint/no-unsafe-return': 'off',
 			'@typescript-eslint/no-unsafe-call': 'off',
 			'@typescript-eslint/no-unused-vars': 'off'
+		}
+	},
+	{
+		name: 'base/test-support-files',
+		files: [
+			'apps/frontend/tests/**/*.ts',
+			'apps/frontend/tests/**/*.tsx',
+			'tests/**/*.ts',
+			'tests/**/*.tsx'
+		],
+		languageOptions: {
+			parserOptions: {
+				projectService: false
+			}
+		},
+		rules: {
+			'@typescript-eslint/no-explicit-any': 'off'
 		}
 	},
 	{
