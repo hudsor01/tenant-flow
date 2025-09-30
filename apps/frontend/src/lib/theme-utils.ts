@@ -1,8 +1,9 @@
+import type { ThemeMode } from '@repo/shared/types/domain'
 import type {
 	TailwindColorName,
 	TailwindRadiusValue
 } from '@repo/shared/types/frontend'
-import type { ThemeMode } from '@repo/shared/types/domain'
+import { secureCookie } from './dom-utils'
 
 export function getSavedThemeColor(): TailwindColorName {
 	if (typeof window === 'undefined') return 'blue'
@@ -47,18 +48,13 @@ export function persistThemeMode(mode: ThemeMode) {
 		// Silently fail if localStorage is not available
 	}
 
-	const cookieSegments = [
-		`${THEME_MODE_COOKIE_NAME}=${mode}`,
-		'path=/',
-		`max-age=${THEME_MODE_COOKIE_MAX_AGE}`,
-		'SameSite=Lax'
-	]
-
-	if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-		cookieSegments.push('Secure')
-	}
-
-	document.cookie = cookieSegments.join('; ')
+	secureCookie.set(THEME_MODE_COOKIE_NAME, mode, {
+		maxAge: THEME_MODE_COOKIE_MAX_AGE,
+		path: '/',
+		sameSite: 'Lax',
+		secure:
+			typeof window !== 'undefined' && window.location.protocol === 'https:'
+	})
 }
 
 export function getStoredThemeMode(): ThemeMode | null {
@@ -78,13 +74,9 @@ export function getStoredThemeMode(): ThemeMode | null {
 		// Silently fail if localStorage is not available
 	}
 
-	const cookie = document.cookie
-		.split('; ')
-		.find(entry => entry.startsWith(`${THEME_MODE_COOKIE_NAME}=`))
-
+	const cookie = secureCookie.get(THEME_MODE_COOKIE_NAME)
 	if (cookie) {
-		const [, value] = cookie.split('=', 2)
-		return parseThemeMode(value)
+		return parseThemeMode(cookie)
 	}
 
 	return null

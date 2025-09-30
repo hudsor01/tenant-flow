@@ -8,6 +8,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { useMutation } from '@tanstack/react-query'
 
 import { API_BASE_URL, apiClient } from '@/lib/api-client'
+import { safeDocumentElement } from '@/lib/dom-utils'
 import type { StripeCheckoutSessionResponse } from '@repo/shared/types/core'
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -85,10 +86,7 @@ const withOpacity = (color: string, opacity: number): string => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const buildStripeAppearance = (): Appearance => {
-	const styles =
-		typeof window === 'undefined'
-			? null
-			: window.getComputedStyle(document.documentElement)
+	const styles = safeDocumentElement.getComputedStyle()
 
 	const colorPrimary = resolveCssVariable(
 		styles,
@@ -394,7 +392,10 @@ const observeTheme = (onChange: () => void) => {
 		return () => {}
 	}
 
-	const root = document.documentElement
+	const root = safeDocumentElement.getElement()
+	if (!root) {
+		return () => {}
+	}
 	const observer = new MutationObserver(() => {
 		onChange()
 	})

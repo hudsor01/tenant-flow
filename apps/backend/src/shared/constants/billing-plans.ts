@@ -1,5 +1,5 @@
-import { PLAN_TYPE } from '@repo/shared/constants/billing'
 import type { BillingPlan } from '@repo/shared/constants/billing'
+import { PLAN_TYPE } from '@repo/shared/constants/billing'
 
 // Simple constant object - no class abstraction needed
 export const BILLING_PLANS: Record<string, BillingPlan> = {
@@ -14,11 +14,8 @@ export const BILLING_PLANS: Record<string, BillingPlan> = {
 		features: ['2 properties', 'Basic features', '14-day trial'],
 		propertyLimit: 2,
 		storageLimit: 1,
-		stripePriceId: null,
-		stripePriceIds: {
-			monthly: null,
-			annual: null
-		}
+		apiCallLimit: 1000,
+		priority: false
 	},
 	[PLAN_TYPE.STARTER]: {
 		id: PLAN_TYPE.STARTER,
@@ -31,11 +28,8 @@ export const BILLING_PLANS: Record<string, BillingPlan> = {
 		features: ['10 properties', 'Standard features', 'Email support'],
 		propertyLimit: 10,
 		storageLimit: 5,
-		stripePriceId: process.env.STRIPE_STARTER_MONTHLY ?? null,
-		stripePriceIds: {
-			monthly: process.env.STRIPE_STARTER_MONTHLY ?? null,
-			annual: process.env.STRIPE_STARTER_ANNUAL ?? null
-		}
+		apiCallLimit: 10000,
+		priority: false
 	},
 	[PLAN_TYPE.GROWTH]: {
 		id: PLAN_TYPE.GROWTH,
@@ -48,11 +42,8 @@ export const BILLING_PLANS: Record<string, BillingPlan> = {
 		features: ['50 properties', 'Advanced features', 'Priority support'],
 		propertyLimit: 50,
 		storageLimit: 25,
-		stripePriceId: process.env.STRIPE_GROWTH_MONTHLY ?? null,
-		stripePriceIds: {
-			monthly: process.env.STRIPE_GROWTH_MONTHLY ?? null,
-			annual: process.env.STRIPE_GROWTH_ANNUAL ?? null
-		}
+		apiCallLimit: 50000,
+		priority: true
 	},
 	[PLAN_TYPE.TENANTFLOW_MAX]: {
 		id: PLAN_TYPE.TENANTFLOW_MAX,
@@ -65,11 +56,8 @@ export const BILLING_PLANS: Record<string, BillingPlan> = {
 		features: ['200 properties', 'Enterprise features', '24/7 support'],
 		propertyLimit: 200,
 		storageLimit: 100,
-		stripePriceId: process.env.STRIPE_MAX_MONTHLY ?? null,
-		stripePriceIds: {
-			monthly: process.env.STRIPE_MAX_MONTHLY ?? null,
-			annual: process.env.STRIPE_MAX_ANNUAL ?? null
-		}
+		apiCallLimit: 200000,
+		priority: true
 	}
 }
 

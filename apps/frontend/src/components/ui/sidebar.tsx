@@ -25,6 +25,7 @@ import {
 	TooltipTrigger
 } from '@/components/ui/tooltip'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { secureCookie } from '@/lib/dom-utils'
 import { cn } from '@/lib/utils'
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'
@@ -74,8 +75,12 @@ function SidebarProvider({
 				_setOpen(openState)
 			}
 
-			// This sets the cookie to keep the sidebar state.
-			document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+			// Persist sidebar state using secure cookie helper
+			secureCookie.set(SIDEBAR_COOKIE_NAME, String(openState), {
+				path: '/',
+				maxAge: SIDEBAR_COOKIE_MAX_AGE,
+				sameSite: 'Lax'
+			})
 		},
 		[setOpenProp, open]
 	)
