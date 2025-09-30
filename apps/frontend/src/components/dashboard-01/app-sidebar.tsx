@@ -28,12 +28,7 @@ import {
 	SidebarMenuItem
 } from '@/components/ui/sidebar'
 
-const data: {
-	user: {
-		name: string
-		email: string
-		avatar: string
-	}
+const navigation: {
 	navMain: {
 		title: string
 		url: string
@@ -50,11 +45,6 @@ const data: {
 		icon: LucideIcon
 	}[]
 } = {
-	user: {
-		name: 'TenantFlow User',
-		email: 'user@tenantflow.app',
-		avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=TenantFlow'
-	},
 	navMain: [
 		{
 			title: 'Dashboard',
@@ -127,12 +117,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				</SidebarMenu>
 			</SidebarHeader>
 			<SidebarContent>
-				<NavMain items={data.navMain} />
-				<NavDocuments items={data.documents} />
-				<NavSecondary items={data.navSecondary} className="mt-auto" />
+				<NavMain items={navigation.navMain} />
+				<NavDocuments items={navigation.documents} />
+				<NavSecondary items={navigation.navSecondary} className="mt-auto" />
 			</SidebarContent>
 			<SidebarFooter>
-				<NavUser user={data.user} />
+				<NavUser />
 			</SidebarFooter>
 		</Sidebar>
 	)

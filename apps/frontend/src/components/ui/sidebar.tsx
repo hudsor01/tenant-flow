@@ -1,7 +1,7 @@
 'use client'
 
 import { Slot } from '@radix-ui/react-slot'
-import type { SidebarContextProps } from '@repo/shared'
+import type { SidebarContextProps } from '@repo/shared/types/frontend.js'
 import type { VariantProps } from 'class-variance-authority'
 import { cva } from 'class-variance-authority'
 import { PanelLeftIcon } from 'lucide-react'

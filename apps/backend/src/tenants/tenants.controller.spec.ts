@@ -1,12 +1,13 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { CreateTenantRequest, UpdateTenantRequest, Tenant } from '@repo/shared'
+import type { CreateTenantRequest, UpdateTenantRequest } from '@repo/shared/types/backend-domain'
+import type { Tenant } from '@repo/shared/types/core'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
+import { createMockUser } from '../test-utils/mocks'
 import { TenantsController } from './tenants.controller'
 import { TenantsService } from './tenants.service'
-import { createMockUser } from '../test-utils/mocks'
 
 // Mock the services
 jest.mock('./tenants.service', () => {
@@ -18,7 +19,7 @@ jest.mock('./tenants.service', () => {
 			create: jest.fn(),
 			update: jest.fn(),
 			remove: jest.fn(),
-			sendInvitation: jest.fn(),
+			sendTenantInvitation: jest.fn(),
 			resendInvitation: jest.fn()
 		}))
 	}
@@ -425,20 +426,27 @@ describe('TenantsController', () => {
 		const tenantId = 'tenant-123'
 
 		it('should send invitation successfully', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockTenantsServiceInstance.sendInvitation.mockRejectedValue(
-				new BadRequestException('Invitation functionality not yet migrated to repository pattern')
-			)
+			const mockResult = {
+				success: true,
+				message: 'Invitation sent successfully',
+				invitationToken: 'test-token',
+				invitationLink: 'https://test.com/invite/test-token',
+				sentAt: new Date().toISOString()
+			}
 
-			await expect(controller.sendInvitation(tenantId, mockRequest)).rejects.toThrow(BadRequestException)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
+			mockTenantsServiceInstance.sendTenantInvitation.mockResolvedValue(mockResult)
+
+			const result = await controller.sendInvitation(tenantId, mockRequest)
 
 			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
 			)
-			expect(mockTenantsServiceInstance.sendInvitation).toHaveBeenCalledWith(
+			expect(mockTenantsServiceInstance.sendTenantInvitation).toHaveBeenCalledWith(
 				mockUser.id,
 				tenantId
 			)
+			expect(result).toEqual(mockResult)
 		})
 
 		it('should handle service unavailable', async () => {
@@ -462,12 +470,18 @@ describe('TenantsController', () => {
 		const tenantId = 'tenant-123'
 
 		it('should resend invitation successfully', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockTenantsServiceInstance.resendInvitation.mockRejectedValue(
-				new BadRequestException('Invitation functionality not yet migrated to repository pattern')
-			)
+			const mockResult = {
+				success: true,
+				message: 'Invitation sent successfully',
+				invitationToken: 'test-token',
+				invitationLink: 'https://test.com/invite/test-token',
+				sentAt: new Date().toISOString()
+			}
 
-			await expect(controller.resendInvitation(tenantId, mockRequest)).rejects.toThrow(BadRequestException)
+			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
+			mockTenantsServiceInstance.resendInvitation.mockResolvedValue(mockResult)
+
+			const result = await controller.resendInvitation(tenantId, mockRequest)
 
 			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
 				mockRequest
@@ -476,6 +490,7 @@ describe('TenantsController', () => {
 				mockUser.id,
 				tenantId
 			)
+			expect(result).toEqual(mockResult)
 		})
 
 		it('should handle service unavailable', async () => {

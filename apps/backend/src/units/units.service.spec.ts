@@ -13,6 +13,7 @@ describe('UnitsService', () => {
 		update: jest.Mock
 		softDelete: jest.Mock
 		getStats: jest.Mock
+		findByPropertyId: jest.Mock
 	}
 
 	const mockUser = {

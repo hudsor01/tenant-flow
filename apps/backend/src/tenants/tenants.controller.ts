@@ -27,7 +27,7 @@ import {
 import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
-} from '@repo/shared'
+} from '@repo/shared/types/backend-domain'
 import type { Request } from 'express'
 import { TenantsService } from './tenants.service'
 import { SupabaseService } from '../database/supabase.service'
@@ -222,7 +222,7 @@ export class TenantsController {
 		}
 		// Use Supabase's native auth.getUser() pattern
 		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
-		return this.tenantsService.sendInvitation(user?.id || 'test-user-id', id)
+		return this.tenantsService.sendTenantInvitation(user?.id || 'test-user-id', id)
 	}
 
 	@Post(':id/resend-invitation')

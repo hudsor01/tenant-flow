@@ -41,7 +41,7 @@ export function SEOHead({
 	const fullTitle = title.includes('TenantFlow')
 		? title
 		: `${title} | TenantFlow`
-	const keywordString = keywords.join(', ')
+	const keywordString = Array.isArray(keywords) ? keywords.join(', ') : ''
 
 	return (
 		<Head>

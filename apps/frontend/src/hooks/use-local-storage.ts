@@ -1,6 +1,6 @@
 'use client'
 
-import { createLogger } from '@repo/shared'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { useState } from 'react'
 
 export function useLocalStorage<T>(key: string, initialValue: T) {

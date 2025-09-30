@@ -6,7 +6,7 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import { cardClasses, cn } from '@/lib/utils'
-import type { MetricsCardProps } from '@repo/shared'
+import type { MetricsCardProps } from '@repo/shared/types/frontend-ui'
 import * as React from 'react'
 
 const colorMap = {
@@ -34,7 +34,7 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 		},
 		ref
 	) => {
-		const colorToken = colorMap[colorVariant]
+		const colorToken = colorMap[colorVariant as keyof typeof colorMap]
 
 		return (
 			<Card

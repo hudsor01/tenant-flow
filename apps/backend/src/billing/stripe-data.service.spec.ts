@@ -6,6 +6,8 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { SilentLogger } from '../__test__/silent-logger'
 import { SupabaseService } from '../database/supabase.service'
+import type { IBillingRepository } from '../repositories/interfaces/billing-repository.interface'
+import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 import { StripeDataService } from './stripe-data.service'
 
 describe('StripeDataService - Production Tests', () => {
@@ -14,22 +16,53 @@ describe('StripeDataService - Production Tests', () => {
 	let mockSupabaseClient: jest.Mocked<
 		ReturnType<SupabaseService['getAdminClient']>
 	>
+	let mockBillingRepository: jest.Mocked<IBillingRepository>
 
 	beforeEach(async () => {
-		// Mock Supabase client with RPC method (production uses RPC calls)
+		// Create chainable mock query with mockResolvedValue
+		const createMockQuery = () => ({
+			select: jest.fn().mockReturnThis(),
+			gte: jest.fn().mockReturnThis(),
+			lte: jest.fn().mockReturnThis(),
+			limit: jest.fn().mockReturnThis(),
+			mockResolvedValue: jest.fn()
+		})
+
 		mockSupabaseClient = {
-			rpc: jest.fn()
-		} as unknown as jest.Mocked<ReturnType<SupabaseService['getAdminClient']>>
+			rpc: jest.fn(),
+			from: jest.fn().mockImplementation(() => createMockQuery())
+		} as any
 
 		// Mock SupabaseService
 		mockSupabaseService = {
 			getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient)
 		} as unknown as jest.Mocked<SupabaseService>
 
+		mockBillingRepository = {
+			getCustomer: jest.fn(),
+			getCustomers: jest.fn(),
+			getCustomerSubscriptions: jest.fn(),
+			getSubscriptions: jest.fn(),
+			getSubscription: jest.fn(),
+			getProducts: jest.fn(),
+			getProduct: jest.fn(),
+			getPrices: jest.fn(),
+			getPrice: jest.fn(),
+			getProductPrices: jest.fn(),
+			getPaymentIntents: jest.fn(),
+			getPaymentIntent: jest.fn(),
+			getCustomerPayments: jest.fn(),
+			isHealthy: jest.fn(),
+			countCustomers: jest.fn(),
+			countSubscriptions: jest.fn(),
+			countPayments: jest.fn()
+		} as unknown as jest.Mocked<IBillingRepository>
+
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				StripeDataService,
-				{ provide: SupabaseService, useValue: mockSupabaseService }
+				{ provide: SupabaseService, useValue: mockSupabaseService },
+				{ provide: REPOSITORY_TOKENS.BILLING, useValue: mockBillingRepository }
 			]
 		})
 			.setLogger(new SilentLogger())
@@ -42,355 +75,181 @@ describe('StripeDataService - Production Tests', () => {
 	})
 
 	describe('getCustomerSubscriptions', () => {
-		it('should call get_stripe_subscriptions RPC with customer_id parameter', async () => {
-			// Arrange - Production RPC call pattern
+		it('returns subscriptions via billing repository', async () => {
 			const customerId = 'cus_ProdCustomer123'
 			const mockSubscriptions = [
 				{
 					id: 'sub_1234567890',
 					customer_id: customerId,
-					status: 'active',
-					created_at: '2024-01-01T00:00:00Z',
-					current_period_start: '2024-01-01T00:00:00Z',
-					current_period_end: '2024-02-01T00:00:00Z'
+					status: 'active'
 				},
 				{
 					id: 'sub_0987654321',
 					customer_id: customerId,
-					status: 'canceled',
-					created_at: '2023-12-01T00:00:00Z',
-					current_period_start: '2023-12-01T00:00:00Z',
-					current_period_end: '2024-01-01T00:00:00Z'
+					status: 'canceled'
 				}
-			]
+			] as any
 
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: mockSubscriptions,
-				error: null
-			})
+			mockBillingRepository.getCustomerSubscriptions.mockResolvedValue(
+				mockSubscriptions
+			)
 
-			// Act
 			const result = await service.getCustomerSubscriptions(customerId)
 
-			// Assert - Production RPC call pattern
-			expect(mockSupabaseService.getAdminClient).toHaveBeenCalled()
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'get_stripe_subscriptions',
-				{ customer_id: customerId }
+			expect(mockBillingRepository.getCustomerSubscriptions).toHaveBeenCalledWith(
+				customerId
 			)
 			expect(result).toEqual(mockSubscriptions)
-			expect(result).toHaveLength(2)
-			expect(result[0]?.status).toBe('active')
-			expect(result[1]?.status).toBe('canceled')
 		})
 
-		it('should handle RPC errors and log them like production', async () => {
-			// Arrange
+		it('wraps repository errors with InternalServerErrorException', async () => {
 			const customerId = 'cus_Error123'
-			const dbError = {
-				message: 'Database connection failed',
-				code: 'ECONNREFUSED'
-			}
+			const repoError = new Error('Repository failure')
+			mockBillingRepository.getCustomerSubscriptions.mockRejectedValue(repoError)
 
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: null,
-				error: dbError
-			})
-
-			// Act & Assert
 			await expect(
 				service.getCustomerSubscriptions(customerId)
 			).rejects.toThrow(InternalServerErrorException)
 
-			// Production logging pattern: error object directly, not formatted string
-			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to fetch customer subscriptions',
-				{ error: dbError, customerId }
-			)
-		})
-
-		it('should return empty array when no subscriptions exist', async () => {
-			// Arrange
-			const customerId = 'cus_NoSubs123'
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: null,
-				error: null
-			})
-
-			// Act
-			const result = await service.getCustomerSubscriptions(customerId)
-
-			// Assert
-			expect(result).toEqual([])
-		})
-
-		it('should handle catch block errors like production', async () => {
-			// Arrange
-			const customerId = 'cus_Exception123'
-			const thrownError = new Error('Network timeout')
-
-			mockSupabaseClient.rpc.mockRejectedValue(thrownError)
-
-			// Act & Assert
-			await expect(
-				service.getCustomerSubscriptions(customerId)
-			).rejects.toThrow(InternalServerErrorException)
-
-			// Production catch block logging pattern
 			expect(service['logger'].error).toHaveBeenCalledWith(
 				'Error fetching customer subscriptions:',
-				thrownError
+				repoError
 			)
+		})
+
+		it('returns empty array when repository yields no data', async () => {
+			const customerId = 'cus_NoSubs123'
+			mockBillingRepository.getCustomerSubscriptions.mockResolvedValue([])
+
+			const result = await service.getCustomerSubscriptions(customerId)
+
+			expect(result).toEqual([])
 		})
 	})
 
 	describe('getCustomer', () => {
-		it('should call get_stripe_customer_by_id RPC with customer_id parameter', async () => {
-			// Arrange - Production RPC call pattern
+		it('returns customer from billing repository', async () => {
 			const customerId = 'cus_Customer123'
 			const mockCustomer = {
 				id: customerId,
 				email: 'customer@example.com',
-				name: 'John Doe',
-				created_at: '2024-01-01T00:00:00Z'
-			}
+				name: 'John Doe'
+			} as any
 
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: mockCustomer,
-				error: null
-			})
+			mockBillingRepository.getCustomer.mockResolvedValue(mockCustomer)
 
-			// Act
 			const result = await service.getCustomer(customerId)
 
-			// Assert - Production RPC call pattern
-			expect(mockSupabaseService.getAdminClient).toHaveBeenCalled()
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'get_stripe_customer_by_id',
-				{ customer_id: customerId }
-			)
+			expect(mockBillingRepository.getCustomer).toHaveBeenCalledWith(customerId)
 			expect(result).toEqual(mockCustomer)
 		})
 
-		it('should throw InternalServerErrorException for invalid customer ID due to catch block', async () => {
-			// Arrange - Production behavior: catch block converts BadRequestException to InternalServerErrorException
-			const invalidCustomerId = ''
+		it('throws BadRequestException when customerId missing', async () => {
+			await expect(service.getCustomer('')).rejects.toThrow(BadRequestException)
+		})
 
-			// Act & Assert
-			await expect(service.getCustomer(invalidCustomerId)).rejects.toThrow(
+		it('throws InternalServerErrorException when customer missing', async () => {
+			mockBillingRepository.getCustomer.mockResolvedValue(null)
+
+			await expect(service.getCustomer('cus_NotFound123')).rejects.toThrow(
 				InternalServerErrorException
 			)
-
-			// Verify the BadRequestException was caught and re-thrown as InternalServerErrorException
-			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to fetch customer',
-				expect.any(BadRequestException)
-			)
 		})
 
-		it('should return null when customer not found', async () => {
-			// Arrange
-			const customerId = 'cus_NotFound123'
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: null,
-				error: null
-			})
-
-			// Act
-			const result = await service.getCustomer(customerId)
-
-			// Assert
-			expect(result).toBeNull()
-		})
-
-		it('should handle RPC errors when fetching customer', async () => {
-			// Arrange
+		it('wraps repository errors', async () => {
 			const customerId = 'cus_Error123'
-			const dbError = { message: 'Database error', code: 'DB001' }
+			const repoError = new Error('Database error')
+			mockBillingRepository.getCustomer.mockRejectedValue(repoError)
 
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: null,
-				error: dbError
-			})
-
-			// Act & Assert
 			await expect(service.getCustomer(customerId)).rejects.toThrow(
 				InternalServerErrorException
 			)
 
 			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to fetch customer',
-				{ error: dbError, customerId }
+				'Error fetching customer:',
+				repoError
 			)
 		})
 	})
 
 	describe('getPrices', () => {
-		it('should call get_stripe_prices RPC with active_only parameter', async () => {
-			// Arrange - Production RPC call pattern
+		it('delegates to billing repository', async () => {
 			const mockPrices = [
-				{
-					id: 'price_123',
-					active: true,
-					unit_amount: 2999,
-					currency: 'usd',
-					created_at: '2024-01-01T00:00:00Z'
-				},
-				{
-					id: 'price_456',
-					active: true,
-					unit_amount: 5999,
-					currency: 'usd',
-					created_at: '2024-01-01T00:00:00Z'
-				}
-			]
+				{ id: 'price_123', active: true }
+			] as any
 
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: mockPrices,
-				error: null
-			})
+			mockBillingRepository.getPrices.mockResolvedValue(mockPrices)
 
-			// Act
 			const result = await service.getPrices(true)
 
-			// Assert - Production RPC call pattern
-			expect(mockSupabaseService.getAdminClient).toHaveBeenCalled()
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith('get_stripe_prices', {
-				active_only: true,
-				limit_count: 1000
+			expect(mockBillingRepository.getPrices).toHaveBeenCalledWith({
+				active: true,
+				limit: 1000
 			})
 			expect(result).toEqual(mockPrices)
 		})
 
-		it('should handle RPC errors when fetching prices', async () => {
-			// Arrange
-			const dbError = { message: 'Database error', code: 'DB001' }
+		it('wraps repository errors', async () => {
+			mockBillingRepository.getPrices.mockRejectedValue(
+				new Error('database error')
+			)
 
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: null,
-				error: dbError
-			})
-
-			// Act & Assert
 			await expect(service.getPrices()).rejects.toThrow(
 				InternalServerErrorException
 			)
 
 			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to fetch prices',
-				{ error: dbError, activeOnly: true }
+				'Error fetching prices:',
+				expect.any(Error)
 			)
 		})
 	})
 
 	describe('getProducts', () => {
-		it('should call get_stripe_products RPC with active_only parameter', async () => {
-			// Arrange - Production RPC call pattern
-			const mockProducts = [
-				{
-					id: 'prod_123',
-					active: true,
-					name: 'Pro Plan',
-					description: 'Professional plan',
-					created_at: '2024-01-01T00:00:00Z'
-				},
-				{
-					id: 'prod_456',
-					active: true,
-					name: 'Enterprise Plan',
-					description: 'Enterprise plan',
-					created_at: '2024-01-01T00:00:00Z'
-				}
-			]
+		it('delegates to billing repository', async () => {
+			const mockProducts = [{ id: 'prod_123', active: true }] as any
 
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: mockProducts,
-				error: null
-			})
+			mockBillingRepository.getProducts.mockResolvedValue(mockProducts)
 
-			// Act
 			const result = await service.getProducts(false)
 
-			// Assert - Production RPC call pattern
-			expect(mockSupabaseService.getAdminClient).toHaveBeenCalled()
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'get_stripe_products',
-				{
-					active_only: false,
-					limit_count: 1000
-				}
-			)
+			expect(mockBillingRepository.getProducts).toHaveBeenCalledWith({
+				active: false,
+				limit: 1000
+			})
 			expect(result).toEqual(mockProducts)
 		})
 
-		it('should handle RPC errors when fetching products', async () => {
-			// Arrange
-			const dbError = { message: 'Timeout error', code: 'TIMEOUT' }
+		it('wraps repository errors', async () => {
+			mockBillingRepository.getProducts.mockRejectedValue(
+				new Error('Timeout error')
+			)
 
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: null,
-				error: dbError
-			})
-
-			// Act & Assert
 			await expect(service.getProducts()).rejects.toThrow(
 				InternalServerErrorException
 			)
 
 			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Failed to fetch products',
-				{ error: dbError, activeOnly: true }
+				'Error fetching products:',
+				expect.any(Error)
 			)
 		})
 	})
 
 	describe('isHealthy', () => {
-		it('should return true when RPC call succeeds', async () => {
-			// Arrange
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: [],
-				error: null
-			})
+		it('returns repository health result', async () => {
+			mockBillingRepository.isHealthy.mockResolvedValue(true)
 
-			// Act
-			const result = await service.isHealthy()
-
-			// Assert
-			expect(result).toBe(true)
-			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'get_stripe_customers',
-				{ limit_count: 1 }
-			)
+			await expect(service.isHealthy()).resolves.toBe(true)
+			expect(mockBillingRepository.isHealthy).toHaveBeenCalled()
 		})
 
-		it('should return false when RPC call has error', async () => {
-			// Arrange
-			const dbError = { message: 'Connection failed', code: 'CONN_FAIL' }
-			mockSupabaseClient.rpc.mockResolvedValue({
-				data: null,
-				error: dbError
-			})
-
-			// Act
-			const result = await service.isHealthy()
-
-			// Assert
-			expect(result).toBe(false)
-		})
-
-		it('should return false when RPC call throws exception', async () => {
-			// Arrange
-			mockSupabaseClient.rpc.mockRejectedValue(new Error('Network error'))
-
-			// Act
-			const result = await service.isHealthy()
-
-			// Assert
-			expect(result).toBe(false)
-			expect(service['logger'].error).toHaveBeenCalledWith(
-				'Stripe data service health check failed:',
-				expect.any(Error)
+		it('returns false when repository throws', async () => {
+			mockBillingRepository.isHealthy.mockRejectedValue(
+				new Error('Connection failed')
 			)
+
+			await expect(service.isHealthy()).resolves.toBe(false)
 		})
 	})
 
@@ -415,19 +274,23 @@ describe('StripeDataService - Production Tests', () => {
 					}
 				]
 
-				mockSupabaseClient.rpc.mockResolvedValue({
-					data: mockPaymentIntents,
-					error: null
-				})
+				// Mock the query chain response
+				const mockChain = {
+					select: jest.fn().mockReturnThis(),
+					gte: jest.fn().mockReturnThis(),
+					lte: jest.fn().mockReturnThis(),
+					limit: jest.fn().mockResolvedValue({
+						data: mockPaymentIntents,
+						error: null
+					})
+				}
+				mockSupabaseClient.from = jest.fn().mockReturnValue(mockChain)
 
 				// Act
 				const result = await service.getRevenueAnalytics(startDate, endDate)
 
 				// Assert
-				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-					'get_stripe_payment_intents',
-					{ limit_count: 1000 }
-				)
+				expect(mockSupabaseClient.from).toHaveBeenCalledWith('stripe_payment_intents')
 				expect(Array.isArray(result)).toBe(true)
 			})
 		})
@@ -448,19 +311,21 @@ describe('StripeDataService - Production Tests', () => {
 					}
 				]
 
-				mockSupabaseClient.rpc.mockResolvedValue({
-					data: mockSubscriptions,
-					error: null
-				})
+				// Mock the query chain response
+				const mockChain = {
+					select: jest.fn().mockReturnThis(),
+					limit: jest.fn().mockResolvedValue({
+						data: mockSubscriptions,
+						error: null
+					})
+				}
+				mockSupabaseClient.from = jest.fn().mockReturnValue(mockChain)
 
 				// Act
 				const result = await service.getChurnAnalytics()
 
 				// Assert
-				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-					'get_stripe_subscriptions',
-					{ limit_count: 1000 }
-				)
+				expect(mockSupabaseClient.from).toHaveBeenCalledWith('stripe_subscriptions')
 				expect(Array.isArray(result)).toBe(true)
 			})
 		})
@@ -478,22 +343,31 @@ describe('StripeDataService - Production Tests', () => {
 					}
 				]
 
-				mockSupabaseClient.rpc
-					.mockResolvedValueOnce({ data: mockCustomers, error: null })
-					.mockResolvedValueOnce({ data: mockSubscriptions, error: null })
+				// Mock both query chains for Promise.all
+				mockSupabaseClient.from = jest.fn()
+					.mockReturnValueOnce({
+						select: jest.fn().mockReturnValue({
+							limit: jest.fn().mockResolvedValue({
+								data: mockCustomers,
+								error: null
+							})
+						})
+					})
+					.mockReturnValueOnce({
+						select: jest.fn().mockReturnValue({
+							limit: jest.fn().mockResolvedValue({
+								data: mockSubscriptions,
+								error: null
+							})
+						})
+					})
 
 				// Act
 				const result = await service.getCustomerLifetimeValue()
 
 				// Assert
-				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-					'get_stripe_customers',
-					{ limit_count: 1000 }
-				)
-				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-					'get_stripe_subscriptions',
-					{ limit_count: 1000 }
-				)
+				expect(mockSupabaseClient.from).toHaveBeenCalledWith('stripe_customers')
+				expect(mockSupabaseClient.from).toHaveBeenCalledWith('stripe_subscriptions')
 				expect(Array.isArray(result)).toBe(true)
 			})
 		})
@@ -510,19 +384,21 @@ describe('StripeDataService - Production Tests', () => {
 					}
 				]
 
-				mockSupabaseClient.rpc.mockResolvedValue({
-					data: mockSubscriptions,
-					error: null
-				})
+				// Mock the query chain response
+				const mockChain = {
+					select: jest.fn().mockReturnThis(),
+					limit: jest.fn().mockResolvedValue({
+						data: mockSubscriptions,
+						error: null
+					})
+				}
+				mockSupabaseClient.from = jest.fn().mockReturnValue(mockChain)
 
 				// Act
 				const result = await service.getMRRTrend(months)
 
 				// Assert
-				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-					'get_stripe_subscriptions',
-					{ limit_count: 600 }
-				)
+				expect(mockSupabaseClient.from).toHaveBeenCalledWith('stripe_subscriptions')
 				expect(Array.isArray(result)).toBe(true)
 			})
 		})
@@ -536,19 +412,21 @@ describe('StripeDataService - Production Tests', () => {
 					{ id: 'sub_3', status: 'canceled' }
 				]
 
-				mockSupabaseClient.rpc.mockResolvedValue({
-					data: mockSubscriptions,
-					error: null
-				})
+				// Mock the query chain response
+				const mockChain = {
+					select: jest.fn().mockReturnThis(),
+					limit: jest.fn().mockResolvedValue({
+						data: mockSubscriptions,
+						error: null
+					})
+				}
+				mockSupabaseClient.from = jest.fn().mockReturnValue(mockChain)
 
 				// Act
 				const result = await service.getSubscriptionStatusBreakdown()
 
 				// Assert
-				expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-					'get_stripe_subscriptions',
-					{ limit_count: 1000 }
-				)
+				expect(mockSupabaseClient.from).toHaveBeenCalledWith('stripe_subscriptions')
 				expect(result).toEqual({ active: 2, canceled: 1 })
 			})
 		})

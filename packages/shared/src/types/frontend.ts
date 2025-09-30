@@ -22,6 +22,59 @@ export interface AnimatedMetricCardProps {
 
 // Note: MetricsCardProps moved to frontend-ui.ts to avoid duplicate exports
 
+// CHART COMPONENT TYPES
+export type TrendDirection = 'up' | 'down' | 'neutral'
+export type ColorVariant = 'success' | 'primary' | 'revenue' | 'property' | 'warning' | 'info' | 'neutral'
+
+export interface SparklineData {
+	value: number
+	period: string
+}
+
+export interface EnhancedMetricsCardProps extends React.HTMLAttributes<HTMLDivElement> {
+	title: string
+	value: string | number
+	description?: string
+	change?: {
+		value: string
+		trend: TrendDirection
+		period?: string
+	}
+	progress?: {
+		current: number
+		target: number
+		label?: string
+	}
+	sparkline?: SparklineData[]
+	icon?: React.ComponentType<{ className?: string }>
+	colorVariant: ColorVariant
+	showTrendIcon?: boolean
+	lastUpdated?: string
+	interactive?: boolean
+	size?: 'sm' | 'md' | 'lg'
+}
+
+export interface MetricConfig {
+	title: string
+	value: string | number
+	description: string
+	change?: {
+		value: string
+		trend: 'up' | 'down' | 'neutral'
+		period?: string
+	}
+	progress?: {
+		current: number
+		target: number
+		label?: string
+	}
+	sparkline?: Array<{ value: number; period: string }>
+	icon: React.ComponentType<{ className?: string }>
+	colorVariant: 'success' | 'primary' | 'revenue' | 'property' | 'warning' | 'info' | 'neutral'
+}
+
+export type PageType = 'dashboard' | 'properties' | 'leases' | 'tenants' | 'maintenance' | 'unknown'
+
 // UI STORE TYPES
 
 export interface FormProgress {
@@ -109,7 +162,7 @@ export interface AuthFormProps {
 		firstName?: string
 		lastName?: string
 		company?: string
-	}) => void
+	}) => void | Promise<void>
 	onForgotPassword?: () => void
 	onSignUp?: () => void
 	onLogin?: () => void
@@ -266,6 +319,29 @@ export interface RevenueChartDataPoint {
 	recurring: number
 	oneTime: number
 	projected?: number
+}
+
+// CHART COMPONENT TYPES
+
+export interface ChartContainerProps extends React.ComponentProps<'div'> {
+	title: string
+	description?: string
+	children: React.ReactNode
+	height?: number
+	className?: string
+}
+
+export interface ModernExplodedPieChartProps {
+	data?: Array<{
+		name: string
+		value: number
+		fill: string
+	}>
+	height?: number
+	className?: string
+	title?: string
+	description?: string
+	showFooter?: boolean
 }
 
 // PRICING/STRIPE TYPES

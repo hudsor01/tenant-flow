@@ -5,32 +5,38 @@
 	"private": true,
 	"type": "module",
 	"description": "Shared types and utilities for TenantFlow monorepo",
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
 		},
-		"./lib/supabase-client": {
-			"types": "./dist/lib/supabase-client.d.ts",
-			"default": "./dist/lib/supabase-client.js"
+		"./types/*": {
+			"types": "./dist/types/*.d.ts",
+			"default": "./dist/types/*.js"
 		},
-		"./lib/frontend-logger": {
-			"types": "./dist/lib/frontend-logger.d.ts",
-			"default": "./dist/lib/frontend-logger.js"
+		"./constants/*": {
+			"types": "./dist/constants/*.d.ts",
+			"default": "./dist/constants/*.js"
 		},
-		"./utils/api-client": {
-			"types": "./dist/utils/api-client.d.ts",
-			"default": "./dist/utils/api-client.js"
+		"./lib/*": {
+			"types": "./dist/lib/*.d.ts",
+			"default": "./dist/lib/*.js"
 		},
-		"./config/pricing": {
-			"types": "./dist/config/pricing.d.ts",
-			"default": "./dist/config/pricing.js"
+		"./utils/*": {
+			"types": "./dist/utils/*.d.ts",
+			"default": "./dist/utils/*.js"
 		},
-		"./config/dynamic-pricing": {
-			"types": "./dist/config/dynamic-pricing.d.ts",
-			"default": "./dist/config/dynamic-pricing.js"
+		"./config/*": {
+			"types": "./dist/config/*.d.ts",
+			"default": "./dist/config/*.js"
+		},
+		"./security/*": {
+			"types": "./dist/security/*.d.ts",
+			"default": "./dist/security/*.js"
+		},
+		"./validation/*": {
+			"types": "./dist/validation/*.d.ts",
+			"default": "./dist/validation/*.js"
 		}
 	},
 	"files": [

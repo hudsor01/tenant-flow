@@ -5,7 +5,7 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common'
-import type { CacheEntry, CacheStats } from '@repo/shared'
+import type { CacheEntry, CacheStats } from '@repo/shared/types/core'
 
 @Injectable()
 export class ZeroCacheService {

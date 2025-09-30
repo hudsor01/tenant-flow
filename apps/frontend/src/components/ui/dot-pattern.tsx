@@ -1,6 +1,6 @@
 'use client'
 
-import type { DotPatternProps } from '@repo/shared'
+import type { DotPatternProps } from '@repo/shared/types/frontend'
 import { useEffect, useId, useRef, useState } from 'react'
 
 import { cn } from '@/lib/utils'

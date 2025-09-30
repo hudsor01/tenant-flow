@@ -40,14 +40,38 @@ packages/
 ├── utils/             # Shared utilities
 ```
 
+## [ENVIRONMENT] Environment Variables
+
+TenantFlow uses Doppler as the single source of truth for all environment variables across all environments.
+
+**DO NOT create or commit `.env` files.** All configuration is managed through Doppler.
+
+### Development Setup
+
+```bash
+# Install Doppler CLI
+npm install -g @doppler/cli
+
+# Login and configure project
+doppler login
+doppler setup --project tenantflow
+
+# Run development with Doppler environment
+doppler run -- npm run dev
+```
+
+### Required Variables
+
+See [docs/environment-management.md](./docs/environment-management.md) for complete list of required environment variables.
+
 ## [DEVELOPMENT] Development
 
 ```bash
 # Install dependencies
 npm install
 
-# Start development servers
-npm run dev
+# Start development servers with Doppler
+doppler run -- npm run dev
 
 # Run quality checks before committing
 npm run claude:check

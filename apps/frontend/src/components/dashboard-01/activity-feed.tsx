@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { useDashboardActivity } from '@/hooks/api/use-dashboard'
-import type { Tables } from '@repo/shared'
+import type { Tables } from '@repo/shared/types/supabase'
 
 type Activity = Tables<'Activity'>
 

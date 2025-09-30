@@ -78,11 +78,7 @@ export function MetricsSection() {
 					paddingBottom: 'var(--spacing-4)'
 				}}
 			>
-				<SectionCards
-					dashboardStats={dashboardStats.data}
-					propertyStats={propertyStats.data}
-					leaseStats={leaseStats.data}
-				/>
+				<SectionCards />
 			</div>
 		</div>
 	)

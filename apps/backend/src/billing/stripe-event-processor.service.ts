@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
-import type { SubscriptionStatus } from '@repo/shared'
+import type { SubscriptionStatus } from '@repo/shared/types/auth'
 import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
 import {

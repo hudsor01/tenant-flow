@@ -198,3 +198,16 @@ export interface BlogTagInput {
 	slug: string
 	color?: string
 }
+
+// Frontend Blog Post Type (for static blog content)
+export interface BlogPost {
+	slug: string
+	title: string
+	excerpt: string
+	content: string
+	author: string
+	date: string
+	readTime: string
+	category: string
+	tags: string[]
+}

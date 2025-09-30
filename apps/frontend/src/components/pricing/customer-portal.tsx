@@ -43,7 +43,7 @@ interface ExtendedCustomerPortalCardProps
 	}
 }
 
-import type { CustomerPortalCardProps } from '@repo/shared'
+import type { CustomerPortalCardProps } from '@repo/shared/types/frontend'
 import { useMutation } from '@tanstack/react-query'
 import {
 	Activity,

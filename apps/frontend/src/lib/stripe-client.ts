@@ -2,7 +2,7 @@
  * Stripe integration client using Supabase Edge Functions
  * CLAUDE.md compliant - Native platform integration
  */
-import type { Database } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import { createBrowserClient } from '@supabase/ssr'
 
 /**

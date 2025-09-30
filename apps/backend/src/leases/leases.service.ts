@@ -8,14 +8,20 @@
  */
 
 import { BadRequestException, Injectable, Logger, Inject } from '@nestjs/common'
-import type {
-	CreateLeaseRequest,
-	UpdateLeaseRequest,
-	Lease,
-	LeaseStats,
-	LeaseInput,
-	Database
-} from '@repo/shared'
+import type { CreateLeaseRequest, UpdateLeaseRequest } from '@repo/shared/types/backend-domain'
+import type { Lease, LeaseStats } from '@repo/shared/types/core'
+import type { Database } from '@repo/shared/types/supabase-generated'
+
+// LeaseInput interface - should be added to shared types in Phase 2
+interface LeaseInput {
+	tenantId: string
+	unitId: string
+	startDate: string
+	endDate: string
+	rentAmount: number
+	securityDeposit?: number
+	status: Database['public']['Enums']['LeaseStatus']
+}
 import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 import type { ILeasesRepository, LeaseQueryOptions } from '../repositories/interfaces/leases-repository.interface'
 
@@ -165,11 +171,14 @@ export class LeasesService {
 				startDate: createRequest.startDate,
 				endDate: createRequest.endDate,
 				rentAmount: createRequest.monthlyRent,
-				securityDeposit: createRequest.securityDeposit,
+				securityDeposit: createRequest.securityDeposit || 0,
 				status: createRequest.status || 'DRAFT'
 			}
 
-			return await this.leasesRepository.create(userId, leaseData)
+			return await this.leasesRepository.create(userId, {
+				...leaseData,
+				securityDeposit: leaseData.securityDeposit ?? 0
+			})
 		} catch (error) {
 			this.logger.error('Leases service failed to create lease', {
 				error: error instanceof Error ? error.message : String(error),
@@ -441,6 +450,102 @@ export class LeasesService {
 			throw new BadRequestException(
 				error instanceof Error ? error.message : 'Failed to get lease revenue analytics'
 			)
+		}
+	}
+
+	/**
+	 * Renew lease - replaces renew_lease function
+	 * Uses repository pattern instead of database function
+	 */
+	async renewLease(userId: string, leaseId: string, newEndDate: string, newRentAmount?: number): Promise<Lease | null> {
+		try {
+			this.logger.log('Renewing lease via repository', { userId, leaseId, newEndDate, newRentAmount })
+
+			// Business logic: Verify ownership and lease exists
+			const existingLease = await this.findOne(userId, leaseId)
+			if (!existingLease) {
+				throw new BadRequestException('Lease not found or access denied')
+			}
+
+			// Business logic: Validate new end date is after current
+			const currentEndDate = new Date(existingLease.endDate)
+			const renewalEndDate = new Date(newEndDate)
+			if (renewalEndDate <= currentEndDate) {
+				throw new BadRequestException('New end date must be after current lease end date')
+			}
+
+			// Business logic: Validate new rent amount if provided
+			if (newRentAmount && newRentAmount <= 0) {
+				throw new BadRequestException('Rent amount must be positive')
+			}
+
+			// Prepare renewal data
+			const renewalData: Partial<LeaseInput> = {
+				endDate: newEndDate,
+				...(newRentAmount && { rentAmount: newRentAmount })
+			}
+
+			// Renew via repository
+			return await this.leasesRepository.renewLease(leaseId, renewalData)
+		} catch (error) {
+			this.logger.error('Failed to renew lease', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				leaseId,
+				newEndDate,
+				newRentAmount
+			})
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
+			throw new BadRequestException('Failed to renew lease')
+		}
+	}
+
+	/**
+	 * Terminate lease - replaces terminate_lease function
+	 * Uses repository pattern instead of database function
+	 */
+	async terminateLease(userId: string, leaseId: string, terminationDate: string, reason?: string): Promise<Lease | null> {
+		try {
+			this.logger.log('Terminating lease via repository', { userId, leaseId, terminationDate, reason })
+
+			// Business logic: Verify ownership and lease exists
+			const existingLease = await this.findOne(userId, leaseId)
+			if (!existingLease) {
+				throw new BadRequestException('Lease not found or access denied')
+			}
+
+			// Business logic: Validate termination date
+			const termDate = new Date(terminationDate)
+			const currentDate = new Date()
+			if (termDate < currentDate) {
+				throw new BadRequestException('Termination date cannot be in the past')
+			}
+
+			// Business logic: Check if lease is already terminated
+			if (existingLease.status === 'TERMINATED' || existingLease.status === 'EXPIRED') {
+				throw new BadRequestException('Lease is already terminated or expired')
+			}
+
+			// Terminate via repository
+			return await this.leasesRepository.terminateLease(leaseId, termDate, reason)
+		} catch (error) {
+			this.logger.error('Failed to terminate lease', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				leaseId,
+				terminationDate,
+				reason
+			})
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
+			throw new BadRequestException('Failed to terminate lease')
 		}
 	}
 }

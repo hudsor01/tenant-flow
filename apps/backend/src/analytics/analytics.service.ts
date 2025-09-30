@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import type { WebVitalData } from '@repo/shared'
+import type { WebVitalData } from '@repo/shared/types/frontend'
 import type { Config } from '../config/config.schema'
 
 @Injectable()

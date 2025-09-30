@@ -1,11 +1,9 @@
-import type {
-  MaintenanceRequest,
-  MaintenanceRequestInput,
-  MaintenanceRequestUpdate,
-  MaintenanceStats,
-  QueryParams,
-  Database
-} from '@repo/shared';
+import type { Database } from '@repo/shared/types/supabase-generated';
+import type { QueryParams, MaintenanceStats, MaintenanceRequest } from '@repo/shared/types/core';
+
+// Type aliases for Input/Update using database schema
+export type MaintenanceRequestInput = Database['public']['Tables']['MaintenanceRequest']['Insert'];
+export type MaintenanceRequestUpdate = Database['public']['Tables']['MaintenanceRequest']['Update'];
 
 /**
  * Maintenance query options - extends standard QueryParams with maintenance-specific filters

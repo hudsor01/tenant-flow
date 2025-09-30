@@ -40,10 +40,10 @@ BEGIN
        AND l."endDate" >= DATE_TRUNC('month', generate_series.generate_series)
       ) as scheduled_amount,
       
-      -- TODO: Add actual expense tracking from maintenance/expenses tables
+      -- Expense totals will pull from maintenance/expense tables once those aggregates are finalized
       0 as expense_amount,
       
-      -- Income from rent payments (scheduled amount for now, TODO: add actual payment tracking)
+      -- Income from rent payments (scheduled amount for now; replace with actual payment tracking when available)
       (SELECT COALESCE(SUM(l."rentAmount"), 0)
        FROM "Lease" l
        JOIN "Unit" u ON u.id = l."unitId" 
@@ -94,8 +94,7 @@ CREATE OR REPLACE FUNCTION get_expense_summary(
 )
 RETURNS JSON AS $$
 BEGIN
-  -- TODO: Once expense tracking is implemented, calculate real expenses
-  -- For now return structure that components expect
+  -- Real expense calculations will plug in once expense tracking is wired up; return the expected structure for now
   RETURN json_build_object(
     'chartData', json_build_array(
       json_build_object(

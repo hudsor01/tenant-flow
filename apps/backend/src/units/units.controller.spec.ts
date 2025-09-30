@@ -1,7 +1,8 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { CreateUnitRequest, UpdateUnitRequest, Unit } from '@repo/shared'
+import type { CreateUnitRequest, UpdateUnitRequest } from '@repo/shared/types/backend-domain'
+import type { Unit } from '@repo/shared/types/core'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { UnitsController } from './units.controller'
@@ -67,7 +68,7 @@ describe('UnitsController', () => {
 		bedrooms: 2,
 		bathrooms: 1,
 		rent: 1500,
-		status: 'AVAILABLE'
+		status: 'VACANT'
 	}
 
 	const validUpdateUnitRequest: UpdateUnitRequest = {

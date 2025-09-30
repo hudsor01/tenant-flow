@@ -20,7 +20,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { useUpdateUnit } from '@/hooks/api/units'
+import { unitsApi } from '@/lib/api-client'
 import {
 	ANIMATION_DURATIONS,
 	buttonClasses,
@@ -28,9 +28,10 @@ import {
 	inputClasses,
 	TYPOGRAPHY_SCALE
 } from '@/lib/utils'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { Database } from '@repo/shared'
-import { createLogger } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	transformUnitFormData,
 	unitFormSchema,
@@ -515,7 +516,16 @@ export function UnitEditDialog({
 	onOpenChange
 }: UnitEditDialogProps) {
 	const logger = createLogger({ component: 'UnitEditDialog' })
-	const updateUnit = useUpdateUnit()
+
+	const qc = useQueryClient()
+	const updateUnit = useMutation({
+		mutationFn: ({ id, values }: { id: string; values: Database['public']['Tables']['Unit']['Update'] }) =>
+			unitsApi.update(id, values),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ['units'] })
+			qc.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
+		}
+	})
 
 	// React Hook Form with Zod validation
 	const form = useForm<UnitFormData>({

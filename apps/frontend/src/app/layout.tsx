@@ -2,18 +2,19 @@ import { PostHogPageView } from '@/components/layout/posthog-pageview'
 import { WebVitals } from '@/components/layout/web-vitals'
 import { ErrorBoundary } from '@/components/magicui/error-boundary'
 import { Providers } from '@/components/providers'
-import {
-	DEFAULT_THEME_MODE,
-	THEME_MODE_COOKIE_NAME,
-	parseThemeMode
-} from '@/lib/theme-utils'
-import type { ThemeMode } from '@repo/shared'
+import
+  {
+    DEFAULT_THEME_MODE,
+    THEME_MODE_COOKIE_NAME,
+    parseThemeMode
+  } from '@/lib/theme-utils'
+import type { ThemeMode } from '@repo/shared/types/domain'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
-
 import { Toaster } from 'sonner'
+
 import './globals.css'
 
 export const metadata: Metadata = {

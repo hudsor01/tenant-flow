@@ -40,7 +40,7 @@ export class NotificationsController {
 		}
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('InAppNotification')
+			.from('notifications')
 			.select('*')
 			.eq('userId', user.id)
 			.order('createdAt', { ascending: false })
@@ -67,7 +67,7 @@ export class NotificationsController {
 	) {
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('InAppNotification')
+			.from('notifications')
 			.insert({
 				userId: body.userId,
 				title: body.title,
@@ -96,7 +96,7 @@ export class NotificationsController {
 		}
 		const { error } = await this.supabase
 			.getAdminClient()
-			.from('InAppNotification')
+			.from('notifications')
 			.update({ isRead: true })
 			.eq('id', id)
 			.eq('userId', user.id)
@@ -117,7 +117,7 @@ export class NotificationsController {
 		}
 		const { error } = await this.supabase
 			.getAdminClient()
-			.from('InAppNotification')
+			.from('notifications')
 			.delete()
 			.eq('id', id)
 			.eq('userId', user.id)
@@ -138,7 +138,7 @@ export class NotificationsController {
 	) {
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('InAppNotification')
+			.from('notifications')
 			.insert({
 				userId: body.userId,
 				title: 'Maintenance Request Update',

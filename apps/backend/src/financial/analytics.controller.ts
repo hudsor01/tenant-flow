@@ -1,32 +1,34 @@
-import {
-	BadRequestException,
-	Controller,
-	Get,
-	Logger,
-	Query,
-	Req,
-	Inject
-} from '@nestjs/common'
+import
+  {
+    BadRequestException,
+    Controller,
+    Get,
+    Inject,
+    Logger,
+    Query,
+    Req,
+    UnauthorizedException
+  } from '@nestjs/common'
+import type {
+  DashboardSummary,
+  FinancialMetrics,
+  Lease,
+  PropertyFinancialMetrics
+} from '@repo/shared/types/core'
+import type { Tables } from '@repo/shared/types/supabase'
+
+type ExpenseRecord = Tables<'Expense'>
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
-import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
-import type { IPropertiesRepository } from '../repositories/interfaces/properties-repository.interface'
 import type { ILeasesRepository } from '../repositories/interfaces/leases-repository.interface'
+import type { IPropertiesRepository } from '../repositories/interfaces/properties-repository.interface'
 import type { IUnitsRepository } from '../repositories/interfaces/units-repository.interface'
-import type { IMaintenanceRepository } from '../repositories/interfaces/maintenance-repository.interface'
-import type {
-	FinancialMetrics,
-	PropertyFinancialMetrics,
-	DashboardSummary,
-	Lease,
-	MaintenanceRequest,
-	Unit
-} from '@repo/shared'
+import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 
 
 /**
  * Financial Analytics Controller - Repository Pattern Implementation
- * NO RPC BULLSHIT - All calculations via repository using direct table queries
+ *  - All calculations via repository using direct table queries
  * Aggregates data from multiple repositories for financial metrics
  */
 @Controller('financial/analytics')
@@ -41,13 +43,11 @@ export class FinancialAnalyticsController {
 		private readonly leasesRepository: ILeasesRepository,
 		@Inject(REPOSITORY_TOKENS.UNITS)
 		private readonly unitsRepository: IUnitsRepository,
-		@Inject(REPOSITORY_TOKENS.MAINTENANCE)
-		private readonly maintenanceRepository: IMaintenanceRepository
 	) {}
 
 	/**
 	 * Get revenue trends via repositories - DIRECT TABLE QUERIES
-	 * NO RPC BULLSHIT - Aggregates data from multiple repositories in TypeScript
+	 *  - Aggregates data from multiple repositories in TypeScript
 	 */
 	@Get('revenue-trends')
 	async getRevenueTrends(
@@ -57,50 +57,43 @@ export class FinancialAnalyticsController {
 	): Promise<FinancialMetrics[]> {
 		const user = await this.supabaseService.getUser(req)
 		if (!user) {
-			throw new BadRequestException('User not authenticated')
+			throw new UnauthorizedException('User not authenticated')
 		}
 
 		try {
-			const targetYear = year ? parseInt(year) : new Date().getFullYear()
+			const targetYear = year ? parseInt(year, 10) : new Date().getFullYear()
 
 			this.logger.log('Getting revenue trends via repositories', {
 				userId: user.id,
 				targetYear
 			})
 
-			// Aggregate data from multiple repositories - PARALLEL QUERIES
-			const [, leases] = await Promise.all([
-				this.unitsRepository.getAnalytics(user.id, { timeframe: '12m' }),
-				this.leasesRepository.getAnalytics(user.id, { timeframe: '12m' })
+			const yearStart = new Date(targetYear, 0, 1)
+			const yearEnd = new Date(targetYear + 1, 0, 1)
+
+			const propertyContext = await this.buildPropertyContext(user.id)
+			const [leases, expenses] = await Promise.all([
+				this.leasesRepository.getAnalytics(user.id, { timeframe: '12m' }),
+				this.fetchExpensesForProperties(propertyContext.propertyIds, yearStart, yearEnd)
 			])
 
-			// Calculate revenue trends by month - SIMPLE TYPESCRIPT MATH
+			const revenueByMonth = this.calculateMonthlyRevenue(leases, targetYear)
+			const expensesByMonth = this.groupExpensesByMonth(expenses)
+
 			const monthlyMetrics: FinancialMetrics[] = []
-
-			const leaseData = leases
-
 			for (let month = 0; month < 12; month++) {
-				const monthStart = new Date(targetYear, month, 1)
-				const monthEnd = new Date(targetYear, month + 1, 0)
-
-				// Filter data for this month
-				const monthlyLeases = leaseData.filter((lease) => {
-					const startDate = new Date(lease.startDate)
-					const endDate = new Date(lease.endDate)
-					return startDate <= monthEnd && endDate >= monthStart
-				})
-
-				// Calculate monthly revenue
-				const totalRevenue: number = monthlyLeases.reduce((sum: number, lease: Lease) => {
-					return sum + (lease.rentAmount || 0)
-				}, 0)
+				const monthKey = this.buildMonthKey(targetYear, month)
+				const revenue = revenueByMonth.get(monthKey) ?? 0
+				const monthlyExpenses = expensesByMonth.get(monthKey) ?? 0
+				const netIncome = revenue - monthlyExpenses
+				const profitMargin = revenue > 0 ? Number(((netIncome / revenue) * 100).toFixed(2)) : 0
 
 				monthlyMetrics.push({
-					period: monthStart.toISOString().substring(0, 7), // YYYY-MM format
-					revenue: totalRevenue,
-					expenses: 0, // TODO: Add expense calculation from maintenance
-					netIncome: totalRevenue,
-					profitMargin: totalRevenue > 0 ? 100 : 0
+					period: monthKey,
+					revenue,
+					expenses: monthlyExpenses,
+					netIncome,
+					profitMargin
 				})
 			}
 
@@ -117,13 +110,13 @@ export class FinancialAnalyticsController {
 
 	/**
 	 * Get dashboard financial metrics via repositories - DIRECT TABLE QUERIES
-	 * NO RPC BULLSHIT - Aggregates data from multiple repositories in TypeScript
+	 *  - Aggregates data from multiple repositories in TypeScript
 	 */
 	@Get('dashboard-metrics')
 	async getDashboardMetrics(@Req() req: Request): Promise<DashboardSummary> {
 		const user = await this.supabaseService.getUser(req)
 		if (!user) {
-			throw new BadRequestException('User not authenticated')
+			throw new UnauthorizedException('User not authenticated')
 		}
 
 		try {
@@ -131,22 +124,19 @@ export class FinancialAnalyticsController {
 				userId: user.id
 			})
 
-			// Aggregate data from multiple repositories - PARALLEL QUERIES
-			const [propertyStats, unitStats, , maintenanceAnalytics] = await Promise.all([
+			const propertyContext = await this.buildPropertyContext(user.id)
+			const [propertyStats, unitStats, leaseAnalytics, expenses] = await Promise.all([
 				this.propertiesRepository.getStats(user.id),
 				this.unitsRepository.getStats(user.id),
-				this.leasesRepository.getStats(user.id),
-				this.maintenanceRepository.getAnalytics(user.id, { timeframe: '12m' })
+				this.leasesRepository.getAnalytics(user.id, { timeframe: '12m' }),
+				this.fetchExpensesForProperties(propertyContext.propertyIds, this.subtractMonths(12), new Date())
 			])
 
-			// Calculate financial summary - SIMPLE TYPESCRIPT MATH
-			const totalRevenue: number = unitStats.totalActualRent || 0
-			const totalExpenses: number = (maintenanceAnalytics as MaintenanceRequest[]).reduce((sum: number, m: MaintenanceRequest) => {
-				return sum + (m.actualCost || 0)
-			}, 0)
-			const netIncome: number = totalRevenue - totalExpenses
+			const totalRevenue = leaseAnalytics.reduce((sum: number, lease: Lease) => sum + (lease.rentAmount || 0), 0)
+			const totalExpenses = this.sumExpenses(expenses)
+			const netIncome = totalRevenue - totalExpenses
 			const occupancyRate = unitStats.occupancyRate || 0
-			const avgRoi = totalRevenue > 0 ? Math.round((netIncome / totalRevenue) * 100) : 0
+			const avgRoi = totalRevenue > 0 ? Number(((netIncome / totalRevenue) * 100).toFixed(2)) : 0
 
 			return {
 				totalRevenue,
@@ -167,7 +157,7 @@ export class FinancialAnalyticsController {
 
 	/**
 	 * Get expense breakdown via repositories - DIRECT TABLE QUERIES
-	 * NO RPC BULLSHIT - Aggregates expense data from maintenance in TypeScript
+	 *  - Aggregates expense data from maintenance in TypeScript
 	 */
 	@Get('expense-breakdown')
 	async getExpenseBreakdown(
@@ -176,47 +166,42 @@ export class FinancialAnalyticsController {
 	): Promise<FinancialMetrics[]> {
 		const user = await this.supabaseService.getUser(req)
 		if (!user) {
-			throw new BadRequestException('User not authenticated')
+			throw new UnauthorizedException('User not authenticated')
 		}
 
 		try {
-			const targetYear = year ? parseInt(year) : new Date().getFullYear()
+			const targetYear = year ? parseInt(year, 10) : new Date().getFullYear()
 
 			this.logger.log('Getting expense breakdown via repositories', {
 				userId: user.id,
 				targetYear
 			})
 
-			// Get maintenance analytics for expense calculations
-			const maintenanceAnalytics = await this.maintenanceRepository.getAnalytics(user.id, {
-				timeframe: '12m'
-			})
+			const yearStart = new Date(targetYear, 0, 1)
+			const yearEnd = new Date(targetYear + 1, 0, 1)
+			const propertyContext = await this.buildPropertyContext(user.id)
+			const [leaseAnalytics, expenses] = await Promise.all([
+				this.leasesRepository.getAnalytics(user.id, { timeframe: '12m' }),
+				this.fetchExpensesForProperties(propertyContext.propertyIds, yearStart, yearEnd)
+			])
 
-			// Calculate monthly expense breakdown - SIMPLE TYPESCRIPT MATH
+			const revenueByMonth = this.calculateMonthlyRevenue(leaseAnalytics, targetYear)
+			const expensesByMonth = this.groupExpensesByMonth(expenses)
 			const monthlyExpenses: FinancialMetrics[] = []
-			const maintenanceData = maintenanceAnalytics
 
 			for (let month = 0; month < 12; month++) {
-				const monthStart = new Date(targetYear, month, 1)
-				const monthEnd = new Date(targetYear, month + 1, 0)
-
-				// Filter maintenance expenses for this month
-				const monthlyMaintenance = maintenanceData.filter(m => {
-					const createdDate = new Date(m.createdAt)
-					return createdDate >= monthStart && createdDate <= monthEnd
-				})
-
-				// Calculate monthly expenses
-				const totalExpenses: number = monthlyMaintenance.reduce((sum: number, m: MaintenanceRequest) => {
-					return sum + (m.actualCost || 0)
-				}, 0)
+				const monthKey = this.buildMonthKey(targetYear, month)
+				const revenue = revenueByMonth.get(monthKey) ?? 0
+				const totalExpenses = expensesByMonth.get(monthKey) ?? 0
+				const netIncome = revenue - totalExpenses
+				const profitMargin = revenue > 0 ? Number(((netIncome / revenue) * 100).toFixed(2)) : 0
 
 				monthlyExpenses.push({
-					period: monthStart.toISOString().substring(0, 7), // YYYY-MM format
-					revenue: 0,
+					period: monthKey,
+					revenue,
 					expenses: totalExpenses,
-					netIncome: -totalExpenses, // Expenses are negative income
-					profitMargin: 0
+					netIncome,
+					profitMargin
 				})
 			}
 
@@ -233,7 +218,7 @@ export class FinancialAnalyticsController {
 
 	/**
 	 * Get Net Operating Income via repositories - DIRECT TABLE QUERIES
-	 * NO RPC BULLSHIT - Calculates NOI from property data in TypeScript
+	 *  - Calculates NOI from property data in TypeScript
 	 */
 	@Get('net-operating-income')
 	async getNetOperatingIncome(
@@ -242,7 +227,7 @@ export class FinancialAnalyticsController {
 	): Promise<PropertyFinancialMetrics[]> {
 		const user = await this.supabaseService.getUser(req)
 		if (!user) {
-			throw new BadRequestException('User not authenticated')
+			throw new UnauthorizedException('User not authenticated')
 		}
 
 		try {
@@ -251,58 +236,54 @@ export class FinancialAnalyticsController {
 				period: _period
 			})
 
-			// Get all property analytics for NOI calculations - PARALLEL QUERIES
-			const [unitAnalytics, maintenanceAnalytics] = await Promise.all([
-				this.unitsRepository.getAnalytics(user.id, { timeframe: 'yearly' }),
-				this.maintenanceRepository.getAnalytics(user.id, { timeframe: 'yearly' })
+			const propertyContext = await this.buildPropertyContext(user.id)
+			const [units, leases, expenses] = await Promise.all([
+				this.unitsRepository.getAnalytics(user.id, { timeframe: '12m' }),
+				this.leasesRepository.getAnalytics(user.id, { timeframe: '12m' }),
+				this.fetchExpensesForProperties(propertyContext.propertyIds, this.subtractMonths(12), new Date())
 			])
 
-			// Group data by property and calculate NOI - SIMPLE TYPESCRIPT MATH
+			const unitToProperty = new Map<string, string>()
+			for (const unit of units) {
+				if (unit.id && unit.propertyId) {
+					unitToProperty.set(unit.id, unit.propertyId)
+				}
+			}
+
+			const revenueByProperty = new Map<string, number>()
+			for (const lease of leases) {
+				const propertyId = unitToProperty.get(lease.unitId ?? '')
+				if (!propertyId) {
+					continue
+				}
+				revenueByProperty.set(propertyId, (revenueByProperty.get(propertyId) ?? 0) + (lease.rentAmount || 0))
+			}
+
+			const expensesByProperty = this.groupExpensesByProperty(expenses)
 			const propertyNOI: PropertyFinancialMetrics[] = []
 
-			const unitData = unitAnalytics
-			const maintenanceData = maintenanceAnalytics
+			const propertiesToEvaluate = new Set<string>([...propertyContext.propertyIds, ...revenueByProperty.keys(), ...expensesByProperty.keys()])
 
-			// Get unique property IDs from units (MaintenanceRequest doesn't have propertyId)
-			const propertyIds = [...new Set(unitData.map(u => u.propertyId))].filter((id): id is string => Boolean(id))
-
-			// Map maintenance requests to properties via unitId
-			const unitToPropertyMap: Record<string, string> = {}
-			unitData.forEach(unit => {
-				if (unit.id && unit.propertyId) {
-					unitToPropertyMap[unit.id] = unit.propertyId
+			for (const propertyId of propertiesToEvaluate) {
+				const revenue = revenueByProperty.get(propertyId) ?? 0
+				const totalExpenses = expensesByProperty.get(propertyId) ?? 0
+				if (revenue === 0 && totalExpenses === 0) {
+					continue
 				}
-			})
-
-			propertyIds.forEach(propertyId => {
-				// Calculate revenue from units in this property
-				const propertyUnits = unitData.filter(u => u.propertyId === propertyId)
-				const totalRevenue: number = propertyUnits.reduce((sum: number, unit: Unit) => {
-					return sum + (unit.rent || 0)
-				}, 0)
-
-				// Calculate expenses from maintenance in this property
-				// Map maintenance requests to this property via their unitId
-				const propertyMaintenance = maintenanceData.filter(m => {
-					return m.unitId && unitToPropertyMap[m.unitId] === propertyId
-				})
-				const totalExpenses: number = propertyMaintenance.reduce((sum: number, m: MaintenanceRequest) => {
-					return sum + (m.actualCost || 0)
-				}, 0)
-
-				// Calculate NOI
-				const netOperatingIncome: number = totalRevenue - totalExpenses
+				const netOperatingIncome = revenue - totalExpenses
+				const propertyName = propertyContext.propertyMap.get(propertyId) ?? propertyId
+				const roi = revenue > 0 ? Number(((netOperatingIncome / revenue) * 100).toFixed(2)) : 0
 
 				propertyNOI.push({
 					propertyId,
-					propertyName: propertyId, // TODO: Get actual property name
-					revenue: totalRevenue,
+					propertyName,
+					revenue,
 					expenses: totalExpenses,
 					netIncome: netOperatingIncome,
-					roi: totalRevenue > 0 ? Math.round((netOperatingIncome / totalRevenue) * 100) : 0,
+					roi,
 					period: _period
 				})
-			})
+			}
 
 			return propertyNOI
 		} catch (error) {
@@ -313,5 +294,120 @@ export class FinancialAnalyticsController {
 			})
 			throw new BadRequestException('Failed to fetch NOI data')
 		}
+	}
+
+	private async buildPropertyContext(userId: string) {
+		const properties = await this.propertiesRepository.findByUserId(userId)
+		const propertyMap = new Map<string, string>()
+		const propertyIds: string[] = []
+		for (const property of properties) {
+			propertyIds.push(property.id)
+			propertyMap.set(property.id, property.name)
+		}
+		return { propertyIds, propertyMap }
+	}
+
+	private async fetchExpensesForProperties(propertyIds: string[], start?: Date, end?: Date) {
+		if (!propertyIds.length) {
+			return [] as ExpenseRecord[]
+		}
+
+		try {
+			let query = this.supabaseService
+				.getAdminClient()
+				.from('Expense')
+				.select('*')
+				.in('propertyId', propertyIds)
+
+			if (start) {
+				query = query.gte('date', start.toISOString())
+			}
+			if (end) {
+				query = query.lte('date', end.toISOString())
+			}
+
+			const { data, error } = await query
+			if (error) {
+				this.logger.error('Failed to fetch expenses for properties', {
+					error: error.message,
+					propertyIds,
+					start: start?.toISOString(),
+					end: end?.toISOString()
+				})
+				return []
+			}
+
+			return (data as ExpenseRecord[]) ?? []
+		} catch (error) {
+			this.logger.error('Unexpected error fetching expenses for properties', {
+				error: error instanceof Error ? error.message : String(error),
+				propertyIds,
+				start: start?.toISOString(),
+				end: end?.toISOString()
+			})
+			return []
+		}
+	}
+
+	private groupExpensesByMonth(expenses: ExpenseRecord[]) {
+		const map = new Map<string, number>()
+		for (const expense of expenses) {
+			if (!expense.date) {
+				continue
+			}
+			const expenseDate = new Date(expense.date)
+			const key = this.buildMonthKey(expenseDate.getFullYear(), expenseDate.getMonth())
+			map.set(key, (map.get(key) ?? 0) + (expense.amount ?? 0))
+		}
+		return map
+	}
+
+	private groupExpensesByProperty(expenses: ExpenseRecord[]) {
+		const map = new Map<string, number>()
+		for (const expense of expenses) {
+			if (!expense.propertyId) {
+				continue
+			}
+			map.set(expense.propertyId, (map.get(expense.propertyId) ?? 0) + (expense.amount ?? 0))
+		}
+		return map
+	}
+
+	private calculateMonthlyRevenue(leases: Lease[], targetYear: number) {
+		const revenueByMonth = new Map<string, number>()
+		for (let month = 0; month < 12; month++) {
+			const monthStart = new Date(targetYear, month, 1)
+			const monthEnd = new Date(targetYear, month + 1, 0)
+			const monthKey = this.buildMonthKey(targetYear, month)
+
+			let monthlyRevenue = 0
+			for (const lease of leases) {
+				const startDate = new Date(lease.startDate)
+				const endDate = new Date(lease.endDate)
+				if (startDate <= monthEnd && endDate >= monthStart) {
+					monthlyRevenue += lease.rentAmount || 0
+				}
+			}
+
+			revenueByMonth.set(monthKey, monthlyRevenue)
+		}
+
+		return revenueByMonth
+	}
+
+	private sumExpenses(expenses: ExpenseRecord[]) {
+		return expenses.reduce((sum, expense) => sum + (expense.amount ?? 0), 0)
+	}
+
+	private buildMonthKey(year: number, monthIndex: number) {
+		const monthNumber = monthIndex + 1
+		return `${year}-${monthNumber.toString().padStart(2, '0')}`
+	}
+
+	private subtractMonths(months: number) {
+		const date = new Date()
+		date.setHours(0, 0, 0, 0)
+		date.setMonth(date.getMonth() - months)
+		return date
 	}
 }

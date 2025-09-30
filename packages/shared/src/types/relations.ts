@@ -3,6 +3,7 @@
  * Extended entity types with proper relations to avoid circular imports
  */
 
+import type { TenantWithLeaseInfo } from './core.js'
 import type { Database } from './supabase-generated.js'
 import type { User } from './supabase.js'
 
@@ -327,3 +328,6 @@ export interface PropertyFilters {
 	city?: string
 	state?: string
 }
+
+// Re-export TenantWithLeaseInfo from core.ts to comply with import location requirements
+export type { TenantWithLeaseInfo }

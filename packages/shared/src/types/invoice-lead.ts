@@ -4,12 +4,13 @@
  */
 
 import { z } from 'zod'
-import {
-	INVOICE_DEFAULTS,
-	INVOICE_NUMBER_PREFIX,
-	LEAD_MAGNET_CONFIG,
-	type LeadMagnetTier
-} from '../constants/invoices.js'
+import
+  {
+    INVOICE_DEFAULTS,
+    INVOICE_NUMBER_PREFIX,
+    LEAD_MAGNET_CONFIG,
+    type LeadMagnetTier
+  } from '../constants/invoices.js'
 import { emailSchema, requiredString } from '../validation/common.js'
 import type { CustomerInvoice, CustomerInvoiceItem } from './invoices.js'
 

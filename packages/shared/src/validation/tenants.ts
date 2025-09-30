@@ -1,10 +1,11 @@
 import { z } from 'zod'
-import {
-	emailSchema,
-	nonEmptyStringSchema,
-	phoneSchema,
-	uuidSchema
-} from './common.js'
+import
+  {
+    emailSchema,
+    nonEmptyStringSchema,
+    phoneSchema,
+    uuidSchema
+  } from './common.js'
 
 // Emergency contact is just a text field in the database
 export const emergencyContactSchema = z

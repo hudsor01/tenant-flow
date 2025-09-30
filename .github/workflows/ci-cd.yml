@@ -43,7 +43,7 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Lint code
-        run: pnpm lint:fix
+        run: pnpm lint
 
   # Type checking - separate job for parallel execution
   typecheck:

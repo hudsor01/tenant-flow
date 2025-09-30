@@ -3,8 +3,8 @@
  */
 import { useQuery } from '@tanstack/react-query'
 import { dashboardApi, API_BASE_URL } from '@/lib/api-client'
-import { apiClient } from '@repo/shared'
-import type { TenantStats, LeaseStatsResponse, FinancialMetrics } from '@repo/shared'
+import { apiClient } from '@repo/shared/utils/api-client'
+import type { TenantStats, LeaseStatsResponse, FinancialMetrics } from '@repo/shared/types/core'
 
 /**
  * Query keys for dashboard endpoints

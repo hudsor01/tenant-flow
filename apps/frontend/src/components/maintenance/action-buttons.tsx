@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { DeleteMaintenanceButton } from '@/components/maintenance/delete-button'
+import { EditMaintenanceButton } from '@/components/maintenance/edit-button'
+import { StatusUpdateButton } from '@/components/maintenance/status-button'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Badge } from '@/components/ui/badge'
-import { Eye, MapPin, Calendar, DollarSign, User, AlertTriangle, Wrench, Clock } from 'lucide-react'
-import type { Tables } from '@repo/shared'
-import { EditMaintenanceButton } from './edit-button'
-import { DeleteMaintenanceButton } from './delete-button'
-import { StatusUpdateButton } from './status-button'
+import { AlertTriangle, Calendar, Clock, DollarSign, Eye, MapPin, User, Wrench } from 'lucide-react'
+import { useState } from 'react'
+import type { Tables } from '@repo/shared/types/supabase-generated'
 
 type MaintenanceRequest = Tables<'MaintenanceRequest'>
 

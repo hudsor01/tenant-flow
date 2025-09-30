@@ -36,7 +36,7 @@ export type {
 	CreateCheckoutSessionRequest,
 	CreateConnectedPaymentRequest,
 	CreateSubscriptionRequest
-} from '@repo/shared'
+} from '@repo/shared/types/core'
 
 // Keep smaller local interfaces that are backend-specific
 export interface EmbeddedCheckoutRequest {

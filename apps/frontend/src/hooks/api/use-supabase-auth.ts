@@ -4,7 +4,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/utils/supabase/client'
-import type { LoginCredentials, SignupFormData } from '@repo/shared'
+import type { LoginCredentials, SignupFormData } from '@repo/shared/types/auth'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 

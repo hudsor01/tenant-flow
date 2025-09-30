@@ -1,110 +1,87 @@
-import { 
-  cn,
-  containerClasses,
-  gridClasses,
-  cardClasses,
-  TYPOGRAPHY_SCALE,
-  ANIMATION_DURATIONS
-} from "@/lib/design-system";
-import type { ComponentSize } from '@repo/shared';
+import { cn } from "@/lib/design-system";
 import {
   Settings,
-  Cloud,
   DollarSign,
   Zap,
-  Heart,
   HelpCircle,
   ArrowLeft,
   Terminal,
 } from "lucide-react";
+import { BlurFade } from '@/components/magicui/blur-fade';
 
 interface FeaturesSectionDemoProps {
-  variant?: 'default' | 'modern' | 'minimal';
-  size?: ComponentSize;
   className?: string;
 }
 
-export default function FeaturesSectionDemo({ 
-  variant = 'default',
-  size = 'default',
+export default function FeaturesSectionDemo({
   className
 }: FeaturesSectionDemoProps = {}) {
   const features = [
     {
-      title: "Built for developers",
+      title: "Smart Property Management",
       description:
-        "Built for engineers, developers, dreamers, thinkers and doers.",
+        "Automate rent collection, lease renewals, and maintenance tracking for 5-50 unit portfolios.",
       icon: <Terminal />,
     },
     {
-      title: "Ease of use",
+      title: "Lightning Fast Setup",
       description:
-        "It's as easy as using an Apple, and as expensive as buying one.",
+        "Get up and running in under 1 hour. No complex configurations or lengthy onboarding.",
       icon: <Zap />,
     },
     {
-      title: "Pricing like no other",
+      title: "Transparent Pricing",
       description:
-        "Our prices are best in the market. No cap, no lock, no credit card required.",
+        "90% of enterprise features for 20% of the price. No hidden fees, no lock-in contracts.",
       icon: <DollarSign />,
     },
     {
-      title: "100% Uptime guarantee",
-      description: "We just cannot be taken down by anyone.",
-      icon: <Cloud />,
-    },
-    {
-      title: "Multi-tenant Architecture",
-      description: "You can simply share passwords instead of buying new seats",
+      title: "Multi-Property Dashboard",
+      description: "Manage your entire portfolio from one unified dashboard with real-time insights.",
       icon: <ArrowLeft />,
     },
     {
-      title: "24/7 Customer Support",
+      title: "Expert Support",
       description:
-        "We are available a 100% of the time. Atleast our AI Agents are.",
+        "Property management experts available when you need them, plus comprehensive documentation.",
       icon: <HelpCircle />,
     },
     {
-      title: "Money back guarantee",
+      title: "60-Day Money Back",
       description:
-        "If you donot like EveryAI, we will convince you to like us.",
+        "See ROI within 90 days or get your money back. No questions asked guarantee.",
       icon: <Settings />,
-    },
-    {
-      title: "And everything else",
-      description: "I just ran out of copy ideas. Accept my sincere apologies",
-      icon: <Heart />,
     },
   ];
 
-  const variants = {
-    default: "section-content",
-    modern: "section-content",
-    minimal: "compact-padding"
-  };
-
   return (
-    <div className={cn(
-      containerClasses('2xl'),
-      gridClasses({ 
-        default: 1, 
-        md: 2, 
-        lg: 4 
-      }),
-      "relative z-10",
-      variants[variant],
+    <section className={cn(
+      "relative py-12 lg:py-16 overflow-hidden bg-transparent",
       className
     )}>
-      {features.map((feature, index) => (
-        <Feature 
-          key={feature.title} 
-          {...feature} 
-          index={index} 
-          variant={variant}
-          size={size}
-        />
-      ))}
-    </div>
+
+      <div className="container px-4 mx-auto relative z-10">
+        <div className="text-center mb-10 max-w-3xl mx-auto">
+          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground mb-6 leading-tight">
+            Everything you need for
+            <span className="text-primary block">professional property management</span>
+          </h2>
+          <p className="text-xl text-muted-foreground leading-relaxed">
+            Purpose-built for the missing middle: too big for spreadsheets, too small for enterprise solutions.
+          </p>
+        </div>
+
+        <div className={cn(
+          "grid gap-8 md:grid-cols-2 lg:grid-cols-3 relative z-10"
+        )}>
+          {features.map((feature, index) => (
+            <BlurFade key={feature.title} delay={0.2 + index * 0.1} inView>
+              <Feature {...feature} />
+            </BlurFade>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -112,183 +89,48 @@ interface FeatureProps {
   title: string;
   description: string;
   icon: React.ReactNode;
-  index: number;
-  variant?: 'default' | 'modern' | 'minimal';
-  size?: ComponentSize;
 }
 
 const Feature = ({
   title,
   description,
-  icon,
-  index,
-  variant = 'default',
-  size = 'default'
+  icon
 }: FeatureProps) => {
-  // Design system integrated typography
-  const titleStyles = {
-    xs: TYPOGRAPHY_SCALE['body-md'],
-    sm: TYPOGRAPHY_SCALE['heading-sm'],
-    default: TYPOGRAPHY_SCALE['heading-md'],
-    lg: TYPOGRAPHY_SCALE['heading-lg'],
-    xl: TYPOGRAPHY_SCALE['heading-xl']
-  };
-
-  const descriptionStyles = {
-    xs: TYPOGRAPHY_SCALE['body-xs'],
-    sm: TYPOGRAPHY_SCALE['body-sm'],
-    default: TYPOGRAPHY_SCALE['body-sm'],
-    lg: TYPOGRAPHY_SCALE['body-md'],
-    xl: TYPOGRAPHY_SCALE['body-lg']
-  };
-
-  // Enhanced variant configurations
-  const variantClasses = {
-    default: {
-      container: cn(
-        cardClasses('default'),
-        "flex flex-col lg:border-r py-10 relative group/feature border-border/30 hover:border-border/50 hover:bg-accent/5"
-      ),
-      gradient: "bg-gradient-to-t from-accent/10 dark:from-accent/5 to-transparent",
-      gradientBottom: "bg-gradient-to-b from-accent/10 dark:from-accent/5 to-transparent",
-      icon: "text-muted-foreground group-hover/feature:text-primary",
-      accent: "bg-muted group-hover/feature:bg-primary",
-      title: "text-foreground"
-    },
-    modern: {
-      container: cn(
-        cardClasses('elevated'),
-        "flex flex-col card-padding relative group/feature rounded-xl border border-border/20 hover:border-primary/30 hover:shadow-lg bg-card/50 backdrop-blur-sm"
-      ),
-      gradient: "bg-gradient-to-t from-primary/5 to-transparent",
-      gradientBottom: "bg-gradient-to-b from-primary/5 to-transparent", 
-      icon: "text-primary/70 group-hover/feature:text-primary",
-      accent: "bg-primary/20 group-hover/feature:bg-primary group-hover/feature:shadow-lg",
-      title: "text-card-foreground"
-    },
-    minimal: {
-      container: cn(
-        cardClasses('interactive'),
-        "flex flex-col p-6 relative group/feature hover:bg-muted/30"
-      ),
-      gradient: "bg-gradient-to-t from-muted/20 to-transparent",
-      gradientBottom: "bg-gradient-to-b from-muted/20 to-transparent",
-      icon: "text-muted-foreground group-hover/feature:text-foreground",
-      accent: "bg-border group-hover/feature:bg-foreground/20",
-      title: "text-foreground"
-    }
-  };
-
-  const currentVariant = variantClasses[variant];
-
-  // Responsive padding based on size
-  const paddingClasses = {
-    xs: "px-4",
-    sm: "px-6", 
-    default: "px-8",
-    lg: "px-10",
-    xl: "px-12"
-  };
-
   return (
-    <div
-      className={cn(
-        currentVariant.container,
-        // Enhanced accessibility
-        "focus-within:ring-2 focus-within:ring-primary/20 focus-within:ring-offset-2",
-        // Grid positioning for default variant
-        variant === 'default' && [
-          (index === 0 || index === 4) && "lg:border-l border-border/30",
-          index < 4 && "lg:border-b border-border/30"
-        ]
-      )}
-      style={{
-        transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`
-      }}
-    >
-      {/* Enhanced gradient overlays */}
-      {index < 4 && (
-        <div 
-          className={cn(
-            "opacity-0 group-hover/feature:opacity-100 absolute inset-0 h-full w-full pointer-events-none",
-            currentVariant.gradient
-          )}
-          style={{
-            transition: `opacity ${ANIMATION_DURATIONS.default} ease-out`
-          }}
-        />
-      )}
-      {index >= 4 && (
-        <div 
-          className={cn(
-            "opacity-0 group-hover/feature:opacity-100 absolute inset-0 h-full w-full pointer-events-none",
-            currentVariant.gradientBottom
-          )}
-          style={{
-            transition: `opacity ${ANIMATION_DURATIONS.default} ease-out`
-          }}
-        />
-      )}
+    <div className="group/feature relative p-6 rounded bg-card/50 border border-border/40 hover:border-primary/40 hover:bg-card/90 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 backdrop-blur-sm hover:-translate-y-2 hover:scale-[1.02]">
+      {/* Enhanced hover background glow */}
+      <div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 bg-gradient-to-br from-primary/[0.08] via-primary/[0.04] to-accent/[0.08] rounded pointer-events-none transition-all duration-500 blur-sm" />
 
-      {/* Icon with enhanced styling */}
-      <div className={cn(
-        "mb-6 relative z-10",
-        paddingClasses[size],
-        currentVariant.icon,
-        "w-fit p-3 rounded-xl bg-accent/10 group-hover/feature:bg-primary/10 group-hover/feature:scale-110"
-      )}
-      style={{
-        transition: `all ${ANIMATION_DURATIONS.medium} cubic-bezier(0.4, 0, 0.2, 1)`
-      }}
-      >
-        <div className="w-6 h-6">
-          {icon}
+      {/* Icon with enhanced animations */}
+      <div className="mb-4 relative z-10">
+        <div className="w-12 h-12 rounded bg-primary/10 text-primary flex items-center justify-center group-hover/feature:bg-primary/20 group-hover/feature:scale-110 group-hover/feature:rotate-3 transition-all duration-500 group-hover/feature:shadow-lg group-hover/feature:shadow-primary/25">
+          <div className="w-6 h-6 group-hover/feature:scale-110 transition-transform duration-300">
+            {icon}
+          </div>
         </div>
+
+        {/* Floating accent dots */}
+        <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-accent opacity-0 group-hover/feature:opacity-100 transition-all duration-500 group-hover/feature:scale-125 animate-pulse" />
+        <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 rounded-full bg-primary/50 opacity-0 group-hover/feature:opacity-100 transition-all duration-700 group-hover/feature:scale-150" />
       </div>
 
-      {/* Title with enhanced typography and animation */}
-      <div className={cn(
-        "mb-3 relative z-10",
-        paddingClasses[size]
-      )}>
-        {variant === 'default' && (
-          <div 
-            className={cn(
-              "absolute left-0 inset-y-0 w-1 rounded-tr-full rounded-br-full",
-              "h-6 group-hover/feature:h-8",
-              currentVariant.accent,
-              "transition-all origin-center"
-            )}
-            style={{
-              transitionDuration: ANIMATION_DURATIONS.default
-            }}
-          />
-        )}
-        <h3 
-          className={cn(
-            "font-semibold tracking-tight",
-            variant === 'default' && "group-hover/feature:translate-x-2 transition-transform",
-            currentVariant.title
-          )}
-          style={{
-            ...titleStyles[size],
-            transition: `transform ${ANIMATION_DURATIONS.default} ease-out`
-          }}
-        >
-          {title}
-        </h3>
-      </div>
+      {/* Title with enhanced hover */}
+      <h3 className="text-lg font-semibold tracking-tight text-foreground mb-3 leading-tight group-hover/feature:text-primary transition-colors duration-300">
+        {title}
+      </h3>
 
-      {/* Description with design system typography */}
-      <p 
-        className={cn(
-          "text-muted-foreground max-w-xs relative z-10 leading-relaxed",
-          paddingClasses[size]
-        )}
-        style={descriptionStyles[size]}
-      >
+      {/* Description with enhanced contrast on hover */}
+      <p className="text-muted-foreground leading-relaxed text-sm group-hover/feature:text-foreground/80 transition-colors duration-300">
         {description}
       </p>
+
+      {/* Animated border beam effect */}
+      <div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 rounded overflow-hidden pointer-events-none">
+        <div className="absolute inset-[-2px] bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-pulse duration-1000 rounded" />
+      </div>
+
+      {/* Subtle hover gradient overlay */}
+      <div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 bg-gradient-to-br from-primary/[0.03] to-accent/[0.03] rounded pointer-events-none transition-opacity duration-500" />
     </div>
   );
 };

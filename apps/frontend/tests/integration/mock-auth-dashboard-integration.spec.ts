@@ -65,7 +65,7 @@ test.describe('Mock Auth Dashboard Integration', () => {
       await expect(dashboardTitle).toBeVisible()
       
       // Verify no redirect to login page
-      await expect(page).not.toHaveURL('/auth/login')
+      await expect(page).not.toHaveURL('/login')
     })
 
     test('should provide mock authentication status via API', async () => {
@@ -94,7 +94,7 @@ test.describe('Mock Auth Dashboard Integration', () => {
       
       // Verify cookies are cleared by attempting dashboard access
       await page.goto('/dashboard')
-      await expect(page).toHaveURL('/auth/login')
+      await expect(page).toHaveURL('/login')
     })
   })
 
@@ -296,7 +296,7 @@ test.describe('Mock Auth Dashboard Integration', () => {
         await page.waitForLoadState('networkidle')
         
         // Should not redirect to login
-        await expect(page).not.toHaveURL('/auth/login')
+        await expect(page).not.toHaveURL('/login')
         
         // Should maintain authenticated state
         const currentUrl = page.url()
@@ -323,7 +323,7 @@ test.describe('Mock Auth Dashboard Integration', () => {
       
       // Should show dashboard content, not login
       await expect(page.locator('main')).toBeVisible()
-      await expect(page).not.toHaveURL('/auth/login')
+      await expect(page).not.toHaveURL('/login')
     })
 
     test('should handle browser refresh correctly', async () => {
@@ -335,7 +335,7 @@ test.describe('Mock Auth Dashboard Integration', () => {
       await page.waitForLoadState('networkidle')
       
       // Should maintain authentication
-      await expect(page).not.toHaveURL('/auth/login')
+      await expect(page).not.toHaveURL('/login')
       
       // Should re-render dashboard content
       const dashboardContent = page.locator('main')

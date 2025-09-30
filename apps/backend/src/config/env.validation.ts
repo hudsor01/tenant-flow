@@ -4,7 +4,8 @@ export interface RequiredEnvVars {
 	DATABASE_URL: string
 	DIRECT_URL: string
 	SUPABASE_URL: string
-	SERVICE_ROLE_KEY: string
+	SUPABASE_SERVICE_ROLE_KEY: string
+	SUPABASE_JWT_SECRET: string
 	JWT_SECRET: string
 	CORS_ORIGINS: string
 }
@@ -17,7 +18,8 @@ export function validateEnvironment(): void {
 		'DATABASE_URL',
 		'DIRECT_URL',
 		'SUPABASE_URL',
-		'SERVICE_ROLE_KEY',
+		'SUPABASE_SERVICE_ROLE_KEY',
+		'SUPABASE_JWT_SECRET',
 		'JWT_SECRET',
 		'CORS_ORIGINS'
 	]
@@ -28,6 +30,24 @@ export function validateEnvironment(): void {
 		if (!process.env[varName]) {
 			missing.push(varName)
 		}
+	}
+
+	// Provide targeted guidance if legacy env vars are set but new ones are missing
+	if (
+		missing.includes('SUPABASE_SERVICE_ROLE_KEY') &&
+		process.env.SERVICE_ROLE_KEY
+	) {
+		logger.warn(
+			'SERVICE_ROLE_KEY is set but SUPABASE_SERVICE_ROLE_KEY is missing. Please migrate to the new variable name.'
+		)
+	}
+	if (
+		missing.includes('SUPABASE_JWT_SECRET') &&
+		process.env.JWT_SECRET
+	) {
+		logger.warn(
+			'JWT_SECRET is set but SUPABASE_JWT_SECRET is missing. Provide SUPABASE_JWT_SECRET for Supabase authentication.'
+		)
 	}
 
 	// Fail fast if critical variables are missing
