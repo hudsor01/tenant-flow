@@ -7,7 +7,8 @@ import {
     UnauthorizedException
 } from '@nestjs/common'
 // Swagger imports removed
-import type { ControllerApiResponse, authUser } from '@repo/shared'
+import type { ControllerApiResponse } from '@repo/shared/types/errors'
+import type { authUser } from '@repo/shared/types/backend-domain'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { DashboardService } from './dashboard.service'
@@ -42,7 +43,7 @@ export class DashboardController {
 			throw new UnauthorizedException('Authentication required')
 		}
 
-		return user
+		return user as unknown as authUser
 	}
 
 	@Get('stats')
@@ -101,13 +102,17 @@ export class DashboardController {
 	// @ApiResponse({ status: 200, description: 'Billing insights retrieved successfully' })
 	// @ApiResponse({ status: 404, description: 'Stripe Sync Engine not configured' })
 	async getBillingInsights(
+		@Req() request: Request,
 		@Query('startDate') startDate?: string,
 		@Query('endDate') endDate?: string
 	): Promise<ControllerApiResponse> {
+		const user = await this.getAuthenticatedUser(request)
+
 		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getBillingInsights',
+					userId: user.id,
 					dateRange: { startDate, endDate }
 				}
 			},
@@ -129,6 +134,7 @@ export class DashboardController {
 		}
 
 		const data = await this.dashboardService.getBillingInsights(
+			user.id,
 			parsedStartDate,
 			parsedEndDate
 		)
@@ -226,6 +232,98 @@ export class DashboardController {
 			success: true,
 			data,
 			message: 'System uptime retrieved successfully',
+			timestamp: new Date()
+		}
+	}
+
+	@Get('occupancy-trends')
+	// @ApiOperation({ summary: 'Get occupancy trends using optimized RPC function' })
+	// @ApiQuery({ name: 'months', required: false, type: Number })
+	// @ApiResponse({ status: 200, description: 'Occupancy trends retrieved successfully' })
+	async getOccupancyTrends(
+		@Req() request: Request,
+		@Query('months') months: string = '12'
+	): Promise<ControllerApiResponse> {
+		const user = await this.getAuthenticatedUser(request)
+		const monthsNum = parseInt(months, 10) || 12
+
+		this.logger?.log(
+			{
+				dashboard: {
+					action: 'getOccupancyTrends',
+					userId: user.id,
+					months: monthsNum
+				}
+			},
+			'Getting occupancy trends via optimized RPC'
+		)
+
+		const data = await this.dashboardService.getOccupancyTrends(user.id, monthsNum)
+
+		return {
+			success: true,
+			data,
+			message: 'Occupancy trends retrieved successfully',
+			timestamp: new Date()
+		}
+	}
+
+	@Get('revenue-trends')
+	// @ApiOperation({ summary: 'Get revenue trends using optimized RPC function' })
+	// @ApiQuery({ name: 'months', required: false, type: Number })
+	// @ApiResponse({ status: 200, description: 'Revenue trends retrieved successfully' })
+	async getRevenueTrends(
+		@Req() request: Request,
+		@Query('months') months: string = '12'
+	): Promise<ControllerApiResponse> {
+		const user = await this.getAuthenticatedUser(request)
+		const monthsNum = parseInt(months, 10) || 12
+
+		this.logger?.log(
+			{
+				dashboard: {
+					action: 'getRevenueTrends',
+					userId: user.id,
+					months: monthsNum
+				}
+			},
+			'Getting revenue trends via optimized RPC'
+		)
+
+		const data = await this.dashboardService.getRevenueTrends(user.id, monthsNum)
+
+		return {
+			success: true,
+			data,
+			message: 'Revenue trends retrieved successfully',
+			timestamp: new Date()
+		}
+	}
+
+	@Get('maintenance-analytics')
+	// @ApiOperation({ summary: 'Get maintenance analytics using optimized RPC function' })
+	// @ApiResponse({ status: 200, description: 'Maintenance analytics retrieved successfully' })
+	async getMaintenanceAnalytics(
+		@Req() request: Request
+	): Promise<ControllerApiResponse> {
+		const user = await this.getAuthenticatedUser(request)
+
+		this.logger?.log(
+			{
+				dashboard: {
+					action: 'getMaintenanceAnalytics',
+					userId: user.id
+				}
+			},
+			'Getting maintenance analytics via optimized RPC'
+		)
+
+		const data = await this.dashboardService.getMaintenanceAnalytics(user.id)
+
+		return {
+			success: true,
+			data,
+			message: 'Maintenance analytics retrieved successfully',
 			timestamp: new Date()
 		}
 	}

@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
-import type { HealthCheckResponse } from '@repo/shared'
+import type { HealthCheckResponse } from '@repo/shared/types/health'
 import { SupabaseService } from '../database/supabase.service'
 
 @Injectable()

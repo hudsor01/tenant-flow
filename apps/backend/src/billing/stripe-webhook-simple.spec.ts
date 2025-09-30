@@ -1,16 +1,16 @@
+import { Logger } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
-import { SilentLogger } from '../__test__/silent-logger';
-import { Test } from '@nestjs/testing';
-import { StripeSyncService } from './stripe-sync.service';
-import { Logger } from '@nestjs/common';
+import { Test } from '@nestjs/testing'
+import { SilentLogger } from '../__test__/silent-logger'
+import { StripeSyncService } from './stripe-sync.service'
 
 describe('StripeSyncService Webhook Processing', () => {
   let service: StripeSyncService;
 
   beforeEach(async () => {
     // Set required environment variables
-    process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
-    process.env.STRIPE_SECRET_KEY = 'sk_test_123'
+    process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5432/test'
+    process.env.STRIPE_SECRET_KEY = process.env.TEST_STRIPE_SECRET_KEY || 'sk_test_123'
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_123'
 
     const module: TestingModule = await Test.createTestingModule({
@@ -46,7 +46,7 @@ describe('StripeSyncService Webhook Processing', () => {
 
   afterEach(() => {
     delete process.env.DATABASE_URL;
-    delete process.env.STRIPE_SECRET_KEY;  
+    delete process.env.STRIPE_SECRET_KEY;
     delete process.env.STRIPE_WEBHOOK_SECRET;
     jest.clearAllMocks();
   });

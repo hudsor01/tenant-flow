@@ -3,7 +3,7 @@ import {
 	InternalServerErrorException,
 	Logger
 } from '@nestjs/common'
-import type { ContactFormRequest } from '@repo/shared'
+import type { ContactFormRequest } from '@repo/shared/types/domain'
 import { Resend } from 'resend'
 
 @Injectable()
@@ -14,11 +14,12 @@ export class ContactService {
 	constructor() {
 		const apiKey = process.env.RESEND_API_KEY
 		if (!apiKey) {
-			this.logger.warn(
-				'RESEND_API_KEY not configured - emails will not be sent'
+			this.logger.error('RESEND_API_KEY not configured - aborting contact service initialization')
+			throw new InternalServerErrorException(
+				'Email service unavailable [CONTACT-SETUP-001]'
 			)
 		}
-		this.resend = new Resend(apiKey || 'dummy-key')
+		this.resend = new Resend(apiKey)
 	}
 
 	async processContactForm(dto: ContactFormRequest) {

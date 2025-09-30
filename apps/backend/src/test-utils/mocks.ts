@@ -1,21 +1,25 @@
 import type { User } from '@supabase/supabase-js'
 import type {
-	CreatePropertyRequest,
-	CreateTenantRequest,
-	CreateUnitRequest,
-	DashboardStats,
-	LeaseStats,
-	MaintenanceStats,
-	PropertyStats,
-	TenantStats,
-	UnitStats,
 	Property,
 	Unit,
 	Tenant,
 	Lease,
 	MaintenanceRequest
-} from '@repo/shared'
-import type { Database } from '@repo/shared'
+} from '@repo/shared/types/supabase'
+import type {
+	CreatePropertyRequest,
+	CreateTenantRequest,
+	CreateUnitRequest
+} from '@repo/shared/types/backend-domain'
+import type {
+	DashboardStats,
+	LeaseStats,
+	MaintenanceStats,
+	PropertyStats,
+	TenantStats,
+	UnitStats
+} from '@repo/shared/types/core'
+import type { Database } from '@repo/shared/types/supabase-generated'
 
 type DatabaseUser = Database['public']['Tables']['User']['Row']
 
@@ -200,7 +204,7 @@ export function createMockUnitRequest(
 		bedrooms: 2,
 		bathrooms: 1,
 		rent: 1500,
-		status: 'AVAILABLE',
+		status: 'VACANT',
 		...overrides
 	}
 }

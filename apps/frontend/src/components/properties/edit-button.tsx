@@ -14,9 +14,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { propertiesApi } from '@/lib/api-client'
 import { toast } from 'sonner'
-import type { Tables, TablesUpdate } from '@repo/shared'
+import type { Tables, TablesUpdate } from '@repo/shared/types/supabase'
 import { propertyUpdateSchema, type PropertyUpdate as PropertyUpdateType } from '@repo/shared/validation/properties'
-import { createLogger } from '@repo/shared'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 type Property = Tables<'Property'>
 type PropertyUpdate = TablesUpdate<'Property'>

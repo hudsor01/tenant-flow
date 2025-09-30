@@ -1,7 +1,7 @@
 import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
-import { getCORSConfig } from '@repo/shared'
+import { getCORSConfig } from '@repo/shared/security/cors-config'
 import type { NextFunction, Request, Response } from 'express'
 import 'reflect-metadata'
 import { v4 as uuidv4 } from 'uuid'
@@ -73,7 +73,7 @@ async function bootstrap() {
 			env: process.env.NODE_ENV,
 			port,
 			hasSupabaseUrl: !!process.env.SUPABASE_URL,
-			hasServiceKey: !!process.env.SERVICE_ROLE_KEY
+			hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
 		},
 		'Environment summary'
 	)

@@ -4,7 +4,7 @@
  */
 
 import * as Handlebars from 'handlebars'
-import type { LeaseGeneratorFormData as LeaseFormData, StateLeaseRequirements } from '@repo/shared'
+import type { LeaseFormData, StateLeaseRequirements } from '@repo/shared/types/lease-generator.types'
 
 /**
  * Register all template helpers

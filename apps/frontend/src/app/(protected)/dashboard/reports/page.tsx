@@ -4,30 +4,32 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
+import
+  {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+  } from '@/components/ui/select'
 import { Table } from '@/components/ui/table'
-import {
-	Building,
-	Calendar,
-	Clock,
-	DollarSign,
-	Download,
-	FileSpreadsheet,
-	FileText,
-	Filter,
-	Mail,
-	Plus,
-	Printer,
-	Search,
-	TrendingUp,
-	Users
-} from 'lucide-react'
+import
+  {
+    Building,
+    Calendar,
+    Clock,
+    DollarSign,
+    Download,
+    FileSpreadsheet,
+    FileText,
+    Filter,
+    Mail,
+    Plus,
+    Printer,
+    Search,
+    TrendingUp,
+    Users
+  } from 'lucide-react'
 
 const availableReports = [
 	{
@@ -122,7 +124,6 @@ const recentReports = [
 export default function ReportsPage() {
 	return (
 		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-			{/* Page Header */}
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold text-gradient-authority">
@@ -144,9 +145,7 @@ export default function ReportsPage() {
 				</div>
 			</div>
 
-			{/* Quick Stats Cards */}
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-				{/* Total Reports */}
 				<Card
 					className="p-6 border shadow-sm"
 					style={{ borderLeftColor: 'var(--chart-1)', borderLeftWidth: '4px' }}
@@ -167,7 +166,6 @@ export default function ReportsPage() {
 					<p className="text-muted-foreground text-sm">Generated this year</p>
 				</Card>
 
-				{/* Scheduled Reports */}
 				<Card
 					className="p-6 border shadow-sm"
 					style={{ borderLeftColor: 'var(--chart-2)', borderLeftWidth: '4px' }}
@@ -190,7 +188,6 @@ export default function ReportsPage() {
 					</p>
 				</Card>
 
-				{/* Recent Downloads */}
 				<Card
 					className="p-6 border shadow-sm"
 					style={{ borderLeftColor: 'var(--chart-3)', borderLeftWidth: '4px' }}
@@ -211,7 +208,6 @@ export default function ReportsPage() {
 					<p className="text-muted-foreground text-sm">Past 30 days</p>
 				</Card>
 
-				{/* Pending Reports */}
 				<Card
 					className="p-6 border shadow-sm"
 					style={{ borderLeftColor: 'var(--chart-4)', borderLeftWidth: '4px' }}
@@ -233,7 +229,6 @@ export default function ReportsPage() {
 				</Card>
 			</div>
 
-			{/* Report Categories & Search */}
 			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 				<div className="flex items-center gap-2">
 					<div className="relative">
@@ -270,7 +265,6 @@ export default function ReportsPage() {
 				</div>
 			</div>
 
-			{/* Available Reports Grid */}
 			<div>
 				<h2 className="text-xl font-semibold mb-4">Available Reports</h2>
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -334,7 +328,6 @@ export default function ReportsPage() {
 				</div>
 			</div>
 
-			{/* Recent Reports Table */}
 			<Card className="border shadow-sm">
 				<div className="p-6 border-b">
 					<div className="flex items-center justify-between">
@@ -351,7 +344,6 @@ export default function ReportsPage() {
 					</div>
 				</div>
 				<div className="p-6">
-					{/* Table Implementation for Recent Reports */}
 					<div className="overflow-x-auto">
 						<Table>
 							<thead>
@@ -400,7 +392,6 @@ export default function ReportsPage() {
 						</Table>
 					</div>
 
-					{/* Alternative Card Layout for Comparison */}
 					<div className="mt-8">
 						<h3 className="text-lg font-semibold mb-4">Report Archive</h3>
 						<div className="space-y-3">

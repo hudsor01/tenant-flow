@@ -9,7 +9,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { createClient } from '@supabase/supabase-js'
-import type { authUser } from '@repo/shared'
+import type { authUser } from '@repo/shared/types/auth'
 
 interface JwtPayload {
   sub: string

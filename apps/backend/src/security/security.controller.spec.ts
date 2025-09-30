@@ -1,14 +1,31 @@
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { CSPReportBody } from '@repo/shared'
+import type { CSPReportBody } from '@repo/shared/types/domain'
+import {
+	SecurityEventSeverity,
+	SecurityEventType
+} from '@repo/shared/types/security'
+import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
+import type { ISecurityRepository } from '../repositories/interfaces/security-repository.interface'
+import { securityAuditLogFixture } from './__fixtures__/security-audit-logs.fixture'
 import { SecurityController } from './security.controller'
+import { SecurityMetricsService } from './security-metrics.service'
 
 describe('SecurityController', () => {
 	let controller: SecurityController
+  let mockSecurityRepository: jest.Mocked<ISecurityRepository>
 
 	beforeEach(async () => {
+		mockSecurityRepository = {
+			fetchAuditLogs: jest.fn().mockResolvedValue(securityAuditLogFixture)
+		} as unknown as jest.Mocked<ISecurityRepository>
+
 		const module: TestingModule = await Test.createTestingModule({
-			controllers: [SecurityController]
+			controllers: [SecurityController],
+			providers: [
+				SecurityMetricsService,
+				{ provide: REPOSITORY_TOKENS.SECURITY, useValue: mockSecurityRepository }
+			]
 		}).compile()
 
 		controller = module.get<SecurityController>(SecurityController)
@@ -68,44 +85,27 @@ describe('SecurityController', () => {
 	})
 
 	describe('getSecurityMetrics', () => {
-		it('should return security metrics with correct structure', async () => {
+		it('returns metrics calculated from repository data', async () => {
 			const result = await controller.getSecurityMetrics()
 
 			expect(result).toHaveProperty('success', true)
 			expect(result).toHaveProperty('data')
-			expect(result).toHaveProperty('timestamp')
-			expect(result.data).toHaveProperty('totalEvents', 0)
-			expect(result.data).toHaveProperty('eventsBySeverity')
-			expect(result.data).toHaveProperty('recentTrends')
-			expect(result.data).toHaveProperty('eventsByType')
-			expect(result.data).toHaveProperty('topThreateningIPs', [])
+			expect(result.data.totalEvents).toBe(securityAuditLogFixture.length)
+			expect(result.data.eventsBySeverity[SecurityEventSeverity.CRITICAL]).toBe(1)
+			expect(result.data.eventsByType[SecurityEventType.AUTH_FAILURE]).toBe(1)
+			expect(Array.isArray(result.data.recentEvents)).toBe(true)
+			expect(Array.isArray(result.data.recentTrends)).toBe(true)
+			expect(result.data.topThreateningIPs?.[0]).toEqual({
+				ip: '192.0.2.1',
+				count: 2
+			})
 		})
 
-		it('should include all required event types in eventsByType', async () => {
+		it('initializes all event types even when absent', async () => {
+			mockSecurityRepository.fetchAuditLogs.mockResolvedValueOnce([])
 			const result = await controller.getSecurityMetrics()
-			const expectedEventTypes = [
-				'sql_injection_attempt',
-				'xss_attempt',
-				'path_traversal_attempt',
-				'command_injection_attempt',
-				'rate_limit_exceeded',
-				'suspicious_input',
-				'malformed_request',
-				'malicious_request',
-				'unauthorized_access',
-				'brute_force_attempt',
-				'csrf_token_missing',
-				'csrf_token_invalid',
-				'file_upload_threat',
-				'injection_pattern_detected',
-				'sanitization_triggered',
-				'validation_failed',
-				'auth_failure',
-				'suspicious_activity',
-				'account_takeover'
-			]
 
-			expectedEventTypes.forEach(eventType => {
+			Object.values(SecurityEventType).forEach(eventType => {
 				expect(result.data.eventsByType).toHaveProperty(eventType, 0)
 			})
 		})
@@ -140,73 +140,58 @@ describe('SecurityController', () => {
 	})
 
 	describe('getSecurityHealth', () => {
-		it('should return healthy status with no critical events', async () => {
+		it('returns critical status when critical events detected', async () => {
 			const result = await controller.getSecurityHealth()
 
-			expect(result).toHaveProperty('status', 'healthy')
-			expect(result).toHaveProperty('alerts', [])
-			expect(result).toHaveProperty('metrics')
-			expect(result).toHaveProperty('timestamp')
-			expect(result.metrics).toHaveProperty('totalEvents', 0)
-			expect(result.metrics).toHaveProperty('recentTrends')
-			expect(result.metrics).toHaveProperty('eventsBySeverity')
+			expect(result.status).toBe('critical')
+			expect(result.alerts).toEqual(
+				expect.arrayContaining([
+					'1 critical security events require immediate attention',
+					'2 potentially malicious requests were blocked'
+				])
+			)
+			expect(result.metrics.totalEvents).toBe(securityAuditLogFixture.length)
 		})
 
-		it('should return correct alert structure', async () => {
+		it('returns healthy status when no events present', async () => {
+			mockSecurityRepository.fetchAuditLogs.mockResolvedValueOnce([])
 			const result = await controller.getSecurityHealth()
 
-			expect(Array.isArray(result.alerts)).toBe(true)
-			expect(result.status).toMatch(/^(healthy|warning|critical)$/)
+			expect(result.status).toBe('healthy')
+			expect(result.alerts).toEqual([])
 		})
 	})
 
 	describe('getSecurityDashboard', () => {
 		it('should return dashboard data with correct structure', async () => {
-			const result = await controller.getSecurityDashboard()
+		const result = await controller.getSecurityDashboard()
 
-			expect(result).toHaveProperty('success', true)
-			expect(result).toHaveProperty('data')
-			expect(result).toHaveProperty('timestamp')
-			expect(result.data).toHaveProperty('overview')
-			expect(result.data).toHaveProperty('trends')
-			expect(result.data).toHaveProperty('topThreatTypes')
-			expect(result.data).toHaveProperty('topThreateningIPs')
-			expect(result.data).toHaveProperty('timeline')
+		expect(result).toHaveProperty('success', true)
+		expect(result).toHaveProperty('data')
+		expect(result).toHaveProperty('timestamp')
+		expect(result.data).toHaveProperty('overview')
+		expect(result.data.overview.totalEvents).toBe(securityAuditLogFixture.length)
+		expect(result.data.overview.criticalEvents).toBe(1)
+		expect(Array.isArray(result.data.overview.recentEvents)).toBe(true)
+		expect(Array.isArray(result.data.trends)).toBe(true)
+		expect(Array.isArray(result.data.topThreateningIPs)).toBe(true)
 		})
 
-		it('should return overview with correct severity counts', async () => {
+		it('should return overview with correct structure', async () => {
 			const result = await controller.getSecurityDashboard()
 			const overview = result.data.overview
 
-			expect(overview).toHaveProperty('totalEvents', 0)
-			expect(overview).toHaveProperty('criticalEvents', 0)
-			expect(overview).toHaveProperty('highEvents', 0)
-			expect(overview).toHaveProperty('mediumEvents', 0)
-			expect(overview).toHaveProperty('lowEvents', 0)
+			expect(overview).toHaveProperty('recentEvents')
+			expect(Array.isArray(overview.recentEvents)).toBe(true)
 		})
 
-		it('should return top threat types as sorted array', async () => {
+		it('should return events by severity and type', async () => {
 			const result = await controller.getSecurityDashboard()
-			const topThreatTypes = result.data.topThreatTypes
 
-			expect(Array.isArray(topThreatTypes)).toBe(true)
-			expect(topThreatTypes.length).toBeLessThanOrEqual(10)
-
-			// Each threat type should have type and count properties
-			topThreatTypes.forEach(threat => {
-				expect(threat).toHaveProperty('type')
-				expect(threat).toHaveProperty('count')
-				expect(typeof threat.count).toBe('number')
-			})
-		})
-
-		it('should return timeline with time periods', async () => {
-			const result = await controller.getSecurityDashboard()
-			const timeline = result.data.timeline
-
-			expect(timeline).toHaveProperty('lastHour', 0)
-			expect(timeline).toHaveProperty('last24Hours', 0)
-			expect(timeline).toHaveProperty('last7Days', 0)
+			expect(result.data).toHaveProperty('eventsBySeverity')
+			expect(result.data).toHaveProperty('eventsByType')
+			expect(typeof result.data.eventsBySeverity).toBe('object')
+			expect(typeof result.data.eventsByType).toBe('object')
 		})
 	})
 

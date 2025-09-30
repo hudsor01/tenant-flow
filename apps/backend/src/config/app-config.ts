@@ -27,7 +27,8 @@ export const APP_CONFIG = {
 	// External Services
 	SUPABASE: {
 		URL: process.env.SUPABASE_URL,
-		SERVICE_KEY: process.env.SERVICE_ROLE_KEY,
+		SERVICE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+		JWT_SECRET: process.env.SUPABASE_JWT_SECRET,
 		ANON_KEY: process.env.SUPABASE_ANON_KEY
 	},
 
@@ -86,8 +87,12 @@ export function validateConfig(): void {
 		{ key: 'JWT_SECRET', value: APP_CONFIG.JWT_SECRET },
 		{ key: 'SUPABASE_URL', value: APP_CONFIG.SUPABASE.URL },
 		{
-			key: 'SERVICE_ROLE_KEY',
+			key: 'SUPABASE_SERVICE_ROLE_KEY',
 			value: APP_CONFIG.SUPABASE.SERVICE_KEY
+		},
+		{
+			key: 'SUPABASE_JWT_SECRET',
+			value: APP_CONFIG.SUPABASE.JWT_SECRET
 		}
 	]
 

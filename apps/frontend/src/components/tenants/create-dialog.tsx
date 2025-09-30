@@ -27,10 +27,11 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
-import { useCreateTenant } from '@/hooks/api/tenants'
+import { tenantsApi } from '@/lib/api-client'
 import { useFormStep, useUIStore } from '@/stores/ui-store'
-import type { Database } from '@repo/shared'
-import { createLogger } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	tenantFormSchema,
 	type TenantFormData
@@ -58,8 +59,20 @@ const FORM_STEPS = [
 
 export function CreateTenantDialog() {
 	const [isOpen, setIsOpen] = useState(false)
-	const createTenant = useCreateTenant()
 	const logger = createLogger({ component: 'CreateTenantDialog' })
+
+	const qc = useQueryClient()
+	const createTenant = useMutation({
+		mutationFn: (values: InsertTenant) => tenantsApi.create(values),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ['tenants'] })
+			qc.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
+			toast.success('Tenant created successfully')
+		},
+		onError: (error: Error) => {
+			toast.error('Failed to create tenant', { description: error.message })
+		}
+	})
 
 	const { setFormProgress, resetFormProgress } = useUIStore()
 	const {

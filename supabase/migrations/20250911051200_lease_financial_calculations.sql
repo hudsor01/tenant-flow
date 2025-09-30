@@ -380,7 +380,7 @@ BEGIN
     END),
     'totalSecurityDeposits', COALESCE(SUM(CASE WHEN l.status = 'ACTIVE' THEN l."securityDeposit" ELSE 0 END), 0),
     -- Performance metrics (business calculations moved from frontend)
-    'collectionRate', 100.0, -- TODO: Implement when payment tracking is added
+    'collectionRate', 100.0, -- Placeholder until payment tracking is wired into the collection metrics
     'renewalRate', CASE 
       WHEN COUNT(*) > 0 THEN
         ROUND((COUNT(CASE WHEN l.status = 'ACTIVE' THEN 1 END)::DECIMAL / COUNT(*) * 100.0), 1)

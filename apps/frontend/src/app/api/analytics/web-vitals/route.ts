@@ -1,5 +1,5 @@
-import type { WebVitalData } from '@repo/shared'
-import { createLogger } from '@repo/shared'
+import type { WebVitalData } from '@repo/shared/types/frontend'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 

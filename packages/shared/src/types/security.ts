@@ -4,12 +4,8 @@
 
 // User roles are consolidated in auth.ts - import from there
 // This ensures single source of truth and prevents duplication
-export type { UserRole } from './auth.js'
 export { USER_ROLE } from '../constants/auth.js'
-
-// System permissions are consolidated in auth.ts - import from there
-// This ensures single source of truth and prevents duplication
-export type { Permission } from './auth.js'
+export type { Permission, UserRole } from '../types/auth.js'
 
 /**
  * Comprehensive security event types for monitoring
@@ -112,12 +108,25 @@ export interface SecurityAuditLog {
 /**
  * Security metrics for monitoring
  */
+export interface SecurityTrendPoint {
+	date: string
+	totalEvents: number
+	criticalEvents: number
+}
+
+export interface SecurityThreatSummary {
+	ip: string
+	count: number
+}
+
 export interface SecurityMetrics {
 	totalEvents: number
 	eventsByType: Record<SecurityEventType, number>
 	eventsBySeverity: Record<SecurityEventSeverity, number>
 	criticalEvents: number
 	recentEvents: SecurityEvent[]
+	recentTrends?: SecurityTrendPoint[]
+	topThreateningIPs?: SecurityThreatSummary[]
 	suspiciousIPs?: string[]
 	failedAuthAttempts?: number
 	blockedRequests?: number

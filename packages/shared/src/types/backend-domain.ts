@@ -219,7 +219,7 @@ export interface CreateUnitRequest {
 	rentAmount?: number
 	isAvailable?: boolean
 	rent?: number
-	status?: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED' | 'UNAVAILABLE'
+	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
 }
 
 export interface UpdateUnitRequest {
@@ -230,7 +230,7 @@ export interface UpdateUnitRequest {
 	rentAmount?: number
 	isAvailable?: boolean
 	rent?: number
-	status?: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED' | 'UNAVAILABLE'
+	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
 }
 
 export interface UnitQueryRequest {
@@ -250,7 +250,7 @@ export interface UnitQueryRequest {
 	sortOrder?: 'asc' | 'desc'
 	pageSize?: number
 	page?: number
-	status?: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED' | 'UNAVAILABLE'
+	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
 }
 
 // Lease types
@@ -770,20 +770,7 @@ export type SecurityEventType =
 	| 'account_takeover'
 	| 'auth_failure'
 
-export interface SecurityMetrics {
-	totalEvents: number
-	criticalEvents: number
-	unresolvedEvents: number
-	averageResolutionTime: number
-	eventsByType: Record<string, number>
-	eventsBySeverity: Record<string, number>
-	topThreateningIPs: Array<{ ip: string; count: number }>
-	recentTrends: {
-		lastHour: number
-		last24Hours: number
-		last7Days: number
-	}
-}
+// SecurityMetrics moved to security.ts to eliminate duplication
 
 // SECURITY EXCEPTION FILTER TYPES
 

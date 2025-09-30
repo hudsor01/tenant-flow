@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { DashboardController } from './dashboard.controller'
 import { DashboardService } from './dashboard.service'
 import { RepositoriesModule } from '../repositories/repositories.module'
+import { AnalyticsModule } from '../analytics/analytics.module'
 
 /**
  * Dashboard Module - Repository Pattern Implementation
@@ -9,7 +10,7 @@ import { RepositoriesModule } from '../repositories/repositories.module'
  * DashboardService uses IDashboardRepository for data access
  */
 @Module({
-	imports: [RepositoriesModule],
+	imports: [RepositoriesModule, AnalyticsModule],
 	controllers: [DashboardController],
 	providers: [DashboardService]
 })

@@ -1,9 +1,8 @@
+import type { Property, PropertyStats } from '@repo/shared/types/core';
 import type {
-  Property,
-  PropertyStats,
   CreatePropertyRequest,
   UpdatePropertyRequest
-} from '@repo/shared';
+} from '@repo/shared/types/backend-domain';
 import type { BaseRepository, BaseFilterOptions } from './base-repository.interface';
 
 /**

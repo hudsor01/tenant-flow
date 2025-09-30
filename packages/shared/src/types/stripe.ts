@@ -97,3 +97,26 @@ export interface StripeWebhookProcessor {
  * For database PaymentMethod table, use:
  * import type { PaymentMethod } from '@repo/shared/types/supabase'
  */
+
+// Frontend Stripe Product Types
+export interface StripePrice {
+	id: string
+	unit_amount: number
+	currency: string
+	recurring: {
+		interval: 'month' | 'year'
+		interval_count: number
+	} | null
+}
+
+export interface StripeProductWithPricing {
+	id: string
+	name: string
+	description: string | null
+	metadata: Record<string, string>
+	prices: {
+		monthly: StripePrice | null
+		annual: StripePrice | null
+	}
+	defaultPrice: StripePrice | null
+}

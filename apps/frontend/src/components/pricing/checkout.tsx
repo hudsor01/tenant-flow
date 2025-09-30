@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent } from '@/components/ui/card'
-import { createLogger } from '@repo/shared'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { EmbeddedCheckout } from '@stripe/react-stripe-js'
 
 const logger = createLogger({ component: 'Checkout' })

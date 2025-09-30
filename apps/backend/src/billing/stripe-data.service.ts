@@ -1,5 +1,6 @@
 import {
 	BadRequestException,
+	Inject,
 	Injectable,
 	InternalServerErrorException,
 	Logger
@@ -7,28 +8,69 @@ import {
 import type {
 	ChurnAnalytics,
 	CustomerLifetimeValue,
-	Database,
 	RevenueAnalytics
-} from '@repo/shared'
+} from '@repo/shared/types/domain'
+// import type { Database } from '@repo/shared/types/supabase-generated' - not needed since we define types locally;
 import { SupabaseService } from '../database/supabase.service'
+import type {
+	IBillingRepository,
+	StripeCustomer,
+	StripePrice,
+	StripeProduct,
+	StripeSubscription
+} from '../repositories/interfaces/billing-repository.interface'
+import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 
-// Extract database types from Supabase generated types
-type StripeCustomerDB =
-	Database['public']['Functions']['get_stripe_customers']['Returns'][0]
-type StripeSubscriptionDB =
-	Database['public']['Functions']['get_stripe_subscriptions']['Returns'][0]
-type StripePriceDB =
-	Database['public']['Functions']['get_stripe_prices']['Returns'][0]
-type StripeProductDB =
-	Database['public']['Functions']['get_stripe_products']['Returns'][0]
-type StripePaymentIntentDB =
-	Database['public']['Functions']['get_stripe_payment_intents']['Returns'][0]
+// Define types for Stripe table data to match actual database schema
+interface StripePaymentIntentDB {
+	id: string
+	amount: number
+	status: string
+	createdAt: string | null
+	currency: string | null
+	customer_id: string | null
+	description: string | null
+	metadata: Record<string, unknown> | null
+	receipt_email: string | null
+	updatedAt: string | null
+}
+
+interface StripeSubscriptionDB {
+	id: string
+	status: string
+	current_period_start: string | null
+	current_period_end: string | null
+	customer_id: string | null
+	metadata: Record<string, unknown> | null
+	createdAt: string | null
+	cancel_at_period_end: boolean | null
+	canceled_at: string | null
+	trial_end: string | null
+	trial_start: string | null
+	updatedAt: string | null
+}
+
+interface StripeCustomerDB {
+	id: string
+	email: string | null
+	name: string | null
+	createdAt: string | null
+	metadata: Record<string, unknown> | null
+	balance: number | null
+	currency: string | null
+	delinquent: boolean | null
+	description: string | null
+	livemode: boolean | null
+	phone: string | null
+	updatedAt: string | null
+}
 
 /**
  * Stripe Data Service
  *
- * Uses Supabase RPC calls to access Stripe data
- * Following Ultra-Native architecture principles
+ * CLEAR SEPARATION OF RESPONSIBILITIES:
+ * - Simple CRUD operations → Repository pattern (direct table queries)
+ * - Complex analytics → RPC functions (database-level calculations)
  */
 
 // Standard subscription value for calculations
@@ -39,35 +81,22 @@ export class StripeDataService {
 	private readonly logger = new Logger(StripeDataService.name)
 
 	constructor(
-		private readonly supabaseService: SupabaseService
+		@Inject(REPOSITORY_TOKENS.BILLING)
+		private readonly billingRepository: IBillingRepository,
+		private readonly supabaseService: SupabaseService // Only for complex analytics RPC calls
 	) {}
 
 	/**
-	 * Get customer subscriptions with full relationship data
-	 * Ultra-native: Supabase RPC calls for direct database access
+	 * Get customer subscriptions - Simple lookup via Repository
 	 */
 	async getCustomerSubscriptions(
 		customerId: string
-	): Promise<StripeSubscriptionDB[]> {
+	): Promise<StripeSubscription[]> {
 		try {
-			this.logger.log('Fetching customer subscriptions', { customerId })
-
-			const client = this.supabaseService.getAdminClient()
-			const { data, error } = await client.rpc('get_stripe_subscriptions', {
-				customer_id: customerId
+			this.logger.log('Fetching customer subscriptions via repository', {
+				customerId
 			})
-
-			if (error) {
-				this.logger.error('Failed to fetch customer subscriptions', {
-					error,
-					customerId
-				})
-				throw new InternalServerErrorException(
-					'Failed to fetch customer subscriptions'
-				)
-			}
-
-			return data || []
+			return await this.billingRepository.getCustomerSubscriptions(customerId)
 		} catch (error) {
 			this.logger.error('Error fetching customer subscriptions:', error)
 			throw new InternalServerErrorException(
@@ -77,37 +106,26 @@ export class StripeDataService {
 	}
 
 	/**
-	 * Get customer by ID
-	 * Ultra-native: Supabase RPC calls for direct database access
+	 * Get customer by ID - Simple lookup via Repository
 	 */
-	async getCustomer(customerId: string): Promise<StripeCustomerDB> {
+	async getCustomer(customerId: string): Promise<StripeCustomer> {
 		try {
 			if (!customerId) {
-				this.logger.error(
-					'Failed to fetch customer',
-					new BadRequestException('Customer ID is required')
-				)
-				throw new InternalServerErrorException('Failed to fetch customer')
+				this.logger.error('Customer ID is required')
+				throw new BadRequestException('Customer ID is required')
 			}
 
-			const client = this.supabaseService.getAdminClient()
-			const { data, error } = await client.rpc('get_stripe_customer_by_id', {
-				customer_id: customerId
-			})
+			this.logger.log('Fetching customer via repository', { customerId })
+			const customer = await this.billingRepository.getCustomer(customerId)
 
-			if (error) {
-				this.logger.error('Failed to fetch customer', {
-					error,
-					customerId
-				})
-				throw new InternalServerErrorException('Failed to fetch customer')
+			if (!customer) {
+				throw new InternalServerErrorException('Customer not found')
 			}
 
-			return data as StripeCustomerDB
+			return customer
 		} catch (error) {
 			if (error instanceof BadRequestException) {
-				this.logger.error('Failed to fetch customer', error)
-				throw new InternalServerErrorException('Failed to fetch customer')
+				throw error
 			}
 			this.logger.error('Error fetching customer:', error)
 			throw new InternalServerErrorException('Failed to fetch customer')
@@ -115,26 +133,15 @@ export class StripeDataService {
 	}
 
 	/**
-	 * Get prices
-	 * Ultra-native: Supabase RPC calls for direct database access
+	 * Get prices - Simple catalog retrieval via Repository
 	 */
-	async getPrices(activeOnly: boolean = true): Promise<StripePriceDB[]> {
+	async getPrices(activeOnly: boolean = true): Promise<StripePrice[]> {
 		try {
-			const client = this.supabaseService.getAdminClient()
-			const { data, error } = await client.rpc('get_stripe_prices', {
-				active_only: activeOnly,
-				limit_count: 1000
+			this.logger.log('Fetching prices via repository', { activeOnly })
+			return await this.billingRepository.getPrices({
+				active: activeOnly,
+				limit: 1000
 			})
-
-			if (error) {
-				this.logger.error('Failed to fetch prices', {
-					error,
-					activeOnly
-				})
-				throw new InternalServerErrorException('Failed to fetch prices')
-			}
-
-			return data || []
 		} catch (error) {
 			this.logger.error('Error fetching prices:', error)
 			throw new InternalServerErrorException('Failed to fetch prices')
@@ -142,26 +149,15 @@ export class StripeDataService {
 	}
 
 	/**
-	 * Get products
-	 * Ultra-native: Supabase RPC calls for direct database access
+	 * Get products - Simple catalog retrieval via Repository
 	 */
-	async getProducts(activeOnly: boolean = true): Promise<StripeProductDB[]> {
+	async getProducts(activeOnly: boolean = true): Promise<StripeProduct[]> {
 		try {
-			const client = this.supabaseService.getAdminClient()
-			const { data, error } = await client.rpc('get_stripe_products', {
-				active_only: activeOnly,
-				limit_count: 1000
+			this.logger.log('Fetching products via repository', { activeOnly })
+			return await this.billingRepository.getProducts({
+				active: activeOnly,
+				limit: 1000
 			})
-
-			if (error) {
-				this.logger.error('Failed to fetch products', {
-					error,
-					activeOnly
-				})
-				throw new InternalServerErrorException('Failed to fetch products')
-			}
-
-			return data || []
 		} catch (error) {
 			this.logger.error('Error fetching products:', error)
 			throw new InternalServerErrorException('Failed to fetch products')
@@ -169,17 +165,11 @@ export class StripeDataService {
 	}
 
 	/**
-	 * Health check
-	 * Ultra-native: Supabase RPC calls for direct database access
+	 * Health check - Simple existence check via Repository
 	 */
 	async isHealthy(): Promise<boolean> {
 		try {
-			const client = this.supabaseService.getAdminClient()
-			const { error } = await client.rpc('get_stripe_customers', {
-				limit_count: 1
-			})
-
-			return !error
+			return await this.billingRepository.isHealthy()
 		} catch (error) {
 			this.logger.error('Stripe data service health check failed:', error)
 			return false
@@ -188,7 +178,7 @@ export class StripeDataService {
 
 	/**
 	 * Get revenue analytics for date range
-	 * Ultra-native: Supabase RPC calls for direct database access
+	 * Ultra-native: Direct table queries instead of RPC
 	 */
 	async getRevenueAnalytics(
 		startDate: Date,
@@ -198,12 +188,12 @@ export class StripeDataService {
 			this.logger.log('Calculating revenue analytics', { startDate, endDate })
 
 			const client = this.supabaseService.getAdminClient()
-			const { data: paymentIntents, error } = await client.rpc(
-				'get_stripe_payment_intents',
-				{
-					limit_count: 1000
-				}
-			)
+			const { data: paymentIntents, error } = await client
+				.from('stripe_payment_intents')
+				.select('*')
+				.gte('createdAt', startDate.toISOString())
+				.lte('createdAt', endDate.toISOString())
+				.limit(1000)
 
 			if (error) {
 				throw new InternalServerErrorException(
@@ -212,7 +202,9 @@ export class StripeDataService {
 			}
 
 			// Ultra-native: Simple aggregation in code, not complex SQL
-			return this.calculateRevenueAnalytics(paymentIntents || [])
+			const typedPaymentIntents =
+				(paymentIntents as StripePaymentIntentDB[]) || []
+			return this.calculateRevenueAnalytics(typedPaymentIntents)
 		} catch (error) {
 			this.logger.error('Error calculating revenue analytics:', error)
 			throw new InternalServerErrorException(
@@ -228,9 +220,11 @@ export class StripeDataService {
 		// Simple grouping and calculation - no complex SQL
 		const grouped: Record<string, StripePaymentIntentDB[]> = {}
 		paymentIntents.forEach(intent => {
-			const period = new Date(intent.created_at).toISOString().slice(0, 7) // YYYY-MM
-			if (!grouped[period]) grouped[period] = []
-			grouped[period].push(intent)
+			if (intent.createdAt) {
+				const period = intent.createdAt.slice(0, 7) // YYYY-MM
+				if (!grouped[period]) grouped[period] = []
+				grouped[period].push(intent)
+			}
 		})
 
 		return Object.entries(grouped).map(([period, periodIntents]) => ({
@@ -265,26 +259,25 @@ export class StripeDataService {
 
 	/**
 	 * Get churn analytics with cohort analysis
-	 * Ultra-native: Supabase RPC calls for direct database access
+	 * Ultra-native: Direct table queries instead of RPC
 	 */
 	async getChurnAnalytics(): Promise<ChurnAnalytics[]> {
 		try {
 			this.logger.log('Calculating churn analytics')
 
 			const client = this.supabaseService.getAdminClient()
-			const { data: subscriptions, error } = await client.rpc(
-				'get_stripe_subscriptions',
-				{
-					limit_count: 1000
-				}
-			)
+			const { data: subscriptions, error } = await client
+				.from('stripe_subscriptions')
+				.select('*')
+				.limit(1000)
 
 			if (error) {
 				throw new InternalServerErrorException('Failed to fetch subscriptions')
 			}
 
 			// Ultra-native: Simple churn calculation in code
-			return this.calculateChurnAnalytics(subscriptions || [])
+			const typedSubscriptions = (subscriptions as StripeSubscriptionDB[]) || []
+			return this.calculateChurnAnalytics(typedSubscriptions)
 		} catch (error) {
 			this.logger.error('Error calculating churn analytics:', error)
 			throw new InternalServerErrorException(
@@ -300,9 +293,11 @@ export class StripeDataService {
 		// Simple grouping by month and churn calculation
 		const grouped: Record<string, StripeSubscriptionDB[]> = {}
 		subscriptions.forEach(sub => {
-			const month = new Date(sub.created_at).toISOString().slice(0, 7) // YYYY-MM
-			if (!grouped[month]) grouped[month] = []
-			grouped[month].push(sub)
+			if (sub.createdAt) {
+				const month = sub.createdAt.slice(0, 7) // YYYY-MM
+				if (!grouped[month]) grouped[month] = []
+				grouped[month].push(sub)
+			}
 		})
 
 		return Object.entries(grouped).map(([month, monthSubs]) => {
@@ -327,7 +322,7 @@ export class StripeDataService {
 
 	/**
 	 * Calculate Customer Lifetime Value with advanced metrics
-	 * Ultra-native: Supabase RPC calls for direct database access
+	 * Ultra-native: Direct table queries instead of RPC
 	 */
 	async getCustomerLifetimeValue(): Promise<CustomerLifetimeValue[]> {
 		try {
@@ -337,8 +332,8 @@ export class StripeDataService {
 
 			// Fetch customers and subscriptions with complete pagination
 			const [customersResult, subscriptionsResult] = await Promise.all([
-				client.rpc('get_stripe_customers', { limit_count: 1000 }),
-				client.rpc('get_stripe_subscriptions', { limit_count: 1000 })
+				client.from('stripe_customers').select('*').limit(1000),
+				client.from('stripe_subscriptions').select('*').limit(1000)
 			])
 
 			if (customersResult.error || subscriptionsResult.error) {
@@ -348,9 +343,12 @@ export class StripeDataService {
 			}
 
 			// Ultra-native: Simple CLV calculation in code
+			const typedCustomers = (customersResult.data as StripeCustomerDB[]) || []
+			const typedSubscriptions =
+				(subscriptionsResult.data as StripeSubscriptionDB[]) || []
 			return this.calculateCustomerLifetimeValue(
-				customersResult.data || [],
-				subscriptionsResult.data || []
+				typedCustomers,
+				typedSubscriptions
 			)
 		} catch (error) {
 			this.logger.error('Error calculating customer lifetime value:', error)
@@ -373,16 +371,23 @@ export class StripeDataService {
 			const subscription_count = customerSubs.length
 			const first_subscription =
 				customerSubs.length > 0
-					? new Date(
-							Math.min(
-								...customerSubs.map(sub => new Date(sub.created_at).getTime())
-							)
-						)
+					? (() => {
+							const withDates = customerSubs.filter(sub => sub.createdAt)
+							return withDates.length > 0
+								? new Date(
+										Math.min(
+											...withDates.map(sub =>
+												new Date(sub.createdAt!).getTime()
+											)
+										)
+									)
+								: null
+						})()
 					: null
 			const last_cancellation =
 				customerSubs
-					.filter(sub => sub.status === 'canceled')
-					.map(sub => new Date(sub.current_period_end))
+					.filter(sub => sub.status === 'canceled' && sub.current_period_end)
+					.map(sub => new Date(sub.current_period_end!))
 					.sort((a, b) => b.getTime() - a.getTime())[0] || null
 
 			const lifetime_days =
@@ -416,17 +421,15 @@ export class StripeDataService {
 
 	/**
 	 * Get MRR Trend
-	 * Ultra-native: Supabase RPC calls for direct database access
+	 * Ultra-native: Direct table queries instead of RPC
 	 */
 	async getMRRTrend(months: number): Promise<StripeSubscriptionDB[]> {
 		try {
 			const client = this.supabaseService.getAdminClient()
-			const { data: subscriptions, error } = await client.rpc(
-				'get_stripe_subscriptions',
-				{
-					limit_count: months * 100 // Adjust limit based on months
-				}
-			)
+			const { data: subscriptions, error } = await client
+				.from('stripe_subscriptions')
+				.select('*')
+				.limit(months * 100) // Adjust limit based on months
 
 			if (error) {
 				throw new InternalServerErrorException(
@@ -435,7 +438,7 @@ export class StripeDataService {
 			}
 
 			// Simple MRR calculation
-			return subscriptions || []
+			return (subscriptions as StripeSubscriptionDB[]) || []
 		} catch (error) {
 			this.logger.error('Error calculating MRR trend:', error)
 			throw new InternalServerErrorException('Failed to calculate MRR trend')
@@ -444,19 +447,17 @@ export class StripeDataService {
 
 	/**
 	 * Get Subscription Status Breakdown
-	 * Ultra-native: Supabase RPC calls for direct database access
+	 * Ultra-native: Direct table queries instead of RPC
 	 */
 	async getSubscriptionStatusBreakdown(): Promise<{
 		[status: string]: number
 	}> {
 		try {
 			const client = this.supabaseService.getAdminClient()
-			const { data: subscriptions, error } = await client.rpc(
-				'get_stripe_subscriptions',
-				{
-					limit_count: 1000
-				}
-			)
+			const { data: subscriptions, error } = await client
+				.from('stripe_subscriptions')
+				.select('*')
+				.limit(1000)
 
 			if (error) {
 				throw new InternalServerErrorException(
@@ -466,7 +467,8 @@ export class StripeDataService {
 
 			// Calculate status breakdown
 			const breakdown: { [status: string]: number } = {}
-			subscriptions?.forEach(sub => {
+			const typedSubscriptions = (subscriptions as StripeSubscriptionDB[]) || []
+			typedSubscriptions.forEach(sub => {
 				breakdown[sub.status] = (breakdown[sub.status] || 0) + 1
 			})
 
@@ -484,7 +486,7 @@ export class StripeDataService {
 
 	/**
 	 * Get predictive metrics for specific customer
-	 * Ultra-native: Supabase RPC calls for direct database access
+	 * Ultra-native: Direct table queries instead of RPC
 	 */
 	async getCustomerPredictiveMetrics(customerId: string): Promise<{
 		predicted_ltv: number
@@ -498,12 +500,10 @@ export class StripeDataService {
 			})
 
 			const client = this.supabaseService.getAdminClient()
-			const { data: subscriptions, error } = await client.rpc(
-				'get_stripe_subscriptions',
-				{
-					customer_id: customerId
-				}
-			)
+			const { data: subscriptions, error } = await client
+				.from('stripe_subscriptions')
+				.select('*')
+				.eq('customer_id', customerId)
 
 			if (error) {
 				throw new InternalServerErrorException(
@@ -512,11 +512,12 @@ export class StripeDataService {
 			}
 
 			// Ultra-native: Simple predictive calculation
-			const activeSubscriptions = (subscriptions || []).filter(
-				sub => (sub as StripeSubscriptionDB).status === 'active'
+			const typedSubscriptions = (subscriptions as StripeSubscriptionDB[]) || []
+			const activeSubscriptions = typedSubscriptions.filter(
+				sub => sub.status === 'active'
 			)
-			const canceledSubscriptions = (subscriptions || []).filter(
-				sub => (sub as StripeSubscriptionDB).status === 'canceled'
+			const canceledSubscriptions = typedSubscriptions.filter(
+				sub => sub.status === 'canceled'
 			)
 
 			// Simplified predictive metrics
@@ -527,7 +528,7 @@ export class StripeDataService {
 					? Math.min(
 							100,
 							(canceledSubscriptions.length /
-								((subscriptions || []).length || 1)) *
+								(typedSubscriptions.length || 1)) *
 								100
 						)
 					: 0

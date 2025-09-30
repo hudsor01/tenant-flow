@@ -1,387 +1,239 @@
 'use client'
 
-// Removed CheckoutForm - now using full Embedded Checkout
-import { SubscriptionPlans } from '@/components/payments/subscription-plans'
-import { CustomerPortalCard } from '@/components/pricing/customer-portal'
+import Footer from '@/components/layout/footer'
 import { StripePricingSection } from '@/components/pricing/stripe-pricing-section'
-import { StripePricingTable } from '@/components/pricing/stripe-pricing-table'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { cn } from '@/lib/utils'
-import {
-	BarChart3,
-	CheckCircle2,
-	CreditCard,
-	Shield,
-	Sparkles,
-	Users,
-	Zap
-} from 'lucide-react'
+import { StatsShowcase } from '@/components/sections/stats-showcase'
+import { Button } from '@/components/ui/button'
+import { GridBackground } from '@/components/ui/grid-background'
+import { ArrowRight, ChevronDown, CheckCircle2 } from 'lucide-react'
+import Link from 'next/link'
 import { useState } from 'react'
 
-export default function PricingComparisonPage() {
-	const [selectedComponent, setSelectedComponent] = useState<string>('all')
+const faqs = [
+	{
+		question: 'How does the 14-day free trial work?',
+		answer:
+			'Start using TenantFlow immediately with full access to all features. No credit card required. After 14 days, choose the plan that fits your needs or continue with our free tier.'
+	},
+	{
+		question: 'Can I change plans later?',
+		answer:
+			'Yes! Upgrade or downgrade anytime. Changes take effect immediately and we prorate the difference.'
+	},
+	{
+		question: 'What payment methods do you accept?',
+		answer:
+			'We accept all major credit cards, debit cards, and ACH transfers. All payments are securely processed through Stripe.'
+	},
+	{
+		question: 'Is there a long-term contract?',
+		answer:
+			'No contracts required. All plans are month-to-month. Cancel anytime with no penalties or fees.'
+	},
+	{
+		question: 'What happens if I exceed my plan limits?',
+		answer:
+			"We'll notify you when you're approaching your limits. You can upgrade anytime to accommodate growth."
+	},
+	{
+		question: 'Do you offer refunds?',
+		answer:
+			"Yes! We offer a 60-day money-back guarantee. If you're not satisfied, contact us for a full refund."
+	}
+]
 
-	// Consistent design system styling for all components
-	const componentWrapperClass = cn(
-		'w-full rounded-2xl',
-		'bg-background border border-border',
-		'p-8 lg:p-12',
-		'transition-all duration-200'
-	)
-
-	const sectionHeaderClass = cn(
-		'mb-12 text-center space-y-4',
-		'max-w-3xl mx-auto'
-	)
-
-	const componentLabelClass = cn(
-		'inline-flex items-center gap-2',
-		'px-4 py-2 rounded-full',
-		'bg-muted text-muted-foreground',
-		'text-sm font-medium',
-		'border border-border'
-	)
+export default function PricingPage() {
+	const [openFaq, setOpenFaq] = useState<number | null>(null)
 
 	return (
-		<main className="min-h-screen bg-background">
-			{/* Hero Section with Gradient */}
-			<section className="relative overflow-hidden">
-				<div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
-				<div className="container mx-auto px-6 py-24 relative z-10">
-					<div className={sectionHeaderClass}>
-						<Badge
-							variant="outline"
-							className="mb-4 px-4 py-1.5 text-primary border-primary/20 bg-primary/5"
-						>
-							<Sparkles className="w-3 h-3 mr-2" />
-							Pricing Component Comparison
-						</Badge>
-						<h1 className="text-4xl lg:text-6xl font-bold tracking-tight text-foreground">
-							All Pricing Components
-						</h1>
-						<p className="text-xl text-muted-foreground leading-relaxed">
-							Compare all pricing and billing components side by side with
-							consistent design system styling
-						</p>
+		<div className="relative min-h-screen flex flex-col">
+			{/* Full page grid background */}
+			<GridBackground className="fixed inset-0 -z-10" />
+
+			{/* Navigation */}
+			<nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90 w-auto">
+				<div className="flex items-center justify-between gap-8">
+					<Link
+						href="/"
+						className="flex items-center justify-center space-x-4 hover:opacity-80 transition-opacity"
+					>
+						<div className="w-8 h-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+								className="w-5 h-5 text-primary-foreground"
+							>
+								<path
+									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
+						</div>
+						<span className="text-xl font-bold text-foreground tracking-tight">
+							TenantFlow
+						</span>
+					</Link>
+
+					<div className="hidden md:flex items-center space-x-2">
+						<Link href="/features" className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent">
+							Features
+						</Link>
+						<Link href="/pricing" className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent">
+							Pricing
+						</Link>
+						<Link href="/about" className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent">
+							About
+						</Link>
+						<Link href="/blog" className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent">
+							Blog
+						</Link>
+						<Link href="/faq" className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent">
+							FAQ
+						</Link>
+						<Link href="/contact" className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent">
+							Contact
+						</Link>
 					</div>
 
-					{/* Feature highlights */}
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12">
-						<Card className="border-border/50 bg-card/50 backdrop-blur">
-							<CardContent className="p-6 flex items-center gap-4">
-								<div className="p-3 rounded-xl bg-primary/10">
-									<CheckCircle2 className="w-6 h-6 text-primary" />
-								</div>
-								<div>
-									<p className="font-semibold text-foreground">
-										Consistent Styling
-									</p>
-									<p className="text-sm text-muted-foreground">
-										Design system applied
-									</p>
-								</div>
-							</CardContent>
-						</Card>
-						<Card className="border-border/50 bg-card/50 backdrop-blur">
-							<CardContent className="p-6 flex items-center gap-4">
-								<div className="p-3 rounded-xl bg-accent/10">
-									<BarChart3 className="w-6 h-6 text-accent" />
-								</div>
-								<div>
-									<p className="font-semibold text-foreground">
-										Fair Comparison
-									</p>
-									<p className="text-sm text-muted-foreground">
-										Apples to apples
-									</p>
-								</div>
-							</CardContent>
-						</Card>
-						<Card className="border-border/50 bg-card/50 backdrop-blur">
-							<CardContent className="p-6 flex items-center gap-4">
-								<div className="p-3 rounded-xl bg-primary/10">
-									<Shield className="w-6 h-6 text-primary" />
-								</div>
-								<div>
-									<p className="font-semibold text-foreground">
-										Production Ready
-									</p>
-									<p className="text-sm text-muted-foreground">
-										All components tested
-									</p>
-								</div>
-							</CardContent>
-						</Card>
+					<div className="flex items-center space-x-4">
+						<Link href="/login" className="hidden sm:flex items-center px-4 py-2 text-foreground rounded-xl font-medium transition-all duration-300 hover:bg-accent">
+							Sign In
+						</Link>
+						<Link href="/login" className="inline-flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl shadow-lg transition-all duration-200 hover:bg-primary/90 hover:shadow-xl">
+							Get Started
+							<ArrowRight className="ml-2 h-4 w-4" />
+						</Link>
 					</div>
 				</div>
-			</section>
+			</nav>
 
-			{/* Component Tabs Navigation */}
-			<section className="container mx-auto px-6 py-12">
-				<Tabs
-					value={selectedComponent}
-					onValueChange={setSelectedComponent}
-					className="w-full"
-				>
-					<TabsList className="grid w-full max-w-3xl mx-auto grid-cols-6 h-auto p-1 bg-muted/50">
-						<TabsTrigger
-							value="all"
-							className="data-[state=active]:bg-background data-[state=active]:text-foreground py-3"
-						>
-							All Components
-						</TabsTrigger>
-						<TabsTrigger
-							value="pricing-table"
-							className="data-[state=active]:bg-background data-[state=active]:text-foreground py-3"
-						>
-							Pricing Table
-						</TabsTrigger>
-						<TabsTrigger
-							value="pricing-cards"
-							className="data-[state=active]:bg-background data-[state=active]:text-foreground py-3"
-						>
-							Pricing Cards
-						</TabsTrigger>
-						<TabsTrigger
-							value="checkout"
-							className="data-[state=active]:bg-background data-[state=active]:text-foreground py-3"
-						>
-							Checkout
-						</TabsTrigger>
-						<TabsTrigger
-							value="subscription"
-							className="data-[state=active]:bg-background data-[state=active]:text-foreground py-3"
-						>
-							Plans
-						</TabsTrigger>
-						<TabsTrigger
-							value="portal"
-							className="data-[state=active]:bg-background data-[state=active]:text-foreground py-3"
-						>
-							Portal
-						</TabsTrigger>
-					</TabsList>
+			<main className="flex-1">
+				{/* Simple Header - No Hero */}
+				<section className="relative page-content pb-4">
+					<div className="max-w-7xl mx-auto px-6 lg:px-8">
+						<div className="max-w-4xl mx-auto text-center space-y-4">
+							<h1 className="text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
+								Pricing that scales with you
+							</h1>
+							<p className="text-xl text-muted-foreground leading-relaxed">
+								Start with a 14-day free trial. No credit card required.
+								Upgrade or downgrade anytime.
+							</p>
+						</div>
+					</div>
+				</section>
 
-					<TabsContent value="all" className="mt-12 space-y-24">
-						{/* Component 1: Stripe Pricing Table */}
-						<section id="stripe-pricing-table" className="scroll-mt-20">
-							<div className="max-w-7xl mx-auto">
-								<div className="mb-8 flex items-center justify-between">
-									<div>
-										<h2 className="text-3xl font-bold text-foreground mb-2">
-											Stripe Pricing Table Component
-										</h2>
-										<p className="text-muted-foreground">
-											Embedded Stripe pricing table with native integration
-										</p>
-									</div>
-									<div className={componentLabelClass}>
-										<CreditCard className="w-4 h-4" />
-										Stripe Embedded
-									</div>
-								</div>
-								<div className={componentWrapperClass}>
-									<StripePricingTable
-										pricingTableId={
-											process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID ||
-											'prctbl_1234567890'
-										}
-									/>
-								</div>
-							</div>
-						</section>
+				{/* Pricing Cards Section */}
+				<section className="relative pb-6 bg-transparent">
+					<div className="max-w-7xl mx-auto px-6 lg:px-8">
+						<StripePricingSection showHeader={false} showStats={false} />
+					</div>
+				</section>
 
-						<Separator className="bg-border/50" />
+				{/* Stats Section */}
+				<StatsShowcase />
 
-						{/* Component 2: Custom Pricing Cards Section */}
-						<section id="stripe-pricing-section" className="scroll-mt-20">
-							<div className="max-w-7xl mx-auto">
-								<div className="mb-8 flex items-center justify-between">
-									<div>
-										<h2 className="text-3xl font-bold text-foreground mb-2">
-											Custom Pricing Cards Section
-										</h2>
-										<p className="text-muted-foreground">
-											Full-featured pricing section with custom design and
-											animations
-										</p>
-									</div>
-									<div className={componentLabelClass}>
-										<Sparkles className="w-4 h-4" />
-										Custom Design
-									</div>
-								</div>
-								<div className={componentWrapperClass}>
-									<StripePricingSection showHeader={false} className="!p-0" />
-								</div>
-							</div>
-						</section>
+				{/* FAQ Section */}
+				<section className="relative section-compact bg-transparent">
+					<div className="max-w-4xl mx-auto px-6 lg:px-8">
+						<div className="text-center mb-6">
+							<h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
+								Frequently Asked Questions
+							</h2>
+							<p className="text-xl text-muted-foreground">
+								Everything you need to know about our pricing
+							</p>
+						</div>
 
-						<Separator className="bg-border/50" />
-
-						{/* Component 3: Checkout Form - Commented out as it requires CheckoutProvider */}
-						{/* <section id="checkout-form" className="scroll-mt-20">
-							<div className="max-w-7xl mx-auto">
-								<div className="mb-8 flex items-center justify-between">
-									<div>
-										<h2 className="text-3xl font-bold text-foreground mb-2">
-											Checkout Form Component
-										</h2>
-										<p className="text-muted-foreground">
-											Stripe checkout form with payment element integration
-										</p>
-									</div>
-									<div className={componentLabelClass}>
-										<CreditCard className="w-4 h-4" />
-										Payment Form
-									</div>
-								</div>
-								<div className={componentWrapperClass}>
-									<div className="max-w-2xl mx-auto">
-										<CheckoutForm
-											priceId="price_example"
-											planName="Growth Plan"
-											amount={99}
+						<div className="space-y-4">
+							{faqs.map((faq, index) => (
+								<div key={index} className="border border-border rounded-xl bg-card">
+									<button
+										onClick={() => setOpenFaq(openFaq === index ? null : index)}
+										className="w-full py-2 px-4 text-left flex items-center justify-between hover:bg-muted focus:outline-none transition-colors"
+									>
+										<span className="text-lg font-semibold text-foreground pr-4">
+											{faq.question}
+										</span>
+										<ChevronDown
+											className={`w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform ${
+												openFaq === index ? 'transform rotate-180' : ''
+											}`}
 										/>
-									</div>
-								</div>
-							</div>
-						</section>
+									</button>
 
-						<Separator className="bg-border/50" /> */}
-
-						{/* Component 4: Simple Subscription Plans */}
-						<section id="subscription-plans" className="scroll-mt-20">
-							<div className="max-w-7xl mx-auto">
-								<div className="mb-8 flex items-center justify-between">
-									<div>
-										<h2 className="text-3xl font-bold text-foreground mb-2">
-											Simple Subscription Plans
-										</h2>
-										<p className="text-muted-foreground">
-											Minimal subscription plan cards with essential features
-										</p>
-									</div>
-									<div className={componentLabelClass}>
-										<Zap className="w-4 h-4" />
-										Minimal Design
-									</div>
+									{openFaq === index && (
+										<div className="px-4 pb-2">
+											<div className="border-t pt-4">
+												<p className="text-muted-foreground">
+													{faq.answer}
+												</p>
+											</div>
+										</div>
+									)}
 								</div>
-								<div className={componentWrapperClass}>
-									<SubscriptionPlans />
-								</div>
-							</div>
-						</section>
-
-						<Separator className="bg-border/50" />
-
-						{/* Component 5: Customer Portal Card */}
-						<section id="customer-portal" className="scroll-mt-20">
-							<div className="max-w-7xl mx-auto">
-								<div className="mb-8 flex items-center justify-between">
-									<div>
-										<h2 className="text-3xl font-bold text-foreground mb-2">
-											Customer Portal Management
-										</h2>
-										<p className="text-muted-foreground">
-											Account management and billing portal access component
-										</p>
-									</div>
-									<div className={componentLabelClass}>
-										<Users className="w-4 h-4" />
-										Account Management
-									</div>
-								</div>
-								<div className={componentWrapperClass}>
-									<div className="max-w-5xl mx-auto">
-										<CustomerPortalCard
-											title="Manage Your Account"
-											description="Access your billing portal and manage subscription settings"
-											icon={Users}
-											actionText="Open Portal"
-											onAction={() =>
-												window.open('/dashboard/billing', '_blank')
-											}
-											currentPlan="Growth Plan"
-											planTier="growth"
-											showStats={true}
-											showTestimonial={true}
-										/>
-									</div>
-								</div>
-							</div>
-						</section>
-					</TabsContent>
-
-					{/* Individual Tab Contents */}
-					<TabsContent value="pricing-table" className="mt-12">
-						<div className="max-w-7xl mx-auto">
-							<div className={componentWrapperClass}>
-								<StripePricingTable
-									pricingTableId={
-										process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID ||
-										'prctbl_1234567890'
-									}
-								/>
-							</div>
+							))}
 						</div>
-					</TabsContent>
 
-					<TabsContent value="pricing-cards" className="mt-12">
-						<div className="max-w-7xl mx-auto">
-							<div className={componentWrapperClass}>
-								<StripePricingSection showHeader={false} className="!p-0" />
-							</div>
+						<div className="text-center mt-4">
+							<p className="text-muted-foreground mb-2">
+								Still have questions?
+							</p>
+							<Button size="lg" variant="outline" asChild>
+								<Link href="/contact">
+									Contact Sales
+									<ArrowRight className="w-4 h-4 ml-2" />
+								</Link>
+							</Button>
 						</div>
-					</TabsContent>
+					</div>
+				</section>
 
-					<TabsContent value="checkout" className="mt-12">
-						<div className="max-w-2xl mx-auto">
-							<div className={componentWrapperClass}>
-								<div className="text-center py-12">
-									<h3 className="text-lg font-semibold text-foreground mb-2">
-										Embedded Checkout
-									</h3>
-									<p className="text-muted-foreground">
-										We now use Stripe's full Embedded Checkout experience.
-										<br />
-										Visit the checkout page to see it in action.
-									</p>
+				{/* Final CTA Section */}
+				<section className="relative section-content bg-transparent">
+					<div className="max-w-4xl mx-auto px-6 lg:px-8">
+						<div className="bg-accent-gradient py-4 px-4 text-center">
+							<h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
+								Ready to transform your property management?
+							</h2>
+							<p className="text-xl text-muted-foreground mb-4">
+								Join 10,000+ property managers who save 20+ hours weekly
+							</p>
+							<div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-4">
+								<Button size="lg" className="px-8" asChild>
+									<Link href="/login">
+										Start Free Trial
+										<ArrowRight className="w-5 h-5 ml-2" />
+									</Link>
+								</Button>
+								<Button size="lg" variant="outline" className="px-8" asChild>
+									<Link href="/contact">Talk to Sales</Link>
+								</Button>
+							</div>
+							<div className="flex flex-wrap justify-center items-center gap-6 text-sm text-muted-foreground">
+								<div className="flex items-center justify-center gap-2">
+									<CheckCircle2 className="w-4 h-4" />
+									<span>14-day free trial</span>
+								</div>
+								<div className="flex items-center justify-center gap-2">
+									<CheckCircle2 className="w-4 h-4" />
+									<span>No credit card required</span>
+								</div>
+								<div className="flex items-center justify-center gap-2">
+									<CheckCircle2 className="w-4 h-4" />
+									<span>Cancel anytime</span>
 								</div>
 							</div>
 						</div>
-					</TabsContent>
+					</div>
+				</section>
+			</main>
 
-					<TabsContent value="subscription" className="mt-12">
-						<div className="max-w-7xl mx-auto">
-							<div className={componentWrapperClass}>
-								<SubscriptionPlans />
-							</div>
-						</div>
-					</TabsContent>
-
-					<TabsContent value="portal" className="mt-12">
-						<div className="max-w-5xl mx-auto">
-							<div className={componentWrapperClass}>
-								<CustomerPortalCard
-									title="Manage Your Account"
-									description="Access your billing portal and manage subscription settings"
-									icon={Users}
-									actionText="Open Portal"
-									onAction={() => window.open('/dashboard/billing', '_blank')}
-									currentPlan="Growth Plan"
-									planTier="growth"
-									showStats={true}
-									showTestimonial={true}
-								/>
-							</div>
-						</div>
-					</TabsContent>
-				</Tabs>
-			</section>
-		</main>
+			<Footer />
+		</div>
 	)
 }

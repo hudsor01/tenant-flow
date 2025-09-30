@@ -15,9 +15,9 @@ class StripeSchemaValidator {
 	constructor() {
 		const supabaseUrl = process.env.SUPABASE_URL
 		const serviceKey = (() => {
-			if (process.env.SERVICE_ROLE_KEY) return process.env.SERVICE_ROLE_KEY
 			if (process.env.SUPABASE_SERVICE_ROLE_KEY) return process.env.SUPABASE_SERVICE_ROLE_KEY
-			throw new Error('SERVICE_ROLE_KEY or SUPABASE_SERVICE_ROLE_KEY environment variable is required for schema validation')
+			if (process.env.SERVICE_ROLE_KEY) return process.env.SERVICE_ROLE_KEY
+			throw new Error('SUPABASE_SERVICE_ROLE_KEY environment variable is required for schema validation')
 		})()
 
 		if (!supabaseUrl) {

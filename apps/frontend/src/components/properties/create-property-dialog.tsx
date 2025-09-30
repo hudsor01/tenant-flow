@@ -38,7 +38,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useSupabaseUser } from '@/hooks/api/use-supabase-auth'
 import { propertiesApi } from '@/lib/api-client'
 import { useFormStep, useUIStore } from '@/stores/ui-store'
-import { createLogger } from '@repo/shared'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	propertyFormSchema,
 	transformPropertyFormData,

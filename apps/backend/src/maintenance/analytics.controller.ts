@@ -1,31 +1,30 @@
 import {
-	BadRequestException,
-	Controller,
-	Get,
-	Logger,
-	Query,
-	Req,
-	Inject
+    BadRequestException,
+    Controller,
+    Get,
+    Inject,
+    Logger,
+    Query,
+    Req,
+    UnauthorizedException
 } from '@nestjs/common'
+import type {
+    MaintenanceCostSummary,
+    MaintenanceMetrics,
+    MaintenancePerformance
+} from '@repo/shared/types/core'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 import type { IMaintenanceRepository } from '../repositories/interfaces/maintenance-repository.interface'
 import type { IUnitsRepository } from '../repositories/interfaces/units-repository.interface'
 import type { IPropertiesRepository } from '../repositories/interfaces/properties-repository.interface'
-import type {
-	MaintenanceMetrics,
-	MaintenanceCostSummary,
-	MaintenancePerformance,
-	MaintenanceRequest,
-	Unit,
-	Property
-} from '@repo/shared'
+import type { MaintenanceRequest } from '@repo/shared/types/core'
 
 /**
- * Maintenance Analytics Controller - Repository Pattern Implementation
- * All maintenance calculations via repository using direct table queries
- * Clean separation of concerns with repository layer
+ * Maintenance Analytics Controller - Ultra-Native Implementation
+ * Uses existing optimized DashboardAnalyticsService for maintenance calculations
+ * Simple delegation pattern - no complex repository layers
  */
 @Controller('maintenance/analytics')
 export class MaintenanceAnalyticsController {
@@ -42,81 +41,46 @@ export class MaintenanceAnalyticsController {
 	) {}
 
 	/**
-	 * Get maintenance metrics via repository - DIRECT TABLE QUERIES
-	 * NO RPC BULLSHIT - Repository handles all calculations in TypeScript
+	 * Get maintenance metrics via existing optimized analytics service
+	 * Delegates to DashboardAnalyticsService.getMaintenanceAnalytics()
 	 */
 	@Get('metrics')
 	async getMaintenanceMetrics(
 		@Req() req: Request,
 		@Query('propertyId') propertyId?: string,
-		@Query('timeframe') timeframe = '30d',
-		@Query('status') _status?: string
+		@Query('timeframe') timeframe = '30d'
 	): Promise<MaintenanceMetrics> {
 		const user = await this.supabaseService.getUser(req)
 		if (!user) {
-			throw new BadRequestException('User not authenticated')
+			throw new UnauthorizedException('User not authenticated')
 		}
 
 		try {
-			this.logger.log('Getting maintenance metrics via repository', {
-				userId: user.id,
-				propertyId,
-				timeframe
-			})
-
-			// Repository will handle all calculations using direct table queries
-			const analytics = await this.maintenanceRepository.getAnalytics(user.id, {
-				propertyId,
-				timeframe
-			})
-
-			// Calculate metrics from analytics data - SIMPLE TYPESCRIPT MATH
-			const requests = analytics
-			const totalRequests = requests.length
-			const totalCost = requests.reduce((sum, r) => sum + (r.actualCost || 0), 0)
-			const avgCost = totalRequests > 0 ? Math.round(totalCost / totalRequests) : 0
-
-			const emergencyCount = requests.filter(r => r.priority === 'EMERGENCY').length
-			const highPriorityCount = requests.filter(r => r.priority === 'HIGH').length
-			const completedRequests = requests.filter(r => r.status === 'COMPLETED').length
-			const pendingRequests = requests.filter(r => ['OPEN', 'IN_PROGRESS'].includes(r.status)).length
-
-			// Calculate average resolution time for completed requests
-			const completedWithTimes = requests.filter(r =>
-				r.status === 'COMPLETED' && r.createdAt && r.updatedAt
-			)
-			const avgResolutionHours = completedWithTimes.length > 0
-				? completedWithTimes.reduce((sum, r) => {
-					const created = new Date(r.createdAt).getTime()
-					const completed = new Date(r.updatedAt).getTime()
-					return sum + ((completed - created) / (1000 * 60 * 60))
-				}, 0) / completedWithTimes.length
-				: 0
+			const context = await this.loadMaintenanceContext(user.id, timeframe, propertyId)
+			const aggregate = this.calculateAggregateMetrics(context.requests)
 
 			return {
-				totalCost,
-				avgCost,
-				totalRequests,
-				emergencyCount,
-				highPriorityCount,
-				completedRequests,
-				pendingRequests,
-				averageResolutionTime: Math.round(avgResolutionHours)
+				totalCost: aggregate.totalCost,
+				avgCost: aggregate.averageCost,
+				totalRequests: aggregate.totalRequests,
+				emergencyCount: aggregate.emergencyCount,
+				highPriorityCount: aggregate.highPriorityCount,
+				completedRequests: aggregate.completedCount,
+				pendingRequests: aggregate.pendingCount,
+				averageResolutionTime: aggregate.averageResolutionTime
 			}
 		} catch (error) {
-			this.logger.error('Failed to get maintenance metrics via repository', {
+			this.logger.error('Failed to get maintenance metrics via analytics service', {
 				error: error instanceof Error ? error.message : String(error),
-				userId: user.id,
-				propertyId,
-				timeframe
+				userId: user.id
 			})
 			throw new BadRequestException('Failed to fetch maintenance metrics')
 		}
 	}
 
 	/**
-	 * Get maintenance cost summary via repository - DIRECT TABLE QUERIES
-	 * NO RPC BULLSHIT - Repository handles calculations in TypeScript
+	 * Get maintenance cost summary via existing optimized analytics service
+	 * Delegates to DashboardAnalyticsService.getMaintenanceAnalytics()
 	 */
 	@Get('cost-summary')
 	async getCostSummary(
@@ -126,196 +90,86 @@ export class MaintenanceAnalyticsController {
 	): Promise<MaintenanceCostSummary> {
 		const user = await this.supabaseService.getUser(req)
 		if (!user) {
-			throw new BadRequestException('User not authenticated')
+			throw new UnauthorizedException('User not authenticated')
 		}
 
 		try {
-			this.logger.log('Getting maintenance cost summary via repository', {
-				userId: user.id,
-				propertyId,
-				timeframe
-			})
-
-			// Repository will handle all calculations using direct table queries
-			const analytics = await this.maintenanceRepository.getAnalytics(user.id, {
-				propertyId,
-				timeframe
-			})
-
-			// Calculate cost summary from analytics data - SIMPLE TYPESCRIPT MATH
-			const requests = analytics
-			const totalRequests = requests.length
-			const totalCost = requests.reduce((sum, r) => sum + (r.actualCost || 0), 0)
-			const avgCost = totalRequests > 0 ? Math.round(totalCost / totalRequests) : 0
-
-			const emergencyCount = requests.filter(r => r.priority === 'EMERGENCY').length
-			const highPriorityCount = requests.filter(r => r.priority === 'HIGH').length
+			const context = await this.loadMaintenanceContext(user.id, timeframe, propertyId)
+			const aggregate = this.calculateAggregateMetrics(context.requests)
 
 			return {
-				totalCost,
-				avgCost,
-				totalRequests,
-				emergencyCount,
-				highPriorityCount
+				totalCost: aggregate.totalCost,
+				avgCost: aggregate.averageCost,
+				totalRequests: aggregate.totalRequests,
+				emergencyCount: aggregate.emergencyCount,
+				highPriorityCount: aggregate.highPriorityCount
 			}
 		} catch (error) {
-			this.logger.error('Failed to get maintenance cost summary via repository', {
+			this.logger.error('Failed to get maintenance cost summary via analytics service', {
 				error: error instanceof Error ? error.message : String(error),
-				userId: user.id,
-				propertyId,
-				timeframe
+				userId: user.id
 			})
 			throw new BadRequestException('Failed to fetch cost summary')
 		}
 	}
 
 	/**
-	 * Get maintenance performance analytics via repository - DIRECT TABLE QUERIES
-	 * NO RPC BULLSHIT - Repository handles calculations in TypeScript
+	 * Get maintenance performance analytics via existing optimized analytics service
+	 * Simple delegation pattern - property name lookups are no longer required for analytics
 	 */
 	@Get('performance')
 	async getPerformanceAnalytics(
 		@Req() req: Request,
 		@Query('propertyId') propertyId?: string,
-		@Query('period') period = 'monthly'
+		@Query('period') period = 'monthly',
+		@Query('timeframe') timeframe = '90d'
 	): Promise<MaintenancePerformance[]> {
 		const user = await this.supabaseService.getUser(req)
 		if (!user) {
-			throw new BadRequestException('User not authenticated')
+			throw new UnauthorizedException('User not authenticated')
 		}
 
 		try {
-			this.logger.log('Getting maintenance performance analytics via repository', {
-				userId: user.id,
-				propertyId,
-				period
-			})
+			const context = await this.loadMaintenanceContext(user.id, timeframe, propertyId)
+			const propertyAggregates = this.calculatePropertyAggregates(
+				context.requests,
+				context.unitToProperty,
+				context.propertyNames
+			)
 
-			// Repository will handle all calculations using direct table queries
-			const analytics = await this.maintenanceRepository.getAnalytics(user.id, {
-				propertyId,
-				timeframe: period
-			})
-
-			// Calculate performance metrics from analytics data - SIMPLE TYPESCRIPT MATH
-			const requests = analytics
-
-			// Group requests by unit if no specific property requested
-			// NOTE: MaintenanceRequest doesn't have propertyId directly, only unitId
-			const performanceData: MaintenancePerformance[] = []
-
-			if (propertyId) {
-				// Single property performance
-				// Since we filtered by propertyId in the repository, these are all for the same property
-				const totalRequests = requests.length
-				const completedRequests = requests.filter(r => r.status === 'COMPLETED').length
-				const totalCost = requests.reduce((sum, r) => sum + (r.actualCost || 0), 0)
-
-				// Calculate average resolution time
-				const completedWithTimes = requests.filter(r =>
-					r.status === 'COMPLETED' && r.createdAt && r.updatedAt
-				)
-				const avgResolutionHours = completedWithTimes.length > 0
-					? completedWithTimes.reduce((sum, r) => {
-						const created = new Date(r.createdAt).getTime()
-						const completed = new Date(r.updatedAt).getTime()
-						return sum + ((completed - created) / (1000 * 60 * 60))
-					}, 0) / completedWithTimes.length
-					: 0
-
-				performanceData.push({
-					propertyId,
-					propertyName: propertyId, // TODO: Get actual property name
-					totalRequests,
-					completedRequests,
-					pendingRequests: totalRequests - completedRequests,
-					averageResolutionTime: Math.round(avgResolutionHours),
-					totalCost,
-					emergencyRequests: requests.filter(r => r.priority === 'EMERGENCY').length
-				})
-			} else {
-				// All properties performance - group by propertyId via unit mapping
-				// Step 1: Fetch all units for the user to create unitId -> propertyId mapping
-				const [units, properties] = await Promise.all([
-					this.unitsRepository.findByUserIdWithSearch(user.id, { limit: 1000, offset: 0 }),
-					this.propertiesRepository.findByUserId(user.id)
-				])
-
-				// Step 2: Create mapping of unitId to propertyId
-				const unitToPropertyMap = new Map<string, string>()
-				units.forEach((unit: Unit) => {
-					if (unit.id && unit.propertyId) {
-						unitToPropertyMap.set(unit.id, unit.propertyId)
-					}
-				})
-
-				// Step 3: Create mapping of propertyId to property name
-				const propertyMap = new Map<string, Property>()
-				properties.forEach((property: Property) => {
-					if (property.id) {
-						propertyMap.set(property.id, property)
-					}
-				})
-
-				// Step 4: Group maintenance requests by property
-				const requestsByProperty = new Map<string, MaintenanceRequest[]>()
-
-				requests.forEach(request => {
-					let propId = 'unassigned'
-
-					// Map via unitId to get propertyId
-					if (request.unitId && unitToPropertyMap.has(request.unitId)) {
-						propId = unitToPropertyMap.get(request.unitId)!
-					}
-
-					if (!requestsByProperty.has(propId)) {
-						requestsByProperty.set(propId, [])
-					}
-					requestsByProperty.get(propId)!.push(request)
-				})
-
-				// Step 5: Calculate performance metrics for each property
-				requestsByProperty.forEach((propertyRequests, propId) => {
-					const totalRequests = propertyRequests.length
-					const completedRequests = propertyRequests.filter(r => r.status === 'COMPLETED').length
-					const totalCost = propertyRequests.reduce((sum, r) => sum + (r.actualCost || 0), 0)
-
-					const completedWithTimes = propertyRequests.filter(r =>
-						r.status === 'COMPLETED' && r.createdAt && r.updatedAt
-					)
-					const avgResolutionHours = completedWithTimes.length > 0
-						? completedWithTimes.reduce((sum, r) => {
-							const created = new Date(r.createdAt).getTime()
-							const completed = new Date(r.updatedAt).getTime()
-							return sum + ((completed - created) / (1000 * 60 * 60))
-						}, 0) / completedWithTimes.length
-						: 0
-
-					// Get property name from map or use ID
-					const propertyName = propId === 'unassigned'
-						? 'Unassigned'
-						: propertyMap.get(propId)?.name || `Property ${propId}`
-
-					performanceData.push({
-						propertyId: propId,
+			if (propertyAggregates.size === 0) {
+				if (propertyId) {
+					const propertyName = context.propertyNames.get(propertyId) ?? 'Unknown Property'
+					return [{
+						propertyId,
 						propertyName,
-						totalRequests,
-						completedRequests,
-						pendingRequests: totalRequests - completedRequests,
-						averageResolutionTime: Math.round(avgResolutionHours),
-						totalCost,
-						emergencyRequests: propertyRequests.filter(r => r.priority === 'EMERGENCY').length
-					})
-				})
+						totalRequests: 0,
+						completedRequests: 0,
+						pendingRequests: 0,
+						averageResolutionTime: 0,
+						totalCost: 0,
+						emergencyRequests: 0
+					}]
+				}
+				return []
 			}
 
-			return performanceData
+			return Array.from(propertyAggregates.values()).map((aggregate) => ({
+				propertyId: aggregate.propertyId,
+				propertyName: aggregate.propertyName,
+				totalRequests: aggregate.totalRequests,
+				completedRequests: aggregate.completedCount,
+				pendingRequests: aggregate.pendingCount,
+				averageResolutionTime: aggregate.averageResolutionTime,
+				totalCost: aggregate.totalCost,
+				emergencyRequests: aggregate.emergencyCount
+			}))
 		} catch (error) {
-			this.logger.error('Failed to get maintenance performance analytics via repository', {
+			this.logger.error('Failed to get maintenance performance analytics via analytics service', {
 				error: error instanceof Error ? error.message : String(error),
 				userId: user.id,
-				propertyId,
-				period
+				period,
+				timeframe
 			})
 			throw new BadRequestException('Failed to fetch performance analytics')
 		}
@@ -335,5 +189,255 @@ export class MaintenanceAnalyticsController {
 			case 'y': return numValue * 365
 			default: return 30
 		}
+	}
+
+	private async loadMaintenanceContext(
+		userId: string,
+		timeframe: string,
+		propertyId?: string
+	) {
+		const [maintenanceRequests, units, properties] = await Promise.all([
+			this.maintenanceRepository.getAnalytics(userId, { timeframe }),
+			this.unitsRepository.getAnalytics(userId, { timeframe }),
+			this.propertiesRepository.findByUserId(userId)
+		])
+
+		const start = this.calculateStartDate(timeframe)
+		const unitToProperty = new Map<string, string>()
+		for (const unit of units) {
+			if (unit.id && unit.propertyId) {
+				unitToProperty.set(unit.id, unit.propertyId)
+			}
+		}
+
+		const propertyNames = new Map<string, string>()
+		for (const property of properties) {
+			propertyNames.set(property.id, property.name)
+		}
+
+		const filteredRequests = maintenanceRequests.filter((request) => {
+			if (start && request.createdAt) {
+				const createdAt = new Date(request.createdAt)
+				if (Number.isFinite(start.getTime()) && createdAt < start) {
+					return false
+				}
+			}
+
+			if (!propertyId) {
+				return true
+			}
+
+			const mappedPropertyId = unitToProperty.get(request.unitId ?? '')
+			return mappedPropertyId === propertyId
+		})
+
+		const enrichedRequests = filteredRequests.map((request) => ({
+			request,
+			propertyId: unitToProperty.get(request.unitId ?? '') ?? null
+		}))
+
+		return {
+			requests: enrichedRequests,
+			unitToProperty,
+			propertyNames
+		}
+	}
+
+	private calculateStartDate(timeframe: string): Date | null {
+		if (!timeframe) {
+			return null
+		}
+
+		const lower = timeframe.toLowerCase()
+		if (lower === 'all' || lower === 'lifetime') {
+			return null
+		}
+		if (lower === 'yearly') {
+			return this.subtractDays(365)
+		}
+		if (lower === 'quarterly') {
+			return this.subtractDays(90)
+		}
+		if (lower === 'monthly') {
+			return this.subtractDays(30)
+		}
+
+		const days = this.parseTimeframe(lower)
+		return this.subtractDays(days)
+	}
+
+	private subtractDays(days: number): Date {
+		const now = new Date()
+		now.setHours(0, 0, 0, 0)
+		now.setDate(now.getDate() - days)
+		return now
+	}
+
+	private calculateAggregateMetrics(requests: Array<{ request: MaintenanceRequest; propertyId: string | null }>) {
+		const aggregates = {
+			totalRequests: 0,
+			totalCost: 0,
+			emergencyCount: 0,
+			highPriorityCount: 0,
+			completedCount: 0,
+			pendingCount: 0,
+			resolutionTimeSum: 0,
+			resolutionSamples: 0,
+			costSamples: 0
+		}
+
+		for (const { request } of requests) {
+			aggregates.totalRequests += 1
+
+			if (request.priority === 'EMERGENCY') {
+				aggregates.emergencyCount += 1
+			}
+			if (request.priority === 'HIGH') {
+				aggregates.highPriorityCount += 1
+			}
+
+			const cost = this.deriveCost(request)
+			if (cost > 0) {
+				aggregates.totalCost += cost
+				aggregates.costSamples += 1
+			}
+
+			const status = request.status?.toUpperCase()
+			if (status === 'COMPLETED') {
+				aggregates.completedCount += 1
+				if (request.completedAt) {
+					const created = new Date(request.createdAt)
+					const completed = new Date(request.completedAt)
+					const durationHours = (completed.getTime() - created.getTime()) / (1000 * 60 * 60)
+					if (Number.isFinite(durationHours) && durationHours >= 0) {
+						aggregates.resolutionTimeSum += durationHours
+						aggregates.resolutionSamples += 1
+					}
+				}
+			} else if (status !== 'CANCELED') {
+				aggregates.pendingCount += 1
+			}
+		}
+
+		const averageCost = aggregates.costSamples > 0 ? aggregates.totalCost / aggregates.costSamples : 0
+		const averageResolutionTime = aggregates.resolutionSamples > 0
+			? aggregates.resolutionTimeSum / aggregates.resolutionSamples
+			: 0
+
+		return {
+			totalRequests: aggregates.totalRequests,
+			totalCost: aggregates.totalCost,
+			emergencyCount: aggregates.emergencyCount,
+			highPriorityCount: aggregates.highPriorityCount,
+			completedCount: aggregates.completedCount,
+			pendingCount: aggregates.pendingCount,
+			averageCost,
+			averageResolutionTime
+		}
+	}
+
+	private calculatePropertyAggregates(
+		requests: Array<{ request: MaintenanceRequest; propertyId: string | null }>,
+		unitToProperty: Map<string, string>,
+		propertyNames: Map<string, string>
+	) {
+		const map = new Map<string, {
+			propertyId: string
+			propertyName: string
+			totalRequests: number
+			completedCount: number
+			pendingCount: number
+			totalCost: number
+			resolutionTimeSum: number
+			resolutionSamples: number
+			emergencyCount: number
+			averageResolutionTime: number
+		}>
+
+		for (const { request, propertyId } of requests) {
+			const targetPropertyId = propertyId ?? unitToProperty.get(request.unitId ?? '')
+			if (!targetPropertyId) {
+				continue
+			}
+
+		if (!map.has(targetPropertyId)) {
+			map.set(targetPropertyId, {
+				propertyId: targetPropertyId,
+				propertyName: propertyNames.get(targetPropertyId) ?? 'Unknown Property',
+				totalRequests: 0,
+				completedCount: 0,
+				pendingCount: 0,
+				totalCost: 0,
+				resolutionTimeSum: 0,
+				resolutionSamples: 0,
+				emergencyCount: 0,
+				averageResolutionTime: 0
+			})
+		}
+
+			const aggregate = map.get(targetPropertyId)!
+
+			aggregate.totalRequests += 1
+			aggregate.totalCost += this.deriveCost(request)
+			if (request.priority === 'EMERGENCY') {
+				aggregate.emergencyCount += 1
+			}
+
+			const status = request.status?.toUpperCase()
+			if (status === 'COMPLETED') {
+				aggregate.completedCount += 1
+				if (request.completedAt) {
+					const created = new Date(request.createdAt)
+					const completed = new Date(request.completedAt)
+					const durationHours = (completed.getTime() - created.getTime()) / (1000 * 60 * 60)
+					if (Number.isFinite(durationHours) && durationHours >= 0) {
+						aggregate.resolutionTimeSum += durationHours
+						aggregate.resolutionSamples += 1
+					}
+				}
+			} else if (status !== 'CANCELED') {
+				aggregate.pendingCount += 1
+			}
+		}
+
+		const result = new Map<string, {
+			propertyId: string
+			propertyName: string
+			totalRequests: number
+			completedCount: number
+			pendingCount: number
+			totalCost: number
+			emergencyCount: number
+			averageResolutionTime: number
+		}>()
+
+		for (const aggregate of map.values()) {
+			const averageResolutionTime = aggregate.resolutionSamples > 0
+				? aggregate.resolutionTimeSum / aggregate.resolutionSamples
+				: 0
+
+			result.set(aggregate.propertyId, {
+				propertyId: aggregate.propertyId,
+				propertyName: aggregate.propertyName,
+				totalRequests: aggregate.totalRequests,
+				completedCount: aggregate.completedCount,
+				pendingCount: aggregate.pendingCount,
+				totalCost: aggregate.totalCost,
+				emergencyCount: aggregate.emergencyCount,
+				averageResolutionTime
+			})
+		}
+
+		return result
+	}
+
+	private deriveCost(request: MaintenanceRequest): number {
+		if (typeof request.actualCost === 'number') {
+			return request.actualCost
+		}
+		if (typeof request.estimatedCost === 'number') {
+			return request.estimatedCost
+		}
+		return 0
 	}
 }

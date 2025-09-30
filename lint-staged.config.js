@@ -1,9 +1,11 @@
 export default {
 	'*.{js,jsx,ts,tsx}': filenames => {
-		// Filter out Playwright and test setup files that are excluded from ESLint
+		// Filter out Playwright, test files, and config files that are excluded from ESLint
 		const filteredFiles = filenames.filter(
 			file =>
-				!file.includes('tests/global-setup.ts') &&
+				!file.includes('/tests/') &&
+				!file.includes('.test.') &&
+				!file.includes('.spec.') &&
 				!file.includes('playwright.config.ts') &&
 				!file.endsWith('.config.js') &&
 				!file.endsWith('.config.mjs') &&

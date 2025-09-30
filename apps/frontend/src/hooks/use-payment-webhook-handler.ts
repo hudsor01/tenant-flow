@@ -1,8 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { createBrowserClient } from '@supabase/ssr'
 import { useCallback, useEffect } from 'react'
-import type { Database } from '@repo/shared'
-import { createLogger } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { toast } from 'sonner'
 
 /**

@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
 import * as fs from 'fs'
 import * as path from 'path'
-import type { LeaseGeneratorFormData as LeaseFormData } from '@repo/shared'
+import type { LeaseFormData } from '@repo/shared/types/lease-generator.types'
 import type { TemplateDelegate as HandlebarsTemplateDelegate } from 'handlebars'
 import { PDFGeneratorService } from './pdf-generator.service'
 import {

@@ -2,18 +2,19 @@
  * Server-side dashboard API functions
  * Mirrors the existing dashboardApi structure for consistency
  */
+import { serverFetch } from '@/lib/api/server'
 import type {
-	DashboardFinancialStats,
-	DashboardStats,
-	LeaseStatsResponse,
-	MaintenanceRequestResponse,
-	PropertyPerformance,
-	PropertyWithUnits,
-	SystemUptime,
-	TenantStats,
-	TenantWithLeaseInfo
-} from '@repo/shared'
-import { serverFetch } from './server'
+  DashboardFinancialStats,
+  DashboardStats,
+  LeaseStatsResponse,
+  MaintenanceRequestResponse,
+  PropertyPerformance,
+  SystemUptime,
+  TenantStats,
+  TenantWithLeaseInfo
+} from '@repo/shared/types/core.js'
+import type { PropertyWithUnits } from '@repo/shared/types/relations.js'
+import type { Database } from '@repo/shared/types/supabase-generated.js'
 
 /**
  * Dashboard API endpoints - server-side versions
@@ -219,7 +220,7 @@ export async function getTenantsPageData() {
  */
 export async function getLeasesPageData() {
 	const [leasesResult, leaseStatsResult] = await Promise.allSettled([
-		serverFetch<Array<import('@repo/shared').Database['public']['Tables']['Lease']['Row']>>('/api/v1/leases'),
+		serverFetch<Array<Database['public']['Tables']['Lease']['Row']>>('/api/v1/leases'),
 		serverFetch<LeaseStatsResponse>('/api/v1/leases/stats')
 	])
 

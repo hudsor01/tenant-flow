@@ -1,4 +1,4 @@
-import type { Database } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
 
 // Use Database schema for billing types - NO DUPLICATION
 export type Subscription = Database['public']['Tables']['Subscription']['Row']

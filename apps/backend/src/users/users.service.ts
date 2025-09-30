@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
 import { SupabaseService } from '../database/supabase.service'
-import type { Database } from '@repo/shared'
+import type { Database } from '@repo/shared/types/supabase-generated'
 
 type UserInsert = Database['public']['Tables']['User']['Insert']
 type UserUpdate = Database['public']['Tables']['User']['Update']

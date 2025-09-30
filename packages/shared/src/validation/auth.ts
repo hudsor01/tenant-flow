@@ -36,6 +36,27 @@ export const registerZodSchema = z
 		path: ['confirmPassword']
 	})
 
+// Extended signup form validation schema with additional fields
+export const signupFormSchema = z
+	.object({
+		firstName: z.string().min(1, 'First name is required'),
+		lastName: z.string().min(1, 'Last name is required'),
+		company: z.string().min(1, 'Company name is required'),
+		email: z.string().email('Please enter a valid email address'),
+		password: z
+			.string()
+			.min(8, 'Password must be at least 8 characters')
+			.regex(
+				/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+				'Password must contain uppercase, lowercase, and number'
+			),
+		confirmPassword: z.string()
+	})
+	.refine(data => data.password === data.confirmPassword, {
+		message: "Passwords don't match",
+		path: ['confirmPassword']
+	})
+
 // Auth response validation schema (moved from generated schemas)
 export const authResponseZodSchema = z.object({
 	user: z.object({
