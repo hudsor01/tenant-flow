@@ -1,23 +1,20 @@
-import
-  {
-    BadRequestException,
-    Controller,
-    Get,
-    Inject,
-    Logger,
-    Query,
-    Req,
-    UnauthorizedException
-  } from '@nestjs/common'
+import {
+	BadRequestException,
+	Controller,
+	Get,
+	Inject,
+	Logger,
+	Query,
+	Req,
+	UnauthorizedException
+} from '@nestjs/common'
 import type {
-  DashboardSummary,
-  FinancialMetrics,
-  Lease,
-  PropertyFinancialMetrics
+	DashboardSummary,
+	FinancialMetrics,
+	Lease,
+	PropertyFinancialMetrics
 } from '@repo/shared/types/core'
 import type { Tables } from '@repo/shared/types/supabase'
-
-type ExpenseRecord = Tables<'Expense'>
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
 import type { ILeasesRepository } from '../repositories/interfaces/leases-repository.interface'
@@ -25,6 +22,7 @@ import type { IPropertiesRepository } from '../repositories/interfaces/propertie
 import type { IUnitsRepository } from '../repositories/interfaces/units-repository.interface'
 import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 
+type ExpenseRecord = Tables<'Expense'>
 
 /**
  * Financial Analytics Controller - Repository Pattern Implementation
@@ -42,7 +40,7 @@ export class FinancialAnalyticsController {
 		@Inject(REPOSITORY_TOKENS.LEASES)
 		private readonly leasesRepository: ILeasesRepository,
 		@Inject(REPOSITORY_TOKENS.UNITS)
-		private readonly unitsRepository: IUnitsRepository,
+		private readonly unitsRepository: IUnitsRepository
 	) {}
 
 	/**
@@ -63,6 +61,18 @@ export class FinancialAnalyticsController {
 		try {
 			const targetYear = year ? parseInt(year, 10) : new Date().getFullYear()
 
+			// Validate year is reasonable (not too far in past/future)
+			const currentYear = new Date().getFullYear()
+			if (
+				isNaN(targetYear) ||
+				targetYear < 2000 ||
+				targetYear > currentYear + 5
+			) {
+				throw new BadRequestException(
+					`Invalid year: ${year}. Must be between 2000 and ${currentYear + 5}`
+				)
+			}
+
 			this.logger.log('Getting revenue trends via repositories', {
 				userId: user.id,
 				targetYear
@@ -74,7 +84,11 @@ export class FinancialAnalyticsController {
 			const propertyContext = await this.buildPropertyContext(user.id)
 			const [leases, expenses] = await Promise.all([
 				this.leasesRepository.getAnalytics(user.id, { timeframe: '12m' }),
-				this.fetchExpensesForProperties(propertyContext.propertyIds, yearStart, yearEnd)
+				this.fetchExpensesForProperties(
+					propertyContext.propertyIds,
+					yearStart,
+					yearEnd
+				)
 			])
 
 			const revenueByMonth = this.calculateMonthlyRevenue(leases, targetYear)
@@ -86,7 +100,8 @@ export class FinancialAnalyticsController {
 				const revenue = revenueByMonth.get(monthKey) ?? 0
 				const monthlyExpenses = expensesByMonth.get(monthKey) ?? 0
 				const netIncome = revenue - monthlyExpenses
-				const profitMargin = revenue > 0 ? Number(((netIncome / revenue) * 100).toFixed(2)) : 0
+				const profitMargin =
+					revenue > 0 ? Number(((netIncome / revenue) * 100).toFixed(2)) : 0
 
 				monthlyMetrics.push({
 					period: monthKey,
@@ -101,9 +116,16 @@ export class FinancialAnalyticsController {
 		} catch (error) {
 			this.logger.error('Failed to get revenue trends via repositories', {
 				error: error instanceof Error ? error.message : String(error),
+				stack: error instanceof Error ? error.stack : undefined,
 				userId: user.id,
 				year
 			})
+
+			// Re-throw validation errors with their messages, sanitize other errors
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+			// Generic error message to prevent exposing internal details
 			throw new BadRequestException('Failed to fetch revenue trends')
 		}
 	}
@@ -125,18 +147,29 @@ export class FinancialAnalyticsController {
 			})
 
 			const propertyContext = await this.buildPropertyContext(user.id)
-			const [propertyStats, unitStats, leaseAnalytics, expenses] = await Promise.all([
-				this.propertiesRepository.getStats(user.id),
-				this.unitsRepository.getStats(user.id),
-				this.leasesRepository.getAnalytics(user.id, { timeframe: '12m' }),
-				this.fetchExpensesForProperties(propertyContext.propertyIds, this.subtractMonths(12), new Date())
-			])
+			const [propertyStats, unitStats, leaseAnalytics, expenses] =
+				await Promise.all([
+					this.propertiesRepository.getStats(user.id),
+					this.unitsRepository.getStats(user.id),
+					this.leasesRepository.getAnalytics(user.id, { timeframe: '12m' }),
+					this.fetchExpensesForProperties(
+						propertyContext.propertyIds,
+						this.subtractMonths(12),
+						new Date()
+					)
+				])
 
-			const totalRevenue = leaseAnalytics.reduce((sum: number, lease: Lease) => sum + (lease.rentAmount || 0), 0)
+			const totalRevenue = leaseAnalytics.reduce(
+				(sum: number, lease: Lease) => sum + (lease.rentAmount || 0),
+				0
+			)
 			const totalExpenses = this.sumExpenses(expenses)
 			const netIncome = totalRevenue - totalExpenses
 			const occupancyRate = unitStats.occupancyRate || 0
-			const avgRoi = totalRevenue > 0 ? Number(((netIncome / totalRevenue) * 100).toFixed(2)) : 0
+			const avgRoi =
+				totalRevenue > 0
+					? Number(((netIncome / totalRevenue) * 100).toFixed(2))
+					: 0
 
 			return {
 				totalRevenue,
@@ -147,10 +180,13 @@ export class FinancialAnalyticsController {
 				avgRoi
 			}
 		} catch (error) {
-			this.logger.error('Failed to get dashboard financial metrics via repositories', {
-				error: error instanceof Error ? error.message : String(error),
-				userId: user.id
-			})
+			this.logger.error(
+				'Failed to get dashboard financial metrics via repositories',
+				{
+					error: error instanceof Error ? error.message : String(error),
+					userId: user.id
+				}
+			)
 			throw new BadRequestException('Failed to fetch dashboard metrics')
 		}
 	}
@@ -182,10 +218,17 @@ export class FinancialAnalyticsController {
 			const propertyContext = await this.buildPropertyContext(user.id)
 			const [leaseAnalytics, expenses] = await Promise.all([
 				this.leasesRepository.getAnalytics(user.id, { timeframe: '12m' }),
-				this.fetchExpensesForProperties(propertyContext.propertyIds, yearStart, yearEnd)
+				this.fetchExpensesForProperties(
+					propertyContext.propertyIds,
+					yearStart,
+					yearEnd
+				)
 			])
 
-			const revenueByMonth = this.calculateMonthlyRevenue(leaseAnalytics, targetYear)
+			const revenueByMonth = this.calculateMonthlyRevenue(
+				leaseAnalytics,
+				targetYear
+			)
 			const expensesByMonth = this.groupExpensesByMonth(expenses)
 			const monthlyExpenses: FinancialMetrics[] = []
 
@@ -194,7 +237,8 @@ export class FinancialAnalyticsController {
 				const revenue = revenueByMonth.get(monthKey) ?? 0
 				const totalExpenses = expensesByMonth.get(monthKey) ?? 0
 				const netIncome = revenue - totalExpenses
-				const profitMargin = revenue > 0 ? Number(((netIncome / revenue) * 100).toFixed(2)) : 0
+				const profitMargin =
+					revenue > 0 ? Number(((netIncome / revenue) * 100).toFixed(2)) : 0
 
 				monthlyExpenses.push({
 					period: monthKey,
@@ -240,7 +284,11 @@ export class FinancialAnalyticsController {
 			const [units, leases, expenses] = await Promise.all([
 				this.unitsRepository.getAnalytics(user.id, { timeframe: '12m' }),
 				this.leasesRepository.getAnalytics(user.id, { timeframe: '12m' }),
-				this.fetchExpensesForProperties(propertyContext.propertyIds, this.subtractMonths(12), new Date())
+				this.fetchExpensesForProperties(
+					propertyContext.propertyIds,
+					this.subtractMonths(12),
+					new Date()
+				)
 			])
 
 			const unitToProperty = new Map<string, string>()
@@ -256,13 +304,20 @@ export class FinancialAnalyticsController {
 				if (!propertyId) {
 					continue
 				}
-				revenueByProperty.set(propertyId, (revenueByProperty.get(propertyId) ?? 0) + (lease.rentAmount || 0))
+				revenueByProperty.set(
+					propertyId,
+					(revenueByProperty.get(propertyId) ?? 0) + (lease.rentAmount || 0)
+				)
 			}
 
 			const expensesByProperty = this.groupExpensesByProperty(expenses)
 			const propertyNOI: PropertyFinancialMetrics[] = []
 
-			const propertiesToEvaluate = new Set<string>([...propertyContext.propertyIds, ...revenueByProperty.keys(), ...expensesByProperty.keys()])
+			const propertiesToEvaluate = new Set<string>([
+				...propertyContext.propertyIds,
+				...revenueByProperty.keys(),
+				...expensesByProperty.keys()
+			])
 
 			for (const propertyId of propertiesToEvaluate) {
 				const revenue = revenueByProperty.get(propertyId) ?? 0
@@ -271,8 +326,12 @@ export class FinancialAnalyticsController {
 					continue
 				}
 				const netOperatingIncome = revenue - totalExpenses
-				const propertyName = propertyContext.propertyMap.get(propertyId) ?? propertyId
-				const roi = revenue > 0 ? Number(((netOperatingIncome / revenue) * 100).toFixed(2)) : 0
+				const propertyName =
+					propertyContext.propertyMap.get(propertyId) ?? propertyId
+				const roi =
+					revenue > 0
+						? Number(((netOperatingIncome / revenue) * 100).toFixed(2))
+						: 0
 
 				propertyNOI.push({
 					propertyId,
@@ -307,7 +366,11 @@ export class FinancialAnalyticsController {
 		return { propertyIds, propertyMap }
 	}
 
-	private async fetchExpensesForProperties(propertyIds: string[], start?: Date, end?: Date) {
+	private async fetchExpensesForProperties(
+		propertyIds: string[],
+		start?: Date,
+		end?: Date
+	) {
 		if (!propertyIds.length) {
 			return [] as ExpenseRecord[]
 		}
@@ -356,7 +419,10 @@ export class FinancialAnalyticsController {
 				continue
 			}
 			const expenseDate = new Date(expense.date)
-			const key = this.buildMonthKey(expenseDate.getFullYear(), expenseDate.getMonth())
+			const key = this.buildMonthKey(
+				expenseDate.getFullYear(),
+				expenseDate.getMonth()
+			)
 			map.set(key, (map.get(key) ?? 0) + (expense.amount ?? 0))
 		}
 		return map
@@ -368,7 +434,10 @@ export class FinancialAnalyticsController {
 			if (!expense.propertyId) {
 				continue
 			}
-			map.set(expense.propertyId, (map.get(expense.propertyId) ?? 0) + (expense.amount ?? 0))
+			map.set(
+				expense.propertyId,
+				(map.get(expense.propertyId) ?? 0) + (expense.amount ?? 0)
+			)
 		}
 		return map
 	}
