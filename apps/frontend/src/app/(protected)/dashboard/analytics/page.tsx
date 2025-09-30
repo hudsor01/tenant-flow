@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { getAnalyticsPageData } from '@/lib/api/dashboard-server'
+import { formatCurrency, formatPercentage } from '@/lib/utils'
 import {
 	BarChart3,
 	Building,
@@ -24,16 +25,6 @@ export default async function AnalyticsPage() {
 		propertyPerformance: propertyData,
 		financialStats
 	} = await getAnalyticsPageData()
-
-	// Format currency values
-	const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`
-
-	// Format percentage with sign
-	const formatPercentage = (value: number, includeSign = true) => {
-		const formatted = `${Math.abs(value).toFixed(1)}%`
-		if (!includeSign) return formatted
-		return value >= 0 ? `+${formatted}` : `-${formatted}`
-	}
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
