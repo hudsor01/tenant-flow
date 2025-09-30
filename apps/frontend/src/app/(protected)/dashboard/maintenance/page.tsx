@@ -87,9 +87,9 @@ export default async function MaintenancePage() {
 			: 'N/A'
 
 	return (
-		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-			{/* Page Header */}
-			<div className="flex items-center justify-between">
+		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+			{/* Page Header - moved to content section */}
+			<div className="flex items-center justify-between px-4 lg:px-6">
 				<div>
 					<h1 className="text-3xl font-bold text-gradient-authority">
 						Maintenance Management
@@ -108,7 +108,7 @@ export default async function MaintenancePage() {
 			</div>
 
 			{/* Status Overview Cards */}
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
 				<EnhancedMetricsCard
 					title="Pending Requests"
 					value={`${openRequests}`}
@@ -143,7 +143,7 @@ export default async function MaintenancePage() {
 			</div>
 
 			{/* Filters */}
-			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+			<div className="flex flex-col gap-4 px-4 lg:px-6 md:flex-row md:items-center md:justify-between">
 				<div className="flex items-center gap-2">
 					<div className="relative">
 						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground size-4" />
@@ -195,106 +195,114 @@ export default async function MaintenancePage() {
 			</div>
 
 			{/* Maintenance Requests List */}
-			<Card className="border shadow-sm">
-				<div className="p-6 border-b">
-					<h2 className="text-xl font-semibold">Active Maintenance Requests</h2>
-					<p className="text-muted-foreground text-sm mt-1">
-						Track and manage all property maintenance requests
-					</p>
-				</div>
-				<div className="p-6">
-					<Table>
-						<TableHeader className="bg-muted/50">
-							<TableRow>
-								<TableHead className="font-semibold">ID</TableHead>
-								<TableHead className="font-semibold">Property</TableHead>
-								<TableHead className="font-semibold">Unit</TableHead>
-								<TableHead className="font-semibold">Category</TableHead>
-								<TableHead className="font-semibold">Priority</TableHead>
-								<TableHead className="font-semibold">Status</TableHead>
-								<TableHead className="font-semibold">Created</TableHead>
-								<TableHead className="font-semibold">Actions</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{maintenanceData.length > 0 ? (
-								maintenanceData.map(request => (
-									<TableRow key={request.id} className="hover:bg-muted/30">
-										<TableCell className="font-medium">{request.id}</TableCell>
-										<TableCell>
-											{request.property?.name || 'No Property'}
-										</TableCell>
-										<TableCell>
-											{request.unitId ? `Unit ${request.unitId}` : 'No Unit'}
-										</TableCell>
-										<TableCell>{request.category || 'No Category'}</TableCell>
-										<TableCell>{request.priority || 'No Priority'}</TableCell>
-										<TableCell>
-											<Badge
-												variant="outline"
-												className={cn(
-													getStatusStyles(request.status || 'UNKNOWN')
-												)}
-											>
-												{request.status || 'Unknown'}
-											</Badge>
-										</TableCell>
-										<TableCell className="text-sm text-muted-foreground">
-											{request.createdAt
-												? new Date(request.createdAt).toLocaleDateString()
-												: 'No date'}
-										</TableCell>
-										<TableCell>
-											<MaintenanceActionButtons maintenance={request} />
+			<div className="px-4 lg:px-6">
+				<Card className="border shadow-sm">
+					<div className="p-6 border-b">
+						<h2 className="text-xl font-semibold">
+							Active Maintenance Requests
+						</h2>
+						<p className="text-muted-foreground text-sm mt-1">
+							Track and manage all property maintenance requests
+						</p>
+					</div>
+					<div className="p-6">
+						<Table>
+							<TableHeader className="bg-muted/50">
+								<TableRow>
+									<TableHead className="font-semibold">ID</TableHead>
+									<TableHead className="font-semibold">Property</TableHead>
+									<TableHead className="font-semibold">Unit</TableHead>
+									<TableHead className="font-semibold">Category</TableHead>
+									<TableHead className="font-semibold">Priority</TableHead>
+									<TableHead className="font-semibold">Status</TableHead>
+									<TableHead className="font-semibold">Created</TableHead>
+									<TableHead className="font-semibold">Actions</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{maintenanceData.length > 0 ? (
+									maintenanceData.map(request => (
+										<TableRow key={request.id} className="hover:bg-muted/30">
+											<TableCell className="font-medium">
+												{request.id}
+											</TableCell>
+											<TableCell>
+												{request.property?.name || 'No Property'}
+											</TableCell>
+											<TableCell>
+												{request.unitId ? `Unit ${request.unitId}` : 'No Unit'}
+											</TableCell>
+											<TableCell>{request.category || 'No Category'}</TableCell>
+											<TableCell>{request.priority || 'No Priority'}</TableCell>
+											<TableCell>
+												<Badge
+													variant="outline"
+													className={cn(
+														getStatusStyles(request.status || 'UNKNOWN')
+													)}
+												>
+													{request.status || 'Unknown'}
+												</Badge>
+											</TableCell>
+											<TableCell className="text-sm text-muted-foreground">
+												{request.createdAt
+													? new Date(request.createdAt).toLocaleDateString()
+													: 'No date'}
+											</TableCell>
+											<TableCell>
+												<MaintenanceActionButtons maintenance={request} />
+											</TableCell>
+										</TableRow>
+									))
+								) : (
+									<TableRow>
+										<TableCell colSpan={8} className="h-24 text-center">
+											<div className="flex flex-col items-center gap-2">
+												<Wrench className="size-12 text-muted-foreground/50" />
+												<p className="text-muted-foreground">
+													No maintenance requests found.
+												</p>
+												<CreateMaintenanceDialog />
+											</div>
 										</TableCell>
 									</TableRow>
-								))
-							) : (
-								<TableRow>
-									<TableCell colSpan={8} className="h-24 text-center">
-										<div className="flex flex-col items-center gap-2">
-											<Wrench className="size-12 text-muted-foreground/50" />
-											<p className="text-muted-foreground">
-												No maintenance requests found.
-											</p>
-											<CreateMaintenanceDialog />
-										</div>
-									</TableCell>
-								</TableRow>
-							)}
-						</TableBody>
-					</Table>
-				</div>
-			</Card>
+								)}
+							</TableBody>
+						</Table>
+					</div>
+				</Card>
+			</div>
 
 			{/* Quick Actions */}
-			<Card className="p-6 border shadow-sm">
-				<h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-					<CreateMaintenanceDialog />
-					<Button
-						variant="outline"
-						className="h-auto p-4 flex flex-col items-center gap-2"
-					>
-						<Calendar className="size-6" />
-						<span>Schedule Inspection</span>
-					</Button>
-					<Button
-						variant="outline"
-						className="h-auto p-4 flex flex-col items-center gap-2"
-					>
-						<User className="size-6" />
-						<span>Assign Technician</span>
-					</Button>
-					<Button
-						variant="outline"
-						className="h-auto p-4 flex flex-col items-center gap-2"
-					>
-						<CheckCircle className="size-6" />
-						<span>Bulk Update</span>
-					</Button>
-				</div>
-			</Card>
+			<div className="px-4 lg:px-6">
+				<Card className="p-6 border shadow-sm">
+					<h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+						<CreateMaintenanceDialog />
+						<Button
+							variant="outline"
+							className="h-auto p-4 flex flex-col items-center gap-2"
+						>
+							<Calendar className="size-6" />
+							<span>Schedule Inspection</span>
+						</Button>
+						<Button
+							variant="outline"
+							className="h-auto p-4 flex flex-col items-center gap-2"
+						>
+							<User className="size-6" />
+							<span>Assign Technician</span>
+						</Button>
+						<Button
+							variant="outline"
+							className="h-auto p-4 flex flex-col items-center gap-2"
+						>
+							<CheckCircle className="size-6" />
+							<span>Bulk Update</span>
+						</Button>
+					</div>
+				</Card>
+			</div>
 		</div>
 	)
 }

@@ -36,9 +36,9 @@ export default async function AnalyticsPage() {
 	}
 
 	return (
-		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 			{/* Page Header */}
-			<div className="flex items-center justify-between">
+			<div className="flex items-center justify-between px-4 lg:px-6">
 				<div>
 					<h1 className="text-3xl font-bold text-gradient-authority">
 						Analytics & Insights
@@ -64,7 +64,7 @@ export default async function AnalyticsPage() {
 			</div>
 
 			{/* Key Metrics Cards */}
-			<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-2 lg:grid-cols-4">
 				<EnhancedMetricsCard
 					title="Total Revenue"
 					value={
@@ -130,7 +130,7 @@ export default async function AnalyticsPage() {
 			</div>
 
 			{/* Charts Section */}
-			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 lg:grid-cols-2">
 				{/* Revenue Trend Chart */}
 				<Card className="p-6 border shadow-sm">
 					<div className="flex items-center justify-between mb-6">

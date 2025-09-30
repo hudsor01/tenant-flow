@@ -31,8 +31,9 @@ export default async function PropertiesPage({
 	const { properties, stats } = await getPropertiesPageData(status)
 
 	return (
-		<div className="dashboard-root dashboard-main flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-			<div className="dashboard-section dashboard-cards-container grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-3">
+		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+			{/* Metrics Cards */}
+			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
 				<MetricsCard
 					title="Total Properties"
 					value={stats.totalProperties ?? 0}
@@ -62,13 +63,21 @@ export default async function PropertiesPage({
 					icon={DollarSign}
 					colorVariant="revenue"
 				/>
+
+				<MetricsCard
+					title="Vacant Units"
+					value={stats.vacantUnits ?? 0}
+					description="Available for lease"
+					icon={Building}
+					colorVariant="info"
+				/>
 			</div>
 
 			{/* Properties Content */}
 			<div className="px-4 lg:px-6">
 				<div className="flex items-center justify-between mb-6">
 					<div>
-						<h1 className="text-3xl font-bold text-gradient-primary mb-2">
+						<h1 className="text-3xl font-bold text-gradient-authority mb-2">
 							Properties Portfolio
 						</h1>
 						<p className="text-muted-foreground">

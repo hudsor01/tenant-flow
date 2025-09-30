@@ -1,25 +1,19 @@
 import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
-import
-  {
-    CreditCard,
-    TrendingUp,
-    Users
-  } from 'lucide-react'
+import { CreditCard, TrendingUp, Users } from 'lucide-react'
 
 // Server API
 import { getTenantsPageData } from '@/lib/api/dashboard-server'
 
 // UI Components
 import { Badge } from '@/components/ui/badge'
-import
-  {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow
-  } from '@/components/ui/table'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow
+} from '@/components/ui/table'
 
 // Custom Components
 import { MetricsCard } from '@/components/charts/metrics-card'
@@ -32,9 +26,9 @@ export default async function TenantsPage() {
 	const { tenants, stats } = await getTenantsPageData()
 
 	return (
-		<div className="dashboard-root dashboard-main flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-
-			<div className="dashboard-section dashboard-cards-container grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-2 lg:grid-cols-4">
+		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+			{/* Metrics Cards */}
+			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
 				<MetricsCard
 					title="Total Tenants"
 					value={stats.totalTenants || 0}
@@ -70,10 +64,11 @@ export default async function TenantsPage() {
 				/>
 			</div>
 
+			{/* Content Section */}
 			<div className="px-4 lg:px-6">
 				<div className="flex items-center justify-between mb-6">
 					<div>
-						<h1 className="text-3xl font-bold text-gradient-primary mb-2">
+						<h1 className="text-3xl font-bold text-gradient-authority mb-2">
 							Tenants Management
 						</h1>
 						<p className="text-muted-foreground">
@@ -115,7 +110,6 @@ export default async function TenantsPage() {
 							<TableBody>
 								{tenants?.length ? (
 									tenants.map((tenant: TenantWithLeaseInfo) => {
-
 										const propertyName = tenant.property?.name || '—'
 										const rentAmount = tenant.currentLease?.rentAmount || 0
 
