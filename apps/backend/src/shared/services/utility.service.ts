@@ -11,14 +11,7 @@ import type { IPropertiesRepository } from '../../repositories/interfaces/proper
 import type { ITenantsRepository } from '../../repositories/interfaces/tenants-repository.interface'
 import type { IUnitsRepository } from '../../repositories/interfaces/units-repository.interface'
 import type { ILeasesRepository } from '../../repositories/interfaces/leases-repository.interface'
-
-export interface SearchResult {
-	id: string
-	type: 'property' | 'tenant' | 'unit' | 'lease'
-	name: string
-	description?: string
-	metadata?: Record<string, unknown>
-}
+import type { SearchResult } from '@repo/shared/types/search'
 
 export interface PasswordValidationResult {
 	isValid: boolean
