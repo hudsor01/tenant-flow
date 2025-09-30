@@ -55,7 +55,11 @@ export function NavMain({
 									tooltip={item.title}
 									asChild
 									isActive={isActive}
-									className={isActive ? 'bg-primary/10 text-primary' : ''}
+									className={
+										isActive
+											? 'border-l-2 border-primary/70 text-primary bg-primary/5'
+											: ''
+									}
 								>
 									<Link href={item.url}>
 										{item.icon && <item.icon />}

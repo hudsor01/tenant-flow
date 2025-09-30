@@ -82,7 +82,7 @@ export default async function LeasesPage() {
 				/>
 			</div>
 
-			{/* Leases Content */}
+			{/* Content Section */}
 			<div className="px-4 lg:px-6">
 				<div className="flex items-center justify-between mb-6">
 					<div>
