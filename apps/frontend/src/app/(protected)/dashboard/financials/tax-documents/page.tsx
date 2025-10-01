@@ -31,6 +31,7 @@ import { createClient } from '@/utils/supabase/client'
 import type { TaxDocumentsData } from '@repo/shared/types/financial-statements'
 import { CheckCircle, Download, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 export default function TaxDocumentsPage() {
 	const [data, setData] = useState<TaxDocumentsData | null>(null)
@@ -57,7 +58,11 @@ export default function TaxDocumentsPage() {
 				)
 				setData(result)
 			} catch (error) {
-				console.error('Failed to load tax documents:', error)
+				toast.error(
+					error instanceof Error
+						? error.message
+						: 'Failed to load tax documents'
+				)
 			} finally {
 				setLoading(false)
 			}
