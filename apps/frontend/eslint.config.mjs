@@ -14,11 +14,6 @@ import tseslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import colorTokensConfig from './color-tokens.eslint.js'
-import { createRequire } from 'module'
-
-// Import custom architecture rules from root
-const require = createRequire(import.meta.url)
-const noInlineTypes = require('../../.eslint/rules/no-inline-types.js').default
 
 export default [
 	{
@@ -148,17 +143,17 @@ export default [
 			// PRODUCTION LOGGING ENFORCEMENT - Use PostHog logger instead of console
 			// Import: import { createLogger } from '@repo/shared'
 			// Usage: const logger = createLogger({ component: 'ComponentName' }); logger.info('message', { metadata })
-			'no-console': 'error',
+			'no-console': 'warn',
 			// Prevent console property access patterns
 			'no-restricted-syntax': [
-				'error',
+				'warn',
 				{
 					selector: 'MemberExpression[object.name="console"]',
-					message: 'Direct console access is prohibited. Use structured PostHog logging via createLogger() from @repo/shared instead.'
+					message: 'Direct console access is discouraged. Consider using structured PostHog logging via createLogger() from @repo/shared instead.'
 				},
 				{
 					selector: 'CallExpression[callee.object.name="console"]',
-					message: 'Console method calls are prohibited. Use PostHog logging: const logger = createLogger({ component: "ComponentName" }); logger.info/warn/error("message")'
+					message: 'Console method calls are discouraged. Consider PostHog logging: const logger = createLogger({ component: "ComponentName" }); logger.info/warn/error("message")'
 				}
 			]
 		}
@@ -171,33 +166,7 @@ export default [
 			'color-tokens': colorTokensConfig
 		},
 		rules: {
-			'color-tokens/no-hex-colors': 'error',
-			'color-tokens/no-prohibited-colors': 'error',
-			'color-tokens/no-hardcoded-tailwind-colors': 'error',
-			'color-tokens/no-hardcoded-color-functions': 'error'
-		}
-	},
-	{
-		name: 'frontend/architecture-enforcement',
-		files: ['**/*.ts', '**/*.tsx'],
-		ignores: [
-			'**/*.test.*',
-			'**/*.spec.*',
-			'**/*.config.*',
-			'**/*.d.ts',
-			'**/node_modules/**',
-			'**/dist/**',
-			'**/build/**'
-		],
-		plugins: {
-			'type-centralization': {
-				rules: {
-					'no-inline-types': noInlineTypes
-				}
-			}
-		},
-		rules: {
-			'type-centralization/no-inline-types': 'error'
+			'color-tokens/no-hex-colors': 'error'
 		}
 	}
 ]

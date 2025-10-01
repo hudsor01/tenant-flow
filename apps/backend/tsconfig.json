@@ -23,8 +23,7 @@
 		"src/services/base-crud.service.example.ts",
 		"src/services/base-crud.service.test.template.ts",
 		"supabase/functions/**/*",
-		"test/email/**/*",
-		"**/*.template.ts"
+		"test/email/**/*"
 	],
 	"references": [
 		{ "path": "../../packages/shared" },

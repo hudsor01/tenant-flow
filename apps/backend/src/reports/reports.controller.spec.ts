@@ -2,7 +2,15 @@ import { BadRequestException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { ExportService } from './export.service'
+import { GeneratedReportService } from './generated-report.service'
 import { ReportsController } from './reports.controller'
+import { ScheduledReportService } from './scheduled-report.service'
+import { ExecutiveMonthlyTemplate } from './templates/executive-monthly.template'
+import { FinancialPerformanceTemplate } from './templates/financial-performance.template'
+import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
+import { MaintenanceOperationsTemplate } from './templates/maintenance-operations.template'
+import { PropertyPortfolioTemplate } from './templates/property-portfolio.template'
+import { TaxPreparationTemplate } from './templates/tax-preparation.template'
 
 describe('ReportsController', () => {
 	let controller: ReportsController
@@ -21,6 +29,38 @@ describe('ReportsController', () => {
 				{
 					provide: ExportService,
 					useValue: exportService
+				},
+				{
+					provide: GeneratedReportService,
+					useValue: {}
+				},
+				{
+					provide: ScheduledReportService,
+					useValue: {}
+				},
+				{
+					provide: ExecutiveMonthlyTemplate,
+					useValue: {}
+				},
+				{
+					provide: FinancialPerformanceTemplate,
+					useValue: {}
+				},
+				{
+					provide: PropertyPortfolioTemplate,
+					useValue: {}
+				},
+				{
+					provide: LeasePortfolioTemplate,
+					useValue: {}
+				},
+				{
+					provide: MaintenanceOperationsTemplate,
+					useValue: {}
+				},
+				{
+					provide: TaxPreparationTemplate,
+					useValue: {}
 				}
 			]
 		}).compile()

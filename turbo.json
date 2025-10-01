@@ -143,6 +143,7 @@
 
 		// Feature flags (from Doppler)
 		"ENABLE_MOCK_AUTH",
+		"ENABLE_REPORT_SCHEDULER",
 
 		// Platform detection (automatically provided by platforms)
 		"VERCEL",
