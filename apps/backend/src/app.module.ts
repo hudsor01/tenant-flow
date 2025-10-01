@@ -2,13 +2,12 @@ import { Module } from '@nestjs/common'
 // Native NestJS Logger used throughout application
 import { CacheModule } from '@nestjs/cache-manager'
 import { ConfigModule } from '@nestjs/config'
-import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core'
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ThrottlerModule } from '@nestjs/throttler'
 import type { Request } from 'express'
 import { ClsModule } from 'nestjs-cls'
 import { v4 as uuidv4 } from 'uuid'
-import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
 import { AnalyticsModule } from './analytics/analytics.module'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
@@ -25,10 +24,12 @@ import { LeasesModule } from './leases/leases.module'
 import { MaintenanceModule } from './maintenance/maintenance.module'
 import { NotificationsModule } from './notifications/notifications.module'
 import { PropertiesModule } from './properties/properties.module'
+import { ReportsModule } from './reports/reports.module'
 import { RepositoriesModule } from './repositories/repositories.module'
 import { SecurityModule } from './security/security.module'
-import { SharedModule } from './shared/shared.module'
+import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
 import { ServicesModule } from './shared/services/services.module'
+import { SharedModule } from './shared/shared.module'
 import { TenantsModule } from './tenants/tenants.module'
 import { UnitsModule } from './units/units.module'
 import { UsersModule } from './users/users.module'
@@ -103,7 +104,8 @@ import { UsersModule } from './users/users.module'
 		MaintenanceModule,
 		NotificationsModule,
 		UsersModule,
-		SecurityModule
+		SecurityModule,
+		ReportsModule
 	],
 	controllers: [AppController],
 	providers: [

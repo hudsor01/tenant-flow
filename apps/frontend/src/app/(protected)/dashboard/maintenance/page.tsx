@@ -1,17 +1,14 @@
-import { MetricsCard } from '@/components/charts/metrics-card'
 import { MaintenanceActionButtons } from '@/components/maintenance/action-buttons'
 import { CreateMaintenanceDialog } from '@/components/maintenance/create-maintenance-dialog'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
+	Card,
+	CardAction,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
 import {
 	Table,
 	TableBody,
@@ -22,244 +19,276 @@ import {
 } from '@/components/ui/table'
 import { getMaintenancePageData } from '@/lib/api/dashboard-server'
 import { statusClasses } from '@/lib/design-system'
-import {
-	AlertCircle,
-	Calendar,
-	CheckCircle,
-	Clock,
-	DollarSign,
-	Filter,
-	Search,
-	User,
-	Wrench
-} from 'lucide-react'
+import { formatCurrency } from '@/lib/utils'
+import { TrendingDown, TrendingUp, Wrench } from 'lucide-react'
 
 export default async function MaintenancePage() {
 	const { data: maintenanceData, stats } = await getMaintenancePageData()
 
-	// All calculations now done in backend
-	const openRequests = stats.open
-	const inProgress = stats.inProgress
-	const totalCost = stats.totalCost
-	const avgResponseTime =
-		stats.avgResponseTimeHours > 0
-			? `${stats.avgResponseTimeHours.toFixed(1)} hours`
-			: 'N/A'
-
 	return (
-		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-			{/* Page Header - moved to content section */}
-			<div className="flex items-center justify-between px-4 lg:px-6">
-				<div>
-					<h1 className="text-3xl font-bold text-gradient-authority">
-						Maintenance Management
-					</h1>
-					<p className="text-muted-foreground mt-1">
-						Track, manage, and resolve property maintenance requests
-					</p>
-				</div>
-				<div className="flex items-center gap-2">
-					<Button variant="outline" size="sm">
-						<Filter className="size-4 mr-2" />
-						Filter
-					</Button>
-					<CreateMaintenanceDialog />
-				</div>
-			</div>
+		<div className="@container/main flex min-h-screen w-full flex-col">
+			{/* Top Metric Cards Section - Matching Dashboard */}
+			<div
+				className="border-b bg-background"
+				style={{
+					padding: 'var(--dashboard-content-padding)',
+					borderColor: 'var(--color-fill-tertiary)'
+				}}
+			>
+				<div
+					className="mx-auto max-w-[1600px]"
+					style={{
+						paddingTop: 'var(--spacing-4)',
+						paddingBottom: 'var(--spacing-4)'
+					}}
+				>
+					<div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+						{/* Pending Requests */}
+						<Card className="@container/card">
+							<CardHeader>
+								<CardDescription>Pending Requests</CardDescription>
+								<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+									{stats.open}
+								</CardTitle>
+								<CardAction>
+									<Badge variant="outline">
+										{stats.open > 0 ? <TrendingDown /> : <TrendingUp />}
+										{stats.open > 0 ? 'Needs attention' : 'All clear'}
+									</Badge>
+								</CardAction>
+							</CardHeader>
+							<CardFooter className="flex-col items-start gap-1.5 text-sm">
+								<div className="line-clamp-1 flex gap-2 font-medium">
+									{stats.open > 0 ? (
+										<>
+											Action required <TrendingDown className="size-4" />
+										</>
+									) : (
+										<>
+											No pending items <TrendingUp className="size-4" />
+										</>
+									)}
+								</div>
+								<div className="text-muted-foreground">Awaiting assignment</div>
+							</CardFooter>
+						</Card>
 
-			{/* Status Overview Cards */}
-			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
-				<MetricsCard
-					title="Pending Requests"
-					value={`${openRequests}`}
-					description="Awaiting assignment"
-					icon={AlertCircle}
-					colorVariant="warning"
-				/>
+						{/* In Progress */}
+						<Card className="@container/card">
+							<CardHeader>
+								<CardDescription>In Progress</CardDescription>
+								<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+									{stats.inProgress}
+								</CardTitle>
+								<CardAction>
+									<Badge variant="outline">
+										<TrendingUp />
+										Active work
+									</Badge>
+								</CardAction>
+							</CardHeader>
+							<CardFooter className="flex-col items-start gap-1.5 text-sm">
+								<div className="line-clamp-1 flex gap-2 font-medium">
+									Being resolved <TrendingUp className="size-4" />
+								</div>
+								<div className="text-muted-foreground">
+									Currently being worked on
+								</div>
+							</CardFooter>
+						</Card>
 
-				<MetricsCard
-					title="In Progress"
-					value={`${inProgress}`}
-					description="Currently being worked on"
-					icon={Wrench}
-					colorVariant="info"
-				/>
+						{/* Total Cost */}
+						<Card className="@container/card">
+							<CardHeader>
+								<CardDescription>Total Cost</CardDescription>
+								<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+									{formatCurrency(stats.totalCost)}
+								</CardTitle>
+								<CardAction>
+									<Badge variant="outline">
+										<TrendingUp />
+										This month
+									</Badge>
+								</CardAction>
+							</CardHeader>
+							<CardFooter className="flex-col items-start gap-1.5 text-sm">
+								<div className="line-clamp-1 flex gap-2 font-medium">
+									Monthly expenses <TrendingUp className="size-4" />
+								</div>
+								<div className="text-muted-foreground">Maintenance costs</div>
+							</CardFooter>
+						</Card>
 
-				<MetricsCard
-					title="Total Cost"
-					value={`$${totalCost.toLocaleString()}`}
-					description="This month"
-					icon={DollarSign}
-					colorVariant="revenue"
-				/>
-
-				<MetricsCard
-					title="Avg Response"
-					value={avgResponseTime}
-					description="Response time"
-					icon={Clock}
-					colorVariant="warning"
-				/>
-			</div>
-
-			{/* Filters */}
-			<div className="flex flex-col gap-4 px-4 lg:px-6 md:flex-row md:items-center md:justify-between">
-				<div className="flex items-center gap-2">
-					<div className="relative">
-						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground size-4" />
-						<Input placeholder="Search requests..." className="pl-10 w-72" />
+						{/* Avg Response Time */}
+						<Card className="@container/card">
+							<CardHeader>
+								<CardDescription>Avg Response</CardDescription>
+								<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+									{stats.avgResponseTimeHours > 0
+										? `${stats.avgResponseTimeHours.toFixed(1)}h`
+										: 'N/A'}
+								</CardTitle>
+								<CardAction>
+									<Badge variant="outline">
+										{stats.avgResponseTimeHours < 24 ? (
+											<TrendingUp />
+										) : (
+											<TrendingDown />
+										)}
+										{stats.avgResponseTimeHours < 24
+											? 'Fast'
+											: 'Needs improvement'}
+									</Badge>
+								</CardAction>
+							</CardHeader>
+							<CardFooter className="flex-col items-start gap-1.5 text-sm">
+								<div className="line-clamp-1 flex gap-2 font-medium">
+									{stats.avgResponseTimeHours < 24 ? (
+										<>
+											Quick response <TrendingUp className="size-4" />
+										</>
+									) : (
+										<>
+											Could be faster <TrendingDown className="size-4" />
+										</>
+									)}
+								</div>
+								<div className="text-muted-foreground">
+									Average response time
+								</div>
+							</CardFooter>
+						</Card>
 					</div>
-					<Select defaultValue="all">
-						<SelectTrigger className="w-40">
-							<SelectValue placeholder="Priority" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all">All Priorities</SelectItem>
-							<SelectItem value="EMERGENCY">Emergency</SelectItem>
-							<SelectItem value="HIGH">High</SelectItem>
-							<SelectItem value="MEDIUM">Medium</SelectItem>
-							<SelectItem value="LOW">Low</SelectItem>
-						</SelectContent>
-					</Select>
-				</div>
-				<div className="flex items-center gap-2">
-					<Select defaultValue="all">
-						<SelectTrigger className="w-36">
-							<SelectValue placeholder="Status" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all">All Status</SelectItem>
-							<SelectItem value="OPEN">Open</SelectItem>
-							<SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-							<SelectItem value="COMPLETED">Completed</SelectItem>
-							<SelectItem value="CANCELED">Canceled</SelectItem>
-							<SelectItem value="ON_HOLD">On Hold</SelectItem>
-						</SelectContent>
-					</Select>
-					<Select defaultValue="all">
-						<SelectTrigger className="w-40">
-							<SelectValue placeholder="Category" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all">All Categories</SelectItem>
-							<SelectItem value="HVAC">HVAC</SelectItem>
-							<SelectItem value="PLUMBING">Plumbing</SelectItem>
-							<SelectItem value="ELECTRICAL">Electrical</SelectItem>
-							<SelectItem value="APPLIANCE">Appliance</SelectItem>
-							<SelectItem value="STRUCTURAL">Structural</SelectItem>
-							<SelectItem value="GENERAL">General</SelectItem>
-							<SelectItem value="OTHER">Other</SelectItem>
-						</SelectContent>
-					</Select>
 				</div>
 			</div>
 
-			{/* Maintenance Requests List */}
-			<div className="px-4 lg:px-6">
-				<Card className="border shadow-sm">
-					<div className="p-6 border-b">
-						<h2 className="text-xl font-semibold">
-							Active Maintenance Requests
-						</h2>
-						<p className="text-muted-foreground text-sm mt-1">
-							Track and manage all property maintenance requests
-						</p>
-					</div>
-					<div className="p-6">
-						<Table>
-							<TableHeader className="bg-muted/50">
-								<TableRow>
-									<TableHead className="font-semibold">ID</TableHead>
-									<TableHead className="font-semibold">Property</TableHead>
-									<TableHead className="font-semibold">Unit</TableHead>
-									<TableHead className="font-semibold">Category</TableHead>
-									<TableHead className="font-semibold">Priority</TableHead>
-									<TableHead className="font-semibold">Status</TableHead>
-									<TableHead className="font-semibold">Created</TableHead>
-									<TableHead className="font-semibold">Actions</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{maintenanceData.length > 0 ? (
-									maintenanceData.map(request => (
-										<TableRow key={request.id} className="hover:bg-muted/30">
-											<TableCell className="font-medium">
-												{request.id}
-											</TableCell>
-											<TableCell>
-												{request.property?.name || 'No Property'}
-											</TableCell>
-											<TableCell>
-												{request.unitId ? `Unit ${request.unitId}` : 'No Unit'}
-											</TableCell>
-											<TableCell>{request.category || 'No Category'}</TableCell>
-											<TableCell>{request.priority || 'No Priority'}</TableCell>
-											<TableCell>
-												<Badge
-													variant="outline"
-													className={statusClasses(request.status || 'UNKNOWN')}
-												>
-													{request.status || 'Unknown'}
-												</Badge>
-											</TableCell>
-											<TableCell className="text-sm text-muted-foreground">
-												{request.createdAt
-													? new Date(request.createdAt).toLocaleDateString()
-													: 'No date'}
-											</TableCell>
-											<TableCell>
-												<MaintenanceActionButtons maintenance={request} />
-											</TableCell>
+			{/* Main Content Section - Matching Dashboard */}
+			<div
+				className="flex-1"
+				style={{
+					padding: 'var(--dashboard-content-padding)',
+					paddingTop: 'var(--dashboard-section-gap)',
+					paddingBottom: 'var(--dashboard-section-gap)'
+				}}
+			>
+				<div
+					className="mx-auto max-w-[1600px] space-y-8"
+					style={
+						{
+							'--space-y': 'var(--dashboard-section-gap)'
+						} as React.CSSProperties
+					}
+				>
+					{/* Maintenance Data Table */}
+					<Card>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+							<div className="space-y-1">
+								<CardTitle>Active Maintenance Requests</CardTitle>
+								<CardDescription>
+									Track and manage all property maintenance requests
+								</CardDescription>
+							</div>
+							<CreateMaintenanceDialog />
+						</CardHeader>
+						<div className="px-6 pb-6">
+							<div className="rounded-md border">
+								<Table>
+									<TableHeader className="bg-muted/50">
+										<TableRow>
+											<TableHead className="font-semibold">ID</TableHead>
+											<TableHead className="font-semibold">Property</TableHead>
+											<TableHead className="font-semibold">Unit</TableHead>
+											<TableHead className="font-semibold">Category</TableHead>
+											<TableHead className="font-semibold">Priority</TableHead>
+											<TableHead className="font-semibold">Status</TableHead>
+											<TableHead className="font-semibold">Created</TableHead>
+											<TableHead className="font-semibold">Actions</TableHead>
 										</TableRow>
-									))
-								) : (
-									<TableRow>
-										<TableCell colSpan={8} className="h-24 text-center">
-											<div className="flex flex-col items-center gap-2">
-												<Wrench className="size-12 text-muted-foreground/50" />
-												<p className="text-muted-foreground">
-													No maintenance requests found.
-												</p>
-												<CreateMaintenanceDialog />
-											</div>
-										</TableCell>
-									</TableRow>
-								)}
-							</TableBody>
-						</Table>
-					</div>
-				</Card>
-			</div>
+									</TableHeader>
+									<TableBody>
+										{maintenanceData.length > 0 ? (
+											maintenanceData.map(request => (
+												<TableRow
+													key={request.id}
+													className="hover:bg-muted/30"
+												>
+													<TableCell className="font-medium">
+														{request.id}
+													</TableCell>
+													<TableCell>
+														{request.property?.name || 'No Property'}
+													</TableCell>
+													<TableCell>
+														{request.unitId
+															? `Unit ${request.unitId}`
+															: 'No Unit'}
+													</TableCell>
+													<TableCell>
+														{request.category || 'No Category'}
+													</TableCell>
+													<TableCell>
+														{request.priority || 'No Priority'}
+													</TableCell>
+													<TableCell>
+														<Badge
+															variant="outline"
+															className={statusClasses(
+																request.status || 'UNKNOWN'
+															)}
+														>
+															{request.status || 'Unknown'}
+														</Badge>
+													</TableCell>
+													<TableCell className="text-sm text-muted-foreground">
+														{request.createdAt
+															? new Date(request.createdAt).toLocaleDateString()
+															: 'No date'}
+													</TableCell>
+													<TableCell>
+														<MaintenanceActionButtons maintenance={request} />
+													</TableCell>
+												</TableRow>
+											))
+										) : (
+											<TableRow>
+												<TableCell colSpan={8} className="h-96">
+													<div className="flex flex-col items-center justify-center gap-4 text-center">
+														<Wrench className="size-12 text-muted-foreground" />
+														<div className="space-y-2">
+															<h3 className="text-lg font-semibold">
+																No maintenance requests found
+															</h3>
+															<p className="text-sm text-muted-foreground">
+																Get started by creating your first maintenance
+																request
+															</p>
+														</div>
+														<CreateMaintenanceDialog />
+													</div>
+												</TableCell>
+											</TableRow>
+										)}
+									</TableBody>
+								</Table>
+							</div>
+						</div>
+					</Card>
 
-			{/* Quick Actions */}
-			<div className="px-4 lg:px-6">
-				<Card className="p-6 border shadow-sm">
-					<h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-						<CreateMaintenanceDialog />
-						<Button
-							variant="outline"
-							className="h-auto p-4 flex flex-col items-center gap-2"
-						>
-							<Calendar className="size-6" />
-							<span>Schedule Inspection</span>
-						</Button>
-						<Button
-							variant="outline"
-							className="h-auto p-4 flex flex-col items-center gap-2"
-						>
-							<User className="size-6" />
-							<span>Assign Technician</span>
-						</Button>
-						<Button
-							variant="outline"
-							className="h-auto p-4 flex flex-col items-center gap-2"
-						>
-							<CheckCircle className="size-6" />
-							<span>Bulk Update</span>
-						</Button>
-					</div>
-				</Card>
+					{/* Quick Actions Section - Matching Dashboard */}
+					<Card>
+						<CardHeader>
+							<CardTitle>Quick Actions</CardTitle>
+							<CardDescription>
+								Common maintenance management tasks
+							</CardDescription>
+						</CardHeader>
+						<div className="p-6 pt-0">
+							<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+								<CreateMaintenanceDialog />
+							</div>
+						</div>
+					</Card>
+				</div>
 			</div>
 		</div>
 	)

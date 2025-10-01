@@ -1,26 +1,51 @@
 'use client'
 
-import { Mail, Plus, type LucideIcon } from 'lucide-react'
+import { ChevronDown, Mail, Plus, type LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import * as React from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger
+} from '@/components/ui/collapsible'
+import {
 	SidebarGroup,
 	SidebarGroupContent,
+	SidebarGroupLabel,
 	SidebarMenu,
 	SidebarMenuButton,
-	SidebarMenuItem
+	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarMenuSubButton,
+	SidebarMenuSubItem
 } from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 
-export function NavMain({
-	items
-}: {
-	items: {
+type NavMainItem = {
+	title: string
+	url: string
+	icon?: LucideIcon
+	children?: {
 		title: string
 		url: string
 		icon?: LucideIcon
 	}[]
+}
+
+const ACTIVE_ITEM_CLASSES =
+	'data-[active=true]:bg-[oklch(0.95_0.03_240)] data-[active=true]:text-primary data-[active=true]:shadow-none'
+const ACTIVE_SUB_ITEM_CLASSES =
+	'data-[active=true]:bg-[oklch(0.95_0.03_240)] data-[active=true]:text-primary'
+
+export function NavMain({
+	items,
+	label = 'Management'
+}: {
+	items: NavMainItem[]
+	label?: string
 }) {
 	const pathname = usePathname()
 
@@ -46,20 +71,33 @@ export function NavMain({
 						</Button>
 					</SidebarMenuItem>
 				</SidebarMenu>
+				{label ? (
+					<SidebarGroupLabel className="text-muted-foreground">
+						{label}
+					</SidebarGroupLabel>
+				) : null}
 				<SidebarMenu>
 					{items.map(item => {
-						const isActive = pathname === item.url
+						if (item.children && item.children.length > 0) {
+							return (
+								<CollapsibleNavItem
+									key={item.title}
+									item={item}
+									pathname={pathname}
+								/>
+							)
+						}
+
 						return (
 							<SidebarMenuItem key={item.title}>
 								<SidebarMenuButton
 									tooltip={item.title}
 									asChild
-									isActive={isActive}
-									className={
-										isActive
-											? 'border-l-2 border-primary/70 text-primary bg-primary/5'
-											: ''
-									}
+									isActive={pathname === item.url}
+									className={cn(
+										'justify-start gap-2 transition-colors',
+										ACTIVE_ITEM_CLASSES
+									)}
 								>
 									<Link href={item.url}>
 										{item.icon && <item.icon />}
@@ -72,5 +110,92 @@ export function NavMain({
 				</SidebarMenu>
 			</SidebarGroupContent>
 		</SidebarGroup>
+	)
+}
+
+function CollapsibleNavItem({
+	item,
+	pathname
+}: {
+	item: NavMainItem
+	pathname: string
+}) {
+	const children = React.useMemo(() => item.children ?? [], [item.children])
+
+	const hasMatchingChild = React.useMemo(
+		() =>
+			children.some(
+				child => pathname === child.url || pathname.startsWith(`${child.url}/`)
+			),
+		[pathname, children]
+	)
+	const isParentActive = React.useMemo(
+		() => pathname === item.url || pathname.startsWith(`${item.url}/`),
+		[pathname, item.url]
+	)
+	const isActive = hasMatchingChild || isParentActive
+	const [open, setOpen] = React.useState(isActive)
+
+	React.useEffect(() => {
+		if (isActive) {
+			setOpen(true)
+		}
+	}, [isActive])
+
+	if (children.length === 0) {
+		return null
+	}
+
+	return (
+		<SidebarMenuItem>
+			<Collapsible open={open} onOpenChange={setOpen} className="w-full">
+				<CollapsibleTrigger asChild>
+					<SidebarMenuButton
+						tooltip={item.title}
+						isActive={isActive}
+						className={cn(
+							'justify-start gap-2 transition-colors',
+							ACTIVE_ITEM_CLASSES,
+							'data-[state=open]:bg-[oklch(0.97_0.02_240)]'
+						)}
+					>
+						<div className="flex w-full items-center justify-between">
+							<span className="flex items-center gap-2">
+								{item.icon && <item.icon />}
+								<span>{item.title}</span>
+							</span>
+							<ChevronDown
+								className={cn(
+									'size-4 shrink-0 transition-transform duration-200',
+									open ? 'rotate-180' : 'rotate-0'
+								)}
+							/>
+						</div>
+					</SidebarMenuButton>
+				</CollapsibleTrigger>
+				<CollapsibleContent>
+					<SidebarMenuSub className="mt-1">
+						{children.map(child => {
+							const childIsActive =
+								pathname === child.url || pathname.startsWith(`${child.url}/`)
+							return (
+								<SidebarMenuSubItem key={child.title}>
+									<SidebarMenuSubButton
+										asChild
+										isActive={childIsActive}
+										className={cn('transition-colors', ACTIVE_SUB_ITEM_CLASSES)}
+									>
+										<Link href={child.url}>
+											{child.icon && <child.icon />}
+											<span>{child.title}</span>
+										</Link>
+									</SidebarMenuSubButton>
+								</SidebarMenuSubItem>
+							)
+						})}
+					</SidebarMenuSub>
+				</CollapsibleContent>
+			</Collapsible>
+		</SidebarMenuItem>
 	)
 }

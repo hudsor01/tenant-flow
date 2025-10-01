@@ -164,6 +164,28 @@ export const safeDom = {
 	},
 
 	/**
+	 * Append child to document body with validation
+	 */
+	appendToBody(element: HTMLElement): void {
+		if (typeof document === 'undefined') return
+		if (!element) return
+
+		document.body.appendChild(element)
+	},
+
+	/**
+	 * Remove element from document body
+	 */
+	removeFromBody(element: HTMLElement): void {
+		if (typeof document === 'undefined') return
+		if (!element) return
+
+		if (element.parentNode === document.body) {
+			document.body.removeChild(element)
+		}
+	},
+
+	/**
 	 * Query selector with validation
 	 */
 	querySelector(selector: string): Element | null {

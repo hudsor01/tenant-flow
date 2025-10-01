@@ -1,15 +1,14 @@
-import { MetricsCard } from '@/components/charts/metrics-card'
-import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
 import { CreatePropertyDialog } from '@/components/properties/create-property-dialog'
 import { PropertyEditViewButtons } from '@/components/properties/edit-button'
 import { Badge } from '@/components/ui/badge'
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
+	Card,
+	CardAction,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
 import {
 	Table,
 	TableBody,
@@ -19,183 +18,286 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { getPropertiesPageData } from '@/lib/api/dashboard-server'
+import { formatCurrency, formatPercentage } from '@/lib/utils'
 import type { PropertyWithUnits } from '@repo/shared/types/relations'
-import { Building, DollarSign, TrendingUp } from 'lucide-react'
+import { Building, TrendingDown, TrendingUp } from 'lucide-react'
 
-export default async function PropertiesPage({
-	searchParams
-}: {
-	searchParams: Promise<{ status?: string }>
-}) {
-	const { status } = await searchParams
-	const { properties, stats } = await getPropertiesPageData(status)
+export default async function PropertiesPage() {
+	const { properties, stats } = await getPropertiesPageData()
 
 	return (
-		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-			{/* Metrics Cards */}
-			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
-				<MetricsCard
-					title="Total Properties"
-					value={stats.totalProperties ?? 0}
-					description="Active portfolio properties"
-					icon={Building}
-					colorVariant="property"
-				/>
+		<div className="@container/main flex min-h-screen w-full flex-col">
+			{/* Top Metric Cards Section - Matching Dashboard */}
+			<div
+				className="border-b bg-background"
+				style={{
+					padding: 'var(--dashboard-content-padding)',
+					borderColor: 'var(--color-fill-tertiary)'
+				}}
+			>
+				<div
+					className="mx-auto max-w-[1600px]"
+					style={{
+						paddingTop: 'var(--spacing-4)',
+						paddingBottom: 'var(--spacing-4)'
+					}}
+				>
+					<div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+						{/* Total Properties */}
+						<Card className="@container/card">
+							<CardHeader>
+								<CardDescription>Total Properties</CardDescription>
+								<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+									{stats.totalProperties ?? 0}
+								</CardTitle>
+								<CardAction>
+									<Badge variant="outline">
+										<TrendingUp />
+										Portfolio growing
+									</Badge>
+								</CardAction>
+							</CardHeader>
+							<CardFooter className="flex-col items-start gap-1.5 text-sm">
+								<div className="line-clamp-1 flex gap-2 font-medium">
+									Active properties <TrendingUp className="size-4" />
+								</div>
+								<div className="text-muted-foreground">
+									Properties under management
+								</div>
+							</CardFooter>
+						</Card>
 
-				<MetricsCard
-					title="Occupancy Rate"
-					value={`${(stats.occupancyRate ?? 0).toFixed(1)}%`}
-					description={`${stats.occupiedUnits ?? 0} of ${stats.totalUnits ?? 0} units occupied`}
-					status="Stable occupancy rate"
-					statusIcon={TrendingUp}
-					icon={TrendingUp}
-					colorVariant="success"
-				/>
+						{/* Occupancy Rate */}
+						<Card className="@container/card">
+							<CardHeader>
+								<CardDescription>Occupancy Rate</CardDescription>
+								<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+									{(stats.occupancyRate ?? 0).toFixed(1)}%
+								</CardTitle>
+								<CardAction>
+									<Badge variant="outline">
+										{stats.occupancyRate >= 90 ? (
+											<TrendingUp />
+										) : (
+											<TrendingDown />
+										)}
+										{stats.occupancyRate >= 90 ? 'Excellent' : 'Good'}
+									</Badge>
+								</CardAction>
+							</CardHeader>
+							<CardFooter className="flex-col items-start gap-1.5 text-sm">
+								<div className="line-clamp-1 flex gap-2 font-medium">
+									{stats.occupancyRate >= 90 ? (
+										<>
+											Strong performance <TrendingUp className="size-4" />
+										</>
+									) : (
+										<>
+											Room for improvement <TrendingDown className="size-4" />
+										</>
+									)}
+								</div>
+								<div className="text-muted-foreground">
+									{stats.occupiedUnits ?? 0} of {stats.totalUnits ?? 0} units
+									occupied
+								</div>
+							</CardFooter>
+						</Card>
 
-				<MetricsCard
-					title="Monthly Revenue"
-					value={new Intl.NumberFormat('en-US', {
-						style: 'currency',
-						currency: 'USD',
-						maximumFractionDigits: 0
-					}).format(stats.totalRevenue ?? 0)}
-					description="Total rent from all units"
-					icon={DollarSign}
-					colorVariant="revenue"
-				/>
+						{/* Monthly Revenue */}
+						<Card className="@container/card">
+							<CardHeader>
+								<CardDescription>Monthly Revenue</CardDescription>
+								<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+									{formatCurrency(stats.totalRevenue ?? 0)}
+								</CardTitle>
+								<CardAction>
+									<Badge variant="outline">
+										<TrendingUp />
+										{formatPercentage(5.2)}
+									</Badge>
+								</CardAction>
+							</CardHeader>
+							<CardFooter className="flex-col items-start gap-1.5 text-sm">
+								<div className="line-clamp-1 flex gap-2 font-medium">
+									Trending up <TrendingUp className="size-4" />
+								</div>
+								<div className="text-muted-foreground">
+									Total rent from all units
+								</div>
+							</CardFooter>
+						</Card>
 
-				<MetricsCard
-					title="Vacant Units"
-					value={stats.vacantUnits ?? 0}
-					description="Available for lease"
-					icon={Building}
-					colorVariant="info"
-				/>
-			</div>
-
-			{/* Properties Content */}
-			<div className="px-4 lg:px-6">
-				<div className="flex items-center justify-between mb-6">
-					<div>
-						<h1 className="text-3xl font-bold text-gradient-authority mb-2">
-							Properties Portfolio
-						</h1>
-						<p className="text-muted-foreground">
-							Manage your property portfolio and track performance
-						</p>
-					</div>
-
-					<div className="flex items-center gap-2">
-						<Select defaultValue={status ?? 'ALL'}>
-							<SelectTrigger className="w-44">
-								<SelectValue placeholder="Filter status" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="ALL">All</SelectItem>
-								<SelectItem value="ACTIVE">Active</SelectItem>
-								<SelectItem value="UNDER_CONTRACT">Under Contract</SelectItem>
-								<SelectItem value="SOLD">Sold</SelectItem>
-							</SelectContent>
-						</Select>
+						{/* Vacant Units */}
+						<Card className="@container/card">
+							<CardHeader>
+								<CardDescription>Vacant Units</CardDescription>
+								<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+									{stats.vacantUnits ?? 0}
+								</CardTitle>
+								<CardAction>
+									<Badge variant="outline">
+										{stats.vacantUnits === 0 ? (
+											<TrendingUp />
+										) : (
+											<TrendingDown />
+										)}
+										{stats.vacantUnits === 0 ? 'Fully leased' : 'Available'}
+									</Badge>
+								</CardAction>
+							</CardHeader>
+							<CardFooter className="flex-col items-start gap-1.5 text-sm">
+								<div className="line-clamp-1 flex gap-2 font-medium">
+									Units available{' '}
+									{stats.vacantUnits > 0 ? (
+										<TrendingDown className="size-4" />
+									) : (
+										<TrendingUp className="size-4" />
+									)}
+								</div>
+								<div className="text-muted-foreground">Ready for lease</div>
+							</CardFooter>
+						</Card>
 					</div>
 				</div>
+			</div>
 
-				<div className="space-y-6">
-					<div className="flex items-center justify-between">
-						<div>
-							<h2 className="text-xl font-semibold">Portfolio Overview</h2>
-							<p className="text-muted-foreground mt-1">
-								{properties.length} properties in your portfolio
-							</p>
-						</div>
-						<CreatePropertyDialog />
-					</div>
-
-					{/* Interactive Chart */}
-					<ChartAreaInteractive className="mb-6" />
-
-					<div className="rounded-md border bg-card shadow-sm">
-						<Table className="dashboard-table">
-							<TableHeader className="bg-muted/50">
-								<TableRow>
-									<TableHead className="font-semibold">Property Name</TableHead>
-									<TableHead className="font-semibold">Address</TableHead>
-									<TableHead className="font-semibold">Type</TableHead>
-									<TableHead className="font-semibold">Status</TableHead>
-									<TableHead className="font-semibold">Units</TableHead>
-									<TableHead className="font-semibold text-right">
-										Created
-									</TableHead>
-									<TableHead className="font-semibold">Actions</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{properties?.length ? (
-									properties.map((property: PropertyWithUnits) => {
-										// All metrics come pre-calculated from backend
-										// NO CLIENT-SIDE CALCULATIONS
-										return (
-											<TableRow key={property.id} className="hover:bg-muted/30">
-												<TableCell className="font-medium">
-													{property.name}
-												</TableCell>
-												<TableCell className="text-muted-foreground">
-													{property.address}
-												</TableCell>
-												<TableCell>
-													<Badge variant="outline" className="capitalize">
-														{property.propertyType
-															?.toLowerCase()
-															.replace('_', ' ')}
-													</Badge>
-												</TableCell>
-												<TableCell>
-													<Badge
-														style={{
-															backgroundColor: 'var(--chart-1)',
-															color: 'hsl(var(--primary-foreground))'
-														}}
-													>
-														Active
-													</Badge>
-												</TableCell>
-												<TableCell>
-													<div className="flex items-center gap-2">
-														<span className="font-medium">
-															{property.occupiedUnits}/{property.totalUnits}
-														</span>
-														<Badge variant="secondary" className="text-xs">
-															{property.occupancyRate?.toFixed(0) ?? '0'}%
+			{/* Main Content Section - Matching Dashboard */}
+			<div
+				className="flex-1"
+				style={{
+					padding: 'var(--dashboard-content-padding)',
+					paddingTop: 'var(--dashboard-section-gap)',
+					paddingBottom: 'var(--dashboard-section-gap)'
+				}}
+			>
+				<div
+					className="mx-auto max-w-[1600px] space-y-8"
+					style={
+						{
+							'--space-y': 'var(--dashboard-section-gap)'
+						} as React.CSSProperties
+					}
+				>
+					{/* Properties Data Table */}
+					<Card>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+							<div className="space-y-1">
+								<CardTitle>Properties Portfolio</CardTitle>
+								<CardDescription>
+									Manage your property portfolio and track performance
+								</CardDescription>
+							</div>
+							<CreatePropertyDialog />
+						</CardHeader>
+						<div className="px-6 pb-6">
+							<div className="rounded-md border">
+								<Table>
+									<TableHeader className="bg-muted/50">
+										<TableRow>
+											<TableHead className="font-semibold">
+												Property Name
+											</TableHead>
+											<TableHead className="font-semibold">Address</TableHead>
+											<TableHead className="font-semibold">Type</TableHead>
+											<TableHead className="font-semibold">Status</TableHead>
+											<TableHead className="font-semibold">Units</TableHead>
+											<TableHead className="font-semibold text-right">
+												Created
+											</TableHead>
+											<TableHead className="font-semibold">Actions</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{properties?.length ? (
+											properties.map((property: PropertyWithUnits) => (
+												<TableRow
+													key={property.id}
+													className="hover:bg-muted/30"
+												>
+													<TableCell className="font-medium">
+														{property.name}
+													</TableCell>
+													<TableCell className="text-muted-foreground">
+														{property.address}
+													</TableCell>
+													<TableCell>
+														<Badge variant="outline" className="capitalize">
+															{property.propertyType
+																?.toLowerCase()
+																.replace('_', ' ')}
 														</Badge>
+													</TableCell>
+													<TableCell>
+														<Badge
+															style={{
+																backgroundColor: 'var(--chart-1)',
+																color: 'hsl(var(--primary-foreground))'
+															}}
+														>
+															Active
+														</Badge>
+													</TableCell>
+													<TableCell>
+														<div className="flex items-center gap-2">
+															<span className="font-medium">
+																{property.occupiedUnits}/{property.totalUnits}
+															</span>
+															<Badge variant="secondary" className="text-xs">
+																{property.occupancyRate?.toFixed(0) ?? '0'}%
+															</Badge>
+														</div>
+													</TableCell>
+													<TableCell className="text-right text-muted-foreground">
+														{property.createdAt
+															? new Date(
+																	property.createdAt
+																).toLocaleDateString()
+															: '—'}
+													</TableCell>
+													<TableCell>
+														<PropertyEditViewButtons property={property} />
+													</TableCell>
+												</TableRow>
+											))
+										) : (
+											<TableRow>
+												<TableCell colSpan={7} className="h-96">
+													<div className="flex flex-col items-center justify-center gap-4 text-center">
+														<Building className="size-12 text-muted-foreground" />
+														<div className="space-y-2">
+															<h3 className="text-lg font-semibold">
+																No properties found
+															</h3>
+															<p className="text-sm text-muted-foreground">
+																Get started by adding your first property
+															</p>
+														</div>
+														<CreatePropertyDialog />
 													</div>
 												</TableCell>
-												<TableCell className="text-right text-muted-foreground">
-													{property.createdAt
-														? new Date(property.createdAt).toLocaleDateString()
-														: '—'}
-												</TableCell>
-												<TableCell>
-													<PropertyEditViewButtons property={property} />
-												</TableCell>
 											</TableRow>
-										)
-									})
-								) : (
-									<TableRow>
-										<TableCell colSpan={7} className="h-24 text-center">
-											<div className="flex flex-col items-center gap-2">
-												<Building className="size-12 text-muted-foreground/50" />
-												<p className="text-muted-foreground">
-													No properties found.
-												</p>
-												<CreatePropertyDialog />
-											</div>
-										</TableCell>
-									</TableRow>
-								)}
-							</TableBody>
-						</Table>
-					</div>
+										)}
+									</TableBody>
+								</Table>
+							</div>
+						</div>
+					</Card>
+
+					{/* Quick Actions Section - Matching Dashboard */}
+					<Card>
+						<CardHeader>
+							<CardTitle>Quick Actions</CardTitle>
+							<CardDescription>
+								Common property management tasks
+							</CardDescription>
+						</CardHeader>
+						<div className="p-6 pt-0">
+							<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+								<CreatePropertyDialog />
+							</div>
+						</div>
+					</Card>
 				</div>
 			</div>
 		</div>
