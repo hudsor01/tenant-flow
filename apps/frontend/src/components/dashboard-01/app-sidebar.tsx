@@ -3,10 +3,14 @@
 import {
 	BarChart3,
 	Building2,
-	FileText,
+	CircleDollarSign,
+	ClipboardList,
 	Home,
+	LayoutDashboard,
+	LineChart,
 	PieChart,
 	Settings,
+	TrendingUp,
 	Users,
 	Wrench,
 	type LucideIcon
@@ -33,6 +37,11 @@ const navigation: {
 		title: string
 		url: string
 		icon?: LucideIcon
+		children?: {
+			title: string
+			url: string
+			icon?: LucideIcon
+		}[]
 	}[]
 	navSecondary: {
 		title: string
@@ -64,7 +73,7 @@ const navigation: {
 		{
 			title: 'Leases',
 			url: '/dashboard/leases',
-			icon: FileText
+			icon: ClipboardList
 		},
 		{
 			title: 'Maintenance',
@@ -74,7 +83,39 @@ const navigation: {
 		{
 			title: 'Analytics',
 			url: '/dashboard/analytics',
-			icon: BarChart3
+			icon: BarChart3,
+			children: [
+				{
+					title: 'Overview',
+					url: '/dashboard/analytics/overview',
+					icon: LayoutDashboard
+				},
+				{
+					title: 'Financial Analytics',
+					url: '/dashboard/analytics/financial',
+					icon: CircleDollarSign
+				},
+				{
+					title: 'Property Performance',
+					url: '/dashboard/analytics/property-performance',
+					icon: TrendingUp
+				},
+				{
+					title: 'Lease Analytics',
+					url: '/dashboard/analytics/leases',
+					icon: ClipboardList
+				},
+				{
+					title: 'Maintenance Insights',
+					url: '/dashboard/analytics/maintenance',
+					icon: Wrench
+				},
+				{
+					title: 'Occupancy Trends',
+					url: '/dashboard/analytics/occupancy',
+					icon: LineChart
+				}
+			]
 		}
 	],
 	navSecondary: [
@@ -93,7 +134,7 @@ const navigation: {
 		{
 			name: 'Lease Template',
 			url: '/dashboard/documents/lease-template',
-			icon: FileText
+			icon: ClipboardList
 		}
 	]
 }
