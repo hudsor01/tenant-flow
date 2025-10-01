@@ -1,11 +1,3 @@
-import type { User } from '@supabase/supabase-js'
-import type {
-	Property,
-	Unit,
-	Tenant,
-	Lease,
-	MaintenanceRequest
-} from '@repo/shared/types/supabase'
 import type {
 	CreatePropertyRequest,
 	CreateTenantRequest,
@@ -19,7 +11,15 @@ import type {
 	TenantStats,
 	UnitStats
 } from '@repo/shared/types/core'
+import type {
+	Lease,
+	MaintenanceRequest,
+	Property,
+	Tenant,
+	Unit
+} from '@repo/shared/types/supabase'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import type { User } from '@supabase/supabase-js'
 
 type DatabaseUser = Database['public']['Tables']['User']['Row']
 
@@ -127,6 +127,11 @@ export function createMockLeaseStats(
 		active: 20,
 		expired: 3,
 		expiringSoon: 2,
+		expiringLeases: 2,
+		terminated: 1,
+		totalMonthlyRent: 48000,
+		averageRent: 2400,
+		totalSecurityDeposits: 12000,
 		...overrides
 	}
 }
@@ -248,7 +253,9 @@ export function createMockUnit(overrides?: Partial<Unit>): Unit {
 		id: 'unit-' + Math.random().toString(36).substr(2, 9),
 		propertyId: overrides?.propertyId || 'property-123',
 		unitNumber: overrides?.unitNumber || '101',
-		status: (overrides?.status as Database['public']['Enums']['UnitStatus']) || 'OCCUPIED',
+		status:
+			(overrides?.status as Database['public']['Enums']['UnitStatus']) ||
+			'OCCUPIED',
 		rent: overrides?.rent || 1500,
 		bedrooms: overrides?.bedrooms || 2,
 		bathrooms: overrides?.bathrooms || 1,
@@ -283,28 +290,38 @@ export function createMockLease(overrides?: Partial<Lease>): Lease {
 		unitId: overrides?.unitId || 'unit-123',
 		tenantId: overrides?.tenantId || 'tenant-123',
 		startDate: overrides?.startDate || new Date().toISOString(),
-		endDate: overrides?.endDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+		endDate:
+			overrides?.endDate ||
+			new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
 		rentAmount: overrides?.rentAmount || 1500,
 		monthlyRent: overrides?.monthlyRent || 1500,
 		securityDeposit: overrides?.securityDeposit || 1500,
 		propertyId: overrides?.propertyId || null,
 		terms: overrides?.terms || null,
-		status: (overrides?.status as Database['public']['Enums']['LeaseStatus']) || 'ACTIVE',
+		status:
+			(overrides?.status as Database['public']['Enums']['LeaseStatus']) ||
+			'ACTIVE',
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 		...overrides
 	}
 }
 
-export function createMockMaintenanceRequest(overrides?: Partial<MaintenanceRequest>): MaintenanceRequest {
+export function createMockMaintenanceRequest(
+	overrides?: Partial<MaintenanceRequest>
+): MaintenanceRequest {
 	return {
 		id: 'maintenance-' + Math.random().toString(36).substr(2, 9),
 		unitId: overrides?.unitId || 'unit-123',
 		title: overrides?.title || 'Fix leak',
 		description: overrides?.description || 'Urgent leak repair needed',
-		priority: overrides?.priority || ('HIGH' as Database['public']['Enums']['Priority']),
+		priority:
+			overrides?.priority ||
+			('HIGH' as Database['public']['Enums']['Priority']),
 		category: overrides?.category || null,
-		status: (overrides?.status as Database['public']['Enums']['RequestStatus']) || 'OPEN',
+		status:
+			(overrides?.status as Database['public']['Enums']['RequestStatus']) ||
+			'OPEN',
 		allowEntry: overrides?.allowEntry || false,
 		actualCost: overrides?.actualCost || null,
 		assignedTo: overrides?.assignedTo || null,
