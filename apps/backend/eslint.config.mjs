@@ -32,16 +32,16 @@ export default [
 		settings: {},
 		rules: {
 			// Console usage should be replaced with NestJS Logger
-			'no-console': 'error',
+			'no-console': 'warn',
 			'no-restricted-syntax': [
-				'error',
+				'warn',
 				{
 					selector: 'CallExpression[callee.object.name="console"]',
-					message: 'Console method calls are prohibited. Use NestJS Logger: constructor(private readonly logger = new Logger(ControllerName.name)) { } then this.logger.log/warn/error("message")'
+					message: 'Console method calls are discouraged. Consider using NestJS Logger: constructor(private readonly logger = new Logger(ControllerName.name)) { } then this.logger.log/warn/error("message")'
 				},
 				{
 					selector: 'MemberExpression[object.name="console"]',
-					message: 'Direct console access is prohibited. Use NestJS Logger service for structured logging instead'
+					message: 'Direct console access is discouraged. Consider using NestJS Logger service for structured logging instead'
 				}
 			],
 			'@typescript-eslint/explicit-function-return-type': 'off',

@@ -3,8 +3,11 @@
 import {
 	BarChart3,
 	Building2,
+	Calendar,
 	CircleDollarSign,
 	ClipboardList,
+	FileText,
+	FolderOpen,
 	Home,
 	LayoutDashboard,
 	LineChart,
@@ -116,14 +119,31 @@ const navigation: {
 					icon: LineChart
 				}
 			]
-		}
-	],
-	navSecondary: [
+		},
 		{
 			title: 'Reports',
 			url: '/dashboard/reports',
-			icon: PieChart
-		},
+			icon: FileText,
+			children: [
+				{
+					title: 'Generate Reports',
+					url: '/dashboard/reports/generate',
+					icon: PieChart
+				},
+				{
+					title: 'Report Library',
+					url: '/dashboard/reports/library',
+					icon: FolderOpen
+				},
+				{
+					title: 'Schedule Reports',
+					url: '/dashboard/reports/schedule',
+					icon: Calendar
+				}
+			]
+		}
+	],
+	navSecondary: [
 		{
 			title: 'Settings',
 			url: '/dashboard/settings',
