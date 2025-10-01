@@ -58,7 +58,7 @@ describe('LeaseAnalyticsController', () => {
 		const request = createRequest()
 		supabase.getUser.mockResolvedValue({ id: 'user-77' })
 		const payload = [{ leaseId: 'lease-1' }]
-		service.getLeasesWithFinancialAnalytics.mockResolvedValue(payload)
+		service.getLeasesWithFinancialAnalytics!.mockResolvedValue(payload)
 
 		const response = await controller.getLeaseAnalytics(request as Request)
 
@@ -77,7 +77,7 @@ describe('LeaseAnalyticsController', () => {
 		const request = { ...createRequest(), path: '/analytics/lease-summary' }
 		supabase.getUser.mockResolvedValue({ id: 'user-77' })
 		const summary = { totalLeases: 12 }
-		service.getLeaseFinancialSummary.mockResolvedValue(summary)
+		service.getLeaseFinancialSummary!.mockResolvedValue(summary)
 
 		const response = await controller.getLeaseSummary(request as Request)
 
@@ -94,7 +94,7 @@ describe('LeaseAnalyticsController', () => {
 		const request = { ...createRequest(), path: '/analytics/lease-lifecycle' }
 		supabase.getUser.mockResolvedValue({ id: 'user-77' })
 		const lifecycle = [{ period: '2024-01' }]
-		service.getLeaseLifecycleData.mockResolvedValue(lifecycle)
+		service.getLeaseLifecycleData!.mockResolvedValue(lifecycle)
 
 		const response = await controller.getLeaseLifecycle(request as Request)
 
@@ -114,7 +114,7 @@ describe('LeaseAnalyticsController', () => {
 		}
 		supabase.getUser.mockResolvedValue({ id: 'user-77' })
 		const status = [{ status: 'Active', count: 10 }]
-		service.getLeaseStatusBreakdown.mockResolvedValue(status)
+		service.getLeaseStatusBreakdown!.mockResolvedValue(status)
 
 		const response = await controller.getLeaseStatusBreakdown(
 			request as Request
@@ -133,7 +133,7 @@ describe('LeaseAnalyticsController', () => {
 		const request = { ...createRequest(), path: '/analytics/lease/page-data' }
 		supabase.getUser.mockResolvedValue({ id: 'user-77' })
 		const pageData = { metrics: { totalLeases: 12 } }
-		service.getLeaseAnalyticsPageData.mockResolvedValue(pageData)
+		service.getLeaseAnalyticsPageData!.mockResolvedValue(pageData)
 
 		const response = await controller.getLeasePageData(request as Request)
 

@@ -56,7 +56,7 @@ describe('OccupancyTrendsController', () => {
 		const request = createRequest()
 		supabase.getUser.mockResolvedValue({ id: 'user-12' })
 		const payload = [{ period: '2024-01' }]
-		service.getOccupancyTrends.mockResolvedValue(payload)
+		service.getOccupancyTrends!.mockResolvedValue(payload)
 
 		const response = await controller.getTrends(request as Request)
 
@@ -73,7 +73,7 @@ describe('OccupancyTrendsController', () => {
 		const request = { ...createRequest(), path: '/analytics/vacancy-analysis' }
 		supabase.getUser.mockResolvedValue({ id: 'user-12' })
 		const vacancy = [{ propertyId: 'prop-9' }]
-		service.getVacancyAnalysis.mockResolvedValue(vacancy)
+		service.getVacancyAnalysis!.mockResolvedValue(vacancy)
 
 		const response = await controller.getVacancyAnalysis(request as Request)
 
@@ -93,7 +93,7 @@ describe('OccupancyTrendsController', () => {
 		}
 		supabase.getUser.mockResolvedValue({ id: 'user-12' })
 		const pageData = { metrics: { currentOccupancy: 97 } }
-		service.getOccupancyAnalyticsPageData.mockResolvedValue(pageData)
+		service.getOccupancyAnalyticsPageData!.mockResolvedValue(pageData)
 
 		const response = await controller.getPageData(request as Request)
 

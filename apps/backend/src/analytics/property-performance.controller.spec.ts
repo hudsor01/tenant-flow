@@ -58,7 +58,7 @@ describe('PropertyPerformanceController', () => {
 		const request = createRequest()
 		supabase.getUser.mockResolvedValue({ id: 'user-42' })
 		const payload = [{ propertyId: 'prop-1' }]
-		service.getPropertyPerformance.mockResolvedValue(payload)
+		service.getPropertyPerformance!.mockResolvedValue(payload)
 
 		const response = await controller.getPropertyPerformance(request as Request)
 
@@ -75,7 +75,7 @@ describe('PropertyPerformanceController', () => {
 		const request = createRequest()
 		supabase.getUser.mockResolvedValue({ id: 'user-42' })
 		const units = [{ unitId: 'unit-9' }]
-		service.getPropertyUnits.mockResolvedValue(units)
+		service.getPropertyUnits!.mockResolvedValue(units)
 
 		const response = await controller.getPropertyUnits(request as Request)
 
@@ -92,7 +92,7 @@ describe('PropertyPerformanceController', () => {
 		const request = createRequest()
 		supabase.getUser.mockResolvedValue({ id: 'user-42' })
 		const stats = [{ label: 'Vacant Units', value: 2 }]
-		service.getUnitStatistics.mockResolvedValue(stats)
+		service.getUnitStatistics!.mockResolvedValue(stats)
 
 		const response = await controller.getUnitStatistics(request as Request)
 
@@ -109,7 +109,7 @@ describe('PropertyPerformanceController', () => {
 		const request = { ...createRequest(), path: '/analytics/visitor-analytics' }
 		supabase.getUser.mockResolvedValue({ id: 'user-42' })
 		const visitorAnalytics = { summary: { totalVisits: 100 }, timeline: [] }
-		service.getVisitorAnalytics.mockResolvedValue(visitorAnalytics)
+		service.getVisitorAnalytics!.mockResolvedValue(visitorAnalytics)
 
 		const response = await controller.getVisitorAnalytics(request as Request)
 
@@ -129,7 +129,7 @@ describe('PropertyPerformanceController', () => {
 		}
 		supabase.getUser.mockResolvedValue({ id: 'user-42' })
 		const pageData = { metrics: { totalProperties: 2 } }
-		service.getPropertyPerformancePageData.mockResolvedValue(pageData)
+		service.getPropertyPerformancePageData!.mockResolvedValue(pageData)
 
 		const response = await controller.getPropertyPerformancePageData(
 			request as Request
