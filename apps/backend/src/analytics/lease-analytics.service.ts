@@ -63,7 +63,9 @@ export class LeaseAnalyticsService {
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error ? error.message : String(error)
-			this.logger.error(
+			// Downgrade to warn - RPC failures are expected in some test mocks and
+			// should not be treated as hard errors.
+			this.logger.warn(
 				`Unexpected RPC failure: ${functionName} - ${errorMessage}`
 			)
 			return null
