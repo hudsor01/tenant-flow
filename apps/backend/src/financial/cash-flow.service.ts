@@ -33,7 +33,9 @@ export class CashFlowService {
 	async generateCashFlowStatement(
 		userId: string,
 		startDate: string,
-		endDate: string
+		endDate: string,
+		// When false, do not calculate the previous period to avoid recursive calls
+		includePreviousPeriod = true
 	): Promise<CashFlowData> {
 		const client = this.supabaseService.getAdminClient()
 
@@ -117,13 +119,15 @@ export class CashFlowService {
 		const beginningCash = safeNumber(monthlyData?.beginning_cash)
 		const endingCash = beginningCash + netCashFlow
 
-		// Calculate previous period comparison
-		const previousPeriod = await this.calculatePreviousPeriod(
-			userId,
-			startDate,
-			endDate,
-			netCashFlow
-		)
+		// Calculate previous period comparison (optional)
+		const previousPeriod = includePreviousPeriod
+			? await this.calculatePreviousPeriod(
+					userId,
+					startDate,
+					endDate,
+					netCashFlow
+				)
+			: undefined
 
 		return {
 			period: createFinancialPeriod(startDate, endDate),
@@ -176,7 +180,9 @@ export class CashFlowService {
 			const previousData = await this.generateCashFlowStatement(
 				userId,
 				previousStartStr,
-				previousEndStr
+				previousEndStr,
+				// do not include previousPeriod for the previous period (avoid recursion)
+				false
 			)
 
 			return calculatePeriodComparison(
