@@ -26,6 +26,7 @@ import type { BalanceSheetData } from '@repo/shared/types/financial-statements'
 import { format } from 'date-fns'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 export default function BalanceSheetPage() {
 	const [data, setData] = useState<BalanceSheetData | null>(null)
@@ -47,7 +48,11 @@ export default function BalanceSheetPage() {
 				const result = await getBalanceSheet(session.access_token, asOfDate)
 				setData(result)
 			} catch (error) {
-				console.error('Failed to load balance sheet:', error)
+				toast.error(
+					error instanceof Error
+						? error.message
+						: 'Failed to load balance sheet'
+				)
 			} finally {
 				setLoading(false)
 			}
