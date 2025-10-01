@@ -1,11 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
-import * as dotenv from 'dotenv'
-
-// Load test environment variables
-dotenv.config({ path: '.env.test' })
 
 // Ensure we're in an isolated test environment
-process.env.NODE_ENV = 'test'
+process.env.NODE_ENV = 'testing'
 
 /**
  * Playwright Configuration for TenantFlow E2E Testing
@@ -69,7 +65,9 @@ export default defineConfig({
 	/* Shared settings for all projects */
 	use: {
 		/* Base URL for the application */
-		baseURL: 'https://tenantflow.app',
+		baseURL: process.env.CI
+			? 'https://tenantflow.app'
+			: 'http://localhost:4500',
 
 		/* Collect comprehensive trace for all test runs */
 		trace: 'on',
@@ -91,7 +89,9 @@ export default defineConfig({
 
 		/* Test environment configuration */
 		extraHTTPHeaders: {
-			...(process.env.E2E_API_TOKEN ? { Authorization: process.env.E2E_API_TOKEN } : {})
+			...(process.env.E2E_API_TOKEN
+				? { Authorization: process.env.E2E_API_TOKEN }
+				: {})
 		},
 
 		/* Viewport size */
@@ -170,9 +170,13 @@ export default defineConfig({
 											process.env.DATABASE_URL_TEST ||
 											process.env.DATABASE_URL ||
 											'', // Empty string will cause proper error in backend
-										JWT_SECRET: process.env.JWT_SECRET || (() => {
-											throw new Error('JWT_SECRET is required for Playwright tests')
-										})(),
+										JWT_SECRET:
+											process.env.JWT_SECRET ||
+											(() => {
+												throw new Error(
+													'JWT_SECRET is required for Playwright tests'
+												)
+											})(),
 										STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY_TEST || '', // Empty string will cause proper error
 										STRIPE_WEBHOOK_SECRET:
 											process.env.STRIPE_WEBHOOK_SECRET_TEST || '' // Empty string will cause proper error
@@ -186,6 +190,7 @@ export default defineConfig({
 						timeout: 120000,
 						env: {
 							NODE_ENV: 'test',
+							PORT: '4500', // Explicitly set port for Next.js
 							NEXT_PUBLIC_API_URL: 'https://api.tenantflow.app/api',
 							NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
 								process.env.STRIPE_PUBLISHABLE_KEY_TEST || '' // Empty string will cause proper error in frontend
@@ -204,9 +209,13 @@ export default defineConfig({
 	/* Test metadata */
 	metadata: {
 		project: 'TenantFlow',
-		environment: process.env.NODE_ENV || (() => {
-			throw new Error('NODE_ENV environment variable is required for Playwright tests')
-		})(),
+		environment:
+			process.env.NODE_ENV ||
+			(() => {
+				throw new Error(
+					'NODE_ENV environment variable is required for Playwright tests'
+				)
+			})(),
 		version: process.env.npm_package_version || undefined // Let it be undefined if not set
 	}
 })

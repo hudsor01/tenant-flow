@@ -3,35 +3,16 @@
  * No assumptions, just exploration
  */
 
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 test('See what is actually on the homepage', async ({ page }) => {
-  await page.goto('http://localhost:3000')
+	await page.goto(
+		process.env.CI ? 'https://tenantflow.app' : 'http://localhost:4500'
+	)
 
-  // Get page title
-  const title = await page.title()
+	// Get page title
+	const title = await page.title()
 
-  // Get all text content to see what's there
-  const bodyText = await page.locator('body').textContent()
-
-  // Get all buttons
-  const buttons = await page.locator('button, [role="button"], a').allTextContents()
-
-  // Get all headings
-  const headings = await page.locator('h1, h2, h3, h4, h5, h6').allTextContents()
-
-  // Get all links
-  const links = await page.locator('a').allTextContents()
-
-  // Get all inputs
-  const inputs = await page.locator('input').evaluateAll(elements =>
-    elements.map(el => ({
-      type: (el as HTMLInputElement).type,
-      placeholder: (el as HTMLInputElement).placeholder,
-      name: (el as HTMLInputElement).name
-    }))
-  )
-
-  // Just pass - this is exploration, not testing specific functionality
-  expect(title).toBeDefined()
+	// Just pass - this is exploration, not testing specific functionality
+	expect(title).toBeDefined()
 })

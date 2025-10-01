@@ -30,8 +30,8 @@ import type {
 	UpdateLeaseRequest
 } from '@repo/shared/types/backend-domain'
 import type { Request } from 'express'
-import { LeasesService } from './leases.service'
 import { SupabaseService } from '../database/supabase.service'
+import { LeasesService } from './leases.service'
 
 // @ApiTags('leases')
 // @ApiBearerAuth()
@@ -108,7 +108,9 @@ export class LeasesController {
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 
 		return this.leasesService.findAll(user?.id || 'test-user-id', {
 			tenantId,
@@ -131,12 +133,18 @@ export class LeasesController {
 				message: 'Leases service not available',
 				totalLeases: 0,
 				activeLeases: 0,
+				expiredLeases: 0,
+				terminatedLeases: 0,
 				expiringLeases: 0,
-				draftLeases: 0
+				totalMonthlyRent: 0,
+				averageRent: 0,
+				totalSecurityDeposits: 0
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 		return this.leasesService.getStats(user?.id || 'test-user-id')
 	}
 
@@ -185,7 +193,9 @@ export class LeasesController {
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 
 		return this.leasesService.getLeasePerformanceAnalytics(
 			user?.id || 'test-user-id',
@@ -232,7 +242,9 @@ export class LeasesController {
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 
 		return this.leasesService.getLeaseDurationAnalytics(
 			user?.id || 'test-user-id',
@@ -278,7 +290,9 @@ export class LeasesController {
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 
 		return this.leasesService.getLeaseTurnoverAnalytics(
 			user?.id || 'test-user-id',
@@ -334,7 +348,9 @@ export class LeasesController {
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 
 		return this.leasesService.getLeaseRevenueAnalytics(
 			user?.id || 'test-user-id',
@@ -364,7 +380,9 @@ export class LeasesController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 		return this.leasesService.getExpiring(
 			user?.id || 'test-user-id',
 			days ?? 30
@@ -387,7 +405,9 @@ export class LeasesController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 		const lease = await this.leasesService.findOne(
 			user?.id || 'test-user-id',
 			id
@@ -413,7 +433,9 @@ export class LeasesController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 		return this.leasesService.create(user?.id || 'test-user-id', createRequest)
 	}
 
@@ -435,7 +457,9 @@ export class LeasesController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 		const lease = await this.leasesService.update(
 			user?.id || 'test-user-id',
 			id,
@@ -462,7 +486,9 @@ export class LeasesController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 		await this.leasesService.remove(user?.id || 'test-user-id', id)
 		return { message: 'Lease deleted successfully' }
 	}
@@ -489,7 +515,9 @@ export class LeasesController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
 		return this.leasesService.renew(user?.id || 'test-user-id', id, { endDate })
 	}
 
@@ -511,7 +539,14 @@ export class LeasesController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService ? await this.supabaseService.getUser(request) : null
-		return this.leasesService.terminate(user?.id || 'test-user-id', id, new Date(), reason)
+		const user = this.supabaseService
+			? await this.supabaseService.getUser(request)
+			: null
+		return this.leasesService.terminate(
+			user?.id || 'test-user-id',
+			id,
+			new Date(),
+			reason
+		)
 	}
 }

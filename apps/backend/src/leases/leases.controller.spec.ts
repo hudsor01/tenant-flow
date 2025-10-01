@@ -6,9 +6,9 @@ import { randomUUID } from 'crypto'
 import type { Request } from 'express'
 import { SilentLogger } from '../__test__/silent-logger'
 import { SupabaseService } from '../database/supabase.service'
+import { createMockUser } from '../test-utils/mocks'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
-import { createMockUser, createMockDashboardStats, createMockPropertyStats, createMockPropertyRequest, createMockTenantRequest, createMockUnitRequest } from '../test-utils/mocks'
 
 describe('LeasesController', () => {
 	let controller: LeasesController
@@ -67,9 +67,7 @@ describe('LeasesController', () => {
 		} as unknown as jest.Mocked<LeasesService>
 
 		mockSupabaseService = {
-			getUser: jest
-				.fn()
-				.mockImplementation(req => Promise.resolve(req.user))
+			getUser: jest.fn().mockImplementation(req => Promise.resolve(req.user))
 		} as unknown as jest.Mocked<SupabaseService>
 
 		const module: TestingModule = await Test.createTestingModule({
@@ -253,10 +251,14 @@ describe('LeasesController', () => {
 			const user = createMockUser()
 			const mockRequest = createMockRequest(user)
 			const mockStats = {
-				total: 25,
-				active: 20,
-				expired: 3,
-				expiringSoon: 2
+				totalLeases: 25,
+				activeLeases: 20,
+				expiredLeases: 3,
+				terminatedLeases: 2,
+				totalMonthlyRent: 55000,
+				averageRent: 2750,
+				totalSecurityDeposits: 12000,
+				expiringLeases: 5
 			}
 			mockLeasesService.getStats.mockResolvedValue(mockStats)
 
@@ -426,11 +428,9 @@ describe('LeasesController', () => {
 
 			const result = await controller.renew(leaseId, endDate, mockRequest)
 
-			expect(mockLeasesService.renew).toHaveBeenCalledWith(
-				user.id,
-				leaseId,
-				{ endDate }
-			)
+			expect(mockLeasesService.renew).toHaveBeenCalledWith(user.id, leaseId, {
+				endDate
+			})
 			expect(result).toEqual(mockLease)
 		})
 

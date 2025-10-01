@@ -10,7 +10,7 @@ const resolveBaseUrl = () => {
 	const fromNextPublic = process.env.NEXT_PUBLIC_APP_URL
 	if (fromNextPublic) return fromNextPublic
 
-	return 'http://localhost:3000'
+	return 'http://localhost:4500'
 }
 
 const BASE_URL = resolveBaseUrl()
@@ -94,7 +94,11 @@ class ConsoleCollector {
 }
 
 // Visual regression helper
-async function captureAndCompare(page: Page, name: string, options = {}) {
+async function captureAndCompare(
+	page: Page,
+	name: string,
+	options: { viewport?: boolean } = {}
+) {
 	const screenshotPath = join(SCREENSHOT_DIR, `${name}.png`)
 
 	// Take screenshot with options
@@ -133,7 +137,7 @@ async function collectPerformanceMetrics(page: Page) {
 			firstContentfulPaint:
 				paint.find(p => p.name === 'first-contentful-paint')?.startTime || 0,
 			responseTime: navigation.responseEnd - navigation.requestStart,
-			renderTime: navigation.domComplete - navigation.domLoading
+			renderTime: navigation.domComplete - navigation.domContentLoadedEventStart
 		}
 	})
 }
@@ -145,7 +149,7 @@ async function checkAccessibility(page: Page, name: string) {
 	// Check for missing alt text
 	const imagesWithoutAlt = await page.$$eval(
 		'img:not([alt])',
-		imgs => imgs.length
+		(imgs: Element[]) => imgs.length
 	)
 	if (imagesWithoutAlt > 0) {
 		violations.push(`${imagesWithoutAlt} images without alt text`)
@@ -154,15 +158,17 @@ async function checkAccessibility(page: Page, name: string) {
 	// Check for form labels
 	const inputsWithoutLabel = await page.$$eval(
 		'input:not([aria-label]):not([id])',
-		inputs => inputs.length
+		(inputs: Element[]) => inputs.length || 0
 	)
 	if (inputsWithoutLabel > 0) {
 		violations.push(`${inputsWithoutLabel} inputs without labels`)
 	}
 
 	// Check for heading hierarchy
-	const headings = await page.$$eval('h1, h2, h3, h4, h5, h6', headers =>
-		headers.map(h => ({ level: parseInt(h.tagName[1]), text: h.textContent }))
+	const headings = await page.$$eval(
+		'h1, h2, h3, h4, h5, h6',
+		(headers: Element[]) =>
+			headers.map(h => ({ level: parseInt(h.tagName[1]), text: h.textContent }))
 	)
 
 	// Check color contrast (simplified)
@@ -174,7 +180,7 @@ async function checkAccessibility(page: Page, name: string) {
 			const bg = style.backgroundColor
 			const color = style.color
 			// Simplified contrast check - in production use axe-core
-			if (bg && color && bg !== 'rgba(0, 0, 0, 0)') {
+			if (bg && color && bg !== 'transparent' && !bg.includes('rgba')) {
 				// Basic check - would need proper WCAG calculation
 				count++
 			}
@@ -449,6 +455,7 @@ test.describe('Comprehensive UI/UX Testing Suite', () => {
 		)
 
 		// Comprehensive test report generated
+		expect(report.totalTests).toBe(10)
 	})
 })
 
@@ -478,7 +485,13 @@ test.describe('Visual Regression Testing', () => {
 // Performance Testing
 test.describe('Performance Testing', () => {
 	test('Load Time Analysis', async ({ page }) => {
-		const results: any[] = []
+		const results: {
+			page: string
+			totalLoadTime: number
+			domReady: number
+			firstByte: number
+			resourcesLoaded: number
+		}[] = []
 
 		const pages = [
 			'/dashboard/test',

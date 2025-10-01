@@ -4,20 +4,18 @@
  * Provides frontend-specific implementations with tailwind-merge integration
  */
 
-import
-  {
-    SEMANTIC_COLORS,
-    type ComponentSize
-  } from '@repo/shared/constants/design-system'
+import {
+	SEMANTIC_COLORS,
+	type ComponentSize
+} from '@repo/shared/constants/design-system'
 import type {
-  AnimationType,
-  BadgeSize,
-  BadgeVariant,
-  ButtonVariant,
-  ContainerSize,
-  GridColumnsConfig,
-  ResponsiveValuesConfig,
-  StatusType
+	AnimationType,
+	BadgeSize,
+	BadgeVariant,
+	ButtonVariant,
+	ContainerSize,
+	GridColumnsConfig,
+	ResponsiveValuesConfig
 } from '@repo/shared/types/frontend'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -145,7 +143,8 @@ export function cardClasses(
 	variant: 'default' | 'elevated' | 'interactive' | 'premium' = 'default',
 	className?: string
 ): string {
-	const baseClasses = 'rounded-[var(--radius-large)] border bg-card text-card-foreground'
+	const baseClasses =
+		'rounded-[var(--radius-large)] border bg-card text-card-foreground'
 
 	const variantClasses = {
 		default: 'shadow-sm',
@@ -380,34 +379,116 @@ export function formErrorClasses(className?: string): string {
 }
 
 /**
- * Generate status indicator classes with consistent styling
- * @param status - Status type
- * @param size - Indicator size
- * @param className - Additional classes
- * @returns Status indicator class string
+ * Generate status styling classes with consistent theming
+ * @param status - Status label to normalize
+ * @param options - Styling overrides (variant, additional classes)
+ * @returns Status class string suitable for badges or pills
  */
-export function statusClasses(
-	status: StatusType = 'info',
-	size: BadgeSize = 'default',
+type StatusVariant = 'soft' | 'outline'
+
+interface StatusClassOptions {
+	variant?: StatusVariant
 	className?: string
+}
+
+const STATUS_STYLE_MAP: Record<string, { soft: string; outline: string }> = {
+	ACTIVE: {
+		soft: 'border-[var(--color-system-green)] bg-[var(--color-system-green-10)] text-[var(--color-system-green)]',
+		outline:
+			'border-[var(--color-system-green)] text-[var(--color-system-green)] bg-transparent'
+	},
+	COMPLETED: {
+		soft: 'border-[var(--color-system-green)] bg-[var(--color-system-green-10)] text-[var(--color-system-green)]',
+		outline:
+			'border-[var(--color-system-green)] text-[var(--color-system-green)] bg-transparent'
+	},
+	SUCCESS: {
+		soft: 'border-[var(--color-system-green)] bg-[var(--color-system-green-10)] text-[var(--color-system-green)]',
+		outline:
+			'border-[var(--color-system-green)] text-[var(--color-system-green)] bg-transparent'
+	},
+	OPEN: {
+		soft: 'border-[var(--color-system-yellow)] bg-[var(--color-system-yellow-10)] text-[var(--color-system-yellow)]',
+		outline:
+			'border-[var(--color-system-yellow)] text-[var(--color-system-yellow)] bg-transparent'
+	},
+	PENDING: {
+		soft: 'border-[var(--color-system-yellow)] bg-[var(--color-system-yellow-10)] text-[var(--color-system-yellow)]',
+		outline:
+			'border-[var(--color-system-yellow)] text-[var(--color-system-yellow)] bg-transparent'
+	},
+	WARNING: {
+		soft: 'border-[var(--color-system-yellow)] bg-[var(--color-system-yellow-10)] text-[var(--color-system-yellow)]',
+		outline:
+			'border-[var(--color-system-yellow)] text-[var(--color-system-yellow)] bg-transparent'
+	},
+	IN_PROGRESS: {
+		soft: 'border-[var(--color-system-blue)] bg-[var(--color-system-blue-10)] text-[var(--color-system-blue)]',
+		outline:
+			'border-[var(--color-system-blue)] text-[var(--color-system-blue)] bg-transparent'
+	},
+	INFO: {
+		soft: 'border-[var(--color-system-blue)] bg-[var(--color-system-blue-10)] text-[var(--color-system-blue)]',
+		outline:
+			'border-[var(--color-system-blue)] text-[var(--color-system-blue)] bg-transparent'
+	},
+	EXPIRED: {
+		soft: 'border-[var(--color-system-red)] bg-[var(--color-system-red-10)] text-[var(--color-system-red)]',
+		outline:
+			'border-[var(--color-system-red)] text-[var(--color-system-red)] bg-transparent'
+	},
+	OVERDUE: {
+		soft: 'border-[var(--color-system-red)] bg-[var(--color-system-red-10)] text-[var(--color-system-red)]',
+		outline:
+			'border-[var(--color-system-red)] text-[var(--color-system-red)] bg-transparent'
+	},
+	CANCELED: {
+		soft: 'border-[var(--color-border-secondary)] bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)]',
+		outline:
+			'border-[var(--color-border-secondary)] text-[var(--color-label-tertiary)] bg-transparent'
+	},
+	CANCELLED: {
+		soft: 'border-[var(--color-border-secondary)] bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)]',
+		outline:
+			'border-[var(--color-border-secondary)] text-[var(--color-label-tertiary)] bg-transparent'
+	},
+	TERMINATED: {
+		soft: 'border-[var(--color-border-secondary)] bg-[var(--color-fill-tertiary)] text-[var(--color-label-secondary)]',
+		outline:
+			'border-[var(--color-border-secondary)] text-[var(--color-label-secondary)] bg-transparent'
+	},
+	ON_HOLD: {
+		soft: 'border-[var(--color-system-orange)] bg-[var(--color-system-orange-10)] text-[var(--color-system-orange)]',
+		outline:
+			'border-[var(--color-system-orange)] text-[var(--color-system-orange)] bg-transparent'
+	},
+	DRAFT: {
+		soft: 'border-[var(--color-border-secondary)] bg-[var(--color-fill-secondary)] text-[var(--color-label-secondary)]',
+		outline:
+			'border-[var(--color-border-secondary)] text-[var(--color-label-secondary)] bg-transparent'
+	},
+	UNKNOWN: {
+		soft: 'border-[var(--color-border-secondary)] bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)]',
+		outline:
+			'border-[var(--color-border-secondary)] text-[var(--color-label-tertiary)] bg-transparent'
+	},
+	DEFAULT: {
+		soft: 'border-[var(--color-border-secondary)] bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)]',
+		outline:
+			'border-[var(--color-border-secondary)] text-[var(--color-label-tertiary)] bg-transparent'
+	}
+}
+
+export function statusClasses(
+	status: string,
+	options: StatusClassOptions = {}
 ): string {
-	const baseClasses = 'inline-flex items-center rounded-full'
+	const { variant = 'outline', className } = options
+	const normalized = (status || 'DEFAULT').toString().trim().toUpperCase()
+	const styles = STATUS_STYLE_MAP[normalized] || STATUS_STYLE_MAP.DEFAULT!
+	const selected = variant === 'soft' ? styles.soft : styles.outline
 
-	const sizeClasses = {
-		sm: 'h-2 w-2',
-		default: 'h-3 w-3',
-		lg: 'h-4 w-4'
-	}
-
-	const statusClasses = {
-		success: 'bg-accent',
-		warning: 'bg-muted',
-		error: 'bg-destructive',
-		info: 'bg-primary',
-		pending: 'bg-muted'
-	}
-
-	return cn(baseClasses, sizeClasses[size], statusClasses[status], className)
+	return cn('border', selected, className)
 }
 
 /**
@@ -478,7 +559,9 @@ export function generateId(prefix = 'id'): string {
  * @param theme - Theme configuration object
  * @returns CSS custom properties object
  */
-export function getThemeCSS(theme?: Record<string, string>): Record<string, string> {
+export function getThemeCSS(
+	theme?: Record<string, string>
+): Record<string, string> {
 	if (!theme) return {}
 	const css: Record<string, string> = {}
 
@@ -600,4 +683,7 @@ export function applyToken(
 }
 
 // Re-export design system constants for Magic UI components
-export { ANIMATION_DURATIONS, TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
+export {
+	ANIMATION_DURATIONS,
+	TYPOGRAPHY_SCALE
+} from '@repo/shared/constants/design-system'

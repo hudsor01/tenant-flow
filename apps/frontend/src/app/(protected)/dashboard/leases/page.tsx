@@ -12,28 +12,11 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { getLeasesPageData } from '@/lib/api/dashboard-server'
-import { cn } from '@/lib/utils'
+import { statusClasses } from '@/lib/design-system'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { Clock, DollarSign, FileCheck, FileText } from 'lucide-react'
 
 type Lease = Database['public']['Tables']['Lease']['Row']
-
-const getLeaseStatusStyles = (status: string) => {
-	const styles = {
-		ACTIVE:
-			'bg-[var(--color-system-green-10)] text-[var(--color-system-green)] border-[var(--color-system-green)]',
-		EXPIRED:
-			'bg-[var(--color-system-red-10)] text-[var(--color-system-red)] border-[var(--color-system-red)]',
-		TERMINATED:
-			'bg-[var(--color-fill-tertiary)] text-[var(--color-label-secondary)] border-[var(--color-border-secondary)]',
-		PENDING:
-			'bg-[var(--color-system-yellow-10)] text-[var(--color-system-yellow)] border-[var(--color-system-yellow)]'
-	}
-	return (
-		styles[status as keyof typeof styles] ||
-		'bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)] border-[var(--color-border-secondary)]'
-	)
-}
 
 export default async function LeasesPage() {
 	// Fetch data server-side with stats
@@ -63,7 +46,7 @@ export default async function LeasesPage() {
 
 				<MetricsCard
 					title="Expiring Soon"
-					value="0"
+					value={stats.expiringLeases}
 					description="Within 60 days"
 					icon={Clock}
 					colorVariant="warning"
@@ -143,9 +126,7 @@ export default async function LeasesPage() {
 										<TableCell>
 											<Badge
 												variant="outline"
-												className={cn(
-													getLeaseStatusStyles(lease.status || 'UNKNOWN')
-												)}
+												className={statusClasses(lease.status || 'UNKNOWN')}
 											>
 												{lease.status || 'Unknown'}
 											</Badge>

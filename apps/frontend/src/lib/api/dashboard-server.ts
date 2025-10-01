@@ -115,6 +115,19 @@ export async function getLeaseStats() {
 	return leaseStats
 }
 
+export async function getMaintenanceStats() {
+	try {
+		return await dashboardServerApi.getMaintenanceStats()
+	} catch {
+		return {
+			open: 0,
+			inProgress: 0,
+			completedToday: 0,
+			avgResolutionTime: 0
+		}
+	}
+}
+
 /**
  * Analytics page data - parallel fetch
  */
@@ -194,32 +207,25 @@ export async function getTenantsPageData() {
 	const tenants =
 		tenantsResult.status === 'fulfilled' ? tenantsResult.value || [] : []
 
+	const defaultTenantStats = {
+		totalTenants: 0,
+		activeTenants: 0,
+		currentPayments: 0,
+		latePayments: 0,
+		totalRent: 0,
+		avgRent: 0,
+		recentAdditions: 0,
+		withContactInfo: 0
+	}
+
 	const stats =
-		tenantStatsResult.status === 'fulfilled'
+		tenantStatsResult.status === 'fulfilled' && tenantStatsResult.value
 			? tenantStatsResult.value
-			: {
-					totalTenants: 0,
-					activeTenants: 0,
-					currentPayments: 0,
-					latePayments: 0,
-					totalRent: 0,
-					avgRent: 0,
-					recentAdditions: 0,
-					withContactInfo: 0
-				}
+			: defaultTenantStats
 
 	return {
 		tenants,
-		stats: stats || {
-			totalTenants: 0,
-			activeTenants: 0,
-			currentPayments: 0,
-			latePayments: 0,
-			totalRent: 0,
-			avgRent: 0,
-			recentAdditions: 0,
-			withContactInfo: 0
-		}
+		stats
 	}
 }
 
@@ -237,30 +243,95 @@ export async function getLeasesPageData() {
 	// Extract values with fallbacks for failed requests
 	const leases =
 		leasesResult.status === 'fulfilled' ? leasesResult.value || [] : []
+	const defaultLeaseStats: LeaseStatsResponse = {
+		totalLeases: 0,
+		activeLeases: 0,
+		expiredLeases: 0,
+		terminatedLeases: 0,
+		totalMonthlyRent: 0,
+		averageRent: 0,
+		totalSecurityDeposits: 0,
+		expiringLeases: 0
+	}
+
 	const stats =
-		leaseStatsResult.status === 'fulfilled'
+		leaseStatsResult.status === 'fulfilled' && leaseStatsResult.value
 			? leaseStatsResult.value
-			: {
-					totalLeases: 0,
-					activeLeases: 0,
-					totalMonthlyRent: 0,
-					averageRent: 0
-				}
+			: defaultLeaseStats
 
 	return {
 		leases,
-		stats: stats // LeaseStatsResponse should already be the correct format
+		stats
 	}
 }
 
 /**
- * Maintenance page data
+ * Maintenance page data - parallel fetch with stats
  */
 export async function getMaintenancePageData() {
-	const maintenanceData = await serverFetch<MaintenanceRequestResponse>(
-		'/api/v1/maintenance'
-	)
-	return maintenanceData || { data: [] }
+	const [
+		maintenanceResult,
+		maintenanceStatsResult,
+		maintenanceAnalyticsResult
+	] = await Promise.allSettled([
+		serverFetch<MaintenanceRequestResponse>('/api/v1/maintenance'),
+		serverFetch<{
+			open: number
+			inProgress: number
+			totalCost: number
+			avgResponseTimeHours: number
+		}>('/api/v1/maintenance/stats'),
+		getMaintenanceStats()
+	])
+
+	const maintenanceItems =
+		maintenanceResult.status === 'fulfilled' && maintenanceResult.value?.data
+			? maintenanceResult.value.data
+			: []
+
+	const defaultCoreStats = {
+		open: 0,
+		inProgress: 0,
+		totalCost: 0,
+		avgResponseTimeHours: 0
+	}
+
+	const coreStats =
+		maintenanceStatsResult.status === 'fulfilled' &&
+		maintenanceStatsResult.value
+			? maintenanceStatsResult.value
+			: defaultCoreStats
+
+	const defaultAnalyticsStats = {
+		open: 0,
+		inProgress: 0,
+		completedToday: 0,
+		avgResolutionTime: 0
+	}
+
+	const analyticsStats =
+		maintenanceAnalyticsResult.status === 'fulfilled' &&
+		maintenanceAnalyticsResult.value
+			? maintenanceAnalyticsResult.value
+			: defaultAnalyticsStats
+
+	const avgResolutionTime = Number.isFinite(analyticsStats.avgResolutionTime)
+		? (analyticsStats.avgResolutionTime as number)
+		: 0
+
+	return {
+		data: maintenanceItems,
+		stats: {
+			open: analyticsStats.open ?? coreStats.open ?? 0,
+			inProgress: analyticsStats.inProgress ?? coreStats.inProgress ?? 0,
+			totalCost: coreStats.totalCost ?? 0,
+			avgResponseTimeHours:
+				avgResolutionTime > 0
+					? avgResolutionTime
+					: (coreStats.avgResponseTimeHours ?? 0),
+			completedToday: analyticsStats.completedToday ?? 0
+		}
+	}
 }
 
 /**
@@ -335,16 +406,17 @@ export async function getDashboardPageData() {
 				}
 
 	const leaseStats =
-		leaseStatsResult.status === 'fulfilled'
+		leaseStatsResult.status === 'fulfilled' && leaseStatsResult.value
 			? leaseStatsResult.value
 			: {
-					data: {
-						totalLeases: 0,
-						activeLeases: 0,
-						totalMonthlyRent: 0,
-						averageRent: 0
-					},
-					activeLeases: 0
+					totalLeases: 0,
+					activeLeases: 0,
+					expiredLeases: 0,
+					terminatedLeases: 0,
+					totalMonthlyRent: 0,
+					averageRent: 0,
+					totalSecurityDeposits: 0,
+					expiringLeases: 0
 				}
 
 	const recentActivity =

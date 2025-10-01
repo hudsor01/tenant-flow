@@ -7,23 +7,19 @@
  * - Production mirror: Matches controller interface exactly
  */
 
-import { BadRequestException, Injectable, Logger, Inject } from '@nestjs/common'
-import type { CreateLeaseRequest, UpdateLeaseRequest } from '@repo/shared/types/backend-domain'
-import type { Lease, LeaseStats } from '@repo/shared/types/core'
+import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common'
+import type {
+	CreateLeaseRequest,
+	LeaseInput,
+	UpdateLeaseRequest
+} from '@repo/shared/types/backend-domain'
+import type { Lease, LeaseStatsResponse } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
-
-// LeaseInput interface - should be added to shared types in Phase 2
-interface LeaseInput {
-	tenantId: string
-	unitId: string
-	startDate: string
-	endDate: string
-	rentAmount: number
-	securityDeposit?: number
-	status: Database['public']['Enums']['LeaseStatus']
-}
+import type {
+	ILeasesRepository,
+	LeaseQueryOptions
+} from '../repositories/interfaces/leases-repository.interface'
 import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
-import type { ILeasesRepository, LeaseQueryOptions } from '../repositories/interfaces/leases-repository.interface'
 
 /**
  * Leases service - Repository pattern implementation following KISS principle
@@ -41,7 +37,10 @@ export class LeasesService {
 	/**
 	 * Get all leases for a user via repository
 	 */
-	async findAll(userId: string, query: Record<string, unknown>): Promise<Lease[]> {
+	async findAll(
+		userId: string,
+		query: Record<string, unknown>
+	): Promise<Lease[]> {
 		try {
 			if (!userId) {
 				this.logger.warn('Find all leases requested without userId')
@@ -53,7 +52,9 @@ export class LeasesService {
 				propertyId: query.propertyId as string,
 				tenantId: query.tenantId as string,
 				status: query.status as Database['public']['Enums']['LeaseStatus'],
-				startDate: query.startDate ? new Date(query.startDate as string) : undefined,
+				startDate: query.startDate
+					? new Date(query.startDate as string)
+					: undefined,
 				endDate: query.endDate ? new Date(query.endDate as string) : undefined,
 				limit: query.limit as number,
 				offset: query.offset as number,
@@ -79,7 +80,7 @@ export class LeasesService {
 	/**
 	 * Get lease statistics via repository
 	 */
-	async getStats(userId: string): Promise<LeaseStats> {
+	async getStats(userId: string): Promise<LeaseStatsResponse> {
 		try {
 			if (!userId) {
 				this.logger.warn('Lease stats requested without userId')
@@ -88,14 +89,27 @@ export class LeasesService {
 
 			this.logger.log('Getting lease stats via repository', { userId })
 
-			return await this.leasesRepository.getStats(userId)
+			const stats = await this.leasesRepository.getStats(userId)
+
+			return {
+				totalLeases: stats.total ?? 0,
+				activeLeases: stats.active ?? 0,
+				expiredLeases: stats.expired ?? 0,
+				terminatedLeases: stats.terminated ?? 0,
+				totalMonthlyRent: stats.totalMonthlyRent ?? 0,
+				averageRent: stats.averageRent ?? 0,
+				totalSecurityDeposits: stats.totalSecurityDeposits ?? 0,
+				expiringLeases: stats.expiringLeases ?? stats.expiringSoon ?? 0
+			}
 		} catch (error) {
 			this.logger.error('Leases service failed to get stats', {
 				error: error instanceof Error ? error.message : String(error),
 				userId
 			})
 			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to get lease statistics'
+				error instanceof Error
+					? error.message
+					: 'Failed to get lease statistics'
 			)
 		}
 	}
@@ -110,7 +124,10 @@ export class LeasesService {
 				throw new BadRequestException('User ID is required')
 			}
 
-			this.logger.log('Getting expiring leases via repository', { userId, days })
+			this.logger.log('Getting expiring leases via repository', {
+				userId,
+				days
+			})
 
 			return await this.leasesRepository.getExpiringSoon(userId, days)
 		} catch (error) {
@@ -131,7 +148,10 @@ export class LeasesService {
 	async findOne(userId: string, leaseId: string): Promise<Lease | null> {
 		try {
 			if (!userId || !leaseId) {
-				this.logger.warn('Find one lease called with missing parameters', { userId, leaseId })
+				this.logger.warn('Find one lease called with missing parameters', {
+					userId,
+					leaseId
+				})
 				return null
 			}
 
@@ -155,14 +175,25 @@ export class LeasesService {
 	/**
 	 * Create lease via repository
 	 */
-	async create(userId: string, createRequest: CreateLeaseRequest): Promise<Lease> {
+	async create(
+		userId: string,
+		createRequest: CreateLeaseRequest
+	): Promise<Lease> {
 		try {
 			if (!userId || !createRequest.tenantId || !createRequest.unitId) {
-				this.logger.warn('Create lease called with missing parameters', { userId, createRequest })
-				throw new BadRequestException('User ID, tenant ID, and unit ID are required')
+				this.logger.warn('Create lease called with missing parameters', {
+					userId,
+					createRequest
+				})
+				throw new BadRequestException(
+					'User ID, tenant ID, and unit ID are required'
+				)
 			}
 
-			this.logger.log('Creating lease via repository', { userId, createRequest })
+			this.logger.log('Creating lease via repository', {
+				userId,
+				createRequest
+			})
 
 			// Convert CreateLeaseRequest to LeaseInput
 			const leaseData: LeaseInput = {
@@ -194,16 +225,27 @@ export class LeasesService {
 	/**
 	 * Update lease via repository
 	 */
-	async update(userId: string, leaseId: string, updateRequest: UpdateLeaseRequest): Promise<Lease | null> {
+	async update(
+		userId: string,
+		leaseId: string,
+		updateRequest: UpdateLeaseRequest
+	): Promise<Lease | null> {
 		try {
 			if (!userId || !leaseId) {
-				this.logger.warn('Update lease called with missing parameters', { userId, leaseId })
+				this.logger.warn('Update lease called with missing parameters', {
+					userId,
+					leaseId
+				})
 				return null
 			}
 
 			// Note: Lease ownership is verified via property ownership in repository RLS policies
 
-			this.logger.log('Updating lease via repository', { userId, leaseId, updateRequest })
+			this.logger.log('Updating lease via repository', {
+				userId,
+				leaseId,
+				updateRequest
+			})
 
 			return await this.leasesRepository.update(leaseId, updateRequest)
 		} catch (error) {
@@ -223,7 +265,10 @@ export class LeasesService {
 	async remove(userId: string, leaseId: string): Promise<void> {
 		try {
 			if (!userId || !leaseId) {
-				this.logger.warn('Remove lease called with missing parameters', { userId, leaseId })
+				this.logger.warn('Remove lease called with missing parameters', {
+					userId,
+					leaseId
+				})
 				throw new BadRequestException('User ID and lease ID are required')
 			}
 
@@ -249,16 +294,27 @@ export class LeasesService {
 	/**
 	 * Renew lease via repository
 	 */
-	async renew(userId: string, leaseId: string, renewalData: Partial<LeaseInput>): Promise<Lease> {
+	async renew(
+		userId: string,
+		leaseId: string,
+		renewalData: Partial<LeaseInput>
+	): Promise<Lease> {
 		try {
 			if (!userId || !leaseId) {
-				this.logger.warn('Renew lease called with missing parameters', { userId, leaseId })
+				this.logger.warn('Renew lease called with missing parameters', {
+					userId,
+					leaseId
+				})
 				throw new BadRequestException('User ID and lease ID are required')
 			}
 
 			// Note: Lease ownership is verified via property ownership in repository RLS policies
 
-			this.logger.log('Renewing lease via repository', { userId, leaseId, renewalData })
+			this.logger.log('Renewing lease via repository', {
+				userId,
+				leaseId,
+				renewalData
+			})
 
 			return await this.leasesRepository.renewLease(leaseId, renewalData)
 		} catch (error) {
@@ -277,18 +333,35 @@ export class LeasesService {
 	/**
 	 * Terminate lease via repository
 	 */
-	async terminate(userId: string, leaseId: string, terminationDate: Date, reason?: string): Promise<Lease | null> {
+	async terminate(
+		userId: string,
+		leaseId: string,
+		terminationDate: Date,
+		reason?: string
+	): Promise<Lease | null> {
 		try {
 			if (!userId || !leaseId) {
-				this.logger.warn('Terminate lease called with missing parameters', { userId, leaseId })
+				this.logger.warn('Terminate lease called with missing parameters', {
+					userId,
+					leaseId
+				})
 				return null
 			}
 
 			// Note: Lease ownership is verified via property ownership in repository RLS policies
 
-			this.logger.log('Terminating lease via repository', { userId, leaseId, terminationDate, reason })
+			this.logger.log('Terminating lease via repository', {
+				userId,
+				leaseId,
+				terminationDate,
+				reason
+			})
 
-			return await this.leasesRepository.terminateLease(leaseId, terminationDate, reason)
+			return await this.leasesRepository.terminateLease(
+				leaseId,
+				terminationDate,
+				reason
+			)
 		} catch (error) {
 			this.logger.error('Leases service failed to terminate lease', {
 				error: error instanceof Error ? error.message : String(error),
@@ -304,14 +377,20 @@ export class LeasesService {
 	/**
 	 * Get lease analytics via repository
 	 */
-	async getAnalytics(userId: string, options: { propertyId?: string; timeframe: string }): Promise<unknown[]> {
+	async getAnalytics(
+		userId: string,
+		options: { propertyId?: string; timeframe: string }
+	): Promise<unknown[]> {
 		try {
 			if (!userId) {
 				this.logger.warn('Lease analytics requested without userId')
 				throw new BadRequestException('User ID is required')
 			}
 
-			this.logger.log('Getting lease analytics via repository', { userId, options })
+			this.logger.log('Getting lease analytics via repository', {
+				userId,
+				options
+			})
 
 			return await this.leasesRepository.getAnalytics(userId, options)
 		} catch (error) {
@@ -332,13 +411,19 @@ export class LeasesService {
 	async getPaymentHistory(userId: string, leaseId: string): Promise<unknown[]> {
 		try {
 			if (!userId || !leaseId) {
-				this.logger.warn('Payment history requested with missing parameters', { userId, leaseId })
+				this.logger.warn('Payment history requested with missing parameters', {
+					userId,
+					leaseId
+				})
 				throw new BadRequestException('User ID and lease ID are required')
 			}
 
 			// Note: Lease ownership is verified via property ownership in repository RLS policies
 
-			this.logger.log('Getting lease payment history via repository', { userId, leaseId })
+			this.logger.log('Getting lease payment history via repository', {
+				userId,
+				leaseId
+			})
 
 			return await this.leasesRepository.getPaymentHistory(leaseId)
 		} catch (error) {
@@ -356,14 +441,20 @@ export class LeasesService {
 	/**
 	 * Get lease performance analytics via repository
 	 */
-	async getLeasePerformanceAnalytics(userId: string, options: { leaseId?: string; propertyId?: string; timeframe: string }): Promise<unknown[]> {
+	async getLeasePerformanceAnalytics(
+		userId: string,
+		options: { leaseId?: string; propertyId?: string; timeframe: string }
+	): Promise<unknown[]> {
 		try {
 			if (!userId) {
 				this.logger.warn('Lease performance analytics requested without userId')
 				throw new BadRequestException('User ID is required')
 			}
 
-			this.logger.log('Getting lease performance analytics via repository', { userId, options })
+			this.logger.log('Getting lease performance analytics via repository', {
+				userId,
+				options
+			})
 
 			return await this.leasesRepository.getAnalytics(userId, options)
 		} catch (error) {
@@ -373,7 +464,9 @@ export class LeasesService {
 				options
 			})
 			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to get lease performance analytics'
+				error instanceof Error
+					? error.message
+					: 'Failed to get lease performance analytics'
 			)
 		}
 	}
@@ -381,16 +474,25 @@ export class LeasesService {
 	/**
 	 * Get lease duration analytics via repository
 	 */
-	async getLeaseDurationAnalytics(userId: string, options: { propertyId?: string; period: string }): Promise<unknown[]> {
+	async getLeaseDurationAnalytics(
+		userId: string,
+		options: { propertyId?: string; period: string }
+	): Promise<unknown[]> {
 		try {
 			if (!userId) {
 				this.logger.warn('Lease duration analytics requested without userId')
 				throw new BadRequestException('User ID is required')
 			}
 
-			this.logger.log('Getting lease duration analytics via repository', { userId, options })
+			this.logger.log('Getting lease duration analytics via repository', {
+				userId,
+				options
+			})
 
-			return await this.leasesRepository.getAnalytics(userId, { ...options, timeframe: options.period })
+			return await this.leasesRepository.getAnalytics(userId, {
+				...options,
+				timeframe: options.period
+			})
 		} catch (error) {
 			this.logger.error('Leases service failed to get duration analytics', {
 				error: error instanceof Error ? error.message : String(error),
@@ -398,7 +500,9 @@ export class LeasesService {
 				options
 			})
 			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to get lease duration analytics'
+				error instanceof Error
+					? error.message
+					: 'Failed to get lease duration analytics'
 			)
 		}
 	}
@@ -406,14 +510,20 @@ export class LeasesService {
 	/**
 	 * Get lease turnover analytics via repository
 	 */
-	async getLeaseTurnoverAnalytics(userId: string, options: { propertyId?: string; timeframe: string }): Promise<unknown[]> {
+	async getLeaseTurnoverAnalytics(
+		userId: string,
+		options: { propertyId?: string; timeframe: string }
+	): Promise<unknown[]> {
 		try {
 			if (!userId) {
 				this.logger.warn('Lease turnover analytics requested without userId')
 				throw new BadRequestException('User ID is required')
 			}
 
-			this.logger.log('Getting lease turnover analytics via repository', { userId, options })
+			this.logger.log('Getting lease turnover analytics via repository', {
+				userId,
+				options
+			})
 
 			return await this.leasesRepository.getAnalytics(userId, options)
 		} catch (error) {
@@ -423,7 +533,9 @@ export class LeasesService {
 				options
 			})
 			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to get lease turnover analytics'
+				error instanceof Error
+					? error.message
+					: 'Failed to get lease turnover analytics'
 			)
 		}
 	}
@@ -431,16 +543,25 @@ export class LeasesService {
 	/**
 	 * Get lease revenue analytics via repository
 	 */
-	async getLeaseRevenueAnalytics(userId: string, options: { leaseId?: string; propertyId?: string; period: string }): Promise<unknown[]> {
+	async getLeaseRevenueAnalytics(
+		userId: string,
+		options: { leaseId?: string; propertyId?: string; period: string }
+	): Promise<unknown[]> {
 		try {
 			if (!userId) {
 				this.logger.warn('Lease revenue analytics requested without userId')
 				throw new BadRequestException('User ID is required')
 			}
 
-			this.logger.log('Getting lease revenue analytics via repository', { userId, options })
+			this.logger.log('Getting lease revenue analytics via repository', {
+				userId,
+				options
+			})
 
-			return await this.leasesRepository.getAnalytics(userId, { ...options, timeframe: options.period })
+			return await this.leasesRepository.getAnalytics(userId, {
+				...options,
+				timeframe: options.period
+			})
 		} catch (error) {
 			this.logger.error('Leases service failed to get revenue analytics', {
 				error: error instanceof Error ? error.message : String(error),
@@ -448,7 +569,9 @@ export class LeasesService {
 				options
 			})
 			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to get lease revenue analytics'
+				error instanceof Error
+					? error.message
+					: 'Failed to get lease revenue analytics'
 			)
 		}
 	}
@@ -457,9 +580,19 @@ export class LeasesService {
 	 * Renew lease - replaces renew_lease function
 	 * Uses repository pattern instead of database function
 	 */
-	async renewLease(userId: string, leaseId: string, newEndDate: string, newRentAmount?: number): Promise<Lease | null> {
+	async renewLease(
+		userId: string,
+		leaseId: string,
+		newEndDate: string,
+		newRentAmount?: number
+	): Promise<Lease | null> {
 		try {
-			this.logger.log('Renewing lease via repository', { userId, leaseId, newEndDate, newRentAmount })
+			this.logger.log('Renewing lease via repository', {
+				userId,
+				leaseId,
+				newEndDate,
+				newRentAmount
+			})
 
 			// Business logic: Verify ownership and lease exists
 			const existingLease = await this.findOne(userId, leaseId)
@@ -471,7 +604,9 @@ export class LeasesService {
 			const currentEndDate = new Date(existingLease.endDate)
 			const renewalEndDate = new Date(newEndDate)
 			if (renewalEndDate <= currentEndDate) {
-				throw new BadRequestException('New end date must be after current lease end date')
+				throw new BadRequestException(
+					'New end date must be after current lease end date'
+				)
 			}
 
 			// Business logic: Validate new rent amount if provided
@@ -508,9 +643,19 @@ export class LeasesService {
 	 * Terminate lease - replaces terminate_lease function
 	 * Uses repository pattern instead of database function
 	 */
-	async terminateLease(userId: string, leaseId: string, terminationDate: string, reason?: string): Promise<Lease | null> {
+	async terminateLease(
+		userId: string,
+		leaseId: string,
+		terminationDate: string,
+		reason?: string
+	): Promise<Lease | null> {
 		try {
-			this.logger.log('Terminating lease via repository', { userId, leaseId, terminationDate, reason })
+			this.logger.log('Terminating lease via repository', {
+				userId,
+				leaseId,
+				terminationDate,
+				reason
+			})
 
 			// Business logic: Verify ownership and lease exists
 			const existingLease = await this.findOne(userId, leaseId)
@@ -526,12 +671,19 @@ export class LeasesService {
 			}
 
 			// Business logic: Check if lease is already terminated
-			if (existingLease.status === 'TERMINATED' || existingLease.status === 'EXPIRED') {
+			if (
+				existingLease.status === 'TERMINATED' ||
+				existingLease.status === 'EXPIRED'
+			) {
 				throw new BadRequestException('Lease is already terminated or expired')
 			}
 
 			// Terminate via repository
-			return await this.leasesRepository.terminateLease(leaseId, termDate, reason)
+			return await this.leasesRepository.terminateLease(
+				leaseId,
+				termDate,
+				reason
+			)
 		} catch (error) {
 			this.logger.error('Failed to terminate lease', {
 				error: error instanceof Error ? error.message : String(error),
