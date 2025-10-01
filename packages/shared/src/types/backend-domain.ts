@@ -209,6 +209,20 @@ export interface PropertyQueryRequest {
 	sortOrder?: 'asc' | 'desc'
 }
 
+/**
+ * Lease input for service layer operations
+ * Centralized type to avoid inline definitions
+ */
+export interface LeaseInput {
+	tenantId: string
+	unitId: string
+	startDate: string
+	endDate: string
+	rentAmount: number
+	securityDeposit?: number
+	status: Database['public']['Enums']['LeaseStatus']
+}
+
 // Unit types
 export interface CreateUnitRequest {
 	propertyId: string

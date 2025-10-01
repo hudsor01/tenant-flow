@@ -21,7 +21,7 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { getMaintenancePageData } from '@/lib/api/dashboard-server'
-import { cn } from '@/lib/utils'
+import { statusClasses } from '@/lib/design-system'
 import {
 	AlertCircle,
 	Calendar,
@@ -34,56 +34,16 @@ import {
 	Wrench
 } from 'lucide-react'
 
-const getStatusStyles = (status: string) => {
-	const styles = {
-		OPEN: 'bg-[var(--color-system-yellow-10)] text-[var(--color-system-yellow)] border-[var(--color-system-yellow)]',
-		IN_PROGRESS:
-			'bg-[var(--color-system-blue-10)] text-[var(--color-system-blue)] border-[var(--color-system-blue)]',
-		COMPLETED:
-			'bg-[var(--color-system-green-10)] text-[var(--color-system-green)] border-[var(--color-system-green)]',
-		CANCELED:
-			'bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)] border-[var(--color-border-secondary)]',
-		ON_HOLD:
-			'bg-[var(--color-fill-secondary)] text-[var(--color-label-secondary)] border-[var(--color-border-secondary)]'
-	}
-	return (
-		styles[status as keyof typeof styles] ||
-		'bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)] border-[var(--color-border-secondary)]'
-	)
-}
-
 export default async function MaintenancePage() {
-	const maintenanceResponse = await getMaintenancePageData()
-	const maintenanceData = maintenanceResponse?.data || []
+	const { data: maintenanceData, stats } = await getMaintenancePageData()
 
-	const openRequests = maintenanceData.filter(
-		(item: { status: string }) => item.status === 'OPEN'
-	).length
-	const inProgress = maintenanceData.filter(
-		(item: { status: string }) => item.status === 'IN_PROGRESS'
-	).length
-	const totalCost = maintenanceData.reduce(
-		(sum: number, item) => sum + (item.estimatedCost || 0),
-		0
-	)
-
-	// Calculate average response time from actual data
-	const completedWithResponseTime = maintenanceData.filter(
-		item => item.status === 'COMPLETED' && item.createdAt && item.updatedAt
-	)
+	// All calculations now done in backend
+	const openRequests = stats.open
+	const inProgress = stats.inProgress
+	const totalCost = stats.totalCost
 	const avgResponseTime =
-		completedWithResponseTime.length > 0
-			? (() => {
-					const avgHours =
-						completedWithResponseTime.reduce((sum, item) => {
-							const responseTime =
-								(new Date(item.updatedAt!).getTime() -
-									new Date(item.createdAt!).getTime()) /
-								(1000 * 60 * 60)
-							return sum + responseTime
-						}, 0) / completedWithResponseTime.length
-					return `${avgHours.toFixed(1)} hours`
-				})()
+		stats.avgResponseTimeHours > 0
+			? `${stats.avgResponseTimeHours.toFixed(1)} hours`
 			: 'N/A'
 
 	return (
@@ -237,9 +197,7 @@ export default async function MaintenancePage() {
 											<TableCell>
 												<Badge
 													variant="outline"
-													className={cn(
-														getStatusStyles(request.status || 'UNKNOWN')
-													)}
+													className={statusClasses(request.status || 'UNKNOWN')}
 												>
 													{request.status || 'Unknown'}
 												</Badge>

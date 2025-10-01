@@ -105,7 +105,7 @@ export interface AppError extends Error {
 	context?: Record<string, unknown>
 }
 
-import type { Tables, Database } from './supabase-generated.js'
+import type { Database, Tables } from './supabase-generated.js'
 
 export type User = Tables<'User'>
 export type Property = Tables<'Property'>
@@ -129,11 +129,11 @@ export interface MaintenanceRequestResponse {
 
 // Re-export Database type for type composition
 export type {
-  Database,
-  Enums,
-  Tables,
-  TablesInsert,
-  TablesUpdate
+	Database,
+	Enums,
+	Tables,
+	TablesInsert,
+	TablesUpdate
 } from './supabase-generated.js'
 
 export type EnvConfig = Record<string, string | number | boolean>
@@ -247,6 +247,11 @@ export interface LeaseStats extends BaseStats {
 	active: number
 	expired: number
 	expiringSoon: number
+	terminated?: number
+	totalMonthlyRent?: number
+	averageRent?: number
+	totalSecurityDeposits?: number
+	expiringLeases?: number
 }
 
 // Maintenance statistics
@@ -392,6 +397,7 @@ export interface LeaseStatsResponse {
 	totalMonthlyRent: number
 	averageRent: number
 	totalSecurityDeposits: number
+	expiringLeases: number
 }
 
 export interface TenantWithLeaseInfo {
@@ -570,8 +576,10 @@ export type FormProgressData = {
 // REPOSITORY INPUT TYPES (Database table Insert/Update types)
 // Re-export from database types for repository pattern consistency
 
-export type MaintenanceRequestInput = Database['public']['Tables']['MaintenanceRequest']['Insert']
-export type MaintenanceRequestUpdate = Database['public']['Tables']['MaintenanceRequest']['Update']
+export type MaintenanceRequestInput =
+	Database['public']['Tables']['MaintenanceRequest']['Insert']
+export type MaintenanceRequestUpdate =
+	Database['public']['Tables']['MaintenanceRequest']['Update']
 export type TenantInput = Database['public']['Tables']['Tenant']['Insert']
 export type TenantUpdate = Database['public']['Tables']['Tenant']['Update']
 export type UnitInput = Database['public']['Tables']['Unit']['Insert']

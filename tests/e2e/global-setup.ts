@@ -13,7 +13,8 @@ const logInfo = (message: string) => {
 }
 const logError = (message: string, error: unknown) => {
 	if (!shouldLog) return
-	const details = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+	const details =
+		error instanceof Error ? `${error.name}: ${error.message}` : String(error)
 	process.stderr.write(`${message}: ${details}\n`)
 }
 
@@ -36,42 +37,74 @@ async function globalSetup(config: FullConfig) {
 		// Setup different user roles
 		const userRoles = [
 			{
-				email: process.env.E2E_USER_EMAIL || (() => {
-					throw new Error('E2E_USER_EMAIL is required for Playwright global setup')
-				})(),
-				password: process.env.E2E_USER_PASSWORD || (() => {
-					throw new Error('E2E_USER_PASSWORD is required for Playwright global setup')
-				})(),
+				email:
+					process.env.E2E_USER_EMAIL ||
+					(() => {
+						throw new Error(
+							'E2E_USER_EMAIL is required for Playwright global setup'
+						)
+					})(),
+				password:
+					process.env.E2E_USER_PASSWORD ||
+					(() => {
+						throw new Error(
+							'E2E_USER_PASSWORD is required for Playwright global setup'
+						)
+					})(),
 				storageStatePath: 'playwright/.auth/user.json',
 				role: 'user'
 			},
 			{
-				email: process.env.E2E_ADMIN_EMAIL || (() => {
-					throw new Error('E2E_ADMIN_EMAIL is required for Playwright global setup')
-				})(),
-				password: process.env.E2E_ADMIN_PASSWORD || (() => {
-					throw new Error('E2E_ADMIN_PASSWORD is required for Playwright global setup')
-				})(),
+				email:
+					process.env.E2E_ADMIN_EMAIL ||
+					(() => {
+						throw new Error(
+							'E2E_ADMIN_EMAIL is required for Playwright global setup'
+						)
+					})(),
+				password:
+					process.env.E2E_ADMIN_PASSWORD ||
+					(() => {
+						throw new Error(
+							'E2E_ADMIN_PASSWORD is required for Playwright global setup'
+						)
+					})(),
 				storageStatePath: 'playwright/.auth/admin.json',
 				role: 'admin'
 			},
 			{
-				email: process.env.E2E_LANDLORD_EMAIL || (() => {
-					throw new Error('E2E_LANDLORD_EMAIL is required for Playwright global setup')
-				})(),
-				password: process.env.E2E_LANDLORD_PASSWORD || (() => {
-					throw new Error('E2E_LANDLORD_PASSWORD is required for Playwright global setup')
-				})(),
+				email:
+					process.env.E2E_LANDLORD_EMAIL ||
+					(() => {
+						throw new Error(
+							'E2E_LANDLORD_EMAIL is required for Playwright global setup'
+						)
+					})(),
+				password:
+					process.env.E2E_LANDLORD_PASSWORD ||
+					(() => {
+						throw new Error(
+							'E2E_LANDLORD_PASSWORD is required for Playwright global setup'
+						)
+					})(),
 				storageStatePath: 'playwright/.auth/landlord.json',
 				role: 'landlord'
 			},
 			{
-				email: process.env.E2E_TENANT_EMAIL || (() => {
-					throw new Error('E2E_TENANT_EMAIL is required for Playwright global setup')
-				})(),
-				password: process.env.E2E_TENANT_PASSWORD || (() => {
-					throw new Error('E2E_TENANT_PASSWORD is required for Playwright global setup')
-				})(),
+				email:
+					process.env.E2E_TENANT_EMAIL ||
+					(() => {
+						throw new Error(
+							'E2E_TENANT_EMAIL is required for Playwright global setup'
+						)
+					})(),
+				password:
+					process.env.E2E_TENANT_PASSWORD ||
+					(() => {
+						throw new Error(
+							'E2E_TENANT_PASSWORD is required for Playwright global setup'
+						)
+					})(),
 				storageStatePath: 'playwright/.auth/tenant.json',
 				role: 'tenant'
 			}
@@ -124,7 +157,7 @@ async function globalSetup(config: FullConfig) {
 						cookies: [],
 						origins: [
 							{
-								origin: baseURL || use?.baseURL || 'http://localhost:4500',
+								origin: baseURL || use?.baseURL || 'http://localhost:3000',
 								localStorage: [
 									{
 										name: 'auth-token',
