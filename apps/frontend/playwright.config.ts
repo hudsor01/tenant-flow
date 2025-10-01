@@ -29,17 +29,11 @@ export default defineConfig({
 		headless: true,
 
 		// Better base URL handling with explicit configuration required
-		baseURL: (() => {
-			if (process.env.PLAYWRIGHT_TEST_BASE_URL)
-				return process.env.PLAYWRIGHT_TEST_BASE_URL
-			if (process.env.PLAYWRIGHT_BASE_URL)
-				return process.env.PLAYWRIGHT_BASE_URL
-			if (process.env.CI) {
-				if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
-				return 'https://tenantflow.app'
-			}
-			return 'http://localhost:3000' // Default for local testing
-		})(),
+		baseURL: process.env.CI
+			? process.env.VERCEL_URL
+				? `https://${process.env.VERCEL_URL}`
+				: 'https://tenantflow.app'
+			: 'http://localhost:4500', // Default for local testing - matches webServer port
 
 		// Performance and reliability settings
 		actionTimeout: 10000,
@@ -71,7 +65,7 @@ export default defineConfig({
 							return `https://${process.env.VERCEL_URL}`
 						return 'https://tenantflow.app'
 					}
-					return 'http://localhost:3000' // Default for local testing
+					return 'http://localhost:4500' // Default for local testing
 				})()
 			}
 		},
@@ -94,7 +88,7 @@ export default defineConfig({
 							return `https://${process.env.VERCEL_URL}`
 						return 'https://tenantflow.app'
 					}
-					return 'http://localhost:3000' // Default for local testing
+					return 'http://localhost:4500' // Default for local testing
 				})()
 			},
 			dependencies: ['setup']
@@ -116,7 +110,7 @@ export default defineConfig({
 							return `https://${process.env.VERCEL_URL}`
 						return 'https://tenantflow.app'
 					}
-					return 'http://localhost:3000' // Default for local testing
+					return 'http://localhost:4500' // Default for local testing
 				})()
 			},
 			testIgnore: ['**/auth.setup.ts']

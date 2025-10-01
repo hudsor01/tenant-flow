@@ -153,13 +153,18 @@ describe('LeasesService', () => {
 	})
 
 	describe('getStats', () => {
-		it('should return lease statistics', async () => {
+		it('should return lease statistics response with computed fields', async () => {
 			const userId = generateUUID()
 			const mockStats = {
 				total: 25,
 				active: 20,
 				expired: 3,
-				expiringSoon: 2
+				expiringSoon: 4,
+				expiringLeases: 5,
+				terminated: 2,
+				totalMonthlyRent: 55000,
+				averageRent: 2750,
+				totalSecurityDeposits: 12000
 			}
 
 			mockLeasesRepository.getStats.mockResolvedValue(mockStats)
@@ -167,7 +172,16 @@ describe('LeasesService', () => {
 			const result = await service.getStats(userId)
 
 			expect(mockLeasesRepository.getStats).toHaveBeenCalledWith(userId)
-			expect(result).toEqual(mockStats)
+			expect(result).toEqual({
+				totalLeases: 25,
+				activeLeases: 20,
+				expiredLeases: 3,
+				terminatedLeases: 2,
+				totalMonthlyRent: 55000,
+				averageRent: 2750,
+				totalSecurityDeposits: 12000,
+				expiringLeases: 5
+			})
 		})
 
 		it('should throw BadRequestException when repository fails', async () => {
