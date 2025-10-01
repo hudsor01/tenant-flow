@@ -3,6 +3,7 @@
 import {
 	BarChart3,
 	Building2,
+	Calculator,
 	Calendar,
 	CircleDollarSign,
 	ClipboardList,
@@ -12,9 +13,11 @@ import {
 	LayoutDashboard,
 	LineChart,
 	PieChart,
+	Receipt,
 	Settings,
 	TrendingUp,
 	Users,
+	Wallet,
 	Wrench,
 	type LucideIcon
 } from 'lucide-react'
@@ -139,6 +142,33 @@ const navigation: {
 					title: 'Schedule Reports',
 					url: '/dashboard/reports/schedule',
 					icon: Calendar
+				}
+			]
+		},
+		{
+			title: 'Financials',
+			url: '/dashboard/financials',
+			icon: Receipt,
+			children: [
+				{
+					title: 'Income Statement',
+					url: '/dashboard/financials/income-statement',
+					icon: TrendingUp
+				},
+				{
+					title: 'Cash Flow',
+					url: '/dashboard/financials/cash-flow',
+					icon: Wallet
+				},
+				{
+					title: 'Balance Sheet',
+					url: '/dashboard/financials/balance-sheet',
+					icon: Calculator
+				},
+				{
+					title: 'Tax Documents',
+					url: '/dashboard/financials/tax-documents',
+					icon: Receipt
 				}
 			]
 		}
