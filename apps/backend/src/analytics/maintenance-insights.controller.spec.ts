@@ -56,7 +56,7 @@ describe('MaintenanceInsightsController', () => {
 		const request = createRequest()
 		supabase.getUser.mockResolvedValue({ id: 'user-5' })
 		const metrics = { openRequests: 3 }
-		service.getMaintenanceMetrics.mockResolvedValue(metrics)
+		service.getMaintenanceMetrics!.mockResolvedValue(metrics)
 
 		const response = await controller.getMaintenanceMetrics(request as Request)
 
@@ -76,7 +76,7 @@ describe('MaintenanceInsightsController', () => {
 		}
 		supabase.getUser.mockResolvedValue({ id: 'user-5' })
 		const analytics = { trends: [] }
-		service.getMaintenanceAnalytics.mockResolvedValue(analytics)
+		service.getMaintenanceAnalytics!.mockResolvedValue(analytics)
 
 		const response = await controller.getMaintenanceAnalytics(
 			request as Request
@@ -98,7 +98,7 @@ describe('MaintenanceInsightsController', () => {
 		}
 		supabase.getUser.mockResolvedValue({ id: 'user-5' })
 		const pageData = { metrics: { openRequests: 2 } }
-		service.getMaintenanceInsightsPageData.mockResolvedValue(pageData)
+		service.getMaintenanceInsightsPageData!.mockResolvedValue(pageData)
 
 		const response = await controller.getMaintenancePageData(request as Request)
 
