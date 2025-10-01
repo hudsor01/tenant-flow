@@ -31,11 +31,12 @@ describe('ExportService', () => {
 
 			const buffer = await service.generateExcel(payload, 'Portfolio')
 			const workbook = new ExcelJS.Workbook()
-			await workbook.xlsx.load(buffer)
+			await workbook.xlsx.load(buffer as any)
 			const worksheet = workbook.getWorksheet('Portfolio')
 
 			expect(worksheet).toBeDefined()
-			const headerValues = worksheet?.getRow(1).values?.slice(1)
+			const headerRow = worksheet?.getRow(1)
+			const headerValues = Array.isArray(headerRow?.values) ? headerRow.values.slice(1) : []
 			expect(headerValues).toEqual([
 				'Property',
 				'Metrics Occupancy',
@@ -43,8 +44,10 @@ describe('ExportService', () => {
 				'Tags'
 			])
 
-			const firstRowValues = worksheet?.getRow(2).values?.slice(1)
-			const secondRowValues = worksheet?.getRow(3).values?.slice(1)
+			const firstRow = worksheet?.getRow(2)
+			const firstRowValues = Array.isArray(firstRow?.values) ? firstRow.values.slice(1) : []
+			const secondRow = worksheet?.getRow(3)
+			const secondRowValues = Array.isArray(secondRow?.values) ? secondRow.values.slice(1) : []
 			expect(firstRowValues).toEqual(['Pine Estates', 0.92, 120, 2])
 			expect(secondRowValues).toEqual(['Maple Court', 0.88, 85, 0])
 		})
@@ -52,10 +55,11 @@ describe('ExportService', () => {
 		it('provides a fallback row when the payload is empty', async () => {
 			const buffer = await service.generateExcel([], 'Empty')
 			const workbook = new ExcelJS.Workbook()
-			await workbook.xlsx.load(buffer)
+			await workbook.xlsx.load(buffer as any)
 			const worksheet = workbook.getWorksheet('Empty')
 
-			const rowValues = worksheet?.getRow(2).values?.slice(1)
+			const row = worksheet?.getRow(2)
+			const rowValues = Array.isArray(row?.values) ? row.values.slice(1) : []
 			expect(rowValues).toEqual(['message', 'No data available'])
 		})
 	})
