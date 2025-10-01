@@ -51,19 +51,19 @@ export class PropertyPerformanceService {
 			).rpc(functionName, payload)
 
 			if (error) {
-				this.logger.warn('Property analytics RPC failed', {
-					functionName,
-					error: error.message
-				})
+				this.logger.warn(
+					`Property analytics RPC failed: ${functionName} - ${error.message}`
+				)
 				return null
 			}
 
 			return data ?? null
 		} catch (error) {
-			this.logger.error('Unexpected RPC failure', {
-				functionName,
-				error: error instanceof Error ? error.message : String(error)
-			})
+			const errorMessage =
+				error instanceof Error ? error.message : String(error)
+			this.logger.error(
+				`Unexpected RPC failure: ${functionName} - ${errorMessage}`
+			)
 			return null
 		}
 	}
