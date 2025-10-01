@@ -186,7 +186,7 @@ async function logToSecurityMonitoring(
 /**
  * Store security event in database for audit trail
  */
-// eslint-disable-next-line type-centralization/no-inline-types
+
 interface SecurityEvent {
 	type: string
 	severity: string
