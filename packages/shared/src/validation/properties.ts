@@ -1,14 +1,13 @@
 import { z } from 'zod'
 import { Constants, type Database } from '../types/supabase-generated.js'
-import
-  {
-    nonEmptyStringSchema,
-    nonNegativeNumberSchema,
-    positiveNumberSchema,
-    requiredString,
-    urlSchema,
-    uuidSchema
-  } from './common.js'
+import {
+	nonEmptyStringSchema,
+	nonNegativeNumberSchema,
+	positiveNumberSchema,
+	requiredString,
+	urlSchema,
+	uuidSchema
+} from './common.js'
 
 // Property type schema - uses auto-generated Supabase enums
 export const propertyTypeSchema = z.enum(
@@ -174,7 +173,43 @@ export const transformPropertyFormData = (
 	imageUrl: data.imageUrl || null
 })
 
+// Frontend-specific form schema for updates (handles string inputs from HTML forms)
+export const propertyUpdateFormSchema = z.object({
+	name: z.string().optional(),
+	address: z.string().optional(),
+	city: z.string().optional(),
+	state: z.string().optional(),
+	zipCode: z.string().optional(),
+	propertyType: z
+		.enum(Constants.public.Enums.PropertyType as readonly [string, ...string[]])
+		.optional(),
+	status: z
+		.enum(
+			Constants.public.Enums.PropertyStatus as readonly [string, ...string[]]
+		)
+		.optional()
+})
+
+// Transform function for converting update form data to API format
+export const transformPropertyUpdateData = (data: PropertyUpdateFormData) => ({
+	name: data.name,
+	address: data.address,
+	city: data.city,
+	state: data.state,
+	zipCode: data.zipCode,
+	propertyType: data.propertyType as
+		| Database['public']['Enums']['PropertyType']
+		| undefined,
+	status: data.status as
+		| Database['public']['Enums']['PropertyStatus']
+		| undefined
+})
+
 export type PropertyFormData = z.infer<typeof propertyFormSchema>
+export type PropertyUpdateFormData = z.infer<typeof propertyUpdateFormSchema>
 export type TransformedPropertyData = ReturnType<
 	typeof transformPropertyFormData
+>
+export type TransformedPropertyUpdateData = ReturnType<
+	typeof transformPropertyUpdateData
 >

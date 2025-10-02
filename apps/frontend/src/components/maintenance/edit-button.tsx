@@ -22,9 +22,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { maintenanceApi } from '@/lib/api-client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
-	maintenanceRequestUpdateSchema,
-	type MaintenancePriorityValidation,
-	type MaintenanceRequestUpdate
+	maintenanceRequestUpdateFormSchema,
+	type MaintenanceRequestUpdate,
+	type MaintenanceRequestUpdateFormOutput
 } from '@repo/shared/validation/maintenance'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Edit } from 'lucide-react'
@@ -53,13 +53,15 @@ export function EditMaintenanceButton({
 	const queryClient = useQueryClient()
 
 	const form = useForm({
-		resolver: zodResolver(maintenanceRequestUpdateSchema),
+		resolver: zodResolver(maintenanceRequestUpdateFormSchema),
 		defaultValues: {
 			title: maintenance.title,
 			description: maintenance.description,
-			priority: maintenance.priority as MaintenancePriorityValidation,
+			priority: maintenance.priority,
 			category: maintenance.category || '',
-			estimatedCost: maintenance.estimatedCost || undefined,
+			estimatedCost: maintenance.estimatedCost
+				? maintenance.estimatedCost.toString()
+				: '',
 			notes: maintenance.notes || '',
 			preferredDate: maintenance.preferredDate || '',
 			allowEntry: maintenance.allowEntry || false
@@ -81,9 +83,21 @@ export function EditMaintenanceButton({
 		}
 	})
 
-	const onSubmit = (data: MaintenanceRequestUpdate) => {
+	const onSubmit = (data: MaintenanceRequestUpdateFormOutput) => {
 		const updateData = {
-			...data
+			title: data.title,
+			description: data.description,
+			priority: data.priority,
+			category: data.category,
+			estimatedCost: data.estimatedCost,
+			notes: data.notes,
+			preferredDate: data.preferredDate
+				? new Date(data.preferredDate)
+				: undefined,
+			allowEntry: data.allowEntry,
+			status: data.status,
+			actualCost: data.actualCost,
+			completedAt: data.completedAt ? new Date(data.completedAt) : undefined
 		}
 		updateMutation.mutate(updateData)
 	}
@@ -113,13 +127,12 @@ export function EditMaintenanceButton({
 				<DialogHeader>
 					<DialogTitle>Edit Maintenance Request</DialogTitle>
 					<DialogDescription>
-						Update maintenance request details including priority, status, and cost estimates.
+						Update maintenance request details including priority, status, and
+						cost estimates.
 					</DialogDescription>
 				</DialogHeader>
 				<form
-					onSubmit={form.handleSubmit(data =>
-						onSubmit(data as MaintenanceRequestUpdate)
-					)}
+					onSubmit={form.handleSubmit(data => onSubmit(data))}
 					className="space-y-4"
 				>
 					<div className="space-y-2">
