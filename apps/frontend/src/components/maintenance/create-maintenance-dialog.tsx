@@ -55,16 +55,27 @@ export function CreateMaintenanceDialog() {
 			category: '',
 			unitId: '',
 			assignedTo: undefined,
+			requestedBy: undefined,
+			contactPhone: undefined,
+			allowEntry: false,
 			estimatedCost: undefined,
 			photos: [],
 			notes: undefined,
-			preferredDate: undefined,
-			allowEntry: false
+			preferredDate: undefined
 		}
 	})
 
 	const createMutation = useMutation({
-		mutationFn: maintenanceApi.create,
+		mutationFn: (data: MaintenanceRequestFormOutput) => {
+			const transformedData = {
+				...data,
+				preferredDate:
+					data.preferredDate && data.preferredDate !== ''
+						? new Date(data.preferredDate)
+						: undefined
+			}
+			return maintenanceApi.create(transformedData)
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['maintenance-requests'] })
 			queryClient.invalidateQueries({ queryKey: ['maintenance-stats'] })
@@ -78,24 +89,7 @@ export function CreateMaintenanceDialog() {
 	})
 
 	const onSubmit = (data: MaintenanceRequestFormOutput) => {
-		const requestData = {
-			title: data.title,
-			description: data.description,
-			priority: data.priority,
-			category: data.category,
-			unitId: data.unitId,
-			assignedTo: data.assignedTo,
-			requestedBy: data.requestedBy,
-			contactPhone: data.contactPhone,
-			allowEntry: data.allowEntry,
-			estimatedCost: data.estimatedCost,
-			photos: data.photos,
-			preferredDate: data.preferredDate
-				? new Date(data.preferredDate)
-				: undefined,
-			notes: data.notes
-		}
-		createMutation.mutate(requestData)
+		createMutation.mutate(data)
 	}
 
 	const categories = [
