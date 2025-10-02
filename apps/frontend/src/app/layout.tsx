@@ -4,7 +4,7 @@ import { ErrorBoundary } from '@/components/magicui/error-boundary'
 import { Providers } from '@/components/providers'
 import SeoJsonLd from '@/components/seo/SeoJsonLd'
 import RegisterServiceWorker from '@/components/sw/register-sw'
-import defaultMetadata, { generateSiteMetadata } from '@/lib/generate-metadata'
+import { generateSiteMetadata } from '@/lib/generate-metadata'
 import {
 	DEFAULT_THEME_MODE,
 	THEME_MODE_COOKIE_NAME,
@@ -17,11 +17,6 @@ import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import { Toaster } from 'sonner'
 import './globals.css'
-
-// Static metadata for routes — used at build time. For dynamic per-route
-// metadata, Next supports an async generateMetadata function which we also
-// export below (returns the same default metadata for now).
-export const metadata: Metadata = defaultMetadata
 
 export async function generateMetadata(): Promise<Metadata> {
 	return await generateSiteMetadata()
