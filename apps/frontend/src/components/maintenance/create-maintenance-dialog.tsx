@@ -21,8 +21,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { maintenanceApi, propertiesApi, unitsApi } from '@/lib/api-client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
-	maintenanceRequestInputSchema,
-	type MaintenanceRequestInput
+	maintenanceRequestFormSchema,
+	type MaintenanceRequestFormOutput
 } from '@repo/shared/validation/maintenance'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
@@ -47,7 +47,7 @@ export function CreateMaintenanceDialog() {
 	})
 
 	const form = useForm({
-		resolver: zodResolver(maintenanceRequestInputSchema),
+		resolver: zodResolver(maintenanceRequestFormSchema),
 		defaultValues: {
 			title: '',
 			description: '',
@@ -77,13 +77,25 @@ export function CreateMaintenanceDialog() {
 		}
 	})
 
-	const onSubmit = (data: MaintenanceRequestInput) => {
+	const onSubmit = (data: MaintenanceRequestFormOutput) => {
 		const requestData = {
-			...data,
-			photos: data.photos || [],
+			title: data.title,
+			description: data.description,
+			priority: data.priority,
+			category: data.category,
+			unitId: data.unitId,
+			assignedTo: data.assignedTo,
+			requestedBy: data.requestedBy,
+			contactPhone: data.contactPhone,
+			allowEntry: data.allowEntry,
+			estimatedCost: data.estimatedCost,
+			photos: data.photos,
 			preferredDate: data.preferredDate
+				? new Date(data.preferredDate)
+				: undefined,
+			notes: data.notes
 		}
-		createMutation.mutate(requestData as MaintenanceRequestInput)
+		createMutation.mutate(requestData)
 	}
 
 	const categories = [
@@ -112,9 +124,7 @@ export function CreateMaintenanceDialog() {
 					<DialogTitle>Create Maintenance Request</DialogTitle>
 				</DialogHeader>
 				<form
-					onSubmit={form.handleSubmit(data =>
-						onSubmit(data as MaintenanceRequestInput)
-					)}
+					onSubmit={form.handleSubmit(data => onSubmit(data))}
 					className="space-y-4"
 				>
 					<div className="space-y-2">
