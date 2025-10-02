@@ -5,7 +5,7 @@
 	"version": "1.0.1",
 	"type": "module",
 	"engines": {
-		"node": ">=22.14.0",
+		"node": ">=22.0.0",
 		"pnpm": ">=9"
 	},
 	"os": [
@@ -43,7 +43,7 @@
 		"test:unit:backend": "pnpm --filter @repo/backend test:unit",
 		"test:unit:frontend": "pnpm --filter @repo/frontend test:unit",
 		"test:unit:watch": "pnpm --filter @repo/backend test:unit -- --watch",
-		"test:unit:coverage": "pnpm --filter @repo/backend test:unit -- --coverage",
+		"test:unit:coverage": "pnpm --filter @repo/backend test:unit --coverage",
 		"test:integration": "pnpm --filter @repo/backend test:integration",
 		"test:integration:watch": "pnpm --filter @repo/backend test:integration -- --watch",
 		"test:e2e": "pnpm --filter @repo/frontend test:e2e",
