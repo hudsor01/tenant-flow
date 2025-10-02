@@ -1,304 +1,185 @@
-/* global clients */
-/**
- * Service Worker for TenantFlow
- * Optimizes caching and offline experience
- */
+/* eslint-env serviceworker, browser */
+/* global caches, fetch, Response, self, URL, console */
+/*
+ 	TenantFlow service worker
 
-const CACHE_NAME = 'tenantflow-v1'
-const STATIC_CACHE = 'tenantflow-static-v1'
-const API_CACHE = 'tenantflow-api-v1'
+	Goals:
+	- Precache critical shell assets for fast first load
+	- Runtime caching: cache-first for static assets, network-first for API
+	- Navigation fallback for SPA routing
+	- Cache size limits and safe cleanup
+	- Safe update flow: support skipWaiting via message and notify clients
 
-// Cache strategies
-const CACHE_STRATEGIES = {
-	CACHE_FIRST: 'cache-first',
-	NETWORK_FIRST: 'network-first',
-	NETWORK_ONLY: 'network-only',
-	CACHE_ONLY: 'cache-only',
-	STALE_WHILE_REVALIDATE: 'stale-while-revalidate'
+	This worker is intentionally small and conservative to avoid surprising
+	behavior. It does not attempt to cache every request; it focuses on
+	assets that meaningfully improve performance and resilience.
+*/
+
+const CACHE_VERSION = 'v1'
+const PRECACHE = `tenantflow-precache-${CACHE_VERSION}`
+const RUNTIME = `tenantflow-runtime-${CACHE_VERSION}`
+
+// Files we want to precache. Keep this list conservative — avoid large files.
+const PRECACHE_URLS = ['/', '/manifest.json', '/favicon.ico']
+
+// Limit entries in runtime caches to avoid unbounded growth
+const MAX_RUNTIME_ENTRIES = 100
+
+// Utility: trim cache to max entries (LRU-ish by deletion order)
+async function trimCache(cacheName, maxEntries) {
+	const cache = await caches.open(cacheName)
+	const keys = await cache.keys()
+	if (keys.length <= maxEntries) return
+	const deletions = keys.slice(0, keys.length - maxEntries)
+	await Promise.all(deletions.map(k => cache.delete(k)))
 }
 
-// Routes and their caching strategies
-const ROUTE_STRATEGIES = {
-	'/static/': CACHE_STRATEGIES.CACHE_FIRST,
-	'/assets/': CACHE_STRATEGIES.CACHE_FIRST,
-	'/api/properties': CACHE_STRATEGIES.STALE_WHILE_REVALIDATE,
-	'/api/tenants': CACHE_STRATEGIES.STALE_WHILE_REVALIDATE,
-	'/api/dashboard': CACHE_STRATEGIES.STALE_WHILE_REVALIDATE,
-	'/api/auth': CACHE_STRATEGIES.NETWORK_ONLY,
-	'/api/realtime': CACHE_STRATEGIES.NETWORK_ONLY
-}
-
-// Files to cache immediately
-const CRITICAL_ASSETS = [
-	'/',
-	'/static/js/react-vendor.js',
-	'/static/js/router-vendor.js',
-	'/static/js/ui-vendor.js',
-	'/static/css/main.css',
-	'/manifest.json'
-]
-
-/**
- * Install event - cache critical assets
- */
-self.addEventListener('install', event => {
-
-	event.waitUntil(
-		caches
-			.open(STATIC_CACHE)
-			.then(cache => {
-				return cache.addAll(CRITICAL_ASSETS)
-			})
-			.then(() => self.skipWaiting())
-			.catch(error => {
-					'Service Worker: Failed to cache critical assets',
-					error
-				)
-			})
-	)
-})
-
-/**
- * Activate event - clean up old caches
- */
-self.addEventListener('activate', event => {
-
-	event.waitUntil(
-		caches
-			.keys()
-			.then(cacheNames => {
-				return Promise.all(
-					cacheNames.map(cacheName => {
-						if (
-							cacheName !== CACHE_NAME &&
-							cacheName !== STATIC_CACHE &&
-							cacheName !== API_CACHE
-						) {
-								'Service Worker: Deleting old cache',
-								cacheName
-							)
-							return caches.delete(cacheName)
-						}
-					})
-				)
-			})
-			.then(() => self.clients.claim())
-	)
-})
-
-/**
- * Fetch event - handle all network requests
- */
-self.addEventListener('fetch', event => {
-	const { request } = event
-	const url = new URL(request.url)
-
-	// Skip non-GET requests for caching
-	if (request.method !== 'GET') {
-		return
-	}
-
-	// Skip Chrome extension requests
-	if (url.protocol === 'chrome-extension:') {
-		return
-	}
-
-	// Determine cache strategy
-	const strategy = getStrategyForUrl(url.pathname)
-
-	event.respondWith(handleRequest(request, strategy))
-})
-
-/**
- * Get caching strategy for URL
- */
-function getStrategyForUrl(pathname) {
-	for (const [route, strategy] of Object.entries(ROUTE_STRATEGIES)) {
-		if (pathname.startsWith(route)) {
-			return strategy
-		}
-	}
-
-	// Default strategy based on file type
-	if (pathname.includes('/static/') || pathname.includes('/assets/')) {
-		return CACHE_STRATEGIES.CACHE_FIRST
-	}
-
-	if (pathname.startsWith('/api/')) {
-		return CACHE_STRATEGIES.NETWORK_FIRST
-	}
-
-	return CACHE_STRATEGIES.NETWORK_FIRST
-}
-
-/**
- * Handle request based on strategy
- */
-async function handleRequest(request, strategy) {
-	const cacheName = getCacheNameForRequest(request)
-
-	switch (strategy) {
-		case CACHE_STRATEGIES.CACHE_FIRST:
-			return cacheFirst(request, cacheName)
-
-		case CACHE_STRATEGIES.NETWORK_FIRST:
-			return networkFirst(request, cacheName)
-
-		case CACHE_STRATEGIES.STALE_WHILE_REVALIDATE:
-			return staleWhileRevalidate(request, cacheName)
-
-		case CACHE_STRATEGIES.NETWORK_ONLY:
-			return fetch(request)
-
-		case CACHE_STRATEGIES.CACHE_ONLY:
-			return caches.match(request)
-
-		default:
-			return networkFirst(request, cacheName)
-	}
-}
-
-/**
- * Get appropriate cache name for request
- */
-function getCacheNameForRequest(request) {
-	const url = new URL(request.url)
-
-	if (url.pathname.startsWith('/api/')) {
-		return API_CACHE
-	}
-
-	if (
-		url.pathname.includes('/static/') ||
-		url.pathname.includes('/assets/')
-	) {
-		return STATIC_CACHE
-	}
-
-	return CACHE_NAME
-}
-
-/**
- * Cache First Strategy
- */
-async function cacheFirst(request, cacheName) {
+// Utility: respond with network-first strategy for APIs
+async function networkFirst(request) {
+	const cache = await caches.open(RUNTIME)
 	try {
-		const cachedResponse = await caches.match(request)
-		if (cachedResponse) {
-			return cachedResponse
+		const response = await fetch(request)
+		// Only cache successful GET responses
+		if (request.method === 'GET' && response && response.status === 200) {
+			cache.put(request, response.clone())
+			// Trim cache in background
+			trimCache(RUNTIME, MAX_RUNTIME_ENTRIES)
 		}
-
-		const networkResponse = await fetch(request)
-		const cache = await caches.open(cacheName)
-
-		// Only cache successful responses
-		if (networkResponse.status === 200) {
-			cache.put(request, networkResponse.clone())
-		}
-
-		return networkResponse
-	} catch (error) {
-		return caches.match(request) || new Response('Offline', { status: 503 })
+		return response
+	} catch {
+		const cached = await cache.match(request)
+		if (cached) return cached
+		return new Response('Network error', { status: 503 })
 	}
 }
 
-/**
- * Network First Strategy
- */
-async function networkFirst(request, cacheName) {
+// Utility: cache-first for static assets
+async function cacheFirst(request) {
+	const cache = await caches.open(RUNTIME)
+	const cached = await cache.match(request)
+	if (cached) return cached
 	try {
-		const networkResponse = await fetch(request)
-		const cache = await caches.open(cacheName)
-
-		// Cache successful responses
-		if (networkResponse.status === 200) {
-			cache.put(request, networkResponse.clone())
+		const response = await fetch(request)
+		if (response && response.status === 200 && request.method === 'GET') {
+			cache.put(request, response.clone())
+			trimCache(RUNTIME, MAX_RUNTIME_ENTRIES)
 		}
-
-		return networkResponse
-	} catch (error) {
-		const cachedResponse = await caches.match(request)
-
-		if (cachedResponse) {
-			return cachedResponse
-		}
-
-		// Return offline page for navigation requests
-		if (request.mode === 'navigate') {
-			return (
-				caches.match('/') ||
-				new Response('Offline', {
-					status: 503,
-					headers: { 'Content-Type': 'text/html' }
-				})
-			)
-		}
-
+		return response
+	} catch {
 		return new Response('Offline', { status: 503 })
 	}
 }
 
-/**
- * Stale While Revalidate Strategy
- */
-async function staleWhileRevalidate(request, cacheName) {
-	const cache = await caches.open(cacheName)
-	const cachedResponse = await caches.match(request)
-
-	// Fetch fresh response in background
-	const fetchPromise = fetch(request)
-		.then(networkResponse => {
-			if (networkResponse.status === 200) {
-				cache.put(request, networkResponse.clone())
+self.addEventListener('install', event => {
+	event.waitUntil(
+		(async () => {
+			const cache = await caches.open(PRECACHE)
+			try {
+				await cache.addAll(PRECACHE_URLS)
+			} catch (e) {
+				// If precache fails, continue — runtime caching still works
+				console.warn('SW: precache failed', e)
 			}
-			return networkResponse
-		})
-		.catch(error => {
-		})
+			// Activate immediately
+			await self.skipWaiting()
+		})()
+	)
+})
 
-	// Return cached response immediately if available
-	if (cachedResponse) {
-		return cachedResponse
-	}
+self.addEventListener('activate', event => {
+	event.waitUntil(
+		(async () => {
+			// Delete old caches that don't match our current names
+			const keys = await caches.keys()
+			await Promise.all(
+				keys
+					.filter(k => k !== PRECACHE && k !== RUNTIME)
+					.map(k => caches.delete(k))
+			)
+			await self.clients.claim()
+		})()
+	)
+})
 
-	// If no cache, wait for network
-	return fetchPromise || new Response('Offline', { status: 503 })
-}
-
-/**
- * Background sync for failed requests
- */
-self.addEventListener('sync', event => {
-	if (event.tag === 'background-sync') {
-		event.waitUntil(handleBackgroundSync())
+// Handle messages from client (e.g., skipWaiting)
+self.addEventListener('message', event => {
+	if (!event.data) return
+	if (event.data.type === 'SKIP_WAITING') {
+		self.skipWaiting()
 	}
 })
 
-async function handleBackgroundSync() {
-	// Implement retry logic for failed API calls
+// Navigation fallback response from precache
+async function navigationFallback() {
+	const cache = await caches.open(PRECACHE)
+	const cached = await cache.match('/')
+	return (
+		cached ||
+		new Response(
+			'<!doctype html><meta charset="utf-8"><title>Offline</title><h1>Offline</h1>',
+			{ headers: { 'Content-Type': 'text/html' } }
+		)
+	)
 }
 
-/**
- * Push notification handling
- */
-self.addEventListener('push', event => {
-	const options = {
-		body: event.data ? event.data.text() : 'New notification',
-		icon: '/icon-192x192.png',
-		badge: '/icon-192x192.png',
-		tag: 'tenantflow-notification',
-		renotify: true,
-		requireInteraction: false
+self.addEventListener('fetch', event => {
+	const { request } = event
+
+	// Only handle GET requests in service worker to be safe
+	if (request.method !== 'GET') return
+
+	const url = new URL(request.url)
+
+	// Bypass cross-origin requests (e.g., analytics, third-party) — let network handle them
+	if (url.origin !== self.location.origin) return
+
+	// Prefer cache-first for static resources (by extension or _next static)
+	if (
+		url.pathname.startsWith('/_next/') ||
+		url.pathname.endsWith('.js') ||
+		url.pathname.endsWith('.css') ||
+		url.pathname.endsWith('.woff2') ||
+		url.pathname.endsWith('.png') ||
+		url.pathname.endsWith('.jpg') ||
+		url.pathname.endsWith('.svg')
+	) {
+		event.respondWith(cacheFirst(request))
+		return
 	}
 
-	event.waitUntil(self.registration.showNotification('TenantFlow', options))
+	// Network-first for API requests under /api/
+	if (url.pathname.startsWith('/api/')) {
+		event.respondWith(networkFirst(request))
+		return
+	}
+
+	// Navigation requests (HTML) -> use navigation fallback on failure
+	if (request.mode === 'navigate') {
+		event.respondWith(
+			(async () => {
+				try {
+					const response = await fetch(request)
+					// Update precache index if fetched successfully
+					if (response && response.status === 200) {
+						const cache = await caches.open(RUNTIME)
+						cache.put(request, response.clone())
+					}
+					return response
+				} catch {
+					return navigationFallback()
+				}
+			})()
+		)
+		return
+	}
+
+	// Default: network-first then fallback to cache
+	event.respondWith(networkFirst(request))
 })
 
-/**
- * Notification click handling
- */
-self.addEventListener('notificationclick', event => {
-	event.notification.close()
-
-	event.waitUntil(clients.openWindow('/'))
+// Periodic cleanup: trim runtime cache on message request
+self.addEventListener('message', event => {
+	if (event.data && event.data.type === 'TRIM_CACHES') {
+		event.waitUntil(trimCache(RUNTIME, MAX_RUNTIME_ENTRIES))
+	}
 })

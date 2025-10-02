@@ -407,8 +407,8 @@ export default function ScheduleReportsPage() {
 												<Clock className="size-4 text-muted-foreground" />
 												{getFrequencyLabel(
 													schedule.frequency,
-													schedule.dayOfWeek,
-													schedule.dayOfMonth
+													schedule.dayOfWeek ?? null,
+													schedule.dayOfMonth ?? null
 												)}
 											</div>
 										</TableCell>

@@ -68,12 +68,10 @@ const nextConfig: NextConfig = {
 			'@radix-ui/react-toggle',
 			'@radix-ui/react-progress',
 			'@radix-ui/react-scroll-area',
-			// TanStack libraries
 			'@tanstack/react-query',
 			'@tanstack/react-table',
 			'@tanstack/react-form',
 			'@tanstack/react-virtual',
-			// Other large dependencies
 			'recharts',
 			'react-hook-form',
 			'@hookform/resolvers',
@@ -81,13 +79,12 @@ const nextConfig: NextConfig = {
 			'lodash',
 			'zod'
 		],
-		// Enable server components HMR cache for faster development
+
 		serverComponentsHmrCache: true
 	},
 
 	// Security headers (production only - avoid blocking localhost)
 	async headers() {
-		// Only apply strict security headers in production
 		if (process.env.NODE_ENV !== 'production') {
 			return []
 		}
@@ -117,7 +114,6 @@ const nextConfig: NextConfig = {
 		]
 	},
 
-	// Optimized image configuration
 	images: {
 		remotePatterns: [
 			{

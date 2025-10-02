@@ -5,67 +5,69 @@
  * Follows 2025 NestJS + Supabase best practices
  */
 
-import { Injectable, ExecutionContext, Logger } from '@nestjs/common'
-import { AuthGuard } from '@nestjs/passport'
+import {
+	ExecutionContext,
+	Injectable,
+	Logger,
+	UnauthorizedException
+} from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
+import { AuthGuard } from '@nestjs/passport'
+import { User } from '@supabase/supabase-js'
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('supabase') {
-  private readonly logger = new Logger(JwtAuthGuard.name)
+	private readonly logger = new Logger(JwtAuthGuard.name)
 
-  constructor(private reflector: Reflector) {
-    super()
-  }
+	constructor(private reflector: Reflector) {
+		super()
+	}
 
-  override canActivate(context: ExecutionContext) {
-    // Check if route is marked as public
-    const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
-      context.getHandler(),
-      context.getClass(),
-    ])
+	override canActivate(context: ExecutionContext) {
+		// Check if route is marked as public
+		const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
+			context.getHandler(),
+			context.getClass()
+		])
 
-    if (isPublic) {
-      return true
-    }
+		if (isPublic) {
+			return true
+		}
 
-    // Use Passport JWT authentication
-    return super.canActivate(context)
-  }
+		return super.canActivate(context)
+	}
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  override handleRequest(err: any, user: any, _info: any, context: ExecutionContext): any {
-    const request = context.switchToHttp().getRequest<Request>()
+	override handleRequest<TUser = User>(
+		err: Error | null,
+		user: TUser | null,
+		info: { message?: string; error?: string } | null,
+		context: ExecutionContext,
+		status?: string | number | null
+	): TUser {
+		void status
+		void info
+		const request = context.switchToHttp().getRequest<Request>()
 
-    // If there's an error or no user, but route is public, allow access
-    const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
-      context.getHandler(),
-      context.getClass(),
-    ])
+		// For protected routes, require authentication
+		if (err || !user) {
+			this.logger.warn('Authentication failed for protected route', {
+				error: err instanceof Error ? err.message : 'Unknown error',
+				path: (request as { url?: string }).url,
+				method: (request as { method?: string }).method
+			})
+			// Throw a NestJS UnauthorizedException so the framework returns 401
+			// instead of a generic 500 Internal Server Error.
+			throw err instanceof UnauthorizedException
+				? err
+				: new UnauthorizedException('Authentication required')
+		}
 
-    if (isPublic && (!user || err)) {
-      this.logger.debug('Public route accessed without authentication', {
-        path: (request as { url?: string }).url,
-        method: (request as { method?: string }).method
-      })
-      return null // Allow public access
-    }
+		this.logger.debug('Authentication successful', {
+			userId: (user as { id?: string }).id,
+			path: (request as { url?: string }).url,
+			method: (request as { method?: string }).method
+		})
 
-    // For protected routes, require authentication
-    if (err || !user) {
-      this.logger.warn('Authentication failed for protected route', {
-        error: err instanceof Error ? err.message : 'Unknown error',
-        path: (request as { url?: string }).url,
-        method: (request as { method?: string }).method
-      })
-      throw err || new Error('Authentication required')
-    }
-
-    this.logger.debug('Authentication successful', {
-      userId: (user as { id?: string }).id,
-      path: (request as { url?: string }).url,
-      method: (request as { method?: string }).method
-    })
-
-    return user
-  }
+		return user
+	}
 }
