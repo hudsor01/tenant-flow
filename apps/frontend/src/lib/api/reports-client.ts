@@ -1,7 +1,3 @@
-import { createBrowserClient } from '@supabase/ssr'
-
-export type ReportFormat = 'pdf' | 'excel'
-
 export type ReportType =
 	| 'executive-monthly'
 	| 'financial-performance'
@@ -10,20 +6,15 @@ export type ReportType =
 	| 'maintenance-operations'
 	| 'tax-preparation'
 
-interface GenerateReportParams {
-	userId: string
-	startDate: string
-	endDate: string
-	format?: ReportFormat
-}
+export type ReportFormat = 'pdf' | 'excel'
 
-export interface GeneratedReport {
+interface Report {
 	id: string
 	userId: string
-	reportType: ReportType
+	reportType: string
 	reportName: string
-	format: ReportFormat
-	status: 'generating' | 'completed' | 'failed'
+	format: string
+	status: string
 	fileUrl: string | null
 	filePath: string | null
 	fileSize: number | null
@@ -35,41 +26,9 @@ export interface GeneratedReport {
 	updatedAt: string
 }
 
-export interface ScheduledReport {
-	id: string
-	userId: string
-	reportType: ReportType
-	reportName: string
-	format: ReportFormat
-	frequency: 'daily' | 'weekly' | 'monthly'
-	dayOfWeek: number | null
-	dayOfMonth: number | null
-	hour: number
-	timezone: string
-	isActive: boolean
-	lastRunAt: string | null
-	nextRunAt: string | null
-	metadata: Record<string, unknown>
-	createdAt: string
-	updatedAt: string
-}
-
-export interface CreateScheduleParams {
-	reportType: ReportType
-	reportName: string
-	format: ReportFormat
-	frequency: 'daily' | 'weekly' | 'monthly'
-	dayOfWeek?: number
-	dayOfMonth?: number
-	hour?: number
-	timezone?: string
-	startDate: string
-	endDate: string
-}
-
 interface ListReportsResponse {
 	success: boolean
-	data: GeneratedReport[]
+	data: Report[]
 	pagination: {
 		total: number
 		limit: number
@@ -78,35 +37,44 @@ interface ListReportsResponse {
 	}
 }
 
-/**
- * Get API base URL from environment
- */
-function getApiBaseUrl(): string {
-	return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'
+export interface GenerateReportParams {
+	userId: string
+	startDate: string
+	endDate: string
+	format?: ReportFormat
 }
 
-/**
- * Get auth headers with bearer token
- */
-async function getAuthHeaders(): Promise<HeadersInit> {
-	const supabase = createBrowserClient(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-	)
-	const {
-		data: { session }
-	} = await supabase.auth.getSession()
-
-	return {
-		'Content-Type': 'application/json',
-		...(session && { Authorization: `Bearer ${session.access_token}` })
-	}
+export interface CreateScheduleParams {
+	userId?: string
+	reportType: ReportType
+	reportName?: string
+	frequency: 'daily' | 'weekly' | 'monthly'
+	dayOfWeek?: number
+	dayOfMonth?: number
+	hour?: number
+	timezone?: string
+	format?: ReportFormat
+	startDate?: string
+	endDate?: string
 }
 
-/**
- * Reports API Client
- * Handles communication with backend report generation endpoints
- */
+export type ScheduledReport = {
+	id: string
+	userId: string
+	reportType: ReportType
+	reportName?: string
+	frequency: 'daily' | 'weekly' | 'monthly'
+	dayOfWeek?: number | null | undefined
+	dayOfMonth?: number | null | undefined
+	hour?: number | null
+	timezone?: string | null
+	format: ReportFormat
+	nextRunAt?: string | null
+	lastRunAt?: string | null
+	createdAt: string
+	updatedAt: string
+}
+
 export const reportsClient = {
 	/**
 	 * Generate a report and download the file
@@ -274,7 +242,7 @@ export const reportsClient = {
 	async generateTaxPreparation(params: GenerateReportParams): Promise<void> {
 		return this.generateReport('tax-preparation', {
 			...params,
-			format: 'excel' // Tax reports are Excel only
+			format: 'excel'
 		})
 	},
 
@@ -335,4 +303,55 @@ export const reportsClient = {
 			throw new Error(`Failed to delete schedule: ${response.statusText}`)
 		}
 	}
+}
+export function getApiBaseUrl() {
+	// Prefer explicit env var when available
+	const envBase = process.env.NEXT_PUBLIC_API_BASE_URL
+
+	if (envBase) {
+		const cleaned = envBase.replace(/\/$/, '')
+		try {
+			const parsed = new URL(cleaned)
+			// If the URL has a pathname with /api, treat it as already pointing to the API
+			if (
+				parsed.pathname &&
+				parsed.pathname !== '/' &&
+				parsed.pathname.includes('/api')
+			) {
+				return cleaned
+			}
+			return `${cleaned}/api/v1`
+		} catch {
+			// Not an absolute URL (maybe a relative path like '/api'), check directly
+			return cleaned.startsWith('/api') ? cleaned : `${cleaned}/api/v1`
+		}
+	}
+
+	// On the client, prefer a relative API route
+	if (typeof window !== 'undefined') {
+		return '/api/v1'
+	}
+
+	// Server-side fallback for local dev
+	return 'http://localhost:3001/api/v1'
+}
+
+export async function getAuthHeaders(): Promise<HeadersInit> {
+	const headers: Record<string, string> = {
+		'Content-Type': 'application/json'
+	}
+
+	try {
+		if (typeof window !== 'undefined') {
+			const win = window as unknown as { __TF_AUTH_TOKEN__?: string }
+			const token = win.__TF_AUTH_TOKEN__ || localStorage.getItem('tf_token')
+			if (token) headers['Authorization'] = `Bearer ${token}`
+		} else if (process.env.API_TOKEN) {
+			headers['Authorization'] = `Bearer ${process.env.API_TOKEN}`
+		}
+	} catch {
+		// ignore
+	}
+
+	return headers
 }

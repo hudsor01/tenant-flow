@@ -76,7 +76,7 @@
 		"validate:clean": "pnpm typecheck && pnpm lint && doppler run -- pnpm --filter @repo/backend test:unit:clean && npx lint-staged --allow-empty && echo '✅ CLEAN VALIDATION PASSED'"
 	},
 	"devDependencies": {
-		"@commitlint/cli": "20.0.0",
+		"@commitlint/cli": "20.1.0",
 		"@commitlint/config-conventional": "20.0.0",
 		"@eslint/eslintrc": "^3.3.1",
 		"@eslint/js": "9.36.0",
@@ -86,7 +86,7 @@
 		"@playwright/test": "1.55.1",
 		"@repo/eslint-config": "workspace:*",
 		"@supabase/supabase-js": "catalog:",
-		"@types/node": "24.6.0",
+		"@types/node": "24.6.2",
 		"@typescript-eslint/eslint-plugin": "^8.45.0",
 		"@typescript-eslint/parser": "^8.45.0",
 		"babel-plugin-react-compiler": "19.1.0-rc.3",
@@ -103,15 +103,15 @@
 		"prettier-plugin-organize-imports": "4.3.0",
 		"tsx": "4.20.6",
 		"turbo": "2.5.8",
-		"typescript": "5.9.2",
+		"typescript": "5.9.3",
 		"typescript-eslint": "^8.45.0"
 	},
 	"optionalDependencies": {
-		"@tailwindcss/oxide-linux-arm64-gnu": "4.1.13",
-		"@tailwindcss/oxide-linux-arm64-musl": "4.1.13",
-		"@tailwindcss/oxide-linux-x64-gnu": "4.1.13",
-		"@tailwindcss/oxide-linux-x64-musl": "4.1.13",
-		"@tailwindcss/oxide-wasm32-wasi": "4.1.13",
+		"@tailwindcss/oxide-linux-arm64-gnu": "4.1.14",
+		"@tailwindcss/oxide-linux-arm64-musl": "4.1.14",
+		"@tailwindcss/oxide-linux-x64-gnu": "4.1.14",
+		"@tailwindcss/oxide-linux-x64-musl": "4.1.14",
+		"@tailwindcss/oxide-wasm32-wasi": "4.1.14",
 		"lightningcss-linux-x64-gnu": "1.30.2",
 		"lightningcss-linux-x64-musl": "1.30.2",
 		"turbo-darwin-64": "2.5.8",
@@ -130,7 +130,7 @@
 		]
 	},
 	"overrides": {
-		"typescript": "5.9.2",
+		"typescript": "5.9.3",
 		"path-to-regexp": "^8.3.0",
 		"undici": "^7.16.0",
 		"tmp": "^0.2.5",

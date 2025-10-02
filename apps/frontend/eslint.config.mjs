@@ -144,16 +144,17 @@ export default [
 			// Import: import { createLogger } from '@repo/shared'
 			// Usage: const logger = createLogger({ component: 'ComponentName' }); logger.info('message', { metadata })
 			'no-console': 'warn',
-			// Prevent console property access patterns
 			'no-restricted-syntax': [
 				'warn',
 				{
 					selector: 'MemberExpression[object.name="console"]',
-					message: 'Direct console access is discouraged. Consider using structured PostHog logging via createLogger() from @repo/shared instead.'
+					message:
+						'Direct console access is discouraged. Consider using structured PostHog logging via createLogger() from @repo/shared instead.'
 				},
 				{
 					selector: 'CallExpression[callee.object.name="console"]',
-					message: 'Console method calls are discouraged. Consider PostHog logging: const logger = createLogger({ component: "ComponentName" }); logger.info/warn/error("message")'
+					message:
+						'Console method calls are discouraged. Consider PostHog logging: const logger = createLogger({ component: "ComponentName" }); logger.info/warn/error("message")'
 				}
 			]
 		}
@@ -161,7 +162,7 @@ export default [
 	{
 		name: 'frontend/design-system-color-tokens',
 		files: ['**/*.ts', '**/*.tsx'],
-		ignores: ['**/design-system/**'], // Exclude design system files from color checks
+		ignores: ['**/design-system/**'],
 		plugins: {
 			'color-tokens': colorTokensConfig
 		},
