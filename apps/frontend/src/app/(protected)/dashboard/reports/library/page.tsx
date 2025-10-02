@@ -3,7 +3,6 @@
 import {
 	AlertDialog,
 	AlertDialogAction,
-	AlertDialogCancel,
 	AlertDialogContent,
 	AlertDialogDescription,
 	AlertDialogFooter,
@@ -27,72 +26,40 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import { reportsClient, type GeneratedReport } from '@/lib/api/reports-client'
+// reportsClient intentionally not imported here; used by hooks
+import { useReports } from '@/hooks/api/use-reports'
 import { format } from 'date-fns'
 import { Download, FileText, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
+import { useState } from 'react'
 
 export default function ReportLibraryPage() {
-	const [reports, setReports] = useState<GeneratedReport[]>([])
-	const [isLoading, setIsLoading] = useState(true)
-	const [total, setTotal] = useState(0)
+	// Local UI state: pagination and dialogs
 	const [offset, setOffset] = useState(0)
 	const [deleteReportId, setDeleteReportId] = useState<string | null>(null)
-	const [isDeleting, setIsDeleting] = useState(false)
-	const [isDownloading, setIsDownloading] = useState<string | null>(null)
 
 	const limit = 20
 
-	useEffect(() => {
-		loadReports()
-	}, [offset])
+	const {
+		reports,
+		total,
+		isLoading,
+		deleteMutation,
+		downloadingIds,
+		deletingIds,
+		downloadReport,
+		deleteReport
+	} = useReports({
+		offset,
+		limit
+	})
 
-	async function loadReports() {
-		try {
-			setIsLoading(true)
-			const response = await reportsClient.listReports({ limit, offset })
-			setReports(response.data)
-			setTotal(response.pagination.total)
-		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : 'Failed to load reports'
-			)
-		} finally {
-			setIsLoading(false)
-		}
+	function handleDownload(reportId: string) {
+		downloadReport(reportId)
 	}
 
-	async function handleDownload(reportId: string) {
-		try {
-			setIsDownloading(reportId)
-			await reportsClient.downloadReport(reportId)
-			toast.success('Report downloaded successfully')
-		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : 'Failed to download report'
-			)
-		} finally {
-			setIsDownloading(null)
-		}
-	}
-
-	async function handleDelete() {
+	function handleDelete() {
 		if (!deleteReportId) return
-
-		try {
-			setIsDeleting(true)
-			await reportsClient.deleteReport(deleteReportId)
-			toast.success('Report deleted successfully')
-			setDeleteReportId(null)
-			loadReports()
-		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : 'Failed to delete report'
-			)
-		} finally {
-			setIsDeleting(false)
-		}
+		deleteReport(deleteReportId)
 	}
 
 	function getReportTypeBadge(reportType: string) {
@@ -216,11 +183,11 @@ export default function ReportLibraryPage() {
 														onClick={() => handleDownload(report.id)}
 														disabled={
 															report.status !== 'completed' ||
-															isDownloading === report.id
+															downloadingIds.has(report.id)
 														}
 													>
 														<Download className="mr-2 size-4" />
-														{isDownloading === report.id
+														{downloadingIds.has(report.id)
 															? 'Downloading...'
 															: 'Download'}
 													</Button>
@@ -283,13 +250,18 @@ export default function ReportLibraryPage() {
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleDelete}
-							disabled={isDeleting}
+							disabled={
+								deleteMutation.isPending ||
+								(!!deleteReportId && deletingIds.has(deleteReportId))
+							}
 							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 						>
-							{isDeleting ? 'Deleting...' : 'Delete'}
+							{(!!deleteReportId && deletingIds.has(deleteReportId)) ||
+							deleteMutation.isPending
+								? 'Deleting...'
+								: 'Delete'}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

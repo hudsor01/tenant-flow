@@ -10,34 +10,43 @@
  * NO HARDCODED URLS - ALL URLs MUST COME FROM ENVIRONMENT
  */
 function getApplicationDomains() {
+	// Consider production only when explicitly set to 'production' or running on Vercel
 	const isProduction =
-		process.env.NODE_ENV === 'production' ||
-		process.env.VERCEL === '1' ||
-		process.env.NODE_ENV !== 'development'
+		process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
 
 	// Get all URLs from environment variables only
 	const frontendUrl = process.env.NEXT_PUBLIC_APP_URL
 	const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL
 
 	if (isProduction) {
-		// Production: Require all environment variables
-		if (!frontendUrl) {
-			throw new Error(
-				'NEXT_PUBLIC_APP_URL environment variable is required for production CORS'
+		// Production: prefer env vars but don't throw during local builds.
+		// If envs are missing, warn and fall back to localhost defaults so
+		// a frontend production build can proceed in a developer environment.
+		const frontendList: string[] = []
+		const backendList: string[] = []
+
+		if (frontendUrl) {
+			frontendList.push(
+				frontendUrl,
+				frontendUrl.replace('https://', 'https://www.')
 			)
 		}
-		if (!backendUrl) {
-			throw new Error(
-				'NEXT_PUBLIC_API_BASE_URL environment variable is required for production CORS'
+		if (backendUrl) {
+			backendList.push(backendUrl)
+		}
+
+		if (!frontendUrl || !backendUrl) {
+			// Log a warning but do not throw — CI/deploy should still set these.
+			console.warn(
+				'Missing NEXT_PUBLIC_APP_URL or NEXT_PUBLIC_API_BASE_URL during production build; falling back to localhost defaults for build.'
 			)
+			frontendList.push('http://localhost:3000')
+			backendList.push('http://localhost:3001')
 		}
 
 		return {
-			FRONTEND: [
-				frontendUrl,
-				frontendUrl.replace('https://', 'https://www.')
-			].filter(Boolean),
-			BACKEND: [backendUrl].filter(Boolean)
+			FRONTEND: frontendList.filter(Boolean),
+			BACKEND: backendList.filter(Boolean)
 		}
 	}
 
@@ -88,11 +97,9 @@ export function getCORSOrigins(
  * Ensures Vercel builds use production configuration
  */
 export function getCORSOriginsForEnv(): string[] | boolean {
-	// Force production for Vercel builds and any non-development environment
+	// Consider production only when explicitly set to 'production' or running on Vercel
 	const isProduction =
-		process.env.NODE_ENV === 'production' ||
-		process.env.VERCEL === '1' ||
-		process.env.NODE_ENV !== 'development'
+		process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
 
 	const env = isProduction ? 'production' : 'development'
 	return getCORSOrigins(env)

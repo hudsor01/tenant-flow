@@ -20,7 +20,8 @@
 		"**/*.test.ts",
 		"**/*.test.tsx",
 		"**/*.spec.ts",
-		"**/*.spec.tsx"
+		"**/*.spec.tsx",
+		"next.config.ts"
 	],
 	"exclude": ["node_modules", ".next", "out", "dist", "build", "coverage/**/*"]
 }
