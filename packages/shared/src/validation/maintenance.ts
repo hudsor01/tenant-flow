@@ -1,12 +1,11 @@
 import { z } from 'zod'
 import { Constants } from '../types/supabase-generated.js'
-import
-  {
-    nonEmptyStringSchema,
-    nonNegativeNumberSchema,
-    requiredString,
-    uuidSchema
-  } from './common.js'
+import {
+	nonEmptyStringSchema,
+	nonNegativeNumberSchema,
+	requiredString,
+	uuidSchema
+} from './common.js'
 
 // Maintenance priority enum - uses auto-generated Supabase enums
 export const maintenancePrioritySchema = z.enum(
@@ -93,9 +92,7 @@ export const maintenanceRequestUpdateSchema = maintenanceRequestInputSchema
 			.refine((val: string | undefined) => !val || !isNaN(Date.parse(val)), {
 				message: 'Please enter a valid completion date'
 			})
-			.transform((val: string | undefined) =>
-				val ? new Date(val) : undefined
-			)
+			.transform((val: string | undefined) => (val ? new Date(val) : undefined))
 	})
 
 // Maintenance request query schema (for search/filtering)
@@ -190,24 +187,33 @@ export const maintenanceRequestFormSchema = z
 			.transform((val: string | undefined) =>
 				val ? parseFloat(val) : undefined
 			),
+		photos: z.array(z.string()).optional().default([]),
 		preferredDate: z.string().optional().or(z.literal('')),
 		notes: z.string().optional()
 	})
 	.transform(
 		(data: {
+			title: string
+			description: string
 			priority: string
 			category?: string
+			unitId: string
 			requestedBy?: string
 			assignedTo?: string
+			contactPhone?: string
+			allowEntry: boolean
+			estimatedCost?: number
+			photos: string[]
 			preferredDate?: string
-			[key: string]: unknown
+			notes?: string
 		}) => ({
 			...data,
 			priority: data.priority as MaintenancePriorityValidation,
 			category: data.category === '' ? undefined : data.category,
 			requestedBy: data.requestedBy === '' ? undefined : data.requestedBy,
 			assignedTo: data.assignedTo === '' ? undefined : data.assignedTo,
-			preferredDate: data.preferredDate === '' ? undefined : data.preferredDate
+			preferredDate: data.preferredDate === '' ? undefined : data.preferredDate,
+			photos: data.photos || []
 		})
 	)
 
@@ -216,6 +222,61 @@ export type MaintenanceRequestFormData = z.input<
 >
 export type MaintenanceRequestFormOutput = z.output<
 	typeof maintenanceRequestFormSchema
+>
+
+// Frontend-specific form schema for updates (handles string inputs from HTML forms)
+export const maintenanceRequestUpdateFormSchema = z
+	.object({
+		title: z.string().optional(),
+		description: z.string().optional(),
+		priority: z.string().optional(),
+		category: z.string().optional().or(z.literal('')),
+		estimatedCost: z
+			.string()
+			.optional()
+			.transform((val: string | undefined) =>
+				val ? parseFloat(val) : undefined
+			),
+		notes: z.string().optional(),
+		preferredDate: z.string().optional().or(z.literal('')),
+		allowEntry: z.boolean().optional().default(false),
+		status: z.string().optional(),
+		actualCost: z
+			.string()
+			.optional()
+			.transform((val: string | undefined) =>
+				val ? parseFloat(val) : undefined
+			),
+		completedAt: z.string().optional().or(z.literal(''))
+	})
+	.transform(
+		(data: {
+			title?: string
+			description?: string
+			priority?: string
+			category?: string
+			estimatedCost?: number
+			notes?: string
+			preferredDate?: string
+			allowEntry: boolean
+			status?: string
+			actualCost?: number
+			completedAt?: string
+		}) => ({
+			...data,
+			priority: data.priority as MaintenancePriorityValidation | undefined,
+			category: data.category === '' ? undefined : data.category,
+			preferredDate: data.preferredDate === '' ? undefined : data.preferredDate,
+			completedAt: data.completedAt === '' ? undefined : data.completedAt,
+			status: data.status as MaintenanceStatusValidation | undefined
+		})
+	)
+
+export type MaintenanceRequestUpdateFormData = z.input<
+	typeof maintenanceRequestUpdateFormSchema
+>
+export type MaintenanceRequestUpdateFormOutput = z.output<
+	typeof maintenanceRequestUpdateFormSchema
 >
 
 // Backward compatibility aliases
