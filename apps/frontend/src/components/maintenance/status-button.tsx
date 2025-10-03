@@ -19,15 +19,11 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { maintenanceApi } from '@/lib/api-client'
-import { zodResolver } from '@hookform/resolvers/zod'
-import {
-	maintenanceRequestUpdateFormSchema,
-	type MaintenanceRequestUpdateFormOutput
-} from '@repo/shared/validation/maintenance'
+import { maintenanceRequestUpdateFormSchema } from '@repo/shared/validation/maintenance'
+import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Settings } from 'lucide-react'
 import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 interface StatusUpdateButtonProps {
@@ -43,35 +39,78 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 	const queryClient = useQueryClient()
 
 	const form = useForm({
-		resolver: zodResolver(maintenanceRequestUpdateFormSchema),
 		defaultValues: {
 			status: maintenance.status,
 			actualCost: '',
-			notes: ''
+			notes: '',
+			completedAt: ''
+		},
+		onSubmit: async ({ value }) => {
+			const updateData = {
+				status: value.status,
+				actualCost: value.actualCost ? Number(value.actualCost) : undefined,
+				notes: value.notes,
+				completedAt:
+					value.status === 'COMPLETED' && value.completedAt
+						? new Date(value.completedAt)
+						: undefined
+			}
+
+			if (value.status === 'COMPLETED') {
+				updateMutation.mutate({
+					type: 'complete',
+					data: updateData
+				})
+			} else if (value.status === 'CANCELED') {
+				updateMutation.mutate({
+					type: 'cancel',
+					data: updateData
+				})
+			} else {
+				updateMutation.mutate({
+					type: 'update',
+					data: updateData
+				})
+			}
+		},
+		validators: {
+			onChange: ({ value }) => {
+				const result = maintenanceRequestUpdateFormSchema.safeParse(value)
+				if (!result.success) {
+					return result.error.format()
+				}
+				return undefined
+			}
 		}
 	})
 
 	const updateMutation = useMutation({
-		mutationFn: async (data: MaintenanceRequestUpdateFormOutput) => {
-			const updateData = {
-				status: data.status,
-				actualCost: data.actualCost,
-				notes: data.notes,
-				completedAt:
-					data.status === 'COMPLETED' && data.completedAt
-						? new Date(data.completedAt)
-						: undefined
-			}
-			if (data.status === 'COMPLETED') {
+		mutationFn: async ({
+			type,
+			data
+		}: {
+			type: 'complete' | 'cancel' | 'update'
+			data: Record<string, unknown>
+		}) => {
+			if (type === 'complete') {
 				return maintenanceApi.complete(
 					maintenance.id,
-					data.actualCost,
-					data.notes
+					data.actualCost as number | undefined,
+					data.notes as string | undefined
 				)
-			} else if (data.status === 'CANCELED') {
-				return maintenanceApi.cancel(maintenance.id, data.notes)
+			} else if (type === 'cancel') {
+				return maintenanceApi.cancel(
+					maintenance.id,
+					data.notes as string | undefined
+				)
 			} else {
-				return maintenanceApi.update(maintenance.id, updateData)
+				const { status, actualCost, notes, completedAt } = data
+				return maintenanceApi.update(maintenance.id, {
+					status: status as string | undefined,
+					actualCost: actualCost as number | undefined,
+					notes: notes as string | undefined,
+					completedAt: completedAt as Date | undefined
+				})
 			}
 		},
 		onSuccess: () => {
@@ -86,12 +125,6 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 		}
 	})
 
-	const onSubmit = (data: MaintenanceRequestUpdateFormOutput) => {
-		updateMutation.mutate(data)
-	}
-
-	const selectedStatus = form.watch('status')
-
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
@@ -105,16 +138,20 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 					<DialogTitle>Update Status</DialogTitle>
 				</DialogHeader>
 				<form
-					onSubmit={form.handleSubmit(data => onSubmit(data))}
+					onSubmit={e => {
+						e.preventDefault()
+						form.handleSubmit()
+					}}
 					className="space-y-4"
 				>
-					<div className="space-y-2">
-						<Label htmlFor="status">Status</Label>
-						<Controller
-							name="status"
-							control={form.control}
-							render={({ field }) => (
-								<Select value={field.value} onValueChange={field.onChange}>
+					<form.Field name="status">
+						{field => (
+							<div className="space-y-2">
+								<Label htmlFor="status">Status</Label>
+								<Select
+									value={field.state.value}
+									onValueChange={value => field.handleChange(value)}
+								>
 									<SelectTrigger>
 										<SelectValue />
 									</SelectTrigger>
@@ -126,45 +163,57 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 										<SelectItem value="ON_HOLD">On Hold</SelectItem>
 									</SelectContent>
 								</Select>
-							)}
-						/>
-					</div>
+							</div>
+						)}
+					</form.Field>
 
-					{(selectedStatus === 'COMPLETED' ||
-						selectedStatus === 'IN_PROGRESS') && (
-						<div className="space-y-2">
-							<Label htmlFor="actualCost">Actual Cost (Optional)</Label>
-							<Input
-								id="actualCost"
-								type="number"
-								{...form.register('actualCost', { valueAsNumber: true })}
-								placeholder="Enter actual cost"
-							/>
-						</div>
+					{(form.state.values.status === 'COMPLETED' ||
+						form.state.values.status === 'IN_PROGRESS') && (
+						<form.Field name="actualCost">
+							{field => (
+								<div className="space-y-2">
+									<Label htmlFor="actualCost">Actual Cost (Optional)</Label>
+									<Input
+										id="actualCost"
+										type="number"
+										placeholder="Enter actual cost"
+										value={field.state.value}
+										onChange={e => field.handleChange(e.target.value)}
+										onBlur={field.handleBlur}
+									/>
+								</div>
+							)}
+						</form.Field>
 					)}
 
-					<div className="space-y-2">
-						<Label htmlFor="notes">
-							{selectedStatus === 'COMPLETED'
-								? 'Completion Notes'
-								: selectedStatus === 'CANCELED'
-									? 'Cancellation Reason'
-									: 'Notes'}{' '}
-							(Optional)
-						</Label>
-						<Textarea
-							id="notes"
-							{...form.register('notes')}
-							placeholder={
-								selectedStatus === 'COMPLETED'
-									? 'Work completed details...'
-									: selectedStatus === 'CANCELED'
-										? 'Reason for cancellation...'
-										: 'Additional notes...'
-							}
-							rows={3}
-						/>
-					</div>
+					<form.Field name="notes">
+						{field => (
+							<div className="space-y-2">
+								<Label htmlFor="notes">
+									{form.state.values.status === 'COMPLETED'
+										? 'Completion Notes'
+										: form.state.values.status === 'CANCELED'
+											? 'Cancellation Reason'
+											: 'Notes'}{' '}
+									(Optional)
+								</Label>
+								<Textarea
+									id="notes"
+									placeholder={
+										form.state.values.status === 'COMPLETED'
+											? 'Work completed details...'
+											: form.state.values.status === 'CANCELED'
+												? 'Reason for cancellation...'
+												: 'Additional notes...'
+									}
+									rows={3}
+									value={field.state.value}
+									onChange={e => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+								/>
+							</div>
+						)}
+					</form.Field>
 
 					<div className="flex justify-end gap-2">
 						<Button

@@ -30,14 +30,17 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { propertiesApi } from '@/lib/api-client'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { Tables, TablesUpdate } from '@repo/shared/types/supabase'
+import type {
+	Database,
+	Tables,
+	TablesUpdate
+} from '@repo/shared/types/supabase'
 import {
 	propertyUpdateFormSchema,
-	transformPropertyUpdateData,
-	type PropertyUpdateFormData
+	transformPropertyUpdateData
 } from '@repo/shared/validation/properties'
+import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
 	Building,
@@ -49,7 +52,6 @@ import {
 	Trash2
 } from 'lucide-react'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 type Property = Tables<'Property'>
@@ -65,8 +67,7 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
 	const queryClient = useQueryClient()
 	const logger = createLogger({ component: 'PropertyEditViewButtons' })
 
-	const form = useForm<PropertyUpdateFormData>({
-		resolver: zodResolver(propertyUpdateFormSchema),
+	const form = useForm({
 		defaultValues: {
 			name: property.name,
 			address: property.address,
@@ -74,6 +75,19 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
 			state: property.state,
 			zipCode: property.zipCode,
 			propertyType: property.propertyType
+		},
+		onSubmit: async ({ value }) => {
+			const transformedData = transformPropertyUpdateData(value)
+			updateMutation.mutate(transformedData)
+		},
+		validators: {
+			onChange: ({ value }) => {
+				const result = propertyUpdateFormSchema.safeParse(value)
+				if (!result.success) {
+					return result.error.format()
+				}
+				return undefined
+			}
 		}
 	})
 
@@ -110,11 +124,6 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
 			entityType: 'property'
 		}
 	})
-
-	const onSubmit = (data: PropertyUpdateFormData) => {
-		const transformedData = transformPropertyUpdateData(data)
-		updateMutation.mutate(transformedData)
-	}
 
 	return (
 		<div className="flex items-center gap-1">
@@ -174,90 +183,142 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
 						</DialogDescription>
 					</DialogHeader>
 
-					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="edit-name">Property Name</Label>
-							<Input
-								id="edit-name"
-								{...form.register('name')}
-								placeholder="e.g. Sunset Apartments"
-							/>
-							{form.formState.errors.name && (
-								<p className="text-sm text-destructive">
-									{form.formState.errors.name.message}
-								</p>
+					<form
+						onSubmit={e => {
+							e.preventDefault()
+							form.handleSubmit()
+						}}
+						className="space-y-4"
+					>
+						<form.Field name="name">
+							{field => (
+								<div className="space-y-2">
+									<Label htmlFor="edit-name">Property Name</Label>
+									<Input
+										id="edit-name"
+										placeholder="e.g. Sunset Apartments"
+										value={field.state.value}
+										onChange={e => field.handleChange(e.target.value)}
+										onBlur={field.handleBlur}
+									/>
+									{field.state.meta.errors?.length ? (
+										<p className="text-sm text-destructive">
+											{String(field.state.meta.errors[0])}
+										</p>
+									) : null}
+								</div>
 							)}
-						</div>
+						</form.Field>
 
-						<div className="space-y-2">
-							<Label htmlFor="edit-address">Address</Label>
-							<Input
-								id="edit-address"
-								{...form.register('address')}
-								placeholder="123 Main St"
-							/>
-							{form.formState.errors.address && (
-								<p className="text-sm text-destructive">
-									{form.formState.errors.address.message}
-								</p>
+						<form.Field name="address">
+							{field => (
+								<div className="space-y-2">
+									<Label htmlFor="edit-address">Address</Label>
+									<Input
+										id="edit-address"
+										placeholder="123 Main St"
+										value={field.state.value}
+										onChange={e => field.handleChange(e.target.value)}
+										onBlur={field.handleBlur}
+									/>
+									{field.state.meta.errors?.length ? (
+										<p className="text-sm text-destructive">
+											{String(field.state.meta.errors[0])}
+										</p>
+									) : null}
+								</div>
 							)}
-						</div>
+						</form.Field>
 
 						<div className="grid grid-cols-3 gap-2">
-							<div className="space-y-2">
-								<Label htmlFor="edit-city">City</Label>
-								<Input id="edit-city" {...form.register('city')} />
-								{form.formState.errors.city && (
-									<p className="text-sm text-destructive">
-										{form.formState.errors.city.message}
-									</p>
+							<form.Field name="city">
+								{field => (
+									<div className="space-y-2">
+										<Label htmlFor="edit-city">City</Label>
+										<Input
+											id="edit-city"
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										{field.state.meta.errors?.length ? (
+											<p className="text-sm text-destructive">
+												{String(field.state.meta.errors[0])}
+											</p>
+										) : null}
+									</div>
 								)}
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="edit-state">State</Label>
-								<Input id="edit-state" {...form.register('state')} />
-								{form.formState.errors.state && (
-									<p className="text-sm text-destructive">
-										{form.formState.errors.state.message}
-									</p>
+							</form.Field>
+
+							<form.Field name="state">
+								{field => (
+									<div className="space-y-2">
+										<Label htmlFor="edit-state">State</Label>
+										<Input
+											id="edit-state"
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										{field.state.meta.errors?.length ? (
+											<p className="text-sm text-destructive">
+												{String(field.state.meta.errors[0])}
+											</p>
+										) : null}
+									</div>
 								)}
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="edit-zipCode">Zip Code</Label>
-								<Input id="edit-zipCode" {...form.register('zipCode')} />
-								{form.formState.errors.zipCode && (
-									<p className="text-sm text-destructive">
-										{form.formState.errors.zipCode.message}
-									</p>
+							</form.Field>
+
+							<form.Field name="zipCode">
+								{field => (
+									<div className="space-y-2">
+										<Label htmlFor="edit-zipCode">Zip Code</Label>
+										<Input
+											id="edit-zipCode"
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										{field.state.meta.errors?.length ? (
+											<p className="text-sm text-destructive">
+												{String(field.state.meta.errors[0])}
+											</p>
+										) : null}
+									</div>
 								)}
-							</div>
+							</form.Field>
 						</div>
 
-						<div className="space-y-2">
-							<Label htmlFor="edit-propertyType">Property Type</Label>
-							<Select
-								value={form.watch('propertyType')}
-								onValueChange={value =>
-									form.setValue(
-										'propertyType',
-										value as PropertyUpdateFormData['propertyType']
-									)
-								}
-							>
-								<SelectTrigger>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="SINGLE_FAMILY">Single Family</SelectItem>
-									<SelectItem value="MULTI_UNIT">Multi Unit</SelectItem>
-									<SelectItem value="APARTMENT">Apartment</SelectItem>
-									<SelectItem value="COMMERCIAL">Commercial</SelectItem>
-									<SelectItem value="CONDO">Condo</SelectItem>
-									<SelectItem value="TOWNHOUSE">Townhouse</SelectItem>
-									<SelectItem value="OTHER">Other</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
+						<form.Field name="propertyType">
+							{field => (
+								<div className="space-y-2">
+									<Label htmlFor="edit-propertyType">Property Type</Label>
+									<Select
+										value={field.state.value}
+										onValueChange={value =>
+											field.handleChange(
+												value as Database['public']['Enums']['PropertyType']
+											)
+										}
+									>
+										<SelectTrigger>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="SINGLE_FAMILY">
+												Single Family
+											</SelectItem>
+											<SelectItem value="MULTI_UNIT">Multi Unit</SelectItem>
+											<SelectItem value="APARTMENT">Apartment</SelectItem>
+											<SelectItem value="COMMERCIAL">Commercial</SelectItem>
+											<SelectItem value="CONDO">Condo</SelectItem>
+											<SelectItem value="TOWNHOUSE">Townhouse</SelectItem>
+											<SelectItem value="OTHER">Other</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+							)}
+						</form.Field>
 
 						<div className="flex justify-end gap-2 pt-2">
 							<Button

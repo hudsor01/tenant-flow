@@ -19,15 +19,11 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { maintenanceApi, propertiesApi, unitsApi } from '@/lib/api-client'
-import { zodResolver } from '@hookform/resolvers/zod'
-import {
-	maintenanceRequestFormSchema,
-	type MaintenanceRequestFormOutput
-} from '@repo/shared/validation/maintenance'
+import { maintenanceRequestFormSchema } from '@repo/shared/validation/maintenance'
+import { useForm } from '@tanstack/react-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 export function CreateMaintenanceDialog() {
@@ -47,34 +43,47 @@ export function CreateMaintenanceDialog() {
 	})
 
 	const form = useForm({
-		resolver: zodResolver(maintenanceRequestFormSchema),
 		defaultValues: {
 			title: '',
 			description: '',
 			priority: 'MEDIUM',
 			category: '',
 			unitId: '',
-			assignedTo: undefined,
-			requestedBy: undefined,
-			contactPhone: undefined,
+			assignedTo: '',
+			requestedBy: '',
+			contactPhone: '',
 			allowEntry: false,
-			estimatedCost: undefined,
-			photos: [],
-			notes: undefined,
-			preferredDate: undefined
+			estimatedCost: '',
+			photos: [] as string[],
+			notes: '',
+			preferredDate: ''
+		},
+		onSubmit: async ({ value }) => {
+			createMutation.mutate(value)
+		},
+		validators: {
+			onChange: ({ value }) => {
+				const result = maintenanceRequestFormSchema.safeParse(value)
+				if (!result.success) {
+					return result.error.format()
+				}
+				return undefined
+			}
 		}
 	})
 
 	const createMutation = useMutation({
-		mutationFn: (data: MaintenanceRequestFormOutput) => {
-			const transformedData = {
+		mutationFn: (data: typeof form.state.values) => {
+			const payload = {
 				...data,
-				preferredDate:
-					data.preferredDate && data.preferredDate !== ''
-						? new Date(data.preferredDate)
-						: undefined
+				estimatedCost: data.estimatedCost
+					? Number(data.estimatedCost)
+					: undefined,
+				preferredDate: data.preferredDate
+					? new Date(data.preferredDate)
+					: undefined
 			}
-			return maintenanceApi.create(transformedData)
+			return maintenanceApi.create(payload)
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['maintenance-requests'] })
@@ -87,10 +96,6 @@ export function CreateMaintenanceDialog() {
 			toast.error(`Failed to create request: ${error.message}`)
 		}
 	})
-
-	const onSubmit = (data: MaintenanceRequestFormOutput) => {
-		createMutation.mutate(data)
-	}
 
 	const categories = [
 		'Plumbing',
@@ -118,7 +123,10 @@ export function CreateMaintenanceDialog() {
 					<DialogTitle>Create Maintenance Request</DialogTitle>
 				</DialogHeader>
 				<form
-					onSubmit={form.handleSubmit(data => onSubmit(data))}
+					onSubmit={e => {
+						e.preventDefault()
+						form.handleSubmit()
+					}}
 					className="space-y-4"
 				>
 					<div className="space-y-2">
@@ -141,13 +149,14 @@ export function CreateMaintenanceDialog() {
 					</div>
 
 					{selectedPropertyId && units.length > 0 && (
-						<div className="space-y-2">
-							<Label htmlFor="unitId">Unit (Optional)</Label>
-							<Controller
-								name="unitId"
-								control={form.control}
-								render={({ field }) => (
-									<Select value={field.value} onValueChange={field.onChange}>
+						<form.Field name="unitId">
+							{field => (
+								<div className="space-y-2">
+									<Label htmlFor="unitId">Unit (Optional)</Label>
+									<Select
+										value={field.state.value}
+										onValueChange={value => field.handleChange(value)}
+									>
 										<SelectTrigger>
 											<SelectValue placeholder="Select unit (optional)" />
 										</SelectTrigger>
@@ -159,38 +168,51 @@ export function CreateMaintenanceDialog() {
 											))}
 										</SelectContent>
 									</Select>
-								)}
-							/>
-						</div>
+								</div>
+							)}
+						</form.Field>
 					)}
 
-					<div className="space-y-2">
-						<Label htmlFor="title">Title</Label>
-						<Input
-							id="title"
-							{...form.register('title')}
-							placeholder="Kitchen faucet leak"
-						/>
-					</div>
+					<form.Field name="title">
+						{field => (
+							<div className="space-y-2">
+								<Label htmlFor="title">Title</Label>
+								<Input
+									id="title"
+									placeholder="Kitchen faucet leak"
+									value={field.state.value}
+									onChange={e => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+								/>
+							</div>
+						)}
+					</form.Field>
 
-					<div className="space-y-2">
-						<Label htmlFor="description">Description</Label>
-						<Textarea
-							id="description"
-							{...form.register('description')}
-							placeholder="Detailed description of the maintenance issue..."
-							rows={3}
-						/>
-					</div>
+					<form.Field name="description">
+						{field => (
+							<div className="space-y-2">
+								<Label htmlFor="description">Description</Label>
+								<Textarea
+									id="description"
+									placeholder="Detailed description of the maintenance issue..."
+									rows={3}
+									value={field.state.value}
+									onChange={e => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+								/>
+							</div>
+						)}
+					</form.Field>
 
 					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<Label htmlFor="category">Category</Label>
-							<Controller
-								name="category"
-								control={form.control}
-								render={({ field }) => (
-									<Select value={field.value} onValueChange={field.onChange}>
+						<form.Field name="category">
+							{field => (
+								<div className="space-y-2">
+									<Label htmlFor="category">Category</Label>
+									<Select
+										value={field.state.value}
+										onValueChange={value => field.handleChange(value)}
+									>
 										<SelectTrigger>
 											<SelectValue placeholder="Select category" />
 										</SelectTrigger>
@@ -202,17 +224,18 @@ export function CreateMaintenanceDialog() {
 											))}
 										</SelectContent>
 									</Select>
-								)}
-							/>
-						</div>
+								</div>
+							)}
+						</form.Field>
 
-						<div className="space-y-2">
-							<Label htmlFor="priority">Priority</Label>
-							<Controller
-								name="priority"
-								control={form.control}
-								render={({ field }) => (
-									<Select value={field.value} onValueChange={field.onChange}>
+						<form.Field name="priority">
+							{field => (
+								<div className="space-y-2">
+									<Label htmlFor="priority">Priority</Label>
+									<Select
+										value={field.state.value}
+										onValueChange={value => field.handleChange(value)}
+									>
 										<SelectTrigger>
 											<SelectValue />
 										</SelectTrigger>
@@ -223,41 +246,58 @@ export function CreateMaintenanceDialog() {
 											<SelectItem value="EMERGENCY">Emergency</SelectItem>
 										</SelectContent>
 									</Select>
-								)}
-							/>
-						</div>
+								</div>
+							)}
+						</form.Field>
 					</div>
 
-					<div className="space-y-2">
-						<Label htmlFor="estimatedCost">Estimated Cost (Optional)</Label>
-						<Input
-							id="estimatedCost"
-							type="number"
-							{...form.register('estimatedCost', { valueAsNumber: true })}
-							placeholder="250"
-						/>
-					</div>
+					<form.Field name="estimatedCost">
+						{field => (
+							<div className="space-y-2">
+								<Label htmlFor="estimatedCost">Estimated Cost (Optional)</Label>
+								<Input
+									id="estimatedCost"
+									type="number"
+									placeholder="250"
+									value={field.state.value}
+									onChange={e => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+								/>
+							</div>
+						)}
+					</form.Field>
 
-					<div className="space-y-2">
-						<Label htmlFor="preferredDate">Preferred Date (Optional)</Label>
-						<Input
-							id="preferredDate"
-							type="date"
-							{...form.register('preferredDate')}
-						/>
-					</div>
+					<form.Field name="preferredDate">
+						{field => (
+							<div className="space-y-2">
+								<Label htmlFor="preferredDate">Preferred Date (Optional)</Label>
+								<Input
+									id="preferredDate"
+									type="date"
+									value={field.state.value}
+									onChange={e => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+								/>
+							</div>
+						)}
+					</form.Field>
 
-					<div className="space-y-2">
-						<Label htmlFor="allowEntry" className="flex items-center gap-2">
-							<input
-								id="allowEntry"
-								type="checkbox"
-								{...form.register('allowEntry')}
-								className="rounded border border-input"
-							/>
-							Allow entry when tenant is not present
-						</Label>
-					</div>
+					<form.Field name="allowEntry">
+						{field => (
+							<div className="space-y-2">
+								<Label htmlFor="allowEntry" className="flex items-center gap-2">
+									<input
+										id="allowEntry"
+										type="checkbox"
+										checked={field.state.value}
+										onChange={e => field.handleChange(e.target.checked)}
+										className="rounded border border-input"
+									/>
+									Allow entry when tenant is not present
+								</Label>
+							</div>
+						)}
+					</form.Field>
 
 					<div className="flex justify-end gap-2">
 						<Button
