@@ -9,8 +9,13 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from '@/components/ui/dialog'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '@/components/ui/input-group'
 import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -262,70 +267,82 @@ export function CreateTenantDialog() {
 						<div className="space-y-4">
 							<form.Field name="name">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="name" className="flex items-center gap-2">
-											<User className="w-4 h-4" />
-											Full Name *
-										</Label>
-										<Input
-											id="name"
-											placeholder="e.g. John Smith"
-											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
-											onBlur={field.handleBlur}
-										/>
-										{field.state.meta.errors?.length ? (
-											<p className="text-sm text-destructive">
+									<Field>
+										<FieldLabel htmlFor="name">Full Name *</FieldLabel>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<User className="w-4 h-4" />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="name"
+												placeholder="e.g. John Smith"
+												value={field.state.value}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
+												onBlur={field.handleBlur}
+											/>
+										</InputGroup>
+										{field.state.meta.errors?.length && (
+											<FieldError>
 												{String(field.state.meta.errors[0])}
-											</p>
-										) : null}
-									</div>
+											</FieldError>
+										)}
+									</Field>
 								)}
 							</form.Field>
 
 							<form.Field name="email">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="email" className="flex items-center gap-2">
-											<Mail className="w-4 h-4" />
-											Email Address *
-										</Label>
-										<Input
-											id="email"
-											type="email"
-											placeholder="john.smith@example.com"
-											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
-											onBlur={field.handleBlur}
-										/>
-										{field.state.meta.errors?.length ? (
-											<p className="text-sm text-destructive">
+									<Field>
+										<FieldLabel htmlFor="email">Email Address *</FieldLabel>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<Mail className="w-4 h-4" />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="email"
+												type="email"
+												placeholder="john.smith@example.com"
+												value={field.state.value}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
+												onBlur={field.handleBlur}
+											/>
+										</InputGroup>
+										{field.state.meta.errors?.length && (
+											<FieldError>
 												{String(field.state.meta.errors[0])}
-											</p>
-										) : null}
-									</div>
+											</FieldError>
+										)}
+									</Field>
 								)}
 							</form.Field>
 
 							<form.Field name="phone">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="phone" className="flex items-center gap-2">
-											<Phone className="w-4 h-4" />
-											Phone Number
-										</Label>
-										<Input
-											id="phone"
-											type="tel"
-											placeholder="(555) 123-4567"
-											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
-											onBlur={field.handleBlur}
-										/>
+									<Field>
+										<FieldLabel htmlFor="phone">Phone Number</FieldLabel>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<Phone className="w-4 h-4" />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="phone"
+												type="tel"
+												placeholder="(555) 123-4567"
+												value={field.state.value}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
+												onBlur={field.handleBlur}
+											/>
+										</InputGroup>
 										<p className="text-sm text-muted-foreground">
 											Optional - for contact and notifications
 										</p>
-									</div>
+									</Field>
 								)}
 							</form.Field>
 						</div>
@@ -336,23 +353,25 @@ export function CreateTenantDialog() {
 						<div className="space-y-4">
 							<form.Field name="emergencyContact">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="emergencyContact">
+									<Field>
+										<FieldLabel htmlFor="emergencyContact">
 											Emergency Contact Information
-										</Label>
+										</FieldLabel>
 										<Textarea
 											id="emergencyContact"
 											placeholder="Emergency contact name, relationship, and phone number..."
 											rows={4}
 											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
+											onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+												field.handleChange(e.target.value)
+											}
 											onBlur={field.handleBlur}
 										/>
 										<p className="text-sm text-muted-foreground">
 											Optional - Include name, relationship, and contact
 											information for emergencies
 										</p>
-									</div>
+									</Field>
 								)}
 							</form.Field>
 						</div>
@@ -364,51 +383,59 @@ export function CreateTenantDialog() {
 							<div className="grid grid-cols-2 gap-4">
 								<form.Field name="firstName">
 									{field => (
-										<div className="space-y-2">
-											<Label htmlFor="firstName">First Name</Label>
+										<Field>
+											<FieldLabel htmlFor="firstName">First Name</FieldLabel>
 											<Input
 												id="firstName"
 												placeholder="John"
 												value={field.state.value}
-												onChange={e => field.handleChange(e.target.value)}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
 												onBlur={field.handleBlur}
 											/>
-										</div>
+										</Field>
 									)}
 								</form.Field>
 
 								<form.Field name="lastName">
 									{field => (
-										<div className="space-y-2">
-											<Label htmlFor="lastName">Last Name</Label>
+										<Field>
+											<FieldLabel htmlFor="lastName">Last Name</FieldLabel>
 											<Input
 												id="lastName"
 												placeholder="Smith"
 												value={field.state.value}
-												onChange={e => field.handleChange(e.target.value)}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
 												onBlur={field.handleBlur}
 											/>
-										</div>
+										</Field>
 									)}
 								</form.Field>
 							</div>
 
 							<form.Field name="avatarUrl">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="avatarUrl">Profile Picture URL</Label>
+									<Field>
+										<FieldLabel htmlFor="avatarUrl">
+											Profile Picture URL
+										</FieldLabel>
 										<Input
 											id="avatarUrl"
 											type="url"
 											placeholder="https://example.com/profile.jpg"
 											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
 											onBlur={field.handleBlur}
 										/>
 										<p className="text-sm text-muted-foreground">
 											Optional - URL for profile picture
 										</p>
-									</div>
+									</Field>
 								)}
 							</form.Field>
 
