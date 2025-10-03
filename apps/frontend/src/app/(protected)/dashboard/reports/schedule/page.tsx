@@ -202,154 +202,182 @@ export default function ScheduleReportsPage() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<form onSubmit={handleSubmit} className="space-y-6">
-						<div className="grid gap-4 sm:grid-cols-2">
-							<div className="space-y-2">
-								<Label htmlFor="reportType">Report Type</Label>
-								<Select
-									value={reportType}
-									onValueChange={value => setReportType(value as ReportType)}
-								>
-									<SelectTrigger id="reportType">
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										{REPORT_TYPES.map(type => (
-											<SelectItem key={type.value} value={type.value}>
-												{type.label}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor="reportName">Report Name</Label>
-								<Input
-									id="reportName"
-									value={reportName}
-									onChange={e => setReportName(e.target.value)}
-									placeholder="e.g., Monthly Executive Report"
-									required
-								/>
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor="format">Format</Label>
-								<Select
-									value={reportFormat}
-									onValueChange={value =>
-										setReportFormat(value as 'pdf' | 'excel')
-									}
-								>
-									<SelectTrigger id="format">
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="pdf">PDF</SelectItem>
-										<SelectItem value="excel">Excel</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor="frequency">Frequency</Label>
-								<Select
-									value={frequency}
-									onValueChange={value =>
-										setFrequency(value as 'daily' | 'weekly' | 'monthly')
-									}
-								>
-									<SelectTrigger id="frequency">
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="daily">Daily</SelectItem>
-										<SelectItem value="weekly">Weekly</SelectItem>
-										<SelectItem value="monthly">Monthly</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-
-							{frequency === 'weekly' && (
+					<form onSubmit={handleSubmit} className="space-y-8">
+						{/* Report Configuration Section */}
+						<div className="space-y-4">
+							<h3 className="text-sm font-medium text-foreground">
+								Report Configuration
+							</h3>
+							<div className="grid gap-4 sm:grid-cols-2">
 								<div className="space-y-2">
-									<Label htmlFor="dayOfWeek">Day of Week</Label>
+									<Label htmlFor="reportType">Report Type</Label>
 									<Select
-										value={dayOfWeek.toString()}
-										onValueChange={value => setDayOfWeek(Number(value))}
+										value={reportType}
+										onValueChange={value => setReportType(value as ReportType)}
 									>
-										<SelectTrigger id="dayOfWeek">
+										<SelectTrigger id="reportType">
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											{DAYS_OF_WEEK.map(day => (
-												<SelectItem
-													key={day.value}
-													value={day.value.toString()}
-												>
-													{day.label}
+											{REPORT_TYPES.map(type => (
+												<SelectItem key={type.value} value={type.value}>
+													{type.label}
 												</SelectItem>
 											))}
 										</SelectContent>
 									</Select>
 								</div>
-							)}
 
-							{frequency === 'monthly' && (
 								<div className="space-y-2">
-									<Label htmlFor="dayOfMonth">Day of Month</Label>
+									<Label htmlFor="reportName">Report Name</Label>
 									<Input
-										id="dayOfMonth"
-										type="number"
-										min="1"
-										max="31"
-										value={dayOfMonth}
-										onChange={e => setDayOfMonth(Number(e.target.value))}
+										id="reportName"
+										value={reportName}
+										onChange={e => setReportName(e.target.value)}
+										placeholder="e.g., Monthly Executive Report"
+										required
 									/>
 								</div>
-							)}
 
-							<div className="space-y-2">
-								<Label htmlFor="hour">Time (Hour)</Label>
-								<Input
-									id="hour"
-									type="number"
-									min="0"
-									max="23"
-									value={hour}
-									onChange={e => setHour(Number(e.target.value))}
-								/>
-								<p className="text-xs text-muted-foreground">
-									24-hour format (0-23)
-								</p>
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor="startDate">Report Start Date</Label>
-								<Input
-									id="startDate"
-									type="date"
-									value={startDate}
-									onChange={e => setStartDate(e.target.value)}
-									required
-								/>
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor="endDate">Report End Date</Label>
-								<Input
-									id="endDate"
-									type="date"
-									value={endDate}
-									onChange={e => setEndDate(e.target.value)}
-									required
-								/>
+								<div className="space-y-2">
+									<Label htmlFor="format">Format</Label>
+									<Select
+										value={reportFormat}
+										onValueChange={value =>
+											setReportFormat(value as 'pdf' | 'excel')
+										}
+									>
+										<SelectTrigger id="format">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="pdf">PDF</SelectItem>
+											<SelectItem value="excel">Excel</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
 							</div>
 						</div>
 
-						<Button type="submit" disabled={isSubmitting}>
-							{isSubmitting ? 'Creating...' : 'Create Schedule'}
-						</Button>
+						{/* Schedule Configuration Section */}
+						<div className="space-y-4 border-t pt-6">
+							<h3 className="text-sm font-medium text-foreground">
+								Schedule Configuration
+							</h3>
+							<div className="grid gap-4 sm:grid-cols-2">
+								<div className="space-y-2">
+									<Label htmlFor="frequency">Frequency</Label>
+									<Select
+										value={frequency}
+										onValueChange={value =>
+											setFrequency(value as 'daily' | 'weekly' | 'monthly')
+										}
+									>
+										<SelectTrigger id="frequency">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="daily">Daily</SelectItem>
+											<SelectItem value="weekly">Weekly</SelectItem>
+											<SelectItem value="monthly">Monthly</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+
+								{frequency === 'weekly' && (
+									<div className="space-y-2">
+										<Label htmlFor="dayOfWeek">Day of Week</Label>
+										<Select
+											value={dayOfWeek.toString()}
+											onValueChange={value => setDayOfWeek(Number(value))}
+										>
+											<SelectTrigger id="dayOfWeek">
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												{DAYS_OF_WEEK.map(day => (
+													<SelectItem
+														key={day.value}
+														value={day.value.toString()}
+													>
+														{day.label}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</div>
+								)}
+
+								{frequency === 'monthly' && (
+									<div className="space-y-2">
+										<Label htmlFor="dayOfMonth">Day of Month</Label>
+										<Input
+											id="dayOfMonth"
+											type="number"
+											min="1"
+											max="31"
+											value={dayOfMonth}
+											onChange={e => setDayOfMonth(Number(e.target.value))}
+										/>
+									</div>
+								)}
+
+								<div className="space-y-2">
+									<Label htmlFor="hour">Execution Time</Label>
+									<Input
+										id="hour"
+										type="number"
+										min="0"
+										max="23"
+										value={hour}
+										onChange={e => setHour(Number(e.target.value))}
+										placeholder="9"
+									/>
+									<p className="text-xs text-muted-foreground">
+										24-hour format (0-23, e.g., 9 for 9 AM, 14 for 2 PM)
+									</p>
+								</div>
+							</div>
+						</div>
+
+						{/* Date Range Section */}
+						<div className="space-y-4 border-t pt-6">
+							<h3 className="text-sm font-medium text-foreground">
+								Report Date Range
+							</h3>
+							<div className="grid gap-4 sm:grid-cols-2">
+								<div className="space-y-2">
+									<Label htmlFor="startDate">Start Date</Label>
+									<Input
+										id="startDate"
+										type="date"
+										value={startDate}
+										onChange={e => setStartDate(e.target.value)}
+										required
+									/>
+								</div>
+
+								<div className="space-y-2">
+									<Label htmlFor="endDate">End Date</Label>
+									<Input
+										id="endDate"
+										type="date"
+										value={endDate}
+										onChange={e => setEndDate(e.target.value)}
+										required
+									/>
+								</div>
+							</div>
+							<p className="text-xs text-muted-foreground">
+								Date range for report data (defaults to last 30 days)
+							</p>
+						</div>
+
+						<div className="flex justify-end">
+							<Button type="submit" disabled={isSubmitting} size="lg">
+								{isSubmitting ? 'Creating Schedule...' : 'Create Schedule'}
+							</Button>
+						</div>
 					</form>
 				</CardContent>
 			</Card>

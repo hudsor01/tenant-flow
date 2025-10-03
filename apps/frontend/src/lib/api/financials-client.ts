@@ -34,7 +34,7 @@ export async function getIncomeStatement(
 	startDate: string,
 	endDate: string
 ): Promise<IncomeStatementData> {
-	const url = `${API_URL}/financial/income-statement?startDate=${startDate}&endDate=${endDate}`
+	const url = `${API_URL}/api/v1/financials/income-statement?startDate=${startDate}&endDate=${endDate}`
 	const result = await fetchWithAuth(url, token)
 	return result.data
 }
@@ -44,7 +44,7 @@ export async function getCashFlowStatement(
 	startDate: string,
 	endDate: string
 ): Promise<CashFlowData> {
-	const url = `${API_URL}/financial/cash-flow?startDate=${startDate}&endDate=${endDate}`
+	const url = `${API_URL}/api/v1/financials/cash-flow?startDate=${startDate}&endDate=${endDate}`
 	const result = await fetchWithAuth(url, token)
 	return result.data
 }
@@ -53,7 +53,7 @@ export async function getBalanceSheet(
 	token: string,
 	asOfDate: string
 ): Promise<BalanceSheetData> {
-	const url = `${API_URL}/financial/balance-sheet?asOfDate=${asOfDate}`
+	const url = `${API_URL}/api/v1/financials/balance-sheet?asOfDate=${asOfDate}`
 	const result = await fetchWithAuth(url, token)
 	return result.data
 }
@@ -62,7 +62,7 @@ export async function getTaxDocuments(
 	token: string,
 	taxYear: number
 ): Promise<TaxDocumentsData> {
-	const url = `${API_URL}/financial/tax-documents?taxYear=${taxYear}`
+	const url = `${API_URL}/api/v1/financials/tax-documents?taxYear=${taxYear}`
 	const result = await fetchWithAuth(url, token)
 	return result.data
 }
