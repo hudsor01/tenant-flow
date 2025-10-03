@@ -15,7 +15,7 @@ import {
 	EmptyContent,
 	EmptyDescription,
 	EmptyHeader,
-	EmptyMedia,
+	EmptyIcon,
 	EmptyTitle
 } from '@/components/ui/empty'
 import {
@@ -256,9 +256,9 @@ export default async function LeasesPage() {
 							<CardContent>
 								<Empty>
 									<EmptyHeader>
-										<EmptyMedia variant="icon">
+										<EmptyIcon variant="icon">
 											<FileText />
-										</EmptyMedia>
+										</EmptyIcon>
 										<EmptyTitle>No leases found</EmptyTitle>
 										<EmptyDescription>
 											Get started by creating your first lease
