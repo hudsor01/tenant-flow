@@ -20,16 +20,14 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { maintenanceApi } from '@/lib/api-client'
-import { zodResolver } from '@hookform/resolvers/zod'
 import {
 	maintenanceRequestUpdateFormSchema,
-	type MaintenanceRequestUpdate,
-	type MaintenanceRequestUpdateFormOutput
+	type MaintenanceRequestUpdate
 } from '@repo/shared/validation/maintenance'
+import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Edit } from 'lucide-react'
 import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 interface EditMaintenanceButtonProps {
@@ -53,18 +51,47 @@ export function EditMaintenanceButton({
 	const queryClient = useQueryClient()
 
 	const form = useForm({
-		resolver: zodResolver(maintenanceRequestUpdateFormSchema),
 		defaultValues: {
 			title: maintenance.title,
 			description: maintenance.description,
 			priority: maintenance.priority,
 			category: maintenance.category || '',
-			estimatedCost: maintenance.estimatedCost
-				? maintenance.estimatedCost.toString()
-				: '',
+			estimatedCost: maintenance.estimatedCost?.toString() || '',
 			notes: maintenance.notes || '',
 			preferredDate: maintenance.preferredDate || '',
-			allowEntry: maintenance.allowEntry || false
+			allowEntry: maintenance.allowEntry || false,
+			status: '',
+			actualCost: '',
+			completedAt: ''
+		},
+		onSubmit: async ({ value }) => {
+			const updateData: MaintenanceRequestUpdate = {
+				title: value.title,
+				description: value.description,
+				priority: value.priority,
+				category: value.category,
+				estimatedCost: value.estimatedCost
+					? Number(value.estimatedCost)
+					: undefined,
+				notes: value.notes,
+				preferredDate: value.preferredDate
+					? new Date(value.preferredDate)
+					: undefined,
+				allowEntry: value.allowEntry,
+				status: value.status,
+				actualCost: value.actualCost ? Number(value.actualCost) : undefined,
+				completedAt: value.completedAt ? new Date(value.completedAt) : undefined
+			}
+			updateMutation.mutate(updateData)
+		},
+		validators: {
+			onChange: ({ value }) => {
+				const result = maintenanceRequestUpdateFormSchema.safeParse(value)
+				if (!result.success) {
+					return result.error.format()
+				}
+				return undefined
+			}
 		}
 	})
 
@@ -82,25 +109,6 @@ export function EditMaintenanceButton({
 			toast.error(`Failed to update request: ${error.message}`)
 		}
 	})
-
-	const onSubmit = (data: MaintenanceRequestUpdateFormOutput) => {
-		const updateData = {
-			title: data.title,
-			description: data.description,
-			priority: data.priority,
-			category: data.category,
-			estimatedCost: data.estimatedCost,
-			notes: data.notes,
-			preferredDate: data.preferredDate
-				? new Date(data.preferredDate)
-				: undefined,
-			allowEntry: data.allowEntry,
-			status: data.status,
-			actualCost: data.actualCost,
-			completedAt: data.completedAt ? new Date(data.completedAt) : undefined
-		}
-		updateMutation.mutate(updateData)
-	}
 
 	const categories = [
 		'Plumbing',
@@ -132,46 +140,62 @@ export function EditMaintenanceButton({
 					</DialogDescription>
 				</DialogHeader>
 				<form
-					onSubmit={form.handleSubmit(data => onSubmit(data))}
+					onSubmit={e => {
+						e.preventDefault()
+						form.handleSubmit()
+					}}
 					className="space-y-4"
 				>
-					<div className="space-y-2">
-						<Label htmlFor="title">Title</Label>
-						<Input
-							id="title"
-							{...form.register('title')}
-							placeholder="Kitchen faucet leak"
-						/>
-						{form.formState.errors.title && (
-							<p className="text-sm text-[var(--color-system-red)]">
-								{form.formState.errors.title.message}
-							</p>
+					<form.Field name="title">
+						{field => (
+							<div className="space-y-2">
+								<Label htmlFor="title">Title</Label>
+								<Input
+									id="title"
+									placeholder="Kitchen faucet leak"
+									value={field.state.value}
+									onChange={e => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+								/>
+								{field.state.meta.errors?.length ? (
+									<p className="text-sm text-[var(--color-system-red)]">
+										{String(field.state.meta.errors[0])}
+									</p>
+								) : null}
+							</div>
 						)}
-					</div>
+					</form.Field>
 
-					<div className="space-y-2">
-						<Label htmlFor="description">Description</Label>
-						<Textarea
-							id="description"
-							{...form.register('description')}
-							placeholder="Detailed description of the maintenance issue..."
-							rows={3}
-						/>
-						{form.formState.errors.description && (
-							<p className="text-sm text-[var(--color-system-red)]">
-								{form.formState.errors.description.message}
-							</p>
+					<form.Field name="description">
+						{field => (
+							<div className="space-y-2">
+								<Label htmlFor="description">Description</Label>
+								<Textarea
+									id="description"
+									placeholder="Detailed description of the maintenance issue..."
+									rows={3}
+									value={field.state.value}
+									onChange={e => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+								/>
+								{field.state.meta.errors?.length ? (
+									<p className="text-sm text-[var(--color-system-red)]">
+										{String(field.state.meta.errors[0])}
+									</p>
+								) : null}
+							</div>
 						)}
-					</div>
+					</form.Field>
 
 					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<Label htmlFor="category">Category</Label>
-							<Controller
-								name="category"
-								control={form.control}
-								render={({ field }) => (
-									<Select value={field.value} onValueChange={field.onChange}>
+						<form.Field name="category">
+							{field => (
+								<div className="space-y-2">
+									<Label htmlFor="category">Category</Label>
+									<Select
+										value={field.state.value}
+										onValueChange={value => field.handleChange(value)}
+									>
 										<SelectTrigger>
 											<SelectValue placeholder="Select category" />
 										</SelectTrigger>
@@ -183,17 +207,18 @@ export function EditMaintenanceButton({
 											))}
 										</SelectContent>
 									</Select>
-								)}
-							/>
-						</div>
+								</div>
+							)}
+						</form.Field>
 
-						<div className="space-y-2">
-							<Label htmlFor="priority">Priority</Label>
-							<Controller
-								name="priority"
-								control={form.control}
-								render={({ field }) => (
-									<Select value={field.value} onValueChange={field.onChange}>
+						<form.Field name="priority">
+							{field => (
+								<div className="space-y-2">
+									<Label htmlFor="priority">Priority</Label>
+									<Select
+										value={field.state.value}
+										onValueChange={value => field.handleChange(value)}
+									>
 										<SelectTrigger>
 											<SelectValue />
 										</SelectTrigger>
@@ -204,51 +229,74 @@ export function EditMaintenanceButton({
 											<SelectItem value="EMERGENCY">Emergency</SelectItem>
 										</SelectContent>
 									</Select>
-								)}
-							/>
-						</div>
+								</div>
+							)}
+						</form.Field>
 					</div>
 
-					<div className="space-y-2">
-						<Label htmlFor="estimatedCost">Estimated Cost (Optional)</Label>
-						<Input
-							id="estimatedCost"
-							type="number"
-							{...form.register('estimatedCost', { valueAsNumber: true })}
-							placeholder="250"
-						/>
-					</div>
+					<form.Field name="estimatedCost">
+						{field => (
+							<div className="space-y-2">
+								<Label htmlFor="estimatedCost">Estimated Cost (Optional)</Label>
+								<Input
+									id="estimatedCost"
+									type="number"
+									placeholder="250"
+									value={field.state.value}
+									onChange={e => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+								/>
+							</div>
+						)}
+					</form.Field>
 
-					<div className="space-y-2">
-						<Label htmlFor="preferredDate">Preferred Date (Optional)</Label>
-						<Input
-							id="preferredDate"
-							type="date"
-							{...form.register('preferredDate')}
-						/>
-					</div>
+					<form.Field name="preferredDate">
+						{field => (
+							<div className="space-y-2">
+								<Label htmlFor="preferredDate">Preferred Date (Optional)</Label>
+								<Input
+									id="preferredDate"
+									type="date"
+									value={field.state.value}
+									onChange={e => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+								/>
+							</div>
+						)}
+					</form.Field>
 
-					<div className="space-y-2">
-						<Label htmlFor="notes">Notes (Optional)</Label>
-						<Textarea
-							id="notes"
-							{...form.register('notes')}
-							placeholder="Additional notes..."
-							rows={2}
-						/>
-					</div>
+					<form.Field name="notes">
+						{field => (
+							<div className="space-y-2">
+								<Label htmlFor="notes">Notes (Optional)</Label>
+								<Textarea
+									id="notes"
+									placeholder="Additional notes..."
+									rows={2}
+									value={field.state.value}
+									onChange={e => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+								/>
+							</div>
+						)}
+					</form.Field>
 
-					<div className="space-y-2">
-						<Label htmlFor="allowEntry" className="flex items-center gap-2">
-							<input
-								id="allowEntry"
-								type="checkbox"
-								{...form.register('allowEntry')}
-								className="rounded border border-input"
-							/>
-							Allow entry when tenant is not present
-						</Label>
-					</div>
+					<form.Field name="allowEntry">
+						{field => (
+							<div className="space-y-2">
+								<Label htmlFor="allowEntry" className="flex items-center gap-2">
+									<input
+										id="allowEntry"
+										type="checkbox"
+										checked={field.state.value}
+										onChange={e => field.handleChange(e.target.checked)}
+										className="rounded border border-input"
+									/>
+									Allow entry when tenant is not present
+								</Label>
+							</div>
+						)}
+					</form.Field>
 
 					<div className="flex justify-end gap-2">
 						<Button

@@ -1,6 +1,5 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
 	Building,
@@ -10,7 +9,6 @@ import {
 	Plus
 } from 'lucide-react'
 import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -44,6 +42,7 @@ import {
 	transformPropertyFormData,
 	type PropertyFormData
 } from '@repo/shared/validation/properties'
+import { useForm } from '@tanstack/react-form'
 
 const FORM_STEPS = [
 	{
@@ -101,12 +100,11 @@ export function CreatePropertyDialog() {
 		}
 	}
 
-	const form = useForm<PropertyFormData>({
-		resolver: zodResolver(propertyFormSchema),
+	const form = useForm({
 		defaultValues: {
 			name: '',
 			description: '',
-			propertyType: 'SINGLE_FAMILY' as const,
+			propertyType: 'SINGLE_FAMILY',
 			address: '',
 			city: '',
 			state: '',
@@ -121,6 +119,27 @@ export function CreatePropertyDialog() {
 			hasPool: false,
 			numberOfUnits: '1',
 			createUnitsNow: false
+		},
+		onSubmit: async ({ value }) => {
+			try {
+				const transformedData = transformPropertyFormData(value, user?.id || '')
+				createProperty.mutate(transformedData)
+			} catch (error) {
+				logger.error(
+					'Form submission error',
+					{ action: 'formSubmission' },
+					error
+				)
+			}
+		},
+		validators: {
+			onChange: ({ value }) => {
+				const result = propertyFormSchema.safeParse(value)
+				if (!result.success) {
+					return result.error.format()
+				}
+				return undefined
+			}
 		}
 	})
 
@@ -157,7 +176,7 @@ export function CreatePropertyDialog() {
 
 	const validateCurrentStep = async (): Promise<boolean> => {
 		// For now, just check if required fields are filled
-		const values = form.getValues()
+		const values = form.state.values
 		const requiredFields =
 			currentStep === 1
 				? ['name', 'propertyType', 'address', 'city', 'state', 'zipCode']
@@ -205,7 +224,8 @@ export function CreatePropertyDialog() {
 						Create New Property
 					</DialogTitle>
 					<DialogDescription>
-						Add a new property to your portfolio with basic information, details, and financial data.
+						Add a new property to your portfolio with basic information,
+						details, and financial data.
 					</DialogDescription>
 				</DialogHeader>
 
@@ -233,47 +253,43 @@ export function CreatePropertyDialog() {
 				</div>
 
 				<form
-					onSubmit={form.handleSubmit(data => {
-						try {
-							const transformedData = transformPropertyFormData(
-								data,
-								user?.id || ''
-							)
-							createProperty.mutate(transformedData)
-						} catch (error) {
-							logger.error(
-								'Form submission error',
-								{ action: 'formSubmission' },
-								error
-							)
-						}
-					})}
+					onSubmit={e => {
+						e.preventDefault()
+						form.handleSubmit()
+					}}
 					className="space-y-6"
 				>
 					{/* Step 1: Basic Information */}
 					{currentStep === 1 && (
 						<div className="space-y-4">
-							<div className="space-y-2">
-								<Label htmlFor="name">Property Name *</Label>
-								<Input
-									id="name"
-									placeholder="e.g. Sunset Apartments"
-									{...form.register('name')}
-								/>
-								{form.formState.errors.name && (
-									<p className="text-sm text-destructive">
-										{form.formState.errors.name.message}
-									</p>
+							<form.Field name="name">
+								{field => (
+									<div className="space-y-2">
+										<Label htmlFor="name">Property Name *</Label>
+										<Input
+											id="name"
+											placeholder="e.g. Sunset Apartments"
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										{field.state.meta.errors?.length ? (
+											<p className="text-sm text-destructive">
+												{String(field.state.meta.errors[0])}
+											</p>
+										) : null}
+									</div>
 								)}
-							</div>
+							</form.Field>
 
-							<div className="space-y-2">
-								<Label htmlFor="propertyType">Property Type *</Label>
-								<Controller
-									name="propertyType"
-									control={form.control}
-									render={({ field }) => (
-										<Select value={field.value} onValueChange={field.onChange}>
+							<form.Field name="propertyType">
+								{field => (
+									<div className="space-y-2">
+										<Label htmlFor="propertyType">Property Type *</Label>
+										<Select
+											value={field.state.value}
+											onValueChange={value => field.handleChange(value)}
+										>
 											<SelectTrigger>
 												<SelectValue placeholder="Select property type" />
 											</SelectTrigger>
@@ -289,82 +305,110 @@ export function CreatePropertyDialog() {
 												<SelectItem value="OTHER">Other</SelectItem>
 											</SelectContent>
 										</Select>
-									)}
-								/>
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor="address">Address *</Label>
-								<Input
-									id="address"
-									placeholder="123 Main St"
-									{...form.register('address')}
-								/>
-								{form.formState.errors.address && (
-									<p className="text-sm text-destructive">
-										{form.formState.errors.address.message}
-									</p>
+									</div>
 								)}
-							</div>
+							</form.Field>
+
+							<form.Field name="address">
+								{field => (
+									<div className="space-y-2">
+										<Label htmlFor="address">Address *</Label>
+										<Input
+											id="address"
+											placeholder="123 Main St"
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										{field.state.meta.errors?.length ? (
+											<p className="text-sm text-destructive">
+												{String(field.state.meta.errors[0])}
+											</p>
+										) : null}
+									</div>
+								)}
+							</form.Field>
 
 							<div className="grid grid-cols-3 gap-4">
-								<div className="space-y-2">
-									<Label htmlFor="city">City *</Label>
-									<Input
-										id="city"
-										placeholder="City"
-										{...form.register('city')}
-									/>
-									{form.formState.errors.city && (
-										<p className="text-sm text-destructive">
-											{form.formState.errors.city.message}
-										</p>
+								<form.Field name="city">
+									{field => (
+										<div className="space-y-2">
+											<Label htmlFor="city">City *</Label>
+											<Input
+												id="city"
+												placeholder="City"
+												value={field.state.value}
+												onChange={e => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+											/>
+											{field.state.meta.errors?.length ? (
+												<p className="text-sm text-destructive">
+													{String(field.state.meta.errors[0])}
+												</p>
+											) : null}
+										</div>
 									)}
-								</div>
+								</form.Field>
 
-								<div className="space-y-2">
-									<Label htmlFor="state">State *</Label>
-									<Input
-										id="state"
-										placeholder="CA"
-										maxLength={2}
-										{...form.register('state', {
-											onChange: e => {
-												e.target.value = e.target.value.toUpperCase()
-											}
-										})}
-									/>
-									{form.formState.errors.state && (
-										<p className="text-sm text-destructive">
-											{form.formState.errors.state.message}
-										</p>
+								<form.Field name="state">
+									{field => (
+										<div className="space-y-2">
+											<Label htmlFor="state">State *</Label>
+											<Input
+												id="state"
+												placeholder="CA"
+												maxLength={2}
+												value={field.state.value}
+												onChange={e =>
+													field.handleChange(e.target.value.toUpperCase())
+												}
+												onBlur={field.handleBlur}
+											/>
+											{field.state.meta.errors?.length ? (
+												<p className="text-sm text-destructive">
+													{String(field.state.meta.errors[0])}
+												</p>
+											) : null}
+										</div>
 									)}
-								</div>
+								</form.Field>
 
-								<div className="space-y-2">
-									<Label htmlFor="zipCode">ZIP Code *</Label>
-									<Input
-										id="zipCode"
-										placeholder="12345"
-										{...form.register('zipCode')}
-									/>
-									{form.formState.errors.zipCode && (
-										<p className="text-sm text-destructive">
-											{form.formState.errors.zipCode.message}
-										</p>
+								<form.Field name="zipCode">
+									{field => (
+										<div className="space-y-2">
+											<Label htmlFor="zipCode">ZIP Code *</Label>
+											<Input
+												id="zipCode"
+												placeholder="12345"
+												value={field.state.value}
+												onChange={e => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+											/>
+											{field.state.meta.errors?.length ? (
+												<p className="text-sm text-destructive">
+													{String(field.state.meta.errors[0])}
+												</p>
+											) : null}
+										</div>
 									)}
-								</div>
+								</form.Field>
 							</div>
 
-							<div className="space-y-2">
-								<Label htmlFor="description">Description</Label>
-								<Textarea
-									id="description"
-									placeholder="Brief description of the property..."
-									rows={3}
-									{...form.register('description')}
-								/>
-							</div>
+							<form.Field name="description">
+								{field => (
+									<div className="space-y-2">
+										<Label htmlFor="description">Description</Label>
+										<Textarea
+											id="description"
+											placeholder="Brief description of the property..."
+											rows={3}
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+									</div>
+								)}
+							</form.Field>
 						</div>
 					)}
 
@@ -372,85 +416,109 @@ export function CreatePropertyDialog() {
 					{currentStep === 2 && (
 						<div className="space-y-4">
 							<div className="grid grid-cols-3 gap-4">
-								<div className="space-y-2">
-									<Label htmlFor="bedrooms">Bedrooms</Label>
-									<Input
-										id="bedrooms"
-										type="number"
-										placeholder="3"
-										min="0"
-										max="50"
-										{...form.register('bedrooms')}
-									/>
-								</div>
+								<form.Field name="bedrooms">
+									{field => (
+										<div className="space-y-2">
+											<Label htmlFor="bedrooms">Bedrooms</Label>
+											<Input
+												id="bedrooms"
+												type="number"
+												placeholder="3"
+												min="0"
+												max="50"
+												value={field.state.value}
+												onChange={e => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+											/>
+										</div>
+									)}
+								</form.Field>
 
-								<div className="space-y-2">
-									<Label htmlFor="bathrooms">Bathrooms</Label>
-									<Input
-										id="bathrooms"
-										type="number"
-										step="0.5"
-										placeholder="2.5"
-										min="0"
-										max="50"
-										{...form.register('bathrooms')}
-									/>
-								</div>
+								<form.Field name="bathrooms">
+									{field => (
+										<div className="space-y-2">
+											<Label htmlFor="bathrooms">Bathrooms</Label>
+											<Input
+												id="bathrooms"
+												type="number"
+												step="0.5"
+												placeholder="2.5"
+												min="0"
+												max="50"
+												value={field.state.value}
+												onChange={e => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+											/>
+										</div>
+									)}
+								</form.Field>
 
-								<div className="space-y-2">
-									<Label htmlFor="squareFootage">Square Footage</Label>
-									<Input
-										id="squareFootage"
-										type="number"
-										placeholder="1200"
-										min="0"
-										{...form.register('squareFootage')}
-									/>
-								</div>
+								<form.Field name="squareFootage">
+									{field => (
+										<div className="space-y-2">
+											<Label htmlFor="squareFootage">Square Footage</Label>
+											<Input
+												id="squareFootage"
+												type="number"
+												placeholder="1200"
+												min="0"
+												value={field.state.value}
+												onChange={e => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+											/>
+										</div>
+									)}
+								</form.Field>
 							</div>
 
-							<div className="space-y-2">
-								<Label htmlFor="imageUrl">Property Image URL</Label>
-								<Input
-									id="imageUrl"
-									type="url"
-									placeholder="https://example.com/property.jpg"
-									{...form.register('imageUrl')}
-								/>
-							</div>
+							<form.Field name="imageUrl">
+								{field => (
+									<div className="space-y-2">
+										<Label htmlFor="imageUrl">Property Image URL</Label>
+										<Input
+											id="imageUrl"
+											type="url"
+											placeholder="https://example.com/property.jpg"
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+									</div>
+								)}
+							</form.Field>
 
 							<div className="space-y-4">
 								<Label>Property Features</Label>
 								<div className="flex items-center space-x-6">
-									<div className="flex items-center space-x-2">
-										<Controller
-											name="hasGarage"
-											control={form.control}
-											render={({ field }) => (
+									<form.Field name="hasGarage">
+										{field => (
+											<div className="flex items-center space-x-2">
 												<Checkbox
 													id="hasGarage"
-													checked={field.value}
-													onCheckedChange={field.onChange}
+													checked={field.state.value}
+													onCheckedChange={checked =>
+														field.handleChange(!!checked)
+													}
 												/>
-											)}
-										/>
-										<Label htmlFor="hasGarage">Garage</Label>
-									</div>
+												<Label htmlFor="hasGarage">Garage</Label>
+											</div>
+										)}
+									</form.Field>
 
-									<div className="flex items-center space-x-2">
-										<Controller
-											name="hasPool"
-											control={form.control}
-											render={({ field }) => (
+									<form.Field name="hasPool">
+										{field => (
+											<div className="flex items-center space-x-2">
 												<Checkbox
 													id="hasPool"
-													checked={field.value}
-													onCheckedChange={field.onChange}
+													checked={field.state.value}
+													onCheckedChange={checked =>
+														field.handleChange(!!checked)
+													}
 												/>
-											)}
-										/>
-										<Label htmlFor="hasPool">Pool</Label>
-									</div>
+												<Label htmlFor="hasPool">Pool</Label>
+											</div>
+										)}
+									</form.Field>
 								</div>
 							</div>
 						</div>
@@ -460,29 +528,41 @@ export function CreatePropertyDialog() {
 					{currentStep === 3 && (
 						<div className="space-y-4">
 							<div className="grid grid-cols-2 gap-4">
-								<div className="space-y-2">
-									<Label htmlFor="rent">Monthly Rent ($)</Label>
-									<Input
-										id="rent"
-										type="number"
-										step="0.01"
-										placeholder="2500.00"
-										min="0"
-										{...form.register('rent')}
-									/>
-								</div>
+								<form.Field name="rent">
+									{field => (
+										<div className="space-y-2">
+											<Label htmlFor="rent">Monthly Rent ($)</Label>
+											<Input
+												id="rent"
+												type="number"
+												step="0.01"
+												placeholder="2500.00"
+												min="0"
+												value={field.state.value}
+												onChange={e => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+											/>
+										</div>
+									)}
+								</form.Field>
 
-								<div className="space-y-2">
-									<Label htmlFor="deposit">Security Deposit ($)</Label>
-									<Input
-										id="deposit"
-										type="number"
-										step="0.01"
-										placeholder="2500.00"
-										min="0"
-										{...form.register('deposit')}
-									/>
-								</div>
+								<form.Field name="deposit">
+									{field => (
+										<div className="space-y-2">
+											<Label htmlFor="deposit">Security Deposit ($)</Label>
+											<Input
+												id="deposit"
+												type="number"
+												step="0.01"
+												placeholder="2500.00"
+												min="0"
+												value={field.state.value}
+												onChange={e => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+											/>
+										</div>
+									)}
+								</form.Field>
 							</div>
 						</div>
 					)}
@@ -490,52 +570,57 @@ export function CreatePropertyDialog() {
 					{/* Step 4: Units & Amenities */}
 					{currentStep === 4 && (
 						<div className="space-y-4">
-							<div className="space-y-2">
-								<Label htmlFor="numberOfUnits">Number of Units</Label>
-								<Input
-									id="numberOfUnits"
-									type="number"
-									placeholder="1"
-									min="1"
-									max="1000"
-									{...form.register('numberOfUnits')}
-								/>
-								<p className="text-sm text-muted-foreground">
-									How many rental units does this property have?
-								</p>
-							</div>
+							<form.Field name="numberOfUnits">
+								{field => (
+									<div className="space-y-2">
+										<Label htmlFor="numberOfUnits">Number of Units</Label>
+										<Input
+											id="numberOfUnits"
+											type="number"
+											placeholder="1"
+											min="1"
+											max="1000"
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										<p className="text-sm text-muted-foreground">
+											How many rental units does this property have?
+										</p>
+									</div>
+								)}
+							</form.Field>
 
-							<div className="flex items-center space-x-2">
-								<Controller
-									name="createUnitsNow"
-									control={form.control}
-									render={({ field }) => (
+							<form.Field name="createUnitsNow">
+								{field => (
+									<div className="flex items-center space-x-2">
 										<Checkbox
 											id="createUnitsNow"
-											checked={field.value}
-											onCheckedChange={field.onChange}
+											checked={field.state.value}
+											onCheckedChange={checked => field.handleChange(!!checked)}
 										/>
-									)}
-								/>
-								<Label htmlFor="createUnitsNow">
-									Create individual unit records now
-								</Label>
-							</div>
+										<Label htmlFor="createUnitsNow">
+											Create individual unit records now
+										</Label>
+									</div>
+								)}
+							</form.Field>
 
 							<div className="rounded-lg border p-4 bg-muted/50">
 								<h4 className="font-medium mb-2">Summary</h4>
 								<div className="space-y-1 text-sm text-muted-foreground">
 									<div>
-										Property: {form.watch('name') || 'Unnamed Property'}
+										Property: {form.state.values.name || 'Unnamed Property'}
 									</div>
-									<div>Type: {form.watch('propertyType')}</div>
+									<div>Type: {form.state.values.propertyType}</div>
 									<div>
-										Location: {form.watch('city')}, {form.watch('state')}
+										Location: {form.state.values.city},{' '}
+										{form.state.values.state}
 									</div>
-									{form.watch('rent') && (
-										<div>Monthly Rent: ${form.watch('rent')}</div>
+									{form.state.values.rent && (
+										<div>Monthly Rent: ${form.state.values.rent}</div>
 									)}
-									<div>Units: {form.watch('numberOfUnits') || '1'}</div>
+									<div>Units: {form.state.values.numberOfUnits || '1'}</div>
 								</div>
 							</div>
 						</div>
