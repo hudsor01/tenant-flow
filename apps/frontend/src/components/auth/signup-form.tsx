@@ -2,14 +2,23 @@
 
 import { PasswordStrength } from '@/components/auth/password-strength'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import {
+	Field,
+	FieldDescription,
+	FieldError,
+	FieldLabel
+} from '@/components/ui/field'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '@/components/ui/input-group'
 import { useFormProgress } from '@/hooks/use-form-progress'
 import { cn } from '@/lib/design-system'
 import type { AuthFormProps } from '@repo/shared/types/frontend'
 import { signupFormSchema } from '@repo/shared/validation/auth'
 import { useForm } from '@tanstack/react-form'
-import { EyeIcon, EyeOffIcon } from 'lucide-react'
+import { Briefcase, Eye, EyeOff, Mail, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -41,7 +50,7 @@ export function SignupForm({
 			// Validate the form data against our schema
 			const result = signupFormSchema.safeParse(value)
 			if (!result.success) {
-				const firstError = result.error.issues[0] // Use .issues not .errors for Zod
+				const firstError = result.error.issues[0]
 				toast.error('Validation failed', {
 					description: firstError?.message || 'Please check your input'
 				})
@@ -105,56 +114,60 @@ export function SignupForm({
 				<div className="grid grid-cols-2 gap-4">
 					<form.Field name="firstName">
 						{field => (
-							<div className="space-y-2">
-								<Label htmlFor="firstName">First name</Label>
-								<Input
-									id="firstName"
-									data-testid="name-input"
-									placeholder="John"
-									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
-									onBlur={field.handleBlur}
-									disabled={isLoading}
-									className={cn(
-										'h-11',
-										field.state.meta.errors?.length
-											? 'border-destructive focus:ring-destructive'
-											: ''
-									)}
+							<Field>
+								<FieldLabel htmlFor="firstName">First name</FieldLabel>
+								<InputGroup>
+									<InputGroupAddon align="inline-start">
+										<User />
+									</InputGroupAddon>
+									<InputGroupInput
+										id="firstName"
+										data-testid="name-input"
+										placeholder="John"
+										value={field.state.value}
+										onChange={e => field.handleChange(e.target.value)}
+										onBlur={field.handleBlur}
+										disabled={isLoading}
+										aria-invalid={
+											field.state.meta.errors?.length ? 'true' : undefined
+										}
+									/>
+								</InputGroup>
+								<FieldError
+									errors={field.state.meta.errors?.map(err => ({
+										message: String(err)
+									}))}
 								/>
-								{field.state.meta.errors?.length ? (
-									<p className="text-xs text-destructive">
-										{String(field.state.meta.errors[0])}
-									</p>
-								) : null}
-							</div>
+							</Field>
 						)}
 					</form.Field>
 
 					<form.Field name="lastName">
 						{field => (
-							<div className="space-y-2">
-								<Label htmlFor="lastName">Last name</Label>
-								<Input
-									id="lastName"
-									placeholder="Doe"
-									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
-									onBlur={field.handleBlur}
-									disabled={isLoading}
-									className={cn(
-										'h-11',
-										field.state.meta.errors?.length
-											? 'border-destructive focus:ring-destructive'
-											: ''
-									)}
+							<Field>
+								<FieldLabel htmlFor="lastName">Last name</FieldLabel>
+								<InputGroup>
+									<InputGroupAddon align="inline-start">
+										<User />
+									</InputGroupAddon>
+									<InputGroupInput
+										id="lastName"
+										placeholder="Doe"
+										value={field.state.value}
+										onChange={e => field.handleChange(e.target.value)}
+										onBlur={field.handleBlur}
+										disabled={isLoading}
+										aria-invalid={
+											field.state.meta.errors?.length ? 'true' : undefined
+										}
+									/>
+								</InputGroup>
+								<FieldError
+									errors={field.state.meta.errors?.map(err => ({
+										message: String(err)
+									}))}
 								/>
-								{field.state.meta.errors?.length ? (
-									<p className="text-xs text-destructive">
-										{String(field.state.meta.errors[0])}
-									</p>
-								) : null}
-							</div>
+							</Field>
 						)}
 					</form.Field>
 				</div>
@@ -162,138 +175,136 @@ export function SignupForm({
 				{/* Company Field */}
 				<form.Field name="company">
 					{field => (
-						<div className="space-y-2">
-							<Label htmlFor="company">Company</Label>
-							<Input
-								id="company"
-								placeholder="Your company name"
-								value={field.state.value}
-								onChange={e => field.handleChange(e.target.value)}
-								onBlur={field.handleBlur}
-								disabled={isLoading}
-								className={cn(
-									'h-11',
-									field.state.meta.errors?.length
-										? 'border-destructive focus:ring-destructive'
-										: ''
-								)}
+						<Field>
+							<FieldLabel htmlFor="company">Company</FieldLabel>
+							<InputGroup>
+								<InputGroupAddon align="inline-start">
+									<Briefcase />
+								</InputGroupAddon>
+								<InputGroupInput
+									id="company"
+									placeholder="Your company name"
+									value={field.state.value}
+									onChange={e => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+									disabled={isLoading}
+									aria-invalid={
+										field.state.meta.errors?.length ? 'true' : undefined
+									}
+								/>
+							</InputGroup>
+							<FieldError
+								errors={field.state.meta.errors?.map(err => ({
+									message: String(err)
+								}))}
 							/>
-							{field.state.meta.errors?.length > 0 && (
-								<p className="text-xs text-destructive">
-									{field.state.meta.errors[0]}
-								</p>
-							)}
-						</div>
+						</Field>
 					)}
 				</form.Field>
 
 				{/* Email Field */}
 				<form.Field name="email">
 					{field => (
-						<div className="space-y-2">
-							<Label htmlFor="email">Email address</Label>
-								<Input
+						<Field>
+							<FieldLabel htmlFor="email">Email address</FieldLabel>
+							<InputGroup>
+								<InputGroupAddon align="inline-start">
+									<Mail />
+								</InputGroupAddon>
+								<InputGroupInput
 									id="email"
 									data-testid="email-input"
-								type="email"
-								placeholder="john@example.com"
-								value={field.state.value}
-								onChange={e => field.handleChange(e.target.value)}
-								onBlur={field.handleBlur}
-								disabled={isLoading}
-								className={cn(
-									'h-11',
-									field.state.meta.errors?.length
-										? 'border-destructive focus:ring-destructive'
-										: ''
-								)}
+									type="email"
+									placeholder="john@example.com"
+									value={field.state.value}
+									onChange={e => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+									disabled={isLoading}
+									aria-invalid={
+										field.state.meta.errors?.length ? 'true' : undefined
+									}
+								/>
+							</InputGroup>
+							<FieldError
+								errors={field.state.meta.errors?.map(err => ({
+									message: String(err)
+								}))}
 							/>
-							{field.state.meta.errors?.length > 0 && (
-								<p className="text-xs text-destructive">
-									{field.state.meta.errors[0]}
-								</p>
-							)}
 							{!field.state.meta.errors?.length && (
-								<p className="text-xs text-muted-foreground">
+								<FieldDescription>
 									We'll use this to send you important updates
-								</p>
+								</FieldDescription>
 							)}
-						</div>
+						</Field>
 					)}
 				</form.Field>
 
 				{/* Password Field */}
 				<form.Field name="password">
 					{field => (
-						<div className="space-y-2">
-								<PasswordStrength
-									label="Password"
-									id="password"
-									data-testid="password-input"
+						<Field>
+							<FieldLabel htmlFor="password">Password</FieldLabel>
+							<PasswordStrength
+								id="password"
+								data-testid="password-input"
 								placeholder="Create a secure password"
 								value={field.state.value}
 								onChange={e => field.handleChange(e.target.value)}
 								onBlur={field.handleBlur}
 								disabled={isLoading}
-								className={cn(
-									'h-11',
-									field.state.meta.errors?.length
-										? 'border-destructive focus:ring-destructive'
-										: ''
-								)}
 								showStrengthIndicator={true}
 								minLength={8}
 							/>
-							{field.state.meta.errors?.length > 0 && (
-								<p className="text-xs text-destructive">
-									{field.state.meta.errors[0]}
-								</p>
-							)}
-						</div>
+							<FieldError
+								errors={field.state.meta.errors?.map(err => ({
+									message: String(err)
+								}))}
+							/>
+						</Field>
 					)}
 				</form.Field>
 
 				{/* Confirm Password Field */}
 				<form.Field name="confirmPassword">
 					{field => (
-						<div className="space-y-2">
-							<Label htmlFor="confirmPassword">Confirm password</Label>
-							<div className="relative">
-									<Input
-										id="confirmPassword"
-										type={showConfirmPassword ? 'text' : 'password'}
-										data-testid="confirm-password-input"
+						<Field>
+							<FieldLabel htmlFor="confirmPassword">
+								Confirm password
+							</FieldLabel>
+							<InputGroup>
+								<InputGroupInput
+									id="confirmPassword"
+									type={showConfirmPassword ? 'text' : 'password'}
+									data-testid="confirm-password-input"
 									placeholder="Re-enter your password"
 									value={field.state.value}
 									onChange={e => field.handleChange(e.target.value)}
 									onBlur={field.handleBlur}
 									disabled={isLoading}
-									className={cn(
-										'h-11 pr-12',
-										field.state.meta.errors?.length
-											? 'border-destructive focus:ring-destructive'
-											: ''
-									)}
+									aria-invalid={
+										field.state.meta.errors?.length ? 'true' : undefined
+									}
 								/>
-								<button
-									type="button"
-									onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-									className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-									tabIndex={-1}
-								>
-									{showConfirmPassword ? (
-										<EyeOffIcon className="h-4 w-4" />
-									) : (
-										<EyeIcon className="h-4 w-4" />
-									)}
-								</button>
-							</div>
-							{field.state.meta.errors?.length > 0 && (
-								<p className="text-xs text-destructive">
-									{field.state.meta.errors[0]}
-								</p>
-							)}
-						</div>
+								<InputGroupAddon align="inline-end">
+									<button
+										type="button"
+										onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+										className="text-muted-foreground hover:text-foreground focus:text-primary transition-colors"
+										tabIndex={-1}
+									>
+										{showConfirmPassword ? <EyeOff /> : <Eye />}
+										<span className="sr-only">
+											{showConfirmPassword ? 'Hide password' : 'Show password'}
+										</span>
+									</button>
+								</InputGroupAddon>
+							</InputGroup>
+							<FieldError
+								errors={field.state.meta.errors?.map(err => ({
+									message: String(err)
+								}))}
+							/>
+						</Field>
 					)}
 				</form.Field>
 
