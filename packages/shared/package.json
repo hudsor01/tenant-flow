@@ -46,8 +46,12 @@
 		"build": "tsc",
 		"dev": "tsc --watch",
 		"typecheck": "tsc --noEmit",
-		"lint": "eslint \"src/**/*.ts\"",
+		"lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/__tests__/**\"",
 		"lint:fix": "pnpm lint --fix",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:ui": "vitest --ui",
+		"test:coverage": "vitest run --coverage",
 		"update-types": "node scripts/update-supabase-types.js",
 		"clean": "rimraf dist .turbo"
 	},
@@ -62,7 +66,9 @@
 		"@types/node": "^24.5.2",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
+		"@vitest/ui": "3.2.4",
 		"rimraf": "6.0.1",
-		"typescript": "^5.9.2"
+		"typescript": "^5.9.2",
+		"vitest": "3.2.4"
 	}
 }

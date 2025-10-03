@@ -10,12 +10,8 @@
 		"paths": {
 			"zod": ["../../node_modules/zod"],
 			"zod/*": ["../../node_modules/zod/*"],
-			"@tanstack/react-query": [
-				"../../node_modules/@tanstack/react-query"
-			],
-			"@tanstack/react-query/*": [
-				"../../node_modules/@tanstack/react-query/*"
-			],
+			"@tanstack/react-query": ["../../node_modules/@tanstack/react-query"],
+			"@tanstack/react-query/*": ["../../node_modules/@tanstack/react-query/*"],
 			"react-hook-form": [
 				"node_modules/react-hook-form",
 				"../../node_modules/react-hook-form"
@@ -38,6 +34,13 @@
 		"tsBuildInfoFile": "./dist/.tsbuildinfo"
 	},
 	"include": ["src/**/*"],
-	"exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "src/types/frontend-only.ts"],
+	"exclude": [
+		"node_modules",
+		"dist",
+		"**/*.test.ts",
+		"**/*.spec.ts",
+		"src/types/frontend-only.ts",
+		"vitest.config.ts"
+	],
 	"references": []
 }

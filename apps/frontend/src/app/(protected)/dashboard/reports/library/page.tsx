@@ -23,7 +23,7 @@ import {
 	EmptyContent,
 	EmptyDescription,
 	EmptyHeader,
-	EmptyMedia,
+	EmptyIcon,
 	EmptyTitle
 } from '@/components/ui/empty'
 import {
@@ -132,9 +132,9 @@ export default function ReportLibraryPage() {
 					) : reports.length === 0 ? (
 						<Empty>
 							<EmptyHeader>
-								<EmptyMedia variant="icon">
+								<EmptyIcon variant="icon">
 									<FileText />
-								</EmptyMedia>
+								</EmptyIcon>
 								<EmptyTitle>No reports yet</EmptyTitle>
 								<EmptyDescription>
 									Generate your first report to see it here
