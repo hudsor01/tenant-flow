@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger
@@ -12,7 +13,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
-import { zodResolver } from '@hookform/resolvers/zod'
 import {
 	CheckCircle,
 	ChevronLeft,
@@ -24,18 +24,15 @@ import {
 	Users
 } from 'lucide-react'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { tenantsApi } from '@/lib/api-client'
 import { useFormStep, useUIStore } from '@/stores/ui-store'
-import type { Database } from '@repo/shared/types/supabase-generated'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import {
-	tenantFormSchema,
-	type TenantFormData
-} from '@repo/shared/validation/tenants'
+import type { Database } from '@repo/shared/types/supabase-generated'
+import { tenantFormSchema } from '@repo/shared/validation/tenants'
+import { useForm } from '@tanstack/react-form'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 type InsertTenant = Database['public']['Tables']['Tenant']['Insert']
 
@@ -101,8 +98,7 @@ export function CreateTenantDialog() {
 		}
 	}
 
-	const form = useForm<TenantFormData>({
-		resolver: zodResolver(tenantFormSchema),
+	const form = useForm({
 		defaultValues: {
 			name: '',
 			email: '',
@@ -111,32 +107,44 @@ export function CreateTenantDialog() {
 			firstName: '',
 			lastName: '',
 			avatarUrl: ''
+		},
+		onSubmit: async ({ value }) => {
+			try {
+				// Transform form data to match Database Insert type
+				const tenantData: Omit<InsertTenant, 'userId'> = {
+					name: value.name,
+					email: value.email,
+					phone: value.phone || null,
+					emergencyContact: value.emergencyContact || null,
+					firstName: value.firstName || null,
+					lastName: value.lastName || null,
+					avatarUrl: value.avatarUrl || null
+				}
+
+				await createTenant.mutateAsync(tenantData as InsertTenant)
+				toast.success('Tenant created successfully')
+				setIsOpen(false)
+				form.reset()
+				resetFormProgress()
+			} catch (error) {
+				toast.error('Failed to create tenant')
+				logger.error(
+					'Failed to create tenant',
+					{ action: 'createTenant' },
+					error
+				)
+			}
+		},
+		validators: {
+			onChange: ({ value }) => {
+				const result = tenantFormSchema.safeParse(value)
+				if (!result.success) {
+					return result.error.format()
+				}
+				return undefined
+			}
 		}
 	})
-
-	const onSubmit = async (value: TenantFormData) => {
-		try {
-			// Transform form data to match Database Insert type
-			const tenantData: Omit<InsertTenant, 'userId'> = {
-				name: value.name,
-				email: value.email,
-				phone: value.phone || null,
-				emergencyContact: value.emergencyContact || null,
-				firstName: value.firstName || null,
-				lastName: value.lastName || null,
-				avatarUrl: value.avatarUrl || null
-			}
-
-			await createTenant.mutateAsync(tenantData as InsertTenant)
-			toast.success('Tenant created successfully')
-			setIsOpen(false)
-			form.reset()
-			resetFormProgress()
-		} catch (error) {
-			toast.error('Failed to create tenant')
-			logger.error('Failed to create tenant', { action: 'createTenant' }, error)
-		}
-	}
 
 	const handleNext = async () => {
 		// Validate current step fields
@@ -150,7 +158,7 @@ export function CreateTenantDialog() {
 	}
 
 	const validateCurrentStep = async (): Promise<boolean> => {
-		const values = form.getValues()
+		const values = form.state.values
 
 		switch (currentStep) {
 			case 1:
@@ -213,6 +221,10 @@ export function CreateTenantDialog() {
 						<Users className="w-5 h-5" />
 						Add New Tenant
 					</DialogTitle>
+					<DialogDescription>
+						Add a new tenant to your portfolio with basic information and
+						contact details.
+					</DialogDescription>
 				</DialogHeader>
 
 				{/* Progress Indicator */}
@@ -238,81 +250,111 @@ export function CreateTenantDialog() {
 					</p>
 				</div>
 
-				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+				<form
+					onSubmit={e => {
+						e.preventDefault()
+						form.handleSubmit()
+					}}
+					className="space-y-6"
+				>
 					{/* Step 1: Basic Information */}
 					{currentStep === 1 && (
 						<div className="space-y-4">
-							<div className="space-y-2">
-								<Label htmlFor="name" className="flex items-center gap-2">
-									<User className="w-4 h-4" />
-									Full Name *
-								</Label>
-								<Input
-									id="name"
-									placeholder="e.g. John Smith"
-									{...form.register('name')}
-								/>
-								{form.formState.errors.name && (
-									<p className="text-sm text-destructive">
-										{form.formState.errors.name.message}
-									</p>
+							<form.Field name="name">
+								{field => (
+									<div className="space-y-2">
+										<Label htmlFor="name" className="flex items-center gap-2">
+											<User className="w-4 h-4" />
+											Full Name *
+										</Label>
+										<Input
+											id="name"
+											placeholder="e.g. John Smith"
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										{field.state.meta.errors?.length ? (
+											<p className="text-sm text-destructive">
+												{String(field.state.meta.errors[0])}
+											</p>
+										) : null}
+									</div>
 								)}
-							</div>
+							</form.Field>
 
-							<div className="space-y-2">
-								<Label htmlFor="email" className="flex items-center gap-2">
-									<Mail className="w-4 h-4" />
-									Email Address *
-								</Label>
-								<Input
-									id="email"
-									type="email"
-									placeholder="john.smith@example.com"
-									{...form.register('email')}
-								/>
-								{form.formState.errors.email && (
-									<p className="text-sm text-destructive">
-										{form.formState.errors.email.message}
-									</p>
+							<form.Field name="email">
+								{field => (
+									<div className="space-y-2">
+										<Label htmlFor="email" className="flex items-center gap-2">
+											<Mail className="w-4 h-4" />
+											Email Address *
+										</Label>
+										<Input
+											id="email"
+											type="email"
+											placeholder="john.smith@example.com"
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										{field.state.meta.errors?.length ? (
+											<p className="text-sm text-destructive">
+												{String(field.state.meta.errors[0])}
+											</p>
+										) : null}
+									</div>
 								)}
-							</div>
+							</form.Field>
 
-							<div className="space-y-2">
-								<Label htmlFor="phone" className="flex items-center gap-2">
-									<Phone className="w-4 h-4" />
-									Phone Number
-								</Label>
-								<Input
-									id="phone"
-									type="tel"
-									placeholder="(555) 123-4567"
-									{...form.register('phone')}
-								/>
-								<p className="text-sm text-muted-foreground">
-									Optional - for contact and notifications
-								</p>
-							</div>
+							<form.Field name="phone">
+								{field => (
+									<div className="space-y-2">
+										<Label htmlFor="phone" className="flex items-center gap-2">
+											<Phone className="w-4 h-4" />
+											Phone Number
+										</Label>
+										<Input
+											id="phone"
+											type="tel"
+											placeholder="(555) 123-4567"
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										<p className="text-sm text-muted-foreground">
+											Optional - for contact and notifications
+										</p>
+									</div>
+								)}
+							</form.Field>
 						</div>
 					)}
 
 					{/* Step 2: Emergency Contact */}
 					{currentStep === 2 && (
 						<div className="space-y-4">
-							<div className="space-y-2">
-								<Label htmlFor="emergencyContact">
-									Emergency Contact Information
-								</Label>
-								<Textarea
-									id="emergencyContact"
-									placeholder="Emergency contact name, relationship, and phone number..."
-									rows={4}
-									{...form.register('emergencyContact')}
-								/>
-								<p className="text-sm text-muted-foreground">
-									Optional - Include name, relationship, and contact information
-									for emergencies
-								</p>
-							</div>
+							<form.Field name="emergencyContact">
+								{field => (
+									<div className="space-y-2">
+										<Label htmlFor="emergencyContact">
+											Emergency Contact Information
+										</Label>
+										<Textarea
+											id="emergencyContact"
+											placeholder="Emergency contact name, relationship, and phone number..."
+											rows={4}
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										<p className="text-sm text-muted-foreground">
+											Optional - Include name, relationship, and contact
+											information for emergencies
+										</p>
+									</div>
+								)}
+							</form.Field>
 						</div>
 					)}
 
@@ -320,47 +362,65 @@ export function CreateTenantDialog() {
 					{currentStep === 3 && (
 						<div className="space-y-4">
 							<div className="grid grid-cols-2 gap-4">
-								<div className="space-y-2">
-									<Label htmlFor="firstName">First Name</Label>
-									<Input
-										id="firstName"
-										placeholder="John"
-										{...form.register('firstName')}
-									/>
-								</div>
+								<form.Field name="firstName">
+									{field => (
+										<div className="space-y-2">
+											<Label htmlFor="firstName">First Name</Label>
+											<Input
+												id="firstName"
+												placeholder="John"
+												value={field.state.value}
+												onChange={e => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+											/>
+										</div>
+									)}
+								</form.Field>
 
-								<div className="space-y-2">
-									<Label htmlFor="lastName">Last Name</Label>
-									<Input
-										id="lastName"
-										placeholder="Smith"
-										{...form.register('lastName')}
-									/>
-								</div>
+								<form.Field name="lastName">
+									{field => (
+										<div className="space-y-2">
+											<Label htmlFor="lastName">Last Name</Label>
+											<Input
+												id="lastName"
+												placeholder="Smith"
+												value={field.state.value}
+												onChange={e => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+											/>
+										</div>
+									)}
+								</form.Field>
 							</div>
 
-							<div className="space-y-2">
-								<Label htmlFor="avatarUrl">Profile Picture URL</Label>
-								<Input
-									id="avatarUrl"
-									type="url"
-									placeholder="https://example.com/profile.jpg"
-									{...form.register('avatarUrl')}
-								/>
-								<p className="text-sm text-muted-foreground">
-									Optional - URL for profile picture
-								</p>
-							</div>
+							<form.Field name="avatarUrl">
+								{field => (
+									<div className="space-y-2">
+										<Label htmlFor="avatarUrl">Profile Picture URL</Label>
+										<Input
+											id="avatarUrl"
+											type="url"
+											placeholder="https://example.com/profile.jpg"
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										<p className="text-sm text-muted-foreground">
+											Optional - URL for profile picture
+										</p>
+									</div>
+								)}
+							</form.Field>
 
 							<div className="rounded-lg border p-4 bg-muted/50">
 								<h4 className="font-medium mb-2">Summary</h4>
 								<div className="space-y-1 text-sm text-muted-foreground">
-									<div>Name: {form.watch('name') || 'Not specified'}</div>
-									<div>Email: {form.watch('email') || 'Not specified'}</div>
-									{form.watch('phone') && (
-										<div>Phone: {form.watch('phone')}</div>
+									<div>Name: {form.state.values.name || 'Not specified'}</div>
+									<div>Email: {form.state.values.email || 'Not specified'}</div>
+									{form.state.values.phone && (
+										<div>Phone: {form.state.values.phone}</div>
 									)}
-									{form.watch('emergencyContact') && (
+									{form.state.values.emergencyContact && (
 										<div>Emergency Contact: Provided</div>
 									)}
 								</div>
