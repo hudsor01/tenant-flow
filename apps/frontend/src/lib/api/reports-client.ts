@@ -343,9 +343,19 @@ export async function getAuthHeaders(): Promise<HeadersInit> {
 
 	try {
 		if (typeof window !== 'undefined') {
-			const win = window as unknown as { __TF_AUTH_TOKEN__?: string }
-			const token = win.__TF_AUTH_TOKEN__ || localStorage.getItem('tf_token')
-			if (token) headers['Authorization'] = `Bearer ${token}`
+			// Use Supabase session (consistent with rest of app)
+			const { createBrowserClient } = await import('@supabase/ssr')
+			const supabase = createBrowserClient(
+				process.env.NEXT_PUBLIC_SUPABASE_URL!,
+				process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+			)
+			const {
+				data: { session }
+			} = await supabase.auth.getSession()
+
+			if (session?.access_token) {
+				headers['Authorization'] = `Bearer ${session.access_token}`
+			}
 		} else if (process.env.API_TOKEN) {
 			headers['Authorization'] = `Bearer ${process.env.API_TOKEN}`
 		}
