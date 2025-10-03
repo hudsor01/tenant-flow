@@ -15,7 +15,7 @@ import {
 	EmptyContent,
 	EmptyDescription,
 	EmptyHeader,
-	EmptyMedia,
+	EmptyIcon,
 	EmptyTitle
 } from '@/components/ui/empty'
 import {
@@ -272,9 +272,9 @@ export default async function MaintenancePage() {
 							<CardContent>
 								<Empty>
 									<EmptyHeader>
-										<EmptyMedia variant="icon">
+										<EmptyIcon variant="icon">
 											<Wrench />
-										</EmptyMedia>
+										</EmptyIcon>
 										<EmptyTitle>No maintenance requests found</EmptyTitle>
 										<EmptyDescription>
 											Get started by creating your first maintenance request

@@ -18,7 +18,7 @@ import {
 	EmptyContent,
 	EmptyDescription,
 	EmptyHeader,
-	EmptyMedia,
+	EmptyIcon,
 	EmptyTitle
 } from '@/components/ui/empty'
 import {
@@ -254,9 +254,9 @@ export default async function TenantsPage() {
 							<CardContent>
 								<Empty>
 									<EmptyHeader>
-										<EmptyMedia variant="icon">
+										<EmptyIcon variant="icon">
 											<Users />
-										</EmptyMedia>
+										</EmptyIcon>
 										<EmptyTitle>No tenants found</EmptyTitle>
 										<EmptyDescription>
 											Get started by adding your first tenant
