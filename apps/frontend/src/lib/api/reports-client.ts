@@ -1,3 +1,5 @@
+import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
+
 export type ReportType =
 	| 'executive-monthly'
 	| 'financial-performance'
@@ -103,7 +105,13 @@ export const reportsClient = {
 		})
 
 		if (!response.ok) {
-			throw new Error(`Report generation failed: ${response.statusText}`)
+			const { ApiErrorCode, createApiErrorFromResponse } = await import(
+				'@repo/shared/utils/api-error'
+			)
+			throw createApiErrorFromResponse(
+				response,
+				ApiErrorCode.REPORT_GENERATION_FAILED
+			)
 		}
 
 		// Create blob from binary response
@@ -141,7 +149,13 @@ export const reportsClient = {
 		})
 
 		if (!response.ok) {
-			throw new Error(`Failed to fetch reports: ${response.statusText}`)
+			const { ApiErrorCode, createApiErrorFromResponse } = await import(
+				'@repo/shared/utils/api-error'
+			)
+			throw createApiErrorFromResponse(
+				response,
+				ApiErrorCode.REPORT_LIST_FAILED
+			)
 		}
 
 		return response.json()
@@ -160,7 +174,13 @@ export const reportsClient = {
 		})
 
 		if (!response.ok) {
-			throw new Error(`Failed to download report: ${response.statusText}`)
+			const { ApiErrorCode, createApiErrorFromResponse } = await import(
+				'@repo/shared/utils/api-error'
+			)
+			throw createApiErrorFromResponse(
+				response,
+				ApiErrorCode.REPORT_DOWNLOAD_FAILED
+			)
 		}
 
 		// Extract filename from Content-Disposition header
@@ -193,7 +213,13 @@ export const reportsClient = {
 		})
 
 		if (!response.ok) {
-			throw new Error(`Failed to delete report: ${response.statusText}`)
+			const { ApiErrorCode, createApiErrorFromResponse } = await import(
+				'@repo/shared/utils/api-error'
+			)
+			throw createApiErrorFromResponse(
+				response,
+				ApiErrorCode.REPORT_DELETE_FAILED
+			)
 		}
 	},
 
@@ -260,7 +286,13 @@ export const reportsClient = {
 		})
 
 		if (!response.ok) {
-			throw new Error(`Failed to create schedule: ${response.statusText}`)
+			const { ApiErrorCode, createApiErrorFromResponse } = await import(
+				'@repo/shared/utils/api-error'
+			)
+			throw createApiErrorFromResponse(
+				response,
+				ApiErrorCode.REPORT_SCHEDULE_FAILED
+			)
 		}
 
 		const result = await response.json()
@@ -280,7 +312,13 @@ export const reportsClient = {
 		})
 
 		if (!response.ok) {
-			throw new Error(`Failed to fetch schedules: ${response.statusText}`)
+			const { ApiErrorCode, createApiErrorFromResponse } = await import(
+				'@repo/shared/utils/api-error'
+			)
+			throw createApiErrorFromResponse(
+				response,
+				ApiErrorCode.REPORT_SCHEDULE_FAILED
+			)
 		}
 
 		const result = await response.json()
@@ -300,43 +338,18 @@ export const reportsClient = {
 		})
 
 		if (!response.ok) {
-			throw new Error(`Failed to delete schedule: ${response.statusText}`)
+			const { ApiErrorCode, createApiErrorFromResponse } = await import(
+				'@repo/shared/utils/api-error'
+			)
+			throw createApiErrorFromResponse(
+				response,
+				ApiErrorCode.REPORT_SCHEDULE_FAILED
+			)
 		}
 	}
 }
-export function getApiBaseUrl() {
-	// Prefer explicit env var when available
-	const envBase = process.env.NEXT_PUBLIC_API_BASE_URL
 
-	if (envBase) {
-		const cleaned = envBase.replace(/\/$/, '')
-		try {
-			const parsed = new URL(cleaned)
-			// If the URL has a pathname with /api, treat it as already pointing to the API
-			if (
-				parsed.pathname &&
-				parsed.pathname !== '/' &&
-				parsed.pathname.includes('/api')
-			) {
-				return cleaned
-			}
-			return `${cleaned}/api/v1`
-		} catch {
-			// Not an absolute URL (maybe a relative path like '/api'), check directly
-			return cleaned.startsWith('/api') ? cleaned : `${cleaned}/api/v1`
-		}
-	}
-
-	// On the client, prefer a relative API route
-	if (typeof window !== 'undefined') {
-		return '/api/v1'
-	}
-
-	// Server-side fallback for local dev
-	return 'http://localhost:3001/api/v1'
-}
-
-export async function getAuthHeaders(): Promise<HeadersInit> {
+export async function getAuthHeaders(): Promise<Record<string, string>> {
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json'
 	}
@@ -350,8 +363,15 @@ export async function getAuthHeaders(): Promise<HeadersInit> {
 				process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 			)
 			const {
-				data: { session }
+				data: { session },
+				error
 			} = await supabase.auth.getSession()
+
+			if (error) {
+				// Log auth errors in development mode
+				const { logErrorInDev } = await import('@repo/shared/utils/api-error')
+				logErrorInDev(error, 'getAuthHeaders')
+			}
 
 			if (session?.access_token) {
 				headers['Authorization'] = `Bearer ${session.access_token}`
@@ -359,8 +379,10 @@ export async function getAuthHeaders(): Promise<HeadersInit> {
 		} else if (process.env.API_TOKEN) {
 			headers['Authorization'] = `Bearer ${process.env.API_TOKEN}`
 		}
-	} catch {
-		// ignore
+	} catch (err) {
+		// Log errors in development mode instead of silently ignoring
+		const { logErrorInDev } = await import('@repo/shared/utils/api-error')
+		logErrorInDev(err, 'getAuthHeaders')
 	}
 
 	return headers
