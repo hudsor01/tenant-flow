@@ -56,7 +56,7 @@ describe('Production Stripe Webhook Processing', () => {
 
 		// Create real Stripe instance for webhook signature generation
 		stripe = new Stripe(stripeKey, {
-			apiVersion: '2025-09-30.clover' as Stripe.LatestApiVersion
+			apiVersion: '2025-08-27.basil' as Stripe.LatestApiVersion
 		})
 
 		// Track processed events for testing
