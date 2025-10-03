@@ -1,5 +1,6 @@
 'use client'
 
+import { PasswordStrength } from '@/components/auth/password-strength'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -9,14 +10,17 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '@/components/ui/input-group'
 import {
 	ANIMATION_DURATIONS,
 	buttonClasses,
 	cardClasses,
-	cn,
-	inputClasses
+	cn
 } from '@/lib/utils'
 import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
 import { supabaseClient } from '@repo/shared/lib/supabase-client'
@@ -39,62 +43,8 @@ export function UpdatePasswordForm({
 }: React.ComponentPropsWithoutRef<'div'>) {
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
-	const [showPassword, setShowPassword] = useState(false)
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-	const [passwordStrength, setPasswordStrength] = useState(0)
 	const router = useRouter()
-
-	// Password strength calculation
-	const calculatePasswordStrength = (pwd: string) => {
-		let strength = 0
-		if (pwd.length >= 8) strength++
-		if (/[A-Z]/.test(pwd)) strength++
-		if (/[a-z]/.test(pwd)) strength++
-		if (/\d/.test(pwd)) strength++
-		if (/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) strength++
-		return strength
-	}
-
-	const handlePasswordChange = (value: string) => {
-		setPassword(value)
-		setPasswordStrength(calculatePasswordStrength(value))
-	}
-
-	const getStrengthColor = (strength: number) => {
-		switch (strength) {
-			case 0:
-			case 1:
-				return 'bg-destructive'
-			case 2:
-				return 'bg-muted'
-			case 3:
-				return 'bg-accent'
-			case 4:
-				return 'bg-primary'
-			case 5:
-				return 'bg-primary'
-			default:
-				return 'bg-muted'
-		}
-	}
-
-	const getStrengthText = (strength: number) => {
-		switch (strength) {
-			case 0:
-			case 1:
-				return 'Weak'
-			case 2:
-				return 'Fair'
-			case 3:
-				return 'Good'
-			case 4:
-				return 'Strong'
-			case 5:
-				return 'Very Strong'
-			default:
-				return 'Enter password'
-		}
-	}
 
 	// TanStack Query mutation with enhanced feedback
 	const updatePasswordMutation = useMutation({
@@ -102,8 +52,8 @@ export function UpdatePasswordForm({
 			if (password !== confirmPassword) {
 				throw new Error('Passwords do not match')
 			}
-			if (passwordStrength < 3) {
-				throw new Error('Password is too weak. Please use a stronger password.')
+			if (password.length < 8) {
+				throw new Error('Password must be at least 8 characters')
 			}
 			const { error } = await supabaseClient.auth.updateUser({ password })
 			if (error) throw error
@@ -175,119 +125,58 @@ export function UpdatePasswordForm({
 				>
 					<form onSubmit={handleUpdatePassword} className="space-y-6">
 						<div className="space-y-4">
-							<div className="space-y-2">
-								<Label htmlFor="password" className="text-sm font-semibold">
-									New password
-								</Label>
-								<div className="relative">
-									<Input
-										id="password"
-										type={showPassword ? 'text' : 'password'}
-										placeholder="Enter your new password"
-										required
-										value={password}
-										onChange={e => handlePasswordChange(e.target.value)}
-										disabled={updatePasswordMutation.isPending}
-										className={cn(
-											inputClasses(),
-											'pr-10 transition-colors',
-											'transition-colors'
-										)}
-										style={{}}
-									/>
-									<Button
-										type="button"
-										variant="ghost"
-										size="sm"
-										className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-										onClick={() => setShowPassword(!showPassword)}
-										disabled={updatePasswordMutation.isPending}
-									>
-										{showPassword ? (
-											<EyeOff className="w-4 h-4 text-muted-foreground" />
-										) : (
-											<Eye className="w-4 h-4 text-muted-foreground" />
-										)}
-									</Button>
-								</div>
-								{password && (
-									<div className="space-y-2">
-										<div className="flex items-center justify-between text-xs">
-											<span className="text-muted-foreground">
-												Password strength:
-											</span>
-											<span
-												className={cn(
-													'font-semibold',
-													passwordStrength < 3
-														? 'text-destructive'
-														: passwordStrength < 4
-															? 'text-muted-foreground'
-															: 'text-primary',
-													'transition-colors'
-												)}
-											>
-												{getStrengthText(passwordStrength)}
-											</span>
-										</div>
-										<div className="h-1 bg-muted rounded-full overflow-hidden">
-											<div
-												className={cn(
-													'h-full transition-fast',
-													getStrengthColor(passwordStrength),
-													'transition-fast'
-												)}
-												style={{
-													width: `${(passwordStrength / 5) * 100}%`,
-													transition: `all ${ANIMATION_DURATIONS.default} ease-out`
-												}}
-											/>
-										</div>
-									</div>
-								)}
-							</div>
+							{/* New Password Field with PasswordStrength */}
+							<Field>
+								<FieldLabel htmlFor="password">New password</FieldLabel>
+								<PasswordStrength
+									id="password"
+									placeholder="Enter your new password"
+									value={password}
+									onChange={e => setPassword(e.target.value)}
+									disabled={updatePasswordMutation.isPending}
+									showStrengthIndicator={true}
+									minLength={8}
+								/>
+								<FieldError />
+							</Field>
 
-							<div className="space-y-2">
-								<Label
-									htmlFor="confirmPassword"
-									className="text-sm font-semibold"
-								>
+							{/* Confirm Password Field */}
+							<Field>
+								<FieldLabel htmlFor="confirmPassword">
 									Confirm password
-								</Label>
-								<div className="relative">
-									<Input
+								</FieldLabel>
+								<InputGroup>
+									<InputGroupInput
 										id="confirmPassword"
 										type={showConfirmPassword ? 'text' : 'password'}
 										placeholder="Confirm your new password"
-										required
 										value={confirmPassword}
 										onChange={e => setConfirmPassword(e.target.value)}
 										disabled={updatePasswordMutation.isPending}
-										className={cn(
-											inputClasses(),
-											'pr-10 transition-colors',
-											confirmPassword &&
-												password !== confirmPassword &&
-												'border-destructive focus:border-destructive',
-											'transition-colors'
-										)}
-										style={{}}
+										aria-invalid={
+											confirmPassword && password !== confirmPassword
+												? 'true'
+												: undefined
+										}
 									/>
-									<Button
-										type="button"
-										variant="ghost"
-										size="sm"
-										className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-										onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-										disabled={updatePasswordMutation.isPending}
-									>
-										{showConfirmPassword ? (
-											<EyeOff className="w-4 h-4 text-muted-foreground" />
-										) : (
-											<Eye className="w-4 h-4 text-muted-foreground" />
-										)}
-									</Button>
-								</div>
+									<InputGroupAddon align="inline-end">
+										<button
+											type="button"
+											onClick={() =>
+												setShowConfirmPassword(!showConfirmPassword)
+											}
+											className="text-muted-foreground hover:text-foreground focus:text-primary transition-colors"
+											tabIndex={-1}
+										>
+											{showConfirmPassword ? <EyeOff /> : <Eye />}
+											<span className="sr-only">
+												{showConfirmPassword
+													? 'Hide password'
+													: 'Show password'}
+											</span>
+										</button>
+									</InputGroupAddon>
+								</InputGroup>
 								{confirmPassword && password !== confirmPassword && (
 									<p className="text-xs text-destructive flex items-center gap-1">
 										<AlertTriangle className="w-3 h-3" />
@@ -300,7 +189,7 @@ export function UpdatePasswordForm({
 										Passwords match
 									</p>
 								)}
-							</div>
+							</Field>
 						</div>
 
 						{updatePasswordMutation.isError && (
@@ -326,7 +215,7 @@ export function UpdatePasswordForm({
 								!password ||
 								!confirmPassword ||
 								password !== confirmPassword ||
-								passwordStrength < 3
+								password.length < 8
 							}
 							style={{}}
 						>
