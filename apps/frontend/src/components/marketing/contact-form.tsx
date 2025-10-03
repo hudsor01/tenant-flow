@@ -1,8 +1,13 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '@/components/ui/input-group'
 import {
 	Select,
 	SelectContent,
@@ -12,8 +17,8 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useFormWithProgress } from '@/hooks/use-form-progress'
-import type { ContactFormRequest } from '@repo/shared/types/domain'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import type { ContactFormRequest } from '@repo/shared/types/domain'
 import { Check, Mail, MapPin, Phone } from 'lucide-react'
 import { useState } from 'react'
 
@@ -273,93 +278,95 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 
 					<form onSubmit={handleSubmit} className="space-y-6">
 						<div className="grid md:grid-cols-2 gap-4">
-							<div>
-								<Label htmlFor="name" className="text-foreground">
-									Full Name *
-								</Label>
-								<Input
-									id="name"
-									type="text"
-									value={formData.name}
-									onChange={e => handleInputChange('name', e.target.value)}
-									placeholder="John Smith"
-									required
-									className={`mt-2 bg-background border-border ${errors.name ? 'border-destructive' : ''}`}
-								/>
-								{errors.name && (
-									<p className="mt-1 text-sm text-destructive">
-										{errors.name}
-									</p>
-								)}
-							</div>
+							<Field>
+								<FieldLabel htmlFor="name">Full Name *</FieldLabel>
+								<InputGroup>
+									<InputGroupAddon align="inline-start">
+										<Mail className="w-4 h-4" />
+									</InputGroupAddon>
+									<InputGroupInput
+										id="name"
+										type="text"
+										value={formData.name}
+										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+											handleInputChange('name', e.target.value)
+										}
+										placeholder="John Smith"
+										required
+										className={errors.name ? 'border-destructive' : ''}
+									/>
+								</InputGroup>
+								{errors.name && <FieldError>{errors.name}</FieldError>}
+							</Field>
 
-							<div>
-								<Label htmlFor="email" className="text-foreground">
-									Email Address *
-								</Label>
-								<Input
-									id="email"
-									type="email"
-									value={formData.email}
-									onChange={e => handleInputChange('email', e.target.value)}
-									placeholder="john@propertyco.com"
-									required
-									className={`mt-2 bg-background border-border ${errors.email ? 'border-destructive' : ''}`}
-								/>
-								{errors.email && (
-									<p className="mt-1 text-sm text-destructive">
-										{errors.email}
-									</p>
-								)}
-							</div>
+							<Field>
+								<FieldLabel htmlFor="email">Email Address *</FieldLabel>
+								<InputGroup>
+									<InputGroupAddon align="inline-start">
+										<Mail className="w-4 h-4" />
+									</InputGroupAddon>
+									<InputGroupInput
+										id="email"
+										type="email"
+										value={formData.email}
+										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+											handleInputChange('email', e.target.value)
+										}
+										placeholder="john@propertyco.com"
+										required
+										className={errors.email ? 'border-destructive' : ''}
+									/>
+								</InputGroup>
+								{errors.email && <FieldError>{errors.email}</FieldError>}
+							</Field>
 						</div>
 
 						<div className="grid md:grid-cols-2 gap-4">
-							<div>
-								<Label htmlFor="company" className="text-foreground">
-									Company Name
-								</Label>
+							<Field>
+								<FieldLabel htmlFor="company">Company Name</FieldLabel>
 								<Input
 									id="company"
 									type="text"
 									value={formData.company || ''}
-									onChange={e => handleInputChange('company', e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										handleInputChange('company', e.target.value)
+									}
 									placeholder="Property Management Co"
-									className="mt-2 bg-background border-border"
 								/>
-							</div>
+							</Field>
 
-							<div>
-								<Label htmlFor="phone" className="text-foreground">
-									Phone Number
-								</Label>
-								<Input
-									id="phone"
-									type="tel"
-									value={formData.phone || ''}
-									onChange={e => handleInputChange('phone', e.target.value)}
-									placeholder="+1 (555) 123-4567"
-									className={`mt-2 bg-background border-border ${errors.phone ? 'border-destructive' : ''}`}
-								/>
-								{errors.phone && (
-									<p className="mt-1 text-sm text-destructive">
-										{errors.phone}
-									</p>
-								)}
-							</div>
+							<Field>
+								<FieldLabel htmlFor="phone">Phone Number</FieldLabel>
+								<InputGroup>
+									<InputGroupAddon align="inline-start">
+										<Phone className="w-4 h-4" />
+									</InputGroupAddon>
+									<InputGroupInput
+										id="phone"
+										type="tel"
+										value={formData.phone || ''}
+										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+											handleInputChange('phone', e.target.value)
+										}
+										placeholder="+1 (555) 123-4567"
+										className={errors.phone ? 'border-destructive' : ''}
+									/>
+								</InputGroup>
+								{errors.phone && <FieldError>{errors.phone}</FieldError>}
+							</Field>
 						</div>
 
-						<div>
-							<Label htmlFor="subject" className="text-foreground">
-								I'm interested in... *
-							</Label>
+						<Field>
+							<FieldLabel htmlFor="subject">I'm interested in... *</FieldLabel>
 							<Select
 								value={formData.subject}
-								onValueChange={value => handleInputChange('subject', value)}
+								onValueChange={(value: string) =>
+									handleInputChange('subject', value)
+								}
 								required
 							>
 								<SelectTrigger
-									className={`mt-2 bg-background border-border ${errors.subject ? 'border-destructive' : ''}`}
+									className={errors.subject ? 'border-destructive' : ''}
 								>
 									<SelectValue placeholder="What brings you to TenantFlow?" />
 								</SelectTrigger>
@@ -381,22 +388,18 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									</SelectItem>
 								</SelectContent>
 							</Select>
-							{errors.subject && (
-								<p className="mt-1 text-sm text-destructive">
-									{errors.subject}
-								</p>
-							)}
-						</div>
+							{errors.subject && <FieldError>{errors.subject}</FieldError>}
+						</Field>
 
-						<div>
-							<Label htmlFor="type" className="text-foreground">
-								How did you hear about us?
-							</Label>
+						<Field>
+							<FieldLabel htmlFor="type">How did you hear about us?</FieldLabel>
 							<Select
 								value={formData.type}
-								onValueChange={value => handleInputChange('type', value)}
+								onValueChange={(value: string) =>
+									handleInputChange('type', value)
+								}
 							>
-								<SelectTrigger className="mt-2 bg-background border-border">
+								<SelectTrigger>
 									<SelectValue placeholder="Select an option" />
 								</SelectTrigger>
 								<SelectContent>
@@ -408,27 +411,23 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									<SelectItem value="other">Other</SelectItem>
 								</SelectContent>
 							</Select>
-						</div>
+						</Field>
 
-						<div>
-							<Label htmlFor="message" className="text-foreground">
-								How can we help? *
-							</Label>
+						<Field>
+							<FieldLabel htmlFor="message">How can we help? *</FieldLabel>
 							<Textarea
 								id="message"
 								value={formData.message}
-								onChange={e => handleInputChange('message', e.target.value)}
+								onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+									handleInputChange('message', e.target.value)
+								}
 								placeholder="Tell us about your property portfolio, current challenges, or any specific questions you have about TenantFlow..."
 								required
 								rows={5}
-								className={`mt-2 resize-none bg-background border-border ${errors.message ? 'border-destructive' : ''}`}
+								className={`resize-none ${errors.message ? 'border-destructive' : ''}`}
 							/>
-							{errors.message && (
-								<p className="mt-1 text-sm text-destructive">
-									{errors.message}
-								</p>
-							)}
-						</div>
+							{errors.message && <FieldError>{errors.message}</FieldError>}
+						</Field>
 
 						<Button
 							type="submit"

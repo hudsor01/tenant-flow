@@ -21,8 +21,8 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from '@/components/ui/dialog'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import {
 	Select,
@@ -264,31 +264,37 @@ export function CreatePropertyDialog() {
 						<div className="space-y-4">
 							<form.Field name="name">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="name">Property Name *</Label>
+									<Field>
+										<FieldLabel htmlFor="name">Property Name *</FieldLabel>
 										<Input
 											id="name"
 											placeholder="e.g. Sunset Apartments"
 											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
 											onBlur={field.handleBlur}
 										/>
-										{field.state.meta.errors?.length ? (
-											<p className="text-sm text-destructive">
+										{field.state.meta.errors?.length && (
+											<FieldError>
 												{String(field.state.meta.errors[0])}
-											</p>
-										) : null}
-									</div>
+											</FieldError>
+										)}
+									</Field>
 								)}
 							</form.Field>
 
 							<form.Field name="propertyType">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="propertyType">Property Type *</Label>
+									<Field>
+										<FieldLabel htmlFor="propertyType">
+											Property Type *
+										</FieldLabel>
 										<Select
 											value={field.state.value}
-											onValueChange={value => field.handleChange(value)}
+											onValueChange={(value: string) =>
+												field.handleChange(value)
+											}
 										>
 											<SelectTrigger>
 												<SelectValue placeholder="Select property type" />
@@ -305,108 +311,116 @@ export function CreatePropertyDialog() {
 												<SelectItem value="OTHER">Other</SelectItem>
 											</SelectContent>
 										</Select>
-									</div>
+									</Field>
 								)}
 							</form.Field>
 
 							<form.Field name="address">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="address">Address *</Label>
+									<Field>
+										<FieldLabel htmlFor="address">Address *</FieldLabel>
 										<Input
 											id="address"
 											placeholder="123 Main St"
 											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
 											onBlur={field.handleBlur}
 										/>
-										{field.state.meta.errors?.length ? (
-											<p className="text-sm text-destructive">
+										{field.state.meta.errors?.length && (
+											<FieldError>
 												{String(field.state.meta.errors[0])}
-											</p>
-										) : null}
-									</div>
+											</FieldError>
+										)}
+									</Field>
 								)}
 							</form.Field>
 
 							<div className="grid grid-cols-3 gap-4">
 								<form.Field name="city">
 									{field => (
-										<div className="space-y-2">
-											<Label htmlFor="city">City *</Label>
+										<Field>
+											<FieldLabel htmlFor="city">City *</FieldLabel>
 											<Input
 												id="city"
 												placeholder="City"
 												value={field.state.value}
-												onChange={e => field.handleChange(e.target.value)}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
 												onBlur={field.handleBlur}
 											/>
-											{field.state.meta.errors?.length ? (
-												<p className="text-sm text-destructive">
+											{field.state.meta.errors?.length && (
+												<FieldError>
 													{String(field.state.meta.errors[0])}
-												</p>
-											) : null}
-										</div>
+												</FieldError>
+											)}
+										</Field>
 									)}
 								</form.Field>
 
 								<form.Field name="state">
 									{field => (
-										<div className="space-y-2">
-											<Label htmlFor="state">State *</Label>
+										<Field>
+											<FieldLabel htmlFor="state">State *</FieldLabel>
 											<Input
 												id="state"
 												placeholder="CA"
 												maxLength={2}
 												value={field.state.value}
-												onChange={e =>
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 													field.handleChange(e.target.value.toUpperCase())
 												}
 												onBlur={field.handleBlur}
 											/>
-											{field.state.meta.errors?.length ? (
-												<p className="text-sm text-destructive">
+											{field.state.meta.errors?.length && (
+												<FieldError>
 													{String(field.state.meta.errors[0])}
-												</p>
-											) : null}
-										</div>
+												</FieldError>
+											)}
+										</Field>
 									)}
 								</form.Field>
 
 								<form.Field name="zipCode">
 									{field => (
-										<div className="space-y-2">
-											<Label htmlFor="zipCode">ZIP Code *</Label>
+										<Field>
+											<FieldLabel htmlFor="zipCode">ZIP Code *</FieldLabel>
 											<Input
 												id="zipCode"
 												placeholder="12345"
 												value={field.state.value}
-												onChange={e => field.handleChange(e.target.value)}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
 												onBlur={field.handleBlur}
 											/>
-											{field.state.meta.errors?.length ? (
-												<p className="text-sm text-destructive">
+											{field.state.meta.errors?.length && (
+												<FieldError>
 													{String(field.state.meta.errors[0])}
-												</p>
-											) : null}
-										</div>
+												</FieldError>
+											)}
+										</Field>
 									)}
 								</form.Field>
 							</div>
 
 							<form.Field name="description">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="description">Description</Label>
+									<Field>
+										<FieldLabel htmlFor="description">Description</FieldLabel>
 										<Textarea
 											id="description"
 											placeholder="Brief description of the property..."
 											rows={3}
 											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
+											onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+												field.handleChange(e.target.value)
+											}
 											onBlur={field.handleBlur}
 										/>
-									</div>
+									</Field>
 								)}
 							</form.Field>
 						</div>
@@ -418,8 +432,8 @@ export function CreatePropertyDialog() {
 							<div className="grid grid-cols-3 gap-4">
 								<form.Field name="bedrooms">
 									{field => (
-										<div className="space-y-2">
-											<Label htmlFor="bedrooms">Bedrooms</Label>
+										<Field>
+											<FieldLabel htmlFor="bedrooms">Bedrooms</FieldLabel>
 											<Input
 												id="bedrooms"
 												type="number"
@@ -427,17 +441,19 @@ export function CreatePropertyDialog() {
 												min="0"
 												max="50"
 												value={field.state.value}
-												onChange={e => field.handleChange(e.target.value)}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
 												onBlur={field.handleBlur}
 											/>
-										</div>
+										</Field>
 									)}
 								</form.Field>
 
 								<form.Field name="bathrooms">
 									{field => (
-										<div className="space-y-2">
-											<Label htmlFor="bathrooms">Bathrooms</Label>
+										<Field>
+											<FieldLabel htmlFor="bathrooms">Bathrooms</FieldLabel>
 											<Input
 												id="bathrooms"
 												type="number"
@@ -446,49 +462,59 @@ export function CreatePropertyDialog() {
 												min="0"
 												max="50"
 												value={field.state.value}
-												onChange={e => field.handleChange(e.target.value)}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
 												onBlur={field.handleBlur}
 											/>
-										</div>
+										</Field>
 									)}
 								</form.Field>
 
 								<form.Field name="squareFootage">
 									{field => (
-										<div className="space-y-2">
-											<Label htmlFor="squareFootage">Square Footage</Label>
+										<Field>
+											<FieldLabel htmlFor="squareFootage">
+												Square Footage
+											</FieldLabel>
 											<Input
 												id="squareFootage"
 												type="number"
 												placeholder="1200"
 												min="0"
 												value={field.state.value}
-												onChange={e => field.handleChange(e.target.value)}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
 												onBlur={field.handleBlur}
 											/>
-										</div>
+										</Field>
 									)}
 								</form.Field>
 							</div>
 
 							<form.Field name="imageUrl">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="imageUrl">Property Image URL</Label>
+									<Field>
+										<FieldLabel htmlFor="imageUrl">
+											Property Image URL
+										</FieldLabel>
 										<Input
 											id="imageUrl"
 											type="url"
 											placeholder="https://example.com/property.jpg"
 											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
 											onBlur={field.handleBlur}
 										/>
-									</div>
+									</Field>
 								)}
 							</form.Field>
 
 							<div className="space-y-4">
-								<Label>Property Features</Label>
+								<FieldLabel>Property Features</FieldLabel>
 								<div className="flex items-center space-x-6">
 									<form.Field name="hasGarage">
 										{field => (
@@ -500,7 +526,7 @@ export function CreatePropertyDialog() {
 														field.handleChange(!!checked)
 													}
 												/>
-												<Label htmlFor="hasGarage">Garage</Label>
+												<FieldLabel htmlFor="hasGarage">Garage</FieldLabel>
 											</div>
 										)}
 									</form.Field>
@@ -515,7 +541,7 @@ export function CreatePropertyDialog() {
 														field.handleChange(!!checked)
 													}
 												/>
-												<Label htmlFor="hasPool">Pool</Label>
+												<FieldLabel htmlFor="hasPool">Pool</FieldLabel>
 											</div>
 										)}
 									</form.Field>
@@ -530,8 +556,8 @@ export function CreatePropertyDialog() {
 							<div className="grid grid-cols-2 gap-4">
 								<form.Field name="rent">
 									{field => (
-										<div className="space-y-2">
-											<Label htmlFor="rent">Monthly Rent ($)</Label>
+										<Field>
+											<FieldLabel htmlFor="rent">Monthly Rent ($)</FieldLabel>
 											<Input
 												id="rent"
 												type="number"
@@ -539,17 +565,21 @@ export function CreatePropertyDialog() {
 												placeholder="2500.00"
 												min="0"
 												value={field.state.value}
-												onChange={e => field.handleChange(e.target.value)}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
 												onBlur={field.handleBlur}
 											/>
-										</div>
+										</Field>
 									)}
 								</form.Field>
 
 								<form.Field name="deposit">
 									{field => (
-										<div className="space-y-2">
-											<Label htmlFor="deposit">Security Deposit ($)</Label>
+										<Field>
+											<FieldLabel htmlFor="deposit">
+												Security Deposit ($)
+											</FieldLabel>
 											<Input
 												id="deposit"
 												type="number"
@@ -557,10 +587,12 @@ export function CreatePropertyDialog() {
 												placeholder="2500.00"
 												min="0"
 												value={field.state.value}
-												onChange={e => field.handleChange(e.target.value)}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
 												onBlur={field.handleBlur}
 											/>
-										</div>
+										</Field>
 									)}
 								</form.Field>
 							</div>
@@ -572,8 +604,10 @@ export function CreatePropertyDialog() {
 						<div className="space-y-4">
 							<form.Field name="numberOfUnits">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="numberOfUnits">Number of Units</Label>
+									<Field>
+										<FieldLabel htmlFor="numberOfUnits">
+											Number of Units
+										</FieldLabel>
 										<Input
 											id="numberOfUnits"
 											type="number"
@@ -581,13 +615,15 @@ export function CreatePropertyDialog() {
 											min="1"
 											max="1000"
 											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
 											onBlur={field.handleBlur}
 										/>
 										<p className="text-sm text-muted-foreground">
 											How many rental units does this property have?
 										</p>
-									</div>
+									</Field>
 								)}
 							</form.Field>
 
@@ -599,9 +635,9 @@ export function CreatePropertyDialog() {
 											checked={field.state.value}
 											onCheckedChange={checked => field.handleChange(!!checked)}
 										/>
-										<Label htmlFor="createUnitsNow">
+										<FieldLabel htmlFor="createUnitsNow">
 											Create individual unit records now
-										</Label>
+										</FieldLabel>
 									</div>
 								)}
 							</form.Field>

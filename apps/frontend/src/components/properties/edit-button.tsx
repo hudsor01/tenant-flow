@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { ButtonGroup } from '@/components/ui/button-group'
 import {
 	Dialog,
 	DialogContent,
@@ -20,8 +21,13 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '@/components/ui/dialog'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '@/components/ui/input-group'
 import {
 	Select,
 	SelectContent,
@@ -126,7 +132,7 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
 	})
 
 	return (
-		<div className="flex items-center gap-1">
+		<ButtonGroup>
 			{/* View Button & Dialog */}
 			<Button variant="outline" size="sm" onClick={() => setViewOpen(true)}>
 				<Eye className="w-4 h-4" />
@@ -192,110 +198,132 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
 					>
 						<form.Field name="name">
 							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="edit-name">Property Name</Label>
-									<Input
-										id="edit-name"
-										placeholder="e.g. Sunset Apartments"
-										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-									/>
-									{field.state.meta.errors?.length ? (
-										<p className="text-sm text-destructive">
+								<Field>
+									<FieldLabel htmlFor="edit-name">Property Name</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<Building className="w-4 h-4" />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="edit-name"
+											placeholder="e.g. Sunset Apartments"
+											value={field.state.value}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+										/>
+									</InputGroup>
+									{field.state.meta.errors?.length && (
+										<FieldError>
 											{String(field.state.meta.errors[0])}
-										</p>
-									) : null}
-								</div>
+										</FieldError>
+									)}
+								</Field>
 							)}
 						</form.Field>
 
 						<form.Field name="address">
 							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="edit-address">Address</Label>
-									<Input
-										id="edit-address"
-										placeholder="123 Main St"
-										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-									/>
-									{field.state.meta.errors?.length ? (
-										<p className="text-sm text-destructive">
+								<Field>
+									<FieldLabel htmlFor="edit-address">Address</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<MapPin className="w-4 h-4" />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="edit-address"
+											placeholder="123 Main St"
+											value={field.state.value}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+										/>
+									</InputGroup>
+									{field.state.meta.errors?.length && (
+										<FieldError>
 											{String(field.state.meta.errors[0])}
-										</p>
-									) : null}
-								</div>
+										</FieldError>
+									)}
+								</Field>
 							)}
 						</form.Field>
 
 						<div className="grid grid-cols-3 gap-2">
 							<form.Field name="city">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="edit-city">City</Label>
+									<Field>
+										<FieldLabel htmlFor="edit-city">City</FieldLabel>
 										<Input
 											id="edit-city"
 											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
 											onBlur={field.handleBlur}
 										/>
-										{field.state.meta.errors?.length ? (
-											<p className="text-sm text-destructive">
+										{field.state.meta.errors?.length && (
+											<FieldError>
 												{String(field.state.meta.errors[0])}
-											</p>
-										) : null}
-									</div>
+											</FieldError>
+										)}
+									</Field>
 								)}
 							</form.Field>
 
 							<form.Field name="state">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="edit-state">State</Label>
+									<Field>
+										<FieldLabel htmlFor="edit-state">State</FieldLabel>
 										<Input
 											id="edit-state"
 											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
 											onBlur={field.handleBlur}
 										/>
-										{field.state.meta.errors?.length ? (
-											<p className="text-sm text-destructive">
+										{field.state.meta.errors?.length && (
+											<FieldError>
 												{String(field.state.meta.errors[0])}
-											</p>
-										) : null}
-									</div>
+											</FieldError>
+										)}
+									</Field>
 								)}
 							</form.Field>
 
 							<form.Field name="zipCode">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="edit-zipCode">Zip Code</Label>
+									<Field>
+										<FieldLabel htmlFor="edit-zipCode">Zip Code</FieldLabel>
 										<Input
 											id="edit-zipCode"
 											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
 											onBlur={field.handleBlur}
 										/>
-										{field.state.meta.errors?.length ? (
-											<p className="text-sm text-destructive">
+										{field.state.meta.errors?.length && (
+											<FieldError>
 												{String(field.state.meta.errors[0])}
-											</p>
-										) : null}
-									</div>
+											</FieldError>
+										)}
+									</Field>
 								)}
 							</form.Field>
 						</div>
 
 						<form.Field name="propertyType">
 							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="edit-propertyType">Property Type</Label>
+								<Field>
+									<FieldLabel htmlFor="edit-propertyType">
+										Property Type
+									</FieldLabel>
 									<Select
 										value={field.state.value}
-										onValueChange={value =>
+										onValueChange={(value: string) =>
 											field.handleChange(
 												value as Database['public']['Enums']['PropertyType']
 											)
@@ -316,21 +344,28 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
 											<SelectItem value="OTHER">Other</SelectItem>
 										</SelectContent>
 									</Select>
-								</div>
+									{field.state.meta.errors?.length && (
+										<FieldError>
+											{String(field.state.meta.errors[0])}
+										</FieldError>
+									)}
+								</Field>
 							)}
 						</form.Field>
 
-						<div className="flex justify-end gap-2 pt-2">
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => setEditOpen(false)}
-							>
-								Cancel
-							</Button>
-							<Button type="submit" disabled={updateMutation.isPending}>
-								{updateMutation.isPending ? 'Updating...' : 'Update Property'}
-							</Button>
+						<div className="flex justify-end pt-2">
+							<ButtonGroup>
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => setEditOpen(false)}
+								>
+									Cancel
+								</Button>
+								<Button type="submit" disabled={updateMutation.isPending}>
+									{updateMutation.isPending ? 'Updating...' : 'Update Property'}
+								</Button>
+							</ButtonGroup>
 						</div>
 					</form>
 				</DialogContent>
@@ -402,22 +437,24 @@ export function PropertyEditViewButtons({ property }: PropertyActionsProps) {
 						</div>
 
 						{/* Action Buttons */}
-						<div className="flex justify-end gap-2 pt-4 border-t">
-							<Button variant="outline" onClick={() => setViewOpen(false)}>
-								Close
-							</Button>
-							<Button
-								onClick={() => {
-									setViewOpen(false)
-									setEditOpen(true)
-								}}
-							>
-								Edit Property
-							</Button>
+						<div className="flex justify-end pt-4 border-t">
+							<ButtonGroup>
+								<Button variant="outline" onClick={() => setViewOpen(false)}>
+									Close
+								</Button>
+								<Button
+									onClick={() => {
+										setViewOpen(false)
+										setEditOpen(true)
+									}}
+								>
+									Edit Property
+								</Button>
+							</ButtonGroup>
 						</div>
 					</div>
 				</DialogContent>
 			</Dialog>
-		</div>
+		</ButtonGroup>
 	)
 }
