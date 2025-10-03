@@ -21,6 +21,7 @@ import {
 	type ReportFormat,
 	type ReportType
 } from '@/lib/api/reports-client'
+import { useAuth } from '@/stores/auth-provider'
 import { format, subMonths } from 'date-fns'
 import {
 	Building2,
@@ -32,6 +33,7 @@ import {
 	Wrench
 } from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 interface ReportCard {
 	id: ReportType
@@ -100,6 +102,7 @@ const reportCards: ReportCard[] = [
 ]
 
 export default function GenerateReportsPage() {
+	const { user } = useAuth()
 	const [selectedPeriod, setSelectedPeriod] = useState('last-month')
 	const [generatingReports, setGeneratingReports] = useState<
 		Record<string, boolean>
@@ -143,7 +146,12 @@ export default function GenerateReportsPage() {
 
 		try {
 			const { startDate, endDate } = getDateRange()
-			const userId = 'current-user-id' // TODO: Get from auth context
+			const userId = user?.id
+
+			if (!userId) {
+				toast.error('User not authenticated')
+				return
+			}
 
 			await reportsClient.generateReport(reportId, {
 				userId,
@@ -152,10 +160,9 @@ export default function GenerateReportsPage() {
 				format
 			})
 
-			// Report generated successfully
+			toast.success('Report generated successfully')
 		} catch (error) {
-			// Report generation failed
-			alert(
+			toast.error(
 				`Failed to generate report: ${error instanceof Error ? error.message : 'Unknown error'}`
 			)
 		} finally {
