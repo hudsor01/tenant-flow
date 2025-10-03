@@ -19,6 +19,14 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle
+} from '@/components/ui/empty'
+import {
 	Table,
 	TableBody,
 	TableCell,
@@ -122,16 +130,22 @@ export default function ReportLibraryPage() {
 							<div className="text-muted-foreground">Loading reports...</div>
 						</div>
 					) : reports.length === 0 ? (
-						<div className="flex flex-col items-center justify-center py-12 text-center">
-							<FileText className="mb-4 size-12 text-muted-foreground" />
-							<h3 className="mb-2 text-lg font-semibold">No reports yet</h3>
-							<p className="mb-4 text-sm text-muted-foreground">
-								Generate your first report to see it here
-							</p>
-							<Button asChild>
-								<a href="/dashboard/reports/generate">Generate Report</a>
-							</Button>
-						</div>
+						<Empty>
+							<EmptyHeader>
+								<EmptyMedia variant="icon">
+									<FileText />
+								</EmptyMedia>
+								<EmptyTitle>No reports yet</EmptyTitle>
+								<EmptyDescription>
+									Generate your first report to see it here
+								</EmptyDescription>
+							</EmptyHeader>
+							<EmptyContent>
+								<Button asChild>
+									<a href="/dashboard/reports/generate">Generate Report</a>
+								</Button>
+							</EmptyContent>
+						</Empty>
 					) : (
 						<div className="space-y-4">
 							<Table>
