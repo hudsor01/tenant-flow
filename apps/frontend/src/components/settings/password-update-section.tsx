@@ -1,21 +1,26 @@
 'use client'
 
+import { PasswordStrength } from '@/components/auth/password-strength'
 import { LoadingSpinner } from '@/components/magicui/loading-spinner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '@/components/ui/input-group'
 import { cn, TYPOGRAPHY_SCALE } from '@/lib/design-system'
 import { supabaseClient } from '@repo/shared/lib/supabase-client'
 import { useMutation } from '@tanstack/react-query'
 import {
-    AlertTriangle,
-    CheckCircle2,
-    Eye,
-    EyeOff,
-    Key,
-    Shield
+	AlertTriangle,
+	CheckCircle2,
+	Eye,
+	EyeOff,
+	Key,
+	Shield
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -25,124 +30,39 @@ export function PasswordUpdateSection() {
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
 	const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-	const [showPassword, setShowPassword] = useState(false)
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-	const [passwordStrength, setPasswordStrength] = useState(0)
 
-	// Client-side password strength validation (ultra-native approach)
-	const validatePasswordStrength = (pwd: string) => {
-		if (!pwd) return 0
-
-		let score = 0
-
-		// Length requirements
-		if (pwd.length >= 8) score += 1
-		if (pwd.length >= 12) score += 1
-
-		// Character variety
-		if (/[a-z]/.test(pwd)) score += 1
-		if (/[A-Z]/.test(pwd)) score += 1
-		if (/[0-9]/.test(pwd)) score += 1
-		if (/[^A-Za-z0-9]/.test(pwd)) score += 1
-
-		// Common patterns (deduct points)
-		if (/(.)\1{2,}/.test(pwd)) score -= 1 // Repeated characters
-		if (/123|abc|qwe/i.test(pwd)) score -= 1 // Sequential patterns
-
-		return Math.max(0, Math.min(5, score))
-	}
-
-	const handlePasswordChange = (value: string) => {
-		setPassword(value)
-		const strength = validatePasswordStrength(value)
-		setPasswordStrength(strength)
-	}
-
-	const getStrengthColor = (strength: number) => {
-		switch (strength) {
-			case 0:
-			case 1:
-				return 'bg-destructive'
-			case 2:
-				return 'bg-destructive/60'
-			case 3:
-				return 'bg-primary/60'
-			case 4:
-				return 'bg-primary'
-			case 5:
-				return 'bg-accent'
-			default:
-				return 'bg-muted'
-		}
-	}
-
-	const getStrengthText = (strength: number) => {
-		switch (strength) {
-			case 0:
-			case 1:
-				return 'Weak'
-			case 2:
-				return 'Fair'
-			case 3:
-				return 'Good'
-			case 4:
-				return 'Strong'
-			case 5:
-				return 'Very Strong'
-			default:
-				return 'Enter password'
-		}
-	}
-
-	// TanStack Query mutation
 	const updatePasswordMutation = useMutation({
 		mutationFn: async () => {
-			// Validate passwords match
 			if (password !== confirmPassword) {
 				throw new Error('Passwords do not match')
 			}
-
-			// Client-side password validation (ultra-native)
-			const strength = validatePasswordStrength(password)
-			if (strength < 3) {
-				throw new Error(
-					'Password is too weak. Please use a stronger password with at least 8 characters, uppercase, lowercase, numbers, and symbols.'
-				)
+			if (password.length < 8) {
+				throw new Error('Password must be at least 8 characters')
 			}
 
-			// First verify current password by reauthenticating
 			const {
 				data: { user },
 				error: userError
 			} = await supabaseClient.auth.getUser()
 			if (userError || !user?.email) throw new Error('Unable to verify user')
 
-			// Try to sign in with current password to verify it
 			const { error: signInError } =
 				await supabaseClient.auth.signInWithPassword({
 					email: user.email,
 					password: currentPassword
 				})
+			if (signInError) throw new Error('Current password is incorrect')
 
-			if (signInError) {
-				throw new Error('Current password is incorrect')
-			}
-
-			// Update the password
-			const { error } = await supabaseClient.auth.updateUser({
-				password: password
-			})
-
+			const { error } = await supabaseClient.auth.updateUser({ password })
 			if (error) throw error
 			return { success: true }
 		},
 		onSuccess: () => {
 			toast.success('Password updated successfully!')
-			// Reset form
 			setCurrentPassword('')
 			setPassword('')
 			setConfirmPassword('')
-			setPasswordStrength(0)
 		},
 		onError: error => {
 			toast.error(
@@ -168,166 +88,98 @@ export function PasswordUpdateSection() {
 
 			<form onSubmit={handleSubmit} className="space-y-4">
 				{/* Current Password */}
-				<div className="space-y-2">
-					<Label htmlFor="currentPassword">Current Password</Label>
-					<div className="relative">
-						<Input
+				<Field>
+					<FieldLabel htmlFor="currentPassword">Current Password</FieldLabel>
+					<InputGroup>
+						<InputGroupInput
 							id="currentPassword"
 							type={showCurrentPassword ? 'text' : 'password'}
 							placeholder="Enter your current password"
 							value={currentPassword}
 							onChange={e => setCurrentPassword(e.target.value)}
 							disabled={updatePasswordMutation.isPending}
-							className="pr-10"
 							required
 						/>
-						<button
-							type="button"
-							onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-							className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-							tabIndex={-1}
-						>
-							{showCurrentPassword ? (
-								<EyeOff className="h-4 w-4" />
-							) : (
-								<Eye className="h-4 w-4" />
-							)}
-						</button>
-					</div>
-				</div>
+						<InputGroupAddon align="inline-end">
+							<button
+								type="button"
+								onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+								className="text-muted-foreground hover:text-foreground focus:text-primary transition-colors"
+								tabIndex={-1}
+							>
+								{showCurrentPassword ? <EyeOff /> : <Eye />}
+								<span className="sr-only">
+									{showCurrentPassword ? 'Hide password' : 'Show password'}
+								</span>
+							</button>
+						</InputGroupAddon>
+					</InputGroup>
+					<FieldError />
+				</Field>
 
 				{/* New Password */}
-				<div className="space-y-2">
-					<Label htmlFor="newPassword">New Password</Label>
-					<div className="relative">
-						<Input
-							id="newPassword"
-							type={showPassword ? 'text' : 'password'}
-							placeholder="Enter your new password"
-							value={password}
-							onChange={e => handlePasswordChange(e.target.value)}
-							disabled={updatePasswordMutation.isPending}
-							className="pr-10"
-							required
-						/>
-						<button
-							type="button"
-							onClick={() => setShowPassword(!showPassword)}
-							className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-							tabIndex={-1}
-						>
-							{showPassword ? (
-								<EyeOff className="h-4 w-4" />
-							) : (
-								<Eye className="h-4 w-4" />
-							)}
-						</button>
-					</div>
-
-					{/* Password Strength Indicator */}
-					{password && (
-						<div className="space-y-2">
-							<div className="flex items-center justify-between">
-								<span
-									className="text-muted-foreground"
-									style={TYPOGRAPHY_SCALE['ui-caption']}
-								>
-									Password strength:
-								</span>
-								<span
-									className={cn(
-										'font-semibold',
-										passwordStrength < 3
-											? 'text-destructive'
-											: passwordStrength < 4
-												? 'text-primary'
-												: 'text-accent'
-									)}
-									style={TYPOGRAPHY_SCALE['ui-caption']}
-								>
-									{getStrengthText(passwordStrength)}
-								</span>
-							</div>
-							<div className="h-1 bg-muted rounded-full overflow-hidden">
-								<div
-									className={cn(
-										'h-full transition-all duration-300',
-										getStrengthColor(passwordStrength)
-									)}
-									style={{
-										width: `${(passwordStrength / 5) * 100}%`
-									}}
-								/>
-							</div>
-							<p
-								className="text-muted-foreground"
-								style={TYPOGRAPHY_SCALE['ui-caption']}
-							>
-								Use at least 8 characters with uppercase, lowercase, numbers,
-								and symbols
-							</p>
-						</div>
-					)}
-				</div>
+				<Field>
+					<FieldLabel htmlFor="newPassword">New Password</FieldLabel>
+					<PasswordStrength
+						id="newPassword"
+						placeholder="Enter your new password"
+						value={password}
+						onChange={e => setPassword(e.target.value)}
+						disabled={updatePasswordMutation.isPending}
+						showStrengthIndicator={true}
+						minLength={8}
+					/>
+					<FieldError />
+				</Field>
 
 				{/* Confirm Password */}
-				<div className="space-y-2">
-					<Label htmlFor="confirmPassword">Confirm New Password</Label>
-					<div className="relative">
-						<Input
+				<Field>
+					<FieldLabel htmlFor="confirmPassword">
+						Confirm New Password
+					</FieldLabel>
+					<InputGroup>
+						<InputGroupInput
 							id="confirmPassword"
 							type={showConfirmPassword ? 'text' : 'password'}
 							placeholder="Re-enter your new password"
 							value={confirmPassword}
 							onChange={e => setConfirmPassword(e.target.value)}
 							disabled={updatePasswordMutation.isPending}
-							className={cn(
-								'pr-10',
-								confirmPassword &&
-									password !== confirmPassword &&
-									'border-destructive focus:border-destructive'
-							)}
+							aria-invalid={
+								confirmPassword && password !== confirmPassword
+									? 'true'
+									: undefined
+							}
 							required
 						/>
-						<button
-							type="button"
-							onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-							className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-							tabIndex={-1}
-						>
-							{showConfirmPassword ? (
-								<EyeOff className="h-4 w-4" />
-							) : (
-								<Eye className="h-4 w-4" />
-							)}
-						</button>
-					</div>
-
-					{/* Password Match Indicator */}
-					{confirmPassword && (
-						<div>
-							{password !== confirmPassword ? (
-								<p
-									className="text-destructive flex items-center gap-1"
-									style={TYPOGRAPHY_SCALE['ui-caption']}
-								>
-									<AlertTriangle className="w-3 h-3" />
-									Passwords do not match
-								</p>
-							) : (
-								<p
-									className="text-accent flex items-center gap-1"
-									style={TYPOGRAPHY_SCALE['ui-caption']}
-								>
-									<CheckCircle2 className="w-3 h-3" />
-									Passwords match
-								</p>
-							)}
-						</div>
+						<InputGroupAddon align="inline-end">
+							<button
+								type="button"
+								onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+								className="text-muted-foreground hover:text-foreground focus:text-primary transition-colors"
+								tabIndex={-1}
+							>
+								{showConfirmPassword ? <EyeOff /> : <Eye />}
+								<span className="sr-only">
+									{showConfirmPassword ? 'Hide password' : 'Show password'}
+								</span>
+							</button>
+						</InputGroupAddon>
+					</InputGroup>
+					{confirmPassword && password !== confirmPassword && (
+						<p className="text-xs text-destructive flex items-center gap-1">
+							<AlertTriangle className="w-3 h-3" />
+							Passwords do not match
+						</p>
 					)}
-				</div>
+					{confirmPassword && password === confirmPassword && (
+						<p className="text-xs text-primary flex items-center gap-1">
+							<CheckCircle2 className="w-3 h-3" />
+							Passwords match
+						</p>
+					)}
+				</Field>
 
-				{/* Error Alert */}
 				{updatePasswordMutation.isError && (
 					<Alert variant="destructive">
 						<AlertTriangle className="h-4 w-4" />
@@ -339,7 +191,6 @@ export function PasswordUpdateSection() {
 					</Alert>
 				)}
 
-				{/* Success Alert */}
 				{updatePasswordMutation.isSuccess && (
 					<Alert className="border-accent/20 bg-accent/10 text-accent-foreground">
 						<CheckCircle2 className="h-4 w-4 text-accent" />
@@ -349,7 +200,6 @@ export function PasswordUpdateSection() {
 					</Alert>
 				)}
 
-				{/* Submit Button */}
 				<Button
 					type="submit"
 					disabled={
@@ -358,7 +208,7 @@ export function PasswordUpdateSection() {
 						!password ||
 						!confirmPassword ||
 						password !== confirmPassword ||
-						passwordStrength < 3
+						password.length < 8
 					}
 					className="w-full sm:w-auto"
 				>
@@ -376,7 +226,7 @@ export function PasswordUpdateSection() {
 				</Button>
 
 				<p
-					className="text-muted-foreground mt-4"
+					className={cn('text-muted-foreground mt-4')}
 					style={TYPOGRAPHY_SCALE['ui-caption']}
 				>
 					Make sure to use a strong, unique password that you don't use for
