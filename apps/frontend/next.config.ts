@@ -33,11 +33,17 @@ const nextConfig: NextConfig = {
 		}
 
 		// Suppress specific warnings from Supabase libraries in Edge Runtime
+		// and Chrome extension source map warnings
 		if (!isServer) {
 			config.ignoreWarnings = [
 				{
 					module: /supabase/,
 					message: /which is not supported in the Edge Runtime/
+				},
+				// Suppress Chrome extension source map warnings (e.g., PostHog, Doppler)
+				{
+					module: /chrome-extension/,
+					message: /Failed to parse source map/
 				}
 			]
 		}
@@ -52,7 +58,6 @@ const nextConfig: NextConfig = {
 			// Icon libraries (already optimized)
 			'@radix-ui/react-icons',
 			'lucide-react',
-			'@tabler/icons-react',
 			// UI component libraries that contribute to large cache strings
 			'@radix-ui/react-dialog',
 			'@radix-ui/react-dropdown-menu',

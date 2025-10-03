@@ -9,7 +9,35 @@ import { Button } from '@/components/ui/button'
 import { safeDom } from '@/lib/dom-utils'
 import { createClient } from '@/utils/supabase/client'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+// Use the same API base URL logic as reports-client
+function getApiBaseUrl() {
+	const envBase = process.env.NEXT_PUBLIC_API_BASE_URL
+
+	if (envBase) {
+		const cleaned = envBase.replace(/\/$/, '')
+		try {
+			const parsed = new URL(cleaned)
+			if (
+				parsed.pathname &&
+				parsed.pathname !== '/' &&
+				parsed.pathname.includes('/api')
+			) {
+				return cleaned
+			}
+			return `${cleaned}/api/v1`
+		} catch {
+			return cleaned.startsWith('/api') ? cleaned : `${cleaned}/api/v1`
+		}
+	}
+
+	if (typeof window !== 'undefined') {
+		return '/api/v1'
+	}
+
+	return 'http://localhost:3001/api/v1'
+}
+
+const API_BASE_URL = getApiBaseUrl()
 
 type ExportFormat = 'excel' | 'pdf' | 'csv'
 
@@ -46,22 +74,19 @@ async function requestExport(
 		throw new Error('You need to be signed in to export analytics data.')
 	}
 
-	const response = await fetch(
-		`${API_BASE_URL}/api/v1/reports/export/${format}`,
-		{
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${token}`
-			},
-			body: JSON.stringify({
-				filename,
-				payload,
-				sheetName: 'Financial Analytics',
-				title: 'Financial Analytics Export'
-			})
-		}
-	)
+	const response = await fetch(`${API_BASE_URL}/reports/export/${format}`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${token}`
+		},
+		body: JSON.stringify({
+			filename,
+			payload,
+			sheetName: 'Financial Analytics',
+			title: 'Financial Analytics Export'
+		})
+	})
 
 	if (!response.ok) {
 		const message = await response.text()

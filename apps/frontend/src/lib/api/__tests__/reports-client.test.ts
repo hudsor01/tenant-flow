@@ -47,12 +47,26 @@ describe('reports-client helpers', () => {
 		expect(url).toBe('/api/v1')
 	})
 
-	test('getAuthHeaders returns Authorization when token present in localStorage', async () => {
-		;(window as unknown as Record<string, unknown>).__TF_AUTH_TOKEN__ =
-			undefined
-		window.localStorage.setItem('tf_token', 'local-123')
+	test('getAuthHeaders returns Authorization from Supabase session', async () => {
+		// Mock Supabase session
+		const mockSession = {
+			access_token: 'supabase-token-123',
+			user: { id: 'test-user' }
+		}
+
+		// Mock dynamic import of @supabase/ssr
+		jest.doMock('@supabase/ssr', () => ({
+			createBrowserClient: jest.fn(() => ({
+				auth: {
+					getSession: jest.fn().mockResolvedValue({
+						data: { session: mockSession }
+					})
+				}
+			}))
+		}))
+
 		const headers = await getAuthHeaders()
 		const typed = headers as Record<string, string | undefined>
-		expect(typed.Authorization).toBe('Bearer local-123')
+		expect(typed.Authorization).toBe('Bearer supabase-token-123')
 	})
 })
