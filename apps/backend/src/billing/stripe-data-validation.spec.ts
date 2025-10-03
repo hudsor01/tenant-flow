@@ -56,7 +56,7 @@ describe('Production Stripe Webhook Processing', () => {
 
 		// Create real Stripe instance for webhook signature generation
 		stripe = new Stripe(stripeKey, {
-			apiVersion: '2025-08-27.basil' as Stripe.LatestApiVersion
+			apiVersion: '2025-09-30.clover' as Stripe.LatestApiVersion
 		})
 
 		// Track processed events for testing
@@ -175,7 +175,8 @@ describe('Production Stripe Webhook Processing', () => {
 									)
 								case 'JWT_SECRET':
 									return (
-										process.env.TEST_JWT_SECRET || 'test_application_jwt_secret_32_chars'
+										process.env.TEST_JWT_SECRET ||
+										'test_application_jwt_secret_32_chars'
 									)
 								case 'SUPABASE_ANON_KEY':
 									return process.env.TEST_SUPABASE_ANON_KEY || 'test_anon_key'
@@ -237,7 +238,7 @@ describe('Production Stripe Webhook Processing', () => {
 			const event: Stripe.Event = {
 				id: 'evt_test_invalid',
 				object: 'event',
-				api_version: '2025-08-27.basil' as Stripe.LatestApiVersion,
+				api_version: '2025-09-30.clover' as Stripe.LatestApiVersion,
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: { id: 'test_object' } as unknown as Stripe.PaymentIntent,
@@ -272,7 +273,7 @@ describe('Production Stripe Webhook Processing', () => {
 			const oldEvent: Stripe.Event = {
 				id: 'evt_test_replay',
 				object: 'event',
-				api_version: '2025-08-27.basil' as Stripe.LatestApiVersion,
+				api_version: '2025-09-30.clover' as Stripe.LatestApiVersion,
 				created: Math.floor((Date.now() - 10 * 60 * 1000) / 1000), // 10 minutes ago
 				data: {
 					object: { id: 'test_object' } as unknown as Stripe.PaymentIntent,
@@ -314,7 +315,7 @@ describe('Production Stripe Webhook Processing', () => {
 			const prodEvent: Stripe.Event = {
 				id: 'evt_test_livemode',
 				object: 'event',
-				api_version: '2025-08-27.basil' as Stripe.LatestApiVersion,
+				api_version: '2025-09-30.clover' as Stripe.LatestApiVersion,
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: { id: 'test_object' } as unknown as Stripe.PaymentIntent,
@@ -373,7 +374,7 @@ describe('Production Stripe Webhook Processing', () => {
 			const event: Stripe.Event = {
 				id: 'evt_test_payment_succeeded_' + Date.now(),
 				object: 'event',
-				api_version: '2025-08-27.basil' as Stripe.LatestApiVersion,
+				api_version: '2025-09-30.clover' as Stripe.LatestApiVersion,
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: paymentIntent as unknown as Stripe.PaymentIntent,
@@ -453,7 +454,7 @@ describe('Production Stripe Webhook Processing', () => {
 			const event: Stripe.Event = {
 				id: 'evt_test_subscription_' + Date.now(),
 				object: 'event',
-				api_version: '2025-08-27.basil' as Stripe.LatestApiVersion,
+				api_version: '2025-09-30.clover' as Stripe.LatestApiVersion,
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: subscription as unknown as Stripe.Subscription,
@@ -499,7 +500,7 @@ describe('Production Stripe Webhook Processing', () => {
 			const event: Stripe.Event = {
 				id: 'evt_test_not_permitted',
 				object: 'event',
-				api_version: '2025-08-27.basil' as Stripe.LatestApiVersion,
+				api_version: '2025-09-30.clover' as Stripe.LatestApiVersion,
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: disputeObject as unknown as Stripe.Dispute,
