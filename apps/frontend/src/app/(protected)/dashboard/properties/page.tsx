@@ -15,7 +15,7 @@ import {
 	EmptyContent,
 	EmptyDescription,
 	EmptyHeader,
-	EmptyMedia,
+	EmptyIcon,
 	EmptyTitle
 } from '@/components/ui/empty'
 import {
@@ -277,9 +277,9 @@ export default async function PropertiesPage() {
 							<CardContent>
 								<Empty>
 									<EmptyHeader>
-										<EmptyMedia variant="icon">
+										<EmptyIcon variant="icon">
 											<Building />
-										</EmptyMedia>
+										</EmptyIcon>
 										<EmptyTitle>No properties found</EmptyTitle>
 										<EmptyDescription>
 											Get started by adding your first property

@@ -28,7 +28,7 @@ function EmptyHeader({ className, ...props }: React.ComponentProps<'div'>) {
 	)
 }
 
-const emptyMediaVariants = cva(
+const emptyIconVariants = cva(
 	'flex shrink-0 items-center justify-center mb-2 [&_svg]:pointer-events-none [&_svg]:shrink-0',
 	{
 		variants: {
@@ -43,16 +43,16 @@ const emptyMediaVariants = cva(
 	}
 )
 
-function EmptyMedia({
+function EmptyIcon({
 	className,
 	variant = 'default',
 	...props
-}: React.ComponentProps<'div'> & VariantProps<typeof emptyMediaVariants>) {
+}: React.ComponentProps<'div'> & VariantProps<typeof emptyIconVariants>) {
 	return (
 		<div
 			data-slot="empty-icon"
 			data-variant={variant}
-			className={cn(emptyMediaVariants({ variant, className }))}
+			className={cn(emptyIconVariants({ variant, className }))}
 			{...props}
 		/>
 	)
@@ -99,6 +99,6 @@ export {
 	EmptyContent,
 	EmptyDescription,
 	EmptyHeader,
-	EmptyMedia,
+	EmptyIcon,
 	EmptyTitle
 }

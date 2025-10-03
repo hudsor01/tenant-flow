@@ -1,41 +1,46 @@
 /**
  * API Error Codes for Better Observability
  * Standardized error codes across all API clients
+ *
+ * COMPLIANCE: Uses const object pattern per CLAUDE.md enum standardization rules
+ * (TypeScript enums are forbidden except for database enums via Supabase)
  */
 
-export enum ApiErrorCode {
+export const ApiErrorCode = {
 	// Authentication errors (AUTH-xxx)
-	AUTH_TOKEN_MISSING = 'AUTH-001',
-	AUTH_TOKEN_INVALID = 'AUTH-002',
-	AUTH_SESSION_EXPIRED = 'AUTH-003',
-	AUTH_UNAUTHORIZED = 'AUTH-004',
+	AUTH_TOKEN_MISSING: 'AUTH-001',
+	AUTH_TOKEN_INVALID: 'AUTH-002',
+	AUTH_SESSION_EXPIRED: 'AUTH-003',
+	AUTH_UNAUTHORIZED: 'AUTH-004',
 
 	// Network errors (NET-xxx)
-	NETWORK_ERROR = 'NET-001',
-	NETWORK_TIMEOUT = 'NET-002',
-	NETWORK_OFFLINE = 'NET-003',
+	NETWORK_ERROR: 'NET-001',
+	NETWORK_TIMEOUT: 'NET-002',
+	NETWORK_OFFLINE: 'NET-003',
 
 	// API errors (API-xxx)
-	API_NOT_FOUND = 'API-404',
-	API_BAD_REQUEST = 'API-400',
-	API_SERVER_ERROR = 'API-500',
-	API_SERVICE_UNAVAILABLE = 'API-503',
-	API_RATE_LIMITED = 'API-429',
+	API_NOT_FOUND: 'API-404',
+	API_BAD_REQUEST: 'API-400',
+	API_SERVER_ERROR: 'API-500',
+	API_SERVICE_UNAVAILABLE: 'API-503',
+	API_RATE_LIMITED: 'API-429',
 
 	// Report generation errors (REPORT-xxx)
-	REPORT_GENERATION_FAILED = 'REPORT-001',
-	REPORT_DOWNLOAD_FAILED = 'REPORT-002',
-	REPORT_DELETE_FAILED = 'REPORT-003',
-	REPORT_LIST_FAILED = 'REPORT-004',
-	REPORT_SCHEDULE_FAILED = 'REPORT-005',
+	REPORT_GENERATION_FAILED: 'REPORT-001',
+	REPORT_DOWNLOAD_FAILED: 'REPORT-002',
+	REPORT_DELETE_FAILED: 'REPORT-003',
+	REPORT_LIST_FAILED: 'REPORT-004',
+	REPORT_SCHEDULE_FAILED: 'REPORT-005',
 
 	// Financial data errors (FIN-xxx)
-	FINANCIAL_DATA_FETCH_FAILED = 'FIN-001',
-	FINANCIAL_EXPORT_FAILED = 'FIN-002',
+	FINANCIAL_DATA_FETCH_FAILED: 'FIN-001',
+	FINANCIAL_EXPORT_FAILED: 'FIN-002',
 
 	// Generic errors
-	UNKNOWN_ERROR = 'ERR-000'
-}
+	UNKNOWN_ERROR: 'ERR-000'
+} as const
+
+export type ApiErrorCode = (typeof ApiErrorCode)[keyof typeof ApiErrorCode]
 
 export class ApiError extends Error {
 	constructor(
