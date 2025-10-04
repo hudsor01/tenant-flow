@@ -9,7 +9,7 @@
 @plugin "@tailwindcss/aspect-ratio";
 @plugin "@tailwindcss/container-queries";
 
-@custom-variant dark (&: where(.dark, .dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer theme, base, components, utilities;
 

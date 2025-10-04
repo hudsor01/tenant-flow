@@ -7,11 +7,20 @@ import { Badge } from '@/components/ui/badge'
 import {
 	Card,
 	CardAction,
+	CardContent,
 	CardDescription,
 	CardFooter,
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyIcon,
+	EmptyTitle
+} from '@/components/ui/empty'
 import {
 	Table,
 	TableBody,
@@ -167,28 +176,30 @@ export default async function TenantsPage() {
 									Manage your tenants and track lease information
 								</CardDescription>
 							</div>
-							<CreateTenantDialog />
+							{tenants?.length > 0 && <CreateTenantDialog />}
 						</CardHeader>
-						<div className="px-6 pb-6">
-							<div className="rounded-md border">
-								<Table>
-									<TableHeader className="bg-muted/50">
-										<TableRow>
-											<TableHead className="font-semibold">Name</TableHead>
-											<TableHead className="font-semibold">Email</TableHead>
-											<TableHead className="font-semibold">Phone</TableHead>
-											<TableHead className="font-semibold">Property</TableHead>
-											<TableHead className="font-semibold">Rent</TableHead>
-											<TableHead className="font-semibold">Status</TableHead>
-											<TableHead className="font-semibold text-right">
-												Joined
-											</TableHead>
-											<TableHead className="font-semibold">Actions</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{tenants?.length ? (
-											tenants.map((tenant: TenantWithLeaseInfo) => {
+						{tenants?.length > 0 ? (
+							<div className="px-6 pb-6">
+								<div className="rounded-md border">
+									<Table>
+										<TableHeader className="bg-muted/50">
+											<TableRow>
+												<TableHead className="font-semibold">Name</TableHead>
+												<TableHead className="font-semibold">Email</TableHead>
+												<TableHead className="font-semibold">Phone</TableHead>
+												<TableHead className="font-semibold">
+													Property
+												</TableHead>
+												<TableHead className="font-semibold">Rent</TableHead>
+												<TableHead className="font-semibold">Status</TableHead>
+												<TableHead className="font-semibold text-right">
+													Joined
+												</TableHead>
+												<TableHead className="font-semibold">Actions</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{tenants.map((tenant: TenantWithLeaseInfo) => {
 												const propertyName = tenant.property?.name || '—'
 												const rentAmount = tenant.currentLease?.rentAmount || 0
 
@@ -234,29 +245,29 @@ export default async function TenantsPage() {
 														</TableCell>
 													</TableRow>
 												)
-											})
-										) : (
-											<TableRow>
-												<TableCell colSpan={8} className="h-96">
-													<div className="flex flex-col items-center justify-center gap-4 text-center">
-														<Users className="size-12 text-muted-foreground" />
-														<div className="space-y-2">
-															<h3 className="text-lg font-semibold">
-																No tenants found
-															</h3>
-															<p className="text-sm text-muted-foreground">
-																Get started by adding your first tenant
-															</p>
-														</div>
-														<CreateTenantDialog />
-													</div>
-												</TableCell>
-											</TableRow>
-										)}
-									</TableBody>
-								</Table>
+											})}
+										</TableBody>
+									</Table>
+								</div>
 							</div>
-						</div>
+						) : (
+							<CardContent>
+								<Empty>
+									<EmptyHeader>
+										<EmptyIcon variant="icon">
+											<Users />
+										</EmptyIcon>
+										<EmptyTitle>No tenants found</EmptyTitle>
+										<EmptyDescription>
+											Get started by adding your first tenant
+										</EmptyDescription>
+									</EmptyHeader>
+									<EmptyContent>
+										<CreateTenantDialog />
+									</EmptyContent>
+								</Empty>
+							</CardContent>
+						)}
 					</Card>
 
 					{/* Quick Actions Section - Matching Dashboard */}

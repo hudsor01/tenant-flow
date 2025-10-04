@@ -4,11 +4,20 @@ import { Badge } from '@/components/ui/badge'
 import {
 	Card,
 	CardAction,
+	CardContent,
 	CardDescription,
 	CardFooter,
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyIcon,
+	EmptyTitle
+} from '@/components/ui/empty'
 import {
 	Table,
 	TableBody,
@@ -181,25 +190,27 @@ export default async function LeasesPage() {
 									Track lease agreements, renewals, and expirations
 								</CardDescription>
 							</div>
-							<CreateLeaseDialog />
+							{leases?.length > 0 && <CreateLeaseDialog />}
 						</CardHeader>
-						<div className="px-6 pb-6">
-							<div className="rounded-md border">
-								<Table>
-									<TableHeader className="bg-muted/50">
-										<TableRow>
-											<TableHead className="font-semibold">Tenant</TableHead>
-											<TableHead className="font-semibold">Property</TableHead>
-											<TableHead className="font-semibold">Unit</TableHead>
-											<TableHead className="font-semibold">Rent</TableHead>
-											<TableHead className="font-semibold">Term</TableHead>
-											<TableHead className="font-semibold">Status</TableHead>
-											<TableHead className="font-semibold">Actions</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{leases.length > 0 ? (
-											leases.map((lease: Lease) => (
+						{leases?.length > 0 ? (
+							<div className="px-6 pb-6">
+								<div className="rounded-md border">
+									<Table>
+										<TableHeader className="bg-muted/50">
+											<TableRow>
+												<TableHead className="font-semibold">Tenant</TableHead>
+												<TableHead className="font-semibold">
+													Property
+												</TableHead>
+												<TableHead className="font-semibold">Unit</TableHead>
+												<TableHead className="font-semibold">Rent</TableHead>
+												<TableHead className="font-semibold">Term</TableHead>
+												<TableHead className="font-semibold">Status</TableHead>
+												<TableHead className="font-semibold">Actions</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{leases.map((lease: Lease) => (
 												<TableRow key={lease.id} className="hover:bg-muted/30">
 													<TableCell className="font-medium">
 														{lease.tenantId || 'No Tenant'}
@@ -236,30 +247,29 @@ export default async function LeasesPage() {
 														<LeaseActionButtons lease={lease} />
 													</TableCell>
 												</TableRow>
-											))
-										) : (
-											<TableRow>
-												<TableCell colSpan={7} className="h-96">
-													<div className="flex flex-col items-center justify-center gap-4 text-center">
-														<FileText className="size-12 text-muted-foreground" />
-														<div className="space-y-2">
-															<h3 className="text-lg font-semibold">
-																No leases found
-															</h3>
-															<p className="text-sm text-muted-foreground">
-																Get started by creating your first lease
-																agreement
-															</p>
-														</div>
-														<CreateLeaseDialog />
-													</div>
-												</TableCell>
-											</TableRow>
-										)}
-									</TableBody>
-								</Table>
+											))}
+										</TableBody>
+									</Table>
+								</div>
 							</div>
-						</div>
+						) : (
+							<CardContent>
+								<Empty>
+									<EmptyHeader>
+										<EmptyIcon variant="icon">
+											<FileText />
+										</EmptyIcon>
+										<EmptyTitle>No leases found</EmptyTitle>
+										<EmptyDescription>
+											Get started by creating your first lease
+										</EmptyDescription>
+									</EmptyHeader>
+									<EmptyContent>
+										<CreateLeaseDialog />
+									</EmptyContent>
+								</Empty>
+							</CardContent>
+						)}
 					</Card>
 
 					{/* Quick Actions Section - Matching Dashboard */}

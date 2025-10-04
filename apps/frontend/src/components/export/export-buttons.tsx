@@ -8,34 +8,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { safeDom } from '@/lib/dom-utils'
 import { createClient } from '@/utils/supabase/client'
-
-// Use the same API base URL logic as reports-client
-function getApiBaseUrl() {
-	const envBase = process.env.NEXT_PUBLIC_API_BASE_URL
-
-	if (envBase) {
-		const cleaned = envBase.replace(/\/$/, '')
-		try {
-			const parsed = new URL(cleaned)
-			if (
-				parsed.pathname &&
-				parsed.pathname !== '/' &&
-				parsed.pathname.includes('/api')
-			) {
-				return cleaned
-			}
-			return `${cleaned}/api/v1`
-		} catch {
-			return cleaned.startsWith('/api') ? cleaned : `${cleaned}/api/v1`
-		}
-	}
-
-	if (typeof window !== 'undefined') {
-		return '/api/v1'
-	}
-
-	return 'http://localhost:3001/api/v1'
-}
+import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
 
 const API_BASE_URL = getApiBaseUrl()
 
@@ -89,8 +62,13 @@ async function requestExport(
 	})
 
 	if (!response.ok) {
-		const message = await response.text()
-		throw new Error(message || `Failed to export ${format}`)
+		const { ApiErrorCode, createApiErrorFromResponse } = await import(
+			'@repo/shared/utils/api-error'
+		)
+		throw createApiErrorFromResponse(
+			response,
+			ApiErrorCode.FINANCIAL_EXPORT_FAILED
+		)
 	}
 
 	const blob = await response.blob()

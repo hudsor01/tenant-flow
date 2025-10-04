@@ -5,7 +5,15 @@ import { StripePricingSection } from '@/components/pricing/stripe-pricing-sectio
 import { StatsShowcase } from '@/components/sections/stats-showcase'
 import { Button } from '@/components/ui/button'
 import { GridBackground } from '@/components/ui/grid-background'
-import { ArrowRight, ChevronDown, CheckCircle2 } from 'lucide-react'
+import {
+	Item,
+	ItemContent,
+	ItemDescription,
+	ItemGroup,
+	ItemSeparator,
+	ItemTitle
+} from '@/components/ui/item'
+import { ArrowRight, CheckCircle2, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -79,31 +87,55 @@ export default function PricingPage() {
 					</Link>
 
 					<div className="hidden md:flex items-center space-x-2">
-						<Link href="/features" className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent">
+						<Link
+							href="/features"
+							className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent"
+						>
 							Features
 						</Link>
-						<Link href="/pricing" className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent">
+						<Link
+							href="/pricing"
+							className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent"
+						>
 							Pricing
 						</Link>
-						<Link href="/about" className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent">
+						<Link
+							href="/about"
+							className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent"
+						>
 							About
 						</Link>
-						<Link href="/blog" className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent">
+						<Link
+							href="/blog"
+							className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent"
+						>
 							Blog
 						</Link>
-						<Link href="/faq" className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent">
+						<Link
+							href="/faq"
+							className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent"
+						>
 							FAQ
 						</Link>
-						<Link href="/contact" className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent">
+						<Link
+							href="/contact"
+							className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent"
+						>
 							Contact
 						</Link>
 					</div>
 
 					<div className="flex items-center space-x-4">
-						<Link href="/login" className="hidden sm:flex items-center px-4 py-2 text-foreground rounded-xl font-medium transition-all duration-300 hover:bg-accent">
+						<Link
+							href="/login"
+							className="hidden sm:flex items-center px-4 py-2 text-foreground rounded-xl font-medium transition-all duration-300 hover:bg-accent"
+						>
 							Sign In
 						</Link>
-						<Link href="/login" className="inline-flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl shadow-lg transition-all duration-200 hover:bg-primary/90 hover:shadow-xl">
+						<Link
+							href="/login"
+							className="inline-flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl shadow-lg transition-all duration-200 hover:bg-primary/90 hover:shadow-xl"
+						>
 							Get Started
 							<ArrowRight className="ml-2 h-4 w-4" />
 						</Link>
@@ -120,8 +152,8 @@ export default function PricingPage() {
 								Pricing that scales with you
 							</h1>
 							<p className="text-xl text-muted-foreground leading-relaxed">
-								Start with a 14-day free trial. No credit card required.
-								Upgrade or downgrade anytime.
+								Start with a 14-day free trial. No credit card required. Upgrade
+								or downgrade anytime.
 							</p>
 						</div>
 					</div>
@@ -149,35 +181,35 @@ export default function PricingPage() {
 							</p>
 						</div>
 
-						<div className="space-y-4">
+						<ItemGroup>
 							{faqs.map((faq, index) => (
-								<div key={index} className="border border-border rounded-xl bg-card">
-									<button
+								<>
+									<Item
+										key={index}
+										variant="outline"
+										className="cursor-pointer hover:bg-muted/50 transition-colors"
 										onClick={() => setOpenFaq(openFaq === index ? null : index)}
-										className="w-full py-2 px-4 text-left flex items-center justify-between hover:bg-muted focus:outline-none transition-colors"
 									>
-										<span className="text-lg font-semibold text-foreground pr-4">
-											{faq.question}
-										</span>
-										<ChevronDown
-											className={`w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform ${
-												openFaq === index ? 'transform rotate-180' : ''
-											}`}
-										/>
-									</button>
-
-									{openFaq === index && (
-										<div className="px-4 pb-2">
-											<div className="border-t pt-4">
-												<p className="text-muted-foreground">
+										<ItemContent>
+											<ItemTitle className="flex items-center justify-between w-full">
+												{faq.question}
+												<ChevronDown
+													className={`w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform ml-4 ${
+														openFaq === index ? 'transform rotate-180' : ''
+													}`}
+												/>
+											</ItemTitle>
+											{openFaq === index && (
+												<ItemDescription className="mt-2 pt-2 border-t">
 													{faq.answer}
-												</p>
-											</div>
-										</div>
-									)}
-								</div>
+												</ItemDescription>
+											)}
+										</ItemContent>
+									</Item>
+									{index < faqs.length - 1 && <ItemSeparator />}
+								</>
 							))}
-						</div>
+						</ItemGroup>
 
 						<div className="text-center mt-4">
 							<p className="text-muted-foreground mb-2">
