@@ -1,16 +1,20 @@
 'use client'
 
 import { GoogleButton } from '@/components/auth/google-button'
-import { PasswordInput } from '@/components/auth/password-input'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '@/components/ui/input-group'
 import { useFormProgress } from '@/hooks/use-form-progress'
 import { cn } from '@/lib/design-system'
-import { loginZodSchema } from '@repo/shared/validation/auth'
 import type { AuthFormProps } from '@repo/shared/types/frontend'
+import { loginZodSchema } from '@repo/shared/validation/auth'
 import { useForm } from '@tanstack/react-form'
-import { useEffect } from 'react'
+import { Eye, EyeOff, Mail } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 export function LoginForm({
@@ -22,6 +26,8 @@ export function LoginForm({
 	isLoading,
 	isGoogleLoading
 }: Omit<AuthFormProps, 'mode' | 'onLogin'>) {
+	const [showPassword, setShowPassword] = useState(false)
+
 	// Form progress persistence (only saves email - no passwords)
 	const {
 		data: progressData,
@@ -89,59 +95,74 @@ export function LoginForm({
 				{/* Email Field */}
 				<form.Field name="email">
 					{field => (
-						<div className="space-y-2">
-							<Label htmlFor="email">Email address</Label>
-							<Input
-								id="email"
-								data-testid="email-input"
-								type="email"
-								placeholder="Enter your email"
-								value={field.state.value}
-								onChange={e => field.handleChange(e.target.value)}
-								onBlur={field.handleBlur}
-								disabled={isLoading}
-								className={cn(
-									'h-11',
-									field.state.meta.errors?.length
-										? 'border-destructive focus:ring-destructive'
-										: ''
-								)}
+						<Field>
+							<FieldLabel htmlFor="email">Email address</FieldLabel>
+							<InputGroup>
+								<InputGroupAddon align="inline-start">
+									<Mail />
+								</InputGroupAddon>
+								<InputGroupInput
+									id="email"
+									data-testid="email-input"
+									type="email"
+									placeholder="Enter your email"
+									value={field.state.value}
+									onChange={e => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+									disabled={isLoading}
+									aria-invalid={
+										field.state.meta.errors?.length ? 'true' : undefined
+									}
+								/>
+							</InputGroup>
+							<FieldError
+								errors={field.state.meta.errors?.map(err => ({
+									message: String(err)
+								}))}
 							/>
-							{field.state.meta.errors?.length ? (
-								<p className="text-xs text-destructive">
-									{String(field.state.meta.errors[0])}
-								</p>
-							) : null}
-						</div>
+						</Field>
 					)}
 				</form.Field>
 
 				{/* Password Field */}
 				<form.Field name="password">
 					{field => (
-						<div className="space-y-2">
-							<PasswordInput
-								label="Password"
-								id="password"
-								data-testid="password-input"
-								placeholder="Enter your password"
-								value={field.state.value}
-								onChange={e => field.handleChange(e.target.value)}
-								onBlur={field.handleBlur}
-								disabled={isLoading}
-								className={cn(
-									'h-11',
-									field.state.meta.errors?.length
-										? 'border-destructive focus:ring-destructive'
-										: ''
-								)}
+						<Field>
+							<FieldLabel htmlFor="password">Password</FieldLabel>
+							<InputGroup>
+								<InputGroupInput
+									id="password"
+									data-testid="password-input"
+									type={showPassword ? 'text' : 'password'}
+									placeholder="Enter your password"
+									value={field.state.value}
+									onChange={e => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+									disabled={isLoading}
+									aria-invalid={
+										field.state.meta.errors?.length ? 'true' : undefined
+									}
+								/>
+								<InputGroupAddon align="inline-end">
+									<button
+										type="button"
+										onClick={() => setShowPassword(!showPassword)}
+										className="text-muted-foreground hover:text-foreground focus:text-primary transition-colors"
+										tabIndex={-1}
+									>
+										{showPassword ? <EyeOff /> : <Eye />}
+										<span className="sr-only">
+											{showPassword ? 'Hide password' : 'Show password'}
+										</span>
+									</button>
+								</InputGroupAddon>
+							</InputGroup>
+							<FieldError
+								errors={field.state.meta.errors?.map(err => ({
+									message: String(err)
+								}))}
 							/>
-							{field.state.meta.errors?.length ? (
-								<p className="text-xs text-destructive">
-									{String(field.state.meta.errors[0])}
-								</p>
-							) : null}
-						</div>
+						</Field>
 					)}
 				</form.Field>
 

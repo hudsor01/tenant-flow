@@ -4,8 +4,9 @@ import type {
 	IncomeStatementData,
 	TaxDocumentsData
 } from '@repo/shared/types/financial-statements'
+import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+const API_BASE_URL = getApiBaseUrl()
 
 async function fetchWithAuth(
 	url: string,
@@ -23,7 +24,13 @@ async function fetchWithAuth(
 	})
 
 	if (!response.ok) {
-		throw new Error(`API Error: ${response.statusText}`)
+		const { ApiErrorCode, createApiErrorFromResponse } = await import(
+			'@repo/shared/utils/api-error'
+		)
+		throw createApiErrorFromResponse(
+			response,
+			ApiErrorCode.FINANCIAL_DATA_FETCH_FAILED
+		)
 	}
 
 	return response.json()
@@ -34,7 +41,7 @@ export async function getIncomeStatement(
 	startDate: string,
 	endDate: string
 ): Promise<IncomeStatementData> {
-	const url = `${API_URL}/api/v1/financials/income-statement?startDate=${startDate}&endDate=${endDate}`
+	const url = `${API_BASE_URL}/financials/income-statement?startDate=${startDate}&endDate=${endDate}`
 	const result = await fetchWithAuth(url, token)
 	return result.data
 }
@@ -44,7 +51,7 @@ export async function getCashFlowStatement(
 	startDate: string,
 	endDate: string
 ): Promise<CashFlowData> {
-	const url = `${API_URL}/api/v1/financials/cash-flow?startDate=${startDate}&endDate=${endDate}`
+	const url = `${API_BASE_URL}/financials/cash-flow?startDate=${startDate}&endDate=${endDate}`
 	const result = await fetchWithAuth(url, token)
 	return result.data
 }
@@ -53,7 +60,7 @@ export async function getBalanceSheet(
 	token: string,
 	asOfDate: string
 ): Promise<BalanceSheetData> {
-	const url = `${API_URL}/api/v1/financials/balance-sheet?asOfDate=${asOfDate}`
+	const url = `${API_BASE_URL}/financials/balance-sheet?asOfDate=${asOfDate}`
 	const result = await fetchWithAuth(url, token)
 	return result.data
 }
@@ -62,7 +69,7 @@ export async function getTaxDocuments(
 	token: string,
 	taxYear: number
 ): Promise<TaxDocumentsData> {
-	const url = `${API_URL}/api/v1/financials/tax-documents?taxYear=${taxYear}`
+	const url = `${API_BASE_URL}/financials/tax-documents?taxYear=${taxYear}`
 	const result = await fetchWithAuth(url, token)
 	return result.data
 }

@@ -4,11 +4,20 @@ import { Badge } from '@/components/ui/badge'
 import {
 	Card,
 	CardAction,
+	CardContent,
 	CardDescription,
 	CardFooter,
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyIcon,
+	EmptyTitle
+} from '@/components/ui/empty'
 import {
 	Table,
 	TableBody,
@@ -188,29 +197,29 @@ export default async function PropertiesPage() {
 									Manage your property portfolio and track performance
 								</CardDescription>
 							</div>
-							<CreatePropertyDialog />
+							{properties?.length > 0 && <CreatePropertyDialog />}
 						</CardHeader>
-						<div className="px-6 pb-6">
-							<div className="rounded-md border">
-								<Table>
-									<TableHeader className="bg-muted/50">
-										<TableRow>
-											<TableHead className="font-semibold">
-												Property Name
-											</TableHead>
-											<TableHead className="font-semibold">Address</TableHead>
-											<TableHead className="font-semibold">Type</TableHead>
-											<TableHead className="font-semibold">Status</TableHead>
-											<TableHead className="font-semibold">Units</TableHead>
-											<TableHead className="font-semibold text-right">
-												Created
-											</TableHead>
-											<TableHead className="font-semibold">Actions</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{properties?.length ? (
-											properties.map((property: PropertyWithUnits) => (
+						{properties?.length > 0 ? (
+							<div className="px-6 pb-6">
+								<div className="rounded-md border">
+									<Table>
+										<TableHeader className="bg-muted/50">
+											<TableRow>
+												<TableHead className="font-semibold">
+													Property Name
+												</TableHead>
+												<TableHead className="font-semibold">Address</TableHead>
+												<TableHead className="font-semibold">Type</TableHead>
+												<TableHead className="font-semibold">Status</TableHead>
+												<TableHead className="font-semibold">Units</TableHead>
+												<TableHead className="font-semibold text-right">
+													Created
+												</TableHead>
+												<TableHead className="font-semibold">Actions</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{properties.map((property: PropertyWithUnits) => (
 												<TableRow
 													key={property.id}
 													className="hover:bg-muted/30"
@@ -259,29 +268,29 @@ export default async function PropertiesPage() {
 														<PropertyEditViewButtons property={property} />
 													</TableCell>
 												</TableRow>
-											))
-										) : (
-											<TableRow>
-												<TableCell colSpan={7} className="h-96">
-													<div className="flex flex-col items-center justify-center gap-4 text-center">
-														<Building className="size-12 text-muted-foreground" />
-														<div className="space-y-2">
-															<h3 className="text-lg font-semibold">
-																No properties found
-															</h3>
-															<p className="text-sm text-muted-foreground">
-																Get started by adding your first property
-															</p>
-														</div>
-														<CreatePropertyDialog />
-													</div>
-												</TableCell>
-											</TableRow>
-										)}
-									</TableBody>
-								</Table>
+											))}
+										</TableBody>
+									</Table>
+								</div>
 							</div>
-						</div>
+						) : (
+							<CardContent>
+								<Empty>
+									<EmptyHeader>
+										<EmptyIcon variant="icon">
+											<Building />
+										</EmptyIcon>
+										<EmptyTitle>No properties found</EmptyTitle>
+										<EmptyDescription>
+											Get started by adding your first property
+										</EmptyDescription>
+									</EmptyHeader>
+									<EmptyContent>
+										<CreatePropertyDialog />
+									</EmptyContent>
+								</Empty>
+							</CardContent>
+						)}
 					</Card>
 
 					{/* Quick Actions Section - Matching Dashboard */}

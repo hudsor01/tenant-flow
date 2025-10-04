@@ -8,8 +8,8 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from '@/components/ui/dialog'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
 	Select,
 	SelectContent,
@@ -129,8 +129,8 @@ export function CreateMaintenanceDialog() {
 					}}
 					className="space-y-4"
 				>
-					<div className="space-y-2">
-						<Label htmlFor="propertyId">Property</Label>
+					<Field>
+						<FieldLabel htmlFor="propertyId">Property</FieldLabel>
 						<Select
 							value={selectedPropertyId}
 							onValueChange={setSelectedPropertyId}
@@ -146,13 +146,13 @@ export function CreateMaintenanceDialog() {
 								))}
 							</SelectContent>
 						</Select>
-					</div>
+					</Field>
 
 					{selectedPropertyId && units.length > 0 && (
 						<form.Field name="unitId">
 							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="unitId">Unit (Optional)</Label>
+								<Field>
+									<FieldLabel htmlFor="unitId">Unit (Optional)</FieldLabel>
 									<Select
 										value={field.state.value}
 										onValueChange={value => field.handleChange(value)}
@@ -168,47 +168,51 @@ export function CreateMaintenanceDialog() {
 											))}
 										</SelectContent>
 									</Select>
-								</div>
+								</Field>
 							)}
 						</form.Field>
 					)}
 
 					<form.Field name="title">
 						{field => (
-							<div className="space-y-2">
-								<Label htmlFor="title">Title</Label>
+							<Field>
+								<FieldLabel htmlFor="title">Title</FieldLabel>
 								<Input
 									id="title"
 									placeholder="Kitchen faucet leak"
 									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										field.handleChange(e.target.value)
+									}
 									onBlur={field.handleBlur}
 								/>
-							</div>
+							</Field>
 						)}
 					</form.Field>
 
 					<form.Field name="description">
 						{field => (
-							<div className="space-y-2">
-								<Label htmlFor="description">Description</Label>
+							<Field>
+								<FieldLabel htmlFor="description">Description</FieldLabel>
 								<Textarea
 									id="description"
 									placeholder="Detailed description of the maintenance issue..."
 									rows={3}
 									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+										field.handleChange(e.target.value)
+									}
 									onBlur={field.handleBlur}
 								/>
-							</div>
+							</Field>
 						)}
 					</form.Field>
 
 					<div className="grid grid-cols-2 gap-4">
 						<form.Field name="category">
 							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="category">Category</Label>
+								<Field>
+									<FieldLabel htmlFor="category">Category</FieldLabel>
 									<Select
 										value={field.state.value}
 										onValueChange={value => field.handleChange(value)}
@@ -224,14 +228,14 @@ export function CreateMaintenanceDialog() {
 											))}
 										</SelectContent>
 									</Select>
-								</div>
+								</Field>
 							)}
 						</form.Field>
 
 						<form.Field name="priority">
 							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="priority">Priority</Label>
+								<Field>
+									<FieldLabel htmlFor="priority">Priority</FieldLabel>
 									<Select
 										value={field.state.value}
 										onValueChange={value => field.handleChange(value)}
@@ -246,46 +250,57 @@ export function CreateMaintenanceDialog() {
 											<SelectItem value="EMERGENCY">Emergency</SelectItem>
 										</SelectContent>
 									</Select>
-								</div>
+								</Field>
 							)}
 						</form.Field>
 					</div>
 
 					<form.Field name="estimatedCost">
 						{field => (
-							<div className="space-y-2">
-								<Label htmlFor="estimatedCost">Estimated Cost (Optional)</Label>
+							<Field>
+								<FieldLabel htmlFor="estimatedCost">
+									Estimated Cost (Optional)
+								</FieldLabel>
 								<Input
 									id="estimatedCost"
 									type="number"
 									placeholder="250"
 									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										field.handleChange(e.target.value)
+									}
 									onBlur={field.handleBlur}
 								/>
-							</div>
+							</Field>
 						)}
 					</form.Field>
 
 					<form.Field name="preferredDate">
 						{field => (
-							<div className="space-y-2">
-								<Label htmlFor="preferredDate">Preferred Date (Optional)</Label>
+							<Field>
+								<FieldLabel htmlFor="preferredDate">
+									Preferred Date (Optional)
+								</FieldLabel>
 								<Input
 									id="preferredDate"
 									type="date"
 									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										field.handleChange(e.target.value)
+									}
 									onBlur={field.handleBlur}
 								/>
-							</div>
+							</Field>
 						)}
 					</form.Field>
 
 					<form.Field name="allowEntry">
 						{field => (
 							<div className="space-y-2">
-								<Label htmlFor="allowEntry" className="flex items-center gap-2">
+								<FieldLabel
+									htmlFor="allowEntry"
+									className="flex items-center gap-2"
+								>
 									<input
 										id="allowEntry"
 										type="checkbox"
@@ -294,7 +309,7 @@ export function CreateMaintenanceDialog() {
 										className="rounded border border-input"
 									/>
 									Allow entry when tenant is not present
-								</Label>
+								</FieldLabel>
 							</div>
 						)}
 					</form.Field>

@@ -1,4 +1,5 @@
-import { getApiBaseUrl, getAuthHeaders } from '@/lib/api/reports-client'
+import { getAuthHeaders } from '@/lib/api/reports-client'
+import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
 
 describe('reports-client helpers', () => {
 	const origEnv = process.env
