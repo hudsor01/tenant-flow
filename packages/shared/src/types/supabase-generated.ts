@@ -192,6 +192,80 @@ export type Database = {
 				}
 				Relationships: []
 			}
+			ConnectedAccount: {
+				Row: {
+					accountStatus: string | null
+					accountType: string
+					businessType: string | null
+					capabilities: Json | null
+					chargesEnabled: boolean | null
+					contactEmail: string | null
+					country: string | null
+					createdAt: string | null
+					currency: string | null
+					detailsSubmitted: boolean | null
+					displayName: string | null
+					id: string
+					onboardingCompleted: boolean | null
+					onboardingCompletedAt: string | null
+					payoutsEnabled: boolean | null
+					requirements: Json | null
+					stripeAccountId: string
+					updatedAt: string | null
+					userId: string
+				}
+				Insert: {
+					accountStatus?: string | null
+					accountType?: string
+					businessType?: string | null
+					capabilities?: Json | null
+					chargesEnabled?: boolean | null
+					contactEmail?: string | null
+					country?: string | null
+					createdAt?: string | null
+					currency?: string | null
+					detailsSubmitted?: boolean | null
+					displayName?: string | null
+					id?: string
+					onboardingCompleted?: boolean | null
+					onboardingCompletedAt?: string | null
+					payoutsEnabled?: boolean | null
+					requirements?: Json | null
+					stripeAccountId: string
+					updatedAt?: string | null
+					userId: string
+				}
+				Update: {
+					accountStatus?: string | null
+					accountType?: string
+					businessType?: string | null
+					capabilities?: Json | null
+					chargesEnabled?: boolean | null
+					contactEmail?: string | null
+					country?: string | null
+					createdAt?: string | null
+					currency?: string | null
+					detailsSubmitted?: boolean | null
+					displayName?: string | null
+					id?: string
+					onboardingCompleted?: boolean | null
+					onboardingCompletedAt?: string | null
+					payoutsEnabled?: boolean | null
+					requirements?: Json | null
+					stripeAccountId?: string
+					updatedAt?: string | null
+					userId?: string
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'ConnectedAccount_userId_fkey'
+						columns: ['userId']
+						isOneToOne: false
+						referencedRelation: 'User'
+						referencedColumns: ['id']
+					}
+				]
+			}
 			CustomerInvoice: {
 				Row: {
 					businessAddress: string | null
@@ -889,6 +963,13 @@ export type Database = {
 				}
 				Relationships: [
 					{
+						foreignKeyName: 'Lease_propertyId_fkey'
+						columns: ['propertyId']
+						isOneToOne: false
+						referencedRelation: 'Property'
+						referencedColumns: ['id']
+					},
+					{
 						foreignKeyName: 'Lease_tenantId_fkey'
 						columns: ['tenantId']
 						isOneToOne: false
@@ -1427,6 +1508,53 @@ export type Database = {
 					}
 				]
 			}
+			PaymentSchedule: {
+				Row: {
+					amount: number
+					createdAt: string | null
+					dueDate: string
+					id: string
+					lateFeeAmount: number | null
+					lateFeeGraceDays: number | null
+					leaseId: string
+					paidAt: string | null
+					state: string
+					status: string | null
+				}
+				Insert: {
+					amount: number
+					createdAt?: string | null
+					dueDate: string
+					id?: string
+					lateFeeAmount?: number | null
+					lateFeeGraceDays?: number | null
+					leaseId: string
+					paidAt?: string | null
+					state: string
+					status?: string | null
+				}
+				Update: {
+					amount?: number
+					createdAt?: string | null
+					dueDate?: string
+					id?: string
+					lateFeeAmount?: number | null
+					lateFeeGraceDays?: number | null
+					leaseId?: string
+					paidAt?: string | null
+					state?: string
+					status?: string | null
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'PaymentSchedule_leaseId_fkey'
+						columns: ['leaseId']
+						isOneToOne: false
+						referencedRelation: 'Lease'
+						referencedColumns: ['id']
+					}
+				]
+			}
 			processed_stripe_events: {
 				Row: {
 					event_type: string
@@ -1686,6 +1814,92 @@ export type Database = {
 					}
 				]
 			}
+			RentPayment: {
+				Row: {
+					amount: number
+					createdAt: string | null
+					failureReason: string | null
+					id: string
+					landlordId: string
+					landlordReceives: number
+					leaseId: string
+					paidAt: string | null
+					paymentType: string
+					platformFee: number
+					status: string | null
+					stripeFee: number
+					stripeInvoiceId: string | null
+					stripePaymentIntentId: string | null
+					subscriptionId: string | null
+					tenantId: string
+				}
+				Insert: {
+					amount: number
+					createdAt?: string | null
+					failureReason?: string | null
+					id?: string
+					landlordId: string
+					landlordReceives: number
+					leaseId: string
+					paidAt?: string | null
+					paymentType: string
+					platformFee: number
+					status?: string | null
+					stripeFee: number
+					stripeInvoiceId?: string | null
+					stripePaymentIntentId?: string | null
+					subscriptionId?: string | null
+					tenantId: string
+				}
+				Update: {
+					amount?: number
+					createdAt?: string | null
+					failureReason?: string | null
+					id?: string
+					landlordId?: string
+					landlordReceives?: number
+					leaseId?: string
+					paidAt?: string | null
+					paymentType?: string
+					platformFee?: number
+					status?: string | null
+					stripeFee?: number
+					stripeInvoiceId?: string | null
+					stripePaymentIntentId?: string | null
+					subscriptionId?: string | null
+					tenantId?: string
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'RentPayment_landlordId_fkey'
+						columns: ['landlordId']
+						isOneToOne: false
+						referencedRelation: 'User'
+						referencedColumns: ['id']
+					},
+					{
+						foreignKeyName: 'RentPayment_leaseId_fkey'
+						columns: ['leaseId']
+						isOneToOne: false
+						referencedRelation: 'Lease'
+						referencedColumns: ['id']
+					},
+					{
+						foreignKeyName: 'RentPayment_subscriptionId_fkey'
+						columns: ['subscriptionId']
+						isOneToOne: false
+						referencedRelation: 'RentSubscription'
+						referencedColumns: ['id']
+					},
+					{
+						foreignKeyName: 'RentPayment_tenantId_fkey1'
+						columns: ['tenantId']
+						isOneToOne: false
+						referencedRelation: 'User'
+						referencedColumns: ['id']
+					}
+				]
+			}
 			RentPayments: {
 				Row: {
 					amount: number
@@ -1767,6 +1981,76 @@ export type Database = {
 						columns: ['tenantId']
 						isOneToOne: false
 						referencedRelation: 'Tenant'
+						referencedColumns: ['id']
+					}
+				]
+			}
+			RentSubscription: {
+				Row: {
+					amount: number
+					createdAt: string | null
+					dueDay: number
+					id: string
+					landlordId: string
+					leaseId: string
+					nextBillingDate: string | null
+					platformFeePercent: number
+					status: string | null
+					stripeCustomerId: string
+					stripeSubscriptionId: string
+					tenantId: string
+					updatedAt: string | null
+				}
+				Insert: {
+					amount: number
+					createdAt?: string | null
+					dueDay: number
+					id?: string
+					landlordId: string
+					leaseId: string
+					nextBillingDate?: string | null
+					platformFeePercent: number
+					status?: string | null
+					stripeCustomerId: string
+					stripeSubscriptionId: string
+					tenantId: string
+					updatedAt?: string | null
+				}
+				Update: {
+					amount?: number
+					createdAt?: string | null
+					dueDay?: number
+					id?: string
+					landlordId?: string
+					leaseId?: string
+					nextBillingDate?: string | null
+					platformFeePercent?: number
+					status?: string | null
+					stripeCustomerId?: string
+					stripeSubscriptionId?: string
+					tenantId?: string
+					updatedAt?: string | null
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'RentSubscription_landlordId_fkey'
+						columns: ['landlordId']
+						isOneToOne: false
+						referencedRelation: 'User'
+						referencedColumns: ['id']
+					},
+					{
+						foreignKeyName: 'RentSubscription_leaseId_fkey'
+						columns: ['leaseId']
+						isOneToOne: false
+						referencedRelation: 'Lease'
+						referencedColumns: ['id']
+					},
+					{
+						foreignKeyName: 'RentSubscription_tenantId_fkey'
+						columns: ['tenantId']
+						isOneToOne: false
+						referencedRelation: 'User'
 						referencedColumns: ['id']
 					}
 				]
@@ -2101,6 +2385,24 @@ export type Database = {
 					}
 				]
 			}
+			StripeWebhookEvent: {
+				Row: {
+					eventId: string
+					processedAt: string | null
+					type: string
+				}
+				Insert: {
+					eventId: string
+					processedAt?: string | null
+					type: string
+				}
+				Update: {
+					eventId?: string
+					processedAt?: string | null
+					type?: string
+				}
+				Relationships: []
+			}
 			Subscription: {
 				Row: {
 					billingPeriod: string | null
@@ -2222,6 +2524,56 @@ export type Database = {
 					{
 						foreignKeyName: 'Tenant_userId_fkey'
 						columns: ['userId']
+						isOneToOne: false
+						referencedRelation: 'User'
+						referencedColumns: ['id']
+					}
+				]
+			}
+			TenantPaymentMethod: {
+				Row: {
+					brand: string | null
+					createdAt: string | null
+					id: string
+					isDefault: boolean | null
+					last4: string | null
+					stripeCustomerId: string
+					stripePaymentMethodId: string
+					tenantId: string
+					type: string
+					updatedAt: string | null
+					verificationStatus: string | null
+				}
+				Insert: {
+					brand?: string | null
+					createdAt?: string | null
+					id?: string
+					isDefault?: boolean | null
+					last4?: string | null
+					stripeCustomerId: string
+					stripePaymentMethodId: string
+					tenantId: string
+					type: string
+					updatedAt?: string | null
+					verificationStatus?: string | null
+				}
+				Update: {
+					brand?: string | null
+					createdAt?: string | null
+					id?: string
+					isDefault?: boolean | null
+					last4?: string | null
+					stripeCustomerId?: string
+					stripePaymentMethodId?: string
+					tenantId?: string
+					type?: string
+					updatedAt?: string | null
+					verificationStatus?: string | null
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'TenantPaymentMethod_tenantId_fkey'
+						columns: ['tenantId']
 						isOneToOne: false
 						referencedRelation: 'User'
 						referencedColumns: ['id']
