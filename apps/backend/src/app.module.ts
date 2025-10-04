@@ -34,6 +34,7 @@ import { ServicesModule } from './shared/services/services.module'
 import { SharedModule } from './shared/shared.module'
 import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
 import { StripeWebhookModule } from './stripe-webhook/stripe-webhook.module'
+import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantsModule } from './tenants/tenants.module'
 import { UnitsModule } from './units/units.module'
 import { UsersModule } from './users/users.module'
@@ -100,6 +101,7 @@ import { UsersModule } from './users/users.module'
 		StripeModule,
 		StripeConnectModule,
 		StripeWebhookModule,
+		SubscriptionsModule,
 		RentPaymentsModule,
 		PaymentMethodsModule,
 		ContactModule,
