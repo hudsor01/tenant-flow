@@ -5,33 +5,41 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import {
+	Item,
+	ItemActions,
+	ItemContent,
+	ItemDescription,
+	ItemGroup,
+	ItemMedia,
+	ItemSeparator,
+	ItemTitle
+} from '@/components/ui/item'
 import { Label } from '@/components/ui/label'
-import
-  {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-  } from '@/components/ui/select'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
-import
-  {
-    AlertTriangle,
-    Bell,
-    CreditCard,
-    Download,
-    Globe,
-    RefreshCw,
-    Save,
-    Settings,
-    Shield,
-    Trash2,
-    Upload,
-    User
-  } from 'lucide-react'
+import {
+	AlertTriangle,
+	Bell,
+	CreditCard,
+	Download,
+	Globe,
+	RefreshCw,
+	Save,
+	Settings,
+	Shield,
+	Trash2,
+	Upload,
+	User
+} from 'lucide-react'
 
 export default function SettingsPage() {
 	return (
@@ -142,68 +150,110 @@ export default function SettingsPage() {
 				<TabsContent value="notifications" className="space-y-6">
 					<Card className="p-6 border shadow-sm">
 						<h3 className="text-lg font-semibold mb-4">Email Notifications</h3>
-						<div className="space-y-4">
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="font-medium">New Maintenance Requests</p>
-									<p className="text-sm text-muted-foreground">
+						<ItemGroup>
+							<Item variant="outline">
+								<ItemMedia variant="icon">
+									<Bell />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>New Maintenance Requests</ItemTitle>
+									<ItemDescription>
 										Get notified when new maintenance requests are submitted
-									</p>
-								</div>
-								<Switch defaultChecked />
-							</div>
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="font-medium">Lease Renewals</p>
-									<p className="text-sm text-muted-foreground">
+									</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									<Switch defaultChecked />
+								</ItemActions>
+							</Item>
+
+							<ItemSeparator />
+
+							<Item variant="outline">
+								<ItemMedia variant="icon">
+									<RefreshCw />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>Lease Renewals</ItemTitle>
+									<ItemDescription>
 										Reminders for upcoming lease renewals
-									</p>
-								</div>
-								<Switch defaultChecked />
-							</div>
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="font-medium">Payment Notifications</p>
-									<p className="text-sm text-muted-foreground">
+									</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									<Switch defaultChecked />
+								</ItemActions>
+							</Item>
+
+							<ItemSeparator />
+
+							<Item variant="outline">
+								<ItemMedia variant="icon">
+									<CreditCard />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>Payment Notifications</ItemTitle>
+									<ItemDescription>
 										Alerts for rent payments and overdue accounts
-									</p>
-								</div>
-								<Switch defaultChecked />
-							</div>
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="font-medium">System Updates</p>
-									<p className="text-sm text-muted-foreground">
+									</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									<Switch defaultChecked />
+								</ItemActions>
+							</Item>
+
+							<ItemSeparator />
+
+							<Item variant="outline">
+								<ItemMedia variant="icon">
+									<Settings />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>System Updates</ItemTitle>
+									<ItemDescription>
 										Information about system maintenance and updates
-									</p>
-								</div>
-								<Switch />
-							</div>
-						</div>
+									</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									<Switch />
+								</ItemActions>
+							</Item>
+						</ItemGroup>
 					</Card>
 
 					<Card className="p-6 border shadow-sm">
 						<h3 className="text-lg font-semibold mb-4">Push Notifications</h3>
-						<div className="space-y-4">
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="font-medium">Emergency Maintenance</p>
-									<p className="text-sm text-muted-foreground">
+						<ItemGroup>
+							<Item variant="outline">
+								<ItemMedia variant="icon">
+									<AlertTriangle />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>Emergency Maintenance</ItemTitle>
+									<ItemDescription>
 										Immediate alerts for critical issues
-									</p>
-								</div>
-								<Switch defaultChecked />
-							</div>
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="font-medium">New Messages</p>
-									<p className="text-sm text-muted-foreground">
+									</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									<Switch defaultChecked />
+								</ItemActions>
+							</Item>
+
+							<ItemSeparator />
+
+							<Item variant="outline">
+								<ItemMedia variant="icon">
+									<Bell />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>New Messages</ItemTitle>
+									<ItemDescription>
 										Notifications for tenant messages
-									</p>
-								</div>
-								<Switch defaultChecked />
-							</div>
-						</div>
+									</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									<Switch defaultChecked />
+								</ItemActions>
+							</Item>
+						</ItemGroup>
 					</Card>
 				</TabsContent>
 

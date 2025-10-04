@@ -4,11 +4,20 @@ import { Badge } from '@/components/ui/badge'
 import {
 	Card,
 	CardAction,
+	CardContent,
 	CardDescription,
 	CardFooter,
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
+import {
+	Empty,
+	EmptyContent,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyIcon,
+	EmptyTitle
+} from '@/components/ui/empty'
 import {
 	Table,
 	TableBody,
@@ -188,26 +197,32 @@ export default async function MaintenancePage() {
 									Track and manage all property maintenance requests
 								</CardDescription>
 							</div>
-							<CreateMaintenanceDialog />
+							{maintenanceData.length > 0 && <CreateMaintenanceDialog />}
 						</CardHeader>
-						<div className="px-6 pb-6">
-							<div className="rounded-md border">
-								<Table>
-									<TableHeader className="bg-muted/50">
-										<TableRow>
-											<TableHead className="font-semibold">ID</TableHead>
-											<TableHead className="font-semibold">Property</TableHead>
-											<TableHead className="font-semibold">Unit</TableHead>
-											<TableHead className="font-semibold">Category</TableHead>
-											<TableHead className="font-semibold">Priority</TableHead>
-											<TableHead className="font-semibold">Status</TableHead>
-											<TableHead className="font-semibold">Created</TableHead>
-											<TableHead className="font-semibold">Actions</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{maintenanceData.length > 0 ? (
-											maintenanceData.map(request => (
+						{maintenanceData.length > 0 ? (
+							<div className="px-6 pb-6">
+								<div className="rounded-md border">
+									<Table>
+										<TableHeader className="bg-muted/50">
+											<TableRow>
+												<TableHead className="font-semibold">ID</TableHead>
+												<TableHead className="font-semibold">
+													Property
+												</TableHead>
+												<TableHead className="font-semibold">Unit</TableHead>
+												<TableHead className="font-semibold">
+													Category
+												</TableHead>
+												<TableHead className="font-semibold">
+													Priority
+												</TableHead>
+												<TableHead className="font-semibold">Status</TableHead>
+												<TableHead className="font-semibold">Created</TableHead>
+												<TableHead className="font-semibold">Actions</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{maintenanceData.map(request => (
 												<TableRow
 													key={request.id}
 													className="hover:bg-muted/30"
@@ -248,30 +263,29 @@ export default async function MaintenancePage() {
 														<MaintenanceActionButtons maintenance={request} />
 													</TableCell>
 												</TableRow>
-											))
-										) : (
-											<TableRow>
-												<TableCell colSpan={8} className="h-96">
-													<div className="flex flex-col items-center justify-center gap-4 text-center">
-														<Wrench className="size-12 text-muted-foreground" />
-														<div className="space-y-2">
-															<h3 className="text-lg font-semibold">
-																No maintenance requests found
-															</h3>
-															<p className="text-sm text-muted-foreground">
-																Get started by creating your first maintenance
-																request
-															</p>
-														</div>
-														<CreateMaintenanceDialog />
-													</div>
-												</TableCell>
-											</TableRow>
-										)}
-									</TableBody>
-								</Table>
+											))}
+										</TableBody>
+									</Table>
+								</div>
 							</div>
-						</div>
+						) : (
+							<CardContent>
+								<Empty>
+									<EmptyHeader>
+										<EmptyIcon variant="icon">
+											<Wrench />
+										</EmptyIcon>
+										<EmptyTitle>No maintenance requests found</EmptyTitle>
+										<EmptyDescription>
+											Get started by creating your first maintenance request
+										</EmptyDescription>
+									</EmptyHeader>
+									<EmptyContent>
+										<CreateMaintenanceDialog />
+									</EmptyContent>
+								</Empty>
+							</CardContent>
+						)}
 					</Card>
 
 					{/* Quick Actions Section - Matching Dashboard */}
