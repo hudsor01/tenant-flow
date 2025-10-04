@@ -88,8 +88,10 @@ async function requestExport(
 		safeDom.appendToBody(anchor)
 		anchor.click()
 		safeDom.removeFromBody(anchor)
+		setTimeout(() => URL.revokeObjectURL(url), 100)
+	} else {
+		URL.revokeObjectURL(url)
 	}
-	URL.revokeObjectURL(url)
 }
 
 export function ExportButtons({ filename, payload }: ExportButtonsProps) {
