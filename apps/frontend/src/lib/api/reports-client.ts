@@ -125,7 +125,7 @@ export const reportsClient = {
 		document.body.appendChild(link)
 		link.click()
 		document.body.removeChild(link)
-		window.URL.revokeObjectURL(url)
+		setTimeout(() => window.URL.revokeObjectURL(url), 100)
 	},
 
 	/**
@@ -197,7 +197,7 @@ export const reportsClient = {
 		document.body.appendChild(link)
 		link.click()
 		document.body.removeChild(link)
-		window.URL.revokeObjectURL(url)
+		setTimeout(() => window.URL.revokeObjectURL(url), 100)
 	},
 
 	/**
