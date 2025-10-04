@@ -584,3 +584,32 @@ export type TenantInput = Database['public']['Tables']['Tenant']['Insert']
 export type TenantUpdate = Database['public']['Tables']['Tenant']['Update']
 export type UnitInput = Database['public']['Tables']['Unit']['Insert']
 export type UnitUpdate = Database['public']['Tables']['Unit']['Update']
+
+// PAYMENT METHOD TYPES - Tenant payment system (Phase 2-3)
+
+export type PaymentMethodType = 'card' | 'us_bank_account'
+
+export interface PaymentMethodSetupIntent {
+	clientSecret: string | null
+	setupIntentId: string
+}
+
+export interface PaymentMethodResponse {
+	id: string
+	tenantId: string
+	stripePaymentMethodId: string
+	type: PaymentMethodType
+	last4: string | null
+	brand: string | null
+	bankName: string | null
+	isDefault: boolean
+	createdAt: string
+}
+
+export interface CreateSetupIntentRequest {
+	type: PaymentMethodType
+}
+
+export interface SetDefaultPaymentMethodRequest {
+	paymentMethodId: string
+}
