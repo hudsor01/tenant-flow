@@ -13,18 +13,23 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { ButtonGroup } from '@/components/ui/button-group'
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '@/components/ui/input-group'
 import { Textarea } from '@/components/ui/textarea'
 import { tenantsApi } from '@/lib/api-client'
-import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
 import {
 	tenantUpdateSchema,
 	type TenantUpdate
@@ -107,7 +112,7 @@ export function TenantEditViewButtons({ tenant }: TenantActionButtonsProps) {
 	})
 
 	return (
-		<div className="flex items-center gap-1">
+		<ButtonGroup>
 			{/* View Button & Dialog */}
 			<Button variant="outline" size="sm" onClick={() => setViewOpen(true)}>
 				<Eye className="w-4 h-4" />
@@ -171,121 +176,153 @@ export function TenantEditViewButtons({ tenant }: TenantActionButtonsProps) {
 						<div className="grid grid-cols-2 gap-4">
 							<form.Field name="firstName">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="edit-firstName">First Name</Label>
-										<Input
-											id="edit-firstName"
-											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
-											onBlur={field.handleBlur}
-											placeholder="John"
-										/>
-										{field.state.meta.errors?.length ? (
-											<p className="text-sm text-destructive">
+									<Field>
+										<FieldLabel htmlFor="edit-firstName">First Name</FieldLabel>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<User className="w-4 h-4" />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="edit-firstName"
+												value={field.state.value}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
+												onBlur={field.handleBlur}
+												placeholder="John"
+											/>
+										</InputGroup>
+										{field.state.meta.errors?.length && (
+											<FieldError>
 												{String(field.state.meta.errors[0])}
-											</p>
-										) : null}
-									</div>
+											</FieldError>
+										)}
+									</Field>
 								)}
 							</form.Field>
 
 							<form.Field name="lastName">
 								{field => (
-									<div className="space-y-2">
-										<Label htmlFor="edit-lastName">Last Name</Label>
-										<Input
-											id="edit-lastName"
-											value={field.state.value}
-											onChange={e => field.handleChange(e.target.value)}
-											onBlur={field.handleBlur}
-											placeholder="Smith"
-										/>
-										{field.state.meta.errors?.length ? (
-											<p className="text-sm text-destructive">
+									<Field>
+										<FieldLabel htmlFor="edit-lastName">Last Name</FieldLabel>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<User className="w-4 h-4" />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="edit-lastName"
+												value={field.state.value}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
+												onBlur={field.handleBlur}
+												placeholder="Smith"
+											/>
+										</InputGroup>
+										{field.state.meta.errors?.length && (
+											<FieldError>
 												{String(field.state.meta.errors[0])}
-											</p>
-										) : null}
-									</div>
+											</FieldError>
+										)}
+									</Field>
 								)}
 							</form.Field>
 						</div>
 
 						<form.Field name="email">
 							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="edit-email">Email Address</Label>
-									<Input
-										id="edit-email"
-										type="email"
-										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-										placeholder="john.smith@example.com"
-									/>
-									{field.state.meta.errors?.length ? (
-										<p className="text-sm text-destructive">
+								<Field>
+									<FieldLabel htmlFor="edit-email">Email Address</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<Mail className="w-4 h-4" />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="edit-email"
+											type="email"
+											value={field.state.value}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+											placeholder="john.smith@example.com"
+										/>
+									</InputGroup>
+									{field.state.meta.errors?.length && (
+										<FieldError>
 											{String(field.state.meta.errors[0])}
-										</p>
-									) : null}
-								</div>
+										</FieldError>
+									)}
+								</Field>
 							)}
 						</form.Field>
 
 						<form.Field name="phone">
 							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="edit-phone">Phone Number</Label>
-									<Input
-										id="edit-phone"
-										type="tel"
-										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-										placeholder="(555) 123-4567"
-									/>
-									{field.state.meta.errors?.length ? (
-										<p className="text-sm text-destructive">
+								<Field>
+									<FieldLabel htmlFor="edit-phone">Phone Number</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<Phone className="w-4 h-4" />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="edit-phone"
+											type="tel"
+											value={field.state.value}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+											placeholder="(555) 123-4567"
+										/>
+									</InputGroup>
+									{field.state.meta.errors?.length && (
+										<FieldError>
 											{String(field.state.meta.errors[0])}
-										</p>
-									) : null}
-								</div>
+										</FieldError>
+									)}
+								</Field>
 							)}
 						</form.Field>
 
 						<form.Field name="emergencyContact">
 							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="edit-emergencyContact">
+								<Field>
+									<FieldLabel htmlFor="edit-emergencyContact">
 										Emergency Contact
-									</Label>
+									</FieldLabel>
 									<Textarea
 										id="edit-emergencyContact"
 										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
+										onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+											field.handleChange(e.target.value)
+										}
 										onBlur={field.handleBlur}
 										placeholder="Emergency contact information..."
 										rows={3}
 									/>
-									{field.state.meta.errors?.length ? (
-										<p className="text-sm text-destructive">
+									{field.state.meta.errors?.length && (
+										<FieldError>
 											{String(field.state.meta.errors[0])}
-										</p>
-									) : null}
-								</div>
+										</FieldError>
+									)}
+								</Field>
 							)}
 						</form.Field>
 
-						<div className="flex justify-end gap-2 pt-2">
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => setEditOpen(false)}
-							>
-								Cancel
-							</Button>
-							<Button type="submit" disabled={updateMutation.isPending}>
-								{updateMutation.isPending ? 'Updating...' : 'Update Tenant'}
-							</Button>
+						<div className="flex justify-end pt-2">
+							<ButtonGroup>
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => setEditOpen(false)}
+								>
+									Cancel
+								</Button>
+								<Button type="submit" disabled={updateMutation.isPending}>
+									{updateMutation.isPending ? 'Updating...' : 'Update Tenant'}
+								</Button>
+							</ButtonGroup>
 						</div>
 					</form>
 				</DialogContent>
@@ -390,22 +427,24 @@ export function TenantEditViewButtons({ tenant }: TenantActionButtonsProps) {
 						</div>
 
 						{/* Action Buttons */}
-						<div className="flex justify-end gap-2 pt-4 border-t">
-							<Button variant="outline" onClick={() => setViewOpen(false)}>
-								Close
-							</Button>
-							<Button
-								onClick={() => {
-									setViewOpen(false)
-									setEditOpen(true)
-								}}
-							>
-								Edit Tenant
-							</Button>
+						<div className="flex justify-end pt-4 border-t">
+							<ButtonGroup>
+								<Button variant="outline" onClick={() => setViewOpen(false)}>
+									Close
+								</Button>
+								<Button
+									onClick={() => {
+										setViewOpen(false)
+										setEditOpen(true)
+									}}
+								>
+									Edit Tenant
+								</Button>
+							</ButtonGroup>
 						</div>
 					</div>
 				</DialogContent>
 			</Dialog>
-		</div>
+		</ButtonGroup>
 	)
 }
