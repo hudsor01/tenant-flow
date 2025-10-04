@@ -38,10 +38,7 @@ export default function PostHogClientProvider({
 			capture_pageview: false,
 			person_profiles: 'identified_only',
 			persistence: 'localStorage+cookie',
-			session_recording: {
-				maskAllInputs: false,
-				maskInputOptions: { password: true }
-			}
+			disable_external_dependency_loading: true
 		})
 
 		window.posthog = posthog
