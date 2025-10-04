@@ -613,3 +613,51 @@ export interface CreateSetupIntentRequest {
 export interface SetDefaultPaymentMethodRequest {
 	paymentMethodId: string
 }
+
+// RENT SUBSCRIPTION TYPES - Autopay subscriptions (Phase 4)
+
+export type SubscriptionStatus =
+	| 'active'
+	| 'paused'
+	| 'canceled'
+	| 'past_due'
+	| 'incomplete'
+
+export interface RentSubscriptionResponse {
+	id: string
+	leaseId: string
+	tenantId: string
+	landlordId: string
+	stripeSubscriptionId: string
+	stripeCustomerId: string
+	paymentMethodId: string
+	amount: number
+	currency: string
+	billingDayOfMonth: number
+	status: SubscriptionStatus
+	platformFeePercentage: number
+	pausedAt: string | null
+	canceledAt: string | null
+	createdAt: string
+	updatedAt: string
+}
+
+export interface CreateSubscriptionRequest {
+	leaseId: string
+	paymentMethodId: string
+	amount: number
+	billingDayOfMonth: number
+	currency?: string
+}
+
+export interface UpdateSubscriptionRequest {
+	amount?: number
+	paymentMethodId?: string
+	billingDayOfMonth?: number
+}
+
+export interface SubscriptionActionResponse {
+	success: boolean
+	subscription?: RentSubscriptionResponse
+	message?: string
+}

@@ -139,28 +139,163 @@ export class StripeWebhookService {
 
 	/**
 	 * Handle successful Invoice payment (subscriptions)
+	 * Phase 4: Create RentPayment record for successful subscription charge
 	 */
 	private async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 		this.logger.log(`Invoice payment succeeded: ${invoice.id}`)
-		// Implementation will be added in Phase 4
+
+		// Type guard for expanded invoice fields from webhooks
+		const invoiceData = invoice as Stripe.Invoice & {
+			subscription?: string | Stripe.Subscription
+			payment_intent?: string | Stripe.PaymentIntent
+		}
+
+		if (!invoiceData.subscription) {
+			this.logger.warn('Invoice has no subscription, skipping')
+			return
+		}
+
+		const subscriptionId =
+			typeof invoiceData.subscription === 'string'
+				? invoiceData.subscription
+				: invoiceData.subscription?.id
+
+		// Get subscription from database
+		const { data: subscription } = await this.supabase
+			.getAdminClient()
+			.from('RentSubscription')
+			.select('*')
+			.eq('stripeSubscriptionId', subscriptionId)
+			.single()
+
+		if (!subscription) {
+			this.logger.warn(`Subscription not found for invoice: ${subscriptionId}`)
+			return
+		}
+
+		// Get payment intent ID
+		const paymentIntentId =
+			typeof invoiceData.payment_intent === 'string'
+				? invoiceData.payment_intent
+				: invoiceData.payment_intent?.id || null
+
+		// Calculate fees (amounts in cents)
+		const amountPaid = invoice.amount_paid || 0
+		const platformFee = Math.round(amountPaid * 0.029) // 2.9% platform fee
+		const stripeFee = Math.round(amountPaid * 0.029 + 30) // Stripe's fee estimate
+		const landlordReceives = amountPaid - platformFee - stripeFee
+
+		// Create RentPayment record for this charge
+		await this.supabase.getAdminClient().from('RentPayment').insert({
+			tenantId: subscription.tenantId,
+			landlordId: subscription.landlordId,
+			leaseId: subscription.leaseId,
+			subscriptionId: subscription.id,
+			amount: amountPaid,
+			platformFee,
+			stripeFee,
+			landlordReceives,
+			status: 'succeeded',
+			paymentType: 'ach', // Subscription payments default to ACH
+			stripePaymentIntentId: paymentIntentId,
+			stripeInvoiceId: invoice.id,
+			paidAt: new Date().toISOString()
+		})
 	}
 
 	/**
 	 * Handle failed Invoice payment (subscription retry logic)
+	 * Phase 4: Track failed attempts and auto-pause after max retries
 	 */
 	private async handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 		this.logger.log(
 			`Invoice payment failed: ${invoice.id}, attempt ${invoice.attempt_count}`
 		)
-		// Smart Retries handling will be added in Phase 4
+
+		// Type guard for expanded invoice fields from webhooks
+		const invoiceData = invoice as Stripe.Invoice & {
+			subscription?: string | Stripe.Subscription
+			payment_intent?: string | Stripe.PaymentIntent
+		}
+
+		if (!invoiceData.subscription) {
+			this.logger.warn('Invoice has no subscription, skipping')
+			return
+		}
+
+		const subscriptionId =
+			typeof invoiceData.subscription === 'string'
+				? invoiceData.subscription
+				: invoiceData.subscription?.id
+
+		// Get subscription from database
+		const { data: subscription } = await this.supabase
+			.getAdminClient()
+			.from('RentSubscription')
+			.select('*')
+			.eq('stripeSubscriptionId', subscriptionId)
+			.single()
+
+		if (!subscription) {
+			this.logger.warn(`Subscription not found for invoice: ${subscriptionId}`)
+			return
+		}
+
+		// Update subscription to past_due status
+		await this.supabase
+			.getAdminClient()
+			.from('RentSubscription')
+			.update({
+				status: 'past_due'
+			})
+			.eq('id', subscription.id)
+
+		// Smart Retries: After 4 attempts (configurable in Stripe Dashboard)
+		// Stripe will automatically pause the subscription
+		// We handle the subscription.updated webhook to sync status
+		if ((invoice.attempt_count || 0) >= 4) {
+			this.logger.warn(
+				`Subscription ${subscription.id} exceeded retry limit, pausing`
+			)
+			await this.supabase
+				.getAdminClient()
+				.from('RentSubscription')
+				.update({
+					status: 'paused',
+					pausedAt: new Date().toISOString()
+				})
+				.eq('id', subscription.id)
+		}
 	}
 
 	/**
 	 * Handle subscription updates
+	 * Phase 4: Sync subscription status changes from Stripe
 	 */
 	private async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 		this.logger.log(`Subscription updated: ${subscription.id}`)
-		// Implementation will be added in Phase 4
+
+		// Map Stripe status to our status
+		const statusMap: Record<string, string> = {
+			active: 'active',
+			past_due: 'past_due',
+			canceled: 'canceled',
+			incomplete: 'incomplete',
+			incomplete_expired: 'incomplete',
+			paused: 'paused',
+			unpaid: 'past_due'
+		}
+
+		const dbStatus = statusMap[subscription.status] || subscription.status
+
+		await this.supabase
+			.getAdminClient()
+			.from('RentSubscription')
+			.update({
+				status: dbStatus,
+				updatedAt: new Date().toISOString()
+			})
+			.eq('stripeSubscriptionId', subscription.id)
 	}
 
 	/**
