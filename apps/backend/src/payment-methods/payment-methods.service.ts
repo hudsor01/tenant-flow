@@ -1,4 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common'
+import {
+	BadRequestException,
+	Injectable,
+	Logger,
+	NotFoundException
+} from '@nestjs/common'
 import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
 
@@ -9,59 +14,76 @@ export class PaymentMethodsService {
 
 	constructor(private readonly supabase: SupabaseService) {
 		this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-			apiVersion: '2025-08-27' as Stripe.LatestApiVersion
+			apiVersion: '2025-09-30.clover'
 		})
-	}
-
-	/**
-	 * Get or create Stripe customer for a user
+	} /**
+	 * Get or create Stripe customer for a user.
+	 * Caches the Stripe customer ID on the User record to avoid duplicate customers.
 	 */
-	async getOrCreateStripeCustomer(userId: string, email: string) {
-		// Check if user already has Stripe customer
-		const { data: user } = await this.supabase
-			.getAdminClient()
+	async getOrCreateStripeCustomer(userId: string, email?: string) {
+		const adminClient = this.supabase.getAdminClient()
+
+		const { data: user, error } = await adminClient
 			.from('User')
-			.select('stripeCustomerId')
+			.select('stripeCustomerId, email')
 			.eq('id', userId)
 			.single()
+
+		if (error) {
+			this.logger.error('Failed to load user while resolving Stripe customer', {
+				userId,
+				error: error.message
+			})
+			throw new NotFoundException('User not found for Stripe customer lookup')
+		}
 
 		if (user?.stripeCustomerId) {
 			return user.stripeCustomerId
 		}
 
-		// Create new Stripe customer
 		this.logger.log(`Creating Stripe customer for user ${userId}`)
 		const customer = await this.stripe.customers.create({
-			email,
+			email: email || user?.email || undefined,
 			metadata: { userId }
 		})
 
-		// Save customer ID to database
-		await this.supabase
-			.getAdminClient()
+		const { error: updateError } = await adminClient
 			.from('User')
-			.update({ stripeCustomerId: customer.id })
+			.update({
+				stripeCustomerId: customer.id,
+				updatedAt: new Date().toISOString()
+			})
 			.eq('id', userId)
+
+		if (updateError) {
+			this.logger.error('Failed to persist Stripe customer ID', {
+				userId,
+				error: updateError.message
+			})
+		}
 
 		return customer.id
 	}
 
 	/**
-	 * Create a SetupIntent for saving payment methods
-	 * Supports both card and ACH payment methods
+	 * Create a Stripe SetupIntent so the tenant can add a payment method.
+	 * Supports both card and ACH (us_bank_account) payment method types.
 	 */
 	async createSetupIntent(
-		tenantId: string,
-		email: string,
+		userId: string,
+		email: string | undefined,
 		paymentMethodType: 'card' | 'us_bank_account'
 	) {
-		this.logger.log(`Creating SetupIntent for tenant ${tenantId}`)
+		if (!userId) {
+			throw new BadRequestException('User not authenticated')
+		}
 
-		// Get or create Stripe customer
-		const stripeCustomerId = await this.getOrCreateStripeCustomer(
-			tenantId,
-			email
-		)
+		this.logger.log('Creating payment method SetupIntent', {
+			userId,
+			paymentMethodType
+		})
+
+		const stripeCustomerId = await this.getOrCreateStripeCustomer(userId, email)
 
 		const setupIntentParams: Stripe.SetupIntentCreateParams = {
 			customer: stripeCustomerId,
@@ -69,11 +91,10 @@ export class PaymentMethodsService {
 			usage: 'off_session'
 		}
 
-		// Add ACH-specific options for instant verification
 		if (paymentMethodType === 'us_bank_account') {
 			setupIntentParams.payment_method_options = {
 				us_bank_account: {
-					verification_method: 'instant', // Use Plaid/Financial Connections
+					verification_method: 'instant',
 					financial_connections: {
 						permissions: ['payment_method', 'balances']
 					}
@@ -84,132 +105,268 @@ export class PaymentMethodsService {
 		const setupIntent = await this.stripe.setupIntents.create(setupIntentParams)
 
 		return {
-			clientSecret: setupIntent.client_secret,
+			clientSecret: setupIntent.client_secret ?? null,
 			setupIntentId: setupIntent.id
 		}
 	}
 
 	/**
-	 * Save payment method to database after confirmation
+	 * Save a confirmed Stripe payment method in the TenantPaymentMethod table.
+	 * Automatically flags the first method as default and ensures ownership checks.
 	 */
-	async savePaymentMethod(tenantId: string, stripePaymentMethodId: string) {
-		this.logger.log(`Saving payment method for tenant ${tenantId}`)
+	async savePaymentMethod(userId: string, stripePaymentMethodId: string) {
+		if (!userId || !stripePaymentMethodId) {
+			throw new BadRequestException('Missing required payment method details')
+		}
+
+		this.logger.log('Saving tenant payment method', {
+			userId,
+			stripePaymentMethodId
+		})
+
+		const adminClient = this.supabase.getAdminClient()
+		const stripeCustomerId = await this.getOrCreateStripeCustomer(userId)
 
 		const paymentMethod = await this.stripe.paymentMethods.retrieve(
 			stripePaymentMethodId
 		)
 
-		const { error } = await this.supabase
-			.getAdminClient()
-			.from('TenantPaymentMethod')
-			.insert({
-				tenantId,
-				stripePaymentMethodId,
-				stripeCustomerId: paymentMethod.customer as string,
-				type: paymentMethod.type,
-				last4:
-					paymentMethod.card?.last4 || paymentMethod.us_bank_account?.last4,
-				brand: paymentMethod.card?.brand,
-				isDefault: true, // First payment method is default
-				verificationStatus:
-					paymentMethod.type === 'card' ? 'verified' : 'pending'
+		if (paymentMethod.customer && paymentMethod.customer !== stripeCustomerId) {
+			this.logger.error('Payment method attached to different customer', {
+				userId,
+				expectedCustomer: stripeCustomerId,
+				paymentMethodCustomer: paymentMethod.customer
 			})
+			throw new BadRequestException(
+				'Payment method is linked to a different customer'
+			)
+		}
+
+		if (!paymentMethod.customer) {
+			await this.stripe.paymentMethods.attach(stripePaymentMethodId, {
+				customer: stripeCustomerId
+			})
+		}
+
+		const { data: existing, error: existingError } = await adminClient
+			.from('TenantPaymentMethod')
+			.select('id')
+			.match({
+				tenantId: userId,
+				stripePaymentMethodId
+			})
+			.maybeSingle()
+
+		if (existingError) {
+			this.logger.error('Failed to check for existing payment method', {
+				userId,
+				stripePaymentMethodId,
+				error: existingError.message
+			})
+			throw new BadRequestException('Failed to save payment method')
+		}
+
+		if (existing) {
+			this.logger.log('Payment method already saved, skipping insert', {
+				userId,
+				stripePaymentMethodId
+			})
+			return { success: true }
+		}
+
+		const { data: existingMethods, error: listError } = await adminClient
+			.from('TenantPaymentMethod')
+			.select('id')
+			.eq('tenantId', userId)
+
+		if (listError) {
+			this.logger.error('Failed to load tenant payment methods', {
+				userId,
+				error: listError.message
+			})
+			throw new BadRequestException('Failed to save payment method')
+		}
+
+		const shouldBeDefault = !existingMethods || existingMethods.length === 0
+
+		if (shouldBeDefault) {
+			await adminClient
+				.from('TenantPaymentMethod')
+				.update({
+					isDefault: false,
+					updatedAt: new Date().toISOString()
+				})
+				.eq('tenantId', userId)
+		}
+
+		const { error } = await adminClient.from('TenantPaymentMethod').insert({
+			tenantId: userId,
+			stripePaymentMethodId,
+			stripeCustomerId,
+			type: paymentMethod.type,
+			last4:
+				paymentMethod.card?.last4 ||
+				paymentMethod.us_bank_account?.last4 ||
+				null,
+			brand: paymentMethod.card?.brand || null,
+			bankName: paymentMethod.us_bank_account?.bank_name || null,
+			isDefault: shouldBeDefault,
+			verificationStatus:
+				paymentMethod.type === 'card' ? 'verified' : 'verified', // US bank accounts are verified through Financial Connections during setup
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString()
+		})
 
 		if (error) {
-			this.logger.error('Failed to save payment method', error)
-			throw new Error('Failed to save payment method')
+			this.logger.error('Failed to save tenant payment method', {
+				userId,
+				stripePaymentMethodId,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to save payment method')
 		}
 
 		return { success: true }
 	}
 
 	/**
-	 * List all payment methods for a tenant
+	 * List payment methods saved by the authenticated tenant.
 	 */
-	async listPaymentMethods(tenantId: string) {
-		this.logger.log(`Listing payment methods for tenant ${tenantId}`)
-
-		const { data: paymentMethods, error } = await this.supabase
+	async listPaymentMethods(userId: string) {
+		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('TenantPaymentMethod')
-			.select('*')
-			.eq('tenantId', tenantId)
+			.select(
+				'id, tenantId, stripePaymentMethodId, type, last4, brand, bankName, isDefault, verificationStatus, createdAt, updatedAt'
+			)
+			.eq('tenantId', userId)
 			.order('createdAt', { ascending: false })
 
 		if (error) {
-			this.logger.error('Failed to list payment methods', error)
-			throw new Error('Failed to list payment methods')
+			this.logger.error('Failed to fetch tenant payment methods', {
+				userId,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to load payment methods')
 		}
 
-		return paymentMethods
+		return data ?? []
 	}
 
 	/**
-	 * Set a payment method as default
+	 * Mark a tenant payment method as the default option.
 	 */
-	async setDefaultPaymentMethod(tenantId: string, paymentMethodId: string) {
-		this.logger.log(
-			`Setting payment method ${paymentMethodId} as default for tenant ${tenantId}`
-		)
+	async setDefaultPaymentMethod(userId: string, paymentMethodId: string) {
+		const adminClient = this.supabase.getAdminClient()
 
-		// First, unset all existing defaults for this tenant
-		await this.supabase
-			.getAdminClient()
+		const { data: paymentMethod, error: fetchError } = await adminClient
 			.from('TenantPaymentMethod')
-			.update({ isDefault: false })
-			.eq('tenantId', tenantId)
-
-		// Then set the new default
-		const { error } = await this.supabase
-			.getAdminClient()
-			.from('TenantPaymentMethod')
-			.update({ isDefault: true })
+			.select('id')
 			.eq('id', paymentMethodId)
-			.eq('tenantId', tenantId)
+			.eq('tenantId', userId)
+			.single()
+
+		if (fetchError || !paymentMethod) {
+			this.logger.warn(
+				'Attempt to set default for non-existent payment method',
+				{
+					userId,
+					paymentMethodId,
+					error: fetchError?.message
+				}
+			)
+			throw new NotFoundException('Payment method not found')
+		}
+
+		const now = new Date().toISOString()
+
+		await adminClient
+			.from('TenantPaymentMethod')
+			.update({ isDefault: false, updatedAt: now })
+			.eq('tenantId', userId)
+
+		const { error } = await adminClient
+			.from('TenantPaymentMethod')
+			.update({ isDefault: true, updatedAt: now })
+			.eq('id', paymentMethodId)
+			.eq('tenantId', userId)
 
 		if (error) {
-			this.logger.error('Failed to set default payment method', error)
-			throw new Error('Failed to set default payment method')
+			this.logger.error('Failed to update default payment method', {
+				userId,
+				paymentMethodId,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to set default payment method')
 		}
 
 		return { success: true }
 	}
 
 	/**
-	 * Delete a payment method
+	 * Delete a tenant payment method both in Stripe and in the database.
+	 * If the deleted method was default, promote the next oldest method.
 	 */
-	async deletePaymentMethod(tenantId: string, paymentMethodId: string) {
-		this.logger.log(
-			`Deleting payment method ${paymentMethodId} for tenant ${tenantId}`
-		)
+	async deletePaymentMethod(userId: string, paymentMethodId: string) {
+		const adminClient = this.supabase.getAdminClient()
 
-		// Get the payment method from database
-		const { data: pm } = await this.supabase
-			.getAdminClient()
+		const { data: paymentMethod, error: fetchError } = await adminClient
 			.from('TenantPaymentMethod')
-			.select('stripePaymentMethodId')
+			.select('stripePaymentMethodId, isDefault')
 			.eq('id', paymentMethodId)
-			.eq('tenantId', tenantId)
+			.eq('tenantId', userId)
 			.single()
 
-		if (!pm) {
-			throw new Error('Payment method not found')
+		if (fetchError || !paymentMethod) {
+			this.logger.warn('Attempted to delete unknown payment method', {
+				userId,
+				paymentMethodId,
+				error: fetchError?.message
+			})
+			throw new NotFoundException('Payment method not found')
 		}
 
-		// Detach from Stripe
-		await this.stripe.paymentMethods.detach(pm.stripePaymentMethodId)
+		if (paymentMethod.stripePaymentMethodId) {
+			await this.stripe.paymentMethods.detach(
+				paymentMethod.stripePaymentMethodId
+			)
+		}
 
-		// Delete from database
-		const { error } = await this.supabase
-			.getAdminClient()
+		const { error } = await adminClient
 			.from('TenantPaymentMethod')
 			.delete()
 			.eq('id', paymentMethodId)
-			.eq('tenantId', tenantId)
+			.eq('tenantId', userId)
 
 		if (error) {
-			this.logger.error('Failed to delete payment method', error)
-			throw new Error('Failed to delete payment method')
+			this.logger.error('Failed to delete payment method', {
+				userId,
+				paymentMethodId,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to delete payment method')
+		}
+
+		if (paymentMethod.isDefault) {
+			const { data: nextDefault } = await adminClient
+				.from('TenantPaymentMethod')
+				.select('id')
+				.eq('tenantId', userId)
+				.order('createdAt', { ascending: true })
+				.limit(1)
+
+			if (nextDefault && nextDefault.length > 0) {
+				const firstMethod = nextDefault[0]
+				if (firstMethod) {
+					await adminClient
+						.from('TenantPaymentMethod')
+						.update({
+							isDefault: true,
+							updatedAt: new Date().toISOString()
+						})
+						.eq('id', firstMethod.id)
+				}
+			}
 		}
 
 		return { success: true }

@@ -2,8 +2,8 @@
 
 import { LoadingDots } from '@/components/magicui/loading-spinner'
 import { Checkout } from '@/components/pricing/checkout'
-import { Card, CardContent } from '@/components/ui/card'
-import { StripeProvider } from '@/providers/stripe-provider'
+import { CardLayout } from '@/components/ui/card-layout'
+import { StripeProvider } from '@/components/providers/stripe-provider'
 import { ArrowLeft, CheckCircle, Shield, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -105,60 +105,62 @@ function CheckoutPageContent() {
 								</p>
 							</div>
 
-							<Card className="border-[var(--color-border)] shadow-sm">
-								<CardContent className="p-6">
-									<div className="flex items-start justify-between mb-4">
-										<div>
-											<div className="flex items-center gap-2 mb-1">
-												<h3 className="font-semibold text-[var(--color-text-primary)]">
-													{plan.name}
-												</h3>
-												{'popular' in plan && plan.popular && (
-													<span className="px-2 py-1 bg-[var(--color-primary-bg)] text-[var(--color-primary)] text-xs font-medium rounded-full">
-														Most Popular
-													</span>
-												)}
-											</div>
-											<p className="text-sm text-[var(--color-text-secondary)] mb-3">
-												{plan.description}
-											</p>
-										</div>
-										<div className="text-right">
-											<div className="text-2xl font-bold text-[var(--color-text-primary)]">
-												{formatCurrency(plan.price)}
-											</div>
-											<div className="text-sm text-[var(--color-text-muted)]">
-												per month
-											</div>
-										</div>
-									</div>
-
-									<div className="space-y-2 mb-6">
-										{plan.features.map((feature, index) => (
-											<div key={index} className="flex items-center gap-2">
-												<CheckCircle className="w-4 h-4 text-[var(--color-success)] flex-shrink-0" />
-												<span className="text-sm text-[var(--color-text)]">
-													{feature}
+							<CardLayout
+								title={plan.name}
+								description={plan.description}
+								className="border-[var(--color-border)] shadow-sm"
+							>
+								<div className="flex items-start justify-between mb-4">
+									<div>
+										<div className="flex items-center gap-2 mb-1">
+											<h3 className="font-semibold text-[var(--color-text-primary)]">
+												{plan.name}
+											</h3>
+											{'popular' in plan && plan.popular && (
+												<span className="px-2 py-1 bg-[var(--color-primary-bg)] text-[var(--color-primary)] text-xs font-medium rounded-full">
+													Most Popular
 												</span>
-											</div>
-										))}
-									</div>
-
-									<div className="border-t border-[var(--color-border)] pt-4">
-										<div className="flex justify-between items-center">
-											<span className="font-medium text-[var(--color-text-primary)]">
-												Total today
-											</span>
-											<span className="text-xl font-bold text-[var(--color-text-primary)]">
-												{formatCurrency(plan.price)}
-											</span>
+											)}
 										</div>
-										<p className="text-xs text-[var(--color-text-muted)] mt-1">
-											Billed monthly • Cancel anytime
+										<p className="text-sm text-[var(--color-text-secondary)] mb-3">
+											{plan.description}
 										</p>
 									</div>
-								</CardContent>
-							</Card>
+									<div className="text-right">
+										<div className="text-2xl font-bold text-[var(--color-text-primary)]">
+											{formatCurrency(plan.price)}
+										</div>
+										<div className="text-sm text-[var(--color-text-muted)]">
+											per month
+										</div>
+									</div>
+								</div>
+
+								<div className="space-y-2 mb-6">
+									{plan.features.map((feature, index) => (
+										<div key={index} className="flex items-center gap-2">
+											<CheckCircle className="w-4 h-4 text-[var(--color-success)] flex-shrink-0" />
+											<span className="text-sm text-[var(--color-text)]">
+												{feature}
+											</span>
+										</div>
+									))}
+								</div>
+
+								<div className="border-t border-[var(--color-border)] pt-4">
+									<div className="flex justify-between items-center">
+										<span className="font-medium text-[var(--color-text-primary)]">
+											Total today
+										</span>
+										<span className="text-xl font-bold text-[var(--color-text-primary)]">
+											{formatCurrency(plan.price)}
+										</span>
+									</div>
+									<p className="text-xs text-[var(--color-text-muted)] mt-1">
+										Billed monthly • Cancel anytime
+									</p>
+								</div>
+							</CardLayout>
 
 							{/* Trust indicators */}
 							<div className="flex items-center justify-center gap-6 text-sm text-[var(--color-text-muted)]">

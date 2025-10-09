@@ -16,7 +16,6 @@ import {
 	SetMetadata
 } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import type { SubscriptionStatus } from '@repo/shared/types/auth'
 import type { Request } from 'express'
 import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
@@ -26,11 +25,11 @@ import type {
 	CreateConnectedPaymentRequest,
 	CreatePaymentIntentRequest,
 	CreateSetupIntentRequest,
-	CreateSubscriptionRequest,
 	EmbeddedCheckoutRequest,
-	InvoiceWithSubscription,
+	// InvoiceWithSubscription,
 	VerifyCheckoutSessionRequest
 } from './stripe-interfaces'
+import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
 import { StripeWebhookService } from './stripe-webhook.service'
 import { StripeService } from './stripe.service'
 // CLAUDE.md Compliant: NO custom DTOs - using native validation only
@@ -425,7 +424,7 @@ export class StripeController {
 	 * Official Pattern: subscription with payment_behavior and expand
 	 */
 	@Post('create-subscription')
-	async createSubscription(@Body() body: CreateSubscriptionRequest) {
+	async createSubscription(@Body() body: CreateBillingSubscriptionRequest) {
 		// Native validation - CLAUDE.md compliant
 		if (!body.customerId) {
 			throw new BadRequestException('customerId is required')
@@ -692,6 +691,159 @@ export class StripeController {
 	}
 
 	/**
+	 * Get Checkout Session Details
+	 * Official Pattern: retrieve session for post-checkout flow
+	 * Used to get customer email for magic link authentication
+	 */
+	@Get('checkout-session/:sessionId')
+	@SetMetadata('isPublic', true)
+	async getCheckoutSession(@Param('sessionId') sessionId: string) {
+		if (!sessionId) {
+			throw new BadRequestException('sessionId is required')
+		}
+
+		try {
+			const session = await this.stripe.checkout.sessions.retrieve(sessionId)
+
+			if (!session) {
+				throw new BadRequestException('Session not found')
+			}
+
+			// Return safe fields only (no sensitive data)
+			return {
+				id: session.id,
+				customer_email: session.customer_email,
+				customer_details: {
+					email: session.customer_details?.email
+				},
+				payment_status: session.payment_status,
+				status: session.status
+			}
+		} catch (error) {
+			this.handleStripeError(error as Stripe.errors.StripeError)
+		}
+	}
+
+	/**
+	 * Tenant Invitation Endpoint
+	 * Official Pattern: auth.admin.generateLink with type 'invite'
+	 * Creates TENANT user and sends invitation email with password setup link
+	 */
+	@Post('invite-tenant')
+	async inviteTenant(
+		@Body() body: { email: string; landlordId: string; leaseId?: string }
+	) {
+		// Native validation - CLAUDE.md compliant
+		if (!body.email) {
+			throw new BadRequestException('email is required')
+		}
+		if (!body.landlordId) {
+			throw new BadRequestException('landlordId is required')
+		}
+
+		// Validate email format
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+		if (!emailRegex.test(body.email)) {
+			throw new BadRequestException('Invalid email format')
+		}
+
+		try {
+			const supabase = this.supabaseService.getAdminClient()
+
+			// Check if user already exists
+			const { data: existingUser } = await supabase
+				.from('User')
+				.select('id, email')
+				.eq('email', body.email)
+				.single()
+
+			if (existingUser) {
+				throw new BadRequestException('User with this email already exists')
+			}
+
+			// Create Supabase auth user with TENANT role
+			const { data: authData, error: authError } =
+				await supabase.auth.admin.createUser({
+					email: body.email,
+					email_confirm: false, // User must confirm via invite link
+					user_metadata: {
+						invited_by: body.landlordId,
+						invited_at: new Date().toISOString(),
+						...(body.leaseId && { lease_id: body.leaseId })
+					}
+				})
+
+			if (authError) {
+				this.logger.error('Failed to create tenant auth user', {
+					email: body.email,
+					error: authError.message
+				})
+				throw authError
+			}
+
+			// SAFE logging - only ID and email
+			this.logger.log(
+				`Tenant auth user created: ${authData.user.id} (${body.email})`
+			)
+
+			// Create User table record with TENANT role
+			const { error: dbError } = await supabase.from('User').insert({
+				id: authData.user.id,
+				supabaseId: authData.user.id,
+				email: body.email,
+				role: 'TENANT'
+			})
+
+			if (dbError) {
+				this.logger.error('Failed to create tenant User record', {
+					userId: authData.user.id,
+					error: dbError.message
+				})
+				throw dbError
+			}
+
+			// Generate invitation link
+			// Official pattern: generateLink with type 'invite'
+			const { data: linkData, error: linkError } =
+				await supabase.auth.admin.generateLink({
+					type: 'invite',
+					email: body.email,
+					options: {
+						redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/accept-invite`
+					}
+				})
+
+			if (linkError) {
+				this.logger.error('Failed to generate invitation link', {
+					email: body.email,
+					error: linkError.message
+				})
+				throw linkError
+			}
+
+			this.logger.log(`Tenant invitation sent successfully: ${body.email}`)
+
+			return {
+				success: true,
+				email: body.email,
+				userId: authData.user.id,
+				inviteUrl: linkData.properties.action_link
+			}
+		} catch (error) {
+			this.logger.error('Tenant invitation failed', {
+				email: body.email,
+				error: error instanceof Error ? error.message : 'Unknown error'
+			})
+
+			if (error instanceof BadRequestException || error instanceof Error) {
+				throw error
+			}
+
+			throw new InternalServerErrorException('Failed to send tenant invitation')
+		}
+	}
+
+	/**
 	 * Billing Portal Session Creation
 	 * Official Pattern: customer self-service portal
 	 */
@@ -905,35 +1057,6 @@ export class StripeController {
 	}
 
 	// Helper methods for webhook handlers
-	private async getUserById(userId: string) {
-		const supabase = this.supabaseService.getAdminClient()
-		const { data: user, error } = await supabase
-			.from('User')
-			.select('id, email, name')
-			.eq('id', userId)
-			.single()
-
-		if (error || !user) {
-			throw new Error(`User not found: ${userId}`)
-		}
-
-		return user
-	}
-
-	private async getUserByStripeCustomerId(stripeCustomerId: string) {
-		const supabase = this.supabaseService.getAdminClient()
-		const { data: user, error } = await supabase
-			.from('User')
-			.select('id, email, name')
-			.eq('stripeCustomerId', stripeCustomerId)
-			.single()
-
-		if (error || !user) {
-			throw new Error(`User not found for Stripe customer: ${stripeCustomerId}`)
-		}
-
-		return user
-	}
 
 	// private generateRetryPaymentUrl(paymentIntentId: string): string {
 	//	if (!process.env.NEXT_PUBLIC_APP_URL) {
@@ -942,16 +1065,6 @@ export class StripeController {
 	//	const baseUrl = process.env.NEXT_PUBLIC_APP_URL
 	//	return `${baseUrl}/payment/retry?payment_intent=${paymentIntentId}`
 	// }
-
-	private generateUpdatePaymentMethodUrl(): string {
-		if (!process.env.NEXT_PUBLIC_APP_URL) {
-			throw new InternalServerErrorException(
-				'NEXT_PUBLIC_APP_URL not configured'
-			)
-		}
-		const baseUrl = process.env.NEXT_PUBLIC_APP_URL
-		return `${baseUrl}/dashboard/settings?tab=billing&action=update-payment-method`
-	}
 
 	// private async updatePaymentStatus(paymentIntentId: string, status: string) {
 	//	const supabase = this.supabaseService.getAdminClient()
@@ -966,113 +1079,12 @@ export class StripeController {
 	//		.eq('stripePaymentIntentId', paymentIntentId)
 	// }
 
-	private async revokeSubscriptionAccess(stripeCustomerId: string) {
-		const supabase = this.supabaseService.getAdminClient()
-
-		// Update subscription status to cancelled
-		await supabase
-			.from('Subscription')
-			.update({
-				status: 'CANCELED',
-				cancelled_at: new Date().toISOString(),
-				updated_at: new Date().toISOString()
-			})
-			.eq('stripeCustomerId', stripeCustomerId)
-
-		// Log access change in UserAccessLog table
-		const userResult = await supabase
-			.from('User')
-			.select('id')
-			.eq('stripeCustomerId', stripeCustomerId)
-			.single()
-
-		if (userResult.data) {
-			await supabase.from('UserAccessLog').insert({
-				userId: userResult.data.id,
-				subscriptionStatus: 'CANCELED',
-				planType: 'NONE',
-				reason: 'Subscription cancelled via Stripe webhook',
-				accessGranted: {}
-			})
-		}
-	}
-
-	private async extendSubscriptionAccess(stripeSubscriptionId: string) {
-		const supabase = this.supabaseService.getAdminClient()
-
-		// Ensure subscription status is active
-		await supabase
-			.from('Subscription')
-			.update({
-				status: 'ACTIVE',
-				updated_at: new Date().toISOString()
-			})
-			.eq('stripeSubscriptionId', stripeSubscriptionId)
-
-		// Update user subscription status
-		const { data: subscription } = await supabase
-			.from('Subscription')
-			.select('userId')
-			.eq('stripeSubscriptionId', stripeSubscriptionId)
-			.single()
-
-		if (subscription?.userId) {
-			await supabase.from('UserAccessLog').insert({
-				userId: subscription.userId,
-				subscriptionStatus: 'ACTIVE',
-				planType: 'PREMIUM',
-				reason: 'Subscription extended via Stripe webhook',
-				accessGranted: { premium_features: true }
-			})
-		}
-	}
-
-	private async suspendSubscriptionAccess(stripeSubscriptionId: string) {
-		const supabase = this.supabaseService.getAdminClient()
-
-		// Update subscription status to suspended
-		await supabase
-			.from('Subscription')
-			.update({
-				status: 'PAST_DUE',
-				updated_at: new Date().toISOString()
-			})
-			.eq('stripeSubscriptionId', stripeSubscriptionId)
-
-		// Update user subscription status
-		const { data: subscription } = await supabase
-			.from('Subscription')
-			.select('userId')
-			.eq('stripeSubscriptionId', stripeSubscriptionId)
-			.single()
-
-		if (subscription?.userId) {
-			await supabase.from('UserAccessLog').insert({
-				userId: subscription.userId,
-				subscriptionStatus: 'PAST_DUE',
-				planType: 'LIMITED',
-				reason: 'Subscription suspended via Stripe webhook',
-				accessGranted: { basic_features_only: true }
-			})
-		}
-	}
-
-	private calculateNextRetryDate(attemptNumber: number): Date | null {
-		// Stripe's retry schedule: 1 day, 3 days, 5 days, 7 days
-		const retrySchedule = [1, 3, 5, 7]
-		const daysToAdd = retrySchedule[attemptNumber] || null
-
-		if (!daysToAdd) return null
-
-		const nextRetry = new Date()
-		nextRetry.setDate(nextRetry.getDate() + daysToAdd)
-		return nextRetry
-	}
-
 	/**
 	 * Get all active products from Stripe
 	 * Dynamic product configuration instead of hardcoding
+	 * PUBLIC ENDPOINT - Used on pricing page
 	 */
+	@SetMetadata('isPublic', true)
 	@Get('products')
 	@HttpCode(HttpStatus.OK)
 	async getProducts() {
@@ -1105,299 +1117,7 @@ export class StripeController {
 		}
 	}
 
-	private async handleSetupIntentSucceeded(setupIntent: Stripe.SetupIntent) {
-		this.logger.log(`Payment method saved: ${setupIntent.id}`, {
-			customer: setupIntent.customer,
-			tenant_id: setupIntent.metadata?.tenant_id
-		})
-
-		try {
-			const supabase = this.supabaseService.getAdminClient()
-
-			// Get payment method details from Stripe
-			const paymentMethod = await this.stripe.paymentMethods.retrieve(
-				setupIntent.payment_method as string
-			)
-
-			// Save payment method reference
-			await supabase.from('PaymentMethod').upsert({
-				stripePaymentMethodId: setupIntent.payment_method as string,
-				tenantId: setupIntent.metadata?.tenant_id || '',
-				organizationId: setupIntent.metadata?.organization_id || '', // Required field
-				isDefault: true,
-				type: paymentMethod.type,
-				brand: paymentMethod.card?.brand,
-				lastFour: paymentMethod.card?.last4,
-				expiryMonth: paymentMethod.card?.exp_month,
-				expiryYear: paymentMethod.card?.exp_year,
-				created_at: new Date().toISOString(),
-				updated_at: new Date().toISOString()
-			})
-
-			// Log payment method setup success in access log
-			if (setupIntent.metadata?.tenant_id) {
-				await supabase.from('UserAccessLog').insert({
-					userId: setupIntent.metadata.tenant_id,
-					subscriptionStatus: 'ACTIVE',
-					planType: 'PREMIUM',
-					reason: 'Payment method successfully set up',
-					accessGranted: { auto_billing: true }
-				})
-
-				// Get user for email notification
-				const user = await this.getUserById(setupIntent.metadata.tenant_id)
-
-				// Log payment method saved (email functionality removed per NO ABSTRACTIONS)
-				this.logger.log('Payment method saved', {
-					userId: user.id,
-					email: user.email,
-					lastFour: paymentMethod.card?.last4 || '****',
-					brand: paymentMethod.card?.brand || 'card'
-				})
-
-				this.logger.log(
-					`Payment method saved and auto-billing enabled for user: ${user.email}`
-				)
-			}
-		} catch (error) {
-			this.logger.error('Failed to process setup intent success', error)
-			// Don't throw - webhook should still return success
-		}
-	}
-
-	private async handleSubscriptionCreated(subscription: Stripe.Subscription) {
-		this.logger.log(`Subscription created: ${subscription.id}`, {
-			customer: subscription.customer,
-			status: subscription.status
-		})
-
-		try {
-			const supabase = this.supabaseService.getAdminClient()
-
-			// Get real user ID from Stripe customer ID
-			const { data: userRecord, error: userError } = await supabase
-				.from('User')
-				.select('id')
-				.eq('stripeCustomerId', subscription.customer as string)
-				.single()
-
-			if (userError || !userRecord) {
-				this.logger.error(
-					`Failed to find user for Stripe customer: ${subscription.customer}`,
-					userError
-				)
-				throw new Error(
-					`User not found for Stripe customer: ${subscription.customer}`
-				)
-			}
-
-			// Create or update subscription record with real user ID
-			await supabase.from('Subscription').upsert({
-				stripeSubscriptionId: subscription.id,
-				stripeCustomerId: subscription.customer as string,
-				status: subscription.status.toUpperCase() as SubscriptionStatus,
-				currentPeriodStart: new Date(
-					(subscription as unknown as { current_period_start: number })
-						.current_period_start * 1000
-				).toISOString(),
-				currentPeriodEnd: new Date(
-					(subscription as unknown as { current_period_end: number })
-						.current_period_end * 1000
-				).toISOString(),
-				cancelAtPeriodEnd: subscription.cancel_at_period_end,
-				createdAt: new Date(subscription.created * 1000).toISOString(),
-				updatedAt: new Date().toISOString(),
-				userId: userRecord.id, // Real user ID from database lookup
-				startDate: new Date(subscription.created * 1000).toISOString()
-			})
-
-			this.logger.log(
-				`Created subscription record: ${subscription.id} for user: ${userRecord.id}`
-			)
-		} catch (error) {
-			this.logger.error('Failed to create subscription record', error)
-			// Don't throw - webhook should not fail due to this
-		}
-	}
-
-	private async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
-		this.logger.log(`Subscription updated: ${subscription.id}`, {
-			status: subscription.status,
-			cancelAt_period_end: subscription.cancel_at_period_end
-		})
-
-		try {
-			const supabase = this.supabaseService.getAdminClient()
-
-			// Update existing subscription record
-			const { data, error } = await supabase
-				.from('Subscription')
-				.update({
-					status: subscription.status.toUpperCase() as SubscriptionStatus,
-					currentPeriodStart: new Date(
-						(subscription as unknown as { current_period_start: number })
-							.current_period_start * 1000
-					).toISOString(),
-					currentPeriodEnd: new Date(
-						(subscription as unknown as { current_period_end: number })
-							.current_period_end * 1000
-					).toISOString(),
-					cancelAtPeriodEnd: subscription.cancel_at_period_end,
-					updatedAt: new Date().toISOString()
-				})
-				.eq('stripeSubscriptionId', subscription.id)
-				.select()
-
-			if (error) {
-				throw error
-			}
-
-			// Update user access level based on subscription status
-			if (data && data.length > 0) {
-				const isActive = ['active', 'trialing'].includes(subscription.status)
-				// Note: This would need the user ID from the subscription metadata or customer mapping
-				this.logger.log(
-					`Updated subscription: ${subscription.id}, Active: ${isActive}`
-				)
-			}
-		} catch (error) {
-			this.logger.error('Failed to update subscription record', error)
-		}
-	}
-
-	private async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-		this.logger.log(`Subscription cancelled: ${subscription.id}`, {
-			customer: subscription.customer
-		})
-
-		try {
-			// Revoke user access immediately
-			await this.revokeSubscriptionAccess(subscription.customer as string)
-
-			// Send cancellation confirmation email
-			const user = await this.getUserByStripeCustomerId(
-				subscription.customer as string
-			)
-			// Log subscription cancelled (email functionality removed per NO ABSTRACTIONS)
-			this.logger.log('Subscription cancelled notification', {
-				userId: user.id,
-				email: user.email,
-				planName: subscription.metadata?.planName || 'Subscription',
-				cancellationDate: new Date(subscription.canceled_at! * 1000)
-			})
-
-			this.logger.log(
-				`Subscription access revoked and cancellation email sent to user: ${user.email}`
-			)
-		} catch (error) {
-			this.logger.error('Failed to process subscription cancellation', error)
-			// Don't throw - webhook should still return success
-		}
-	}
-
-	private async handleInvoicePaymentSucceeded(stripeInvoice: Stripe.Invoice) {
-		this.logger.log(`Invoice paid: ${stripeInvoice.id}`, {
-			amount: stripeInvoice.amount_paid,
-			customer: stripeInvoice.customer
-		})
-
-		try {
-			// Send receipt email
-			const user = await this.getUserByStripeCustomerId(
-				stripeInvoice.customer as string
-			)
-			// Log invoice receipt (email functionality removed per NO ABSTRACTIONS)
-			this.logger.log('Invoice receipt notification', {
-				userId: user.id,
-				email: user.email,
-				invoiceNumber: stripeInvoice.number || `inv_${stripeInvoice.id}`,
-				amount: stripeInvoice.amount_paid,
-				currency: stripeInvoice.currency,
-				invoiceUrl:
-					stripeInvoice.invoice_pdf ||
-					`https://dashboard.stripe.com/invoices/${stripeInvoice.id}`
-			})
-
-			// Extend subscription access if applicable
-			const invoiceWithSub = stripeInvoice as InvoiceWithSubscription
-			const subscriptionId =
-				invoiceWithSub.subscription &&
-				typeof invoiceWithSub.subscription === 'string'
-					? invoiceWithSub.subscription
-					: (invoiceWithSub.subscription as Stripe.Subscription | undefined)?.id
-			if (subscriptionId && typeof subscriptionId === 'string') {
-				await this.extendSubscriptionAccess(subscriptionId)
-				this.logger.log(
-					`Subscription access extended for subscription: ${subscriptionId}`
-				)
-			}
-
-			this.logger.log(`Invoice receipt sent to user: ${user.email}`)
-		} catch (error) {
-			this.logger.error('Failed to process successful invoice payment', error)
-			// Don't throw - webhook should still return success
-		}
-	}
-
-	private async handleInvoicePaymentFailed(stripeInvoice: Stripe.Invoice) {
-		this.logger.warn(`Invoice payment failed: ${stripeInvoice.id}`, {
-			customer: stripeInvoice.customer,
-			attempt_count: stripeInvoice.attempt_count
-		})
-
-		try {
-			// Implement retry logic
-			const maxRetries = 3
-			const currentAttempt = stripeInvoice.attempt_count
-
-			const user = await this.getUserByStripeCustomerId(
-				stripeInvoice.customer as string
-			)
-
-			if (currentAttempt < maxRetries) {
-				// Schedule retry (Stripe handles this automatically)
-				// Log payment failure notification (email functionality removed per NO ABSTRACTIONS)
-				this.logger.log('Invoice payment failed notification', {
-					userId: user.id,
-					email: user.email,
-					attemptNumber: currentAttempt,
-					maxRetries,
-					nextRetryDate: this.calculateNextRetryDate(currentAttempt),
-					updatePaymentMethodUrl: this.generateUpdatePaymentMethodUrl()
-				})
-
-				this.logger.log(
-					`Payment retry notification sent to user: ${user.email} (attempt ${currentAttempt}/${maxRetries})`
-				)
-			} else {
-				// Max retries reached - suspend access
-				const invoiceWithSub = stripeInvoice as InvoiceWithSubscription
-				const subscriptionId =
-					invoiceWithSub.subscription &&
-					typeof invoiceWithSub.subscription === 'string'
-						? invoiceWithSub.subscription
-						: (invoiceWithSub.subscription as Stripe.Subscription | undefined)
-								?.id
-				if (subscriptionId && typeof subscriptionId === 'string') {
-					await this.suspendSubscriptionAccess(subscriptionId)
-				}
-
-				// Log account suspension notification (email functionality removed per NO ABSTRACTIONS)
-				this.logger.log('Account suspended notification', {
-					userId: user.id,
-					email: user.email,
-					suspensionReason: 'payment_failure'
-				})
-
-				this.logger.warn(
-					`Account suspended due to payment failure for user: ${user.email}`
-				)
-			}
-		} catch (error) {
-			this.logger.error('Failed to process invoice payment failure', error)
-			// Don't throw - webhook should still return success
-		}
-	}
+	// Removed unused private handler methods: handleSetupIntentSucceeded, handleSubscriptionCreated, handleSubscriptionUpdated, handleSubscriptionDeleted, handleInvoicePaymentSucceeded, handleInvoicePaymentFailed
 
 	/**
 	 * Get all active prices from Stripe
@@ -1433,7 +1153,9 @@ export class StripeController {
 	/**
 	 * Get pricing configuration with products and prices combined
 	 * Returns data in format suitable for frontend pricing components
+	 * PUBLIC ENDPOINT - Used on pricing page
 	 */
+	@SetMetadata('isPublic', true)
 	@Get('pricing-config')
 	@HttpCode(HttpStatus.OK)
 	async getPricingConfig() {
@@ -1483,10 +1205,20 @@ export class StripeController {
 					)
 					const annualPrice = prices.find(p => p.recurring?.interval === 'year')
 
-					// Parse features from metadata
-					const features = product.metadata.features
-						? (JSON.parse(product.metadata.features) as string[])
-						: []
+					// Parse features from metadata - handle both JSON array and plain string
+					let features: string[] = []
+					if (product.metadata.features) {
+						try {
+							// Try parsing as JSON array first
+							features = JSON.parse(product.metadata.features) as string[]
+						} catch {
+							// If parsing fails, treat as comma-separated string or single feature
+							features = product.metadata.features
+								.split(',')
+								.map(f => f.trim())
+								.filter(f => f.length > 0)
+						}
+					}
 
 					return {
 						id: product.id,
@@ -1564,9 +1296,13 @@ export class StripeController {
 
 		const normalizedValue = value.normalize('NFKC')
 
-		// Check for control characters (0x00-0x1F and 0x7F)
-		// eslint-disable-next-line no-control-regex
-		if (/[\x00-\x1F\x7F]/.test(normalizedValue)) {
+		// Check for control characters using Unicode ranges
+		const hasControlChars = [...normalizedValue].some(char => {
+			const code = char.charCodeAt(0)
+			return (code >= 0x00 && code <= 0x1f) || code === 0x7f
+		})
+
+		if (hasControlChars) {
 			throw new BadRequestException(`${fieldName} contains control characters`)
 		}
 

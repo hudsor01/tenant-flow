@@ -1,7 +1,7 @@
 'use client'
 
 import { MetricsCardSkeleton } from '@/components/charts/metrics-card-skeleton'
-import { SectionCards } from '@/components/dashboard-01/section-cards'
+// import { SectionCards } from '../../../../app/(protected)/owner/SectionCards'
 import {
 	useDashboardStats,
 	useLeaseStats,
@@ -25,7 +25,7 @@ export function MetricsSection() {
 	const error = dashboardStats.error || propertyStats.error || leaseStats.error
 
 	// Combine stats data for SectionCards
-	const stats = dashboardStats.data
+	// const stats = dashboardStats.data
 
 	if (isLoading) {
 		return (
@@ -88,7 +88,7 @@ export function MetricsSection() {
 					paddingBottom: 'var(--spacing-4)'
 				}}
 			>
-				<SectionCards stats={stats} />
+				{/* <SectionCards stats={stats} /> */}
 			</div>
 		</div>
 	)

@@ -3,7 +3,6 @@
 	"name": "@repo/shared",
 	"version": "0.1.0",
 	"private": true,
-	"type": "module",
 	"description": "Shared types and utilities for TenantFlow monorepo",
 	"exports": {
 		".": {
@@ -59,7 +58,7 @@
 		"@supabase/ssr": "^0.7.0",
 		"@supabase/supabase-js": "^2.57.4",
 		"posthog-js": "catalog:",
-		"zod": "^4.1.11"
+		"zod": "4.1.11"
 	},
 	"devDependencies": {
 		"@types/express": "^5.0.3",

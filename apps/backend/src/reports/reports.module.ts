@@ -4,6 +4,7 @@ import { SupabaseModule } from '../database/supabase.module'
 import { ExportService } from './export.service'
 import { GeneratedReportService } from './generated-report.service'
 import { ReportsController } from './reports.controller'
+import { ReportsService } from './reports.service'
 import { ScheduledReportService } from './scheduled-report.service'
 import { SchedulerService } from './scheduler.service'
 import { ExecutiveMonthlyTemplate } from './templates/executive-monthly.template'
@@ -19,6 +20,7 @@ import { TaxPreparationTemplate } from './templates/tax-preparation.template'
 	providers: [
 		ExportService,
 		GeneratedReportService,
+		ReportsService,
 		ScheduledReportService,
 		SchedulerService,
 		ExecutiveMonthlyTemplate,
@@ -28,6 +30,6 @@ import { TaxPreparationTemplate } from './templates/tax-preparation.template'
 		MaintenanceOperationsTemplate,
 		TaxPreparationTemplate
 	],
-	exports: [ExportService, GeneratedReportService, ScheduledReportService]
+	exports: [ExportService, GeneratedReportService, ReportsService, ScheduledReportService]
 })
 export class ReportsModule {}

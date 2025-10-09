@@ -167,7 +167,7 @@ export class SubscriptionsService {
 			}
 		})
 
-		// 7. Store subscription in database
+		// 7. Store subscription in database with all metadata
 		const { data: dbSubscription, error: dbError } = await this.supabase
 			.getAdminClient()
 			.from('RentSubscription')
@@ -178,9 +178,11 @@ export class SubscriptionsService {
 				stripeSubscriptionId: subscription.id,
 				stripeCustomerId,
 				amount: Math.round(request.amount * 100), // Store in cents
+				currency: request.currency || 'usd',
 				dueDay: request.billingDayOfMonth,
 				status: subscription.status === 'active' ? 'active' : 'paused',
-				platformFeePercent: 2.9
+				platformFeePercent: 2.9,
+				pausedAt: subscription.status !== 'active' ? new Date().toISOString() : null
 			})
 			.select()
 			.single()
@@ -257,12 +259,13 @@ export class SubscriptionsService {
 			}
 		})
 
-		// Update database
+		// Update database with pausedAt timestamp
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('RentSubscription')
 			.update({
-				status: 'paused'
+				status: 'paused',
+				pausedAt: new Date().toISOString()
 			})
 			.eq('id', subscriptionId)
 			.select()
@@ -297,12 +300,13 @@ export class SubscriptionsService {
 			pause_collection: null
 		})
 
-		// Update database
+		// Update database and clear pausedAt
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('RentSubscription')
 			.update({
-				status: 'active'
+				status: 'active',
+				pausedAt: null
 			})
 			.eq('id', subscriptionId)
 			.select()
@@ -333,12 +337,13 @@ export class SubscriptionsService {
 			cancel_at_period_end: true
 		})
 
-		// Update database
+		// Update database with canceledAt timestamp
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('RentSubscription')
 			.update({
-				status: 'canceled'
+				status: 'canceled',
+				canceledAt: new Date().toISOString()
 			})
 			.eq('id', subscriptionId)
 			.select()
@@ -467,12 +472,12 @@ export class SubscriptionsService {
 			stripeCustomerId: data.stripeCustomerId as string,
 			paymentMethodId: '', // Not stored in database - would need to query Stripe
 			amount: parseFloat(data.amount as string) / 100, // Convert from cents
-			currency: 'usd', // Default currency - not stored in database
+			currency: (data.currency as string) || 'usd',
 			billingDayOfMonth: data.dueDay as number,
 			status: data.status as SubscriptionStatus,
 			platformFeePercentage: parseFloat(data.platformFeePercent as string),
-			pausedAt: null, // Not stored in database
-			canceledAt: null, // Not stored in database
+			pausedAt: (data.pausedAt as string) || null,
+			canceledAt: (data.canceledAt as string) || null,
 			createdAt: data.createdAt as string,
 			updatedAt: data.updatedAt as string
 		}

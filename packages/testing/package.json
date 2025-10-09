@@ -1,0 +1,55 @@
+{
+	"$schema": "https://json.schemastore.org/package",
+	"name": "@repo/testing",
+	"private": true,
+	"version": "0.1.0",
+	"description": "Shared testing utilities for TenantFlow services and applications.",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./vitest": {
+			"types": "./dist/vitest.d.ts",
+			"default": "./dist/vitest.js"
+		},
+		"./jest": {
+			"types": "./dist/jest.d.ts",
+			"default": "./dist/jest.js"
+		}
+	},
+	"files": [
+		"dist/**"
+	],
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"typecheck": "tsc --noEmit",
+		"lint": "eslint \"src/**/*.ts\"",
+		"lint:fix": "pnpm lint --fix",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"clean": "rimraf dist .turbo"
+	},
+	"dependencies": {
+		"@repo/shared": "workspace:*",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.0",
+		"@testing-library/user-event": "^14.6.1"
+	},
+	"peerDependencies": {
+		"@types/jest": "^30.0.0",
+		"jest": "^30.1.3",
+		"vitest": "3.2.4"
+	},
+	"devDependencies": {
+		"@types/jest": "catalog:",
+		"@types/node": "catalog:",
+		"jest": "catalog:",
+		"rimraf": "6.0.1",
+		"typescript": "catalog:",
+		"vitest": "3.2.4"
+	}
+}

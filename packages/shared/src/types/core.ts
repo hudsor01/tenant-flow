@@ -49,7 +49,7 @@ export interface StripeSessionStatusResponse {
 	payment_intent_status: string | null
 }
 
-export interface CreateSubscriptionRequest {
+export interface CreateBillingSubscriptionRequest {
 	customerId: string
 	tenantId: string
 	amount: number
@@ -422,6 +422,18 @@ export interface TenantWithLeaseInfo {
 		terms: string | null
 	} | null
 
+	// All leases for this tenant
+	leases?: Array<{
+		id: string
+		startDate: string
+		endDate: string
+		rentAmount: number
+		status: string
+		property?: {
+			address: string
+		}
+	}>
+
 	// Unit information
 	unit: {
 		id: string
@@ -634,6 +646,7 @@ export interface RentSubscriptionResponse {
 	amount: number
 	currency: string
 	billingDayOfMonth: number
+	nextChargeDate?: string | null // ISO date string (derived server field; optional for backward compatibility)
 	status: SubscriptionStatus
 	platformFeePercentage: number
 	pausedAt: string | null

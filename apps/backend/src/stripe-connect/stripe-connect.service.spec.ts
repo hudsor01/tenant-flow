@@ -7,7 +7,7 @@ import { StripeConnectService } from './stripe-connect.service'
 
 describe('StripeConnectService', () => {
 	let service: StripeConnectService
-	let supabaseService: jest.Mocked<SupabaseService>
+
 	let stripeAccountsCreate: jest.Mock
 	let stripeAccountsRetrieve: jest.Mock
 	let stripeAccountLinksCreate: jest.Mock
@@ -58,9 +58,6 @@ describe('StripeConnectService', () => {
 		}).compile()
 
 		service = module.get<StripeConnectService>(StripeConnectService)
-		supabaseService = module.get(
-			SupabaseService
-		) as jest.Mocked<SupabaseService>
 
 		// Mock Stripe instance
 		;(service as any).stripe = {

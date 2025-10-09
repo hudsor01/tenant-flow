@@ -131,17 +131,7 @@ try {
 
 ## [TESTING] Testing Strategy
 
-### Test Coverage
-- **Unit Tests**: 49/49 passing
-- **Integration Tests**: FDW connectivity
-- **Edge Cases**: SQL injection prevention, Unicode handling
-- **Error Scenarios**: Network failures, malformed data
-
-### Key Test Files
-- `stripe-sync.service.spec.ts` - Core service logic (27 tests)
-- `stripe-webhook-simple.spec.ts` - Webhook processing (5 tests)
-- `stripe-fdw.health.spec.ts` - Health indicators (18 tests)
-- `stripe-edge-cases.spec.ts` - Security & edge cases (34 tests)
+See `README_TESTING.md` for current commands and coverage expectations.
 
 ## [DEPLOYMENT] Deployment
 

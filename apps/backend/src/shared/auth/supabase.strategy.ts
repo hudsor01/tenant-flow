@@ -8,16 +8,12 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
 import type { JwtPayload, authUser } from '@repo/shared/types/auth'
-import { createClient } from '@supabase/supabase-js'
+
 import { ExtractJwt, Strategy } from 'passport-jwt'
 
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 	private readonly logger = new Logger(SupabaseStrategy.name)
-	private readonly supabase = createClient(
-		process.env.SUPABASE_URL!,
-		process.env.SUPABASE_SERVICE_ROLE_KEY!
-	)
 
 	constructor() {
 		super({

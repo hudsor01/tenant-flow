@@ -298,6 +298,9 @@ export function createMockLease(overrides?: Partial<Lease>): Lease {
 		securityDeposit: overrides?.securityDeposit || 1500,
 		propertyId: overrides?.propertyId || null,
 		terms: overrides?.terms || null,
+		gracePeriodDays: null,
+		lateFeeAmount: null,
+		lateFeePercentage: null,
 		status:
 			(overrides?.status as Database['public']['Enums']['LeaseStatus']) ||
 			'ACTIVE',

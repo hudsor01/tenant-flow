@@ -5,36 +5,47 @@ import { SupabaseService } from '../database/supabase.service'
 @Injectable()
 export class StripeWebhookService {
 	private readonly logger = new Logger(StripeWebhookService.name)
-	private readonly stripe: Stripe
 
-	constructor(private readonly supabase: SupabaseService) {
-		this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-			apiVersion: '2025-08-27' as Stripe.LatestApiVersion
-		})
-	}
-
-	/**
-	 * Check if webhook event has already been processed (idempotency)
-	 */
-	async checkEventProcessed(eventId: string): Promise<boolean> {
-		const { data } = await this.supabase
-			.getAdminClient()
-			.from('StripeWebhookEvent')
-			.select('eventId')
-			.eq('eventId', eventId)
-			.single()
-
-		return !!data
-	}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly stripe: Stripe
+	) {}
 
 	/**
 	 * Store webhook event ID to prevent duplicate processing
+	 * Implements compound idempotency strategy per Stripe 2025 best practices:
+	 * 1. Store event.id (exact duplicate detection)
+	 * 2. Store object.id:event.type (duplicate action detection with different event IDs)
+	 *
+	 * Uses database PRIMARY KEY constraint for atomic idempotency
+	 * Throws Postgres error code 23505 if duplicate detected
 	 */
-	async storeEventId(eventId: string, eventType: string) {
-		await this.supabase.getAdminClient().from('StripeWebhookEvent').insert({
-			eventId,
-			type: eventType
-		})
+	async storeEventId(
+		eventId: string,
+		eventType: string,
+		objectId?: string
+	): Promise<void> {
+		const records = [
+			{
+				eventId,
+				type: eventType
+			}
+		]
+
+		// Add compound idempotency key if object ID provided
+		// This catches duplicate events with different event IDs but same object
+		if (objectId) {
+			records.push({
+				eventId: `${objectId}:${eventType}`,
+				type: eventType
+			})
+		}
+
+		// Insert both records - database will reject if either is duplicate
+		await this.supabase
+			.getAdminClient()
+			.from('StripeWebhookEvent')
+			.insert(records)
 	}
 
 	/**
@@ -44,6 +55,11 @@ export class StripeWebhookService {
 		this.logger.log(`Processing webhook event: ${event.type}`)
 
 		switch (event.type) {
+			case 'checkout.session.completed':
+				return this.handleCheckoutCompleted(
+					event.data.object as Stripe.Checkout.Session
+				)
+
 			case 'account.updated':
 				return this.handleAccountUpdated(event.data.object as Stripe.Account)
 
@@ -77,8 +93,124 @@ export class StripeWebhookService {
 					event.data.object as Stripe.Subscription
 				)
 
+			case 'charge.dispute.created':
+				return this.handleDisputeCreated(event.data.object as Stripe.Dispute)
+
 			default:
 				this.logger.log(`Unhandled event type: ${event.type}`)
+		}
+	}
+
+	/**
+	 * Handle successful checkout - create OWNER user after payment
+	 * Phase 1: Payment-first onboarding via Stripe Checkout
+	 * Official pattern: checkout.session.completed webhook
+	 * Creates both Supabase auth user and User table record
+	 */
+	private async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+		this.logger.log(`Checkout completed: ${session.id}`)
+
+		// Extract customer email from session
+		const customerEmail =
+			session.customer_email || session.customer_details?.email
+		const customerId = session.customer as string
+		const subscriptionId = session.subscription as string | null
+
+		if (!customerEmail) {
+			this.logger.error('Checkout session has no customer email', {
+				sessionId: session.id
+			})
+			return
+		}
+
+		// Get subscription to determine tier
+		let tier = 'STARTER'
+		if (subscriptionId) {
+			try {
+				const subscription =
+					await this.stripe.subscriptions.retrieve(subscriptionId)
+				const priceId = subscription.items.data[0]?.price.id
+
+				// Map price ID to tier (replace with your actual Stripe price IDs)
+				// Example: Replace these with your real price IDs from the Stripe Dashboard
+				const priceIdToTier: Record<string, string> = {
+					price_1NabcPro: 'PRO',
+					price_1NxyzEnterprise: 'ENTERPRISE',
+					price_1NdefStarter: 'STARTER'
+					// Add more as needed
+				}
+				if (priceId && priceIdToTier[priceId]) {
+					tier = priceIdToTier[priceId]
+				}
+			} catch (error) {
+				this.logger.warn(
+					`Failed to retrieve subscription for tier mapping: ${subscriptionId}`,
+					{
+						error: error instanceof Error ? error.message : 'Unknown error'
+					}
+				)
+			}
+		}
+
+		try {
+			// Create Supabase auth user with auto-confirmed email
+			const { data: authData, error: authError } = await this.supabase
+				.getAdminClient()
+				.auth.admin.createUser({
+					email: customerEmail,
+					email_confirm: true,
+					user_metadata: {
+						stripe_customer_id: customerId,
+						onboarded_via: 'checkout',
+						onboarded_at: new Date().toISOString()
+					}
+				})
+
+			if (authError) {
+				this.logger.error('Failed to create auth user from checkout', {
+					email: customerEmail,
+					error: authError.message
+				})
+				throw authError
+			}
+
+			// SAFE logging - only ID and email (no sensitive data)
+			this.logger.log(
+				`Auth user created from checkout: ${authData.user.id} (${customerEmail})`
+			)
+
+			// Create User table record with OWNER role
+			const { error: dbError } = await this.supabase
+				.getAdminClient()
+				.from('User')
+				.insert({
+					id: authData.user.id,
+					supabaseId: authData.user.id,
+					email: customerEmail,
+					role: 'OWNER',
+					stripeCustomerId: customerId,
+					subscriptionTier: tier
+				})
+
+			if (dbError) {
+				this.logger.error('Failed to create User record from checkout', {
+					userId: authData.user.id,
+					error: dbError.message
+				})
+				throw dbError
+			}
+
+			this.logger.log(
+				`OWNER user created successfully: ${authData.user.id} (${customerEmail})`
+			)
+		} catch (error) {
+			this.logger.error('Checkout user creation failed', {
+				email: customerEmail,
+				sessionId: session.id,
+				error: error instanceof Error ? error.message : 'Unknown error'
+			})
+			// Re-throw to trigger webhook retry
+			throw error
 		}
 	}
 
@@ -309,8 +441,189 @@ export class StripeWebhookService {
 			.from('RentSubscription')
 			.update({
 				status: 'cancelled',
+				canceledAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString()
 			})
 			.eq('stripeSubscriptionId', subscription.id)
+	}
+
+	/**
+	 * Handle dispute creation (ACH and card disputes)
+	 * Phase 6F: Critical for ACH Direct Debit - disputes are final and cannot be appealed
+	 */
+	private async handleDisputeCreated(dispute: Stripe.Dispute) {
+		this.logger.log(
+			`Dispute created: ${dispute.id}, reason: ${dispute.reason}, amount: ${dispute.amount}`
+		)
+
+		// ACH-specific dispute reasons (from Stripe docs)
+		// These happen when ACH payment fails AFTER PaymentIntent succeeded
+		const achDisputeReasons = [
+			'insufficient_funds',
+			'incorrect_account_details',
+			'bank_cannot_process'
+		]
+
+		if (achDisputeReasons.includes(dispute.reason)) {
+			await this.handleACHDispute(dispute)
+		} else {
+			// Card disputes or other types
+			await this.handleCardDispute(dispute)
+		}
+	}
+
+	/**
+	 * Handle ACH-specific disputes
+	 * CRITICAL: ACH disputes are final and cannot be appealed
+	 * Must reverse transfer to recover funds from landlord
+	 */
+	private async handleACHDispute(dispute: Stripe.Dispute) {
+		this.logger.warn(
+			`ACH dispute detected (final, cannot appeal): ${dispute.id}, reason: ${dispute.reason}`
+		)
+
+		// Get the charge details to find the transfer
+		const charge = await this.stripe.charges.retrieve(dispute.charge as string)
+
+		// Extract payment intent ID (handle Stripe expandable types)
+		const paymentIntentId =
+			typeof charge.payment_intent === 'string'
+				? charge.payment_intent
+				: charge.payment_intent?.id || null
+
+		if (!paymentIntentId) {
+			this.logger.error(
+				`No payment intent found for dispute: ${dispute.id}, charge: ${dispute.charge}`
+			)
+			return
+		}
+
+		// Find the payment in our database
+		const { data: payment } = await this.supabase
+			.getAdminClient()
+			.from('RentPayment')
+			.select('*')
+			.eq('stripePaymentIntentId', paymentIntentId)
+			.single()
+
+		if (!payment) {
+			this.logger.error(
+				`Payment not found for dispute: ${dispute.id}, charge: ${dispute.charge}`
+			)
+			return
+		}
+
+		// Reverse the transfer to recover funds from landlord
+		// Platform already paid the dispute from platform balance
+		if (charge.transfer) {
+			this.logger.log(
+				`Reversing transfer ${charge.transfer} to recover ${dispute.amount} cents`
+			)
+
+			try {
+				await this.stripe.transfers.createReversal(charge.transfer as string, {
+					amount: dispute.amount,
+					description: `Dispute ${dispute.id}: ${dispute.reason}`,
+					metadata: {
+						dispute_id: dispute.id,
+						payment_id: payment.id,
+						reason: dispute.reason
+					}
+				})
+
+				this.logger.log(
+					`Transfer reversal successful for dispute ${dispute.id}`
+				)
+			} catch (error) {
+				this.logger.error(
+					`Transfer reversal failed for dispute ${dispute.id}:`,
+					error
+				)
+				// Continue to update payment status even if reversal fails
+			}
+		}
+
+		// Update payment status to disputed
+		await this.supabase
+			.getAdminClient()
+			.from('RentPayment')
+			.update({
+				status: 'disputed',
+				failureReason: `ACH Dispute (${dispute.reason}): ${dispute.amount / 100} USD - Cannot appeal`
+			})
+			.eq('id', payment.id)
+
+		this.logger.warn(
+			`Payment ${payment.id} marked as disputed. Landlord must resolve with tenant.`
+		)
+	}
+
+	/**
+	 * Handle card disputes (can be appealed)
+	 * Future implementation for card payment support
+	 */
+	private async handleCardDispute(dispute: Stripe.Dispute) {
+		this.logger.log(
+			`Card dispute detected (can appeal): ${dispute.id}, reason: ${dispute.reason}`
+		)
+
+		// Get the charge details
+		const charge = await this.stripe.charges.retrieve(dispute.charge as string)
+
+		// Extract payment intent ID (handle Stripe expandable types)
+		const paymentIntentId =
+			typeof charge.payment_intent === 'string'
+				? charge.payment_intent
+				: charge.payment_intent?.id || null
+
+		if (!paymentIntentId) {
+			this.logger.error(
+				`No payment intent found for dispute: ${dispute.id}, charge: ${dispute.charge}`
+			)
+			return
+		}
+
+		// Find the payment in our database
+		const { data: payment } = await this.supabase
+			.getAdminClient()
+			.from('RentPayment')
+			.select('*')
+			.eq('stripePaymentIntentId', paymentIntentId)
+			.single()
+
+		if (!payment) {
+			this.logger.error(
+				`Payment not found for dispute: ${dispute.id}, charge: ${dispute.charge}`
+			)
+			return
+		}
+
+		// Update payment status
+		await this.supabase
+			.getAdminClient()
+			.from('RentPayment')
+			.update({
+				status: 'disputed',
+				failureReason: `Dispute (${dispute.reason}): ${dispute.amount / 100} USD - Can submit evidence`
+			})
+			.eq('id', payment.id)
+
+		// Attempt to submit evidence for card disputes
+		try {
+			// Attach minimal evidence (extend with more fields if available in RentPayment)
+			const evidence: Stripe.DisputeUpdateParams.Evidence = {
+				product_description: 'Rent payment for property',
+				access_activity_log: 'Tenant accessed portal and paid rent'
+				// Add more fields if/when available in RentPayment schema
+			}
+			await this.stripe.disputes.update(dispute.id, { evidence })
+			this.logger.log(
+				`Submitted evidence for dispute ${dispute.id} (payment ${payment.id})`
+			)
+		} catch (e) {
+			this.logger.error(
+				`Failed to submit evidence for dispute ${dispute.id}: ${e}`
+			)
+		}
 	}
 }

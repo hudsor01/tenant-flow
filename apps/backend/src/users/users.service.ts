@@ -1,14 +1,12 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
-import { SupabaseService } from '../database/supabase.service'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { SupabaseService } from '../database/supabase.service'
 
 type UserInsert = Database['public']['Tables']['User']['Insert']
 type UserUpdate = Database['public']['Tables']['User']['Update']
 
 @Injectable()
 export class UsersService {
-	private readonly logger = new Logger(UsersService.name)
-
 	constructor(private readonly supabase: SupabaseService) {}
 
 	async findUserByEmail(
