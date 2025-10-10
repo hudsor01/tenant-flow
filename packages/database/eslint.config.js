@@ -1,21 +1,26 @@
+// @ts-check
+import eslint from '@eslint/js'
+import { defineConfig } from 'eslint/config'
 import tseslint from 'typescript-eslint'
 
-export default tseslint.config(
+export default defineConfig([
+	eslint.configs.recommended,
+	...tseslint.configs.recommended,
 	{
 		ignores: ['**/generated/**', '**/dist/**', '**/*.js', '**/*.d.ts']
 	},
-	...tseslint.configs.recommended,
 	{
 		files: ['@/**/*.ts'],
 		languageOptions: {
+			parser: tseslint.parser,
 			parserOptions: {
-				project: true
+				projectService: true,
+				tsconfigRootDir: import.meta.dirname
 			}
 		},
 		rules: {
-			// Very permissive rules since this package is deprecated
 			'@typescript-eslint/no-explicit-any': 'warn',
 			'@typescript-eslint/no-unused-vars': 'warn'
 		}
 	}
-)
+])

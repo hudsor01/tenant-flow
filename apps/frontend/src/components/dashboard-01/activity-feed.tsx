@@ -8,10 +8,10 @@ import {
 	DollarSign,
 	Home,
 	User,
-	Wrench,
-	Loader2
+	Wrench
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { Spinner } from '@/components/ui/spinner'
 import { useDashboardActivity } from '@/hooks/api/use-dashboard'
 import type { Tables } from '@repo/shared/types/supabase'
 
@@ -69,12 +69,18 @@ const getActivityBadge = (type: string) => {
 
 const getIconForType = (type: string) => {
 	switch (type) {
-		case 'payment': return DollarSign
-		case 'maintenance': return Wrench
-		case 'lease': return CheckCircle
-		case 'property': return Home
-		case 'tenant': return User
-		default: return Clock
+		case 'payment':
+			return DollarSign
+		case 'maintenance':
+			return Wrench
+		case 'lease':
+			return CheckCircle
+		case 'property':
+			return Home
+		case 'tenant':
+			return User
+		default:
+			return Clock
 	}
 }
 
@@ -102,10 +108,12 @@ const getColorForType = (type: string) => {
 		}
 	}
 
-	return colorMap[type as keyof typeof colorMap] || {
-		color: 'var(--color-metric-neutral)',
-		bgColor: 'var(--color-metric-neutral-bg)'
-	}
+	return (
+		colorMap[type as keyof typeof colorMap] || {
+			color: 'var(--color-metric-neutral)',
+			bgColor: 'var(--color-metric-neutral-bg)'
+		}
+	)
 }
 
 export function ActivityFeed() {
@@ -117,7 +125,7 @@ export function ActivityFeed() {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center py-8">
-				<Loader2 className="h-6 w-6 animate-spin" />
+				<Spinner className="h-6 w-6 animate-spin" />
 				<span
 					className="ml-2 text-muted-foreground"
 					style={{
@@ -134,7 +142,9 @@ export function ActivityFeed() {
 	if (error) {
 		return (
 			<div className="text-center py-8">
-				<p className="text-sm text-muted-foreground">Failed to load recent activities</p>
+				<p className="text-sm text-muted-foreground">
+					Failed to load recent activities
+				</p>
 			</div>
 		)
 	}
@@ -154,7 +164,10 @@ export function ActivityFeed() {
 				const { color, bgColor } = getColorForType(activity.entityType)
 
 				return (
-					<div key={activity.id} className="flex items-start gap-4 p-3 rounded-lg hover:bg-[var(--color-muted)] transition-colors duration-200">
+					<div
+						key={activity.id}
+						className="flex items-start gap-4 p-3 rounded-lg hover:bg-[var(--color-muted)] transition-colors duration-200"
+					>
 						{/* Activity Icon */}
 						<div
 							className="flex h-10 w-10 items-center justify-center rounded-full border"
@@ -163,10 +176,7 @@ export function ActivityFeed() {
 								borderColor: `color-mix(in oklab, ${color} 20%, transparent)`
 							}}
 						>
-							<Icon
-								className="h-4 w-4"
-								style={{ color }}
-							/>
+							<Icon className="h-4 w-4" style={{ color }} />
 						</div>
 
 						{/* Activity Content */}
@@ -194,7 +204,9 @@ export function ActivityFeed() {
 											lineHeight: 'var(--line-height-body)'
 										}}
 									>
-										{activity.entityName ? `${activity.entityName} (${activity.entityId})` : activity.entityId}
+										{activity.entityName
+											? `${activity.entityName} (${activity.entityId})`
+											: activity.entityId}
 									</p>
 									<div className="flex items-center gap-2">
 										<span
@@ -206,7 +218,9 @@ export function ActivityFeed() {
 											}}
 										>
 											<Clock className="h-3 w-3" />
-											{formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+											{formatDistanceToNow(new Date(activity.createdAt), {
+												addSuffix: true
+											})}
 										</span>
 									</div>
 								</div>

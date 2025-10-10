@@ -5,7 +5,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { cardClasses, cn } from '@/lib/utils'
+import { cardClasses, cn } from '@/lib/design-system'
 import type { MetricsCardProps } from '@repo/shared/types/frontend-ui'
 import * as React from 'react'
 

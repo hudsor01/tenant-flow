@@ -57,19 +57,31 @@ export class StripeWebhookController {
 			throw new BadRequestException('Invalid signature')
 		}
 
-		// Idempotency check
-		const alreadyProcessed =
-			await this.stripeWebhookService.checkEventProcessed(event.id)
-
-		if (alreadyProcessed) {
-			this.logger.log(`Event ${event.id} already processed`)
-			return { received: true, cached: true }
-		}
+		// Store event ID BEFORE processing to prevent race conditions
+		// Implements compound idempotency: event.id + object.id:event.type
+		// Database PRIMARY KEY constraint ensures atomicity
+		const objectId =
+			(event.data.object as { id?: string })?.id || undefined
 
 		try {
-			await this.stripeWebhookService.processWebhookEvent(event)
-			await this.stripeWebhookService.storeEventId(event.id, event.type)
+			await this.stripeWebhookService.storeEventId(
+				event.id,
+				event.type,
+				objectId
+			)
+		} catch (error) {
+			// Postgres unique violation code 23505 means already processed
+			if ((error as { code?: string }).code === '23505') {
+				this.logger.log(`Event ${event.id} already processed (duplicate)`)
+				return { received: true, duplicate: true }
+			}
+			// Re-throw other database errors
+			throw error
+		}
 
+		// Process the event (happens after successful deduplication)
+		try {
+			await this.stripeWebhookService.processWebhookEvent(event)
 			return { received: true }
 		} catch (error) {
 			this.logger.error('Webhook processing failed', error)

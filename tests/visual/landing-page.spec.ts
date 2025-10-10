@@ -2,11 +2,8 @@ import { expect, test } from '@playwright/test'
 
 test.describe('Landing Page Visual Regression', () => {
 	test('should match landing page snapshot in light mode', async ({ page }) => {
-		if (!process.env.NEXT_PUBLIC_APP_URL) {
-			throw new Error('NEXT_PUBLIC_APP_URL is required for visual tests')
-		}
 		// Navigate to landing page
-		await page.goto(process.env.NEXT_PUBLIC_APP_URL)
+		await page.goto('/')
 
 		// Wait for page to fully load including CSS and fonts
 		await page.waitForLoadState('networkidle')
@@ -23,7 +20,7 @@ test.describe('Landing Page Visual Regression', () => {
 
 	test('should match landing page snapshot in dark mode', async ({ page }) => {
 		// Navigate to landing page
-		await page.goto(process.env.NEXT_PUBLIC_APP_URL!)
+		await page.goto('/')
 
 		// Wait for page to load
 		await page.waitForLoadState('networkidle')
@@ -55,7 +52,7 @@ test.describe('Landing Page Visual Regression', () => {
 		await page.setViewportSize({ width: 375, height: 812 })
 
 		// Navigate to landing page
-		await page.goto(process.env.NEXT_PUBLIC_APP_URL!)
+		await page.goto('/')
 
 		// Wait for page to load
 		await page.waitForLoadState('networkidle')
@@ -72,7 +69,7 @@ test.describe('Landing Page Visual Regression', () => {
 		page
 	}) => {
 		// Navigate to landing page
-		await page.goto(process.env.NEXT_PUBLIC_APP_URL!)
+		await page.goto('/')
 
 		// Wait for page to load
 		await page.waitForLoadState('networkidle')

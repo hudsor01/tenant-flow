@@ -118,7 +118,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
     try {
       this.logger.log('Calculating occupancy trends via optimized RPC', { userId, months });
 
-      const _client = this.supabase.getAdminClient();
+
 
       // Use simple direct query approach for occupancy trends
       // Generate monthly data for the requested period
@@ -169,7 +169,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
     try {
       this.logger.log('Calculating revenue trends via optimized RPC', { userId, months });
 
-      const _client = this.supabase.getAdminClient();
+
 
       // Use simple direct query approach for revenue trends
       // Generate monthly revenue data for the requested period

@@ -2,17 +2,13 @@
 
 import type { ReactNode } from 'react'
 import { createContext, useContext, useEffect, useRef } from 'react'
-
 import { useStore, type StoreApi } from 'zustand'
-
-import
-  {
-    getStoredThemeMode,
-    persistThemeMode,
-    updateThemeMode
-  } from '@/lib/theme-utils'
+import {
+	getStoredThemeMode,
+	persistThemeMode,
+	updateThemeMode
+} from '@/lib/theme-utils'
 import type { ThemeMode } from '@repo/shared/types/domain'
-
 import type { PreferencesState } from '@/stores/preferences-store'
 import { createPreferencesStore } from '@/stores/preferences-store'
 
@@ -110,9 +106,9 @@ export const PreferencesStoreProvider = ({
 	)
 }
 
-export const usePreferencesStore = <T,>(
+export function usePreferencesStore<T>(
 	selector: (state: PreferencesState) => T
-): T => {
+): T {
 	const store = useContext(PreferencesStoreContext)
 	if (!store) {
 		throw new Error('Missing PreferencesStoreProvider')

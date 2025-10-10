@@ -15,7 +15,10 @@ export interface LogContext {
 	action?: string
 	userId?: string
 	sessionId?: string
+	requestId?: string
+	leaseId?: string
 	metadata?: Record<string, unknown>
+	[key: string]: unknown
 }
 
 export interface LogEntry {

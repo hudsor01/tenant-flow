@@ -4,14 +4,14 @@ import {
 	Controller,
 	Delete,
 	Get,
-	Logger,
 	Param,
-	ParseUUIDPipe,
 	Patch,
 	Post,
-	Request
+	Request,
+	ParseUUIDPipe
 } from '@nestjs/common'
 import { PaymentMethodsService } from './payment-methods.service'
+
 
 interface AuthenticatedRequest extends Request {
 	user?: {
@@ -22,8 +22,6 @@ interface AuthenticatedRequest extends Request {
 
 @Controller('payment-methods')
 export class PaymentMethodsController {
-	private readonly logger = new Logger(PaymentMethodsController.name)
-
 	constructor(private readonly paymentMethodsService: PaymentMethodsService) {}
 
 	/**
@@ -33,28 +31,23 @@ export class PaymentMethodsController {
 	@Post('setup-intent')
 	async createSetupIntent(
 		@Request() req: AuthenticatedRequest,
-		@Body() body: { type: 'card' | 'us_bank_account' }
+		@Body() body: { type?: 'card' | 'us_bank_account' }
 	) {
 		const userId = req.user?.id
 		const email = req.user?.email
+		const type = body.type ?? 'card'
 
-		if (!userId || !email) {
+		if (!userId) {
 			throw new BadRequestException('User not authenticated')
 		}
 
-		if (!body.type || !['card', 'us_bank_account'].includes(body.type)) {
+		if (!['card', 'us_bank_account'].includes(type)) {
 			throw new BadRequestException(
 				'Invalid payment method type. Must be "card" or "us_bank_account"'
 			)
 		}
 
-		const result = await this.paymentMethodsService.createSetupIntent(
-			userId,
-			email,
-			body.type
-		)
-
-		return result
+		return this.paymentMethodsService.createSetupIntent(userId, email, type)
 	}
 
 	/**
@@ -76,12 +69,10 @@ export class PaymentMethodsController {
 			throw new BadRequestException('Payment method ID is required')
 		}
 
-		const result = await this.paymentMethodsService.savePaymentMethod(
+		return this.paymentMethodsService.savePaymentMethod(
 			userId,
 			body.paymentMethodId
 		)
-
-		return result
 	}
 
 	/**
@@ -117,12 +108,10 @@ export class PaymentMethodsController {
 			throw new BadRequestException('User not authenticated')
 		}
 
-		const result = await this.paymentMethodsService.setDefaultPaymentMethod(
+		return this.paymentMethodsService.setDefaultPaymentMethod(
 			userId,
 			paymentMethodId
 		)
-
-		return result
 	}
 
 	/**
@@ -140,11 +129,9 @@ export class PaymentMethodsController {
 			throw new BadRequestException('User not authenticated')
 		}
 
-		const result = await this.paymentMethodsService.deletePaymentMethod(
+		return this.paymentMethodsService.deletePaymentMethod(
 			userId,
 			paymentMethodId
 		)
-
-		return result
 	}
 }

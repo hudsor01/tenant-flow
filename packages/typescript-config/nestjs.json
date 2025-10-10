@@ -1,10 +1,10 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow NestJS TypeScript Config - Node.js 20 Stable",
+	"display": "TenantFlow NestJS TypeScript Config - Node16 Mode",
 	"extends": "./base.json",
 	"compilerOptions": {
-		"module": "nodenext",
-		"moduleResolution": "nodenext",
+		"module": "Node16",
+		"moduleResolution": "Node16",
 		"target": "ES2022",
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,

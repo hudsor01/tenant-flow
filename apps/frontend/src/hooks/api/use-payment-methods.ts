@@ -57,6 +57,28 @@ export function useCreateSetupIntent() {
 }
 
 /**
+ * Hook to save payment method after SetupIntent confirmation
+ */
+export function useSavePaymentMethod() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async (request: { paymentMethodId: string }) => {
+			return await apiClient<{ success: boolean }>(
+				`${API_BASE_URL}/api/v1/payment-methods/save`,
+				{
+					method: 'POST',
+					body: JSON.stringify(request)
+				}
+			)
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: paymentMethodKeys.list() })
+		}
+	})
+}
+
+/**
  * Hook to set default payment method
  */
 export function useSetDefaultPaymentMethod() {
@@ -71,9 +93,36 @@ export function useSetDefaultPaymentMethod() {
 				}
 			)
 		},
+		onMutate: async (paymentMethodId: string) => {
+			await queryClient.cancelQueries({ queryKey: paymentMethodKeys.list() })
+			const previous = queryClient.getQueryData<
+				import('@repo/shared/types/core').PaymentMethodResponse[]
+			>(paymentMethodKeys.list())
+			// Optimistically mark selected method as default and unset others
+			queryClient.setQueryData<
+				import('@repo/shared/types/core').PaymentMethodResponse[]
+			>(paymentMethodKeys.list(), old =>
+				old
+					? old.map(m => ({ ...m, isDefault: m.id === paymentMethodId }))
+					: old
+			)
+			return { previous }
+		},
+		onError: (
+			_err: unknown,
+			_paymentMethodId: string,
+			context?: {
+				previous?: import('@repo/shared/types/core').PaymentMethodResponse[]
+			}
+		) => {
+			if (context?.previous) {
+				queryClient.setQueryData(paymentMethodKeys.list(), context.previous)
+			}
+		},
 		onSuccess: () => {
-			// Invalidate payment methods list to refetch with updated default
-			queryClient.invalidateQueries({ queryKey: paymentMethodKeys.list() })
+			// UI feedback only; cache already updated optimistically
+			// Keep network refetch off to reduce extra GETs; server reconciliation
+			// will occur on background refetch according to staleTime.
 		}
 	})
 }
@@ -93,9 +142,31 @@ export function useDeletePaymentMethod() {
 				}
 			)
 		},
+		onMutate: async (paymentMethodId: string) => {
+			await queryClient.cancelQueries({ queryKey: paymentMethodKeys.list() })
+			const previous = queryClient.getQueryData<
+				import('@repo/shared/types/core').PaymentMethodResponse[]
+			>(paymentMethodKeys.list())
+			queryClient.setQueryData<
+				import('@repo/shared/types/core').PaymentMethodResponse[]
+			>(paymentMethodKeys.list(), old =>
+				old ? old.filter(m => m.id !== paymentMethodId) : old
+			)
+			return { previous }
+		},
+		onError: (
+			_err: unknown,
+			_paymentMethodId: string,
+			context?: {
+				previous?: import('@repo/shared/types/core').PaymentMethodResponse[]
+			}
+		) => {
+			if (context?.previous) {
+				queryClient.setQueryData(paymentMethodKeys.list(), context.previous)
+			}
+		},
 		onSuccess: () => {
-			// Invalidate payment methods list to refetch without deleted method
-			queryClient.invalidateQueries({ queryKey: paymentMethodKeys.list() })
+			// UI feedback only; cache updated optimistically
 		}
 	})
 }

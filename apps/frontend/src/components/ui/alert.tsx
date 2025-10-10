@@ -4,19 +4,13 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const alertVariants = cva(
-  "relative w-full rounded-[var(--radius-medium)] border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current transition-all duration-200 ease-in-out",
+  "relative w-full rounded-lg border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current",
   {
     variants: {
       variant: {
-        default: "bg-card text-card-foreground border-border hover:border-border/80 hover:shadow-sm",
+        default: "bg-card text-card-foreground",
         destructive:
-          "text-destructive bg-destructive/5 border-destructive/20 [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90 hover:border-destructive/30 hover:bg-destructive/10",
-        success:
-          "text-success bg-success/5 border-success/20 [&>svg]:text-current *:data-[slot=alert-description]:text-success/90 hover:border-success/30 hover:bg-success/10",
-        warning:
-          "text-warning bg-warning/5 border-warning/20 [&>svg]:text-current *:data-[slot=alert-description]:text-warning/90 hover:border-warning/30 hover:bg-warning/10",
-        info:
-          "text-info bg-info/5 border-info/20 [&>svg]:text-current *:data-[slot=alert-description]:text-info/90 hover:border-info/30 hover:bg-info/10",
+          "text-destructive bg-card [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90",
       },
     },
     defaultVariants: {

@@ -3,13 +3,17 @@
 import Footer from '@/components/layout/footer'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { GridBackground } from '@/components/ui/grid-background'
+import { GridPattern } from '@/components/magicui/grid-pattern'
 import { getBlogPost } from '@/lib/blog-posts'
 import { ArrowLeft, ArrowRight, Clock, User } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-export default function BlogArticlePage({ params }: { params: { slug: string } }) {
+export default function BlogArticlePage({
+	params
+}: {
+	params: { slug: string }
+}) {
 	const post = getBlogPost(params.slug)
 
 	if (!post) {
@@ -19,7 +23,7 @@ export default function BlogArticlePage({ params }: { params: { slug: string } }
 	return (
 		<div className="relative min-h-screen flex flex-col">
 			{/* Full page grid background */}
-			<GridBackground className="fixed inset-0 -z-10" />
+			<GridPattern className="fixed inset-0 -z-10" />
 
 			{/* Navigation */}
 			<nav className="fixed top-6 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
@@ -163,14 +167,16 @@ export default function BlogArticlePage({ params }: { params: { slug: string } }
 								[&>a]:text-primary [&>a]:underline [&>a]:hover:text-primary/80
 								[&>img]:rounded-lg [&>img]:my-8 [&>img]:shadow-lg
 							"
-							dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />') }}
+							dangerouslySetInnerHTML={{
+								__html: post.content.replace(/\n/g, '<br />')
+							}}
 						/>
 					</div>
 
 					{/* Tags */}
 					<div className="mt-12 pt-8 border-t border-border">
 						<div className="flex flex-wrap gap-2">
-							{post.tags.map((tag) => (
+							{post.tags.map(tag => (
 								<Badge key={tag} variant="outline" className="text-sm">
 									{tag}
 								</Badge>
