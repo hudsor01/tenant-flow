@@ -10,7 +10,7 @@ export type ReportType =
 
 export type ReportFormat = 'pdf' | 'excel'
 
-interface Report {
+export interface Report {
 	id: string
 	userId: string
 	reportType: string
@@ -28,7 +28,7 @@ interface Report {
 	updatedAt: string
 }
 
-interface ListReportsResponse {
+export interface ListReportsResponse {
 	success: boolean
 	data: Report[]
 	pagination: {

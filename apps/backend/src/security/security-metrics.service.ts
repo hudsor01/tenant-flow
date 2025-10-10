@@ -1,19 +1,19 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import type {
+	SecurityEvent,
 	SecurityMetrics,
 	SecurityThreatSummary,
-	SecurityTrendPoint,
-	SecurityEvent
+	SecurityTrendPoint
 } from '@repo/shared/types/security'
 import {
 	SecurityEventSeverity as SecurityEventSeverityEnum,
 	SecurityEventType as SecurityEventTypeEnum
 } from '@repo/shared/types/security'
-import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 import type {
 	ISecurityRepository,
 	SecurityAuditLogEntry
 } from '../repositories/interfaces/security-repository.interface'
+import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 
 const DEFAULT_LOOKBACK_DAYS = 30
 const RECENT_EVENTS_LIMIT = 25
@@ -21,14 +21,14 @@ const TREND_WINDOW_DAYS = 14
 
 @Injectable()
 export class SecurityMetricsService {
-	private readonly logger = new Logger(SecurityMetricsService.name)
-
 	constructor(
 		@Inject(REPOSITORY_TOKENS.SECURITY)
 		private readonly securityRepository: ISecurityRepository
 	) {}
 
-	async getMetrics(lookbackInDays: number = DEFAULT_LOOKBACK_DAYS): Promise<SecurityMetrics> {
+	async getMetrics(
+		lookbackInDays: number = DEFAULT_LOOKBACK_DAYS
+	): Promise<SecurityMetrics> {
 		const end = new Date()
 		const start = new Date(end.getTime() - lookbackInDays * 24 * 60 * 60 * 1000)
 
@@ -101,7 +101,10 @@ export class SecurityMetricsService {
 		)
 	}
 
-	private initializeSeverityBuckets(): Record<SecurityEventSeverityEnum, number> {
+	private initializeSeverityBuckets(): Record<
+		SecurityEventSeverityEnum,
+		number
+	> {
 		return Object.values(SecurityEventSeverityEnum).reduce(
 			(acc, severity) => {
 				acc[severity] = 0
@@ -120,8 +123,8 @@ export class SecurityMetricsService {
 				typeof log.details === 'string'
 					? log.details
 					: log.details
-					? JSON.stringify(log.details)
-					: undefined,
+						? JSON.stringify(log.details)
+						: undefined,
 			metadata: undefined,
 			ipAddress: log.ipAddress ?? undefined,
 			userAgent: log.userAgent ?? undefined,
@@ -129,7 +132,9 @@ export class SecurityMetricsService {
 		}))
 	}
 
-	private buildRecentTrends(logs: SecurityAuditLogEntry[]): SecurityTrendPoint[] {
+	private buildRecentTrends(
+		logs: SecurityAuditLogEntry[]
+	): SecurityTrendPoint[] {
 		const trendByDate = new Map<string, SecurityTrendPoint>()
 
 		for (const log of logs) {

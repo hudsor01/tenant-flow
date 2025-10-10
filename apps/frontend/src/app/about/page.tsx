@@ -4,7 +4,7 @@ import Footer from '@/components/layout/footer'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { HeroSection } from '@/components/sections/hero-section'
 import { Button } from '@/components/ui/button'
-import { GridBackground } from '@/components/ui/grid-background'
+
 import {
 	Item,
 	ItemContent,
@@ -31,6 +31,7 @@ import {
 	Zap
 } from 'lucide-react'
 import Link from 'next/link'
+import { GridPattern } from '../../components/magicui/grid-pattern'
 
 const stats = [
 	{ number: '10,000+', label: 'Properties Managed', Icon: Building2 },
@@ -43,7 +44,7 @@ export default function AboutPage() {
 	return (
 		<div className="relative min-h-screen flex flex-col">
 			{/* Full page grid background */}
-			<GridBackground className="fixed inset-0 -z-10" />
+			<GridPattern className="fixed inset-0 -z-10" />
 
 			{/* Navigation */}
 			<nav className="fixed top-6 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
@@ -120,7 +121,7 @@ export default function AboutPage() {
 							Sign In
 						</Link>
 						<Link
-							href="/login"
+							href="/signup"
 							className="flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
 						>
 							Get Started

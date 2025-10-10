@@ -1,9 +1,15 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Frontend - Next.js 15 + React 19",
+	"display": "TenantFlow Frontend - Next.js 15 + React 19 (Modernized 2025)",
 	"extends": "../../packages/typescript-config/next.json",
 	"compilerOptions": {
 		"baseUrl": ".",
+		"jsx": "preserve",
+		"composite": true,
+		"noEmit": false,
+		"declaration": true,
+		"outDir": "./.tsc-output",
+		"declarationDir": "./.tsc-output/types",
 		"plugins": [
 			{
 				"name": "next"
@@ -16,17 +22,16 @@
 			"@/hooks/*": ["./src/hooks/*"],
 			"@/stores/*": ["./src/stores/*"],
 			"@/types/*": ["./src/types/*"],
-			"@/providers/*": ["./src/providers/*"],
+			"@/components/providers/*": ["./src/providers/*"],
 			"@repo/shared": ["../../packages/shared/dist"],
-			"@repo/shared/*": ["../../packages/shared/dist/*"]
+			"@repo/shared/*": ["../../packages/shared/dist/*"],
+			"@repo/ui": ["../../packages/ui/src"],
+			"@repo/ui/components/ui/*": ["../../packages/ui/src/*"]
 		},
 		"types": ["node", "react", "react-dom"]
 	},
 	"include": [
 		"next-env.d.ts",
-		"src/test/**/*",
-		"**/*.ts",
-		"**/*.tsx",
 		"src/**/*",
 		".next/types/**/*.ts",
 		"src/types/**/*.d.ts",
@@ -40,23 +45,12 @@
 		"out",
 		"dist",
 		"build",
-		"tests/**/*",
-		"**/__tests__/**/*",
-		"**/*.test.ts",
-		"**/*.test.tsx",
-		"**/*.spec.ts",
-		"**/*.spec.tsx",
+		".tsc-output",
+		"coverage/**/*",
 		"coverage/**/*",
 		"*.config.js",
 		"*.config.mjs",
 		"jest.config.js",
 		"vitest.config.production.ts"
 	]
-	// NOTE: TypeScript project references disabled for Next.js build compatibility
-	// See: https://nextjs.org/docs/advanced-features/typescript#project-references
-	// "references": [
-	//   {
-	//     "path": "../../packages/shared"
-	//   }
-	// ]
 }

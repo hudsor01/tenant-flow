@@ -34,7 +34,8 @@ export const getRequestStatusLabel = (status: RequestStatus): string => {
 		IN_PROGRESS: 'In Progress',
 		COMPLETED: 'Completed',
 		CANCELED: 'Canceled',
-		ON_HOLD: 'On Hold'
+		ON_HOLD: 'On Hold',
+		CLOSED: 'Closed'
 	}
 	return labels[status] || status
 }
@@ -45,7 +46,8 @@ export const getRequestStatusColor = (status: RequestStatus): string => {
 		IN_PROGRESS: 'bg-blue-100 text-blue-800',
 		COMPLETED: 'bg-green-100 text-green-800',
 		CANCELED: 'bg-gray-100 text-gray-800',
-		ON_HOLD: 'bg-orange-100 text-orange-800'
+		ON_HOLD: 'bg-orange-100 text-orange-800',
+		CLOSED: 'bg-green-100 text-green-800'
 	}
 	return colors[status] || 'bg-gray-100 text-gray-800'
 }

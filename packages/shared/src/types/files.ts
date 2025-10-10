@@ -7,8 +7,8 @@ import type { Database } from './supabase-generated.js'
 
 // Use Supabase types instead of duplicating
 export type DocumentType = Database['public']['Enums']['DocumentType']
-export type Document = Database['public']['Tables']['Document']['Row']
-export type File = Database['public']['Tables']['File']['Row']
+export type Document = Database['public']['Tables']['document']['Row']
+export type File = Database['public']['Tables']['file']['Row']
 
 // File upload related types
 export interface FileUploadProgress {

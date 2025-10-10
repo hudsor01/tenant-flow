@@ -1,11 +1,12 @@
 'use client'
 
 import Footer from '@/components/layout/footer'
+import { GridPattern } from '@/components/magicui/grid-pattern'
 import { HeroSection } from '@/components/sections/hero-section'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { GridBackground } from '@/components/ui/grid-background'
+import { CardLayout } from '@/components/ui/card-layout'
+
 import {
 	Item,
 	ItemActions,
@@ -32,7 +33,7 @@ export default function HelpPage() {
 	return (
 		<div className="relative min-h-screen flex flex-col">
 			{/* Full page grid background */}
-			<GridBackground className="fixed inset-0 -z-10" />
+			<GridPattern className="fixed inset-0 -z-10" />
 
 			{/* Navigation */}
 			<nav className="fixed top-6 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
@@ -103,13 +104,13 @@ export default function HelpPage() {
 
 					<div className="flex items-center space-x-3">
 						<Link
-							href="/login"
+							href="/signup"
 							className="hidden sm:flex px-4 py-2 text-foreground rounded-xl hover:bg-accent transition-all duration-300 font-medium"
 						>
 							Sign In
 						</Link>
 						<Link
-							href="/login"
+							href="/signup"
 							className="flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
 						>
 							Get Started
@@ -133,7 +134,7 @@ export default function HelpPage() {
 					secondaryCta={{ label: 'Schedule Success Call', href: '/contact' }}
 					trustSignals="24/7 Expert Support • 90-second response • 98.7% success rate"
 					image={{
-						src: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=2074&auto=format&fit=crop',
+						src: 'https://images.unsplash.com/photo-155676175-b413da4baf72?q=80&w=2074&auto=format&fit=crop',
 						alt: 'Professional customer support team helping property managers'
 					}}
 				/>
@@ -268,71 +269,77 @@ export default function HelpPage() {
 						</div>
 
 						<div className="grid md:grid-cols-3 gap-8">
-							<Card className="bg-card border border-border/50 shadow-md">
-								<CardContent className="p-6">
-									<div className="flex items-center mb-4">
-										<TrendingUp className="w-8 h-8 text-primary mr-3" />
-										<div>
-											<h3 className="font-semibold">Sarah M.</h3>
-											<p className="text-sm text-muted-foreground">
-												Portfolio Manager
-											</p>
-										</div>
+							<CardLayout
+								title="Sarah M."
+								description="Portfolio Manager"
+								className="bg-card border border-border/50 shadow-md"
+							>
+								<div className="flex items-center mb-4">
+									<TrendingUp className="w-8 h-8 text-primary mr-3" />
+									<div>
+										<h3 className="font-semibold">Sarah M.</h3>
+										<p className="text-sm text-muted-foreground">
+											Portfolio Manager
+										</p>
 									</div>
-									<p className="text-muted-foreground mb-4">
-										"TenantFlow's support team helped me implement automation
-										that increased my NOI by 45% in just 60 days. Their
-										expertise made all the difference."
-									</p>
-									<div className="text-sm font-semibold text-primary">
-										Result: 45% NOI increase in 60 days
-									</div>
-								</CardContent>
-							</Card>
+								</div>
+								<p className="text-muted-foreground mb-4">
+									"TenantFlow's support team helped me implement automation that
+									increased my NOI by 45% in just 60 days. Their expertise made
+									all the difference."
+								</p>
+								<div className="text-sm font-semibold text-primary">
+									Result: 45% NOI increase in 60 days
+								</div>
+							</CardLayout>
 
-							<Card className="bg-card border border-border/50 shadow-md">
-								<CardContent className="p-6">
-									<div className="flex items-center mb-4">
-										<Clock className="w-8 h-8 text-accent mr-3" />
-										<div>
-											<h3 className="font-semibold">Michael R.</h3>
-											<p className="text-sm text-muted-foreground">
-												Real Estate Investor
-											</p>
-										</div>
+							<CardLayout
+								title="Michael R."
+								description="Real Estate Investor"
+								className="bg-card border border-border/50 shadow-md"
+							>
+								<div className="flex items-center mb-4">
+									<Clock className="w-8 h-8 text-accent mr-3" />
+									<div>
+										<h3 className="font-semibold">Michael R.</h3>
+										<p className="text-sm text-muted-foreground">
+											Real Estate Investor
+										</p>
 									</div>
-									<p className="text-muted-foreground mb-4">
-										"The onboarding team had me fully automated within 24 hours.
-										I now save 25+ hours per week and my vacancy rates dropped
-										by 70%."
-									</p>
-									<div className="text-sm font-semibold text-accent">
-										Result: 25+ hours saved per week
-									</div>
-								</CardContent>
-							</Card>
+								</div>
+								<p className="text-muted-foreground mb-4">
+									"The onboarding team had me fully automated within 24 hours. I
+									now save 25+ hours per week and my vacancy rates dropped by
+									70%."
+								</p>
+								<div className="text-sm font-semibold text-accent">
+									Result: 25+ hours saved per week
+								</div>
+							</CardLayout>
 
-							<Card className="bg-card border border-border/50 shadow-md">
-								<CardContent className="p-6">
-									<div className="flex items-center mb-4">
-										<Users className="w-8 h-8 text-primary mr-3" />
-										<div>
-											<h3 className="font-semibold">David L.</h3>
-											<p className="text-sm text-muted-foreground">
-												Property Management Company
-											</p>
-										</div>
+							<CardLayout
+								title="David L."
+								description="Property Management Company"
+								className="bg-card border border-border/50 shadow-md"
+							>
+								<div className="flex items-center mb-4">
+									<Users className="w-8 h-8 text-primary mr-3" />
+									<div>
+										<h3 className="font-semibold">David L.</h3>
+										<p className="text-sm text-muted-foreground">
+											Property Management Company
+										</p>
 									</div>
-									<p className="text-muted-foreground mb-4">
-										"TenantFlow's customer success manager helped us scale from
-										50 to 500 properties seamlessly. Our maintenance costs
-										dropped 35%."
-									</p>
-									<div className="text-sm font-semibold text-primary">
-										Result: Scaled to 500 properties, 35% cost reduction
-									</div>
-								</CardContent>
-							</Card>
+								</div>
+								<p className="text-muted-foreground mb-4">
+									"TenantFlow's customer success manager helped us scale from 50
+									to 50 properties seamlessly. Our maintenance costs dropped
+									35%."
+								</p>
+								<div className="text-sm font-semibold text-primary">
+									Result: Scaled to 50 properties, 35% cost reduction
+								</div>
+							</CardLayout>
 						</div>
 					</div>
 				</section>
@@ -378,28 +385,28 @@ export default function HelpPage() {
 									badgeColor: 'bg-accent/10 text-accent'
 								}
 							].map((resource, index) => (
-								<Card
+								<CardLayout
 									key={index}
+									title={resource.title}
+									description={resource.description}
 									className="bg-card border border-border/50 shadow-md transition-shadow"
 								>
-									<CardContent className="p-6">
-										<div className="flex items-start justify-between mb-4">
-											<h3 className="font-semibold text-lg leading-tight pr-4">
-												{resource.title}
-											</h3>
-											<Badge className={resource.badgeColor}>
-												{resource.badge}
-											</Badge>
-										</div>
-										<p className="text-muted-foreground mb-4">
-											{resource.description}
-										</p>
-										<Button variant="outline" className="w-full">
-											Read Guide
-											<ArrowRight className="w-4 h-4 ml-2" />
-										</Button>
-									</CardContent>
-								</Card>
+									<div className="flex items-start justify-between mb-4">
+										<h3 className="font-semibold text-lg leading-tight pr-4">
+											{resource.title}
+										</h3>
+										<Badge className={resource.badgeColor}>
+											{resource.badge}
+										</Badge>
+									</div>
+									<p className="text-muted-foreground mb-4">
+										{resource.description}
+									</p>
+									<Button variant="outline" className="w-full">
+										Read Guide
+										<ArrowRight className="w-4 h-4 ml-2" />
+									</Button>
+								</CardLayout>
 							))}
 						</div>
 					</div>

@@ -14,7 +14,7 @@ export type Database = {
 	}
 	public: {
 		Tables: {
-			_BlogArticleToBlogTag: {
+			_blog_article_to_blog_tag: {
 				Row: {
 					A: string
 					B: string
@@ -29,22 +29,22 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: '_BlogArticleToBlogTag_A_fkey'
+						foreignKeyName: '_blogarticletoblogtag_a_fkey'
 						columns: ['A']
 						isOneToOne: false
-						referencedRelation: 'BlogArticle'
+						referencedRelation: 'blog_article'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: '_BlogArticleToBlogTag_B_fkey'
+						foreignKeyName: '_blogarticletoblogtag_b_fkey'
 						columns: ['B']
 						isOneToOne: false
-						referencedRelation: 'BlogTag'
+						referencedRelation: 'blog_tag'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			Activity: {
+			activity: {
 				Row: {
 					action: string
 					createdAt: string
@@ -74,15 +74,15 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'Activity_userId_fkey'
+						foreignKeyName: 'activity_userid_fkey'
 						columns: ['userId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			BlogArticle: {
+			blog_article: {
 				Row: {
 					authorFirstName: string | null
 					authorId: string | null
@@ -160,15 +160,15 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'BlogArticle_authorId_fkey'
+						foreignKeyName: 'blogarticle_authorid_fkey'
 						columns: ['authorId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			BlogTag: {
+			blog_tag: {
 				Row: {
 					color: string | null
 					createdAt: string
@@ -192,7 +192,81 @@ export type Database = {
 				}
 				Relationships: []
 			}
-			CustomerInvoice: {
+			connected_account: {
+				Row: {
+					accountStatus: string | null
+					accountType: string
+					businessType: string | null
+					capabilities: Json | null
+					chargesEnabled: boolean | null
+					contactEmail: string | null
+					country: string | null
+					createdAt: string | null
+					currency: string | null
+					detailsSubmitted: boolean | null
+					displayName: string | null
+					id: string
+					onboardingCompleted: boolean | null
+					onboardingCompletedAt: string | null
+					payoutsEnabled: boolean | null
+					requirements: Json | null
+					stripeAccountId: string
+					updatedAt: string | null
+					userId: string
+				}
+				Insert: {
+					accountStatus?: string | null
+					accountType?: string
+					businessType?: string | null
+					capabilities?: Json | null
+					chargesEnabled?: boolean | null
+					contactEmail?: string | null
+					country?: string | null
+					createdAt?: string | null
+					currency?: string | null
+					detailsSubmitted?: boolean | null
+					displayName?: string | null
+					id?: string
+					onboardingCompleted?: boolean | null
+					onboardingCompletedAt?: string | null
+					payoutsEnabled?: boolean | null
+					requirements?: Json | null
+					stripeAccountId: string
+					updatedAt?: string | null
+					userId: string
+				}
+				Update: {
+					accountStatus?: string | null
+					accountType?: string
+					businessType?: string | null
+					capabilities?: Json | null
+					chargesEnabled?: boolean | null
+					contactEmail?: string | null
+					country?: string | null
+					createdAt?: string | null
+					currency?: string | null
+					detailsSubmitted?: boolean | null
+					displayName?: string | null
+					id?: string
+					onboardingCompleted?: boolean | null
+					onboardingCompletedAt?: string | null
+					payoutsEnabled?: boolean | null
+					requirements?: Json | null
+					stripeAccountId?: string
+					updatedAt?: string | null
+					userId?: string
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'connectedaccount_userid_fkey'
+						columns: ['userId']
+						isOneToOne: false
+						referencedRelation: 'users'
+						referencedColumns: ['id']
+					}
+				]
+			}
+			customer_invoice: {
 				Row: {
 					businessAddress: string | null
 					businessCity: string | null
@@ -218,7 +292,7 @@ export type Database = {
 					isProVersion: boolean
 					issueDate: string
 					notes: string | null
-					status: Database['public']['Enums']['CustomerInvoiceStatus']
+					status: Database['public']['Enums']['customer_invoice_status']
 					subtotal: number
 					taxAmount: number
 					taxRate: number
@@ -252,7 +326,7 @@ export type Database = {
 					isProVersion?: boolean
 					issueDate?: string
 					notes?: string | null
-					status?: Database['public']['Enums']['CustomerInvoiceStatus']
+					status?: Database['public']['Enums']['customer_invoice_status']
 					subtotal?: number
 					taxAmount?: number
 					taxRate?: number
@@ -286,7 +360,7 @@ export type Database = {
 					isProVersion?: boolean
 					issueDate?: string
 					notes?: string | null
-					status?: Database['public']['Enums']['CustomerInvoiceStatus']
+					status?: Database['public']['Enums']['customer_invoice_status']
 					subtotal?: number
 					taxAmount?: number
 					taxRate?: number
@@ -297,7 +371,7 @@ export type Database = {
 				}
 				Relationships: []
 			}
-			CustomerInvoiceItem: {
+			customer_invoice_item: {
 				Row: {
 					createdAt: string
 					description: string
@@ -327,15 +401,15 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'CustomerInvoiceItem_invoiceId_fkey'
+						foreignKeyName: 'customerinvoiceitem_invoiceid_fkey'
 						columns: ['invoiceId']
 						isOneToOne: false
-						referencedRelation: 'CustomerInvoice'
+						referencedRelation: 'customer_invoice'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			Document: {
+			document: {
 				Row: {
 					createdAt: string | null
 					filename: string | null
@@ -380,22 +454,22 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'Document_leaseId_fkey'
+						foreignKeyName: 'document_leaseid_fkey'
 						columns: ['leaseId']
 						isOneToOne: false
-						referencedRelation: 'Lease'
+						referencedRelation: 'lease'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'Document_propertyId_fkey'
+						foreignKeyName: 'document_propertyid_fkey'
 						columns: ['propertyId']
 						isOneToOne: false
-						referencedRelation: 'Property'
+						referencedRelation: 'property'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			Expense: {
+			expense: {
 				Row: {
 					amount: number
 					category: string
@@ -440,22 +514,22 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'Expense_maintenanceId_fkey'
+						foreignKeyName: 'expense_maintenanceid_fkey'
 						columns: ['maintenanceId']
 						isOneToOne: false
-						referencedRelation: 'MaintenanceRequest'
+						referencedRelation: 'maintenance_request'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'Expense_propertyId_fkey'
+						foreignKeyName: 'expense_propertyid_fkey'
 						columns: ['propertyId']
 						isOneToOne: false
-						referencedRelation: 'Property'
+						referencedRelation: 'property'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			FailedWebhookEvent: {
+			failed_webhook_event: {
 				Row: {
 					createdAt: string
 					eventId: string
@@ -500,7 +574,7 @@ export type Database = {
 				}
 				Relationships: []
 			}
-			File: {
+			file: {
 				Row: {
 					createdAt: string
 					filename: string
@@ -539,24 +613,24 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'File_maintenanceRequestId_fkey'
+						foreignKeyName: 'file_maintenancerequestid_fkey'
 						columns: ['maintenanceRequestId']
 						isOneToOne: false
-						referencedRelation: 'MaintenanceRequest'
+						referencedRelation: 'maintenance_request'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'File_propertyId_fkey'
+						foreignKeyName: 'file_propertyid_fkey'
 						columns: ['propertyId']
 						isOneToOne: false
-						referencedRelation: 'Property'
+						referencedRelation: 'property'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'File_uploadedById_fkey'
+						foreignKeyName: 'file_uploadedbyid_fkey'
 						columns: ['uploadedById']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
@@ -591,7 +665,7 @@ export type Database = {
 				}
 				Relationships: []
 			}
-			GeneratedReport: {
+			generated_report: {
 				Row: {
 					createdAt: string
 					endDate: string
@@ -645,7 +719,7 @@ export type Database = {
 				}
 				Relationships: []
 			}
-			Inspection: {
+			inspection: {
 				Row: {
 					completedDate: string | null
 					createdAt: string
@@ -690,29 +764,29 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'Inspection_inspectorId_fkey'
+						foreignKeyName: 'inspection_inspectorid_fkey'
 						columns: ['inspectorId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'Inspection_propertyId_fkey'
+						foreignKeyName: 'inspection_propertyid_fkey'
 						columns: ['propertyId']
 						isOneToOne: false
-						referencedRelation: 'Property'
+						referencedRelation: 'property'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'Inspection_unitId_fkey'
+						foreignKeyName: 'inspection_unitid_fkey'
 						columns: ['unitId']
 						isOneToOne: false
-						referencedRelation: 'Unit'
+						referencedRelation: 'unit'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			Invoice: {
+			invoice: {
 				Row: {
 					amountDue: number
 					amountPaid: number
@@ -772,22 +846,22 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'Invoice_subscriptionId_fkey'
+						foreignKeyName: 'invoice_subscriptionid_fkey'
 						columns: ['subscriptionId']
 						isOneToOne: false
-						referencedRelation: 'Subscription'
+						referencedRelation: 'subscription'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'Invoice_userId_fkey'
+						foreignKeyName: 'invoice_userid_fkey'
 						columns: ['userId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			InvoiceLeadCapture: {
+			invoice_lead_capture: {
 				Row: {
 					campaign: string | null
 					company: string | null
@@ -841,11 +915,14 @@ export type Database = {
 				}
 				Relationships: []
 			}
-			Lease: {
+			lease: {
 				Row: {
 					createdAt: string
 					endDate: string
+					gracePeriodDays: number | null
 					id: string
+					lateFeeAmount: number | null
+					lateFeePercentage: number | null
 					monthlyRent: number | null
 					propertyId: string | null
 					rentAmount: number
@@ -860,7 +937,10 @@ export type Database = {
 				Insert: {
 					createdAt?: string
 					endDate: string
+					gracePeriodDays?: number | null
 					id?: string
+					lateFeeAmount?: number | null
+					lateFeePercentage?: number | null
 					monthlyRent?: number | null
 					propertyId?: string | null
 					rentAmount: number
@@ -875,7 +955,10 @@ export type Database = {
 				Update: {
 					createdAt?: string
 					endDate?: string
+					gracePeriodDays?: number | null
 					id?: string
+					lateFeeAmount?: number | null
+					lateFeePercentage?: number | null
 					monthlyRent?: number | null
 					propertyId?: string | null
 					rentAmount?: number
@@ -889,22 +972,29 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'Lease_tenantId_fkey'
-						columns: ['tenantId']
+						foreignKeyName: 'lease_propertyid_fkey'
+						columns: ['propertyId']
 						isOneToOne: false
-						referencedRelation: 'Tenant'
+						referencedRelation: 'property'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'Lease_unitId_fkey'
+						foreignKeyName: 'lease_tenantid_fkey'
+						columns: ['tenantId']
+						isOneToOne: false
+						referencedRelation: 'tenant'
+						referencedColumns: ['id']
+					},
+					{
+						foreignKeyName: 'lease_unitid_fkey'
 						columns: ['unitId']
 						isOneToOne: false
-						referencedRelation: 'Unit'
+						referencedRelation: 'unit'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			LeaseGeneratorUsage: {
+			lease_generator_usage: {
 				Row: {
 					accessExpiresAt: string | null
 					amountPaid: number | null
@@ -958,15 +1048,15 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'LeaseGeneratorUsage_userId_fkey'
+						foreignKeyName: 'leasegeneratorusage_userid_fkey'
 						columns: ['userId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			MaintenanceRequest: {
+			maintenance_request: {
 				Row: {
 					actualCost: number | null
 					allowEntry: boolean
@@ -1032,15 +1122,15 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'MaintenanceRequest_unitId_fkey'
+						foreignKeyName: 'maintenancerequest_unitid_fkey'
 						columns: ['unitId']
 						isOneToOne: false
-						referencedRelation: 'Unit'
+						referencedRelation: 'unit'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			Message: {
+			message: {
 				Row: {
 					attachmentUrl: string | null
 					content: string
@@ -1073,22 +1163,22 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'Message_receiverId_fkey'
+						foreignKeyName: 'message_receiverid_fkey'
 						columns: ['receiverId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'Message_senderId_fkey'
+						foreignKeyName: 'message_senderid_fkey'
 						columns: ['senderId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			NotificationLogs: {
+			notification_logs: {
 				Row: {
 					content: string | null
 					createdAt: string
@@ -1154,17 +1244,17 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'notification_logs_leaseId_fkey'
+						foreignKeyName: 'notification_logs_leaseid_fkey'
 						columns: ['leaseId']
 						isOneToOne: false
-						referencedRelation: 'Lease'
+						referencedRelation: 'lease'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'notification_logs_userId_fkey'
+						foreignKeyName: 'notification_logs_userid_fkey'
 						columns: ['userId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
@@ -1229,43 +1319,43 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'notifications_new_leaseId_fkey'
+						foreignKeyName: 'notifications_new_leaseid_fkey'
 						columns: ['leaseId']
 						isOneToOne: false
-						referencedRelation: 'Lease'
+						referencedRelation: 'lease'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'notifications_new_maintenanceRequestId_fkey'
+						foreignKeyName: 'notifications_new_maintenancerequestid_fkey'
 						columns: ['maintenanceRequestId']
 						isOneToOne: false
-						referencedRelation: 'MaintenanceRequest'
+						referencedRelation: 'maintenance_request'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'notifications_new_propertyId_fkey'
+						foreignKeyName: 'notifications_new_propertyid_fkey'
 						columns: ['propertyId']
 						isOneToOne: false
-						referencedRelation: 'Property'
+						referencedRelation: 'property'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'notifications_new_tenantId_fkey'
+						foreignKeyName: 'notifications_new_tenantid_fkey'
 						columns: ['tenantId']
 						isOneToOne: false
-						referencedRelation: 'Tenant'
+						referencedRelation: 'tenant'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'notifications_new_userId_fkey'
+						foreignKeyName: 'notifications_new_userid_fkey'
 						columns: ['userId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			PaymentAttempt: {
+			payment_attempt: {
 				Row: {
 					attemptedAt: string
 					attemptNumber: number
@@ -1301,15 +1391,15 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'PaymentAttempt_rentPaymentId_fkey'
+						foreignKeyName: 'paymentattempt_rentpaymentid_fkey'
 						columns: ['rentPaymentId']
 						isOneToOne: false
-						referencedRelation: 'RentPayments'
+						referencedRelation: 'rent_payments'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			PaymentFailure: {
+			payment_failure: {
 				Row: {
 					amount: number
 					attemptCount: number
@@ -1360,15 +1450,15 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'PaymentFailure_subscriptionId_fkey'
+						foreignKeyName: 'paymentfailure_subscriptionid_fkey'
 						columns: ['subscriptionId']
 						isOneToOne: false
-						referencedRelation: 'Subscription'
+						referencedRelation: 'subscription'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			PaymentMethod: {
+			payment_method: {
 				Row: {
 					active: boolean
 					brand: string | null
@@ -1419,10 +1509,57 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'PaymentMethod_tenantId_fkey'
+						foreignKeyName: 'paymentmethod_tenantid_fkey'
 						columns: ['tenantId']
 						isOneToOne: false
-						referencedRelation: 'Tenant'
+						referencedRelation: 'tenant'
+						referencedColumns: ['id']
+					}
+				]
+			}
+			payment_schedule: {
+				Row: {
+					amount: number
+					createdAt: string | null
+					dueDate: string
+					id: string
+					lateFeeAmount: number | null
+					lateFeeGraceDays: number | null
+					leaseId: string
+					paidAt: string | null
+					state: string
+					status: string | null
+				}
+				Insert: {
+					amount: number
+					createdAt?: string | null
+					dueDate: string
+					id?: string
+					lateFeeAmount?: number | null
+					lateFeeGraceDays?: number | null
+					leaseId: string
+					paidAt?: string | null
+					state: string
+					status?: string | null
+				}
+				Update: {
+					amount?: number
+					createdAt?: string | null
+					dueDate?: string
+					id?: string
+					lateFeeAmount?: number | null
+					lateFeeGraceDays?: number | null
+					leaseId?: string
+					paidAt?: string | null
+					state?: string
+					status?: string | null
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'paymentschedule_leaseid_fkey'
+						columns: ['leaseId']
+						isOneToOne: false
+						referencedRelation: 'lease'
 						referencedColumns: ['id']
 					}
 				]
@@ -1472,7 +1609,7 @@ export type Database = {
 				}
 				Relationships: []
 			}
-			Property: {
+			property: {
 				Row: {
 					address: string
 					city: string
@@ -1520,15 +1657,15 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'Property_ownerId_fkey'
+						foreignKeyName: 'property_ownerid_fkey'
 						columns: ['ownerId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			RentCollectionSettings: {
+			rent_collection_settings: {
 				Row: {
 					allowedPaymentMethods: string[] | null
 					autoChargeEnabled: boolean
@@ -1591,29 +1728,29 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'RentCollectionSettings_propertyId_fkey'
+						foreignKeyName: 'rentcollectionsettings_propertyid_fkey'
 						columns: ['propertyId']
 						isOneToOne: false
-						referencedRelation: 'Property'
+						referencedRelation: 'property'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'RentCollectionSettings_tenantId_fkey'
+						foreignKeyName: 'rentcollectionsettings_tenantid_fkey'
 						columns: ['tenantId']
 						isOneToOne: false
-						referencedRelation: 'Tenant'
+						referencedRelation: 'tenant'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'RentCollectionSettings_unitId_fkey'
+						foreignKeyName: 'rentcollectionsettings_unitid_fkey'
 						columns: ['unitId']
 						isOneToOne: false
-						referencedRelation: 'Unit'
+						referencedRelation: 'unit'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			RentDue: {
+			rent_due: {
 				Row: {
 					amount: number
 					createdAt: string
@@ -1664,29 +1801,127 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'RentCharge_leaseId_fkey'
+						foreignKeyName: 'rentcharge_leaseid_fkey'
 						columns: ['leaseId']
 						isOneToOne: false
-						referencedRelation: 'Lease'
+						referencedRelation: 'lease'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'RentCharge_tenantId_fkey'
+						foreignKeyName: 'rentcharge_tenantid_fkey'
 						columns: ['tenantId']
 						isOneToOne: false
-						referencedRelation: 'Tenant'
+						referencedRelation: 'tenant'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'RentCharge_unitId_fkey'
+						foreignKeyName: 'rentcharge_unitid_fkey'
 						columns: ['unitId']
 						isOneToOne: false
-						referencedRelation: 'Unit'
+						referencedRelation: 'unit'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			RentPayments: {
+			rent_payment: {
+				Row: {
+					amount: number
+					createdAt: string | null
+					dueDate: string | null
+					failureReason: string | null
+					id: string
+					landlordId: string
+					landlordReceives: number
+					lateFeeAmount: number | null
+					lateFeeApplied: boolean | null
+					lateFeeAppliedAt: string | null
+					leaseId: string
+					paidAt: string | null
+					paymentType: string
+					platformFee: number
+					status: string | null
+					stripeFee: number
+					stripeInvoiceId: string | null
+					stripePaymentIntentId: string | null
+					subscriptionId: string | null
+					tenantId: string
+				}
+				Insert: {
+					amount: number
+					createdAt?: string | null
+					dueDate?: string | null
+					failureReason?: string | null
+					id?: string
+					landlordId: string
+					landlordReceives: number
+					lateFeeAmount?: number | null
+					lateFeeApplied?: boolean | null
+					lateFeeAppliedAt?: string | null
+					leaseId: string
+					paidAt?: string | null
+					paymentType: string
+					platformFee: number
+					status?: string | null
+					stripeFee: number
+					stripeInvoiceId?: string | null
+					stripePaymentIntentId?: string | null
+					subscriptionId?: string | null
+					tenantId: string
+				}
+				Update: {
+					amount?: number
+					createdAt?: string | null
+					dueDate?: string | null
+					failureReason?: string | null
+					id?: string
+					landlordId?: string
+					landlordReceives?: number
+					lateFeeAmount?: number | null
+					lateFeeApplied?: boolean | null
+					lateFeeAppliedAt?: string | null
+					leaseId?: string
+					paidAt?: string | null
+					paymentType?: string
+					platformFee?: number
+					status?: string | null
+					stripeFee?: number
+					stripeInvoiceId?: string | null
+					stripePaymentIntentId?: string | null
+					subscriptionId?: string | null
+					tenantId?: string
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'rentpayment_landlordid_fkey'
+						columns: ['landlordId']
+						isOneToOne: false
+						referencedRelation: 'users'
+						referencedColumns: ['id']
+					},
+					{
+						foreignKeyName: 'rentpayment_leaseid_fkey'
+						columns: ['leaseId']
+						isOneToOne: false
+						referencedRelation: 'lease'
+						referencedColumns: ['id']
+					},
+					{
+						foreignKeyName: 'rentpayment_subscriptionid_fkey'
+						columns: ['subscriptionId']
+						isOneToOne: false
+						referencedRelation: 'rent_subscription'
+						referencedColumns: ['id']
+					},
+					{
+						foreignKeyName: 'rentpayment_tenantid_fkey1'
+						columns: ['tenantId']
+						isOneToOne: false
+						referencedRelation: 'users'
+						referencedColumns: ['id']
+					}
+				]
+			}
+			rent_payments: {
 				Row: {
 					amount: number
 					createdAt: string
@@ -1749,29 +1984,108 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'RentPayment_paymentMethodId_fkey'
+						foreignKeyName: 'rentpayment_paymentmethodid_fkey'
 						columns: ['paymentMethodId']
 						isOneToOne: false
-						referencedRelation: 'PaymentMethod'
+						referencedRelation: 'payment_method'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'RentPayment_rentChargeId_fkey'
+						foreignKeyName: 'rentpayment_rentchargeid_fkey'
 						columns: ['rentDueId']
 						isOneToOne: false
-						referencedRelation: 'RentDue'
+						referencedRelation: 'rent_due'
 						referencedColumns: ['id']
 					},
 					{
-						foreignKeyName: 'RentPayment_tenantId_fkey'
+						foreignKeyName: 'rentpayment_tenantid_fkey'
 						columns: ['tenantId']
 						isOneToOne: false
-						referencedRelation: 'Tenant'
+						referencedRelation: 'tenant'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			ScheduledReport: {
+			rent_subscription: {
+				Row: {
+					amount: number
+					canceledAt: string | null
+					createdAt: string | null
+					currency: string
+					dueDay: number
+					id: string
+					landlordId: string
+					leaseId: string
+					nextBillingDate: string | null
+					pausedAt: string | null
+					platformFeePercent: number
+					status: string | null
+					stripeCustomerId: string
+					stripeSubscriptionId: string
+					tenantId: string
+					updatedAt: string | null
+				}
+				Insert: {
+					amount: number
+					canceledAt?: string | null
+					createdAt?: string | null
+					currency?: string
+					dueDay: number
+					id?: string
+					landlordId: string
+					leaseId: string
+					nextBillingDate?: string | null
+					pausedAt?: string | null
+					platformFeePercent: number
+					status?: string | null
+					stripeCustomerId: string
+					stripeSubscriptionId: string
+					tenantId: string
+					updatedAt?: string | null
+				}
+				Update: {
+					amount?: number
+					canceledAt?: string | null
+					createdAt?: string | null
+					currency?: string
+					dueDay?: number
+					id?: string
+					landlordId?: string
+					leaseId?: string
+					nextBillingDate?: string | null
+					pausedAt?: string | null
+					platformFeePercent?: number
+					status?: string | null
+					stripeCustomerId?: string
+					stripeSubscriptionId?: string
+					tenantId?: string
+					updatedAt?: string | null
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'rentsubscription_landlordid_fkey'
+						columns: ['landlordId']
+						isOneToOne: false
+						referencedRelation: 'users'
+						referencedColumns: ['id']
+					},
+					{
+						foreignKeyName: 'rentsubscription_leaseid_fkey'
+						columns: ['leaseId']
+						isOneToOne: false
+						referencedRelation: 'lease'
+						referencedColumns: ['id']
+					},
+					{
+						foreignKeyName: 'rentsubscription_tenantid_fkey'
+						columns: ['tenantId']
+						isOneToOne: false
+						referencedRelation: 'users'
+						referencedColumns: ['id']
+					}
+				]
+			}
+			scheduled_report: {
 				Row: {
 					createdAt: string
 					dayOfMonth: number | null
@@ -1828,7 +2142,7 @@ export type Database = {
 				}
 				Relationships: []
 			}
-			SecurityAuditLog: {
+			security_audit_log: {
 				Row: {
 					action: string | null
 					details: Json
@@ -2101,7 +2415,28 @@ export type Database = {
 					}
 				]
 			}
-			Subscription: {
+			stripe_webhook_event: {
+				Row: {
+					createdAt: string | null
+					eventId: string
+					processedAt: string | null
+					type: string
+				}
+				Insert: {
+					createdAt?: string | null
+					eventId: string
+					processedAt?: string | null
+					type: string
+				}
+				Update: {
+					createdAt?: string | null
+					eventId?: string
+					processedAt?: string | null
+					type?: string
+				}
+				Relationships: []
+			}
+			subscription: {
 				Row: {
 					billingPeriod: string | null
 					cancelAtPeriodEnd: boolean | null
@@ -2170,15 +2505,15 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'Subscription_userId_fkey'
+						foreignKeyName: 'subscription_userid_fkey'
 						columns: ['userId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			Tenant: {
+			tenant: {
 				Row: {
 					avatarUrl: string | null
 					createdAt: string
@@ -2220,15 +2555,68 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'Tenant_userId_fkey'
+						foreignKeyName: 'tenant_userid_fkey'
 						columns: ['userId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			Unit: {
+			tenant_payment_method: {
+				Row: {
+					bankName: string | null
+					brand: string | null
+					createdAt: string | null
+					id: string
+					isDefault: boolean | null
+					last4: string | null
+					stripeCustomerId: string
+					stripePaymentMethodId: string
+					tenantId: string
+					type: string
+					updatedAt: string | null
+					verificationStatus: string | null
+				}
+				Insert: {
+					bankName?: string | null
+					brand?: string | null
+					createdAt?: string | null
+					id?: string
+					isDefault?: boolean | null
+					last4?: string | null
+					stripeCustomerId: string
+					stripePaymentMethodId: string
+					tenantId: string
+					type: string
+					updatedAt?: string | null
+					verificationStatus?: string | null
+				}
+				Update: {
+					bankName?: string | null
+					brand?: string | null
+					createdAt?: string | null
+					id?: string
+					isDefault?: boolean | null
+					last4?: string | null
+					stripeCustomerId?: string
+					stripePaymentMethodId?: string
+					tenantId?: string
+					type?: string
+					updatedAt?: string | null
+					verificationStatus?: string | null
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'tenantpaymentmethod_tenantid_fkey'
+						columns: ['tenantId']
+						isOneToOne: false
+						referencedRelation: 'users'
+						referencedColumns: ['id']
+					}
+				]
+			}
+			unit: {
 				Row: {
 					bathrooms: number
 					bedrooms: number
@@ -2270,72 +2658,15 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'Unit_propertyId_fkey'
+						foreignKeyName: 'unit_propertyid_fkey'
 						columns: ['propertyId']
 						isOneToOne: false
-						referencedRelation: 'Property'
+						referencedRelation: 'property'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			User: {
-				Row: {
-					avatarUrl: string | null
-					bio: string | null
-					createdAt: string
-					email: string
-					firstName: string | null
-					id: string
-					lastLoginAt: string | null
-					lastName: string | null
-					name: string | null
-					orgId: string | null
-					phone: string | null
-					profileComplete: boolean | null
-					role: Database['public']['Enums']['UserRole']
-					stripeCustomerId: string | null
-					supabaseId: string
-					updatedAt: string
-				}
-				Insert: {
-					avatarUrl?: string | null
-					bio?: string | null
-					createdAt?: string
-					email: string
-					firstName?: string | null
-					id: string
-					lastLoginAt?: string | null
-					lastName?: string | null
-					name?: string | null
-					orgId?: string | null
-					phone?: string | null
-					profileComplete?: boolean | null
-					role?: Database['public']['Enums']['UserRole']
-					stripeCustomerId?: string | null
-					supabaseId: string
-					updatedAt?: string
-				}
-				Update: {
-					avatarUrl?: string | null
-					bio?: string | null
-					createdAt?: string
-					email?: string
-					firstName?: string | null
-					id?: string
-					lastLoginAt?: string | null
-					lastName?: string | null
-					name?: string | null
-					orgId?: string | null
-					phone?: string | null
-					profileComplete?: boolean | null
-					role?: Database['public']['Enums']['UserRole']
-					stripeCustomerId?: string | null
-					supabaseId?: string
-					updatedAt?: string
-				}
-				Relationships: []
-			}
-			UserAccessLog: {
+			user_access_log: {
 				Row: {
 					accessGranted: Json
 					id: string
@@ -2365,15 +2696,15 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'UserAccessLog_userId_fkey'
+						foreignKeyName: 'useraccesslog_userid_fkey'
 						columns: ['userId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			UserFeatureAccess: {
+			user_feature_access: {
 				Row: {
 					canAccessAdvancedAnalytics: boolean
 					canAccessAPI: boolean
@@ -2427,15 +2758,15 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'UserFeatureAccess_userId_fkey'
+						foreignKeyName: 'userfeatureaccess_userid_fkey'
 						columns: ['userId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			UserPreferences: {
+			user_preferences: {
 				Row: {
 					autoSendReminders: boolean
 					createdAt: string
@@ -2486,15 +2817,15 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'UserPreferences_userId_fkey'
+						foreignKeyName: 'userpreferences_userid_fkey'
 						columns: ['userId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			UserSession: {
+			user_session: {
 				Row: {
 					createdAt: string
 					expiresAt: string
@@ -2536,15 +2867,78 @@ export type Database = {
 				}
 				Relationships: [
 					{
-						foreignKeyName: 'UserSession_userId_fkey'
+						foreignKeyName: 'usersession_userid_fkey'
 						columns: ['userId']
 						isOneToOne: false
-						referencedRelation: 'User'
+						referencedRelation: 'users'
 						referencedColumns: ['id']
 					}
 				]
 			}
-			WebhookEvent: {
+			users: {
+				Row: {
+					avatarUrl: string | null
+					bio: string | null
+					createdAt: string
+					email: string
+					firstName: string | null
+					id: string
+					lastLoginAt: string | null
+					lastName: string | null
+					name: string | null
+					orgId: string | null
+					phone: string | null
+					profileComplete: boolean | null
+					role: Database['public']['Enums']['UserRole']
+					stripeAccountId: string | null
+					stripeCustomerId: string | null
+					subscriptionTier: string | null
+					supabaseId: string
+					updatedAt: string
+				}
+				Insert: {
+					avatarUrl?: string | null
+					bio?: string | null
+					createdAt?: string
+					email: string
+					firstName?: string | null
+					id: string
+					lastLoginAt?: string | null
+					lastName?: string | null
+					name?: string | null
+					orgId?: string | null
+					phone?: string | null
+					profileComplete?: boolean | null
+					role?: Database['public']['Enums']['UserRole']
+					stripeAccountId?: string | null
+					stripeCustomerId?: string | null
+					subscriptionTier?: string | null
+					supabaseId: string
+					updatedAt?: string
+				}
+				Update: {
+					avatarUrl?: string | null
+					bio?: string | null
+					createdAt?: string
+					email?: string
+					firstName?: string | null
+					id?: string
+					lastLoginAt?: string | null
+					lastName?: string | null
+					name?: string | null
+					orgId?: string | null
+					phone?: string | null
+					profileComplete?: boolean | null
+					role?: Database['public']['Enums']['UserRole']
+					stripeAccountId?: string | null
+					stripeCustomerId?: string | null
+					subscriptionTier?: string | null
+					supabaseId?: string
+					updatedAt?: string
+				}
+				Relationships: []
+			}
+			webhook_event: {
 				Row: {
 					createdAt: string
 					errorMessage: string | null
@@ -2789,6 +3183,18 @@ export type Database = {
 				Args: { sql_query: string }
 				Returns: Json
 			}
+			get_auth_uid: {
+				Args: Record<PropertyKey, never>
+				Returns: string
+			}
+			get_auth_uid_text: {
+				Args: Record<PropertyKey, never>
+				Returns: string
+			}
+			get_auth_uid_uuid: {
+				Args: Record<PropertyKey, never>
+				Returns: string
+			}
 			get_billing_insights: {
 				Args: { end_date?: string; start_date?: string; user_id: string }
 				Returns: Json
@@ -2824,6 +3230,14 @@ export type Database = {
 			get_invoice_statistics: {
 				Args: { p_user_id: string }
 				Returns: Json
+			}
+			get_jwt_claim: {
+				Args: { claim: string }
+				Returns: string
+			}
+			get_jwt_role: {
+				Args: Record<PropertyKey, never>
+				Returns: string
 			}
 			get_lease_financial_summary: {
 				Args: { p_user_id: string }
@@ -2902,6 +3316,10 @@ export type Database = {
 			get_unread_notification_count: {
 				Args: { user_id: string }
 				Returns: number
+			}
+			get_user_id: {
+				Args: Record<PropertyKey, never>
+				Returns: string
 			}
 			health_check: {
 				Args: Record<PropertyKey, never>
@@ -2994,7 +3412,7 @@ export type Database = {
 				| 'TAX_PLANNING'
 				| 'AUTOMATION'
 			BlogStatus: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | 'SCHEDULED'
-			CustomerInvoiceStatus:
+			customer_invoice_status:
 				| 'DRAFT'
 				| 'SENT'
 				| 'VIEWED'
@@ -3044,12 +3462,16 @@ export type Database = {
 				| 'FAILED'
 				| 'CANCELLED'
 				| 'REQUIRES_ACTION'
+				| 'DUE'
+				| 'PAID'
+				| 'VOID'
 			RequestStatus:
 				| 'OPEN'
 				| 'IN_PROGRESS'
 				| 'COMPLETED'
 				| 'CANCELED'
 				| 'ON_HOLD'
+				| 'CLOSED'
 			SubStatus:
 				| 'ACTIVE'
 				| 'TRIALING'
@@ -3209,7 +3631,7 @@ export const Constants = {
 				'AUTOMATION'
 			],
 			BlogStatus: ['DRAFT', 'PUBLISHED', 'ARCHIVED', 'SCHEDULED'],
-			CustomerInvoiceStatus: [
+			customer_invoice_status: [
 				'DRAFT',
 				'SENT',
 				'VIEWED',
@@ -3263,14 +3685,18 @@ export const Constants = {
 				'SUCCEEDED',
 				'FAILED',
 				'CANCELLED',
-				'REQUIRES_ACTION'
+				'REQUIRES_ACTION',
+				'DUE',
+				'PAID',
+				'VOID'
 			],
 			RequestStatus: [
 				'OPEN',
 				'IN_PROGRESS',
 				'COMPLETED',
 				'CANCELED',
-				'ON_HOLD'
+				'ON_HOLD',
+				'CLOSED'
 			],
 			SubStatus: [
 				'ACTIVE',

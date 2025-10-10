@@ -3,11 +3,11 @@
 
 import type { Database } from './supabase-generated.js'
 import type { User } from './supabase.js'
-type Lease = Database['public']['Tables']['Lease']['Row']
-type Property = Database['public']['Tables']['Property']['Row']
-type Unit = Database['public']['Tables']['Unit']['Row']
-type Tenant = Database['public']['Tables']['Tenant']['Row']
-// MaintenanceRequest type available if needed: Database['public']['Tables']['MaintenanceRequest']['Row']
+type Lease = Database['public']['Tables']['lease']['Row']
+type Property = Database['public']['Tables']['property']['Row']
+type Unit = Database['public']['Tables']['unit']['Row']
+type Tenant = Database['public']['Tables']['tenant']['Row']
+// MaintenanceRequest type available if needed: Database['public']['Tables']['maintenance_request']['Row']
 import type { ControllerApiResponse as _ControllerApiResponse } from './errors.js'
 
 export type { _ControllerApiResponse as ControllerApiResponse }
@@ -82,26 +82,26 @@ export interface UpdateUserProfileInput {
 
 // Import from api-inputs.ts for consistent type usage
 import type {
-  CreateLeaseInput,
-  CreatePropertyInput,
-  CreateTenantInput,
-  CreateUnitInput,
-  UpdateLeaseInput,
-  UpdatePropertyInput,
-  UpdateTenantInput,
-  UpdateUnitInput
+	CreateLeaseInput,
+	CreatePropertyInput,
+	CreateTenantInput,
+	CreateUnitInput,
+	UpdateLeaseInput,
+	UpdatePropertyInput,
+	UpdateTenantInput,
+	UpdateUnitInput
 } from './api-inputs.js'
 
 // Direct re-exports - use Input types consistently
 export type {
-  CreateLeaseInput,
-  CreatePropertyInput,
-  CreateTenantInput,
-  CreateUnitInput,
-  UpdateLeaseInput,
-  UpdatePropertyInput,
-  UpdateTenantInput,
-  UpdateUnitInput
+	CreateLeaseInput,
+	CreatePropertyInput,
+	CreateTenantInput,
+	CreateUnitInput,
+	UpdateLeaseInput,
+	UpdatePropertyInput,
+	UpdateTenantInput,
+	UpdateUnitInput
 }
 
 export interface UnitStats {
@@ -188,12 +188,12 @@ export interface FileUploadResponse {
 
 // Query parameters for API calls - using comprehensive query types from queries.ts
 export type {
-  LeaseQuery,
-  MaintenanceQuery,
-  NotificationQuery,
-  PropertyQuery,
-  TenantQuery,
-  UnitQuery
+	LeaseQuery,
+	MaintenanceQuery,
+	NotificationQuery,
+	PropertyQuery,
+	TenantQuery,
+	UnitQuery
 } from './queries.js'
 
 // Note: *WithDetails types are defined in relations.ts to avoid circular imports

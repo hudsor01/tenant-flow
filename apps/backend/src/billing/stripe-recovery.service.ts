@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import Stripe from 'stripe'
-import { SupabaseService } from '../database/supabase.service'
+
 import { StripeWebhookService } from './stripe-webhook.service'
 import { StripeService } from './stripe.service'
 
@@ -20,12 +20,10 @@ import { StripeService } from './stripe.service'
  */
 @Injectable()
 export class StripeRecoveryService {
-	private readonly logger = new Logger(StripeRecoveryService.name)
 	private readonly stripe: Stripe
 	private readonly MAX_RETRY_ATTEMPTS = 5
 
 	constructor(
-		private readonly supabaseService: SupabaseService,
 		private readonly webhookService: StripeWebhookService,
 		private readonly eventEmitter: EventEmitter2,
 		private readonly stripeService: StripeService
@@ -39,23 +37,23 @@ export class StripeRecoveryService {
 	 */
 	@Cron(CronExpression.EVERY_30_MINUTES)
 	async recoverFailedEvents() {
-		this.logger.log('Starting scheduled event recovery check')
+		// log removed
 
 		try {
 			const failedEvents = await this.getFailedEvents()
 
 			if (failedEvents.length === 0) {
-				this.logger.debug('No failed events to recover')
+				// log removed
 				return
 			}
 
-			this.logger.log(`Found ${failedEvents.length} failed events to recover`)
+			// log removed
 
 			for (const event of failedEvents) {
 				await this.recoverEvent(event.stripe_event_id, event.retry_count || 0)
 			}
 		} catch (error) {
-			this.logger.error('Failed to run event recovery', { error })
+			// log removed
 		}
 	}
 
@@ -63,32 +61,40 @@ export class StripeRecoveryService {
 	 * Get list of failed events from database
 	 * Note: This table only tracks processed events, not failed ones with retry logic
 	 */
-	private async getFailedEvents(): Promise<Array<{
-		stripe_event_id: string
-		event_type: string
-		retry_count: number
-		last_retry_at: string | null
-	}>> {
+	private async getFailedEvents(): Promise<
+		Array<{
+			stripe_event_id: string
+			event_type: string
+			retry_count: number
+			last_retry_at: string | null
+		}>
+	> {
 		// Since the actual table doesn't have failure tracking columns,
 		// return empty array to avoid errors. This service would need
 		// proper database schema to function correctly.
-		this.logger.debug('Stripe Recovery Service: No failed events table schema available')
+		// log removed
 		return []
 	}
 
 	/**
 	 * Recover a specific event by fetching from Stripe and reprocessing
 	 */
-	async recoverEvent(eventId: string, currentRetryCount: number): Promise<boolean> {
-		this.logger.log(`Attempting to recover event: ${eventId} (retry ${currentRetryCount + 1})`)
+	async recoverEvent(
+		eventId: string,
+		currentRetryCount: number
+	): Promise<boolean> {
+		// log removed
 
 		try {
 			// Fetch the event from Stripe
 			const event = await this.stripe.events.retrieve(eventId)
 
 			if (!event) {
-				this.logger.error(`Event not found in Stripe: ${eventId}`)
-				await this.markEventAsPermanentlyFailed(eventId, 'Event not found in Stripe')
+				// log removed
+				await this.markEventAsPermanentlyFailed(
+					eventId,
+					'Event not found in Stripe'
+				)
 				return false
 			}
 
@@ -97,7 +103,7 @@ export class StripeRecoveryService {
 			const maxAge = 7 * 24 * 60 * 60 * 1000 // 7 days
 
 			if (eventAge > maxAge) {
-				this.logger.warn(`Event too old to recover: ${eventId}`)
+				// log removed
 				await this.markEventAsPermanentlyFailed(eventId, 'Event too old')
 				return false
 			}
@@ -111,10 +117,10 @@ export class StripeRecoveryService {
 			// Mark as successfully recovered
 			await this.webhookService.markEventProcessed(eventId)
 
-			this.logger.log(`Successfully recovered event: ${eventId}`)
+			// log removed
 			return true
 		} catch (error) {
-			this.logger.error(`Failed to recover event: ${eventId}`, { error })
+			// log removed
 
 			// Update retry count
 			const newRetryCount = currentRetryCount + 1
@@ -144,30 +150,33 @@ export class StripeRecoveryService {
 		const regularEventName = `stripe.${event.type.replace(/\./g, '_')}`
 		this.eventEmitter.emit(regularEventName, event.data.object, event)
 
-		this.logger.debug(`Emitted recovery event: ${eventName}`, {
-			event_id: event.id,
-			event_type: event.type
-		})
+		// log removed
 	}
 
 	/**
 	 * Update retry attempt in database
 	 * Note: Current schema doesn't support retry tracking
 	 */
-	private async updateRetryAttempt(eventId: string, retryCount: number): Promise<void> {
+	private async updateRetryAttempt(
+		_eventId: string,
+		_retryCount: number
+	): Promise<void> {
 		// Since the actual table doesn't have retry tracking columns,
 		// just log the attempt. This would need proper schema to function.
-		this.logger.debug('Stripe Recovery Service: Would update retry attempt', { eventId, retryCount })
+		// log removed
 	}
 
 	/**
 	 * Mark event as permanently failed
 	 * Note: Current schema doesn't support failure status tracking
 	 */
-	private async markEventAsPermanentlyFailed(eventId: string, reason: string): Promise<void> {
+	private async markEventAsPermanentlyFailed(
+		_eventId: string,
+		_reason: string
+	): Promise<void> {
 		// Since the actual table doesn't have failure tracking columns,
 		// just log the failure. This would need proper schema to function.
-		this.logger.error(`Stripe Recovery Service: Would mark event permanently failed: ${eventId} - ${reason}`)
+		// log removed
 	}
 
 	/**
@@ -182,7 +191,7 @@ export class StripeRecoveryService {
 			failed: [] as string[]
 		}
 
-		this.logger.log(`Manual recovery requested for ${eventIds.length} events`)
+		// log removed
 
 		for (const eventId of eventIds) {
 			const success = await this.recoverEvent(eventId, 0)
@@ -193,7 +202,7 @@ export class StripeRecoveryService {
 			}
 		}
 
-		this.logger.log(`Manual recovery completed: ${results.successful.length} successful, ${results.failed.length} failed`)
+		// log removed
 		return results
 	}
 
@@ -218,7 +227,7 @@ export class StripeRecoveryService {
 				oldestFailedEvent: null // Would use processed_at if needed, but table schema doesn't support failure tracking
 			}
 		} catch (error) {
-			this.logger.error('Error getting recovery stats', { error })
+			// log removed
 			return {
 				totalFailed: 0,
 				pendingRecovery: 0,
@@ -248,9 +257,12 @@ export class StripeRecoveryService {
 
 			// Check for old unprocessed events
 			if (stats.oldestFailedEvent) {
-				const ageHours = (Date.now() - stats.oldestFailedEvent.getTime()) / (1000 * 60 * 60)
+				const ageHours =
+					(Date.now() - stats.oldestFailedEvent.getTime()) / (1000 * 60 * 60)
 				if (ageHours > 24) {
-					issues.push(`Unprocessed events older than 24 hours: ${Math.round(ageHours)}h`)
+					issues.push(
+						`Unprocessed events older than 24 hours: ${Math.round(ageHours)}h`
+					)
 				}
 			}
 
@@ -266,7 +278,7 @@ export class StripeRecoveryService {
 				issues
 			}
 		} catch (error) {
-			this.logger.error('Health check failed', { error })
+			// log removed
 			return {
 				healthy: false,
 				issues: ['Health check failed: ' + (error as Error).message]

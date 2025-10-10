@@ -1,0 +1,17 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"display": "TenantFlow Testing Utilities Config",
+	"extends": "../typescript-config/node-library.json",
+	"compilerOptions": {
+		"rootDir": "./src",
+		"outDir": "./dist",
+		"composite": true,
+		"tsBuildInfoFile": "./dist/.tsbuildinfo",
+		"verbatimModuleSyntax": false
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": ["dist", "node_modules"],
+	"references": [
+		{ "path": "../shared" }
+	]
+}

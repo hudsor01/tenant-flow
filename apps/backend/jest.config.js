@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable no-undef */
+// Jest configuration file - CommonJS module format required by Jest
 const path = require('path')
 const fs = require('fs')
 
@@ -32,8 +31,6 @@ module.exports = {
 	coverageReporters: ['text', 'lcov', 'html'],
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
-		'^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
-		'^@repo/(.*)$': '<rootDir>/../../packages/$1/src',
 		'^(\\.{1,2}/.*)\\.js$': '$1'
 	},
 	setupFilesAfterEnv,

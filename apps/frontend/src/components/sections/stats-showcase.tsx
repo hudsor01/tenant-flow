@@ -56,11 +56,11 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
         <div className="text-center mb-10 max-w-3xl mx-auto">
           <BlurFade delay={0.1} inView>
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground mb-6 leading-tight">
-              Trusted by the
-              <span className="text-primary block">missing middle</span>
+              Trusted by property managers
+              <span className="text-primary block">nationwide</span>
             </h2>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              Join thousands of property managers who've transformed their operations with TenantFlow
+              Join thousands who've transformed their operations with TenantFlow
             </p>
           </BlurFade>
         </div>

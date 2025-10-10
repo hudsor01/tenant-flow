@@ -74,6 +74,7 @@ export const config = [
 	{
 		name: 'base/typescript',
 		files: ['**/*.ts', '**/*.tsx'],
+		ignores: ['**/*.d.ts'],
 		languageOptions: {
 			parserOptions: {
 				projectService: true,

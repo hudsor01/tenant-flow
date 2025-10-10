@@ -41,7 +41,7 @@ function getApplicationDomains() {
 				'Missing NEXT_PUBLIC_APP_URL or NEXT_PUBLIC_API_BASE_URL during production build; falling back to localhost defaults for build.'
 			)
 			frontendList.push('http://localhost:3000')
-			backendList.push('http://localhost:3001')
+			backendList.push('http://localhost:4600')
 		}
 
 		return {
@@ -56,14 +56,8 @@ function getApplicationDomains() {
 	if (frontendUrl) developmentOrigins.push(frontendUrl)
 	if (backendUrl) developmentOrigins.push(backendUrl)
 
-	// Only add localhost for actual local development (not builds)
-	if (
-		process.env.NODE_ENV === 'development' &&
-		!process.env.VERCEL &&
-		!process.env.CI
-	) {
-		developmentOrigins.push('http://localhost:3000', 'http://localhost:4600')
-	}
+	// Always add localhost in non-production environments
+	developmentOrigins.push('http://localhost:3000', 'http://localhost:4600')
 
 	return {
 		FRONTEND: developmentOrigins,

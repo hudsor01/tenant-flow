@@ -5,7 +5,7 @@ import { Navbar } from '@/components/layout/navbar'
 import { HeroSection } from '@/components/sections/hero-section'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardLayout } from '@/components/ui/card-layout'
 import { ArrowLeft, Home, MessageCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 
@@ -24,21 +24,22 @@ export default function CheckoutCancelPage() {
 
 			<div className="section-content">
 				<div className="container mx-auto px-4 section-content max-w-2xl">
-					<Card className="text-center card-elevated-authority">
-						<CardHeader className="pb-8">
+					<CardLayout
+						title="Payment Cancelled"
+						description="No worries! Your payment was cancelled and you haven't been charged."
+						className="text-center card-elevated-authority"
+					>
+						<div className="pb-8">
 							<div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">
 								<XCircle className="w-8 h-8 text-muted-foreground" />
 							</div>
-							<CardTitle className="text-3xl font-bold mb-4">
-								Payment Cancelled
-							</CardTitle>
 							<p className="text-xl text-muted-foreground">
 								No worries! Your payment was cancelled and you haven't been
 								charged.
 							</p>
-						</CardHeader>
+						</div>
 
-						<CardContent className="space-y-6">
+						<div className="space-y-6">
 							<div className="bg-muted/50 rounded-lg p-6 text-left">
 								<h3 className="font-semibold mb-4">What happened?</h3>
 								<ul className="space-y-2 text-sm text-muted-foreground">
@@ -86,8 +87,8 @@ export default function CheckoutCancelPage() {
 									</Link>
 								</div>
 							</div>
-						</CardContent>
-					</Card>
+						</div>
+					</CardLayout>
 				</div>
 			</div>
 			<Footer />

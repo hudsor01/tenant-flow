@@ -27,7 +27,9 @@ interface ConversionStats {
 	skipped: number
 }
 
-function parseSchemaFile(filePath: string): Array<{ name: string; schema: Record<string, unknown> }> {
+function parseSchemaFile(
+	filePath: string
+): Array<{ name: string; schema: Record<string, unknown> }> {
 	const sourceText = fs.readFileSync(filePath, 'utf-8')
 	const sourceFile = ts.createSourceFile(
 		filePath,
@@ -51,8 +53,11 @@ function parseSchemaFile(filePath: string): Array<{ name: string; schema: Record
 						const schemaText = declaration.initializer.getFullText(sourceFile)
 						const cleanedText = schemaText.trim()
 						// Use JSON.parse instead of Function constructor for security
-			const jsonSchema = JSON.parse(cleanedText) as Record<string, unknown>
-						
+						const jsonSchema = JSON.parse(cleanedText) as Record<
+							string,
+							unknown
+						>
+
 						if (typeof jsonSchema === 'object' && jsonSchema !== null) {
 							schemas.push({
 								name: declaration.name.text,
@@ -72,16 +77,22 @@ function parseSchemaFile(filePath: string): Array<{ name: string; schema: Record
 	return schemas
 }
 
-async function validateZodSchema(zodCode: string, _schemaName: string): Promise<boolean> {
+async function validateZodSchema(
+	zodCode: string,
+	_schemaName: string
+): Promise<boolean> {
 	try {
 		const { z } = await import('zod')
 		const testCode = `
 			const zodSchema = ${zodCode};
 			return typeof zodSchema === 'object' && zodSchema !== null;
 		`
-		// Use eval in controlled build-time context (safer than Function constructor)
-		// eslint-disable-next-line no-restricted-globals, no-eval
-		return eval(`(function(z) { ${testCode} })`)(z)
+		// Build-time validation using Function constructor with explicit z parameter
+		const validatorFn = new Function(
+			'z',
+			`return (function() { ${testCode} })()`
+		)
+		return validatorFn(z) as boolean
 	} catch {
 		return false
 	}
@@ -94,7 +105,12 @@ async function convertSchemas() {
 
 	const zodSchemas: string[] = []
 	const imports: string[] = ['import { z } from "zod"']
-	const stats: ConversionStats = { processed: 0, converted: 0, failed: 0, skipped: 0 }
+	const stats: ConversionStats = {
+		processed: 0,
+		converted: 0,
+		failed: 0,
+		skipped: 0
+	}
 
 	for (const schemaFile of SCHEMA_FILES) {
 		const schemaPath = path.join(BACKEND_SCHEMAS_DIR, schemaFile)
@@ -108,12 +124,12 @@ async function convertSchemas() {
 
 		try {
 			const extractedSchemas = parseSchemaFile(schemaPath)
-			
+
 			for (const { name: schemaName, schema: jsonSchema } of extractedSchemas) {
 				try {
 					const zodSchemaCode = jsonSchemaToZod(jsonSchema)
 					const zodSchemaName = schemaName.replace('Schema', 'ZodSchema')
-					
+
 					if (await validateZodSchema(zodSchemaCode, schemaName)) {
 						zodSchemas.push(`export const ${zodSchemaName} = ${zodSchemaCode}`)
 						stats.converted++

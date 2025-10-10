@@ -2,16 +2,9 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardLayout } from '@/components/ui/card-layout'
 import { API_BASE_URL } from '@/lib/api-client'
-import {
-	ANIMATION_DURATIONS,
-	animationClasses,
-	buttonClasses,
-	cardClasses,
-	cn,
-	TYPOGRAPHY_SCALE
-} from '@/lib/utils'
+import { cn } from '@/lib/utils'
 // Extended interface for customer portal with additional properties
 interface ExtendedCustomerPortalCardProps
 	extends Omit<
@@ -66,6 +59,12 @@ import {
 } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { toast } from 'sonner'
+import {
+	animationClasses,
+	buttonClasses,
+	cardClasses,
+	TYPOGRAPHY_SCALE
+} from '../../lib/design-system'
 
 export function CustomerPortalButton({
 	variant = 'outline',
@@ -130,7 +129,6 @@ export function CustomerPortalButton({
 			variant={variant}
 			size={size}
 			className={cn(
-				// Use the inferred parameter types from buttonClasses to avoid unsafe 'unknown' casts
 				buttonClasses(
 					variant as Parameters<typeof buttonClasses>[0],
 					size as Parameters<typeof buttonClasses>[1]
@@ -140,7 +138,6 @@ export function CustomerPortalButton({
 			)}
 			onClick={handlePortalAccess}
 			disabled={portalMutation.isPending}
-			style={{}}
 			{...props}
 		>
 			{children || (
@@ -218,7 +215,9 @@ export function CustomerPortalCard({
 	return (
 		<div className="space-y-6">
 			{/* Main Account Card */}
-			<Card
+			<CardLayout
+				title="Account Management"
+				description="Manage your subscription and billing preferences"
 				className={cn(
 					cardClasses('premium'),
 					'shadow-2xl hover:shadow-3xl border-2 bg-gradient-to-br from-background via-muted/5 to-background',
@@ -226,69 +225,62 @@ export function CustomerPortalCard({
 					animationClasses('fade-in'),
 					className
 				)}
-				style={{
-					transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`
-				}}
 			>
-				{/* Background Pattern */}
 				<div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-50" />
 
-				<CardHeader
-					className={cn('relative z-10', animationClasses('slide-down'))}
-				>
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-4">
-							<div
-								className={cn(
-									'p-4 rounded-2xl bg-gradient-to-br shadow-lg',
-									config.gradient
-								)}
-							>
-								<Settings className="w-8 h-8 text-primary-foreground" />
-							</div>
-							<div>
-								<CardTitle
-									className="font-bold tracking-tight text-foreground"
-									style={{
-										fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
-										lineHeight: TYPOGRAPHY_SCALE['heading-xl'].lineHeight,
-										fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight
-									}}
-								>
-									Account Management
-								</CardTitle>
-								<p
-									className="text-muted-foreground"
-									style={TYPOGRAPHY_SCALE['ui-caption']}
-								>
-									Manage your subscription and billing preferences
-								</p>
-							</div>
+				<div className="flex items-center justify-between mb-6">
+					<div className="flex items-center gap-4">
+						<div
+							className={cn(
+								'p-4 rounded-2xl bg-gradient-to-br shadow-lg',
+								config.gradient
+							)}
+						>
+							<Settings className="w-8 h-8 text-primary-foreground" />
 						</div>
-
-						{/* Plan Badge */}
-						<div className="text-right">
-							<Badge
-								className={cn(
-									'px-4 py-2 text-sm font-bold border-2',
-									config.bgGradient,
-									config.borderColor,
-									config.textColor
-								)}
+						<div>
+							<h3
+								className="font-bold tracking-tight text-foreground"
+								style={{
+									fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
+									lineHeight: TYPOGRAPHY_SCALE['heading-xl'].lineHeight,
+									fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight
+								}}
 							>
-								<Award className="w-4 h-4 mr-2" />
-								{currentPlan}
-							</Badge>
-							<div className="flex items-center gap-2 mt-2">
-								<div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-								<span className="text-xs text-muted-foreground font-medium">
-									Active Plan
-								</span>
-							</div>
+								Account Management
+							</h3>
+							<p
+								className="text-muted-foreground"
+								style={TYPOGRAPHY_SCALE['ui-caption']}
+							>
+								Manage your subscription and billing preferences
+							</p>
 						</div>
 					</div>
-				</CardHeader>
-				<CardContent
+
+					{/* Plan Badge */}
+					<div className="text-right">
+						<Badge
+							className={cn(
+								'px-4 py-2 text-sm font-bold border-2',
+								config.bgGradient,
+								config.borderColor,
+								config.textColor
+							)}
+						>
+							<Award className="w-4 h-4 mr-2" />
+							{currentPlan}
+						</Badge>
+						<div className="flex items-center gap-2 mt-2">
+							<div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+							<span className="text-xs text-muted-foreground font-medium">
+								Active Plan
+							</span>
+						</div>
+					</div>
+				</div>
+
+				<div
 					className={cn(
 						'relative z-10 space-y-8',
 						animationClasses('slide-up')
@@ -417,7 +409,7 @@ export function CustomerPortalCard({
 									</div>
 								)}
 								{billingInfo.lastPayment && (
-									<div className="bg-background/70 rounded-lg p-4 border border-primary/20">
+									<div className="bg-background/70 rounded-lg p-4 border-primary/20">
 										<div className="flex items-center gap-2 mb-2">
 											<CheckCircle2 className="h-4 w-4 text-accent" />
 											<span className="text-sm font-semibold text-muted-foreground">
@@ -437,7 +429,7 @@ export function CustomerPortalCard({
 									</div>
 								)}
 								{billingInfo.paymentMethod && (
-									<div className="bg-background/70 rounded-lg p-4 border border-primary/20">
+									<div className="bg-background/70 rounded-lg p-4 border-primary/20">
 										<div className="flex items-center gap-2 mb-2">
 											<CreditCard className="h-4 w-4 text-primary" />
 											<span className="text-sm font-semibold text-muted-foreground">
@@ -599,17 +591,14 @@ export function CustomerPortalCard({
 							)}
 							size="lg"
 							variant="default"
-							style={{
-								transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`
-							}}
 						>
 							<Settings className="w-6 h-6 mr-3" />
 							Access Customer Portal
 							<ArrowRight className="w-5 h-5 ml-3" />
 						</CustomerPortalButton>
 					</div>
-				</CardContent>
-			</Card>
+				</div>
+			</CardLayout>
 
 			{/* Enhanced Trust Signals */}
 			<div className="bg-gradient-to-r from-muted/10 via-background to-muted/10 rounded-2xl p-6 border-2 border-muted/20">

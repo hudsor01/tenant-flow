@@ -10,6 +10,7 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '@/components/ui/dialog'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -27,7 +28,7 @@ import {
 	cn,
 	inputClasses,
 	TYPOGRAPHY_SCALE
-} from '@/lib/utils'
+} from '@/lib/design-system'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import {
@@ -38,7 +39,6 @@ import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { LucideIcon } from 'lucide-react'
 import {
-	AlertTriangle,
 	BarChart3,
 	BedDouble,
 	CalendarDays,
@@ -55,7 +55,7 @@ import {
 import * as React from 'react'
 import { toast } from 'sonner'
 
-type UnitRow = Database['public']['Tables']['Unit']['Row']
+type UnitRow = Database['public']['Tables']['unit']['Row']
 type UnitStatus = Database['public']['Enums']['UnitStatus']
 
 interface UnitViewDialogProps {
@@ -520,11 +520,50 @@ export function UnitEditDialog({
 			values
 		}: {
 			id: string
-			values: Database['public']['Tables']['Unit']['Update']
+			values: Database['public']['Tables']['unit']['Update']
 		}) => unitsApi.update(id, values),
+		onMutate: async ({
+			id,
+			values
+		}: {
+			id: string
+			values: Database['public']['Tables']['unit']['Update']
+		}) => {
+			await qc.cancelQueries({ queryKey: ['units'] })
+			const previous = qc.getQueryData<UnitRow[] | { data: UnitRow[] }>([
+				'units'
+			])
+			qc.setQueryData<UnitRow[] | { data: UnitRow[] }>(['units'], old => {
+				if (!old) return old
+				if (Array.isArray(old))
+					return old.map(u =>
+						u.id === id ? ({ ...u, ...values } as UnitRow) : u
+					)
+				if ('data' in old)
+					return {
+						...old,
+						data: old.data.map(u =>
+							u.id === id ? ({ ...u, ...values } as UnitRow) : u
+						)
+					}
+				return old
+			})
+			return { previous }
+		},
+		onError: (err: unknown, _vars, context?: { previous?: unknown }) => {
+			if (context?.previous) {
+				const prev = context.previous as unknown
+				qc.setQueryData(
+					['units'],
+					prev as UnitRow[] | { data: UnitRow[] } | undefined
+				)
+			}
+			toast.error('Failed to update unit', {
+				description: (err as Error)?.message
+			})
+		},
 		onSuccess: () => {
-			qc.invalidateQueries({ queryKey: ['units'] })
-			qc.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
+			toast.success('Unit updated successfully')
 		}
 	})
 
@@ -650,8 +689,8 @@ export function UnitEditDialog({
 					<div className="grid grid-cols-2 gap-6">
 						<form.Field name="unitNumber">
 							{field => (
-								<div className="space-y-3">
-									<Label
+								<Field>
+									<FieldLabel
 										htmlFor="unitNumber"
 										className="text-sm font-semibold text-foreground flex items-center gap-2"
 										style={{
@@ -665,7 +704,7 @@ export function UnitEditDialog({
 										/>
 										<span>Unit Number</span>
 										<span className="text-destructive">*</span>
-									</Label>
+									</FieldLabel>
 									<Input
 										id="unitNumber"
 										placeholder="e.g., 101, A1, Suite 200"
@@ -682,25 +721,15 @@ export function UnitEditDialog({
 												: 'focus:border-primary hover:border-muted-foreground'
 										)}
 									/>
-									{field.state.meta.errors?.length ? (
-										<div
-											className={cn(
-												'text-sm text-destructive font-medium flex items-center gap-2 p-2 rounded-6px',
-												'bg-destructive/10 border border-destructive/20'
-											)}
-										>
-											<AlertTriangle className="h-4 w-4" aria-hidden />
-											{String(field.state.meta.errors[0])}
-										</div>
-									) : null}
-								</div>
+									<FieldError errors={field.state.meta.errors} />
+								</Field>
 							)}
 						</form.Field>
 
 						<form.Field name="status">
 							{field => (
-								<div className="space-y-3">
-									<Label
+								<Field>
+									<FieldLabel
 										htmlFor="status"
 										className="text-sm font-semibold text-foreground flex items-center gap-2"
 										style={{
@@ -714,7 +743,7 @@ export function UnitEditDialog({
 										/>
 										<span>Status</span>
 										<span className="text-destructive">*</span>
-									</Label>
+									</FieldLabel>
 									<Select
 										value={field.state.value}
 										onValueChange={value =>
@@ -761,18 +790,8 @@ export function UnitEditDialog({
 											})}
 										</SelectContent>
 									</Select>
-									{field.state.meta.errors?.length ? (
-										<div
-											className={cn(
-												'text-sm text-destructive font-medium flex items-center gap-2 p-2 rounded-6px',
-												'bg-destructive/10 border border-destructive/20'
-											)}
-										>
-											<AlertTriangle className="h-4 w-4" aria-hidden />
-											{String(field.state.meta.errors[0])}
-										</div>
-									) : null}
-								</div>
+									<FieldError errors={field.state.meta.errors} />
+								</Field>
 							)}
 						</form.Field>
 					</div>
@@ -780,10 +799,13 @@ export function UnitEditDialog({
 					<div className="grid grid-cols-2 gap-6">
 						<form.Field name="bedrooms">
 							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="bedrooms" className="text-sm font-medium">
+								<Field>
+									<FieldLabel
+										htmlFor="bedrooms"
+										className="text-sm font-medium"
+									>
 										Bedrooms
-									</Label>
+									</FieldLabel>
 									<Input
 										id="bedrooms"
 										type="number"
@@ -804,22 +826,20 @@ export function UnitEditDialog({
 									<p className="text-xs text-muted-foreground">
 										Number of bedrooms (0-20)
 									</p>
-									{field.state.meta.errors?.length ? (
-										<div className="text-sm text-destructive font-medium flex items-center gap-1">
-											<AlertTriangle className="h-4 w-4" aria-hidden />
-											{String(field.state.meta.errors[0])}
-										</div>
-									) : null}
-								</div>
+									<FieldError errors={field.state.meta.errors} />
+								</Field>
 							)}
 						</form.Field>
 
 						<form.Field name="bathrooms">
 							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="bathrooms" className="text-sm font-medium">
+								<Field>
+									<FieldLabel
+										htmlFor="bathrooms"
+										className="text-sm font-medium"
+									>
 										Bathrooms
-									</Label>
+									</FieldLabel>
 									<Input
 										id="bathrooms"
 										type="number"
@@ -840,13 +860,8 @@ export function UnitEditDialog({
 									<p className="text-xs text-muted-foreground">
 										Include half-baths (e.g., 1.5)
 									</p>
-									{field.state.meta.errors?.length ? (
-										<div className="text-sm text-destructive font-medium flex items-center gap-1">
-											<AlertTriangle className="h-4 w-4" aria-hidden />
-											{String(field.state.meta.errors[0])}
-										</div>
-									) : null}
-								</div>
+									<FieldError errors={field.state.meta.errors} />
+								</Field>
 							)}
 						</form.Field>
 					</div>
@@ -854,17 +869,18 @@ export function UnitEditDialog({
 					<div className="grid grid-cols-2 gap-6">
 						<form.Field name="squareFeet">
 							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="squareFeet" className="text-sm font-medium">
+								<Field>
+									<FieldLabel
+										htmlFor="squareFeet"
+										className="text-sm font-medium"
+									>
 										Square Feet
-									</Label>
+									</FieldLabel>
 									<Input
 										id="squareFeet"
 										type="number"
 										min="0"
-										max="50000"
-										step="1"
-										placeholder="e.g., 800"
+										placeholder="e.g., 1200"
 										value={field.state.value}
 										onChange={e => field.handleChange(e.target.value)}
 										onBlur={field.handleBlur}
@@ -875,36 +891,25 @@ export function UnitEditDialog({
 												: 'focus:border-primary'
 										}
 									/>
-									<p className="text-xs text-muted-foreground">
-										Optional - total floor area in square feet
-									</p>
-									{field.state.meta.errors?.length ? (
-										<div className="text-sm text-destructive font-medium flex items-center gap-1">
-											<AlertTriangle className="h-4 w-4" aria-hidden />
-											{String(field.state.meta.errors[0])}
-										</div>
-									) : null}
-								</div>
+									<FieldError errors={field.state.meta.errors} />
+								</Field>
 							)}
 						</form.Field>
 
 						<form.Field name="rent">
 							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="rent" className="text-sm font-medium">
-										Monthly Rent <span className="text-destructive">*</span>
-									</Label>
+								<Field>
+									<FieldLabel htmlFor="rent" className="text-sm font-medium">
+										Monthly Rent
+									</FieldLabel>
 									<div className="relative">
-										<span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">
-											$
-										</span>
+										<Wallet className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 										<Input
 											id="rent"
 											type="number"
 											min="0"
-											max="100000"
 											step="0.01"
-											placeholder="1200.00"
+											placeholder="e.g., 1200.00"
 											value={field.state.value}
 											onChange={e => field.handleChange(e.target.value)}
 											onBlur={field.handleBlur}
@@ -912,29 +917,21 @@ export function UnitEditDialog({
 											className={`pl-7 ${field.state.meta.errors?.length ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}
 										/>
 									</div>
-									<p className="text-xs text-muted-foreground">
-										Monthly rental amount in USD
-									</p>
-									{field.state.meta.errors?.length ? (
-										<div className="text-sm text-destructive font-medium flex items-center gap-1">
-											<AlertTriangle className="h-4 w-4" aria-hidden />
-											{String(field.state.meta.errors[0])}
-										</div>
-									) : null}
-								</div>
+									<FieldError errors={field.state.meta.errors} />
+								</Field>
 							)}
 						</form.Field>
 					</div>
 
 					<form.Field name="lastInspectionDate">
 						{field => (
-							<div className="space-y-2">
-								<Label
+							<Field>
+								<FieldLabel
 									htmlFor="lastInspectionDate"
 									className="text-sm font-medium"
 								>
 									Last Inspection Date
-								</Label>
+								</FieldLabel>
 								<Input
 									id="lastInspectionDate"
 									type="date"
@@ -948,16 +945,8 @@ export function UnitEditDialog({
 											: 'focus:border-primary'
 									}
 								/>
-								<p className="text-xs text-muted-foreground">
-									Optional - date of the most recent property inspection
-								</p>
-								{field.state.meta.errors?.length ? (
-									<div className="text-sm text-destructive font-medium flex items-center gap-1">
-										<AlertTriangle className="h-4 w-4" aria-hidden />
-										{String(field.state.meta.errors[0])}
-									</div>
-								) : null}
-							</div>
+								<FieldError errors={field.state.meta.errors} />
+							</Field>
 						)}
 					</form.Field>
 
