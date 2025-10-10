@@ -32,6 +32,18 @@ interface AuthenticatedRequest extends ExpressRequest {
 
 @Controller('api/v1/subscriptions')
 export class SubscriptionsController {
+	/**
+	 * NOTE: Authentication guard missing on this controller
+	 * - All subscription handlers rely on `req.user` but the controller
+	 *   does not apply `JwtAuthGuard` (e.g. via `@UseGuards(JwtAuthGuard)`)
+	 *   or otherwise ensure the request is authenticated. Without the guard
+	 *   `req.user` will not be populated and handlers will throw a generic
+	 *   Error('User not authenticated') resulting in 500 responses instead
+	 *   of proper 401/403 responses.
+	 * - Recommendation: add `@UseGuards(JwtAuthGuard)` at the controller
+	 *   or route level and replace the generic Error with
+	 *   `throw new UnauthorizedException()` when `req.user` is missing.
+	 */
 	constructor(private readonly subscriptionsService: SubscriptionsService) {}
 
 	/**
