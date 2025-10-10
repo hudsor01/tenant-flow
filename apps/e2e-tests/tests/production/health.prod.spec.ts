@@ -1,13 +1,14 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 test.describe('Production Monitoring Placeholder', () => {
 	const requiredEnv = ['PROD_HEALTH_URL'] as const
 
 	test.beforeAll(() => {
-		const missing = requiredEnv.filter((key) => !process.env[key])
-		if (missing.length) {
-			test.skip(`Missing production env vars: ${missing.join(', ')}`)
-		}
+		const missing = requiredEnv.filter(key => !process.env[key])
+		test.skip(
+			missing.length > 0,
+			`Missing production env vars: ${missing.join(', ')}`
+		)
 	})
 
 	test('health endpoint responds', async ({ request }) => {

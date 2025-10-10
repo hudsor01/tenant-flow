@@ -5,9 +5,9 @@ import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ThrottlerModule } from '@nestjs/throttler'
-import { randomUUID } from 'node:crypto'
 import type { Request } from 'express'
 import { ClsModule } from 'nestjs-cls'
+import { randomUUID } from 'node:crypto'
 import { AnalyticsModule } from './analytics/analytics.module'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
@@ -23,9 +23,9 @@ import { TimeoutInterceptor } from './interceptors/timeout.interceptor'
 import { LateFeesModule } from './late-fees/late-fees.module'
 import { LeaseModule } from './modules/leases/lease.module'
 import { MaintenanceModule } from './modules/maintenance/maintenance.module'
-import { NotificationsModule } from './notifications/notifications.module'
 import { PaymentMethodsModule } from './modules/payments/payment-methods.module'
-import { PropertyModule } from './modules/properties/property.module'
+import { NotificationsModule } from './notifications/notifications.module'
+import { PropertiesModule } from './properties/properties.module'
 import { RentPaymentsModule } from './rent-payments/rent-payments.module'
 import { ReportsModule } from './reports/reports.module'
 import { RepositoriesModule } from './repositories/repositories.module'
@@ -36,7 +36,7 @@ import { SharedModule } from './shared/shared.module'
 import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
 import { StripeWebhookModule } from './stripe-webhook/stripe-webhook.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
-import { TenantModule } from './modules/tenants/tenant.module'
+import { TenantsModule } from './tenants/tenants.module'
 import { UnitsModule } from './units/units.module'
 import { UsersModule } from './users/users.module'
 
@@ -100,21 +100,21 @@ import { UsersModule } from './users/users.module'
 		// Business modules that depend on global services
 		AnalyticsModule,
 		StripeModule,
-		StripeConnectModule,
-		StripeWebhookModule,
-		SubscriptionsModule,
-		RentPaymentsModule,
-		PaymentMethodsModule,
 		ContactModule,
 		DashboardModule,
 		FinancialModule,
-		PropertyModule,
+		PropertiesModule,
 		UnitsModule,
-		TenantModule,
+		TenantsModule,
 		LeaseModule,
 		LateFeesModule,
 		MaintenanceModule,
 		NotificationsModule,
+		PaymentMethodsModule,
+		RentPaymentsModule,
+		StripeConnectModule,
+		StripeWebhookModule,
+		SubscriptionsModule,
 		UsersModule,
 		SecurityModule,
 		ReportsModule
