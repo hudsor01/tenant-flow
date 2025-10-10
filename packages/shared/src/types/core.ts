@@ -584,3 +584,80 @@ export type TenantInput = Database['public']['Tables']['Tenant']['Insert']
 export type TenantUpdate = Database['public']['Tables']['Tenant']['Update']
 export type UnitInput = Database['public']['Tables']['Unit']['Insert']
 export type UnitUpdate = Database['public']['Tables']['Unit']['Update']
+
+// PAYMENT METHOD TYPES - Tenant payment system (Phase 2-3)
+
+export type PaymentMethodType = 'card' | 'us_bank_account'
+
+export interface PaymentMethodSetupIntent {
+	clientSecret: string | null
+	setupIntentId: string
+}
+
+export interface PaymentMethodResponse {
+	id: string
+	tenantId: string
+	stripePaymentMethodId: string
+	type: PaymentMethodType
+	last4: string | null
+	brand: string | null
+	bankName: string | null
+	isDefault: boolean
+	createdAt: string
+}
+
+export interface CreateSetupIntentRequest {
+	type: PaymentMethodType
+}
+
+export interface SetDefaultPaymentMethodRequest {
+	paymentMethodId: string
+}
+
+// RENT SUBSCRIPTION TYPES - Autopay subscriptions (Phase 4)
+
+export type SubscriptionStatus =
+	| 'active'
+	| 'paused'
+	| 'canceled'
+	| 'past_due'
+	| 'incomplete'
+
+export interface RentSubscriptionResponse {
+	id: string
+	leaseId: string
+	tenantId: string
+	landlordId: string
+	stripeSubscriptionId: string
+	stripeCustomerId: string
+	paymentMethodId: string
+	amount: number
+	currency: string
+	billingDayOfMonth: number
+	status: SubscriptionStatus
+	platformFeePercentage: number
+	pausedAt: string | null
+	canceledAt: string | null
+	createdAt: string
+	updatedAt: string
+}
+
+export interface CreateSubscriptionRequest {
+	leaseId: string
+	paymentMethodId: string
+	amount: number
+	billingDayOfMonth: number
+	currency?: string
+}
+
+export interface UpdateSubscriptionRequest {
+	amount?: number
+	paymentMethodId?: string
+	billingDayOfMonth?: number
+}
+
+export interface SubscriptionActionResponse {
+	success: boolean
+	subscription?: RentSubscriptionResponse
+	message?: string
+}
