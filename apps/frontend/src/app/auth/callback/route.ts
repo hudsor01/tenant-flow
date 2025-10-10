@@ -8,12 +8,7 @@ export async function GET(request: Request) {
 	const { searchParams, origin } = new URL(request.url)
 	const code = searchParams.get('code')
 	// if "next" is in param, use it as the redirect URL
-	// Default to dashboard for authenticated users
-	let next = searchParams.get('next') ?? '/dashboard'
-	if (!next.startsWith('/')) {
-		// if "next" is not a relative URL, use the dashboard
-		next = '/dashboard'
-	}
+	const nextParam = searchParams.get('next')
 
 	if (code) {
 		try {
@@ -56,22 +51,45 @@ export async function GET(request: Request) {
 			}
 
 			if (data.session) {
+				// Fetch user role to determine redirect destination
+				const { data: userProfile } = await supabase
+					.from('users')
+					.select('role')
+					.eq('supabaseId', data.session.user.id)
+					.single()
+
+				// Determine destination based on user role
+				let next = '/dashboard' // Default for OWNER, MANAGER, ADMIN
+
+				if (userProfile?.role === 'TENANT') {
+					next = '/tenant-portal'
+				}
+
+				// Honor explicit nextParam if provided (unless it conflicts with role)
+				if (nextParam && nextParam.startsWith('/')) {
+					next = nextParam
+				}
+
 				logger.info('OAuth callback successful', {
 					action: 'oauth_callback_success',
-					metadata: { userId: data.session.user.id, next }
+					metadata: {
+						userId: data.session.user.id,
+						role: userProfile?.role,
+						next
+					}
 				})
-			}
 
-			// Handle successful authentication with proper redirect logic
-			const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
-			const isLocalEnv = process.env.NODE_ENV === 'development'
-			if (isLocalEnv) {
-				// we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-				return NextResponse.redirect(`${origin}${next}`)
-			} else if (forwardedHost) {
-				return NextResponse.redirect(`https://${forwardedHost}${next}`)
-			} else {
-				return NextResponse.redirect(`${origin}${next}`)
+				// Handle successful authentication with proper redirect logic
+				const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
+				const isLocalEnv = process.env.NODE_ENV === 'development'
+				if (isLocalEnv) {
+					// we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
+					return NextResponse.redirect(`${origin}${next}`)
+				} else if (forwardedHost) {
+					return NextResponse.redirect(`https://${forwardedHost}${next}`)
+				} else {
+					return NextResponse.redirect(`${origin}${next}`)
+				}
 			}
 		} catch (error) {
 			logger.error('OAuth callback error', {
