@@ -338,6 +338,11 @@ export class SubscriptionsService {
 			.getAdminClient()
 			.from('RentSubscription')
 			.update({
+				// NOTE: The RentSubscription.status column uses 'cancelled' (double-l)
+				// in the schema/migration (20251004_create_payment_tables.sql). Using
+				// 'canceled' (single-l) here will cause a DB constraint error. Align
+				// the status string with the schema or update the schema if a
+				// different canonical value is desired.
 				status: 'canceled'
 			})
 			.eq('id', subscriptionId)

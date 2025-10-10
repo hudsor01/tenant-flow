@@ -88,6 +88,12 @@ export class StripeWebhookService {
 	private async handleAccountUpdated(account: Stripe.Account) {
 		this.logger.log(`Account updated: ${account.id}`)
 
+		// NOTE: The ConnectedAccount.status column currently only allows
+		// 'pending' | 'active' | 'restricted' | 'disabled' (see migration)
+		// Writing 'incomplete' here will violate the DB check constraint and
+		// cause the update to fail. Use one of the allowed values (for
+		// example keep it 'pending') or update the migration/schema to
+		// introduce 'incomplete' before persisting this value.
 		await this.supabase
 			.getAdminClient()
 			.from('ConnectedAccount')
