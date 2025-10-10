@@ -26,8 +26,8 @@ describe('getApiBaseUrl', () => {
 		if (originalWindow !== undefined) {
 			global.window = originalWindow
 		} else {
-			// @ts-expect-error - intentionally setting to undefined for server environment test
-			global.window = undefined
+			// Server environment test - delete window global
+			delete (global as { window?: Window }).window
 		}
 	})
 
@@ -94,8 +94,8 @@ describe('getApiBaseUrl', () => {
 			if (originalWindow !== undefined) {
 				global.window = originalWindow
 			} else {
-				// @ts-expect-error - intentionally setting to undefined for server environment test
-				global.window = undefined
+				// Server environment test - delete window global
+				delete (global as { window?: Window }).window
 			}
 		})
 
@@ -113,8 +113,7 @@ describe('getApiBaseUrl', () => {
 	describe('Server-Side Fallback (Node)', () => {
 		beforeEach(() => {
 			// Ensure we're in server environment (no window)
-			// @ts-expect-error - intentionally setting to undefined for server environment test
-			global.window = undefined
+			delete (global as { window?: Window }).window
 		})
 
 		it('should return localhost:3001 when no env var is set', () => {

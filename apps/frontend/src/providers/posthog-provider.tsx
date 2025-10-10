@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react'
 import { useEffect } from 'react'
-
 import posthog from 'posthog-js'
 import { PostHogProvider } from 'posthog-js/react'
 

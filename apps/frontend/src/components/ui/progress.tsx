@@ -13,32 +13,16 @@ function Progress({
   return (
     <ProgressPrimitive.Root
       data-slot="progress"
-		className={cn(
-			// Base styles with token-based radius
-			"bg-primary/20 relative h-2 w-full overflow-hidden rounded-[var(--radius-small)]",
-        // Enhanced transitions
-        "transition-all duration-200 ease-in-out",
-        // Hover state
-        "hover:bg-primary/25",
-        // Focus state
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+      className={cn(
+        "bg-primary/20 relative h-2 w-full overflow-hidden rounded-full",
         className
       )}
       {...props}
     >
       <ProgressPrimitive.Indicator
         data-slot="progress-indicator"
-        className={cn(
-          // Base styles
-          "bg-primary h-full w-full flex-1",
-          // Enhanced with subtle gradient
-          "bg-gradient-to-r from-primary to-primary/90",
-          // Smooth transitions
-          "transition-all duration-300 ease-out"
-        )}
-        style={{
-          transform: `translateX(-${100 - (value || 0)}%)`
-        }}
+        className="bg-primary h-full w-full flex-1 transition-all"
+        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
       />
     </ProgressPrimitive.Root>
   )

@@ -65,25 +65,140 @@ function transformStripeProducts(products: Array<{
 }
 
 /**
+ * Fallback pricing data for when backend is unavailable
+ * Ensures pricing page works offline (marketing pages should not depend on backend)
+ */
+// Feature definitions for each plan (not stored in Stripe due to 500-char metadata limit)
+const PLAN_FEATURES: Record<string, string[]> = {
+	starter: [
+		'Up to 10 units',
+		'Unlimited tenants',
+		'Online rent collection',
+		'Lease management',
+		'Maintenance tracking',
+		'Tenant screening',
+		'Basic financial reports',
+		'Email support'
+	],
+	growth: [
+		'Up to 50 units',
+		'Everything in Starter',
+		'Automated rent reminders',
+		'Late fee automation',
+		'Advanced reporting & analytics',
+		'Document storage (10GB)',
+		'Tenant portal access',
+		'Mobile app access',
+		'Priority support (24hr response)'
+	],
+	max: [
+		'Unlimited units',
+		'Everything in Growth',
+		'Custom integrations (API access)',
+		'White-label options',
+		'Dedicated account manager',
+		'Advanced automation rules',
+		'Custom reports',
+		'Unlimited document storage',
+		'24/7 phone & chat support'
+	]
+}
+
+const FALLBACK_PRICING: StripeProductWithPricing[] = [
+	{
+		id: 'prod_starter',
+		name: 'Starter',
+		description: 'Perfect for individual landlords managing 1-10 units',
+		metadata: {
+			planId: 'starter',
+			order: '1'
+		},
+		prices: {
+			monthly: {
+				id: 'price_monthly_starter',
+				unit_amount: 2900,
+				currency: 'usd',
+				recurring: { interval: 'month', interval_count: 1 }
+			},
+			annual: {
+				id: 'price_annual_starter',
+				unit_amount: 29000,
+				currency: 'usd',
+				recurring: { interval: 'year', interval_count: 1 }
+			}
+		},
+		defaultPrice: null
+	},
+	{
+		id: 'prod_growth',
+		name: 'Growth',
+		description: 'For growing portfolios managing 11-50 units',
+		metadata: {
+			planId: 'growth',
+			order: '2',
+			popular: 'true'
+		},
+		prices: {
+			monthly: {
+				id: 'price_monthly_growth',
+				unit_amount: 7900,
+				currency: 'usd',
+				recurring: { interval: 'month', interval_count: 1 }
+			},
+			annual: {
+				id: 'price_annual_growth',
+				unit_amount: 79000,
+				currency: 'usd',
+				recurring: { interval: 'year', interval_count: 1 }
+			}
+		},
+		defaultPrice: null
+	},
+	{
+		id: 'prod_max',
+		name: 'Max',
+		description: 'For property management companies with 50+ units',
+		metadata: {
+			planId: 'max',
+			order: '3'
+		},
+		prices: {
+			monthly: null,
+			annual: null
+		},
+		defaultPrice: null
+	}
+]
+
+/**
  * Hook to fetch Stripe products with pricing data
  * Automatically caches and refetches on mount
  * Uses backend /api/v1/stripe/products endpoint
+ * Falls back to hardcoded pricing if backend is unavailable
  */
 export function useStripeProducts() {
 	const query = useQuery({
 		queryKey: ['stripe', 'products'],
 		queryFn: async () => {
-			const response = await stripeApi.getProducts()
-			return transformStripeProducts(response.products)
+			try {
+				const response = await stripeApi.getProducts()
+				return transformStripeProducts(response.products)
+			} catch {
+				// Fallback to hardcoded pricing if backend is unavailable
+				// This ensures marketing pages work offline
+				return FALLBACK_PRICING
+			}
 		},
 		staleTime: 1000 * 60 * 5, // 5 minutes
 		refetchOnWindowFocus: false,
-		refetchOnMount: true
+		refetchOnMount: true,
+		retry: false, // Don't retry if backend is down
+		placeholderData: FALLBACK_PRICING // Show fallback immediately while loading
 	})
 
 	return {
-		products: query.data || [],
-		isLoading: query.isLoading,
+		products: query.data || FALLBACK_PRICING,
+		isLoading: query.isLoading && !query.data, // Only show loading if we have no data at all
 		error: query.error,
 		refetch: query.refetch
 	}
@@ -125,4 +240,12 @@ export function calculateAnnualSavings(
 		savingsAmount: savings,
 		savingsPercent
 	}
+}
+
+/**
+ * Get features for a plan by planId
+ * Features stored locally to avoid Stripe's 500-char metadata limit
+ */
+export function getPlanFeatures(planId: string): string[] {
+	return PLAN_FEATURES[planId] || []
 }

@@ -18,7 +18,7 @@ export class SupabaseSecurityRepository implements ISecurityRepository {
 		try {
 			let query = this.supabase
 				.getAdminClient()
-				.from('SecurityAuditLog')
+				.from('security_audit_log')
 				.select(
 					'id, eventType, severity, userId, email, ipAddress, userAgent, resource, action, details, timestamp'
 				)
@@ -55,7 +55,10 @@ export class SupabaseSecurityRepository implements ISecurityRepository {
 
 			return (data as SecurityAuditLogEntry[]) ?? []
 		} catch (error) {
-			this.logger.error('Unexpected error while fetching security audit logs', error)
+			this.logger.error(
+				'Unexpected error while fetching security audit logs',
+				error
+			)
 			return []
 		}
 	}

@@ -20,9 +20,9 @@ import {
 	ANIMATION_DURATIONS,
 	buttonClasses,
 	cardClasses,
-	cn
-} from '@/lib/utils'
-import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
+	cn,
+	TYPOGRAPHY_SCALE
+} from '@/lib/design-system'
 import { supabaseClient } from '@repo/shared/lib/supabase-client'
 import { useMutation } from '@tanstack/react-query'
 import {

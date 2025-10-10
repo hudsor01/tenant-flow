@@ -9,11 +9,11 @@ module.exports = {
 	transform: {
 		'^.+\\.(ts|tsx)$': [
 			'ts-jest',
-			{ tsconfig: path.resolve(__dirname, 'tsconfig.test.json') }
+			{
+				tsconfig: path.resolve(__dirname, 'tsconfig.test.json'),
+				diagnostics: true
+			}
 		]
-	},
-	moduleNameMapper: {
-		'^@/(.*)$': '<rootDir>/src/$1'
 	},
 	// Map workspace packages to their source for testing
 	moduleNameMapper: Object.assign(
@@ -23,5 +23,13 @@ module.exports = {
 			'^@repo/shared$': '<rootDir>/../../packages/shared/src/index',
 			'^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1'
 		}
-	)
+	),
+	testMatch: [
+		'<rootDir>/tests/components/**/*.test.tsx',
+		'<rootDir>/src/components/**/*.test.tsx',
+		'<rootDir>/tests/**/*.test.tsx',
+		'<rootDir>/src/**/*.test.tsx',
+		'<rootDir>/tests/**/*.spec.tsx',
+		'<rootDir>/src/**/*.spec.tsx'
+	]
 }

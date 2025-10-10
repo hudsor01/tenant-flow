@@ -8,7 +8,13 @@
 
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { FormProgressData } from '@repo/shared/types/core'
-import { startTransition, useDeferredValue, useEffect, useState } from 'react'
+import {
+	startTransition,
+	useDeferredValue,
+	useEffect,
+	useState,
+	useCallback
+} from 'react'
 
 const logger = createLogger({ component: 'FormProgressHook' })
 
@@ -72,55 +78,60 @@ export function useFormProgress(formType: FormType) {
 	}, [formType])
 
 	// Save progress function with local storage (excludes sensitive data)
-	const saveProgress = async (data: FormProgressData): Promise<void> => {
-		try {
-			// Skip if no meaningful data to save
-			if (!data.email && !data.name) return
+	// CRITICAL: useCallback to prevent infinite re-renders in dependent useEffect hooks
+	const saveProgress = useCallback(
+		async (data: FormProgressData): Promise<void> => {
+			try {
+				// Skip if no meaningful data to save
+				if (!data.email && !data.name) return
 
-			// Security: Never save passwords locally
-			const safeData = { ...data }
-			delete safeData.password
-			delete safeData.confirmPassword
+				// Security: Never save passwords locally
+				const safeData = { ...data }
+				delete safeData.password
+				delete safeData.confirmPassword
 
-			// Save to localStorage
-			localStorage.setItem(
-				`form-progress-${formType}`,
-				JSON.stringify(safeData)
-			)
+				// Save to localStorage
+				localStorage.setItem(
+					`form-progress-${formType}`,
+					JSON.stringify(safeData)
+				)
 
-			setState(prev => ({
-				...prev,
-				data: safeData,
-				error: null
-			}))
-		} catch (error) {
-			// Graceful degradation - don't break the form
-			logger.warn('Failed to save form progress', {
-				action: 'form_progress_save_failed',
-				metadata: {
-					formType,
-					hasEmail: !!data.email,
-					hasName: !!data.name,
-					error: error instanceof Error ? error.message : String(error)
-				}
-			})
-			setState(prev => ({
-				...prev,
-				error:
-					error instanceof Error ? error.message : 'Failed to save progress'
-			}))
-		}
-	}
+				setState(prev => ({
+					...prev,
+					data: safeData,
+					error: null
+				}))
+			} catch (error) {
+				// Graceful degradation - don't break the form
+				logger.warn('Failed to save form progress', {
+					action: 'form_progress_save_failed',
+					metadata: {
+						formType,
+						hasEmail: !!data.email,
+						hasName: !!data.name,
+						error: error instanceof Error ? error.message : String(error)
+					}
+				})
+				setState(prev => ({
+					...prev,
+					error:
+						error instanceof Error ? error.message : 'Failed to save progress'
+				}))
+			}
+		},
+		[formType]
+	)
 
 	// Clear progress (on successful submission)
-	const clearProgress = () => {
+	// CRITICAL: useCallback to prevent infinite re-renders
+	const clearProgress = useCallback(() => {
 		localStorage.removeItem(`form-progress-${formType}`)
 		setState(prev => ({
 			...prev,
 			data: null,
 			error: null
 		}))
-	}
+	}, [formType])
 
 	return {
 		...state,

@@ -2,7 +2,7 @@
 
 import { GoogleButton } from '@/components/auth/google-button'
 import { Button } from '@/components/ui/button'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { Field, FieldLabel, FieldError } from '@/components/ui/field'
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -27,6 +27,7 @@ export function LoginForm({
 	isGoogleLoading
 }: Omit<AuthFormProps, 'mode' | 'onLogin'>) {
 	const [showPassword, setShowPassword] = useState(false)
+	const [authError, setAuthError] = useState<string | null>(null)
 
 	// Form progress persistence (only saves email - no passwords)
 	const {
@@ -42,14 +43,16 @@ export function LoginForm({
 			password: ''
 		},
 		onSubmit: async ({ value }) => {
+			setAuthError(null)
 			try {
 				await onSubmit?.(value)
-				// Clear progress on successful login
 				clearProgress()
 			} catch (error) {
+				const message =
+					error instanceof Error ? error.message : 'Please try again'
+				setAuthError(message)
 				toast.error('Sign in failed', {
-					description:
-						error instanceof Error ? error.message : 'Please try again'
+					description: message
 				})
 			}
 		},
@@ -92,6 +95,15 @@ export function LoginForm({
 				}}
 				className="space-y-5"
 			>
+				{authError && (
+					<div
+						role="alert"
+						data-testid="auth-error"
+						className="p-3 rounded-md border border-destructive/30 bg-destructive/10 text-sm text-destructive"
+					>
+						<span className="font-medium">Sign in failed:</span> {authError}
+					</div>
+				)}
 				{/* Email Field */}
 				<form.Field name="email">
 					{field => (
@@ -107,7 +119,9 @@ export function LoginForm({
 									type="email"
 									placeholder="Enter your email"
 									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										field.handleChange(e.target.value)
+									}
 									onBlur={field.handleBlur}
 									disabled={isLoading}
 									aria-invalid={
@@ -115,11 +129,7 @@ export function LoginForm({
 									}
 								/>
 							</InputGroup>
-							<FieldError
-								errors={field.state.meta.errors?.map(err => ({
-									message: String(err)
-								}))}
-							/>
+							<FieldError errors={field.state.meta.errors} />
 						</Field>
 					)}
 				</form.Field>
@@ -136,7 +146,9 @@ export function LoginForm({
 									type={showPassword ? 'text' : 'password'}
 									placeholder="Enter your password"
 									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										field.handleChange(e.target.value)
+									}
 									onBlur={field.handleBlur}
 									disabled={isLoading}
 									aria-invalid={
@@ -157,11 +169,7 @@ export function LoginForm({
 									</button>
 								</InputGroupAddon>
 							</InputGroup>
-							<FieldError
-								errors={field.state.meta.errors?.map(err => ({
-									message: String(err)
-								}))}
-							/>
+							<FieldError errors={field.state.meta.errors} />
 						</Field>
 					)}
 				</form.Field>

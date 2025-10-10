@@ -3,40 +3,45 @@
  * Integrates with shared API client and backend endpoints
  */
 import type {
-	DashboardStats,
-	LeaseStatsResponse,
-	TenantStats,
-	PropertyPerformance,
-	MaintenanceStats,
 	DashboardFinancialStats,
+	DashboardStats,
 	ExpenseSummaryResponse,
-	FinancialOverviewResponse,
-	TenantWithLeaseInfo,
+	LeaseStatsResponse,
 	MaintenanceRequest,
 	MaintenanceRequestResponse,
-	SystemUptime
+	MaintenanceStats,
+	PropertyPerformance,
+	SystemUptime,
+	TenantStats,
+	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
 
 import type { PropertyWithUnits } from '@repo/shared/types/relations'
-import type { MaintenanceRequestInput, MaintenanceRequestUpdate } from '@repo/shared/validation/maintenance'
+import type {
+	Tables,
+	TablesInsert,
+	TablesUpdate
+} from '@repo/shared/types/supabase'
 import { apiClient } from '@repo/shared/utils/api-client'
-import type { Tables, TablesInsert, TablesUpdate } from '@repo/shared/types/supabase'
+import type {
+	MaintenanceRequestInput,
+	MaintenanceRequestUpdate
+} from '@repo/shared/validation/maintenance'
 
 // Use native Supabase table types for API operations
-type Activity = Tables<'Activity'>
-type Lease = Tables<'Lease'>
-type Property = Tables<'Property'>
-type Tenant = Tables<'Tenant'>
-type Unit = Tables<'Unit'>
+type Activity = Tables<'activity'>
+type Lease = Tables<'lease'>
+type Property = Tables<'property'>
+type Unit = Tables<'unit'>
 
-type LeaseInsert = TablesInsert<'Lease'>
-type LeaseUpdate = TablesUpdate<'Lease'>
-type PropertyInsert = TablesInsert<'Property'>
-type PropertyUpdate = TablesUpdate<'Property'>
-type TenantInsert = TablesInsert<'Tenant'>
-type TenantUpdate = TablesUpdate<'Tenant'>
-type UnitInsert = TablesInsert<'Unit'>
-type UnitUpdate = TablesUpdate<'Unit'>
+type LeaseInsert = TablesInsert<'lease'>
+type LeaseUpdate = TablesUpdate<'lease'>
+type PropertyInsert = TablesInsert<'property'>
+type PropertyUpdate = TablesUpdate<'property'>
+type TenantInsert = TablesInsert<'tenant'>
+type TenantUpdate = TablesUpdate<'tenant'>
+type UnitInsert = TablesInsert<'unit'>
+type UnitUpdate = TablesUpdate<'unit'>
 
 // API Base URL Configuration
 // In production, environment variables are required for proper deployment
@@ -74,60 +79,28 @@ export const dashboardApi = {
 
 	// Optimized analytics endpoints using new RPC functions
 	getOccupancyTrends: (months: number = 12) =>
-		apiClient<Array<{
-			month: string;
-			occupancy_rate: number;
-			total_units: number;
-			occupied_units: number;
-		}>>(`${API_BASE_URL}/api/v1/dashboard/occupancy-trends?months=${months}`),
+		apiClient<
+			Array<{
+				month: string
+				occupancy_rate: number
+				total_units: number
+				occupied_units: number
+			}>
+		>(`${API_BASE_URL}/api/v1/dashboard/occupancy-trends?months=${months}`),
 
 	getRevenueTrends: (months: number = 12) =>
-		apiClient<Array<{
-			month: string;
-			revenue: number;
-			growth: number;
-			previous_period_revenue: number;
-		}>>(`${API_BASE_URL}/api/v1/dashboard/revenue-trends?months=${months}`),
+		apiClient<
+			Array<{
+				month: string
+				revenue: number
+				growth: number
+				previous_period_revenue: number
+			}>
+		>(`${API_BASE_URL}/api/v1/dashboard/revenue-trends?months=${months}`),
 
 	getMaintenanceAnalytics: () =>
-		apiClient<{
-			avgResolutionTime: number;
-			completionRate: number;
-			priorityBreakdown: Record<string, number>;
-			trendsOverTime: Array<{
-				month: string;
-				completed: number;
-				avgResolutionDays: number;
-			}>;
-		}>(`${API_BASE_URL}/api/v1/dashboard/maintenance-analytics`)
-}
-
-/**
- * Financial API endpoints - all calculations done in database via RPC functions
- */
-export const financialApi = {
-	getOverview: (year?: number): Promise<FinancialOverviewResponse> =>
-		apiClient<FinancialOverviewResponse>(
-			`${API_BASE_URL}/api/v1/financial/analytics/revenue-trends${year ? `?year=${year}` : ''}`
-		),
-
-	getOverviewWithCalculations: (
-		year?: number
-	): Promise<FinancialOverviewResponse> =>
-		apiClient<FinancialOverviewResponse>(
-			`${API_BASE_URL}/api/v1/financial/analytics/revenue-trends${year ? `?year=${year}` : ''}`
-		),
-
-	getExpenseSummary: (year?: number): Promise<ExpenseSummaryResponse> =>
 		apiClient<ExpenseSummaryResponse>(
-			`${API_BASE_URL}/api/v1/financial/analytics/expense-breakdown${year ? `?year=${year}` : ''}`
-		),
-
-	getExpenseSummaryWithPercentages: (
-		year?: number
-	): Promise<ExpenseSummaryResponse> =>
-		apiClient<ExpenseSummaryResponse>(
-			`${API_BASE_URL}/api/v1/financial/analytics/expense-breakdown${year ? `?year=${year}` : ''}`
+			`${API_BASE_URL}/api/v1/financial/analytics/expense-breakdown` // year param handled elsewhere if needed
 		),
 
 	getDashboardStats: (): Promise<DashboardFinancialStats> =>
@@ -141,14 +114,7 @@ export const financialApi = {
 		)
 }
 
-/**
- * Export the base API client for direct use
- */
-export { apiClient }
-
-/**
- * Resource APIs
- */
+// Resource APIs
 export const propertiesApi = {
 	list: (params?: { status?: string }) =>
 		apiClient<Property[]>(
@@ -161,21 +127,28 @@ export const propertiesApi = {
 			`${API_BASE_URL}/api/v1/properties/with-units`
 		),
 
+	get: (id: string) =>
+		apiClient<Property>(`${API_BASE_URL}/api/v1/properties/${id}`),
+
 	create: (body: PropertyInsert) =>
 		apiClient<Property>(`${API_BASE_URL}/api/v1/properties`, {
 			method: 'POST',
 			body: JSON.stringify(body)
 		}),
+
 	update: (id: string, body: PropertyUpdate) =>
 		apiClient<Property>(`${API_BASE_URL}/api/v1/properties/${id}`, {
 			method: 'PUT',
 			body: JSON.stringify(body)
 		}),
+
 	remove: (id: string) =>
 		apiClient<void>(`${API_BASE_URL}/api/v1/properties/${id}`, {
 			method: 'DELETE'
 		})
 }
+
+export { apiClient }
 
 export const unitsApi = {
 	list: (params?: { status?: string }) =>
@@ -210,6 +183,8 @@ export const tenantsApi = {
 		apiClient<TenantWithLeaseInfo[]>(
 			`${API_BASE_URL}/api/v1/tenants${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`
 		),
+	get: (id: string) =>
+		apiClient<TenantWithLeaseInfo>(`${API_BASE_URL}/api/v1/tenants/${id}`),
 
 	getTenantsWithAnalytics: () =>
 		apiClient<TenantWithLeaseInfo[]>(
@@ -218,12 +193,12 @@ export const tenantsApi = {
 
 	stats: () => apiClient<TenantStats>(`${API_BASE_URL}/api/v1/tenants/stats`),
 	create: (body: TenantInsert) =>
-		apiClient<Tenant>(`${API_BASE_URL}/api/v1/tenants`, {
+		apiClient<TenantWithLeaseInfo>(`${API_BASE_URL}/api/v1/tenants`, {
 			method: 'POST',
 			body: JSON.stringify(body)
 		}),
 	update: (id: string, body: TenantUpdate) =>
-		apiClient<Tenant>(`${API_BASE_URL}/api/v1/tenants/${id}`, {
+		apiClient<TenantWithLeaseInfo>(`${API_BASE_URL}/api/v1/tenants/${id}`, {
 			method: 'PUT',
 			body: JSON.stringify(body)
 		}),
@@ -238,6 +213,8 @@ export const leasesApi = {
 		apiClient<Lease[]>(
 			`${API_BASE_URL}/api/v1/leases${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`
 		),
+
+	get: (id: string) => apiClient<Lease>(`${API_BASE_URL}/api/v1/leases/${id}`),
 
 	getLeasesWithAnalytics: (status?: string) =>
 		apiClient<Lease[]>(
@@ -290,6 +267,8 @@ export const maintenanceApi = {
 		apiClient<MaintenanceRequestResponse>(
 			`${API_BASE_URL}/api/v1/maintenance${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`
 		),
+	get: (id: string) =>
+		apiClient<MaintenanceRequest>(`${API_BASE_URL}/api/v1/maintenance/${id}`),
 	create: (body: MaintenanceRequestInput) =>
 		apiClient<MaintenanceRequest>(`${API_BASE_URL}/api/v1/maintenance`, {
 			method: 'POST',
