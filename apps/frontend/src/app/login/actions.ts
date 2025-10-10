@@ -42,11 +42,28 @@ export async function loginAction(
 	}
 
 	if (data.user) {
-		// Redirect to intended destination or dashboard
-		const destination =
-			redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')
-				? redirectTo
-				: '/dashboard'
+		// Fetch user role from database to determine redirect
+		const { data: userProfile } = await supabase
+			.from('users')
+			.select('role')
+			.eq('supabaseId', data.user.id)
+			.single()
+
+		// Determine destination based on user role
+		let destination = '/dashboard' // Default for OWNER, MANAGER, ADMIN
+
+		if (userProfile?.role === 'TENANT') {
+			destination = '/tenant-portal'
+		}
+
+		// Honor explicit redirectTo if provided (unless it conflicts with role)
+		if (
+			redirectTo &&
+			redirectTo.startsWith('/') &&
+			!redirectTo.startsWith('//')
+		) {
+			destination = redirectTo
+		}
 
 		redirect(destination)
 	}
