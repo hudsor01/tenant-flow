@@ -7,7 +7,7 @@ import { expect, test } from '@playwright/test'
 
 test('See what is actually on the homepage', async ({ page }) => {
 	await page.goto(
-		process.env.CI ? 'https://tenantflow.app' : 'http://localhost:4500'
+		process.env.CI ? 'https://tenantflow.app' : 'http://localhost:3000'
 	)
 
 	// Get page title

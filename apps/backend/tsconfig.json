@@ -1,9 +1,9 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Backend TypeScript Config - Pure Project References",
+	"display": "TenantFlow Backend TypeScript Config (Modernized 2025)",
 	"extends": "../../packages/typescript-config/nestjs.json",
 	"compilerOptions": {
-		"baseUrl": "./",
+		"baseUrl": ".",
 		"outDir": "./dist",
 		"tsBuildInfoFile": "./.tsbuildinfo",
 		"types": ["node", "jest"],
@@ -14,16 +14,22 @@
 		"declarationMap": true,
 		"incremental": true,
 		"noEmit": false,
-		"noUnusedLocals": false,
-		"noUnusedParameters": false
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true
 	},
-	"include": ["src", "scripts", "test"],
+	"include": ["src", "test/setup.ts"],
 	"exclude": [
 		"src/auth/auth-production-diagnostic.ts",
 		"src/services/base-crud.service.example.ts",
 		"src/services/base-crud.service.test.template.ts",
 		"supabase/functions/**/*",
-		"test/email/**/*"
+		"test/email/**/*",
+		"node_modules/zod/v4/locales/**/*",
+		"dist/**/*",
+		"src/emails/**/*.js"
 	],
 	"references": [
 		{ "path": "../../packages/shared" },

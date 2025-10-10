@@ -19,6 +19,7 @@ import { z } from 'zod'
 import { JwtAuthGuard } from '../shared/auth/jwt-auth.guard'
 import { ExportService } from './export.service'
 import { GeneratedReportService } from './generated-report.service'
+import { ReportsService } from './reports.service'
 import { ScheduledReportService } from './scheduled-report.service'
 import { ExecutiveMonthlyTemplate } from './templates/executive-monthly.template'
 import { FinancialPerformanceTemplate } from './templates/financial-performance.template'
@@ -69,6 +70,7 @@ export class ReportsController {
 	constructor(
 		private readonly exportService: ExportService,
 		private readonly generatedReportService: GeneratedReportService,
+		private readonly reportsService: ReportsService,
 		private readonly scheduledReportService: ScheduledReportService,
 		private readonly executiveMonthlyTemplate: ExecutiveMonthlyTemplate,
 		private readonly financialPerformanceTemplate: FinancialPerformanceTemplate,
@@ -742,6 +744,80 @@ export class ReportsController {
 		return {
 			success: true,
 			message: 'Schedule deleted successfully'
+		}
+	}
+
+	// ==================== ANALYTICS ENDPOINTS ====================
+
+	/**
+	 * GET /reports/analytics/revenue/monthly
+	 * Get monthly revenue data for charts
+	 */
+	@Get('analytics/revenue/monthly')
+	@UseGuards(JwtAuthGuard)
+	async getMonthlyRevenue(
+		@Req() req: AuthenticatedRequest,
+		@Query('months') months?: string
+	) {
+		const userId = req.user?.id
+		if (!userId) {
+			throw new NotFoundException('User not authenticated')
+		}
+
+		const parsedMonths = months ? parseInt(months, 10) : 12
+		const data = await this.reportsService.getMonthlyRevenue(userId, parsedMonths)
+
+		return {
+			success: true,
+			data
+		}
+	}
+
+	/**
+	 * GET /reports/analytics/payments
+	 * Get payment analytics for dashboard
+	 */
+	@Get('analytics/payments')
+	@UseGuards(JwtAuthGuard)
+	async getPaymentAnalytics(
+		@Req() req: AuthenticatedRequest,
+		@Query('startDate') startDate?: string,
+		@Query('endDate') endDate?: string
+	) {
+		const userId = req.user?.id
+		if (!userId) {
+			throw new NotFoundException('User not authenticated')
+		}
+
+		const data = await this.reportsService.getPaymentAnalytics(
+			userId,
+			startDate,
+			endDate
+		)
+
+		return {
+			success: true,
+			data
+		}
+	}
+
+	/**
+	 * GET /reports/analytics/occupancy
+	 * Get occupancy metrics across all properties
+	 */
+	@Get('analytics/occupancy')
+	@UseGuards(JwtAuthGuard)
+	async getOccupancyMetrics(@Req() req: AuthenticatedRequest) {
+		const userId = req.user?.id
+		if (!userId) {
+			throw new NotFoundException('User not authenticated')
+		}
+
+		const data = await this.reportsService.getOccupancyMetrics(userId)
+
+		return {
+			success: true,
+			data
 		}
 	}
 }

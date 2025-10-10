@@ -45,12 +45,12 @@ import {
 	ChevronsRight,
 	Columns3,
 	GripVertical,
-	Loader2,
 	MoreVertical,
 	Plus,
 	TrendingUp
 } from 'lucide-react'
 import * as React from 'react'
+import { Spinner } from '@/components/ui/spinner'
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -192,7 +192,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
 				{row.original.status === 'Done' ? (
 					<CheckCircle className="fill-green-500 dark:fill-green-400" />
 				) : (
-					<Loader2 className="animate-spin" />
+					<Spinner className="animate-spin" />
 				)}
 				{row.original.status}
 			</Badge>

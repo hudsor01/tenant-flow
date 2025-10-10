@@ -7,13 +7,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react'
 
-// Create browser client for authentication
 const supabaseClient = createClient()
-
-// Create structured logger for auth provider
 const logger = createLogger({ component: 'AuthProvider' })
 
-// Query keys for auth
 export const authQueryKeys = {
 	session: ['auth', 'session'] as const,
 	user: ['auth', 'user'] as const
@@ -29,11 +25,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
-export const AuthStoreProvider = ({
-	children
-}: {
-	children: ReactNode
-}) => {
+export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 	const queryClient = useQueryClient()
 	// Prevent duplicate listeners in React Strict Mode
 	const listenerSetupRef = useRef(false)
@@ -49,7 +41,9 @@ export const AuthStoreProvider = ({
 		// Debug logging for auth provider initialization
 		logger.info('Setting up auth listener', { action: 'setup' })
 
-		const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
+		const {
+			data: { subscription }
+		} = supabaseClient.auth.onAuthStateChange(
 			(event: AuthChangeEvent, session: Session | null) => {
 				// Debug logging for auth events
 				logger.info('State change event', {
@@ -68,9 +62,6 @@ export const AuthStoreProvider = ({
 					queryClient.setQueryData(authQueryKeys.session, session)
 					queryClient.setQueryData(authQueryKeys.user, session.user)
 				}
-
-				// REMOVED: Aggressive query invalidations that caused the infinite loop
-				// Only invalidate specific queries when absolutely necessary
 
 				// Log auth events for debugging
 				if (process.env.NODE_ENV === 'development') {
@@ -95,7 +86,10 @@ export const AuthStoreProvider = ({
 		queryKey: authQueryKeys.session,
 		queryFn: async () => {
 			logger.info('Fetching session', { action: 'fetchSession' })
-			const { data: { session }, error } = await supabaseClient.auth.getSession()
+			const {
+				data: { session },
+				error
+			} = await supabaseClient.auth.getSession()
 			if (error) {
 				logger.error('Failed to get auth session', {
 					action: 'get_session_error',
@@ -105,27 +99,26 @@ export const AuthStoreProvider = ({
 			}
 			return session
 		},
-		staleTime: 5 * 60 * 1000, // 5 minutes - keep React Query caching benefits
-		refetchOnWindowFocus: false, // CHANGED: Prevent excessive refetching
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 1
 	})
 
-	// CRITICAL FIX: Memoize auth state to prevent infinite re-renders
-	const authState: AuthContextType = useMemo(() => ({
-		session,
-		isAuthenticated: !!session?.user,
-		isLoading,
-		user: session?.user || null
-	}), [session, isLoading])
+	const authState: AuthContextType = useMemo(
+		() => ({
+			session,
+			isAuthenticated: !!session?.user,
+			isLoading,
+			user: session?.user || null
+		}),
+		[session, isLoading]
+	)
 
 	return (
-		<AuthContext.Provider value={authState}>
-			{children}
-		</AuthContext.Provider>
+		<AuthContext.Provider value={authState}>{children}</AuthContext.Provider>
 	)
 }
 
-// Hook to access auth state
 export function useAuth() {
 	const context = useContext(AuthContext)
 
@@ -135,4 +128,3 @@ export function useAuth() {
 
 	return context
 }
-

@@ -24,28 +24,29 @@ export type Enums<T extends keyof Database['public']['Enums']> =
 	Database['public']['Enums'][T]
 
 // LEGACY Type Aliases - DO NOT ADD MORE
-// Existing code uses these, but new code should use Database['public']['Tables']['User']['Row'] directly
+// Existing code uses these, but new code should use Database['public']['Tables']['users']['Row'] directly
 
-export type User = Database['public']['Tables']['User']['Row']
-export type Property = Database['public']['Tables']['Property']['Row']
-export type Tenant = Database['public']['Tables']['Tenant']['Row']
-export type Lease = Database['public']['Tables']['Lease']['Row']
-export type Unit = Database['public']['Tables']['Unit']['Row']
-export type Subscription = Database['public']['Tables']['Subscription']['Row']
-export type Invoice = Database['public']['Tables']['Invoice']['Row']
+export type User = Database['public']['Tables']['users']['Row']
+export type Property = Database['public']['Tables']['property']['Row']
+export type Tenant = Database['public']['Tables']['tenant']['Row']
+export type Lease = Database['public']['Tables']['lease']['Row']
+export type Unit = Database['public']['Tables']['unit']['Row']
+export type Subscription = Database['public']['Tables']['subscription']['Row']
+export type Invoice = Database['public']['Tables']['invoice']['Row']
 export type MaintenanceRequest =
-	Database['public']['Tables']['MaintenanceRequest']['Row']
-export type Document = Database['public']['Tables']['Document']['Row']
-export type Activity = Database['public']['Tables']['Activity']['Row']
+	Database['public']['Tables']['maintenance_request']['Row']
+export type Document = Database['public']['Tables']['document']['Row']
+export type Activity = Database['public']['Tables']['activity']['Row']
 // InAppNotification table doesn't exist in current schema
 // export type TenantFlowNotification = Database['public']['Tables']['InAppNotification']['Row']
-export type RentPayment = Database['public']['Tables']['RentPayments']['Row']
-export type PaymentMethod = Database['public']['Tables']['PaymentMethod']['Row']
+export type RentPayment = Database['public']['Tables']['rent_payment']['Row']
+export type PaymentMethod =
+	Database['public']['Tables']['payment_method']['Row']
 
 // Insert type aliases - LEGACY
-export type UserInsert = Database['public']['Tables']['User']['Insert']
-export type PropertyInsert = Database['public']['Tables']['Property']['Insert']
-export type TenantInsert = Database['public']['Tables']['Tenant']['Insert']
+export type UserInsert = Database['public']['Tables']['users']['Insert']
+export type PropertyInsert = Database['public']['Tables']['property']['Insert']
+export type TenantInsert = Database['public']['Tables']['tenant']['Insert']
 
 // Custom JSON Metadata Types (Business Logic)
 

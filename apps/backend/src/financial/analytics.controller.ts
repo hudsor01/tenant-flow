@@ -22,7 +22,7 @@ import type { IPropertiesRepository } from '../repositories/interfaces/propertie
 import type { IUnitsRepository } from '../repositories/interfaces/units-repository.interface'
 import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 
-type ExpenseRecord = Tables<'Expense'>
+type ExpenseRecord = Tables<'expense'>
 
 /**
  * Financial Analytics Controller - Repository Pattern Implementation
@@ -378,7 +378,7 @@ export class FinancialAnalyticsController {
 		try {
 			let query = this.supabaseService
 				.getAdminClient()
-				.from('Expense')
+				.from('expense')
 				.select('*')
 				.in('propertyId', propertyIds)
 

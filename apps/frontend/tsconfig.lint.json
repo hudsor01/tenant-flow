@@ -1,16 +1,13 @@
 {
-	"extends": "./tsconfig.json",
-	"include": [
-		"next-env.d.ts",
-		"**/*.ts",
-		"**/*.tsx",
-		".next/types/**/*.ts",
-		"src/types/**/*.d.ts",
-		"tests/**/*.ts",
-		"tests/**/*.tsx",
-		"vitest.config.production.ts",
-		"playwright.config.ts",
-		"playwright-mvp.config.ts"
-	],
-	"exclude": ["node_modules", ".next", "out", "dist", "build"]
+  "extends": "./tsconfig.json",
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/types/**/*.d.ts",
+    "tests/**/*.ts",
+    "tests/**/*.tsx",
+    "playwright.config.ts"
+  ],
+  "exclude": ["node_modules", ".next", "out", "dist", "build"]
 }

@@ -1,0 +1,72 @@
+[
+  {
+    "email": "user1@hudsondigitalsolutions.com",
+    "password": "SupaTest123!",
+    "auth_id": "23b151a0-d340-4315-aabd-2892becb85a6",
+    "app_user_id": "2DAB996D-3E40-4B49-9AD5-1D7BDB17E187",
+    "role": "TENANT"
+  },
+  {
+    "email": "user2@hudsondigitalsolutions.com",
+    "password": "SupaTest123!",
+    "auth_id": "643b28d9-4c2b-488e-9a42-a4912657503d",
+    "app_user_id": "13DBF677-EA30-4110-8809-0E9E3B91A3CA",
+    "role": "TENANT"
+  },
+  {
+    "email": "user3@hudsondigitalsolutions.com",
+    "password": "SupaTest123!",
+    "auth_id": "9d5274bf-f256-4f81-8c0e-a6e220c9446c",
+    "app_user_id": "AA1B7AD7-5449-4867-8409-15ECE56F58AE",
+    "role": "TENANT"
+  },
+  {
+    "email": "user4@hudsondigitalsolutions.com",
+    "password": "SupaTest123!",
+    "auth_id": "48a29336-f8ee-498e-bc4e-d5e9b0a00edf",
+    "app_user_id": "5458F95A-02D0-4AF6-BB59-55AC94FBF105",
+    "role": "TENANT"
+  },
+  {
+    "email": "user5@hudsondigitalsolutions.com",
+    "password": "SupaTest123!",
+    "auth_id": "f08bb340-793c-43fd-9010-28c111db1fcc",
+    "app_user_id": "D584008A-66A2-4247-B555-9CDA6E189161",
+    "role": "TENANT"
+  },
+  {
+    "email": "user6@hudsondigitalsolutions.com",
+    "password": "SupaTest123!",
+    "auth_id": "810eafa2-fb18-42be-8415-56a4545f14bf",
+    "app_user_id": "DD3ED2A4-7F85-48B2-A966-434CC33909B8",
+    "role": "OWNER"
+  },
+  {
+    "email": "user7@hudsondigitalsolutions.com",
+    "password": "SupaTest123!",
+    "auth_id": "fe974cc9-2797-464e-88d5-4ac2167918cf",
+    "app_user_id": "0D000F6D-3B20-4F18-B804-D341E4EE2CA4",
+    "role": "OWNER"
+  },
+  {
+    "email": "user8@hudsondigitalsolutions.com",
+    "password": "SupaTest123!",
+    "auth_id": "1271fc4a-692c-4a12-b109-a0b86215b277",
+    "app_user_id": "629D80A5-4EE1-418A-9EBE-F7555347B05F",
+    "role": "OWNER"
+  },
+  {
+    "email": "user9@hudsondigitalsolutions.com",
+    "password": "SupaTest123!",
+    "auth_id": "a0086999-8760-430e-a4fc-76dfa05ab39c",
+    "app_user_id": "47A91382-CD36-4A61-A490-1CE01492B67C",
+    "role": "OWNER"
+  },
+  {
+    "email": "user10@hudsondigitalsolutions.com",
+    "password": "SupaTest123!",
+    "auth_id": "8a88c00b-475f-4479-bbda-6da68e582293",
+    "app_user_id": "55439998-F42F-4108-8FCA-786CC7E5A756",
+    "role": "OWNER"
+  }
+]

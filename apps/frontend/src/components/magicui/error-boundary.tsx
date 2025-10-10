@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardLayout } from '@/components/ui/card-layout'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Component } from 'react'
@@ -53,21 +53,17 @@ export class ErrorBoundary extends Component<Props, State> {
 
 			return (
 				<div className="min-h-screen flex items-center justify-center p-4">
-					<Card className="w-full max-w-md">
-						<CardHeader className="text-center">
-							<div className="mx-auto w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mb-4">
+					<CardLayout
+						title="Something went wrong"
+						description="We encountered an unexpected error. Please try refreshing the page."
+					>
+						<div className="flex flex-col items-center gap-4">
+							<div className="mx-auto w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center">
 								<AlertTriangle className="w-6 h-6 text-destructive" />
 							</div>
-							<CardTitle>Something went wrong</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-4">
-							<p className="text-sm text-muted-foreground text-center">
-								We encountered an unexpected error. Please try refreshing the
-								page.
-							</p>
 
 							{process.env.NODE_ENV === 'development' && this.state.error && (
-								<details className="text-xs bg-muted p-2 rounded">
+								<details className="text-xs bg-muted p-2 rounded w-full">
 									<summary>Error details</summary>
 									<pre className="mt-2 whitespace-pre-wrap">
 										{this.state.error.message}
@@ -76,7 +72,7 @@ export class ErrorBoundary extends Component<Props, State> {
 								</details>
 							)}
 
-							<div className="flex gap-2">
+							<div className="flex gap-2 w-full">
 								<Button
 									onClick={() => window.location.reload()}
 									className="flex-1"
@@ -92,8 +88,8 @@ export class ErrorBoundary extends Component<Props, State> {
 									Try Again
 								</Button>
 							</div>
-						</CardContent>
-					</Card>
+						</div>
+					</CardLayout>
 				</div>
 			)
 		}

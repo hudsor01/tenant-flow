@@ -34,7 +34,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 
 			let query = this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.select('*')
 				.eq('userId', userId)
 
@@ -124,7 +124,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.select('*')
 				.eq('id', requestId)
 				.single()
@@ -159,7 +159,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.select('*')
 				.eq('propertyId', propertyId)
 				.order('createdAt', { ascending: false })
@@ -197,7 +197,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.select('*')
 				.eq('unitId', unitId)
 				.order('createdAt', { ascending: false })
@@ -232,7 +232,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.select('*')
 				.eq('tenantId', tenantId)
 				.order('createdAt', { ascending: false })
@@ -270,7 +270,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.insert({
 					...requestData,
 					preferredDate: requestData.preferredDate
@@ -279,7 +279,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 					status: 'OPEN' as Database['public']['Enums']['RequestStatus'],
 					createdAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString()
-				} as TablesInsert<'MaintenanceRequest'>)
+				} as TablesInsert<'maintenance_request'>)
 				.select()
 				.single()
 
@@ -320,7 +320,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.update({
 					...requestData,
 					preferredDate: requestData.preferredDate,
@@ -379,7 +379,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.update({
 					deletedAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString()
@@ -439,7 +439,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 			// DIRECT query -
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.select('*')
 				.eq('userId', userId)
 
@@ -551,7 +551,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 			// DIRECT query -
 			let query = this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.select('*')
 				.eq('userId', userId)
 
@@ -638,7 +638,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.select('*')
 				.eq('userId', userId)
 				.in('status', ['OPEN', 'IN_PROGRESS'])
@@ -675,7 +675,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.select('*')
 				.eq('userId', userId)
 				.in('status', ['OPEN', 'IN_PROGRESS'])
@@ -718,7 +718,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.update({
 					assignedTo,
 					assignedBy,
@@ -769,7 +769,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 				notes
 			})
 
-			const updateData: TablesUpdate<'MaintenanceRequest'> = {
+			const updateData: TablesUpdate<'maintenance_request'> = {
 				status: status as Database['public']['Enums']['RequestStatus'],
 				updatedAt: new Date().toISOString()
 			}
@@ -784,7 +784,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.update(updateData)
 				.eq('id', requestId)
 				.select()
@@ -842,7 +842,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 			// Then, update the maintenance request timestamp
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.update({
 					updatedAt: new Date().toISOString()
 				})
@@ -888,7 +888,7 @@ export class SupabaseMaintenanceRepository implements IMaintenanceRepository {
 			// DIRECT query -
 			let query = this.supabase
 				.getAdminClient()
-				.from('MaintenanceRequest')
+				.from('maintenance_request')
 				.select('*')
 				.eq('userId', userId)
 

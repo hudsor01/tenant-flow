@@ -2,7 +2,6 @@ import {
 	CallHandler,
 	ExecutionContext,
 	Injectable,
-	Logger,
 	NestInterceptor
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
@@ -13,8 +12,6 @@ const IS_PUBLIC_KEY = 'isPublic'
 
 @Injectable()
 export class CacheControlInterceptor implements NestInterceptor {
-	private readonly logger = new Logger(CacheControlInterceptor.name)
-
 	constructor(private readonly reflector: Reflector) {}
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {

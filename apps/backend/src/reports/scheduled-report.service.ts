@@ -63,7 +63,7 @@ export class ScheduledReportService {
 		)
 
 		const { data: record, error } = await client
-			.from('ScheduledReport')
+			.from('scheduled_report')
 			.insert({
 				userId: data.userId,
 				reportType: data.reportType,
@@ -97,7 +97,7 @@ export class ScheduledReportService {
 		const client = this.supabaseService.getAdminClient()
 
 		const { data, error } = await client
-			.from('ScheduledReport')
+			.from('scheduled_report')
 			.select('*')
 			.eq('userId', userId)
 			.order('createdAt', { ascending: false })
@@ -118,7 +118,7 @@ export class ScheduledReportService {
 
 		// First verify ownership
 		const { data: schedule, error: fetchError } = await client
-			.from('ScheduledReport')
+			.from('scheduled_report')
 			.select('id')
 			.eq('id', scheduleId)
 			.eq('userId', userId)
@@ -130,7 +130,7 @@ export class ScheduledReportService {
 
 		// Delete the schedule
 		const { error: deleteError } = await client
-			.from('ScheduledReport')
+			.from('scheduled_report')
 			.delete()
 			.eq('id', scheduleId)
 			.eq('userId', userId)
@@ -155,7 +155,7 @@ export class ScheduledReportService {
 
 		// Fetch all active schedules that are due
 		const { data: schedules, error } = await client
-			.from('ScheduledReport')
+			.from('scheduled_report')
 			.select('*')
 			.eq('isActive', true)
 			.lte('nextRunAt', now.toISOString())
@@ -234,7 +234,7 @@ export class ScheduledReportService {
 
 			const client = this.supabaseService.getAdminClient()
 			const { error } = await client
-				.from('ScheduledReport')
+				.from('scheduled_report')
 				.update({
 					lastRunAt: new Date().toISOString(),
 					nextRunAt: nextRunAt.toISOString()

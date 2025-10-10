@@ -1,6 +1,6 @@
-import { PageLoadingState } from '@/components/ui/loading-state'
+import { PageLoader } from '@/components/magicui/loading-spinner'
 
 // Global App Loading State
 export default function AppLoading() {
-	return <PageLoadingState text="Loading TenantFlow..." />
+	return <PageLoader text="Loading TenantFlow..." />
 }

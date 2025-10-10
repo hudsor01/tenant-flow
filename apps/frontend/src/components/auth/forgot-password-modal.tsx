@@ -11,13 +11,14 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Spinner } from '@/components/ui/spinner'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { supabaseClient } from '@repo/shared/lib/supabase-client'
 import { useMutation } from '@tanstack/react-query'
+import { CheckCircle2, Info, Mail } from 'lucide-react'
+import { useState } from 'react'
 
 const logger = createLogger({ component: 'ForgotPasswordModal' })
-import { CheckCircle2, Info, Loader2, Mail } from 'lucide-react'
-import { useState } from 'react'
 
 interface ForgotPasswordModalProps {
 	open: boolean
@@ -134,7 +135,7 @@ export function ForgotPasswordModal({
 								>
 									{resetPasswordMutation.isPending ? (
 										<>
-											<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+											<Spinner className="w-4 h-4 mr-2 animate-spin" />
 											Sending...
 										</>
 									) : (

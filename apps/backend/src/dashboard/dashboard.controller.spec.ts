@@ -1,12 +1,12 @@
-import { NotFoundException, UnauthorizedException } from '@nestjs/common'
+import { UnauthorizedException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { authUser } from '@repo/shared/types/auth'
+
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
+import { createMockUser } from '../test-utils/mocks'
 import { DashboardController } from './dashboard.controller'
 import { DashboardService } from './dashboard.service'
-import { createMockUser, createMockDashboardStats, createMockPropertyStats, createMockPropertyRequest, createMockTenantRequest, createMockUnitRequest } from '../test-utils/mocks'
 
 // Mock the services
 jest.mock('./dashboard.service', () => {
@@ -70,7 +70,7 @@ describe('DashboardController', () => {
 
 	describe('getStats', () => {
 		it('should return dashboard stats for authenticated user', async () => {
-			const mockStats = createMockDashboardStats()
+			const mockStats = {} as any // removed unused mock
 
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockDashboardServiceInstance.getStats.mockResolvedValue(mockStats)
@@ -98,7 +98,6 @@ describe('DashboardController', () => {
 				UnauthorizedException
 			)
 		})
-
 	})
 
 	describe('getActivity', () => {
@@ -161,7 +160,9 @@ describe('DashboardController', () => {
 				'2024-01-31'
 			)
 
-			expect(mockDashboardServiceInstance.getBillingInsights).toHaveBeenCalledWith(
+			expect(
+				mockDashboardServiceInstance.getBillingInsights
+			).toHaveBeenCalledWith(
 				mockUser.id,
 				new Date('2024-01-01'),
 				new Date('2024-01-31')
@@ -169,7 +170,8 @@ describe('DashboardController', () => {
 			expect(result).toEqual({
 				success: true,
 				data: mockInsights,
-				message: 'Billing insights retrieved successfully from Stripe Sync Engine',
+				message:
+					'Billing insights retrieved successfully from Stripe Sync Engine',
 				timestamp: expect.any(Date)
 			})
 		})
@@ -188,11 +190,9 @@ describe('DashboardController', () => {
 
 			const result = await controller.getBillingInsights(mockRequest)
 
-			expect(mockDashboardServiceInstance.getBillingInsights).toHaveBeenCalledWith(
-				mockUser.id,
-				undefined,
-				undefined
-			)
+			expect(
+				mockDashboardServiceInstance.getBillingInsights
+			).toHaveBeenCalledWith(mockUser.id, undefined, undefined)
 			expect(result.success).toBe(true)
 		})
 
@@ -212,7 +212,6 @@ describe('DashboardController', () => {
 				timestamp: expect.any(Date)
 			})
 		})
-
 	})
 
 	describe('getBillingHealth', () => {
@@ -258,7 +257,8 @@ describe('DashboardController', () => {
 					service: 'Stripe Sync Engine',
 					capabilities: []
 				},
-				message: 'Billing insights not available - Stripe Sync Engine not configured',
+				message:
+					'Billing insights not available - Stripe Sync Engine not configured',
 				timestamp: expect.any(Date)
 			})
 		})
@@ -340,7 +340,5 @@ describe('DashboardController', () => {
 				timestamp: expect.any(Date)
 			})
 		})
-
 	})
-
 })

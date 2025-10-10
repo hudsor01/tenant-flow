@@ -1,0 +1,19 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"display": "TenantFlow E2E Tests Config",
+	"extends": "../../packages/typescript-config/library.json",
+	"compilerOptions": {
+		"rootDir": "./tests",
+		"outDir": "./.cache",
+		"noEmit": true,
+		"types": ["@types/node", "@playwright/test"]
+	},
+	"include": ["tests/**/*.ts"],
+	"exclude": ["tests/**/__snapshots__/**"],
+	"references": [
+		{ "path": "../../packages/shared" },
+		{ "path": "../../packages/config" },
+		{ "path": "../../packages/api-client" },
+		{ "path": "../../packages/testing" }
+	]
+}

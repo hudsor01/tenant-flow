@@ -234,7 +234,7 @@ export async function getTenantsPageData() {
  */
 export async function getLeasesPageData() {
 	const [leasesResult, leaseStatsResult] = await Promise.allSettled([
-		serverFetch<Array<Database['public']['Tables']['Lease']['Row']>>(
+		serverFetch<Array<Database['public']['Tables']['lease']['Row']>>(
 			'/api/v1/leases'
 		),
 		serverFetch<LeaseStatsResponse>('/api/v1/leases/stats')

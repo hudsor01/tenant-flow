@@ -6,7 +6,7 @@ import { HeroSection } from '@/components/sections/hero-section'
 import { CustomerPortalButton } from '@/components/pricing/customer-portal'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardLayout } from '@/components/ui/card-layout'
 import { usePaymentVerification } from '@/hooks/api/use-payment-verification'
 import { CheckCircle, Home } from 'lucide-react'
 import Link from 'next/link'
@@ -80,20 +80,21 @@ export default function CheckoutSuccessPage() {
 
 			<div className="section-content">
 				<div className="max-w-2xl mx-auto px-6 lg:px-8">
-					<Card className="text-center shadow-2xl border-2 border-border/50">
-						<CardHeader className="pb-8">
+					<CardLayout
+						title="Payment Successful!"
+						description="Welcome to TenantFlow! Your subscription is now active."
+						className="text-center shadow-2xl border-2 border-border/50"
+					>
+						<div className="pb-8">
 							<div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
 								<CheckCircle className="w-8 h-8 text-accent" />
 							</div>
-							<CardTitle className="text-3xl font-bold mb-4">
-								Payment Successful!
-							</CardTitle>
 							<p className="text-xl text-muted-foreground">
 								Welcome to TenantFlow! Your subscription is now active.
 							</p>
-						</CardHeader>
+						</div>
 
-						<CardContent className="space-y-6">
+						<div className="space-y-6">
 							{subscription && (
 								<div className="bg-muted/50 rounded-lg p-6 text-left">
 									<h3 className="font-semibold mb-4">Subscription Details</h3>
@@ -154,8 +155,8 @@ export default function CheckoutSuccessPage() {
 									</Link>
 								</p>
 							</div>
-						</CardContent>
-					</Card>
+						</div>
+					</CardLayout>
 				</div>
 			</div>
 			<Footer />

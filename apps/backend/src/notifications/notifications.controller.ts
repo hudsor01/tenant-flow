@@ -4,7 +4,6 @@ import {
 	Controller,
 	Delete,
 	Get,
-	Logger,
 	Param,
 	ParseUUIDPipe,
 	Post,
@@ -23,8 +22,6 @@ import { SupabaseService } from '../database/supabase.service'
  */
 @Controller('notifications')
 export class NotificationsController {
-	private readonly logger = new Logger(NotificationsController.name)
-
 	constructor(private readonly supabase: SupabaseService) {}
 
 	@Get()

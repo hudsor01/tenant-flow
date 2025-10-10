@@ -409,11 +409,11 @@ export interface SecurityHeadersConfig {
 // ROUTER OUTPUT TYPES (API Response Structures)
 
 type MaintenanceRequest =
-	Database['public']['Tables']['MaintenanceRequest']['Row']
-type Property = Database['public']['Tables']['Property']['Row']
-type Tenant = Database['public']['Tables']['Tenant']['Row']
-type Unit = Database['public']['Tables']['Unit']['Row']
-type Lease = Database['public']['Tables']['Lease']['Row']
+	Database['public']['Tables']['maintenance_request']['Row']
+type Property = Database['public']['Tables']['property']['Row']
+type Tenant = Database['public']['Tables']['tenant']['Row']
+type Unit = Database['public']['Tables']['unit']['Row']
+type Lease = Database['public']['Tables']['lease']['Row']
 
 // Maintenance router outputs
 export interface MaintenanceRequestListOutput {

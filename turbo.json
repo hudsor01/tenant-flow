@@ -6,157 +6,8 @@
 	"remoteCache": {
 		"enabled": false
 	},
-	"globalEnv": [
-		// Framework essentials (auto-detected)
-		"CI",
-		"NODE_ENV",
-		"VERCEL_ENV",
-		"GITHUB_ACTIONS",
-		"TURBO_*",
-		"VERCEL_*",
-		"GITHUB_*",
-		"npm_package_version",
-
-		// Supabase (from Doppler)
-		"NEXT_PUBLIC_SUPABASE_URL",
-		"NEXT_PUBLIC_SUPABASE_ANON_KEY",
-		"SUPABASE_SERVICE_ROLE_KEY",
-		"SUPABASE_JWT_SECRET",
-		"TEST_JWT_SECRET",
-		"SUPABASE_URL",
-		"SUPABASE_PROJECT_REF",
-		"SERVICE_ROLE_KEY",
-		"SUPABASE_ANON_KEY",
-		"SUPABASE_SERVICE_KEY",
-		"SUPABASE_SECRET_KEY",
-		"SUPA_SECRET_KEY",
-		"ANON_KEY",
-
-		// Database (from Vercel)
-		"POSTGRES_URL",
-		"POSTGRES_PRISMA_URL",
-		"POSTGRES_URL_NON_POOLING",
-		"POSTGRES_USER",
-		"POSTGRES_HOST",
-		"POSTGRES_PASSWORD",
-		"POSTGRES_DATABASE",
-		"DATABASE_URL",
-		"DIRECT_URL",
-
-		// API (from Doppler)
-		"NEXT_PUBLIC_API_BASE_URL",
-		"API_TOKEN",
-		"BACKEND_TIMEOUT_MS",
-
-		// Stripe (from Doppler)
-		"STRIPE_SECRET_KEY",
-		"STRIPE_WEBHOOK_SECRET",
-		"STRIPE_KEY_TEST",
-		"TEST_STRIPE_PUBLISHABLE_KEY",
-		"STRIPE_PUBLISHABLE_KEY",
-		"NEXT_PUBLIC_STRIPE_STARTER_MONTHLY",
-		"NEXT_PUBLIC_STRIPE_STARTER_ANNUAL",
-		"NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY",
-		"NEXT_PUBLIC_STRIPE_GROWTH_ANNUAL",
-		"NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY",
-		"NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL",
-
-		// Doppler
-		"DOPPLER_CONFIG",
-		"DOPPLER_ENVIRONMENT",
-		"DOPPLER_PROJECT",
-		"DOPPLER_PERSONAL_TOKEN",
-
-		// Redis
-		"REDIS_URL",
-		"REDIS_PASSWORD",
-		"REDISHOST",
-		"REDISPORT",
-		"REDISPASSWORD",
-
-		// Feature Flags & Settings
-		"FEATURE_FLAGS",
-		"LOGGING",
-		"LOG_LEVEL",
-		"ENABLE_DETAILED_ERRORS",
-		"ENABLE_CORS_ALL",
-		"ENABLE_SWAGGER",
-		"ENABLE_RATE_LIMITING",
-		"ALLOW_LOCALHOST_CORS",
-		"RATE_LIMIT_LIMIT",
-		"RATE_LIMIT_TTL",
-		"PUBLIC_CACHE_MAX_AGE",
-
-		// PostHog
-		"POSTHOG_API_KEY",
-		"POSTHOG_MCP_SERVER_API_KEY",
-
-		// Storage
-		"STORAGE_BUCKET",
-		"STORAGE_PROVIDER",
-
-		// Health Check
-		"HEALTH_CHECK_FUNCTION",
-
-		// Other
-		"PRIVATE_KEY",
-
-		// Authentication (from Doppler)
-		"JWT_SECRET",
-
-		// Email (from Doppler)
-		"RESEND_API_KEY",
-		"SUPPORT_EMAIL",
-		"TEST_RESEND_API_KEY",
-		"TEST_EMAIL_FROM",
-
-		// URLs (from Doppler)
-		"NEXT_PUBLIC_APP_URL",
-		"CORS_ORIGINS",
-		"FRONTEND_URL",
-		"SECURITY_MONITORING_WEBHOOK",
-		"SECURITY_MONITORING_TOKEN",
-
-		// Testing (from Doppler)
-		"TEST_DATABASE_URL",
-		"TEST_DATABASE_HOST",
-		"TEST_DATABASE_PORT",
-		"TEST_DATABASE_NAME",
-		"TEST_DATABASE_USER",
-		"TEST_DATABASE_PASSWORD",
-		"E2E_DATABASE_URL",
-		"E2E_DATABASE_HOST",
-		"E2E_DATABASE_PORT",
-		"E2E_DATABASE_NAME",
-		"E2E_DATABASE_USER",
-		"E2E_DATABASE_PASSWORD",
-		"TEST_STRIPE_SECRET_KEY",
-		"TEST_STRIPE_WEBHOOK_SECRET",
-		"TEST_SUPABASE_ANON_KEY",
-		"TEST_SUPABASE_SERVICE_KEY",
-		"TEST_SUPABASE_URL",
-		"ENABLE_DATA_VALIDATION_TESTS",
-		"TEST_SUPABASE_JWT_SECRET",
-		"TEST_SERVICE_ROLE_KEY",
-
-		// Feature flags (from Doppler)
-		"ENABLE_MOCK_AUTH",
-		"ENABLE_REPORT_SCHEDULER",
-
-		// Platform detection (automatically provided by platforms)
-		"VERCEL",
-		"RAILWAY_REGION",
-		"RAILWAY_PROJECT_ID",
-		"FLY_REGION",
-		"VERCEL_REGION",
-		"PORT",
-		"STRIPE_MAX_MONTHLY",
-		"STRIPE_MAX_ANNUAL",
-		"STRIPE_SYNC_DATABASE_SCHEMA",
-		"STRIPE_SYNC_AUTO_EXPAND_LISTS",
-		"STRIPE_SYNC_BACKFILL_RELATED_ENTITIES",
-		"TENANTFLOW_GHCR"
-	],
+	"envMode": "loose",
+	"globalEnv": ["CI", "NODE_ENV", "npm_package_version"],
 	"globalPassThroughEnv": ["CI", "NODE_ENV", "VERCEL_*", "GITHUB_*"],
 	"globalDependencies": [
 		"**/.env.*",
@@ -165,7 +16,6 @@
 		"pnpm-lock.yaml",
 		"vercel.json"
 	],
-	"envMode": "strict",
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
@@ -173,6 +23,62 @@
 		},
 		"@repo/shared#build": {
 			"dependsOn": [],
+			"inputs": [
+				"src/**",
+				"tsconfig*.json",
+				"package.json",
+				"!**/*.md",
+				"!**/*.test.*",
+				"!**/*.spec.*"
+			],
+			"outputs": ["dist/**"],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/ui#build": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"src/**",
+				"tsconfig*.json",
+				"package.json",
+				"!**/*.md",
+				"!**/*.test.*",
+				"!**/*.spec.*"
+			],
+			"outputs": ["dist/**"],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/api-client#build": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"src/**",
+				"tsconfig*.json",
+				"package.json",
+				"!**/*.md",
+				"!**/*.test.*",
+				"!**/*.spec.*"
+			],
+			"outputs": ["dist/**"],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/config#build": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"src/**",
+				"tsconfig*.json",
+				"package.json",
+				"!**/*.md",
+				"!**/*.test.*",
+				"!**/*.spec.*"
+			],
+			"outputs": ["dist/**"],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/testing#build": {
+			"dependsOn": ["^build"],
 			"inputs": [
 				"src/**",
 				"tsconfig*.json",
@@ -231,6 +137,49 @@
 			"dependsOn": ["^build", "lint", "typecheck"],
 			"inputs": ["src/**", "tsconfig*.json", "package.json", "nest-cli.json"],
 			"outputs": ["dist/**"],
+			"env": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "DATABASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "JWT_SECRET"],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/backend#lint": {
+			"dependsOn": [],
+			"inputs": ["src/**/*.{ts,tsx,js,jsx}", "eslint.config.*", "package.json"],
+			"outputs": [],
+			"env": [
+				"STRIPE_SECRET_KEY",
+				"STRIPE_WEBHOOK_SECRET",
+				"DATABASE_URL",
+				"SUPABASE_URL",
+				"SUPABASE_SERVICE_ROLE_KEY",
+				"JWT_SECRET",
+				"TEST_DATABASE_URL",
+				"TEST_SUPABASE_URL",
+				"TEST_SERVICE_ROLE_KEY",
+				"TEST_SUPABASE_JWT_SECRET",
+				"TEST_JWT_SECRET",
+				"TEST_SUPABASE_ANON_KEY",
+				"ENABLE_DATA_VALIDATION_TESTS",
+				"NEXT_PUBLIC_APP_URL",
+				"STRIPE_SYNC_DATABASE_SCHEMA",
+				"STRIPE_SYNC_AUTO_EXPAND_LISTS",
+				"TEST_STRIPE_SECRET_KEY",
+				"SUPABASE_JWT_SECRET",
+				"SUPABASE_ANON_KEY",
+				"TEST_RESEND_API_KEY",
+				"TEST_EMAIL_FROM",
+				"DIRECT_URL",
+				"SERVICE_ROLE_KEY",
+				"SUPABASE_SERVICE_KEY",
+				"RESEND_API_KEY",
+				"SUPPORT_EMAIL",
+				"SUPABASE_RPC_TEST_USER_ID",
+				"SUPABASE_PROJECT_REF",
+				"CORS_ORIGINS",
+				"BACKEND_TIMEOUT_MS",
+				"PORT",
+				"ENABLE_REPORT_SCHEDULER",
+				"FRONTEND_URL"
+			],
 			"cache": true,
 			"persistent": false
 		},
@@ -238,12 +187,14 @@
 			"dependsOn": ["^build"],
 			"inputs": ["src/**/*.{test,spec}.ts", "jest.config.*", "package.json"],
 			"outputs": ["coverage/**"],
+			"env": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "DATABASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "JWT_SECRET"],
 			"cache": true,
 			"persistent": false
 		},
 		"dev": {
 			"cache": false,
-			"persistent": true
+			"persistent": true,
+			"env": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "DATABASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "JWT_SECRET"]
 		},
 		"lint": {
 			"outputs": []
@@ -299,13 +250,64 @@
 			"dependsOn": ["^build"],
 			"inputs": ["src/**", "tsconfig*.json", "package.json"],
 			"outputs": [],
+			"env": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "DATABASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "JWT_SECRET"],
 			"cache": true,
 			"persistent": false
-		},
+	},
 		"@repo/shared#typecheck": {
 			"dependsOn": [],
 			"inputs": ["src/**/*.ts", "tsconfig*.json", "package.json"],
 			"outputs": ["dist/.tsbuildinfo"],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/ui#typecheck": {
+			"dependsOn": ["^build"],
+			"inputs": ["src/**/*.{ts,tsx}", "tsconfig*.json", "package.json"],
+			"outputs": [],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/api-client#typecheck": {
+			"dependsOn": ["^build"],
+			"inputs": ["src/**/*.ts", "tsconfig*.json", "package.json"],
+			"outputs": [],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/config#typecheck": {
+			"dependsOn": ["^build"],
+			"inputs": ["src/**/*.ts", "tsconfig*.json", "package.json"],
+			"outputs": [],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/testing#typecheck": {
+			"dependsOn": ["^build"],
+			"inputs": ["src/**/*.ts", "tsconfig*.json", "package.json"],
+			"outputs": [],
+			"cache": true,
+			"persistent": false
+		},
+			"@repo/shared#lint": {
+			"dependsOn": [],
+			"inputs": ["src/**/*.ts", "eslint.config.*", "package.json"],
+			"outputs": [],
+			"env": [
+				"NEXT_PUBLIC_SUPABASE_URL",
+				"NEXT_PUBLIC_SUPABASE_ANON_KEY",
+				"SUPABASE_ANON_KEY",
+				"SUPABASE_SERVICE_KEY",
+				"VERCEL",
+				"NEXT_PUBLIC_APP_URL",
+				"NEXT_PUBLIC_API_BASE_URL",
+				"NEXT_PUBLIC_STRIPE_STARTER_MONTHLY",
+				"NEXT_PUBLIC_STRIPE_STARTER_ANNUAL",
+				"NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY",
+				"NEXT_PUBLIC_STRIPE_GROWTH_ANNUAL",
+				"NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY",
+				"NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL"
+			],
 			"cache": true,
 			"persistent": false
 		},
@@ -315,6 +317,35 @@
 			"cache": false,
 			"persistent": false
 		},
+		"@repo/e2e-tests#lint": {
+			"dependsOn": [],
+			"inputs": ["tests/**/*.{ts,tsx,js,jsx}", "eslint.config.*", "package.json"],
+			"outputs": [],
+			"env": [
+				"NEXT_PUBLIC_SUPABASE_URL",
+				"NEXT_PUBLIC_SUPABASE_ANON_KEY",
+				"PLAYWRIGHT_BACKEND_HEALTH_URL",
+				"BACKEND_HEALTH_URL",
+				"PROD_HEALTH_URL",
+				"STAGING_BASE_URL",
+				"PLAYWRIGHT_BASE_URL",
+				"E2E_BASE_URL",
+				"STAGING_ADMIN_EMAIL",
+				"E2E_ADMIN_EMAIL",
+				"STAGING_ADMIN_PASSWORD",
+				"E2E_ADMIN_PASSWORD"
+			],
+			"cache": true,
+			"persistent": false
+	},
+		"@repo/config#lint": {
+			"dependsOn": [],
+			"inputs": ["src/**/*.{ts,tsx,js,jsx}", "eslint.config.*", "package.json"],
+			"outputs": [],
+			"env": ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_ANON_KEY", "ANON_KEY", "NEXT_PUBLIC_API_BASE_URL"],
+			"cache": true,
+			"persistent": false
+	},
 		"@repo/typescript-config#typecheck": {
 			"dependsOn": [],
 			"inputs": ["*.json", "package.json"],

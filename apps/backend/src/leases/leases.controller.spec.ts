@@ -17,11 +17,6 @@ describe('LeasesController', () => {
 
 	const generateUUID = () => randomUUID()
 
-	const createTestUser = (overrides: Partial<authUser> = {}): authUser =>
-		createMockUser({
-			id: generateUUID(),
-			...overrides
-		} as any)
 
 	const createMockRequest = (user?: authUser) =>
 		({
@@ -44,6 +39,9 @@ describe('LeasesController', () => {
 		securityDeposit: 3000.0,
 		status: 'ACTIVE' as const,
 		terms: 'Standard lease terms',
+		gracePeriodDays: null,
+		lateFeeAmount: null,
+		lateFeePercentage: null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 		...overrides

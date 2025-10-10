@@ -55,7 +55,7 @@ export class SubscriptionGuard implements CanActivate {
 		// Get user's subscription status
 		const { data: subscription } = await this.supabaseService
 			.getAdminClient()
-			.from('Subscription')
+			.from('subscription')
 			.select(
 				'status, stripeSubscriptionId, planType, trialEnd, currentPeriodEnd'
 			)

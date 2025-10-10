@@ -2,7 +2,10 @@
 
 import * as React from 'react'
 import * as RechartsPrimitive from 'recharts'
-import type { Payload as RechartsPayload, ValueType } from 'recharts/types/component/DefaultTooltipContent'
+import type {
+	Payload as RechartsPayload,
+	ValueType
+} from 'recharts/types/component/DefaultTooltipContent'
 
 import { cn } from '@/lib/utils'
 
@@ -121,19 +124,19 @@ function ChartTooltipContent({
 	labelKey
 }: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
 	React.ComponentProps<'div'> & {
-	hideLabel?: boolean
+		hideLabel?: boolean
 		hideIndicator?: boolean
 		indicator?: 'line' | 'dot' | 'dashed'
 		nameKey?: string
 		labelKey?: string
-	payload?: Array<{
-		type?: 'none' | string
-		color?: string
-		dataKey?: string
-		name?: string
-	value?: unknown
-	payload?: Record<string, unknown>
-	}>
+		payload?: Array<{
+			type?: 'none' | string
+			color?: string
+			dataKey?: string
+			name?: string
+			value?: unknown
+			payload?: Record<string, unknown>
+		}>
 		label?: string
 	}) {
 	const { config } = useChart()
@@ -146,16 +149,29 @@ function ChartTooltipContent({
 
 		const [item] = payload
 		const key = `${labelKey || item?.dataKey || item?.name || 'value'}`
-		const itemConfig = getPayloadConfigFromPayload(config, item, key)
+		// Recharts payload types are often readonly / generic — cast locally to a
+		// simple Record to satisfy our helper which reads arbitrary keys.
+		const itemConfig = getPayloadConfigFromPayload(
+			config,
+			item as unknown as Record<string, unknown>,
+			key
+		)
 		const value =
 			!labelKey && typeof label === 'string'
 				? config[label as keyof typeof config]?.label || label
 				: itemConfig?.label
 
-			if (labelFormatter) {
+		if (labelFormatter) {
 			return (
 				<div className={cn('font-medium', labelClassName)}>
-					{labelFormatter(value, tooltipPayload as readonly RechartsPayload<ValueType, string>[])}
+					{labelFormatter(
+						value,
+						// Convert readonly/generic payload to a concrete mutable array for caller
+						(tooltipPayload as unknown as RechartsPayload<
+							ValueType,
+							string
+						>[]) || []
+					)}
 				</div>
 			)
 		}
@@ -164,7 +180,7 @@ function ChartTooltipContent({
 			return null
 		}
 
-			return <div className={cn('font-medium', labelClassName)}>{value}</div>
+		return <div className={cn('font-medium', labelClassName)}>{value}</div>
 	}, [
 		label,
 		labelFormatter,
@@ -195,8 +211,19 @@ function ChartTooltipContent({
 					.filter(item => item.type !== 'none')
 					.map((item, index) => {
 						const key = `${nameKey || item.name || item.dataKey || 'value'}`
-						const itemConfig = getPayloadConfigFromPayload(config, item, key)
-						const indicatorColor = color || (item.payload && typeof item.payload === 'object' && 'fill' in item.payload ? item.payload.fill : undefined) || item.color
+						const itemConfig = getPayloadConfigFromPayload(
+							config,
+							item as unknown as Record<string, unknown>,
+							key
+						)
+						const indicatorColor =
+							color ||
+							(item.payload &&
+							typeof item.payload === 'object' &&
+							'fill' in item.payload
+								? item.payload.fill
+								: undefined) ||
+							item.color
 
 						return (
 							<div
@@ -207,18 +234,23 @@ function ChartTooltipContent({
 								)}
 							>
 								{formatter &&
-									item?.value !== undefined &&
-									item.name &&
-									item.payload !== null &&
-									item.value !== null &&
-									item.value !== undefined &&
-									typeof item.value !== 'object' ? (
+								item?.value !== undefined &&
+								item.name &&
+								item.payload !== null &&
+								item.value !== null &&
+								item.value !== undefined &&
+								typeof item.value !== 'object' ? (
 									formatter(
 										item.value as ValueType,
 										item.name,
-										item as RechartsPayload<ValueType, string>,
+										// cast payload item to the Recharts payload expected by formatter
+										item as unknown as RechartsPayload<ValueType, string>,
 										index,
-										payload as readonly RechartsPayload<ValueType, string>[]
+										// payload may be readonly in Recharts; cast to mutable array for formatter
+										(payload as unknown as RechartsPayload<
+											ValueType,
+											string
+										>[]) || []
 									)
 								) : (
 									<>
@@ -262,8 +294,7 @@ function ChartTooltipContent({
 												<span className="text-foreground font-mono font-medium tabular-nums">
 													{typeof item.value === 'number'
 														? item.value.toLocaleString()
-														: String(item.value)
-													}
+														: String(item.value)}
 												</span>
 											)}
 										</div>
@@ -291,9 +322,9 @@ function ChartLegendContent({
 	nameKey?: string
 	payload?: Array<{
 		name?: string
-	value?: unknown
-	color?: string
-	dataKey?: string
+		value?: unknown
+		color?: string
+		dataKey?: string
 		type?: 'none' | string
 	}>
 	verticalAlign?: 'top' | 'bottom'
@@ -301,7 +332,7 @@ function ChartLegendContent({
 	const { config } = useChart()
 
 	if (!payload?.length) {
-	return null
+		return null
 	}
 
 	return (
@@ -314,8 +345,8 @@ function ChartLegendContent({
 			{...props}
 		>
 			{(payload || [])
-				.filter((item) => item.type !== 'none')
-				.map((item) => {
+				.filter(item => item.type !== 'none')
+				.map(item => {
 					const key = `${nameKey || item.dataKey || 'value'}`
 					const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
@@ -358,7 +389,7 @@ function getPayloadConfigFromPayload(
 		'payload' in payload &&
 		typeof payload.payload === 'object' &&
 		payload.payload !== null
-			? payload.payload as Record<string, unknown>
+			? (payload.payload as Record<string, unknown>)
 			: undefined
 
 	let configLabelKey: string = key
@@ -367,28 +398,27 @@ function getPayloadConfigFromPayload(
 		key in payload &&
 		typeof payload[key as keyof typeof payload] === 'string'
 	) {
-	configLabelKey = payload[key as keyof typeof payload] as string
+		configLabelKey = payload[key as keyof typeof payload] as string
 	} else if (
 		payloadPayload &&
 		key in payloadPayload &&
 		typeof payloadPayload[key as keyof typeof payloadPayload] === 'string'
 	) {
-	configLabelKey = payloadPayload[
+		configLabelKey = payloadPayload[
 			key as keyof typeof payloadPayload
 		] as string
 	}
 
 	return configLabelKey in config
-	? config[configLabelKey]
+		? config[configLabelKey]
 		: config[key as keyof typeof config]
 }
 
-export
-{
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartStyle,
-  ChartTooltip,
-  ChartTooltipContent
+export {
+	ChartContainer,
+	ChartLegend,
+	ChartLegendContent,
+	ChartStyle,
+	ChartTooltip,
+	ChartTooltipContent
 }

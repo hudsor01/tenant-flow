@@ -7,7 +7,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ThrottlerModule } from '@nestjs/throttler'
 import type { Request } from 'express'
 import { ClsModule } from 'nestjs-cls'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'node:crypto'
 import { AnalyticsModule } from './analytics/analytics.module'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
@@ -20,16 +20,22 @@ import { FinancialModule } from './financial/financial.module'
 import { HealthModule } from './health/health.module'
 import { CacheControlInterceptor } from './interceptors/cache-control.interceptor'
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor'
-import { LeasesModule } from './leases/leases.module'
-import { MaintenanceModule } from './maintenance/maintenance.module'
+import { LateFeesModule } from './late-fees/late-fees.module'
+import { LeaseModule } from './modules/leases/lease.module'
+import { MaintenanceModule } from './modules/maintenance/maintenance.module'
+import { PaymentMethodsModule } from './modules/payments/payment-methods.module'
 import { NotificationsModule } from './notifications/notifications.module'
 import { PropertiesModule } from './properties/properties.module'
+import { RentPaymentsModule } from './rent-payments/rent-payments.module'
 import { ReportsModule } from './reports/reports.module'
 import { RepositoriesModule } from './repositories/repositories.module'
 import { SecurityModule } from './security/security.module'
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
 import { ServicesModule } from './shared/services/services.module'
 import { SharedModule } from './shared/shared.module'
+import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
+import { StripeWebhookModule } from './stripe-webhook/stripe-webhook.module'
+import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantsModule } from './tenants/tenants.module'
 import { UnitsModule } from './units/units.module'
 import { UsersModule } from './users/users.module'
@@ -55,7 +61,7 @@ import { UsersModule } from './users/users.module'
 				mount: true,
 				setup: (cls, req: Request) => {
 					cls.set('REQUEST_CONTEXT', {
-						requestId: uuidv4(),
+						requestId: randomUUID(),
 						startTime: Date.now(),
 						path: req.url,
 						method: req.method
@@ -100,9 +106,15 @@ import { UsersModule } from './users/users.module'
 		PropertiesModule,
 		UnitsModule,
 		TenantsModule,
-		LeasesModule,
+		LeaseModule,
+		LateFeesModule,
 		MaintenanceModule,
 		NotificationsModule,
+		PaymentMethodsModule,
+		RentPaymentsModule,
+		StripeConnectModule,
+		StripeWebhookModule,
+		SubscriptionsModule,
 		UsersModule,
 		SecurityModule,
 		ReportsModule

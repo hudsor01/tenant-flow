@@ -2,9 +2,9 @@ import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { getCORSConfig } from '@repo/shared/security/cors-config'
+import { randomUUID } from 'node:crypto'
 import type { NextFunction, Request, Response } from 'express'
 import 'reflect-metadata'
-import { v4 as uuidv4 } from 'uuid'
 import { AppModule } from './app.module'
 import { registerExpressMiddleware } from './config/express.config'
 
@@ -53,15 +53,19 @@ async function bootstrap() {
 	)
 
 	// Express adapter with NestJS - zero type casts needed
+	bootstrapLogger.log('Creating NestFactory application...')
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
 		rawBody: true,
 		bufferLogs: true
 	})
+	bootstrapLogger.log('NestFactory application created successfully')
 
 	app.set('trust proxy', 1)
 
 	// Register Express middleware with full TypeScript support
+	bootstrapLogger.log('Registering Express middleware...')
 	await registerExpressMiddleware(app)
+	bootstrapLogger.log('Express middleware registered')
 
 	const GLOBAL_PREFIX = 'api/v1'
 
@@ -175,7 +179,7 @@ async function bootstrap() {
 	})
 
 	app.use((req: RequestWithTiming, _res: Response, next: () => void) => {
-		req.id = uuidv4()
+		req.id = randomUUID()
 		next()
 	})
 

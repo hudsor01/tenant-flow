@@ -1,0 +1,27 @@
+{
+	"$schema": "https://json.schemastore.org/package",
+	"name": "@repo/e2e-tests",
+	"private": true,
+	"version": "0.1.0",
+	"description": "Playwright smoke and staging monitors for TenantFlow.",
+	"type": "module",
+	"scripts": {
+		"test": "pnpm exec playwright test",
+		"test:chromium": "pnpm exec playwright test --project=chromium",
+		"test:public": "pnpm exec playwright test --project=public",
+		"test:mobile": "pnpm exec playwright test --project=mobile-chrome",
+		"test:staging": "pnpm exec playwright test --project=staging",
+		"test:prod": "pnpm exec playwright test --project=prod",
+		"lint": "pnpm exec eslint \"tests/**/*.ts\"",
+		"typecheck": "tsc --project tsconfig.json --noEmit"
+	},
+	"dependencies": {
+		"@repo/api-client": "workspace:*",
+		"@repo/config": "workspace:*"
+	},
+	"devDependencies": {
+		"@playwright/test": "1.55.1",
+		"eslint": "9.36.0",
+		"typescript": "^5.9.2"
+	}
+}

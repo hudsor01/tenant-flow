@@ -1,7 +1,8 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { LoaderOne } from '@/components/ui/loader'
+import { ButtonLoader } from '@/components/magicui/loading-spinner'
+
 import {
 	ANIMATION_DURATIONS,
 	buttonClasses,
@@ -61,7 +62,7 @@ export const GoogleButton = forwardRef<HTMLButtonElement, GoogleButtonProps>(
 				>
 					<div className="flex items-center justify-center gap-3 relative z-10">
 						{isLoading ? (
-							<LoaderOne />
+							<ButtonLoader />
 						) : (
 							<div className="transform group-hover:scale-110 transition-transform duration-200">
 								<HighResGoogleIcon />

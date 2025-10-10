@@ -65,39 +65,33 @@ export const animationTokens = {
 
 // Animation presets for common use cases
 export const animationPresets = {
-	// Micro-interactions - subtle hover effects
 	microHover: {
 		transition: `all ${animationTokens.durations.quick} ${animationTokens.easings.out}`,
 		transform: 'scale(1.02)'
 	},
 
-	// Lift animation - cards rising on hover
 	lift: {
 		transition: `all ${animationTokens.durations.standard} ${animationTokens.easings.out}`,
 		transform: 'translateY(-4px)',
 		boxShadow: 'var(--shadow-large)'
 	},
 
-	// Scale animation - buttons and interactive elements
 	scale: {
 		transition: `transform ${animationTokens.durations.quick} ${animationTokens.easings.out}`,
 		transform: 'scale(1.05)'
 	},
 
-	// Fade in - for appearing elements
 	fadeIn: {
 		opacity: 1,
 		transition: `opacity ${animationTokens.durations.standard} ${animationTokens.easings.out}`
 	},
 
-	// Slide up - for modals and tooltips
 	slideUp: {
 		transform: 'translateY(0)',
 		opacity: 1,
 		transition: `all ${animationTokens.durations.standard} ${animationTokens.easings.out}`
 	},
 
-	// Glass shimmer - for glass materials
 	glassShimmer: {
 		position: 'relative',
 		overflow: 'hidden',
@@ -118,7 +112,6 @@ export const animationPresets = {
 	}
 } as const
 
-// Corner radius tokens
 export const radiusTokens = {
 	small: 'var(--radius-small)',
 	medium: 'var(--radius-medium)',
@@ -127,7 +120,7 @@ export const radiusTokens = {
 	xxlarge: 'var(--radius-xxlarge)'
 } as const
 
-// Spacing tokens - harmonious professional spacing scale
+
 export const spacingTokens = {
 	0: 'var(--spacing-0)',
 	px: 'var(--spacing-px)',
@@ -166,14 +159,12 @@ export const spacingTokens = {
 	96: 'var(--spacing-96)'
 } as const
 
-// Shadow tokens
 export const shadowTokens = {
 	small: 'var(--shadow-small)',
 	medium: 'var(--shadow-medium)',
 	large: 'var(--shadow-large)'
 } as const
 
-// Typography tokens
 export const typographyTokens = {
 	fontFamily: 'var(--font-family)',
 	sizes: {
@@ -203,7 +194,7 @@ export const typographyTokens = {
 	}
 } as const
 
-// Utility function to get token-based styles
+
 export const getTokenStyle = (
 	category:
 		| 'primary'
@@ -229,14 +220,13 @@ export const getTokenStyle = (
 	return tokenMap[category]
 }
 
-// Helper function for applying primary colors with opacity
+
 export const primaryWithOpacity = (
 	opacity: 10 | 15 | 25 | 40 | 50 | 85 = 50
 ) => {
 	return primaryTokens[opacity]
 }
 
-// Helper function for glass effect styles
 export const glassEffect = {
 	background: glassTokens.material,
 	border: glassTokens.border,
@@ -245,9 +235,7 @@ export const glassEffect = {
 	WebkitBackdropFilter: 'blur(20px)'
 } as const
 
-// Glass material presets for different use cases
 export const glassPresets = {
-	// Default glass - subtle transparency with medium blur
 	default: {
 		background: 'var(--glass-material)',
 		border: 'var(--glass-border)',
@@ -256,7 +244,6 @@ export const glassPresets = {
 		WebkitBackdropFilter: 'blur(12px)'
 	},
 
-	// Strong glass - more visible with brand colors
 	strong: {
 		background: 'var(--color-primary-brand-15)',
 		border: '1px solid var(--color-primary-brand-25)',
@@ -265,7 +252,6 @@ export const glassPresets = {
 		WebkitBackdropFilter: 'blur(24px)'
 	},
 
-	// Subtle glass - minimal transparency
 	subtle: {
 		background: 'var(--color-fill-primary)',
 		border: '1px solid var(--color-fill-tertiary)',
@@ -274,7 +260,6 @@ export const glassPresets = {
 		WebkitBackdropFilter: 'blur(4px)'
 	},
 
-	// Frosted glass - medium visibility
 	frosted: {
 		background: 'var(--color-fill-secondary)',
 		border: '1px solid var(--color-separator)',
@@ -283,7 +268,6 @@ export const glassPresets = {
 		WebkitBackdropFilter: 'blur(16px)'
 	},
 
-	// Vibrant glass - high visibility with brand accent
 	vibrant: {
 		background: 'var(--color-primary-brand-10)',
 		border: '1px solid var(--color-primary-brand-15)',
@@ -293,7 +277,6 @@ export const glassPresets = {
 	}
 } as const
 
-// Typography utility functions using design tokens
 export const getTypographyStyle = (variant: TypographyVariant) => {
 	const variants = {
 		largeTitle: {
@@ -371,45 +354,38 @@ export const getTypographyStyle = (variant: TypographyVariant) => {
 	return variants[variant]
 }
 
-// Spacing utility function for consistent layout spacing
+
 export const getSpacing = (size: SpacingSize) => {
 	return spacingTokens[size]
 }
 
-// Common spacing patterns for consistent UI layouts
+
 export const spacingPatterns = {
-	// Component internal spacing
 	componentPadding: spacingTokens[6], // 1.5rem - standard component padding
 	componentGap: spacingTokens[4], // 1rem - standard gap between elements
 
-	// Section spacing
 	sectionSpacing: spacingTokens[12], // 3rem - between major sections
 	cardSpacing: spacingTokens[6], // 1.5rem - card internal spacing
 
-	// Text spacing
 	textGap: spacingTokens[1.5], // 0.375rem - between related text elements
 	paragraphSpacing: spacingTokens[4], // 1rem - between paragraphs
 
-	// Button spacing
 	buttonPadding: spacingTokens[4], // 1rem - horizontal button padding
 	buttonGap: spacingTokens[2], // 0.5rem - gap between buttons
 
-	// Form spacing
 	formGroupSpacing: spacingTokens[6], // 1.5rem - between form groups
 	labelInputGap: spacingTokens[2] // 0.5rem - between label and input
 } as const
 
-// Glass utility function for getting specific presets
+
 export const getGlassPreset = (variant: GlassVariant) => {
 	return glassPresets[variant]
 }
 
-// Animation utility functions
 export const getAnimationPreset = (preset: AnimationPreset) => {
 	return animationPresets[preset]
 }
 
-// Create custom transition strings
 export const createTransition = (
 	properties: string[],
 	duration: 'quick' | 'standard' | 'slow' = 'standard',
@@ -422,7 +398,7 @@ export const createTransition = (
 		.join(', ')
 }
 
-// Performance-optimized animation helpers
+
 export const animationHelpers = {
 	// GPU acceleration for smooth animations
 	gpuAccelerate: {
@@ -430,7 +406,6 @@ export const animationHelpers = {
 		willChange: 'transform'
 	},
 
-	// Reduce motion for accessibility
 	respectReducedMotion: {
 		'@media (prefers-reduced-motion: reduce)': {
 			animation: 'none !important',
@@ -438,7 +413,6 @@ export const animationHelpers = {
 		}
 	},
 
-	// Common animation combinations
 	smoothHover: {
 		transition: createTransition(['transform', 'box-shadow'], 'quick'),
 		'&:hover': animationPresets.microHover

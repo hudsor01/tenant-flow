@@ -24,14 +24,22 @@ export interface AnimatedMetricCardProps {
 
 // CHART COMPONENT TYPES
 export type TrendDirection = 'up' | 'down' | 'neutral'
-export type ColorVariant = 'success' | 'primary' | 'revenue' | 'property' | 'warning' | 'info' | 'neutral'
+export type ColorVariant =
+	| 'success'
+	| 'primary'
+	| 'revenue'
+	| 'property'
+	| 'warning'
+	| 'info'
+	| 'neutral'
 
 export interface SparklineData {
 	value: number
 	period: string
 }
 
-export interface EnhancedMetricsCardProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface EnhancedMetricsCardProps
+	extends React.HTMLAttributes<HTMLDivElement> {
 	title: string
 	value: string | number
 	description?: string
@@ -70,10 +78,23 @@ export interface MetricConfig {
 	}
 	sparkline?: Array<{ value: number; period: string }>
 	icon: React.ComponentType<{ className?: string }>
-	colorVariant: 'success' | 'primary' | 'revenue' | 'property' | 'warning' | 'info' | 'neutral'
+	colorVariant:
+		| 'success'
+		| 'primary'
+		| 'revenue'
+		| 'property'
+		| 'warning'
+		| 'info'
+		| 'neutral'
 }
 
-export type PageType = 'dashboard' | 'properties' | 'leases' | 'tenants' | 'maintenance' | 'unknown'
+export type PageType =
+	| 'dashboard'
+	| 'properties'
+	| 'leases'
+	| 'tenants'
+	| 'maintenance'
+	| 'unknown'
 
 // UI STORE TYPES
 
@@ -602,7 +623,7 @@ export interface UsePricingReturn {
 
 import type { Database } from './core.js'
 
-export type UnitRow = Database['public']['Tables']['Unit']['Row'] & {
+export type UnitRow = Database['public']['Tables']['unit']['Row'] & {
 	property?: {
 		name: string
 		address: string
@@ -624,7 +645,7 @@ export type UnitRow = Database['public']['Tables']['Unit']['Row'] & {
 }
 
 export type MaintenanceRequestRow =
-	Database['public']['Tables']['MaintenanceRequest']['Row'] & {
+	Database['public']['Tables']['maintenance_request']['Row'] & {
 		property: { name: string } | null
 		unit: { name: string } | null
 		assignedTo: { name: string } | null

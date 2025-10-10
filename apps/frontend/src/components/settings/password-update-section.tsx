@@ -4,7 +4,7 @@ import { PasswordStrength } from '@/components/auth/password-strength'
 import { LoadingSpinner } from '@/components/magicui/loading-spinner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { CardLayout } from '@/components/ui/card-layout'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import {
 	InputGroup,
@@ -14,14 +14,7 @@ import {
 import { cn, TYPOGRAPHY_SCALE } from '@/lib/design-system'
 import { supabaseClient } from '@repo/shared/lib/supabase-client'
 import { useMutation } from '@tanstack/react-query'
-import {
-	AlertTriangle,
-	CheckCircle2,
-	Eye,
-	EyeOff,
-	Key,
-	Shield
-} from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Eye, EyeOff, Shield } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -77,15 +70,10 @@ export function PasswordUpdateSection() {
 	}
 
 	return (
-		<Card className="p-6 border shadow-sm">
-			<h3
-				className="mb-4 flex items-center gap-2 font-semibold"
-				style={TYPOGRAPHY_SCALE['heading-lg']}
-			>
-				<Key className="size-5" />
-				Password & Authentication
-			</h3>
-
+		<CardLayout
+			title="Password & Authentication"
+			description="Update your account password and security settings"
+		>
 			<form onSubmit={handleSubmit} className="space-y-4">
 				{/* Current Password */}
 				<Field>
@@ -233,6 +221,6 @@ export function PasswordUpdateSection() {
 					other accounts.
 				</p>
 			</form>
-		</Card>
+		</CardLayout>
 	)
 }

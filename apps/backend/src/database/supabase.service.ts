@@ -267,14 +267,16 @@ export class SupabaseService implements OnModuleInit {
 		return undefined
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private extractAccessTokenFromParsedCookie(parsed: any): string | undefined {
-		if (!parsed) return undefined
+	private extractAccessTokenFromParsedCookie(
+		parsed: unknown
+	): string | undefined {
+		if (!parsed || typeof parsed !== 'object') return undefined
 
+		const obj = parsed as Record<string, unknown>
 		const possibleSessions = [
-			parsed.currentSession,
-			parsed.session,
-			parsed,
+			obj.currentSession,
+			obj.session,
+			obj,
 			Array.isArray(parsed) ? parsed[0] : undefined
 		]
 

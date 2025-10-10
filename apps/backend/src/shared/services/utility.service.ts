@@ -197,11 +197,8 @@ export class UtilityService {
 				hasUppercase: /[A-Z]/.test(password),
 				hasLowercase: /[a-z]/.test(password),
 				hasNumbers: /\d/.test(password),
-				// eslint-disable-next-line no-useless-escape
-				hasSpecialChars: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
-			}
-
-			// Calculate score (0-100)
+				hasSpecialChars: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
+			} // Calculate score (0-100)
 			let score = 0
 			if (requirements.minLength) score += 20
 			if (requirements.hasUppercase) score += 20
@@ -222,15 +219,23 @@ export class UtilityService {
 
 			// Generate feedback
 			const feedback: string[] = []
-			if (!requirements.minLength) feedback.push('Password must be at least 8 characters long')
-			if (!requirements.hasUppercase) feedback.push('Password must contain at least one uppercase letter')
-			if (!requirements.hasLowercase) feedback.push('Password must contain at least one lowercase letter')
-			if (!requirements.hasNumbers) feedback.push('Password must contain at least one number')
-			if (!requirements.hasSpecialChars) feedback.push('Password must contain at least one special character')
+			if (!requirements.minLength)
+				feedback.push('Password must be at least 8 characters long')
+			if (!requirements.hasUppercase)
+				feedback.push('Password must contain at least one uppercase letter')
+			if (!requirements.hasLowercase)
+				feedback.push('Password must contain at least one lowercase letter')
+			if (!requirements.hasNumbers)
+				feedback.push('Password must contain at least one number')
+			if (!requirements.hasSpecialChars)
+				feedback.push('Password must contain at least one special character')
 
-			if (password.length < 12) feedback.push('Consider using a longer password (12+ characters)')
-			if (/(.)\1{2,}/.test(password)) feedback.push('Avoid repeating the same character multiple times')
-			if (/123|abc|qwe|password|admin/i.test(password)) feedback.push('Avoid common patterns and words')
+			if (password.length < 12)
+				feedback.push('Consider using a longer password (12+ characters)')
+			if (/(.)\1{2,}/.test(password))
+				feedback.push('Avoid repeating the same character multiple times')
+			if (/123|abc|qwe|password|admin/i.test(password))
+				feedback.push('Avoid common patterns and words')
 
 			// Determine if password is valid (meets basic requirements)
 			const isValid = Object.values(requirements).every(req => req)
@@ -238,7 +243,8 @@ export class UtilityService {
 			return {
 				isValid,
 				score,
-				feedback: feedback.length > 0 ? feedback : ['Password meets all requirements'],
+				feedback:
+					feedback.length > 0 ? feedback : ['Password meets all requirements'],
 				requirements
 			}
 		} catch (error) {

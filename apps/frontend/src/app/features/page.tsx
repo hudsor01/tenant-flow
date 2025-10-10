@@ -4,21 +4,20 @@ import Footer from '@/components/layout/footer'
 import { BlurFade } from '@/components/magicui/blur-fade'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { GridBackground } from '@/components/ui/grid-background'
+import { GridPattern } from '@/components/magicui/grid-pattern'
 import { cn } from '@/lib/utils'
-import
-  {
-    ArrowRight,
-    BarChart3,
-    Check,
-    ChevronRight,
-    Clock,
-    Shield,
-    Star,
-    TrendingUp,
-    Users,
-    Zap
-  } from 'lucide-react'
+import {
+	ArrowRight,
+	BarChart3,
+	Check,
+	ChevronRight,
+	Clock,
+	Shield,
+	Star,
+	TrendingUp,
+	Users,
+	Zap
+} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -88,7 +87,7 @@ export default function FeaturesPage() {
 	return (
 		<div className="relative min-h-screen flex flex-col">
 			{/* Full page grid background */}
-			<GridBackground className="fixed inset-0 -z-10" />
+			<GridPattern className="fixed inset-0 -z-10" />
 
 			{/* Navigation */}
 			<nav className="fixed top-6 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
@@ -165,7 +164,7 @@ export default function FeaturesPage() {
 							Sign In
 						</Link>
 						<Link
-							href="/login"
+							href="/signup"
 							className="flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
 						>
 							Get Started
@@ -174,7 +173,6 @@ export default function FeaturesPage() {
 					</div>
 				</div>
 			</nav>
-
 
 			{/* Sticky CTA */}
 			<div
@@ -238,9 +236,7 @@ export default function FeaturesPage() {
 							</div>
 
 							{/* Strengthened headline with premium typography */}
-							<h1
-								className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground"
-							>
+							<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
 								Transform your portfolio into a{' '}
 								<span className="relative inline-block">
 									<span className="bg-gradient-to-r from-primary via-primary/90 to-accent bg-clip-text text-transparent">
@@ -267,9 +263,7 @@ export default function FeaturesPage() {
 									asChild
 								>
 									<a href="/signup" aria-label="Start free trial">
-										<div
-											className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50"
-										/>
+										<div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50" />
 										<span className="relative z-10 flex items-center">
 											Start Free Trial
 											<ArrowRight className="w-5 h-5 ml-3 transition-transform group-hover:translate-x-1" />
@@ -350,9 +344,7 @@ export default function FeaturesPage() {
 
 							{/* Rotating testimonial */}
 							<div className="max-w-4xl mx-auto">
-								<div
-									className="relative rounded-2xl p-8 border border-primary/10 backdrop-blur-sm bg-card/50"
-								>
+								<div className="relative rounded-2xl p-8 border border-primary/10 backdrop-blur-sm bg-card/50">
 									<>
 										<blockquote className="text-xl text-foreground font-medium leading-relaxed mb-6">
 											"{t.quote}"
@@ -405,10 +397,7 @@ export default function FeaturesPage() {
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.3} inView>
 						<div className="text-center mb-16 space-y-6">
-							<h2
-								className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
-								
-							>
+							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
 								Your 3-step transformation to{' '}
 								<span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
 									maximum profitability
@@ -592,8 +581,7 @@ export default function FeaturesPage() {
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.4} inView>
 						<div className="text-center mb-16">
-							<h2
-								className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-6" >
+							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-6">
 								Real results from real property managers
 							</h2>
 							<p className="text-muted-foreground text-lg max-w-3xl mx-auto">
@@ -660,10 +648,7 @@ export default function FeaturesPage() {
 				<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
 					<BlurFade delay={0.5} inView>
 						<div className="text-center space-y-8">
-							<h2
-								className="font-bold tracking-tight leading-tight"
-								
-							>
+							<h2 className="font-bold tracking-tight leading-tight">
 								Start your transformation{' '}
 								<span className="bg-gradient-to-r from-primary via-primary/90 to-accent bg-clip-text text-transparent">
 									today
@@ -685,9 +670,7 @@ export default function FeaturesPage() {
 									asChild
 								>
 									<a href="/signup" aria-label="Start free trial">
-										<div
-											className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50"
-										/>
+										<div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50" />
 										<span className="relative z-10 flex items-center">
 											Start Free Trial
 											<ArrowRight className="w-5 h-5 ml-3 transition-transform group-hover:translate-x-1" />

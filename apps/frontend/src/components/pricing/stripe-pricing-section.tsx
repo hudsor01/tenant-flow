@@ -1,866 +1,283 @@
 'use client'
 
+import { Check, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import { CardLayout } from '@/components/ui/card-layout'
 import { Switch } from '@/components/ui/switch'
-import { useStripeProducts, formatStripePrice, calculateAnnualSavings } from '@/hooks/use-stripe-products'
+import {
+	useStripeProducts,
+	formatStripePrice,
+	calculateAnnualSavings,
+	getPlanFeatures
+} from '@/hooks/use-stripe-products'
 import { checkoutRateLimiter } from '@/lib/security'
 import { createCheckoutSession, isUserAuthenticated } from '@/lib/stripe-client'
-import {
-	ANIMATION_DURATIONS,
-	animationClasses,
-	badgeClasses,
-	buttonClasses,
-	cardClasses,
-	cn,
-	TYPOGRAPHY_SCALE
-} from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { PricingUIData } from '@repo/shared/types/frontend'
 import { useMutation } from '@tanstack/react-query'
-import {
-	ArrowRight,
-	Award,
-	BarChart3,
-	CheckCircle2,
-	Clock,
-	Crown,
-	Heart,
-	Loader2,
-	Rocket,
-	Shield,
-	Sparkles,
-	Star,
-	Target,
-	TrendingUp,
-	Users
-} from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Spinner } from '@/components/ui/spinner'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 interface StripePricingSectionProps {
 	className?: string
-	showStats?: boolean
-	compactView?: boolean
-	showHeader?: boolean
 }
 
-// Icon mapping for different plan types
-const planIconMap: Record<
-	string,
-	React.ComponentType<{ className?: string }>
-> = {
-	freetrial: Heart,
-	starter: Rocket,
-	growth: BarChart3,
-	max: Crown
-}
-
-// Tier mapping for styling consistency
-const planTierMap: Record<string, string> = {
-	freetrial: 'starter',
-	starter: 'professional',
-	growth: 'enterprise',
-	max: 'ultimate'
-}
-
-// Popular plan mapping
-const popularPlans = ['growth']
-
-// CTA text mapping
-const planCtaMap: Record<string, string> = {
-	freetrial: 'Start Free Trial',
-	starter: 'Choose Starter',
-	growth: 'Choose Growth',
-	max: 'Contact Sales'
-}
-
-// Highlight text mapping
-const planHighlightMap: Record<string, string> = {
-	freetrial: 'Most loved by beginners',
-	starter: 'Save 4 hours/week on average',
-	growth: 'Most popular choice',
-	max: 'For portfolio managers'
-}
-
-// PricingUIData interface now imported from @repo/shared
-
-export function StripePricingSection({
-	className,
-	showStats = true,
-	compactView = false
-}: StripePricingSectionProps) {
+export function StripePricingSection({ className }: StripePricingSectionProps) {
 	const logger = createLogger({ component: 'StripePricingSection' })
-	const [isYearly, setIsYearly] = useState(false)
+	const [isAnnual, setIsAnnual] = useState(false)
 
-	// Fetch real pricing data from Stripe via backend
-	const { products, isLoading, error } = useStripeProducts()
-	const activePlans = products
-
-	// Transform real Stripe data into UI format
-	const pricingData = useMemo((): (PricingUIData & {
-		name: string
-		planId: string
-		stripeMonthlyPriceId?: string
-		stripeAnnualPriceId?: string
-	})[] => {
-		return activePlans.map(product => {
-			// Extract plan ID from metadata or use lowercase name
-			const planId = product.metadata.planId || product.name.toLowerCase().replace(/\s+/g, '')
-
-			// Get pricing from Stripe (already in cents)
-			const monthlyPrice = product.prices.monthly?.unit_amount || 0
-			const annualPrice = product.prices.annual?.unit_amount || 0
-
-			// Calculate savings
-			const savings = calculateAnnualSavings(monthlyPrice, annualPrice)
-
-			// Get UI enhancement data
-			const icon = planIconMap[planId] || Rocket
-			const tier = planTierMap[planId] || 'standard'
-			const popular = popularPlans.includes(planId)
-			const cta = planCtaMap[planId] || 'Get Started'
-			const highlight = planHighlightMap[planId] || ''
-
-			// Extract features from metadata
-			const featuresString = product.metadata.features || ''
-			const features = featuresString ? featuresString.split(',').map(f => f.trim()) : []
-
-			return {
-				name: product.name,
-				planId,
-				stripeMonthlyPriceId: product.prices.monthly?.id,
-				stripeAnnualPriceId: product.prices.annual?.id,
-				icon,
-				popular,
-				tier,
-				tagline: product.description || '',
-				enhanced_features: features.map(text => ({
-					text,
-					highlight: false
-				})),
-				benefits: [],
-				cta,
-				highlight,
-				monthlySavings: 0,
-				yearlySavings: annualPrice / 100,
-				savingsPercentage: savings.savingsPercent,
-				formattedPrice: isYearly
-					? formatStripePrice(Math.floor(annualPrice / 12))
-					: formatStripePrice(monthlyPrice),
-				fullYearPrice: formatStripePrice(annualPrice)
-			}
-		})
-	}, [activePlans, isYearly])
+	const { products } = useStripeProducts()
 
 	const subscriptionMutation = useMutation({
 		mutationFn: async (planData: {
 			planId: string
 			planName: string
-			description: string | null
 			monthlyPriceId?: string
 			annualPriceId?: string
 		}) => {
-			if (planData.planId === 'freetrial') {
-				// Handle free trial
-				window.location.href = '/auth/register'
-				return { success: true }
-			}
-
 			if (planData.planId === 'max') {
-				// Handle enterprise contact
 				window.location.href = '/contact'
 				return { success: true }
 			}
 
-			// Check rate limiting
 			if (!checkoutRateLimiter.canMakeRequest()) {
 				throw new Error(
 					'Too many requests. Please wait a moment before trying again.'
 				)
 			}
 
-			// Check if user is authenticated with Supabase
 			const isAuthenticated = await isUserAuthenticated()
 			if (!isAuthenticated) {
 				window.location.href = '/login'
-				throw new Error('Please sign in to subscribe to a plan')
+				throw new Error('Please sign in to subscribe')
 			}
 
-			// Get the appropriate Stripe price ID
-			const stripePriceId = isYearly ? planData.annualPriceId : planData.monthlyPriceId
+			const stripePriceId = isAnnual
+				? planData.annualPriceId
+				: planData.monthlyPriceId
 			if (!stripePriceId) {
 				throw new Error(
-					`No ${isYearly ? 'annual' : 'monthly'} price configured for ${planData.planName} plan`
+					`No ${isAnnual ? 'annual' : 'monthly'} price configured for ${planData.planName}`
 				)
 			}
 
-			// Show loading toast
 			toast.loading('Creating checkout session...', { id: 'checkout' })
 
-			// Create checkout session via backend
-			const checkoutData = {
+			const result = await createCheckoutSession({
 				priceId: stripePriceId,
-				planName: planData.planName,
-				description: planData.description || undefined
+				planName: planData.planName
+			})
+
+			if (!result.url) {
+				throw new Error('Failed to create checkout session')
 			}
 
-			const { url } = await createCheckoutSession(checkoutData)
-
-			// Update toast to success
-			toast.success('Redirecting to checkout...', { id: 'checkout' })
-
-			// Redirect to Stripe Checkout
-			window.location.href = url
-
+			window.location.href = result.url
 			return { success: true }
 		},
-		onError: error => {
-			logger.error('Stripe checkout session creation failed', {
-				action: 'checkout_session_failed',
+		onError: (error: Error) => {
+			toast.dismiss('checkout')
+			logger.error('Checkout failed', {
 				metadata: {
-					error: error instanceof Error ? error.message : String(error)
+					error: error instanceof Error ? error.message : 'Unknown error'
 				}
 			})
-			// Show error toast
 			toast.error(
-				`Failed to start checkout: ${error instanceof Error ? error.message : 'Unknown error'}`,
-				{ id: 'checkout' }
+				error.message || 'Failed to start checkout. Please try again.'
 			)
 		}
 	})
 
-	const handleSubscribe = async (plan: {
+	const handleSubscribe = (plan: {
 		planId: string
 		name: string
-		tagline: string
 		stripeMonthlyPriceId?: string
 		stripeAnnualPriceId?: string
 	}) => {
 		subscriptionMutation.mutate({
 			planId: plan.planId,
 			planName: plan.name,
-			description: plan.tagline,
 			monthlyPriceId: plan.stripeMonthlyPriceId,
 			annualPriceId: plan.stripeAnnualPriceId
 		})
 	}
 
-	// Show loading state while fetching from Stripe
-	if (isLoading) {
-		return (
-			<section className={cn('relative section-hero', className)}>
-				<div className="container px-4 mx-auto">
-					<div className="flex items-center justify-center py-20">
-						<Loader2 className="w-8 h-8 animate-spin text-primary" />
-					</div>
-				</div>
-			</section>
-		)
-	}
-
-	// Show error state if Stripe API fails
-	if (error) {
-		return (
-			<section className={cn('relative section-hero', className)}>
-				<div className="container px-4 mx-auto">
-					<div className="text-center py-20">
-						<p className="text-muted-foreground">
-							Unable to load pricing. Please try again later.
-						</p>
-					</div>
-				</div>
-			</section>
-		)
-	}
-
 	return (
-		<section
-			className={cn(
-				'relative section-hero bg-gradient-to-br from-background via-muted/5 to-background',
-				'before:absolute before:inset-0 before:bg-gradient-to-r before:from-primary/5 before:via-transparent before:to-primary/5 before:opacity-50',
-				compactView && 'section-content',
-				animationClasses('fade-in'),
-				className
-			)}
-		>
-			<div className="relative container px-[var(--spacing-4)] mx-auto">
-				{/* Section Header */}
-				<div
+		<div className={cn('w-full', className)}>
+			{/* Header */}
+			<div className="text-center mb-12">
+				<h2 className="text-4xl md:text-5xl font-bold mb-4">
+					Simple, transparent pricing
+				</h2>
+				<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+					Choose the perfect plan for your property management needs. Start with
+					a 14-day free trial, no credit card required.
+				</p>
+			</div>
+
+			{/* Billing Toggle */}
+			<div className="flex items-center justify-center gap-4 mb-12">
+				<span
 					className={cn(
-						'text-center max-w-6xl mx-auto',
-						compactView ? 'mb-16' : 'mb-24',
-						animationClasses('slide-down')
+						'text-sm font-medium',
+						!isAnnual && 'text-foreground',
+						isAnnual && 'text-muted-foreground'
 					)}
 				>
-					{/* Enhanced Stats Bar */}
-					{showStats && (
-						<div
-							className="flex flex-wrap items-center justify-center gap-8 mb-12 rounded-2xl border border-primary/10 p-6 backdrop-blur-sm"
-							style={{
-								boxShadow: 'var(--shadow-sm)',
-								backgroundColor:
-									'color-mix(in oklab, var(--color-fill-primary) 60%, transparent)'
-							}}
-						>
-							<div className="flex items-center gap-3">
-								<div className="p-[var(--spacing-2)] bg-primary/10 rounded-[var(--radius-large)]">
-									<Users className="h-5 w-5 text-primary" />
-								</div>
-								<div>
-									<p className="font-bold text-lg text-foreground">10,000+</p>
-									<p className="text-sm text-muted-foreground">
-										Property Managers
-									</p>
-								</div>
-							</div>
-							<div className="flex items-center gap-3">
-								<div className="p-[var(--spacing-2)] bg-[var(--color-system-green-10)] dark:bg-[var(--color-system-green-15)] rounded-[var(--radius-large)]">
-									<TrendingUp className="h-5 w-5 text-[var(--color-system-green)]" />
-								</div>
-								<div>
-									<p className="font-bold text-lg text-foreground">99.9%</p>
-									<p className="text-sm text-muted-foreground">Uptime SLA</p>
-								</div>
-							</div>
-							<div className="flex items-center gap-3">
-								<div className="p-[var(--spacing-2)] bg-[var(--color-system-blue-10)] dark:bg-[var(--color-system-blue-15)] rounded-[var(--radius-large)]">
-									<Target className="h-5 w-5 text-[var(--color-system-blue)]" />
-								</div>
-								<div>
-									<p className="font-bold text-lg text-foreground">$50M+</p>
-									<p className="text-sm text-muted-foreground">
-										Rent Collected
-									</p>
-								</div>
-							</div>
-							<div className="flex items-center gap-3">
-								<div className="p-[var(--spacing-2)] bg-[var(--color-system-blue-10)] dark:bg-[var(--color-system-blue-15)] rounded-[var(--radius-large)]">
-									<Award className="h-5 w-5 text-[var(--color-system-blue)]" />
-								</div>
-								<div>
-									<p className="font-bold text-lg text-foreground">4.9/5</p>
-									<p className="text-sm text-muted-foreground">
-										Customer Rating
-									</p>
-								</div>
-							</div>
-						</div>
+					Monthly
+				</span>
+				<Switch checked={isAnnual} onCheckedChange={setIsAnnual} />
+				<span
+					className={cn(
+						'text-sm font-medium',
+						isAnnual && 'text-foreground',
+						!isAnnual && 'text-muted-foreground'
 					)}
+				>
+					Annual
+				</span>
+				<Badge
+					variant="secondary"
+					className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
+				>
+					Save 17%
+				</Badge>
+			</div>
 
-					<div className="mb-6">
-						<Badge
-							variant="outline"
+			{/* Pricing Cards */}
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto mb-16">
+				{products.map(product => {
+					const planId = product.metadata.planId || product.name.toLowerCase()
+					const isPopular = product.metadata.popular === 'true'
+					const features = getPlanFeatures(planId)
+
+					const monthlyPrice = product.prices.monthly?.unit_amount || 0
+					const annualPrice = product.prices.annual?.unit_amount || 0
+					const displayPrice = isAnnual
+						? Math.floor(annualPrice / 12)
+						: monthlyPrice
+					const savings = calculateAnnualSavings(monthlyPrice, annualPrice)
+
+					const isEnterprise = planId === 'max'
+
+					return (
+						<CardLayout
+							key={product.id}
+							title={product.name}
+							description={product.description ?? undefined}
 							className={cn(
-								badgeClasses('outline', 'default'),
-								'mb-[var(--spacing-4)] px-[var(--spacing-4)] py-[var(--spacing-2)] text-sm font-semibold border-2 hover:bg-primary/5 hover:border-primary/30 transition-all hover:scale-105'
+								'relative flex flex-col',
+								isPopular && 'border-2 border-primary shadow-lg scale-105'
 							)}
-							style={{
-								transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-							}}
 						>
-							<Sparkles className="w-4 h-4 me-2 text-primary" />
-							Choose Your Plan
-						</Badge>
-					</div>
-
-					<div className="mb-8">
-						<h2
-							className="font-bold tracking-tight mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent"
-							style={{
-								fontSize: compactView
-									? TYPOGRAPHY_SCALE['display-xl'].fontSize
-									: TYPOGRAPHY_SCALE['display-lg'].fontSize,
-								lineHeight: compactView
-									? TYPOGRAPHY_SCALE['display-xl'].lineHeight
-									: TYPOGRAPHY_SCALE['display-lg'].lineHeight,
-								fontWeight: TYPOGRAPHY_SCALE['display-lg'].fontWeight,
-								letterSpacing: TYPOGRAPHY_SCALE['display-lg'].letterSpacing
-							}}
-						>
-							Simple, transparent pricing
-							<span
-								className="block text-primary font-medium mt-3"
-								style={{
-									fontSize: compactView
-										? TYPOGRAPHY_SCALE['heading-md'].fontSize
-										: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
-									lineHeight: compactView
-										? TYPOGRAPHY_SCALE['heading-md'].lineHeight
-										: TYPOGRAPHY_SCALE['heading-lg'].lineHeight
-								}}
-							>
-								that scales with your portfolio
-							</span>
-						</h2>
-					</div>
-
-					<div className="mb-8">
-						<p
-							className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
-							style={{
-								fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize,
-								lineHeight: TYPOGRAPHY_SCALE['body-lg'].lineHeight
-							}}
-						>
-							Start with our 14-day free trial. No credit card required. Cancel
-							anytime.
-						</p>
-					</div>
-
-					{/* Billing Toggle */}
-					<div
-						className="bg-muted/30 rounded-2xl p-6 border-2 border-muted/50"
-						style={{
-							animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`,
-							transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-						}}
-					>
-						<div className="flex items-center justify-center gap-6 mb-3">
-							<span
-								className={cn(
-									'text-sm font-semibold transition-all',
-									!isYearly ? 'text-foreground' : 'text-muted-foreground'
-								)}
-								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-								}}
-							>
-								Monthly
-							</span>
-							<Switch
-								checked={isYearly}
-								onCheckedChange={setIsYearly}
-								className="data-[state=checked]:bg-primary scale-110"
-								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-								}}
-							/>
-							<span
-								className={cn(
-									'text-sm font-semibold transition-all',
-									isYearly ? 'text-foreground' : 'text-muted-foreground'
-								)}
-								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-								}}
-							>
-								Yearly
-							</span>
-							<Badge
-								variant="secondary"
-								className="ms-2 bg-[var(--color-system-green-10)] dark:bg-[var(--color-system-green-15)] text-[var(--color-system-green)] dark:text-[var(--color-system-green-85)] font-semibold px-[var(--spacing-3)] py-[var(--spacing-1)] hover:scale-105"
-								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-								}}
-							>
-								<Star className="w-3 h-3 mr-1" />
-								Save 17%
-							</Badge>
-						</div>
-						<div className="flex items-center justify-center gap-2">
-							<Shield className="w-3 h-3 text-[var(--color-system-blue)] dark:text-[var(--color-system-blue-85)]" />
-							<p className="text-xs text-muted-foreground font-medium">
-								All plans include a 14-day free trial
-							</p>
-						</div>
-					</div>
-				</div>
-
-				{/* Enhanced Pricing Grid */}
-				<div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-20">
-					{pricingData.map((plan, index) => (
-						<div key={index} className="relative group">
-							<Card
-								className={cn(
-									'relative h-full transition-all',
-									cardClasses(plan.popular ? 'premium' : 'interactive'),
-									plan.popular
-										? 'border-2 border-primary shadow-2xl scale-105 bg-gradient-to-br from-primary/5 via-background to-primary/10'
-										: 'hover:scale-102 hover:shadow-xl',
-									'overflow-hidden'
-								)}
-								style={{
-									transition: `all ${ANIMATION_DURATIONS.default} cubic-bezier(0.4, 0, 0.2, 1)`,
-									transform: plan.popular ? 'scale(1.05)' : undefined
-								}}
-							>
-								{/* Popular Badge */}
-								{plan.popular && (
-									<div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-										<Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-[var(--spacing-6)] py-[var(--spacing-2)] text-sm font-bold shadow-[var(--shadow-large)]">
-											<Star className="w-3 h-3 mr-1" />
-											{plan.highlight}
-										</Badge>
-									</div>
-								)}
-
-								{/* Tier Badge */}
-								<div className="absolute top-4 right-4">
-									<Badge
-										variant="outline"
-										className={cn('text-xs font-medium capitalize border-2', {
-											'border-[var(--color-system-orange-25)] bg-[var(--color-system-orange-10)] text-[var(--color-system-orange)] dark:border-[var(--color-system-orange-25)] dark:bg-[var(--color-system-orange-15)] dark:text-[var(--color-system-orange-85)]':
-												plan.tier === 'starter',
-											'border-[var(--color-system-blue-25)] bg-[var(--color-system-blue-10)] text-[var(--color-system-blue)] dark:border-[var(--color-system-blue-25)] dark:bg-[var(--color-system-blue-15)] dark:text-[var(--color-system-blue-85)]':
-												plan.tier === 'professional',
-											'border-[var(--color-system-green-25)] bg-[var(--color-system-green-10)] text-[var(--color-system-green)] dark:border-[var(--color-system-green-25)] dark:bg-[var(--color-system-green-15)] dark:text-[var(--color-system-green-85)]':
-												plan.tier === 'enterprise',
-											'border-[var(--color-system-yellow-25)] bg-[var(--color-system-yellow-10)] text-[var(--color-system-yellow)] dark:border-[var(--color-system-yellow-25)] dark:bg-[var(--color-system-yellow-15)] dark:text-[var(--color-system-yellow-85)]':
-												plan.tier === 'ultimate'
-										})}
-									>
-										{plan.tier}
+							{isPopular && (
+								<div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+									<Badge className="bg-primary text-primary-foreground px-4 py-1">
+										<Sparkles className="w-3 h-3 mr-1" />
+										Most Popular
 									</Badge>
 								</div>
+							)}
 
-								<CardHeader className="text-center pb-6 pt-10 px-8">
+							<div className="text-center pb-6">
+								{!isEnterprise ? (
 									<div className="mb-6">
-										<div
-											className={cn(
-												'w-16 h-16 rounded-2xl bg-gradient-to-br flex items-center justify-center mx-auto mb-4',
-												'shadow-lg ring-4 ring-background',
-												{
-													'from-[var(--color-system-orange-85)] to-[var(--color-system-orange)]':
-														plan.tier === 'starter',
-													'from-[var(--color-system-blue-85)] to-[var(--color-system-blue)]':
-														plan.tier === 'professional',
-													'from-[var(--color-system-green-85)] to-[var(--color-system-green)]':
-														plan.tier === 'enterprise',
-													'from-[var(--color-system-yellow-85)] to-[var(--color-system-yellow)]':
-														plan.tier === 'ultimate'
-												}
-											)}
-										>
-											<plan.icon className="w-8 h-8 text-primary-foreground" />
-										</div>
-									</div>
-
-									<h3
-										className="font-bold mb-2 text-foreground"
-										style={{
-											fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
-											lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight,
-											fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight
-										}}
-									>
-										{plan.name}
-									</h3>
-									<p
-										className="text-muted-foreground mb-4 leading-relaxed"
-										style={{
-											fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize
-										}}
-									>
-										{plan.tagline}
-									</p>
-
-									{/* Pricing Display */}
-									<div className="space-y-2 mb-6">
 										<div className="flex items-baseline justify-center gap-1">
-											<span
-												className="font-black text-foreground"
-												style={{
-													fontSize: TYPOGRAPHY_SCALE['display-lg'].fontSize,
-													lineHeight: TYPOGRAPHY_SCALE['display-lg'].lineHeight
-												}}
-											>
-												{plan.formattedPrice}
+											<span className="text-5xl font-bold">
+												{formatStripePrice(displayPrice)}
 											</span>
-											<span className="text-muted-foreground text-sm font-medium">
-												/month
-											</span>
+											<span className="text-muted-foreground">/month</span>
 										</div>
-
-										{isYearly && plan.yearlySavings > 0 && (
-											<div className="flex items-center justify-center gap-2">
-												<Badge
-													variant="secondary"
-													className="bg-[var(--color-system-green-10)] dark:bg-[var(--color-system-green-15)] text-[var(--color-system-green)] dark:text-[var(--color-system-green-85)] text-xs"
-												>
-													<Clock className="w-3 h-3 mr-1" />
-													Save {plan.savingsPercentage}%
-												</Badge>
-												<span className="text-xs text-muted-foreground">
-													{plan.fullYearPrice} annually
-												</span>
-											</div>
+										{isAnnual && annualPrice > 0 && (
+											<p className="text-sm text-muted-foreground mt-2">
+												{formatStripePrice(annualPrice)} billed annually
+											</p>
+										)}
+										{isAnnual && savings.savingsPercent > 0 && (
+											<p className="text-sm text-green-600 dark:text-green-400 mt-1">
+												Save {savings.savingsPercent}% with annual billing
+											</p>
 										)}
 									</div>
+								) : (
+									<div className="mb-6">
+										<div className="text-4xl font-bold mb-2">Custom</div>
+										<p className="text-sm text-muted-foreground">
+											Contact us for pricing
+										</p>
+									</div>
+								)}
+							</div>
 
-									{/* Plan Highlight */}
-									{plan.highlight && !plan.popular && (
-										<Badge
-											variant="outline"
-											className="mb-4 text-xs font-medium"
-										>
-											{plan.highlight}
-										</Badge>
+							<div className="flex-1 mb-6">
+								<ul className="space-y-3">
+									{features.map((feature, index) => (
+										<li key={index} className="flex items-start gap-3">
+											<Check className="w-5 h-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+											<span className="text-sm text-muted-foreground">
+												{feature}
+											</span>
+										</li>
+									))}
+								</ul>
+							</div>
+
+							<div className="pt-4">
+								<Button
+									className={cn(
+										'w-full h-11',
+										isPopular && 'bg-primary hover:bg-primary/90'
 									)}
-								</CardHeader>
-
-								<CardContent className="px-8 pb-6">
-									{/* Features List */}
-									<ul className="space-y-4 mb-6">
-										{plan.enhanced_features.map(
-											(
-												feature: { text: string; highlight: boolean },
-												featureIndex: number
-											) => (
-												<li
-													key={featureIndex}
-													className="flex items-start text-sm"
-												>
-													<CheckCircle2
-														className={cn(
-															'w-4 h-4 mt-0.5 mr-3 flex-shrink-0',
-															feature.highlight
-																? 'text-primary fill-primary/20'
-																: 'text-[var(--color-system-green)] fill-[var(--color-system-green-10)] dark:fill-[var(--color-system-green-15)]'
-														)}
-													/>
-													<span
-														className={cn(
-															feature.highlight
-																? 'font-semibold text-foreground'
-																: 'text-muted-foreground'
-														)}
-													>
-														{feature.text}
-													</span>
-												</li>
-											)
-										)}
-									</ul>
-
-									{/* Benefits */}
-									{plan.benefits && (
-										<div className="bg-muted/30 rounded-xl p-4 mb-6 border">
-											<h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-												<Sparkles className="w-4 h-4 text-primary" />
-												Why choose this plan?
-											</h4>
-											<ul className="space-y-2">
-												{plan.benefits.map(
-													(benefit: string, benefitIndex: number) => (
-														<li
-															key={benefitIndex}
-															className="text-xs text-muted-foreground flex items-center gap-2"
-														>
-															<div className="w-1 h-1 bg-primary rounded-full" />
-															{benefit}
-														</li>
-													)
-												)}
-											</ul>
-										</div>
-									)}
-								</CardContent>
-
-								<CardFooter className="px-8 pb-8">
-									{plan.popular ? (
-										<Button
-											className={cn(
-												'w-full h-14 text-base font-bold',
-												'bg-gradient-to-r from-primary via-primary to-primary/90',
-												'hover:from-primary/90 hover:via-primary/95 hover:to-primary/80',
-												'shadow-lg hover:shadow-xl',
-												'transform hover:scale-[1.02] active:scale-[0.98]'
-											)}
-											disabled={subscriptionMutation.isPending}
-											onClick={() => handleSubscribe(plan)}
-											style={{
-												transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`
-											}}
-										>
-											{subscriptionMutation.isPending ? (
-												<>
-													<Loader2 className="w-5 h-5 mr-2 animate-spin" />
-													Processing...
-												</>
-											) : (
-												<>
-													<Rocket className="w-5 h-5 mr-2" />
-													{plan.cta}
-													<ArrowRight className="w-4 h-4 ml-2" />
-												</>
-											)}
-										</Button>
+									variant={isPopular ? 'default' : 'outline'}
+									disabled={subscriptionMutation.isPending}
+									onClick={() =>
+										handleSubscribe({
+											planId,
+											name: product.name,
+											stripeMonthlyPriceId: product.prices.monthly?.id,
+											stripeAnnualPriceId: product.prices.annual?.id
+										})
+									}
+								>
+									{subscriptionMutation.isPending ? (
+										<>
+											<Spinner className="w-4 h-4 mr-2" />
+											Processing...
+										</>
+									) : isEnterprise ? (
+										'Contact Sales'
 									) : (
-										<Button
-											variant={plan.planId === 'max' ? 'outline' : 'default'}
-											className={cn(
-												'w-full h-12 text-base font-semibold',
-												plan.planId === 'max'
-													? 'border-2 hover:bg-primary hover:text-primary-foreground'
-													: 'hover:scale-[1.02]'
-											)}
-											disabled={subscriptionMutation.isPending}
-											onClick={() => handleSubscribe(plan)}
-											style={{
-												transition: `all ${ANIMATION_DURATIONS.fast} cubic-bezier(0.4, 0, 0.2, 1)`
-											}}
-										>
-											{subscriptionMutation.isPending ? (
-												<>
-													<Loader2 className="w-4 h-4 mr-2 animate-spin" />
-													Loading...
-												</>
-											) : (
-												<>
-													{plan.cta}
-													<ArrowRight className="w-4 h-4 ml-2" />
-												</>
-											)}
-										</Button>
+										'Get Started'
 									)}
-								</CardFooter>
-							</Card>
-						</div>
-					))}
-				</div>
-
-				{/* Enhanced Trust Signals */}
-				<div className="bg-gradient-to-r from-muted/20 via-background to-muted/20 rounded-3xl card-padding border border-muted/40">
-					<div className="text-center max-w-4xl mx-auto">
-						{/* Trust Badges */}
-						<div className="flex flex-wrap items-center justify-center gap-4 mb-8">
-							<Badge
-								variant="secondary"
-								className={cn(
-									badgeClasses('success', 'lg'),
-									'bg-[var(--color-system-green-10)] dark:bg-[var(--color-system-green-15)] text-[var(--color-system-green)] dark:text-[var(--color-system-green-85)] border-[var(--color-system-green-25)] dark:border-[var(--color-system-green-25)] px-[var(--spacing-6)] py-[var(--spacing-3)] hover:scale-105'
-								)}
-								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-								}}
-							>
-								<CheckCircle2 className="w-5 h-5 mr-2" />
-								14-Day Free Trial
-							</Badge>
-							<Badge
-								variant="secondary"
-								className={cn(
-									badgeClasses('secondary', 'lg'),
-									'bg-[var(--color-system-blue-10)] dark:bg-[var(--color-system-blue-15)] text-[var(--color-system-blue)] dark:text-[var(--color-system-blue-85)] border-[var(--color-system-blue-25)] dark:border-[var(--color-system-blue-25)] px-[var(--spacing-6)] py-[var(--spacing-3)] hover:scale-105'
-								)}
-								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-								}}
-							>
-								<Shield className="w-5 h-5 mr-2" />
-								No Credit Card Required
-							</Badge>
-							<Badge
-								variant="secondary"
-								className={cn(
-									badgeClasses('outline', 'lg'),
-									'hover:bg-primary/5 hover:border-primary/30 px-[var(--spacing-6)] py-[var(--spacing-3)] hover:scale-105'
-								)}
-								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-								}}
-							>
-								<Heart className="w-5 h-5 mr-2" />
-								Cancel Anytime
-							</Badge>
-							<Badge
-								variant="secondary"
-								className={cn(
-									badgeClasses('success', 'lg'),
-									'bg-[var(--color-system-blue-10)] dark:bg-[var(--color-system-blue-15)] text-[var(--color-system-blue)] dark:text-[var(--color-system-blue-85)] border-[var(--color-system-blue-25)] dark:border-[var(--color-system-blue-25)] px-[var(--spacing-6)] py-[var(--spacing-3)] hover:scale-105'
-								)}
-								style={{
-									transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-								}}
-							>
-								<Award className="w-5 h-5 mr-2" />
-								SOC 2 Compliant
-							</Badge>
-						</div>
-
-						{/* Support Section */}
-						<div className="space-y-6">
-							<div>
-								<h3
-									className="font-bold text-foreground mb-2"
-									style={{
-										fontSize: TYPOGRAPHY_SCALE['heading-md'].fontSize,
-										lineHeight: TYPOGRAPHY_SCALE['heading-md'].lineHeight,
-										fontWeight: TYPOGRAPHY_SCALE['heading-md'].fontWeight
-									}}
-								>
-									Questions about our pricing?
-								</h3>
-								<p
-									className="text-muted-foreground leading-relaxed max-w-2xl mx-auto"
-									style={{
-										fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize,
-										lineHeight: TYPOGRAPHY_SCALE['body-lg'].lineHeight
-									}}
-								>
-									Our team is here to help you choose the perfect plan for your
-									property management needs.
-								</p>
-							</div>
-
-							<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-								<Button
-									variant="outline"
-									className={cn(
-										buttonClasses('outline', 'lg'),
-										'h-12 px-8 text-base font-semibold border-2 hover:bg-primary hover:text-primary-foreground hover:scale-105'
-									)}
-									style={{
-										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-									}}
-								>
-									<Target className="w-5 h-5 mr-2" />
-									View FAQ
-								</Button>
-								<Button
-									variant="ghost"
-									className={cn(
-										buttonClasses('ghost', 'lg'),
-										'h-12 px-8 text-base font-semibold hover:bg-muted hover:scale-105'
-									)}
-									style={{
-										transition: `all ${ANIMATION_DURATIONS.fast} ease-out`
-									}}
-								>
-									<Users className="w-5 h-5 mr-2" />
-									Contact Support
 								</Button>
 							</div>
+						</CardLayout>
+					)
+				})}
+			</div>
 
-							{/* Additional Trust Signals */}
-							<div className="pt-6 border-t border-muted/40">
-								<div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
-									<div className="flex items-center gap-2">
-										<CheckCircle2 className="w-4 h-4 text-[var(--color-system-green)]" />
-										<span className="font-medium">
-											30-day money-back guarantee
-										</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<Shield className="w-4 h-4 text-[var(--color-system-blue)]" />
-										<span className="font-medium">
-											Enterprise-grade security
-										</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<Award className="w-4 h-4 text-[var(--color-system-blue)]" />
-										<span className="font-medium">
-											99.9% customer satisfaction
-										</span>
-									</div>
-								</div>
-							</div>
-						</div>
+			{/* Trust Signals */}
+			<div className="text-center">
+				<p className="text-sm text-muted-foreground mb-4">
+					Trusted by property managers across the country
+				</p>
+				<div className="flex items-center justify-center gap-8 flex-wrap">
+					<div className="flex items-center gap-2">
+						<Check className="w-4 h-4 text-green-600" />
+						<span className="text-sm">14-day free trial</span>
+					</div>
+					<div className="flex items-center gap-2">
+						<Check className="w-4 h-4 text-green-600" />
+						<span className="text-sm">No credit card required</span>
+					</div>
+					<div className="flex items-center gap-2">
+						<Check className="w-4 h-4 text-green-600" />
+						<span className="text-sm">Cancel anytime</span>
 					</div>
 				</div>
 			</div>
-		</section>
+		</div>
 	)
 }

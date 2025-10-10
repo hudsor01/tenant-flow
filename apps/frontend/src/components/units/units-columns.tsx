@@ -1,57 +1,60 @@
-import
-  {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle
-  } from '@/components/ui/alert-dialog'
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import
-  {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
-  } from '@/components/ui/dropdown-menu'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 import { UnitEditDialog, UnitViewDialog } from '@/components/units/unit-dialogs'
 import { unitsApi } from '@/lib/api-client'
-import { ANIMATION_DURATIONS, TYPOGRAPHY_SCALE } from '@/lib/design-system'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { buttonClasses, cardClasses, cn, inputClasses } from '@/lib/utils'
-import type { Column, ColumnDef } from '@tanstack/react-table'
-import
-  {
-    AlertTriangle,
-    ArrowDown,
-    ArrowUp,
-    ArrowUpDown,
-    Bath,
-    Bed,
-    Calendar,
-    DollarSign,
-    EditIcon,
-    EyeIcon,
-    Home,
-    MapPin,
-    Maximize2,
-    MoreHorizontalIcon,
-    Star,
-    TrashIcon,
-    TrendingUp,
-    Users
-  } from 'lucide-react'
-import * as React from 'react'
-import { toast } from 'sonner'
+import {
+	ANIMATION_DURATIONS,
+	TYPOGRAPHY_SCALE,
+	buttonClasses,
+	cardClasses,
+	cn,
+	inputClasses
+} from '@/lib/design-system'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { UnitStats } from '@repo/shared/types/core'
 import type { UnitRow } from '@repo/shared/types/frontend'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import type { Column, ColumnDef } from '@tanstack/react-table'
+import {
+	AlertTriangle,
+	ArrowDown,
+	ArrowUp,
+	ArrowUpDown,
+	Bath,
+	Bed,
+	Calendar,
+	DollarSign,
+	EditIcon,
+	EyeIcon,
+	Home,
+	MapPin,
+	Maximize2,
+	MoreHorizontalIcon,
+	Star,
+	TrashIcon,
+	TrendingUp,
+	Users
+} from 'lucide-react'
+import * as React from 'react'
+import { toast } from 'sonner'
 
 // Re-export UnitRow for use in other components
 export type { UnitRow }
@@ -244,13 +247,36 @@ function UnitActions({ unit }: UnitActionsProps) {
 	const qc = useQueryClient()
 	const deleteUnit = useMutation({
 		mutationFn: (id: string) => unitsApi.remove(id),
-		onSuccess: () => {
-			qc.invalidateQueries({ queryKey: ['units'] })
-			qc.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
-			toast.success('Unit deleted successfully')
+		onMutate: async (id: string) => {
+			await qc.cancelQueries({ queryKey: ['units'] })
+			const previous = qc.getQueryData<
+				{ data: UnitRow[] } | UnitRow[] | undefined
+			>(['units'])
+			// If cache is an object with data property, handle both shapes
+			qc.setQueryData<UnitRow[] | { data: UnitRow[] } | undefined>(
+				['units'],
+				old => {
+					if (!old) return old
+					if (Array.isArray(old)) return old.filter(u => u.id !== id)
+					if ('data' in old)
+						return { ...old, data: old.data.filter(u => u.id !== id) }
+					return old
+				}
+			)
+			return { previous }
 		},
-		onError: (error: Error) => {
-			toast.error('Failed to delete unit', { description: error.message })
+		onError: (
+			err: unknown,
+			id: string,
+			context?: { previous?: UnitRow[] | { data: UnitRow[] } }
+		) => {
+			if (context?.previous) qc.setQueryData(['units'], context.previous)
+			toast.error('Failed to delete unit', {
+				description: (err as Error)?.message
+			})
+		},
+		onSuccess: () => {
+			toast.success('Unit deleted successfully')
 		}
 	})
 

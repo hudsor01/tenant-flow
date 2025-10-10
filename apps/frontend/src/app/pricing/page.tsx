@@ -1,21 +1,18 @@
 'use client'
 
 import Footer from '@/components/layout/footer'
+import { Navbar } from '@/components/layout/navbar'
 import { StripePricingSection } from '@/components/pricing/stripe-pricing-section'
-import { StatsShowcase } from '@/components/sections/stats-showcase'
-import { Button } from '@/components/ui/button'
-import { GridBackground } from '@/components/ui/grid-background'
+import { TestimonialsSection } from '@/components/sections/testimonials-section'
 import {
-	Item,
-	ItemContent,
-	ItemDescription,
-	ItemGroup,
-	ItemSeparator,
-	ItemTitle
-} from '@/components/ui/item'
-import { ArrowRight, CheckCircle2, ChevronDown } from 'lucide-react'
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger
+} from '@/components/ui/accordion'
+import { Button } from '@/components/ui/button'
+import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
 
 const faqs = [
 	{
@@ -51,101 +48,21 @@ const faqs = [
 ]
 
 export default function PricingPage() {
-	const [openFaq, setOpenFaq] = useState<number | null>(null)
+	const navItems = [
+		{ name: 'Features', href: '/features' },
+		{ name: 'Pricing', href: '/pricing' },
+		{ name: 'About', href: '/about' },
+		{ name: 'Blog', href: '/blog' },
+		{ name: 'FAQ', href: '/faq' },
+		{ name: 'Contact', href: '/contact' }
+	]
 
 	return (
 		<div className="relative min-h-screen flex flex-col">
-			{/* Full page grid background */}
-			<GridBackground className="fixed inset-0 -z-10" />
-
-			{/* Navigation */}
-			<nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90 w-auto">
-				<div className="flex items-center justify-between gap-8">
-					<Link
-						href="/"
-						className="flex items-center justify-center space-x-4 hover:opacity-80 transition-opacity"
-					>
-						<div className="w-8 h-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								xmlns="http://www.w3.org/2000/svg"
-								className="w-5 h-5 text-primary-foreground"
-							>
-								<path
-									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								/>
-							</svg>
-						</div>
-						<span className="text-xl font-bold text-foreground tracking-tight">
-							TenantFlow
-						</span>
-					</Link>
-
-					<div className="hidden md:flex items-center space-x-2">
-						<Link
-							href="/features"
-							className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent"
-						>
-							Features
-						</Link>
-						<Link
-							href="/pricing"
-							className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent"
-						>
-							Pricing
-						</Link>
-						<Link
-							href="/about"
-							className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent"
-						>
-							About
-						</Link>
-						<Link
-							href="/blog"
-							className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent"
-						>
-							Blog
-						</Link>
-						<Link
-							href="/faq"
-							className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent"
-						>
-							FAQ
-						</Link>
-						<Link
-							href="/contact"
-							className="px-4 py-2 text-muted-foreground font-medium text-sm rounded-xl transition-all duration-200 hover:text-foreground hover:bg-accent"
-						>
-							Contact
-						</Link>
-					</div>
-
-					<div className="flex items-center space-x-4">
-						<Link
-							href="/login"
-							className="hidden sm:flex items-center px-4 py-2 text-foreground rounded-xl font-medium transition-all duration-300 hover:bg-accent"
-						>
-							Sign In
-						</Link>
-						<Link
-							href="/login"
-							className="inline-flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl shadow-lg transition-all duration-200 hover:bg-primary/90 hover:shadow-xl"
-						>
-							Get Started
-							<ArrowRight className="ml-2 h-4 w-4" />
-						</Link>
-					</div>
-				</div>
-			</nav>
-
-			<main className="flex-1">
-				{/* Simple Header - No Hero */}
-				<section className="relative page-content pb-4">
+			<Navbar navItems={navItems} ctaText="Get Started" ctaHref="/signup" />
+			<main className="flex-1 pt-20">
+				{/* Simple Header */}
+				<section className="relative py-12">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
 						<div className="max-w-4xl mx-auto text-center space-y-4">
 							<h1 className="text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
@@ -160,62 +77,60 @@ export default function PricingPage() {
 				</section>
 
 				{/* Pricing Cards Section */}
-				<section className="relative pb-6 bg-transparent">
+				<section className="relative py-12">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
-						<StripePricingSection showHeader={false} showStats={false} />
+						<StripePricingSection />
 					</div>
 				</section>
 
-				{/* Stats Section */}
-				<StatsShowcase />
+				{/* Testimonials Section */}
+				<TestimonialsSection />
 
-				{/* FAQ Section */}
-				<section className="relative section-compact bg-transparent">
-					<div className="max-w-4xl mx-auto px-6 lg:px-8">
-						<div className="text-center mb-6">
-							<h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
+				{/* FAQ Section - Premium Split Layout */}
+				<section className="relative py-24 bg-gradient-to-b from-transparent to-muted/20">
+					<div className="max-w-7xl mx-auto px-6 lg:px-8">
+						{/* Header */}
+						<div className="max-w-3xl mx-auto text-center mb-16">
+							<h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-6">
 								Frequently Asked Questions
 							</h2>
 							<p className="text-xl text-muted-foreground">
-								Everything you need to know about our pricing
+								Everything you need to know about our pricing and plans
 							</p>
 						</div>
 
-						<ItemGroup>
+						{/* FAQ Grid - Premium 2 Column Layout */}
+						<div className="grid lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
 							{faqs.map((faq, index) => (
-								<>
-									<Item
-										key={index}
-										variant="outline"
-										className="cursor-pointer hover:bg-muted/50 transition-colors"
-										onClick={() => setOpenFaq(openFaq === index ? null : index)}
+								<Accordion
+									key={index}
+									type="single"
+									collapsible
+									className="w-full"
+								>
+									<AccordionItem
+										value={`item-${index}`}
+										className="border border-border/60 rounded-xl px-6 bg-card/50 backdrop-blur-sm hover:bg-card hover:border-primary/20 hover:shadow-md transition-all duration-300"
 									>
-										<ItemContent>
-											<ItemTitle className="flex items-center justify-between w-full">
+										<AccordionTrigger className="text-left hover:no-underline py-6 gap-4">
+											<span className="font-semibold text-lg text-foreground pr-4">
 												{faq.question}
-												<ChevronDown
-													className={`w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform ml-4 ${
-														openFaq === index ? 'transform rotate-180' : ''
-													}`}
-												/>
-											</ItemTitle>
-											{openFaq === index && (
-												<ItemDescription className="mt-2 pt-2 border-t">
-													{faq.answer}
-												</ItemDescription>
-											)}
-										</ItemContent>
-									</Item>
-									{index < faqs.length - 1 && <ItemSeparator />}
-								</>
+											</span>
+										</AccordionTrigger>
+										<AccordionContent className="text-muted-foreground text-base leading-relaxed pb-6">
+											{faq.answer}
+										</AccordionContent>
+									</AccordionItem>
+								</Accordion>
 							))}
-						</ItemGroup>
+						</div>
 
-						<div className="text-center mt-4">
-							<p className="text-muted-foreground mb-2">
-								Still have questions?
+						{/* CTA */}
+						<div className="text-center mt-16 p-8 rounded-2xl bg-card/30 border border-border/50 max-w-2xl mx-auto">
+							<p className="text-lg text-muted-foreground mb-6">
+								Still have questions? We're here to help.
 							</p>
-							<Button size="lg" variant="outline" asChild>
+							<Button size="lg" className="h-12 px-8" asChild>
 								<Link href="/contact">
 									Contact Sales
 									<ArrowRight className="w-4 h-4 ml-2" />
@@ -226,38 +141,49 @@ export default function PricingPage() {
 				</section>
 
 				{/* Final CTA Section */}
-				<section className="relative section-content bg-transparent">
+				<section className="relative py-20 bg-transparent">
 					<div className="max-w-4xl mx-auto px-6 lg:px-8">
-						<div className="bg-accent-gradient py-4 px-4 text-center">
-							<h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
+						<div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-3xl border border-primary/20 p-12 text-center shadow-xl">
+							<h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-6">
 								Ready to transform your property management?
 							</h2>
-							<p className="text-xl text-muted-foreground mb-4">
+							<p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
 								Join 10,000+ property managers who save 20+ hours weekly
 							</p>
-							<div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-4">
-								<Button size="lg" className="px-8" asChild>
-									<Link href="/login">
+							<div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+								<Button size="lg" className="px-10 h-14 text-lg" asChild>
+									<Link href="/signup">
 										Start Free Trial
 										<ArrowRight className="w-5 h-5 ml-2" />
 									</Link>
 								</Button>
-								<Button size="lg" variant="outline" className="px-8" asChild>
+								<Button
+									size="lg"
+									variant="outline"
+									className="px-10 h-14 text-lg border-2"
+									asChild
+								>
 									<Link href="/contact">Talk to Sales</Link>
 								</Button>
 							</div>
-							<div className="flex flex-wrap justify-center items-center gap-6 text-sm text-muted-foreground">
-								<div className="flex items-center justify-center gap-2">
-									<CheckCircle2 className="w-4 h-4" />
-									<span>14-day free trial</span>
+							<div className="flex flex-wrap justify-center items-center gap-8 text-sm">
+								<div className="flex items-center gap-2">
+									<CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+									<span className="text-foreground font-medium">
+										14-day free trial
+									</span>
 								</div>
-								<div className="flex items-center justify-center gap-2">
-									<CheckCircle2 className="w-4 h-4" />
-									<span>No credit card required</span>
+								<div className="flex items-center gap-2">
+									<CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+									<span className="text-foreground font-medium">
+										No credit card required
+									</span>
 								</div>
-								<div className="flex items-center justify-center gap-2">
-									<CheckCircle2 className="w-4 h-4" />
-									<span>Cancel anytime</span>
+								<div className="flex items-center gap-2">
+									<CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+									<span className="text-foreground font-medium">
+										Cancel anytime
+									</span>
 								</div>
 							</div>
 						</div>

@@ -8,44 +8,43 @@
  * - Direct PostgreSQL RPC calls
  */
 
-import
-  {
-    BadRequestException,
-    Body,
-    Controller,
-    DefaultValuePipe,
-    Delete,
-    Get,
-    Logger,
-    NotFoundException,
-    Optional,
-    Param,
-    ParseIntPipe,
-    ParseUUIDPipe,
-    Post,
-    Put,
-    Query,
-    Request,
-    SetMetadata
-  } from '@nestjs/common'
-import type { CreatePropertyRequest, UpdatePropertyRequest } from '@repo/shared/types/backend-domain'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	DefaultValuePipe,
+	Delete,
+	Get,
+	NotFoundException,
+	Optional,
+	Param,
+	ParseIntPipe,
+	ParseUUIDPipe,
+	Post,
+	Put,
+	Query,
+	Request,
+	SetMetadata
+} from '@nestjs/common'
+import type {
+	CreatePropertyRequest,
+	UpdatePropertyRequest
+} from '@repo/shared/types/backend-domain'
 import { ParseOptionalUUIDPipe } from '../shared/pipes/parse-optional-uuid.pipe'
 import type { AuthenticatedRequest } from '../shared/types/express-request.types'
 import { PropertiesService } from './properties.service'
 
 /**
- * Properties controller - Simple, direct implementation
  * No base classes, no abstraction, just clean endpoints
  */
 @Controller('properties')
 export class PropertiesController {
-	private readonly logger = new Logger(PropertiesController.name)
-
 	constructor(
 		@Optional() private readonly propertiesService?: PropertiesService
 	) {}
 
 	/**
+			NotFoundException,
 	 * Get all properties for authenticated user
 	 * Built-in pipes handle all validation
 	 */

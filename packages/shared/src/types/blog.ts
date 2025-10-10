@@ -73,7 +73,7 @@ export const getBlogStatusColor = (status: BlogStatus): string => {
 }
 
 // Use Supabase table types instead of duplicating
-export type BlogArticle = Database['public']['Tables']['BlogArticle']['Row']
+export type BlogArticle = Database['public']['Tables']['blog_article']['Row']
 
 export interface BlogArticleWithDetails extends Omit<BlogArticle, 'tags'> {
 	author?: {
@@ -97,7 +97,7 @@ export interface BlogArticleWithDetails extends Omit<BlogArticle, 'tags'> {
 	lastIndexed: string | null
 }
 
-export type BlogTag = Database['public']['Tables']['BlogTag']['Row']
+export type BlogTag = Database['public']['Tables']['blog_tag']['Row']
 
 // Blog article list item for efficient loading
 export interface BlogArticleListItem {

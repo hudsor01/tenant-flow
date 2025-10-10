@@ -22,7 +22,8 @@ export interface CustomerInvoiceForm {
 
 // Use Supabase CustomerInvoiceStatus instead of custom duplicate
 import type { Database } from './supabase-generated.js'
-export type CustomerInvoiceStatus = Database['public']['Enums']['CustomerInvoiceStatus']
+export type CustomerInvoiceStatus =
+	Database['public']['Enums']['customer_invoice_status']
 
 export const CUSTOMER_INVOICE_STATUS = {
 	DRAFT: 'DRAFT',
@@ -67,8 +68,10 @@ export const getCustomerInvoiceStatusColor = (
 }
 
 // Use Supabase table types instead of duplicating
-export type CustomerInvoice = Database['public']['Tables']['CustomerInvoice']['Row']
-export type CustomerInvoiceItem = Database['public']['Tables']['CustomerInvoiceItem']['Row']
+export type CustomerInvoice =
+	Database['public']['Tables']['customer_invoice']['Row']
+export type CustomerInvoiceItem =
+	Database['public']['Tables']['customer_invoice_item']['Row']
 
 // Invoice lead capture types
 export interface InvoiceLeadCapture {

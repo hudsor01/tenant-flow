@@ -1,6 +1,6 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing'
-import { BadRequestException } from '@nestjs/common'
+
 import { PropertiesService } from './properties.service'
 import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
 import { createMockProperty } from '../test-utils/mocks'

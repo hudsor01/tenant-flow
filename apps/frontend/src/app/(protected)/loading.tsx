@@ -1,5 +1,10 @@
-import { PageLoadingState } from '@/components/ui/loading-state'
+import { Spinner } from '@/components/ui/spinner'
 
 export default function ProtectedLoading() {
-	return <PageLoadingState text="Authenticating..." />
+	return (
+		<div className="flex items-center justify-center h-full w-full">
+			<Spinner />
+			<span className="ml-2">Authenticating...</span>
+		</div>
+	)
 }

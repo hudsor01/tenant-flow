@@ -30,7 +30,15 @@ export class LeasePDFService {
 	 */
 	private loadTemplates(): void {
 		try {
-			const templatePath = path.join(__dirname, 'templates', 'lease-agreement.hbs')
+			// Flat dist structure (fixed with rootDir: "./src"):
+			// __dirname = dist/pdf
+			// Template is at: dist/pdf/templates/lease-agreement.hbs
+			// Just go down to templates subdirectory
+			const templatePath = path.join(
+				__dirname,
+				'templates',
+				'lease-agreement.hbs'
+			)
 			const templateString = fs.readFileSync(templatePath, 'utf-8')
 			const compiledTemplate = compileTemplate(templateString)
 			this.templateCache.set('lease-agreement', compiledTemplate)
@@ -130,7 +138,7 @@ export class LeasePDFService {
 				}
 				return this.renderTemplate(reloadedTemplate, leaseData)
 			}
-			
+
 			return this.renderTemplate(template, leaseData)
 		} catch (error) {
 			this.logger.error('Error generating lease HTML:', error)
@@ -148,20 +156,22 @@ export class LeasePDFService {
 		// Extract state from property address for state-specific requirements
 		const state = this.extractState(leaseData)
 		const propertyYear = this.extractPropertyYear(leaseData)
-		
+
 		// Prepare template context with all necessary data
 		const context = {
 			...leaseData,
 			// Add generated metadata
-			leaseId: (leaseData as LeaseFormData & { id?: string }).id || this.generateLeaseId(),
+			leaseId:
+				(leaseData as LeaseFormData & { id?: string }).id ||
+				this.generateLeaseId(),
 			generatedDate: new Date().toISOString(),
 			documentVersion: '1.0',
-			
+
 			// Add state-specific requirements
 			stateCompliance: true,
 			stateNotice: getStateRequirements(state),
 			requiredDisclosures: getRequiredDisclosures(state, propertyYear),
-			
+
 			// Ensure nested objects exist with defaults
 			property: this.ensurePropertyData(leaseData.property),
 			landlord: this.ensureLandlordData(leaseData.landlord),
@@ -169,13 +179,17 @@ export class LeasePDFService {
 			leaseTerms: this.ensureLeaseTerms(leaseData.leaseTerms),
 			policies: this.ensurePolicies(leaseData.policies),
 			customTerms: leaseData.customTerms || [],
-			
+
 			// Add flags for conditional rendering
 			requiresWitness: this.requiresWitness(state),
-			includeStateDisclosures: (leaseData.options as Record<string, unknown>)?.includeStateDisclosures as boolean ?? true,
-			includeFederalDisclosures: (leaseData.options as Record<string, unknown>)?.includeFederalDisclosures as boolean ?? true
+			includeStateDisclosures:
+				((leaseData.options as Record<string, unknown>)
+					?.includeStateDisclosures as boolean) ?? true,
+			includeFederalDisclosures:
+				((leaseData.options as Record<string, unknown>)
+					?.includeFederalDisclosures as boolean) ?? true
 		}
-		
+
 		// Render the template with the context
 		return template(context)
 	}
@@ -259,20 +273,22 @@ export class LeasePDFService {
 	 */
 	private ensureTenantsData(tenants: LeaseFormData['tenants']): LeaseFormData['tenants'] {
 		if (!Array.isArray(tenants) || tenants.length === 0) {
-			return [{
-				name: 'Tenant Name',
-				email: 'tenant@example.com',
-				phone: '(000) 000-0000',
-				isMainTenant: true
-			}]
+			return [
+				{
+					name: 'Tenant Name',
+					email: 'tenant@example.com',
+					phone: '(000) 000-0000',
+					isMainTenant: true
+				}
+			]
 		}
-		
+
 		// Ensure at least one main tenant
 		const hasMainTenant = tenants.some(t => t.isMainTenant)
 		if (!hasMainTenant && tenants.length > 0 && tenants[0]) {
 			tenants[0].isMainTenant = true
 		}
-		
+
 		return tenants
 	}
 
@@ -282,7 +298,7 @@ export class LeasePDFService {
 	private ensureLeaseTerms(terms: LeaseFormData['leaseTerms']): LeaseFormData['leaseTerms'] {
 		const startDate = terms?.startDate || new Date().toISOString()
 		const type = terms?.type || 'month_to_month'
-		
+
 		// Calculate end date for fixed term leases
 		let endDate = terms?.endDate
 		if (type === 'fixed_term' && !endDate) {
@@ -290,7 +306,7 @@ export class LeasePDFService {
 			start.setFullYear(start.getFullYear() + 1) // Default to 1 year
 			endDate = start.toISOString()
 		}
-		
+
 		return {
 			type,
 			startDate,

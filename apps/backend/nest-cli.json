@@ -6,16 +6,22 @@
 	"compilerOptions": {
 		"deleteOutDir": false,
 		"webpack": false,
+		"builder": "swc",
+		"typeCheck": true,
 		"tsConfigPath": "tsconfig.build.json",
-		"watchAssets": false,
+		"watchAssets": true,
 		"assets": [
 			{
-				"include": "email-templates/**/*",
-				"outDir": "email-templates"
+				"include": "templates/**/*",
+				"watchAssets": true
 			},
 			{
 				"include": "pdf/templates/**/*",
-				"outDir": "dist"
+				"watchAssets": true
+			},
+			{
+				"include": "email-templates/**/*",
+				"watchAssets": true
 			}
 		],
 		"plugins": []

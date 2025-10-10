@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/design-system'
-import { Loader2 } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 
 interface LoadingSpinnerProps {
 	size?: 'sm' | 'default' | 'lg' | 'xl'
@@ -41,7 +41,7 @@ function LoadingSpinner({
 	...props
 }: LoadingSpinnerProps &
 	React.HTMLAttributes<HTMLDivElement> & { text?: string }) {
-	const IconComponent = Loader2
+	const IconComponent = Spinner
 
 	const content = (
 		<div

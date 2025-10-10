@@ -34,7 +34,7 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 
 			let query = this.supabase
 				.getAdminClient()
-				.from('Lease')
+				.from('lease')
 				.select('*')
 				.eq('userId', userId)
 
@@ -103,7 +103,7 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('Lease')
+				.from('lease')
 				.select('*')
 				.eq('id', leaseId)
 				.single()
@@ -137,7 +137,7 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('Lease')
+				.from('lease')
 				.select('*')
 				.eq('propertyId', propertyId)
 				.order('startDate', { ascending: false })
@@ -171,7 +171,7 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('Lease')
+				.from('lease')
 				.select('*')
 				.eq('tenantId', tenantId)
 				.order('startDate', { ascending: false })
@@ -203,12 +203,12 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('Lease')
+				.from('lease')
 				.insert({
 					...leaseData,
 					createdAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString()
-				} as TablesInsert<'Lease'>)
+				} as TablesInsert<'lease'>)
 				.select()
 				.single()
 
@@ -241,11 +241,11 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('Lease')
+				.from('lease')
 				.update({
 					...leaseData,
 					updatedAt: new Date().toISOString()
-				} as TablesUpdate<'Lease'>)
+				} as TablesUpdate<'lease'>)
 				.eq('id', leaseId)
 				.select()
 				.single()
@@ -282,7 +282,7 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('Lease')
+				.from('lease')
 				.update({
 					deletedAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString()
@@ -330,7 +330,7 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('Lease')
+				.from('lease')
 				.select('*')
 				.eq('userId', userId)
 
@@ -445,7 +445,7 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 			// DIRECT query -
 			let query = this.supabase
 				.getAdminClient()
-				.from('Lease')
+				.from('lease')
 				.select('*')
 				.eq('userId', userId)
 
@@ -491,7 +491,7 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('Lease')
+				.from('lease')
 				.select('*')
 				.eq('userId', userId)
 				.eq('status', 'ACTIVE')
@@ -530,7 +530,7 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('Lease')
+				.from('lease')
 				.select('*')
 				.eq('propertyId', propertyId)
 				.eq('status', 'ACTIVE')
@@ -574,7 +574,7 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 			// Create new lease based on existing one with renewal data
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('Lease')
+				.from('lease')
 				.insert({
 					...existingLease,
 					...renewalData,
@@ -623,13 +623,13 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('Lease')
+				.from('lease')
 				.update({
 					status: 'TERMINATED' as Database['public']['Enums']['LeaseStatus'],
 					endDate: terminationDate.toISOString(),
 					terminationReason: reason,
 					updatedAt: new Date().toISOString()
-				} as TablesUpdate<'Lease'>)
+				} as TablesUpdate<'lease'>)
 				.eq('id', leaseId)
 				.select()
 				.single()
@@ -667,9 +667,9 @@ export class SupabaseLeasesRepository implements ILeasesRepository {
 
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('RentPayments')
+				.from('rent_payment')
 				.select('*')
-				.eq('rentDueId', leaseId)
+				.eq('leaseId', leaseId)
 				.order('createdAt', { ascending: false })
 
 			if (error) {

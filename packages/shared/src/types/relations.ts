@@ -8,12 +8,12 @@ import type { Database } from './supabase-generated.js'
 import type { User } from './supabase.js'
 
 // Define types properly from Database schema
-type Property = Database['public']['Tables']['Property']['Row']
-type Unit = Database['public']['Tables']['Unit']['Row']
-type Tenant = Database['public']['Tables']['Tenant']['Row']
-type Lease = Database['public']['Tables']['Lease']['Row']
+type Property = Database['public']['Tables']['property']['Row']
+type Unit = Database['public']['Tables']['unit']['Row']
+type Tenant = Database['public']['Tables']['tenant']['Row']
+type Lease = Database['public']['Tables']['lease']['Row']
 type MaintenanceRequest =
-	Database['public']['Tables']['MaintenanceRequest']['Row']
+	Database['public']['Tables']['maintenance_request']['Row']
 type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED'
 
 import type { Document } from './files.js'

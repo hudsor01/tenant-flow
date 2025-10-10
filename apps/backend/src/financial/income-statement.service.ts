@@ -54,7 +54,7 @@ export class IncomeStatementService {
 
 		// Get maintenance costs
 		const { data: maintenanceData, error: maintenanceError } = await client
-			.from('MaintenanceRequest')
+			.from('maintenance_request')
 			.select('estimatedCost')
 			.eq('propertyId', userId)
 			.gte('createdAt', startDate)

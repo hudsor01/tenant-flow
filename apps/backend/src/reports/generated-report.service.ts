@@ -77,7 +77,7 @@ export class GeneratedReportService {
 
 			// Insert record into database
 			const { data: record, error } = await client
-				.from('GeneratedReport')
+				.from('generated_report')
 				.insert({
 					userId: data.userId,
 					reportType: data.reportType,
@@ -116,13 +116,13 @@ export class GeneratedReportService {
 		try {
 			// Get total count
 			const { count } = await client
-				.from('GeneratedReport')
+				.from('generated_report')
 				.select('*', { count: 'exact', head: true })
 				.eq('userId', userId)
 
 			// Get paginated records
 			const { data: reports, error } = await client
-				.from('GeneratedReport')
+				.from('generated_report')
 				.select('*')
 				.eq('userId', userId)
 				.order('createdAt', { ascending: false })
@@ -151,7 +151,7 @@ export class GeneratedReportService {
 
 		try {
 			const { data: report, error } = await client
-				.from('GeneratedReport')
+				.from('generated_report')
 				.select('*')
 				.eq('id', reportId)
 				.eq('userId', userId)
@@ -202,7 +202,7 @@ export class GeneratedReportService {
 
 			// Delete database record
 			const { error } = await client
-				.from('GeneratedReport')
+				.from('generated_report')
 				.delete()
 				.eq('id', reportId)
 				.eq('userId', userId)

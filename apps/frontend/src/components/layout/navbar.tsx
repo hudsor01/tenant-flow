@@ -337,6 +337,8 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 							onMouseDown={() => setMobileButtonTap(true)}
 							onMouseUp={() => setMobileButtonTap(false)}
 							onClick={toggleMobileMenu}
+							aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+							data-testid="mobile-nav-toggle"
 							className="md:hidden p-2 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
 						>
 							{isOpen ? (

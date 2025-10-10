@@ -18,11 +18,6 @@ describe('MaintenanceController', () => {
 	let service: jest.Mocked<MaintenanceService>
 	let mockSupabaseService: jest.Mocked<SupabaseService>
 
-	const createTestUser = (overrides: Partial<authUser> = {}): authUser =>
-		createMockUser({
-			id: randomUUID(),
-			...overrides
-		} as any)
 
 	const mockUser = createMockUser()
 

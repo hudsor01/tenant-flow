@@ -9,7 +9,7 @@ const resolveBaseUrl = () => {
 	const nextPublic = process.env.NEXT_PUBLIC_APP_URL
 	if (nextPublic) return nextPublic
 
-	return 'http://localhost:4500'
+	return 'http://localhost:3000'
 }
 
 const RESULTS_DIR = 'test-results'

@@ -44,6 +44,7 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 							src={imageUrl}
 							alt="Modern luxury apartment building"
 							fill
+							sizes="50vw"
 							className="object-cover ease-out transition-all duration-500"
 							priority
 						/>

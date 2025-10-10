@@ -2,6 +2,7 @@
 dist
 !.github/actions/*/dist
 .next
+.tsc-output
 target
 packages/next/wasm/@next
 tarballs/

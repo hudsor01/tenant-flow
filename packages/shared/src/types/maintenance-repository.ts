@@ -6,9 +6,9 @@ import type {
 import type { Database } from './supabase-generated.js'
 
 export type MaintenanceRequestInput =
-	Database['public']['Tables']['MaintenanceRequest']['Insert']
+	Database['public']['Tables']['maintenance_request']['Insert']
 export type MaintenanceRequestUpdate =
-	Database['public']['Tables']['MaintenanceRequest']['Update']
+	Database['public']['Tables']['maintenance_request']['Update']
 
 export interface MaintenanceQueryOptions extends QueryParams {
 	propertyId?: string
