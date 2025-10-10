@@ -10,7 +10,7 @@ const resolveBaseUrl = () => {
 	const fromNextPublic = process.env.NEXT_PUBLIC_APP_URL
 	if (fromNextPublic) return fromNextPublic
 
-	return 'http://localhost:4500'
+	return 'http://localhost:3000'
 }
 
 const BASE_URL = resolveBaseUrl()

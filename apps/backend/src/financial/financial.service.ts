@@ -1,18 +1,18 @@
-import { Injectable, Logger, Inject } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import type {
 	FinancialMetrics,
-	PropertyFinancialMetrics,
-	Lease
+	Lease,
+	PropertyFinancialMetrics
 } from '@repo/shared/types/core'
+import type { Tables } from '@repo/shared/types/supabase'
+import { SupabaseService } from '../database/supabase.service'
 import type { ILeasesRepository } from '../repositories/interfaces/leases-repository.interface'
 import type { IMaintenanceRepository } from '../repositories/interfaces/maintenance-repository.interface'
 import type { IPropertiesRepository } from '../repositories/interfaces/properties-repository.interface'
 import type { IUnitsRepository } from '../repositories/interfaces/units-repository.interface'
 import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
-import { SupabaseService } from '../database/supabase.service'
-import type { Tables } from '@repo/shared/types/supabase'
 
-type ExpenseRecord = Tables<'Expense'>
+type ExpenseRecord = Tables<'expense'>
 
 @Injectable()
 export class FinancialService {
@@ -34,27 +34,38 @@ export class FinancialService {
 	 * Get expense summary - replaces get_expense_summary function
 	 * Uses repository pattern instead of database function
 	 */
-	async getExpenseSummary(userId: string, year?: number): Promise<Record<string, unknown>> {
+	async getExpenseSummary(
+		userId: string,
+		year?: number
+	): Promise<Record<string, unknown>> {
 		try {
 			const targetYear = year || new Date().getFullYear()
-			this.logger.log('Getting expense summary via repositories', { userId, targetYear })
+			this.logger.log('Getting expense summary via repositories', {
+				userId,
+				targetYear
+			})
 
 			const propertyIds = await this.getUserPropertyIds(userId)
 			const { startDate, endDate } = this.calculateYearRange(targetYear)
 			const expenses = await this.fetchExpenses(propertyIds, startDate, endDate)
 
-			const totalExpenses = expenses.reduce((sum, expense) => sum + (expense.amount ?? 0), 0)
+			const totalExpenses = expenses.reduce(
+				(sum, expense) => sum + (expense.amount ?? 0),
+				0
+			)
 			const expensesByCategory: Record<string, number> = {}
 			for (const expense of expenses) {
 				const category = expense.category || 'General'
-				expensesByCategory[category] = (expensesByCategory[category] || 0) + (expense.amount ?? 0)
+				expensesByCategory[category] =
+					(expensesByCategory[category] || 0) + (expense.amount ?? 0)
 			}
 
 			return {
 				totalExpenses,
 				expensesByCategory,
 				expenseCount: expenses.length,
-				averageExpense: expenses.length > 0 ? totalExpenses / expenses.length : 0,
+				averageExpense:
+					expenses.length > 0 ? totalExpenses / expenses.length : 0,
 				year: targetYear
 			}
 		} catch (error) {
@@ -71,26 +82,53 @@ export class FinancialService {
 	 * Get financial overview - replaces get_financial_overview function
 	 * Uses repository pattern instead of database function
 	 */
-	async getOverview(userId: string, year?: number): Promise<Record<string, unknown>> {
+	async getOverview(
+		userId: string,
+		year?: number
+	): Promise<Record<string, unknown>> {
 		try {
 			const targetYear = year || new Date().getFullYear()
-			this.logger.log('Getting financial overview via repositories', { userId, targetYear })
+			this.logger.log('Getting financial overview via repositories', {
+				userId,
+				targetYear
+			})
 
-			const [propertyStats, unitStats, leaseStats, maintenanceAnalytics, financialAnalytics] = await Promise.all([
+			const [
+				propertyStats,
+				unitStats,
+				leaseStats,
+				maintenanceAnalytics,
+				financialAnalytics
+			] = await Promise.all([
 				this.propertiesRepository.getStats(userId),
 				this.unitsRepository.getStats(userId),
 				this.leasesRepository.getStats(userId),
 				this.maintenanceRepository.getAnalytics(userId, { timeframe: '12m' }),
-				this.propertiesRepository.getFinancialAnalytics(userId, { timeframe: '12m' })
+				this.propertiesRepository.getFinancialAnalytics(userId, {
+					timeframe: '12m'
+				})
 			])
 
-			const totalRevenue = financialAnalytics.reduce((sum, metric) => sum + (metric.revenue || 0), 0)
-			const totalExpenses = financialAnalytics.reduce((sum, metric) => sum + (metric.expenses || 0), 0)
+			const totalRevenue = financialAnalytics.reduce(
+				(sum, metric) => sum + (metric.revenue || 0),
+				0
+			)
+			const totalExpenses = financialAnalytics.reduce(
+				(sum, metric) => sum + (metric.expenses || 0),
+				0
+			)
 			const netIncome = totalRevenue - totalExpenses
 			const occupancyRate = unitStats.occupancyRate || 0
-			const roi = totalRevenue > 0 ? Math.round((netIncome / totalRevenue) * 100) : 0
-			const avgPropertyRevenue = financialAnalytics.length > 0 ? totalRevenue / financialAnalytics.length : 0
-			const totalMaintenanceCost = financialAnalytics.reduce((sum, metric) => sum + (metric.maintenanceExpenses || 0), 0)
+			const roi =
+				totalRevenue > 0 ? Math.round((netIncome / totalRevenue) * 100) : 0
+			const avgPropertyRevenue =
+				financialAnalytics.length > 0
+					? totalRevenue / financialAnalytics.length
+					: 0
+			const totalMaintenanceCost = financialAnalytics.reduce(
+				(sum, metric) => sum + (metric.maintenanceExpenses || 0),
+				0
+			)
 
 			return {
 				summary: {
@@ -118,7 +156,10 @@ export class FinancialService {
 				maintenance: {
 					totalRequests: maintenanceAnalytics.length,
 					totalCost: totalMaintenanceCost,
-					avgCost: maintenanceAnalytics.length > 0 ? totalMaintenanceCost / maintenanceAnalytics.length : 0
+					avgCost:
+						maintenanceAnalytics.length > 0
+							? totalMaintenanceCost / maintenanceAnalytics.length
+							: 0
 				},
 				year: targetYear
 			}
@@ -136,9 +177,13 @@ export class FinancialService {
 	 * Get lease financial summary - replaces get_lease_financial_summary function
 	 * Uses repository pattern instead of database function
 	 */
-	async getLeaseFinancialSummary(userId: string): Promise<Record<string, unknown>> {
+	async getLeaseFinancialSummary(
+		userId: string
+	): Promise<Record<string, unknown>> {
 		try {
-			this.logger.log('Getting lease financial summary via repositories', { userId })
+			this.logger.log('Getting lease financial summary via repositories', {
+				userId
+			})
 
 			const [leaseStats, leaseAnalytics] = await Promise.all([
 				this.leasesRepository.getStats(userId),
@@ -146,21 +191,30 @@ export class FinancialService {
 			])
 
 			// Calculate lease financial metrics
-			const totalRevenue = leaseAnalytics.reduce((sum: number, lease: Lease) => {
-				return sum + (lease.rentAmount || 0)
-			}, 0)
+			const totalRevenue = leaseAnalytics.reduce(
+				(sum: number, lease: Lease) => {
+					return sum + (lease.rentAmount || 0)
+				},
+				0
+			)
 
-			const averageRent = leaseAnalytics.length > 0 ? totalRevenue / leaseAnalytics.length : 0
+			const averageRent =
+				leaseAnalytics.length > 0 ? totalRevenue / leaseAnalytics.length : 0
 
 			// Calculate lease duration analytics
-			const totalDuration = leaseAnalytics.reduce((sum: number, lease: Lease) => {
-				const start = new Date(lease.startDate)
-				const end = new Date(lease.endDate)
-				const durationMonths = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30.44)
-				return sum + durationMonths
-			}, 0)
+			const totalDuration = leaseAnalytics.reduce(
+				(sum: number, lease: Lease) => {
+					const start = new Date(lease.startDate)
+					const end = new Date(lease.endDate)
+					const durationMonths =
+						(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30.44)
+					return sum + durationMonths
+				},
+				0
+			)
 
-			const averageDuration = leaseAnalytics.length > 0 ? totalDuration / leaseAnalytics.length : 0
+			const averageDuration =
+				leaseAnalytics.length > 0 ? totalDuration / leaseAnalytics.length : 0
 
 			return {
 				summary: {
@@ -191,10 +245,16 @@ export class FinancialService {
 	/**
 	 * Get revenue trends - extracted from controller
 	 */
-	async getRevenueTrends(userId: string, year?: number): Promise<FinancialMetrics[]> {
+	async getRevenueTrends(
+		userId: string,
+		year?: number
+	): Promise<FinancialMetrics[]> {
 		try {
 			const targetYear = year || new Date().getFullYear()
-			this.logger.log('Getting revenue trends via repositories', { userId, targetYear })
+			this.logger.log('Getting revenue trends via repositories', {
+				userId,
+				targetYear
+			})
 
 			const propertyIds = await this.getUserPropertyIds(userId)
 			const yearStart = new Date(targetYear, 0, 1)
@@ -214,7 +274,8 @@ export class FinancialService {
 				const revenue = revenueByMonth.get(monthKey) ?? 0
 				const monthlyExpenses = expensesByMonth.get(monthKey) ?? 0
 				const netIncome = revenue - monthlyExpenses
-				const profitMargin = revenue > 0 ? Number(((netIncome / revenue) * 100).toFixed(2)) : 0
+				const profitMargin =
+					revenue > 0 ? Number(((netIncome / revenue) * 100).toFixed(2)) : 0
 
 				monthlyMetrics.push({
 					period: monthKey,
@@ -239,19 +300,31 @@ export class FinancialService {
 	/**
 	 * Get Net Operating Income - extracted from controller
 	 */
-	async getNetOperatingIncome(userId: string, period = 'monthly'): Promise<PropertyFinancialMetrics[]> {
+	async getNetOperatingIncome(
+		userId: string,
+		period = 'monthly'
+	): Promise<PropertyFinancialMetrics[]> {
 		try {
-			this.logger.log('Getting Net Operating Income via repositories', { userId, period })
+			this.logger.log('Getting Net Operating Income via repositories', {
+				userId,
+				period
+			})
 
 			const timeframe = this.periodToTimeframe(period)
-			const financialAnalytics = await this.propertiesRepository.getFinancialAnalytics(userId, { timeframe })
+			const financialAnalytics =
+				await this.propertiesRepository.getFinancialAnalytics(userId, {
+					timeframe
+				})
 			return financialAnalytics.map(metric => ({
 				propertyId: metric.propertyId,
 				propertyName: metric.propertyName,
 				revenue: metric.revenue,
 				expenses: metric.expenses,
 				netIncome: metric.netIncome,
-				roi: metric.revenue > 0 ? Math.round((metric.netIncome / metric.revenue) * 100) : 0,
+				roi:
+					metric.revenue > 0
+						? Math.round((metric.netIncome / metric.revenue) * 100)
+						: 0,
 				period
 			}))
 		} catch (error) {
@@ -277,7 +350,11 @@ export class FinancialService {
 		return { startDate, endDate }
 	}
 
-	private async fetchExpenses(propertyIds: string[], startDate?: Date, endDate?: Date) {
+	private async fetchExpenses(
+		propertyIds: string[],
+		startDate?: Date,
+		endDate?: Date
+	) {
 		if (!propertyIds.length) {
 			return [] as ExpenseRecord[]
 		}
@@ -285,7 +362,7 @@ export class FinancialService {
 		try {
 			let query = this.supabaseService
 				.getAdminClient()
-				.from('Expense')
+				.from('expense')
 				.select('*')
 				.in('propertyId', propertyIds)
 
@@ -298,23 +375,29 @@ export class FinancialService {
 
 			const { data, error } = await query
 			if (error) {
-				this.logger.error('Failed to fetch expense data for financial metrics', {
-					error: error.message,
-					propertyCount: propertyIds.length,
-					startDate: startDate?.toISOString(),
-					endDate: endDate?.toISOString()
-				})
+				this.logger.error(
+					'Failed to fetch expense data for financial metrics',
+					{
+						error: error.message,
+						propertyCount: propertyIds.length,
+						startDate: startDate?.toISOString(),
+						endDate: endDate?.toISOString()
+					}
+				)
 				return []
 			}
 
 			return (data as ExpenseRecord[]) ?? []
 		} catch (error) {
-			this.logger.error('Unexpected error fetching expenses for financial metrics', {
-				error: error instanceof Error ? error.message : String(error),
-				propertyCount: propertyIds.length,
-				startDate: startDate?.toISOString(),
-				endDate: endDate?.toISOString()
-			})
+			this.logger.error(
+				'Unexpected error fetching expenses for financial metrics',
+				{
+					error: error instanceof Error ? error.message : String(error),
+					propertyCount: propertyIds.length,
+					startDate: startDate?.toISOString(),
+					endDate: endDate?.toISOString()
+				}
+			)
 			return []
 		}
 	}
@@ -347,7 +430,10 @@ export class FinancialService {
 				continue
 			}
 			const expenseDate = new Date(expense.date)
-			const key = this.buildMonthKey(expenseDate.getFullYear(), expenseDate.getMonth())
+			const key = this.buildMonthKey(
+				expenseDate.getFullYear(),
+				expenseDate.getMonth()
+			)
 			map.set(key, (map.get(key) ?? 0) + (expense.amount ?? 0))
 		}
 		return map

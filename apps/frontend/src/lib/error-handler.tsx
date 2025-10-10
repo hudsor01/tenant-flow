@@ -51,7 +51,6 @@ export function categorizeError(
 	const isTimeoutError =
 		errorMessage.includes('timeout') || errorMessage.includes('took too long')
 
-	// Network errors - encourage retry
 	if (isNetworkError || isTimeoutError) {
 		return {
 			title: 'Connection Issue',
@@ -62,7 +61,6 @@ export function categorizeError(
 		}
 	}
 
-	// Validation errors - guide user to fix input
 	if (isValidationError) {
 		return {
 			title: 'Input Error',
@@ -73,7 +71,6 @@ export function categorizeError(
 		}
 	}
 
-	// Authentication errors - redirect to login
 	if (isAuthError) {
 		return {
 			title: 'Access Required',
@@ -84,7 +81,6 @@ export function categorizeError(
 		}
 	}
 
-	// Server errors - system issue
 	if (isServerError) {
 		return {
 			title: 'Service Temporarily Unavailable',
@@ -96,7 +92,6 @@ export function categorizeError(
 		}
 	}
 
-	// Not found errors - resource doesn't exist
 	if (isNotFoundError) {
 		const entityType = context?.entityType || 'item'
 		return {
@@ -108,7 +103,6 @@ export function categorizeError(
 		}
 	}
 
-	// Generic fallback
 	return {
 		title: 'Something Went Wrong',
 		message: 'An unexpected error occurred. Please try again.',
@@ -126,7 +120,6 @@ export function showErrorToast(error: unknown, context?: ErrorContext): void {
 	const operation = context?.operation ? ` ${context.operation}` : ''
 	const entityType = context?.entityType ? ` ${context.entityType}` : ''
 
-	// Log technical details for debugging
 	logger.error(`Error during${operation}${entityType}`, {
 		action: 'error_handler_invoked',
 		metadata: {
@@ -136,7 +129,6 @@ export function showErrorToast(error: unknown, context?: ErrorContext): void {
 		}
 	})
 
-	// Show user-friendly toast
 	toast.error(userError.title, {
 		description: userError.message,
 		action: userError.canRetry

@@ -1,4 +1,12 @@
 import { reportsClient } from '@/lib/api/reports-client'
+import {
+	getMonthlyRevenue,
+	getOccupancyMetrics,
+	getPaymentAnalytics,
+	type OccupancyMetrics,
+	type PaymentAnalytics,
+	type RevenueData
+} from '@/lib/api/reports'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -6,17 +14,38 @@ import { toast } from 'sonner'
 // module-scoped timers map for delete undo timeouts
 const deleteReportTimers = new Map<string, number>()
 
+
+import type { Report } from '@/lib/api/reports-client'
+
+import type { UseMutationResult } from '@tanstack/react-query'
+
+type UseReportsResult = {
+	reports: Report[]
+	total: number
+	isLoading: boolean
+	isFetching: boolean
+	deleteMutation: UseMutationResult<
+		void,
+		unknown,
+		string,
+		{ previous?: unknown }
+	>
+	downloadMutation: UseMutationResult<void, unknown, string, unknown>
+	downloadingIds: Set<string>
+	deletingIds: Set<string>
+	downloadReport: (reportId: string) => void
+	deleteReport: (reportId: string) => void
+}
+
 export function useReports({
 	offset,
 	limit = 20
 }: {
 	offset: number
 	limit?: number
-}) {
+}): UseReportsResult {
 	const queryClient = useQueryClient()
-
 	const queryKey = ['reports', offset, limit] as const
-
 	type ListResponse = Awaited<ReturnType<typeof reportsClient.listReports>>
 
 	// Keep track of per-id pending operations so the UI can show per-row spinners
@@ -199,4 +228,37 @@ export function useReports({
 		downloadReport,
 		deleteReport
 	}
+}
+
+/**
+ * Hook to get monthly revenue data for charts
+ * Phase 5: Advanced Features
+ */
+export function useMonthlyRevenue(months: number = 12) {
+	return useQuery<RevenueData[]>({
+		queryKey: ['reports', 'revenue', 'monthly', months],
+		queryFn: () => getMonthlyRevenue(months)
+	})
+}
+
+/**
+ * Hook to get payment analytics for dashboard
+ * Phase 5: Advanced Features
+ */
+export function usePaymentAnalytics(startDate?: string, endDate?: string) {
+	return useQuery<PaymentAnalytics>({
+		queryKey: ['reports', 'analytics', 'payments', startDate, endDate],
+		queryFn: () => getPaymentAnalytics(startDate, endDate)
+	})
+}
+
+/**
+ * Hook to get occupancy metrics across all properties
+ * Phase 5: Advanced Features
+ */
+export function useOccupancyMetrics() {
+	return useQuery<OccupancyMetrics>({
+		queryKey: ['reports', 'analytics', 'occupancy'],
+		queryFn: getOccupancyMetrics
+	})
 }

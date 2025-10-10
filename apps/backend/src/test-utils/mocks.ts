@@ -21,7 +21,7 @@ import type {
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { User } from '@supabase/supabase-js'
 
-type DatabaseUser = Database['public']['Tables']['User']['Row']
+type DatabaseUser = Database['public']['Tables']['users']['Row']
 
 /**
  * Creates a mock Supabase User object for testing
@@ -298,6 +298,9 @@ export function createMockLease(overrides?: Partial<Lease>): Lease {
 		securityDeposit: overrides?.securityDeposit || 1500,
 		propertyId: overrides?.propertyId || null,
 		terms: overrides?.terms || null,
+		gracePeriodDays: null,
+		lateFeeAmount: null,
+		lateFeePercentage: null,
 		status:
 			(overrides?.status as Database['public']['Enums']['LeaseStatus']) ||
 			'ACTIVE',

@@ -1,22 +1,20 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
-import { SupabaseService } from '../database/supabase.service'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { SupabaseService } from '../database/supabase.service'
 
-type UserInsert = Database['public']['Tables']['User']['Insert']
-type UserUpdate = Database['public']['Tables']['User']['Update']
+type UserInsert = Database['public']['Tables']['users']['Insert']
+type UserUpdate = Database['public']['Tables']['users']['Update']
 
 @Injectable()
 export class UsersService {
-	private readonly logger = new Logger(UsersService.name)
-
 	constructor(private readonly supabase: SupabaseService) {}
 
 	async findUserByEmail(
 		email: string
-	): Promise<Database['public']['Tables']['User']['Row'] | null> {
+	): Promise<Database['public']['Tables']['users']['Row'] | null> {
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('User')
+			.from('users')
 			.select('*')
 			.eq('email', email)
 			.single()
@@ -30,10 +28,10 @@ export class UsersService {
 
 	async createUser(
 		userData: UserInsert
-	): Promise<Database['public']['Tables']['User']['Row']> {
+	): Promise<Database['public']['Tables']['users']['Row']> {
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('User')
+			.from('users')
 			.insert(userData)
 			.select()
 			.single()
@@ -50,10 +48,10 @@ export class UsersService {
 	async updateUser(
 		userId: string,
 		userData: UserUpdate
-	): Promise<Database['public']['Tables']['User']['Row']> {
+	): Promise<Database['public']['Tables']['users']['Row']> {
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('User')
+			.from('users')
 			.update(userData)
 			.eq('id', userId)
 			.select()
@@ -70,10 +68,10 @@ export class UsersService {
 
 	async getUserById(
 		userId: string
-	): Promise<Database['public']['Tables']['User']['Row'] | null> {
+	): Promise<Database['public']['Tables']['users']['Row'] | null> {
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('User')
+			.from('users')
 			.select('*')
 			.eq('id', userId)
 			.single()

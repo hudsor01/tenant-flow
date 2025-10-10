@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/card'
+import { CardLayout } from '@/components/ui/card-layout'
 import { Button } from '@/components/ui/button'
 import { LoadingDots } from '@/components/magicui/loading-spinner'
 import { useSessionStatus } from '@/hooks/api/use-payment-verification'
@@ -104,16 +104,17 @@ export default function CompletePage() {
 	if (loading) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-white">
-				<Card className="w-full max-w-md">
-					<CardContent className="p-8">
-						<div className="flex flex-col items-center justify-center space-y-4">
-							<LoadingDots size="lg" variant="primary" />
-							<p className="text-[var(--color-text-secondary)]">
-								Checking payment status...
-							</p>
-						</div>
-					</CardContent>
-				</Card>
+				<CardLayout
+					title="Checking payment status..."
+					className="w-full max-w-md"
+				>
+					<div className="flex flex-col items-center justify-center space-y-4">
+						<LoadingDots size="lg" variant="primary" />
+						<p className="text-[var(--color-text-secondary)]">
+							Checking payment status...
+						</p>
+					</div>
+				</CardLayout>
 			</div>
 		)
 	}
@@ -123,89 +124,91 @@ export default function CompletePage() {
 			<div className="container mx-auto px-4 section-compact">
 				<div className="max-w-2xl mx-auto">
 					{/* Payment Status Display */}
-					<Card className="border-[var(--color-border)] shadow-lg">
-						<CardContent className="p-8">
-							<div id="payment-status" className="text-center">
-								{/* Status Icon */}
-								<div
-									id="status-icon"
-									className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
-									style={{ backgroundColor: iconColor }}
-								>
-									{icon}
-								</div>
+					<CardLayout
+						title="Payment Status"
+						description={text}
+						className="border-[var(--color-border)] shadow-lg"
+					>
+						<div id="payment-status" className="text-center">
+							{/* Status Icon */}
+							<div
+								id="status-icon"
+								className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+								style={{ backgroundColor: iconColor }}
+							>
+								{icon}
+							</div>
 
-								{/* Status Text */}
-								<h2 id="status-text" className="text-2xl font-bold text-[var(--color-text-primary)] mb-8">
-									{text}
-								</h2>
+							{/* Status Text */}
+							<h2 id="status-text" className="text-2xl font-bold text-[var(--color-text-primary)] mb-8">
+								{text}
+							</h2>
 
-								{/* Details Table */}
-								<div id="details-table" className="mb-8">
-									<div className="bg-[var(--color-fill-secondary)] rounded-lg p-6">
-										<table className="w-full">
-											<tbody className="space-y-3">
-												<tr className="border-b border-[var(--color-border)] last:border-b-0">
-													<td className="text-left py-2 text-[var(--color-text-secondary)] font-medium">
-														Payment Intent ID
-													</td>
-													<td id="intent-id" className="text-right py-2 text-[var(--color-text-primary)] font-mono text-sm">
-														{sessionData?.payment_intent_id || 'N/A'}
-													</td>
-												</tr>
-												<tr className="border-b border-[var(--color-border)] last:border-b-0">
-													<td className="text-left py-2 text-[var(--color-text-secondary)] font-medium">
-														Status
-													</td>
-													<td id="intent-status" className="text-right py-2 text-[var(--color-text-primary)] capitalize">
-														{sessionData?.status || 'Unknown'}
-													</td>
-												</tr>
-												<tr className="border-b border-[var(--color-border)] last:border-b-0">
-													<td className="text-left py-2 text-[var(--color-text-secondary)] font-medium">
-														Payment Status
-													</td>
-													<td id="session-status" className="text-right py-2 text-[var(--color-text-primary)] capitalize">
-														{sessionData?.payment_status || 'Unknown'}
-													</td>
-												</tr>
-												<tr className="border-b border-[var(--color-border)] last:border-b-0">
-													<td className="text-left py-2 text-[var(--color-text-secondary)] font-medium">
-														Payment Intent Status
-													</td>
-													<td id="payment-intent-status" className="text-right py-2 text-[var(--color-text-primary)] capitalize">
-														{sessionData?.payment_intent_status || 'Unknown'}
-													</td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
-								</div>
-
-								{/* Action Buttons */}
-								<div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-									{sessionData?.payment_intent_id && (
-										<a
-											href={`https://dashboard.stripe.com/payments/${sessionData.payment_intent_id}`}
-											id="view-details"
-											rel="noopener noreferrer"
-											target="_blank"
-											className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
-										>
-											View details
-											<ExternalLinkIcon />
-										</a>
-									)}
-
-									<Link href="/pricing/checkout" id="retry-button">
-										<Button variant="outline" className="h-11">
-											Test another
-										</Button>
-									</Link>
+							{/* Details Table */}
+							<div id="details-table" className="mb-8">
+								<div className="bg-[var(--color-fill-secondary)] rounded-lg p-6">
+									<table className="w-full">
+										<tbody className="space-y-3">
+											<tr className="border-b border-[var(--color-border)] last:border-b-0">
+												<td className="text-left py-2 text-[var(--color-text-secondary)] font-medium">
+													Payment Intent ID
+												</td>
+												<td id="intent-id" className="text-right py-2 text-[var(--color-text-primary)] font-mono text-sm">
+													{sessionData?.payment_intent_id || 'N/A'}
+												</td>
+											</tr>
+											<tr className="border-b border-[var(--color-border)] last:border-b-0">
+												<td className="text-left py-2 text-[var(--color-text-secondary)] font-medium">
+													Status
+												</td>
+												<td id="intent-status" className="text-right py-2 text-[var(--color-text-primary)] capitalize">
+													{sessionData?.status || 'Unknown'}
+												</td>
+											</tr>
+											<tr className="border-b border-[var(--color-border)] last:border-b-0">
+												<td className="text-left py-2 text-[var(--color-text-secondary)] font-medium">
+													Payment Status
+												</td>
+												<td id="session-status" className="text-right py-2 text-[var(--color-text-primary)] capitalize">
+													{sessionData?.payment_status || 'Unknown'}
+												</td>
+											</tr>
+											<tr className="border-b border-[var(--color-border)] last:border-b-0">
+												<td className="text-left py-2 text-[var(--color-text-secondary)] font-medium">
+													Payment Intent Status
+												</td>
+												<td id="payment-intent-status" className="text-right py-2 text-[var(--color-text-primary)] capitalize">
+													{sessionData?.payment_intent_status || 'Unknown'}
+												</td>
+											</tr>
+										</tbody>
+									</table>
 								</div>
 							</div>
-						</CardContent>
-					</Card>
+
+							{/* Action Buttons */}
+							<div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+								{sessionData?.payment_intent_id && (
+									<a
+										href={`https://dashboard.stripe.com/payments/${sessionData.payment_intent_id}`}
+										id="view-details"
+										rel="noopener noreferrer"
+										target="_blank"
+										className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
+									>
+										View details
+										<ExternalLinkIcon />
+									</a>
+								)}
+
+								<Link href="/pricing/checkout" id="retry-button">
+									<Button variant="outline" className="h-11">
+										Test another
+									</Button>
+								</Link>
+							</div>
+						</div>
+					</CardLayout>
 
 					{/* Success Message */}
 					{sessionData?.status === 'complete' && (

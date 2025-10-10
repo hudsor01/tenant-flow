@@ -1,12 +1,12 @@
 'use client'
 
-import type { Database } from '@repo/shared/types/supabase-generated'
+import { propertiesApi, tenantsApi } from '@/lib/api-client'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import type { PropertyWithUnits } from '@repo/shared/types/relations'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import { useQuery } from '@tanstack/react-query'
-import { propertiesApi, tenantsApi } from '@/lib/api-client'
 
-type Tenant = Database['public']['Tables']['Tenant']['Row']
+type Tenant = Database['public']['Tables']['tenant']['Row']
 
 /**
  * CLAUDE.md compliant virtualized data hooks
@@ -19,7 +19,11 @@ type Tenant = Database['public']['Tables']['Tenant']['Row']
 // Enhanced properties hook using pre-calculated analytics from database RPC functions
 export function useVirtualizedProperties(pageSize = 50) {
 	// Use properties with analytics RPC function instead of raw table data
-	const { data: propertiesWithAnalytics, isLoading, error } = useQuery<PropertyWithUnits[]>({
+	const {
+		data: propertiesWithAnalytics,
+		isLoading,
+		error
+	} = useQuery<PropertyWithUnits[]>({
 		queryKey: ['properties', 'virtualized-analytics', pageSize],
 		queryFn: async () => {
 			// Call RPC function that returns all calculations and formatting done server-side
@@ -50,7 +54,11 @@ export function useVirtualizedProperties(pageSize = 50) {
 // Enhanced tenants hook using pre-calculated analytics from database RPC functions
 export function useVirtualizedTenants(pageSize = 50) {
 	// Use tenants with analytics RPC function instead of raw table data
-	const { data: tenantsWithAnalytics, isLoading, error } = useQuery<TenantWithLeaseInfo[] | Tenant[]>({
+	const {
+		data: tenantsWithAnalytics,
+		isLoading,
+		error
+	} = useQuery<TenantWithLeaseInfo[] | Tenant[]>({
 		queryKey: ['tenants', 'virtualized-analytics', pageSize],
 		queryFn: async () => {
 			// Call RPC function that returns all calculations and formatting done server-side

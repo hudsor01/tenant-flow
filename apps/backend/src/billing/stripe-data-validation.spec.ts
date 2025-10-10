@@ -41,7 +41,12 @@ describe('Production Stripe Webhook Processing', () => {
 	let module: TestingModule
 
 	const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_test_secret'
-	const stripeKey = process.env.STRIPE_SECRET_KEY || 'sk_test_mock'
+	const stripeKey = process.env.STRIPE_SECRET_KEY
+	if (!stripeKey) {
+		throw new Error(
+			'STRIPE_SECRET_KEY must be set in environment variables for tests. See https://stripe.com/docs/keys#safe-keys'
+		)
+	}
 
 	const isProductionTest = () => {
 		return (
@@ -89,7 +94,7 @@ describe('Production Stripe Webhook Processing', () => {
 							eq: jest.fn(() => Promise.resolve({ error: null }))
 						})),
 						select: jest.fn(() => ({
-							eq: jest.fn((field: string, value: string) => ({
+							eq: jest.fn((_: string, value: string) => ({
 								single: jest.fn(() => {
 									// Return data if event is processed, null otherwise
 									const isProcessed =

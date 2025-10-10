@@ -69,20 +69,113 @@ export type TenantQuery = z.infer<typeof tenantQuerySchema>
 export type TenantStats = z.infer<typeof tenantStatsSchema>
 export type EmergencyContact = z.infer<typeof emergencyContactSchema>
 
-// Frontend-specific form schema (handles string inputs from HTML forms)
+// Enhanced frontend-specific form schema with better validation
 export const tenantFormSchema = z.object({
 	email: z
 		.string()
 		.min(1, 'Email is required')
-		.email('Please enter a valid email'),
-	name: z.string().optional(),
-	firstName: z.string().optional(),
-	lastName: z.string().optional(),
-	phone: z.string().optional(),
-	emergencyContact: z.string().optional(),
-	avatarUrl: z.string().url().optional(),
-	userId: z.string().optional()
+		.email('Please enter a valid email address')
+		.max(254, 'Email cannot exceed 254 characters'),
+	name: z
+		.string()
+		.max(200, 'Name cannot exceed 200 characters')
+		.optional()
+		.transform((val) => val?.trim() || undefined),
+	firstName: z
+		.string()
+		.min(1, 'First name is required')
+		.max(100, 'First name cannot exceed 100 characters')
+		.regex(/^[a-zA-Z\s'-]+$/, 'First name can only contain letters, spaces, hyphens, and apostrophes')
+		.optional()
+		.transform((val) => val?.trim() || undefined),
+	lastName: z
+		.string()
+		.min(1, 'Last name is required')
+		.max(100, 'Last name cannot exceed 100 characters')
+		.regex(/^[a-zA-Z\s'-]+$/, 'Last name can only contain letters, spaces, hyphens, and apostrophes')
+		.optional()
+		.transform((val) => val?.trim() || undefined),
+	phone: z
+		.string()
+		.optional()
+		.transform((val) => val?.replace(/[^\d+()-\s]/g, '') || undefined)
+		.refine(
+			(val) => !val || phoneSchema.safeParse(val).success,
+			'Please enter a valid phone number'
+		),
+	emergencyContact: z
+		.string()
+		.max(500, 'Emergency contact info cannot exceed 500 characters')
+		.optional()
+		.transform((val) => val?.trim() || undefined),
+	avatarUrl: z
+		.string()
+		.url('Please enter a valid URL')
+		.optional()
+		.transform((val) => val?.trim() || undefined),
+	userId: z
+		.string()
+		.uuid('User ID must be a valid UUID')
+		.optional()
 })
 
+// Enhanced validation schema for tenant creation with stricter requirements
+export const tenantCreateFormSchema = tenantFormSchema.extend({
+	email: z
+		.string()
+		.min(1, 'Email is required')
+		.email('Please enter a valid email address')
+		.max(254, 'Email cannot exceed 254 characters'),
+	firstName: z
+		.string()
+		.min(1, 'First name is required')
+		.max(100, 'First name cannot exceed 100 characters')
+		.regex(/^[a-zA-Z\s'-]+$/, 'First name can only contain letters, spaces, hyphens, and apostrophes'),
+	lastName: z
+		.string()
+		.min(1, 'Last name is required')
+		.max(100, 'Last name cannot exceed 100 characters')
+		.regex(/^[a-zA-Z\s'-]+$/, 'Last name can only contain letters, spaces, hyphens, and apostrophes')
+})
+
+// Enhanced validation schema for tenant updates with optional fields
+export const tenantUpdateFormSchema = tenantFormSchema.partial()
+
+// Utility types for better form state management
 export type TenantFormData = z.input<typeof tenantFormSchema>
 export type TenantFormOutput = z.output<typeof tenantFormSchema>
+export type TenantCreateFormData = z.input<typeof tenantCreateFormSchema>
+export type TenantUpdateFormData = z.input<typeof tenantUpdateFormSchema>
+
+// Type utilities for form validation results
+export type TenantFormValidationResult = {
+	success: boolean
+	data?: TenantFormOutput
+	errors?: z.ZodError
+}
+
+// Enhanced error handling type
+export type TenantFormError = {
+	field: keyof TenantFormData
+	message: string
+	code?: string
+}
+
+// Validation utility functions
+export const validateTenantForm = (data: TenantFormData): TenantFormValidationResult => {
+	const result = tenantFormSchema.safeParse(data)
+	return {
+		success: result.success,
+		data: result.success ? result.data : undefined,
+		errors: result.success ? undefined : result.error
+	}
+}
+
+export const validateTenantCreateForm = (data: TenantCreateFormData): TenantFormValidationResult => {
+	const result = tenantCreateFormSchema.safeParse(data)
+	return {
+		success: result.success,
+		data: result.success ? result.data : undefined,
+		errors: result.success ? undefined : result.error
+	}
+}

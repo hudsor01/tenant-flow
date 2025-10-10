@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing'
 import { ExportService } from './export.service'
 import { GeneratedReportService } from './generated-report.service'
 import { ReportsController } from './reports.controller'
+import { ReportsService } from './reports.service'
 import { ScheduledReportService } from './scheduled-report.service'
 import { ExecutiveMonthlyTemplate } from './templates/executive-monthly.template'
 import { FinancialPerformanceTemplate } from './templates/financial-performance.template'
@@ -32,6 +33,10 @@ describe('ReportsController', () => {
 				},
 				{
 					provide: GeneratedReportService,
+					useValue: {}
+				},
+				{
+					provide: ReportsService,
 					useValue: {}
 				},
 				{

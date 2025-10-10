@@ -47,7 +47,7 @@ export class StripeEventProcessor {
 			// Update user payment status if metadata contains user ID
 			if (paymentIntent.metadata?.tenant_id) {
 				const { error } = await supabase
-					.from('User')
+					.from('users')
 					.update({
 						stripeCustomerId: paymentIntent.customer as string,
 						lastPaymentDate: new Date().toISOString()
@@ -146,7 +146,7 @@ export class StripeEventProcessor {
 
 			// Save payment method for future use
 			if (setupIntent.payment_method && setupIntent.metadata?.user_id) {
-				const { error } = await supabase.from('PaymentMethod').upsert(
+				const { error } = await supabase.from('payment_method').upsert(
 					{
 						id: setupIntent.payment_method as string, // Use payment method ID as primary key
 						tenantId: setupIntent.metadata.user_id,
@@ -204,7 +204,7 @@ export class StripeEventProcessor {
 
 			// Get user by Stripe customer ID
 			const { data: user } = await supabase
-				.from('User')
+				.from('users')
 				.select('id, email, name')
 				.eq('stripeCustomerId', subscription.customer as string)
 				.single()
@@ -217,7 +217,7 @@ export class StripeEventProcessor {
 			}
 
 			// Create or update subscription record
-			const { error } = await supabase.from('Subscription').upsert(
+			const { error } = await supabase.from('subscription').upsert(
 				{
 					stripeSubscriptionId: subscription.id,
 					stripeCustomerId: subscription.customer as string,
@@ -245,7 +245,7 @@ export class StripeEventProcessor {
 			}
 
 			// Log subscription status change in UserAccessLog
-			await supabase.from('UserAccessLog').insert({
+			await supabase.from('user_access_log').insert({
 				userId: user.id,
 				subscriptionStatus: subscription.status.toUpperCase() as
 					| 'ACTIVE'
@@ -281,7 +281,7 @@ export class StripeEventProcessor {
 
 			// Update subscription record
 			const { error } = await supabase
-				.from('Subscription')
+				.from('subscription')
 				.update({
 					status: subscription.status.toUpperCase() as SubscriptionStatus,
 					currentPeriodEnd: (subscription as SubscriptionWithPeriod)
@@ -304,13 +304,13 @@ export class StripeEventProcessor {
 
 			// Update user subscription status
 			const { data: subRecord } = await supabase
-				.from('Subscription')
+				.from('subscription')
 				.select('userId')
 				.eq('stripeSubscriptionId', subscription.id)
 				.single()
 
 			if (subRecord) {
-				await supabase.from('UserAccessLog').insert({
+				await supabase.from('user_access_log').insert({
 					userId: subRecord.userId,
 					subscriptionStatus: subscription.status.toUpperCase() as
 						| 'ACTIVE'
@@ -350,8 +350,8 @@ export class StripeEventProcessor {
 
 			// Get user details before updating
 			const { data: subRecord } = await supabase
-				.from('Subscription')
-				.select('userId, User!inner(email, name)')
+				.from('subscription')
+				.select('userId, users!subscription_userId_fkey!inner(email, name)')
 				.eq('stripeSubscriptionId', subscription.id)
 				.single()
 
@@ -364,7 +364,7 @@ export class StripeEventProcessor {
 
 			// Update subscription status to CANCELLED
 			await supabase
-				.from('Subscription')
+				.from('subscription')
 				.update({
 					status: 'CANCELED',
 					cancelledAt: new Date().toISOString()
@@ -372,7 +372,7 @@ export class StripeEventProcessor {
 				.eq('stripeSubscriptionId', subscription.id)
 
 			// Log subscription cancellation in UserAccessLog
-			await supabase.from('UserAccessLog').insert({
+			await supabase.from('user_access_log').insert({
 				userId: subRecord.userId,
 				subscriptionStatus: 'CANCELED',
 				planType: 'NONE',
@@ -381,7 +381,12 @@ export class StripeEventProcessor {
 			})
 
 			// Log subscription cancelled notification (email functionality removed per NO ABSTRACTIONS)
-			const userRecord = subRecord.User
+			const userRecord = (
+				subRecord as unknown as {
+					userId: string
+					users: { email: string; name: string | null } | null
+				}
+			).users
 			if (userRecord?.email) {
 				this.logger.log('Subscription cancelled notification', {
 					email: userRecord.email,
@@ -591,7 +596,7 @@ export class StripeEventProcessor {
 	private async getUserByStripeCustomerId(customerId: string) {
 		const supabase = this.supabaseService.getAdminClient()
 		const { data, error } = await supabase
-			.from('User')
+			.from('users')
 			.select('id, email, name')
 			.eq('stripeCustomerId', customerId)
 			.single()
@@ -652,7 +657,7 @@ export class StripeEventProcessor {
 
 		// Update subscription status to SUSPENDED
 		const { error } = await supabase
-			.from('Subscription')
+			.from('subscription')
 			.update({
 				status: 'PAST_DUE',
 				suspendedAt: new Date().toISOString()
@@ -668,13 +673,13 @@ export class StripeEventProcessor {
 
 		// Update user subscription status
 		const { data: subRecord } = await supabase
-			.from('Subscription')
+			.from('subscription')
 			.select('userId')
 			.eq('stripeSubscriptionId', subscriptionId)
 			.single()
 
 		if (subRecord?.userId) {
-			await supabase.from('UserAccessLog').insert({
+			await supabase.from('user_access_log').insert({
 				userId: subRecord.userId,
 				subscriptionStatus: 'PAST_DUE',
 				planType: 'LIMITED',

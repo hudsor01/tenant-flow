@@ -11,6 +11,7 @@
 		"jsx": "react-jsx",
 		"removeComments": false,
 		"module": "nodenext",
-		"moduleResolution": "nodenext"
+		"moduleResolution": "nodenext",
+		"verbatimModuleSyntax": false
 	}
 }

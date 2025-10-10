@@ -11,8 +11,9 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { ArrowUpRight, TrendingUp, TrendingDown, Minus, Loader2 } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { usePropertyPerformance } from '@/hooks/api/use-dashboard'
+import { ArrowUpRight, Minus, TrendingDown, TrendingUp } from 'lucide-react'
 
 const formatCurrency = (amount: number) => {
 	return new Intl.NumberFormat('en-US', {
@@ -62,8 +63,10 @@ export function PropertyPerformanceTable() {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center py-8">
-				<Loader2 className="h-6 w-6 animate-spin" />
-				<span className="ml-2 text-sm text-muted-foreground">Loading property performance...</span>
+				<Spinner className="h-6 w-6 animate-spin" />
+				<span className="ml-2 text-sm text-muted-foreground">
+					Loading property performance...
+				</span>
 			</div>
 		)
 	}
@@ -71,7 +74,9 @@ export function PropertyPerformanceTable() {
 	if (error) {
 		return (
 			<div className="text-center py-8">
-				<p className="text-sm text-muted-foreground">Failed to load property performance data</p>
+				<p className="text-sm text-muted-foreground">
+					Failed to load property performance data
+				</p>
 			</div>
 		)
 	}
@@ -79,7 +84,9 @@ export function PropertyPerformanceTable() {
 	if (!properties || properties.length === 0) {
 		return (
 			<div className="text-center py-8">
-				<p className="text-sm text-muted-foreground">No property data available</p>
+				<p className="text-sm text-muted-foreground">
+					No property data available
+				</p>
 			</div>
 		)
 	}
@@ -99,9 +106,14 @@ export function PropertyPerformanceTable() {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{properties.map((property) => {
+						{properties.map(property => {
 							// Generate avatar initials from property name
-							const avatar = property.property.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase()
+							const avatar = property.property
+								.split(' ')
+								.map(word => word[0])
+								.join('')
+								.slice(0, 2)
+								.toUpperCase()
 							// Calculate trend - for now just show as stable since API doesn't provide trend data
 							const trend = 'stable'
 							const trendPercentage = 0
@@ -128,12 +140,16 @@ export function PropertyPerformanceTable() {
 											<div className="font-medium">
 												{property.occupiedUnits}/{property.totalUnits}
 											</div>
-											<div className="text-sm text-muted-foreground">occupied</div>
+											<div className="text-sm text-muted-foreground">
+												occupied
+											</div>
 										</div>
 									</TableCell>
 									<TableCell>
 										<div className="space-y-1">
-											<div className="font-medium">{property.occupancyRate?.toFixed(1)}%</div>
+											<div className="font-medium">
+												{property.occupancyRate?.toFixed(1)}%
+											</div>
 											{getOccupancyBadge(property.occupancyRate || 0)}
 										</div>
 									</TableCell>
@@ -144,7 +160,10 @@ export function PropertyPerformanceTable() {
 										<div className="text-sm text-muted-foreground">monthly</div>
 									</TableCell>
 									<TableCell>
-										<div className="flex items-center gap-1 text-sm font-medium" style={{ color: getTrendColor(trend) }}>
+										<div
+											className="flex items-center gap-1 text-sm font-medium"
+											style={{ color: getTrendColor(trend) }}
+										>
 											{getTrendIcon(trend)}
 											{Math.abs(trendPercentage)}%
 										</div>
