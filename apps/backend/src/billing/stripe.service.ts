@@ -21,6 +21,9 @@ export class StripeService {
 		// Following Stripe's recommended initialization pattern
 		// In TypeScript, we use the constructor but the pattern is functionally equivalent
 		this.stripe = new Stripe(stripeSecretKey, {
+			// Align apiVersion with the Stripe types used in the repo to satisfy
+			// the literal union type in @types/stripe. Update if you intentionally
+			// need a different Stripe preview version.
 			apiVersion: '2025-09-30.clover',
 			typescript: true
 		})

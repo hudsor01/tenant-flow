@@ -2,6 +2,10 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
+import { useDashboardActivity } from '@/hooks/api/use-dashboard'
+import type { Tables } from '@repo/shared/types/supabase'
+import { formatDistanceToNow } from 'date-fns'
 import {
 	CheckCircle,
 	Clock,
@@ -10,12 +14,8 @@ import {
 	User,
 	Wrench
 } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
-import { Spinner } from '@/components/ui/spinner'
-import { useDashboardActivity } from '@/hooks/api/use-dashboard'
-import type { Tables } from '@repo/shared/types/supabase'
 
-type Activity = Tables<'Activity'>
+type Activity = Tables<'activity'>
 
 const getActivityBadge = (type: string) => {
 	const badgeStyles = {

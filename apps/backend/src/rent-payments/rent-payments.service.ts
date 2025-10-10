@@ -93,7 +93,7 @@ export class RentPaymentsService {
 		const adminClient = this.supabase.getAdminClient()
 
 		const { data: tenant, error: tenantError } = await adminClient
-			.from('Tenant')
+			.from('tenant')
 			.select('id, userId, email, firstName, lastName')
 			.eq('id', tenantId)
 			.single<Tenant>()
@@ -111,7 +111,7 @@ export class RentPaymentsService {
 		}
 
 		const { data: tenantUser, error: userError } = await adminClient
-			.from('User')
+			.from('users')
 			.select('id, stripeCustomerId, firstName, lastName, email')
 			.eq('id', tenant.userId)
 			.single<User>()
@@ -132,7 +132,7 @@ export class RentPaymentsService {
 		const adminClient = this.supabase.getAdminClient()
 
 		const { data: lease, error: leaseError } = await adminClient
-			.from('Lease')
+			.from('lease')
 			.select('id, tenantId, rentAmount, unitId')
 			.eq('id', leaseId)
 			.single<Lease>()
@@ -146,7 +146,7 @@ export class RentPaymentsService {
 		}
 
 		const { data: unit, error: unitError } = await adminClient
-			.from('Unit')
+			.from('unit')
 			.select('propertyId')
 			.eq('id', lease.unitId)
 			.single()
@@ -156,7 +156,7 @@ export class RentPaymentsService {
 		}
 
 		const { data: property, error: propertyError } = await adminClient
-			.from('Property')
+			.from('property')
 			.select('ownerId')
 			.eq('id', unit.propertyId)
 			.single()
@@ -166,7 +166,7 @@ export class RentPaymentsService {
 		}
 
 		const { data: landlord, error: landlordError } = await adminClient
-			.from('User')
+			.from('users')
 			.select('id, stripeAccountId, subscriptionTier')
 			.eq('id', property.ownerId)
 			.single<User>()
@@ -217,7 +217,7 @@ export class RentPaymentsService {
 		const amountInCents = this.normalizeAmount(amount)
 
 		const { data: paymentMethod, error: paymentMethodError } = await adminClient
-			.from('TenantPaymentMethod')
+			.from('tenant_payment_method')
 			.select('stripePaymentMethodId, type, stripeCustomerId')
 			.eq('id', paymentMethodId)
 			.eq('tenantId', tenantUser.id)
@@ -250,7 +250,7 @@ export class RentPaymentsService {
 			stripeCustomerId = customer.id
 
 			await adminClient
-				.from('User')
+				.from('users')
 				.update({
 					stripeCustomerId,
 					updatedAt: new Date().toISOString()
@@ -290,7 +290,7 @@ export class RentPaymentsService {
 		const now = new Date().toISOString()
 
 		const { data: rentPayment, error: paymentError } = await adminClient
-			.from('RentPayment')
+			.from('rent_payment')
 			.insert({
 				tenantId: tenantUser.id,
 				landlordId: landlord.id,
@@ -337,9 +337,9 @@ export class RentPaymentsService {
 	async getPaymentHistory(landlordId: string) {
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('RentPayment')
+			.from('rent_payment')
 			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, landlordReceives'
+				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, landlordReceives, dueDate'
 			)
 			.eq('landlordId', landlordId)
 			.order('createdAt', { ascending: false })
@@ -362,7 +362,7 @@ export class RentPaymentsService {
 		const adminClient = this.supabase.getAdminClient()
 
 		const { data: subscription, error: subscriptionError } = await adminClient
-			.from('RentSubscription')
+			.from('rent_subscription')
 			.select('id, landlordId')
 			.eq('id', subscriptionId)
 			.single<RentSubscription>()
@@ -376,9 +376,9 @@ export class RentPaymentsService {
 		}
 
 		const { data, error } = await adminClient
-			.from('RentPayment')
+			.from('rent_payment')
 			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, landlordReceives'
+				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, landlordReceives, dueDate'
 			)
 			.eq('subscriptionId', subscriptionId)
 			.order('createdAt', { ascending: false })
@@ -399,7 +399,7 @@ export class RentPaymentsService {
 	async getFailedPaymentAttempts(landlordId: string) {
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('RentPayment')
+			.from('rent_payment')
 			.select(
 				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
 			)
@@ -425,7 +425,7 @@ export class RentPaymentsService {
 		const adminClient = this.supabase.getAdminClient()
 
 		const { data: subscription, error: subscriptionError } = await adminClient
-			.from('RentSubscription')
+			.from('rent_subscription')
 			.select('id, landlordId')
 			.eq('id', subscriptionId)
 			.single<RentSubscription>()
@@ -439,7 +439,7 @@ export class RentPaymentsService {
 		}
 
 		const { data, error } = await adminClient
-			.from('RentPayment')
+			.from('rent_payment')
 			.select(
 				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
 			)

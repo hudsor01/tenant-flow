@@ -1,8 +1,11 @@
-// Recharts component - hex colors in CSS selectors are matching Recharts internal SVG attributes
 'use client'
 
 import * as React from 'react'
 import * as RechartsPrimitive from 'recharts'
+import type {
+	Payload as RechartsPayload,
+	ValueType
+} from 'recharts/types/component/DefaultTooltipContent'
 
 import { cn } from '@/lib/utils'
 
@@ -56,9 +59,7 @@ function ChartContainer({
 				data-slot="chart"
 				data-chart={chartId}
 				className={cn(
-					// Hex colors are CSS selectors matching Recharts internal SVG stroke attributes
-					// eslint-disable-next-line color-tokens/no-hex-colors
-					"[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border flex aspect-video justify-center text-xs [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-surface]:outline-hidden",
+					"[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='var(--color-border)']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-polar-grid_[stroke='var(--color-border)']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='var(--color-border)']]:stroke-border flex aspect-video justify-center text-xs [&_.recharts-dot[stroke='var(--color-background)']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='var(--color-background)']]:stroke-transparent [&_.recharts-surface]:outline-hidden",
 					className
 				)}
 				{...props}
@@ -109,7 +110,7 @@ const ChartTooltip = RechartsPrimitive.Tooltip
 
 function ChartTooltipContent({
 	active,
-	payload,
+	payload: tooltipPayload,
 	className,
 	indicator = 'dot',
 	hideLabel = false,
@@ -128,8 +129,18 @@ function ChartTooltipContent({
 		indicator?: 'line' | 'dot' | 'dashed'
 		nameKey?: string
 		labelKey?: string
+		payload?: Array<{
+			type?: 'none' | string
+			color?: string
+			dataKey?: string
+			name?: string
+			value?: unknown
+			payload?: Record<string, unknown>
+		}>
+		label?: string
 	}) {
 	const { config } = useChart()
+	const payload = tooltipPayload
 
 	const tooltipLabel = React.useMemo(() => {
 		if (hideLabel || !payload?.length) {
@@ -138,7 +149,13 @@ function ChartTooltipContent({
 
 		const [item] = payload
 		const key = `${labelKey || item?.dataKey || item?.name || 'value'}`
-		const itemConfig = getPayloadConfigFromPayload(config, item, key)
+		// Recharts payload types are often readonly / generic — cast locally to a
+		// simple Record to satisfy our helper which reads arbitrary keys.
+		const itemConfig = getPayloadConfigFromPayload(
+			config,
+			item as unknown as Record<string, unknown>,
+			key
+		)
 		const value =
 			!labelKey && typeof label === 'string'
 				? config[label as keyof typeof config]?.label || label
@@ -147,7 +164,14 @@ function ChartTooltipContent({
 		if (labelFormatter) {
 			return (
 				<div className={cn('font-medium', labelClassName)}>
-					{labelFormatter(value, payload)}
+					{labelFormatter(
+						value,
+						// Convert readonly/generic payload to a concrete mutable array for caller
+						(tooltipPayload as unknown as RechartsPayload<
+							ValueType,
+							string
+						>[]) || []
+					)}
 				</div>
 			)
 		}
@@ -164,7 +188,8 @@ function ChartTooltipContent({
 		hideLabel,
 		labelClassName,
 		config,
-		labelKey
+		labelKey,
+		tooltipPayload
 	])
 
 	if (!active || !payload?.length) {
@@ -186,8 +211,19 @@ function ChartTooltipContent({
 					.filter(item => item.type !== 'none')
 					.map((item, index) => {
 						const key = `${nameKey || item.name || item.dataKey || 'value'}`
-						const itemConfig = getPayloadConfigFromPayload(config, item, key)
-						const indicatorColor = color || item.payload.fill || item.color
+						const itemConfig = getPayloadConfigFromPayload(
+							config,
+							item as unknown as Record<string, unknown>,
+							key
+						)
+						const indicatorColor =
+							color ||
+							(item.payload &&
+							typeof item.payload === 'object' &&
+							'fill' in item.payload
+								? item.payload.fill
+								: undefined) ||
+							item.color
 
 						return (
 							<div
@@ -197,8 +233,25 @@ function ChartTooltipContent({
 									indicator === 'dot' && 'items-center'
 								)}
 							>
-								{formatter && item?.value !== undefined && item.name ? (
-									formatter(item.value, item.name, item, index, item.payload)
+								{formatter &&
+								item?.value !== undefined &&
+								item.name &&
+								item.payload !== null &&
+								item.value !== null &&
+								item.value !== undefined &&
+								typeof item.value !== 'object' ? (
+									formatter(
+										item.value as ValueType,
+										item.name,
+										// cast payload item to the Recharts payload expected by formatter
+										item as unknown as RechartsPayload<ValueType, string>,
+										index,
+										// payload may be readonly in Recharts; cast to mutable array for formatter
+										(payload as unknown as RechartsPayload<
+											ValueType,
+											string
+										>[]) || []
+									)
 								) : (
 									<>
 										{itemConfig?.icon ? (
@@ -237,9 +290,11 @@ function ChartTooltipContent({
 													{itemConfig?.label || item.name}
 												</span>
 											</div>
-											{item.value && (
+											{item.value !== null && item.value !== undefined && (
 												<span className="text-foreground font-mono font-medium tabular-nums">
-													{item.value.toLocaleString()}
+													{typeof item.value === 'number'
+														? item.value.toLocaleString()
+														: String(item.value)}
 												</span>
 											)}
 										</div>
@@ -260,12 +315,20 @@ function ChartLegendContent({
 	hideIcon = false,
 	payload,
 	verticalAlign = 'bottom',
-	nameKey
-}: React.ComponentProps<'div'> &
-	Pick<RechartsPrimitive.LegendProps, 'payload' | 'verticalAlign'> & {
-		hideIcon?: boolean
-		nameKey?: string
-	}) {
+	nameKey,
+	...props
+}: React.ComponentProps<'div'> & {
+	hideIcon?: boolean
+	nameKey?: string
+	payload?: Array<{
+		name?: string
+		value?: unknown
+		color?: string
+		dataKey?: string
+		type?: 'none' | string
+	}>
+	verticalAlign?: 'top' | 'bottom'
+}) {
 	const { config } = useChart()
 
 	if (!payload?.length) {
@@ -279,8 +342,9 @@ function ChartLegendContent({
 				verticalAlign === 'top' ? 'pb-3' : 'pt-3',
 				className
 			)}
+			{...props}
 		>
-			{payload
+			{(payload || [])
 				.filter(item => item.type !== 'none')
 				.map(item => {
 					const key = `${nameKey || item.dataKey || 'value'}`
@@ -288,7 +352,7 @@ function ChartLegendContent({
 
 					return (
 						<div
-							key={item.value}
+							key={item.value?.toString()}
 							className={cn(
 								'[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3'
 							)}
@@ -314,10 +378,10 @@ function ChartLegendContent({
 // Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(
 	config: ChartConfig,
-	payload: unknown,
+	payload: Record<string, unknown> | undefined,
 	key: string
 ) {
-	if (typeof payload !== 'object' || payload === null) {
+	if (!payload) {
 		return undefined
 	}
 
@@ -325,7 +389,7 @@ function getPayloadConfigFromPayload(
 		'payload' in payload &&
 		typeof payload.payload === 'object' &&
 		payload.payload !== null
-			? payload.payload
+			? (payload.payload as Record<string, unknown>)
 			: undefined
 
 	let configLabelKey: string = key

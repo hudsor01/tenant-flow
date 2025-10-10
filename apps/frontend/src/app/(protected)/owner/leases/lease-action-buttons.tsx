@@ -49,10 +49,10 @@ import { toast } from 'sonner'
 
 import { usePaymentMethods } from '@/hooks/api/use-payment-methods'
 import { useCreateRentPayment } from '@/hooks/api/use-rent-payments'
-import { RenewLeaseDialog } from './renew-lease-dialog'
 import { LateFeesSection } from './late-fees-section'
+import { RenewLeaseDialog } from './renew-lease-dialog'
 
-type Lease = Tables<'Lease'>
+type Lease = Tables<'lease'>
 
 interface LeaseActionButtonsProps {
 	lease: Lease
@@ -96,7 +96,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 		mutationFn: (data: LeaseUpdate) =>
 			leasesApi.updateLeaseWithFinancialCalculations(lease.id, {
 				...data,
-				status: data.status as Tables<'Lease'>['status']
+				status: data.status as Tables<'lease'>['status']
 			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['leases'] })

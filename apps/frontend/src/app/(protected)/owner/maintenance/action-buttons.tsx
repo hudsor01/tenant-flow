@@ -1,7 +1,7 @@
 'use client'
 
-import { DeleteMaintenanceButton } from '@/app/(protected)/owner/maintenance/delete-button'
 import { EditMaintenanceButton } from '@/app/(protected)/owner/maintenance/[id]/edit/edit-button'
+import { DeleteMaintenanceButton } from '@/app/(protected)/owner/maintenance/delete-button'
 import { StatusUpdateButton } from '@/app/(protected)/owner/maintenance/status-button'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -26,7 +26,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
-type MaintenanceRequest = Tables<'MaintenanceRequest'>
+type MaintenanceRequest = Tables<'maintenance_request'>
 
 interface MaintenanceActionButtonsProps {
 	maintenance: MaintenanceRequest & {

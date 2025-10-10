@@ -1,13 +1,12 @@
+import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
 import { SubscriptionsService } from './subscriptions.service'
 
 describe('SubscriptionsService', () => {
 	let service: SubscriptionsService
-
 
 	const mockSupabaseClient = () => {
 		const mock: any = {}
@@ -93,9 +92,9 @@ describe('SubscriptionsService', () => {
 			supabaseClient.single.mockResolvedValueOnce({
 				data: {
 					id: 'lease123',
-					Unit: {
+					unit: {
 						unitNumber: '101',
-						Property: {
+						property: {
 							name: 'Test Property',
 							ownerId: 'landlord123'
 						}
@@ -207,8 +206,8 @@ describe('SubscriptionsService', () => {
 			// Lease found
 			supabaseClient.single.mockResolvedValueOnce({
 				data: {
-					Unit: {
-						Property: {
+					unit: {
+						property: {
 							ownerId: 'landlord123'
 						}
 					}
@@ -262,7 +261,10 @@ describe('SubscriptionsService', () => {
 		})
 
 		it('should pause active subscription', async () => {
-			const result = await service.pauseSubscription('subscription123', 'user123')
+			const result = await service.pauseSubscription(
+				'subscription123',
+				'user123'
+			)
 
 			expect(result.success).toBe(true)
 			expect(service['stripe'].subscriptions.update).toHaveBeenCalledWith(

@@ -1,20 +1,26 @@
 'use client'
 
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
-import { useRouter } from 'next/navigation'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { maintenanceApi, propertiesApi, unitsApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { maintenanceRequestFormSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
+import { toast } from 'sonner'
 
 interface MaintenanceEditFormProps {
 	id: string
@@ -28,7 +34,11 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 	const [step, setStep] = useState(1)
 	const totalSteps = 2
 
-	const { data: request, isLoading, isError } = useQuery({
+	const {
+		data: request,
+		isLoading,
+		isError
+	} = useQuery({
 		queryKey: ['maintenance', id],
 		queryFn: () => maintenanceApi.get(id)
 	})
@@ -99,8 +109,12 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 				unitId: request.unitId || '',
 				requestedBy: request.requestedBy || '',
 				contactPhone: request.contactPhone || '',
-				estimatedCost: request.estimatedCost ? String(request.estimatedCost) : '',
-				preferredDate: request.preferredDate ? request.preferredDate.slice(0, 10) : ''
+				estimatedCost: request.estimatedCost
+					? String(request.estimatedCost)
+					: '',
+				preferredDate: request.preferredDate
+					? request.preferredDate.slice(0, 10)
+					: ''
 			})
 			// Get property ID from unit
 			const unit = units.find(u => u.id === request.unitId)
@@ -125,19 +139,29 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 			return maintenanceApi.update(id, payload)
 		},
 		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: ['maintenance-requests'] })
+			await queryClient.invalidateQueries({
+				queryKey: ['maintenance-requests']
+			})
 			await queryClient.invalidateQueries({ queryKey: ['maintenance', id] })
 			toast.success('Maintenance request updated')
 			router.push(`/(protected)/owner/maintenance/${id}`)
 		},
 		onError: error => {
 			toast.error('Failed to update maintenance request')
-			logger.error('Failed to update maintenance request', { requestId: id }, error)
+			logger.error(
+				'Failed to update maintenance request',
+				{ action: 'updateMaintenanceRequest' },
+				error
+			)
 		}
 	})
 
 	if (isLoading) {
-		return <div className="animate-pulse text-muted-foreground">Loading request...</div>
+		return (
+			<div className="animate-pulse text-muted-foreground">
+				Loading request...
+			</div>
+		)
 	}
 
 	if (isError || !request) {
@@ -151,7 +175,9 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle className="text-xl font-semibold">Edit maintenance request</CardTitle>
+				<CardTitle className="text-xl font-semibold">
+					Edit maintenance request
+				</CardTitle>
 				<p className="text-sm text-muted-foreground">
 					Update request details, priority, and scheduling information.
 				</p>
@@ -206,7 +232,9 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 											</SelectContent>
 										</Select>
 										{field.state.meta.errors?.length ? (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										) : null}
 									</Field>
 								)}
@@ -251,7 +279,9 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 											autoComplete="off"
 										/>
 										{field.state.meta.errors?.length ? (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										) : null}
 									</Field>
 								)}
@@ -271,7 +301,9 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 											placeholder="Detailed description"
 										/>
 										{field.state.meta.errors?.length ? (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										) : null}
 									</Field>
 								)}
@@ -304,7 +336,9 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 							<form.Field name="preferredDate">
 								{field => (
 									<Field>
-										<FieldLabel htmlFor="preferredDate">Preferred date</FieldLabel>
+										<FieldLabel htmlFor="preferredDate">
+											Preferred date
+										</FieldLabel>
 										<Input
 											id="preferredDate"
 											type="date"
@@ -320,7 +354,9 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 							<form.Field name="contactPhone">
 								{field => (
 									<Field>
-										<FieldLabel htmlFor="contactPhone">Contact phone</FieldLabel>
+										<FieldLabel htmlFor="contactPhone">
+											Contact phone
+										</FieldLabel>
 										<Input
 											id="contactPhone"
 											value={field.state.value}
@@ -335,7 +371,9 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 							<form.Field name="estimatedCost">
 								{field => (
 									<Field>
-										<FieldLabel htmlFor="estimatedCost">Estimated cost</FieldLabel>
+										<FieldLabel htmlFor="estimatedCost">
+											Estimated cost
+										</FieldLabel>
 										<Input
 											id="estimatedCost"
 											type="number"
@@ -364,7 +402,11 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 							Previous
 						</Button>
 						{step === totalSteps ? (
-							<Button type="submit" size="lg" disabled={updateMutation.isPending}>
+							<Button
+								type="submit"
+								size="lg"
+								disabled={updateMutation.isPending}
+							>
 								{updateMutation.isPending ? 'Saving...' : 'Save changes'}
 							</Button>
 						) : (

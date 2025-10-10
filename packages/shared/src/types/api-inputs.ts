@@ -9,8 +9,8 @@ import type { MaintenanceQuery, PropertyQuery } from './queries.js'
 import type { Database } from './supabase-generated.js'
 
 // Define types properly from Database schema
-type Lease = Database['public']['Tables']['Lease']['Row']
-type Property = Database['public']['Tables']['Property']['Row']
+type Lease = Database['public']['Tables']['lease']['Row']
+type Property = Database['public']['Tables']['property']['Row']
 
 // Subscription API Inputs
 
@@ -85,9 +85,9 @@ export interface TrialParams {
 
 // Define property input types from Database schema
 export type CreatePropertyInput =
-	Database['public']['Tables']['Property']['Insert']
+	Database['public']['Tables']['property']['Insert']
 export type UpdatePropertyInput =
-	Database['public']['Tables']['Property']['Update']
+	Database['public']['Tables']['property']['Update']
 
 /**
  * Query parameters for filtering properties (extends from queries.ts)
@@ -101,13 +101,13 @@ export type PropertyQueryInput = PropertyQuery
  * Input for creating a new unit
  * Uses Supabase generated types for type safety
  */
-export type CreateUnitInput = Database['public']['Tables']['Unit']['Insert']
+export type CreateUnitInput = Database['public']['Tables']['unit']['Insert']
 
 /**
  * Input for updating an existing unit
  * Uses Supabase generated types for type safety
  */
-export type UpdateUnitInput = Database['public']['Tables']['Unit']['Update']
+export type UpdateUnitInput = Database['public']['Tables']['unit']['Update']
 
 // Tenant API Inputs
 
@@ -115,13 +115,13 @@ export type UpdateUnitInput = Database['public']['Tables']['Unit']['Update']
  * Input for creating a new tenant
  * Uses Supabase generated types for type safety
  */
-export type CreateTenantInput = Database['public']['Tables']['Tenant']['Insert']
+export type CreateTenantInput = Database['public']['Tables']['tenant']['Insert']
 
 /**
  * Input for updating an existing tenant
  * Uses Supabase generated types for type safety
  */
-export type UpdateTenantInput = Database['public']['Tables']['Tenant']['Update']
+export type UpdateTenantInput = Database['public']['Tables']['tenant']['Update']
 
 // Lease API Inputs
 
@@ -129,13 +129,13 @@ export type UpdateTenantInput = Database['public']['Tables']['Tenant']['Update']
  * Input for creating a new lease
  * Uses Supabase generated types for type safety
  */
-export type CreateLeaseInput = Database['public']['Tables']['Lease']['Insert']
+export type CreateLeaseInput = Database['public']['Tables']['lease']['Insert']
 
 /**
  * Input for updating an existing lease
  * Uses Supabase generated types for type safety
  */
-export type UpdateLeaseInput = Database['public']['Tables']['Lease']['Update']
+export type UpdateLeaseInput = Database['public']['Tables']['lease']['Update']
 
 // Maintenance API Inputs
 
@@ -144,14 +144,14 @@ export type UpdateLeaseInput = Database['public']['Tables']['Lease']['Update']
  * Uses Supabase generated types for type safety
  */
 export type CreateMaintenanceInput =
-	Database['public']['Tables']['MaintenanceRequest']['Insert']
+	Database['public']['Tables']['maintenance_request']['Insert']
 
 /**
  * Input for updating a maintenance request
  * Uses Supabase generated types for type safety
  */
 export type UpdateMaintenanceInput =
-	Database['public']['Tables']['MaintenanceRequest']['Update']
+	Database['public']['Tables']['maintenance_request']['Update']
 
 /**
  * Query parameters for maintenance request search (extends from queries.ts)

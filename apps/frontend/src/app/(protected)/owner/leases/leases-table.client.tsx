@@ -1,8 +1,8 @@
 'use client'
 
-import Link from 'next/link'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FileText, Trash2 } from 'lucide-react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 
 import {
@@ -27,20 +27,24 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
+import { useAllTenants } from '@/hooks/api/use-tenant'
 import { leasesApi, unitsApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
-import { useAllTenants } from '@/hooks/api/use-tenant'
 
-type Lease = Tables<'Lease'>
-type Unit = Tables<'Unit'>
+type Lease = Tables<'lease'>
+type Unit = Tables<'unit'>
 
 const logger = createLogger({ component: 'LeasesTable' })
 
 export function LeasesTable() {
 	const queryClient = useQueryClient()
 
-	const { data: leases = [], isLoading, isError } = useQuery({
+	const {
+		data: leases = [],
+		isLoading,
+		isError
+	} = useQuery({
 		queryKey: ['leases'],
 		queryFn: () => leasesApi.list()
 	})
@@ -69,7 +73,11 @@ export function LeasesTable() {
 	const unitMap = new Map(units.map((unit: Unit) => [unit.id, unit]))
 
 	if (isLoading) {
-		return <div className="animate-pulse text-muted-foreground">Loading leases...</div>
+		return (
+			<div className="animate-pulse text-muted-foreground">
+				Loading leases...
+			</div>
+		)
 	}
 
 	if (isError) {
@@ -119,7 +127,9 @@ export function LeasesTable() {
 								<TableRow key={lease.id}>
 									<TableCell>
 										<div className="flex flex-col gap-1">
-											<span className="font-medium">#{lease.id.slice(0, 8)}</span>
+											<span className="font-medium">
+												#{lease.id.slice(0, 8)}
+											</span>
 											<Badge variant="outline">{lease.status}</Badge>
 										</div>
 									</TableCell>
@@ -127,7 +137,9 @@ export function LeasesTable() {
 									<TableCell className="hidden md:table-cell">
 										{unit ? (
 											<>
-												<div className="font-medium">Unit {unit.unitNumber}</div>
+												<div className="font-medium">
+													Unit {unit.unitNumber}
+												</div>
 												<div className="text-sm text-muted-foreground">
 													{unit.bedrooms} bd · {unit.bathrooms} ba
 												</div>
@@ -177,7 +189,8 @@ export function LeasesTable() {
 												<AlertDialogHeader>
 													<AlertDialogTitle>Delete lease</AlertDialogTitle>
 													<AlertDialogDescription>
-														This action cannot be undone. This will cancel the lease and remove associated billing schedules.
+														This action cannot be undone. This will cancel the
+														lease and remove associated billing schedules.
 													</AlertDialogDescription>
 												</AlertDialogHeader>
 												<AlertDialogFooter>

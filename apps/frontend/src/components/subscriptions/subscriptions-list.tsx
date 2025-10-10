@@ -7,9 +7,19 @@
 
 'use client'
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { AddPaymentMethodDialog } from '@/app/(protected)/tenant-portal/payments/add-payment-method-dialog'
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
 	Card,
 	CardContent,
@@ -24,27 +34,15 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { Spinner } from '@/components/ui/spinner'
 import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import {
-	useSubscriptions,
+	useCancelSubscription,
 	usePauseSubscription,
 	useResumeSubscription,
-	useCancelSubscription
+	useSubscriptions
 } from '@/hooks/api/use-subscriptions'
-import { CreateSubscriptionDialog } from './create-subscription-dialog'
-import { AddPaymentMethodDialog } from '@/app/(protected)/tenant-portal/payments/add-payment-method-dialog'
-import { Spinner } from '@/components/ui/spinner'
-import type { Database } from '@repo/shared/types/supabase-generated'
 import type { RentSubscriptionResponse } from '@repo/shared/types/core'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import {
 	Calendar,
 	CreditCard,
@@ -52,13 +50,15 @@ import {
 	MoreVertical,
 	Pause,
 	Play,
-	X,
-	Plus
+	Plus,
+	X
 } from 'lucide-react'
+import { useState } from 'react'
+import { CreateSubscriptionDialog } from './create-subscription-dialog'
 
-type Lease = Database['public']['Tables']['Lease']['Row'] & {
-	Unit: Database['public']['Tables']['Unit']['Row'] & {
-		Property: Database['public']['Tables']['Property']['Row']
+type Lease = Database['public']['Tables']['lease']['Row'] & {
+	Unit: Database['public']['Tables']['unit']['Row'] & {
+		Property: Database['public']['Tables']['property']['Row']
 	}
 }
 

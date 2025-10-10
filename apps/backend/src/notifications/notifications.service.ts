@@ -1,22 +1,21 @@
-import { Injectable, BadRequestException } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
-import { Logger } from '@nestjs/common'
-import { SupabaseService } from '../database/supabase.service'
-import type { Database } from '@repo/shared/types/supabase-generated'
 import type { MaintenanceNotificationData } from '@repo/shared/types/notifications'
-import { z } from 'zod'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import {
-	uuidSchema,
+	requiredDescription,
 	requiredString,
 	requiredTitle,
-	requiredDescription
+	uuidSchema
 } from '@repo/shared/validation/common'
+import { z } from 'zod'
+import { SupabaseService } from '../database/supabase.service'
 import {
+	LeaseExpiringEvent,
 	MaintenanceUpdatedEvent,
-	PaymentReceivedEvent,
 	PaymentFailedEvent,
-	TenantCreatedEvent,
-	LeaseExpiringEvent
+	PaymentReceivedEvent,
+	TenantCreatedEvent
 } from './events/notification.events'
 
 type NotificationType = 'maintenance' | 'lease' | 'payment' | 'system'
@@ -26,9 +25,7 @@ type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
 export class NotificationsService {
 	private readonly logger = new Logger(NotificationsService.name)
 
-	constructor(
-		private readonly supabaseService: SupabaseService
-	) {}
+	constructor(private readonly supabaseService: SupabaseService) {}
 
 	/**
 	 * Zod schemas for notification validation
@@ -124,18 +121,16 @@ export class NotificationsService {
 	): Promise<MaintenanceNotificationData> {
 		// Validate input data using Zod directly (no wrapper abstractions)
 		const validationResult =
-			NotificationsService.NOTIFICATION_SCHEMAS.notificationInput.safeParse(
-				{
-					ownerId,
-					title,
-					description,
-					priority,
-					propertyName,
-					unitNumber,
-					maintenanceId,
-					actionUrl
-				}
-			)
+			NotificationsService.NOTIFICATION_SCHEMAS.notificationInput.safeParse({
+				ownerId,
+				title,
+				description,
+				priority,
+				propertyName,
+				unitNumber,
+				maintenanceId,
+				actionUrl
+			})
 
 		if (!validationResult.success) {
 			const errorMessages = validationResult.error.issues
@@ -242,14 +237,16 @@ export class NotificationsService {
 	/**
 	 * Send immediate notification (email for high priority)
 	 */
-private async sendImmediateNotification(
-notification: { recipientId: string; type: string; title: string }
-): Promise<void> {
+	private async sendImmediateNotification(notification: {
+		recipientId: string
+		type: string
+		title: string
+	}): Promise<void> {
 		try {
 			// Get user email from database
 			const { data: user, error } = await this.supabaseService
 				.getAdminClient()
-				.from('User')
+				.from('users')
 				.select('email')
 				.eq('id', notification.recipientId)
 				.single()
@@ -293,7 +290,10 @@ notification: { recipientId: string; type: string; title: string }
 					error: {
 						name: error instanceof Error ? error.constructor.name : 'Unknown',
 						message: error instanceof Error ? error.message : String(error),
-						stack: process.env.NODE_ENV !== 'production' && error instanceof Error ? error.stack : undefined
+						stack:
+							process.env.NODE_ENV !== 'production' && error instanceof Error
+								? error.stack
+								: undefined
 					},
 					notification: {
 						recipientId: notification.recipientId,
@@ -413,7 +413,9 @@ notification: { recipientId: string; type: string; title: string }
 	 */
 	async getUnreadCount(userId: string): Promise<number> {
 		try {
-			this.logger.log('Getting unread notification count via direct query', { userId })
+			this.logger.log('Getting unread notification count via direct query', {
+				userId
+			})
 
 			const { count, error } = await this.supabaseService
 				.getAdminClient()
@@ -423,7 +425,10 @@ notification: { recipientId: string; type: string; title: string }
 				.eq('isRead', false)
 
 			if (error) {
-				this.logger.error('Failed to get unread notification count', { error, userId })
+				this.logger.error('Failed to get unread notification count', {
+					error,
+					userId
+				})
 				return 0
 			}
 
@@ -443,7 +448,9 @@ notification: { recipientId: string; type: string; title: string }
 	 */
 	async markAllAsRead(userId: string): Promise<number> {
 		try {
-			this.logger.log('Marking all notifications as read via direct query', { userId })
+			this.logger.log('Marking all notifications as read via direct query', {
+				userId
+			})
 
 			const { count, error } = await this.supabaseService
 				.getAdminClient()
@@ -457,7 +464,10 @@ notification: { recipientId: string; type: string; title: string }
 				.select('*')
 
 			if (error) {
-				this.logger.error('Failed to mark all notifications as read', { error, userId })
+				this.logger.error('Failed to mark all notifications as read', {
+					error,
+					userId
+				})
 				return 0
 			}
 
@@ -536,9 +546,7 @@ notification: { recipientId: string; type: string; title: string }
 				event.subscriptionId
 			)
 
-			this.logger.log(
-				`Payment notification created for user ${event.userId}`
-			)
+			this.logger.log(`Payment notification created for user ${event.userId}`)
 		} catch (error) {
 			this.logger.error(
 				`Failed to create payment notification for user ${event.userId}`,

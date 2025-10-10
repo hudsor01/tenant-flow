@@ -21,7 +21,7 @@ import type {
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { User } from '@supabase/supabase-js'
 
-type DatabaseUser = Database['public']['Tables']['User']['Row']
+type DatabaseUser = Database['public']['Tables']['users']['Row']
 
 /**
  * Creates a mock Supabase User object for testing

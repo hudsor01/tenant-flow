@@ -16,6 +16,7 @@ import {
 	SetMetadata
 } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
 import type { Request } from 'express'
 import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
@@ -29,7 +30,6 @@ import type {
 	// InvoiceWithSubscription,
 	VerifyCheckoutSessionRequest
 } from './stripe-interfaces'
-import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
 import { StripeWebhookService } from './stripe-webhook.service'
 import { StripeService } from './stripe.service'
 // CLAUDE.md Compliant: NO custom DTOs - using native validation only
@@ -752,7 +752,7 @@ export class StripeController {
 
 			// Check if user already exists
 			const { data: existingUser } = await supabase
-				.from('User')
+				.from('users')
 				.select('id, email')
 				.eq('email', body.email)
 				.single()
@@ -787,7 +787,7 @@ export class StripeController {
 			)
 
 			// Create User table record with TENANT role
-			const { error: dbError } = await supabase.from('User').insert({
+			const { error: dbError } = await supabase.from('users').insert({
 				id: authData.user.id,
 				supabaseId: authData.user.id,
 				email: body.email,
@@ -1071,7 +1071,7 @@ export class StripeController {
 
 	//	// Update RentPayment status based on Stripe payment intent
 	//	await supabase
-	//		.from('RentPayment')
+	//		.from('rent_payments')
 	//		.update({
 	//			status: status.toUpperCase() as Database['public']['Enums']['RentPaymentStatus'],
 	//			updatedAt: new Date().toISOString()

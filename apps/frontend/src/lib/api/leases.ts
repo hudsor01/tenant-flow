@@ -8,7 +8,7 @@ import { apiClient } from '@repo/shared/utils/api-client'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
 
-type Lease = Database['public']['Tables']['Lease']['Row']
+type Lease = Database['public']['Tables']['lease']['Row']
 
 export interface RenewLeaseRequest {
 	endDate: string

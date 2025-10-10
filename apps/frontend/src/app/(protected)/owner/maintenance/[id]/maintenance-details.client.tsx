@@ -1,26 +1,30 @@
 'use client'
 
-import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
-import { Calendar, MapPin, Phone, Wrench } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { maintenanceApi, propertiesApi, unitsApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
+import { useQuery } from '@tanstack/react-query'
+import { Calendar, MapPin, Phone, Wrench } from 'lucide-react'
+import Link from 'next/link'
 
 interface MaintenanceDetailsProps {
 	id: string
 }
 
-type Property = Tables<'Property'>
-type Unit = Tables<'Unit'>
+type Property = Tables<'property'>
+type Unit = Tables<'unit'>
 
 const logger = createLogger({ component: 'MaintenanceDetails' })
 
 export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
-	const { data: request, isLoading, isError } = useQuery({
+	const {
+		data: request,
+		isLoading,
+		isError
+	} = useQuery({
 		queryKey: ['maintenance', id],
 		queryFn: () => maintenanceApi.get(id)
 	})
@@ -35,11 +39,19 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 		queryFn: () => unitsApi.list()
 	})
 
-	const unit = units.find(unit => unit.id === request?.unitId) as Unit | undefined
-	const property = properties.find(property => property.id === unit?.propertyId) as Property | undefined
+	const unit = units.find(unit => unit.id === request?.unitId) as
+		| Unit
+		| undefined
+	const property = properties.find(
+		property => property.id === unit?.propertyId
+	) as Property | undefined
 
 	if (isLoading) {
-		return <div className="animate-pulse text-muted-foreground">Loading maintenance request...</div>
+		return (
+			<div className="animate-pulse text-muted-foreground">
+				Loading maintenance request...
+			</div>
+		)
 	}
 
 	if (isError || !request) {
@@ -73,7 +85,9 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 						</div>
 					</div>
 					<Button asChild variant="outline" size="sm">
-						<Link href={`/(protected)/owner/maintenance/${request.id}/edit`}>Edit request</Link>
+						<Link href={`/(protected)/owner/maintenance/${request.id}/edit`}>
+							Edit request
+						</Link>
 					</Button>
 				</CardHeader>
 				<CardContent className="space-y-6">
@@ -96,7 +110,9 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 								{property?.name ?? 'Unassigned property'}
 							</p>
 							{unit ? (
-								<p className="text-sm text-muted-foreground">Unit {unit.unitNumber}</p>
+								<p className="text-sm text-muted-foreground">
+									Unit {unit.unitNumber}
+								</p>
 							) : null}
 						</div>
 
@@ -117,12 +133,15 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 
 			<Card>
 				<CardHeader>
-					<CardTitle className="text-base font-semibold">Contact information</CardTitle>
+					<CardTitle className="text-base font-semibold">
+						Contact information
+					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-3 text-sm">
 					{request.requestedBy ? (
 						<p>
-							<span className="text-muted-foreground">Requested by:</span> {request.requestedBy}
+							<span className="text-muted-foreground">Requested by:</span>{' '}
+							{request.requestedBy}
 						</p>
 					) : null}
 					{request.contactPhone ? (

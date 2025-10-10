@@ -72,8 +72,9 @@ export class ReportsService {
 
 		try {
 			// Get user's properties
-			const { data: properties } = await this.supabase.getAdminClient()
-				.from('Property')
+			const { data: properties } = await this.supabase
+				.getAdminClient()
+				.from('property')
 				.select('id')
 				.eq('userId', userId)
 
@@ -81,24 +82,25 @@ export class ReportsService {
 				return []
 			}
 
-			const propertyIds = properties.map((p) => p.id)
+			const propertyIds = properties.map(p => p.id)
 
 			// Get payments for the last N months
 			const startDate = new Date()
 			startDate.setMonth(startDate.getMonth() - months)
 
-			const { data: payments } = await this.supabase.getAdminClient()
-				.from('RentPayment')
+			const { data: payments } = await this.supabase
+				.getAdminClient()
+				.from('rent_payment')
 				.select(
 					`
 					id,
 					amount,
 					status,
 					createdAt,
-					Lease!inner(propertyId)
+					lease!rent_payment_leaseId_fkey!inner(propertyId)
 				`
 				)
-				.in('Lease.propertyId', propertyIds)
+				.in('lease.propertyId', propertyIds)
 				.gte('createdAt', startDate.toISOString())
 				.eq('status', 'succeeded')
 
@@ -124,7 +126,7 @@ export class ReportsService {
 
 			// Aggregate payments by month
 			if (payments) {
-				payments.forEach((payment) => {
+				payments.forEach(payment => {
 					const monthKey = payment.createdAt?.substring(0, 7)
 					if (!monthKey) return
 
@@ -138,13 +140,15 @@ export class ReportsService {
 
 			// Get occupancy data for each month
 			// For now, use current occupancy for all months
-			const { data: units } = await this.supabase.getAdminClient()
-				.from('Unit')
+			const { data: units } = await this.supabase
+				.getAdminClient()
+				.from('unit')
 				.select('id, propertyId')
 				.in('propertyId', propertyIds)
 
-			const { data: activeLeases } = await this.supabase.getAdminClient()
-				.from('Lease')
+			const { data: activeLeases } = await this.supabase
+				.getAdminClient()
+				.from('lease')
 				.select('id, unitId')
 				.in('propertyId', propertyIds)
 				.eq('status', 'ACTIVE')
@@ -182,8 +186,9 @@ export class ReportsService {
 
 		try {
 			// Get user's properties
-			const { data: properties } = await this.supabase.getAdminClient()
-				.from('Property')
+			const { data: properties } = await this.supabase
+				.getAdminClient()
+				.from('property')
 				.select('id')
 				.eq('userId', userId)
 
@@ -191,11 +196,12 @@ export class ReportsService {
 				return this.getEmptyPaymentAnalytics()
 			}
 
-			const propertyIds = properties.map((p) => p.id)
+			const propertyIds = properties.map(p => p.id)
 
 			// Build query
-			let query = this.supabase.getAdminClient()
-				.from('RentPayment')
+			let query = this.supabase
+				.getAdminClient()
+				.from('rent_payment')
 				.select(
 					`
 					id,
@@ -203,10 +209,10 @@ export class ReportsService {
 					status,
 					createdAt,
 					paymentType,
-					Lease!inner(propertyId)
+					lease!rent_payment_leaseId_fkey!inner(propertyId)
 				`
 				)
-				.in('Lease.propertyId', propertyIds)
+				.in('lease.propertyId', propertyIds)
 
 			if (startDate) {
 				query = query.gte('createdAt', startDate)
@@ -225,23 +231,27 @@ export class ReportsService {
 			// Calculate analytics
 			const analytics: PaymentAnalytics = {
 				totalPayments: payments.length,
-				successfulPayments: payments.filter((p) => p.status === 'succeeded').length,
-				failedPayments: payments.filter((p) => p.status === 'failed').length,
-				totalRevenue: payments
-					.filter((p) => p.status === 'succeeded')
-					.reduce((sum: number, p) => sum + (p.amount || 0), 0) / 100,
+				successfulPayments: payments.filter(p => p.status === 'succeeded')
+					.length,
+				failedPayments: payments.filter(p => p.status === 'failed').length,
+				totalRevenue:
+					payments
+						.filter(p => p.status === 'succeeded')
+						.reduce((sum: number, p) => sum + (p.amount || 0), 0) / 100,
 				averagePayment:
 					payments.length > 0
-						? payments.reduce((sum: number, p) => sum + (p.amount || 0), 0) / payments.length / 100
+						? payments.reduce((sum: number, p) => sum + (p.amount || 0), 0) /
+							payments.length /
+							100
 						: 0,
 				paymentsByMethod: {
-					card: payments.filter((p) => p.paymentType === 'card').length,
-					ach: payments.filter((p) => p.paymentType === 'ach').length
+					card: payments.filter(p => p.paymentType === 'card').length,
+					ach: payments.filter(p => p.paymentType === 'ach').length
 				},
 				paymentsByStatus: {
-					completed: payments.filter((p) => p.status === 'succeeded').length,
-					pending: payments.filter((p) => p.status === 'pending').length,
-					failed: payments.filter((p) => p.status === 'failed').length
+					completed: payments.filter(p => p.status === 'succeeded').length,
+					pending: payments.filter(p => p.status === 'pending').length,
+					failed: payments.filter(p => p.status === 'failed').length
 				}
 			}
 
@@ -263,15 +273,16 @@ export class ReportsService {
 
 		try {
 			// Get user's properties with units
-			const { data: properties } = await this.supabase.getAdminClient()
-				.from('Property')
+			const { data: properties } = await this.supabase
+				.getAdminClient()
+				.from('property')
 				.select(
 					`
 					id,
 					name,
-					Unit(
+					unit(
 						id,
-						Lease!Lease_unitId_fkey(id, status)
+						lease!lease_unitId_fkey(id, status)
 					)
 				`
 				)
@@ -285,10 +296,19 @@ export class ReportsService {
 			let occupiedUnits = 0
 			const byProperty: OccupancyMetrics['byProperty'] = []
 
-			properties.forEach((property) => {
-				const units = property.Unit || []
-				const occupied = units.filter((unit) =>
-					unit.Lease?.some((lease) => lease.status === 'ACTIVE')
+			type PropertyWithUnitsAndLeases = {
+				id: string
+				name: string
+				unit: Array<{
+					id: string
+					lease: Array<{ id: string; status: string }> | null
+				}>
+			}
+
+			properties.forEach((property: PropertyWithUnitsAndLeases) => {
+				const units = property.unit || []
+				const occupied = units.filter(unit =>
+					unit.lease?.some(lease => lease.status === 'ACTIVE')
 				).length
 
 				totalUnits += units.length

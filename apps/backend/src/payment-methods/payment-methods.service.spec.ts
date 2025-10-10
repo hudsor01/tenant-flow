@@ -80,7 +80,7 @@ describe('PaymentMethodsService', () => {
 	describe('getOrCreateStripeCustomer', () => {
 		it('returns existing Stripe customer ID', async () => {
 			adminClient.from.mockImplementation((table: string) => {
-				if (table === 'User') {
+				if (table === 'users') {
 					return createSelectSingleMock({
 						stripeCustomerId: 'cus_existing_123',
 						email: 'tenant@example.com'
@@ -108,7 +108,7 @@ describe('PaymentMethodsService', () => {
 			}))
 
 			adminClient.from.mockImplementation((table: string) => {
-				if (table === 'User') {
+				if (table === 'users') {
 					return selectBuilder
 				}
 				throw new Error(`Unexpected table ${table}`)
@@ -130,7 +130,7 @@ describe('PaymentMethodsService', () => {
 	describe('createSetupIntent', () => {
 		it('creates a SetupIntent for the provided payment method type', async () => {
 			adminClient.from.mockImplementation((table: string) => {
-				if (table === 'User') {
+				if (table === 'users') {
 					return createSelectSingleMock({
 						stripeCustomerId: 'cus_existing_123',
 						email: 'tenant@example.com'
@@ -197,11 +197,11 @@ describe('PaymentMethodsService', () => {
 			let tenantPaymentMethodCall = 0
 
 			adminClient.from.mockImplementation((table: string) => {
-				if (table === 'User') {
+				if (table === 'users') {
 					return userBuilder
 				}
 
-				if (table === 'TenantPaymentMethod') {
+				if (table === 'tenant_payment_method') {
 					tenantPaymentMethodCall += 1
 					switch (tenantPaymentMethodCall) {
 						case 1:
@@ -213,7 +213,7 @@ describe('PaymentMethodsService', () => {
 						case 4:
 							return insertBuilder
 						default:
-							throw new Error('Unexpected TenantPaymentMethod call')
+							throw new Error('Unexpected tenant_payment_method call')
 					}
 				}
 				throw new Error(`Unexpected table ${table}`)

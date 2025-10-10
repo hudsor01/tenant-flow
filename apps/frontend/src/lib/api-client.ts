@@ -3,45 +3,45 @@
  * Integrates with shared API client and backend endpoints
  */
 import type {
-	DashboardStats,
-	LeaseStatsResponse,
-	TenantStats,
-	PropertyPerformance,
-	MaintenanceStats,
 	DashboardFinancialStats,
+	DashboardStats,
 	ExpenseSummaryResponse,
-	TenantWithLeaseInfo,
+	LeaseStatsResponse,
 	MaintenanceRequest,
 	MaintenanceRequestResponse,
-	SystemUptime
+	MaintenanceStats,
+	PropertyPerformance,
+	SystemUptime,
+	TenantStats,
+	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
 
 import type { PropertyWithUnits } from '@repo/shared/types/relations'
-import type {
-	MaintenanceRequestInput,
-	MaintenanceRequestUpdate
-} from '@repo/shared/validation/maintenance'
-import { apiClient } from '@repo/shared/utils/api-client'
 import type {
 	Tables,
 	TablesInsert,
 	TablesUpdate
 } from '@repo/shared/types/supabase'
+import { apiClient } from '@repo/shared/utils/api-client'
+import type {
+	MaintenanceRequestInput,
+	MaintenanceRequestUpdate
+} from '@repo/shared/validation/maintenance'
 
 // Use native Supabase table types for API operations
-type Activity = Tables<'Activity'>
-type Lease = Tables<'Lease'>
-type Property = Tables<'Property'>
-type Unit = Tables<'Unit'>
+type Activity = Tables<'activity'>
+type Lease = Tables<'lease'>
+type Property = Tables<'property'>
+type Unit = Tables<'unit'>
 
-type LeaseInsert = TablesInsert<'Lease'>
-type LeaseUpdate = TablesUpdate<'Lease'>
-type PropertyInsert = TablesInsert<'Property'>
-type PropertyUpdate = TablesUpdate<'Property'>
-type TenantInsert = TablesInsert<'Tenant'>
-type TenantUpdate = TablesUpdate<'Tenant'>
-type UnitInsert = TablesInsert<'Unit'>
-type UnitUpdate = TablesUpdate<'Unit'>
+type LeaseInsert = TablesInsert<'lease'>
+type LeaseUpdate = TablesUpdate<'lease'>
+type PropertyInsert = TablesInsert<'property'>
+type PropertyUpdate = TablesUpdate<'property'>
+type TenantInsert = TablesInsert<'tenant'>
+type TenantUpdate = TablesUpdate<'tenant'>
+type UnitInsert = TablesInsert<'unit'>
+type UnitUpdate = TablesUpdate<'unit'>
 
 // API Base URL Configuration
 // In production, environment variables are required for proper deployment

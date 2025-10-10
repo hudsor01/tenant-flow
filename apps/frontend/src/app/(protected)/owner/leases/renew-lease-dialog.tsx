@@ -7,7 +7,6 @@
 
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
 	Dialog,
@@ -16,16 +15,17 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Spinner } from '@/components/ui/spinner'
 import { useRenewLease } from '@/hooks/api/use-leases'
-import { toast } from 'sonner'
-import { Spinner } from "@/components/ui/spinner"
-import { format, addMonths, addYears, isAfter, parseISO } from 'date-fns'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { addMonths, addYears, format, isAfter, parseISO } from 'date-fns'
 import { Calendar, DollarSign, Info, TrendingUp } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
-type Lease = Database['public']['Tables']['Lease']['Row']
+type Lease = Database['public']['Tables']['lease']['Row']
 
 interface RenewLeaseDialogProps {
 	open: boolean
@@ -81,7 +81,10 @@ export function RenewLeaseDialog({
 		}
 
 		// Validate date is after current end date
-		if (lease.endDate && !isAfter(parseISO(newEndDate), parseISO(lease.endDate))) {
+		if (
+			lease.endDate &&
+			!isAfter(parseISO(newEndDate), parseISO(lease.endDate))
+		) {
 			toast.error('New end date must be after current end date')
 			return
 		}
@@ -182,7 +185,10 @@ export function RenewLeaseDialog({
 								onChange={e => setNewEndDate(e.target.value)}
 								min={
 									lease.endDate
-										? format(addMonths(parseISO(lease.endDate), 1), 'yyyy-MM-dd')
+										? format(
+												addMonths(parseISO(lease.endDate), 1),
+												'yyyy-MM-dd'
+											)
 										: undefined
 								}
 								className="flex-1"
@@ -273,9 +279,7 @@ export function RenewLeaseDialog({
 										</div>
 										<div className="space-y-1 text-sm">
 											<div className="flex justify-between">
-												<span className="text-label-secondary">
-													Current:
-												</span>
+												<span className="text-label-secondary">Current:</span>
 												<span className="font-medium text-label-primary">
 													{formatCurrency(currentRent)}/mo
 												</span>

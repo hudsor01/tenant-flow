@@ -7,7 +7,7 @@
  * - Production: Battle-tested late fee formula
  */
 
-import { Injectable, Logger, BadRequestException } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
 
@@ -78,8 +78,18 @@ export class LateFeesService {
 		try {
 			const { data: lease, error } = await this.supabase
 				.getAdminClient()
-				.from('Lease')
-				.select('id, gracePeriodDays, lateFeeAmount, lateFeePercentage')
+				.from('lease')
+				.select(
+					`
+					id,
+					gracePeriodDays,
+					lateFeeAmount,
+					lateFeePercentage,
+					tenant!lease_tenantId_fkey(
+						users!tenant_userId_fkey(id, email, firstName, lastName)
+					)
+				`
+				)
 				.eq('id', leaseId)
 				.single()
 
@@ -142,7 +152,7 @@ export class LateFeesService {
 			// Update RentPayment to mark late fee applied
 			await this.supabase
 				.getAdminClient()
-				.from('RentPayment')
+				.from('rent_payment')
 				.update({
 					lateFeeApplied: true,
 					lateFeeAmount: Math.round(lateFeeAmount * 100), // Store in cents
@@ -186,10 +196,10 @@ export class LateFeesService {
 		try {
 			const { data: payments, error } = await this.supabase
 				.getAdminClient()
-				.from('RentPayment')
+				.from('rent_payment')
 				.select('id, amount, dueDate, lateFeeApplied, status')
 				.eq('leaseId', leaseId)
-				.in('status', ['pending', 'failed'])
+				.in('status', ['PENDING', 'FAILED'])
 				.order('dueDate', { ascending: true })
 
 			if (error) throw error
@@ -265,7 +275,7 @@ export class LateFeesService {
 			// Get Stripe customer ID from landlord
 			const { data: landlord, error: landlordError } = await this.supabase
 				.getAdminClient()
-				.from('User')
+				.from('users')
 				.select('stripeCustomerId')
 				.eq('id', landlordId)
 				.single()
@@ -305,10 +315,7 @@ export class LateFeesService {
 				}
 			}
 
-			const totalLateFees = results.reduce(
-				(sum, r) => sum + r.lateFeeAmount,
-				0
-			)
+			const totalLateFees = results.reduce((sum, r) => sum + r.lateFeeAmount, 0)
 
 			this.logger.log('Late fees processed successfully', {
 				leaseId,
@@ -348,7 +355,7 @@ export class LateFeesService {
 
 			await this.supabase
 				.getAdminClient()
-				.from('Lease')
+				.from('lease')
 				.update({
 					gracePeriodDays: config.gracePeriodDays,
 					lateFeeAmount: config.flatFeeAmount,

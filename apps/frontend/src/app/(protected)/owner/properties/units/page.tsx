@@ -2,46 +2,43 @@
 
 import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
 import { Button } from '@/components/ui/button'
-import
-  {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger
-  } from '@/components/ui/dialog'
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import
-  {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-  } from '@/components/ui/select'
-import
-  {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow
-  } from '@/components/ui/table'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow
+} from '@/components/ui/table'
 import { unitColumns, type UnitRow } from '@/components/units/units-columns'
 import { propertiesApi, unitsApi } from '@/lib/api-client'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import type { ColumnDef } from '@tanstack/react-table'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { ColumnDef } from '@tanstack/react-table'
 import { DoorOpen, Filter, Plus } from 'lucide-react'
 import { useRef } from 'react'
 import { toast } from 'sonner'
 
-type InsertUnit = Database['public']['Tables']['Unit']['Insert']
+type InsertUnit = Database['public']['Tables']['unit']['Insert']
 type UnitStatus = Database['public']['Enums']['UnitStatus']
-type UnitRowDB = Database['public']['Tables']['Unit']['Row']
-type PropertyRowDB = Database['public']['Tables']['Property']['Row']
+type UnitRowDB = Database['public']['Tables']['unit']['Row']
+type PropertyRowDB = Database['public']['Tables']['property']['Row']
 
 export default function UnitsPage({
 	searchParams

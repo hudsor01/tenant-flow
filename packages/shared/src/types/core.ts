@@ -107,13 +107,13 @@ export interface AppError extends Error {
 
 import type { Database, Tables } from './supabase-generated.js'
 
-export type User = Tables<'User'>
-export type Property = Tables<'Property'>
-export type Unit = Tables<'Unit'>
-export type Tenant = Tables<'Tenant'>
-export type Lease = Tables<'Lease'>
-export type MaintenanceRequest = Tables<'MaintenanceRequest'>
-export type RentPayment = Tables<'RentPayments'>
+export type User = Tables<'users'>
+export type Property = Tables<'property'>
+export type Unit = Tables<'unit'>
+export type Tenant = Tables<'tenant'>
+export type Lease = Tables<'lease'>
+export type MaintenanceRequest = Tables<'maintenance_request'>
+export type RentPayment = Tables<'rent_payment'>
 
 // Maintenance API response with relations
 export interface MaintenanceRequestResponse {
@@ -589,13 +589,13 @@ export type FormProgressData = {
 // Re-export from database types for repository pattern consistency
 
 export type MaintenanceRequestInput =
-	Database['public']['Tables']['MaintenanceRequest']['Insert']
+	Database['public']['Tables']['maintenance_request']['Insert']
 export type MaintenanceRequestUpdate =
-	Database['public']['Tables']['MaintenanceRequest']['Update']
-export type TenantInput = Database['public']['Tables']['Tenant']['Insert']
-export type TenantUpdate = Database['public']['Tables']['Tenant']['Update']
-export type UnitInput = Database['public']['Tables']['Unit']['Insert']
-export type UnitUpdate = Database['public']['Tables']['Unit']['Update']
+	Database['public']['Tables']['maintenance_request']['Update']
+export type TenantInput = Database['public']['Tables']['tenant']['Insert']
+export type TenantUpdate = Database['public']['Tables']['tenant']['Update']
+export type UnitInput = Database['public']['Tables']['unit']['Insert']
+export type UnitUpdate = Database['public']['Tables']['unit']['Update']
 
 // PAYMENT METHOD TYPES - Tenant payment system (Phase 2-3)
 

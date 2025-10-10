@@ -4,18 +4,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-	Building,
-	Calendar,
-	DollarSign,
-	Edit,
-	MapPin
-} from 'lucide-react'
+import type { Tables } from '@repo/shared/types/supabase'
+import { Building, Calendar, DollarSign, Edit, MapPin } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import type { Tables } from '@repo/shared/types/supabase'
 
-type Property = Tables<'Property'>
+type Property = Tables<'property'>
 
 interface PropertyDetailsProps {
 	property: Property
@@ -30,7 +24,8 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					<h1 className="text-3xl font-bold tracking-tight">{property.name}</h1>
 					<div className="flex items-center gap-2 mt-2 text-muted-foreground">
 						<MapPin className="w-4 h-4" />
-						{property.address}, {property.city}, {property.state} {property.zipCode}
+						{property.address}, {property.city}, {property.state}{' '}
+						{property.zipCode}
 					</div>
 				</div>
 				<ButtonGroup>
@@ -47,9 +42,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Property Type
-						</CardTitle>
+						<CardTitle className="text-sm font-medium">Property Type</CardTitle>
 						<Building className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
@@ -61,9 +54,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Status
-						</CardTitle>
+						<CardTitle className="text-sm font-medium">Status</CardTitle>
 						<DollarSign className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
@@ -82,9 +73,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Added
-						</CardTitle>
+						<CardTitle className="text-sm font-medium">Added</CardTitle>
 						<Calendar className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>

@@ -44,7 +44,7 @@ export class StripeWebhookService {
 		// Insert both records - database will reject if either is duplicate
 		await this.supabase
 			.getAdminClient()
-			.from('StripeWebhookEvent')
+			.from('stripe_webhook_event')
 			.insert(records)
 	}
 
@@ -182,7 +182,7 @@ export class StripeWebhookService {
 			// Create User table record with OWNER role
 			const { error: dbError } = await this.supabase
 				.getAdminClient()
-				.from('User')
+				.from('users')
 				.insert({
 					id: authData.user.id,
 					supabaseId: authData.user.id,
@@ -222,7 +222,7 @@ export class StripeWebhookService {
 
 		await this.supabase
 			.getAdminClient()
-			.from('ConnectedAccount')
+			.from('connected_account')
 			.update({
 				accountStatus: account.details_submitted
 					? account.charges_enabled
@@ -244,9 +244,9 @@ export class StripeWebhookService {
 
 		await this.supabase
 			.getAdminClient()
-			.from('RentPayment')
+			.from('rent_payments')
 			.update({
-				status: 'succeeded',
+				status: 'SUCCEEDED',
 				paidAt: new Date().toISOString()
 			})
 			.eq('stripePaymentIntentId', paymentIntent.id)
@@ -260,9 +260,9 @@ export class StripeWebhookService {
 
 		await this.supabase
 			.getAdminClient()
-			.from('RentPayment')
+			.from('rent_payments')
 			.update({
-				status: 'failed',
+				status: 'FAILED',
 				failureReason:
 					paymentIntent.last_payment_error?.message || 'Unknown error'
 			})
@@ -295,7 +295,7 @@ export class StripeWebhookService {
 		// Get subscription from database
 		const { data: subscription } = await this.supabase
 			.getAdminClient()
-			.from('RentSubscription')
+			.from('rent_subscription')
 			.select('*')
 			.eq('stripeSubscriptionId', subscriptionId)
 			.single()
@@ -305,34 +305,42 @@ export class StripeWebhookService {
 			return
 		}
 
-		// Get payment intent ID
+		// Calculate fees (amounts in cents)
+		const amountPaid = invoice.amount_paid || 0
+
+		// TODO: Create RentPayment record for this charge
+		// The rent_payments schema requires:
+		// - rentDueId (required) - need to determine where this comes from
+		// - organizationId (required) - need to get landlord's organization ID
+		// Current subscription record doesn't have these fields
+		// For now, logging the successful payment
+		this.logger.log(
+			`Invoice payment succeeded for subscription ${subscription.id}: ${amountPaid / 100} USD`
+		)
+
+		// Uncomment and update once we have rentDueId and organizationId:
+		/*
 		const paymentIntentId =
 			typeof invoiceData.payment_intent === 'string'
 				? invoiceData.payment_intent
 				: invoiceData.payment_intent?.id || null
+		const processingFee = Math.round(amountPaid * 0.029 + 30) // Stripe's fee estimate (2.9% + 30¢)
+		const netAmount = amountPaid - processingFee
 
-		// Calculate fees (amounts in cents)
-		const amountPaid = invoice.amount_paid || 0
-		const platformFee = Math.round(amountPaid * 0.029) // 2.9% platform fee
-		const stripeFee = Math.round(amountPaid * 0.029 + 30) // Stripe's fee estimate
-		const landlordReceives = amountPaid - platformFee - stripeFee
-
-		// Create RentPayment record for this charge
-		await this.supabase.getAdminClient().from('RentPayment').insert({
+		await this.supabase.getAdminClient().from('rent_payments').insert({
 			tenantId: subscription.tenantId,
-			landlordId: subscription.landlordId,
-			leaseId: subscription.leaseId,
-			subscriptionId: subscription.id,
+			organizationId: subscription.organizationId, // TODO: Get from subscription or landlord
+			rentDueId: subscription.rentDueId, // TODO: Determine source
 			amount: amountPaid,
-			platformFee,
-			stripeFee,
-			landlordReceives,
-			status: 'succeeded',
-			paymentType: 'ach', // Subscription payments default to ACH
+			netAmount,
+			processingFee,
+			currency: invoice.currency || 'usd',
+			status: 'SUCCEEDED',
 			stripePaymentIntentId: paymentIntentId,
-			stripeInvoiceId: invoice.id,
+			stripeChargeId: invoice.charge as string | null,
 			paidAt: new Date().toISOString()
 		})
+		*/
 	}
 
 	/**
@@ -363,7 +371,7 @@ export class StripeWebhookService {
 		// Get subscription from database
 		const { data: subscription } = await this.supabase
 			.getAdminClient()
-			.from('RentSubscription')
+			.from('rent_subscription')
 			.select('*')
 			.eq('stripeSubscriptionId', subscriptionId)
 			.single()
@@ -376,7 +384,7 @@ export class StripeWebhookService {
 		// Update subscription to past_due status
 		await this.supabase
 			.getAdminClient()
-			.from('RentSubscription')
+			.from('rent_subscription')
 			.update({
 				status: 'past_due'
 			})
@@ -391,7 +399,7 @@ export class StripeWebhookService {
 			)
 			await this.supabase
 				.getAdminClient()
-				.from('RentSubscription')
+				.from('rent_subscription')
 				.update({
 					status: 'paused',
 					pausedAt: new Date().toISOString()
@@ -422,7 +430,7 @@ export class StripeWebhookService {
 
 		await this.supabase
 			.getAdminClient()
-			.from('RentSubscription')
+			.from('rent_subscription')
 			.update({
 				status: dbStatus,
 				updatedAt: new Date().toISOString()
@@ -438,7 +446,7 @@ export class StripeWebhookService {
 
 		await this.supabase
 			.getAdminClient()
-			.from('RentSubscription')
+			.from('rent_subscription')
 			.update({
 				status: 'cancelled',
 				canceledAt: new Date().toISOString(),
@@ -501,7 +509,7 @@ export class StripeWebhookService {
 		// Find the payment in our database
 		const { data: payment } = await this.supabase
 			.getAdminClient()
-			.from('RentPayment')
+			.from('rent_payments')
 			.select('*')
 			.eq('stripePaymentIntentId', paymentIntentId)
 			.single()
@@ -543,12 +551,12 @@ export class StripeWebhookService {
 			}
 		}
 
-		// Update payment status to disputed
+		// Update payment status to disputed (using FAILED since DISPUTED doesn't exist in enum)
 		await this.supabase
 			.getAdminClient()
-			.from('RentPayment')
+			.from('rent_payments')
 			.update({
-				status: 'disputed',
+				status: 'FAILED',
 				failureReason: `ACH Dispute (${dispute.reason}): ${dispute.amount / 100} USD - Cannot appeal`
 			})
 			.eq('id', payment.id)
@@ -586,7 +594,7 @@ export class StripeWebhookService {
 		// Find the payment in our database
 		const { data: payment } = await this.supabase
 			.getAdminClient()
-			.from('RentPayment')
+			.from('rent_payments')
 			.select('*')
 			.eq('stripePaymentIntentId', paymentIntentId)
 			.single()
@@ -598,12 +606,12 @@ export class StripeWebhookService {
 			return
 		}
 
-		// Update payment status
+		// Update payment status (using FAILED since DISPUTED doesn't exist in enum)
 		await this.supabase
 			.getAdminClient()
-			.from('RentPayment')
+			.from('rent_payments')
 			.update({
-				status: 'disputed',
+				status: 'FAILED',
 				failureReason: `Dispute (${dispute.reason}): ${dispute.amount / 100} USD - Can submit evidence`
 			})
 			.eq('id', payment.id)

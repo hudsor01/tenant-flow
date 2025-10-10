@@ -128,7 +128,7 @@ describe('LateFeesService', () => {
 				gracePeriodDays: 7,
 				flatFeeAmount: 75
 			})
-			expect(mockAdminClient.from).toHaveBeenCalledWith('Lease')
+			expect(mockAdminClient.from).toHaveBeenCalledWith('lease')
 			expect(mockAdminClient.eq).toHaveBeenCalledWith('id', leaseId)
 		})
 
@@ -229,7 +229,13 @@ describe('LateFeesService', () => {
 			)
 
 			await expect(
-				service.applyLateFeeToInvoice('cus_123', generateUUID(), generateUUID(), 50, 'test')
+				service.applyLateFeeToInvoice(
+					'cus_123',
+					generateUUID(),
+					generateUUID(),
+					50,
+					'test'
+				)
 			).rejects.toThrow(BadRequestException)
 		})
 	})
@@ -250,8 +256,14 @@ describe('LateFeesService', () => {
 				}
 			]
 
-			mockAdminClient.single.mockResolvedValue({ data: mockPayments, error: null })
-			mockAdminClient.order.mockResolvedValue({ data: mockPayments, error: null })
+			mockAdminClient.single.mockResolvedValue({
+				data: mockPayments,
+				error: null
+			})
+			mockAdminClient.order.mockResolvedValue({
+				data: mockPayments,
+				error: null
+			})
 
 			const result = await service.getOverduePayments(leaseId, 5)
 
@@ -276,7 +288,10 @@ describe('LateFeesService', () => {
 				}
 			]
 
-			mockAdminClient.order.mockResolvedValue({ data: mockPayments, error: null })
+			mockAdminClient.order.mockResolvedValue({
+				data: mockPayments,
+				error: null
+			})
 
 			const result = await service.getOverduePayments(leaseId, 5)
 
@@ -298,7 +313,10 @@ describe('LateFeesService', () => {
 				}
 			]
 
-			mockAdminClient.order.mockResolvedValue({ data: mockPayments, error: null })
+			mockAdminClient.order.mockResolvedValue({
+				data: mockPayments,
+				error: null
+			})
 
 			const result = await service.getOverduePayments(leaseId, 5)
 

@@ -1,8 +1,8 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-import type { Database } from '@repo/shared/types/supabase-generated'
 import { createClient } from '@/utils/supabase/client'
+import type { Database } from '@repo/shared/types/supabase-generated'
+import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from './use-current-user'
 
 type UserRole = Database['public']['Enums']['UserRole']
@@ -29,7 +29,7 @@ export function useUserProfile() {
 			if (!userId) throw new Error('No user ID')
 
 			const { data, error } = await supabase
-				.from('User')
+				.from('users')
 				.select('id, email, firstName, lastName, role, profileComplete')
 				.eq('supabaseId', userId)
 				.single()

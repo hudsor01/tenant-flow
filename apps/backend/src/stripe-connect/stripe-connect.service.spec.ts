@@ -128,7 +128,7 @@ describe('StripeConnectService', () => {
 				}
 			})
 
-			expect(mockSupabaseClient.from).toHaveBeenCalledWith('ConnectedAccount')
+			expect(mockSupabaseClient.from).toHaveBeenCalledWith('connected_account')
 			expect(result).toEqual({
 				accountId: mockStripeAccountId,
 				onboardingUrl: mockAccountLink.url,
@@ -295,7 +295,7 @@ describe('StripeConnectService', () => {
 
 			const result = await service.getUserConnectedAccount(mockUserId)
 
-			expect(mockSupabaseClient.from).toHaveBeenCalledWith('ConnectedAccount')
+			expect(mockSupabaseClient.from).toHaveBeenCalledWith('connected_account')
 			expect(mockSupabaseClient.select).toHaveBeenCalledWith('*')
 			expect(mockSupabaseClient.eq).toHaveBeenCalledWith('userId', mockUserId)
 			expect(result).toEqual(mockAccount)

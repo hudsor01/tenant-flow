@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
 
-type ConnectedAccount = Database['public']['Tables']['ConnectedAccount']['Row']
+type ConnectedAccount = Database['public']['Tables']['connected_account']['Row']
 
 interface CreateConnectAccountRequest {
 	displayName: string

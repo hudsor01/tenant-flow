@@ -7,7 +7,6 @@
 
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
 	Dialog,
@@ -16,6 +15,7 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
 import {
 	Select,
 	SelectContent,
@@ -23,17 +23,17 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
-import { useCreateSubscription } from '@/hooks/api/use-subscriptions'
-import { usePaymentMethods } from '@/hooks/api/use-payment-methods'
-import { toast } from 'sonner'
 import { Spinner } from '@/components/ui/spinner'
+import { usePaymentMethods } from '@/hooks/api/use-payment-methods'
+import { useCreateSubscription } from '@/hooks/api/use-subscriptions'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { Calendar, CreditCard, DollarSign } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
-type Lease = Database['public']['Tables']['Lease']['Row'] & {
-	Unit: Database['public']['Tables']['Unit']['Row'] & {
-		Property: Database['public']['Tables']['Property']['Row']
+type Lease = Database['public']['Tables']['lease']['Row'] & {
+	Unit: Database['public']['Tables']['unit']['Row'] & {
+		Property: Database['public']['Tables']['property']['Row']
 	}
 }
 

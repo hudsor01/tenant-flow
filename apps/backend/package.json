@@ -15,7 +15,7 @@
 		"start": "node dist/main.js",
 		"start:dev": "doppler run -- node dist/main.js",
 		"start:prod": "NODE_ENV=production pnpm start",
-		"lint": "eslint \"src/**/*.ts\"",
+		"lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/*.d.ts\"",
 		"lint:fix": "pnpm lint --fix",
 		"typecheck": "tsc --noEmit",
 		"test:unit": "jest --testMatch=\"**/*.spec.ts\" --forceExit",

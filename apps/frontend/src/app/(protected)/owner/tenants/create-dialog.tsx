@@ -39,7 +39,7 @@ import { tenantFormSchema } from '@repo/shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-type InsertTenant = Database['public']['Tables']['Tenant']['Insert']
+type InsertTenant = Database['public']['Tables']['tenant']['Insert']
 
 const FORM_STEPS = [
 	{

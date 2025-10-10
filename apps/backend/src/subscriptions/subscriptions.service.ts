@@ -43,8 +43,8 @@ export class SubscriptionsService {
 		// 1. Validate lease belongs to tenant
 		const { data: lease, error: leaseError } = await this.supabase
 			.getAdminClient()
-			.from('Lease')
-			.select('*, Unit(*, Property(*))')
+			.from('lease')
+			.select('*, unit(*, property(*))')
 			.eq('id', request.leaseId)
 			.eq('tenantId', tenantId)
 			.single()
@@ -53,12 +53,12 @@ export class SubscriptionsService {
 			throw new NotFoundException('Lease not found')
 		}
 
-		const landlordId = lease.Unit.Property.ownerId
+		const landlordId = lease.unit.property.ownerId
 
 		// Get landlord's Stripe Connect account
 		const { data: connectedAccount, error: accountError } = await this.supabase
 			.getAdminClient()
-			.from('ConnectedAccount')
+			.from('connected_account')
 			.select('*')
 			.eq('userId', landlordId)
 			.single()
@@ -80,7 +80,7 @@ export class SubscriptionsService {
 		// 2. Get payment method and ensure it belongs to tenant
 		const { data: paymentMethod, error: pmError } = await this.supabase
 			.getAdminClient()
-			.from('TenantPaymentMethod')
+			.from('tenant_payment_method')
 			.select('*')
 			.eq('id', request.paymentMethodId)
 			.eq('tenantId', tenantId)
@@ -97,7 +97,7 @@ export class SubscriptionsService {
 			// Get tenant info separately
 			const { data: tenant } = await this.supabase
 				.getAdminClient()
-				.from('Tenant')
+				.from('tenant')
 				.select('*')
 				.eq('id', tenantId)
 				.single()
@@ -136,7 +136,7 @@ export class SubscriptionsService {
 
 		// 5. Create a product and price first for the subscription
 		const product = await this.stripe.products.create({
-			name: `Rent for Unit ${lease.Unit.unitNumber} at ${lease.Unit.Property.name}`
+			name: `Rent for Unit ${lease.unit.unitNumber} at ${lease.unit.property.name}`
 		})
 
 		const price = await this.stripe.prices.create({
@@ -170,7 +170,7 @@ export class SubscriptionsService {
 		// 7. Store subscription in database with all metadata
 		const { data: dbSubscription, error: dbError } = await this.supabase
 			.getAdminClient()
-			.from('RentSubscription')
+			.from('rent_subscription')
 			.insert({
 				leaseId: request.leaseId,
 				tenantId,
@@ -182,7 +182,8 @@ export class SubscriptionsService {
 				dueDay: request.billingDayOfMonth,
 				status: subscription.status === 'active' ? 'active' : 'paused',
 				platformFeePercent: 2.9,
-				pausedAt: subscription.status !== 'active' ? new Date().toISOString() : null
+				pausedAt:
+					subscription.status !== 'active' ? new Date().toISOString() : null
 			})
 			.select()
 			.single()
@@ -205,7 +206,7 @@ export class SubscriptionsService {
 	): Promise<RentSubscriptionResponse> {
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('RentSubscription')
+			.from('rent_subscription')
 			.select('*')
 			.eq('id', subscriptionId)
 			.or(`tenantId.eq.${userId},landlordId.eq.${userId}`)
@@ -224,7 +225,7 @@ export class SubscriptionsService {
 	async listSubscriptions(userId: string): Promise<RentSubscriptionResponse[]> {
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('RentSubscription')
+			.from('rent_subscription')
 			.select('*')
 			.or(`tenantId.eq.${userId},landlordId.eq.${userId}`)
 			.order('createdAt', { ascending: false })
@@ -262,7 +263,7 @@ export class SubscriptionsService {
 		// Update database with pausedAt timestamp
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('RentSubscription')
+			.from('rent_subscription')
 			.update({
 				status: 'paused',
 				pausedAt: new Date().toISOString()
@@ -303,7 +304,7 @@ export class SubscriptionsService {
 		// Update database and clear pausedAt
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('RentSubscription')
+			.from('rent_subscription')
 			.update({
 				status: 'active',
 				pausedAt: null
@@ -340,7 +341,7 @@ export class SubscriptionsService {
 		// Update database with canceledAt timestamp
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('RentSubscription')
+			.from('rent_subscription')
 			.update({
 				status: 'canceled',
 				canceledAt: new Date().toISOString()
@@ -417,7 +418,7 @@ export class SubscriptionsService {
 		if (update.paymentMethodId) {
 			const { data: newPM } = await this.supabase
 				.getAdminClient()
-				.from('TenantPaymentMethod')
+				.from('tenant_payment_method')
 				.select('stripePaymentMethodId')
 				.eq('id', update.paymentMethodId)
 				.eq('tenantId', subscription.tenantId)
@@ -441,7 +442,7 @@ export class SubscriptionsService {
 		if (Object.keys(dbUpdate).length > 0) {
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('RentSubscription')
+				.from('rent_subscription')
 				.update(dbUpdate)
 				.eq('id', subscriptionId)
 				.select()

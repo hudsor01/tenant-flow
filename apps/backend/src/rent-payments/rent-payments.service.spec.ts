@@ -13,7 +13,7 @@ const createSingleQueryMock = <T>(data: T): any => {
 }
 
 describe('RentPaymentsService', () => {
-  let service: RentPaymentsService
+	let service: RentPaymentsService
 	const adminClient: any = { from: jest.fn() }
 	const mockSupabaseService = {
 		getAdminClient: jest.fn(() => adminClient)
@@ -35,11 +35,11 @@ describe('RentPaymentsService', () => {
 		service = module.get<RentPaymentsService>(RentPaymentsService)
 	})
 
-  afterEach(() => {
+	afterEach(() => {
 		jest.clearAllMocks()
 	})
 
-  describe('fee calculations', () => {
+	describe('fee calculations', () => {
 		it('calculates platform fees per tier', () => {
 			expect(service.calculatePlatformFee(100000, 'STARTER')).toBe(3000)
 			expect(service.calculatePlatformFee(100000, 'GROWTH')).toBe(2500)
@@ -62,7 +62,7 @@ describe('RentPaymentsService', () => {
 		})
 	})
 
-  describe('createOneTimePayment', () => {
+	describe('createOneTimePayment', () => {
 		const tenant = {
 			id: 'tenant123',
 			userId: 'user123',
@@ -174,19 +174,19 @@ describe('RentPaymentsService', () => {
 
 			adminClient.from.mockImplementation((table: string) => {
 				switch (table) {
-					case 'Tenant':
+					case 'tenant':
 						return createSingleQueryMock(tenant)
-					case 'User':
+					case 'users':
 						return createSingleQueryMock(userCallResults.shift())
-					case 'Lease':
+					case 'lease':
 						return createSingleQueryMock(lease)
-					case 'Unit':
+					case 'unit':
 						return createSingleQueryMock(unit)
-					case 'Property':
+					case 'property':
 						return createSingleQueryMock(property)
-					case 'TenantPaymentMethod':
+					case 'tenant_payment_method':
 						return tenantPaymentMethodBuilders[tenantPaymentMethodCall++]
-					case 'RentPayment':
+					case 'rent_payment':
 						return rentPaymentInsertBuilder
 					default:
 						throw new Error(`Unexpected table ${table}`)

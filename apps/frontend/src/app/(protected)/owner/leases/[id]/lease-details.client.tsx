@@ -1,13 +1,13 @@
 'use client'
 
-import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
-import { Calendar, Home, User } from 'lucide-react'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
-import { leasesApi, unitsApi } from '@/lib/api-client'
 import { useAllTenants } from '@/hooks/api/use-tenant'
+import { leasesApi, unitsApi } from '@/lib/api-client'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { useQuery } from '@tanstack/react-query'
+import { Calendar, Home, User } from 'lucide-react'
+import Link from 'next/link'
 
 interface LeaseDetailsProps {
 	id: string
@@ -16,7 +16,11 @@ interface LeaseDetailsProps {
 const logger = createLogger({ component: 'LeaseDetails' })
 
 export function LeaseDetails({ id }: LeaseDetailsProps) {
-	const { data: lease, isLoading, isError } = useQuery({
+	const {
+		data: lease,
+		isLoading,
+		isError
+	} = useQuery({
 		queryKey: ['leases', id],
 		queryFn: () => leasesApi.get(id)
 	})
@@ -32,11 +36,15 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 	const unit = units.find(u => u.id === lease?.unitId)
 
 	if (isLoading) {
-		return <div className="animate-pulse text-muted-foreground">Loading lease...</div>
+		return (
+			<div className="animate-pulse text-muted-foreground">
+				Loading lease...
+			</div>
+		)
 	}
 
 	if (isError || !lease) {
-		logger.error('Failed to load lease details', { leaseId: id })
+		logger.error('Failed to load lease details', { action: 'loadLeaseDetails' })
 		return (
 			<CardLayout
 				title="Unable to load lease"
@@ -51,7 +59,9 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 			<div className="lg:col-span-2 flex flex-col gap-4">
 				<div className="flex justify-end mb-2">
 					<Button asChild variant="outline" size="sm">
-						<Link href={`/(protected)/owner/leases/${lease.id}/edit`}>Edit lease</Link>
+						<Link href={`/(protected)/owner/leases/${lease.id}/edit`}>
+							Edit lease
+						</Link>
 					</Button>
 				</div>
 				<CardLayout
@@ -71,9 +81,13 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 										Lease period
 									</div>
 									<p className="mt-1 text-sm font-medium">
-										{lease.startDate ? new Date(lease.startDate).toLocaleDateString() : 'Start TBD'}
-										{' '}&mdash;{' '}
-										{lease.endDate ? new Date(lease.endDate).toLocaleDateString() : 'End TBD'}
+										{lease.startDate
+											? new Date(lease.startDate).toLocaleDateString()
+											: 'Start TBD'}{' '}
+										&mdash;{' '}
+										{lease.endDate
+											? new Date(lease.endDate).toLocaleDateString()
+											: 'End TBD'}
 									</p>
 								</div>
 								<div className="rounded-xl border bg-muted/20 p-4">
@@ -102,10 +116,14 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 										Assigned tenant
 									</div>
 									<p className="mt-1 text-sm font-medium">{tenant.name}</p>
-									<p className="text-sm text-muted-foreground">{tenant.email}</p>
+									<p className="text-sm text-muted-foreground">
+										{tenant.email}
+									</p>
 								</div>
 							) : (
-								<p className="text-sm text-muted-foreground">No tenant assigned</p>
+								<p className="text-sm text-muted-foreground">
+									No tenant assigned
+								</p>
 							)}
 						</section>
 

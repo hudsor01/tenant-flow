@@ -24,7 +24,7 @@ export class PaymentMethodsService {
 		const adminClient = this.supabase.getAdminClient()
 
 		const { data: user, error } = await adminClient
-			.from('User')
+			.from('users')
 			.select('stripeCustomerId, email')
 			.eq('id', userId)
 			.single()
@@ -48,7 +48,7 @@ export class PaymentMethodsService {
 		})
 
 		const { error: updateError } = await adminClient
-			.from('User')
+			.from('users')
 			.update({
 				stripeCustomerId: customer.id,
 				updatedAt: new Date().toISOString()
@@ -149,7 +149,7 @@ export class PaymentMethodsService {
 		}
 
 		const { data: existing, error: existingError } = await adminClient
-			.from('TenantPaymentMethod')
+			.from('tenant_payment_method')
 			.select('id')
 			.match({
 				tenantId: userId,
@@ -175,7 +175,7 @@ export class PaymentMethodsService {
 		}
 
 		const { data: existingMethods, error: listError } = await adminClient
-			.from('TenantPaymentMethod')
+			.from('tenant_payment_method')
 			.select('id')
 			.eq('tenantId', userId)
 
@@ -191,7 +191,7 @@ export class PaymentMethodsService {
 
 		if (shouldBeDefault) {
 			await adminClient
-				.from('TenantPaymentMethod')
+				.from('tenant_payment_method')
 				.update({
 					isDefault: false,
 					updatedAt: new Date().toISOString()
@@ -199,7 +199,7 @@ export class PaymentMethodsService {
 				.eq('tenantId', userId)
 		}
 
-		const { error } = await adminClient.from('TenantPaymentMethod').insert({
+		const { error } = await adminClient.from('tenant_payment_method').insert({
 			tenantId: userId,
 			stripePaymentMethodId,
 			stripeCustomerId,
@@ -235,7 +235,7 @@ export class PaymentMethodsService {
 	async listPaymentMethods(userId: string) {
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('TenantPaymentMethod')
+			.from('tenant_payment_method')
 			.select(
 				'id, tenantId, stripePaymentMethodId, type, last4, brand, bankName, isDefault, verificationStatus, createdAt, updatedAt'
 			)
@@ -260,7 +260,7 @@ export class PaymentMethodsService {
 		const adminClient = this.supabase.getAdminClient()
 
 		const { data: paymentMethod, error: fetchError } = await adminClient
-			.from('TenantPaymentMethod')
+			.from('tenant_payment_method')
 			.select('id')
 			.eq('id', paymentMethodId)
 			.eq('tenantId', userId)
@@ -281,12 +281,12 @@ export class PaymentMethodsService {
 		const now = new Date().toISOString()
 
 		await adminClient
-			.from('TenantPaymentMethod')
+			.from('tenant_payment_method')
 			.update({ isDefault: false, updatedAt: now })
 			.eq('tenantId', userId)
 
 		const { error } = await adminClient
-			.from('TenantPaymentMethod')
+			.from('tenant_payment_method')
 			.update({ isDefault: true, updatedAt: now })
 			.eq('id', paymentMethodId)
 			.eq('tenantId', userId)
@@ -311,7 +311,7 @@ export class PaymentMethodsService {
 		const adminClient = this.supabase.getAdminClient()
 
 		const { data: paymentMethod, error: fetchError } = await adminClient
-			.from('TenantPaymentMethod')
+			.from('tenant_payment_method')
 			.select('stripePaymentMethodId, isDefault')
 			.eq('id', paymentMethodId)
 			.eq('tenantId', userId)
@@ -333,7 +333,7 @@ export class PaymentMethodsService {
 		}
 
 		const { error } = await adminClient
-			.from('TenantPaymentMethod')
+			.from('tenant_payment_method')
 			.delete()
 			.eq('id', paymentMethodId)
 			.eq('tenantId', userId)
@@ -349,7 +349,7 @@ export class PaymentMethodsService {
 
 		if (paymentMethod.isDefault) {
 			const { data: nextDefault } = await adminClient
-				.from('TenantPaymentMethod')
+				.from('tenant_payment_method')
 				.select('id')
 				.eq('tenantId', userId)
 				.order('createdAt', { ascending: true })
@@ -359,7 +359,7 @@ export class PaymentMethodsService {
 				const firstMethod = nextDefault[0]
 				if (firstMethod) {
 					await adminClient
-						.from('TenantPaymentMethod')
+						.from('tenant_payment_method')
 						.update({
 							isDefault: true,
 							updatedAt: new Date().toISOString()

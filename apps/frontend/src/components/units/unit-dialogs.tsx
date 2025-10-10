@@ -10,6 +10,7 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '@/components/ui/dialog'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -53,9 +54,8 @@ import {
 } from 'lucide-react'
 import * as React from 'react'
 import { toast } from 'sonner'
-import { Field, FieldLabel, FieldError } from '@/components/ui/field'
 
-type UnitRow = Database['public']['Tables']['Unit']['Row']
+type UnitRow = Database['public']['Tables']['unit']['Row']
 type UnitStatus = Database['public']['Enums']['UnitStatus']
 
 interface UnitViewDialogProps {
@@ -520,14 +520,14 @@ export function UnitEditDialog({
 			values
 		}: {
 			id: string
-			values: Database['public']['Tables']['Unit']['Update']
+			values: Database['public']['Tables']['unit']['Update']
 		}) => unitsApi.update(id, values),
 		onMutate: async ({
 			id,
 			values
 		}: {
 			id: string
-			values: Database['public']['Tables']['Unit']['Update']
+			values: Database['public']['Tables']['unit']['Update']
 		}) => {
 			await qc.cancelQueries({ queryKey: ['units'] })
 			const previous = qc.getQueryData<UnitRow[] | { data: UnitRow[] }>([

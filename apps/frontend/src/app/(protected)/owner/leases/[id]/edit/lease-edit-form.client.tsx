@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState, type ChangeEvent } from 'react'
-import { useRouter } from 'next/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState, type ChangeEvent } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -18,11 +18,11 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useAllTenants } from '@/hooks/api/use-tenant'
 import { leasesApi, unitsApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { leaseInputSchema } from '@repo/shared/validation/leases'
 import { useForm } from '@tanstack/react-form'
-import { useAllTenants } from '@/hooks/api/use-tenant'
 
 interface LeaseEditFormProps {
 	id: string
@@ -36,7 +36,11 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 	const [step, setStep] = useState(1)
 	const totalSteps = 2
 
-	const { data: lease, isLoading, isError } = useQuery({
+	const {
+		data: lease,
+		isLoading,
+		isError
+	} = useQuery({
 		queryKey: ['leases', id],
 		queryFn: () => leasesApi.get(id)
 	})
@@ -104,12 +108,16 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 		},
 		onError: error => {
 			toast.error('Failed to update lease')
-			logger.error('Failed to update lease', { leaseId: id }, error)
+			logger.error('Failed to update lease', { action: 'updateLease' }, error)
 		}
 	})
 
 	if (isLoading) {
-		return <div className="animate-pulse text-muted-foreground">Loading lease...</div>
+		return (
+			<div className="animate-pulse text-muted-foreground">
+				Loading lease...
+			</div>
+		)
 	}
 
 	if (isError || !lease) {
@@ -158,7 +166,9 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 											</SelectContent>
 										</Select>
 										{field.state.meta.errors?.length ? (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										) : null}
 									</Field>
 								)}
@@ -184,7 +194,9 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 											</SelectContent>
 										</Select>
 										{field.state.meta.errors?.length ? (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										) : null}
 									</Field>
 								)}
@@ -196,7 +208,9 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 										<FieldLabel htmlFor="status">Status</FieldLabel>
 										<Select
 											value={field.state.value}
-											onValueChange={(value) => field.handleChange(value as typeof field.state.value)}
+											onValueChange={value =>
+												field.handleChange(value as typeof field.state.value)
+											}
 										>
 											<SelectTrigger id="status">
 												<SelectValue placeholder="Select status" />
@@ -230,7 +244,9 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 											onBlur={field.handleBlur}
 										/>
 										{field.state.meta.errors?.length ? (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										) : null}
 									</Field>
 								)}
@@ -250,7 +266,9 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 											onBlur={field.handleBlur}
 										/>
 										{field.state.meta.errors?.length ? (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										) : null}
 									</Field>
 								)}
@@ -267,12 +285,16 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 											step={0.01}
 											value={field.state.value}
 											onChange={(event: ChangeEvent<HTMLInputElement>) =>
-												field.handleChange(Number.parseFloat(event.target.value || '0'))
+												field.handleChange(
+													Number.parseFloat(event.target.value || '0')
+												)
 											}
 											onBlur={field.handleBlur}
 										/>
 										{field.state.meta.errors?.length ? (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										) : null}
 									</Field>
 								)}
@@ -281,7 +303,9 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 							<form.Field name="securityDeposit">
 								{field => (
 									<Field>
-										<FieldLabel htmlFor="securityDeposit">Security deposit</FieldLabel>
+										<FieldLabel htmlFor="securityDeposit">
+											Security deposit
+										</FieldLabel>
 										<Input
 											id="securityDeposit"
 											type="number"
@@ -289,12 +313,16 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 											step={0.01}
 											value={field.state.value}
 											onChange={(event: ChangeEvent<HTMLInputElement>) =>
-												field.handleChange(Number.parseFloat(event.target.value || '0'))
+												field.handleChange(
+													Number.parseFloat(event.target.value || '0')
+												)
 											}
 											onBlur={field.handleBlur}
 										/>
 										{field.state.meta.errors?.length ? (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										) : null}
 									</Field>
 								)}
@@ -315,7 +343,9 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 											rows={4}
 										/>
 										{field.state.meta.errors?.length ? (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										) : null}
 									</Field>
 								)}

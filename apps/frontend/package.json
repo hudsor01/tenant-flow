@@ -12,7 +12,7 @@
 		"start": "next start",
 		"start:dev": "doppler run -- next start",
 		"start:prod": "NODE_ENV=production pnpm start",
-		"lint": "eslint \"src/**/*.{ts,tsx}\"",
+		"lint": "eslint \"src/**/*.{ts,tsx}\" --ignore-pattern \"**/*.d.ts\"",
 		"lint:fix": "pnpm lint --fix",
 		"typecheck": "tsc --noEmit",
 		"test:unit": "jest --testMatch=\"**/*.test.{ts,tsx}\"",

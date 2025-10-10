@@ -7,17 +7,17 @@
  */
 
 import {
+	BadRequestException,
+	Body,
 	Controller,
 	Get,
+	Logger,
+	Optional,
+	Param,
+	ParseUUIDPipe,
 	Post,
 	Put,
-	Param,
-	Body,
-	Req,
-	Logger,
-	ParseUUIDPipe,
-	BadRequestException,
-	Optional
+	Req
 } from '@nestjs/common'
 import type { Request } from 'express'
 import { SupabaseService } from '../database/supabase.service'
@@ -85,12 +85,22 @@ export class LateFeesController {
 		}
 
 		// Validate inputs
-		if (gracePeriodDays !== undefined && (gracePeriodDays < 0 || gracePeriodDays > 30)) {
-			throw new BadRequestException('Grace period must be between 0 and 30 days')
+		if (
+			gracePeriodDays !== undefined &&
+			(gracePeriodDays < 0 || gracePeriodDays > 30)
+		) {
+			throw new BadRequestException(
+				'Grace period must be between 0 and 30 days'
+			)
 		}
 
-		if (flatFeeAmount !== undefined && (flatFeeAmount < 0 || flatFeeAmount > 500)) {
-			throw new BadRequestException('Flat fee amount must be between $0 and $500')
+		if (
+			flatFeeAmount !== undefined &&
+			(flatFeeAmount < 0 || flatFeeAmount > 500)
+		) {
+			throw new BadRequestException(
+				'Flat fee amount must be between $0 and $500'
+			)
 		}
 
 		this.logger.log('Updating late fee config', {
@@ -274,24 +284,24 @@ export class LateFeesController {
 		})
 
 		// Get payment details from database
-		const { data: payment, error } = await this.supabaseService!
-			.getAdminClient()
-			.from('RentPayment')
-			.select('id, leaseId, stripePaymentIntentId')
-			.eq('id', paymentId)
-			.single()
+		const { data: payment, error } =
+			await this.supabaseService!.getAdminClient()
+				.from('rent_payment')
+				.select('id, leaseId, stripePaymentIntentId')
+				.eq('id', paymentId)
+				.single()
 
 		if (error || !payment) {
 			throw new BadRequestException('Payment not found')
 		}
 
 		// Get Stripe customer ID from user
-		const { data: userData, error: userError } = await this.supabaseService!
-			.getAdminClient()
-			.from('User')
-			.select('stripeCustomerId')
-			.eq('id', user.id)
-			.single()
+		const { data: userData, error: userError } =
+			await this.supabaseService!.getAdminClient()
+				.from('users')
+				.select('stripeCustomerId')
+				.eq('id', user.id)
+				.single()
 
 		if (userError || !userData?.stripeCustomerId) {
 			throw new BadRequestException('User Stripe customer not found')

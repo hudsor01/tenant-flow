@@ -98,7 +98,7 @@ export class StripeConnectService {
 
 			const { error: dbError } = await this.supabase
 				.getAdminClient()
-				.from('ConnectedAccount' as never)
+				.from('connected_account' as never)
 				.insert(insertData as never)
 
 			if (dbError) {
@@ -157,7 +157,7 @@ export class StripeConnectService {
 
 			const { error } = await this.supabase
 				.getAdminClient()
-				.from('ConnectedAccount' as never)
+				.from('connected_account' as never)
 				.update(updateData as never)
 				.eq('stripeAccountId', accountId)
 
@@ -198,7 +198,7 @@ export class StripeConnectService {
 	): Promise<ConnectedAccountRow | null> {
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('ConnectedAccount' as never)
+			.from('connected_account' as never)
 			.select('*')
 			.eq('userId', userId)
 			.single()
