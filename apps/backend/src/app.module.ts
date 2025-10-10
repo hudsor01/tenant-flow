@@ -23,18 +23,13 @@ import { TimeoutInterceptor } from './interceptors/timeout.interceptor'
 import { LeasesModule } from './leases/leases.module'
 import { MaintenanceModule } from './maintenance/maintenance.module'
 import { NotificationsModule } from './notifications/notifications.module'
-import { PaymentMethodsModule } from './payment-methods/payment-methods.module'
 import { PropertiesModule } from './properties/properties.module'
-import { RentPaymentsModule } from './rent-payments/rent-payments.module'
 import { ReportsModule } from './reports/reports.module'
 import { RepositoriesModule } from './repositories/repositories.module'
 import { SecurityModule } from './security/security.module'
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
 import { ServicesModule } from './shared/services/services.module'
 import { SharedModule } from './shared/shared.module'
-import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
-import { StripeWebhookModule } from './stripe-webhook/stripe-webhook.module'
-import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantsModule } from './tenants/tenants.module'
 import { UnitsModule } from './units/units.module'
 import { UsersModule } from './users/users.module'
@@ -99,11 +94,6 @@ import { UsersModule } from './users/users.module'
 		// Business modules that depend on global services
 		AnalyticsModule,
 		StripeModule,
-		StripeConnectModule,
-		StripeWebhookModule,
-		SubscriptionsModule,
-		RentPaymentsModule,
-		PaymentMethodsModule,
 		ContactModule,
 		DashboardModule,
 		FinancialModule,
