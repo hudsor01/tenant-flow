@@ -149,6 +149,9 @@ function ChartTooltipContent({
 
 		const [item] = payload
 		const key = `${labelKey || item?.dataKey || item?.name || 'value'}`
+
+		// Recharts payload types are often readonly / generic — cast locally to a
+		// simple Record to satisfy our helper which reads arbitrary keys.
 		const itemConfig = getPayloadConfigFromPayload(
 			config,
 			item as unknown as Record<string, unknown>,
@@ -164,8 +167,11 @@ function ChartTooltipContent({
 				<div className={cn('font-medium', labelClassName)}>
 					{labelFormatter(
 						value,
-						// Cast readonly -> mutable payload array expected by formatters
-						tooltipPayload as unknown as RechartsPayload<ValueType, string>[]
+						// Convert readonly/generic payload to a concrete mutable array for caller
+						(tooltipPayload as unknown as RechartsPayload<
+							ValueType,
+							string
+						>[]) || []
 					)}
 				</div>
 			)
@@ -238,9 +244,14 @@ function ChartTooltipContent({
 									formatter(
 										item.value as ValueType,
 										item.name,
+										// cast payload item to the Recharts payload expected by formatter
 										item as unknown as RechartsPayload<ValueType, string>,
 										index,
-										payload as unknown as RechartsPayload<ValueType, string>[]
+										// payload may be readonly in Recharts; cast to mutable array for formatter
+										(payload as unknown as RechartsPayload<
+											ValueType,
+											string
+										>[]) || []
 									)
 								) : (
 									<>
