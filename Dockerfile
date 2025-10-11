@@ -51,9 +51,9 @@ RUN pnpm build:shared && \
     pnpm build:database && \
     pnpm build:backend
 
-# Ensure runtime has access to Handlebars templates compiled from TypeScript
-RUN mkdir -p apps/backend/dist/pdf/templates \
-    && cp -R apps/backend/src/pdf/templates/. apps/backend/dist/pdf/templates/
+# Copy PDF and report templates to dist directory for runtime access
+COPY apps/backend/src/modules/pdf/templates apps/backend/dist/modules/pdf/templates
+COPY apps/backend/src/modules/reports/templates apps/backend/dist/modules/reports/templates
 
 # ===== RUNTIME STAGE =====
 # Ultra-minimal production image (~200MB total)
@@ -98,6 +98,9 @@ COPY --from=build --chown=node:node /app/packages/shared/dist ./packages/shared/
 # Copy database package artifacts for runtime usage
 COPY --from=build --chown=node:node /app/packages/database/package.json ./packages/database/package.json
 COPY --from=build --chown=node:node /app/packages/database/dist ./packages/database/dist
+
+# Create reports directory with proper permissions before switching to node user
+RUN mkdir -p /app/reports && chown -R node:node /app/reports
 
 # Install production dependencies in the runtime environment
 # This ensures workspace dependencies resolve correctly

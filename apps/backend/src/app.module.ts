@@ -1,6 +1,5 @@
-import { Module } from '@nestjs/common'
-// Native NestJS Logger used throughout application
 import { CacheModule } from '@nestjs/cache-manager'
+import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
@@ -50,9 +49,6 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 			validate
 		}),
 
-		// Native NestJS Logger - simplified configuration
-		// Logger is automatically available throughout the application
-
 		// Request context for tracing and user management
 		ClsModule.forRoot({
 			global: true,
@@ -95,8 +91,6 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 		RepositoriesModule,
 		ServicesModule,
 		HealthModule,
-
-		// Business modules that depend on global services
 		AnalyticsModule,
 		StripeModule,
 		ContactModule,
