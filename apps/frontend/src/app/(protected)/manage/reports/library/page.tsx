@@ -142,7 +142,7 @@ export default function ReportLibraryPage() {
 							</EmptyHeader>
 							<EmptyContent>
 								<Button asChild>
-									<a href="/dashboard/reports/generate">Generate Report</a>
+									<a href="/manage/reports/generate">Generate Report</a>
 								</Button>
 							</EmptyContent>
 						</Empty>

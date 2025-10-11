@@ -46,13 +46,13 @@ export default function DocumentsPage() {
 						</div>
 						<div className="flex gap-2">
 							<Button variant="outline" size="sm" asChild>
-								<Link href="/dashboard/documents/lease-template">
+								<Link href="/manage/documents/lease-template">
 									<Eye className="h-4 w-4 mr-2" />
 									View Details
 								</Link>
 							</Button>
 							<Button size="sm" asChild>
-								<Link href="/dashboard/documents/lease-template">
+								<Link href="/manage/documents/lease-template">
 									<ArrowRight className="h-4 w-4 mr-2" />
 									Access Template
 								</Link>
@@ -98,19 +98,19 @@ export default function DocumentsPage() {
 				<CardContent>
 					<div className="grid gap-3 md:grid-cols-3">
 						<Button variant="outline" className="justify-start" asChild>
-							<Link href="/dashboard/leases">
+							<Link href="/manage/leases">
 								<FileText className="h-4 w-4 mr-2" />
 								Generate Custom Lease
 							</Link>
 						</Button>
 						<Button variant="outline" className="justify-start" asChild>
-							<Link href="/dashboard/documents/lease-template">
+							<Link href="/manage/documents/lease-template">
 								<Download className="h-4 w-4 mr-2" />
 								Download Template
 							</Link>
 						</Button>
 						<Button variant="outline" className="justify-start" asChild>
-							<Link href="/dashboard/properties">
+							<Link href="/manage/properties">
 								<FileText className="h-4 w-4 mr-2" />
 								View Properties
 							</Link>
