@@ -1,6 +1,6 @@
 'use client'
 
-import { TrendingUp } from 'lucide-react'
+import { BarChart3, TrendingUp } from 'lucide-react'
 import * as React from 'react'
 import { Cell, Label, Pie, PieChart } from 'recharts'
 
@@ -18,6 +18,13 @@ import {
 	ChartTooltip,
 	ChartTooltipContent
 } from '@/components/ui/chart'
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle
+} from '@/components/ui/empty'
 import type { ModernExplodedPieChartProps } from '@repo/shared/types/frontend'
 
 export const description =
@@ -33,12 +40,8 @@ export function ModernExplodedPieChart({
 }: ModernExplodedPieChartProps) {
 	const [activeIndex, setActiveIndex] = React.useState(0)
 
-	// No data - component should not render
-	if (!data || data.length === 0) {
-		return null
-	}
-
-	const chartData = React.useMemo(() => data, [data])
+	// Move all hooks before early return to comply with Rules of Hooks
+	const chartData = React.useMemo(() => data || [], [data])
 
 	const chartConfig = {
 		units: {
@@ -70,8 +73,34 @@ export function ModernExplodedPieChart({
 	const occupancyRate = React.useMemo(() => {
 		const occupied =
 			chartData.find(item => item.name === 'occupied')?.value || 0
-		return ((occupied / totalUnits) * 100).toFixed(1)
+		return totalUnits > 0 ? ((occupied / totalUnits) * 100).toFixed(1) : '0.0'
 	}, [chartData, totalUnits])
+
+	// No data - show empty state (check after hooks)
+	if (!data || data.length === 0) {
+		return (
+			<Card className={`flex flex-col ${className}`}>
+				<CardHeader className="items-center pb-0">
+					<CardTitle>{title}</CardTitle>
+					{description && <CardDescription>{description}</CardDescription>}
+				</CardHeader>
+				<CardContent className="flex-1 pb-0">
+					<Empty>
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<BarChart3 />
+							</EmptyMedia>
+							<EmptyTitle>No data available</EmptyTitle>
+							<EmptyDescription>
+								No occupancy data to display. Data will appear here once units
+								are added.
+							</EmptyDescription>
+						</EmptyHeader>
+					</Empty>
+				</CardContent>
+			</Card>
+		)
+	}
 
 	return (
 		<Card className={`flex flex-col ${className}`}>
