@@ -1,12 +1,30 @@
 /**
  * Tenant Hooks
  * TanStack Query hooks for tenant management with Zustand store integration
+ * React 19 + TanStack Query v5 patterns with Suspense support
+ * Enhanced with comprehensive error handling, analytics, and recovery
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@repo/shared/utils/api-client'
+import { trackMutationError, trackQueryError } from '@/lib/error-analytics'
+import { handleApiError as _handleApiError } from '@/lib/error-handler'
+import {
+	adaptiveRetryDelay,
+	defaultQueryRetry
+} from '@/lib/query-retry-strategies'
 import { useTenantStore } from '@/stores/tenant-store'
-import type { Tenant, TenantWithLeaseInfo, TenantInput, TenantUpdate } from '@repo/shared/types/core'
+import type {
+	Tenant,
+	TenantInput,
+	TenantUpdate,
+	TenantWithLeaseInfo
+} from '@repo/shared/types/core'
+import { apiClient } from '@repo/shared/utils/api-client'
+import {
+	useMutation,
+	useQuery,
+	useQueryClient,
+	useSuspenseQuery
+} from '@tanstack/react-query'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
 
@@ -14,288 +32,776 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
  * Query keys for tenant endpoints
  */
 export const tenantKeys = {
- all: ['tenants'] as const,
-  list: () => [...tenantKeys.all, 'list'] as const,
-  detail: (id: string) => [...tenantKeys.all, 'detail', id] as const,
-  withLease: (id: string) => [...tenantKeys.all, 'with-lease', id] as const,
-  stats: () => [...tenantKeys.all, 'stats'] as const,
+	all: ['tenants'] as const,
+	list: () => [...tenantKeys.all, 'list'] as const,
+	detail: (id: string) => [...tenantKeys.all, 'detail', id] as const,
+	withLease: (id: string) => [...tenantKeys.all, 'with-lease', id] as const,
+	stats: () => [...tenantKeys.all, 'stats'] as const
 }
 
 /**
  * Hook to fetch tenant by ID with Zustand store integration
+ * Optimized with placeholder data from list cache
  */
 export function useTenant(id: string) {
-  const addTenant = useTenantStore((state) => state.addTenant)
+	const addTenant = useTenantStore(state => state.addTenant)
+	const queryClient = useQueryClient()
 
- return useQuery({
-    queryKey: tenantKeys.detail(id),
-    queryFn: async (): Promise<Tenant> => {
-      const response = await apiClient<Tenant>(`${API_BASE_URL}/api/v1/tenants/${id}`)
-      return response
-    },
-    enabled: !!id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 2,
-    select: (tenant: Tenant) => {
-      // Add to store for caching - convert basic Tenant to TenantWithLeaseInfo format
-      const tenantWithLeaseInfo: TenantWithLeaseInfo = {
-        id: tenant.id,
-        name: tenant.name || '',
-        email: tenant.email,
-        phone: tenant.phone,
-        avatarUrl: tenant.avatarUrl,
-        emergencyContact: tenant.emergencyContact,
-        createdAt: tenant.createdAt,
-        updatedAt: tenant.updatedAt,
-        currentLease: null,
-        leases: [],
-        unit: null,
-        property: null,
-        monthlyRent: 0, // Default to 0 for basic tenant (no lease info)
-        leaseStatus: 'inactive',
-        paymentStatus: 'pending',
-        unitDisplay: '',
-        propertyDisplay: '',
-        leaseStart: null,
-        leaseEnd: null
-      }
-      addTenant(tenantWithLeaseInfo)
-      return tenantWithLeaseInfo
-    }
-  })
+	return useQuery({
+		queryKey: tenantKeys.detail(id),
+		queryFn: async (): Promise<Tenant> => {
+			const response = await apiClient<Tenant>(
+				`${API_BASE_URL}/api/v1/tenants/${id}`
+			)
+			return response
+		},
+		enabled: !!id,
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		gcTime: 10 * 60 * 1000, // 10 minutes cache time
+		retry: (failureCount, error) => {
+			const shouldRetry = defaultQueryRetry(failureCount, error)
+			if (!shouldRetry) {
+				trackQueryError(error, [...tenantKeys.detail(id)], {
+					entityType: 'tenant',
+					entityId: id,
+					operation: 'fetch tenant details',
+					retryCount: failureCount
+				})
+			}
+			return shouldRetry
+		},
+		retryDelay: (attemptIndex, error) =>
+			adaptiveRetryDelay(attemptIndex, error),
+		// Use data from list query as placeholder while fetching
+		placeholderData: () => {
+			const cachedList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
+				tenantKeys.list()
+			)
+			return cachedList?.find((t: TenantWithLeaseInfo) => t.id === id) as
+				| Tenant
+				| undefined
+		},
+		select: (tenant: Tenant) => {
+			// Add to store for caching - convert basic Tenant to TenantWithLeaseInfo format
+			const tenantWithLeaseInfo: TenantWithLeaseInfo = {
+				id: tenant.id,
+				name: tenant.name || '',
+				email: tenant.email,
+				phone: tenant.phone,
+				avatarUrl: tenant.avatarUrl,
+				emergencyContact: tenant.emergencyContact,
+				createdAt: tenant.createdAt,
+				updatedAt: tenant.updatedAt,
+				currentLease: null,
+				leases: [],
+				unit: null,
+				property: null,
+				monthlyRent: 0, // Default to 0 for basic tenant (no lease info)
+				leaseStatus: 'inactive',
+				paymentStatus: 'pending',
+				unitDisplay: '',
+				propertyDisplay: '',
+				leaseStart: null,
+				leaseEnd: null
+			}
+			addTenant(tenantWithLeaseInfo)
+			return tenantWithLeaseInfo
+		}
+	})
 }
 
 /**
  * Hook to fetch tenant with lease information
+ * Optimized with placeholder data from list cache
  */
 export function useTenantWithLease(id: string) {
-  const addTenant = useTenantStore((state) => state.addTenant)
+	const addTenant = useTenantStore(state => state.addTenant)
+	const queryClient = useQueryClient()
 
-  return useQuery({
-    queryKey: tenantKeys.withLease(id),
-    queryFn: async (): Promise<TenantWithLeaseInfo> => {
-      const response = await apiClient<TenantWithLeaseInfo>(`${API_BASE_URL}/api/v1/tenants/${id}/with-lease`)
-      return response
-    },
-    enabled: !!id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 2,
-    select: (tenant: TenantWithLeaseInfo) => {
-      // Add to store for caching
-      addTenant(tenant)
-      return tenant
-    }
-  })
+	return useQuery({
+		queryKey: tenantKeys.withLease(id),
+		queryFn: async (): Promise<TenantWithLeaseInfo> => {
+			const response = await apiClient<TenantWithLeaseInfo>(
+				`${API_BASE_URL}/api/v1/tenants/${id}/with-lease`
+			)
+			return response
+		},
+		enabled: !!id,
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		gcTime: 10 * 60 * 1000, // 10 minutes cache time
+		retry: 2,
+		// Use data from list query as placeholder while fetching
+		placeholderData: () => {
+			const cachedList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
+				tenantKeys.list()
+			)
+			return cachedList?.find((t: TenantWithLeaseInfo) => t.id === id)
+		},
+		select: (tenant: TenantWithLeaseInfo) => {
+			// Add to store for caching
+			addTenant(tenant)
+			return tenant
+		}
+	})
 }
 
 /**
  * Hook to fetch tenant list with pagination and Zustand store integration
+ * Optimized with prefetching and intelligent caching
  */
 export function useTenantList(page: number = 1, limit: number = 50) {
-  const setTenants = useTenantStore((state) => state.setTenants)
+	const setTenants = useTenantStore(state => state.setTenants)
+	const queryClient = useQueryClient()
 
-  return useQuery({
-    queryKey: [...tenantKeys.list(), { page, limit }],
-    queryFn: async () => {
-      const response = await apiClient<{
-        data: TenantWithLeaseInfo[]
-        total: number
-        page: number
-        limit: number
-      }>(`${API_BASE_URL}/api/v1/tenants?page=${page}&limit=${limit}`)
-      return response
-    },
-    staleTime: 3 * 60 * 1000, // 3 minutes
-    retry: 2,
-    select: (response: {
-      data: TenantWithLeaseInfo[]
-      total: number
-      page: number
-      limit: number
-    }) => {
-      // Add all tenants to store for caching
-      setTenants(response.data)
-      return response
-    }
- })
+	return useQuery({
+		queryKey: [...tenantKeys.list(), { page, limit }],
+		queryFn: async () => {
+			const response = await apiClient<{
+				data: TenantWithLeaseInfo[]
+				total: number
+				page: number
+				limit: number
+			}>(`${API_BASE_URL}/api/v1/tenants?page=${page}&limit=${limit}`)
+
+			// Prefetch individual tenant details for faster navigation
+			response.data.forEach(tenant => {
+				queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
+				queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
+			})
+
+			return response
+		},
+		staleTime: 3 * 60 * 1000, // 3 minutes
+		gcTime: 10 * 60 * 1000, // 10 minutes cache time
+		retry: 2,
+		// Keep previous data while fetching new page
+		placeholderData: previousData => previousData,
+		select: (response: {
+			data: TenantWithLeaseInfo[]
+			total: number
+			page: number
+			limit: number
+		}) => {
+			// Add all tenants to store for caching
+			setTenants(response.data)
+			return response
+		}
+	})
 }
 
 /**
  * Hook to fetch all tenants (for dropdowns, selects, etc.)
+ * Optimized with aggressive caching for rarely changing data
  */
 export function useAllTenants() {
-  const setTenants = useTenantStore((state) => state.setTenants)
+	const setTenants = useTenantStore(state => state.setTenants)
+	const queryClient = useQueryClient()
 
-  return useQuery({
-    queryKey: tenantKeys.list(),
-    queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
-      const response = await apiClient<TenantWithLeaseInfo[]>(`${API_BASE_URL}/api/v1/tenants/all`)
-      return response
-    },
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    retry: 2,
-    select: (data) => {
-      // Add all tenants to store for caching
-      setTenants(data)
-      return data
-    }
-  })
+	return useQuery({
+		queryKey: tenantKeys.list(),
+		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
+			const response = await apiClient<TenantWithLeaseInfo[]>(
+				`${API_BASE_URL}/api/v1/tenants/all`
+			)
+
+			// Prefetch individual tenant details for instant navigation
+			response.forEach(tenant => {
+				queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
+				queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
+			})
+
+			return response
+		},
+		staleTime: 10 * 60 * 1000, // 10 minutes - list data rarely changes
+		gcTime: 30 * 60 * 1000, // 30 minutes cache time for dropdown data
+		retry: 2,
+		// Enable structural sharing to prevent re-renders when data hasn't changed
+		structuralSharing: true,
+		select: data => {
+			// Add all tenants to store for caching
+			setTenants(data)
+			return data
+		}
+	})
 }
 
 /**
- * Mutation hook to create a new tenant with store invalidation
+ * Mutation hook to create a new tenant with enhanced optimistic updates
+ * Includes automatic rollback on error with proper context preservation
+ * Enhanced with analytics tracking and error handling
  */
 export function useCreateTenant() {
-  const queryClient = useQueryClient()
-  // store updates are handled elsewhere; keep hooks focused on react-query cache
+	const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async (tenantData: TenantInput) => {
-      const response = await apiClient<TenantWithLeaseInfo>(`${API_BASE_URL}/api/v1/tenants`, {
-        method: 'POST',
-        body: JSON.stringify(tenantData),
-      })
-      return response
-    },
-    onMutate: async (newTenant: TenantInput) => {
-      await queryClient.cancelQueries({ queryKey: tenantKeys.list() })
-      const previous = queryClient.getQueryData<TenantWithLeaseInfo[]>(tenantKeys.list())
-      // Optimistically add temporary tenant with a negative id
-      const tempId = `temp-${Date.now()}`
-      const optimistic: TenantWithLeaseInfo = {
-        id: tempId,
-        name: `${newTenant.firstName || ''} ${newTenant.lastName || ''}`.trim(),
-        email: newTenant.email || '',
-        phone: newTenant.phone || null,
-        emergencyContact: newTenant.emergencyContact || null,
-        avatarUrl: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        currentLease: null,
-        leases: [],
-        unit: null,
-        property: null,
-        monthlyRent: 0,
-        leaseStatus: 'inactive',
-        paymentStatus: 'pending',
-        unitDisplay: '',
-        propertyDisplay: '',
-        leaseStart: null,
-        leaseEnd: null
-      }
-      queryClient.setQueryData<TenantWithLeaseInfo[] | undefined>(tenantKeys.list(), (old) => {
-        return old ? [optimistic, ...old] : [optimistic]
-      })
-      return { previous }
-    },
-    onError: (_err, _variables, context: { previous?: TenantWithLeaseInfo[] | undefined } | undefined) => {
-      // Rollback optimistic update
-      if (context && context.previous) {
-        queryClient.setQueryData<TenantWithLeaseInfo[] | undefined>(tenantKeys.list(), context.previous)
-      }
-    },
-    onSettled: () => {
-      // No broad invalidation - rely on optimistic update and server response.
-      // Background refetch will happen per staleTime; if reconciliation is needed
-      // callers can trigger explicit refetch.
-    },
-  })
+	return useMutation({
+		mutationFn: async (tenantData: TenantInput) => {
+			const response = await apiClient<TenantWithLeaseInfo>(
+				`${API_BASE_URL}/api/v1/tenants`,
+				{
+					method: 'POST',
+					body: JSON.stringify(tenantData)
+				}
+			)
+			return response
+		},
+		retry: (failureCount, error) => {
+			const shouldRetry = defaultQueryRetry(failureCount, error)
+			if (!shouldRetry) {
+				trackMutationError(error, ['tenants', 'create'], {
+					entityType: 'tenant',
+					operation: 'create tenant',
+					retryCount: failureCount
+				})
+			}
+			return shouldRetry
+		},
+		retryDelay: (attemptIndex, error) =>
+			adaptiveRetryDelay(attemptIndex, error),
+		onMutate: async (newTenant: TenantInput) => {
+			// Cancel outgoing refetches to prevent overwriting optimistic update
+			await queryClient.cancelQueries({ queryKey: tenantKeys.list() })
+
+			// Snapshot previous state for rollback
+			const previousList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
+				tenantKeys.list()
+			)
+
+			// Create optimistic tenant entry
+			const tempId = `temp-${Date.now()}`
+			const optimisticTenant: TenantWithLeaseInfo = {
+				id: tempId,
+				name: `${newTenant.firstName || ''} ${newTenant.lastName || ''}`.trim(),
+				email: newTenant.email || '',
+				phone: newTenant.phone || null,
+				emergencyContact: newTenant.emergencyContact || null,
+				avatarUrl: newTenant.avatarUrl || null,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				currentLease: null,
+				leases: [],
+				unit: null,
+				property: null,
+				monthlyRent: 0,
+				leaseStatus: 'inactive',
+				paymentStatus: 'pending',
+				unitDisplay: '',
+				propertyDisplay: '',
+				leaseStart: null,
+				leaseEnd: null
+			}
+
+			// Optimistically update cache
+			queryClient.setQueryData<TenantWithLeaseInfo[]>(tenantKeys.list(), old =>
+				old ? [optimisticTenant, ...old] : [optimisticTenant]
+			)
+
+			// Return context for rollback
+			return { previousList, tempId }
+		},
+		onError: (err, _variables, context) => {
+			// Rollback: restore previous state
+			if (context?.previousList) {
+				queryClient.setQueryData(tenantKeys.list(), context.previousList)
+			}
+
+			// Show user-friendly error message
+			_handleApiError(err, 'create tenant', 'tenant')
+		},
+		onSuccess: (data, _variables, context) => {
+			// Replace temporary entry with real data
+			queryClient.setQueryData<TenantWithLeaseInfo[]>(
+				tenantKeys.list(),
+				old => {
+					if (!old) return [data]
+					return old.map(tenant =>
+						tenant.id === context?.tempId ? data : tenant
+					)
+				}
+			)
+
+			// Cache individual tenant details
+			queryClient.setQueryData(tenantKeys.detail(data.id), data)
+			queryClient.setQueryData(tenantKeys.withLease(data.id), data)
+		}
+	})
 }
 
 /**
- * Mutation hook to update an existing tenant with store updates
+ * Mutation hook to update an existing tenant with enhanced optimistic updates
+ * Includes comprehensive rollback mechanism for both detail and list caches
  */
 export function useUpdateTenant() {
-  const queryClient = useQueryClient()
-  // store updates handled elsewhere
+	const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: TenantUpdate }) => {
-      const response = await apiClient<TenantWithLeaseInfo>(`${API_BASE_URL}/api/v1/tenants/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      })
-      return response
-    },
-    onMutate: async ({ id, data }: { id: string; data: TenantUpdate }) => {
-      await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })
-      const previous = queryClient.getQueryData<TenantWithLeaseInfo | undefined>(tenantKeys.detail(id))
-      // Optimistically update the cached tenant
-      queryClient.setQueryData<TenantWithLeaseInfo | undefined>(tenantKeys.detail(id), (old) => {
-        if (!old) return undefined
-        return { ...old, ...data } as TenantWithLeaseInfo
-      })
-      queryClient.setQueryData<TenantWithLeaseInfo[] | undefined>(tenantKeys.list(), (old) => old ? old.map(t => (t.id === id ? { ...t, ...data } as TenantWithLeaseInfo : t)) : old)
-      return { previous }
-    },
-    onError: (_err, variables, context: { previous?: TenantWithLeaseInfo | undefined } | undefined) => {
-      if (context && context.previous) {
-        queryClient.setQueryData<TenantWithLeaseInfo | undefined>(tenantKeys.detail(variables.id), context.previous)
-      }
-    },
-    onSettled: () => {
-      // Merge server response into caches on success handled in onSuccess.
-      // Avoid broad invalidation here to reduce unnecessary GETs.
-    },
-  })
+	return useMutation({
+		mutationFn: async ({ id, data }: { id: string; data: TenantUpdate }) => {
+			const response = await apiClient<TenantWithLeaseInfo>(
+				`${API_BASE_URL}/api/v1/tenants/${id}`,
+				{
+					method: 'PUT',
+					body: JSON.stringify(data)
+				}
+			)
+			return response
+		},
+		onMutate: async ({ id, data }) => {
+			// Cancel all outgoing queries for this tenant
+			await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })
+			await queryClient.cancelQueries({ queryKey: tenantKeys.withLease(id) })
+			await queryClient.cancelQueries({ queryKey: tenantKeys.list() })
+
+			// Snapshot all relevant caches for comprehensive rollback
+			const previousDetail = queryClient.getQueryData<TenantWithLeaseInfo>(
+				tenantKeys.detail(id)
+			)
+			const previousWithLease = queryClient.getQueryData<TenantWithLeaseInfo>(
+				tenantKeys.withLease(id)
+			)
+			const previousList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
+				tenantKeys.list()
+			)
+
+			// Optimistically update detail cache
+			queryClient.setQueryData<TenantWithLeaseInfo>(
+				tenantKeys.detail(id),
+				old => {
+					if (!old) return old
+					return {
+						...old,
+						...data,
+						name:
+							data.firstName && data.lastName
+								? `${data.firstName} ${data.lastName}`.trim()
+								: old.name,
+						updatedAt: new Date().toISOString()
+					} as TenantWithLeaseInfo
+				}
+			)
+
+			// Optimistically update with-lease cache
+			queryClient.setQueryData<TenantWithLeaseInfo>(
+				tenantKeys.withLease(id),
+				old => {
+					if (!old) return old
+					return {
+						...old,
+						...data,
+						name:
+							data.firstName && data.lastName
+								? `${data.firstName} ${data.lastName}`.trim()
+								: old.name,
+						updatedAt: new Date().toISOString()
+					} as TenantWithLeaseInfo
+				}
+			)
+
+			// Optimistically update list cache
+			queryClient.setQueryData<TenantWithLeaseInfo[]>(
+				tenantKeys.list(),
+				old => {
+					if (!old) return old
+					return old.map(tenant =>
+						tenant.id === id
+							? ({
+									...tenant,
+									...data,
+									name:
+										data.firstName && data.lastName
+											? `${data.firstName} ${data.lastName}`.trim()
+											: tenant.name,
+									updatedAt: new Date().toISOString()
+								} as TenantWithLeaseInfo)
+							: tenant
+					)
+				}
+			)
+
+			return { previousDetail, previousWithLease, previousList, id }
+		},
+		onError: (err, _variables, context) => {
+			// Comprehensive rollback: restore all caches
+			if (context) {
+				if (context.previousDetail) {
+					queryClient.setQueryData(
+						tenantKeys.detail(context.id),
+						context.previousDetail
+					)
+				}
+				if (context.previousWithLease) {
+					queryClient.setQueryData(
+						tenantKeys.withLease(context.id),
+						context.previousWithLease
+					)
+				}
+				if (context.previousList) {
+					queryClient.setQueryData(tenantKeys.list(), context.previousList)
+				}
+			}
+
+			// Show user-friendly error message
+			_handleApiError(err, 'update tenant', 'tenant')
+		},
+
+		onSuccess: (data, _variables, _context) => {
+			// Merge server response into all caches
+			queryClient.setQueryData(tenantKeys.detail(data.id), data)
+			queryClient.setQueryData(tenantKeys.withLease(data.id), data)
+			queryClient.setQueryData<TenantWithLeaseInfo[]>(
+				tenantKeys.list(),
+				old => {
+					if (!old) return [data]
+					return old.map(tenant => (tenant.id === data.id ? data : tenant))
+				}
+			)
+		}
+	})
 }
 
 /**
- * Mutation hook to delete a tenant with store cleanup
+ * Mutation hook to delete a tenant with enhanced optimistic updates
+ * Includes comprehensive rollback of all related caches
  */
-export function useDeleteTenant(p0?: { onSuccess?: () => void; onError?: (error: Error) => void }) {
-  const queryClient = useQueryClient()
-  // store updates handled elsewhere
+export function useDeleteTenant(callbacks?: {
+	onSuccess?: () => void
+	onError?: (error: Error) => void
+}) {
+	const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const response = await apiClient<void>(`${API_BASE_URL}/api/v1/tenants/${id}`, {
-        method: 'DELETE',
-      })
-      return response
-    },
-    onMutate: async (id: string) => {
-      await queryClient.cancelQueries({ queryKey: tenantKeys.list() })
-      const previous = queryClient.getQueryData<TenantWithLeaseInfo[] | undefined>(tenantKeys.list())
-  queryClient.setQueryData<TenantWithLeaseInfo[] | undefined>(tenantKeys.list(), (old) => old ? old.filter(t => t.id !== id) : old)
-      return { previous }
-    },
-    onError: (err, id, context: { previous?: TenantWithLeaseInfo[] | undefined } | undefined) => {
-      if (context && context.previous) {
-        queryClient.setQueryData<TenantWithLeaseInfo[] | undefined>(tenantKeys.list(), context.previous)
-      }
-      try {
-        p0?.onError?.(err as Error)
-      } catch {
-        // ignore handler errors
-      }
-    },
-    onSuccess: () => {
-      try {
-        p0?.onSuccess?.()
-      } catch {
-        // ignore handler errors
-      }
-    },
-    onSettled: () => {
-      // Avoid broad invalidation; optimistic removal already updated cache.
-    },
-  })
+	return useMutation({
+		mutationFn: async (id: string) => {
+			const response = await apiClient<void>(
+				`${API_BASE_URL}/api/v1/tenants/${id}`,
+				{
+					method: 'DELETE'
+				}
+			)
+			return response
+		},
+		onMutate: async (id: string) => {
+			// Cancel all queries related to this tenant
+			await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })
+			await queryClient.cancelQueries({ queryKey: tenantKeys.withLease(id) })
+			await queryClient.cancelQueries({ queryKey: tenantKeys.list() })
+
+			// Snapshot all caches for potential rollback
+			const previousDetail = queryClient.getQueryData<TenantWithLeaseInfo>(
+				tenantKeys.detail(id)
+			)
+			const previousWithLease = queryClient.getQueryData<TenantWithLeaseInfo>(
+				tenantKeys.withLease(id)
+			)
+			const previousList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
+				tenantKeys.list()
+			)
+
+			// Optimistically remove from list
+			queryClient.setQueryData<TenantWithLeaseInfo[]>(tenantKeys.list(), old =>
+				old ? old.filter(tenant => tenant.id !== id) : old
+			)
+
+			return { previousDetail, previousWithLease, previousList, id }
+		},
+		onError: (err, _id, context) => {
+			// Comprehensive rollback: restore all caches
+			if (context) {
+				if (context.previousDetail) {
+					queryClient.setQueryData(
+						tenantKeys.detail(context.id),
+						context.previousDetail
+					)
+				}
+				if (context.previousWithLease) {
+					queryClient.setQueryData(
+						tenantKeys.withLease(context.id),
+						context.previousWithLease
+					)
+				}
+				if (context.previousList) {
+					queryClient.setQueryData(tenantKeys.list(), context.previousList)
+				}
+			}
+
+			try {
+				callbacks?.onError?.(err as Error)
+			} catch {
+				// Ignore callback errors
+			}
+		},
+		onSuccess: (_data, id) => {
+			// Remove from all caches after successful deletion
+			queryClient.removeQueries({ queryKey: tenantKeys.detail(id) })
+			queryClient.removeQueries({ queryKey: tenantKeys.withLease(id) })
+
+			try {
+				callbacks?.onSuccess?.()
+			} catch {
+				// Ignore callback errors
+			}
+		}
+	})
 }
 
 /**
  * Combined hook for tenant operations needed by tenant management pages
  */
 export function useTenantOperations() {
-  const createTenant = useCreateTenant()
-  const updateTenant = useUpdateTenant()
-  const deleteTenant = useDeleteTenant()
+	const createTenant = useCreateTenant()
+	const updateTenant = useUpdateTenant()
+	const deleteTenant = useDeleteTenant()
 
-  return {
-    createTenant,
-    updateTenant,
-    deleteTenant,
-    isLoading: createTenant.isPending || updateTenant.isPending || deleteTenant.isPending,
-    error: createTenant.error || updateTenant.error || deleteTenant.error,
-  }
+	return {
+		createTenant,
+		updateTenant,
+		deleteTenant,
+		isLoading:
+			createTenant.isPending ||
+			updateTenant.isPending ||
+			deleteTenant.isPending,
+		error: createTenant.error || updateTenant.error || deleteTenant.error
+	}
+}
+
+/**
+ * React 19 Suspense-enabled hook for tenant fetching
+ * Use this with Suspense boundaries for automatic loading states
+ * Automatically throws errors to nearest Error Boundary
+ */
+export function useTenantSuspense(id: string) {
+	const addTenant = useTenantStore(state => state.addTenant)
+
+	return useSuspenseQuery({
+		queryKey: tenantKeys.detail(id),
+		queryFn: async (): Promise<Tenant> => {
+			const response = await apiClient<Tenant>(
+				`${API_BASE_URL}/api/v1/tenants/${id}`
+			)
+			return response
+		},
+		staleTime: 5 * 60 * 1000,
+		gcTime: 10 * 60 * 1000,
+		select: (tenant: Tenant) => {
+			// Add to store for caching - convert basic Tenant to TenantWithLeaseInfo format
+			const tenantWithLeaseInfo: TenantWithLeaseInfo = {
+				id: tenant.id,
+				name: tenant.name || '',
+				email: tenant.email,
+				phone: tenant.phone,
+				avatarUrl: tenant.avatarUrl,
+				emergencyContact: tenant.emergencyContact,
+				createdAt: tenant.createdAt,
+				updatedAt: tenant.updatedAt,
+				currentLease: null,
+				leases: [],
+				unit: null,
+				property: null,
+				monthlyRent: 0,
+				leaseStatus: 'inactive',
+				paymentStatus: 'pending',
+				unitDisplay: '',
+				propertyDisplay: '',
+				leaseStart: null,
+				leaseEnd: null
+			}
+			addTenant(tenantWithLeaseInfo)
+			return tenantWithLeaseInfo
+		}
+	})
+}
+
+/**
+ * React 19 Suspense-enabled hook for tenant with lease information
+ * Use this with Suspense boundaries for automatic loading states
+ */
+export function useTenantWithLeaseSuspense(id: string) {
+	const addTenant = useTenantStore(state => state.addTenant)
+
+	return useSuspenseQuery({
+		queryKey: tenantKeys.withLease(id),
+		queryFn: async (): Promise<TenantWithLeaseInfo> => {
+			const response = await apiClient<TenantWithLeaseInfo>(
+				`${API_BASE_URL}/api/v1/tenants/${id}/with-lease`
+			)
+			return response
+		},
+		staleTime: 5 * 60 * 1000,
+		gcTime: 10 * 60 * 1000,
+		select: (tenant: TenantWithLeaseInfo) => {
+			addTenant(tenant)
+			return tenant
+		}
+	})
+}
+
+/**
+ * React 19 Suspense-enabled hook for all tenants list
+ * Use this with Suspense boundaries for automatic loading states
+ */
+export function useAllTenantsSuspense() {
+	const setTenants = useTenantStore(state => state.setTenants)
+	const queryClient = useQueryClient()
+
+	return useSuspenseQuery({
+		queryKey: tenantKeys.list(),
+		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
+			const response = await apiClient<TenantWithLeaseInfo[]>(
+				`${API_BASE_URL}/api/v1/tenants/all`
+			)
+
+			// Prefetch individual tenant details for instant navigation
+			response.forEach(tenant => {
+				queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
+				queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
+			})
+
+			return response
+		},
+		staleTime: 10 * 60 * 1000,
+		gcTime: 30 * 60 * 1000,
+		select: data => {
+			setTenants(data)
+			return data
+		}
+	})
+}
+
+/**
+ * Hook for polling tenant data with configurable interval
+ * Useful for real-time tenant status updates
+ */
+export function useTenantPolling(id: string, interval: number = 30000) {
+	return useQuery({
+		queryKey: [...tenantKeys.detail(id), 'polling'],
+		queryFn: async (): Promise<Tenant> => {
+			const response = await apiClient<Tenant>(
+				`${API_BASE_URL}/api/v1/tenants/${id}`
+			)
+			return response
+		},
+		enabled: !!id,
+		refetchInterval: interval,
+		refetchIntervalInBackground: false,
+		staleTime: 0 // Always refetch on interval
+	})
+}
+
+/**
+ * Hook for prefetching tenant data before navigation
+ * Call this on hover or before route changes
+ */
+export function usePrefetchTenant() {
+	const queryClient = useQueryClient()
+
+	return {
+		prefetchTenant: (id: string) => {
+			return queryClient.prefetchQuery({
+				queryKey: tenantKeys.detail(id),
+				queryFn: async (): Promise<Tenant> => {
+					const response = await apiClient<Tenant>(
+						`${API_BASE_URL}/api/v1/tenants/${id}`
+					)
+					return response
+				},
+				staleTime: 5 * 60 * 1000
+			})
+		},
+		prefetchTenantWithLease: (id: string) => {
+			return queryClient.prefetchQuery({
+				queryKey: tenantKeys.withLease(id),
+				queryFn: async (): Promise<TenantWithLeaseInfo> => {
+					const response = await apiClient<TenantWithLeaseInfo>(
+						`${API_BASE_URL}/api/v1/tenants/${id}/with-lease`
+					)
+					return response
+				},
+				staleTime: 5 * 60 * 1000
+			})
+		}
+	}
+}
+
+/**
+ * Hook for optimistic tenant updates with automatic rollback
+ * Enhanced with proper TypeScript types and error handling
+ */
+export function useOptimisticTenantUpdate() {
+	const queryClient = useQueryClient()
+
+	return {
+		updateOptimistically: async (
+			id: string,
+			updates: Partial<TenantWithLeaseInfo>
+		) => {
+			// Cancel outgoing queries
+			await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })
+
+			// Snapshot previous value
+			const previous = queryClient.getQueryData<TenantWithLeaseInfo>(
+				tenantKeys.detail(id)
+			)
+
+			// Optimistically update
+			queryClient.setQueryData<TenantWithLeaseInfo>(
+				tenantKeys.detail(id),
+				old => {
+					if (!old) return old
+					return { ...old, ...updates }
+				}
+			)
+
+			return {
+				previous,
+				rollback: () => {
+					if (previous) {
+						queryClient.setQueryData(tenantKeys.detail(id), previous)
+					}
+				}
+			}
+		}
+	}
+}
+
+/**
+ * Hook for batch tenant operations
+ * Useful for bulk updates/deletes with progress tracking
+ */
+export function useBatchTenantOperations() {
+	const queryClient = useQueryClient()
+
+	return {
+		batchUpdate: async (updates: Array<{ id: string; data: TenantUpdate }>) => {
+			const results = await Promise.allSettled(
+				updates.map(({ id, data }) =>
+					apiClient<TenantWithLeaseInfo>(
+						`${API_BASE_URL}/api/v1/tenants/${id}`,
+						{
+							method: 'PUT',
+							body: JSON.stringify(data)
+						}
+					)
+				)
+			)
+
+			// Invalidate all affected queries
+			await queryClient.invalidateQueries({ queryKey: tenantKeys.list() })
+			updates.forEach(({ id }) => {
+				queryClient.invalidateQueries({ queryKey: tenantKeys.detail(id) })
+			})
+
+			return results
+		},
+		batchDelete: async (ids: string[]) => {
+			const results = await Promise.allSettled(
+				ids.map(id =>
+					apiClient<void>(`${API_BASE_URL}/api/v1/tenants/${id}`, {
+						method: 'DELETE'
+					})
+				)
+			)
+
+			// Invalidate all affected queries
+			await queryClient.invalidateQueries({ queryKey: tenantKeys.list() })
+
+			return results
+		}
+	}
 }
