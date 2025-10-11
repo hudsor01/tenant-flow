@@ -442,7 +442,7 @@ export function useUpdateTenant() {
 			_handleApiError(err, 'update tenant', 'tenant')
 		},
 
-		onSuccess: (data, _variables, _context) => {
+		onSuccess: data => {
 			// Merge server response into all caches
 			queryClient.setQueryData(tenantKeys.detail(data.id), data)
 			queryClient.setQueryData(tenantKeys.withLease(data.id), data)
