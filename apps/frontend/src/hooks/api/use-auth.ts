@@ -32,13 +32,42 @@ export function useAuthCacheUtils() {
 		clearAuthData: () => {
 			queryClient.setQueryData(authQueryKeys.session, null)
 			queryClient.setQueryData(authQueryKeys.user, null)
-			// Clear all user-specific data
+
+			// CRITICAL: Clear ALL user-specific data to prevent cross-user data leakage
+			// This ensures new users don't see cached data from previous sessions
 			queryClient.invalidateQueries({
-				predicate: (query) => {
+				predicate: query => {
 					const queryKey = query.queryKey[0] as string
-					return ['dashboard', 'properties', 'tenants', 'maintenance', 'billing', 'payment'].includes(queryKey)
+					return [
+						'dashboard',
+						'properties',
+						'tenants',
+						'maintenance',
+						'billing',
+						'payment',
+						'leases',
+						'units',
+						'analytics'
+					].includes(queryKey)
 				}
 			})
+
+			// Also clear localStorage cache to ensure fresh start
+			if (typeof window !== 'undefined') {
+				try {
+					localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE')
+					logger.info('Cleared offline cache on logout', {
+						action: 'clear_offline_cache'
+					})
+				} catch (error) {
+					logger.warn('Failed to clear offline cache', {
+						action: 'clear_offline_cache_failed',
+						metadata: {
+							error: error instanceof Error ? error.message : String(error)
+						}
+					})
+				}
+			}
 		},
 
 		// Refresh auth state after critical operations
@@ -53,18 +82,23 @@ export function useAuthCacheUtils() {
 
 // Auth mutations for better cache management (keep React Query mutation benefits)
 export function useSignOut() {
+	const { clearAuthData } = useAuthCacheUtils()
+
 	return useMutation({
 		mutationFn: async () => {
 			const { error } = await supabaseClient.auth.signOut()
 			if (error) throw error
 		},
 		onSuccess: () => {
+			// CRITICAL: Clear all cached data to prevent data leakage between users
+			clearAuthData()
+
 			// Auth state will be automatically handled by onAuthStateChange in AuthProvider
-			logger.info('User signed out successfully', {
+			logger.info('User signed out successfully - all cache cleared', {
 				action: 'sign_out_success'
 			})
 		},
-		onError: (error) => {
+		onError: error => {
 			logger.error('Sign out failed', {
 				action: 'sign_out_error',
 				metadata: { error: error.message }
@@ -76,8 +110,14 @@ export function useSignOut() {
 // Simple auth hook that aligns with official Supabase patterns but keeps React Query benefits
 export function useCurrentUser() {
 	const queryClient = useQueryClient()
-	const sessionData = queryClient.getQueryData(authQueryKeys.session) as Session | null | undefined
-	const userData = queryClient.getQueryData(authQueryKeys.user) as User | null | undefined
+	const sessionData = queryClient.getQueryData(authQueryKeys.session) as
+		| Session
+		| null
+		| undefined
+	const userData = queryClient.getQueryData(authQueryKeys.user) as
+		| User
+		| null
+		| undefined
 
 	return {
 		user: userData || sessionData?.user || null,

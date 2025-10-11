@@ -1,7 +1,7 @@
 'use client'
 
 import { MetricsCardSkeleton } from '@/components/charts/metrics-card-skeleton'
-// import { SectionCards } from '../../../../app/(protected)/owner/SectionCards'
+// import { SectionCards } from '../../../../app/(protected)/manage/SectionCards'
 import {
 	useDashboardStats,
 	useLeaseStats,

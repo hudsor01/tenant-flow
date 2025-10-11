@@ -51,18 +51,61 @@ export async function GET(request: Request) {
 			}
 
 			if (data.session) {
-				// Fetch user role to determine redirect destination
+				// Fetch user role and payment status to determine redirect destination
+				// Per Stripe best practices - check subscription_status field
 				const { data: userProfile } = await supabase
 					.from('users')
-					.select('role')
+					.select('role, subscription_status, stripeCustomerId')
 					.eq('supabaseId', data.session.user.id)
 					.single()
 
+				// Check if user needs to complete payment (OWNER/MANAGER/ADMIN only)
+				const requiresPayment = userProfile?.role !== 'TENANT'
+
+				// Check subscription status per Stripe best practices
+				// Valid statuses for access: active, trialing
+				const validStatuses = ['active', 'trialing']
+				const hasValidSubscription =
+					userProfile?.subscription_status &&
+					validStatuses.includes(userProfile.subscription_status)
+				const hasNoStripeCustomer = !userProfile?.stripeCustomerId
+
+				// Redirect to pricing if payment required
+				if (requiresPayment && (!hasValidSubscription || hasNoStripeCustomer)) {
+					logger.info('OAuth user requires payment - redirecting to pricing', {
+						action: 'oauth_payment_required',
+						metadata: {
+							userId: data.session.user.id,
+							role: userProfile?.role,
+							subscriptionStatus: userProfile?.subscription_status,
+							hasValidSubscription: hasValidSubscription,
+							hasStripeCustomer: !hasNoStripeCustomer
+						}
+					})
+
+					const pricingUrl = new URL('/pricing', origin)
+					pricingUrl.searchParams.set('required', 'true')
+					pricingUrl.searchParams.set('redirectTo', nextParam || '/manage')
+
+					const forwardedHost = request.headers.get('x-forwarded-host')
+					const isLocalEnv = process.env.NODE_ENV === 'development'
+
+					if (isLocalEnv) {
+						return NextResponse.redirect(pricingUrl.toString())
+					} else if (forwardedHost) {
+						return NextResponse.redirect(
+							`https://${forwardedHost}${pricingUrl.pathname}${pricingUrl.search}`
+						)
+					} else {
+						return NextResponse.redirect(pricingUrl.toString())
+					}
+				}
+
 				// Determine destination based on user role
-				let next = '/dashboard' // Default for OWNER, MANAGER, ADMIN
+				let next = '/manage' // Default for OWNER, MANAGER, ADMIN
 
 				if (userProfile?.role === 'TENANT') {
-					next = '/tenant-portal'
+					next = '/tenant'
 				}
 
 				// Honor explicit nextParam if provided (unless it conflicts with role)

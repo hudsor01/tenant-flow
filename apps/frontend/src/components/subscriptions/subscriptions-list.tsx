@@ -7,7 +7,7 @@
 
 'use client'
 
-import { AddPaymentMethodDialog } from '@/app/(protected)/tenant-portal/payments/add-payment-method-dialog'
+import { AddPaymentMethodDialog } from '@/app/(protected)/tenant/payments/add-payment-method-dialog'
 import {
 	AlertDialog,
 	AlertDialogAction,

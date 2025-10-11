@@ -34,7 +34,7 @@ describe('financials-client', () => {
 			await getIncomeStatement('token', '2024-01-01', '2024-12-31')
 
 			expect(global.fetch).toHaveBeenCalledWith(
-				'/api/v1/financials/income-statement?startDate=2024-01-01&endDate=2024-12-31',
+				'http://localhost:3001/api/v1/financials/income-statement?startDate=2024-01-01&endDate=2024-12-31',
 				expect.any(Object)
 			)
 		})
@@ -58,7 +58,7 @@ describe('financials-client', () => {
 			await getCashFlowStatement('token', '2024-01-01', '2024-12-31')
 
 			expect(global.fetch).toHaveBeenCalledWith(
-				'/api/v1/financials/cash-flow?startDate=2024-01-01&endDate=2024-12-31',
+				'http://localhost:3001/api/v1/financials/cash-flow?startDate=2024-01-01&endDate=2024-12-31',
 				expect.any(Object)
 			)
 		})
@@ -82,7 +82,7 @@ describe('financials-client', () => {
 			await getBalanceSheet('token', '2024-12-31')
 
 			expect(global.fetch).toHaveBeenCalledWith(
-				'/api/v1/financials/balance-sheet?asOfDate=2024-12-31',
+				'http://localhost:3001/api/v1/financials/balance-sheet?asOfDate=2024-12-31',
 				expect.any(Object)
 			)
 		})
@@ -114,7 +114,7 @@ describe('financials-client', () => {
 			const result = await getTaxDocuments(token, taxYear)
 
 			expect(global.fetch).toHaveBeenCalledWith(
-				'/api/v1/financials/tax-documents?taxYear=2024',
+				'http://localhost:3001/api/v1/financials/tax-documents?taxYear=2024',
 				expect.objectContaining({
 					headers: expect.objectContaining({
 						Authorization: 'Bearer test-token',

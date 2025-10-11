@@ -373,12 +373,11 @@ These rules are MANDATORY and directly align with the production globals.css imp
 ### NATIVE PLATFORM REPLACEMENTS
 - **Auth**: Supabase Auth | **Storage**: Supabase Storage | **Real-time**: Supabase Realtime
 - **Email**: Resend API | **Validation**: Zod schemas
-- **Data**: TanStack Query | **Forms**: React Hook Form | **State**: Zustand
+- **Data**: TanStack Query (see CUSTOM HOOKS section) | **Forms**: TanStack Form | **State**: Zustand
 - **Styles**: Tailwind css variables | **Components**: Radix/ShadCN | **Dates**: date-fns
-- **HTTP**: next.js/react-query
 
 ### UI COMPONENT PATTERNS
-- **Buttons**: Radix Button + Tailwind | **Forms**: Radix Form + React Hook Form
+- **Buttons**: Radix Button + Tailwind | **Forms**: Radix Form + TanStack Form (see CUSTOM HOOKS section)
 - **Modals**: Radix Dialog | **Dropdowns**: Radix Select | **Tooltips**: Radix Tooltip
 - **Loading**: Radix Progress | **Layouts**: CSS Grid + Tailwind
 - **Animations**: Tailwind transitions + Framer Motion | **Themes**: CSS variables
@@ -420,7 +419,7 @@ These rules are MANDATORY and directly align with the production globals.css imp
 **Secrets**: prefix commands with doppler
 
 ## Architecture
-**State Management**
+**State Management** (See CUSTOM HOOKS section for complete patterns)
 - Zustand: Global UI state, session, notifications, theme
 - TanStack Query: Server state, caching, optimistic updates
 - TanStack Form: Form state
@@ -428,10 +427,513 @@ These rules are MANDATORY and directly align with the production globals.css imp
 
 **Frontend Structure**
 - `components/`: Pure UI (MagicUI + ShadCN)
-- `hooks/api/`: TanStack Query hooks
+- `hooks/api/`: Custom query hooks (see CUSTOM HOOKS section)
+- `hooks/`: Custom form hooks (see CUSTOM HOOKS section)
 - `lib/`: Utilities, API clients, validation
 - `stores/`: Zustand global state
 - `providers/`: React context providers
+
+## CUSTOM HOOKS - STANDARDIZED PATTERNS
+
+### MANDATORY HOOK ARCHITECTURE
+**This section defines ALL patterns for TanStack Query and TanStack Form hooks.**
+
+**ABSOLUTE PROHIBITIONS - ZERO TOLERANCE**
+- **NEVER create inline queries/mutations** - always use custom hooks
+- **NEVER duplicate hook logic** - search for existing hooks with `rg -r "useEntityName"`
+- **NEVER mix concerns** - separate query hooks from form hooks
+- **NEVER skip optimistic updates** - mutations must update cache immediately
+- **NEVER skip prefetching** - list views must prefetch detail views
+
+### HOOK FILE ORGANIZATION
+```
+hooks/
+├── api/                    # TanStack Query hooks (server state)
+│   ├── use-tenant.ts      # CRUD + advanced patterns
+│   ├── use-property.ts    # Follow same pattern
+│   └── use-{entity}.ts    # One file per domain entity
+└── use-{entity}-form.ts   # TanStack Form hooks (one per entity)
+```
+
+### TANSTACK QUERY HOOK PATTERN - MANDATORY STRUCTURE
+
+**File Template: `hooks/api/use-{entity}.ts`**
+```typescript
+/**
+ * {Entity} Hooks
+ * TanStack Query hooks for {entity} management with Zustand integration
+ */
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiClient } from '@repo/shared/utils/api-client'
+import { use{Entity}Store } from '@/stores/{entity}-store'
+import type { Entity, EntityInput, EntityUpdate } from '@repo/shared'
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+
+// 1. QUERY KEYS (hierarchical, typed)
+export const {entity}Keys = {
+  all: ['{entities}'] as const,
+  list: () => [...{entity}Keys.all, 'list'] as const,
+  detail: (id: string) => [...{entity}Keys.all, 'detail', id] as const,
+  // Add more as needed
+}
+
+// 2. QUERY HOOKS (fetch data)
+export function use{Entity}(id: string) {
+  const add{Entity} = use{Entity}Store((state) => state.add{Entity})
+  const queryClient = useQueryClient()
+
+  return useQuery({
+    queryKey: {entity}Keys.detail(id),
+    queryFn: async () => {
+      const response = await apiClient<Entity>(`${API_BASE_URL}/api/v1/{entities}/${id}`)
+      return response
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,     // 5 minutes
+    gcTime: 10 * 60 * 1000,        // 10 minutes
+    retry: 2,
+    placeholderData: () => {       // Instant loading with cached data
+      const cachedList = queryClient.getQueryData<Entity[]>({entity}Keys.list())
+      return cachedList?.find(e => e.id === id)
+    },
+    select: (entity) => {          // Update Zustand on success
+      add{Entity}(entity)
+      return entity
+    }
+  })
+}
+
+export function useAll{Entities}() {
+  const set{Entities} = use{Entity}Store((state) => state.set{Entities})
+  const queryClient = useQueryClient()
+
+  return useQuery({
+    queryKey: {entity}Keys.list(),
+    queryFn: async () => {
+      const response = await apiClient<Entity[]>(`${API_BASE_URL}/api/v1/{entities}/all`)
+      // Prefetch individual details for instant navigation
+      response.forEach((entity) => {
+        queryClient.setQueryData({entity}Keys.detail(entity.id), entity)
+      })
+      return response
+    },
+    staleTime: 10 * 60 * 1000,     // 10 minutes - list data rarely changes
+    gcTime: 30 * 60 * 1000,         // 30 minutes cache
+    retry: 2,
+    structuralSharing: true,        // Prevent re-renders on identical data
+    select: (data) => {
+      set{Entities}(data)
+      return data
+    }
+  })
+}
+
+// 3. MUTATION HOOKS (modify data)
+export function useCreate{Entity}() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: EntityInput) => {
+      return await apiClient<Entity>(`${API_BASE_URL}/api/v1/{entities}`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+    },
+    onMutate: async (newEntity) => {
+      // Cancel outgoing queries
+      await queryClient.cancelQueries({ queryKey: {entity}Keys.list() })
+      const previous = queryClient.getQueryData<Entity[]>({entity}Keys.list())
+
+      // Optimistic update - instant UI feedback
+      const tempId = `temp-${Date.now()}`
+      const optimistic = { id: tempId, ...newEntity }
+      queryClient.setQueryData<Entity[]>({entity}Keys.list(), (old) =>
+        old ? [optimistic, ...old] : [optimistic]
+      )
+
+      return { previous }
+    },
+    onError: (_err, _variables, context) => {
+      // Rollback on error
+      if (context?.previous) {
+        queryClient.setQueryData({entity}Keys.list(), context.previous)
+      }
+    },
+    onSettled: () => {
+      // Refetch in background (don't await)
+      queryClient.invalidateQueries({ queryKey: {entity}Keys.list() })
+    }
+  })
+}
+
+export function useUpdate{Entity}() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: EntityUpdate }) => {
+      return await apiClient<Entity>(`${API_BASE_URL}/api/v1/{entities}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      })
+    },
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: {entity}Keys.detail(id) })
+      const previous = queryClient.getQueryData<Entity>({entity}Keys.detail(id))
+
+      // Optimistically update detail cache
+      queryClient.setQueryData<Entity>({entity}Keys.detail(id), (old) =>
+        old ? { ...old, ...data } : undefined
+      )
+
+      // Also update list cache
+      queryClient.setQueryData<Entity[]>({entity}Keys.list(), (old) =>
+        old?.map(e => e.id === id ? { ...e, ...data } : e)
+      )
+
+      return { previous }
+    },
+    onError: (_err, { id }, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData({entity}Keys.detail(id), context.previous)
+      }
+    }
+  })
+}
+
+export function useDelete{Entity}(options?: {
+  onSuccess?: () => void
+  onError?: (error: Error) => void
+}) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await apiClient<void>(`${API_BASE_URL}/api/v1/{entities}/${id}`, {
+        method: 'DELETE',
+      })
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: {entity}Keys.list() })
+      const previous = queryClient.getQueryData<Entity[]>({entity}Keys.list())
+
+      // Optimistically remove from list
+      queryClient.setQueryData<Entity[]>({entity}Keys.list(), (old) =>
+        old?.filter(e => e.id !== id)
+      )
+
+      return { previous }
+    },
+    onError: (err, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData({entity}Keys.list(), context.previous)
+      }
+      options?.onError?.(err as Error)
+    },
+    onSuccess: () => {
+      options?.onSuccess?.()
+    }
+  })
+}
+
+// 4. ADVANCED HOOKS (prefetching, polling, batch)
+export function usePrefetch{Entity}() {
+  const queryClient = useQueryClient()
+
+  return {
+    prefetch{Entity}: (id: string) => {
+      return queryClient.prefetchQuery({
+        queryKey: {entity}Keys.detail(id),
+        queryFn: async () => {
+          return await apiClient<Entity>(`${API_BASE_URL}/api/v1/{entities}/${id}`)
+        },
+        staleTime: 5 * 60 * 1000
+      })
+    }
+  }
+}
+
+// 5. COMBINED HOOK (convenience)
+export function use{Entity}Operations() {
+  const create{Entity} = useCreate{Entity}()
+  const update{Entity} = useUpdate{Entity}()
+  const delete{Entity} = useDelete{Entity}()
+
+  return {
+    create{Entity},
+    update{Entity},
+    delete{Entity},
+    isLoading: create{Entity}.isPending || update{Entity}.isPending || delete{Entity}.isPending,
+    error: create{Entity}.error || update{Entity}.error || delete{Entity}.error,
+  }
+}
+```
+
+### TANSTACK FORM HOOK PATTERN - MANDATORY STRUCTURE
+
+**File Template: `hooks/use-{entity}-form.ts`**
+```typescript
+/**
+ * {Entity} Form Hooks
+ * TanStack Form hooks with validation and transformers
+ */
+
+import { useForm } from '@tanstack/react-form'
+import { {entity}FormSchema } from '@repo/shared/validation/{entities}'
+import type { EntityInput, EntityUpdate } from '@repo/shared'
+import { useCallback } from 'react'
+
+// 1. BASIC FORM HOOK
+export function use{Entity}Form(initialValues?: Partial<EntityInput>) {
+  return useForm({
+    defaultValues: {
+      field1: '',
+      field2: '',
+      ...initialValues
+    } as EntityInput,
+    validators: {
+      onSubmit: {entity}FormSchema
+    }
+  })
+}
+
+// 2. UPDATE FORM HOOK (nullable fields)
+export function use{Entity}UpdateForm(initialValues?: Partial<EntityUpdate>) {
+  return useForm({
+    defaultValues: {
+      field1: null,
+      field2: null,
+      ...initialValues
+    } as EntityUpdate,
+    validators: {
+      onSubmit: {entity}FormSchema
+    }
+  })
+}
+
+// 3. FIELD TRANSFORMERS (auto-formatting)
+export function use{Entity}FieldTransformers() {
+  const formatField = useCallback((value: string): string => {
+    // Format logic here
+    return value.trim().toLowerCase()
+  }, [])
+
+  return {
+    formatField,
+    // Add more transformers
+  }
+}
+
+// 4. ASYNC VALIDATION (uniqueness checks)
+export function useAsync{Entity}Validation() {
+  const checkUniqueness = useCallback(async (value: string): Promise<boolean> => {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+    const response = await fetch(`${API_BASE_URL}/api/v1/{entities}/check?value=${value}`)
+    const data = await response.json() as { available: boolean }
+    return data.available
+  }, [])
+
+  return {
+    validateAsync: async (value: string) => {
+      const isAvailable = await checkUniqueness(value)
+      return isAvailable ? undefined : { field: 'Value already exists' }
+    }
+  }
+}
+
+// 5. CONDITIONAL FIELDS (show/hide logic)
+export function useConditional{Entity}Fields(formData: Partial<EntityInput>) {
+  return {
+    shouldShowField: !!formData.field1,
+    isComplete: !!formData.field1 && !!formData.field2
+  }
+}
+```
+
+### HOOK USAGE PATTERNS - MANDATORY CONVENTIONS
+
+**Pattern 1: List View with Prefetching**
+```typescript
+function {Entity}List() {
+  const { data: {entities} } = useAll{Entities}()
+  const { prefetch{Entity} } = usePrefetch{Entity}()
+
+  return (
+    <ul>
+      {{entities}?.map(entity => (
+        <Link
+          key={entity.id}
+          href={`/{entities}/${entity.id}`}
+          onMouseEnter={() => prefetch{Entity}(entity.id)}
+        >
+          {entity.name}
+        </Link>
+      ))}
+    </ul>
+  )
+}
+```
+
+**Pattern 2: Detail View with Caching**
+```typescript
+function {Entity}Detail({ id }: { id: string }) {
+  const { data: entity, isLoading } = use{Entity}(id)
+
+  if (isLoading) return <Skeleton />
+  return <div>{entity.name}</div>
+}
+```
+
+**Pattern 3: Create Form with Transformers**
+```typescript
+function Create{Entity}Form() {
+  const form = use{Entity}Form()
+  const { formatField } = use{Entity}FieldTransformers()
+  const create{Entity} = useCreate{Entity}()
+
+  return (
+    <form onSubmit={(e) => {
+      e.preventDefault()
+      create{Entity}.mutateAsync(form.state.values)
+    }}>
+      <form.Field name="field1">
+        {(field) => (
+          <input
+            value={field.state.value || ''}
+            onChange={(e) => {
+              const formatted = formatField(e.target.value)
+              field.handleChange(formatted)
+            }}
+          />
+        )}
+      </form.Field>
+    </form>
+  )
+}
+```
+
+**Pattern 4: Update Form with Optimistic UI**
+```typescript
+function Edit{Entity}Form({ id }: { id: string }) {
+  const { data: entity } = use{Entity}(id)
+  const form = use{Entity}UpdateForm(entity)
+  const update{Entity} = useUpdate{Entity}()
+
+  const handleSubmit = async (data: EntityUpdate) => {
+    await update{Entity}.mutateAsync({ id, data })
+    // UI already updated optimistically
+  }
+
+  return <form onSubmit={handleSubmit}>...</form>
+}
+```
+
+### HOOK IMPLEMENTATION CHECKLIST
+
+**Before Creating a New Hook:**
+- [ ] Search for existing hook: `rg -r "use{Entity}"`
+- [ ] Check if entity has Zustand store
+- [ ] Verify API endpoints exist
+- [ ] Review validation schema in `@repo/shared`
+
+**Required Components for Each Entity:**
+- [ ] Query keys factory with hierarchical structure
+- [ ] Query hooks: `use{Entity}`, `useAll{Entities}`
+- [ ] Mutation hooks: `useCreate`, `useUpdate`, `useDelete`
+- [ ] Prefetch hook: `usePrefetch{Entity}`
+- [ ] Form hook: `use{Entity}Form`
+- [ ] Field transformers if needed
+- [ ] Async validation if needed
+
+**Required Features:**
+- [ ] Optimistic updates on all mutations
+- [ ] Placeholder data from cache
+- [ ] Zustand store integration
+- [ ] Proper error handling with rollback
+- [ ] Prefetching for list → detail navigation
+- [ ] Structural sharing enabled
+- [ ] Appropriate stale/gc times
+
+**Documentation Requirements:**
+- [ ] JSDoc comments on all exported functions
+- [ ] Usage examples in comments
+- [ ] Reference implementation guide
+- [ ] Migration notes if replacing old patterns
+
+### PERFORMANCE REQUIREMENTS
+
+**Cache Configuration:**
+- List queries: 10-minute stale time, 30-minute gc time
+- Detail queries: 5-minute stale time, 10-minute gc time
+- Always enable `structuralSharing: true`
+- Always use `placeholderData` from cache
+
+**Optimistic Updates:**
+- REQUIRED for all mutations (create, update, delete)
+- Must include rollback on error
+- Must update both detail and list caches
+- Must cancel in-flight queries before updating
+
+**Prefetching:**
+- REQUIRED on list views (hover on links)
+- Prefetch detail when list item is hovered
+- Cache prefetched data with same stale time
+- Use `queryClient.prefetchQuery()` not `fetchQuery()`
+
+### REFERENCE IMPLEMENTATIONS
+**Production Examples:**
+- `apps/frontend/src/hooks/api/use-tenant.ts` - Complete TanStack Query hook pattern
+- `apps/frontend/src/hooks/use-tenant-form.ts` - Complete TanStack Form hook pattern
+- `apps/frontend/src/stores/tenant-store.ts` - Zustand store pattern
+- `apps/frontend/src/contexts/tenant-context.tsx` - Context provider pattern
+
+**Documentation:**
+- `apps/frontend/src/hooks/api/TENANT_HOOKS_GUIDE.md` - Comprehensive usage guide
+- `apps/frontend/ARCHITECTURE_DIAGRAM.md` - Architecture patterns
+- `apps/frontend/IMPLEMENTATION_SUMMARY.md` - Implementation details
+
+### VIOLATIONS AND FIXES
+
+**❌ WRONG - Inline Query:**
+```typescript
+const { data } = useQuery({
+  queryKey: ['entities'],
+  queryFn: () => fetch('/api/entities')
+})
+```
+
+**✅ CORRECT - Custom Hook:**
+```typescript
+const { data } = useAllEntities()
+```
+
+**❌ WRONG - No Optimistic Update:**
+```typescript
+const mutation = useMutation({
+  mutationFn: createEntity,
+  onSuccess: () => {
+    queryClient.invalidateQueries(['entities'])
+  }
+})
+```
+
+**✅ CORRECT - With Optimistic Update:**
+```typescript
+const createEntity = useCreateEntity()
+// Optimistic update built-in, UI updates instantly
+```
+
+**❌ WRONG - No Prefetching:**
+```typescript
+<Link href={`/entities/${id}`}>View</Link>
+```
+
+**✅ CORRECT - With Prefetching:**
+```typescript
+const { prefetchEntity } = usePrefetchEntity()
+<Link onMouseEnter={() => prefetchEntity(id)}>View</Link>
+```
 
 **Backend Structure**
 - `shared/`: Guards, decorators, filters, types
@@ -450,7 +952,7 @@ Build dependencies: shared → frontend/backend
 ## Critical Files
 - `apps/frontend/src/stores/app-store.ts`: Main Zustand store
 - `apps/frontend/src/lib/api-client.ts`: Core API client
-- `apps/frontend/src/lib/query-keys.ts`: TanStack Query cache keys
+- `apps/frontend/src/hooks/api/`: Custom query hooks (see CUSTOM HOOKS section)
 - `apps/backend/src/shared/`: Backend utilities
 - `packages/shared/src/types/`: Shared TypeScript types
 

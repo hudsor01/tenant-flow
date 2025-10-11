@@ -129,7 +129,13 @@
 				"package.json"
 			],
 			"outputs": [".next/**", "!.next/cache/**", ".vercel/output/**"],
-			"env": ["NEXT_PUBLIC_*", "VERCEL", "VERCEL_ENV"],
+			"env": [
+				"NEXT_PUBLIC_*",
+				"VERCEL",
+				"VERCEL_ENV",
+				"SECURITY_MONITORING_WEBHOOK",
+				"SECURITY_MONITORING_TOKEN"
+			],
 			"cache": true,
 			"persistent": false
 		},
@@ -137,7 +143,14 @@
 			"dependsOn": ["^build", "lint", "typecheck"],
 			"inputs": ["src/**", "tsconfig*.json", "package.json", "nest-cli.json"],
 			"outputs": ["dist/**"],
-			"env": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "DATABASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "JWT_SECRET"],
+			"env": [
+				"STRIPE_SECRET_KEY",
+				"STRIPE_WEBHOOK_SECRET",
+				"DATABASE_URL",
+				"SUPABASE_URL",
+				"SUPABASE_SERVICE_ROLE_KEY",
+				"JWT_SECRET"
+			],
 			"cache": true,
 			"persistent": false
 		},
@@ -187,14 +200,47 @@
 			"dependsOn": ["^build"],
 			"inputs": ["src/**/*.{test,spec}.ts", "jest.config.*", "package.json"],
 			"outputs": ["coverage/**"],
-			"env": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "DATABASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "JWT_SECRET"],
+			"env": [
+				"STRIPE_SECRET_KEY",
+				"STRIPE_WEBHOOK_SECRET",
+				"DATABASE_URL",
+				"SUPABASE_URL",
+				"SUPABASE_SERVICE_ROLE_KEY",
+				"JWT_SECRET"
+			],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/backend#test:integration": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"src/**/*.integration.spec.ts",
+				"jest.config.*",
+				"package.json"
+			],
+			"outputs": ["coverage/**"],
+			"env": [
+				"STRIPE_SECRET_KEY",
+				"STRIPE_WEBHOOK_SECRET",
+				"DATABASE_URL",
+				"SUPABASE_URL",
+				"SUPABASE_SERVICE_ROLE_KEY",
+				"JWT_SECRET"
+			],
 			"cache": true,
 			"persistent": false
 		},
 		"dev": {
 			"cache": false,
 			"persistent": true,
-			"env": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "DATABASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "JWT_SECRET"]
+			"env": [
+				"STRIPE_SECRET_KEY",
+				"STRIPE_WEBHOOK_SECRET",
+				"DATABASE_URL",
+				"SUPABASE_URL",
+				"SUPABASE_SERVICE_ROLE_KEY",
+				"JWT_SECRET"
+			]
 		},
 		"lint": {
 			"outputs": []
@@ -250,10 +296,17 @@
 			"dependsOn": ["^build"],
 			"inputs": ["src/**", "tsconfig*.json", "package.json"],
 			"outputs": [],
-			"env": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "DATABASE_URL", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "JWT_SECRET"],
+			"env": [
+				"STRIPE_SECRET_KEY",
+				"STRIPE_WEBHOOK_SECRET",
+				"DATABASE_URL",
+				"SUPABASE_URL",
+				"SUPABASE_SERVICE_ROLE_KEY",
+				"JWT_SECRET"
+			],
 			"cache": true,
 			"persistent": false
-	},
+		},
 		"@repo/shared#typecheck": {
 			"dependsOn": [],
 			"inputs": ["src/**/*.ts", "tsconfig*.json", "package.json"],
@@ -289,7 +342,7 @@
 			"cache": true,
 			"persistent": false
 		},
-			"@repo/shared#lint": {
+		"@repo/shared#lint": {
 			"dependsOn": [],
 			"inputs": ["src/**/*.ts", "eslint.config.*", "package.json"],
 			"outputs": [],
@@ -319,7 +372,11 @@
 		},
 		"@repo/e2e-tests#lint": {
 			"dependsOn": [],
-			"inputs": ["tests/**/*.{ts,tsx,js,jsx}", "eslint.config.*", "package.json"],
+			"inputs": [
+				"tests/**/*.{ts,tsx,js,jsx}",
+				"eslint.config.*",
+				"package.json"
+			],
 			"outputs": [],
 			"env": [
 				"NEXT_PUBLIC_SUPABASE_URL",
@@ -333,19 +390,38 @@
 				"STAGING_ADMIN_EMAIL",
 				"E2E_ADMIN_EMAIL",
 				"STAGING_ADMIN_PASSWORD",
-				"E2E_ADMIN_PASSWORD"
+				"E2E_ADMIN_PASSWORD",
+				"E2E_OWNER_EMAIL",
+				"TEST_OWNER_EMAIL",
+				"E2E_OWNER_PASSWORD",
+				"TEST_OWNER_PASSWORD",
+				"E2E_TENANT_EMAIL",
+				"TEST_TENANT_EMAIL",
+				"E2E_TENANT_PASSWORD",
+				"TEST_TENANT_PASSWORD",
+				"TEST_ADMIN_EMAIL",
+				"TEST_ADMIN_PASSWORD",
+				"SHARD",
+				"TOTAL_SHARDS",
+				"CURRENT_SHARD"
 			],
 			"cache": true,
 			"persistent": false
-	},
+		},
 		"@repo/config#lint": {
 			"dependsOn": [],
 			"inputs": ["src/**/*.{ts,tsx,js,jsx}", "eslint.config.*", "package.json"],
 			"outputs": [],
-			"env": ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_ANON_KEY", "ANON_KEY", "NEXT_PUBLIC_API_BASE_URL"],
+			"env": [
+				"NEXT_PUBLIC_SUPABASE_URL",
+				"NEXT_PUBLIC_SUPABASE_ANON_KEY",
+				"SUPABASE_ANON_KEY",
+				"ANON_KEY",
+				"NEXT_PUBLIC_API_BASE_URL"
+			],
 			"cache": true,
 			"persistent": false
-	},
+		},
 		"@repo/typescript-config#typecheck": {
 			"dependsOn": [],
 			"inputs": ["*.json", "package.json"],

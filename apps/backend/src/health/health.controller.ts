@@ -6,7 +6,7 @@
 import { Controller, Get, Logger, Res, SetMetadata } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 import type { Response } from 'express'
-import { StripeSyncService } from '../billing/stripe-sync.service'
+import { StripeSyncService } from '../modules/billing/stripe-sync.service'
 import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthService } from './health.service'
 import { MetricsService } from './metrics.service'

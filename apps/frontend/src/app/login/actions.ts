@@ -50,10 +50,10 @@ export async function loginAction(
 			.single()
 
 		// Determine destination based on user role
-		let destination = '/dashboard' // Default for OWNER, MANAGER, ADMIN
+		let destination = '/manage' // Default for OWNER, MANAGER, ADMIN
 
 		if (userProfile?.role === 'TENANT') {
-			destination = '/tenant-portal'
+			destination = '/tenant'
 		}
 
 		// Honor explicit redirectTo if provided (unless it conflicts with role)

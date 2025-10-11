@@ -226,13 +226,17 @@ async function storeSecurityEvent(securityEvent: SecurityEvent): Promise<void> {
 
 	const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-	await supabase.from('security_events').insert({
-		event_type: securityEvent.type,
+	await supabase.from('security_audit_log').insert({
+		eventType: securityEvent.type,
 		severity: securityEvent.severity,
-		data: securityEvent,
-		client_ip: securityEvent.client.ip,
-		user_agent: securityEvent.client.userAgent,
-		created_at: securityEvent.timestamp
+		details: securityEvent,
+		ipAddress: securityEvent.client.ip,
+		userAgent: securityEvent.client.userAgent,
+		timestamp: securityEvent.timestamp,
+		action: 'csp_violation',
+		resource: securityEvent.report.blockedURI || null,
+		userId: null,
+		email: null
 	})
 }
 

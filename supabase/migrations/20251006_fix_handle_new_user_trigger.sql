@@ -24,10 +24,10 @@ BEGIN
         company = COALESCE(EXCLUDED.company, profiles.company),
         "updatedAt" = NOW();
 
-    -- Sync with User table using correct schema
+    -- Sync with users table using correct schema
     -- Required fields: id, supabaseId, email, role
     -- Optional fields: firstName, lastName, phone, bio, avatarUrl
-    INSERT INTO "User" (
+    INSERT INTO users (
         id,
         "supabaseId",
         email,
@@ -38,7 +38,7 @@ BEGIN
         "updatedAt"
     )
     VALUES (
-        gen_random_uuid()::text,  -- Generate new UUID for User.id
+        gen_random_uuid()::text,  -- Generate new UUID for users.id
         new.id,                    -- Use auth.users.id as supabaseId
         new.email,
         'OWNER',                   -- Default role
@@ -49,8 +49,8 @@ BEGIN
     )
     ON CONFLICT ("supabaseId") DO UPDATE SET
         email = EXCLUDED.email,
-        "firstName" = COALESCE(EXCLUDED."firstName", "User"."firstName"),
-        "lastName" = COALESCE(EXCLUDED."lastName", "User"."lastName"),
+        "firstName" = COALESCE(EXCLUDED."firstName", users."firstName"),
+        "lastName" = COALESCE(EXCLUDED."lastName", users."lastName"),
         "updatedAt" = NOW();
 
     RETURN new;

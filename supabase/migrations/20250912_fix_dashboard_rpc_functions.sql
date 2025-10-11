@@ -343,109 +343,19 @@ COMMENT ON FUNCTION get_dashboard_financial_stats IS 'Returns financial statisti
 -- ============================================================================
 -- Test Data for Development (Only for test user)
 -- ============================================================================
--- Insert sample data for test user ID: '00000000-0000-0000-0000-000000000000'
--- This ensures the dashboard shows realistic data during development
+-- SAMPLE DATA REMOVED
+-- ============================================================================
+-- Sample data insertion has been removed to ensure new users start with a
+-- clean slate. This prevents mock/test data from appearing for new users.
+--
+-- If you need test data for development, create it manually or use a seeding
+-- script that targets specific development user accounts.
+--
+-- Previous sample data was for test user: '00000000-0000-0000-0000-000000000000'
+-- ============================================================================
 
-DO $$
-DECLARE
-  v_test_user_id UUID := '00000000-0000-0000-0000-000000000000';
-  v_property_id UUID;
-  v_unit_id UUID;
-  v_tenant_id UUID;
-BEGIN
-  -- Check if test data already exists
-  IF NOT EXISTS (SELECT 1 FROM "Property" WHERE "ownerId" = v_test_user_id) THEN
-    -- Create test property
-    INSERT INTO "Property" (id, "ownerId", name, address, city, state, "zipCode", country, "propertyType", "createdAt", "updatedAt")
-    VALUES (
-      gen_random_uuid(),
-      v_test_user_id,
-      'Test Property 1',
-      '123 Test Street',
-      'Test City',
-      'CA',
-      '90210',
-      'USA',
-      'MULTI_FAMILY',
-      NOW(),
-      NOW()
-    ) RETURNING id INTO v_property_id;
-
-    -- Create test units
-    FOR i IN 1..5 LOOP
-      INSERT INTO "Unit" (id, "propertyId", "unitNumber", status, rent, bedrooms, bathrooms, "squareFeet", "createdAt", "updatedAt")
-      VALUES (
-        gen_random_uuid(),
-        v_property_id,
-        'Unit ' || i,
-        CASE 
-          WHEN i <= 3 THEN 'OCCUPIED'
-          WHEN i = 4 THEN 'VACANT'
-          ELSE 'MAINTENANCE'
-        END,
-        1500 + (i * 100),
-        2,
-        1,
-        850 + (i * 50),
-        NOW(),
-        NOW()
-      ) RETURNING id INTO v_unit_id;
-
-      -- Create test tenants and leases for occupied units
-      IF i <= 3 THEN
-        INSERT INTO "Tenant" (id, "ownerId", "firstName", "lastName", email, phone, "invitationStatus", "createdAt", "updatedAt")
-        VALUES (
-          gen_random_uuid(),
-          v_test_user_id,
-          'Test',
-          'Tenant ' || i,
-          'tenant' || i || '@test.com',
-          '555-000' || i,
-          'ACCEPTED',
-          NOW() - INTERVAL '30 days' * i,
-          NOW()
-        ) RETURNING id INTO v_tenant_id;
-
-        INSERT INTO "Lease" (id, "tenantId", "unitId", "startDate", "endDate", "rentAmount", "securityDeposit", status, "createdAt", "updatedAt")
-        VALUES (
-          gen_random_uuid(),
-          v_tenant_id,
-          v_unit_id,
-          CURRENT_DATE - INTERVAL '6 months',
-          CURRENT_DATE + INTERVAL '6 months',
-          1500 + (i * 100),
-          (1500 + (i * 100)) * 2,
-          'ACTIVE',
-          NOW(),
-          NOW()
-        );
-      END IF;
-    END LOOP;
-
-    -- Create test maintenance requests
-    INSERT INTO "MaintenanceRequest" (id, "propertyId", "unitId", title, description, priority, status, "estimatedCost", "createdAt", "updatedAt")
-    SELECT
-      gen_random_uuid(),
-      v_property_id,
-      u.id,
-      'Test Maintenance ' || row_number() OVER (),
-      'Test maintenance description',
-      (ARRAY['LOW', 'MEDIUM', 'HIGH', 'URGENT'])[1 + floor(random() * 4)],
-      (ARRAY['PENDING', 'IN_PROGRESS', 'COMPLETED'])[1 + floor(random() * 3)],
-      100 + floor(random() * 900),
-      NOW() - INTERVAL '10 days' * floor(random() * 30),
-      NOW()
-    FROM "Unit" u
-    WHERE u."propertyId" = v_property_id
-    LIMIT 3;
-
-    -- Update completed maintenance requests with completion date
-    UPDATE "MaintenanceRequest"
-    SET "completedAt" = "createdAt" + INTERVAL '1 day' * (1 + floor(random() * 7))
-    WHERE "propertyId" = v_property_id
-      AND status = 'COMPLETED';
-  END IF;
-END $$;
+-- Sample data insertion block removed (was lines 349-448)
+-- New users will now see empty dashboard with proper empty states
 
 -- ============================================================================
 -- Dashboard RPC Functions Fixed Successfully
