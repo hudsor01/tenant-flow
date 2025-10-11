@@ -51,9 +51,6 @@ RUN pnpm build:shared && \
     pnpm build:database && \
     pnpm build:backend
 
-# Ensure runtime has access to Handlebars templates compiled from TypeScript
-RUN mkdir -p apps/backend/dist/pdf/templates \
-    && cp -R apps/backend/src/pdf/templates/. apps/backend/dist/pdf/templates/
 
 # ===== RUNTIME STAGE =====
 # Ultra-minimal production image (~200MB total)
