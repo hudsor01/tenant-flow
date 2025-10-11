@@ -4,8 +4,8 @@ import type {
 	PropertyPerformance,
 	SystemUptime
 } from '@repo/shared/types/core'
-import { DashboardAnalyticsService } from '../../analytics/dashboard-analytics.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { DashboardAnalyticsService } from '../../modules/analytics/dashboard-analytics.service'
 import type {
 	Activity,
 	ActivityQueryOptions

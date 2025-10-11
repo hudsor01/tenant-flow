@@ -6,13 +6,30 @@
  */
 
 // Routes that require authentication
-export const PROTECTED_ROUTE_PREFIXES = ['/dashboard'] as const
+export const PROTECTED_ROUTE_PREFIXES = [
+	'/manage',
+	'/tenant',
+	'/settings'
+] as const
 
-// Routes that should redirect to dashboard if already authenticated
+// Routes that should redirect to management dashboard if already authenticated
 export const PUBLIC_AUTH_ROUTES = [
 	'/login',
 	'/signup',
 	'/auth/register'
+] as const
+
+// Routes that don't require payment (public pages + payment flow itself)
+export const PAYMENT_EXEMPT_ROUTES = [
+	'/login',
+	'/signup',
+	'/auth',
+	'/pricing',
+	'/stripe',
+	'/',
+	'/help',
+	'/privacy',
+	'/terms'
 ] as const
 
 export type ProtectedRoutePrefix = (typeof PROTECTED_ROUTE_PREFIXES)[number]

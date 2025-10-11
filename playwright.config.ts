@@ -2,10 +2,11 @@ import { defineConfig } from '@playwright/test'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
+	authSetupProject,
 	baseConfig,
+	productionProject,
 	smokeProjects,
-	stagingProject,
-	productionProject
+	stagingProject
 } from './apps/e2e-tests/playwright.config.base'
 
 // Default NODE_ENV for deterministic Playwright behaviour
@@ -14,9 +15,16 @@ if (!process.env.NODE_ENV) {
 }
 
 const ROOT_DIR = path.dirname(fileURLToPath(import.meta.url))
-const TEST_DIR = baseConfig.testDir ?? path.join(ROOT_DIR, 'apps/e2e-tests/tests')
+const TEST_DIR =
+	baseConfig.testDir ?? path.join(ROOT_DIR, 'apps/e2e-tests/tests')
 
-const projects = [...smokeProjects]
+// Build projects array with auth setup first
+const projects = [
+	authSetupProject, // Always run auth setup first
+	...smokeProjects
+]
+
+// Conditionally add staging/production projects
 if (process.env.PLAYWRIGHT_INCLUDE_STAGING === 'true') {
 	projects.push(stagingProject)
 }
@@ -27,25 +35,16 @@ if (process.env.PLAYWRIGHT_INCLUDE_PROD === 'true') {
 export default defineConfig({
 	...baseConfig,
 	testDir: TEST_DIR,
-	timeout: 60000,
-	expect: {
-		timeout: 15000,
-		toHaveScreenshot: {
-			maxDiffPixels: 100
-		}
-	},
-	fullyParallel: true,
-	forbidOnly: !!process.env.CI,
-	retries: process.env.CI ? 2 : 0,
-	workers: process.env.CI ? 1 : undefined,
+
+	// Project-specific settings
 	projects,
+
+	// Base URL depends on environment
 	use: {
 		...baseConfig.use,
 		baseURL: process.env.CI
 			? 'https://tenantflow.app'
 			: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
-		navigationTimeout: 30000,
-		actionTimeout: 15000,
 		ignoreHTTPSErrors: true,
 		extraHTTPHeaders: {
 			...(process.env.E2E_API_TOKEN
@@ -53,27 +52,28 @@ export default defineConfig({
 				: {})
 		}
 	},
-	webServer: {
-		command: 'doppler run -- pnpm --filter @repo/frontend dev',
-		url: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
-		reuseExistingServer: true,
-		timeout: 120000,
-		stdout: 'pipe',
-		stderr: 'pipe'
-	},
-	outputDir: 'test-results/',
+
+	// Auto-start web server in local development
+	webServer: process.env.CI
+		? undefined // Don't start server in CI (already running)
+		: {
+				command: 'doppler run -- pnpm --filter @repo/frontend dev',
+				url: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
+				reuseExistingServer: true,
+				timeout: 120000,
+				stdout: 'pipe',
+				stderr: 'pipe'
+			},
+
+	// Snapshot configuration
 	snapshotDir: path.join(TEST_DIR, '__snapshots__'),
 	snapshotPathTemplate:
 		'{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}{-projectName}{-snapshotSuffix}{ext}',
+
+	// Metadata for reporting
 	metadata: {
 		project: 'TenantFlow',
-		environment:
-			process.env.NODE_ENV ||
-			(() => {
-				throw new Error(
-					'NODE_ENV environment variable is required for Playwright tests'
-				)
-			})(),
-		version: process.env.npm_package_version || undefined
+		environment: process.env.NODE_ENV || 'development',
+		version: process.env.npm_package_version || '1.0.0'
 	}
 })
