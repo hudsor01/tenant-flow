@@ -11,9 +11,14 @@ import { createBrowserClient } from '@supabase/ssr'
  * In development, falls back to local backend
  */
 function getStripeApiUrl(): string {
-	return process.env.NEXT_PUBLIC_API_BASE_URL || (() => {
-		throw new Error('NEXT_PUBLIC_API_BASE_URL is required for Stripe API client configuration')
-	})()
+	return (
+		process.env.NEXT_PUBLIC_API_BASE_URL ||
+		(() => {
+			throw new Error(
+				'NEXT_PUBLIC_API_BASE_URL is required for Stripe API client configuration'
+			)
+		})()
+	)
 }
 
 interface CreateCheckoutSessionRequest {
@@ -178,4 +183,64 @@ export async function createPaymentIntent({
 	}
 
 	return response.json()
+}
+
+/**
+ * Create a Stripe Customer Portal session for subscription management
+ * Official Stripe pattern: customer self-service portal
+ */
+export async function createCustomerPortalSession(
+	returnUrl: string
+): Promise<{ url: string }> {
+	const supabase = createBrowserClient<Database>(
+		process.env.NEXT_PUBLIC_SUPABASE_URL!,
+		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+	)
+
+	const {
+		data: { session }
+	} = await supabase.auth.getSession()
+
+	if (!session?.access_token) {
+		throw new Error('User not authenticated')
+	}
+
+	// Get user's Stripe customer ID
+	const { data: userData, error: userError } = await supabase
+		.from('users')
+		.select('stripeCustomerId')
+		.eq('id', session.user.id)
+		.single()
+
+	if (userError || !userData?.stripeCustomerId) {
+		throw new Error('No Stripe customer found. Please contact support.')
+	}
+
+	const apiUrl = getStripeApiUrl()
+	const response = await fetch(
+		`${apiUrl}/api/v1/stripe/create-billing-portal`,
+		{
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${session.access_token}`
+			},
+			body: JSON.stringify({
+				customerId: userData.stripeCustomerId,
+				returnUrl
+			})
+		}
+	)
+
+	if (!response.ok) {
+		const errorData = await response.json().catch(() => ({
+			error: `HTTP ${response.status}: ${response.statusText}`
+		}))
+		throw new Error(
+			errorData.error || 'Failed to create billing portal session'
+		)
+	}
+
+	const data = await response.json()
+	return { url: data.url }
 }

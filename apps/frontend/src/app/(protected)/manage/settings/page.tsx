@@ -23,9 +23,11 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select'
+import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import { createCustomerPortalSession } from '@/lib/stripe-client'
 import {
 	AlertTriangle,
 	Bell,
@@ -40,8 +42,25 @@ import {
 	Upload,
 	User
 } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 export default function SettingsPage() {
+	const [isLoadingPortal, setIsLoadingPortal] = useState(false)
+
+	const handleManageBilling = async () => {
+		setIsLoadingPortal(true)
+		try {
+			const returnUrl = `${window.location.origin}/manage/settings?tab=billing`
+			const { url } = await createCustomerPortalSession(returnUrl)
+			window.location.href = url
+		} catch (error) {
+			toast.error(
+				error instanceof Error ? error.message : 'Failed to open billing portal'
+			)
+			setIsLoadingPortal(false)
+		}
+	}
 	return (
 		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 			<div className="flex items-center justify-between">
@@ -329,69 +348,52 @@ export default function SettingsPage() {
 
 				<TabsContent value="billing" className="space-y-6">
 					<CardLayout
-						title="Subscription Plan"
+						title="Subscription & Billing"
+						description="Manage your subscription, payment methods, and billing history"
 						className="p-6 border shadow-sm"
 					>
-						<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
-							<div>
-								<p className="font-semibold text-lg">Professional Plan</p>
-								<p className="text-muted-foreground">Manage up to 500 units</p>
-							</div>
-							<div className="text-right">
-								<p className="text-2xl font-bold">$99</p>
-								<p className="text-sm text-muted-foreground">per month</p>
-							</div>
-						</div>
-						<div className="mt-4 flex items-center gap-2">
-							<Button>Upgrade Plan</Button>
-							<Button variant="outline">Cancel Subscription</Button>
-						</div>
-					</CardLayout>
-
-					<CardLayout title="Payment Method" className="p-6 border shadow-sm">
-						<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
-							<div className="flex items-center gap-3">
-								<div className="w-10 h-10 rounded-lg bg-background border flex items-center justify-center">
-									<CreditCard className="size-5" />
-								</div>
-								<div>
-									<p className="font-medium">•••• •••• 4242</p>
-									<p className="text-sm text-muted-foreground">Expires 12/25</p>
-								</div>
-							</div>
-							<Button variant="outline" size="sm">
-								Update
-							</Button>
-						</div>
-					</CardLayout>
-
-					<CardLayout title="Billing History" className="p-6 border shadow-sm">
-						<div className="space-y-3">
-							{[
-								{ date: 'Jan 15, 2024', amount: '$99.00', status: 'Paid' },
-								{ date: 'Dec 15, 2023', amount: '$99.00', status: 'Paid' },
-								{ date: 'Nov 15, 2023', amount: '$99.00', status: 'Paid' }
-							].map((invoice, index) => (
-								<div
-									key={index}
-									className="flex items-center justify-between p-3 rounded-lg bg-muted/20"
+						<div className="text-center py-12">
+							<CreditCard className="size-12 mx-auto mb-4 text-muted-foreground" />
+							<h3 className="text-lg font-semibold mb-2">
+								Stripe Customer Portal
+							</h3>
+							<p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
+								Manage your subscription, update payment methods, view invoices,
+								and download receipts through our secure Stripe portal.
+							</p>
+							<div className="flex items-center justify-center gap-3">
+								<Button
+									onClick={handleManageBilling}
+									disabled={isLoadingPortal}
+									className="min-w-[200px]"
 								>
-									<div>
-										<p className="font-medium">{invoice.date}</p>
-										<p className="text-sm text-muted-foreground">
-											{invoice.amount}
-										</p>
-									</div>
-									<div className="flex items-center gap-2">
-										<Badge variant="default" className="text-xs">
-											{invoice.status}
-										</Badge>
-										<Button variant="ghost" size="sm">
-											<Download className="size-4" />
-										</Button>
-									</div>
+									{isLoadingPortal ? (
+										<>
+											<Spinner className="size-4 mr-2" />
+											Opening Portal...
+										</>
+									) : (
+										<>
+											<Shield className="size-4 mr-2" />
+											Manage Billing
+										</>
+									)}
+								</Button>
+							</div>
+							<div className="flex items-center justify-center gap-6 mt-6 text-xs text-muted-foreground">
+								<div className="flex items-center gap-1">
+									<Shield className="size-3" />
+									<span>Secure</span>
 								</div>
-							))}
+								<div className="flex items-center gap-1">
+									<CreditCard className="size-3" />
+									<span>PCI Compliant</span>
+								</div>
+								<div className="flex items-center gap-1">
+									<RefreshCw className="size-3" />
+									<span>Instant Updates</span>
+								</div>
+							</div>
 						</div>
 					</CardLayout>
 				</TabsContent>
