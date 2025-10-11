@@ -76,7 +76,9 @@ export function TenantProvider({ children, tenantId }: TenantProviderProps) {
 		[tenant, tenantId, refresh, invalidate]
 	)
 
-	return <TenantContext value={value}>{children}</TenantContext>
+	return (
+		<TenantContext.Provider value={value}>{children}</TenantContext.Provider>
+	)
 }
 
 /**
