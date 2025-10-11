@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 
 const plans = [
 	{
-	id: 'starter',
+		id: 'starter',
 		name: 'Starter',
 		price: 29,
 		interval: 'month',
@@ -21,11 +21,11 @@ const plans = [
 			'Basic tenant management',
 			'Email support'
 		],
-		stripePriceId: 'price_starter_monthly' // Replace with actual Stripe price ID
+		stripePriceId: 'price_starter_monthly' // TODO: Replace with actual Stripe price ID
 	},
 	{
-		id: 'professional',
-		name: 'Professional',
+		id: 'growth',
+		name: 'Growth',
 		price: 79,
 		interval: 'month',
 		features: [
@@ -39,8 +39,8 @@ const plans = [
 		stripePriceId: 'price_professional_monthly'
 	},
 	{
-		id: 'enterprise',
-		name: 'Enterprise',
+		id: 'tenantflow_max',
+		name: 'TenantFlow Max',
 		price: 199,
 		interval: 'month',
 		features: [

@@ -8,13 +8,6 @@ export class AppService {
 	constructor(private readonly supabaseService: SupabaseService) {}
 
 	/**
-	 * Simple API test endpoint
-	 */
-	getHello(): string {
-		return 'TenantFlow Backend API - Core Routes Working'
-	}
-
-	/**
 	 * Health check endpoint
 	 * Returns uptime and Supabase DB status
 	 */
