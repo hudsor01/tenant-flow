@@ -1,1 +1,1 @@
-export { PaymentMethodsModule } from '../../payment-methods/payment-methods.module'
+export { PaymentMethodsModule } from '../payment-methods/payment-methods.module'
