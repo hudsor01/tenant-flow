@@ -126,8 +126,8 @@ export type QueryError<T> =
 	T extends PromiseLike<{ error: infer U }> ? U : never
 
 // Example usage:
-// const query = supabase.from('properties').select(`id, name, units(*)`)
-// type PropertiesWithUnits = QueryData<typeof query>
+// const query = supabase.from('property').select(`id, name, unit(*)`)
+// type PropertyWithUnits = QueryData<typeof query>
 
 // ULTRA-NATIVE: No type aliases needed! Apps import directly:
 // import type { Tables, TablesInsert } from '@repo/shared/types/supabase-generated'

@@ -129,15 +129,53 @@ export async function getMaintenanceStats() {
 }
 
 /**
- * Analytics page data - parallel fetch
+ * Analytics page data - parallel fetch with error handling
  */
 export async function getAnalyticsPageData() {
-	const [dashboardStats, propertyPerformance, financialStats] =
-		await Promise.all([
-			dashboardServerApi.getStats(),
-			dashboardServerApi.getPropertyPerformance(),
-			getFinancialDashboardData()
-		])
+	const [
+		dashboardStatsResult,
+		propertyPerformanceResult,
+		financialStatsResult
+	] = await Promise.allSettled([
+		dashboardServerApi.getStats(),
+		dashboardServerApi.getPropertyPerformance(),
+		getFinancialDashboardData()
+	])
+
+	// Extract values with fallbacks for failed requests
+	const dashboardStats =
+		dashboardStatsResult.status === 'fulfilled'
+			? dashboardStatsResult.value
+			: {
+					totalProperties: 0,
+					totalTenants: 0,
+					monthlyRevenue: 0,
+					occupancyRate: 0,
+					maintenanceRequests: 0,
+					totalUnits: 0,
+					totalRevenue: 0,
+					revenue: { monthly: 0, yearly: 0, growth: 0 },
+					units: { occupancyRate: 0, occupancyChange: 0 },
+					maintenance: { open: 0 },
+					properties: { total: 0 }
+				}
+
+	const propertyPerformance =
+		propertyPerformanceResult.status === 'fulfilled'
+			? propertyPerformanceResult.value || []
+			: []
+
+	const financialStats =
+		financialStatsResult.status === 'fulfilled'
+			? financialStatsResult.value
+			: {
+					totalRevenue: 0,
+					totalExpenses: 0,
+					netIncome: 0,
+					propertyCount: 0,
+					occupancyRate: 0,
+					avgRoi: 0
+				}
 
 	return {
 		dashboardStats,

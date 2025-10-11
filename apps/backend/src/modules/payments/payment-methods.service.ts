@@ -1,1 +1,1 @@
-export { PaymentMethodsService } from '../../payment-methods/payment-methods.service'
+export { PaymentMethodsService } from '../payment-methods/payment-methods.service'

@@ -1,0 +1,353 @@
+/**
+ * Maintenance Request Hooks
+ * TanStack Query hooks for maintenance management with optimistic updates
+ * Follows CUSTOM HOOKS architecture patterns
+ */
+
+import type {
+	CreateMaintenanceRequest,
+	UpdateMaintenanceRequest
+} from '@repo/shared/types/backend-domain'
+import type { MaintenanceRequest } from '@repo/shared/types/core'
+import { apiClient } from '@repo/shared/utils/api-client'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+
+/**
+ * Query keys for maintenance endpoints (hierarchical structure)
+ */
+export const maintenanceKeys = {
+	all: ['maintenance'] as const,
+	list: () => [...maintenanceKeys.all, 'list'] as const,
+	detail: (id: string) => [...maintenanceKeys.all, 'detail', id] as const,
+	stats: () => [...maintenanceKeys.all, 'stats'] as const,
+	urgent: () => [...maintenanceKeys.all, 'urgent'] as const,
+	overdue: () => [...maintenanceKeys.all, 'overdue'] as const
+}
+
+/**
+ * Hook to fetch all maintenance requests
+ * Includes prefetching for instant navigation
+ */
+export function useAllMaintenanceRequests(query?: {
+	unitId?: string
+	propertyId?: string
+	priority?: string
+	category?: string
+	status?: string
+	limit?: number
+	offset?: number
+}) {
+	const queryClient = useQueryClient()
+
+	return useQuery({
+		queryKey: [...maintenanceKeys.list(), query],
+		queryFn: async () => {
+			const params = new URLSearchParams()
+			if (query?.unitId) params.append('unitId', query.unitId)
+			if (query?.propertyId) params.append('propertyId', query.propertyId)
+			if (query?.priority) params.append('priority', query.priority)
+			if (query?.category) params.append('category', query.category)
+			if (query?.status) params.append('status', query.status)
+			if (query?.limit) params.append('limit', query.limit.toString())
+			if (query?.offset) params.append('offset', query.offset.toString())
+
+			const url = `${API_BASE_URL}/api/v1/maintenance${params.toString() ? `?${params.toString()}` : ''}`
+			const response = await apiClient<MaintenanceRequest[]>(url)
+
+			// Prefetch individual details for instant navigation
+			response.forEach(maintenance => {
+				queryClient.setQueryData(
+					maintenanceKeys.detail(maintenance.id),
+					maintenance
+				)
+			})
+
+			return response
+		},
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		gcTime: 10 * 60 * 1000, // 10 minutes cache
+		retry: 2,
+		structuralSharing: true
+	})
+}
+
+/**
+ * Hook to fetch single maintenance request
+ * Uses placeholder data from list cache
+ */
+export function useMaintenanceRequest(id: string) {
+	const queryClient = useQueryClient()
+
+	return useQuery({
+		queryKey: maintenanceKeys.detail(id),
+		queryFn: async () => {
+			return await apiClient<MaintenanceRequest>(
+				`${API_BASE_URL}/api/v1/maintenance/${id}`
+			)
+		},
+		enabled: !!id,
+		staleTime: 5 * 60 * 1000,
+		gcTime: 10 * 60 * 1000,
+		retry: 2,
+		// Use data from list query as placeholder
+		placeholderData: () => {
+			const cachedList = queryClient.getQueryData<MaintenanceRequest[]>(
+				maintenanceKeys.list()
+			)
+			return cachedList?.find(m => m.id === id)
+		}
+	})
+}
+
+/**
+ * Hook to fetch maintenance statistics
+ */
+export function useMaintenanceStats() {
+	return useQuery({
+		queryKey: maintenanceKeys.stats(),
+		queryFn: async () => {
+			return await apiClient<{
+				totalRequests: number
+				pendingRequests: number
+				inProgressRequests: number
+				completedRequests: number
+				urgentRequests: number
+			}>(`${API_BASE_URL}/api/v1/maintenance/stats`)
+		},
+		staleTime: 10 * 60 * 1000, // 10 minutes
+		retry: 2
+	})
+}
+
+/**
+ * Hook to create maintenance request with optimistic update
+ */
+export function useCreateMaintenanceRequest() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async (data: CreateMaintenanceRequest) => {
+			return await apiClient<MaintenanceRequest>(
+				`${API_BASE_URL}/api/v1/maintenance`,
+				{
+					method: 'POST',
+					body: JSON.stringify(data)
+				}
+			)
+		},
+		onMutate: async newRequest => {
+			// Cancel outgoing queries
+			await queryClient.cancelQueries({ queryKey: maintenanceKeys.list() })
+			const previous = queryClient.getQueryData<MaintenanceRequest[]>(
+				maintenanceKeys.list()
+			)
+
+			// Optimistic update
+			const tempId = `temp-${Date.now()}`
+			const optimistic: MaintenanceRequest = {
+				id: tempId,
+				title: newRequest.title,
+				description: newRequest.description,
+				priority:
+					(newRequest.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY') ||
+					'MEDIUM',
+				category: newRequest.category || null,
+				status: 'OPEN',
+				unitId: newRequest.unitId || '',
+				requestedBy: null,
+				assignedTo: null,
+				estimatedCost: newRequest.estimatedCost || null,
+				actualCost: null,
+				completedAt: null,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				allowEntry: true,
+				contactPhone: null,
+				notes: null,
+				photos: [],
+				preferredDate: null
+			}
+
+			queryClient.setQueryData<MaintenanceRequest[]>(
+				maintenanceKeys.list(),
+				old => (old ? [optimistic, ...old] : [optimistic])
+			)
+
+			return { previous }
+		},
+		onError: (_err, _variables, context) => {
+			// Rollback on error
+			if (context?.previous) {
+				queryClient.setQueryData(maintenanceKeys.list(), context.previous)
+			}
+			toast.error('Failed to create maintenance request')
+		},
+		onSuccess: data => {
+			toast.success('Maintenance request created successfully')
+			// Update cache with real data
+			queryClient.setQueryData(maintenanceKeys.detail(data.id), data)
+		},
+		onSettled: () => {
+			// Refetch in background
+			queryClient.invalidateQueries({ queryKey: maintenanceKeys.list() })
+		}
+	})
+}
+
+/**
+ * Hook to update maintenance request with optimistic update
+ */
+export function useUpdateMaintenanceRequest() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async ({
+			id,
+			data
+		}: {
+			id: string
+			data: UpdateMaintenanceRequest
+		}) => {
+			return await apiClient<MaintenanceRequest>(
+				`${API_BASE_URL}/api/v1/maintenance/${id}`,
+				{
+					method: 'PUT',
+					body: JSON.stringify(data)
+				}
+			)
+		},
+		onMutate: async ({ id, data }) => {
+			await queryClient.cancelQueries({ queryKey: maintenanceKeys.detail(id) })
+			const previous = queryClient.getQueryData<MaintenanceRequest>(
+				maintenanceKeys.detail(id)
+			)
+
+			// Optimistic update
+			queryClient.setQueryData<MaintenanceRequest>(
+				maintenanceKeys.detail(id),
+				old => {
+					if (!old) return undefined
+					return {
+						...old,
+						...data,
+						updatedAt: new Date().toISOString()
+					} as MaintenanceRequest
+				}
+			)
+
+			// Also update list cache
+			queryClient.setQueryData<MaintenanceRequest[]>(
+				maintenanceKeys.list(),
+				old => {
+					if (!old) return old
+					return old.map(m => {
+						if (m.id !== id) return m
+						return {
+							...m,
+							...data,
+							updatedAt: new Date().toISOString()
+						} as MaintenanceRequest
+					})
+				}
+			)
+
+			return { previous }
+		},
+		onError: (_err, { id }, context) => {
+			if (context?.previous) {
+				queryClient.setQueryData(maintenanceKeys.detail(id), context.previous)
+			}
+			toast.error('Failed to update maintenance request')
+		},
+		onSuccess: () => {
+			toast.success('Maintenance request updated successfully')
+		}
+	})
+}
+
+/**
+ * Hook to delete maintenance request
+ */
+export function useDeleteMaintenanceRequest(options?: {
+	onSuccess?: () => void
+	onError?: (error: Error) => void
+}) {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async (id: string) => {
+			await apiClient<void>(`${API_BASE_URL}/api/v1/maintenance/${id}`, {
+				method: 'DELETE'
+			})
+		},
+		onMutate: async id => {
+			await queryClient.cancelQueries({ queryKey: maintenanceKeys.list() })
+			const previous = queryClient.getQueryData<MaintenanceRequest[]>(
+				maintenanceKeys.list()
+			)
+
+			// Optimistically remove from list
+			queryClient.setQueryData<MaintenanceRequest[]>(
+				maintenanceKeys.list(),
+				old => old?.filter(m => m.id !== id)
+			)
+
+			return { previous }
+		},
+		onError: (err, _id, context) => {
+			if (context?.previous) {
+				queryClient.setQueryData(maintenanceKeys.list(), context.previous)
+			}
+			toast.error('Failed to delete maintenance request')
+			options?.onError?.(err as Error)
+		},
+		onSuccess: () => {
+			toast.success('Maintenance request deleted successfully')
+			options?.onSuccess?.()
+		}
+	})
+}
+
+/**
+ * Hook to prefetch maintenance request
+ */
+export function usePrefetchMaintenanceRequest() {
+	const queryClient = useQueryClient()
+
+	return {
+		prefetchMaintenanceRequest: (id: string) => {
+			return queryClient.prefetchQuery({
+				queryKey: maintenanceKeys.detail(id),
+				queryFn: async () => {
+					return await apiClient<MaintenanceRequest>(
+						`${API_BASE_URL}/api/v1/maintenance/${id}`
+					)
+				},
+				staleTime: 5 * 60 * 1000
+			})
+		}
+	}
+}
+
+/**
+ * Combined hook for all maintenance operations
+ */
+export function useMaintenanceOperations() {
+	const createRequest = useCreateMaintenanceRequest()
+	const updateRequest = useUpdateMaintenanceRequest()
+	const deleteRequest = useDeleteMaintenanceRequest()
+
+	return {
+		createRequest,
+		updateRequest,
+		deleteRequest,
+		isLoading:
+			createRequest.isPending ||
+			updateRequest.isPending ||
+			deleteRequest.isPending,
+		error: createRequest.error || updateRequest.error || deleteRequest.error
+	}
+}

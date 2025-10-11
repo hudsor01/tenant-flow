@@ -404,12 +404,6 @@ export interface CreatePaymentIntentRequest {
 }
 
 export interface CustomerPortalCardProps {
-	title: string
-	description: string
-	icon: React.ComponentType<{ className?: string }>
-	actionText: string
-	onAction: () => void
-	disabled?: boolean
 	className?: string
 	showStats?: boolean
 	showTestimonial?: boolean
@@ -420,16 +414,23 @@ export interface CustomerPortalCardProps {
 		tenants?: number
 		leases?: number
 		maintenance?: number
+		uptime?: string
+		monthlyRevenue?: number
+		activeLeases?: number
 	}
 	billingInfo?: {
 		nextBillingDate?: string
 		billingAmount?: number
 		billingCycle?: string
+		lastPayment?: string
+		paymentMethod?: string
 	}
 	testimonial?: {
 		quote?: string
+		text?: string
 		author?: string
 		company?: string
+		rating?: number
 	}
 }
 

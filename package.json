@@ -45,6 +45,12 @@
 		"test:unit:coverage": "pnpm --filter @repo/backend test:unit --coverage",
 		"test:integration": "pnpm --filter @repo/backend test:integration",
 		"test:integration:watch": "pnpm --filter @repo/backend test:integration -- --watch",
+		"test:e2e": "pnpm --filter @repo/e2e-tests test",
+		"test:e2e:tenant": "pnpm --filter @repo/e2e-tests test:chromium -- tenant-management/",
+		"test:e2e:visual": "pnpm exec playwright test --project=chromium-visual",
+		"test:e2e:ui": "pnpm exec playwright test --ui",
+		"test:e2e:shard": "pnpm --filter @repo/e2e-tests exec playwright test --shard",
+		"test:e2e:debug": "PWDEBUG=1 pnpm exec playwright test",
 		"test:production": "./test-production-connection.sh",
 		"test:ci": "CI=true turbo run test:unit test:integration --concurrency=2",
 		"db:generate": "pnpm --filter @repo/database generate",
@@ -99,7 +105,7 @@
 		]
 	},
 	"overrides": {
-		"typescript": "5.9.3",
+		"typescript": "^5.9.3",
 		"path-to-regexp": "^8.3.0",
 		"undici": "^7.16.0",
 		"tmp": "^0.2.5",

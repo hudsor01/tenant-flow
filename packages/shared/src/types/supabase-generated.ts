@@ -1567,20 +1567,35 @@ export type Database = {
 			processed_stripe_events: {
 				Row: {
 					event_type: string
+					failed_at: string | null
+					failure_reason: string | null
 					id: string
+					last_retry_at: string | null
 					processed_at: string | null
+					retry_count: number | null
+					status: string | null
 					stripe_event_id: string
 				}
 				Insert: {
 					event_type: string
+					failed_at?: string | null
+					failure_reason?: string | null
 					id?: string
+					last_retry_at?: string | null
 					processed_at?: string | null
+					retry_count?: number | null
+					status?: string | null
 					stripe_event_id: string
 				}
 				Update: {
 					event_type?: string
+					failed_at?: string | null
+					failure_reason?: string | null
 					id?: string
+					last_retry_at?: string | null
 					processed_at?: string | null
+					retry_count?: number | null
+					status?: string | null
 					stripe_event_id?: string
 				}
 				Relationships: []
@@ -2892,6 +2907,7 @@ export type Database = {
 					role: Database['public']['Enums']['UserRole']
 					stripeAccountId: string | null
 					stripeCustomerId: string | null
+					subscription_status: string | null
 					subscriptionTier: string | null
 					supabaseId: string
 					updatedAt: string
@@ -2912,6 +2928,7 @@ export type Database = {
 					role?: Database['public']['Enums']['UserRole']
 					stripeAccountId?: string | null
 					stripeCustomerId?: string | null
+					subscription_status?: string | null
 					subscriptionTier?: string | null
 					supabaseId: string
 					updatedAt?: string
@@ -2932,6 +2949,7 @@ export type Database = {
 					role?: Database['public']['Enums']['UserRole']
 					stripeAccountId?: string | null
 					stripeCustomerId?: string | null
+					subscription_status?: string | null
 					subscriptionTier?: string | null
 					supabaseId?: string
 					updatedAt?: string
@@ -3162,9 +3180,17 @@ export type Database = {
 				}
 				Returns: Json
 			}
+			check_event_processed: {
+				Args: { p_event_id: string }
+				Returns: boolean
+			}
 			cleanup_expired_drafts: {
 				Args: Record<PropertyKey, never>
 				Returns: undefined
+			}
+			cleanup_old_stripe_events: {
+				Args: { p_days_to_keep?: number }
+				Returns: number
 			}
 			create_lease_with_financial_calculations: {
 				Args: {
@@ -3218,6 +3244,16 @@ export type Database = {
 			get_entity_permissions: {
 				Args: { p_entity_id: string; p_entity_type: string; p_user_id: string }
 				Returns: Json
+			}
+			get_events_pending_recovery: {
+				Args: { p_hours_old?: number; p_max_retries?: number }
+				Returns: {
+					event_type: string
+					last_retry_at: string
+					processed_at: string
+					retry_count: number
+					stripe_event_id: string
+				}[]
 			}
 			get_expense_summary: {
 				Args: { p_user_id: string; p_year?: number }
@@ -3321,6 +3357,14 @@ export type Database = {
 				Args: Record<PropertyKey, never>
 				Returns: string
 			}
+			get_webhook_statistics: {
+				Args: Record<PropertyKey, never>
+				Returns: {
+					last_hour_events: number
+					today_events: number
+					total_events: number
+				}[]
+			}
 			health_check: {
 				Args: Record<PropertyKey, never>
 				Returns: {
@@ -3335,6 +3379,14 @@ export type Database = {
 			mark_all_notifications_read: {
 				Args: { user_id: string }
 				Returns: number
+			}
+			mark_stripe_event_failed: {
+				Args: { p_event_id: string; p_failure_reason: string }
+				Returns: boolean
+			}
+			record_stripe_event: {
+				Args: { p_event_id: string; p_event_type: string }
+				Returns: boolean
 			}
 			renew_lease: {
 				Args: { p_lease_id: string; p_new_end_date: string; p_user_id: string }
@@ -3378,6 +3430,10 @@ export type Database = {
 					p_user_id: string
 				}
 				Returns: Json
+			}
+			update_stripe_event_retry: {
+				Args: { p_event_id: string; p_retry_count: number }
+				Returns: boolean
 			}
 			validate_password_strength: {
 				Args: { p_password: string }

@@ -20,8 +20,9 @@
 		"@repo/config": "workspace:*"
 	},
 	"devDependencies": {
-		"@playwright/test": "1.55.1",
-		"eslint": "9.36.0",
+		"@faker-js/faker": "10.0.0",
+		"@playwright/test": "1.56.0",
+		"eslint": "9.37.0",
 		"typescript": "^5.9.2"
 	}
 }
