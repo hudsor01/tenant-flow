@@ -15,18 +15,12 @@ export class HealthService {
 	 * Core health check with database connectivity verification
 	 */
 	async checkSystemHealth(): Promise<HealthCheckResponse> {
-		this.logger.log('Health check started - checking database connectivity')
-
 		try {
-			// Check if supabaseService is properly injected
-			this.logger.log('SupabaseService status', {
-				isUndefined: this.supabaseClient === undefined,
-				isNull: this.supabaseClient === null,
-				constructor: this.supabaseClient?.constructor?.name || 'N/A'
-			})
-
+			// Verify service is properly injected
 			if (!this.supabaseClient) {
-				throw new Error('Health check service initialization error [HEALTH-001]')
+				throw new Error(
+					'Health check service initialization error [HEALTH-001]'
+				)
 			}
 
 			// Check actual database connectivity
