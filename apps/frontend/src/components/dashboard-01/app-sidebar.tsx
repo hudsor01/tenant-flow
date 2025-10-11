@@ -63,111 +63,111 @@ const navigation: {
 	navMain: [
 		{
 			title: 'Dashboard',
-			url: '/dashboard',
+			url: '/manage',
 			icon: Home
 		},
 		{
 			title: 'Properties',
-			url: '/dashboard/properties',
+			url: '/manage/properties',
 			icon: Building2
 		},
 		{
 			title: 'Tenants',
-			url: '/dashboard/tenants',
+			url: '/manage/tenants',
 			icon: Users
 		},
 		{
 			title: 'Leases',
-			url: '/dashboard/leases',
+			url: '/manage/leases',
 			icon: ClipboardList
 		},
 		{
 			title: 'Maintenance',
-			url: '/dashboard/maintenance',
+			url: '/manage/maintenance',
 			icon: Wrench
 		},
 		{
 			title: 'Analytics',
-			url: '/dashboard/analytics',
+			url: '/manage/analytics',
 			icon: BarChart3,
 			children: [
 				{
 					title: 'Overview',
-					url: '/dashboard/analytics/overview',
+					url: '/manage/analytics/overview',
 					icon: LayoutDashboard
 				},
 				{
 					title: 'Financial Analytics',
-					url: '/dashboard/analytics/financial',
+					url: '/manage/analytics/financial',
 					icon: CircleDollarSign
 				},
 				{
 					title: 'Property Performance',
-					url: '/dashboard/analytics/property-performance',
+					url: '/manage/analytics/property-performance',
 					icon: TrendingUp
 				},
 				{
 					title: 'Lease Analytics',
-					url: '/dashboard/analytics/leases',
+					url: '/manage/analytics/leases',
 					icon: ClipboardList
 				},
 				{
 					title: 'Maintenance Insights',
-					url: '/dashboard/analytics/maintenance',
+					url: '/manage/analytics/maintenance',
 					icon: Wrench
 				},
 				{
 					title: 'Occupancy Trends',
-					url: '/dashboard/analytics/occupancy',
+					url: '/manage/analytics/occupancy',
 					icon: LineChart
 				}
 			]
 		},
 		{
 			title: 'Reports',
-			url: '/dashboard/reports',
+			url: '/manage/reports',
 			icon: FileText,
 			children: [
 				{
 					title: 'Generate Reports',
-					url: '/dashboard/reports/generate',
+					url: '/manage/reports/generate',
 					icon: PieChart
 				},
 				{
 					title: 'Report Library',
-					url: '/dashboard/reports/library',
+					url: '/manage/reports/library',
 					icon: FolderOpen
 				},
 				{
 					title: 'Schedule Reports',
-					url: '/dashboard/reports/schedule',
+					url: '/manage/reports/schedule',
 					icon: Calendar
 				}
 			]
 		},
 		{
 			title: 'Financials',
-			url: '/dashboard/financials',
+			url: '/manage/financials',
 			icon: Receipt,
 			children: [
 				{
 					title: 'Income Statement',
-					url: '/dashboard/financials/income-statement',
+					url: '/manage/financials/income-statement',
 					icon: TrendingUp
 				},
 				{
 					title: 'Cash Flow',
-					url: '/dashboard/financials/cash-flow',
+					url: '/manage/financials/cash-flow',
 					icon: Wallet
 				},
 				{
 					title: 'Balance Sheet',
-					url: '/dashboard/financials/balance-sheet',
+					url: '/manage/financials/balance-sheet',
 					icon: Calculator
 				},
 				{
 					title: 'Tax Documents',
-					url: '/dashboard/financials/tax-documents',
+					url: '/manage/financials/tax-documents',
 					icon: Receipt
 				}
 			]
@@ -176,14 +176,14 @@ const navigation: {
 	navSecondary: [
 		{
 			title: 'Settings',
-			url: '/dashboard/settings',
+			url: '/manage/settings',
 			icon: Settings
 		}
 	],
 	documents: [
 		{
 			name: 'Lease Template',
-			url: '/dashboard/documents/lease-template',
+			url: '/manage/documents/lease-template',
 			icon: ClipboardList
 		}
 	]

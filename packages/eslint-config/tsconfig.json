@@ -4,7 +4,11 @@
 		"allowJs": true,
 		"checkJs": false,
 		"noEmit": true,
-		"module": "Node16"
+		"module": "Node16",
+		"composite": true,
+		"declaration": true,
+		"outDir": "./dist",
+		"tsBuildInfoFile": "./dist/.tsbuildinfo"
 	},
 	"include": [
 		"*.js",

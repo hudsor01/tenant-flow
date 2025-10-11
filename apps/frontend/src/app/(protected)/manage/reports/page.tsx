@@ -39,7 +39,7 @@ export default function ReportsPage() {
 							</p>
 						</div>
 						<div className="flex items-center gap-2">
-							<Link href="/dashboard/reports/analytics">
+							<Link href="/manage/reports/analytics">
 								<Button variant="outline" size="sm">
 									<BarChart3 className="size-4 mr-2" />
 									Analytics
@@ -70,13 +70,13 @@ export default function ReportsPage() {
 						</EmptyHeader>
 						<EmptyContent>
 							<div className="flex gap-2">
-								<Link href="/dashboard/reports/analytics">
+								<Link href="/manage/reports/analytics">
 									<Button>
 										<BarChart3 className="size-4 mr-2" />
 										View Analytics
 									</Button>
 								</Link>
-								<Link href="/dashboard">
+								<Link href="/manage">
 									<Button variant="outline">Return to Dashboard</Button>
 								</Link>
 							</div>

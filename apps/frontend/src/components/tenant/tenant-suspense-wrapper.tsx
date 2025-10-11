@@ -12,7 +12,7 @@ import { TenantErrorBoundary } from './tenant-error-boundary'
 interface TenantSuspenseWrapperProps {
 	children: ReactNode
 	fallbackType?: 'form' | 'table' | 'detail'
-	onReset?: () => void
+	onResetAction?: () => void
 }
 
 /**
@@ -29,7 +29,7 @@ interface TenantSuspenseWrapperProps {
 export function TenantSuspenseWrapper({
 	children,
 	fallbackType = 'table',
-	onReset
+	onResetAction
 }: TenantSuspenseWrapperProps) {
 	const fallbacks = {
 		form: <TenantFormSkeleton />,
@@ -43,7 +43,7 @@ export function TenantSuspenseWrapper({
 				<TenantErrorBoundary
 					onReset={() => {
 						reset()
-						onReset?.()
+						onResetAction?.()
 					}}
 				>
 					<Suspense fallback={fallbacks[fallbackType]}>{children}</Suspense>
@@ -58,13 +58,13 @@ export function TenantSuspenseWrapper({
  */
 export function TenantFormSuspense({
 	children,
-	onReset
+	onResetAction
 }: {
 	children: ReactNode
-	onReset?: () => void
+	onResetAction?: () => void
 }) {
 	return (
-		<TenantSuspenseWrapper fallbackType="form" onReset={onReset}>
+		<TenantSuspenseWrapper fallbackType="form" onResetAction={onResetAction}>
 			{children}
 		</TenantSuspenseWrapper>
 	)
@@ -75,13 +75,13 @@ export function TenantFormSuspense({
  */
 export function TenantTableSuspense({
 	children,
-	onReset
+	onResetAction
 }: {
 	children: ReactNode
-	onReset?: () => void
+	onResetAction?: () => void
 }) {
 	return (
-		<TenantSuspenseWrapper fallbackType="table" onReset={onReset}>
+		<TenantSuspenseWrapper fallbackType="table" onResetAction={onResetAction}>
 			{children}
 		</TenantSuspenseWrapper>
 	)
@@ -92,13 +92,13 @@ export function TenantTableSuspense({
  */
 export function TenantDetailSuspense({
 	children,
-	onReset
+	onResetAction
 }: {
 	children: ReactNode
-	onReset?: () => void
+	onResetAction?: () => void
 }) {
 	return (
-		<TenantSuspenseWrapper fallbackType="detail" onReset={onReset}>
+		<TenantSuspenseWrapper fallbackType="detail" onResetAction={onResetAction}>
 			{children}
 		</TenantSuspenseWrapper>
 	)
