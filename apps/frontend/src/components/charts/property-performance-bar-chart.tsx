@@ -1,136 +1,159 @@
 'use client'
 
-import { PropertyPerformanceData } from '@repo/shared/types/analytics'
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { ChartContainer, TENANTFLOW_CHART_COLORS, TENANTFLOW_CHART_CONFIG } from './chart-container'
+import type { PropertyPerformanceData } from '@repo/shared/types/analytics'
+import {
+	Bar,
+	BarChart,
+	CartesianGrid,
+	ResponsiveContainer,
+	Tooltip,
+	XAxis,
+	YAxis
+} from 'recharts'
+import {
+	ChartContainer,
+	TENANTFLOW_CHART_COLORS,
+	TENANTFLOW_CHART_CONFIG
+} from './chart-container'
 
 interface PropertyPerformanceBarChartProps {
-  data?: PropertyPerformanceData[]
-  height?: number
-  className?: string
-  metric?: 'occupancy' | 'revenue' | 'maintenance'
+	data?: PropertyPerformanceData[]
+	height?: number
+	className?: string
+	metric?: 'occupancy' | 'revenue' | 'maintenance'
 }
 
 export function PropertyPerformanceBarChart({
-  data,
-  height = 300,
-  className,
-  metric = 'occupancy'
+	data,
+	height = 300,
+	className,
+	metric = 'occupancy'
 }: PropertyPerformanceBarChartProps) {
-  // Default sample data if none provided
-  const chartData = data || [
-    { name: 'Sunset Apartments', occupancy: 94, revenue: 52000, units: 24, maintenance: 3 },
-    { name: 'Oak Grove Complex', occupancy: 100, revenue: 48000, units: 18, maintenance: 1 },
-    { name: 'Pine Valley Homes', occupancy: 87, revenue: 33000, units: 12, maintenance: 2 },
-    { name: 'Cedar Point Plaza', occupancy: 92, revenue: 41000, units: 16, maintenance: 4 },
-    { name: 'Maple Ridge Towers', occupancy: 96, revenue: 38000, units: 14, maintenance: 1 },
-  ]
+	// No data - component should not render
+	if (!data || data.length === 0) {
+		return null
+	}
 
-  const getMetricConfig = () => {
-    switch (metric) {
-      case 'revenue':
-        return {
-          title: 'Property Revenue Performance',
-          description: 'Monthly revenue by property location',
-          dataKey: 'revenue',
-          color: TENANTFLOW_CHART_COLORS.revenue,
-          formatter: (value: number) => `$${(value / 1000).toFixed(0)}k`,
-          name: 'Revenue'
-        }
-      case 'maintenance':
-        return {
-          title: 'Property Maintenance Requests',
-          description: 'Active maintenance requests per property',
-          dataKey: 'maintenance',
-          color: TENANTFLOW_CHART_COLORS.maintenance,
-          formatter: (value: number) => `${value} requests`,
-          name: 'Maintenance'
-        }
-      default:
-        return {
-          title: 'Property Occupancy Rates',
-          description: 'Current occupancy percentage by property',
-          dataKey: 'occupancy',
-          color: TENANTFLOW_CHART_COLORS.occupancy,
-          formatter: (value: number) => `${value}%`,
-          name: 'Occupancy'
-        }
-    }
-  }
+	const chartData = data
 
-  const config = getMetricConfig()
+	const getMetricConfig = () => {
+		switch (metric) {
+			case 'revenue':
+				return {
+					title: 'Property Revenue Performance',
+					description: 'Monthly revenue by property location',
+					dataKey: 'revenue',
+					color: TENANTFLOW_CHART_COLORS.revenue,
+					formatter: (value: number) => `$${(value / 1000).toFixed(0)}k`,
+					name: 'Revenue'
+				}
+			case 'maintenance':
+				return {
+					title: 'Property Maintenance Requests',
+					description: 'Active maintenance requests per property',
+					dataKey: 'maintenance',
+					color: TENANTFLOW_CHART_COLORS.maintenance,
+					formatter: (value: number) => `${value} requests`,
+					name: 'Maintenance'
+				}
+			default:
+				return {
+					title: 'Property Occupancy Rates',
+					description: 'Current occupancy percentage by property',
+					dataKey: 'occupancy',
+					color: TENANTFLOW_CHART_COLORS.occupancy,
+					formatter: (value: number) => `${value}%`,
+					name: 'Occupancy'
+				}
+		}
+	}
 
-  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ payload: PropertyPerformanceData; value: number }>; label?: string }) => {
-    if (active && payload && payload.length && payload[0]) {
-      const data = payload[0].payload
-      return (
-        <div style={TENANTFLOW_CHART_CONFIG.tooltip} className="text-sm">
-          <p className="font-medium mb-2">{label}</p>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <div
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: config.color }}
-              />
-              <span className="text-muted-foreground">{config.name}:</span>
-              <span className="font-medium">{config.formatter(payload[0].value)}</span>
-            </div>
-            <div className="text-xs text-muted-foreground mt-2 pt-2 border-t">
-              <div>Units: {data.units}</div>
-              <div>Revenue: ${(data.revenue / 1000).toFixed(0)}k</div>
-              <div>Maintenance: {data.maintenance} requests</div>
-            </div>
-          </div>
-        </div>
-      )
-    }
-    return null
-  }
+	const config = getMetricConfig()
 
-  return (
-    <ChartContainer
-      title={config.title}
-      description={config.description}
-      height={height}
-      className={className}
-    >
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid
-            strokeDasharray={TENANTFLOW_CHART_CONFIG.grid.strokeDasharray}
-            stroke={TENANTFLOW_CHART_CONFIG.grid.stroke}
-            strokeOpacity={TENANTFLOW_CHART_CONFIG.grid.strokeOpacity}
-          />
+	const CustomTooltip = ({
+		active,
+		payload,
+		label
+	}: {
+		active?: boolean
+		payload?: Array<{ payload: PropertyPerformanceData; value: number }>
+		label?: string
+	}) => {
+		if (active && payload && payload.length && payload[0]) {
+			const data = payload[0].payload
+			return (
+				<div style={TENANTFLOW_CHART_CONFIG.tooltip} className="text-sm">
+					<p className="font-medium mb-2">{label}</p>
+					<div className="space-y-1">
+						<div className="flex items-center gap-2">
+							<div
+								className="w-3 h-3 rounded-full"
+								style={{ backgroundColor: config.color }}
+							/>
+							<span className="text-muted-foreground">{config.name}:</span>
+							<span className="font-medium">
+								{config.formatter(payload[0].value)}
+							</span>
+						</div>
+						<div className="text-xs text-muted-foreground mt-2 pt-2 border-t">
+							<div>Units: {data.units}</div>
+							<div>Revenue: ${(data.revenue / 1000).toFixed(0)}k</div>
+							<div>Maintenance: {data.maintenance} requests</div>
+						</div>
+					</div>
+				</div>
+			)
+		}
+		return null
+	}
 
-          <XAxis
-            dataKey="name"
-            fontSize={TENANTFLOW_CHART_CONFIG.axis.fontSize}
-            color={TENANTFLOW_CHART_CONFIG.axis.color}
-            tickLine={false}
-            axisLine={false}
-            angle={-45}
-            textAnchor="end"
-            height={80}
-          />
+	return (
+		<ChartContainer
+			title={config.title}
+			description={config.description}
+			height={height}
+			className={className}
+		>
+			<ResponsiveContainer width="100%" height="100%">
+				<BarChart
+					data={chartData}
+					margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+				>
+					<CartesianGrid
+						strokeDasharray={TENANTFLOW_CHART_CONFIG.grid.strokeDasharray}
+						stroke={TENANTFLOW_CHART_CONFIG.grid.stroke}
+						strokeOpacity={TENANTFLOW_CHART_CONFIG.grid.strokeOpacity}
+					/>
 
-          <YAxis
-            fontSize={TENANTFLOW_CHART_CONFIG.axis.fontSize}
-            color={TENANTFLOW_CHART_CONFIG.axis.color}
-            tickLine={false}
-            axisLine={false}
-            tickFormatter={config.formatter}
-          />
+					<XAxis
+						dataKey="name"
+						fontSize={TENANTFLOW_CHART_CONFIG.axis.fontSize}
+						color={TENANTFLOW_CHART_CONFIG.axis.color}
+						tickLine={false}
+						axisLine={false}
+						angle={-45}
+						textAnchor="end"
+						height={80}
+					/>
 
-          <Tooltip content={<CustomTooltip />} />
+					<YAxis
+						fontSize={TENANTFLOW_CHART_CONFIG.axis.fontSize}
+						color={TENANTFLOW_CHART_CONFIG.axis.color}
+						tickLine={false}
+						axisLine={false}
+						tickFormatter={config.formatter}
+					/>
 
-          <Bar
-            dataKey={config.dataKey}
-            fill={config.color}
-            radius={[4, 4, 0, 0]}
-            name={config.name}
-          />
-        </BarChart>
-      </ResponsiveContainer>
-    </ChartContainer>
-  )
+					<Tooltip content={<CustomTooltip />} />
+
+					<Bar
+						dataKey={config.dataKey}
+						fill={config.color}
+						radius={[4, 4, 0, 0]}
+						name={config.name}
+					/>
+				</BarChart>
+			</ResponsiveContainer>
+		</ChartContainer>
+	)
 }
