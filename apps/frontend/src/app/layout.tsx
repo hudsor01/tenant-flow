@@ -1,5 +1,4 @@
 import { PostHogPageView } from '@/components/layout/posthog-pageview'
-import { WebVitals } from '@/components/layout/web-vitals'
 import { ErrorBoundary } from '@/components/magicui/error-boundary'
 import { Providers } from '@/components/providers'
 import SeoJsonLd from '@/components/seo/SeoJsonLd'
@@ -84,7 +83,6 @@ export default async function RootLayout({
 				</Providers>
 				<Analytics />
 				<SpeedInsights />
-				<WebVitals />
 			</body>
 		</html>
 	)
