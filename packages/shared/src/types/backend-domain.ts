@@ -310,6 +310,7 @@ export interface CreateMaintenanceRequest {
 	category?: MaintenanceCategory
 	scheduledDate?: string
 	estimatedCost?: number
+	photos?: string[]
 }
 
 export interface UpdateMaintenanceRequest {
