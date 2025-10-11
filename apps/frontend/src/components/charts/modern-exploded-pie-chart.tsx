@@ -1,8 +1,8 @@
 'use client'
 
-import * as React from 'react'
 import { TrendingUp } from 'lucide-react'
-import { Label, Pie, PieChart, Cell } from 'recharts'
+import * as React from 'react'
+import { Cell, Label, Pie, PieChart } from 'recharts'
 
 import {
 	Card,
@@ -12,151 +12,160 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
+import type { ChartConfig } from '@/components/ui/chart'
 import {
-	ChartConfig,
 	ChartContainer,
 	ChartTooltip,
 	ChartTooltipContent
 } from '@/components/ui/chart'
 import type { ModernExplodedPieChartProps } from '@repo/shared/types/frontend'
 
-export const description = "A donut chart with an active sector - TenantFlow Style"
+export const description =
+	'A donut chart with an active sector - TenantFlow Style'
 
 export function ModernExplodedPieChart({
-  data,
-  height = 300,
-  className,
-  title = "Property Occupancy",
-  description = "Current property status breakdown",
-  showFooter = true
+	data,
+	height = 300,
+	className,
+	title = 'Property Occupancy',
+	description = 'Current property status breakdown',
+	showFooter = true
 }: ModernExplodedPieChartProps) {
-  const [activeIndex, setActiveIndex] = React.useState(0)
+	const [activeIndex, setActiveIndex] = React.useState(0)
 
-  // Default TenantFlow property management data
-  const chartData = React.useMemo(() => data || [
-    { name: "occupied", value: 275, fill: "var(--color-occupied)" },
-    { name: "vacant", value: 45, fill: "var(--color-vacant)" },
-    { name: "maintenance", value: 12, fill: "var(--color-maintenance)" },
-    { name: "pending", value: 8, fill: "var(--color-pending)" },
-  ], [data])
+	// No data - component should not render
+	if (!data || data.length === 0) {
+		return null
+	}
 
-  const chartConfig = {
-    units: {
-      label: "Units",
-    },
-    occupied: {
-      label: "Occupied",
-      color: "var(--color-system-green)", // Success green
-    },
-    vacant: {
-      label: "Vacant",
-      color: "var(--color-system-orange)", // Warning orange
-    },
-    maintenance: {
-      label: "Maintenance",
-      color: "hsl(var(--destructive))", // Destructive red
-    },
-    pending: {
-      label: "Pending",
-      color: "var(--color-system-blue)", // Info blue
-    },
-  } satisfies ChartConfig
+	const chartData = React.useMemo(() => data, [data])
 
-  // Calculate totals for display
-  const totalUnits = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.value, 0)
-  }, [chartData])
+	const chartConfig = {
+		units: {
+			label: 'Units'
+		},
+		occupied: {
+			label: 'Occupied',
+			color: 'var(--color-system-green)' // Success green
+		},
+		vacant: {
+			label: 'Vacant',
+			color: 'var(--color-system-orange)' // Warning orange
+		},
+		maintenance: {
+			label: 'Maintenance',
+			color: 'hsl(var(--destructive))' // Destructive red
+		},
+		pending: {
+			label: 'Pending',
+			color: 'var(--color-system-blue)' // Info blue
+		}
+	} satisfies ChartConfig
 
-  const occupancyRate = React.useMemo(() => {
-    const occupied = chartData.find(item => item.name === 'occupied')?.value || 0
-    return ((occupied / totalUnits) * 100).toFixed(1)
-  }, [chartData, totalUnits])
+	// Calculate totals for display
+	const totalUnits = React.useMemo(() => {
+		return chartData.reduce((acc, curr) => acc + curr.value, 0)
+	}, [chartData])
 
-  return (
-    <Card className={`flex flex-col ${className}`}>
-      <CardHeader className="items-center pb-0">
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-1 pb-0">
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square"
-          style={{ maxHeight: `${height}px` }}
-        >
-          <PieChart>
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Pie
-              data={chartData}
-              dataKey="value"
-              nameKey="name"
-              innerRadius={60}
-              strokeWidth={5}
-              onMouseEnter={(_, index) => setActiveIndex(index)}
-            >
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={entry.fill}
-                  stroke={index === activeIndex ? "var(--color-gray-tertiary)" : "none"}
-                  strokeWidth={index === activeIndex ? 2 : 0}
-                  style={{
-                    filter: index === activeIndex ? 'drop-shadow(0 4px 8px var(--color-fill-primary))' : 'none',
-                    transform: index === activeIndex ? 'scale(1.05)' : 'scale(1)',
-                    transformOrigin: 'center',
-                    transition: 'all 0.2s ease-in-out'
-                  }}
-                />
-              ))}
-              <Label
-                content={({ viewBox }) => {
-                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                    return (
-                      <text
-                        x={viewBox.cx}
-                        y={viewBox.cy}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                      >
-                        <tspan
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                          className="fill-foreground text-3xl font-bold"
-                        >
-                          {totalUnits.toLocaleString()}
-                        </tspan>
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 24}
-                          className="fill-muted-foreground"
-                        >
-                          Total Units
-                        </tspan>
-                      </text>
-                    )
-                  }
-                  return null
-                }}
-              />
-            </Pie>
-          </PieChart>
-        </ChartContainer>
-      </CardContent>
-      {showFooter && (
-        <CardFooter className="flex-col gap-2 text-sm">
-          <div className="flex items-center gap-2 leading-none font-medium">
-            {occupancyRate}% occupancy rate <TrendingUp className="h-4 w-4" />
-          </div>
-          <div className="text-muted-foreground leading-none">
-            Showing current property status across portfolio
-          </div>
-        </CardFooter>
-      )}
-    </Card>
-  )
+	const occupancyRate = React.useMemo(() => {
+		const occupied =
+			chartData.find(item => item.name === 'occupied')?.value || 0
+		return ((occupied / totalUnits) * 100).toFixed(1)
+	}, [chartData, totalUnits])
+
+	return (
+		<Card className={`flex flex-col ${className}`}>
+			<CardHeader className="items-center pb-0">
+				<CardTitle>{title}</CardTitle>
+				<CardDescription>{description}</CardDescription>
+			</CardHeader>
+			<CardContent className="flex-1 pb-0">
+				<ChartContainer
+					config={chartConfig}
+					className="mx-auto aspect-square"
+					style={{ maxHeight: `${height}px` }}
+				>
+					<PieChart>
+						<ChartTooltip
+							cursor={false}
+							content={<ChartTooltipContent hideLabel />}
+						/>
+						<Pie
+							data={chartData}
+							dataKey="value"
+							nameKey="name"
+							innerRadius={60}
+							strokeWidth={5}
+							onMouseEnter={(_, index) => setActiveIndex(index)}
+						>
+							{chartData.map((entry, index) => (
+								<Cell
+									key={`cell-${index}`}
+									fill={entry.fill}
+									stroke={
+										index === activeIndex
+											? 'var(--color-gray-tertiary)'
+											: 'none'
+									}
+									strokeWidth={index === activeIndex ? 2 : 0}
+									style={{
+										filter:
+											index === activeIndex
+												? 'drop-shadow(0 4px 8px var(--color-fill-primary))'
+												: 'none',
+										transform:
+											index === activeIndex ? 'scale(1.05)' : 'scale(1)',
+										transformOrigin: 'center',
+										transition: 'all 0.2s ease-in-out'
+									}}
+								/>
+							))}
+							<Label
+								content={({ viewBox }) => {
+									if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+										return (
+											<text
+												x={viewBox.cx}
+												y={viewBox.cy}
+												textAnchor="middle"
+												dominantBaseline="middle"
+											>
+												<tspan
+													x={viewBox.cx}
+													y={viewBox.cy}
+													className="fill-foreground text-3xl font-bold"
+												>
+													{totalUnits.toLocaleString()}
+												</tspan>
+												<tspan
+													x={viewBox.cx}
+													y={(viewBox.cy || 0) + 24}
+													className="fill-muted-foreground"
+												>
+													Total Units
+												</tspan>
+											</text>
+										)
+									}
+									return null
+								}}
+							/>
+						</Pie>
+					</PieChart>
+				</ChartContainer>
+			</CardContent>
+			{showFooter && (
+				<CardFooter className="flex-col gap-2 text-sm">
+					<div className="flex items-center gap-2 leading-none font-medium">
+						{occupancyRate}% occupancy rate <TrendingUp className="h-4 w-4" />
+					</div>
+					<div className="text-muted-foreground leading-none">
+						Showing current property status across portfolio
+					</div>
+				</CardFooter>
+			)}
+		</Card>
+	)
 }
 
 export default ModernExplodedPieChart
