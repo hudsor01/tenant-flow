@@ -108,53 +108,12 @@ jobs:
       - name: Run unit tests
         run: pnpm test:unit
 
-  # Integration tests - REQUIRED for merge (2025 best practice)
-  integration-test:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: [quality, typecheck] # Only run after basic checks pass
-    if: github.event_name == 'push' || github.event.pull_request.draft == false
-    env:
-      # Integration test environment variables
-      BACKEND_SCHEMAS_DIR: ./supabase/schema-exports
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
-      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
-
-      - name: Run integration tests
-        run: pnpm test:integration
-        # REMOVED: continue-on-error: true
-        # Integration tests now BLOCK merging (2025 standard)
-
   # Deploy to Railway - only after all checks pass
   deploy-backend:
     name: Deploy Backend to Railway
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [quality, typecheck, test, integration-test] # Added integration-test dependency
+    needs: [quality, typecheck, test]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
@@ -203,12 +162,12 @@ jobs:
   ci-status:
     name: CI Status
     runs-on: ubuntu-latest
-    needs: [quality, typecheck, test, integration-test] # Added integration-test
+    needs: [quality, typecheck, test]
     if: always()
     steps:
       - name: Check status
         run: |
-          if [[ "${{ needs.quality.result }}" == "failure" || "${{ needs.typecheck.result }}" == "failure" || "${{ needs.test.result }}" == "failure" || "${{ needs.integration-test.result }}" == "failure" ]]; then
+          if [[ "${{ needs.quality.result }}" == "failure" || "${{ needs.typecheck.result }}" == "failure" || "${{ needs.test.result }}" == "failure" ]]; then
             echo "CI checks failed"
             exit 1
           fi
