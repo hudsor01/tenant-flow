@@ -8,37 +8,36 @@ import { ThrottlerModule } from '@nestjs/throttler'
 import type { Request } from 'express'
 import { ClsModule } from 'nestjs-cls'
 import { randomUUID } from 'node:crypto'
-import { AnalyticsModule } from './analytics/analytics.module'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { StripeModule } from './billing/stripe.module'
 import { validate } from './config/config.schema'
-import { ContactModule } from './contact/contact.module'
-import { DashboardModule } from './dashboard/dashboard.module'
 import { SupabaseModule } from './database/supabase.module'
-import { FinancialModule } from './financial/financial.module'
 import { HealthModule } from './health/health.module'
 import { CacheControlInterceptor } from './interceptors/cache-control.interceptor'
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor'
-import { LateFeesModule } from './late-fees/late-fees.module'
-import { LeaseModule } from './modules/leases/lease.module'
+import { AnalyticsModule } from './modules/analytics/analytics.module'
+import { StripeModule } from './modules/billing/stripe.module'
+import { ContactModule } from './modules/contact/contact.module'
+import { DashboardModule } from './modules/dashboard/dashboard.module'
+import { FinancialModule } from './modules/financial/financial.module'
+import { LateFeesModule } from './modules/late-fees/late-fees.module'
+import { LeasesModule } from './modules/leases/leases.module'
 import { MaintenanceModule } from './modules/maintenance/maintenance.module'
+import { NotificationsModule } from './modules/notifications/notifications.module'
 import { PaymentMethodsModule } from './modules/payments/payment-methods.module'
-import { NotificationsModule } from './notifications/notifications.module'
-import { PropertiesModule } from './properties/properties.module'
-import { RentPaymentsModule } from './rent-payments/rent-payments.module'
-import { ReportsModule } from './reports/reports.module'
+import { PropertiesModule } from './modules/properties/properties.module'
+import { RentPaymentsModule } from './modules/rent-payments/rent-payments.module'
+import { ReportsModule } from './modules/reports/reports.module'
+import { TenantsModule } from './modules/tenants/tenants.module'
+import { UnitsModule } from './modules/units/units.module'
+import { UsersModule } from './modules/users/users.module'
 import { RepositoriesModule } from './repositories/repositories.module'
 import { SecurityModule } from './security/security.module'
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
 import { ServicesModule } from './shared/services/services.module'
 import { SharedModule } from './shared/shared.module'
 import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
-import { StripeWebhookModule } from './stripe-webhook/stripe-webhook.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
-import { TenantsModule } from './tenants/tenants.module'
-import { UnitsModule } from './units/units.module'
-import { UsersModule } from './users/users.module'
 
 /**
  * Core App Module - KISS principle
@@ -106,14 +105,13 @@ import { UsersModule } from './users/users.module'
 		PropertiesModule,
 		UnitsModule,
 		TenantsModule,
-		LeaseModule,
+		LeasesModule,
 		LateFeesModule,
 		MaintenanceModule,
 		NotificationsModule,
 		PaymentMethodsModule,
 		RentPaymentsModule,
 		StripeConnectModule,
-		StripeWebhookModule,
 		SubscriptionsModule,
 		UsersModule,
 		SecurityModule,

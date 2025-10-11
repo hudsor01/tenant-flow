@@ -1,7 +1,9 @@
 import {
+	PAYMENT_EXEMPT_ROUTES,
 	PROTECTED_ROUTE_PREFIXES,
 	PUBLIC_AUTH_ROUTES
 } from '@/lib/auth-constants'
+import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
@@ -57,6 +59,9 @@ export async function updateSession(request: NextRequest) {
 	const isAuthRoute = PUBLIC_AUTH_ROUTES.includes(
 		pathname as (typeof PUBLIC_AUTH_ROUTES)[number]
 	)
+	const isPaymentExempt = PAYMENT_EXEMPT_ROUTES.some(
+		route => pathname === route || pathname.startsWith(route)
+	)
 
 	// Redirect unauthenticated users from protected routes to login
 	if (!isAuthenticated && isProtectedRoute) {
@@ -64,6 +69,46 @@ export async function updateSession(request: NextRequest) {
 		url.pathname = '/login'
 		url.searchParams.set('redirectTo', pathname)
 		return NextResponse.redirect(url)
+	}
+
+	// Payment gate: Check if authenticated user has active subscription
+	// Per Stripe best practices - check subscription_status field
+	// Skip for payment-exempt routes (pricing, stripe checkout, etc.)
+	if (isAuthenticated && !isPaymentExempt && user) {
+		try {
+			const { data: userProfile } = await supabase
+				.from('users')
+				.select('subscription_status, stripeCustomerId, role')
+				.eq('supabaseId', user.id)
+				.single()
+
+			// TENANT role doesn't need payment (they're invited by OWNER)
+			const requiresPayment = userProfile?.role !== 'TENANT'
+
+			// Check subscription status per Stripe best practices
+			// Valid statuses for access: active, trialing
+			const validStatuses = ['active', 'trialing']
+			const hasValidSubscription =
+				userProfile?.subscription_status &&
+				validStatuses.includes(userProfile.subscription_status)
+			const hasNoStripeCustomer = !userProfile?.stripeCustomerId
+
+			if (requiresPayment && (!hasValidSubscription || hasNoStripeCustomer)) {
+				const url = request.nextUrl.clone()
+				url.pathname = '/pricing'
+				url.searchParams.set('required', 'true')
+				url.searchParams.set('redirectTo', pathname)
+				return NextResponse.redirect(url)
+			}
+		} catch (error) {
+			// Log error but don't block access - fail open for better UX
+			logger.error('Payment check failed', {
+				action: 'middleware_payment_check_failed',
+				metadata: {
+					error: error instanceof Error ? error.message : String(error)
+				}
+			})
+		}
 	}
 
 	// Redirect authenticated users from auth routes to dashboard or intended destination
@@ -82,8 +127,32 @@ export async function updateSession(request: NextRequest) {
 			}
 		}
 
-		// Default redirect to dashboard if no valid redirectTo
-		url.pathname = '/dashboard'
+		// Fetch user role to determine correct redirect destination
+		try {
+			const { data: userProfile } = await supabase
+				.from('users')
+				.select('role')
+				.eq('supabaseId', user.id)
+				.single()
+
+			// Redirect based on role
+			if (userProfile?.role === 'TENANT') {
+				url.pathname = '/tenant'
+			} else {
+				// Default redirect to management dashboard for OWNER, MANAGER, ADMIN
+				url.pathname = '/manage'
+			}
+		} catch (error) {
+			// If role fetch fails, default to /manage
+			logger.error('Failed to fetch user role for redirect', {
+				action: 'middleware_role_fetch_failed',
+				metadata: {
+					error: error instanceof Error ? error.message : String(error)
+				}
+			})
+			url.pathname = '/manage'
+		}
+
 		url.search = '' // Clear search params
 		return NextResponse.redirect(url)
 	}

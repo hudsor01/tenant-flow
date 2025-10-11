@@ -12,7 +12,8 @@ export type TenantListResponse = TenantWithLeaseInfo[]
  */
 export async function fetchTenants() {
 	const client = createSupabaseClient()
-	const { data, error } = await client.from('tenants_with_lease_info').select('*')
+	// Use correct table name 'tenant' (singular) - query with lease relation
+	const { data, error } = await client.from('tenant').select('*, lease(*)')
 	if (error) {
 		throw error
 	}

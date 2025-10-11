@@ -1,0 +1,53 @@
+{
+	"cookies": [
+		{
+			"name": "tenantflow_theme_mode",
+			"value": "light",
+			"domain": "localhost",
+			"path": "/",
+			"expires": 1791707594.068152,
+			"httpOnly": false,
+			"secure": false,
+			"sameSite": "Lax"
+		},
+		{
+			"name": "ph_phc_rSyH7L2ImIDIi4evbhKV2sozqmf5PWIZvGzFfrfuVHf_posthog",
+			"value": "%7B%22distinct_id%22%3A%220199d267-0a2b-7ed4-ac08-daface831b68%22%2C%22%24sesid%22%3A%5B1760171594066%2C%220199d267-0a2a-7ee9-b1b2-c96c17d48e32%22%2C1760171592234%5D%7D",
+			"domain": "localhost",
+			"path": "/",
+			"expires": 1791707594,
+			"httpOnly": false,
+			"secure": false,
+			"sameSite": "Lax"
+		},
+		{
+			"name": "sb-bshjmbshupiibfiewpxb-auth-token",
+			"value": "base64-eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSklVekkxTmlJc0ltdHBaQ0k2SW5kNmVYQlFNaXRHWkVFMlVXNW5OM0VpTENKMGVYQWlPaUpLVjFRaWZRLmV5SnBjM01pT2lKb2RIUndjem92TDJKemFHcHRZbk5vZFhCcGFXSm1hV1YzY0hoaUxuTjFjR0ZpWVhObExtTnZMMkYxZEdndmRqRWlMQ0p6ZFdJaU9pSmlPR1prTm1ZMU5pMHpPV05tTFRRME1EY3RZalEwWmkwME1EVTNNakE1TTJVNE1HRWlMQ0poZFdRaU9pSmhkWFJvWlc1MGFXTmhkR1ZrSWl3aVpYaHdJam94TnpZd01UYzFNVGsyTENKcFlYUWlPakUzTmpBeE56RTFPVFlzSW1WdFlXbHNJam9pY21oMVpITnZiblJ6Y0hJck5EWkFaMjFoYVd3dVkyOXRJaXdpY0dodmJtVWlPaUlpTENKaGNIQmZiV1YwWVdSaGRHRWlPbnNpY0hKdmRtbGtaWElpT2lKbGJXRnBiQ0lzSW5CeWIzWnBaR1Z5Y3lJNld5SmxiV0ZwYkNKZGZTd2lkWE5sY2w5dFpYUmhaR0YwWVNJNmV5SmxiV0ZwYkY5MlpYSnBabWxsWkNJNmRISjFaU3dpWm1seWMzUk9ZVzFsSWpvaVZHVnpkQ0lzSW14aGMzUk9ZVzFsSWpvaVZYTmxjaUo5TENKeWIyeGxJam9pWVhWMGFHVnVkR2xqWVhSbFpDSXNJbUZoYkNJNkltRmhiREVpTENKaGJYSWlPbHQ3SW0xbGRHaHZaQ0k2SW5CaGMzTjNiM0prSWl3aWRHbHRaWE4wWVcxd0lqb3hOell3TVRjeE5UazJmVjBzSW5ObGMzTnBiMjVmYVdRaU9pSmtOREV5TkRKa1pDMWxZVGRqTFRSbFlqWXRZVGxrWkMwMVpHRTRaamhtTWpOaU5UWWlMQ0pwYzE5aGJtOXVlVzF2ZFhNaU9tWmhiSE5sZlEuRWZMRUlhTTM2SjRYV04zN2dreFlNaTdQdUVpOFlpamtFVnM3eXpzMFRtdyIsInRva2VuX3R5cGUiOiJiZWFyZXIiLCJleHBpcmVzX2luIjozNjAwLCJleHBpcmVzX2F0IjoxNzYwMTc1MTk2LCJyZWZyZXNoX3Rva2VuIjoiZWFvcm92dnRxdW1uIiwidXNlciI6eyJpZCI6ImI4ZmQ2ZjU2LTM5Y2YtNDQwNy1iNDRmLTQwNTcyMDkzZTgwYSIsImF1ZCI6ImF1dGhlbnRpY2F0ZWQiLCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImVtYWlsIjoicmh1ZHNvbnRzcHIrNDZAZ21haWwuY29tIiwiZW1haWxfY29uZmlybWVkX2F0IjoiMjAyNS0xMC0wN1QxNzo1OTo0MC42NTE5MzNaIiwicGhvbmUiOiIiLCJjb25maXJtZWRfYXQiOiIyMDI1LTEwLTA3VDE3OjU5OjQwLjY1MTkzM1oiLCJsYXN0X3NpZ25faW5fYXQiOiIyMDI1LTEwLTExVDA4OjMzOjE2LjUzMDM1MjUxNVoiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZmlyc3ROYW1lIjoiVGVzdCIsImxhc3ROYW1lIjoiVXNlciJ9LCJpZGVudGl0aWVzIjpbeyJpZGVudGl0eV9pZCI6IjNmYmIxNmFkLWRmMmMtNDM2My1iZTI1LTBlNTYzNGYyNGZjNSIsImlkIjoiYjhmZDZmNTYtMzljZi00NDA3LWI0NGYtNDA1NzIwOTNlODBhIiwidXNlcl9pZCI6ImI4ZmQ2ZjU2LTM5Y2YtNDQwNy1iNDRmLTQwNTcyMDkzZTgwYSIsImlkZW50aXR5X2RhdGEiOnsiZW1haWwiOiJyaHVkc29udHNwcis0NkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwic3ViIjoiYjhmZDZmNTYtMzljZi00NDA3LWI0NGYtNDA1NzIwOTNlODBhIn0sInByb3ZpZGVyIjoiZW1haWwiLCJsYXN0X3NpZ25faW5fYXQiOiIyMDI1LTEwLTA3VDE3OjU5OjQwLjYzOTIxMVoiLCJjcmVhdGVkX2F0IjoiMjAyNS0xMC0wN1QxNzo1OTo0MC42MzkyNjZaIiwidXBkYXRlZF9hdCI6IjIwMjUtMTAtMDdUMTc6NTk6NDAuNjM5MjY2WiIsImVtYWlsIjoicmh1ZHNvbnRzcHIrNDZAZ21haWwuY29tIn1dLCJjcmVhdGVkX2F0IjoiMjAyNS0xMC0wN1QxNzo1OTo0MC42MTg5NjFaIiwidXBkYXRlZF9hdCI6IjIwMjUtMTAtMTFUMDg6MzM6MTYuNTM0NjdaIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0sIndlYWtfcGFzc3dvcmQiOm51bGx9",
+			"domain": "localhost",
+			"path": "/",
+			"expires": 1794731599.057265,
+			"httpOnly": false,
+			"secure": false,
+			"sameSite": "Lax"
+		}
+	],
+	"origins": [
+		{
+			"origin": "http://localhost:3000",
+			"localStorage": [
+				{
+					"name": "REACT_QUERY_OFFLINE_CACHE",
+					"value": "{\"buster\":\"v1\",\"timestamp\":1760171594117,\"clientState\":{\"mutations\":[],\"queries\":[{\"dehydratedAt\":1760171594117,\"state\":{\"data\":null,\"dataUpdateCount\":1,\"dataUpdatedAt\":1760171594117,\"error\":null,\"errorUpdateCount\":0,\"errorUpdatedAt\":0,\"fetchFailureCount\":0,\"fetchFailureReason\":null,\"fetchMeta\":null,\"isInvalidated\":false,\"status\":\"success\",\"fetchStatus\":\"idle\"},\"queryKey\":[\"auth\",\"session\"],\"queryHash\":\"[\\\"auth\\\",\\\"session\\\"]\"}]}}"
+				},
+				{
+					"name": "ph_phc_rSyH7L2ImIDIi4evbhKV2sozqmf5PWIZvGzFfrfuVHf_posthog",
+					"value": "{\"distinct_id\":\"0199d267-0a2b-7ed4-ac08-daface831b68\",\"$sesid\":[1760171594066,\"0199d267-0a2a-7ee9-b1b2-c96c17d48e32\",1760171592234],\"$initialization_time\":\"2025-10-11T08:33:14.066Z\",\"$configured_session_timeout_ms\":1800000,\"$client_session_props\":{\"sessionId\":\"0199d267-0a2a-7ee9-b1b2-c96c17d48e32\",\"props\":{\"r\":\"$direct\",\"u\":\"http://localhost:3000/login\"}},\"$device_id\":\"0199d267-0a2b-7ed4-ac08-daface831b68\",\"$user_state\":\"anonymous\",\"$session_recording_enabled_server_side\":true,\"$console_log_recording_enabled_server_side\":true,\"$session_recording_network_payload_capture\":{\"capturePerformance\":{\"network_timing\":true,\"web_vitals\":true,\"web_vitals_allowed_metrics\":null},\"recordHeaders\":true},\"$session_recording_masking\":null,\"$session_recording_canvas_recording\":{\"enabled\":true,\"fps\":3,\"quality\":\"0.4\"},\"$replay_sample_rate\":null,\"$replay_minimum_duration\":null,\"$replay_script_config\":null,\"$autocapture_disabled_server_side\":false,\"$heatmaps_enabled_server_side\":true,\"$web_vitals_enabled_server_side\":true,\"$web_vitals_allowed_metrics\":null,\"$exception_capture_enabled_server_side\":true,\"$error_tracking_suppression_rules\":[],\"$dead_clicks_enabled_server_side\":true,\"$active_feature_flags\":[],\"$enabled_feature_flags\":{\"rent-payments-enabled\":false,\"maintenance-system-v2\":false,\"homepage-cta-variant\":false,\"services-layout-test\":false,\"tenant-portal-enabled\":false,\"email-notifications-enabled\":false,\"advanced-analytics-enabled\":false,\"contact-form-v2\":false},\"$feature_flag_payloads\":{},\"$feature_flag_details\":{\"rent-payments-enabled\":{\"key\":\"rent-payments-enabled\",\"enabled\":false,\"variant\":null,\"reason\":{\"code\":\"out_of_rollout_bound\",\"condition_index\":0,\"description\":\"Out of rollout bound\"},\"metadata\":{\"id\":177356,\"version\":1,\"description\":null,\"payload\":null}},\"maintenance-system-v2\":{\"key\":\"maintenance-system-v2\",\"enabled\":false,\"variant\":null,\"reason\":{\"code\":\"out_of_rollout_bound\",\"condition_index\":0,\"description\":\"Out of rollout bound\"},\"metadata\":{\"id\":177354,\"version\":1,\"description\":null,\"payload\":null}},\"homepage-cta-variant\":{\"key\":\"homepage-cta-variant\",\"enabled\":false,\"variant\":null,\"reason\":{\"code\":\"no_condition_match\",\"condition_index\":0,\"description\":\"No matching condition set\"},\"metadata\":{\"id\":179367,\"version\":1,\"description\":null,\"payload\":null}},\"services-layout-test\":{\"key\":\"services-layout-test\",\"enabled\":false,\"variant\":null,\"reason\":{\"code\":\"no_condition_match\",\"condition_index\":0,\"description\":\"No matching condition set\"},\"metadata\":{\"id\":179368,\"version\":1,\"description\":null,\"payload\":null}},\"tenant-portal-enabled\":{\"key\":\"tenant-portal-enabled\",\"enabled\":false,\"variant\":null,\"reason\":{\"code\":\"out_of_rollout_bound\",\"condition_index\":0,\"description\":\"Out of rollout bound\"},\"metadata\":{\"id\":177355,\"version\":1,\"description\":null,\"payload\":null}},\"email-notifications-enabled\":{\"key\":\"email-notifications-enabled\",\"enabled\":false,\"variant\":null,\"reason\":{\"code\":\"no_condition_match\",\"condition_index\":0,\"description\":\"No matching condition set\"},\"metadata\":{\"id\":177357,\"version\":1,\"description\":null,\"payload\":null}},\"advanced-analytics-enabled\":{\"key\":\"advanced-analytics-enabled\",\"enabled\":false,\"variant\":null,\"reason\":{\"code\":\"out_of_rollout_bound\",\"condition_index\":0,\"description\":\"Out of rollout bound\"},\"metadata\":{\"id\":177358,\"version\":1,\"description\":null,\"payload\":null}},\"contact-form-v2\":{\"key\":\"contact-form-v2\",\"enabled\":false,\"variant\":null,\"reason\":{\"code\":\"no_condition_match\",\"condition_index\":0,\"description\":\"No matching condition set\"},\"metadata\":{\"id\":179366,\"version\":1,\"description\":null,\"payload\":null}}},\"$feature_flag_request_id\":\"d5308cfe-044c-4360-a673-7c6684582543\"}"
+				},
+				{
+					"name": "tenantflow-theme-mode",
+					"value": "light"
+				}
+			]
+		}
+	]
+}
