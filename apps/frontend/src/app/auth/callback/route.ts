@@ -8,12 +8,7 @@ export async function GET(request: Request) {
 	const { searchParams, origin } = new URL(request.url)
 	const code = searchParams.get('code')
 	// if "next" is in param, use it as the redirect URL
-	// Default to dashboard for authenticated users
-	let next = searchParams.get('next') ?? '/dashboard'
-	if (!next.startsWith('/')) {
-		// if "next" is not a relative URL, use the dashboard
-		next = '/dashboard'
-	}
+	const nextParam = searchParams.get('next')
 
 	if (code) {
 		try {
@@ -56,22 +51,88 @@ export async function GET(request: Request) {
 			}
 
 			if (data.session) {
+				// Fetch user role and payment status to determine redirect destination
+				// Per Stripe best practices - check subscription_status field
+				const { data: userProfile } = await supabase
+					.from('users')
+					.select('role, subscription_status, stripeCustomerId')
+					.eq('supabaseId', data.session.user.id)
+					.single()
+
+				// Check if user needs to complete payment (OWNER/MANAGER/ADMIN only)
+				const requiresPayment = userProfile?.role !== 'TENANT'
+
+				// Check subscription status per Stripe best practices
+				// Valid statuses for access: active, trialing
+				const validStatuses = ['active', 'trialing']
+				const hasValidSubscription =
+					userProfile?.subscription_status &&
+					validStatuses.includes(userProfile.subscription_status)
+				const hasNoStripeCustomer = !userProfile?.stripeCustomerId
+
+				// Redirect to pricing if payment required
+				if (requiresPayment && (!hasValidSubscription || hasNoStripeCustomer)) {
+					logger.info('OAuth user requires payment - redirecting to pricing', {
+						action: 'oauth_payment_required',
+						metadata: {
+							userId: data.session.user.id,
+							role: userProfile?.role,
+							subscriptionStatus: userProfile?.subscription_status,
+							hasValidSubscription: hasValidSubscription,
+							hasStripeCustomer: !hasNoStripeCustomer
+						}
+					})
+
+					const pricingUrl = new URL('/pricing', origin)
+					pricingUrl.searchParams.set('required', 'true')
+					pricingUrl.searchParams.set('redirectTo', nextParam || '/manage')
+
+					const forwardedHost = request.headers.get('x-forwarded-host')
+					const isLocalEnv = process.env.NODE_ENV === 'development'
+
+					if (isLocalEnv) {
+						return NextResponse.redirect(pricingUrl.toString())
+					} else if (forwardedHost) {
+						return NextResponse.redirect(
+							`https://${forwardedHost}${pricingUrl.pathname}${pricingUrl.search}`
+						)
+					} else {
+						return NextResponse.redirect(pricingUrl.toString())
+					}
+				}
+
+				// Determine destination based on user role
+				let next = '/manage' // Default for OWNER, MANAGER, ADMIN
+
+				if (userProfile?.role === 'TENANT') {
+					next = '/tenant'
+				}
+
+				// Honor explicit nextParam if provided (unless it conflicts with role)
+				if (nextParam && nextParam.startsWith('/')) {
+					next = nextParam
+				}
+
 				logger.info('OAuth callback successful', {
 					action: 'oauth_callback_success',
-					metadata: { userId: data.session.user.id, next }
+					metadata: {
+						userId: data.session.user.id,
+						role: userProfile?.role,
+						next
+					}
 				})
-			}
 
-			// Handle successful authentication with proper redirect logic
-			const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
-			const isLocalEnv = process.env.NODE_ENV === 'development'
-			if (isLocalEnv) {
-				// we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-				return NextResponse.redirect(`${origin}${next}`)
-			} else if (forwardedHost) {
-				return NextResponse.redirect(`https://${forwardedHost}${next}`)
-			} else {
-				return NextResponse.redirect(`${origin}${next}`)
+				// Handle successful authentication with proper redirect logic
+				const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
+				const isLocalEnv = process.env.NODE_ENV === 'development'
+				if (isLocalEnv) {
+					// we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
+					return NextResponse.redirect(`${origin}${next}`)
+				} else if (forwardedHost) {
+					return NextResponse.redirect(`https://${forwardedHost}${next}`)
+				} else {
+					return NextResponse.redirect(`${origin}${next}`)
+				}
 			}
 		} catch (error) {
 			logger.error('OAuth callback error', {
