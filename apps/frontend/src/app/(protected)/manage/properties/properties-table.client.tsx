@@ -33,10 +33,24 @@ import { propertiesApi } from '@/lib/api-client'
 import type { Property } from '@repo/shared/types/core'
 
 export function PropertiesTable() {
-	const { data: properties, isLoading } = useQuery<Property[]>({
+	// Fetch properties list
+	const { data: properties, isLoading: isLoadingProperties } = useQuery<
+		Property[]
+	>({
 		queryKey: ['properties'],
 		queryFn: () => propertiesApi.list()
 	})
+
+	// Fetch real stats from API
+	const { data: statsData, isLoading: isLoadingStats } = useQuery({
+		queryKey: ['properties', 'stats'],
+		queryFn: async () => {
+			return await propertiesApi.getStats()
+		},
+		staleTime: 5 * 60 * 1000 // 5 minutes
+	})
+
+	const isLoading = isLoadingProperties || isLoadingStats
 
 	if (isLoading) {
 		return <div className="animate-pulse">Loading properties...</div>
@@ -44,11 +58,13 @@ export function PropertiesTable() {
 
 	const safeProperties = properties || []
 
-	// Stats show 0 when no properties exist - proper empty state
+	// Use REAL stats from API with proper fallbacks for empty state
 	const stats = {
-		totalProperties: safeProperties.length,
-		occupancyRate: 0, // Will be calculated from actual unit data in future
-		totalUnits: 0 // Will be calculated from actual unit data in future
+		totalProperties: statsData?.total ?? safeProperties.length,
+		occupancyRate: statsData?.occupancyRate ?? 0,
+		totalUnits: statsData?.total ?? 0,
+		occupied: statsData?.occupied ?? 0,
+		vacant: statsData?.vacant ?? 0
 	}
 
 	return (
@@ -79,7 +95,7 @@ export function PropertiesTable() {
 					</CardFooter>
 				</Card>
 
-				{/* Occupancy Rate */}
+				{/* Occupancy Rate - Real data from API */}
 				<Card>
 					<CardHeader>
 						<CardDescription>Occupancy Rate</CardDescription>
@@ -109,7 +125,7 @@ export function PropertiesTable() {
 							)}
 						</div>
 						<div className="text-muted-foreground">
-							{stats.totalUnits} units total
+							{stats.occupied} occupied of {stats.totalUnits} units total
 						</div>
 					</CardFooter>
 				</Card>
