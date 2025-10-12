@@ -11,6 +11,7 @@ import type {
 	MaintenanceRequestResponse,
 	MaintenanceStats,
 	PropertyPerformance,
+	PropertyStats,
 	SystemUptime,
 	TenantStats,
 	TenantWithLeaseInfo
@@ -126,6 +127,10 @@ export const propertiesApi = {
 		apiClient<PropertyWithUnits[]>(
 			`${API_BASE_URL}/api/v1/properties/with-units`
 		),
+
+	// Get real property statistics from database calculations
+	getStats: () =>
+		apiClient<PropertyStats>(`${API_BASE_URL}/api/v1/properties/stats`),
 
 	get: (id: string) =>
 		apiClient<Property>(`${API_BASE_URL}/api/v1/properties/${id}`),
