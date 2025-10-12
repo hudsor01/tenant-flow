@@ -30,31 +30,41 @@ import { useQuery } from '@tanstack/react-query'
 import { Building, TrendingDown, TrendingUp } from 'lucide-react'
 
 import { propertiesApi } from '@/lib/api-client'
-
-interface Property {
-	id: string
-	name: string
-	address: string
-	propertyType?: string
-	status?: string
-	createdAt: string
-}
+import type { Property } from '@repo/shared/types/core'
 
 export function PropertiesTable() {
-	const { data: properties, isLoading } = useQuery({
+	// Fetch properties list
+	const { data: properties, isLoading: isLoadingProperties } = useQuery<
+		Property[]
+	>({
 		queryKey: ['properties'],
 		queryFn: () => propertiesApi.list()
 	})
+
+	// Fetch real stats from API
+	const { data: statsData, isLoading: isLoadingStats } = useQuery({
+		queryKey: ['properties', 'stats'],
+		queryFn: async () => {
+			return await propertiesApi.getStats()
+		},
+		staleTime: 5 * 60 * 1000 // 5 minutes
+	})
+
+	const isLoading = isLoadingProperties || isLoadingStats
 
 	if (isLoading) {
 		return <div className="animate-pulse">Loading properties...</div>
 	}
 
 	const safeProperties = properties || []
+
+	// Use REAL stats from API with proper fallbacks for empty state
 	const stats = {
-		totalProperties: safeProperties.length,
-		occupancyRate: 85.5,
-		totalUnits: safeProperties.length
+		totalProperties: statsData?.total ?? safeProperties.length,
+		occupancyRate: statsData?.occupancyRate ?? 0,
+		totalUnits: statsData?.total ?? 0,
+		occupied: statsData?.occupied ?? 0,
+		vacant: statsData?.vacant ?? 0
 	}
 
 	return (
@@ -85,7 +95,7 @@ export function PropertiesTable() {
 					</CardFooter>
 				</Card>
 
-				{/* Occupancy Rate */}
+				{/* Occupancy Rate - Real data from API */}
 				<Card>
 					<CardHeader>
 						<CardDescription>Occupancy Rate</CardDescription>
@@ -115,7 +125,7 @@ export function PropertiesTable() {
 							)}
 						</div>
 						<div className="text-muted-foreground">
-							{stats.totalUnits} units total
+							{stats.occupied} occupied of {stats.totalUnits} units total
 						</div>
 					</CardFooter>
 				</Card>
@@ -148,7 +158,7 @@ export function PropertiesTable() {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{safeProperties.map((property: Property) => (
+									{safeProperties.map(property => (
 										<TableRow key={property.id} className="hover:bg-muted/30">
 											<TableCell className="font-medium">
 												{property.name}
