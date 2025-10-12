@@ -201,7 +201,7 @@ export function useAllTenants() {
 		queryKey: tenantKeys.list(),
 		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
 			const response = await apiClient<TenantWithLeaseInfo[]>(
-				`${API_BASE_URL}/api/v1/tenants/all`
+				`${API_BASE_URL}/api/v1/tenants`
 			)
 
 			// Prefetch individual tenant details for instant navigation
@@ -644,7 +644,7 @@ export function useAllTenantsSuspense() {
 		queryKey: tenantKeys.list(),
 		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
 			const response = await apiClient<TenantWithLeaseInfo[]>(
-				`${API_BASE_URL}/api/v1/tenants/all`
+				`${API_BASE_URL}/api/v1/tenants`
 			)
 
 			// Prefetch individual tenant details for instant navigation
