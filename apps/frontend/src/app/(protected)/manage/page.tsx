@@ -65,10 +65,12 @@ export default async function DashboardPage() {
 							<div className="grid gap-4 sm:grid-cols-3 w-full">
 								<Link
 									href="/manage/properties/new"
-									className="flex flex-col gap-2 p-4 rounded-lg border hover:bg-accent transition-colors"
+									className="group flex flex-col gap-2 p-4 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:scale-105"
 								>
-									<Building2 className="h-8 w-8 text-primary" />
-									<div className="text-sm font-medium">Add Property</div>
+									<Building2 className="h-8 w-8 text-primary group-hover:scale-110 transition-transform duration-300" />
+									<div className="text-sm font-medium text-primary">
+										Add Property
+									</div>
 									<div className="text-xs text-muted-foreground">
 										Start with your first rental property
 									</div>
@@ -76,10 +78,12 @@ export default async function DashboardPage() {
 
 								<Link
 									href="/manage/tenants/new"
-									className="flex flex-col gap-2 p-4 rounded-lg border hover:bg-accent transition-colors"
+									className="group flex flex-col gap-2 p-4 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:scale-105"
 								>
-									<Users className="h-8 w-8 text-primary" />
-									<div className="text-sm font-medium">Add Tenant</div>
+									<Users className="h-8 w-8 text-primary group-hover:scale-110 transition-transform duration-300" />
+									<div className="text-sm font-medium text-primary">
+										Add Tenant
+									</div>
 									<div className="text-xs text-muted-foreground">
 										Invite and manage your tenants
 									</div>
@@ -87,10 +91,12 @@ export default async function DashboardPage() {
 
 								<Link
 									href="/manage/leases/new"
-									className="flex flex-col gap-2 p-4 rounded-lg border hover:bg-accent transition-colors"
+									className="group flex flex-col gap-2 p-4 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:scale-105"
 								>
-									<FileText className="h-8 w-8 text-primary" />
-									<div className="text-sm font-medium">Create Lease</div>
+									<FileText className="h-8 w-8 text-primary group-hover:scale-110 transition-transform duration-300" />
+									<div className="text-sm font-medium text-primary">
+										Create Lease
+									</div>
 									<div className="text-xs text-muted-foreground">
 										Generate lease agreements
 									</div>
@@ -99,7 +105,9 @@ export default async function DashboardPage() {
 
 							<div className="flex gap-2 mt-4">
 								<Link href="/manage/properties/new">
-									<Button>Get Started</Button>
+									<Button className="hover:scale-105 transition-transform duration-200">
+										Get Started
+									</Button>
 								</Link>
 							</div>
 						</EmptyContent>
@@ -109,7 +117,11 @@ export default async function DashboardPage() {
 				{/* Skip button in bottom right */}
 				<div className="fixed bottom-8 right-8">
 					<Link href="/manage/properties">
-						<Button variant="ghost" size="lg">
+						<Button
+							variant="ghost"
+							size="lg"
+							className="border border-primary/20 bg-background/80 backdrop-blur-sm hover:bg-primary/10 hover:border-primary/40 hover:scale-105 transition-all duration-200"
+						>
 							Skip
 						</Button>
 					</Link>
