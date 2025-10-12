@@ -47,62 +47,73 @@ export default async function DashboardPage() {
 	// Show empty state for brand new users with no data
 	if (!hasData) {
 		return (
-			<div className="container mx-auto max-w-4xl py-12">
-				<Empty className="border-2">
-					<EmptyHeader>
-						<EmptyMedia variant="icon">
-							<Building2 />
-						</EmptyMedia>
-						<EmptyTitle>Welcome to TenantFlow</EmptyTitle>
-						<EmptyDescription>
-							Get started by adding your first property to begin managing your
-							rental business
-						</EmptyDescription>
-					</EmptyHeader>
+			<div className="relative min-h-screen flex items-center justify-center p-4">
+				<div className="container mx-auto max-w-4xl">
+					<Empty className="border-2">
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<Building2 />
+							</EmptyMedia>
+							<EmptyTitle>Welcome to TenantFlow</EmptyTitle>
+							<EmptyDescription>
+								Get started by adding your first property to begin managing your
+								rental business
+							</EmptyDescription>
+						</EmptyHeader>
 
-					<EmptyContent>
-						<div className="grid gap-4 sm:grid-cols-3 w-full">
-							<Link
-								href="/manage/properties/new"
-								className="flex flex-col gap-2 p-4 rounded-lg border hover:bg-accent transition-colors"
-							>
-								<Building2 className="h-8 w-8 text-primary" />
-								<div className="text-sm font-medium">Add Property</div>
-								<div className="text-xs text-muted-foreground">
-									Start with your first rental property
-								</div>
-							</Link>
+						<EmptyContent>
+							<div className="grid gap-4 sm:grid-cols-3 w-full">
+								<Link
+									href="/manage/properties/new"
+									className="flex flex-col gap-2 p-4 rounded-lg border hover:bg-accent transition-colors"
+								>
+									<Building2 className="h-8 w-8 text-primary" />
+									<div className="text-sm font-medium">Add Property</div>
+									<div className="text-xs text-muted-foreground">
+										Start with your first rental property
+									</div>
+								</Link>
 
-							<Link
-								href="/manage/tenants/new"
-								className="flex flex-col gap-2 p-4 rounded-lg border hover:bg-accent transition-colors"
-							>
-								<Users className="h-8 w-8 text-primary" />
-								<div className="text-sm font-medium">Add Tenant</div>
-								<div className="text-xs text-muted-foreground">
-									Invite and manage your tenants
-								</div>
-							</Link>
+								<Link
+									href="/manage/tenants/new"
+									className="flex flex-col gap-2 p-4 rounded-lg border hover:bg-accent transition-colors"
+								>
+									<Users className="h-8 w-8 text-primary" />
+									<div className="text-sm font-medium">Add Tenant</div>
+									<div className="text-xs text-muted-foreground">
+										Invite and manage your tenants
+									</div>
+								</Link>
 
-							<Link
-								href="/manage/leases/new"
-								className="flex flex-col gap-2 p-4 rounded-lg border hover:bg-accent transition-colors"
-							>
-								<FileText className="h-8 w-8 text-primary" />
-								<div className="text-sm font-medium">Create Lease</div>
-								<div className="text-xs text-muted-foreground">
-									Generate lease agreements
-								</div>
-							</Link>
-						</div>
+								<Link
+									href="/manage/leases/new"
+									className="flex flex-col gap-2 p-4 rounded-lg border hover:bg-accent transition-colors"
+								>
+									<FileText className="h-8 w-8 text-primary" />
+									<div className="text-sm font-medium">Create Lease</div>
+									<div className="text-xs text-muted-foreground">
+										Generate lease agreements
+									</div>
+								</Link>
+							</div>
 
-						<div className="flex gap-2 mt-4">
-							<Link href="/manage/properties/new">
-								<Button>Get Started</Button>
-							</Link>
-						</div>
-					</EmptyContent>
-				</Empty>
+							<div className="flex gap-2 mt-4">
+								<Link href="/manage/properties/new">
+									<Button>Get Started</Button>
+								</Link>
+							</div>
+						</EmptyContent>
+					</Empty>
+				</div>
+
+				{/* Skip button in bottom right */}
+				<div className="fixed bottom-8 right-8">
+					<Link href="/manage/properties">
+						<Button variant="ghost" size="lg">
+							Skip
+						</Button>
+					</Link>
+				</div>
 			</div>
 		)
 	}
