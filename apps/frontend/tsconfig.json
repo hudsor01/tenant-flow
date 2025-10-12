@@ -6,6 +6,7 @@
 		"baseUrl": ".",
 		"jsx": "preserve",
 		"composite": true,
+		"incremental": true,
 		"noEmit": false,
 		"declaration": true,
 		"outDir": "./.tsc-output",
