@@ -47,62 +47,85 @@ export default async function DashboardPage() {
 	// Show empty state for brand new users with no data
 	if (!hasData) {
 		return (
-			<div className="container mx-auto max-w-4xl py-12">
-				<Empty className="border-2">
-					<EmptyHeader>
-						<EmptyMedia variant="icon">
-							<Building2 />
-						</EmptyMedia>
-						<EmptyTitle>Welcome to TenantFlow</EmptyTitle>
-						<EmptyDescription>
-							Get started by adding your first property to begin managing your
-							rental business
-						</EmptyDescription>
-					</EmptyHeader>
+			<div className="relative min-h-screen flex items-center justify-center p-4">
+				<div className="container mx-auto max-w-4xl">
+					<Empty className="border-2">
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<Building2 />
+							</EmptyMedia>
+							<EmptyTitle>Welcome to TenantFlow</EmptyTitle>
+							<EmptyDescription>
+								Get started by adding your first property to begin managing your
+								rental business
+							</EmptyDescription>
+						</EmptyHeader>
 
-					<EmptyContent>
-						<div className="grid gap-4 sm:grid-cols-3 w-full">
-							<Link
-								href="/manage/properties/new"
-								className="flex flex-col gap-2 p-4 rounded-lg border hover:bg-accent transition-colors"
-							>
-								<Building2 className="h-8 w-8 text-primary" />
-								<div className="text-sm font-medium">Add Property</div>
-								<div className="text-xs text-muted-foreground">
-									Start with your first rental property
-								</div>
-							</Link>
+						<EmptyContent>
+							<div className="grid gap-4 sm:grid-cols-3 w-full">
+								<Link
+									href="/manage/properties/new"
+									className="group flex flex-col gap-2 p-4 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:scale-105"
+								>
+									<Building2 className="h-8 w-8 text-primary group-hover:scale-110 transition-transform duration-300" />
+									<div className="text-sm font-medium text-primary">
+										Add Property
+									</div>
+									<div className="text-xs text-muted-foreground">
+										Start with your first rental property
+									</div>
+								</Link>
 
-							<Link
-								href="/manage/tenants/new"
-								className="flex flex-col gap-2 p-4 rounded-lg border hover:bg-accent transition-colors"
-							>
-								<Users className="h-8 w-8 text-primary" />
-								<div className="text-sm font-medium">Add Tenant</div>
-								<div className="text-xs text-muted-foreground">
-									Invite and manage your tenants
-								</div>
-							</Link>
+								<Link
+									href="/manage/tenants/new"
+									className="group flex flex-col gap-2 p-4 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:scale-105"
+								>
+									<Users className="h-8 w-8 text-primary group-hover:scale-110 transition-transform duration-300" />
+									<div className="text-sm font-medium text-primary">
+										Add Tenant
+									</div>
+									<div className="text-xs text-muted-foreground">
+										Invite and manage your tenants
+									</div>
+								</Link>
 
-							<Link
-								href="/manage/leases/new"
-								className="flex flex-col gap-2 p-4 rounded-lg border hover:bg-accent transition-colors"
-							>
-								<FileText className="h-8 w-8 text-primary" />
-								<div className="text-sm font-medium">Create Lease</div>
-								<div className="text-xs text-muted-foreground">
-									Generate lease agreements
-								</div>
-							</Link>
-						</div>
+								<Link
+									href="/manage/leases/new"
+									className="group flex flex-col gap-2 p-4 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:scale-105"
+								>
+									<FileText className="h-8 w-8 text-primary group-hover:scale-110 transition-transform duration-300" />
+									<div className="text-sm font-medium text-primary">
+										Create Lease
+									</div>
+									<div className="text-xs text-muted-foreground">
+										Generate lease agreements
+									</div>
+								</Link>
+							</div>
 
-						<div className="flex gap-2 mt-4">
-							<Link href="/manage/properties/new">
-								<Button>Get Started</Button>
-							</Link>
-						</div>
-					</EmptyContent>
-				</Empty>
+							<div className="flex gap-2 mt-4">
+								<Link href="/manage/properties/new">
+									<Button className="hover:scale-105 transition-transform duration-200">
+										Get Started
+									</Button>
+								</Link>
+							</div>
+						</EmptyContent>
+					</Empty>
+				</div>
+
+				{/* Skip button in bottom right */}
+				<div className="fixed bottom-8 right-8">
+					<Link href="/manage/properties">
+						<Button
+							variant="ghost"
+							size="lg"
+							className="border border-primary/20 bg-background/80 backdrop-blur-sm hover:bg-primary/10 hover:border-primary/40 hover:scale-105 transition-all duration-200"
+						>
+							Skip
+						</Button>
+					</Link>
+				</div>
 			</div>
 		)
 	}
