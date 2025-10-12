@@ -1,7 +1,22 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "./Dockerfile"
+# Watch patterns trigger deployment when these paths change
+watchPatterns = [
+  "apps/backend/**",
+  "packages/shared/**",
+  "packages/database/**",
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  "turbo.json",
+  "Dockerfile"
+]
 
 [deploy]
+# Railway queries /health endpoint for zero-downtime deployments
+# Waits for HTTP 200 before switching traffic to new deployment
+healthcheckPath = "/health"
+healthcheckTimeout = 300
 restartPolicyType = "ALWAYS"
 restartPolicyMaxRetries = 5
