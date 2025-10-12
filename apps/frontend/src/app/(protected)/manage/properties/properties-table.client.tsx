@@ -30,18 +30,10 @@ import { useQuery } from '@tanstack/react-query'
 import { Building, TrendingDown, TrendingUp } from 'lucide-react'
 
 import { propertiesApi } from '@/lib/api-client'
-
-interface Property {
-	id: string
-	name: string
-	address: string
-	propertyType?: string
-	status?: string
-	createdAt: string
-}
+import type { Property } from '@repo/shared/types/core'
 
 export function PropertiesTable() {
-	const { data: properties, isLoading } = useQuery({
+	const { data: properties, isLoading } = useQuery<Property[]>({
 		queryKey: ['properties'],
 		queryFn: () => propertiesApi.list()
 	})
@@ -51,10 +43,12 @@ export function PropertiesTable() {
 	}
 
 	const safeProperties = properties || []
+
+	// Stats show 0 when no properties exist - proper empty state
 	const stats = {
 		totalProperties: safeProperties.length,
-		occupancyRate: 85.5,
-		totalUnits: safeProperties.length
+		occupancyRate: 0, // Will be calculated from actual unit data in future
+		totalUnits: 0 // Will be calculated from actual unit data in future
 	}
 
 	return (
@@ -148,7 +142,7 @@ export function PropertiesTable() {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{safeProperties.map((property: Property) => (
+									{safeProperties.map(property => (
 										<TableRow key={property.id} className="hover:bg-muted/30">
 											<TableCell className="font-medium">
 												{property.name}
