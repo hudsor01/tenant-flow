@@ -44,27 +44,20 @@ export class FinancialAnalyticsService {
 		functionName: string,
 		payload: Record<string, unknown>
 	): Promise<T | null> {
-		const client = this.supabase.getAdminClient()
-
 		try {
-			const { data, error } = await (
-				client as unknown as {
-					rpc: (
-						fn: string,
-						args: Record<string, unknown>
-					) => Promise<{ data: unknown; error: { message: string } | null }>
-				}
-			).rpc(functionName, payload)
-
-			if (error) {
+			const result = await this.supabase.rpcWithRetries(functionName, payload)
+			const res = result as {
+				data?: unknown
+				error?: { message?: string } | null
+			}
+			if (res.error) {
 				this.logger.warn('Financial analytics RPC failed', {
 					functionName,
-					error: error.message
+					error: res.error?.message
 				})
 				return null
 			}
-
-			return (data as T) ?? null
+			return (res.data as T) ?? null
 		} catch (error) {
 			this.logger.error('Unexpected RPC failure', {
 				functionName,
