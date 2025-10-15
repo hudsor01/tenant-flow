@@ -49,10 +49,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 		const user: authUser = {
 			id: payloadWithMetadata.sub,
 			aud: payloadWithMetadata.aud ?? 'authenticated',
-			role: payloadWithMetadata.role,
-			email: payloadWithMetadata.email,
 			email_confirmed_at: new Date().toISOString(),
-			phone: undefined,
 			confirmed_at: new Date().toISOString(),
 			last_sign_in_at: new Date().toISOString(),
 			app_metadata: {},
@@ -61,6 +58,14 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			created_at: new Date().toISOString(),
 			updated_at: new Date().toISOString(),
 			is_anonymous: false
+		}
+
+		// Only assign optional properties if they have values
+		if (payloadWithMetadata.role !== undefined) {
+			user.role = payloadWithMetadata.role
+		}
+		if (payloadWithMetadata.email !== undefined) {
+			user.email = payloadWithMetadata.email
 		}
 
 		this.logger.debug('User authenticated successfully', {

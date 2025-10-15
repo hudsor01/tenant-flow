@@ -39,6 +39,7 @@ import {
 } from 'lucide-react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useState } from 'react'
+import { z } from 'zod'
 
 interface TenantActionButtonsProps {
 	tenant: TenantWithLeaseInfo
@@ -66,7 +67,7 @@ export function TenantEditViewButtons({
 			onChange: ({ value }) => {
 				const result = tenantUpdateSchema.safeParse(value)
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}
@@ -160,15 +161,12 @@ export function TenantEditViewButtons({
 												placeholder="John"
 												className="input"
 											/>
-											<FieldError
-												errors={
-													Array.isArray(f.state.meta.errors)
-														? f.state.meta.errors.map((m: unknown) => ({
-																message: String(m)
-															}))
-														: undefined
-												}
-											/>
+											{Array.isArray(f.state.meta.errors) &&
+												f.state.meta.errors.length > 0 && (
+													<FieldError>
+														{String(f.state.meta.errors[0])}
+													</FieldError>
+												)}
 										</Field>
 									)
 								}}
@@ -190,15 +188,12 @@ export function TenantEditViewButtons({
 												placeholder="Smith"
 												className="input"
 											/>
-											<FieldError
-												errors={
-													Array.isArray(f.state.meta.errors)
-														? f.state.meta.errors.map((m: unknown) => ({
-																message: String(m)
-															}))
-														: undefined
-												}
-											/>
+											{Array.isArray(f.state.meta.errors) &&
+												f.state.meta.errors.length > 0 && (
+													<FieldError>
+														{String(f.state.meta.errors[0])}
+													</FieldError>
+												)}
 										</Field>
 									)
 								}}
@@ -221,15 +216,12 @@ export function TenantEditViewButtons({
 											placeholder="john.smith@example.com"
 											className="input"
 										/>
-										<FieldError
-											errors={
-												Array.isArray(f.state.meta.errors)
-													? f.state.meta.errors.map((m: unknown) => ({
-															message: String(m)
-														}))
-													: undefined
-											}
-										/>
+										{Array.isArray(f.state.meta.errors) &&
+											f.state.meta.errors.length > 0 && (
+												<FieldError>
+													{String(f.state.meta.errors[0])}
+												</FieldError>
+											)}
 									</Field>
 								)
 							}}
@@ -251,15 +243,12 @@ export function TenantEditViewButtons({
 											placeholder="(555) 123-4567"
 											className="input"
 										/>
-										<FieldError
-											errors={
-												Array.isArray(f.state.meta.errors)
-													? f.state.meta.errors.map((m: unknown) => ({
-															message: String(m)
-														}))
-													: undefined
-											}
-										/>
+										{Array.isArray(f.state.meta.errors) &&
+											f.state.meta.errors.length > 0 && (
+												<FieldError>
+													{String(f.state.meta.errors[0])}
+												</FieldError>
+											)}
 									</Field>
 								)
 							}}
@@ -280,15 +269,12 @@ export function TenantEditViewButtons({
 											placeholder="Emergency contact information..."
 											className="textarea"
 										/>
-										<FieldError
-											errors={
-												Array.isArray(f.state.meta.errors)
-													? f.state.meta.errors.map((m: unknown) => ({
-															message: String(m)
-														}))
-													: undefined
-											}
-										/>
+										{Array.isArray(f.state.meta.errors) &&
+											f.state.meta.errors.length > 0 && (
+												<FieldError>
+													{String(f.state.meta.errors[0])}
+												</FieldError>
+											)}
 									</Field>
 								)
 							}}

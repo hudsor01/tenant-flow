@@ -1,7 +1,7 @@
 'use client'
 
-import { ModernExplodedPieChart } from '@/components/charts/modern-exploded-pie-chart'
-import { PropertyPerformanceBarChart } from '@/components/charts/property-performance-bar-chart'
+import { PropertyPerformanceBarChart } from '@/components/charts/bar-chart'
+import { ModernExplodedPieChart } from '@/components/charts/pie-chart'
 
 export function ChartsSection() {
 	return (

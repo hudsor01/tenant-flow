@@ -18,7 +18,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
-import { useRenewLease } from '@/hooks/api/use-leases'
+import { useRenewLease } from '@/hooks/api/use-lease'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { addMonths, addYears, format, isAfter, parseISO } from 'date-fns'
 import { Calendar, DollarSign, Info, TrendingUp } from 'lucide-react'
@@ -54,6 +55,7 @@ export function RenewLeaseDialog({
 	onSuccess
 }: RenewLeaseDialogProps) {
 	const renewLease = useRenewLease()
+	const logger = createLogger({ component: 'RenewLeaseDialog' })
 
 	// Default to 12 months from current end date
 	const defaultNewEndDate = lease.endDate
@@ -98,25 +100,22 @@ export function RenewLeaseDialog({
 			}
 		}
 
-		renewLease.mutate(
-			{
-				leaseId: lease.id,
-				data: {
-					endDate: newEndDate,
-					...(showRentIncrease && { rentAmount: newRent })
-				}
-			},
-			{
-				onSuccess: () => {
-					onSuccess?.()
-					onOpenChange(false)
-					// Reset form
-					setNewEndDate(defaultNewEndDate)
-					setNewRentAmount('')
-					setShowRentIncrease(false)
-				}
-			}
-		)
+		try {
+			await renewLease.mutateAsync({
+				id: lease.id,
+				newEndDate
+			})
+			toast.success('Lease renewed successfully')
+			onSuccess?.()
+			onOpenChange(false)
+			// Reset form
+			setNewEndDate(defaultNewEndDate)
+			setNewRentAmount('')
+			setShowRentIncrease(false)
+		} catch (error) {
+			logger.error('Failed to renew lease', { leaseId: lease.id }, error)
+			toast.error('Failed to renew lease')
+		}
 	}
 
 	const handleCancel = () => {

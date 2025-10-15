@@ -54,16 +54,23 @@ export default defineConfig({
 	},
 
 	// Auto-start web server in local development
+	// Allow overriding port via PLAYWRIGHT_PORT so local dev machines can choose a different port
 	webServer: process.env.CI
 		? undefined // Don't start server in CI (already running)
-		: {
-				command: 'doppler run -- pnpm --filter @repo/frontend dev',
-				url: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
-				reuseExistingServer: true,
-				timeout: 120000,
-				stdout: 'pipe',
-				stderr: 'pipe'
-			},
+		: (() => {
+				const port = process.env.PLAYWRIGHT_PORT || '3000'
+				const url =
+					process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${port}`
+				return {
+					// Forward port to the frontend dev script. Passing `-- -p <port>` ensures next dev binds to the port.
+					command: `doppler run -- pnpm --filter @repo/frontend dev -- -p ${port}`,
+					url,
+					reuseExistingServer: true,
+					timeout: 120000,
+					stdout: 'pipe',
+					stderr: 'pipe'
+				}
+			})(),
 
 	// Snapshot configuration
 	snapshotDir: path.join(TEST_DIR, '__snapshots__'),

@@ -263,7 +263,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 					return old
 				}
 			)
-			return { previous }
+			return previous ? { previous } : {}
 		},
 		onError: (
 			err: unknown,

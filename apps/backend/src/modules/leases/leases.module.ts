@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
-import { RepositoriesModule } from '../../repositories/repositories.module'
 import { SharedModule } from '../../shared/shared.module'
 import { LeasePDFService } from '../pdf/lease-pdf.service'
 import { PDFModule } from '../pdf/pdf.module'
@@ -15,7 +14,7 @@ import { LeasesService } from './leases.service'
 @Module({
 	imports: [
 		SupabaseModule,
-		RepositoriesModule,
+
 		PDFModule, // For lease PDF generation
 		SharedModule
 	],

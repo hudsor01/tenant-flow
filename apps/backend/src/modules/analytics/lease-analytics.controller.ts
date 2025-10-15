@@ -1,45 +1,27 @@
-import {
-	Controller,
-	Get,
-	Logger,
-	Req,
-	UnauthorizedException
-} from '@nestjs/common'
-import type { authUser } from '@repo/shared/types/backend-domain'
+import { Controller, Get, Request, UnauthorizedException } from '@nestjs/common'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
-import type { Request } from 'express'
-import { SupabaseService } from '../../database/supabase.service'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LeaseAnalyticsService } from './lease-analytics.service'
 
 @Controller('analytics')
 export class LeaseAnalyticsController {
-	private readonly logger = new Logger(LeaseAnalyticsController.name)
+	constructor(private readonly leaseAnalyticsService: LeaseAnalyticsService) {}
 
-	constructor(
-		private readonly leaseAnalyticsService: LeaseAnalyticsService,
-		private readonly supabaseService: SupabaseService
-	) {}
-
-	private async getAuthenticatedUser(request: Request): Promise<authUser> {
-		const user = await this.supabaseService.getUser(request)
-		if (!user) {
-			this.logger.warn('Lease analytics request missing authentication', {
-				endpoint: request.path,
-				method: request.method
-			})
+	private getUserId(req: AuthenticatedRequest): string {
+		const userId = req.user?.id
+		if (!userId) {
 			throw new UnauthorizedException('Authentication required')
 		}
-
-		return user as unknown as authUser
+		return userId
 	}
 
 	@Get('lease-analytics')
 	async getLeaseAnalytics(
-		@Req() request: Request
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
+		const userId = this.getUserId(req)
 		const data =
-			await this.leaseAnalyticsService.getLeasesWithFinancialAnalytics(user.id)
+			await this.leaseAnalyticsService.getLeasesWithFinancialAnalytics(userId)
 
 		return {
 			success: true,
@@ -51,12 +33,11 @@ export class LeaseAnalyticsController {
 
 	@Get('lease-summary')
 	async getLeaseSummary(
-		@Req() request: Request
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
-		const data = await this.leaseAnalyticsService.getLeaseFinancialSummary(
-			user.id
-		)
+		const userId = this.getUserId(req)
+		const data =
+			await this.leaseAnalyticsService.getLeaseFinancialSummary(userId)
 
 		return {
 			success: true,
@@ -68,10 +49,10 @@ export class LeaseAnalyticsController {
 
 	@Get('lease-lifecycle')
 	async getLeaseLifecycle(
-		@Req() request: Request
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
-		const data = await this.leaseAnalyticsService.getLeaseLifecycleData(user.id)
+		const userId = this.getUserId(req)
+		const data = await this.leaseAnalyticsService.getLeaseLifecycleData(userId)
 
 		return {
 			success: true,
@@ -83,12 +64,11 @@ export class LeaseAnalyticsController {
 
 	@Get('lease-status-breakdown')
 	async getLeaseStatusBreakdown(
-		@Req() request: Request
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
-		const data = await this.leaseAnalyticsService.getLeaseStatusBreakdown(
-			user.id
-		)
+		const userId = this.getUserId(req)
+		const data =
+			await this.leaseAnalyticsService.getLeaseStatusBreakdown(userId)
 
 		return {
 			success: true,
@@ -100,12 +80,11 @@ export class LeaseAnalyticsController {
 
 	@Get('lease/page-data')
 	async getLeasePageData(
-		@Req() request: Request
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
-		const data = await this.leaseAnalyticsService.getLeaseAnalyticsPageData(
-			user.id
-		)
+		const userId = this.getUserId(req)
+		const data =
+			await this.leaseAnalyticsService.getLeaseAnalyticsPageData(userId)
 
 		return {
 			success: true,

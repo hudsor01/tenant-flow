@@ -1,20 +1,19 @@
 import { UnauthorizedException } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
-import type { Request } from 'express'
-import { SupabaseService } from '../../database/supabase.service'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LeaseAnalyticsController } from './lease-analytics.controller'
 import { LeaseAnalyticsService } from './lease-analytics.service'
 
 describe('LeaseAnalyticsController', () => {
 	let controller: LeaseAnalyticsController
 	let service: Record<string, jest.Mock>
-	let supabase: { getUser: jest.Mock }
 
-	const createRequest = (): Partial<Request> => ({
+	const createRequest = (userId?: string): Partial<AuthenticatedRequest> => ({
 		path: '/analytics/leases',
 		method: 'GET',
 		headers: {},
-		cookies: {}
+		cookies: {},
+		user: userId ? ({ id: userId } as any) : undefined
 	})
 
 	beforeEach(async () => {
@@ -26,18 +25,12 @@ describe('LeaseAnalyticsController', () => {
 			getLeaseAnalyticsPageData: jest.fn()
 		}
 
-		supabase = { getUser: jest.fn() }
-
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [LeaseAnalyticsController],
 			providers: [
 				{
 					provide: LeaseAnalyticsService,
 					useValue: service
-				},
-				{
-					provide: SupabaseService,
-					useValue: supabase
 				}
 			]
 		}).compile()
@@ -46,21 +39,21 @@ describe('LeaseAnalyticsController', () => {
 	})
 
 	it('requires authentication to access lease analytics', async () => {
-		supabase.getUser.mockResolvedValue(null)
 		const request = createRequest()
 
 		await expect(
-			controller.getLeaseAnalytics(request as Request)
+			controller.getLeaseAnalytics(request as AuthenticatedRequest)
 		).rejects.toBeInstanceOf(UnauthorizedException)
 	})
 
 	it('returns lease analytics from the service', async () => {
-		const request = createRequest()
-		supabase.getUser.mockResolvedValue({ id: 'user-77' })
+		const request = createRequest('user-77')
 		const payload = [{ leaseId: 'lease-1' }]
 		service.getLeasesWithFinancialAnalytics!.mockResolvedValue(payload)
 
-		const response = await controller.getLeaseAnalytics(request as Request)
+		const response = await controller.getLeaseAnalytics(
+			request as AuthenticatedRequest
+		)
 
 		expect(service.getLeasesWithFinancialAnalytics).toHaveBeenCalledWith(
 			'user-77'
@@ -74,12 +67,16 @@ describe('LeaseAnalyticsController', () => {
 	})
 
 	it('returns lease financial summary', async () => {
-		const request = { ...createRequest(), path: '/analytics/lease-summary' }
-		supabase.getUser.mockResolvedValue({ id: 'user-77' })
+		const request = {
+			...createRequest('user-77'),
+			path: '/analytics/lease-summary'
+		}
 		const summary = { totalLeases: 12 }
 		service.getLeaseFinancialSummary!.mockResolvedValue(summary)
 
-		const response = await controller.getLeaseSummary(request as Request)
+		const response = await controller.getLeaseSummary(
+			request as AuthenticatedRequest
+		)
 
 		expect(service.getLeaseFinancialSummary).toHaveBeenCalledWith('user-77')
 		expect(response).toEqual({
@@ -91,12 +88,16 @@ describe('LeaseAnalyticsController', () => {
 	})
 
 	it('returns lease lifecycle data', async () => {
-		const request = { ...createRequest(), path: '/analytics/lease-lifecycle' }
-		supabase.getUser.mockResolvedValue({ id: 'user-77' })
+		const request = {
+			...createRequest('user-77'),
+			path: '/analytics/lease-lifecycle'
+		}
 		const lifecycle = [{ period: '2024-01' }]
 		service.getLeaseLifecycleData!.mockResolvedValue(lifecycle)
 
-		const response = await controller.getLeaseLifecycle(request as Request)
+		const response = await controller.getLeaseLifecycle(
+			request as AuthenticatedRequest
+		)
 
 		expect(service.getLeaseLifecycleData).toHaveBeenCalledWith('user-77')
 		expect(response).toEqual({
@@ -109,15 +110,14 @@ describe('LeaseAnalyticsController', () => {
 
 	it('returns lease status breakdown', async () => {
 		const request = {
-			...createRequest(),
+			...createRequest('user-77'),
 			path: '/analytics/lease-status-breakdown'
 		}
-		supabase.getUser.mockResolvedValue({ id: 'user-77' })
 		const status = [{ status: 'Active', count: 10 }]
 		service.getLeaseStatusBreakdown!.mockResolvedValue(status)
 
 		const response = await controller.getLeaseStatusBreakdown(
-			request as Request
+			request as AuthenticatedRequest
 		)
 
 		expect(service.getLeaseStatusBreakdown).toHaveBeenCalledWith('user-77')
@@ -130,12 +130,16 @@ describe('LeaseAnalyticsController', () => {
 	})
 
 	it('returns lease analytics page data', async () => {
-		const request = { ...createRequest(), path: '/analytics/lease/page-data' }
-		supabase.getUser.mockResolvedValue({ id: 'user-77' })
+		const request = {
+			...createRequest('user-77'),
+			path: '/analytics/lease/page-data'
+		}
 		const pageData = { metrics: { totalLeases: 12 } }
 		service.getLeaseAnalyticsPageData!.mockResolvedValue(pageData)
 
-		const response = await controller.getLeasePageData(request as Request)
+		const response = await controller.getLeasePageData(
+			request as AuthenticatedRequest
+		)
 
 		expect(service.getLeaseAnalyticsPageData).toHaveBeenCalledWith('user-77')
 		expect(response).toEqual({

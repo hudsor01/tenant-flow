@@ -1,17 +1,12 @@
 /**
- * Utility Service - Repository Pattern Implementation
+ * Utility Service - Direct Supabase Implementation
  *
  * Handles utility functions and global search operations
- * Replaces utility database functions with NestJS service methods
  */
 
-import { Injectable, Logger, Inject } from '@nestjs/common'
-import { REPOSITORY_TOKENS } from '../../repositories/repositories.module'
-import type { IPropertiesRepository } from '../../repositories/interfaces/properties-repository.interface'
-import type { ITenantsRepository } from '../../repositories/interfaces/tenants-repository.interface'
-import type { IUnitsRepository } from '../../repositories/interfaces/units-repository.interface'
-import type { ILeasesRepository } from '../../repositories/interfaces/leases-repository.interface'
+import { Injectable, Logger } from '@nestjs/common'
 import type { SearchResult } from '@repo/shared/types/search'
+import { SupabaseService } from '../../database/supabase.service'
 
 export interface PasswordValidationResult {
 	isValid: boolean
@@ -30,43 +25,72 @@ export interface PasswordValidationResult {
 export class UtilityService {
 	private readonly logger = new Logger(UtilityService.name)
 
-	constructor(
-		@Inject(REPOSITORY_TOKENS.PROPERTIES)
-		private readonly propertiesRepository: IPropertiesRepository,
-		@Inject(REPOSITORY_TOKENS.TENANTS)
-		private readonly tenantsRepository: ITenantsRepository,
-		@Inject(REPOSITORY_TOKENS.UNITS)
-		private readonly unitsRepository: IUnitsRepository,
-		@Inject(REPOSITORY_TOKENS.LEASES)
-		private readonly leasesRepository: ILeasesRepository
-	) {}
+	constructor(private readonly supabase: SupabaseService) {}
 
 	/**
 	 * Global search by name - replaces search_by_name function
-	 * Uses repository pattern instead of database function
+	 * Uses direct Supabase queries
 	 */
-	async searchByName(userId: string, searchTerm: string, limit = 20): Promise<SearchResult[]> {
+	async searchByName(
+		userId: string,
+		searchTerm: string,
+		limit = 20
+	): Promise<SearchResult[]> {
 		try {
-			this.logger.log('Performing global search via repositories', { userId, searchTerm, limit })
+			this.logger.log('Performing global search via Supabase', {
+				userId,
+				searchTerm,
+				limit
+			})
 
 			if (!searchTerm || searchTerm.trim().length < 2) {
 				return []
 			}
 
-			const trimmedSearch = searchTerm.trim()
-			const searchOptions = {
-				search: trimmedSearch,
-				limit: Math.min(limit, 50),
-				offset: 0
-			}
+			const trimmedSearch = searchTerm.trim().toLowerCase()
+			const searchLimit = Math.min(limit, 50)
+			const client = this.supabase.getAdminClient()
 
 			// Search across all entity types in parallel
-			const [properties, tenants, units, leases] = await Promise.all([
-				this.propertiesRepository.findByUserIdWithSearch(userId, searchOptions).catch(() => []),
-				this.tenantsRepository.findByUserIdWithSearch(userId, searchOptions).catch(() => []),
-				this.unitsRepository.findByUserIdWithSearch(userId, searchOptions).catch(() => []),
-				this.leasesRepository.findByUserIdWithSearch(userId, searchOptions).catch(() => [])
-			])
+			const [propertiesResult, tenantsResult, unitsResult, leasesResult] =
+				await Promise.all([
+					client
+						.from('property')
+						.select('id, name, address, city, state, propertyType')
+						.eq('userId', userId)
+						.or(
+							`name.ilike.%${trimmedSearch}%,address.ilike.%${trimmedSearch}%,city.ilike.%${trimmedSearch}%`
+						)
+						.limit(searchLimit),
+					client
+						.from('tenant')
+						.select('id, email, firstName, lastName, phone')
+						.eq('userId', userId)
+						.or(
+							`email.ilike.%${trimmedSearch}%,firstName.ilike.%${trimmedSearch}%,lastName.ilike.%${trimmedSearch}%`
+						)
+						.limit(searchLimit),
+					client
+						.from('unit')
+						.select(
+							'id, unitNumber, bedrooms, bathrooms, rent, status, propertyId'
+						)
+						.eq('userId', userId)
+						.ilike('unitNumber', `%${trimmedSearch}%`)
+						.limit(searchLimit),
+					client
+						.from('lease')
+						.select(
+							'id, rentAmount, startDate, endDate, status, tenantId, unitId'
+						)
+						.eq('userId', userId)
+						.limit(searchLimit)
+				])
+
+			const properties = propertiesResult.data || []
+			const tenants = tenantsResult.data || []
+			const units = unitsResult.data || []
+			const leases = leasesResult.data || []
 
 			// Transform results to unified search format
 			const results: SearchResult[] = []
@@ -89,9 +113,10 @@ export class UtilityService {
 
 			// Add tenant results
 			tenants.forEach(tenant => {
-				const fullName = tenant.firstName && tenant.lastName
-					? `${tenant.firstName} ${tenant.lastName}`
-					: tenant.email
+				const fullName =
+					tenant.firstName && tenant.lastName
+						? `${tenant.firstName} ${tenant.lastName}`
+						: tenant.email
 				results.push({
 					id: tenant.id,
 					type: 'tenant',
@@ -151,8 +176,10 @@ export class UtilityService {
 				if (!aExact && bExact) return 1
 
 				// Then sort by name similarity
-				return a.name.toLowerCase().indexOf(trimmedSearch.toLowerCase()) -
-					   b.name.toLowerCase().indexOf(trimmedSearch.toLowerCase())
+				return (
+					a.name.toLowerCase().indexOf(trimmedSearch.toLowerCase()) -
+					b.name.toLowerCase().indexOf(trimmedSearch.toLowerCase())
+				)
 			})
 
 			// Return limited results
@@ -272,13 +299,8 @@ export class UtilityService {
 	 */
 	async isHealthy(): Promise<boolean> {
 		try {
-			// Basic health check - verify repositories are injected
-			return (
-				!!this.propertiesRepository &&
-				!!this.tenantsRepository &&
-				!!this.unitsRepository &&
-				!!this.leasesRepository
-			)
+			// Basic health check - verify Supabase service is available
+			return !!this.supabase.getAdminClient()
 		} catch (error) {
 			this.logger.error('Utility service health check failed:', error)
 			return false

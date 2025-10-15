@@ -28,24 +28,20 @@ import type {
 	CreateLeaseRequest,
 	UpdateLeaseRequest
 } from '@repo/shared/types/backend-domain'
-import type { Request } from 'express'
-import { SupabaseService } from '../../database/supabase.service'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LeasesService } from './leases.service'
 
 // @ApiTags('leases')
 // @ApiBearerAuth()
 @Controller('leases')
 export class LeasesController {
-	constructor(
-		@Optional() private readonly leasesService?: LeasesService,
-		@Optional() private readonly supabaseService?: SupabaseService
-	) {}
+	constructor(@Optional() private readonly leasesService?: LeasesService) {}
 
 	@Get()
 	// @ApiOperation({ summary: 'Get all leases' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async findAll(
-		@Req() request: Request,
+		@Req() req: AuthenticatedRequest,
 		@Query('tenantId') tenantId?: string,
 		@Query('unitId') unitId?: string,
 		@Query('propertyId') propertyId?: string,
@@ -105,11 +101,9 @@ export class LeasesController {
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
+		const userId = req.user.id
 
-		return this.leasesService.findAll(user?.id || 'test-user-id', {
+		return this.leasesService.findAll(userId, {
 			tenantId,
 			unitId,
 			propertyId,
@@ -124,7 +118,7 @@ export class LeasesController {
 	@Get('stats')
 	// @ApiOperation({ summary: 'Get lease statistics' })
 	// @ApiResponse({ status: HttpStatus.OK })
-	async getStats(@Req() request: Request) {
+	async getStats(@Req() req: AuthenticatedRequest) {
 		if (!this.leasesService) {
 			return {
 				message: 'Leases service not available',
@@ -139,17 +133,15 @@ export class LeasesController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		return this.leasesService.getStats(user?.id || 'test-user-id')
+		const userId = req.user.id
+		return this.leasesService.getStats(userId)
 	}
 
 	@Get('analytics/performance')
 	// @ApiOperation({ summary: 'Get per-lease performance analytics' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeasePerformanceAnalytics(
-		@Req() request: Request,
+		@Req() req: AuthenticatedRequest,
 		@Query('leaseId') leaseId?: string,
 		@Query('propertyId') propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('90d')) timeframe?: string
@@ -190,25 +182,20 @@ export class LeasesController {
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
+		const userId = req.user.id
 
-		return this.leasesService.getLeasePerformanceAnalytics(
-			user?.id || 'test-user-id',
-			{
-				leaseId,
-				propertyId,
-				timeframe: timeframe ?? '90d'
-			}
-		)
+		return this.leasesService.getAnalytics(userId, {
+			...(leaseId ? { leaseId } : {}),
+			...(propertyId ? { propertyId } : {}),
+			timeframe: timeframe ?? '90d'
+		})
 	}
 
 	@Get('analytics/duration')
 	// @ApiOperation({ summary: 'Get lease duration and renewal analytics' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseDurationAnalytics(
-		@Req() request: Request,
+		@Req() req: AuthenticatedRequest,
 		@Query('propertyId') propertyId?: string,
 		@Query('period', new DefaultValuePipe('yearly')) period?: string
 	) {
@@ -239,24 +226,20 @@ export class LeasesController {
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
+		const userId = req.user.id
 
-		return this.leasesService.getLeaseDurationAnalytics(
-			user?.id || 'test-user-id',
-			{
-				propertyId,
-				period: period ?? 'yearly'
-			}
-		)
+		return this.leasesService.getAnalytics(userId, {
+			...(propertyId ? { propertyId } : {}),
+			timeframe: '90d',
+			period: period ?? 'yearly'
+		})
 	}
 
 	@Get('analytics/turnover')
 	// @ApiOperation({ summary: 'Get lease turnover and retention analytics' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseTurnoverAnalytics(
-		@Req() request: Request,
+		@Req() req: AuthenticatedRequest,
 		@Query('propertyId') propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
 	) {
@@ -287,24 +270,19 @@ export class LeasesController {
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
+		const userId = req.user.id
 
-		return this.leasesService.getLeaseTurnoverAnalytics(
-			user?.id || 'test-user-id',
-			{
-				propertyId,
-				timeframe: timeframe ?? '12m'
-			}
-		)
+		return this.leasesService.getAnalytics(userId, {
+			...(propertyId ? { propertyId } : {}),
+			timeframe: timeframe ?? '12m'
+		})
 	}
 
 	@Get('analytics/revenue')
 	// @ApiOperation({ summary: 'Get per-lease revenue analytics and trends' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseRevenueAnalytics(
-		@Req() request: Request,
+		@Req() req: AuthenticatedRequest,
 		@Query('leaseId') leaseId?: string,
 		@Query('propertyId') propertyId?: string,
 		@Query('period', new DefaultValuePipe('monthly')) period?: string
@@ -345,25 +323,21 @@ export class LeasesController {
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
+		const userId = req.user.id
 
-		return this.leasesService.getLeaseRevenueAnalytics(
-			user?.id || 'test-user-id',
-			{
-				leaseId,
-				propertyId,
-				period: period ?? 'monthly'
-			}
-		)
+		return this.leasesService.getAnalytics(userId, {
+			...(leaseId ? { leaseId } : {}),
+			...(propertyId ? { propertyId } : {}),
+			timeframe: '90d',
+			period: period ?? 'monthly'
+		})
 	}
 
 	@Get('expiring')
 	// @ApiOperation({ summary: 'Get expiring leases' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async getExpiring(
-		@Req() request: Request,
+		@Req() req: AuthenticatedRequest,
 		@Query('days', new DefaultValuePipe(30), ParseIntPipe) days?: number
 	) {
 		if (days && (days < 1 || days > 365)) {
@@ -377,13 +351,8 @@ export class LeasesController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		return this.leasesService.getExpiring(
-			user?.id || 'test-user-id',
-			days ?? 30
-		)
+		const userId = req.user.id
+		return this.leasesService.getExpiring(userId, days ?? 30)
 	}
 
 	@Get(':id')
@@ -392,23 +361,18 @@ export class LeasesController {
 	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
 		if (!this.leasesService) {
 			return {
 				message: 'Leases service not available',
 				id,
-				data: null
+				data: undefined
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		const lease = await this.leasesService.findOne(
-			user?.id || 'test-user-id',
-			id
-		)
+		const userId = req.user.id
+		const lease = await this.leasesService.findOne(userId, id)
 		if (!lease) {
 			throw new NotFoundException('Lease not found')
 		}
@@ -420,7 +384,7 @@ export class LeasesController {
 	// @ApiResponse({ status: HttpStatus.CREATED })
 	async create(
 		@Body() createRequest: CreateLeaseRequest,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
 		if (!this.leasesService) {
 			return {
@@ -430,10 +394,8 @@ export class LeasesController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		return this.leasesService.create(user?.id || 'test-user-id', createRequest)
+		const userId = req.user.id
+		return this.leasesService.create(userId, createRequest)
 	}
 
 	@Put(':id')
@@ -443,7 +405,7 @@ export class LeasesController {
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateRequest: UpdateLeaseRequest,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
 		if (!this.leasesService) {
 			return {
@@ -454,14 +416,8 @@ export class LeasesController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		const lease = await this.leasesService.update(
-			user?.id || 'test-user-id',
-			id,
-			updateRequest
-		)
+		const userId = req.user.id
+		const lease = await this.leasesService.update(userId, id, updateRequest)
 		if (!lease) {
 			throw new NotFoundException('Lease not found')
 		}
@@ -473,7 +429,7 @@ export class LeasesController {
 	// @ApiResponse({ status: HttpStatus.NO_CONTENT })
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
 		if (!this.leasesService) {
 			return {
@@ -483,10 +439,8 @@ export class LeasesController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		await this.leasesService.remove(user?.id || 'test-user-id', id)
+		const userId = req.user.id
+		await this.leasesService.remove(userId, id)
 		return { message: 'Lease deleted successfully' }
 	}
 
@@ -496,7 +450,7 @@ export class LeasesController {
 	async renew(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body('endDate') endDate: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
 		// Validate date format
 		if (!endDate || !endDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -512,10 +466,8 @@ export class LeasesController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		return this.leasesService.renew(user?.id || 'test-user-id', id, { endDate })
+		const userId = req.user.id
+		return this.leasesService.renew(userId, id, endDate)
 	}
 
 	@Post(':id/terminate')
@@ -523,7 +475,7 @@ export class LeasesController {
 	// @ApiResponse({ status: HttpStatus.OK })
 	async terminate(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() request: Request,
+		@Req() req: AuthenticatedRequest,
 		@Body('reason') reason?: string
 	) {
 		if (!this.leasesService) {
@@ -536,13 +488,11 @@ export class LeasesController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
+		const userId = req.user.id
 		return this.leasesService.terminate(
-			user?.id || 'test-user-id',
+			userId,
 			id,
-			new Date(),
+			new Date().toISOString(),
 			reason
 		)
 	}

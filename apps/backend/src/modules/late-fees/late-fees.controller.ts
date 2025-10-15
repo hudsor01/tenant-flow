@@ -19,8 +19,8 @@ import {
 	Put,
 	Req
 } from '@nestjs/common'
-import type { Request } from 'express'
 import { SupabaseService } from '../../database/supabase.service'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LateFeesService } from './late-fees.service'
 
 @Controller('late-fees')
@@ -33,26 +33,71 @@ export class LateFeesController {
 	) {}
 
 	/**
+	 * Helper method to verify lease ownership via unit ownership
+	 */
+	private async verifyLeaseOwnership(
+		leaseId: string,
+		userId: string
+	): Promise<boolean> {
+		const client = this.supabaseService!.getAdminClient()
+
+		// Get lease with unitId
+		const { data: lease } = await client
+			.from('lease')
+			.select('unitId')
+			.eq('id', leaseId)
+			.single()
+
+		if (!lease?.unitId) return false
+
+		// Get unit with propertyId
+		const { data: unit } = await client
+			.from('unit')
+			.select('propertyId')
+			.eq('id', lease.unitId)
+			.single()
+
+		if (!unit?.propertyId) return false
+
+		// Verify property ownership
+		const { data: property } = await client
+			.from('property')
+			.select('id')
+			.eq('id', unit.propertyId)
+			.eq('owner_id', userId)
+			.single()
+
+		return !!property
+	}
+
+	/**
 	 * Get late fee configuration for a lease
+	 * SECURITY: Requires authentication via JwtAuthGuard (global)
+	 * SECURITY: Verifies lease ownership before returning config
 	 */
 	@Get('lease/:leaseId/config')
 	async getConfig(
-		@Param('leaseId', ParseUUIDPipe) leaseId: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest,
+		@Param('leaseId', ParseUUIDPipe) leaseId: string
 	) {
 		if (!this.lateFeesService) {
 			throw new BadRequestException('Late fees service not available')
 		}
 
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-
-		if (!user) {
-			throw new BadRequestException('User not authenticated')
+		// SECURITY FIX #1: Explicit auth check (defense in depth)
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
 		}
 
-		this.logger.log('Getting late fee config', { leaseId, userId: user.id })
+		const userId = req.user.id
+
+		this.logger.log('Getting late fee config', { leaseId, userId })
+
+		// SECURITY FIX #1: Verify lease ownership via unit → property ownership chain
+		const hasAccess = await this.verifyLeaseOwnership(leaseId, userId)
+		if (!hasAccess) {
+			throw new BadRequestException('Lease not found or access denied')
+		}
 
 		const config = await this.lateFeesService.getLateFeeConfig(leaseId)
 
@@ -67,8 +112,8 @@ export class LateFeesController {
 	 */
 	@Put('lease/:leaseId/config')
 	async updateConfig(
+		@Req() req: AuthenticatedRequest,
 		@Param('leaseId', ParseUUIDPipe) leaseId: string,
-		@Req() request: Request,
 		@Body('gracePeriodDays') gracePeriodDays?: number,
 		@Body('flatFeeAmount') flatFeeAmount?: number
 	) {
@@ -76,12 +121,17 @@ export class LateFeesController {
 			throw new BadRequestException('Late fees service not available')
 		}
 
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
+		// SECURITY FIX #1: Explicit auth check (defense in depth)
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
 
-		if (!user) {
-			throw new BadRequestException('User not authenticated')
+		const userId = req.user.id
+
+		// SECURITY FIX #1: Verify lease ownership via unit → property ownership chain
+		const hasAccess = await this.verifyLeaseOwnership(leaseId, userId)
+		if (!hasAccess) {
+			throw new BadRequestException('Lease not found or access denied')
 		}
 
 		// Validate inputs
@@ -105,16 +155,25 @@ export class LateFeesController {
 
 		this.logger.log('Updating late fee config', {
 			leaseId,
-			userId: user.id,
+			userId,
 			gracePeriodDays,
 			flatFeeAmount
 		})
 
-		await this.lateFeesService.updateLateFeeConfig(leaseId, user.id, {
+		// Build payload excluding undefined properties so optional fields are omitted
+		const updatePayload: Record<string, unknown> = { leaseId }
+		if (gracePeriodDays !== undefined) {
+			updatePayload.gracePeriodDays = gracePeriodDays
+		}
+		if (flatFeeAmount !== undefined) {
+			updatePayload.flatFeeAmount = flatFeeAmount
+		}
+
+		await this.lateFeesService.updateLateFeeConfig(
 			leaseId,
-			gracePeriodDays,
-			flatFeeAmount
-		})
+			userId,
+			updatePayload
+		)
 
 		return {
 			success: true,
@@ -127,22 +186,21 @@ export class LateFeesController {
 	 */
 	@Post('calculate')
 	async calculateLateFee(
+		@Req() req: AuthenticatedRequest,
 		@Body('rentAmount') rentAmount: number,
 		@Body('daysLate') daysLate: number,
-		@Req() request: Request,
 		@Body('leaseId') leaseId?: string
 	) {
 		if (!this.lateFeesService) {
 			throw new BadRequestException('Late fees service not available')
 		}
 
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-
-		if (!user) {
-			throw new BadRequestException('User not authenticated')
+		// SECURITY FIX #1: Explicit auth check (defense in depth)
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
 		}
+
+		const userId = req.user.id
 
 		// Validate inputs
 		if (!rentAmount || rentAmount <= 0) {
@@ -154,11 +212,19 @@ export class LateFeesController {
 		}
 
 		this.logger.log('Calculating late fee', {
-			userId: user.id,
+			userId,
 			rentAmount,
 			daysLate,
 			leaseId
 		})
+
+		// SECURITY FIX #3: Verify lease ownership if leaseId provided
+		if (leaseId) {
+			const hasAccess = await this.verifyLeaseOwnership(leaseId, userId)
+			if (!hasAccess) {
+				throw new BadRequestException('Lease not found or access denied')
+			}
+		}
 
 		// Get config if leaseId provided
 		const config = leaseId
@@ -182,22 +248,27 @@ export class LateFeesController {
 	 */
 	@Get('lease/:leaseId/overdue')
 	async getOverduePayments(
-		@Param('leaseId', ParseUUIDPipe) leaseId: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest,
+		@Param('leaseId', ParseUUIDPipe) leaseId: string
 	) {
 		if (!this.lateFeesService) {
 			throw new BadRequestException('Late fees service not available')
 		}
 
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-
-		if (!user) {
-			throw new BadRequestException('User not authenticated')
+		// SECURITY FIX #1: Explicit auth check (defense in depth)
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
 		}
 
-		this.logger.log('Getting overdue payments', { leaseId, userId: user.id })
+		const userId = req.user.id
+
+		// SECURITY FIX #3: Verify lease ownership via unit → property ownership chain
+		const hasAccess = await this.verifyLeaseOwnership(leaseId, userId)
+		if (!hasAccess) {
+			throw new BadRequestException('Lease not found or access denied')
+		}
+
+		this.logger.log('Getting overdue payments', { leaseId, userId })
 
 		const config = await this.lateFeesService.getLateFeeConfig(leaseId)
 		const payments = await this.lateFeesService.getOverduePayments(
@@ -219,24 +290,29 @@ export class LateFeesController {
 	 */
 	@Post('lease/:leaseId/process')
 	async processLateFees(
-		@Param('leaseId', ParseUUIDPipe) leaseId: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest,
+		@Param('leaseId', ParseUUIDPipe) leaseId: string
 	) {
 		if (!this.lateFeesService) {
 			throw new BadRequestException('Late fees service not available')
 		}
 
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-
-		if (!user) {
-			throw new BadRequestException('User not authenticated')
+		// SECURITY FIX #1: Explicit auth check (defense in depth)
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
 		}
 
-		this.logger.log('Processing late fees', { leaseId, userId: user.id })
+		const userId = req.user.id
 
-		const result = await this.lateFeesService.processLateFees(leaseId, user.id)
+		// SECURITY FIX #3: Verify lease ownership via unit → property ownership chain
+		const hasAccess = await this.verifyLeaseOwnership(leaseId, userId)
+		if (!hasAccess) {
+			throw new BadRequestException('Lease not found or access denied')
+		}
+
+		this.logger.log('Processing late fees', { leaseId, userId })
+
+		const result = await this.lateFeesService.processLateFees(leaseId, userId)
 
 		return {
 			success: true,
@@ -250,22 +326,21 @@ export class LateFeesController {
 	 */
 	@Post('payment/:paymentId/apply')
 	async applyLateFee(
+		@Req() req: AuthenticatedRequest,
 		@Param('paymentId', ParseUUIDPipe) paymentId: string,
 		@Body('lateFeeAmount') lateFeeAmount: number,
-		@Body('reason') reason: string,
-		@Req() request: Request
+		@Body('reason') reason: string
 	) {
 		if (!this.lateFeesService) {
 			throw new BadRequestException('Late fees service not available')
 		}
 
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-
-		if (!user) {
-			throw new BadRequestException('User not authenticated')
+		// SECURITY FIX #1: Explicit auth check (defense in depth)
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
 		}
+
+		const userId = req.user.id
 
 		// Validate inputs
 		if (!lateFeeAmount || lateFeeAmount <= 0) {
@@ -278,7 +353,7 @@ export class LateFeesController {
 
 		this.logger.log('Applying late fee to payment', {
 			paymentId,
-			userId: user.id,
+			userId,
 			lateFeeAmount,
 			reason
 		})
@@ -300,7 +375,7 @@ export class LateFeesController {
 			await this.supabaseService!.getAdminClient()
 				.from('users')
 				.select('stripeCustomerId')
-				.eq('id', user.id)
+				.eq('id', userId)
 				.single()
 
 		if (userError || !userData?.stripeCustomerId) {

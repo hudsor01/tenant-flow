@@ -18,6 +18,7 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { z } from 'zod'
 
 import { useSupabaseUser } from '@/hooks/api/use-supabase-auth'
 import { propertiesApi } from '@/lib/api-client'
@@ -120,7 +121,7 @@ export function CreatePropertyForm() {
 			onChange: ({ value }) => {
 				const result = propertyFormSchema.safeParse(value)
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}

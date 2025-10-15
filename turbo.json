@@ -7,7 +7,15 @@
 		"enabled": false
 	},
 	"envMode": "loose",
-	"globalEnv": ["CI", "NODE_ENV", "npm_package_version"],
+	"globalEnv": [
+		"CI",
+		"NODE_ENV",
+		"npm_package_version",
+		"SUPABASE_ANON_KEY",
+		"TEST_USER_ID",
+		"SUPABASE_URL",
+		"SUPABASE_SERVICE_ROLE_KEY"
+	],
 	"globalPassThroughEnv": ["CI", "NODE_ENV", "VERCEL_*", "GITHUB_*"],
 	"globalDependencies": [
 		"**/.env.*",
@@ -191,7 +199,24 @@
 				"BACKEND_TIMEOUT_MS",
 				"PORT",
 				"ENABLE_REPORT_SCHEDULER",
-				"FRONTEND_URL"
+				"FRONTEND_URL",
+				"HEALTH_CHECK_FUNCTION",
+				"PUBLIC_CACHE_MAX_AGE",
+				"STRIPE_PUBLISHABLE_KEY",
+				"TEST_DATABASE_HOST",
+				"TEST_DATABASE_PORT",
+				"TEST_DATABASE_NAME",
+				"TEST_DATABASE_USER",
+				"TEST_DATABASE_PASSWORD",
+				"E2E_DATABASE_URL",
+				"E2E_DATABASE_HOST",
+				"E2E_DATABASE_PORT",
+				"E2E_DATABASE_NAME",
+				"E2E_DATABASE_USER",
+				"E2E_DATABASE_PASSWORD",
+				"SUPABASE_ANON_KEY",
+				"TEST_USER_ID",
+				"SUPABASE_JWT_SECRET"
 			],
 			"cache": true,
 			"persistent": false

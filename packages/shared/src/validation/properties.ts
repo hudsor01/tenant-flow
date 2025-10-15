@@ -191,19 +191,32 @@ export const propertyUpdateFormSchema = z.object({
 })
 
 // Transform function for converting update form data to API format
-export const transformPropertyUpdateData = (data: PropertyUpdateFormData) => ({
-	name: data.name,
-	address: data.address,
-	city: data.city,
-	state: data.state,
-	zipCode: data.zipCode,
-	propertyType: data.propertyType as
-		| Database['public']['Enums']['PropertyType']
-		| undefined,
-	status: data.status as
-		| Database['public']['Enums']['PropertyStatus']
-		| undefined
-})
+export const transformPropertyUpdateData = (data: PropertyUpdateFormData) => {
+	const result: {
+		name?: string
+		address?: string
+		city?: string
+		state?: string
+		zipCode?: string
+		propertyType?: Database['public']['Enums']['PropertyType']
+		status?: Database['public']['Enums']['PropertyStatus']
+	} = {}
+
+	if (data.name !== undefined) result.name = data.name
+	if (data.address !== undefined) result.address = data.address
+	if (data.city !== undefined) result.city = data.city
+	if (data.state !== undefined) result.state = data.state
+	if (data.zipCode !== undefined) result.zipCode = data.zipCode
+	if (data.propertyType !== undefined) {
+		result.propertyType =
+			data.propertyType as Database['public']['Enums']['PropertyType']
+	}
+	if (data.status !== undefined) {
+		result.status = data.status as Database['public']['Enums']['PropertyStatus']
+	}
+
+	return result
+}
 
 export type PropertyFormData = z.infer<typeof propertyFormSchema>
 export type PropertyUpdateFormData = z.infer<typeof propertyUpdateFormSchema>

@@ -65,14 +65,21 @@ export function useRealtimeSubscription({
 			}) => void
 		) => RealtimeChannel
 
+		const subscribeOptions: {
+			event: string
+			schema: string
+			table: string
+			filter?: string
+		} = {
+			event,
+			schema,
+			table
+		}
+		if (filter) subscribeOptions.filter = filter
+
 		const channel = (supabase.channel(channelName).on as OnMethod)(
 			'postgres_changes',
-			{
-				event,
-				schema,
-				table,
-				filter
-			},
+			subscribeOptions,
 			(payload: { eventType: string; new?: unknown; old?: unknown }) => {
 				logger.debug('Realtime event received', {
 					action: 'realtime_event',

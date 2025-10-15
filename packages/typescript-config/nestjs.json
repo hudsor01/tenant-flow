@@ -6,6 +6,7 @@
 		"module": "Node16",
 		"moduleResolution": "Node16",
 		"target": "ES2022",
+		"jsx": "react-jsx",
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
 		"strictPropertyInitialization": true,

@@ -107,13 +107,17 @@ export class TaxDocumentsService {
 		// Map expense categories to tax-deductible expenses
 		const expenseCategories: TaxExpenseCategory[] = expenseData.map(expense => {
 			const category = expense.category || 'Other'
-			return {
+			const notes = this.getTaxNotes(category)
+			const mapped: TaxExpenseCategory = {
 				category,
 				amount: safeNumber(expense.amount),
 				percentage: safeNumber(expense.percentage),
-				deductible: true, // Most property expenses are deductible
-				notes: this.getTaxNotes(category)
+				deductible: true // Most property expenses are deductible
 			}
+			if (notes) {
+				mapped.notes = notes
+			}
+			return mapped
 		})
 
 		// Calculate property depreciation (27.5 years for residential)

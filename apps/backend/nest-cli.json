@@ -12,15 +12,15 @@
 		"watchAssets": true,
 		"assets": [
 			{
-				"include": "templates/**/*",
+				"include": "modules/pdf/templates/**/*",
 				"watchAssets": true
 			},
 			{
-				"include": "pdf/templates/**/*",
+				"include": "modules/reports/templates/**/*",
 				"watchAssets": true
 			},
 			{
-				"include": "email-templates/**/*",
+				"include": "emails/**/*",
 				"watchAssets": true
 			}
 		],
