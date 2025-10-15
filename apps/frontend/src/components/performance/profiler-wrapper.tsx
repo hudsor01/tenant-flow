@@ -71,8 +71,7 @@ export function ProfilerWrapper({
 
 		// Track performance metrics for analytics
 		if (typeof window !== 'undefined' && window.performance) {
-			// You can send these metrics to your analytics service
-			// Example: posthog.capture('component_render', { ... })
+			// You can forward these metrics to your preferred analytics pipeline here
 		}
 	}
 

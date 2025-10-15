@@ -21,8 +21,6 @@ export const CSP_DOMAINS = {
 
 	SUPABASE: ['https://bshjmbshupiibfiewpxb.supabase.co'],
 
-	POSTHOG: ['https://us.i.posthog.com', 'https://us-assets.i.posthog.com'],
-
 	GOOGLE: [
 		'https://fonts.googleapis.com',
 		'https://fonts.gstatic.com',
@@ -53,7 +51,6 @@ export function generateCSPDirectives(
 			"'unsafe-inline'", // Required for Next.js and some libraries
 			"'unsafe-eval'", // Required for development and some libraries
 			...CSP_DOMAINS.STRIPE,
-			...CSP_DOMAINS.POSTHOG,
 			...CSP_DOMAINS.GOOGLE,
 			...(isDev ? CSP_DOMAINS.VERCEL_DEV : [])
 		],
@@ -82,13 +79,12 @@ export function generateCSPDirectives(
 			"'self'",
 			...CSP_DOMAINS.API_DOMAINS,
 			...CSP_DOMAINS.SUPABASE,
-			...CSP_DOMAINS.STRIPE,
-			...CSP_DOMAINS.POSTHOG
+			...CSP_DOMAINS.STRIPE
 		],
 
 		'frame-src': ["'self'", ...CSP_DOMAINS.STRIPE],
 
-		// Worker sources for PostHog recorder
+		// Allow same-origin and blobs for web workers (e.g. data visualizations)
 		'worker-src': ["'self'", 'blob:'],
 
 		'object-src': ["'none'"], // Prevent object/embed/applet for security

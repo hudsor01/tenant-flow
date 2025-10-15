@@ -32,14 +32,14 @@ export class OccupancyTrendsService {
 		}
 	}
 
-	private async callRpc(
+	private async callRpc<T = unknown>(
 		functionName: string,
 		payload: Record<string, unknown>
-	): Promise<unknown> {
+	): Promise<T | null> {
 		try {
 			const result = await this.supabase.rpcWithRetries(functionName, payload)
 			const res = result as {
-				data?: unknown
+				data?: T
 				error?: { message?: string } | null
 			}
 			if (res.error) {

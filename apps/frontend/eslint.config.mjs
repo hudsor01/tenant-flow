@@ -140,7 +140,7 @@ export default [
 			'**/next.config.*'
 		],
 		rules: {
-			// PRODUCTION LOGGING ENFORCEMENT - Use PostHog logger instead of console
+			// PRODUCTION LOGGING ENFORCEMENT - Prefer shared logger instead of console
 			// Import: import { createLogger } from '@repo/shared'
 			// Usage: const logger = createLogger({ component: 'ComponentName' }); logger.info('message', { metadata })
 			'no-console': 'warn',
@@ -149,12 +149,12 @@ export default [
 				{
 					selector: 'MemberExpression[object.name="console"]',
 					message:
-						'Direct console access is discouraged. Consider using structured PostHog logging via createLogger() from @repo/shared instead.'
+						'Direct console access is discouraged. Consider using structured logging via createLogger() from @repo/shared instead.'
 				},
 				{
 					selector: 'CallExpression[callee.object.name="console"]',
 					message:
-						'Console method calls are discouraged. Consider PostHog logging: const logger = createLogger({ component: "ComponentName" }); logger.info/warn/error("message")'
+						'Console method calls are discouraged. Consider structured logging: const logger = createLogger({ component: "ComponentName" }); logger.info/warn/error("message")'
 				}
 			]
 		}
