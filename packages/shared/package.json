@@ -57,7 +57,6 @@
 	"dependencies": {
 		"@supabase/ssr": "^0.7.0",
 		"@supabase/supabase-js": "^2.75.0",
-		"posthog-js": "catalog:",
 		"zod": "4.1.12"
 	},
 	"devDependencies": {

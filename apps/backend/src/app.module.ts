@@ -88,7 +88,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 		}),
 
 		// CRITICAL: Global modules must come first for zero-downtime architecture
-		SupabaseModule,
+		SupabaseModule.forRootAsync(),
 		SharedModule,
 		ServicesModule,
 		HealthModule,

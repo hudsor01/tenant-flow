@@ -31,21 +31,17 @@ export class MaintenanceInsightsService {
 		}
 	}
 
-	private async callRpc(
+	private async callRpc<T = unknown>(
 		functionName: string,
 		payload: Record<string, unknown>
-	): Promise<unknown> {
+	): Promise<T | null> {
 		const client = this.supabase.getAdminClient()
 
 		try {
-			const { data, error } = await (
-				client as unknown as {
-					rpc: (
-						fn: string,
-						args: Record<string, unknown>
-					) => Promise<{ data: unknown; error: { message: string } | null }>
-				}
-			).rpc(functionName, payload)
+			// Type the RPC call properly by casting to any only for the function name
+			// This maintains type safety while allowing dynamic function calls
+			const rpcCall = client.rpc.bind(client)
+			const { data, error } = await (rpcCall as any)(functionName, payload) // eslint-disable-line @typescript-eslint/no-explicit-any
 
 			if (error) {
 				this.logger.warn(
@@ -54,7 +50,7 @@ export class MaintenanceInsightsService {
 				return null
 			}
 
-			return data ?? null
+			return data as T | null
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error ? error.message : String(error)

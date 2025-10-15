@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common'
 import type { SupabaseService } from '../../database/supabase.service'
 import { OccupancyTrendsService } from './occupancy-trends.service'
 
@@ -7,6 +8,9 @@ describe('OccupancyTrendsService', () => {
 	let mockRpc: jest.Mock
 
 	beforeEach(() => {
+		// Silence logger warnings in unit tests (these tests intentionally simulate RPC failures)
+		jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined)
+
 		mockRpc = jest.fn()
 		mockSupabase = {
 			getAdminClient: jest.fn().mockReturnValue({ rpc: mockRpc })

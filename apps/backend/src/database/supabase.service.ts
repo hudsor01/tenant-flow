@@ -1,85 +1,25 @@
 import {
+	Inject,
 	Injectable,
 	InternalServerErrorException,
-	Logger,
-	OnModuleInit
+	Logger
 } from '@nestjs/common'
 import type { authUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 import type { Request } from 'express'
+import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
 
 @Injectable()
-export class SupabaseService implements OnModuleInit {
-	private adminClient!: SupabaseClient<Database>
+export class SupabaseService {
 	private readonly logger = new Logger(SupabaseService.name)
 
-	constructor() {
-		// Constructor should be lightweight - move client creation to onModuleInit
-		this.logger.log('SupabaseService constructor called')
-	}
-
-	onModuleInit() {
-		const supabaseUrl = process.env.SUPABASE_URL
-		// Standard service key with platform compatibility validation
-		const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-		// Validate expected aliases exist to prevent deployment issues
-		if (!supabaseServiceKey && process.env.SERVICE_ROLE_KEY) {
-			throw new Error(
-				'SERVICE_ROLE_KEY found but SUPABASE_SERVICE_ROLE_KEY is required - update environment configuration'
-			)
-		}
-		if (!supabaseServiceKey && process.env.SUPABASE_SERVICE_KEY) {
-			throw new Error(
-				'SUPABASE_SERVICE_KEY found but SUPABASE_SERVICE_ROLE_KEY is required - update environment configuration'
-			)
-		}
-
-		if (!supabaseUrl || !supabaseServiceKey) {
-			this.logger.error(
-				'Missing Supabase configuration. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set (via Doppler).',
-				{
-					issue: 'missing_supabase_env',
-					hasSupabaseUrl: !!supabaseUrl,
-					hasServiceKey: !!supabaseServiceKey,
-					env: process.env.NODE_ENV
-				}
-			)
-
-			// During unit tests we expect an exception to be thrown so tests can
-			// validate missing configuration. In other environments (local dev)
-			// prefer to log and return so the app can start.
-			if (process.env.NODE_ENV === 'test') {
-				throw new InternalServerErrorException(
-					'Database service unavailable [SUP-001]'
-				)
-			}
-
-			// Do not throw here to allow the application to start in developer
-			// environments. getAdminClient() will surface a clear error when used.
-			return
-		}
-
-		this.logger.log('Creating Supabase client', {
-			supabaseUrl,
-			hasServiceKey: !!supabaseServiceKey,
-			keyLength: supabaseServiceKey?.length
-		})
-
-		this.adminClient = createClient<Database>(supabaseUrl, supabaseServiceKey, {
-			auth: {
-				persistSession: false,
-				autoRefreshToken: false
-			}
-		})
-
-		try {
-			const urlHost = new URL(supabaseUrl).host
-			this.logger.log('Supabase service initialized', { supabaseHost: urlHost })
-		} catch {
-			this.logger.log('Supabase service initialized')
-		}
+	constructor(
+		@Inject(SUPABASE_ADMIN_CLIENT)
+		private readonly adminClient: SupabaseClient<Database>
+	) {
+		this.logger.debug('SupabaseService initialized with injected admin client')
 	}
 
 	getAdminClient(): SupabaseClient<Database> {
@@ -103,16 +43,14 @@ export class SupabaseService implements OnModuleInit {
 		attempts = 3,
 		backoffMs = 500
 	) {
-		const client = this.getAdminClient()
+		const client = this.adminClient
 		let lastErr: unknown = null
 		for (let i = 0; i < attempts; i++) {
 			try {
-				const rpcFn = (
-					client as unknown as {
-						rpc: (fn: string, args: Record<string, unknown>) => Promise<unknown>
-					}
-				).rpc
-				const result = await rpcFn(fn, args)
+				// `client.rpc` has a union type for known RPC names; perform the
+				// cast in this single wrapper. eslint-disable next-line to avoid lint noise.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const result = await (client as any).rpc(fn, args)
 				return result
 			} catch (err) {
 				lastErr = err
@@ -337,7 +275,10 @@ export class SupabaseService implements OnModuleInit {
 			const fn = 'health_check' // Hardcoded health check function name
 			try {
 				// Attempt RPC call (must exist in DB). Returns ok=true when reachable.
-				const result = await this.adminClient.rpc(fn as never)
+				// Cast the client locally to avoid the generated union-of-names typing
+				// from @supabase/supabase-js — keep the cast confined here.
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const result = await (this.adminClient as any).rpc(fn)
 				const { data, error } = result
 				if (!error && data && typeof data === 'object') {
 					const dataArray = data as unknown[]
@@ -370,8 +311,11 @@ export class SupabaseService implements OnModuleInit {
 
 			// Connectivity check: lightweight HEAD count on a canonical table.
 			const table = 'users' // Use users table for health check
-			const { error } = await this.adminClient
-				.from(table as never)
+			// Use a local cast to avoid picky typings on `.from()` when the table
+			// name is a runtime string.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const { error } = await (this.adminClient as any)
+				.from(table)
 				.select('*', { count: 'exact', head: true })
 
 			if (error) {

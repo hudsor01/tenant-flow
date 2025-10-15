@@ -989,24 +989,36 @@ export class StripeController {
 			// Get subscription details if it exists
 			let subscription = null
 			if (session.subscription) {
-				const subData = await this.stripe.subscriptions.retrieve(
+				const subData = (await this.stripe.subscriptions.retrieve(
 					session.subscription as string,
 					{
 						expand: ['items.data.price.product']
 					}
-				)
+				)) as Stripe.Response<Stripe.Subscription> // Type assertion to handle the response properly
+
+				const items = subData.items?.data ?? []
+				const periodStarts = items
+					.map(item => item.current_period_start)
+					.filter((value): value is number => typeof value === 'number')
+				const periodEnds = items
+					.map(item => item.current_period_end)
+					.filter((value): value is number => typeof value === 'number')
+				const currentPeriodStart =
+					periodStarts.length > 0 ? Math.min(...periodStarts) : null
+				const currentPeriodEnd =
+					periodEnds.length > 0 ? Math.max(...periodEnds) : null
 
 				subscription = {
 					id: subData.id,
 					status: subData.status,
-					current_period_start: Number(
-						(subData as unknown as { current_period_start: number })
-							.current_period_start
-					),
-					current_period_end: Number(
-						(subData as unknown as { current_period_end: number })
-							.current_period_end
-					),
+					current_period_start:
+						typeof currentPeriodStart === 'number'
+							? Number(currentPeriodStart)
+							: null,
+					current_period_end:
+						typeof currentPeriodEnd === 'number'
+							? Number(currentPeriodEnd)
+							: null,
 					cancelAt_period_end: subData.cancel_at_period_end,
 					items: subData.items.data.map(item => ({
 						id: item.id,
