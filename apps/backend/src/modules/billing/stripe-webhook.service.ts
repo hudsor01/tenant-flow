@@ -56,29 +56,39 @@ export class StripeWebhookService {
 
 	/**
 	 * Record that an event is being processed
-	 * Prevents concurrent processing of the same event
+	 * Prevents concurrent processing of the same event using database-level locking
+	 * SECURITY FIX #5: Race condition fix - uses INSERT with conflict check for atomic lock acquisition
 	 */
 	async recordEventProcessing(
 		eventId: string,
 		eventType: string
-	): Promise<void> {
+	): Promise<boolean> {
 		try {
 			const client = this.supabaseService.getAdminClient()
 
-			// Use upsert with onConflict to handle race conditions
-			const { error } = await client.from('processed_stripe_events').upsert(
-				{
+			// SECURITY FIX #5: Use INSERT to atomically acquire lock
+			// First attempt will succeed, concurrent attempts will fail due to unique constraint
+			const { error } = await client
+				.from('processed_stripe_events')
+				.insert({
 					stripe_event_id: eventId,
 					event_type: eventType,
 					processed_at: new Date().toISOString(),
-					status: 'processed' as const
-				},
-				{
-					onConflict: 'stripe_event_id'
-				}
-			)
+					status: 'processing' as const
+				})
+				.select()
 
+			// Check if insert succeeded (got the lock) or failed (someone else got it)
 			if (error) {
+				// Check if error is due to unique constraint violation (23505)
+				if (error.code === '23505' || error.message?.includes('duplicate')) {
+					this.logger.debug(
+						`Event ${eventId} already being processed by another request`
+					)
+					return false // Lock acquisition failed - event is being processed
+				}
+
+				// Other error - log and throw
 				this.logger.error('Failed to record event processing', {
 					eventId,
 					eventType,
@@ -87,7 +97,8 @@ export class StripeWebhookService {
 				throw error
 			}
 
-			this.logger.debug(`Recorded event ${eventId} as processing`)
+			this.logger.debug(`Successfully acquired lock for event ${eventId}`)
+			return true // Lock acquisition succeeded
 		} catch (error) {
 			this.logger.error('Error recording event processing', {
 				eventId,

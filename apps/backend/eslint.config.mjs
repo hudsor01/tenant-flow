@@ -10,11 +10,19 @@ export default [
 	...baseConfig,
 	{
 		name: 'backend/ignores',
-		ignores: ['test/**/*', 'vitest.config.ts', 'jest.config.js']
+		ignores: ['vitest.config.ts', 'jest.config.js']
 	},
 	{
 		name: 'backend/nestjs-overrides',
-		files: ['**/*.ts'],
+		files: [
+			'**/*.ts',
+			'!**/*.spec.ts',
+			'!**/*.test.ts',
+			'!**/*.e2e-spec.ts',
+			'!test/**/*',
+			'!**/test/**/*',
+			'!apps/backend/test/**/*'
+		],
 		languageOptions: {
 			parserOptions: {
 				project: './tsconfig.json',
@@ -37,18 +45,19 @@ export default [
 				'warn',
 				{
 					selector: 'CallExpression[callee.object.name="console"]',
-					message: 'Console method calls are discouraged. Consider using NestJS Logger: constructor(private readonly logger = new Logger(ControllerName.name)) { } then this.logger.log/warn/error("message")'
+					message:
+						'Console method calls are discouraged. Consider using NestJS Logger: constructor(private readonly logger = new Logger(ControllerName.name)) { } then this.logger.log/warn/error("message")'
 				},
 				{
 					selector: 'MemberExpression[object.name="console"]',
-					message: 'Direct console access is discouraged. Consider using NestJS Logger service for structured logging instead'
+					message:
+						'Direct console access is discouraged. Consider using NestJS Logger service for structured logging instead'
 				}
 			],
 			'@typescript-eslint/explicit-function-return-type': 'off',
 			'@typescript-eslint/explicit-module-boundary-types': 'off',
 			'@typescript-eslint/no-empty-function': 'off',
-			'@typescript-eslint/no-namespace': 'off',
-
+			'@typescript-eslint/no-namespace': 'off'
 		}
 	},
 	{
@@ -59,11 +68,10 @@ export default [
 			'@typescript-eslint/ban-ts-comment': [
 				'error',
 				{
-          'ts-expect-error':
-            'allow-with-description',
-            'ts-ignore': false,
-            'ts-nocheck': false,
-            'ts-check': false
+					'ts-expect-error': 'allow-with-description',
+					'ts-ignore': false,
+					'ts-nocheck': false,
+					'ts-check': false
 				}
 			]
 		}
@@ -85,8 +93,19 @@ export default [
 	},
 	{
 		name: 'backend/tests',
-		files: ['**/*.spec.ts', '**/*.test.ts', '**/*.e2e-spec.ts', 'test/**/*.ts'],
+		files: [
+			'**/*.spec.ts',
+			'**/*.test.ts',
+			'**/*.e2e-spec.ts',
+			'test/**/*.ts',
+			'**/test/**/*.ts',
+			'apps/backend/test/**/*.ts'
+		],
 		languageOptions: {
+			parserOptions: {
+				project: './tsconfig.test.json',
+				tsconfigRootDir: import.meta.dirname
+			},
 			globals: {
 				...globals.jest,
 				...globals.node
@@ -94,7 +113,7 @@ export default [
 		},
 		rules: {
 			'no-console': 'off',
-
+			'@typescript-eslint/no-explicit-any': 'off'
 		}
 	},
 	{

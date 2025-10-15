@@ -21,6 +21,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
 import { toast } from 'sonner'
+import { z } from 'zod'
 
 interface MaintenanceEditFormProps {
 	id: string
@@ -92,7 +93,7 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 					...value
 				})
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}

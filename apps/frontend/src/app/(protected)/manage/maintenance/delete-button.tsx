@@ -49,7 +49,7 @@ export function DeleteMaintenanceButton({
 					return { ...old, data: old.data.filter(m => m.id !== maintenance.id) }
 				return old
 			})
-			return { previous }
+			return previous ? { previous } : {}
 		},
 		onError: (
 			err: unknown,

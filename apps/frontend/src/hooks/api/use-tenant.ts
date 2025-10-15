@@ -2,16 +2,10 @@
  * Tenant Hooks
  * TanStack Query hooks for tenant management with Zustand store integration
  * React 19 + TanStack Query v5 patterns with Suspense support
- * Enhanced with comprehensive error handling, analytics, and recovery
  */
 
-import { trackMutationError, trackQueryError } from '@/lib/error-analytics'
-import { handleApiError as _handleApiError } from '@/lib/error-handler'
-import {
-	adaptiveRetryDelay,
-	defaultQueryRetry
-} from '@/lib/query-retry-strategies'
 import { useTenantStore } from '@/stores/tenant-store'
+import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
 	Tenant,
 	TenantInput,
@@ -58,20 +52,6 @@ export function useTenant(id: string) {
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes cache time
-		retry: (failureCount, error) => {
-			const shouldRetry = defaultQueryRetry(failureCount, error)
-			if (!shouldRetry) {
-				trackQueryError(error, [...tenantKeys.detail(id)], {
-					entityType: 'tenant',
-					entityId: id,
-					operation: 'fetch tenant details',
-					retryCount: failureCount
-				})
-			}
-			return shouldRetry
-		},
-		retryDelay: (attemptIndex, error) =>
-			adaptiveRetryDelay(attemptIndex, error),
 		// Use data from list query as placeholder while fetching
 		placeholderData: () => {
 			const cachedList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
@@ -244,19 +224,6 @@ export function useCreateTenant() {
 			)
 			return response
 		},
-		retry: (failureCount, error) => {
-			const shouldRetry = defaultQueryRetry(failureCount, error)
-			if (!shouldRetry) {
-				trackMutationError(error, ['tenants', 'create'], {
-					entityType: 'tenant',
-					operation: 'create tenant',
-					retryCount: failureCount
-				})
-			}
-			return shouldRetry
-		},
-		retryDelay: (attemptIndex, error) =>
-			adaptiveRetryDelay(attemptIndex, error),
 		onMutate: async (newTenant: TenantInput) => {
 			// Cancel outgoing refetches to prevent overwriting optimistic update
 			await queryClient.cancelQueries({ queryKey: tenantKeys.list() })
@@ -305,7 +272,7 @@ export function useCreateTenant() {
 			}
 
 			// Show user-friendly error message
-			_handleApiError(err, 'create tenant', 'tenant')
+			logger.error('Failed to create tenant', { error: err })
 		},
 		onSuccess: (data, _variables, context) => {
 			// Replace temporary entry with real data
@@ -439,7 +406,7 @@ export function useUpdateTenant() {
 			}
 
 			// Show user-friendly error message
-			_handleApiError(err, 'update tenant', 'tenant')
+			logger.error('Failed to update tenant', { error: err })
 		},
 
 		onSuccess: data => {

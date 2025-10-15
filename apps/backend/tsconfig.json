@@ -29,7 +29,10 @@
 		"test/email/**/*",
 		"node_modules/zod/v4/locales/**/*",
 		"dist/**/*",
-		"src/emails/**/*.js"
+		"src/emails/**/*.js",
+		"**/*.test.*",
+		"**/*.spec.*",
+		"**/*.e2e-spec.*"
 	],
 	"references": [
 		{ "path": "../../packages/shared" },

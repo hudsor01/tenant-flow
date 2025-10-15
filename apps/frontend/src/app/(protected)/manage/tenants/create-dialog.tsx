@@ -31,15 +31,13 @@ import {
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-import { tenantsApi } from '@/lib/api-client'
+import { useCreateTenant } from '@/hooks/api/use-tenant'
 import { useFormStep, useUIStore } from '@/stores/ui-store'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { CreateTenantInput } from '@repo/shared/types/api-inputs'
 import { tenantFormSchema } from '@repo/shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-
-type InsertTenant = Database['public']['Tables']['tenant']['Insert']
+import { z } from 'zod'
 
 const FORM_STEPS = [
 	{
@@ -63,18 +61,8 @@ export function CreateTenantDialog() {
 	const [isOpen, setIsOpen] = useState(false)
 	const logger = createLogger({ component: 'CreateTenantDialog' })
 
-	const qc = useQueryClient()
-	const createTenant = useMutation({
-		mutationFn: (values: InsertTenant) => tenantsApi.create(values),
-		onSuccess: () => {
-			qc.invalidateQueries({ queryKey: ['tenants'] })
-			qc.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
-			toast.success('Tenant created successfully')
-		},
-		onError: (error: Error) => {
-			toast.error('Failed to create tenant', { description: error.message })
-		}
-	})
+	// Use modern TanStack Query hook with optimistic updates
+	const createTenantMutation = useCreateTenant()
 
 	const { setFormProgress, resetFormProgress } = useUIStore()
 	const {
@@ -115,8 +103,8 @@ export function CreateTenantDialog() {
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				// Transform form data to match Database Insert type
-				const tenantData: Omit<InsertTenant, 'userId'> = {
+				// Transform form data to match CreateTenantInput type
+				const tenantData: CreateTenantInput = {
 					name: value.name,
 					email: value.email,
 					phone: value.phone || null,
@@ -126,7 +114,7 @@ export function CreateTenantDialog() {
 					avatarUrl: value.avatarUrl || null
 				}
 
-				await createTenant.mutateAsync(tenantData as InsertTenant)
+				await createTenantMutation.mutateAsync(tenantData)
 				toast.success('Tenant created successfully')
 				setIsOpen(false)
 				form.reset()
@@ -144,7 +132,7 @@ export function CreateTenantDialog() {
 			onChange: ({ value }) => {
 				const result = tenantFormSchema.safeParse(value)
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}
@@ -480,11 +468,13 @@ export function CreateTenantDialog() {
 							{isLastStep ? (
 								<Button
 									type="submit"
-									disabled={createTenant.isPending}
+									disabled={createTenantMutation.isPending}
 									className="flex items-center gap-2"
 								>
 									<CheckCircle className="size-4" />
-									{createTenant.isPending ? 'Creating...' : 'Create Tenant'}
+									{createTenantMutation.isPending
+										? 'Creating...'
+										: 'Create Tenant'}
 								</Button>
 							) : (
 								<Button

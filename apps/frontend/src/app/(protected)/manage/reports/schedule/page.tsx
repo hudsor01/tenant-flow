@@ -38,12 +38,14 @@ import {
 } from '@/components/ui/table'
 import {
 	reportsClient,
+	type CreateScheduleParams,
 	type ReportType,
 	type ScheduledReport
 } from '@/lib/api/reports-client'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { format } from 'date-fns'
 import { Calendar, Clock, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 const REPORT_TYPES: { value: ReportType; label: string }[] = [
@@ -71,6 +73,10 @@ export default function ScheduleReportsPage() {
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [deleteScheduleId, setDeleteScheduleId] = useState<string | null>(null)
 	const [isDeleting, setIsDeleting] = useState(false)
+	const logger = useMemo(
+		() => createLogger({ component: 'ScheduleReportsPage' }),
+		[]
+	)
 
 	// Form state
 	const [reportType, setReportType] = useState<ReportType>('executive-monthly')
@@ -85,6 +91,25 @@ export default function ScheduleReportsPage() {
 	const [startDate, setStartDate] = useState('')
 	const [endDate, setEndDate] = useState('')
 
+	const loadSchedules = useCallback(async () => {
+		try {
+			setIsLoading(true)
+			const data = await reportsClient.listSchedules()
+			setSchedules(data)
+		} catch (error) {
+			logger.error(
+				'Failed to load schedules',
+				{ action: 'loadSchedules' },
+				error
+			)
+			toast.error(
+				error instanceof Error ? error.message : 'Failed to load schedules'
+			)
+		} finally {
+			setIsLoading(false)
+		}
+	}, [logger])
+
 	useEffect(() => {
 		loadSchedules()
 		// Set default date range (last 30 days)
@@ -93,21 +118,7 @@ export default function ScheduleReportsPage() {
 		start.setDate(start.getDate() - 30)
 		setStartDate(start.toISOString().split('T')[0] || '')
 		setEndDate(end.toISOString().split('T')[0] || '')
-	}, [])
-
-	async function loadSchedules() {
-		try {
-			setIsLoading(true)
-			const data = await reportsClient.listSchedules()
-			setSchedules(data)
-		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : 'Failed to load schedules'
-			)
-		} finally {
-			setIsLoading(false)
-		}
-	}
+	}, [loadSchedules])
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault()
@@ -120,23 +131,35 @@ export default function ScheduleReportsPage() {
 		try {
 			setIsSubmitting(true)
 
-			await reportsClient.createSchedule({
+			const scheduleParams: CreateScheduleParams = {
 				reportType,
 				reportName: reportName.trim(),
 				format: reportFormat,
 				frequency,
-				dayOfWeek: frequency === 'weekly' ? dayOfWeek : undefined,
-				dayOfMonth: frequency === 'monthly' ? dayOfMonth : undefined,
 				hour,
-				timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-				startDate,
-				endDate
-			})
+				timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+			}
+
+			if (startDate) {
+				scheduleParams.startDate = startDate
+			}
+			if (endDate) {
+				scheduleParams.endDate = endDate
+			}
+			if (frequency === 'weekly' && dayOfWeek !== undefined) {
+				scheduleParams.dayOfWeek = dayOfWeek
+			}
+			if (frequency === 'monthly' && dayOfMonth !== undefined) {
+				scheduleParams.dayOfMonth = dayOfMonth
+			}
+
+			await reportsClient.createSchedule(scheduleParams)
 
 			toast.success('Schedule created successfully')
 			setReportName('')
 			loadSchedules()
 		} catch (error) {
+			logger.error('Failed to create schedule', { reportType }, error)
 			toast.error(
 				error instanceof Error ? error.message : 'Failed to create schedule'
 			)
@@ -155,6 +178,11 @@ export default function ScheduleReportsPage() {
 			setDeleteScheduleId(null)
 			loadSchedules()
 		} catch (error) {
+			logger.error(
+				'Failed to delete schedule',
+				{ scheduleId: deleteScheduleId ?? 'unknown' },
+				error
+			)
 			toast.error(
 				error instanceof Error ? error.message : 'Failed to delete schedule'
 			)

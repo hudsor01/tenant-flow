@@ -62,7 +62,8 @@ describe('AnalyticsController', () => {
 		})
 
 		it('should use sessionId as distinctId when userId is not provided', async () => {
-			const dataWithoutUserId = { ...validWebVitalData, userId: undefined }
+			const dataWithoutUserId: WebVitalData = { ...validWebVitalData }
+			delete dataWithoutUserId.userId
 
 			await controller.reportWebVitals(dataWithoutUserId)
 
@@ -75,11 +76,9 @@ describe('AnalyticsController', () => {
 		})
 
 		it('should use id as distinctId when neither userId nor sessionId are provided', async () => {
-			const dataWithoutIds = {
-				...validWebVitalData,
-				userId: undefined,
-				sessionId: undefined
-			}
+			const dataWithoutIds: WebVitalData = { ...validWebVitalData }
+			delete dataWithoutIds.userId
+			delete dataWithoutIds.sessionId
 
 			await controller.reportWebVitals(dataWithoutIds)
 

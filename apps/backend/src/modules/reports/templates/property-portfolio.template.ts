@@ -108,7 +108,7 @@ export class PropertyPortfolioTemplate {
 			unitStatistics: unitStatistics.map(stat => ({
 				label: stat.label,
 				value: stat.value,
-				trend: stat.trend ?? undefined
+				...(stat.trend !== null ? { trend: stat.trend } : {})
 			})),
 			vacancyAnalysis,
 			period: {

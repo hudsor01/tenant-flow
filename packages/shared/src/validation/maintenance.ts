@@ -196,16 +196,16 @@ export const maintenanceRequestFormSchema = z
 			title: string
 			description: string
 			priority: string
-			category?: string
+			category?: string | undefined
 			unitId: string
-			requestedBy?: string
-			assignedTo?: string
-			contactPhone?: string
+			requestedBy?: string | undefined
+			assignedTo?: string | undefined
+			contactPhone?: string | undefined
 			allowEntry: boolean
-			estimatedCost?: number
+			estimatedCost?: number | undefined
 			photos: string[]
-			preferredDate?: string
-			notes?: string
+			preferredDate?: string | undefined
+			notes?: string | undefined
 		}) => ({
 			...data,
 			priority: data.priority as MaintenancePriorityValidation,
@@ -251,17 +251,17 @@ export const maintenanceRequestUpdateFormSchema = z
 	})
 	.transform(
 		(data: {
-			title?: string
-			description?: string
-			priority?: string
-			category?: string
-			estimatedCost?: number
-			notes?: string
-			preferredDate?: string
+			title?: string | undefined
+			description?: string | undefined
+			priority?: string | undefined
+			category?: string | undefined
+			estimatedCost?: number | undefined
+			notes?: string | undefined
+			preferredDate?: string | undefined
 			allowEntry: boolean
-			status?: string
-			actualCost?: number
-			completedAt?: string
+			status?: string | undefined
+			actualCost?: number | undefined
+			completedAt?: string | undefined
 		}) => ({
 			...data,
 			priority: data.priority as MaintenancePriorityValidation | undefined,

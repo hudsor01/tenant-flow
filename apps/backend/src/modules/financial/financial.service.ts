@@ -1,16 +1,12 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import type {
 	FinancialMetrics,
 	Lease,
 	PropertyFinancialMetrics
 } from '@repo/shared/types/core'
 import type { Tables } from '@repo/shared/types/supabase'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
-import type { ILeasesRepository } from '../../repositories/interfaces/leases-repository.interface'
-import type { IMaintenanceRepository } from '../../repositories/interfaces/maintenance-repository.interface'
-import type { IPropertiesRepository } from '../../repositories/interfaces/properties-repository.interface'
-import type { IUnitsRepository } from '../../repositories/interfaces/units-repository.interface'
-import { REPOSITORY_TOKENS } from '../../repositories/repositories.module'
 
 type ExpenseRecord = Tables<'expense'>
 
@@ -18,17 +14,32 @@ type ExpenseRecord = Tables<'expense'>
 export class FinancialService {
 	private readonly logger = new Logger(FinancialService.name)
 
-	constructor(
-		@Inject(REPOSITORY_TOKENS.PROPERTIES)
-		private readonly propertiesRepository: IPropertiesRepository,
-		@Inject(REPOSITORY_TOKENS.LEASES)
-		private readonly leasesRepository: ILeasesRepository,
-		@Inject(REPOSITORY_TOKENS.UNITS)
-		private readonly unitsRepository: IUnitsRepository,
-		@Inject(REPOSITORY_TOKENS.MAINTENANCE)
-		private readonly maintenanceRepository: IMaintenanceRepository,
-		private readonly supabaseService: SupabaseService
-	) {}
+	constructor(private readonly supabaseService: SupabaseService) {}
+
+	/**
+	 * Helper: Get unit IDs for user's properties
+	 * Used to filter leases/maintenance since they don't have org_id/owner_id
+	 */
+	private async getUserUnitIds(userId: string): Promise<string[]> {
+		const client = this.supabaseService.getAdminClient()
+
+		// Get user's property IDs
+		const { data: properties } = await client
+			.from('property')
+			.select('id')
+			.eq('owner_id', userId)
+
+		const propertyIds = properties?.map(p => p.id) || []
+		if (propertyIds.length === 0) return []
+
+		// Get unit IDs for those properties
+		const { data: units } = await client
+			.from('unit')
+			.select('id')
+			.in('property_id', propertyIds)
+
+		return units?.map(u => u.id) || []
+	}
 
 	/**
 	 * Get expense summary - replaces get_expense_summary function
@@ -79,8 +90,7 @@ export class FinancialService {
 	}
 
 	/**
-	 * Get financial overview - replaces get_financial_overview function
-	 * Uses repository pattern instead of database function
+	 * Get financial overview - Direct Supabase queries
 	 */
 	async getOverview(
 		userId: string,
@@ -88,45 +98,88 @@ export class FinancialService {
 	): Promise<Record<string, unknown>> {
 		try {
 			const targetYear = year || new Date().getFullYear()
-			this.logger.log('Getting financial overview via repositories', {
-				userId,
-				targetYear
-			})
+			this.logger.log(
+				'Getting financial overview via direct Supabase queries',
+				{
+					userId,
+					targetYear
+				}
+			)
 
-			const [
-				propertyStats,
-				unitStats,
-				leaseStats,
-				maintenanceAnalytics,
-				financialAnalytics
-			] = await Promise.all([
-				this.propertiesRepository.getStats(userId),
-				this.unitsRepository.getStats(userId),
-				this.leasesRepository.getStats(userId),
-				this.maintenanceRepository.getAnalytics(userId, { timeframe: '12m' }),
-				this.propertiesRepository.getFinancialAnalytics(userId, {
-					timeframe: '12m'
-				})
+			const client = this.supabaseService.getAdminClient()
+
+			// Get user's property IDs first
+			const { data: properties } = await client
+				.from('property')
+				.select('id')
+				.eq('owner_id', userId)
+
+			const propertyRows = (properties ?? []) as Array<{ id: string }>
+			const propertyIds = propertyRows.map(p => p.id)
+			if (propertyIds.length === 0) {
+				return this.getEmptyOverview(targetYear)
+			}
+
+			// Get unit IDs for user's properties
+			const { data: units } = await client
+				.from('unit')
+				.select('id, status')
+				.in('property_id', propertyIds)
+
+			type UnitStatus = Database['public']['Enums']['UnitStatus']
+			const unitRows = (units ?? []).map(unit => ({
+				id: unit.id,
+				status: unit.status as UnitStatus
+			}))
+			const unitIds = unitRows.map(u => u.id)
+			if (unitIds.length === 0) {
+				return this.getEmptyOverview(targetYear)
+			}
+
+			// Fetch leases and maintenance data using unit IDs
+			const [leasesData, maintenanceData] = await Promise.all([
+				client.from('lease').select('*').in('unit_id', unitIds),
+				client
+					.from('maintenance_request')
+					.select('estimatedCost, status')
+					.in('unit_id', unitIds)
 			])
 
-			const totalRevenue = financialAnalytics.reduce(
-				(sum, metric) => sum + (metric.revenue || 0),
+			const leases = leasesData.data || []
+			const maintenanceRows = (maintenanceData.data ?? []) as Array<
+				Pick<MaintenanceRow, 'estimatedCost' | 'status'>
+			>
+
+			// Calculate stats
+			type LeaseRow = Database['public']['Tables']['lease']['Row']
+			const totalRevenue = leases.reduce(
+				(sum, lease: LeaseRow) => sum + (lease.rentAmount || 0),
 				0
 			)
-			const totalExpenses = financialAnalytics.reduce(
-				(sum, metric) => sum + (metric.expenses || 0),
+			const expenses = await this.fetchExpenses(
+				propertyIds,
+				new Date(targetYear, 0, 1),
+				new Date(targetYear + 1, 0, 1)
+			)
+			const totalExpenses = expenses.reduce(
+				(sum, exp) => sum + (exp.amount || 0),
 				0
 			)
 			const netIncome = totalRevenue - totalExpenses
-			const occupancyRate = unitStats.occupancyRate || 0
+			type MaintenanceRow =
+				Database['public']['Tables']['maintenance_request']['Row']
+			const occupancyRate =
+				unitRows.length > 0
+					? Math.round(
+							(unitRows.filter(u => u.status === 'OCCUPIED').length /
+								unitRows.length) *
+								100
+						)
+					: 0
 			const roi =
 				totalRevenue > 0 ? Math.round((netIncome / totalRevenue) * 100) : 0
-			const avgPropertyRevenue =
-				financialAnalytics.length > 0
-					? totalRevenue / financialAnalytics.length
-					: 0
-			const totalMaintenanceCost = financialAnalytics.reduce(
-				(sum, metric) => sum + (metric.maintenanceExpenses || 0),
+			const totalMaintenanceCost = maintenanceRows.reduce(
+				(sum: number, m) => sum + (m.estimatedCost || 0),
 				0
 			)
 
@@ -139,26 +192,34 @@ export class FinancialService {
 					occupancyRate
 				},
 				properties: {
-					total: propertyStats.total,
-					avgValue: avgPropertyRevenue
+					total: propertyRows.length,
+					avgValue:
+						propertyRows.length > 0 ? totalRevenue / propertyRows.length : 0
 				},
 				units: {
-					total: unitStats.total,
-					occupied: unitStats.occupied,
-					vacant: unitStats.vacant,
+					total: unitRows.length,
+					occupied: unitRows.filter(u => u.status === 'OCCUPIED').length,
+					vacant: unitRows.filter(u => u.status === 'VACANT').length,
 					occupancyRate
 				},
 				leases: {
-					total: leaseStats.total,
-					active: leaseStats.active,
-					expiring: leaseStats.expiringSoon || 0
+					total: leases.length,
+					active: leases.filter((l: LeaseRow) => l.status === 'ACTIVE').length,
+					expiring: leases.filter((l: LeaseRow) => {
+						const endDate = new Date(l.endDate)
+						const now = new Date()
+						const thirtyDaysFromNow = new Date(
+							now.getTime() + 30 * 24 * 60 * 60 * 1000
+						)
+						return endDate > now && endDate <= thirtyDaysFromNow
+					}).length
 				},
 				maintenance: {
-					totalRequests: maintenanceAnalytics.length,
+					totalRequests: maintenanceRows.length,
 					totalCost: totalMaintenanceCost,
 					avgCost:
-						maintenanceAnalytics.length > 0
-							? totalMaintenanceCost / maintenanceAnalytics.length
+						maintenanceRows.length > 0
+							? totalMaintenanceCost / maintenanceRows.length
 							: 0
 				},
 				year: targetYear
@@ -174,54 +235,76 @@ export class FinancialService {
 	}
 
 	/**
-	 * Get lease financial summary - replaces get_lease_financial_summary function
-	 * Uses repository pattern instead of database function
+	 * Get lease financial summary - Direct Supabase queries
 	 */
 	async getLeaseFinancialSummary(
 		userId: string
 	): Promise<Record<string, unknown>> {
 		try {
-			this.logger.log('Getting lease financial summary via repositories', {
-				userId
-			})
+			this.logger.log(
+				'Getting lease financial summary via direct Supabase queries',
+				{
+					userId
+				}
+			)
 
-			const [leaseStats, leaseAnalytics] = await Promise.all([
-				this.leasesRepository.getStats(userId),
-				this.leasesRepository.getAnalytics(userId, { timeframe: '12m' })
-			])
+			const client = this.supabaseService.getAdminClient()
+
+			// Get user's unit IDs
+			const unitIds = await this.getUserUnitIds(userId)
+			if (unitIds.length === 0) {
+				return this.getEmptyLeaseSummary()
+			}
+
+			const { data: leases, error } = await client
+				.from('lease')
+				.select('*')
+				.in('unit_id', unitIds)
+
+			if (error) {
+				throw new Error(`Failed to fetch leases: ${error.message}`)
+			}
+
+			const leaseList = leases || []
+			const now = new Date()
+			const thirtyDaysFromNow = new Date(
+				now.getTime() + 30 * 24 * 60 * 60 * 1000
+			)
 
 			// Calculate lease financial metrics
-			const totalRevenue = leaseAnalytics.reduce(
-				(sum: number, lease: Lease) => {
-					return sum + (lease.rentAmount || 0)
-				},
+			type LeaseRow = Database['public']['Tables']['lease']['Row']
+			const totalRevenue = leaseList.reduce(
+				(sum, lease: LeaseRow) => sum + (lease.rentAmount || 0),
 				0
 			)
 
 			const averageRent =
-				leaseAnalytics.length > 0 ? totalRevenue / leaseAnalytics.length : 0
+				leaseList.length > 0 ? totalRevenue / leaseList.length : 0
 
 			// Calculate lease duration analytics
-			const totalDuration = leaseAnalytics.reduce(
-				(sum: number, lease: Lease) => {
-					const start = new Date(lease.startDate)
-					const end = new Date(lease.endDate)
-					const durationMonths =
-						(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30.44)
-					return sum + durationMonths
-				},
-				0
-			)
+			const totalDuration = leaseList.reduce((sum, lease: LeaseRow) => {
+				const start = new Date(lease.startDate)
+				const end = new Date(lease.endDate)
+				const durationMonths =
+					(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30.44)
+				return sum + durationMonths
+			}, 0)
 
 			const averageDuration =
-				leaseAnalytics.length > 0 ? totalDuration / leaseAnalytics.length : 0
+				leaseList.length > 0 ? totalDuration / leaseList.length : 0
 
 			return {
 				summary: {
-					totalLeases: leaseStats.total,
-					activeLeases: leaseStats.active,
-					expiredLeases: leaseStats.expired || 0,
-					expiringSoon: leaseStats.expiringSoon || 0
+					totalLeases: leaseList.length,
+					activeLeases: leaseList.filter((l: LeaseRow) => l.status === 'ACTIVE')
+						.length,
+					expiredLeases: leaseList.filter(
+						(l: LeaseRow) => new Date(l.endDate) < now
+					).length,
+					expiringSoon: leaseList.filter((l: LeaseRow) => {
+						const endDate = new Date(l.endDate)
+						return endDate > now && endDate <= thirtyDaysFromNow
+					}).length
 				},
 				financial: {
 					totalRevenue,
@@ -243,7 +326,7 @@ export class FinancialService {
 	}
 
 	/**
-	 * Get revenue trends - extracted from controller
+	 * Get revenue trends - Direct Supabase queries
 	 */
 	async getRevenueTrends(
 		userId: string,
@@ -251,21 +334,33 @@ export class FinancialService {
 	): Promise<FinancialMetrics[]> {
 		try {
 			const targetYear = year || new Date().getFullYear()
-			this.logger.log('Getting revenue trends via repositories', {
+			this.logger.log('Getting revenue trends via direct Supabase queries', {
 				userId,
 				targetYear
 			})
 
 			const propertyIds = await this.getUserPropertyIds(userId)
+			const unitIds = await this.getUserUnitIds(userId)
+
+			if (unitIds.length === 0) {
+				return this.getEmptyMonthlyMetrics(targetYear)
+			}
+
 			const yearStart = new Date(targetYear, 0, 1)
 			const yearEnd = new Date(targetYear + 1, 0, 1)
 
-			const [leases, expenses] = await Promise.all([
-				this.leasesRepository.getAnalytics(userId, { timeframe: '12m' }),
-				this.fetchExpenses(propertyIds, yearStart, yearEnd)
-			])
+			const client = this.supabaseService.getAdminClient()
+			const { data: leases } = await client
+				.from('lease')
+				.select('*')
+				.in('unit_id', unitIds)
 
-			const revenueByMonth = this.calculateMonthlyRevenue(leases, targetYear)
+			const expenses = await this.fetchExpenses(propertyIds, yearStart, yearEnd)
+
+			const revenueByMonth = this.calculateMonthlyRevenue(
+				leases || [],
+				targetYear
+			)
 			const expensesByMonth = this.groupExpensesByMonth(expenses)
 			const monthlyMetrics: FinancialMetrics[] = []
 
@@ -298,35 +393,81 @@ export class FinancialService {
 	}
 
 	/**
-	 * Get Net Operating Income - extracted from controller
+	 * Get Net Operating Income - Direct Supabase queries
 	 */
 	async getNetOperatingIncome(
 		userId: string,
 		period = 'monthly'
 	): Promise<PropertyFinancialMetrics[]> {
 		try {
-			this.logger.log('Getting Net Operating Income via repositories', {
-				userId,
-				period
-			})
+			this.logger.log(
+				'Getting Net Operating Income via direct Supabase queries',
+				{
+					userId,
+					period
+				}
+			)
 
-			const timeframe = this.periodToTimeframe(period)
-			const financialAnalytics =
-				await this.propertiesRepository.getFinancialAnalytics(userId, {
-					timeframe
+			const client = this.supabaseService.getAdminClient()
+			const { data: properties } = await client
+				.from('property')
+				.select('id, name')
+				.eq('owner_id', userId)
+
+			const propertyRows = (properties ?? []) as Array<{
+				id: string
+				name: string | null
+			}>
+			if (propertyRows.length === 0) {
+				return []
+			}
+
+			// Calculate financial metrics for each property
+			const metrics = await Promise.all(
+				propertyRows.map(async property => {
+					// Get unit IDs for this property
+					const { data: units } = await client
+						.from('unit')
+						.select('id')
+						.eq('property_id', property.id)
+
+					const unitIds = units?.map(u => u.id) || []
+
+					let revenue = 0
+					if (unitIds.length > 0) {
+						const { data: leases } = await client
+							.from('lease')
+							.select('rentAmount')
+							.in('unit_id', unitIds)
+							.eq('status', 'ACTIVE')
+
+						revenue = (
+							(leases ?? []) as Array<{ rentAmount: number | null }>
+						).reduce((sum, lease) => sum + (lease.rentAmount ?? 0), 0)
+					}
+
+					const expenses = await this.fetchExpenses([property.id])
+					const totalExpenses = expenses.reduce(
+						(sum, exp) => sum + (exp.amount || 0),
+						0
+					)
+
+					const netIncome = revenue - totalExpenses
+					const roi = revenue > 0 ? Math.round((netIncome / revenue) * 100) : 0
+
+					return {
+						propertyId: property.id,
+						propertyName: property.name ?? property.id,
+						revenue,
+						expenses: totalExpenses,
+						netIncome,
+						roi,
+						period
+					}
 				})
-			return financialAnalytics.map(metric => ({
-				propertyId: metric.propertyId,
-				propertyName: metric.propertyName,
-				revenue: metric.revenue,
-				expenses: metric.expenses,
-				netIncome: metric.netIncome,
-				roi:
-					metric.revenue > 0
-						? Math.round((metric.netIncome / metric.revenue) * 100)
-						: 0,
-				period
-			}))
+			)
+
+			return metrics
 		} catch (error) {
 			this.logger.error('Failed to get Net Operating Income', {
 				error: error instanceof Error ? error.message : String(error),
@@ -338,8 +479,13 @@ export class FinancialService {
 	}
 
 	private async getUserPropertyIds(userId: string) {
-		const properties = await this.propertiesRepository.findByUserId(userId)
-		return properties.map(property => property.id)
+		const client = this.supabaseService.getAdminClient()
+		const { data } = await client
+			.from('property')
+			.select('id')
+			.eq('owner_id', userId)
+		const rows = (data ?? []) as Array<{ id: string }>
+		return rows.map(property => property.id)
 	}
 
 	private calculateYearRange(year: number) {
@@ -364,7 +510,7 @@ export class FinancialService {
 				.getAdminClient()
 				.from('expense')
 				.select('*')
-				.in('propertyId', propertyIds)
+				.in('property_id', propertyIds)
 
 			if (startDate) {
 				query = query.gte('date', startDate.toISOString())
@@ -443,20 +589,70 @@ export class FinancialService {
 		return `${year}-${(monthIndex + 1).toString().padStart(2, '0')}`
 	}
 
-	private periodToTimeframe(period: string) {
-		switch (period.toLowerCase()) {
-			case 'daily':
-				return '7d'
-			case 'weekly':
-				return '30d'
-			case 'monthly':
-				return '30d'
-			case 'quarterly':
-				return '90d'
-			case 'yearly':
-				return '365d'
-			default:
-				return '12m'
+	private getEmptyOverview(targetYear: number) {
+		return {
+			summary: {
+				totalRevenue: 0,
+				totalExpenses: 0,
+				netIncome: 0,
+				roi: 0,
+				occupancyRate: 0
+			},
+			properties: {
+				total: 0,
+				avgValue: 0
+			},
+			units: {
+				total: 0,
+				occupied: 0,
+				vacant: 0,
+				occupancyRate: 0
+			},
+			leases: {
+				total: 0,
+				active: 0,
+				expiring: 0
+			},
+			maintenance: {
+				totalRequests: 0,
+				totalCost: 0,
+				avgCost: 0
+			},
+			year: targetYear
 		}
+	}
+
+	private getEmptyLeaseSummary() {
+		return {
+			summary: {
+				totalLeases: 0,
+				activeLeases: 0,
+				expiredLeases: 0,
+				expiringSoon: 0
+			},
+			financial: {
+				totalRevenue: 0,
+				averageRent: 0,
+				projectedAnnualRevenue: 0
+			},
+			duration: {
+				averageDurationMonths: 0,
+				totalDurationMonths: 0
+			}
+		}
+	}
+
+	private getEmptyMonthlyMetrics(targetYear: number): FinancialMetrics[] {
+		const monthlyMetrics: FinancialMetrics[] = []
+		for (let month = 0; month < 12; month++) {
+			monthlyMetrics.push({
+				period: this.buildMonthKey(targetYear, month),
+				revenue: 0,
+				expenses: 0,
+				netIncome: 0,
+				profitMargin: 0
+			})
+		}
+		return monthlyMetrics
 	}
 }

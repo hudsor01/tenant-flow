@@ -2,7 +2,6 @@ import {
 	BadRequestException,
 	Controller,
 	Get,
-	Inject,
 	Logger,
 	Query,
 	Req,
@@ -17,35 +16,41 @@ import type {
 import type { Tables } from '@repo/shared/types/supabase'
 import type { Request } from 'express'
 import { SupabaseService } from '../../database/supabase.service'
-import type { ILeasesRepository } from '../../repositories/interfaces/leases-repository.interface'
-import type { IPropertiesRepository } from '../../repositories/interfaces/properties-repository.interface'
-import type { IUnitsRepository } from '../../repositories/interfaces/units-repository.interface'
-import { REPOSITORY_TOKENS } from '../../repositories/repositories.module'
 
 type ExpenseRecord = Tables<'expense'>
 
 /**
- * Financial Analytics Controller - Repository Pattern Implementation
- *  - All calculations via repository using direct table queries
- * Aggregates data from multiple repositories for financial metrics
+ * Financial Analytics Controller - Ultra-Native Implementation
+ * Direct Supabase queries, no repository dependencies
  */
 @Controller('financial/analytics')
 export class FinancialAnalyticsController {
 	private readonly logger = new Logger(FinancialAnalyticsController.name)
 
-	constructor(
-		private readonly supabaseService: SupabaseService,
-		@Inject(REPOSITORY_TOKENS.PROPERTIES)
-		private readonly propertiesRepository: IPropertiesRepository,
-		@Inject(REPOSITORY_TOKENS.LEASES)
-		private readonly leasesRepository: ILeasesRepository,
-		@Inject(REPOSITORY_TOKENS.UNITS)
-		private readonly unitsRepository: IUnitsRepository
-	) {}
+	constructor(private readonly supabaseService: SupabaseService) {}
 
 	/**
-	 * Get revenue trends via repositories - DIRECT TABLE QUERIES
-	 *  - Aggregates data from multiple repositories in TypeScript
+	 * Helper method to get unit IDs for a user (via property ownership)
+	 */
+	private async getUserUnitIds(userId: string): Promise<string[]> {
+		const client = this.supabaseService.getAdminClient()
+		const { data: properties } = await client
+			.from('property')
+			.select('id')
+			.eq('owner_id', userId)
+		const propertyIds = properties?.map(p => p.id) || []
+		if (propertyIds.length === 0) return []
+
+		const { data: units } = await client
+			.from('unit')
+			.select('id')
+			.in('property_id', propertyIds)
+		return units?.map(u => u.id) || []
+	}
+
+	/**
+	 * Get revenue trends - DIRECT TABLE QUERIES
+	 *  - Aggregates data from Supabase tables in TypeScript
 	 */
 	@Get('revenue-trends')
 	async getRevenueTrends(
@@ -73,7 +78,7 @@ export class FinancialAnalyticsController {
 				)
 			}
 
-			this.logger.log('Getting revenue trends via repositories', {
+			this.logger.log('Getting revenue trends via direct Supabase queries', {
 				userId: user.id,
 				targetYear
 			})
@@ -81,15 +86,21 @@ export class FinancialAnalyticsController {
 			const yearStart = new Date(targetYear, 0, 1)
 			const yearEnd = new Date(targetYear + 1, 0, 1)
 
+			const client = this.supabaseService.getAdminClient()
 			const propertyContext = await this.buildPropertyContext(user.id)
-			const [leases, expenses] = await Promise.all([
-				this.leasesRepository.getAnalytics(user.id, { timeframe: '12m' }),
+			const unitIds = await this.getUserUnitIds(user.id)
+
+			const [leasesData, expenses] = await Promise.all([
+				unitIds.length > 0
+					? client.from('lease').select('*').in('unit_id', unitIds)
+					: Promise.resolve({ data: [] }),
 				this.fetchExpensesForProperties(
 					propertyContext.propertyIds,
 					yearStart,
 					yearEnd
 				)
 			])
+			const leases = leasesData.data || []
 
 			const revenueByMonth = this.calculateMonthlyRevenue(leases, targetYear)
 			const expensesByMonth = this.groupExpensesByMonth(expenses)
@@ -114,12 +125,15 @@ export class FinancialAnalyticsController {
 
 			return monthlyMetrics
 		} catch (error) {
-			this.logger.error('Failed to get revenue trends via repositories', {
-				error: error instanceof Error ? error.message : String(error),
-				stack: error instanceof Error ? error.stack : undefined,
-				userId: user.id,
-				year
-			})
+			this.logger.error(
+				'Failed to get revenue trends via direct Supabase queries',
+				{
+					error: error instanceof Error ? error.message : String(error),
+					stack: error instanceof Error ? error.stack : undefined,
+					userId: user.id,
+					year
+				}
+			)
 
 			// Re-throw validation errors with their messages, sanitize other errors
 			if (error instanceof BadRequestException) {
@@ -131,8 +145,8 @@ export class FinancialAnalyticsController {
 	}
 
 	/**
-	 * Get dashboard financial metrics via repositories - DIRECT TABLE QUERIES
-	 *  - Aggregates data from multiple repositories in TypeScript
+	 * Get dashboard financial metrics - DIRECT TABLE QUERIES
+	 *  - Aggregates data from Supabase tables in TypeScript
 	 */
 	@Get('dashboard-metrics')
 	async getDashboardMetrics(@Req() req: Request): Promise<DashboardSummary> {
@@ -142,22 +156,50 @@ export class FinancialAnalyticsController {
 		}
 
 		try {
-			this.logger.log('Getting dashboard financial metrics via repositories', {
-				userId: user.id
-			})
+			this.logger.log(
+				'Getting dashboard financial metrics via direct Supabase queries',
+				{
+					userId: user.id
+				}
+			)
 
+			const client = this.supabaseService.getAdminClient()
 			const propertyContext = await this.buildPropertyContext(user.id)
-			const [propertyStats, unitStats, leaseAnalytics, expenses] =
+			const unitIds = await this.getUserUnitIds(user.id)
+
+			const [propertiesData, unitsData, leasesData, expenses] =
 				await Promise.all([
-					this.propertiesRepository.getStats(user.id),
-					this.unitsRepository.getStats(user.id),
-					this.leasesRepository.getAnalytics(user.id, { timeframe: '12m' }),
+					client.from('property').select('id').eq('owner_id', user.id),
+					client
+						.from('unit')
+						.select('id, status')
+						.in('property_id', propertyContext.propertyIds),
+					unitIds.length > 0
+						? client.from('lease').select('*').in('unit_id', unitIds)
+						: Promise.resolve({ data: [] }),
 					this.fetchExpensesForProperties(
 						propertyContext.propertyIds,
 						this.subtractMonths(12),
 						new Date()
 					)
 				])
+
+			const properties = propertiesData.data || []
+			const units = unitsData.data || []
+			const leaseAnalytics = leasesData.data || []
+			const propertyStats = { total: properties.length }
+			const unitStats = {
+				occupancyRate:
+					units.length > 0
+						? Math.round(
+								(units.filter(
+									(u: { id: string; status: string }) => u.status === 'OCCUPIED'
+								).length /
+									units.length) *
+									100
+							)
+						: 0
+			}
 
 			const totalRevenue = leaseAnalytics.reduce(
 				(sum: number, lease: Lease) => sum + (lease.rentAmount || 0),
@@ -181,7 +223,7 @@ export class FinancialAnalyticsController {
 			}
 		} catch (error) {
 			this.logger.error(
-				'Failed to get dashboard financial metrics via repositories',
+				'Failed to get dashboard financial metrics via direct Supabase queries',
 				{
 					error: error instanceof Error ? error.message : String(error),
 					userId: user.id
@@ -192,8 +234,8 @@ export class FinancialAnalyticsController {
 	}
 
 	/**
-	 * Get expense breakdown via repositories - DIRECT TABLE QUERIES
-	 *  - Aggregates expense data from maintenance in TypeScript
+	 * Get expense breakdown - DIRECT TABLE QUERIES
+	 *  - Aggregates expense data from Supabase tables in TypeScript
 	 */
 	@Get('expense-breakdown')
 	async getExpenseBreakdown(
@@ -208,22 +250,28 @@ export class FinancialAnalyticsController {
 		try {
 			const targetYear = year ? parseInt(year, 10) : new Date().getFullYear()
 
-			this.logger.log('Getting expense breakdown via repositories', {
+			this.logger.log('Getting expense breakdown via direct Supabase queries', {
 				userId: user.id,
 				targetYear
 			})
 
+			const client = this.supabaseService.getAdminClient()
 			const yearStart = new Date(targetYear, 0, 1)
 			const yearEnd = new Date(targetYear + 1, 0, 1)
 			const propertyContext = await this.buildPropertyContext(user.id)
-			const [leaseAnalytics, expenses] = await Promise.all([
-				this.leasesRepository.getAnalytics(user.id, { timeframe: '12m' }),
+			const unitIds = await this.getUserUnitIds(user.id)
+
+			const [leasesData, expenses] = await Promise.all([
+				unitIds.length > 0
+					? client.from('lease').select('*').in('unit_id', unitIds)
+					: Promise.resolve({ data: [] }),
 				this.fetchExpensesForProperties(
 					propertyContext.propertyIds,
 					yearStart,
 					yearEnd
 				)
 			])
+			const leaseAnalytics = leasesData.data || []
 
 			const revenueByMonth = this.calculateMonthlyRevenue(
 				leaseAnalytics,
@@ -251,18 +299,21 @@ export class FinancialAnalyticsController {
 
 			return monthlyExpenses
 		} catch (error) {
-			this.logger.error('Failed to get expense breakdown via repositories', {
-				error: error instanceof Error ? error.message : String(error),
-				userId: user.id,
-				year
-			})
+			this.logger.error(
+				'Failed to get expense breakdown via direct Supabase queries',
+				{
+					error: error instanceof Error ? error.message : String(error),
+					userId: user.id,
+					year
+				}
+			)
 			throw new BadRequestException('Failed to fetch expense breakdown')
 		}
 	}
 
 	/**
-	 * Get Net Operating Income via repositories - DIRECT TABLE QUERIES
-	 *  - Calculates NOI from property data in TypeScript
+	 * Get Net Operating Income - DIRECT TABLE QUERIES
+	 *  - Calculates NOI from Supabase table data in TypeScript
 	 */
 	@Get('net-operating-income')
 	async getNetOperatingIncome(
@@ -275,21 +326,34 @@ export class FinancialAnalyticsController {
 		}
 
 		try {
-			this.logger.log('Getting Net Operating Income via repositories', {
-				userId: user.id,
-				period: _period
-			})
+			this.logger.log(
+				'Getting Net Operating Income via direct Supabase queries',
+				{
+					userId: user.id,
+					period: _period
+				}
+			)
 
+			const client = this.supabaseService.getAdminClient()
 			const propertyContext = await this.buildPropertyContext(user.id)
-			const [units, leases, expenses] = await Promise.all([
-				this.unitsRepository.getAnalytics(user.id, { timeframe: '12m' }),
-				this.leasesRepository.getAnalytics(user.id, { timeframe: '12m' }),
+			const unitIds = await this.getUserUnitIds(user.id)
+
+			const [unitsData, leasesData, expenses] = await Promise.all([
+				client
+					.from('unit')
+					.select('*')
+					.in('property_id', propertyContext.propertyIds),
+				unitIds.length > 0
+					? client.from('lease').select('*').in('unit_id', unitIds)
+					: Promise.resolve({ data: [] }),
 				this.fetchExpensesForProperties(
 					propertyContext.propertyIds,
 					this.subtractMonths(12),
 					new Date()
 				)
 			])
+			const units = unitsData.data || []
+			const leases = leasesData.data || []
 
 			const unitToProperty = new Map<string, string>()
 			for (const unit of units) {
@@ -346,20 +410,28 @@ export class FinancialAnalyticsController {
 
 			return propertyNOI
 		} catch (error) {
-			this.logger.error('Failed to get Net Operating Income via repositories', {
-				error: error instanceof Error ? error.message : String(error),
-				userId: user.id,
-				period: _period
-			})
+			this.logger.error(
+				'Failed to get Net Operating Income via direct Supabase queries',
+				{
+					error: error instanceof Error ? error.message : String(error),
+					userId: user.id,
+					period: _period
+				}
+			)
 			throw new BadRequestException('Failed to fetch NOI data')
 		}
 	}
 
 	private async buildPropertyContext(userId: string) {
-		const properties = await this.propertiesRepository.findByUserId(userId)
+		const client = this.supabaseService.getAdminClient()
+		const { data: properties } = await client
+			.from('property')
+			.select('id, name')
+			.eq('owner_id', userId)
+
 		const propertyMap = new Map<string, string>()
 		const propertyIds: string[] = []
-		for (const property of properties) {
+		for (const property of properties || []) {
 			propertyIds.push(property.id)
 			propertyMap.set(property.id, property.name)
 		}

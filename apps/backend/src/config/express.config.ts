@@ -1,6 +1,9 @@
 /**
  * Express Configuration
  * Centralized middleware registration with full TypeScript support
+ *
+ * NOTE: Rate limiting is handled by @nestjs/throttler (see app.module.ts)
+ * Removed redundant express-rate-limit in favor of native NestJS solution
  */
 
 import type { NestExpressApplication } from '@nestjs/platform-express'
@@ -11,7 +14,6 @@ import express, {
 	type Request,
 	type Response
 } from 'express'
-import rateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 
 export async function registerExpressMiddleware(app: NestExpressApplication) {
@@ -63,21 +65,6 @@ export async function registerExpressMiddleware(app: NestExpressApplication) {
 					throw new Error('JWT_SECRET environment variable is required')
 				})()
 		)
-	)
-
-	// Rate limiting with full TypeScript support
-	app.use(
-		rateLimit({
-			windowMs: 60 * 1000, // 1 minute
-			max: 100, // limit each IP to 100 requests per windowMs
-			message: 'Too many requests from this IP, please try again later',
-			standardHeaders: true,
-			legacyHeaders: false,
-			skip: req => {
-				const path = req.url
-				return path?.startsWith('/health') ?? false
-			}
-		})
 	)
 
 	// Body parsing limits - exclude Stripe webhook path to preserve raw buffer

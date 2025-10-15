@@ -37,6 +37,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Calendar, DollarSign, Edit, FileText } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { z } from 'zod'
 
 interface EditMaintenanceButtonProps {
 	maintenance: {
@@ -96,7 +97,7 @@ export function EditMaintenanceButton({
 			onChange: ({ value }) => {
 				const result = maintenanceRequestUpdateFormSchema.safeParse(value)
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}
@@ -130,7 +131,7 @@ export function EditMaintenanceButton({
 				}
 				return old
 			})
-			return { previous }
+			return previous ? { previous } : {}
 		},
 		onError: (
 			err: unknown,

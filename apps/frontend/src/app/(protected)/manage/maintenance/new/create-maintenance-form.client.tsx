@@ -22,6 +22,7 @@ import { maintenanceApi, propertiesApi, unitsApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { maintenanceRequestFormSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
+import { z } from 'zod'
 
 const logger = createLogger({ component: 'CreateMaintenanceForm' })
 
@@ -87,7 +88,7 @@ export function CreateMaintenanceForm() {
 			onChange: ({ value }) => {
 				const result = maintenanceRequestFormSchema.safeParse(value)
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}

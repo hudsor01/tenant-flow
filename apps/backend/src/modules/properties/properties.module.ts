@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
-import { RepositoriesModule } from '../../repositories/repositories.module'
 import { SharedModule } from '../../shared/shared.module'
 import { PropertiesController } from './properties.controller'
 import { PropertiesService } from './properties.service'
@@ -10,7 +9,7 @@ import { PropertiesService } from './properties.service'
  * Uses repository abstractions for clean separation of concerns
  */
 @Module({
-	imports: [SupabaseModule, RepositoriesModule, SharedModule],
+	imports: [SupabaseModule, SharedModule],
 	controllers: [PropertiesController],
 	providers: [PropertiesService],
 	exports: [PropertiesService]

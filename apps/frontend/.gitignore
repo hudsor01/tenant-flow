@@ -14,6 +14,7 @@ playwright/.auth/
 
 # Additional frontend build artifacts
 .next/
+.tsc-output/
 
 # OS and editor files
 .DS_Store

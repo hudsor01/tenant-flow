@@ -1,6 +1,6 @@
 'use client'
 
-import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
+import { ChartAreaInteractive } from '@/components/dashboard/chart-area-interactive'
 import { Button } from '@/components/ui/button'
 import {
 	Dialog,
@@ -11,6 +11,14 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+	Pagination,
+	PaginationContent,
+	PaginationItem,
+	PaginationLink,
+	PaginationNext,
+	PaginationPrevious
+} from '@/components/ui/pagination'
 import {
 	Select,
 	SelectContent,
@@ -27,31 +35,94 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { unitColumns, type UnitRow } from '@/components/units/units-columns'
+import { useUnitList, useUnitStats } from '@/hooks/api/use-unit'
 import { propertiesApi, unitsApi } from '@/lib/api-client'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DoorOpen, Filter, Plus } from 'lucide-react'
-import { useRef } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 type InsertUnit = Database['public']['Tables']['unit']['Insert']
 type UnitStatus = Database['public']['Enums']['UnitStatus']
-type UnitRowDB = Database['public']['Tables']['unit']['Row']
 type PropertyRowDB = Database['public']['Tables']['property']['Row']
 
-export default function UnitsPage({
-	searchParams
-}: {
-	searchParams?: { status?: string; property?: string }
-}) {
-	const status = searchParams?.status as UnitStatus | undefined
-	const propertyFilter = searchParams?.property
+const ITEMS_PER_PAGE = 25
 
-	const { data: units = [] } = useQuery({
-		queryKey: ['units', status],
-		queryFn: () => unitsApi.list(status ? { status } : undefined)
-	})
+export default function UnitsPage() {
+	const router = useRouter()
+	const pathname = usePathname()
+	const searchParams = useSearchParams()
+
+	// Get URL params with defaults
+	const pageParam = Number(searchParams.get('page')) || 1
+	const statusParam = searchParams.get('status')
+	const propertyParam = searchParams.get('property')
+
+	// Local state synced with URL
+	const [page, setPage] = useState(pageParam)
+	const status = statusParam as UnitStatus | undefined
+	const propertyFilter = propertyParam || undefined
+
+	// Sync page state with URL
+	useEffect(() => {
+		setPage(pageParam)
+	}, [pageParam])
+
+	// Update URL when pagination/filters change
+	const updateURL = (updates: {
+		page?: number
+		status?: string
+		property?: string
+	}) => {
+		const params = new URLSearchParams(searchParams.toString())
+
+		if (updates.page !== undefined) {
+			if (updates.page === 1) {
+				params.delete('page')
+			} else {
+				params.set('page', updates.page.toString())
+			}
+		}
+
+		if (updates.status !== undefined) {
+			if (updates.status === 'ALL' || updates.status === '') {
+				params.delete('status')
+			} else {
+				params.set('status', updates.status)
+			}
+		}
+
+		if (updates.property !== undefined) {
+			if (updates.property === 'ALL' || updates.property === '') {
+				params.delete('property')
+			} else {
+				params.set('property', updates.property)
+			}
+		}
+
+		const newURL = params.toString()
+			? `${pathname}?${params.toString()}`
+			: pathname
+		router.push(newURL, { scroll: false })
+	}
+
+	// Use modern hook with pagination
+	const params: {
+		status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
+		propertyId?: string
+		limit: number
+		offset: number
+	} = {
+		limit: ITEMS_PER_PAGE,
+		offset: (page - 1) * ITEMS_PER_PAGE
+	}
+	if (status) params.status = status
+	if (propertyFilter) params.propertyId = propertyFilter
+
+	const { data: unitsData, isLoading } = useUnitList(params)
 
 	const { data: properties = [] } = useQuery({
 		queryKey: ['properties'],
@@ -59,21 +130,16 @@ export default function UnitsPage({
 	})
 
 	// Use backend RPC functions for statistics - NO CLIENT-SIDE CALCULATIONS
-	const { data: unitsStats } = useQuery({
-		queryKey: ['units', 'stats'],
-		queryFn: unitsApi.stats
-	})
+	const { data: unitsStats } = useUnitStats()
 
-	// Filter units by property if specified (display only)
-	const filteredUnits = propertyFilter
-		? units.filter((unit: UnitRowDB) => unit.propertyId === propertyFilter)
-		: units
+	const units = unitsData?.data || []
+	const totalItems = unitsData?.total || 0
 
 	// Use backend statistics directly - trust the database calculations
-	const totalUnits = unitsStats?.totalUnits ?? 0
-	const occupiedCount = unitsStats?.occupiedUnits ?? 0
-	const vacantCount = unitsStats?.vacantUnits ?? 0
-	const maintenanceCount = unitsStats?.maintenanceUnits ?? 0
+	const totalUnits = unitsStats?.total ?? 0
+	const occupiedCount = unitsStats?.occupied ?? 0
+	const vacantCount = unitsStats?.vacant ?? 0
+	const maintenanceCount = unitsStats?.maintenance ?? 0
 	const occupancyRate = unitsStats?.occupancyRate ?? 0
 
 	return (
@@ -164,7 +230,10 @@ export default function UnitsPage({
 					<div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
 						<div className="flex items-center gap-2">
 							<Filter className="size-4 text-muted-foreground" />
-							<Select defaultValue={status ?? 'ALL'}>
+							<Select
+								value={status ?? 'ALL'}
+								onValueChange={value => updateURL({ status: value, page: 1 })}
+							>
 								<SelectTrigger className="w-40">
 									<SelectValue placeholder="Filter by status" />
 								</SelectTrigger>
@@ -178,7 +247,10 @@ export default function UnitsPage({
 							</Select>
 						</div>
 
-						<Select defaultValue={propertyFilter ?? 'ALL'}>
+						<Select
+							value={propertyFilter ?? 'ALL'}
+							onValueChange={value => updateURL({ property: value, page: 1 })}
+						>
 							<SelectTrigger className="w-48">
 								<SelectValue placeholder="Filter by property" />
 							</SelectTrigger>
@@ -197,7 +269,85 @@ export default function UnitsPage({
 				</div>
 
 				{/* Units Table */}
-				<UnitsTable data={filteredUnits as UnitRow[]} columns={unitColumns} />
+				<UnitsTable
+					data={units as UnitRow[]}
+					columns={unitColumns}
+					isLoading={isLoading}
+				/>
+
+				{/* Pagination */}
+				{totalItems > ITEMS_PER_PAGE && (
+					<div className="mt-4">
+						<Pagination>
+							<PaginationContent>
+								<PaginationItem>
+									<PaginationPrevious
+										href="#"
+										onClick={e => {
+											e.preventDefault()
+											if (page > 1) {
+												const newPage = page - 1
+												setPage(newPage)
+												updateURL({ page: newPage })
+											}
+										}}
+										className={
+											page === 1 ? 'pointer-events-none opacity-50' : ''
+										}
+									/>
+								</PaginationItem>
+
+								{Array.from(
+									{ length: Math.ceil(totalItems / ITEMS_PER_PAGE) },
+									(_, i) => i + 1
+								)
+									.filter(
+										pageNum =>
+											pageNum === 1 ||
+											pageNum === Math.ceil(totalItems / ITEMS_PER_PAGE) ||
+											(pageNum >= page - 1 && pageNum <= page + 1)
+									)
+									.map((pageNum, idx, arr) => (
+										<PaginationItem key={pageNum}>
+											{idx > 0 && arr[idx - 1] !== pageNum - 1 ? (
+												<span className="px-2">...</span>
+											) : null}
+											<PaginationLink
+												href="#"
+												onClick={e => {
+													e.preventDefault()
+													setPage(pageNum)
+													updateURL({ page: pageNum })
+												}}
+												isActive={page === pageNum}
+											>
+												{pageNum}
+											</PaginationLink>
+										</PaginationItem>
+									))}
+
+								<PaginationItem>
+									<PaginationNext
+										href="#"
+										onClick={e => {
+											e.preventDefault()
+											if (page < Math.ceil(totalItems / ITEMS_PER_PAGE)) {
+												const newPage = page + 1
+												setPage(newPage)
+												updateURL({ page: newPage })
+											}
+										}}
+										className={
+											page === Math.ceil(totalItems / ITEMS_PER_PAGE)
+												? 'pointer-events-none opacity-50'
+												: ''
+										}
+									/>
+								</PaginationItem>
+							</PaginationContent>
+						</Pagination>
+					</div>
+				)}
 			</div>
 		</div>
 	)
@@ -205,11 +355,40 @@ export default function UnitsPage({
 
 function UnitsTable({
 	data,
-	columns
+	columns,
+	isLoading
 }: {
 	data: UnitRow[]
 	columns: ColumnDef<UnitRow>[]
+	isLoading?: boolean
 }) {
+	if (isLoading) {
+		return (
+			<div className="rounded-md border bg-card shadow-sm">
+				<Table>
+					<TableHeader className="bg-muted/50">
+						<TableRow>
+							{columns.map((col: ColumnDef<UnitRow>, index) => {
+								const key =
+									'accessorKey' in col
+										? String(col.accessorKey)
+										: (col.id ?? `col-${index}`)
+								return <TableHead key={key} className="font-semibold" />
+							})}
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						<TableRow>
+							<TableCell colSpan={columns.length} className="h-24 text-center">
+								<p className="text-muted-foreground">Loading units...</p>
+							</TableCell>
+						</TableRow>
+					</TableBody>
+				</Table>
+			</div>
+		)
+	}
+
 	return (
 		<div className="rounded-md border bg-card shadow-sm">
 			<Table>

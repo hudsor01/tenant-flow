@@ -17,7 +17,7 @@
 		"arm64",
 		"x64"
 	],
-	"packageManager": "pnpm@10.17.1",
+	"packageManager": "pnpm@10.18.2",
 	"workspaces": [
 		"apps/*",
 		"packages/*"
@@ -79,7 +79,7 @@
 		"prepare": "node scripts/prepare-husky.cjs",
 		"validate": "pnpm clean && pnpm build:shared && pnpm typecheck && pnpm lint && doppler run -- pnpm --filter @repo/backend test:unit && doppler run -- pnpm test:integration && node scripts/test-backend-health.js && vercel build --no-wait && echo '✅ ALL VALIDATION PASSED - READY TO COMMIT'",
 		"validate:quick": "pnpm typecheck && pnpm lint && doppler run -- pnpm test:unit && echo '✅ QUICK VALIDATION PASSED'",
-		"validate:clean": "pnpm typecheck && pnpm lint && doppler run -- pnpm --filter @repo/backend test:unit:clean && npx lint-staged --allow-empty && echo '✅ CLEAN VALIDATION PASSED'"
+		"validate:clean": "pnpm typecheck && pnpm lint && doppler run -- pnpm --filter @repo/backend test:unit:clean && npx lint-staged --allow-empty --no-stash && echo '✅ CLEAN VALIDATION PASSED'"
 	},
 	"optionalDependencies": {
 		"@tailwindcss/oxide-linux-arm64-gnu": "4.1.14",
@@ -133,7 +133,7 @@
 		"@playwright/test": "1.56.0",
 		"@repo/eslint-config": "workspace:*",
 		"@supabase/supabase-js": "catalog:",
-		"@types/node": "^24.7.0",
+		"@types/node": "^24.7.2",
 		"babel-plugin-react-compiler": "1.0.0",
 		"eslint": "9.37.0",
 		"eslint-config-next": "15.5.4",
@@ -143,7 +143,7 @@
 		"globals": "16.4.0",
 		"husky": "9.1.7",
 		"jsdom": "27.0.0",
-		"lint-staged": "16.2.3",
+		"lint-staged": "16.2.4",
 		"next": "15.5.4",
 		"prettier": "catalog:",
 		"prettier-plugin-organize-imports": "4.3.0",

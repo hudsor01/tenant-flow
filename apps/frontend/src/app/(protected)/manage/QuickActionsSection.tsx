@@ -1,6 +1,6 @@
 'use client'
 
-import { QuickActions } from '@/components/dashboard-01/quick-actions'
+import { QuickActions } from '@/components/dashboard/quick-actions'
 
 /**
  * QuickActionsSection - Single Responsibility: Display quick action shortcuts

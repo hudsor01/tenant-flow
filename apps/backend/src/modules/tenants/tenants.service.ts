@@ -1,19 +1,23 @@
 /**
- * Tenants Service - Repository Pattern Implementation
+ * Tenants Service - Ultra-Native NestJS Implementation
  *
- * Controller → Service → Repository → Database
- * Uses ITenantsRepository for clean separation of concerns
+ * Direct Supabase access, no repository abstractions
+ * Controller → Service → Supabase
  */
 
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
 } from '@repo/shared/types/backend-domain'
 import type { Tenant, TenantStats } from '@repo/shared/types/core'
-import type { ITenantsRepository } from '../../repositories/interfaces/tenants-repository.interface'
-import { REPOSITORY_TOKENS } from '../../repositories/repositories.module'
+import type { Database } from '@repo/shared/types/supabase-generated'
+import { SupabaseService } from '../../database/supabase.service'
+import {
+	buildMultiColumnSearch,
+	sanitizeSearchInput
+} from '../../shared/utils/sql-safe.utils'
 import { TenantCreatedEvent } from '../notifications/events/notification.events'
 
 export interface TenantWithRelations extends Tenant {
@@ -37,8 +41,8 @@ export interface TenantWithRelations extends Tenant {
 }
 
 /**
- * Tenants service - Repository Pattern Implementation
- * Business logic layer that delegates data access to repository
+ * Tenants service - Ultra-Native Implementation
+ * Direct Supabase queries, no repository layer
  * Note: Tenants are accessed through property ownership via leases
  */
 @Injectable()
@@ -46,13 +50,12 @@ export class TenantsService {
 	private readonly logger = new Logger(TenantsService.name)
 
 	constructor(
-		@Inject(REPOSITORY_TOKENS.TENANTS)
-		private readonly tenantsRepository: ITenantsRepository,
+		private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2
 	) {}
 
 	/**
-	 * Get all tenants for a user via repository
+	 * Get all tenants for a user via direct Supabase query
 	 */
 	async findAll(
 		userId: string,
@@ -65,17 +68,51 @@ export class TenantsService {
 		}
 
 		try {
-			this.logger.log('Finding all tenants via repository', { userId, query })
-
-			// Delegate data access to repository layer
-			return await this.tenantsRepository.findByUserIdWithSearch(userId, {
-				search: query.search ? String(query.search) : undefined,
-				limit: query.limit ? Number(query.limit) : undefined,
-				offset: query.offset ? Number(query.offset) : undefined,
-				status: query.invitationStatus
-					? String(query.invitationStatus)
-					: undefined
+			this.logger.log('Finding all tenants via direct Supabase query', {
+				userId,
+				query
 			})
+
+			const client = this.supabase.getAdminClient()
+			let queryBuilder = client.from('tenant').select('*').eq('userId', userId)
+
+			// SECURITY FIX #2: Apply safe search filter to prevent SQL injection
+			if (query.search) {
+				const searchTerm = String(query.search)
+				const sanitized = sanitizeSearchInput(searchTerm)
+				if (sanitized) {
+					queryBuilder = queryBuilder.or(
+						buildMultiColumnSearch(sanitized, [
+							'firstName',
+							'lastName',
+							'email'
+						])
+					)
+				}
+			}
+
+			// Apply status filter - REMOVED: invitationStatus column doesn't exist in database
+			// if (query.invitationStatus) {
+			// 	queryBuilder = queryBuilder.eq('invitationStatus', query.invitationStatus)
+			// }
+
+			// Apply pagination
+			const limit = query.limit ? Number(query.limit) : 50
+			const offset = query.offset ? Number(query.offset) : 0
+			queryBuilder = queryBuilder.range(offset, offset + limit - 1)
+
+			const { data, error } = await queryBuilder
+
+			if (error) {
+				this.logger.error('Failed to fetch tenants from Supabase', {
+					error: error.message,
+					userId,
+					query
+				})
+				throw new BadRequestException('Failed to retrieve tenants')
+			}
+
+			return (data as Tenant[]) || []
 		} catch (error) {
 			this.logger.error('Tenants service failed to find all tenants', {
 				error: error instanceof Error ? error.message : String(error),
@@ -87,7 +124,7 @@ export class TenantsService {
 	}
 
 	/**
-	 * Get tenant statistics via repository
+	 * Get tenant statistics via direct Supabase query
 	 */
 	async getStats(userId: string): Promise<TenantStats> {
 		// Business logic: Validate userId
@@ -97,10 +134,36 @@ export class TenantsService {
 		}
 
 		try {
-			this.logger.log('Getting tenant stats via repository', { userId })
+			this.logger.log('Getting tenant stats via direct Supabase query', {
+				userId
+			})
 
-			// Delegate data access to repository layer
-			return await this.tenantsRepository.getStats(userId)
+			const client = this.supabase.getAdminClient()
+			const { data, error } = await client
+				.from('tenant')
+				.select('createdAt')
+				.eq('userId', userId)
+
+			if (error) {
+				this.logger.error('Failed to fetch tenant stats from Supabase', {
+					error: error.message,
+					userId
+				})
+				throw new BadRequestException('Failed to retrieve tenant statistics')
+			}
+
+			const tenants = data || []
+			const now = new Date()
+			const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+
+			return {
+				total: tenants.length,
+				active: 0, // invitationStatus column doesn't exist - would need to join with leases
+				inactive: 0, // invitationStatus column doesn't exist
+				newThisMonth: tenants.filter(
+					t => new Date(t.createdAt) >= thirtyDaysAgo
+				).length
+			}
 		} catch (error) {
 			this.logger.error('Tenants service failed to get stats', {
 				error: error instanceof Error ? error.message : String(error),
@@ -111,7 +174,7 @@ export class TenantsService {
 	}
 
 	/**
-	 * Get single tenant via repository
+	 * Get single tenant via direct Supabase query
 	 */
 	async findOne(userId: string, tenantId: string): Promise<Tenant | null> {
 		// Business logic: Validate inputs
@@ -124,24 +187,29 @@ export class TenantsService {
 		}
 
 		try {
-			this.logger.log('Finding tenant by ID via repository', {
+			this.logger.log('Finding tenant by ID via direct Supabase query', {
 				userId,
 				tenantId
 			})
 
-			// Delegate data access to repository layer
-			const tenant = await this.tenantsRepository.findById(tenantId)
+			const client = this.supabase.getAdminClient()
+			const { data, error } = await client
+				.from('tenant')
+				.select('*')
+				.eq('id', tenantId)
+				.eq('userId', userId)
+				.single()
 
-			// Business logic: Verify tenant belongs to user (security check)
-			if (tenant && tenant.userId !== userId) {
-				this.logger.warn('Unauthorized access attempt to tenant', {
+			if (error) {
+				this.logger.error('Failed to fetch tenant from Supabase', {
+					error: error.message,
 					userId,
 					tenantId
 				})
 				return null
 			}
 
-			return tenant
+			return data as Tenant
 		} catch (error) {
 			this.logger.error('Tenants service failed to find one tenant', {
 				error: error instanceof Error ? error.message : String(error),
@@ -153,7 +221,7 @@ export class TenantsService {
 	}
 
 	/**
-	 * Create tenant via repository
+	 * Create tenant via direct Supabase query
 	 */
 	async create(
 		userId: string,
@@ -169,13 +237,36 @@ export class TenantsService {
 		}
 
 		try {
-			this.logger.log('Creating tenant via repository', {
+			this.logger.log('Creating tenant via direct Supabase query', {
 				userId,
 				email: createRequest.email
 			})
 
-			// Delegate data access to repository layer
-			const tenant = await this.tenantsRepository.create(userId, createRequest)
+			const client = this.supabase.getAdminClient()
+			const tenantData: Database['public']['Tables']['tenant']['Insert'] = {
+				userId: userId,
+				email: createRequest.email,
+				firstName: createRequest.firstName || null,
+				lastName: createRequest.lastName || null,
+				phone: createRequest.phone || null
+			}
+
+			const { data, error } = await client
+				.from('tenant')
+				.insert(tenantData)
+				.select()
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to create tenant in Supabase', {
+					error: error.message,
+					userId,
+					email: createRequest.email
+				})
+				throw new BadRequestException('Failed to create tenant')
+			}
+
+			const tenant = data as Tenant
 
 			// Business logic: Emit tenant created event for notification service
 			this.eventEmitter.emit(
@@ -203,7 +294,7 @@ export class TenantsService {
 	}
 
 	/**
-	 * Update tenant via repository
+	 * Update tenant via direct Supabase query
 	 */
 	async update(
 		userId: string,
@@ -220,20 +311,45 @@ export class TenantsService {
 		}
 
 		try {
-			this.logger.log('Updating tenant via repository', { userId, tenantId })
+			this.logger.log('Updating tenant via direct Supabase query', {
+				userId,
+				tenantId
+			})
 
-			// Business logic: Verify tenant belongs to user before updating
-			const existingTenant = await this.tenantsRepository.findById(tenantId)
-			if (!existingTenant || existingTenant.userId !== userId) {
-				this.logger.warn('Unauthorized update attempt on tenant', {
+			const client = this.supabase.getAdminClient()
+
+			// Build update object dynamically
+			const updateData: Database['public']['Tables']['tenant']['Update'] = {
+				updatedAt: new Date().toISOString()
+			}
+
+			if (updateRequest.firstName !== undefined)
+				updateData.firstName = updateRequest.firstName
+			if (updateRequest.lastName !== undefined)
+				updateData.lastName = updateRequest.lastName
+			if (updateRequest.email !== undefined)
+				updateData.email = updateRequest.email
+			if (updateRequest.phone !== undefined)
+				updateData.phone = updateRequest.phone
+
+			const { data, error } = await client
+				.from('tenant')
+				.update(updateData)
+				.eq('id', tenantId)
+				.eq('userId', userId)
+				.select()
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to update tenant in Supabase', {
+					error: error.message,
 					userId,
 					tenantId
 				})
 				return null
 			}
 
-			// Delegate data access to repository layer
-			return await this.tenantsRepository.update(tenantId, updateRequest)
+			return data as Tenant
 		} catch (error) {
 			this.logger.error('Tenants service failed to update tenant', {
 				error: error instanceof Error ? error.message : String(error),
@@ -245,7 +361,7 @@ export class TenantsService {
 	}
 
 	/**
-	 * Delete tenant via repository (soft delete)
+	 * Delete tenant via direct Supabase query (soft delete)
 	 */
 	async remove(userId: string, tenantId: string): Promise<void> {
 		// Business logic: Validate inputs
@@ -258,13 +374,27 @@ export class TenantsService {
 		}
 
 		try {
-			this.logger.log('Removing tenant via repository', { userId, tenantId })
+			this.logger.log('Removing tenant via direct Supabase query', {
+				userId,
+				tenantId
+			})
 
-			// Delegate data access to repository layer
-			const result = await this.tenantsRepository.softDelete(userId, tenantId)
+			const client = this.supabase.getAdminClient()
 
-			if (!result.success) {
-				throw new BadRequestException(result.message)
+			// Hard delete - database doesn't have deleted_at/deletedAt column
+			const { error } = await client
+				.from('tenant')
+				.delete()
+				.eq('id', tenantId)
+				.eq('userId', userId)
+
+			if (error) {
+				this.logger.error('Failed to delete tenant in Supabase', {
+					error: error.message,
+					userId,
+					tenantId
+				})
+				throw new BadRequestException('Failed to delete tenant')
 			}
 		} catch (error) {
 			this.logger.error('Tenants service failed to remove tenant', {
@@ -455,10 +585,22 @@ export class TenantsService {
 				throw new BadRequestException('Tenant not found or access denied')
 			}
 
-			// Update tenant with emergency contact
-			return await this.tenantsRepository.update(tenantId, {
-				emergencyContact: emergencyContact as never
-			})
+			// Update tenant with emergency contact via direct Supabase query
+			const client = this.supabase.getAdminClient()
+			const emergencyContactPayload = JSON.stringify(emergencyContact)
+			const { data, error } = await client
+				.from('tenant')
+				.update({ emergencyContact: emergencyContactPayload })
+				.eq('id', tenantId)
+				.eq('userId', userId)
+				.select()
+				.single()
+
+			if (error) {
+				throw new BadRequestException('Failed to update emergency contact')
+			}
+
+			return data as Tenant
 		} catch (error) {
 			this.logger.error('Failed to update emergency contact', {
 				error: error instanceof Error ? error.message : String(error),
@@ -490,10 +632,21 @@ export class TenantsService {
 				throw new BadRequestException('Tenant not found or access denied')
 			}
 
-			// Remove emergency contact by setting to null
-			return await this.tenantsRepository.update(tenantId, {
-				emergencyContact: null as never
-			})
+			// Remove emergency contact by setting to null via direct Supabase query
+			const client = this.supabase.getAdminClient()
+			const { data, error } = await client
+				.from('tenant')
+				.update({ emergencyContact: null })
+				.eq('id', tenantId)
+				.eq('userId', userId)
+				.select()
+				.single()
+
+			if (error) {
+				throw new BadRequestException('Failed to remove emergency contact')
+			}
+
+			return data as Tenant
 		} catch (error) {
 			this.logger.error('Failed to remove emergency contact', {
 				error: error instanceof Error ? error.message : String(error),

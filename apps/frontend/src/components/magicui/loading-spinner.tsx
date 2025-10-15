@@ -1,8 +1,8 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/design-system'
 import { Spinner } from '@/components/ui/spinner'
+import { cn } from '@/lib/design-system'
 
 interface LoadingSpinnerProps {
 	size?: 'sm' | 'default' | 'lg' | 'xl'
@@ -132,7 +132,11 @@ function ButtonLoader({
 			className={cn('gap-2 pointer-events-none', className)} // gap-2 = 0.5rem = var(--spacing-2)
 			{...props}
 		>
-			<LoadingSpinner size={size} variant={variant} className="text-current" />
+			<LoadingSpinner
+				size={size}
+				{...(variant ? { variant } : {})}
+				className="text-current"
+			/>
 			{text && <span>{text}</span>}
 		</Button>
 	)
@@ -155,7 +159,11 @@ function SectionLoader({
 				<div className="card-elevated p-6">
 					{' '}
 					{/* p-6 = 1.5rem = var(--spacing-6) */}
-					<LoadingSpinner size="lg" variant="primary" text={text} />
+					<LoadingSpinner
+						size="lg"
+						variant="primary"
+						{...(text ? { text } : {})}
+					/>
 				</div>
 			</div>
 

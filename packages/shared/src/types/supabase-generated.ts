@@ -3095,7 +3095,24 @@ export type Database = {
 							p_supabase_id: string
 					  }
 					| { p_email: string; p_supabase_id: string }
-				Returns: Json
+				Returns: {
+					avatar_url: string
+					bio: string
+					created_at: string
+					email: string
+					email_verified: boolean
+					id: string
+					is_new_user: boolean
+					last_login_at: string
+					name: string
+					organization_id: string
+					phone: string
+					profile_complete: boolean
+					role: string
+					stripe_customer_id: string
+					supabase_id: string
+					updated_at: string
+				}[]
 			}
 			auth_update_user_profile: {
 				Args: {
@@ -3287,8 +3304,41 @@ export type Database = {
 				Args: { user_id: string }
 				Returns: Json
 			}
+			get_property_financial_analytics: {
+				Args: {
+					p_property_id?: string
+					p_timeframe?: string
+					p_user_id: string
+				}
+				Returns: Json[]
+			}
+			get_property_maintenance_analytics: {
+				Args: {
+					p_property_id?: string
+					p_timeframe?: string
+					p_user_id: string
+				}
+				Returns: Json[]
+			}
+			get_property_occupancy_analytics: {
+				Args: { p_period?: string; p_property_id?: string; p_user_id: string }
+				Returns: Json[]
+			}
 			get_property_performance: {
 				Args: { p_user_id: string } | { p_user_id: string }
+				Returns: Json[]
+			}
+			get_property_performance_analytics: {
+				Args: {
+					p_limit?: number
+					p_property_id?: string
+					p_timeframe?: string
+					p_user_id: string
+				}
+				Returns: Json[]
+			}
+			get_property_stats: {
+				Args: { p_user_id: string }
 				Returns: Json
 			}
 			get_property_units: {

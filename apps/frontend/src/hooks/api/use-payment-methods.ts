@@ -84,7 +84,12 @@ export function useSavePaymentMethod() {
 export function useSetDefaultPaymentMethod() {
 	const queryClient = useQueryClient()
 
-	return useMutation({
+	return useMutation<
+		{ success: boolean },
+		unknown,
+		string,
+		{ previous?: PaymentMethodResponse[] }
+	>({
 		mutationFn: async (paymentMethodId: string) => {
 			return await apiClient<{ success: boolean }>(
 				`${API_BASE_URL}/api/v1/payment-methods/${paymentMethodId}/default`,
@@ -93,26 +98,30 @@ export function useSetDefaultPaymentMethod() {
 				}
 			)
 		},
-		onMutate: async (paymentMethodId: string) => {
+		onMutate: async (
+			paymentMethodId: string
+		): Promise<{
+			previous?: PaymentMethodResponse[]
+		}> => {
 			await queryClient.cancelQueries({ queryKey: paymentMethodKeys.list() })
-			const previous = queryClient.getQueryData<
-				import('@repo/shared/types/core').PaymentMethodResponse[]
-			>(paymentMethodKeys.list())
-			// Optimistically mark selected method as default and unset others
-			queryClient.setQueryData<
-				import('@repo/shared/types/core').PaymentMethodResponse[]
-			>(paymentMethodKeys.list(), old =>
-				old
-					? old.map(m => ({ ...m, isDefault: m.id === paymentMethodId }))
-					: old
+			const previous = queryClient.getQueryData<PaymentMethodResponse[]>(
+				paymentMethodKeys.list()
 			)
-			return { previous }
+			// Optimistically mark selected method as default and unset others
+			queryClient.setQueryData<PaymentMethodResponse[]>(
+				paymentMethodKeys.list(),
+				old =>
+					old
+						? old.map(m => ({ ...m, isDefault: m.id === paymentMethodId }))
+						: old
+			)
+			return previous ? { previous } : {}
 		},
 		onError: (
 			_err: unknown,
 			_paymentMethodId: string,
 			context?: {
-				previous?: import('@repo/shared/types/core').PaymentMethodResponse[]
+				previous?: PaymentMethodResponse[]
 			}
 		) => {
 			if (context?.previous) {
@@ -133,7 +142,12 @@ export function useSetDefaultPaymentMethod() {
 export function useDeletePaymentMethod() {
 	const queryClient = useQueryClient()
 
-	return useMutation({
+	return useMutation<
+		{ success: boolean },
+		unknown,
+		string,
+		{ previous?: PaymentMethodResponse[] }
+	>({
 		mutationFn: async (paymentMethodId: string) => {
 			return await apiClient<{ success: boolean }>(
 				`${API_BASE_URL}/api/v1/payment-methods/${paymentMethodId}`,
@@ -142,23 +156,26 @@ export function useDeletePaymentMethod() {
 				}
 			)
 		},
-		onMutate: async (paymentMethodId: string) => {
+		onMutate: async (
+			paymentMethodId: string
+		): Promise<{
+			previous?: PaymentMethodResponse[]
+		}> => {
 			await queryClient.cancelQueries({ queryKey: paymentMethodKeys.list() })
-			const previous = queryClient.getQueryData<
-				import('@repo/shared/types/core').PaymentMethodResponse[]
-			>(paymentMethodKeys.list())
-			queryClient.setQueryData<
-				import('@repo/shared/types/core').PaymentMethodResponse[]
-			>(paymentMethodKeys.list(), old =>
-				old ? old.filter(m => m.id !== paymentMethodId) : old
+			const previous = queryClient.getQueryData<PaymentMethodResponse[]>(
+				paymentMethodKeys.list()
 			)
-			return { previous }
+			queryClient.setQueryData<PaymentMethodResponse[]>(
+				paymentMethodKeys.list(),
+				old => (old ? old.filter(m => m.id !== paymentMethodId) : old)
+			)
+			return previous ? { previous } : {}
 		},
 		onError: (
 			_err: unknown,
 			_paymentMethodId: string,
 			context?: {
-				previous?: import('@repo/shared/types/core').PaymentMethodResponse[]
+				previous?: PaymentMethodResponse[]
 			}
 		) => {
 			if (context?.previous) {

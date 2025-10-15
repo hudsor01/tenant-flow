@@ -1,4 +1,4 @@
-import { ChartAreaInteractive } from '@/components/dashboard-01/chart-area-interactive'
+import { ChartAreaInteractive } from '@/components/dashboard/chart-area-interactive'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {

@@ -1,4 +1,3 @@
-import { reportsClient } from '@/lib/api/reports-client'
 import {
 	getMonthlyRevenue,
 	getOccupancyMetrics,
@@ -7,13 +6,13 @@ import {
 	type PaymentAnalytics,
 	type RevenueData
 } from '@/lib/api/reports'
+import { reportsClient } from '@/lib/api/reports-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
 // module-scoped timers map for delete undo timeouts
 const deleteReportTimers = new Map<string, number>()
-
 
 import type { Report } from '@/lib/api/reports-client'
 
@@ -83,7 +82,7 @@ export function useReports({
 				}
 				queryClient.setQueryData(queryKey, cloned)
 			}
-			return { previous }
+			return previous ? { previous } : {}
 		},
 		onError: (err: unknown, _id, context?: { previous?: ListResponse }) => {
 			if (context?.previous)

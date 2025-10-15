@@ -158,7 +158,9 @@ export const SparklesCore = (props: ParticlesProps) => {
 								close: true,
 								fill: true,
 								options: {},
-								type: {} as SingleOrMultiple<string> | undefined
+								// Particles types are permissive at runtime; coerce to any
+								// to satisfy strict exactOptionalPropertyTypes checking.
+								type: undefined as unknown as SingleOrMultiple<string>
 							},
 							groups: {},
 							move: {

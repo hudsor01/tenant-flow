@@ -1,5 +1,5 @@
-import { AppSidebar } from '@/components/dashboard-01/app-sidebar'
-import { SiteHeader } from '@/components/dashboard-01/site-header'
+import { AppSidebar } from '@/components/dashboard/app-sidebar'
+import { SiteHeader } from '@/components/dashboard/site-header'
 import { LoadingSpinner } from '@/components/magicui/loading-spinner'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 

@@ -4,7 +4,7 @@ import {
 	Logger,
 	OnModuleDestroy
 } from '@nestjs/common'
-import puppeteer from 'puppeteer'
+import puppeteer, { type PDFOptions } from 'puppeteer'
 
 /**
  * PDF Generator Service using Puppeteer
@@ -79,7 +79,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
 
 			// PDF options with defaults
-			const pdfOptions = {
+			const pdfOptions: PDFOptions = {
 				format: options?.format || 'A4',
 				printBackground: true,
 				margin: options?.margin || {
@@ -88,9 +88,13 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					bottom: '20mm',
 					left: '15mm'
 				},
-				headerTemplate: options?.headerTemplate,
-				footerTemplate: options?.footerTemplate,
 				landscape: options?.landscape || false
+			}
+			if (options?.headerTemplate) {
+				pdfOptions.headerTemplate = options.headerTemplate
+			}
+			if (options?.footerTemplate) {
+				pdfOptions.footerTemplate = options.footerTemplate
 			}
 
 			// Generate PDF buffer

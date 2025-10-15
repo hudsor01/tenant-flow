@@ -8,6 +8,7 @@
  */
 
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 
@@ -353,14 +354,20 @@ export class LateFeesService {
 				config
 			})
 
+			const updateData: Database['public']['Tables']['lease']['Update'] = {
+				updatedAt: new Date().toISOString()
+			}
+			if (config.gracePeriodDays !== undefined) {
+				updateData.gracePeriodDays = config.gracePeriodDays ?? null
+			}
+			if (config.flatFeeAmount !== undefined) {
+				updateData.lateFeeAmount = config.flatFeeAmount ?? null
+			}
+
 			await this.supabase
 				.getAdminClient()
 				.from('lease')
-				.update({
-					gracePeriodDays: config.gracePeriodDays,
-					lateFeeAmount: config.flatFeeAmount,
-					updatedAt: new Date().toISOString()
-				})
+				.update(updateData)
 				.eq('id', leaseId)
 
 			this.logger.log('Late fee config updated successfully', { leaseId })

@@ -42,10 +42,14 @@ export class PaymentMethodsService {
 		}
 
 		this.logger.log(`Creating Stripe customer for user ${userId}`)
-		const customer = await this.stripe.customers.create({
-			email: email || user?.email || undefined,
+		const customerParams: Stripe.CustomerCreateParams = {
 			metadata: { userId }
-		})
+		}
+		const resolvedEmail = email || user?.email
+		if (resolvedEmail) {
+			customerParams.email = resolvedEmail
+		}
+		const customer = await this.stripe.customers.create(customerParams)
 
 		const { error: updateError } = await adminClient
 			.from('users')

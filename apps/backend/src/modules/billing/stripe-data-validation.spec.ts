@@ -255,8 +255,7 @@ describe('Production Stripe Webhook Processing', () => {
 				request: {
 					id: null as string | null,
 					idempotency_key: null
-				},
-				account: undefined
+				}
 			}
 
 			const payload = JSON.stringify(event)
@@ -290,8 +289,7 @@ describe('Production Stripe Webhook Processing', () => {
 				request: {
 					id: null as string | null,
 					idempotency_key: null
-				},
-				account: undefined
+				}
 			}
 
 			const payload = JSON.stringify(oldEvent)
@@ -332,8 +330,7 @@ describe('Production Stripe Webhook Processing', () => {
 				request: {
 					id: null as string | null,
 					idempotency_key: null
-				},
-				account: undefined
+				}
 			}
 
 			const payload = JSON.stringify(prodEvent)
@@ -391,8 +388,7 @@ describe('Production Stripe Webhook Processing', () => {
 				request: {
 					id: null as string | null,
 					idempotency_key: null
-				},
-				account: undefined
+				}
 			}
 
 			const payload = JSON.stringify(event)
@@ -471,8 +467,7 @@ describe('Production Stripe Webhook Processing', () => {
 				request: {
 					id: null as string | null,
 					idempotency_key: null
-				},
-				account: undefined
+				}
 			}
 
 			const payload = JSON.stringify(event)
@@ -517,8 +512,7 @@ describe('Production Stripe Webhook Processing', () => {
 				request: {
 					id: null as string | null,
 					idempotency_key: null
-				},
-				account: undefined
+				}
 			}
 
 			const payload = JSON.stringify(event)
