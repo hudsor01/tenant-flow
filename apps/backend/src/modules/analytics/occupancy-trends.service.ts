@@ -36,31 +36,22 @@ export class OccupancyTrendsService {
 		functionName: string,
 		payload: Record<string, unknown>
 	): Promise<unknown> {
-		const client = this.supabase.getAdminClient()
-
 		try {
-			const { data, error } = await (
-				client as unknown as {
-					rpc: (
-						fn: string,
-						args: Record<string, unknown>
-					) => Promise<{ data: unknown; error: { message: string } | null }>
-				}
-			).rpc(functionName, payload)
-
-			if (error) {
+			const result = await this.supabase.rpcWithRetries(functionName, payload)
+			const res = result as {
+				data?: unknown
+				error?: { message?: string } | null
+			}
+			if (res.error) {
 				this.logger.warn(
-					`Occupancy analytics RPC failed: ${functionName} - ${error.message}`
+					`Occupancy analytics RPC failed: ${functionName} - ${res.error?.message}`
 				)
 				return null
 			}
-
-			return data ?? null
+			return res.data ?? null
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error ? error.message : String(error)
-			// Downgrade to warn - RPC failures are expected in some test mocks and
-			// should not be treated as hard errors.
 			this.logger.warn(
 				`Unexpected RPC failure: ${functionName} - ${errorMessage}`
 			)

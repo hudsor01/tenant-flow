@@ -93,6 +93,40 @@ export class SupabaseService implements OnModuleInit {
 		return this.adminClient
 	}
 
+	/**
+	 * Call a Supabase RPC with retries and exponential backoff for transient failures.
+	 * Returns the raw result { data, error } or throws if unrecoverable.
+	 */
+	async rpcWithRetries(
+		fn: string,
+		args: Record<string, unknown>,
+		attempts = 3,
+		backoffMs = 500
+	) {
+		const client = this.getAdminClient()
+		let lastErr: unknown = null
+		for (let i = 0; i < attempts; i++) {
+			try {
+				const rpcFn = (
+					client as unknown as {
+						rpc: (fn: string, args: Record<string, unknown>) => Promise<unknown>
+					}
+				).rpc
+				const result = await rpcFn(fn, args)
+				return result
+			} catch (err) {
+				lastErr = err
+				this.logger.warn(
+					`Supabase RPC attempt ${i + 1} failed for ${fn}: ${err instanceof Error ? err.message : String(err)}`
+				)
+				// Exponential backoff
+				await new Promise(r => setTimeout(r, backoffMs * Math.pow(2, i)))
+			}
+		}
+		// All attempts failed - throw last error to be handled by caller
+		throw lastErr
+	}
+
 	getUserClient(userToken: string): SupabaseClient<Database> {
 		const supabaseUrl = process.env.SUPABASE_URL
 		const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
