@@ -25,52 +25,72 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 	constructor(private readonly supabase: SupabaseService) {}
 
+	private async callRpc<T = unknown>(
+		functionName: string,
+		payload: Record<string, unknown>
+	): Promise<T | null> {
+		try {
+			const result = await this.supabase.rpcWithRetries(functionName, payload)
+			const res = result as {
+				data?: T
+				error?: { message?: string } | null
+			}
+			if (res.error) {
+				this.logger.warn('Dashboard analytics RPC failed', {
+					functionName,
+					error: res.error?.message
+				})
+				return null
+			}
+			return res.data ?? null
+		} catch (error) {
+			this.logger.error('Unexpected RPC failure', {
+				functionName,
+				error: error instanceof Error ? error.message : String(error)
+			})
+			return null
+		}
+	}
+
 	async getDashboardStats(userId: string): Promise<DashboardStats> {
 		try {
 			this.logger.log('Calculating dashboard stats via optimized RPC', {
 				userId
 			})
 
-			const client = this.supabase.getAdminClient()
-
-			// Try primary RPC function first
-			const { data: primaryData, error: primaryError } = await client.rpc(
+			// Try primary RPC function first using centralized callRpc (with retries)
+			const primary = await this.callRpc<DashboardStats>(
 				'get_dashboard_stats',
 				{
 					user_id_param: userId
 				}
 			)
 
-			if (!primaryError && primaryData) {
-				return primaryData as unknown as DashboardStats
-			}
+			if (primary) return primary
 
 			this.logger.warn(
 				'Primary dashboard stats RPC failed, using optimized fallback',
 				{
-					error: primaryError,
 					userId
 				}
 			)
 
-			// Use existing fallback RPC (available in database)
-			const { data: fallbackData, error: fallbackError } = await client.rpc(
+			// Fallback attempt (may be identical or a different implementation in DB)
+			const fallback = await this.callRpc<DashboardStats>(
 				'get_dashboard_stats',
 				{
 					user_id_param: userId
 				}
 			)
 
-			if (fallbackError) {
+			if (!fallback) {
 				this.logger.error('Both primary and fallback dashboard stats failed', {
-					primaryError,
-					fallbackError,
 					userId
 				})
 				return this.getEmptyDashboardStats()
 			}
 
-			return fallbackData as unknown as DashboardStats
+			return fallback
 		} catch (error) {
 			this.logger.error(
 				`Database error in getDashboardStats: ${error instanceof Error ? error.message : String(error)}`,
@@ -88,39 +108,29 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		try {
 			this.logger.log('Calculating property performance via RPC', { userId })
 
-			const client = this.supabase.getAdminClient()
-
-			// Use RPC function for complex property performance calculations
-			const { data, error } = await client.rpc('get_property_performance', {
-				p_user_id: userId
-			})
-
-			if (error) {
-				this.logger.error('Failed to calculate property performance', {
-					error,
-					userId
-				})
-				return []
-			}
-
-			return (data as unknown as PropertyPerformanceRpcResponse[]).map(
-				item => ({
-					property: item.property_name,
-					propertyId: item.property_id,
-					units: item.total_units,
-					totalUnits: item.total_units,
-					occupiedUnits: item.occupied_units,
-					vacantUnits: item.vacant_units,
-					occupancy: `${item.occupancy_rate}%`,
-					occupancyRate: item.occupancy_rate,
-					revenue: item.annual_revenue,
-					monthlyRevenue: item.monthly_revenue,
-					potentialRevenue: item.potential_revenue,
-					address: item.address,
-					propertyType: item.property_type,
-					status: item.status as 'PARTIAL' | 'VACANT' | 'NO_UNITS' | 'FULL'
-				})
+			const raw = await this.callRpc<PropertyPerformanceRpcResponse[]>(
+				'get_property_performance',
+				{ p_user_id: userId }
 			)
+
+			if (!raw) return []
+
+			return raw.map(item => ({
+				property: item.property_name,
+				propertyId: item.property_id,
+				units: item.total_units,
+				totalUnits: item.total_units,
+				occupiedUnits: item.occupied_units,
+				vacantUnits: item.vacant_units,
+				occupancy: `${item.occupancy_rate}%`,
+				occupancyRate: item.occupancy_rate,
+				revenue: item.annual_revenue,
+				monthlyRevenue: item.monthly_revenue,
+				potentialRevenue: item.potential_revenue,
+				address: item.address,
+				propertyType: item.property_type,
+				status: item.status as 'PARTIAL' | 'VACANT' | 'NO_UNITS' | 'FULL'
+			}))
 		} catch (error) {
 			this.logger.error(
 				`Database error in getPropertyPerformance: ${error instanceof Error ? error.message : String(error)}`,
@@ -286,16 +296,19 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				userId
 			})
 
-			const client = this.supabase.getAdminClient()
+			const maintenanceRaw = await this.callRpc<{
+				avgResolutionTime: number
+				completionRate: number
+				priorityBreakdown: Record<string, number>
+				trendsOverTime: Array<{
+					month: string
+					completed: number
+					avgResolutionDays: number
+				}>
+			}>('get_maintenance_analytics', { user_id: userId })
 
-			// Use existing maintenance analytics RPC that's available in database
-			const { data, error } = await client.rpc('get_maintenance_analytics', {
-				user_id: userId
-			})
-
-			if (error) {
+			if (!maintenanceRaw) {
 				this.logger.error('Failed to calculate maintenance analytics via RPC', {
-					error,
 					userId
 				})
 				return {
@@ -306,16 +319,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				}
 			}
 
-			const result = data as unknown as {
-				avgResolutionTime: number
-				completionRate: number
-				priorityBreakdown: Record<string, number>
-				trendsOverTime: Array<{
-					month: string
-					completed: number
-					avgResolutionDays: number
-				}>
-			}
+			const result = maintenanceRaw
 
 			return {
 				avgResolutionTime: result.avgResolutionTime || 0,
