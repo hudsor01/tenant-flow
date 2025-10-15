@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react'
 
 import { DEFAULT_THEME_MODE, THEME_MODE_STORAGE_KEY } from '@/lib/theme-utils'
-import PostHogClientProvider from '@/providers/posthog-provider'
 import { QueryProvider } from '@/providers/query-provider'
 import { ThemeProvider } from '@/providers/theme-provider'
 import { AuthStoreProvider } from '@/stores/auth-provider'
@@ -29,9 +28,7 @@ export function Providers({
 		>
 			<PreferencesStoreProvider themeMode={initialThemeMode}>
 				<QueryProvider>
-					<PostHogClientProvider>
-						<AuthStoreProvider>{children}</AuthStoreProvider>
-					</PostHogClientProvider>
+					<AuthStoreProvider>{children}</AuthStoreProvider>
 				</QueryProvider>
 			</PreferencesStoreProvider>
 		</ThemeProvider>
