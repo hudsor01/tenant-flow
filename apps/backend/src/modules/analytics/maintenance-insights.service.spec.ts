@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common'
 import type { SupabaseService } from '../../database/supabase.service'
 import { MaintenanceInsightsService } from './maintenance-insights.service'
 
@@ -5,15 +6,31 @@ describe('MaintenanceInsightsService', () => {
 	let service: MaintenanceInsightsService
 	let mockSupabase: jest.Mocked<Pick<SupabaseService, 'getAdminClient'>>
 	let mockRpc: jest.Mock
+	let warnSpy: jest.SpyInstance
 
 	beforeEach(() => {
+		warnSpy = jest
+			.spyOn(Logger.prototype, 'warn')
+			.mockImplementation(() => undefined)
+
 		mockRpc = jest.fn()
 		mockSupabase = {
 			getAdminClient: jest.fn().mockReturnValue({ rpc: mockRpc })
-		}
+		} as unknown as jest.Mocked<
+			Pick<SupabaseService, 'getAdminClient' | 'rpcWithRetries'>
+		>
+		;(mockSupabase as unknown as any).rpcWithRetries = jest
+			.fn()
+			.mockImplementation((fn: string, payload: Record<string, unknown>) => {
+				return (mockSupabase.getAdminClient() as any).rpc(fn, payload)
+			})
 		service = new MaintenanceInsightsService(
 			mockSupabase as unknown as SupabaseService
 		)
+	})
+
+	afterEach(() => {
+		warnSpy.mockRestore()
 	})
 
 	it('maps maintenance metrics from RPC payload', async () => {

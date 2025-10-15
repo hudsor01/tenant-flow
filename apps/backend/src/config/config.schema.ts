@@ -86,7 +86,6 @@ const environmentSchema = z.object({
 		.default('noreply@tenantflow.app'),
 
 	// Analytics
-	POSTHOG_KEY: z.string().optional(),
 
 	// Security
 	CSRF_SECRET: z.string().optional(),
