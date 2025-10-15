@@ -1,4 +1,3 @@
-import { PostHogPageView } from '@/components/layout/posthog-pageview'
 import { ErrorBoundary } from '@/components/magicui/error-boundary'
 import { Providers } from '@/components/providers'
 import SeoJsonLd from '@/components/seo/SeoJsonLd'
@@ -79,7 +78,6 @@ export default async function RootLayout({
 						richColors
 						closeButton
 					/>
-					<PostHogPageView />
 				</Providers>
 				<Analytics />
 				<SpeedInsights />

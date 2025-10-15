@@ -36,21 +36,16 @@ export class LeaseAnalyticsService {
 		}
 	}
 
-	private async callRpc(
+	private async callRpc<T = unknown>(
 		functionName: string,
 		payload: Record<string, unknown>
-	): Promise<unknown> {
+	): Promise<T | null> {
 		const client = this.supabase.getAdminClient()
 
 		try {
-			const { data, error } = await (
-				client as unknown as {
-					rpc: (
-						fn: string,
-						args: Record<string, unknown>
-					) => Promise<{ data: unknown; error: { message: string } | null }>
-				}
-			).rpc(functionName, payload)
+			// Use the generic RPC method with proper typing for dynamic function calls
+			const rpcCall = client.rpc.bind(client)
+			const { data, error } = await (rpcCall as any)(functionName, payload) // eslint-disable-line @typescript-eslint/no-explicit-any
 
 			if (error) {
 				this.logger.warn(

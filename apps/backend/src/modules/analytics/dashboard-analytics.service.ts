@@ -32,7 +32,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		try {
 			const result = await this.supabase.rpcWithRetries(functionName, payload)
 			const res = result as {
-				data?: unknown
+				data?: T
 				error?: { message?: string } | null
 			}
 			if (res.error) {
@@ -42,7 +42,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				})
 				return null
 			}
-			return (res.data as T) ?? null
+			return res.data ?? null
 		} catch (error) {
 			this.logger.error('Unexpected RPC failure', {
 				functionName,

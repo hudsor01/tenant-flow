@@ -34,15 +34,15 @@ export class PropertyPerformanceService {
 		}
 	}
 
-	private async callRpc(
+	private async callRpc<T = unknown>(
 		functionName: string,
 		payload: Record<string, unknown>
-	): Promise<unknown> {
+	): Promise<T | null> {
 		try {
 			const result = await this.supabase.rpcWithRetries(functionName, payload)
 			// result may be an object with data/error similar to client.rpc
 			const res = result as {
-				data?: unknown
+				data?: T
 				error?: { message?: string } | null
 			}
 			if (res.error) {
