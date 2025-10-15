@@ -10,7 +10,15 @@ describe('OccupancyTrendsService', () => {
 		mockRpc = jest.fn()
 		mockSupabase = {
 			getAdminClient: jest.fn().mockReturnValue({ rpc: mockRpc })
-		}
+		} as unknown as jest.Mocked<
+			Pick<SupabaseService, 'getAdminClient' | 'rpcWithRetries'>
+		>
+		;(mockSupabase as unknown as any).rpcWithRetries = jest
+			.fn()
+			.mockImplementation((fn: string, payload: Record<string, unknown>) => {
+				return (mockSupabase.getAdminClient() as any).rpc(fn, payload)
+			})
+
 		service = new OccupancyTrendsService(
 			mockSupabase as unknown as SupabaseService
 		)
