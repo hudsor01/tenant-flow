@@ -31,8 +31,6 @@ export class SupabaseModule {
 							)
 						}
 
-						// Log which source provided the credentials (env vs config service)
-
 						const logger = new Logger('SupabaseModule')
 						if (envUrl || envKey) {
 							logger.debug(

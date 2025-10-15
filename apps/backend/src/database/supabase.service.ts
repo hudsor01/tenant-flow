@@ -41,7 +41,8 @@ export class SupabaseService {
 		fn: string,
 		args: Record<string, unknown>,
 		attempts = 3,
-		backoffMs = 500
+		backoffMs = 500,
+		timeoutMs = 10000
 	) {
 		const client = this.adminClient
 		let lastErr: unknown = null
@@ -63,24 +64,41 @@ export class SupabaseService {
 		}
 
 		for (let i = 0; i < attempts; i++) {
+			// Create an AbortController for per-attempt timeout
+			const ac = new AbortController()
+			let timer: NodeJS.Timeout | undefined
+			if (typeof timeoutMs === 'number' && timeoutMs > 0) {
+				timer = setTimeout(() => ac.abort(), timeoutMs)
+			}
+
 			try {
-				// `client.rpc` has a union type for known RPC names; perform the
-				// cast in this single wrapper. eslint-disable next-line to avoid lint noise.
+				// `client.rpc` has a union type for known RPC names; cast to any for dynamic calls
+				// and attach an abort signal for the attempt so long-running RPCs time out.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const result = await (client as any).rpc(fn, args)
+				const rpcBuilder = (client as any).rpc(fn, args)
+				// Some versions of the SDK return a builder with `.abortSignal` support.
+				const result = rpcBuilder?.abortSignal
+					? await rpcBuilder.abortSignal(ac.signal)
+					: await rpcBuilder
+
+				if (timer) clearTimeout(timer)
 
 				// If the RPC returned an error object, determine if it's transient.
 				const maybeErrorMsg =
 					result?.error?.message ??
 					(result?.error ? String(result.error) : undefined)
 				if (result?.error) {
-					this.logger.warn(
+					// Log transient RPC errors at debug level to avoid noisy WARN logs for
+					// retries; callers should decide whether to warn on final failure.
+					this.logger.debug(
 						`Supabase RPC returned error for ${fn}: ${maybeErrorMsg}`
 					)
 					if (isTransientMessage(maybeErrorMsg)) {
 						// transient - retry with backoff
 						lastErr = result.error
-						await new Promise(r => setTimeout(r, backoffMs * Math.pow(2, i)))
+						const delay = backoffMs * Math.pow(2, i)
+						const jitter = Math.floor(Math.random() * Math.min(1000, delay))
+						await new Promise(r => setTimeout(r, delay + jitter))
 						continue
 					}
 					// Non-transient - return immediately
@@ -89,24 +107,34 @@ export class SupabaseService {
 
 				// Success
 				return result
-			} catch (err) {
-				lastErr = err
-				const msg = err instanceof Error ? err.message : String(err)
-				this.logger.warn(
+			} catch (errUnknown) {
+				if (timer) clearTimeout(timer)
+				lastErr = errUnknown
+				const msg =
+					errUnknown instanceof Error ? errUnknown.message : String(errUnknown)
+				this.logger.debug(
 					`Supabase RPC attempt ${i + 1} failed for ${fn}: ${msg}`
 				)
-				// If this looks transient, wait and retry; otherwise continue to retry a few times
-				if (isTransientMessage(msg)) {
-					await new Promise(r => setTimeout(r, backoffMs * Math.pow(2, i)))
+
+				// If this looks transient (abort, network errors, connection resets), retry
+				const candidate = errUnknown as unknown
+				const nameProp =
+					typeof candidate === 'object' && candidate !== null
+						? (candidate as Record<string, unknown>)['name']
+						: undefined
+				const isAbort = nameProp === 'AbortError'
+				if (isAbort || isTransientMessage(msg)) {
+					const delay = backoffMs * Math.pow(2, i)
+					const jitter = Math.floor(Math.random() * Math.min(1000, delay))
+					await new Promise(r => setTimeout(r, delay + jitter))
 					continue
 				}
+
 				// Non-transient thrown error - still backoff a bit and let subsequent attempts run
 				await new Promise(r => setTimeout(r, backoffMs * Math.pow(2, i)))
 			}
 		}
 
-		// All attempts exhausted - return an error-shaped response instead of throwing so callers
-		// that expect `{ data, error }` can handle it consistently.
 		const finalMessage =
 			lastErr instanceof Error
 				? lastErr.message
@@ -260,7 +288,6 @@ export class SupabaseService {
 				const parsed = JSON.parse(candidate)
 
 				if (typeof parsed === 'string') {
-					// Some environments double-stringify; recurse once
 					try {
 						const innerParsed = JSON.parse(parsed)
 						const token = this.extractAccessTokenFromParsedCookie(innerParsed)
@@ -319,13 +346,10 @@ export class SupabaseService {
 		message?: string
 	}> {
 		try {
-			// Prefer a lightweight RPC if available; fall back to HEAD on a known table.
-			// Using health_check function with SECURITY DEFINER for consistent permissions
 			const fn = 'health_check' // Hardcoded health check function name
 			try {
-				// Attempt RPC call (must exist in DB). Returns ok=true when reachable.
-				// Cast the client locally to avoid the generated union-of-names typing
-				// from @supabase/supabase-js — keep the cast confined here.
+				// Explicit any here because RPC name is dynamic and SDK typings are
+				// narrow; accept the cast for runtime call.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const result = await (this.adminClient as any).rpc(fn)
 				const { data, error } = result
@@ -360,8 +384,6 @@ export class SupabaseService {
 
 			// Connectivity check: lightweight HEAD count on a canonical table.
 			const table = 'users' // Use users table for health check
-			// Use a local cast to avoid picky typings on `.from()` when the table
-			// name is a runtime string.
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const { error } = await (this.adminClient as any)
 				.from(table)
