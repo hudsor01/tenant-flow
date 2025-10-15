@@ -89,7 +89,9 @@ export function AddTenantDialog({
 										required
 										className="input"
 									/>
-									<FieldError errors={field.state.meta.errors} />
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
 								</Field>
 							)}
 						</form.Field>
@@ -107,7 +109,9 @@ export function AddTenantDialog({
 										required
 										className="input"
 									/>
-									<FieldError errors={field.state.meta.errors} />
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
 								</Field>
 							)}
 						</form.Field>
@@ -129,7 +133,9 @@ export function AddTenantDialog({
 									required
 									className="input"
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError>
+									{String(field.state.meta.errors?.[0] ?? '')}
+								</FieldError>
 							</Field>
 						)}
 					</form.Field>
@@ -149,7 +155,9 @@ export function AddTenantDialog({
 									placeholder="(555) 123-4567"
 									className="input"
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError>
+									{String(field.state.meta.errors?.[0] ?? '')}
+								</FieldError>
 							</Field>
 						)}
 					</form.Field>
@@ -166,7 +174,9 @@ export function AddTenantDialog({
 									placeholder="Emergency contact name and phone"
 									className="input"
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError>
+									{String(field.state.meta.errors?.[0] ?? '')}
+								</FieldError>
 							</Field>
 						)}
 					</form.Field>

@@ -78,7 +78,7 @@ export function TenantFormProvider({
 }) {
 	return (
 		<TenantSuspenseWrapper fallbackType="form">
-			<OptionalTenantProvider tenantId={tenantId}>
+			<OptionalTenantProvider {...(tenantId ? { tenantId } : {})}>
 				{children}
 			</OptionalTenantProvider>
 		</TenantSuspenseWrapper>

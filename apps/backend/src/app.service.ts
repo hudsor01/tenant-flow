@@ -22,12 +22,22 @@ export class AppService {
 		try {
 			const dbStatus = await this.supabaseService.checkConnection()
 
-			return {
+			const result: {
+				status: 'ok' | 'error'
+				uptime: number
+				db: 'healthy' | 'unhealthy'
+				message?: string
+			} = {
 				status: dbStatus.status === 'healthy' ? 'ok' : 'error',
 				uptime,
-				db: dbStatus.status, // type now matches
-				message: dbStatus.message
+				db: dbStatus.status
 			}
+
+			if (dbStatus.message !== undefined) {
+				result.message = dbStatus.message
+			}
+
+			return result
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'Unknown error'
 			this.logger.error('Health check failed', error)

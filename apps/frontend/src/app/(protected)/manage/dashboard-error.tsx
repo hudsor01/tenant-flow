@@ -1,7 +1,7 @@
 'use client'
 
-import { AppSidebar } from '@/components/dashboard-01/app-sidebar'
-import { SiteHeader } from '@/components/dashboard-01/site-header'
+import { AppSidebar } from '@/components/dashboard/app-sidebar'
+import { SiteHeader } from '@/components/dashboard/site-header'
 import { Button } from '@/components/ui/button'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { createLogger } from '@repo/shared/lib/frontend-logger'

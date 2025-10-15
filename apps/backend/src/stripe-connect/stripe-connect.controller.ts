@@ -61,14 +61,32 @@ export class StripeConnectController {
 			throw new BadRequestException('User already has a connected account')
 		}
 
-		const result = await this.stripeConnectService.createConnectedAccount({
+		const createParams: {
+			userId: string
+			email: string
+			displayName: string
+			businessName?: string
+			country?: string
+			entityType?: 'individual' | 'company'
+		} = {
 			userId,
 			email,
-			displayName: body.displayName,
-			businessName: body.businessName,
-			country: body.country,
-			entityType: body.entityType
-		})
+			displayName: body.displayName
+		}
+
+		// Only assign optional properties if provided
+		if (body.businessName !== undefined) {
+			createParams.businessName = body.businessName
+		}
+		if (body.country !== undefined) {
+			createParams.country = body.country
+		}
+		if (body.entityType !== undefined) {
+			createParams.entityType = body.entityType
+		}
+
+		const result =
+			await this.stripeConnectService.createConnectedAccount(createParams)
 
 		return {
 			success: true,

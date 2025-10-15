@@ -1,0 +1,33 @@
+name: Nightly E2E
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      shard-total:
+        description: 'Number of shards to split the run into'
+        type: number
+        default: 0
+      shard-index:
+        description: 'Shard index (1-based) when shard-total > 0'
+        type: number
+        default: 1
+
+permissions:
+  contents: read
+
+env:
+  PNPM_VERSION: '10.17.1'
+
+jobs:
+  e2e:
+    uses: ./.github/workflows/e2e.yml
+    with:
+      pnpm-version: ${{ env.PNPM_VERSION }}
+      node-version: '20'
+      base-url: http://localhost:3960
+      dev-server-command: pnpm --filter @repo/frontend dev -- -p 3960
+      playwright-args: '--reporter=list'
+      shard-total: ${{ github.event_name == 'workflow_dispatch' && inputs.shard-total || 0 }}
+      shard-index: ${{ github.event_name == 'workflow_dispatch' && inputs.shard-index || 1 }}
