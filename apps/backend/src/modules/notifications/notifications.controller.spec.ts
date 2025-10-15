@@ -1,8 +1,9 @@
 import { BadRequestException, UnauthorizedException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { Request } from 'express'
 import { SupabaseService } from '../../database/supabase.service'
+import { createMockRequest } from '../../shared/test-utils/types'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { createMockUser } from '../../test-utils/mocks'
 import { NotificationsController } from './notifications.controller'
 
@@ -35,7 +36,11 @@ describe('NotificationsController', () => {
 
 	const mockUser = createMockUser({ id: 'user-123' })
 
-	const mockRequest = {} as Request
+	const mockRequest = createMockRequest() as unknown as AuthenticatedRequest
+
+	const unauthRequest = createMockRequest({
+		user: {}
+	}) as unknown as AuthenticatedRequest
 
 	beforeEach(async () => {
 		jest.clearAllMocks()
@@ -85,7 +90,7 @@ describe('NotificationsController', () => {
 				}
 			]
 
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
+			// controller reads req.user.id directly; no getUser call expected
 			mockSupabaseClient.range.mockReturnValue({
 				data: mockNotifications,
 				error: null
@@ -93,16 +98,13 @@ describe('NotificationsController', () => {
 
 			const result = await controller.getNotifications(mockRequest)
 
-			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
-				mockRequest
-			)
 			expect(mockSupabaseClient.from).toHaveBeenCalledWith('notifications')
 			expect(mockSupabaseClient.eq).toHaveBeenCalledWith('userId', mockUser.id)
 			expect(result).toEqual({ notifications: mockNotifications })
 		})
 
 		it('should handle custom limit and offset parameters', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
+			// controller reads req.user.id directly; no getUser call expected
 			mockSupabaseClient.range.mockReturnValue({ data: [], error: null })
 
 			await controller.getNotifications(mockRequest, '20', '5')
@@ -111,9 +113,7 @@ describe('NotificationsController', () => {
 		})
 
 		it('should throw UnauthorizedException when user validation fails', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(null)
-
-			await expect(controller.getNotifications(mockRequest)).rejects.toThrow(
+			await expect(controller.getNotifications(unauthRequest)).rejects.toThrow(
 				UnauthorizedException
 			)
 		})
@@ -131,7 +131,7 @@ describe('NotificationsController', () => {
 		})
 
 		it('should return empty array when no notifications found', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
+			// controller reads req.user.id directly; no getUser call expected
 			mockSupabaseClient.range.mockReturnValue({ data: null, error: null })
 
 			const result = await controller.getNotifications(mockRequest)
@@ -191,7 +191,7 @@ describe('NotificationsController', () => {
 
 			expect(mockSupabaseClient.insert).toHaveBeenCalledWith({
 				...dataWithoutUrl,
-				actionUrl: undefined,
+				actionUrl: null,
 				isRead: false
 			})
 			expect(result.notification).toBeDefined()
@@ -214,8 +214,7 @@ describe('NotificationsController', () => {
 
 		it('should mark notification as read for authenticated user', async () => {
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-
-			// Set up the specific mock for this test
+			// Set up the specific mock chain for this test
 			const mockChain: any = {
 				from: jest.fn(() => mockChain),
 				update: jest.fn(() => mockChain),
@@ -238,9 +237,7 @@ describe('NotificationsController', () => {
 
 			const result = await controller.markAsRead(notificationId, mockRequest)
 
-			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
-				mockRequest
-			)
+			// no getUser call expected; controller uses req.user
 			expect(mockChain.from).toHaveBeenCalledWith('notifications')
 			expect(mockChain.update).toHaveBeenCalledWith({ isRead: true })
 			expect(mockChain.eq).toHaveBeenCalledWith('id', notificationId)
@@ -249,10 +246,8 @@ describe('NotificationsController', () => {
 		})
 
 		it('should throw UnauthorizedException when user validation fails', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(null)
-
 			await expect(
-				controller.markAsRead(notificationId, mockRequest)
+				controller.markAsRead(notificationId, unauthRequest)
 			).rejects.toThrow(UnauthorizedException)
 		})
 
@@ -291,7 +286,6 @@ describe('NotificationsController', () => {
 
 		it('should delete notification for authenticated user', async () => {
 			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-
 			// Set up the specific mock for this test
 			const mockChain: any = {
 				from: jest.fn(() => mockChain),
@@ -318,9 +312,7 @@ describe('NotificationsController', () => {
 				mockRequest
 			)
 
-			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
-				mockRequest
-			)
+			// no getUser call expected; controller uses req.user
 			expect(mockChain.from).toHaveBeenCalledWith('notifications')
 			expect(mockChain.delete).toHaveBeenCalled()
 			expect(mockChain.eq).toHaveBeenCalledWith('id', notificationId)
@@ -329,10 +321,8 @@ describe('NotificationsController', () => {
 		})
 
 		it('should throw UnauthorizedException when user validation fails', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(null)
-
 			await expect(
-				controller.deleteNotification(notificationId, mockRequest)
+				controller.deleteNotification(notificationId, unauthRequest)
 			).rejects.toThrow(UnauthorizedException)
 		})
 

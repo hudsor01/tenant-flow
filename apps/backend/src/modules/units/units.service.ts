@@ -1,37 +1,45 @@
 /**
- * Units Service - Repository Pattern Implementation
+ * Units Service - Supabase Functions Pattern Implementation
  *
- * - NO ABSTRACTIONS: Service delegates to repository directly
+ * - NO ABSTRACTIONS: Service delegates to Supabase Functions directly
  * - KISS: Simple, focused service methods
- * - DRY: Repository handles data access logic
+ * - DRY: Supabase Functions handles data access logic
  * - Production mirror: Matches controller interface exactly
  */
 
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import type {
 	CreateUnitRequest,
 	UpdateUnitRequest
 } from '@repo/shared/types/backend-domain'
 import type { Unit, UnitStats } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import type {
-	IUnitsRepository,
-	UnitInput,
-	UnitQueryOptions
-} from '../../repositories/interfaces/units-repository.interface'
-import { REPOSITORY_TOKENS } from '../../repositories/repositories.module'
+import type { SupabaseService } from '../../database/supabase.service'
+import {
+	buildILikePattern,
+	sanitizeSearchInput
+} from '../../shared/utils/sql-safe.utils'
 
 @Injectable()
 export class UnitsService {
 	private readonly logger = new Logger(UnitsService.name)
 
-	constructor(
-		@Inject(REPOSITORY_TOKENS.UNITS)
-		private readonly unitsRepository: IUnitsRepository
-	) {}
+	constructor(private readonly supabase: SupabaseService) {}
 
 	/**
-	 * Get all units for a user via repository
+	 * Helper method to get property IDs for a user (via owner_id)
+	 */
+	private async getUserPropertyIds(userId: string): Promise<string[]> {
+		const client = this.supabase.getAdminClient()
+		const { data: properties } = await client
+			.from('property')
+			.select('id')
+			.eq('owner_id', userId)
+		return properties?.map(p => p.id) || []
+	}
+
+	/**
+	 * Get all units for a user via direct Supabase query
 	 */
 	async findAll(
 		userId: string,
@@ -43,20 +51,74 @@ export class UnitsService {
 				throw new BadRequestException('User ID is required')
 			}
 
-			const options: UnitQueryOptions = {
-				search: query.search as string,
-				propertyId: query.propertyId as string,
-				status: query.status as Database['public']['Enums']['UnitStatus'],
-				type: query.type as string,
-				limit: query.limit as number,
-				offset: query.offset as number,
-				sort: query.sortBy as string,
-				order: query.sortOrder as 'asc' | 'desc'
+			this.logger.log('Finding all units via direct Supabase query', {
+				userId,
+				query
+			})
+
+			const client = this.supabase.getAdminClient()
+			const propertyIds = await this.getUserPropertyIds(userId)
+			if (propertyIds.length === 0) return []
+
+			// Build query with filters
+			let queryBuilder = client
+				.from('unit')
+				.select('*')
+				.in('property_id', propertyIds)
+
+			// Apply filters if provided
+			if (query.propertyId) {
+				queryBuilder = queryBuilder.eq('property_id', query.propertyId)
 			}
 
-			this.logger.log('Finding all units via repository', { userId, options })
+			if (query.status) {
+				const status = String(
+					query.status
+				).toUpperCase() as Database['public']['Enums']['UnitStatus']
+				const allowedStatuses: Database['public']['Enums']['UnitStatus'][] = [
+					'VACANT',
+					'OCCUPIED',
+					'MAINTENANCE',
+					'RESERVED'
+				]
+				if (allowedStatuses.includes(status)) {
+					queryBuilder = queryBuilder.eq('status', status)
+				}
+			}
 
-			return await this.unitsRepository.findByUserIdWithSearch(userId, options)
+			// SECURITY FIX #2: Use safe search to prevent SQL injection
+			if (query.search) {
+				const sanitized = sanitizeSearchInput(String(query.search))
+				if (sanitized) {
+					const pattern = buildILikePattern(sanitized)
+					queryBuilder = queryBuilder.ilike('unit_number', pattern)
+				}
+			}
+
+			// Apply pagination
+			const limit = query.limit ? Number(query.limit) : 50
+			const offset = query.offset ? Number(query.offset) : 0
+			queryBuilder = queryBuilder.range(offset, offset + limit - 1)
+
+			// Apply sorting
+			const sortBy = query.sortBy || 'created_at'
+			const sortOrder = query.sortOrder || 'desc'
+			queryBuilder = queryBuilder.order(sortBy as string, {
+				ascending: sortOrder === 'asc'
+			})
+
+			const { data, error } = await queryBuilder
+
+			if (error) {
+				this.logger.error('Failed to fetch units from Supabase', {
+					error: error.message,
+					userId,
+					query
+				})
+				throw new BadRequestException('Failed to fetch units')
+			}
+
+			return data as Unit[]
 		} catch (error) {
 			this.logger.error('Units service failed to find all units', {
 				error: error instanceof Error ? error.message : String(error),
@@ -70,7 +132,7 @@ export class UnitsService {
 	}
 
 	/**
-	 * Get unit statistics via repository
+	 * Get unit statistics via direct Supabase query
 	 */
 	async getStats(userId: string): Promise<UnitStats> {
 		try {
@@ -79,9 +141,91 @@ export class UnitsService {
 				throw new BadRequestException('User ID is required')
 			}
 
-			this.logger.log('Getting unit stats via repository', { userId })
+			this.logger.log('Getting unit stats via direct Supabase query', {
+				userId
+			})
 
-			return await this.unitsRepository.getStats(userId)
+			const client = this.supabase.getAdminClient()
+			const propertyIds = await this.getUserPropertyIds(userId)
+			if (propertyIds.length === 0) {
+				return {
+					total: 0,
+					occupied: 0,
+					vacant: 0,
+					maintenance: 0,
+					available: 0,
+					occupancyRate: 0,
+					averageRent: 0,
+					totalPotentialRent: 0,
+					totalActualRent: 0
+				} as UnitStats
+			}
+
+			// Get total units count
+			const { count: totalCount, error: countError } = await client
+				.from('unit')
+				.select('*', { count: 'exact', head: true })
+				.in('property_id', propertyIds)
+
+			if (countError) {
+				this.logger.error('Failed to get total unit count', {
+					error: countError.message,
+					userId
+				})
+				throw new BadRequestException('Failed to get unit statistics')
+			}
+
+			// Get units by status
+			const { data: statusData, error: statusError } = await client
+				.from('unit')
+				.select('status, rent')
+				.in('property_id', propertyIds)
+
+			if (statusError) {
+				this.logger.error('Failed to get unit status data', {
+					error: statusError.message,
+					userId
+				})
+				throw new BadRequestException('Failed to get unit statistics')
+			}
+
+			// Calculate statistics
+			type UnitStatusData = {
+				status: Database['public']['Enums']['UnitStatus']
+				rent: number
+			}
+			const occupiedCount = statusData.filter(
+				(u: UnitStatusData) => u.status === 'OCCUPIED'
+			).length
+			const vacantCount = statusData.filter(
+				(u: UnitStatusData) => u.status === 'VACANT'
+			).length
+			const maintenanceCount = statusData.filter(
+				(u: UnitStatusData) => u.status === 'MAINTENANCE'
+			).length
+
+			const totalRent = statusData.reduce(
+				(sum: number, unit: UnitStatusData) => sum + (unit.rent || 0),
+				0
+			)
+			const averageRent =
+				statusData.length > 0 ? totalRent / statusData.length : 0
+			const occupancyRate =
+				totalCount && totalCount > 0
+					? Math.round((occupiedCount / totalCount) * 100)
+					: 0
+
+			return {
+				total: totalCount || 0,
+				occupied: occupiedCount,
+				vacant: vacantCount,
+				maintenance: maintenanceCount,
+				available: vacantCount,
+				occupancyRate,
+				averageRent,
+				totalPotentialRent: totalRent,
+				totalActualRent: occupiedCount * averageRent
+			} as UnitStats
 		} catch (error) {
 			this.logger.error('Units service failed to get stats', {
 				error: error instanceof Error ? error.message : String(error),
@@ -94,7 +238,7 @@ export class UnitsService {
 	}
 
 	/**
-	 * Get units by property via repository
+	 * Get units by property via direct Supabase query
 	 */
 	async findByProperty(userId: string, propertyId: string): Promise<Unit[]> {
 		try {
@@ -106,12 +250,45 @@ export class UnitsService {
 				throw new BadRequestException('User ID and property ID are required')
 			}
 
-			this.logger.log('Finding units by property via repository', {
+			this.logger.log('Finding units by property via direct Supabase query', {
 				userId,
 				propertyId
 			})
 
-			return await this.unitsRepository.findByPropertyId(propertyId)
+			const client = this.supabase.getAdminClient()
+
+			// Verify property ownership
+			const { data: property } = await client
+				.from('property')
+				.select('id')
+				.eq('id', propertyId)
+				.eq('owner_id', userId)
+				.single()
+
+			if (!property) {
+				this.logger.warn('Property not found or access denied', {
+					userId,
+					propertyId
+				})
+				return []
+			}
+
+			const { data, error } = await client
+				.from('unit')
+				.select('*')
+				.eq('property_id', propertyId)
+				.order('unit_number', { ascending: true })
+
+			if (error) {
+				this.logger.error('Failed to fetch units by property from Supabase', {
+					error: error.message,
+					userId,
+					propertyId
+				})
+				throw new BadRequestException('Failed to retrieve property units')
+			}
+
+			return data as Unit[]
 		} catch (error) {
 			this.logger.error('Units service failed to find units by property', {
 				error: error instanceof Error ? error.message : String(error),
@@ -127,7 +304,7 @@ export class UnitsService {
 	}
 
 	/**
-	 * Find one unit by ID via repository
+	 * Find one unit by ID via direct Supabase query
 	 */
 	async findOne(userId: string, unitId: string): Promise<Unit | null> {
 		try {
@@ -139,13 +316,32 @@ export class UnitsService {
 				return null
 			}
 
-			this.logger.log('Finding one unit via repository', { userId, unitId })
+			this.logger.log('Finding one unit via direct Supabase query', {
+				userId,
+				unitId
+			})
 
-			const unit = await this.unitsRepository.findById(unitId)
+			const client = this.supabase.getAdminClient()
+			const propertyIds = await this.getUserPropertyIds(userId)
+			if (propertyIds.length === 0) return null
 
-			// Note: Unit ownership is verified via property ownership in repository RLS policies
+			const { data, error } = await client
+				.from('unit')
+				.select('*')
+				.eq('id', unitId)
+				.in('property_id', propertyIds)
+				.single()
 
-			return unit
+			if (error) {
+				this.logger.error('Failed to fetch unit from Supabase', {
+					error: error.message,
+					userId,
+					unitId
+				})
+				return null
+			}
+
+			return data as Unit
 		} catch (error) {
 			this.logger.error('Units service failed to find one unit', {
 				error: error instanceof Error ? error.message : String(error),
@@ -157,7 +353,7 @@ export class UnitsService {
 	}
 
 	/**
-	 * Create unit via repository
+	 * Create unit via direct Supabase query
 	 */
 	async create(
 		userId: string,
@@ -174,19 +370,51 @@ export class UnitsService {
 				)
 			}
 
-			this.logger.log('Creating unit via repository', { userId, createRequest })
+			this.logger.log('Creating unit via direct Supabase query', {
+				userId,
+				createRequest
+			})
 
-			// Convert CreateUnitRequest to UnitInput
-			const unitData: UnitInput = {
+			const client = this.supabase.getAdminClient()
+
+			// Verify property ownership
+			const { data: property } = await client
+				.from('property')
+				.select('id')
+				.eq('id', createRequest.propertyId)
+				.eq('owner_id', userId)
+				.single()
+
+			if (!property) {
+				throw new BadRequestException('Property not found or access denied')
+			}
+
+			const unitData = {
 				propertyId: createRequest.propertyId,
 				unitNumber: createRequest.unitNumber,
 				bedrooms: createRequest.bedrooms || 1,
 				bathrooms: createRequest.bathrooms || 1,
-				squareFeet: createRequest.squareFeet,
-				rent: createRequest.rent || createRequest.rentAmount || 0
+				squareFeet: createRequest.squareFeet || null,
+				rent: createRequest.rent || createRequest.rentAmount || 0,
+				status: 'VACANT' as const
 			}
 
-			return await this.unitsRepository.create(userId, unitData)
+			const { data, error } = await client
+				.from('unit')
+				.insert(unitData)
+				.select()
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to create unit in Supabase', {
+					error: error.message,
+					userId,
+					createRequest
+				})
+				throw new BadRequestException('Failed to create unit')
+			}
+
+			return data as Unit
 		} catch (error) {
 			this.logger.error('Units service failed to create unit', {
 				error: error instanceof Error ? error.message : String(error),
@@ -200,7 +428,7 @@ export class UnitsService {
 	}
 
 	/**
-	 * Update unit via repository
+	 * Update unit via direct Supabase query
 	 */
 	async update(
 		userId: string,
@@ -216,15 +444,55 @@ export class UnitsService {
 				return null
 			}
 
-			// Note: Unit ownership is verified via property ownership in repository RLS policies
-
-			this.logger.log('Updating unit via repository', {
+			this.logger.log('Updating unit via direct Supabase query', {
 				userId,
 				unitId,
 				updateRequest
 			})
 
-			return await this.unitsRepository.update(unitId, updateRequest)
+			const client = this.supabase.getAdminClient()
+			const propertyIds = await this.getUserPropertyIds(userId)
+			if (propertyIds.length === 0) return null
+
+			const updateData = {
+				...(updateRequest.bedrooms !== undefined && {
+					bedrooms: updateRequest.bedrooms
+				}),
+				...(updateRequest.bathrooms !== undefined && {
+					bathrooms: updateRequest.bathrooms
+				}),
+				...(updateRequest.squareFeet !== undefined && {
+					squareFeet: updateRequest.squareFeet
+				}),
+				...(updateRequest.rent !== undefined && { rent: updateRequest.rent }),
+				...(updateRequest.status !== undefined && {
+					status: updateRequest.status
+				}),
+				...(updateRequest.unitNumber !== undefined && {
+					unitNumber: updateRequest.unitNumber
+				}),
+				updatedAt: new Date().toISOString()
+			}
+
+			const { data, error } = await client
+				.from('unit')
+				.update(updateData)
+				.eq('id', unitId)
+				.in('property_id', propertyIds)
+				.select()
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to update unit in Supabase', {
+					error: error.message,
+					userId,
+					unitId,
+					updateRequest
+				})
+				return null
+			}
+
+			return data as Unit
 		} catch (error) {
 			this.logger.error('Units service failed to update unit', {
 				error: error instanceof Error ? error.message : String(error),
@@ -237,7 +505,7 @@ export class UnitsService {
 	}
 
 	/**
-	 * Remove unit via repository
+	 * Remove unit via direct Supabase query
 	 */
 	async remove(userId: string, unitId: string): Promise<void> {
 		try {
@@ -249,12 +517,31 @@ export class UnitsService {
 				throw new BadRequestException('User ID and unit ID are required')
 			}
 
-			this.logger.log('Removing unit via repository', { userId, unitId })
+			this.logger.log('Removing unit via direct Supabase query', {
+				userId,
+				unitId
+			})
 
-			const result = await this.unitsRepository.softDelete(userId, unitId)
+			const client = this.supabase.getAdminClient()
+			const propertyIds = await this.getUserPropertyIds(userId)
+			if (propertyIds.length === 0) {
+				throw new BadRequestException('No properties found for user')
+			}
 
-			if (!result.success) {
-				throw new BadRequestException(result.message)
+			// Soft delete by deleting the record directly
+			const { error } = await client
+				.from('unit')
+				.delete()
+				.eq('id', unitId)
+				.in('property_id', propertyIds)
+
+			if (error) {
+				this.logger.error('Failed to remove unit in Supabase', {
+					error: error.message,
+					userId,
+					unitId
+				})
+				throw new BadRequestException('Failed to remove unit')
 			}
 		} catch (error) {
 			this.logger.error('Units service failed to remove unit', {
@@ -269,38 +556,61 @@ export class UnitsService {
 	}
 
 	/**
-	 * Get units analytics via repository
+	 * Get units analytics via direct Supabase query
 	 */
 	async getAnalytics(
 		userId: string,
 		options: { propertyId?: string; timeframe: string }
-	): Promise<unknown[]> {
+	): Promise<Unit[]> {
 		try {
 			if (!userId) {
 				this.logger.warn('Unit analytics requested without userId')
 				throw new BadRequestException('User ID is required')
 			}
 
-			this.logger.log('Getting unit analytics via repository', {
+			this.logger.log('Getting unit analytics via direct Supabase query', {
 				userId,
 				options
 			})
 
-			return await this.unitsRepository.getAnalytics(userId, options)
+			// Simple query to get units for analytics
+			const client = this.supabase.getAdminClient()
+			const propertyIds = await this.getUserPropertyIds(userId)
+			if (propertyIds.length === 0) return []
+
+			let queryBuilder = client
+				.from('unit')
+				.select('*')
+				.in('property_id', propertyIds)
+
+			if (options.propertyId) {
+				queryBuilder = queryBuilder.eq('property_id', options.propertyId)
+			}
+
+			const { data, error } = await queryBuilder
+
+			if (error) {
+				this.logger.error('Failed to get unit analytics', {
+					error: error.message,
+					userId,
+					options
+				})
+				return []
+			}
+
+			return (data as Unit[]) || []
 		} catch (error) {
 			this.logger.error('Units service failed to get analytics', {
 				error: error instanceof Error ? error.message : String(error),
 				userId,
 				options
 			})
-			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to get unit analytics'
-			)
+			return []
 		}
 	}
 
 	/**
-	 * Get available units for a property via repository
+	 * Get available units for a property via Supabase Functions
 	 */
 	async getAvailable(propertyId: string): Promise<Unit[]> {
 		try {
@@ -309,9 +619,26 @@ export class UnitsService {
 				throw new BadRequestException('Property ID is required')
 			}
 
-			this.logger.log('Getting available units via repository', { propertyId })
+			this.logger.log('Getting available units via Supabase Functions', {
+				propertyId
+			})
 
-			return await this.unitsRepository.getAvailableUnits(propertyId)
+			const client = this.supabase.getAdminClient()
+			const { data, error } = await client
+				.from('unit')
+				.select('*')
+				.eq('property_id', propertyId)
+				.eq('status', 'VACANT')
+
+			if (error) {
+				this.logger.error('Failed to get available units from Supabase', {
+					error: error.message,
+					propertyId
+				})
+				throw new BadRequestException('Failed to get available units')
+			}
+
+			return (data as Unit[]) || []
 		} catch (error) {
 			this.logger.error('Units service failed to get available units', {
 				error: error instanceof Error ? error.message : String(error),
@@ -324,7 +651,7 @@ export class UnitsService {
 	}
 
 	/**
-	 * Update unit status via repository
+	 * Update unit status via Supabase RPC function
 	 */
 	async updateStatus(
 		userId: string,
@@ -341,15 +668,14 @@ export class UnitsService {
 				return null
 			}
 
-			// Note: Unit ownership is verified via property ownership in repository RLS policies
-
-			this.logger.log('Updating unit status via repository', {
+			this.logger.log('Updating unit status via direct Supabase query', {
 				userId,
 				unitId,
 				status
 			})
 
-			return await this.unitsRepository.updateStatus(unitId, status)
+			// Update the unit status directly
+			return this.update(userId, unitId, { status })
 		} catch (error) {
 			this.logger.error('Units service failed to update unit status', {
 				error: error instanceof Error ? error.message : String(error),
@@ -363,23 +689,23 @@ export class UnitsService {
 
 	/**
 	 * Get unit statistics - replaces get_unit_statistics function
-	 * Uses repository pattern instead of database function
+	 * Uses Supabase Functions pattern instead of database function
 	 */
 	async getUnitStatistics(
 		userId: string,
 		propertyId?: string
 	): Promise<Record<string, unknown>> {
 		try {
-			this.logger.log('Getting unit statistics via repository', {
+			this.logger.log('Getting unit statistics via direct Supabase query', {
 				userId,
 				propertyId
 			})
 
-			// Get unit stats and analytics via repository
+			// Get unit stats and analytics directly
 			const [stats, analytics] = await Promise.all([
-				this.unitsRepository.getStats(userId),
-				this.unitsRepository.getAnalytics(userId, {
-					propertyId,
+				this.getStats(userId),
+				this.getAnalytics(userId, {
+					...(propertyId ? { propertyId } : {}),
 					timeframe: '12m'
 				})
 			])

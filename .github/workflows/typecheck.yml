@@ -1,0 +1,47 @@
+name: typecheck
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        default: '22'
+        type: string
+      pnpm-version:
+        default: '10.17.1'
+        type: string
+    secrets:
+      NPM_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+
+env:
+  CI: true
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ inputs.pnpm-version }}
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs['node-version'] }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Configure npm auth (if provided)
+        if: secrets.NPM_TOKEN != ''
+        run: npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Run TypeScript typecheck
+        run: pnpm typecheck

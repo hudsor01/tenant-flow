@@ -106,17 +106,23 @@ export function computePropertySummary(
 		performance.reduce((acc, item) => acc + item.occupancyRate, 0) /
 		performance.length
 
-	return {
+	const summary: PropertyPerformanceSummary = {
 		totalProperties: performance.length,
 		totalUnits: totals.totalUnits,
 		occupiedUnits: totals.occupiedUnits,
 		averageOccupancy: Number.isFinite(averageOccupancy)
 			? Number(averageOccupancy.toFixed(1))
 			: 0,
-		totalRevenue: totals.totalRevenue,
-		bestPerformer: sortedByOccupancy[0]?.propertyName,
-		worstPerformer: sortedByOccupancy.at(-1)?.propertyName
+		totalRevenue: totals.totalRevenue
 	}
+
+	const bestPerformer = sortedByOccupancy[0]?.propertyName
+	if (bestPerformer !== undefined) summary.bestPerformer = bestPerformer
+
+	const worstPerformer = sortedByOccupancy.at(-1)?.propertyName
+	if (worstPerformer !== undefined) summary.worstPerformer = worstPerformer
+
+	return summary
 }
 
 export function mapPropertyUnits(data: unknown): PropertyUnitDetail[] {

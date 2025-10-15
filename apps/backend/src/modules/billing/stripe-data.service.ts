@@ -1,6 +1,5 @@
 import {
 	BadRequestException,
-	Inject,
 	Injectable,
 	InternalServerErrorException,
 	Logger
@@ -10,67 +9,24 @@ import type {
 	CustomerLifetimeValue,
 	RevenueAnalytics
 } from '@repo/shared/types/domain'
-// import type { Database } from '@repo/shared/types/supabase-generated' - not needed since we define types locally;
+import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
-import type {
-	IBillingRepository,
-	StripeCustomer,
-	StripePrice,
-	StripeProduct,
-	StripeSubscription
-} from '../../repositories/interfaces/billing-repository.interface'
-import { REPOSITORY_TOKENS } from '../../repositories/repositories.module'
 
-// Define types for Stripe table data to match actual database schema
-interface StripePaymentIntentDB {
-	id: string
-	amount: number
-	status: string
-	createdAt: string | null
-	currency: string | null
-	customer_id: string | null
-	description: string | null
-	metadata: Record<string, unknown> | null
-	receipt_email: string | null
-	updatedAt: string | null
-}
-
-interface StripeSubscriptionDB {
-	id: string
-	status: string
-	current_period_start: string | null
-	current_period_end: string | null
-	customer_id: string | null
-	metadata: Record<string, unknown> | null
-	createdAt: string | null
-	cancel_at_period_end: boolean | null
-	canceled_at: string | null
-	trial_end: string | null
-	trial_start: string | null
-	updatedAt: string | null
-}
-
-interface StripeCustomerDB {
-	id: string
-	email: string | null
-	name: string | null
-	createdAt: string | null
-	metadata: Record<string, unknown> | null
-	balance: number | null
-	currency: string | null
-	delinquent: boolean | null
-	description: string | null
-	livemode: boolean | null
-	phone: string | null
-	updatedAt: string | null
-}
+// Type aliases for Supabase database types
+type StripePaymentIntentDB =
+	Database['public']['Tables']['stripe_payment_intents']['Row']
+type StripeSubscriptionDB =
+	Database['public']['Tables']['stripe_subscriptions']['Row']
+type StripeCustomerDB = Database['public']['Tables']['stripe_customers']['Row']
+type StripePriceDB = Database['public']['Tables']['stripe_prices']['Row']
+type StripeProductDB = Database['public']['Tables']['stripe_products']['Row']
 
 /**
- * Stripe Data Service
+ * Stripe Data Service - Ultra-Native NestJS Implementation
  *
- * CLEAR SEPARATION OF RESPONSIBILITIES:
- * - Simple CRUD operations → Repository pattern (direct table queries)
- * - Complex analytics → RPC functions (database-level calculations)
+ * Direct Supabase access, no repository abstractions
+ * - Simple CRUD operations → Direct Supabase queries
+ * - Complex analytics → In-memory calculations
  */
 
 // Standard subscription value for calculations
@@ -80,23 +36,42 @@ const STANDARD_SUBSCRIPTION_VALUE = 2999
 export class StripeDataService {
 	private readonly logger = new Logger(StripeDataService.name)
 
-	constructor(
-		@Inject(REPOSITORY_TOKENS.BILLING)
-		private readonly billingRepository: IBillingRepository,
-		private readonly supabaseService: SupabaseService // Only for complex analytics RPC calls
-	) {}
+	constructor(private readonly supabaseService: SupabaseService) {}
 
 	/**
-	 * Get customer subscriptions - Simple lookup via Repository
+	 * Get customer subscriptions - Direct Supabase query
 	 */
 	async getCustomerSubscriptions(
 		customerId: string
-	): Promise<StripeSubscription[]> {
+	): Promise<StripeSubscriptionDB[]> {
 		try {
-			this.logger.log('Fetching customer subscriptions via repository', {
-				customerId
-			})
-			return await this.billingRepository.getCustomerSubscriptions(customerId)
+			this.logger.log(
+				'Fetching customer subscriptions via direct Supabase query',
+				{
+					customerId
+				}
+			)
+
+			const client = this.supabaseService.getAdminClient()
+			const { data, error } = await client
+				.from('stripe_subscriptions')
+				.select('*')
+				.eq('customer_id', customerId)
+
+			if (error) {
+				this.logger.error(
+					'Failed to fetch customer subscriptions from Supabase',
+					{
+						error: error.message,
+						customerId
+					}
+				)
+				throw new InternalServerErrorException(
+					'Failed to fetch customer subscriptions'
+				)
+			}
+
+			return (data as StripeSubscriptionDB[]) || []
 		} catch (error) {
 			this.logger.error('Error fetching customer subscriptions:', error)
 			throw new InternalServerErrorException(
@@ -106,23 +81,39 @@ export class StripeDataService {
 	}
 
 	/**
-	 * Get customer by ID - Simple lookup via Repository
+	 * Get customer by ID - Direct Supabase query
 	 */
-	async getCustomer(customerId: string): Promise<StripeCustomer> {
+	async getCustomer(customerId: string): Promise<StripeCustomerDB> {
 		try {
 			if (!customerId) {
 				this.logger.error('Customer ID is required')
 				throw new BadRequestException('Customer ID is required')
 			}
 
-			this.logger.log('Fetching customer via repository', { customerId })
-			const customer = await this.billingRepository.getCustomer(customerId)
+			this.logger.log('Fetching customer via direct Supabase query', {
+				customerId
+			})
 
-			if (!customer) {
+			const client = this.supabaseService.getAdminClient()
+			const { data, error } = await client
+				.from('stripe_customers')
+				.select('*')
+				.eq('id', customerId)
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to fetch customer from Supabase', {
+					error: error.message,
+					customerId
+				})
 				throw new InternalServerErrorException('Customer not found')
 			}
 
-			return customer
+			if (!data) {
+				throw new InternalServerErrorException('Customer not found')
+			}
+
+			return data as StripeCustomerDB
 		} catch (error) {
 			if (error instanceof BadRequestException) {
 				throw error
@@ -133,15 +124,32 @@ export class StripeDataService {
 	}
 
 	/**
-	 * Get prices - Simple catalog retrieval via Repository
+	 * Get prices - Direct Supabase query
 	 */
-	async getPrices(activeOnly: boolean = true): Promise<StripePrice[]> {
+	async getPrices(activeOnly: boolean = true): Promise<StripePriceDB[]> {
 		try {
-			this.logger.log('Fetching prices via repository', { activeOnly })
-			return await this.billingRepository.getPrices({
-				active: activeOnly,
-				limit: 1000
+			this.logger.log('Fetching prices via direct Supabase query', {
+				activeOnly
 			})
+
+			const client = this.supabaseService.getAdminClient()
+			let queryBuilder = client.from('stripe_prices').select('*')
+
+			if (activeOnly) {
+				queryBuilder = queryBuilder.eq('active', true)
+			}
+
+			const { data, error } = await queryBuilder.limit(1000)
+
+			if (error) {
+				this.logger.error('Failed to fetch prices from Supabase', {
+					error: error.message,
+					activeOnly
+				})
+				throw new InternalServerErrorException('Failed to fetch prices')
+			}
+
+			return (data as StripePriceDB[]) || []
 		} catch (error) {
 			this.logger.error('Error fetching prices:', error)
 			throw new InternalServerErrorException('Failed to fetch prices')
@@ -149,15 +157,32 @@ export class StripeDataService {
 	}
 
 	/**
-	 * Get products - Simple catalog retrieval via Repository
+	 * Get products - Direct Supabase query
 	 */
-	async getProducts(activeOnly: boolean = true): Promise<StripeProduct[]> {
+	async getProducts(activeOnly: boolean = true): Promise<StripeProductDB[]> {
 		try {
-			this.logger.log('Fetching products via repository', { activeOnly })
-			return await this.billingRepository.getProducts({
-				active: activeOnly,
-				limit: 1000
+			this.logger.log('Fetching products via direct Supabase query', {
+				activeOnly
 			})
+
+			const client = this.supabaseService.getAdminClient()
+			let queryBuilder = client.from('stripe_products').select('*')
+
+			if (activeOnly) {
+				queryBuilder = queryBuilder.eq('active', true)
+			}
+
+			const { data, error } = await queryBuilder.limit(1000)
+
+			if (error) {
+				this.logger.error('Failed to fetch products from Supabase', {
+					error: error.message,
+					activeOnly
+				})
+				throw new InternalServerErrorException('Failed to fetch products')
+			}
+
+			return (data as StripeProductDB[]) || []
 		} catch (error) {
 			this.logger.error('Error fetching products:', error)
 			throw new InternalServerErrorException('Failed to fetch products')
@@ -165,11 +190,17 @@ export class StripeDataService {
 	}
 
 	/**
-	 * Health check - Simple existence check via Repository
+	 * Health check - Direct Supabase query
 	 */
 	async isHealthy(): Promise<boolean> {
 		try {
-			return await this.billingRepository.isHealthy()
+			const client = this.supabaseService.getAdminClient()
+			const { error } = await client
+				.from('stripe_customers')
+				.select('id', { count: 'exact', head: true })
+				.limit(1)
+
+			return !error
 		} catch (error) {
 			this.logger.error('Stripe data service health check failed:', error)
 			return false
@@ -398,7 +429,7 @@ export class StripeDataService {
 						)
 					: undefined
 
-			return {
+			const result: CustomerLifetimeValue = {
 				customer_id: customer.id,
 				email: customer.email || '',
 				total_revenue,
@@ -406,16 +437,22 @@ export class StripeDataService {
 				first_subscription_date: first_subscription
 					? first_subscription.toISOString()
 					: '',
-				last_cancellation_date: last_cancellation
-					? last_cancellation.toISOString()
-					: undefined,
 				avg_revenue_per_subscription:
 					subscription_count > 0 ? total_revenue / subscription_count : 0,
 				status: customerSubs.some(sub => sub.status === 'active')
 					? 'Active'
-					: 'Churned',
-				lifetime_days
+					: 'Churned'
 			}
+
+			// Only assign optional properties if they have values
+			if (last_cancellation) {
+				result.last_cancellation_date = last_cancellation.toISOString()
+			}
+			if (lifetime_days !== undefined) {
+				result.lifetime_days = lifetime_days
+			}
+
+			return result
 		})
 	}
 
@@ -535,12 +572,19 @@ export class StripeDataService {
 			const expansion_opportunity_score =
 				activeSubscriptions.length > 0 ? 75 : 25 // Simplified
 
-			return {
+			const result: {
+				predicted_ltv: number
+				churn_risk_score: number
+				predicted_churn_date?: string
+				expansion_opportunity_score: number
+			} = {
 				predicted_ltv,
 				churn_risk_score,
-				predicted_churn_date: undefined, // Would require ML model
 				expansion_opportunity_score
 			}
+
+			// predicted_churn_date would require ML model, so we don't set it
+			return result
 		} catch (error) {
 			this.logger.error('Error calculating predictive metrics:', error)
 			throw new InternalServerErrorException(

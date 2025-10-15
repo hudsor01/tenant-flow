@@ -9,7 +9,6 @@ import { Lock, Smartphone, Zap } from 'lucide-react'
 import Image from 'next/image'
 import * as React from 'react'
 
-
 export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 	(
 		{
@@ -183,11 +182,19 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 
 					{/* Auth Form with better spacing */}
 					<div>
-					{mode === 'login' ? (
-						<LoginForm className="w-full" {...authProps} />
-					) : (
-						<SignupForm className="w-full" onSubmit={authProps?.onSubmit} isLoading={authProps?.isLoading} />
-					)}
+						{mode === 'login' ? (
+							<LoginForm className="w-full" {...authProps} />
+						) : (
+							<SignupForm
+								className="w-full"
+								{...(authProps?.onSubmit
+									? { onSubmit: authProps.onSubmit }
+									: {})}
+								{...(authProps?.isLoading !== undefined
+									? { isLoading: authProps.isLoading }
+									: {})}
+							/>
+						)}
 					</div>
 
 					{/* Refined Trust Indicators */}

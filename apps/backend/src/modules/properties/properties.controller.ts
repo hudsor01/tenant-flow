@@ -30,7 +30,6 @@ import type {
 	CreatePropertyRequest,
 	UpdatePropertyRequest
 } from '@repo/shared/types/backend-domain'
-import { ParseOptionalUUIDPipe } from '../../shared/pipes/parse-optional-uuid.pipe'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { PropertiesService } from './properties.service'
 
@@ -251,7 +250,8 @@ export class PropertiesController {
 	@Get('analytics/performance')
 	async getPropertyPerformanceAnalytics(
 		@Request() req: AuthenticatedRequest,
-		@Query('propertyId', ParseOptionalUUIDPipe) propertyId?: string,
+		@Query('propertyId', new ParseUUIDPipe({ optional: true }))
+		propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('30d')) timeframe?: string,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number
 	) {
@@ -273,9 +273,9 @@ export class PropertiesController {
 
 		const userId = req.user?.id
 		return this.propertiesService.getPropertyPerformanceAnalytics(userId, {
-			propertyId,
+			...(propertyId ? { propertyId } : {}),
 			timeframe: timeframe ?? '30d',
-			limit
+			...(limit !== undefined ? { limit } : {})
 		})
 	}
 
@@ -286,7 +286,8 @@ export class PropertiesController {
 	@Get('analytics/occupancy')
 	async getPropertyOccupancyAnalytics(
 		@Request() req: AuthenticatedRequest,
-		@Query('propertyId', ParseOptionalUUIDPipe) propertyId?: string,
+		@Query('propertyId', new ParseUUIDPipe({ optional: true }))
+		propertyId?: string,
 		@Query('period', new DefaultValuePipe('monthly')) period?: string
 	) {
 		if (!this.propertiesService) {
@@ -309,7 +310,7 @@ export class PropertiesController {
 
 		const userId = req.user?.id
 		return this.propertiesService.getPropertyOccupancyAnalytics(userId, {
-			propertyId,
+			...(propertyId ? { propertyId } : {}),
 			period: period ?? 'monthly'
 		})
 	}
@@ -321,7 +322,8 @@ export class PropertiesController {
 	@Get('analytics/financial')
 	async getPropertyFinancialAnalytics(
 		@Request() req: AuthenticatedRequest,
-		@Query('propertyId', ParseOptionalUUIDPipe) propertyId?: string,
+		@Query('propertyId', new ParseUUIDPipe({ optional: true }))
+		propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
 	) {
 		if (!this.propertiesService) {
@@ -342,7 +344,7 @@ export class PropertiesController {
 
 		const userId = req.user?.id
 		return this.propertiesService.getPropertyFinancialAnalytics(userId, {
-			propertyId,
+			...(propertyId ? { propertyId } : {}),
 			timeframe: timeframe ?? '12m'
 		})
 	}
@@ -354,7 +356,8 @@ export class PropertiesController {
 	@Get('analytics/maintenance')
 	async getPropertyMaintenanceAnalytics(
 		@Request() req: AuthenticatedRequest,
-		@Query('propertyId', ParseOptionalUUIDPipe) propertyId?: string,
+		@Query('propertyId', new ParseUUIDPipe({ optional: true }))
+		propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('6m')) timeframe?: string
 	) {
 		if (!this.propertiesService) {
@@ -375,7 +378,7 @@ export class PropertiesController {
 
 		const userId = req.user?.id
 		return this.propertiesService.getPropertyMaintenanceAnalytics(userId, {
-			propertyId,
+			...(propertyId ? { propertyId } : {}),
 			timeframe: timeframe ?? '6m'
 		})
 	}

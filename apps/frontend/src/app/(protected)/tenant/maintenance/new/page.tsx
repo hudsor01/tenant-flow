@@ -97,8 +97,10 @@ export default function NewMaintenanceRequestPage() {
 			title: formData.title,
 			description: formData.description,
 			priority: priorityMap[formData.priority] || 'MEDIUM',
-			category: categoryMap[formData.category] || 'GENERAL',
-			photos: photoUrls.length > 0 ? photoUrls : undefined
+			category: categoryMap[formData.category] || 'GENERAL'
+		}
+		if (photoUrls.length > 0) {
+			requestData.photos = photoUrls
 		}
 
 		try {

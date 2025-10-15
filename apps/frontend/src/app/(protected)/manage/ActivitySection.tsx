@@ -1,6 +1,6 @@
 'use client'
 
-import { ActivityFeed } from '@/components/dashboard-01/activity-feed'
+import { ActivityFeed } from '@/components/dashboard/activity-feed'
 
 /**
  * ActivitySection - Single Responsibility: Display recent activity
