@@ -71,7 +71,7 @@ export default [
 			'apps/frontend/src/lib/__tests__/**/*' // Test files not in tsconfig
 		]
 	},
-	// FRONTEND LOGGING - Console discouraged, use PostHog logger
+	// FRONTEND LOGGING - Console discouraged, use shared structured logger
 	{
 		name: 'frontend/no-console-logging',
 		files: ['apps/frontend/**/*.{ts,tsx}'],
@@ -91,12 +91,12 @@ export default [
 				{
 					selector: 'MemberExpression[object.name="console"]',
 					message:
-						'Direct console access is discouraged. Consider using PostHog logging via createLogger() from @repo/shared instead.'
+						'Direct console access is discouraged. Consider using the shared createLogger() helper from @repo/shared instead.'
 				},
 				{
 					selector: 'CallExpression[callee.object.name="console"]',
 					message:
-						'Console method calls are discouraged. Consider using PostHog logging: const logger = createLogger({ component: "ComponentName" }); logger.info/warn/error("message")'
+						'Console method calls are discouraged. Consider structured logging: const logger = createLogger({ component: "ComponentName" }); logger.info/warn/error("message")'
 				}
 			]
 		}

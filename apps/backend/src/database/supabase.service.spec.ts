@@ -9,17 +9,21 @@
  * - Tests mirror production usage patterns exactly
  */
 
+import { InternalServerErrorException, Logger } from '@nestjs/common'
+import type { ConfigService } from '@nestjs/config'
 import type { TestingModule } from '@nestjs/testing'
-import { SilentLogger } from '../__test__/silent-logger';
 import { Test } from '@nestjs/testing'
-import { Logger } from '@nestjs/common'
-import { InternalServerErrorException } from '@nestjs/common'
+import type { Database } from '@repo/shared/types/supabase-generated'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { SilentLogger } from '../__test__/silent-logger'
+import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
+import { SupabaseModule } from './supabase.module'
 import { SupabaseService } from './supabase.service'
-
 
 describe('SupabaseService', () => {
 	let service: SupabaseService
 	let loggerSpy: jest.SpyInstance
+	let mockAdminClient: SupabaseClient<Database>
 
 	beforeEach(async () => {
 		// Set up environment variables that SupabaseService actually uses
@@ -30,20 +34,30 @@ describe('SupabaseService', () => {
 			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-anon-key'
 
 		// Spy on Logger before creating the service (logs happen in constructor)
-		const mockLoggerLog = jest.fn()
-		jest.spyOn(Logger.prototype, 'log').mockImplementation(mockLoggerLog)
-		loggerSpy = mockLoggerLog
+		const mockLoggerDebug = jest.fn()
+		jest.spyOn(Logger.prototype, 'debug').mockImplementation(mockLoggerDebug)
+		loggerSpy = mockLoggerDebug
+
+		mockAdminClient = {
+			rpc: jest.fn(),
+			from: jest.fn(),
+			auth: {},
+			storage: {}
+		} as unknown as SupabaseClient<Database>
 
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [SupabaseService]
+			providers: [
+				SupabaseService,
+				{
+					provide: SUPABASE_ADMIN_CLIENT,
+					useValue: mockAdminClient
+				}
+			]
 		})
 			.setLogger(new SilentLogger())
 			.compile()
 
 		service = module.get<SupabaseService>(SupabaseService)
-
-		// Manually trigger the lifecycle method that initializes the client
-		await service.onModuleInit()
 	})
 
 	afterEach(() => {
@@ -59,74 +73,53 @@ describe('SupabaseService', () => {
 			// Service should initialize successfully with environment variables
 			expect(service).toBeDefined()
 			expect(service.getAdminClient()).toBeDefined()
+			expect(service.getAdminClient()).toBe(mockAdminClient)
 
 			// Check that logger was called with expected message
 			expect(loggerSpy).toHaveBeenCalledWith(
-				'Supabase service initialized',
-				expect.objectContaining({
-					supabaseHost: 'test-project.supabase.co'
-				})
+				'SupabaseService initialized with injected admin client'
 			)
 		})
 
-		it('should throw error when SUPABASE_URL is missing', async () => {
-			// Clear SUPABASE_URL but keep service role key
+		it('should throw error when SUPABASE configuration is missing in module factory', () => {
+			const moduleDefinition = SupabaseModule.forRootAsync()
+			const adminProvider = moduleDefinition.providers?.find(
+				provider =>
+					typeof provider === 'object' &&
+					'provide' in provider &&
+					provider.provide === SUPABASE_ADMIN_CLIENT
+			)
+
+			expect(adminProvider).toBeDefined()
+			if (
+				!adminProvider ||
+				typeof adminProvider !== 'object' ||
+				!('useFactory' in adminProvider)
+			) {
+				throw new Error('Supabase admin provider not found')
+			}
+
+			const mockConfigService = {
+				get: jest.fn((key: string) => {
+					if (key === 'SUPABASE_URL') return undefined
+					if (key === 'SUPABASE_SERVICE_ROLE_KEY') return 'test-key'
+					return undefined
+				})
+			} as unknown as ConfigService
+
+			const previousUrl = process.env.SUPABASE_URL
+			const previousKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 			delete process.env.SUPABASE_URL
-			process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key'
-
-			const module = await Test.createTestingModule({
-				providers: [
-					SupabaseService,
-					{
-						provide: Logger,
-						useValue: {
-							log: jest.fn(),
-							error: jest.fn(),
-							warn: jest.fn(),
-							debug: jest.fn(),
-							verbose: jest.fn()
-						}
-					}
-				]
-			})
-				.setLogger(new SilentLogger())
-				.compile()
-
-			const service = module.get<SupabaseService>(SupabaseService)
-
-			// The error should be thrown when onModuleInit is called
-			expect(() => service.onModuleInit()).toThrow(InternalServerErrorException)
-		})
-
-		it('should throw error when all service role key variants are missing', async () => {
-			// Set SUPABASE_URL but clear all service role key variants
-			process.env.SUPABASE_URL = 'https://test.supabase.co'
-			delete process.env.SERVICE_ROLE_KEY
 			delete process.env.SUPABASE_SERVICE_ROLE_KEY
-			delete process.env.SUPABASE_SERVICE_KEY
 
-			const module = await Test.createTestingModule({
-				providers: [
-					SupabaseService,
-					{
-						provide: Logger,
-						useValue: {
-							log: jest.fn(),
-							error: jest.fn(),
-							warn: jest.fn(),
-							debug: jest.fn(),
-							verbose: jest.fn()
-						}
-					}
-				]
-			})
-				.setLogger(new SilentLogger())
-				.compile()
+			expect(() =>
+				(
+					adminProvider as { useFactory: (config: ConfigService) => unknown }
+				).useFactory(mockConfigService)
+			).toThrow(/Missing Supabase configuration/i)
 
-			const service = module.get<SupabaseService>(SupabaseService)
-
-			// The error should be thrown when onModuleInit is called
-			expect(() => service.onModuleInit()).toThrow(InternalServerErrorException)
+			if (previousUrl) process.env.SUPABASE_URL = previousUrl
+			if (previousKey) process.env.SUPABASE_SERVICE_ROLE_KEY = previousKey
 		})
 	})
 
@@ -233,10 +226,7 @@ describe('SupabaseService', () => {
 			// Test that logger is properly injected and works
 			expect(service.getAdminClient()).toBeDefined()
 			expect(loggerSpy).toHaveBeenCalledWith(
-				'Supabase service initialized',
-				expect.objectContaining({
-					supabaseHost: 'test-project.supabase.co'
-				})
+				'SupabaseService initialized with injected admin client'
 			)
 		})
 	})

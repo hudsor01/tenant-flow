@@ -14,7 +14,7 @@ import type {
 } from '@repo/shared/types/backend-domain'
 import type { Unit, UnitStats } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import type { SupabaseService } from '../../database/supabase.service'
+import { SupabaseService } from '../../database/supabase.service'
 import {
 	buildILikePattern,
 	sanitizeSearchInput

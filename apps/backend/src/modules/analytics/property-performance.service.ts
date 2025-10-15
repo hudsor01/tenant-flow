@@ -34,35 +34,27 @@ export class PropertyPerformanceService {
 		}
 	}
 
-	private async callRpc(
+	private async callRpc<T = unknown>(
 		functionName: string,
 		payload: Record<string, unknown>
-	): Promise<unknown> {
-		const client = this.supabase.getAdminClient()
-
+	): Promise<T | null> {
 		try {
-			const { data, error } = await (
-				client as unknown as {
-					rpc: (
-						fn: string,
-						args: Record<string, unknown>
-					) => Promise<{ data: unknown; error: { message: string } | null }>
-				}
-			).rpc(functionName, payload)
-
-			if (error) {
+			const result = await this.supabase.rpcWithRetries(functionName, payload)
+			// result may be an object with data/error similar to client.rpc
+			const res = result as {
+				data?: T
+				error?: { message?: string } | null
+			}
+			if (res.error) {
 				this.logger.warn(
-					`Property analytics RPC failed: ${functionName} - ${error.message}`
+					`Property analytics RPC failed: ${functionName} - ${res.error?.message}`
 				)
 				return null
 			}
-
-			return data ?? null
+			return res.data ?? null
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error ? error.message : String(error)
-			// Downgrade to warn - RPC failures are expected in some test mocks and
-			// should not be treated as hard errors.
 			this.logger.warn(
 				`Unexpected RPC failure: ${functionName} - ${errorMessage}`
 			)
