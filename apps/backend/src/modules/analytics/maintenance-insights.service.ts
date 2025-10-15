@@ -35,27 +35,26 @@ export class MaintenanceInsightsService {
 		functionName: string,
 		payload: Record<string, unknown>
 	): Promise<T | null> {
-		const client = this.supabase.getAdminClient()
-
 		try {
-			// Type the RPC call properly by casting to any only for the function name
-			// This maintains type safety while allowing dynamic function calls
-			const rpcCall = client.rpc.bind(client)
-			const { data, error } = await (rpcCall as any)(functionName, payload) // eslint-disable-line @typescript-eslint/no-explicit-any
+			const result = await this.supabase.rpcWithRetries(functionName, payload)
+			// rpcWithRetries returns either the raw client result ({ data, error }) or
+			// an object shaped like { data: null, error: { message }, attempts } on final failure.
+			const res = result as {
+				data?: T | null
+				error?: { message?: string } | null
+			}
 
-			if (error) {
+			if (res?.error) {
 				this.logger.warn(
-					`Maintenance analytics RPC failed: ${functionName} - ${error.message}`
+					`Maintenance analytics RPC failed: ${functionName} - ${res.error?.message}`
 				)
 				return null
 			}
 
-			return data as T | null
+			return (res?.data ?? null) as T | null
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error ? error.message : String(error)
-			// Downgrade to warn - RPC failures are expected in some test mocks and
-			// should not be treated as hard errors.
 			this.logger.warn(
 				`Unexpected RPC failure: ${functionName} - ${errorMessage}`
 			)

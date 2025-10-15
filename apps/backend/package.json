@@ -18,6 +18,7 @@
 		"lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/*.d.ts\"",
 		"lint:fix": "pnpm lint --fix",
 		"typecheck": "tsc --noEmit",
+		"test": "pnpm run test:unit && pnpm run test:integration",
 		"test:unit": "jest --testMatch=\"**/*.spec.ts\" --forceExit",
 		"test:unit:clean": "jest --testMatch=\"**/*.spec.ts\" --forceExit",
 		"test:integration": "jest --testMatch=\"**/*.integration.spec.ts\" --forceExit",
