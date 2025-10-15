@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common'
 
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseModule } from '../../database/supabase.module'
-import { RepositoriesModule } from '../../repositories/repositories.module'
 import { StripeDataService } from './stripe-data.service'
 import { StripeEventProcessor } from './stripe-event-processor.service'
 import { StripeRecoveryService } from './stripe-recovery.service'
@@ -23,7 +22,7 @@ import { StripeService } from './stripe.service'
  * - Type-safe DTOs with comprehensive validation
  */
 @Module({
-	imports: [SupabaseModule, RepositoriesModule],
+	imports: [SupabaseModule],
 	providers: [
 		// Native Stripe SDK service
 		StripeService,

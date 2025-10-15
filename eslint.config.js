@@ -113,6 +113,11 @@ export default [
 	{
 		name: 'root/test-files',
 		files: ['**/*.test.*', '**/*.spec.*'],
+		ignores: [
+			'apps/backend/test/**/*',
+			'apps/frontend/test/**/*',
+			'apps/e2e-tests/**/*'
+		],
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'error',
 			'@typescript-eslint/no-unsafe-argument': 'error',

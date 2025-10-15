@@ -9,8 +9,7 @@
 		"moduleResolution": "nodenext",
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
-		"forceConsistentCasingInFileNames": true,
-		"jsx": "react-jsx"
+		"forceConsistentCasingInFileNames": true
 	},
 	"files": [],
 	"exclude": ["node_modules"],
@@ -21,6 +20,6 @@
 		{ "path": "./packages/api-client" },
 		{ "path": "./packages/testing" },
 		{ "path": "./apps/backend" },
-		{ "path": "./apps/frontend" }
+		{ "path": "./scripts" }
 	]
 }

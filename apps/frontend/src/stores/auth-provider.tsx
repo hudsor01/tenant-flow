@@ -5,7 +5,7 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
-import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef } from 'react'
 
 const supabaseClient = createClient()
 const logger = createLogger({ component: 'AuthProvider' })
@@ -46,11 +46,14 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 		} = supabaseClient.auth.onAuthStateChange(
 			(event: AuthChangeEvent, session: Session | null) => {
 				// Debug logging for auth events
-				logger.info('State change event', {
+				const logContext: Record<string, unknown> = {
 					action: 'authStateChange',
-					userId: session?.user?.id,
 					metadata: { event, hasSession: !!session }
-				})
+				}
+				if (session?.user?.id) {
+					logContext.userId = session.user.id
+				}
+				logger.info('State change event', logContext)
 
 				// Official Supabase pattern: handle auth state changes
 				if (event === 'SIGNED_OUT') {

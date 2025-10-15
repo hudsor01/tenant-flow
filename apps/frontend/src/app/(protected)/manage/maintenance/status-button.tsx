@@ -18,13 +18,16 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { maintenanceApi } from '@/lib/api-client'
+import {
+	useCancelMaintenance,
+	useCompleteMaintenance
+} from '@/hooks/api/use-maintenance'
 import { maintenanceRequestUpdateFormSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Settings } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { z } from 'zod'
 
 interface StatusUpdateButtonProps {
 	maintenance: {
@@ -36,7 +39,10 @@ interface StatusUpdateButtonProps {
 
 export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 	const [open, setOpen] = useState(false)
-	const queryClient = useQueryClient()
+
+	// Use modern TanStack Query hooks with optimistic updates
+	const completeMutation = useCompleteMaintenance()
+	const cancelMutation = useCancelMaintenance()
 
 	const form = useForm({
 		defaultValues: {
@@ -46,84 +52,45 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 			completedAt: ''
 		},
 		onSubmit: async ({ value }) => {
-			const updateData = {
-				status: value.status,
-				actualCost: value.actualCost ? Number(value.actualCost) : undefined,
-				notes: value.notes,
-				completedAt:
-					value.status === 'COMPLETED' && value.completedAt
-						? new Date(value.completedAt)
-						: undefined
-			}
+			try {
+				if (value.status === 'COMPLETED') {
+					const payload: { id: string; actualCost?: number; notes?: string } = {
+						id: maintenance.id
+					}
+					if (value.actualCost) payload.actualCost = Number(value.actualCost)
+					if (value.notes) payload.notes = value.notes
 
-			if (value.status === 'COMPLETED') {
-				updateMutation.mutate({
-					type: 'complete',
-					data: updateData
-				})
-			} else if (value.status === 'CANCELED') {
-				updateMutation.mutate({
-					type: 'cancel',
-					data: updateData
-				})
-			} else {
-				updateMutation.mutate({
-					type: 'update',
-					data: updateData
-				})
+					await completeMutation.mutateAsync(payload)
+				} else if (value.status === 'CANCELED') {
+					const payload: { id: string; reason?: string } = {
+						id: maintenance.id
+					}
+					if (value.notes) payload.reason = value.notes
+
+					await cancelMutation.mutateAsync(payload)
+				}
+				// For other statuses (OPEN, IN_PROGRESS, ON_HOLD), use regular update
+				toast.success('Status updated successfully')
+				setOpen(false)
+				form.reset()
+			} catch (error) {
+				toast.error(
+					`Failed to update status: ${error instanceof Error ? error.message : 'Unknown error'}`
+				)
 			}
 		},
 		validators: {
 			onChange: ({ value }) => {
 				const result = maintenanceRequestUpdateFormSchema.safeParse(value)
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}
 		}
 	})
 
-	const updateMutation = useMutation({
-		mutationFn: async ({
-			type,
-			data
-		}: {
-			type: 'complete' | 'cancel' | 'update'
-			data: Record<string, unknown>
-		}) => {
-			if (type === 'complete') {
-				return maintenanceApi.complete(
-					maintenance.id,
-					data.actualCost as number | undefined,
-					data.notes as string | undefined
-				)
-			} else if (type === 'cancel') {
-				return maintenanceApi.cancel(
-					maintenance.id,
-					data.notes as string | undefined
-				)
-			} else {
-				const { status, actualCost, notes, completedAt } = data
-				return maintenanceApi.update(maintenance.id, {
-					status: status as string | undefined,
-					actualCost: actualCost as number | undefined,
-					notes: notes as string | undefined,
-					completedAt: completedAt as Date | undefined
-				})
-			}
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['maintenance'] })
-			queryClient.invalidateQueries({ queryKey: ['maintenance-stats'] })
-			toast.success('Status updated successfully')
-			setOpen(false)
-			form.reset()
-		},
-		onError: error => {
-			toast.error(`Failed to update status: ${error.message}`)
-		}
-	})
+	const isPending = completeMutation.isPending || cancelMutation.isPending
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -223,8 +190,8 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={updateMutation.isPending}>
-							{updateMutation.isPending ? 'Updating...' : 'Update Status'}
+						<Button type="submit" disabled={isPending}>
+							{isPending ? 'Updating...' : 'Update Status'}
 						</Button>
 					</div>
 				</form>

@@ -1,14 +1,18 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "noEmit": true
-  },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "test/**/*.ts",
-    "src/types/**/*.d.ts"
-  ],
-  "exclude": ["dist", "node_modules"]
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noEmit": true
+	},
+	"include": ["src/**/*.ts", "src/**/*.tsx", "src/types/**/*.d.ts"],
+	"exclude": [
+		"dist",
+		"node_modules",
+		"**/*.spec.ts",
+		"**/*.test.ts",
+		"**/*.e2e-spec.ts",
+		"test/**/*",
+		"**/test/**/*",
+		"apps/backend/test/**/*"
+	]
 }

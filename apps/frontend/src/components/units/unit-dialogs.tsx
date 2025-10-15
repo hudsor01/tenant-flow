@@ -575,7 +575,7 @@ export function UnitEditDialog({
 			bathrooms: unit.bathrooms?.toString() || '',
 			squareFeet: unit.squareFeet?.toString() || '',
 			rent: unit.rent?.toString() || '',
-			lastInspectionDate: unit.lastInspectionDate || '',
+			lastInspectionDate: unit.lastInspectionDate ?? undefined,
 			status: unit.status
 		},
 		onSubmit: async ({ value }) => {
@@ -588,10 +588,13 @@ export function UnitEditDialog({
 						unitNumber: transformedData.unitNumber,
 						bedrooms: transformedData.bedrooms,
 						bathrooms: transformedData.bathrooms,
-						squareFeet: transformedData.squareFeet,
+						squareFeet:
+							transformedData.squareFeet === undefined
+								? null
+								: transformedData.squareFeet,
 						rent: transformedData.rent,
 						status: transformedData.status,
-						lastInspectionDate: transformedData.lastInspectionDate
+						lastInspectionDate: transformedData.lastInspectionDate ?? null
 					}
 				})
 
@@ -633,7 +636,7 @@ export function UnitEditDialog({
 					squareFeet: unit.squareFeet?.toString() || '',
 					rent: unit.rent?.toString() || '',
 					status: unit.status,
-					lastInspectionDate: unit.lastInspectionDate || ''
+					lastInspectionDate: unit.lastInspectionDate ?? undefined
 				}
 			})
 		}
@@ -721,7 +724,9 @@ export function UnitEditDialog({
 												: 'focus:border-primary hover:border-muted-foreground'
 										)}
 									/>
-									<FieldError errors={field.state.meta.errors} />
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
 								</Field>
 							)}
 						</form.Field>
@@ -790,7 +795,9 @@ export function UnitEditDialog({
 											})}
 										</SelectContent>
 									</Select>
-									<FieldError errors={field.state.meta.errors} />
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
 								</Field>
 							)}
 						</form.Field>
@@ -826,7 +833,9 @@ export function UnitEditDialog({
 									<p className="text-xs text-muted-foreground">
 										Number of bedrooms (0-20)
 									</p>
-									<FieldError errors={field.state.meta.errors} />
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
 								</Field>
 							)}
 						</form.Field>
@@ -860,7 +869,9 @@ export function UnitEditDialog({
 									<p className="text-xs text-muted-foreground">
 										Include half-baths (e.g., 1.5)
 									</p>
-									<FieldError errors={field.state.meta.errors} />
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
 								</Field>
 							)}
 						</form.Field>
@@ -891,7 +902,9 @@ export function UnitEditDialog({
 												: 'focus:border-primary'
 										}
 									/>
-									<FieldError errors={field.state.meta.errors} />
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
 								</Field>
 							)}
 						</form.Field>
@@ -910,14 +923,16 @@ export function UnitEditDialog({
 											min="0"
 											step="0.01"
 											placeholder="e.g., 1200.00"
-											value={field.state.value}
+											value={field.state.value ?? ''}
 											onChange={e => field.handleChange(e.target.value)}
 											onBlur={field.handleBlur}
 											disabled={form.state.isSubmitting}
 											className={`pl-7 ${field.state.meta.errors?.length ? 'border-destructive focus:border-destructive' : 'focus:border-primary'}`}
 										/>
 									</div>
-									<FieldError errors={field.state.meta.errors} />
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
 								</Field>
 							)}
 						</form.Field>
@@ -935,7 +950,7 @@ export function UnitEditDialog({
 								<Input
 									id="lastInspectionDate"
 									type="date"
-									value={field.state.value}
+									value={field.state.value ?? ''}
 									onChange={e => field.handleChange(e.target.value)}
 									onBlur={field.handleBlur}
 									disabled={form.state.isSubmitting}
@@ -945,7 +960,9 @@ export function UnitEditDialog({
 											: 'focus:border-primary'
 									}
 								/>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError>
+									{String(field.state.meta.errors?.[0] ?? '')}
+								</FieldError>
 							</Field>
 						)}
 					</form.Field>

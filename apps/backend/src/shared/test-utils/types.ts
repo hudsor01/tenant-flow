@@ -78,6 +78,36 @@ export function createMockRequest(
 	return {
 		url: '/',
 		method: 'GET',
+		// Provide a sensible default user for controller unit tests that
+		// previously relied on global auth middleware. This prevents
+		// `req.user` from being undefined in many controller tests.
+		user: { id: 'user-123' },
+		...overrides
+	}
+}
+
+/**
+ * Create a properly typed AuthenticatedRequest for controller tests
+ * This matches the interface controllers expect: req.user.id
+ */
+export function createAuthenticatedRequest(
+	userId: string = 'user-123',
+	overrides: Partial<{
+		headers?: Record<string, string>
+		body?: unknown
+		url?: string
+	}> = {}
+) {
+	return {
+		headers: {
+			authorization: 'Bearer test-jwt-token',
+			...overrides.headers
+		},
+		body: overrides.body,
+		url: overrides.url || '/api/test',
+		method: 'GET',
+		// Use proper user object structure that controllers expect
+		user: { id: userId },
 		...overrides
 	}
 }

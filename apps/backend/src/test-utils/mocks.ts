@@ -20,8 +20,61 @@ import type {
 } from '@repo/shared/types/supabase'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { User } from '@supabase/supabase-js'
+import type { SupabaseService } from '../database/supabase.service'
 
 type DatabaseUser = Database['public']['Tables']['users']['Row']
+
+/**
+/**
+ * Create a comprehensive mock SupabaseService for testing
+ */
+export function createMockSupabaseService(overrides?: {
+	getAdminClient?: jest.MockedFunction<() => unknown>
+	getUser?: jest.MockedFunction<(req: unknown) => Promise<unknown>>
+}): jest.Mocked<Pick<SupabaseService, 'getAdminClient' | 'getUser'>> {
+	const mockAdminClient = {
+		from: jest.fn().mockReturnThis(),
+		select: jest.fn().mockReturnThis(),
+		insert: jest.fn().mockReturnThis(),
+		update: jest.fn().mockReturnThis(),
+		delete: jest.fn().mockReturnThis(),
+		eq: jest.fn().mockReturnThis(),
+		range: jest.fn().mockReturnValue({ data: [], error: null })
+	}
+
+	const defaultService = {
+		getAdminClient: jest.fn().mockReturnValue(mockAdminClient),
+		getUser: jest.fn(),
+		...overrides
+	}
+
+	return defaultService as jest.Mocked<
+		Pick<SupabaseService, 'getAdminClient' | 'getUser'>
+	>
+}
+
+/**
+ * Create JWT claims for testing RLS policies
+ */
+export function createMockJwtClaims(
+	userId: string = 'user-123',
+	overrides?: Record<string, unknown>
+) {
+	return {
+		sub: userId,
+		role: 'authenticated',
+		email: 'test@example.com',
+		app_metadata: {},
+		user_metadata: {
+			full_name: 'Test User'
+		},
+		iat: Math.floor(Date.now() / 1000),
+		exp: Math.floor(Date.now() / 1000) + 3600,
+		aud: 'authenticated',
+		iss: 'supabase',
+		...overrides
+	}
+}
 
 /**
  * Creates a mock Supabase User object for testing

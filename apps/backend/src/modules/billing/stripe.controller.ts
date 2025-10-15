@@ -101,10 +101,12 @@ export class StripeController {
 			? this.sanitizeMetadataValue(body.subscriptionType, 'subscription_type')
 			: undefined
 
+		const currency = body.currency ?? 'usd'
+
 		try {
 			const paymentIntent = await this.stripe.paymentIntents.create({
 				amount: body.amount,
-				currency: 'usd',
+				currency,
 				automatic_payment_methods: { enabled: true },
 				metadata: {
 					tenant_id: sanitizedTenantId,
@@ -119,6 +121,7 @@ export class StripeController {
 				`Payment Intent created successfully: ${paymentIntent.id}`,
 				{
 					amount: body.amount,
+					currency,
 					tenant_id: body.tenantId,
 					payment_intent_id: paymentIntent.id
 				}
@@ -160,7 +163,7 @@ export class StripeController {
 	) {
 		let event: Stripe.Event
 
-		// Enhanced security: Validate webhook secret is configured
+		// Validate webhook secret is configured
 		if (!process.env.STRIPE_WEBHOOK_SECRET) {
 			this.logger.error('SECURITY: Stripe webhook secret not configured', {
 				ip: req.ip,
@@ -169,7 +172,7 @@ export class StripeController {
 			throw new InternalServerErrorException('Webhook configuration error')
 		}
 
-		// Enhanced security: Validate signature header is present
+		// Validate signature header is present
 		if (!sig) {
 			this.logger.error('SECURITY: Webhook signature missing', {
 				ip: req.ip,
@@ -179,7 +182,7 @@ export class StripeController {
 			throw new BadRequestException('Missing signature header')
 		}
 
-		// Enhanced security: Validate request body
+		// Validate request body
 		if (!req.body) {
 			this.logger.error('SECURITY: Webhook body missing', {
 				ip: req.ip,
@@ -191,7 +194,7 @@ export class StripeController {
 		try {
 			const rawBody = req.body as Buffer
 
-			// Enhanced security: Validate body size (prevent DoS)
+			// Validate body size (prevent DoS)
 			if (rawBody.length > 1024 * 1024) {
 				// 1MB limit
 				this.logger.error('SECURITY: Webhook body too large', {
@@ -209,7 +212,7 @@ export class StripeController {
 				process.env.STRIPE_WEBHOOK_SECRET
 			)
 
-			// Enhanced security: Validate event structure
+			// Validate event structure
 			if (!event?.id || !event?.type || !event?.data) {
 				this.logger.error('SECURITY: Invalid webhook event structure', {
 					eventId: event?.id,
@@ -220,7 +223,7 @@ export class StripeController {
 				throw new BadRequestException('Invalid event structure')
 			}
 
-			// Enhanced security: Check for replay attacks (events older than 5 minutes)
+			// Check for replay attacks (events older than 5 minutes)
 			const eventCreated = event.created * 1000 // Convert to milliseconds
 			const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
 
@@ -235,7 +238,7 @@ export class StripeController {
 				throw new BadRequestException('Event too old - possible replay attack')
 			}
 
-			// Enhanced security: Validate livemode consistency
+			// Validate livemode consistency
 			const expectedLivemode = process.env.NODE_ENV === 'production'
 			if (event.livemode !== expectedLivemode) {
 				this.logger.error('SECURITY: Webhook livemode mismatch', {
@@ -294,22 +297,22 @@ export class StripeController {
 		]
 
 		if (permittedEvents.includes(event.type)) {
-			// Database-backed idempotency check using Supabase
-			if (await this.webhookService.isEventProcessed(event.id)) {
+			const lockAcquired = await this.webhookService.recordEventProcessing(
+				event.id,
+				event.type
+			)
+
+			if (!lockAcquired) {
 				this.logger.log(
-					`Event already processed, skipping: ${event.id} (${event.type})`
+					`Event already being processed, skipping: ${event.id} (${event.type})`
 				)
 				return { received: true, idempotent: true }
 			}
-
-			// Record event as being processed (database persistence)
-			await this.webhookService.recordEventProcessing(event.id, event.type)
 
 			// Return 200 immediately and process asynchronously
 			// This follows Stripe's best practice to avoid timeouts
 			setImmediate(async () => {
 				try {
-					// Emit event for async processing
 					this.emitStripeEvent(event)
 
 					// Mark as successfully processed in database
@@ -381,8 +384,10 @@ export class StripeController {
 				})
 
 				const customer = await this.stripe.customers.create({
-					email: body.customerEmail,
-					name: body.customerName,
+					...(body.customerEmail !== undefined && {
+						email: body.customerEmail
+					}),
+					...(body.customerName !== undefined && { name: body.customerName }),
 					metadata: {
 						tenant_id: sanitizedTenantId,
 						created_from: 'setup_intent'
@@ -636,7 +641,7 @@ export class StripeController {
 			if (body.mode === 'payment' || body.mode === 'subscription') {
 				sessionConfig.line_items = [
 					{
-						price: body.priceId,
+						...(body.priceId !== undefined && { price: body.priceId }),
 						quantity: 1
 					}
 				]
@@ -906,7 +911,9 @@ export class StripeController {
 				{
 					amount: body.amount,
 					currency: 'usd',
-					application_fee_amount: body.platformFee, // TenantFlow commission
+					...(body.platformFee !== undefined && {
+						application_fee_amount: body.platformFee
+					}), // TenantFlow commission
 					transfer_data: {
 						destination: sanitizedPropertyOwnerAccount || ''
 					},
