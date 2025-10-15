@@ -46,11 +46,13 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { z } from 'zod'
 
 import { usePaymentMethods } from '@/hooks/api/use-payment-methods'
 import { useCreateRentPayment } from '@/hooks/api/use-rent-payments'
 import { LateFeesSection } from './late-fees-section'
 import { RenewLeaseDialog } from './renew-lease-dialog'
+import { TerminateLeaseDialog } from './terminate-lease-dialog'
 
 type Lease = Tables<'lease'>
 
@@ -62,6 +64,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 	const [viewOpen, setViewOpen] = useState(false)
 	const [editOpen, setEditOpen] = useState(false)
 	const [renewOpen, setRenewOpen] = useState(false)
+	const [terminateOpen, setTerminateOpen] = useState(false)
 	const [payRentOpen, setPayRentOpen] = useState(false)
 	const [selectedPaymentMethodId, setSelectedPaymentMethodId] =
 		useState<string>('')
@@ -85,7 +88,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			onChange: ({ value }) => {
 				const result = leaseUpdateSchema.safeParse(value)
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}
@@ -93,11 +96,18 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 	})
 
 	const updateMutation = useMutation({
-		mutationFn: (data: LeaseUpdate) =>
-			leasesApi.updateLeaseWithFinancialCalculations(lease.id, {
-				...data,
+		mutationFn: (data: LeaseUpdate) => {
+			const payload: Record<string, unknown> = {
 				status: data.status as Tables<'lease'>['status']
-			}),
+			}
+			// Only add defined properties
+			Object.keys(data).forEach(key => {
+				if (key !== 'status' && data[key as keyof LeaseUpdate] !== undefined) {
+					payload[key] = data[key as keyof LeaseUpdate]
+				}
+			})
+			return leasesApi.updateLeaseWithFinancialCalculations(lease.id, payload)
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['leases'] })
 			toast.success('Lease updated successfully')
@@ -105,19 +115,6 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 		},
 		onError: error => {
 			toast.error(`Failed to update lease: ${error.message}`)
-		}
-	})
-
-	const terminateMutation = useMutation({
-		mutationFn: () =>
-			leasesApi.terminateLeaseWithFinancialCalculations(lease.id),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['leases'] })
-			queryClient.invalidateQueries({ queryKey: ['lease-stats'] })
-			toast.success('Lease terminated successfully')
-		},
-		onError: error => {
-			toast.error(`Failed to terminate lease: ${error.message}`)
 		}
 	})
 
@@ -370,6 +367,17 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 				}}
 			/>
 
+			{/* Terminate Lease Dialog */}
+			<TerminateLeaseDialog
+				open={terminateOpen}
+				onOpenChange={setTerminateOpen}
+				lease={lease}
+				onSuccess={() => {
+					queryClient.invalidateQueries({ queryKey: ['leases'] })
+					queryClient.invalidateQueries({ queryKey: ['lease-stats'] })
+				}}
+			/>
+
 			{/* View Button & Dialog */}
 			<Button variant="outline" size="sm" onClick={() => setViewOpen(true)}>
 				<Eye className="w-4 h-4" />
@@ -495,16 +503,9 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 											variant="destructive"
 											size="sm"
 											onClick={() => {
-												if (
-													confirm(
-														'Are you sure you want to terminate this lease? This action cannot be undone.'
-													)
-												) {
-													terminateMutation.mutate()
-													setViewOpen(false)
-												}
+												setViewOpen(false)
+												setTerminateOpen(true)
 											}}
-											disabled={terminateMutation.isPending}
 										>
 											Terminate Lease
 										</Button>

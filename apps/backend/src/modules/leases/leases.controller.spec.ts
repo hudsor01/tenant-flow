@@ -3,9 +3,10 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type { authUser } from '@repo/shared/types/auth'
 import { randomUUID } from 'crypto'
-import type { Request } from 'express'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { SupabaseService } from '../../database/supabase.service'
+import { CurrentUserProvider } from '../../shared/providers/current-user.provider'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { createMockUser } from '../../test-utils/mocks'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
@@ -19,12 +20,12 @@ describe('LeasesController', () => {
 
 	const createMockRequest = (user?: authUser) =>
 		({
-			user,
+			user: user ?? createMockUser(),
 			headers: {},
 			query: {},
 			params: {},
 			body: {}
-		}) as unknown as Request
+		}) as unknown as AuthenticatedRequest
 
 	const createMockLease = (overrides: Record<string, unknown> = {}) => ({
 		id: generateUUID(),
@@ -77,6 +78,20 @@ describe('LeasesController', () => {
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
+				},
+				{
+					provide: CurrentUserProvider,
+					useValue: {
+						getUserId: jest.fn().mockResolvedValue('user-123'),
+						getUser: jest
+							.fn()
+							.mockResolvedValue({ id: 'user-123', email: 'test@example.com' }),
+						getUserEmail: jest.fn().mockResolvedValue('test@example.com'),
+						isAuthenticated: jest.fn().mockResolvedValue(true),
+						getUserOrNull: jest
+							.fn()
+							.mockResolvedValue({ id: 'user-123', email: 'test@example.com' })
+					}
 				}
 			]
 		})
@@ -425,9 +440,11 @@ describe('LeasesController', () => {
 
 			const result = await controller.renew(leaseId, endDate, mockRequest)
 
-			expect(mockLeasesService.renew).toHaveBeenCalledWith(user.id, leaseId, {
+			expect(mockLeasesService.renew).toHaveBeenCalledWith(
+				user.id,
+				leaseId,
 				endDate
-			})
+			)
 			expect(result).toEqual(mockLease)
 		})
 
@@ -464,7 +481,7 @@ describe('LeasesController', () => {
 			expect(mockLeasesService.terminate).toHaveBeenCalledWith(
 				user.id,
 				leaseId,
-				expect.any(Date),
+				expect.stringMatching(/^\d{4}-\d{2}-\d{2}T.*Z$/),
 				reason
 			)
 			expect(result).toEqual(mockLease)
@@ -482,7 +499,7 @@ describe('LeasesController', () => {
 			expect(mockLeasesService.terminate).toHaveBeenCalledWith(
 				user.id,
 				leaseId,
-				expect.any(Date),
+				expect.stringMatching(/^\d{4}-\d{2}-\d{2}T.*Z$/),
 				undefined
 			)
 			expect(result).toEqual(mockLease)

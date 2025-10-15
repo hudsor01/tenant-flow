@@ -1,4 +1,4 @@
-import { NavUser } from '@/components/dashboard-01/nav-user'
+import { NavUser } from '@/components/dashboard/nav-user'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'

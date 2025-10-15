@@ -1,16 +1,7 @@
-import {
-	Controller,
-	Get,
-	Logger,
-	Query,
-	Req,
-	UnauthorizedException
-} from '@nestjs/common'
+import { Controller, Get, Logger, Query, Req, Request } from '@nestjs/common'
 // Swagger imports removed
-import type { authUser } from '@repo/shared/types/backend-domain'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
-import type { Request } from 'express'
-import { SupabaseService } from '../../database/supabase.service'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { DashboardService } from './dashboard.service'
 
 // @ApiTags('dashboard')
@@ -18,49 +9,25 @@ import { DashboardService } from './dashboard.service'
 export class DashboardController {
 	private readonly logger = new Logger(DashboardController.name)
 
-	constructor(
-		private readonly dashboardService: DashboardService,
-		private readonly supabaseService: SupabaseService
-	) {}
-
-	/**
-	 * Helper method to get authenticated user from request
-	 * Uses Supabase's native auth.getUser() method
-	 */
-	private async getAuthenticatedUser(request: Request): Promise<authUser> {
-		const user = await this.supabaseService.getUser(request)
-		if (!user) {
-			this.logger.warn('User authentication failed in DashboardController', {
-				endpoint: request.path,
-				method: request.method,
-				headers: {
-					origin: request.headers.origin,
-					referer: request.headers.referer,
-					hasAuthHeader: !!request.headers.authorization,
-					cookieCount: Object.keys(request.cookies || {}).length
-				}
-			})
-			throw new UnauthorizedException('Authentication required')
-		}
-
-		return user as unknown as authUser
-	}
+	constructor(private readonly dashboardService: DashboardService) {}
 
 	@Get('stats')
 	// @ApiOperation({ summary: 'Get dashboard statistics for authenticated user' })
 	// @ApiResponse({ status: 200, description: 'Dashboard statistics retrieved successfully' })
-	async getStats(@Req() request: Request): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
+	async getStats(
+		@Request() req: AuthenticatedRequest
+	): Promise<ControllerApiResponse> {
+		const userId = req.user.id
 
 		this.logger?.log(
 			{
 				action: 'getStats',
-				userId: user.id
+				userId
 			},
 			'Getting dashboard stats for authenticated user'
 		)
 
-		const data = await this.dashboardService.getStats(user.id)
+		const data = await this.dashboardService.getStats(userId)
 		return {
 			success: true,
 			data,
@@ -72,20 +39,22 @@ export class DashboardController {
 	@Get('activity')
 	// @ApiOperation({ summary: 'Get recent dashboard activity' })
 	// @ApiResponse({ status: 200, description: 'Dashboard activity retrieved successfully' })
-	async getActivity(@Req() request: Request): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
+	async getActivity(
+		@Request() req: AuthenticatedRequest
+	): Promise<ControllerApiResponse> {
+		const userId = req.user.id
 
 		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getActivity',
-					userId: user.id
+					userId: userId
 				}
 			},
 			'Getting dashboard activity via DashboardService'
 		)
 
-		const data = await this.dashboardService.getActivity(user.id)
+		const data = await this.dashboardService.getActivity(userId)
 
 		return {
 			success: true,
@@ -102,17 +71,17 @@ export class DashboardController {
 	// @ApiResponse({ status: 200, description: 'Billing insights retrieved successfully' })
 	// @ApiResponse({ status: 404, description: 'Stripe Sync Engine not configured' })
 	async getBillingInsights(
-		@Req() request: Request,
+		@Req() req: AuthenticatedRequest,
 		@Query('startDate') startDate?: string,
 		@Query('endDate') endDate?: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
+		const userId = req.user.id
 
 		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getBillingInsights',
-					userId: user.id,
+					userId: userId,
 					dateRange: { startDate, endDate }
 				}
 			},
@@ -134,7 +103,7 @@ export class DashboardController {
 		}
 
 		const data = await this.dashboardService.getBillingInsights(
-			user.id,
+			userId,
 			parsedStartDate,
 			parsedEndDate
 		)
@@ -189,21 +158,21 @@ export class DashboardController {
 	// @ApiOperation({ summary: 'Get per-property performance metrics' })
 	// @ApiResponse({ status: 200, description: 'Property performance metrics retrieved successfully' })
 	async getPropertyPerformance(
-		@Req() request: Request
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
+		const userId = req.user.id
 
 		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getPropertyPerformance',
-					userId: user.id
+					userId: userId
 				}
 			},
 			'Getting property performance via DashboardService'
 		)
 
-		const data = await this.dashboardService.getPropertyPerformance(user.id)
+		const data = await this.dashboardService.getPropertyPerformance(userId)
 
 		return {
 			success: true,
@@ -241,17 +210,17 @@ export class DashboardController {
 	// @ApiQuery({ name: 'months', required: false, type: Number })
 	// @ApiResponse({ status: 200, description: 'Occupancy trends retrieved successfully' })
 	async getOccupancyTrends(
-		@Req() request: Request,
+		@Req() req: AuthenticatedRequest,
 		@Query('months') months: string = '12'
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
+		const userId = req.user.id
 		const monthsNum = parseInt(months, 10) || 12
 
 		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getOccupancyTrends',
-					userId: user.id,
+					userId: userId,
 					months: monthsNum
 				}
 			},
@@ -259,7 +228,7 @@ export class DashboardController {
 		)
 
 		const data = await this.dashboardService.getOccupancyTrends(
-			user.id,
+			userId,
 			monthsNum
 		)
 
@@ -276,27 +245,24 @@ export class DashboardController {
 	// @ApiQuery({ name: 'months', required: false, type: Number })
 	// @ApiResponse({ status: 200, description: 'Revenue trends retrieved successfully' })
 	async getRevenueTrends(
-		@Req() request: Request,
+		@Req() req: AuthenticatedRequest,
 		@Query('months') months: string = '12'
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
+		const userId = req.user.id
 		const monthsNum = parseInt(months, 10) || 12
 
 		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getRevenueTrends',
-					userId: user.id,
+					userId: userId,
 					months: monthsNum
 				}
 			},
 			'Getting revenue trends via optimized RPC'
 		)
 
-		const data = await this.dashboardService.getRevenueTrends(
-			user.id,
-			monthsNum
-		)
+		const data = await this.dashboardService.getRevenueTrends(userId, monthsNum)
 
 		return {
 			success: true,
@@ -310,21 +276,21 @@ export class DashboardController {
 	// @ApiOperation({ summary: 'Get maintenance analytics using optimized RPC function' })
 	// @ApiResponse({ status: 200, description: 'Maintenance analytics retrieved successfully' })
 	async getMaintenanceAnalytics(
-		@Req() request: Request
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
+		const userId = req.user.id
 
 		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getMaintenanceAnalytics',
-					userId: user.id
+					userId: userId
 				}
 			},
 			'Getting maintenance analytics via optimized RPC'
 		)
 
-		const data = await this.dashboardService.getMaintenanceAnalytics(user.id)
+		const data = await this.dashboardService.getMaintenanceAnalytics(userId)
 
 		return {
 			success: true,

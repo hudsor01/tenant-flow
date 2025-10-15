@@ -1,6 +1,6 @@
 'use client'
 
-import { PropertyPerformanceTable } from '@/components/dashboard-01/property-performance-table'
+import { PropertyPerformanceTable } from '@/components/dashboard/property-performance-table'
 
 /**
  * PerformanceSection - Single Responsibility: Display property performance

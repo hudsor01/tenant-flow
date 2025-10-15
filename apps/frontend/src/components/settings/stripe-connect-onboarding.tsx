@@ -58,12 +58,20 @@ export function ConnectOnboardingDialog({
 		}
 
 		try {
-			const result = await createAccount.mutateAsync({
+			const payload: {
+				displayName: string
+				businessName?: string
+				country: string
+				entityType: 'individual' | 'company'
+			} = {
 				displayName: displayName.trim(),
-				businessName: businessName.trim() || undefined,
 				country: 'US',
 				entityType
-			})
+			}
+			if (businessName.trim()) {
+				payload.businessName = businessName.trim()
+			}
+			const result = await createAccount.mutateAsync(payload)
 
 			if (result.success && result.data) {
 				toast.success('Stripe Connect account created successfully')
@@ -180,7 +188,7 @@ export function StripeConnectStatus() {
 
 	// Don't show anything while loading
 	if (isLoading) {
-	return (
+		return (
 			<CardLayout
 				title="Payment Collection"
 				description="Loading Stripe account status..."
@@ -254,7 +262,7 @@ export function StripeConnectStatus() {
 			}
 		} catch {
 			toast.error('Failed to refresh onboarding link')
-	}
+		}
 	}
 
 	return (

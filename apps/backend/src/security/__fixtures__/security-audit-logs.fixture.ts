@@ -2,7 +2,7 @@ import {
 	SecurityEventSeverity,
 	SecurityEventType
 } from '@repo/shared/types/security'
-import type { SecurityAuditLogEntry } from '../../repositories/interfaces/security-repository.interface'
+import type { SecurityAuditLogEntry } from '@repo/shared/types/security-repository'
 
 export const securityAuditLogFixture: SecurityAuditLogEntry[] = [
 	{

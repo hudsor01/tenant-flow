@@ -28,8 +28,7 @@ import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
 } from '@repo/shared/types/backend-domain'
-import type { Request } from 'express'
-import { SupabaseService } from '../../database/supabase.service'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { TenantsService } from './tenants.service'
 
 // @ApiTags('tenants')
@@ -39,16 +38,13 @@ export class TenantsController {
 	// Logger available if needed for debugging
 	// private readonly logger = new Logger(TenantsController.name)
 
-	constructor(
-		@Optional() private readonly tenantsService?: TenantsService,
-		@Optional() private readonly supabaseService?: SupabaseService
-	) {}
+	constructor(@Optional() private readonly tenantsService?: TenantsService) {}
 
 	@Get()
 	// @ApiOperation({ summary: 'Get all tenants' })
 	// @ApiResponse({ status: HttpStatus.OK })
 	async findAll(
-		@Req() request: Request,
+		@Req() req: AuthenticatedRequest,
 		@Query('search') search?: string,
 		@Query('invitationStatus') invitationStatus?: string,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
@@ -79,11 +75,9 @@ export class TenantsController {
 		}
 
 		// Use Supabase's native auth.getUser() pattern
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
+		const userId = req.user.id
 
-		return this.tenantsService.findAll(user?.id || 'test-user-id', {
+		return this.tenantsService.findAll(userId, {
 			search,
 			invitationStatus,
 			limit,
@@ -96,7 +90,7 @@ export class TenantsController {
 	@Get('stats')
 	// @ApiOperation({ summary: 'Get tenant statistics' })
 	// @ApiResponse({ status: HttpStatus.OK })
-	async getStats(@Req() request: Request) {
+	async getStats(@Req() req: AuthenticatedRequest) {
 		if (!this.tenantsService) {
 			return {
 				message: 'Tenants service not available',
@@ -107,10 +101,8 @@ export class TenantsController {
 			}
 		}
 		// Use Supabase's native auth.getUser() pattern
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		return this.tenantsService.getStats(user?.id || 'test-user-id')
+		const userId = req.user.id
+		return this.tenantsService.getStats(userId)
 	}
 
 	@Get(':id')
@@ -119,23 +111,18 @@ export class TenantsController {
 	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
 		if (!this.tenantsService) {
 			return {
 				message: 'Tenants service not available',
 				id,
-				data: null
+				data: undefined
 			}
 		}
 		// Use Supabase's native auth.getUser() pattern
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		const tenant = await this.tenantsService.findOne(
-			user?.id || 'test-user-id',
-			id
-		)
+		const userId = req.user.id
+		const tenant = await this.tenantsService.findOne(userId, id)
 		if (!tenant) {
 			throw new NotFoundException('Tenant not found')
 		}
@@ -147,7 +134,7 @@ export class TenantsController {
 	// @ApiResponse({ status: HttpStatus.CREATED })
 	async create(
 		@Body() createRequest: CreateTenantRequest,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
 		if (!this.tenantsService) {
 			return {
@@ -157,20 +144,18 @@ export class TenantsController {
 			}
 		}
 		// Use Supabase's native auth.getUser() pattern
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		return this.tenantsService.create(user?.id || 'test-user-id', createRequest)
+		const userId = req.user.id
+		return this.tenantsService.create(userId, createRequest)
 	}
 
 	@Put(':id')
 	// @ApiOperation({ summary: 'Update tenant' })
-	// @ApiResponse({ status: HttpStatus.OK })
+	// @ApiResponse({ status: HttpStatus.OK }}
 	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateRequest: UpdateTenantRequest,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
 		if (!this.tenantsService) {
 			return {
@@ -181,14 +166,8 @@ export class TenantsController {
 			}
 		}
 		// Use Supabase's native auth.getUser() pattern
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		const tenant = await this.tenantsService.update(
-			user?.id || 'test-user-id',
-			id,
-			updateRequest
-		)
+		const userId = req.user.id
+		const tenant = await this.tenantsService.update(userId, id, updateRequest)
 		if (!tenant) {
 			throw new NotFoundException('Tenant not found')
 		}
@@ -200,7 +179,7 @@ export class TenantsController {
 	// @ApiResponse({ status: HttpStatus.NO_CONTENT })
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
 		if (!this.tenantsService) {
 			return {
@@ -210,10 +189,8 @@ export class TenantsController {
 			}
 		}
 		// Use Supabase's native auth.getUser() pattern
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		await this.tenantsService.remove(user?.id || 'test-user-id', id)
+		const userId = req.user.id
+		await this.tenantsService.remove(userId, id)
 		return { message: 'Tenant deleted successfully' }
 	}
 
@@ -222,7 +199,7 @@ export class TenantsController {
 	// @ApiResponse({ status: HttpStatus.OK })
 	async sendInvitation(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
 		if (!this.tenantsService) {
 			return {
@@ -233,21 +210,16 @@ export class TenantsController {
 			}
 		}
 		// Use Supabase's native auth.getUser() pattern
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		return this.tenantsService.sendTenantInvitation(
-			user?.id || 'test-user-id',
-			id
-		)
+		const userId = req.user.id
+		return this.tenantsService.sendTenantInvitation(userId, id)
 	}
 
 	@Post(':id/resend-invitation')
 	// @ApiOperation({ summary: 'Resend invitation to tenant' })
-	// @ApiResponse({ status: HttpStatus.OK })
+	// @ApiResponse({ status: HttpStatus.OK }}
 	async resendInvitation(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
 		if (!this.tenantsService) {
 			return {
@@ -258,20 +230,18 @@ export class TenantsController {
 			}
 		}
 		// Use Supabase's native auth.getUser() pattern
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		return this.tenantsService.resendInvitation(user?.id || 'test-user-id', id)
+		const userId = req.user.id
+		return this.tenantsService.resendInvitation(userId, id)
 	}
 
 	@Put(':id/emergency-contact')
 	// @ApiOperation({ summary: 'Update tenant emergency contact' })
-	// @ApiResponse({ status: HttpStatus.OK })
+	// @ApiResponse({ status: HttpStatus.OK }}
 	async updateEmergencyContact(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body()
 		emergencyContact: { name: string; phone: string; relationship: string },
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
 		if (!this.tenantsService) {
 			return {
@@ -280,11 +250,9 @@ export class TenantsController {
 			}
 		}
 		// Use Supabase's native auth.getUser() pattern
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
+		const userId = req.user.id
 		return this.tenantsService.updateEmergencyContact(
-			user?.id || 'test-user-id',
+			userId,
 			id,
 			emergencyContact
 		)
@@ -295,7 +263,7 @@ export class TenantsController {
 	// @ApiResponse({ status: HttpStatus.OK })
 	async removeEmergencyContact(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
 		if (!this.tenantsService) {
 			return {
@@ -304,12 +272,7 @@ export class TenantsController {
 			}
 		}
 		// Use Supabase's native auth.getUser() pattern
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		return this.tenantsService.removeEmergencyContact(
-			user?.id || 'test-user-id',
-			id
-		)
+		const userId = req.user.id
+		return this.tenantsService.removeEmergencyContact(userId, id)
 	}
 }

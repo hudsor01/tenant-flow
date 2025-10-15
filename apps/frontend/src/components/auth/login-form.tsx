@@ -2,7 +2,7 @@
 
 import { GoogleButton } from '@/components/auth/google-button'
 import { Button } from '@/components/ui/button'
-import { Field, FieldLabel, FieldError } from '@/components/ui/field'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -129,7 +129,9 @@ export function LoginForm({
 									}
 								/>
 							</InputGroup>
-							<FieldError errors={field.state.meta.errors} />
+							<FieldError>
+								{String(field.state.meta.errors?.[0] ?? '')}
+							</FieldError>
 						</Field>
 					)}
 				</form.Field>
@@ -169,7 +171,9 @@ export function LoginForm({
 									</button>
 								</InputGroupAddon>
 							</InputGroup>
-							<FieldError errors={field.state.meta.errors} />
+							<FieldError>
+								{String(field.state.meta.errors?.[0] ?? '')}
+							</FieldError>
 						</Field>
 					)}
 				</form.Field>
@@ -202,7 +206,9 @@ export function LoginForm({
 					{onGoogleLogin && (
 						<GoogleButton
 							onClick={onGoogleLogin}
-							isLoading={isGoogleLoading}
+							{...(isGoogleLoading !== undefined
+								? { isLoading: isGoogleLoading }
+								: {})}
 							mode="login"
 							className="w-full"
 						/>

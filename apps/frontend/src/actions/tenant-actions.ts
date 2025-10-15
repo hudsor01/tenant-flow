@@ -7,46 +7,18 @@
 
 import { serverFetch } from '@/lib/api/server'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import {
+	tenantInputSchema,
+	tenantUpdateSchema
+} from '@repo/shared/validation/tenants'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { validateForm } from './form-validation'
 
 // Type alias for tenant row
 type Tenant = Database['public']['Tables']['tenant']['Row']
 
-// Tenant validation schemas
-const createTenantSchema = z.object({
-	email: z.string().email('Invalid email address'),
-	first_name: z.string().min(1, 'First name is required'),
-	last_name: z.string().min(1, 'Last name is required'),
-	phone: z
-		.string()
-		.regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number')
-		.optional()
-		.nullable(),
-	unit_id: z.string().uuid('Invalid unit ID').optional().nullable(),
-	lease_start: z.string().optional().nullable(),
-	lease_end: z.string().optional().nullable()
-})
-
-const updateTenantSchema = createTenantSchema.partial()
-
-export type CreateTenantInput = z.infer<typeof createTenantSchema>
-export type UpdateTenantInput = z.infer<typeof updateTenantSchema>
-
-/**
- * Server action to validate tenant creation data
- */
-export async function validateCreateTenant(data: unknown) {
-	return await validateForm(createTenantSchema, data)
-}
-
-/**
- * Server action to validate tenant update data
- */
-export async function validateUpdateTenant(data: unknown) {
-	return await validateForm(updateTenantSchema, data)
-}
+export type CreateTenantInput = z.infer<typeof tenantInputSchema>
+export type UpdateTenantInput = z.infer<typeof tenantUpdateSchema>
 
 /**
  * Server action to create a new tenant
@@ -59,19 +31,12 @@ export async function createTenant(
 > {
 	try {
 		// Validate input
-		const validation = await validateCreateTenant(data)
-		if (!validation.success) {
-			const firstError = Object.values(validation.errors)[0]?.[0]
-			return {
-				success: false,
-				error: firstError || 'Validation failed'
-			}
-		}
+		const validated = tenantInputSchema.parse(data)
 
 		// Call API to create tenant
 		const tenant = await serverFetch<Tenant>('/api/v1/tenants', {
 			method: 'POST',
-			body: JSON.stringify(validation.data),
+			body: JSON.stringify(validated),
 			cache: 'no-store'
 		})
 
@@ -104,25 +69,17 @@ export async function updateTenant(
 		}
 
 		// Validate input
-		const validation = await validateUpdateTenant(data)
-		if (!validation.success) {
-			const firstError = Object.values(validation.errors)[0]?.[0]
-			return {
-				success: false,
-				error: firstError || 'Validation failed'
-			}
-		}
+		const validated = tenantUpdateSchema.parse(data)
 
 		// Call API to update tenant
 		const tenant = await serverFetch<Tenant>(`/api/v1/tenants/${id}`, {
-			method: 'PATCH',
-			body: JSON.stringify(validation.data),
+			method: 'PUT',
+			body: JSON.stringify(validated),
 			cache: 'no-store'
 		})
 
-		// Revalidate tenant pages and detail page
-		revalidatePath('/owner/tenants')
-		revalidatePath('/manage/tenants')
+		// Revalidate relevant pages
+		revalidatePath(`/owner/tenants/${id}`)
 		revalidatePath(`/manage/tenants/${id}`)
 
 		return { success: true, data: tenant }

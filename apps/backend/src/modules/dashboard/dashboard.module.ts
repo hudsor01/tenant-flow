@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common'
-import { RepositoriesModule } from '../../repositories/repositories.module'
 import { AnalyticsModule } from '../analytics/analytics.module'
 import { DashboardController } from './dashboard.controller'
 import { DashboardService } from './dashboard.service'
@@ -10,7 +9,7 @@ import { DashboardService } from './dashboard.service'
  * DashboardService uses IDashboardRepository for data access
  */
 @Module({
-	imports: [RepositoriesModule, AnalyticsModule],
+	imports: [AnalyticsModule],
 	controllers: [DashboardController],
 	providers: [DashboardService]
 })
