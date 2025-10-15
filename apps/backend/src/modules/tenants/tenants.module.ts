@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common'
-import { RepositoriesModule } from '../../repositories/repositories.module'
+import { SupabaseModule } from '../../database/supabase.module'
 import { TenantsController } from './tenants.controller'
 import { TenantsService } from './tenants.service'
 
 /**
- * Tenants module - Repository Pattern Implementation
- * Controller → Service → Repository → Database
- * TenantsService uses ITenantsRepository for data access
+ * Tenants module - Ultra-Native NestJS Implementation
+ * Controller → Service → Supabase
+ * TenantsService uses direct Supabase queries for data access
  */
 @Module({
-	imports: [RepositoriesModule],
+	imports: [SupabaseModule],
 	controllers: [TenantsController],
 	providers: [TenantsService],
 	exports: [TenantsService]

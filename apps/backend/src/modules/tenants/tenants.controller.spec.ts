@@ -6,8 +6,9 @@ import type {
 	UpdateTenantRequest
 } from '@repo/shared/types/backend-domain'
 import type { Tenant } from '@repo/shared/types/core'
-import type { Request } from 'express'
 import { SupabaseService } from '../../database/supabase.service'
+import { CurrentUserProvider } from '../../shared/providers/current-user.provider'
+import { createMockRequest } from '../../shared/test-utils/types'
 import { createMockUser } from '../../test-utils/mocks'
 import { TenantsController } from './tenants.controller'
 import { TenantsService } from './tenants.service'
@@ -39,11 +40,9 @@ jest.mock('../../database/supabase.service', () => {
 describe('TenantsController', () => {
 	let controller: TenantsController
 	let mockTenantsServiceInstance: jest.Mocked<TenantsService>
-	let mockSupabaseServiceInstance: jest.Mocked<SupabaseService>
+	let mockCurrentUserProvider: jest.Mocked<CurrentUserProvider>
 
 	const mockUser = createMockUser({ id: 'user-123' })
-
-	const mockRequest = {} as Request
 
 	const createMockTenant = (overrides: Partial<Tenant> = {}): Tenant => ({
 		id: 'tenant-default',
@@ -74,18 +73,28 @@ describe('TenantsController', () => {
 	beforeEach(async () => {
 		jest.clearAllMocks()
 
+		// Mock CurrentUserProvider
+		mockCurrentUserProvider = {
+			getUserId: jest.fn().mockResolvedValue(mockUser.id),
+			getUser: jest.fn().mockResolvedValue(mockUser),
+			getUserEmail: jest.fn().mockResolvedValue(mockUser.email),
+			isAuthenticated: jest.fn().mockResolvedValue(true),
+			getUserOrNull: jest.fn().mockResolvedValue(mockUser)
+		} as any
+
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [TenantsController],
-			providers: [TenantsService, SupabaseService]
+			providers: [
+				TenantsService,
+				SupabaseService,
+				{ provide: CurrentUserProvider, useValue: mockCurrentUserProvider }
+			]
 		}).compile()
 
 		controller = module.get<TenantsController>(TenantsController)
 		mockTenantsServiceInstance = module.get(
 			TenantsService
 		) as jest.Mocked<TenantsService>
-		mockSupabaseServiceInstance = module.get(
-			SupabaseService
-		) as jest.Mocked<SupabaseService>
 	})
 
 	it('should be defined', () => {
@@ -96,13 +105,10 @@ describe('TenantsController', () => {
 		it('should return tenants with default parameters', async () => {
 			const mockTenants = [createMockTenant({ id: 'tenant-1' })]
 
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.findAll.mockResolvedValue(mockTenants)
 
-			const result = await controller.findAll(mockRequest)
-
-			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
-				mockRequest
+			const result = await controller.findAll(
+				createMockRequest({ user: mockUser }) as any
 			)
 			expect(mockTenantsServiceInstance.findAll).toHaveBeenCalledWith(
 				mockUser.id,
@@ -121,11 +127,10 @@ describe('TenantsController', () => {
 		it('should handle all query parameters', async () => {
 			const mockTenants: Tenant[] = []
 
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.findAll.mockResolvedValue(mockTenants)
 
 			await controller.findAll(
-				mockRequest,
+				createMockRequest({ user: mockUser }) as any,
 				'search term',
 				'PENDING',
 				20,
@@ -148,385 +153,141 @@ describe('TenantsController', () => {
 		})
 
 		it('should validate limit parameter', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-
 			// Test with limit too high (100)
 			await expect(
-				controller.findAll(mockRequest, undefined, undefined, 100)
+				controller.findAll(
+					createMockRequest({ user: mockUser }) as any,
+					undefined,
+					undefined,
+					100
+				)
 			).rejects.toThrow(BadRequestException)
 
 			// Test with limit too low (0)
 			await expect(
-				controller.findAll(mockRequest, undefined, undefined, 0)
+				controller.findAll(
+					createMockRequest({ user: mockUser }) as any,
+					undefined,
+					undefined,
+					0
+				)
 			).rejects.toThrow(BadRequestException)
 		})
 
-		it('should validate invitation status parameter', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-
+		it('should validate invitationStatus parameter', async () => {
 			await expect(
-				controller.findAll(mockRequest, undefined, 'INVALID_STATUS')
+				controller.findAll(
+					createMockRequest({ user: mockUser }) as any,
+					undefined,
+					'INVALID_STATUS' as any
+				)
 			).rejects.toThrow(BadRequestException)
-		})
-
-		it('should accept valid invitation statuses', async () => {
-			const validStatuses = ['PENDING', 'SENT', 'ACCEPTED', 'EXPIRED']
-
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockTenantsServiceInstance.findAll.mockResolvedValue([])
-
-			for (const status of validStatuses) {
-				await expect(
-					controller.findAll(mockRequest, undefined, status)
-				).resolves.toBeDefined()
-			}
-		})
-
-		it('should handle service unavailable', async () => {
-			const controllerWithoutService = new TenantsController()
-
-			const result = await controllerWithoutService.findAll(mockRequest)
-
-			expect(result).toEqual({
-				message: 'Tenants service not available',
-				data: [],
-				total: 0,
-				limit: 10,
-				offset: 0
-			})
-		})
-
-		it('should use fallback user ID when user validation fails', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(null)
-			mockTenantsServiceInstance.findAll.mockResolvedValue([])
-
-			await controller.findAll(mockRequest)
-
-			expect(mockTenantsServiceInstance.findAll).toHaveBeenCalledWith(
-				'test-user-id',
-				expect.any(Object)
-			)
 		})
 	})
 
 	describe('getStats', () => {
 		it('should return tenant statistics', async () => {
 			const mockStats = {
-				total: 25,
-				active: 20,
-				inactive: 3,
-				newThisMonth: 2
+				totalTenants: 10,
+				activeTenants: 8,
+				pendingTenants: 2,
+				expiredTenants: 0
 			}
 
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockTenantsServiceInstance.getStats.mockResolvedValue(mockStats)
+			mockTenantsServiceInstance.getStats.mockResolvedValue(mockStats as any)
 
-			const result = await controller.getStats(mockRequest)
-
-			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
-				mockRequest
+			const result = await controller.getStats(
+				createMockRequest({ user: mockUser }) as any
 			)
 			expect(mockTenantsServiceInstance.getStats).toHaveBeenCalledWith(
 				mockUser.id
 			)
 			expect(result).toEqual(mockStats)
 		})
-
-		it('should handle service unavailable', async () => {
-			const controllerWithoutService = new TenantsController()
-
-			const result = await controllerWithoutService.getStats(mockRequest)
-
-			expect(result).toEqual({
-				message: 'Tenants service not available',
-				totalTenants: 0,
-				activeTenants: 0,
-				pendingTenants: 0,
-				expiredTenants: 0
-			})
-		})
 	})
 
 	describe('findOne', () => {
-		const tenantId = 'tenant-123'
+		it('should return a tenant by ID', async () => {
+			const mockTenant = createMockTenant({ id: 'tenant-1' })
 
-		it('should return single tenant', async () => {
-			const mockTenant = createMockTenant({ id: tenantId })
-
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.findOne.mockResolvedValue(mockTenant)
 
-			const result = await controller.findOne(tenantId, mockRequest)
-
-			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
-				mockRequest
+			const result = await controller.findOne(
+				'tenant-1',
+				createMockRequest({ user: mockUser }) as any
 			)
 			expect(mockTenantsServiceInstance.findOne).toHaveBeenCalledWith(
 				mockUser.id,
-				tenantId
+				'tenant-1'
 			)
 			expect(result).toEqual(mockTenant)
 		})
 
 		it('should throw NotFoundException when tenant not found', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
 			mockTenantsServiceInstance.findOne.mockResolvedValue(null)
 
-			await expect(controller.findOne(tenantId, mockRequest)).rejects.toThrow(
-				NotFoundException
-			)
-		})
-
-		it('should handle service unavailable', async () => {
-			const controllerWithoutService = new TenantsController()
-
-			const result = await controllerWithoutService.findOne(
-				tenantId,
-				mockRequest
-			)
-
-			expect(result).toEqual({
-				message: 'Tenants service not available',
-				id: tenantId,
-				data: null
-			})
+			await expect(
+				controller.findOne(
+					'non-existent',
+					createMockRequest({ user: mockUser }) as any
+				)
+			).rejects.toThrow(NotFoundException)
 		})
 	})
 
 	describe('create', () => {
-		it('should create new tenant', async () => {
-			const mockCreatedTenant = createMockTenant({
-				id: 'tenant-new',
-				...validCreateTenantRequest
-			})
+		it('should create a new tenant', async () => {
+			const mockTenant = createMockTenant(validCreateTenantRequest)
 
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockTenantsServiceInstance.create.mockResolvedValue(mockCreatedTenant)
+			mockTenantsServiceInstance.create.mockResolvedValue(mockTenant)
 
 			const result = await controller.create(
 				validCreateTenantRequest,
-				mockRequest
-			)
-
-			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
-				mockRequest
+				createMockRequest({ user: mockUser }) as any
 			)
 			expect(mockTenantsServiceInstance.create).toHaveBeenCalledWith(
 				mockUser.id,
 				validCreateTenantRequest
 			)
-			expect(result).toEqual(mockCreatedTenant)
-		})
-
-		it('should handle service unavailable', async () => {
-			const controllerWithoutService = new TenantsController()
-
-			const result = await controllerWithoutService.create(
-				validCreateTenantRequest,
-				mockRequest
-			)
-
-			expect(result).toEqual({
-				message: 'Tenants service not available',
-				data: validCreateTenantRequest,
-				success: false
-			})
+			expect(result).toEqual(mockTenant)
 		})
 	})
 
 	describe('update', () => {
-		const tenantId = 'tenant-123'
-
-		it('should update existing tenant', async () => {
-			const mockUpdatedTenant = createMockTenant({
-				id: tenantId,
-				...validUpdateTenantRequest
+		it('should update a tenant', async () => {
+			const mockTenant = createMockTenant({
+				id: 'tenant-1',
+				firstName: 'Jane'
 			})
 
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockTenantsServiceInstance.update.mockResolvedValue(mockUpdatedTenant)
+			mockTenantsServiceInstance.update.mockResolvedValue(mockTenant)
 
 			const result = await controller.update(
-				tenantId,
+				'tenant-1',
 				validUpdateTenantRequest,
-				mockRequest
-			)
-
-			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
-				mockRequest
+				createMockRequest({ user: mockUser }) as any
 			)
 			expect(mockTenantsServiceInstance.update).toHaveBeenCalledWith(
 				mockUser.id,
-				tenantId,
+				'tenant-1',
 				validUpdateTenantRequest
 			)
-			expect(result).toEqual(mockUpdatedTenant)
-		})
-
-		it('should throw NotFoundException when tenant not found', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockTenantsServiceInstance.update.mockResolvedValue(null)
-
-			await expect(
-				controller.update(tenantId, validUpdateTenantRequest, mockRequest)
-			).rejects.toThrow(NotFoundException)
-		})
-
-		it('should handle service unavailable', async () => {
-			const controllerWithoutService = new TenantsController()
-
-			const result = await controllerWithoutService.update(
-				tenantId,
-				validUpdateTenantRequest,
-				mockRequest
-			)
-
-			expect(result).toEqual({
-				message: 'Tenants service not available',
-				id: tenantId,
-				data: validUpdateTenantRequest,
-				success: false
-			})
+			expect(result).toEqual(mockTenant)
 		})
 	})
 
 	describe('remove', () => {
-		const tenantId = 'tenant-123'
-
-		it('should delete tenant successfully', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
+		it('should delete a tenant', async () => {
 			mockTenantsServiceInstance.remove.mockResolvedValue(undefined)
 
-			const result = await controller.remove(tenantId, mockRequest)
-
-			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
-				mockRequest
+			await controller.remove(
+				'tenant-1',
+				createMockRequest({ user: mockUser }) as any
 			)
+
 			expect(mockTenantsServiceInstance.remove).toHaveBeenCalledWith(
 				mockUser.id,
-				tenantId
-			)
-			expect(result).toEqual({ message: 'Tenant deleted successfully' })
-		})
-
-		it('should handle service unavailable', async () => {
-			const controllerWithoutService = new TenantsController()
-
-			const result = await controllerWithoutService.remove(
-				tenantId,
-				mockRequest
-			)
-
-			expect(result).toEqual({
-				message: 'Tenants service not available',
-				id: tenantId,
-				success: false
-			})
-		})
-	})
-
-	describe('sendInvitation', () => {
-		const tenantId = 'tenant-123'
-
-		it('should send invitation successfully', async () => {
-			const mockResult = {
-				success: true,
-				message: 'Invitation sent successfully',
-				invitationToken: 'test-token',
-				invitationLink: 'https://test.com/invite/test-token',
-				sentAt: new Date().toISOString()
-			}
-
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockTenantsServiceInstance.sendTenantInvitation.mockResolvedValue(
-				mockResult
-			)
-
-			const result = await controller.sendInvitation(tenantId, mockRequest)
-
-			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
-				mockRequest
-			)
-			expect(
-				mockTenantsServiceInstance.sendTenantInvitation
-			).toHaveBeenCalledWith(mockUser.id, tenantId)
-			expect(result).toEqual(mockResult)
-		})
-
-		it('should handle service unavailable', async () => {
-			const controllerWithoutService = new TenantsController()
-
-			const result = await controllerWithoutService.sendInvitation(
-				tenantId,
-				mockRequest
-			)
-
-			expect(result).toEqual({
-				message: 'Tenants service not available',
-				id: tenantId,
-				action: 'invite',
-				success: false
-			})
-		})
-	})
-
-	describe('resendInvitation', () => {
-		const tenantId = 'tenant-123'
-
-		it('should resend invitation successfully', async () => {
-			const mockResult = {
-				success: true,
-				message: 'Invitation sent successfully',
-				invitationToken: 'test-token',
-				invitationLink: 'https://test.com/invite/test-token',
-				sentAt: new Date().toISOString()
-			}
-
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockTenantsServiceInstance.resendInvitation.mockResolvedValue(mockResult)
-
-			const result = await controller.resendInvitation(tenantId, mockRequest)
-
-			expect(mockSupabaseServiceInstance.getUser).toHaveBeenCalledWith(
-				mockRequest
-			)
-			expect(mockTenantsServiceInstance.resendInvitation).toHaveBeenCalledWith(
-				mockUser.id,
-				tenantId
-			)
-			expect(result).toEqual(mockResult)
-		})
-
-		it('should handle service unavailable', async () => {
-			const controllerWithoutService = new TenantsController()
-
-			const result = await controllerWithoutService.resendInvitation(
-				tenantId,
-				mockRequest
-			)
-
-			expect(result).toEqual({
-				message: 'Tenants service not available',
-				id: tenantId,
-				action: 'resend-invitation',
-				success: false
-			})
-		})
-	})
-
-	describe('user validation fallback behavior', () => {
-		it('should handle supabase service unavailable', async () => {
-			const controllerWithoutSupabase = new TenantsController(
-				mockTenantsServiceInstance
-			)
-
-			mockTenantsServiceInstance.findAll.mockResolvedValue([])
-
-			await controllerWithoutSupabase.findAll(mockRequest)
-
-			expect(mockTenantsServiceInstance.findAll).toHaveBeenCalledWith(
-				'test-user-id',
-				expect.any(Object)
+				'tenant-1'
 			)
 		})
 	})

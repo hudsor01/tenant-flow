@@ -94,18 +94,19 @@ export function createStandardError(
 		userMessage?: string
 	} = {}
 ): StandardError {
-	return {
+	const error: StandardError = {
 		type,
 		severity: options.severity || ERROR_SEVERITY.MEDIUM,
 		message,
-		code: options.code,
-		details: options.details as Record<string, Json>,
-		field: options.field,
-		context: options.context as Record<string, Json>,
+		details: (options.details as Record<string, Json>) || {},
+		context: (options.context as Record<string, Json>) || {},
 		timestamp: new Date().toISOString(),
 		userMessage: options.userMessage || message,
 		retryable: false
 	}
+	if (options.code !== undefined) error.code = options.code
+	if (options.field !== undefined) error.field = options.field
+	return error
 }
 
 /**
@@ -157,18 +158,19 @@ export function createNetworkError(
 		context?: Record<string, unknown>
 	} = {}
 ): NetworkError {
+	const details: Record<string, Json> = {}
+	if (status !== undefined) details.status = status
+	if (options.statusText !== undefined) details.statusText = options.statusText
+	if (options.url !== undefined) details.url = options.url
+	if (options.method !== undefined) details.method = options.method
+
 	return {
 		type: ERROR_TYPES.NETWORK,
 		severity:
 			status && status >= 500 ? ERROR_SEVERITY.HIGH : ERROR_SEVERITY.MEDIUM,
 		message,
-		details: {
-			status,
-			statusText: options.statusText,
-			url: options.url,
-			method: options.method
-		},
-		context: options.context as Record<string, Json>,
+		details,
+		context: (options.context as Record<string, Json>) || {},
 		timestamp: new Date().toISOString(),
 		userMessage: getNetworkErrorMessage(status, message),
 		retryable: !status || status >= 500
@@ -189,17 +191,19 @@ export function createBusinessLogicError(
 		userMessage?: string
 	} = {}
 ): BusinessLogicError {
+	const details: { operation: string; resource?: string; reason: string } = {
+		operation,
+		reason
+	}
+	if (options.resource !== undefined) details.resource = options.resource
+
 	return {
 		type: ERROR_TYPES.BUSINESS_LOGIC,
 		severity: options.severity || ERROR_SEVERITY.MEDIUM,
 		message: `Business logic error in ${operation}: ${reason}`,
 		code: options.code || 'BUSINESS_LOGIC_ERROR',
-		details: {
-			operation,
-			resource: options.resource,
-			reason
-		},
-		context: options.context as Record<string, Json>,
+		details,
+		context: (options.context as Record<string, Json>) || {},
 		timestamp: new Date().toISOString(),
 		userMessage: options.userMessage || reason,
 		retryable: false

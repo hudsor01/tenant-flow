@@ -4,7 +4,7 @@ import {
 	TenantDetailSkeleton,
 	TenantFormSkeleton,
 	TenantTableSkeleton
-} from '@/components/ui/tenant-loading-skeleton'
+} from '@/app/(protected)/tenant/tenant-loading-skeleton'
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
 import { Suspense, type ReactNode } from 'react'
 import { TenantErrorBoundary } from './tenant-error-boundary'
@@ -12,7 +12,7 @@ import { TenantErrorBoundary } from './tenant-error-boundary'
 interface TenantSuspenseWrapperProps {
 	children: ReactNode
 	fallbackType?: 'form' | 'table' | 'detail'
-	onResetAction?: () => void
+	onResetAction?: (() => void) | undefined
 }
 
 /**
@@ -64,7 +64,10 @@ export function TenantFormSuspense({
 	onResetAction?: () => void
 }) {
 	return (
-		<TenantSuspenseWrapper fallbackType="form" onResetAction={onResetAction}>
+		<TenantSuspenseWrapper
+			fallbackType="form"
+			{...(onResetAction ? { onResetAction } : {})}
+		>
 			{children}
 		</TenantSuspenseWrapper>
 	)
@@ -81,7 +84,10 @@ export function TenantTableSuspense({
 	onResetAction?: () => void
 }) {
 	return (
-		<TenantSuspenseWrapper fallbackType="table" onResetAction={onResetAction}>
+		<TenantSuspenseWrapper
+			fallbackType="table"
+			{...(onResetAction ? { onResetAction } : {})}
+		>
 			{children}
 		</TenantSuspenseWrapper>
 	)
@@ -98,7 +104,10 @@ export function TenantDetailSuspense({
 	onResetAction?: () => void
 }) {
 	return (
-		<TenantSuspenseWrapper fallbackType="detail" onResetAction={onResetAction}>
+		<TenantSuspenseWrapper
+			fallbackType="detail"
+			{...(onResetAction ? { onResetAction } : {})}
+		>
 			{children}
 		</TenantSuspenseWrapper>
 	)

@@ -1,11 +1,10 @@
 import { z } from 'zod'
-import
-  {
-    emailSchema,
-    nonEmptyStringSchema,
-    phoneSchema,
-    uuidSchema
-  } from './common.js'
+import {
+	emailSchema,
+	nonEmptyStringSchema,
+	phoneSchema,
+	uuidSchema
+} from './common.js'
 
 // Emergency contact is just a text field in the database
 export const emergencyContactSchema = z
@@ -80,43 +79,46 @@ export const tenantFormSchema = z.object({
 		.string()
 		.max(200, 'Name cannot exceed 200 characters')
 		.optional()
-		.transform((val) => val?.trim() || undefined),
+		.transform(val => val?.trim() || undefined),
 	firstName: z
 		.string()
 		.min(1, 'First name is required')
 		.max(100, 'First name cannot exceed 100 characters')
-		.regex(/^[a-zA-Z\s'-]+$/, 'First name can only contain letters, spaces, hyphens, and apostrophes')
+		.regex(
+			/^[a-zA-Z\s'-]+$/,
+			'First name can only contain letters, spaces, hyphens, and apostrophes'
+		)
 		.optional()
-		.transform((val) => val?.trim() || undefined),
+		.transform(val => val?.trim() || undefined),
 	lastName: z
 		.string()
 		.min(1, 'Last name is required')
 		.max(100, 'Last name cannot exceed 100 characters')
-		.regex(/^[a-zA-Z\s'-]+$/, 'Last name can only contain letters, spaces, hyphens, and apostrophes')
+		.regex(
+			/^[a-zA-Z\s'-]+$/,
+			'Last name can only contain letters, spaces, hyphens, and apostrophes'
+		)
 		.optional()
-		.transform((val) => val?.trim() || undefined),
+		.transform(val => val?.trim() || undefined),
 	phone: z
 		.string()
 		.optional()
-		.transform((val) => val?.replace(/[^\d+()-\s]/g, '') || undefined)
+		.transform(val => val?.replace(/[^\d+()-\s]/g, '') || undefined)
 		.refine(
-			(val) => !val || phoneSchema.safeParse(val).success,
+			val => !val || phoneSchema.safeParse(val).success,
 			'Please enter a valid phone number'
 		),
 	emergencyContact: z
 		.string()
 		.max(500, 'Emergency contact info cannot exceed 500 characters')
 		.optional()
-		.transform((val) => val?.trim() || undefined),
+		.transform(val => val?.trim() || undefined),
 	avatarUrl: z
 		.string()
 		.url('Please enter a valid URL')
 		.optional()
-		.transform((val) => val?.trim() || undefined),
-	userId: z
-		.string()
-		.uuid('User ID must be a valid UUID')
-		.optional()
+		.transform(val => val?.trim() || undefined),
+	userId: z.string().uuid('User ID must be a valid UUID').optional()
 })
 
 // Enhanced validation schema for tenant creation with stricter requirements
@@ -130,12 +132,18 @@ export const tenantCreateFormSchema = tenantFormSchema.extend({
 		.string()
 		.min(1, 'First name is required')
 		.max(100, 'First name cannot exceed 100 characters')
-		.regex(/^[a-zA-Z\s'-]+$/, 'First name can only contain letters, spaces, hyphens, and apostrophes'),
+		.regex(
+			/^[a-zA-Z\s'-]+$/,
+			'First name can only contain letters, spaces, hyphens, and apostrophes'
+		),
 	lastName: z
 		.string()
 		.min(1, 'Last name is required')
 		.max(100, 'Last name cannot exceed 100 characters')
-		.regex(/^[a-zA-Z\s'-]+$/, 'Last name can only contain letters, spaces, hyphens, and apostrophes')
+		.regex(
+			/^[a-zA-Z\s'-]+$/,
+			'Last name can only contain letters, spaces, hyphens, and apostrophes'
+		)
 })
 
 // Enhanced validation schema for tenant updates with optional fields
@@ -162,20 +170,32 @@ export type TenantFormError = {
 }
 
 // Validation utility functions
-export const validateTenantForm = (data: TenantFormData): TenantFormValidationResult => {
+export const validateTenantForm = (
+	data: TenantFormData
+): TenantFormValidationResult => {
 	const result = tenantFormSchema.safeParse(data)
-	return {
-		success: result.success,
-		data: result.success ? result.data : undefined,
-		errors: result.success ? undefined : result.error
+	const validationResult: TenantFormValidationResult = {
+		success: result.success
 	}
+	if (result.success) {
+		validationResult.data = result.data
+	} else {
+		validationResult.errors = result.error
+	}
+	return validationResult
 }
 
-export const validateTenantCreateForm = (data: TenantCreateFormData): TenantFormValidationResult => {
+export const validateTenantCreateForm = (
+	data: TenantCreateFormData
+): TenantFormValidationResult => {
 	const result = tenantCreateFormSchema.safeParse(data)
-	return {
-		success: result.success,
-		data: result.success ? result.data : undefined,
-		errors: result.success ? undefined : result.error
+	const validationResult: TenantFormValidationResult = {
+		success: result.success
 	}
+	if (result.success) {
+		validationResult.data = result.data
+	} else {
+		validationResult.errors = result.error
+	}
+	return validationResult
 }

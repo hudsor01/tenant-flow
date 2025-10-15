@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
+import { ScheduleModule } from '@nestjs/schedule'
 import { ThrottlerModule } from '@nestjs/throttler'
 import type { Request } from 'express'
 import { ClsModule } from 'nestjs-cls'
@@ -23,14 +24,12 @@ import { LateFeesModule } from './modules/late-fees/late-fees.module'
 import { LeasesModule } from './modules/leases/leases.module'
 import { MaintenanceModule } from './modules/maintenance/maintenance.module'
 import { NotificationsModule } from './modules/notifications/notifications.module'
-import { PaymentMethodsModule } from './modules/payments/payment-methods.module'
 import { PropertiesModule } from './modules/properties/properties.module'
 import { RentPaymentsModule } from './modules/rent-payments/rent-payments.module'
 import { ReportsModule } from './modules/reports/reports.module'
 import { TenantsModule } from './modules/tenants/tenants.module'
 import { UnitsModule } from './modules/units/units.module'
 import { UsersModule } from './modules/users/users.module'
-import { RepositoriesModule } from './repositories/repositories.module'
 import { SecurityModule } from './security/security.module'
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
 import { ServicesModule } from './shared/services/services.module'
@@ -75,6 +74,9 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 		// Event system for decoupled architecture
 		EventEmitterModule.forRoot(),
 
+		// Native NestJS scheduler for cron jobs
+		ScheduleModule.forRoot(),
+
 		// Rate limiting - simple configuration
 		ThrottlerModule.forRoot({
 			throttlers: [
@@ -88,7 +90,6 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 		// CRITICAL: Global modules must come first for zero-downtime architecture
 		SupabaseModule,
 		SharedModule,
-		RepositoriesModule,
 		ServicesModule,
 		HealthModule,
 		AnalyticsModule,
@@ -103,7 +104,6 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 		LateFeesModule,
 		MaintenanceModule,
 		NotificationsModule,
-		PaymentMethodsModule,
 		RentPaymentsModule,
 		StripeConnectModule,
 		SubscriptionsModule,

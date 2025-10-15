@@ -17,16 +17,16 @@ type TableRow<T extends TableName> = Tables<T>
 type QueryModifier = <Q>(query: Q) => Q
 
 interface UseInfiniteQueryProps<T extends TableName> {
-  tableName: T
-  columns?: string
-  pageSize?: number
-  trailingQuery?: QueryModifier
+	tableName: T
+	columns?: string
+	pageSize?: number
+	trailingQuery?: QueryModifier
 }
 
 interface InfiniteQueryPage<TData> {
-  data: TData[]
-  count: number
-  nextCursor?: number
+	data: TData[]
+	count: number
+	nextCursor?: number
 }
 
 /**
@@ -39,70 +39,89 @@ interface InfiniteQueryPage<TData> {
  * - Background refetch and focus management
  */
 function useInfiniteQuery<
-  TData extends TableRow<T>,
-  T extends TableName = TableName,
+	TData extends TableRow<T>,
+	T extends TableName = TableName
 >(props: UseInfiniteQueryProps<T>) {
-  const { tableName, columns = '*', pageSize = 20, trailingQuery } = props
+	const { tableName, columns = '*', pageSize = 20, trailingQuery } = props
 
-  const query = useTanStackInfiniteQuery({
-    queryKey: ['infinite', tableName, columns, pageSize, trailingQuery?.toString()],
-    queryFn: async ({ pageParam = 0 }): Promise<InfiniteQueryPage<TData>> => {
-      const skip = pageParam as number
+	const query = useTanStackInfiniteQuery({
+		queryKey: [
+			'infinite',
+			tableName,
+			columns,
+			pageSize,
+			trailingQuery?.toString()
+		],
+		queryFn: async ({ pageParam = 0 }): Promise<InfiniteQueryPage<TData>> => {
+			const skip = pageParam as number
 
-      let query = supabase.from(tableName).select(columns, { count: 'exact' })
+			let query = supabase.from(tableName).select(columns, { count: 'exact' })
 
-      if (trailingQuery) {
-        query = trailingQuery(query) as typeof query
-      }
+			if (trailingQuery) {
+				query = trailingQuery(query) as typeof query
+			}
 
-      const { data, count, error } = await query.range(skip, skip + pageSize - 1)
+			const { data, count, error } = await query.range(
+				skip,
+				skip + pageSize - 1
+			)
 
-      if (error) {
-        logger.error('Infinite query error', {
-          action: 'infinite_query_failed',
-          metadata: { error: error.message, table: tableName }
-        })
-        throw new Error(error.message)
-      }
+			if (error) {
+				logger.error('Infinite query error', {
+					action: 'infinite_query_failed',
+					metadata: { error: error.message, table: tableName }
+				})
+				throw new Error(error.message)
+			}
 
-      return {
-        data: (data as unknown as TData[]) || [],
-        count: count || 0,
-        nextCursor: (data?.length === pageSize && (skip + pageSize) < (count || 0)) ? skip + pageSize : undefined
-      }
-    },
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    initialPageParam: 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
-    retry: 3,
-    refetchOnWindowFocus: false // Don't refetch on every window focus for infinite data
-  })
+			const baseResult = {
+				data: (data as unknown as TData[]) || [],
+				count: count || 0
+			}
 
-  // Flatten pages data for easier consumption
-  const flatData = query.data?.pages?.flatMap(page => page.data) || []
-  const totalCount = query.data?.pages?.[0]?.count || 0
+			const hasNextPage =
+				data?.length === pageSize && skip + pageSize < (count || 0)
 
-  return {
-    data: flatData,
-    count: totalCount,
-    isSuccess: query.isSuccess,
-    isLoading: query.isLoading,
-    isFetching: query.isFetching,
-    isError: query.isError,
-    error: query.error,
-    hasMore: query.hasNextPage || false,
-    fetchNextPage: query.fetchNextPage,
-    isFetchingNextPage: query.isFetchingNextPage,
-    // Additional TanStack Query native features
-    refetch: query.refetch,
-    isRefetching: query.isRefetching,
-    failureCount: query.failureCount,
-    failureReason: query.failureReason
-  }
+			return hasNextPage
+				? { ...baseResult, nextCursor: skip + pageSize }
+				: baseResult
+		},
+		getNextPageParam: lastPage => lastPage.nextCursor,
+		initialPageParam: 0,
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		gcTime: 30 * 60 * 1000, // 30 minutes
+		retry: 3,
+		refetchOnWindowFocus: false // Don't refetch on every window focus for infinite data
+	})
+
+	// Flatten pages data for easier consumption
+	const flatData = query.data?.pages?.flatMap(page => page.data) || []
+	const totalCount = query.data?.pages?.[0]?.count || 0
+
+	return {
+		data: flatData,
+		count: totalCount,
+		isSuccess: query.isSuccess,
+		isLoading: query.isLoading,
+		isFetching: query.isFetching,
+		isError: query.isError,
+		error: query.error,
+		hasMore: query.hasNextPage || false,
+		fetchNextPage: query.fetchNextPage,
+		isFetchingNextPage: query.isFetchingNextPage,
+		// Additional TanStack Query native features
+		refetch: query.refetch,
+		isRefetching: query.isRefetching,
+		failureCount: query.failureCount,
+		failureReason: query.failureReason
+	}
 }
 
-export
-{
-  useInfiniteQuery, type InfiniteQueryPage, type QueryModifier, type TableName, type TableRow, type UseInfiniteQueryProps
+export {
+	useInfiniteQuery,
+	type InfiniteQueryPage,
+	type QueryModifier,
+	type TableName,
+	type TableRow,
+	type UseInfiniteQueryProps
 }

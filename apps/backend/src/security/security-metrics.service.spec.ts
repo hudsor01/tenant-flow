@@ -1,18 +1,38 @@
-import { SecurityEventSeverity, SecurityEventType } from '@repo/shared/types/security'
-import type { ISecurityRepository } from '../repositories/interfaces/security-repository.interface'
+import {
+	SecurityEventSeverity,
+	SecurityEventType
+} from '@repo/shared/types/security'
+import { createMockSupabaseService } from '../__test__/supabase-mock'
+import type { SupabaseService } from '../database/supabase.service'
 import { securityAuditLogFixture } from './__fixtures__/security-audit-logs.fixture'
 import { SecurityMetricsService } from './security-metrics.service'
 
 describe('SecurityMetricsService', () => {
 	let service: SecurityMetricsService
-	let mockSecurityRepository: jest.Mocked<ISecurityRepository>
+	let mockSupabaseService: ReturnType<typeof createMockSupabaseService>
 
 	beforeEach(() => {
-		mockSecurityRepository = {
-			fetchAuditLogs: jest.fn().mockResolvedValue(securityAuditLogFixture)
-		} as unknown as jest.Mocked<ISecurityRepository>
+		mockSupabaseService = createMockSupabaseService({
+			data: securityAuditLogFixture as any,
+			error: null as any
+		})
+		// Ensure RPC/default returns the audit log fixture when queried
+		const mockAdmin = mockSupabaseService.getAdminClient()
+		mockAdmin.from.mockReturnThis()
+		mockAdmin.select.mockReturnThis()
+		mockAdmin.gte.mockReturnThis()
+		mockAdmin.order.mockReturnThis()
+		// The terminal chain method should resolve to the RPC/database response
+		mockAdmin.limit.mockResolvedValue({
+			data: securityAuditLogFixture,
+			error: null
+		})
 
-		service = new SecurityMetricsService(mockSecurityRepository)
+		service = new SecurityMetricsService(
+			mockSupabaseService as unknown as SupabaseService
+		)
+		// Ensure getAdminClient method exists on the service
+		mockSupabaseService.getAdminClient = jest.fn().mockReturnValue(mockAdmin)
 	})
 
 	it('computes aggregate metrics from audit logs', async () => {
@@ -32,7 +52,10 @@ describe('SecurityMetricsService', () => {
 	})
 
 	it('initializes metrics when repository returns empty array', async () => {
-		mockSecurityRepository.fetchAuditLogs.mockResolvedValueOnce([])
+		// Simulate empty DB response for this test
+		mockSupabaseService
+			.getAdminClient()
+			.limit.mockResolvedValueOnce({ data: [], error: null })
 
 		const metrics = await service.getMetrics()
 

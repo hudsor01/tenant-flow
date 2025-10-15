@@ -9,7 +9,7 @@ import type { Request } from 'express'
 // Authenticated request with user attached
 export interface AuthenticatedRequest extends Request {
 	user: authUser
-	startTime?: number
+	startTime?: number | undefined
 }
 
 // Raw request body for webhooks

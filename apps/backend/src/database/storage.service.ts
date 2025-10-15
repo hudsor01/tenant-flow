@@ -1,11 +1,12 @@
-import {
-	Injectable,
-	BadRequestException,
-	Logger
-} from '@nestjs/common'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import type {
+	FileUploadOptions,
+	StorageEntityType,
+	StorageFileType,
+	StorageUploadResult
+} from '@repo/shared/types/domain'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import type { StorageUploadResult, FileUploadOptions, StorageEntityType, StorageFileType } from '@repo/shared/types/domain'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import * as path from 'path'
 import { SupabaseService } from './supabase.service'
 
@@ -15,9 +16,7 @@ import { SupabaseService } from './supabase.service'
 export class StorageService {
 	private readonly logger = new Logger(StorageService.name)
 
-	constructor(
-		private readonly supabaseService: SupabaseService
-	) {}
+	constructor(private readonly supabaseService: SupabaseService) {}
 
 	private get supabase(): SupabaseClient<Database> {
 		return this.supabaseService.getAdminClient()
@@ -28,7 +27,11 @@ export class StorageService {
 	 */
 	private validateFilePath(filePath: string): string {
 		// First check for path traversal attempts BEFORE sanitizing
-		if (filePath.includes('..') || filePath === '..' || filePath.startsWith('../')) {
+		if (
+			filePath.includes('..') ||
+			filePath === '..' ||
+			filePath.startsWith('../')
+		) {
 			throw new BadRequestException('Invalid file path detected')
 		}
 
@@ -89,13 +92,22 @@ export class StorageService {
 		const filename = path.basename(safePath)
 		this.validateFileName(filename)
 
+		const uploadOptions: {
+			cacheControl: string
+			upsert: boolean
+			contentType?: string
+		} = {
+			cacheControl: options?.cacheControl ?? '3600',
+			upsert: options?.upsert ?? false
+		}
+
+		if (options?.contentType !== undefined) {
+			uploadOptions.contentType = options.contentType
+		}
+
 		const { error } = await this.supabase.storage
 			.from(bucket)
-			.upload(safePath, file, {
-				contentType: options?.contentType,
-				cacheControl: options?.cacheControl ?? '3600',
-				upsert: options?.upsert ?? false
-			})
+			.upload(safePath, file, uploadOptions)
 
 		if (error) {
 			// Log detailed error for debugging but don't expose to client
@@ -104,9 +116,7 @@ export class StorageService {
 				path: safePath,
 				bucket
 			})
-			throw new BadRequestException(
-				`Failed to upload file: ${error.message}`
-			)
+			throw new BadRequestException(`Failed to upload file: ${error.message}`)
 		}
 
 		const publicUrl = this.getPublicUrl(bucket, safePath)
@@ -147,9 +157,7 @@ export class StorageService {
 				path: safePath,
 				bucket
 			})
-			throw new BadRequestException(
-				`Failed to delete file: ${error.message}`
-			)
+			throw new BadRequestException(`Failed to delete file: ${error.message}`)
 		}
 
 		return true
@@ -182,9 +190,7 @@ export class StorageService {
 				bucket,
 				folder
 			})
-			throw new BadRequestException(
-				`Failed to list files: ${error.message}`
-			)
+			throw new BadRequestException(`Failed to list files: ${error.message}`)
 		}
 
 		return data ?? []

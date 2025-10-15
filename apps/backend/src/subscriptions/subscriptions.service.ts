@@ -102,14 +102,25 @@ export class SubscriptionsService {
 				.eq('id', tenantId)
 				.single()
 
-			const customer = await this.stripe.customers.create({
-				email: tenant?.email,
-				name: tenant?.name || undefined,
+			const customerParams: {
+				metadata: { tenantId: string; leaseId: string }
+				email?: string
+				name?: string
+			} = {
 				metadata: {
 					tenantId,
 					leaseId: request.leaseId
 				}
-			})
+			}
+
+			if (tenant?.email !== undefined && tenant.email !== null) {
+				customerParams.email = tenant.email
+			}
+			if (tenant?.name !== undefined && tenant.name !== null) {
+				customerParams.name = tenant.name
+			}
+
+			const customer = await this.stripe.customers.create(customerParams)
 			stripeCustomerId = customer.id
 		}
 

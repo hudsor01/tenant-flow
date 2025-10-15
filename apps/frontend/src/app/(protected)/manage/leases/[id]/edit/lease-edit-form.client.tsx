@@ -23,6 +23,7 @@ import { leasesApi, unitsApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { leaseInputSchema } from '@repo/shared/validation/leases'
 import { useForm } from '@tanstack/react-form'
+import { z } from 'zod'
 
 interface LeaseEditFormProps {
 	id: string
@@ -70,7 +71,7 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 			onChange: ({ value }) => {
 				const result = leaseInputSchema.safeParse(value)
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}

@@ -17,17 +17,27 @@ export class BusinessException extends HttpException {
 		status: HttpStatus = HttpStatus.BAD_REQUEST,
 		details?: Record<string, unknown>
 	) {
-		super(
-			{
-				message,
-				error: 'Business Rule Violation',
-				code,
-				details
-			},
-			status
-		)
+		const responseBody: {
+			message: string
+			error: string
+			code: BusinessErrorCode
+			details?: Record<string, unknown>
+		} = {
+			message,
+			error: 'Business Rule Violation',
+			code
+		}
+
+		// Only assign details if provided
+		if (details !== undefined) {
+			responseBody.details = details
+		}
+
+		super(responseBody, status)
 
 		this.code = code
-		this.details = details
+		if (details !== undefined) {
+			this.details = details
+		}
 	}
 }
