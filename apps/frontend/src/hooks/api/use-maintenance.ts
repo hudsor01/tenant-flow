@@ -176,7 +176,7 @@ export function useCreateMaintenanceRequest() {
 				old => (old ? [optimistic, ...old] : [optimistic])
 			)
 
-			return { previous }
+			return previous ? { previous } : {}
 		},
 		onError: (_err, _variables, context) => {
 			// Rollback on error
@@ -333,21 +333,222 @@ export function usePrefetchMaintenanceRequest() {
 }
 
 /**
+ * Hook to complete a maintenance request
+ * Matches backend endpoint: POST /maintenance/:id/complete
+ */
+export function useCompleteMaintenance() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async ({
+			id,
+			actualCost,
+			notes
+		}: {
+			id: string
+			actualCost?: number
+			notes?: string
+		}) => {
+			const response = await apiClient<MaintenanceRequest>(
+				`${API_BASE_URL}/api/v1/maintenance/${id}/complete`,
+				{
+					method: 'POST',
+					body: JSON.stringify({ actualCost, notes })
+				}
+			)
+			return response
+		},
+		onMutate: async ({ id }) => {
+			// Cancel outgoing queries
+			await queryClient.cancelQueries({ queryKey: maintenanceKeys.detail(id) })
+			await queryClient.cancelQueries({ queryKey: maintenanceKeys.list() })
+
+			// Snapshot previous state
+			const previousDetail = queryClient.getQueryData<MaintenanceRequest>(
+				maintenanceKeys.detail(id)
+			)
+			const previousList = queryClient.getQueryData<MaintenanceRequest[]>(
+				maintenanceKeys.list()
+			)
+
+			// Optimistically update to COMPLETED status
+			queryClient.setQueryData<MaintenanceRequest>(
+				maintenanceKeys.detail(id),
+				old =>
+					old
+						? {
+								...old,
+								status: 'COMPLETED' as const,
+								completedAt: new Date().toISOString(),
+								updatedAt: new Date().toISOString()
+							}
+						: undefined
+			)
+
+			queryClient.setQueryData<MaintenanceRequest[]>(
+				maintenanceKeys.list(),
+				old =>
+					old?.map(item =>
+						item.id === id
+							? {
+									...item,
+									status: 'COMPLETED' as const,
+									completedAt: new Date().toISOString(),
+									updatedAt: new Date().toISOString()
+								}
+							: item
+					)
+			)
+
+			return { previousDetail, previousList }
+		},
+		onError: (_err, { id }, context) => {
+			// Rollback on error
+			if (context?.previousDetail) {
+				queryClient.setQueryData(
+					maintenanceKeys.detail(id),
+					context.previousDetail
+				)
+			}
+			if (context?.previousList) {
+				queryClient.setQueryData(maintenanceKeys.list(), context.previousList)
+			}
+			toast.error('Failed to complete maintenance request')
+		},
+		onSuccess: (data, { id }) => {
+			// Update with real server data
+			queryClient.setQueryData(maintenanceKeys.detail(id), data)
+			queryClient.setQueryData<MaintenanceRequest[]>(
+				maintenanceKeys.list(),
+				old => old?.map(item => (item.id === id ? data : item))
+			)
+			toast.success('Maintenance request marked as complete')
+		},
+		onSettled: () => {
+			// Refetch to ensure consistency
+			queryClient.invalidateQueries({ queryKey: maintenanceKeys.list() })
+			queryClient.invalidateQueries({ queryKey: maintenanceKeys.stats() })
+		}
+	})
+}
+
+/**
+ * Hook to cancel a maintenance request
+ * Matches backend endpoint: POST /maintenance/:id/cancel
+ */
+export function useCancelMaintenance() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async ({ id, reason }: { id: string; reason?: string }) => {
+			const response = await apiClient<MaintenanceRequest>(
+				`${API_BASE_URL}/api/v1/maintenance/${id}/cancel`,
+				{
+					method: 'POST',
+					body: JSON.stringify({ reason })
+				}
+			)
+			return response
+		},
+		onMutate: async ({ id }) => {
+			// Cancel outgoing queries
+			await queryClient.cancelQueries({ queryKey: maintenanceKeys.detail(id) })
+			await queryClient.cancelQueries({ queryKey: maintenanceKeys.list() })
+
+			// Snapshot previous state
+			const previousDetail = queryClient.getQueryData<MaintenanceRequest>(
+				maintenanceKeys.detail(id)
+			)
+			const previousList = queryClient.getQueryData<MaintenanceRequest[]>(
+				maintenanceKeys.list()
+			)
+
+			// Optimistically update to CANCELED status
+			queryClient.setQueryData<MaintenanceRequest>(
+				maintenanceKeys.detail(id),
+				old =>
+					old
+						? {
+								...old,
+								status: 'CANCELED' as const,
+								updatedAt: new Date().toISOString()
+							}
+						: undefined
+			)
+
+			queryClient.setQueryData<MaintenanceRequest[]>(
+				maintenanceKeys.list(),
+				old =>
+					old?.map(item =>
+						item.id === id
+							? {
+									...item,
+									status: 'CANCELED' as const,
+									updatedAt: new Date().toISOString()
+								}
+							: item
+					)
+			)
+
+			return { previousDetail, previousList }
+		},
+		onError: (_err, { id }, context) => {
+			// Rollback on error
+			if (context?.previousDetail) {
+				queryClient.setQueryData(
+					maintenanceKeys.detail(id),
+					context.previousDetail
+				)
+			}
+			if (context?.previousList) {
+				queryClient.setQueryData(maintenanceKeys.list(), context.previousList)
+			}
+			toast.error('Failed to cancel maintenance request')
+		},
+		onSuccess: (data, { id }) => {
+			// Update with real server data
+			queryClient.setQueryData(maintenanceKeys.detail(id), data)
+			queryClient.setQueryData<MaintenanceRequest[]>(
+				maintenanceKeys.list(),
+				old => old?.map(item => (item.id === id ? data : item))
+			)
+			toast.success('Maintenance request cancelled')
+		},
+		onSettled: () => {
+			// Refetch to ensure consistency
+			queryClient.invalidateQueries({ queryKey: maintenanceKeys.list() })
+			queryClient.invalidateQueries({ queryKey: maintenanceKeys.stats() })
+		}
+	})
+}
+
+/**
  * Combined hook for all maintenance operations
  */
 export function useMaintenanceOperations() {
 	const createRequest = useCreateMaintenanceRequest()
 	const updateRequest = useUpdateMaintenanceRequest()
 	const deleteRequest = useDeleteMaintenanceRequest()
+	const completeRequest = useCompleteMaintenance()
+	const cancelRequest = useCancelMaintenance()
 
 	return {
 		createRequest,
 		updateRequest,
 		deleteRequest,
+		completeRequest,
+		cancelRequest,
 		isLoading:
 			createRequest.isPending ||
 			updateRequest.isPending ||
-			deleteRequest.isPending,
-		error: createRequest.error || updateRequest.error || deleteRequest.error
+			deleteRequest.isPending ||
+			completeRequest.isPending ||
+			cancelRequest.isPending,
+		error:
+			createRequest.error ||
+			updateRequest.error ||
+			deleteRequest.error ||
+			completeRequest.error ||
+			cancelRequest.error
 	}
 }

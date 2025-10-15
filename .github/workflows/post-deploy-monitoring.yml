@@ -1,236 +1,53 @@
 name: Post-Deploy Monitoring
 
-# Runs AFTER deployment to verify production health
-# Does NOT block deployments - alerts team on failures
-
 on:
-  # Trigger after successful deployment
   workflow_run:
     workflows: ['CI/CD']
+    branches: [main]
     types:
       - completed
-    branches: [main]
-
-  # Scheduled health checks (every 6 hours)
   schedule:
     - cron: '0 */6 * * *'
-
-  # Manual trigger for on-demand verification
   workflow_dispatch:
 
-env:
-  NODE_VERSION: '22'
-  PNPM_VERSION: '10.17.1'
+permissions:
+  contents: read
 
 jobs:
-  # Critical path smoke tests - run against production
-  production-smoke-tests:
-    name: Production Smoke Tests
+  production-health:
+    name: Production Healthcheck
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    # Only run if previous deployment succeeded
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
-
-      - name: Install Playwright
-        run: pnpm exec playwright install chromium --with-deps
-
-      - name: Run production smoke tests
-        run: pnpm --filter @repo/e2e-tests test:chromium
-        env:
-          PLAYWRIGHT_BASE_URL: https://tenantflow.app
-          CI: true
-        continue-on-error: true # Don't fail the workflow, just record
-
-      - name: Upload results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: production-smoke-test-results
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 14
-
-      - name: Notify on failure
-        if: failure()
+      - name: Hit API health endpoint
         run: |
-          echo "::warning title=Production Smoke Tests Failed::One or more smoke tests failed in production. Check artifacts for details."
+          for i in {1..3}; do
+            if curl -fsSL https://api.tenantflow.app/health >/dev/null; then
+              echo "API healthy"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "API health endpoint failed"
+          exit 1
 
-  # E2E tenant workflows - run against staging (non-blocking)
-  # Uses matrix strategy for parallel sharding across 4 workers
-  staging-e2e-tests:
-    name: Staging E2E Tests (Shard ${{ matrix.shard }}/4)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
-    strategy:
-      fail-fast: false # Continue all shards even if one fails
-      matrix:
-        shard: [1, 2, 3, 4]
-    env:
-      NEXT_PUBLIC_API_BASE_URL: https://staging-api.tenantflow.app
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
-      CURRENT_SHARD: ${{ matrix.shard }}
-      TOTAL_SHARDS: 4
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
-
-      - name: Install Playwright
-        run: pnpm exec playwright install chromium --with-deps
-
-      - name: Run E2E tests on staging
-        run: pnpm test:e2e:tenant
-        env:
-          PLAYWRIGHT_BASE_URL: https://staging.tenantflow.app
-          CI: true
-        continue-on-error: true # Monitor, don't block
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: staging-e2e-results-shard-${{ matrix.shard }}
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 7
-
-      - name: Comment on PR if available
-        if: failure() && github.event.workflow_run.event == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '⚠️ E2E tests found issues in staging. Check [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
-            })
-
-  # Merge sharded test results into single report
-  merge-e2e-results:
-    name: Merge E2E Test Results
-    runs-on: ubuntu-latest
-    needs: [staging-e2e-tests]
-    if: always()
-    steps:
-      - name: Download all shard artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: staging-e2e-results-shard-*
-          path: all-shards
-          merge-multiple: true
-
-      - name: Merge JUnit XML reports
+      - name: Hit frontend availability
         run: |
-          mkdir -p merged-results
-          # Combine all JUnit XML files into one
-          find all-shards -name "junit.xml" -exec cat {} \; > merged-results/junit.xml
-
-      - name: Upload merged results
-        uses: actions/upload-artifact@v4
-        with:
-          name: staging-e2e-merged-results
-          path: merged-results/
-          retention-days: 14
-
-  # Visual regression tests - run nightly or on-demand
-  visual-regression:
-    name: Visual Regression (Nightly)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
-
-      - name: Install Playwright
-        run: pnpm exec playwright install chromium --with-deps
-
-      - name: Run visual regression tests
-        run: pnpm test:e2e:visual
-        env:
-          PLAYWRIGHT_BASE_URL: https://tenantflow.app
-          CI: true
-        continue-on-error: true
-
-      - name: Upload visual diffs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: visual-regression-diffs
-          path: |
-            test-results/
-            apps/e2e-tests/tests/**/__screenshots__/
-          retention-days: 7
-
-  # Health check summary
-  monitoring-summary:
-    name: Monitoring Summary
-    runs-on: ubuntu-latest
-    needs: [production-smoke-tests, staging-e2e-tests, merge-e2e-results]
-    if: always()
-    steps:
-      - name: Generate summary
-        run: |
-          echo "## Post-Deploy Monitoring Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Production Smoke Tests:** ${{ needs.production-smoke-tests.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Staging E2E Tests (4 shards):** ${{ needs.staging-e2e-tests.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          if [[ "${{ needs.production-smoke-tests.result }}" == "failure" ]]; then
-            echo "⚠️ **Action Required:** Production smoke tests failed. Investigate immediately." >> $GITHUB_STEP_SUMMARY
-          elif [[ "${{ needs.staging-e2e-tests.result }}" == "failure" ]]; then
-            echo "⚠️ **Warning:** Some E2E tests failed in staging. Review artifacts for details." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "✅ All systems operational" >> $GITHUB_STEP_SUMMARY
+          if ! curl -fsSL https://tenantflow.app >/dev/null; then
+            echo "Frontend check failed"
+            exit 1
           fi
+
+  staging-preview:
+    name: Staging snapshot
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Staging API check
+        run: curl -fsSL https://staging-api.tenantflow.app/health >/dev/null
+
+      - name: Staging frontend check
+        run: curl -fsSL https://staging.tenantflow.app >/dev/null

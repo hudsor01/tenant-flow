@@ -1,5 +1,5 @@
-import { AppSidebar } from '@/components/dashboard-01/app-sidebar'
-import { SiteHeader } from '@/components/dashboard-01/site-header'
+import { AppSidebar } from '@/components/dashboard/app-sidebar'
+import { SiteHeader } from '@/components/dashboard/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import type { ReactNode } from 'react'
 import { ViewTransitionsProvider } from '../../../components/providers/view-transitions-provider'

@@ -1,6 +1,8 @@
 'use client'
 
+import { PropertyEditDialog } from '@/components/properties/property-edit-dialog'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
 	Card,
 	CardAction,
@@ -11,6 +13,13 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import {
 	Empty,
 	EmptyContent,
 	EmptyDescription,
@@ -19,6 +28,14 @@ import {
 	EmptyTitle
 } from '@/components/ui/empty'
 import {
+	Pagination,
+	PaginationContent,
+	PaginationItem,
+	PaginationLink,
+	PaginationNext,
+	PaginationPrevious
+} from '@/components/ui/pagination'
+import {
 	Table,
 	TableBody,
 	TableCell,
@@ -26,20 +43,66 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
+import { useProperties } from '@/hooks/api/use-properties'
 import { useQuery } from '@tanstack/react-query'
-import { Building, TrendingDown, TrendingUp } from 'lucide-react'
+import {
+	Building,
+	Edit,
+	MoreVertical,
+	TrendingDown,
+	TrendingUp
+} from 'lucide-react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 import { propertiesApi } from '@/lib/api-client'
 import type { Property } from '@repo/shared/types/core'
 
+const ITEMS_PER_PAGE = 25
+
 export function PropertiesTable() {
-	// Fetch properties list
-	const { data: properties, isLoading: isLoadingProperties } = useQuery<
-		Property[]
-	>({
-		queryKey: ['properties'],
-		queryFn: () => propertiesApi.list()
-	})
+	const router = useRouter()
+	const pathname = usePathname()
+	const searchParams = useSearchParams()
+
+	// Get URL params
+	const pageParam = Number(searchParams.get('page')) || 1
+
+	// Local state synced with URL
+	const [page, setPage] = useState(pageParam)
+	const [editDialogOpen, setEditDialogOpen] = useState(false)
+	const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+		null
+	)
+
+	// Sync page state with URL
+	useEffect(() => {
+		setPage(pageParam)
+	}, [pageParam])
+
+	// Update URL when page changes
+	const updateURL = (newPage: number) => {
+		const params = new URLSearchParams(searchParams.toString())
+		if (newPage === 1) {
+			params.delete('page')
+		} else {
+			params.set('page', newPage.toString())
+		}
+		const newURL = params.toString()
+			? `${pathname}?${params.toString()}`
+			: pathname
+		router.push(newURL, { scroll: false })
+	}
+
+	// Fetch properties list with pagination
+	const { data: propertiesData, isLoading: isLoadingProperties } =
+		useProperties({
+			limit: ITEMS_PER_PAGE,
+			offset: (page - 1) * ITEMS_PER_PAGE
+		})
+
+	const properties = propertiesData?.data || []
+	const totalProperties = propertiesData?.total || 0
 
 	// Fetch real stats from API
 	const { data: statsData, isLoading: isLoadingStats } = useQuery({
@@ -56,11 +119,9 @@ export function PropertiesTable() {
 		return <div className="animate-pulse">Loading properties...</div>
 	}
 
-	const safeProperties = properties || []
-
 	// Use REAL stats from API with proper fallbacks for empty state
 	const stats = {
-		totalProperties: statsData?.total ?? safeProperties.length,
+		totalProperties: statsData?.total ?? totalProperties,
 		occupancyRate: statsData?.occupancyRate ?? 0,
 		totalUnits: statsData?.total ?? 0,
 		occupied: statsData?.occupied ?? 0,
@@ -139,7 +200,7 @@ export function PropertiesTable() {
 						Manage your property portfolio and track performance
 					</CardDescription>
 				</CardHeader>
-				{safeProperties.length > 0 ? (
+				{properties.length > 0 ? (
 					<CardContent>
 						<div className="rounded-md border">
 							<Table>
@@ -158,7 +219,7 @@ export function PropertiesTable() {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{safeProperties.map(property => (
+									{properties.map((property: Property) => (
 										<TableRow key={property.id} className="hover:bg-muted/30">
 											<TableCell className="font-medium">
 												{property.name}
@@ -189,10 +250,26 @@ export function PropertiesTable() {
 													: '—'}
 											</TableCell>
 											<TableCell>
-												{/* Actions placeholder - can be implemented later */}
-												<span className="text-sm text-muted-foreground">
-													Actions
-												</span>
+												<DropdownMenu>
+													<DropdownMenuTrigger asChild>
+														<Button variant="ghost" size="icon">
+															<MoreVertical className="h-4 w-4" />
+															<span className="sr-only">Open menu</span>
+														</Button>
+													</DropdownMenuTrigger>
+													<DropdownMenuContent align="end">
+														<DropdownMenuLabel>Actions</DropdownMenuLabel>
+														<DropdownMenuItem
+															onClick={() => {
+																setSelectedProperty(property)
+																setEditDialogOpen(true)
+															}}
+														>
+															<Edit className="mr-2 h-4 w-4" />
+															Edit Property
+														</DropdownMenuItem>
+													</DropdownMenuContent>
+												</DropdownMenu>
 											</TableCell>
 										</TableRow>
 									))}
@@ -219,6 +296,87 @@ export function PropertiesTable() {
 					</CardContent>
 				)}
 			</Card>
+
+			{/* Pagination */}
+			{totalProperties > ITEMS_PER_PAGE && (
+				<div className="mt-4">
+					<Pagination>
+						<PaginationContent>
+							<PaginationItem>
+								<PaginationPrevious
+									href="#"
+									onClick={e => {
+										e.preventDefault()
+										if (page > 1) {
+											const newPage = page - 1
+											setPage(newPage)
+											updateURL(newPage)
+										}
+									}}
+									className={page === 1 ? 'pointer-events-none opacity-50' : ''}
+								/>
+							</PaginationItem>
+
+							{Array.from(
+								{ length: Math.ceil(totalProperties / ITEMS_PER_PAGE) },
+								(_, i) => i + 1
+							)
+								.filter(
+									pageNum =>
+										pageNum === 1 ||
+										pageNum === Math.ceil(totalProperties / ITEMS_PER_PAGE) ||
+										(pageNum >= page - 1 && pageNum <= page + 1)
+								)
+								.map((pageNum, idx, arr) => (
+									<PaginationItem key={pageNum}>
+										{idx > 0 && arr[idx - 1] !== pageNum - 1 ? (
+											<span className="px-2">...</span>
+										) : null}
+										<PaginationLink
+											href="#"
+											onClick={e => {
+												e.preventDefault()
+												setPage(pageNum)
+												updateURL(pageNum)
+											}}
+											isActive={page === pageNum}
+										>
+											{pageNum}
+										</PaginationLink>
+									</PaginationItem>
+								))}
+
+							<PaginationItem>
+								<PaginationNext
+									href="#"
+									onClick={e => {
+										e.preventDefault()
+										if (page < Math.ceil(totalProperties / ITEMS_PER_PAGE)) {
+											const newPage = page + 1
+											setPage(newPage)
+											updateURL(newPage)
+										}
+									}}
+									className={
+										page === Math.ceil(totalProperties / ITEMS_PER_PAGE)
+											? 'pointer-events-none opacity-50'
+											: ''
+									}
+								/>
+							</PaginationItem>
+						</PaginationContent>
+					</Pagination>
+				</div>
+			)}
+
+			{/* Edit Property Dialog */}
+			{selectedProperty && (
+				<PropertyEditDialog
+					property={selectedProperty}
+					open={editDialogOpen}
+					onOpenChange={setEditDialogOpen}
+				/>
+			)}
 		</div>
 	)
 }

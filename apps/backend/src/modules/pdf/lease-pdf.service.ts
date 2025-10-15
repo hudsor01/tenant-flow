@@ -238,21 +238,32 @@ export class LeasePDFService {
 	private ensurePropertyData(
 		property: LeaseFormData['property']
 	): LeaseFormData['property'] {
-		return {
-			address: {
-				street: property?.address?.street || 'Property Address',
-				unit: property?.address?.unit,
-				city: property?.address?.city || 'City',
-				state: property?.address?.state || 'CA',
-				zipCode: property?.address?.zipCode || '00000'
-			},
+		const address: LeaseFormData['property']['address'] = {
+			street: property?.address?.street || 'Property Address',
+			city: property?.address?.city || 'City',
+			state: property?.address?.state || 'CA',
+			zipCode: property?.address?.zipCode || '00000'
+		}
+		if (property?.address?.unit) {
+			address.unit = property.address.unit
+		}
+
+		const result: LeaseFormData['property'] = {
+			address,
 			type: property?.type || 'apartment',
 			bedrooms: property?.bedrooms || 1,
 			bathrooms: property?.bathrooms || 1,
-			squareFeet: property?.squareFeet,
-			parking: property?.parking,
 			amenities: property?.amenities || []
 		}
+
+		if (property?.squareFeet !== undefined) {
+			result.squareFeet = property.squareFeet
+		}
+		if (property?.parking !== undefined) {
+			result.parking = property.parking
+		}
+
+		return result
 	}
 
 	/**
@@ -261,20 +272,29 @@ export class LeasePDFService {
 	private ensureLandlordData(
 		landlord: LeaseFormData['landlord']
 	): LeaseFormData['landlord'] {
-		return {
+		const address: LeaseFormData['landlord']['address'] = {
+			street: landlord?.address?.street || 'Landlord Address',
+			city: landlord?.address?.city || 'City',
+			state: landlord?.address?.state || 'CA',
+			zipCode: landlord?.address?.zipCode || '00000'
+		}
+
+		const result: LeaseFormData['landlord'] = {
 			name: landlord?.name || 'Landlord Name',
 			isEntity: landlord?.isEntity || false,
-			entityType: landlord?.entityType,
-			address: {
-				street: landlord?.address?.street || 'Landlord Address',
-				city: landlord?.address?.city || 'City',
-				state: landlord?.address?.state || 'CA',
-				zipCode: landlord?.address?.zipCode || '00000'
-			},
+			address,
 			phone: landlord?.phone || '(000) 000-0000',
-			email: landlord?.email || 'landlord@example.com',
-			agent: landlord?.agent
+			email: landlord?.email || 'landlord@example.com'
 		}
+
+		if (landlord?.entityType) {
+			result.entityType = landlord.entityType
+		}
+		if (landlord?.agent) {
+			result.agent = landlord.agent
+		}
+
+		return result
 	}
 
 	/**
@@ -320,26 +340,37 @@ export class LeasePDFService {
 			endDate = start.toISOString()
 		}
 
-		return {
+		const lateFee: LeaseFormData['leaseTerms']['lateFee'] = {
+			enabled: terms?.lateFee?.enabled ?? true,
+			gracePeriod: terms?.lateFee?.gracePeriod || 5,
+			percentage: terms?.lateFee?.percentage || 5
+		}
+		if (terms?.lateFee?.amount !== undefined) {
+			lateFee.amount = terms.lateFee.amount
+		}
+
+		const leaseTerms: LeaseFormData['leaseTerms'] = {
 			type,
 			startDate,
-			endDate,
 			rentAmount: terms?.rentAmount || 150000, // Default $1500 in cents
 			currency: 'USD',
 			dueDate: terms?.dueDate || 1,
-			lateFee: {
-				enabled: terms?.lateFee?.enabled ?? true,
-				amount: terms?.lateFee?.amount,
-				gracePeriod: terms?.lateFee?.gracePeriod || 5,
-				percentage: terms?.lateFee?.percentage || 5
-			},
+			lateFee,
 			securityDeposit: {
 				amount: terms?.securityDeposit?.amount || terms?.rentAmount || 150000,
 				monthsRent: terms?.securityDeposit?.monthsRent || 1,
 				holdingAccount: terms?.securityDeposit?.holdingAccount || false
-			},
-			additionalFees: terms?.additionalFees || []
+			}
 		}
+
+		if (endDate) {
+			leaseTerms.endDate = endDate
+		}
+		if (terms?.additionalFees && terms.additionalFees.length > 0) {
+			leaseTerms.additionalFees = terms.additionalFees
+		}
+
+		return leaseTerms
 	}
 
 	/**

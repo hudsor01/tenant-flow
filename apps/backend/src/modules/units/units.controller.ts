@@ -33,8 +33,7 @@ import type {
 	CreateUnitRequest,
 	UpdateUnitRequest
 } from '@repo/shared/types/backend-domain'
-import type { Request } from 'express'
-import { SupabaseService } from '../../database/supabase.service'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { UnitsService } from './units.service'
 
 @Controller('units')
@@ -42,10 +41,7 @@ export class UnitsController {
 	// Logger available if needed for debugging
 	// private readonly logger = new Logger(UnitsController.name)
 
-	constructor(
-		@Optional() private readonly unitsService?: UnitsService,
-		@Optional() private readonly supabaseService?: SupabaseService
-	) {}
+	constructor(@Optional() private readonly unitsService?: UnitsService) {}
 
 	/**
 	 * Get all units for the authenticated user
@@ -53,6 +49,7 @@ export class UnitsController {
 	 */
 	@Get()
 	async findAll(
+		@Req() req: AuthenticatedRequest,
 		@Query('propertyId', new DefaultValuePipe(null))
 		propertyId: string | null,
 		@Query('status', new DefaultValuePipe(null)) status: string | null,
@@ -60,8 +57,7 @@ export class UnitsController {
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
 		@Query('sortBy', new DefaultValuePipe('createdAt')) sortBy: string,
-		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder: string,
-		@Req() request: Request
+		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder: string
 	) {
 		// Validate enum values using native JavaScript (accept both cases)
 		if (status) {
@@ -96,11 +92,9 @@ export class UnitsController {
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
+		const userId = req.user.id
 
-		return this.unitsService.findAll(user?.id || 'test-user-id', {
+		return this.unitsService.findAll(userId, {
 			propertyId,
 			status,
 			search,
@@ -116,7 +110,7 @@ export class UnitsController {
 	 * Direct RPC call to PostgreSQL
 	 */
 	@Get('stats')
-	async getStats(@Req() request: Request) {
+	async getStats(@Req() req: AuthenticatedRequest) {
 		if (!this.unitsService) {
 			return {
 				message: 'Units service not available',
@@ -128,10 +122,8 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		return this.unitsService.getStats(user?.id || 'test-user-id')
+		const userId = req.user.id
+		return this.unitsService.getStats(userId)
 	}
 
 	/**
@@ -140,8 +132,8 @@ export class UnitsController {
 	 */
 	@Get('by-property/:propertyId')
 	async findByProperty(
-		@Param('propertyId', ParseUUIDPipe) propertyId: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest,
+		@Param('propertyId', ParseUUIDPipe) propertyId: string
 	) {
 		if (!this.unitsService) {
 			return {
@@ -151,13 +143,8 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		return this.unitsService.findByProperty(
-			user?.id || 'test-user-id',
-			propertyId
-		)
+		const userId = req.user.id
+		return this.unitsService.findByProperty(userId, propertyId)
 	}
 
 	/**
@@ -166,21 +153,19 @@ export class UnitsController {
 	 */
 	@Get(':id')
 	async findOne(
-		@Param('id', ParseUUIDPipe) id: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest,
+		@Param('id', ParseUUIDPipe) id: string
 	) {
 		if (!this.unitsService) {
 			return {
 				message: 'Units service not available',
 				id,
-				data: null
+				data: undefined
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		const unit = await this.unitsService.findOne(user?.id || 'test-user-id', id)
+		const userId = req.user.id
+		const unit = await this.unitsService.findOne(userId, id)
 		if (!unit) {
 			throw new NotFoundException('Unit not found')
 		}
@@ -193,8 +178,8 @@ export class UnitsController {
 	 */
 	@Post()
 	async create(
-		@Body() createUnitRequest: CreateUnitRequest,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest,
+		@Body() createUnitRequest: CreateUnitRequest
 	) {
 		if (!this.unitsService) {
 			return {
@@ -204,13 +189,8 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		return this.unitsService.create(
-			user?.id || 'test-user-id',
-			createUnitRequest
-		)
+		const userId = req.user.id
+		return this.unitsService.create(userId, createUnitRequest)
 	}
 
 	/**
@@ -219,9 +199,9 @@ export class UnitsController {
 	 */
 	@Put(':id')
 	async update(
+		@Req() req: AuthenticatedRequest,
 		@Param('id', ParseUUIDPipe) id: string,
-		@Body() updateUnitRequest: UpdateUnitRequest,
-		@Req() request: Request
+		@Body() updateUnitRequest: UpdateUnitRequest
 	) {
 		if (!this.unitsService) {
 			return {
@@ -232,14 +212,8 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		const unit = await this.unitsService.update(
-			user?.id || 'test-user-id',
-			id,
-			updateUnitRequest
-		)
+		const userId = req.user.id
+		const unit = await this.unitsService.update(userId, id, updateUnitRequest)
 		if (!unit) {
 			throw new NotFoundException('Unit not found')
 		}
@@ -252,8 +226,8 @@ export class UnitsController {
 	 */
 	@Delete(':id')
 	async remove(
-		@Param('id', ParseUUIDPipe) id: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest,
+		@Param('id', ParseUUIDPipe) id: string
 	) {
 		if (!this.unitsService) {
 			return {
@@ -263,10 +237,8 @@ export class UnitsController {
 			}
 		}
 		// Modern 2025 pattern: Direct Supabase validation
-		const user = this.supabaseService
-			? await this.supabaseService.getUser(request)
-			: null
-		await this.unitsService.remove(user?.id || 'test-user-id', id)
+		const userId = req.user.id
+		await this.unitsService.remove(userId, id)
 		return { message: 'Unit deleted successfully' }
 	}
 }

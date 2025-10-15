@@ -1,22 +1,22 @@
 'use client'
 
-import { Check, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
+import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import {
-	useStripeProducts,
-	formatStripePrice,
 	calculateAnnualSavings,
-	getPlanFeatures
+	formatStripePrice,
+	getPlanFeatures,
+	useStripeProducts
 } from '@/hooks/use-stripe-products'
 import { checkoutRateLimiter } from '@/lib/security'
 import { createCheckoutSession, isUserAuthenticated } from '@/lib/stripe-client'
 import { cn } from '@/lib/utils'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { useMutation } from '@tanstack/react-query'
-import { Spinner } from '@/components/ui/spinner'
+import { Check, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -96,12 +96,21 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 		stripeMonthlyPriceId?: string
 		stripeAnnualPriceId?: string
 	}) => {
-		subscriptionMutation.mutate({
+		const payload: {
+			planId: string
+			planName: string
+			monthlyPriceId?: string
+			annualPriceId?: string
+		} = {
 			planId: plan.planId,
-			planName: plan.name,
-			monthlyPriceId: plan.stripeMonthlyPriceId,
-			annualPriceId: plan.stripeAnnualPriceId
-		})
+			planName: plan.name
+		}
+		if (plan.stripeMonthlyPriceId)
+			payload.monthlyPriceId = plan.stripeMonthlyPriceId
+		if (plan.stripeAnnualPriceId)
+			payload.annualPriceId = plan.stripeAnnualPriceId
+
+		subscriptionMutation.mutate(payload)
 	}
 
 	return (
@@ -166,7 +175,8 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 						<CardLayout
 							key={product.id}
 							title={product.name}
-							description={product.description ?? undefined}
+							// CardLayout expects a string for description; provide empty string when absent
+							description={product.description ?? ''}
 							className={cn(
 								'relative flex flex-col',
 								isPopular && 'border-2 border-primary shadow-lg scale-105'
@@ -232,14 +242,19 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 									)}
 									variant={isPopular ? 'default' : 'outline'}
 									disabled={subscriptionMutation.isPending}
-									onClick={() =>
-										handleSubscribe({
-											planId,
-											name: product.name,
-											stripeMonthlyPriceId: product.prices.monthly?.id,
-											stripeAnnualPriceId: product.prices.annual?.id
-										})
-									}
+									onClick={() => {
+										const payload: {
+											planId: string
+											name: string
+											stripeMonthlyPriceId?: string
+											stripeAnnualPriceId?: string
+										} = { planId, name: product.name }
+										if (product.prices.monthly?.id)
+											payload.stripeMonthlyPriceId = product.prices.monthly.id
+										if (product.prices.annual?.id)
+											payload.stripeAnnualPriceId = product.prices.annual.id
+										handleSubscribe(payload)
+									}}
 								>
 									{subscriptionMutation.isPending ? (
 										<>

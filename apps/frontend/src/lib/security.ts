@@ -125,13 +125,19 @@ export function validateCheckoutData(
 			return null
 		}
 
-		return {
+		const result: ValidatedCheckoutData = {
 			planId: obj.planId as 'STARTER' | 'GROWTH' | 'TENANTFLOW_MAX',
-			interval: obj.interval as 'monthly' | 'annual',
-			successUrl:
-				typeof obj.successUrl === 'string' ? obj.successUrl : undefined,
-			cancelUrl: typeof obj.cancelUrl === 'string' ? obj.cancelUrl : undefined
+			interval: obj.interval as 'monthly' | 'annual'
 		}
+
+		if (typeof obj.successUrl === 'string') {
+			result.successUrl = obj.successUrl
+		}
+		if (typeof obj.cancelUrl === 'string') {
+			result.cancelUrl = obj.cancelUrl
+		}
+
+		return result
 	} catch {
 		return null
 	}

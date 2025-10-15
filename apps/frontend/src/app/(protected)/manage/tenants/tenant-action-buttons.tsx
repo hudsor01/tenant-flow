@@ -13,6 +13,7 @@ import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { tenantKeys } from '@/hooks/api/use-tenant'
 import { tenantsApi } from '@/lib/api-client'
 import type { FormFieldApi } from '@/lib/form-types'
+import type { UpdateTenantInput } from '@repo/shared/types/api-inputs'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
 import {
 	tenantUpdateSchema,
@@ -33,6 +34,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { z } from 'zod'
 
 interface TenantActionButtonsProps {
 	tenant: TenantWithLeaseInfo
@@ -58,7 +60,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 			onChange: ({ value }) => {
 				const result = tenantUpdateSchema.safeParse(value)
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}
@@ -66,7 +68,41 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 	})
 
 	const updateMutation = useMutation({
-		mutationFn: (data: TenantUpdate) => tenantsApi.update(tenant.id, data),
+		mutationFn: (data: TenantUpdate) => {
+			const payload: UpdateTenantInput = {}
+
+			const assignNullable = (
+				key: keyof Pick<
+					UpdateTenantInput,
+					| 'avatarUrl'
+					| 'phone'
+					| 'emergencyContact'
+					| 'firstName'
+					| 'lastName'
+					| 'name'
+					| 'userId'
+				>,
+				value: string | null | undefined
+			) => {
+				if (value !== undefined) {
+					payload[key] = value === null ? null : value
+				}
+			}
+
+			if (data.email !== undefined) {
+				payload.email = data.email
+			}
+
+			assignNullable('avatarUrl', data.avatarUrl)
+			assignNullable('phone', data.phone)
+			assignNullable('emergencyContact', data.emergencyContact)
+			assignNullable('firstName', data.firstName)
+			assignNullable('lastName', data.lastName)
+			assignNullable('name', data.name)
+			assignNullable('userId', data.userId)
+
+			return tenantsApi.update(tenant.id, payload)
+		},
 		onSuccess: (updated: TenantWithLeaseInfo) => {
 			// Update single tenant cache and the tenants list without refetch
 			queryClient.setQueryData(tenantKeys.detail(tenant.id), updated)
@@ -239,15 +275,12 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 										placeholder="Enter first name"
 										className="input"
 									/>
-									<FieldError
-										errors={
-											Array.isArray(field.state.meta.errors)
-												? field.state.meta.errors.map((m: unknown) => ({
-														message: String(m)
-													}))
-												: undefined
-										}
-									/>
+									{Array.isArray(field.state.meta.errors) &&
+										field.state.meta.errors.length > 0 && (
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
+										)}
 								</Field>
 							)}
 						</form.Field>
@@ -265,15 +298,12 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 										placeholder="Enter last name"
 										className="input"
 									/>
-									<FieldError
-										errors={
-											Array.isArray(field.state.meta.errors)
-												? field.state.meta.errors.map((m: unknown) => ({
-														message: String(m)
-													}))
-												: undefined
-										}
-									/>
+									{Array.isArray(field.state.meta.errors) &&
+										field.state.meta.errors.length > 0 && (
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
+										)}
 								</Field>
 							)}
 						</form.Field>
@@ -291,15 +321,12 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 										placeholder="Enter email"
 										className="input"
 									/>
-									<FieldError
-										errors={
-											Array.isArray(field.state.meta.errors)
-												? field.state.meta.errors.map((m: unknown) => ({
-														message: String(m)
-													}))
-												: undefined
-										}
-									/>
+									{Array.isArray(field.state.meta.errors) &&
+										field.state.meta.errors.length > 0 && (
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
+										)}
 								</Field>
 							)}
 						</form.Field>
@@ -317,15 +344,12 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 										placeholder="Enter phone number"
 										className="input"
 									/>
-									<FieldError
-										errors={
-											Array.isArray(field.state.meta.errors)
-												? field.state.meta.errors.map((m: unknown) => ({
-														message: String(m)
-													}))
-												: undefined
-										}
-									/>
+									{Array.isArray(field.state.meta.errors) &&
+										field.state.meta.errors.length > 0 && (
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
+										)}
 								</Field>
 							)}
 						</form.Field>
@@ -342,15 +366,12 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 										placeholder="Enter emergency contact"
 										className="input"
 									/>
-									<FieldError
-										errors={
-											Array.isArray(field.state.meta.errors)
-												? field.state.meta.errors.map((m: unknown) => ({
-														message: String(m)
-													}))
-												: undefined
-										}
-									/>
+									{Array.isArray(field.state.meta.errors) &&
+										field.state.meta.errors.length > 0 && (
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
+										)}
 								</Field>
 							)}
 						</form.Field>

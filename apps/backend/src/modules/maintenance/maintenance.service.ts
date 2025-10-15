@@ -1,13 +1,10 @@
 /**
- * Maintenance Service - Repository Pattern Implementation
- *
- * - NO ABSTRACTIONS: Service delegates to repository directly
- * - KISS: Simple, focused service methods
- * - DRY: Repository handles data access logic
- * - Production mirror: Matches controller interface exactly
+ * Maintenance Service - Ultra-Native NestJS Implementation
+ * Direct Supabase access, no repository abstractions
+ * Simplified: Removed helper methods, consolidated status updates
  */
 
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	CreateMaintenanceRequest,
@@ -18,13 +15,11 @@ import type {
 	MaintenanceStats
 } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import type {
-	IMaintenanceRepository,
-	MaintenanceQueryOptions
-} from '../../repositories/interfaces/maintenance-repository.interface'
-import type { IPropertiesRepository } from '../../repositories/interfaces/properties-repository.interface'
-import type { IUnitsRepository } from '../../repositories/interfaces/units-repository.interface'
-import { REPOSITORY_TOKENS } from '../../repositories/repositories.module'
+import { SupabaseService } from '../../database/supabase.service'
+import {
+	buildMultiColumnSearch,
+	sanitizeSearchInput
+} from '../../shared/utils/sql-safe.utils'
 import { MaintenanceUpdatedEvent } from '../notifications/events/notification.events'
 
 @Injectable()
@@ -32,17 +27,12 @@ export class MaintenanceService {
 	private readonly logger = new Logger(MaintenanceService.name)
 
 	constructor(
-		@Inject(REPOSITORY_TOKENS.MAINTENANCE)
-		private readonly maintenanceRepository: IMaintenanceRepository,
-		@Inject(REPOSITORY_TOKENS.UNITS)
-		private readonly unitsRepository: IUnitsRepository,
-		@Inject(REPOSITORY_TOKENS.PROPERTIES)
-		private readonly propertiesRepository: IPropertiesRepository,
+		private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2
 	) {}
 
 	/**
-	 * Get all maintenance requests for a user via repository
+	 * Get all maintenance requests for a user with search and filters
 	 */
 	async findAll(
 		userId: string,
@@ -56,35 +46,111 @@ export class MaintenanceService {
 				throw new BadRequestException('User ID is required')
 			}
 
-			const options: MaintenanceQueryOptions = {
-				search: query.search as string,
-				propertyId: query.propertyId as string,
-				unitId: query.unitId as string,
-				tenantId: query.tenantId as string,
-				status: query.status as string,
-				priority: query.priority as Database['public']['Enums']['Priority'],
-				category:
-					query.category as Database['public']['Enums']['MaintenanceCategory'],
-				assignedTo: query.assignedTo as string,
-				dateFrom: query.dateFrom
-					? new Date(query.dateFrom as string)
-					: undefined,
-				dateTo: query.dateTo ? new Date(query.dateTo as string) : undefined,
-				limit: query.limit as number,
-				offset: query.offset as number,
-				sort: query.sortBy as string,
-				order: query.sortOrder as 'asc' | 'desc'
+			this.logger.log(
+				'Finding all maintenance requests via direct Supabase query',
+				{
+					userId,
+					query
+				}
+			)
+
+			const client = this.supabase.getAdminClient()
+
+			// Build query with filters
+			let queryBuilder = client
+				.from('maintenance_request')
+				.select('*')
+				.eq('requestedBy', userId)
+
+			// Apply filters
+			if (query.propertyId) {
+				queryBuilder = queryBuilder.eq('propertyId', query.propertyId as string)
+			}
+			if (query.unitId) {
+				queryBuilder = queryBuilder.eq('unitId', query.unitId as string)
+			}
+			if (query.tenantId) {
+				queryBuilder = queryBuilder.eq('requestedBy', query.tenantId as string)
+			}
+			if (query.status) {
+				const allowedStatuses: Database['public']['Enums']['RequestStatus'][] =
+					['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELED', 'ON_HOLD', 'CLOSED']
+				const normalizedStatus = String(
+					query.status
+				).toUpperCase() as Database['public']['Enums']['RequestStatus']
+				if (allowedStatuses.includes(normalizedStatus)) {
+					queryBuilder = queryBuilder.eq('status', normalizedStatus)
+				}
+			}
+			if (query.priority) {
+				const allowedPriorities: Database['public']['Enums']['Priority'][] = [
+					'LOW',
+					'MEDIUM',
+					'HIGH',
+					'EMERGENCY'
+				]
+				const normalizedPriority = String(
+					query.priority
+				).toUpperCase() as Database['public']['Enums']['Priority']
+				if (allowedPriorities.includes(normalizedPriority)) {
+					queryBuilder = queryBuilder.eq('priority', normalizedPriority)
+				}
+			}
+			if (query.category) {
+				queryBuilder = queryBuilder.eq('category', query.category as string)
+			}
+			if (query.assignedTo) {
+				queryBuilder = queryBuilder.eq('assignedTo', query.assignedTo as string)
+			}
+			if (query.dateFrom) {
+				queryBuilder = queryBuilder.gte(
+					'createdAt',
+					new Date(query.dateFrom as string).toISOString()
+				)
+			}
+			if (query.dateTo) {
+				queryBuilder = queryBuilder.lte(
+					'createdAt',
+					new Date(query.dateTo as string).toISOString()
+				)
+			}
+			// SECURITY FIX #2: Use safe search to prevent SQL injection
+			if (query.search) {
+				const sanitized = sanitizeSearchInput(String(query.search))
+				if (sanitized) {
+					queryBuilder = queryBuilder.or(
+						buildMultiColumnSearch(sanitized, ['title', 'description'])
+					)
+				}
 			}
 
-			this.logger.log('Finding all maintenance requests via repository', {
-				userId,
-				options
+			// Apply pagination
+			const limit = query.limit ? Number(query.limit) : 50
+			const offset = query.offset ? Number(query.offset) : 0
+			queryBuilder = queryBuilder.range(offset, offset + limit - 1)
+
+			// Apply sorting
+			const sortBy = query.sortBy || 'createdAt'
+			const sortOrder = query.sortOrder || 'desc'
+			queryBuilder = queryBuilder.order(sortBy as string, {
+				ascending: sortOrder === 'asc'
 			})
 
-			return await this.maintenanceRepository.findByUserIdWithSearch(
-				userId,
-				options
-			)
+			const { data, error } = await queryBuilder
+
+			if (error) {
+				this.logger.error(
+					'Failed to fetch maintenance requests from Supabase',
+					{
+						error: error.message,
+						userId,
+						query
+					}
+				)
+				throw new BadRequestException('Failed to fetch maintenance requests')
+			}
+
+			return data as MaintenanceRequest[]
 		} catch (error) {
 			this.logger.error(
 				'Maintenance service failed to find all maintenance requests',
@@ -103,7 +169,7 @@ export class MaintenanceService {
 	}
 
 	/**
-	 * Get maintenance statistics via repository
+	 * Get maintenance statistics
 	 */
 	async getStats(
 		userId: string
@@ -116,10 +182,78 @@ export class MaintenanceService {
 				throw new BadRequestException('User ID is required')
 			}
 
-			this.logger.log('Getting maintenance stats via repository', { userId })
+			this.logger.log('Getting maintenance stats via direct Supabase query', {
+				userId
+			})
 
-			// Repository now returns all calculated stats including totalCost and avgResponseTimeHours
-			const stats = await this.maintenanceRepository.getStats(userId)
+			const client = this.supabase.getAdminClient()
+
+			const { data, error } = await client
+				.from('maintenance_request')
+				.select('status, priority, estimatedCost, createdAt, completedAt')
+				.eq('requestedBy', userId)
+
+			if (error) {
+				this.logger.error('Failed to get maintenance stats from Supabase', {
+					error: error.message,
+					userId
+				})
+				throw new BadRequestException('Failed to get maintenance statistics')
+			}
+
+			type MaintenanceRow =
+				Database['public']['Tables']['maintenance_request']['Row']
+			type RequestPick = Pick<
+				MaintenanceRow,
+				'createdAt' | 'completedAt' | 'estimatedCost' | 'priority' | 'status'
+			>
+			const requests = (data ?? []) as RequestPick[]
+			const now = new Date()
+			const todayStart = new Date(
+				now.getFullYear(),
+				now.getMonth(),
+				now.getDate()
+			)
+
+			const completedRequests = requests.filter(
+				(r): r is RequestPick & { completedAt: string } => !!r.completedAt
+			)
+			const avgResolutionTime =
+				completedRequests.length > 0
+					? completedRequests.reduce((sum: number, r) => {
+							const created = new Date(r.createdAt).getTime()
+							const completed = new Date(r.completedAt).getTime()
+							return sum + (completed - created) / (1000 * 60 * 60)
+						}, 0) / completedRequests.length
+					: 0
+
+			const stats: MaintenanceStats & {
+				totalCost: number
+				avgResponseTimeHours: number
+			} = {
+				total: requests.length,
+				open: requests.filter(r => r.status === 'OPEN').length,
+				inProgress: requests.filter(r => r.status === 'IN_PROGRESS').length,
+				completed: requests.filter(r => r.status === 'COMPLETED').length,
+				completedToday: requests.filter(
+					r =>
+						r.status === 'COMPLETED' &&
+						r.completedAt &&
+						new Date(r.completedAt) >= todayStart
+				).length,
+				avgResolutionTime,
+				byPriority: {
+					low: requests.filter(r => r.priority === 'LOW').length,
+					medium: requests.filter(r => r.priority === 'MEDIUM').length,
+					high: requests.filter(r => r.priority === 'HIGH').length,
+					emergency: requests.filter(r => r.priority === 'EMERGENCY').length
+				},
+				totalCost: requests.reduce(
+					(sum: number, r) => sum + (r.estimatedCost || 0),
+					0
+				),
+				avgResponseTimeHours: avgResolutionTime
+			}
 
 			return stats
 		} catch (error) {
@@ -136,7 +270,7 @@ export class MaintenanceService {
 	}
 
 	/**
-	 * Get urgent maintenance requests via repository
+	 * Get urgent maintenance requests (HIGH and EMERGENCY priority)
 	 */
 	async getUrgent(userId: string): Promise<MaintenanceRequest[]> {
 		try {
@@ -145,11 +279,38 @@ export class MaintenanceService {
 				throw new BadRequestException('User ID is required')
 			}
 
-			this.logger.log('Getting urgent maintenance requests via repository', {
-				userId
-			})
+			this.logger.log(
+				'Getting urgent maintenance requests via direct Supabase query',
+				{
+					userId
+				}
+			)
 
-			return await this.maintenanceRepository.getHighPriorityRequests(userId)
+			const client = this.supabase.getAdminClient()
+
+			const { data, error } = await client
+				.from('maintenance_request')
+				.select('*')
+				.eq('requestedBy', userId)
+				.in('priority', ['HIGH', 'EMERGENCY'])
+				.neq('status', 'COMPLETED')
+				.order('priority', { ascending: false })
+				.order('createdAt', { ascending: true })
+
+			if (error) {
+				this.logger.error(
+					'Failed to get urgent maintenance requests from Supabase',
+					{
+						error: error.message,
+						userId
+					}
+				)
+				throw new BadRequestException(
+					'Failed to get urgent maintenance requests'
+				)
+			}
+
+			return data as MaintenanceRequest[]
 		} catch (error) {
 			this.logger.error('Maintenance service failed to get urgent requests', {
 				error: error instanceof Error ? error.message : String(error),
@@ -164,7 +325,7 @@ export class MaintenanceService {
 	}
 
 	/**
-	 * Get overdue maintenance requests via repository
+	 * Get overdue maintenance requests
 	 */
 	async getOverdue(userId: string): Promise<MaintenanceRequest[]> {
 		try {
@@ -175,11 +336,37 @@ export class MaintenanceService {
 				throw new BadRequestException('User ID is required')
 			}
 
-			this.logger.log('Getting overdue maintenance requests via repository', {
-				userId
-			})
+			this.logger.log(
+				'Getting overdue maintenance requests via direct Supabase query',
+				{
+					userId
+				}
+			)
 
-			return await this.maintenanceRepository.getOverdueRequests(userId)
+			const client = this.supabase.getAdminClient()
+
+			const { data, error } = await client
+				.from('maintenance_request')
+				.select('*')
+				.eq('requestedBy', userId)
+				.neq('status', 'COMPLETED')
+				.lt('preferredDate', new Date().toISOString())
+				.order('preferredDate', { ascending: true })
+
+			if (error) {
+				this.logger.error(
+					'Failed to get overdue maintenance requests from Supabase',
+					{
+						error: error.message,
+						userId
+					}
+				)
+				throw new BadRequestException(
+					'Failed to get overdue maintenance requests'
+				)
+			}
+
+			return data as MaintenanceRequest[]
 		} catch (error) {
 			this.logger.error('Maintenance service failed to get overdue requests', {
 				error: error instanceof Error ? error.message : String(error),
@@ -194,7 +381,7 @@ export class MaintenanceService {
 	}
 
 	/**
-	 * Find one maintenance request by ID via repository
+	 * Find one maintenance request by ID
 	 */
 	async findOne(
 		userId: string,
@@ -209,17 +396,33 @@ export class MaintenanceService {
 				return null
 			}
 
-			this.logger.log('Finding one maintenance request via repository', {
-				userId,
-				maintenanceId
-			})
+			this.logger.log(
+				'Finding one maintenance request via direct Supabase query',
+				{
+					userId,
+					maintenanceId
+				}
+			)
 
-			const maintenance =
-				await this.maintenanceRepository.findById(maintenanceId)
+			const client = this.supabase.getAdminClient()
 
-			// Note: Maintenance ownership is verified via property ownership in repository RLS policies
+			const { data, error } = await client
+				.from('maintenance_request')
+				.select('*')
+				.eq('id', maintenanceId)
+				.eq('requestedBy', userId)
+				.single()
 
-			return maintenance
+			if (error) {
+				this.logger.error('Failed to fetch maintenance request from Supabase', {
+					error: error.message,
+					userId,
+					maintenanceId
+				})
+				return null
+			}
+
+			return data as MaintenanceRequest
 		} catch (error) {
 			this.logger.error(
 				'Maintenance service failed to find one maintenance request',
@@ -233,53 +436,8 @@ export class MaintenanceService {
 		}
 	}
 
-	private async resolvePropertyContext(unitId?: string) {
-		if (!unitId) {
-			return {
-				propertyName: 'Unknown Property',
-				unitName: 'Unknown Unit'
-			}
-		}
-
-		try {
-			const unit = await this.unitsRepository.findById(unitId)
-			if (!unit) {
-				return {
-					propertyName: 'Unknown Property',
-					unitName: 'Unknown Unit'
-				}
-			}
-
-			const unitName = unit.unitNumber || unit.id
-			if (!unit.propertyId) {
-				return {
-					propertyName: 'Unknown Property',
-					unitName
-				}
-			}
-
-			const property = await this.propertiesRepository.findById(unit.propertyId)
-			return {
-				propertyName: property?.name ?? 'Unknown Property',
-				unitName
-			}
-		} catch (error) {
-			this.logger.warn(
-				'Failed to resolve property context for maintenance event',
-				{
-					error: error instanceof Error ? error.message : String(error),
-					unitId
-				}
-			)
-			return {
-				propertyName: 'Unknown Property',
-				unitName: 'Unknown Unit'
-			}
-		}
-	}
-
 	/**
-	 * Create maintenance request via repository with event emission
+	 * Create maintenance request with event emission
 	 */
 	async create(
 		userId: string,
@@ -294,44 +452,31 @@ export class MaintenanceService {
 				throw new BadRequestException('User ID and title are required')
 			}
 
-			this.logger.log('Creating maintenance request via repository', {
-				userId,
-				createRequest
-			})
+			this.logger.log(
+				'Creating maintenance request via direct Supabase query',
+				{
+					userId,
+					createRequest
+				}
+			)
 
-			// Validate photo URLs if provided
-			if (createRequest.photos && createRequest.photos.length > 0) {
-				const supabaseStorageUrl =
+			// Validate photo URLs if provided (inline validation)
+			if (createRequest.photos?.length) {
+				const validUrl =
 					'https://bshjmbshupiibfiewpxb.supabase.co/storage/v1/object/public/maintenance-photos/'
-				const invalidPhotos = createRequest.photos.filter(
-					url => !url.startsWith(supabaseStorageUrl)
-				)
-				if (invalidPhotos.length > 0) {
-					this.logger.warn('Invalid photo URLs detected', { invalidPhotos })
+				if (createRequest.photos.some(url => !url.startsWith(validUrl))) {
 					throw new BadRequestException(
 						'All photo URLs must be from Supabase Storage'
 					)
 				}
 			}
 
-			// Convert CreateMaintenanceRequest to repository input format
-			const maintenanceInput = {
-				title: createRequest.title,
-				description: createRequest.description,
-				priority: createRequest.priority || 'MEDIUM',
-				unitId: createRequest.unitId,
-				allowEntry: true, // Default value
-				photos: createRequest.photos || [],
-				preferredDate: createRequest.scheduledDate
-					? new Date(createRequest.scheduledDate).toISOString()
-					: undefined,
-				category: createRequest.category,
-				estimatedCost: createRequest.estimatedCost
-			}
+			const client = this.supabase.getAdminClient()
 
+			// Map priority
 			const priorityMap: Record<
 				string,
-				'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
+				Database['public']['Enums']['Priority']
 			> = {
 				LOW: 'LOW',
 				MEDIUM: 'MEDIUM',
@@ -339,10 +484,38 @@ export class MaintenanceService {
 				URGENT: 'EMERGENCY'
 			}
 
-			const maintenance = await this.maintenanceRepository.create(userId, {
-				...maintenanceInput,
-				priority: priorityMap[maintenanceInput.priority] || 'MEDIUM'
-			})
+			const maintenanceData: Database['public']['Tables']['maintenance_request']['Insert'] =
+				{
+					requestedBy: userId,
+					title: createRequest.title,
+					description: createRequest.description,
+					priority: priorityMap[createRequest.priority || 'MEDIUM'] || 'MEDIUM',
+					unitId: createRequest.unitId,
+					allowEntry: true,
+					photos: createRequest.photos || null,
+					preferredDate: createRequest.scheduledDate
+						? new Date(createRequest.scheduledDate).toISOString()
+						: null,
+					category: createRequest.category || null,
+					estimatedCost: createRequest.estimatedCost || null
+				}
+
+			const { data, error } = await client
+				.from('maintenance_request')
+				.insert(maintenanceData)
+				.select()
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to create maintenance request in Supabase', {
+					error: error.message,
+					userId,
+					createRequest
+				})
+				throw new BadRequestException('Failed to create maintenance request')
+			}
+
+			const maintenance = data as MaintenanceRequest
 
 			// Emit maintenance created event
 			this.eventEmitter.emit('maintenance.created', {
@@ -372,7 +545,7 @@ export class MaintenanceService {
 	}
 
 	/**
-	 * Update maintenance request via repository
+	 * Update maintenance request
 	 */
 	async update(
 		userId: string,
@@ -388,8 +561,8 @@ export class MaintenanceService {
 				return null
 			}
 
-			// Note: Maintenance ownership is verified via unit ownership in repository RLS policies
-			const existing = await this.maintenanceRepository.findById(maintenanceId)
+			// Verify ownership
+			const existing = await this.findOne(userId, maintenanceId)
 			if (!existing) {
 				this.logger.warn('Maintenance request not found', {
 					userId,
@@ -398,52 +571,99 @@ export class MaintenanceService {
 				return null
 			}
 
-			this.logger.log('Updating maintenance request via repository', {
-				userId,
-				maintenanceId,
-				updateRequest
-			})
+			this.logger.log(
+				'Updating maintenance request via direct Supabase query',
+				{
+					userId,
+					maintenanceId,
+					updateRequest
+				}
+			)
 
-			// Convert UpdateMaintenanceRequest to repository input format
-			const updateInput = {
-				...updateRequest,
-				completedAt: updateRequest.completedDate
-					? new Date(updateRequest.completedDate).toISOString()
-					: undefined
-			}
+			const client = this.supabase.getAdminClient()
 
-			// Use database enum types directly for type safety
-			type Priority = Database['public']['Enums']['Priority']
-			type RequestStatus = Database['public']['Enums']['RequestStatus']
-
-			const priorityMap: Record<string, Priority> = {
+			// Map status and priority
+			const priorityMap: Record<
+				string,
+				Database['public']['Enums']['Priority']
+			> = {
 				LOW: 'LOW',
 				MEDIUM: 'MEDIUM',
 				HIGH: 'HIGH',
 				URGENT: 'EMERGENCY'
 			}
 
-			const statusMap: Record<string, RequestStatus> = {
+			const statusMap: Record<
+				string,
+				Database['public']['Enums']['RequestStatus']
+			> = {
 				PENDING: 'OPEN',
 				IN_PROGRESS: 'IN_PROGRESS',
 				COMPLETED: 'COMPLETED',
 				CANCELLED: 'CANCELED'
 			}
 
-			const updated = await this.maintenanceRepository.update(maintenanceId, {
-				...updateInput,
-				priority: updateInput.priority
-					? priorityMap[updateInput.priority] || 'MEDIUM'
-					: undefined,
-				status: updateInput.status
-					? statusMap[updateInput.status] || 'OPEN'
-					: undefined
-			})
+			const updateData: Database['public']['Tables']['maintenance_request']['Update'] =
+				{
+					updatedAt: new Date().toISOString()
+				}
 
+			if (updateRequest.title !== undefined)
+				updateData.title = updateRequest.title
+			if (updateRequest.description !== undefined)
+				updateData.description = updateRequest.description
+			if (updateRequest.priority !== undefined)
+				updateData.priority = priorityMap[updateRequest.priority] || 'MEDIUM'
+			if (updateRequest.status !== undefined)
+				updateData.status = statusMap[updateRequest.status] || 'OPEN'
+			if (updateRequest.estimatedCost !== undefined)
+				updateData.estimatedCost = updateRequest.estimatedCost
+			if (updateRequest.completedDate !== undefined)
+				updateData.completedAt = new Date(
+					updateRequest.completedDate
+				).toISOString()
+
+			const { data, error } = await client
+				.from('maintenance_request')
+				.update(updateData)
+				.eq('id', maintenanceId)
+				.eq('requestedBy', userId)
+				.select()
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to update maintenance request in Supabase', {
+					error: error.message,
+					userId,
+					maintenanceId,
+					updateRequest
+				})
+				return null
+			}
+
+			const updated = data as MaintenanceRequest
+
+			// Emit maintenance updated event with inline context
 			if (updated) {
-				const { propertyName, unitName } = await this.resolvePropertyContext(
-					updated.unitId
-				)
+				// Get unit and property names inline
+				const { data: unit } = await client
+					.from('unit')
+					.select('unitNumber, propertyId')
+					.eq('id', updated.unitId)
+					.single()
+
+				let propertyName = 'Unknown Property'
+				const unitName = unit?.unitNumber || 'Unknown Unit'
+
+				if (unit?.propertyId) {
+					const { data: property } = await client
+						.from('property')
+						.select('name')
+						.eq('id', unit.propertyId)
+						.single()
+					propertyName = property?.name || 'Unknown Property'
+				}
+
 				this.eventEmitter.emit(
 					'maintenance.updated',
 					new MaintenanceUpdatedEvent(
@@ -475,7 +695,7 @@ export class MaintenanceService {
 	}
 
 	/**
-	 * Remove maintenance request via repository
+	 * Remove maintenance request (soft delete)
 	 */
 	async remove(userId: string, maintenanceId: string): Promise<void> {
 		try {
@@ -487,18 +707,29 @@ export class MaintenanceService {
 				throw new BadRequestException('User ID and maintenance ID are required')
 			}
 
-			this.logger.log('Removing maintenance request via repository', {
-				userId,
-				maintenanceId
-			})
-
-			const result = await this.maintenanceRepository.softDelete(
-				userId,
-				maintenanceId
+			this.logger.log(
+				'Removing maintenance request via direct Supabase query',
+				{
+					userId,
+					maintenanceId
+				}
 			)
 
-			if (!result.success) {
-				throw new BadRequestException(result.message)
+			const client = this.supabase.getAdminClient()
+
+			const { error } = await client
+				.from('maintenance_request')
+				.delete()
+				.eq('id', maintenanceId)
+				.eq('requestedBy', userId)
+
+			if (error) {
+				this.logger.error('Failed to delete maintenance request in Supabase', {
+					error: error.message,
+					userId,
+					maintenanceId
+				})
+				throw new BadRequestException('Failed to delete maintenance request')
 			}
 		} catch (error) {
 			this.logger.error(
@@ -518,7 +749,75 @@ export class MaintenanceService {
 	}
 
 	/**
-	 * Complete maintenance request via repository
+	 * Update status - consolidated method (replaces complete and cancel)
+	 */
+	async updateStatus(
+		userId: string,
+		maintenanceId: string,
+		status: Database['public']['Enums']['RequestStatus'],
+		notes?: string
+	): Promise<MaintenanceRequest | null> {
+		try {
+			if (!userId || !maintenanceId || !status) {
+				this.logger.warn(
+					'Update maintenance status called with missing parameters',
+					{ userId, maintenanceId, status }
+				)
+				return null
+			}
+
+			this.logger.log('Updating maintenance status via direct Supabase query', {
+				userId,
+				maintenanceId,
+				status,
+				notes
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			const updateData: Database['public']['Tables']['maintenance_request']['Update'] =
+				{
+					status,
+					updatedAt: new Date().toISOString()
+				}
+
+			if (notes) updateData.notes = notes
+			if (status === 'COMPLETED')
+				updateData.completedAt = new Date().toISOString()
+
+			const { data, error } = await client
+				.from('maintenance_request')
+				.update(updateData)
+				.eq('id', maintenanceId)
+				.eq('requestedBy', userId)
+				.select()
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to update maintenance status in Supabase', {
+					error: error.message,
+					userId,
+					maintenanceId,
+					status
+				})
+				return null
+			}
+
+			return data as MaintenanceRequest
+		} catch (error) {
+			this.logger.error('Maintenance service failed to update status', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				maintenanceId,
+				status,
+				notes
+			})
+			return null
+		}
+	}
+
+	/**
+	 * Complete maintenance request - convenience method for marking as completed
 	 */
 	async complete(
 		userId: string,
@@ -527,44 +826,82 @@ export class MaintenanceService {
 		notes?: string
 	): Promise<MaintenanceRequest | null> {
 		try {
-			if (!userId || !maintenanceId) {
-				this.logger.warn(
-					'Complete maintenance request called with missing parameters',
-					{ userId, maintenanceId }
-				)
-				return null
-			}
-
-			this.logger.log('Completing maintenance request via repository', {
+			this.logger.log('Completing maintenance request', {
 				userId,
 				maintenanceId,
 				actualCost,
 				notes
 			})
 
-			return await this.maintenanceRepository.updateStatus(
-				maintenanceId,
-				'COMPLETED',
-				userId,
-				notes
-			)
-		} catch (error) {
-			this.logger.error(
-				'Maintenance service failed to complete maintenance request',
+			const client = this.supabase.getAdminClient()
+
+			const updateData: Database['public']['Tables']['maintenance_request']['Update'] =
 				{
-					error: error instanceof Error ? error.message : String(error),
-					userId,
-					maintenanceId,
-					actualCost,
-					notes
+					status: 'COMPLETED' as Database['public']['Enums']['RequestStatus'],
+					completedAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString()
 				}
-			)
+
+			if (actualCost !== undefined) updateData.actualCost = actualCost
+			if (notes) updateData.notes = notes
+
+			const { data, error } = await client
+				.from('maintenance_request')
+				.update(updateData)
+				.eq('id', maintenanceId)
+				.eq('requestedBy', userId)
+				.select()
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to complete maintenance request', {
+					error: error.message,
+					userId,
+					maintenanceId
+				})
+				return null
+			}
+
+			// Emit event for notifications
+			if (data) {
+				const updated = data as MaintenanceRequest
+				const propertyLabel = updated.unitId
+					? `Unit ${updated.unitId}`
+					: 'Unknown Property'
+				const unitNumberLabel = updated.unitId ?? 'N/A'
+
+				this.eventEmitter.emit(
+					'maintenance.updated',
+					new MaintenanceUpdatedEvent(
+						userId,
+						updated.id,
+						updated.title ?? 'Maintenance request updated',
+						updated.status ?? 'COMPLETED',
+						(updated.priority ?? 'MEDIUM') as
+							| 'LOW'
+							| 'MEDIUM'
+							| 'HIGH'
+							| 'EMERGENCY',
+						propertyLabel,
+						unitNumberLabel,
+						updated.description ?? ''
+					)
+				)
+			}
+
+			return data as MaintenanceRequest
+		} catch (error) {
+			this.logger.error('Failed to complete maintenance request', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				maintenanceId
+			})
 			return null
 		}
 	}
 
 	/**
-	 * Cancel maintenance request via repository
+	 * Cancel maintenance request - convenience method for marking as canceled
 	 */
 	async cancel(
 		userId: string,
@@ -572,36 +909,19 @@ export class MaintenanceService {
 		reason?: string
 	): Promise<MaintenanceRequest | null> {
 		try {
-			if (!userId || !maintenanceId) {
-				this.logger.warn(
-					'Cancel maintenance request called with missing parameters',
-					{ userId, maintenanceId }
-				)
-				return null
-			}
-
-			this.logger.log('Cancelling maintenance request via repository', {
+			this.logger.log('Canceling maintenance request', {
 				userId,
 				maintenanceId,
 				reason
 			})
 
-			return await this.maintenanceRepository.updateStatus(
-				maintenanceId,
-				'CANCELED',
-				userId,
-				reason
-			)
+			return this.updateStatus(userId, maintenanceId, 'CANCELED', reason)
 		} catch (error) {
-			this.logger.error(
-				'Maintenance service failed to cancel maintenance request',
-				{
-					error: error instanceof Error ? error.message : String(error),
-					userId,
-					maintenanceId,
-					reason
-				}
-			)
+			this.logger.error('Failed to cancel maintenance request', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				maintenanceId
+			})
 			return null
 		}
 	}

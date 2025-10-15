@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { tenantKeys } from '@/hooks/api/use-tenant'
 import { tenantsApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import type { CreateTenantInput } from '@repo/shared/types/api-inputs'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import {
 	tenantCreateFormSchema,
@@ -22,6 +23,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Mail, Phone, Plus, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { z } from 'zod'
 
 export function CreateTenantForm() {
 	const router = useRouter()
@@ -29,7 +31,23 @@ export function CreateTenantForm() {
 	const logger = createLogger({ component: 'CreateTenantForm' })
 
 	const createMutation = useMutation({
-		mutationFn: (data: TenantInput) => tenantsApi.create(data),
+		mutationFn: (data: TenantInput) => {
+			const normalize = (value: string | null | undefined) =>
+				value === undefined ? null : value
+
+			const payload: CreateTenantInput = {
+				email: data.email,
+				avatarUrl: normalize(data.avatarUrl),
+				phone: normalize(data.phone),
+				emergencyContact: normalize(data.emergencyContact),
+				firstName: normalize(data.firstName),
+				lastName: normalize(data.lastName),
+				name: normalize(data.name),
+				userId: normalize(data.userId)
+			}
+
+			return tenantsApi.create(payload)
+		},
 		onSuccess: (tenant: TenantWithLeaseInfo) => {
 			// Add the new tenant to the cached list without refetching
 			queryClient.setQueryData(
@@ -71,7 +89,7 @@ export function CreateTenantForm() {
 			onChange: ({ value }) => {
 				const result = tenantCreateFormSchema.safeParse(value)
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}
@@ -114,7 +132,9 @@ export function CreateTenantForm() {
 											placeholder="John"
 										/>
 									</InputGroup>
-									<FieldError errors={field.state.meta.errors} />
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
 								</Field>
 							)}
 						</form.Field>
@@ -137,7 +157,9 @@ export function CreateTenantForm() {
 											placeholder="Smith"
 										/>
 									</InputGroup>
-									<FieldError errors={field.state.meta.errors} />
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
 								</Field>
 							)}
 						</form.Field>
@@ -162,7 +184,9 @@ export function CreateTenantForm() {
 										placeholder="john.smith@example.com"
 									/>
 								</InputGroup>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError>
+									{String(field.state.meta.errors?.[0] ?? '')}
+								</FieldError>
 							</Field>
 						)}
 					</form.Field>
@@ -186,7 +210,9 @@ export function CreateTenantForm() {
 										placeholder="(555) 123-4567"
 									/>
 								</InputGroup>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError>
+									{String(field.state.meta.errors?.[0] ?? '')}
+								</FieldError>
 							</Field>
 						)}
 					</form.Field>
@@ -210,7 +236,9 @@ export function CreateTenantForm() {
 								<p className="text-sm text-muted-foreground">
 									Include name, relationship, and contact information
 								</p>
-								<FieldError errors={field.state.meta.errors} />
+								<FieldError>
+									{String(field.state.meta.errors?.[0] ?? '')}
+								</FieldError>
 							</Field>
 						)}
 					</form.Field>

@@ -7,11 +7,10 @@
 
 import { Global, Module } from '@nestjs/common'
 import { UtilityService } from './utility.service'
-import { RepositoriesModule } from '../../repositories/repositories.module'
 
 @Global()
 @Module({
-	imports: [RepositoriesModule],
+	imports: [],
 	providers: [UtilityService],
 	exports: [UtilityService]
 })

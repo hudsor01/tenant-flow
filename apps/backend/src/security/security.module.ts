@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common'
-import { RepositoriesModule } from '../repositories/repositories.module'
+import { SupabaseModule } from '../database/supabase.module'
+import { SecurityMetricsService } from './security-metrics.service'
 import { SecurityMonitorService } from './security-monitor.service'
 import { SecurityController } from './security.controller'
-import { SecurityMetricsService } from './security-metrics.service'
 
 @Module({
-	imports: [RepositoriesModule],
+	imports: [SupabaseModule],
 	controllers: [SecurityController],
 	providers: [SecurityMonitorService, SecurityMetricsService],
 	exports: [SecurityMonitorService, SecurityMetricsService]

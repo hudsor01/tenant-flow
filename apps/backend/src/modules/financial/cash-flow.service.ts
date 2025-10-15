@@ -129,7 +129,7 @@ export class CashFlowService {
 				)
 			: undefined
 
-		return {
+		const cashFlow: CashFlowData = {
 			period: createFinancialPeriod(startDate, endDate),
 			operatingActivities: {
 				rentalPaymentsReceived,
@@ -151,9 +151,14 @@ export class CashFlowService {
 			},
 			netCashFlow,
 			beginningCash,
-			endingCash,
-			previousPeriod
+			endingCash
 		}
+
+		if (previousPeriod) {
+			cashFlow.previousPeriod = previousPeriod
+		}
+
+		return cashFlow
 	}
 
 	/**

@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle } from 'lucide-react'
 import { useRouter } from 'next/router'
 import { toast } from 'sonner'
+import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
@@ -81,7 +82,7 @@ export function CreateLeaseForm() {
 			onChange: ({ value }) => {
 				const result = leaseInputSchema.safeParse(value)
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}

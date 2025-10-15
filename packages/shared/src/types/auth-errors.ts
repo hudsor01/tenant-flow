@@ -32,8 +32,8 @@ export class AuthenticationError extends Error implements TypedAuthError {
 		super(message)
 		this.name = 'AuthenticationError'
 		this.code = code
-		this.field = field
-		this.details = details
+		if (field !== undefined) this.field = field
+		if (details !== undefined) this.details = details
 	}
 }
 

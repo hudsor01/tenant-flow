@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
 
 type NotificationType =
@@ -40,19 +41,40 @@ export class NotificationService {
 	 */
 	async createNotification(params: CreateNotificationParams): Promise<void> {
 		try {
+			const now = new Date().toISOString()
+			const toJson = (
+				d?: Record<string, unknown> | null
+			): Exclude<
+				Database['public']['Tables']['notifications']['Insert']['metadata'],
+				undefined
+			> =>
+				d === null || d === undefined
+					? null
+					: (JSON.parse(JSON.stringify(d)) as Exclude<
+							Database['public']['Tables']['notifications']['Insert']['metadata'],
+							undefined
+						>)
+
+			const metadataValue = toJson(params.data)
+			const record: Database['public']['Tables']['notifications']['Insert'] = {
+				userId: params.userId,
+				type: params.type,
+				title: params.title,
+				content: params.message,
+				priority: params.priority ?? 'medium',
+				actionUrl: params.actionUrl ?? null,
+				...(metadataValue === null
+					? { metadata: null }
+					: { metadata: metadataValue }),
+				isRead: false,
+				createdAt: now,
+				updatedAt: now
+			}
+
 			const { error } = await this.supabaseService
 				.getAdminClient()
 				.from('notifications')
-				.insert({
-					userId: params.userId,
-					type: params.type,
-					title: params.title,
-					content: params.message,
-					priority: params.priority || 'medium',
-					actionUrl: params.actionUrl,
-					metadata: params.data as never,
-					isRead: false
-				})
+				.insert(record)
 
 			if (error) {
 				this.logger.error('Failed to create notification', {
@@ -85,16 +107,38 @@ export class NotificationService {
 		notifications: CreateNotificationParams[]
 	): Promise<void> {
 		try {
-			const records = notifications.map(params => ({
-				userId: params.userId,
-				type: params.type,
-				title: params.title,
-				content: params.message,
-				priority: params.priority || 'medium',
-				actionUrl: params.actionUrl || null,
-				metadata: (params.data as never) || null,
-				isRead: false
-			}))
+			const now = new Date().toISOString()
+			const toJson = (
+				d?: Record<string, unknown> | null
+			): Exclude<
+				Database['public']['Tables']['notifications']['Insert']['metadata'],
+				undefined
+			> =>
+				d === null || d === undefined
+					? null
+					: (JSON.parse(JSON.stringify(d)) as Exclude<
+							Database['public']['Tables']['notifications']['Insert']['metadata'],
+							undefined
+						>)
+
+			const records: Database['public']['Tables']['notifications']['Insert'][] =
+				notifications.map(params => {
+					const metadataValue = toJson(params.data)
+					return {
+						userId: params.userId,
+						type: params.type,
+						title: params.title,
+						content: params.message,
+						priority: params.priority ?? 'medium',
+						actionUrl: params.actionUrl ?? null,
+						...(metadataValue === null
+							? { metadata: null }
+							: { metadata: metadataValue }),
+						isRead: false,
+						createdAt: now,
+						updatedAt: now
+					}
+				})
 
 			const { error } = await this.supabaseService
 				.getAdminClient()

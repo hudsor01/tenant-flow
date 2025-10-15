@@ -217,25 +217,31 @@ export class StripeEventProcessor {
 			}
 
 			// Create or update subscription record
-			const { error } = await supabase.from('subscription').upsert(
-				{
-					stripeSubscriptionId: subscription.id,
-					stripeCustomerId: subscription.customer as string,
-					status: subscription.status.toUpperCase() as SubscriptionStatus,
-					userId: user.id,
-					currentPeriodEnd: (subscription as SubscriptionWithPeriod)
-						.current_period_end
-						? new Date(
-								(subscription as SubscriptionWithPeriod).current_period_end! *
-									1000
-							).toISOString()
-						: undefined,
-					cancelAtPeriodEnd: subscription.cancel_at_period_end
-				},
-				{
-					onConflict: 'stripeSubscriptionId'
-				}
-			)
+			const upsertData: {
+				stripeSubscriptionId: string
+				stripeCustomerId: string
+				status: SubscriptionStatus
+				userId: string
+				currentPeriodEnd?: string | null
+				cancelAtPeriodEnd: boolean
+			} = {
+				stripeSubscriptionId: subscription.id,
+				stripeCustomerId: subscription.customer as string,
+				status: subscription.status.toUpperCase() as SubscriptionStatus,
+				userId: user.id,
+				cancelAtPeriodEnd: subscription.cancel_at_period_end
+			}
+
+			// Only assign currentPeriodEnd if it exists
+			const periodEnd = (subscription as SubscriptionWithPeriod)
+				.current_period_end
+			if (periodEnd) {
+				upsertData.currentPeriodEnd = new Date(periodEnd * 1000).toISOString()
+			}
+
+			const { error } = await supabase.from('subscription').upsert(upsertData, {
+				onConflict: 'stripeSubscriptionId'
+			})
 
 			if (error) {
 				this.logger.error('Failed to create subscription record', {
@@ -280,19 +286,25 @@ export class StripeEventProcessor {
 			const supabase = this.supabaseService.getAdminClient()
 
 			// Update subscription record
+			const updateData: {
+				status: SubscriptionStatus
+				currentPeriodEnd?: string | null
+				cancelAtPeriodEnd: boolean
+			} = {
+				status: subscription.status.toUpperCase() as SubscriptionStatus,
+				cancelAtPeriodEnd: subscription.cancel_at_period_end
+			}
+
+			// Only assign currentPeriodEnd if it exists
+			const periodEnd = (subscription as SubscriptionWithPeriod)
+				.current_period_end
+			if (periodEnd) {
+				updateData.currentPeriodEnd = new Date(periodEnd * 1000).toISOString()
+			}
+
 			const { error } = await supabase
 				.from('subscription')
-				.update({
-					status: subscription.status.toUpperCase() as SubscriptionStatus,
-					currentPeriodEnd: (subscription as SubscriptionWithPeriod)
-						.current_period_end
-						? new Date(
-								(subscription as SubscriptionWithPeriod).current_period_end! *
-									1000
-							).toISOString()
-						: undefined,
-					cancelAtPeriodEnd: subscription.cancel_at_period_end
-				})
+				.update(updateData)
 				.eq('stripeSubscriptionId', subscription.id)
 
 			if (error) {

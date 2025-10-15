@@ -15,7 +15,7 @@ export default {
 		if (filteredFiles.length === 0) return []
 
 		return [
-			`eslint --cache --fix ${filteredFiles.join(' ')}`,
+			`eslint --cache ${filteredFiles.join(' ')}`,
 			`prettier --write ${filenames.join(' ')}`
 		]
 	},

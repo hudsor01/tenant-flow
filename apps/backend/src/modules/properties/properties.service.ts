@@ -1,276 +1,284 @@
 /**
- * Properties Service - Layered Architecture Implementation
- *
- * Uses repository pattern for data access abstraction
- * Business logic separated from database operations
- * Clean separation of concerns and testable design
+ * Properties Service - Ultra-Native NestJS Implementation
+ * Direct Supabase access, native validation, no custom abstractions
  */
 
-import { CacheKey, CacheTTL } from '@nestjs/cache-manager'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common'
 import type {
 	CreatePropertyRequest,
 	UpdatePropertyRequest
 } from '@repo/shared/types/backend-domain'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
-import type { IPropertiesRepository } from '../../repositories/interfaces/properties-repository.interface'
-import type { IUnitsRepository } from '../../repositories/interfaces/units-repository.interface'
-import { REPOSITORY_TOKENS } from '../../repositories/repositories.module'
+import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Cache } from 'cache-manager'
+import { SupabaseService } from '../../database/supabase.service'
+import {
+	buildMultiColumnSearch,
+	sanitizeSearchInput
+} from '../../shared/utils/sql-safe.utils'
 
-// Type alias for properties with units - using Property for now since PropertyWithUnits not defined
-type PropertyWithUnits = Property
+type PropertyType = Database['public']['Enums']['PropertyType']
+
+// Validation constants (DRY principle)
+const VALID_TIMEFRAMES = ['7d', '30d', '90d', '180d', '365d'] as const
+const VALID_PERIODS = [
+	'daily',
+	'weekly',
+	'monthly',
+	'quarterly',
+	'yearly'
+] as const
+const VALID_PROPERTY_TYPES: PropertyType[] = [
+	'SINGLE_FAMILY',
+	'MULTI_UNIT',
+	'APARTMENT',
+	'COMMERCIAL',
+	'CONDO',
+	'TOWNHOUSE',
+	'OTHER'
+]
 
 @Injectable()
 export class PropertiesService {
 	private readonly logger = new Logger(PropertiesService.name)
 
 	constructor(
-		@Inject(REPOSITORY_TOKENS.PROPERTIES)
-		private readonly propertiesRepository: IPropertiesRepository,
-		@Inject(REPOSITORY_TOKENS.UNITS)
-		private readonly unitsRepository: IUnitsRepository
+		private readonly supabase: SupabaseService,
+		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
 	) {}
 
 	/**
 	 * Get all properties with search and pagination
-	 * Uses repository pattern for clean data access
 	 */
 	async findAll(
 		userId: string,
 		query: { search?: string | null; limit: number; offset: number }
 	): Promise<Property[]> {
-		try {
-			return await this.propertiesRepository.findByUserIdWithSearch(userId, {
-				search: query.search,
-				limit: query.limit,
-				offset: query.offset
-			})
-		} catch (error) {
-			this.logger.error('Failed to get properties via repository', {
-				error,
-				userId,
-				query
-			})
-			// Return empty array for zero state
+		let queryBuilder = this.supabase
+			.getAdminClient()
+			.from('property')
+			.select('*')
+			.eq('ownerId', userId)
+			.order('createdAt', { ascending: false })
+			.range(query.offset, query.offset + query.limit - 1)
+
+		// SECURITY FIX #2: Use safe multi-column search to prevent SQL injection
+		if (query.search) {
+			const sanitized = sanitizeSearchInput(query.search)
+			if (sanitized) {
+				queryBuilder = queryBuilder.or(
+					buildMultiColumnSearch(sanitized, ['name', 'address', 'city'])
+				)
+			}
+		}
+
+		const { data, error } = await queryBuilder
+
+		if (error) {
+			this.logger.error('Failed to fetch properties', { error, userId })
 			return []
 		}
+
+		return (data || []) as Property[]
 	}
 
 	/**
 	 * Get single property by ID
-	 * Includes business logic validation
 	 */
 	async findOne(userId: string, propertyId: string): Promise<Property | null> {
-		try {
-			// Business logic: Validate property ID format
-			if (!propertyId || typeof propertyId !== 'string') {
-				throw new BadRequestException('Invalid property ID')
-			}
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('property')
+			.select('*')
+			.eq('id', propertyId)
+			.eq('ownerId', userId)
+			.single()
 
-			const property = await this.propertiesRepository.findById(propertyId)
-
-			// Business logic: Verify ownership
-			if (property && property.ownerId !== userId) {
-				this.logger.warn('Access denied: Property not owned by user', {
-					userId,
-					propertyId
-				})
-				return null
-			}
-
-			return property
-		} catch (error) {
-			this.logger.error('Failed to get property by ID', {
-				error,
+		if (error || !data) {
+			this.logger.warn('Property not found or access denied', {
 				userId,
 				propertyId
 			})
-			throw new BadRequestException('Failed to retrieve property')
+			return null
 		}
+
+		return data as Property
 	}
 
 	/**
-	 * Create property with business validation
-	 * Implements proper business rules and validation
+	 * Create property with validation
 	 */
 	async create(
 		userId: string,
 		request: CreatePropertyRequest
 	): Promise<Property> {
-		try {
-			// Business logic: Validate required fields
-			if (!request.name?.trim()) {
-				throw new BadRequestException('Property name is required')
-			}
+		// Validate required fields using native TypeScript
+		if (!request.name?.trim())
+			throw new BadRequestException('Property name is required')
+		if (!request.address?.trim())
+			throw new BadRequestException('Property address is required')
+		if (
+			!request.city?.trim() ||
+			!request.state?.trim() ||
+			!request.zipCode?.trim()
+		) {
+			throw new BadRequestException('City, state, and zip code are required')
+		}
+		if (!VALID_PROPERTY_TYPES.includes(request.propertyType as PropertyType)) {
+			throw new BadRequestException('Invalid property type')
+		}
 
-			if (!request.address?.trim()) {
-				throw new BadRequestException('Property address is required')
-			}
+		// Build insert object conditionally per exactOptionalPropertyTypes
+		const insertData: Database['public']['Tables']['property']['Insert'] = {
+			ownerId: userId,
+			name: request.name.trim(),
+			address: request.address.trim(),
+			city: request.city.trim(),
+			state: request.state.trim(),
+			zipCode: request.zipCode.trim(),
+			propertyType: request.propertyType as PropertyType
+		}
 
-			if (
-				!request.city?.trim() ||
-				!request.state?.trim() ||
-				!request.zipCode?.trim()
-			) {
-				throw new BadRequestException('City, state, and zip code are required')
-			}
+		if (request.description?.trim()) {
+			insertData.description = request.description.trim()
+		}
 
-			// Business logic: Validate property type
-			const validPropertyTypes = [
-				'SINGLE_FAMILY',
-				'MULTI_UNIT',
-				'APARTMENT',
-				'COMMERCIAL',
-				'CONDO'
-			]
-			if (
-				!request.propertyType ||
-				!validPropertyTypes.includes(request.propertyType)
-			) {
-				throw new BadRequestException('Invalid property type')
-			}
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('property')
+			.insert(insertData)
+			.select()
+			.single()
 
-			// Business logic: Sanitize inputs
-			const sanitizedRequest = {
-				...request,
-				name: request.name.trim(),
-				address: request.address.trim(),
-				city: request.city.trim(),
-				state: request.state.trim(),
-				zipCode: request.zipCode.trim(),
-				description: request.description?.trim() || undefined
-			}
-
-			return await this.propertiesRepository.create(userId, sanitizedRequest)
-		} catch (error) {
-			this.logger.error('Failed to create property', { error, userId, request })
-
-			if (error instanceof BadRequestException) {
-				throw error
-			}
-
+		if (error) {
+			this.logger.error('Failed to create property', { error, userId })
 			throw new BadRequestException('Failed to create property')
 		}
+
+		return data as Property
 	}
 
 	/**
-	 * Update property with ownership verification and validation
-	 * Implements business rules for property updates
+	 * Update property with validation
 	 */
 	async update(
 		userId: string,
 		propertyId: string,
 		request: UpdatePropertyRequest
 	): Promise<Property | null> {
-		try {
-			// Business logic: Verify ownership first
-			const existingProperty = await this.findOne(userId, propertyId)
-			if (!existingProperty) {
-				throw new BadRequestException('Property not found or access denied')
-			}
+		// Verify ownership
+		const existing = await this.findOne(userId, propertyId)
+		if (!existing)
+			throw new BadRequestException('Property not found or access denied')
 
-			// Business logic: Validate update fields if provided
-			if (request.name && !request.name.trim()) {
-				throw new BadRequestException('Property name cannot be empty')
-			}
+		// Validate fields if provided
+		if (request.name && !request.name.trim()) {
+			throw new BadRequestException('Property name cannot be empty')
+		}
+		if (
+			request.propertyType &&
+			!VALID_PROPERTY_TYPES.includes(request.propertyType as PropertyType)
+		) {
+			throw new BadRequestException('Invalid property type')
+		}
 
-			if (request.propertyType) {
-				const validPropertyTypes = [
-					'APARTMENT',
-					'HOUSE',
-					'CONDO',
-					'TOWNHOUSE',
-					'COMMERCIAL'
-				]
-				if (!validPropertyTypes.includes(request.propertyType)) {
-					throw new BadRequestException('Invalid property type')
-				}
-			}
+		// Build update object conditionally per exactOptionalPropertyTypes
+		const updateData: Database['public']['Tables']['property']['Update'] = {
+			updatedAt: new Date().toISOString()
+		}
 
-			// Business logic: Sanitize inputs
-			const sanitizedRequest = {
-				...request,
-				name: request.name?.trim(),
-				address: request.address?.trim(),
-				city: request.city?.trim(),
-				state: request.state?.trim(),
-				zipCode: request.zipCode?.trim(),
-				description: request.description?.trim()
-			}
+		if (request.name !== undefined) updateData.name = request.name.trim()
+		if (request.address !== undefined)
+			updateData.address = request.address.trim()
+		if (request.city !== undefined) updateData.city = request.city.trim()
+		if (request.state !== undefined) updateData.state = request.state.trim()
+		if (request.zipCode !== undefined)
+			updateData.zipCode = request.zipCode.trim()
+		if (request.description !== undefined) {
+			updateData.description = request.description?.trim() || null
+		}
+		if (request.propertyType !== undefined) {
+			updateData.propertyType = request.propertyType as PropertyType
+		}
 
-			return await this.propertiesRepository.update(
-				propertyId,
-				sanitizedRequest
-			)
-		} catch (error) {
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('property')
+			.update(updateData)
+			.eq('id', propertyId)
+			.eq('ownerId', userId)
+			.select()
+			.single()
+
+		if (error) {
 			this.logger.error('Failed to update property', {
 				error,
 				userId,
-				propertyId,
-				request
+				propertyId
 			})
-
-			if (error instanceof BadRequestException) {
-				throw error
-			}
-
 			throw new BadRequestException('Failed to update property')
 		}
+
+		return data as Property
 	}
 
 	/**
-	 * Delete property with ownership verification
-	 * Implements business rules for property deletion
+	 * Delete property (soft delete)
 	 */
 	async remove(
 		userId: string,
 		propertyId: string
 	): Promise<{ success: boolean; message: string }> {
-		try {
-			// Business logic: Verify ownership first
-			const existingProperty = await this.findOne(userId, propertyId)
-			if (!existingProperty) {
-				throw new BadRequestException('Property not found or access denied')
-			}
+		// Verify ownership
+		const existing = await this.findOne(userId, propertyId)
+		if (!existing)
+			throw new BadRequestException('Property not found or access denied')
 
-			// Business logic: Could add checks for dependencies here
-			// For example: Check if property has active leases
-			// const activeLeases = await this.leasesRepository.findActiveByPropertyId(propertyId)
-			// if (activeLeases.length > 0) {
-			//   throw new BadRequestException('Cannot delete property with active leases')
-			// }
+		const { error } = await this.supabase
+			.getAdminClient()
+			.from('property')
+			.update({
+				status: 'INACTIVE' as Database['public']['Enums']['PropertyStatus']
+			})
+			.eq('id', propertyId)
+			.eq('ownerId', userId)
 
-			return await this.propertiesRepository.softDelete(userId, propertyId)
-		} catch (error) {
+		if (error) {
 			this.logger.error('Failed to delete property', {
 				error,
 				userId,
 				propertyId
 			})
-
-			if (error instanceof BadRequestException) {
-				throw error
-			}
-
 			throw new BadRequestException('Failed to delete property')
 		}
+
+		return { success: true, message: 'Property deleted successfully' }
 	}
 
 	/**
 	 * Get property statistics with caching
-	 * Uses repository pattern with business logic fallback
+	 * SECURITY FIX #6: User-specific cache key to prevent cache poisoning
 	 */
-	@CacheKey('property-stats')
-	@CacheTTL(30) // 30 seconds
 	async getStats(userId: string): Promise<PropertyStats> {
-		try {
-			return await this.propertiesRepository.getStats(userId)
-		} catch (error) {
-			this.logger.error('Failed to get property stats via repository', {
-				error,
-				userId
-			})
-			// Return zero stats for zero state
+		// SECURITY FIX #6: Include userId in cache key to prevent cross-user data leakage
+		const cacheKey = `property-stats:${userId}`
+
+		// Try to get from cache first
+		const cached = await this.cacheManager.get<PropertyStats>(cacheKey)
+		if (cached) {
+			this.logger.debug('Returning cached property stats', { userId })
+			return cached
+		}
+
+		// Use Supabase RPC for aggregated stats
+		const client = this.supabase.getAdminClient()
+		const { data, error } = await client.rpc('get_property_stats', {
+			p_user_id: userId
+		} satisfies Database['public']['Functions']['get_property_stats']['Args'])
+
+		if (error || !data) {
+			this.logger.error('Failed to get property stats', { error, userId })
 			return {
 				total: 0,
 				occupied: 0,
@@ -280,227 +288,268 @@ export class PropertiesService {
 				averageRent: 0
 			}
 		}
+
+		const stats = data as unknown as PropertyStats
+
+		// Cache for 30 seconds with user-specific key
+		await this.cacheManager.set(cacheKey, stats, 30000)
+
+		return stats
 	}
 
 	/**
-	 * Get all properties with their units and analytics
-	 * Uses repository pattern with business logic validation
+	 * Get all properties with their units
 	 */
 	async findAllWithUnits(
 		userId: string,
 		query: { search: string | null; limit: number; offset: number }
-	): Promise<PropertyWithUnits[]> {
-		try {
-			// Business logic: Validate pagination parameters
-			const limit = Math.min(Math.max(query.limit || 10, 1), 100) // Limit between 1-100
-			const offset = Math.max(query.offset || 0, 0) // Non-negative offset
+	): Promise<Property[]> {
+		// Clamp pagination values
+		const limit = Math.min(Math.max(query.limit || 10, 1), 100)
+		const offset = Math.max(query.offset || 0, 0)
 
-			return await this.propertiesRepository.findAllWithUnits(userId, {
-				search: query.search,
-				limit,
-				offset
-			})
-		} catch (error) {
-			this.logger.error('Failed to get properties with units via repository', {
+		let queryBuilder = this.supabase
+			.getAdminClient()
+			.from('property')
+			.select('*, units:unit(*)')
+			.eq('ownerId', userId)
+			.order('createdAt', { ascending: false })
+			.range(offset, offset + limit - 1)
+
+		// SECURITY FIX #2: Use safe multi-column search to prevent SQL injection
+		if (query.search) {
+			const sanitized = sanitizeSearchInput(query.search)
+			if (sanitized) {
+				queryBuilder = queryBuilder.or(
+					buildMultiColumnSearch(sanitized, ['name', 'address'])
+				)
+			}
+		}
+
+		const { data, error } = await queryBuilder
+
+		if (error) {
+			this.logger.error('Failed to fetch properties with units', {
 				error,
-				userId,
-				query
+				userId
 			})
-			// Return empty array for zero state
 			return []
 		}
+
+		return (data || []) as Property[]
 	}
 
 	/**
 	 * Get property performance analytics
-	 * Uses repository pattern with business validation
 	 */
 	async getPropertyPerformanceAnalytics(
 		userId: string,
-		query: {
-			propertyId?: string
-			timeframe: string
-			limit?: number
-		}
+		query: { propertyId?: string; timeframe: string; limit?: number }
 	) {
-		try {
-			// Business logic: Validate timeframe
-			const validTimeframes = ['7d', '30d', '90d', '180d', '365d']
-			if (!validTimeframes.includes(query.timeframe)) {
-				throw new BadRequestException(
-					'Invalid timeframe. Must be one of: 7d, 30d, 90d, 180d, 365d'
-				)
+		// Validate using constant
+		if (
+			!VALID_TIMEFRAMES.includes(
+				query.timeframe as (typeof VALID_TIMEFRAMES)[number]
+			)
+		) {
+			throw new BadRequestException(
+				`Invalid timeframe. Must be one of: ${VALID_TIMEFRAMES.join(', ')}`
+			)
+		}
+
+		// SECURITY FIX #3: Verify property ownership before calling RPC
+		if (query.propertyId) {
+			const property = await this.findOne(userId, query.propertyId)
+			if (!property) {
+				throw new BadRequestException('Property not found or access denied')
 			}
+		}
 
-			// Business logic: Validate limit
-			const limit = Math.min(Math.max(query.limit || 10, 1), 50)
+		const limit = Math.min(Math.max(query.limit || 10, 1), 50)
 
-			return await this.propertiesRepository.getPerformanceAnalytics(userId, {
-				propertyId: query.propertyId,
-				timeframe: query.timeframe,
-				limit
-			})
-		} catch (error) {
-			this.logger.error('Failed to get performance analytics via repository', {
+		const client = this.supabase.getAdminClient()
+		const { data, error } = await client.rpc(
+			'get_property_performance_analytics',
+			{
+				p_user_id: userId,
+				p_timeframe: query.timeframe,
+				p_limit: limit,
+				...(query.propertyId ? { p_property_id: query.propertyId } : {})
+			} satisfies Database['public']['Functions']['get_property_performance_analytics']['Args']
+		)
+
+		if (error) {
+			this.logger.error('Failed to get performance analytics', {
 				error,
-				userId,
-				query
+				userId
 			})
-
-			if (error instanceof BadRequestException) {
-				throw error
-			}
-
-			// Return empty array for zero state
 			return []
 		}
+
+		return data || []
 	}
 
 	/**
 	 * Get property occupancy analytics
-	 * Uses repository pattern with business validation
 	 */
 	async getPropertyOccupancyAnalytics(
 		userId: string,
 		query: { propertyId?: string; period: string }
 	) {
-		try {
-			// Business logic: Validate period
-			const validPeriods = ['daily', 'weekly', 'monthly', 'quarterly', 'yearly']
-			if (!validPeriods.includes(query.period)) {
-				throw new BadRequestException(
-					'Invalid period. Must be one of: daily, weekly, monthly, quarterly, yearly'
-				)
+		// Validate using constant
+		if (
+			!VALID_PERIODS.includes(query.period as (typeof VALID_PERIODS)[number])
+		) {
+			throw new BadRequestException(
+				`Invalid period. Must be one of: ${VALID_PERIODS.join(', ')}`
+			)
+		}
+
+		// SECURITY FIX #3: Verify property ownership before calling RPC
+		if (query.propertyId) {
+			const property = await this.findOne(userId, query.propertyId)
+			if (!property) {
+				throw new BadRequestException('Property not found or access denied')
 			}
+		}
 
-			return await this.propertiesRepository.getOccupancyAnalytics(userId, {
-				propertyId: query.propertyId,
-				period: query.period
-			})
-		} catch (error) {
-			this.logger.error('Failed to get occupancy analytics via repository', {
-				error,
-				userId,
-				query
-			})
+		const client = this.supabase.getAdminClient()
+		const { data, error } = await client.rpc(
+			'get_property_occupancy_analytics',
+			{
+				p_user_id: userId,
+				p_period: query.period,
+				...(query.propertyId ? { p_property_id: query.propertyId } : {})
+			} satisfies Database['public']['Functions']['get_property_occupancy_analytics']['Args']
+		)
 
-			if (error instanceof BadRequestException) {
-				throw error
-			}
-
-			// Return empty array for zero state
+		if (error) {
+			this.logger.error('Failed to get occupancy analytics', { error, userId })
 			return []
 		}
+
+		return data || []
 	}
 
 	/**
 	 * Get property financial analytics
-	 * Uses repository pattern with business validation
 	 */
 	async getPropertyFinancialAnalytics(
 		userId: string,
 		query: { propertyId?: string; timeframe: string }
 	) {
-		try {
-			// Business logic: Validate timeframe
-			const validTimeframes = ['7d', '30d', '90d', '180d', '365d']
-			if (!validTimeframes.includes(query.timeframe)) {
-				throw new BadRequestException(
-					'Invalid timeframe. Must be one of: 7d, 30d, 90d, 180d, 365d'
-				)
+		// Validate using constant
+		if (
+			!VALID_TIMEFRAMES.includes(
+				query.timeframe as (typeof VALID_TIMEFRAMES)[number]
+			)
+		) {
+			throw new BadRequestException(
+				`Invalid timeframe. Must be one of: ${VALID_TIMEFRAMES.join(', ')}`
+			)
+		}
+
+		// SECURITY FIX #3: Verify property ownership before calling RPC
+		if (query.propertyId) {
+			const property = await this.findOne(userId, query.propertyId)
+			if (!property) {
+				throw new BadRequestException('Property not found or access denied')
 			}
+		}
 
-			return await this.propertiesRepository.getFinancialAnalytics(userId, {
-				propertyId: query.propertyId,
-				timeframe: query.timeframe
-			})
-		} catch (error) {
-			this.logger.error('Failed to get financial analytics via repository', {
-				error,
-				userId,
-				query
-			})
+		const client = this.supabase.getAdminClient()
+		const { data, error } = await client.rpc(
+			'get_property_financial_analytics',
+			{
+				p_user_id: userId,
+				p_timeframe: query.timeframe,
+				...(query.propertyId ? { p_property_id: query.propertyId } : {})
+			} satisfies Database['public']['Functions']['get_property_financial_analytics']['Args']
+		)
 
-			if (error instanceof BadRequestException) {
-				throw error
-			}
-
-			// Return empty array for zero state
+		if (error) {
+			this.logger.error('Failed to get financial analytics', { error, userId })
 			return []
 		}
+
+		return data || []
 	}
 
 	/**
 	 * Get property maintenance analytics
-	 * Uses repository pattern with business validation
 	 */
 	async getPropertyMaintenanceAnalytics(
 		userId: string,
 		query: { propertyId?: string; timeframe: string }
 	) {
-		try {
-			// Business logic: Validate timeframe
-			const validTimeframes = ['7d', '30d', '90d', '180d', '365d']
-			if (!validTimeframes.includes(query.timeframe)) {
-				throw new BadRequestException(
-					'Invalid timeframe. Must be one of: 7d, 30d, 90d, 180d, 365d'
-				)
-			}
+		// Validate using constant
+		if (
+			!VALID_TIMEFRAMES.includes(
+				query.timeframe as (typeof VALID_TIMEFRAMES)[number]
+			)
+		) {
+			throw new BadRequestException(
+				`Invalid timeframe. Must be one of: ${VALID_TIMEFRAMES.join(', ')}`
+			)
+		}
 
-			return await this.propertiesRepository.getMaintenanceAnalytics(userId, {
-				propertyId: query.propertyId,
-				timeframe: query.timeframe
-			})
-		} catch (error) {
-			this.logger.error('Failed to get maintenance analytics via repository', {
+		// SECURITY FIX #3: Verify property ownership before calling RPC
+		if (query.propertyId) {
+			const property = await this.findOne(userId, query.propertyId)
+			if (!property) {
+				throw new BadRequestException('Property not found or access denied')
+			}
+		}
+
+		const client = this.supabase.getAdminClient()
+		const { data, error } = await client.rpc(
+			'get_property_maintenance_analytics',
+			{
+				p_user_id: userId,
+				p_timeframe: query.timeframe,
+				...(query.propertyId ? { p_property_id: query.propertyId } : {})
+			} satisfies Database['public']['Functions']['get_property_maintenance_analytics']['Args']
+		)
+
+		if (error) {
+			this.logger.error('Failed to get maintenance analytics', {
 				error,
-				userId,
-				query
+				userId
 			})
-
-			if (error instanceof BadRequestException) {
-				throw error
-			}
-
-			// Return empty array for zero state
 			return []
 		}
+
+		return data || []
 	}
 
 	/**
-	 * Get property units - replaces get_property_units function
-	 * Uses repository pattern instead of database function
+	 * Get property units
 	 */
 	async getPropertyUnits(
 		userId: string,
 		propertyId: string
 	): Promise<unknown[]> {
-		try {
-			this.logger.log('Getting property units via repository', {
-				userId,
-				propertyId
-			})
+		// Verify ownership
+		const property = await this.findOne(userId, propertyId)
+		if (!property)
+			throw new BadRequestException('Property not found or access denied')
 
-			// Business logic: Verify ownership first
-			const property = await this.findOne(userId, propertyId)
-			if (!property) {
-				throw new BadRequestException('Property not found or access denied')
-			}
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('unit')
+			.select('*')
+			.eq('propertyId', propertyId)
+			.order('unitNumber', { ascending: true })
 
-			// Get units for this property via units repository
-			return await this.unitsRepository.findByPropertyId(propertyId)
-		} catch (error) {
+		if (error) {
 			this.logger.error('Failed to get property units', {
-				error: error instanceof Error ? error.message : String(error),
+				error,
 				userId,
 				propertyId
 			})
-
-			if (error instanceof BadRequestException) {
-				throw error
-			}
-
 			return []
 		}
+
+		return data || []
 	}
 }

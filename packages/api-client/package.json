@@ -12,7 +12,9 @@
 			"default": "./dist/index.js"
 		}
 	},
-	"files": ["dist/**"],
+	"files": [
+		"dist/**"
+	],
 	"scripts": {
 		"build": "tsc",
 		"dev": "tsc --watch",
@@ -26,7 +28,7 @@
 	"dependencies": {
 		"@repo/config": "workspace:*",
 		"@repo/shared": "workspace:*",
-		"@supabase/supabase-js": "^2.74.0"
+		"@supabase/supabase-js": "^2.75.0"
 	},
 	"devDependencies": {
 		"@types/node": "catalog:",

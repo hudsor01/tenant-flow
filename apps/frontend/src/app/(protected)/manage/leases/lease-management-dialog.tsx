@@ -26,6 +26,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FileText } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { z } from 'zod'
 
 export function LeaseManagementDialog() {
 	const [open, setOpen] = useState(false)
@@ -61,7 +62,7 @@ export function LeaseManagementDialog() {
 			onChange: ({ value }) => {
 				const result = leaseInputSchema.safeParse(value)
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}

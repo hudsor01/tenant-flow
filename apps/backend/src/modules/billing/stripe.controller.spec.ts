@@ -116,9 +116,7 @@ describe('StripeController', () => {
 
 			const result = await controller.createPaymentIntent({
 				amount: 100,
-				tenantId: validUuid,
-				propertyId: undefined,
-				subscriptionType: undefined
+				tenantId: validUuid
 			})
 
 			expect(result).toEqual({
@@ -132,9 +130,7 @@ describe('StripeController', () => {
 			try {
 				await controller.createPaymentIntent({
 					amount: 10, // Below minimum
-					tenantId: validUuid,
-					propertyId: undefined,
-					subscriptionType: undefined
+					tenantId: validUuid
 				})
 			} catch (error) {
 				const err = error as Error
@@ -147,9 +143,7 @@ describe('StripeController', () => {
 			try {
 				await controller.createPaymentIntent({
 					amount: 100,
-					tenantId: '',
-					propertyId: undefined,
-					subscriptionType: undefined
+					tenantId: ''
 				})
 			} catch (error) {
 				const err = error as Error
@@ -173,9 +167,7 @@ describe('StripeController', () => {
 			// Should succeed after sanitization
 			const result = await controller.createPaymentIntent({
 				amount: 100,
-				tenantId: maliciousInput,
-				propertyId: undefined,
-				subscriptionType: undefined
+				tenantId: maliciousInput
 			})
 
 			expect(result.clientSecret).toBe('pi_test123_secret')
@@ -336,8 +328,7 @@ describe('StripeController', () => {
 				amount: 100,
 				tenantId: validUuid,
 				connectedAccountId: 'acct_1234567890abcdef',
-				propertyOwnerAccount: 'acct_0987654321fedcba',
-				propertyId: undefined
+				propertyOwnerAccount: 'acct_0987654321fedcba'
 			})
 
 			expect(result).toEqual({
@@ -354,8 +345,7 @@ describe('StripeController', () => {
 					amount: 10, // Below minimum
 					tenantId: validUuid,
 					connectedAccountId: 'acct_1234567890abcdef',
-					propertyOwnerAccount: 'acct_0987654321fedcba',
-					propertyId: undefined
+					propertyOwnerAccount: 'acct_0987654321fedcba'
 				})
 			} catch (error) {
 				const err = error as Error
@@ -372,8 +362,7 @@ describe('StripeController', () => {
 					amount: 100,
 					tenantId: validUuid,
 					connectedAccountId: '',
-					propertyOwnerAccount: 'acct_0987654321fedcba',
-					propertyId: undefined
+					propertyOwnerAccount: 'acct_0987654321fedcba'
 				})
 			} catch (error) {
 				const err = error as Error
@@ -476,9 +465,7 @@ describe('StripeController', () => {
 			try {
 				await controller.createPaymentIntent({
 					amount: 100,
-					tenantId: onlyDangerousChars,
-					propertyId: undefined,
-					subscriptionType: undefined
+					tenantId: onlyDangerousChars
 				})
 				fail('Should have thrown BadRequestException')
 			} catch (error) {
@@ -502,9 +489,7 @@ describe('StripeController', () => {
 			// Should succeed after sanitization
 			const result = await controller.createPaymentIntent({
 				amount: 100,
-				tenantId: maliciousInput,
-				propertyId: undefined,
-				subscriptionType: undefined
+				tenantId: maliciousInput
 			})
 
 			expect(result.clientSecret).toBe('pi_test123_secret')
@@ -534,9 +519,7 @@ describe('StripeController', () => {
 			// Should succeed after sanitization
 			const result = await controller.createPaymentIntent({
 				amount: 100,
-				tenantId: maliciousInput,
-				propertyId: undefined,
-				subscriptionType: undefined
+				tenantId: maliciousInput
 			})
 
 			expect(result.clientSecret).toBe('pi_test123_secret')
@@ -557,9 +540,7 @@ describe('StripeController', () => {
 			try {
 				await controller.createPaymentIntent({
 					amount: 100,
-					tenantId: inputWithControlChars,
-					propertyId: undefined,
-					subscriptionType: undefined
+					tenantId: inputWithControlChars
 				})
 				fail('Should have thrown an error')
 			} catch (error) {

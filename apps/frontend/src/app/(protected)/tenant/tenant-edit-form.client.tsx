@@ -11,6 +11,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useTenant } from '@/hooks/api/use-tenant'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import type { UpdateTenantInput } from '@repo/shared/types/api-inputs'
 import {
 	tenantUpdateSchema,
 	type TenantUpdate
@@ -20,6 +21,7 @@ import { useMutation } from '@tanstack/react-query'
 import { Mail, Phone, Save, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { z } from 'zod'
 import { tenantsApi } from '../../../lib/api-client'
 
 export interface TenantEditFormProps {
@@ -35,7 +37,39 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 	// Define updateMutation using useMutation
 	const updateMutation = useMutation({
 		mutationFn: async (data: TenantUpdate) => {
-			return tenantsApi.update(id, data)
+			const payload: UpdateTenantInput = {}
+
+			const assignNullable = (
+				key: keyof Pick<
+					UpdateTenantInput,
+					| 'avatarUrl'
+					| 'phone'
+					| 'emergencyContact'
+					| 'firstName'
+					| 'lastName'
+					| 'name'
+					| 'userId'
+				>,
+				value: string | null | undefined
+			) => {
+				if (value !== undefined) {
+					payload[key] = value === null ? null : value
+				}
+			}
+
+			if (data.email !== undefined) {
+				payload.email = data.email
+			}
+
+			assignNullable('avatarUrl', data.avatarUrl)
+			assignNullable('phone', data.phone)
+			assignNullable('emergencyContact', data.emergencyContact)
+			assignNullable('firstName', data.firstName)
+			assignNullable('lastName', data.lastName)
+			assignNullable('name', data.name)
+			assignNullable('userId', data.userId)
+
+			return tenantsApi.update(id, payload)
 		},
 		onSuccess: () => {
 			toast.success('Tenant updated successfully')
@@ -70,7 +104,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 			onChange: ({ value }) => {
 				const result = tenantUpdateSchema.safeParse(value)
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}

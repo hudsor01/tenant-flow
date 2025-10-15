@@ -153,7 +153,7 @@ export function PaymentMethodSetupForm({
 
 	return (
 		<Elements stripe={stripePromise} options={options}>
-			<SetupForm onSuccess={onSuccess} onError={onError} />
+			<SetupForm onSuccess={onSuccess} {...(onError ? { onError } : {})} />
 		</Elements>
 	)
 }

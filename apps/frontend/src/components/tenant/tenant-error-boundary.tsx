@@ -2,8 +2,6 @@
 
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
-import { trackRenderError } from '@/lib/error-analytics'
-import { recoverFromError } from '@/lib/error-recovery'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -68,7 +66,7 @@ export class TenantErrorBoundary extends Component<
 			{
 				showToast: false // Don't show toast here, error boundary UI handles it
 			}
-		).catch(recoveryError => {
+		).catch((recoveryError: unknown) => {
 			logger.error('Error recovery failed in boundary', {
 				action: 'error_recovery_failed',
 				metadata: {
@@ -105,7 +103,8 @@ export class TenantErrorBoundary extends Component<
 }
 
 interface TenantErrorFallbackProps {
-	error?: Error
+	// explicit union with undefined to satisfy exactOptionalPropertyTypes checks
+	error: Error | undefined
 	onReset: () => void
 }
 
@@ -183,4 +182,107 @@ export function TenantErrorFallback({
 			</CardLayout>
 		</div>
 	)
+}
+function trackRenderError(
+	error: Error,
+	arg1: { componentStack: string | undefined },
+	arg2: { component: string; entityType: string; operation: string }
+) {
+	// Log the render error with contextual metadata for diagnostics/analytics.
+	logger.error('Render error tracked', {
+		action: 'track_render_error',
+		metadata: {
+			error: error.message,
+			stack: error.stack,
+			componentStack: arg1.componentStack,
+			component: arg2.component,
+			entityType: arg2.entityType,
+			operation: arg2.operation
+		}
+	})
+
+	// If you have a remote analytics/telemetry API, call it here.
+	// For now this is a best-effort synchronous log.
+}
+
+// Add a small helper that attempts basic automatic recovery actions.
+// The function is intentionally conservative: it tries to reload on auth failures
+// and waits for the network to come back online for network errors, then reloads.
+// It returns a Promise so callers can await or catch failures.
+async function recoverFromError(
+	error: unknown,
+	context: { entityType: string; operation: string },
+	options?: { showToast?: boolean }
+): Promise<void> {
+	try {
+		const message =
+			error instanceof Error
+				? error.message.toLowerCase()
+				: String(error).toLowerCase()
+
+		logger.info('Attempting automatic recovery', {
+			action: 'recover_from_error',
+			metadata: {
+				message,
+				entityType: context.entityType,
+				operation: context.operation,
+				showToast: Boolean(options?.showToast)
+			}
+		})
+
+		// If it's an auth-related error, reload to trigger auth flow (e.g., redirect to login)
+		if (message.includes('401') || message.includes('unauthorized')) {
+			if (typeof window !== 'undefined') {
+				window.location.reload()
+			}
+			return
+		}
+
+		// If it's a network/fetch error, wait for the browser to come back online then reload
+		if (
+			message.includes('network') ||
+			message.includes('fetch') ||
+			(typeof navigator !== 'undefined' && !navigator.onLine)
+		) {
+			if (typeof window !== 'undefined') {
+				// If currently offline, wait for 'online' event
+				if (typeof navigator !== 'undefined' && !navigator.onLine) {
+					await new Promise<void>(resolve => {
+						window.addEventListener(
+							'online',
+							() => {
+								resolve()
+							},
+							{ once: true }
+						)
+					})
+				}
+				// After coming back online, reload to re-run the fetches
+				window.location.reload()
+			}
+			return
+		}
+
+		// No automatic recovery strategy available
+		logger.info('No automatic recovery performed for this error', {
+			action: 'recover_from_error_none',
+			metadata: {
+				message,
+				entityType: context.entityType,
+				operation: context.operation
+			}
+		})
+	} catch (recoveryError) {
+		logger.error('Error occurred during recoverFromError', {
+			action: 'recover_from_error_failed',
+			metadata: {
+				recoveryError:
+					recoveryError instanceof Error
+						? recoveryError.message
+						: String(recoveryError)
+			}
+		})
+		// Re-throw so callers can handle it if needed
+		throw recoveryError
+	}
 }

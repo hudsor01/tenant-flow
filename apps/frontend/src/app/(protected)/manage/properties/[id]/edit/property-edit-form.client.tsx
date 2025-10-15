@@ -26,6 +26,7 @@ import {
 	transformPropertyUpdateData
 } from '@repo/shared/validation/properties'
 import { useForm } from '@tanstack/react-form'
+import { z } from 'zod'
 
 export function PropertyEditForm() {
 	const params = useParams()
@@ -57,7 +58,7 @@ export function PropertyEditForm() {
 			onChange: ({ value }) => {
 				const result = propertyUpdateFormSchema.safeParse(value)
 				if (!result.success) {
-					return result.error.format()
+					return z.treeifyError(result.error)
 				}
 				return undefined
 			}

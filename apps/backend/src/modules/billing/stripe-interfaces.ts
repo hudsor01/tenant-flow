@@ -19,7 +19,8 @@ export interface SubscriptionWithPeriod extends Stripe.Subscription {
 }
 
 export interface CreatePaymentIntentRequest {
-	amount: number
+	amount: Stripe.PaymentIntentCreateParams['amount']
+	currency?: Stripe.PaymentIntentCreateParams['currency']
 	tenantId: string
 	propertyId?: string
 	subscriptionType?: string

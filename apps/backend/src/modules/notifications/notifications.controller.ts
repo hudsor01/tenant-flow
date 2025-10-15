@@ -12,13 +12,14 @@ import {
 	Req,
 	UnauthorizedException
 } from '@nestjs/common'
-import type { Request } from 'express'
 import { SupabaseService } from '../../database/supabase.service'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
 /**
  * ULTRA-NATIVE Notifications Controller
  * Uses Supabase directly with native NestJS validation pipes
  * No service layer wrapper - direct database operations
+ * Uses request-scoped CurrentUserProvider for auth (eliminates duplicate getUser calls)
  */
 @Controller('notifications')
 export class NotificationsController {
@@ -26,20 +27,17 @@ export class NotificationsController {
 
 	@Get()
 	async getNotifications(
-		@Req() request: Request,
+		@Req() req: AuthenticatedRequest,
 		@Query('limit') limit = '10',
 		@Query('offset') offset = '0'
 	) {
-		// Use Supabase's native auth.getUser() pattern
-		const user = await this.supabase.getUser(request)
-		if (!user) {
-			throw new UnauthorizedException('Authentication required')
-		}
+		const userId = req.user?.id
+		if (!userId) throw new UnauthorizedException()
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('notifications')
 			.select('*')
-			.eq('userId', user.id)
+			.eq('userId', userId)
 			.order('createdAt', { ascending: false })
 			.range(
 				parseInt(offset, 10),
@@ -71,7 +69,7 @@ export class NotificationsController {
 				content: body.content,
 				type: body.type,
 				priority: body.priority,
-				actionUrl: body.actionUrl,
+				actionUrl: body.actionUrl ?? null,
 				isRead: false
 			})
 			.select()
@@ -84,19 +82,16 @@ export class NotificationsController {
 	@Put(':id/read')
 	async markAsRead(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
-		// Use Supabase's native auth.getUser() pattern
-		const user = await this.supabase.getUser(request)
-		if (!user) {
-			throw new UnauthorizedException('Authentication required')
-		}
+		const userId = req.user?.id
+		if (!userId) throw new UnauthorizedException()
 		const { error } = await this.supabase
 			.getAdminClient()
 			.from('notifications')
 			.update({ isRead: true })
 			.eq('id', id)
-			.eq('userId', user.id)
+			.eq('userId', userId)
 
 		if (error) throw new BadRequestException(error.message)
 		return { success: true }
@@ -105,19 +100,16 @@ export class NotificationsController {
 	@Delete(':id')
 	async deleteNotification(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() request: Request
+		@Req() req: AuthenticatedRequest
 	) {
-		// Use Supabase's native auth.getUser() pattern
-		const user = await this.supabase.getUser(request)
-		if (!user) {
-			throw new UnauthorizedException('Authentication required')
-		}
+		const userId = req.user?.id
+		if (!userId) throw new UnauthorizedException()
 		const { error } = await this.supabase
 			.getAdminClient()
 			.from('notifications')
 			.delete()
 			.eq('id', id)
-			.eq('userId', user.id)
+			.eq('userId', userId)
 
 		if (error) throw new BadRequestException(error.message)
 		return { success: true }

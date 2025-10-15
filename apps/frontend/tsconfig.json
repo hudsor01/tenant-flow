@@ -5,12 +5,9 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"jsx": "preserve",
-		"composite": true,
+		"composite": false,
 		"incremental": true,
-		"noEmit": false,
-		"declaration": true,
-		"outDir": "./.tsc-output",
-		"declarationDir": "./.tsc-output/types",
+		"noEmit": true,
 		"plugins": [
 			{
 				"name": "next"

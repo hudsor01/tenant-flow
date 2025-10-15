@@ -2,7 +2,6 @@ import {
 	BadRequestException,
 	Controller,
 	Get,
-	Inject,
 	Logger,
 	Query,
 	Req,
@@ -16,29 +15,35 @@ import type {
 } from '@repo/shared/types/core'
 import type { Request } from 'express'
 import { SupabaseService } from '../../database/supabase.service'
-import type { IMaintenanceRepository } from '../../repositories/interfaces/maintenance-repository.interface'
-import type { IPropertiesRepository } from '../../repositories/interfaces/properties-repository.interface'
-import type { IUnitsRepository } from '../../repositories/interfaces/units-repository.interface'
-import { REPOSITORY_TOKENS } from '../../repositories/repositories.module'
 
 /**
  * Maintenance Analytics Controller - Ultra-Native Implementation
- * Uses existing optimized DashboardAnalyticsService for maintenance calculations
- * Simple delegation pattern - no complex repository layers
+ * Direct Supabase queries, no repository dependencies
  */
 @Controller('maintenance/analytics')
 export class MaintenanceAnalyticsController {
 	private readonly logger = new Logger(MaintenanceAnalyticsController.name)
 
-	constructor(
-		private readonly supabaseService: SupabaseService,
-		@Inject(REPOSITORY_TOKENS.MAINTENANCE)
-		private readonly maintenanceRepository: IMaintenanceRepository,
-		@Inject(REPOSITORY_TOKENS.UNITS)
-		private readonly unitsRepository: IUnitsRepository,
-		@Inject(REPOSITORY_TOKENS.PROPERTIES)
-		private readonly propertiesRepository: IPropertiesRepository
-	) {}
+	constructor(private readonly supabaseService: SupabaseService) {}
+
+	/**
+	 * Helper method to get unit IDs for a user (via property ownership)
+	 */
+	private async getUserUnitIds(userId: string): Promise<string[]> {
+		const client = this.supabaseService.getAdminClient()
+		const { data: properties } = await client
+			.from('property')
+			.select('id')
+			.eq('owner_id', userId)
+		const propertyIds = properties?.map(p => p.id) || []
+		if (propertyIds.length === 0) return []
+
+		const { data: units } = await client
+			.from('unit')
+			.select('id')
+			.in('property_id', propertyIds)
+		return units?.map(u => u.id) || []
+	}
 
 	/**
 	 * Get maintenance metrics via existing optimized analytics service
@@ -224,11 +229,30 @@ export class MaintenanceAnalyticsController {
 		timeframe: string,
 		propertyId?: string
 	) {
-		const [maintenanceRequests, units, properties] = await Promise.all([
-			this.maintenanceRepository.getAnalytics(userId, { timeframe }),
-			this.unitsRepository.getAnalytics(userId, { timeframe }),
-			this.propertiesRepository.findByUserId(userId)
+		const client = this.supabaseService.getAdminClient()
+		const unitIds = await this.getUserUnitIds(userId)
+
+		// Fetch all data with direct Supabase queries
+		const [maintenanceData, unitsData, propertiesData] = await Promise.all([
+			unitIds.length > 0
+				? client.from('maintenance_request').select('*').in('unit_id', unitIds)
+				: Promise.resolve({ data: [] }),
+			client
+				.from('unit')
+				.select('id, propertyId')
+				.in(
+					'property_id',
+					(
+						await client.from('property').select('id').eq('owner_id', userId)
+					).data?.map(p => p.id) || []
+				),
+			client.from('property').select('id, name').eq('owner_id', userId)
 		])
+
+		const maintenanceRequests = (maintenanceData.data ||
+			[]) as MaintenanceRequest[]
+		const units = unitsData.data || []
+		const properties = propertiesData.data || []
 
 		const start = this.calculateStartDate(timeframe)
 		const unitToProperty = new Map<string, string>()

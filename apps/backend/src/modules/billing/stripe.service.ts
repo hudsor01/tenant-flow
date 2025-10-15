@@ -47,12 +47,17 @@ export class StripeService {
 		limit?: number
 	}): Promise<Stripe.Subscription[]> {
 		try {
-			const subscriptions = await this.stripe.subscriptions.list({
-				customer: params?.customer,
-				status: params?.status,
-				limit: params?.limit || 100,
+			const requestParams: Stripe.SubscriptionListParams = {
+				limit: params?.limit ?? 100,
 				expand: ['data.customer', 'data.items']
-			})
+			}
+			if (params?.customer) {
+				requestParams.customer = params.customer
+			}
+			if (params?.status) {
+				requestParams.status = params.status
+			}
+			const subscriptions = await this.stripe.subscriptions.list(requestParams)
 			return subscriptions.data
 		} catch (error) {
 			this.logger.error('Failed to list subscriptions', { error })
@@ -73,13 +78,22 @@ export class StripeService {
 			let startingAfter: string | undefined
 
 			while (hasMore) {
-				const subscriptions = await this.stripe.subscriptions.list({
-					customer: params?.customer,
-					status: params?.status,
+				const requestParams: Stripe.SubscriptionListParams = {
 					limit: 100,
-					starting_after: startingAfter,
 					expand: ['data.customer', 'data.items']
-				})
+				}
+				if (params?.customer) {
+					requestParams.customer = params.customer
+				}
+				if (params?.status) {
+					requestParams.status = params.status
+				}
+				if (startingAfter) {
+					requestParams.starting_after = startingAfter
+				}
+
+				const subscriptions =
+					await this.stripe.subscriptions.list(requestParams)
 
 				allSubscriptions.push(...subscriptions.data)
 				hasMore = subscriptions.has_more
@@ -108,14 +122,23 @@ export class StripeService {
 		limit?: number
 	}): Promise<Stripe.Invoice[]> {
 		try {
-			const invoices = await this.stripe.invoices.list({
-				customer: params?.customer,
-				subscription: params?.subscription,
-				status: params?.status as Stripe.InvoiceListParams.Status,
-				created: params?.created,
-				limit: params?.limit || 100,
+			const requestParams: Stripe.InvoiceListParams = {
+				limit: params?.limit ?? 100,
 				expand: ['data.subscription', 'data.customer']
-			})
+			}
+			if (params?.customer) {
+				requestParams.customer = params.customer
+			}
+			if (params?.subscription) {
+				requestParams.subscription = params.subscription
+			}
+			if (params?.status) {
+				requestParams.status = params.status as Stripe.InvoiceListParams.Status
+			}
+			if (params?.created) {
+				requestParams.created = params.created
+			}
+			const invoices = await this.stripe.invoices.list(requestParams)
 			return invoices.data
 		} catch (error) {
 			this.logger.error('Failed to list invoices', { error })
@@ -138,15 +161,28 @@ export class StripeService {
 			let startingAfter: string | undefined
 
 			while (hasMore) {
-				const invoices = await this.stripe.invoices.list({
-					customer: params?.customer,
-					subscription: params?.subscription,
-					status: params?.status as Stripe.InvoiceListParams.Status,
-					created: params?.created,
+				const requestParams: Stripe.InvoiceListParams = {
 					limit: 100,
-					starting_after: startingAfter,
 					expand: ['data.subscription', 'data.customer']
-				})
+				}
+				if (params?.customer) {
+					requestParams.customer = params.customer
+				}
+				if (params?.subscription) {
+					requestParams.subscription = params.subscription
+				}
+				if (params?.status) {
+					requestParams.status =
+						params.status as Stripe.InvoiceListParams.Status
+				}
+				if (params?.created) {
+					requestParams.created = params.created
+				}
+				if (startingAfter) {
+					requestParams.starting_after = startingAfter
+				}
+
+				const invoices = await this.stripe.invoices.list(requestParams)
 
 				allInvoices.push(...invoices.data)
 				hasMore = invoices.has_more
@@ -172,11 +208,14 @@ export class StripeService {
 		limit?: number
 	}): Promise<Stripe.Customer[]> {
 		try {
-			const customers = await this.stripe.customers.list({
-				email: params?.email,
-				limit: params?.limit || 100,
+			const requestParams: Stripe.CustomerListParams = {
+				limit: params?.limit ?? 100,
 				expand: ['data.subscriptions']
-			})
+			}
+			if (params?.email) {
+				requestParams.email = params.email
+			}
+			const customers = await this.stripe.customers.list(requestParams)
 			// Filter out deleted customers
 			return customers.data.filter(c => !('deleted' in c))
 		} catch (error) {
@@ -197,12 +236,17 @@ export class StripeService {
 			let startingAfter: string | undefined
 
 			while (hasMore) {
-				const customers = await this.stripe.customers.list({
-					email: params?.email,
+				const requestParams: Stripe.CustomerListParams = {
 					limit: 100,
-					starting_after: startingAfter,
 					expand: ['data.subscriptions']
-				})
+				}
+				if (params?.email) {
+					requestParams.email = params.email
+				}
+				if (startingAfter) {
+					requestParams.starting_after = startingAfter
+				}
+				const customers = await this.stripe.customers.list(requestParams)
 
 				// Filter out deleted customers
 				const activeCustomers = customers.data.filter(c => !('deleted' in c))

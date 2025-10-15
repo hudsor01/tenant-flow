@@ -7,6 +7,7 @@ import type { TenantInput, TenantUpdate } from '@repo/shared/types/core'
 import { tenantFormSchema } from '@repo/shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
 import { useCallback, useState } from 'react'
+import { z } from 'zod'
 
 /**
  * Hook for tenant creation forms with shared validation and state management
@@ -28,7 +29,13 @@ export function useTenantForm(initialValues?: Partial<TenantInput>) {
 			return value
 		},
 		validators: {
-			onSubmit: tenantFormSchema
+			onSubmit: ({ value }) => {
+				const result = tenantFormSchema.safeParse(value)
+				if (!result.success) {
+					return z.treeifyError(result.error)
+				}
+				return undefined
+			}
 		}
 	})
 }
@@ -52,7 +59,13 @@ export function useTenantUpdateForm(initialValues?: Partial<TenantUpdate>) {
 			return value
 		},
 		validators: {
-			onSubmit: tenantFormSchema
+			onSubmit: ({ value }) => {
+				const result = tenantFormSchema.safeParse(value)
+				if (!result.success) {
+					return z.treeifyError(result.error)
+				}
+				return undefined
+			}
 		}
 	})
 }

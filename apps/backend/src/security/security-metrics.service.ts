@@ -1,4 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common'
+/**
+ * Security Metrics Service - Ultra-Native NestJS Implementation
+ * Direct Supabase access, no repository abstraction
+ */
+
+import { Injectable, Logger } from '@nestjs/common'
 import type {
 	SecurityEvent,
 	SecurityMetrics,
@@ -9,11 +14,8 @@ import {
 	SecurityEventSeverity as SecurityEventSeverityEnum,
 	SecurityEventType as SecurityEventTypeEnum
 } from '@repo/shared/types/security'
-import type {
-	ISecurityRepository,
-	SecurityAuditLogEntry
-} from '../repositories/interfaces/security-repository.interface'
-import { REPOSITORY_TOKENS } from '../repositories/repositories.module'
+import type { SecurityAuditLogEntry } from '@repo/shared/types/security-repository'
+import { SupabaseService } from '../database/supabase.service'
 
 const DEFAULT_LOOKBACK_DAYS = 30
 const RECENT_EVENTS_LIMIT = 25
@@ -21,10 +23,9 @@ const TREND_WINDOW_DAYS = 14
 
 @Injectable()
 export class SecurityMetricsService {
-	constructor(
-		@Inject(REPOSITORY_TOKENS.SECURITY)
-		private readonly securityRepository: ISecurityRepository
-	) {}
+	private readonly logger = new Logger(SecurityMetricsService.name)
+
+	constructor(private readonly supabase: SupabaseService) {}
 
 	async getMetrics(
 		lookbackInDays: number = DEFAULT_LOOKBACK_DAYS
@@ -32,10 +33,23 @@ export class SecurityMetricsService {
 		const end = new Date()
 		const start = new Date(end.getTime() - lookbackInDays * 24 * 60 * 60 * 1000)
 
-		const auditLogs = await this.securityRepository.fetchAuditLogs({
-			from: start,
-			limit: 500
-		})
+		// Direct Supabase query - no repository layer
+		const client = this.supabase.getAdminClient()
+		const { data, error } = await client
+			.from('security_audit_log')
+			.select(
+				'id, eventType, severity, userId, email, ipAddress, userAgent, resource, action, details, timestamp'
+			)
+			.gte('timestamp', start.toISOString())
+			.order('timestamp', { ascending: false })
+			.limit(500)
+
+		if (error) {
+			this.logger.error('Failed to fetch security audit logs', { error })
+			return this.getEmptyMetrics(start, end)
+		}
+
+		const auditLogs = (data ?? []) as SecurityAuditLogEntry[]
 
 		const eventsByType = this.initializeTypeBuckets()
 		const eventsBySeverity = this.initializeSeverityBuckets()
@@ -91,6 +105,22 @@ export class SecurityMetricsService {
 		}
 	}
 
+	private getEmptyMetrics(start: Date, end: Date): SecurityMetrics {
+		return {
+			totalEvents: 0,
+			eventsByType: this.initializeTypeBuckets(),
+			eventsBySeverity: this.initializeSeverityBuckets(),
+			criticalEvents: 0,
+			recentEvents: [],
+			recentTrends: [],
+			topThreateningIPs: [],
+			suspiciousIPs: [],
+			failedAuthAttempts: 0,
+			blockedRequests: 0,
+			timeRange: { start, end }
+		}
+	}
+
 	private initializeTypeBuckets(): Record<SecurityEventTypeEnum, number> {
 		return Object.values(SecurityEventTypeEnum).reduce(
 			(acc, type) => {
@@ -115,21 +145,34 @@ export class SecurityMetricsService {
 	}
 
 	private buildRecentEvents(logs: SecurityAuditLogEntry[]): SecurityEvent[] {
-		return logs.slice(0, RECENT_EVENTS_LIMIT).map(log => ({
-			type: log.eventType,
-			severity: log.severity,
-			userId: log.userId ?? undefined,
-			details:
-				typeof log.details === 'string'
-					? log.details
-					: log.details
-						? JSON.stringify(log.details)
-						: undefined,
-			metadata: undefined,
-			ipAddress: log.ipAddress ?? undefined,
-			userAgent: log.userAgent ?? undefined,
-			timestamp: log.timestamp ? new Date(log.timestamp) : undefined
-		}))
+		return logs.slice(0, RECENT_EVENTS_LIMIT).map(log => {
+			const event: SecurityEvent = {
+				type: log.eventType,
+				severity: log.severity
+			}
+
+			// Only assign optional properties if they have values (exactOptionalPropertyTypes)
+			if (log.userId !== null && log.userId !== undefined) {
+				event.userId = log.userId
+			}
+			if (log.details !== null && log.details !== undefined) {
+				event.details =
+					typeof log.details === 'string'
+						? log.details
+						: JSON.stringify(log.details)
+			}
+			if (log.ipAddress !== null && log.ipAddress !== undefined) {
+				event.ipAddress = log.ipAddress
+			}
+			if (log.userAgent !== null && log.userAgent !== undefined) {
+				event.userAgent = log.userAgent
+			}
+			if (log.timestamp) {
+				event.timestamp = new Date(log.timestamp)
+			}
+
+			return event
+		})
 	}
 
 	private buildRecentTrends(
