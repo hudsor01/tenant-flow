@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common'
 import type { SupabaseService } from '../../database/supabase.service'
 import { PropertyPerformanceService } from './property-performance.service'
 
@@ -5,8 +6,13 @@ describe('PropertyPerformanceService', () => {
 	let service: PropertyPerformanceService
 	let mockSupabase: jest.Mocked<Pick<SupabaseService, 'getAdminClient'>>
 	let mockRpc: jest.Mock
+	let warnSpy: jest.SpyInstance
 
 	beforeEach(() => {
+		warnSpy = jest
+			.spyOn(Logger.prototype, 'warn')
+			.mockImplementation(() => undefined)
+
 		mockRpc = jest.fn()
 		// Create a mock supabase that exposes getAdminClient and rpcWithRetries.
 		// rpcWithRetries delegates to the admin client's rpc so tests can assert
@@ -25,6 +31,10 @@ describe('PropertyPerformanceService', () => {
 		service = new PropertyPerformanceService(
 			mockSupabase as unknown as SupabaseService
 		)
+	})
+
+	afterEach(() => {
+		warnSpy.mockRestore()
 	})
 
 	it('fetches property performance via RPC and maps the payload', async () => {

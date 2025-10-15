@@ -45,24 +45,73 @@ export class SupabaseService {
 	) {
 		const client = this.adminClient
 		let lastErr: unknown = null
+
+		function isTransientMessage(msg: string | undefined): boolean {
+			if (!msg) return false
+			const m = msg.toLowerCase()
+			// Common transient indicators: network issues, timeouts, rate limits, service unavailable
+			return (
+				m.includes('network') ||
+				m.includes('timeout') ||
+				m.includes('temporar') ||
+				m.includes('unavailable') ||
+				m.includes('try again') ||
+				m.includes('rate limit') ||
+				m.includes('429') ||
+				m.includes('503')
+			)
+		}
+
 		for (let i = 0; i < attempts; i++) {
 			try {
 				// `client.rpc` has a union type for known RPC names; perform the
 				// cast in this single wrapper. eslint-disable next-line to avoid lint noise.
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const result = await (client as any).rpc(fn, args)
+
+				// If the RPC returned an error object, determine if it's transient.
+				const maybeErrorMsg =
+					result?.error?.message ??
+					(result?.error ? String(result.error) : undefined)
+				if (result?.error) {
+					this.logger.warn(
+						`Supabase RPC returned error for ${fn}: ${maybeErrorMsg}`
+					)
+					if (isTransientMessage(maybeErrorMsg)) {
+						// transient - retry with backoff
+						lastErr = result.error
+						await new Promise(r => setTimeout(r, backoffMs * Math.pow(2, i)))
+						continue
+					}
+					// Non-transient - return immediately
+					return result
+				}
+
+				// Success
 				return result
 			} catch (err) {
 				lastErr = err
+				const msg = err instanceof Error ? err.message : String(err)
 				this.logger.warn(
-					`Supabase RPC attempt ${i + 1} failed for ${fn}: ${err instanceof Error ? err.message : String(err)}`
+					`Supabase RPC attempt ${i + 1} failed for ${fn}: ${msg}`
 				)
-				// Exponential backoff
+				// If this looks transient, wait and retry; otherwise continue to retry a few times
+				if (isTransientMessage(msg)) {
+					await new Promise(r => setTimeout(r, backoffMs * Math.pow(2, i)))
+					continue
+				}
+				// Non-transient thrown error - still backoff a bit and let subsequent attempts run
 				await new Promise(r => setTimeout(r, backoffMs * Math.pow(2, i)))
 			}
 		}
-		// All attempts failed - throw last error to be handled by caller
-		throw lastErr
+
+		// All attempts exhausted - return an error-shaped response instead of throwing so callers
+		// that expect `{ data, error }` can handle it consistently.
+		const finalMessage =
+			lastErr instanceof Error
+				? lastErr.message
+				: String(lastErr ?? 'Unknown error')
+		return { data: null, error: { message: finalMessage }, attempts }
 	}
 
 	getUserClient(userToken: string): SupabaseClient<Database> {

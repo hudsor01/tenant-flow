@@ -107,11 +107,19 @@ describe('SupabaseService', () => {
 				})
 			} as unknown as ConfigService
 
+			const previousUrl = process.env.SUPABASE_URL
+			const previousKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+			delete process.env.SUPABASE_URL
+			delete process.env.SUPABASE_SERVICE_ROLE_KEY
+
 			expect(() =>
 				(
 					adminProvider as { useFactory: (config: ConfigService) => unknown }
 				).useFactory(mockConfigService)
-			).toThrow('Missing Supabase configuration')
+			).toThrow(/Missing Supabase configuration/i)
+
+			if (previousUrl) process.env.SUPABASE_URL = previousUrl
+			if (previousKey) process.env.SUPABASE_SERVICE_ROLE_KEY = previousKey
 		})
 	})
 
