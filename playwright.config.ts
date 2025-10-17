@@ -36,6 +36,9 @@ export default defineConfig({
 	...baseConfig,
 	testDir: TEST_DIR,
 
+	// Ignore frontend test files (these are not E2E tests)
+	testIgnore: ['**/apps/frontend/tests/**', '**/node_modules/**'],
+
 	// Project-specific settings
 	projects,
 

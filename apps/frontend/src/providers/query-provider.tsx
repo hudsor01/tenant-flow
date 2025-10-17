@@ -1,12 +1,12 @@
 'use client'
 
-import type { DehydratedState, DefaultOptions } from '@tanstack/react-query'
+import type { DefaultOptions, DehydratedState } from '@tanstack/react-query'
 import {
 	HydrationBoundary,
 	QueryClient,
 	QueryClientProvider
 } from '@tanstack/react-query'
-import type { Persister } from '@tanstack/query-persist-client-core'
+import type { Persister } from '@tanstack/react-query-persist-client'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import dynamic from 'next/dynamic'
 import type { ReactNode } from 'react'
@@ -86,7 +86,7 @@ export function QueryProvider({
 				if (cancelled) return
 
 				const idbPersister: Persister = {
-					persistClient: client => set(QUERY_CACHE_KEY, client),
+					persistClient: (client: unknown) => set(QUERY_CACHE_KEY, client),
 					restoreClient: () => get(QUERY_CACHE_KEY),
 					removeClient: () => del(QUERY_CACHE_KEY)
 				}
@@ -95,6 +95,7 @@ export function QueryProvider({
 				setIsPersistenceReady(true)
 			} catch (error) {
 				if (process.env.NODE_ENV !== 'production') {
+					// eslint-disable-next-line no-console, no-restricted-syntax
 					console.warn(
 						'[QueryProvider] Failed to initialize IndexedDB persistence. Falling back to in-memory cache.',
 						error
@@ -112,15 +113,18 @@ export function QueryProvider({
 	}, [])
 
 	useEffect(() => {
-		if (typeof window === 'undefined' || process.env.NODE_ENV === 'production') {
+		if (
+			typeof window === 'undefined' ||
+			process.env.NODE_ENV === 'production'
+		) {
 			return
 		}
 
 		const defaults = queryClient.getDefaultOptions()
-		window.__TENANTFLOW_QUERY_DEFAULTS__ = {
-			queries: defaults.queries,
-			mutations: defaults.mutations
-		}
+		window.__TENANTFLOW_QUERY_DEFAULTS__ = defaults as Pick<
+			DefaultOptions,
+			'queries' | 'mutations'
+		>
 		window.__TENANTFLOW_QUERY_CLIENT__ = queryClient
 		window.__TENANTFLOW_QUERY_CACHE_KEY__ = QUERY_CACHE_KEY
 

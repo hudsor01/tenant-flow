@@ -155,9 +155,9 @@ export type TenantCreateFormData = z.input<typeof tenantCreateFormSchema>
 export type TenantUpdateFormData = z.input<typeof tenantUpdateFormSchema>
 
 // Type utilities for form validation results
-export type TenantFormValidationResult = {
+export type TenantFormValidationResult<T = TenantFormOutput> = {
 	success: boolean
-	data?: TenantFormOutput
+	data?: T
 	errors?: z.ZodError
 }
 
@@ -171,9 +171,9 @@ export type TenantFormError = {
 // Validation utility functions
 export const validateTenantForm = (
 	data: TenantFormData
-): TenantFormValidationResult => {
+): TenantFormValidationResult<TenantFormOutput> => {
 	const result = tenantFormSchema.safeParse(data)
-	const validationResult: TenantFormValidationResult = {
+	const validationResult: TenantFormValidationResult<TenantFormOutput> = {
 		success: result.success
 	}
 	if (result.success) {
@@ -186,9 +186,11 @@ export const validateTenantForm = (
 
 export const validateTenantCreateForm = (
 	data: TenantCreateFormData
-): TenantFormValidationResult => {
+): TenantFormValidationResult<z.output<typeof tenantCreateFormSchema>> => {
 	const result = tenantCreateFormSchema.safeParse(data)
-	const validationResult: TenantFormValidationResult = {
+	const validationResult: TenantFormValidationResult<
+		z.output<typeof tenantCreateFormSchema>
+	> = {
 		success: result.success
 	}
 	if (result.success) {
