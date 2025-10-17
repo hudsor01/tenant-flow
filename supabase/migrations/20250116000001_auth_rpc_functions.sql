@@ -78,7 +78,7 @@ BEGIN
     -- Organization context
     NULL::TEXT as organization_id
 
-  FROM "User" u
+  FROM "users" u
   WHERE u."supabaseId" = v_supabase_user_id
   LIMIT 1;
 

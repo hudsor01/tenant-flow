@@ -8,7 +8,8 @@ import { expect, test } from '@playwright/test'
 test.describe('Notification System - Public Tests', () => {
 	test.beforeEach(async ({ page }) => {
 		// Go to the public homepage
-		await page.goto('/', { waitUntil: 'networkidle' })
+		// Use 'load' to avoid waiting for long-running analytics/resources
+		await page.goto('/', { waitUntil: 'load', timeout: 60000 })
 	})
 
 	test('should not show notification bell on public pages', async ({ page }) => {

@@ -62,13 +62,17 @@ export default defineConfig({
 				const url =
 					process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${port}`
 				return {
-					// Forward port to the frontend dev script. Passing `-- -p <port>` ensures next dev binds to the port.
-					command: `doppler run -- pnpm --filter @repo/frontend dev -- -p ${port}`,
+					// Forward the desired port via env so doppler/next receive it consistently.
+					command: `pnpm --filter @repo/frontend dev`,
 					url,
 					reuseExistingServer: true,
 					timeout: 120000,
 					stdout: 'pipe',
-					stderr: 'pipe'
+					stderr: 'pipe',
+					env: {
+						...process.env,
+						PORT: port
+					}
 				}
 			})(),
 
