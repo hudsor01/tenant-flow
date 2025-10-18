@@ -116,7 +116,7 @@ export function CreateMaintenanceForm() {
 			toast.success('Maintenance request created successfully')
 			form.reset()
 			setSelectedPropertyId('')
-			router.push('/(protected)/manage/maintenance')
+			router.push('/manage/maintenance')
 		},
 		onError: error => {
 			toast.error('Failed to create maintenance request')
