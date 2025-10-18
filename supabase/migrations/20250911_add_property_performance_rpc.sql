@@ -52,7 +52,7 @@ BEGIN
         END DESC,
         COALESCE(property_stats.total_units, 0) DESC
     )
-    FROM "Property" p
+    FROM "property" p
     LEFT JOIN (
       -- Aggregate unit stats per property
       SELECT 
@@ -61,7 +61,7 @@ BEGIN
         COUNT(u.*) FILTER (WHERE u."status" = 'OCCUPIED') as occupied_units,
         COUNT(u.*) FILTER (WHERE u."status" = 'VACANT') as vacant_units,
         SUM(COALESCE(u."rent", 0)) as total_rent
-      FROM "Unit" u
+      FROM "unit" u
       GROUP BY u."propertyId"
     ) as property_stats ON p."id" = property_stats."propertyId"
     WHERE p."ownerId" = p_user_id

@@ -35,7 +35,8 @@ test.describe('Homepage Smoke', () => {
 	})
 
 	test('renders primary marketing content without errors', async ({ page }, testInfo) => {
-		await page.goto('/', { waitUntil: 'networkidle' })
+		// Use 'load' to avoid waiting for long-running analytics/resources
+		await page.goto('/', { waitUntil: 'load', timeout: 60000 })
 
 		await expect(page).toHaveTitle(/TenantFlow/i)
 		await expect(page.locator('nav')).toBeVisible()
@@ -46,14 +47,14 @@ test.describe('Homepage Smoke', () => {
 		await attachText(testInfo, 'network-errors', networkErrors)
 
 		const actionableNetworkErrors = networkErrors.filter(
-			(error) => !error.includes('_next/image')
+			error => !error.includes('_next/image')
 		)
 		expect(consoleErrors).toHaveLength(0)
 		expect(actionableNetworkErrors).toHaveLength(0)
 	})
 
 	test('login form shows required controls', async ({ page }) => {
-		await page.goto('/login', { waitUntil: 'networkidle' })
+	await page.goto('/login', { waitUntil: 'load', timeout: 60000 })
 
 		await expect(page).toHaveTitle(/sign in|login|tenantflow/i)
 		await expect(page.locator('[data-testid="email-input"]')).toBeVisible()

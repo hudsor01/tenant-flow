@@ -38,7 +38,7 @@ DECLARE
     v_result json;
 BEGIN
     -- Insert lease record
-    INSERT INTO "Lease" (
+    INSERT INTO "lease" (
         "unitId", "tenantId", "startDate", "endDate", 
         "rentAmount", "securityDeposit", "terms", "status"
     ) VALUES (
@@ -47,7 +47,7 @@ BEGIN
     ) RETURNING id INTO v_lease_id;
 
     -- Update unit status to occupied
-    UPDATE "Unit" SET status = 'OCCUPIED' WHERE id = p_unit_id;
+    UPDATE "unit" SET status = 'OCCUPIED' WHERE id = p_unit_id;
 
     -- Return lease details with financial summary
     SELECT json_build_object(
@@ -81,10 +81,10 @@ DECLARE
 BEGIN
     -- Get current values
     SELECT "rentAmount", "endDate" INTO v_old_rent, v_old_end_date
-    FROM "Lease" WHERE id = p_lease_id;
+    FROM "lease" WHERE id = p_lease_id;
 
     -- Update lease with new values
-    UPDATE "Lease" SET
+    UPDATE "lease" SET
         "rentAmount" = COALESCE(p_rent_amount, "rentAmount"),
         "endDate" = COALESCE(p_end_date, "endDate"),
         "status" = COALESCE(p_status::lease_status, "status"),
@@ -129,16 +129,16 @@ BEGIN
     SELECT l."unitId", l."rentAmount", 
            GREATEST(0, EXTRACT(MONTH FROM AGE(l."endDate", p_termination_date)))
     INTO v_unit_id, v_rent_amount, v_months_remaining
-    FROM "Lease" l WHERE l.id = p_lease_id;
+    FROM "lease" l WHERE l.id = p_lease_id;
 
     -- Update lease status
-    UPDATE "Lease" SET 
+    UPDATE "lease" SET 
         status = 'TERMINATED',
         "updatedAt" = now()
     WHERE id = p_lease_id;
 
     -- Update unit to vacant
-    UPDATE "Unit" SET status = 'VACANT' WHERE id = v_unit_id;
+    UPDATE "unit" SET status = 'VACANT' WHERE id = v_unit_id;
 
     -- Calculate financial impact
     SELECT json_build_object(
@@ -183,10 +183,10 @@ BEGIN
             'yearlyRevenue', l."rentAmount" * 12
         )
     ) INTO v_result
-    FROM "Lease" l
-    JOIN "Unit" u ON l."unitId" = u.id
-    JOIN "Property" p ON u."propertyId" = p.id
-    JOIN "Tenant" t ON l."tenantId" = t.id
+    FROM "lease" l
+    JOIN "unit" u ON l."unitId" = u.id
+    JOIN "property" p ON u."propertyId" = p.id
+    JOIN "tenant" t ON l."tenantId" = t.id
     WHERE p."ownerId" = p_owner_id
     AND (p_property_id IS NULL OR p.id = p_property_id);
 
@@ -218,7 +218,7 @@ BEGIN
         END,
         'status', l.status
     ) INTO v_result
-    FROM "Lease" l
+    FROM "lease" l
     WHERE l.id = p_lease_id;
 
     RETURN COALESCE(v_result, '{}'::json);
@@ -258,8 +258,8 @@ BEGIN
             'endDate', v_end_date
         )
     ) INTO v_result
-    FROM "Expense" e
-    JOIN "Property" p ON e."propertyId" = p.id
+    FROM "expense" e
+    JOIN "property" p ON e."propertyId" = p.id
     WHERE p."ownerId" = p_owner_id
     AND (p_property_id IS NULL OR p.id = p_property_id)
     AND e.date::date BETWEEN v_start_date AND v_end_date;
@@ -292,10 +292,10 @@ BEGIN
             'leaseStatus', l.status
         )
     ) INTO v_result
-    FROM "Tenant" t
-    JOIN "Lease" l ON t.id = l."tenantId"
-    JOIN "Unit" u ON l."unitId" = u.id
-    JOIN "Property" p ON u."propertyId" = p.id
+    FROM "tenant" t
+    JOIN "lease" l ON t.id = l."tenantId"
+    JOIN "unit" u ON l."unitId" = u.id
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = p_owner_id
     AND l.status = 'ACTIVE';
 
@@ -317,14 +317,14 @@ BEGIN
     -- Create indexes that don't exist yet
     BEGIN
         CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_dashboard_owner_performance 
-        ON "Property"("ownerId", "createdAt" DESC, status);
+        ON "property"("ownerId", "createdAt" DESC, status);
         v_indexes_created := v_indexes_created + 1;
     EXCEPTION WHEN OTHERS THEN NULL;
     END;
 
     BEGIN
         CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_lease_financial_summary
-        ON "Lease"("startDate", "endDate", status, "rentAmount");
+        ON "lease"("startDate", "endDate", status, "rentAmount");
         v_indexes_created := v_indexes_created + 1;
     EXCEPTION WHEN OTHERS THEN NULL;
     END;
@@ -394,8 +394,8 @@ BEGIN
             ELSE ROUND(100.0 * COALESCE(SUM(CASE WHEN u.status = 'OCCUPIED' THEN u.rent ELSE 0 END), 0) / SUM(u.rent), 2)
         END
     ) INTO v_result
-    FROM "Unit" u
-    JOIN "Property" p ON u."propertyId" = p.id
+    FROM "unit" u
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = p_owner_id;
 
     RETURN COALESCE(v_result, '{"totalMonthlyRent":0,"occupiedUnits":0}'::json);
@@ -414,14 +414,14 @@ DECLARE
 BEGIN
     WITH rental_income AS (
         SELECT COALESCE(SUM(u.rent), 0) as monthly_rent
-        FROM "Unit" u
-        JOIN "Property" p ON u."propertyId" = p.id
+        FROM "unit" u
+        JOIN "property" p ON u."propertyId" = p.id
         WHERE p."ownerId" = p_owner_id AND u.status = 'OCCUPIED'
     ),
     expenses AS (
         SELECT COALESCE(SUM(e.amount), 0) as monthly_expenses
-        FROM "Expense" e
-        JOIN "Property" p ON e."propertyId" = p.id
+        FROM "expense" e
+        JOIN "property" p ON e."propertyId" = p.id
         WHERE p."ownerId" = p_owner_id
         AND e.date >= date_trunc('month', now())
     )
@@ -473,7 +473,7 @@ BEGIN
     -- This would integrate with Stripe API in production
     -- For now, create local subscription record
     
-    INSERT INTO "Subscription" (
+    INSERT INTO "subscription" (
         "userId",
         status,
         "planType",
