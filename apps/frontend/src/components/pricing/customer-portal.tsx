@@ -54,17 +54,21 @@ export function CustomerPortalButton({
 			// Show loading toast
 			toast.loading('Opening customer portal...', { id: 'portal' })
 
-			// Create portal session
-			const response = await fetch(`${API_BASE_URL}/stripe/portal`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${authToken}`
-				},
-				body: JSON.stringify({
-					returnUrl: window.location.href
-				})
-			})
+			// Create portal session - matches backend endpoint at stripe.controller.ts:855
+			const response = await fetch(
+				`${API_BASE_URL}/stripe/create-billing-portal`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${authToken}`
+					},
+					body: JSON.stringify({
+						customerId: '', // TODO: Get from user's Stripe customer ID
+						returnUrl: window.location.href
+					})
+				}
+			)
 
 			if (!response.ok) {
 				const errorData = await response.json()
