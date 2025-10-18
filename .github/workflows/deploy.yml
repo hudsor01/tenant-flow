@@ -17,19 +17,6 @@ on:
         description: Vercel environment to target (production / preview)
         type: string
         default: production
-    secrets:
-      VERCEL_TOKEN:
-        required: true
-      VERCEL_ORG_ID:
-        required: true
-      VERCEL_PROJECT_ID:
-        required: true
-      RAILWAY_TOKEN:
-        required: true
-      NEXT_PUBLIC_SUPABASE_URL:
-        required: true
-      NEXT_PUBLIC_SUPABASE_ANON_KEY:
-        required: true
 
 permissions:
   contents: read

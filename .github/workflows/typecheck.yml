@@ -9,9 +9,6 @@ on:
       pnpm-version:
         default: '10.17.1'
         type: string
-    secrets:
-      NPM_TOKEN:
-        required: false
 
 permissions:
   contents: read
@@ -22,6 +19,7 @@ env:
 jobs:
   typecheck:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -35,10 +33,6 @@ jobs:
           node-version: ${{ inputs['node-version'] }}
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
-
-      - name: Configure npm auth (if provided)
-        if: secrets.NPM_TOKEN != ''
-        run: npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline

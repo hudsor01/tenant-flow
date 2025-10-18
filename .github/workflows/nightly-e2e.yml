@@ -28,3 +28,4 @@ jobs:
       playwright-args: '--reporter=list'
       shard-total: ${{ github.event_name == 'workflow_dispatch' && inputs.shard-total || 0 }}
       shard-index: ${{ github.event_name == 'workflow_dispatch' && inputs.shard-index || 1 }}
+    secrets: inherit
