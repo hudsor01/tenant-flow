@@ -2,15 +2,15 @@
 -- Description: Adds configurable late fee settings to Lease table and tracking fields to RentPayment table
 
 -- Add late fee configuration fields to Lease table
-ALTER TABLE "Lease"
+ALTER TABLE "lease"
 ADD COLUMN IF NOT EXISTS "gracePeriodDays" INTEGER DEFAULT 5,
 ADD COLUMN IF NOT EXISTS "lateFeeAmount" INTEGER DEFAULT 5000, -- $50 in cents
 ADD COLUMN IF NOT EXISTS "lateFeePercentage" DOUBLE PRECISION DEFAULT 0.05; -- 5%
 
 -- Add comments for clarity
-COMMENT ON COLUMN "Lease"."gracePeriodDays" IS 'Number of days after due date before late fee applies (default: 5)';
-COMMENT ON COLUMN "Lease"."lateFeeAmount" IS 'Flat late fee amount in cents (default: $50 = 5000 cents)';
-COMMENT ON COLUMN "Lease"."lateFeePercentage" IS 'Percentage late fee as decimal (default: 0.05 = 5%)';
+COMMENT ON COLUMN "lease"."gracePeriodDays" IS 'Number of days after due date before late fee applies (default: 5)';
+COMMENT ON COLUMN "lease"."lateFeeAmount" IS 'Flat late fee amount in cents (default: $50 = 5000 cents)';
+COMMENT ON COLUMN "lease"."lateFeePercentage" IS 'Percentage late fee as decimal (default: 0.05 = 5%)';
 
 -- Add late fee tracking fields to RentPayment table
 ALTER TABLE "RentPayment"

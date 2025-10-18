@@ -52,12 +52,12 @@ BEGIN
 
   -- Get user details
   SELECT email, name INTO v_user_email, v_user_name
-  FROM "User" 
+  FROM "users" 
   WHERE id = p_user_id;
 
   -- Get or create Stripe customer ID
   SELECT "stripeCustomerId" INTO v_customer_id
-  FROM "Subscription"
+  FROM "subscription"
   WHERE "userId" = p_user_id
   ORDER BY "updatedAt" DESC
   LIMIT 1;
@@ -107,7 +107,7 @@ BEGIN
     v_customer_id := (v_checkout_response->'body')::jsonb->>'id';
 
     -- Store customer ID in subscription record
-    INSERT INTO "Subscription" ("userId", "stripeCustomerId", "status", "createdAt", "updatedAt")
+    INSERT INTO "subscription" ("userId", "stripeCustomerId", "status", "createdAt", "updatedAt")
     VALUES (p_user_id, v_customer_id, 'INCOMPLETE', NOW(), NOW())
     ON CONFLICT ("userId") DO UPDATE SET 
       "stripeCustomerId" = EXCLUDED."stripeCustomerId",
@@ -197,7 +197,7 @@ BEGIN
 
   -- Get customer ID
   SELECT "stripeCustomerId" INTO v_customer_id
-  FROM "Subscription"
+  FROM "subscription"
   WHERE "userId" = p_user_id
   ORDER BY "updatedAt" DESC
   LIMIT 1;
@@ -270,7 +270,7 @@ BEGIN
 
   -- Get customer ID
   SELECT "stripeCustomerId" INTO v_customer_id
-  FROM "Subscription"
+  FROM "subscription"
   WHERE "userId" = p_user_id
   ORDER BY "updatedAt" DESC
   LIMIT 1;

@@ -59,8 +59,8 @@ BEGIN
     NULL::TEXT as organization_id, -- Future multi-tenant support
     COALESCE(s."stripeSubscriptionStatus", 'none') as subscription_status
 
-  FROM "User" u
-  LEFT JOIN "Subscription" s ON s."userId" = u.id
+  FROM "users" u
+  LEFT JOIN "subscription" s ON s."userId" = u.id
   WHERE u."supabaseId" = auth.uid()
   LIMIT 1;
 END;
@@ -97,7 +97,7 @@ DECLARE
   v_is_new BOOLEAN := FALSE;
 BEGIN
   -- Upsert user with proper conflict handling
-  INSERT INTO "User" (
+  INSERT INTO "users" (
     id,
     email,
     name,
@@ -121,11 +121,11 @@ BEGIN
   ON CONFLICT ("supabaseId")
   DO UPDATE SET
     email = EXCLUDED.email,
-    name = COALESCE(EXCLUDED.name, "User".name),
-    phone = COALESCE(EXCLUDED.phone, "User".phone),
-    "avatarUrl" = COALESCE(EXCLUDED."avatarUrl", "User"."avatarUrl"),
+    name = COALESCE(EXCLUDED.name, "users".name),
+    phone = COALESCE(EXCLUDED.phone, "users".phone),
+    "avatarUrl" = COALESCE(EXCLUDED."avatarUrl", "users"."avatarUrl"),
     "updatedAt" = NOW()
-  RETURNING "User".id INTO v_user_id;
+  RETURNING "users".id INTO v_user_id;
 
   -- Check if this was an insert (new user)
   GET DIAGNOSTICS v_is_new = ROW_COUNT;
@@ -145,7 +145,7 @@ BEGIN
     u."createdAt",
     u."updatedAt",
     v_is_new
-  FROM "User" u
+  FROM "users" u
   WHERE u.id = v_user_id;
 END;
 $$;
@@ -177,7 +177,7 @@ SECURITY DEFINER
 AS $$
 BEGIN
   -- Update only provided fields
-  UPDATE "User"
+  UPDATE "users"
   SET
     name = COALESCE(p_name, name),
     phone = COALESCE(p_phone, phone),
@@ -200,7 +200,7 @@ BEGIN
     u."stripeCustomerId",
     u."createdAt",
     u."updatedAt"
-  FROM "User" u
+  FROM "users" u
   WHERE u.id = p_user_id;
 END;
 $$;
@@ -226,7 +226,7 @@ BEGIN
     COUNT(*) FILTER (WHERE role = 'MANAGER') as managers_count,
     COUNT(*) FILTER (WHERE role = 'TENANT') as tenants_count,
     COUNT(*) FILTER (WHERE role = 'ADMIN') as admins_count
-  FROM "User";
+  FROM "users";
 END;
 $$;
 
@@ -263,7 +263,7 @@ BEGIN
     u."stripeCustomerId",
     u."createdAt",
     u."updatedAt"
-  FROM "User" u
+  FROM "users" u
   WHERE u.email = p_email
   LIMIT 1;
 END;
@@ -283,7 +283,7 @@ DECLARE
   v_user_role TEXT;
 BEGIN
   SELECT role::TEXT INTO v_user_role
-  FROM "User"
+  FROM "users"
   WHERE "supabaseId" = p_supabase_id;
 
   RETURN v_user_role = p_required_role;

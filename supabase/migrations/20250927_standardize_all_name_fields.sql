@@ -15,22 +15,22 @@
 -- ========================================
 -- 1. USER TABLE
 -- ========================================
-ALTER TABLE "User"
+ALTER TABLE "users"
 ADD COLUMN IF NOT EXISTS "firstName" TEXT,
 ADD COLUMN IF NOT EXISTS "lastName" TEXT;
 
 -- Migrate existing data
-UPDATE "User"
+UPDATE "users"
 SET
   "firstName" = COALESCE("firstName", SPLIT_PART("name", ' ', 1)),
   "lastName" = COALESCE("lastName", NULLIF(SUBSTRING("name" FROM POSITION(' ' IN "name") + 1), ''))
 WHERE ("firstName" IS NULL OR "lastName" IS NULL) AND "name" IS NOT NULL;
 
 -- Drop and recreate name as generated column
-ALTER TABLE "User"
+ALTER TABLE "users"
 DROP COLUMN IF EXISTS "name";
 
-ALTER TABLE "User"
+ALTER TABLE "users"
 ADD COLUMN "name" TEXT
 GENERATED ALWAYS AS (
   TRIM(COALESCE("firstName", '') || ' ' || COALESCE("lastName", ''))
@@ -39,22 +39,22 @@ GENERATED ALWAYS AS (
 -- ========================================
 -- 2. TENANT TABLE
 -- ========================================
-ALTER TABLE "Tenant"
+ALTER TABLE "tenant"
 ADD COLUMN IF NOT EXISTS "firstName" TEXT,
 ADD COLUMN IF NOT EXISTS "lastName" TEXT;
 
 -- Migrate existing data
-UPDATE "Tenant"
+UPDATE "tenant"
 SET
   "firstName" = COALESCE("firstName", SPLIT_PART("name", ' ', 1)),
   "lastName" = COALESCE("lastName", NULLIF(SUBSTRING("name" FROM POSITION(' ' IN "name") + 1), ''))
 WHERE ("firstName" IS NULL OR "lastName" IS NULL) AND "name" IS NOT NULL;
 
 -- Drop and recreate name as generated column
-ALTER TABLE "Tenant"
+ALTER TABLE "tenant"
 DROP COLUMN IF EXISTS "name";
 
-ALTER TABLE "Tenant"
+ALTER TABLE "tenant"
 ADD COLUMN "name" TEXT
 GENERATED ALWAYS AS (
   TRIM(COALESCE("firstName", '') || ' ' || COALESCE("lastName", ''))
@@ -104,13 +104,13 @@ GENERATED ALWAYS AS (
 -- 6. INDEXES FOR PERFORMANCE
 -- ========================================
 -- Add indexes on firstName and lastName for searching
-CREATE INDEX IF NOT EXISTS idx_user_first_name ON "User"("firstName");
-CREATE INDEX IF NOT EXISTS idx_user_last_name ON "User"("lastName");
-CREATE INDEX IF NOT EXISTS idx_user_full_name ON "User"("name");
+CREATE INDEX IF NOT EXISTS idx_user_first_name ON "users"("firstName");
+CREATE INDEX IF NOT EXISTS idx_user_last_name ON "users"("lastName");
+CREATE INDEX IF NOT EXISTS idx_user_full_name ON "users"("name");
 
-CREATE INDEX IF NOT EXISTS idx_tenant_first_name ON "Tenant"("firstName");
-CREATE INDEX IF NOT EXISTS idx_tenant_last_name ON "Tenant"("lastName");
-CREATE INDEX IF NOT EXISTS idx_tenant_full_name ON "Tenant"("name");
+CREATE INDEX IF NOT EXISTS idx_tenant_first_name ON "tenant"("firstName");
+CREATE INDEX IF NOT EXISTS idx_tenant_last_name ON "tenant"("lastName");
+CREATE INDEX IF NOT EXISTS idx_tenant_full_name ON "tenant"("name");
 
 CREATE INDEX IF NOT EXISTS idx_invoice_lead_first_name ON "InvoiceLead"("firstName");
 CREATE INDEX IF NOT EXISTS idx_invoice_lead_last_name ON "InvoiceLead"("lastName");
@@ -158,13 +158,13 @@ COMMENT ON FUNCTION search_by_name IS 'Standardized name search across any table
 -- ========================================
 -- 9. COMMENTS FOR DOCUMENTATION
 -- ========================================
-COMMENT ON COLUMN "User"."firstName" IS 'User first name (source field)';
-COMMENT ON COLUMN "User"."lastName" IS 'User last name (source field)';
-COMMENT ON COLUMN "User"."name" IS 'Generated: Full name (firstName + lastName)';
+COMMENT ON COLUMN "users"."firstName" IS 'User first name (source field)';
+COMMENT ON COLUMN "users"."lastName" IS 'User last name (source field)';
+COMMENT ON COLUMN "users"."name" IS 'Generated: Full name (firstName + lastName)';
 
-COMMENT ON COLUMN "Tenant"."firstName" IS 'Tenant first name (source field)';
-COMMENT ON COLUMN "Tenant"."lastName" IS 'Tenant last name (source field)';
-COMMENT ON COLUMN "Tenant"."name" IS 'Generated: Full name (firstName + lastName)';
+COMMENT ON COLUMN "tenant"."firstName" IS 'Tenant first name (source field)';
+COMMENT ON COLUMN "tenant"."lastName" IS 'Tenant last name (source field)';
+COMMENT ON COLUMN "tenant"."name" IS 'Generated: Full name (firstName + lastName)';
 
 COMMENT ON COLUMN "InvoiceLead"."name" IS 'Generated: Full name (firstName + lastName)';
 

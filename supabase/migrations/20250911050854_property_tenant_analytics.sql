@@ -56,22 +56,22 @@ BEGIN
         END
       )
     )
-    FROM "Property" p
+    FROM "property" p
     -- Get unit counts and occupancy
     LEFT JOIN LATERAL (
       SELECT
         COUNT(*)::INTEGER as total,
         COUNT(CASE WHEN l.status = 'ACTIVE' THEN 1 END)::INTEGER as occupied,
         COUNT(CASE WHEN u.status = 'VACANT' OR l.id IS NULL THEN 1 END)::INTEGER as vacant
-      FROM "Unit" u
-      LEFT JOIN "Lease" l ON l."unitId" = u.id AND l.status = 'ACTIVE'
+      FROM "unit" u
+      LEFT JOIN "lease" l ON l."unitId" = u.id AND l.status = 'ACTIVE'
       WHERE u."propertyId" = p.id
     ) unit_count ON true
     -- Get revenue data
     LEFT JOIN LATERAL (
       SELECT COALESCE(SUM(l."rentAmount"), 0) as monthly_revenue
-      FROM "Unit" u
-      JOIN "Lease" l ON l."unitId" = u.id AND l.status = 'ACTIVE'
+      FROM "unit" u
+      JOIN "lease" l ON l."unitId" = u.id AND l.status = 'ACTIVE'
       WHERE u."propertyId" = p.id
     ) revenue_data ON true
     WHERE p."userId" = p_user_id
@@ -128,7 +128,7 @@ BEGIN
         'leaseStatus', COALESCE(lease_info.lease_status, 'No Active Lease')
       )
     )
-    FROM "Tenant" t
+    FROM "tenant" t
     -- Get current lease information
     LEFT JOIN LATERAL (
       SELECT
@@ -144,9 +144,9 @@ BEGIN
         ) as lease_data,
         l."rentAmount" as monthly_rent,
         l.status as lease_status
-      FROM "Lease" l
-      JOIN "Unit" u ON u.id = l."unitId"
-      JOIN "Property" p ON p.id = u."propertyId"
+      FROM "lease" l
+      JOIN "unit" u ON u.id = l."unitId"
+      JOIN "property" p ON p.id = u."propertyId"
       WHERE l."tenantId" = t.id
       AND l.status = 'ACTIVE'
       AND p."userId" = p_user_id
@@ -155,9 +155,9 @@ BEGIN
     ) lease_info ON true
     -- Only return tenants that belong to the user's properties
     WHERE EXISTS (
-      SELECT 1 FROM "Lease" l
-      JOIN "Unit" u ON u.id = l."unitId"
-      JOIN "Property" p ON p.id = u."propertyId"
+      SELECT 1 FROM "lease" l
+      JOIN "unit" u ON u.id = l."unitId"
+      JOIN "property" p ON p.id = u."propertyId"
       WHERE l."tenantId" = t.id AND p."userId" = p_user_id
     )
     ORDER BY t."createdAt" DESC
@@ -254,8 +254,8 @@ BEGIN
         'daysUntilLeaseEnd', lease_info.days_until_end
       )
     )
-    FROM "Unit" u
-    JOIN "Property" p ON p.id = u."propertyId"
+    FROM "unit" u
+    JOIN "property" p ON p.id = u."propertyId"
     -- Get current lease and tenant information
     LEFT JOIN LATERAL (
       SELECT
@@ -274,8 +274,8 @@ BEGIN
             EXTRACT(DAY FROM (l."endDate" - CURRENT_DATE))::INTEGER
           ELSE NULL
         END as days_until_end
-      FROM "Lease" l
-      JOIN "Tenant" t ON t.id = l."tenantId"
+      FROM "lease" l
+      JOIN "tenant" t ON t.id = l."tenantId"
       WHERE l."unitId" = u.id AND l.status = 'ACTIVE'
       ORDER BY l."startDate" DESC
       LIMIT 1

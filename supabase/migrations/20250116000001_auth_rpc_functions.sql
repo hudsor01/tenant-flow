@@ -132,13 +132,13 @@ BEGIN
 
   -- Check if user exists
   SELECT id INTO v_existing_user_id
-  FROM "User"
+  FROM "users"
   WHERE "supabaseId" = p_supabase_id;
 
   v_is_new := (v_existing_user_id IS NULL);
 
   -- Upsert user with proper conflict handling
-  INSERT INTO "User" (
+  INSERT INTO "users" (
     id,
     email,
     name,
@@ -162,9 +162,9 @@ BEGIN
   ON CONFLICT ("supabaseId")
   DO UPDATE SET
     email = EXCLUDED.email,
-    name = COALESCE(EXCLUDED.name, "User".name),
-    phone = COALESCE(EXCLUDED.phone, "User".phone),
-    "avatarUrl" = COALESCE(EXCLUDED."avatarUrl", "User"."avatarUrl"),
+    name = COALESCE(EXCLUDED.name, "users".name),
+    phone = COALESCE(EXCLUDED.phone, "users".phone),
+    "avatarUrl" = COALESCE(EXCLUDED."avatarUrl", "users"."avatarUrl"),
     "updatedAt" = NOW();
 
   -- Return complete user data
@@ -189,7 +189,7 @@ BEGIN
     NULL::TEXT as organization_id,
     v_is_new as is_new_user
 
-  FROM "User" u
+  FROM "users" u
   WHERE u."supabaseId" = p_supabase_id;
 END;
 $$;
@@ -227,7 +227,7 @@ AS $$
 BEGIN
   -- Validate user exists and has permission (users can only update their own profile)
   IF NOT EXISTS (
-    SELECT 1 FROM "User"
+    SELECT 1 FROM "users"
     WHERE id = p_user_id
     AND "supabaseId" = auth.uid()::TEXT
   ) THEN
@@ -235,7 +235,7 @@ BEGIN
   END IF;
 
   -- Update only provided fields
-  UPDATE "User"
+  UPDATE "users"
   SET
     name = COALESCE(p_name, name),
     phone = COALESCE(p_phone, phone),
@@ -265,7 +265,7 @@ BEGIN
     NOW() as last_login_at,
     NULL::TEXT as organization_id
 
-  FROM "User" u
+  FROM "users" u
   WHERE u.id = p_user_id;
 END;
 $$;
@@ -296,7 +296,7 @@ BEGIN
     COUNT(*) FILTER (WHERE role = 'ADMIN') as admins_count,
     COUNT(*) FILTER (WHERE "updatedAt" > NOW() - INTERVAL '30 days') as active_users_last_30_days,
     COUNT(*) as verified_users -- All users are email verified via Supabase
-  FROM "User";
+  FROM "users";
 END;
 $$;
 
@@ -345,7 +345,7 @@ BEGIN
     u."updatedAt" as last_login_at, -- Approximation
     NULL::TEXT as organization_id
 
-  FROM "User" u
+  FROM "users" u
   WHERE u.email = p_email
   LIMIT 1;
 END;
@@ -366,7 +366,7 @@ DECLARE
   v_user_role TEXT;
 BEGIN
   SELECT role::TEXT INTO v_user_role
-  FROM "User"
+  FROM "users"
   WHERE "supabaseId" = p_supabase_id;
 
   RETURN v_user_role = p_required_role;
@@ -418,7 +418,7 @@ BEGIN
     u."updatedAt" as last_login_at,
     NULL::TEXT as organization_id
 
-  FROM "User" u
+  FROM "users" u
   WHERE u."supabaseId" = p_supabase_id
   LIMIT 1;
 END;

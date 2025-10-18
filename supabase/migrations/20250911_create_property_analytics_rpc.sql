@@ -75,7 +75,7 @@ BEGIN
                 END DESC,
                 COALESCE(stats.total_units, 0) DESC
         )
-        FROM "Property" p
+        FROM "property" p
         LEFT JOIN (
             -- Aggregate unit statistics per property
             SELECT 
@@ -85,7 +85,7 @@ BEGIN
                 COUNT(u.*) FILTER (WHERE u."status" = 'VACANT') as vacant_units,
                 SUM(COALESCE(u."rent", 0)) FILTER (WHERE u."status" = 'OCCUPIED') as total_rent,
                 SUM(COALESCE(u."rent", 0)) as potential_rent
-            FROM "Unit" u
+            FROM "unit" u
             GROUP BY u."propertyId"
         ) as stats ON p."id" = stats."propertyId"
         LEFT JOIN (
@@ -101,7 +101,7 @@ BEGIN
                         ELSE NULL
                     END
                 ) as avg_resolution_days
-            FROM "MaintenanceRequest" mr
+            FROM "maintenance_request" mr
             WHERE mr."createdAt" >= v_start_date
             GROUP BY mr."propertyId"
         ) as maint_stats ON p."id" = maint_stats."propertyId"
@@ -161,14 +161,14 @@ BEGIN
                 p."name" as property_name,
                 ts.period_start,
                 COALESCE(
-                    (SELECT COUNT(*) FROM "Unit" u WHERE u."propertyId" = p."id" AND u."status" = 'OCCUPIED'),
+                    (SELECT COUNT(*) FROM "unit" u WHERE u."propertyId" = p."id" AND u."status" = 'OCCUPIED'),
                     0
                 ) as occupied_units,
                 COALESCE(
-                    (SELECT COUNT(*) FROM "Unit" u WHERE u."propertyId" = p."id"),
+                    (SELECT COUNT(*) FROM "unit" u WHERE u."propertyId" = p."id"),
                     0
                 ) as total_units
-            FROM "Property" p
+            FROM "property" p
             CROSS JOIN time_series ts
             WHERE p."ownerId" = p_user_id
             AND (p_property_id IS NULL OR p."id" = p_property_id)
@@ -250,7 +250,7 @@ BEGIN
                 'timeframe', p_timeframe
             )
         )
-        FROM "Property" p
+        FROM "property" p
         LEFT JOIN (
             -- Current financial statistics
             SELECT 
@@ -258,7 +258,7 @@ BEGIN
                 COUNT(u.*) as total_units,
                 SUM(COALESCE(u."rent", 0)) FILTER (WHERE u."status" = 'OCCUPIED') as total_rent,
                 SUM(COALESCE(u."rent", 0)) as potential_rent
-            FROM "Unit" u
+            FROM "unit" u
             GROUP BY u."propertyId"
         ) as current_stats ON p."id" = current_stats."propertyId"
         LEFT JOIN (
@@ -267,7 +267,7 @@ BEGIN
                 mr."propertyId",
                 SUM(COALESCE(mr."estimatedCost", 0)) as total_expenses,
                 SUM(COALESCE(mr."estimatedCost", 0)) as maintenance_expenses
-            FROM "MaintenanceRequest" mr
+            FROM "maintenance_request" mr
             WHERE mr."createdAt" >= v_start_date
             GROUP BY mr."propertyId"
         ) as expense_stats ON p."id" = expense_stats."propertyId"
@@ -326,7 +326,7 @@ BEGIN
                 'timeframe', p_timeframe
             )
         )
-        FROM "Property" p
+        FROM "property" p
         LEFT JOIN (
             -- Comprehensive maintenance statistics
             SELECT 
@@ -349,7 +349,7 @@ BEGIN
                         'count', COUNT(mr.*)
                     )
                 ) as category_breakdown
-            FROM "MaintenanceRequest" mr
+            FROM "maintenance_request" mr
             WHERE mr."createdAt" >= v_start_date
             GROUP BY mr."propertyId"
         ) as maint_stats ON p."id" = maint_stats."propertyId"
