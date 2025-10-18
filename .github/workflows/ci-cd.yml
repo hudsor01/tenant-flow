@@ -20,14 +20,12 @@ jobs:
     with:
       pnpm-version: '10.18.2'
       node-version: '22'
-    secrets: inherit
 
   typecheck:
     uses: ./.github/workflows/typecheck.yml
     with:
       pnpm-version: '10.18.2'
       node-version: '22'
-    secrets: inherit
 
   tests:
     needs: [lint, typecheck]
