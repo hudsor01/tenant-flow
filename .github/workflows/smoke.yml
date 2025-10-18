@@ -7,7 +7,7 @@ on:
         default: '20'
         type: string
       pnpm-version:
-        default: '10.17.1'
+        default: '10.18.2'
         type: string
       dev-server-command:
         description: Command that starts the app for smoke tests
