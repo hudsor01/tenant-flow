@@ -18,14 +18,14 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
     with:
-      pnpm-version: '10.17.1'
+      pnpm-version: '10.18.2'
       node-version: '22'
     secrets: inherit
 
   typecheck:
     uses: ./.github/workflows/typecheck.yml
     with:
-      pnpm-version: '10.17.1'
+      pnpm-version: '10.18.2'
       node-version: '22'
     secrets: inherit
 
@@ -33,7 +33,7 @@ jobs:
     needs: [lint, typecheck]
     uses: ./.github/workflows/tests.yml
     with:
-      pnpm-version: '10.17.1'
+      pnpm-version: '10.18.2'
       node-version: '22'
     secrets: inherit
 
@@ -42,7 +42,7 @@ jobs:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/smoke.yml
     with:
-      pnpm-version: '10.17.1'
+      pnpm-version: '10.18.2'
       node-version: '20'
       playwright-grep: '@smoke'
       base-url: http://localhost:3940
@@ -53,7 +53,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy.yml
     with:
-      pnpm-version: '10.17.1'
+      pnpm-version: '10.18.2'
       node-version: '22'
       vercel-environment: production
       healthcheck-url: https://api.tenantflow.app/health

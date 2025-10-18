@@ -8,7 +8,7 @@ on:
         default: '22'
       pnpm-version:
         type: string
-        default: '10.17.1'
+        default: '10.18.2'
       healthcheck-url:
         description: URL used to verify backend health
         type: string
