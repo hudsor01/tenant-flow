@@ -100,7 +100,7 @@ export function LeasesTable() {
 			description="Track lease terms, tenant assignments, and rent amounts."
 			footer={
 				<Button asChild>
-					<Link href="/(protected)/manage/leases/new">
+					<Link href="/manage/leases/new">
 						<FileText className="size-4 mr-2" />
 						New lease
 					</Link>
@@ -165,16 +165,10 @@ export function LeasesTable() {
 									</TableCell>
 									<TableCell className="flex items-center justify-end gap-1 text-right">
 										<Button asChild size="sm" variant="ghost">
-											<Link href={`/(protected)/manage/leases/${lease.id}`}>
-												View
-											</Link>
+											<Link href={`/manage/leases/${lease.id}`}>View</Link>
 										</Button>
 										<Button asChild size="sm" variant="ghost">
-											<Link
-												href={`/(protected)/manage/leases/${lease.id}/edit`}
-											>
-												Edit
-											</Link>
+											<Link href={`/manage/leases/${lease.id}/edit`}>Edit</Link>
 										</Button>
 										<AlertDialog>
 											<AlertDialogTrigger asChild>
