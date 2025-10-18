@@ -17,6 +17,7 @@ jobs:
   production-health:
     name: Production Healthcheck
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: >
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'schedule' ||
@@ -44,6 +45,7 @@ jobs:
   staging-preview:
     name: Staging snapshot
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: always()
     steps:
       - name: Staging API check
