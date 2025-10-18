@@ -131,7 +131,7 @@ const TenantRow = memo(
 						variant="ghost"
 						onMouseEnter={() => onPrefetch(tenant.id)}
 					>
-						<Link href={`/(protected)/manage/tenants/${tenant.id}`}>View</Link>
+						<Link href={`/manage/tenants/${tenant.id}`}>View</Link>
 					</Button>
 					<Button
 						asChild
@@ -139,9 +139,7 @@ const TenantRow = memo(
 						variant="ghost"
 						onMouseEnter={() => onPrefetch(tenant.id)}
 					>
-						<Link href={`/(protected)/manage/tenants/${tenant.id}/edit`}>
-							Edit
-						</Link>
+						<Link href={`/manage/tenants/${tenant.id}/edit`}>Edit</Link>
 					</Button>
 					<AlertDialog>
 						<AlertDialogTrigger asChild>
@@ -184,7 +182,13 @@ TenantRow.displayName = 'TenantRow'
 
 export const TenantsTable = memo(() => {
 	// Use enhanced hooks for better caching and performance
-	const { data: tenants, isLoading, isError } = useAllTenants()
+	const {
+		data: tenants,
+		isLoading,
+		isError,
+		failureCount,
+		failureReason
+	} = useAllTenants()
 	const { prefetchTenant } = usePrefetchTenant()
 
 	const deleteTenant = useDeleteTenant({
@@ -224,8 +228,33 @@ export const TenantsTable = memo(() => {
 				title="Tenants"
 				description="Manage your tenants and their lease information"
 			>
-				<div className="rounded-lg border border-destructive/40 bg-destructive/10 p-6 text-destructive">
-					There was a problem loading tenants. Please try again.
+				<div className="flex flex-col items-center gap-4 rounded-lg border border-destructive/40 bg-destructive/10 p-6">
+					<div className="flex flex-col items-center gap-2 text-center">
+						<p className="font-medium text-destructive">
+							Failed to load tenants
+						</p>
+						<p className="text-sm text-muted-foreground">
+							{failureReason instanceof Error
+								? failureReason.message
+								: 'There was a problem loading tenants. Please try again.'}
+						</p>
+						{failureCount > 0 && (
+							<p className="text-xs text-muted-foreground">
+								Attempted {failureCount} time{failureCount > 1 ? 's' : ''}
+							</p>
+						)}
+					</div>
+					<div className="flex gap-2">
+						<Button variant="outline" onClick={() => window.location.reload()}>
+							Retry
+						</Button>
+						<Button asChild>
+							<Link href="/manage/tenants/new">
+								<UserPlus className="size-4" />
+								Create Tenant Anyway
+							</Link>
+						</Button>
+					</div>
 				</div>
 			</CardLayout>
 		)
@@ -233,7 +262,7 @@ export const TenantsTable = memo(() => {
 
 	const footer = (
 		<Button asChild>
-			<Link href="/(protected)/manage/tenants/new">
+			<Link href="/manage/tenants/new">
 				<UserPlus className="size-4" />
 				Add Tenant
 			</Link>
@@ -258,7 +287,7 @@ export const TenantsTable = memo(() => {
 					</EmptyHeader>
 					<EmptyContent>
 						<Button asChild>
-							<Link href="/(protected)/manage/tenants/new">
+							<Link href="/manage/tenants/new">
 								<UserPlus className="size-4" />
 								Create tenant
 							</Link>

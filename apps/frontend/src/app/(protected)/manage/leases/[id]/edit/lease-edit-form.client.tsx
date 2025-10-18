@@ -105,7 +105,7 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 				queryClient.invalidateQueries({ queryKey: ['lease-stats'] })
 			])
 			toast.success('Lease updated successfully')
-			router.push(`/(protected)/manage/leases/${id}`)
+			router.push(`/manage/leases/${id}`)
 		},
 		onError: error => {
 			toast.error('Failed to update lease')

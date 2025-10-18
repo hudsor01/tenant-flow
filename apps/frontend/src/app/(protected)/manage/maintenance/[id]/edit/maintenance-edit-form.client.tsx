@@ -145,7 +145,7 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 			})
 			await queryClient.invalidateQueries({ queryKey: ['maintenance', id] })
 			toast.success('Maintenance request updated')
-			router.push(`/(protected)/manage/maintenance/${id}`)
+			router.push(`/manage/maintenance/${id}`)
 		},
 		onError: error => {
 			toast.error('Failed to update maintenance request')

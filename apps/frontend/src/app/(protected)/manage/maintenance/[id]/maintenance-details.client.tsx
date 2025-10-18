@@ -85,7 +85,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 						</div>
 					</div>
 					<Button asChild variant="outline" size="sm">
-						<Link href={`/(protected)/manage/maintenance/${request.id}/edit`}>
+						<Link href={`/manage/maintenance/${request.id}/edit`}>
 							Edit request
 						</Link>
 					</Button>
