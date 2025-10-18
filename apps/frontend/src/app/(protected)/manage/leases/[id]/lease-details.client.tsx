@@ -59,9 +59,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 			<div className="lg:col-span-2 flex flex-col gap-4">
 				<div className="flex justify-end mb-2">
 					<Button asChild variant="outline" size="sm">
-						<Link href={`/(protected)/manage/leases/${lease.id}/edit`}>
-							Edit lease
-						</Link>
+						<Link href={`/manage/leases/${lease.id}/edit`}>Edit lease</Link>
 					</Button>
 				</div>
 				<CardLayout
