@@ -180,21 +180,31 @@ export function useAllTenants() {
 	return useQuery({
 		queryKey: tenantKeys.list(),
 		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
-			const response = await apiClient<TenantWithLeaseInfo[]>(
-				`${API_BASE_URL}/api/v1/tenants`
-			)
+			try {
+				const response = await apiClient<TenantWithLeaseInfo[]>(
+					`${API_BASE_URL}/api/v1/tenants`
+				)
 
-			// Prefetch individual tenant details for instant navigation
-			response.forEach(tenant => {
-				queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
-				queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
-			})
+				// Prefetch individual tenant details for instant navigation
+				response.forEach(tenant => {
+					queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
+					queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
+				})
 
-			return response
+				return response
+			} catch (error) {
+				logger.error(
+					'Failed to fetch tenant list',
+					{ action: 'useAllTenants' },
+					error
+				)
+				throw error
+			}
 		},
 		staleTime: 10 * 60 * 1000, // 10 minutes - list data rarely changes
 		gcTime: 30 * 60 * 1000, // 30 minutes cache time for dropdown data
-		retry: 2,
+		retry: 3, // Retry up to 3 times
+		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff: 1s, 2s, 4s (max 30s)
 		// Enable structural sharing to prevent re-renders when data hasn't changed
 		structuralSharing: true,
 		select: data => {

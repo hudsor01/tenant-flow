@@ -99,7 +99,7 @@ export function MaintenanceTable() {
 			>
 				<div className="mb-4">
 					<Button asChild>
-						<Link href="/(protected)/manage/maintenance/new">
+						<Link href="/manage/maintenance/new">
 							<Wrench className="size-4 mr-2" />
 							New request
 						</Link>
@@ -115,9 +115,7 @@ export function MaintenanceTable() {
 					</EmptyHeader>
 					<EmptyContent>
 						<Button asChild>
-							<Link href="/(protected)/manage/maintenance/new">
-								Log a request
-							</Link>
+							<Link href="/manage/maintenance/new">Log a request</Link>
 						</Button>
 					</EmptyContent>
 				</Empty>
@@ -132,7 +130,7 @@ export function MaintenanceTable() {
 		>
 			<div className="mb-4">
 				<Button asChild>
-					<Link href="/(protected)/manage/maintenance/new">
+					<Link href="/manage/maintenance/new">
 						<Wrench className="size-4 mr-2" />
 						New request
 					</Link>
@@ -181,16 +179,10 @@ export function MaintenanceTable() {
 								</TableCell>
 								<TableCell className="flex items-center justify-end gap-1 text-right">
 									<Button asChild size="sm" variant="ghost">
-										<Link
-											href={`/(protected)/manage/maintenance/${request.id}`}
-										>
-											View
-										</Link>
+										<Link href={`/manage/maintenance/${request.id}`}>View</Link>
 									</Button>
 									<Button asChild size="sm" variant="ghost">
-										<Link
-											href={`/(protected)/manage/maintenance/${request.id}/edit`}
-										>
+										<Link href={`/manage/maintenance/${request.id}/edit`}>
 											Edit
 										</Link>
 									</Button>
