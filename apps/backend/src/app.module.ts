@@ -27,6 +27,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { PropertiesModule } from './modules/properties/properties.module'
 import { RentPaymentsModule } from './modules/rent-payments/rent-payments.module'
 import { ReportsModule } from './modules/reports/reports.module'
+import { StripeSyncModule } from './modules/stripe-sync/stripe-sync.module'
 import { TenantsModule } from './modules/tenants/tenants.module'
 import { UnitsModule } from './modules/units/units.module'
 import { UsersModule } from './modules/users/users.module'
@@ -94,6 +95,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 		HealthModule,
 		AnalyticsModule,
 		StripeModule,
+		StripeSyncModule, // Stripe Sync Engine for real-time data sync
 		ContactModule,
 		DashboardModule,
 		FinancialModule,
