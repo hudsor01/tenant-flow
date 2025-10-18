@@ -22,62 +22,62 @@ BEGIN
     -- Match UnitStats interface exactly
     'totalUnits', (
       SELECT COUNT(u.id)
-      FROM "Unit" u
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "unit" u
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
     ),
     'occupiedUnits', (
       SELECT COUNT(u.id)
-      FROM "Unit" u
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "unit" u
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
         AND u.status = 'OCCUPIED'
     ),
     'availableUnits', (
       SELECT COUNT(u.id)
-      FROM "Unit" u
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "unit" u
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
         AND u.status = 'VACANT'
     ),
     'maintenanceUnits', (
       SELECT COUNT(u.id)
-      FROM "Unit" u
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "unit" u
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
         AND u.status = 'MAINTENANCE'
     ),
     'averageRent', (
       SELECT COALESCE(ROUND(AVG(u.rent)), 0)
-      FROM "Unit" u
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "unit" u
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
     ),
     -- Legacy fields for compatibility
     'total', (
       SELECT COUNT(u.id)
-      FROM "Unit" u
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "unit" u
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
     ),
     'occupied', (
       SELECT COUNT(u.id)
-      FROM "Unit" u
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "unit" u
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
         AND u.status = 'OCCUPIED'
     ),
     'vacant', (
       SELECT COUNT(u.id)
-      FROM "Unit" u
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "unit" u
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
         AND u.status = 'VACANT'
     ),
     'maintenance', (
       SELECT COUNT(u.id)
-      FROM "Unit" u
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "unit" u
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
         AND u.status = 'MAINTENANCE'
     ),
@@ -88,8 +88,8 @@ BEGIN
           THEN ROUND((COUNT(u.id) FILTER (WHERE u.status = 'OCCUPIED')::NUMERIC / COUNT(u.id)::NUMERIC * 100))
           ELSE 0 
         END
-      FROM "Unit" u
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "unit" u
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
     )
   );
@@ -111,62 +111,62 @@ BEGIN
   RETURN json_build_object(
     'total', (
       SELECT COUNT(i.id)
-      FROM "Invoice" i
-      JOIN "Lease" l ON i."leaseId" = l.id
-      JOIN "Unit" u ON l."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "invoice" i
+      JOIN "lease" l ON i."leaseId" = l.id
+      JOIN "unit" u ON l."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
     ),
     'paid', (
       SELECT COUNT(i.id)
-      FROM "Invoice" i
-      JOIN "Lease" l ON i."leaseId" = l.id
-      JOIN "Unit" u ON l."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "invoice" i
+      JOIN "lease" l ON i."leaseId" = l.id
+      JOIN "unit" u ON l."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
         AND i.status = 'PAID'
     ),
     'pending', (
       SELECT COUNT(i.id)
-      FROM "Invoice" i
-      JOIN "Lease" l ON i."leaseId" = l.id
-      JOIN "Unit" u ON l."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "invoice" i
+      JOIN "lease" l ON i."leaseId" = l.id
+      JOIN "unit" u ON l."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
         AND i.status = 'PENDING'
     ),
     'overdue', (
       SELECT COUNT(i.id)
-      FROM "Invoice" i
-      JOIN "Lease" l ON i."leaseId" = l.id
-      JOIN "Unit" u ON l."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "invoice" i
+      JOIN "lease" l ON i."leaseId" = l.id
+      JOIN "unit" u ON l."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
         AND i.status = 'OVERDUE'
     ),
     'totalAmount', (
       SELECT COALESCE(SUM(i.amount), 0)
-      FROM "Invoice" i
-      JOIN "Lease" l ON i."leaseId" = l.id
-      JOIN "Unit" u ON l."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "invoice" i
+      JOIN "lease" l ON i."leaseId" = l.id
+      JOIN "unit" u ON l."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
     ),
     'paidAmount', (
       SELECT COALESCE(SUM(i.amount), 0)
-      FROM "Invoice" i
-      JOIN "Lease" l ON i."leaseId" = l.id
-      JOIN "Unit" u ON l."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "invoice" i
+      JOIN "lease" l ON i."leaseId" = l.id
+      JOIN "unit" u ON l."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
         AND i.status = 'PAID'
     ),
     'overdueAmount', (
       SELECT COALESCE(SUM(i.amount), 0)
-      FROM "Invoice" i
-      JOIN "Lease" l ON i."leaseId" = l.id
-      JOIN "Unit" u ON l."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "invoice" i
+      JOIN "lease" l ON i."leaseId" = l.id
+      JOIN "unit" u ON l."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
         AND i.status = 'OVERDUE'
     )
@@ -223,7 +223,7 @@ BEGIN
         'units', COALESCE(unit_stats.units_json, '[]'::json)
       )
     ), '[]'::json)
-    FROM "Property" p
+    FROM "property" p
     LEFT JOIN LATERAL (
       SELECT 
         COUNT(u.id) as total_units,
@@ -261,15 +261,15 @@ BEGIN
             'updatedAt', u."updatedAt"
           ) ORDER BY u."unitNumber"
         ) as units_json
-      FROM "Unit" u
+      FROM "unit" u
       WHERE u."propertyId" = p.id
     ) unit_stats ON true
     LEFT JOIN LATERAL (
       SELECT 
         COUNT(m.id) as total_requests,
         COUNT(m.id) FILTER (WHERE m.status IN ('PENDING', 'IN_PROGRESS')) as open_requests
-      FROM "MaintenanceRequest" m
-      JOIN "Unit" u ON m."unitId" = u.id
+      FROM "maintenance_request" m
+      JOIN "unit" u ON m."unitId" = u.id
       WHERE u."propertyId" = p.id
     ) maintenance_stats ON true
     WHERE p."ownerId" = p_user_id
@@ -330,7 +330,7 @@ BEGIN
         COALESCE(maintenance_stats.total_requests, 0) as "maintenanceRequests",
         COALESCE(maintenance_stats.open_requests, 0) as "openMaintenanceRequests",
         COALESCE(unit_stats.units_json, '[]'::json) as units
-      FROM "Property" p
+      FROM "property" p
       LEFT JOIN LATERAL (
         SELECT 
           COUNT(u.id) as total_units,
@@ -368,15 +368,15 @@ BEGIN
               'updatedAt', u."updatedAt"
             ) ORDER BY u."unitNumber"
           ) as units_json
-        FROM "Unit" u
+        FROM "unit" u
         WHERE u."propertyId" = p.id
       ) unit_stats ON true
       LEFT JOIN LATERAL (
         SELECT 
           COUNT(m.id) as total_requests,
           COUNT(m.id) FILTER (WHERE m.status IN ('PENDING', 'IN_PROGRESS')) as open_requests
-        FROM "MaintenanceRequest" m
-        JOIN "Unit" u ON m."unitId" = u.id
+        FROM "maintenance_request" m
+        JOIN "unit" u ON m."unitId" = u.id
         WHERE u."propertyId" = p.id
       ) maintenance_stats ON true
       WHERE p.id = p_property_id

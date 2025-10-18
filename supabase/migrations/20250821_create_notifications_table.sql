@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS public.notifications (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    recipient_id TEXT NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+    recipient_id TEXT NOT NULL REFERENCES "users"(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     message TEXT NOT NULL,
     type TEXT NOT NULL,
@@ -58,7 +58,7 @@ CREATE POLICY "Service can insert notifications" ON public.notifications
         -- Allow service role or admin users to create notifications
         auth.role() = 'service_role' OR 
         EXISTS (
-            SELECT 1 FROM "User" 
+            SELECT 1 FROM "users" 
             WHERE id = auth.uid() 
             AND role IN ('SUPER_ADMIN', 'ADMIN')
         )
@@ -68,7 +68,7 @@ CREATE POLICY "Service can insert notifications" ON public.notifications
 CREATE POLICY "Admins can delete notifications" ON public.notifications
     FOR DELETE USING (
         EXISTS (
-            SELECT 1 FROM "User" 
+            SELECT 1 FROM "users" 
             WHERE id = auth.uid() 
             AND role IN ('SUPER_ADMIN', 'ADMIN')
         )

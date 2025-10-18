@@ -246,7 +246,7 @@ CREATE TABLE "CustomerInvoiceItem" (
 );
 
 -- Core Business Tables
-CREATE TABLE "Document" (
+CREATE TABLE "document" (
   "id" text NOT NULL DEFAULT (gen_random_uuid())::text, 
   "name" text NOT NULL, 
   "filename" text, 
@@ -261,7 +261,7 @@ CREATE TABLE "Document" (
   "fileSizeBytes" bigint NOT NULL DEFAULT 0
 );
 
-CREATE TABLE "Expense" (
+CREATE TABLE "expense" (
   "id" text NOT NULL DEFAULT gen_random_uuid(), 
   "propertyId" text NOT NULL, 
   "maintenanceId" text, 
@@ -291,7 +291,7 @@ CREATE TABLE "Inspection" (
   "updatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE "Invoice" (
+CREATE TABLE "invoice" (
   "id" text NOT NULL DEFAULT (gen_random_uuid())::text, 
   "userId" text NOT NULL, 
   "subscriptionId" text, 
@@ -310,7 +310,7 @@ CREATE TABLE "Invoice" (
   "updatedAt" timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE "Lease" (
+CREATE TABLE "lease" (
   "id" text NOT NULL DEFAULT gen_random_uuid(), 
   "unitId" text NOT NULL, 
   "tenantId" text NOT NULL, 
@@ -324,7 +324,7 @@ CREATE TABLE "Lease" (
   "updatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE "MaintenanceRequest" (
+CREATE TABLE "maintenance_request" (
   "id" text NOT NULL DEFAULT gen_random_uuid(), 
   "unitId" text NOT NULL, 
   "title" text NOT NULL, 
@@ -346,7 +346,7 @@ CREATE TABLE "MaintenanceRequest" (
   "actualCost" double precision
 );
 
-CREATE TABLE "Property" (
+CREATE TABLE "property" (
   "id" text NOT NULL DEFAULT gen_random_uuid(), 
   "name" text NOT NULL, 
   "address" text NOT NULL, 
@@ -361,7 +361,7 @@ CREATE TABLE "Property" (
   "propertyType" PropertyType NOT NULL DEFAULT 'SINGLE_FAMILY'::"PropertyType"
 );
 
-CREATE TABLE "Tenant" (
+CREATE TABLE "tenant" (
   "id" text NOT NULL DEFAULT gen_random_uuid(), 
   "name" text NOT NULL, 
   "email" text NOT NULL, 
@@ -373,7 +373,7 @@ CREATE TABLE "Tenant" (
   "updatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE "Unit" (
+CREATE TABLE "unit" (
   "id" text NOT NULL DEFAULT gen_random_uuid(), 
   "unitNumber" text NOT NULL, 
   "propertyId" text NOT NULL, 
@@ -387,7 +387,7 @@ CREATE TABLE "Unit" (
   "lastInspectionDate" timestamp without time zone
 );
 
-CREATE TABLE "User" (
+CREATE TABLE "users" (
   "id" text NOT NULL, 
   "supabaseId" text NOT NULL, 
   "stripeCustomerId" text, 

@@ -16,7 +16,7 @@ DECLARE
 BEGIN
   -- Get user's property IDs (single query)
   SELECT ARRAY_AGG(id) INTO property_ids
-  FROM "Property"
+  FROM "property"
   WHERE "ownerId" = p_user_id;
 
   -- Early exit if no properties
@@ -32,7 +32,7 @@ BEGIN
 
   -- Get unit IDs for user's properties
   SELECT ARRAY_AGG(id) INTO unit_ids
-  FROM "Unit"
+  FROM "unit"
   WHERE "propertyId" = ANY(property_ids);
 
   -- Single comprehensive query for all statistics
@@ -41,7 +41,7 @@ BEGIN
       COUNT(*) as total_properties,
       COUNT(*) as active_properties,
       0 as maintenance_properties
-    FROM "Property"
+    FROM "property"
     WHERE "ownerId" = p_user_id
   ),
   unit_stats AS (
@@ -49,7 +49,7 @@ BEGIN
       COUNT(*) as total_units,
       COUNT(CASE WHEN status = 'OCCUPIED' THEN 1 END) as occupied_units,
       COUNT(CASE WHEN status = 'VACANT' THEN 1 END) as vacant_units
-    FROM "Unit"
+    FROM "unit"
     WHERE "propertyId" = ANY(property_ids)
   ),
   tenant_stats AS (
@@ -57,15 +57,15 @@ BEGIN
       COUNT(DISTINCT t.id) as total_tenants,
       COUNT(DISTINCT CASE WHEN l.status = 'ACTIVE' THEN t.id END) as active_tenants,
       COUNT(DISTINCT CASE WHEN t."createdAt" >= (CURRENT_DATE - INTERVAL '30 days') THEN t.id END) as new_tenants
-    FROM "Tenant" t
-    LEFT JOIN "Lease" l ON t.id = l."tenantId"
+    FROM "tenant" t
+    LEFT JOIN "lease" l ON t.id = l."tenantId"
     WHERE t."userId" = p_user_id
   ),
   revenue_stats AS (
     SELECT
       COALESCE(SUM(l."monthlyRent"), 0) as monthly_revenue
-    FROM "Lease" l
-    JOIN "Unit" u ON l."unitId" = u.id
+    FROM "lease" l
+    JOIN "unit" u ON l."unitId" = u.id
     WHERE u."propertyId" = ANY(property_ids)
       AND l.status = 'ACTIVE'
   )
@@ -117,7 +117,7 @@ RETURNS TABLE(
 BEGIN
   RETURN QUERY
   WITH property_ids AS (
-    SELECT id FROM "Property" WHERE "ownerId" = p_user_id
+    SELECT id FROM "property" WHERE "ownerId" = p_user_id
   ),
   month_series AS (
     SELECT
@@ -133,7 +133,7 @@ BEGIN
       COUNT(u.id) as total_units,
       COUNT(CASE
         WHEN EXISTS (
-          SELECT 1 FROM "Lease" l
+          SELECT 1 FROM "lease" l
           WHERE l."unitId" = u.id
             AND l.status = 'ACTIVE'
             AND l."startDate" <= (ms.month_start + INTERVAL '1 month' - INTERVAL '1 day')
@@ -141,7 +141,7 @@ BEGIN
         ) THEN 1
       END) as occupied_units
     FROM month_series ms
-    CROSS JOIN "Unit" u
+    CROSS JOIN "unit" u
     JOIN property_ids p ON u."propertyId" = p.id
     WHERE u."createdAt" <= (ms.month_start + INTERVAL '1 month' - INTERVAL '1 day')
     GROUP BY ms.month_start
@@ -174,14 +174,14 @@ RETURNS TABLE(
 BEGIN
   RETURN QUERY
   WITH property_ids AS (
-    SELECT id FROM "Property" WHERE "ownerId" = p_user_id
+    SELECT id FROM "property" WHERE "ownerId" = p_user_id
   ),
   unit_ids AS (
-    SELECT u.id FROM "Unit" u JOIN property_ids p ON u."propertyId" = p.id
+    SELECT u.id FROM "unit" u JOIN property_ids p ON u."propertyId" = p.id
   ),
   tenant_ids AS (
     SELECT DISTINCT l."tenantId"
-    FROM "Lease" l
+    FROM "lease" l
     JOIN unit_ids u ON l."unitId" = u.id
   ),
   month_series AS (
@@ -231,7 +231,7 @@ DECLARE
 BEGIN
   -- Get user's property IDs
   SELECT ARRAY_AGG(id) INTO property_ids
-  FROM "Property"
+  FROM "property"
   WHERE "ownerId" = p_user_id;
 
   -- Early exit if no properties
@@ -260,7 +260,7 @@ BEGIN
         priority,
         COUNT(*)
       ) as priority_breakdown
-    FROM "MaintenanceRequest" mr
+    FROM "maintenance_request" mr
     WHERE mr."propertyId" = ANY(property_ids)
   ),
   monthly_trends AS (
@@ -274,7 +274,7 @@ BEGIN
           )
         ) ORDER BY date_trunc('month', "completedAt")
       ) as trends
-    FROM "MaintenanceRequest" mr
+    FROM "maintenance_request" mr
     WHERE mr."propertyId" = ANY(property_ids)
       AND status = 'COMPLETED'
       AND "completedAt" >= (CURRENT_DATE - INTERVAL '6 months')
@@ -301,15 +301,15 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ================================================================================================
 
 -- Ensure optimal performance for the new RPC functions
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_property_owner_id_optimized ON "Property"("ownerId");
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_unit_property_id_optimized ON "Unit"("propertyId");
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_unit_status_property_id ON "Unit"("propertyId", "status");
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_lease_unit_status ON "Lease"("unitId", "status");
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_lease_dates_status ON "Lease"("startDate", "endDate", "status");
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_property_owner_id_optimized ON "property"("ownerId");
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_unit_property_id_optimized ON "unit"("propertyId");
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_unit_status_property_id ON "unit"("propertyId", "status");
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_lease_unit_status ON "lease"("unitId", "status");
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_lease_dates_status ON "lease"("startDate", "endDate", "status");
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_rent_payments_tenant_status ON "RentPayments"("tenantId", "status");
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_rent_payments_paid_at ON "RentPayments"("paidAt");
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_maintenance_property_status ON "MaintenanceRequest"("propertyId", "status");
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_maintenance_completed_at ON "MaintenanceRequest"("completedAt");
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_maintenance_property_status ON "maintenance_request"("propertyId", "status");
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_maintenance_completed_at ON "maintenance_request"("completedAt");
 
 -- ================================================================================================
 -- PERMISSIONS
