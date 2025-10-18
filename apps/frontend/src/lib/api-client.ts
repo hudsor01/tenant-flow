@@ -439,6 +439,18 @@ export const stripeApi = {
 // 	}
 // }
 
+/**
+ * Users API - Current user data with Stripe integration
+ */
+export const usersApi = {
+	getCurrentUser: () =>
+		apiClient<{
+			id: string
+			email: string
+			stripeCustomerId: string | null
+		}>(`${API_BASE_URL}/api/v1/users/me`)
+}
+
 // Note: Authentication is handled directly via Supabase Auth
 // See use-supabase-auth.ts for all authentication operations
 // No backend auth proxy needed - uses native Supabase client integration
