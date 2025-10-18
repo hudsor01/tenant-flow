@@ -76,10 +76,10 @@ BEGIN
                 END,
                 EXTRACT(EPOCH FROM (COALESCE(l."terminatedAt", NOW()) - l."startDate")) DESC
         )
-        FROM "Tenant" t
-        LEFT JOIN "Lease" l ON l."tenantId" = t."id"
-        LEFT JOIN "Unit" u ON l."unitId" = u."id"
-        LEFT JOIN "Property" p ON u."propertyId" = p."id"
+        FROM "tenant" t
+        LEFT JOIN "lease" l ON l."tenantId" = t."id"
+        LEFT JOIN "unit" u ON l."unitId" = u."id"
+        LEFT JOIN "property" p ON u."propertyId" = p."id"
         LEFT JOIN (
             -- Maintenance request statistics per tenant
             SELECT 
@@ -93,7 +93,7 @@ BEGIN
                         ELSE NULL
                     END
                 ) as avg_response_days
-            FROM "MaintenanceRequest" mr
+            FROM "maintenance_request" mr
             WHERE mr."createdAt" >= v_start_date
             GROUP BY mr."tenantId"
         ) as maint_stats ON t."id" = maint_stats."tenantId"
@@ -107,7 +107,7 @@ BEGIN
                     WHEN COUNT(mr2.*) > 5 THEN 40
                     ELSE 20
                 END as risk_score
-            FROM "MaintenanceRequest" mr2
+            FROM "maintenance_request" mr2
             WHERE mr2."createdAt" >= v_start_date
             GROUP BY mr2."tenantId"
         ) as risk_stats ON t."id" = risk_stats."tenantId"
@@ -120,7 +120,7 @@ BEGIN
                     WHEN EXTRACT(EPOCH FROM (NOW() - t2."createdAt")) / (86400 * 365) > 1 THEN 85
                     ELSE 80
                 END as satisfaction_score
-            FROM "Tenant" t2
+            FROM "tenant" t2
         ) as satisfaction_stats ON t."id" = satisfaction_stats.tenant_id
         WHERE p."ownerId" = p_user_id
         AND (p_tenant_id IS NULL OR t."id" = p_tenant_id)
@@ -172,7 +172,7 @@ BEGIN
                 'timeframe', p_timeframe
             )
         )
-        FROM "Property" p
+        FROM "property" p
         LEFT JOIN (
             -- Tenant statistics per property
             SELECT 
@@ -185,10 +185,10 @@ BEGIN
                 AVG(
                     EXTRACT(EPOCH FROM (COALESCE(l."terminatedAt", NOW()) - l."startDate")) / (86400 * 30)
                 ) as avg_tenure_months
-            FROM "Property" p2
-            LEFT JOIN "Unit" u ON u."propertyId" = p2."id"
-            LEFT JOIN "Lease" l ON l."unitId" = u."id"
-            LEFT JOIN "Tenant" t ON l."tenantId" = t."id"
+            FROM "property" p2
+            LEFT JOIN "unit" u ON u."propertyId" = p2."id"
+            LEFT JOIN "lease" l ON l."unitId" = u."id"
+            LEFT JOIN "tenant" t ON l."tenantId" = t."id"
             WHERE l."createdAt" >= v_start_date OR l."createdAt" IS NULL
             GROUP BY p2."id"
         ) as tenant_stats ON p."id" = tenant_stats.property_id
@@ -217,9 +217,9 @@ BEGIN
                         ELSE 80
                     END < 70
                 ) as low_satisfaction
-            FROM "Property" p3
-            LEFT JOIN "Unit" u2 ON u2."propertyId" = p3."id"
-            LEFT JOIN "Lease" l2 ON l2."unitId" = u2."id"
+            FROM "property" p3
+            LEFT JOIN "unit" u2 ON u2."propertyId" = p3."id"
+            LEFT JOIN "lease" l2 ON l2."unitId" = u2."id"
             WHERE l2."status" = 'ACTIVE'
             GROUP BY p3."id"
         ) as satisfaction_metrics ON p."id" = satisfaction_metrics.property_id
@@ -232,11 +232,11 @@ BEGIN
                     THEN ROUND((COUNT(mr.*) FILTER (WHERE mr."priority" IN ('HIGH', 'URGENT'))::FLOAT / COUNT(DISTINCT t2.*)) * 100, 2)
                     ELSE 0
                 END as complaint_rate
-            FROM "Property" p4
-            LEFT JOIN "Unit" u3 ON u3."propertyId" = p4."id"
-            LEFT JOIN "Lease" l3 ON l3."unitId" = u3."id" AND l3."status" = 'ACTIVE'
-            LEFT JOIN "Tenant" t2 ON l3."tenantId" = t2."id"
-            LEFT JOIN "MaintenanceRequest" mr ON mr."unitId" = u3."id" 
+            FROM "property" p4
+            LEFT JOIN "unit" u3 ON u3."propertyId" = p4."id"
+            LEFT JOIN "lease" l3 ON l3."unitId" = u3."id" AND l3."status" = 'ACTIVE'
+            LEFT JOIN "tenant" t2 ON l3."tenantId" = t2."id"
+            LEFT JOIN "maintenance_request" mr ON mr."unitId" = u3."id" 
                 AND mr."createdAt" >= v_start_date
             GROUP BY p4."id"
         ) as complaint_metrics ON p."id" = complaint_metrics.property_id
@@ -245,7 +245,7 @@ BEGIN
             SELECT 
                 p5."id" as property_id,
                 4.2 as avg_response_rating -- Placeholder - would calculate from actual response times
-            FROM "Property" p5
+            FROM "property" p5
         ) as response_metrics ON p."id" = response_metrics.property_id
         LEFT JOIN (
             -- Renewal intent metrics
@@ -256,9 +256,9 @@ BEGIN
                     THEN ROUND((COUNT(l4.*) FILTER (WHERE l4."endDate" > NOW() + INTERVAL '60 days')::FLOAT / COUNT(l4.*)) * 100, 2)
                     ELSE 0
                 END as renewal_intent
-            FROM "Property" p6
-            LEFT JOIN "Unit" u4 ON u4."propertyId" = p6."id"
-            LEFT JOIN "Lease" l4 ON l4."unitId" = u4."id" AND l4."status" = 'ACTIVE'
+            FROM "property" p6
+            LEFT JOIN "unit" u4 ON u4."propertyId" = p6."id"
+            LEFT JOIN "lease" l4 ON l4."unitId" = u4."id" AND l4."status" = 'ACTIVE'
             GROUP BY p6."id"
         ) as renewal_metrics ON p."id" = renewal_metrics.property_id
         LEFT JOIN (
@@ -266,7 +266,7 @@ BEGIN
             SELECT 
                 p7."id" as property_id,
                 60 as nps_score -- Placeholder - would integrate with actual NPS surveys
-            FROM "Property" p7
+            FROM "property" p7
         ) as nps_metrics ON p."id" = nps_metrics.property_id
         WHERE p."ownerId" = p_user_id
         AND (p_property_id IS NULL OR p."id" = p_property_id)
@@ -327,7 +327,7 @@ BEGIN
                 'timeframe', p_timeframe
             )
         )
-        FROM "Property" p
+        FROM "property" p
         LEFT JOIN (
             -- Basic retention statistics
             SELECT 
@@ -336,9 +336,9 @@ BEGIN
                 COUNT(DISTINCT l2."tenantId") FILTER (WHERE l2."status" = 'ACTIVE') as retained_tenants,
                 COUNT(DISTINCT l2."tenantId") FILTER (WHERE l2."status" IN ('EXPIRED', 'TERMINATED')) as churned_tenants,
                 COUNT(DISTINCT l2."tenantId") FILTER (WHERE l2."startDate" >= v_start_date) as new_tenants
-            FROM "Property" p2
-            LEFT JOIN "Unit" u ON u."propertyId" = p2."id"
-            LEFT JOIN "Lease" l2 ON l2."unitId" = u."id"
+            FROM "property" p2
+            LEFT JOIN "unit" u ON u."propertyId" = p2."id"
+            LEFT JOIN "lease" l2 ON l2."unitId" = u."id"
             WHERE l2."startDate" >= v_start_date OR l2."status" = 'ACTIVE'
             GROUP BY p2."id"
         ) as retention_stats ON p."id" = retention_stats.property_id
@@ -349,9 +349,9 @@ BEGIN
                 AVG(
                     EXTRACT(EPOCH FROM (COALESCE(l3."terminatedAt", l3."endDate") - l3."startDate")) / (86400 * 30)
                 ) as avg_tenure_months
-            FROM "Property" p3
-            LEFT JOIN "Unit" u2 ON u2."propertyId" = p3."id"
-            LEFT JOIN "Lease" l3 ON l3."unitId" = u2."id"
+            FROM "property" p3
+            LEFT JOIN "unit" u2 ON u2."propertyId" = p3."id"
+            LEFT JOIN "lease" l3 ON l3."unitId" = u2."id"
             WHERE l3."status" IN ('EXPIRED', 'TERMINATED')
             AND l3."startDate" >= v_start_date
             GROUP BY p3."id"
@@ -366,7 +366,7 @@ BEGIN
                     json_build_object('reason', 'Financial reasons', 'percentage', 20),
                     json_build_object('reason', 'Property issues', 'percentage', 10)
                 ) as reasons
-            FROM "Property" p4
+            FROM "property" p4
         ) as churn_reasons ON p."id" = churn_reasons.property_id
         LEFT JOIN (
             -- Seasonal trends (placeholder)
@@ -378,7 +378,7 @@ BEGIN
                     json_build_object('month', 'Q3', 'churnRate', 25),
                     json_build_object('month', 'Q4', 'churnRate', 12)
                 ) as trends
-            FROM "Property" p5
+            FROM "property" p5
         ) as seasonal_stats ON p."id" = seasonal_stats.property_id
         LEFT JOIN (
             -- Retention by tenure segment
@@ -387,14 +387,14 @@ BEGIN
                 COUNT(*) FILTER (WHERE tenure_months <= 12)::FLOAT / NULLIF(COUNT(*), 0) * 100 as short_term_retention,
                 COUNT(*) FILTER (WHERE tenure_months > 12 AND tenure_months <= 24)::FLOAT / NULLIF(COUNT(*), 0) * 100 as medium_term_retention,
                 COUNT(*) FILTER (WHERE tenure_months > 24)::FLOAT / NULLIF(COUNT(*), 0) * 100 as long_term_retention
-            FROM "Property" p6
-            LEFT JOIN "Unit" u3 ON u3."propertyId" = p6."id"
-            LEFT JOIN "Lease" l4 ON l4."unitId" = u3."id"
+            FROM "property" p6
+            LEFT JOIN "unit" u3 ON u3."propertyId" = p6."id"
+            LEFT JOIN "lease" l4 ON l4."unitId" = u3."id"
             LEFT JOIN (
                 SELECT 
                     l5."id",
                     EXTRACT(EPOCH FROM (COALESCE(l5."terminatedAt", NOW()) - l5."startDate")) / (86400 * 30) as tenure_months
-                FROM "Lease" l5
+                FROM "lease" l5
                 WHERE l5."status" IN ('ACTIVE', 'EXPIRED', 'TERMINATED')
             ) as tenure_calc ON l4."id" = tenure_calc."id"
             WHERE l4."startDate" >= v_start_date OR l4."status" = 'ACTIVE'
@@ -449,7 +449,7 @@ BEGIN
                 'averageTenureMonths', COALESCE(demo_stats.avg_tenure_months, 0)
             )
         )
-        FROM "Property" p
+        FROM "property" p
         LEFT JOIN (
             -- Basic demographic statistics
             SELECT 
@@ -465,10 +465,10 @@ BEGIN
                 AVG(
                     EXTRACT(EPOCH FROM (NOW() - l2."startDate")) / (86400 * 30)
                 ) as avg_tenure_months
-            FROM "Property" p2
-            LEFT JOIN "Unit" u ON u."propertyId" = p2."id"
-            LEFT JOIN "Lease" l2 ON l2."unitId" = u."id" AND l2."status" = 'ACTIVE'
-            LEFT JOIN "Tenant" t ON l2."tenantId" = t."id"
+            FROM "property" p2
+            LEFT JOIN "unit" u ON u."propertyId" = p2."id"
+            LEFT JOIN "lease" l2 ON l2."unitId" = u."id" AND l2."status" = 'ACTIVE'
+            LEFT JOIN "tenant" t ON l2."tenantId" = t."id"
             GROUP BY p2."id"
         ) as demo_stats ON p."id" = demo_stats.property_id
         LEFT JOIN (
@@ -491,10 +491,10 @@ BEGIN
                     t2."dateOfBirth" IS NOT NULL AND 
                     EXTRACT(YEAR FROM AGE(t2."dateOfBirth")) > 50
                 ) as over_50
-            FROM "Property" p3
-            LEFT JOIN "Unit" u2 ON u2."propertyId" = p3."id"
-            LEFT JOIN "Lease" l3 ON l3."unitId" = u2."id" AND l3."status" = 'ACTIVE'
-            LEFT JOIN "Tenant" t2 ON l3."tenantId" = t2."id"
+            FROM "property" p3
+            LEFT JOIN "unit" u2 ON u2."propertyId" = p3."id"
+            LEFT JOIN "lease" l3 ON l3."unitId" = u2."id" AND l3."status" = 'ACTIVE'
+            LEFT JOIN "tenant" t2 ON l3."tenantId" = t2."id"
             GROUP BY p3."id"
         ) as age_stats ON p."id" = age_stats.property_id
         LEFT JOIN (
@@ -504,10 +504,10 @@ BEGIN
                 COUNT(*) FILTER (WHERE t3."communicationPreference" = 'email') as email_pref,
                 COUNT(*) FILTER (WHERE t3."communicationPreference" = 'phone') as phone_pref,
                 COUNT(*) FILTER (WHERE t3."communicationPreference" = 'text') as text_pref
-            FROM "Property" p4
-            LEFT JOIN "Unit" u3 ON u3."propertyId" = p4."id"
-            LEFT JOIN "Lease" l4 ON l4."unitId" = u3."id" AND l4."status" = 'ACTIVE'
-            LEFT JOIN "Tenant" t3 ON l4."tenantId" = t3."id"
+            FROM "property" p4
+            LEFT JOIN "unit" u3 ON u3."propertyId" = p4."id"
+            LEFT JOIN "lease" l4 ON l4."unitId" = u3."id" AND l4."status" = 'ACTIVE'
+            LEFT JOIN "tenant" t3 ON l4."tenantId" = t3."id"
             GROUP BY p4."id"
         ) as comm_stats ON p."id" = comm_stats.property_id
         LEFT JOIN (
@@ -517,10 +517,10 @@ BEGIN
                 COUNT(*) FILTER (WHERE t4."invitationStatus" = 'ACCEPTED') as accepted,
                 COUNT(*) FILTER (WHERE t4."invitationStatus" = 'PENDING') as pending,
                 COUNT(*) FILTER (WHERE t4."invitationStatus" = 'SENT') as sent
-            FROM "Property" p5
-            LEFT JOIN "Unit" u4 ON u4."propertyId" = p5."id"
-            LEFT JOIN "Lease" l5 ON l5."unitId" = u4."id" AND l5."status" = 'ACTIVE'
-            LEFT JOIN "Tenant" t4 ON l5."tenantId" = t4."id"
+            FROM "property" p5
+            LEFT JOIN "unit" u4 ON u4."propertyId" = p5."id"
+            LEFT JOIN "lease" l5 ON l5."unitId" = u4."id" AND l5."status" = 'ACTIVE'
+            LEFT JOIN "tenant" t4 ON l5."tenantId" = t4."id"
             GROUP BY p5."id"
         ) as invite_stats ON p."id" = invite_stats.property_id
         LEFT JOIN (
@@ -530,14 +530,14 @@ BEGIN
                 COUNT(*) FILTER (WHERE tenure_months <= 6) as new_tenants,
                 COUNT(*) FILTER (WHERE tenure_months > 6 AND tenure_months <= 24) as established_tenants,
                 COUNT(*) FILTER (WHERE tenure_months > 24) as long_term_tenants
-            FROM "Property" p6
-            LEFT JOIN "Unit" u5 ON u5."propertyId" = p6."id"
-            LEFT JOIN "Lease" l6 ON l6."unitId" = u5."id" AND l6."status" = 'ACTIVE'
+            FROM "property" p6
+            LEFT JOIN "unit" u5 ON u5."propertyId" = p6."id"
+            LEFT JOIN "lease" l6 ON l6."unitId" = u5."id" AND l6."status" = 'ACTIVE'
             LEFT JOIN (
                 SELECT 
                     l7."id",
                     EXTRACT(EPOCH FROM (NOW() - l7."startDate")) / (86400 * 30) as tenure_months
-                FROM "Lease" l7
+                FROM "lease" l7
             ) as tenure_calc ON l6."id" = tenure_calc."id"
             GROUP BY p6."id"
         ) as tenure_stats ON p."id" = tenure_stats.property_id

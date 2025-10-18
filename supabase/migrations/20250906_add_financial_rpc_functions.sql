@@ -31,9 +31,9 @@ BEGIN
       
       -- Scheduled payments (from active leases)
       (SELECT COALESCE(SUM(l."rentAmount"), 0)
-       FROM "Lease" l
-       JOIN "Unit" u ON u.id = l."unitId"
-       JOIN "Property" p ON p.id = u."propertyId"
+       FROM "lease" l
+       JOIN "unit" u ON u.id = l."unitId"
+       JOIN "property" p ON p.id = u."propertyId"
        WHERE p."userId" = p_user_id 
        AND l.status = 'ACTIVE'
        AND l."startDate" <= DATE_TRUNC('month', generate_series.generate_series) + INTERVAL '1 month' - INTERVAL '1 day'
@@ -45,9 +45,9 @@ BEGIN
       
       -- Income from rent payments (scheduled amount for now; replace with actual payment tracking when available)
       (SELECT COALESCE(SUM(l."rentAmount"), 0)
-       FROM "Lease" l
-       JOIN "Unit" u ON u.id = l."unitId" 
-       JOIN "Property" p ON p.id = u."propertyId"
+       FROM "lease" l
+       JOIN "unit" u ON u.id = l."unitId" 
+       JOIN "property" p ON p.id = u."propertyId"
        WHERE p."userId" = p_user_id
        AND l.status = 'ACTIVE'
        AND l."startDate" <= DATE_TRUNC('month', generate_series.generate_series) + INTERVAL '1 month' - INTERVAL '1 day'
@@ -130,9 +130,9 @@ BEGIN
       'activeLeases', COUNT(l.id),
       'totalUnits', COUNT(u.id)
     )
-    FROM "Property" p
-    LEFT JOIN "Unit" u ON u."propertyId" = p.id
-    LEFT JOIN "Lease" l ON l."unitId" = u.id AND l.status = 'ACTIVE'
+    FROM "property" p
+    LEFT JOIN "unit" u ON u."propertyId" = p.id
+    LEFT JOIN "lease" l ON l."unitId" = u.id AND l.status = 'ACTIVE'
     WHERE p."userId" = p_user_id
   );
 END;

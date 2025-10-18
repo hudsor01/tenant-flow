@@ -28,21 +28,21 @@ BEGIN
         'total', COALESCE(COUNT(*), 0),
         'owned', COALESCE(COUNT(*), 0),
         'rented', COALESCE(COUNT(CASE WHEN EXISTS(
-            SELECT 1 FROM "Unit" u
-            JOIN "Lease" l ON u.id = l."unitId"
+            SELECT 1 FROM "unit" u
+            JOIN "lease" l ON u.id = l."unitId"
             WHERE u."propertyId" = p.id AND l.status = 'ACTIVE'
         ) THEN 1 END), 0),
         'available', COALESCE(COUNT(CASE WHEN NOT EXISTS(
-            SELECT 1 FROM "Unit" u
-            JOIN "Lease" l ON u.id = l."unitId"
+            SELECT 1 FROM "unit" u
+            JOIN "lease" l ON u.id = l."unitId"
             WHERE u."propertyId" = p.id AND l.status = 'ACTIVE'
         ) THEN 1 END), 0),
         'maintenance', COALESCE(COUNT(CASE WHEN EXISTS(
-            SELECT 1 FROM "Unit" u
+            SELECT 1 FROM "unit" u
             WHERE u."propertyId" = p.id AND u.status = 'MAINTENANCE'
         ) THEN 1 END), 0)
     ) INTO properties_stats
-    FROM "Property" p
+    FROM "property" p
     WHERE p."ownerId" = user_id_param;
 
     -- Tenants statistics
@@ -51,10 +51,10 @@ BEGIN
         'active', COALESCE(COUNT(DISTINCT CASE WHEN t.status = 'ACTIVE' THEN t.id END), 0),
         'inactive', COALESCE(COUNT(DISTINCT CASE WHEN t.status != 'ACTIVE' THEN t.id END), 0)
     ) INTO tenants_stats
-    FROM "Tenant" t
-    JOIN "Lease" l ON t.id = l."tenantId"
-    JOIN "Unit" u ON l."unitId" = u.id
-    JOIN "Property" p ON u."propertyId" = p.id
+    FROM "tenant" t
+    JOIN "lease" l ON t.id = l."tenantId"
+    JOIN "unit" u ON l."unitId" = u.id
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = user_id_param;
 
     -- Units statistics
@@ -72,8 +72,8 @@ BEGIN
             ELSE 0
         END
     ) INTO units_stats
-    FROM "Unit" u
-    JOIN "Property" p ON u."propertyId" = p.id
+    FROM "unit" u
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = user_id_param;
 
     -- Leases statistics
@@ -86,9 +86,9 @@ BEGIN
         'total', COALESCE(COUNT(*), 0),
         'active', COALESCE(COUNT(CASE WHEN l.status = 'ACTIVE' THEN 1 END), 0)
     ) INTO leases_stats
-    FROM "Lease" l
-    JOIN "Unit" u ON l."unitId" = u.id
-    JOIN "Property" p ON u."propertyId" = p.id
+    FROM "lease" l
+    JOIN "unit" u ON l."unitId" = u.id
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = user_id_param;
 
     -- Maintenance requests statistics
@@ -98,9 +98,9 @@ BEGIN
         'inProgress', COALESCE(COUNT(CASE WHEN m.status = 'IN_PROGRESS' THEN 1 END), 0),
         'completed', COALESCE(COUNT(CASE WHEN m.status = 'COMPLETED' THEN 1 END), 0)
     ) INTO maintenance_stats
-    FROM "MaintenanceRequest" m
-    JOIN "Unit" u ON m."unitId" = u.id
-    JOIN "Property" p ON u."propertyId" = p.id
+    FROM "maintenance_request" m
+    JOIN "unit" u ON m."unitId" = u.id
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = user_id_param;
 
     -- Notifications statistics (placeholder - assuming no notifications table yet)
@@ -118,10 +118,10 @@ BEGIN
         'collected', COALESCE(SUM(CASE WHEN rp.status = 'SUCCEEDED' THEN rp.amount ELSE 0 END), 0) / 100
     ) INTO revenue_stats
     FROM "RentPayment" rp
-    JOIN "Tenant" t ON rp."tenantId" = t.id
-    JOIN "Lease" l ON t.id = l."tenantId"
-    JOIN "Unit" u ON l."unitId" = u.id
-    JOIN "Property" p ON u."propertyId" = p.id
+    JOIN "tenant" t ON rp."tenantId" = t.id
+    JOIN "lease" l ON t.id = l."tenantId"
+    JOIN "unit" u ON l."unitId" = u.id
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = user_id_param;
 
     -- Build final result
@@ -176,14 +176,14 @@ BEGIN
             END
         )
     ) INTO result
-    FROM "Property" p
+    FROM "property" p
     LEFT JOIN (
         SELECT
             u."propertyId",
             COUNT(*) as total_units,
             COUNT(CASE WHEN u.status = 'OCCUPIED' THEN 1 END) as occupied_units,
             COUNT(CASE WHEN u.status = 'VACANT' THEN 1 END) as vacant_units
-        FROM "Unit" u
+        FROM "unit" u
         GROUP BY u."propertyId"
     ) unit_counts ON p.id = unit_counts."propertyId"
     LEFT JOIN (
@@ -191,16 +191,16 @@ BEGIN
             p.id as property_id,
             COALESCE(SUM(CASE WHEN l.status = 'ACTIVE' THEN l."rentAmount" * 12 ELSE 0 END), 0) as annual_revenue,
             COALESCE(SUM(CASE WHEN l.status = 'ACTIVE' THEN l."rentAmount" ELSE 0 END), 0) as monthly_revenue
-        FROM "Property" p
-        LEFT JOIN "Unit" u ON p.id = u."propertyId"
-        LEFT JOIN "Lease" l ON u.id = l."unitId"
+        FROM "property" p
+        LEFT JOIN "unit" u ON p.id = u."propertyId"
+        LEFT JOIN "lease" l ON u.id = l."unitId"
         GROUP BY p.id
     ) revenue_data ON p.id = revenue_data.property_id
     LEFT JOIN (
         SELECT
             u."propertyId",
             AVG(u.rent) as average_rent
-        FROM "Unit" u
+        FROM "unit" u
         WHERE u.rent IS NOT NULL
         GROUP BY u."propertyId"
     ) avg_rent ON p.id = avg_rent."propertyId"
@@ -234,9 +234,9 @@ BEGIN
             ELSE NULL
         END
     ) INTO avg_resolution_time
-    FROM "MaintenanceRequest" m
-    JOIN "Unit" u ON m."unitId" = u.id
-    JOIN "Property" p ON u."propertyId" = p.id
+    FROM "maintenance_request" m
+    JOIN "unit" u ON m."unitId" = u.id
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = user_id;
 
     -- Calculate completion rate
@@ -247,9 +247,9 @@ BEGIN
             ELSE 0
         END
     INTO completion_rate
-    FROM "MaintenanceRequest" m
-    JOIN "Unit" u ON m."unitId" = u.id
-    JOIN "Property" p ON u."propertyId" = p.id
+    FROM "maintenance_request" m
+    JOIN "unit" u ON m."unitId" = u.id
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = user_id;
 
     -- Priority breakdown
@@ -259,9 +259,9 @@ BEGIN
         SELECT
             m.priority,
             COUNT(*) as count
-        FROM "MaintenanceRequest" m
-        JOIN "Unit" u ON m."unitId" = u.id
-        JOIN "Property" p ON u."propertyId" = p.id
+        FROM "maintenance_request" m
+        JOIN "unit" u ON m."unitId" = u.id
+        JOIN "property" p ON u."propertyId" = p.id
         WHERE p."ownerId" = user_id
         GROUP BY m.priority
     ) priority_stats;
@@ -287,9 +287,9 @@ BEGIN
                     ELSE NULL
                 END
             ) as avg_resolution_days
-        FROM "MaintenanceRequest" m
-        JOIN "Unit" u ON m."unitId" = u.id
-        JOIN "Property" p ON u."propertyId" = p.id
+        FROM "maintenance_request" m
+        JOIN "unit" u ON m."unitId" = u.id
+        JOIN "property" p ON u."propertyId" = p.id
         WHERE p."ownerId" = user_id
             AND m."createdAt" >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '12 months'
         GROUP BY DATE_TRUNC('month', m."createdAt")
@@ -356,10 +356,10 @@ BEGIN
                 ORDER BY DATE_TRUNC('month', rp2."paidAt")
             )
             FROM "RentPayment" rp2
-            JOIN "Tenant" t2 ON rp2."tenantId" = t2.id
-            JOIN "Lease" l2 ON t2.id = l2."tenantId"
-            JOIN "Unit" u2 ON l2."unitId" = u2.id
-            JOIN "Property" p2 ON u2."propertyId" = p2.id
+            JOIN "tenant" t2 ON rp2."tenantId" = t2.id
+            JOIN "lease" l2 ON t2.id = l2."tenantId"
+            JOIN "unit" u2 ON l2."unitId" = u2.id
+            JOIN "property" p2 ON u2."propertyId" = p2.id
             WHERE p2."ownerId" = user_id
                 AND rp2."paidAt" >= date_filter_start
                 AND rp2."paidAt" <= date_filter_end
@@ -368,10 +368,10 @@ BEGIN
         )
     ) INTO result
     FROM "RentPayment" rp
-    JOIN "Tenant" t ON rp."tenantId" = t.id
-    JOIN "Lease" l ON t.id = l."tenantId"
-    JOIN "Unit" u ON l."unitId" = u.id
-    JOIN "Property" p ON u."propertyId" = p.id
+    JOIN "tenant" t ON rp."tenantId" = t.id
+    JOIN "lease" l ON t.id = l."tenantId"
+    JOIN "unit" u ON l."unitId" = u.id
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = user_id
         AND rp."paidAt" >= date_filter_start
         AND rp."paidAt" <= date_filter_end;

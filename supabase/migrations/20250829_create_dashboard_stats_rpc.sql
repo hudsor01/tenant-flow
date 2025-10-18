@@ -88,7 +88,7 @@ BEGIN
       COUNT(*) FILTER (WHERE "propertyType" = 'SINGLE_FAMILY') as single_family,
       COUNT(*) FILTER (WHERE "propertyType" = 'MULTI_UNIT') as multi_family,
       COUNT(*) FILTER (WHERE "propertyType" = 'COMMERCIAL') as commercial
-    FROM "Property"
+    FROM "property"
     WHERE "ownerId" = user_id_param
   ) as property_stats
   CROSS JOIN (
@@ -98,8 +98,8 @@ BEGIN
       COUNT(u.*) FILTER (WHERE u."status" = 'OCCUPIED') as occupied_units,
       COUNT(u.*) FILTER (WHERE u."status" = 'VACANT') as vacant_units,
       COALESCE(SUM(u."rent"), 0) as total_rentAmount
-    FROM "Property" p
-    LEFT JOIN "Unit" u ON p."id" = u."propertyId"
+    FROM "property" p
+    LEFT JOIN "unit" u ON p."id" = u."propertyId"
     WHERE p."ownerId" = user_id_param
   ) as unit_stats
   CROSS JOIN (
@@ -108,10 +108,10 @@ BEGIN
       COUNT(DISTINCT t.*) as total,
       COUNT(DISTINCT t.*) FILTER (WHERE l."status" = 'ACTIVE') as active,
       COUNT(DISTINCT t.*) FILTER (WHERE l."status" != 'ACTIVE' OR l."status" IS NULL) as inactive
-    FROM "Property" p
-    LEFT JOIN "Unit" u ON p."id" = u."propertyId"  
-    LEFT JOIN "Lease" l ON u."id" = l."unitId"
-    LEFT JOIN "Tenant" t ON l."tenantId" = t."id"
+    FROM "property" p
+    LEFT JOIN "unit" u ON p."id" = u."propertyId"  
+    LEFT JOIN "lease" l ON u."id" = l."unitId"
+    LEFT JOIN "tenant" t ON l."tenantId" = t."id"
     WHERE p."ownerId" = user_id_param
   ) as tenant_stats
   CROSS JOIN (
@@ -122,9 +122,9 @@ BEGIN
       COUNT(*) FILTER (WHERE l."status" = 'EXPIRED') as expired,
       COUNT(*) FILTER (WHERE l."status" = 'DRAFT') as draft,
       COUNT(*) FILTER (WHERE l."status" = 'TERMINATED') as terminated
-    FROM "Property" p
-    LEFT JOIN "Unit" u ON p."id" = u."propertyId"
-    LEFT JOIN "Lease" l ON u."id" = l."unitId"
+    FROM "property" p
+    LEFT JOIN "unit" u ON p."id" = u."propertyId"
+    LEFT JOIN "lease" l ON u."id" = l."unitId"
     WHERE p."ownerId" = user_id_param
   ) as lease_stats;
 

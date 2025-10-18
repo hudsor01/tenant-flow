@@ -85,24 +85,24 @@ BEGIN
                 END,
                 l."endDate" ASC
         )
-        FROM "Lease" l
-        INNER JOIN "Unit" u ON l."unitId" = u."id"
-        INNER JOIN "Property" p ON u."propertyId" = p."id"
-        LEFT JOIN "Tenant" t ON l."tenantId" = t."id"
+        FROM "lease" l
+        INNER JOIN "unit" u ON l."unitId" = u."id"
+        INNER JOIN "property" p ON u."propertyId" = p."id"
+        LEFT JOIN "tenant" t ON l."tenantId" = t."id"
         LEFT JOIN (
             -- Payment performance score (simplified)
             SELECT 
                 l2."id" as lease_id,
                 100 as payment_score -- Placeholder - would integrate with payment system
-            FROM "Lease" l2
+            FROM "lease" l2
         ) as payment_stats ON l."id" = payment_stats.lease_id
         LEFT JOIN (
             -- Maintenance requests per lease/unit
             SELECT 
                 u2."id" as unit_id,
                 COUNT(mr.*) as total_requests
-            FROM "Unit" u2
-            LEFT JOIN "MaintenanceRequest" mr ON mr."unitId" = u2."id"
+            FROM "unit" u2
+            LEFT JOIN "maintenance_request" mr ON mr."unitId" = u2."id"
             WHERE mr."createdAt" >= v_start_date OR mr."createdAt" IS NULL
             GROUP BY u2."id"
         ) as maint_stats ON u."id" = maint_stats.unit_id
@@ -168,10 +168,10 @@ BEGIN
                     l."status" = 'ACTIVE' AND 
                     l."endDate" BETWEEN NOW() AND NOW() + INTERVAL '60 days'
                 ) as expiring_soon
-            FROM "Property" p
+            FROM "property" p
             CROSS JOIN time_series ts
-            LEFT JOIN "Unit" u ON u."propertyId" = p."id"
-            LEFT JOIN "Lease" l ON l."unitId" = u."id" 
+            LEFT JOIN "unit" u ON u."propertyId" = p."id"
+            LEFT JOIN "lease" l ON l."unitId" = u."id" 
                 AND date_trunc(v_date_trunc_format, l."startDate") = ts.period_start
             WHERE p."ownerId" = p_user_id
             AND (p_property_id IS NULL OR p."id" = p_property_id)
@@ -251,13 +251,13 @@ BEGIN
                 'timeframe', p_timeframe
             )
         )
-        FROM "Property" p
+        FROM "property" p
         LEFT JOIN (
             -- Unit statistics
             SELECT 
                 u."propertyId",
                 COUNT(u.*) as total_units
-            FROM "Unit" u
+            FROM "unit" u
             GROUP BY u."propertyId"
         ) as unit_stats ON p."id" = unit_stats."propertyId"
         LEFT JOIN (
@@ -276,9 +276,9 @@ BEGIN
                         ELSE EXTRACT(EPOCH FROM (NOW() - l."startDate")) / (86400 * 30)
                     END
                 ) as avg_tenure_months
-            FROM "Property" p2
-            LEFT JOIN "Unit" u ON u."propertyId" = p2."id"
-            LEFT JOIN "Lease" l ON l."unitId" = u."id"
+            FROM "property" p2
+            LEFT JOIN "unit" u ON u."propertyId" = p2."id"
+            LEFT JOIN "lease" l ON l."unitId" = u."id"
                 AND (l."startDate" >= v_start_date OR l."endDate" >= v_start_date OR l."status" = 'ACTIVE')
             GROUP BY p2."id"
         ) as lease_stats ON p."id" = lease_stats.property_id
@@ -287,7 +287,7 @@ BEGIN
             SELECT 
                 u2."propertyId",
                 AVG(30) as avg_vacancy_days -- Placeholder - would calculate actual vacancy periods
-            FROM "Unit" u2
+            FROM "unit" u2
             WHERE u2."status" = 'VACANT'
             GROUP BY u2."propertyId"
         ) as vacancy_stats ON p."id" = vacancy_stats."propertyId"
@@ -357,10 +357,10 @@ BEGIN
                 l."status" as lease_status,
                 l."startDate",
                 l."endDate"
-            FROM "Property" p
-            INNER JOIN "Unit" u ON u."propertyId" = p."id"
-            INNER JOIN "Lease" l ON l."unitId" = u."id"
-            LEFT JOIN "Tenant" t ON l."tenantId" = t."id"
+            FROM "property" p
+            INNER JOIN "unit" u ON u."propertyId" = p."id"
+            INNER JOIN "lease" l ON l."unitId" = u."id"
+            LEFT JOIN "tenant" t ON l."tenantId" = t."id"
             CROSS JOIN time_series ts
             WHERE p."ownerId" = p_user_id
             AND (p_property_id IS NULL OR p."id" = p_property_id)

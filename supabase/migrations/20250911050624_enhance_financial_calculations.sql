@@ -38,9 +38,9 @@ BEGIN
       
       -- Revenue from active leases (in cents for precision)
       (SELECT COALESCE(SUM(l."rentAmount" * 100), 0)
-       FROM "Lease" l
-       JOIN "Unit" u ON u.id = l."unitId"
-       JOIN "Property" p ON p.id = u."propertyId"
+       FROM "lease" l
+       JOIN "unit" u ON u.id = l."unitId"
+       JOIN "property" p ON p.id = u."propertyId"
        WHERE p."userId" = p_user_id 
        AND l.status = 'ACTIVE'
        AND l."startDate" <= DATE_TRUNC('month', generate_series.generate_series) + INTERVAL '1 month' - INTERVAL '1 day'
@@ -54,8 +54,8 @@ BEGIN
           ELSE 50000 -- Default $500 maintenance per property per month
         END
       ), 0)
-       FROM "Property" p
-       LEFT JOIN "MaintenanceRequest" mr ON mr."propertyId" = p.id 
+       FROM "property" p
+       LEFT JOIN "maintenance_request" mr ON mr."propertyId" = p.id 
          AND DATE_TRUNC('month', mr."createdAt") = DATE_TRUNC('month', generate_series.generate_series)
        WHERE p."userId" = p_user_id
       ) as expense_amount
@@ -75,9 +75,9 @@ BEGIN
   -- Calculate previous year revenue for growth calculation
   SELECT COALESCE(SUM(l."rentAmount" * 100), 0)
   INTO previous_year_revenue
-  FROM "Lease" l
-  JOIN "Unit" u ON u.id = l."unitId"
-  JOIN "Property" p ON p.id = u."propertyId"
+  FROM "lease" l
+  JOIN "unit" u ON u.id = l."unitId"
+  JOIN "property" p ON p.id = u."propertyId"
   WHERE p."userId" = p_user_id 
   AND l.status = 'ACTIVE'
   AND EXTRACT(YEAR FROM l."startDate") = p_year - 1;
@@ -164,8 +164,8 @@ BEGIN
       'Maintenance' as category_name,
       COALESCE(SUM(COALESCE(mr."estimatedCost" * 100, 50000)), 0) as amount_cents,
       SUM(COALESCE(mr."estimatedCost" * 100, 50000)) OVER () as total_amount
-    FROM "Property" p
-    LEFT JOIN "MaintenanceRequest" mr ON mr."propertyId" = p.id 
+    FROM "property" p
+    LEFT JOIN "maintenance_request" mr ON mr."propertyId" = p.id 
       AND EXTRACT(YEAR FROM mr."createdAt") = p_year
     WHERE p."userId" = p_user_id
     
@@ -175,7 +175,7 @@ BEGIN
       'Insurance' as category_name,
       COUNT(p.id) * 120000 as amount_cents, -- $1200 per property per year
       COUNT(p.id) * 120000 as total_amount
-    FROM "Property" p
+    FROM "property" p
     WHERE p."userId" = p_user_id
     
     UNION ALL
@@ -184,7 +184,7 @@ BEGIN
       'Property Tax' as category_name,
       COUNT(p.id) * 200000 as amount_cents, -- $2000 per property per year
       COUNT(p.id) * 200000 as total_amount
-    FROM "Property" p
+    FROM "property" p
     WHERE p."userId" = p_user_id
   ) expense_categories;
 
@@ -229,9 +229,9 @@ BEGIN
     'activeLeases', COUNT(l.id),
     'totalUnits', COUNT(u.id)
   ) INTO current_stats
-  FROM "Property" p
-  LEFT JOIN "Unit" u ON u."propertyId" = p.id
-  LEFT JOIN "Lease" l ON l."unitId" = u.id AND l.status = 'ACTIVE'
+  FROM "property" p
+  LEFT JOIN "unit" u ON u."propertyId" = p.id
+  LEFT JOIN "lease" l ON l."unitId" = u.id AND l.status = 'ACTIVE'
   WHERE p."userId" = p_user_id;
 
   -- Get previous month for change calculations
@@ -239,9 +239,9 @@ BEGIN
     'monthlyRevenue', COALESCE(SUM(l."rentAmount" * 100), 0),
     'monthlyExpenses', COALESCE(COUNT(DISTINCT p.id) * 58333, 0)
   ) INTO previous_stats
-  FROM "Property" p
-  LEFT JOIN "Unit" u ON u."propertyId" = p.id
-  LEFT JOIN "Lease" l ON l."unitId" = u.id 
+  FROM "property" p
+  LEFT JOIN "unit" u ON u."propertyId" = p.id
+  LEFT JOIN "lease" l ON l."unitId" = u.id 
     AND l.status = 'ACTIVE'
     AND l."startDate" <= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') + INTERVAL '1 month' - INTERVAL '1 day'
     AND l."endDate" >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')

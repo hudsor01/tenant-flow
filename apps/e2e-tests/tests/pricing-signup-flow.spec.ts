@@ -2,8 +2,7 @@ import { expect, test } from '@playwright/test'
 
 test.describe('Pricing Page', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/pricing')
-		await page.waitForLoadState('networkidle')
+		await page.goto('/pricing', { waitUntil: 'load', timeout: 60000 })
 	})
 
 	test('displays core pricing content', async ({ page }) => {

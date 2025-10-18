@@ -7,27 +7,27 @@
 -- =============================================================================
 -- The Tenant policy had "OR true" which allowed ANY authenticated user to access ALL tenant records
 
-DROP POLICY IF EXISTS "Users can access their tenant records" ON public."Tenant";
+DROP POLICY IF EXISTS "Users can access their tenant records" ON public."tenant";
 
 -- Create secure tenant policies with proper access controls
-CREATE POLICY "tenant_select_owner" ON public."Tenant"
+CREATE POLICY "tenant_select_owner" ON public."tenant"
   FOR SELECT TO authenticated
   USING ("userId" = auth.uid()::text);
 
-CREATE POLICY "tenant_insert_self" ON public."Tenant"
+CREATE POLICY "tenant_insert_self" ON public."tenant"
   FOR INSERT TO authenticated
   WITH CHECK ("userId" = auth.uid()::text);
 
-CREATE POLICY "tenant_update_owner" ON public."Tenant"
+CREATE POLICY "tenant_update_owner" ON public."tenant"
   FOR UPDATE TO authenticated
   USING ("userId" = auth.uid()::text)
   WITH CHECK ("userId" = auth.uid()::text);
 
-CREATE POLICY "tenant_delete_owner" ON public."Tenant"
+CREATE POLICY "tenant_delete_owner" ON public."tenant"
   FOR DELETE TO authenticated
   USING ("userId" = auth.uid()::text);
 
-CREATE POLICY "tenant_service_full_access" ON public."Tenant"
+CREATE POLICY "tenant_service_full_access" ON public."tenant"
   FOR ALL TO service_role
   USING (true) WITH CHECK (true);
 
@@ -36,15 +36,15 @@ CREATE POLICY "tenant_service_full_access" ON public."Tenant"
 -- =============================================================================
 
 -- EXPENSE TABLE: Should be linked to property ownership
-DROP POLICY IF EXISTS "Authenticated users can manage expenses" ON public."Expense";
+DROP POLICY IF EXISTS "Authenticated users can manage expenses" ON public."expense";
 
-CREATE POLICY "expense_property_owner_access" ON public."Expense"
+CREATE POLICY "expense_property_owner_access" ON public."expense"
   FOR ALL TO authenticated
   USING ("propertyId" IN (
-    SELECT id FROM "Property" WHERE "ownerId" = auth.uid()::text
+    SELECT id FROM "property" WHERE "ownerId" = auth.uid()::text
   ))
   WITH CHECK ("propertyId" IN (
-    SELECT id FROM "Property" WHERE "ownerId" = auth.uid()::text
+    SELECT id FROM "property" WHERE "ownerId" = auth.uid()::text
   ));
 
 -- INSPECTION TABLE: Should be linked to property ownership
@@ -53,10 +53,10 @@ DROP POLICY IF EXISTS "Authenticated users can manage inspections" ON public."In
 CREATE POLICY "inspection_property_owner_access" ON public."Inspection"
   FOR ALL TO authenticated
   USING ("propertyId" IN (
-    SELECT id FROM "Property" WHERE "ownerId" = auth.uid()::text
+    SELECT id FROM "property" WHERE "ownerId" = auth.uid()::text
   ))
   WITH CHECK ("propertyId" IN (
-    SELECT id FROM "Property" WHERE "ownerId" = auth.uid()::text
+    SELECT id FROM "property" WHERE "ownerId" = auth.uid()::text
   ));
 
 -- MESSAGE TABLE: Should be limited to sender/receiver
@@ -81,24 +81,24 @@ CREATE POLICY "file_owner_or_uploader_access" ON public."File"
   USING (
     "uploadedById" = auth.uid()::text OR
     ("propertyId" IS NOT NULL AND "propertyId" IN (
-      SELECT id FROM "Property" WHERE "ownerId" = auth.uid()::text
+      SELECT id FROM "property" WHERE "ownerId" = auth.uid()::text
     )) OR
     ("maintenanceRequestId" IS NOT NULL AND "maintenanceRequestId" IN (
-      SELECT mr.id FROM "MaintenanceRequest" mr
-      JOIN "Unit" u ON mr."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      SELECT mr.id FROM "maintenance_request" mr
+      JOIN "unit" u ON mr."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = auth.uid()::text
     ))
   )
   WITH CHECK (
     "uploadedById" = auth.uid()::text OR
     ("propertyId" IS NOT NULL AND "propertyId" IN (
-      SELECT id FROM "Property" WHERE "ownerId" = auth.uid()::text
+      SELECT id FROM "property" WHERE "ownerId" = auth.uid()::text
     )) OR
     ("maintenanceRequestId" IS NOT NULL AND "maintenanceRequestId" IN (
-      SELECT mr.id FROM "MaintenanceRequest" mr
-      JOIN "Unit" u ON mr."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      SELECT mr.id FROM "maintenance_request" mr
+      JOIN "unit" u ON mr."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = auth.uid()::text
     ))
   );
@@ -113,8 +113,8 @@ DROP POLICY IF EXISTS "Users can view rent charges" ON public."RentCharge";
 CREATE POLICY "rent_charge_property_owner_access" ON public."RentCharge"
   FOR SELECT TO authenticated
   USING ("unitId" IN (
-    SELECT u.id FROM "Unit" u
-    JOIN "Property" p ON u."propertyId" = p.id
+    SELECT u.id FROM "unit" u
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = auth.uid()::text
   ));
 
@@ -125,23 +125,23 @@ CREATE POLICY "rent_payment_stakeholder_access" ON public."RentPayment"
   FOR ALL TO authenticated
   USING (
     "tenantId" IN (
-      SELECT id FROM "Tenant" WHERE "userId" = auth.uid()::text
+      SELECT id FROM "tenant" WHERE "userId" = auth.uid()::text
     ) OR
     EXISTS (
       SELECT 1 FROM "RentCharge" rc
-      JOIN "Unit" u ON rc."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      JOIN "unit" u ON rc."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE rc.id = "rentChargeId" AND p."ownerId" = auth.uid()::text
     )
   )
   WITH CHECK (
     "tenantId" IN (
-      SELECT id FROM "Tenant" WHERE "userId" = auth.uid()::text
+      SELECT id FROM "tenant" WHERE "userId" = auth.uid()::text
     ) OR
     EXISTS (
       SELECT 1 FROM "RentCharge" rc
-      JOIN "Unit" u ON rc."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      JOIN "unit" u ON rc."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE rc.id = "rentChargeId" AND p."ownerId" = auth.uid()::text
     )
   );
@@ -152,10 +152,10 @@ DROP POLICY IF EXISTS "Authenticated users can manage rent collection settings" 
 CREATE POLICY "rent_collection_settings_property_owner_access" ON public."RentCollectionSettings"
   FOR ALL TO authenticated
   USING ("propertyId" IN (
-    SELECT id FROM "Property" WHERE "ownerId" = auth.uid()::text
+    SELECT id FROM "property" WHERE "ownerId" = auth.uid()::text
   ))
   WITH CHECK ("propertyId" IN (
-    SELECT id FROM "Property" WHERE "ownerId" = auth.uid()::text
+    SELECT id FROM "property" WHERE "ownerId" = auth.uid()::text
   ));
 
 -- PAYMENT METHOD: Should be limited to the tenant who owns it
@@ -164,10 +164,10 @@ DROP POLICY IF EXISTS "Authenticated users can view payment methods" ON public."
 CREATE POLICY "payment_method_tenant_access" ON public."PaymentMethod"
   FOR ALL TO authenticated
   USING ("tenantId" IN (
-    SELECT id FROM "Tenant" WHERE "userId" = auth.uid()::text
+    SELECT id FROM "tenant" WHERE "userId" = auth.uid()::text
   ))
   WITH CHECK ("tenantId" IN (
-    SELECT id FROM "Tenant" WHERE "userId" = auth.uid()::text
+    SELECT id FROM "tenant" WHERE "userId" = auth.uid()::text
   ));
 
 -- =============================================================================
@@ -183,7 +183,7 @@ CREATE POLICY "payment_method_tenant_access" ON public."PaymentMethod"
 -- =============================================================================
 
 -- Ensure service role can perform system operations on all fixed tables
-CREATE POLICY "expense_service_access" ON public."Expense"
+CREATE POLICY "expense_service_access" ON public."expense"
   FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 CREATE POLICY "inspection_service_access" ON public."Inspection"
@@ -251,12 +251,12 @@ INSERT INTO public."SecurityAuditLog" (
 /*
 -- Verify Tenant isolation:
 -- This should only return records where userId matches the authenticated user
-SELECT COUNT(*) FROM "Tenant" WHERE "userId" != auth.uid()::text; -- Should return 0
+SELECT COUNT(*) FROM "tenant" WHERE "userId" != auth.uid()::text; -- Should return 0
 
 -- Verify Property-based access for Expense:  
 -- This should only return expenses for properties owned by the authenticated user
-SELECT COUNT(*) FROM "Expense" e 
-JOIN "Property" p ON e."propertyId" = p.id 
+SELECT COUNT(*) FROM "expense" e 
+JOIN "property" p ON e."propertyId" = p.id 
 WHERE p."ownerId" != auth.uid()::text; -- Should return 0
 
 -- Similar tests can be run for other tables...

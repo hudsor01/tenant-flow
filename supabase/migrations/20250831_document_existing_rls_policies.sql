@@ -8,86 +8,86 @@
 
 /*
 -- Property Table (SECURE) 
-CREATE POLICY "Users can only access their own properties" ON public."Property"
+CREATE POLICY "Users can only access their own properties" ON public."property"
   FOR ALL TO authenticated
   USING ("ownerId" = auth.uid()::text)
   WITH CHECK ("ownerId" = auth.uid()::text);
 
 -- User Table (SECURE)
-CREATE POLICY "Users can view and update their own record" ON public."User"
+CREATE POLICY "Users can view and update their own record" ON public."users"
   FOR ALL TO authenticated
   USING (id = auth.uid()::text)
   WITH CHECK (id = auth.uid()::text);
 
 -- Unit Table (SECURE)
-CREATE POLICY "Users can only access units in their properties" ON public."Unit"
+CREATE POLICY "Users can only access units in their properties" ON public."unit"
   FOR ALL TO authenticated
   USING ("propertyId" IN (
-    SELECT "Property".id FROM "Property" 
-    WHERE "Property"."ownerId" = auth.uid()::text
+    SELECT "property".id FROM "property" 
+    WHERE "property"."ownerId" = auth.uid()::text
   ))
   WITH CHECK ("propertyId" IN (
-    SELECT "Property".id FROM "Property" 
-    WHERE "Property"."ownerId" = auth.uid()::text
+    SELECT "property".id FROM "property" 
+    WHERE "property"."ownerId" = auth.uid()::text
   ));
 
 -- Lease Table (SECURE)
-CREATE POLICY "Users can only access leases in their properties" ON public."Lease"
+CREATE POLICY "Users can only access leases in their properties" ON public."lease"
   FOR ALL TO authenticated
   USING ("unitId" IN (
-    SELECT u.id FROM "Unit" u
-    JOIN "Property" p ON u."propertyId" = p.id
+    SELECT u.id FROM "unit" u
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = auth.uid()::text
   ))
   WITH CHECK ("unitId" IN (
-    SELECT u.id FROM "Unit" u
-    JOIN "Property" p ON u."propertyId" = p.id
+    SELECT u.id FROM "unit" u
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = auth.uid()::text
   ));
 
 -- MaintenanceRequest Table (SECURE)
-CREATE POLICY "Users can only access maintenance requests for their properties" ON public."MaintenanceRequest"
+CREATE POLICY "Users can only access maintenance requests for their properties" ON public."maintenance_request"
   FOR ALL TO authenticated
   USING ("unitId" IN (
-    SELECT u.id FROM "Unit" u
-    JOIN "Property" p ON u."propertyId" = p.id
+    SELECT u.id FROM "unit" u
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = auth.uid()::text
   ))
   WITH CHECK ("unitId" IN (
-    SELECT u.id FROM "Unit" u
-    JOIN "Property" p ON u."propertyId" = p.id
+    SELECT u.id FROM "unit" u
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = auth.uid()::text
   ));
 
 -- Document Table (SECURE)
-CREATE POLICY "Users can only access documents for their properties" ON public."Document"
+CREATE POLICY "Users can only access documents for their properties" ON public."document"
   FOR ALL TO authenticated
   USING (
     ("propertyId" IS NOT NULL AND "propertyId" IN (
-      SELECT "Property".id FROM "Property" 
-      WHERE "Property"."ownerId" = auth.uid()::text
+      SELECT "property".id FROM "property" 
+      WHERE "property"."ownerId" = auth.uid()::text
     )) OR 
     ("leaseId" IS NOT NULL AND "leaseId" IN (
-      SELECT l.id FROM "Lease" l
-      JOIN "Unit" u ON l."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      SELECT l.id FROM "lease" l
+      JOIN "unit" u ON l."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = auth.uid()::text
     )) OR 
     ("propertyId" IS NULL AND "leaseId" IS NULL)
   );
 
 -- Invoice Table (SECURE)
-CREATE POLICY "Users can manage their own invoices" ON public."Invoice"
+CREATE POLICY "Users can manage their own invoices" ON public."invoice"
   FOR ALL TO authenticated
   USING ("userId" = auth.uid()::text)
   WITH CHECK ("userId" = auth.uid()::text);
 
 -- Subscription Table (SECURE)
-CREATE POLICY "Users can view their own subscriptions" ON public."Subscription"
+CREATE POLICY "Users can view their own subscriptions" ON public."subscription"
   FOR SELECT TO authenticated
   USING ("userId" = auth.uid()::text);
 
-CREATE POLICY "System can manage subscriptions" ON public."Subscription"
+CREATE POLICY "System can manage subscriptions" ON public."subscription"
   FOR ALL TO service_role
   USING (true) WITH CHECK (true);
 
@@ -164,9 +164,9 @@ CREATE POLICY "Service can insert notifications" ON public."notifications"
   WITH CHECK (
     auth.role() = 'service_role'::text OR 
     EXISTS (
-      SELECT 1 FROM "User" 
-      WHERE "User".id = auth.uid()::text 
-      AND "User".role = 'ADMIN'::"UserRole"
+      SELECT 1 FROM "users" 
+      WHERE "users".id = auth.uid()::text 
+      AND "users".role = 'ADMIN'::"UserRole"
     )
   );
 
@@ -174,9 +174,9 @@ CREATE POLICY "Admins can delete notifications" ON public."notifications"
   FOR DELETE TO public
   USING (
     EXISTS (
-      SELECT 1 FROM "User" 
-      WHERE "User".id = auth.uid()::text 
-      AND "User".role = 'ADMIN'::"UserRole"
+      SELECT 1 FROM "users" 
+      WHERE "users".id = auth.uid()::text 
+      AND "users".role = 'ADMIN'::"UserRole"
     )
   );
 */

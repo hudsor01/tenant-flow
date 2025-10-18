@@ -43,7 +43,7 @@ BEGIN
     -- Calculate total revenue from leases
     SELECT COALESCE(SUM(l.rent_amount), 0)
     INTO v_revenue
-    FROM "Lease" l
+    FROM "lease" l
     WHERE l.user_id = p_user_id
         AND l.status = 'ACTIVE'
         AND l.start_date <= v_end_date
@@ -52,7 +52,7 @@ BEGIN
     -- Calculate total expenses
     SELECT COALESCE(SUM(e.amount), 0)
     INTO v_expenses
-    FROM "Expense" e
+    FROM "expense" e
     WHERE e.user_id = p_user_id
         AND e.date >= v_start_date
         AND e.date <= v_end_date;
@@ -190,7 +190,7 @@ BEGIN
         -- Calculate revenue for the month
         SELECT COALESCE(SUM(l.rent_amount), 0)
         INTO v_revenue
-        FROM "Lease" l
+        FROM "lease" l
         WHERE l.user_id = p_user_id
             AND l.status = 'ACTIVE'
             AND EXTRACT(YEAR FROM l.start_date) <= p_year
@@ -203,7 +203,7 @@ BEGIN
         -- Calculate expenses for the month
         SELECT COALESCE(SUM(e.amount), 0)
         INTO v_expenses
-        FROM "Expense" e
+        FROM "expense" e
         WHERE e.user_id = p_user_id
             AND EXTRACT(YEAR FROM e.date) = p_year
             AND EXTRACT(MONTH FROM e.date) = v_month;
@@ -273,7 +273,7 @@ BEGIN
         WHEN 'unit' THEN
             SELECT status, user_id = p_user_id
             INTO v_entity_status, v_is_owner
-            FROM "Unit"
+            FROM "unit"
             WHERE id = p_entity_id;
 
             -- Units can't be deleted if occupied
@@ -282,12 +282,12 @@ BEGIN
         WHEN 'property' THEN
             SELECT status, user_id = p_user_id
             INTO v_entity_status, v_is_owner
-            FROM "Property"
+            FROM "property"
             WHERE id = p_entity_id;
 
             -- Properties can't be deleted if they have active units
             v_can_delete := v_is_owner AND NOT EXISTS (
-                SELECT 1 FROM "Unit"
+                SELECT 1 FROM "unit"
                 WHERE property_id = p_entity_id
                 AND status = 'OCCUPIED'
             );
@@ -295,12 +295,12 @@ BEGIN
         WHEN 'tenant' THEN
             SELECT status, user_id = p_user_id
             INTO v_entity_status, v_is_owner
-            FROM "Tenant"
+            FROM "tenant"
             WHERE id = p_entity_id;
 
             -- Tenants can't be deleted if they have active leases
             v_can_delete := v_is_owner AND NOT EXISTS (
-                SELECT 1 FROM "Lease"
+                SELECT 1 FROM "lease"
                 WHERE tenant_id = p_entity_id
                 AND status = 'ACTIVE'
             );
@@ -308,7 +308,7 @@ BEGIN
         WHEN 'lease' THEN
             SELECT status, user_id = p_user_id
             INTO v_entity_status, v_is_owner
-            FROM "Lease"
+            FROM "lease"
             WHERE id = p_entity_id;
 
             -- Active leases can't be deleted, only terminated
@@ -317,7 +317,7 @@ BEGIN
         WHEN 'maintenance' THEN
             SELECT status, user_id = p_user_id
             INTO v_entity_status, v_is_owner
-            FROM "MaintenanceRequest"
+            FROM "maintenance_request"
             WHERE id = p_entity_id;
 
             -- Completed maintenance can't be deleted

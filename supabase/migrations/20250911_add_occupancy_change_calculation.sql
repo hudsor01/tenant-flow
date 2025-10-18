@@ -22,8 +22,8 @@ BEGIN
       ELSE 0 
     END
   INTO current_occupancy_rate
-  FROM "Unit" u
-  INNER JOIN "Property" p ON u."propertyId" = p."id"
+  FROM "unit" u
+  INNER JOIN "property" p ON u."propertyId" = p."id"
   WHERE p."ownerId" = user_id_param;
   
   -- Previous period occupancy rate (30 days ago)
@@ -36,9 +36,9 @@ BEGIN
       ELSE current_occupancy_rate
     END
   INTO previous_occupancy_rate
-  FROM "Unit" u
-  INNER JOIN "Property" p ON u."propertyId" = p."id"
-  LEFT JOIN "Lease" l ON u."id" = l."unitId" AND l."status" = 'ACTIVE'
+  FROM "unit" u
+  INNER JOIN "property" p ON u."propertyId" = p."id"
+  LEFT JOIN "lease" l ON u."id" = l."unitId" AND l."status" = 'ACTIVE'
   WHERE p."ownerId" = user_id_param;
   
   -- Calculate occupancy change percentage
@@ -138,7 +138,7 @@ BEGIN
       COUNT(*) FILTER (WHERE "propertyType" = 'SINGLE_FAMILY') as single_family,
       COUNT(*) FILTER (WHERE "propertyType" = 'MULTI_UNIT') as multi_family,
       COUNT(*) FILTER (WHERE "propertyType" = 'COMMERCIAL') as commercial
-    FROM "Property"
+    FROM "property"
     WHERE "ownerId" = user_id_param
   ) as property_stats
   CROSS JOIN (
@@ -148,8 +148,8 @@ BEGIN
       COUNT(u.*) FILTER (WHERE u."status" = 'OCCUPIED') as occupied_units,
       COUNT(u.*) FILTER (WHERE u."status" = 'VACANT') as vacant_units,
       SUM(COALESCE(u."rent", 0)) as total_rentAmount
-    FROM "Unit" u
-    INNER JOIN "Property" p ON u."propertyId" = p."id"
+    FROM "unit" u
+    INNER JOIN "property" p ON u."propertyId" = p."id"
     WHERE p."ownerId" = user_id_param
   ) as unit_stats
   CROSS JOIN (
@@ -157,8 +157,8 @@ BEGIN
     SELECT
       COUNT(t.*) as total,
       COUNT(t.*) FILTER (WHERE t."status" = 'ACTIVE') as active
-    FROM "Tenant" t
-    INNER JOIN "Property" p ON t."propertyId" = p."id"
+    FROM "tenant" t
+    INNER JOIN "property" p ON t."propertyId" = p."id"
     WHERE p."ownerId" = user_id_param
   ) as tenant_stats
   CROSS JOIN (
@@ -169,9 +169,9 @@ BEGIN
       COUNT(l.*) FILTER (WHERE l."status" = 'EXPIRED') as expired,
       COUNT(l.*) FILTER (WHERE l."status" = 'DRAFT') as draft,
       COUNT(l.*) FILTER (WHERE l."endDate" BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days') as expiring_soon
-    FROM "Lease" l
-    INNER JOIN "Unit" u ON l."unitId" = u."id"
-    INNER JOIN "Property" p ON u."propertyId" = p."id"
+    FROM "lease" l
+    INNER JOIN "unit" u ON l."unitId" = u."id"
+    INNER JOIN "property" p ON u."propertyId" = p."id"
     WHERE p."ownerId" = user_id_param
   ) as lease_stats;
 

@@ -11,7 +11,7 @@ DECLARE
 BEGIN
   -- Index on Property.userId for faster user property lookups (RLS queries)
   BEGIN
-    EXECUTE 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_property_user_id ON "Property" ("userId")';
+    EXECUTE 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_property_user_id ON "property" ("userId")';
     result_messages := array_append(result_messages, 'SUCCESS: idx_property_user_id created');
   EXCEPTION WHEN OTHERS THEN
     result_messages := array_append(result_messages, 'ERROR: idx_property_user_id - ' || SQLERRM);
@@ -20,7 +20,7 @@ BEGIN
 
   -- Index on Tenant.userId for faster tenant lookups
   BEGIN
-    EXECUTE 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_user_id ON "Tenant" ("userId")';
+    EXECUTE 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_user_id ON "tenant" ("userId")';
     result_messages := array_append(result_messages, 'SUCCESS: idx_tenant_user_id created');
   EXCEPTION WHEN OTHERS THEN
     result_messages := array_append(result_messages, 'ERROR: idx_tenant_user_id - ' || SQLERRM);
@@ -29,7 +29,7 @@ BEGIN
 
   -- Index on Lease.tenantId for faster lease lookups by tenant
   BEGIN
-    EXECUTE 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_lease_tenant_id ON "Lease" ("tenantId")';
+    EXECUTE 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_lease_tenant_id ON "lease" ("tenantId")';
     result_messages := array_append(result_messages, 'SUCCESS: idx_lease_tenant_id created');
   EXCEPTION WHEN OTHERS THEN
     result_messages := array_append(result_messages, 'ERROR: idx_lease_tenant_id - ' || SQLERRM);
@@ -38,7 +38,7 @@ BEGIN
 
   -- Index on Unit.propertyId for faster unit lookups by property
   BEGIN
-    EXECUTE 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_unit_property_id ON "Unit" ("propertyId")';
+    EXECUTE 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_unit_property_id ON "unit" ("propertyId")';
     result_messages := array_append(result_messages, 'SUCCESS: idx_unit_property_id created');
   EXCEPTION WHEN OTHERS THEN
     result_messages := array_append(result_messages, 'ERROR: idx_unit_property_id - ' || SQLERRM);
@@ -47,7 +47,7 @@ BEGIN
 
   -- Index on Subscription.userId for subscription lookups
   BEGIN
-    EXECUTE 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_subscription_user_id ON "Subscription" ("userId")';
+    EXECUTE 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_subscription_user_id ON "subscription" ("userId")';
     result_messages := array_append(result_messages, 'SUCCESS: idx_subscription_user_id created');
   EXCEPTION WHEN OTHERS THEN
     result_messages := array_append(result_messages, 'ERROR: idx_subscription_user_id - ' || SQLERRM);
@@ -56,7 +56,7 @@ BEGIN
 
   -- Index on MaintenanceRequest.propertyId for maintenance lookups
   BEGIN
-    EXECUTE 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_maintenance_property_id ON "MaintenanceRequest" ("propertyId")';
+    EXECUTE 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_maintenance_property_id ON "maintenance_request" ("propertyId")';
     result_messages := array_append(result_messages, 'SUCCESS: idx_maintenance_property_id created');
   EXCEPTION WHEN OTHERS THEN
     result_messages := array_append(result_messages, 'ERROR: idx_maintenance_property_id - ' || SQLERRM);

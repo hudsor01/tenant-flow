@@ -35,8 +35,8 @@ BEGIN
       u.status,
       u."createdAt",
       u."updatedAt"
-    FROM "Unit" u
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    FROM "unit" u
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = $1';  
   -- Add optional filters
   IF p_property_id IS NOT NULL THEN
@@ -84,8 +84,8 @@ BEGIN
           THEN (COUNT(*) FILTER (WHERE u.status = 'OCCUPIED')::FLOAT / COUNT(*)::FLOAT * 100)
           ELSE 0 
         END as "occupancyRate"
-      FROM "Unit" u
-      INNER JOIN "Property" p ON u."propertyId" = p.id
+      FROM "unit" u
+      INNER JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
     ) s
   );
@@ -108,7 +108,7 @@ RETURNS JSON AS $$
 BEGIN
   RETURN (
     SELECT json_agg(row_to_json(t))
-    FROM "Tenant" t
+    FROM "tenant" t
     WHERE t."ownerId" = p_user_id
     AND (p_search IS NULL OR 
          t.name ILIKE '%' || p_search || '%' OR
@@ -132,8 +132,8 @@ BEGIN
         COUNT(*) FILTER (WHERE t."invitationStatus" = 'ACCEPTED')::INT as accepted,
         COUNT(*) FILTER (WHERE t."invitationStatus" = 'EXPIRED')::INT as expired,
         COUNT(DISTINCT l."tenantId") as "activeTenants"
-      FROM "Tenant" t
-      LEFT JOIN "Lease" l ON l."tenantId" = t.id AND l.status = 'ACTIVE'
+      FROM "tenant" t
+      LEFT JOIN "lease" l ON l."tenantId" = t.id AND l.status = 'ACTIVE'
       WHERE t."ownerId" = p_user_id
     ) s
   );
@@ -147,7 +147,7 @@ RETURNS JSON AS $$
 BEGIN
   RETURN (
     SELECT row_to_json(t)
-    FROM "Tenant" t
+    FROM "tenant" t
     WHERE t."ownerId" = p_user_id
     AND t.id = p_tenant_id
   );
@@ -166,7 +166,7 @@ DECLARE
   v_result JSON;
 BEGIN
   -- Insert tenant
-  INSERT INTO "Tenant" (
+  INSERT INTO "tenant" (
     "ownerId",
     name,
     email,
@@ -184,7 +184,7 @@ BEGIN
   
   -- Return created tenant
   SELECT row_to_json(t) INTO v_result
-  FROM "Tenant" t
+  FROM "tenant" t
   WHERE t.id = v_tenant_id;
   
   RETURN v_result;
@@ -204,14 +204,14 @@ DECLARE
 BEGIN
   -- Verify ownership
   IF NOT EXISTS (
-    SELECT 1 FROM "Tenant"
+    SELECT 1 FROM "tenant"
     WHERE id = p_tenant_id AND "ownerId" = p_user_id
   ) THEN
     RAISE EXCEPTION 'Tenant not found or access denied';
   END IF;
   
   -- Update tenant with only non-null values
-  UPDATE "Tenant"
+  UPDATE "tenant"
   SET 
     name = COALESCE(p_name, name),
     email = COALESCE(p_email, email),
@@ -222,7 +222,7 @@ BEGIN
   
   -- Return updated tenant
   SELECT row_to_json(t) INTO v_result
-  FROM "Tenant" t
+  FROM "tenant" t
   WHERE t.id = p_tenant_id;
   
   RETURN v_result;
@@ -236,14 +236,14 @@ RETURNS VOID AS $$
 BEGIN
   -- Verify ownership
   IF NOT EXISTS (
-    SELECT 1 FROM "Tenant"
+    SELECT 1 FROM "tenant"
     WHERE id = p_tenant_id AND "ownerId" = p_user_id
   ) THEN
     RAISE EXCEPTION 'Tenant not found or access denied';
   END IF;
   
   -- Delete tenant
-  DELETE FROM "Tenant" WHERE id = p_tenant_id;
+  DELETE FROM "tenant" WHERE id = p_tenant_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;-- Send invitation to tenant
 CREATE OR REPLACE FUNCTION send_tenant_invitation(
@@ -256,14 +256,14 @@ DECLARE
 BEGIN
   -- Verify ownership
   IF NOT EXISTS (
-    SELECT 1 FROM "Tenant"
+    SELECT 1 FROM "tenant"
     WHERE id = p_tenant_id AND "ownerId" = p_user_id
   ) THEN
     RAISE EXCEPTION 'Tenant not found or access denied';
   END IF;
   
   -- Update invitation status
-  UPDATE "Tenant"
+  UPDATE "tenant"
   SET 
     "invitationStatus" = 'SENT',
     "invitationSentAt" = CURRENT_TIMESTAMP,
@@ -272,7 +272,7 @@ BEGIN
   
   -- Return updated tenant
   SELECT row_to_json(t) INTO v_result
-  FROM "Tenant" t
+  FROM "tenant" t
   WHERE t.id = p_tenant_id;
   
   RETURN v_result;
@@ -288,7 +288,7 @@ DECLARE
 BEGIN
   -- Verify ownership and status
   IF NOT EXISTS (
-    SELECT 1 FROM "Tenant"
+    SELECT 1 FROM "tenant"
     WHERE id = p_tenant_id 
     AND "ownerId" = p_user_id
     AND "invitationStatus" IN ('SENT', 'EXPIRED')
@@ -297,7 +297,7 @@ BEGIN
   END IF;
   
   -- Update invitation status
-  UPDATE "Tenant"
+  UPDATE "tenant"
   SET 
     "invitationStatus" = 'SENT',
     "invitationSentAt" = CURRENT_TIMESTAMP,
@@ -306,7 +306,7 @@ BEGIN
   
   -- Return updated tenant
   SELECT row_to_json(t) INTO v_result
-  FROM "Tenant" t
+  FROM "tenant" t
   WHERE t.id = p_tenant_id;
   
   RETURN v_result;
@@ -331,9 +331,9 @@ RETURNS JSON AS $$
 BEGIN
   RETURN (
     SELECT json_agg(row_to_json(l))
-    FROM "Lease" l
-    INNER JOIN "Unit" u ON l."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    FROM "lease" l
+    INNER JOIN "unit" u ON l."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = p_user_id
     AND (p_tenant_id IS NULL OR l."tenantId" = p_tenant_id)
     AND (p_unit_id IS NULL OR l."unitId" = p_unit_id)
@@ -359,9 +359,9 @@ BEGIN
         COALESCE(AVG(l."monthlyRent"), 0)::DECIMAL as "averageRent",
         COALESCE(SUM(l."monthlyRent"), 0)::DECIMAL as "totalRent",
         COUNT(*) FILTER (WHERE l."endDate" < CURRENT_DATE + INTERVAL '30 days' AND l.status = 'ACTIVE')::INT as "expiringIn30Days"
-      FROM "Lease" l
-      INNER JOIN "Unit" u ON l."unitId" = u.id
-      INNER JOIN "Property" p ON u."propertyId" = p.id
+      FROM "lease" l
+      INNER JOIN "unit" u ON l."unitId" = u.id
+      INNER JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
     ) s
   );
@@ -375,9 +375,9 @@ RETURNS JSON AS $$
 BEGIN
   RETURN (
     SELECT json_agg(row_to_json(l))
-    FROM "Lease" l
-    INNER JOIN "Unit" u ON l."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    FROM "lease" l
+    INNER JOIN "unit" u ON l."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = p_user_id
     AND l.status = 'ACTIVE'
     AND l."endDate" <= CURRENT_DATE + INTERVAL '1 day' * p_days
@@ -393,9 +393,9 @@ RETURNS JSON AS $$
 BEGIN
   RETURN (
     SELECT row_to_json(l)
-    FROM "Lease" l
-    INNER JOIN "Unit" u ON l."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    FROM "lease" l
+    INNER JOIN "unit" u ON l."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = p_user_id
     AND l.id = p_lease_id
   );
@@ -424,8 +424,8 @@ DECLARE
 BEGIN
   -- Verify unit ownership
   IF NOT EXISTS (
-    SELECT 1 FROM "Unit" u
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    SELECT 1 FROM "unit" u
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE u.id = p_unit_id AND p."ownerId" = p_user_id
   ) THEN
     RAISE EXCEPTION 'Unit not found or access denied';
@@ -433,14 +433,14 @@ BEGIN
   
   -- Verify tenant ownership
   IF NOT EXISTS (
-    SELECT 1 FROM "Tenant" 
+    SELECT 1 FROM "tenant" 
     WHERE id = p_tenant_id AND "ownerId" = p_user_id
   ) THEN
     RAISE EXCEPTION 'Tenant not found or access denied';
   END IF;
   
   -- Insert lease
-  INSERT INTO "Lease" (
+  INSERT INTO "lease" (
     "tenantId",
     "unitId", 
     "startDate",
@@ -462,7 +462,7 @@ BEGIN
   
   -- Return created lease
   SELECT row_to_json(l) INTO v_result
-  FROM "Lease" l
+  FROM "lease" l
   WHERE l.id = v_lease_id;
   
   RETURN v_result;
@@ -489,16 +489,16 @@ DECLARE
 BEGIN
   -- Verify ownership
   IF NOT EXISTS (
-    SELECT 1 FROM "Lease" l
-    INNER JOIN "Unit" u ON l."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    SELECT 1 FROM "lease" l
+    INNER JOIN "unit" u ON l."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE l.id = p_lease_id AND p."ownerId" = p_user_id
   ) THEN
     RAISE EXCEPTION 'Lease not found or access denied';
   END IF;
   
   -- Update lease with only non-null values
-  UPDATE "Lease"
+  UPDATE "lease"
   SET 
     "startDate" = COALESCE(p_start_date, "startDate"),
     "endDate" = COALESCE(p_end_date, "endDate"),
@@ -511,7 +511,7 @@ BEGIN
   
   -- Return updated lease
   SELECT row_to_json(l) INTO v_result
-  FROM "Lease" l
+  FROM "lease" l
   WHERE l.id = p_lease_id;
   
   RETURN v_result;
@@ -525,16 +525,16 @@ RETURNS VOID AS $$
 BEGIN
   -- Verify ownership
   IF NOT EXISTS (
-    SELECT 1 FROM "Lease" l
-    INNER JOIN "Unit" u ON l."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    SELECT 1 FROM "lease" l
+    INNER JOIN "unit" u ON l."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE l.id = p_lease_id AND p."ownerId" = p_user_id
   ) THEN
     RAISE EXCEPTION 'Lease not found or access denied';
   END IF;
   
   -- Delete lease
-  DELETE FROM "Lease" WHERE id = p_lease_id;
+  DELETE FROM "lease" WHERE id = p_lease_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;-- Renew lease
 CREATE OR REPLACE FUNCTION renew_lease(
@@ -548,9 +548,9 @@ DECLARE
 BEGIN
   -- Verify ownership and lease is renewable
   IF NOT EXISTS (
-    SELECT 1 FROM "Lease" l
-    INNER JOIN "Unit" u ON l."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    SELECT 1 FROM "lease" l
+    INNER JOIN "unit" u ON l."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE l.id = p_lease_id 
     AND p."ownerId" = p_user_id
     AND l.status IN ('ACTIVE', 'EXPIRED')
@@ -559,7 +559,7 @@ BEGIN
   END IF;
   
   -- Update lease with new end date and set status to active
-  UPDATE "Lease"
+  UPDATE "lease"
   SET 
     "endDate" = p_new_end_date,
     status = 'ACTIVE',
@@ -568,7 +568,7 @@ BEGIN
   
   -- Return updated lease
   SELECT row_to_json(l) INTO v_result
-  FROM "Lease" l
+  FROM "lease" l
   WHERE l.id = p_lease_id;
   
   RETURN v_result;
@@ -585,16 +585,16 @@ DECLARE
 BEGIN
   -- Verify ownership
   IF NOT EXISTS (
-    SELECT 1 FROM "Lease" l
-    INNER JOIN "Unit" u ON l."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    SELECT 1 FROM "lease" l
+    INNER JOIN "unit" u ON l."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE l.id = p_lease_id AND p."ownerId" = p_user_id
   ) THEN
     RAISE EXCEPTION 'Lease not found or access denied';
   END IF;
   
   -- Update lease status and add termination info
-  UPDATE "Lease"
+  UPDATE "lease"
   SET 
     status = 'TERMINATED',
     "terminationReason" = p_reason,
@@ -604,7 +604,7 @@ BEGIN
   
   -- Return updated lease
   SELECT row_to_json(l) INTO v_result
-  FROM "Lease" l
+  FROM "lease" l
   WHERE l.id = p_lease_id;
   
   RETURN v_result;
@@ -630,9 +630,9 @@ RETURNS JSON AS $$
 BEGIN
   RETURN (
     SELECT json_agg(row_to_json(m))
-    FROM "MaintenanceRequest" m
-    INNER JOIN "Unit" u ON m."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    FROM "maintenance_request" m
+    INNER JOIN "unit" u ON m."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = p_user_id
     AND (p_unit_id IS NULL OR m."unitId" = p_unit_id)
     AND (p_property_id IS NULL OR u."propertyId" = p_property_id)
@@ -661,9 +661,9 @@ BEGIN
         COALESCE(AVG(m."estimatedCost"), 0)::DECIMAL as "avgEstimatedCost",
         COALESCE(AVG(m."actualCost"), 0)::DECIMAL as "avgActualCost",
         COALESCE(SUM(m."actualCost"), 0)::DECIMAL as "totalActualCost"
-      FROM "MaintenanceRequest" m
-      INNER JOIN "Unit" u ON m."unitId" = u.id
-      INNER JOIN "Property" p ON u."propertyId" = p.id
+      FROM "maintenance_request" m
+      INNER JOIN "unit" u ON m."unitId" = u.id
+      INNER JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
     ) s
   );
@@ -674,9 +674,9 @@ RETURNS JSON AS $$
 BEGIN
   RETURN (
     SELECT json_agg(row_to_json(m))
-    FROM "MaintenanceRequest" m
-    INNER JOIN "Unit" u ON m."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    FROM "maintenance_request" m
+    INNER JOIN "unit" u ON m."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = p_user_id
     AND m.priority = 'URGENT'
     AND m.status IN ('PENDING', 'IN_PROGRESS')
@@ -691,9 +691,9 @@ RETURNS JSON AS $$
 BEGIN
   RETURN (
     SELECT json_agg(row_to_json(m))
-    FROM "MaintenanceRequest" m
-    INNER JOIN "Unit" u ON m."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    FROM "maintenance_request" m
+    INNER JOIN "unit" u ON m."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = p_user_id
     AND m."scheduledDate" < CURRENT_TIMESTAMP
     AND m.status != 'COMPLETED'
@@ -710,9 +710,9 @@ RETURNS JSON AS $$
 BEGIN
   RETURN (
     SELECT row_to_json(m)
-    FROM "MaintenanceRequest" m
-    INNER JOIN "Unit" u ON m."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    FROM "maintenance_request" m
+    INNER JOIN "unit" u ON m."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = p_user_id
     AND m.id = p_maintenance_id
   );
@@ -735,15 +735,15 @@ DECLARE
 BEGIN
   -- Verify unit ownership
   IF NOT EXISTS (
-    SELECT 1 FROM "Unit" u
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    SELECT 1 FROM "unit" u
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE u.id = p_unit_id AND p."ownerId" = p_user_id
   ) THEN
     RAISE EXCEPTION 'Unit not found or access denied';
   END IF;
   
   -- Insert maintenance request
-  INSERT INTO "MaintenanceRequest" (
+  INSERT INTO "maintenance_request" (
     "unitId",
     title,
     description,
@@ -765,7 +765,7 @@ BEGIN
   
   -- Return created maintenance request
   SELECT row_to_json(m) INTO v_result
-  FROM "MaintenanceRequest" m
+  FROM "maintenance_request" m
   WHERE m.id = v_maintenance_id;
   
   RETURN v_result;
@@ -791,16 +791,16 @@ DECLARE
 BEGIN
   -- Verify ownership
   IF NOT EXISTS (
-    SELECT 1 FROM "MaintenanceRequest" m
-    INNER JOIN "Unit" u ON m."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    SELECT 1 FROM "maintenance_request" m
+    INNER JOIN "unit" u ON m."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE m.id = p_maintenance_id AND p."ownerId" = p_user_id
   ) THEN
     RAISE EXCEPTION 'Maintenance request not found or access denied';
   END IF;
   
   -- Update maintenance request with only non-null values
-  UPDATE "MaintenanceRequest"
+  UPDATE "maintenance_request"
   SET 
     title = COALESCE(p_title, title),
     description = COALESCE(p_description, description),
@@ -817,7 +817,7 @@ BEGIN
   
   -- Return updated maintenance request
   SELECT row_to_json(m) INTO v_result
-  FROM "MaintenanceRequest" m
+  FROM "maintenance_request" m
   WHERE m.id = p_maintenance_id;
   
   RETURN v_result;
@@ -831,16 +831,16 @@ RETURNS VOID AS $$
 BEGIN
   -- Verify ownership
   IF NOT EXISTS (
-    SELECT 1 FROM "MaintenanceRequest" m
-    INNER JOIN "Unit" u ON m."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    SELECT 1 FROM "maintenance_request" m
+    INNER JOIN "unit" u ON m."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE m.id = p_maintenance_id AND p."ownerId" = p_user_id
   ) THEN
     RAISE EXCEPTION 'Maintenance request not found or access denied';
   END IF;
   
   -- Delete maintenance request
-  DELETE FROM "MaintenanceRequest" WHERE id = p_maintenance_id;
+  DELETE FROM "maintenance_request" WHERE id = p_maintenance_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -857,16 +857,16 @@ DECLARE
 BEGIN
   -- Verify ownership
   IF NOT EXISTS (
-    SELECT 1 FROM "MaintenanceRequest" m
-    INNER JOIN "Unit" u ON m."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    SELECT 1 FROM "maintenance_request" m
+    INNER JOIN "unit" u ON m."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE m.id = p_maintenance_id AND p."ownerId" = p_user_id
   ) THEN
     RAISE EXCEPTION 'Maintenance request not found or access denied';
   END IF;
   
   -- Update maintenance request to completed
-  UPDATE "MaintenanceRequest"
+  UPDATE "maintenance_request"
   SET 
     status = 'COMPLETED',
     "completedDate" = CURRENT_TIMESTAMP,
@@ -877,7 +877,7 @@ BEGIN
   
   -- Return updated maintenance request
   SELECT row_to_json(m) INTO v_result
-  FROM "MaintenanceRequest" m
+  FROM "maintenance_request" m
   WHERE m.id = p_maintenance_id;
   
   RETURN v_result;
@@ -896,16 +896,16 @@ DECLARE
 BEGIN
   -- Verify ownership
   IF NOT EXISTS (
-    SELECT 1 FROM "MaintenanceRequest" m
-    INNER JOIN "Unit" u ON m."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    SELECT 1 FROM "maintenance_request" m
+    INNER JOIN "unit" u ON m."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE m.id = p_maintenance_id AND p."ownerId" = p_user_id
   ) THEN
     RAISE EXCEPTION 'Maintenance request not found or access denied';
   END IF;
   
   -- Update maintenance request to cancelled
-  UPDATE "MaintenanceRequest"
+  UPDATE "maintenance_request"
   SET 
     status = 'CANCELLED',
     "cancelledAt" = CURRENT_TIMESTAMP,
@@ -915,7 +915,7 @@ BEGIN
   
   -- Return updated maintenance request
   SELECT row_to_json(m) INTO v_result
-  FROM "MaintenanceRequest" m
+  FROM "maintenance_request" m
   WHERE m.id = p_maintenance_id;
   
   RETURN v_result;

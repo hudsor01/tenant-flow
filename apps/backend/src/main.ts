@@ -36,6 +36,7 @@ function resolvePort(portValue: string | undefined, fallback: number): number {
 const bootstrapLogger = new Logger('Bootstrap')
 
 async function bootstrap() {
+
 	const startTime = Date.now()
 	// Industry best practice: hardcode default port, let platform override if needed
 	const port = resolvePort(process.env.PORT, DEFAULT_PORT)
@@ -183,23 +184,30 @@ async function bootstrap() {
 		next()
 	})
 
-	app.use((err: Error, req: RequestWithTiming, res: Response, _next: NextFunction) => {
-		const duration = Date.now() - (req.startTime ?? Date.now())
-		bootstrapLogger.error('Unhandled error in Express middleware', {
-			error: err.message,
-			stack: err.stack?.split('\n').slice(0, 5).join('\n'),
-			path: req.url,
-			method: req.method,
-			requestId: req.id,
-			duration: `${duration}ms`,
-			headers: {
-				origin: req.headers.origin,
-				referer: req.headers.referer,
-				userAgent: req.headers['user-agent']?.substring(0, 100)
-			}
-		})
-		res.status(500).send('Internal Server Error')
-	})
+	app.use(
+		(
+			err: Error,
+			req: RequestWithTiming,
+			res: Response,
+			_next: NextFunction
+		) => {
+			const duration = Date.now() - (req.startTime ?? Date.now())
+			bootstrapLogger.error('Unhandled error in Express middleware', {
+				error: err.message,
+				stack: err.stack?.split('\n').slice(0, 5).join('\n'),
+				path: req.url,
+				method: req.method,
+				requestId: req.id,
+				duration: `${duration}ms`,
+				headers: {
+					origin: req.headers.origin,
+					referer: req.headers.referer,
+					userAgent: req.headers['user-agent']?.substring(0, 100)
+				}
+			})
+			res.status(500).send('Internal Server Error')
+		}
+	)
 
 	// Start server
 	await app.listen(port, '0.0.0.0')

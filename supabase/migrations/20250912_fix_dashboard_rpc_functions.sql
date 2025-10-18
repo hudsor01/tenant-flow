@@ -33,18 +33,18 @@ BEGIN
       'total', COUNT(DISTINCT p.id)::INT,
       'occupied', COUNT(DISTINCT p.id) FILTER (
         WHERE EXISTS (
-          SELECT 1 FROM "Unit" u 
+          SELECT 1 FROM "unit" u 
           WHERE u."propertyId" = p.id 
           AND u.status = 'OCCUPIED'
         )
       )::INT,
       'vacant', COUNT(DISTINCT p.id) FILTER (
         WHERE NOT EXISTS (
-          SELECT 1 FROM "Unit" u 
+          SELECT 1 FROM "unit" u 
           WHERE u."propertyId" = p.id 
           AND u.status = 'OCCUPIED'
         ) AND EXISTS (
-          SELECT 1 FROM "Unit" u 
+          SELECT 1 FROM "unit" u 
           WHERE u."propertyId" = p.id
         )
       )::INT,
@@ -61,8 +61,8 @@ BEGIN
         ELSE 0
       END::NUMERIC
     )
-    FROM "Property" p
-    LEFT JOIN "Unit" u ON u."propertyId" = p.id
+    FROM "property" p
+    LEFT JOIN "unit" u ON u."propertyId" = p.id
     WHERE p."ownerId" = p_user_id
       -- Handle test user with sample data
       OR (p_user_id = '00000000-0000-0000-0000-000000000000' AND p."ownerId" IS NULL)
@@ -89,7 +89,7 @@ BEGIN
       'active', COUNT(DISTINCT t.id) FILTER (
         WHERE t."invitationStatus" = 'ACCEPTED' 
         AND EXISTS (
-          SELECT 1 FROM "Lease" l 
+          SELECT 1 FROM "lease" l 
           WHERE l."tenantId" = t.id 
           AND l.status = 'ACTIVE'
           AND l."endDate" >= CURRENT_DATE
@@ -98,7 +98,7 @@ BEGIN
       'inactive', COUNT(DISTINCT t.id) FILTER (
         WHERE t."invitationStatus" != 'ACCEPTED'
         OR NOT EXISTS (
-          SELECT 1 FROM "Lease" l 
+          SELECT 1 FROM "lease" l 
           WHERE l."tenantId" = t.id 
           AND l.status = 'ACTIVE'
           AND l."endDate" >= CURRENT_DATE
@@ -121,8 +121,8 @@ BEGIN
         ELSE 0
       END::NUMERIC
     )
-    FROM "Tenant" t
-    LEFT JOIN "Lease" l ON l."tenantId" = t.id
+    FROM "tenant" t
+    LEFT JOIN "lease" l ON l."tenantId" = t.id
     WHERE t."ownerId" = p_user_id
       -- Handle test user with sample data
       OR (p_user_id = '00000000-0000-0000-0000-000000000000' AND t."ownerId" IS NULL)
@@ -152,8 +152,8 @@ BEGIN
         ROUND((COUNT(*) FILTER (WHERE u.status = 'OCCUPIED')::NUMERIC / COUNT(*)::NUMERIC) * 100, 2)
       ELSE 0
     END INTO v_current_occupancy_rate
-  FROM "Unit" u
-  JOIN "Property" p ON u."propertyId" = p.id
+  FROM "unit" u
+  JOIN "property" p ON u."propertyId" = p.id
   WHERE p."ownerId" = p_user_id;
 
   -- Calculate previous month's occupancy rate (simplified - using current data)
@@ -178,8 +178,8 @@ BEGIN
       'totalPotentialRent', COALESCE(SUM(u.rent), 0)::NUMERIC,
       'totalActualRent', COALESCE(SUM(u.rent) FILTER (WHERE u.status = 'OCCUPIED'), 0)::NUMERIC
     )
-    FROM "Unit" u
-    JOIN "Property" p ON u."propertyId" = p.id
+    FROM "unit" u
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = p_user_id
       -- Handle test user with sample data
       OR (p_user_id = '00000000-0000-0000-0000-000000000000' AND p."ownerId" IS NULL)
@@ -216,9 +216,9 @@ BEGIN
         AND l."endDate" BETWEEN CURRENT_DATE AND v_expiry_threshold
       )::INT
     )
-    FROM "Lease" l
-    JOIN "Unit" u ON l."unitId" = u.id
-    JOIN "Property" p ON u."propertyId" = p.id
+    FROM "lease" l
+    JOIN "unit" u ON l."unitId" = u.id
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = p_user_id
       -- Handle test user with sample data
       OR (p_user_id = '00000000-0000-0000-0000-000000000000' AND p."ownerId" IS NULL)
@@ -260,8 +260,8 @@ BEGIN
         'emergency', COUNT(*) FILTER (WHERE mr.priority = 'URGENT')::INT
       )
     )
-    FROM "MaintenanceRequest" mr
-    JOIN "Property" p ON mr."propertyId" = p.id
+    FROM "maintenance_request" mr
+    JOIN "property" p ON mr."propertyId" = p.id
     WHERE p."ownerId" = p_user_id
       -- Handle test user with sample data
       OR (p_user_id = '00000000-0000-0000-0000-000000000000' AND p."ownerId" IS NULL)
@@ -287,8 +287,8 @@ DECLARE
 BEGIN
   -- Calculate current monthly revenue
   SELECT COALESCE(SUM(u.rent), 0) INTO v_monthly_revenue
-  FROM "Unit" u
-  JOIN "Property" p ON u."propertyId" = p.id
+  FROM "unit" u
+  JOIN "property" p ON u."propertyId" = p.id
   WHERE p."ownerId" = p_user_id
     AND u.status = 'OCCUPIED';
 

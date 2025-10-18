@@ -17,13 +17,13 @@ const tenantBaseSchema = z.object({
 	email: emailSchema,
 	name: nonEmptyStringSchema
 		.max(200, 'Name cannot exceed 200 characters')
-		.optional(), // nullable in database
+		.optional(),
 	firstName: nonEmptyStringSchema
 		.max(100, 'First name cannot exceed 100 characters')
-		.optional(), // nullable in database
+		.optional(),
 	lastName: nonEmptyStringSchema
 		.max(100, 'Last name cannot exceed 100 characters')
-		.optional(), // nullable in database
+		.optional(),
 	phone: phoneSchema.optional(),
 	emergencyContact: emergencyContactSchema,
 	avatarUrl: z.string().url().optional(),
@@ -122,28 +122,27 @@ export const tenantFormSchema = z.object({
 })
 
 // Enhanced validation schema for tenant creation with stricter requirements
-export const tenantCreateFormSchema = tenantFormSchema.extend({
+export const tenantCreateFormSchema = tenantFormSchema.partial().extend({
 	email: z
 		.string()
 		.min(1, 'Email is required')
 		.email('Please enter a valid email address')
 		.max(254, 'Email cannot exceed 254 characters'),
+	name: z
+		.string()
+		.min(1, 'Name is required')
+		.max(200, 'Name cannot exceed 200 characters')
+		.optional(),
 	firstName: z
 		.string()
-		.min(1, 'First name is required')
 		.max(100, 'First name cannot exceed 100 characters')
-		.regex(
-			/^[a-zA-Z\s'-]+$/,
-			'First name can only contain letters, spaces, hyphens, and apostrophes'
-		),
+		.optional()
+		.transform(val => val?.trim() || undefined),
 	lastName: z
 		.string()
-		.min(1, 'Last name is required')
 		.max(100, 'Last name cannot exceed 100 characters')
-		.regex(
-			/^[a-zA-Z\s'-]+$/,
-			'Last name can only contain letters, spaces, hyphens, and apostrophes'
-		)
+		.optional()
+		.transform(val => val?.trim() || undefined)
 })
 
 // Enhanced validation schema for tenant updates with optional fields
@@ -156,9 +155,9 @@ export type TenantCreateFormData = z.input<typeof tenantCreateFormSchema>
 export type TenantUpdateFormData = z.input<typeof tenantUpdateFormSchema>
 
 // Type utilities for form validation results
-export type TenantFormValidationResult = {
+export type TenantFormValidationResult<T = TenantFormOutput> = {
 	success: boolean
-	data?: TenantFormOutput
+	data?: T
 	errors?: z.ZodError
 }
 
@@ -172,9 +171,9 @@ export type TenantFormError = {
 // Validation utility functions
 export const validateTenantForm = (
 	data: TenantFormData
-): TenantFormValidationResult => {
+): TenantFormValidationResult<TenantFormOutput> => {
 	const result = tenantFormSchema.safeParse(data)
-	const validationResult: TenantFormValidationResult = {
+	const validationResult: TenantFormValidationResult<TenantFormOutput> = {
 		success: result.success
 	}
 	if (result.success) {
@@ -187,9 +186,11 @@ export const validateTenantForm = (
 
 export const validateTenantCreateForm = (
 	data: TenantCreateFormData
-): TenantFormValidationResult => {
+): TenantFormValidationResult<z.output<typeof tenantCreateFormSchema>> => {
 	const result = tenantCreateFormSchema.safeParse(data)
-	const validationResult: TenantFormValidationResult = {
+	const validationResult: TenantFormValidationResult<
+		z.output<typeof tenantCreateFormSchema>
+	> = {
 		success: result.success
 	}
 	if (result.success) {

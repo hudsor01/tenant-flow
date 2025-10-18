@@ -32,7 +32,7 @@ SELECT
     WHEN COUNT(*) = 0 THEN 'PASS' 
     ELSE 'FAIL - CAN ACCESS OTHER USERS TENANTS' 
   END as result
-FROM "Tenant" 
+FROM "tenant" 
 WHERE "userId" != auth.uid()::text OR "userId" IS NULL;
 
 -- Test 1b: Verify tenant can only see their own record  
@@ -44,7 +44,7 @@ SELECT
     WHEN COUNT(*) >= 1 THEN 'PASS' 
     ELSE 'FAIL - CANNOT ACCESS OWN TENANT RECORD' 
   END as result
-FROM "Tenant" 
+FROM "tenant" 
 WHERE "userId" = auth.uid()::text;
 
 -- =============================================================================
@@ -60,7 +60,7 @@ SELECT
     WHEN COUNT(*) = 0 THEN 'PASS' 
     ELSE 'FAIL - CAN ACCESS OTHER USERS PROPERTIES' 
   END as result
-FROM "Property" 
+FROM "property" 
 WHERE "ownerId" != auth.uid()::text;
 
 -- Test 3: Verify unit access via property ownership
@@ -72,8 +72,8 @@ SELECT
     WHEN COUNT(*) = 0 THEN 'PASS' 
     ELSE 'FAIL - CAN ACCESS UNITS FROM OTHER PROPERTIES' 
   END as result
-FROM "Unit" u
-JOIN "Property" p ON u."propertyId" = p.id
+FROM "unit" u
+JOIN "property" p ON u."propertyId" = p.id
 WHERE p."ownerId" != auth.uid()::text;
 
 -- Test 4: Verify lease access via property chain
@@ -85,9 +85,9 @@ SELECT
     WHEN COUNT(*) = 0 THEN 'PASS' 
     ELSE 'FAIL - CAN ACCESS LEASES FROM OTHER PROPERTIES' 
   END as result
-FROM "Lease" l
-JOIN "Unit" u ON l."unitId" = u.id  
-JOIN "Property" p ON u."propertyId" = p.id
+FROM "lease" l
+JOIN "unit" u ON l."unitId" = u.id  
+JOIN "property" p ON u."propertyId" = p.id
 WHERE p."ownerId" != auth.uid()::text;
 
 -- =============================================================================
@@ -103,8 +103,8 @@ SELECT
     WHEN COUNT(*) = 0 THEN 'PASS' 
     ELSE 'FAIL - CAN ACCESS EXPENSES FROM OTHER PROPERTIES' 
   END as result
-FROM "Expense" e
-JOIN "Property" p ON e."propertyId" = p.id
+FROM "expense" e
+JOIN "property" p ON e."propertyId" = p.id
 WHERE p."ownerId" != auth.uid()::text;
 
 -- Test 6: Verify rent charge isolation  
@@ -117,8 +117,8 @@ SELECT
     ELSE 'FAIL - CAN ACCESS RENT CHARGES FROM OTHER PROPERTIES' 
   END as result
 FROM "RentCharge" rc
-JOIN "Unit" u ON rc."unitId" = u.id
-JOIN "Property" p ON u."propertyId" = p.id  
+JOIN "unit" u ON rc."unitId" = u.id
+JOIN "property" p ON u."propertyId" = p.id  
 WHERE p."ownerId" != auth.uid()::text;
 
 -- Test 7: Verify payment method isolation
@@ -132,7 +132,7 @@ SELECT
   END as result
 FROM "PaymentMethod" pm
 WHERE pm."tenantId" NOT IN (
-  SELECT id FROM "Tenant" WHERE "userId" = auth.uid()::text
+  SELECT id FROM "tenant" WHERE "userId" = auth.uid()::text
 );
 
 -- =============================================================================
@@ -148,9 +148,9 @@ SELECT
     WHEN COUNT(*) = 0 THEN 'PASS' 
     ELSE 'FAIL - CAN ACCESS MAINTENANCE FROM OTHER PROPERTIES' 
   END as result
-FROM "MaintenanceRequest" mr
-JOIN "Unit" u ON mr."unitId" = u.id
-JOIN "Property" p ON u."propertyId" = p.id
+FROM "maintenance_request" mr
+JOIN "unit" u ON mr."unitId" = u.id
+JOIN "property" p ON u."propertyId" = p.id
 WHERE p."ownerId" != auth.uid()::text;
 
 -- Test 9: Verify file access control
@@ -163,10 +163,10 @@ SELECT
     ELSE 'FAIL - CAN ACCESS FILES FROM OTHER USERS/PROPERTIES' 
   END as result
 FROM "File" f
-LEFT JOIN "Property" p ON f."propertyId" = p.id
-LEFT JOIN "MaintenanceRequest" mr ON f."maintenanceRequestId" = mr.id
-LEFT JOIN "Unit" u ON mr."unitId" = u.id  
-LEFT JOIN "Property" p2 ON u."propertyId" = p2.id
+LEFT JOIN "property" p ON f."propertyId" = p.id
+LEFT JOIN "maintenance_request" mr ON f."maintenanceRequestId" = mr.id
+LEFT JOIN "unit" u ON mr."unitId" = u.id  
+LEFT JOIN "property" p2 ON u."propertyId" = p2.id
 WHERE f."uploadedById" != auth.uid()::text
   AND (p.id IS NULL OR p."ownerId" != auth.uid()::text)
   AND (p2.id IS NULL OR p2."ownerId" != auth.uid()::text);
@@ -201,7 +201,7 @@ SELECT
     WHEN COUNT(*) = 0 THEN 'PASS' 
     ELSE 'FAIL - CAN ACCESS OTHER USERS RECORDS' 
   END as result
-FROM "User" 
+FROM "users" 
 WHERE id != auth.uid()::text;
 
 -- Test 12: Verify invoice isolation
@@ -213,7 +213,7 @@ SELECT
     WHEN COUNT(*) = 0 THEN 'PASS' 
     ELSE 'FAIL - CAN ACCESS OTHER USERS INVOICES' 
   END as result
-FROM "Invoice" 
+FROM "invoice" 
 WHERE "userId" != auth.uid()::text;
 
 -- Test 13: Verify subscription isolation
@@ -225,7 +225,7 @@ SELECT
     WHEN COUNT(*) = 0 THEN 'PASS' 
     ELSE 'FAIL - CAN ACCESS OTHER USERS SUBSCRIPTIONS' 
   END as result
-FROM "Subscription" 
+FROM "subscription" 
 WHERE "userId" != auth.uid()::text;
 
 -- =============================================================================
@@ -284,13 +284,13 @@ FROM test_results;
 
 -- Test P1: Check policy performance on large table scans
 EXPLAIN ANALYZE 
-SELECT COUNT(*) FROM "Property" WHERE "ownerId" = auth.uid()::text;
+SELECT COUNT(*) FROM "property" WHERE "ownerId" = auth.uid()::text;
 
 -- Test P2: Check join performance with RLS
 EXPLAIN ANALYZE
 SELECT COUNT(*) 
-FROM "Unit" u 
-JOIN "Property" p ON u."propertyId" = p.id 
+FROM "unit" u 
+JOIN "property" p ON u."propertyId" = p.id 
 WHERE p."ownerId" = auth.uid()::text;
 
 -- =============================================================================
@@ -305,7 +305,7 @@ SELECT
     WHEN COUNT(*) = 0 THEN 'PASS' 
     ELSE 'WARNING - NULL USER RECORDS ACCESSIBLE' 
   END as result
-FROM "Tenant" 
+FROM "tenant" 
 WHERE "userId" IS NULL;
 
 -- Test E2: Verify empty string handling  
@@ -316,7 +316,7 @@ SELECT
     WHEN COUNT(*) = 0 THEN 'PASS' 
     ELSE 'WARNING - EMPTY USER RECORDS ACCESSIBLE' 
   END as result
-FROM "Tenant" 
+FROM "tenant" 
 WHERE "userId" = '';
 
 -- =============================================================================

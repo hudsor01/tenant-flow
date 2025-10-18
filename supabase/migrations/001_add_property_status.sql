@@ -8,7 +8,7 @@ DO $$ BEGIN
   END IF;
 END $$;
 
-ALTER TABLE "public"."Property"
+ALTER TABLE "public"."property"
   ADD COLUMN IF NOT EXISTS "status" "PropertyStatus" NOT NULL DEFAULT 'ACTIVE';
 
-COMMENT ON COLUMN "public"."Property"."status" IS 'Overall lifecycle status of the property';
+COMMENT ON COLUMN "public"."property"."status" IS 'Overall lifecycle status of the property';

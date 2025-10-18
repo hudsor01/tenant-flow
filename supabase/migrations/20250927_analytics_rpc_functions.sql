@@ -22,8 +22,8 @@ BEGIN
       AVG(e.amount) AS avg_expense,
       MAX(e.amount) AS max_expense,
       MIN(e.amount) AS min_expense
-    FROM "Expense" e
-    INNER JOIN "Property" p ON e."propertyId" = p.id
+    FROM "expense" e
+    INNER JOIN "property" p ON e."propertyId" = p.id
     WHERE p."ownerId" = p_user_id
       AND e.date BETWEEN p_start_date AND p_end_date
     GROUP BY DATE_TRUNC('month', e.date)
@@ -87,9 +87,9 @@ BEGIN
     SELECT
       mr.*,
       u."propertyId"
-    FROM "MaintenanceRequest" mr
-    INNER JOIN "Unit" u ON mr."unitId" = u.id
-    INNER JOIN "Property" p ON u."propertyId" = p.id
+    FROM "maintenance_request" mr
+    INNER JOIN "unit" u ON mr."unitId" = u.id
+    INNER JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = p_user_id
       AND (p_property_id IS NULL OR u."propertyId" = p_property_id)
       AND mr."createdAt" BETWEEN p_start_date AND p_end_date
@@ -164,8 +164,8 @@ BEGIN
       COUNT(DISTINCT u.id) FILTER (WHERE u.status = 'OCCUPIED') AS occupied_units,
       SUM(u.rent) AS total_potential_rent,
       SUM(u.rent) FILTER (WHERE u.status = 'OCCUPIED') AS actual_rent
-    FROM "Property" p
-    LEFT JOIN "Unit" u ON p.id = u."propertyId"
+    FROM "property" p
+    LEFT JOIN "unit" u ON p.id = u."propertyId"
     WHERE p."ownerId" = p_user_id
       AND (p_property_id IS NULL OR p.id = p_property_id)
     GROUP BY p.id
@@ -175,7 +175,7 @@ BEGIN
       e."propertyId",
       SUM(e.amount) AS total_expenses,
       AVG(e.amount) AS avg_expense
-    FROM "Expense" e
+    FROM "expense" e
     WHERE e."propertyId" IN (SELECT id FROM property_data)
       AND e.date >= CURRENT_DATE - v_interval
     GROUP BY e."propertyId"
@@ -185,8 +185,8 @@ BEGIN
       u."propertyId",
       COUNT(mr.id) AS maintenance_count,
       SUM(COALESCE(mr."actualCost", mr."estimatedCost", 0)) AS maintenance_cost
-    FROM "MaintenanceRequest" mr
-    INNER JOIN "Unit" u ON mr."unitId" = u.id
+    FROM "maintenance_request" mr
+    INNER JOIN "unit" u ON mr."unitId" = u.id
     WHERE u."propertyId" IN (SELECT id FROM property_data)
       AND mr."createdAt" >= CURRENT_DATE - v_interval
     GROUP BY u."propertyId"
@@ -237,27 +237,27 @@ DECLARE
 BEGIN
   WITH summary AS (
     SELECT
-      (SELECT COUNT(*) FROM "Property" WHERE "ownerId" = p_user_id) AS total_properties,
-      (SELECT COUNT(*) FROM "Unit" u
-       INNER JOIN "Property" p ON u."propertyId" = p.id
+      (SELECT COUNT(*) FROM "property" WHERE "ownerId" = p_user_id) AS total_properties,
+      (SELECT COUNT(*) FROM "unit" u
+       INNER JOIN "property" p ON u."propertyId" = p.id
        WHERE p."ownerId" = p_user_id) AS total_units,
-      (SELECT COUNT(*) FROM "Unit" u
-       INNER JOIN "Property" p ON u."propertyId" = p.id
+      (SELECT COUNT(*) FROM "unit" u
+       INNER JOIN "property" p ON u."propertyId" = p.id
        WHERE p."ownerId" = p_user_id AND u.status = 'OCCUPIED') AS occupied_units,
-      (SELECT COUNT(*) FROM "Tenant" t
-       INNER JOIN "Lease" l ON t.id = l."tenantId"
-       INNER JOIN "Unit" u ON l."unitId" = u.id
-       INNER JOIN "Property" p ON u."propertyId" = p.id
+      (SELECT COUNT(*) FROM "tenant" t
+       INNER JOIN "lease" l ON t.id = l."tenantId"
+       INNER JOIN "unit" u ON l."unitId" = u.id
+       INNER JOIN "property" p ON u."propertyId" = p.id
        WHERE p."ownerId" = p_user_id AND l.status = 'ACTIVE') AS active_tenants,
-      (SELECT COUNT(*) FROM "MaintenanceRequest" mr
-       INNER JOIN "Unit" u ON mr."unitId" = u.id
-       INNER JOIN "Property" p ON u."propertyId" = p.id
+      (SELECT COUNT(*) FROM "maintenance_request" mr
+       INNER JOIN "unit" u ON mr."unitId" = u.id
+       INNER JOIN "property" p ON u."propertyId" = p.id
        WHERE p."ownerId" = p_user_id AND mr.status IN ('OPEN', 'IN_PROGRESS')) AS pending_maintenance,
-      (SELECT SUM(u.rent) FROM "Unit" u
-       INNER JOIN "Property" p ON u."propertyId" = p.id
+      (SELECT SUM(u.rent) FROM "unit" u
+       INNER JOIN "property" p ON u."propertyId" = p.id
        WHERE p."ownerId" = p_user_id AND u.status = 'OCCUPIED') AS monthly_revenue,
-      (SELECT SUM(e.amount) FROM "Expense" e
-       INNER JOIN "Property" p ON e."propertyId" = p.id
+      (SELECT SUM(e.amount) FROM "expense" e
+       INNER JOIN "property" p ON e."propertyId" = p.id
        WHERE p."ownerId" = p_user_id
        AND e.date >= DATE_TRUNC('month', CURRENT_DATE)) AS monthly_expenses
   )

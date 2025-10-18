@@ -8,32 +8,32 @@ ALTER TABLE "BlogArticle" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "BlogTag" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "CustomerInvoice" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "CustomerInvoiceItem" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "Document" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "Expense" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "document" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "expense" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "FailedWebhookEvent" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "File" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "InAppNotification" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Inspection" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "Invoice" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "invoice" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "InvoiceLeadCapture" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "Lease" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "lease" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "LeaseGeneratorUsage" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "MaintenanceRequest" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "maintenance_request" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Message" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "NotificationLog" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "PaymentAttempt" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "PaymentFailure" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "PaymentMethod" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "Property" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "property" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "ReminderLog" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "RentCharge" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "RentCollectionSettings" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "RentPayment" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "SecurityAuditLog" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "Subscription" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "Tenant" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "Unit" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "User" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "subscription" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "tenant" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "unit" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "users" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "UserAccessLog" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "UserFeatureAccess" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "UserPreferences" ENABLE ROW LEVEL SECURITY;
@@ -87,54 +87,54 @@ USING (true)
 WITH CHECK (true);
 
 -- Document Table Policies
-CREATE POLICY "Users can only access documents for their properties" ON "Document"
+CREATE POLICY "Users can only access documents for their properties" ON "document"
 AS PERMISSIVE FOR ALL TO authenticated
 USING (
   (("propertyId" IS NOT NULL) AND ("propertyId" IN ( 
-    SELECT "Property".id
-    FROM "Property"
-    WHERE ("Property"."ownerId" = (auth.uid())::text)
+    SELECT "property".id
+    FROM "property"
+    WHERE ("property"."ownerId" = (auth.uid())::text)
   ))) OR 
   (("leaseId" IS NOT NULL) AND ("leaseId" IN ( 
     SELECT l.id
-    FROM (("Lease" l
-      JOIN "Unit" u ON ((l."unitId" = u.id)))
-      JOIN "Property" p ON ((u."propertyId" = p.id)))
+    FROM (("lease" l
+      JOIN "unit" u ON ((l."unitId" = u.id)))
+      JOIN "property" p ON ((u."propertyId" = p.id)))
     WHERE (p."ownerId" = (auth.uid())::text)
   ))) OR 
   (("propertyId" IS NULL) AND ("leaseId" IS NULL))
 )
 WITH CHECK (
   (("propertyId" IS NOT NULL) AND ("propertyId" IN ( 
-    SELECT "Property".id
-    FROM "Property"
-    WHERE ("Property"."ownerId" = (auth.uid())::text)
+    SELECT "property".id
+    FROM "property"
+    WHERE ("property"."ownerId" = (auth.uid())::text)
   ))) OR 
   (("leaseId" IS NOT NULL) AND ("leaseId" IN ( 
     SELECT l.id
-    FROM (("Lease" l
-      JOIN "Unit" u ON ((l."unitId" = u.id)))
-      JOIN "Property" p ON ((u."propertyId" = p.id)))
+    FROM (("lease" l
+      JOIN "unit" u ON ((l."unitId" = u.id)))
+      JOIN "property" p ON ((u."propertyId" = p.id)))
     WHERE (p."ownerId" = (auth.uid())::text)
   ))) OR 
   (("propertyId" IS NULL) AND ("leaseId" IS NULL))
 );
 
 -- Expense Table Policies
-CREATE POLICY "expense_property_owner_access" ON "Expense"
+CREATE POLICY "expense_property_owner_access" ON "expense"
 AS PERMISSIVE FOR ALL TO authenticated
 USING ("propertyId" IN ( 
-  SELECT "Property".id
-  FROM "Property"
-  WHERE ("Property"."ownerId" = (auth.uid())::text)
+  SELECT "property".id
+  FROM "property"
+  WHERE ("property"."ownerId" = (auth.uid())::text)
 ))
 WITH CHECK ("propertyId" IN ( 
-  SELECT "Property".id
-  FROM "Property"
-  WHERE ("Property"."ownerId" = (auth.uid())::text)
+  SELECT "property".id
+  FROM "property"
+  WHERE ("property"."ownerId" = (auth.uid())::text)
 ));
 
-CREATE POLICY "expense_service_access" ON "Expense"
+CREATE POLICY "expense_service_access" ON "expense"
 AS PERMISSIVE FOR ALL TO service_role
 USING (true)
 WITH CHECK (true);
@@ -150,30 +150,30 @@ AS PERMISSIVE FOR ALL TO authenticated
 USING (
   ("uploadedById" = (auth.uid())::text) OR 
   (("propertyId" IS NOT NULL) AND ("propertyId" IN ( 
-    SELECT "Property".id
-    FROM "Property"
-    WHERE ("Property"."ownerId" = (auth.uid())::text)
+    SELECT "property".id
+    FROM "property"
+    WHERE ("property"."ownerId" = (auth.uid())::text)
   ))) OR 
   (("maintenanceRequestId" IS NOT NULL) AND ("maintenanceRequestId" IN ( 
     SELECT mr.id
-    FROM (("MaintenanceRequest" mr
-      JOIN "Unit" u ON ((mr."unitId" = u.id)))
-      JOIN "Property" p ON ((u."propertyId" = p.id)))
+    FROM (("maintenance_request" mr
+      JOIN "unit" u ON ((mr."unitId" = u.id)))
+      JOIN "property" p ON ((u."propertyId" = p.id)))
     WHERE (p."ownerId" = (auth.uid())::text)
   )))
 )
 WITH CHECK (
   ("uploadedById" = (auth.uid())::text) OR 
   (("propertyId" IS NOT NULL) AND ("propertyId" IN ( 
-    SELECT "Property".id
-    FROM "Property"
-    WHERE ("Property"."ownerId" = (auth.uid())::text)
+    SELECT "property".id
+    FROM "property"
+    WHERE ("property"."ownerId" = (auth.uid())::text)
   ))) OR 
   (("maintenanceRequestId" IS NOT NULL) AND ("maintenanceRequestId" IN ( 
     SELECT mr.id
-    FROM (("MaintenanceRequest" mr
-      JOIN "Unit" u ON ((mr."unitId" = u.id)))
-      JOIN "Property" p ON ((u."propertyId" = p.id)))
+    FROM (("maintenance_request" mr
+      JOIN "unit" u ON ((mr."unitId" = u.id)))
+      JOIN "property" p ON ((u."propertyId" = p.id)))
     WHERE (p."ownerId" = (auth.uid())::text)
   )))
 );
@@ -203,97 +203,97 @@ AS PERMISSIVE FOR SELECT TO authenticated
 USING ("userId" = (auth.uid())::text);
 
 -- Property Table Policies (CRITICAL - This is the main security boundary)
-CREATE POLICY "Users can only access their own properties" ON "Property"
+CREATE POLICY "Users can only access their own properties" ON "property"
 AS PERMISSIVE FOR ALL TO authenticated
 USING ("ownerId" = (auth.uid())::text)
 WITH CHECK ("ownerId" = (auth.uid())::text);
 
 -- User Table Policies (CRITICAL - User can only see their own record)
-CREATE POLICY "Users can view and update their own record" ON "User"
+CREATE POLICY "Users can view and update their own record" ON "users"
 AS PERMISSIVE FOR ALL TO authenticated
 USING (id = (auth.uid())::text)
 WITH CHECK (id = (auth.uid())::text);
 
 -- Tenant Table Policies
-CREATE POLICY "tenant_select_owner" ON "Tenant"
+CREATE POLICY "tenant_select_owner" ON "tenant"
 AS PERMISSIVE FOR SELECT TO public
 USING ("userId" = (auth.uid())::text);
 
-CREATE POLICY "tenant_insert_self" ON "Tenant"
+CREATE POLICY "tenant_insert_self" ON "tenant"
 AS PERMISSIVE FOR INSERT TO public
 WITH CHECK ("userId" = (auth.uid())::text);
 
-CREATE POLICY "tenant_modify_owner" ON "Tenant"
+CREATE POLICY "tenant_modify_owner" ON "tenant"
 AS PERMISSIVE FOR UPDATE TO public
 USING ("userId" = (auth.uid())::text)
 WITH CHECK ("userId" = (auth.uid())::text);
 
-CREATE POLICY "tenant_delete_owner" ON "Tenant"
+CREATE POLICY "tenant_delete_owner" ON "tenant"
 AS PERMISSIVE FOR DELETE TO public
 USING ("userId" = (auth.uid())::text);
 
-CREATE POLICY "tenant_service_full_access" ON "Tenant"
+CREATE POLICY "tenant_service_full_access" ON "tenant"
 AS PERMISSIVE FOR ALL TO service_role
 USING (true)
 WITH CHECK (true);
 
 -- Unit Table Policies
-CREATE POLICY "Users can only access units in their properties" ON "Unit"
+CREATE POLICY "Users can only access units in their properties" ON "unit"
 AS PERMISSIVE FOR ALL TO authenticated
 USING ("propertyId" IN ( 
-  SELECT "Property".id
-  FROM "Property"
-  WHERE ("Property"."ownerId" = (auth.uid())::text)
+  SELECT "property".id
+  FROM "property"
+  WHERE ("property"."ownerId" = (auth.uid())::text)
 ))
 WITH CHECK ("propertyId" IN ( 
-  SELECT "Property".id
-  FROM "Property"
-  WHERE ("Property"."ownerId" = (auth.uid())::text)
+  SELECT "property".id
+  FROM "property"
+  WHERE ("property"."ownerId" = (auth.uid())::text)
 ));
 
 -- Lease Table Policies
-CREATE POLICY "Users can only access leases in their properties" ON "Lease"
+CREATE POLICY "Users can only access leases in their properties" ON "lease"
 AS PERMISSIVE FOR ALL TO authenticated
 USING ("unitId" IN ( 
   SELECT u.id
-  FROM ("Unit" u
-    JOIN "Property" p ON ((u."propertyId" = p.id)))
+  FROM ("unit" u
+    JOIN "property" p ON ((u."propertyId" = p.id)))
   WHERE (p."ownerId" = (auth.uid())::text)
 ))
 WITH CHECK ("unitId" IN ( 
   SELECT u.id
-  FROM ("Unit" u
-    JOIN "Property" p ON ((u."propertyId" = p.id)))
+  FROM ("unit" u
+    JOIN "property" p ON ((u."propertyId" = p.id)))
   WHERE (p."ownerId" = (auth.uid())::text)
 ));
 
 -- MaintenanceRequest Table Policies
-CREATE POLICY "Users can only access maintenance requests for their properties" ON "MaintenanceRequest"
+CREATE POLICY "Users can only access maintenance requests for their properties" ON "maintenance_request"
 AS PERMISSIVE FOR ALL TO authenticated
 USING ("unitId" IN ( 
   SELECT u.id
-  FROM ("Unit" u
-    JOIN "Property" p ON ((u."propertyId" = p.id)))
+  FROM ("unit" u
+    JOIN "property" p ON ((u."propertyId" = p.id)))
   WHERE (p."ownerId" = (auth.uid())::text)
 ))
 WITH CHECK ("unitId" IN ( 
   SELECT u.id
-  FROM ("Unit" u
-    JOIN "Property" p ON ((u."propertyId" = p.id)))
+  FROM ("unit" u
+    JOIN "property" p ON ((u."propertyId" = p.id)))
   WHERE (p."ownerId" = (auth.uid())::text)
 ));
 
 -- Subscription Table Policies
-CREATE POLICY "System can manage subscriptions" ON "Subscription"
+CREATE POLICY "System can manage subscriptions" ON "subscription"
 AS PERMISSIVE FOR ALL TO service_role
 WITH CHECK (true);
 
-CREATE POLICY "Users can view their own subscriptions" ON "Subscription"
+CREATE POLICY "Users can view their own subscriptions" ON "subscription"
 AS PERMISSIVE FOR SELECT TO authenticated
 USING ("userId" = (auth.uid())::text);
 
 -- Invoice Table Policies
-CREATE POLICY "Users can manage their own invoices" ON "Invoice"
+CREATE POLICY "Users can manage their own invoices" ON "invoice"
 AS PERMISSIVE FOR ALL TO authenticated
 USING ("userId" = (auth.uid())::text)
 WITH CHECK ("userId" = (auth.uid())::text);
@@ -339,8 +339,8 @@ CREATE POLICY "Service can insert notifications" ON "notifications"
 AS PERMISSIVE FOR INSERT TO public
 WITH CHECK ((auth.role() = 'service_role'::text) OR (EXISTS ( 
   SELECT 1
-  FROM "User"
-  WHERE (("User".id = (auth.uid())::text) AND ("User".role = 'ADMIN'::"UserRole"))
+  FROM "users"
+  WHERE (("users".id = (auth.uid())::text) AND ("users".role = 'ADMIN'::"UserRole"))
 )));
 
 -- Security and Audit Policies

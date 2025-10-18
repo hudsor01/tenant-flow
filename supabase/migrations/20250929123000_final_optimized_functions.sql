@@ -46,10 +46,10 @@ BEGIN
       ELSE 0
     END
   ) INTO result
-  FROM "Property" p
-  LEFT JOIN "Unit" u ON u."propertyId" = p.id
-  LEFT JOIN "Lease" l ON l."unitId" = u.id
-  LEFT JOIN "Tenant" t ON t.id = l."tenantId"
+  FROM "property" p
+  LEFT JOIN "unit" u ON u."propertyId" = p.id
+  LEFT JOIN "lease" l ON l."unitId" = u.id
+  LEFT JOIN "tenant" t ON t.id = l."tenantId"
   WHERE p."ownerId" = p_user_id;
 
   RETURN COALESCE(result, json_build_object(
@@ -87,7 +87,7 @@ BEGIN
       COUNT(u.id) as total_units,
       COUNT(CASE
         WHEN EXISTS (
-          SELECT 1 FROM "Lease" l
+          SELECT 1 FROM "lease" l
           WHERE l."unitId" = u.id
             AND l.status = 'ACTIVE'
             AND l."startDate" <= (ms.month_start + INTERVAL '1 month' - INTERVAL '1 day')
@@ -95,8 +95,8 @@ BEGIN
         ) THEN 1
       END) as occupied_units
     FROM month_series ms
-    CROSS JOIN "Unit" u
-    JOIN "Property" p ON u."propertyId" = p.id
+    CROSS JOIN "unit" u
+    JOIN "property" p ON u."propertyId" = p.id
     WHERE p."ownerId" = p_user_id
       AND u."createdAt" <= (ms.month_start + INTERVAL '1 month' - INTERVAL '1 day')
     GROUP BY ms.month_start
@@ -140,9 +140,9 @@ BEGIN
       LAG(COALESCE(SUM(rp.amount), 0) / 100.0) OVER (ORDER BY ms.month_start) as prev_revenue
     FROM month_series ms
     LEFT JOIN "RentPayments" rp ON EXISTS (
-        SELECT 1 FROM "Lease" l
-        JOIN "Unit" u ON l."unitId" = u.id
-        JOIN "Property" p ON u."propertyId" = p.id
+        SELECT 1 FROM "lease" l
+        JOIN "unit" u ON l."unitId" = u.id
+        JOIN "property" p ON u."propertyId" = p.id
         WHERE p."ownerId" = p_user_id
           AND rp."tenantId" = l."tenantId"
           AND rp.status = 'SUCCEEDED'
@@ -192,8 +192,8 @@ BEGIN
       SELECT json_object_agg(priority_val, priority_count)
       FROM (
         SELECT mr2.priority as priority_val, COUNT(*) as priority_count
-        FROM "MaintenanceRequest" mr2
-        JOIN "Property" p2 ON mr2."propertyId" = p2.id
+        FROM "maintenance_request" mr2
+        JOIN "property" p2 ON mr2."propertyId" = p2.id
         WHERE p2."ownerId" = p_user_id
         GROUP BY mr2.priority
       ) priority_agg
@@ -208,8 +208,8 @@ BEGIN
              'completed', COUNT(*),
              'avgResolutionDays', AVG(EXTRACT(epoch FROM (mr3."completedAt" - mr3."createdAt")) / 86400)
            ) as trend_data
-         FROM "MaintenanceRequest" mr3
-         JOIN "Property" p3 ON mr3."propertyId" = p3.id
+         FROM "maintenance_request" mr3
+         JOIN "property" p3 ON mr3."propertyId" = p3.id
          WHERE p3."ownerId" = p_user_id
            AND mr3.status = 'COMPLETED'
            AND mr3."completedAt" >= (CURRENT_DATE - INTERVAL '6 months')
@@ -218,8 +218,8 @@ BEGIN
       ), json_build_array()
     )
   ) INTO result
-  FROM "MaintenanceRequest" mr
-  JOIN "Property" p ON mr."propertyId" = p.id
+  FROM "maintenance_request" mr
+  JOIN "property" p ON mr."propertyId" = p.id
   WHERE p."ownerId" = p_user_id;
 
   RETURN COALESCE(result, json_build_object(

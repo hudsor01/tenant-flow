@@ -62,7 +62,7 @@ DECLARE
   hypo_index_id oid;
 BEGIN
   -- Test 1: Property owner filtering with type
-  SELECT hypopg_create_index('CREATE INDEX ON "Property"("ownerId", "propertyType", "createdAt" DESC)')
+  SELECT hypopg_create_index('CREATE INDEX ON "property"("ownerId", "propertyType", "createdAt" DESC)')
   INTO hypo_index_id;
 
   RETURN QUERY
@@ -76,7 +76,7 @@ BEGIN
   PERFORM hypopg_drop_index(hypo_index_id);
 
   -- Test 2: Lease property and status filtering
-  SELECT hypopg_create_index('CREATE INDEX ON "Lease"("propertyId", "status", "endDate", "startDate")')
+  SELECT hypopg_create_index('CREATE INDEX ON "lease"("propertyId", "status", "endDate", "startDate")')
   INTO hypo_index_id;
 
   RETURN QUERY
@@ -90,7 +90,7 @@ BEGIN
   PERFORM hypopg_drop_index(hypo_index_id);
 
   -- Test 3: Unit revenue calculations (covering index)
-  SELECT hypopg_create_index('CREATE INDEX ON "Unit"("propertyId", "status") INCLUDE ("rent", "unitNumber")')
+  SELECT hypopg_create_index('CREATE INDEX ON "unit"("propertyId", "status") INCLUDE ("rent", "unitNumber")')
   INTO hypo_index_id;
 
   RETURN QUERY
@@ -105,7 +105,7 @@ BEGIN
 
   -- Test 4: Emergency maintenance requests
   SELECT hypopg_create_index(
-    'CREATE INDEX ON "MaintenanceRequest"("priority", "status", "propertyId") ' ||
+    'CREATE INDEX ON "maintenance_request"("priority", "status", "propertyId") ' ||
     'WHERE "priority" IN (''EMERGENCY'', ''HIGH'')'
   ) INTO hypo_index_id;
 
@@ -120,7 +120,7 @@ BEGIN
   PERFORM hypopg_drop_index(hypo_index_id);
 
   -- Test 5: RLS optimization for property ownership
-  SELECT hypopg_create_index('CREATE INDEX ON "Property"("id", "ownerId")')
+  SELECT hypopg_create_index('CREATE INDEX ON "property"("id", "ownerId")')
   INTO hypo_index_id;
 
   RETURN QUERY
@@ -159,27 +159,27 @@ $$;
 
 -- Create the winning indexes CONCURRENTLY to avoid locks
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_property_owner_type_created
-  ON "Property"("ownerId", "propertyType", "createdAt" DESC);
+  ON "property"("ownerId", "propertyType", "createdAt" DESC);
 
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_lease_property_status_dates
-  ON "Lease"("propertyId", "status", "endDate", "startDate");
+  ON "lease"("propertyId", "status", "endDate", "startDate");
 
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_unit_property_revenue
-  ON "Unit"("propertyId", "status") INCLUDE ("rent", "unitNumber");
+  ON "unit"("propertyId", "status") INCLUDE ("rent", "unitNumber");
 
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_maintenance_emergency
-  ON "MaintenanceRequest"("priority", "status", "propertyId")
+  ON "maintenance_request"("priority", "status", "propertyId")
   WHERE "priority" IN ('EMERGENCY', 'HIGH');
 
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_property_rls_optimization
-  ON "Property"("id", "ownerId");
+  ON "property"("id", "ownerId");
 
 -- Additional composite indexes for common join patterns
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_unit_property_status_rent
-  ON "Unit"("propertyId", "status", "rent");
+  ON "unit"("propertyId", "status", "rent");
 
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tenant_user_created
-  ON "Tenant"("userId", "createdAt" DESC);
+  ON "tenant"("userId", "createdAt" DESC);
 
 -- ============================================================================
 -- PHASE 4: MATERIALIZED VIEW FOR DASHBOARD WITH AUTO-REFRESH
@@ -197,7 +197,7 @@ WITH property_stats AS (
     COUNT(DISTINCT p.id) FILTER (WHERE p."propertyType" = 'SINGLE_FAMILY') as single_family,
     COUNT(DISTINCT p.id) FILTER (WHERE p."propertyType" = 'MULTI_UNIT') as multi_family,
     COUNT(DISTINCT p.id) FILTER (WHERE p."propertyType" = 'COMMERCIAL') as commercial
-  FROM "Property" p
+  FROM "property" p
   GROUP BY p."ownerId"
 ),
 unit_stats AS (
@@ -208,8 +208,8 @@ unit_stats AS (
     COUNT(u.id) FILTER (WHERE u.status = 'VACANT') as vacant_units,
     COALESCE(SUM(u.rent) FILTER (WHERE u.status = 'OCCUPIED'), 0) as monthly_revenue,
     COALESCE(SUM(u.rent), 0) as potential_revenue
-  FROM "Property" p
-  LEFT JOIN "Unit" u ON p.id = u."propertyId"
+  FROM "property" p
+  LEFT JOIN "unit" u ON p.id = u."propertyId"
   GROUP BY p."ownerId"
 ),
 tenant_lease_stats AS (
@@ -220,10 +220,10 @@ tenant_lease_stats AS (
     COUNT(DISTINCT l.id) as total_leases,
     COUNT(DISTINCT l.id) FILTER (WHERE l.status = 'ACTIVE') as active_leases,
     COUNT(DISTINCT l.id) FILTER (WHERE l.status = 'EXPIRED') as expired_leases
-  FROM "Property" p
-  LEFT JOIN "Unit" u ON p.id = u."propertyId"
-  LEFT JOIN "Lease" l ON u.id = l."unitId"
-  LEFT JOIN "Tenant" t ON l."tenantId" = t.id
+  FROM "property" p
+  LEFT JOIN "unit" u ON p.id = u."propertyId"
+  LEFT JOIN "lease" l ON u.id = l."unitId"
+  LEFT JOIN "tenant" t ON l."tenantId" = t.id
   GROUP BY p."ownerId"
 ),
 maintenance_stats AS (
@@ -233,8 +233,8 @@ maintenance_stats AS (
     COUNT(m.id) FILTER (WHERE m.status = 'OPEN') as open_maintenance,
     COUNT(m.id) FILTER (WHERE m.status = 'IN_PROGRESS') as in_progress_maintenance,
     COUNT(m.id) FILTER (WHERE m.priority IN ('EMERGENCY', 'HIGH')) as urgent_maintenance
-  FROM "Property" p
-  LEFT JOIN "MaintenanceRequest" m ON p.id = m."propertyId"
+  FROM "property" p
+  LEFT JOIN "maintenance_request" m ON p.id = m."propertyId"
   GROUP BY p."ownerId"
 )
 SELECT

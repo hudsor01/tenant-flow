@@ -11,12 +11,12 @@
 -- 2. TENANT TABLE ENHANCEMENTS - Match User table structure
 -- ========================================
 -- Add firstName and lastName to match what forms collect
-ALTER TABLE "Tenant"
+ALTER TABLE "tenant"
 ADD COLUMN IF NOT EXISTS "firstName" TEXT,
 ADD COLUMN IF NOT EXISTS "lastName" TEXT;
 
 -- Migrate existing name data to firstName/lastName
-UPDATE "Tenant"
+UPDATE "tenant"
 SET
   "firstName" = COALESCE("firstName", SPLIT_PART("name", ' ', 1)),
   "lastName" = COALESCE("lastName",
@@ -29,7 +29,7 @@ SET
 WHERE "firstName" IS NULL OR "lastName" IS NULL;
 
 -- Update name column to be a generated column
-ALTER TABLE "Tenant"
+ALTER TABLE "tenant"
 DROP COLUMN IF EXISTS "name",
 ADD COLUMN "name" TEXT
 GENERATED ALWAYS AS (
@@ -44,18 +44,18 @@ GENERATED ALWAYS AS (
   END
 ) STORED;
 
-COMMENT ON COLUMN "Tenant"."firstName" IS 'Tenant first name';
-COMMENT ON COLUMN "Tenant"."lastName" IS 'Tenant last name';
-COMMENT ON COLUMN "Tenant"."name" IS 'Generated: Full name combining firstName and lastName';
+COMMENT ON COLUMN "tenant"."firstName" IS 'Tenant first name';
+COMMENT ON COLUMN "tenant"."lastName" IS 'Tenant last name';
+COMMENT ON COLUMN "tenant"."name" IS 'Generated: Full name combining firstName and lastName';
 
 -- ========================================
 -- 3. RENTPAYMENT TABLE ENHANCEMENTS
 -- ========================================
 -- PaymentUIExtended adds these fields
 ALTER TABLE "RentPayment"
-ADD COLUMN IF NOT EXISTS "invoiceId" UUID REFERENCES "Invoice"(id),
-ADD COLUMN IF NOT EXISTS "tenantId" UUID REFERENCES "Tenant"(id),
-ADD COLUMN IF NOT EXISTS "propertyId" UUID REFERENCES "Property"(id),
+ADD COLUMN IF NOT EXISTS "invoiceId" UUID REFERENCES "invoice"(id),
+ADD COLUMN IF NOT EXISTS "tenantId" UUID REFERENCES "tenant"(id),
+ADD COLUMN IF NOT EXISTS "propertyId" UUID REFERENCES "property"(id),
 ADD COLUMN IF NOT EXISTS "unit" TEXT,
 ADD COLUMN IF NOT EXISTS "dueDate" DATE,
 ADD COLUMN IF NOT EXISTS "paidDate" TIMESTAMPTZ,
@@ -81,26 +81,26 @@ COMMENT ON COLUMN "RentPayment"."transactionId" IS 'External payment processor t
 -- 4. INVOICE TABLE ENHANCEMENTS
 -- ========================================
 -- InvoiceUIExtended adds invoice_number
-ALTER TABLE "Invoice"
+ALTER TABLE "invoice"
 ADD COLUMN IF NOT EXISTS "invoiceNumber" TEXT;
 
 -- Create unique index for invoice numbers
 CREATE UNIQUE INDEX IF NOT EXISTS idx_invoice_number
-ON "Invoice"("invoiceNumber")
+ON "invoice"("invoiceNumber")
 WHERE "invoiceNumber" IS NOT NULL;
 
 -- Generate invoice numbers for existing records if needed
-UPDATE "Invoice"
+UPDATE "invoice"
 SET "invoiceNumber" = 'INV-' || EXTRACT(YEAR FROM "createdAt")::TEXT || '-' || LPAD(id::TEXT, 6, '0')
 WHERE "invoiceNumber" IS NULL;
 
-COMMENT ON COLUMN "Invoice"."invoiceNumber" IS 'Human-readable invoice number';
+COMMENT ON COLUMN "invoice"."invoiceNumber" IS 'Human-readable invoice number';
 
 -- ========================================
 -- 5. LEASE TABLE ENHANCEMENTS
 -- ========================================
 -- ExpiringLease adds computed fields
-ALTER TABLE "Lease"
+ALTER TABLE "lease"
 ADD COLUMN IF NOT EXISTS "daysUntilExpiry" INTEGER
 GENERATED ALWAYS AS (
   CASE
@@ -111,26 +111,26 @@ GENERATED ALWAYS AS (
 ) STORED;
 
 -- Add propertyId for easier queries (denormalization for performance)
-ALTER TABLE "Lease"
+ALTER TABLE "lease"
 ADD COLUMN IF NOT EXISTS "propertyId" UUID;
 
 -- Update propertyId from Unit relationship
-UPDATE "Lease" l
+UPDATE "lease" l
 SET "propertyId" = u."propertyId"
-FROM "Unit" u
+FROM "unit" u
 WHERE l."unitId" = u.id
 AND l."propertyId" IS NULL;
 
 -- Add foreign key constraint
-ALTER TABLE "Lease"
+ALTER TABLE "lease"
 ADD CONSTRAINT fk_lease_property
-FOREIGN KEY ("propertyId") REFERENCES "Property"(id);
+FOREIGN KEY ("propertyId") REFERENCES "property"(id);
 
-CREATE INDEX IF NOT EXISTS idx_lease_property_id ON "Lease"("propertyId");
-CREATE INDEX IF NOT EXISTS idx_lease_days_until_expiry ON "Lease"("daysUntilExpiry");
+CREATE INDEX IF NOT EXISTS idx_lease_property_id ON "lease"("propertyId");
+CREATE INDEX IF NOT EXISTS idx_lease_days_until_expiry ON "lease"("daysUntilExpiry");
 
-COMMENT ON COLUMN "Lease"."daysUntilExpiry" IS 'Generated: Days until lease expires';
-COMMENT ON COLUMN "Lease"."propertyId" IS 'Direct property reference for performance';
+COMMENT ON COLUMN "lease"."daysUntilExpiry" IS 'Generated: Days until lease expires';
+COMMENT ON COLUMN "lease"."propertyId" IS 'Direct property reference for performance';
 
 -- ========================================
 -- 6. UNIT STATS VIEW - STANDARDIZED FIELD NAMES
@@ -152,7 +152,7 @@ SELECT
       ROUND((COUNT(*) FILTER (WHERE status = 'OCCUPIED')::NUMERIC / COUNT(*)::NUMERIC) * 100, 2)
     ELSE 0
   END AS "occupancyRate"
-FROM "Unit";
+FROM "unit";
 
 COMMENT ON VIEW "UnitStatsView" IS 'Standardized unit statistics - use consistent field names across all stats';
 
@@ -170,7 +170,7 @@ SELECT
   COALESCE(SUM(CASE WHEN status = 'ACTIVE' THEN rent ELSE 0 END), 0)::NUMERIC(10,2) AS "totalRentRoll",
   AVG(CASE WHEN status = 'ACTIVE' THEN rent ELSE NULL END)::NUMERIC(10,2) AS "averageRent",
   COUNT(*) FILTER (WHERE status = 'ACTIVE' AND "endDate" <= CURRENT_DATE + INTERVAL '30 days') AS "expiringWithin30Days"
-FROM "Lease";
+FROM "lease";
 
 COMMENT ON VIEW "LeaseStatsView" IS 'Standardized lease statistics - use consistent field names across all stats';
 
@@ -193,7 +193,7 @@ SELECT
     THEN EXTRACT(EPOCH FROM ("completedAt" - "createdAt")) / 3600
     ELSE NULL
   END)::NUMERIC(10,2) AS "averageCompletionHours"
-FROM "MaintenanceRequest";
+FROM "maintenance_request";
 
 COMMENT ON VIEW "MaintenanceStatsView" IS 'Standardized maintenance statistics - consistent with other stats views';
 
@@ -214,9 +214,9 @@ SELECT
       ROUND((COUNT(DISTINCT u.id) FILTER (WHERE u.status = 'OCCUPIED')::NUMERIC / COUNT(DISTINCT u.id)::NUMERIC) * 100, 2)
     ELSE 0
   END AS "occupancyRate"
-FROM "Property" p
-LEFT JOIN "Unit" u ON u."propertyId" = p.id
-LEFT JOIN "Lease" l ON l."unitId" = u.id
+FROM "property" p
+LEFT JOIN "unit" u ON u."propertyId" = p.id
+LEFT JOIN "lease" l ON l."unitId" = u.id
 GROUP BY p.id, p.name;
 
 COMMENT ON VIEW "PropertyStatsView" IS 'Standardized property-level statistics';
@@ -225,10 +225,10 @@ COMMENT ON VIEW "PropertyStatsView" IS 'Standardized property-level statistics';
 -- 8. PERFORMANCE OPTIMIZATIONS
 -- ========================================
 -- Add any missing indexes for common queries
-CREATE INDEX IF NOT EXISTS idx_tenant_name ON "Tenant"("name");
-CREATE INDEX IF NOT EXISTS idx_unit_status ON "Unit"("status");
-CREATE INDEX IF NOT EXISTS idx_lease_status ON "Lease"("status");
-CREATE INDEX IF NOT EXISTS idx_lease_end_date ON "Lease"("endDate");
+CREATE INDEX IF NOT EXISTS idx_tenant_name ON "tenant"("name");
+CREATE INDEX IF NOT EXISTS idx_unit_status ON "unit"("status");
+CREATE INDEX IF NOT EXISTS idx_lease_status ON "lease"("status");
+CREATE INDEX IF NOT EXISTS idx_lease_end_date ON "lease"("endDate");
 CREATE INDEX IF NOT EXISTS idx_rent_payment_status ON "RentPayment"("status");
 
 -- ========================================
