@@ -55,7 +55,7 @@ BEGIN
         'units', COALESCE(unit_stats.units_json, '[]'::json)
       )
     ), '[]'::json)
-    FROM "Property" p
+    FROM "property" p
     LEFT JOIN LATERAL (
       SELECT 
         COUNT(u.id) as total_units,
@@ -90,15 +90,15 @@ BEGIN
             'squareFeet', u."squareFeet"
           ) ORDER BY u."unitNumber"
         ) as units_json
-      FROM "Unit" u
+      FROM "unit" u
       WHERE u."propertyId" = p.id
     ) unit_stats ON true
     LEFT JOIN LATERAL (
       SELECT 
         COUNT(m.id) as total_requests,
         COUNT(m.id) FILTER (WHERE m.status IN ('PENDING', 'IN_PROGRESS')) as open_requests
-      FROM "MaintenanceRequest" m
-      JOIN "Unit" u ON m."unitId" = u.id
+      FROM "maintenance_request" m
+      JOIN "unit" u ON m."unitId" = u.id
       WHERE u."propertyId" = p.id
     ) maintenance_stats ON true
     WHERE p."ownerId" = p_user_id
@@ -142,7 +142,7 @@ BEGIN
         COALESCE(maintenance_stats.total_requests, 0) as "maintenanceRequests",
         COALESCE(maintenance_stats.open_requests, 0) as "openMaintenanceRequests",
         COALESCE(unit_stats.units_json, '[]'::json) as units
-      FROM "Property" p
+      FROM "property" p
       LEFT JOIN LATERAL (
         SELECT 
           COUNT(u.id) as total_units,
@@ -177,15 +177,15 @@ BEGIN
               'squareFeet', u."squareFeet"
             ) ORDER BY u."unitNumber"
           ) as units_json
-        FROM "Unit" u
+        FROM "unit" u
         WHERE u."propertyId" = p.id
       ) unit_stats ON true
       LEFT JOIN LATERAL (
         SELECT 
           COUNT(m.id) as total_requests,
           COUNT(m.id) FILTER (WHERE m.status IN ('PENDING', 'IN_PROGRESS')) as open_requests
-        FROM "MaintenanceRequest" m
-        JOIN "Unit" u ON m."unitId" = u.id
+        FROM "maintenance_request" m
+        JOIN "unit" u ON m."unitId" = u.id
         WHERE u."propertyId" = p.id
       ) maintenance_stats ON true
       WHERE p.id = p_property_id
@@ -216,7 +216,7 @@ BEGIN
           ELSE 0 
         END
       )
-      FROM "Property" p
+      FROM "property" p
       LEFT JOIN LATERAL (
         SELECT 
           CASE 
@@ -224,7 +224,7 @@ BEGIN
             THEN (COUNT(u.id) FILTER (WHERE u.status = 'OCCUPIED')::NUMERIC / COUNT(u.id)::NUMERIC * 100)
             ELSE 0 
           END as occupancy_rate
-        FROM "Unit" u
+        FROM "unit" u
         WHERE u."propertyId" = p.id
       ) property_occupancy ON true
       WHERE p."ownerId" = p_user_id
@@ -241,8 +241,8 @@ BEGIN
           ELSE 0 
         END
       )
-      FROM "Unit" u
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "unit" u
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
     ),
     'tenants', (
@@ -252,10 +252,10 @@ BEGIN
         'pending', COUNT(DISTINCT t.id) FILTER (WHERE t."invitationStatus" = 'PENDING'),
         'inactive', COUNT(DISTINCT t.id) FILTER (WHERE t."invitationStatus" IN ('EXPIRED', 'CANCELLED'))
       )
-      FROM "Tenant" t
-      JOIN "Lease" l ON t.id = l."tenantId"
-      JOIN "Unit" u ON l."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "tenant" t
+      JOIN "lease" l ON t.id = l."tenantId"
+      JOIN "unit" u ON l."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
     ),
     'leases', (
@@ -265,9 +265,9 @@ BEGIN
         'expiringSoon', COUNT(l.id) FILTER (WHERE l.status = 'ACTIVE' AND l."endDate" BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'),
         'expired', COUNT(l.id) FILTER (WHERE l."endDate" < CURRENT_DATE)
       )
-      FROM "Lease" l
-      JOIN "Unit" u ON l."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "lease" l
+      JOIN "unit" u ON l."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
     ),
     'financials', (
@@ -286,9 +286,9 @@ BEGIN
         END,
         'totalSecurityDeposits', COALESCE(SUM(l."securityDeposit"), 0)
       )
-      FROM "Unit" u
-      JOIN "Property" p ON u."propertyId" = p.id
-      LEFT JOIN "Lease" l ON u.id = l."unitId" AND l.status = 'ACTIVE'
+      FROM "unit" u
+      JOIN "property" p ON u."propertyId" = p.id
+      LEFT JOIN "lease" l ON u.id = l."unitId" AND l.status = 'ACTIVE'
       WHERE p."ownerId" = p_user_id
     ),
     'maintenance', (
@@ -305,9 +305,9 @@ BEGIN
           ELSE 0
         END
       )
-      FROM "MaintenanceRequest" m
-      JOIN "Unit" u ON m."unitId" = u.id
-      JOIN "Property" p ON u."propertyId" = p.id
+      FROM "maintenance_request" m
+      JOIN "unit" u ON m."unitId" = u.id
+      JOIN "property" p ON u."propertyId" = p.id
       WHERE p."ownerId" = p_user_id
     ),
     'recentActivity', (
@@ -325,9 +325,9 @@ BEGIN
           'lease' as type,
           'New lease created for unit ' || u."unitNumber" as description,
           l."createdAt" as timestamp
-        FROM "Lease" l
-        JOIN "Unit" u ON l."unitId" = u.id
-        JOIN "Property" p ON u."propertyId" = p.id
+        FROM "lease" l
+        JOIN "unit" u ON l."unitId" = u.id
+        JOIN "property" p ON u."propertyId" = p.id
         WHERE p."ownerId" = p_user_id
         ORDER BY l."createdAt" DESC
         LIMIT 10
@@ -358,9 +358,9 @@ BEGIN
         COUNT(DISTINCT m.id) FILTER (WHERE m.status IN ('PENDING', 'IN_PROGRESS')) as maintenance,
         COALESCE(SUM(u.rent) FILTER (WHERE u.status = 'OCCUPIED'), 0) as "totalMonthlyRent",
         COUNT(DISTINCT u.id) FILTER (WHERE u.status = 'VACANT') as "vacantUnits"
-      FROM "Property" p
-      LEFT JOIN "Unit" u ON p.id = u."propertyId"
-      LEFT JOIN "MaintenanceRequest" m ON u.id = m."unitId"
+      FROM "property" p
+      LEFT JOIN "unit" u ON p.id = u."propertyId"
+      LEFT JOIN "maintenance_request" m ON u.id = m."unitId"
       WHERE p."ownerId" = p_user_id
     ) stats
   );

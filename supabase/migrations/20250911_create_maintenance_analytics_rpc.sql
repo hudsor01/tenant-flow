@@ -66,7 +66,7 @@ BEGIN
                 'timeframe', p_timeframe
             )
         )
-        FROM "Property" p
+        FROM "property" p
         LEFT JOIN (
             -- Performance statistics
             SELECT 
@@ -101,9 +101,9 @@ BEGIN
                         ELSE 168
                     END
                 ) as sla_compliant
-            FROM "Property" p2
-            LEFT JOIN "Unit" u ON u."propertyId" = p2."id"
-            LEFT JOIN "MaintenanceRequest" mr ON mr."propertyId" = p2."id" OR mr."unitId" = u."id"
+            FROM "property" p2
+            LEFT JOIN "unit" u ON u."propertyId" = p2."id"
+            LEFT JOIN "maintenance_request" mr ON mr."propertyId" = p2."id" OR mr."unitId" = u."id"
             WHERE mr."createdAt" >= v_start_date OR mr."createdAt" IS NULL
             GROUP BY p2."id"
         ) as perf_stats ON p."id" = perf_stats.property_id
@@ -113,9 +113,9 @@ BEGIN
                 p3."id" as property_id,
                 COUNT(mr2.*) FILTER (WHERE mr2."priority" = 'URGENT' AND mr2."status" = 'COMPLETED') as urgent_handled,
                 COUNT(mr2.*) FILTER (WHERE mr2."priority" = 'URGENT' AND mr2."status" IN ('PENDING', 'IN_PROGRESS')) as urgent_pending
-            FROM "Property" p3
-            LEFT JOIN "Unit" u2 ON u2."propertyId" = p3."id"
-            LEFT JOIN "MaintenanceRequest" mr2 ON mr2."propertyId" = p3."id" OR mr2."unitId" = u2."id"
+            FROM "property" p3
+            LEFT JOIN "unit" u2 ON u2."propertyId" = p3."id"
+            LEFT JOIN "maintenance_request" mr2 ON mr2."propertyId" = p3."id" OR mr2."unitId" = u2."id"
             WHERE mr2."createdAt" >= v_start_date OR mr2."createdAt" IS NULL
             GROUP BY p3."id"
         ) as priority_stats ON p."id" = priority_stats.property_id
@@ -124,9 +124,9 @@ BEGIN
             SELECT 
                 p4."id" as property_id,
                 SUM(COALESCE(mr3."estimatedCost", 0) + COALESCE(mr3."actualCost", 0)) as total_costs
-            FROM "Property" p4
-            LEFT JOIN "Unit" u3 ON u3."propertyId" = p4."id"
-            LEFT JOIN "MaintenanceRequest" mr3 ON mr3."propertyId" = p4."id" OR mr3."unitId" = u3."id"
+            FROM "property" p4
+            LEFT JOIN "unit" u3 ON u3."propertyId" = p4."id"
+            LEFT JOIN "maintenance_request" mr3 ON mr3."propertyId" = p4."id" OR mr3."unitId" = u3."id"
             WHERE mr3."createdAt" >= v_start_date OR mr3."createdAt" IS NULL
             GROUP BY p4."id"
         ) as cost_stats ON p."id" = cost_stats.property_id
@@ -148,9 +148,9 @@ BEGIN
                         'totalCost', SUM(COALESCE(mr4."estimatedCost", 0) + COALESCE(mr4."actualCost", 0))
                     )
                 ) as breakdown
-            FROM "Property" p5
-            LEFT JOIN "Unit" u4 ON u4."propertyId" = p5."id"
-            LEFT JOIN "MaintenanceRequest" mr4 ON mr4."propertyId" = p5."id" OR mr4."unitId" = u4."id"
+            FROM "property" p5
+            LEFT JOIN "unit" u4 ON u4."propertyId" = p5."id"
+            LEFT JOIN "maintenance_request" mr4 ON mr4."propertyId" = p5."id" OR mr4."unitId" = u4."id"
             WHERE (mr4."createdAt" >= v_start_date OR mr4."createdAt" IS NULL) AND mr4."category" IS NOT NULL
             GROUP BY p5."id", mr4."category"
         ) as category_stats ON p."id" = category_stats.property_id
@@ -219,7 +219,7 @@ BEGIN
                 'timeframe', p_timeframe
             )
         )
-        FROM "Property" p
+        FROM "property" p
         LEFT JOIN (
             -- Basic cost statistics
             SELECT 
@@ -228,9 +228,9 @@ BEGIN
                 SUM(COALESCE(mr."estimatedCost", 0) + COALESCE(mr."actualCost", 0)) as total_cost,
                 SUM(COALESCE(mr."estimatedCost", 0)) as total_estimated,
                 SUM(COALESCE(mr."actualCost", 0)) as total_actual
-            FROM "Property" p2
-            LEFT JOIN "Unit" u ON u."propertyId" = p2."id"
-            LEFT JOIN "MaintenanceRequest" mr ON mr."propertyId" = p2."id" OR mr."unitId" = u."id"
+            FROM "property" p2
+            LEFT JOIN "unit" u ON u."propertyId" = p2."id"
+            LEFT JOIN "maintenance_request" mr ON mr."propertyId" = p2."id" OR mr."unitId" = u."id"
             WHERE mr."createdAt" >= v_start_date OR mr."createdAt" IS NULL
             GROUP BY p2."id"
         ) as cost_stats ON p."id" = cost_stats.property_id
@@ -239,8 +239,8 @@ BEGIN
             SELECT 
                 p3."id" as property_id,
                 COUNT(u2.*) as total_units
-            FROM "Property" p3
-            LEFT JOIN "Unit" u2 ON u2."propertyId" = p3."id"
+            FROM "property" p3
+            LEFT JOIN "unit" u2 ON u2."propertyId" = p3."id"
             GROUP BY p3."id"
         ) as unit_stats ON p."id" = unit_stats.property_id
         LEFT JOIN (
@@ -255,9 +255,9 @@ BEGIN
                         'averageCost', ROUND(AVG(COALESCE(mr2."estimatedCost", 0) + COALESCE(mr2."actualCost", 0)), 2)
                     )
                 ) as costs
-            FROM "Property" p4
-            LEFT JOIN "Unit" u3 ON u3."propertyId" = p4."id"
-            LEFT JOIN "MaintenanceRequest" mr2 ON mr2."propertyId" = p4."id" OR mr2."unitId" = u3."id"
+            FROM "property" p4
+            LEFT JOIN "unit" u3 ON u3."propertyId" = p4."id"
+            LEFT JOIN "maintenance_request" mr2 ON mr2."propertyId" = p4."id" OR mr2."unitId" = u3."id"
             WHERE (mr2."createdAt" >= v_start_date OR mr2."createdAt" IS NULL) AND mr2."category" IS NOT NULL
             GROUP BY p4."id", mr2."category"
         ) as category_costs ON p."id" = category_costs.property_id
@@ -269,9 +269,9 @@ BEGIN
                 SUM(CASE WHEN mr3."priority" = 'HIGH' THEN COALESCE(mr3."estimatedCost", 0) + COALESCE(mr3."actualCost", 0) ELSE 0 END) as high_cost,
                 SUM(CASE WHEN mr3."priority" = 'MEDIUM' THEN COALESCE(mr3."estimatedCost", 0) + COALESCE(mr3."actualCost", 0) ELSE 0 END) as medium_cost,
                 SUM(CASE WHEN mr3."priority" = 'LOW' THEN COALESCE(mr3."estimatedCost", 0) + COALESCE(mr3."actualCost", 0) ELSE 0 END) as low_cost
-            FROM "Property" p5
-            LEFT JOIN "Unit" u4 ON u4."propertyId" = p5."id"
-            LEFT JOIN "MaintenanceRequest" mr3 ON mr3."propertyId" = p5."id" OR mr3."unitId" = u4."id"
+            FROM "property" p5
+            LEFT JOIN "unit" u4 ON u4."propertyId" = p5."id"
+            LEFT JOIN "maintenance_request" mr3 ON mr3."propertyId" = p5."id" OR mr3."unitId" = u4."id"
             WHERE mr3."createdAt" >= v_start_date OR mr3."createdAt" IS NULL
             GROUP BY p5."id"
         ) as priority_costs ON p."id" = priority_costs.property_id
@@ -287,9 +287,9 @@ BEGIN
                     )
                     ORDER BY date_trunc('month', mr4."createdAt")
                 ) as monthly_trend
-            FROM "Property" p6
-            LEFT JOIN "Unit" u5 ON u5."propertyId" = p6."id"
-            LEFT JOIN "MaintenanceRequest" mr4 ON mr4."propertyId" = p6."id" OR mr4."unitId" = u5."id"
+            FROM "property" p6
+            LEFT JOIN "unit" u5 ON u5."propertyId" = p6."id"
+            LEFT JOIN "maintenance_request" mr4 ON mr4."propertyId" = p6."id" OR mr4."unitId" = u5."id"
             WHERE mr4."createdAt" >= v_start_date
             GROUP BY p6."id", date_trunc('month', mr4."createdAt")
         ) as trend_stats ON p."id" = trend_stats.property_id
@@ -360,10 +360,10 @@ BEGIN
                         ELSE NULL
                     END
                 ) as avg_resolution_days
-            FROM "Property" p
+            FROM "property" p
             CROSS JOIN time_series ts
-            LEFT JOIN "Unit" u ON u."propertyId" = p."id"
-            LEFT JOIN "MaintenanceRequest" mr ON (mr."propertyId" = p."id" OR mr."unitId" = u."id")
+            LEFT JOIN "unit" u ON u."propertyId" = p."id"
+            LEFT JOIN "maintenance_request" mr ON (mr."propertyId" = p."id" OR mr."unitId" = u."id")
                 AND date_trunc(v_date_trunc_format, mr."createdAt") = ts.period_start
             WHERE p."ownerId" = p_user_id
             AND (p_property_id IS NULL OR p."id" = p_property_id)
@@ -392,8 +392,8 @@ BEGIN
                 'totalCost', period_cost,
                 'averageResolutionDays', COALESCE(ROUND(avg_resolution_days, 1), 0),
                 'requestsPerUnit', CASE 
-                    WHEN (SELECT COUNT(*) FROM "Unit" WHERE "propertyId" = property_id) > 0
-                    THEN ROUND(total_requests::FLOAT / (SELECT COUNT(*) FROM "Unit" WHERE "propertyId" = property_id), 2)
+                    WHEN (SELECT COUNT(*) FROM "unit" WHERE "propertyId" = property_id) > 0
+                    THEN ROUND(total_requests::FLOAT / (SELECT COUNT(*) FROM "unit" WHERE "propertyId" = property_id), 2)
                     ELSE 0
                 END
             )
@@ -462,7 +462,7 @@ BEGIN
                 'timeframe', p_timeframe
             )
         )
-        FROM "Property" p
+        FROM "property" p
         LEFT JOIN (
             -- Vendor statistics (simplified - assumes in-house vs contractor based on cost thresholds)
             SELECT 
@@ -474,9 +474,9 @@ BEGIN
                     THEN COALESCE(mr."estimatedCost", 0) + COALESCE(mr."actualCost", 0) ELSE 0 END) as in_house_cost,
                 SUM(CASE WHEN COALESCE(mr."estimatedCost", 0) + COALESCE(mr."actualCost", 0) > 200 
                     THEN COALESCE(mr."estimatedCost", 0) + COALESCE(mr."actualCost", 0) ELSE 0 END) as contractor_cost
-            FROM "Property" p2
-            LEFT JOIN "Unit" u ON u."propertyId" = p2."id"
-            LEFT JOIN "MaintenanceRequest" mr ON mr."propertyId" = p2."id" OR mr."unitId" = u."id"
+            FROM "property" p2
+            LEFT JOIN "unit" u ON u."propertyId" = p2."id"
+            LEFT JOIN "maintenance_request" mr ON mr."propertyId" = p2."id" OR mr."unitId" = u."id"
             WHERE mr."createdAt" >= v_start_date OR mr."createdAt" IS NULL
             GROUP BY p2."id"
         ) as vendor_stats ON p."id" = vendor_stats.property_id

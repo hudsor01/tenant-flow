@@ -23,8 +23,8 @@ DECLARE
 BEGIN
   -- Verify unit belongs to user's property
   SELECT p.id INTO property_id
-  FROM "Unit" u
-  JOIN "Property" p ON p.id = u."propertyId"
+  FROM "unit" u
+  JOIN "property" p ON p.id = u."propertyId"
   WHERE u.id = p_unit_id AND p."userId" = p_user_id;
   
   IF property_id IS NULL THEN
@@ -33,13 +33,13 @@ BEGIN
 
   -- Calculate current total monthly rent (replaces frontend calculation)
   SELECT COALESCE(SUM(l."rentAmount"), 0) INTO current_total_rent
-  FROM "Lease" l
-  JOIN "Unit" u ON u.id = l."unitId"
-  JOIN "Property" p ON p.id = u."propertyId"
+  FROM "lease" l
+  JOIN "unit" u ON u.id = l."unitId"
+  JOIN "property" p ON p.id = u."propertyId"
   WHERE p."userId" = p_user_id AND l.status = 'ACTIVE';
 
   -- Create the lease
-  INSERT INTO "Lease" (
+  INSERT INTO "lease" (
     "tenantId", "unitId", "startDate", "endDate", 
     "rentAmount", "securityDeposit", "leaseTerms", 
     "status", "createdAt", "updatedAt"
@@ -59,9 +59,9 @@ BEGIN
     'totalMonthlyRent', new_total_rent,
     'activeLeases', (
       SELECT COUNT(*)
-      FROM "Lease" l
-      JOIN "Unit" u ON u.id = l."unitId"
-      JOIN "Property" p ON p.id = u."propertyId"
+      FROM "lease" l
+      JOIN "unit" u ON u.id = l."unitId"
+      JOIN "property" p ON p.id = u."propertyId"
       WHERE p."userId" = p_user_id AND l.status = 'ACTIVE'
     ),
     'occupancyRate', (
@@ -70,9 +70,9 @@ BEGIN
           ROUND((COUNT(l.id)::DECIMAL / COUNT(u.id) * 100.0), 1)
         ELSE 0 
       END
-      FROM "Property" p
-      LEFT JOIN "Unit" u ON u."propertyId" = p.id
-      LEFT JOIN "Lease" l ON l."unitId" = u.id AND l.status = 'ACTIVE'
+      FROM "property" p
+      LEFT JOIN "unit" u ON u."propertyId" = p.id
+      LEFT JOIN "lease" l ON l."unitId" = u.id AND l.status = 'ACTIVE'
       WHERE p."userId" = p_user_id
     ),
     'revenueProjection', new_total_rent * 12 -- Annual projection
@@ -110,10 +110,10 @@ BEGIN
       ),
       'financialStats', updated_stats
     )
-    FROM "Lease" l
-    JOIN "Tenant" t ON t.id = l."tenantId"
-    JOIN "Unit" u ON u.id = l."unitId"
-    JOIN "Property" p ON p.id = u."propertyId"
+    FROM "lease" l
+    JOIN "tenant" t ON t.id = l."tenantId"
+    JOIN "unit" u ON u.id = l."unitId"
+    JOIN "property" p ON p.id = u."propertyId"
     WHERE l.id = new_lease_id
   );
 END;
@@ -140,9 +140,9 @@ DECLARE
 BEGIN
   -- Verify lease belongs to user and get old rent amount
   SELECT l."rentAmount", p.id INTO old_rent_amount, property_id
-  FROM "Lease" l
-  JOIN "Unit" u ON u.id = l."unitId"
-  JOIN "Property" p ON p.id = u."propertyId"
+  FROM "lease" l
+  JOIN "unit" u ON u.id = l."unitId"
+  JOIN "property" p ON p.id = u."propertyId"
   WHERE l.id = p_lease_id AND p."userId" = p_user_id;
   
   IF property_id IS NULL THEN
@@ -154,7 +154,7 @@ BEGIN
   rent_difference := new_rent_amount - old_rent_amount;
 
   -- Update the lease with provided values
-  UPDATE "Lease" 
+  UPDATE "lease" 
   SET 
     "rentAmount" = COALESCE(p_rent_amount, "rentAmount"),
     "securityDeposit" = COALESCE(p_security_deposit, "securityDeposit"),
@@ -169,9 +169,9 @@ BEGIN
   SELECT json_build_object(
     'totalMonthlyRent', (
       SELECT COALESCE(SUM(l."rentAmount"), 0)
-      FROM "Lease" l
-      JOIN "Unit" u ON u.id = l."unitId"
-      JOIN "Property" p ON p.id = u."propertyId"
+      FROM "lease" l
+      JOIN "unit" u ON u.id = l."unitId"
+      JOIN "property" p ON p.id = u."propertyId"
       WHERE p."userId" = p_user_id AND l.status = 'ACTIVE'
     ),
     'rentDifference', rent_difference,
@@ -208,7 +208,7 @@ BEGIN
       ),
       'financialStats', updated_stats
     )
-    FROM "Lease" l
+    FROM "lease" l
     WHERE l.id = p_lease_id
   );
 END;
@@ -229,9 +229,9 @@ DECLARE
 BEGIN
   -- Verify lease belongs to user and get rent amount
   SELECT l."rentAmount", p.id INTO lost_rent_amount, property_id
-  FROM "Lease" l
-  JOIN "Unit" u ON u.id = l."unitId"
-  JOIN "Property" p ON p.id = u."propertyId"
+  FROM "lease" l
+  JOIN "unit" u ON u.id = l."unitId"
+  JOIN "property" p ON p.id = u."propertyId"
   WHERE l.id = p_lease_id AND p."userId" = p_user_id AND l.status = 'ACTIVE';
   
   IF property_id IS NULL THEN
@@ -239,7 +239,7 @@ BEGIN
   END IF;
 
   -- Terminate the lease
-  UPDATE "Lease" 
+  UPDATE "lease" 
   SET 
     "status" = 'TERMINATED',
     "endDate" = p_termination_date,
@@ -255,9 +255,9 @@ BEGIN
   SELECT json_build_object(
     'newTotalMonthlyRent', (
       SELECT COALESCE(SUM(l."rentAmount"), 0)
-      FROM "Lease" l
-      JOIN "Unit" u ON u.id = l."unitId"
-      JOIN "Property" p ON p.id = u."propertyId"
+      FROM "lease" l
+      JOIN "unit" u ON u.id = l."unitId"
+      JOIN "property" p ON p.id = u."propertyId"
       WHERE p."userId" = p_user_id AND l.status = 'ACTIVE'
     ),
     'monthlyRevenueLoss', lost_rent_amount,
@@ -269,9 +269,9 @@ BEGIN
           ROUND((COUNT(l.id)::DECIMAL / COUNT(u.id) * 100.0), 1)
         ELSE 0 
       END
-      FROM "Property" p
-      LEFT JOIN "Unit" u ON u."propertyId" = p.id
-      LEFT JOIN "Lease" l ON l."unitId" = u.id AND l.status = 'ACTIVE'
+      FROM "property" p
+      LEFT JOIN "unit" u ON u."propertyId" = p.id
+      LEFT JOIN "lease" l ON l."unitId" = u.id AND l.status = 'ACTIVE'
       WHERE p."userId" = p_user_id
     )
   ) INTO updated_stats;
@@ -344,10 +344,10 @@ BEGIN
         'propertyAddress', p.address || ', ' || p.city
       )
     )
-    FROM "Lease" l
-    JOIN "Tenant" t ON t.id = l."tenantId"
-    JOIN "Unit" u ON u.id = l."unitId"
-    JOIN "Property" p ON p.id = u."propertyId"
+    FROM "lease" l
+    JOIN "tenant" t ON t.id = l."tenantId"
+    JOIN "unit" u ON u.id = l."unitId"
+    JOIN "property" p ON p.id = u."propertyId"
     WHERE p."userId" = p_user_id
     AND (p_status IS NULL OR l.status = p_status)
     ORDER BY l."createdAt" DESC
@@ -392,15 +392,15 @@ BEGIN
           ROUND((COUNT(l.id)::DECIMAL / COUNT(u.id) * 100.0), 1)
         ELSE 0 
       END
-      FROM "Property" p
-      LEFT JOIN "Unit" u ON u."propertyId" = p.id
-      LEFT JOIN "Lease" active_lease ON active_lease."unitId" = u.id AND active_lease.status = 'ACTIVE'
+      FROM "property" p
+      LEFT JOIN "unit" u ON u."propertyId" = p.id
+      LEFT JOIN "lease" active_lease ON active_lease."unitId" = u.id AND active_lease.status = 'ACTIVE'
       WHERE p."userId" = p_user_id
     )
   ) INTO summary_data
-  FROM "Lease" l
-  JOIN "Unit" u ON u.id = l."unitId"
-  JOIN "Property" p ON p.id = u."propertyId"
+  FROM "lease" l
+  JOIN "unit" u ON u.id = l."unitId"
+  JOIN "property" p ON p.id = u."propertyId"
   WHERE p."userId" = p_user_id;
 
   RETURN summary_data;
