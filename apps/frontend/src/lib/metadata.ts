@@ -2,9 +2,10 @@ import type { Metadata } from 'next'
 
 export const siteMetadata: Metadata = {
 	metadataBase: new URL(
-		process.env.NEXT_PUBLIC_APP_URL || (() => {
-			throw new Error('NEXT_PUBLIC_APP_URL is required for site metadata')
-		})()
+		process.env.NEXT_PUBLIC_APP_URL ||
+			(() => {
+				throw new Error('NEXT_PUBLIC_APP_URL is required for site metadata')
+			})()
 	),
 	title:
 		'TenantFlow - Simplify Property Management | Professional Property Management Software',
@@ -34,7 +35,7 @@ export const siteMetadata: Metadata = {
 		locale: 'en_US',
 		images: [
 			{
-				url: '/assets/images/property-management-og.jpg',
+				url: '/images/property-management-og.jpg',
 				width: 1200,
 				height: 630,
 				alt: 'TenantFlow Property Management Dashboard',
@@ -55,7 +56,7 @@ export const siteMetadata: Metadata = {
 		description:
 			'Professional property management software trusted by thousands. Streamline operations and scale your business.',
 		creator: '@tenantflow',
-		images: ['/assets/images/property-management-og.jpg']
+		images: ['/images/property-management-og.jpg']
 	},
 	applicationName: 'TenantFlow',
 	referrer: 'origin-when-cross-origin',
@@ -105,7 +106,7 @@ export const structuredData = {
 			description: 'Free trial available'
 		}
 	},
-	screenshot: 'https://tenantflow.app/assets/images/property-management-og.jpg',
+	screenshot: 'https://tenantflow.app/images/property-management-og.jpg',
 	featureList: [
 		'Property Management',
 		'Tenant Management',
