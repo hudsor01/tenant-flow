@@ -209,7 +209,7 @@ export class StripeAccessControlService {
 				return
 			}
 
-			this.logger.error('Payment failed', {
+			this.logger.warn('Payment failed', {
 				userId,
 				invoiceId: invoice.id,
 				subscriptionId:
