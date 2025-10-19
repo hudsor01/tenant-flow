@@ -1,5 +1,6 @@
 'use client'
 
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { DefaultOptions, DehydratedState } from '@tanstack/react-query'
 import {
 	HydrationBoundary,
@@ -11,6 +12,8 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import dynamic from 'next/dynamic'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
+
+const logger = createLogger({ component: 'QueryProvider' })
 
 // Dynamically import DevTools for development only
 const ReactQueryDevtools = dynamic(
@@ -86,21 +89,58 @@ export function QueryProvider({
 				if (cancelled) return
 
 				const idbPersister: Persister = {
-					persistClient: (client: unknown) => set(QUERY_CACHE_KEY, client),
-					restoreClient: () => get(QUERY_CACHE_KEY),
-					removeClient: () => del(QUERY_CACHE_KEY)
+					persistClient: async (client: unknown) => {
+						try {
+							await set(QUERY_CACHE_KEY, client)
+						} catch (error) {
+							// DataCloneError or QuotaExceededError - fail silently
+							logger.warn('Failed to persist cache to IndexedDB', {
+								action: 'persist_client_error',
+								metadata: {
+									error: error instanceof Error ? error.message : String(error)
+								}
+							})
+						}
+					},
+					restoreClient: async () => {
+						try {
+							return await get(QUERY_CACHE_KEY)
+						} catch (error) {
+							logger.warn('Failed to restore cache from IndexedDB', {
+								action: 'restore_client_error',
+								metadata: {
+									error: error instanceof Error ? error.message : String(error)
+								}
+							})
+							return undefined
+						}
+					},
+					removeClient: async () => {
+						try {
+							await del(QUERY_CACHE_KEY)
+						} catch (error) {
+							logger.warn('Failed to remove cache from IndexedDB', {
+								action: 'remove_client_error',
+								metadata: {
+									error: error instanceof Error ? error.message : String(error)
+								}
+							})
+						}
+					}
 				}
 
 				setPersister(idbPersister)
 				setIsPersistenceReady(true)
 			} catch (error) {
-				if (process.env.NODE_ENV !== 'production') {
-					// eslint-disable-next-line no-console, no-restricted-syntax
-					console.warn(
-						'[QueryProvider] Failed to initialize IndexedDB persistence. Falling back to in-memory cache.',
-						error
-					)
-				}
+				logger.warn(
+					'Failed to initialize IndexedDB persistence - falling back to in-memory cache',
+					{
+						action: 'init_persister_error',
+						metadata: {
+							error: error instanceof Error ? error.message : String(error)
+						}
+					}
+				)
 				setIsPersistenceReady(false)
 			}
 		}
@@ -156,7 +196,43 @@ export function QueryProvider({
 					maxAge: QUERY_CACHE_MAX_AGE,
 					buster: QUERY_CACHE_BUSTER,
 					dehydrateOptions: {
-						shouldDehydrateQuery: () => true
+						shouldDehydrateQuery: query => {
+							// Only persist successfully resolved queries
+							const queryState = query.state
+
+							// Skip queries that are currently fetching or have errors
+							if (
+								queryState.status === 'pending' ||
+								queryState.fetchStatus === 'fetching'
+							) {
+								return false
+							}
+
+							// Skip queries with errors
+							if (queryState.status === 'error') {
+								return false
+							}
+
+							// Skip auth session queries (sensitive data)
+							const queryKey = query.queryKey[0] as string
+							if (queryKey === 'auth') {
+								return false
+							}
+
+							// Skip if data contains non-serializable values
+							try {
+								if (queryState.data) {
+									// Quick check: try to stringify the data
+									JSON.stringify(queryState.data)
+								}
+							} catch {
+								// Data is not serializable, skip it
+								return false
+							}
+
+							// Only persist queries with actual data
+							return queryState.status === 'success' && queryState.data !== null
+						}
 					}
 				}}
 			>
