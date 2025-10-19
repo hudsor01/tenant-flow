@@ -30,13 +30,13 @@ interface AuthenticatedRequest extends ExpressRequest {
 	}
 }
 
-@Controller('api/v1/subscriptions')
+@Controller('subscriptions')
 export class SubscriptionsController {
 	constructor(private readonly subscriptionsService: SubscriptionsService) {}
 
 	/**
 	 * Create a new rent subscription
-	 * POST /api/v1/subscriptions
+	 * POST /subscriptions
 	 */
 	@Post()
 	async createSubscription(

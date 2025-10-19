@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common'
 
-import { EventEmitter2 } from '@nestjs/event-emitter'
+// REMOVED: EventEmitter2 - Event emission now handled by Stripe Sync Engine
 import { SupabaseModule } from '../../database/supabase.module'
+import { StripeAccessControlService } from './stripe-access-control.service'
 import { StripeDataService } from './stripe-data.service'
-import { StripeEventProcessor } from './stripe-event-processor.service'
+// REMOVED: StripeEventProcessor - Event processing now handled by Stripe Sync Engine
 import { StripeRecoveryService } from './stripe-recovery.service'
 import { StripeSyncService } from './stripe-sync.service'
 import { StripeWebhookService } from './stripe-webhook.service'
@@ -36,14 +37,15 @@ import { StripeService } from './stripe.service'
 		// Database-backed webhook idempotency service
 		StripeWebhookService,
 
-		// Async event processor for webhook events
-		StripeEventProcessor,
+		// REMOVED: StripeEventProcessor - Event processing now handled by Stripe Sync Engine
 
 		// Event recovery service for failed webhooks
 		StripeRecoveryService,
 
-		// Event system (native NestJS)
-		EventEmitter2
+		// Subscription-based access control service
+		StripeAccessControlService
+
+		// REMOVED: EventEmitter2 - Event emission now handled by Stripe Sync Engine
 	],
 	controllers: [
 		StripeController // Single production-grade controller with all Stripe functionality
@@ -53,8 +55,9 @@ import { StripeService } from './stripe.service'
 		StripeSyncService,
 		StripeDataService,
 		StripeWebhookService,
-		StripeEventProcessor,
-		StripeRecoveryService
+		// REMOVED: StripeEventProcessor - Event processing now handled by Stripe Sync Engine
+		StripeRecoveryService,
+		StripeAccessControlService
 	]
 })
 export class StripeModule {}
