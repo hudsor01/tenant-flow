@@ -231,25 +231,24 @@ export const leasesApi = {
 			`${API_BASE_URL}/api/v1/leases/financial-summary`
 		),
 
+	// Note: "Financial calculations" endpoints removed - use standard create/update/terminate
+	// The backend performs all financial calculations automatically via database triggers
 	createLeaseWithFinancialCalculations: (body: LeaseInsert) =>
-		apiClient<Lease>(`${API_BASE_URL}/api/v1/leases/create-calculated`, {
+		apiClient<Lease>(`${API_BASE_URL}/api/v1/leases`, {
 			method: 'POST',
 			body: JSON.stringify(body)
 		}),
 
 	updateLeaseWithFinancialCalculations: (id: string, body: LeaseUpdate) =>
-		apiClient<Lease>(`${API_BASE_URL}/api/v1/leases/${id}/update-calculated`, {
+		apiClient<Lease>(`${API_BASE_URL}/api/v1/leases/${id}`, {
 			method: 'PUT',
 			body: JSON.stringify(body)
 		}),
 
 	terminateLeaseWithFinancialCalculations: (id: string) =>
-		apiClient<void>(
-			`${API_BASE_URL}/api/v1/leases/${id}/terminate-calculated`,
-			{
-				method: 'PUT'
-			}
-		),
+		apiClient<void>(`${API_BASE_URL}/api/v1/leases/${id}/terminate`, {
+			method: 'POST'
+		}),
 
 	stats: (): Promise<LeaseStatsResponse> =>
 		apiClient<LeaseStatsResponse>(`${API_BASE_URL}/api/v1/leases/stats`),
@@ -394,50 +393,8 @@ export const stripeApi = {
 		}>(`${API_BASE_URL}/api/v1/stripe/prices`)
 }
 
-/**
- * Visitor Analytics API endpoints - REMOVED
- * These endpoints do not exist in the backend and were causing 400/404 errors
- * Visitor analytics endpoints can be registered here once the backend exposes them.
- */
-// export const visitorAnalyticsApi = {
-// 	getPropertyInterest: (timeRange = '30d', propertyId?: string) => {
-// 		const params = new URLSearchParams()
-// 		params.set('timeRange', timeRange)
-// 		if (propertyId) params.set('propertyId', propertyId)
-//
-// 		return apiClient(
-// 			`${API_BASE_URL}/api/v1/analytics/visitor/property-interest?${params}`
-// 		)
-// 	},
-//
-// 	getInquiryMetrics: (timeRange = '30d', propertyId?: string) => {
-// 		const params = new URLSearchParams()
-// 		params.set('timeRange', timeRange)
-// 		if (propertyId) params.set('propertyId', propertyId)
-//
-// 		return apiClient(
-// 			`${API_BASE_URL}/api/v1/analytics/visitor/inquiry-metrics?${params}`
-// 		)
-// 	},
-//
-// 	getViewingMetrics: (timeRange = '30d', propertyId?: string) => {
-// 		const params = new URLSearchParams()
-// 		params.set('timeRange', timeRange)
-// 		if (propertyId) params.set('propertyId', propertyId)
-//
-// 		return apiClient(
-// 			`${API_BASE_URL}/api/v1/analytics/visitor/viewing-metrics?${params}`
-// 		)
-// 	},
-//
-// 	getComparativeAnalytics: (currentPeriod = '30d', previousPeriod = '30d') => {
-// 		const params = new URLSearchParams()
-// 		params.set('currentPeriod', currentPeriod)
-// 		params.set('previousPeriod', previousPeriod)
-//
-// 		return apiClient(`${API_BASE_URL}/api/v1/analytics/visitor/comparative?${params}`)
-// 	}
-// }
+// Visitor Analytics - Future Feature
+// When implementing, add analytics endpoints here
 
 /**
  * Users API - Current user data with Stripe integration
