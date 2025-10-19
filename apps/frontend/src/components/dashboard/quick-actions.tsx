@@ -1,6 +1,7 @@
 'use client'
 
 import {
+	ArrowRight,
 	BarChart3,
 	FileText,
 	Home,
@@ -52,39 +53,40 @@ const quickActions = [
 export function QuickActions() {
 	return (
 		<div style={{ gap: 'var(--spacing-3)' }} className="flex flex-col">
-			{quickActions.map(action => {
+			{quickActions.map((action, index) => {
 				const Icon = action.icon
 				return (
 					<Link
 						key={action.href}
 						href={action.href}
-						className="group relative flex w-full items-center rounded-lg border border-border bg-card transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+						className="group relative flex w-full items-center rounded-lg border-2 border-border/50 bg-card transition-all duration-300 hover:bg-accent hover:text-accent-foreground hover:border-primary/40 hover:shadow-md hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 animate-in fade-in slide-in-from-left-4"
 						style={{
 							minHeight: '44px',
 							padding: 'var(--spacing-4)',
-							gap: 'var(--spacing-3)'
+							gap: 'var(--spacing-3)',
+							animationDelay: `${index * 50}ms`
 						}}
 						role="button"
 						tabIndex={0}
 						aria-label={`${action.title}: ${action.description}`}
 					>
 						<div
-							className="flex shrink-0 items-center justify-center rounded-md bg-primary/10"
+							className="flex shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300"
 							style={{
-								width: '32px',
-								height: '32px',
+								width: '40px',
+								height: '40px',
 								padding: 'var(--spacing-2)'
 							}}
 						>
 							<Icon
-								className="text-primary"
-								style={{ width: '16px', height: '16px' }}
+								className="text-primary group-hover:scale-110 transition-transform duration-300"
+								style={{ width: '20px', height: '20px' }}
 								aria-hidden="true"
 							/>
 						</div>
 						<div className="flex-1 text-left">
 							<div
-								className="font-medium text-foreground"
+								className="font-semibold text-foreground group-hover:text-primary transition-colors"
 								style={{
 									fontSize: 'var(--font-body)',
 									lineHeight: 'var(--line-height-body)'
@@ -102,6 +104,7 @@ export function QuickActions() {
 								{action.description}
 							</div>
 						</div>
+						<ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300 shrink-0" />
 					</Link>
 				)
 			})}

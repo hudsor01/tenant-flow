@@ -17,77 +17,102 @@ export function SectionCards({ stats = {} }: SectionCardsProps) {
 	const totalProperties = stats.properties?.total || 0
 	const occupancyRate = stats.units?.occupancyRate || 0
 
+	const isPositiveGrowth = revenueGrowth >= 0
+	const isExcellentOccupancy = occupancyRate >= 90
+
 	return (
-		<div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+		<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+			{/* Revenue Card */}
 			<CardLayout
 				title="Monthly Revenue"
 				description={formatCurrency(totalRevenue)}
-				className="@container/card"
+				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-primary/5 to-card dark:bg-card border-2 hover:border-primary/30"
 			>
-				<div className="flex flex-col gap-2">
-					<Badge variant="outline">
-						{revenueGrowth >= 0 ? (
-							<TrendingUp className="mr-1" />
+				<div className="flex flex-col gap-3 pt-2">
+					<Badge
+						variant={isPositiveGrowth ? 'default' : 'secondary'}
+						className={`w-fit ${isPositiveGrowth ? 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30' : 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30'}`}
+					>
+						{isPositiveGrowth ? (
+							<TrendingUp className="mr-1.5 h-3.5 w-3.5" />
 						) : (
-							<TrendingDown className="mr-1" />
+							<TrendingDown className="mr-1.5 h-3.5 w-3.5" />
 						)}
 						{formatPercentage(revenueGrowth)}
 					</Badge>
-					<div className="text-sm text-muted-foreground">
-						{revenueGrowth >= 0 ? 'Trending up this month' : 'Down this month'}
+					<div className="text-sm text-muted-foreground font-medium">
+						{isPositiveGrowth
+							? '📈 Trending up this month'
+							: '📉 Down this month'}
 					</div>
 				</div>
 			</CardLayout>
 
+			{/* Tenants Card */}
 			<CardLayout
 				title="Active Tenants"
-				description={`${activeTenants} active`}
-				className="@container/card"
+				description={`${activeTenants}`}
+				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-blue-500/5 to-card dark:bg-card border-2 hover:border-blue-500/30"
 			>
-				<div className="flex flex-col gap-2">
-					<Badge variant="outline">
-						<TrendingUp className="mr-1" />
+				<div className="flex flex-col gap-3 pt-2">
+					<Badge
+						variant="outline"
+						className="w-fit bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30"
+					>
+						<TrendingUp className="mr-1.5 h-3.5 w-3.5" />
 						{totalTenants} total
 					</Badge>
-					<div className="text-sm text-muted-foreground">
-						{activeTenants} active of {totalTenants} total
+					<div className="text-sm text-muted-foreground font-medium">
+						{activeTenants > 0
+							? `${((activeTenants / totalTenants) * 100).toFixed(0)}% active`
+							: 'No active tenants yet'}
 					</div>
 				</div>
 			</CardLayout>
 
+			{/* Properties Card */}
 			<CardLayout
 				title="Total Properties"
 				description={`${totalProperties}`}
-				className="@container/card"
+				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-purple-500/5 to-card dark:bg-card border-2 hover:border-purple-500/30"
 			>
-				<div className="flex flex-col gap-2">
-					<Badge variant="outline">
-						<TrendingUp className="mr-1" />
-						{stats.properties?.occupied || 0} active
+				<div className="flex flex-col gap-3 pt-2">
+					<Badge
+						variant="outline"
+						className="w-fit bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30"
+					>
+						<TrendingUp className="mr-1.5 h-3.5 w-3.5" />
+						{stats.properties?.occupied || 0} occupied
 					</Badge>
-					<div className="text-sm text-muted-foreground">
-						Properties under management
+					<div className="text-sm text-muted-foreground font-medium">
+						{totalProperties > 0
+							? `${stats.properties?.occupied || 0} properties generating revenue`
+							: 'Add your first property'}
 					</div>
 				</div>
 			</CardLayout>
 
+			{/* Occupancy Rate Card */}
 			<CardLayout
 				title="Occupancy Rate"
 				description={`${occupancyRate.toFixed(1)}%`}
-				className="@container/card"
+				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-amber-500/5 to-card dark:bg-card border-2 hover:border-amber-500/30"
 			>
-				<div className="flex flex-col gap-2">
-					<Badge variant="outline">
-						{occupancyRate >= 90 ? (
-							<TrendingUp className="mr-1" />
+				<div className="flex flex-col gap-3 pt-2">
+					<Badge
+						variant={isExcellentOccupancy ? 'default' : 'secondary'}
+						className={`w-fit ${isExcellentOccupancy ? 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30' : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'}`}
+					>
+						{isExcellentOccupancy ? (
+							<TrendingUp className="mr-1.5 h-3.5 w-3.5" />
 						) : (
-							<TrendingDown className="mr-1" />
+							<TrendingDown className="mr-1.5 h-3.5 w-3.5" />
 						)}
-						{occupancyRate >= 90 ? 'Excellent' : 'Good'}
+						{isExcellentOccupancy ? 'Excellent' : 'Good'}
 					</Badge>
-					<div className="text-sm text-muted-foreground">
+					<div className="text-sm text-muted-foreground font-medium">
 						{stats.units?.occupied || 0} of {stats.units?.total || 0} units
-						occupied
+						filled
 					</div>
 				</div>
 			</CardLayout>
