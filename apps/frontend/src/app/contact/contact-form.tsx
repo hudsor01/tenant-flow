@@ -286,7 +286,9 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									</InputGroupAddon>
 									<InputGroupInput
 										id="name"
+										name="name"
 										type="text"
+										autoComplete="name"
 										value={formData.name}
 										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 											handleInputChange('name', e.target.value)
@@ -307,7 +309,9 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									</InputGroupAddon>
 									<InputGroupInput
 										id="email"
+										name="email"
 										type="email"
+										autoComplete="email"
 										value={formData.email}
 										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 											handleInputChange('email', e.target.value)
@@ -326,7 +330,9 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								<FieldLabel htmlFor="company">Company Name</FieldLabel>
 								<Input
 									id="company"
+									name="organization"
 									type="text"
+									autoComplete="organization"
 									value={formData.company || ''}
 									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 										handleInputChange('company', e.target.value)
@@ -343,7 +349,9 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									</InputGroupAddon>
 									<InputGroupInput
 										id="phone"
+										name="tel"
 										type="tel"
+										autoComplete="tel"
 										value={formData.phone || ''}
 										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 											handleInputChange('phone', e.target.value)
@@ -366,6 +374,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								required
 							>
 								<SelectTrigger
+									id="subject"
 									className={errors.subject ? 'border-destructive' : ''}
 								>
 									<SelectValue placeholder="What brings you to TenantFlow?" />
@@ -399,7 +408,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									handleInputChange('type', value)
 								}
 							>
-								<SelectTrigger>
+								<SelectTrigger id="type">
 									<SelectValue placeholder="Select an option" />
 								</SelectTrigger>
 								<SelectContent>
