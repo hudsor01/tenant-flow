@@ -33,7 +33,7 @@ export function SEOHead({
 		'tenant management system',
 		'landlord software'
 	],
-	ogImage = '/assets/images/property-management-og.jpg',
+	ogImage = '/images/property-management-og.jpg',
 	canonicalUrl,
 	articleData,
 	productData

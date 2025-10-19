@@ -30,8 +30,11 @@ export default function SearchPage() {
 						<div className="relative flex-1">
 							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground size-4" />
 							<Input
+								id="global-search"
+								name="search"
 								placeholder="Search properties, tenants, leases..."
 								className="pl-10 pr-4 py-3 text-base"
+								aria-label="Global search"
 							/>
 						</div>
 						<Button variant="outline" size="lg" className="px-6">
