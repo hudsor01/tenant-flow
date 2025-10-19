@@ -95,7 +95,11 @@ export default function AnalyticsPage() {
 							</p>
 						</div>
 						<Select value={timeRange} onValueChange={setTimeRange}>
-							<SelectTrigger className="w-36">
+							<SelectTrigger
+								id="time-range"
+								className="w-36"
+								aria-label="Select time range"
+							>
 								<SelectValue placeholder="Time Range" />
 							</SelectTrigger>
 							<SelectContent>

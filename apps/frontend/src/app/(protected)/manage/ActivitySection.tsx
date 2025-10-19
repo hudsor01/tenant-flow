@@ -9,15 +9,15 @@ import { ActivityFeed } from '@/components/dashboard/activity-feed'
  */
 export function ActivitySection() {
 	return (
-		<div className="rounded-lg border bg-card">
+		<div className="rounded-lg border-2 border-border/50 bg-card hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
 			<div
-				className="border-b"
+				className="border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent"
 				style={{
 					padding: 'var(--spacing-6) var(--spacing-6) var(--spacing-4)'
 				}}
 			>
 				<h3
-					className="font-semibold simplified-mobile"
+					className="font-bold simplified-mobile bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text"
 					style={{
 						fontSize: 'var(--font-title-2)',
 						lineHeight: 'var(--line-height-title-2)',
@@ -32,7 +32,7 @@ export function ActivitySection() {
 						color: 'var(--color-label-secondary)',
 						fontSize: 'var(--font-body)',
 						lineHeight: 'var(--line-height-body)',
-						marginTop: 'var(--spacing-1)'
+						marginTop: 'var(--spacing-2)'
 					}}
 				>
 					Latest updates across your properties
