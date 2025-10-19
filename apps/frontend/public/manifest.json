@@ -32,59 +32,11 @@
 	],
 	"screenshots": [
 		{
-			"src": "/property-management-og.jpg",
-			"sizes": "1280x720",
-			"type": "image/png",
+			"src": "/images/property-management-og.jpg",
+			"sizes": "1200x630",
+			"type": "image/jpeg",
 			"form_factor": "wide",
 			"label": "TenantFlow Dashboard - Desktop View"
-		},
-		{
-			"src": "/property-management-og.jpg",
-			"sizes": "375x812",
-			"type": "image/png",
-			"form_factor": "narrow",
-			"label": "TenantFlow Mobile App - Property Management"
-		}
-	],
-	"shortcuts": [
-		{
-			"name": "Properties",
-			"short_name": "Properties",
-			"description": "Manage your properties",
-			"url": "/properties?utm_source=pwa",
-			"icons": [
-				{
-					"src": "/shortcut-properties.png",
-					"sizes": "96x96",
-					"type": "image/png"
-				}
-			]
-		},
-		{
-			"name": "Tenants",
-			"short_name": "Tenants",
-			"description": "Manage tenant information",
-			"url": "/tenants?utm_source=pwa",
-			"icons": [
-				{
-					"src": "/shortcut-tenants.png",
-					"sizes": "96x96",
-					"type": "image/png"
-				}
-			]
-		},
-		{
-			"name": "Invoices",
-			"short_name": "Invoices",
-			"description": "Generate property invoices",
-			"url": "/invoice-generator?utm_source=pwa",
-			"icons": [
-				{
-					"src": "/shortcut-leases.png",
-					"sizes": "96x96",
-					"type": "image/png"
-				}
-			]
 		}
 	],
 	"prefer_related_applications": false,

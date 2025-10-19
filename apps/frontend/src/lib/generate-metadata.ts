@@ -31,7 +31,7 @@ export const defaultMetadata: Metadata = {
 		locale: 'en_US',
 		images: [
 			{
-				url: `${SITE_URL}/assets/images/property-management-og.jpg`,
+				url: `${SITE_URL}/images/property-management-og.jpg`,
 				width: 1200,
 				height: 630,
 				alt: 'TenantFlow Property Management Dashboard',
@@ -52,7 +52,7 @@ export const defaultMetadata: Metadata = {
 		description:
 			'Professional property management software trusted by thousands. Streamline operations and scale your business.',
 		creator: '@tenantflow',
-		images: [`${SITE_URL}/assets/images/property-management-og.jpg`]
+		images: [`${SITE_URL}/images/property-management-og.jpg`]
 	},
 	applicationName: 'TenantFlow',
 	referrer: 'origin-when-cross-origin',
@@ -107,7 +107,7 @@ export function getJsonLd() {
 				description: 'Free trial available'
 			}
 		},
-		screenshot: `${SITE_URL}/assets/images/property-management-og.jpg`,
+		screenshot: `${SITE_URL}/images/property-management-og.jpg`,
 		featureList: [
 			'Property Management',
 			'Tenant Management',
