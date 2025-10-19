@@ -28,15 +28,13 @@ import { StripeAccessControlService } from '../billing/stripe-access-control.ser
 // Public decorator for webhook endpoints (bypasses JWT auth)
 const Public = () => SetMetadata('isPublic', true)
 
-// Type definition for Stripe Sync Engine (will be installed via pnpm)
-interface StripeSyncEngine {
-	processWebhook(rawBody: Buffer, signature: string): Promise<void>
-}
+// Import Stripe Sync types
+import type { StripeSync } from '@supabase/stripe-sync-engine'
 
 @Controller('webhooks')
 export class StripeSyncController {
 	private readonly logger = new Logger(StripeSyncController.name)
-	private syncEngine: StripeSyncEngine | null = null
+	private syncEngine: StripeSync | null = null
 
 	constructor(
 		@Optional() private readonly supabaseService?: SupabaseService,
@@ -48,11 +46,16 @@ export class StripeSyncController {
 			try {
 				// Dynamic import to handle package installation
 				// eslint-disable-next-line @typescript-eslint/no-require-imports
-				const { StripeSyncEngine } = require('@supabase/stripe-sync-engine')
+				const { StripeSync } = require('@supabase/stripe-sync-engine')
 
-				this.syncEngine = new StripeSyncEngine({
-					apiKey: process.env.STRIPE_SECRET_KEY!,
-					db: this.supabaseService.getAdminClient()
+				this.syncEngine = new StripeSync({
+					stripe: {
+						apiKey: process.env.STRIPE_SECRET_KEY!,
+						apiVersion: '2024-12-18.acacia'
+					},
+					db: {
+						connectionString: process.env.DATABASE_URL!
+					}
 				})
 
 				this.logger.log('Stripe Sync Engine initialized successfully')

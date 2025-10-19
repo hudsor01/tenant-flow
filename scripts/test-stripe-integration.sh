@@ -9,7 +9,10 @@ echo "================================================"
 echo ""
 
 PROJECT_REF="bshjmbshupiibfiewpxb"
-BACKEND_URL="${BACKEND_URL:-http://localhost:3001/api/v1}"
+BACKEND_URL="${BACKEND_URL:-http://localhost:4600/api/v1}"
+
+# Get direct database connection (not pgbouncer)
+DB_URL=$(doppler run -- bash -c 'echo "$DATABASE_URL" | sed "s/6543/5432/g" | sed "s/?pgbouncer=true//g"')
 
 # Colors for output
 RED='\033[0;31m'
@@ -43,20 +46,13 @@ test_result() {
 # Function to run SQL query via Supabase
 run_sql() {
     local query="$1"
-    doppler run -- npx supabase db execute --db-url "$SUPABASE_URL" <<EOF
-$query
-EOF
+    psql "$DB_URL" -t -c "$query"
 }
 
 # Function to check if migration is applied
 check_migration() {
     local migration_name="$1"
-    local result=$(doppler run -- npx supabase db execute --db-url "$SUPABASE_URL" <<EOF
-SELECT version FROM supabase_migrations.schema_migrations
-WHERE version LIKE '%$migration_name%'
-LIMIT 1;
-EOF
-)
+    local result=$(run_sql "SELECT version FROM supabase_migrations.schema_migrations WHERE version LIKE '%$migration_name%' LIMIT 1;")
 
     if echo "$result" | grep -q "$migration_name"; then
         return 0
@@ -69,14 +65,14 @@ echo "📦 Step 1: Database Migration Verification"
 echo "-------------------------------------------"
 
 # Check if stripe schema exists
-if doppler run -- npx supabase db execute --db-url "$SUPABASE_URL" "SELECT 1 FROM information_schema.schemata WHERE schema_name = 'stripe'" 2>/dev/null | grep -q "1"; then
+if run_sql "SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = 'stripe');" | grep -q "t"; then
     test_result "Stripe schema exists" "PASS"
 else
     test_result "Stripe schema exists" "FAIL" "Run: supabase migration apply"
 fi
 
 # Check if user_id column exists
-if doppler run -- npx supabase db execute --db-url "$SUPABASE_URL" "SELECT 1 FROM information_schema.columns WHERE table_schema = 'stripe' AND table_name = 'customers' AND column_name = 'user_id'" 2>/dev/null | grep -q "1"; then
+if run_sql "SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema = 'stripe' AND table_name = 'customers' AND column_name = 'user_id');" | grep -q "t"; then
     test_result "stripe.customers.user_id column exists" "PASS"
 else
     test_result "stripe.customers.user_id column exists" "FAIL" "Migration 20251018_stripe_sync_engine_user_mapping.sql not applied"
@@ -103,7 +99,7 @@ functions=(
 )
 
 for func in "${functions[@]}"; do
-    if doppler run -- npx supabase db execute --db-url "$SUPABASE_URL" "SELECT 1 FROM information_schema.routines WHERE routine_schema = 'public' AND routine_name = '$func'" 2>/dev/null | grep -q "1"; then
+    if run_sql "SELECT EXISTS(SELECT 1 FROM pg_proc WHERE proname = '$func');" | grep -q "t"; then
         test_result "Function: $func()" "PASS"
     else
         test_result "Function: $func()" "FAIL" "Migration not applied"
@@ -115,13 +111,12 @@ echo "🎯 Step 3: Stripe Products Verification"
 echo "---------------------------------------"
 
 # Test get_active_stripe_products function
-products_result=$(doppler run -- npx supabase db execute --db-url "$SUPABASE_URL" "SELECT COUNT(*) FROM public.get_active_stripe_products()" 2>/dev/null || echo "0")
+products_count=$(run_sql "SELECT COUNT(*) FROM public.get_active_stripe_products();" 2>/dev/null | tr -d ' ' || echo "0")
 
-if echo "$products_result" | grep -q "3"; then
+if [ "$products_count" -eq 3 ]; then
     test_result "Stripe products accessible (3 expected)" "PASS"
-elif echo "$products_result" | grep -q "[0-9]"; then
-    count=$(echo "$products_result" | grep -o "[0-9]" | head -1)
-    test_result "Stripe products accessible" "FAIL" "Expected 3, got $count"
+elif [ "$products_count" -ge 0 ] 2>/dev/null; then
+    test_result "Stripe products accessible" "FAIL" "Expected 3, got $products_count"
 else
     test_result "Stripe products accessible" "FAIL" "Function execution error"
 fi
@@ -159,27 +154,27 @@ echo "----------------------------------------"
 TEST_USER_ID="00000000-0000-0000-0000-000000000001"
 
 # Test check_user_feature_access with no subscription
-access_result=$(doppler run -- npx supabase db execute --db-url "$SUPABASE_URL" "SELECT public.check_user_feature_access('$TEST_USER_ID', 'advanced_analytics')::text" 2>/dev/null || echo "error")
+access_result=$(run_sql "SELECT public.check_user_feature_access('$TEST_USER_ID', 'advanced_analytics')::text;" 2>/dev/null | tr -d ' ' || echo "error")
 
-if echo "$access_result" | grep -qi "false"; then
+if echo "$access_result" | grep -qi "f"; then
     test_result "Access control: No subscription = no access" "PASS"
 else
     test_result "Access control: No subscription = no access" "FAIL" "Expected false, got: $access_result"
 fi
 
 # Test get_user_plan_limits with no subscription
-limits_result=$(doppler run -- npx supabase db execute --db-url "$SUPABASE_URL" "SELECT COUNT(*) FROM public.get_user_plan_limits('$TEST_USER_ID')" 2>/dev/null || echo "0")
+limits_result=$(run_sql "SELECT COUNT(*) FROM public.get_user_plan_limits('$TEST_USER_ID');" 2>/dev/null | tr -d ' ' || echo "0")
 
-if echo "$limits_result" | grep -q "0"; then
+if [ "$limits_result" = "0" ]; then
     test_result "Plan limits: No subscription returns empty" "PASS"
 else
     test_result "Plan limits: No subscription returns empty" "FAIL" "Should return 0 rows"
 fi
 
 # Test is_user_on_trial with no subscription
-trial_result=$(doppler run -- npx supabase db execute --db-url "$SUPABASE_URL" "SELECT public.is_user_on_trial('$TEST_USER_ID')::text" 2>/dev/null || echo "error")
+trial_result=$(run_sql "SELECT public.is_user_on_trial('$TEST_USER_ID')::text;" 2>/dev/null | tr -d ' ' || echo "error")
 
-if echo "$trial_result" | grep -qi "false"; then
+if echo "$trial_result" | grep -qi "f"; then
     test_result "Trial status: No subscription = not on trial" "PASS"
 else
     test_result "Trial status: No subscription = not on trial" "FAIL" "Expected false"

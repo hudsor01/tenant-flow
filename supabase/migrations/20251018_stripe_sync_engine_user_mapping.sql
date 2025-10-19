@@ -24,6 +24,7 @@ BEGIN
     ) THEN
 
       -- Add user_id column if it doesn't exist
+      -- NOTE: Cannot use foreign key constraint because stripe.customers is a foreign table
       IF NOT EXISTS (
         SELECT 1 FROM information_schema.columns
         WHERE table_schema = 'stripe'
@@ -31,24 +32,14 @@ BEGIN
         AND column_name = 'user_id'
       ) THEN
         ALTER TABLE stripe.customers
-        ADD COLUMN user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL;
+        ADD COLUMN user_id UUID;
 
         RAISE NOTICE 'Added user_id column to stripe.customers';
       END IF;
 
-      -- Create index for fast user_id lookups
-      IF NOT EXISTS (
-        SELECT 1 FROM pg_indexes
-        WHERE schemaname = 'stripe'
-        AND tablename = 'customers'
-        AND indexname = 'idx_stripe_customers_user_id'
-      ) THEN
-        CREATE INDEX idx_stripe_customers_user_id
-        ON stripe.customers(user_id)
-        WHERE user_id IS NOT NULL;
-
-        RAISE NOTICE 'Created index on stripe.customers.user_id';
-      END IF;
+      -- NOTE: Cannot create indexes on foreign tables
+      -- The Stripe Sync Engine manages the remote table structure
+      -- For performance, ensure queries use user_id column efficiently
 
     ELSE
       RAISE NOTICE 'stripe.customers table does not exist yet - will be created by Stripe Sync Engine';
