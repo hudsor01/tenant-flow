@@ -282,6 +282,10 @@ export class StripeController {
 				],
 				payment_behavior: 'default_incomplete',
 				expand: ['latest_invoice.payment_intent'], // Official expand pattern
+				// P1: Free trial support (14-day trial)
+				trial_period_days: 14,
+				// P0: Automatic tax calculation (legal requirement)
+				automatic_tax: { enabled: true },
 				metadata: {
 					tenant_id: sanitizedTenantId,
 					...(sanitizedSubscriptionType && {
@@ -377,6 +381,14 @@ export class StripeController {
 				cancel_url: `${body.domain}/cancel`,
 				// Following official Stripe pattern: customer identification via email
 				...(body.customerEmail && { customer_email: body.customerEmail }),
+				// P0: Automatic tax calculation (legal requirement)
+				automatic_tax: { enabled: true },
+				// P1: Free trial support (14-day trial for subscriptions)
+				...(body.isSubscription && {
+					subscription_data: {
+						trial_period_days: 14
+					}
+				}),
 				metadata: {
 					tenant_id: sanitizedTenantId,
 					product_name: sanitizedProductName,
@@ -451,7 +463,9 @@ export class StripeController {
 			const sessionConfig: Stripe.Checkout.SessionCreateParams = {
 				ui_mode: 'custom',
 				mode: body.mode,
-				return_url: `${body.domain}/complete?session_id={CHECKOUT_SESSION_ID}`
+				return_url: `${body.domain}/complete?session_id={CHECKOUT_SESSION_ID}`,
+				// P0: Automatic tax calculation (legal requirement)
+				automatic_tax: { enabled: true }
 			}
 
 			// Add line_items only for payment and subscription modes
@@ -462,6 +476,13 @@ export class StripeController {
 						quantity: 1
 					}
 				]
+			}
+
+			// P1: Free trial support (14-day trial for subscriptions)
+			if (body.mode === 'subscription') {
+				sessionConfig.subscription_data = {
+					trial_period_days: 14
+				}
 			}
 
 			// Following Stripe's exact embedded checkout specification
