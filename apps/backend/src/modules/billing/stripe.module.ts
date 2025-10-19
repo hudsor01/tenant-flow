@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 
 // REMOVED: EventEmitter2 - Event emission now handled by Stripe Sync Engine
 import { SupabaseModule } from '../../database/supabase.module'
+import { StripeAccessControlService } from './stripe-access-control.service'
 import { StripeDataService } from './stripe-data.service'
 // REMOVED: StripeEventProcessor - Event processing now handled by Stripe Sync Engine
 import { StripeRecoveryService } from './stripe-recovery.service'
@@ -39,7 +40,10 @@ import { StripeService } from './stripe.service'
 		// REMOVED: StripeEventProcessor - Event processing now handled by Stripe Sync Engine
 
 		// Event recovery service for failed webhooks
-		StripeRecoveryService
+		StripeRecoveryService,
+
+		// Subscription-based access control service
+		StripeAccessControlService
 
 		// REMOVED: EventEmitter2 - Event emission now handled by Stripe Sync Engine
 	],
@@ -52,7 +56,8 @@ import { StripeService } from './stripe.service'
 		StripeDataService,
 		StripeWebhookService,
 		// REMOVED: StripeEventProcessor - Event processing now handled by Stripe Sync Engine
-		StripeRecoveryService
+		StripeRecoveryService,
+		StripeAccessControlService
 	]
 })
 export class StripeModule {}
