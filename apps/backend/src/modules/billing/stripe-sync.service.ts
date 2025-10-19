@@ -1,157 +1,163 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
-import { StripeSync, runMigrations } from '@supabase/stripe-sync-engine'
+import { Injectable, Logger } from '@nestjs/common'
+import { StripeSync } from '@supabase/stripe-sync-engine'
 
 /**
  * Ultra-Native Stripe Sync Service
  *
- * Direct integration with @supabase/stripe-sync-engine
+ * Direct integration with @supabase/stripe-sync-engine npm library
  * No abstractions, wrappers, or custom middleware
- * Follows official Supabase recommendations from Sub-Plan 1
+ *
+ * Usage per official docs:
+ * 1. Initialize once with poolConfig
+ * 2. Call sync.processWebhook(payload, signature) for webhooks
+ * 3. Migrations run separately via CLI, not at runtime
  */
 @Injectable()
-export class StripeSyncService implements OnModuleInit {
+export class StripeSyncService {
 	private readonly logger = new Logger(StripeSyncService.name)
-	private stripeSync!: StripeSync
-	private migrationsRun = false
-	private initialized = false
+	private stripeSync: StripeSync | null = null
 
-	constructor() {}
+	constructor() {
+		// Stripe Sync Engine is initialized lazily on first use
+		// to avoid blocking app startup
+	}
 
-	async onModuleInit() {
-		try {
-			// Initialize Stripe Sync Engine during module initialization
-			this.logger.log('Initializing Stripe Sync Engine...')
-
-			// Use environment variables directly for critical configuration
-			// This avoids potential ConfigService injection timing issues
-			const databaseUrl = process.env.DATABASE_URL
-			const stripeSecretKey = process.env.STRIPE_SECRET_KEY
-			const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET
-
-			if (!databaseUrl || !stripeSecretKey) {
-				throw new Error(
-					'Missing required configuration for Stripe Sync Engine: DATABASE_URL and STRIPE_SECRET_KEY are required'
-				)
-			}
-
-			// Use hardcoded default following industry best practice
-			const schema = process.env.STRIPE_SYNC_DATABASE_SCHEMA || 'stripe'
-			const autoExpandLists =
-				process.env.STRIPE_SYNC_AUTO_EXPAND_LISTS !== 'false'
-
-			this.stripeSync = new StripeSync({
-				databaseUrl,
-				stripeSecretKey,
-				stripeWebhookSecret: stripeWebhookSecret || '',
-				schema,
-				autoExpandLists,
-				poolConfig: {
-					max: 10,
-					min: 2,
-					idleTimeoutMillis: 30000
-				}
-			})
-
-			this.initialized = true
-			this.logger.log('Stripe Sync Engine initialized', {
-				schema,
-				autoExpandLists,
-				hasWebhookSecret: !!stripeWebhookSecret
-			})
-
-			// Run migrations
-			this.logger.log('Running Stripe Sync Engine migrations...')
-
-			await runMigrations({
-				databaseUrl,
-				schema
-			})
-
-			this.migrationsRun = true
-			this.logger.log('Stripe Sync Engine migrations completed successfully')
-		} catch (error) {
-			this.logger.error('Stripe Sync Engine initialization failed:', error)
-			throw error
+	private ensureInitialized(): StripeSync {
+		if (this.stripeSync) {
+			return this.stripeSync
 		}
+
+		// Initialize Stripe Sync Engine per official documentation
+		// https://supabase.com/blog/stripe-engine-as-sync-library
+		const databaseUrl =
+			process.env.DATABASE_DIRECT_URL || process.env.DATABASE_URL
+		const stripeSecretKey = process.env.STRIPE_SECRET_KEY
+		const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+
+		if (!databaseUrl || !stripeSecretKey || !stripeWebhookSecret) {
+			throw new Error(
+				'Missing required configuration: DATABASE_DIRECT_URL, STRIPE_SECRET_KEY, and STRIPE_WEBHOOK_SECRET are required'
+			)
+		}
+
+		// NOTE: Migrations must be run separately via scripts/stripe-sync-migrate.ts
+		// The stripe schema must exist before initializing StripeSync
+		this.stripeSync = new StripeSync({
+			poolConfig: {
+				connectionString: databaseUrl,
+				max: 10 // Connection pool size
+			},
+			stripeSecretKey,
+			stripeWebhookSecret,
+			schema: 'stripe', // Optional: defaults to 'stripe'
+			autoExpandLists: true, // Recommended by docs
+			backfillRelatedEntities: false // Recommended by docs
+		})
+
+		this.logger.log('Stripe Sync Engine initialized successfully')
+
+		return this.stripeSync
 	}
 
 	/**
-	 * Process Stripe webhook (called by webhook controller)
-	 * Direct method exposure - no abstractions
+	 * Process Stripe webhook - per official documentation
+	 * https://github.com/supabase/stripe-sync-engine#usage
 	 */
-	async processWebhook(rawBody: Buffer, signature: string): Promise<void> {
-		if (!this.initialized || !this.stripeSync) {
-			throw new Error('Stripe Sync Engine not initialized')
-		}
-		return this.stripeSync.processWebhook(rawBody, signature)
+	async processWebhook(payload: Buffer, signature: string): Promise<void> {
+		const sync = this.ensureInitialized()
+		return sync.processWebhook(payload, signature)
 	}
 
 	/**
 	 * Sync a single Stripe entity by ID
-	 * Useful for manual sync or testing
+	 * Entity type is auto-detected from ID prefix (cus_, prod_, etc.)
+	 * https://github.com/supabase/stripe-sync-engine#syncing-a-single-entity
 	 */
 	async syncSingleEntity(entityId: string): Promise<unknown> {
-		if (!this.initialized || !this.stripeSync) {
-			throw new Error('Stripe Sync Engine not initialized')
-		}
-		this.logger.log('Syncing single Stripe entity:', { entityId })
-		return this.stripeSync.syncSingleEntity(entityId)
+		this.logger.log('Syncing single Stripe entity', { entityId })
+		const sync = this.ensureInitialized()
+		return sync.syncSingleEntity(entityId)
 	}
 
 	/**
-	 * Backfill all historical Stripe data
-	 * Run once during initial setup
+	 * Backfill historical Stripe data
+	 * https://github.com/supabase/stripe-sync-engine#backfilling-data
 	 */
-	async backfillData(): Promise<{ success: boolean }> {
-		if (!this.initialized || !this.stripeSync) {
-			throw new Error('Stripe Sync Engine not initialized')
-		}
-
-		this.logger.log('Starting Stripe data backfill...')
+	async syncBackfill(options?: {
+		object?:
+			| 'all'
+			| 'charge'
+			| 'customer'
+			| 'dispute'
+			| 'invoice'
+			| 'payment_method'
+			| 'payment_intent'
+			| 'plan'
+			| 'price'
+			| 'product'
+			| 'setup_intent'
+			| 'subscription'
+		created?: { gt?: number; gte?: number; lt?: number; lte?: number }
+	}): Promise<void> {
+		this.logger.log('Starting Stripe data backfill', options)
 		const startTime = Date.now()
 
+		const sync = this.ensureInitialized()
+		await sync.syncBackfill(options)
+
+		const duration = ((Date.now() - startTime) / 1000).toFixed(2)
+		this.logger.log('Stripe data backfill completed', {
+			duration: `${duration}s`
+		})
+	}
+
+	/**
+	 * Health check - validates configuration and initialization state
+	 */
+	getHealthStatus(): {
+		status: 'healthy' | 'unhealthy'
+		initialized: boolean
+		timestamp: string
+		error?: string
+	} {
 		try {
-			await this.stripeSync.syncBackfill()
-			const duration = ((Date.now() - startTime) / 1000).toFixed(2)
-			this.logger.log('Stripe data backfill completed successfully', {
-				duration: `${duration}s`
-			})
-			return { success: true }
+			// Check required environment variables
+			const databaseUrl =
+				process.env.DATABASE_DIRECT_URL || process.env.DATABASE_URL
+			const stripeSecretKey = process.env.STRIPE_SECRET_KEY
+			const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+
+			if (!databaseUrl || !stripeSecretKey || !stripeWebhookSecret) {
+				return {
+					status: 'unhealthy',
+					initialized: false,
+					timestamp: new Date().toISOString(),
+					error: 'Missing required environment variables'
+				}
+			}
+
+			// If already initialized, report healthy
+			if (this.stripeSync) {
+				return {
+					status: 'healthy',
+					initialized: true,
+					timestamp: new Date().toISOString()
+				}
+			}
+
+			// Not initialized yet but config is valid
+			return {
+				status: 'healthy',
+				initialized: false,
+				timestamp: new Date().toISOString()
+			}
 		} catch (error) {
-			this.logger.error('Stripe data backfill failed:', error)
-			throw error
+			return {
+				status: 'unhealthy',
+				initialized: false,
+				timestamp: new Date().toISOString(),
+				error: error instanceof Error ? error.message : 'Unknown error'
+			}
 		}
-	}
-
-	/**
-	 * Get sync engine health status
-	 */
-	getHealthStatus(): { initialized: boolean; migrationsRun: boolean } {
-		return {
-			initialized: this.initialized && !!this.stripeSync,
-			migrationsRun: this.migrationsRun
-		}
-	}
-
-	/**
-	 * Test connection - for health checks
-	 */
-	async testConnection(): Promise<boolean> {
-		try {
-			return (
-				this.getHealthStatus().initialized &&
-				this.getHealthStatus().migrationsRun
-			)
-		} catch (error) {
-			this.logger.error('Health check failed:', error)
-			return false
-		}
-	}
-
-	/**
-	 * Check if service is healthy
-	 */
-	async isHealthy(): Promise<boolean> {
-		return this.testConnection()
 	}
 }
