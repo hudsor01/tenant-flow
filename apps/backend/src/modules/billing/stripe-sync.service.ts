@@ -110,4 +110,54 @@ export class StripeSyncService {
 			duration: `${duration}s`
 		})
 	}
+
+	/**
+	 * Health check - validates configuration and initialization state
+	 */
+	getHealthStatus(): {
+		status: 'healthy' | 'unhealthy'
+		initialized: boolean
+		timestamp: string
+		error?: string
+	} {
+		try {
+			// Check required environment variables
+			const databaseUrl =
+				process.env.DATABASE_DIRECT_URL || process.env.DATABASE_URL
+			const stripeSecretKey = process.env.STRIPE_SECRET_KEY
+			const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+
+			if (!databaseUrl || !stripeSecretKey || !stripeWebhookSecret) {
+				return {
+					status: 'unhealthy',
+					initialized: false,
+					timestamp: new Date().toISOString(),
+					error: 'Missing required environment variables'
+				}
+			}
+
+			// If already initialized, report healthy
+			if (this.stripeSync) {
+				return {
+					status: 'healthy',
+					initialized: true,
+					timestamp: new Date().toISOString()
+				}
+			}
+
+			// Not initialized yet but config is valid
+			return {
+				status: 'healthy',
+				initialized: false,
+				timestamp: new Date().toISOString()
+			}
+		} catch (error) {
+			return {
+				status: 'unhealthy',
+				initialized: false,
+				timestamp: new Date().toISOString(),
+				error: error instanceof Error ? error.message : 'Unknown error'
+			}
+		}
+	}
 }
