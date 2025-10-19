@@ -1,7 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing'
-import { StripeAccessControlService } from './stripe-access-control.service'
-import { SupabaseService } from '../../database/supabase.service'
+import { Test, type TestingModule } from '@nestjs/testing'
 import type Stripe from 'stripe'
+import { SupabaseService } from '../../database/supabase.service'
+import { StripeAccessControlService } from './stripe-access-control.service'
 
 describe('StripeAccessControlService', () => {
 	let service: StripeAccessControlService
@@ -28,11 +28,10 @@ describe('StripeAccessControlService', () => {
 			]
 		}).compile()
 
-		service = module.get<StripeAccessControlService>(
-			StripeAccessControlService
-		)
-		supabaseService =
-			module.get<SupabaseService>(SupabaseService) as jest.Mocked<SupabaseService>
+		service = module.get<StripeAccessControlService>(StripeAccessControlService)
+		supabaseService = module.get<SupabaseService>(
+			SupabaseService
+		) as jest.Mocked<SupabaseService>
 	})
 
 	it('should be defined', () => {

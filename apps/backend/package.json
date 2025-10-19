@@ -23,7 +23,8 @@
 		"test:unit:clean": "jest --testMatch=\"**/*.spec.ts\" --forceExit",
 		"test:integration": "jest --testMatch=\"**/*.integration.spec.ts\" --forceExit",
 		"test:watch": "jest --watch",
-		"clean": "rimraf dist coverage .turbo node_modules/.cache"
+		"clean": "rimraf dist coverage .turbo node_modules/.cache",
+		"stripe:migrate": "tsx scripts/stripe-sync-migrate.ts"
 	},
 	"dependencies": {
 		"@nestjs/cache-manager": "3.0.1",
@@ -42,6 +43,7 @@
 		"@supabase/stripe-sync-engine": "0.45.0",
 		"@supabase/supabase-js": "^2.75.0",
 		"@types/passport-jwt": "4.0.1",
+		"@types/pg": "8.15.5",
 		"cache-manager": "7.2.4",
 		"compression": "^1.8.1",
 		"cookie-parser": "^1.4.7",
@@ -53,6 +55,7 @@
 		"passport": "0.7.0",
 		"passport-jwt": "4.0.1",
 		"pdfkit": "0.17.2",
+		"pg": "8.16.3",
 		"puppeteer": "^24.25.0",
 		"react": "19.2.0",
 		"reflect-metadata": "0.2.2",
