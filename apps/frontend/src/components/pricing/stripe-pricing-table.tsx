@@ -9,7 +9,8 @@ import { useEffect, useMemo, useState } from 'react'
 const logger = createLogger({ component: 'StripePricingTable' })
 
 export function StripePricingTable({
-	pricingTableId = 'prctbl_placeholder', // Default placeholder ID
+	pricingTableId = process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID ||
+		'prctbl_1SBGrNP3WCR53SdoJjTotskB', // Production pricing table ID
 	clientReferenceId,
 	customerEmail,
 	customerSessionClientSecret,

@@ -2,7 +2,6 @@
 
 import {
 	BarChart3,
-	CreditCard,
 	FileText,
 	Home,
 	Search,
@@ -37,10 +36,10 @@ const quickActions = [
 		href: '/manage/maintenance/new'
 	},
 	{
-		title: 'Collect Payment',
-		description: 'Record rent payment',
-		icon: CreditCard,
-		href: '/manage/rent-collection'
+		title: 'View Analytics',
+		description: 'Property performance',
+		icon: BarChart3,
+		href: '/manage/analytics'
 	},
 	{
 		title: 'Property Search',
@@ -106,43 +105,6 @@ export function QuickActions() {
 					</Link>
 				)
 			})}
-
-			{/* Divider with proper spacing */}
-			<div
-				className="border-t border-border"
-				style={{
-					marginTop: 'var(--spacing-3)',
-					paddingTop: 'var(--spacing-3)'
-				}}
-			>
-				<Link
-					href="/manage/analytics"
-					className="group relative flex w-full items-center justify-center rounded-lg border border-border bg-card transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-					style={{
-						minHeight: '44px',
-						padding: 'var(--spacing-3)',
-						gap: 'var(--spacing-2)'
-					}}
-					role="button"
-					tabIndex={0}
-					aria-label="View Analytics dashboard"
-				>
-					<BarChart3
-						className="text-primary"
-						style={{ width: '16px', height: '16px' }}
-						aria-hidden="true"
-					/>
-					<span
-						className="font-medium text-foreground"
-						style={{
-							fontSize: 'var(--font-body)',
-							lineHeight: 'var(--line-height-body)'
-						}}
-					>
-						View Analytics
-					</span>
-				</Link>
-			</div>
 		</div>
 	)
 }
