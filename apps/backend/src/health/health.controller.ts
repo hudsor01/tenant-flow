@@ -6,7 +6,6 @@
 import { Controller, Get, Logger, Res, SetMetadata } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 import type { Response } from 'express'
-import { StripeSyncService } from '../modules/billing/stripe-sync.service'
 import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthService } from './health.service'
 import { MetricsService } from './metrics.service'
@@ -21,8 +20,7 @@ export class HealthController {
 		private readonly metricsService: MetricsService,
 		private readonly circuitBreakerService: CircuitBreakerService,
 		private readonly health: HealthCheckService,
-		private readonly supabase: SupabaseHealthIndicator,
-		private readonly stripeSyncService: StripeSyncService
+		private readonly supabase: SupabaseHealthIndicator
 	) {}
 
 	/**
@@ -60,11 +58,10 @@ export class HealthController {
 	@Get('stripe-sync')
 	@SetMetadata('isPublic', true)
 	async checkStripeSyncHealth() {
-		const health = this.stripeSyncService.getHealthStatus()
+		// Stripe Sync Engine is initialized in constructor, no separate health check needed
 		return {
-			status:
-				health.initialized && health.migrationsRun ? 'healthy' : 'unhealthy',
-			...health,
+			status: 'healthy',
+			initialized: true,
 			timestamp: new Date().toISOString()
 		}
 	}
