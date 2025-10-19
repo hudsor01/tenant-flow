@@ -124,10 +124,10 @@ describe('HealthController', () => {
 					provide: StripeSyncService,
 					useValue: {
 						getHealthStatus: jest.fn().mockReturnValue({
+							status: 'healthy',
 							initialized: true,
-							migrationsRun: true
-						}),
-						testConnection: jest.fn().mockResolvedValue(true)
+							timestamp: new Date().toISOString()
+						})
 					}
 				}
 			]
@@ -428,7 +428,6 @@ describe('HealthController', () => {
 			expect(result).toEqual({
 				status: 'healthy',
 				initialized: true,
-				migrationsRun: true,
 				timestamp: expect.any(String)
 			})
 		})

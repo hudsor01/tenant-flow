@@ -17,9 +17,13 @@ import express, {
 import helmet from 'helmet'
 
 export async function registerExpressMiddleware(app: NestExpressApplication) {
-	// Stripe webhook needs raw body for signature verification
+	// Stripe webhooks need raw body for signature verification
 	app.use(
 		'/api/v1/stripe/webhook',
+		express.raw({ type: 'application/json', limit: '1mb' })
+	)
+	app.use(
+		'/api/v1/webhooks/stripe-sync',
 		express.raw({ type: 'application/json', limit: '1mb' })
 	)
 
@@ -67,17 +71,23 @@ export async function registerExpressMiddleware(app: NestExpressApplication) {
 		)
 	)
 
-	// Body parsing limits - exclude Stripe webhook path to preserve raw buffer
+	// Body parsing limits - exclude Stripe webhook paths to preserve raw buffer
 	app.use((req: Request, res: Response, next: NextFunction) => {
-		if (req.path === '/api/v1/stripe/webhook') {
-			return next() // Skip JSON parsing for webhook
+		if (
+			req.path === '/api/v1/stripe/webhook' ||
+			req.path === '/api/v1/webhooks/stripe-sync'
+		) {
+			return next() // Skip JSON parsing for webhooks
 		}
 		express.json({ limit: '10mb' })(req, res, next)
 	})
 
 	app.use((req: Request, res: Response, next: NextFunction) => {
-		if (req.path === '/api/v1/stripe/webhook') {
-			return next() // Skip URL encoding for webhook
+		if (
+			req.path === '/api/v1/stripe/webhook' ||
+			req.path === '/api/v1/webhooks/stripe-sync'
+		) {
+			return next() // Skip URL encoding for webhooks
 		}
 		express.urlencoded({ extended: true, limit: '10mb' })(req, res, next)
 	})

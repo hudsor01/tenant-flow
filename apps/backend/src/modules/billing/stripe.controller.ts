@@ -3,7 +3,6 @@ import {
 	Body,
 	Controller,
 	Get,
-	Headers,
 	HttpCode,
 	HttpStatus,
 	InternalServerErrorException,
@@ -11,13 +10,11 @@ import {
 	Param,
 	Post,
 	Query,
-	Req,
 	ServiceUnavailableException,
 	SetMetadata
 } from '@nestjs/common'
-import { EventEmitter2 } from '@nestjs/event-emitter'
+// REMOVED: EventEmitter2, Headers, Req, Request - Webhook endpoint removed
 import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
-import type { Request } from 'express'
 import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import type {
@@ -53,7 +50,7 @@ export class StripeController {
 	constructor(
 		private readonly supabaseService: SupabaseService,
 		private readonly webhookService: StripeWebhookService,
-		private readonly eventEmitter: EventEmitter2,
+		// REMOVED: eventEmitter - Event emission now handled by Stripe Sync Engine
 		private readonly stripeService: StripeService
 	) {
 		this.stripe = this.stripeService.getStripe()
@@ -148,198 +145,18 @@ export class StripeController {
 	}
 
 	/**
-	 * Production-Grade Webhook Handler with Enhanced Security
-	 * - Signature verification with timing-safe comparison
-	 * - Request validation and sanitization
-	 * - Rate limiting and replay attack protection
-	 * - Comprehensive security monitoring
+	 * OLD WEBHOOK ENDPOINT - REMOVED (2025-10-18)
+	 *
+	 * This endpoint has been replaced by Stripe Sync Engine at /webhooks/stripe-sync
+	 * See: StripeSyncController for new webhook implementation
+	 *
+	 * Migration Notes:
+	 * - All webhook processing now handled by @supabase/stripe-sync-engine
+	 * - Data auto-synced to stripe.* schema (replaces public.subscription)
+	 * - User linking handled automatically via email matching
+	 *
+	 * WARNING: Do not re-enable without removing Stripe Sync Engine to avoid dual webhook systems
 	 */
-	@Post('webhook')
-	@SetMetadata('isPublic', true)
-	@HttpCode(HttpStatus.OK)
-	async handleWebhooks(
-		@Req() req: Request,
-		@Headers('stripe-signature') sig: string
-	) {
-		let event: Stripe.Event
-
-		// Validate webhook secret is configured
-		if (!process.env.STRIPE_WEBHOOK_SECRET) {
-			this.logger.error('SECURITY: Stripe webhook secret not configured', {
-				ip: req.ip,
-				userAgent: req.headers['user-agent']
-			})
-			throw new InternalServerErrorException('Webhook configuration error')
-		}
-
-		// Validate signature header is present
-		if (!sig) {
-			this.logger.error('SECURITY: Webhook signature missing', {
-				ip: req.ip,
-				userAgent: req.headers['user-agent'],
-				hasBody: !!req.body
-			})
-			throw new BadRequestException('Missing signature header')
-		}
-
-		// Validate request body
-		if (!req.body) {
-			this.logger.error('SECURITY: Webhook body missing', {
-				ip: req.ip,
-				signature: sig?.substring(0, 20) + '...'
-			})
-			throw new BadRequestException('Missing request body')
-		}
-
-		try {
-			const rawBody = req.body as Buffer
-
-			// Validate body size (prevent DoS)
-			if (rawBody.length > 1024 * 1024) {
-				// 1MB limit
-				this.logger.error('SECURITY: Webhook body too large', {
-					size: rawBody.length,
-					ip: req.ip,
-					userAgent: req.headers['user-agent']
-				})
-				throw new BadRequestException('Request body too large')
-			}
-
-			// Enhanced signature verification with additional validation
-			event = this.stripe.webhooks.constructEvent(
-				rawBody,
-				sig,
-				process.env.STRIPE_WEBHOOK_SECRET
-			)
-
-			// Validate event structure
-			if (!event?.id || !event?.type || !event?.data) {
-				this.logger.error('SECURITY: Invalid webhook event structure', {
-					eventId: event?.id,
-					eventType: event?.type,
-					hasData: !!event?.data,
-					ip: req.ip
-				})
-				throw new BadRequestException('Invalid event structure')
-			}
-
-			// Check for replay attacks (events older than 5 minutes)
-			const eventCreated = event.created * 1000 // Convert to milliseconds
-			const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
-
-			if (eventCreated < fiveMinutesAgo) {
-				this.logger.error('SECURITY: Webhook replay attack detected', {
-					eventId: event.id,
-					eventType: event.type,
-					eventCreated: new Date(eventCreated).toISOString(),
-					timeDifference: Date.now() - eventCreated,
-					ip: req.ip
-				})
-				throw new BadRequestException('Event too old - possible replay attack')
-			}
-
-			// Validate livemode consistency
-			const expectedLivemode = process.env.NODE_ENV === 'production'
-			if (event.livemode !== expectedLivemode) {
-				this.logger.error('SECURITY: Webhook livemode mismatch', {
-					eventId: event.id,
-					eventLivemode: event.livemode,
-					expectedLivemode,
-					environment: process.env.NODE_ENV,
-					ip: req.ip
-				})
-				throw new BadRequestException('Environment mode mismatch')
-			}
-
-			this.logger.log(`Webhook received and validated: ${event.type}`, {
-				event_id: event.id,
-				livemode: event.livemode,
-				ip: req.ip,
-				created: new Date(event.created * 1000).toISOString()
-			})
-		} catch (error) {
-			const errorMessage =
-				error instanceof Error ? error.message : 'Unknown error'
-
-			// Enhanced security logging
-			this.logger.error('Webhook signature verification failed', {
-				error: errorMessage,
-				errorType: error?.constructor?.name,
-				signatureLength: sig?.length,
-				bodySize: (req.body as Buffer)?.length,
-				ip: req.ip,
-				userAgent: req.headers['user-agent'],
-				timestamp: new Date().toISOString()
-			})
-
-			// Don't leak internal error details to potential attackers
-			if (
-				error instanceof BadRequestException ||
-				error instanceof InternalServerErrorException
-			) {
-				throw error
-			}
-
-			throw new BadRequestException('Invalid webhook signature')
-		}
-
-		// Official permitted events pattern
-		const permittedEvents: string[] = [
-			'payment_intent.succeeded',
-			'payment_intent.payment_failed',
-			'setup_intent.succeeded',
-			'customer.subscription.created',
-			'customer.subscription.updated',
-			'customer.subscription.deleted',
-			'invoice.payment_succeeded',
-			'invoice.payment_failed',
-			'checkout.session.completed'
-		]
-
-		if (permittedEvents.includes(event.type)) {
-			const lockAcquired = await this.webhookService.recordEventProcessing(
-				event.id,
-				event.type
-			)
-
-			if (!lockAcquired) {
-				this.logger.log(
-					`Event already being processed, skipping: ${event.id} (${event.type})`
-				)
-				return { received: true, idempotent: true }
-			}
-
-			// Return 200 immediately and process asynchronously
-			// This follows Stripe's best practice to avoid timeouts
-			setImmediate(async () => {
-				try {
-					this.emitStripeEvent(event)
-
-					// Mark as successfully processed in database
-					await this.webhookService.markEventProcessed(event.id)
-
-					this.logger.log(`Event queued for async processing: ${event.type}`, {
-						event_id: event.id,
-						event_type: event.type
-					})
-				} catch (error) {
-					// Log error but don't affect webhook response
-					this.logger.error(`Event processing failed: ${event.type}`, {
-						event_id: event.id,
-						event_type: event.type,
-						error: error instanceof Error ? error.message : String(error),
-						stack: error instanceof Error ? error.stack : undefined
-					})
-				}
-			})
-		} else {
-			this.logger.debug(`Unhandled webhook event type: ${event.type}`, {
-				event_id: event.id
-			})
-		}
-
-		return { received: true }
-	}
 
 	/**
 	 * Customer & Payment Method Management
@@ -465,6 +282,10 @@ export class StripeController {
 				],
 				payment_behavior: 'default_incomplete',
 				expand: ['latest_invoice.payment_intent'], // Official expand pattern
+				// P1: Free trial support (14-day trial)
+				trial_period_days: 14,
+				// P0: Automatic tax calculation (legal requirement)
+				automatic_tax: { enabled: true },
 				metadata: {
 					tenant_id: sanitizedTenantId,
 					...(sanitizedSubscriptionType && {
@@ -489,6 +310,184 @@ export class StripeController {
 				status: subscription.status
 			}
 		} catch (error) {
+			this.handleStripeError(error as Stripe.errors.StripeError)
+		}
+	}
+
+	/**
+	 * Update Subscription with Proration
+	 * Official Pattern: subscription.update with proration_behavior
+	 * Handles plan upgrades/downgrades with automatic proration
+	 */
+	@Post('update-subscription')
+	async updateSubscription(
+		@Body()
+		body: {
+			subscriptionId: string
+			newPriceId: string
+			prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
+		}
+	) {
+		// Native validation - CLAUDE.md compliant
+		if (!body.subscriptionId) {
+			throw new BadRequestException('subscriptionId is required')
+		}
+		if (!body.newPriceId) {
+			throw new BadRequestException('newPriceId is required')
+		}
+		if (!body.newPriceId.startsWith('price_')) {
+			throw new BadRequestException(
+				'Invalid newPriceId format. Expected Stripe price ID starting with "price_"'
+			)
+		}
+
+		try {
+			// Get current subscription to find subscription item ID
+			const currentSubscription = await this.stripe.subscriptions.retrieve(
+				body.subscriptionId
+			)
+
+			if (!currentSubscription) {
+				throw new BadRequestException('Subscription not found')
+			}
+
+			if (currentSubscription.items.data.length === 0) {
+				throw new BadRequestException('Subscription has no items')
+			}
+
+			const firstItem = currentSubscription.items.data[0]
+			if (!firstItem?.id) {
+				throw new BadRequestException('Subscription item ID not found')
+			}
+
+			const subscriptionItemId = firstItem.id
+			const currentPrice = firstItem.price?.id
+
+			this.logger.log('Updating subscription with proration', {
+				subscriptionId: body.subscriptionId,
+				currentPrice: currentPrice || 'unknown',
+				newPrice: body.newPriceId,
+				prorationBehavior: body.prorationBehavior || 'create_prorations'
+			})
+
+			// Update subscription with proration
+			// P1: Proration handling for plan changes
+			const updatedSubscription = await this.stripe.subscriptions.update(
+				body.subscriptionId,
+				{
+					items: [
+						{
+							id: subscriptionItemId,
+							price: body.newPriceId
+						}
+					],
+					// Default to create_prorations (calculates credit/charge for unused time)
+					proration_behavior: body.prorationBehavior || 'create_prorations',
+					// Keep same billing date (don't reset billing cycle)
+					billing_cycle_anchor: 'unchanged',
+					expand: ['latest_invoice']
+				}
+			)
+
+			const newPrice = updatedSubscription.items.data[0]?.price?.id
+			// Access current_period_end from expanded subscription
+			const periodEnd = (
+				updatedSubscription as Stripe.Response<Stripe.Subscription> & {
+					current_period_end?: number
+				}
+			).current_period_end
+
+			this.logger.log('Subscription updated successfully', {
+				subscriptionId: updatedSubscription.id,
+				newStatus: updatedSubscription.status,
+				newPrice: newPrice || 'unknown'
+			})
+
+			return {
+				subscription_id: updatedSubscription.id,
+				status: updatedSubscription.status,
+				current_period_end: periodEnd
+					? new Date(periodEnd * 1000).toISOString()
+					: null,
+				latest_invoice_id:
+					typeof updatedSubscription.latest_invoice === 'string'
+						? updatedSubscription.latest_invoice
+						: updatedSubscription.latest_invoice?.id
+			}
+		} catch (error) {
+			this.logger.error('Failed to update subscription', {
+				subscriptionId: body.subscriptionId,
+				error: error instanceof Error ? error.message : String(error)
+			})
+			this.handleStripeError(error as Stripe.errors.StripeError)
+		}
+	}
+
+	/**
+	 * Cancel Subscription
+	 * Official Pattern: subscription cancellation with optional immediate effect
+	 */
+	@Post('cancel-subscription')
+	async cancelSubscription(
+		@Body()
+		body: {
+			subscriptionId: string
+			cancelAtPeriodEnd?: boolean
+		}
+	) {
+		// Native validation - CLAUDE.md compliant
+		if (!body.subscriptionId) {
+			throw new BadRequestException('subscriptionId is required')
+		}
+
+		try {
+			this.logger.log('Canceling subscription', {
+				subscriptionId: body.subscriptionId,
+				cancelAtPeriodEnd: body.cancelAtPeriodEnd ?? true
+			})
+
+			// Default to cancel at period end (let customer use until they paid for)
+			if (body.cancelAtPeriodEnd !== false) {
+				// Schedule cancellation for end of billing period
+				const updatedSubscription = await this.stripe.subscriptions.update(
+					body.subscriptionId,
+					{
+						cancel_at_period_end: true
+					}
+				)
+
+				// Access current_period_end from expanded subscription
+				const periodEnd = (
+					updatedSubscription as Stripe.Response<Stripe.Subscription> & {
+						current_period_end?: number
+					}
+				).current_period_end
+
+				return {
+					subscription_id: updatedSubscription.id,
+					status: updatedSubscription.status,
+					cancel_at_period_end: updatedSubscription.cancel_at_period_end,
+					current_period_end: periodEnd
+						? new Date(periodEnd * 1000).toISOString()
+						: null
+				}
+			} else {
+				// Cancel immediately
+				const canceledSubscription = await this.stripe.subscriptions.cancel(
+					body.subscriptionId
+				)
+
+				return {
+					subscription_id: canceledSubscription.id,
+					status: canceledSubscription.status,
+					canceled_at: canceledSubscription.canceled_at
+				}
+			}
+		} catch (error) {
+			this.logger.error('Failed to cancel subscription', {
+				subscriptionId: body.subscriptionId,
+				error: error instanceof Error ? error.message : String(error)
+			})
 			this.handleStripeError(error as Stripe.errors.StripeError)
 		}
 	}
@@ -560,6 +559,14 @@ export class StripeController {
 				cancel_url: `${body.domain}/cancel`,
 				// Following official Stripe pattern: customer identification via email
 				...(body.customerEmail && { customer_email: body.customerEmail }),
+				// P0: Automatic tax calculation (legal requirement)
+				automatic_tax: { enabled: true },
+				// P1: Free trial support (14-day trial for subscriptions)
+				...(body.isSubscription && {
+					subscription_data: {
+						trial_period_days: 14
+					}
+				}),
 				metadata: {
 					tenant_id: sanitizedTenantId,
 					product_name: sanitizedProductName,
@@ -634,7 +641,9 @@ export class StripeController {
 			const sessionConfig: Stripe.Checkout.SessionCreateParams = {
 				ui_mode: 'custom',
 				mode: body.mode,
-				return_url: `${body.domain}/complete?session_id={CHECKOUT_SESSION_ID}`
+				return_url: `${body.domain}/complete?session_id={CHECKOUT_SESSION_ID}`,
+				// P0: Automatic tax calculation (legal requirement)
+				automatic_tax: { enabled: true }
 			}
 
 			// Add line_items only for payment and subscription modes
@@ -645,6 +654,13 @@ export class StripeController {
 						quantity: 1
 					}
 				]
+			}
+
+			// P1: Free trial support (14-day trial for subscriptions)
+			if (body.mode === 'subscription') {
+				sessionConfig.subscription_data = {
+					trial_period_days: 14
+				}
 			}
 
 			// Following Stripe's exact embedded checkout specification
@@ -1057,23 +1073,7 @@ export class StripeController {
 		}
 	}
 
-	/**
-	 * Emit Stripe event for async processing
-	 * Uses NestJS EventEmitter2 for decoupled event handling
-	 */
-	private emitStripeEvent(event: Stripe.Event): void {
-		// Emit specific event for detailed handling
-		const eventName = `stripe.${event.type.replace(/\./g, '_')}`
-		this.eventEmitter.emit(eventName, event.data.object, event)
-
-		// Also emit generic event for logging/monitoring
-		this.eventEmitter.emit('stripe.event', event)
-
-		this.logger.debug(`Emitted event: ${eventName}`, {
-			event_id: event.id,
-			event_type: event.type
-		})
-	}
+	// REMOVED: emitStripeEvent() - Event emission now handled by Stripe Sync Engine
 
 	// Helper methods for webhook handlers
 

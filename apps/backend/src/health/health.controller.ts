@@ -60,13 +60,7 @@ export class HealthController {
 	@Get('stripe-sync')
 	@SetMetadata('isPublic', true)
 	async checkStripeSyncHealth() {
-		const health = this.stripeSyncService.getHealthStatus()
-		return {
-			status:
-				health.initialized && health.migrationsRun ? 'healthy' : 'unhealthy',
-			...health,
-			timestamp: new Date().toISOString()
-		}
+		return this.stripeSyncService.getHealthStatus()
 	}
 
 	/**

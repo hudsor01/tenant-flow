@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
+import { useUser } from '@/hooks/api/use-current-user'
 import { API_BASE_URL } from '@/lib/api-client'
 import { cn } from '@/lib/utils'
 import type { CustomerPortalCardProps } from '@repo/shared/types/frontend'
@@ -26,6 +27,7 @@ import {
 	Users,
 	Zap
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import type { ComponentProps } from 'react'
 import { toast } from 'sonner'
 import {
@@ -42,8 +44,17 @@ export function CustomerPortalButton({
 	children,
 	...props
 }: ComponentProps<typeof Button>) {
+	const router = useRouter()
+	const { data: user, isLoading: isLoadingUser } = useUser()
+
 	const portalMutation = useMutation({
 		mutationFn: async () => {
+			// Check if user has Stripe customer ID
+			if (!user?.stripeCustomerId) {
+				router.push('/pricing')
+				throw new Error('No active subscription found')
+			}
+
 			// Check if user is authenticated
 			const authToken = localStorage.getItem('auth-token')
 			if (!authToken) {
@@ -54,17 +65,21 @@ export function CustomerPortalButton({
 			// Show loading toast
 			toast.loading('Opening customer portal...', { id: 'portal' })
 
-			// Create portal session
-			const response = await fetch(`${API_BASE_URL}/stripe/portal`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${authToken}`
-				},
-				body: JSON.stringify({
-					returnUrl: window.location.href
-				})
-			})
+			// Create portal session - matches backend endpoint at stripe.controller.ts:855
+			const response = await fetch(
+				`${API_BASE_URL}/stripe/create-billing-portal`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${authToken}`
+					},
+					body: JSON.stringify({
+						customerId: user.stripeCustomerId,
+						returnUrl: window.location.href
+					})
+				}
+			)
 
 			if (!response.ok) {
 				const errorData = await response.json()
@@ -91,6 +106,29 @@ export function CustomerPortalButton({
 
 	const handlePortalAccess = async () => {
 		portalMutation.mutate()
+	}
+
+	// Show "Subscribe Now" if user has no Stripe customer
+	if (!isLoadingUser && !user?.stripeCustomerId) {
+		return (
+			<Button
+				variant={variant}
+				size={size}
+				className={cn(
+					buttonClasses(
+						variant as Parameters<typeof buttonClasses>[0],
+						size as Parameters<typeof buttonClasses>[1]
+					),
+					'hover:scale-105 font-semibold',
+					className
+				)}
+				onClick={() => router.push('/pricing')}
+				{...props}
+			>
+				<Sparkles className="w-4 h-4 mr-2" />
+				Subscribe Now
+			</Button>
+		)
 	}
 
 	return (

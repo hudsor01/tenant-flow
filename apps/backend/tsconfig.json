@@ -20,7 +20,7 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true
 	},
-	"include": ["src", "test/setup.ts"],
+	"include": ["src", "scripts", "test/setup.ts"],
 	"exclude": [
 		"src/auth/auth-production-diagnostic.ts",
 		"src/services/base-crud.service.example.ts",
