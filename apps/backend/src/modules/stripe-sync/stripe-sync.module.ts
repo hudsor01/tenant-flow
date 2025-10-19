@@ -5,10 +5,11 @@
 
 import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
+import { StripeModule } from '../billing/stripe.module'
 import { StripeSyncController } from './stripe-sync.controller'
 
 @Module({
-	imports: [SupabaseModule],
+	imports: [SupabaseModule, StripeModule],
 	controllers: [StripeSyncController]
 })
 export class StripeSyncModule {}
