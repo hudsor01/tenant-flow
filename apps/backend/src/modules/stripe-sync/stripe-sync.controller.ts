@@ -1,11 +1,8 @@
 /**
- * ULTRA-NATIVE CONTROLLER - Stripe Sync Engine Integration
+ * Stripe Sync Engine Webhook Controller
  *
- * This controller handles Stripe webhooks using the official Stripe Sync Engine.
- * The sync engine automatically synchronizes Stripe data to the `stripe` schema.
- *
- * FORBIDDEN: Custom sync logic, manual database updates
- * ALLOWED: Official @supabase/stripe-sync-engine, built-in NestJS decorators
+ * Processes Stripe webhooks using @supabase/stripe-sync-engine npm library
+ * Direct integration per official documentation - no custom abstractions
  *
  * See: https://github.com/supabase/stripe-sync-engine
  */
@@ -14,58 +11,33 @@ import {
 	BadRequestException,
 	Controller,
 	Header,
+	Inject,
 	Logger,
 	Optional,
 	Post,
 	Req,
 	SetMetadata
 } from '@nestjs/common'
-import type Stripe from 'stripe'
+import type { Request } from 'express'
+import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
-import type { RawBodyRequest } from '../../shared/types/express-request.types'
 import { StripeAccessControlService } from '../billing/stripe-access-control.service'
+import { StripeSyncService } from '../billing/stripe-sync.service'
 
 // Public decorator for webhook endpoints (bypasses JWT auth)
 const Public = () => SetMetadata('isPublic', true)
 
-// Import Stripe Sync types
-import type { StripeSync } from '@supabase/stripe-sync-engine'
-
 @Controller('webhooks')
 export class StripeSyncController {
 	private readonly logger = new Logger(StripeSyncController.name)
-	private syncEngine: StripeSync | null = null
 
 	constructor(
+		@Inject(StripeSyncService)
+		private readonly stripeSyncService: StripeSyncService,
 		@Optional() private readonly supabaseService?: SupabaseService,
 		@Optional()
 		private readonly accessControlService?: StripeAccessControlService
-	) {
-		// Initialize Stripe Sync Engine
-		if (this.supabaseService) {
-			try {
-				// Dynamic import to handle package installation
-				// eslint-disable-next-line @typescript-eslint/no-require-imports
-				const { StripeSync } = require('@supabase/stripe-sync-engine')
-
-				this.syncEngine = new StripeSync({
-					stripe: {
-						apiKey: process.env.STRIPE_SECRET_KEY!,
-						apiVersion: '2024-12-18.acacia'
-					},
-					db: {
-						connectionString: process.env.DATABASE_URL!
-					}
-				})
-
-				this.logger.log('Stripe Sync Engine initialized successfully')
-			} catch (error) {
-				this.logger.error('Failed to initialize Stripe Sync Engine', {
-					error: error instanceof Error ? error.message : 'Unknown error'
-				})
-			}
-		}
-	}
+	) {}
 
 	/**
 	 * Link Stripe customer to Supabase user + Handle business logic
@@ -78,14 +50,12 @@ export class StripeSyncController {
 		try {
 			// We need to parse the event again to get the event type
 			// This is safe because Sync Engine already validated the signature
-			// eslint-disable-next-line @typescript-eslint/no-require-imports
-			const Stripe = require('stripe')
-			const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+			const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 			const event: Stripe.Event = stripe.webhooks.constructEvent(
 				rawBody,
 				signature,
-				process.env.STRIPE_WEBHOOK_SECRET
+				process.env.STRIPE_WEBHOOK_SECRET!
 			)
 
 			this.logger.log('Processing webhook business logic', {
@@ -123,7 +93,7 @@ export class StripeSyncController {
 					// Revoke access if subscription is canceled
 					else if (
 						subscription.status === 'canceled' ||
-						subscription.status === 'incomplete_expired' ||
+						subscription.status === 'past_due' ||
 						subscription.status === 'unpaid'
 					) {
 						await this.accessControlService.revokeSubscriptionAccess(
@@ -132,66 +102,46 @@ export class StripeSyncController {
 					}
 					break
 				}
-
 				case 'customer.subscription.deleted': {
 					const subscription = event.data.object as Stripe.Subscription
 					await this.accessControlService.revokeSubscriptionAccess(subscription)
 					break
 				}
-
-				case 'customer.subscription.trial_will_end': {
-					const subscription = event.data.object as Stripe.Subscription
-					await this.accessControlService.handleTrialEnding(subscription)
-					break
-				}
-
-				case 'invoice.payment_failed': {
-					const invoice = event.data.object as Stripe.Invoice
-					await this.accessControlService.handlePaymentFailed(invoice)
-					break
-				}
-
-				case 'invoice.payment_succeeded': {
-					const invoice = event.data.object as Stripe.Invoice
-					await this.accessControlService.handlePaymentSucceeded(invoice)
-					break
-				}
-
-				default:
-					// Event type not handled - this is fine, Sync Engine still processed it
-					break
 			}
 		} catch (error) {
-			// Don't throw - this is a best-effort operation
-			// The sync engine already succeeded, so we don't want to fail the webhook
-			this.logger.error('Error in webhook business logic', {
+			this.logger.error('Error processing webhook business logic', {
 				error: error instanceof Error ? error.message : 'Unknown error'
 			})
+			// Don't throw - business logic errors shouldn't fail the webhook
 		}
 	}
 
 	/**
-	 * Link customer to user by email
+	 * Link Stripe customer to Supabase user by email
+	 * Uses the link_stripe_customer_to_user database function
 	 */
 	private async linkCustomerToUser(event: Stripe.Event) {
+		if (!this.supabaseService) {
+			this.logger.warn('Supabase service not available for customer linking')
+			return
+		}
+
 		const customer = event.data.object as Stripe.Customer
 
-		// Customer must have an email to link to user
 		if (!customer.email) {
-			this.logger.warn('Stripe customer has no email, skipping user link', {
+			this.logger.warn('Customer has no email, skipping user linking', {
 				customerId: customer.id
 			})
 			return
 		}
 
-		// Call the PostgreSQL function to link customer to user
-		const { data, error } = await this.supabaseService!.rpcWithRetries(
+		// Call the database function to link customer to user
+		const { data, error } = await this.supabaseService.rpcWithRetries(
 			'link_stripe_customer_to_user',
 			{
 				p_stripe_customer_id: customer.id,
 				p_email: customer.email
-			},
-			2 // Only 2 attempts for fast failure
+			}
 		)
 
 		if (error) {
@@ -218,18 +168,17 @@ export class StripeSyncController {
 	@Public() // Stripe webhooks don't use JWT auth
 	@Post('stripe-sync')
 	@Header('content-type', 'application/json')
-	async handleStripeSyncWebhook(@Req() req: RawBodyRequest) {
-		if (!this.syncEngine) {
-			throw new BadRequestException('Stripe Sync Engine not initialized')
-		}
-
+	async handleStripeSyncWebhook(@Req() req: Request) {
 		const signature = req.headers['stripe-signature']
 
 		if (!signature || typeof signature !== 'string') {
 			throw new BadRequestException('Missing Stripe signature')
 		}
 
-		if (!req.rawBody) {
+		// Express raw() middleware stores buffer in req.body
+		const rawBody = req.body as Buffer
+
+		if (!rawBody || !Buffer.isBuffer(rawBody)) {
 			throw new BadRequestException(
 				'Missing raw body for signature verification'
 			)
@@ -243,14 +192,14 @@ export class StripeSyncController {
 			// - Event processing
 			// - Database synchronization to stripe.* schema
 			// - Idempotency
-			await this.syncEngine.processWebhook(req.rawBody, signature)
+			await this.stripeSyncService.processWebhook(rawBody, signature)
 
 			// Process business logic AFTER sync to ensure stripe.* data exists
 			// This includes:
 			// - Linking customers to users
 			// - Granting/revoking subscription access
 			// - Sending email notifications
-			await this.processWebhookBusinessLogic(req.rawBody, signature)
+			await this.processWebhookBusinessLogic(rawBody, signature)
 
 			this.logger.log('Stripe webhook processed successfully')
 
@@ -258,12 +207,9 @@ export class StripeSyncController {
 		} catch (error) {
 			this.logger.error('Failed to process Stripe webhook', {
 				error: error instanceof Error ? error.message : 'Unknown error',
-				signature: signature.substring(0, 20) + '...'
+				stack: error instanceof Error ? error.stack : undefined
 			})
-
-			// Return 200 to Stripe even on errors to prevent retries
-			// Errors are logged for investigation
-			return { received: true, error: 'Processing failed' }
+			throw new BadRequestException('Webhook processing failed')
 		}
 	}
 }
