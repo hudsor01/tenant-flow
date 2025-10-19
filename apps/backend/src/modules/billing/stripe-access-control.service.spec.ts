@@ -1,3 +1,4 @@
+import type { Logger } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
@@ -6,6 +7,7 @@ import { StripeAccessControlService } from './stripe-access-control.service'
 describe('StripeAccessControlService', () => {
 	let service: StripeAccessControlService
 	let supabaseService: jest.Mocked<SupabaseService>
+	let mockLogger: jest.Mocked<Logger>
 
 	beforeEach(async () => {
 		// Mock SupabaseService
@@ -29,6 +31,26 @@ describe('StripeAccessControlService', () => {
 		}).compile()
 
 		service = module.get<StripeAccessControlService>(StripeAccessControlService)
+
+		// Mock logger to verify proper log levels
+		mockLogger = {
+			log: jest.fn(),
+			error: jest.fn(),
+			warn: jest.fn(),
+			debug: jest.fn(),
+			verbose: jest.fn(),
+			fatal: jest.fn(),
+			setLogLevels: jest.fn(),
+			isLevelEnabled: jest.fn()
+		} as any
+
+		// Use Object.defineProperty to override readonly logger
+		Object.defineProperty(service, 'logger', {
+			value: mockLogger,
+			writable: false,
+			configurable: true
+		})
+
 		supabaseService = module.get<SupabaseService>(
 			SupabaseService
 		) as jest.Mocked<SupabaseService>
@@ -223,7 +245,7 @@ describe('StripeAccessControlService', () => {
 	})
 
 	describe('handlePaymentFailed', () => {
-		it('should log payment failure with subscription ID', async () => {
+		it('should log payment failure as warning (business event, not error)', async () => {
 			const mockInvoice = {
 				id: 'in_test123',
 				customer: 'cus_test123',
@@ -240,10 +262,19 @@ describe('StripeAccessControlService', () => {
 
 			await service.handlePaymentFailed(mockInvoice)
 
-			expect(supabaseService.rpcWithRetries).toHaveBeenCalledWith(
-				'get_user_id_by_stripe_customer',
-				{ p_stripe_customer_id: 'cus_test123' },
-				2
+			// Payment failure is a business event, should log as WARN not ERROR
+			expect(mockLogger.warn).toHaveBeenCalledWith(
+				'Payment failed',
+				expect.objectContaining({
+					userId: 'user-123',
+					invoiceId: 'in_test123',
+					subscriptionId: 'sub_test123'
+				})
+			)
+			// Should NOT log as error
+			expect(mockLogger.error).not.toHaveBeenCalledWith(
+				'Payment failed',
+				expect.any(Object)
 			)
 		})
 
@@ -520,6 +551,31 @@ describe('StripeAccessControlService', () => {
 			await expect(
 				service.handlePaymentSucceeded(mockInvoice)
 			).resolves.not.toThrow()
+		})
+
+		it('should log system errors as ERROR (not business events)', async () => {
+			const mockInvoice = {
+				id: 'in_test123',
+				customer: 'cus_test123',
+				amount_due: 2900,
+				currency: 'usd'
+			} as Stripe.Invoice
+
+			// Simulate system failure
+			supabaseService.rpcWithRetries.mockRejectedValue(
+				new Error('Database connection lost')
+			)
+
+			await service.handlePaymentFailed(mockInvoice)
+
+			// System errors should log as ERROR
+			expect(mockLogger.error).toHaveBeenCalledWith(
+				'Failed to handle payment failure',
+				expect.objectContaining({
+					invoiceId: 'in_test123',
+					error: 'Database connection lost'
+				})
+			)
 		})
 	})
 })
