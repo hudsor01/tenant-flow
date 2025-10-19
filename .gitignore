@@ -18,6 +18,7 @@ packages/**/*.tgz
 .envrc.local
 */.envrc
 **/.envrc
+doppler.env
 
 # Local environment files
 .env.local
