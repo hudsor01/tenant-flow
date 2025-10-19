@@ -315,6 +315,184 @@ export class StripeController {
 	}
 
 	/**
+	 * Update Subscription with Proration
+	 * Official Pattern: subscription.update with proration_behavior
+	 * Handles plan upgrades/downgrades with automatic proration
+	 */
+	@Post('update-subscription')
+	async updateSubscription(
+		@Body()
+		body: {
+			subscriptionId: string
+			newPriceId: string
+			prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
+		}
+	) {
+		// Native validation - CLAUDE.md compliant
+		if (!body.subscriptionId) {
+			throw new BadRequestException('subscriptionId is required')
+		}
+		if (!body.newPriceId) {
+			throw new BadRequestException('newPriceId is required')
+		}
+		if (!body.newPriceId.startsWith('price_')) {
+			throw new BadRequestException(
+				'Invalid newPriceId format. Expected Stripe price ID starting with "price_"'
+			)
+		}
+
+		try {
+			// Get current subscription to find subscription item ID
+			const currentSubscription = await this.stripe.subscriptions.retrieve(
+				body.subscriptionId
+			)
+
+			if (!currentSubscription) {
+				throw new BadRequestException('Subscription not found')
+			}
+
+			if (currentSubscription.items.data.length === 0) {
+				throw new BadRequestException('Subscription has no items')
+			}
+
+			const firstItem = currentSubscription.items.data[0]
+			if (!firstItem?.id) {
+				throw new BadRequestException('Subscription item ID not found')
+			}
+
+			const subscriptionItemId = firstItem.id
+			const currentPrice = firstItem.price?.id
+
+			this.logger.log('Updating subscription with proration', {
+				subscriptionId: body.subscriptionId,
+				currentPrice: currentPrice || 'unknown',
+				newPrice: body.newPriceId,
+				prorationBehavior: body.prorationBehavior || 'create_prorations'
+			})
+
+			// Update subscription with proration
+			// P1: Proration handling for plan changes
+			const updatedSubscription = await this.stripe.subscriptions.update(
+				body.subscriptionId,
+				{
+					items: [
+						{
+							id: subscriptionItemId,
+							price: body.newPriceId
+						}
+					],
+					// Default to create_prorations (calculates credit/charge for unused time)
+					proration_behavior: body.prorationBehavior || 'create_prorations',
+					// Keep same billing date (don't reset billing cycle)
+					billing_cycle_anchor: 'unchanged',
+					expand: ['latest_invoice']
+				}
+			)
+
+			const newPrice = updatedSubscription.items.data[0]?.price?.id
+			// Access current_period_end from expanded subscription
+			const periodEnd = (
+				updatedSubscription as Stripe.Response<Stripe.Subscription> & {
+					current_period_end?: number
+				}
+			).current_period_end
+
+			this.logger.log('Subscription updated successfully', {
+				subscriptionId: updatedSubscription.id,
+				newStatus: updatedSubscription.status,
+				newPrice: newPrice || 'unknown'
+			})
+
+			return {
+				subscription_id: updatedSubscription.id,
+				status: updatedSubscription.status,
+				current_period_end: periodEnd
+					? new Date(periodEnd * 1000).toISOString()
+					: null,
+				latest_invoice_id:
+					typeof updatedSubscription.latest_invoice === 'string'
+						? updatedSubscription.latest_invoice
+						: updatedSubscription.latest_invoice?.id
+			}
+		} catch (error) {
+			this.logger.error('Failed to update subscription', {
+				subscriptionId: body.subscriptionId,
+				error: error instanceof Error ? error.message : String(error)
+			})
+			this.handleStripeError(error as Stripe.errors.StripeError)
+		}
+	}
+
+	/**
+	 * Cancel Subscription
+	 * Official Pattern: subscription cancellation with optional immediate effect
+	 */
+	@Post('cancel-subscription')
+	async cancelSubscription(
+		@Body()
+		body: {
+			subscriptionId: string
+			cancelAtPeriodEnd?: boolean
+		}
+	) {
+		// Native validation - CLAUDE.md compliant
+		if (!body.subscriptionId) {
+			throw new BadRequestException('subscriptionId is required')
+		}
+
+		try {
+			this.logger.log('Canceling subscription', {
+				subscriptionId: body.subscriptionId,
+				cancelAtPeriodEnd: body.cancelAtPeriodEnd ?? true
+			})
+
+			// Default to cancel at period end (let customer use until they paid for)
+			if (body.cancelAtPeriodEnd !== false) {
+				// Schedule cancellation for end of billing period
+				const updatedSubscription = await this.stripe.subscriptions.update(
+					body.subscriptionId,
+					{
+						cancel_at_period_end: true
+					}
+				)
+
+				// Access current_period_end from expanded subscription
+				const periodEnd = (
+					updatedSubscription as Stripe.Response<Stripe.Subscription> & {
+						current_period_end?: number
+					}
+				).current_period_end
+
+				return {
+					subscription_id: updatedSubscription.id,
+					status: updatedSubscription.status,
+					cancel_at_period_end: updatedSubscription.cancel_at_period_end,
+					current_period_end: periodEnd
+						? new Date(periodEnd * 1000).toISOString()
+						: null
+				}
+			} else {
+				// Cancel immediately
+				const canceledSubscription = await this.stripe.subscriptions.cancel(
+					body.subscriptionId
+				)
+
+				return {
+					subscription_id: canceledSubscription.id,
+					status: canceledSubscription.status,
+					canceled_at: canceledSubscription.canceled_at
+				}
+			}
+		} catch (error) {
+			this.logger.error('Failed to cancel subscription', {
+				subscriptionId: body.subscriptionId,
+				error: error instanceof Error ? error.message : String(error)
+			})
+			this.handleStripeError(error as Stripe.errors.StripeError)
+		}
+	}
+
+	/**
 	 * Checkout Session Creation
 	 * Official Pattern: checkout session with success/cancel URLs
 	 */
