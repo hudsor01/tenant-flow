@@ -93,10 +93,10 @@ echo "   Events: ${#EVENTS[@]} events"
 echo ""
 
 # Build curl command with all events
+# Note: Using account's default API version (don't specify to use latest)
 CURL_CMD="curl -s https://api.stripe.com/v1/webhook_endpoints -u \"\$STRIPE_SECRET_KEY:\""
 CURL_CMD="$CURL_CMD -d \"url=$WEBHOOK_URL\""
 CURL_CMD="$CURL_CMD -d \"description=TenantFlow Stripe Sync Engine - Production\""
-CURL_CMD="$CURL_CMD -d \"api_version=2024-12-18.acacia\""
 
 for event in "${EVENTS[@]}"; do
     CURL_CMD="$CURL_CMD -d \"enabled_events[]=$event\""
