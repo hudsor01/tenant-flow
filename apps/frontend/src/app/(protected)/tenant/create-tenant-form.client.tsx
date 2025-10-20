@@ -35,6 +35,7 @@ export function CreateTenantForm() {
 			const normalize = (value: string | null | undefined) =>
 				value === undefined ? null : value
 
+			// Backend extracts userId from authenticated JWT - don't send it in payload
 			const payload: CreateTenantInput = {
 				email: data.email,
 				avatarUrl: normalize(data.avatarUrl),
@@ -42,8 +43,7 @@ export function CreateTenantForm() {
 				emergencyContact: normalize(data.emergencyContact),
 				firstName: normalize(data.firstName),
 				lastName: normalize(data.lastName),
-				name: normalize(data.name),
-				userId: normalize(data.userId)
+				name: normalize(data.name)
 			}
 
 			return tenantsApi.create(payload)

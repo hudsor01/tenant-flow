@@ -113,9 +113,13 @@ export type UpdateUnitInput = Database['public']['Tables']['unit']['Update']
 
 /**
  * Input for creating a new tenant
- * Uses Supabase generated types for type safety
+ * Excludes server-managed fields: userId (from auth), id, createdAt, updatedAt
+ * Backend extracts userId from authenticated JWT token
  */
-export type CreateTenantInput = Database['public']['Tables']['tenant']['Insert']
+export type CreateTenantInput = Omit<
+	Database['public']['Tables']['tenant']['Insert'],
+	'userId' | 'id' | 'createdAt' | 'updatedAt'
+>
 
 /**
  * Input for updating an existing tenant

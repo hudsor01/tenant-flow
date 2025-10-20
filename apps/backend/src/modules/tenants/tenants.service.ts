@@ -227,13 +227,22 @@ export class TenantsService {
 		userId: string,
 		createRequest: CreateTenantRequest
 	): Promise<Tenant> {
-		// Business logic: Validate inputs
-		if (!userId || !createRequest.email) {
-			this.logger.warn('Create tenant requested with missing parameters', {
-				userId,
-				email: createRequest.email
-			})
-			throw new BadRequestException('User ID and email are required')
+		// Business logic: Validate inputs separately for better error messages
+		if (!userId) {
+			this.logger.warn(
+				'Create tenant requested without authenticated user ID',
+				{
+					email: createRequest.email
+				}
+			)
+			throw new BadRequestException(
+				'Authentication required - user ID missing from session'
+			)
+		}
+
+		if (!createRequest.email) {
+			this.logger.warn('Create tenant requested without email', { userId })
+			throw new BadRequestException('Email is required')
 		}
 
 		try {
@@ -243,12 +252,16 @@ export class TenantsService {
 			})
 
 			const client = this.supabase.getAdminClient()
+			// Use authenticated userId (from JWT) - never trust client-provided userId
 			const tenantData: Database['public']['Tables']['tenant']['Insert'] = {
-				userId: userId,
+				userId: userId, // From authenticated session
 				email: createRequest.email,
 				firstName: createRequest.firstName || null,
 				lastName: createRequest.lastName || null,
-				phone: createRequest.phone || null
+				phone: createRequest.phone || null,
+				emergencyContact: createRequest.emergencyContact || null,
+				name: createRequest.name || null,
+				avatarUrl: createRequest.avatarUrl || null
 			}
 
 			const { data, error } = await client
