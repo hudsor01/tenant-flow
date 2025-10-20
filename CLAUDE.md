@@ -1,5 +1,7 @@
 # TenantFlow Development Guide
 
+When providing commit messages, never include attribution.
+
 ## Core Principles (Non-Negotiable)
 - **DRY**: Search first (`rg -r "pattern"`), consolidate code reused ≥2 places
 - **KISS**: Simplest solution wins, delete > add code

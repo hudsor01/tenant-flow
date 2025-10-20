@@ -163,8 +163,17 @@ export class StripeAccessControlService {
 				trialEnd
 			})
 
-			// TODO: Send email notification
-			// This will be implemented in the email notifications service
+			// Send trial ending email via Supabase function
+			if (trialEnd) {
+				await this.supabaseService
+					.getAdminClient()
+					.rpc('send_trial_ending_email', {
+						p_user_id: userId,
+						p_subscription_id: subscription.id,
+						p_days_remaining: daysRemaining,
+						p_trial_end: trialEnd.toISOString()
+					})
+			}
 		} catch (error) {
 			this.logger.error('Failed to handle trial ending', {
 				subscriptionId: subscription.id,
@@ -221,9 +230,27 @@ export class StripeAccessControlService {
 				attemptCount: invoice.attempt_count
 			})
 
-			// TODO: Send email notification to customer
-			// TODO: Send admin notification if multiple failures
-			// This will be implemented in the email notifications service
+			// Send payment failed email via Supabase function
+			// Includes admin alert logic for multiple failures (attemptCount > 2)
+			const subscriptionId =
+				typeof invoice.subscription === 'string'
+					? invoice.subscription
+					: invoice.subscription?.id
+
+			if (subscriptionId) {
+				await this.supabaseService
+					.getAdminClient()
+					.rpc('send_payment_failed_email', {
+						p_user_id: userId,
+						p_subscription_id: subscriptionId,
+						p_amount: invoice.amount_due,
+						p_currency: invoice.currency,
+						p_attempt_count: invoice.attempt_count,
+						...(invoice.last_finalization_error?.message && {
+							p_failure_message: invoice.last_finalization_error.message
+						})
+					})
+			}
 		} catch (error) {
 			this.logger.error('Failed to handle payment failure', {
 				invoiceId: invoice.id,
@@ -272,8 +299,22 @@ export class StripeAccessControlService {
 				currency: invoice.currency
 			})
 
-			// TODO: Send payment receipt email
-			// This will be implemented in the email notifications service
+			// Send payment success receipt email via Supabase function
+			const subscriptionId =
+				typeof invoice.subscription === 'string'
+					? invoice.subscription
+					: invoice.subscription?.id
+
+			if (subscriptionId) {
+				await this.supabaseService
+					.getAdminClient()
+					.rpc('send_payment_success_email', {
+						p_user_id: userId,
+						p_subscription_id: subscriptionId,
+						p_amount_paid: invoice.amount_paid,
+						p_currency: invoice.currency
+					})
+			}
 		} catch (error) {
 			this.logger.error('Failed to handle payment success', {
 				invoiceId: invoice.id,
