@@ -9,9 +9,12 @@
  * - View lease documents
  */
 
+'use client'
+
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useCurrentLease } from '@/hooks/api/use-lease'
 import {
 	Calendar,
 	CreditCard,
@@ -23,6 +26,28 @@ import {
 import Link from 'next/link'
 
 export default function TenantDashboardPage() {
+	const { data: lease, isLoading } = useCurrentLease()
+
+	// Format currency
+	const formatCurrency = (amount: number | null | undefined) => {
+		if (!amount) return '$0'
+		return new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD'
+		}).format(amount)
+	}
+
+	// Calculate next payment date (1st of next month)
+	const getNextPaymentDate = () => {
+		const today = new Date()
+		const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
+		return nextMonth.toLocaleDateString('en-US', {
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric'
+		})
+	}
+
 	return (
 		<div className="space-y-10">
 			{/* Welcome Section */}
@@ -55,7 +80,11 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Property</p>
-							<Skeleton className="h-7 w-48" />
+							{isLoading || !lease ? (
+								<Skeleton className="h-7 w-48" />
+							) : (
+								<p className="text-xl font-semibold">Active Lease</p>
+							)}
 						</div>
 					</div>
 				</CardLayout>
@@ -76,7 +105,11 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Due Date</p>
-							<Skeleton className="h-7 w-32" />
+							{isLoading || !lease ? (
+								<Skeleton className="h-7 w-32" />
+							) : (
+								<p className="text-xl font-semibold">{getNextPaymentDate()}</p>
+							)}
 						</div>
 					</div>
 				</CardLayout>
@@ -99,7 +132,11 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Open Requests</p>
-							<Skeleton className="h-7 w-12" />
+							{isLoading ? (
+								<Skeleton className="h-7 w-12" />
+							) : (
+								<p className="text-xl font-semibold">0</p>
+							)}
 						</div>
 					</div>
 				</CardLayout>
@@ -177,28 +214,30 @@ export default function TenantDashboardPage() {
 					}
 				>
 					<div className="space-y-4">
-						<div className="flex items-center justify-between py-3 border-b border-border/50">
-							<div>
-								<p className="font-medium">Rent Payment</p>
-								<p className="text-sm text-muted-foreground">
-									Due: 1st of month
-								</p>
-							</div>
-							<div className="text-right">
-								<p className="font-semibold">$1,200</p>
-								<div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/30">
-									<div className="h-2 w-2 rounded-full bg-green-600 dark:bg-green-400" />
-									<span className="text-xs font-medium text-green-700 dark:text-green-300">
-										Paid
-									</span>
+						{lease ? (
+							<div className="flex items-center justify-between py-3 border-b border-border/50">
+								<div>
+									<p className="font-medium">Monthly Rent</p>
+									<p className="text-sm text-muted-foreground">
+										Due: 1st of each month
+									</p>
+								</div>
+								<div className="text-right">
+									<p className="font-semibold">
+										{formatCurrency(lease.rentAmount)}
+									</p>
+									<p className="text-xs text-muted-foreground">
+										{lease.status === 'ACTIVE' ? 'Active' : lease.status}
+									</p>
 								</div>
 							</div>
-						</div>
-						<div className="text-center py-8 bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
-							<p className="text-sm text-muted-foreground">
-								No payment history yet
-							</p>
-						</div>
+						) : (
+							<div className="text-center py-8 bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
+								<p className="text-sm text-muted-foreground">
+									No active lease found
+								</p>
+							</div>
+						)}
 					</div>
 				</CardLayout>
 
