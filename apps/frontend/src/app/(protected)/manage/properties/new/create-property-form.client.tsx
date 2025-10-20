@@ -20,7 +20,13 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { z } from 'zod'
 
+import {
+	Dropzone,
+	DropzoneContent,
+	DropzoneEmptyState
+} from '@/components/dropzone'
 import { useSupabaseUser } from '@/hooks/api/use-supabase-auth'
+import { usePropertyImageUpload } from '@/hooks/use-property-image-upload'
 import { propertiesApi } from '@/lib/api-client'
 import { useFormStep, useUIStore } from '@/stores/ui-store'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -84,6 +90,17 @@ export function CreatePropertyForm() {
 			resetFormProgress()
 		}
 	}, [setFormProgress, resetFormProgress])
+
+	// Initialize image upload hook
+	const upload = usePropertyImageUpload({
+		onUploadComplete: url => {
+			form.setFieldValue('imageUrl', url)
+			toast.success('Property image uploaded successfully')
+		},
+		onUploadError: error => {
+			toast.error(`Failed to upload image: ${error.message}`)
+		}
+	})
 
 	const form = useForm({
 		defaultValues: {
@@ -480,17 +497,21 @@ export function CreatePropertyForm() {
 						<form.Field name="imageUrl">
 							{field => (
 								<Field>
-									<FieldLabel htmlFor="imageUrl">Property Image URL</FieldLabel>
-									<Input
-										id="imageUrl"
-										type="url"
-										placeholder="https://example.com/property.jpg"
-										value={field.state.value}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-											field.handleChange(e.target.value)
-										}
-										onBlur={field.handleBlur}
-									/>
+									<FieldLabel>Property Image</FieldLabel>
+									<div className="space-y-2">
+										<Dropzone
+											{...upload.getRootProps()}
+											{...upload.getInputProps()}
+										>
+											<DropzoneEmptyState />
+											<DropzoneContent />
+										</Dropzone>
+										{field.state.value && (
+											<p className="text-sm text-muted-foreground">
+												Image uploaded successfully
+											</p>
+										)}
+									</div>
 								</Field>
 							)}
 						</form.Field>
