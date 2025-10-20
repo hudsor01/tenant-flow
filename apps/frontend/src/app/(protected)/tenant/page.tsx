@@ -9,8 +9,12 @@
  * - View lease documents
  */
 
+'use client'
+
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useCurrentLease } from '@/hooks/api/use-lease'
 import {
 	Calendar,
 	CreditCard,
@@ -22,6 +26,28 @@ import {
 import Link from 'next/link'
 
 export default function TenantDashboardPage() {
+	const { data: lease, isLoading } = useCurrentLease()
+
+	// Format currency
+	const formatCurrency = (amount: number | null | undefined) => {
+		if (!amount) return '$0'
+		return new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD'
+		}).format(amount)
+	}
+
+	// Calculate next payment date (1st of next month)
+	const getNextPaymentDate = () => {
+		const today = new Date()
+		const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
+		return nextMonth.toLocaleDateString('en-US', {
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric'
+		})
+	}
+
 	return (
 		<div className="space-y-10">
 			{/* Welcome Section */}
@@ -42,12 +68,7 @@ export default function TenantDashboardPage() {
 					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-blue-50/50 to-card dark:from-blue-950/20 dark:to-card border-2 hover:border-blue-200 dark:hover:border-blue-900"
 					footer={
 						<Link href="/tenant/lease">
-							<Button
-								variant="ghost"
-								size="sm"
-								className="w-full"
-								style={{ minHeight: '44px' }}
-							>
+							<Button variant="ghost" size="sm" className="w-full">
 								View Details
 							</Button>
 						</Link>
@@ -59,7 +80,11 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Property</p>
-							<p className="text-xl font-semibold">Loading...</p>
+							{isLoading || !lease ? (
+								<Skeleton className="h-7 w-48" />
+							) : (
+								<p className="text-xl font-semibold">Active Lease</p>
+							)}
 						</div>
 					</div>
 				</CardLayout>
@@ -70,9 +95,7 @@ export default function TenantDashboardPage() {
 					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-green-50/50 to-card dark:from-green-950/20 dark:to-card border-2 hover:border-green-200 dark:hover:border-green-900"
 					footer={
 						<Link href="/tenant/payments">
-							<Button className="w-full" style={{ minHeight: '44px' }}>
-								Pay Now
-							</Button>
+							<Button className="w-full">Pay Now</Button>
 						</Link>
 					}
 				>
@@ -82,7 +105,11 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Due Date</p>
-							<p className="text-xl font-semibold">Loading...</p>
+							{isLoading || !lease ? (
+								<Skeleton className="h-7 w-32" />
+							) : (
+								<p className="text-xl font-semibold">{getNextPaymentDate()}</p>
+							)}
 						</div>
 					</div>
 				</CardLayout>
@@ -93,12 +120,7 @@ export default function TenantDashboardPage() {
 					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-amber-50/50 to-card dark:from-amber-950/20 dark:to-card border-2 hover:border-amber-200 dark:hover:border-amber-900"
 					footer={
 						<Link href="/tenant/maintenance">
-							<Button
-								variant="outline"
-								size="sm"
-								className="w-full"
-								style={{ minHeight: '44px' }}
-							>
+							<Button variant="outline" size="sm" className="w-full">
 								View All
 							</Button>
 						</Link>
@@ -110,7 +132,11 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Open Requests</p>
-							<p className="text-xl font-semibold">Loading...</p>
+							{isLoading ? (
+								<Skeleton className="h-7 w-12" />
+							) : (
+								<p className="text-xl font-semibold">0</p>
+							)}
 						</div>
 					</div>
 				</CardLayout>
@@ -127,7 +153,6 @@ export default function TenantDashboardPage() {
 						<Button
 							variant="outline"
 							className="w-full h-auto flex-col gap-3 py-8 border-2 hover:border-primary/40 hover:bg-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-md"
-							style={{ minHeight: '44px' }}
 						>
 							<div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
 								<CreditCard className="h-6 w-6 text-primary" />
@@ -140,7 +165,6 @@ export default function TenantDashboardPage() {
 						<Button
 							variant="outline"
 							className="w-full h-auto flex-col gap-3 py-8 border-2 hover:border-primary/40 hover:bg-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-md"
-							style={{ minHeight: '44px' }}
 						>
 							<div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
 								<Wrench className="h-6 w-6 text-primary" />
@@ -153,7 +177,6 @@ export default function TenantDashboardPage() {
 						<Button
 							variant="outline"
 							className="w-full h-auto flex-col gap-3 py-8 border-2 hover:border-primary/40 hover:bg-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-md"
-							style={{ minHeight: '44px' }}
 						>
 							<div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
 								<FileText className="h-6 w-6 text-primary" />
@@ -166,7 +189,6 @@ export default function TenantDashboardPage() {
 						<Button
 							variant="outline"
 							className="w-full h-auto flex-col gap-3 py-8 border-2 hover:border-primary/40 hover:bg-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-md"
-							style={{ minHeight: '44px' }}
 						>
 							<div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
 								<Settings className="h-6 w-6 text-primary" />
@@ -185,35 +207,37 @@ export default function TenantDashboardPage() {
 					className="border-2"
 					footer={
 						<Link href="/tenant/payments/history">
-							<Button variant="ghost" size="sm" style={{ minHeight: '44px' }}>
+							<Button variant="ghost" size="sm">
 								View All Payments
 							</Button>
 						</Link>
 					}
 				>
 					<div className="space-y-4">
-						<div className="flex items-center justify-between py-3 border-b border-border/50">
-							<div>
-								<p className="font-medium">Rent Payment</p>
-								<p className="text-sm text-muted-foreground">
-									Due: 1st of month
-								</p>
-							</div>
-							<div className="text-right">
-								<p className="font-semibold">$1,200</p>
-								<div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/30">
-									<div className="h-2 w-2 rounded-full bg-green-600 dark:bg-green-400" />
-									<span className="text-xs font-medium text-green-700 dark:text-green-300">
-										Paid
-									</span>
+						{lease ? (
+							<div className="flex items-center justify-between py-3 border-b border-border/50">
+								<div>
+									<p className="font-medium">Monthly Rent</p>
+									<p className="text-sm text-muted-foreground">
+										Due: 1st of each month
+									</p>
+								</div>
+								<div className="text-right">
+									<p className="font-semibold">
+										{formatCurrency(lease.rentAmount)}
+									</p>
+									<p className="text-xs text-muted-foreground">
+										{lease.status === 'ACTIVE' ? 'Active' : lease.status}
+									</p>
 								</div>
 							</div>
-						</div>
-						<div className="text-center py-8 bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
-							<p className="text-sm text-muted-foreground">
-								No payment history yet
-							</p>
-						</div>
+						) : (
+							<div className="text-center py-8 bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
+								<p className="text-sm text-muted-foreground">
+									No active lease found
+								</p>
+							</div>
+						)}
 					</div>
 				</CardLayout>
 
@@ -223,7 +247,7 @@ export default function TenantDashboardPage() {
 					className="border-2"
 					footer={
 						<Link href="/tenant/maintenance">
-							<Button variant="ghost" size="sm" style={{ minHeight: '44px' }}>
+							<Button variant="ghost" size="sm">
 								View All Requests
 							</Button>
 						</Link>

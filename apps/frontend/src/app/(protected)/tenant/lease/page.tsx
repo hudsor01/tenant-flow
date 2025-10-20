@@ -9,13 +9,35 @@
  * - Lease agreement document
  */
 
+'use client'
+
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useCurrentLease } from '@/hooks/api/use-lease'
 import { Calendar, DollarSign, FileText, Home, MapPin } from 'lucide-react'
 import Link from 'next/link'
 
 export default function TenantLeasePage() {
+	const { data: lease, isLoading } = useCurrentLease()
+
+	const formatCurrency = (amount: number | null | undefined) => {
+		if (!amount) return '$0'
+		return new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD'
+		}).format(amount)
+	}
+
+	const formatDate = (dateString: string) => {
+		return new Date(dateString).toLocaleDateString('en-US', {
+			month: 'long',
+			day: 'numeric',
+			year: 'numeric'
+		})
+	}
+
 	return (
 		<div className="space-y-8">
 			<div className="flex items-center justify-between">
@@ -25,12 +47,14 @@ export default function TenantLeasePage() {
 						View your current lease details and agreement
 					</p>
 				</div>
-				<Badge
-					variant="outline"
-					className="bg-green-50 text-green-700 border-green-200"
-				>
-					Active
-				</Badge>
+				{lease?.status === 'ACTIVE' && (
+					<Badge
+						variant="outline"
+						className="bg-green-50 text-green-700 border-green-200"
+					>
+						Active
+					</Badge>
+				)}
 			</div>
 
 			{/* Property Information */}
@@ -59,14 +83,22 @@ export default function TenantLeasePage() {
 							<Calendar className="h-5 w-5 text-accent-main" />
 							<div>
 								<p className="text-sm text-muted-foreground">Start Date</p>
-								<p className="font-semibold">Loading...</p>
+								{isLoading || !lease ? (
+									<Skeleton className="h-5 w-28" />
+								) : (
+									<p className="font-semibold">{formatDate(lease.startDate)}</p>
+								)}
 							</div>
 						</div>
 						<div className="flex items-center gap-3">
 							<Calendar className="h-5 w-5 text-accent-main" />
 							<div>
 								<p className="text-sm text-muted-foreground">End Date</p>
-								<p className="font-semibold">Loading...</p>
+								{isLoading || !lease ? (
+									<Skeleton className="h-5 w-28" />
+								) : (
+									<p className="font-semibold">{formatDate(lease.endDate)}</p>
+								)}
 							</div>
 						</div>
 					</div>
@@ -81,7 +113,13 @@ export default function TenantLeasePage() {
 							<DollarSign className="h-5 w-5 text-accent-main" />
 							<div>
 								<p className="text-sm text-muted-foreground">Monthly Rent</p>
-								<p className="font-semibold text-xl">Loading...</p>
+								{isLoading || !lease ? (
+									<Skeleton className="h-7 w-24" />
+								) : (
+									<p className="font-semibold text-xl">
+										{formatCurrency(lease.rentAmount)}
+									</p>
+								)}
 							</div>
 						</div>
 						<div className="flex items-center gap-3">
@@ -90,7 +128,13 @@ export default function TenantLeasePage() {
 								<p className="text-sm text-muted-foreground">
 									Security Deposit
 								</p>
-								<p className="font-semibold">Loading...</p>
+								{isLoading || !lease ? (
+									<Skeleton className="h-5 w-24" />
+								) : (
+									<p className="font-semibold">
+										{formatCurrency(lease.securityDeposit)}
+									</p>
+								)}
 							</div>
 						</div>
 					</div>
