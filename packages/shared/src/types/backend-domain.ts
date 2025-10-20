@@ -340,14 +340,15 @@ export interface MaintenanceQueryRequest {
 
 // Tenant types
 export interface CreateTenantRequest {
-	firstName: string
-	lastName: string
+	firstName?: string
+	lastName?: string
 	email: string
 	phone?: string
 	dateOfBirth?: string
 	ssn?: string
 	name?: string
 	emergencyContact?: string
+	avatarUrl?: string
 }
 
 export interface UpdateTenantRequest {
