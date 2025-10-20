@@ -11,6 +11,7 @@
 
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
 	Calendar,
 	CreditCard,
@@ -59,7 +60,7 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Property</p>
-							<p className="text-xl font-semibold">Loading...</p>
+							<Skeleton className="h-7 w-48" />
 						</div>
 					</div>
 				</CardLayout>
@@ -82,7 +83,7 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Due Date</p>
-							<p className="text-xl font-semibold">Loading...</p>
+							<Skeleton className="h-7 w-32" />
 						</div>
 					</div>
 				</CardLayout>
@@ -110,7 +111,7 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Open Requests</p>
-							<p className="text-xl font-semibold">Loading...</p>
+							<Skeleton className="h-7 w-12" />
 						</div>
 					</div>
 				</CardLayout>
