@@ -577,7 +577,7 @@
 		line-height: var(--line-height-relaxed);
 	}
 
-	a {
+	a:not([role='button']):not(.button):not([class*='button']) {
 		color: oklch(var(--primary));
 		text-decoration: underline;
 		text-decoration-color: transparent;
@@ -585,7 +585,7 @@
 		transition: all var(--duration-200) var(--ease-out);
 	}
 
-	a:hover {
+	a:not([role='button']):not(.button):not([class*='button']):hover {
 		text-decoration-color: currentColor;
 		color: oklch(var(--primary) / 80%);
 	}
