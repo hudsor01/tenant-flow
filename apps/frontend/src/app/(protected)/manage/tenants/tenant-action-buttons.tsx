@@ -140,18 +140,12 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 	})
 
 	const inviteMutation = useMutation({
-		mutationFn: () =>
-			fetch(
-				`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/tenants/${tenant.id}/invite`,
-				{
-					method: 'POST'
-				}
-			),
+		mutationFn: () => tenantsApi.sendInvitation(tenant.id),
 		onSuccess: () => {
 			toast.success('Invitation sent successfully')
 		},
-		onError: () => {
-			toast.error('Failed to send invitation')
+		onError: (error: Error) => {
+			toast.error(`Failed to send invitation: ${error.message}`)
 		}
 	})
 
