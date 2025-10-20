@@ -1,0 +1,181 @@
+{
+	"name": "TenantFlow Webhook Receiver v4",
+	"nodes": [
+		{
+			"parameters": {
+				"httpMethod": "POST",
+				"path": "tenant-flow",
+				"responseMode": "responseNode",
+				"options": {}
+			},
+			"id": "webhook-node",
+			"name": "Webhook",
+			"type": "n8n-nodes-base.webhook",
+			"typeVersion": 2,
+			"position": [240, 300],
+			"webhookId": "tenant-flow"
+		},
+		{
+			"parameters": {
+				"respondWith": "allIncomingItems",
+				"options": {
+					"responseCode": 200
+				}
+			},
+			"id": "respond-node",
+			"name": "Respond to Webhook",
+			"type": "n8n-nodes-base.respondToWebhook",
+			"typeVersion": 1.1,
+			"position": [900, 500]
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"boolean": [
+						{
+							"value1": "={{ $json.table === 'tenant' }}",
+							"value2": true
+						}
+					]
+				}
+			},
+			"id": "if-tenant",
+			"name": "Is Tenant?",
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2,
+			"position": [460, 300]
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"boolean": [
+						{
+							"value1": "={{ $json.table === 'property' }}",
+							"value2": true
+						}
+					]
+				}
+			},
+			"id": "if-property",
+			"name": "Is Property?",
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2,
+			"position": [460, 450]
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"boolean": [
+						{
+							"value1": "={{ $json.table === 'rent_payments' }}",
+							"value2": true
+						}
+					]
+				}
+			},
+			"id": "if-payment",
+			"name": "Is Payment?",
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2,
+			"position": [460, 600]
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"boolean": [
+						{
+							"value1": "={{ $json.table === 'maintenance_request' }}",
+							"value2": true
+						}
+					]
+				}
+			},
+			"id": "if-maintenance",
+			"name": "Is Maintenance?",
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2,
+			"position": [460, 750]
+		}
+	],
+	"connections": {
+		"Webhook": {
+			"main": [
+				[
+					{
+						"node": "Is Tenant?",
+						"type": "main",
+						"index": 0
+					},
+					{
+						"node": "Is Property?",
+						"type": "main",
+						"index": 0
+					},
+					{
+						"node": "Is Payment?",
+						"type": "main",
+						"index": 0
+					},
+					{
+						"node": "Is Maintenance?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Is Tenant?": {
+			"main": [
+				[
+					{
+						"node": "Respond to Webhook",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Is Property?": {
+			"main": [
+				[
+					{
+						"node": "Respond to Webhook",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Is Payment?": {
+			"main": [
+				[
+					{
+						"node": "Respond to Webhook",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Is Maintenance?": {
+			"main": [
+				[
+					{
+						"node": "Respond to Webhook",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"staticData": null,
+	"tags": [],
+	"triggerCount": 1,
+	"updatedAt": "2025-10-20T04:30:00.000Z",
+	"versionId": "4"
+}
