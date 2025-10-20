@@ -1,6 +1,12 @@
+/**
+ * Financial Module - Ultra-Native NestJS Pattern
+ *
+ * NO ABSTRACTIONS: Direct service registration
+ * KISS: Simple module configuration
+ * DRY: Reuse SupabaseService from @Global() SupabaseModule (no need to import or provide)
+ */
+
 import { Module } from '@nestjs/common'
-import { SupabaseModule } from '../../database/supabase.module'
-import { SupabaseService } from '../../database/supabase.service'
 import { FinancialAnalyticsController } from './analytics.controller'
 import { BalanceSheetController } from './balance-sheet.controller'
 import { BalanceSheetService } from './balance-sheet.service'
@@ -12,7 +18,7 @@ import { TaxDocumentsController } from './tax-documents.controller'
 import { TaxDocumentsService } from './tax-documents.service'
 
 @Module({
-	imports: [SupabaseModule],
+	imports: [],
 	controllers: [
 		FinancialAnalyticsController,
 		IncomeStatementController,
@@ -21,7 +27,6 @@ import { TaxDocumentsService } from './tax-documents.service'
 		TaxDocumentsController
 	],
 	providers: [
-		SupabaseService,
 		IncomeStatementService,
 		CashFlowService,
 		BalanceSheetService,
