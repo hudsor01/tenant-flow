@@ -1,6 +1,7 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { BadRequestException } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
+import { StorageService } from '../../database/storage.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { buildMultiColumnSearch } from '../../shared/utils/sql-safe.utils'
 import { createMockProperty } from '../../test-utils/mocks'
@@ -30,6 +31,7 @@ describe('PropertiesService', () => {
 	let service: PropertiesService
 	let mockSupabaseService: { getAdminClient: jest.Mock }
 	let mockCacheManager: { get: jest.Mock; set: jest.Mock }
+	let mockStorageService: { deleteFile: jest.Mock }
 	let mockAdminClient: { from: jest.Mock; rpc: jest.Mock }
 
 	beforeEach(async () => {
@@ -44,6 +46,9 @@ describe('PropertiesService', () => {
 			get: jest.fn(),
 			set: jest.fn()
 		}
+		mockStorageService = {
+			deleteFile: jest.fn()
+		}
 
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -51,6 +56,10 @@ describe('PropertiesService', () => {
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
+				},
+				{
+					provide: StorageService,
+					useValue: mockStorageService
 				},
 				{
 					provide: CACHE_MANAGER,

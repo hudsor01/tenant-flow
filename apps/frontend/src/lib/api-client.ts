@@ -210,7 +210,14 @@ export const tenantsApi = {
 	remove: (id: string) =>
 		apiClient<void>(`${API_BASE_URL}/api/v1/tenants/${id}`, {
 			method: 'DELETE'
-		})
+		}),
+	sendInvitation: (id: string) =>
+		apiClient<{ message: string; success: boolean }>(
+			`${API_BASE_URL}/api/v1/tenants/${id}/invite`,
+			{
+				method: 'POST'
+			}
+		)
 }
 
 export const leasesApi = {

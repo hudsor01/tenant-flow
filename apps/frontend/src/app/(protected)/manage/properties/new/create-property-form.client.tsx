@@ -20,7 +20,13 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { z } from 'zod'
 
+import {
+	Dropzone,
+	DropzoneContent,
+	DropzoneEmptyState
+} from '@/components/dropzone'
 import { useSupabaseUser } from '@/hooks/api/use-supabase-auth'
+import { usePropertyImageUpload } from '@/hooks/use-property-image-upload'
 import { propertiesApi } from '@/lib/api-client'
 import { useFormStep, useUIStore } from '@/stores/ui-store'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -85,6 +91,17 @@ export function CreatePropertyForm() {
 		}
 	}, [setFormProgress, resetFormProgress])
 
+	// Initialize image upload hook
+	const upload = usePropertyImageUpload({
+		onUploadComplete: url => {
+			form.setFieldValue('imageUrl', url)
+			toast.success('Property image uploaded successfully')
+		},
+		onUploadError: error => {
+			toast.error(`Failed to upload image: ${error.message}`)
+		}
+	})
+
 	const form = useForm({
 		defaultValues: {
 			name: '',
@@ -107,7 +124,16 @@ export function CreatePropertyForm() {
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				const transformedData = transformPropertyFormData(value, user?.id || '')
+				if (!user?.id) {
+					toast.error('You must be logged in to create a property')
+					logger.error('User not authenticated', { action: 'formSubmission' })
+					return
+				}
+				const transformedData = transformPropertyFormData(value, user.id)
+				logger.info('Submitting property data', {
+					action: 'formSubmission',
+					data: transformedData
+				})
 				createProperty.mutate(transformedData)
 			} catch (error) {
 				logger.error(
@@ -138,8 +164,14 @@ export function CreatePropertyForm() {
 			form.reset()
 			resetFormProgress()
 		},
-		onError: error => {
-			toast.error('Failed to create property')
+		onError: (
+			error: Error & { response?: { data?: { message?: string } } }
+		) => {
+			const errorMessage =
+				error?.response?.data?.message ||
+				error?.message ||
+				'Failed to create property'
+			toast.error(errorMessage)
 			logger.error(
 				'Failed to create property',
 				{ action: 'createProperty' },
@@ -465,17 +497,21 @@ export function CreatePropertyForm() {
 						<form.Field name="imageUrl">
 							{field => (
 								<Field>
-									<FieldLabel htmlFor="imageUrl">Property Image URL</FieldLabel>
-									<Input
-										id="imageUrl"
-										type="url"
-										placeholder="https://example.com/property.jpg"
-										value={field.state.value}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-											field.handleChange(e.target.value)
-										}
-										onBlur={field.handleBlur}
-									/>
+									<FieldLabel>Property Image</FieldLabel>
+									<div className="space-y-2">
+										<Dropzone
+											{...upload.getRootProps()}
+											{...upload.getInputProps()}
+										>
+											<DropzoneEmptyState />
+											<DropzoneContent />
+										</Dropzone>
+										{field.state.value && (
+											<p className="text-sm text-muted-foreground">
+												Image uploaded successfully
+											</p>
+										)}
+									</div>
 								</Field>
 							)}
 						</form.Field>
