@@ -12,6 +12,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Calendar, DollarSign, FileText, Home, MapPin } from 'lucide-react'
 import Link from 'next/link'
 
@@ -59,14 +60,14 @@ export default function TenantLeasePage() {
 							<Calendar className="h-5 w-5 text-accent-main" />
 							<div>
 								<p className="text-sm text-muted-foreground">Start Date</p>
-								<p className="font-semibold">Loading...</p>
+								<Skeleton className="h-5 w-28" />
 							</div>
 						</div>
 						<div className="flex items-center gap-3">
 							<Calendar className="h-5 w-5 text-accent-main" />
 							<div>
 								<p className="text-sm text-muted-foreground">End Date</p>
-								<p className="font-semibold">Loading...</p>
+								<Skeleton className="h-5 w-28" />
 							</div>
 						</div>
 					</div>
@@ -81,7 +82,7 @@ export default function TenantLeasePage() {
 							<DollarSign className="h-5 w-5 text-accent-main" />
 							<div>
 								<p className="text-sm text-muted-foreground">Monthly Rent</p>
-								<p className="font-semibold text-xl">Loading...</p>
+								<Skeleton className="h-7 w-24" />
 							</div>
 						</div>
 						<div className="flex items-center gap-3">
@@ -90,7 +91,7 @@ export default function TenantLeasePage() {
 								<p className="text-sm text-muted-foreground">
 									Security Deposit
 								</p>
-								<p className="font-semibold">Loading...</p>
+								<Skeleton className="h-5 w-24" />
 							</div>
 						</div>
 					</div>
