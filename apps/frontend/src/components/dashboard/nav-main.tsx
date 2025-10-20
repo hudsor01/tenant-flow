@@ -51,9 +51,9 @@ export function NavMain({
 
 	return (
 		<SidebarGroup>
-			<SidebarGroupContent className="flex flex-col gap-2">
+			<SidebarGroupContent className="flex flex-col gap-3">
 				<SidebarMenu>
-					<SidebarMenuItem className="flex items-center gap-2">
+					<SidebarMenuItem className="flex items-center gap-2 mb-2">
 						<SidebarMenuButton
 							tooltip="Quick Create"
 							className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
@@ -72,11 +72,11 @@ export function NavMain({
 					</SidebarMenuItem>
 				</SidebarMenu>
 				{label ? (
-					<SidebarGroupLabel className="text-muted-foreground">
+					<SidebarGroupLabel className="text-muted-foreground mb-1 mt-2">
 						{label}
 					</SidebarGroupLabel>
 				) : null}
-				<SidebarMenu>
+				<SidebarMenu className="space-y-1.5">
 					{items.map(item => {
 						if (item.children && item.children.length > 0) {
 							return (
@@ -95,13 +95,13 @@ export function NavMain({
 									asChild
 									isActive={pathname === item.url}
 									className={cn(
-										'justify-start gap-2 transition-colors',
+										'justify-start gap-3 transition-colors py-2.5',
 										ACTIVE_ITEM_CLASSES
 									)}
 								>
 									<Link href={item.url}>
-										{item.icon && <item.icon />}
-										<span>{item.title}</span>
+										{item.icon && <item.icon className="h-5 w-5" />}
+										<span className="text-sm font-medium">{item.title}</span>
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
@@ -154,15 +154,15 @@ function CollapsibleNavItem({
 						tooltip={item.title}
 						isActive={isActive}
 						className={cn(
-							'justify-start gap-2 transition-colors',
+							'justify-start gap-3 transition-colors py-2.5',
 							ACTIVE_ITEM_CLASSES,
 							'data-[state=open]:bg-[oklch(0.97_0.02_240)]'
 						)}
 					>
 						<div className="flex w-full items-center justify-between">
-							<span className="flex items-center gap-2">
-								{item.icon && <item.icon />}
-								<span>{item.title}</span>
+							<span className="flex items-center gap-3">
+								{item.icon && <item.icon className="h-5 w-5" />}
+								<span className="text-sm font-medium">{item.title}</span>
 							</span>
 							<ChevronDown
 								className={cn(
@@ -174,7 +174,7 @@ function CollapsibleNavItem({
 					</SidebarMenuButton>
 				</CollapsibleTrigger>
 				<CollapsibleContent>
-					<SidebarMenuSub className="mt-1">
+					<SidebarMenuSub className="mt-2 space-y-1">
 						{children.map(child => {
 							const childIsActive =
 								pathname === child.url || pathname.startsWith(`${child.url}/`)
@@ -183,11 +183,14 @@ function CollapsibleNavItem({
 									<SidebarMenuSubButton
 										asChild
 										isActive={childIsActive}
-										className={cn('transition-colors', ACTIVE_SUB_ITEM_CLASSES)}
+										className={cn(
+											'transition-colors py-2 gap-3',
+											ACTIVE_SUB_ITEM_CLASSES
+										)}
 									>
 										<Link href={child.url}>
-											{child.icon && <child.icon />}
-											<span>{child.title}</span>
+											{child.icon && <child.icon className="h-4 w-4" />}
+											<span className="text-sm">{child.title}</span>
 										</Link>
 									</SidebarMenuSubButton>
 								</SidebarMenuSubItem>

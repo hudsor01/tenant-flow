@@ -2,11 +2,12 @@ import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { getCORSConfig } from '@repo/shared/security/cors-config'
-import { randomUUID } from 'node:crypto'
 import type { NextFunction, Request, Response } from 'express'
+import { randomUUID } from 'node:crypto'
 import 'reflect-metadata'
 import { AppModule } from './app.module'
 import { registerExpressMiddleware } from './config/express.config'
+import { applyValidatorPatches } from './patches/validator-patch'
 
 // Trigger Railway deployment after fixing husky script
 import { HEALTH_PATHS } from './shared/constants/routes'
@@ -36,6 +37,9 @@ function resolvePort(portValue: string | undefined, fallback: number): number {
 const bootstrapLogger = new Logger('Bootstrap')
 
 async function bootstrap() {
+	// Apply validator.js security patches at startup (CVE-2025-56200 mitigation)
+	applyValidatorPatches()
+	bootstrapLogger.log('Applied validator.js security patches')
 
 	const startTime = Date.now()
 	// Industry best practice: hardcode default port, let platform override if needed
