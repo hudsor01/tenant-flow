@@ -172,7 +172,7 @@ export function usePropertyImageUpload(
 				onUploadError(error)
 			}
 		}
-	}, [files, setFiles, uploadHook, onUploadComplete, onUploadError])
+	}, [files, setFiles, uploadHook, onUploadComplete, onUploadError, uploadPath])
 
 	// Return modified hook with compression
 	return {
