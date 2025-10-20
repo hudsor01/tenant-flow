@@ -11,6 +11,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Calendar, CreditCard, DollarSign, Download } from 'lucide-react'
 import Link from 'next/link'
 
@@ -38,8 +39,8 @@ export default function TenantPaymentHistoryPage() {
 					<div className="flex items-center gap-3">
 						<DollarSign className="h-8 w-8 text-accent-main" />
 						<div>
-							<p className="text-2xl font-bold">Loading...</p>
-							<p className="text-sm text-muted-foreground">All time</p>
+							<Skeleton className="h-8 w-32" />
+							<p className="text-sm text-muted-foreground mt-1">All time</p>
 						</div>
 					</div>
 				</CardLayout>
@@ -48,8 +49,8 @@ export default function TenantPaymentHistoryPage() {
 					<div className="flex items-center gap-3">
 						<Calendar className="h-8 w-8 text-accent-main" />
 						<div>
-							<p className="text-2xl font-bold">Loading...</p>
-							<p className="text-sm text-muted-foreground">Date</p>
+							<Skeleton className="h-8 w-24" />
+							<p className="text-sm text-muted-foreground mt-1">Date</p>
 						</div>
 					</div>
 				</CardLayout>
@@ -58,8 +59,8 @@ export default function TenantPaymentHistoryPage() {
 					<div className="flex items-center gap-3">
 						<Calendar className="h-8 w-8 text-accent-main" />
 						<div>
-							<p className="text-2xl font-bold">Loading...</p>
-							<p className="text-sm text-muted-foreground">Due date</p>
+							<Skeleton className="h-8 w-24" />
+							<p className="text-sm text-muted-foreground mt-1">Due date</p>
 						</div>
 					</div>
 				</CardLayout>

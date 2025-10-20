@@ -87,7 +87,6 @@ export default async function DashboardPage() {
 											asChild
 											size="lg"
 											className="shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-											style={{ minHeight: '44px' }}
 										>
 											<Link href="/manage/properties/new">
 												<Building2 className="h-5 w-5 mr-2" />
@@ -99,7 +98,6 @@ export default async function DashboardPage() {
 											variant="outline"
 											size="lg"
 											className="border-2 hover:bg-accent/50"
-											style={{ minHeight: '44px' }}
 										>
 											<Link href="/manage">View Dashboard</Link>
 										</Button>
@@ -136,11 +134,7 @@ export default async function DashboardPage() {
 							{/* Right: Action Cards using CardLayout */}
 							<div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-700 delay-150">
 								{/* Primary Action Card */}
-								<Link
-									href="/manage/properties/new"
-									className="block group"
-									style={{ minHeight: '44px' }}
-								>
+								<Link href="/manage/properties/new" className="block group">
 									<CardLayout
 										title="Add Property"
 										description="Create your first rental property profile"
@@ -165,11 +159,7 @@ export default async function DashboardPage() {
 
 								{/* Secondary Action Cards */}
 								<div className="grid sm:grid-cols-2 gap-4">
-									<Link
-										href="/manage/tenants/new"
-										className="block group"
-										style={{ minHeight: '44px' }}
-									>
+									<Link href="/manage/tenants/new" className="block group">
 										<CardLayout
 											title="Add Tenant"
 											description="Invite or create tenant profiles"
@@ -181,11 +171,7 @@ export default async function DashboardPage() {
 										</CardLayout>
 									</Link>
 
-									<Link
-										href="/manage/leases/new"
-										className="block group"
-										style={{ minHeight: '44px' }}
-									>
+									<Link href="/manage/leases/new" className="block group">
 										<CardLayout
 											title="Create Lease"
 											description="Set up rental agreements"

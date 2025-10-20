@@ -13,6 +13,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Calendar, Download, Eye, FileText, FolderOpen } from 'lucide-react'
 
 export default function TenantDocumentsPage() {
@@ -49,7 +50,9 @@ export default function TenantDocumentsPage() {
 									<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
 										<div className="flex items-center gap-1">
 											<Calendar className="h-3 w-3" />
-											<span>Signed on Loading...</span>
+											<span>
+												Signed on <Skeleton className="inline-block h-4 w-20" />
+											</span>
 										</div>
 										<span>•</span>
 										<span>PDF, 1.2 MB</span>
@@ -83,7 +86,9 @@ export default function TenantDocumentsPage() {
 									<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
 										<div className="flex items-center gap-1">
 											<Calendar className="h-3 w-3" />
-											<span>Signed on Loading...</span>
+											<span>
+												Signed on <Skeleton className="inline-block h-4 w-20" />
+											</span>
 										</div>
 										<span>•</span>
 										<span>PDF, 245 KB</span>
@@ -121,7 +126,10 @@ export default function TenantDocumentsPage() {
 									<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
 										<div className="flex items-center gap-1">
 											<Calendar className="h-3 w-3" />
-											<span>Completed on Loading...</span>
+											<span>
+												Completed on{' '}
+												<Skeleton className="inline-block h-4 w-20" />
+											</span>
 										</div>
 										<span>•</span>
 										<span>PDF, 892 KB</span>
