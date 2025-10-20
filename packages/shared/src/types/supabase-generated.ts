@@ -1355,6 +1355,21 @@ export type Database = {
 					}
 				]
 			}
+			password_failed_verification_attempts: {
+				Row: {
+					last_failed_at: string
+					user_id: string
+				}
+				Insert: {
+					last_failed_at: string
+					user_id: string
+				}
+				Update: {
+					last_failed_at?: string
+					user_id?: string
+				}
+				Relationships: []
+			}
 			payment_attempt: {
 				Row: {
 					attemptedAt: string
@@ -3201,6 +3216,10 @@ export type Database = {
 				Args: { p_event_id: string }
 				Returns: boolean
 			}
+			check_user_feature_access: {
+				Args: { p_feature: string; p_user_id: string }
+				Returns: boolean
+			}
 			cleanup_expired_drafts: {
 				Args: Record<PropertyKey, never>
 				Returns: undefined
@@ -3225,6 +3244,20 @@ export type Database = {
 			execute_stripe_fdw_query: {
 				Args: { sql_query: string }
 				Returns: Json
+			}
+			get_active_stripe_products: {
+				Args: Record<PropertyKey, never>
+				Returns: {
+					currency: string
+					metadata: Json
+					monthly_amount: number
+					monthly_price_id: string
+					product_description: string
+					product_id: string
+					product_name: string
+					yearly_amount: number
+					yearly_price_id: string
+				}[]
 			}
 			get_auth_uid: {
 				Args: Record<PropertyKey, never>
@@ -3304,6 +3337,10 @@ export type Database = {
 				Args: { user_id: string }
 				Returns: Json
 			}
+			get_n8n_webhook_url: {
+				Args: Record<PropertyKey, never>
+				Returns: string
+			}
 			get_property_financial_analytics: {
 				Args: {
 					p_property_id?: string
@@ -3344,6 +3381,14 @@ export type Database = {
 			get_property_units: {
 				Args: { p_property_id: string; p_user_id: string }
 				Returns: Json
+			}
+			get_resend_api_key: {
+				Args: Record<PropertyKey, never>
+				Returns: string
+			}
+			get_stripe_customer_by_user_id: {
+				Args: { p_user_id: string }
+				Returns: string
 			}
 			get_stripe_customers: {
 				Args: { limit_count?: number }
@@ -3395,6 +3440,10 @@ export type Database = {
 					updated_at: string
 				}[]
 			}
+			get_trial_days_remaining: {
+				Args: { p_user_id: string }
+				Returns: number
+			}
 			get_unit_statistics: {
 				Args: { p_user_id: string }
 				Returns: Json
@@ -3403,9 +3452,99 @@ export type Database = {
 				Args: { user_id: string }
 				Returns: number
 			}
+			get_upcoming_invoice_preview: {
+				Args: { p_user_id: string }
+				Returns: {
+					amount_due: number
+					currency: string
+					next_payment_attempt: string
+					period_end: string
+					period_start: string
+				}[]
+			}
+			get_user_active_subscription: {
+				Args: { p_user_id: string }
+				Returns: {
+					cancel_at_period_end: boolean
+					canceled_at: string
+					current_period_end: string
+					current_period_start: string
+					customer_id: string
+					plan_amount: number
+					plan_currency: string
+					plan_id: string
+					plan_interval: string
+					plan_name: string
+					status: string
+					subscription_id: string
+					trial_end: string
+					trial_start: string
+				}[]
+			}
 			get_user_id: {
 				Args: Record<PropertyKey, never>
 				Returns: string
+			}
+			get_user_id_by_stripe_customer: {
+				Args: { p_stripe_customer_id: string }
+				Returns: string
+			}
+			get_user_invoices: {
+				Args: { p_limit?: number; p_user_id: string }
+				Returns: {
+					amount_due: number
+					amount_paid: number
+					created_at: string
+					currency: string
+					due_date: string
+					hosted_invoice_url: string
+					invoice_id: string
+					invoice_number: string
+					invoice_pdf: string
+					paid: boolean
+					status: string
+				}[]
+			}
+			get_user_payment_methods: {
+				Args: { p_user_id: string }
+				Returns: {
+					card_brand: string
+					card_exp_month: number
+					card_exp_year: number
+					card_last4: string
+					created_at: string
+					is_default: boolean
+					payment_method_id: string
+					type: string
+				}[]
+			}
+			get_user_plan_limits: {
+				Args: { p_user_id: string }
+				Returns: {
+					has_api_access: boolean
+					has_white_label: boolean
+					plan_name: string
+					property_limit: number
+					storage_gb: number
+					support_level: string
+					unit_limit: number
+					user_limit: number
+				}[]
+			}
+			get_user_subscription_history: {
+				Args: { p_limit?: number; p_user_id: string }
+				Returns: {
+					canceled_at: string
+					created_at: string
+					current_period_end: string
+					current_period_start: string
+					ended_at: string
+					plan_amount: number
+					plan_currency: string
+					plan_name: string
+					status: string
+					subscription_id: string
+				}[]
 			}
 			get_webhook_statistics: {
 				Args: Record<PropertyKey, never>
@@ -3425,6 +3564,18 @@ export type Database = {
 			health_check_analytics: {
 				Args: Record<PropertyKey, never>
 				Returns: boolean
+			}
+			hook_password_verification_attempt: {
+				Args: { event: Json }
+				Returns: Json
+			}
+			is_user_on_trial: {
+				Args: { p_user_id: string }
+				Returns: boolean
+			}
+			link_stripe_customer_to_user: {
+				Args: { p_email: string; p_stripe_customer_id: string }
+				Returns: string
 			}
 			mark_all_notifications_read: {
 				Args: { user_id: string }
@@ -3451,9 +3602,47 @@ export type Database = {
 					name: string
 				}[]
 			}
+			send_email_via_resend: {
+				Args: {
+					p_from?: string
+					p_html: string
+					p_subject: string
+					p_to: string
+				}
+				Returns: boolean
+			}
+			send_payment_failed_email: {
+				Args: {
+					p_amount: number
+					p_attempt_count: number
+					p_currency: string
+					p_failure_message?: string
+					p_subscription_id: string
+					p_user_id: string
+				}
+				Returns: boolean
+			}
+			send_payment_success_email: {
+				Args: {
+					p_amount_paid: number
+					p_currency: string
+					p_subscription_id: string
+					p_user_id: string
+				}
+				Returns: boolean
+			}
 			send_tenant_invitation: {
 				Args: { p_tenant_id: string; p_user_id: string }
 				Returns: Json
+			}
+			send_trial_ending_email: {
+				Args: {
+					p_days_remaining: number
+					p_subscription_id: string
+					p_trial_end: string
+					p_user_id: string
+				}
+				Returns: boolean
 			}
 			terminate_lease: {
 				Args: { p_lease_id: string; p_reason?: string; p_user_id: string }
