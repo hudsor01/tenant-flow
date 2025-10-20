@@ -40,10 +40,18 @@ export function SectionCards({ stats = {} }: SectionCardsProps) {
 						)}
 						{formatPercentage(revenueGrowth)}
 					</Badge>
-					<div className="text-sm text-muted-foreground font-medium">
-						{isPositiveGrowth
-							? '📈 Trending up this month'
-							: '📉 Down this month'}
+					<div className="text-sm text-muted-foreground font-medium flex items-center gap-1.5">
+						{isPositiveGrowth ? (
+							<>
+								<TrendingUp className="h-3.5 w-3.5" />
+								Trending up this month
+							</>
+						) : (
+							<>
+								<TrendingDown className="h-3.5 w-3.5" />
+								Down this month
+							</>
+						)}
 					</div>
 				</div>
 			</CardLayout>
