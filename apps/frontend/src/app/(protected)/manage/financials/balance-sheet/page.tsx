@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
 	Table,
 	TableBody,
@@ -64,7 +65,11 @@ export default function BalanceSheetPage() {
 	if (loading) {
 		return (
 			<div className="flex min-h-screen items-center justify-center">
-				<p className="text-muted-foreground">Loading...</p>
+				<div className="space-y-4">
+					<Skeleton className="h-8 w-64" />
+					<Skeleton className="h-6 w-48" />
+					<Skeleton className="h-32 w-96" />
+				</div>
 			</div>
 		)
 	}
