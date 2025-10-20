@@ -43,12 +43,7 @@ export default function TenantDashboardPage() {
 					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-blue-50/50 to-card dark:from-blue-950/20 dark:to-card border-2 hover:border-blue-200 dark:hover:border-blue-900"
 					footer={
 						<Link href="/tenant/lease">
-							<Button
-								variant="ghost"
-								size="sm"
-								className="w-full"
-								style={{ minHeight: '44px' }}
-							>
+							<Button variant="ghost" size="sm" className="w-full">
 								View Details
 							</Button>
 						</Link>
@@ -71,9 +66,7 @@ export default function TenantDashboardPage() {
 					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-green-50/50 to-card dark:from-green-950/20 dark:to-card border-2 hover:border-green-200 dark:hover:border-green-900"
 					footer={
 						<Link href="/tenant/payments">
-							<Button className="w-full" style={{ minHeight: '44px' }}>
-								Pay Now
-							</Button>
+							<Button className="w-full">Pay Now</Button>
 						</Link>
 					}
 				>
@@ -94,12 +87,7 @@ export default function TenantDashboardPage() {
 					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-amber-50/50 to-card dark:from-amber-950/20 dark:to-card border-2 hover:border-amber-200 dark:hover:border-amber-900"
 					footer={
 						<Link href="/tenant/maintenance">
-							<Button
-								variant="outline"
-								size="sm"
-								className="w-full"
-								style={{ minHeight: '44px' }}
-							>
+							<Button variant="outline" size="sm" className="w-full">
 								View All
 							</Button>
 						</Link>
@@ -128,7 +116,6 @@ export default function TenantDashboardPage() {
 						<Button
 							variant="outline"
 							className="w-full h-auto flex-col gap-3 py-8 border-2 hover:border-primary/40 hover:bg-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-md"
-							style={{ minHeight: '44px' }}
 						>
 							<div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
 								<CreditCard className="h-6 w-6 text-primary" />
@@ -141,7 +128,6 @@ export default function TenantDashboardPage() {
 						<Button
 							variant="outline"
 							className="w-full h-auto flex-col gap-3 py-8 border-2 hover:border-primary/40 hover:bg-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-md"
-							style={{ minHeight: '44px' }}
 						>
 							<div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
 								<Wrench className="h-6 w-6 text-primary" />
@@ -154,7 +140,6 @@ export default function TenantDashboardPage() {
 						<Button
 							variant="outline"
 							className="w-full h-auto flex-col gap-3 py-8 border-2 hover:border-primary/40 hover:bg-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-md"
-							style={{ minHeight: '44px' }}
 						>
 							<div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
 								<FileText className="h-6 w-6 text-primary" />
@@ -167,7 +152,6 @@ export default function TenantDashboardPage() {
 						<Button
 							variant="outline"
 							className="w-full h-auto flex-col gap-3 py-8 border-2 hover:border-primary/40 hover:bg-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-md"
-							style={{ minHeight: '44px' }}
 						>
 							<div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
 								<Settings className="h-6 w-6 text-primary" />
@@ -186,7 +170,7 @@ export default function TenantDashboardPage() {
 					className="border-2"
 					footer={
 						<Link href="/tenant/payments/history">
-							<Button variant="ghost" size="sm" style={{ minHeight: '44px' }}>
+							<Button variant="ghost" size="sm">
 								View All Payments
 							</Button>
 						</Link>
@@ -224,7 +208,7 @@ export default function TenantDashboardPage() {
 					className="border-2"
 					footer={
 						<Link href="/tenant/maintenance">
-							<Button variant="ghost" size="sm" style={{ minHeight: '44px' }}>
+							<Button variant="ghost" size="sm">
 								View All Requests
 							</Button>
 						</Link>
