@@ -3,18 +3,17 @@
  *
  * NO ABSTRACTIONS: Direct service registration, minimal imports
  * KISS: Simple module configuration
- * DRY: Reuse SupabaseService from shared module
+ * DRY: Reuse SupabaseService from @Global() SupabaseModule
  */
 
 import { Module } from '@nestjs/common'
-import { SupabaseService } from '../../database/supabase.service'
 import { LateFeesController } from './late-fees.controller'
 import { LateFeesService } from './late-fees.service'
 
 @Module({
 	imports: [],
 	controllers: [LateFeesController],
-	providers: [LateFeesService, SupabaseService],
+	providers: [LateFeesService],
 	exports: [LateFeesService]
 })
 export class LateFeesModule {}
