@@ -107,7 +107,16 @@ export function CreatePropertyForm() {
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				const transformedData = transformPropertyFormData(value, user?.id || '')
+				if (!user?.id) {
+					toast.error('You must be logged in to create a property')
+					logger.error('User not authenticated', { action: 'formSubmission' })
+					return
+				}
+				const transformedData = transformPropertyFormData(value, user.id)
+				logger.info('Submitting property data', {
+					action: 'formSubmission',
+					data: transformedData
+				})
 				createProperty.mutate(transformedData)
 			} catch (error) {
 				logger.error(
@@ -138,8 +147,14 @@ export function CreatePropertyForm() {
 			form.reset()
 			resetFormProgress()
 		},
-		onError: error => {
-			toast.error('Failed to create property')
+		onError: (
+			error: Error & { response?: { data?: { message?: string } } }
+		) => {
+			const errorMessage =
+				error?.response?.data?.message ||
+				error?.message ||
+				'Failed to create property'
+			toast.error(errorMessage)
 			logger.error(
 				'Failed to create property',
 				{ action: 'createProperty' },
