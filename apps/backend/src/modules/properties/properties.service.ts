@@ -12,6 +12,7 @@ import type {
 import type { Property, PropertyStats } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { Cache } from 'cache-manager'
+import { StorageService } from '../../database/storage.service'
 import { SupabaseService } from '../../database/supabase.service'
 import {
 	buildMultiColumnSearch,
@@ -45,6 +46,7 @@ export class PropertiesService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
+		private readonly storage: StorageService,
 		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
 	) {}
 
@@ -234,6 +236,31 @@ export class PropertiesService {
 		const existing = await this.findOne(userId, propertyId)
 		if (!existing)
 			throw new BadRequestException('Property not found or access denied')
+
+		// Delete property image from storage if exists
+		if (existing.imageUrl) {
+			try {
+				// Extract file path from imageUrl
+				// Format: https://{project}.supabase.co/storage/v1/object/public/property-images/{path}
+				const url = new URL(existing.imageUrl)
+				const pathParts = url.pathname.split('/property-images/')
+				if (pathParts.length > 1 && pathParts[1]) {
+					const filePath = pathParts[1]
+					await this.storage.deleteFile('property-images', filePath)
+					this.logger.log('Deleted property image from storage', {
+						propertyId,
+						filePath
+					})
+				}
+			} catch (error) {
+				// Log error but don't fail the deletion
+				this.logger.warn('Failed to delete property image', {
+					error,
+					propertyId,
+					imageUrl: existing.imageUrl
+				})
+			}
+		}
 
 		const { error } = await this.supabase
 			.getAdminClient()
