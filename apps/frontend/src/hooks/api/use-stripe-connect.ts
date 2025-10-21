@@ -5,8 +5,7 @@
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+import { API_BASE_URL } from '@/lib/api-client'
 
 type ConnectedAccount = Database['public']['Tables']['connected_account']['Row']
 
@@ -92,4 +91,23 @@ export function useRefreshOnboarding() {
 			)
 		}
 	})
+}
+
+/**
+ * Hook for prefetching connected account
+ */
+export function usePrefetchConnectedAccount() {
+	const queryClient = useQueryClient()
+
+	return () => {
+		queryClient.prefetchQuery({
+			queryKey: stripeConnectKeys.account(),
+			queryFn: async () => {
+				return await apiClient<ConnectAccountResponse>(
+					`${API_BASE_URL}/api/v1/stripe-connect/account`
+				)
+			},
+			staleTime: 5 * 60 * 1000
+		})
+	}
 }

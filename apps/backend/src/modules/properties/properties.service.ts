@@ -579,4 +579,64 @@ export class PropertiesService {
 
 		return data || []
 	}
+
+	/**
+	 * Mark property as sold with compliance fields (7-year retention)
+	 * Sets status to SOLD and records sale date, price, and notes
+	 */
+	async markAsSold(
+		propertyId: string,
+		userId: string,
+		dateSold: Date,
+		salePrice: number,
+		saleNotes?: string
+	): Promise<{ success: boolean; message: string }> {
+		// Verify ownership before allowing sale marking
+		const property = await this.findOne(userId, propertyId)
+		if (!property) {
+			throw new BadRequestException('Property not found or access denied')
+		}
+
+		// Prevent marking already sold properties
+		if (property.status === 'SOLD') {
+			// TODO: After migration 20251020_add_property_sale_fields.sql is applied, use: property.dateSold
+			throw new BadRequestException('Property is already marked as sold')
+		}
+
+		const { error } = await this.supabase
+			.getAdminClient()
+			.from('property')
+			.update({
+				status: 'SOLD',
+				date_sold: dateSold.toISOString(),
+				sale_price: salePrice,
+				sale_notes: saleNotes || null,
+				updatedAt: new Date().toISOString()
+			})
+			.eq('id', propertyId)
+			.eq('ownerId', userId) // Double-check ownership in query
+
+		if (error) {
+			this.logger.error('Failed to mark property as sold', {
+				error,
+				propertyId,
+				userId
+			})
+			throw new BadRequestException(
+				'Failed to mark property as sold: ' + error.message
+			)
+		}
+
+		this.logger.log('Property marked as sold', {
+			propertyId,
+			userId,
+			salePrice,
+			dateSold: dateSold.toISOString()
+		})
+
+		return {
+			success: true,
+			message: `Property marked as sold for $${salePrice.toLocaleString()}. Records will be retained for 7 years as required.`
+		}
+	}
 }

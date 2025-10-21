@@ -9,8 +9,7 @@ import type {
 } from '@repo/shared/types/core'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+import { API_BASE_URL } from '@/lib/api-client'
 
 /**
  * Query keys for payment methods endpoints
@@ -186,4 +185,24 @@ export function useDeletePaymentMethod() {
 			// UI feedback only; cache updated optimistically
 		}
 	})
+}
+
+/**
+ * Hook for prefetching payment methods
+ */
+export function usePrefetchPaymentMethods() {
+	const queryClient = useQueryClient()
+
+	return () => {
+		queryClient.prefetchQuery({
+			queryKey: paymentMethodKeys.list(),
+			queryFn: async () => {
+				const response = await apiClient<{
+					paymentMethods: PaymentMethodResponse[]
+				}>(`${API_BASE_URL}/api/v1/payment-methods`)
+				return response.paymentMethods
+			},
+			staleTime: 5 * 60 * 1000
+		})
+	}
 }

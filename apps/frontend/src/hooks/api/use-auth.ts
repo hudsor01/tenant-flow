@@ -1,6 +1,6 @@
 'use client'
 
-import { authQueryKeys } from '@/stores/auth-provider'
+import { authQueryKeys as authProviderKeys } from '@/stores/auth-provider'
 import { createClient } from '@/utils/supabase/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Session, User } from '@supabase/supabase-js'
@@ -8,6 +8,19 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 // Create browser client for authentication
 const supabaseClient = createClient()
+
+/**
+ * Query keys for auth operations
+ * Hierarchical pattern for selective cache invalidation
+ */
+export const authKeys = {
+	all: ['auth'] as const,
+	session: () => [...authKeys.all, 'session'] as const,
+	user: () => [...authKeys.all, 'user'] as const
+}
+
+// Use provider keys for compatibility
+const authQueryKeys = authProviderKeys
 
 // Enhanced cache invalidation utilities (keep React Query benefits)
 export function useAuthCacheUtils() {
@@ -124,5 +137,19 @@ export function useCurrentUser() {
 		userId: userData?.id || sessionData?.user?.id || null,
 		session: sessionData,
 		isAuthenticated: !!(userData || sessionData?.user)
+	}
+}
+
+/**
+ * Hook for prefetching auth session
+ */
+export function usePrefetchAuthSession() {
+	const queryClient = useQueryClient()
+
+	return () => {
+		queryClient.prefetchQuery({
+			queryKey: authQueryKeys.session,
+			staleTime: 5 * 60 * 1000
+		})
 	}
 }

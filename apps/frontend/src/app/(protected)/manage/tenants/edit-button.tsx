@@ -1,16 +1,5 @@
 'use client'
 
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-	AlertDialogTrigger
-} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
@@ -34,7 +23,6 @@ import {
 	Mail,
 	MapPin,
 	Phone,
-	Trash2,
 	User
 } from 'lucide-react'
 import type { ChangeEvent, FormEvent } from 'react'
@@ -50,7 +38,9 @@ export function TenantEditViewButtons({
 }: TenantActionButtonsProps): React.ReactNode {
 	const [viewOpen, setViewOpen] = useState<boolean>(false)
 	const [editOpen, setEditOpen] = useState<boolean>(false)
-	const { updateTenant, deleteTenant } = useTenantOperations()
+	const { updateTenant } = useTenantOperations()
+	// NOTE: This component is orphaned and not used anywhere. Delete functionality removed.
+	// DELETE operations now use React 19 useOptimistic with Server Actions
 
 	const form = useForm({
 		defaultValues: {
@@ -96,39 +86,8 @@ export function TenantEditViewButtons({
 				Edit
 			</Button>
 
-			{/* Delete Button & Dialog */}
-			<AlertDialog>
-				<AlertDialogTrigger asChild>
-					<Button
-						variant="outline"
-						size="sm"
-						className="text-destructive hover:text-destructive"
-					>
-						<Trash2 className="w-4 h-4" />
-						Delete
-					</Button>
-				</AlertDialogTrigger>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>Delete Tenant</AlertDialogTitle>
-						<AlertDialogDescription>
-							Are you sure you want to delete "{tenant.name}"? This action
-							cannot be undone and will remove all associated data including
-							leases and payment records.
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<AlertDialogAction
-							onClick={(): void => deleteTenant.mutate(tenant.id)}
-							disabled={deleteTenant.isPending}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-						>
-							{deleteTenant.isPending ? 'Deleting...' : 'Delete Tenant'}
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
+			{/* Delete Button - Removed: This component is orphaned.
+			    DELETE operations now use React 19 useOptimistic with Server Actions */}
 
 			{/* Edit Dialog */}
 			<Dialog open={editOpen} onOpenChange={setEditOpen}>
