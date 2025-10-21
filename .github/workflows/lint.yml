@@ -11,12 +11,11 @@ on:
       pnpm-version:
         description: pnpm version to use
         required: false
-        default: '10.18.2'
+        default: '10.18.3'
         type: string
 
 permissions:
   contents: read
-  statuses: write
 
 env:
   CI: true
@@ -46,9 +45,3 @@ jobs:
 
       - name: Run lint
         run: pnpm lint
-
-      - name: Notify Vercel
-        if: always()
-        uses: vercel/repository-dispatch/actions/status@v1
-        with:
-          name: 'Vercel - tenant-flow: lint'
