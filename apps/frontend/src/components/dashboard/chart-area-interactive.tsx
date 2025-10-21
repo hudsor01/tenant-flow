@@ -34,11 +34,11 @@ export const description = 'Revenue vs Expenses Chart - Dashboard Focal Point'
 const chartConfig = {
 	revenue: {
 		label: 'Revenue',
-		color: 'hsl(var(--chart-1))'
+		color: 'oklch(var(--chart-1))'
 	},
 	expenses: {
 		label: 'Expenses',
-		color: 'hsl(var(--chart-2))'
+		color: 'oklch(var(--chart-2))'
 	}
 } satisfies ChartConfig
 
