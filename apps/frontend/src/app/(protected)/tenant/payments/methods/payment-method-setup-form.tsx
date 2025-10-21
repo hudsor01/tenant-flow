@@ -141,10 +141,10 @@ export function PaymentMethodSetupForm({
 		appearance: {
 			theme: 'stripe',
 			variables: {
-				colorPrimary: 'hsl(var(--primary))',
-				colorBackground: 'hsl(var(--background))',
-				colorText: 'hsl(var(--foreground))',
-				colorDanger: 'hsl(var(--destructive))',
+				colorPrimary: 'oklch(var(--primary))',
+				colorBackground: 'oklch(var(--background))',
+				colorText: 'oklch(var(--foreground))',
+				colorDanger: 'oklch(var(--destructive))',
 				fontFamily: 'var(--font-roboto-flex), system-ui, sans-serif',
 				borderRadius: 'var(--radius)'
 			}

@@ -4,6 +4,7 @@
  * React 19 + TanStack Query v5 patterns with Suspense support
  */
 
+import { API_BASE_URL } from '@/lib/api-client'
 import { useTenantStore } from '@/stores/tenant-store'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
@@ -20,7 +21,6 @@ import {
 	useQueryClient,
 	useSuspenseQuery
 } from '@tanstack/react-query'
-import { API_BASE_URL } from '@/lib/api-client'
 
 /**
  * Query keys for tenant endpoints
@@ -629,6 +629,123 @@ export function useOptimisticTenantUpdate() {
 			}
 		}
 	}
+}
+
+/**
+ * Mutation hook to mark tenant as moved out (soft delete)
+ * Includes optimistic updates with automatic rollback
+ * Follows industry-standard 7-year retention pattern
+ */
+export function useMarkTenantAsMovedOut() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async ({
+			id,
+			data
+		}: {
+			id: string
+			data: { moveOutDate: string; moveOutReason: string }
+		}) => {
+			const response = await apiClient<TenantWithLeaseInfo>(
+				`${API_BASE_URL}/api/v1/tenants/${id}/mark-moved-out`,
+				{
+					method: 'PUT',
+					body: JSON.stringify(data)
+				}
+			)
+			return response
+		},
+		onMutate: async ({ id, data }) => {
+			// Cancel in-flight queries
+			await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })
+			await queryClient.cancelQueries({ queryKey: tenantKeys.withLease(id) })
+			await queryClient.cancelQueries({ queryKey: tenantKeys.list() })
+
+			// Snapshot previous values
+			const previousDetail = queryClient.getQueryData<TenantWithLeaseInfo>(
+				tenantKeys.detail(id)
+			)
+			const previousWithLease = queryClient.getQueryData<TenantWithLeaseInfo>(
+				tenantKeys.withLease(id)
+			)
+			const previousList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
+				tenantKeys.list()
+			)
+
+			// Optimistic update - mark as MOVED_OUT in detail caches
+			queryClient.setQueryData<TenantWithLeaseInfo>(
+				tenantKeys.detail(id),
+				old => {
+					if (!old) return old
+					return {
+						...old,
+						status: 'MOVED_OUT',
+						move_out_date: data.moveOutDate,
+						move_out_reason: data.moveOutReason,
+						updatedAt: new Date().toISOString()
+					} as TenantWithLeaseInfo
+				}
+			)
+
+			queryClient.setQueryData<TenantWithLeaseInfo>(
+				tenantKeys.withLease(id),
+				old => {
+					if (!old) return old
+					return {
+						...old,
+						status: 'MOVED_OUT',
+						move_out_date: data.moveOutDate,
+						move_out_reason: data.moveOutReason,
+						updatedAt: new Date().toISOString()
+					} as TenantWithLeaseInfo
+				}
+			)
+
+			// Optimistic update - remove from list (soft delete)
+			queryClient.setQueryData<TenantWithLeaseInfo[]>(
+				tenantKeys.list(),
+				old => {
+					if (!old) return old
+					return old.filter(tenant => tenant.id !== id)
+				}
+			)
+
+			return { previousDetail, previousWithLease, previousList, id }
+		},
+		onError: (err, _variables, context) => {
+			// Rollback on error
+			if (context) {
+				if (context.previousDetail) {
+					queryClient.setQueryData(
+						tenantKeys.detail(context.id),
+						context.previousDetail
+					)
+				}
+				if (context.previousWithLease) {
+					queryClient.setQueryData(
+						tenantKeys.withLease(context.id),
+						context.previousWithLease
+					)
+				}
+				if (context.previousList) {
+					queryClient.setQueryData(tenantKeys.list(), context.previousList)
+				}
+			}
+
+			logger.error('Failed to mark tenant as moved out', { error: err })
+		},
+		onSettled: (_data, _error, variables) => {
+			// Refetch to ensure consistency
+			queryClient.invalidateQueries({
+				queryKey: tenantKeys.detail(variables.id)
+			})
+			queryClient.invalidateQueries({
+				queryKey: tenantKeys.withLease(variables.id)
+			})
+			queryClient.invalidateQueries({ queryKey: tenantKeys.list() })
+		}
+	})
 }
 
 /**

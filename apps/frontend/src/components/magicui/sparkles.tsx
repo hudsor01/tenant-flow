@@ -60,7 +60,7 @@ export const SparklesCore = (props: ParticlesProps) => {
 					options={{
 						background: {
 							color: {
-								value: background || 'hsl(var(--primary))'
+								value: background || 'oklch(var(--primary))'
 							}
 						},
 						fullScreen: {
@@ -123,7 +123,7 @@ export const SparklesCore = (props: ParticlesProps) => {
 								}
 							},
 							color: {
-								value: particleColor || 'hsl(var(--foreground))',
+								value: particleColor || 'oklch(var(--foreground))',
 								animation: {
 									h: {
 										count: 0,
@@ -256,7 +256,7 @@ export const SparklesCore = (props: ParticlesProps) => {
 							shadow: {
 								blur: 0,
 								color: {
-									value: 'hsl(var(--background))'
+									value: 'oklch(var(--background))'
 								},
 								enable: false,
 								offset: {
@@ -398,7 +398,7 @@ export const SparklesCore = (props: ParticlesProps) => {
 							links: {
 								blink: false,
 								color: {
-									value: 'hsl(var(--foreground))'
+									value: 'oklch(var(--foreground))'
 								},
 								consent: false,
 								distance: 100,
@@ -408,7 +408,7 @@ export const SparklesCore = (props: ParticlesProps) => {
 								shadow: {
 									blur: 5,
 									color: {
-										value: 'hsl(var(--background))'
+										value: 'oklch(var(--background))'
 									},
 									enable: false
 								},

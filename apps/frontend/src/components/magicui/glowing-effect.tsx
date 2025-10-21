@@ -11,7 +11,7 @@ interface GlowingEffectProps {
 export function GlowingEffect({
 	children,
 	className,
-	glowColor = 'hsl(var(--primary))',
+	glowColor = 'oklch(var(--primary))',
 	glowOpacity = 0.4
 }: GlowingEffectProps) {
 	return (
