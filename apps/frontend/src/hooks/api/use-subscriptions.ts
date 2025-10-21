@@ -11,7 +11,7 @@ import type {
 	RentSubscriptionResponse,
 	UpdateSubscriptionRequest
 } from '@repo/shared/types/core'
-import { subscriptionsApi } from '@/lib/api/subscriptions'
+import { subscriptionsApi } from '@/lib/api-client'
 import { toast } from 'sonner'
 
 /**
@@ -216,4 +216,34 @@ export function useHasActiveSubscription(leaseId?: string): boolean {
 	return subscriptions.some(
 		s => s.leaseId === leaseId && s.status === 'active'
 	)
+}
+
+/**
+ * Hook for prefetching subscriptions list
+ */
+export function usePrefetchSubscriptions() {
+	const queryClient = useQueryClient()
+
+	return () => {
+		queryClient.prefetchQuery({
+			queryKey: subscriptionsKeys.list(),
+			queryFn: () => subscriptionsApi.list(),
+			staleTime: 60 * 1000
+		})
+	}
+}
+
+/**
+ * Hook for prefetching single subscription
+ */
+export function usePrefetchSubscription() {
+	const queryClient = useQueryClient()
+
+	return (id: string) => {
+		queryClient.prefetchQuery({
+			queryKey: subscriptionsKeys.detail(id),
+			queryFn: () => subscriptionsApi.get(id),
+			staleTime: 60 * 1000
+		})
+	}
 }

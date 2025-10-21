@@ -8,7 +8,7 @@ import type {
 	TenantStats
 } from '@repo/shared/types/core'
 import { apiClient } from '@repo/shared/utils/api-client'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 export interface FinancialChartDatum {
 	date: string
@@ -208,6 +208,114 @@ export function useFinancialChartData(timeRange: string = '6m') {
 		retry: 2,
 		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
 	})
+}
+
+/**
+ * Hook for prefetching dashboard stats (for hover states or preloading)
+ */
+export function usePrefetchDashboardStats() {
+	const queryClient = useQueryClient()
+
+	return () => {
+		queryClient.prefetchQuery({
+			queryKey: dashboardKeys.stats(),
+			queryFn: dashboardApi.getStats,
+			staleTime: 30 * 1000
+		})
+	}
+}
+
+/**
+ * Hook for prefetching dashboard activity
+ */
+export function usePrefetchDashboardActivity() {
+	const queryClient = useQueryClient()
+
+	return () => {
+		queryClient.prefetchQuery({
+			queryKey: dashboardKeys.activity(),
+			queryFn: dashboardApi.getActivity,
+			staleTime: 60 * 1000
+		})
+	}
+}
+
+/**
+ * Hook for prefetching property performance
+ */
+export function usePrefetchPropertyPerformance() {
+	const queryClient = useQueryClient()
+
+	return () => {
+		queryClient.prefetchQuery({
+			queryKey: dashboardKeys.propertyPerformance(),
+			queryFn: dashboardApi.getPropertyPerformance,
+			staleTime: 30 * 1000
+		})
+	}
+}
+
+/**
+ * Hook for prefetching property stats
+ */
+export function usePrefetchPropertyStats() {
+	const queryClient = useQueryClient()
+
+	return () => {
+		queryClient.prefetchQuery({
+			queryKey: dashboardKeys.propertyStats(),
+			queryFn: async () => {
+				return await apiClient<{
+					totalProperties: number
+					totalUnits: number
+					occupiedUnits: number
+					occupancyRate: number
+					totalRevenue: number
+					vacantUnits: number
+					maintenanceUnits: number
+				}>(`${API_BASE_URL}/api/v1/properties/stats`)
+			},
+			staleTime: 5 * 60 * 1000
+		})
+	}
+}
+
+/**
+ * Hook for prefetching tenant stats
+ */
+export function usePrefetchTenantStats() {
+	const queryClient = useQueryClient()
+
+	return () => {
+		queryClient.prefetchQuery({
+			queryKey: dashboardKeys.tenantStats(),
+			queryFn: async (): Promise<TenantStats> => {
+				return await apiClient<TenantStats>(
+					`${API_BASE_URL}/api/v1/tenants/stats`
+				)
+			},
+			staleTime: 5 * 60 * 1000
+		})
+	}
+}
+
+/**
+ * Hook for prefetching lease stats
+ */
+export function usePrefetchLeaseStats() {
+	const queryClient = useQueryClient()
+
+	return () => {
+		queryClient.prefetchQuery({
+			queryKey: dashboardKeys.leaseStats(),
+			queryFn: async (): Promise<LeaseStatsResponse> => {
+				return await apiClient<LeaseStatsResponse>(
+					`${API_BASE_URL}/api/v1/leases/stats`
+				)
+			},
+			staleTime: 5 * 60 * 1000
+		})
+	}
 }
 
 /**

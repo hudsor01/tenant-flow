@@ -6,7 +6,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { lateFeesApi } from '@/lib/api/late-fees'
+import { lateFeesApi } from '@/lib/api-client'
 import { toast } from 'sonner'
 
 /**
@@ -152,4 +152,34 @@ export function useApplyLateFee() {
 			})
 		}
 	})
+}
+
+/**
+ * Hook for prefetching late fee config
+ */
+export function usePrefetchLateFeeConfig() {
+	const queryClient = useQueryClient()
+
+	return (leaseId: string) => {
+		queryClient.prefetchQuery({
+			queryKey: lateFeesKeys.config(leaseId),
+			queryFn: () => lateFeesApi.getConfig(leaseId),
+			staleTime: 5 * 60 * 1000
+		})
+	}
+}
+
+/**
+ * Hook for prefetching overdue payments
+ */
+export function usePrefetchOverduePayments() {
+	const queryClient = useQueryClient()
+
+	return (leaseId: string) => {
+		queryClient.prefetchQuery({
+			queryKey: lateFeesKeys.overdue(leaseId),
+			queryFn: () => lateFeesApi.getOverduePayments(leaseId),
+			staleTime: 60 * 1000
+		})
+	}
 }
