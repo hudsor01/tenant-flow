@@ -96,7 +96,9 @@ const PasswordStrength = React.forwardRef<
 					<Popover.Anchor asChild>
 						<input
 							id={inputId}
+							name={inputId}
 							type="password"
+							autoComplete="new-password"
 							data-tokens="applied"
 							className={cn(
 								'flex h-10 w-full rounded-[var(--radius-medium)] border border-[var(--color-separator)] bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[var(--color-label-tertiary)] focus-visible:outline-none focus-visible:ring-[var(--focus-ring-width)] focus-visible:ring-offset-[var(--focus-ring-offset)] disabled:cursor-not-allowed disabled:opacity-50',

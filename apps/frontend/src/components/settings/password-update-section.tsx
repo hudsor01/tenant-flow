@@ -81,8 +81,10 @@ export function PasswordUpdateSection() {
 					<InputGroup>
 						<InputGroupInput
 							id="currentPassword"
+							name="currentPassword"
 							type={showCurrentPassword ? 'text' : 'password'}
 							placeholder="Enter your current password"
+							autoComplete="current-password"
 							value={currentPassword}
 							onChange={e => setCurrentPassword(e.target.value)}
 							disabled={updatePasswordMutation.isPending}
@@ -128,8 +130,10 @@ export function PasswordUpdateSection() {
 					<InputGroup>
 						<InputGroupInput
 							id="confirmPassword"
+							name="confirmPassword"
 							type={showConfirmPassword ? 'text' : 'password'}
 							placeholder="Re-enter your new password"
+							autoComplete="new-password"
 							value={confirmPassword}
 							onChange={e => setConfirmPassword(e.target.value)}
 							disabled={updatePasswordMutation.isPending}

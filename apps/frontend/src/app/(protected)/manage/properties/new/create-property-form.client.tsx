@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -28,7 +28,6 @@ import {
 import { useSupabaseUser } from '@/hooks/api/use-supabase-auth'
 import { usePropertyImageUpload } from '@/hooks/use-property-image-upload'
 import { propertiesApi } from '@/lib/api-client'
-import { useFormStep, useUIStore } from '@/stores/ui-store'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	propertyFormSchema,
@@ -62,34 +61,17 @@ const FORM_STEPS = [
 
 export function CreatePropertyForm() {
 	const [isSubmitted, setIsSubmitted] = useState(false)
+	const [currentStep, setCurrentStep] = useState(1)
 	const queryClient = useQueryClient()
 	const { data: user } = useSupabaseUser()
 	const logger = createLogger({ component: 'CreatePropertyForm' })
 
-	const { setFormProgress, resetFormProgress } = useUIStore()
-	const {
-		currentStep,
-		totalSteps,
-		nextStep,
-		previousStep,
-		completeStep,
-		isFirstStep,
-		isLastStep
-	} = useFormStep()
+	const totalSteps = FORM_STEPS.length
+	const isFirstStep = currentStep === 1
+	const isLastStep = currentStep === totalSteps
 
-	// Initialize form progress when component mounts
-	React.useEffect(() => {
-		setFormProgress({
-			currentStep: 1,
-			totalSteps: FORM_STEPS.length,
-			completedSteps: [],
-			formData: {},
-			formType: 'property'
-		})
-		return () => {
-			resetFormProgress()
-		}
-	}, [setFormProgress, resetFormProgress])
+	const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, totalSteps))
+	const previousStep = () => setCurrentStep(prev => Math.max(prev - 1, 1))
 
 	// Initialize image upload hook
 	const upload = usePropertyImageUpload({
@@ -162,7 +144,7 @@ export function CreatePropertyForm() {
 			toast.success('Property created successfully')
 			setIsSubmitted(true)
 			form.reset()
-			resetFormProgress()
+			setCurrentStep(1)
 		},
 		onError: (
 			error: Error & { response?: { data?: { message?: string } } }
@@ -184,7 +166,6 @@ export function CreatePropertyForm() {
 		// Validate current step fields
 		const isValid = await validateCurrentStep()
 		if (isValid) {
-			completeStep(currentStep)
 			if (!isLastStep) {
 				nextStep()
 			}
