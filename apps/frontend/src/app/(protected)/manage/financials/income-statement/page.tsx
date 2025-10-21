@@ -202,8 +202,8 @@ export default function IncomeStatementPage() {
 							style={{
 								borderColor:
 									data.netIncome >= 0
-										? 'hsl(var(--success))'
-										: 'hsl(var(--destructive))'
+										? 'oklch(var(--success))'
+										: 'oklch(var(--destructive))'
 							}}
 						>
 							<CardHeader>
@@ -216,8 +216,8 @@ export default function IncomeStatementPage() {
 									style={{
 										color:
 											data.netIncome >= 0
-												? 'hsl(var(--success))'
-												: 'hsl(var(--destructive))'
+												? 'oklch(var(--success))'
+												: 'oklch(var(--destructive))'
 									}}
 								>
 									{formatCurrency(data.netIncome)}

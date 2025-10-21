@@ -1,11 +1,8 @@
 'use client'
 
-import { 
-  cn
-} from '@/lib/design-system'
-import { useEffect, useRef, useCallback } from 'react'
+import { cn } from '@/lib/design-system'
 import { useQuery } from '@tanstack/react-query'
-import React from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 
 interface ParticleType {
 	x: number
@@ -37,7 +34,7 @@ function ParticlesComponent({
 	staticity = 50,
 	ease = 50,
 	size = 0.4,
-	color = 'hsl(var(--foreground))',
+	color = 'oklch(var(--foreground))',
 	refresh = false,
 	theme = 'auto',
 	preset = 'subtle',
@@ -53,48 +50,51 @@ function ParticlesComponent({
 	// TanStack Query-based preset configuration (replaces useMemo with automatic structural sharing)
 	const { data: presetConfig } = useQuery({
 		queryKey: ['particles', 'preset-config', preset],
-		queryFn: () => Promise.resolve({
-			subtle: {
-				quantity: 30,
-				size: 0.8,
-				ease: 20,
-				opacity: 0.3,
-				speed: 0.5
-			},
-			dynamic: {
-				quantity: 80,
-				size: 1.2,
-				ease: 60,
-				opacity: 0.6,
-				speed: 1.0
-			},
-			floating: {
-				quantity: 40,
-				size: 1.5,
-				ease: 30,
-				opacity: 0.4,
-				speed: 0.3
-			},
-			sparkling: {
-				quantity: 120,
-				size: 0.5,
-				ease: 80,
-				opacity: 0.8,
-				speed: 1.5
-			}
-		}),
-		select: (configs) => configs[preset],
+		queryFn: () =>
+			Promise.resolve({
+				subtle: {
+					quantity: 30,
+					size: 0.8,
+					ease: 20,
+					opacity: 0.3,
+					speed: 0.5
+				},
+				dynamic: {
+					quantity: 80,
+					size: 1.2,
+					ease: 60,
+					opacity: 0.6,
+					speed: 1.0
+				},
+				floating: {
+					quantity: 40,
+					size: 1.5,
+					ease: 30,
+					opacity: 0.4,
+					speed: 0.3
+				},
+				sparkling: {
+					quantity: 120,
+					size: 0.5,
+					ease: 80,
+					opacity: 0.8,
+					speed: 1.5
+				}
+			}),
+		select: configs => configs[preset],
 		staleTime: Infinity, // Static data, never refetch
-		gcTime: Infinity, // Keep in memory indefinitely
+		gcTime: Infinity // Keep in memory indefinitely
 	})
 
 	// Theme-aware color handling
 	const getThemeColor = useCallback(() => {
 		if (theme === 'auto') {
 			const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-			return isDark ? 'hsl(var(--foreground))' : 'hsl(var(--foreground))'
+			return isDark ? 'oklch(var(--foreground))' : 'oklch(var(--foreground))'
 		}
-		return theme === 'dark' ? 'hsl(var(--foreground))' : 'hsl(var(--foreground))'
+		return theme === 'dark'
+			? 'oklch(var(--foreground))'
+			: 'oklch(var(--foreground))'
 	}, [theme])
 
 	// TanStack Query-based quantity calculation (replaces useMemo with select transformation)
@@ -105,11 +105,14 @@ function ParticlesComponent({
 			const densityMultiplier = { low: 0.5, medium: 1, high: 1.5 }[density]
 			// Use preset to determine base quantity if quantity not provided
 			const presetQuantities = { snow: 80, stars: 120, bubbles: 60 }
-			const baseQuantity = quantity || presetQuantities[preset as keyof typeof presetQuantities] || (presetConfig?.quantity ?? 50)
+			const baseQuantity =
+				quantity ||
+				presetQuantities[preset as keyof typeof presetQuantities] ||
+				(presetConfig?.quantity ?? 50)
 			return Math.floor(baseQuantity * densityMultiplier)
 		},
 		staleTime: Infinity, // Static calculation, never refetch
-		enabled: !!presetConfig, // Only calculate when presetConfig is available
+		enabled: !!presetConfig // Only calculate when presetConfig is available
 	})
 
 	useEffect(() => {
@@ -133,8 +136,13 @@ function ParticlesComponent({
 
 		const createParticle = (): ParticleType => {
 			// Safe defaults when presetConfig is not yet loaded
-			const config = presetConfig || { ease: 50, speed: 0.5, size: 0.4, opacity: 0.5 }
-			
+			const config = presetConfig || {
+				ease: 50,
+				speed: 0.5,
+				size: 0.4,
+				opacity: 0.5
+			}
+
 			return {
 				x: Math.random() * canvas.clientWidth,
 				y: Math.random() * canvas.clientHeight,
@@ -148,7 +156,10 @@ function ParticlesComponent({
 		}
 
 		const initParticles = () => {
-			particlesRef.current = Array.from({ length: calculatedQuantity || 50 }, createParticle)
+			particlesRef.current = Array.from(
+				{ length: calculatedQuantity || 50 },
+				createParticle
+			)
 		}
 
 		const updateParticle = (particle: ParticleType) => {
@@ -166,7 +177,7 @@ function ParticlesComponent({
 			} else if (particle.x > canvas.clientWidth + margin) {
 				particle.x = -margin
 			}
-			
+
 			if (particle.y < -margin) {
 				particle.y = canvas.clientHeight + margin
 			} else if (particle.y > canvas.clientHeight + margin) {
@@ -181,7 +192,10 @@ function ParticlesComponent({
 			// Update alpha for smooth fading with safe defaults
 			const lifeCycle = particle.life / particle.maxLife
 			const config = presetConfig || { opacity: 0.5 }
-			particle.alpha = config.opacity * (1 - lifeCycle * 0.3) * (0.5 + Math.sin(lifeCycle * Math.PI) * 0.5)
+			particle.alpha =
+				config.opacity *
+				(1 - lifeCycle * 0.3) *
+				(0.5 + Math.sin(lifeCycle * Math.PI) * 0.5)
 		}
 
 		const drawParticle = (particle: ParticleType) => {
@@ -190,13 +204,20 @@ function ParticlesComponent({
 				// Outer glow
 				const glowSize = particle.size * 3
 				const gradient = ctx.createRadialGradient(
-					particle.x, particle.y, 0,
-					particle.x, particle.y, glowSize
+					particle.x,
+					particle.y,
+					0,
+					particle.x,
+					particle.y,
+					glowSize
 				)
 				// Canvas API requires rgba format for gradients
 				const baseAlpha = particle.alpha * 0.8
 				gradient.addColorStop(0, `oklch(0.5 0.1 280 / ${baseAlpha})`)
-				gradient.addColorStop(0.5, `oklch(0.5 0.1 280 / ${particle.alpha * 0.2})`)
+				gradient.addColorStop(
+					0.5,
+					`oklch(0.5 0.1 280 / ${particle.alpha * 0.2})`
+				)
 				gradient.addColorStop(1, `oklch(0.5 0.1 280 / 0)`)
 
 				ctx.fillStyle = gradient
@@ -242,7 +263,7 @@ function ParticlesComponent({
 					const dx = particle.x - mouseRef.current.x
 					const dy = particle.y - mouseRef.current.y
 					const distance = Math.sqrt(dx * dx + dy * dy)
-					
+
 					if (distance < 100) {
 						const force = (100 - distance) / 100
 						particle.vx += (dx / distance) * force * 0.5
@@ -251,7 +272,6 @@ function ParticlesComponent({
 				})
 			}
 		}
-
 
 		// Check for reduced motion preference
 		const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -268,7 +288,7 @@ function ParticlesComponent({
 
 		resizeCanvas()
 		initParticles()
-		
+
 		if (!mediaQuery.matches && !reducedMotion) {
 			animate()
 		}
@@ -285,7 +305,20 @@ function ParticlesComponent({
 			canvas.removeEventListener('mousemove', handleMouseMove)
 			mediaQuery.removeEventListener('change', handleReducedMotionChange)
 		}
-	}, [calculatedQuantity, staticity, ease, size, color, refresh, preset, theme, density, reducedMotion, getThemeColor, presetConfig])
+	}, [
+		calculatedQuantity,
+		staticity,
+		ease,
+		size,
+		color,
+		refresh,
+		preset,
+		theme,
+		density,
+		reducedMotion,
+		getThemeColor,
+		presetConfig
+	])
 
 	return (
 		<div

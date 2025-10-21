@@ -36,6 +36,10 @@ export const DEFAULT_TENANT: Tenant = {
 	phone: '(555) 123-4567',
 	emergencyContact: 'Jane Doe - (555) 987-6543',
 	avatarUrl: null,
+	status: 'ACTIVE',
+	move_out_date: null,
+	move_out_reason: null,
+	archived_at: null,
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z'
 }

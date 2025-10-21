@@ -334,6 +334,10 @@ export function createMockTenant(overrides?: Partial<Tenant>): Tenant {
 		name: overrides?.name || null,
 		avatarUrl: overrides?.avatarUrl || null,
 		emergencyContact: overrides?.emergencyContact || null,
+		status: overrides?.status || 'ACTIVE',
+		move_out_date: overrides?.move_out_date || null,
+		move_out_reason: overrides?.move_out_reason || null,
+		archived_at: overrides?.archived_at || null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 		...overrides

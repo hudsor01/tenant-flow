@@ -62,7 +62,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 							<Badge
 								style={{
 									backgroundColor: 'var(--chart-1)',
-									color: 'hsl(var(--primary-foreground))'
+									color: 'oklch(var(--primary-foreground))'
 								}}
 							>
 								{property.status || 'Active'}

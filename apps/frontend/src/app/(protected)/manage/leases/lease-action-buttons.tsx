@@ -440,7 +440,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 											lease.status === 'ACTIVE'
 												? 'var(--chart-1)'
 												: 'var(--chart-5)',
-										color: 'hsl(var(--primary-foreground))'
+										color: 'oklch(var(--primary-foreground))'
 									}}
 								>
 									{lease.status}

@@ -27,16 +27,7 @@ import * as React from 'react'
 import { NavDocuments } from '@/components/dashboard/nav-documents'
 import { NavMain } from '@/components/dashboard/nav-main'
 import { NavSecondary } from '@/components/dashboard/nav-secondary'
-import { NavUser } from '@/components/dashboard/nav-user'
-import {
-	Sidebar,
-	SidebarContent,
-	SidebarFooter,
-	SidebarHeader,
-	SidebarMenu,
-	SidebarMenuButton,
-	SidebarMenuItem
-} from '@/components/ui/sidebar'
+import { Sidebar, SidebarContent } from '@/components/ui/sidebar'
 
 const navigation: {
 	navMain: {
@@ -191,30 +182,43 @@ const navigation: {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	return (
-		<Sidebar collapsible="offcanvas" {...props}>
-			<SidebarHeader>
-				<SidebarMenu>
-					<SidebarMenuItem>
-						<SidebarMenuButton
-							asChild
-							className="data-[slot=sidebar-menu-button]:!p-1.5"
-						>
-							<Link href="/">
-								<Home className="size-5" />
-								<span className="text-base font-semibold">TenantFlow</span>
-							</Link>
-						</SidebarMenuButton>
-					</SidebarMenuItem>
-				</SidebarMenu>
-			</SidebarHeader>
-			<SidebarContent>
-				<NavMain items={navigation.navMain} />
-				<NavDocuments items={navigation.documents} />
-				<NavSecondary items={navigation.navSecondary} className="mt-auto" />
-			</SidebarContent>
-			<SidebarFooter>
-				<NavUser />
-			</SidebarFooter>
-		</Sidebar>
+		<>
+			{/* Card 1: Brand */}
+			<div className="rounded-xl border border-gray-200 bg-white p-4">
+				<Link href="/" className="flex items-center gap-2">
+					<Home className="size-5" />
+					<span className="text-base font-semibold">TenantFlow</span>
+				</Link>
+			</div>
+
+			{/* Card 2: Search */}
+			<div className="rounded-xl border border-gray-200 bg-white p-4">
+				<div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+					<span className="text-sm text-gray-400">Search</span>
+					<kbd className="ml-auto rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-500">
+						⌘K
+					</kbd>
+				</div>
+			</div>
+
+			{/* Card 3: Navigation */}
+			<div className="flex-1 overflow-hidden rounded-xl border border-gray-200 bg-white">
+				<Sidebar
+					collapsible="offcanvas"
+					className="border-0 bg-transparent"
+					{...props}
+				>
+					<SidebarContent className="overflow-visible">
+						<NavMain items={navigation.navMain} />
+						<NavDocuments items={navigation.documents} />
+					</SidebarContent>
+				</Sidebar>
+			</div>
+
+			{/* Card 4: Settings */}
+			<div className="rounded-xl border border-gray-200 bg-white p-2">
+				<NavSecondary items={navigation.navSecondary} />
+			</div>
+		</>
 	)
 }
