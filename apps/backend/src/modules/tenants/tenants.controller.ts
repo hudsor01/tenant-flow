@@ -174,10 +174,43 @@ export class TenantsController {
 		return tenant
 	}
 
-	@Delete(':id')
-	// @ApiOperation({ summary: 'Delete tenant' })
+	@Put(':id/mark-moved-out')
+	// @ApiOperation({ summary: 'Mark tenant as moved out (soft delete)' })
+	// @ApiResponse({ status: HttpStatus.OK })
+	async markAsMovedOut(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Body() body: { moveOutDate: string; moveOutReason: string },
+		@Req() req: AuthenticatedRequest
+	) {
+		if (!this.tenantsService) {
+			return {
+				message: 'Tenants service not available',
+				id,
+				success: false
+			}
+		}
+		if (!body.moveOutDate || !body.moveOutReason) {
+			throw new BadRequestException(
+				'moveOutDate and moveOutReason are required'
+			)
+		}
+		const userId = req.user.id
+		const tenant = await this.tenantsService.markAsMovedOut(
+			userId,
+			id,
+			body.moveOutDate,
+			body.moveOutReason
+		)
+		if (!tenant) {
+			throw new NotFoundException('Tenant not found')
+		}
+		return tenant
+	}
+
+	@Delete(':id/hard-delete')
+	// @ApiOperation({ summary: 'Permanently delete tenant (7+ years only)' })
 	// @ApiResponse({ status: HttpStatus.NO_CONTENT })
-	async remove(
+	async hardDelete(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
@@ -188,10 +221,18 @@ export class TenantsController {
 				success: false
 			}
 		}
-		// Use Supabase's native auth.getUser() pattern
 		const userId = req.user.id
-		await this.tenantsService.remove(userId, id)
-		return { message: 'Tenant deleted successfully' }
+		await this.tenantsService.hardDelete(userId, id)
+		return { message: 'Tenant permanently deleted' }
+	}
+
+	@Delete(':id')
+	// @ApiOperation({ summary: 'Delete tenant (deprecated - use mark-moved-out)' })
+	// @ApiResponse({ status: HttpStatus.BAD_REQUEST })
+	async remove() {
+		throw new BadRequestException(
+			'Direct deletion is not allowed. Use PUT /tenants/:id/mark-moved-out to mark tenant as moved out, or DELETE /tenants/:id/hard-delete for permanent deletion (7+ years only).'
+		)
 	}
 
 	@Post(':id/invite')
