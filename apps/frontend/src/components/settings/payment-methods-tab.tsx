@@ -28,7 +28,7 @@ import {
 	useSetDefaultPaymentMethod
 } from '@/hooks/api/use-payment-methods'
 
-import { AddPaymentMethodDialog } from '@/app/(protected)/tenant/payments/add-payment-method-dialog'
+import { AddPaymentMethodDialog } from '@/app/(protected)/tenant/payments/methods/add-payment-method-dialog'
 
 // Helper functions inlined from payment-methods-list.tsx
 function getCardBrandDisplay(brand: string) {

@@ -5,10 +5,9 @@
  * TanStack Query hooks for payment history management
  */
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@repo/shared/utils/api-client'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+import { API_BASE_URL } from '@/lib/api-client'
 
 /**
  * Query keys for payment history endpoints
@@ -124,4 +123,44 @@ export function useSubscriptionFailedAttempts(subscriptionId: string) {
 		enabled: !!subscriptionId,
 		staleTime: 30 * 1000 // 30 seconds
 	})
+}
+
+/**
+ * Hook for prefetching payment history
+ */
+export function usePrefetchPaymentHistory() {
+	const queryClient = useQueryClient()
+
+	return () => {
+		queryClient.prefetchQuery({
+			queryKey: paymentHistoryKeys.list(),
+			queryFn: async (): Promise<PaymentHistoryItem[]> => {
+				const response = await apiClient<{
+					payments: PaymentHistoryItem[]
+				}>(`${API_BASE_URL}/api/v1/payments/history`)
+				return response.payments
+			},
+			staleTime: 60 * 1000
+		})
+	}
+}
+
+/**
+ * Hook for prefetching subscription payment history
+ */
+export function usePrefetchSubscriptionPaymentHistory() {
+	const queryClient = useQueryClient()
+
+	return (subscriptionId: string) => {
+		queryClient.prefetchQuery({
+			queryKey: paymentHistoryKeys.bySubscription(subscriptionId),
+			queryFn: async (): Promise<PaymentHistoryItem[]> => {
+				const response = await apiClient<{
+					payments: PaymentHistoryItem[]
+				}>(`${API_BASE_URL}/api/v1/payments/history/subscription/${subscriptionId}`)
+				return response.payments
+			},
+			staleTime: 60 * 1000
+		})
+	}
 }

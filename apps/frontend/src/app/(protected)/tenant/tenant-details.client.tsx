@@ -1,25 +1,11 @@
 'use client'
 
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-	AlertDialogTrigger
-} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
-import { useDeleteTenant, useTenant } from '@/hooks/api/use-tenant'
-import { useQueryClient } from '@tanstack/react-query'
-import { Calendar, Edit, Mail, Phone, Trash2 } from 'lucide-react'
+import { useTenant } from '@/hooks/api/use-tenant'
+import { Calendar, Edit, Mail, Phone } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
 import { TenantSkeleton } from './tenant-skeleton'
 
 interface TenantDetailsProps {
@@ -27,21 +13,8 @@ interface TenantDetailsProps {
 }
 
 export function TenantDetails({ id }: TenantDetailsProps) {
-	const router = useRouter()
-	const queryClient = useQueryClient()
-
 	const { data: tenant, isLoading, isError } = useTenant(id)
-
-	const deleteMutation = useDeleteTenant({
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['tenants'] })
-			toast.success('Tenant deleted successfully')
-			router.push('/manage/tenants')
-		},
-		onError: (error: Error) => {
-			toast.error('Failed to delete tenant', { description: error.message })
-		}
-	})
+	// NOTE: Delete functionality available in main tenants table with useOptimistic
 
 	if (isLoading) {
 		return <TenantSkeleton />
@@ -69,46 +42,13 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 				<p className="text-muted-foreground mt-1">{tenant.email}</p>
 			</div>
 
-			<div className="flex items-center gap-2">
-				<Link href={`/manage/tenants/${id}/edit`}>
-					<Button variant="outline" className="flex items-center gap-2">
-						<Edit className="w-4 h-4" />
-						Edit
-					</Button>
-				</Link>
-
-				<AlertDialog>
-					<AlertDialogTrigger asChild>
-						<Button
-							variant="outline"
-							className="flex items-center gap-2 text-destructive hover:text-destructive"
-						>
-							<Trash2 className="w-4 h-4" />
-							Delete
-						</Button>
-					</AlertDialogTrigger>
-					<AlertDialogContent>
-						<AlertDialogHeader>
-							<AlertDialogTitle>Delete Tenant</AlertDialogTitle>
-							<AlertDialogDescription>
-								Are you sure you want to delete "{tenant.name}"? This action
-								cannot be undone and will remove all associated data including
-								leases and payment records.
-							</AlertDialogDescription>
-						</AlertDialogHeader>
-						<AlertDialogFooter>
-							<AlertDialogCancel>Cancel</AlertDialogCancel>
-							<AlertDialogAction
-								onClick={() => deleteMutation.mutate(tenant.id)}
-								disabled={deleteMutation.isPending}
-								className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-							>
-								{deleteMutation.isPending ? 'Deleting...' : 'Delete Tenant'}
-							</AlertDialogAction>
-						</AlertDialogFooter>
-					</AlertDialogContent>
-				</AlertDialog>
-			</div>
+			<Link href={`/manage/tenants/${id}/edit`}>
+				<Button variant="outline" className="flex items-center gap-2">
+					<Edit className="w-4 h-4" />
+					Edit
+				</Button>
+			</Link>
+			{/* Delete functionality available in main tenants table */}
 		</div>
 	)
 

@@ -14,6 +14,20 @@ import { toast } from 'sonner'
 // module-scoped timers map for delete undo timeouts
 const deleteReportTimers = new Map<string, number>()
 
+/**
+ * Query keys for reports
+ * Hierarchical pattern for selective cache invalidation
+ */
+export const reportsKeys = {
+	all: ['reports'] as const,
+	lists: () => [...reportsKeys.all, 'list'] as const,
+	list: (offset: number, limit: number) => [...reportsKeys.lists(), offset, limit] as const,
+	revenue: (months: number) => [...reportsKeys.all, 'revenue', 'monthly', months] as const,
+	paymentAnalytics: (startDate?: string, endDate?: string) =>
+		[...reportsKeys.all, 'analytics', 'payments', startDate, endDate] as const,
+	occupancyMetrics: () => [...reportsKeys.all, 'analytics', 'occupancy'] as const
+}
+
 import type { Report } from '@/lib/api/reports-client'
 
 import type { UseMutationResult } from '@tanstack/react-query'
@@ -44,7 +58,7 @@ export function useReports({
 	limit?: number
 }): UseReportsResult {
 	const queryClient = useQueryClient()
-	const queryKey = ['reports', offset, limit] as const
+	const queryKey = reportsKeys.list(offset, limit)
 	type ListResponse = Awaited<ReturnType<typeof reportsClient.listReports>>
 
 	// Keep track of per-id pending operations so the UI can show per-row spinners
@@ -102,7 +116,7 @@ export function useReports({
 				// aren't present in the cache (simple conservative cleanup)
 				return s
 			})
-			queryClient.invalidateQueries({ queryKey: ['reports'] })
+			queryClient.invalidateQueries({ queryKey: reportsKeys.all })
 		}
 	})
 
@@ -235,7 +249,7 @@ export function useReports({
  */
 export function useMonthlyRevenue(months: number = 12) {
 	return useQuery<RevenueData[]>({
-		queryKey: ['reports', 'revenue', 'monthly', months],
+		queryKey: reportsKeys.revenue(months),
 		queryFn: () => getMonthlyRevenue(months)
 	})
 }
@@ -246,7 +260,7 @@ export function useMonthlyRevenue(months: number = 12) {
  */
 export function usePaymentAnalytics(startDate?: string, endDate?: string) {
 	return useQuery<PaymentAnalytics>({
-		queryKey: ['reports', 'analytics', 'payments', startDate, endDate],
+		queryKey: reportsKeys.paymentAnalytics(startDate, endDate),
 		queryFn: () => getPaymentAnalytics(startDate, endDate)
 	})
 }
@@ -257,7 +271,64 @@ export function usePaymentAnalytics(startDate?: string, endDate?: string) {
  */
 export function useOccupancyMetrics() {
 	return useQuery<OccupancyMetrics>({
-		queryKey: ['reports', 'analytics', 'occupancy'],
+		queryKey: reportsKeys.occupancyMetrics(),
 		queryFn: getOccupancyMetrics
 	})
+}
+
+/**
+ * Hook for prefetching reports
+ */
+export function usePrefetchReports() {
+	const queryClient = useQueryClient()
+
+	return (offset: number, limit: number) => {
+		const queryKey = reportsKeys.list(offset, limit)
+		queryClient.prefetchQuery({
+			queryKey,
+			queryFn: () => reportsClient.listReports({ offset, limit })
+		})
+	}
+}
+
+/**
+ * Hook for prefetching monthly revenue
+ */
+export function usePrefetchMonthlyRevenue() {
+	const queryClient = useQueryClient()
+
+	return (months: number = 12) => {
+		queryClient.prefetchQuery({
+			queryKey: reportsKeys.revenue(months),
+			queryFn: () => getMonthlyRevenue(months)
+		})
+	}
+}
+
+/**
+ * Hook for prefetching payment analytics
+ */
+export function usePrefetchPaymentAnalytics() {
+	const queryClient = useQueryClient()
+
+	return (startDate?: string, endDate?: string) => {
+		queryClient.prefetchQuery({
+			queryKey: reportsKeys.paymentAnalytics(startDate, endDate),
+			queryFn: () => getPaymentAnalytics(startDate, endDate)
+		})
+	}
+}
+
+/**
+ * Hook for prefetching occupancy metrics
+ */
+export function usePrefetchOccupancyMetrics() {
+	const queryClient = useQueryClient()
+
+	return () => {
+		queryClient.prefetchQuery({
+			queryKey: reportsKeys.occupancyMetrics(),
+			queryFn: getOccupancyMetrics
+		})
+	}
 }

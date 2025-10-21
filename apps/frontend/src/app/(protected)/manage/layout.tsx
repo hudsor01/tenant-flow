@@ -1,8 +1,8 @@
 import { AppSidebar } from '@/components/dashboard/app-sidebar'
 import { SiteHeader } from '@/components/dashboard/site-header'
+import { ViewTransitionsProvider } from '@/components/providers/view-transitions-provider'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import type { ReactNode } from 'react'
-import { ViewTransitionsProvider } from '../../../components/providers/view-transitions-provider'
 
 export default function ManageLayout({ children }: { children: ReactNode }) {
 	return (
