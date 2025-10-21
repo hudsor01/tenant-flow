@@ -1,13 +1,13 @@
 'use client'
 import { GridPattern } from '@/components/magicui/grid-pattern'
 
+import { FaqsAccordion } from '@/components/faq/faq-accordion'
 import Footer from '@/components/layout/footer'
 import { HeroSection } from '@/components/sections/hero-section'
 import { Button } from '@/components/ui/button'
 
-import { ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
 
 const faqs = [
 	{
@@ -109,16 +109,6 @@ const faqs = [
 ]
 
 export default function FAQPage() {
-	const [openQuestions, setOpenQuestions] = useState<string[]>([])
-
-	const toggleQuestion = (questionId: string) => {
-		setOpenQuestions(prev =>
-			prev.includes(questionId)
-				? prev.filter(id => id !== questionId)
-				: [...prev, questionId]
-		)
-	}
-
 	return (
 		<div className="relative min-h-screen flex flex-col">
 			{/* Full page grid background */}
@@ -231,49 +221,12 @@ export default function FAQPage() {
 			<section className="section-hero">
 				<div className="max-w-4xl mx-auto px-6 lg:px-8">
 					{faqs.map((category, categoryIndex) => (
-						<div key={categoryIndex} className="mb-16">
-							<h2 className="text-3xl font-bold mb-8 text-center">
-								{category.category}
-							</h2>
-
-							<div className="space-y-4">
-								{category.questions.map((faq, questionIndex) => {
-									const questionId = `${categoryIndex}-${questionIndex}`
-									const isOpen = openQuestions.includes(questionId)
-
-									return (
-										<div
-											key={questionIndex}
-											className="border border-border rounded-lg overflow-hidden"
-										>
-											<button
-												onClick={() => toggleQuestion(questionId)}
-												className="w-full px-6 py-6 text-left flex justify-between items-center hover:bg-muted/50 focus:outline-none focus:bg-muted/50 transition-colors"
-											>
-												<span className="text-lg font-semibold text-foreground pr-4">
-													{faq.question}
-												</span>
-												{isOpen ? (
-													<ChevronUp className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-												) : (
-													<ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-												)}
-											</button>
-
-											{isOpen && (
-												<div className="px-6 pb-6">
-													<div className="border-t border-border pt-4">
-														<p className="text-muted-foreground leading-relaxed">
-															{faq.answer}
-														</p>
-													</div>
-												</div>
-											)}
-										</div>
-									)
-								})}
-							</div>
-						</div>
+						<FaqsAccordion
+							key={categoryIndex}
+							category={category.category}
+							faqs={category.questions}
+							defaultOpenIndex={null}
+						/>
 					))}
 				</div>
 			</section>
