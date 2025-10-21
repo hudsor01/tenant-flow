@@ -11,12 +11,12 @@ import { toast } from 'sonner'
 const supabase = createClient()
 
 /**
- * Query keys for auth operations
+ * Query keys for Supabase auth operations
  */
-export const authKeys = {
-  all: ['auth'] as const,
-  user: () => [...authKeys.all, 'user'] as const,
-  session: () => [...authKeys.all, 'session'] as const,
+export const supabaseAuthKeys = {
+  all: ['supabase-auth'] as const,
+  user: () => [...supabaseAuthKeys.all, 'user'] as const,
+  session: () => [...supabaseAuthKeys.all, 'session'] as const,
 }
 
 /**
@@ -24,7 +24,7 @@ export const authKeys = {
  */
 export function useSupabaseUser() {
   return useQuery({
-    queryKey: authKeys.user(),
+    queryKey: supabaseAuthKeys.user(),
     queryFn: async () => {
       const { data: { user }, error } = await supabase.auth.getUser()
       if (error) throw error
@@ -40,7 +40,7 @@ export function useSupabaseUser() {
  */
 export function useSupabaseSession() {
   return useQuery({
-    queryKey: authKeys.session(),
+    queryKey: supabaseAuthKeys.session(),
     queryFn: async () => {
       const { data: { session }, error } = await supabase.auth.getSession()
       if (error) throw error
@@ -69,7 +69,7 @@ export function useSupabaseLogin() {
     },
     onSuccess: (data) => {
       // Invalidate and refetch user queries
-      queryClient.invalidateQueries({ queryKey: authKeys.all })
+      queryClient.invalidateQueries({ queryKey: supabaseAuthKeys.all })
 
       // Show success message
       toast.success('Welcome back!', {
@@ -115,7 +115,7 @@ export function useSupabaseSignup() {
     },
     onSuccess: (data) => {
       // Invalidate and refetch user queries
-      queryClient.invalidateQueries({ queryKey: authKeys.all })
+      queryClient.invalidateQueries({ queryKey: supabaseAuthKeys.all })
 
       if (!data.user?.confirmed_at) {
         toast.success('Account created!', {
@@ -208,7 +208,7 @@ export function useSupabaseUpdateProfile() {
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: authKeys.user() })
+      queryClient.invalidateQueries({ queryKey: supabaseAuthKeys.user() })
       toast.success('Profile updated successfully')
     },
     onError: (error: Error) => {
@@ -217,4 +217,42 @@ export function useSupabaseUpdateProfile() {
       })
     }
   })
+}
+
+/**
+ * Hook for prefetching Supabase user
+ */
+export function usePrefetchSupabaseUser() {
+  const queryClient = useQueryClient()
+
+  return () => {
+    queryClient.prefetchQuery({
+      queryKey: supabaseAuthKeys.user(),
+      queryFn: async () => {
+        const { data: { user }, error } = await supabase.auth.getUser()
+        if (error) throw error
+        return user
+      },
+      staleTime: 5 * 60 * 1000
+    })
+  }
+}
+
+/**
+ * Hook for prefetching Supabase session
+ */
+export function usePrefetchSupabaseSession() {
+  const queryClient = useQueryClient()
+
+  return () => {
+    queryClient.prefetchQuery({
+      queryKey: supabaseAuthKeys.session(),
+      queryFn: async () => {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) throw error
+        return session
+      },
+      staleTime: 5 * 60 * 1000
+    })
+  }
 }

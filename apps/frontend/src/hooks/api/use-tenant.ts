@@ -14,13 +14,13 @@ import type {
 } from '@repo/shared/types/core'
 import { apiClient } from '@repo/shared/utils/api-client'
 import {
+	keepPreviousData,
 	useMutation,
 	useQuery,
 	useQueryClient,
 	useSuspenseQuery
 } from '@tanstack/react-query'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+import { API_BASE_URL } from '@/lib/api-client'
 
 /**
  * Query keys for tenant endpoints
@@ -39,7 +39,6 @@ export const tenantKeys = {
  */
 export function useTenant(id: string) {
 	const addTenant = useTenantStore(state => state.addTenant)
-	const queryClient = useQueryClient()
 
 	return useQuery({
 		queryKey: tenantKeys.detail(id),
@@ -52,15 +51,6 @@ export function useTenant(id: string) {
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes cache time
-		// Use data from list query as placeholder while fetching
-		placeholderData: () => {
-			const cachedList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
-				tenantKeys.list()
-			)
-			return cachedList?.find((t: TenantWithLeaseInfo) => t.id === id) as
-				| Tenant
-				| undefined
-		},
 		select: (tenant: Tenant) => {
 			// Add to store for caching - convert basic Tenant to TenantWithLeaseInfo format
 			const tenantWithLeaseInfo: TenantWithLeaseInfo = {
@@ -96,7 +86,6 @@ export function useTenant(id: string) {
  */
 export function useTenantWithLease(id: string) {
 	const addTenant = useTenantStore(state => state.addTenant)
-	const queryClient = useQueryClient()
 
 	return useQuery({
 		queryKey: tenantKeys.withLease(id),
@@ -110,13 +99,6 @@ export function useTenantWithLease(id: string) {
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes cache time
 		retry: 2,
-		// Use data from list query as placeholder while fetching
-		placeholderData: () => {
-			const cachedList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
-				tenantKeys.list()
-			)
-			return cachedList?.find((t: TenantWithLeaseInfo) => t.id === id)
-		},
 		select: (tenant: TenantWithLeaseInfo) => {
 			// Add to store for caching
 			addTenant(tenant)
@@ -154,8 +136,8 @@ export function useTenantList(page: number = 1, limit: number = 50) {
 		staleTime: 3 * 60 * 1000, // 3 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes cache time
 		retry: 2,
-		// Keep previous data while fetching new page
-		placeholderData: previousData => previousData,
+		// Keep previous data while fetching new page (official v5 helper)
+		placeholderData: keepPreviousData,
 		select: (response: {
 			data: TenantWithLeaseInfo[]
 			total: number
@@ -435,106 +417,18 @@ export function useUpdateTenant() {
 }
 
 /**
- * Mutation hook to delete a tenant with enhanced optimistic updates
- * Includes comprehensive rollback of all related caches
- */
-export function useDeleteTenant(callbacks?: {
-	onSuccess?: () => void
-	onError?: (error: Error) => void
-}) {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: async (id: string) => {
-			const response = await apiClient<void>(
-				`${API_BASE_URL}/api/v1/tenants/${id}`,
-				{
-					method: 'DELETE'
-				}
-			)
-			return response
-		},
-		onMutate: async (id: string) => {
-			// Cancel all queries related to this tenant
-			await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })
-			await queryClient.cancelQueries({ queryKey: tenantKeys.withLease(id) })
-			await queryClient.cancelQueries({ queryKey: tenantKeys.list() })
-
-			// Snapshot all caches for potential rollback
-			const previousDetail = queryClient.getQueryData<TenantWithLeaseInfo>(
-				tenantKeys.detail(id)
-			)
-			const previousWithLease = queryClient.getQueryData<TenantWithLeaseInfo>(
-				tenantKeys.withLease(id)
-			)
-			const previousList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
-				tenantKeys.list()
-			)
-
-			// Optimistically remove from list
-			queryClient.setQueryData<TenantWithLeaseInfo[]>(tenantKeys.list(), old =>
-				old ? old.filter(tenant => tenant.id !== id) : old
-			)
-
-			return { previousDetail, previousWithLease, previousList, id }
-		},
-		onError: (err, _id, context) => {
-			// Comprehensive rollback: restore all caches
-			if (context) {
-				if (context.previousDetail) {
-					queryClient.setQueryData(
-						tenantKeys.detail(context.id),
-						context.previousDetail
-					)
-				}
-				if (context.previousWithLease) {
-					queryClient.setQueryData(
-						tenantKeys.withLease(context.id),
-						context.previousWithLease
-					)
-				}
-				if (context.previousList) {
-					queryClient.setQueryData(tenantKeys.list(), context.previousList)
-				}
-			}
-
-			try {
-				callbacks?.onError?.(err as Error)
-			} catch {
-				// Ignore callback errors
-			}
-		},
-		onSuccess: (_data, id) => {
-			// Remove from all caches after successful deletion
-			queryClient.removeQueries({ queryKey: tenantKeys.detail(id) })
-			queryClient.removeQueries({ queryKey: tenantKeys.withLease(id) })
-
-			try {
-				callbacks?.onSuccess?.()
-			} catch {
-				// Ignore callback errors
-			}
-		}
-	})
-}
-
-/**
  * Combined hook for tenant operations needed by tenant management pages
+ * Note: DELETE operations now use React 19 useOptimistic with Server Actions
  */
 export function useTenantOperations() {
 	const createTenant = useCreateTenant()
 	const updateTenant = useUpdateTenant()
-	const deleteTenant = useDeleteTenant()
 
 	return {
 		createTenant,
 		updateTenant,
-		deleteTenant,
-		isLoading:
-			createTenant.isPending ||
-			updateTenant.isPending ||
-			deleteTenant.isPending,
-		error: createTenant.error || updateTenant.error || deleteTenant.error
+		isLoading: createTenant.isPending || updateTenant.isPending,
+		error: createTenant.error || updateTenant.error
 	}
 }
 
