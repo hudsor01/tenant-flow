@@ -76,6 +76,21 @@ export class TenantsService {
 			const client = this.supabase.getAdminClient()
 			let queryBuilder = client.from('tenant').select('*').eq('userId', userId)
 
+			// Filter out MOVED_OUT and ARCHIVED tenants by default (soft delete)
+			// Include them only if explicitly requested via status filter
+			if (!query.status) {
+				queryBuilder = queryBuilder.not(
+					'status',
+					'in',
+					'("MOVED_OUT","ARCHIVED")'
+				)
+			} else if (query.status && query.status !== 'all') {
+				const statusValue = String(
+					query.status
+				) as Database['public']['Enums']['TenantStatus']
+				queryBuilder = queryBuilder.eq('status', statusValue)
+			}
+
 			// SECURITY FIX #2: Apply safe search filter to prevent SQL injection
 			if (query.search) {
 				const searchTerm = String(query.search)
@@ -141,7 +156,7 @@ export class TenantsService {
 			const client = this.supabase.getAdminClient()
 			const { data, error } = await client
 				.from('tenant')
-				.select('createdAt')
+				.select('createdAt, status')
 				.eq('userId', userId)
 
 			if (error) {
@@ -156,10 +171,24 @@ export class TenantsService {
 			const now = new Date()
 			const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
+			// Count tenants by status (excluding MOVED_OUT and ARCHIVED)
+			const activeTenants = tenants.filter(
+				t => t.status === 'ACTIVE' || t.status === 'PENDING'
+			)
+			const inactiveTenants = tenants.filter(
+				t =>
+					t.status === 'INACTIVE' ||
+					t.status === 'EVICTED' ||
+					t.status === 'MOVED_OUT' ||
+					t.status === 'ARCHIVED'
+			)
+
 			return {
-				total: tenants.length,
-				active: 0, // invitationStatus column doesn't exist - would need to join with leases
-				inactive: 0, // invitationStatus column doesn't exist
+				total: activeTenants.length, // Only count active/pending (exclude moved out/archived)
+				active: activeTenants.filter(t => t.status === 'ACTIVE').length,
+				inactive: inactiveTenants.filter(
+					t => t.status === 'INACTIVE' || t.status === 'EVICTED'
+				).length,
 				newThisMonth: tenants.filter(
 					t => new Date(t.createdAt) >= thirtyDaysAgo
 				).length
@@ -374,12 +403,75 @@ export class TenantsService {
 	}
 
 	/**
-	 * Delete tenant via direct Supabase query (soft delete)
+	 * Mark tenant as moved out (soft delete with 7-year retention)
 	 */
-	async remove(userId: string, tenantId: string): Promise<void> {
+	async markAsMovedOut(
+		userId: string,
+		tenantId: string,
+		moveOutDate: string,
+		moveOutReason: string
+	): Promise<Tenant | null> {
 		// Business logic: Validate inputs
 		if (!userId || !tenantId) {
-			this.logger.warn('Remove tenant requested with missing parameters', {
+			this.logger.warn('Mark moved out requested with missing parameters', {
+				userId,
+				tenantId
+			})
+			return null
+		}
+
+		try {
+			this.logger.log('Marking tenant as moved out via direct Supabase query', {
+				userId,
+				tenantId,
+				moveOutDate
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			// Update tenant status to MOVED_OUT
+			const updateData: Database['public']['Tables']['tenant']['Update'] = {
+				status: 'MOVED_OUT' as Database['public']['Enums']['TenantStatus'],
+				move_out_date: moveOutDate,
+				move_out_reason: moveOutReason,
+				updatedAt: new Date().toISOString()
+			}
+
+			const { data, error } = await client
+				.from('tenant')
+				.update(updateData)
+				.eq('id', tenantId)
+				.eq('userId', userId)
+				.select()
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to mark tenant as moved out in Supabase', {
+					error: error.message,
+					userId,
+					tenantId
+				})
+				return null
+			}
+
+			return data as Tenant
+		} catch (error) {
+			this.logger.error('Tenants service failed to mark tenant as moved out', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				tenantId
+			})
+			return null
+		}
+	}
+
+	/**
+	 * Permanently delete tenant (7+ years only)
+	 */
+	async hardDelete(userId: string, tenantId: string): Promise<void> {
+		// Business logic: Validate inputs
+		if (!userId || !tenantId) {
+			this.logger.warn('Hard delete requested with missing parameters', {
 				userId,
 				tenantId
 			})
@@ -387,14 +479,44 @@ export class TenantsService {
 		}
 
 		try {
-			this.logger.log('Removing tenant via direct Supabase query', {
+			this.logger.log('Hard deleting tenant via direct Supabase query', {
 				userId,
 				tenantId
 			})
 
+			// Business logic: Verify tenant exists and check 7-year retention
+			const tenant = await this.findOne(userId, tenantId)
+			if (!tenant) {
+				throw new BadRequestException('Tenant not found or access denied')
+			}
+
+			// Check if tenant has been archived for 7+ years
+			const now = new Date()
+			const sevenYearsAgo = new Date(
+				now.getFullYear() - 7,
+				now.getMonth(),
+				now.getDate()
+			)
+
+			if (tenant.move_out_date) {
+				const moveOutDate = new Date(tenant.move_out_date)
+				if (moveOutDate > sevenYearsAgo) {
+					throw new BadRequestException(
+						'Tenant can only be permanently deleted 7 years after move-out date (legal retention requirement)'
+					)
+				}
+			} else if (tenant.createdAt) {
+				const createdDate = new Date(tenant.createdAt)
+				if (createdDate > sevenYearsAgo) {
+					throw new BadRequestException(
+						'Tenant must be marked as moved out and retained for 7 years before permanent deletion (legal retention requirement)'
+					)
+				}
+			}
+
 			const client = this.supabase.getAdminClient()
 
-			// Hard delete - database doesn't have deleted_at/deletedAt column
+			// Hard delete after 7-year retention check
 			const { error } = await client
 				.from('tenant')
 				.delete()
@@ -402,15 +524,15 @@ export class TenantsService {
 				.eq('userId', userId)
 
 			if (error) {
-				this.logger.error('Failed to delete tenant in Supabase', {
+				this.logger.error('Failed to permanently delete tenant in Supabase', {
 					error: error.message,
 					userId,
 					tenantId
 				})
-				throw new BadRequestException('Failed to delete tenant')
+				throw new BadRequestException('Failed to permanently delete tenant')
 			}
 		} catch (error) {
-			this.logger.error('Tenants service failed to remove tenant', {
+			this.logger.error('Tenants service failed to hard delete tenant', {
 				error: error instanceof Error ? error.message : String(error),
 				userId,
 				tenantId
@@ -419,8 +541,17 @@ export class TenantsService {
 			if (error instanceof BadRequestException) {
 				throw error
 			}
-			throw new BadRequestException('Failed to delete tenant')
+			throw new BadRequestException('Failed to permanently delete tenant')
 		}
+	}
+
+	/**
+	 * Delete tenant (deprecated - redirects to soft delete)
+	 */
+	async remove(_userId: string, _tenantId: string): Promise<void> {
+		throw new BadRequestException(
+			'Direct deletion is not allowed. Use markAsMovedOut() for soft delete or hardDelete() for permanent deletion (7+ years only)'
+		)
 	}
 
 	// NOTE: The following methods use direct RPC calls for specialized business logic

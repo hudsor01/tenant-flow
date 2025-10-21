@@ -1,15 +1,22 @@
 export default {
 	'*.{js,jsx,ts,tsx}': filenames => {
-		// Filter out Playwright, test files, and config files that are excluded from ESLint
+		// Filter out test files, config files, and generated files that are excluded from ESLint
 		const filteredFiles = filenames.filter(
 			file =>
 				!file.includes('/tests/') &&
+				!file.includes('/test/') &&
+				!file.includes('__tests__') &&
 				!file.includes('.test.') &&
 				!file.includes('.spec.') &&
+				!file.includes('.e2e-spec.') &&
 				!file.includes('playwright.config.ts') &&
+				!file.includes('vitest.config.ts') &&
+				!file.includes('jest.config.js') &&
 				!file.endsWith('.config.js') &&
 				!file.endsWith('.config.mjs') &&
-				!file.endsWith('.config.cjs')
+				!file.endsWith('.config.cjs') &&
+				!file.endsWith('.config.ts') &&
+				!file.includes('supabase-generated.ts')
 		)
 
 		if (filteredFiles.length === 0) return []
