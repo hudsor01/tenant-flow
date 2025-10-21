@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/providers/theme-provider'
 import { AuthStoreProvider } from '@/stores/auth-provider'
 import { PreferencesStoreProvider } from '@/stores/preferences-provider'
 import type { PreferencesState } from '@/stores/preferences-store'
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 
 interface ProvidersProps {
 	children: ReactNode
@@ -28,7 +29,9 @@ export function Providers({
 		>
 			<PreferencesStoreProvider themeMode={initialThemeMode}>
 				<QueryProvider>
-					<AuthStoreProvider>{children}</AuthStoreProvider>
+					<NuqsAdapter>
+						<AuthStoreProvider>{children}</AuthStoreProvider>
+					</NuqsAdapter>
 				</QueryProvider>
 			</PreferencesStoreProvider>
 		</ThemeProvider>
