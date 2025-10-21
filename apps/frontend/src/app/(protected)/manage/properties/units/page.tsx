@@ -41,8 +41,8 @@ import type { Database } from '@repo/shared/types/supabase-generated'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DoorOpen, Filter, Plus } from 'lucide-react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
+import { useRef } from 'react'
 import { toast } from 'sonner'
 
 type InsertUnit = Database['public']['Tables']['unit']['Insert']
@@ -52,62 +52,21 @@ type PropertyRowDB = Database['public']['Tables']['property']['Row']
 const ITEMS_PER_PAGE = 25
 
 export default function UnitsPage() {
-	const router = useRouter()
-	const pathname = usePathname()
-	const searchParams = useSearchParams()
-
-	// Get URL params with defaults
-	const pageParam = Number(searchParams.get('page')) || 1
-	const statusParam = searchParams.get('status')
-	const propertyParam = searchParams.get('property')
-
-	// Local state synced with URL
-	const [page, setPage] = useState(pageParam)
-	const status = statusParam as UnitStatus | undefined
-	const propertyFilter = propertyParam || undefined
-
-	// Sync page state with URL
-	useEffect(() => {
-		setPage(pageParam)
-	}, [pageParam])
-
-	// Update URL when pagination/filters change
-	const updateURL = (updates: {
-		page?: number
-		status?: string
-		property?: string
-	}) => {
-		const params = new URLSearchParams(searchParams.toString())
-
-		if (updates.page !== undefined) {
-			if (updates.page === 1) {
-				params.delete('page')
-			} else {
-				params.set('page', updates.page.toString())
-			}
+	// ✅ nuqs: Type-safe URL state with automatic batching and clean URLs
+	const [{ page, status, property }, setUrlState] = useQueryStates(
+		{
+			page: parseAsInteger.withDefault(1),
+			status: parseAsString.withDefault(''),
+			property: parseAsString.withDefault('')
+		},
+		{
+			history: 'push',
+			scroll: false,
+			shallow: true,
+			throttleMs: 200,
+			clearOnDefault: true // Clean URLs: /units instead of /units?page=1&status=&property=
 		}
-
-		if (updates.status !== undefined) {
-			if (updates.status === 'ALL' || updates.status === '') {
-				params.delete('status')
-			} else {
-				params.set('status', updates.status)
-			}
-		}
-
-		if (updates.property !== undefined) {
-			if (updates.property === 'ALL' || updates.property === '') {
-				params.delete('property')
-			} else {
-				params.set('property', updates.property)
-			}
-		}
-
-		const newURL = params.toString()
-			? `${pathname}?${params.toString()}`
-			: pathname
-		router.push(newURL, { scroll: false })
-	}
+	)
 
 	// Use modern hook with pagination
 	const params: {
@@ -119,8 +78,8 @@ export default function UnitsPage() {
 		limit: ITEMS_PER_PAGE,
 		offset: (page - 1) * ITEMS_PER_PAGE
 	}
-	if (status) params.status = status
-	if (propertyFilter) params.propertyId = propertyFilter
+	if (status) params.status = status as UnitStatus
+	if (property) params.propertyId = property
 
 	const { data: unitsData, isLoading } = useUnitList(params)
 
@@ -231,8 +190,13 @@ export default function UnitsPage() {
 						<div className="flex items-center gap-2">
 							<Filter className="size-4 text-muted-foreground" />
 							<Select
-								value={status ?? 'ALL'}
-								onValueChange={value => updateURL({ status: value, page: 1 })}
+								value={status || 'ALL'}
+								onValueChange={value =>
+									setUrlState({
+										status: value === 'ALL' ? '' : value,
+										page: 1
+									})
+								}
 							>
 								<SelectTrigger className="w-40">
 									<SelectValue placeholder="Filter by status" />
@@ -248,8 +212,10 @@ export default function UnitsPage() {
 						</div>
 
 						<Select
-							value={propertyFilter ?? 'ALL'}
-							onValueChange={value => updateURL({ property: value, page: 1 })}
+							value={property || 'ALL'}
+							onValueChange={value =>
+								setUrlState({ property: value === 'ALL' ? '' : value, page: 1 })
+							}
 						>
 							<SelectTrigger className="w-48">
 								<SelectValue placeholder="Filter by property" />
@@ -286,9 +252,7 @@ export default function UnitsPage() {
 										onClick={e => {
 											e.preventDefault()
 											if (page > 1) {
-												const newPage = page - 1
-												setPage(newPage)
-												updateURL({ page: newPage })
+												setUrlState({ page: page - 1 })
 											}
 										}}
 										className={
@@ -316,8 +280,7 @@ export default function UnitsPage() {
 												href="#"
 												onClick={e => {
 													e.preventDefault()
-													setPage(pageNum)
-													updateURL({ page: pageNum })
+													setUrlState({ page: pageNum })
 												}}
 												isActive={page === pageNum}
 											>
@@ -332,9 +295,7 @@ export default function UnitsPage() {
 										onClick={e => {
 											e.preventDefault()
 											if (page < Math.ceil(totalItems / ITEMS_PER_PAGE)) {
-												const newPage = page + 1
-												setPage(newPage)
-												updateURL({ page: newPage })
+												setUrlState({ page: page + 1 })
 											}
 										}}
 										className={
