@@ -1,8 +1,12 @@
 import type { Metadata } from 'next'
 import { revalidatePath } from 'next/cache'
 
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
 import { tenantsApi } from '@/lib/api-client'
 import { TenantsTable } from '../../tenant/tenants-table.client'
+
+const logger = createLogger({ component: 'TenantsServerActions' })
 
 export const metadata: Metadata = {
 	title: 'Tenants | TenantFlow',
@@ -16,10 +20,12 @@ async function deleteTenant(tenantId: string) {
 		revalidatePath('/manage/tenants')
 		return { success: true }
 	} catch (error) {
-		// Server Action: console.error is acceptable for server-side logging
-		console.error('[Server Action] Failed to delete tenant:', {
-			tenantId,
-			error: error instanceof Error ? error.message : String(error)
+		logger.error('Failed to delete tenant', {
+			action: 'deleteTenant',
+			metadata: {
+				tenantId,
+				error: error instanceof Error ? error.message : String(error)
+			}
 		})
 		throw error
 	}
