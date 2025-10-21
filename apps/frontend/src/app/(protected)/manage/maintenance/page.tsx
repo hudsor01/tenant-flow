@@ -17,7 +17,6 @@ async function deleteMaintenanceRequest(requestId: string) {
 		return { success: true }
 	} catch (error) {
 		// Server Action: console.error is acceptable for server-side logging
-		// eslint-disable-next-line no-console, no-restricted-syntax
 		console.error('[Server Action] Failed to delete maintenance request:', {
 			requestId,
 			error: error instanceof Error ? error.message : String(error)
@@ -39,7 +38,10 @@ export default async function MaintenancePage() {
 					progress.
 				</p>
 			</div>
-			<MaintenanceTable initialData={data} deleteMaintenanceRequestAction={deleteMaintenanceRequest} />
+			<MaintenanceTable
+				initialData={data}
+				deleteMaintenanceRequestAction={deleteMaintenanceRequest}
+			/>
 		</div>
 	)
 }
