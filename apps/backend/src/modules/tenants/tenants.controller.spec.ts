@@ -358,6 +358,51 @@ describe('TenantsController', () => {
 			)
 			expect(result.message).toBe('Tenant permanently deleted')
 		})
+
+		it('should reject deletion of active tenant', async () => {
+			mockTenantsServiceInstance.hardDelete.mockRejectedValue(
+				new BadRequestException(
+					'Tenant must be marked as moved out before permanent deletion. Use PUT /tenants/:id/mark-moved-out first.'
+				)
+			)
+
+			await expect(
+				controller.hardDelete(
+					'tenant-1',
+					createMockRequest({ user: mockUser }) as any
+				)
+			).rejects.toThrow(BadRequestException)
+		})
+
+		it('should reject deletion of tenant without move-out date', async () => {
+			mockTenantsServiceInstance.hardDelete.mockRejectedValue(
+				new BadRequestException(
+					'Tenant must have a move-out date before permanent deletion. Use PUT /tenants/:id/mark-moved-out first.'
+				)
+			)
+
+			await expect(
+				controller.hardDelete(
+					'tenant-1',
+					createMockRequest({ user: mockUser }) as any
+				)
+			).rejects.toThrow(BadRequestException)
+		})
+
+		it('should reject deletion within 7-year retention period', async () => {
+			mockTenantsServiceInstance.hardDelete.mockRejectedValue(
+				new BadRequestException(
+					'Tenant can only be permanently deleted 7 years after move-out date (legal retention requirement)'
+				)
+			)
+
+			await expect(
+				controller.hardDelete(
+					'tenant-1',
+					createMockRequest({ user: mockUser }) as any
+				)
+			).rejects.toThrow(BadRequestException)
+		})
 	})
 
 	describe('remove (deprecated)', () => {

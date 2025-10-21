@@ -490,6 +490,20 @@ export class TenantsService {
 				throw new BadRequestException('Tenant not found or access denied')
 			}
 
+			// Require tenant to be marked as moved out before permanent deletion
+			if (tenant.status !== 'MOVED_OUT' && tenant.status !== 'ARCHIVED') {
+				throw new BadRequestException(
+					'Tenant must be marked as moved out before permanent deletion. Use PUT /tenants/:id/mark-moved-out first.'
+				)
+			}
+
+			// Require move_out_date to be set
+			if (!tenant.move_out_date) {
+				throw new BadRequestException(
+					'Tenant must have a move-out date before permanent deletion. Use PUT /tenants/:id/mark-moved-out first.'
+				)
+			}
+
 			// Check if tenant has been archived for 7+ years
 			const now = new Date()
 			const sevenYearsAgo = new Date(
@@ -498,20 +512,11 @@ export class TenantsService {
 				now.getDate()
 			)
 
-			if (tenant.move_out_date) {
-				const moveOutDate = new Date(tenant.move_out_date)
-				if (moveOutDate > sevenYearsAgo) {
-					throw new BadRequestException(
-						'Tenant can only be permanently deleted 7 years after move-out date (legal retention requirement)'
-					)
-				}
-			} else if (tenant.createdAt) {
-				const createdDate = new Date(tenant.createdAt)
-				if (createdDate > sevenYearsAgo) {
-					throw new BadRequestException(
-						'Tenant must be marked as moved out and retained for 7 years before permanent deletion (legal retention requirement)'
-					)
-				}
+			const moveOutDate = new Date(tenant.move_out_date)
+			if (moveOutDate > sevenYearsAgo) {
+				throw new BadRequestException(
+					'Tenant can only be permanently deleted 7 years after move-out date (legal retention requirement)'
+				)
 			}
 
 			const client = this.supabase.getAdminClient()
