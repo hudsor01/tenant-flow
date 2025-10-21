@@ -148,8 +148,10 @@ export function UpdatePasswordForm({
 								<InputGroup>
 									<InputGroupInput
 										id="confirmPassword"
+										name="confirmPassword"
 										type={showConfirmPassword ? 'text' : 'password'}
 										placeholder="Confirm your new password"
+										autoComplete="new-password"
 										value={confirmPassword}
 										onChange={e => setConfirmPassword(e.target.value)}
 										disabled={updatePasswordMutation.isPending}

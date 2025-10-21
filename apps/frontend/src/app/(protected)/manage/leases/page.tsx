@@ -62,73 +62,31 @@ import {
 	Trash2,
 	X
 } from 'lucide-react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { CreateLeaseDialog } from './create-dialog'
 
 const ITEMS_PER_PAGE = 25
 
 export default function LeasesPage() {
-	const router = useRouter()
-	const pathname = usePathname()
-	const searchParams = useSearchParams()
 	const logger = createLogger({ component: 'LeasesPage' })
 
-	// Get URL params with defaults
-	const pageParam = Number(searchParams.get('page')) || 1
-	const searchParam = searchParams.get('search') || ''
-	const statusParam = searchParams.get('status') || 'all'
-
-	// Local state synced with URL
-	const [page, setPage] = useState(pageParam)
-	const [search, setSearch] = useState(searchParam)
-	const [statusFilter, setStatusFilter] = useState<string>(statusParam)
-
-	// Sync local state with URL params on mount/navigation
-	useEffect(() => {
-		setPage(pageParam)
-		setSearch(searchParam)
-		setStatusFilter(statusParam)
-	}, [pageParam, searchParam, statusParam])
-
-	// Update URL when filters change
-	const updateURL = (updates: {
-		page?: number
-		search?: string
-		status?: string
-	}) => {
-		const params = new URLSearchParams(searchParams.toString())
-
-		if (updates.page !== undefined) {
-			if (updates.page === 1) {
-				params.delete('page')
-			} else {
-				params.set('page', updates.page.toString())
-			}
+	// ✅ nuqs: Type-safe URL state with automatic batching and clean URLs
+	const [{ page, search, status }, setUrlState] = useQueryStates(
+		{
+			page: parseAsInteger.withDefault(1),
+			search: parseAsString.withDefault(''),
+			status: parseAsString.withDefault('all')
+		},
+		{
+			history: 'push',
+			scroll: false,
+			shallow: true,
+			throttleMs: 200,
+			clearOnDefault: true // Clean URLs: /leases instead of /leases?page=1&search=&status=all
 		}
-
-		if (updates.search !== undefined) {
-			if (updates.search === '') {
-				params.delete('search')
-			} else {
-				params.set('search', updates.search)
-			}
-		}
-
-		if (updates.status !== undefined) {
-			if (updates.status === 'all') {
-				params.delete('status')
-			} else {
-				params.set('status', updates.status)
-			}
-		}
-
-		const newURL = params.toString()
-			? `${pathname}?${params.toString()}`
-			: pathname
-		router.push(newURL, { scroll: false })
-	}
+	)
 	const [renewDialogOpen, setRenewDialogOpen] = useState(false)
 	const [terminateDialogOpen, setTerminateDialogOpen] = useState(false)
 	const [editDialogOpen, setEditDialogOpen] = useState(false)
@@ -148,8 +106,8 @@ export default function LeasesPage() {
 		offset: (page - 1) * ITEMS_PER_PAGE
 	}
 	if (search) params.search = search
-	if (statusFilter !== 'all')
-		params.status = statusFilter as 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+	if (status !== 'all')
+		params.status = status as 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
 
 	const { data: leasesResponse, isLoading, error } = useLeaseList(params)
 
@@ -303,19 +261,16 @@ export default function LeasesPage() {
 						placeholder="Search leases..."
 						value={search}
 						onChange={e => {
-							const newSearch = e.target.value
-							setSearch(newSearch)
-							updateURL({ search: newSearch, page: 1 }) // Reset to page 1 on search
+							setUrlState({ search: e.target.value, page: 1 }) // Reset to page 1 on search
 						}}
 						className="pl-9"
 					/>
 				</div>
 
 				<Select
-					value={statusFilter}
+					value={status}
 					onValueChange={newStatus => {
-						setStatusFilter(newStatus)
-						updateURL({ status: newStatus, page: 1 }) // Reset to page 1 on filter change
+						setUrlState({ status: newStatus, page: 1 }) // Reset to page 1 on filter change
 					}}
 				>
 					<SelectTrigger className="w-[180px]">
@@ -347,7 +302,7 @@ export default function LeasesPage() {
 					<FileText className="mx-auto h-12 w-12 text-muted-foreground/50" />
 					<h3 className="mt-4 text-lg font-semibold">No leases found</h3>
 					<p className="mt-2 text-sm text-muted-foreground">
-						{search || statusFilter !== 'all'
+						{search || status !== 'all'
 							? 'Try adjusting your filters'
 							: 'Get started by creating your first lease'}
 					</p>
@@ -451,9 +406,7 @@ export default function LeasesPage() {
 									onClick={e => {
 										e.preventDefault()
 										if (page > 1) {
-											const newPage = page - 1
-											setPage(newPage)
-											updateURL({ page: newPage })
+											setUrlState({ page: page - 1 })
 										}
 									}}
 									className={page === 1 ? 'pointer-events-none opacity-50' : ''}
@@ -479,8 +432,7 @@ export default function LeasesPage() {
 											href="#"
 											onClick={e => {
 												e.preventDefault()
-												setPage(pageNum)
-												updateURL({ page: pageNum })
+												setUrlState({ page: pageNum })
 											}}
 											isActive={page === pageNum}
 										>
@@ -495,9 +447,7 @@ export default function LeasesPage() {
 									onClick={e => {
 										e.preventDefault()
 										if (page < Math.ceil(total / ITEMS_PER_PAGE)) {
-											const newPage = page + 1
-											setPage(newPage)
-											updateURL({ page: newPage })
+											setUrlState({ page: page + 1 })
 										}
 									}}
 									className={
