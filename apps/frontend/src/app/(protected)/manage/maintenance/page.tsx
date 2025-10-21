@@ -1,8 +1,12 @@
 import type { Metadata } from 'next'
 import { revalidatePath } from 'next/cache'
 
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
 import { maintenanceApi } from '@/lib/api-client'
 import { MaintenanceTable } from './maintenance-table.client'
+
+const logger = createLogger({ component: 'MaintenanceServerActions' })
 
 export const metadata: Metadata = {
 	title: 'Maintenance | TenantFlow',
@@ -16,10 +20,12 @@ async function deleteMaintenanceRequest(requestId: string) {
 		revalidatePath('/manage/maintenance')
 		return { success: true }
 	} catch (error) {
-		// Server Action: console.error is acceptable for server-side logging
-		console.error('[Server Action] Failed to delete maintenance request:', {
-			requestId,
-			error: error instanceof Error ? error.message : String(error)
+		logger.error('Failed to delete maintenance request', {
+			action: 'deleteMaintenanceRequest',
+			metadata: {
+				requestId,
+				error: error instanceof Error ? error.message : String(error)
+			}
 		})
 		throw error
 	}
