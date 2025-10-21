@@ -1,8 +1,35 @@
-import { Suspense } from 'react'
+import type { Metadata } from 'next'
+import { revalidatePath } from 'next/cache'
 
+import { maintenanceApi } from '@/lib/api-client'
 import { MaintenanceTable } from './maintenance-table.client'
 
-export default function MaintenancePage() {
+export const metadata: Metadata = {
+	title: 'Maintenance | TenantFlow',
+	description: 'Manage maintenance requests and track resolution progress'
+}
+
+async function deleteMaintenanceRequest(requestId: string) {
+	'use server'
+	try {
+		await maintenanceApi.remove(requestId)
+		revalidatePath('/manage/maintenance')
+		return { success: true }
+	} catch (error) {
+		// Server Action: console.error is acceptable for server-side logging
+		// eslint-disable-next-line no-console, no-restricted-syntax
+		console.error('[Server Action] Failed to delete maintenance request:', {
+			requestId,
+			error: error instanceof Error ? error.message : String(error)
+		})
+		throw error
+	}
+}
+
+export default async function MaintenancePage() {
+	// ✅ Server Component: Fetch data on server during RSC render
+	const data = await maintenanceApi.list()
+
 	return (
 		<div className="space-y-10">
 			<div className="space-y-2">
@@ -12,15 +39,7 @@ export default function MaintenancePage() {
 					progress.
 				</p>
 			</div>
-			<Suspense
-				fallback={
-					<div className="animate-pulse text-muted-foreground">
-						Loading maintenance requests...
-					</div>
-				}
-			>
-				<MaintenanceTable />
-			</Suspense>
+			<MaintenanceTable initialData={data} deleteMaintenanceRequestAction={deleteMaintenanceRequest} />
 		</div>
 	)
 }

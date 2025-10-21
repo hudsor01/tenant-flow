@@ -295,6 +295,9 @@ export function createMockProperty(overrides?: Partial<Property>): Property {
 		description: overrides?.description || null,
 		imageUrl: overrides?.imageUrl || null,
 		status: overrides?.status || 'ACTIVE',
+		date_sold: null,
+		sale_price: null,
+		sale_notes: null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 		...overrides

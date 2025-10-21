@@ -18,8 +18,7 @@ import type {
 import type { Property, PropertyStats } from '@repo/shared/types/core'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+import { API_BASE_URL } from '@/lib/api-client'
 
 /**
  * Query keys for property endpoints (hierarchical, typed)
@@ -48,8 +47,6 @@ export const propertiesKeys = {
  * Hook to fetch property by ID with optimized caching
  */
 export function useProperty(id: string) {
-	const queryClient = useQueryClient()
-
 	return useQuery({
 		queryKey: propertiesKeys.detail(id),
 		queryFn: async (): Promise<Property> => {
@@ -61,22 +58,7 @@ export function useProperty(id: string) {
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes
-		retry: 2,
-		// Use data from list query as placeholder
-		placeholderData: () => {
-			const cachedLists = queryClient.getQueriesData<{
-				data: Property[]
-				total: number
-			}>({
-				queryKey: propertiesKeys.all
-			})
-
-			for (const [, data] of cachedLists) {
-				const property = data?.data?.find((p: Property) => p.id === id)
-				if (property) return property
-			}
-			return undefined
-		}
+		retry: 2
 	})
 }
 
@@ -272,7 +254,9 @@ export function useCreateProperty() {
 				status: newProperty.status || 'ACTIVE',
 				description: newProperty.description || null,
 				imageUrl: newProperty.imageUrl || null,
-				createdAt: new Date().toISOString(),
+			date_sold: null,
+			sale_price: null,
+			sale_notes: null,				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString()
 			}
 
@@ -443,27 +427,43 @@ export function useUpdateProperty() {
 }
 
 /**
- * Mutation hook to delete a property with optimistic removal
+ * Mark property as sold (7-year retention compliance)
+ * Updates status to SOLD with required date_sold and sale_price fields
  */
-export function useDeleteProperty(options?: {
-	onSuccess?: () => void
-	onError?: (error: Error) => void
-}) {
+export function useMarkPropertySold() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (id: string) => {
-			await apiClient(`${API_BASE_URL}/api/v1/properties/${id}`, {
-				method: 'DELETE'
+		mutationFn: async ({
+			id,
+			dateSold,
+			salePrice,
+			saleNotes
+		}: {
+			id: string
+			dateSold: Date
+			salePrice: number
+			saleNotes?: string
+		}) => {
+			const response = await apiClient<{
+				success: boolean
+				message: string
+			}>(`${API_BASE_URL}/api/v1/properties/${id}/mark-sold`, {
+				method: 'PUT',
+				body: JSON.stringify({
+					dateSold: dateSold.toISOString(),
+					salePrice,
+					saleNotes
+				})
 			})
-			return id
+			return response
 		},
-		onMutate: async (id: string) => {
+		onMutate: async ({ id }) => {
 			// Cancel outgoing queries
 			await queryClient.cancelQueries({ queryKey: propertiesKeys.detail(id) })
 			await queryClient.cancelQueries({ queryKey: propertiesKeys.all })
 
-			// Snapshot previous state
+			// Snapshot previous state for rollback
 			const previousDetail = queryClient.getQueryData<Property>(
 				propertiesKeys.detail(id)
 			)
@@ -474,23 +474,9 @@ export function useDeleteProperty(options?: {
 				queryKey: propertiesKeys.all
 			})
 
-			// Optimistically remove from all caches
-			queryClient.removeQueries({ queryKey: propertiesKeys.detail(id) })
-			queryClient.setQueriesData<{ data: Property[]; total: number }>(
-				{ queryKey: propertiesKeys.all },
-				old =>
-					old
-						? {
-								...old,
-								data: old.data.filter(property => property.id !== id),
-								total: old.total - 1
-							}
-						: old
-			)
-
 			return { previousDetail, previousLists }
 		},
-		onError: (err, id, context) => {
+		onError: (err, { id }, context) => {
 			// Rollback on error
 			if (context?.previousDetail) {
 				queryClient.setQueryData(
@@ -504,16 +490,13 @@ export function useDeleteProperty(options?: {
 				})
 			}
 
-			logger.error('Failed to delete property', {
+			logger.error('Failed to mark property as sold', {
 				propertyId: id,
 				error: err instanceof Error ? err.message : String(err)
 			})
-
-			options?.onError?.(err instanceof Error ? err : new Error(String(err)))
 		},
-		onSuccess: id => {
-			logger.info('Property deleted successfully', { propertyId: id })
-			options?.onSuccess?.()
+		onSuccess: data => {
+			logger.info('Property marked as sold', { message: data.message })
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
@@ -551,7 +534,7 @@ export function usePropertyOperations() {
 	return {
 		create: useCreateProperty(),
 		update: useUpdateProperty(),
-		delete: useDeleteProperty()
+		markSold: useMarkPropertySold()
 	}
 }
 

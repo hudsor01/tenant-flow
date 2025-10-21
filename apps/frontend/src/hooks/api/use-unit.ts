@@ -18,8 +18,7 @@ import type {
 import type { Unit, UnitStats } from '@repo/shared/types/core'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+import { API_BASE_URL } from '@/lib/api-client'
 
 /**
  * Query keys for unit endpoints (hierarchical, typed)
@@ -39,8 +38,6 @@ export const unitKeys = {
  * Uses placeholder data from list cache for instant loading
  */
 export function useUnit(id: string) {
-	const queryClient = useQueryClient()
-
 	return useQuery({
 		queryKey: unitKeys.detail(id),
 		queryFn: async (): Promise<Unit> => {
@@ -52,21 +49,6 @@ export function useUnit(id: string) {
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes cache time
-		// Use data from list query as placeholder while fetching
-		placeholderData: () => {
-			const cachedLists = queryClient.getQueriesData<{
-				data: Unit[]
-				total: number
-			}>({
-				queryKey: unitKeys.all
-			})
-
-			for (const [, data] of cachedLists) {
-				const unit = data?.data?.find((u: Unit) => u.id === id)
-				if (unit) return unit
-			}
-			return undefined
-		}
 	})
 }
 

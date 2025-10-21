@@ -85,6 +85,8 @@ function ClientFeedback() {
 										width={200}
 										height={200}
 										className="w-16 h-16 rounded object-cover"
+										placeholder="blur"
+										blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
 									/>
 								</div>
 							</article>
@@ -115,6 +117,8 @@ function ClientFeedback() {
 										width={200}
 										height={200}
 										className="w-16 h-16 rounded object-cover"
+										placeholder="blur"
+										blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
 									/>
 								</div>
 							</article>
@@ -149,6 +153,8 @@ function ClientFeedback() {
 										width={200}
 										height={200}
 										className="lg:w-16 lg:h-16 w-12 h-12 rounded object-cover"
+										placeholder="blur"
+										blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
 									/>
 								</div>
 							</article>
@@ -181,6 +187,8 @@ function ClientFeedback() {
 										width={200}
 										height={200}
 										className="lg:w-16 lg:h-16 w-12 h-12 rounded object-cover"
+										placeholder="blur"
+										blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
 									/>
 								</div>
 							</article>
@@ -212,6 +220,8 @@ function ClientFeedback() {
 										width={200}
 										height={200}
 										className="lg:w-16 lg:h-16 w-12 h-12 rounded object-cover"
+										placeholder="blur"
+										blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
 									/>
 								</div>
 							</article>
@@ -243,6 +253,8 @@ function ClientFeedback() {
 										width={200}
 										height={200}
 										className="w-16 h-16 rounded object-cover"
+										placeholder="blur"
+										blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
 									/>
 								</div>
 							</article>
@@ -274,6 +286,8 @@ function ClientFeedback() {
 										width={200}
 										height={200}
 										className="w-16 h-16 rounded object-cover"
+										placeholder="blur"
+										blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
 									/>
 								</div>
 							</article>

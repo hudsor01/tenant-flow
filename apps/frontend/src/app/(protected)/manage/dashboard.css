@@ -1,5 +1,12 @@
 @reference "../../globals.css";
 
+/* Dashboard-specific Color Variables */
+:root {
+	--color-primary: #2C7FFF;
+	--color-primary-light: #e8f2ff;
+	--color-dashboard-background: #f0f4fb;
+}
+
 .dashboard-root {
 	contain: layout style paint;
 	will-change: auto;

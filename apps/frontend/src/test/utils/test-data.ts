@@ -94,6 +94,9 @@ export const DEFAULT_PROPERTY: Property = {
 	status: 'ACTIVE',
 	description: null,
 	imageUrl: null,
+	date_sold: null,
+	sale_price: null,
+	sale_notes: null,
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z'
 }

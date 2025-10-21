@@ -134,7 +134,7 @@ export default async function DashboardPage() {
 							{/* Right: Action Cards using CardLayout */}
 							<div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-700 delay-150">
 								{/* Primary Action Card */}
-								<Link href="/manage/properties/new" className="block group">
+								<Link href="/manage/properties/new" className="block group no-underline">
 									<CardLayout
 										title="Add Property"
 										description="Create your first rental property profile"
@@ -159,7 +159,7 @@ export default async function DashboardPage() {
 
 								{/* Secondary Action Cards */}
 								<div className="grid sm:grid-cols-2 gap-4">
-									<Link href="/manage/tenants/new" className="block group">
+									<Link href="/manage/tenants/new" className="block group no-underline">
 										<CardLayout
 											title="Add Tenant"
 											description="Invite or create tenant profiles"
@@ -171,7 +171,7 @@ export default async function DashboardPage() {
 										</CardLayout>
 									</Link>
 
-									<Link href="/manage/leases/new" className="block group">
+									<Link href="/manage/leases/new" className="block group no-underline">
 										<CardLayout
 											title="Create Lease"
 											description="Set up rental agreements"

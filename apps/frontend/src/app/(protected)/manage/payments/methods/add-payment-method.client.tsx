@@ -4,7 +4,7 @@ import { CreditCard } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-import { PaymentMethodSetupForm } from '@/app/(protected)/tenant/payments/payment-method-setup-form'
+import { PaymentMethodSetupForm } from '@/app/(protected)/tenant/payments/methods/payment-method-setup-form'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
 import { Field, FieldLabel } from '@/components/ui/field'
