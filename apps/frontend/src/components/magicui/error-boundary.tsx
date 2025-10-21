@@ -38,11 +38,6 @@ export class ErrorBoundary extends Component<Props, State> {
 					componentStack: errorInfo.componentStack
 				}
 			})
-
-		// Send to error tracking service
-		if (process.env.NODE_ENV === 'production') {
-			// Example: Sentry.captureException(error, { extra: errorInfo })
-		}
 	}
 
 	override render() {

@@ -8,6 +8,7 @@ import { tenantFormSchema } from '@repo/shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
 import { useCallback, useState } from 'react'
 import { z } from 'zod'
+import { API_BASE_URL } from '@/lib/api-client'
 
 /**
  * Hook for tenant creation forms with shared validation and state management
@@ -210,8 +211,6 @@ export function useAsyncTenantValidation() {
 		async (email: string): Promise<boolean> => {
 			setIsValidating(prev => ({ ...prev, email: true }))
 			try {
-				// Simulate API call to check email availability
-				const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
 				const response = await fetch(
 					`${API_BASE_URL}/api/v1/tenants/check-email?email=${encodeURIComponent(email)}`
 				)

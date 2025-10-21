@@ -3,9 +3,8 @@
  * Phase 5: Advanced Features - Custom Reports & Analytics
  */
 
+import { API_BASE_URL } from '@/lib/api-client'
 import { apiClient } from '@repo/shared/utils/api-client'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
 
 export interface RevenueData {
 	month: string
@@ -51,7 +50,9 @@ export interface OccupancyMetrics {
 /**
  * Get monthly revenue data for charts
  */
-export async function getMonthlyRevenue(months: number = 12): Promise<RevenueData[]> {
+export async function getMonthlyRevenue(
+	months: number = 12
+): Promise<RevenueData[]> {
 	const response = await apiClient<{ success: boolean; data: RevenueData[] }>(
 		`${API_BASE_URL}/api/v1/reports/analytics/revenue/monthly?months=${months}`
 	)
@@ -70,9 +71,10 @@ export async function getPaymentAnalytics(
 	if (endDate) params.append('endDate', endDate)
 
 	const queryString = params.toString() ? `?${params.toString()}` : ''
-	const response = await apiClient<{ success: boolean; data: PaymentAnalytics }>(
-		`${API_BASE_URL}/api/v1/reports/analytics/payments${queryString}`
-	)
+	const response = await apiClient<{
+		success: boolean
+		data: PaymentAnalytics
+	}>(`${API_BASE_URL}/api/v1/reports/analytics/payments${queryString}`)
 	return response.data
 }
 
@@ -80,8 +82,9 @@ export async function getPaymentAnalytics(
  * Get occupancy metrics across all properties
  */
 export async function getOccupancyMetrics(): Promise<OccupancyMetrics> {
-	const response = await apiClient<{ success: boolean; data: OccupancyMetrics }>(
-		`${API_BASE_URL}/api/v1/reports/analytics/occupancy`
-	)
+	const response = await apiClient<{
+		success: boolean
+		data: OccupancyMetrics
+	}>(`${API_BASE_URL}/api/v1/reports/analytics/occupancy`)
 	return response.data
 }

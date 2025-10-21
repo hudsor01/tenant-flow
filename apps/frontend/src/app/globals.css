@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+
+/* Import Dashboard Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&display=swap');
+
 @source "../../../apps/**/*.{ts,tsx}";
 @source "../../../components/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
@@ -14,9 +19,11 @@
 @layer theme, base, components, utilities;
 
 @theme {
-	/* Typography System Variables */
-	--font-family:
-		'Roboto Flex', 'Roboto', system-ui, BlinkMacSystemFont, sans-serif;
+	/* Font Families */
+	--font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+	--font-display: 'Spline Sans', var(--font-sans);
+	--font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+	--font-family: var(--font-sans);
 
 	/* Typography Scales */
 	--font-large-title: 26px;

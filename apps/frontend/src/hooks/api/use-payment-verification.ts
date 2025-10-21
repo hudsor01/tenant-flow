@@ -4,7 +4,7 @@ import { apiClient, API_BASE_URL } from '@/lib/api-client'
 import type { SubscriptionData } from '@/types/stripe'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { StripeSessionStatusResponse } from '@repo/shared/types/core'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 const logger = createLogger({ component: 'PaymentVerification' })
 
@@ -101,4 +101,37 @@ export function useSessionStatus(sessionId: string | null, options: { throwOnErr
 		refetchOnMount: false, // Security: Only fetch once per session
 		throwOnError: options.throwOnError ?? false
 	})
+}
+
+/**
+ * Hook for prefetching payment verification
+ */
+export function usePrefetchPaymentVerification() {
+	const queryClient = useQueryClient()
+
+	return (sessionId: string) => {
+		queryClient.prefetchQuery({
+			queryKey: paymentQueryKeys.verifySession(sessionId),
+			staleTime: 2 * 60 * 1000
+		})
+	}
+}
+
+/**
+ * Hook for prefetching session status
+ */
+export function usePrefetchSessionStatus() {
+	const queryClient = useQueryClient()
+
+	return (sessionId: string) => {
+		queryClient.prefetchQuery({
+			queryKey: paymentQueryKeys.sessionStatus(sessionId),
+			queryFn: async (): Promise<StripeSessionStatusResponse> => {
+				return await apiClient<StripeSessionStatusResponse>(
+					`/stripe/session-status?session_id=${sessionId}`
+				)
+			},
+			staleTime: 1 * 60 * 1000
+		})
+	}
 }

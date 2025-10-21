@@ -1,8 +1,8 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trash2, Wrench } from 'lucide-react'
 import Link from 'next/link'
+import { useOptimistic, useTransition } from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -34,7 +34,6 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import { maintenanceApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
 
@@ -49,49 +48,34 @@ const PRIORITY_VARIANTS: Record<
 	LOW: 'outline'
 }
 
-export function MaintenanceTable() {
-	const queryClient = useQueryClient()
+interface MaintenanceTableProps {
+	initialData: MaintenanceRequestResponse
+	deleteMaintenanceRequestAction: (requestId: string) => Promise<{ success: boolean }>
+}
 
-	const { data, isLoading, isError } = useQuery({
-		queryKey: ['maintenance-requests'],
-		queryFn: () => maintenanceApi.list()
-	})
+export function MaintenanceTable({ initialData, deleteMaintenanceRequestAction }: MaintenanceTableProps) {
+	// ✅ React 19 useOptimistic for instant delete feedback
+	const [optimisticRequests, removeOptimistic] = useOptimistic(
+		initialData.data,
+		(state: MaintenanceRequestResponse['data'], requestId: string) => state.filter(r => r.id !== requestId)
+	)
+	const [isPending, startTransition] = useTransition()
 
-	const deleteRequest = useMutation({
-		mutationFn: (id: string) => maintenanceApi.remove(id),
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({
-				queryKey: ['maintenance-requests']
-			})
-			toast.success('Maintenance request deleted')
-		},
-		onError: error => {
-			toast.error('Failed to delete request')
-			logger.error('Failed to delete maintenance request', undefined, error)
-		}
-	})
-
-	if (isLoading) {
-		return (
-			<div className="animate-pulse text-muted-foreground">
-				Loading maintenance requests...
-			</div>
-		)
+	const handleDelete = (requestId: string) => {
+		startTransition(async () => {
+			removeOptimistic(requestId) // ✅ Instant UI update
+			try {
+				await deleteMaintenanceRequestAction(requestId) // Server action with revalidatePath
+				toast.success('Maintenance request deleted')
+			} catch (error) {
+				toast.error('Failed to delete request')
+				logger.error('Failed to delete maintenance request', undefined, error)
+				// React automatically reverts optimistic update on error
+			}
+		})
 	}
 
-	if (isError || !data) {
-		return (
-			<CardLayout
-				title="Maintenance"
-				description="Track open requests and manage resolution workflow."
-				error="Unable to load maintenance requests."
-			/>
-		)
-	}
-
-	const requests = (data as MaintenanceRequestResponse).data
-
-	if (!requests.length) {
+	if (!optimisticRequests.length) {
 		return (
 			<CardLayout
 				title="Maintenance"
@@ -148,7 +132,7 @@ export function MaintenanceTable() {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{requests.map(request => (
+						{optimisticRequests.map(request => (
 							<TableRow key={request.id}>
 								<TableCell>
 									<div className="flex flex-col gap-1">
@@ -210,11 +194,11 @@ export function MaintenanceTable() {
 											<AlertDialogFooter>
 												<AlertDialogCancel>Cancel</AlertDialogCancel>
 												<AlertDialogAction
-													disabled={deleteRequest.isPending}
-													onClick={() => deleteRequest.mutate(request.id)}
+													disabled={isPending}
+													onClick={() => handleDelete(request.id)}
 													className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 												>
-													{deleteRequest.isPending ? 'Deleting...' : 'Delete'}
+													{isPending ? 'Deleting...' : 'Delete'}
 												</AlertDialogAction>
 											</AlertDialogFooter>
 										</AlertDialogContent>

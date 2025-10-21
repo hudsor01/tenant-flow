@@ -382,4 +382,47 @@ export class PropertiesController {
 			timeframe: timeframe ?? '6m'
 		})
 	}
+
+	/**
+	 * Mark property as sold (7-year retention compliance)
+	 * Updates status to SOLD with required date_sold and sale_price
+	 */
+	@Put(':id/mark-sold')
+	async markPropertyAsSold(
+		@Param('id', ParseUUIDPipe) propertyId: string,
+		@Body() body: { dateSold: string; salePrice: number; saleNotes?: string },
+		@Request() req: AuthenticatedRequest
+	) {
+		if (!this.propertiesService) {
+			throw new NotFoundException('Properties service not available')
+		}
+
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		// Validate sale price
+		if (!body.salePrice || body.salePrice <= 0) {
+			throw new BadRequestException('Sale price must be greater than $0')
+		}
+
+		// Validate date sold
+		const dateSold = new Date(body.dateSold)
+		if (isNaN(dateSold.getTime())) {
+			throw new BadRequestException('Invalid sale date format')
+		}
+
+		// Date sold cannot be in the future
+		if (dateSold > new Date()) {
+			throw new BadRequestException('Sale date cannot be in the future')
+		}
+
+		return this.propertiesService.markAsSold(
+			propertyId,
+			req.user.id,
+			dateSold,
+			body.salePrice,
+			body.saleNotes
+		)
+	}
 }

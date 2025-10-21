@@ -4,6 +4,7 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { DefaultOptions, DehydratedState } from '@tanstack/react-query'
 import {
 	HydrationBoundary,
+	keepPreviousData,
 	QueryClient,
 	QueryClientProvider
 } from '@tanstack/react-query'
@@ -62,8 +63,8 @@ export function QueryProvider({
 						// Throw errors in render (better error boundaries)
 						throwOnError: false,
 
-						// Placeholder data while loading (keep previous data during refetch)
-						placeholderData: (previousData: unknown) => previousData
+						// Keep previous data during refetch (official v5 helper)
+						placeholderData: keepPreviousData
 					},
 					mutations: {
 						// Network mode

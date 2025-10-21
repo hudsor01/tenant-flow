@@ -50,6 +50,8 @@ tokens.*
 *.der
 *.cer
 certs/
+.serena/
+.supabase/
 
 # SSH keys
 id_rsa*

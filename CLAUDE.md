@@ -1,5 +1,7 @@
 # TenantFlow Development Guide
 
+When providing commit messages, never include attribution.
+
 ## Core Principles (Non-Negotiable)
 - **DRY**: Search first (`rg -r "pattern"`), consolidate code reused ≥2 places
 - **KISS**: Simplest solution wins, delete > add code
@@ -31,6 +33,42 @@ pnpm build | pnpm build:frontend | pnpm build:backend
 pnpm test:integration | pnpm test:e2e | pnpm test:production
 
 # Database
+pnpm update-supabase-types                    # Regenerate TypeScript types from schema
+
+# Database Migrations (psql ONLY - MCP server is read-only)
+doppler run -- psql $DATABASE_URL -f migration.sql   # Apply migration (preferred)
+doppler run -- psql $DIRECT_URL -f migration.sql     # Direct connection (if pooler fails)
+```
+
+## Database Migrations - psql Method
+
+**IMPORTANT**: The Supabase MCP server is **READ-ONLY**. All database writes (DDL/DML) MUST use psql with Doppler secrets.
+
+**Migration Workflow**:
+1. Create migration SQL file (descriptive name, not timestamp-based)
+2. Apply via psql: `doppler run -- psql $DATABASE_URL -f your-migration.sql`
+3. Verify success with MCP read tools: `mcp__supabase-mcp__execute_sql`
+4. Regenerate types: `pnpm update-supabase-types`
+5. Commit migration file to repo for team/deployment tracking
+
+**Connection Strings** (via Doppler):
+- `DATABASE_URL` - Pooled connection (preferred, handles concurrency)
+- `DIRECT_URL` - Direct Postgres connection (use if pooler has issues)
+
+**Example**:
+```bash
+# Create migration file
+cat > add-sale-fields.sql <<'EOF'
+ALTER TABLE property ADD COLUMN date_sold TIMESTAMPTZ;
+EOF
+
+# Apply migration
+doppler run -- psql $DATABASE_URL -f add-sale-fields.sql
+
+# Verify
+doppler run -- psql $DATABASE_URL -c "SELECT column_name FROM information_schema.columns WHERE table_name='property';"
+
+# Regenerate types
 pnpm update-supabase-types
 ```
 
@@ -232,6 +270,257 @@ export function useConditionalEntityFields(formData) { }
 - `apps/frontend/src/hooks/use-tenant-form.ts` - Complete Form hook pattern
 - `apps/frontend/src/stores/tenant-store.ts` - Zustand store pattern
 - `apps/frontend/src/hooks/api/TENANT_HOOKS_GUIDE.md` - Comprehensive usage guide
+
+## Server Component vs Client Component Decision Tree
+
+**PHILOSOPHY**: "Right tool for the right job" - Use Next.js 15 RSC for 95% of pages, React 19 for interactive UI, TanStack Query ONLY for <1% edge cases.
+
+### When to Use Server Components (Default Choice)
+
+✅ **USE SERVER COMPONENTS FOR:**
+- Initial page loads (list views, detail views)
+- Dashboard/analytics pages (read-only data)
+- SEO-critical pages (landing, pricing, documentation)
+- Read-heavy pages without interactivity
+- Any page that just displays server data
+
+**Pattern:**
+```typescript
+// page.tsx (Server Component - no 'use client')
+import type { Metadata } from 'next'
+import { entityApi } from '@/lib/api-client'
+import { EntityTable } from './entity-table.client'
+
+export const metadata: Metadata = {
+  title: 'Entities | TenantFlow',
+  description: 'Manage your entities'
+}
+
+export default async function EntityPage() {
+  // ✅ Fetch data on server during RSC render
+  const [entities, stats] = await Promise.all([
+    entityApi.list(),
+    entityApi.stats()
+  ])
+
+  return <EntityTable initialEntities={entities} initialStats={stats} />
+}
+```
+
+**Client Component Pattern:**
+```typescript
+// entity-table.client.tsx
+'use client'
+import type { Entity, EntityStats } from '@repo/shared'
+
+interface EntityTableProps {
+  initialEntities: Entity[]
+  initialStats: EntityStats
+}
+
+export function EntityTable({ initialEntities, initialStats }: EntityTableProps) {
+  // ✅ Use server-fetched data, only client logic for mutations
+  const deleteEntity = useDeleteEntity() // Mutation stays client-side
+
+  return <Table data={initialEntities} onDelete={deleteEntity.mutate} />
+}
+```
+
+**Examples:**
+- ✅ Properties page - Server Component ([reference](apps/frontend/src/app/(protected)/manage/properties/page.tsx))
+- ✅ Tenants page - Server Component ([reference](apps/frontend/src/app/(protected)/manage/tenants/page.tsx))
+- ✅ Maintenance page - Server Component ([reference](apps/frontend/src/app/(protected)/manage/maintenance/page.tsx))
+- ✅ All analytics/* pages - Already Server Components
+
+### When to Use Client Components (Justified Use Cases)
+
+❌ **MUST USE CLIENT COMPONENTS FOR:**
+1. **URL State Management** - Search params, filters, pagination that sync with URL
+2. **Interactive Dialogs** - Modal forms, confirmation dialogs, multi-step wizards
+3. **Client-Side Filtering** - Dropdown filters without URL updates
+4. **Form Input State** - Text inputs, dropdowns, checkboxes with useState
+5. **Real-Time Updates** - Polling, WebSocket connections
+6. **Infinite Scroll** - TanStack Query useInfiniteQuery
+7. **Complex Interactions** - Drag-and-drop, canvas, rich text editors
+
+**Pattern (URL State + Dialogs):**
+```typescript
+// page.tsx (Client Component - HAS 'use client')
+'use client'
+import { useSearchParams } from 'next/navigation'
+import { useState } from 'react'
+import { useLeaseList } from '@/hooks/api/use-lease'
+
+export default function LeasesPage() {
+  const searchParams = useSearchParams()
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  // ✅ Justified: URL-synced filters + interactive dialogs
+  const { data } = useLeaseList({
+    search: searchParams.get('search') || '',
+    status: searchParams.get('status') || 'all'
+  })
+
+  return (
+    <>
+      <FilterBar /> {/* Updates URL params */}
+      <RenewDialog open={dialogOpen} /> {/* Interactive modal */}
+    </>
+  )
+}
+```
+
+**Examples:**
+- ✅ Leases page - URL filters + renew/terminate/edit dialogs ([reference](apps/frontend/src/app/(protected)/manage/leases/page.tsx))
+- ✅ Units page - Client-side filtering ([reference](apps/frontend/src/app/(protected)/manage/units/page.tsx))
+- ✅ Financial pages - Period selectors (year/quarter dropdowns)
+- ✅ Reports pages - Interactive report generation UI
+
+### TanStack Query Usage Guidelines
+
+**KEEP TanStack Query For (<1% of use cases):**
+- ✅ Infinite scroll (useInfiniteQuery for 1000+ items)
+- ✅ Real-time polling (refetchInterval for payment status)
+- ✅ Window focus refetching (dashboard auto-refresh)
+- ✅ Mutations with optimistic updates (delete, toggle, simple updates)
+
+**REMOVE TanStack Query For (Use RSC Instead):**
+- ❌ Initial page data fetching (use async Server Components)
+- ❌ Simple list/detail views (use server-side fetch)
+- ❌ Dashboard stats (use RSC with Promise.all)
+
+**Migration Path:**
+```typescript
+// ❌ BEFORE: Client-side fetch
+'use client'
+export default function Page() {
+  const { data } = useQuery({ queryKey: ['entities'], queryFn: fetchEntities })
+  return <Table data={data} />
+}
+
+// ✅ AFTER: Server Component
+export default async function Page() {
+  const data = await entityApi.list()
+  return <Table data={data} />
+}
+```
+
+### React 19 useOptimistic for Mutations
+
+**Use useOptimistic For:**
+- ✅ Delete operations (instant removal from UI)
+- ✅ Toggle operations (mark as paid, complete task)
+- ✅ Simple updates (change status, update field)
+- ✅ User-initiated actions expecting instant feedback
+
+**DON'T Use For:**
+- ❌ Complex forms (too many fields to rollback)
+- ❌ Financial operations (must be server-confirmed)
+- ❌ Bulk operations (confusing if fails)
+- ❌ Rare actions (users expect wait time)
+
+**Complete Pattern (Server Action + Client Component):**
+
+**Step 1: Create Server Action** (inline in page.tsx or separate actions.ts)
+```typescript
+// apps/frontend/src/app/(protected)/manage/entities/page.tsx
+import { revalidatePath } from 'next/cache'
+import { entityApi } from '@/lib/api-client'
+
+async function deleteEntity(entityId: string) {
+  'use server'
+  try {
+    await entityApi.remove(entityId)
+    revalidatePath('/manage/entities') // ✅ Refresh RSC data
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to delete entity:', error)
+    throw error // Let client handle error
+  }
+}
+
+export default async function EntityPage() {
+  const entities = await entityApi.list()
+  return <EntityTable initialEntities={entities} deleteEntityAction={deleteEntity} />
+}
+```
+
+**Step 2: Client Component with useOptimistic**
+```typescript
+// entity-table.client.tsx
+'use client'
+import { useOptimistic, useTransition } from 'react'
+import { toast } from 'sonner'
+
+interface EntityTableProps {
+  initialEntities: Entity[]
+  deleteEntityAction: (id: string) => Promise<{ success: boolean }>
+}
+
+export function EntityTable({ initialEntities, deleteEntityAction }: EntityTableProps) {
+  // ✅ React 19 useOptimistic for instant delete feedback
+  const [optimisticEntities, removeOptimistic] = useOptimistic(
+    initialEntities,
+    (state, entityId: string) => state.filter(e => e.id !== entityId)
+  )
+  const [isPending, startTransition] = useTransition()
+
+  const handleDelete = (entityId: string) => {
+    startTransition(async () => {
+      removeOptimistic(entityId) // ✅ Instant UI update (removed from list)
+      try {
+        await deleteEntityAction(entityId) // Server action with revalidatePath
+        toast.success('Entity deleted successfully')
+      } catch (error) {
+        toast.error('Failed to delete entity')
+        // ✅ React automatically reverts optimistic update on error
+      }
+    })
+  }
+
+  return <Table data={optimisticEntities} onDelete={handleDelete} isPending={isPending} />
+}
+```
+
+**Benefits:**
+- 0ms perceived latency (instant UI update)
+- Automatic rollback on error (React handles revert)
+- No TanStack Query needed (~8KB bundle saved per entity)
+- Built-in React 19 (no library overhead)
+- Server data refresh via revalidatePath
+
+**Reference Implementations:**
+- [DELETE TENANT](apps/frontend/src/app/(protected)/manage/tenants/page.tsx) - Complete useOptimistic pattern
+- [DELETE MAINTENANCE](apps/frontend/src/app/(protected)/manage/maintenance/page.tsx) - Complete useOptimistic pattern
+- [TenantsTable](apps/frontend/src/app/(protected)/tenant/tenants-table.client.tsx) - Client component with optimistic updates
+
+### Decision Flowchart
+
+```
+START: Creating a new page?
+  │
+  ├─ Does it need URL state, filters, or pagination?
+  │  └─ YES → Client Component (use 'use client')
+  │
+  ├─ Does it have interactive dialogs/modals?
+  │  └─ YES → Client Component
+  │
+  ├─ Does it need real-time updates or infinite scroll?
+  │  └─ YES → Client Component + TanStack Query
+  │
+  └─ Is it just displaying data?
+     └─ YES → Server Component (default, no 'use client')
+        └─ Fetch with: await Promise.all([api.list(), api.stats()])
+```
+
+### Key Metrics (Phase 2A Results)
+
+- ✅ Server Components: 9/21 pages (43% of protected pages)
+- ✅ Bundle reduction: 120KB saved (Properties + Tenants + Maintenance)
+- ✅ Pattern established: All analytics pages already optimal
+- ✅ 12 pages justified as Client Components (interactivity required)
+
+**Bottom Line**: Default to Server Components. Only use 'use client' when you need interactivity, URL state, or real-time updates. When in doubt, start with Server Component and only add 'use client' if you hit limitations.
 
 ## UI/UX Standards (globals.css Compliant)
 

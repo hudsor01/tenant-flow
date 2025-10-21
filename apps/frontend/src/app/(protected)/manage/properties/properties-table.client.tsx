@@ -43,8 +43,6 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import { useProperties } from '@/hooks/api/use-properties'
-import { useQuery } from '@tanstack/react-query'
 import {
 	Building,
 	Edit,
@@ -55,12 +53,19 @@ import {
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-import { propertiesApi } from '@/lib/api-client'
-import type { Property } from '@repo/shared/types/core'
+import type { Property, PropertyStats } from '@repo/shared/types/core'
 
 const ITEMS_PER_PAGE = 25
 
-export function PropertiesTable() {
+interface PropertiesTableProps {
+	initialProperties: Property[]
+	initialStats: PropertyStats
+}
+
+export function PropertiesTable({
+	initialProperties,
+	initialStats
+}: PropertiesTableProps) {
 	const router = useRouter()
 	const pathname = usePathname()
 	const searchParams = useSearchParams()
@@ -94,38 +99,17 @@ export function PropertiesTable() {
 		router.push(newURL, { scroll: false })
 	}
 
-	// Fetch properties list with pagination
-	const { data: propertiesData, isLoading: isLoadingProperties } =
-		useProperties({
-			limit: ITEMS_PER_PAGE,
-			offset: (page - 1) * ITEMS_PER_PAGE
-		})
+	// ✅ Use server-fetched data instead of client-side fetching
+	const properties = initialProperties
+	const totalProperties = properties.length
 
-	const properties = propertiesData?.data || []
-	const totalProperties = propertiesData?.total || 0
-
-	// Fetch real stats from API
-	const { data: statsData, isLoading: isLoadingStats } = useQuery({
-		queryKey: ['properties', 'stats'],
-		queryFn: async () => {
-			return await propertiesApi.getStats()
-		},
-		staleTime: 5 * 60 * 1000 // 5 minutes
-	})
-
-	const isLoading = isLoadingProperties || isLoadingStats
-
-	if (isLoading) {
-		return <div className="animate-pulse">Loading properties...</div>
-	}
-
-	// Use REAL stats from API with proper fallbacks for empty state
+	// Use server-fetched stats
 	const stats = {
-		totalProperties: statsData?.total ?? totalProperties,
-		occupancyRate: statsData?.occupancyRate ?? 0,
-		totalUnits: statsData?.total ?? 0,
-		occupied: statsData?.occupied ?? 0,
-		vacant: statsData?.vacant ?? 0
+		totalProperties: initialStats.total ?? totalProperties,
+		occupancyRate: initialStats.occupancyRate ?? 0,
+		totalUnits: initialStats.total ?? 0,
+		occupied: initialStats.occupied ?? 0,
+		vacant: initialStats.vacant ?? 0
 	}
 
 	return (

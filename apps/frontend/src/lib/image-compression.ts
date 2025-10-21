@@ -95,7 +95,7 @@ const DEFAULT_OPTIONS: Required<CompressionOptions> = {
  *   if (!file) return
  *
  *   const result = await compressImage(file)
- *   console.log(`Reduced from ${result.originalSize} to ${result.compressedSize}`)
+ *   // Result contains originalSize, compressedSize, and compressionRatio
  *
  *   // Upload result.file to Supabase
  * }

@@ -12,8 +12,7 @@ import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+import { API_BASE_URL } from '@/lib/api-client'
 
 /**
  * Query keys for maintenance endpoints (hierarchical structure)
@@ -79,8 +78,6 @@ export function useAllMaintenanceRequests(query?: {
  * Uses placeholder data from list cache
  */
 export function useMaintenanceRequest(id: string) {
-	const queryClient = useQueryClient()
-
 	return useQuery({
 		queryKey: maintenanceKeys.detail(id),
 		queryFn: async () => {
@@ -91,14 +88,7 @@ export function useMaintenanceRequest(id: string) {
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000,
 		gcTime: 10 * 60 * 1000,
-		retry: 2,
-		// Use data from list query as placeholder
-		placeholderData: () => {
-			const cachedList = queryClient.getQueryData<MaintenanceRequest[]>(
-				maintenanceKeys.list()
-			)
-			return cachedList?.find(m => m.id === id)
-		}
+		retry: 2
 	})
 }
 
@@ -269,47 +259,9 @@ export function useUpdateMaintenanceRequest() {
 }
 
 /**
- * Hook to delete maintenance request
+ * Note: DELETE operations now use React 19 useOptimistic with Server Actions
+ * See: apps/frontend/src/app/(protected)/manage/maintenance/page.tsx
  */
-export function useDeleteMaintenanceRequest(options?: {
-	onSuccess?: () => void
-	onError?: (error: Error) => void
-}) {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: async (id: string) => {
-			await apiClient<void>(`${API_BASE_URL}/api/v1/maintenance/${id}`, {
-				method: 'DELETE'
-			})
-		},
-		onMutate: async id => {
-			await queryClient.cancelQueries({ queryKey: maintenanceKeys.list() })
-			const previous = queryClient.getQueryData<MaintenanceRequest[]>(
-				maintenanceKeys.list()
-			)
-
-			// Optimistically remove from list
-			queryClient.setQueryData<MaintenanceRequest[]>(
-				maintenanceKeys.list(),
-				old => old?.filter(m => m.id !== id)
-			)
-
-			return { previous }
-		},
-		onError: (err, _id, context) => {
-			if (context?.previous) {
-				queryClient.setQueryData(maintenanceKeys.list(), context.previous)
-			}
-			toast.error('Failed to delete maintenance request')
-			options?.onError?.(err as Error)
-		},
-		onSuccess: () => {
-			toast.success('Maintenance request deleted successfully')
-			options?.onSuccess?.()
-		}
-	})
-}
 
 /**
  * Hook to prefetch maintenance request
@@ -524,30 +476,27 @@ export function useCancelMaintenance() {
 
 /**
  * Combined hook for all maintenance operations
+ * Note: DELETE operations now use React 19 useOptimistic with Server Actions
  */
 export function useMaintenanceOperations() {
 	const createRequest = useCreateMaintenanceRequest()
 	const updateRequest = useUpdateMaintenanceRequest()
-	const deleteRequest = useDeleteMaintenanceRequest()
 	const completeRequest = useCompleteMaintenance()
 	const cancelRequest = useCancelMaintenance()
 
 	return {
 		createRequest,
 		updateRequest,
-		deleteRequest,
 		completeRequest,
 		cancelRequest,
 		isLoading:
 			createRequest.isPending ||
 			updateRequest.isPending ||
-			deleteRequest.isPending ||
 			completeRequest.isPending ||
 			cancelRequest.isPending,
 		error:
 			createRequest.error ||
 			updateRequest.error ||
-			deleteRequest.error ||
 			completeRequest.error ||
 			cancelRequest.error
 	}
