@@ -19,6 +19,8 @@ packages/**/*.tgz
 */.envrc
 **/.envrc
 doppler.env
+.serena/
+.supabase/
 
 # Local environment files
 .env.local
