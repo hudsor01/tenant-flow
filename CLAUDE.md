@@ -40,8 +40,19 @@ doppler run -- psql $DATABASE_URL -f migration.sql   # Apply migration (preferre
 doppler run -- psql $DIRECT_URL -f migration.sql     # Direct connection (if pooler fails)
 ```
 
-## Database Migrations - psql Method
+## Remote State
+Anything coming from a backend, API, database, etc., could be handled by a data-fetching library. TanStack Query or SWR are the most popular choices these days. They solve caching, deduplication, invalidation, retries, pagination, optimistic updates, and many more, and likely much better than any manual implementation.
 
+## Query params in URL state
+If your router doesn't support syncing those with local state, use nuqs and save yourself massive pain implementing that sync manually.
+
+## Local State
+A lot of the state doesn't need to be shared, actually. It's just something that comes from overusing Redux in the past. Use React's useState or useReducer in this case.
+
+## Shared State
+This is the state that you want to share between different loosely related components. You can use simple prop drilling techniques for that, or Context when prop drilling becomes a nuisance. Only when Context is not enough do the state management libraries become useful.
+
+## Database Migrations - psql Method
 **IMPORTANT**: The Supabase MCP server is **READ-ONLY**. All database writes (DDL/DML) MUST use psql with Doppler secrets.
 
 **Migration Workflow**:

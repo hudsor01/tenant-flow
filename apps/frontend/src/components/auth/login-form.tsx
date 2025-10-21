@@ -115,9 +115,11 @@ export function LoginForm({
 								</InputGroupAddon>
 								<InputGroupInput
 									id="email"
+									name="email"
 									data-testid="email-input"
 									type="email"
 									placeholder="Enter your email"
+									autoComplete="email"
 									value={field.state.value}
 									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 										field.handleChange(e.target.value)
@@ -144,9 +146,11 @@ export function LoginForm({
 							<InputGroup>
 								<InputGroupInput
 									id="password"
+									name="password"
 									data-testid="password-input"
 									type={showPassword ? 'text' : 'password'}
 									placeholder="Enter your password"
+									autoComplete="current-password"
 									value={field.state.value}
 									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 										field.handleChange(e.target.value)

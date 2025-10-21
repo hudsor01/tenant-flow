@@ -41,7 +41,7 @@ export default async function DashboardPage() {
 	// Show empty state for brand new users with no data
 	if (!hasData) {
 		return (
-			<div className="@container/main flex w-full flex-col min-h-screen bg-gradient-to-b from-background to-muted/20">
+			<div className="@container/main flex w-full flex-col min-h-screen bg-linear-to-b from-background to-muted/20">
 				{/* Match regular dashboard structure with proper padding */}
 				<div
 					style={{
@@ -52,9 +52,19 @@ export default async function DashboardPage() {
 				>
 					<div className="mx-auto max-w-[1600px]">
 						{/* Asymmetric Hero Layout */}
-						<div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center min-h-[calc(100vh-16rem)]">
+						<div
+							className="grid lg:grid-cols-2 items-center min-h-[calc(100vh-16rem)]"
+							style={{ gap: 'var(--dashboard-section-gap)' }}
+						>
 							{/* Left: Hero Content */}
-							<div className="space-y-8 animate-in fade-in slide-in-from-left-8 duration-700">
+							<div
+								className="animate-in fade-in slide-in-from-left-8 duration-700"
+								style={{
+									display: 'flex',
+									flexDirection: 'column',
+									gap: 'var(--dashboard-section-gap)'
+								}}
+							>
 								<div className="space-y-6">
 									{/* Badge Tag */}
 									<Badge
@@ -67,10 +77,10 @@ export default async function DashboardPage() {
 
 									{/* Hero Headline */}
 									<div className="space-y-4">
-										<h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
+										<h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl bg-linear-to-br from-foreground to-foreground/70 bg-clip-text">
 											Your Property
 											<br />
-											<span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+											<span className="bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
 												Management Hub
 											</span>
 										</h1>
@@ -105,7 +115,10 @@ export default async function DashboardPage() {
 								</div>
 
 								{/* Quick Stats Preview */}
-								<div className="grid grid-cols-3 gap-6 pt-6 border-t border-border/50">
+								<div
+									className="grid grid-cols-3 pt-6 border-t border-border/50"
+									style={{ gap: 'var(--dashboard-card-gap)' }}
+								>
 									<div className="space-y-2 group">
 										<div className="text-3xl font-bold text-primary group-hover:scale-110 transition-transform">
 											0
@@ -132,13 +145,23 @@ export default async function DashboardPage() {
 							</div>
 
 							{/* Right: Action Cards using CardLayout */}
-							<div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-700 delay-150">
+							<div
+								className="animate-in fade-in slide-in-from-right-8 duration-700 delay-150"
+								style={{
+									display: 'flex',
+									flexDirection: 'column',
+									gap: 'var(--dashboard-card-gap)'
+								}}
+							>
 								{/* Primary Action Card */}
-								<Link href="/manage/properties/new" className="block group no-underline">
+								<Link
+									href="/manage/properties/new"
+									className="block group no-underline"
+								>
 									<CardLayout
 										title="Add Property"
 										description="Create your first rental property profile"
-										className="border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 hover:border-primary/50 hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02] cursor-pointer"
+										className="border-2 border-primary/30 bg-linear-to-br from-primary/10 to-primary/5 hover:border-primary/50 hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02] cursor-pointer"
 									>
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-3">
@@ -158,8 +181,14 @@ export default async function DashboardPage() {
 								</Link>
 
 								{/* Secondary Action Cards */}
-								<div className="grid sm:grid-cols-2 gap-4">
-									<Link href="/manage/tenants/new" className="block group no-underline">
+								<div
+									className="grid sm:grid-cols-2"
+									style={{ gap: 'var(--spacing-4)' }}
+								>
+									<Link
+										href="/manage/tenants/new"
+										className="block group no-underline"
+									>
 										<CardLayout
 											title="Add Tenant"
 											description="Invite or create tenant profiles"
@@ -171,7 +200,10 @@ export default async function DashboardPage() {
 										</CardLayout>
 									</Link>
 
-									<Link href="/manage/leases/new" className="block group no-underline">
+									<Link
+										href="/manage/leases/new"
+										className="block group no-underline"
+									>
 										<CardLayout
 											title="Create Lease"
 											description="Set up rental agreements"
@@ -187,7 +219,7 @@ export default async function DashboardPage() {
 								{/* Feature Highlights Card */}
 								<CardLayout
 									title="What You Can Do"
-									className="bg-gradient-to-br from-accent/30 to-accent/10 border-accent/50"
+									className="bg-linear-to-br from-accent/30 to-accent/10 border-accent/50"
 								>
 									<div className="space-y-3.5">
 										<div className="flex items-start gap-3 group">

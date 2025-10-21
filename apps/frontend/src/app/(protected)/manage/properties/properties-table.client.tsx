@@ -50,8 +50,8 @@ import {
 	TrendingDown,
 	TrendingUp
 } from 'lucide-react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { parseAsInteger, useQueryState } from 'nuqs'
+import { useState } from 'react'
 
 import type { Property, PropertyStats } from '@repo/shared/types/core'
 
@@ -66,38 +66,22 @@ export function PropertiesTable({
 	initialProperties,
 	initialStats
 }: PropertiesTableProps) {
-	const router = useRouter()
-	const pathname = usePathname()
-	const searchParams = useSearchParams()
+	// ✅ nuqs: Type-safe URL state for pagination with clean URLs
+	const [page, setPage] = useQueryState(
+		'page',
+		parseAsInteger.withDefault(1).withOptions({
+			history: 'push',
+			scroll: false,
+			shallow: true,
+			throttleMs: 100,
+			clearOnDefault: true // Clean URLs: /properties instead of /properties?page=1
+		})
+	)
 
-	// Get URL params
-	const pageParam = Number(searchParams.get('page')) || 1
-
-	// Local state synced with URL
-	const [page, setPage] = useState(pageParam)
 	const [editDialogOpen, setEditDialogOpen] = useState(false)
 	const [selectedProperty, setSelectedProperty] = useState<Property | null>(
 		null
 	)
-
-	// Sync page state with URL
-	useEffect(() => {
-		setPage(pageParam)
-	}, [pageParam])
-
-	// Update URL when page changes
-	const updateURL = (newPage: number) => {
-		const params = new URLSearchParams(searchParams.toString())
-		if (newPage === 1) {
-			params.delete('page')
-		} else {
-			params.set('page', newPage.toString())
-		}
-		const newURL = params.toString()
-			? `${pathname}?${params.toString()}`
-			: pathname
-		router.push(newURL, { scroll: false })
-	}
 
 	// ✅ Use server-fetched data instead of client-side fetching
 	const properties = initialProperties
@@ -292,9 +276,7 @@ export function PropertiesTable({
 									onClick={e => {
 										e.preventDefault()
 										if (page > 1) {
-											const newPage = page - 1
-											setPage(newPage)
-											updateURL(newPage)
+											setPage(page - 1)
 										}
 									}}
 									className={page === 1 ? 'pointer-events-none opacity-50' : ''}
@@ -321,7 +303,6 @@ export function PropertiesTable({
 											onClick={e => {
 												e.preventDefault()
 												setPage(pageNum)
-												updateURL(pageNum)
 											}}
 											isActive={page === pageNum}
 										>
@@ -336,9 +317,7 @@ export function PropertiesTable({
 									onClick={e => {
 										e.preventDefault()
 										if (page < Math.ceil(totalProperties / ITEMS_PER_PAGE)) {
-											const newPage = page + 1
-											setPage(newPage)
-											updateURL(newPage)
+											setPage(page + 1)
 										}
 									}}
 									className={
