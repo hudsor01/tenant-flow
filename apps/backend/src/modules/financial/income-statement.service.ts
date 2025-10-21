@@ -53,10 +53,21 @@ export class IncomeStatementService {
 		}
 
 		// Get maintenance costs
+		// Note: maintenance_request links to unit, which links to property
+		// We need to join through unit to filter by property owner
 		const { data: maintenanceData, error: maintenanceError } = await client
 			.from('maintenance_request')
-			.select('estimatedCost')
-			.eq('propertyId', userId)
+			.select(
+				`
+				estimatedCost,
+				unit!inner(
+					property!inner(
+						ownerId
+					)
+				)
+			`
+			)
+			.eq('unit.property.ownerId', userId)
 			.gte('createdAt', startDate)
 			.lte('createdAt', endDate)
 			.eq('status', 'COMPLETED')
