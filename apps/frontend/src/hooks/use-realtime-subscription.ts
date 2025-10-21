@@ -30,7 +30,9 @@ interface UseRealtimeSubscriptionOptions {
  * useRealtimeSubscription({
  *   table: 'tenants',
  *   event: '*',
- *   onUpdate: (payload) => console.log('Tenant updated:', payload)
+ *   onUpdate: (payload) => {
+ *     // Handle tenant update
+ *   }
  * })
  */
 export function useRealtimeSubscription({
@@ -158,7 +160,9 @@ export function useRealtimeSubscription({
  * useRealtimeRow({
  *   table: 'tenants',
  *   id: tenantId,
- *   onUpdate: (tenant) => console.log('Tenant updated:', tenant)
+ *   onUpdate: (tenant) => {
+ *     // Handle tenant update
+ *   }
  * })
  */
 export function useRealtimeRow<T = unknown>({

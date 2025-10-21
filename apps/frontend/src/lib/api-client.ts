@@ -3,6 +3,8 @@
  * Integrates with shared API client and backend endpoints
  */
 import type {
+	CreateSetupIntentRequest,
+	CreateSubscriptionRequest,
 	DashboardFinancialStats,
 	DashboardStats,
 	ExpenseSummaryResponse,
@@ -10,11 +12,17 @@ import type {
 	MaintenanceRequest,
 	MaintenanceRequestResponse,
 	MaintenanceStats,
+	PaymentMethodResponse,
+	PaymentMethodSetupIntent,
 	PropertyPerformance,
 	PropertyStats,
+	RentSubscriptionResponse,
+	SetDefaultPaymentMethodRequest,
+	SubscriptionActionResponse,
 	SystemUptime,
 	TenantStats,
-	TenantWithLeaseInfo
+	TenantWithLeaseInfo,
+	UpdateSubscriptionRequest
 } from '@repo/shared/types/core'
 
 import type { PropertyWithUnits } from '@repo/shared/types/relations'
@@ -270,7 +278,14 @@ export const leasesApi = {
 			body: JSON.stringify(body)
 		}),
 	remove: (id: string) =>
-		apiClient<void>(`${API_BASE_URL}/api/v1/leases/${id}`, { method: 'DELETE' })
+		apiClient<void>(`${API_BASE_URL}/api/v1/leases/${id}`, { method: 'DELETE' }),
+
+	// Lease renewal
+	renew: (leaseId: string, data: { endDate: string; rentAmount?: number }) =>
+		apiClient<Lease>(`${API_BASE_URL}/api/v1/leases/${leaseId}/renew`, {
+			method: 'POST',
+			body: JSON.stringify(data)
+		})
 }
 
 export const maintenanceApi = {
@@ -398,6 +413,214 @@ export const stripeApi = {
 				active: boolean
 			}>
 		}>(`${API_BASE_URL}/api/v1/stripe/prices`)
+}
+
+/**
+ * Subscriptions API - Phase 4: Autopay Subscriptions
+ */
+export const subscriptionsApi = {
+	create: (data: CreateSubscriptionRequest) =>
+		apiClient<RentSubscriptionResponse>(`${API_BASE_URL}/api/v1/subscriptions`, {
+			method: 'POST',
+			body: JSON.stringify(data)
+		}),
+
+	list: async (): Promise<RentSubscriptionResponse[]> => {
+		const response = await apiClient<{
+			subscriptions: RentSubscriptionResponse[]
+		}>(`${API_BASE_URL}/api/v1/subscriptions`)
+		return response.subscriptions
+	},
+
+	get: (id: string) =>
+		apiClient<RentSubscriptionResponse>(
+			`${API_BASE_URL}/api/v1/subscriptions/${id}`
+		),
+
+	update: (id: string, data: UpdateSubscriptionRequest) =>
+		apiClient<RentSubscriptionResponse>(
+			`${API_BASE_URL}/api/v1/subscriptions/${id}`,
+			{
+				method: 'PATCH',
+				body: JSON.stringify(data)
+			}
+		),
+
+	pause: (id: string) =>
+		apiClient<SubscriptionActionResponse>(
+			`${API_BASE_URL}/api/v1/subscriptions/${id}/pause`,
+			{ method: 'POST' }
+		),
+
+	resume: (id: string) =>
+		apiClient<SubscriptionActionResponse>(
+			`${API_BASE_URL}/api/v1/subscriptions/${id}/resume`,
+			{ method: 'POST' }
+		),
+
+	cancel: (id: string) =>
+		apiClient<SubscriptionActionResponse>(
+			`${API_BASE_URL}/api/v1/subscriptions/${id}/cancel`,
+			{ method: 'POST' }
+		)
+}
+
+/**
+ * Payment Methods API - Phase 3: Tenant Payment System
+ */
+export const paymentMethodsApi = {
+	createSetupIntent: (data: CreateSetupIntentRequest) =>
+		apiClient<PaymentMethodSetupIntent>(
+			`${API_BASE_URL}/api/v1/payment-methods/setup-intent`,
+			{
+				method: 'POST',
+				body: JSON.stringify(data)
+			}
+		),
+
+	savePaymentMethod: (paymentMethodId: string) =>
+		apiClient<{ success: boolean }>(
+			`${API_BASE_URL}/api/v1/payment-methods/save`,
+			{
+				method: 'POST',
+				body: JSON.stringify({ paymentMethodId })
+			}
+		),
+
+	listPaymentMethods: async (): Promise<PaymentMethodResponse[]> => {
+		const response = await apiClient<{
+			paymentMethods: PaymentMethodResponse[]
+		}>(`${API_BASE_URL}/api/v1/payment-methods`)
+		return response.paymentMethods
+	},
+
+	setDefaultPaymentMethod: (data: SetDefaultPaymentMethodRequest) =>
+		apiClient<{ success: boolean }>(
+			`${API_BASE_URL}/api/v1/payment-methods/${data.paymentMethodId}/default`,
+			{ method: 'PATCH' }
+		),
+
+	deletePaymentMethod: (paymentMethodId: string) =>
+		apiClient<{ success: boolean }>(
+			`${API_BASE_URL}/api/v1/payment-methods/${paymentMethodId}`,
+			{ method: 'DELETE' }
+		)
+}
+
+/**
+ * Late Fees API - Phase 6.1: Late Fee System
+ */
+export interface LateFeeConfig {
+	leaseId: string
+	gracePeriodDays: number
+	flatFeeAmount: number
+}
+
+export interface LateFeeCalculation {
+	rentAmount: number
+	daysLate: number
+	gracePeriod: number
+	lateFeeAmount: number
+	shouldApplyFee: boolean
+	reason: string
+}
+
+export interface OverduePayment {
+	id: string
+	amount: number
+	dueDate: string
+	daysOverdue: number
+	lateFeeApplied: boolean
+}
+
+export interface ProcessLateFeesResult {
+	processed: number
+	totalLateFees: number
+	details: Array<{
+		paymentId: string
+		lateFeeAmount: number
+		daysOverdue: number
+	}>
+}
+
+export interface ApplyLateFeeResult {
+	invoiceItemId: string
+	amount: number
+	paymentId: string
+}
+
+export const lateFeesApi = {
+	getConfig: async (leaseId: string): Promise<LateFeeConfig> => {
+		const response = await apiClient<{ success: boolean; data: LateFeeConfig }>(
+			`${API_BASE_URL}/api/v1/late-fees/lease/${leaseId}/config`
+		)
+		return response.data
+	},
+
+	updateConfig: (
+		leaseId: string,
+		gracePeriodDays?: number,
+		flatFeeAmount?: number
+	) =>
+		apiClient<{ success: boolean; message: string }>(
+			`${API_BASE_URL}/api/v1/late-fees/lease/${leaseId}/config`,
+			{
+				method: 'PUT',
+				body: JSON.stringify({ gracePeriodDays, flatFeeAmount })
+			}
+		),
+
+	calculate: async (
+		rentAmount: number,
+		daysLate: number,
+		leaseId?: string
+	): Promise<LateFeeCalculation> => {
+		const response = await apiClient<{
+			success: boolean
+			data: LateFeeCalculation
+		}>(`${API_BASE_URL}/api/v1/late-fees/calculate`, {
+			method: 'POST',
+			body: JSON.stringify({ rentAmount, daysLate, leaseId })
+		})
+		return response.data
+	},
+
+	getOverduePayments: async (
+		leaseId: string
+	): Promise<{ payments: OverduePayment[]; gracePeriod: number }> => {
+		const response = await apiClient<{
+			success: boolean
+			data: { payments: OverduePayment[]; gracePeriod: number }
+		}>(`${API_BASE_URL}/api/v1/late-fees/lease/${leaseId}/overdue`)
+		return response.data
+	},
+
+	processLateFees: async (leaseId: string): Promise<ProcessLateFeesResult> => {
+		const response = await apiClient<{
+			success: boolean
+			data: ProcessLateFeesResult
+			message: string
+		}>(`${API_BASE_URL}/api/v1/late-fees/lease/${leaseId}/process`, {
+			method: 'POST'
+		})
+		return response.data
+	},
+
+	applyLateFee: async (
+		paymentId: string,
+		lateFeeAmount: number,
+		reason: string
+	): Promise<ApplyLateFeeResult> => {
+		const response = await apiClient<{
+			success: boolean
+			data: ApplyLateFeeResult
+			message: string
+		}>(`${API_BASE_URL}/api/v1/late-fees/payment/${paymentId}/apply`, {
+			method: 'POST',
+			body: JSON.stringify({ lateFeeAmount, reason })
+		})
+		return response.data
+	}
 }
 
 // Visitor Analytics - Future Feature

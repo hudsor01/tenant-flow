@@ -4,8 +4,7 @@
  */
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+import { API_BASE_URL } from '@/lib/api-client'
 
 /**
  * Query keys for rent payments endpoints
@@ -58,19 +57,74 @@ export function useCreateRentPayment() {
 				}
 			}
 		},
-		onSuccess: res => {
+		onMutate: async newPayment => {
+			// Cancel outgoing refetches
+			await queryClient.cancelQueries({ queryKey: rentPaymentKeys.list() })
+
+			// Snapshot previous state
+			const previousList = queryClient.getQueryData<
+				import('@repo/shared/types/core').RentPayment[] | undefined
+			>(rentPaymentKeys.list())
+
+			// Create optimistic payment entry (partial - will be replaced by server response)
+			const tempId = `temp-${Date.now()}`
+			const optimisticPayment = {
+				id: tempId,
+				amount: newPayment.amount,
+				status: 'processing',
+				tenantId: newPayment.tenantId,
+				leaseId: newPayment.leaseId,
+				landlordId: '',
+				landlordReceives: 0,
+				platformFee: 0,
+				stripeFee: 0,
+				paymentType: 'stripe',
+				lateFeeAmount: null,
+				lateFeeApplied: null,
+				lateFeeAppliedAt: null,
+				stripePaymentIntentId: null,
+				stripeInvoiceId: null,
+				subscriptionId: null,
+				dueDate: null,
+				paidAt: null,
+				failureReason: null,
+				createdAt: new Date().toISOString()
+			} as import('@repo/shared/types/core').RentPayment
+
+			// Optimistically update cache
+			queryClient.setQueryData<
+				import('@repo/shared/types/core').RentPayment[] | undefined
+			>(rentPaymentKeys.list(), old =>
+				old ? [optimisticPayment, ...old] : [optimisticPayment]
+			)
+
+			return { previousList, tempId }
+		},
+		onError: (_err, _variables, context) => {
+			// Rollback on error
+			if (context?.previousList) {
+				queryClient.setQueryData(rentPaymentKeys.list(), context.previousList)
+			}
+		},
+		onSuccess: (res, _variables, context) => {
 			if (res?.payment) {
+				// Replace optimistic entry with real data
 				queryClient.setQueryData<
 					import('@repo/shared/types/core').RentPayment[] | undefined
 				>(rentPaymentKeys.list(), old =>
 					old
-						? [
-								res.payment as import('@repo/shared/types/core').RentPayment,
-								...old
-							]
+						? old.map(p =>
+								p.id === context?.tempId
+									? (res.payment as import('@repo/shared/types/core').RentPayment)
+									: p
+							)
 						: [res.payment as import('@repo/shared/types/core').RentPayment]
 				)
 			}
+		},
+		onSettled: () => {
+			// Refetch to ensure consistency
+			queryClient.invalidateQueries({ queryKey: rentPaymentKeys.list() })
 		}
 	})
 }

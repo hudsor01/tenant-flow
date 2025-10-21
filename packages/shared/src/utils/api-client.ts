@@ -65,16 +65,18 @@ export async function apiClient<T = Json>(
 		let errorMessage = data.error || data.message || 'Request failed'
 
 		// Add status code context for better error categorization
-		if (response.status >= 500) {
+		if (response.status === 429) {
+			errorMessage = `Rate limit exceeded: Too many requests. Please try again later.`
+		} else if (response.status >= 500) {
 			errorMessage = `Server error (${response.status}): ${errorMessage}`
 		} else if (response.status === 404) {
 			errorMessage = `Not found (404): ${errorMessage}`
 		} else if (response.status === 401) {
-			errorMessage = `Unauthorized (401): ${errorMessage}`
+			errorMessage = `Unauthorized: ${errorMessage}`
 		} else if (response.status === 403) {
-			errorMessage = `Forbidden (403): ${errorMessage}`
+			errorMessage = `Forbidden: ${errorMessage}`
 		} else if (response.status === 422) {
-			errorMessage = `Validation error (422): ${errorMessage}`
+			errorMessage = `Validation error: ${errorMessage}`
 		} else if (response.status >= 400) {
 			errorMessage = `Client error (${response.status}): ${errorMessage}`
 		}
