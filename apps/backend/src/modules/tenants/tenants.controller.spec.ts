@@ -23,6 +23,8 @@ jest.mock('./tenants.service', () => {
 			create: jest.fn(),
 			update: jest.fn(),
 			remove: jest.fn(),
+			markAsMovedOut: jest.fn(),
+			hardDelete: jest.fn(),
 			sendTenantInvitation: jest.fn(),
 			resendInvitation: jest.fn()
 		}))
@@ -54,6 +56,10 @@ describe('TenantsController', () => {
 		name: null,
 		emergencyContact: null,
 		userId: null,
+		status: 'ACTIVE',
+		move_out_date: null,
+		move_out_reason: null,
+		archived_at: null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 		...overrides
@@ -276,18 +282,135 @@ describe('TenantsController', () => {
 		})
 	})
 
-	describe('remove', () => {
-		it('should delete a tenant', async () => {
-			mockTenantsServiceInstance.remove.mockResolvedValue(undefined)
+	describe('markAsMovedOut', () => {
+		it('should mark tenant as moved out with date and reason', async () => {
+			const mockTenant = createMockTenant({
+				status: 'MOVED_OUT',
+				move_out_date: '2025-01-15',
+				move_out_reason: 'lease_expired: Lease term ended'
+			})
+			mockTenantsServiceInstance.markAsMovedOut.mockResolvedValue(mockTenant)
 
-			await controller.remove(
+			const result = await controller.markAsMovedOut(
+				'tenant-1',
+				{
+					moveOutDate: '2025-01-15',
+					moveOutReason: 'lease_expired: Lease term ended'
+				},
+				createMockRequest({ user: mockUser }) as any
+			)
+
+			expect(mockTenantsServiceInstance.markAsMovedOut).toHaveBeenCalledWith(
+				mockUser.id,
+				'tenant-1',
+				'2025-01-15',
+				'lease_expired: Lease term ended'
+			)
+			expect(result).toEqual(mockTenant)
+			expect(result.status).toBe('MOVED_OUT')
+		})
+
+		it('should throw BadRequestException when moveOutDate is missing', async () => {
+			await expect(
+				controller.markAsMovedOut(
+					'tenant-1',
+					{ moveOutDate: '', moveOutReason: 'lease_expired' },
+					createMockRequest({ user: mockUser }) as any
+				)
+			).rejects.toThrow(BadRequestException)
+		})
+
+		it('should throw BadRequestException when moveOutReason is missing', async () => {
+			await expect(
+				controller.markAsMovedOut(
+					'tenant-1',
+					{ moveOutDate: '2025-01-15', moveOutReason: '' },
+					createMockRequest({ user: mockUser }) as any
+				)
+			).rejects.toThrow(BadRequestException)
+		})
+
+		it('should throw NotFoundException when tenant not found', async () => {
+			mockTenantsServiceInstance.markAsMovedOut.mockResolvedValue(null)
+
+			await expect(
+				controller.markAsMovedOut(
+					'tenant-1',
+					{ moveOutDate: '2025-01-15', moveOutReason: 'lease_expired' },
+					createMockRequest({ user: mockUser }) as any
+				)
+			).rejects.toThrow(NotFoundException)
+		})
+	})
+
+	describe('hardDelete', () => {
+		it('should permanently delete tenant after 7-year retention', async () => {
+			mockTenantsServiceInstance.hardDelete.mockResolvedValue(undefined)
+
+			const result = await controller.hardDelete(
 				'tenant-1',
 				createMockRequest({ user: mockUser }) as any
 			)
 
-			expect(mockTenantsServiceInstance.remove).toHaveBeenCalledWith(
+			expect(mockTenantsServiceInstance.hardDelete).toHaveBeenCalledWith(
 				mockUser.id,
 				'tenant-1'
+			)
+			expect(result.message).toBe('Tenant permanently deleted')
+		})
+
+		it('should reject deletion of active tenant', async () => {
+			mockTenantsServiceInstance.hardDelete.mockRejectedValue(
+				new BadRequestException(
+					'Tenant must be marked as moved out before permanent deletion. Use PUT /tenants/:id/mark-moved-out first.'
+				)
+			)
+
+			await expect(
+				controller.hardDelete(
+					'tenant-1',
+					createMockRequest({ user: mockUser }) as any
+				)
+			).rejects.toThrow(BadRequestException)
+		})
+
+		it('should reject deletion of tenant without move-out date', async () => {
+			mockTenantsServiceInstance.hardDelete.mockRejectedValue(
+				new BadRequestException(
+					'Tenant must have a move-out date before permanent deletion. Use PUT /tenants/:id/mark-moved-out first.'
+				)
+			)
+
+			await expect(
+				controller.hardDelete(
+					'tenant-1',
+					createMockRequest({ user: mockUser }) as any
+				)
+			).rejects.toThrow(BadRequestException)
+		})
+
+		it('should reject deletion within 7-year retention period', async () => {
+			mockTenantsServiceInstance.hardDelete.mockRejectedValue(
+				new BadRequestException(
+					'Tenant can only be permanently deleted 7 years after move-out date (legal retention requirement)'
+				)
+			)
+
+			await expect(
+				controller.hardDelete(
+					'tenant-1',
+					createMockRequest({ user: mockUser }) as any
+				)
+			).rejects.toThrow(BadRequestException)
+		})
+	})
+
+	describe('remove (deprecated)', () => {
+		it('should throw BadRequestException directing to soft delete', async () => {
+			await expect(controller.remove()).rejects.toThrow(BadRequestException)
+
+			await expect(controller.remove()).rejects.toThrow(
+				/Direct deletion is not allowed/
 			)
 		})
 	})
