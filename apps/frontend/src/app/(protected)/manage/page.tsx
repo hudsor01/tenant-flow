@@ -53,15 +53,17 @@ export default async function DashboardPage() {
 					<div className="mx-auto max-w-[1600px]">
 						{/* Asymmetric Hero Layout */}
 						<div
-							className="grid lg:grid-cols-2 items-center min-h-[calc(100vh-16rem)]"
-							style={{ gap: 'var(--dashboard-section-gap)' }}
+							className="dashboard-cards-container items-center min-h-[calc(100vh-16rem)]"
+							style={{
+								gap: 'var(--dashboard-section-gap)',
+								gridTemplateColumns:
+									'repeat(auto-fit, minmax(min(100%, 480px), 1fr))'
+							}}
 						>
 							{/* Left: Hero Content */}
 							<div
-								className="animate-in fade-in slide-in-from-left-8 duration-700"
+								className="animate-in fade-in slide-in-from-left-8 duration-700 flex flex-col"
 								style={{
-									display: 'flex',
-									flexDirection: 'column',
 									gap: 'var(--dashboard-section-gap)'
 								}}
 							>
@@ -116,8 +118,12 @@ export default async function DashboardPage() {
 
 								{/* Quick Stats Preview */}
 								<div
-									className="grid grid-cols-3 pt-6 border-t border-border/50"
-									style={{ gap: 'var(--dashboard-card-gap)' }}
+									className="dashboard-cards-container pt-6 border-t border-border/50"
+									style={{
+										gap: 'var(--dashboard-card-gap)',
+										gridTemplateColumns:
+											'repeat(auto-fit, minmax(min(100%, 120px), 1fr))'
+									}}
 								>
 									<div className="space-y-2 group">
 										<div className="text-3xl font-bold text-primary group-hover:scale-110 transition-transform">
@@ -146,10 +152,8 @@ export default async function DashboardPage() {
 
 							{/* Right: Action Cards using CardLayout */}
 							<div
-								className="animate-in fade-in slide-in-from-right-8 duration-700 delay-150"
+								className="animate-in fade-in slide-in-from-right-8 duration-700 delay-150 flex flex-col"
 								style={{
-									display: 'flex',
-									flexDirection: 'column',
 									gap: 'var(--dashboard-card-gap)'
 								}}
 							>
@@ -182,8 +186,12 @@ export default async function DashboardPage() {
 
 								{/* Secondary Action Cards */}
 								<div
-									className="grid sm:grid-cols-2"
-									style={{ gap: 'var(--spacing-4)' }}
+									className="dashboard-cards-container"
+									style={{
+										gap: 'var(--dashboard-card-gap)',
+										gridTemplateColumns:
+											'repeat(auto-fit, minmax(min(100%, 240px), 1fr))'
+									}}
 								>
 									<Link
 										href="/manage/tenants/new"
