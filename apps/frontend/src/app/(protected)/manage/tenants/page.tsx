@@ -17,7 +17,6 @@ async function deleteTenant(tenantId: string) {
 		return { success: true }
 	} catch (error) {
 		// Server Action: console.error is acceptable for server-side logging
-		// eslint-disable-next-line no-console, no-restricted-syntax
 		console.error('[Server Action] Failed to delete tenant:', {
 			tenantId,
 			error: error instanceof Error ? error.message : String(error)
@@ -43,7 +42,11 @@ export default async function TenantsPage() {
 					</p>
 				</div>
 			</div>
-			<TenantsTable initialTenants={tenants} initialStats={stats} deleteTenantAction={deleteTenant} />
+			<TenantsTable
+				initialTenants={tenants}
+				initialStats={stats}
+				deleteTenantAction={deleteTenant}
+			/>
 		</div>
 	)
 }
