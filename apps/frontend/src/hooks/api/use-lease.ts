@@ -17,8 +17,7 @@ import type {
 import type { Lease } from '@repo/shared/types/core'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
+import { API_BASE_URL } from '@/lib/api-client'
 
 /**
  * Query keys for lease endpoints (hierarchical, typed)
@@ -42,8 +41,6 @@ export const leaseKeys = {
  * Hook to fetch lease by ID with optimized caching
  */
 export function useLease(id: string) {
-	const queryClient = useQueryClient()
-
 	return useQuery({
 		queryKey: leaseKeys.detail(id),
 		queryFn: async (): Promise<Lease> => {
@@ -55,22 +52,7 @@ export function useLease(id: string) {
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes
-		retry: 2,
-		// Use data from list query as placeholder
-		placeholderData: () => {
-			const cachedLists = queryClient.getQueriesData<{
-				data: Lease[]
-				total: number
-			}>({
-				queryKey: leaseKeys.all
-			})
-
-			for (const [, data] of cachedLists) {
-				const lease = data?.data?.find((l: Lease) => l.id === id)
-				if (lease) return lease
-			}
-			return undefined
-		}
+		retry: 2
 	})
 }
 

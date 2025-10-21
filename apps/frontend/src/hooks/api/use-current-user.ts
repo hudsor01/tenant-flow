@@ -8,7 +8,7 @@
  * Reference: apps/frontend/src/hooks/api/use-tenant.ts
  */
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { usersApi } from '../../lib/api-client'
 
 /**
@@ -41,4 +41,19 @@ export function useUser() {
 		gcTime: 10 * 60 * 1000,
 		retry: 1
 	})
+}
+
+/**
+ * Hook for prefetching current user
+ */
+export function usePrefetchUser() {
+	const queryClient = useQueryClient()
+
+	return () => {
+		queryClient.prefetchQuery({
+			queryKey: userKeys.me,
+			queryFn: () => usersApi.getCurrentUser(),
+			staleTime: 5 * 60 * 1000
+		})
+	}
 }

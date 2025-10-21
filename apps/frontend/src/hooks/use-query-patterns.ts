@@ -34,11 +34,6 @@ export const MUTATION_CONFIG = {
 } as const
 
 /**
- * API base URL - use this consistently across all hooks
- */
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || ''
-
-/**
  * Hook for optimistic list updates pattern
  * Provides rollback functionality for list mutations
  *

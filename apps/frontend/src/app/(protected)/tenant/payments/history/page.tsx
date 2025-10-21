@@ -7,15 +7,51 @@
  * - Payment method used
  * - Receipts/invoices download
  */
+'use client'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
 import { Skeleton } from '@/components/ui/skeleton'
+import { usePaymentHistory } from '@/hooks/api/use-payment-history'
+import { usePaymentMethods } from '@/hooks/api/use-payment-methods'
 import { Calendar, CreditCard, DollarSign, Download } from 'lucide-react'
 import Link from 'next/link'
 
 export default function TenantPaymentHistoryPage() {
+	const { data: payments = [], isLoading: paymentsLoading } =
+		usePaymentHistory()
+	const { data: paymentMethods = [], isLoading: methodsLoading } =
+		usePaymentMethods()
+
+	// Calculate summary stats
+	const totalPaid = payments
+		.filter(p => p.status === 'succeeded')
+		.reduce((sum, p) => sum + p.amount, 0)
+	const lastPayment = payments.find(p => p.status === 'succeeded')
+	const hasPayments = payments.length > 0
+
+	const getStatusBadgeClass = (status: string) => {
+		switch (status) {
+			case 'succeeded':
+				return 'bg-green-50 text-green-700 border-green-200'
+			case 'pending':
+				return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+			case 'failed':
+			case 'canceled':
+				return 'bg-red-50 text-red-700 border-red-200'
+			default:
+				return ''
+		}
+	}
+
+	const formatCurrency = (amount: number) => {
+		return new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD'
+		}).format(amount / 100)
+	}
+
 	return (
 		<div className="space-y-8">
 			<div className="flex items-center justify-between">
@@ -39,7 +75,13 @@ export default function TenantPaymentHistoryPage() {
 					<div className="flex items-center gap-3">
 						<DollarSign className="h-8 w-8 text-accent-main" />
 						<div>
-							<Skeleton className="h-8 w-32" />
+							{paymentsLoading ? (
+								<Skeleton className="h-8 w-32" />
+							) : (
+								<p className="text-2xl font-bold">
+									{formatCurrency(totalPaid)}
+								</p>
+							)}
 							<p className="text-sm text-muted-foreground mt-1">All time</p>
 						</div>
 					</div>
@@ -49,7 +91,15 @@ export default function TenantPaymentHistoryPage() {
 					<div className="flex items-center gap-3">
 						<Calendar className="h-8 w-8 text-accent-main" />
 						<div>
-							<Skeleton className="h-8 w-24" />
+							{paymentsLoading ? (
+								<Skeleton className="h-8 w-24" />
+							) : lastPayment ? (
+								<p className="text-2xl font-bold">
+									{lastPayment.formattedDate}
+								</p>
+							) : (
+								<p className="text-muted-foreground">No payments yet</p>
+							)}
 							<p className="text-sm text-muted-foreground mt-1">Date</p>
 						</div>
 					</div>
@@ -81,45 +131,68 @@ export default function TenantPaymentHistoryPage() {
 						<div className="text-right">Receipt</div>
 					</div>
 
-					{/* Sample Payment Row (TODO: Replace with real data) */}
-					<div className="grid grid-cols-5 gap-4 p-4 items-center border-b hover:bg-accent/5 transition-colors">
-						<div>
-							<p className="font-medium">Dec 1, 2024</p>
-							<p className="text-sm text-muted-foreground">Monthly Rent</p>
+					{/* Loading State */}
+					{paymentsLoading && (
+						<div className="space-y-2 p-4">
+							<Skeleton className="h-16 w-full" />
+							<Skeleton className="h-16 w-full" />
+							<Skeleton className="h-16 w-full" />
 						</div>
-						<div>
-							<p className="font-semibold">$1,200.00</p>
-						</div>
-						<div>
-							<div className="flex items-center gap-2">
-								<CreditCard className="h-4 w-4 text-muted-foreground" />
-								<span className="text-sm">Credit Card</span>
-							</div>
-						</div>
-						<div>
-							<Badge
-								variant="outline"
-								className="bg-green-50 text-green-700 border-green-200"
+					)}
+
+					{/* Payment Rows */}
+					{!paymentsLoading &&
+						hasPayments &&
+						payments.map(payment => (
+							<div
+								key={payment.id}
+								className="grid grid-cols-5 gap-4 p-4 items-center border-b hover:bg-accent/5 transition-colors"
 							>
-								Paid
-							</Badge>
-						</div>
-						<div className="text-right">
-							<Button variant="ghost" size="sm">
-								<Download className="h-4 w-4" />
-							</Button>
-						</div>
-					</div>
+								<div>
+									<p className="font-medium">{payment.formattedDate}</p>
+									<p className="text-sm text-muted-foreground">
+										{payment.description || 'Monthly Rent'}
+									</p>
+								</div>
+								<div>
+									<p className="font-semibold">{payment.formattedAmount}</p>
+								</div>
+								<div>
+									<div className="flex items-center gap-2">
+										<CreditCard className="h-4 w-4 text-muted-foreground" />
+										<span className="text-sm">Credit Card</span>
+									</div>
+								</div>
+								<div>
+									<Badge
+										variant="outline"
+										className={getStatusBadgeClass(payment.status)}
+									>
+										{payment.status === 'succeeded'
+											? 'Paid'
+											: payment.status.charAt(0).toUpperCase() +
+												payment.status.slice(1)}
+									</Badge>
+								</div>
+								<div className="text-right">
+									<Button variant="ghost" size="sm">
+										<Download className="h-4 w-4" />
+									</Button>
+								</div>
+							</div>
+						))}
 
 					{/* Empty State */}
-					<div className="text-center py-12">
-						<p className="text-muted-foreground">No payment history yet</p>
-						<Link href="/tenant/payments">
-							<Button variant="outline" className="mt-4">
-								Make Your First Payment
-							</Button>
-						</Link>
-					</div>
+					{!paymentsLoading && !hasPayments && (
+						<div className="text-center py-12">
+							<p className="text-muted-foreground">No payment history yet</p>
+							<Link href="/tenant/payments">
+								<Button variant="outline" className="mt-4">
+									Make Your First Payment
+								</Button>
+							</Link>
+						</div>
+					)}
 				</div>
 			</CardLayout>
 
@@ -129,19 +202,42 @@ export default function TenantPaymentHistoryPage() {
 				description="Manage your payment methods for faster checkout"
 			>
 				<div className="space-y-3">
-					<div className="flex items-center justify-between p-4 border rounded-lg">
-						<div className="flex items-center gap-3">
-							<CreditCard className="h-5 w-5 text-accent-main" />
-							<div>
-								<p className="font-medium">•••• •••• •••• 4242</p>
-								<p className="text-sm text-muted-foreground">Expires 12/25</p>
-							</div>
+					{/* Loading State */}
+					{methodsLoading && (
+						<div className="space-y-2">
+							<Skeleton className="h-16 w-full" />
+							<Skeleton className="h-16 w-full" />
 						</div>
-						<Badge variant="outline">Default</Badge>
-					</div>
-					<p className="text-sm text-center text-muted-foreground py-4">
-						No saved payment methods yet
-					</p>
+					)}
+
+					{/* Payment Method Cards */}
+					{!methodsLoading &&
+						paymentMethods.map(method => (
+							<div
+								key={method.id}
+								className="flex items-center justify-between p-4 border rounded-lg"
+							>
+								<div className="flex items-center gap-3">
+									<CreditCard className="h-5 w-5 text-accent-main" />
+									<div>
+										<p className="font-medium">
+											{method.brand || 'Card'} •••• {method.last4}
+										</p>
+										<p className="text-sm text-muted-foreground capitalize">
+											{method.type.replace('_', ' ')}
+										</p>
+									</div>
+								</div>
+								{method.isDefault && <Badge variant="outline">Default</Badge>}
+							</div>
+						))}
+
+					{/* Empty State */}
+					{!methodsLoading && paymentMethods.length === 0 && (
+						<p className="text-sm text-center text-muted-foreground py-4">
+							No saved payment methods yet
+						</p>
+					)}
 				</div>
 			</CardLayout>
 		</div>

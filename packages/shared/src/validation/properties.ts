@@ -226,3 +226,20 @@ export type TransformedPropertyData = ReturnType<
 export type TransformedPropertyUpdateData = ReturnType<
 	typeof transformPropertyUpdateData
 >
+
+// Property sold schema (for marking properties as sold with required compliance fields)
+export const propertyMarkedSoldSchema = z.object({
+	dateSold: z.coerce
+		.date()
+		.refine(date => date <= new Date(), 'Sale date cannot be in the future'),
+	salePrice: positiveNumberSchema
+		.max(100000000, 'Sale price seems unrealistic')
+		.refine(val => val > 0, 'Sale price must be greater than $0'),
+	saleNotes: z
+		.string()
+		.max(2000, 'Sale notes cannot exceed 2000 characters')
+		.optional()
+		.or(z.literal(''))
+})
+
+export type PropertyMarkedSold = z.infer<typeof propertyMarkedSoldSchema>
