@@ -271,12 +271,12 @@ export default function AnalyticsPage() {
 											>
 												<stop
 													offset="5%"
-													stopColor="hsl(var(--chart-1))"
+													stopColor="oklch(var(--chart-1))"
 													stopOpacity={0.3}
 												/>
 												<stop
 													offset="95%"
-													stopColor="hsl(var(--chart-1))"
+													stopColor="oklch(var(--chart-1))"
 													stopOpacity={0}
 												/>
 											</linearGradient>
@@ -289,12 +289,12 @@ export default function AnalyticsPage() {
 											>
 												<stop
 													offset="5%"
-													stopColor="hsl(var(--chart-3))"
+													stopColor="oklch(var(--chart-3))"
 													stopOpacity={0.3}
 												/>
 												<stop
 													offset="95%"
-													stopColor="hsl(var(--chart-3))"
+													stopColor="oklch(var(--chart-3))"
 													stopOpacity={0}
 												/>
 											</linearGradient>
@@ -306,17 +306,17 @@ export default function AnalyticsPage() {
 										<XAxis
 											dataKey="month"
 											className="text-xs"
-											tick={{ fill: 'hsl(var(--muted-foreground))' }}
+											tick={{ fill: 'oklch(var(--muted-foreground))' }}
 										/>
 										<YAxis
 											className="text-xs"
-											tick={{ fill: 'hsl(var(--muted-foreground))' }}
+											tick={{ fill: 'oklch(var(--muted-foreground))' }}
 											tickFormatter={formatCurrency}
 										/>
 										<Tooltip
 											contentStyle={{
-												backgroundColor: 'hsl(var(--background))',
-												border: '1px solid hsl(var(--border))',
+												backgroundColor: 'oklch(var(--background))',
+												border: '1px solid oklch(var(--border))',
 												borderRadius: '8px'
 											}}
 											formatter={(value: number) => formatCurrency(value)}
@@ -325,7 +325,7 @@ export default function AnalyticsPage() {
 										<Area
 											type="monotone"
 											dataKey="revenue"
-											stroke="hsl(var(--chart-1))"
+											stroke="oklch(var(--chart-1))"
 											fillOpacity={1}
 											fill="url(#colorRevenue)"
 											name="Revenue"
@@ -333,7 +333,7 @@ export default function AnalyticsPage() {
 										<Area
 											type="monotone"
 											dataKey="profit"
-											stroke="hsl(var(--chart-3))"
+											stroke="oklch(var(--chart-3))"
 											fillOpacity={1}
 											fill="url(#colorProfit)"
 											name="Profit"
@@ -384,20 +384,20 @@ export default function AnalyticsPage() {
 											<XAxis
 												dataKey="name"
 												className="text-xs"
-												tick={{ fill: 'hsl(var(--muted-foreground))' }}
+												tick={{ fill: 'oklch(var(--muted-foreground))' }}
 											/>
 											<YAxis
 												className="text-xs"
-												tick={{ fill: 'hsl(var(--muted-foreground))' }}
+												tick={{ fill: 'oklch(var(--muted-foreground))' }}
 											/>
 											<Tooltip
 												contentStyle={{
-													backgroundColor: 'hsl(var(--background))',
-													border: '1px solid hsl(var(--border))',
+													backgroundColor: 'oklch(var(--background))',
+													border: '1px solid oklch(var(--border))',
 													borderRadius: '8px'
 												}}
 											/>
-											<Bar dataKey="count" fill="hsl(var(--chart-2))" />
+											<Bar dataKey="count" fill="oklch(var(--chart-2))" />
 										</BarChart>
 									</ResponsiveContainer>
 								) : (
@@ -430,21 +430,21 @@ export default function AnalyticsPage() {
 											<XAxis
 												dataKey="propertyName"
 												className="text-xs"
-												tick={{ fill: 'hsl(var(--muted-foreground))' }}
+												tick={{ fill: 'oklch(var(--muted-foreground))' }}
 												angle={-45}
 												textAnchor="end"
 												height={80}
 											/>
 											<YAxis
 												className="text-xs"
-												tick={{ fill: 'hsl(var(--muted-foreground))' }}
+												tick={{ fill: 'oklch(var(--muted-foreground))' }}
 												domain={[0, 100]}
 												tickFormatter={formatPercent}
 											/>
 											<Tooltip
 												contentStyle={{
-													backgroundColor: 'hsl(var(--background))',
-													border: '1px solid hsl(var(--border))',
+													backgroundColor: 'oklch(var(--background))',
+													border: '1px solid oklch(var(--border))',
 													borderRadius: '8px'
 												}}
 												formatter={(value: number) => formatPercent(value)}
@@ -452,7 +452,7 @@ export default function AnalyticsPage() {
 											<Line
 												type="monotone"
 												dataKey="occupancyRate"
-												stroke="hsl(var(--chart-4))"
+												stroke="oklch(var(--chart-4))"
 												strokeWidth={2}
 												name="Occupancy Rate"
 											/>

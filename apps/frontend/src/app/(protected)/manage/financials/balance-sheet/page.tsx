@@ -165,7 +165,7 @@ export default function BalanceSheetPage() {
 								Balance Check
 								{data.balanceCheck ? (
 									<Badge variant="outline" className="flex items-center gap-1">
-										<CheckCircle2 className="size-3 text-[hsl(var(--success))]" />
+										<CheckCircle2 className="size-3 text-[oklch(var(--success))]" />
 										Balanced
 									</Badge>
 								) : (
@@ -207,8 +207,8 @@ export default function BalanceSheetPage() {
 										className="text-2xl font-semibold"
 										style={{
 											color: data.balanceCheck
-												? 'hsl(var(--success))'
-												: 'hsl(var(--destructive))'
+												? 'oklch(var(--success))'
+												: 'oklch(var(--destructive))'
 										}}
 									>
 										{formatCurrency(

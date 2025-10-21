@@ -173,8 +173,8 @@ export default function TaxDocumentsPage() {
 									style={{
 										color:
 											data.totals.netTaxableIncome >= 0
-												? 'hsl(var(--success))'
-												: 'hsl(var(--destructive))'
+												? 'oklch(var(--success))'
+												: 'oklch(var(--destructive))'
 									}}
 								>
 									{formatCurrency(data.totals.netTaxableIncome)}
@@ -228,8 +228,8 @@ export default function TaxDocumentsPage() {
 										style={{
 											color:
 												data.schedule.scheduleE.netIncome >= 0
-													? 'hsl(var(--success))'
-													: 'hsl(var(--destructive))'
+													? 'oklch(var(--success))'
+													: 'oklch(var(--destructive))'
 										}}
 									>
 										{formatCurrency(data.schedule.scheduleE.netIncome)}
@@ -269,7 +269,7 @@ export default function TaxDocumentsPage() {
 														variant="outline"
 														className="flex w-fit items-center gap-1"
 													>
-														<CheckCircle className="size-3 text-[hsl(var(--success))]" />
+														<CheckCircle className="size-3 text-[oklch(var(--success))]" />
 														Yes
 													</Badge>
 												) : (
@@ -368,7 +368,7 @@ export default function TaxDocumentsPage() {
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-muted-foreground">Total Expenses</span>
-									<span className="font-semibold text-[hsl(var(--destructive))]">
+									<span className="font-semibold text-[oklch(var(--destructive))]">
 										(
 										{formatCurrency(
 											Math.abs(data.incomeBreakdown.totalExpenses)
@@ -384,7 +384,7 @@ export default function TaxDocumentsPage() {
 								</div>
 								<div className="flex items-center justify-between">
 									<span className="text-muted-foreground">Depreciation</span>
-									<span className="font-semibold text-[hsl(var(--destructive))]">
+									<span className="font-semibold text-[oklch(var(--destructive))]">
 										(
 										{formatCurrency(
 											Math.abs(data.incomeBreakdown.depreciation)
@@ -396,7 +396,7 @@ export default function TaxDocumentsPage() {
 									<span className="text-muted-foreground">
 										Mortgage Interest
 									</span>
-									<span className="font-semibold text-[hsl(var(--destructive))]">
+									<span className="font-semibold text-[oklch(var(--destructive))]">
 										(
 										{formatCurrency(
 											Math.abs(data.incomeBreakdown.mortgageInterest)
@@ -413,8 +413,8 @@ export default function TaxDocumentsPage() {
 										style={{
 											color:
 												data.incomeBreakdown.taxableIncome >= 0
-													? 'hsl(var(--success))'
-													: 'hsl(var(--destructive))'
+													? 'oklch(var(--success))'
+													: 'oklch(var(--destructive))'
 										}}
 									>
 										{formatCurrency(data.incomeBreakdown.taxableIncome)}

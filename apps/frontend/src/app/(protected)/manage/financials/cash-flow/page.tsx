@@ -130,9 +130,9 @@ export default function CashFlowPage() {
 								<CardTitle className="flex items-center gap-2">
 									Operating Activities
 									{data.operatingActivities.netOperatingCash >= 0 ? (
-										<ArrowUpRight className="size-4 text-[hsl(var(--success))]" />
+										<ArrowUpRight className="size-4 text-[oklch(var(--success))]" />
 									) : (
-										<ArrowDownRight className="size-4 text-[hsl(var(--destructive))]" />
+										<ArrowDownRight className="size-4 text-[oklch(var(--destructive))]" />
 									)}
 								</CardTitle>
 								<CardDescription>Core business operations</CardDescription>
@@ -143,8 +143,8 @@ export default function CashFlowPage() {
 									style={{
 										color:
 											data.operatingActivities.netOperatingCash >= 0
-												? 'hsl(var(--success))'
-												: 'hsl(var(--destructive))'
+												? 'oklch(var(--success))'
+												: 'oklch(var(--destructive))'
 									}}
 								>
 									{formatCurrency(data.operatingActivities.netOperatingCash)}
@@ -157,9 +157,9 @@ export default function CashFlowPage() {
 								<CardTitle className="flex items-center gap-2">
 									Investing Activities
 									{data.investingActivities.netInvestingCash >= 0 ? (
-										<ArrowUpRight className="size-4 text-[hsl(var(--success))]" />
+										<ArrowUpRight className="size-4 text-[oklch(var(--success))]" />
 									) : (
-										<ArrowDownRight className="size-4 text-[hsl(var(--destructive))]" />
+										<ArrowDownRight className="size-4 text-[oklch(var(--destructive))]" />
 									)}
 								</CardTitle>
 								<CardDescription>Property investments</CardDescription>
@@ -170,8 +170,8 @@ export default function CashFlowPage() {
 									style={{
 										color:
 											data.investingActivities.netInvestingCash >= 0
-												? 'hsl(var(--success))'
-												: 'hsl(var(--destructive))'
+												? 'oklch(var(--success))'
+												: 'oklch(var(--destructive))'
 									}}
 								>
 									{formatCurrency(data.investingActivities.netInvestingCash)}
@@ -184,9 +184,9 @@ export default function CashFlowPage() {
 								<CardTitle className="flex items-center gap-2">
 									Financing Activities
 									{data.financingActivities.netFinancingCash >= 0 ? (
-										<ArrowUpRight className="size-4 text-[hsl(var(--success))]" />
+										<ArrowUpRight className="size-4 text-[oklch(var(--success))]" />
 									) : (
-										<ArrowDownRight className="size-4 text-[hsl(var(--destructive))]" />
+										<ArrowDownRight className="size-4 text-[oklch(var(--destructive))]" />
 									)}
 								</CardTitle>
 								<CardDescription>Loans and distributions</CardDescription>
@@ -197,8 +197,8 @@ export default function CashFlowPage() {
 									style={{
 										color:
 											data.financingActivities.netFinancingCash >= 0
-												? 'hsl(var(--success))'
-												: 'hsl(var(--destructive))'
+												? 'oklch(var(--success))'
+												: 'oklch(var(--destructive))'
 									}}
 								>
 									{formatCurrency(data.financingActivities.netFinancingCash)}
@@ -239,8 +239,8 @@ export default function CashFlowPage() {
 										style={{
 											color:
 												data.operatingActivities.netOperatingCash >= 0
-													? 'hsl(var(--success))'
-													: 'hsl(var(--destructive))'
+													? 'oklch(var(--success))'
+													: 'oklch(var(--destructive))'
 										}}
 									>
 										{formatCurrency(data.operatingActivities.netOperatingCash)}
@@ -256,8 +256,8 @@ export default function CashFlowPage() {
 										style={{
 											color:
 												data.investingActivities.netInvestingCash >= 0
-													? 'hsl(var(--success))'
-													: 'hsl(var(--destructive))'
+													? 'oklch(var(--success))'
+													: 'oklch(var(--destructive))'
 										}}
 									>
 										{formatCurrency(data.investingActivities.netInvestingCash)}
@@ -273,8 +273,8 @@ export default function CashFlowPage() {
 										style={{
 											color:
 												data.financingActivities.netFinancingCash >= 0
-													? 'hsl(var(--success))'
-													: 'hsl(var(--destructive))'
+													? 'oklch(var(--success))'
+													: 'oklch(var(--destructive))'
 										}}
 									>
 										{formatCurrency(data.financingActivities.netFinancingCash)}
@@ -288,8 +288,8 @@ export default function CashFlowPage() {
 										style={{
 											color:
 												data.netCashFlow >= 0
-													? 'hsl(var(--success))'
-													: 'hsl(var(--destructive))'
+													? 'oklch(var(--success))'
+													: 'oklch(var(--destructive))'
 										}}
 									>
 										{formatCurrency(data.netCashFlow)}
@@ -319,7 +319,7 @@ export default function CashFlowPage() {
 											<TableCell className="font-medium">
 												Rental Payments
 											</TableCell>
-											<TableCell className="text-right text-[hsl(var(--success))]">
+											<TableCell className="text-right text-[oklch(var(--success))]">
 												{formatCurrency(
 													data.operatingActivities.rentalPaymentsReceived
 												)}
@@ -329,7 +329,7 @@ export default function CashFlowPage() {
 											<TableCell className="font-medium">
 												Operating Expenses
 											</TableCell>
-											<TableCell className="text-right text-[hsl(var(--destructive))]">
+											<TableCell className="text-right text-[oklch(var(--destructive))]">
 												(
 												{formatCurrency(
 													Math.abs(
@@ -341,7 +341,7 @@ export default function CashFlowPage() {
 										</TableRow>
 										<TableRow>
 											<TableCell className="font-medium">Maintenance</TableCell>
-											<TableCell className="text-right text-[hsl(var(--destructive))]">
+											<TableCell className="text-right text-[oklch(var(--destructive))]">
 												(
 												{formatCurrency(
 													Math.abs(data.operatingActivities.maintenancePaid)
@@ -356,8 +356,8 @@ export default function CashFlowPage() {
 												style={{
 													color:
 														data.operatingActivities.netOperatingCash >= 0
-															? 'hsl(var(--success))'
-															: 'hsl(var(--destructive))'
+															? 'oklch(var(--success))'
+															: 'oklch(var(--destructive))'
 												}}
 											>
 												{formatCurrency(
@@ -382,7 +382,7 @@ export default function CashFlowPage() {
 											<TableCell className="font-medium">
 												Property Acquisitions
 											</TableCell>
-											<TableCell className="text-right text-[hsl(var(--destructive))]">
+											<TableCell className="text-right text-[oklch(var(--destructive))]">
 												(
 												{formatCurrency(
 													Math.abs(
@@ -396,7 +396,7 @@ export default function CashFlowPage() {
 											<TableCell className="font-medium">
 												Property Improvements
 											</TableCell>
-											<TableCell className="text-right text-[hsl(var(--destructive))]">
+											<TableCell className="text-right text-[oklch(var(--destructive))]">
 												(
 												{formatCurrency(
 													Math.abs(
@@ -413,8 +413,8 @@ export default function CashFlowPage() {
 												style={{
 													color:
 														data.investingActivities.netInvestingCash >= 0
-															? 'hsl(var(--success))'
-															: 'hsl(var(--destructive))'
+															? 'oklch(var(--success))'
+															: 'oklch(var(--destructive))'
 												}}
 											>
 												{formatCurrency(
@@ -439,7 +439,7 @@ export default function CashFlowPage() {
 											<TableCell className="font-medium">
 												Mortgage Payments
 											</TableCell>
-											<TableCell className="text-right text-[hsl(var(--destructive))]">
+											<TableCell className="text-right text-[oklch(var(--destructive))]">
 												(
 												{formatCurrency(
 													Math.abs(data.financingActivities.mortgagePayments)
@@ -451,7 +451,7 @@ export default function CashFlowPage() {
 											<TableCell className="font-medium">
 												Loan Proceeds
 											</TableCell>
-											<TableCell className="text-right text-[hsl(var(--success))]">
+											<TableCell className="text-right text-[oklch(var(--success))]">
 												{formatCurrency(data.financingActivities.loanProceeds)}
 											</TableCell>
 										</TableRow>
@@ -459,7 +459,7 @@ export default function CashFlowPage() {
 											<TableCell className="font-medium">
 												Owner Contributions
 											</TableCell>
-											<TableCell className="text-right text-[hsl(var(--success))]">
+											<TableCell className="text-right text-[oklch(var(--success))]">
 												{formatCurrency(
 													data.financingActivities.ownerContributions
 												)}
@@ -469,7 +469,7 @@ export default function CashFlowPage() {
 											<TableCell className="font-medium">
 												Owner Distributions
 											</TableCell>
-											<TableCell className="text-right text-[hsl(var(--destructive))]">
+											<TableCell className="text-right text-[oklch(var(--destructive))]">
 												(
 												{formatCurrency(
 													Math.abs(data.financingActivities.ownerDistributions)
@@ -484,8 +484,8 @@ export default function CashFlowPage() {
 												style={{
 													color:
 														data.financingActivities.netFinancingCash >= 0
-															? 'hsl(var(--success))'
-															: 'hsl(var(--destructive))'
+															? 'oklch(var(--success))'
+															: 'oklch(var(--destructive))'
 												}}
 											>
 												{formatCurrency(

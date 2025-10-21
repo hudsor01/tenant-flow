@@ -219,6 +219,21 @@ export const tenantsApi = {
 		apiClient<void>(`${API_BASE_URL}/api/v1/tenants/${id}`, {
 			method: 'DELETE'
 		}),
+	markAsMovedOut: (
+		id: string,
+		data: { moveOutDate: string; moveOutReason: string }
+	) =>
+		apiClient<TenantWithLeaseInfo>(
+			`${API_BASE_URL}/api/v1/tenants/${id}/mark-moved-out`,
+			{
+				method: 'PUT',
+				body: JSON.stringify(data)
+			}
+		),
+	hardDelete: (id: string) =>
+		apiClient<void>(`${API_BASE_URL}/api/v1/tenants/${id}/hard-delete`, {
+			method: 'DELETE'
+		}),
 	sendInvitation: (id: string) =>
 		apiClient<{ message: string; success: boolean }>(
 			`${API_BASE_URL}/api/v1/tenants/${id}/invite`,
@@ -278,7 +293,9 @@ export const leasesApi = {
 			body: JSON.stringify(body)
 		}),
 	remove: (id: string) =>
-		apiClient<void>(`${API_BASE_URL}/api/v1/leases/${id}`, { method: 'DELETE' }),
+		apiClient<void>(`${API_BASE_URL}/api/v1/leases/${id}`, {
+			method: 'DELETE'
+		}),
 
 	// Lease renewal
 	renew: (leaseId: string, data: { endDate: string; rentAmount?: number }) =>
@@ -420,10 +437,13 @@ export const stripeApi = {
  */
 export const subscriptionsApi = {
 	create: (data: CreateSubscriptionRequest) =>
-		apiClient<RentSubscriptionResponse>(`${API_BASE_URL}/api/v1/subscriptions`, {
-			method: 'POST',
-			body: JSON.stringify(data)
-		}),
+		apiClient<RentSubscriptionResponse>(
+			`${API_BASE_URL}/api/v1/subscriptions`,
+			{
+				method: 'POST',
+				body: JSON.stringify(data)
+			}
+		),
 
 	list: async (): Promise<RentSubscriptionResponse[]> => {
 		const response = await apiClient<{

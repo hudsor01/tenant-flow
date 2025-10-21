@@ -348,7 +348,7 @@ export function TenantEditViewButtons({
 								<Badge
 									style={{
 										backgroundColor: 'var(--chart-1)',
-										color: 'hsl(var(--primary-foreground))'
+										color: 'oklch(var(--primary-foreground))'
 									}}
 								>
 									Active
