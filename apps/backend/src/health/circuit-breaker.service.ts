@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import type { ServiceHealth } from '@repo/shared/types/backend-domain'
+import type { ServiceHealth } from '@repo/shared/types/health'
 
 export interface CircuitBreakerStatus {
 	timestamp: string

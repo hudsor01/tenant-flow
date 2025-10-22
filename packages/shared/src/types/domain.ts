@@ -263,11 +263,7 @@ export type StripeWebhookEventTypes =
 	| 'invoice.payment_succeeded'
 	| 'invoice.payment_failed'
 
-export type {
-	StripeWebhookEvent,
-	StripeWebhookProcessor,
-	WebhookProcessorFunction
-} from './stripe'
+// NOTE: Import Stripe webhook types from '@repo/shared/types/stripe' instead
 
 export interface WebhookNotification {
 	id: string
