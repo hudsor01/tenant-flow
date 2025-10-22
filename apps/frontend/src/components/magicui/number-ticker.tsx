@@ -45,7 +45,7 @@ export function NumberTicker({
 
   useEffect(() => {
     if (isIntersecting && !hasAnimated) {
-      setHasAnimated(true)
+      queueMicrotask(() => setHasAnimated(true))
     }
   }, [isIntersecting, hasAnimated])
 
