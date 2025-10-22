@@ -17,11 +17,7 @@ export default async function OccupancyAnalyticsPage() {
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
 			<section
-				className="border-b bg-background"
-				style={{
-					padding: 'var(--dashboard-content-padding)',
-					borderColor: 'var(--color-fill-tertiary)'
-				}}
+				className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]"
 			>
 				<div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 lg:px-6">
 					<div className="flex flex-col gap-2">
@@ -91,14 +87,7 @@ export default async function OccupancyAnalyticsPage() {
 				</div>
 			</section>
 
-			<section
-				className="flex-1"
-				style={{
-					padding: 'var(--dashboard-content-padding)',
-					paddingTop: 'var(--dashboard-section-gap)',
-					paddingBottom: 'var(--dashboard-section-gap)'
-				}}
-			>
+			<section className="flex-1 p-6 pt-6 pb-6">
 				<div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 lg:px-6">
 					<Card>
 						<CardHeader>

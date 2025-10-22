@@ -5,9 +5,6 @@
 /.swc
 /build
 /out
-/coverage
-/test-results
-/playwright-report
 
 # Dependencies
 /node_modules
@@ -39,14 +36,7 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
-*.bak
 *.old
-
-# Local database files
-*.sqlite
-*.sqlite3
-*.db
 
 # Serena and Supabase directories
 .serena/
-.supabase/

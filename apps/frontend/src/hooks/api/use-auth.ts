@@ -1,6 +1,6 @@
 'use client'
 
-import { authQueryKeys as authProviderKeys } from '@/stores/auth-provider'
+import { authQueryKeys as authProviderKeys } from '@/providers/auth-provider'
 import { createClient } from '@/utils/supabase/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Session, User } from '@supabase/supabase-js'

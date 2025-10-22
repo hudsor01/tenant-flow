@@ -19,10 +19,11 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useAllTenants } from '@/hooks/api/use-tenant'
-import { leasesApi, unitsApi } from '@/lib/api-client'
+import { useCreateLease } from '@/hooks/api/use-lease'
+import { unitsApi } from '@/lib/api-client'
 import { leaseInputSchema } from '@repo/shared/validation/leases'
 import { useForm } from '@tanstack/react-form'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { FileText } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -30,9 +31,9 @@ import { z } from 'zod'
 
 export function LeaseManagementDialog() {
 	const [open, setOpen] = useState(false)
-	const queryClient = useQueryClient()
 
 	const { data: tenants = [] } = useAllTenants()
+	const createLease = useCreateLease()
 
 	const { data: units = [] } = useQuery({
 		queryKey: ['units'],
@@ -53,10 +54,19 @@ export function LeaseManagementDialog() {
 			status: 'DRAFT' as const
 		},
 		onSubmit: async ({ value }) => {
-			createMutation.mutate({
-				...value,
-				status: 'ACTIVE'
-			})
+			try {
+				await createLease.mutateAsync({
+					...value,
+					status: 'ACTIVE'
+				})
+				toast.success('Lease created successfully')
+				setOpen(false)
+				form.reset()
+			} catch (error) {
+				toast.error('Failed to create lease', {
+					description: error instanceof Error ? error.message : 'Unknown error'
+				})
+			}
 		},
 		validators: {
 			onChange: ({ value }) => {
@@ -69,20 +79,7 @@ export function LeaseManagementDialog() {
 		}
 	})
 
-	const createMutation = useMutation({
-		mutationFn: leasesApi.createLeaseWithFinancialCalculations,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['leases'] })
-			queryClient.invalidateQueries({ queryKey: ['units'] })
-			queryClient.invalidateQueries({ queryKey: ['tenants'] })
-			toast.success('Lease created successfully')
-			setOpen(false)
-			form.reset()
-		},
-		onError: error => {
-			toast.error(`Failed to create lease: ${error.message}`)
-		}
-	})
+	
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -276,8 +273,8 @@ export function LeaseManagementDialog() {
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={createMutation.isPending}>
-							{createMutation.isPending ? 'Creating...' : 'Create Lease'}
+						<Button type="submit" disabled={createLease.isPending}>
+						{createLease.isPending ? 'Creating...' : 'Create Lease'}
 						</Button>
 					</div>
 				</form>

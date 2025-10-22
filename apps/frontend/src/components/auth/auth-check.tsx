@@ -1,10 +1,10 @@
 'use client'
 
 import { PageLoader } from '@/components/magicui/loading-spinner'
-import { useAuth } from '@/stores/auth-provider'
+import { useAuth } from '@/providers/auth-provider'
 import { useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { useEffect, useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 
 export function AuthCheck({ children }: { children: ReactNode }) {
 	const { isAuthenticated, isLoading } = useAuth()
