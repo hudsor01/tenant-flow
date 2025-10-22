@@ -68,7 +68,6 @@ function PaginationLink({
 				'hover:scale-105 active:scale-95 transform transition-fast-transform',
 				className
 			)}
-			style={{}}
 			{...props}
 		/>
 	)

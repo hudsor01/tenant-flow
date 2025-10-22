@@ -1,7 +1,7 @@
 'use client'
 import { GridPattern } from '@/components/magicui/grid-pattern'
 
-import { FaqsAccordion } from '@/components/faq/faq-accordion'
+import { FaqsAccordion } from '@/app/faq/faq-accordion'
 import Footer from '@/components/layout/footer'
 import { HeroSection } from '@/components/sections/hero-section'
 import { Button } from '@/components/ui/button'

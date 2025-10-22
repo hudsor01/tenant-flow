@@ -312,15 +312,7 @@ export interface Notification {
 }
 
 // Activity types
-export interface ActivityItem {
-	id: string
-	type: EntityType
-	title: string
-	description: string
-	timestamp: Date
-	entityId?: string
-	metadata?: Record<string, unknown>
-}
+export type { ActivityItem } from './activity'
 
 // Financial overview and stats types (from common.ts)
 export interface DashboardFinancialStats {

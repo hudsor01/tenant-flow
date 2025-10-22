@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { AuthModule } from './auth/auth.module'
 import { CurrentUserProvider } from './providers/current-user.provider'
+import { StripeClientService } from './stripe-client.service'
 
 /**
  * Shared Module - Ultra-Native 2025 Architecture
@@ -11,6 +12,7 @@ import { CurrentUserProvider } from './providers/current-user.provider'
  * - Reflector: NestJS metadata reflection service
  * - AuthModule: Authentication via Supabase
  * - CurrentUserProvider: Request-scoped user injection (native NestJS pattern)
+ * - StripeClientService: Centralized Stripe client (singleton pattern)
  *
  * All abstractions removed per NO ABSTRACTIONS rule:
  * - No custom pipes (use built-in ParseUUIDPipe, ParseIntPipe, etc.)
@@ -23,7 +25,7 @@ import { CurrentUserProvider } from './providers/current-user.provider'
 @Global()
 @Module({
 	imports: [AuthModule],
-	providers: [Reflector, CurrentUserProvider],
-	exports: [Reflector, AuthModule, CurrentUserProvider]
+	providers: [Reflector, CurrentUserProvider, StripeClientService],
+	exports: [Reflector, AuthModule, CurrentUserProvider, StripeClientService]
 })
 export class SharedModule {}

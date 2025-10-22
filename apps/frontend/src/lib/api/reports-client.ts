@@ -357,11 +357,8 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
 	try {
 		if (typeof window !== 'undefined') {
 			// Use Supabase session (consistent with rest of app)
-			const { createBrowserClient } = await import('@supabase/ssr')
-			const supabase = createBrowserClient(
-				process.env.NEXT_PUBLIC_SUPABASE_URL!,
-				process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-			)
+			const { createClient } = await import('@/lib/supabase/client')
+			const supabase = createClient()
 			const {
 				data: { session },
 				error
@@ -376,8 +373,6 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
 			if (session?.access_token) {
 				headers['Authorization'] = `Bearer ${session.access_token}`
 			}
-		} else if (process.env.API_TOKEN) {
-			headers['Authorization'] = `Bearer ${process.env.API_TOKEN}`
 		}
 	} catch (err) {
 		// Log errors in development mode instead of silently ignoring

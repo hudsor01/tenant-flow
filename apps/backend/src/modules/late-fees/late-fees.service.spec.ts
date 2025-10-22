@@ -5,11 +5,13 @@ import { randomUUID } from 'crypto'
 import type Stripe from 'stripe'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { SupabaseService } from '../../database/supabase.service'
+import { StripeClientService } from '../../shared/stripe-client.service'
 import { LateFeesService } from './late-fees.service'
 
 describe('LateFeesService', () => {
 	let service: LateFeesService
 	let mockSupabaseService: jest.Mocked<Partial<SupabaseService>>
+	let mockStripeClientService: jest.Mocked<Partial<StripeClientService>>
 	let mockStripe: jest.Mocked<Partial<Stripe>>
 	let mockAdminClient: any
 
@@ -39,12 +41,21 @@ describe('LateFeesService', () => {
 			} as any
 		}
 
+		// Mock StripeClientService
+		mockStripeClientService = {
+			getClient: jest.fn().mockReturnValue(mockStripe)
+		}
+
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				LateFeesService,
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
+				},
+				{
+					provide: StripeClientService,
+					useValue: mockStripeClientService
 				}
 			]
 		})
@@ -52,9 +63,6 @@ describe('LateFeesService', () => {
 			.compile()
 
 		service = module.get<LateFeesService>(LateFeesService)
-
-		// Replace Stripe instance with mock
-		;(service as any).stripe = mockStripe
 
 		// Spy on logger to suppress output
 		jest.spyOn(service['logger'], 'log').mockImplementation(() => {})
