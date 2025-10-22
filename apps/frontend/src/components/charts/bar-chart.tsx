@@ -23,6 +23,51 @@ interface PropertyPerformanceBarChartProps {
 	metric?: 'occupancy' | 'revenue' | 'maintenance'
 }
 
+interface CustomTooltipProps {
+	active?: boolean
+	payload?: Array<{ payload: PropertyPerformanceData; value: number }>
+	label?: string
+	config: {
+		name: string
+		formatter: (value: number) => string
+		color: string
+	}
+}
+
+const CustomTooltip = ({
+	active,
+	payload,
+	label,
+	config
+}: CustomTooltipProps) => {
+	if (active && payload && payload.length && payload[0]) {
+		const data = payload[0].payload
+		return (
+			<div style={TENANTFLOW_CHART_CONFIG.tooltip} className="text-sm">
+				<p className="font-medium mb-2">{label}</p>
+				<div className="space-y-1">
+					<div className="flex items-center gap-2">
+						<div
+							className="w-3 h-3 rounded-full"
+							style={{ backgroundColor: config.color }}
+						/>
+						<span className="text-muted-foreground">{config.name}:</span>
+						<span className="font-medium">
+							{config.formatter(payload[0].value)}
+						</span>
+					</div>
+					<div className="text-xs text-muted-foreground mt-2 pt-2 border-t">
+						<div>Units: {data.units}</div>
+						<div>Revenue: ${(data.revenue / 1000).toFixed(0)}k</div>
+						<div>Maintenance: {data.maintenance} requests</div>
+					</div>
+				</div>
+			</div>
+		)
+	}
+	return null
+}
+
 export function PropertyPerformanceBarChart({
 	data,
 	height = 300,
@@ -70,43 +115,6 @@ export function PropertyPerformanceBarChart({
 
 	const config = getMetricConfig()
 
-	const CustomTooltip = ({
-		active,
-		payload,
-		label
-	}: {
-		active?: boolean
-		payload?: Array<{ payload: PropertyPerformanceData; value: number }>
-		label?: string
-	}) => {
-		if (active && payload && payload.length && payload[0]) {
-			const data = payload[0].payload
-			return (
-				<div style={TENANTFLOW_CHART_CONFIG.tooltip} className="text-sm">
-					<p className="font-medium mb-2">{label}</p>
-					<div className="space-y-1">
-						<div className="flex items-center gap-2">
-							<div
-								className="w-3 h-3 rounded-full"
-								style={{ backgroundColor: config.color }}
-							/>
-							<span className="text-muted-foreground">{config.name}:</span>
-							<span className="font-medium">
-								{config.formatter(payload[0].value)}
-							</span>
-						</div>
-						<div className="text-xs text-muted-foreground mt-2 pt-2 border-t">
-							<div>Units: {data.units}</div>
-							<div>Revenue: ${(data.revenue / 1000).toFixed(0)}k</div>
-							<div>Maintenance: {data.maintenance} requests</div>
-						</div>
-					</div>
-				</div>
-			)
-		}
-		return null
-	}
-
 	return (
 		<ChartContainer
 			title={config.title}
@@ -144,7 +152,7 @@ export function PropertyPerformanceBarChart({
 						tickFormatter={config.formatter}
 					/>
 
-					<Tooltip content={<CustomTooltip />} />
+					<Tooltip content={<CustomTooltip config={config} />} />
 
 					<Bar
 						dataKey={config.dataKey}
