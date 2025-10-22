@@ -30,26 +30,10 @@ export function MetricsSection() {
 	if (isLoading) {
 		return (
 			<div
-				className="border-b bg-background"
-				style={{
-					padding: 'var(--dashboard-content-padding)',
-					borderColor: 'var(--color-fill-tertiary)'
-				}}
+				className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]"
 			>
-				<div
-					className="mx-auto max-w-[1600px]"
-					style={{
-						paddingTop: 'var(--spacing-4)',
-						paddingBottom: 'var(--spacing-4)'
-					}}
-				>
-					<div
-						className="grid grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-4"
-						style={{
-							gap: 'var(--dashboard-card-gap)',
-							padding: '0 var(--dashboard-content-padding)'
-						}}
-					>
+				<div className="mx-auto max-w-[1600px] py-4">
+					<div className="grid grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-4 gap-4 px-6">
 						{Array.from({ length: 6 }).map((_, index) => (
 							<MetricsCardSkeleton key={index} />
 						))}
@@ -75,19 +59,9 @@ export function MetricsSection() {
 
 	return (
 		<div
-			className="border-b bg-background"
-			style={{
-				padding: 'var(--dashboard-content-padding)',
-				borderColor: 'var(--color-fill-tertiary)'
-			}}
+			className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]"
 		>
-			<div
-				className="mx-auto max-w-[1600px]"
-				style={{
-					paddingTop: 'var(--spacing-4)',
-					paddingBottom: 'var(--spacing-4)'
-				}}
-			>
+			<div className="mx-auto max-w-[1600px] py-4">
 				{/* <SectionCards stats={stats} /> */}
 			</div>
 		</div>

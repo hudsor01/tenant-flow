@@ -6,6 +6,7 @@ import { CardLayout } from '@/components/ui/card-layout'
 import { Button } from '@/components/ui/button'
 import { LoadingDots } from '@/components/magicui/loading-spinner'
 import { useSessionStatus } from '@/hooks/api/use-payment-verification'
+import { getStatusColorClass } from '@/lib/utils/color-helpers'
 
 // Success Icon as per Stripe specification
 const SuccessIcon = () => (
@@ -63,7 +64,7 @@ export default function CompletePage() {
 		if (!sessionId) {
 			return {
 				text: 'Invalid session - missing session ID',
-				iconColor: 'var(--color-destructive)',
+				status: 'error',
 				icon: <ErrorIcon />
 			}
 		}
@@ -71,7 +72,7 @@ export default function CompletePage() {
 		if (sessionError) {
 			return {
 				text: 'Error retrieving payment status',
-				iconColor: 'var(--color-destructive)',
+				status: 'error',
 				icon: <ErrorIcon />
 			}
 		}
@@ -79,13 +80,13 @@ export default function CompletePage() {
 		if (sessionData?.status === 'complete') {
 			return {
 				text: 'Payment succeeded',
-				iconColor: 'var(--color-success)',
+				status: 'complete',
 				icon: <SuccessIcon />
 			}
 		} else if (sessionData) {
 			return {
 				text: 'Something went wrong, please try again.',
-				iconColor: 'var(--color-destructive)',
+				status: 'error',
 				icon: <ErrorIcon />
 			}
 		}
@@ -93,12 +94,12 @@ export default function CompletePage() {
 		// Loading state
 		return {
 			text: '',
-			iconColor: '',
+			status: '',
 			icon: null
 		}
 	}
 
-	const { text, iconColor, icon } = getDisplayState()
+	const { text, status, icon } = getDisplayState()
 	const loading = isLoading && !!sessionId
 
 	if (loading) {
@@ -133,8 +134,7 @@ export default function CompletePage() {
 							{/* Status Icon */}
 							<div
 								id="status-icon"
-								className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
-								style={{ backgroundColor: iconColor }}
+								className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${status ? getStatusColorClass(status) : ''}`}
 							>
 								{icon}
 							</div>

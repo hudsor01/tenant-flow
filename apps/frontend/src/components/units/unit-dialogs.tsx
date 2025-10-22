@@ -21,13 +21,11 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { unitsApi } from '@/lib/api-client'
 import {
 	ANIMATION_DURATIONS,
 	buttonClasses,
 	cn,
-	inputClasses,
-	TYPOGRAPHY_SCALE
+	inputClasses
 } from '@/lib/design-system'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -36,7 +34,7 @@ import {
 	unitFormSchema
 } from '@repo/shared/validation/units'
 import { useForm } from '@tanstack/react-form'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useUpdateUnit } from '@/hooks/api/use-unit'
 import type { LucideIcon } from 'lucide-react'
 import {
 	BarChart3,
@@ -169,21 +167,12 @@ export function UnitViewDialog({
 						<Home className="h-6 w-6 text-accent" aria-hidden />
 					</div>
 					<DialogTitle
-						className="text-center text-foreground font-semibold"
-						style={{
-							fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
-							fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight,
-							lineHeight: TYPOGRAPHY_SCALE['heading-xl'].lineHeight
-						}}
+						className="text-center text-foreground text-2xl font-bold leading-tight"
 					>
 						Unit {unit.unitNumber} Details
 					</DialogTitle>
 					<DialogDescription
-						className="text-center text-muted-foreground"
-						style={{
-							fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
-							lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
-						}}
+						className="text-center text-muted-foreground text-sm leading-tight"
 					>
 						Comprehensive property information and current status
 					</DialogDescription>
@@ -193,11 +182,7 @@ export function UnitViewDialog({
 					<div className="grid grid-cols-2 gap-6">
 						<div className="space-y-3">
 							<Label
-								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
-								}}
+								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider leading-normal"
 							>
 								Unit Number
 							</Label>
@@ -209,11 +194,7 @@ export function UnitViewDialog({
 							>
 								<Home className="h-5 w-5 text-muted-foreground" aria-hidden />
 								<p
-									className="text-lg font-bold text-foreground"
-									style={{
-										fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
-										fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight
-									}}
+									className="text-xl font-semibold text-foreground"
 								>
 									{unit.unitNumber}
 								</p>
@@ -221,11 +202,7 @@ export function UnitViewDialog({
 						</div>
 						<div className="space-y-2">
 							<Label
-								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
-								}}
+								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider leading-normal"
 							>
 								Status
 							</Label>
@@ -245,11 +222,7 @@ export function UnitViewDialog({
 								</Badge>
 							</div>
 							<p
-								className="text-xs text-muted-foreground"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
-								}}
+								className="text-xs text-muted-foreground leading-normal"
 							>
 								{statusDetails.description}
 							</p>
@@ -266,21 +239,13 @@ export function UnitViewDialog({
 							)}
 						>
 							<Label
-								className="text-xs font-semibold text-accent uppercase tracking-wider flex items-center gap-1"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
-								}}
+								className="text-xs font-semibold text-accent uppercase tracking-wider flex items-center gap-1 leading-normal"
 							>
 								<BedDouble className="h-4 w-4" aria-hidden />
 								<span>Bedrooms</span>
 							</Label>
 							<p
 								className="text-2xl font-bold text-accent"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
-									fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight
-								}}
 							>
 								{unit.bedrooms || '—'}
 							</p>
@@ -293,20 +258,14 @@ export function UnitViewDialog({
 						>
 							<Label
 								className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
-								}}
+								
 							>
 								<ShowerHead className="h-4 w-4" aria-hidden />
 								<span>Bathrooms</span>
 							</Label>
 							<p
 								className="text-2xl font-bold text-primary"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
-									fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight
-								}}
+								
 							>
 								{unit.bathrooms || '—'}
 							</p>
@@ -321,30 +280,19 @@ export function UnitViewDialog({
 							)}
 						>
 							<Label
-								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
-								}}
+								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 leading-normal"
 							>
 								<Ruler className="h-4 w-4" aria-hidden />
 								<span>Square Feet</span>
 							</Label>
 							<p
-								className="text-lg font-bold text-foreground"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
-									fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight
-								}}
+								className="text-xl font-semibold text-foreground"
 							>
 								{unit.squareFeet ? `${unit.squareFeet.toLocaleString()}` : '—'}
 								{unit.squareFeet && (
 									<span
 										className="text-sm font-normal text-muted-foreground ml-1"
-										style={{
-											fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
-											lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
-										}}
+										
 									>
 										sq ft
 									</span>
@@ -361,20 +309,14 @@ export function UnitViewDialog({
 							<div className="absolute top-0 right-0 w-20 h-20 bg-primary/30 rounded-full -translate-y-6 translate-x-6" />
 							<Label
 								className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1 relative z-10"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
-								}}
+								
 							>
 								<Wallet className="h-4 w-4" aria-hidden />
 								<span>Monthly Rent</span>
 							</Label>
 							<p
 								className="text-2xl font-bold text-primary relative z-10"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['display-lg'].fontSize,
-									fontWeight: TYPOGRAPHY_SCALE['display-lg'].fontWeight
-								}}
+								
 							>
 								{formatCurrency(unit.rent)}
 							</p>
@@ -396,10 +338,7 @@ export function UnitViewDialog({
 									? 'text-accent'
 									: 'text-muted-foreground'
 							)}
-							style={{
-								fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
-								lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
-							}}
+							
 						>
 							<Search className="h-4 w-4" aria-hidden />
 							<span>Last Inspection</span>
@@ -411,10 +350,7 @@ export function UnitViewDialog({
 									? 'text-accent'
 									: 'text-muted-foreground'
 							)}
-							style={{
-								fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
-								fontWeight: TYPOGRAPHY_SCALE['heading-lg'].fontWeight
-							}}
+							
 						>
 							{unit.lastInspectionDate
 								? formatDate(unit.lastInspectionDate)
@@ -422,11 +358,7 @@ export function UnitViewDialog({
 						</p>
 						{!unit.lastInspectionDate && (
 							<p
-								className="text-xs text-muted-foreground italic"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
-								}}
+								className="text-xs text-muted-foreground italic leading-normal"
 							>
 								Consider scheduling a property inspection
 							</p>
@@ -444,42 +376,26 @@ export function UnitViewDialog({
 					>
 						<div className="space-y-2">
 							<Label
-								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
-								}}
+								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 leading-normal"
 							>
 								<CalendarDays className="h-4 w-4" aria-hidden />
 								<span>Created</span>
 							</Label>
 							<p
-								className="text-sm font-semibold text-foreground"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
-								}}
+								className="text-sm font-semibold text-foreground leading-tight"
 							>
 								{formatDate(unit.createdAt)}
 							</p>
 						</div>
 						<div className="space-y-2">
 							<Label
-								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['body-xs'].lineHeight
-								}}
+								className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 leading-normal"
 							>
 								<Edit3 className="h-4 w-4" aria-hidden />
 								<span>Last Updated</span>
 							</Label>
 							<p
-								className="text-sm font-semibold text-foreground"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
-								}}
+								className="text-sm font-semibold text-foreground leading-tight"
 							>
 								{formatDate(unit.updatedAt)}
 							</p>
@@ -513,59 +429,7 @@ export function UnitEditDialog({
 }: UnitEditDialogProps) {
 	const logger = createLogger({ component: 'UnitEditDialog' })
 
-	const qc = useQueryClient()
-	const updateUnit = useMutation({
-		mutationFn: ({
-			id,
-			values
-		}: {
-			id: string
-			values: Database['public']['Tables']['unit']['Update']
-		}) => unitsApi.update(id, values),
-		onMutate: async ({
-			id,
-			values
-		}: {
-			id: string
-			values: Database['public']['Tables']['unit']['Update']
-		}) => {
-			await qc.cancelQueries({ queryKey: ['units'] })
-			const previous = qc.getQueryData<UnitRow[] | { data: UnitRow[] }>([
-				'units'
-			])
-			qc.setQueryData<UnitRow[] | { data: UnitRow[] }>(['units'], old => {
-				if (!old) return old
-				if (Array.isArray(old))
-					return old.map(u =>
-						u.id === id ? ({ ...u, ...values } as UnitRow) : u
-					)
-				if ('data' in old)
-					return {
-						...old,
-						data: old.data.map(u =>
-							u.id === id ? ({ ...u, ...values } as UnitRow) : u
-						)
-					}
-				return old
-			})
-			return { previous }
-		},
-		onError: (err: unknown, _vars, context?: { previous?: unknown }) => {
-			if (context?.previous) {
-				const prev = context.previous as unknown
-				qc.setQueryData(
-					['units'],
-					prev as UnitRow[] | { data: UnitRow[] } | undefined
-				)
-			}
-			toast.error('Failed to update unit', {
-				description: (err as Error)?.message
-			})
-		},
-		onSuccess: () => {
-			toast.success('Unit updated successfully')
-		}
-	})
+	const updateUnit = useUpdateUnit()
 
 	const form = useForm({
 		defaultValues: {
@@ -584,7 +448,7 @@ export function UnitEditDialog({
 				const transformedData = transformUnitFormData(value)
 				await updateUnit.mutateAsync({
 					id: unit.id,
-					values: {
+					data: {
 						unitNumber: transformedData.unitNumber,
 						bedrooms: transformedData.bedrooms,
 						bathrooms: transformedData.bathrooms,
@@ -601,6 +465,9 @@ export function UnitEditDialog({
 				toast.success('Unit updated successfully')
 				onOpenChange(false)
 			} catch (error) {
+				toast.error('Failed to update unit', {
+					description: error instanceof Error ? error.message : 'Unknown error'
+				})
 				logger.error('Unit update operation failed', {
 					action: 'unit_update_failed',
 					metadata: {
@@ -608,7 +475,6 @@ export function UnitEditDialog({
 						error: error instanceof Error ? error.message : String(error)
 					}
 				})
-				toast.error('Failed to update unit. Please try again.')
 			}
 		},
 		validators: {
@@ -661,21 +527,12 @@ export function UnitEditDialog({
 						<Edit3 className="h-6 w-6 text-accent" aria-hidden />
 					</div>
 					<DialogTitle
-						className="text-center text-foreground font-semibold"
-						style={{
-							fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
-							fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight,
-							lineHeight: TYPOGRAPHY_SCALE['heading-xl'].lineHeight
-						}}
+						className="text-center text-foreground text-2xl font-bold leading-tight"
 					>
 						Edit Unit {unit.unitNumber}
 					</DialogTitle>
 					<DialogDescription
-						className="text-center text-muted-foreground"
-						style={{
-							fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
-							lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
-						}}
+						className="text-center text-muted-foreground text-sm leading-tight"
 					>
 						Update property details and settings. Changes are saved
 						automatically.
@@ -695,11 +552,7 @@ export function UnitEditDialog({
 								<Field>
 									<FieldLabel
 										htmlFor="unitNumber"
-										className="text-sm font-semibold text-foreground flex items-center gap-2"
-										style={{
-											fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
-											lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
-										}}
+										className="text-sm font-semibold text-foreground flex items-center gap-2 leading-tight"
 									>
 										<Home
 											className="h-4 w-4 text-muted-foreground"
@@ -736,11 +589,7 @@ export function UnitEditDialog({
 								<Field>
 									<FieldLabel
 										htmlFor="status"
-										className="text-sm font-semibold text-foreground flex items-center gap-2"
-										style={{
-											fontSize: TYPOGRAPHY_SCALE['body-sm'].fontSize,
-											lineHeight: TYPOGRAPHY_SCALE['body-sm'].lineHeight
-										}}
+										className="text-sm font-semibold text-foreground flex items-center gap-2 leading-tight"
 									>
 										<BarChart3
 											className="h-4 w-4 text-muted-foreground"

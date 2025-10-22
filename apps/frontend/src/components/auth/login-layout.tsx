@@ -3,7 +3,6 @@
 import { LoginForm } from '@/components/auth/login-form'
 import { SignupForm } from '@/components/auth/signup-form'
 import { cn } from '@/lib/design-system'
-import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
 import type { LoginLayoutProps } from '@repo/shared/types/auth'
 import { Lock, Smartphone, Zap } from 'lucide-react'
 import Image from 'next/image'
@@ -81,16 +80,14 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 
 								{/* Dark text on light panel */}
 								<h2
-									className="text-foreground font-bold animate-in fade-in slide-in-from-bottom-4 delay-200 duration-500"
-									style={TYPOGRAPHY_SCALE['heading-xl']}
+									className="text-foreground font-bold animate-in fade-in slide-in-from-bottom-4 delay-200 duration-500 text-[22px] leading-tight"
 								>
 									{content.heading}
 								</h2>
 
 								{/* Dark description text */}
 								<p
-									className="text-muted-foreground max-w-md mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-4 delay-300 duration-500"
-									style={TYPOGRAPHY_SCALE['body-lg']}
+									className="text-muted-foreground max-w-md mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-4 delay-300 duration-500 text-[17px] font-normal"
 								>
 									{content.description}
 								</p>
@@ -105,14 +102,12 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 												style={{ animationDelay: `${400 + index * 100}ms` }}
 											>
 												<div
-													className="text-foreground font-bold mb-1 group-hover:scale-105 transition-transform duration-300"
-													style={TYPOGRAPHY_SCALE['heading-md']}
+													className="text-foreground font-bold mb-1 group-hover:scale-105 transition-transform duration-300 text-[17px] leading-[1.29]"
 												>
 													{stat.value}
 												</div>
 												<div
-													className="text-muted-foreground leading-tight font-medium group-hover:text-foreground transition-colors duration-300"
-													style={TYPOGRAPHY_SCALE['ui-caption']}
+													className="text-muted-foreground leading-tight font-medium group-hover:text-foreground transition-colors duration-300 text-xs"
 													dangerouslySetInnerHTML={{
 														__html: stat.label.replace('\n', '<br />')
 													}}
@@ -127,20 +122,16 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 
 					{/* Enhanced floating elements with smoother animations */}
 					<div
-						className="absolute top-1/4 left-1/4 w-2 h-2 rounded-full animate-pulse bg-primary/20"
-						style={{ animationDuration: '3s' }}
+						className="absolute top-1/4 left-1/4 w-2 h-2 rounded-full animate-pulse bg-primary/20 [animation-duration:3s]"
 					/>
 					<div
-						className="absolute top-2/3 right-1/4 w-1 h-1 rounded-full animate-pulse bg-primary/30"
-						style={{ animationDuration: '4s', animationDelay: '1s' }}
+						className="absolute top-2/3 right-1/4 w-1 h-1 rounded-full animate-pulse bg-primary/30 [animation-duration:4s] [animation-delay:1s]"
 					/>
 					<div
-						className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 rounded-full animate-pulse bg-primary/15"
-						style={{ animationDuration: '2.5s', animationDelay: '0.5s' }}
+						className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 rounded-full animate-pulse bg-primary/15 [animation-duration:2.5s] [animation-delay:0.5s]"
 					/>
 					<div
-						className="absolute top-1/2 right-1/3 w-1 h-1 rounded-full animate-pulse bg-primary/15"
-						style={{ animationDuration: '3.5s', animationDelay: '2s' }}
+						className="absolute top-1/2 right-1/3 w-1 h-1 rounded-full animate-pulse bg-primary/15 [animation-duration:3.5s] [animation-delay:2s]"
 					/>
 				</div>
 			</div>

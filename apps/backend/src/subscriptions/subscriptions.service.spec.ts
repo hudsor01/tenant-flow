@@ -3,6 +3,7 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
+import { StripeClientService } from '../shared/stripe-client.service'
 import { SubscriptionsService } from './subscriptions.service'
 
 describe('SubscriptionsService', () => {
@@ -27,6 +28,22 @@ describe('SubscriptionsService', () => {
 		getAdminClient: jest.fn(() => supabaseClient)
 	}
 
+	const mockStripe = {
+		products: { create: jest.fn() },
+		prices: { create: jest.fn(), list: jest.fn() },
+		subscriptions: {
+			create: jest.fn(),
+			update: jest.fn(),
+			cancel: jest.fn(),
+			retrieve: jest.fn()
+		},
+		customers: { update: jest.fn() }
+	}
+
+	const mockStripeClientService = {
+		getClient: jest.fn(() => mockStripe)
+	}
+
 	beforeEach(async () => {
 		supabaseClient = mockSupabaseClient()
 		const module: TestingModule = await Test.createTestingModule({
@@ -35,19 +52,22 @@ describe('SubscriptionsService', () => {
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
+				},
+				{
+					provide: StripeClientService,
+					useValue: mockStripeClientService
 				}
 			]
 		}).compile()
 
 		service = module.get<SubscriptionsService>(SubscriptionsService)
-		// removed unused supabaseService
 
 		// Mock Stripe SDK
-		jest.spyOn(service['stripe'].products, 'create').mockResolvedValue({
+		mockStripe.products.create.mockResolvedValue({
 			id: 'prod_test123'
 		} as Stripe.Response<Stripe.Product>)
 
-		jest.spyOn(service['stripe'].prices, 'create').mockResolvedValue({
+		mockStripe.prices.create.mockResolvedValue({
 			id: 'price_test123'
 		} as Stripe.Response<Stripe.Price>)
 

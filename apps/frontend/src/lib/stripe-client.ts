@@ -2,8 +2,7 @@
  * Stripe integration client using Supabase Edge Functions
  * CLAUDE.md compliant - Native platform integration
  */
-import type { Database } from '@repo/shared/types/supabase-generated'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase/client'
 
 /**
  * Get the API URL for Stripe endpoints
@@ -38,10 +37,7 @@ interface CreateCheckoutSessionResponse {
 export async function createCheckoutSession(
 	request: CreateCheckoutSessionRequest
 ): Promise<CreateCheckoutSessionResponse> {
-	const supabase = createBrowserClient<Database>(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-	)
+	const supabase = createClient()
 
 	// Get current session for authentication (optional for unauthenticated checkout)
 	const {
@@ -95,10 +91,7 @@ export async function createCheckoutSession(
  * Check if user is authenticated with Supabase
  */
 export async function isUserAuthenticated(): Promise<boolean> {
-	const supabase = createBrowserClient<Database>(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-	)
+	const supabase = createClient()
 
 	const {
 		data: { session }
@@ -110,10 +103,7 @@ export async function isUserAuthenticated(): Promise<boolean> {
  * Get authenticated user info
  */
 export async function getCurrentUser() {
-	const supabase = createBrowserClient<Database>(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-	)
+	const supabase = createClient()
 
 	const {
 		data: { user },
@@ -141,10 +131,7 @@ export async function createPaymentIntent({
 	metadata?: Record<string, string>
 	customerEmail?: string
 }) {
-	const supabase = createBrowserClient<Database>(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-	)
+	const supabase = createClient()
 
 	const {
 		data: { session }
@@ -192,10 +179,7 @@ export async function createPaymentIntent({
 export async function createCustomerPortalSession(
 	returnUrl: string
 ): Promise<{ url: string }> {
-	const supabase = createBrowserClient<Database>(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-	)
+	const supabase = createClient()
 
 	const {
 		data: { session }

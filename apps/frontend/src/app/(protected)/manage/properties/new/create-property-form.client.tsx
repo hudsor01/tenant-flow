@@ -1,6 +1,6 @@
 'use client'
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useCreateProperty } from '@/hooks/api/use-properties'
 import { CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -27,7 +27,6 @@ import {
 } from '@/components/dropzone'
 import { useSupabaseUser } from '@/hooks/api/use-supabase-auth'
 import { usePropertyImageUpload } from '@/hooks/use-property-image-upload'
-import { propertiesApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	propertyFormSchema,
@@ -62,9 +61,9 @@ const FORM_STEPS = [
 export function CreatePropertyForm() {
 	const [isSubmitted, setIsSubmitted] = useState(false)
 	const [currentStep, setCurrentStep] = useState(1)
-	const queryClient = useQueryClient()
 	const { data: user } = useSupabaseUser()
 	const logger = createLogger({ component: 'CreatePropertyForm' })
+	const createPropertyMutation = useCreateProperty()
 
 	const totalSteps = FORM_STEPS.length
 	const isFirstStep = currentStep === 1
@@ -116,8 +115,14 @@ export function CreatePropertyForm() {
 					action: 'formSubmission',
 					data: transformedData
 				})
-				createProperty.mutate(transformedData)
+				await createPropertyMutation.mutateAsync(transformedData)
+				toast.success('Property created successfully')
+				setIsSubmitted(true)
+				form.reset()
+				setCurrentStep(1)
 			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : 'Failed to create property'
+				toast.error(errorMessage)
 				logger.error(
 					'Form submission error',
 					{ action: 'formSubmission' },
@@ -136,31 +141,7 @@ export function CreatePropertyForm() {
 		}
 	})
 
-	const createProperty = useMutation({
-		mutationFn: (data: ReturnType<typeof transformPropertyFormData>) =>
-			propertiesApi.create(data),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['properties'] })
-			toast.success('Property created successfully')
-			setIsSubmitted(true)
-			form.reset()
-			setCurrentStep(1)
-		},
-		onError: (
-			error: Error & { response?: { data?: { message?: string } } }
-		) => {
-			const errorMessage =
-				error?.response?.data?.message ||
-				error?.message ||
-				'Failed to create property'
-			toast.error(errorMessage)
-			logger.error(
-				'Failed to create property',
-				{ action: 'createProperty' },
-				error
-			)
-		}
-	})
+	
 
 	const handleNext = async () => {
 		// Validate current step fields
@@ -670,11 +651,11 @@ export function CreatePropertyForm() {
 						{isLastStep ? (
 							<Button
 								type="submit"
-								disabled={createProperty.isPending}
-								className="flex items-center gap-2"
-							>
-								<CheckCircle className="size-4" />
-								{createProperty.isPending ? 'Creating...' : 'Create Property'}
+								disabled={createPropertyMutation.isPending}
+					className="flex items-center gap-2"
+				>
+					<CheckCircle className="size-4" />
+					{createPropertyMutation.isPending ? 'Creating...' : 'Create Property'}
 							</Button>
 						) : (
 							<Button

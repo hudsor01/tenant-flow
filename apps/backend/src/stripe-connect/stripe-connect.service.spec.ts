@@ -3,6 +3,7 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
+import { StripeClientService } from '../shared/stripe-client.service'
 import { StripeConnectService } from './stripe-connect.service'
 
 describe('StripeConnectService', () => {
@@ -45,22 +46,7 @@ describe('StripeConnectService', () => {
 
 		mockSupabaseClient = createMockChain()
 
-		const module: TestingModule = await Test.createTestingModule({
-			providers: [
-				StripeConnectService,
-				{
-					provide: SupabaseService,
-					useValue: {
-						getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient)
-					}
-				}
-			]
-		}).compile()
-
-		service = module.get<StripeConnectService>(StripeConnectService)
-
-		// Mock Stripe instance
-		;(service as any).stripe = {
+		const mockStripe = {
 			accounts: {
 				create: stripeAccountsCreate,
 				retrieve: stripeAccountsRetrieve
@@ -69,6 +55,28 @@ describe('StripeConnectService', () => {
 				create: stripeAccountLinksCreate
 			}
 		}
+
+		const mockStripeClientService = {
+			getClient: jest.fn(() => mockStripe)
+		}
+
+		const module: TestingModule = await Test.createTestingModule({
+			providers: [
+				StripeConnectService,
+				{
+					provide: SupabaseService,
+					useValue: {
+						getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient)
+					}
+				},
+				{
+					provide: StripeClientService,
+					useValue: mockStripeClientService
+				}
+			]
+		}).compile()
+
+		service = module.get<StripeConnectService>(StripeConnectService)
 
 		// Suppress logger output in tests
 		jest.spyOn(Logger.prototype, 'log').mockImplementation()

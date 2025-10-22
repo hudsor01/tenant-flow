@@ -28,7 +28,7 @@ import {
 	useSidebar
 } from '@/components/ui/sidebar'
 import { useSignOut } from '@/hooks/api/use-auth'
-import { useAuth } from '@/stores/auth-provider'
+import { useAuth } from '@/providers/auth-provider'
 
 export function NavUser() {
 	const { isMobile } = useSidebar()

@@ -27,8 +27,8 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { getTaxDocuments } from '@/lib/api/financials-client'
-import { formatCurrency } from '@/lib/utils'
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/lib/supabase/client'
+import { cn, formatCurrency } from '@/lib/utils'
 import type { TaxDocumentsData } from '@repo/shared/types/financial-statements'
 import { CheckCircle, Download, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -103,10 +103,7 @@ export default function TaxDocumentsPage() {
 
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
-			<div
-				className="border-b bg-background"
-				style={{ padding: 'var(--dashboard-content-padding)' }}
-			>
+			<div className="border-b bg-background p-6">
 				<div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 lg:px-6">
 					<div className="flex flex-col gap-2">
 						<h1 className="text-3xl font-semibold tracking-tight">
@@ -169,13 +166,12 @@ export default function TaxDocumentsPage() {
 							</CardHeader>
 							<CardContent className="space-y-3">
 								<p
-									className="text-3xl font-semibold tabular-nums"
-									style={{
-										color:
-											data.totals.netTaxableIncome >= 0
-												? 'oklch(var(--success))'
-												: 'oklch(var(--destructive))'
-									}}
+									className={cn(
+										'text-3xl font-semibold tabular-nums',
+										data.totals.netTaxableIncome >= 0
+											? 'text-[oklch(var(--success))]'
+											: 'text-[oklch(var(--destructive))]'
+									)}
 								>
 									{formatCurrency(data.totals.netTaxableIncome)}
 								</p>
@@ -185,10 +181,7 @@ export default function TaxDocumentsPage() {
 				</div>
 			</div>
 
-			<div
-				className="flex-1"
-				style={{ padding: 'var(--dashboard-content-padding)' }}
-			>
+			<div className="flex-1 p-6">
 				<div className="mx-auto max-w-[1600px] space-y-8 px-4 lg:px-6">
 					<Card>
 						<CardHeader>
@@ -224,13 +217,12 @@ export default function TaxDocumentsPage() {
 								<div className="rounded-lg bg-muted/40 p-4">
 									<p className="text-sm text-muted-foreground">Net Income</p>
 									<p
-										className="text-2xl font-semibold"
-										style={{
-											color:
-												data.schedule.scheduleE.netIncome >= 0
-													? 'oklch(var(--success))'
-													: 'oklch(var(--destructive))'
-										}}
+										className={cn(
+											'text-2xl font-semibold',
+											data.schedule.scheduleE.netIncome >= 0
+												? 'text-[oklch(var(--success))]'
+												: 'text-[oklch(var(--destructive))]'
+										)}
 									>
 										{formatCurrency(data.schedule.scheduleE.netIncome)}
 									</p>
@@ -409,13 +401,12 @@ export default function TaxDocumentsPage() {
 										Taxable Income (Schedule E)
 									</span>
 									<span
-										className="text-2xl font-bold"
-										style={{
-											color:
-												data.incomeBreakdown.taxableIncome >= 0
-													? 'oklch(var(--success))'
-													: 'oklch(var(--destructive))'
-										}}
+										className={cn(
+											'text-2xl font-bold',
+											data.incomeBreakdown.taxableIncome >= 0
+												? 'text-[oklch(var(--success))]'
+												: 'text-[oklch(var(--destructive))]'
+										)}
 									>
 										{formatCurrency(data.incomeBreakdown.taxableIncome)}
 									</span>

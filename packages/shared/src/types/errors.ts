@@ -190,9 +190,4 @@ export interface UserFriendlyError {
 }
 
 // Error type for categorization
-export type ErrorType =
-	| 'network'
-	| 'validation'
-	| 'permission'
-	| 'notFound'
-	| 'server'
+export type { ErrorType } from './api'
