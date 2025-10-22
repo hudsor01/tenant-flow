@@ -69,21 +69,7 @@ export interface HealthCheckResponse {
 }
 
 // Security monitoring types
-export interface SecurityEvent {
-	id: string
-	type: SecurityEventType
-	severity: 'low' | 'medium' | 'high' | 'critical'
-	timestamp: string
-	source: string
-	description: string
-	userAgent?: string
-	ipAddress?: string
-	userId?: string
-	metadata: Record<string, unknown>
-	blocked?: boolean
-	resolved?: boolean
-	ruleName?: string
-}
+export type { SecurityEvent } from './security'
 
 export type SecurityEventType =
 	| 'sql_injection_attempt'

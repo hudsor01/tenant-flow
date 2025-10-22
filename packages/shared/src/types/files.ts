@@ -17,11 +17,7 @@ export interface FileUploadProgress {
 	percentage: number
 }
 
-export interface FileUploadOptions {
-	maxSize?: number
-	allowedTypes?: string[]
-	onProgress?: (progress: FileUploadProgress) => void
-}
+export type { FileUploadOptions } from './file-upload'
 
 export interface FileUploadResult {
 	file: File

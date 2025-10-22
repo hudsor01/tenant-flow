@@ -16,7 +16,8 @@ export const ContactFormType = {
 	DEMO_REQUEST: 'demo'
 } as const
 
-export type ContactFormTypeValue = typeof ContactFormType[keyof typeof ContactFormType]
+export type ContactFormTypeValue =
+	(typeof ContactFormType)[keyof typeof ContactFormType]
 
 export interface ContactFormRequest {
 	name: string
@@ -44,7 +45,8 @@ export const NotificationType = {
 	SYSTEM: 'system'
 } as const
 
-export type NotificationTypeValue = typeof NotificationType[keyof typeof NotificationType]
+export type NotificationTypeValue =
+	(typeof NotificationType)[keyof typeof NotificationType]
 
 // WEB VITALS DOMAIN
 
@@ -76,10 +78,14 @@ export const WebVitalNavigationType = {
 	PRERENDER: 'prerender'
 } as const
 
-export type WebVitalMetricNameValue = typeof WebVitalMetricName[keyof typeof WebVitalMetricName]
-export type WebVitalRatingValue = typeof WebVitalRating[keyof typeof WebVitalRating]
-export type WebVitalLabelValue = typeof WebVitalLabel[keyof typeof WebVitalLabel]
-export type WebVitalNavigationTypeValue = typeof WebVitalNavigationType[keyof typeof WebVitalNavigationType]
+export type WebVitalMetricNameValue =
+	(typeof WebVitalMetricName)[keyof typeof WebVitalMetricName]
+export type WebVitalRatingValue =
+	(typeof WebVitalRating)[keyof typeof WebVitalRating]
+export type WebVitalLabelValue =
+	(typeof WebVitalLabel)[keyof typeof WebVitalLabel]
+export type WebVitalNavigationTypeValue =
+	(typeof WebVitalNavigationType)[keyof typeof WebVitalNavigationType]
 
 // STRIPE WEBHOOK DOMAIN
 
@@ -95,7 +101,8 @@ export const StripeWebhookEventType = {
 	CHECKOUT_SESSION_COMPLETED: 'checkout.session.completed'
 } as const
 
-export type StripeWebhookEventTypeValue = typeof StripeWebhookEventType[keyof typeof StripeWebhookEventType]
+export type StripeWebhookEventTypeValue =
+	(typeof StripeWebhookEventType)[keyof typeof StripeWebhookEventType]
 
 // STORAGE DOMAIN
 
@@ -108,11 +115,7 @@ export interface StorageUploadResult {
 	bucket: string
 }
 
-export interface FileUploadOptions {
-	contentType?: string
-	cacheControl?: string
-	upsert?: boolean
-}
+export type { FileUploadOptions } from './file-upload'
 
 export type StorageEntityType = 'property' | 'tenant' | 'maintenance' | 'user'
 export type StorageFileType = 'document' | 'image' | 'avatar'
@@ -300,15 +303,7 @@ export interface CSPReportBody {
 	'csp-report': CSPViolationReport
 }
 
-export interface SecurityEvent {
-	id: string
-	type: string
-	severity: 'low' | 'medium' | 'high' | 'critical'
-	timestamp: string
-	source: string
-	description: string
-	metadata?: Record<string, unknown>
-}
+export type { SecurityEvent } from './security'
 
 // SecurityMetrics moved to security.ts to eliminate duplication
 

@@ -53,9 +53,7 @@ export interface RegisterData extends AuthCredentials {
 
 // Note: AuthResponse is defined in auth.ts
 
-export interface RefreshTokenRequest {
-	refresh_token: string
-}
+export type { RefreshTokenRequest } from './auth'
 
 // User API types
 export type UserProfileResponse = User
@@ -200,17 +198,7 @@ export type {
 
 // DashboardStats moved to core.ts to follow single source of truth architecture
 
-export interface ActivityItem {
-	id: string
-	type: 'property' | 'tenant' | 'lease' | 'maintenance' | 'payment'
-	title: string
-	description: string
-	timestamp: Date
-	entityId?: string
-	entityType?: string
-	userId?: string
-	metadata?: Record<string, unknown>
-}
+export type { ActivityItem } from './activity'
 
 export interface DashboardActivity {
 	activities: {

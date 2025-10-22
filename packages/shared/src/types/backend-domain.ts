@@ -58,21 +58,8 @@ export interface JSONSchema {
 
 // BACKEND CONTEXT TYPES
 
-export interface authUser {
-	id: string
-	email: string
-	name: string | null
-	phone: string | null
-	bio: string | null
-	avatarUrl: string | null
-	role: string
-	createdAt: Date
-	updatedAt: Date
-	emailVerified: boolean
-	supabaseId: string
-	stripeCustomerId: string | null
-	organizationId: string | null | undefined
-}
+// Application user type from public.users table (not auth.users)
+export type authUser = Database['public']['Tables']['users']['Row']
 
 export interface Context {
 	req: Request
@@ -106,9 +93,7 @@ export interface LoginRequest {
 	password: string
 }
 
-export interface RefreshTokenRequest {
-	refresh_token: string
-}
+export type { RefreshTokenRequest } from './auth'
 
 export interface ForgotPasswordRequest {
 	email: string
@@ -746,24 +731,7 @@ export interface ServiceMetrics {
 }
 
 // SECURITY MONITORING TYPES
-
-export interface SecurityEvent {
-	id: string
-	timestamp: string
-	type: SecurityEventType
-	severity: 'low' | 'medium' | 'high' | 'critical'
-	userId?: string
-	ip?: string
-	ipAddress?: string
-	endpoint?: string
-	details?: Record<string, unknown>
-	resolved?: boolean
-	resolutionTime?: Date
-	metadata: Record<string, unknown>
-	source?: string
-	description?: string
-	userAgent?: string
-}
+export type { SecurityEvent } from './security'
 
 export type SecurityEventType =
 	| 'unauthorized_access'
