@@ -46,7 +46,7 @@ export default function StripeConnectPage() {
 				       <ul className="text-sm text-muted-foreground space-y-2 ml-4 list-disc">
 					       <li>Business or individual tax identification number</li>
 					       <li>Bank account details for payouts</li>
-					       <li>Identity verification (driver's license or passport)</li>
+					       <li>Identity verification (driver&apos;s license or passport)</li>
 					       <li>Business address and contact information</li>
 				       </ul>
 			       </div>

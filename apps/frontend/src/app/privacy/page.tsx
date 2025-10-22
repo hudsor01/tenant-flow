@@ -17,7 +17,7 @@ export default function PrivacyPage() {
 				<section className="mb-8">
 					<h2 className="mb-4 text-2xl font-semibold">1. Introduction</h2>
 					<p>
-						Welcome to TenantFlow ("we," "our," or "us"). We are committed to
+						Welcome to TenantFlow (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). We are committed to
 						protecting your privacy and ensuring the security of your personal
 						information. This Privacy Policy explains how we collect, use,
 						disclose, and safeguard your information when you use our property
@@ -284,14 +284,14 @@ export default function PrivacyPage() {
 
 					<h3 className="mb-3 text-xl font-semibold">7.4 Marketing Communications</h3>
 					<p>
-						You can opt out of marketing emails by clicking "unsubscribe" in any
+						You can opt out of marketing emails by clicking &quot;unsubscribe&quot; in any
 						marketing email or updating your communication preferences in
 						account settings.
 					</p>
 
 					<h3 className="mb-3 text-xl font-semibold">7.5 Do Not Track</h3>
 					<p>
-						Some browsers support a "Do Not Track" feature. TenantFlow does not
+						Some browsers support a &quot;Do Not Track&quot; feature. TenantFlow does not
 						currently respond to Do Not Track signals.
 					</p>
 				</section>
@@ -320,7 +320,7 @@ export default function PrivacyPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">9. Children's Privacy</h2>
+					<h2 className="mb-4 text-2xl font-semibold">9. Children&apos;s Privacy</h2>
 					<p>
 						TenantFlow is not intended for use by individuals under the age of
 						18. We do not knowingly collect personal information from children.
@@ -362,7 +362,7 @@ export default function PrivacyPage() {
 					</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>Posting the updated policy on this page</li>
-						<li>Updating the "Last Updated" date at the top</li>
+						<li>Updating the &quot;Last Updated&quot; date at the top</li>
 						<li>Sending an email notification for material changes</li>
 					</ul>
 					<p>
@@ -404,7 +404,7 @@ export default function PrivacyPage() {
 						the California Consumer Privacy Act (CCPA):
 					</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
-						<li>Right to know what personal information we collect and how it's used</li>
+						<li>Right to know what personal information we collect and how it&apos;s used</li>
 						<li>Right to request deletion of your personal information</li>
 						<li>Right to opt-out of the sale of personal information (we do not sell data)</li>
 						<li>Right to non-discrimination for exercising your privacy rights</li>

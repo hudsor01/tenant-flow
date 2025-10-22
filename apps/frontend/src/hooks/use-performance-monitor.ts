@@ -6,7 +6,7 @@
 'use client'
 
 import { logger } from '@repo/shared/lib/frontend-logger'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 /**
  * Hook to measure component mount/unmount time
@@ -62,7 +62,7 @@ export function useRenderCount(componentName: string) {
 				metadata: { component: componentName, count: renderCount.current }
 			})
 		}
-	})
+	}, [componentName])
 
 	return count
 }
@@ -80,15 +80,15 @@ export function useRenderCount(componentName: string) {
 export function useMeasure(operationName: string) {
 	const startTimeRef = useRef<number>(0)
 
-	const start = () => {
+	const start = useCallback(() => {
 		startTimeRef.current = performance.now()
 		logger.debug(`${operationName} started`, {
 			action: 'operation_start',
 			metadata: { operation: operationName }
 		})
-	}
+	}, [operationName])
 
-	const end = () => {
+	const end = useCallback(() => {
 		const duration = performance.now() - startTimeRef.current
 		logger.info(`${operationName} completed`, {
 			action: 'operation_complete',
@@ -98,7 +98,7 @@ export function useMeasure(operationName: string) {
 			}
 		})
 		return duration
-	}
+	}, [operationName])
 
 	return { start, end }
 }

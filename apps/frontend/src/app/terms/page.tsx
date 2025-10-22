@@ -18,11 +18,11 @@ export default function TermsPage() {
 				<section className="mb-8">
 					<h2 className="mb-4 text-2xl font-semibold">1. Agreement to Terms</h2>
 					<p>
-						These Terms of Service ("Terms") constitute a legally binding
-						agreement between you ("User," "you," or "your") and TenantFlow
-						("Company," "we," "us," or "our") concerning your access to and use
-						of the TenantFlow property management platform ("Service" or
-						"Platform").
+						These Terms of Service (&quot;Terms&quot;) constitute a legally binding
+						agreement between you (&quot;User,&quot; &quot;you,&quot; or &quot;your&quot;) and TenantFlow
+						(&quot;Company,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) concerning your access to and use
+						of the TenantFlow property management platform (&quot;Service&quot; or
+						&quot;Platform&quot;).
 					</p>
 					<p>
 						By accessing or using our Service, you agree to be bound by these
@@ -153,7 +153,7 @@ export default function TermsPage() {
 
 					<h3 className="mb-3 text-xl font-semibold">4.4 Price Changes</h3>
 					<p>
-						We reserve the right to modify subscription pricing with 30 days'
+						We reserve the right to modify subscription pricing with 30 days&apos;
 						notice. Price changes will not affect existing subscriptions until
 						renewal.
 					</p>
@@ -220,7 +220,7 @@ export default function TermsPage() {
 					<h3 className="mb-3 text-xl font-semibold">6.1 Your Content</h3>
 					<p>
 						You retain all ownership rights to the data and content you upload,
-						submit, or store in the Service ("User Content"), including:
+						submit, or store in the Service (&quot;User Content&quot;), including:
 					</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>Property information and listings</li>
@@ -277,7 +277,7 @@ export default function TermsPage() {
 
 					<h3 className="mb-3 text-xl font-semibold">7.2 Trademarks</h3>
 					<p>
-						"TenantFlow" and related logos are trademarks of TenantFlow. You may
+						&quot;TenantFlow&quot; and related logos are trademarks of TenantFlow. You may
 						not use our trademarks without prior written permission.
 					</p>
 
@@ -315,9 +315,9 @@ export default function TermsPage() {
 						9. Disclaimers and Limitations of Liability
 					</h2>
 
-					<h3 className="mb-3 text-xl font-semibold">9.1 Service "As Is"</h3>
+					<h3 className="mb-3 text-xl font-semibold">9.1 Service &quot;As Is&quot;</h3>
 					<p>
-						THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES
+						THE SERVICE IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES
 						OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO:
 					</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
@@ -428,7 +428,7 @@ export default function TermsPage() {
 					</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>Posting the updated Terms on this page</li>
-						<li>Updating the "Last Updated" date</li>
+						<li>Updating the &quot;Last Updated&quot; date</li>
 						<li>Sending email notification for significant changes</li>
 					</ul>
 					<p>

@@ -58,7 +58,9 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 		if (request?.unitId) {
 			const unit = units.find(u => u.id === request.unitId)
 			if (unit?.propertyId) {
-				setSelectedPropertyId(unit.propertyId)
+				queueMicrotask(() => {
+					setSelectedPropertyId(unit.propertyId)
+				})
 			}
 		}
 	}, [request?.unitId, units])
@@ -140,7 +142,9 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 			// Get property ID from unit
 			const unit = units.find(u => u.id === request.unitId)
 			if (unit?.propertyId) {
-				setSelectedPropertyId(unit.propertyId)
+				queueMicrotask(() => {
+					setSelectedPropertyId(unit.propertyId)
+				})
 			}
 		}
 	}, [request, form, units])
