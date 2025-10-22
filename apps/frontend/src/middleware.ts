@@ -7,6 +7,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
+	runtime: 'nodejs', // REQUIRED: Supabase SSR is incompatible with Edge Runtime
 	matcher: [
 		/*
 		 * Match all request paths except for the ones starting with:
@@ -14,8 +15,6 @@ export const config = {
 		 * - _next/image (image optimization files)
 		 * - favicon.ico (favicon file)
 		 * - public assets with extensions
-		 *
-		 * Next.js 15 auto-detects runtime (Node.js for Supabase compatibility)
 		 */
 		'/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'
 	]
