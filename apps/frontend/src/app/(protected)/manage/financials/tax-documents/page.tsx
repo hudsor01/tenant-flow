@@ -27,8 +27,8 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { getTaxDocuments } from '@/lib/api/financials-client'
+import { createClient } from '@/lib/supabase/client'
 import { cn, formatCurrency } from '@/lib/utils'
-import { createClient } from '@/utils/supabase/client'
 import type { TaxDocumentsData } from '@repo/shared/types/financial-statements'
 import { CheckCircle, Download, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -166,13 +166,13 @@ export default function TaxDocumentsPage() {
 							</CardHeader>
 							<CardContent className="space-y-3">
 								<p
-								className={cn(
-									"text-3xl font-semibold tabular-nums",
-									data.totals.netTaxableIncome >= 0
-										? "text-[oklch(var(--success))]"
-										: "text-[oklch(var(--destructive))]"
-								)}
-							>
+									className={cn(
+										'text-3xl font-semibold tabular-nums',
+										data.totals.netTaxableIncome >= 0
+											? 'text-[oklch(var(--success))]'
+											: 'text-[oklch(var(--destructive))]'
+									)}
+								>
 									{formatCurrency(data.totals.netTaxableIncome)}
 								</p>
 							</CardContent>
@@ -217,13 +217,13 @@ export default function TaxDocumentsPage() {
 								<div className="rounded-lg bg-muted/40 p-4">
 									<p className="text-sm text-muted-foreground">Net Income</p>
 									<p
-									className={cn(
-										"text-2xl font-semibold",
-										data.schedule.scheduleE.netIncome >= 0
-											? "text-[oklch(var(--success))]"
-											: "text-[oklch(var(--destructive))]"
-									)}
-								>
+										className={cn(
+											'text-2xl font-semibold',
+											data.schedule.scheduleE.netIncome >= 0
+												? 'text-[oklch(var(--success))]'
+												: 'text-[oklch(var(--destructive))]'
+										)}
+									>
 										{formatCurrency(data.schedule.scheduleE.netIncome)}
 									</p>
 								</div>
@@ -401,13 +401,13 @@ export default function TaxDocumentsPage() {
 										Taxable Income (Schedule E)
 									</span>
 									<span
-									className={cn(
-										"text-2xl font-bold",
-										data.incomeBreakdown.taxableIncome >= 0
-											? "text-[oklch(var(--success))]"
-											: "text-[oklch(var(--destructive))]"
-									)}
-								>
+										className={cn(
+											'text-2xl font-bold',
+											data.incomeBreakdown.taxableIncome >= 0
+												? 'text-[oklch(var(--success))]'
+												: 'text-[oklch(var(--destructive))]'
+										)}
+									>
 										{formatCurrency(data.incomeBreakdown.taxableIncome)}
 									</span>
 								</div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/lib/supabase/client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'

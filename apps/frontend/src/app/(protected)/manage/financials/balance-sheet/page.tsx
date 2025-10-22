@@ -21,8 +21,8 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { getBalanceSheet } from '@/lib/api/financials-client'
+import { createClient } from '@/lib/supabase/client'
 import { cn, formatCurrency } from '@/lib/utils'
-import { createClient } from '@/utils/supabase/client'
 import type { BalanceSheetData } from '@repo/shared/types/financial-statements'
 import { format } from 'date-fns'
 import { CheckCircle2, XCircle } from 'lucide-react'
@@ -198,13 +198,13 @@ export default function BalanceSheetPage() {
 								<div className="rounded-lg bg-muted/40 p-4">
 									<p className="text-sm text-muted-foreground">Difference</p>
 									<p
-								className={cn(
-									"text-2xl font-semibold",
-									data.balanceCheck
-										? "text-[oklch(var(--success))]"
-										: "text-[oklch(var(--destructive))]"
-								)}
-							>
+										className={cn(
+											'text-2xl font-semibold',
+											data.balanceCheck
+												? 'text-[oklch(var(--success))]'
+												: 'text-[oklch(var(--destructive))]'
+										)}
+									>
 										{formatCurrency(
 											data.assets.totalAssets -
 												(data.liabilities.totalLiabilities +
