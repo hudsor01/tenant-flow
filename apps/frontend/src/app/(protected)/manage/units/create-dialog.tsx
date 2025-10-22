@@ -197,14 +197,7 @@ export function CreateUnitDialog() {
 			<DialogTrigger asChild>
 				<Button
 					variant="default"
-					className="flex items-center gap-2"
-					style={{
-						background: 'var(--color-primary-brand)',
-						color: 'white',
-						borderRadius: 'var(--radius-medium)',
-						padding: 'var(--spacing-2) var(--spacing-4)',
-						transition: 'all var(--duration-quick) var(--ease-smooth)'
-					}}
+				className="flex items-center gap-2 bg-[var(--color-primary-brand)] text-white rounded-[var(--radius-medium)] px-4 py-2 transition-all duration-150 ease-[var(--ease-smooth)]"
 				>
 					<Plus className="size-4" />
 					Add Unit

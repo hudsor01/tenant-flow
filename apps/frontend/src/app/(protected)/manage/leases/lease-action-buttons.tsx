@@ -25,14 +25,13 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { leasesApi } from '@/lib/api-client'
+import { cn } from '@/lib/utils'
 import type { Tables } from '@repo/shared/types/supabase'
 import {
-	leaseUpdateSchema,
-	type LeaseUpdate
+	leaseUpdateSchema
 } from '@repo/shared/validation/leases'
 import { useForm } from '@tanstack/react-form'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import {
 	Building,
 	Calendar,
@@ -50,6 +49,7 @@ import { z } from 'zod'
 
 import { usePaymentMethods } from '@/hooks/api/use-payment-methods'
 import { useCreateRentPayment } from '@/hooks/api/use-rent-payments'
+import { useUpdateLease } from '@/hooks/api/use-lease'
 import { LateFeesSection } from './late-fees-section'
 import { RenewLeaseDialog } from './renew-lease-dialog'
 import { TerminateLeaseDialog } from './terminate-lease-dialog'
@@ -72,6 +72,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 
 	const { data: paymentMethods } = usePaymentMethods()
 	const createPayment = useCreateRentPayment()
+	const updateLease = useUpdateLease()
 
 	const form = useForm({
 		defaultValues: {
@@ -79,10 +80,28 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			endDate: lease.endDate,
 			rentAmount: lease.rentAmount,
 			securityDeposit: lease.securityDeposit,
-			terms: lease.terms || ''
+			terms: lease.terms || '',
+			status: lease.status
 		},
 		onSubmit: async ({ value }) => {
-			updateMutation.mutate(value)
+			try {
+				await updateLease.mutateAsync({
+					id: lease.id,
+					data: {
+						startDate: value.startDate,
+						endDate: value.endDate,
+						rentAmount: value.rentAmount,
+						securityDeposit: value.securityDeposit,
+						terms: value.terms || null,
+						status: value.status
+					}
+				})
+				queryClient.invalidateQueries({ queryKey: ['leases'] })
+				toast.success('Lease updated successfully')
+				setEditOpen(false)
+			} catch (error) {
+				toast.error(`Failed to update lease: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			}
 		},
 		validators: {
 			onChange: ({ value }) => {
@@ -92,29 +111,6 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 				}
 				return undefined
 			}
-		}
-	})
-
-	const updateMutation = useMutation({
-		mutationFn: (data: LeaseUpdate) => {
-			const payload: Record<string, unknown> = {
-				status: data.status as Tables<'lease'>['status']
-			}
-			// Only add defined properties
-			Object.keys(data).forEach(key => {
-				if (key !== 'status' && data[key as keyof LeaseUpdate] !== undefined) {
-					payload[key] = data[key as keyof LeaseUpdate]
-				}
-			})
-			return leasesApi.updateLeaseWithFinancialCalculations(lease.id, payload)
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['leases'] })
-			toast.success('Lease updated successfully')
-			setEditOpen(false)
-		},
-		onError: error => {
-			toast.error(`Failed to update lease: ${error.message}`)
 		}
 	})
 
@@ -338,8 +334,8 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 								>
 									Cancel
 								</Button>
-								<Button type="submit" disabled={updateMutation.isPending}>
-									{updateMutation.isPending ? 'Updating...' : 'Update Lease'}
+								<Button type="submit" disabled={updateLease.isPending}>
+							{updateLease.isPending ? 'Updating...' : 'Update Lease'}
 								</Button>
 							</ButtonGroup>
 						</div>
@@ -435,14 +431,13 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 									<span className="text-sm font-medium">Status</span>
 								</div>
 								<Badge
-									style={{
-										backgroundColor:
-											lease.status === 'ACTIVE'
-												? 'var(--chart-1)'
-												: 'var(--chart-5)',
-										color: 'oklch(var(--primary-foreground))'
-									}}
-								>
+								className={cn(
+									"text-[oklch(var(--primary-foreground))]",
+									lease.status === 'ACTIVE'
+										? "bg-[var(--chart-1)]"
+										: "bg-[var(--chart-5)]"
+								)}
+							>
 									{lease.status}
 								</Badge>
 							</div>

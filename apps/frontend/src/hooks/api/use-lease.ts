@@ -9,6 +9,7 @@
  * - Proper error handling
  */
 
+import { API_BASE_URL } from '@/lib/api-client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
 	CreateLeaseInput,
@@ -17,7 +18,6 @@ import type {
 import type { Lease } from '@repo/shared/types/core'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { API_BASE_URL } from '@/lib/api-client'
 
 /**
  * Query keys for lease endpoints (hierarchical, typed)
@@ -72,6 +72,63 @@ export function useCurrentLease() {
 			return response.data?.[0] || null
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
+		retry: 2
+	})
+}
+
+/**
+ * Hook to fetch maintenance requests for the current tenant's lease
+ * Filters maintenance requests by the tenant's unit from their active lease
+ */
+export function useTenantMaintenanceRequests() {
+	const { data: lease, isLoading: leaseLoading } = useCurrentLease()
+
+	return useQuery({
+		queryKey: ['maintenance', 'tenant', lease?.unitId],
+		queryFn: async (): Promise<{
+			requests: Array<{
+				id: string
+				title: string
+				description: string
+				priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+				status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED'
+				category: string | null
+				createdAt: string
+				updatedAt: string
+				completedAt: string | null
+			}>
+			total: number
+			open: number
+			inProgress: number
+			completed: number
+		}> => {
+			if (!lease?.unitId) {
+				return { requests: [], total: 0, open: 0, inProgress: 0, completed: 0 }
+			}
+
+			// Backend returns MaintenanceRequest[] directly, not wrapped in { data: [...] }
+			const requests = await apiClient<
+				Array<{
+					id: string
+					title: string
+					description: string
+					priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+					status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED'
+					category: string | null
+					createdAt: string
+					updatedAt: string
+					completedAt: string | null
+				}>
+			>(`${API_BASE_URL}/api/v1/maintenance?unitId=${lease.unitId}`)
+			const total = requests.length
+			const open = requests.filter(r => r.status === 'OPEN').length
+			const inProgress = requests.filter(r => r.status === 'IN_PROGRESS').length
+			const completed = requests.filter(r => r.status === 'COMPLETED').length
+
+			return { requests, total, open, inProgress, completed }
+		},
+		enabled: !!lease?.unitId && !leaseLoading,
+		staleTime: 2 * 60 * 1000, // 2 minutes - refresh more frequently for tenant dashboard
 		retry: 2
 	})
 }

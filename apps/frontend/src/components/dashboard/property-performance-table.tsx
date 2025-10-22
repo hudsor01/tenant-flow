@@ -13,6 +13,7 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { usePropertyPerformance } from '@/hooks/api/use-dashboard'
+import { getOccupancyBadgeClass, getTrendColorClass } from '@/lib/utils/color-helpers'
 import { ArrowUpRight, Minus, TrendingDown, TrendingUp } from 'lucide-react'
 
 const formatCurrency = (amount: number) => {
@@ -34,67 +35,13 @@ const getTrendIcon = (trend: string) => {
 	}
 }
 
-const getTrendColor = (trend: string) => {
-	switch (trend) {
-		case 'up':
-			return 'var(--color-metric-success)'
-		case 'down':
-			return 'var(--color-metric-warning)'
-		default:
-			return 'var(--color-label-secondary)'
-	}
-}
-
 const getOccupancyBadge = (rate: number) => {
-	if (rate >= 90) {
-		return (
-			<Badge
-				variant="outline"
-				style={{
-					color: 'var(--color-metric-success)',
-					borderColor: 'var(--color-metric-success-border)'
-				}}
-			>
-				Excellent
-			</Badge>
-		)
-	} else if (rate >= 80) {
-		return (
-			<Badge
-				variant="outline"
-				style={{
-					color: 'var(--color-metric-info)',
-					borderColor: 'var(--color-metric-info-border)'
-				}}
-			>
-				Good
-			</Badge>
-		)
-	} else if (rate >= 70) {
-		return (
-			<Badge
-				variant="outline"
-				style={{
-					color: 'var(--color-metric-warning)',
-					borderColor: 'var(--color-metric-warning-border)'
-				}}
-			>
-				Fair
-			</Badge>
-		)
-	} else {
-		return (
-			<Badge
-				variant="outline"
-				style={{
-					color: 'var(--color-metric-warning)',
-					borderColor: 'var(--color-metric-warning-border)'
-				}}
-			>
-				Poor
-			</Badge>
-		)
-	}
+	const label = rate >= 90 ? 'Excellent' : rate >= 80 ? 'Good' : rate >= 70 ? 'Fair' : 'Poor'
+	return (
+		<Badge variant="outline" className={getOccupancyBadgeClass(rate)}>
+			{label}
+		</Badge>
+	)
 }
 
 export function PropertyPerformanceTable() {
@@ -200,10 +147,7 @@ export function PropertyPerformanceTable() {
 										<div className="text-sm text-muted-foreground">monthly</div>
 									</TableCell>
 									<TableCell>
-										<div
-											className="flex items-center gap-1 text-sm font-medium"
-											style={{ color: getTrendColor(trend) }}
-										>
+										<div className={`flex items-center gap-1 text-sm font-medium ${getTrendColorClass(trend)}`}>
 											{getTrendIcon(trend)}
 											{Math.abs(trendPercentage)}%
 										</div>

@@ -1,12 +1,12 @@
 'use client'
 
-import { createClient } from '@/utils/supabase/client'
-import type {
-  LoginCredentials,
-  LoginFormData,
-  SignupFormData
-} from '@repo/shared/types/auth'
+import { createClient } from '@/lib/supabase/client'
 import { createLogger } from '@repo/shared/lib/frontend-logger.js'
+import type {
+	LoginCredentials,
+	LoginFormData,
+	SignupFormData
+} from '@repo/shared/types/auth'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 

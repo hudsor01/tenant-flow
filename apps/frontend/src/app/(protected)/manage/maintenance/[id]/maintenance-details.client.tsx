@@ -3,7 +3,8 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { maintenanceApi, propertiesApi, unitsApi } from '@/lib/api-client'
+import { propertiesApi, unitsApi } from '@/lib/api-client'
+import { useMaintenanceRequest } from '@/hooks/api/use-maintenance'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
 import { useQuery } from '@tanstack/react-query'
@@ -24,10 +25,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 		data: request,
 		isLoading,
 		isError
-	} = useQuery({
-		queryKey: ['maintenance', id],
-		queryFn: () => maintenanceApi.get(id)
-	})
+	} = useMaintenanceRequest(id)
 
 	const { data: properties = [] } = useQuery({
 		queryKey: ['properties'],

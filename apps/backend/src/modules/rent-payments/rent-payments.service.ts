@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common'
 import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
+import { StripeClientService } from '../../shared/stripe-client.service'
 import type {
 	Lease,
 	RentPayment,
@@ -23,10 +24,11 @@ export class RentPaymentsService {
 	private readonly logger = new Logger(RentPaymentsService.name)
 	private readonly stripe: Stripe
 
-	constructor(private readonly supabase: SupabaseService) {
-		this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-			apiVersion: '2025-08-27' as Stripe.LatestApiVersion
-		})
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly stripeClientService: StripeClientService
+	) {
+		this.stripe = this.stripeClientService.getClient()
 	}
 
 	/**

@@ -34,6 +34,10 @@ export interface FileUploadOptions {
 	quarantineOnSuspicion?: boolean
 	userId?: string
 	context?: FileUploadContext
+	// Supabase Storage specific options
+	contentType?: string
+	cacheControl?: string
+	upsert?: boolean
 }
 
 /**

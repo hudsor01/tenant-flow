@@ -177,6 +177,28 @@ export default [
 				}
 			],
 
+			// ARCHITECTURE: Database-first enum pattern (CLAUDE.md Enum Standardization)
+			'no-restricted-syntax': [
+				'error',
+				{
+					selector: 'TSEnumDeclaration',
+					message:
+						'TypeScript enums are prohibited. Use Supabase database enums instead. See CLAUDE.md Enum Standardization section for workflow.'
+				},
+				{
+					selector:
+						'CallExpression[callee.object.property.name="useQuery"] > ObjectExpression > Property[key.name="queryFn"] CallExpression[callee.name="fetch"]',
+					message:
+						'Client-side fetch on mount is prohibited. Use Server Components (async function) for initial data fetching. See CLAUDE.md Server Component vs Client Component Decision Tree.'
+				},
+				{
+					selector:
+						'CallExpression[callee.name="useEffect"] > ArrowFunctionExpression > BlockStatement CallExpression[callee.name="fetch"]',
+					message:
+						'useEffect + fetch is prohibited. Use Server Components for initial data or TanStack Query hooks (useQuery/useMutation) for client-side data. See CLAUDE.md.'
+				}
+			],
+
 			// SECURITY: Prevent dangerous global variables
 			'no-restricted-globals': [
 				'error',
@@ -196,6 +218,14 @@ export default [
 			'no-prototype-builtins': 'error',
 			'guard-for-in': 'error',
 			radix: 'error'
+		}
+	},
+	// EXCEPTION: Allow TypeScript enums ONLY in security monitoring (packages/shared/src/types/security.ts)
+	{
+		name: 'shared/security-enum-exception',
+		files: ['packages/shared/src/types/security.ts'],
+		rules: {
+			'no-restricted-syntax': 'off' // Allow SecurityEventType and SecurityEventSeverity enums
 		}
 	}
 ]

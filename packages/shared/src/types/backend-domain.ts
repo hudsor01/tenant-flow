@@ -6,7 +6,13 @@
  */
 
 import type { Request, Response } from 'express'
+import type { ServiceHealth } from './health.js'
 import type { Database } from './supabase-generated.js'
+
+// NOTE: Removed re-exports. Import directly from primary sources:
+// - Auth types: '@repo/shared/types/auth'
+// - Health types: '@repo/shared/types/health'
+// - Stripe types: '@repo/shared/types/stripe'
 
 // Basic Stripe type declarations to avoid external dependencies
 export interface StripeInvoice {
@@ -58,21 +64,8 @@ export interface JSONSchema {
 
 // BACKEND CONTEXT TYPES
 
-export interface authUser {
-	id: string
-	email: string
-	name: string | null
-	phone: string | null
-	bio: string | null
-	avatarUrl: string | null
-	role: string
-	createdAt: Date
-	updatedAt: Date
-	emailVerified: boolean
-	supabaseId: string
-	stripeCustomerId: string | null
-	organizationId: string | null | undefined
-}
+// Application user type from public.users table (not auth.users)
+export type authUser = Database['public']['Tables']['users']['Row']
 
 export interface Context {
 	req: Request
@@ -91,40 +84,7 @@ export interface RequestContext {
 }
 
 // AUTH REQUEST/RESPONSE TYPES
-
-export interface RegisterRequest {
-	name: string
-	email: string
-	password: string
-	company?: string
-	acceptTerms?: boolean
-}
-
-// Additional auth types
-export interface LoginRequest {
-	email: string
-	password: string
-}
-
-export interface RefreshTokenRequest {
-	refresh_token: string
-}
-
-export interface ForgotPasswordRequest {
-	email: string
-}
-
-export interface ResetPasswordRequest {
-	token: string
-	newPassword: string
-	confirmPassword: string
-}
-
-export interface ChangePasswordRequest {
-	currentPassword: string
-	newPassword: string
-	confirmPassword: string
-}
+// Import from '@repo/shared/types/auth' instead
 
 export interface UserProfileResponse {
 	id: string
@@ -566,47 +526,7 @@ export interface DbPerformanceOverview {
 }
 
 // HEALTH MONITORING TYPES
-
-export interface ServiceHealth {
-	healthy: boolean
-	responseTime?: number
-	lastCheck: string
-	details?: Record<string, unknown>
-}
-
-export interface SystemHealth {
-	status: 'healthy' | 'degraded' | 'unhealthy'
-	timestamp: string
-	services: {
-		database: ServiceHealth
-		stripe: ServiceHealth
-		cache: ServiceHealth
-	}
-	performance: {
-		uptime: number
-		memory: {
-			used: number
-			free: number
-			usagePercentage: number
-			usagePercent: number
-		}
-		cpu: {
-			user: number
-			system: number
-		}
-	}
-	cacheMetrics: {
-		healthy: boolean
-		hitRate?: number
-		size?: number
-	}
-	version: string
-	deployment: {
-		environment: string
-		region: string
-		instance: string
-	}
-}
+// Import from '@repo/shared/types/health' instead
 
 // CONFIG TYPES
 
@@ -746,24 +666,7 @@ export interface ServiceMetrics {
 }
 
 // SECURITY MONITORING TYPES
-
-export interface SecurityEvent {
-	id: string
-	timestamp: string
-	type: SecurityEventType
-	severity: 'low' | 'medium' | 'high' | 'critical'
-	userId?: string
-	ip?: string
-	ipAddress?: string
-	endpoint?: string
-	details?: Record<string, unknown>
-	resolved?: boolean
-	resolutionTime?: Date
-	metadata: Record<string, unknown>
-	source?: string
-	description?: string
-	userAgent?: string
-}
+export type { SecurityEvent } from './security'
 
 export type SecurityEventType =
 	| 'unauthorized_access'

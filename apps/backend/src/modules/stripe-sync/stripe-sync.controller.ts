@@ -21,6 +21,7 @@ import {
 import type { Request } from 'express'
 import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
+import { StripeClientService } from '../../shared/stripe-client.service'
 import { StripeAccessControlService } from '../billing/stripe-access-control.service'
 import { StripeSyncService } from '../billing/stripe-sync.service'
 
@@ -34,6 +35,7 @@ export class StripeSyncController {
 	constructor(
 		@Inject(StripeSyncService)
 		private readonly stripeSyncService: StripeSyncService,
+		private readonly stripeClientService: StripeClientService,
 		@Optional() private readonly supabaseService?: SupabaseService,
 		@Optional()
 		private readonly accessControlService?: StripeAccessControlService
@@ -50,13 +52,12 @@ export class StripeSyncController {
 		try {
 			// We need to parse the event again to get the event type
 			// This is safe because Sync Engine already validated the signature
-			const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-
-			const event: Stripe.Event = stripe.webhooks.constructEvent(
-				rawBody,
-				signature,
-				process.env.STRIPE_WEBHOOK_SECRET!
-			)
+			const event: Stripe.Event =
+				this.stripeClientService.constructWebhookEvent(
+					rawBody,
+					signature,
+					process.env.STRIPE_WEBHOOK_SECRET!
+				)
 
 			this.logger.log('Processing webhook business logic', {
 				eventType: event.type,

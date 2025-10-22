@@ -247,12 +247,7 @@ export function CustomerPortalCard({
 						</div>
 						<div>
 							<h3
-								className="font-bold tracking-tight text-foreground"
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['heading-xl'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['heading-xl'].lineHeight,
-									fontWeight: TYPOGRAPHY_SCALE['heading-xl'].fontWeight
-								}}
+								className="font-bold tracking-tight text-foreground text-[22px] leading-tight"
 							>
 								Account Management
 							</h3>
@@ -455,11 +450,7 @@ export function CustomerPortalCard({
 					{/* Enhanced Description */}
 					<div className="text-center space-y-4">
 						<p
-							className="text-muted-foreground leading-relaxed max-w-3xl mx-auto"
-							style={{
-								fontSize: TYPOGRAPHY_SCALE['body-lg'].fontSize,
-								lineHeight: TYPOGRAPHY_SCALE['body-lg'].lineHeight
-							}}
+							className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-[17px]"
 						>
 							Manage your subscription, update payment methods, view invoices,
 							download reports, and access all billing features in our secure,

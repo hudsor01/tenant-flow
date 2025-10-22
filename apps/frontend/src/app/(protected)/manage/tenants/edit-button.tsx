@@ -346,11 +346,8 @@ export function TenantEditViewButtons({
 									<span className="text-sm font-medium">Status</span>
 								</div>
 								<Badge
-									style={{
-										backgroundColor: 'var(--chart-1)',
-										color: 'oklch(var(--primary-foreground))'
-									}}
-								>
+								className="bg-[var(--chart-1)] text-[oklch(var(--primary-foreground))]"
+							>
 									Active
 								</Badge>
 							</div>

@@ -27,7 +27,8 @@ import {
 } from '@/components/ui/table'
 import { getIncomeStatement } from '@/lib/api/financials-client'
 import { formatCurrency, formatPercentage } from '@/lib/design-system'
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/lib/supabase/client'
+import { cn } from '@/lib/utils'
 import type { IncomeStatementData } from '@repo/shared/types/financial-statements'
 import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns'
 import { ArrowDownRight, ArrowUpRight, TrendingUp } from 'lucide-react'
@@ -142,10 +143,7 @@ export default function IncomeStatementPage() {
 
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
-			<div
-				className="border-b bg-background"
-				style={{ padding: 'var(--dashboard-content-padding)' }}
-			>
+			<div className="border-b bg-background p-6">
 				<div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 lg:px-6">
 					<div className="flex flex-col gap-2">
 						<h1 className="text-3xl font-semibold tracking-tight">
@@ -198,13 +196,12 @@ export default function IncomeStatementPage() {
 						</Card>
 
 						<Card
-							className="@container/card"
-							style={{
-								borderColor:
-									data.netIncome >= 0
-										? 'oklch(var(--success))'
-										: 'oklch(var(--destructive))'
-							}}
+							className={cn(
+								'@container/card',
+								data.netIncome >= 0
+									? 'border-[oklch(var(--success))]'
+									: 'border-[oklch(var(--destructive))]'
+							)}
 						>
 							<CardHeader>
 								<CardTitle>Net Income</CardTitle>
@@ -212,13 +209,12 @@ export default function IncomeStatementPage() {
 							</CardHeader>
 							<CardContent className="space-y-3">
 								<p
-									className="text-3xl font-semibold tabular-nums"
-									style={{
-										color:
-											data.netIncome >= 0
-												? 'oklch(var(--success))'
-												: 'oklch(var(--destructive))'
-									}}
+									className={cn(
+										'text-3xl font-semibold tabular-nums',
+										data.netIncome >= 0
+											? 'text-[oklch(var(--success))]'
+											: 'text-[oklch(var(--destructive))]'
+									)}
 								>
 									{formatCurrency(data.netIncome)}
 								</p>
@@ -243,10 +239,7 @@ export default function IncomeStatementPage() {
 				</div>
 			</div>
 
-			<div
-				className="flex-1"
-				style={{ padding: 'var(--dashboard-content-padding)' }}
-			>
+			<div className="flex-1 p-6">
 				<div className="mx-auto max-w-[1600px] space-y-8 px-4 lg:px-6">
 					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 						<Card>

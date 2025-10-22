@@ -3,10 +3,10 @@
 import type { ReactNode } from 'react'
 
 import { DEFAULT_THEME_MODE, THEME_MODE_STORAGE_KEY } from '@/lib/theme-utils'
+import { AuthStoreProvider } from '@/providers/auth-provider'
+import { PreferencesStoreProvider } from '@/providers/preferences-provider'
 import { QueryProvider } from '@/providers/query-provider'
 import { ThemeProvider } from '@/providers/theme-provider'
-import { AuthStoreProvider } from '@/stores/auth-provider'
-import { PreferencesStoreProvider } from '@/stores/preferences-provider'
 import type { PreferencesState } from '@/stores/preferences-store'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 

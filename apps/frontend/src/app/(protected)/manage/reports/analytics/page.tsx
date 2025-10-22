@@ -74,19 +74,9 @@ export default function AnalyticsPage() {
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
 			<div
-				className="border-b bg-background"
-				style={{
-					padding: 'var(--dashboard-content-padding)',
-					borderColor: 'var(--color-fill-tertiary)'
-				}}
+				className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]"
 			>
-				<div
-					className="mx-auto max-w-[1600px]"
-					style={{
-						paddingTop: 'var(--spacing-4)',
-						paddingBottom: 'var(--spacing-4)'
-					}}
-				>
+				<div className="mx-auto max-w-[1600px] py-4">
 					<div className="flex items-center justify-between mb-4">
 						<div>
 							<h1 className="text-3xl font-bold">Analytics Dashboard</h1>
@@ -231,22 +221,8 @@ export default function AnalyticsPage() {
 				</div>
 			</div>
 
-			<div
-				className="flex-1"
-				style={{
-					padding: 'var(--dashboard-content-padding)',
-					paddingTop: 'var(--dashboard-section-gap)',
-					paddingBottom: 'var(--dashboard-section-gap)'
-				}}
-			>
-				<div
-					className="mx-auto max-w-[1600px]"
-					style={{
-						gap: 'var(--dashboard-section-gap)',
-						display: 'flex',
-						flexDirection: 'column'
-					}}
-				>
+			<div className="flex-1 p-6 pt-6 pb-6">
+				<div className="mx-auto max-w-[1600px] flex flex-col gap-6">
 					{/* Revenue Chart */}
 					<Card className="@container/card">
 						<div className="p-6 border-b">
@@ -348,10 +324,7 @@ export default function AnalyticsPage() {
 						</div>
 					</Card>
 
-					<div
-						className="grid lg:grid-cols-2"
-						style={{ gap: 'var(--dashboard-section-gap)' }}
-					>
+					<div className="grid lg:grid-cols-2 gap-6">
 						{/* Payment Methods Breakdown */}
 						<Card className="@container/card">
 							<div className="p-6 border-b">

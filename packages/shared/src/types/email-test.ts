@@ -115,17 +115,7 @@ export interface MigrationResult {
 }
 
 // SECURITY EVENT TESTING
-
-export interface SecurityEvent {
-	type: string
-	severity: string
-	timestamp: string
-	userId?: string
-	ip?: string
-	endpoint?: string
-	details?: Record<string, unknown>
-	resolved?: boolean
-}
+export type { SecurityEvent } from './security'
 
 // MOCK INTERFACES FOR TESTING
 

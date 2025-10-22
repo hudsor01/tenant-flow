@@ -12,15 +12,15 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { maintenanceApi, propertiesApi, unitsApi } from '@/lib/api-client'
+import { propertiesApi, unitsApi } from '@/lib/api-client'
+import { useMaintenanceRequest, useUpdateMaintenanceRequest } from '@/hooks/api/use-maintenance'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { maintenanceRequestFormSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
-import { toast } from 'sonner'
 import { z } from 'zod'
 
 interface MaintenanceEditFormProps {
@@ -31,18 +31,15 @@ const logger = createLogger({ component: 'MaintenanceEditForm' })
 
 export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 	const router = useRouter()
-	const queryClient = useQueryClient()
 	const [step, setStep] = useState(1)
 	const totalSteps = 2
+	const updateMaintenanceRequest = useUpdateMaintenanceRequest()
 
 	const {
 		data: request,
 		isLoading,
 		isError
-	} = useQuery({
-		queryKey: ['maintenance', id],
-		queryFn: () => maintenanceApi.get(id)
-	})
+	} = useMaintenanceRequest(id)
 
 	const { data: properties = [] } = useQuery({
 		queryKey: ['properties'],
@@ -84,7 +81,30 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 			preferredDate: ''
 		},
 		onSubmit: async ({ value }) => {
-			updateMutation.mutate(value)
+			const payload: Record<string, unknown> = {}
+
+			if (value.title) payload.title = value.title
+			if (value.description) payload.description = value.description
+			if (value.priority) payload.priority = value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+			if (value.category) payload.category = value.category
+			if (value.estimatedCost) payload.estimatedCost = Number.parseFloat(value.estimatedCost)
+			if (value.preferredDate) payload.preferredDate = new Date(value.preferredDate)
+
+			updateMaintenanceRequest.mutate(
+				{ id, data: payload },
+				{
+					onSuccess: () => {
+						router.push(`/manage/maintenance/${id}`)
+					},
+					onError: error => {
+						logger.error(
+							'Failed to update maintenance request',
+							{ action: 'updateMaintenanceRequest' },
+							error
+						)
+					}
+				}
+			)
 		},
 		validators: {
 			onChange: ({ value }) => {
@@ -124,38 +144,6 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 			}
 		}
 	}, [request, form, units])
-
-	const updateMutation = useMutation({
-		mutationFn: (values: typeof form.state.values) => {
-			const payload = {
-				...values,
-				estimatedCost: values.estimatedCost
-					? Number.parseFloat(values.estimatedCost)
-					: undefined,
-				preferredDate: values.preferredDate
-					? new Date(values.preferredDate)
-					: undefined,
-				completedAt: undefined // Add this field (required by API but not in form)
-			}
-			return maintenanceApi.update(id, payload)
-		},
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({
-				queryKey: ['maintenance-requests']
-			})
-			await queryClient.invalidateQueries({ queryKey: ['maintenance', id] })
-			toast.success('Maintenance request updated')
-			router.push(`/manage/maintenance/${id}`)
-		},
-		onError: error => {
-			toast.error('Failed to update maintenance request')
-			logger.error(
-				'Failed to update maintenance request',
-				{ action: 'updateMaintenanceRequest' },
-				error
-			)
-		}
-	})
 
 	if (isLoading) {
 		return (
@@ -406,9 +394,9 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 							<Button
 								type="submit"
 								size="lg"
-								disabled={updateMutation.isPending}
+								disabled={updateMaintenanceRequest.isPending}
 							>
-								{updateMutation.isPending ? 'Saving...' : 'Save changes'}
+								{updateMaintenanceRequest.isPending ? 'Saving...' : 'Save changes'}
 							</Button>
 						) : (
 							<Button

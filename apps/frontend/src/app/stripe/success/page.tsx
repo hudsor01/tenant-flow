@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import { PageLayout } from '@/components/layout/page-layout'
 import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
@@ -10,7 +11,7 @@ function SuccessContent() {
 			className="gradient-authority"
 			containerClass="flex items-center justify-center min-h-screen max-w-md"
 		>
-			<div className="w-full card-elevated-authority rounded-2xl card-padding text-center">
+			<div className="w-full shadow-md bg-card/50 border border-border backdrop-blur-sm rounded-2xl p-8 text-center">
 				<div className="mb-6">
 					<CheckCircle className="mx-auto h-16 w-16 text-primary" />
 				</div>
@@ -25,19 +26,13 @@ function SuccessContent() {
 				</p>
 
 				<div className="space-y-4">
-					<Link
-						href="/dashboard"
-						className="block w-full btn-gradient-primary py-3 px-6 rounded-lg font-medium hover:brightness-110 transition"
-					>
-						Go to Dashboard
-					</Link>
+					<Button asChild className="w-full" size="lg">
+						<Link href="/dashboard">Go to Dashboard</Link>
+					</Button>
 
-					<Link
-						href="/"
-						className="block w-full border py-3 px-6 rounded-lg font-medium hover:bg-accent transition-colors"
-					>
-						Back to Home
-					</Link>
+					<Button asChild variant="outline" className="w-full" size="lg">
+						<Link href="/">Back to Home</Link>
+					</Button>
 				</div>
 
 				<div className="mt-8 pt-6 border-t border-border">

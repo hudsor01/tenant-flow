@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/design-system'
 import type { AuthFormProps } from '@repo/shared/types/frontend'
 
@@ -30,16 +31,12 @@ export function SignupForm({
 					support.
 				</p>
 				<div className="mt-4 flex gap-2">
-					<a
-						href="/contact"
-						className="btn btn-primary"
-						data-testid="request-invite"
-					>
-						Request an invite
-					</a>
-					<a href="/pricing" className="btn btn-outline">
-						Owner sign up
-					</a>
+					<Button asChild data-testid="request-invite">
+						<a href="/contact">Request an invite</a>
+					</Button>
+					<Button asChild variant="outline">
+						<a href="/pricing">Owner sign up</a>
+					</Button>
 				</div>
 			</div>
 		</div>

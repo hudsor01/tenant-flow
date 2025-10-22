@@ -1,6 +1,6 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { FileText, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -28,6 +28,7 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { useAllTenants } from '@/hooks/api/use-tenant'
+import { useDeleteLease } from '@/hooks/api/use-lease'
 import { leasesApi, unitsApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
@@ -38,8 +39,6 @@ type Unit = Tables<'unit'>
 const logger = createLogger({ component: 'LeasesTable' })
 
 export function LeasesTable() {
-	const queryClient = useQueryClient()
-
 	const {
 		data: leases = [],
 		isLoading,
@@ -56,11 +55,8 @@ export function LeasesTable() {
 		queryFn: () => unitsApi.list()
 	})
 
-	const removeLease = useMutation({
-		mutationFn: (id: string) => leasesApi.remove(id),
+	const removeLease = useDeleteLease({
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['leases'] })
-			queryClient.invalidateQueries({ queryKey: ['lease-stats'] })
 			toast.success('Lease removed successfully')
 		},
 		onError: error => {

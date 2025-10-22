@@ -2,6 +2,8 @@
 
 When providing commit messages, never include attribution.
 
+## BEFORE EVERY ACTION OR EXECUTING TASKS FUNCTIONS OR ANYTHING, BE SURE TO USE THE MCP SERVER SERENA! IF IT IS NOT AVAILABLE, BE SURE THE PROJECT IS ACTIVATED AND IF NOT, ACTIVATE THE PROJECT THEN TRY AGAIN! VERY GOOD AND VERY EFFICIENT MCP SERVER - ESSENTIAL TO THE SUCCESS OF THIS PROJECT!
+
 ## Core Principles (Non-Negotiable)
 - **DRY**: Search first (`rg -r "pattern"`), consolidate code reused ≥2 places
 - **KISS**: Simplest solution wins, delete > add code
@@ -12,7 +14,7 @@ When providing commit messages, never include attribution.
 ## Tech Stack
 **Frontend (Vercel)**: Next.js 15.5.0 + React 19.1.1 + TailwindCSS 4.1.12 + ShadCN/UI + Magic UI + TanStack Query 5.85.5 + Zustand 5.0.8 + TanStack Form + Lucide Icons 0.540.0 + Recharts 3.1.2
 
-**Backend (Railway)**: NestJS 11.1.6 + Fastify 11.x + Supabase 2.56.0 + Stripe 18.4.0 + Resend 6.0.1 + In-memory cache
+**Backend (Railway)**: NestJS 11.1.6 + Express 4.x + Supabase 2.56.0 + Stripe 18.4.0 + Resend 6.0.1 + In-memory cache
 
 **Shared**: Node.js 22.x (Railway: 24.x Docker), npm 11.5.2, Turborepo 2.5.6, TypeScript 5.9.2 strict, Zod 4.0.17
 
@@ -57,14 +59,14 @@ This is the state that you want to share between different loosely related compo
 
 **Migration Workflow**:
 1. Create migration SQL file (descriptive name, not timestamp-based)
-2. Apply via psql: `doppler run -- psql $DATABASE_URL -f your-migration.sql`
+2. Apply via psql with DIRECT_URL: `doppler run -- psql $DIRECT_URL -f your-migration.sql`
 3. Verify success with MCP read tools: `mcp__supabase-mcp__execute_sql`
 4. Regenerate types: `pnpm update-supabase-types`
 5. Commit migration file to repo for team/deployment tracking
 
 **Connection Strings** (via Doppler):
-- `DATABASE_URL` - Pooled connection (preferred, handles concurrency)
-- `DIRECT_URL` - Direct Postgres connection (use if pooler has issues)
+- `DIRECT_URL` - Direct Postgres connection (REQUIRED for DDL migrations - CREATE, ALTER, DROP)
+- `DATABASE_URL` - Pooled connection (use for DML queries - SELECT, INSERT, UPDATE)
 
 **Example**:
 ```bash
@@ -73,11 +75,11 @@ cat > add-sale-fields.sql <<'EOF'
 ALTER TABLE property ADD COLUMN date_sold TIMESTAMPTZ;
 EOF
 
-# Apply migration
-doppler run -- psql $DATABASE_URL -f add-sale-fields.sql
+# Apply migration (MUST use DIRECT_URL for DDL)
+doppler run -- psql $DIRECT_URL -f add-sale-fields.sql
 
-# Verify
-doppler run -- psql $DATABASE_URL -c "SELECT column_name FROM information_schema.columns WHERE table_name='property';"
+# Verify (can use either)
+doppler run -- psql $DIRECT_URL -c "SELECT column_name FROM information_schema.columns WHERE table_name='property';"
 
 # Regenerate types
 pnpm update-supabase-types
@@ -85,50 +87,151 @@ pnpm update-supabase-types
 
 ## TypeScript Types - ZERO TOLERANCE POLICY
 
-**Structure** (`packages/shared/src/types/`):
-- `core.ts` - PRIMARY: API patterns (ApiResponse, QueryParams), entities (Property, Tenant, Unit), utilities (DeepReadonly, Result<T,E>), dashboard stats
-- `domain.ts` - Contact forms, storage uploads, websocket messages, session/user management, theme types, webhooks
-- `backend-domain.ts` - authUser, Context, AuthenticatedContext, router outputs, config, performance metrics, health checks
-- `auth.ts` - authUser, LoginCredentials, RegisterCredentials, JWT payloads, permissions, security validation
+**PHILOSOPHY**: Domain-based organization with single source of truth per domain
+
+### Current Structure (`packages/shared/src/types/`)
+
+**Core Files** (Always Present):
+- `index.ts` - EXPORT HUB: Single import source for all types
 - `supabase-generated.ts` - Database types (GENERATED, never modify manually)
-- `frontend.ts` - UI-specific types ONLY
-- `index.ts` - EXPORT HUB: Single import source
 
-**ABSOLUTE PROHIBITIONS**:
-1. **NEVER create new type files** without explicit approval
-2. **NEVER duplicate type definitions** - search first: `rg -r "TypeName" packages/shared/src/`
-3. **NEVER import from removed/legacy paths**
-4. **NEVER use custom utility types** when native TS 5.9.2 equivalents exist (use Omit, Partial, Pick, etc.)
-5. **NEVER break single source of truth** - consolidation is permanent
+**Domain Files** (Organize by feature area):
+- `core.ts` - API patterns (ApiResponse, QueryParams), utilities (DeepReadonly, Result<T,E>)
+- `entities.ts` - Business entities (Property, Tenant, Unit, Lease, Maintenance)
+- `auth.ts` - Authentication (LoginCredentials, JWT payloads, permissions, security)
+- `backend-domain.ts` - Backend-specific (Context, router outputs, config, metrics)
+- `frontend.ts` - UI-specific types ONLY (component props, client state)
+- `domain.ts` - Cross-cutting concerns (uploads, websockets, webhooks, theme)
 
-**Before Adding Any Type**:
-1. Search existing: `rg -r "NewTypeName" packages/shared/src/`
-2. Check if native TypeScript utility exists
-3. Verify it belongs in existing consolidated file
-4. Follow naming: `PascalCase` for types, `camelCase` for properties
+**When to Create New File**:
+1. New domain area emerges (e.g., `billing.ts`, `analytics.ts`, `notifications.ts`)
+2. Existing file exceeds 300 lines (split by sub-domain)
+3. Clear domain boundary exists (no cross-domain dependencies)
+4. Types are used by both frontend AND backend (shared package only)
 
-**Before Modifying Types**:
-1. Run: `pnpm typecheck`
-2. Check breaking changes across frontend/backend
-3. Update with backward compatibility when possible
-4. Document migration path if breaking
+**Organization Principles**:
+- **Domain Cohesion**: Related types in same file (Lease + LeaseInput + LeaseUpdate)
+- **Dependency Direction**: Core ← Domain ← UI (imports flow one way)
+- **File Size**: Aim for 100-200 lines, max 300 lines before splitting
+- **Naming Convention**: `{domain}.ts` (lowercase, singular)
 
-**Performance Requirements**:
-- Single import rule: `import type { A, B, C } from '@repo/shared'`
-- Build speed: TypeScript compilation ≤3 seconds for shared package
-- IDE performance: Instant intellisense, no lag
-- Zero circular dependencies (violations break build)
+### ABSOLUTE PROHIBITIONS
 
-**Violation Consequences**: PR rejection, mandatory refactor before merge
+1. **NEVER duplicate type definitions** - search first: `rg -r "TypeName" packages/shared/src/`
+2. **NEVER import from removed/legacy paths** - use `@repo/shared` only
+3. **NEVER use custom utility types** when native TS 5.9.2 equivalents exist (Omit, Partial, Pick, etc.)
+4. **NEVER break single source of truth** - one definition, many imports
+5. **NEVER create circular dependencies** between type files
+
+### Before Adding Any Type
+
+1. **Search existing**: `rg -r "NewTypeName" packages/shared/src/`
+2. **Check native TypeScript**: Does `Omit<T, K>`, `Partial<T>`, `Pick<T, K>` solve this?
+3. **Verify domain**: Which file does this belong in? (Follow domain cohesion)
+4. **Naming convention**: `PascalCase` for types, `camelCase` for properties
+
+### Before Modifying Types
+
+1. **Type check**: Run `pnpm typecheck` before AND after changes
+2. **Breaking changes**: Check impact across frontend/backend with `rg -r "TypeName"`
+3. **Backward compatibility**: Prefer adding optional fields over removing required ones
+4. **Migration path**: Document breaking changes in PR description
+
+### Performance Requirements
+
+- **Single import rule**: `import type { A, B, C } from '@repo/shared'`
+- **Build speed**: TypeScript compilation ≤3 seconds for shared package
+- **IDE performance**: Instant intellisense, no lag (test with 50+ imports)
+- **Zero circular dependencies**: Violations break build immediately
+
+### Violation Consequences
+
+PR rejection, mandatory refactor before merge. No exceptions.
 
 ## Enum Standardization
-**SINGLE SOURCE OF TRUTH**: Database enums via Supabase generated types ONLY
+
+**SINGLE SOURCE OF TRUTH**: Supabase database enums ONLY
+
+**Current Database Enums (22 types)**:
+- `ActivityEntityType`, `BlogCategory`, `BlogStatus`, `customer_invoice_status`
+- `DocumentType`, `LateFeeType`, `LeaseStatus`, `LeaseType`
+- `MaintenanceCategory`, `PlanType`, `Priority`, `PropertyStatus`, `PropertyType`
+- `ReminderStatus`, `ReminderType`, `RentChargeStatus`, `RentPaymentStatus`
+- `RequestStatus`, `SubStatus`, `TenantStatus`, `UnitStatus`, `UserRole`
+
+**Workflow for New Enums**:
+
+1. **Create migration SQL file** with enum definition:
+```sql
+-- migrations/add-payment-method-enum.sql
+CREATE TYPE payment_method AS ENUM ('CREDIT_CARD', 'BANK_TRANSFER', 'CHECK', 'CASH', 'OTHER');
+
+-- Add to table
+ALTER TABLE rent_payments ADD COLUMN payment_method payment_method DEFAULT 'BANK_TRANSFER';
+```
+
+2. **Apply migration** via psql with DIRECT_URL (required for DDL):
+```bash
+doppler run -- psql $DIRECT_URL -f migrations/add-payment-method-enum.sql
+```
+
+3. **Regenerate TypeScript types**:
+```bash
+pnpm update-supabase-types
+```
+
+4. **Use in TypeScript**:
+```typescript
+import type { Database } from '@repo/shared/types/supabase-generated'
+
+// Extract enum type
+type PaymentMethod = Database['public']['Enums']['payment_method']
+
+// Use in interfaces
+interface Payment {
+  method: PaymentMethod
+}
+```
+
+**Type Usage Examples**:
+```typescript
+// ✅ CORRECT: Using database enum types
+import type { Database } from '@repo/shared/types/supabase-generated'
+
+type LeaseStatus = Database['public']['Enums']['LeaseStatus']
+type Priority = Database['public']['Enums']['Priority']
+
+// Use in validation schemas
+import { z } from 'zod'
+const leaseSchema = z.object({
+  status: z.enum(['DRAFT', 'ACTIVE', 'EXPIRED', 'TERMINATED'] as const)
+  // Values must match database enum exactly
+})
+```
 
 **FORBIDDEN**:
-- Creating TypeScript enum definitions (`enum MyEnum { ... }`)
-- Duplicating database enum values in code
-- Creating union types that mirror database enums
-- Using string literals instead of generated enum types
+- ❌ Creating TypeScript enum definitions (`enum MyEnum { ... }`)
+- ❌ Duplicating database enum values in code
+- ❌ Creating union types that mirror database enums: `type Status = 'ACTIVE' | 'INACTIVE'`
+- ❌ Using string literals instead of generated enum types
+- ❌ Hardcoding enum values outside of Zod validation schemas
+
+**EXCEPTION - Security Monitoring Enums**:
+TypeScript enums are ONLY allowed for runtime security monitoring in `packages/shared/src/types/security.ts`:
+```typescript
+// ✅ ALLOWED: Security monitoring (not persisted to database)
+export enum SecurityEventType {
+  AUTH_ATTEMPT = 'AUTH_ATTEMPT',
+  SQL_INJECTION_ATTEMPT = 'SQL_INJECTION_ATTEMPT'
+}
+
+export enum SecurityEventSeverity {
+  LOW = 'LOW',
+  CRITICAL = 'CRITICAL'
+}
+```
+
+**Violation Consequences**: Build failures, PR rejection, mandatory refactor to use database enums
 
 ## Backend - Ultra-Native NestJS (75% Code Reduction)
 
@@ -284,7 +387,7 @@ export function useConditionalEntityFields(formData) { }
 
 ## Server Component vs Client Component Decision Tree
 
-**PHILOSOPHY**: "Right tool for the right job" - Use Next.js 15 RSC for 95% of pages, React 19 for interactive UI, TanStack Query ONLY for <1% edge cases.
+**PHILOSOPHY**: "Right tool for the right job" - Default to Next.js 15 Server Components for data fetching, use Client Components for interactivity, and leverage TanStack Query for advanced client-side data synchronization when needed.
 
 ### When to Use Server Components (Default Choice)
 
@@ -389,16 +492,20 @@ export default function LeasesPage() {
 
 ### TanStack Query Usage Guidelines
 
-**KEEP TanStack Query For (<1% of use cases):**
-- ✅ Infinite scroll (useInfiniteQuery for 1000+ items)
-- ✅ Real-time polling (refetchInterval for payment status)
+**Use TanStack Query When You Need:**
+- ✅ Infinite scroll (useInfiniteQuery for paginated lists)
+- ✅ Real-time polling (refetchInterval for status updates)
 - ✅ Window focus refetching (dashboard auto-refresh)
-- ✅ Mutations with optimistic updates (delete, toggle, simple updates)
+- ✅ Optimistic updates (instant UI feedback with rollback)
+- ✅ Client-side cache synchronization (shared state across components)
+- ✅ Complex invalidation logic (multiple related queries)
+- ✅ Background refetching (stale-while-revalidate pattern)
 
-**REMOVE TanStack Query For (Use RSC Instead):**
-- ❌ Initial page data fetching (use async Server Components)
-- ❌ Simple list/detail views (use server-side fetch)
-- ❌ Dashboard stats (use RSC with Promise.all)
+**Prefer Server Components When:**
+- ✅ Initial page data fetching (SEO, faster initial load)
+- ✅ Simple list/detail views (no client-side interactions)
+- ✅ Dashboard stats (static data, no real-time updates)
+- ✅ Content pages (blog posts, documentation, marketing)
 
 **Migration Path:**
 ```typescript
@@ -533,19 +640,105 @@ START: Creating a new page?
 
 **Bottom Line**: Default to Server Components. Only use 'use client' when you need interactivity, URL state, or real-time updates. When in doubt, start with Server Component and only add 'use client' if you hit limitations.
 
-## UI/UX Standards (globals.css Compliant)
+## CSS Design System (TailwindCSS 4.1)
 
-**Core Requirements**:
-- **Touch-First**: 44px minimum height for ALL interactive elements
+**PHILOSOPHY**: 90% Tailwind utility classes, 10% design tokens via `@theme` for brand consistency
+
+### When to Use What
+
+**Use Tailwind Utilities (90% of cases)**:
+- Layout (flex, grid, spacing)
+- Typography (text-sm, font-medium)
+- Standard colors (bg-muted, text-foreground)
+- Responsive design (md:flex-row)
+- Container queries (@container syntax)
+- States (hover:, focus:, disabled:)
+
+**Use @theme Design Tokens (10% of cases)**:
+- Brand colors (primary, accent)
+- Custom fonts (--font-geist-sans)
+- Semantic color system (destructive, success)
+- Consistent spacing scale
+- Border radius tokens
+- Animation durations
+
+**NEVER Use**:
+- ❌ Inline styles (`style={{ color: 'red' }}`)
+- ❌ CSS modules for new components
+- ❌ Custom CSS classes (use Tailwind composition)
+- ❌ Pixel values (use Tailwind scale: `w-4` = 16px)
+
+### Design Token Definition (@theme directive)
+
+**Location**: `apps/frontend/src/app/globals.css`
+
+```css
+@theme {
+  /* Brand Colors (OKLCH for perceptual uniformity) */
+  --color-primary: oklch(0.50 0.20 250);
+  --color-primary-foreground: oklch(0.98 0.02 250);
+
+  /* Semantic Colors */
+  --color-success: oklch(0.55 0.15 145);
+  --color-destructive: oklch(0.55 0.22 25);
+
+  /* Typography */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Spacing Scale */
+  --spacing-page: 2rem;
+  --spacing-section: 4rem;
+
+  /* Border Radius */
+  --radius-card: 0.75rem;
+  --radius-button: 0.5rem;
+
+  /* Animation */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+}
+```
+
+### Container Queries (Component-Aware Responsiveness)
+
+**Use Case**: Component adapts to container width, not viewport
+
+```typescript
+// Container setup
+<div className="@container">
+  <PropertyCard property={property} />
+</div>
+
+// PropertyCard adapts to container width
+<div className="@sm:flex-row @lg:grid-cols-3">
+  <Image className="@sm:w-32 @lg:w-48" />
+  <Content className="@sm:flex-1" />
+</div>
+```
+
+**Syntax**:
+- `@sm:` - Container ≥384px
+- `@md:` - Container ≥448px
+- `@lg:` - Container ≥512px
+- `@xl:` - Container ≥576px
+
+**When to Use**:
+- Dashboard widgets (grid items with varying widths)
+- Reusable cards (same component in sidebar vs main content)
+- Data tables (columns adjust to available space)
+
+### Core Requirements
+
+- **Touch-First**: 44px minimum height for ALL interactive elements (`min-h-11`)
 - **Loading States**: <200ms = no indicator, 200-1000ms = spinner, >1000ms = progress bar
-- **Data Density**: Three modes (compact/comfortable/spacious) with user preference persistence
-- **Form Sections**: Maximum 5 fields per section (cognitive load management)
-- **Mobile Simplification**: Apply `.simplified-mobile` below 640px breakpoint
-- **Typography**: Roboto Flex scale, 5 hierarchy levels maximum
+- **Data Density**: Three modes (compact/comfortable/spacious) via Zustand preference
+- **Typography**: 5 hierarchy levels maximum (text-xs to text-2xl)
 - **Colors**: OKLCH color space ONLY for perceptual uniformity
-- **Animations**: 200-300ms duration for micro-interactions
+- **Animations**: 200-300ms duration for micro-interactions (`duration-200`)
 
-**Implementation Principles**:
+### Implementation Principles
+
 - Reuse existing pages/layouts/components first
 - Import ShadCN/Magic UI components then customize inline
 - Use shadcn components vs creating custom
@@ -555,16 +748,15 @@ START: Creating a new page?
 - Sync Shadcn/ui and Magic UI themes for primary color
 - Use shadcn charts for charting needs
 
-**Component Patterns**:
-- Buttons: Radix Button + Tailwind
-- Forms: Radix Form + TanStack Form
-- Modals: Radix Dialog
-- Dropdowns: Radix Select
-- Loading: Radix Progress
-- Layouts: CSS Grid + Tailwind
-- Animations: Tailwind transitions + Framer Motion
+### Component Patterns
 
-See `.claude/rules/ui-ux-standards.md` for complete 15-point implementation guide
+- Buttons: Radix Button + Tailwind utilities
+- Forms: Radix Form + TanStack Form + Tailwind
+- Modals: Radix Dialog + Tailwind
+- Dropdowns: Radix Select + Tailwind
+- Loading: Radix Progress + Tailwind
+- Layouts: CSS Grid + Tailwind utilities
+- Animations: Tailwind transitions (duration-200, ease-in-out)
 
 ## State Management Architecture
 
@@ -614,6 +806,72 @@ packages/
 - `packages/shared/src/types/` - All TypeScript types
 - `packages/shared/src/validation/` - Zod schemas
 - `packages/shared/src/utils/` - Shared utilities
+
+## Code Quality Enforcement
+
+**PHILOSOPHY**: Strict enforcement via automated tools prevents architectural drift
+
+### ESLint Rules (ERRORS, not warnings)
+
+**Custom Architecture Rules** (eslint.config.js):
+1. **no-typescript-enums** - Enforce database-first enum pattern (Supabase PostgreSQL enums only)
+2. **no-client-fetch-on-mount** - Prevent `useEffect + fetch` anti-pattern (use Server Components or TanStack Query)
+3. **no-factory-patterns** - Block abstraction layers (use libraries directly)
+
+**Exception**: `packages/shared/src/types/security.ts` - Only file allowed to use TypeScript enums (SecurityEventType, SecurityEventSeverity for monitoring)
+
+### Pre-commit Hooks (Read-Only Validation)
+
+**lint-staged.config.js** - NO auto-fix, validation only:
+```javascript
+// ✅ READ-ONLY validation
+'eslint --cache --max-warnings 0'  // Check for errors, do NOT modify
+'prettier --check'                  // Check formatting, do NOT modify
+
+// ❌ REMOVED auto-fix commands
+// 'eslint --fix'                   // Would modify before commit
+// 'prettier --write'                // Would modify before commit
+```
+
+**Why Read-Only?**
+- Developers see EXACTLY what they're committing
+- No surprise changes right before commit
+- Explicit intent: run `pnpm lint:fix` or `pnpm prettier:write` manually
+
+### Playwright MCP (Programmatic Fixes)
+
+**Installation** (one-time setup):
+```bash
+claude mcp add playwright npx -- @playwright/mcp@latest
+```
+
+**Usage**: After updating CLAUDE.md rules, use Playwright MCP to programmatically fix violations across codebase
+
+**When to Use**:
+- Bulk refactoring (rename patterns, update imports)
+- Systematic fixes (convert all enums to database types)
+- Visual regression testing (UI component changes)
+
+### Manual Commands
+
+**Formatting**:
+```bash
+pnpm lint:fix        # Auto-fix ESLint errors
+pnpm prettier:write  # Format all files (not available, run prettier --write manually)
+```
+
+**Validation**:
+```bash
+pnpm typecheck       # TypeScript type checking
+pnpm lint            # ESLint validation (read-only)
+pnpm test:unit       # Run unit tests
+```
+
+**Complete Validation**:
+```bash
+pnpm validate        # Full pipeline: clean, build, typecheck, lint, test, health check
+pnpm validate:quick  # Fast: typecheck + lint + test
+```
 
 ## Pre-Change Checklist (Run Before Every Code Change)
 
