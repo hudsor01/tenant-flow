@@ -66,9 +66,9 @@ function ClientFeedback() {
 							<div className="absolute bottom-0 left-0 right-0 top-0 bg-grid-pattern opacity-30"></div>
 							<article className="mt-auto relative z-10">
 								<p>
-									"TenantFlow has revolutionized our property management
+									&quot;TenantFlow has revolutionized our property management
 									operations. The automated rent collection and maintenance
-									tracking saved us 20+ hours per week."
+									tracking saved us 20+ hours per week.&quot;
 								</p>
 								<div className="flex justify-between pt-5">
 									<div>
@@ -100,9 +100,9 @@ function ClientFeedback() {
 							<BorderBeam size={200} duration={10} delay={5} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 							<article className="mt-auto">
 								<p>
-									"Our tenant satisfaction scores increased by 40% since
+									&quot;Our tenant satisfaction scores increased by 40% since
 									implementing TenantFlow. The communication tools are
-									outstanding."
+									outstanding.&quot;
 								</p>
 								<div className="flex justify-between pt-5">
 									<div>
@@ -134,9 +134,9 @@ function ClientFeedback() {
 							<BorderBeam size={180} duration={8} delay={3} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 							<article className="mt-auto">
 								<p className="2xl:text-base text-sm">
-									"The financial reporting features give us complete visibility
+									&quot;The financial reporting features give us complete visibility
 									into our portfolio performance. ROI tracking has never been
-									easier."
+									easier.&quot;
 								</p>
 								<div className="flex justify-between items-end pt-5">
 									<div>
@@ -168,9 +168,9 @@ function ClientFeedback() {
 							<BorderBeam size={180} duration={8} delay={7} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 							<article className="mt-auto">
 								<p className="2xl:text-base text-sm">
-									"Automated lease renewals and rent increases saved us
+									&quot;Automated lease renewals and rent increases saved us
 									countless hours. TenantFlow pays for itself within the first
-									month."
+									month.&quot;
 								</p>
 								<div className="flex justify-between items-end pt-5">
 									<div>
@@ -202,8 +202,8 @@ function ClientFeedback() {
 							<BorderBeam size={180} duration={8} delay={11} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 							<article className="mt-auto">
 								<p className="2xl:text-base text-sm">
-									"The tenant screening process is incredibly thorough yet fast.
-									We've reduced bad tenants by 90% and vacancy rates are down."
+									&quot;The tenant screening process is incredibly thorough yet fast.
+									We&apos;ve reduced bad tenants by 90% and vacancy rates are down.&quot;
 								</p>
 								<div className="flex justify-between items-end pt-5">
 									<div>
@@ -237,8 +237,8 @@ function ClientFeedback() {
 							<BorderBeam size={200} duration={10} delay={13} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 							<article className="mt-auto">
 								<p>
-									"TenantFlow has been instrumental in scaling our property
-									management business from 50 to 500+ units seamlessly."
+									&quot;TenantFlow has been instrumental in scaling our property
+									management business from 50 to 500+ units seamlessly.&quot;
 								</p>
 								<div className="flex justify-between pt-5">
 									<div>
@@ -269,9 +269,9 @@ function ClientFeedback() {
 							<div className="absolute bottom-0 left-0 right-0 top-0 bg-grid-pattern opacity-30"></div>
 							<article className="mt-auto relative z-10">
 								<p>
-									"The maintenance request system with contractor management has
+									&quot;The maintenance request system with contractor management has
 									transformed how we handle property issues. Response times
-									improved by 75%."
+									improved by 75%.&quot;
 								</p>
 								<div className="flex justify-between pt-5">
 									<div>

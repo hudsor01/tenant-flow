@@ -147,7 +147,7 @@ export default function PostCheckoutPage() {
 						<p>Click the link in your email to sign in to your dashboard.</p>
 						<p>The link will expire in 1 hour for security.</p>
 						<p className="text-xs">
-							Didn't receive it? Check your spam folder or contact support.
+							Didn&apos;t receive it? Check your spam folder or contact support.
 						</p>
 					</div>
 

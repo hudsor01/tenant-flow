@@ -32,6 +32,49 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 	const [submitMessage, setSubmitMessage] = useState<string | null>(null)
 	const [errors, setErrors] = useState<Record<string, string>>({})
 
+	// Validation function - must be declared before useFormWithProgress
+	const validateForm = (data: ContactFormRequest): boolean => {
+		const newErrors: Record<string, string> = {}
+
+		// Name validation
+		if (!data.name.trim()) {
+			newErrors.name = 'Name is required'
+		} else if (data.name.trim().length < 2) {
+			newErrors.name = 'Name must be at least 2 characters'
+		}
+
+		// Email validation
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+		if (!data.email.trim()) {
+			newErrors.email = 'Email is required'
+		} else if (!emailRegex.test(data.email)) {
+			newErrors.email = 'Please enter a valid email address'
+		}
+
+		// Phone validation (optional but must be valid if provided)
+		if (data.phone && data.phone.trim()) {
+			const phoneRegex = /^[\d\s()+-]+$/
+			if (!phoneRegex.test(data.phone)) {
+				newErrors.phone = 'Please enter a valid phone number'
+			}
+		}
+
+		// Subject validation
+		if (!data.subject) {
+			newErrors.subject = "Please select what you're interested in"
+		}
+
+		// Message validation
+		if (!data.message.trim()) {
+			newErrors.message = 'Message is required'
+		} else if (data.message.trim().length < 10) {
+			newErrors.message = 'Message must be at least 10 characters'
+		}
+
+		setErrors(newErrors)
+		return Object.keys(newErrors).length === 0
+	}
+
 	// Initialize form with progress persistence
 	const {
 		formData,
@@ -43,7 +86,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 	} = useFormWithProgress<ContactFormRequest>(
 		'contact',
 		async (data: ContactFormRequest) => {
-			if (!validateForm()) {
+			if (!validateForm(data)) {
 				throw new Error('Please check your input')
 			}
 
@@ -76,48 +119,6 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			phone: ''
 		}
 	)
-
-	const validateForm = (): boolean => {
-		const newErrors: Record<string, string> = {}
-
-		// Name validation
-		if (!formData.name.trim()) {
-			newErrors.name = 'Name is required'
-		} else if (formData.name.trim().length < 2) {
-			newErrors.name = 'Name must be at least 2 characters'
-		}
-
-		// Email validation
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-		if (!formData.email.trim()) {
-			newErrors.email = 'Email is required'
-		} else if (!emailRegex.test(formData.email)) {
-			newErrors.email = 'Please enter a valid email address'
-		}
-
-		// Phone validation (optional but must be valid if provided)
-		if (formData.phone && formData.phone.trim()) {
-			const phoneRegex = /^[\d\s()+-]+$/
-			if (!phoneRegex.test(formData.phone)) {
-				newErrors.phone = 'Please enter a valid phone number'
-			}
-		}
-
-		// Subject validation
-		if (!formData.subject) {
-			newErrors.subject = "Please select what you're interested in"
-		}
-
-		// Message validation
-		if (!formData.message.trim()) {
-			newErrors.message = 'Message is required'
-		} else if (formData.message.trim().length < 10) {
-			newErrors.message = 'Message must be at least 10 characters'
-		}
-
-		setErrors(newErrors)
-		return Object.keys(newErrors).length === 0
-	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -195,11 +196,11 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 				{/* Glassmorphism Container */}
 				<div className="relative z-10 p-8 rounded-2xl backdrop-blur-lg bg-background/60 dark:bg-card/60 border border-border/20 shadow-2xl">
 					<h1 className="text-3xl font-bold text-foreground lg:text-4xl">
-						Let's Talk About Your Properties
+						Let&apos;s Talk About Your Properties
 					</h1>
 
 					<p className="mt-4 text-muted-foreground text-lg">
-						Whether you manage 5 or 500 units, we're here to help streamline
+						Whether you manage 5 or 500 units, we&apos;re here to help streamline
 						your operations and save you time every day.
 					</p>
 
@@ -254,7 +255,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						Get in Touch
 					</h2>
 					<p className="text-muted-foreground mb-8">
-						Have questions about TenantFlow? Want to see a demo? We'd love to
+						Have questions about TenantFlow? Want to see a demo? We&apos;d love to
 						hear from you. Our team typically responds within 4 hours.
 					</p>
 
@@ -363,7 +364,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						</div>
 
 						<Field>
-							<FieldLabel htmlFor="subject">I'm interested in... *</FieldLabel>
+							<FieldLabel htmlFor="subject">I&apos;m interested in... *</FieldLabel>
 							<Select
 								value={formData.subject}
 								onValueChange={(value: string) =>
