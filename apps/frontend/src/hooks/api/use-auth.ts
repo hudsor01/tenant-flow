@@ -1,7 +1,7 @@
 'use client'
 
+import { createClient } from '@/lib/supabase/client'
 import { authQueryKeys as authProviderKeys } from '@/providers/auth-provider'
-import { createClient } from '@/utils/supabase/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Session, User } from '@supabase/supabase-js'
 import { useMutation, useQueryClient } from '@tanstack/react-query'

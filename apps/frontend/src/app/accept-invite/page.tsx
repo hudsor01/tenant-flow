@@ -15,7 +15,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/lib/supabase/client'
 import { AlertCircle, CheckCircle, Lock } from 'lucide-react'
 
 const supabase = createClient()
