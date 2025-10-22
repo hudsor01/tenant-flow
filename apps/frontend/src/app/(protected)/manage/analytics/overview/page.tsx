@@ -29,19 +29,9 @@ export default async function AnalyticsPage() {
 		<div className="@container/main flex min-h-screen w-full flex-col">
 			{/* Top Metric Cards Section - Matching Dashboard */}
 			<div
-				className="border-b bg-background"
-				style={{
-					padding: 'var(--dashboard-content-padding)',
-					borderColor: 'var(--color-fill-tertiary)'
-				}}
+				className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]"
 			>
-				<div
-					className="mx-auto max-w-[1600px]"
-					style={{
-						paddingTop: 'var(--spacing-4)',
-						paddingBottom: 'var(--spacing-4)'
-					}}
-				>
+				<div className="mx-auto max-w-[1600px] py-4">
 					<div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 						{/* Total Revenue */}
 						<Card className="@container/card">
@@ -171,22 +161,8 @@ export default async function AnalyticsPage() {
 			</div>
 
 			{/* Main Content Section - Matching Dashboard */}
-			<div
-				className="flex-1"
-				style={{
-					padding: 'var(--dashboard-content-padding)',
-					paddingTop: 'var(--dashboard-section-gap)',
-					paddingBottom: 'var(--dashboard-section-gap)'
-				}}
-			>
-				<div
-					className="mx-auto max-w-[1600px] space-y-8"
-					style={
-						{
-							'--space-y': 'var(--dashboard-section-gap)'
-						} as React.CSSProperties
-					}
-				>
+			<div className="flex-1 p-6 pt-6 pb-6">
+				<div className="mx-auto max-w-[1600px] space-y-8">
 					{/* Charts Section */}
 					<div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
 						{/* Revenue Trend Chart */}
@@ -202,19 +178,13 @@ export default async function AnalyticsPage() {
 							<div className="px-6 pb-6">
 								<div className="flex items-center gap-4 mb-4">
 									<div className="flex items-center gap-2">
-										<div
-											className="w-3 h-3 rounded-full"
-											style={{ backgroundColor: 'var(--chart-3)' }}
-										></div>
+										<div className="w-3 h-3 rounded-full bg-chart-3"></div>
 										<span className="text-sm text-muted-foreground">
 											Revenue
 										</span>
 									</div>
 									<div className="flex items-center gap-2">
-										<div
-											className="w-3 h-3 rounded-full"
-											style={{ backgroundColor: 'var(--chart-5)' }}
-										></div>
+										<div className="w-3 h-3 rounded-full bg-chart-5"></div>
 										<span className="text-sm text-muted-foreground">
 											Expenses
 										</span>
