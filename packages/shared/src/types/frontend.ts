@@ -165,12 +165,7 @@ export interface UIStore {
 }
 
 // Note: ErrorContext and UserFriendlyError moved to frontend-ui.ts to avoid duplicate exports
-export type ErrorType =
-	| 'network'
-	| 'validation'
-	| 'permission'
-	| 'notFound'
-	| 'server'
+export type { ErrorType } from './api'
 
 // AUTH FORM TYPES
 
