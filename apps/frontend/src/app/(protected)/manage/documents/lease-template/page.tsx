@@ -101,7 +101,7 @@ export default function LeaseTemplatePage() {
 				<CardHeader>
 					<CardTitle>Template Sections</CardTitle>
 					<CardDescription>
-						Overview of what's included in the lease agreement template
+						Overview of what&apos;s included in the lease agreement template
 					</CardDescription>
 				</CardHeader>
 				<CardContent>

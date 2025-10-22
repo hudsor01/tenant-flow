@@ -38,12 +38,12 @@ const faqs = [
 	{
 		question: 'What happens if I exceed my plan limits?',
 		answer:
-			"We'll notify you when you're approaching your limits. You can upgrade anytime to accommodate growth."
+			"We&apos;ll notify you when you&apos;re approaching your limits. You can upgrade anytime to accommodate growth."
 	},
 	{
 		question: 'Do you offer refunds?',
 		answer:
-			"Yes! We offer a 60-day money-back guarantee. If you're not satisfied, contact us for a full refund."
+			"Yes! We offer a 60-day money-back guarantee. If you&apos;re not satisfied, contact us for a full refund."
 	}
 ]
 
@@ -128,7 +128,7 @@ export default function PricingPage() {
 						{/* CTA */}
 						<div className="text-center mt-16 p-8 rounded-2xl bg-card/30 border border-border/50 max-w-2xl mx-auto">
 							<p className="text-lg text-muted-foreground mb-6">
-								Still have questions? We're here to help.
+								Still have questions? We&apos;re here to help.
 							</p>
 							<Button size="lg" className="h-12 px-8" asChild>
 								<Link href="/contact">

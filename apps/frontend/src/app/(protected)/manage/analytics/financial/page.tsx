@@ -92,7 +92,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 		return (
 			<div className="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed">
 				<p className="text-sm text-muted-foreground">
-					We couldn't find leases with financial analytics yet.
+					We couldn&apos;t find leases with financial analytics yet.
 				</p>
 			</div>
 		)
