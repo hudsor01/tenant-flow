@@ -2,6 +2,7 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
+import { StripeClientService } from '../../shared/stripe-client.service'
 import { RentPaymentsService } from './rent-payments.service'
 
 const createSingleQueryMock = <T>(data: T): any => {
@@ -18,6 +19,12 @@ describe('RentPaymentsService', () => {
 	const mockSupabaseService = {
 		getAdminClient: jest.fn(() => adminClient)
 	}
+	const mockStripe = {
+		paymentIntents: { create: jest.fn(), retrieve: jest.fn() }
+	}
+	const mockStripeClientService = {
+		getClient: jest.fn(() => mockStripe)
+	}
 
 	beforeEach(async () => {
 		adminClient.from.mockReset()
@@ -28,6 +35,10 @@ describe('RentPaymentsService', () => {
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
+				},
+				{
+					provide: StripeClientService,
+					useValue: mockStripeClientService
 				}
 			]
 		}).compile()
