@@ -6,36 +6,13 @@
  */
 
 import type { Request, Response } from 'express'
-import type {
-	ChangePasswordRequest,
-	ForgotPasswordRequest,
-	LoginRequest,
-	RefreshTokenRequest,
-	RegisterRequest,
-	ResetPasswordRequest
-} from './auth.js'
-import type { ServiceHealth, SystemHealth } from './health.js'
-import type {
-	StripeWebhookEvent,
-	StripeWebhookProcessor,
-	WebhookProcessorFunction
-} from './stripe.js'
+import type { ServiceHealth } from './health.js'
 import type { Database } from './supabase-generated.js'
 
-// Re-export types for consumers
-export type {
-	ChangePasswordRequest,
-	ForgotPasswordRequest,
-	LoginRequest,
-	RefreshTokenRequest,
-	RegisterRequest,
-	ResetPasswordRequest,
-	ServiceHealth,
-	StripeWebhookEvent,
-	StripeWebhookProcessor,
-	SystemHealth,
-	WebhookProcessorFunction
-}
+// NOTE: Removed re-exports. Import directly from primary sources:
+// - Auth types: '@repo/shared/types/auth'
+// - Health types: '@repo/shared/types/health'
+// - Stripe types: '@repo/shared/types/stripe'
 
 // Basic Stripe type declarations to avoid external dependencies
 export interface StripeInvoice {
@@ -107,7 +84,7 @@ export interface RequestContext {
 }
 
 // AUTH REQUEST/RESPONSE TYPES
-// Re-exported at top of file: LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest, RefreshTokenRequest
+// Import from '@repo/shared/types/auth' instead
 
 export interface UserProfileResponse {
 	id: string
@@ -549,7 +526,7 @@ export interface DbPerformanceOverview {
 }
 
 // HEALTH MONITORING TYPES
-// Re-exported at top of file: ServiceHealth, SystemHealth
+// Import from '@repo/shared/types/health' instead
 
 // CONFIG TYPES
 
