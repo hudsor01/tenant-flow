@@ -9,6 +9,7 @@
  * - Proper error handling
  */
 
+import { API_BASE_URL } from '@/lib/api-client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
 	CreateLeaseInput,
@@ -17,7 +18,6 @@ import type {
 import type { Lease } from '@repo/shared/types/core'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { API_BASE_URL } from '@/lib/api-client'
 
 /**
  * Query keys for lease endpoints (hierarchical, typed)
@@ -82,7 +82,7 @@ export function useCurrentLease() {
  */
 export function useTenantMaintenanceRequests() {
 	const { data: lease, isLoading: leaseLoading } = useCurrentLease()
-	
+
 	return useQuery({
 		queryKey: ['maintenance', 'tenant', lease?.unitId],
 		queryFn: async (): Promise<{
@@ -105,9 +105,10 @@ export function useTenantMaintenanceRequests() {
 			if (!lease?.unitId) {
 				return { requests: [], total: 0, open: 0, inProgress: 0, completed: 0 }
 			}
-			
-			const response = await apiClient<{
-				data: Array<{
+
+			// Backend returns MaintenanceRequest[] directly, not wrapped in { data: [...] }
+			const requests = await apiClient<
+				Array<{
 					id: string
 					title: string
 					description: string
@@ -118,14 +119,12 @@ export function useTenantMaintenanceRequests() {
 					updatedAt: string
 					completedAt: string | null
 				}>
-			}>(`${API_BASE_URL}/api/v1/maintenance?unitId=${lease.unitId}`)
-			
-			const requests = response.data || []
+			>(`${API_BASE_URL}/api/v1/maintenance?unitId=${lease.unitId}`)
 			const total = requests.length
 			const open = requests.filter(r => r.status === 'OPEN').length
 			const inProgress = requests.filter(r => r.status === 'IN_PROGRESS').length
 			const completed = requests.filter(r => r.status === 'COMPLETED').length
-			
+
 			return { requests, total, open, inProgress, completed }
 		},
 		enabled: !!lease?.unitId && !leaseLoading,
