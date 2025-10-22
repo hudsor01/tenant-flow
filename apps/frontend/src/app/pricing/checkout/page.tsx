@@ -57,7 +57,7 @@ function CheckoutPageContent() {
 					<div className="max-w-2xl mx-auto">
 						<CardLayout
 							title="Unable to Load Plan"
-							description="We couldn't load the pricing information for this plan"
+							description="We couldn&apos;t load the pricing information for this plan"
 							className="border-destructive/50"
 						>
 							<div className="flex items-start gap-3 p-4 bg-destructive/10 rounded-lg">
@@ -108,7 +108,7 @@ function CheckoutPageContent() {
 					<div className="max-w-2xl mx-auto">
 						<CardLayout
 							title="Pricing Configuration Error"
-							description="This plan doesn't have a valid price configured"
+							description="This plan doesn&apos;t have a valid price configured"
 						>
 							<p className="text-sm text-muted-foreground">
 								Please contact support or select a different plan.
@@ -153,7 +153,7 @@ function CheckoutPageContent() {
 									Complete your purchase
 								</h1>
 								<p className="text-muted-foreground">
-									You're upgrading to TenantFlow {plan.name}
+									You&apos;re upgrading to TenantFlow {plan.name}
 								</p>
 							</div>
 

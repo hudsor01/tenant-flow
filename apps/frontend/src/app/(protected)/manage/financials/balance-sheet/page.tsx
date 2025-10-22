@@ -139,7 +139,7 @@ export default function BalanceSheetPage() {
 						<Card className="@container/card">
 							<CardHeader>
 								<CardTitle>Total Equity</CardTitle>
-								<CardDescription>Owner's stake</CardDescription>
+								<CardDescription>Owner&apos;s stake</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-3">
 								<p className="text-3xl font-semibold tabular-nums">
@@ -403,7 +403,7 @@ export default function BalanceSheetPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle>Equity</CardTitle>
-								<CardDescription>Owner's investment</CardDescription>
+								<CardDescription>Owner&apos;s investment</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<Table>
