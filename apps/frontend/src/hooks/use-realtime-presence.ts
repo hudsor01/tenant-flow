@@ -5,7 +5,7 @@
 
 'use client'
 
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/lib/supabase/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'

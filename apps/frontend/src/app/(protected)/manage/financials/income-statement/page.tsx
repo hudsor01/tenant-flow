@@ -26,9 +26,9 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { getIncomeStatement } from '@/lib/api/financials-client'
-import { cn } from '@/lib/utils'
 import { formatCurrency, formatPercentage } from '@/lib/design-system'
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/lib/supabase/client'
+import { cn } from '@/lib/utils'
 import type { IncomeStatementData } from '@repo/shared/types/financial-statements'
 import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns'
 import { ArrowDownRight, ArrowUpRight, TrendingUp } from 'lucide-react'
@@ -196,26 +196,26 @@ export default function IncomeStatementPage() {
 						</Card>
 
 						<Card
-						className={cn(
-							"@container/card",
-							data.netIncome >= 0
-								? "border-[oklch(var(--success))]"
-								: "border-[oklch(var(--destructive))]"
-						)}
-					>
+							className={cn(
+								'@container/card',
+								data.netIncome >= 0
+									? 'border-[oklch(var(--success))]'
+									: 'border-[oklch(var(--destructive))]'
+							)}
+						>
 							<CardHeader>
 								<CardTitle>Net Income</CardTitle>
 								<CardDescription>After all expenses</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-3">
 								<p
-								className={cn(
-									"text-3xl font-semibold tabular-nums",
-									data.netIncome >= 0
-										? "text-[oklch(var(--success))]"
-										: "text-[oklch(var(--destructive))]"
-								)}
-							>
+									className={cn(
+										'text-3xl font-semibold tabular-nums',
+										data.netIncome >= 0
+											? 'text-[oklch(var(--success))]'
+											: 'text-[oklch(var(--destructive))]'
+									)}
+								>
 									{formatCurrency(data.netIncome)}
 								</p>
 								{data.previousPeriod && (

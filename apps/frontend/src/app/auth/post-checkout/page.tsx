@@ -1,17 +1,16 @@
 'use client'
 
+import { Spinner } from '@/components/ui/spinner'
+import { useMutation } from '@tanstack/react-query'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { Spinner } from "@/components/ui/spinner"
 
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/lib/supabase/client'
 import { Mail } from 'lucide-react'
-
-const supabase = createClient()
 
 /**
  * Post-Checkout Page - Magic Link Flow
@@ -27,71 +26,65 @@ const supabase = createClient()
 export default function PostCheckoutPage() {
 	const searchParams = useSearchParams()
 	const router = useRouter()
-	const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
 	const [email, setEmail] = useState<string>('')
-	const [errorMessage, setErrorMessage] = useState<string>('')
 
+	// TanStack Query mutation for sending magic link
+	const sendMagicLinkMutation = useMutation({
+		mutationFn: async (sessionId: string) => {
+			// Call backend to get customer email from Stripe session
+			const response = await fetch(
+				`${process.env.NEXT_PUBLIC_API_BASE_URL}/billing/checkout-session/${sessionId}`,
+				{
+					method: 'GET',
+					headers: { 'Content-Type': 'application/json' }
+				}
+			)
+
+			if (!response.ok) {
+				throw new Error('Failed to retrieve checkout session')
+			}
+
+			const session = await response.json()
+			const customerEmail =
+				session.customer_email || session.customer_details?.email
+
+			if (!customerEmail) {
+				throw new Error('No email found in checkout session')
+			}
+
+			// Send magic link via Supabase OTP
+			const supabase = createClient()
+			const { error } = await supabase.auth.signInWithOtp({
+				email: customerEmail,
+				options: {
+					emailRedirectTo: `${window.location.origin}/dashboard`
+				}
+			})
+
+			if (error) {
+				throw error
+			}
+
+			return customerEmail
+		},
+		onSuccess: customerEmail => {
+			setEmail(customerEmail)
+		}
+	})
+
+	// Trigger mutation once on mount with session_id
 	useEffect(() => {
 		const sessionId = searchParams.get('session_id')
-
-		if (!sessionId) {
-			setStatus('error')
-			setErrorMessage('Invalid checkout session')
-			return
+		if (
+			sessionId &&
+			!sendMagicLinkMutation.isSuccess &&
+			!sendMagicLinkMutation.isPending
+		) {
+			sendMagicLinkMutation.mutate(sessionId)
 		}
+	}, [searchParams, sendMagicLinkMutation])
 
-		// Move sendMagicLink inside useEffect
-		async function sendMagicLink(sessionId: string) {
-			try {
-				// Call backend to get customer email from Stripe session
-				const response = await fetch(
-					`${process.env.NEXT_PUBLIC_API_BASE_URL}/billing/checkout-session/${sessionId}`,
-					{
-						method: 'GET',
-						headers: { 'Content-Type': 'application/json' }
-					}
-				)
-
-				if (!response.ok) {
-					throw new Error('Failed to retrieve checkout session')
-				}
-
-				const session = await response.json()
-				const customerEmail = session.customer_email || session.customer_details?.email
-
-				if (!customerEmail) {
-					throw new Error('No email found in checkout session')
-				}
-
-				setEmail(customerEmail)
-
-				// Send magic link via Supabase OTP
-				// Official pattern: signInWithOtp with emailRedirectTo
-				const { error } = await supabase.auth.signInWithOtp({
-					email: customerEmail,
-					options: {
-						emailRedirectTo: `${window.location.origin}/dashboard`
-					}
-				})
-
-				if (error) {
-					throw error
-				}
-
-				setStatus('success')
-			} catch (error) {
-
-				setStatus('error')
-				setErrorMessage(
-					error instanceof Error ? error.message : 'Failed to send login link'
-				)
-			}
-		}
-
-		sendMagicLink(sessionId)
-	}, [searchParams])
-
-	if (status === 'loading') {
+	if (sendMagicLinkMutation.isPending) {
 		return (
 			<div className="flex min-h-screen items-center justify-center p-4">
 				<CardLayout
@@ -107,7 +100,14 @@ export default function PostCheckoutPage() {
 		)
 	}
 
-	if (status === 'error') {
+	if (sendMagicLinkMutation.isError || !searchParams.get('session_id')) {
+		const errorMessage =
+			sendMagicLinkMutation.error instanceof Error
+				? sendMagicLinkMutation.error.message
+				: !searchParams.get('session_id')
+					? 'Invalid checkout session'
+					: 'Failed to send login link'
+
 		return (
 			<div className="flex min-h-screen items-center justify-center p-4">
 				<CardLayout
@@ -120,9 +120,7 @@ export default function PostCheckoutPage() {
 							<Button variant="outline" onClick={() => router.push('/')}>
 								Go Home
 							</Button>
-							<Button onClick={() => router.push('/pricing')}>
-								Try Again
-							</Button>
+							<Button onClick={() => router.push('/pricing')}>Try Again</Button>
 						</div>
 					</div>
 				</CardLayout>
@@ -154,7 +152,11 @@ export default function PostCheckoutPage() {
 					</div>
 
 					<div className="pt-4 border-t">
-						<Button variant="outline" className="w-full" onClick={() => router.push('/')}>
+						<Button
+							variant="outline"
+							className="w-full"
+							onClick={() => router.push('/')}
+						>
 							Go to Homepage
 						</Button>
 					</div>
