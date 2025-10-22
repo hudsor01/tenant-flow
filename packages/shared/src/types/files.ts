@@ -4,10 +4,11 @@
  */
 
 import type { Database } from './supabase-generated.js'
+import type { Document } from './supabase.js'
 
 // Use Supabase types instead of duplicating
 export type DocumentType = Database['public']['Enums']['DocumentType']
-export type Document = Database['public']['Tables']['document']['Row']
+export type { Document }
 export type File = Database['public']['Tables']['file']['Row']
 
 // File upload related types
