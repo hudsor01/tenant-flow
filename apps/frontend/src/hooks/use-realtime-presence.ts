@@ -8,7 +8,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { RealtimeChannel } from '@supabase/supabase-js'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface PresenceState {
 	userId: string
@@ -31,13 +31,15 @@ export function useRealtimePresence(channelName: string) {
 	const [presences, setPresences] = useState<Record<string, PresenceState[]>>(
 		{}
 	)
-	const [channel, setChannel] = useState<RealtimeChannel | null>(null)
+	const channelRef = useRef<RealtimeChannel | null>(null)
 	const supabase = createClient()
 
 	useEffect(() => {
 		const presenceChannel = supabase.channel(channelName, {
 			config: { presence: { key: 'user' } }
 		})
+
+		channelRef.current = presenceChannel
 
 		presenceChannel
 			.on('presence', { event: 'sync' }, () => {
@@ -69,10 +71,9 @@ export function useRealtimePresence(channelName: string) {
 				}
 			})
 
-		setChannel(presenceChannel)
-
 		return () => {
 			presenceChannel.unsubscribe()
+			channelRef.current = null
 			logger.debug('Presence channel unsubscribed', {
 				action: 'presence_cleanup',
 				metadata: { channel: channelName }
@@ -81,17 +82,17 @@ export function useRealtimePresence(channelName: string) {
 	}, [channelName, supabase])
 
 	const track = async (state: Partial<PresenceState>) => {
-		if (!channel) return
+		if (!channelRef.current) return
 
-		await channel.track({
+		await channelRef.current.track({
 			online_at: new Date().toISOString(),
 			...state
 		})
 	}
 
 	const untrack = async () => {
-		if (!channel) return
-		await channel.untrack()
+		if (!channelRef.current) return
+		await channelRef.current.untrack()
 	}
 
 	// Get flattened list of all present users
@@ -116,11 +117,13 @@ export function useRealtimePresence(channelName: string) {
  */
 export function useTypingIndicator(channelName: string, userId: string) {
 	const [typingUsers, setTypingUsers] = useState<string[]>([])
-	const [channel, setChannel] = useState<RealtimeChannel | null>(null)
+	const channelRef = useRef<RealtimeChannel | null>(null)
 	const supabase = createClient()
 
 	useEffect(() => {
 		const typingChannel = supabase.channel(channelName)
+
+		channelRef.current = typingChannel
 
 		typingChannel
 			.on('broadcast', { event: 'typing' }, ({ payload }) => {
@@ -140,17 +143,16 @@ export function useTypingIndicator(channelName: string, userId: string) {
 			})
 			.subscribe()
 
-		setChannel(typingChannel)
-
 		return () => {
 			typingChannel.unsubscribe()
+			channelRef.current = null
 		}
 	}, [channelName, supabase])
 
 	const setTyping = (isTyping: boolean) => {
-		if (!channel) return
+		if (!channelRef.current) return
 
-		channel.send({
+		channelRef.current.send({
 			type: 'broadcast',
 			event: 'typing',
 			payload: { userId, isTyping }

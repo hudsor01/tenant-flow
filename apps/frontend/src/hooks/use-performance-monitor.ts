@@ -6,7 +6,7 @@
 'use client'
 
 import { logger } from '@repo/shared/lib/frontend-logger'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * Hook to measure component mount/unmount time
@@ -50,9 +50,11 @@ export function usePerformanceMonitor(componentName: string) {
  */
 export function useRenderCount(componentName: string) {
 	const renderCount = useRef(0)
+	const [count, setCount] = useState(0)
 
 	useEffect(() => {
 		renderCount.current += 1
+		setCount(renderCount.current)
 
 		if (renderCount.current > 10) {
 			logger.warn(`${componentName} rendered ${renderCount.current} times`, {
@@ -62,7 +64,7 @@ export function useRenderCount(componentName: string) {
 		}
 	})
 
-	return renderCount.current
+	return count
 }
 
 /**
@@ -141,6 +143,7 @@ export function useMemoryMonitor(
 	intervalMs = 60000
 ): { usedMemory: number | null } {
 	const memoryRef = useRef<number | null>(null)
+	const [usedMemory, setUsedMemory] = useState<number | null>(null)
 
 	useEffect(() => {
 		// Only available in Chrome with --enable-precise-memory-info
@@ -158,6 +161,7 @@ export function useMemoryMonitor(
 			).memory
 			if (memory) {
 				memoryRef.current = memory.usedJSHeapSize
+				setUsedMemory(memory.usedJSHeapSize)
 				const usedMB = (memory.usedJSHeapSize / 1024 / 1024).toFixed(2)
 
 				logger.debug(`${componentName} memory usage`, {
@@ -178,5 +182,5 @@ export function useMemoryMonitor(
 		}
 	}, [componentName, intervalMs])
 
-	return { usedMemory: memoryRef.current }
+	return { usedMemory }
 }

@@ -63,7 +63,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 
                   {/* Quote text */}
                   <blockquote className="text-lg text-foreground/90 leading-relaxed mb-6 font-medium">
-                    "{testimonial.quote}"
+                    &quot;{testimonial.quote}&quot;
                   </blockquote>
 
                   {/* Attribution */}

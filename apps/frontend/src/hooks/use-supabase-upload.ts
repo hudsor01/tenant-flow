@@ -98,7 +98,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 
 			setFiles(newFiles)
 		},
-		[files, setFiles]
+		[files]
 	)
 
 	const dropzoneProps = useDropzone({
@@ -148,17 +148,18 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 		setErrors(responseErrors)
 
 		const responseSuccesses = responses.filter(x => x.message === undefined)
-		const newSuccesses = Array.from(
-			new Set([...successes, ...responseSuccesses.map(x => x.name)])
+		setSuccesses(prev =>
+			Array.from(new Set([...prev, ...responseSuccesses.map(x => x.name)]))
 		)
-		setSuccesses(newSuccesses)
 
 		setLoading(false)
 	}, [files, path, bucketName, errors, successes, cacheControl, upsert])
 
 	useEffect(() => {
-		if (files.length === 0) {
-			setErrors([])
+		// Clear errors when all files are removed
+		if (files.length === 0 && errors.length > 0) {
+			queueMicrotask(() => setErrors([]))
+			return
 		}
 
 		// If the number of files doesn't exceed the maxFiles parameter, remove the error 'Too many files' from each file
@@ -172,10 +173,10 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 				return file
 			})
 			if (changed) {
-				setFiles(newFiles)
+				queueMicrotask(() => setFiles(newFiles))
 			}
 		}
-	}, [files, setFiles, maxFiles])
+	}, [files, setFiles, maxFiles, errors.length])
 
 	return {
 		files,

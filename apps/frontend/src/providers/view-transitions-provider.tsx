@@ -12,15 +12,12 @@ export function ViewTransitionsProvider({
 	children
 }: ViewTransitionsProviderProps) {
 	const [isPending, startTransition] = useTransition()
-	const [shouldInjectStyles, setShouldInjectStyles] = useState(false)
-
-	useEffect(() => {
+	const [shouldInjectStyles] = useState(() => {
 		if (typeof document === 'undefined') {
-			return
+			return false
 		}
-
-		setShouldInjectStyles(typeof document.startViewTransition === 'function')
-	}, [])
+		return typeof document.startViewTransition === 'function'
+	})
 
 	// Wrap navigation with view transitions
 	useEffect(() => {
