@@ -18,8 +18,8 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 import { getCashFlowStatement } from '@/lib/api/financials-client'
+import { createClient } from '@/lib/supabase/client'
 import { cn, formatCurrency } from '@/lib/utils'
-import { createClient } from '@/utils/supabase/client'
 import type { CashFlowData } from '@repo/shared/types/financial-statements'
 import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns'
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
@@ -137,11 +137,11 @@ export default function CashFlowPage() {
 							<CardContent className="space-y-3">
 								<p
 									className={cn(
-									"text-3xl font-semibold tabular-nums",
-									data.operatingActivities.netOperatingCash >= 0
-										? "text-[oklch(var(--success))]"
-										: "text-[oklch(var(--destructive))]"
-								)}
+										'text-3xl font-semibold tabular-nums',
+										data.operatingActivities.netOperatingCash >= 0
+											? 'text-[oklch(var(--success))]'
+											: 'text-[oklch(var(--destructive))]'
+									)}
 								>
 									{formatCurrency(data.operatingActivities.netOperatingCash)}
 								</p>
@@ -163,11 +163,11 @@ export default function CashFlowPage() {
 							<CardContent className="space-y-3">
 								<p
 									className={cn(
-									"text-3xl font-semibold tabular-nums",
-									data.investingActivities.netInvestingCash >= 0
-										? "text-[oklch(var(--success))]"
-										: "text-[oklch(var(--destructive))]"
-								)}
+										'text-3xl font-semibold tabular-nums',
+										data.investingActivities.netInvestingCash >= 0
+											? 'text-[oklch(var(--success))]'
+											: 'text-[oklch(var(--destructive))]'
+									)}
 								>
 									{formatCurrency(data.investingActivities.netInvestingCash)}
 								</p>
@@ -189,11 +189,11 @@ export default function CashFlowPage() {
 							<CardContent className="space-y-3">
 								<p
 									className={cn(
-									"text-3xl font-semibold tabular-nums",
-									data.financingActivities.netFinancingCash >= 0
-										? "text-[oklch(var(--success))]"
-										: "text-[oklch(var(--destructive))]"
-								)}
+										'text-3xl font-semibold tabular-nums',
+										data.financingActivities.netFinancingCash >= 0
+											? 'text-[oklch(var(--success))]'
+											: 'text-[oklch(var(--destructive))]'
+									)}
 								>
 									{formatCurrency(data.financingActivities.netFinancingCash)}
 								</p>
@@ -227,11 +227,11 @@ export default function CashFlowPage() {
 									</span>
 									<span
 										className={cn(
-										"font-semibold tabular-nums",
-										data.operatingActivities.netOperatingCash >= 0
-											? "text-[oklch(var(--success))]"
-											: "text-[oklch(var(--destructive))]"
-									)}
+											'font-semibold tabular-nums',
+											data.operatingActivities.netOperatingCash >= 0
+												? 'text-[oklch(var(--success))]'
+												: 'text-[oklch(var(--destructive))]'
+										)}
 									>
 										{formatCurrency(data.operatingActivities.netOperatingCash)}
 									</span>
@@ -243,11 +243,11 @@ export default function CashFlowPage() {
 									</span>
 									<span
 										className={cn(
-										"font-semibold tabular-nums",
-										data.investingActivities.netInvestingCash >= 0
-											? "text-[oklch(var(--success))]"
-											: "text-[oklch(var(--destructive))]"
-									)}
+											'font-semibold tabular-nums',
+											data.investingActivities.netInvestingCash >= 0
+												? 'text-[oklch(var(--success))]'
+												: 'text-[oklch(var(--destructive))]'
+										)}
 									>
 										{formatCurrency(data.investingActivities.netInvestingCash)}
 									</span>
@@ -259,11 +259,11 @@ export default function CashFlowPage() {
 									</span>
 									<span
 										className={cn(
-										"font-semibold tabular-nums",
-										data.financingActivities.netFinancingCash >= 0
-											? "text-[oklch(var(--success))]"
-											: "text-[oklch(var(--destructive))]"
-									)}
+											'font-semibold tabular-nums',
+											data.financingActivities.netFinancingCash >= 0
+												? 'text-[oklch(var(--success))]'
+												: 'text-[oklch(var(--destructive))]'
+										)}
 									>
 										{formatCurrency(data.financingActivities.netFinancingCash)}
 									</span>
@@ -273,11 +273,11 @@ export default function CashFlowPage() {
 									<span className="text-lg font-semibold">Net Cash Flow</span>
 									<span
 										className={cn(
-					"text-2xl font-bold tabular-nums",
-					data.netCashFlow >= 0
-						? "text-[oklch(var(--success))]"
-						: "text-[oklch(var(--destructive))]"
-				)}
+											'text-2xl font-bold tabular-nums',
+											data.netCashFlow >= 0
+												? 'text-[oklch(var(--success))]'
+												: 'text-[oklch(var(--destructive))]'
+										)}
 									>
 										{formatCurrency(data.netCashFlow)}
 									</span>
@@ -340,11 +340,11 @@ export default function CashFlowPage() {
 											<TableCell className="font-semibold">Net Cash</TableCell>
 											<TableCell
 												className={cn(
-					"text-right font-semibold",
-					data.operatingActivities.netOperatingCash >= 0
-						? "text-[oklch(var(--success))]"
-						: "text-[oklch(var(--destructive))]"
-				)}
+													'text-right font-semibold',
+													data.operatingActivities.netOperatingCash >= 0
+														? 'text-[oklch(var(--success))]'
+														: 'text-[oklch(var(--destructive))]'
+												)}
 											>
 												{formatCurrency(
 													data.operatingActivities.netOperatingCash
@@ -396,11 +396,12 @@ export default function CashFlowPage() {
 											<TableCell className="font-semibold">Net Cash</TableCell>
 											<TableCell
 												className={cn(
-												"text-right font-semibold",
-												data.investingActivities?.netInvestingCash >= 0 || data.financingActivities?.netFinancingCash >= 0
-													? "text-[oklch(var(--success))]"
-													: "text-[oklch(var(--destructive))]"
-											)}
+													'text-right font-semibold',
+													data.investingActivities?.netInvestingCash >= 0 ||
+														data.financingActivities?.netFinancingCash >= 0
+														? 'text-[oklch(var(--success))]'
+														: 'text-[oklch(var(--destructive))]'
+												)}
 											>
 												{formatCurrency(
 													data.investingActivities.netInvestingCash
@@ -466,11 +467,12 @@ export default function CashFlowPage() {
 											<TableCell className="font-semibold">Net Cash</TableCell>
 											<TableCell
 												className={cn(
-												"text-right font-semibold",
-												data.investingActivities?.netInvestingCash >= 0 || data.financingActivities?.netFinancingCash >= 0
-													? "text-[oklch(var(--success))]"
-													: "text-[oklch(var(--destructive))]"
-											)}
+													'text-right font-semibold',
+													data.investingActivities?.netInvestingCash >= 0 ||
+														data.financingActivities?.netFinancingCash >= 0
+														? 'text-[oklch(var(--success))]'
+														: 'text-[oklch(var(--destructive))]'
+												)}
 											>
 												{formatCurrency(
 													data.financingActivities.netFinancingCash
