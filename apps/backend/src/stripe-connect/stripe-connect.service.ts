@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
+import { StripeClientService } from '../shared/stripe-client.service'
 
 export interface CreateConnectedAccountParams {
 	userId: string
@@ -44,14 +45,11 @@ export class StripeConnectService {
 	private readonly stripe: Stripe
 	private readonly logger = new Logger(StripeConnectService.name)
 
-	constructor(private readonly supabase: SupabaseService) {
-		const apiKey = process.env.STRIPE_SECRET_KEY
-		if (!apiKey) {
-			throw new Error('STRIPE_SECRET_KEY environment variable is required')
-		}
-		this.stripe = new Stripe(apiKey, {
-			apiVersion: '2025-08-27' as Stripe.LatestApiVersion
-		})
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly stripeClientService: StripeClientService
+	) {
+		this.stripe = this.stripeClientService.getClient()
 	}
 
 	/**

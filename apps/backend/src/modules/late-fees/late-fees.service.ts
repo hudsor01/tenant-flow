@@ -11,6 +11,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
+import { StripeClientService } from '../../shared/stripe-client.service'
 
 export interface LateFeeConfig {
 	leaseId: string
@@ -32,10 +33,11 @@ export class LateFeesService {
 	private readonly logger = new Logger(LateFeesService.name)
 	private readonly stripe: Stripe
 
-	constructor(private readonly supabase: SupabaseService) {
-		this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-			apiVersion: '2025-08-27' as Stripe.LatestApiVersion
-		})
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly stripeClientService: StripeClientService
+	) {
+		this.stripe = this.stripeClientService.getClient()
 	}
 
 	/**
