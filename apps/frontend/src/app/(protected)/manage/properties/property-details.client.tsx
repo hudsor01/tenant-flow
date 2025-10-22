@@ -60,11 +60,8 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					<CardContent>
 						<div className="text-2xl font-bold">
 							<Badge
-								style={{
-									backgroundColor: 'var(--chart-1)',
-									color: 'oklch(var(--primary-foreground))'
-								}}
-							>
+						className="bg-[var(--chart-1)] text-[oklch(var(--primary-foreground))]"
+					>
 								{property.status || 'Active'}
 							</Badge>
 						</div>

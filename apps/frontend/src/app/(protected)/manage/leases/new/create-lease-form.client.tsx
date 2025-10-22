@@ -1,7 +1,7 @@
 'use client'
 
 import { useForm } from '@tanstack/react-form'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle } from 'lucide-react'
 import { useRouter } from 'next/router'
 import { toast } from 'sonner'
@@ -20,7 +20,8 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useAllTenants } from '@/hooks/api/use-tenant'
-import { leasesApi, unitsApi } from '@/lib/api-client'
+import { useCreateLease } from '@/hooks/api/use-lease'
+import { unitsApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Unit } from '@repo/shared/types/supabase'
 import { leaseInputSchema } from '@repo/shared/validation/leases'
@@ -40,25 +41,7 @@ export function CreateLeaseForm() {
 		queryFn: () => unitsApi.list({ status: 'vacant' })
 	})
 
-	const createMutation = useMutation({
-		mutationFn: leasesApi.createLeaseWithFinancialCalculations,
-		onSuccess: async () => {
-			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: ['leases'] }),
-				queryClient.invalidateQueries({ queryKey: ['lease-stats'] }),
-				queryClient.invalidateQueries({ queryKey: ['units'] }),
-				queryClient.invalidateQueries({ queryKey: ['tenants'] })
-			])
-			toast.success('Lease created successfully')
-			router.push('/manage/leases')
-		},
-		onError: (error: Error) => {
-			toast.error('Failed to create lease', {
-				description: error.message
-			})
-			logger.error('Failed to create lease', undefined, error)
-		}
-	})
+	const createLease = useCreateLease()
 
 	const form = useForm({
 		defaultValues: {
@@ -73,10 +56,23 @@ export function CreateLeaseForm() {
 			status: 'DRAFT' as const
 		},
 		onSubmit: async ({ value }) => {
-			createMutation.mutate({
-				...value,
-				status: 'ACTIVE'
-			})
+			try {
+				await createLease.mutateAsync({
+					...value,
+					status: 'ACTIVE'
+				})
+				await Promise.all([
+					queryClient.invalidateQueries({ queryKey: ['units'] }),
+					queryClient.invalidateQueries({ queryKey: ['tenants'] })
+				])
+				toast.success('Lease created successfully')
+				router.push('/manage/leases')
+			} catch (error) {
+				toast.error('Failed to create lease', {
+					description: error instanceof Error ? error.message : 'Unknown error'
+				})
+				logger.error('Failed to create lease', undefined, error)
+			}
 		},
 		validators: {
 			onChange: ({ value }) => {
@@ -275,11 +271,11 @@ export function CreateLeaseForm() {
 					<Button
 						type="submit"
 						size="lg"
-						disabled={createMutation.isPending}
+						disabled={createLease.isPending}
 						className="flex items-center gap-2"
 					>
 						<CheckCircle className="w-4 h-4" />
-						{createMutation.isPending ? 'Creating...' : 'Create lease'}
+						{createLease.isPending ? 'Creating...' : 'Create lease'}
 					</Button>
 				</div>
 			</form>

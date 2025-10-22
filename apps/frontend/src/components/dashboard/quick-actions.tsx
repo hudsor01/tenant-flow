@@ -52,54 +52,35 @@ const quickActions = [
 
 export function QuickActions() {
 	return (
-		<div style={{ gap: 'var(--spacing-3)' }} className="flex flex-col">
+		<div className="flex flex-col gap-3">
 			{quickActions.map((action, index) => {
 				const Icon = action.icon
 				return (
 					<Link
 						key={action.href}
 						href={action.href}
-						className="group relative flex w-full items-center rounded-lg border-2 border-border/50 bg-card transition-all duration-300 hover:bg-accent hover:text-accent-foreground hover:border-primary/40 hover:shadow-md hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 animate-in fade-in slide-in-from-left-4"
+						className="group relative flex w-full items-center rounded-lg border-2 border-border/50 bg-card transition-all duration-300 hover:bg-accent hover:text-accent-foreground hover:border-primary/40 hover:shadow-md hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 animate-in fade-in slide-in-from-left-4 min-h-[44px] p-4 gap-3"
 						style={{
-							minHeight: '44px',
-							padding: 'var(--spacing-4)',
-							gap: 'var(--spacing-3)',
 							animationDelay: `${index * 50}ms`
 						}}
 						role="button"
 						tabIndex={0}
 						aria-label={`${action.title}: ${action.description}`}
 					>
-						<div
-							className="flex shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300"
-							style={{
-								width: '40px',
-								height: '40px',
-								padding: 'var(--spacing-2)'
-							}}
-						>
+						<div className="flex shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300 w-10 h-10 p-2">
 							<Icon
-								className="text-primary group-hover:scale-110 transition-transform duration-300"
-								style={{ width: '20px', height: '20px' }}
+								className="text-primary group-hover:scale-110 transition-transform duration-300 w-5 h-5"
 								aria-hidden="true"
 							/>
 						</div>
 						<div className="flex-1 text-left">
 							<div
-								className="font-semibold text-foreground group-hover:text-primary transition-colors"
-								style={{
-									fontSize: 'var(--font-body)',
-									lineHeight: 'var(--line-height-body)'
-								}}
+								className="font-semibold text-foreground group-hover:text-primary transition-colors text-base leading-normal"
 							>
 								{action.title}
 							</div>
 							<div
-								className="text-muted-foreground"
-								style={{
-									fontSize: 'var(--font-small)',
-									lineHeight: 'var(--line-height-small)'
-								}}
+								className="text-muted-foreground text-sm leading-tight"
 							>
 								{action.description}
 							</div>

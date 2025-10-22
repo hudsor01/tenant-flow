@@ -1,10 +1,9 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Wrench } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState, type ChangeEvent } from 'react'
-import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,13 +17,11 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { maintenanceApi, propertiesApi, unitsApi } from '@/lib/api-client'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { propertiesApi, unitsApi } from '@/lib/api-client'
+import { useCreateMaintenanceRequest } from '@/hooks/api/use-maintenance'
 import { maintenanceRequestFormSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
-
-const logger = createLogger({ component: 'CreateMaintenanceForm' })
 
 const PRIORITY_OPTIONS = [
 	{ label: 'Low', value: 'LOW' },
@@ -47,8 +44,8 @@ const CATEGORY_OPTIONS = [
 
 export function CreateMaintenanceForm() {
 	const router = useRouter()
-	const queryClient = useQueryClient()
 	const [selectedPropertyId, setSelectedPropertyId] = useState('')
+	const createMaintenanceRequest = useCreateMaintenanceRequest()
 
 	const { data: properties = [] } = useQuery({
 		queryKey: ['properties'],
@@ -82,7 +79,24 @@ export function CreateMaintenanceForm() {
 			preferredDate: ''
 		},
 		onSubmit: async ({ value }) => {
-			createMutation.mutate(value)
+			const payload: Record<string, unknown> = {
+				title: value.title,
+				description: value.description,
+				unitId: value.unitId
+			}
+
+			if (value.priority) payload.priority = value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+			if (value.category) payload.category = value.category
+			if (value.estimatedCost) payload.estimatedCost = Number.parseFloat(value.estimatedCost)
+			if (value.preferredDate) payload.preferredDate = new Date(value.preferredDate)
+
+			createMaintenanceRequest.mutate(payload, {
+				onSuccess: () => {
+					form.reset()
+					setSelectedPropertyId('')
+					router.push('/manage/maintenance')
+				}
+			})
 		},
 		validators: {
 			onChange: ({ value }) => {
@@ -92,35 +106,6 @@ export function CreateMaintenanceForm() {
 				}
 				return undefined
 			}
-		}
-	})
-
-	const createMutation = useMutation({
-		mutationFn: (values: typeof form.state.values) => {
-			const payload = {
-				...values,
-				estimatedCost: values.estimatedCost
-					? Number.parseFloat(values.estimatedCost)
-					: undefined,
-				preferredDate: values.preferredDate
-					? new Date(values.preferredDate)
-					: undefined
-			}
-			return maintenanceApi.create(payload)
-		},
-		onSuccess: async () => {
-			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: ['maintenance-requests'] }),
-				queryClient.invalidateQueries({ queryKey: ['maintenance-stats'] })
-			])
-			toast.success('Maintenance request created successfully')
-			form.reset()
-			setSelectedPropertyId('')
-			router.push('/manage/maintenance')
-		},
-		onError: error => {
-			toast.error('Failed to create maintenance request')
-			logger.error('Failed to create maintenance request', undefined, error)
 		}
 	})
 
@@ -311,8 +296,8 @@ export function CreateMaintenanceForm() {
 					</form.Field>
 
 					<div className="flex justify-end border-t pt-6">
-						<Button type="submit" size="lg" disabled={createMutation.isPending}>
-							{createMutation.isPending ? 'Submitting...' : 'Create request'}
+						<Button type="submit" size="lg" disabled={createMaintenanceRequest.isPending}>
+							{createMaintenanceRequest.isPending ? 'Submitting...' : 'Create request'}
 						</Button>
 					</div>
 				</form>

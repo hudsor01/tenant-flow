@@ -10,49 +10,18 @@ export function ActivityFeedSkeleton({ items = 3 }: ActivityFeedSkeletonProps) {
 			{Array.from({ length: items }).map((_, index) => (
 				<div key={index} className="flex items-start gap-4 p-3 rounded-lg">
 					{/* Activity Icon Skeleton */}
-					<Skeleton
-						style={{
-							width: '40px',
-							height: '40px',
-							borderRadius: '50%'
-						}}
-					/>
+					<Skeleton className="size-10 rounded-full" />
 
 					{/* Activity Content Skeleton */}
 					<div className="min-w-0 flex-1">
 						<div className="flex items-start justify-between gap-2">
 							<div className="min-w-0 flex-1">
 								<div className="flex items-center gap-2 mb-2">
-									<Skeleton
-										style={{
-											width: '120px',
-											height: '16px',
-											borderRadius: 'var(--radius-sm)'
-										}}
-									/>
-									<Skeleton
-										style={{
-											width: '60px',
-											height: '20px',
-											borderRadius: 'var(--radius-full)'
-										}}
-									/>
+									<Skeleton className="w-[120px] h-4 rounded-sm" />
+									<Skeleton className="w-[60px] h-5 rounded-full" />
 								</div>
-								<Skeleton
-									className="mb-2"
-									style={{
-										width: '180px',
-										height: '14px',
-										borderRadius: 'var(--radius-sm)'
-									}}
-								/>
-								<Skeleton
-									style={{
-										width: '80px',
-										height: '12px',
-										borderRadius: 'var(--radius-sm)'
-									}}
-								/>
+								<Skeleton className="mb-2 w-[180px] h-3.5 rounded-sm" />
+								<Skeleton className="w-20 h-3 rounded-sm" />
 							</div>
 						</div>
 					</div>
@@ -61,13 +30,7 @@ export function ActivityFeedSkeleton({ items = 3 }: ActivityFeedSkeletonProps) {
 
 			{/* View All Activities Button Skeleton */}
 			<div className="pt-4 border-t">
-				<Skeleton
-					className="w-full"
-					style={{
-						height: '40px',
-						borderRadius: 'var(--radius-md)'
-					}}
-				/>
+				<Skeleton className="w-full h-10 rounded-md" />
 			</div>
 		</div>
 	)

@@ -19,9 +19,8 @@ import {
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { UnitEditDialog, UnitViewDialog } from '@/components/units/unit-dialogs'
-import { unitsApi } from '@/lib/api-client'
+import { useDeleteUnit } from '@/hooks/api/use-unit'
 import {
-	ANIMATION_DURATIONS,
 	TYPOGRAPHY_SCALE,
 	buttonClasses,
 	cardClasses,
@@ -31,7 +30,6 @@ import {
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { UnitStats } from '@repo/shared/types/core'
 import type { UnitRow } from '@repo/shared/types/frontend'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Column, ColumnDef } from '@tanstack/react-table'
 import {
 	AlertTriangle,
@@ -96,12 +94,9 @@ function SortableHeader({
 				alignmentClasses[align],
 				'gap-2',
 				isActive && 'text-primary',
-				className
+				className,
+				'text-[15px] leading-[1.33] font-normal duration-150'
 			)}
-			style={{
-				...TYPOGRAPHY_SCALE['body-md'],
-				transitionDuration: ANIMATION_DURATIONS.fast
-			}}
 		>
 			<div className="flex items-center gap-2">
 				{children}
@@ -109,23 +104,23 @@ function SortableHeader({
 					{sortDirection === 'desc' ? (
 						<ArrowDown
 							className={cn(
-								'h-3.5 w-3.5 transition-all',
-								isActive ? 'text-primary' : 'text-muted-foreground'
-							)}
-							style={{ transitionDuration: ANIMATION_DURATIONS.fast }}
+							'h-3.5 w-3.5 transition-all duration-150',
+							isActive ? 'text-primary' : 'text-muted-foreground'
+						)}
+							
 						/>
 					) : sortDirection === 'asc' ? (
 						<ArrowUp
 							className={cn(
-								'h-3.5 w-3.5 transition-all',
-								isActive ? 'text-primary' : 'text-muted-foreground'
-							)}
-							style={{ transitionDuration: ANIMATION_DURATIONS.fast }}
+							'h-3.5 w-3.5 transition-all duration-150',
+							isActive ? 'text-primary' : 'text-muted-foreground'
+						)}
+							
 						/>
 					) : (
 						<ArrowUpDown
-							className="h-3.5 w-3.5 opacity-50 transition-opacity hover:opacity-75"
-							style={{ transitionDuration: ANIMATION_DURATIONS.fast }}
+							className="h-3.5 w-3.5 opacity-50 transition-opacity hover:opacity-75 duration-150"
+							
 						/>
 					)}
 				</div>
@@ -225,7 +220,7 @@ const UnitStatusBadge: React.FC<{ status: UnitStatus; className?: string }> = ({
 				'hover:shadow-sm hover:scale-105',
 				className
 			)}
-			style={{ transitionDuration: ANIMATION_DURATIONS.fast }}
+			
 		>
 			<IconComponent className="h-3 w-3" />
 			{config.label}
@@ -244,39 +239,14 @@ function UnitActions({ unit }: UnitActionsProps) {
 	const [deleteOpen, setDeleteOpen] = React.useState(false)
 	const [isDeleting, setIsDeleting] = React.useState(false)
 
-	const qc = useQueryClient()
-	const deleteUnit = useMutation({
-		mutationFn: (id: string) => unitsApi.remove(id),
-		onMutate: async (id: string) => {
-			await qc.cancelQueries({ queryKey: ['units'] })
-			const previous = qc.getQueryData<
-				{ data: UnitRow[] } | UnitRow[] | undefined
-			>(['units'])
-			// If cache is an object with data property, handle both shapes
-			qc.setQueryData<UnitRow[] | { data: UnitRow[] } | undefined>(
-				['units'],
-				old => {
-					if (!old) return old
-					if (Array.isArray(old)) return old.filter(u => u.id !== id)
-					if ('data' in old)
-						return { ...old, data: old.data.filter(u => u.id !== id) }
-					return old
-				}
-			)
-			return previous ? { previous } : {}
-		},
-		onError: (
-			err: unknown,
-			id: string,
-			context?: { previous?: UnitRow[] | { data: UnitRow[] } }
-		) => {
-			if (context?.previous) qc.setQueryData(['units'], context.previous)
-			toast.error('Failed to delete unit', {
-				description: (err as Error)?.message
-			})
-		},
+	const deleteUnit = useDeleteUnit({
 		onSuccess: () => {
 			toast.success('Unit deleted successfully')
+		},
+		onError: (err: Error) => {
+			toast.error('Failed to delete unit', {
+				description: err.message
+			})
 		}
 	})
 
@@ -318,7 +288,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 								'h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50',
 								'transition-all'
 							)}
-							style={{ transitionDuration: ANIMATION_DURATIONS.fast }}
+							
 						>
 							<span className="sr-only">
 								Open actions menu for unit {unit.unitNumber}

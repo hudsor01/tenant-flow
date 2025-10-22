@@ -27,7 +27,7 @@ export default function CheckoutCancelPage() {
 					<CardLayout
 						title="Payment Cancelled"
 						description="No worries! Your payment was cancelled and you haven't been charged."
-						className="text-center card-elevated-authority"
+						className="text-center"
 					>
 						<div className="pb-8">
 							<div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">

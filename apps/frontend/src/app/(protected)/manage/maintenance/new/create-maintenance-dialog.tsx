@@ -18,19 +18,19 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { maintenanceApi, propertiesApi, unitsApi } from '@/lib/api-client'
+import { propertiesApi, unitsApi } from '@/lib/api-client'
+import { useCreateMaintenanceRequest } from '@/hooks/api/use-maintenance'
 import { maintenanceRequestFormSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { z } from 'zod'
 
 export function CreateMaintenanceDialog() {
 	const [open, setOpen] = useState(false)
 	const [selectedPropertyId, setSelectedPropertyId] = useState<string>('')
-	const queryClient = useQueryClient()
+	const createMaintenanceRequest = useCreateMaintenanceRequest()
 
 	const { data: properties = [] } = useQuery({
 		queryKey: ['properties'],
@@ -60,7 +60,23 @@ export function CreateMaintenanceDialog() {
 			preferredDate: ''
 		},
 		onSubmit: async ({ value }) => {
-			createMutation.mutate(value)
+			const payload: Record<string, unknown> = {
+				title: value.title,
+				description: value.description,
+				unitId: value.unitId
+			}
+
+			if (value.priority) payload.priority = value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+			if (value.category) payload.category = value.category
+			if (value.estimatedCost) payload.estimatedCost = Number(value.estimatedCost)
+			if (value.preferredDate) payload.preferredDate = new Date(value.preferredDate)
+
+			createMaintenanceRequest.mutate(payload, {
+				onSuccess: () => {
+					setOpen(false)
+					form.reset()
+				}
+			})
 		},
 		validators: {
 			onChange: ({ value }) => {
@@ -70,31 +86,6 @@ export function CreateMaintenanceDialog() {
 				}
 				return undefined
 			}
-		}
-	})
-
-	const createMutation = useMutation({
-		mutationFn: (data: typeof form.state.values) => {
-			const payload = {
-				...data,
-				estimatedCost: data.estimatedCost
-					? Number(data.estimatedCost)
-					: undefined,
-				preferredDate: data.preferredDate
-					? new Date(data.preferredDate)
-					: undefined
-			}
-			return maintenanceApi.create(payload)
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['maintenance-requests'] })
-			queryClient.invalidateQueries({ queryKey: ['maintenance-stats'] })
-			toast.success('Maintenance request created successfully')
-			setOpen(false)
-			form.reset()
-		},
-		onError: error => {
-			toast.error(`Failed to create request: ${error.message}`)
 		}
 	})
 
@@ -323,8 +314,8 @@ export function CreateMaintenanceDialog() {
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={createMutation.isPending}>
-							{createMutation.isPending ? 'Creating...' : 'Create Request'}
+						<Button type="submit" disabled={createMaintenanceRequest.isPending}>
+							{createMaintenanceRequest.isPending ? 'Creating...' : 'Create Request'}
 						</Button>
 					</div>
 				</form>

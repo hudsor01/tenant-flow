@@ -21,7 +21,7 @@ import {
 	type ReportFormat,
 	type ReportType
 } from '@/lib/api/reports-client'
-import { useAuth } from '@/stores/auth-provider'
+import { useAuth } from '@/providers/auth-provider'
 import { format, subMonths } from 'date-fns'
 import {
 	Building2,

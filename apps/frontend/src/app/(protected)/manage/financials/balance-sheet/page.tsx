@@ -21,7 +21,7 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { getBalanceSheet } from '@/lib/api/financials-client'
-import { formatCurrency } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 import { createClient } from '@/utils/supabase/client'
 import type { BalanceSheetData } from '@repo/shared/types/financial-statements'
 import { format } from 'date-fns'
@@ -84,10 +84,7 @@ export default function BalanceSheetPage() {
 
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
-			<div
-				className="border-b bg-background"
-				style={{ padding: 'var(--dashboard-content-padding)' }}
-			>
+			<div className="border-b bg-background p-6">
 				<div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 lg:px-6">
 					<div className="flex flex-col gap-2">
 						<h1 className="text-3xl font-semibold tracking-tight">
@@ -154,10 +151,7 @@ export default function BalanceSheetPage() {
 				</div>
 			</div>
 
-			<div
-				className="flex-1"
-				style={{ padding: 'var(--dashboard-content-padding)' }}
-			>
+			<div className="flex-1 p-6">
 				<div className="mx-auto max-w-[1600px] space-y-8 px-4 lg:px-6">
 					<Card>
 						<CardHeader>
@@ -204,13 +198,13 @@ export default function BalanceSheetPage() {
 								<div className="rounded-lg bg-muted/40 p-4">
 									<p className="text-sm text-muted-foreground">Difference</p>
 									<p
-										className="text-2xl font-semibold"
-										style={{
-											color: data.balanceCheck
-												? 'oklch(var(--success))'
-												: 'oklch(var(--destructive))'
-										}}
-									>
+								className={cn(
+									"text-2xl font-semibold",
+									data.balanceCheck
+										? "text-[oklch(var(--success))]"
+										: "text-[oklch(var(--destructive))]"
+								)}
+							>
 										{formatCurrency(
 											data.assets.totalAssets -
 												(data.liabilities.totalLiabilities +

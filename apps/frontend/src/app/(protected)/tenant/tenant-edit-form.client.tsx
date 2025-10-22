@@ -9,20 +9,16 @@ import {
 	InputGroupInput
 } from '@/components/ui/input-group'
 import { Textarea } from '@/components/ui/textarea'
-import { useTenant } from '@/hooks/api/use-tenant'
+import { useTenant, useUpdateTenant } from '@/hooks/api/use-tenant'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { UpdateTenantInput } from '@repo/shared/types/api-inputs'
 import {
-	tenantUpdateSchema,
-	type TenantUpdate
+	tenantUpdateSchema
 } from '@repo/shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
-import { useMutation } from '@tanstack/react-query'
 import { Mail, Phone, Save, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { z } from 'zod'
-import { tenantsApi } from '../../../lib/api-client'
 
 export interface TenantEditFormProps {
 	id: string
@@ -34,52 +30,8 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 	const logger = createLogger({ component: 'TenantEditForm' })
 	const router = useRouter()
 
-	// Define updateMutation using useMutation
-	const updateMutation = useMutation({
-		mutationFn: async (data: TenantUpdate) => {
-			const payload: UpdateTenantInput = {}
-
-			const assignNullable = (
-				key: keyof Pick<
-					UpdateTenantInput,
-					| 'avatarUrl'
-					| 'phone'
-					| 'emergencyContact'
-					| 'firstName'
-					| 'lastName'
-					| 'name'
-					| 'userId'
-				>,
-				value: string | null | undefined
-			) => {
-				if (value !== undefined) {
-					payload[key] = value === null ? null : value
-				}
-			}
-
-			if (data.email !== undefined) {
-				payload.email = data.email
-			}
-
-			assignNullable('avatarUrl', data.avatarUrl)
-			assignNullable('phone', data.phone)
-			assignNullable('emergencyContact', data.emergencyContact)
-			assignNullable('firstName', data.firstName)
-			assignNullable('lastName', data.lastName)
-			assignNullable('name', data.name)
-			assignNullable('userId', data.userId)
-
-			return tenantsApi.update(id, payload)
-		},
-		onSuccess: () => {
-			toast.success('Tenant updated successfully')
-			router.push(`/manage/tenants/${id}`)
-		},
-		onError: (error: Error) => {
-			toast.error('Failed to update tenant', { description: error.message })
-			logger.error('Failed to update tenant', { action: 'updateTenant' }, error)
-		}
-	})
+	// Use custom hook instead of inline mutation
+	const updateMutation = useUpdateTenant()
 
 	const form = useForm({
 		defaultValues: {
@@ -91,8 +43,13 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				await updateMutation.mutateAsync(value)
+				await updateMutation.mutateAsync({ id, data: value })
+				toast.success('Tenant updated successfully')
+				router.push(`/manage/tenants/${id}`)
 			} catch (error) {
+				toast.error('Failed to update tenant', { 
+					description: error instanceof Error ? error.message : 'Unknown error' 
+				})
 				logger.error(
 					'Failed to update tenant',
 					{ action: 'updateTenant' },

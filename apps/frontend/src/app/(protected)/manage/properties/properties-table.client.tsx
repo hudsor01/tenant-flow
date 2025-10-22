@@ -204,11 +204,8 @@ export function PropertiesTable({
 											</TableCell>
 											<TableCell>
 												<Badge
-													style={{
-														backgroundColor: 'var(--chart-1)',
-														color: 'oklch(var(--primary-foreground))'
-													}}
-												>
+									className="bg-[var(--chart-1)] text-[oklch(var(--primary-foreground))]"
+								>
 													{property.status || 'Active'}
 												</Badge>
 											</TableCell>

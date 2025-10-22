@@ -1,6 +1,6 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 
+import { useUpdateProperty } from '@/hooks/api/use-properties'
 import { propertiesApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
@@ -31,7 +32,6 @@ import { z } from 'zod'
 export function PropertyEditForm() {
 	const params = useParams()
 	const propertyId = params.id as string
-	const queryClient = useQueryClient()
 	const logger = createLogger({ component: 'PropertyEditForm' })
 
 	const { data: property, isLoading } = useQuery({
@@ -51,8 +51,19 @@ export function PropertyEditForm() {
 			zipCode: ''
 		},
 		onSubmit: async ({ value }) => {
-			const transformedData = transformPropertyUpdateData(value)
-			editMutation.mutate(transformedData)
+			try {
+				const transformedData = transformPropertyUpdateData(value)
+				await updateProperty.mutateAsync({ id: propertyId, data: transformedData })
+				toast.success('Property updated successfully')
+				window.history.back()
+			} catch (error) {
+				toast.error('Failed to update property')
+				logger.error(
+					'Failed to update property',
+					{ action: 'updateProperty' },
+					error
+				)
+			}
 		},
 		validators: {
 			onChange: ({ value }) => {
@@ -80,23 +91,7 @@ export function PropertyEditForm() {
 		}
 	}, [property, form])
 
-	const editMutation = useMutation({
-		mutationFn: (data: ReturnType<typeof transformPropertyUpdateData>) =>
-			propertiesApi.update(propertyId, data),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['properties'] })
-			toast.success('Property updated successfully')
-			window.history.back()
-		},
-		onError: error => {
-			toast.error('Failed to update property')
-			logger.error(
-				'Failed to update property',
-				{ action: 'updateProperty' },
-				error
-			)
-		}
-	})
+	const updateProperty = useUpdateProperty()
 
 	if (isLoading) {
 		return <div className="animate-pulse">Loading property...</div>
@@ -272,8 +267,8 @@ export function PropertyEditForm() {
 					<Button type="button" variant="outline" asChild>
 						<Link href={`/manage/properties/${propertyId}`}>Cancel</Link>
 					</Button>
-					<Button type="submit" disabled={editMutation.isPending}>
-						{editMutation.isPending ? 'Updating...' : 'Update Property'}
+					<Button type="submit" disabled={updateProperty.isPending}>
+						{updateProperty.isPending ? 'Updating...' : 'Update Property'}
 					</Button>
 				</div>
 			</form>

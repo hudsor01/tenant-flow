@@ -42,45 +42,33 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 				className={cn(
 					cardClasses('interactive'),
 					'dashboard-metric-card @container/card transform-gpu will-change-transform touch-manipulation active:scale-[0.99]',
-					'border-l-[3px] hover:shadow-md transition-all duration-200 ease-out',
+					'border-l-[3px] hover:shadow-md transition-all duration-200 ease-out min-h-[120px]',
+					'p-6',
 					className
 				)}
 				style={{
 					borderLeftColor: `var(--color-${colorToken})`,
-					backgroundColor: `var(--color-${colorToken}-bg)`,
-					minHeight: '120px',
-					padding: 'var(--spacing-6)'
+					backgroundColor: `var(--color-${colorToken}-bg)`
 				}}
 				{...props}
 			>
 				<CardHeader
-					style={{
-						padding: '0',
-						gap: 'var(--spacing-4)'
-					}}
+					className="p-0 gap-4"
 				>
 					<div
-						className="flex items-center justify-between"
-						style={{ gap: 'var(--spacing-3)' }}
+						className="flex items-center justify-between gap-3"
 					>
 						<CardDescription
-							className="font-medium"
-							style={{
-								color: 'var(--color-label-secondary)',
-								fontSize: 'var(--font-body)',
-								lineHeight: 'var(--line-height-body)'
-							}}
+							className="font-medium text-muted-foreground text-sm leading-normal"
 						>
 							{title}
 						</CardDescription>
 						{Icon && (
 							<div
-								className="flex shrink-0 items-center justify-center rounded-lg"
+								className="flex shrink-0 items-center justify-center rounded-lg w-10 h-10"
 								style={{
 									backgroundColor: `var(--color-${colorToken}-bg)`,
-									border: `1px solid var(--color-${colorToken}-border)`,
-									width: '40px',
-									height: '40px'
+									border: `1px solid var(--color-${colorToken}-border)`
 								}}
 							>
 								<Icon className="h-5 w-5" />
@@ -88,46 +76,30 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 						)}
 					</div>
 					<CardTitle
-						className="tabular-nums @[250px]/card:text-3xl font-semibold"
-						style={{
-							color: `var(--color-${colorToken}-text)`,
-							fontSize: 'var(--font-large-title)',
-							lineHeight: 'var(--line-height-large-title)'
-						}}
+						className="tabular-nums @[250px]/card:text-3xl font-semibold text-[26px] leading-tight"
+					style={{
+						color: `var(--color-${colorToken}-text)`
+					}}
 					>
 						{value}
 					</CardTitle>
 				</CardHeader>
 				{(status || description) && (
 					<CardFooter
-						className="flex-col items-start"
-						style={{
-							padding: '0',
-							paddingTop: 'var(--spacing-4)',
-							gap: 'var(--spacing-2)'
-						}}
+						className="flex-col items-start p-0 pt-4 gap-2"
 					>
 						{status && StatusIcon && (
 							<div
-								className="line-clamp-1 flex font-medium"
-								style={{
-									color: `var(--color-${colorToken})`,
-									gap: 'var(--spacing-2)',
-									fontSize: 'var(--font-body)',
-									lineHeight: 'var(--line-height-body)'
-								}}
+								className="line-clamp-1 flex font-medium gap-2 text-sm leading-normal"
+							style={{
+								color: `var(--color-${colorToken})`
+							}}
 							>
 								{status} <StatusIcon className="h-4 w-4" aria-hidden="true" />
 							</div>
 						)}
 						{description && (
-							<div
-								style={{
-									color: 'var(--color-label-secondary)',
-									fontSize: 'var(--font-body)',
-									lineHeight: 'var(--line-height-body)'
-								}}
-							>
+							<div className="text-muted-foreground text-sm leading-normal">
 								{description}
 							</div>
 						)}

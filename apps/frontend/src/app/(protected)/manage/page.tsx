@@ -43,30 +43,12 @@ export default async function DashboardPage() {
 		return (
 			<div className="@container/main flex w-full flex-col min-h-screen bg-linear-to-b from-background to-muted/20">
 				{/* Match regular dashboard structure with proper padding */}
-				<div
-					style={{
-						padding: 'var(--dashboard-content-padding)',
-						paddingTop: 'var(--dashboard-section-gap)',
-						paddingBottom: 'var(--dashboard-section-gap)'
-					}}
-				>
+				<div className="p-6 py-6">
 					<div className="mx-auto max-w-[1600px]">
 						{/* Asymmetric Hero Layout */}
-						<div
-							className="dashboard-cards-container items-center min-h-[calc(100vh-16rem)]"
-							style={{
-								gap: 'var(--dashboard-section-gap)',
-								gridTemplateColumns:
-									'repeat(auto-fit, minmax(min(100%, 480px), 1fr))'
-							}}
-						>
+						<div className="dashboard-cards-container items-center min-h-[calc(100vh-16rem)] gap-6">
 							{/* Left: Hero Content */}
-							<div
-								className="animate-in fade-in slide-in-from-left-8 duration-700 flex flex-col"
-								style={{
-									gap: 'var(--dashboard-section-gap)'
-								}}
-							>
+							<div className="animate-in fade-in slide-in-from-left-8 duration-700 flex flex-col gap-6">
 								<div className="space-y-6">
 									{/* Badge Tag */}
 									<Badge
@@ -117,14 +99,7 @@ export default async function DashboardPage() {
 								</div>
 
 								{/* Quick Stats Preview */}
-								<div
-									className="dashboard-cards-container pt-6 border-t border-border/50"
-									style={{
-										gap: 'var(--dashboard-card-gap)',
-										gridTemplateColumns:
-											'repeat(auto-fit, minmax(min(100%, 120px), 1fr))'
-									}}
-								>
+								<div className="dashboard-cards-container pt-6 border-t border-border/50 gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,120px),1fr))]">
 									<div className="space-y-2 group">
 										<div className="text-3xl font-bold text-primary group-hover:scale-110 transition-transform">
 											0
@@ -151,12 +126,7 @@ export default async function DashboardPage() {
 							</div>
 
 							{/* Right: Action Cards using CardLayout */}
-							<div
-								className="animate-in fade-in slide-in-from-right-8 duration-700 delay-150 flex flex-col"
-								style={{
-									gap: 'var(--dashboard-card-gap)'
-								}}
-							>
+							<div className="animate-in fade-in slide-in-from-right-8 duration-700 delay-150 flex flex-col gap-4">
 								{/* Primary Action Card */}
 								<Link
 									href="/manage/properties/new"
@@ -185,14 +155,7 @@ export default async function DashboardPage() {
 								</Link>
 
 								{/* Secondary Action Cards */}
-								<div
-									className="dashboard-cards-container"
-									style={{
-										gap: 'var(--dashboard-card-gap)',
-										gridTemplateColumns:
-											'repeat(auto-fit, minmax(min(100%, 240px), 1fr))'
-									}}
-								>
+								<div className="dashboard-cards-container gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))]">
 									<Link
 										href="/manage/tenants/new"
 										className="block group no-underline"
@@ -260,54 +223,20 @@ export default async function DashboardPage() {
 
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
-			<div
-				className="border-b bg-background"
-				style={{
-					padding: 'var(--dashboard-content-padding)',
-					borderColor: 'var(--color-fill-tertiary)'
-				}}
-			>
-				<div
-					className="mx-auto max-w-[1600px]"
-					style={{
-						paddingTop: 'var(--spacing-4)',
-						paddingBottom: 'var(--spacing-4)'
-					}}
-				>
+			<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
+				<div className="mx-auto max-w-[1600px] py-4">
 					<div data-testid="dashboard-stats">
 						<SectionCards stats={stats} />
 					</div>
 				</div>
 			</div>
-			<div
-				className="flex-1"
-				style={{
-					padding: 'var(--dashboard-content-padding)',
-					paddingTop: 'var(--dashboard-section-gap)',
-					paddingBottom: 'var(--dashboard-section-gap)'
-				}}
-			>
-				<div
-					className="mx-auto max-w-[1600px] space-y-8"
-					style={
-						{
-							'--space-y': 'var(--dashboard-section-gap)'
-						} as React.CSSProperties
-					}
-				>
+			<div className="flex-1 p-6 py-6">
+				<div className="mx-auto max-w-[1600px] space-y-8">
 					<ChartsSection />
 
-					<div
-						className="grid lg:grid-cols-3"
-						style={{ gap: 'var(--dashboard-section-gap)' }}
-					>
+					<div className="grid lg:grid-cols-3 gap-6">
 						<div
-							className="lg:col-span-2"
-							style={{
-								display: 'flex',
-								flexDirection: 'column',
-								gap: 'var(--dashboard-card-gap)'
-							}}
+							className="lg:col-span-2 flex flex-col gap-4"
 						>
 							<ActivitySection />
 
@@ -315,11 +244,7 @@ export default async function DashboardPage() {
 						</div>
 
 						<div
-							style={{
-								display: 'flex',
-								flexDirection: 'column',
-								gap: 'var(--dashboard-card-gap)'
-							}}
+							className="flex flex-col gap-4"
 						>
 							<QuickActionsSection />
 						</div>

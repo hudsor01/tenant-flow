@@ -20,18 +20,10 @@ export default function DashboardLoading() {
 					<div className="@container/main flex min-h-screen w-full flex-col">
 						{/* Stats Cards Skeleton */}
 						<div
-							className="border-b bg-background"
-							style={{
-								padding: 'var(--dashboard-content-padding)',
-								borderColor: 'var(--color-fill-tertiary)'
-							}}
+							className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]"
 						>
 							<div
-								className="mx-auto max-w-[1600px]"
-								style={{
-									paddingTop: 'var(--spacing-4)',
-									paddingBottom: 'var(--spacing-4)'
-								}}
+								className="mx-auto max-w-[1600px] py-4"
 							>
 								<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 									{[...Array(4)].map((_, i) => (
@@ -53,12 +45,7 @@ export default function DashboardLoading() {
 
 						{/* Main Content Skeleton */}
 						<div
-							className="flex-1"
-							style={{
-								padding: 'var(--dashboard-content-padding)',
-								paddingTop: 'var(--dashboard-section-gap)',
-								paddingBottom: 'var(--dashboard-section-gap)'
-							}}
+							className="flex-1 p-6 py-6"
 						>
 							<div className="mx-auto max-w-[1600px] space-y-8">
 								{/* Charts Skeleton */}
@@ -75,8 +62,7 @@ export default function DashboardLoading() {
 
 								{/* Activity and Quick Actions Skeleton */}
 								<div
-									className="grid lg:grid-cols-3"
-									style={{ gap: 'var(--dashboard-section-gap)' }}
+									className="grid lg:grid-cols-3 gap-6"
 								>
 									<div className="lg:col-span-2 space-y-6">
 										{/* Activity Skeleton */}

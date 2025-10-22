@@ -14,7 +14,10 @@
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useCurrentLease } from '@/hooks/api/use-lease'
+import {
+	useCurrentLease,
+	useTenantMaintenanceRequests
+} from '@/hooks/api/use-lease'
 import {
 	Calendar,
 	CreditCard,
@@ -27,6 +30,11 @@ import Link from 'next/link'
 
 export default function TenantDashboardPage() {
 	const { data: lease, isLoading } = useCurrentLease()
+	const {
+		data: maintenanceData,
+		isLoading: maintenanceLoading,
+		error: maintenanceError
+	} = useTenantMaintenanceRequests()
 
 	// Format currency
 	const formatCurrency = (amount: number | null | undefined) => {
@@ -52,7 +60,7 @@ export default function TenantDashboardPage() {
 		<div className="space-y-10">
 			{/* Welcome Section */}
 			<div className="space-y-3">
-				<h1 className="text-4xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
+				<h1 className="text-4xl font-bold tracking-tight bg-linear-to-br from-foreground to-foreground/70 bg-clip-text">
 					My Tenant Portal
 				</h1>
 				<p className="text-lg text-muted-foreground max-w-2xl">
@@ -65,7 +73,7 @@ export default function TenantDashboardPage() {
 				<CardLayout
 					title="Current Lease"
 					description="Your active lease information"
-					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-blue-50/50 to-card dark:from-blue-950/20 dark:to-card border-2 hover:border-blue-200 dark:hover:border-blue-900"
+					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-blue-50/50 to-card dark:from-blue-950/20 dark:to-card border-2 hover:border-blue-200 dark:hover:border-blue-900"
 					footer={
 						<Link href="/tenant/lease">
 							<Button variant="ghost" size="sm" className="w-full">
@@ -92,7 +100,7 @@ export default function TenantDashboardPage() {
 				<CardLayout
 					title="Next Payment"
 					description="Upcoming rent payment"
-					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-green-50/50 to-card dark:from-green-950/20 dark:to-card border-2 hover:border-green-200 dark:hover:border-green-900"
+					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-green-50/50 to-card dark:from-green-950/20 dark:to-card border-2 hover:border-green-200 dark:hover:border-green-900"
 					footer={
 						<Link href="/tenant/payments">
 							<Button className="w-full">Pay Now</Button>
@@ -117,7 +125,7 @@ export default function TenantDashboardPage() {
 				<CardLayout
 					title="Maintenance"
 					description="Active requests"
-					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-amber-50/50 to-card dark:from-amber-950/20 dark:to-card border-2 hover:border-amber-200 dark:hover:border-amber-900"
+					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-amber-50/50 to-card dark:from-amber-950/20 dark:to-card border-2 hover:border-amber-200 dark:hover:border-amber-900"
 					footer={
 						<Link href="/tenant/maintenance">
 							<Button variant="outline" size="sm" className="w-full">
@@ -132,10 +140,14 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Open Requests</p>
-							{isLoading ? (
+							{isLoading || maintenanceLoading ? (
 								<Skeleton className="h-7 w-12" />
+							) : maintenanceError ? (
+								<p className="text-xl font-semibold text-destructive">!</p>
 							) : (
-								<p className="text-xl font-semibold">0</p>
+								<p className="text-xl font-semibold">
+									{maintenanceData?.open || 0}
+								</p>
 							)}
 						</div>
 					</div>
@@ -254,11 +266,69 @@ export default function TenantDashboardPage() {
 					}
 				>
 					<div className="space-y-4">
-						<div className="text-center py-8 bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
-							<p className="text-sm text-muted-foreground">
-								No maintenance requests yet
-							</p>
-						</div>
+						{maintenanceLoading ? (
+							<div className="space-y-3">
+								<Skeleton className="h-16 w-full" />
+								<Skeleton className="h-16 w-full" />
+							</div>
+						) : maintenanceError ? (
+							<div className="text-center py-8 bg-destructive/10 rounded-lg border-2 border-dashed border-destructive/50">
+								<p className="text-sm text-destructive">
+									Failed to load maintenance requests
+								</p>
+							</div>
+						) : maintenanceData?.requests &&
+						  maintenanceData.requests.length > 0 ? (
+							maintenanceData.requests.slice(0, 3).map(request => (
+								<div
+									key={request.id}
+									className="flex items-center justify-between py-3 border-b border-border/50 last:border-0"
+								>
+									<div>
+										<p className="font-medium">{request.title}</p>
+										<p className="text-sm text-muted-foreground">
+											{new Date(request.createdAt).toLocaleDateString('en-US', {
+												month: 'short',
+												day: 'numeric',
+												year: 'numeric'
+											})}
+										</p>
+									</div>
+									<div className="text-right">
+										<p
+											className={`text-xs font-semibold ${
+												request.status === 'COMPLETED'
+													? 'text-green-600'
+													: request.status === 'IN_PROGRESS'
+														? 'text-blue-600'
+														: request.status === 'CANCELED'
+															? 'text-gray-600'
+															: 'text-amber-600'
+											}`}
+										>
+											{request.status.replace('_', ' ')}
+										</p>
+										<p
+											className={`text-xs ${
+												request.priority === 'URGENT'
+													? 'text-red-600'
+													: request.priority === 'HIGH'
+														? 'text-orange-600'
+														: 'text-muted-foreground'
+											}`}
+										>
+											{request.priority}
+										</p>
+									</div>
+								</div>
+							))
+						) : (
+							<div className="text-center py-8 bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
+								<p className="text-sm text-muted-foreground">
+									No maintenance requests yet
+								</p>
+							</div>
+						)}
 					</div>
 				</CardLayout>
 			</div>

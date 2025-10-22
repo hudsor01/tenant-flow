@@ -7,34 +7,11 @@ export default function Error({
 	reset: () => void
 }) {
 	return (
-		<div
-			style={{
-				minHeight: '100vh',
-				display: 'flex',
-				flexDirection: 'column',
-				alignItems: 'center',
-				justifyContent: 'center',
-				gap: '1rem',
-				fontFamily: 'system-ui',
-				padding: '2rem'
-			}}
-		>
-			<h2
-				style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}
-			>
-				Something went wrong!
-			</h2>
+		<div className="min-h-screen flex flex-col items-center justify-center gap-4 font-sans p-8">
+			<h2 className="text-2xl font-bold mb-4">Something went wrong!</h2>
 			<button
 				onClick={() => reset()}
-				style={{
-					padding: '0.75rem 1.5rem',
-					backgroundColor: 'var(--color-accent-main)',
-					color: 'white',
-					border: 'none',
-					borderRadius: '0.5rem',
-					fontSize: '1rem',
-					cursor: 'pointer'
-				}}
+				className="px-6 py-3 text-white border-none rounded-lg text-base cursor-pointer bg-[var(--color-accent-main)]"
 			>
 				Try again
 			</button>

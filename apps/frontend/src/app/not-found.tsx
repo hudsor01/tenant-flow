@@ -2,85 +2,34 @@ import Link from 'next/link'
 
 export default function NotFound() {
 	return (
-		<div
-			style={{
-				minHeight: '100vh',
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
-				padding: '2rem',
-				fontFamily: 'system-ui',
-				textAlign: 'center'
-			}}
-		>
-			<div style={{ maxWidth: '28rem', width: '100%' }}>
+		<div className="min-h-screen flex items-center justify-center p-8 font-sans text-center">
+			<div className="max-w-md w-full">
 				<div
-					style={{
-						fontSize: '8rem',
-						lineHeight: '1',
-						fontWeight: '900',
-						marginBottom: '2rem',
-						background:
-							'linear-gradient(to right, var(--color-accent-main), var(--color-accent-85))',
-						WebkitBackgroundClip: 'text',
-						WebkitTextFillColor: 'transparent'
-					}}
+					className="text-[8rem] leading-none font-black mb-8 bg-gradient-to-r from-[var(--color-accent-main)] to-[var(--color-accent-85)] bg-clip-text text-transparent"
 				>
 					404
 				</div>
 
-				<div style={{ marginBottom: '2rem' }}>
-					<h1
-						style={{
-							fontSize: '2rem',
-							fontWeight: 'bold',
-							marginBottom: '1rem'
-						}}
-					>
-						Page not found
-					</h1>
+				<div className="mb-8">
+					<h1 className="text-3xl font-bold mb-4">Page not found</h1>
 					<p
-						style={{
-							color: 'var(--color-label-secondary)',
-							marginBottom: '2rem'
-						}}
+						className="mb-8 text-[var(--color-label-secondary)]"
 					>
 						The page you're looking for doesn't exist or has been moved.
 					</p>
 				</div>
 
-				<div
-					style={{
-						display: 'flex',
-						gap: '1rem',
-						justifyContent: 'center',
-						flexWrap: 'wrap'
-					}}
-				>
+				<div className="flex gap-4 justify-center flex-wrap">
 					<Link
 						href="/"
-						style={{
-							padding: '0.75rem 1.5rem',
-							backgroundColor: 'var(--color-accent-main)',
-							color: 'white',
-							textDecoration: 'none',
-							borderRadius: '0.5rem',
-							fontWeight: '500'
-						}}
+						className="px-6 py-3 rounded-lg font-medium text-white no-underline bg-[var(--color-accent-main)]"
 					>
 						← Back to Home
 					</Link>
 
 					<Link
 						href="/contact"
-						style={{
-							padding: '0.75rem 1.5rem',
-							border: '2px solid var(--color-accent-main)',
-							color: 'var(--color-accent-main)',
-							textDecoration: 'none',
-							borderRadius: '0.5rem',
-							fontWeight: '500'
-						}}
+						className="px-6 py-3 rounded-lg font-medium no-underline border-2 border-[var(--color-accent-main)] text-[var(--color-accent-main)]"
 					>
 						Get Help
 					</Link>
