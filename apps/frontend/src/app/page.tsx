@@ -2,10 +2,10 @@
 
 import Footer from '@/components/layout/footer'
 
+import FeaturesSectionDemo from '@/components/sections/features-section'
 import { HeroSection } from '@/components/sections/hero-section'
-import { StatsShowcase } from '@/components/sections/stats-showcase'
 import { PremiumCta } from '@/components/sections/premium-cta'
-import FeaturesSectionDemo from '@/components/magicui/features-section-demo-2'
+import { StatsShowcase } from '@/components/sections/stats-showcase'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 

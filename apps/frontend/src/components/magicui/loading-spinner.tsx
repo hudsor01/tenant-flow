@@ -156,7 +156,7 @@ function SectionLoader({
 		<div data-tokens="applied" className={cn('relative', className)} {...props}>
 			{/* Glass Backdrop */}
 			<div className="absolute inset-0 glass z-10 flex items-center justify-center rounded-[var(--radius-large)]">
-				<div className="card-elevated p-6">
+				<div className="shadow-md bg-card/50 border border-border backdrop-blur-sm p-6">
 					{' '}
 					{/* p-6 = 1.5rem = var(--spacing-6) */}
 					<LoadingSpinner
@@ -233,31 +233,28 @@ function LoadingDots({
 				className={cn(
 					dotSize,
 					'rounded-full animate-bounce bg-current',
-					variantClasses[variant],
-					// Design System Animation: Using actual globals.css variables
-					'[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)]'
-				)}
-				style={{ animationDelay: '0ms' }}
+				variantClasses[variant],
+				// Design System Animation: Using actual globals.css variables
+				'[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:0ms]'
+			)}
 			/>
 			<div
 				data-tokens="applied"
 				className={cn(
 					dotSize,
 					'rounded-full animate-bounce bg-current',
-					variantClasses[variant],
-					'[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)]'
-				)}
-				style={{ animationDelay: '200ms' }}
+				variantClasses[variant],
+				'[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:200ms]'
+			)}
 			/>
 			<div
 				data-tokens="applied"
 				className={cn(
 					dotSize,
 					'rounded-full animate-bounce bg-current',
-					variantClasses[variant],
-					'[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)]'
-				)}
-				style={{ animationDelay: '400ms' }}
+				variantClasses[variant],
+				'[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:400ms]'
+			)}
 			/>
 		</div>
 	)

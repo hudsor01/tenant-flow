@@ -1,5 +1,3 @@
-import type { CSSProperties } from 'react'
-
 import { RefreshableAnalytics } from '@/components/analytics/refreshable-analytics'
 import { ExportButtons } from '@/components/export/export-buttons'
 import { Badge } from '@/components/ui/badge'
@@ -157,11 +155,7 @@ export default async function FinancialAnalyticsPage() {
 		<RefreshableAnalytics cooldownSeconds={30}>
 			<div className="@container/main flex min-h-screen w-full flex-col">
 				<div
-					className="border-b bg-background"
-					style={{
-						padding: 'var(--dashboard-content-padding)',
-						borderColor: 'var(--color-fill-tertiary)'
-					}}
+					className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]"
 				>
 					<div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 lg:px-6">
 						<div className="flex flex-col gap-2">
@@ -239,20 +233,8 @@ export default async function FinancialAnalyticsPage() {
 					</div>
 				</div>
 
-				<div
-					className="flex-1"
-					style={{
-						padding: 'var(--dashboard-content-padding)',
-						paddingTop: 'var(--dashboard-section-gap)',
-						paddingBottom: 'var(--dashboard-section-gap)'
-					}}
-				>
-					<div
-						className="mx-auto max-w-[1600px] space-y-8 px-4 lg:px-6"
-						style={
-							{ '--space-y': 'var(--dashboard-section-gap)' } as CSSProperties
-						}
-					>
+				<div className="flex-1 p-6 pt-6 pb-6">
+					<div className="mx-auto max-w-[1600px] space-y-8 px-4 lg:px-6">
 						<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
 							<Card className="xl:col-span-2">
 								<CardHeader>

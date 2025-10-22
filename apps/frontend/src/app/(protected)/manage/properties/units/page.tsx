@@ -35,10 +35,10 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { unitColumns, type UnitRow } from '@/components/units/units-columns'
-import { useUnitList, useUnitStats } from '@/hooks/api/use-unit'
-import { propertiesApi, unitsApi } from '@/lib/api-client'
+import { useUnitList, useUnitStats, useCreateUnit } from '@/hooks/api/use-unit'
+import { propertiesApi } from '@/lib/api-client'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DoorOpen, Filter, Plus } from 'lucide-react'
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
@@ -110,10 +110,7 @@ export default function UnitsPage() {
 						<h3 className="text-sm font-medium text-muted-foreground">
 							Total Units
 						</h3>
-						<div
-							className="w-2 h-2 rounded-full"
-							style={{ backgroundColor: 'var(--chart-4)' }}
-						/>
+						<div className="w-2 h-2 rounded-full bg-chart-4" />
 					</div>
 					<div className="text-2xl font-bold">{totalUnits}</div>
 					<p className="text-xs text-muted-foreground mt-1">
@@ -126,13 +123,10 @@ export default function UnitsPage() {
 						<h3 className="text-sm font-medium text-muted-foreground">
 							Occupied
 						</h3>
-						<div
-							className="w-2 h-2 rounded-full"
-							style={{ backgroundColor: 'var(--chart-1)' }}
-						/>
+						<div className="w-2 h-2 rounded-full bg-chart-1" />
 					</div>
 					<div className="text-2xl font-bold">{occupiedCount}</div>
-					<div className="text-xs mt-1" style={{ color: 'var(--chart-1)' }}>
+					<div className="text-xs mt-1 text-chart-1">
 						{occupancyRate.toFixed(1)}% occupancy
 					</div>
 				</div>
@@ -142,13 +136,10 @@ export default function UnitsPage() {
 						<h3 className="text-sm font-medium text-muted-foreground">
 							Vacant
 						</h3>
-						<div
-							className="w-2 h-2 rounded-full"
-							style={{ backgroundColor: 'var(--chart-7)' }}
-						/>
+						<div className="w-2 h-2 rounded-full bg-chart-7" />
 					</div>
 					<div className="text-2xl font-bold">{vacantCount}</div>
-					<div className="text-xs mt-1" style={{ color: 'var(--chart-7)' }}>
+					<div className="text-xs mt-1 text-chart-7">
 						Available now
 					</div>
 				</div>
@@ -158,13 +149,10 @@ export default function UnitsPage() {
 						<h3 className="text-sm font-medium text-muted-foreground">
 							Maintenance
 						</h3>
-						<div
-							className="w-2 h-2 rounded-full"
-							style={{ backgroundColor: 'var(--chart-5)' }}
-						/>
+						<div className="w-2 h-2 rounded-full bg-chart-5" />
 					</div>
 					<div className="text-2xl font-bold">{maintenanceCount}</div>
-					<div className="text-xs mt-1" style={{ color: 'var(--chart-5)' }}>
+					<div className="text-xs mt-1 text-chart-5">
 						Needs attention
 					</div>
 				</div>
@@ -423,40 +411,35 @@ function NewUnitButton() {
 		queryFn: () => propertiesApi.list()
 	})
 
-	const create = useMutation({
-		mutationFn: (values: InsertUnit) => unitsApi.create(values),
-		onSuccess: () => {
-			qc.invalidateQueries({ queryKey: ['units'] })
-			qc.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
-			toast.success('Unit created successfully')
-		},
-		onError: (error: Error) => {
-			toast.error('Failed to create unit', { description: error.message })
-		}
-	})
+	const create = useCreateUnit()
 
 	const closeButtonRef = useRef<HTMLButtonElement>(null)
 
 	async function onSubmit(form: HTMLFormElement) {
-		const fd = new FormData(form)
-		await create.mutateAsync({
-			unitNumber: String(fd.get('unitNumber') || ''),
-			bedrooms: Number(fd.get('bedrooms') || 0),
-			bathrooms: Number(fd.get('bathrooms') || 0),
-			rent: Number(fd.get('rent') || 0),
-			propertyId: String(fd.get('propertyId') || ''),
-			status: 'VACANT'
-		} as InsertUnit)
-		closeButtonRef.current?.click()
+		try {
+			const fd = new FormData(form)
+			await create.mutateAsync({
+				unitNumber: String(fd.get('unitNumber') || ''),
+				bedrooms: Number(fd.get('bedrooms') || 0),
+				bathrooms: Number(fd.get('bathrooms') || 0),
+				rent: Number(fd.get('rent') || 0),
+				propertyId: String(fd.get('propertyId') || ''),
+				status: 'VACANT'
+			} as InsertUnit)
+			qc.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
+			toast.success('Unit created successfully')
+			closeButtonRef.current?.click()
+		} catch (error) {
+			toast.error('Failed to create unit', {
+				description: error instanceof Error ? error.message : 'Unknown error'
+			})
+		}
 	}
 
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
-				<Button
-					className="flex items-center gap-2"
-					style={{ backgroundColor: 'var(--chart-7)' }}
-				>
+				<Button className="flex items-center gap-2 bg-chart-7 hover:bg-chart-7/90">
 					<Plus className="size-4" />
 					Add Unit
 				</Button>

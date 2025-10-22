@@ -1,8 +1,8 @@
 'use client'
 
-import { cn } from '@/lib/utils'
-import { useAuth } from '@/stores/auth-provider'
 import { useSignOut } from '@/hooks/api/use-auth'
+import { cn } from '@/lib/utils'
+import { useAuth } from '@/providers/auth-provider'
 import { useSpring, useTransition } from '@react-spring/core'
 import { animated } from '@react-spring/web'
 import { ArrowRight, ChevronDown, Menu, X } from 'lucide-react'
@@ -337,7 +337,9 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 							onMouseDown={() => setMobileButtonTap(true)}
 							onMouseUp={() => setMobileButtonTap(false)}
 							onClick={toggleMobileMenu}
-							aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+							aria-label={
+								isOpen ? 'Close navigation menu' : 'Open navigation menu'
+							}
 							data-testid="mobile-nav-toggle"
 							className="md:hidden p-2 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
 						>

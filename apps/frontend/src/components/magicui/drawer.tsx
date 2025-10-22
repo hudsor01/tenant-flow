@@ -40,12 +40,9 @@ function DrawerOverlay({
 			className={cn(
 				'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
 				'fixed inset-0 backdrop-blur-md',
-				'bg-[var(--color-fill-quaternary)] transition-all duration-[var(--duration-standard)] ease-[var(--ease-smooth)]',
-				className
-			)}
-			style={{
-				zIndex: 'var(--z-modal-backdrop)'
-			}}
+				'bg-[var(--color-fill-quaternary)] transition-all duration-[var(--duration-standard)] ease-[var(--ease-smooth)] z-[var(--z-modal-backdrop)]',
+			className
+		)}
 			{...props}
 		/>
 	)
@@ -87,13 +84,7 @@ function DrawerContent({
 				{...props}
 			>
 				<div
-					className="mx-auto mt-[var(--spacing-4)] hidden shrink-0 group-data-[vaul-drawer-direction=bottom]/drawer-content:block"
-					style={{
-						height: 'var(--spacing-2)',
-						width: 'var(--spacing-24)',
-						backgroundColor: 'var(--color-fill-primary)',
-						borderRadius: 'var(--radius-full)'
-					}}
+					className="mx-auto mt-[var(--spacing-4)] hidden shrink-0 group-data-[vaul-drawer-direction=bottom]/drawer-content:block h-2 w-24 bg-[var(--color-fill-primary)] rounded-full"
 				/>
 				{children}
 			</DrawerPrimitive.Content>
