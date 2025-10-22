@@ -17,8 +17,8 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { propertiesApi, unitsApi } from '@/lib/api-client'
 import { useCreateMaintenanceRequest } from '@/hooks/api/use-maintenance'
+import { propertiesApi, unitsApi } from '@/lib/api-client'
 import { maintenanceRequestFormSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
@@ -79,16 +79,28 @@ export function CreateMaintenanceForm() {
 			preferredDate: ''
 		},
 		onSubmit: async ({ value }) => {
-			const payload: Record<string, unknown> = {
+			const payload = {
 				title: value.title,
 				description: value.description,
-				unitId: value.unitId
+				unitId: value.unitId,
+				...(value.priority && {
+					priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+				}),
+				...(value.category && {
+					category: value.category as
+						| 'HVAC'
+						| 'GENERAL'
+						| 'PLUMBING'
+						| 'ELECTRICAL'
+						| 'APPLIANCES'
+						| 'SAFETY'
+						| 'OTHER'
+				}),
+				...(value.estimatedCost && {
+					estimatedCost: Number.parseFloat(value.estimatedCost)
+				}),
+				...(value.preferredDate && { scheduledDate: value.preferredDate })
 			}
-
-			if (value.priority) payload.priority = value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-			if (value.category) payload.category = value.category
-			if (value.estimatedCost) payload.estimatedCost = Number.parseFloat(value.estimatedCost)
-			if (value.preferredDate) payload.preferredDate = new Date(value.preferredDate)
 
 			createMaintenanceRequest.mutate(payload, {
 				onSuccess: () => {
@@ -296,8 +308,14 @@ export function CreateMaintenanceForm() {
 					</form.Field>
 
 					<div className="flex justify-end border-t pt-6">
-						<Button type="submit" size="lg" disabled={createMaintenanceRequest.isPending}>
-							{createMaintenanceRequest.isPending ? 'Submitting...' : 'Create request'}
+						<Button
+							type="submit"
+							size="lg"
+							disabled={createMaintenanceRequest.isPending}
+						>
+							{createMaintenanceRequest.isPending
+								? 'Submitting...'
+								: 'Create request'}
 						</Button>
 					</div>
 				</form>
