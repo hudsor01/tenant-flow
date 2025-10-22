@@ -48,7 +48,7 @@ export default function FeaturesPage() {
 		},
 		{
 			quote:
-				"Best property management decision we've made. ROI was clear within 60 days.",
+				"Best property management decision we&apos;ve made. ROI was clear within 60 days.",
 			author: 'Marcus Rodriguez',
 			title: 'Director of Operations',
 			company: 'Urban Real Estate Group',
@@ -248,7 +248,7 @@ export default function FeaturesPage() {
 
 							{/* Concise, benefit-driven subtext */}
 							<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl font-medium">
-								Join 10,000+ property managers who've increased NOI by 40% with
+								Join 10,000+ property managers who&apos;ve increased NOI by 40% with
 								enterprise-grade automation and AI-powered analytics.{' '}
 								<span className="text-foreground font-semibold">
 									ROI guaranteed in 90 days.
@@ -347,7 +347,7 @@ export default function FeaturesPage() {
 								<div className="relative rounded-2xl p-8 border border-primary/10 backdrop-blur-sm bg-card/50">
 									<>
 										<blockquote className="text-xl text-foreground font-medium leading-relaxed mb-6">
-											"{t.quote}"
+											&quot;{t.quote}&quot;
 										</blockquote>
 										<div className="flex items-center justify-center space-x-4">
 											<Image
@@ -656,7 +656,7 @@ export default function FeaturesPage() {
 							</h2>
 
 							<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
-								Join 10,000+ property managers who've transformed their
+								Join 10,000+ property managers who&apos;ve transformed their
 								portfolios with TenantFlow.
 								<span className="block mt-2 text-foreground font-semibold">
 									ROI guaranteed in 90 days or your money back.

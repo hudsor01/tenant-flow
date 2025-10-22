@@ -50,7 +50,7 @@ export function ForgotPasswordModal({
 				redirectTo: `${window.location.origin}/auth/update-password`
 			})
 
-			// Log error internally but don't expose to user
+			// Log error internally but do not expose to user
 			if (error) {
 				logger.error('Password reset error', {
 					action: 'password_reset_failed',
@@ -85,7 +85,7 @@ export function ForgotPasswordModal({
 						<DialogHeader>
 							<DialogTitle>Reset Password</DialogTitle>
 							<DialogDescription>
-								Enter your email address and we'll send you instructions to
+								Enter your email address and we&apos;ll send you instructions to
 								reset your password.
 							</DialogDescription>
 						</DialogHeader>
@@ -114,8 +114,8 @@ export function ForgotPasswordModal({
 							<Alert className="border-[var(--color-info-border)] bg-[var(--color-info-background)]">
 								<Info className="h-4 w-4 text-[var(--color-info)]" />
 								<AlertDescription className="text-sm text-[var(--color-info-foreground)]">
-									For security reasons, we'll always show a success message. If
-									an account exists with this email, you'll receive password
+									For security reasons, we&apos;ll always show a success message. If
+									an account exists with this email, you&apos;ll receive password
 									reset instructions.
 								</AlertDescription>
 							</Alert>
@@ -157,7 +157,7 @@ export function ForgotPasswordModal({
 								Check Your Email
 							</DialogTitle>
 							<DialogDescription className="text-center">
-								We've sent password reset instructions to:
+								We&apos;ve sent password reset instructions to:
 								<span className="block font-medium mt-2">{email}</span>
 							</DialogDescription>
 						</DialogHeader>
@@ -166,13 +166,13 @@ export function ForgotPasswordModal({
 							<Alert>
 								<Mail className="h-4 w-4" />
 								<AlertDescription>
-									<strong>If an account exists with this email</strong>, you'll
+									<strong>If an account exists with this email</strong>, you&apos;ll
 									receive a password reset link within the next few minutes.
 								</AlertDescription>
 							</Alert>
 
 							<div className="text-sm text-muted-foreground space-y-2">
-								<p>• Check your spam/junk folder if you don't see the email</p>
+								<p>• Check your spam/junk folder if you don&apos;t see the email</p>
 								<p>• The reset link will expire in 1 hour for security</p>
 								<p>• You can request a new link if needed</p>
 							</div>

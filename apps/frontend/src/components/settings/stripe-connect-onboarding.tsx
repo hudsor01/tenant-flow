@@ -147,7 +147,7 @@ export function ConnectOnboardingDialog({
 					)}{' '}
 					<div className="rounded-lg border p-4 bg-muted/50">
 						<p className="text-sm text-muted-foreground">
-							After creating your account, you'll be redirected to Stripe to
+							After creating your account, you&apos;ll be redirected to Stripe to
 							complete onboarding. This includes verifying your identity and
 							bank account details.
 						</p>
