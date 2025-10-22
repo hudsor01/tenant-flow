@@ -9,22 +9,25 @@
  * - 2024 monorepo patterns with separate lint/build configs
  */
 
-import nextPlugin from '@next/eslint-plugin-next'
+import { FlatCompat } from '@eslint/eslintrc'
 import tseslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import colorTokensConfig from './color-tokens.eslint.js'
 
+const compat = new FlatCompat({
+	baseDirectory: import.meta.dirname
+})
+
 export default [
+	// Next.js plugin using FlatCompat (official Next.js 15 + ESLint 9 pattern)
+	...compat.config({
+		extends: ['next/core-web-vitals', 'next/typescript']
+	}),
 	{
-		name: 'frontend/next.js-plugin',
+		name: 'frontend/next.js-overrides',
 		files: ['**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx'],
-		plugins: {
-			'@next/next': nextPlugin
-		},
 		rules: {
-			...nextPlugin.configs.recommended.rules,
-			...nextPlugin.configs['core-web-vitals'].rules,
 			'@next/next/no-img-element': 'off'
 		}
 	},
