@@ -67,7 +67,7 @@ export const ReactQueryErrorBoundary: React.FC<ReactQueryErrorBoundaryProps> = (
 export const withReactQueryErrorBoundary = <P extends object>(
   Component: React.ComponentType<P>
 ): React.FC<P> => {
-  return (props: P) => {
+  const WrappedComponent = (props: P) => {
     return (
       <React.Suspense fallback={<div>Loading...</div>}>
         <ReactQueryErrorBoundary>
@@ -76,6 +76,8 @@ export const withReactQueryErrorBoundary = <P extends object>(
       </React.Suspense>
     );
   };
+  WrappedComponent.displayName = `withReactQueryErrorBoundary(${Component.displayName || Component.name || 'Component'})`;
+  return WrappedComponent;
 };
 
 // Hook for handling React Query errors in components

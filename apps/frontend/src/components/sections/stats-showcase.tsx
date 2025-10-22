@@ -60,7 +60,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
               <span className="text-primary block">nationwide</span>
             </h2>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              Join thousands who've transformed their operations with TenantFlow
+              Join thousands who&apos;ve transformed their operations with TenantFlow
             </p>
           </BlurFade>
         </div>

@@ -95,25 +95,25 @@ export default function SearchPage() {
 							variant="secondary"
 							className="cursor-pointer hover:bg-secondary/80"
 						>
-							"Sunset Gardens"
+							&quot;Sunset Gardens&quot;
 						</Badge>
 						<Badge
 							variant="secondary"
 							className="cursor-pointer hover:bg-secondary/80"
 						>
-							"Active Leases"
+							&quot;Active Leases&quot;
 						</Badge>
 						<Badge
 							variant="secondary"
 							className="cursor-pointer hover:bg-secondary/80"
 						>
-							"Downtown Loft"
+							&quot;Downtown Loft&quot;
 						</Badge>
 						<Badge
 							variant="secondary"
 							className="cursor-pointer hover:bg-secondary/80"
 						>
-							"Maintenance Requests"
+							&quot;Maintenance Requests&quot;
 						</Badge>
 					</div>
 				</div>
@@ -132,7 +132,7 @@ export default function SearchPage() {
 								<strong>Property Search:</strong>
 								<p className="text-muted-foreground mt-1">
 									Try searching by property name, address, or type (e.g.,
-									"apartment", "commercial")
+									&quot;apartment&quot;, &quot;commercial&quot;)
 								</p>
 							</div>
 							<div>
@@ -145,7 +145,7 @@ export default function SearchPage() {
 							<div>
 								<strong>Lease Search:</strong>
 								<p className="text-muted-foreground mt-1">
-									Use status filters like "active", "expired", or search by date
+									Use status filters like &quot;active&quot;, &quot;expired&quot;, or search by date
 									ranges
 								</p>
 							</div>

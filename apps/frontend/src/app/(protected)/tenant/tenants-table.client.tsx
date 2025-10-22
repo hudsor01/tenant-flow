@@ -35,7 +35,13 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Trash2, UserPlus } from 'lucide-react'
 import Link from 'next/link'
-import { memo, useOptimistic, useRef, useTransition, useMemo } from 'react'
+import {
+	memo,
+	useMemo,
+	useOptimistic,
+	useRef,
+	useTransition
+} from 'react'
 import { toast } from 'sonner'
 
 const logger = createLogger({ component: 'TenantsTable' })
@@ -180,35 +186,41 @@ const TenantRow = memo(
 )
 TenantRow.displayName = 'TenantRow'
 
-export const TenantsTable = memo(
-	({ initialTenants, deleteTenantAction }: TenantsTableProps) => {
-		const { prefetchTenant } = usePrefetchTenant()
+export function TenantsTable({
+	initialTenants,
+	deleteTenantAction
+}: TenantsTableProps) {
+	const { prefetchTenant } = usePrefetchTenant()
 
-		// ✅ React 19 useOptimistic for instant delete feedback
-		const [optimisticTenants, removeOptimistic] = useOptimistic(
-			initialTenants,
-			(state, tenantId: string) => state.filter(t => t.id !== tenantId)
-		)
-		const [isPending, startTransition] = useTransition()
+	// ✅ React 19 useOptimistic for instant delete feedback
+	const [optimisticTenants, removeOptimistic] = useOptimistic(
+		initialTenants,
+		(state, tenantId: string) => state.filter(t => t.id !== tenantId)
+	)
+	const [isPending, startTransition] = useTransition()
 
-		const handleDelete = (tenantId: string) => {
-			startTransition(async () => {
-				removeOptimistic(tenantId) // ✅ Instant UI update
-				try {
-					await deleteTenantAction(tenantId) // Server action with revalidatePath
-					toast.success('Tenant deleted successfully')
-				} catch (error) {
-					toast.error('Failed to delete tenant')
-					logger.error('Failed to delete tenant', { action: 'deleteTenant' }, error)
-					// React automatically reverts optimistic update on error
-				}
-			})
-		}
+	const handleDelete = (tenantId: string) => {
+		startTransition(async () => {
+			removeOptimistic(tenantId) // ✅ Instant UI update
+			try {
+				await deleteTenantAction(tenantId) // Server action with revalidatePath
+				toast.success('Tenant deleted successfully')
+			} catch (error) {
+				toast.error('Failed to delete tenant')
+				logger.error(
+					'Failed to delete tenant',
+					{ action: 'deleteTenant' },
+					error
+				)
+				// React automatically reverts optimistic update on error
+			}
+		})
+	}
 
-		const sortedTenants = useMemo(() => {
-			if (!optimisticTenants || !Array.isArray(optimisticTenants)) return []
-			return [...optimisticTenants].sort((a, b) => a.name.localeCompare(b.name))
-		}, [optimisticTenants])
+	const sortedTenants = useMemo(() => {
+		if (!optimisticTenants || !Array.isArray(optimisticTenants)) return []
+		return [...optimisticTenants].sort((a, b) => a.name.localeCompare(b.name))
+	}, [optimisticTenants])
 
 	// Move hooks to top level - BEFORE any conditional returns
 	// Use virtual scrolling only for large lists
@@ -226,51 +238,51 @@ export const TenantsTable = memo(
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
 
-		const footer = (
-			<Button asChild>
-				<Link href="/manage/tenants/new">
-					<UserPlus className="size-4" />
-					Add Tenant
-				</Link>
-			</Button>
+	const footer = (
+		<Button asChild>
+			<Link href="/manage/tenants/new">
+				<UserPlus className="size-4" />
+				Add Tenant
+			</Link>
+		</Button>
+	)
+
+	if (!sortedTenants.length) {
+		return (
+			<CardLayout
+				title="Tenants"
+				description="Manage your tenants and their lease information"
+				footer={footer}
+			>
+				<Empty>
+					<EmptyHeader>
+						<EmptyMedia variant="icon" />
+						<EmptyTitle>No tenants yet</EmptyTitle>
+						<EmptyDescription>
+							Start by creating your first tenant to manage leases and payments.
+						</EmptyDescription>
+					</EmptyHeader>
+					<EmptyContent>
+						<Button asChild>
+							<Link href="/manage/tenants/new">
+								<UserPlus className="size-4" />
+								Create tenant
+							</Link>
+						</Button>
+					</EmptyContent>
+				</Empty>
+			</CardLayout>
 		)
+	}
 
-		if (!sortedTenants.length) {
-			return (
-				<CardLayout
-					title="Tenants"
-					description="Manage your tenants and their lease information"
-					footer={footer}
-				>
-					<Empty>
-						<EmptyHeader>
-							<EmptyMedia variant="icon" />
-							<EmptyTitle>No tenants yet</EmptyTitle>
-							<EmptyDescription>
-								Start by creating your first tenant to manage leases and payments.
-							</EmptyDescription>
-						</EmptyHeader>
-						<EmptyContent>
-							<Button asChild>
-								<Link href="/manage/tenants/new">
-									<UserPlus className="size-4" />
-									Create tenant
-								</Link>
-							</Button>
-						</EmptyContent>
-					</Empty>
-				</CardLayout>
-			)
-		}
-
-		// Render standard table for small lists, virtualized for large lists
-		if (!shouldVirtualize) {
-			return (
-				<CardLayout
-					title="Tenants"
-					description="Track tenant status, leases, and payments"
-					footer={footer}
-				>
+	// Render standard table for small lists, virtualized for large lists
+	if (!shouldVirtualize) {
+		return (
+			<CardLayout
+				title="Tenants"
+				description="Track tenant status, leases, and payments"
+				footer={footer}
+			>
 				<div className="overflow-x-auto">
 					<Table>
 						<TableHeader>
@@ -300,13 +312,13 @@ export const TenantsTable = memo(
 		)
 	}
 
-		// Virtualized table for large lists
-		return (
-			<CardLayout
-				title="Tenants"
-				description="Track tenant status, leases, and payments"
-				footer={footer}
-			>
+	// Virtualized table for large lists
+	return (
+		<CardLayout
+			title="Tenants"
+			description="Track tenant status, leases, and payments"
+			footer={footer}
+		>
 			<div
 				ref={parentRef}
 				className="overflow-x-auto overflow-y-auto"
@@ -362,6 +374,5 @@ export const TenantsTable = memo(
 			</div>
 		</CardLayout>
 	)
-	}
-)
+}
 TenantsTable.displayName = 'TenantsTable'

@@ -125,7 +125,7 @@ export default function CheckoutSuccessPage() {
 							)}
 
 							<div className="space-y-4">
-								<h3 className="font-semibold">What's next?</h3>
+								<h3 className="font-semibold">What&apos;s next?</h3>
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
 									<Link href="/dashboard">
 										<Button className="w-full justify-start" size="lg">
