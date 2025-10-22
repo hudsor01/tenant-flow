@@ -221,7 +221,7 @@ export function PasswordUpdateSection() {
 					className={cn('text-muted-foreground mt-4')}
 					style={TYPOGRAPHY_SCALE['ui-caption']}
 				>
-					Make sure to use a strong, unique password that you don't use for
+					Make sure to use a strong, unique password that you don&apos;t use for
 					other accounts.
 				</p>
 			</form>
