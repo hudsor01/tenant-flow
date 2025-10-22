@@ -263,14 +263,11 @@ export type StripeWebhookEventTypes =
 	| 'invoice.payment_succeeded'
 	| 'invoice.payment_failed'
 
-export interface StripeWebhookEvent {
-	id: string
-	type: StripeWebhookEventTypeValue
-	data: {
-		object: Record<string, unknown>
-	}
-	created: number
-}
+export type {
+	StripeWebhookEvent,
+	StripeWebhookProcessor,
+	WebhookProcessorFunction
+} from './stripe'
 
 export interface WebhookNotification {
 	id: string
@@ -311,11 +308,3 @@ export type { SecurityEvent } from './security'
 
 // Note: AI-dependent types temporarily removed due to missing 'ai' package dependency
 // These types can be re-added when AI package is properly configured in the project
-
-export type WebhookProcessorFunction = (
-	event: StripeWebhookEvent
-) => Promise<void>
-
-export interface StripeWebhookProcessor {
-	[key: string]: WebhookProcessorFunction
-}

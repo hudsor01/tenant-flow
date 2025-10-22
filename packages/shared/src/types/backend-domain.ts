@@ -6,7 +6,36 @@
  */
 
 import type { Request, Response } from 'express'
+import type {
+	ChangePasswordRequest,
+	ForgotPasswordRequest,
+	LoginRequest,
+	RefreshTokenRequest,
+	RegisterRequest,
+	ResetPasswordRequest
+} from './auth.js'
+import type { ServiceHealth, SystemHealth } from './health.js'
+import type {
+	StripeWebhookEvent,
+	StripeWebhookProcessor,
+	WebhookProcessorFunction
+} from './stripe.js'
 import type { Database } from './supabase-generated.js'
+
+// Re-export types for consumers
+export type {
+	ChangePasswordRequest,
+	ForgotPasswordRequest,
+	LoginRequest,
+	RefreshTokenRequest,
+	RegisterRequest,
+	ResetPasswordRequest,
+	ServiceHealth,
+	StripeWebhookEvent,
+	StripeWebhookProcessor,
+	SystemHealth,
+	WebhookProcessorFunction
+}
 
 // Basic Stripe type declarations to avoid external dependencies
 export interface StripeInvoice {
@@ -78,38 +107,7 @@ export interface RequestContext {
 }
 
 // AUTH REQUEST/RESPONSE TYPES
-
-export interface RegisterRequest {
-	name: string
-	email: string
-	password: string
-	company?: string
-	acceptTerms?: boolean
-}
-
-// Additional auth types
-export interface LoginRequest {
-	email: string
-	password: string
-}
-
-export type { RefreshTokenRequest } from './auth'
-
-export interface ForgotPasswordRequest {
-	email: string
-}
-
-export interface ResetPasswordRequest {
-	token: string
-	newPassword: string
-	confirmPassword: string
-}
-
-export interface ChangePasswordRequest {
-	currentPassword: string
-	newPassword: string
-	confirmPassword: string
-}
+// Re-exported at top of file: LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest, RefreshTokenRequest
 
 export interface UserProfileResponse {
 	id: string
@@ -551,47 +549,7 @@ export interface DbPerformanceOverview {
 }
 
 // HEALTH MONITORING TYPES
-
-export interface ServiceHealth {
-	healthy: boolean
-	responseTime?: number
-	lastCheck: string
-	details?: Record<string, unknown>
-}
-
-export interface SystemHealth {
-	status: 'healthy' | 'degraded' | 'unhealthy'
-	timestamp: string
-	services: {
-		database: ServiceHealth
-		stripe: ServiceHealth
-		cache: ServiceHealth
-	}
-	performance: {
-		uptime: number
-		memory: {
-			used: number
-			free: number
-			usagePercentage: number
-			usagePercent: number
-		}
-		cpu: {
-			user: number
-			system: number
-		}
-	}
-	cacheMetrics: {
-		healthy: boolean
-		hitRate?: number
-		size?: number
-	}
-	version: string
-	deployment: {
-		environment: string
-		region: string
-		instance: string
-	}
-}
+// Re-exported at top of file: ServiceHealth, SystemHealth
 
 // CONFIG TYPES
 
