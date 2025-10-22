@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { createContext, useContext, useEffect, useRef } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { useStore, type StoreApi } from 'zustand'
 import {
 	getStoredThemeMode,
@@ -39,17 +39,9 @@ export const PreferencesStoreProvider = ({
 	children,
 	themeMode
 }: PreferencesProviderProps) => {
-	const storeRef = useRef<StoreApi<PreferencesState> | null>(null)
-
-	if (!storeRef.current) {
-		storeRef.current = createPreferencesStore({ themeMode })
-	}
+	const [store] = useState(() => createPreferencesStore({ themeMode }))
 
 	useEffect(() => {
-		const store = storeRef.current
-		if (!store) {
-			return
-		}
 
 		const initialTheme = store.getState().themeMode
 		applyTheme(initialTheme)
@@ -89,15 +81,7 @@ export const PreferencesStoreProvider = ({
 			unsubscribe()
 			mediaQuery.removeEventListener('change', handleSystemChange)
 		}
-	}, [])
-
-	const store = storeRef.current
-
-	if (!store) {
-		throw new Error(
-			'PreferencesStoreProvider failed to initialise the preferences store.'
-		)
-	}
+	}, [store])
 
 	return (
 		<PreferencesStoreContext.Provider value={store}>

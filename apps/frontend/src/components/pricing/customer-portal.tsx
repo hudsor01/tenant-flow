@@ -468,7 +468,7 @@ export function CustomerPortalCard({
 									</span>
 								</div>
 								<blockquote className="text-foreground text-center leading-relaxed font-medium">
-									"{testimonial.text}"
+									&quot;{testimonial.text}&quot;
 								</blockquote>
 								<div className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-primary/10">
 									<div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">

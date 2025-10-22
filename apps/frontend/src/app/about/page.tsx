@@ -336,7 +336,7 @@ export default function AboutPage() {
 									Meet the Team
 								</h2>
 								<p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-									We're a diverse team of engineers, designers, and property
+									We&apos;re a diverse team of engineers, designers, and property
 									management experts working together to build something great.
 								</p>
 							</div>
@@ -382,7 +382,7 @@ export default function AboutPage() {
 								<BlurFade delay={1.1} inView>
 									<div className="bg-card rounded-2xl p-8 border border-border/50 max-w-md mx-auto">
 										<p className="text-base text-muted-foreground mb-6">
-											We're hiring! Join our growing team.
+											We&apos;re hiring! Join our growing team.
 										</p>
 										<Button asChild size="lg" className="w-full">
 											<Link href="/careers">
@@ -410,8 +410,8 @@ export default function AboutPage() {
 									?
 								</h2>
 								<p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-									Join thousands of property managers who've streamlined their
-									operations and scaled their business with TenantFlow's
+									Join thousands of property managers who&apos;ve streamlined their
+									operations and scaled their business with TenantFlow&apos;s
 									enterprise platform.
 								</p>
 								<div className="flex flex-col sm:flex-row gap-4 justify-center">

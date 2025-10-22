@@ -39,15 +39,17 @@ export default function TenantProfilePage() {
 	// Sync form with user data
 	useEffect(() => {
 		if (user || profile) {
-			setFormData({
-				firstName: (user?.user_metadata?.firstName ||
-					profile?.firstName ||
-					'') as string,
-				lastName: (user?.user_metadata?.lastName ||
-					profile?.lastName ||
-					'') as string,
-				email: (user?.email || '') as string,
-				phone: (user?.user_metadata?.phone || '') as string
+			queueMicrotask(() => {
+				setFormData({
+					firstName: (user?.user_metadata?.firstName ||
+						profile?.firstName ||
+						'') as string,
+					lastName: (user?.user_metadata?.lastName ||
+						profile?.lastName ||
+						'') as string,
+					email: (user?.email || '') as string,
+					phone: (user?.user_metadata?.phone || '') as string
+				})
 			})
 		}
 	}, [user, profile])

@@ -75,7 +75,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 
 		// Prevent hydration mismatch by only rendering auth content after mount
 		useEffect(() => {
-			setIsMounted(true)
+			queueMicrotask(() => setIsMounted(true))
 		}, [])
 
 		// Dynamic navigation based on auth state

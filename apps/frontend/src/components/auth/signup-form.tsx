@@ -11,7 +11,7 @@ export function SignupForm({
 }: Pick<AuthFormProps, 'className' | 'onSubmit' | 'isLoading'>) {
 	// For this product tenants must be invited by an OWNER. The signup form
 	// is intentionally disabled for tenant self-registration. We keep the
-	// component shape so imports don't break, but render a clear message and
+	// component shape so imports do not break, but render a clear message and
 	// a CTA for owners or to request access.
 	// Use the underscored props to avoid unused variable lint errors.
 	void _onSubmit
@@ -26,8 +26,8 @@ export function SignupForm({
 					property owner to invite you.
 				</p>
 				<p className="mt-2 text-sm">
-					If you're an owner who needs to create an account for your property,
-					please use the "Get Started" link on the pricing page or contact
+					If you&apos;re an owner who needs to create an account for your property,
+					please use the &quot;Get Started&quot; link on the pricing page or contact
 					support.
 				</p>
 				<div className="mt-4 flex gap-2">

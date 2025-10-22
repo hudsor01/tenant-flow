@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-	runtime: 'nodejs', // Stable since Next.js 15.5 - fixes Supabase Edge Runtime incompatibility
+	runtime: 'nodejs', // REQUIRED: Supabase SSR is incompatible with Edge Runtime
 	matcher: [
 		/*
 		 * Match all request paths except for the ones starting with:

@@ -155,13 +155,6 @@
 	],
 	"trailingSlash": false,
 	"cleanUrls": true,
-	"functions": {
-		"src/middleware.ts": {
-			"runtime": "nodejs22.x",
-			"memory": 1024,
-			"maxDuration": 10
-		}
-	},
 	"git": {
 		"deploymentEnabled": {
 			"main": true

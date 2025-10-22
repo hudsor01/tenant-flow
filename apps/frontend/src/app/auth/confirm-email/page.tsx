@@ -59,7 +59,7 @@ export default function ConfirmEmailPage() {
 							</div>
 
 							<h2 className="text-foreground font-bold text-3xl">
-								You're Almost There!
+								You&apos;re Almost There!
 							</h2>
 
 							<p className="text-muted-foreground text-lg leading-relaxed">
@@ -145,7 +145,7 @@ export default function ConfirmEmailPage() {
 								Check Your Email
 							</h1>
 							<p className="text-lg text-muted-foreground leading-relaxed">
-								We've sent a confirmation link to your email address
+								We&apos;ve sent a confirmation link to your email address
 							</p>
 						</div>
 					</div>
@@ -154,7 +154,7 @@ export default function ConfirmEmailPage() {
 					<div className="bg-muted/30 border border-border rounded-2xl p-6 space-y-4">
 						<h3 className="font-semibold text-foreground text-lg flex items-center gap-2">
 							<CheckCircle2 className="w-5 h-5 text-primary" />
-							What's next?
+							What&apos;s next?
 						</h3>
 						<ol className="space-y-4">
 							<li className="flex items-start gap-3">
@@ -166,7 +166,7 @@ export default function ConfirmEmailPage() {
 										Check your email inbox
 									</p>
 									<p className="text-sm text-muted-foreground">
-										Don't forget to check your spam folder
+										Don&apos;t forget to check your spam folder
 									</p>
 								</div>
 							</li>
@@ -192,7 +192,7 @@ export default function ConfirmEmailPage() {
 										Start managing properties
 									</p>
 									<p className="text-sm text-muted-foreground">
-										You'll be redirected to your dashboard
+										You&apos;ll be redirected to your dashboard
 									</p>
 								</div>
 							</li>
@@ -202,7 +202,7 @@ export default function ConfirmEmailPage() {
 					{/* Actions */}
 					<div className="space-y-4">
 						<p className="text-sm text-muted-foreground text-center">
-							Didn't receive the email?
+							Didn&apos;t receive the email?
 						</p>
 
 						<div className="flex flex-col sm:flex-row gap-3">

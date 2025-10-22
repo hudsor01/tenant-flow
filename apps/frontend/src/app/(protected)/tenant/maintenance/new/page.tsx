@@ -135,7 +135,7 @@ export default function NewMaintenanceRequestPage() {
 					Submit Maintenance Request
 				</h1>
 				<p className="text-muted-foreground mt-2">
-					Describe the issue and we'll get it fixed as soon as possible
+					Describe the issue and we&apos;ll get it fixed as soon as possible
 				</p>
 			</div>
 

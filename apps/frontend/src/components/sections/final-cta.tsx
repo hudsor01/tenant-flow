@@ -39,7 +39,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 
 					<BlurFade delay={0.2} inView>
 						<p className="text-xl lg:text-2xl text-muted-foreground leading-relaxed mb-12 max-w-3xl mx-auto">
-							Join 2,847 property managers who've increased their NOI by 40% and
+							Join 2,847 property managers who&apos;ve increased their NOI by 40% and
 							save 20+ hours weekly.
 							<span className="block mt-2 text-foreground font-semibold">
 								Start your free 14-day trial today — no credit card required.
