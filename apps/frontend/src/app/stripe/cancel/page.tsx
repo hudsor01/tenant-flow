@@ -22,7 +22,7 @@ function CancelContent() {
 
 				<p className="text-muted-foreground mb-8">
 					Your payment was cancelled and no charges have been made to your
-					account. You can try again whenever you're ready.
+					account. You can try again whenever you&apos;re ready.
 				</p>
 
 				<div className="space-y-4">

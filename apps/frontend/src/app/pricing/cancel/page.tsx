@@ -17,7 +17,7 @@ export default function CheckoutCancelPage() {
 			{/* Hero Section */}
 			<HeroSection
 				title="Payment Cancelled"
-				subtitle="No worries! Your payment was cancelled and you haven't been charged. You can try again anytime or contact our support team for assistance."
+				subtitle="No worries! Your payment was cancelled and you haven&apos;t been charged. You can try again anytime or contact our support team for assistance."
 				primaryCta={{ label: 'Back to Pricing', href: '/pricing' }}
 				secondaryCta={{ label: 'Contact Support', href: '/contact' }}
 			/>
@@ -26,7 +26,7 @@ export default function CheckoutCancelPage() {
 				<div className="container mx-auto px-4 section-content max-w-2xl">
 					<CardLayout
 						title="Payment Cancelled"
-						description="No worries! Your payment was cancelled and you haven't been charged."
+						description="No worries! Your payment was cancelled and you haven&apos;t been charged."
 						className="text-center"
 					>
 						<div className="pb-8">
@@ -34,7 +34,7 @@ export default function CheckoutCancelPage() {
 								<XCircle className="w-8 h-8 text-muted-foreground" />
 							</div>
 							<p className="text-xl text-muted-foreground">
-								No worries! Your payment was cancelled and you haven't been
+								No worries! Your payment was cancelled and you haven&apos;t been
 								charged.
 							</p>
 						</div>

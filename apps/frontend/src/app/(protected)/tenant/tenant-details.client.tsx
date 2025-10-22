@@ -81,10 +81,10 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 		return (
 			<CardLayout
 				title="Tenant Not Found"
-				description="The tenant you're looking for doesn't exist."
+				description="The tenant you&apos;re looking for doesn&apos;t exist."
 			>
 				<div className="rounded-lg border-destructive/40 bg-destructive/10 p-6 text-destructive">
-					The tenant you're looking for doesn't exist or there was a problem
+					The tenant you&apos;re looking for doesn&apos;t exist or there was a problem
 					loading the data.
 				</div>
 			</CardLayout>

@@ -1,5 +1,7 @@
+'use no memo' // Complex file upload hook with manual memoization
+
 import { createClient } from '@/lib/supabase/client'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { type FileError, type FileRejection, useDropzone } from 'react-dropzone'
 
 const supabase = createClient()
@@ -68,6 +70,15 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 	const [errors, setErrors] = useState<{ name: string; message: string }[]>([])
 	const [successes, setSuccesses] = useState<string[]>([])
 
+	// Use refs to track current state for upload callback
+	const errorsRef = useRef(errors)
+	const successesRef = useRef(successes)
+
+	useEffect(() => {
+		errorsRef.current = errors
+		successesRef.current = successes
+	}, [errors, successes])
+
 	const isSuccess = useMemo(() => {
 		if (errors.length === 0 && successes.length === 0) {
 			return false
@@ -78,28 +89,25 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 		return false
 	}, [errors.length, successes.length, files.length])
 
-	const onDrop = useCallback(
-		(acceptedFiles: File[], fileRejections: FileRejection[]) => {
-			const validFiles = acceptedFiles
-				.filter(file => !files.find(x => x.name === file.name))
-				.map(file => {
-					;(file as FileWithPreview).preview = URL.createObjectURL(file)
-					;(file as FileWithPreview).errors = []
-					return file as FileWithPreview
-				})
-
-			const invalidFiles = fileRejections.map(({ file, errors }) => {
+	const onDrop = (acceptedFiles: File[], fileRejections: FileRejection[]) => {
+		const validFiles = acceptedFiles
+			.filter(file => !files.find(x => x.name === file.name))
+			.map(file => {
 				;(file as FileWithPreview).preview = URL.createObjectURL(file)
-				;(file as FileWithPreview).errors = errors
+				;(file as FileWithPreview).errors = []
 				return file as FileWithPreview
 			})
 
-			const newFiles = [...files, ...validFiles, ...invalidFiles]
+		const invalidFiles = fileRejections.map(({ file, errors }) => {
+			;(file as FileWithPreview).preview = URL.createObjectURL(file)
+			;(file as FileWithPreview).errors = errors
+			return file as FileWithPreview
+		})
 
-			setFiles(newFiles)
-		},
-		[files]
-	)
+		const newFiles = [...files, ...validFiles, ...invalidFiles]
+
+		setFiles(newFiles)
+	}
 
 	const dropzoneProps = useDropzone({
 		onDrop,
@@ -113,17 +121,17 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 		multiple: maxFiles !== 1
 	})
 
-	const onUpload = useCallback(async () => {
+	const onUpload = async () => {
 		setLoading(true)
 
 		// [Joshen] This is to support handling partial successes
 		// If any files didn't upload for any reason, hitting "Upload" again will only upload the files that had errors
-		const filesWithErrors = errors.map(x => x.name)
+		const filesWithErrors = errorsRef.current.map(x => x.name)
 		const filesToUpload =
 			filesWithErrors.length > 0
 				? [
 						...files.filter(f => filesWithErrors.includes(f.name)),
-						...files.filter(f => !successes.includes(f.name))
+						...files.filter(f => !successesRef.current.includes(f.name))
 					]
 				: files
 
@@ -153,7 +161,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 		)
 
 		setLoading(false)
-	}, [files, path, bucketName, errors, successes, cacheControl, upsert])
+	}
 
 	useEffect(() => {
 		// Clear errors when all files are removed

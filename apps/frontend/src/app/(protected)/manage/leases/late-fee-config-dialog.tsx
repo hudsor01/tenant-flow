@@ -63,8 +63,10 @@ export function LateFeeConfigDialog({
 	// Initialize form from config
 	useEffect(() => {
 		if (config) {
-			setGracePeriodDays(config.gracePeriodDays)
-			setFlatFeeAmount(config.flatFeeAmount)
+			queueMicrotask(() => {
+				setGracePeriodDays(config.gracePeriodDays)
+				setFlatFeeAmount(config.flatFeeAmount)
+			})
 		}
 	}, [config])
 
