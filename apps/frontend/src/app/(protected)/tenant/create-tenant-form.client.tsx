@@ -9,17 +9,14 @@ import {
 	InputGroupInput
 } from '@/components/ui/input-group'
 import { Textarea } from '@/components/ui/textarea'
-import { tenantKeys } from '@/hooks/api/use-tenant'
-import { tenantsApi } from '@/lib/api-client'
+import { useCreateTenant } from '@/hooks/api/use-tenant'
+
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { CreateTenantInput } from '@repo/shared/types/api-inputs'
-import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
+
 import {
-	tenantCreateFormSchema,
-	type TenantInput
+	tenantCreateFormSchema
 } from '@repo/shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Mail, Phone, Plus, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -27,44 +24,10 @@ import { z } from 'zod'
 
 export function CreateTenantForm() {
 	const router = useRouter()
-	const queryClient = useQueryClient()
 	const logger = createLogger({ component: 'CreateTenantForm' })
 
-	const createMutation = useMutation({
-		mutationFn: (data: TenantInput) => {
-			const normalize = (value: string | null | undefined) =>
-				value === undefined ? null : value
-
-			// Backend extracts userId from authenticated JWT - don't send it in payload
-			const payload: CreateTenantInput = {
-				email: data.email,
-				avatarUrl: normalize(data.avatarUrl),
-				phone: normalize(data.phone),
-				emergencyContact: normalize(data.emergencyContact),
-				firstName: normalize(data.firstName),
-				lastName: normalize(data.lastName),
-				name: normalize(data.name)
-			}
-
-			return tenantsApi.create(payload)
-		},
-		onSuccess: (tenant: TenantWithLeaseInfo) => {
-			// Add the new tenant to the cached list without refetching
-			queryClient.setQueryData(
-				tenantKeys.list(),
-				(old: TenantWithLeaseInfo[] | undefined) => {
-					if (!Array.isArray(old)) return [tenant]
-					return [tenant, ...old]
-				}
-			)
-			queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
-			toast.success('Tenant created successfully')
-			router.push(`/manage/tenants/${tenant.id}`)
-		},
-		onError: (error: Error) => {
-			toast.error('Failed to create tenant', { description: error.message })
-		}
-	})
+	// Use custom hook instead of inline mutation
+	const createMutation = useCreateTenant()
 
 	const form = useForm({
 		defaultValues: {
@@ -76,8 +39,13 @@ export function CreateTenantForm() {
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				await createMutation.mutateAsync(value)
+				const tenant = await createMutation.mutateAsync(value)
+				toast.success('Tenant created successfully')
+				router.push(`/manage/tenants/${tenant.id}`)
 			} catch (error) {
+				toast.error('Failed to create tenant', { 
+					description: error instanceof Error ? error.message : 'Unknown error' 
+				})
 				logger.error(
 					'Failed to create tenant',
 					{ action: 'createTenant' },

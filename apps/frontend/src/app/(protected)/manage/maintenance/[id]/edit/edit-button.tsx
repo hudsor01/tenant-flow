@@ -23,20 +23,13 @@ import {
 	SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { maintenanceApi } from '@/lib/api-client'
-import type {
-	MaintenanceRequest,
-	MaintenanceRequestResponse
-} from '@repo/shared/types/core'
+import { useUpdateMaintenanceRequest } from '@/hooks/api/use-maintenance'
 import {
-	maintenanceRequestUpdateFormSchema,
-	type MaintenanceRequestUpdate
+	maintenanceRequestUpdateFormSchema
 } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Calendar, DollarSign, Edit, FileText } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { z } from 'zod'
 
 interface EditMaintenanceButtonProps {
@@ -57,7 +50,7 @@ export function EditMaintenanceButton({
 	maintenance
 }: EditMaintenanceButtonProps) {
 	const [open, setOpen] = useState(false)
-	const queryClient = useQueryClient()
+	const updateMaintenanceRequest = useUpdateMaintenanceRequest()
 
 	const form = useForm({
 		defaultValues: {
@@ -74,24 +67,28 @@ export function EditMaintenanceButton({
 			completedAt: ''
 		},
 		onSubmit: async ({ value }) => {
-			const updateData: MaintenanceRequestUpdate = {
-				title: value.title,
-				description: value.description,
-				priority: value.priority,
-				category: value.category,
-				estimatedCost: value.estimatedCost
-					? Number(value.estimatedCost)
-					: undefined,
-				notes: value.notes,
-				preferredDate: value.preferredDate
-					? new Date(value.preferredDate)
-					: undefined,
-				allowEntry: value.allowEntry,
-				status: value.status,
-				actualCost: value.actualCost ? Number(value.actualCost) : undefined,
-				completedAt: value.completedAt ? new Date(value.completedAt) : undefined
-			}
-			updateMutation.mutate(updateData)
+			const updateData: Record<string, unknown> = {}
+
+			if (value.title) updateData.title = value.title
+			if (value.description) updateData.description = value.description
+			if (value.priority) updateData.priority = value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+			if (value.category) updateData.category = value.category
+			if (value.estimatedCost) updateData.estimatedCost = Number(value.estimatedCost)
+			if (value.notes) updateData.notes = value.notes
+			if (value.preferredDate) updateData.preferredDate = new Date(value.preferredDate)
+			if (value.status) updateData.status = value.status
+			if (value.actualCost) updateData.actualCost = Number(value.actualCost)
+			if (value.completedAt) updateData.completedAt = new Date(value.completedAt)
+
+			updateMaintenanceRequest.mutate(
+				{ id: maintenance.id, data: updateData },
+				{
+					onSuccess: () => {
+						setOpen(false)
+						form.reset()
+					}
+				}
+			)
 		},
 		validators: {
 			onChange: ({ value }) => {
@@ -101,53 +98,6 @@ export function EditMaintenanceButton({
 				}
 				return undefined
 			}
-		}
-	})
-
-	const updateMutation = useMutation({
-		mutationFn: (data: MaintenanceRequestUpdate) =>
-			maintenanceApi.update(maintenance.id, data),
-		onMutate: async (data: MaintenanceRequestUpdate) => {
-			await queryClient.cancelQueries({ queryKey: ['maintenance'] })
-			const previous = queryClient.getQueryData<
-				MaintenanceRequestResponse | MaintenanceRequest[] | undefined
-			>(['maintenance'])
-			queryClient.setQueryData<
-				MaintenanceRequestResponse | MaintenanceRequest[] | undefined
-			>(['maintenance'], old => {
-				if (!old) return old
-				if (Array.isArray(old)) {
-					return old.map(m =>
-						m.id === maintenance.id ? { ...m, ...data } : m
-					) as MaintenanceRequest[]
-				}
-				if ('data' in old) {
-					return {
-						...old,
-						data: old.data.map(m =>
-							m.id === maintenance.id ? { ...m, ...data } : m
-						)
-					} as MaintenanceRequestResponse
-				}
-				return old
-			})
-			return previous ? { previous } : {}
-		},
-		onError: (
-			err: unknown,
-			_vars,
-			context?: { previous?: MaintenanceRequestResponse | MaintenanceRequest[] }
-		) => {
-			if (context?.previous)
-				queryClient.setQueryData(['maintenance'], context.previous)
-			const message =
-				err instanceof Error ? err.message : 'Failed to update request'
-			toast.error(`Failed to update request: ${message}`)
-		},
-		onSuccess: () => {
-			toast.success('Maintenance request updated successfully')
-			setOpen(false)
-			form.reset()
 		}
 	})
 
@@ -399,8 +349,8 @@ export function EditMaintenanceButton({
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={updateMutation.isPending}>
-							{updateMutation.isPending ? 'Updating...' : 'Update Request'}
+						<Button type="submit" disabled={updateMaintenanceRequest.isPending}>
+							{updateMaintenanceRequest.isPending ? 'Updating...' : 'Update Request'}
 						</Button>
 					</div>
 				</form>

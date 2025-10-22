@@ -2,6 +2,7 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
+import { StripeClientService } from '../../shared/stripe-client.service'
 import { PaymentMethodsService } from './payment-methods.service'
 
 type SupabaseQueryResult<T> = Promise<{ data: T; error: null }>
@@ -29,6 +30,19 @@ describe('PaymentMethodsService', () => {
 	const mockSupabaseService = {
 		getAdminClient: jest.fn(() => adminClient)
 	}
+	const mockStripe = {
+		customers: { create: jest.fn() },
+		paymentMethods: {
+			attach: jest.fn(),
+			list: jest.fn(),
+			detach: jest.fn(),
+			retrieve: jest.fn()
+		},
+		setupIntents: { create: jest.fn() }
+	}
+	const mockStripeClientService = {
+		getClient: jest.fn(() => mockStripe)
+	}
 
 	beforeEach(async () => {
 		adminClient.from.mockReset()
@@ -39,13 +53,17 @@ describe('PaymentMethodsService', () => {
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
+				},
+				{
+					provide: StripeClientService,
+					useValue: mockStripeClientService
 				}
 			]
 		}).compile()
 
 		service = module.get<PaymentMethodsService>(PaymentMethodsService)
 
-		jest.spyOn(service['stripe'].customers, 'create').mockResolvedValue({
+		mockStripe.customers.create.mockResolvedValue({
 			id: 'cus_new_123'
 		} as Stripe.Response<Stripe.Customer>)
 

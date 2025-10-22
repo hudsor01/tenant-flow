@@ -6,16 +6,18 @@ import {
 } from '@nestjs/common'
 import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
+import { StripeClientService } from '../../shared/stripe-client.service'
 
 @Injectable()
 export class PaymentMethodsService {
 	private readonly logger = new Logger(PaymentMethodsService.name)
 	private readonly stripe: Stripe
 
-	constructor(private readonly supabase: SupabaseService) {
-		this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-			apiVersion: '2025-09-30.clover'
-		})
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly stripeClientService: StripeClientService
+	) {
+		this.stripe = this.stripeClientService.getClient()
 	} /**
 	 * Get or create Stripe customer for a user.
 	 * Caches the Stripe customer ID on the User record to avoid duplicate customers.

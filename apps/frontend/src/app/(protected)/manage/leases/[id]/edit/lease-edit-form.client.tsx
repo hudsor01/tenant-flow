@@ -1,6 +1,6 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, type ChangeEvent } from 'react'
@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useAllTenants } from '@/hooks/api/use-tenant'
+import { useUpdateLease } from '@/hooks/api/use-lease'
 import { leasesApi, unitsApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { leaseInputSchema } from '@repo/shared/validation/leases'
@@ -33,7 +34,6 @@ const logger = createLogger({ component: 'LeaseEditForm' })
 
 export function LeaseEditForm({ id }: LeaseEditFormProps) {
 	const router = useRouter()
-	const queryClient = useQueryClient()
 	const [step, setStep] = useState(1)
 	const totalSteps = 2
 
@@ -65,7 +65,20 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 			status: 'ACTIVE' as 'ACTIVE' | 'DRAFT' | 'EXPIRED' | 'TERMINATED'
 		},
 		onSubmit: async ({ value }) => {
-			updateLease.mutate(value)
+			try {
+				await updateLease.mutateAsync({
+					id,
+					data: {
+						...value,
+						terms: value.terms || null
+					}
+				})
+				toast.success('Lease updated successfully')
+				router.push(`/manage/leases/${id}`)
+			} catch (error) {
+				toast.error('Failed to update lease')
+				logger.error('Failed to update lease', { action: 'updateLease' }, error)
+			}
 		},
 		validators: {
 			onChange: ({ value }) => {
@@ -93,25 +106,7 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 		}
 	}, [lease, form])
 
-	const updateLease = useMutation({
-		mutationFn: (values: typeof form.state.values) =>
-			leasesApi.updateLeaseWithFinancialCalculations(id, {
-				...values,
-				status: values.status
-			}),
-		onSuccess: async () => {
-			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: ['leases'] }),
-				queryClient.invalidateQueries({ queryKey: ['lease-stats'] })
-			])
-			toast.success('Lease updated successfully')
-			router.push(`/manage/leases/${id}`)
-		},
-		onError: error => {
-			toast.error('Failed to update lease')
-			logger.error('Failed to update lease', { action: 'updateLease' }, error)
-		}
-	})
+	const updateLease = useUpdateLease()
 
 	if (isLoading) {
 		return (

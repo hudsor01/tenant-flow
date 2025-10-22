@@ -330,8 +330,7 @@ function ParticlesComponent({
 		>
 			<canvas
 				ref={canvasRef}
-				className="size-full"
-				style={{ display: 'block' }}
+				className="block size-full"
 				aria-hidden="true"
 			/>
 		</div>

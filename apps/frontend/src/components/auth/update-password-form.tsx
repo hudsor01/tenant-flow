@@ -16,13 +16,7 @@ import {
 	InputGroupAddon,
 	InputGroupInput
 } from '@/components/ui/input-group'
-import {
-	ANIMATION_DURATIONS,
-	buttonClasses,
-	cardClasses,
-	cn,
-	TYPOGRAPHY_SCALE
-} from '@/lib/design-system'
+import { buttonClasses, cardClasses, cn } from '@/lib/design-system'
 import { supabaseClient } from '@repo/shared/lib/supabase-client'
 import { useMutation } from '@tanstack/react-query'
 import {
@@ -77,39 +71,21 @@ export function UpdatePasswordForm({
 
 	return (
 		<div
-			className={cn('form-container max-w-md mx-auto', className)}
-			style={{
-				animation: `fadeIn ${ANIMATION_DURATIONS.slow} ease-out`
-			}}
+			className={cn('form-container max-w-md mx-auto animate-fade-in', className)}
 			{...props}
 		>
 			<Card
 				className={cn(
 					cardClasses(),
-					'shadow-xl border-2 hover:shadow-2xl',
-					'transition-fast'
+					'shadow-xl border-2 hover:shadow-2xl transition-all duration-300 ease-out'
 				)}
-				style={{
-					transition: `all ${ANIMATION_DURATIONS.default} ease-out`
-				}}
 			>
-				<CardHeader
-					className="text-center space-y-4"
-					style={{
-						animation: `slideInFromTop ${ANIMATION_DURATIONS.default} ease-out`
-					}}
-				>
+				<CardHeader className="text-center space-y-4 animate-slide-in-top">
 					<div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
 						<Lock className="w-6 h-6 text-primary" />
 					</div>
 					<div className="space-y-2">
-						<CardTitle
-							className="font-bold tracking-tight"
-							style={{
-								fontSize: TYPOGRAPHY_SCALE['heading-lg'].fontSize,
-								lineHeight: TYPOGRAPHY_SCALE['heading-lg'].lineHeight
-							}}
-						>
+						<CardTitle className="font-bold tracking-tight text-3xl">
 							Reset Your Password
 						</CardTitle>
 						<CardDescription className="leading-relaxed">
@@ -117,12 +93,7 @@ export function UpdatePasswordForm({
 						</CardDescription>
 					</div>
 				</CardHeader>
-				<CardContent
-					className="space-y-6"
-					style={{
-						animation: `slideInFromBottom ${ANIMATION_DURATIONS.default} ease-out`
-					}}
-				>
+				<CardContent className="space-y-6 animate-slide-in-bottom">
 					<form onSubmit={handleUpdatePassword} className="space-y-6">
 						<div className="space-y-4">
 							{/* New Password Field with PasswordStrength */}
@@ -219,7 +190,6 @@ export function UpdatePasswordForm({
 								password !== confirmPassword ||
 								password.length < 8
 							}
-							style={{}}
 						>
 							{updatePasswordMutation.isPending ? (
 								<>

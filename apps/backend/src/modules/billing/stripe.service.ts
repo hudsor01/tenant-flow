@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import Stripe from 'stripe'
+import { StripeClientService } from '../../shared/stripe-client.service'
 
 /**
  * Ultra-Native Stripe Service
@@ -12,22 +13,8 @@ export class StripeService {
 	private readonly logger = new Logger(StripeService.name)
 	private stripe: Stripe
 
-	constructor() {
-		const stripeSecretKey = process.env.STRIPE_SECRET_KEY
-		if (!stripeSecretKey) {
-			throw new Error('STRIPE_SECRET_KEY is required')
-		}
-
-		// Following Stripe's recommended initialization pattern
-		// In TypeScript, we use the constructor but the pattern is functionally equivalent
-		this.stripe = new Stripe(stripeSecretKey, {
-			// Align apiVersion with the Stripe types used in the repo to satisfy
-			// the literal union type in @types/stripe. Update if you intentionally
-			// need a different Stripe preview version.
-			apiVersion: '2025-09-30.clover',
-			typescript: true
-		})
-
+	constructor(private readonly stripeClientService: StripeClientService) {
+		this.stripe = this.stripeClientService.getClient()
 		this.logger.log('Stripe SDK initialized')
 	}
 

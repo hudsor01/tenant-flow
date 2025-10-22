@@ -34,10 +34,12 @@ interface MaintenanceActionButtonsProps {
 		unit?: { name: string } | null
 		assignedTo?: { name: string } | null
 	}
+	deleteAction: (id: string) => Promise<{ success: boolean }>
 }
 
 export function MaintenanceActionButtons({
-	maintenance
+	maintenance,
+	deleteAction
 }: MaintenanceActionButtonsProps) {
 	const [viewOpen, setViewOpen] = useState(false)
 
@@ -88,7 +90,7 @@ export function MaintenanceActionButtons({
 			<StatusUpdateButton maintenance={maintenance} />
 
 			{/* Delete Button */}
-			<DeleteMaintenanceButton maintenance={maintenance} />
+			<DeleteMaintenanceButton maintenance={maintenance} deleteAction={deleteAction} />
 
 			{/* View Dialog */}
 			<Dialog open={viewOpen} onOpenChange={setViewOpen}>

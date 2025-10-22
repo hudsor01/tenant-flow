@@ -3,12 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { ButtonLoader } from '@/components/magicui/loading-spinner'
 
-import {
-	ANIMATION_DURATIONS,
-	buttonClasses,
-	cn,
-	TYPOGRAPHY_SCALE
-} from '@/lib/design-system'
+import { ANIMATION_DURATIONS, buttonClasses, cn } from '@/lib/design-system'
 import { forwardRef } from 'react'
 
 interface GoogleButtonProps extends React.ComponentProps<typeof Button> {
@@ -72,25 +67,16 @@ export const GoogleButton = forwardRef<HTMLButtonElement, GoogleButtonProps>(
 							<span
 								className={cn(
 									'font-semibold text-foreground group-hover:text-foreground',
-									`transition-colors duration-[${ANIMATION_DURATIONS.fast}]`
+									`transition-colors duration-[${ANIMATION_DURATIONS.fast}]`,
+									'text-base leading-normal'
 								)}
-								style={{
-									fontSize: TYPOGRAPHY_SCALE['body-md'].fontSize,
-									lineHeight: TYPOGRAPHY_SCALE['body-md'].lineHeight,
-									fontWeight: TYPOGRAPHY_SCALE['body-md'].fontWeight
-								}}
 							>
 								{isLoading
 									? loadingText || defaultLoadingText
 									: children || defaultText}
 							</span>
 							{showTrustIndicators && !isLoading && (
-								<span
-									className="text-xs text-muted-foreground/75 leading-none mt-0.5"
-									style={{
-										fontSize: TYPOGRAPHY_SCALE['body-xs'].fontSize
-									}}
-								>
+								<span className="text-xs text-muted-foreground/75 leading-none mt-0.5">
 									Secure OAuth 2.0 authentication
 								</span>
 							)}

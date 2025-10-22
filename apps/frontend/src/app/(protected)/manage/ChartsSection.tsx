@@ -6,22 +6,13 @@ import { ModernExplodedPieChart } from '@/components/charts/pie-chart'
 export function ChartsSection() {
 	return (
 		<div
-			className="w-full"
-			style={{
-				padding: 'var(--dashboard-content-padding)',
-				gap: 'var(--dashboard-card-gap)'
-			}}
+			className="w-full p-6 gap-4"
 		>
 			<div
-				className="mx-auto max-w-[1600px]"
-				style={{
-					paddingTop: 'var(--spacing-4)',
-					paddingBottom: 'var(--spacing-4)'
-				}}
+				className="mx-auto max-w-[1600px] py-4"
 			>
 				<div
-					className="grid grid-cols-1 @3xl/main:grid-cols-3 gap-8"
-					style={{ gap: 'var(--dashboard-card-gap)' }}
+					className="grid grid-cols-1 @3xl/main:grid-cols-3 gap-4"
 				>
 					<div className="@3xl/main:col-span-2">
 						<PropertyPerformanceBarChart
@@ -42,8 +33,7 @@ export function ChartsSection() {
 				</div>
 
 				<div
-					className="grid grid-cols-1 @2xl/main:grid-cols-2 mt-8"
-					style={{ gap: 'var(--dashboard-card-gap)' }}
+					className="grid grid-cols-1 @2xl/main:grid-cols-2 mt-8 gap-4"
 				>
 					<PropertyPerformanceBarChart metric="revenue" height={300} />
 					<PropertyPerformanceBarChart metric="maintenance" height={300} />
