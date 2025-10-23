@@ -17,7 +17,7 @@ import {
 	ChevronRight,
 	Edit
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 
 export interface FormStep {
@@ -96,6 +96,14 @@ export interface EditDialogProps {
 	 * Render trigger as button child (for custom triggers like icon-only buttons)
 	 */
 	renderTrigger?: (onClick: () => void) => ReactNode
+	/**
+	 * Controlled open state (optional)
+	 */
+		open?: boolean
+	/**
+	 * Hide default trigger (use when controlling the dialog externally)
+	 */
+	hideTrigger?: boolean
 }
 
 /**
@@ -138,9 +146,13 @@ export function EditDialog({
 	contentClassName = 'sm:max-w-2xl max-h-[90vh] overflow-y-auto',
 	triggerClassName = 'flex items-center gap-2',
 	triggerVariant = 'outline',
-	renderTrigger
+	renderTrigger,
+	open,
+	hideTrigger = false
 }: EditDialogProps) {
-	const [isOpen, setIsOpen] = useState(false)
+	const [internalOpen, setInternalOpen] = useState(false)
+	const isControlled = open !== undefined
+	const isOpen = isControlled ? open : internalOpen
 
 	const { setFormProgress, resetFormProgress } = useUIStore()
 	const {
@@ -155,11 +167,20 @@ export function EditDialog({
 
 	const hasSteps = steps && steps.length > 0
 	const effectiveTotalSteps = hasSteps ? steps.length : 1
+	const hasMultipleSteps = useMemo(
+		() => effectiveTotalSteps > 1,
+		[effectiveTotalSteps]
+	)
 
-	// Initialize form progress when dialog opens
-	const handleOpenChange = (open: boolean) => {
-		setIsOpen(open)
-		if (open) {
+	const setDialogOpen = (value: boolean) => {
+		if (!isControlled) {
+			setInternalOpen(value)
+		}
+		onOpenChange?.(value)
+	}
+
+	useEffect(() => {
+		if (isOpen) {
 			setFormProgress({
 				currentStep: 1,
 				totalSteps: effectiveTotalSteps,
@@ -170,7 +191,12 @@ export function EditDialog({
 		} else {
 			resetFormProgress()
 		}
-		onOpenChange?.(open)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isOpen, effectiveTotalSteps, formType])
+
+	// Initialize form progress when dialog opens
+	const handleOpenChange = (openState: boolean) => {
+		setDialogOpen(openState)
 	}
 
 	const handleNext = async () => {
@@ -197,7 +223,7 @@ export function EditDialog({
 		effectiveTotalSteps > 1 ? ((currentStep - 1) / (effectiveTotalSteps - 1)) * 100 : 100
 
 	const triggerButton = renderTrigger ? (
-		<div onClick={() => setIsOpen(true)}>{renderTrigger(() => setIsOpen(true))}</div>
+		<div onClick={() => setDialogOpen(true)}>{renderTrigger(() => setDialogOpen(true))}</div>
 	) : (
 		<Button variant={triggerVariant} className={triggerClassName}>
 			{triggerIcon}
@@ -205,11 +231,15 @@ export function EditDialog({
 		</Button>
 	)
 
+	const shouldRenderTrigger = !hideTrigger
+
 	return (
 		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
-			<DialogTrigger asChild>
-				{triggerButton}
-			</DialogTrigger>
+			{shouldRenderTrigger && (
+				<DialogTrigger asChild>
+					{triggerButton}
+				</DialogTrigger>
+			)}
 
 			<DialogContent className={contentClassName}>
 				<DialogHeader>
@@ -220,7 +250,7 @@ export function EditDialog({
 				</DialogHeader>
 
 				{/* Progress Indicator (only show for multi-step) */}
-				{hasSteps && (
+				{hasMultipleSteps && (
 					<div className="space-y-4">
 						<div className="flex items-center justify-between text-sm">
 							<span className="text-muted-foreground">
@@ -235,11 +265,11 @@ export function EditDialog({
 
 						<div className="flex items-center justify-center">
 							<h3 className="font-semibold text-lg">
-								{steps[currentStep - 1]?.title}
+								{steps?.[currentStep - 1]?.title}
 							</h3>
 						</div>
 						<p className="text-center text-muted-foreground text-sm">
-							{steps[currentStep - 1]?.description}
+							{steps?.[currentStep - 1]?.description}
 						</p>
 					</div>
 				)}
@@ -250,7 +280,7 @@ export function EditDialog({
 
 					{/* Navigation */}
 					<div className="flex justify-between pt-6 border-t">
-						{hasSteps ? (
+						{hasMultipleSteps ? (
 							<Button
 								type="button"
 								variant="outline"
@@ -269,12 +299,12 @@ export function EditDialog({
 							<Button
 								type="button"
 								variant="outline"
-								onClick={() => setIsOpen(false)}
+								onClick={() => setDialogOpen(false)}
 							>
 								Cancel
 							</Button>
 
-							{hasSteps && !isLastStep ? (
+							{hasMultipleSteps && !isLastStep ? (
 								<Button
 									type="button"
 									onClick={handleNext}

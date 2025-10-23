@@ -1,6 +1,6 @@
 'use client'
 
-import { LeaseEditDialog } from '@/components/leases/lease-edit-dialog'
+// Lease edit dialog now inlined below using ShadCN Dialog components
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,13 +21,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
 	Pagination,
 	PaginationContent,
-	PaginationItem,
-	PaginationLink,
-	PaginationNext,
-	PaginationPrevious
+	PaginationItem
 } from '@/components/ui/pagination'
 import {
 	Select,
@@ -65,9 +63,429 @@ import {
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { CreateLeaseDialog } from './create-dialog'
+import { CreateDialog } from '@/components/ui/base-dialogs'
+import { useForm } from '@tanstack/react-form'
+import { useCreateLease } from '@/hooks/api/use-lease'
+import { useTenantList } from '@/hooks/api/use-tenant'
+import { useUnitList } from '@/hooks/api/use-unit'
+import { FieldError } from '@/components/ui/field'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { DollarSign } from 'lucide-react'
+import type { CreateLeaseInput } from '@repo/shared/types/api-inputs'
 
 const ITEMS_PER_PAGE = 25
+
+// Form steps configuration
+const LEASE_FORM_STEPS = [
+	{ id: 1, title: 'Tenant & Unit', description: 'Select tenant and unit for this lease' },
+	{ id: 2, title: 'Lease Dates', description: 'Start date, end date, and duration' },
+	{ id: 3, title: 'Financial Terms', description: 'Rent amount, deposit, and fees' },
+	{ id: 4, title: 'Additional Terms', description: 'Late fees, grace period, and notes' }
+]
+
+type LeaseStatus = NonNullable<CreateLeaseInput['status']>
+
+// Inline create dialog using base component
+function LeaseCreateDialog() {
+	const { data: tenantsResponse } = useTenantList(1, 100)
+	const { data: unitsResponse } = useUnitList({ status: 'VACANT', limit: 100 })
+	const tenants = tenantsResponse?.data || []
+	const units = unitsResponse?.data || []
+
+	const createLeaseMutation = useCreateLease()
+
+	const form = useForm({
+		defaultValues: {
+			tenantId: '',
+			unitId: '',
+			startDate: '',
+			endDate: '',
+			rentAmount: '',
+			securityDeposit: '',
+			monthlyRent: '',
+			gracePeriodDays: '5',
+			lateFeeAmount: '',
+			lateFeePercentage: '',
+			terms: '',
+			status: 'ACTIVE' as LeaseStatus
+		},
+		onSubmit: async ({ value }) => {
+			try {
+				const leaseData: CreateLeaseInput = {
+					tenantId: value.tenantId,
+					unitId: value.unitId,
+					startDate: value.startDate,
+					endDate: value.endDate,
+					rentAmount: parseFloat(value.rentAmount),
+					securityDeposit: parseFloat(value.securityDeposit),
+					monthlyRent: value.monthlyRent ? parseFloat(value.monthlyRent) : null,
+					gracePeriodDays: value.gracePeriodDays ? parseInt(value.gracePeriodDays, 10) : null,
+					lateFeeAmount: value.lateFeeAmount ? parseFloat(value.lateFeeAmount) : null,
+					lateFeePercentage: value.lateFeePercentage ? parseFloat(value.lateFeePercentage) : null,
+					terms: value.terms || null,
+					status: value.status
+				}
+				await createLeaseMutation.mutateAsync(leaseData)
+				toast.success('Lease created successfully')
+				form.reset()
+			} catch {
+				toast.error('Failed to create lease')
+			}
+		}
+	})
+
+	const validateStep = (step: number): boolean => {
+		const values = form.state.values
+		switch (step) {
+			case 1:
+				if (!values.tenantId || !values.unitId) {
+					toast.error('Please select both a tenant and a unit')
+					return false
+				}
+				break
+			case 2:
+				if (!values.startDate || !values.endDate) {
+					toast.error('Please enter start and end dates')
+					return false
+				}
+				if (new Date(values.startDate) >= new Date(values.endDate)) {
+					toast.error('End date must be after start date')
+					return false
+				}
+				break
+			case 3:
+				if (!values.rentAmount || !values.securityDeposit) {
+					toast.error('Please enter rent amount and security deposit')
+					return false
+				}
+				if (parseFloat(values.rentAmount) <= 0 || parseFloat(values.securityDeposit) < 0) {
+					toast.error('Please enter valid amounts')
+					return false
+				}
+				break
+			case 4:
+				// Optional fields
+				break
+		}
+		return true
+	}
+
+	return (
+		<CreateDialog
+			triggerText="Add Lease"
+			title="Add New Lease"
+			description="Create a new lease agreement with tenant, unit, and terms"
+			steps={LEASE_FORM_STEPS}
+			formType="lease"
+			isPending={createLeaseMutation.isPending}
+			submitText="Create Lease"
+			submitPendingText="Creating..."
+			onValidateStep={validateStep}
+			onSubmit={async e => {
+				e.preventDefault()
+				await form.handleSubmit()
+			}}
+		>
+			{currentStep => (
+				<div className="space-y-4">
+					{/* Step 1: Tenant & Unit */}
+					{currentStep === 1 && (
+						<>
+							<form.Field name="tenantId">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="tenantId">Tenant *</FieldLabel>
+										<Select value={field.state.value ?? ''} onValueChange={field.handleChange}>
+											<SelectTrigger>
+												<SelectValue placeholder="Select a tenant" />
+											</SelectTrigger>
+											<SelectContent>
+												{tenants.map(tenant => (
+													<SelectItem key={tenant.id} value={tenant.id}>
+														{tenant.name} - {tenant.email}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+										{field.state.meta.errors?.length && (
+											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+										)}
+									</Field>
+								)}
+							</form.Field>
+
+							<form.Field name="unitId">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="unitId">Unit *</FieldLabel>
+										<Select value={field.state.value ?? ''} onValueChange={field.handleChange}>
+											<SelectTrigger>
+												<SelectValue placeholder="Select a unit" />
+											</SelectTrigger>
+											<SelectContent>
+												{units.map(unit => (
+													<SelectItem key={unit.id} value={unit.id}>
+														Unit {unit.unitNumber} - ${unit.rent}/month
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+										<p className="text-sm text-muted-foreground">Only vacant units are shown</p>
+										{field.state.meta.errors?.length && (
+											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+										)}
+									</Field>
+								)}
+							</form.Field>
+						</>
+					)}
+
+					{/* Step 2: Lease Dates */}
+					{currentStep === 2 && (
+						<>
+							<form.Field name="startDate">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="startDate">Start Date *</FieldLabel>
+										<Input
+											id="startDate"
+											type="date"
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										{field.state.meta.errors?.length && (
+											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+										)}
+									</Field>
+								)}
+							</form.Field>
+
+							<form.Field name="endDate">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="endDate">End Date *</FieldLabel>
+										<Input
+											id="endDate"
+											type="date"
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										{field.state.meta.errors?.length && (
+											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+										)}
+									</Field>
+								)}
+							</form.Field>
+
+							<form.Field name="status">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="status">Status *</FieldLabel>
+										<Select
+											value={field.state.value}
+											onValueChange={value => field.handleChange(value as LeaseStatus)}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select status" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="ACTIVE">Active</SelectItem>
+												<SelectItem value="EXPIRED">Expired</SelectItem>
+												<SelectItem value="TERMINATED">Terminated</SelectItem>
+											</SelectContent>
+										</Select>
+									</Field>
+								)}
+							</form.Field>
+						</>
+					)}
+
+					{/* Step 3: Financial Terms */}
+					{currentStep === 3 && (
+						<>
+							<form.Field name="rentAmount">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="rentAmount">Rent Amount (per lease term) *</FieldLabel>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<DollarSign className="w-4 h-4" />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="rentAmount"
+												type="number"
+												min="0"
+												step="0.01"
+												placeholder="18000.00"
+												value={field.state.value}
+												onChange={e => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+											/>
+										</InputGroup>
+										<p className="text-sm text-muted-foreground">Total rent for the entire lease term</p>
+										{field.state.meta.errors?.length && (
+											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+										)}
+									</Field>
+								)}
+							</form.Field>
+
+							<form.Field name="monthlyRent">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="monthlyRent">Monthly Rent (Optional)</FieldLabel>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<DollarSign className="w-4 h-4" />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="monthlyRent"
+												type="number"
+												min="0"
+												step="0.01"
+												placeholder="1500.00"
+												value={field.state.value}
+												onChange={e => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+											/>
+										</InputGroup>
+										<p className="text-sm text-muted-foreground">Monthly payment amount</p>
+									</Field>
+								)}
+							</form.Field>
+
+							<form.Field name="securityDeposit">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="securityDeposit">Security Deposit *</FieldLabel>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<DollarSign className="w-4 h-4" />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="securityDeposit"
+												type="number"
+												min="0"
+												step="0.01"
+												placeholder="1500.00"
+												value={field.state.value}
+												onChange={e => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+											/>
+										</InputGroup>
+										{field.state.meta.errors?.length && (
+											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+										)}
+									</Field>
+								)}
+							</form.Field>
+						</>
+					)}
+
+					{/* Step 4: Additional Terms */}
+					{currentStep === 4 && (
+						<>
+							<div className="grid grid-cols-2 gap-4">
+								<form.Field name="gracePeriodDays">
+									{field => (
+										<Field>
+											<FieldLabel htmlFor="gracePeriodDays">Grace Period (Days)</FieldLabel>
+											<Input
+												id="gracePeriodDays"
+												type="number"
+												min="0"
+												placeholder="5"
+												value={field.state.value}
+												onChange={e => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+											/>
+										</Field>
+									)}
+								</form.Field>
+
+								<form.Field name="lateFeeAmount">
+									{field => (
+										<Field>
+											<FieldLabel htmlFor="lateFeeAmount">Late Fee Amount</FieldLabel>
+											<InputGroup>
+												<InputGroupAddon align="inline-start">
+													<DollarSign className="w-4 h-4" />
+												</InputGroupAddon>
+												<InputGroupInput
+													id="lateFeeAmount"
+													type="number"
+													min="0"
+													step="0.01"
+													placeholder="50.00"
+													value={field.state.value}
+													onChange={e => field.handleChange(e.target.value)}
+													onBlur={field.handleBlur}
+												/>
+											</InputGroup>
+										</Field>
+									)}
+								</form.Field>
+							</div>
+
+							<form.Field name="lateFeePercentage">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="lateFeePercentage">Late Fee Percentage</FieldLabel>
+										<Input
+											id="lateFeePercentage"
+											type="number"
+											min="0"
+											max="100"
+											step="0.1"
+											placeholder="5.0"
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+										<p className="text-sm text-muted-foreground">Percentage of monthly rent as late fee</p>
+									</Field>
+								)}
+							</form.Field>
+
+							<form.Field name="terms">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="terms">Additional Terms & Conditions</FieldLabel>
+										<Textarea
+											id="terms"
+											placeholder="Special terms, conditions, or notes about this lease..."
+											rows={4}
+											value={field.state.value}
+											onChange={e => field.handleChange(e.target.value)}
+											onBlur={field.handleBlur}
+										/>
+									</Field>
+								)}
+							</form.Field>
+
+							<div className="rounded-lg border p-4 bg-muted/50">
+								<h4 className="font-medium mb-2">Summary</h4>
+								<div className="space-y-1 text-sm text-muted-foreground">
+									<div>
+										Lease Term: {form.state.values.startDate || 'N/A'} to {form.state.values.endDate || 'N/A'}
+									</div>
+									<div>Total Rent: ${form.state.values.rentAmount || '0'}</div>
+									{form.state.values.monthlyRent && <div>Monthly: ${form.state.values.monthlyRent}</div>}
+									<div>Security Deposit: ${form.state.values.securityDeposit || '0'}</div>
+									{form.state.values.gracePeriodDays && (
+										<div>Grace Period: {form.state.values.gracePeriodDays} days</div>
+									)}
+								</div>
+							</div>
+						</>
+					)}
+				</div>
+			)}
+		</CreateDialog>
+	)
+}
 
 export default function LeasesPage() {
 	const logger = createLogger({ component: 'LeasesPage' })
@@ -250,7 +668,7 @@ export default function LeasesPage() {
 						Manage lease agreements and track tenant contracts
 					</p>
 				</div>
-				<CreateLeaseDialog />
+				<LeaseCreateDialog />
 			</div>
 
 			{/* Filters */}
@@ -401,8 +819,8 @@ export default function LeasesPage() {
 					<Pagination>
 						<PaginationContent>
 							<PaginationItem>
-								<PaginationPrevious
-									href="#"
+								<Button
+									variant="outline"
 									onClick={e => {
 										e.preventDefault()
 										if (page > 1) {
@@ -410,7 +828,9 @@ export default function LeasesPage() {
 										}
 									}}
 									className={page === 1 ? 'pointer-events-none opacity-50' : ''}
-								/>
+								>
+									Previous
+								</Button>
 							</PaginationItem>
 
 							{Array.from(
@@ -428,22 +848,21 @@ export default function LeasesPage() {
 										{idx > 0 && arr[idx - 1] !== pageNum - 1 ? (
 											<span className="px-2">...</span>
 										) : null}
-										<PaginationLink
-											href="#"
+										<Button
+											variant={page === pageNum ? 'default' : 'outline'}
 											onClick={e => {
 												e.preventDefault()
 												setUrlState({ page: pageNum })
 											}}
-											isActive={page === pageNum}
 										>
 											{pageNum}
-										</PaginationLink>
+										</Button>
 									</PaginationItem>
 								))}
 
 							<PaginationItem>
-								<PaginationNext
-									href="#"
+								<Button
+									variant="outline"
 									onClick={e => {
 										e.preventDefault()
 										if (page < Math.ceil(total / ITEMS_PER_PAGE)) {
@@ -455,7 +874,9 @@ export default function LeasesPage() {
 											? 'pointer-events-none opacity-50'
 											: ''
 									}
-								/>
+								>
+									Next
+								</Button>
 							</PaginationItem>
 						</PaginationContent>
 					</Pagination>
@@ -535,13 +956,45 @@ export default function LeasesPage() {
 				</DialogContent>
 			</Dialog>
 
-			{/* Edit Lease Dialog */}
+			{/* Edit Lease Dialog - Inline (read-only for now, backend handles updates) */}
 			{selectedLease && (
-				<LeaseEditDialog
-					lease={selectedLease}
-					open={editDialogOpen}
-					onOpenChange={setEditDialogOpen}
-				/>
+				<Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+					<DialogContent className="sm:max-w-lg">
+						<DialogHeader>
+							<DialogTitle>Lease Details</DialogTitle>
+							<DialogDescription>
+								View lease information
+							</DialogDescription>
+						</DialogHeader>
+						<div className="space-y-4">
+							<div>
+								<Label>Start Date</Label>
+								<Input type="date" value={selectedLease.startDate} disabled />
+							</div>
+							<div>
+								<Label>End Date</Label>
+								<Input type="date" value={selectedLease.endDate} disabled />
+							</div>
+							<div>
+								<Label>Rent Amount</Label>
+								<Input type="number" value={selectedLease.rentAmount} disabled />
+							</div>
+							<div>
+								<Label>Security Deposit</Label>
+								<Input type="number" value={selectedLease.securityDeposit} disabled />
+							</div>
+							<div>
+								<Label>Status</Label>
+								<Badge>{selectedLease.status}</Badge>
+							</div>
+						</div>
+						<DialogFooter>
+							<Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+								Close
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
 			)}
 		</div>
 	)
