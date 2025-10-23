@@ -4,6 +4,11 @@ import type {
 	PropertyPerformance,
 	SystemUptime
 } from '@repo/shared/types/core'
+import {
+	EMPTY_DASHBOARD_STATS,
+	EMPTY_MAINTENANCE_ANALYTICS,
+	EMPTY_SYSTEM_UPTIME
+} from '@repo/shared/constants/empty-states'
 import { SupabaseService } from '../../database/supabase.service'
 import { DashboardAnalyticsService } from '../analytics/dashboard-analytics.service'
 
@@ -16,257 +21,544 @@ export class DashboardService {
 		private readonly dashboardAnalyticsService: DashboardAnalyticsService
 	) {}
 
-	/**
-	 * Helper method to get unit IDs for a user (via property ownership)
-	 */
-	private async getUserUnitIds(userId: string): Promise<string[]> {
-		const client = this.supabase.getAdminClient()
-		const { data: properties } = await client
-			.from('property')
-			.select('id')
-			.eq('owner_id', userId)
-		const propertyIds = properties?.map(p => p.id) || []
-		if (propertyIds.length === 0) return []
-
-		const { data: units } = await client
-			.from('unit')
-			.select('id')
-			.in('property_id', propertyIds)
-		return units?.map(u => u.id) || []
-	}
 
 	/**
 	 * Get comprehensive dashboard statistics
 	 * Uses repository pattern for clean separation of concerns
 	 */
 	async getStats(userId?: string): Promise<DashboardStats> {
-		// Business logic: Validate userId
 		if (!userId) {
 			this.logger.warn('Dashboard stats requested without userId')
-			// Return default empty stats for missing userId
-			return {
-				properties: {
-					total: 0,
-					occupied: 0,
-					vacant: 0,
-					occupancyRate: 0,
-					totalMonthlyRent: 0,
-					averageRent: 0
-				},
-				tenants: { total: 0, active: 0, inactive: 0, newThisMonth: 0 },
-				units: {
-					total: 0,
-					occupied: 0,
-					vacant: 0,
-					maintenance: 0,
-					averageRent: 0,
-					available: 0,
-					occupancyRate: 0,
-					occupancyChange: 0,
-					totalPotentialRent: 0,
-					totalActualRent: 0
-				},
-				leases: { total: 0, active: 0, expired: 0, expiringSoon: 0 },
-				maintenance: {
-					total: 0,
-					open: 0,
-					inProgress: 0,
-					completed: 0,
-					completedToday: 0,
-					avgResolutionTime: 0,
-					byPriority: { low: 0, medium: 0, high: 0, emergency: 0 }
-				},
-				revenue: { monthly: 0, yearly: 0, growth: 0 }
-			}
+			return { ...EMPTY_DASHBOARD_STATS }
 		}
 
 		try {
-			this.logger.log('Fetching dashboard stats via direct Supabase query', {
-				userId
-			})
-
 			const client = this.supabase.getAdminClient()
 
-			// Get property stats
-			const { data: propertyData } = await client
-				.from('property')
-				.select('id')
-				.eq('owner_id', userId)
+			const now = new Date()
+			const startOfCurrentMonth = new Date(
+				Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
+			)
+			const startOfNextMonth = new Date(
+				Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
+			)
+			const startOfPreviousMonth = new Date(
+				Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)
+			)
+			const endOfPreviousMonth = new Date(startOfCurrentMonth.getTime() - 1)
+			const startOfYear = new Date(Date.UTC(now.getUTCFullYear(), 0, 1))
+			const paymentQueryStart = (
+				startOfPreviousMonth < startOfYear ? startOfPreviousMonth : startOfYear
+			)
 
-			const properties = {
-				total: propertyData?.length || 0,
-				occupied: 0, // Need to calculate from units
-				vacant: 0,
-				occupancyRate: 0,
-				totalMonthlyRent: 0, // Will be calculated from units
-				averageRent: 0 // Will be calculated from units
+			const [propertyResult, tenantResult, paymentResult] = await Promise.all([
+				client.from('property').select('id, status').eq('ownerId', userId),
+				client.from('tenant').select('status, createdAt').eq('userId', userId),
+				client
+					.from('rent_payment')
+					.select('landlordReceives, amount, paidAt, createdAt, status')
+					.eq('landlordId', userId)
+					.gte('createdAt', paymentQueryStart.toISOString())
+			])
+
+			if (propertyResult.error) {
+				this.logger.error('Failed to fetch properties for dashboard stats', {
+					error: propertyResult.error.message,
+					userId
+				})
 			}
 
-			// Get unit stats
-			const { data: unitData } = await client
-				.from('unit')
-				.select('id, status, rent')
-				.in('property_id', propertyData?.map(p => p.id) || [])
-
-			const units = {
-				total: unitData?.length || 0,
-				occupied: unitData?.filter(u => u.status === 'OCCUPIED').length || 0,
-				vacant: unitData?.filter(u => u.status === 'VACANT').length || 0,
-				maintenance:
-					unitData?.filter(u => u.status === 'MAINTENANCE').length || 0,
-				averageRent:
-					unitData && unitData.length > 0
-						? unitData.reduce((sum, unit) => sum + (unit.rent || 0), 0) /
-							unitData.length
-						: 0,
-				available: unitData?.filter(u => u.status === 'VACANT').length || 0,
-				occupancyRate:
-					unitData && unitData.length > 0
-						? Math.round(
-								(unitData.filter(u => u.status === 'OCCUPIED').length /
-									unitData.length) *
-									100
-							)
-						: 0,
-				occupancyChange: 0,
-				totalPotentialRent:
-					unitData?.reduce((sum, unit) => sum + (unit.rent || 0), 0) || 0,
-				totalActualRent:
-					unitData
-						?.filter(u => u.status === 'OCCUPIED')
-						.reduce((sum, unit) => sum + (unit.rent || 0), 0) || 0
+			if (tenantResult.error) {
+				this.logger.error('Failed to fetch tenants for dashboard stats', {
+					error: tenantResult.error.message,
+					userId
+				})
 			}
 
-			// Update property occupancy based on units
-			properties.occupied = units.occupied
-			properties.vacant = units.vacant
-			properties.occupancyRate = units.occupancyRate
-
-			// Get tenant stats
-			const { data: leaseData } = await client
-				.from('lease')
-				.select('id, tenantId, status, endDate')
-				.in('unit_id', unitData?.map(u => u.id) || [])
-
-			const { data: tenantData } = await client
-				.from('tenant')
-				.select('id')
-				.in('id', leaseData?.map(l => l.tenantId) || [])
-
-			const tenants = {
-				total: tenantData?.length || 0,
-				active: leaseData?.filter(l => l.status === 'ACTIVE').length || 0,
-				inactive: leaseData?.filter(l => l.status !== 'ACTIVE').length || 0,
-				newThisMonth: 0 // Need to calculate from created_at
+			if (paymentResult.error) {
+				this.logger.error('Failed to fetch rent payments for dashboard stats', {
+					error: paymentResult.error.message,
+					userId
+				})
 			}
 
-			// Get lease stats
-			const leases = {
-				total: leaseData?.length || 0,
-				active: leaseData?.filter(l => l.status === 'ACTIVE').length || 0,
-				expired:
-					leaseData?.filter(l => new Date(l.endDate) < new Date()).length || 0,
-				expiringSoon:
-					leaseData?.filter(
-						l =>
-							new Date(l.endDate) > new Date() &&
-							new Date(l.endDate) <= new Date(Date.now() + 30 * 24 * 60 * 1000)
-					).length || 0
+			const parseDate = (value: string | null | undefined): Date | null => {
+				if (!value) return null
+				const date = new Date(value)
+				return Number.isNaN(date.getTime()) ? null : date
 			}
 
-			// Get maintenance stats
-			const unitIds = await this.getUserUnitIds(userId)
-			const { data: maintenanceData } =
-				unitIds.length > 0
-					? await client
-							.from('maintenance_request')
-							.select('id, priority, status, updatedAt')
-							.in('unit_id', unitIds)
-					: { data: [] }
+			const toNumber = (value: number | null | undefined): number =>
+				typeof value === 'number' && Number.isFinite(value) ? value : 0
 
-			const maintenance = {
-				total: maintenanceData?.length || 0,
-				open: maintenanceData?.filter(m => m.status === 'OPEN').length || 0,
-				inProgress:
-					maintenanceData?.filter(m => m.status === 'IN_PROGRESS').length || 0,
-				completed:
-					maintenanceData?.filter(m => m.status === 'COMPLETED').length || 0,
-				completedToday:
-					maintenanceData?.filter(
-						m =>
-							m.status === 'COMPLETED' &&
-							new Date(m.updatedAt).toDateString() === new Date().toDateString()
-					).length || 0,
-				avgResolutionTime: 0, // Would need to calculate from created_at to completed_at
-				byPriority: {
-					low: maintenanceData?.filter(m => m.priority === 'LOW').length || 0,
-					medium:
-						maintenanceData?.filter(m => m.priority === 'MEDIUM').length || 0,
-					high: maintenanceData?.filter(m => m.priority === 'HIGH').length || 0,
-					emergency:
-						maintenanceData?.filter(m => m.priority === 'EMERGENCY').length || 0
+			type PropertyRow = { id: string; status?: string | null }
+			const propertyRows = (propertyResult.data ?? []) as PropertyRow[]
+			const propertyIds = propertyRows.map(row => row.id).filter(Boolean)
+			const propertyTotal = propertyIds.length
+
+			type TenantRow = { status: string | null; createdAt: string | null }
+			const tenantRows = (tenantResult.data ?? []) as TenantRow[]
+
+			type PaymentRow = {
+				landlordReceives: number | null
+				amount: number | null
+				paidAt: string | null
+				createdAt: string | null
+				status: string | null
+			}
+			const paymentRows = (paymentResult.data ?? []) as PaymentRow[]
+
+			type UnitRow = {
+				id: string
+				propertyId: string
+				status: string | null
+				rent: number | null
+			}
+
+			let unitRows: UnitRow[] = []
+			if (propertyIds.length > 0) {
+				const unitResult = await client
+					.from('unit')
+					.select('id, propertyId, status, rent')
+					.in('propertyId', propertyIds)
+
+				if (unitResult.error) {
+					this.logger.error('Failed to fetch units for dashboard stats', {
+						error: unitResult.error.message,
+						userId
+					})
+				} else {
+					unitRows = (unitResult.data ?? []) as UnitRow[]
 				}
 			}
 
-			// Get revenue stats (simplified - would need actual payment data)
-			const revenue = {
-				monthly: 0, // Would need to get from payments table
-				yearly: 0,
-				growth: 0
+			const unitIds = unitRows.map(unit => unit.id)
+
+			type LeaseRow = {
+				id: string
+				status: string | null
+				startDate: string
+				endDate: string
+				rentAmount: number | null
+				monthlyRent: number | null
+				securityDeposit: number | null
+				unitId: string
+				propertyId: string | null
 			}
 
-			return {
-				properties,
-				tenants,
-				units,
-				leases,
-				maintenance,
-				revenue
+			let leaseRows: LeaseRow[] = []
+			if (unitIds.length > 0) {
+				const leaseResult = await client
+					.from('lease')
+					.select(
+						'id, status, startDate, endDate, rentAmount, monthlyRent, securityDeposit, unitId, propertyId'
+					)
+					.in('unitId', unitIds)
+
+				if (leaseResult.error) {
+					this.logger.error('Failed to fetch leases for dashboard stats', {
+						error: leaseResult.error.message,
+						userId
+					})
+				} else {
+					leaseRows = (leaseResult.data ?? []) as LeaseRow[]
+				}
 			}
+
+			type MaintenanceRow = {
+				id: string
+				status: string | null
+				priority: string | null
+				createdAt: string
+				updatedAt: string | null
+				completedAt: string | null
+				unitId: string
+			}
+
+			let maintenanceRows: MaintenanceRow[] = []
+			if (unitIds.length > 0) {
+				const maintenanceResult = await client
+					.from('maintenance_request')
+					.select('id, status, priority, createdAt, updatedAt, completedAt, unitId')
+					.in('unitId', unitIds)
+
+				if (maintenanceResult.error) {
+					this.logger.error('Failed to fetch maintenance stats for dashboard', {
+						error: maintenanceResult.error.message,
+						userId
+					})
+				} else {
+					maintenanceRows = (maintenanceResult.data ?? []) as MaintenanceRow[]
+				}
+			}
+
+			const unitPropertyMap = new Map<string, string>()
+			const unitRentMap = new Map<string, number>()
+			const occupiedUnitIdsFromStatus = new Set<string>()
+			const propertyOccupiedFromUnits = new Set<string>()
+
+			let totalPotentialRent = 0
+			let maintenanceUnitCount = 0
+			let reservedUnitCount = 0
+			let vacantUnitCount = 0
+
+			for (const unit of unitRows) {
+				if (!unit.id) continue
+				if (unit.propertyId) {
+					unitPropertyMap.set(unit.id, unit.propertyId)
+				}
+				if (typeof unit.rent === 'number') {
+					unitRentMap.set(unit.id, unit.rent)
+					totalPotentialRent += unit.rent
+				}
+
+				const status = (unit.status ?? '').toUpperCase()
+				if (status === 'OCCUPIED') {
+					occupiedUnitIdsFromStatus.add(unit.id)
+					if (unit.propertyId) {
+						propertyOccupiedFromUnits.add(unit.propertyId)
+					}
+				} else if (status === 'MAINTENANCE') {
+					maintenanceUnitCount++
+				} else if (status === 'RESERVED') {
+					reservedUnitCount++
+				} else if (status === 'VACANT') {
+					vacantUnitCount++
+				}
+			}
+
+			const activeLeaseUnitIds = new Set<string>()
+			const propertyOccupiedFromLeases = new Set<string>()
+			const propertyRentTotals = new Map<string, number>()
+			const occupiedLastMonthUnitIds = new Set<string>()
+
+			let activeLeaseCount = 0
+			let terminatedLeaseCount = 0
+			let expiredLeaseCount = 0
+			let expiringSoonCount = 0
+			let totalLeaseRent = 0
+			let totalSecurityDeposits = 0
+
+			const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000
+			const soonThreshold = new Date(now.getTime() + thirtyDaysMs)
+
+			for (const lease of leaseRows) {
+				if (!lease.unitId) continue
+
+				const status = (lease.status ?? '').toUpperCase()
+				const startDate = parseDate(lease.startDate)
+				const endDate = parseDate(lease.endDate)
+				const propertyId = lease.propertyId ?? unitPropertyMap.get(lease.unitId) ?? null
+
+				if (status === 'ACTIVE') {
+					activeLeaseCount++
+				}
+				if (status === 'TERMINATED') {
+					terminatedLeaseCount++
+				}
+				if (endDate && endDate < now) {
+					expiredLeaseCount++
+				} else if (status === 'ACTIVE' && endDate && endDate >= now && endDate <= soonThreshold) {
+					expiringSoonCount++
+				}
+
+				totalSecurityDeposits += toNumber(lease.securityDeposit)
+
+				const rentFromLease = toNumber(
+					lease.rentAmount ?? lease.monthlyRent ?? unitRentMap.get(lease.unitId)
+				)
+
+				const isLeaseActiveNow =
+					status === 'ACTIVE' &&
+					(startDate ? startDate <= now : true) &&
+					(endDate ? endDate >= now : true)
+
+				if (isLeaseActiveNow) {
+					activeLeaseUnitIds.add(lease.unitId)
+					totalLeaseRent += rentFromLease
+					if (propertyId) {
+						propertyOccupiedFromLeases.add(propertyId)
+						propertyRentTotals.set(
+							propertyId,
+							(propertyRentTotals.get(propertyId) ?? 0) + rentFromLease
+						)
+					}
+				}
+
+				const wasActivePreviousMonth =
+					(status === 'ACTIVE' || status === 'PENDING') &&
+					(startDate ? startDate <= endOfPreviousMonth : true) &&
+					(endDate ? endDate >= startOfPreviousMonth : true)
+
+				if (wasActivePreviousMonth) {
+					occupiedLastMonthUnitIds.add(lease.unitId)
+				}
+			}
+
+			const occupiedUnitIds = new Set<string>([
+				...occupiedUnitIdsFromStatus,
+				...activeLeaseUnitIds
+			])
+			const unitTotal = unitRows.length
+			const occupiedUnitCount = Math.min(occupiedUnitIds.size, unitTotal)
+
+			const propertyOccupiedSet = new Set<string>([
+				...propertyOccupiedFromUnits,
+				...propertyOccupiedFromLeases
+			])
+			const propertyOccupiedCount = Math.min(propertyOccupiedSet.size, propertyTotal)
+
+			let totalActualRent = totalLeaseRent
+			if (totalActualRent === 0 && occupiedUnitIds.size > 0) {
+				totalActualRent = [...occupiedUnitIds].reduce((sum, unitId) => {
+					return sum + toNumber(unitRentMap.get(unitId))
+				}, 0)
+			}
+
+			const totalPropertyRent =
+				propertyRentTotals.size > 0
+					? Array.from(propertyRentTotals.values()).reduce(
+							(sum, value) => sum + value,
+							0
+						)
+					: totalActualRent
+
+			const occupancyRate =
+				unitTotal > 0 ? (occupiedUnitCount / unitTotal) * 100 : 0
+			const previousOccupancyRate =
+				unitTotal > 0 ? (occupiedLastMonthUnitIds.size / unitTotal) * 100 : 0
+
+			const derivedVacant = Math.max(
+				unitTotal - occupiedUnitCount - maintenanceUnitCount,
+				0
+			)
+			const vacantUnitsTotal = Math.max(vacantUnitCount, derivedVacant)
+
+			const unitsStats = {
+				total: unitTotal,
+				occupied: occupiedUnitCount,
+				vacant: vacantUnitsTotal,
+				maintenance: maintenanceUnitCount,
+				averageRent:
+					occupiedUnitCount > 0
+						? Number((totalActualRent / occupiedUnitCount).toFixed(2))
+						: 0,
+				available: vacantUnitCount + reservedUnitCount,
+				occupancyRate: Number(occupancyRate.toFixed(2)),
+				occupancyChange: Number((occupancyRate - previousOccupancyRate).toFixed(2)),
+				totalPotentialRent: Number(totalPotentialRent.toFixed(2)),
+				totalActualRent: Number(totalActualRent.toFixed(2))
+			}
+
+			const propertyStats = {
+				total: propertyTotal,
+				occupied: propertyOccupiedCount,
+				vacant: Math.max(propertyTotal - propertyOccupiedCount, 0),
+				occupancyRate:
+					propertyTotal > 0
+						? Number(((propertyOccupiedCount / propertyTotal) * 100).toFixed(2))
+						: 0,
+				totalMonthlyRent: Number(totalPropertyRent.toFixed(2)),
+				averageRent:
+					propertyOccupiedCount > 0
+						? Number((totalPropertyRent / propertyOccupiedCount).toFixed(2))
+						: 0
+			}
+
+			const statusToUpper = (value: string | null) =>
+				(value ?? '').toUpperCase()
+
+			const activeTenants = tenantRows.filter(
+				tenant => statusToUpper(tenant.status) === 'ACTIVE'
+			).length
+			const pendingTenants = tenantRows.filter(
+				tenant => statusToUpper(tenant.status) === 'PENDING'
+			).length
+			const inactiveTenants = tenantRows.filter(tenant =>
+				['INACTIVE', 'EVICTED', 'MOVED_OUT', 'ARCHIVED'].includes(
+					statusToUpper(tenant.status)
+				)
+			).length
+			const newTenantsThisMonth = tenantRows.filter(tenant => {
+				const created = parseDate(tenant.createdAt)
+				return Boolean(created && created >= startOfCurrentMonth)
+			}).length
+
+			const tenantStats = {
+				total: tenantRows.length,
+				active: activeTenants,
+				inactive: inactiveTenants,
+				newThisMonth: newTenantsThisMonth,
+				totalTenants: tenantRows.length,
+				activeTenants: activeTenants + pendingTenants
+			}
+
+			const leaseStats = {
+				total: leaseRows.length,
+				active: activeLeaseCount,
+				expired: expiredLeaseCount,
+				expiringSoon: expiringSoonCount,
+				terminated: terminatedLeaseCount,
+				totalMonthlyRent: Number(totalLeaseRent.toFixed(2)),
+				averageRent:
+					activeLeaseCount > 0
+						? Number((totalLeaseRent / activeLeaseCount).toFixed(2))
+						: 0,
+				totalSecurityDeposits: Number(totalSecurityDeposits.toFixed(2))
+			}
+
+			let maintenanceOpen = 0
+			let maintenanceInProgress = 0
+			let maintenanceCompleted = 0
+			let maintenanceCompletedToday = 0
+			let resolutionTotalMs = 0
+			let resolvedCount = 0
+
+			const priorityCounts = {
+				low: 0,
+				medium: 0,
+				high: 0,
+				emergency: 0
+			}
+
+			const todayKey = now.toISOString().slice(0, 10)
+
+			for (const request of maintenanceRows) {
+				const status = (request.status ?? '').toUpperCase()
+				if (status === 'OPEN' || status === 'ON_HOLD') {
+					maintenanceOpen++
+				} else if (status === 'IN_PROGRESS') {
+					maintenanceInProgress++
+				} else if (status === 'COMPLETED' || status === 'CLOSED') {
+					maintenanceCompleted++
+				}
+
+				const priority = (request.priority ?? '').toUpperCase()
+				if (priority === 'LOW') priorityCounts.low++
+				if (priority === 'MEDIUM') priorityCounts.medium++
+				if (priority === 'HIGH') priorityCounts.high++
+				if (priority === 'EMERGENCY') priorityCounts.emergency++
+
+				const createdAt = parseDate(request.createdAt)
+				const completedAt =
+					parseDate(request.completedAt) ??
+					(status === 'COMPLETED' || status === 'CLOSED'
+						? parseDate(request.updatedAt)
+						: null)
+
+				if (completedAt) {
+					if (completedAt.toISOString().slice(0, 10) === todayKey) {
+						maintenanceCompletedToday++
+					}
+					if (createdAt && completedAt > createdAt) {
+						resolutionTotalMs += completedAt.getTime() - createdAt.getTime()
+						resolvedCount++
+					}
+				}
+			}
+
+			const maintenanceStats = {
+				total: maintenanceRows.length,
+				open: maintenanceOpen,
+				inProgress: maintenanceInProgress,
+				completed: maintenanceCompleted,
+				completedToday: maintenanceCompletedToday,
+				avgResolutionTime:
+					resolvedCount > 0
+						? Number(
+								(resolutionTotalMs / resolvedCount / (1000 * 60 * 60)).toFixed(2)
+							)
+						: 0,
+				byPriority: priorityCounts
+			}
+
+			let monthlyRevenueCents = 0
+			let previousMonthRevenueCents = 0
+			let yearlyRevenueCents = 0
+			let lifetimeRevenueCents = 0
+
+			for (const payment of paymentRows) {
+				const status = (payment.status ?? '').toUpperCase()
+				const isPaid =
+					status === 'SUCCEEDED' ||
+					status === 'PAID' ||
+					(Boolean(payment.paidAt) && status !== 'FAILED')
+
+				if (!isPaid) continue
+
+				const paymentDate =
+					parseDate(payment.paidAt) ?? parseDate(payment.createdAt)
+				if (!paymentDate) continue
+
+				let amountCents = toNumber(payment.landlordReceives)
+				if (amountCents === 0 && payment.landlordReceives === null) {
+					amountCents = toNumber(payment.amount)
+				}
+
+				lifetimeRevenueCents += amountCents
+
+				if (paymentDate >= startOfCurrentMonth && paymentDate < startOfNextMonth) {
+					monthlyRevenueCents += amountCents
+				}
+
+				if (
+					paymentDate >= startOfPreviousMonth &&
+					paymentDate < startOfCurrentMonth
+				) {
+					previousMonthRevenueCents += amountCents
+				}
+
+				if (paymentDate >= startOfYear) {
+					yearlyRevenueCents += amountCents
+				}
+			}
+
+			const monthlyRevenue = Number((monthlyRevenueCents / 100).toFixed(2))
+			const yearlyRevenue = Number((yearlyRevenueCents / 100).toFixed(2))
+			const revenueGrowth =
+				previousMonthRevenueCents > 0
+					? Number(
+							(
+								((monthlyRevenueCents - previousMonthRevenueCents) /
+									previousMonthRevenueCents) *
+								100
+							).toFixed(2)
+						)
+					: monthlyRevenueCents > 0
+						? 100
+						: 0
+
+			const revenueStats = {
+				monthly: monthlyRevenue,
+				yearly: yearlyRevenue,
+				growth: revenueGrowth
+			}
+
+			const stats: DashboardStats = {
+				properties: propertyStats,
+				tenants: tenantStats,
+				units: unitsStats,
+				leases: leaseStats,
+				maintenance: maintenanceStats,
+				revenue: revenueStats,
+				totalProperties: propertyStats.total,
+				totalUnits: unitsStats.total,
+				totalTenants: tenantStats.total,
+				totalRevenue: Number((lifetimeRevenueCents / 100).toFixed(2)),
+				occupancyRate: Number(occupancyRate.toFixed(2)),
+				maintenanceRequests: maintenanceStats.total
+			}
+
+			return stats
 		} catch (error) {
 			this.logger.error('Dashboard service failed to get stats', {
 				error: error instanceof Error ? error.message : String(error),
 				userId
 			})
 
-			// Business logic: Return empty stats on any error for resilience
-			return {
-				properties: {
-					total: 0,
-					occupied: 0,
-					vacant: 0,
-					occupancyRate: 0,
-					totalMonthlyRent: 0,
-					averageRent: 0
-				},
-				tenants: { total: 0, active: 0, inactive: 0, newThisMonth: 0 },
-				units: {
-					total: 0,
-					occupied: 0,
-					vacant: 0,
-					maintenance: 0,
-					averageRent: 0,
-					available: 0,
-					occupancyRate: 0,
-					occupancyChange: 0,
-					totalPotentialRent: 0,
-					totalActualRent: 0
-				},
-				leases: { total: 0, active: 0, expired: 0, expiringSoon: 0 },
-				maintenance: {
-					total: 0,
-					open: 0,
-					inProgress: 0,
-					completed: 0,
-					completedToday: 0,
-					avgResolutionTime: 0,
-					byPriority: { low: 0, medium: 0, high: 0, emergency: 0 }
-				},
-				revenue: { monthly: 0, yearly: 0, growth: 0 }
-			}
+			return { ...EMPTY_DASHBOARD_STATS }
 		}
 	}
-
 	/**
 	 * Get recent activity feed from Activity table
 	 * Uses repository pattern for clean data access
@@ -295,7 +587,7 @@ export class DashboardService {
 			// const { data: activityData } = await client
 			// 	.from('activity')
 			// 	.select('*')
-			// 	.in('property_id', propertyIds)
+			// 	.in('propertyId', propertyIds)
 			// 	.order('created_at', { ascending: false })
 			// 	.limit(10)
 
@@ -333,7 +625,7 @@ export class DashboardService {
 			const queryBuilder = client
 				.from('property') // Using property table as placeholder - needs actual billing table
 				.select('*')
-				.eq('owner_id', userId) // Using owner_id instead of org_id for property table
+				.eq('ownerId', userId) // Using ownerId instead of orgId for property table
 
 			if (startDate) {
 				queryBuilder.gte('created_at', startDate.toISOString())
@@ -408,7 +700,7 @@ export class DashboardService {
 			const { data: propertyData } = await client
 				.from('property')
 				.select('id, name')
-				.eq('owner_id', userId)
+				.eq('ownerId', userId)
 
 			const { data: unitData } = (await client
 				.from('unit')
@@ -490,32 +782,12 @@ export class DashboardService {
 			this.logger.log('Fetching uptime metrics via direct Supabase query')
 
 			// Simulate uptime metrics - in a real implementation, this would query system monitoring data
-			const uptimeData: SystemUptime = {
-				uptime: '99.9%',
-				uptimePercentage: 99.9,
-				sla: '99.5%',
-				slaStatus: 'excellent' as const,
-				status: 'operational',
-				lastIncident: null,
-				responseTime: 150,
-				timestamp: new Date().toISOString()
-			}
-
-			return uptimeData
+			return EMPTY_SYSTEM_UPTIME
 		} catch (error) {
 			this.logger.error('Dashboard service failed to get uptime metrics', {
 				error: error instanceof Error ? error.message : String(error)
 			})
-			return {
-				uptime: '99.9%',
-				uptimePercentage: 99.9,
-				sla: '99.5%',
-				slaStatus: 'excellent',
-				status: 'operational',
-				lastIncident: null,
-				responseTime: 150,
-				timestamp: new Date().toISOString()
-			}
+			return EMPTY_SYSTEM_UPTIME
 		}
 	}
 
@@ -660,12 +932,7 @@ export class DashboardService {
 					userId
 				}
 			)
-			return {
-				avgResolutionTime: 0,
-				completionRate: 0,
-				priorityBreakdown: {},
-				trendsOverTime: []
-			}
+			return EMPTY_MAINTENANCE_ANALYTICS
 		}
 	}
 }
