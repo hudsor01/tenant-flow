@@ -366,20 +366,8 @@ export interface FinancialOverviewResponse {
 	year: number
 }
 
-export interface ExpenseSummaryResponse {
-	chartData: Array<{
-		groceries: number
-		transport: number
-		other: number
-		month: string
-	}>
-	summary: {
-		totalExpenses: number
-		maintenanceExpenses: number
-		operationalExpenses: number
-		monthlyAverage: number
-	}
-}
+// Re-export from financial-analytics (production type with real expense categories)
+export type { ExpenseSummaryResponse } from './financial-analytics'
 
 export interface LeaseStatsResponse {
 	totalLeases: number
@@ -578,16 +566,13 @@ export type FormProgressData = {
 }
 
 // REPOSITORY INPUT TYPES (Database table Insert/Update types)
-// Re-export from database types for repository pattern consistency
-
-export type MaintenanceRequestInput =
-	Database['public']['Tables']['maintenance_request']['Insert']
-export type MaintenanceRequestUpdate =
-	Database['public']['Tables']['maintenance_request']['Update']
-export type TenantInput = Database['public']['Tables']['tenant']['Insert']
-export type TenantUpdate = Database['public']['Tables']['tenant']['Update']
-export type UnitInput = Database['public']['Tables']['unit']['Insert']
-export type UnitUpdate = Database['public']['Tables']['unit']['Update']
+// Re-export from repository files (single source of truth per domain)
+export type {
+	MaintenanceRequestInput,
+	MaintenanceRequestUpdate
+} from './maintenance-repository'
+export type { TenantInput, TenantUpdate } from './tenants-repository'
+export type { UnitInput, UnitUpdate } from './units-repository'
 
 // PAYMENT METHOD TYPES - Tenant payment system (Phase 2-3)
 

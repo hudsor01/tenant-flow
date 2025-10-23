@@ -157,23 +157,7 @@ export interface UpdateMaintenanceDto {
 }
 
 // Notification API types
-export interface CreateNotificationDto {
-	title: string
-	message: string
-	type: string
-	priority: string
-	userId: string
-	propertyId?: string
-	tenantId?: string
-	leaseId?: string
-	maintenanceId?: string
-	actionUrl?: string
-	data?: Record<string, unknown>
-}
-
-export interface UpdateNotificationDto {
-	read?: boolean
-}
+export type { CreateNotificationDto, UpdateNotificationDto } from './notifications'
 
 // File upload types
 export interface FileUploadResponse {
