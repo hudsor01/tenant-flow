@@ -105,7 +105,7 @@ export interface AppError extends Error {
 	context?: Record<string, unknown>
 }
 
-import type { Database, Tables } from './supabase-generated.js'
+import type { Tables } from './supabase-generated.js'
 
 export type User = Tables<'users'>
 export type Property = Tables<'property'>

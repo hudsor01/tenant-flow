@@ -8,7 +8,7 @@ import { propertiesApi } from '@/lib/api-client'
 import { Plus, TrendingUp, TrendingDown } from 'lucide-react'
 import Link from 'next/link'
 import { ColumnDef } from '@tanstack/react-table'
-import type { Property, PropertyStats } from '@repo/shared/types/core'
+import type { Property } from '@repo/shared/types/core'
 import {
 	createTextColumn,
 	createAddressColumn,

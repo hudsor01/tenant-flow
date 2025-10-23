@@ -1,6 +1,5 @@
 'use client'
 
-import type { Metadata } from 'next'
 import { revalidatePath } from 'next/cache'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { maintenanceApi } from '@/lib/api-client'
