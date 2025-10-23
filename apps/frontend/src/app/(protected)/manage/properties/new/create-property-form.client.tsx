@@ -233,6 +233,8 @@ export function CreatePropertyForm() {
 									<FieldLabel htmlFor="name">Property Name *</FieldLabel>
 									<Input
 										id="name"
+										name="name"
+										autoComplete="organization"
 										placeholder="e.g. Sunset Apartments"
 										value={field.state.value}
 										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -255,6 +257,12 @@ export function CreatePropertyForm() {
 									<FieldLabel htmlFor="propertyType">
 										Property Type *
 									</FieldLabel>
+									<input
+										type="hidden"
+										name="propertyType"
+										value={field.state.value}
+										readOnly
+									/>
 									<Select
 										value={field.state.value}
 										onValueChange={(value: string) => field.handleChange(value)}
@@ -284,6 +292,8 @@ export function CreatePropertyForm() {
 									<FieldLabel htmlFor="address">Address *</FieldLabel>
 									<Input
 										id="address"
+										name="address"
+										autoComplete="street-address"
 										placeholder="123 Main St"
 										value={field.state.value}
 										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -307,6 +317,8 @@ export function CreatePropertyForm() {
 										<FieldLabel htmlFor="city">City *</FieldLabel>
 										<Input
 											id="city"
+											name="city"
+											autoComplete="address-level2"
 											placeholder="City"
 											value={field.state.value}
 											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -329,6 +341,8 @@ export function CreatePropertyForm() {
 										<FieldLabel htmlFor="state">State *</FieldLabel>
 										<Input
 											id="state"
+											name="state"
+											autoComplete="address-level1"
 											placeholder="CA"
 											maxLength={2}
 											value={field.state.value}
@@ -352,6 +366,8 @@ export function CreatePropertyForm() {
 										<FieldLabel htmlFor="zipCode">ZIP Code *</FieldLabel>
 										<Input
 											id="zipCode"
+											name="zipCode"
+											autoComplete="postal-code"
 											placeholder="12345"
 											value={field.state.value}
 											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -399,6 +415,7 @@ export function CreatePropertyForm() {
 										<FieldLabel htmlFor="bedrooms">Bedrooms</FieldLabel>
 										<Input
 											id="bedrooms"
+											name="bedrooms"
 											type="number"
 											placeholder="3"
 											min="0"
@@ -419,6 +436,7 @@ export function CreatePropertyForm() {
 										<FieldLabel htmlFor="bathrooms">Bathrooms</FieldLabel>
 										<Input
 											id="bathrooms"
+											name="bathrooms"
 											type="number"
 											step="0.5"
 											placeholder="2.5"
@@ -442,6 +460,7 @@ export function CreatePropertyForm() {
 										</FieldLabel>
 										<Input
 											id="squareFootage"
+											name="squareFootage"
 											type="number"
 											placeholder="1200"
 											min="0"
@@ -486,6 +505,7 @@ export function CreatePropertyForm() {
 										<div className="flex items-center space-x-2">
 											<Checkbox
 												id="hasGarage"
+												name="hasGarage"
 												checked={field.state.value}
 												onCheckedChange={checked =>
 													field.handleChange(!!checked)
@@ -501,6 +521,7 @@ export function CreatePropertyForm() {
 										<div className="flex items-center space-x-2">
 											<Checkbox
 												id="hasPool"
+												name="hasPool"
 												checked={field.state.value}
 												onCheckedChange={checked =>
 													field.handleChange(!!checked)
@@ -525,6 +546,7 @@ export function CreatePropertyForm() {
 										<FieldLabel htmlFor="rent">Monthly Rent ($)</FieldLabel>
 										<Input
 											id="rent"
+											name="rent"
 											type="number"
 											step="0.01"
 											placeholder="2500.00"
@@ -547,6 +569,7 @@ export function CreatePropertyForm() {
 										</FieldLabel>
 										<Input
 											id="deposit"
+											name="deposit"
 											type="number"
 											step="0.01"
 											placeholder="2500.00"
@@ -575,6 +598,7 @@ export function CreatePropertyForm() {
 									</FieldLabel>
 									<Input
 										id="numberOfUnits"
+										name="numberOfUnits"
 										type="number"
 										placeholder="1"
 										min="1"
@@ -597,6 +621,7 @@ export function CreatePropertyForm() {
 								<div className="flex items-center space-x-2">
 									<Checkbox
 										id="createUnitsNow"
+										name="createUnitsNow"
 										checked={field.state.value}
 										onCheckedChange={checked => field.handleChange(!!checked)}
 									/>

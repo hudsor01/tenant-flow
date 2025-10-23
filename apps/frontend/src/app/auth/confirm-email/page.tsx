@@ -1,8 +1,8 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { GridPattern } from '@/components/magicui/grid-pattern'
-import { CheckCircle2, Mail, ArrowRight } from 'lucide-react'
+import { GridPattern } from '@/components/ui/grid-pattern'
+import { ArrowRight, CheckCircle2, Mail } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -28,7 +28,7 @@ export default function ConfirmEmailPage() {
 					/>
 				</div>
 				{/* Overlay */}
-				<div className="absolute inset-0 bg-gradient-to-br from-black/30 via-black/20 to-black/30" />
+				<div className="absolute inset-0 bg-linear-to-br from-black/30 via-black/20 to-black/30" />
 
 				{/* Content Panel */}
 				<div className="absolute inset-0 flex items-center justify-center">

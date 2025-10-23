@@ -1,6 +1,5 @@
 'use client'
 
-import { revalidatePath } from 'next/cache'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { tenantsApi } from '@/lib/api-client'
 import { Badge } from '@/components/ui/badge'
@@ -10,7 +9,7 @@ import { DataTable } from '@/components/ui/data-table'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import { useOptimistic, useState, useTransition } from 'react'
+import { useEffect, useOptimistic, useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { ColumnDef } from '@tanstack/react-table'
 import type { TenantStats, TenantWithLeaseInfo } from '@repo/shared/types/core'
@@ -18,10 +17,8 @@ import type { TenantStats, TenantWithLeaseInfo } from '@repo/shared/types/core'
 const logger = createLogger({ component: 'TenantsPage' })
 
 async function deleteTenant(tenantId: string) {
-	'use server'
 	try {
 		await tenantsApi.remove(tenantId)
-		revalidatePath('/manage/tenants')
 		return { success: true }
 	} catch (error) {
 		logger.error('Failed to delete tenant', {
@@ -35,10 +32,22 @@ async function deleteTenant(tenantId: string) {
 	}
 }
 
-export default async function TenantsPage() {
-	const [tenants, stats] = await Promise.all([tenantsApi.list(), tenantsApi.stats()])
+export default function TenantsPage() {
+	const [data, setData] = useState<{ tenants: TenantWithLeaseInfo[]; stats: TenantStats } | null>(null)
+	const [isLoading, setIsLoading] = useState(true)
 
-	return <TenantsClient initialTenants={tenants} initialStats={stats} deleteAction={deleteTenant} />
+	useEffect(() => {
+		Promise.all([tenantsApi.list(), tenantsApi.stats()]).then(([tenants, stats]) => {
+			setData({ tenants, stats })
+			setIsLoading(false)
+		})
+	}, [])
+
+	if (isLoading || !data) {
+		return <div className="flex items-center justify-center py-12">Loading...</div>
+	}
+
+	return <TenantsClient initialTenants={data.tenants} initialStats={data.stats} deleteAction={deleteTenant} />
 }
 
 function TenantsClient({
