@@ -1,13 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger
-} from '@/components/ui/dialog'
+import { CreateDialog } from '@/components/ui/base-dialogs'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
@@ -26,6 +19,19 @@ import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { z } from 'zod'
+
+const MAINTENANCE_STEPS = [
+	{
+		id: 1,
+		title: 'Request Details',
+		description: 'Select property, unit, and priority'
+	},
+	{
+		id: 2,
+		title: 'Description & Scheduling',
+		description: 'Provide description and optional scheduling details'
+	}
+]
 
 export function CreateMaintenanceDialog() {
 	const [open, setOpen] = useState(false)
@@ -50,23 +56,16 @@ export function CreateMaintenanceDialog() {
 			priority: 'MEDIUM',
 			category: '',
 			unitId: '',
-			assignedTo: '',
-			requestedBy: '',
-			contactPhone: '',
-			allowEntry: false,
 			estimatedCost: '',
-			photos: [] as string[],
-			notes: '',
-			preferredDate: ''
+			preferredDate: '',
+			allowEntry: false
 		},
 		onSubmit: async ({ value }) => {
 			const payload = {
 				title: value.title,
 				description: value.description,
 				unitId: value.unitId,
-				...(value.priority && {
-					priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-				}),
+				priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
 				...(value.category && {
 					category: value.category as
 						| 'HVAC'
@@ -80,19 +79,24 @@ export function CreateMaintenanceDialog() {
 				...(value.estimatedCost && {
 					estimatedCost: Number(value.estimatedCost)
 				}),
-				...(value.preferredDate && { scheduledDate: value.preferredDate })
+				...(value.preferredDate && { scheduledDate: value.preferredDate }),
+				allowEntry: value.allowEntry
 			}
 
 			createMaintenanceRequest.mutate(payload, {
 				onSuccess: () => {
 					setOpen(false)
 					form.reset()
+					setSelectedPropertyId('')
 				}
 			})
 		},
 		validators: {
 			onChange: ({ value }) => {
-				const result = maintenanceRequestFormSchema.safeParse(value)
+				const result = maintenanceRequestFormSchema.safeParse({
+					...value,
+					priority: value.priority || 'MEDIUM'
+				})
 				if (!result.success) {
 					return z.treeifyError(result.error)
 				}
@@ -114,226 +118,244 @@ export function CreateMaintenanceDialog() {
 		'Other'
 	]
 
-	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<Button className="flex items-center gap-2">
-					<Plus className="size-4" />
-					New Request
-				</Button>
-			</DialogTrigger>
-			<DialogContent className="sm:max-w-lg">
-				<DialogHeader>
-					<DialogTitle>Create Maintenance Request</DialogTitle>
-				</DialogHeader>
-				<form
-					onSubmit={e => {
-						e.preventDefault()
-						form.handleSubmit()
-					}}
-					className="space-y-4"
-				>
-					<Field>
-						<FieldLabel htmlFor="propertyId">Property</FieldLabel>
-						<Select
-							value={selectedPropertyId}
-							onValueChange={setSelectedPropertyId}
-						>
-							<SelectTrigger>
-								<SelectValue placeholder="Select property" />
-							</SelectTrigger>
-							<SelectContent>
-								{properties.map(property => (
-									<SelectItem key={property.id} value={property.id}>
-										{property.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</Field>
+	const validateStep = (step: number): boolean => {
+		const values = form.state.values
+		switch (step) {
+			case 1:
+				return Boolean(
+					selectedPropertyId &&
+						values.title &&
+						values.priority &&
+						values.category
+				)
+			case 2:
+				return Boolean(values.description)
+			default:
+				return true
+		}
+	}
 
-					{selectedPropertyId && units.length > 0 && (
-						<form.Field name="unitId">
-							{field => (
-								<Field>
-									<FieldLabel htmlFor="unitId">Unit (Optional)</FieldLabel>
-									<Select
-										value={field.state.value}
-										onValueChange={value => field.handleChange(value)}
-									>
-										<SelectTrigger>
-											<SelectValue placeholder="Select unit (optional)" />
-										</SelectTrigger>
-										<SelectContent>
-											{units.map(unit => (
-												<SelectItem key={unit.id} value={unit.id}>
-													Unit {unit.unitNumber}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								</Field>
+	return (
+		<CreateDialog
+			open={open}
+			onOpenChange={value => {
+				setOpen(value)
+				if (!value) {
+					form.reset()
+					setSelectedPropertyId('')
+				}
+			}}
+			triggerText="New Request"
+			triggerIcon={<Plus className="size-4" />}
+			title="Create Maintenance Request"
+			description="Log a new maintenance issue for your properties"
+			steps={MAINTENANCE_STEPS}
+			formType="maintenance"
+			isPending={createMaintenanceRequest.isPending}
+			submitText="Create Request"
+			submitPendingText="Creating..."
+			onValidateStep={validateStep}
+			onSubmit={async e => {
+				e.preventDefault()
+				await form.handleSubmit()
+			}}
+		>
+			{currentStep => (
+				<div className="space-y-4">
+					{currentStep === 1 && (
+						<>
+							<Field>
+								<FieldLabel htmlFor="propertyId">Property</FieldLabel>
+								<Select
+									value={selectedPropertyId}
+									onValueChange={setSelectedPropertyId}
+								>
+									<SelectTrigger>
+										<SelectValue placeholder="Select property" />
+									</SelectTrigger>
+									<SelectContent>
+										{properties.map(property => (
+											<SelectItem key={property.id} value={property.id}>
+												{property.name}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</Field>
+
+							{selectedPropertyId && units.length > 0 && (
+								<form.Field name="unitId">
+									{field => (
+										<Field>
+											<FieldLabel htmlFor="unitId">Unit (Optional)</FieldLabel>
+											<Select
+												value={field.state.value}
+												onValueChange={value => field.handleChange(value)}
+											>
+												<SelectTrigger>
+													<SelectValue placeholder="Select unit (optional)" />
+												</SelectTrigger>
+												<SelectContent>
+													{units.map(unit => (
+														<SelectItem key={unit.id} value={unit.id}>
+															Unit {unit.unitNumber}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</Field>
+									)}
+								</form.Field>
 							)}
-						</form.Field>
+
+							<form.Field name="title">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="title">Title</FieldLabel>
+										<Input
+											id="title"
+											placeholder="Kitchen faucet leak"
+											value={field.state.value}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+										/>
+									</Field>
+								)}
+							</form.Field>
+
+							<div className="grid grid-cols-2 gap-4">
+								<form.Field name="category">
+									{field => (
+										<Field>
+											<FieldLabel htmlFor="category">Category</FieldLabel>
+											<Select
+												value={field.state.value}
+												onValueChange={value => field.handleChange(value)}
+											>
+												<SelectTrigger>
+													<SelectValue placeholder="Select category" />
+												</SelectTrigger>
+												<SelectContent>
+													{categories.map(category => (
+														<SelectItem key={category} value={category}>
+															{category}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</Field>
+									)}
+								</form.Field>
+
+								<form.Field name="priority">
+									{field => (
+										<Field>
+											<FieldLabel htmlFor="priority">Priority</FieldLabel>
+											<Select
+												value={field.state.value}
+												onValueChange={value => field.handleChange(value)}
+											>
+												<SelectTrigger>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="LOW">Low</SelectItem>
+													<SelectItem value="MEDIUM">Medium</SelectItem>
+													<SelectItem value="HIGH">High</SelectItem>
+													<SelectItem value="EMERGENCY">Emergency</SelectItem>
+												</SelectContent>
+											</Select>
+										</Field>
+									)}
+								</form.Field>
+							</div>
+						</>
 					)}
 
-					<form.Field name="title">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="title">Title</FieldLabel>
-								<Input
-									id="title"
-									placeholder="Kitchen faucet leak"
-									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-										field.handleChange(e.target.value)
-									}
-									onBlur={field.handleBlur}
-								/>
-							</Field>
-						)}
-					</form.Field>
+					{currentStep === 2 && (
+						<>
+							<form.Field name="description">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="description">Description</FieldLabel>
+										<Textarea
+											id="description"
+											placeholder="Detailed description of the maintenance issue..."
+											rows={3}
+											value={field.state.value}
+											onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+										/>
+									</Field>
+								)}
+							</form.Field>
 
-					<form.Field name="description">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="description">Description</FieldLabel>
-								<Textarea
-									id="description"
-									placeholder="Detailed description of the maintenance issue..."
-									rows={3}
-									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-										field.handleChange(e.target.value)
-									}
-									onBlur={field.handleBlur}
-								/>
-							</Field>
-						)}
-					</form.Field>
+							<form.Field name="estimatedCost">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="estimatedCost">
+											Estimated Cost (Optional)
+										</FieldLabel>
+										<Input
+											id="estimatedCost"
+											type="number"
+											placeholder="250"
+											value={field.state.value}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+										/>
+									</Field>
+								)}
+							</form.Field>
 
-					<div className="grid grid-cols-2 gap-4">
-						<form.Field name="category">
-							{field => (
-								<Field>
-									<FieldLabel htmlFor="category">Category</FieldLabel>
-									<Select
-										value={field.state.value}
-										onValueChange={value => field.handleChange(value)}
-									>
-										<SelectTrigger>
-											<SelectValue placeholder="Select category" />
-										</SelectTrigger>
-										<SelectContent>
-											{categories.map(category => (
-												<SelectItem key={category} value={category}>
-													{category}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								</Field>
-							)}
-						</form.Field>
+							<form.Field name="preferredDate">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="preferredDate">
+											Preferred Date (Optional)
+										</FieldLabel>
+										<Input
+											id="preferredDate"
+											type="date"
+											value={field.state.value}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+										/>
+									</Field>
+								)}
+							</form.Field>
 
-						<form.Field name="priority">
-							{field => (
-								<Field>
-									<FieldLabel htmlFor="priority">Priority</FieldLabel>
-									<Select
-										value={field.state.value}
-										onValueChange={value => field.handleChange(value)}
-									>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="LOW">Low</SelectItem>
-											<SelectItem value="MEDIUM">Medium</SelectItem>
-											<SelectItem value="HIGH">High</SelectItem>
-											<SelectItem value="EMERGENCY">Emergency</SelectItem>
-										</SelectContent>
-									</Select>
-								</Field>
-							)}
-						</form.Field>
-					</div>
-
-					<form.Field name="estimatedCost">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="estimatedCost">
-									Estimated Cost (Optional)
-								</FieldLabel>
-								<Input
-									id="estimatedCost"
-									type="number"
-									placeholder="250"
-									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-										field.handleChange(e.target.value)
-									}
-									onBlur={field.handleBlur}
-								/>
-							</Field>
-						)}
-					</form.Field>
-
-					<form.Field name="preferredDate">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="preferredDate">
-									Preferred Date (Optional)
-								</FieldLabel>
-								<Input
-									id="preferredDate"
-									type="date"
-									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-										field.handleChange(e.target.value)
-									}
-									onBlur={field.handleBlur}
-								/>
-							</Field>
-						)}
-					</form.Field>
-
-					<form.Field name="allowEntry">
-						{field => (
-							<div className="space-y-2">
-								<FieldLabel
-									htmlFor="allowEntry"
-									className="flex items-center gap-2"
-								>
-									<input
-										id="allowEntry"
-										type="checkbox"
-										checked={field.state.value}
-										onChange={e => field.handleChange(e.target.checked)}
-										className="rounded border border-input"
-									/>
-									Allow entry when tenant is not present
-								</FieldLabel>
-							</div>
-						)}
-					</form.Field>
-
-					<div className="flex justify-end gap-2">
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => setOpen(false)}
-						>
-							Cancel
-						</Button>
-						<Button type="submit" disabled={createMaintenanceRequest.isPending}>
-							{createMaintenanceRequest.isPending
-								? 'Creating...'
-								: 'Create Request'}
-						</Button>
-					</div>
-				</form>
-			</DialogContent>
-		</Dialog>
+							<form.Field name="allowEntry">
+								{field => (
+									<div className="space-y-2">
+										<FieldLabel
+											htmlFor="allowEntry"
+											className="flex items-center gap-2"
+										>
+											<input
+												id="allowEntry"
+												type="checkbox"
+												checked={field.state.value}
+												onChange={e => field.handleChange(e.target.checked)}
+												className="rounded border border-input"
+											/>
+											Allow entry when tenant is not present
+										</FieldLabel>
+									</div>
+								)}
+							</form.Field>
+						</>
+					)}
+				</div>
+			)}
+		</CreateDialog>
 	)
 }

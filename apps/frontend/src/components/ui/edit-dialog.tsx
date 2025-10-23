@@ -28,9 +28,9 @@ export interface FormStep {
 
 export interface EditDialogProps {
 	/**
-	 * Dialog trigger button text
+	 * Dialog trigger button text (optional when hideTrigger is true)
 	 */
-	triggerText: string
+	triggerText?: string
 	/**
 	 * Dialog trigger button icon (defaults to Edit)
 	 */
@@ -130,7 +130,7 @@ export interface EditDialogProps {
  * ```
  */
 export function EditDialog({
-	triggerText,
+	triggerText = 'Edit',
 	triggerIcon = <Edit className="size-4" />,
 	title,
 	description,
