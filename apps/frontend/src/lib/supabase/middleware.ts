@@ -1,3 +1,10 @@
+import {
+	PAYMENT_EXEMPT_ROUTES,
+	PROTECTED_ROUTE_PREFIXES,
+	PUBLIC_AUTH_ROUTES
+} from '@/lib/auth-constants'
+import { logger } from '@repo/shared/lib/frontend-logger'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -6,9 +13,7 @@ export async function updateSession(request: NextRequest) {
 		request
 	})
 
-	// With Fluid compute, don't put this client in a global environment
-	// variable. Always create a new one on each request.
-	const supabase = createServerClient(
+	const supabase = createServerClient<Database>(
 		process.env.NEXT_PUBLIC_SUPABASE_URL!,
 		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 		{
@@ -31,38 +36,126 @@ export async function updateSession(request: NextRequest) {
 		}
 	)
 
-	// Do not run code between createServerClient and
-	// supabase.auth.getClaims(). A simple mistake could make it very hard to debug
-	// issues with users being randomly logged out.
+	// This will refresh the session if expired - required for Server Components
+	// IMPORTANT: Use getUser() to validate the session with Supabase instead of just checking local storage
+	const {
+		data: { user },
+		error
+	} = await supabase.auth.getUser()
 
-	// IMPORTANT: If you remove getClaims() and you use server-side rendering
-	// with the Supabase client, your users may be randomly logged out.
-	const { data } = await supabase.auth.getClaims()
-	const user = data?.claims
+	// Get session info for expiration checks
+	const {
+		data: { session }
+	} = await supabase.auth.getSession()
 
-	if (
-		!user &&
-		!request.nextUrl.pathname.startsWith('/login') &&
-		!request.nextUrl.pathname.startsWith('/auth')
-	) {
-		// no user, potentially respond by redirecting the user to the login page
+	// Only consider user authenticated if getUser() succeeds (validates with Supabase)
+	const isAuthenticated = !error && user && session
+
+	// Check route protection using centralized constants
+	const pathname = request.nextUrl.pathname
+	const isProtectedRoute = PROTECTED_ROUTE_PREFIXES.some(
+		prefix => pathname === prefix || pathname.startsWith(`${prefix}/`)
+	)
+	const isAuthRoute = PUBLIC_AUTH_ROUTES.includes(
+		pathname as (typeof PUBLIC_AUTH_ROUTES)[number]
+	)
+	const isPaymentExempt = PAYMENT_EXEMPT_ROUTES.some(
+		route => pathname === route || pathname.startsWith(route)
+	)
+
+	// Redirect unauthenticated users from protected routes to login
+	if (!isAuthenticated && isProtectedRoute) {
 		const url = request.nextUrl.clone()
 		url.pathname = '/login'
+		url.searchParams.set('redirectTo', pathname)
 		return NextResponse.redirect(url)
 	}
 
-	// IMPORTANT: You *must* return the supabaseResponse object as it is.
-	// If you're creating a new response object with NextResponse.next() make sure to:
-	// 1. Pass the request in it, like so:
-	//    const myNewResponse = NextResponse.next({ request })
-	// 2. Copy over the cookies, like so:
-	//    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-	// 3. Change the myNewResponse object to fit your needs, but avoid changing
-	//    the cookies!
-	// 4. Finally:
-	//    return myNewResponse
-	// If this is not done, you may be causing the browser and server to go out
-	// of sync and terminate the user's session prematurely!
+	// Payment gate: Check if authenticated user has active subscription
+	// Per Stripe best practices - check subscription_status field
+	// Skip for payment-exempt routes (pricing, stripe checkout, etc.)
+	if (isAuthenticated && !isPaymentExempt && user) {
+		try {
+			const { data: userProfile } = await supabase
+				.from('users')
+				.select('subscription_status, stripeCustomerId, role')
+				.eq('supabaseId', user.id)
+				.single()
+
+			// TENANT role doesn't need payment (they're invited by OWNER)
+			const requiresPayment = userProfile?.role !== 'TENANT'
+
+			// Check subscription status per Stripe best practices
+			// Valid statuses for access: active, trialing
+			const validStatuses = ['active', 'trialing']
+			const hasValidSubscription =
+				userProfile?.subscription_status &&
+				validStatuses.includes(userProfile.subscription_status)
+			const hasNoStripeCustomer = !userProfile?.stripeCustomerId
+
+			if (requiresPayment && (!hasValidSubscription || hasNoStripeCustomer)) {
+				const url = request.nextUrl.clone()
+				url.pathname = '/pricing'
+				url.searchParams.set('required', 'true')
+				url.searchParams.set('redirectTo', pathname)
+				return NextResponse.redirect(url)
+			}
+		} catch (error) {
+			// Log error but don't block access - fail open for better UX
+			logger.error('Payment check failed', {
+				action: 'middleware_payment_check_failed',
+				metadata: {
+					error: error instanceof Error ? error.message : String(error)
+				}
+			})
+		}
+	}
+
+	// Redirect authenticated users from auth routes to dashboard or intended destination
+	// Only redirect if authentication is valid (validated with Supabase)
+	if (isAuthenticated && isAuthRoute) {
+		const url = request.nextUrl.clone()
+
+		// Check if there's a redirectTo parameter - if so, use it instead of default dashboard
+		const redirectTo = request.nextUrl.searchParams.get('redirectTo')
+		if (redirectTo && redirectTo !== pathname) {
+			// Validate the redirect path is internal and safe
+			if (redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
+				url.pathname = redirectTo
+				url.search = '' // Clear search params
+				return NextResponse.redirect(url)
+			}
+		}
+
+		// Fetch user role to determine correct redirect destination
+		try {
+			const { data: userProfile } = await supabase
+				.from('users')
+				.select('role')
+				.eq('supabaseId', user.id)
+				.single()
+
+			// Redirect based on role
+			if (userProfile?.role === 'TENANT') {
+				url.pathname = '/tenant'
+			} else {
+				// Default redirect to management dashboard for OWNER, MANAGER, ADMIN
+				url.pathname = '/manage'
+			}
+		} catch (error) {
+			// If role fetch fails, default to /manage
+			logger.error('Failed to fetch user role for redirect', {
+				action: 'middleware_role_fetch_failed',
+				metadata: {
+					error: error instanceof Error ? error.message : String(error)
+				}
+			})
+			url.pathname = '/manage'
+		}
+
+		url.search = '' // Clear search params
+		return NextResponse.redirect(url)
+	}
 
 	return supabaseResponse
 }
