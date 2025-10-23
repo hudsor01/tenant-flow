@@ -2,7 +2,7 @@ import { updateSession } from '@/lib/supabase/middleware'
 import { type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-	// Update session using official Supabase pattern
+	// Update session with production-ready auth, payment gating, and role-based redirects
 	return await updateSession(request)
 }
 
