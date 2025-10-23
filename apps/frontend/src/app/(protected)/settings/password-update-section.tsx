@@ -1,7 +1,6 @@
 'use client'
 
 import { PasswordStrength } from '@/components/auth/password-strength'
-import { LoadingSpinner } from '@/components/magicui/loading-spinner'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
@@ -11,6 +10,7 @@ import {
 	InputGroupAddon,
 	InputGroupInput
 } from '@/components/ui/input-group'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { cn, TYPOGRAPHY_SCALE } from '@/lib/design-system'
 import { supabaseClient } from '@repo/shared/lib/supabase-client'
 import { useMutation } from '@tanstack/react-query'

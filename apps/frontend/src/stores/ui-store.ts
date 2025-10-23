@@ -139,7 +139,8 @@ export const useUIStore = create<UIStore>()(
       properties: 0,
       tenants: 0,
       leases: 0,
-      maintenance: 0
+      maintenance: 0,
+      units: 0
     },
 
     triggerRefresh: (entity) =>

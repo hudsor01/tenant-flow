@@ -1,7 +1,7 @@
 'use client'
 
 
-import { StripeConnectStatus } from '@/components/settings/stripe-connect-onboarding'
+import { StripeConnectStatus } from '../stripe-connect-onboarding'
 
 export default function StripeConnectPage() {
        return (

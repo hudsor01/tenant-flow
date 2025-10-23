@@ -1,8 +1,5 @@
-import { Controller, Get } from '@nestjs/common'
-// Swagger imports removed
-import { Logger } from '@nestjs/common'
+import { Controller, Get, Logger } from '@nestjs/common'
 
-// @ApiTags('pdf')
 @Controller('pdf')
 export class PDFController {
 	private readonly logger = new Logger(PDFController.name)
