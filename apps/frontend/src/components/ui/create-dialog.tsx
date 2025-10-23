@@ -11,15 +11,11 @@ import {
 } from '@/components/ui/dialog'
 import { Progress } from '@/components/ui/progress'
 import { useFormStep, useUIStore } from '@/stores/ui-store'
-import {
-	CheckCircle,
-	ChevronLeft,
-	ChevronRight,
-	Plus
-} from 'lucide-react'
-import { useState } from 'react'
-import type { ReactNode } from 'react'
+import * as DialogPrimitive from '@radix-ui/react-dialog'
 import type { FormProgress } from '@repo/shared/types/frontend'
+import { CheckCircle, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 export interface FormStep {
 	id: number
@@ -27,7 +23,8 @@ export interface FormStep {
 	description: string
 }
 
-export interface CreateDialogProps {
+export interface CreateDialogProps
+	extends Omit<React.ComponentProps<typeof DialogPrimitive.Root>, 'children'> {
 	/**
 	 * Dialog trigger button text
 	 */
@@ -89,6 +86,10 @@ export interface CreateDialogProps {
 	 * Custom trigger button className
 	 */
 	triggerClassName?: string
+	/**
+	 * Controlled open state (optional)
+	 */
+	open?: boolean
 }
 
 /**
@@ -137,9 +138,13 @@ export function CreateDialog({
 	onOpenChange,
 	children,
 	contentClassName = 'sm:max-w-2xl max-h-[90vh] overflow-y-auto',
-	triggerClassName = 'flex items-center gap-2 bg-[var(--color-primary-brand)] text-white rounded-[var(--radius-medium)] px-4 py-2 transition-all duration-150 ease-[var(--ease-smooth)]'
+	triggerClassName = 'flex items-center gap-2 bg-[var(--color-primary-brand)] text-white rounded-[var(--radius-medium)] px-4 py-2 transition-all duration-150 ease-[var(--ease-smooth)]',
+	open,
+	...rest
 }: CreateDialogProps) {
-	const [isOpen, setIsOpen] = useState(false)
+	const [internalOpen, setInternalOpen] = useState(false)
+	const isControlled = open !== undefined
+	const isOpen = isControlled ? open : internalOpen
 
 	const { setFormProgress, resetFormProgress } = useUIStore()
 	const {
@@ -152,10 +157,15 @@ export function CreateDialog({
 		isLastStep
 	} = useFormStep()
 
-	// Initialize form progress when dialog opens
-	const handleOpenChange = (open: boolean) => {
-		setIsOpen(open)
-		if (open) {
+	const setDialogOpen = (value: boolean) => {
+		if (!isControlled) {
+			setInternalOpen(value)
+		}
+		onOpenChange?.(value)
+	}
+
+	useEffect(() => {
+		if (isOpen) {
 			setFormProgress({
 				currentStep: 1,
 				totalSteps: steps.length,
@@ -166,7 +176,12 @@ export function CreateDialog({
 		} else {
 			resetFormProgress()
 		}
-		onOpenChange?.(open)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isOpen, steps.length, formType])
+
+	// Initialize form progress when dialog opens
+	const handleOpenChange = (openState: boolean) => {
+		setDialogOpen(openState)
 	}
 
 	const handleNext = async () => {
@@ -189,10 +204,13 @@ export function CreateDialog({
 		await onSubmit(e)
 	}
 
-	const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100
+	const hasMultipleSteps = useMemo(() => steps.length > 1, [steps.length])
+	const progressPercentage = hasMultipleSteps
+		? ((currentStep - 1) / (totalSteps - 1)) * 100
+		: 100
 
 	return (
-		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
+		<Dialog {...rest} open={isOpen} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
 				<Button variant="default" className={triggerClassName}>
 					{triggerIcon}
@@ -219,16 +237,20 @@ export function CreateDialog({
 						</span>
 					</div>
 
-					<Progress value={progressPercentage} className="h-2" />
+					{hasMultipleSteps && (
+						<>
+							<Progress value={progressPercentage} className="h-2" />
 
-					<div className="flex items-center justify-center">
-						<h3 className="font-semibold text-lg">
-							{steps[currentStep - 1]?.title}
-						</h3>
-					</div>
-					<p className="text-center text-muted-foreground text-sm">
-						{steps[currentStep - 1]?.description}
-					</p>
+							<div className="flex items-center justify-center">
+								<h3 className="font-semibold text-lg">
+									{steps[currentStep - 1]?.title}
+								</h3>
+							</div>
+							<p className="text-center text-muted-foreground text-sm">
+								{steps[currentStep - 1]?.description}
+							</p>
+						</>
+					)}
 				</div>
 
 				<form onSubmit={handleSubmit} className="space-y-6">
@@ -237,36 +259,31 @@ export function CreateDialog({
 
 					{/* Navigation */}
 					<div className="flex justify-between pt-6 border-t">
-						<Button
-							type="button"
-							variant="outline"
-							onClick={previousStep}
-							disabled={isFirstStep}
-							className="flex items-center gap-2"
-						>
-							<ChevronLeft className="size-4" />
-							Previous
-						</Button>
+						{hasMultipleSteps ? (
+							<Button
+								type="button"
+								variant="outline"
+								onClick={previousStep}
+								disabled={isFirstStep}
+								className="flex items-center gap-2"
+							>
+								<ChevronLeft className="size-4" />
+								Previous
+							</Button>
+						) : (
+							<div />
+						)}
 
 						<div className="flex items-center gap-2">
 							<Button
 								type="button"
 								variant="outline"
-								onClick={() => setIsOpen(false)}
+								onClick={() => setDialogOpen(false)}
 							>
 								Cancel
 							</Button>
 
-							{isLastStep ? (
-								<Button
-									type="submit"
-									disabled={isPending}
-									className="flex items-center gap-2"
-								>
-									<CheckCircle className="size-4" />
-									{isPending ? submitPendingText : submitText}
-								</Button>
-							) : (
+							{hasMultipleSteps && !isLastStep ? (
 								<Button
 									type="button"
 									onClick={handleNext}
@@ -274,6 +291,15 @@ export function CreateDialog({
 								>
 									Next
 									<ChevronRight className="size-4" />
+								</Button>
+							) : (
+								<Button
+									type="submit"
+									disabled={isPending}
+									className="flex items-center gap-2"
+								>
+									<CheckCircle className="size-4" />
+									{isPending ? submitPendingText : submitText}
 								</Button>
 							)}
 						</div>

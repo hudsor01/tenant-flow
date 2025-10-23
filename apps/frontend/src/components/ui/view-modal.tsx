@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button'
 import { Eye, X } from 'lucide-react'
-import { useState } from 'react'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 
 export interface ViewModalProps {
 	/**
@@ -22,6 +22,10 @@ export interface ViewModalProps {
 	 * Modal description
 	 */
 	description?: string
+	/**
+	 * Controlled open state (optional)
+	 */
+	open?: boolean
 	/**
 	 * Callback when modal open state changes
 	 */
@@ -84,16 +88,22 @@ export function ViewModal({
 	closeText = 'Close',
 	renderTrigger
 }: ViewModalProps) {
-	const [isOpen, setIsOpen] = useState(false)
+	const [internalOpen, setInternalOpen] = useState(false)
+	const isControlled = open !== undefined
+	const isOpen = isControlled ? !!open : internalOpen
 
 	const handleOpenChange = (open: boolean) => {
-		setIsOpen(open)
+		if (!isControlled) setInternalOpen(open)
 		onOpenChange?.(open)
 	}
 
 	if (!isOpen) {
 		if (renderTrigger) {
-			return <div onClick={() => handleOpenChange(true)}>{renderTrigger(() => handleOpenChange(true))}</div>
+			return (
+				<div onClick={() => handleOpenChange(true)}>
+					{renderTrigger(() => handleOpenChange(true))}
+				</div>
+			)
 		}
 
 		return (
@@ -138,17 +148,12 @@ export function ViewModal({
 				</div>
 
 				{/* Read-only content */}
-				<div className="max-h-[70vh] overflow-y-auto space-y-4">
-					{children}
-				</div>
+				<div className="max-h-[70vh] overflow-y-auto space-y-4">{children}</div>
 
 				{/* Optional close button */}
 				{showCloseButton && (
 					<div className="flex justify-end pt-6 border-t">
-						<Button
-							variant="outline"
-							onClick={() => handleOpenChange(false)}
-						>
+						<Button variant="outline" onClick={() => handleOpenChange(false)}>
 							{closeText}
 						</Button>
 					</div>

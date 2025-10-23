@@ -38,12 +38,12 @@ const faqs = [
 	{
 		question: 'What happens if I exceed my plan limits?',
 		answer:
-			"We&apos;ll notify you when you&apos;re approaching your limits. You can upgrade anytime to accommodate growth."
+			'We&apos;ll notify you when you&apos;re approaching your limits. You can upgrade anytime to accommodate growth.'
 	},
 	{
 		question: 'Do you offer refunds?',
 		answer:
-			"Yes! We offer a 60-day money-back guarantee. If you&apos;re not satisfied, contact us for a full refund."
+			'Yes! We offer a 60-day money-back guarantee. If you&apos;re not satisfied, contact us for a full refund.'
 	}
 ]
 
@@ -143,7 +143,7 @@ export default function PricingPage() {
 				{/* Final CTA Section */}
 				<section className="relative py-20 bg-transparent">
 					<div className="max-w-4xl mx-auto px-6 lg:px-8">
-						<div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-3xl border border-primary/20 p-12 text-center shadow-xl">
+						<div className="bg-linear-to-br from-primary/10 via-primary/5 to-transparent rounded-3xl border border-primary/20 p-12 text-center shadow-xl">
 							<h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-6">
 								Ready to transform your property management?
 							</h2>

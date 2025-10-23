@@ -1,15 +1,17 @@
 'use client'
 
-import { AppSidebar } from '@/components/dashboard/app-sidebar'
-import { SiteHeader } from '@/components/dashboard/site-header'
 import { Button } from '@/components/ui/button'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { AlertCircle } from 'lucide-react'
 import { useEffect } from 'react'
 
 const logger = createLogger({ component: 'DashboardError' })
 
+/**
+ * Error boundary for /manage routes
+ * IMPORTANT: This error component is rendered INSIDE the manage layout which already has
+ * sidebar and header. Do NOT duplicate layout components here.
+ */
 export default function DashboardError({
 	error,
 	resetAction
@@ -25,37 +27,19 @@ export default function DashboardError({
 	}, [error])
 
 	return (
-		<SidebarProvider
-			style={
-				{
-					'--sidebar-width': 'calc(var(--spacing) * 72)',
-					'--header-height': 'calc(var(--spacing) * 12)'
-				} as React.CSSProperties
-			}
-		>
-			<AppSidebar variant="inset" />
-			<SidebarInset>
-				<SiteHeader />
-				<div className="flex flex-1 flex-col">
-					<div className="@container/main flex flex-1 flex-col gap-2">
-						<div className="flex h-[500px] w-full items-center justify-center">
-							<div className="flex max-w-md flex-col items-center gap-4 text-center">
-								<AlertCircle className="size-12 text-destructive" />
-								<div className="space-y-2">
-									<h2 className="text-xl font-semibold">Dashboard Error</h2>
-									<p className="text-sm text-muted-foreground">
-										There was a problem loading the dashboard data. Please try
-										refreshing.
-									</p>
-								</div>
-								<Button onClick={resetAction} variant="outline" size="sm">
-									Retry
-								</Button>
-							</div>
-						</div>
-					</div>
+		<div className="flex h-[500px] w-full items-center justify-center">
+			<div className="flex max-w-md flex-col items-center gap-4 text-center">
+				<AlertCircle className="size-12 text-destructive" />
+				<div className="space-y-2">
+					<h2 className="text-xl font-semibold">Something went wrong</h2>
+					<p className="text-sm text-muted-foreground">
+						{error.message || 'An unexpected error occurred. Please try again.'}
+					</p>
 				</div>
-			</SidebarInset>
-		</SidebarProvider>
+				<Button onClick={resetAction} variant="outline" size="sm">
+					Try Again
+				</Button>
+			</div>
+		</div>
 	)
 }

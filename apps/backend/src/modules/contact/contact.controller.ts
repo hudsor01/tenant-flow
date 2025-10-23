@@ -13,7 +13,6 @@ import type {
 } from '@repo/shared/types/domain'
 import { ContactService } from './contact.service'
 
-// @ApiTags('contact')
 @Controller('contact')
 export class ContactController {
 	constructor(private readonly contactService: ContactService) {}

@@ -3,15 +3,9 @@
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { useFormStep, useUIStore } from '@/stores/ui-store'
-import {
-	CheckCircle,
-	ChevronLeft,
-	ChevronRight,
-	Edit,
-	X
-} from 'lucide-react'
-import { useState } from 'react'
+import { CheckCircle, ChevronLeft, ChevronRight, Edit, X } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 
 export interface FormStep {
 	id: number
@@ -64,6 +58,10 @@ export interface EditModalProps {
 	 * Form submit handler
 	 */
 	onSubmit: (e: React.FormEvent) => void | Promise<void>
+	/**
+	 * Controlled open state (optional)
+	 */
+	open?: boolean
 	/**
 	 * Callback when modal open state changes
 	 */
@@ -125,7 +123,9 @@ export function EditModal({
 	triggerVariant = 'outline',
 	renderTrigger
 }: EditModalProps) {
-	const [isOpen, setIsOpen] = useState(false)
+	const [internalOpen, setInternalOpen] = useState(false)
+	const isControlled = open !== undefined
+	const isOpen = isControlled ? !!open : internalOpen
 
 	const { setFormProgress, resetFormProgress } = useUIStore()
 	const {
@@ -142,7 +142,7 @@ export function EditModal({
 	const effectiveTotalSteps = hasSteps ? steps.length : 1
 
 	const handleOpenChange = (open: boolean) => {
-		setIsOpen(open)
+		if (!isControlled) setInternalOpen(open)
 		if (open) {
 			setFormProgress({
 				currentStep: 1,
@@ -177,11 +177,17 @@ export function EditModal({
 	}
 
 	const progressPercentage =
-		effectiveTotalSteps > 1 ? ((currentStep - 1) / (effectiveTotalSteps - 1)) * 100 : 100
+		effectiveTotalSteps > 1
+			? ((currentStep - 1) / (effectiveTotalSteps - 1)) * 100
+			: 100
 
 	if (!isOpen) {
 		if (renderTrigger) {
-			return <div onClick={() => handleOpenChange(true)}>{renderTrigger(() => handleOpenChange(true))}</div>
+			return (
+				<div onClick={() => handleOpenChange(true)}>
+					{renderTrigger(() => handleOpenChange(true))}
+				</div>
+			)
 		}
 
 		return (
@@ -250,7 +256,9 @@ export function EditModal({
 
 				<form onSubmit={handleSubmit} className="space-y-6">
 					{/* Dynamic form content */}
-					<div className="max-h-[60vh] overflow-y-auto">{children(currentStep)}</div>
+					<div className="max-h-[60vh] overflow-y-auto">
+						{children(currentStep)}
+					</div>
 
 					{/* Navigation */}
 					<div className="flex justify-between pt-6 border-t">

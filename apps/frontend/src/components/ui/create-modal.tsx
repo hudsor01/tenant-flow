@@ -3,15 +3,9 @@
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { useFormStep, useUIStore } from '@/stores/ui-store'
-import {
-	CheckCircle,
-	ChevronLeft,
-	ChevronRight,
-	Plus,
-	X
-} from 'lucide-react'
-import { useState } from 'react'
+import { CheckCircle, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 
 export interface FormStep {
 	id: number
@@ -65,6 +59,10 @@ export interface CreateModalProps {
 	 * Form submit handler
 	 */
 	onSubmit: (e: React.FormEvent) => void | Promise<void>
+	/**
+	 * Controlled open state (optional)
+	 */
+	open?: boolean
 	/**
 	 * Callback when modal open state changes
 	 */
@@ -132,7 +130,9 @@ export function CreateModal({
 	className = '',
 	triggerClassName = 'flex items-center gap-2 bg-[var(--color-primary-brand)] text-white rounded-[var(--radius-medium)] px-4 py-2 transition-all duration-150 ease-[var(--ease-smooth)]'
 }: CreateModalProps) {
-	const [isOpen, setIsOpen] = useState(false)
+	const [internalOpen, setInternalOpen] = useState(false)
+	const isControlled = open !== undefined
+	const isOpen = isControlled ? !!open : internalOpen
 
 	const { setFormProgress, resetFormProgress } = useUIStore()
 	const {
@@ -147,7 +147,7 @@ export function CreateModal({
 
 	// Initialize form progress when modal opens
 	const handleOpenChange = (open: boolean) => {
-		setIsOpen(open)
+		if (!isControlled) setInternalOpen(open)
 		if (open) {
 			setFormProgress({
 				currentStep: 1,
@@ -249,7 +249,9 @@ export function CreateModal({
 
 				<form onSubmit={handleSubmit} className="space-y-6">
 					{/* Dynamic form content based on current step */}
-					<div className="max-h-[60vh] overflow-y-auto">{children(currentStep)}</div>
+					<div className="max-h-[60vh] overflow-y-auto">
+						{children(currentStep)}
+					</div>
 
 					{/* Navigation */}
 					<div className="flex justify-between pt-6 border-t">

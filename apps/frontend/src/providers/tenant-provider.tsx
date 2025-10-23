@@ -1,6 +1,6 @@
 'use client'
 
-import { TenantSuspenseWrapper } from '@/components/tenant/tenant-suspense-wrapper'
+import { TenantSuspenseWrapper } from '@/app/(protected)/tenant/tenant-suspense-wrapper'
 import {
 	OptionalTenantProvider,
 	TenantProvider as TenantContext

@@ -261,6 +261,9 @@ export interface CreateMaintenanceRequest {
 	scheduledDate?: string
 	estimatedCost?: number
 	photos?: string[]
+	allowEntry?: boolean
+	contactPhone?: string
+	notes?: string | null
 }
 
 export interface UpdateMaintenanceRequest {
@@ -274,6 +277,8 @@ export interface UpdateMaintenanceRequest {
 	estimatedCost?: number
 	actualCost?: number
 	notes?: string
+	allowEntry?: boolean
+	contactPhone?: string
 }
 
 export interface MaintenanceQueryRequest {

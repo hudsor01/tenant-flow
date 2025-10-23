@@ -1,8 +1,8 @@
 'use client'
 
 import Footer from '@/components/layout/footer'
-import { BlurFade } from '@/components/magicui/blur-fade'
 import { HeroSection } from '@/components/sections/hero-section'
+import { BlurFade } from '@/components/ui/blur-fade'
 import { Button } from '@/components/ui/button'
 
 import {
@@ -31,7 +31,7 @@ import {
 	Zap
 } from 'lucide-react'
 import Link from 'next/link'
-import { GridPattern } from '../../components/magicui/grid-pattern'
+import { GridPattern } from '../../components/ui/grid-pattern'
 
 const stats = [
 	{ number: '10,000+', label: 'Properties Managed', Icon: Building2 },
@@ -336,8 +336,9 @@ export default function AboutPage() {
 									Meet the Team
 								</h2>
 								<p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-									We&apos;re a diverse team of engineers, designers, and property
-									management experts working together to build something great.
+									We&apos;re a diverse team of engineers, designers, and
+									property management experts working together to build
+									something great.
 								</p>
 							</div>
 
@@ -410,9 +411,9 @@ export default function AboutPage() {
 									?
 								</h2>
 								<p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-									Join thousands of property managers who&apos;ve streamlined their
-									operations and scaled their business with TenantFlow&apos;s
-									enterprise platform.
+									Join thousands of property managers who&apos;ve streamlined
+									their operations and scaled their business with
+									TenantFlow&apos;s enterprise platform.
 								</p>
 								<div className="flex flex-col sm:flex-row gap-4 justify-center">
 									<Button asChild size="lg" className="group">

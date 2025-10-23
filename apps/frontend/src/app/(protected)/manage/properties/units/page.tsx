@@ -34,7 +34,7 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import { unitColumns, type UnitRow } from '@/components/units/units-columns'
+import { unitColumns, type UnitRow } from './columns'
 import { useUnitList, useUnitStats, useCreateUnit } from '@/hooks/api/use-unit'
 import { propertiesApi } from '@/lib/api-client'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -236,17 +236,15 @@ export default function UnitsPage() {
 							<PaginationContent>
 								<PaginationItem>
 									<PaginationPrevious
-										href="#"
-										onClick={e => {
-											e.preventDefault()
-											if (page > 1) {
-												setUrlState({ page: page - 1 })
-											}
-										}}
-										className={
-											page === 1 ? 'pointer-events-none opacity-50' : ''
-										}
-									/>
+							page={page - 1}
+							currentPage={page}
+							onPageChange={(newPage: number) => setUrlState({ page: newPage })}
+							className={
+								page === 1 ? 'pointer-events-none opacity-50' : ''
+							}
+						>
+							Previous
+						</PaginationPrevious>
 								</PaginationItem>
 
 								{Array.from(
@@ -265,12 +263,10 @@ export default function UnitsPage() {
 												<span className="px-2">...</span>
 											) : null}
 											<PaginationLink
-												href="#"
-												onClick={e => {
-													e.preventDefault()
-													setUrlState({ page: pageNum })
-												}}
-												isActive={page === pageNum}
+								page={pageNum}
+								currentPage={page}
+								onPageChange={(newPage: number) => setUrlState({ page: newPage })}
+								isActive={page === pageNum}
 											>
 												{pageNum}
 											</PaginationLink>
@@ -279,19 +275,21 @@ export default function UnitsPage() {
 
 								<PaginationItem>
 									<PaginationNext
-										href="#"
-										onClick={e => {
-											e.preventDefault()
-											if (page < Math.ceil(totalItems / ITEMS_PER_PAGE)) {
-												setUrlState({ page: page + 1 })
-											}
-										}}
-										className={
-											page === Math.ceil(totalItems / ITEMS_PER_PAGE)
-												? 'pointer-events-none opacity-50'
-												: ''
-										}
-									/>
+							page={page + 1}
+							currentPage={page}
+							onPageChange={(newPage: number) => {
+								if (page < Math.ceil(totalItems / ITEMS_PER_PAGE)) {
+									setUrlState({ page: newPage })
+								}
+							}}
+							className={
+								page === Math.ceil(totalItems / ITEMS_PER_PAGE)
+									? 'pointer-events-none opacity-50'
+									: ''
+							}
+						>
+							Next
+						</PaginationNext>
 								</PaginationItem>
 							</PaginationContent>
 						</Pagination>
