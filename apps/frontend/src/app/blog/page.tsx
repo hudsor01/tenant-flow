@@ -15,7 +15,7 @@ import {
 	Zap
 } from 'lucide-react'
 import Link from 'next/link'
-import { GridPattern } from '../../components/magicui/grid-pattern'
+import { GridPattern } from '../../components/ui/grid-pattern'
 
 export default function BlogPage() {
 	const blogPosts = getAllBlogPosts()

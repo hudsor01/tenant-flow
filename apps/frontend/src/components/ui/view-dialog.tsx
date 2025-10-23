@@ -10,10 +10,11 @@ import {
 	DialogTrigger
 } from '@/components/ui/dialog'
 import { Eye } from 'lucide-react'
+import type { ComponentProps, ReactNode } from 'react'
 import { useState } from 'react'
-import type { ReactNode } from 'react'
 
-export interface ViewDialogProps {
+export interface ViewDialogProps
+	extends Omit<ComponentProps<typeof Dialog>, 'children'> {
 	/**
 	 * Dialog trigger button text
 	 */
@@ -30,6 +31,10 @@ export interface ViewDialogProps {
 	 * Dialog description
 	 */
 	description?: string
+	/**
+	 * Controlled open state (optional)
+	 */
+	open?: boolean
 	/**
 	 * Callback when dialog open state changes
 	 */
@@ -83,29 +88,36 @@ export interface ViewDialogProps {
  * </ViewDialog>
  * ```
  */
-export function ViewDialog({
-	triggerText,
-	triggerIcon = <Eye className="size-4" />,
-	title,
-	description,
-	onOpenChange,
-	children,
-	contentClassName = 'sm:max-w-2xl max-h-[90vh] overflow-y-auto',
-	triggerClassName = 'flex items-center gap-2',
-	triggerVariant = 'outline',
-	showCloseButton = true,
-	closeText = 'Close',
-	renderTrigger
-}: ViewDialogProps) {
-	const [isOpen, setIsOpen] = useState(false)
+export function ViewDialog(props: ViewDialogProps) {
+	const {
+		triggerText,
+		triggerIcon = <Eye className="size-4" />,
+		title,
+		description,
+		onOpenChange,
+		children,
+		contentClassName = 'sm:max-w-2xl max-h-[90vh] overflow-y-auto',
+		triggerClassName = 'flex items-center gap-2',
+		triggerVariant = 'outline',
+		showCloseButton = true,
+		closeText = 'Close',
+		renderTrigger,
+		...rest
+	} = props
+
+	const [internalOpen, setInternalOpen] = useState(false)
+	const isControlled = rest.open !== undefined
+	const isOpen = isControlled ? !!rest.open : internalOpen
 
 	const handleOpenChange = (open: boolean) => {
-		setIsOpen(open)
+		if (!isControlled) setInternalOpen(open)
 		onOpenChange?.(open)
 	}
 
 	const triggerButton = renderTrigger ? (
-		<div onClick={() => setIsOpen(true)}>{renderTrigger(() => setIsOpen(true))}</div>
+		<div onClick={() => setInternalOpen(true)}>
+			{renderTrigger(() => setInternalOpen(true))}
+		</div>
 	) : (
 		<Button variant={triggerVariant} className={triggerClassName}>
 			{triggerIcon}
@@ -114,33 +126,22 @@ export function ViewDialog({
 	)
 
 	return (
-		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
-			<DialogTrigger asChild>
-				{triggerButton}
-			</DialogTrigger>
+		<Dialog {...rest} open={isOpen} onOpenChange={handleOpenChange}>
+			<DialogTrigger asChild>{triggerButton}</DialogTrigger>
 
 			<DialogContent className={contentClassName}>
 				<DialogHeader>
-					<DialogTitle className="flex items-center gap-2">
-						{title}
-					</DialogTitle>
-					{description && (
-						<DialogDescription>{description}</DialogDescription>
-					)}
+					<DialogTitle className="flex items-center gap-2">{title}</DialogTitle>
+					{description && <DialogDescription>{description}</DialogDescription>}
 				</DialogHeader>
 
 				{/* Read-only content */}
-				<div className="space-y-4">
-					{children}
-				</div>
+				<div className="space-y-4">{children}</div>
 
 				{/* Optional close button */}
 				{showCloseButton && (
 					<div className="flex justify-end pt-6 border-t">
-						<Button
-							variant="outline"
-							onClick={() => setIsOpen(false)}
-						>
+						<Button variant="outline" onClick={() => setInternalOpen(false)}>
 							{closeText}
 						</Button>
 					</div>

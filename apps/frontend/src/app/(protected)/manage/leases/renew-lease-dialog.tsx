@@ -8,16 +8,9 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle
-} from '@/components/ui/dialog'
+import { EditDialog } from '@/components/ui/base-dialogs'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Spinner } from '@/components/ui/spinner'
 import { useRenewLease } from '@/hooks/api/use-lease'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -118,14 +111,6 @@ export function RenewLeaseDialog({
 		}
 	}
 
-	const handleCancel = () => {
-		onOpenChange(false)
-		// Reset form
-		setNewEndDate(defaultNewEndDate)
-		setNewRentAmount('')
-		setShowRentIncrease(false)
-	}
-
 	// Quick date presets
 	const handleQuickDate = (months: number) => {
 		if (!lease.endDate) return
@@ -133,212 +118,209 @@ export function RenewLeaseDialog({
 		setNewEndDate(format(newDate, 'yyyy-MM-dd'))
 	}
 
+	const handleDialogChange = (isOpen: boolean) => {
+		if (!isOpen) {
+			// Reset form when dialog closes
+			setNewEndDate(defaultNewEndDate)
+			setNewRentAmount('')
+			setShowRentIncrease(false)
+		}
+		onOpenChange(isOpen)
+	}
+
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[500px]">
-				<DialogHeader>
-					<DialogTitle>Renew Lease</DialogTitle>
-					<DialogDescription>
-						Create a new lease term with optional rent adjustment
-					</DialogDescription>
-				</DialogHeader>
-
-				<form onSubmit={handleSubmit} className="space-y-6 mt-4">
-					{/* Current Lease Info */}
-					<div className="rounded-lg border border-separator bg-fill-tertiary p-4">
-						<h4 className="text-sm font-semibold text-label-primary mb-2">
-							Current Lease
-						</h4>
-						<div className="space-y-1 text-sm text-label-secondary">
-							<div className="flex justify-between">
-								<span>Current Rent:</span>
-								<span className="font-medium text-label-primary">
-									{formatCurrency(currentRent)}/mo
-								</span>
-							</div>
-							{lease.endDate && (
-								<div className="flex justify-between">
-									<span>Ends:</span>
-									<span className="font-medium text-label-primary">
-										{format(parseISO(lease.endDate), 'MMM d, yyyy')}
-									</span>
-								</div>
-							)}
+		<EditDialog
+			open={open}
+			hideTrigger
+			onOpenChange={handleDialogChange}
+			title="Renew Lease"
+			description="Create a new lease term with optional rent adjustment"
+			formType="lease"
+			isPending={renewLease.isPending}
+			submitText="Renew Lease"
+			submitPendingText="Renewing..."
+			contentClassName="sm:max-w-[500px]"
+			onSubmit={handleSubmit}
+		>
+			{() => (
+				<div className="space-y-6 mt-4">
+				{/* Current Lease Info */}
+				<div className="rounded-lg border border-separator bg-fill-tertiary p-4">
+					<h4 className="text-sm font-semibold text-label-primary mb-2">
+						Current Lease
+					</h4>
+					<div className="space-y-1 text-sm text-label-secondary">
+						<div className="flex justify-between">
+							<span>Current Rent:</span>
+							<span className="font-medium text-label-primary">
+								{formatCurrency(currentRent)}/mo
+							</span>
 						</div>
-					</div>
-
-					{/* New End Date */}
-					<div className="space-y-3">
-						<Label
-							htmlFor="end-date"
-							className="text-label-secondary text-[11px] font-medium uppercase tracking-[0.01em]"
-						>
-							New End Date
-						</Label>
-						<div className="flex items-center gap-4">
-							<Calendar className="h-5 w-5 text-label-tertiary flex-shrink-0" />
-							<Input
-								id="end-date"
-								type="date"
-								value={newEndDate}
-								onChange={e => setNewEndDate(e.target.value)}
-								min={
-									lease.endDate
-										? format(
-												addMonths(parseISO(lease.endDate), 1),
-												'yyyy-MM-dd'
-											)
-										: undefined
-								}
-								className="flex-1"
-							/>
-						</div>
-
-						{/* Quick date buttons */}
 						{lease.endDate && (
-							<div className="flex gap-2">
-								<Button
-									type="button"
-									variant="outline"
-									size="sm"
-									onClick={() => handleQuickDate(6)}
-								>
-									+6 months
-								</Button>
-								<Button
-									type="button"
-									variant="outline"
-									size="sm"
-									onClick={() => handleQuickDate(12)}
-								>
-									+12 months
-								</Button>
-								<Button
-									type="button"
-									variant="outline"
-									size="sm"
-									onClick={() => handleQuickDate(24)}
-								>
-									+24 months
-								</Button>
+							<div className="flex justify-between">
+								<span>Ends:</span>
+								<span className="font-medium text-label-primary">
+									{format(parseISO(lease.endDate), 'MMM d, yyyy')}
+								</span>
 							</div>
 						)}
 					</div>
+				</div>
 
-					{/* Rent Increase Toggle */}
-					<div className="space-y-3">
-						<div className="flex items-center justify-between">
-							<Label className="text-label-secondary text-[11px] font-medium uppercase tracking-[0.01em]">
-								Rent Adjustment
-							</Label>
+				{/* New End Date */}
+				<div className="space-y-3">
+					<Label
+						htmlFor="end-date"
+						className="text-label-secondary text-[11px] font-medium uppercase tracking-[0.01em]"
+					>
+						New End Date
+					</Label>
+					<div className="flex items-center gap-4">
+						<Calendar className="h-5 w-5 text-label-tertiary flex-shrink-0" />
+						<Input
+							id="end-date"
+							type="date"
+							value={newEndDate}
+							onChange={e => setNewEndDate(e.target.value)}
+							min={
+								lease.endDate
+									? format(
+											addMonths(parseISO(lease.endDate), 1),
+											'yyyy-MM-dd'
+										)
+									: undefined
+							}
+							className="flex-1"
+						/>
+					</div>
+
+					{/* Quick date buttons */}
+					{lease.endDate && (
+						<div className="flex gap-2">
 							<Button
 								type="button"
 								variant="outline"
 								size="sm"
-								onClick={() => {
-									setShowRentIncrease(!showRentIncrease)
-									if (showRentIncrease) {
-										setNewRentAmount('')
-									}
-								}}
+								onClick={() => handleQuickDate(6)}
 							>
-								{showRentIncrease ? 'Keep Same' : 'Adjust Rent'}
+								+6 months
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() => handleQuickDate(12)}
+							>
+								+12 months
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() => handleQuickDate(24)}
+							>
+								+24 months
 							</Button>
 						</div>
+					)}
+				</div>
 
-						{showRentIncrease && (
-							<div className="space-y-3">
-								<div className="flex items-center gap-4">
-									<DollarSign className="h-5 w-5 text-label-tertiary flex-shrink-0" />
-									<div className="flex-1 relative">
-										<span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-label-tertiary">
-											$
-										</span>
-										<Input
-											id="new-rent"
-											type="number"
-											min="0"
-											step="1"
-											value={newRentAmount}
-											onChange={e => setNewRentAmount(e.target.value)}
-											placeholder={currentRent.toString()}
-											className="pl-7"
-										/>
-									</div>
-								</div>
-
-								{/* Rent increase preview */}
-								{newRentAmount && Number(newRentAmount) !== currentRent && (
-									<div className="rounded-lg bg-fill-tertiary p-3">
-										<div className="flex items-center gap-2 mb-2">
-											<TrendingUp className="h-4 w-4 text-accent-main" />
-											<span className="text-sm font-medium text-label-primary">
-												Rent Change
-											</span>
-										</div>
-										<div className="space-y-1 text-sm">
-											<div className="flex justify-between">
-												<span className="text-label-secondary">Current:</span>
-												<span className="font-medium text-label-primary">
-													{formatCurrency(currentRent)}/mo
-												</span>
-											</div>
-											<div className="flex justify-between">
-												<span className="text-label-secondary">New:</span>
-												<span className="font-medium text-label-primary">
-													{formatCurrency(newRent)}/mo
-												</span>
-											</div>
-											<div className="flex justify-between pt-1 mt-1 border-t border-separator">
-												<span className="text-label-secondary">Change:</span>
-												<span
-													className={`font-semibold ${
-														rentIncreaseAmount >= 0
-															? 'text-accent-main'
-															: 'text-error-main'
-													}`}
-												>
-													{rentIncreaseAmount >= 0 ? '+' : ''}
-													{formatCurrency(rentIncreaseAmount)} (
-													{rentIncreasePercent.toFixed(1)}%)
-												</span>
-											</div>
-										</div>
-									</div>
-								)}
-							</div>
-						)}
-
-						{!showRentIncrease && (
-							<div className="flex items-start gap-2 rounded-lg bg-fill-tertiary p-3">
-								<Info className="h-4 w-4 text-accent-main flex-shrink-0 mt-0.5" />
-								<p className="text-xs text-label-secondary">
-									New lease will maintain current rent of{' '}
-									{formatCurrency(currentRent)}/month
-								</p>
-							</div>
-						)}
-					</div>
-
-					{/* Action Buttons */}
-					<div className="flex justify-end gap-3">
+				{/* Rent Adjustment Toggle */}
+				<div className="space-y-3">
+					<div className="flex items-center justify-between">
+						<Label className="text-label-secondary text-[11px] font-medium uppercase tracking-[0.01em]">
+							Rent Adjustment
+						</Label>
 						<Button
 							type="button"
 							variant="outline"
-							onClick={handleCancel}
-							disabled={renewLease.isPending}
+							size="sm"
+							onClick={() => {
+								setShowRentIncrease(!showRentIncrease)
+								if (showRentIncrease) {
+									setNewRentAmount('')
+								}
+							}}
 						>
-							Cancel
-						</Button>
-						<Button type="submit" disabled={renewLease.isPending}>
-							{renewLease.isPending && (
-								<Spinner className="mr-2 h-4 w-4 animate-spin" />
-							)}
-							{renewLease.isPending ? 'Renewing...' : 'Renew Lease'}
+							{showRentIncrease ? 'Keep Same' : 'Adjust Rent'}
 						</Button>
 					</div>
-				</form>
-			</DialogContent>
-		</Dialog>
+
+					{showRentIncrease && (
+						<div className="space-y-3">
+							<div className="flex items-center gap-4">
+								<DollarSign className="h-5 w-5 text-label-tertiary flex-shrink-0" />
+								<div className="flex-1 relative">
+									<span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-label-tertiary">
+										$
+									</span>
+									<Input
+										id="new-rent"
+										type="number"
+										min="0"
+										step="1"
+										value={newRentAmount}
+										onChange={e => setNewRentAmount(e.target.value)}
+										placeholder={currentRent.toString()}
+										className="pl-7"
+									/>
+								</div>
+							</div>
+
+							{/* Rent increase preview */}
+							{newRentAmount && Number(newRentAmount) !== currentRent && (
+								<div className="rounded-lg bg-fill-tertiary p-3">
+									<div className="flex items-center gap-2 mb-2">
+										<TrendingUp className="h-4 w-4 text-accent-main" />
+										<span className="text-sm font-medium text-label-primary">
+											Rent Change
+										</span>
+									</div>
+									<div className="space-y-1 text-sm">
+										<div className="flex justify-between">
+											<span className="text-label-secondary">Current:</span>
+											<span className="font-medium text-label-primary">
+												{formatCurrency(currentRent)}/mo
+											</span>
+										</div>
+										<div className="flex justify-between">
+											<span className="text-label-secondary">New:</span>
+											<span className="font-medium text-label-primary">
+												{formatCurrency(newRent)}/mo
+											</span>
+										</div>
+										<div className="flex justify-between pt-1 mt-1 border-t border-separator">
+											<span className="text-label-secondary">Change:</span>
+											<span
+												className={`font-semibold ${
+													rentIncreaseAmount >= 0
+														? 'text-accent-main'
+														: 'text-error-main'
+												}`}
+											>
+												{rentIncreaseAmount >= 0 ? '+' : ''}
+												{formatCurrency(rentIncreaseAmount)} (
+												{rentIncreasePercent.toFixed(1)}%)
+											</span>
+										</div>
+									</div>
+								</div>
+							)}
+						</div>
+					)}
+
+					{!showRentIncrease && (
+						<div className="flex items-start gap-2 rounded-lg bg-fill-tertiary p-3">
+							<Info className="h-4 w-4 text-accent-main flex-shrink-0 mt-0.5" />
+							<p className="text-xs text-label-secondary">
+								New lease will maintain current rent of{' '}
+								{formatCurrency(currentRent)}/month
+							</p>
+						</div>
+					)}
+				</div>
+			</div>
+			)}
+		</EditDialog>
 	)
 }

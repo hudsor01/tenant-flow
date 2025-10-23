@@ -3,7 +3,7 @@
 import Footer from '@/components/layout/footer'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { GridPattern } from '@/components/magicui/grid-pattern'
+import { GridPattern } from '@/components/ui/grid-pattern'
 import { getBlogPost } from '@/lib/blog-posts'
 import { ArrowLeft, ArrowRight, Clock, User } from 'lucide-react'
 import Link from 'next/link'
@@ -185,7 +185,7 @@ export default function BlogArticlePage({
 					</div>
 
 					{/* CTA Section */}
-					<div className="mt-16 p-8 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl text-center">
+					<div className="mt-16 p-8 bg-linear-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl text-center">
 						<h3 className="text-2xl font-bold text-foreground mb-4">
 							Ready to transform your property management?
 						</h3>
