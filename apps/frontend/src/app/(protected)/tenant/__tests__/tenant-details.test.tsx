@@ -44,13 +44,17 @@ import { toast } from 'sonner'
 // Mock tenant hooks
 const mockUseTenant = jest.fn()
 const mockUseDeleteTenant = jest.fn()
+const mockUseMarkTenantAsMovedOut = jest.fn()
 
 jest.mock('@/hooks/api/use-tenant', () => ({
 	useTenant: () => mockUseTenant(),
 	useDeleteTenant: (options?: {
 		onSuccess?: () => void
 		onError?: (error: Error) => void
-	}) => mockUseDeleteTenant(options)
+	}) => mockUseDeleteTenant(options),
+	// Provide mark-as-moved-out mutation hook so component tests don't
+	// receive undefined when they don't explicitly mock it.
+	useMarkTenantAsMovedOut: () => mockUseMarkTenantAsMovedOut()
 }))
 
 describe('TenantDetails', () => {
@@ -60,6 +64,13 @@ describe('TenantDetails', () => {
 	beforeEach(() => {
 		jest.clearAllMocks()
 		mockRouter.push.mockClear()
+		// Default mocks for mutation hooks used by the component
+		mockUseDeleteTenant.mockReturnValue(
+			createMockMutation({ isPending: false })
+		)
+		mockUseMarkTenantAsMovedOut.mockReturnValue(
+			createMockMutation({ isPending: false })
+		)
 	})
 
 	describe('Loading and Error States', () => {
@@ -201,51 +212,49 @@ describe('TenantDetails', () => {
 		})
 	})
 
-	describe('Delete Functionality', () => {
+	describe('Move-out Functionality', () => {
 		beforeEach(() => {
 			mockUseTenant.mockReturnValue(
 				createMockQuery({ data: defaultTenant, isLoading: false })
 			)
 		})
 
-		test('opens delete confirmation dialog', async () => {
-			// Arrange
+		test('opens move-out dialog', async () => {
 			const user = userEvent.setup()
-			mockUseDeleteTenant.mockReturnValue(
+			mockUseMarkTenantAsMovedOut.mockReturnValue(
 				createMockMutation({ isPending: false })
 			)
 
 			render(<TenantDetails id="tenant-1" />)
 
-			// Act - click delete button to open dialog
-			const deleteButtons = screen.getAllByRole('button', { name: /Delete/i })
-			const deleteButton = deleteButtons[0]
-			if (!deleteButton) throw new Error('Delete button not found')
-			await user.click(deleteButton)
-
-			// Assert - dialog appears in portal
-			await waitFor(async () => {
-				expect(await screen.findByRole('alertdialog')).toBeInTheDocument()
+			// Act - click the Mark as Moved Out button
+			const moveOutButton = screen.getByRole('button', {
+				name: /Mark as Moved Out/i
 			})
+			await user.click(moveOutButton)
 
-			const deleteTenantTexts = screen.getAllByText('Delete Tenant')
-			expect(deleteTenantTexts.length).toBeGreaterThanOrEqual(1)
+			// Assert - dialog appears with title
 			expect(
-				screen.getByText(/Are you sure you want to delete/i)
+				await screen.findByText('Mark Tenant as Moved Out')
 			).toBeInTheDocument()
 		})
 
-		test('deletes tenant successfully', async () => {
-			// Arrange
+		test('marks tenant as moved out successfully', async () => {
 			const user = userEvent.setup()
 			const mutateFn = jest.fn()
 
-			mockUseDeleteTenant.mockImplementation(options => ({
-				mutate: (id: string) => {
-					mutateFn(id)
+			mockUseMarkTenantAsMovedOut.mockImplementation(options => ({
+				mutate: (vars: unknown) => {
+					mutateFn(vars)
 					options?.onSuccess?.()
 				},
-				mutateAsync: jest.fn(),
+				mutateAsync: async (vars: unknown) => {
+					mutateFn(vars)
+					if (options?.onSuccess) {
+						options.onSuccess()
+					}
+					return Promise.resolve()
+				},
 				isPending: false,
 				isError: false,
 				isSuccess: false,
@@ -255,33 +264,52 @@ describe('TenantDetails', () => {
 
 			render(<TenantDetails id="tenant-1" />)
 
-			// Act - open dialog and confirm deletion
-			const deleteButtons = screen.getAllByRole('button', { name: /Delete/i })
-			const deleteButton = deleteButtons[0]
-			if (!deleteButton) throw new Error('Delete button not found')
-			await user.click(deleteButton)
+			// Open dialog
+			const moveOutButton = screen.getByRole('button', {
+				name: /Mark as Moved Out/i
+			})
+			await user.click(moveOutButton)
 
-			const confirmButton = await screen.findByRole('button', {
-				name: /Delete Tenant/i
+			// Fill form fields
+			const dateInput = await screen.findByLabelText('Move Out Date *')
+			await user.type(dateInput, '2025-12-31')
+
+			const reasonTrigger = screen.getByRole('combobox', { name: /Reason \*/i })
+			// open the select and choose the first item
+			await user.click(reasonTrigger)
+			const leaseExpired = await screen.findByText('Lease Expired')
+			await user.click(leaseExpired)
+
+			const confirmButton = screen.getByRole('button', {
+				name: /Mark as Moved Out/i
 			})
 			await user.click(confirmButton)
 
-			// Assert - mutation called and navigation occurs
-			expect(mutateFn).toHaveBeenCalledWith('tenant-1')
-			expect(toast.success).toHaveBeenCalledWith('Tenant deleted successfully')
+			expect(mutateFn).toHaveBeenCalledWith({
+				id: 'tenant-1',
+				data: {
+					moveOutDate: '2025-12-31',
+					moveOutReason: 'lease_expired'
+				}
+			})
+			expect(toast.success).toHaveBeenCalledWith('Tenant marked as moved out')
 			expect(mockRouter.push).toHaveBeenCalledWith('/manage/tenants')
 		})
 
-		test('handles delete error gracefully', async () => {
-			// Arrange
+		test('handles move-out error gracefully', async () => {
 			const user = userEvent.setup()
-			const error = new Error('Delete failed')
+			const error = new Error('Move-out failed')
 
-			mockUseDeleteTenant.mockImplementation(options => ({
+			mockUseMarkTenantAsMovedOut.mockImplementation(options => ({
+				mutateAsync: async () => {
+					if (options?.onError) {
+						options.onError(error)
+					}
+					return Promise.reject(error)
+				},
 				mutate: () => {
 					options?.onError?.(error)
 				},
-				mutateAsync: jest.fn(),
 				isPending: false,
 				isError: false,
 				isSuccess: false,
@@ -291,46 +319,51 @@ describe('TenantDetails', () => {
 
 			render(<TenantDetails id="tenant-1" />)
 
-			// Act - attempt deletion
-			const deleteButtons = screen.getAllByRole('button', { name: /Delete/i })
-			const deleteButton = deleteButtons[0]
-			if (!deleteButton) throw new Error('Delete button not found')
-			await user.click(deleteButton)
+			const moveOutButton = screen.getByRole('button', {
+				name: /Mark as Moved Out/i
+			})
+			await user.click(moveOutButton)
 
-			const confirmButton = await screen.findByRole('button', {
-				name: /Delete Tenant/i
+			const dateInput = await screen.findByLabelText('Move Out Date *')
+			await user.type(dateInput, '2025-12-31')
+
+			const reasonTrigger = screen.getByRole('combobox', { name: /Reason \*/i })
+			await user.click(reasonTrigger)
+			const leaseExpired = await screen.findByText('Lease Expired')
+			await user.click(leaseExpired)
+
+			const confirmButton = screen.getByRole('button', {
+				name: /Mark as Moved Out/i
 			})
 			await user.click(confirmButton)
 
-			// Assert - error toast displayed
-			expect(toast.error).toHaveBeenCalledWith('Failed to delete tenant', {
-				description: 'Delete failed'
-			})
+			expect(toast.error).toHaveBeenCalledWith(
+				'Failed to mark tenant as moved out',
+				{
+					description: 'Move-out failed'
+				}
+			)
 		})
 
-		test('shows deleting state during mutation', async () => {
-			// Arrange
+		test('shows processing state during mutation', async () => {
 			const user = userEvent.setup()
 
-			mockUseDeleteTenant.mockReturnValue(
+			mockUseMarkTenantAsMovedOut.mockReturnValue(
 				createMockMutation({ isPending: true })
 			)
 
 			render(<TenantDetails id="tenant-1" />)
 
-			// Act - open delete dialog
-			const deleteButtons = screen.getAllByRole('button', { name: /Delete/i })
-			const deleteButton = deleteButtons[0]
-			if (!deleteButton) throw new Error('Delete button not found')
-			await user.click(deleteButton)
-
-			// Assert - confirm button shows loading state
-			await waitFor(async () => {
-				expect(await screen.findByRole('alertdialog')).toBeInTheDocument()
+			const moveOutButton = screen.getByRole('button', {
+				name: /Mark as Moved Out/i
 			})
+			await user.click(moveOutButton)
 
-			const confirmButton = screen.getByRole('button', { name: /Deleting/i })
-			expect(confirmButton).toBeDisabled()
+			// Confirm button should show processing label and be disabled
+			const processingButton = await screen.findByRole('button', {
+				name: /Processing.../i
+			})
+			expect(processingButton).toBeDisabled()
 		})
 	})
 })
