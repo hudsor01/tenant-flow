@@ -106,20 +106,22 @@
 			"../frontend/public"
 		]
 	},
-	"overrides": {
-		"typescript": "^5.9.3",
-		"path-to-regexp": "^8.3.0",
-		"undici": "^7.16.0",
-		"tmp": "^0.2.5",
-		"glob": "^11.0.3",
-		"@types/glob": "^9.0.0",
-		"@types/mdx": "^2.0.13",
-		"minimatch": "^10.0.3",
-		"cross-spawn": "^7.0.6",
-		"rimraf": "^6.0.1",
-		"sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.5",
-		"inflight": "npm:lru-cache@^11.2.2",
-		"lightningcss": "1.30.2"
+	"pnpm": {
+		"overrides": {
+			"typescript": "^5.9.3",
+			"path-to-regexp": "^8.3.0",
+			"undici": "^7.16.0",
+			"tmp": "^0.2.5",
+			"glob": "^11.0.3",
+			"@types/glob": "^9.0.0",
+			"@types/mdx": "^2.0.13",
+			"minimatch": "5.1.6",
+			"cross-spawn": "^7.0.6",
+			"rimraf": "^6.0.1",
+			"sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.5",
+			"inflight": "npm:lru-cache@^11.2.2",
+			"lightningcss": "1.30.2"
+		}
 	},
 	"dependencies": {
 		"@changesets/cli": "^2.29.7",
@@ -145,7 +147,7 @@
 		"globals": "16.4.0",
 		"husky": "9.1.7",
 		"jsdom": "27.0.1",
-		"lint-staged": "16.2.5",
+		"lint-staged": "16.2.6",
 		"next": "15.5.6",
 		"prettier": "catalog:",
 		"prettier-plugin-organize-imports": "4.3.0",

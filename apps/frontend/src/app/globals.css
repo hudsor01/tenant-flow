@@ -10,8 +10,6 @@
 
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";
-@plugin "@tailwindcss/aspect-ratio";
-@plugin "@tailwindcss/container-queries";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

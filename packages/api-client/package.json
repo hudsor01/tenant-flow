@@ -21,8 +21,6 @@
 		"typecheck": "tsc --noEmit",
 		"lint": "eslint \"src/**/*.ts\"",
 		"lint:fix": "pnpm lint --fix",
-		"test": "vitest run",
-		"test:watch": "vitest",
 		"clean": "rimraf dist .turbo"
 	},
 	"dependencies": {
@@ -33,7 +31,6 @@
 	"devDependencies": {
 		"@types/node": "catalog:",
 		"rimraf": "6.0.1",
-		"typescript": "catalog:",
-		"vitest": "3.2.4"
+		"typescript": "catalog:"
 	}
 }
