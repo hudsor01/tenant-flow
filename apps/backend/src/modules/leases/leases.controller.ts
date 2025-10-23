@@ -3,7 +3,6 @@
  *
  * ONLY built-in NestJS pipes, native exceptions, direct RPC calls.
  * FORBIDDEN: Custom decorators, DTOs, validation layers, middleware
- * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
 import {
@@ -23,7 +22,6 @@ import {
 	Query,
 	Req
 } from '@nestjs/common'
-// Swagger imports removed
 import type {
 	CreateLeaseRequest,
 	UpdateLeaseRequest
@@ -31,15 +29,11 @@ import type {
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LeasesService } from './leases.service'
 
-// @ApiTags('leases')
-// @ApiBearerAuth()
 @Controller('leases')
 export class LeasesController {
 	constructor(@Optional() private readonly leasesService?: LeasesService) {}
 
 	@Get()
-	// @ApiOperation({ summary: 'Get all leases' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async findAll(
 		@Req() req: AuthenticatedRequest,
 		@Query('tenantId') tenantId?: string,
@@ -116,8 +110,6 @@ export class LeasesController {
 	}
 
 	@Get('stats')
-	// @ApiOperation({ summary: 'Get lease statistics' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async getStats(@Req() req: AuthenticatedRequest) {
 		if (!this.leasesService) {
 			return {
@@ -138,8 +130,6 @@ export class LeasesController {
 	}
 
 	@Get('analytics/performance')
-	// @ApiOperation({ summary: 'Get per-lease performance analytics' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeasePerformanceAnalytics(
 		@Req() req: AuthenticatedRequest,
 		@Query('leaseId') leaseId?: string,
@@ -192,8 +182,6 @@ export class LeasesController {
 	}
 
 	@Get('analytics/duration')
-	// @ApiOperation({ summary: 'Get lease duration and renewal analytics' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseDurationAnalytics(
 		@Req() req: AuthenticatedRequest,
 		@Query('propertyId') propertyId?: string,
@@ -236,8 +224,6 @@ export class LeasesController {
 	}
 
 	@Get('analytics/turnover')
-	// @ApiOperation({ summary: 'Get lease turnover and retention analytics' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseTurnoverAnalytics(
 		@Req() req: AuthenticatedRequest,
 		@Query('propertyId') propertyId?: string,
@@ -279,8 +265,6 @@ export class LeasesController {
 	}
 
 	@Get('analytics/revenue')
-	// @ApiOperation({ summary: 'Get per-lease revenue analytics and trends' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async getLeaseRevenueAnalytics(
 		@Req() req: AuthenticatedRequest,
 		@Query('leaseId') leaseId?: string,
@@ -334,8 +318,6 @@ export class LeasesController {
 	}
 
 	@Get('expiring')
-	// @ApiOperation({ summary: 'Get expiring leases' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async getExpiring(
 		@Req() req: AuthenticatedRequest,
 		@Query('days', new DefaultValuePipe(30), ParseIntPipe) days?: number
@@ -356,9 +338,6 @@ export class LeasesController {
 	}
 
 	@Get(':id')
-	// @ApiOperation({ summary: 'Get lease by ID' })
-	// @ApiResponse({ status: HttpStatus.OK })
-	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
@@ -380,8 +359,6 @@ export class LeasesController {
 	}
 
 	@Post()
-	// @ApiOperation({ summary: 'Create new lease' })
-	// @ApiResponse({ status: HttpStatus.CREATED })
 	async create(
 		@Body() createRequest: CreateLeaseRequest,
 		@Req() req: AuthenticatedRequest
@@ -399,9 +376,6 @@ export class LeasesController {
 	}
 
 	@Put(':id')
-	// @ApiOperation({ summary: 'Update lease' })
-	// @ApiResponse({ status: HttpStatus.OK })
-	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateRequest: UpdateLeaseRequest,
@@ -425,8 +399,6 @@ export class LeasesController {
 	}
 
 	@Delete(':id')
-	// @ApiOperation({ summary: 'Delete lease' })
-	// @ApiResponse({ status: HttpStatus.NO_CONTENT })
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
@@ -445,8 +417,6 @@ export class LeasesController {
 	}
 
 	@Post(':id/renew')
-	// @ApiOperation({ summary: 'Renew lease' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async renew(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body('endDate') endDate: string,
@@ -471,8 +441,6 @@ export class LeasesController {
 	}
 
 	@Post(':id/terminate')
-	// @ApiOperation({ summary: 'Terminate lease' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async terminate(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest,

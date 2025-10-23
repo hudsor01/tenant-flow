@@ -1,6 +1,6 @@
 'use client'
 
-import { useThemeConfig } from '@/components/magicui/active-theme'
+import { useThemeConfig } from '@/components/ui/active-theme'
 import { Label } from '@/components/ui/label'
 import {
 	Select,

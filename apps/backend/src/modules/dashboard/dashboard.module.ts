@@ -4,9 +4,7 @@ import { DashboardController } from './dashboard.controller'
 import { DashboardService } from './dashboard.service'
 
 /**
- * Dashboard Module - Repository Pattern Implementation
- * Controller → Service → Repository → Database
- * DashboardService uses IDashboardRepository for data access
+ * Dashboard Module
  */
 @Module({
 	imports: [AnalyticsModule],

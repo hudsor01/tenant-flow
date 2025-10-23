@@ -1,8 +1,8 @@
 'use client'
 
-import { BlurFade } from '@/components/magicui/blur-fade'
-import { GlowingEffect } from '@/components/magicui/glowing-effect'
+import { BlurFade } from '@/components/ui/blur-fade'
 import { Button } from '@/components/ui/button'
+import { GlowingEffect } from '@/components/ui/glowing-effect'
 import { cn } from '@/lib/utils'
 import { ArrowRight, Check, Clock, TrendingUp } from 'lucide-react'
 

@@ -1,4 +1,4 @@
-import { RefreshableAnalytics } from '@/components/analytics/refreshable-analytics'
+import { RefreshableAnalytics } from '@/app/(protected)/manage/analytics/refreshable-analytics'
 import { ExportButtons } from '@/components/export/export-buttons'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -154,9 +154,7 @@ export default async function FinancialAnalyticsPage() {
 	return (
 		<RefreshableAnalytics cooldownSeconds={30}>
 			<div className="@container/main flex min-h-screen w-full flex-col">
-				<div
-					className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]"
-				>
+				<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
 					<div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 lg:px-6">
 						<div className="flex flex-col gap-2">
 							<h1 className="text-3xl font-semibold tracking-tight">

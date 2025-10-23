@@ -58,3 +58,36 @@ global.ResizeObserver = class ResizeObserver {
 	observe() {}
 	unobserve() {}
 } as unknown as typeof ResizeObserver
+
+// Polyfill pointer capture methods used by some UI libraries (Radix)
+if (typeof Element !== 'undefined' && !Element.prototype.hasPointerCapture) {
+	// jsdom doesn't implement pointer capture - provide no-op implementations
+	// to avoid runtime errors in tests that use pointer events.
+	// These functions are safe no-ops for unit tests.
+
+	// @ts-ignore - augmenting prototype for tests
+	Element.prototype.hasPointerCapture = function (pointerId: number) {
+		void pointerId
+		return false
+	}
+
+	// @ts-ignore
+	Element.prototype.setPointerCapture = function (pointerId: number) {
+		void pointerId
+		// no-op
+	}
+
+	// @ts-ignore
+	Element.prototype.releasePointerCapture = function (pointerId: number) {
+		void pointerId
+		// no-op
+	}
+}
+
+// Provide scrollIntoView no-op used by some UI libs (Radix, etc.)
+if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
+	// @ts-ignore
+	Element.prototype.scrollIntoView = function () {
+		// no-op for jsdom environment
+	}
+}

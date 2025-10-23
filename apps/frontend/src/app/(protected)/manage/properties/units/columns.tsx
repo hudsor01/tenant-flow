@@ -18,7 +18,17 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { UnitEditDialog, UnitViewDialog } from '@/components/units/unit-dialogs'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 import { useDeleteUnit } from '@/hooks/api/use-unit'
 import {
 	TYPOGRAPHY_SCALE,
@@ -38,6 +48,7 @@ import {
 	ArrowUpDown,
 	Bath,
 	Bed,
+	BedDouble,
 	Calendar,
 	DollarSign,
 	EditIcon,
@@ -46,6 +57,8 @@ import {
 	MapPin,
 	Maximize2,
 	MoreHorizontalIcon,
+	Ruler,
+	ShowerHead,
 	Star,
 	TrashIcon,
 	TrendingUp,
@@ -344,9 +357,95 @@ function UnitActions({ unit }: UnitActionsProps) {
 				</DropdownMenu>
 			</div>
 
-			<UnitViewDialog unit={unit} open={viewOpen} onOpenChange={setViewOpen} />
+			{/* VIEW DIALOG - Inline read-only unit details */}
+			<Dialog open={viewOpen} onOpenChange={setViewOpen}>
+				<DialogContent className="sm:max-w-2xl">
+					<DialogHeader>
+						<DialogTitle>Unit {unit.unitNumber} Details</DialogTitle>
+					</DialogHeader>
+					<div className="space-y-4">
+						<div className="grid grid-cols-2 gap-4">
+							<div className="flex items-center gap-2">
+								<BedDouble className="h-4 w-4 text-muted-foreground" />
+								<span>{unit.bedrooms} Bedrooms</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<ShowerHead className="h-4 w-4 text-muted-foreground" />
+								<span>{unit.bathrooms} Bathrooms</span>
+							</div>
+							{unit.squareFeet && (
+								<div className="flex items-center gap-2">
+									<Ruler className="h-4 w-4 text-muted-foreground" />
+									<span>{unit.squareFeet} sq ft</span>
+								</div>
+							)}
+							<div className="flex items-center gap-2">
+								<DollarSign className="h-4 w-4 text-muted-foreground" />
+								<span>${unit.rent}/month</span>
+							</div>
+						</div>
+						<div>
+							<Label>Status</Label>
+							<div className="mt-1">
+								<UnitStatusBadge status={unit.status as UnitStatus} />
+							</div>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
 
-			<UnitEditDialog unit={unit} open={editOpen} onOpenChange={setEditOpen} />
+			{/* EDIT DIALOG - Inline read-only for now (backend handles updates) */}
+			<Dialog open={editOpen} onOpenChange={setEditOpen}>
+				<DialogContent className="sm:max-w-lg">
+					<DialogHeader>
+						<DialogTitle>Unit {unit.unitNumber}</DialogTitle>
+						<DialogDescription>View unit details</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-4">
+						<div>
+							<Label>Unit Number</Label>
+							<Input value={unit.unitNumber} disabled />
+						</div>
+						<div className="grid grid-cols-2 gap-4">
+							<div>
+								<Label>Bedrooms</Label>
+								<Input type="number" value={unit.bedrooms} disabled />
+							</div>
+							<div>
+								<Label>Bathrooms</Label>
+								<Input type="number" value={unit.bathrooms} disabled />
+							</div>
+						</div>
+						<div>
+							<Label>Square Feet</Label>
+							<Input type="number" value={unit.squareFeet || ''} disabled />
+						</div>
+						<div>
+							<Label>Rent Amount</Label>
+							<Input type="number" value={unit.rent} disabled />
+						</div>
+						<div>
+							<Label>Status</Label>
+							<Select value={unit.status} disabled>
+								<SelectTrigger>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="OCCUPIED">Occupied</SelectItem>
+									<SelectItem value="VACANT">Vacant</SelectItem>
+									<SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+									<SelectItem value="RESERVED">Reserved</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setEditOpen(false)}>
+							Close
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 
 			<AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
 				<AlertDialogContent className={cn(cardClasses('elevated'), 'max-w-md')}>

@@ -55,14 +55,16 @@ type UnitUpdate = TablesUpdate<'unit'>
 // API Base URL Configuration
 // In production, environment variables are required for proper deployment
 // In development, falls back to local backend port
+// During build, uses placeholder (Server Components won't actually fetch at build time in production)
 function getApiBaseUrl(): string {
+	// During Next.js build, provide placeholder - actual runtime will have proper env vars
+	if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_API_BASE_URL) {
+		return 'http://localhost:3001' // Build-time placeholder
+	}
+
 	return (
 		process.env.NEXT_PUBLIC_API_BASE_URL ||
-		(() => {
-			throw new Error(
-				'NEXT_PUBLIC_API_BASE_URL is required for API client configuration'
-			)
-		})()
+		'http://localhost:3001' // Dev fallback
 	)
 }
 

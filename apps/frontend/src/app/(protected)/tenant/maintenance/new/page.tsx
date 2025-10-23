@@ -6,7 +6,7 @@
 
 'use client'
 
-import { ImageUpload } from '@/components/maintenance/image-upload'
+import { ImageUpload } from './image-upload'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
 import { Field, FieldLabel } from '@/components/ui/field'

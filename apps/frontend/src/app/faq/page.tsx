@@ -1,5 +1,5 @@
 'use client'
-import { GridPattern } from '@/components/magicui/grid-pattern'
+import { GridPattern } from '@/components/ui/grid-pattern'
 
 import { FaqsAccordion } from '@/app/faq/faq-accordion'
 import Footer from '@/components/layout/footer'
