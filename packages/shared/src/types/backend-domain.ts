@@ -14,16 +14,6 @@ import type { Database } from './supabase-generated.js'
 // - Health types: '@repo/shared/types/health'
 // - Stripe types: '@repo/shared/types/stripe'
 
-// Basic Stripe type declarations to avoid external dependencies
-export interface StripeInvoice {
-	subscription?: string | StripeSubscription | null
-}
-
-export interface StripeSubscription {
-	current_period_end?: number
-	current_period_start?: number
-}
-
 // TYPE PROVIDER INTERFACES
 
 export interface TypeProvider {
@@ -474,17 +464,7 @@ export interface QueryPerformanceMetric {
 
 // Note: PerformanceMetrics interface moved to health.ts to resolve conflicts
 
-export interface HealthCheckResponse {
-	status: 'healthy' | 'unhealthy'
-	timestamp: string
-	version: string
-	services: {
-		database: 'up' | 'down'
-		redis: 'up' | 'down'
-		external: 'up' | 'down'
-	}
-	uptime: number
-}
+export type { HealthCheckResponse } from './health'
 
 // DATABASE PERFORMANCE & HEALTH (Supabase / Postgres)
 
@@ -693,14 +673,7 @@ export type SecurityEventType =
 
 // SECURITY EXCEPTION FILTER TYPES
 
-export interface ErrorResponse {
-	statusCode: number
-	message: string
-	error?: string
-	timestamp: string
-	path: string
-	requestId?: string
-}
+export type { ErrorResponse } from './errors'
 
 export interface SecurityErrorContext {
 	ip: string
@@ -829,23 +802,9 @@ export interface CircuitBreakerStatus {
 
 // STRIPE WEBHOOK AND BILLING TYPES
 
-export interface InvoiceWithSubscription extends StripeInvoice {
-	subscription?: string | StripeSubscription | null
-}
-
-export interface SubscriptionWithPeriod extends StripeSubscription {
-	current_period_end?: number
-	current_period_start?: number
-}
-
 export interface BackendCreatePaymentIntentRequest {
 	amount: number
 	tenantId: string
-}
-
-export interface CreateSetupIntentRequest {
-	tenantId: string
-	customerId?: string
 }
 
 export interface EmbeddedCheckoutRequest {
