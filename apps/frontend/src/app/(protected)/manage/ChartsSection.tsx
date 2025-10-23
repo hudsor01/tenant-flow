@@ -1,7 +1,29 @@
 'use client'
 
-import { PropertyPerformanceBarChart } from '@/components/charts/bar-chart'
-import { ModernExplodedPieChart } from '@/components/charts/pie-chart'
+import { ChartSkeleton } from '@/components/charts/chart-skeleton'
+import dynamic from 'next/dynamic'
+
+const PropertyPerformanceBarChart = dynamic(
+	() =>
+		import('@/components/charts/bar-chart').then(
+			(mod) => mod.PropertyPerformanceBarChart
+		),
+	{
+		ssr: false,
+		loading: () => <ChartSkeleton />
+	}
+)
+
+const ModernExplodedPieChart = dynamic(
+	() =>
+		import('@/components/charts/pie-chart').then(
+			(mod) => mod.ModernExplodedPieChart
+		),
+	{
+		ssr: false,
+		loading: () => <ChartSkeleton />
+	}
+)
 
 export function ChartsSection() {
 	return (
