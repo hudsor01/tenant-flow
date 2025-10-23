@@ -20,9 +20,4 @@ export interface FileUploadProgress {
 
 export type { FileUploadOptions } from './file-upload'
 
-export interface FileUploadResult {
-	file: File
-	url: string
-	success: boolean
-	error?: string
-}
+export type { FileUploadResult } from './file-upload'

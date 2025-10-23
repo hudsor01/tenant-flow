@@ -312,14 +312,6 @@ export interface EnsureUserExistsInput {
 }
 
 /**
- * Input for updating user profile
- * Used by user profile update endpoints
+ * Input for updating user profile - Re-export from api.ts (primary source)
  */
-export interface UpdateUserProfileInput {
-	name?: string
-	email?: string
-	phone?: string
-	bio?: string
-	company?: string
-	avatarUrl?: string
-}
+export type { UpdateUserProfileInput } from './api.js'

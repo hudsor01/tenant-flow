@@ -288,21 +288,9 @@ export interface CSPNonceData {
 }
 
 /**
- * CSP violation report structure
+ * CSP violation report structure - Re-export from domain.ts (primary source)
  */
-export interface CSPViolationReport {
-	blockedURI?: string
-	documentURI?: string
-	effectiveDirective?: string
-	originalPolicy?: string
-	referrer?: string
-	violatedDirective?: string
-	sourceFile?: string
-	lineNumber?: number
-	columnNumber?: number
-	sample?: string
-	timestamp: string
-}
+export type { CSPViolationReport } from './domain.js'
 
 /**
  * Security data classification types
@@ -328,19 +316,9 @@ export interface SecureAppMetadata {
 }
 
 /**
- * Type-safe user metadata for profiles
+ * Type-safe user metadata for profiles - Re-export from auth.ts (primary source)
  */
-export interface SecureUserMetadata {
-	name?: string
-	full_name?: string
-	avatar_url?: string
-	phone?: string
-	company_name?: string
-	job_title?: string
-	last_login?: string
-	email_verified?: boolean
-	phone_verified?: boolean
-}
+export type { SecureUserMetadata } from './auth.js'
 
 /**
  * Security event metadata with typed fields

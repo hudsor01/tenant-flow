@@ -43,7 +43,8 @@ export interface StripeProduct {
   unit_label: string | null
 }
 
-export interface StripePrice {
+// Renamed from StripePrice to avoid conflict with stripe.ts API type
+export interface StripePriceRecord {
   id: string
   product_id: string | null
   active: boolean | null
@@ -105,9 +106,9 @@ export interface BillingRepositoryContract {
   getSubscriptions(options?: SubscriptionQueryOptions): Promise<StripeSubscription[]>
   getProduct(productId: string): Promise<StripeProduct | null>
   getProducts(options?: ProductQueryOptions): Promise<StripeProduct[]>
-  getPrice(priceId: string): Promise<StripePrice | null>
-  getPrices(options?: PriceQueryOptions): Promise<StripePrice[]>
-  getProductPrices(productId: string): Promise<StripePrice[]>
+  getPrice(priceId: string): Promise<StripePriceRecord | null>
+  getPrices(options?: PriceQueryOptions): Promise<StripePriceRecord[]>
+  getProductPrices(productId: string): Promise<StripePriceRecord[]>
   getPaymentIntent(paymentIntentId: string): Promise<StripePaymentIntent | null>
   getPaymentIntents(options?: PaymentQueryOptions): Promise<StripePaymentIntent[]>
   getCustomerPayments(customerId: string): Promise<StripePaymentIntent[]>
