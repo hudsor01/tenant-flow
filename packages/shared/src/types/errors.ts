@@ -140,9 +140,7 @@ export interface StandardApiResponse<T = unknown> {
 }
 
 // Generic API response - union type for type-safe error handling
-export type ApiResponse<T = Record<string, string | number | boolean | null>> =
-	| SuccessResponse<T>
-	| ErrorResponse
+export type { ApiResponse } from './core'
 
 // Export StandardApiResponse as ApiResponse for backend controllers
 export type { StandardApiResponse as ControllerApiResponse }
