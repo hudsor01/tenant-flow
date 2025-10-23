@@ -4,6 +4,22 @@ When providing commit messages, never include attribution.
 
 ## BEFORE EVERY ACTION OR EXECUTING TASKS FUNCTIONS OR ANYTHING, BE SURE TO USE THE MCP SERVER SERENA! IF IT IS NOT AVAILABLE, BE SURE THE PROJECT IS ACTIVATED AND IF NOT, ACTIVATE THE PROJECT THEN TRY AGAIN! VERY GOOD AND VERY EFFICIENT MCP SERVER - ESSENTIAL TO THE SUCCESS OF THIS PROJECT!
 
+You are required to maintain a .cursor/rules/learned-memories.md file where it records project‑specific knowledge, user preferences and technical decisions. When the user communicates a new preference or a change in technology, the model should identify the essential fact, examine the existing memory file to see whether the information already exists or conflicts with previous entries, and then propose a concise update to that file. Before generating any answer or code, the model must read from this memory file to ensure its response aligns with recorded decisions and to avoid asking for the same information again. This makes memory management an explicit part of the unified guidelines alongside the architectural, coding and project‑management conventions already described.
+
+I want you to act as a full-stack software developer, who can provide guidance on designing, developing, and deploying full-stack applications. Share insights on working with various front-end technologies (like HTML, CSS, JavaScript, and frameworks like React), back-end technologies (like Node.js) and databases (like SQL). Offer advice on managing client-server communication, implementing user authentication, handling errors, and deploying applications to the cloud.
+
+## Project Structure & Module Organization
+Tenant Flow is a Turborepo monorepo. Application code lives in `apps/frontend` (Next.js 14/React 19) and `apps/backend` (NestJS). Shared types, validation, and utilities are in `packages/shared`, while lint, TypeScript, and database configs sit in `packages/eslint-config`, `packages/typescript-config`, and `packages/database`. Tests live alongside modules and in `tests/`, and long-form docs or assets belong under `docs/`. Favor centralizing reusable logic in `packages/shared` before duplicating code in an app.
+
+## Rules
+Always structure Next.js applications using the App Router: put a page.tsx file in each route directory, name directories with kebab‑case and components with PascalCase, and prefer named exports. Only include 'use client' at the top of a component when browser‑side interactivity is required; otherwise keep components as server components. Use React Server Components for data fetching and React Server Actions for form handling, minimise useState and useEffect, and expose shareable state via URL search parameters managed with a library like nuqs. Always use functional components with hooks, encapsulate reusable logic in custom hooks, employ the Context API sparingly for shared state, validate props with PropTypes and memoise components only when necessary. Compose UIs rather than relying on inheritance and use fragments to avoid unnecessary wrapper elements.
+
+When styling, use Tailwind CSS utilities for a mobile‑first design: apply responsive prefixes (md:, lg:) to adjust layouts at different breakpoints and use state variants (hover:, focus:) for interactive states. Consolidate repeated utility combinations using @apply in a component layer, resort to arbitrary values for bespoke layout requirements (e.g., top-[117px] or grid-cols-[1fr_2fr]) and maintain consistent vertical spacing with utilities like space-y-4.
+
+For Nest.js/Express back‑end code, enforce proper middleware ordering: register body parsers first, then custom middleware, then route handlers and finally a centralised error handler. Organise routes using express.Router() modules and ensure all asynchronous handlers use async/await with errors propagated to the error handler.
+
+You must follow PostgreSQL conventions: write SQL keywords in lowercase, choose descriptive identifiers for tables and columns and format queries with consistent indentation. Use suitable data types, create indexes on columns involved in filters or joins, define foreign keys to maintain referential integrity and wrap related operations inside transactions for atomicity. Integrate a memory system by storing all project‑specific knowledge and preferences in .cursor/rules/learned-memories.mdc. Whenever the model learns a new decision or preference, it should extract the key information, check for existing entries that might conflict and propose a concise update to the memory file. Before answering questions or generating code, consult the memory file to ensure responses align with recorded decisions and avoid re‑asking for the same information. Finally, track ongoing work in a Markdown file such as TASKS.md using checkbox items (- [ ] for incomplete, - [x] for complete) and update it as tasks progress.
+
 ## Core Principles (Non-Negotiable)
 - **DRY**: Search first (`rg -r "pattern"`), consolidate code reused ≥2 places
 - **KISS**: Simplest solution wins, delete > add code
@@ -12,44 +28,34 @@ When providing commit messages, never include attribution.
 - **PRODUCTION MINDSET**: Security first, platform-native, performance-conscious, reliability-focused
 
 ## Tech Stack
-**Frontend (Vercel)**: Next.js 15.5.0 + React 19.1.1 + TailwindCSS 4.1.12 + ShadCN/UI + Magic UI + TanStack Query 5.85.5 + Zustand 5.0.8 + TanStack Form + Lucide Icons 0.540.0 + Recharts 3.1.2
+**Frontend (Vercel)**: Next.js 15 + React 19 + TailwindCSS 4 + ShadCN/UI + Magic UI + TanStack Query 5 + Zustand 5 + TanStack Form + Lucide Icons + Recharts
 
-**Backend (Railway)**: NestJS 11.1.6 + Express 4.x + Supabase 2.56.0 + Stripe 18.4.0 + Resend 6.0.1 + In-memory cache
+**Backend (Railway)**: Nest.js/Express.js + Supabase + Stripe + Resend
 
-**Shared**: Node.js 22.x (Railway: 24.x Docker), npm 11.5.2, Turborepo 2.5.6, TypeScript 5.9.2 strict, Zod 4.0.17
+**Shared**: Node.js, pnpm, Turborepo, TypeScript strict, Zod
 
 ## Commands
-```bash
-# Development
-pnpm dev                       # Start all services
-doppler run -- pnpm dev        # With secrets (local only, NO CI/prod)
-pnpm --filter @repo/pkg dev    # Specific package
 
-# Quality Checks
-pnpm typecheck | pnpm lint | pnpm test:unit
+**Development**: `pnpm dev`, `doppler run -- pnpm dev` (with secrets), `pnpm --filter @repo/pkg dev` (specific package)
 
-# Build
-pnpm build | pnpm build:frontend | pnpm build:backend
+**Quality Checks**: `pnpm typecheck`, `pnpm lint`, `pnpm test:unit`
 
-# Testing
-pnpm test:integration | pnpm test:e2e | pnpm test:production
+**Build**: `pnpm build`, `pnpm build:frontend`, `pnpm build:backend`
 
-# Database
-pnpm update-supabase-types                    # Regenerate TypeScript types from schema
+**Testing**: `pnpm test:integration`, `pnpm test:e2e`, `pnpm test:production`
 
-# Database Migrations (psql ONLY - MCP server is read-only)
-doppler run -- psql $DATABASE_URL -f migration.sql   # Apply migration (preferred)
-doppler run -- psql $DIRECT_URL -f migration.sql     # Direct connection (if pooler fails)
-```
+**Database**: `pnpm update-supabase-types` (regenerate TypeScript types)
+
+**Database Migrations**: Use psql with DIRECT_URL for DDL, DATABASE_URL for DML queries
 
 ## Remote State
 Anything coming from a backend, API, database, etc., could be handled by a data-fetching library. TanStack Query or SWR are the most popular choices these days. They solve caching, deduplication, invalidation, retries, pagination, optimistic updates, and many more, and likely much better than any manual implementation.
 
 ## Query params in URL state
-If your router doesn't support syncing those with local state, use nuqs and save yourself massive pain implementing that sync manually.
+Use nuqs and save yourself massive pain implementing that sync manually.
 
 ## Local State
-A lot of the state doesn't need to be shared, actually. It's just something that comes from overusing Redux in the past. Use React's useState or useReducer in this case.
+A lot of the state doesn't need to be shared, actually. Use React's useState or useReducer in this case.
 
 ## Shared State
 This is the state that you want to share between different loosely related components. You can use simple prop drilling techniques for that, or Context when prop drilling becomes a nuisance. Only when Context is not enough do the state management libraries become useful.
@@ -68,22 +74,7 @@ This is the state that you want to share between different loosely related compo
 - `DIRECT_URL` - Direct Postgres connection (REQUIRED for DDL migrations - CREATE, ALTER, DROP)
 - `DATABASE_URL` - Pooled connection (use for DML queries - SELECT, INSERT, UPDATE)
 
-**Example**:
-```bash
-# Create migration file
-cat > add-sale-fields.sql <<'EOF'
-ALTER TABLE property ADD COLUMN date_sold TIMESTAMPTZ;
-EOF
-
-# Apply migration (MUST use DIRECT_URL for DDL)
-doppler run -- psql $DIRECT_URL -f add-sale-fields.sql
-
-# Verify (can use either)
-doppler run -- psql $DIRECT_URL -c "SELECT column_name FROM information_schema.columns WHERE table_name='property';"
-
-# Regenerate types
-pnpm update-supabase-types
-```
+**Example**: Create SQL file → Apply with `psql $DIRECT_URL -f migration.sql` → Verify → Run `pnpm update-supabase-types`
 
 ## TypeScript Types - ZERO TOLERANCE POLICY
 
@@ -161,53 +152,12 @@ PR rejection, mandatory refactor before merge. No exceptions.
 
 **Workflow for New Enums**:
 
-1. **Create migration SQL file** with enum definition:
-```sql
--- migrations/add-payment-method-enum.sql
-CREATE TYPE payment_method AS ENUM ('CREDIT_CARD', 'BANK_TRANSFER', 'CHECK', 'CASH', 'OTHER');
+1. Create migration SQL file with `CREATE TYPE` enum definition
+2. Apply via `psql $DIRECT_URL -f migrations/file.sql` (DDL requires DIRECT_URL)
+3. Run `pnpm update-supabase-types` to regenerate TypeScript types
+4. Import from `@repo/shared/types/supabase-generated` as `Database['public']['Enums']['enum_name']`
 
--- Add to table
-ALTER TABLE rent_payments ADD COLUMN payment_method payment_method DEFAULT 'BANK_TRANSFER';
-```
-
-2. **Apply migration** via psql with DIRECT_URL (required for DDL):
-```bash
-doppler run -- psql $DIRECT_URL -f migrations/add-payment-method-enum.sql
-```
-
-3. **Regenerate TypeScript types**:
-```bash
-pnpm update-supabase-types
-```
-
-4. **Use in TypeScript**:
-```typescript
-import type { Database } from '@repo/shared/types/supabase-generated'
-
-// Extract enum type
-type PaymentMethod = Database['public']['Enums']['payment_method']
-
-// Use in interfaces
-interface Payment {
-  method: PaymentMethod
-}
-```
-
-**Type Usage Examples**:
-```typescript
-// ✅ CORRECT: Using database enum types
-import type { Database } from '@repo/shared/types/supabase-generated'
-
-type LeaseStatus = Database['public']['Enums']['LeaseStatus']
-type Priority = Database['public']['Enums']['Priority']
-
-// Use in validation schemas
-import { z } from 'zod'
-const leaseSchema = z.object({
-  status: z.enum(['DRAFT', 'ACTIVE', 'EXPIRED', 'TERMINATED'] as const)
-  // Values must match database enum exactly
-})
-```
+**Type Usage**: Extract enum types from Database schema, use in Zod validation with exact database values
 
 **FORBIDDEN**:
 - ❌ Creating TypeScript enum definitions (`enum MyEnum { ... }`)
@@ -217,19 +167,7 @@ const leaseSchema = z.object({
 - ❌ Hardcoding enum values outside of Zod validation schemas
 
 **EXCEPTION - Security Monitoring Enums**:
-TypeScript enums are ONLY allowed for runtime security monitoring in `packages/shared/src/types/security.ts`:
-```typescript
-// ✅ ALLOWED: Security monitoring (not persisted to database)
-export enum SecurityEventType {
-  AUTH_ATTEMPT = 'AUTH_ATTEMPT',
-  SQL_INJECTION_ATTEMPT = 'SQL_INJECTION_ATTEMPT'
-}
-
-export enum SecurityEventSeverity {
-  LOW = 'LOW',
-  CRITICAL = 'CRITICAL'
-}
-```
+TypeScript enums ONLY allowed in `packages/shared/src/types/security.ts` for SecurityEventType and SecurityEventSeverity (runtime monitoring, not persisted to database)
 
 **Violation Consequences**: Build failures, PR rejection, mandatory refactor to use database enums
 
@@ -291,77 +229,21 @@ Protected file: `apps/backend/ULTRA_NATIVE_ARCHITECTURE.md`
 
 ## Frontend - Hook-First Architecture
 
-**File Organization**:
-```
-hooks/
-├── api/use-{entity}.ts       # TanStack Query hooks (server state)
-└── use-{entity}-form.ts      # TanStack Form hooks (one per entity)
-```
+**File Organization**: `hooks/api/use-{entity}.ts` (TanStack Query for server state), `hooks/use-{entity}-form.ts` (TanStack Form)
 
-**TanStack Query Hook Pattern** (Mandatory Structure):
-```typescript
-// 1. Query Keys (hierarchical, typed)
-export const entityKeys = {
-  all: ['entities'] as const,
-  list: () => [...entityKeys.all, 'list'] as const,
-  detail: (id: string) => [...entityKeys.all, 'detail', id] as const,
-}
-
-// 2. Query Hooks (fetch data)
-export function useEntity(id: string) {
-  // Must include: placeholderData from cache, Zustand sync, proper stale/gc times
-}
-
-export function useAllEntities() {
-  // Must include: prefetch individual items, structuralSharing: true, Zustand sync
-}
-
-// 3. Mutation Hooks (modify data)
-export function useCreateEntity() {
-  // Must include: onMutate (optimistic update), onError (rollback), onSettled (refetch)
-}
-
-export function useUpdateEntity() {
-  // Must include: optimistic updates to both detail and list caches
-}
-
-export function useDeleteEntity(options?: { onSuccess, onError }) {
-  // Must include: optimistic removal from list
-}
-
-// 4. Prefetch Hook
-export function usePrefetchEntity() {
-  // For hover prefetching on list views
-}
-
-// 5. Combined Hook (convenience)
-export function useEntityOperations() {
-  // Combines all mutation hooks
-}
-```
+**TanStack Query Hook Pattern** (Mandatory):
+- Query Keys: Hierarchical, typed (`entityKeys.all`, `entityKeys.list()`, `entityKeys.detail(id)`)
+- Query Hooks: `useEntity(id)`, `useAllEntities()` with placeholderData, Zustand sync, proper stale/gc times
+- Mutation Hooks: `useCreateEntity()`, `useUpdateEntity()`, `useDeleteEntity()` with optimistic updates, rollback, refetch
+- Prefetch Hook: `usePrefetchEntity()` for hover prefetching
+- Combined Hook: `useEntityOperations()` combines all mutations
 
 **TanStack Form Hook Pattern**:
-```typescript
-// 1. Basic form hook
-export function useEntityForm(initialValues?: Partial<EntityInput>) {
-  return useForm({
-    defaultValues: { ...initialValues },
-    validators: { onSubmit: entityFormSchema }
-  })
-}
-
-// 2. Update form hook (nullable fields)
-export function useEntityUpdateForm(initialValues?: Partial<EntityUpdate>) { }
-
-// 3. Field transformers (auto-formatting)
-export function useEntityFieldTransformers() { }
-
-// 4. Async validation (uniqueness checks)
-export function useAsyncEntityValidation() { }
-
-// 5. Conditional fields (show/hide logic)
-export function useConditionalEntityFields(formData) { }
-```
+- Basic form: `useEntityForm()` with defaultValues and validators
+- Update form: `useEntityUpdateForm()` for nullable fields
+- Field transformers: `useEntityFieldTransformers()` for auto-formatting
+- Async validation: `useAsyncEntityValidation()` for uniqueness checks
+- Conditional fields: `useConditionalEntityFields()` for show/hide logic
 
 **ABSOLUTE PROHIBITIONS**:
 - ❌ Inline queries/mutations (always use custom hooks)
@@ -398,47 +280,7 @@ export function useConditionalEntityFields(formData) { }
 - Read-heavy pages without interactivity
 - Any page that just displays server data
 
-**Pattern:**
-```typescript
-// page.tsx (Server Component - no 'use client')
-import type { Metadata } from 'next'
-import { entityApi } from '@/lib/api-client'
-import { EntityTable } from './entity-table.client'
-
-export const metadata: Metadata = {
-  title: 'Entities | TenantFlow',
-  description: 'Manage your entities'
-}
-
-export default async function EntityPage() {
-  // ✅ Fetch data on server during RSC render
-  const [entities, stats] = await Promise.all([
-    entityApi.list(),
-    entityApi.stats()
-  ])
-
-  return <EntityTable initialEntities={entities} initialStats={stats} />
-}
-```
-
-**Client Component Pattern:**
-```typescript
-// entity-table.client.tsx
-'use client'
-import type { Entity, EntityStats } from '@repo/shared'
-
-interface EntityTableProps {
-  initialEntities: Entity[]
-  initialStats: EntityStats
-}
-
-export function EntityTable({ initialEntities, initialStats }: EntityTableProps) {
-  // ✅ Use server-fetched data, only client logic for mutations
-  const deleteEntity = useDeleteEntity() // Mutation stays client-side
-
-  return <Table data={initialEntities} onDelete={deleteEntity.mutate} />
-}
-```
+**Pattern**: Server Component (page.tsx) fetches data with `await Promise.all()`, passes to Client Component (.client.tsx) for interactivity. Server handles initial data, client handles mutations.
 
 **Examples:**
 - ✅ Properties page - Server Component ([reference](apps/frontend/src/app/(protected)/manage/properties/page.tsx))
@@ -457,32 +299,7 @@ export function EntityTable({ initialEntities, initialStats }: EntityTableProps)
 6. **Infinite Scroll** - TanStack Query useInfiniteQuery
 7. **Complex Interactions** - Drag-and-drop, canvas, rich text editors
 
-**Pattern (URL State + Dialogs):**
-```typescript
-// page.tsx (Client Component - HAS 'use client')
-'use client'
-import { useSearchParams } from 'next/navigation'
-import { useState } from 'react'
-import { useLeaseList } from '@/hooks/api/use-lease'
-
-export default function LeasesPage() {
-  const searchParams = useSearchParams()
-  const [dialogOpen, setDialogOpen] = useState(false)
-
-  // ✅ Justified: URL-synced filters + interactive dialogs
-  const { data } = useLeaseList({
-    search: searchParams.get('search') || '',
-    status: searchParams.get('status') || 'all'
-  })
-
-  return (
-    <>
-      <FilterBar /> {/* Updates URL params */}
-      <RenewDialog open={dialogOpen} /> {/* Interactive modal */}
-    </>
-  )
-}
-```
+**Pattern**: Client Component ('use client') with `useSearchParams()` for URL filters, `useState()` for dialogs, TanStack Query for data fetching with search params
 
 **Examples:**
 - ✅ Leases page - URL filters + renew/terminate/edit dialogs ([reference](apps/frontend/src/app/(protected)/manage/leases/page.tsx))
@@ -507,21 +324,7 @@ export default function LeasesPage() {
 - ✅ Dashboard stats (static data, no real-time updates)
 - ✅ Content pages (blog posts, documentation, marketing)
 
-**Migration Path:**
-```typescript
-// ❌ BEFORE: Client-side fetch
-'use client'
-export default function Page() {
-  const { data } = useQuery({ queryKey: ['entities'], queryFn: fetchEntities })
-  return <Table data={data} />
-}
-
-// ✅ AFTER: Server Component
-export default async function Page() {
-  const data = await entityApi.list()
-  return <Table data={data} />
-}
-```
+**Migration Path**: Convert `useQuery()` in Client Components → `await entityApi.list()` in Server Components for initial page loads
 
 ### React 19 useOptimistic for Mutations
 
@@ -537,75 +340,7 @@ export default async function Page() {
 - ❌ Bulk operations (confusing if fails)
 - ❌ Rare actions (users expect wait time)
 
-**Complete Pattern (Server Action + Client Component):**
-
-**Step 1: Create Server Action** (inline in page.tsx or separate actions.ts)
-```typescript
-// apps/frontend/src/app/(protected)/manage/entities/page.tsx
-import { revalidatePath } from 'next/cache'
-import { entityApi } from '@/lib/api-client'
-
-async function deleteEntity(entityId: string) {
-  'use server'
-  try {
-    await entityApi.remove(entityId)
-    revalidatePath('/manage/entities') // ✅ Refresh RSC data
-    return { success: true }
-  } catch (error) {
-    console.error('Failed to delete entity:', error)
-    throw error // Let client handle error
-  }
-}
-
-export default async function EntityPage() {
-  const entities = await entityApi.list()
-  return <EntityTable initialEntities={entities} deleteEntityAction={deleteEntity} />
-}
-```
-
-**Step 2: Client Component with useOptimistic**
-```typescript
-// entity-table.client.tsx
-'use client'
-import { useOptimistic, useTransition } from 'react'
-import { toast } from 'sonner'
-
-interface EntityTableProps {
-  initialEntities: Entity[]
-  deleteEntityAction: (id: string) => Promise<{ success: boolean }>
-}
-
-export function EntityTable({ initialEntities, deleteEntityAction }: EntityTableProps) {
-  // ✅ React 19 useOptimistic for instant delete feedback
-  const [optimisticEntities, removeOptimistic] = useOptimistic(
-    initialEntities,
-    (state, entityId: string) => state.filter(e => e.id !== entityId)
-  )
-  const [isPending, startTransition] = useTransition()
-
-  const handleDelete = (entityId: string) => {
-    startTransition(async () => {
-      removeOptimistic(entityId) // ✅ Instant UI update (removed from list)
-      try {
-        await deleteEntityAction(entityId) // Server action with revalidatePath
-        toast.success('Entity deleted successfully')
-      } catch (error) {
-        toast.error('Failed to delete entity')
-        // ✅ React automatically reverts optimistic update on error
-      }
-    })
-  }
-
-  return <Table data={optimisticEntities} onDelete={handleDelete} isPending={isPending} />
-}
-```
-
-**Benefits:**
-- 0ms perceived latency (instant UI update)
-- Automatic rollback on error (React handles revert)
-- No TanStack Query needed (~8KB bundle saved per entity)
-- Built-in React 19 (no library overhead)
-- Server data refresh via revalidatePath
+**Complete Pattern**: Server Action (inline in page.tsx with 'use server', calls entityApi.remove(), uses revalidatePath() to refresh RSC data) → Client Component (useOptimistic + useTransition for instant UI updates, automatic rollback on error). Benefits: 0ms latency, no TanStack Query (~8KB saved), built-in React 19, server refresh via revalidatePath.
 
 **Reference Implementations:**
 - [DELETE TENANT](apps/frontend/src/app/(protected)/manage/tenants/page.tsx) - Complete useOptimistic pattern
@@ -614,22 +349,7 @@ export function EntityTable({ initialEntities, deleteEntityAction }: EntityTable
 
 ### Decision Flowchart
 
-```
-START: Creating a new page?
-  │
-  ├─ Does it need URL state, filters, or pagination?
-  │  └─ YES → Client Component (use 'use client')
-  │
-  ├─ Does it have interactive dialogs/modals?
-  │  └─ YES → Client Component
-  │
-  ├─ Does it need real-time updates or infinite scroll?
-  │  └─ YES → Client Component + TanStack Query
-  │
-  └─ Is it just displaying data?
-     └─ YES → Server Component (default, no 'use client')
-        └─ Fetch with: await Promise.all([api.list(), api.stats()])
-```
+**Decision Tree**: URL state/filters/pagination → Client Component | Interactive dialogs → Client Component | Real-time/infinite scroll → Client Component + TanStack Query | Just displaying data → Server Component (fetch with `await Promise.all()`)
 
 ### Key Metrics (Phase 2A Results)
 
@@ -672,61 +392,11 @@ START: Creating a new page?
 
 **Location**: `apps/frontend/src/app/globals.css`
 
-```css
-@theme {
-  /* Brand Colors (OKLCH for perceptual uniformity) */
-  --color-primary: oklch(0.50 0.20 250);
-  --color-primary-foreground: oklch(0.98 0.02 250);
-
-  /* Semantic Colors */
-  --color-success: oklch(0.55 0.15 145);
-  --color-destructive: oklch(0.55 0.22 25);
-
-  /* Typography */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-
-  /* Spacing Scale */
-  --spacing-page: 2rem;
-  --spacing-section: 4rem;
-
-  /* Border Radius */
-  --radius-card: 0.75rem;
-  --radius-button: 0.5rem;
-
-  /* Animation */
-  --duration-fast: 150ms;
-  --duration-normal: 200ms;
-}
-```
+**Tokens**: Brand colors (OKLCH format), semantic colors (success, destructive), typography (font-sans, font-mono), spacing scale (page, section), border radius (card, button), animation durations (fast, normal)
 
 ### Container Queries (Component-Aware Responsiveness)
 
-**Use Case**: Component adapts to container width, not viewport
-
-```typescript
-// Container setup
-<div className="@container">
-  <PropertyCard property={property} />
-</div>
-
-// PropertyCard adapts to container width
-<div className="@sm:flex-row @lg:grid-cols-3">
-  <Image className="@sm:w-32 @lg:w-48" />
-  <Content className="@sm:flex-1" />
-</div>
-```
-
-**Syntax**:
-- `@sm:` - Container ≥384px
-- `@md:` - Container ≥448px
-- `@lg:` - Container ≥512px
-- `@xl:` - Container ≥576px
-
-**When to Use**:
-- Dashboard widgets (grid items with varying widths)
-- Reusable cards (same component in sidebar vs main content)
-- Data tables (columns adjust to available space)
+**Use Case**: Component adapts to container width (not viewport). Wrap in `@container` div, use `@sm:` (≥384px), `@md:` (≥448px), `@lg:` (≥512px), `@xl:` (≥576px) prefixes. Use for: dashboard widgets, reusable cards, data tables.
 
 ### Core Requirements
 
@@ -747,46 +417,6 @@ START: Creating a new page?
 - Direct store access via hooks - NO prop drilling
 - Sync Shadcn/ui and Magic UI themes for primary color
 - Use shadcn charts for charting needs
-
-### Component Patterns
-
-- Buttons: Radix Button + Tailwind utilities
-- Forms: Radix Form + TanStack Form + Tailwind
-- Modals: Radix Dialog + Tailwind
-- Dropdowns: Radix Select + Tailwind
-- Loading: Radix Progress + Tailwind
-- Layouts: CSS Grid + Tailwind utilities
-- Animations: Tailwind transitions (duration-200, ease-in-out)
-
-## State Management Architecture
-
-**Zustand**: Global UI state, session, notifications, theme (persistent)
-**TanStack Query**: Server state, caching, optimistic updates (ephemeral, request-scoped)
-**TanStack Form**: Form state (component-scoped)
-**URL State**: Navigation, filters via Next.js router (shareable)
-
-## Project Structure
-
-```
-apps/
-├── frontend/src/
-│   ├── app/              # Next.js 15 app directory
-│   ├── components/       # Pure UI (ShadCN + Magic UI)
-│   ├── hooks/api/        # TanStack Query hooks
-│   ├── hooks/            # TanStack Form hooks
-│   ├── lib/              # Utils, API client, validation
-│   ├── stores/           # Zustand global state
-│   └── providers/        # React context providers
-└── backend/src/
-    ├── shared/           # Guards, filters, utilities
-    └── {domain}/         # Controller + Service + Module (flat)
-
-packages/
-├── shared/               # Build FIRST (types, utils, validation)
-├── emails/               # Email templates
-├── eslint-config/        # Shared ESLint config
-└── typescript-config/    # Shared tsconfig
-```
 
 **Build Dependencies**: shared → frontend/backend
 
@@ -822,56 +452,19 @@ packages/
 
 ### Pre-commit Hooks (Read-Only Validation)
 
-**lint-staged.config.js** - NO auto-fix, validation only:
-```javascript
-// ✅ READ-ONLY validation
-'eslint --cache --max-warnings 0'  // Check for errors, do NOT modify
-'prettier --check'                  // Check formatting, do NOT modify
-
-// ❌ REMOVED auto-fix commands
-// 'eslint --fix'                   // Would modify before commit
-// 'prettier --write'                // Would modify before commit
-```
-
-**Why Read-Only?**
-- Developers see EXACTLY what they're committing
-- No surprise changes right before commit
-- Explicit intent: run `pnpm lint:fix` or `pnpm prettier:write` manually
+**lint-staged.config.js** - Validation only (no auto-fix). Runs `eslint --cache --max-warnings 0` and `prettier --check`. Why? Developers see exactly what they're committing, no surprise changes. Run `pnpm lint:fix` manually for fixes.
 
 ### Playwright MCP (Programmatic Fixes)
 
-**Installation** (one-time setup):
-```bash
-claude mcp add playwright npx -- @playwright/mcp@latest
-```
-
-**Usage**: After updating CLAUDE.md rules, use Playwright MCP to programmatically fix violations across codebase
-
-**When to Use**:
-- Bulk refactoring (rename patterns, update imports)
-- Systematic fixes (convert all enums to database types)
-- Visual regression testing (UI component changes)
+**Installation**: `claude mcp add playwright npx -- @playwright/mcp@latest` (one-time). Use for: bulk refactoring, systematic fixes (convert enums to database types), visual regression testing.
 
 ### Manual Commands
 
-**Formatting**:
-```bash
-pnpm lint:fix        # Auto-fix ESLint errors
-pnpm prettier:write  # Format all files (not available, run prettier --write manually)
-```
+**Formatting**: `pnpm lint:fix` (auto-fix ESLint), `prettier --write` (format files)
 
-**Validation**:
-```bash
-pnpm typecheck       # TypeScript type checking
-pnpm lint            # ESLint validation (read-only)
-pnpm test:unit       # Run unit tests
-```
+**Validation**: `pnpm typecheck` (TypeScript), `pnpm lint` (ESLint read-only), `pnpm test:unit`
 
-**Complete Validation**:
-```bash
-pnpm validate        # Full pipeline: clean, build, typecheck, lint, test, health check
-pnpm validate:quick  # Fast: typecheck + lint + test
-```
+**Complete**: `pnpm validate` (full pipeline: clean, build, typecheck, lint, test, health), `pnpm validate:quick` (fast: typecheck + lint + test)
 
 ## Pre-Change Checklist (Run Before Every Code Change)
 
@@ -888,8 +481,19 @@ pnpm validate:quick  # Fast: typecheck + lint + test
 **Frontend**: Vercel (https://tenantflow.app) - Auto-deploys from main branch
 **Backend**: Railway (https://api.tenantflow.app) - Dockerfile, startCommand = `node apps/backend/dist/main.js`
 
-## Success Metric
+### Known Warnings (Non-Breaking)
 
-**Your success = Production-ready code with zero duplication**
+**Vercel Middleware Warning**: "Unable to find source file for page middleware with extensions: tsx, ts, jsx, js"
+- **Status**: Cosmetic warning, does NOT affect functionality
+- **Cause**: Vercel's internal source mapping issue with Turborepo monorepos
+- **Impact**: None - middleware works correctly in production
+- **Resolution**: Not fixable via configuration (attempted in commit eade2acf), documented as expected behavior
 
-Every line must justify its existence. When in doubt, delete it.
+## Security Notes
+
+**validator.js CVE-2025-56200** (CVSS 6.1 - Medium)
+- **Vulnerability**: URL validation bypass in isURL() function (versions ≤13.15.15)
+- **Status**: No vendor patch available (latest version 13.15.15 is vulnerable)
+- **Our Risk**: LOW - Transitive dependency via @nestjs/terminus → class-validator → validator
+- **Mitigation**: validator.js NOT used directly in application code, only in internal health check endpoints (no user input processed)
+- **Action**: Monitor validator.js releases for patch, upgrade immediately when available
