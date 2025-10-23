@@ -265,15 +265,7 @@ export type StripeWebhookEventTypes =
 
 // NOTE: Import Stripe webhook types from '@repo/shared/types/stripe' instead
 
-export interface WebhookNotification {
-	id: string
-	event: string
-	status: 'pending' | 'processed' | 'failed'
-	payload: Record<string, unknown>
-	createdAt: string
-	processedAt?: string
-	error?: string
-}
+export type { WebhookNotification } from './stripe'
 
 // SECURITY DOMAIN
 
