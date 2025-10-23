@@ -13,8 +13,24 @@ import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
+import { JetBrains_Mono, Spline_Sans } from 'next/font/google'
 import { Toaster } from 'sonner'
 import './globals.css'
+
+const splineSans = Spline_Sans({
+	subsets: ['latin'],
+	weight: ['400', '500', '600', '700'],
+	display: 'swap',
+	preload: true,
+	variable: '--font-spline'
+})
+
+const jetbrainsMono = JetBrains_Mono({
+	subsets: ['latin'],
+	display: 'swap',
+	preload: true,
+	variable: '--font-mono'
+})
 
 export async function generateMetadata(): Promise<Metadata> {
 	return await generateSiteMetadata()
@@ -54,17 +70,12 @@ export default async function RootLayout({
 					content="var(--color-system-blue)"
 				/>
 				<meta name="msapplication-config" content="/browserconfig.xml" />
-				<link rel="preconnect" href="https://api.fonts.cofo.sasjs.io" />
-				<link
-					rel="preconnect"
-					href="https://api.fonts.cofo.sasjs.io"
-					crossOrigin="anonymous"
-				/>
-				<link rel="dns-prefetch" href="//api.fonts.cofo.sasjs.io" />
 				{/* Inject JSON-LD via a small server component for better separation */}
 				<SeoJsonLd />
 			</head>
-			<body>
+			<body
+				className={`${splineSans.variable} ${jetbrainsMono.variable} font-sans`}
+			>
 				<Providers initialThemeMode={initialThemeMode}>
 					<ErrorBoundary>{children}</ErrorBoundary>
 					{/* Register service worker silently for performance/offline */}
