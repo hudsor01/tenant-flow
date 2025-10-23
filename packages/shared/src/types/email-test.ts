@@ -4,7 +4,20 @@
  * Consolidated email templates and testing interfaces
  */
 
-// EMAIL TEMPLATE TYPES
+// EMAIL TEMPLATE TYPES - Re-export from emails.ts (primary source)
+export type {
+	PaymentFailedEmailProps,
+	PaymentSuccessEmailProps
+} from './emails.js'
+
+// SubscriptionCanceledEmailProps defined locally (not in emails.ts)
+export interface SubscriptionCanceledEmailProps {
+	customerEmail: string
+	subscriptionId: string
+	planName?: string
+	canceledAt?: string
+	refundAmount?: number
+}
 
 export interface EmailParams {
 	to: string
@@ -12,32 +25,6 @@ export interface EmailParams {
 	customerEmail?: string
 	subject?: string
 	replyTo?: string
-}
-
-export interface PaymentFailedEmailProps {
-	customerEmail: string
-	amount: number
-	currency?: string
-	failureReason?: string
-	subscriptionId?: string
-	invoiceUrl?: string
-}
-
-export interface PaymentSuccessEmailProps {
-	customerEmail: string
-	amount: number
-	currency?: string
-	subscriptionId?: string
-	invoiceUrl?: string
-	receiptUrl?: string
-}
-
-export interface SubscriptionCanceledEmailProps {
-	customerEmail: string
-	subscriptionId: string
-	planName?: string
-	canceledAt?: string
-	refundAmount?: number
 }
 
 // EMAIL TESTING TYPES
