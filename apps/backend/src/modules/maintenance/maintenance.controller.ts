@@ -3,7 +3,6 @@
  *
  * ONLY built-in NestJS pipes, native exceptions, direct RPC calls.
  * FORBIDDEN: Custom decorators, DTOs, validation layers, middleware
- * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
 import {
@@ -23,7 +22,6 @@ import {
 	Query,
 	Req
 } from '@nestjs/common'
-// Swagger imports removed
 import type {
 	CreateMaintenanceRequest,
 	UpdateMaintenanceRequest
@@ -31,20 +29,13 @@ import type {
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { MaintenanceService } from './maintenance.service'
 
-// @ApiTags('maintenance')
-// @ApiBearerAuth()
 @Controller('maintenance')
 export class MaintenanceController {
-	// Logger available if needed for debugging
-	// private readonly logger = new Logger(MaintenanceController.name)
-
 	constructor(
 		@Optional() private readonly maintenanceService?: MaintenanceService
 	) {}
 
 	@Get()
-	// @ApiOperation({ summary: 'Get all maintenance requests' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async findAll(
 		@Req() req: AuthenticatedRequest,
 		@Query('unitId') unitId?: string,
@@ -134,8 +125,6 @@ export class MaintenanceController {
 	}
 
 	@Get('stats')
-	// @ApiOperation({ summary: 'Get maintenance statistics' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async getStats(@Req() req: AuthenticatedRequest) {
 		if (!this.maintenanceService) {
 			return {
@@ -153,8 +142,6 @@ export class MaintenanceController {
 	}
 
 	@Get('urgent')
-	// @ApiOperation({ summary: 'Get urgent maintenance requests' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async getUrgent(@Req() req: AuthenticatedRequest) {
 		if (!this.maintenanceService) {
 			return {
@@ -168,8 +155,6 @@ export class MaintenanceController {
 	}
 
 	@Get('overdue')
-	// @ApiOperation({ summary: 'Get overdue maintenance requests' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async getOverdue(@Req() req: AuthenticatedRequest) {
 		if (!this.maintenanceService) {
 			return {
@@ -183,9 +168,6 @@ export class MaintenanceController {
 	}
 
 	@Get(':id')
-	// @ApiOperation({ summary: 'Get maintenance request by ID' })
-	// @ApiResponse({ status: HttpStatus.OK })
-	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
@@ -207,8 +189,6 @@ export class MaintenanceController {
 	}
 
 	@Post()
-	// @ApiOperation({ summary: 'Create new maintenance request' })
-	// @ApiResponse({ status: HttpStatus.CREATED })
 	async create(
 		@Body() createRequest: CreateMaintenanceRequest,
 		@Req() req: AuthenticatedRequest
@@ -226,9 +206,6 @@ export class MaintenanceController {
 	}
 
 	@Put(':id')
-	// @ApiOperation({ summary: 'Update maintenance request' })
-	// @ApiResponse({ status: HttpStatus.OK })
-	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateRequest: UpdateMaintenanceRequest,
@@ -256,8 +233,6 @@ export class MaintenanceController {
 	}
 
 	@Delete(':id')
-	// @ApiOperation({ summary: 'Delete maintenance request' })
-	// @ApiResponse({ status: HttpStatus.NO_CONTENT })
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
@@ -276,8 +251,6 @@ export class MaintenanceController {
 	}
 
 	@Post(':id/complete')
-	// @ApiOperation({ summary: 'Mark maintenance request as completed' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async complete(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest,
@@ -303,8 +276,6 @@ export class MaintenanceController {
 	}
 
 	@Post(':id/cancel')
-	// @ApiOperation({ summary: 'Cancel maintenance request' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async cancel(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest,

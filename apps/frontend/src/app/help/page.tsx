@@ -1,11 +1,11 @@
 'use client'
 
 import Footer from '@/components/layout/footer'
-import { GridPattern } from '@/components/magicui/grid-pattern'
 import { HeroSection } from '@/components/sections/hero-section'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
+import { GridPattern } from '@/components/ui/grid-pattern'
 
 import {
 	Item,
@@ -126,7 +126,7 @@ export default function HelpPage() {
 					trustBadge="Expert support team standing by"
 					title="We guarantee your success"
 					titleHighlight="or your money back"
-					subtitle="Get white-glove support from property management experts who&apos;ve helped 10,000+ managers save $30,000+ annually. Average response time: 90 seconds. Success rate: 98.7%."
+					subtitle="Get white-glove support from property management experts who've helped 10,000+ managers save $30,000+ annually. Average response time: 90 seconds. Success rate: 98.7%."
 					primaryCta={{
 						label: 'Get Instant Expert Help',
 						href: '/signup'
@@ -284,9 +284,9 @@ export default function HelpPage() {
 									</div>
 								</div>
 								<p className="text-muted-foreground mb-4">
-									&quot;TenantFlow&apos;s support team helped me implement automation that
-									increased my NOI by 45% in just 60 days. Their expertise made
-									all the difference.&quot;
+									&quot;TenantFlow&apos;s support team helped me implement
+									automation that increased my NOI by 45% in just 60 days. Their
+									expertise made all the difference.&quot;
 								</p>
 								<div className="text-sm font-semibold text-primary">
 									Result: 45% NOI increase in 60 days
@@ -308,9 +308,9 @@ export default function HelpPage() {
 									</div>
 								</div>
 								<p className="text-muted-foreground mb-4">
-									&quot;The onboarding team had me fully automated within 24 hours. I
-									now save 25+ hours per week and my vacancy rates dropped by
-									70%.&quot;
+									&quot;The onboarding team had me fully automated within 24
+									hours. I now save 25+ hours per week and my vacancy rates
+									dropped by 70%.&quot;
 								</p>
 								<div className="text-sm font-semibold text-accent">
 									Result: 25+ hours saved per week
@@ -332,9 +332,9 @@ export default function HelpPage() {
 									</div>
 								</div>
 								<p className="text-muted-foreground mb-4">
-									&quot;TenantFlow&apos;s customer success manager helped us scale from 50
-									to 500 properties seamlessly. Our maintenance costs dropped
-									35%.&quot;
+									&quot;TenantFlow&apos;s customer success manager helped us
+									scale from 50 to 500 properties seamlessly. Our maintenance
+									costs dropped 35%.&quot;
 								</p>
 								<div className="text-sm font-semibold text-primary">
 									Result: Scaled to 50 properties, 35% cost reduction
