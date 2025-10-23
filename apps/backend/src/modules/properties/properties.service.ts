@@ -597,10 +597,11 @@ export class PropertiesService {
 			throw new BadRequestException('Property not found or access denied')
 		}
 
-		// Prevent marking already sold properties
-		if (property.status === 'SOLD') {
-			// TODO: After migration 20251020_add_property_sale_fields.sql is applied, use: property.dateSold
-			throw new BadRequestException('Property is already marked as sold')
+		// Prevent marking already sold properties (check date_sold field for accuracy)
+		if (property.date_sold) {
+			throw new BadRequestException(
+				`Property was already sold on ${new Date(property.date_sold).toLocaleDateString()}`
+			)
 		}
 
 		const { error } = await this.supabase

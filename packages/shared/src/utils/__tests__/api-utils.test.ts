@@ -3,7 +3,6 @@
  * Tests URL construction logic across different environments
  */
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { getApiBaseUrl } from '../api-utils'
 
 describe('getApiBaseUrl', () => {
