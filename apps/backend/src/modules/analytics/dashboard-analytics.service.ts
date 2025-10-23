@@ -8,6 +8,7 @@ import type {
 	PropertyPerformanceRpcResponse,
 	RevenueTrendResponse
 } from '@repo/shared/types/database-rpc'
+import { EMPTY_MAINTENANCE_ANALYTICS } from '@repo/shared/constants/empty-states'
 import { SupabaseService } from '../../database/supabase.service'
 import { IDashboardAnalyticsService } from './interfaces/dashboard-analytics.interface'
 
@@ -335,12 +336,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 					error
 				}
 			)
-			return {
-				avgResolutionTime: 0,
-				completionRate: 0,
-				priorityBreakdown: {},
-				trendsOverTime: []
-			}
+			return EMPTY_MAINTENANCE_ANALYTICS
 		}
 	}
 
