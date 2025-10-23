@@ -1,6 +1,13 @@
 import { updateSession } from '@/lib/supabase/middleware'
 import { type NextRequest } from 'next/server'
 
+/**
+ * Next.js 15 Middleware - Supabase SSR Authentication
+ *
+ * KNOWN VERCEL WARNING: "Unable to find source file for page middleware"
+ * This is a cosmetic Vercel monorepo build warning that does NOT affect functionality.
+ * Middleware works correctly in production. See CLAUDE.md Deployment section for details.
+ */
 export async function middleware(request: NextRequest) {
 	// Update session with production-ready auth, payment gating, and role-based redirects
 	return await updateSession(request)
