@@ -1,6 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&display=swap');
-
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -17,10 +14,10 @@
 
 @theme {
 	--font-sans:
-		'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont,
+		var(--font-spline), system-ui, -apple-system, BlinkMacSystemFont,
 		sans-serif;
-	--font-display: 'Spline Sans', var(--font-sans);
-	--font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+	--font-display: var(--font-spline);
+	--font-mono: var(--font-mono), ui-monospace, monospace;
 	--font-family: var(--font-sans);
 	--font-large-title: 26px;
 	--font-title-1: 22px;
