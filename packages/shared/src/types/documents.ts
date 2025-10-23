@@ -42,15 +42,5 @@ export const getDocumentTypeLabel = (type: DocumentType): string => {
 	return labels[type] || type
 }
 
-// Document entity types
-export interface Document {
-	id: string
-	name: string
-	url: string
-	type: DocumentType
-	propertyId: string | null
-	leaseId: string | null
-	fileSizeBytes: bigint
-	createdAt: Date | null
-	updatedAt: Date | null
-}
+// Document entity type - Re-export from database types
+export type { Document } from './supabase'
