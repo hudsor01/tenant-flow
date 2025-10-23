@@ -5,7 +5,7 @@
 
 import type * as React from 'react'
 import type { PlanId, PricingConfig } from '../config/pricing.js'
-import type { Property, Tenant } from './core.js'
+import type { Database, Property, Tenant } from './core.js'
 
 // DASHBOARD COMPONENT TYPES
 export interface AnimatedMetricCardProps {
@@ -103,7 +103,7 @@ export interface FormProgress {
 	totalSteps: number
 	completedSteps: number[]
 	formData: Record<string, unknown>
-	formType: 'property' | 'tenant' | 'lease' | 'maintenance' | null
+	formType: Database['public']['Enums']['ActivityEntityType'] | null
 }
 
 export interface ModalState {
@@ -160,6 +160,7 @@ export interface UIStore {
 		tenants: number
 		leases: number
 		maintenance: number
+		units: number
 	}
 	triggerRefresh: (entity: keyof UIStore['refreshTriggers']) => void
 }
@@ -599,8 +600,6 @@ export interface UsePricingReturn {
 }
 
 // DATA TABLE ROW TYPES - Extended database types for UI display
-
-import type { Database } from './core.js'
 
 export type UnitRow = Database['public']['Tables']['unit']['Row'] & {
 	property?: {

@@ -6,13 +6,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle
-} from '@/components/ui/dialog'
+import { EditDialog } from '@/components/ui/base-dialogs'
 import { Field, FieldLabel } from '@/components/ui/field'
 import {
 	Select,
@@ -35,18 +29,6 @@ interface AddPaymentMethodDialogProps {
 	onSuccess?: () => void
 }
 
-/**
- * AddPaymentMethodDialog - Modal for adding new payment methods
- *
- * Allows tenants to add card or ACH bank accounts for rent payments.
- * Uses Stripe's PaymentElement for secure payment method collection.
- *
- * Flow:
- * 1. Select payment type (card or ACH)
- * 2. Create SetupIntent on backend
- * 3. Collect payment method via Stripe PaymentElement
- * 4. Save payment method details to database
- */
 export function AddPaymentMethodDialog({
 	open,
 	onOpenChange,
@@ -60,7 +42,6 @@ export function AddPaymentMethodDialog({
 	const createSetupIntent = useCreateSetupIntent()
 	const savePaymentMethod = useSavePaymentMethod()
 
-	// Step 1: Create SetupIntent when dialog opens and payment type is selected
 	const handleCreateSetupIntent = async () => {
 		try {
 			const result = await createSetupIntent.mutateAsync({
@@ -77,7 +58,6 @@ export function AddPaymentMethodDialog({
 		}
 	}
 
-	// Step 2: Handle successful payment method confirmation
 	const handleSetupSuccess = async (paymentMethodId: string) => {
 		if (!paymentMethodId) {
 			toast.error('Payment method identifier missing')
@@ -85,7 +65,6 @@ export function AddPaymentMethodDialog({
 		}
 
 		try {
-			// Save payment method details to database
 			const result = await savePaymentMethod.mutateAsync({
 				paymentMethodId
 			})
@@ -94,8 +73,6 @@ export function AddPaymentMethodDialog({
 				toast.success('Payment method saved successfully')
 				onOpenChange(false)
 				onSuccess?.()
-
-				// Reset state for next use
 				setClientSecret(null)
 				setPaymentMethodType('card')
 			} else {
@@ -106,13 +83,8 @@ export function AddPaymentMethodDialog({
 		}
 	}
 
-	const handleSetupError = () => {
-		// Error already handled by PaymentMethodSetupForm
-	}
-
 	const handleDialogChange = (isOpen: boolean) => {
 		if (!isOpen) {
-			// Reset state when dialog closes
 			setClientSecret(null)
 			setPaymentMethodType('card')
 		}
@@ -120,22 +92,33 @@ export function AddPaymentMethodDialog({
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={handleDialogChange}>
-			<DialogContent className="sm:max-w-lg">
-				<DialogHeader>
-					<DialogTitle className="flex items-center gap-2">
-						<CreditCard className="w-5 h-5" />
-						Add Payment Method
-					</DialogTitle>
-					<DialogDescription>
-						Add a card or bank account to pay rent automatically
-					</DialogDescription>
-				</DialogHeader>
-
+		<EditDialog
+			open={open}
+			hideTrigger
+			onOpenChange={handleDialogChange}
+			title="Add Payment Method"
+			description="Add a card or bank account to pay rent automatically"
+			formType="tenant"
+			isPending={createSetupIntent.isPending || savePaymentMethod.isPending}
+			submitText="Close"
+			submitPendingText="Closing..."
+			contentClassName="sm:max-w-lg"
+			onSubmit={e => {
+				e.preventDefault()
+				onOpenChange(false)
+			}}
+		>
+			{() => (
 				<div className="space-y-6">
+					<div className="flex items-center gap-2 text-label-secondary">
+						<CreditCard className="w-5 h-5" />
+						<span>
+							Add a card or bank account to keep rent payments on autopilot.
+						</span>
+					</div>
+
 					{!clientSecret ? (
 						<>
-							{/* Step 1: Select payment method type */}
 							<Field>
 								<FieldLabel htmlFor="paymentType">
 									Payment Method Type
@@ -158,13 +141,14 @@ export function AddPaymentMethodDialog({
 								</Select>
 								{paymentMethodType === 'us_bank_account' && (
 									<p className="text-sm text-muted-foreground mt-2">
-										Bank accounts are verified instantly via secure connection
-										to your bank.
+										Bank accounts are verified instantly via a secure bank
+										connection.
 									</p>
 								)}
 							</Field>
 
 							<Button
+								type="button"
 								onClick={handleCreateSetupIntent}
 								disabled={createSetupIntent.isPending}
 								className="w-full"
@@ -181,11 +165,12 @@ export function AddPaymentMethodDialog({
 						</>
 					) : (
 						<>
-							{/* Step 2: Collect payment method via Stripe PaymentElement */}
 							<PaymentMethodSetupForm
 								clientSecret={clientSecret}
 								onSuccess={handleSetupSuccess}
-								onError={handleSetupError}
+								onError={() => {
+									/* handled internally */
+								}}
 							/>
 
 							<div className="rounded-lg border p-4 bg-muted/50">
@@ -197,7 +182,7 @@ export function AddPaymentMethodDialog({
 						</>
 					)}
 				</div>
-			</DialogContent>
-		</Dialog>
+			)}
+		</EditDialog>
 	)
 }

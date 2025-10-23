@@ -1,10 +1,8 @@
 import { Controller, Get, Logger, Query, Req, Request } from '@nestjs/common'
-// Swagger imports removed
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { DashboardService } from './dashboard.service'
 
-// @ApiTags('dashboard')
 @Controller('dashboard')
 export class DashboardController {
 	private readonly logger = new Logger(DashboardController.name)
@@ -12,8 +10,6 @@ export class DashboardController {
 	constructor(private readonly dashboardService: DashboardService) {}
 
 	@Get('stats')
-	// @ApiOperation({ summary: 'Get dashboard statistics for authenticated user' })
-	// @ApiResponse({ status: 200, description: 'Dashboard statistics retrieved successfully' })
 	async getStats(
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
@@ -37,8 +33,6 @@ export class DashboardController {
 	}
 
 	@Get('activity')
-	// @ApiOperation({ summary: 'Get recent dashboard activity' })
-	// @ApiResponse({ status: 200, description: 'Dashboard activity retrieved successfully' })
 	async getActivity(
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
@@ -65,11 +59,6 @@ export class DashboardController {
 	}
 
 	@Get('billing/insights')
-	// @ApiOperation({ summary: 'Get comprehensive billing insights from Stripe Sync Engine' })
-	// @ApiQuery({ name: 'startDate', required: false, type: String })
-	// @ApiQuery({ name: 'endDate', required: false, type: String })
-	// @ApiResponse({ status: 200, description: 'Billing insights retrieved successfully' })
-	// @ApiResponse({ status: 404, description: 'Stripe Sync Engine not configured' })
 	async getBillingInsights(
 		@Req() req: AuthenticatedRequest,
 		@Query('startDate') startDate?: string,
@@ -118,8 +107,6 @@ export class DashboardController {
 	}
 
 	@Get('billing/health')
-	// @ApiOperation({ summary: 'Check if billing insights are available' })
-	// @ApiResponse({ status: 200, description: 'Billing insights availability status' })
 	async getBillingHealth(): Promise<ControllerApiResponse> {
 		this.logger?.log(
 			{
@@ -155,8 +142,6 @@ export class DashboardController {
 	}
 
 	@Get('property-performance')
-	// @ApiOperation({ summary: 'Get per-property performance metrics' })
-	// @ApiResponse({ status: 200, description: 'Property performance metrics retrieved successfully' })
 	async getPropertyPerformance(
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
@@ -183,8 +168,6 @@ export class DashboardController {
 	}
 
 	@Get('uptime')
-	// @ApiOperation({ summary: 'Get system uptime and SLA metrics' })
-	// @ApiResponse({ status: 200, description: 'System uptime metrics retrieved successfully' })
 	async getUptime(): Promise<ControllerApiResponse> {
 		this.logger?.log(
 			{
@@ -206,9 +189,6 @@ export class DashboardController {
 	}
 
 	@Get('occupancy-trends')
-	// @ApiOperation({ summary: 'Get occupancy trends using optimized RPC function' })
-	// @ApiQuery({ name: 'months', required: false, type: Number })
-	// @ApiResponse({ status: 200, description: 'Occupancy trends retrieved successfully' })
 	async getOccupancyTrends(
 		@Req() req: AuthenticatedRequest,
 		@Query('months') months: string = '12'
@@ -241,9 +221,6 @@ export class DashboardController {
 	}
 
 	@Get('revenue-trends')
-	// @ApiOperation({ summary: 'Get revenue trends using optimized RPC function' })
-	// @ApiQuery({ name: 'months', required: false, type: Number })
-	// @ApiResponse({ status: 200, description: 'Revenue trends retrieved successfully' })
 	async getRevenueTrends(
 		@Req() req: AuthenticatedRequest,
 		@Query('months') months: string = '12'
@@ -273,8 +250,6 @@ export class DashboardController {
 	}
 
 	@Get('maintenance-analytics')
-	// @ApiOperation({ summary: 'Get maintenance analytics using optimized RPC function' })
-	// @ApiResponse({ status: 200, description: 'Maintenance analytics retrieved successfully' })
 	async getMaintenanceAnalytics(
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {

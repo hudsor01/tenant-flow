@@ -1,8 +1,8 @@
 'use client'
 
-import Footer from '@/components/layout/footer'
 import { ContactForm } from '@/app/contact/contact-form'
-import { GridPattern } from '@/components/magicui/grid-pattern'
+import Footer from '@/components/layout/footer'
+import { GridPattern } from '@/components/ui/grid-pattern'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 

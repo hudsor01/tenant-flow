@@ -1,16 +1,22 @@
 'use client'
 
-import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { CardLayout } from '@/components/ui/card-layout'
 import { Button } from '@/components/ui/button'
-import { LoadingDots } from '@/components/magicui/loading-spinner'
+import { CardLayout } from '@/components/ui/card-layout'
+import { LoadingDots } from '@/components/ui/loading-spinner'
 import { useSessionStatus } from '@/hooks/api/use-payment-verification'
 import { getStatusColorClass } from '@/lib/utils/color-helpers'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 // Success Icon as per Stripe specification
 const SuccessIcon = () => (
-	<svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+	<svg
+		width="16"
+		height="14"
+		viewBox="0 0 16 14"
+		fill="none"
+		xmlns="http://www.w3.org/2000/svg"
+	>
 		<path
 			fillRule="evenodd"
 			clipRule="evenodd"
@@ -22,7 +28,13 @@ const SuccessIcon = () => (
 
 // Error Icon as per Stripe specification
 const ErrorIcon = () => (
-	<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+	<svg
+		width="16"
+		height="16"
+		viewBox="0 0 16 16"
+		fill="none"
+		xmlns="http://www.w3.org/2000/svg"
+	>
 		<path
 			fillRule="evenodd"
 			clipRule="evenodd"
@@ -34,7 +46,13 @@ const ErrorIcon = () => (
 
 // External link icon for Stripe dashboard
 const ExternalLinkIcon = () => (
-	<svg width="15" height="14" viewBox="0 0 15 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+	<svg
+		width="15"
+		height="14"
+		viewBox="0 0 15 14"
+		fill="none"
+		xmlns="http://www.w3.org/2000/svg"
+	>
 		<path
 			fillRule="evenodd"
 			clipRule="evenodd"
@@ -104,14 +122,14 @@ export default function CompletePage() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-white">
+			<div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-white">
 				<CardLayout
 					title="Checking payment status..."
 					className="w-full max-w-md"
 				>
 					<div className="flex flex-col items-center justify-center space-y-4">
 						<LoadingDots size="lg" variant="primary" />
-						<p className="text-[var(--color-text-secondary)]">
+						<p className="text-(--color-text-secondary)">
 							Checking payment status...
 						</p>
 					</div>
@@ -121,14 +139,14 @@ export default function CompletePage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+		<div className="min-h-screen bg-linear-to-br from-slate-50 to-white">
 			<div className="container mx-auto px-4 section-compact">
 				<div className="max-w-2xl mx-auto">
 					{/* Payment Status Display */}
 					<CardLayout
 						title="Payment Status"
 						description={text}
-						className="border-[var(--color-border)] shadow-lg"
+						className="border-(--color-border) shadow-lg"
 					>
 						<div id="payment-status" className="text-center">
 							{/* Status Icon */}
@@ -140,44 +158,59 @@ export default function CompletePage() {
 							</div>
 
 							{/* Status Text */}
-							<h2 id="status-text" className="text-2xl font-bold text-[var(--color-text-primary)] mb-8">
+							<h2
+								id="status-text"
+								className="text-2xl font-bold text-(--color-text-primary) mb-8"
+							>
 								{text}
 							</h2>
 
 							{/* Details Table */}
 							<div id="details-table" className="mb-8">
-								<div className="bg-[var(--color-fill-secondary)] rounded-lg p-6">
+								<div className="bg-(--color-fill-secondary) rounded-lg p-6">
 									<table className="w-full">
 										<tbody className="space-y-3">
-											<tr className="border-b border-[var(--color-border)] last:border-b-0">
-												<td className="text-left py-2 text-[var(--color-text-secondary)] font-medium">
+											<tr className="border-b border-(--color-border) last:border-b-0">
+												<td className="text-left py-2 text-(--color-text-secondary) font-medium">
 													Payment Intent ID
 												</td>
-												<td id="intent-id" className="text-right py-2 text-[var(--color-text-primary)] font-mono text-sm">
+												<td
+													id="intent-id"
+													className="text-right py-2 text-(--color-text-primary) font-mono text-sm"
+												>
 													{sessionData?.payment_intent_id || 'N/A'}
 												</td>
 											</tr>
-											<tr className="border-b border-[var(--color-border)] last:border-b-0">
-												<td className="text-left py-2 text-[var(--color-text-secondary)] font-medium">
+											<tr className="border-b border-(--color-border) last:border-b-0">
+												<td className="text-left py-2 text-(--color-text-secondary) font-medium">
 													Status
 												</td>
-												<td id="intent-status" className="text-right py-2 text-[var(--color-text-primary)] capitalize">
+												<td
+													id="intent-status"
+													className="text-right py-2 text-(--color-text-primary) capitalize"
+												>
 													{sessionData?.status || 'Unknown'}
 												</td>
 											</tr>
-											<tr className="border-b border-[var(--color-border)] last:border-b-0">
-												<td className="text-left py-2 text-[var(--color-text-secondary)] font-medium">
+											<tr className="border-b border-(--color-border) last:border-b-0">
+												<td className="text-left py-2 text-(--color-text-secondary) font-medium">
 													Payment Status
 												</td>
-												<td id="session-status" className="text-right py-2 text-[var(--color-text-primary)] capitalize">
+												<td
+													id="session-status"
+													className="text-right py-2 text-(--color-text-primary) capitalize"
+												>
 													{sessionData?.payment_status || 'Unknown'}
 												</td>
 											</tr>
-											<tr className="border-b border-[var(--color-border)] last:border-b-0">
-												<td className="text-left py-2 text-[var(--color-text-secondary)] font-medium">
+											<tr className="border-b border-(--color-border) last:border-b-0">
+												<td className="text-left py-2 text-(--color-text-secondary) font-medium">
 													Payment Intent Status
 												</td>
-												<td id="payment-intent-status" className="text-right py-2 text-[var(--color-text-primary)] capitalize">
+												<td
+													id="payment-intent-status"
+													className="text-right py-2 text-(--color-text-primary) capitalize"
+												>
 													{sessionData?.payment_intent_status || 'Unknown'}
 												</td>
 											</tr>
@@ -194,7 +227,7 @@ export default function CompletePage() {
 										id="view-details"
 										rel="noopener noreferrer"
 										target="_blank"
-										className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
+										className="inline-flex items-center gap-2 text-(--color-primary) hover:text-(--color-primary-hover) transition-colors"
 									>
 										View details
 										<ExternalLinkIcon />
@@ -213,13 +246,11 @@ export default function CompletePage() {
 					{/* Success Message */}
 					{sessionData?.status === 'complete' && (
 						<div className="text-center mt-8">
-							<p className="text-[var(--color-text-secondary)]">
+							<p className="text-(--color-text-secondary)">
 								Welcome to TenantFlow! Your subscription is now active.
 							</p>
 							<Link href="/dashboard" className="inline-block mt-4">
-								<Button className="h-11 px-8">
-									Go to Dashboard
-								</Button>
+								<Button className="h-11 px-8">Go to Dashboard</Button>
 							</Link>
 						</div>
 					)}

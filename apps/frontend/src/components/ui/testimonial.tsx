@@ -1,6 +1,6 @@
 'use client'
-import { TimelineContent } from '@/components/magicui/timeline-animation'
-import { BorderBeam } from '@/components/magicui/border-beam'
+import { BorderBeam } from '@/components/ui/border-beam'
+import { TimelineContent } from '@/components/ui/timeline-animation'
 import Image from 'next/image'
 import { useRef } from 'react'
 
@@ -62,7 +62,14 @@ function ClientFeedback() {
 							timelineRef={testimonialRef}
 							className=" lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
 						>
-							<BorderBeam size={250} duration={12} delay={9} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+							<BorderBeam
+								size={250}
+								duration={12}
+								delay={9}
+								colorFrom="var(--color-primary)"
+								colorTo="var(--color-accent)"
+								className="opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+							/>
 							<div className="absolute bottom-0 left-0 right-0 top-0 bg-grid-pattern opacity-30"></div>
 							<article className="mt-auto relative z-10">
 								<p>
@@ -97,7 +104,14 @@ function ClientFeedback() {
 							timelineRef={testimonialRef}
 							className="lg:flex-[3] flex-[4] lg:h-fit  lg:shrink-0 flex flex-col justify-between relative bg-[var(--color-accent-main)] text-primary-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
 						>
-							<BorderBeam size={200} duration={10} delay={5} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+							<BorderBeam
+								size={200}
+								duration={10}
+								delay={5}
+								colorFrom="var(--color-primary)"
+								colorTo="var(--color-accent)"
+								className="opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+							/>
 							<article className="mt-auto">
 								<p>
 									&quot;Our tenant satisfaction scores increased by 40% since
@@ -131,12 +145,19 @@ function ClientFeedback() {
 							timelineRef={testimonialRef}
 							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
 						>
-							<BorderBeam size={180} duration={8} delay={3} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+							<BorderBeam
+								size={180}
+								duration={8}
+								delay={3}
+								colorFrom="var(--color-primary)"
+								colorTo="var(--color-accent)"
+								className="opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+							/>
 							<article className="mt-auto">
 								<p className="2xl:text-base text-sm">
-									&quot;The financial reporting features give us complete visibility
-									into our portfolio performance. ROI tracking has never been
-									easier.&quot;
+									&quot;The financial reporting features give us complete
+									visibility into our portfolio performance. ROI tracking has
+									never been easier.&quot;
 								</p>
 								<div className="flex justify-between items-end pt-5">
 									<div>
@@ -165,7 +186,14 @@ function ClientFeedback() {
 							timelineRef={testimonialRef}
 							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
 						>
-							<BorderBeam size={180} duration={8} delay={7} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+							<BorderBeam
+								size={180}
+								duration={8}
+								delay={7}
+								colorFrom="var(--color-primary)"
+								colorTo="var(--color-accent)"
+								className="opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+							/>
 							<article className="mt-auto">
 								<p className="2xl:text-base text-sm">
 									&quot;Automated lease renewals and rent increases saved us
@@ -199,11 +227,19 @@ function ClientFeedback() {
 							timelineRef={testimonialRef}
 							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
 						>
-							<BorderBeam size={180} duration={8} delay={11} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+							<BorderBeam
+								size={180}
+								duration={8}
+								delay={11}
+								colorFrom="var(--color-primary)"
+								colorTo="var(--color-accent)"
+								className="opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+							/>
 							<article className="mt-auto">
 								<p className="2xl:text-base text-sm">
-									&quot;The tenant screening process is incredibly thorough yet fast.
-									We&apos;ve reduced bad tenants by 90% and vacancy rates are down.&quot;
+									&quot;The tenant screening process is incredibly thorough yet
+									fast. We&apos;ve reduced bad tenants by 90% and vacancy rates
+									are down.&quot;
 								</p>
 								<div className="flex justify-between items-end pt-5">
 									<div>
@@ -234,7 +270,14 @@ function ClientFeedback() {
 							timelineRef={testimonialRef}
 							className=" lg:flex-[3] flex-[4] flex flex-col justify-between relative bg-[var(--color-accent-main)] text-primary-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
 						>
-							<BorderBeam size={200} duration={10} delay={13} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+							<BorderBeam
+								size={200}
+								duration={10}
+								delay={13}
+								colorFrom="var(--color-primary)"
+								colorTo="var(--color-accent)"
+								className="opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+							/>
 							<article className="mt-auto">
 								<p>
 									&quot;TenantFlow has been instrumental in scaling our property
@@ -265,13 +308,20 @@ function ClientFeedback() {
 							timelineRef={testimonialRef}
 							className="lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
 						>
-							<BorderBeam size={250} duration={12} delay={15} colorFrom="var(--color-primary)" colorTo="var(--color-accent)" className="opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+							<BorderBeam
+								size={250}
+								duration={12}
+								delay={15}
+								colorFrom="var(--color-primary)"
+								colorTo="var(--color-accent)"
+								className="opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+							/>
 							<div className="absolute bottom-0 left-0 right-0 top-0 bg-grid-pattern opacity-30"></div>
 							<article className="mt-auto relative z-10">
 								<p>
-									&quot;The maintenance request system with contractor management has
-									transformed how we handle property issues. Response times
-									improved by 75%.&quot;
+									&quot;The maintenance request system with contractor
+									management has transformed how we handle property issues.
+									Response times improved by 75%.&quot;
 								</p>
 								<div className="flex justify-between pt-5">
 									<div>
@@ -294,7 +344,6 @@ function ClientFeedback() {
 						</TimelineContent>
 					</div>
 				</div>
-
 			</section>
 		</main>
 	)

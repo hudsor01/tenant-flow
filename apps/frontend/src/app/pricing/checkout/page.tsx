@@ -1,9 +1,9 @@
 'use client'
 
-import { LoadingDots } from '@/components/magicui/loading-spinner'
 import { Checkout } from '@/components/pricing/checkout'
 import { StripeProvider } from '@/components/providers/stripe-provider'
 import { CardLayout } from '@/components/ui/card-layout'
+import { LoadingDots } from '@/components/ui/loading-spinner'
 import {
 	formatStripePrice,
 	getPlanFeatures,
@@ -27,7 +27,7 @@ function CheckoutPageContent() {
 	// Loading state
 	if (isLoading) {
 		return (
-			<main className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
+			<main className="min-h-screen bg-linear-to-br from-slate-50 to-white flex items-center justify-center">
 				<div className="text-center space-y-4">
 					<LoadingDots size="lg" variant="primary" />
 					<p className="text-muted-foreground">
@@ -41,7 +41,7 @@ function CheckoutPageContent() {
 	// Error state
 	if (error || !selectedProduct) {
 		return (
-			<main className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+			<main className="min-h-screen bg-linear-to-br from-slate-50 to-white">
 				<div className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
 					<div className="container mx-auto px-4 py-4">
 						<Link
@@ -57,7 +57,7 @@ function CheckoutPageContent() {
 					<div className="max-w-2xl mx-auto">
 						<CardLayout
 							title="Unable to Load Plan"
-							description="We couldn&apos;t load the pricing information for this plan"
+							description="We couldn't load the pricing information for this plan"
 							className="border-destructive/50"
 						>
 							<div className="flex items-start gap-3 p-4 bg-destructive/10 rounded-lg">
@@ -103,12 +103,12 @@ function CheckoutPageContent() {
 
 	if (!priceId) {
 		return (
-			<main className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+			<main className="min-h-screen bg-linear-to-br from-slate-50 to-white">
 				<div className="container mx-auto px-4 py-16">
 					<div className="max-w-2xl mx-auto">
 						<CardLayout
 							title="Pricing Configuration Error"
-							description="This plan doesn&apos;t have a valid price configured"
+							description="This plan doesn't have a valid price configured"
 						>
 							<p className="text-sm text-muted-foreground">
 								Please contact support or select a different plan.
@@ -121,7 +121,7 @@ function CheckoutPageContent() {
 	}
 
 	return (
-		<main className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+		<main className="min-h-screen bg-linear-to-br from-slate-50 to-white">
 			{/* Clean header */}
 			<div className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
 				<div className="container mx-auto px-4 py-4">

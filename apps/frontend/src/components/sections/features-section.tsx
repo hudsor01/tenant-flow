@@ -1,4 +1,4 @@
-import { BlurFade } from '@/components/magicui/blur-fade'
+import { BlurFade } from '@/components/ui/blur-fade'
 import { cn } from '@/lib/design-system'
 import {
 	ArrowLeft,

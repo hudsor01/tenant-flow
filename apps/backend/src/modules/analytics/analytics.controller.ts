@@ -8,10 +8,8 @@ import {
 	SetMetadata
 } from '@nestjs/common'
 import type { WebVitalData } from '@repo/shared/types/frontend'
-// Swagger imports removed
 import { AnalyticsService } from './analytics.service'
 
-// @ApiTags('analytics')
 @Controller('analytics')
 export class AnalyticsController {
 	private readonly logger = new Logger(AnalyticsController.name)
@@ -21,8 +19,6 @@ export class AnalyticsController {
 	@Post('web-vitals')
 	@SetMetadata('isPublic', true)
 	@HttpCode(HttpStatus.ACCEPTED)
-	// @ApiOperation({ summary: 'Collect web vitals metrics from the frontend' })
-	// @ApiResponse({ status: HttpStatus.ACCEPTED, description: 'Metric accepted' })
 	async reportWebVitals(@Body() payload: WebVitalData) {
 		// Manual validation for web vitals data
 		if (!payload || typeof payload !== 'object') {

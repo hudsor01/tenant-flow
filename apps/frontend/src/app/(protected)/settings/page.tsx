@@ -2,8 +2,8 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-import { PaymentMethodsTab } from '@/components/settings/payment-methods-tab'
-import { StripeConnectTab } from '@/components/settings/stripe-connect-tab'
+import { PaymentMethodsTab } from './payment-methods-tab'
+import { StripeConnectTab } from './stripe-connect-tab'
 
 export default function SettingsPage() {
 	return (

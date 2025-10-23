@@ -13,10 +13,11 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, Trash2 } from 'lucide-react'
+import type { ComponentProps, ReactNode } from 'react'
 import { useState } from 'react'
-import type { ReactNode } from 'react'
 
-export interface DeleteDialogProps {
+export interface DeleteDialogProps
+	extends Omit<ComponentProps<typeof AlertDialog>, 'children'> {
 	/**
 	 * Dialog trigger button text
 	 */
@@ -53,6 +54,10 @@ export interface DeleteDialogProps {
 	 * Delete confirmation handler
 	 */
 	onDelete: () => void | Promise<void>
+	/**
+	 * Controlled open state (optional)
+	 */
+	open?: boolean
 	/**
 	 * Callback when dialog open state changes
 	 */
@@ -96,36 +101,43 @@ export interface DeleteDialogProps {
  * />
  * ```
  */
-export function DeleteDialog({
-	triggerText,
-	triggerIcon = <Trash2 className="size-4" />,
-	title,
-	description,
-	itemName,
-	isPending = false,
-	deleteText = 'Delete',
-	deletePendingText = 'Deleting...',
-	onDelete,
-	onOpenChange,
-	triggerClassName = 'flex items-center gap-2',
-	triggerVariant = 'destructive',
-	showWarningIcon = true,
-	renderTrigger
-}: DeleteDialogProps) {
-	const [isOpen, setIsOpen] = useState(false)
+export function DeleteDialog(props: DeleteDialogProps) {
+	const {
+		triggerText,
+		triggerIcon = <Trash2 className="size-4" />,
+		title,
+		description,
+		itemName,
+		isPending = false,
+		deleteText = 'Delete',
+		deletePendingText = 'Deleting...',
+		onDelete,
+		onOpenChange,
+		triggerClassName = 'flex items-center gap-2',
+		triggerVariant = 'destructive',
+		showWarningIcon = true,
+		renderTrigger,
+		...rest
+	} = props
+
+	const [internalOpen, setInternalOpen] = useState(false)
+	const isControlled = rest.open !== undefined
+	const isOpen = isControlled ? !!rest.open : internalOpen
 
 	const handleOpenChange = (open: boolean) => {
-		setIsOpen(open)
+		if (!isControlled) setInternalOpen(open)
 		onOpenChange?.(open)
 	}
 
 	const handleDelete = async () => {
 		await onDelete()
-		setIsOpen(false)
+		setInternalOpen(false)
 	}
 
 	const triggerButton = renderTrigger ? (
-		<div onClick={() => setIsOpen(true)}>{renderTrigger(() => setIsOpen(true))}</div>
+		<div onClick={() => setInternalOpen(true)}>
+			{renderTrigger(() => setInternalOpen(true))}
+		</div>
 	) : (
 		<Button variant={triggerVariant} className={triggerClassName}>
 			{triggerIcon}
@@ -134,10 +146,8 @@ export function DeleteDialog({
 	)
 
 	return (
-		<AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
-			<AlertDialogTrigger asChild>
-				{triggerButton}
-			</AlertDialogTrigger>
+		<AlertDialog {...rest} open={isOpen} onOpenChange={handleOpenChange}>
+			<AlertDialogTrigger asChild>{triggerButton}</AlertDialogTrigger>
 
 			<AlertDialogContent>
 				<AlertDialogHeader>
@@ -150,9 +160,7 @@ export function DeleteDialog({
 					<AlertDialogDescription className="space-y-2">
 						<p>{description}</p>
 						{itemName && (
-							<p className="font-medium text-foreground">
-								{itemName}
-							</p>
+							<p className="font-medium text-foreground">{itemName}</p>
 						)}
 					</AlertDialogDescription>
 				</AlertDialogHeader>

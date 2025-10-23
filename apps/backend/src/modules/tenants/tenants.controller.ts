@@ -23,7 +23,6 @@ import {
 	Query,
 	Req
 } from '@nestjs/common'
-// Swagger imports removed
 import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
@@ -31,8 +30,6 @@ import type {
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { TenantsService } from './tenants.service'
 
-// @ApiTags('tenants')
-// @ApiBearerAuth()
 @Controller('tenants')
 export class TenantsController {
 	// Logger available if needed for debugging
@@ -41,8 +38,6 @@ export class TenantsController {
 	constructor(@Optional() private readonly tenantsService?: TenantsService) {}
 
 	@Get()
-	// @ApiOperation({ summary: 'Get all tenants' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async findAll(
 		@Req() req: AuthenticatedRequest,
 		@Query('search') search?: string,
@@ -88,8 +83,6 @@ export class TenantsController {
 	}
 
 	@Get('stats')
-	// @ApiOperation({ summary: 'Get tenant statistics' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async getStats(@Req() req: AuthenticatedRequest) {
 		if (!this.tenantsService) {
 			return {
@@ -106,9 +99,6 @@ export class TenantsController {
 	}
 
 	@Get(':id')
-	// @ApiOperation({ summary: 'Get tenant by ID' })
-	// @ApiResponse({ status: HttpStatus.OK })
-	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
@@ -130,8 +120,6 @@ export class TenantsController {
 	}
 
 	@Post()
-	// @ApiOperation({ summary: 'Create new tenant' })
-	// @ApiResponse({ status: HttpStatus.CREATED })
 	async create(
 		@Body() createRequest: CreateTenantRequest,
 		@Req() req: AuthenticatedRequest
@@ -149,9 +137,6 @@ export class TenantsController {
 	}
 
 	@Put(':id')
-	// @ApiOperation({ summary: 'Update tenant' })
-	// @ApiResponse({ status: HttpStatus.OK }}
-	// @ApiResponse({ status: HttpStatus.NOT_FOUND })
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateRequest: UpdateTenantRequest,
@@ -175,8 +160,6 @@ export class TenantsController {
 	}
 
 	@Put(':id/mark-moved-out')
-	// @ApiOperation({ summary: 'Mark tenant as moved out (soft delete)' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async markAsMovedOut(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() body: { moveOutDate: string; moveOutReason: string },
@@ -208,8 +191,6 @@ export class TenantsController {
 	}
 
 	@Delete(':id/hard-delete')
-	// @ApiOperation({ summary: 'Permanently delete tenant (7+ years only)' })
-	// @ApiResponse({ status: HttpStatus.NO_CONTENT })
 	async hardDelete(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
@@ -227,8 +208,6 @@ export class TenantsController {
 	}
 
 	@Delete(':id')
-	// @ApiOperation({ summary: 'Delete tenant (deprecated - use mark-moved-out)' })
-	// @ApiResponse({ status: HttpStatus.BAD_REQUEST })
 	async remove() {
 		throw new BadRequestException(
 			'Direct deletion is not allowed. Use PUT /tenants/:id/mark-moved-out to mark tenant as moved out, or DELETE /tenants/:id/hard-delete for permanent deletion (7+ years only).'
@@ -236,8 +215,6 @@ export class TenantsController {
 	}
 
 	@Post(':id/invite')
-	// @ApiOperation({ summary: 'Send invitation to tenant' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async sendInvitation(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
@@ -256,8 +233,6 @@ export class TenantsController {
 	}
 
 	@Post(':id/resend-invitation')
-	// @ApiOperation({ summary: 'Resend invitation to tenant' })
-	// @ApiResponse({ status: HttpStatus.OK }}
 	async resendInvitation(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
@@ -276,8 +251,6 @@ export class TenantsController {
 	}
 
 	@Put(':id/emergency-contact')
-	// @ApiOperation({ summary: 'Update tenant emergency contact' })
-	// @ApiResponse({ status: HttpStatus.OK }}
 	async updateEmergencyContact(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body()
@@ -300,8 +273,6 @@ export class TenantsController {
 	}
 
 	@Delete(':id/emergency-contact')
-	// @ApiOperation({ summary: 'Remove tenant emergency contact' })
-	// @ApiResponse({ status: HttpStatus.OK })
 	async removeEmergencyContact(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest

@@ -1,6 +1,6 @@
 'use client'
 
-import { PasswordUpdateSection } from '@/components/settings/password-update-section'
+import { PasswordUpdateSection } from '@/app/(protected)/settings/password-update-section'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'

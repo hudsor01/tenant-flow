@@ -1,7 +1,7 @@
-import { ErrorBoundary } from '@/components/magicui/error-boundary'
 import { Providers } from '@/components/providers'
 import SeoJsonLd from '@/components/seo/SeoJsonLd'
 import RegisterServiceWorker from '@/components/sw/register-sw'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { generateSiteMetadata } from '@/lib/generate-metadata'
 import {
 	DEFAULT_THEME_MODE,
@@ -12,8 +12,8 @@ import type { ThemeMode } from '@repo/shared/types/domain'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
-import { cookies } from 'next/headers'
 import { JetBrains_Mono, Spline_Sans } from 'next/font/google'
+import { cookies } from 'next/headers'
 import { Toaster } from 'sonner'
 import './globals.css'
 
