@@ -172,5 +172,18 @@ export default [
 		rules: {
 			'color-tokens/no-hex-colors': 'error'
 		}
+	},
+	{
+		name: 'frontend/tanstack-library-exceptions',
+		files: [
+			'**/tenants-table.client.tsx',
+			'**/data-table.tsx',
+			'**/use-data-table-instance.ts'
+		],
+		rules: {
+			// TanStack libraries (Table, Virtual) intentionally return non-memoizable functions
+			// to prevent stale UI. These warnings are expected and safe to suppress.
+			'react-hooks/incompatible-library': 'off'
+		}
 	}
 ]
