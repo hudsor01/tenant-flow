@@ -1,10 +1,10 @@
 'use client'
 
 import Footer from '@/components/layout/footer'
-import { BlurFade } from '@/components/magicui/blur-fade'
-import { GridPattern } from '@/components/magicui/grid-pattern'
 import { Badge } from '@/components/ui/badge'
+import { BlurFade } from '@/components/ui/blur-fade'
 import { Button } from '@/components/ui/button'
+import { GridPattern } from '@/components/ui/grid-pattern'
 import { cn } from '@/lib/utils'
 import {
 	ArrowRight,
@@ -21,8 +21,6 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-
-// (Video dialog removed — no video assets available)
 
 export default function FeaturesPage() {
 	const [currentTestimonial, setCurrentTestimonial] = useState(0)
@@ -48,7 +46,7 @@ export default function FeaturesPage() {
 		},
 		{
 			quote:
-				"Best property management decision we&apos;ve made. ROI was clear within 60 days.",
+				'Best property management decision we&apos;ve made. ROI was clear within 60 days.',
 			author: 'Marcus Rodriguez',
 			title: 'Director of Operations',
 			company: 'Urban Real Estate Group',
@@ -198,13 +196,13 @@ export default function FeaturesPage() {
 			{/* Hero Section with Modern Background */}
 			<section className="relative page-content pb-16 overflow-hidden">
 				{/* Modern gradient background */}
-				<div className="absolute inset-0 bg-gradient-to-br from-background via-primary/[0.02] to-background">
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,oklch(var(--primary)_/_0.05),transparent_50%)] bg-[length:100%_100%]" />
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,oklch(var(--accent)_/_0.03),transparent_50%)] bg-[length:100%_100%]" />
+				<div className="absolute inset-0 bg-linear-to-br from-background via-primary/2 to-background">
+					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,oklch(var(--primary)/0.05),transparent_50%)] bg-size-[100%_100%]" />
+					<div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,oklch(var(--accent)/0.03),transparent_50%)] bg-size-[100%_100%]" />
 				</div>
 
 				{/* Subtle pattern overlay */}
-				<div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,oklch(var(--foreground))_1px,transparent_0)] bg-[size:32px_32px]" />
+				<div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,oklch(var(--foreground))_1px,transparent_0)] bg-size-[32px_32px]" />
 
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 					<BlurFade delay={0.1} inView>
@@ -239,17 +237,17 @@ export default function FeaturesPage() {
 							<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
 								Transform your portfolio into a{' '}
 								<span className="relative inline-block">
-									<span className="bg-gradient-to-r from-primary via-primary/90 to-accent bg-clip-text text-transparent">
+									<span className="bg-linear-to-r from-primary via-primary/90 to-accent bg-clip-text text-transparent">
 										profit powerhouse
 									</span>
-									<div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary/60 to-accent/60 rounded-full" />
+									<div className="absolute -bottom-2 left-0 right-0 h-1 bg-linear-to-r from-primary/60 to-accent/60 rounded-full" />
 								</span>
 							</h1>
 
 							{/* Concise, benefit-driven subtext */}
 							<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl font-medium">
-								Join 10,000+ property managers who&apos;ve increased NOI by 40% with
-								enterprise-grade automation and AI-powered analytics.{' '}
+								Join 10,000+ property managers who&apos;ve increased NOI by 40%
+								with enterprise-grade automation and AI-powered analytics.{' '}
 								<span className="text-foreground font-semibold">
 									ROI guaranteed in 90 days.
 								</span>
@@ -259,7 +257,7 @@ export default function FeaturesPage() {
 							<div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
 								<Button
 									size="lg"
-									className="group relative overflow-hidden bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-8 py-4"
+									className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-8 py-4"
 									asChild
 								>
 									<a href="/signup" aria-label="Start free trial">
@@ -320,7 +318,7 @@ export default function FeaturesPage() {
 			</section>
 
 			{/* Trust Indicators with Customer Testimonials */}
-			<section className="section-compact bg-gradient-to-r from-primary/[0.02] via-background to-primary/[0.02]">
+			<section className="section-compact bg-linear-to-r from-primary/2 via-background to-primary/2">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.2} inView>
 						<div className="text-center space-y-8">
@@ -399,7 +397,7 @@ export default function FeaturesPage() {
 						<div className="text-center mb-16 space-y-6">
 							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
 								Your 3-step transformation to{' '}
-								<span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+								<span className="bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
 									maximum profitability
 								</span>
 							</h2>
@@ -421,7 +419,7 @@ export default function FeaturesPage() {
 
 							{/* Step 1: Fill Units Faster */}
 							<div className="group relative">
-								<div className="bg-gradient-to-br from-accent/5 to-accent/10 dark:from-accent/10 dark:to-accent/20 rounded-3xl p-8 border border-accent/20 dark:border-accent/30 hover:border-accent/40 dark:hover:border-accent/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
+								<div className="bg-linear-to-br from-accent/5 to-accent/10 dark:from-accent/10 dark:to-accent/20 rounded-3xl p-8 border border-accent/20 dark:border-accent/30 hover:border-accent/40 dark:hover:border-accent/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
 									{/* Step indicator */}
 									<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
 										Step 1
@@ -457,7 +455,7 @@ export default function FeaturesPage() {
 
 									<ul className="space-y-2 text-sm">
 										<li className="flex items-center">
-											<Check className="w-4 h-4 text-primary mr-3 flex-shrink-0" />
+											<Check className="w-4 h-4 text-primary mr-3 shrink-0" />
 											AI-powered tenant screening
 										</li>
 										<li className="flex items-center">
@@ -474,12 +472,12 @@ export default function FeaturesPage() {
 
 							{/* Step 2: Automate Tasks */}
 							<div className="group relative">
-								<div className="bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-3xl p-8 border border-primary/20 dark:border-primary/30 hover:border-primary/40 dark:hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
+								<div className="bg-linear-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-3xl p-8 border border-primary/20 dark:border-primary/30 hover:border-primary/40 dark:hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
 									<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
 										Step 2
 									</div>
 
-									<div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<div className="w-16 h-16 rounded-2xl bg-linear-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<Zap className="w-8 h-8 text-primary-foreground" />
 									</div>
 
@@ -524,7 +522,7 @@ export default function FeaturesPage() {
 
 							{/* Step 3: Secure Data */}
 							<div className="group relative">
-								<div className="bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 rounded-3xl p-8 border border-border hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
+								<div className="bg-linear-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 rounded-3xl p-8 border border-border hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
 									<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
 										Step 3
 									</div>
@@ -577,7 +575,7 @@ export default function FeaturesPage() {
 			</section>
 
 			{/* Results Proof Section */}
-			<section className="section-content bg-gradient-to-br from-primary/[0.02] via-background to-accent/[0.02]">
+			<section className="section-content bg-linear-to-br from-primary/[0.02] via-background to-accent/[0.02]">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.4} inView>
 						<div className="text-center mb-16">
@@ -593,7 +591,7 @@ export default function FeaturesPage() {
 						{/* Results grid with enhanced visual design */}
 						<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
 							<div className="text-center group">
-								<div className="w-20 h-20 rounded-full bg-gradient-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+								<div className="w-20 h-20 rounded-full bg-linear-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 									<TrendingUp className="w-10 h-10 text-primary-foreground" />
 								</div>
 								<div className="text-4xl font-bold text-foreground mb-2">
@@ -605,7 +603,7 @@ export default function FeaturesPage() {
 							</div>
 
 							<div className="text-center group">
-								<div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+								<div className="w-20 h-20 rounded-full bg-linear-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 									<Clock className="w-10 h-10 text-primary-foreground" />
 								</div>
 								<div className="text-4xl font-bold text-foreground mb-2">
@@ -615,7 +613,7 @@ export default function FeaturesPage() {
 							</div>
 
 							<div className="text-center group">
-								<div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+								<div className="w-20 h-20 rounded-full bg-linear-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 									<Users className="w-10 h-10 text-primary-foreground" />
 								</div>
 								<div className="text-4xl font-bold text-foreground mb-2">
@@ -625,7 +623,7 @@ export default function FeaturesPage() {
 							</div>
 
 							<div className="text-center group">
-								<div className="w-20 h-20 rounded-full bg-gradient-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+								<div className="w-20 h-20 rounded-full bg-linear-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 									<BarChart3 className="w-10 h-10 text-primary-foreground" />
 								</div>
 								<div className="text-4xl font-bold text-foreground mb-2">
@@ -641,7 +639,7 @@ export default function FeaturesPage() {
 			{/* Final CTA Section with Enhanced Design */}
 			<section className="section-content relative overflow-hidden">
 				{/* Enhanced background */}
-				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+				<div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-accent/5">
 					<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,oklch(var(--primary)_/_0.1),transparent_70%)]" />
 				</div>
 

@@ -106,12 +106,13 @@ export function ConnectOnboardingDialog({
 					<Field>
 						<FieldLabel htmlFor="entityType">Account Type</FieldLabel>
 						<Select
+							name="entityType"
 							value={entityType}
 							onValueChange={(value: 'individual' | 'company') =>
 								setEntityType(value)
 							}
 						>
-							<SelectTrigger>
+							<SelectTrigger id="entityType">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -124,7 +125,9 @@ export function ConnectOnboardingDialog({
 						<FieldLabel htmlFor="displayName">Display Name *</FieldLabel>
 						<Input
 							id="displayName"
+							name="displayName"
 							placeholder="Your name or business name"
+							autoComplete="organization"
 							value={displayName}
 							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 								setDisplayName(e.target.value)
@@ -134,14 +137,16 @@ export function ConnectOnboardingDialog({
 					</Field>
 					{entityType === 'company' && (
 						<Field>
-							<FieldLabel htmlFor="businessName">Business Name</FieldLabel>
-							<Input
-								id="businessName"
-								placeholder="Legal business name"
-								value={businessName}
-								onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-									setBusinessName(e.target.value)
-								}
+						<FieldLabel htmlFor="businessName">Business Name</FieldLabel>
+						<Input
+							id="businessName"
+							name="businessName"
+							placeholder="Legal business name"
+							autoComplete="organization"
+							value={businessName}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+								setBusinessName(e.target.value)
+							}
 							/>
 						</Field>
 					)}{' '}

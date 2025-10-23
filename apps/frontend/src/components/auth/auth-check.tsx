@@ -1,6 +1,6 @@
 'use client'
 
-import { PageLoader } from '@/components/magicui/loading-spinner'
+import { PageLoader } from '@/components/ui/loading-spinner'
 import { useAuth } from '@/providers/auth-provider'
 import { useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'

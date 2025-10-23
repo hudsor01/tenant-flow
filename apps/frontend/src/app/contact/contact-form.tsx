@@ -366,6 +366,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						<Field>
 							<FieldLabel htmlFor="subject">I&apos;m interested in... *</FieldLabel>
 							<Select
+								name="subject"
 								value={formData.subject}
 								onValueChange={(value: string) =>
 									handleInputChange('subject', value)
@@ -402,6 +403,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						<Field>
 							<FieldLabel htmlFor="type">How did you hear about us?</FieldLabel>
 							<Select
+								name="referralSource"
 								value={formData.type}
 								onValueChange={(value: string) =>
 									handleInputChange('type', value)
@@ -425,6 +427,8 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 							<FieldLabel htmlFor="message">How can we help? *</FieldLabel>
 							<Textarea
 								id="message"
+								name="message"
+								autoComplete="off"
 								value={formData.message}
 								onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
 									handleInputChange('message', e.target.value)

@@ -1,20 +1,6 @@
-/**
- * Late Fee Configuration Dialog
- * Phase 6.1: Late Fee System
- *
- * Interface for configuring late fee settings per lease
- */
-
 'use client'
 
-import { Button } from '@/components/ui/button'
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle
-} from '@/components/ui/dialog'
+import { EditDialog } from '@/components/ui/base-dialogs'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
@@ -34,9 +20,6 @@ interface LateFeeConfigDialogProps {
 	onSuccess?: () => void
 }
 
-/**
- * Format currency for display
- */
 function formatCurrency(amount: number): string {
 	return new Intl.NumberFormat('en-US', {
 		style: 'currency',
@@ -44,9 +27,6 @@ function formatCurrency(amount: number): string {
 	}).format(amount)
 }
 
-/**
- * Main dialog component for late fee configuration
- */
 export function LateFeeConfigDialog({
 	open,
 	onOpenChange,
@@ -56,24 +36,26 @@ export function LateFeeConfigDialog({
 	const { data: config, isLoading } = useLateFeeConfig(leaseId)
 	const updateConfig = useUpdateLateFeeConfig()
 
-	// Local state for form
 	const [gracePeriodDays, setGracePeriodDays] = useState<number>(5)
 	const [flatFeeAmount, setFlatFeeAmount] = useState<number>(50)
 
-	// Initialize form from config
 	useEffect(() => {
 		if (config) {
-			queueMicrotask(() => {
-				setGracePeriodDays(config.gracePeriodDays)
-				setFlatFeeAmount(config.flatFeeAmount)
-			})
+			setGracePeriodDays(config.gracePeriodDays)
+			setFlatFeeAmount(config.flatFeeAmount)
 		}
 	}, [config])
+
+	useEffect(() => {
+		if (!open && config) {
+			setGracePeriodDays(config.gracePeriodDays)
+			setFlatFeeAmount(config.flatFeeAmount)
+		}
+	}, [open, config])
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
 
-		// Validation
 		if (gracePeriodDays < 0 || gracePeriodDays > 30) {
 			toast.error('Grace period must be between 0 and 30 days')
 			return
@@ -99,32 +81,27 @@ export function LateFeeConfigDialog({
 		)
 	}
 
-	const handleCancel = () => {
-		onOpenChange(false)
-		// Reset form to current config
-		if (config) {
-			setGracePeriodDays(config.gracePeriodDays)
-			setFlatFeeAmount(config.flatFeeAmount)
-		}
-	}
-
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[500px]">
-				<DialogHeader>
-					<DialogTitle>Configure Late Fees</DialogTitle>
-					<DialogDescription>
-						Set the grace period and flat fee amount for late rent payments
-					</DialogDescription>
-				</DialogHeader>
-
-				{isLoading ? (
+		<EditDialog
+			open={open}
+			hideTrigger
+			onOpenChange={onOpenChange}
+			title="Configure Late Fees"
+			description="Set the grace period and flat fee amount for late rent payments"
+			formType="lease"
+			isPending={updateConfig.isPending}
+			submitText="Save Configuration"
+			submitPendingText="Saving..."
+			contentClassName="sm:max-w-[500px]"
+			onSubmit={handleSubmit}
+		>
+			{() =>
+				isLoading ? (
 					<div className="flex items-center justify-center py-12">
 						<Spinner className="h-6 w-6 animate-spin text-accent-main" />
 					</div>
 				) : (
-					<form onSubmit={handleSubmit} className="space-y-6 mt-4">
-						{/* Grace Period Slider */}
+					<div className="space-y-6 mt-4">
 						<div className="space-y-3">
 							<Label
 								htmlFor="grace-period"
@@ -160,12 +137,11 @@ export function LateFeeConfigDialog({
 								<p className="text-xs text-label-secondary">
 									Late fees will be applied to payments that are overdue by more
 									than {gracePeriodDays}{' '}
-									{gracePeriodDays === 1 ? 'day' : 'days'} after the due date
+									{gracePeriodDays === 1 ? 'day' : 'days'} after the due date.
 								</p>
 							</div>
 						</div>
 
-						{/* Flat Fee Amount Input */}
 						<div className="space-y-3">
 							<Label
 								htmlFor="flat-fee"
@@ -182,6 +158,7 @@ export function LateFeeConfigDialog({
 										</span>
 										<Input
 											id="flat-fee"
+											name="flatFee"
 											type="number"
 											min="0"
 											max="500"
@@ -192,68 +169,21 @@ export function LateFeeConfigDialog({
 										/>
 									</div>
 									<div className="flex justify-between text-xs text-label-tertiary">
-										<span>Min: $0</span>
-										<span>Max: $500</span>
+										<span>Min: {formatCurrency(0)}</span>
+										<span>Max: {formatCurrency(500)}</span>
 									</div>
 								</div>
 							</div>
 							<div className="flex items-start gap-2 rounded-lg bg-fill-tertiary p-3">
 								<Info className="h-4 w-4 text-accent-main flex-shrink-0 mt-0.5" />
 								<p className="text-xs text-label-secondary">
-									This flat fee of {formatCurrency(flatFeeAmount)} will be
-									charged for any payment that exceeds the grace period
+									This flat fee will be added to each late payment.
 								</p>
 							</div>
 						</div>
-
-						{/* Preview Summary */}
-						<div className="rounded-lg border border-separator bg-fill-tertiary p-4">
-							<h4 className="text-sm font-semibold text-label-primary mb-3">
-								Configuration Summary
-							</h4>
-							<div className="space-y-2 text-sm">
-								<div className="flex justify-between">
-									<span className="text-label-secondary">Grace Period:</span>
-									<span className="font-medium text-label-primary">
-										{gracePeriodDays} {gracePeriodDays === 1 ? 'day' : 'days'}
-									</span>
-								</div>
-								<div className="flex justify-between">
-									<span className="text-label-secondary">Late Fee:</span>
-									<span className="font-medium text-label-primary">
-										{formatCurrency(flatFeeAmount)}
-									</span>
-								</div>
-								<div className="pt-2 mt-2 border-t border-separator">
-									<p className="text-xs text-label-tertiary">
-										Example: A payment due on Jan 1 would incur a{' '}
-										{formatCurrency(flatFeeAmount)} late fee if paid on or after
-										Jan {gracePeriodDays + 2}
-									</p>
-								</div>
-							</div>
-						</div>
-
-						{/* Action Buttons */}
-						<div className="flex justify-end gap-3">
-							<Button
-								type="button"
-								variant="outline"
-								onClick={handleCancel}
-								disabled={updateConfig.isPending}
-							>
-								Cancel
-							</Button>
-							<Button type="submit" disabled={updateConfig.isPending}>
-								{updateConfig.isPending && (
-									<Spinner className="mr-2 h-4 w-4 animate-spin" />
-								)}
-								{updateConfig.isPending ? 'Saving...' : 'Save Configuration'}
-							</Button>
-						</div>
-					</form>
-				)}
-			</DialogContent>
-		</Dialog>
+					</div>
+				)
+			}
+		</EditDialog>
 	)
 }

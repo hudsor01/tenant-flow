@@ -23,13 +23,13 @@ export function BorderGlow({
 		<div
 			data-tokens="applied"
 			className={cn(
-				'relative overflow-hidden rounded-[var(--radius-large)]',
+				'relative overflow-hidden rounded-(--radius-large)',
 				className
 			)}
 		>
 			{/* Animated border */}
 			<div
-				className="absolute inset-0 rounded-[var(--radius-large)] opacity-75"
+				className="absolute inset-0 rounded-(--radius-large) opacity-75"
 				style={{
 					background: `conic-gradient(from 0deg, transparent, ${colorFrom}, ${colorTo}, transparent)`,
 					animation: `spin ${duration} linear infinite`,
@@ -39,7 +39,7 @@ export function BorderGlow({
 			/>
 
 			{/* Content */}
-			<div className="relative z-10 h-full w-full rounded-[var(--radius-large)] bg-background">
+			<div className="relative z-10 h-full w-full rounded-(--radius-large) bg-background">
 				{children}
 			</div>
 		</div>
