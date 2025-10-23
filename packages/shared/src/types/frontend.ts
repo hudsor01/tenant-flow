@@ -167,25 +167,8 @@ export interface UIStore {
 // Note: ErrorContext and UserFriendlyError moved to frontend-ui.ts to avoid duplicate exports
 export type { ErrorType } from './api'
 
-// AUTH FORM TYPES
-
-export interface AuthFormProps {
-	className?: string
-	mode?: 'login' | 'signup'
-	onSubmit?: (data: {
-		email: string
-		password: string
-		firstName?: string
-		lastName?: string
-		company?: string
-	}) => void | Promise<void>
-	onForgotPassword?: () => void
-	onSignUp?: () => void
-	onLogin?: () => void
-	onGoogleLogin?: () => void
-	isLoading?: boolean
-	isGoogleLoading?: boolean
-}
+// AUTH FORM TYPES - Re-export from auth.ts (primary source)
+export type { AuthFormProps } from './auth.js'
 
 // THEME TYPES
 

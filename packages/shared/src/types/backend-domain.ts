@@ -737,18 +737,8 @@ export interface SecurityContextRequest extends Request {
 	}
 }
 
-// Request with user attached (legacy compat)
-export interface RequestWithUser {
-	user?: authUser
-	params?: Record<string, string>
-}
-
-// Throttler request interface
-export interface ThrottlerRequest {
-	headers: Record<string, string | string[] | undefined>
-	ip?: string
-	user?: { id: string }
-}
+// Request with user attached - Re-export from auth.ts (primary source)
+export type { RequestWithUser, ThrottlerRequest } from './auth.js'
 
 // Rate limiting interfaces
 export interface RateLimitWindow {
@@ -775,7 +765,8 @@ export interface RequestWithTiming extends Request {
 	id?: string
 }
 
-export interface PerformanceMetrics {
+// Renamed from PerformanceMetrics to avoid conflict with health.ts endpoint metrics
+export interface SystemPerformanceMetrics {
 	uptime: number
 	memory: {
 		used: number
