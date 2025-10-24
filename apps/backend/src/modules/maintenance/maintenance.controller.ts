@@ -13,7 +13,6 @@ import {
 	Delete,
 	Get,
 	NotFoundException,
-	Optional,
 	Param,
 	ParseIntPipe,
 	ParseUUIDPipe,
@@ -31,9 +30,7 @@ import { MaintenanceService } from './maintenance.service'
 
 @Controller('maintenance')
 export class MaintenanceController {
-	constructor(
-		@Optional() private readonly maintenanceService?: MaintenanceService
-	) {}
+	constructor(private readonly maintenanceService: MaintenanceService) {}
 
 	@Get()
 	async findAll(
@@ -98,16 +95,6 @@ export class MaintenanceController {
 			throw new BadRequestException('Limit must be between 1 and 50')
 		}
 
-		if (!this.maintenanceService) {
-			return {
-				message: 'Maintenance service not available',
-				data: [],
-				total: 0,
-				limit: limit || 10,
-				offset: offset || 0
-			}
-		}
-
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 
@@ -126,16 +113,6 @@ export class MaintenanceController {
 
 	@Get('stats')
 	async getStats(@Req() req: AuthenticatedRequest) {
-		if (!this.maintenanceService) {
-			return {
-				message: 'Maintenance service not available',
-				totalRequests: 0,
-				pendingRequests: 0,
-				inProgressRequests: 0,
-				completedRequests: 0,
-				urgentRequests: 0
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		return this.maintenanceService.getStats(userId)
@@ -143,12 +120,6 @@ export class MaintenanceController {
 
 	@Get('urgent')
 	async getUrgent(@Req() req: AuthenticatedRequest) {
-		if (!this.maintenanceService) {
-			return {
-				message: 'Maintenance service not available',
-				data: []
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		return this.maintenanceService.getUrgent(userId)
@@ -156,12 +127,6 @@ export class MaintenanceController {
 
 	@Get('overdue')
 	async getOverdue(@Req() req: AuthenticatedRequest) {
-		if (!this.maintenanceService) {
-			return {
-				message: 'Maintenance service not available',
-				data: []
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		return this.maintenanceService.getOverdue(userId)
@@ -172,13 +137,6 @@ export class MaintenanceController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.maintenanceService) {
-			return {
-				message: 'Maintenance service not available',
-				id,
-				data: undefined
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		const maintenance = await this.maintenanceService.findOne(userId, id)
@@ -193,13 +151,6 @@ export class MaintenanceController {
 		@Body() createRequest: CreateMaintenanceRequest,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.maintenanceService) {
-			return {
-				message: 'Maintenance service not available',
-				data: createRequest,
-				success: false
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		return this.maintenanceService.create(userId, createRequest)
@@ -211,14 +162,6 @@ export class MaintenanceController {
 		@Body() updateRequest: UpdateMaintenanceRequest,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.maintenanceService) {
-			return {
-				message: 'Maintenance service not available',
-				id,
-				data: updateRequest,
-				success: false
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		const maintenance = await this.maintenanceService.update(
@@ -237,13 +180,6 @@ export class MaintenanceController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.maintenanceService) {
-			return {
-				message: 'Maintenance service not available',
-				id,
-				success: false
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		await this.maintenanceService.remove(userId, id)
@@ -260,16 +196,6 @@ export class MaintenanceController {
 		if (actualCost && (actualCost < 0 || actualCost > 999999)) {
 			throw new BadRequestException('Actual cost must be between 0 and 999999')
 		}
-		if (!this.maintenanceService) {
-			return {
-				message: 'Maintenance service not available',
-				id,
-				actualCost,
-				notes,
-				action: 'complete',
-				success: false
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		return this.maintenanceService.complete(userId, id, actualCost, notes)
@@ -281,15 +207,6 @@ export class MaintenanceController {
 		@Req() req: AuthenticatedRequest,
 		@Body('reason') reason?: string
 	) {
-		if (!this.maintenanceService) {
-			return {
-				message: 'Maintenance service not available',
-				id,
-				reason,
-				action: 'cancel',
-				success: false
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		return this.maintenanceService.cancel(userId, id, reason)

@@ -15,7 +15,6 @@ import {
 	Get,
 	Logger,
 	NotFoundException,
-	Optional,
 	Param,
 	ParseIntPipe,
 	ParseUUIDPipe,
@@ -35,7 +34,7 @@ import { TenantsService } from './tenants.service'
 export class TenantsController {
 	private readonly logger = new Logger(TenantsController.name)
 
-	constructor(@Optional() private readonly tenantsService?: TenantsService) {}
+	constructor(private readonly tenantsService: TenantsService) {}
 
 	@Get()
 	async findAll(
@@ -47,16 +46,6 @@ export class TenantsController {
 		@Query('sortBy', new DefaultValuePipe('createdAt')) sortBy?: string,
 		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder?: string
 	) {
-		if (!this.tenantsService) {
-			return {
-				message: 'Tenants service not available',
-				data: [],
-				total: 0,
-				limit: limit || 10,
-				offset: offset || 0
-			}
-		}
-
 		// Built-in validation through pipes
 		if (limit !== undefined && (limit < 1 || limit > 50)) {
 			throw new BadRequestException('Limit must be between 1 and 50')
@@ -84,15 +73,6 @@ export class TenantsController {
 
 	@Get('stats')
 	async getStats(@Req() req: AuthenticatedRequest) {
-		if (!this.tenantsService) {
-			return {
-				message: 'Tenants service not available',
-				totalTenants: 0,
-				activeTenants: 0,
-				pendingTenants: 0,
-				expiredTenants: 0
-			}
-		}
 		// Use Supabase's native auth.getUser() pattern
 		const userId = req.user.id
 		return this.tenantsService.getStats(userId)
@@ -103,13 +83,6 @@ export class TenantsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.tenantsService) {
-			return {
-				message: 'Tenants service not available',
-				id,
-				data: undefined
-			}
-		}
 		// Use Supabase's native auth.getUser() pattern
 		const userId = req.user.id
 		const tenant = await this.tenantsService.findOne(userId, id)
@@ -124,13 +97,6 @@ export class TenantsController {
 		@Body() createRequest: CreateTenantRequest,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.tenantsService) {
-			return {
-				message: 'Tenants service not available',
-				data: createRequest,
-				success: false
-			}
-		}
 		// Use Supabase's native auth.getUser() pattern
 		const userId = req.user.id
 		const tenant = await this.tenantsService.create(userId, createRequest)
@@ -139,10 +105,13 @@ export class TenantsController {
 		// This is fire-and-forget to not block the response
 		this.tenantsService.sendTenantInvitation(userId, tenant.id).catch(err => {
 			// Log but don't fail the tenant creation if email fails
-			this.logger.warn('Failed to send invitation email after tenant creation', {
-				tenantId: tenant.id,
-				error: err instanceof Error ? err.message : String(err)
-			})
+			this.logger.warn(
+				'Failed to send invitation email after tenant creation',
+				{
+					tenantId: tenant.id,
+					error: err instanceof Error ? err.message : String(err)
+				}
+			)
 		})
 
 		return tenant
@@ -154,14 +123,6 @@ export class TenantsController {
 		@Body() updateRequest: UpdateTenantRequest,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.tenantsService) {
-			return {
-				message: 'Tenants service not available',
-				id,
-				data: updateRequest,
-				success: false
-			}
-		}
 		// Use Supabase's native auth.getUser() pattern
 		const userId = req.user.id
 		const tenant = await this.tenantsService.update(userId, id, updateRequest)
@@ -177,13 +138,6 @@ export class TenantsController {
 		@Body() body: { moveOutDate: string; moveOutReason: string },
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.tenantsService) {
-			return {
-				message: 'Tenants service not available',
-				id,
-				success: false
-			}
-		}
 		if (!body.moveOutDate || !body.moveOutReason) {
 			throw new BadRequestException(
 				'moveOutDate and moveOutReason are required'
@@ -207,20 +161,13 @@ export class TenantsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.tenantsService) {
-			return {
-				message: 'Tenants service not available',
-				id,
-				success: false
-			}
-		}
 		const userId = req.user.id
 		await this.tenantsService.hardDelete(userId, id)
 		return { message: 'Tenant permanently deleted' }
 	}
 
 	@Delete(':id')
-	async remove() {
+	async remove(@Param('id', ParseUUIDPipe) _id: string) {
 		throw new BadRequestException(
 			'Direct deletion is not allowed. Use PUT /tenants/:id/mark-moved-out to mark tenant as moved out, or DELETE /tenants/:id/hard-delete for permanent deletion (7+ years only).'
 		)
@@ -231,14 +178,6 @@ export class TenantsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.tenantsService) {
-			return {
-				message: 'Tenants service not available',
-				id,
-				action: 'invite',
-				success: false
-			}
-		}
 		// Use Supabase's native auth.getUser() pattern
 		const userId = req.user.id
 		return this.tenantsService.sendTenantInvitation(userId, id)
@@ -249,14 +188,6 @@ export class TenantsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.tenantsService) {
-			return {
-				message: 'Tenants service not available',
-				id,
-				action: 'resend-invitation',
-				success: false
-			}
-		}
 		// Use Supabase's native auth.getUser() pattern
 		const userId = req.user.id
 		return this.tenantsService.resendInvitation(userId, id)
@@ -269,12 +200,6 @@ export class TenantsController {
 		emergencyContact: { name: string; phone: string; relationship: string },
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.tenantsService) {
-			return {
-				message: 'Tenants service not available',
-				success: false
-			}
-		}
 		// Use Supabase's native auth.getUser() pattern
 		const userId = req.user.id
 		return this.tenantsService.updateEmergencyContact(
@@ -289,12 +214,6 @@ export class TenantsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.tenantsService) {
-			return {
-				message: 'Tenants service not available',
-				success: false
-			}
-		}
 		// Use Supabase's native auth.getUser() pattern
 		const userId = req.user.id
 		return this.tenantsService.removeEmergencyContact(userId, id)

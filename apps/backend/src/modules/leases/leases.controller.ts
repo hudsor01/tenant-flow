@@ -13,7 +13,6 @@ import {
 	Delete,
 	Get,
 	NotFoundException,
-	Optional,
 	Param,
 	ParseIntPipe,
 	ParseUUIDPipe,
@@ -31,7 +30,7 @@ import { LeasesService } from './leases.service'
 
 @Controller('leases')
 export class LeasesController {
-	constructor(@Optional() private readonly leasesService?: LeasesService) {}
+	constructor(private readonly leasesService: LeasesService) {}
 
 	@Get()
 	async findAll(
@@ -84,16 +83,6 @@ export class LeasesController {
 			throw new BadRequestException('Limit must be between 1 and 50')
 		}
 
-		if (!this.leasesService) {
-			return {
-				message: 'Leases service not available',
-				data: [],
-				total: 0,
-				limit: limit || 10,
-				offset: offset || 0
-			}
-		}
-
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 
@@ -111,19 +100,6 @@ export class LeasesController {
 
 	@Get('stats')
 	async getStats(@Req() req: AuthenticatedRequest) {
-		if (!this.leasesService) {
-			return {
-				message: 'Leases service not available',
-				totalLeases: 0,
-				activeLeases: 0,
-				expiredLeases: 0,
-				terminatedLeases: 0,
-				expiringLeases: 0,
-				totalMonthlyRent: 0,
-				averageRent: 0,
-				totalSecurityDeposits: 0
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		return this.leasesService.getStats(userId)
@@ -161,16 +137,6 @@ export class LeasesController {
 			)
 		}
 
-		if (!this.leasesService) {
-			return {
-				message: 'Leases service not available',
-				data: [],
-				timeframe: timeframe ?? '90d',
-				leaseId,
-				propertyId
-			}
-		}
-
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 
@@ -204,15 +170,6 @@ export class LeasesController {
 			)
 		}
 
-		if (!this.leasesService) {
-			return {
-				message: 'Leases service not available',
-				data: [],
-				period: period ?? 'yearly',
-				propertyId
-			}
-		}
-
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 
@@ -244,15 +201,6 @@ export class LeasesController {
 			throw new BadRequestException(
 				'Invalid timeframe. Must be one of: 6m, 12m, 24m, 36m'
 			)
-		}
-
-		if (!this.leasesService) {
-			return {
-				message: 'Leases service not available',
-				data: [],
-				timeframe: timeframe ?? '12m',
-				propertyId
-			}
 		}
 
 		// Modern 2025 pattern: Direct Supabase validation
@@ -296,16 +244,6 @@ export class LeasesController {
 			)
 		}
 
-		if (!this.leasesService) {
-			return {
-				message: 'Leases service not available',
-				data: [],
-				period: period ?? 'monthly',
-				leaseId,
-				propertyId
-			}
-		}
-
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 
@@ -325,13 +263,6 @@ export class LeasesController {
 		if (days && (days < 1 || days > 365)) {
 			throw new BadRequestException('Days must be between 1 and 365')
 		}
-		if (!this.leasesService) {
-			return {
-				message: 'Leases service not available',
-				data: [],
-				days: days ?? 30
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		return this.leasesService.getExpiring(userId, days ?? 30)
@@ -342,13 +273,6 @@ export class LeasesController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.leasesService) {
-			return {
-				message: 'Leases service not available',
-				id,
-				data: undefined
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		const lease = await this.leasesService.findOne(userId, id)
@@ -363,13 +287,6 @@ export class LeasesController {
 		@Body() createRequest: CreateLeaseRequest,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.leasesService) {
-			return {
-				message: 'Leases service not available',
-				data: createRequest,
-				success: false
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		return this.leasesService.create(userId, createRequest)
@@ -381,14 +298,6 @@ export class LeasesController {
 		@Body() updateRequest: UpdateLeaseRequest,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.leasesService) {
-			return {
-				message: 'Leases service not available',
-				id,
-				data: updateRequest,
-				success: false
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		const lease = await this.leasesService.update(userId, id, updateRequest)
@@ -403,13 +312,6 @@ export class LeasesController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		if (!this.leasesService) {
-			return {
-				message: 'Leases service not available',
-				id,
-				success: false
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		await this.leasesService.remove(userId, id)
@@ -426,15 +328,6 @@ export class LeasesController {
 		if (!endDate || !endDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
 			throw new BadRequestException('Invalid date format (YYYY-MM-DD required)')
 		}
-		if (!this.leasesService) {
-			return {
-				message: 'Leases service not available',
-				id,
-				endDate,
-				action: 'renew',
-				success: false
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		return this.leasesService.renew(userId, id, endDate)
@@ -446,15 +339,6 @@ export class LeasesController {
 		@Req() req: AuthenticatedRequest,
 		@Body('reason') reason?: string
 	) {
-		if (!this.leasesService) {
-			return {
-				message: 'Leases service not available',
-				id,
-				reason,
-				action: 'terminate',
-				success: false
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		return this.leasesService.terminate(
