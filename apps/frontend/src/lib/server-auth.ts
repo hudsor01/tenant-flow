@@ -36,7 +36,7 @@ export async function requireSession(): Promise<User> {
 	} = await supabase.auth.getUser()
 
 	if (error || !user) {
-		redirect('/sign-in') // 307 redirect, no client flash
+		redirect('/login') // 307 redirect, no client flash
 	}
 
 	return user
