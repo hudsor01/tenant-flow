@@ -11,7 +11,5 @@
   "arrowParens": "avoid",
   "endOfLine": "lf",
   "printWidth": 80,
-  "proseWrap": "preserve",
-  "plugins": ["prettier-plugin-organize-imports"],
-  "organizeImportsSkipDestructiveCodeActions": false
+  "proseWrap": "preserve"
 }
