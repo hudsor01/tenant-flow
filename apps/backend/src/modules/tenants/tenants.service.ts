@@ -18,8 +18,8 @@ import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
 } from '../../shared/utils/sql-safe.utils'
-import { TenantCreatedEvent } from '../notifications/events/notification.events'
 import { EmailService } from '../email/email.service'
+import { TenantCreatedEvent } from '../notifications/events/notification.events'
 
 export interface TenantWithRelations extends Tenant {
 	_Lease?: {
@@ -553,11 +553,18 @@ export class TenantsService {
 	}
 
 	/**
-	 * Delete tenant (deprecated - redirects to soft delete)
+	 * Delete tenant (soft delete - marks as moved out)
 	 */
-	async remove(_userId: string, _tenantId: string): Promise<void> {
-		throw new BadRequestException(
-			'Direct deletion is not allowed. Use markAsMovedOut() for soft delete or hardDelete() for permanent deletion (7+ years only)'
+	async remove(userId: string, tenantId: string): Promise<void> {
+		// Perform soft delete by marking tenant as moved out
+		const moveOutDate =
+			new Date().toISOString().split('T')[0] ||
+			new Date().toLocaleDateString('en-CA')
+		await this.markAsMovedOut(
+			userId,
+			tenantId,
+			moveOutDate,
+			'Administrative removal'
 		)
 	}
 
@@ -587,7 +594,10 @@ export class TenantsService {
 			}
 
 			// Check if invitation already sent or accepted
-			if (tenant.invitation_status === 'SENT' || tenant.invitation_status === 'ACCEPTED') {
+			if (
+				tenant.invitation_status === 'SENT' ||
+				tenant.invitation_status === 'ACCEPTED'
+			) {
 				this.logger.warn('Invitation already sent or accepted', {
 					tenantId,
 					status: tenant.invitation_status
@@ -609,7 +619,8 @@ export class TenantsService {
 			const { data: updatedTenant, error } = await client
 				.from('tenant')
 				.update({
-					invitation_status: 'SENT' as Database['public']['Enums']['invitation_status'],
+					invitation_status:
+						'SENT' as Database['public']['Enums']['invitation_status'],
 					invitation_token: invitationToken,
 					invitation_sent_at: now.toISOString(),
 					invitation_expires_at: expiresAt.toISOString()
@@ -624,7 +635,9 @@ export class TenantsService {
 					error: error?.message,
 					tenantId
 				})
-				throw new BadRequestException('Failed to update tenant invitation status')
+				throw new BadRequestException(
+					'Failed to update tenant invitation status'
+				)
 			}
 
 			// Get property/unit info if available for better email context
@@ -685,7 +698,7 @@ export class TenantsService {
 		userId: string,
 		tenantId: string
 	): Promise<Record<string, unknown>> {
-		try{
+		try {
 			this.logger.log('Resending tenant invitation', {
 				userId,
 				tenantId

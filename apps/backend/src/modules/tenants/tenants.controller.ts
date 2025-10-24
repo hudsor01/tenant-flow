@@ -167,10 +167,13 @@ export class TenantsController {
 	}
 
 	@Delete(':id')
-	async remove(@Param('id', ParseUUIDPipe) _id: string) {
-		throw new BadRequestException(
-			'Direct deletion is not allowed. Use PUT /tenants/:id/mark-moved-out to mark tenant as moved out, or DELETE /tenants/:id/hard-delete for permanent deletion (7+ years only).'
-		)
+	async remove(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest
+	) {
+		// Use Supabase's native auth.getUser() pattern
+		const userId = req.user.id
+		await this.tenantsService.remove(userId, id)
 	}
 
 	@Post(':id/invite')
