@@ -45,7 +45,7 @@ export class HealthController {
 	}
 
 	/**
-	 * Kubernetes readiness probe
+	 * Railway readiness probe - zero-downtime deployments
 	 */
 	@Get('ready')
 	@SetMetadata('isPublic', true)
