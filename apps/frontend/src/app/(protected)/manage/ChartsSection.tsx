@@ -2,9 +2,12 @@
 
 import { ChartSkeleton } from '@/components/charts/chart-skeleton'
 import { dashboardApi } from '@/lib/api-client'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 import type { OccupancyTrendResponse } from '@repo/shared/types/database-rpc'
+
+const logger = createLogger({ component: 'ChartsSection' })
 
 const OccupancyTrendsAreaChart = dynamic(
 	() =>
@@ -52,7 +55,9 @@ export function ChartsSection() {
 				const data = await dashboardApi.getOccupancyTrends(12)
 				setOccupancyData(data)
 			} catch (error) {
-				console.error('Failed to fetch occupancy trends:', error)
+				logger.error('Failed to fetch occupancy trends', {
+					error: error instanceof Error ? error.message : String(error)
+				})
 			} finally {
 				setIsLoading(false)
 			}
