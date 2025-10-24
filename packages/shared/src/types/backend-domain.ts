@@ -102,14 +102,14 @@ export interface CreatePropertyRequest {
 	description?: string
 	type?:
 		| 'SINGLE_FAMILY'
-		| 'MULTI_FAMILY'
+		| 'MULTI_UNIT'
 		| 'APARTMENT'
 		| 'CONDO'
 		| 'TOWNHOUSE'
 		| 'COMMERCIAL'
 	propertyType?:
 		| 'SINGLE_FAMILY'
-		| 'MULTI_FAMILY'
+		| 'MULTI_UNIT'
 		| 'APARTMENT'
 		| 'CONDO'
 		| 'TOWNHOUSE'
@@ -127,14 +127,14 @@ export interface UpdatePropertyRequest {
 	description?: string
 	type?:
 		| 'SINGLE_FAMILY'
-		| 'MULTI_FAMILY'
+		| 'MULTI_UNIT'
 		| 'APARTMENT'
 		| 'CONDO'
 		| 'TOWNHOUSE'
 		| 'COMMERCIAL'
 	propertyType?:
 		| 'SINGLE_FAMILY'
-		| 'MULTI_FAMILY'
+		| 'MULTI_UNIT'
 		| 'APARTMENT'
 		| 'CONDO'
 		| 'TOWNHOUSE'
@@ -146,7 +146,7 @@ export interface PropertyQueryRequest {
 	search?: string
 	type?:
 		| 'SINGLE_FAMILY'
-		| 'MULTI_FAMILY'
+		| 'MULTI_UNIT'
 		| 'APARTMENT'
 		| 'CONDO'
 		| 'TOWNHOUSE'

@@ -27,9 +27,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import type { Tables } from '@repo/shared/types/supabase'
-import {
-	leaseUpdateSchema
-} from '@repo/shared/validation/leases'
+import { leaseUpdateSchema } from '@repo/shared/validation/leases'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import {
@@ -47,9 +45,9 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { useUpdateLease } from '@/hooks/api/use-lease'
 import { usePaymentMethods } from '@/hooks/api/use-payment-methods'
 import { useCreateRentPayment } from '@/hooks/api/use-rent-payments'
-import { useUpdateLease } from '@/hooks/api/use-lease'
 import { LateFeesSection } from './late-fees-section'
 import { RenewLeaseDialog } from './renew-lease-dialog'
 import { TerminateLeaseDialog } from './terminate-lease-dialog'
@@ -100,7 +98,9 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 				toast.success('Lease updated successfully')
 				setEditOpen(false)
 			} catch (error) {
-				toast.error(`Failed to update lease: ${error instanceof Error ? error.message : 'Unknown error'}`)
+				toast.error(
+					`Failed to update lease: ${error instanceof Error ? error.message : 'Unknown error'}`
+				)
 			}
 		},
 		validators: {
@@ -335,7 +335,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 									Cancel
 								</Button>
 								<Button type="submit" disabled={updateLease.isPending}>
-							{updateLease.isPending ? 'Updating...' : 'Update Lease'}
+									{updateLease.isPending ? 'Updating...' : 'Update Lease'}
 								</Button>
 							</ButtonGroup>
 						</div>
@@ -431,13 +431,13 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 									<span className="text-sm font-medium">Status</span>
 								</div>
 								<Badge
-								className={cn(
-									"text-[oklch(var(--primary-foreground))]",
-									lease.status === 'ACTIVE'
-										? "bg-[var(--chart-1)]"
-										: "bg-[var(--chart-5)]"
-								)}
-							>
+									className={cn(
+										'text-[oklch(var(--primary-foreground))]',
+										lease.status === 'ACTIVE'
+											? 'bg-(--chart-1)'
+											: 'bg-(--chart-5)'
+									)}
+								>
 									{lease.status}
 								</Badge>
 							</div>
