@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { requireSession } from '@/lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { tenantsApi } from '@/lib/api-client'
 import { Badge } from '@/components/ui/badge'
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { DataTable } from '@/components/ui/data-table'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { ColumnDef } from '@tanstack/react-table'
 import type { TenantStats, TenantWithLeaseInfo } from '@repo/shared/types/core'
@@ -17,9 +18,11 @@ export const metadata: Metadata = {
 	description: 'Manage your property tenants and their lease information'
 }
 
-const logger = createLogger({ component: 'TenantsPage' })
-
 export default async function TenantsPage() {
+	// ✅ Server-side auth - NO client flash, instant 307 redirect
+	const user = await requireSession()
+	const logger = createLogger({ component: 'TenantsPage', userId: user.id })
+
 	// ✅ Server Component: Fetch data on server during RSC render
 	let tenants: TenantWithLeaseInfo[] = []
 	let stats: TenantStats = {
@@ -134,6 +137,12 @@ export default async function TenantsPage() {
 					<h1 className="text-2xl font-bold tracking-tight">Tenants</h1>
 					<p className="text-muted-foreground">Manage your property tenants and their lease information.</p>
 				</div>
+				<Button asChild>
+					<Link href="/manage/tenants/new">
+						<Plus className="size-4 mr-2" />
+						Add Tenant
+					</Link>
+				</Button>
 			</div>
 
 			{/* Stats Cards */}

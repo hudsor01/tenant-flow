@@ -19,6 +19,7 @@ import {
 	sanitizeSearchInput
 } from '../../shared/utils/sql-safe.utils'
 import { TenantCreatedEvent } from '../notifications/events/notification.events'
+import { EmailService } from '../email/email.service'
 
 export interface TenantWithRelations extends Tenant {
 	_Lease?: {
@@ -51,7 +52,8 @@ export class TenantsService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly eventEmitter: EventEmitter2
+		private readonly eventEmitter: EventEmitter2,
+		private readonly emailService: EmailService
 	) {}
 
 	/**
@@ -283,7 +285,7 @@ export class TenantsService {
 			const client = this.supabase.getAdminClient()
 			// Use authenticated userId (from JWT) - never trust client-provided userId
 			const tenantData: Database['public']['Tables']['tenant']['Insert'] = {
-				userId: userId, // From authenticated session
+				userId: userId,
 				email: createRequest.email,
 				firstName: createRequest.firstName || null,
 				lastName: createRequest.lastName || null,
@@ -563,8 +565,8 @@ export class TenantsService {
 	// These are kept as RPC calls since they involve complex workflows beyond basic CRUD
 
 	/**
-	 * Send tenant invitation - replaces send_tenant_invitation function
-	 * Uses repository pattern instead of database function
+	 * Send tenant invitation - Direct implementation with email service
+	 * Ultra-Native: Direct Supabase update + direct Resend email
 	 */
 	async sendTenantInvitation(
 		userId: string,
@@ -572,7 +574,7 @@ export class TenantsService {
 		propertyId?: string
 	): Promise<Record<string, unknown>> {
 		try {
-			this.logger.log('Sending tenant invitation via repository', {
+			this.logger.log('Sending tenant invitation', {
 				userId,
 				tenantId,
 				propertyId
@@ -584,63 +586,72 @@ export class TenantsService {
 				throw new BadRequestException('Tenant not found or access denied')
 			}
 
-			// Invitation status columns (invitationStatus, invitationToken, invitationSentAt) are not yet available
-			// in the Tenant table schema, so the status check remains disabled until the migration lands.
-			/*
-			if (tenant.invitationStatus === 'SENT' || tenant.invitationStatus === 'ACCEPTED') {
-				this.logger.warn('Invitation already sent or accepted', { tenantId, status: tenant.invitationStatus })
+			// Check if invitation already sent or accepted
+			if (tenant.invitation_status === 'SENT' || tenant.invitation_status === 'ACCEPTED') {
+				this.logger.warn('Invitation already sent or accepted', {
+					tenantId,
+					status: tenant.invitation_status
+				})
 				return {
 					success: false,
 					message: 'Invitation already sent or accepted',
-					status: tenant.invitationStatus
+					status: tenant.invitation_status
 				}
 			}
-			*/
 
-			// Business logic: Generate invitation token and update tenant
+			// Business logic: Generate invitation token and expiry (7 days)
 			const invitationToken = this.generateInvitationToken()
-			const invitationSentDate = new Date().toISOString()
+			const now = new Date()
+			const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) // 7 days
 
-			// The invitation metadata columns do not exist yet, so record keeping is deferred until the schema update.
-			// For now, just log the invitation attempt
-			this.logger.log(
-				'Invitation token generated (not saved - fields missing)',
-				{
-					tenantId,
-					invitationToken,
-					invitationSentDate
-				}
-			)
-			const updatedTenant = tenant
+			// Update tenant with invitation data via direct Supabase query
+			const client = this.supabase.getAdminClient()
+			const { data: updatedTenant, error } = await client
+				.from('tenant')
+				.update({
+					invitation_status: 'SENT' as Database['public']['Enums']['invitation_status'],
+					invitation_token: invitationToken,
+					invitation_sent_at: now.toISOString(),
+					invitation_expires_at: expiresAt.toISOString()
+				})
+				.eq('id', tenantId)
+				.eq('userId', userId)
+				.select()
+				.single()
 
-			if (!updatedTenant) {
-				throw new BadRequestException(
-					'Failed to update tenant invitation status'
-				)
+			if (error || !updatedTenant) {
+				this.logger.error('Failed to update tenant invitation status', {
+					error: error?.message,
+					tenantId
+				})
+				throw new BadRequestException('Failed to update tenant invitation status')
 			}
 
-			// Business logic: Create invitation email content
-			const frontendUrl = 'https://tenantflow.app' // Use production URL as default
+			// Get property/unit info if available for better email context
+			let propertyName: string | undefined
+			let unitNumber: string | undefined
+
+			if (propertyId) {
+				const { data: property } = await client
+					.from('property')
+					.select('name')
+					.eq('id', propertyId)
+					.single()
+				propertyName = property?.name
+			}
+
+			// Build invitation link
+			const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
 			const invitationLink = `${frontendUrl}/tenant/invitation/${invitationToken}`
-			const emailContent = {
-				to: tenant.email,
-				subject: 'Tenant Portal Invitation - TenantFlow',
-				html: `
-					<h2>Welcome to TenantFlow!</h2>
-					<p>Hello ${tenant.firstName || 'Tenant'},</p>
-					<p>You have been invited to access your tenant portal. Click the link below to get started:</p>
-					<a href="${invitationLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Accept Invitation</a>
-					<p>This invitation will expire in 7 days.</p>
-					<p>Best regards,<br>TenantFlow Team</p>
-				`
-			}
 
-			// Emit event for email service to process
-			this.eventEmitter.emit('tenant.invitation.sent', {
-				userId,
-				tenantId,
-				email: emailContent,
-				invitationToken
+			// Send invitation email via EmailService (direct Resend call)
+			await this.emailService.sendTenantInvitation({
+				tenantEmail: tenant.email,
+				tenantFirstName: tenant.firstName,
+				invitationToken,
+				invitationLink,
+				propertyName,
+				unitNumber
 			})
 
 			return {
@@ -648,7 +659,8 @@ export class TenantsService {
 				message: 'Invitation sent successfully',
 				invitationToken,
 				invitationLink,
-				sentAt: invitationSentDate
+				sentAt: now.toISOString(),
+				expiresAt: expiresAt.toISOString()
 			}
 		} catch (error) {
 			this.logger.error('Failed to send tenant invitation', {
@@ -667,14 +679,14 @@ export class TenantsService {
 	}
 
 	/**
-	 * Resend invitation to tenant using repository pattern
+	 * Resend invitation to tenant - Direct implementation
 	 */
 	async resendInvitation(
 		userId: string,
 		tenantId: string
 	): Promise<Record<string, unknown>> {
-		try {
-			this.logger.log('Resending tenant invitation via repository', {
+		try{
+			this.logger.log('Resending tenant invitation', {
 				userId,
 				tenantId
 			})
@@ -685,18 +697,17 @@ export class TenantsService {
 				throw new BadRequestException('Tenant not found or access denied')
 			}
 
-			// Invitation status fields are still pending in the database schema; skip the status check for now.
-			/*
-			if (tenant.invitationStatus === 'ACCEPTED') {
+			// Don't resend if already accepted
+			if (tenant.invitation_status === 'ACCEPTED') {
 				return {
 					success: false,
 					message: 'Invitation already accepted',
-					status: tenant.invitationStatus
+					status: tenant.invitation_status
 				}
 			}
-			*/
 
 			// Use sendTenantInvitation method to handle the resend
+			// This will generate a new token and update expiry
 			return await this.sendTenantInvitation(userId, tenantId)
 		} catch (error) {
 			this.logger.error('Failed to resend tenant invitation', {

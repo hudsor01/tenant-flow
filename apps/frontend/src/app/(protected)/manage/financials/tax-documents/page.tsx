@@ -1,5 +1,5 @@
-'use client'
-
+import type { Metadata } from 'next'
+import { requireSession } from '@/lib/server-auth'
 import { ExportButtons } from '@/components/export/export-buttons'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,14 +11,6 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
-import {
 	Table,
 	TableBody,
 	TableCell,
@@ -26,68 +18,73 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import { getTaxDocuments } from '@/lib/api/financials-client'
-import { createClient } from '@/lib/supabase/client'
 import { cn, formatCurrency } from '@/lib/utils'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { TaxDocumentsData } from '@repo/shared/types/financial-statements'
+import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
 import { CheckCircle, Download, XCircle } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
 
-export default function TaxDocumentsPage() {
-	const [data, setData] = useState<TaxDocumentsData | null>(null)
-	const [loading, setLoading] = useState(true)
-	const [selectedYear, setSelectedYear] = useState(
-		(new Date().getFullYear() - 1).toString()
-	)
+export const metadata: Metadata = {
+	title: 'Tax Documents | TenantFlow',
+	description: 'Schedule E and supporting documentation for tax preparation'
+}
 
-	useEffect(() => {
-		async function loadData() {
-			try {
-				const supabase = createClient()
-				const {
-					data: { session }
-				} = await supabase.auth.getSession()
+async function getTaxDocuments(
+	token: string,
+	taxYear: number
+): Promise<TaxDocumentsData | null> {
+	try {
+		const API_BASE_URL = getApiBaseUrl()
+		const url = `${API_BASE_URL}/financials/tax-documents?taxYear=${taxYear}`
 
-				if (!session?.access_token) {
-					throw new Error('No session')
-				}
+		const response = await fetch(url, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json'
+			},
+			cache: 'no-store'
+		})
 
-				const result = await getTaxDocuments(
-					session.access_token,
-					Number.parseInt(selectedYear, 10)
-				)
-				setData(result)
-			} catch (error) {
-				toast.error(
-					error instanceof Error
-						? error.message
-						: 'Failed to load tax documents'
-				)
-			} finally {
-				setLoading(false)
-			}
+		if (!response.ok) {
+			return null
 		}
 
-		loadData()
-	}, [selectedYear])
+		const result = await response.json()
+		return result.data
+	} catch {
+		return null
+	}
+}
 
-	if (loading) {
-		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<div className="space-y-4">
-					<Skeleton className="h-8 w-64" />
-					<Skeleton className="h-6 w-48" />
-					<Skeleton className="h-32 w-96" />
-				</div>
-			</div>
-		)
+export default async function TaxDocumentsPage() {
+	// Server-side auth
+	const user = await requireSession()
+	const logger = createLogger({ component: 'TaxDocumentsPage', userId: user.id })
+
+	// Default to previous tax year
+	const selectedYear = new Date().getFullYear() - 1
+
+	// Fetch data
+	let data: TaxDocumentsData | null = null
+	try {
+		// Get auth token for API call
+		const { createClient } = await import('@/lib/supabase/server')
+		const supabase = await createClient()
+		const { data: { session } } = await supabase.auth.getSession()
+
+		if (session?.access_token) {
+			data = await getTaxDocuments(session.access_token, selectedYear)
+		}
+	} catch (err) {
+		logger.warn('Failed to fetch tax documents', {
+			error: err instanceof Error ? err.message : String(err)
+		})
 	}
 
 	if (!data) {
 		return (
 			<div className="flex min-h-screen items-center justify-center">
-				<p className="text-muted-foreground">No data available</p>
+				<p className="text-muted-foreground">No data available for the selected year</p>
 			</div>
 		)
 	}
@@ -115,18 +112,6 @@ export default function TaxDocumentsPage() {
 					</div>
 
 					<div className="flex flex-wrap items-center gap-3">
-						<Select value={selectedYear} onValueChange={setSelectedYear}>
-							<SelectTrigger className="w-50">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{yearOptions.map(option => (
-									<SelectItem key={option.value} value={option.value}>
-										Tax Year {option.label}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
 						<ExportButtons filename="tax-documents" payload={data} />
 						<Button variant="outline" className="gap-2">
 							<Download className="size-4" />
