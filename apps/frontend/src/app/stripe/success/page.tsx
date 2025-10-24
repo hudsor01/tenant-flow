@@ -13,7 +13,7 @@ function SuccessContent() {
 		>
 			<div className="w-full shadow-md bg-card/50 border border-border backdrop-blur-sm rounded-2xl p-8 text-center">
 				<div className="mb-6">
-					<CheckCircle className="mx-auto h-16 w-16 text-primary" />
+					<CheckCircle className="mx-auto size-16 text-primary" />
 				</div>
 
 				<h1 className="text-3xl font-bold mb-4 text-gradient-authority">
@@ -55,7 +55,7 @@ export default function SuccessPage() {
 					className="gradient-authority"
 					containerClass="flex items-center justify-center min-h-screen"
 				>
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+					<div className="animate-spin rounded-full size-12 border-b-2 border-primary"></div>
 				</PageLayout>
 			}
 		>

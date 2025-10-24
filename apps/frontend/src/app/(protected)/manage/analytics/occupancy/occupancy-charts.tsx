@@ -31,7 +31,7 @@ type VacancyListProps = {
 
 function EmptyState({ message }: { message: string }) {
 	return (
-		<div className="flex h-[240px] flex-col items-center justify-center rounded-lg border border-dashed">
+		<div className="flex h-60 flex-col items-center justify-center rounded-lg border border-dashed">
 			<Badge variant="outline" className="mb-2">
 				No data
 			</Badge>
@@ -55,7 +55,7 @@ export function OccupancyTrendChart({ data }: OccupancyTrendChartProps) {
 	}))
 
 	return (
-		<ChartContainer className="h-[300px]" config={occupancyConfig}>
+		<ChartContainer className="h-75" config={occupancyConfig}>
 			<AreaChart data={chartData}>
 				<CartesianGrid strokeDasharray="3 3" />
 				<XAxis dataKey="period" tickLine={false} axisLine={false} />

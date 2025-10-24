@@ -77,7 +77,7 @@ export function RefreshButton({
 			disabled={isDisabled}
 			className={className}
 		>
-			<RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+			<RefreshCw className={`size-4 ${isRefreshing ? 'animate-spin' : ''}`} />
 			{isRefreshing
 				? 'Refreshing...'
 				: cooldownRemaining > 0

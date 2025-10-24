@@ -53,7 +53,7 @@ export default function CheckoutSuccessPage() {
 				<Navbar />
 				<div className="section-content flex items-center justify-center min-h-[60vh]">
 					<div className="text-center">
-						<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+						<div className="animate-spin rounded-full size-12 border-b-2 border-primary mx-auto mb-4"></div>
 						<h2 className="text-xl font-semibold mb-2">
 							Verifying your payment...
 						</h2>
@@ -86,8 +86,8 @@ export default function CheckoutSuccessPage() {
 						className="text-center shadow-2xl border-2 border-border/50"
 					>
 						<div className="pb-8">
-							<div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
-								<CheckCircle className="w-8 h-8 text-accent" />
+							<div className="size-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
+								<CheckCircle className="size-8 text-accent" />
 							</div>
 							<p className="text-xl text-muted-foreground">
 								Welcome to TenantFlow! Your subscription is now active.
@@ -129,7 +129,7 @@ export default function CheckoutSuccessPage() {
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
 									<Link href="/dashboard">
 										<Button className="w-full justify-start" size="lg">
-											<Home className="w-4 h-4 mr-2" />
+											<Home className="size-4 mr-2" />
 											Go to Dashboard
 										</Button>
 									</Link>

@@ -47,18 +47,18 @@ export default function AboutPage() {
 			<GridPattern className="fixed inset-0 -z-10" />
 
 			{/* Navigation */}
-			<nav className="fixed top-6 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
+			<nav className="fixed top-6 left-1/2 z-50 w-auto translate-x-[-50%] transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
 				<div className="flex items-center justify-between gap-12">
 					<Link
 						href="/"
 						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
 					>
-						<div className="w-8 h-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
+						<div className="size-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
 							<svg
 								viewBox="0 0 24 24"
 								fill="none"
 								xmlns="http://www.w3.org/2000/svg"
-								className="w-5 h-5 text-primary-foreground"
+								className="size-5 text-primary-foreground"
 							>
 								<path
 									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
@@ -125,7 +125,7 @@ export default function AboutPage() {
 							className="flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
 						>
 							Get Started
-							<ArrowRight className="ml-2 h-4 w-4" />
+							<ArrowRight className="ml-2 size-4" />
 						</Link>
 					</div>
 				</div>
@@ -170,7 +170,7 @@ export default function AboutPage() {
 									</div>
 								</div>
 								<div className="bg-card rounded-2xl p-8 text-center border border-border/50 shadow-md">
-									<Target className="w-20 h-20 mx-auto mb-6 text-primary" />
+									<Target className="size-20 mx-auto mb-6 text-primary" />
 									<h3 className="text-2xl font-semibold text-foreground">
 										Mission-Driven Development
 									</h3>
@@ -309,7 +309,7 @@ export default function AboutPage() {
 										<div className="text-center bg-card rounded-2xl p-8 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
 											<div className="mb-4 flex justify-center">
 												<stat.Icon
-													className="h-8 w-8 text-primary"
+													className="size-8 text-primary"
 													aria-hidden
 												/>
 											</div>
@@ -362,8 +362,8 @@ export default function AboutPage() {
 								].map((member, index) => (
 									<BlurFade key={index} delay={0.8 + index * 0.1} inView>
 										<div className="text-center bg-card rounded-2xl p-8 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
-											<div className="w-24 h-24 mx-auto mb-6 bg-primary/10 rounded-full flex items-center justify-center">
-												<User className="w-12 h-12 text-primary" />
+											<div className="size-24 mx-auto mb-6 bg-primary/10 rounded-full flex items-center justify-center">
+												<User className="size-12 text-primary" />
 											</div>
 											<h3 className="text-lg font-semibold text-foreground mb-2">
 												{member.name}
@@ -387,7 +387,7 @@ export default function AboutPage() {
 										</p>
 										<Button asChild size="lg" className="w-full">
 											<Link href="/careers">
-												<Mail className="w-4 h-4 mr-2" />
+												<Mail className="size-4 mr-2" />
 												View Open Positions
 											</Link>
 										</Button>
@@ -419,7 +419,7 @@ export default function AboutPage() {
 									<Button asChild size="lg" className="group">
 										<Link href="/signup">
 											Start Free Trial
-											<ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+											<ArrowRight className="size-4 ml-2 transition-transform group-hover:translate-x-1" />
 										</Link>
 									</Button>
 									<Button asChild variant="outline" size="lg">

@@ -92,13 +92,13 @@ export function LateFeeConfigDialog({
 			isPending={updateConfig.isPending}
 			submitText="Save Configuration"
 			submitPendingText="Saving..."
-			contentClassName="sm:max-w-[500px]"
+			contentClassName="sm:max-w-125"
 			onSubmit={handleSubmit}
 		>
 			{() =>
 				isLoading ? (
 					<div className="flex items-center justify-center py-12">
-						<Spinner className="h-6 w-6 animate-spin text-accent-main" />
+						<Spinner className="size-6 animate-spin text-accent-main" />
 					</div>
 				) : (
 					<div className="space-y-6 mt-4">
@@ -110,7 +110,7 @@ export function LateFeeConfigDialog({
 								Grace Period
 							</Label>
 							<div className="flex items-center gap-4">
-								<Calendar className="h-5 w-5 text-label-tertiary flex-shrink-0" />
+								<Calendar className="size-5 text-label-tertiary shrink-0" />
 								<div className="flex-1 space-y-2">
 									<Slider
 										id="grace-period"
@@ -133,7 +133,7 @@ export function LateFeeConfigDialog({
 								</div>
 							</div>
 							<div className="flex items-start gap-2 rounded-lg bg-fill-tertiary p-3">
-								<Info className="h-4 w-4 text-accent-main flex-shrink-0 mt-0.5" />
+								<Info className="size-4 text-accent-main shrink-0 mt-0.5" />
 								<p className="text-xs text-label-secondary">
 									Late fees will be applied to payments that are overdue by more
 									than {gracePeriodDays}{' '}
@@ -150,10 +150,10 @@ export function LateFeeConfigDialog({
 								Flat Fee Amount
 							</Label>
 							<div className="flex items-center gap-4">
-								<DollarSign className="h-5 w-5 text-label-tertiary flex-shrink-0" />
+								<DollarSign className="size-5 text-label-tertiary shrink-0" />
 								<div className="flex-1 space-y-2">
 									<div className="relative">
-										<span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-label-tertiary">
+										<span className="absolute left-3 top-1/2 translate-y-[-50%] text-sm text-label-tertiary">
 											$
 										</span>
 										<Input
@@ -175,7 +175,7 @@ export function LateFeeConfigDialog({
 								</div>
 							</div>
 							<div className="flex items-start gap-2 rounded-lg bg-fill-tertiary p-3">
-								<Info className="h-4 w-4 text-accent-main flex-shrink-0 mt-0.5" />
+								<Info className="size-4 text-accent-main shrink-0 mt-0.5" />
 								<p className="text-xs text-label-secondary">
 									This flat fee will be added to each late payment.
 								</p>

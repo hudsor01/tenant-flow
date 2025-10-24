@@ -112,7 +112,7 @@ export function LeasesTable() {
 							<TableHead className="hidden md:table-cell">Unit</TableHead>
 							<TableHead className="hidden lg:table-cell">Dates</TableHead>
 							<TableHead className="hidden lg:table-cell">Rent</TableHead>
-							<TableHead className="w-[120px] text-right">Actions</TableHead>
+							<TableHead className="w-30 text-right">Actions</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>

@@ -144,7 +144,7 @@ export default function IncomeStatementPage() {
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
 			<div className="border-b bg-background p-6">
-				<div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 lg:px-6">
+				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
 					<div className="flex flex-col gap-2">
 						<h1 className="text-3xl font-semibold tracking-tight">
 							Income Statement
@@ -156,7 +156,7 @@ export default function IncomeStatementPage() {
 
 					<div className="flex flex-wrap items-center gap-3">
 						<Select value={selectedMonth} onValueChange={setSelectedMonth}>
-							<SelectTrigger className="w-[200px]">
+							<SelectTrigger className="w-50">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -240,7 +240,7 @@ export default function IncomeStatementPage() {
 			</div>
 
 			<div className="flex-1 p-6">
-				<div className="mx-auto max-w-[1600px] space-y-8 px-4 lg:px-6">
+				<div className="mx-auto max-w-400 space-y-8 px-4 lg:px-6">
 					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 						<Card>
 							<CardHeader>

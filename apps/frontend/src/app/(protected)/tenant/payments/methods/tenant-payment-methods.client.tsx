@@ -146,7 +146,7 @@ export function TenantPaymentMethods() {
 								<TableHead>Method</TableHead>
 								<TableHead>Type</TableHead>
 								<TableHead>Status</TableHead>
-								<TableHead className="w-[160px] text-right">Actions</TableHead>
+								<TableHead className="w-40 text-right">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>

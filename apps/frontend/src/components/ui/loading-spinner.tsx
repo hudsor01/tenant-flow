@@ -12,10 +12,10 @@ interface LoadingSpinnerProps {
 
 // Design System Compliance: Using standard Tailwind size classes
 const sizeClasses = {
-	sm: 'w-4 h-4', // 16px - Touch accessible
-	default: 'w-6 h-6', // 24px - Standard
-	lg: 'w-8 h-8', // 32px - Prominent
-	xl: 'w-12 h-12' // 48px - Page level
+	sm: 'size-4', // 16px - Touch accessible
+	default: 'size-6', // 24px - Standard
+	lg: 'size-8', // 32px - Prominent
+	xl: 'size-12' // 48px - Page level
 }
 
 // OKLCH Color System Compliance: Using design system color tokens
@@ -211,9 +211,9 @@ function LoadingDots({
 	asButton?: boolean
 } & React.HTMLAttributes<HTMLDivElement>) {
 	const dotSize = {
-		sm: 'w-1 h-1',
-		default: 'w-2 h-2',
-		lg: 'w-3 h-3'
+		sm: 'size-1',
+		default: 'size-2',
+		lg: 'size-3'
 	}[size]
 
 	const dotSpacing = {

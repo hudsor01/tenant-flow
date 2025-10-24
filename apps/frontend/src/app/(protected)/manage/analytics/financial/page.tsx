@@ -90,7 +90,7 @@ function BreakdownList({
 function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 	if (!leases.length) {
 		return (
-			<div className="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed">
+			<div className="flex min-h-50 flex-col items-center justify-center rounded-lg border border-dashed">
 				<p className="text-sm text-muted-foreground">
 					We couldn&apos;t find leases with financial analytics yet.
 				</p>
@@ -155,7 +155,7 @@ export default async function FinancialAnalyticsPage() {
 		<RefreshableAnalytics cooldownSeconds={30}>
 			<div className="@container/main flex min-h-screen w-full flex-col">
 				<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
-					<div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 lg:px-6">
+					<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
 						<div className="flex flex-col gap-2">
 							<h1 className="text-3xl font-semibold tracking-tight">
 								Financial Analytics
@@ -232,7 +232,7 @@ export default async function FinancialAnalyticsPage() {
 				</div>
 
 				<div className="flex-1 p-6 pt-6 pb-6">
-					<div className="mx-auto max-w-[1600px] space-y-8 px-4 lg:px-6">
+					<div className="mx-auto max-w-400 space-y-8 px-4 lg:px-6">
 						<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
 							<Card className="xl:col-span-2">
 								<CardHeader>

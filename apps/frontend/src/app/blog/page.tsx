@@ -25,18 +25,18 @@ export default function BlogPage() {
 			<GridPattern className="fixed inset-0 -z-10" />
 
 			{/* Navigation */}
-			<nav className="fixed top-6 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
+			<nav className="fixed top-6 left-1/2 z-50 w-auto translate-x-[-50%] transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
 				<div className="flex items-center justify-between gap-12">
 					<Link
 						href="/"
 						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
 					>
-						<div className="w-8 h-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
+						<div className="size-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
 							<svg
 								viewBox="0 0 24 24"
 								fill="none"
 								xmlns="http://www.w3.org/2000/svg"
-								className="w-5 h-5 text-primary-foreground"
+								className="size-5 text-primary-foreground"
 							>
 								<path
 									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
@@ -103,7 +103,7 @@ export default function BlogPage() {
 							className="flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
 						>
 							Get Started
-							<ArrowRight className="ml-2 h-4 w-4" />
+							<ArrowRight className="ml-2 size-4" />
 						</Link>
 					</div>
 				</div>
@@ -135,7 +135,7 @@ export default function BlogPage() {
 							<div className="grid md:grid-cols-2 gap-8 items-center">
 								<div>
 									<Badge className="mb-4 bg-primary/10 text-primary">
-										<TrendingUp className="w-3 h-3 mr-1" />
+										<TrendingUp className="size-3 mr-1" />
 										Downloaded 50,000+ Times
 									</Badge>
 									<h2 className="text-4xl font-bold mb-4">
@@ -148,13 +148,13 @@ export default function BlogPage() {
 									</p>
 									<div className="flex items-center gap-6 mb-6">
 										<div className="flex items-center gap-2">
-											<Clock className="w-4 h-4 text-accent" />
+											<Clock className="size-4 text-accent" />
 											<span className="text-sm text-muted-foreground">
 												15 min to implement
 											</span>
 										</div>
 										<div className="flex items-center gap-2">
-											<Users className="w-4 h-4 text-primary" />
+											<Users className="size-4 text-primary" />
 											<span className="text-sm text-muted-foreground">
 												$2.4M+ saved by readers
 											</span>
@@ -162,7 +162,7 @@ export default function BlogPage() {
 									</div>
 									<Button size="lg" className="px-8">
 										Read Complete Guide
-										<ArrowRight className="w-5 h-5 ml-2" />
+										<ArrowRight className="size-5 ml-2" />
 									</Button>
 								</div>
 								<div className="bg-card rounded-xl p-8 border border-border/50 shadow-md">
@@ -245,10 +245,10 @@ export default function BlogPage() {
 									className="bg-card p-8 rounded-lg border border-border/50 shadow-md transition-all duration-300 text-center group hover:-translate-y-1"
 								>
 									<div
-										className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${category.color.replace('text-primary', 'bg-primary/10').replace('text-accent', 'bg-accent/10')}`}
+										className={`size-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${category.color.replace('text-primary', 'bg-primary/10').replace('text-accent', 'bg-accent/10')}`}
 									>
 										<category.icon
-											className={`w-8 h-8 ${category.color.split(' ')[1]}`}
+											className={`size-8 ${category.color.split(' ')[1]}`}
 										/>
 									</div>
 									<h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
@@ -318,7 +318,7 @@ export default function BlogPage() {
 						<div className="text-center mt-16">
 							<Button size="lg" variant="outline" className="px-8">
 								View All Success Strategies
-								<ArrowRight className="w-5 h-5 ml-2" />
+								<ArrowRight className="size-5 ml-2" />
 							</Button>
 						</div>
 					</div>

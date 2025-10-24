@@ -110,7 +110,7 @@ export default function UnitsPage() {
 						<h3 className="text-sm font-medium text-muted-foreground">
 							Total Units
 						</h3>
-						<div className="w-2 h-2 rounded-full bg-chart-4" />
+						<div className="size-2 rounded-full bg-chart-4" />
 					</div>
 					<div className="text-2xl font-bold">{totalUnits}</div>
 					<p className="text-xs text-muted-foreground mt-1">
@@ -123,7 +123,7 @@ export default function UnitsPage() {
 						<h3 className="text-sm font-medium text-muted-foreground">
 							Occupied
 						</h3>
-						<div className="w-2 h-2 rounded-full bg-chart-1" />
+						<div className="size-2 rounded-full bg-chart-1" />
 					</div>
 					<div className="text-2xl font-bold">{occupiedCount}</div>
 					<div className="text-xs mt-1 text-chart-1">
@@ -136,7 +136,7 @@ export default function UnitsPage() {
 						<h3 className="text-sm font-medium text-muted-foreground">
 							Vacant
 						</h3>
-						<div className="w-2 h-2 rounded-full bg-chart-7" />
+						<div className="size-2 rounded-full bg-chart-7" />
 					</div>
 					<div className="text-2xl font-bold">{vacantCount}</div>
 					<div className="text-xs mt-1 text-chart-7">
@@ -149,7 +149,7 @@ export default function UnitsPage() {
 						<h3 className="text-sm font-medium text-muted-foreground">
 							Maintenance
 						</h3>
-						<div className="w-2 h-2 rounded-full bg-chart-5" />
+						<div className="size-2 rounded-full bg-chart-5" />
 					</div>
 					<div className="text-2xl font-bold">{maintenanceCount}</div>
 					<div className="text-xs mt-1 text-chart-5">
