@@ -106,13 +106,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 	})
 
 	const deleteMutation = useMutation({
-		mutationFn: () =>
-			tenantsApi.markAsMovedOut(tenant.id, {
-				moveOutDate:
-					new Date().toISOString().split('T')[0] ||
-					new Date().toLocaleDateString('en-CA'),
-				moveOutReason: 'Administrative removal'
-			}),
+		mutationFn: () => tenantsApi.remove(tenant.id),
 		onSuccess: () => {
 			queryClient.setQueryData(
 				['tenants'],
@@ -122,10 +116,13 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 				}
 			)
 			queryClient.invalidateQueries({ queryKey: ['tenant-stats'] })
-			toast.success('Tenant marked as moved out successfully')
+			queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+			queryClient.invalidateQueries({ queryKey: ['properties'] })
+			queryClient.invalidateQueries({ queryKey: ['leases'] })
+			toast.success('Tenant deleted successfully')
 		},
 		onError: error => {
-			toast.error(`Failed to mark tenant as moved out: ${error.message}`)
+			toast.error(`Failed to delete tenant: ${error.message}`)
 		}
 	})
 

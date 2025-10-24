@@ -1,3 +1,4 @@
+'use client'
 
 import { Spinner } from '@/components/ui/spinner'
 import type { PaymentMethodResponse } from '@repo/shared/types/core'
