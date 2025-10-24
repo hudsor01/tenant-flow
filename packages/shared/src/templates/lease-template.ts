@@ -424,7 +424,7 @@ function resolveToken(context: LeaseTemplateContext, token: string): string {
 			return ''
 		}
 	}
-	return current == null ? '' : String(current)
+	return current === null || current === undefined ? '' : String(current)
 }
 
 function interpolate(template: string, context: LeaseTemplateContext) {

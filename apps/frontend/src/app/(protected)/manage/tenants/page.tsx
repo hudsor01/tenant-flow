@@ -4,7 +4,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { getTenantsPageData, getLeasesPageData } from '@/lib/api/dashboard-server'
+import { getTenantsPageData } from '@/lib/api/dashboard-server'
 import { requireSession } from '@/lib/server-auth'
 import { formatCents } from '@repo/shared/lib/format'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -13,7 +13,6 @@ import type {
 	TenantSummary,
 	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
-import type { Database } from '@repo/shared/types/supabase-generated'
 import type { Metadata } from 'next'
 import { columns } from './columns'
 import { TenantsTableClient } from './tenants-table.client'
@@ -41,20 +40,19 @@ export default async function TenantsPage() {
 	let summary: TenantSummary | null = null
 
 	// Fetch leases for invitation dialog
-	let availableLeases: Array<Database['public']['Tables']['lease']['Row']> = []
+	// TODO: Re-enable when InviteTenantDialog is implemented
+	// let availableLeases: Array<Database['public']['Tables']['lease']['Row']> = []
 
 	try {
-		const [tenantsData, leasesData] = await Promise.all([
-			getTenantsPageData(),
-			getLeasesPageData()
-		])
+		const tenantsData = await getTenantsPageData()
 
 		tenants = tenantsData.tenants ?? []
 		stats = (tenantsData.stats as TenantStats) ?? stats
 		summary = (tenantsData.summary as TenantSummary) ?? null
 
-		// Filter for leases without tenants (available for invitation)
-		availableLeases = (leasesData.leases ?? []).filter(lease => !lease.tenantId)
+		// TODO: Re-enable when InviteTenantDialog is implemented
+		// const leasesData = await getLeasesPageData()
+		// availableLeases = (leasesData.leases ?? []).filter(lease => !lease.tenantId)
 	} catch (err) {
 		// Log server-side; avoid throwing to prevent resetting the RSC tree
 		logger.warn('Failed to fetch tenants page data for TenantsPage', {

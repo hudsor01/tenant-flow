@@ -39,8 +39,6 @@ export const tenantKeys = {
  * Optimized with placeholder data from list cache
  */
 export function useTenant(id: string) {
-	const addTenant = useTenantStore(state => state.addTenant)
-
 	return useQuery({
 		queryKey: tenantKeys.detail(id),
 		queryFn: async (): Promise<Tenant> => {
