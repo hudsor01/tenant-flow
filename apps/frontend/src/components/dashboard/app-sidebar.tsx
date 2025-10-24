@@ -182,7 +182,11 @@ const navigation: {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	return (
-		<>
+		<Sidebar
+			collapsible="offcanvas"
+			className="border-0 bg-transparent"
+			{...props}
+		>
 			{/* Card 1: Brand */}
 			<div className="rounded-xl border border-gray-200 bg-white p-4">
 				<Link href="/" className="flex items-center gap-2">
@@ -203,22 +207,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
 			{/* Card 3: Navigation */}
 			<div className="flex-1 overflow-hidden rounded-xl border border-gray-200 bg-white">
-				<Sidebar
-					collapsible="offcanvas"
-					className="border-0 bg-transparent"
-					{...props}
-				>
-					<SidebarContent className="overflow-visible">
-						<NavMain items={navigation.navMain} />
-						<NavDocuments items={navigation.documents} />
-					</SidebarContent>
-				</Sidebar>
+				<SidebarContent className="overflow-visible">
+					<NavMain items={navigation.navMain} />
+					<NavDocuments items={navigation.documents} />
+				</SidebarContent>
 			</div>
 
 			{/* Card 4: Settings */}
 			<div className="rounded-xl border border-gray-200 bg-white p-2">
 				<NavSecondary items={navigation.navSecondary} />
 			</div>
-		</>
+		</Sidebar>
 	)
 }

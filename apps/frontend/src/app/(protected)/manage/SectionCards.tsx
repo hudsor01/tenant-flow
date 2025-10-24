@@ -71,7 +71,7 @@ export function SectionCards({ stats = {} }: SectionCardsProps) {
 						{totalTenants} total
 					</Badge>
 					<div className="text-sm text-muted-foreground font-medium">
-						{activeTenants > 0
+						{activeTenants > 0 && totalTenants > 0
 							? `${((activeTenants / totalTenants) * 100).toFixed(0)}% active`
 							: 'No active tenants yet'}
 					</div>
