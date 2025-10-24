@@ -86,9 +86,17 @@ describe('UnitsController', () => {
 	beforeEach(async () => {
 		jest.clearAllMocks()
 
+		// Create mock instance
+		const mockService = new UnitsService(null as any)
+		
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [UnitsController],
-			providers: [UnitsService]
+			providers: [
+				{
+					provide: UnitsService,
+					useValue: mockService
+				}
+			]
 		}).compile()
 
 		controller = module.get<UnitsController>(UnitsController)

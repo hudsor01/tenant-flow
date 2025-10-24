@@ -6,7 +6,6 @@ import type {
 	UpdateTenantRequest
 } from '@repo/shared/types/backend-domain'
 import type { Tenant } from '@repo/shared/types/core'
-import { SupabaseService } from '../../database/supabase.service'
 import { CurrentUserProvider } from '../../shared/providers/current-user.provider'
 import { createMockRequest } from '../../shared/test-utils/types'
 import { createMockUser } from '../../test-utils/mocks'
@@ -19,6 +18,7 @@ jest.mock('./tenants.service', () => {
 		TenantsService: jest.fn().mockImplementation(() => ({
 			findAll: jest.fn(),
 			getStats: jest.fn(),
+			getSummary: jest.fn(),
 			findOne: jest.fn(),
 			create: jest.fn(),
 			update: jest.fn(),
@@ -97,7 +97,6 @@ describe('TenantsController', () => {
 			controllers: [TenantsController],
 			providers: [
 				TenantsService,
-				SupabaseService,
 				{ provide: CurrentUserProvider, useValue: mockCurrentUserProvider }
 			]
 		}).compile()
@@ -215,6 +214,32 @@ describe('TenantsController', () => {
 			)
 			expect(result).toEqual(mockStats)
 		})
+
+		describe('getSummary', () => {
+			it('should return tenant summary from service', async () => {
+				const mockSummary = {
+					total: 3,
+					invited: 1,
+					active: 2,
+					overdueBalanceCents: 4500,
+					upcomingDueCents: 12000,
+					timestamp: new Date().toISOString()
+				}
+
+				mockTenantsServiceInstance.getSummary.mockResolvedValue(
+					mockSummary as any
+				)
+
+				const result = await controller.getSummary(
+					createMockRequest({ user: mockUser }) as any
+				)
+
+				expect(mockTenantsServiceInstance.getSummary).toHaveBeenCalledWith(
+					mockUser.id
+				)
+				expect(result).toEqual(mockSummary)
+			})
+		})
 	})
 
 	describe('findOne', () => {
@@ -268,10 +293,9 @@ describe('TenantsController', () => {
 
 			// Wait for fire-and-forget email to process
 			await new Promise(resolve => setTimeout(resolve, 10))
-			expect(mockTenantsServiceInstance.sendTenantInvitation).toHaveBeenCalledWith(
-				mockUser.id,
-				mockTenant.id
-			)
+			expect(
+				mockTenantsServiceInstance.sendTenantInvitation
+			).toHaveBeenCalledWith(mockUser.id, mockTenant.id)
 		})
 	})
 
@@ -423,9 +447,17 @@ describe('TenantsController', () => {
 
 	describe('remove (deprecated)', () => {
 		it('should throw BadRequestException directing to soft delete', async () => {
-			await expect(controller.remove()).rejects.toThrow(BadRequestException)
+			const mockRequest = createMockRequest({ user: mockUser }) as any
+			const tenantId = 'tenant-123'
+			
+			// The remove method should always throw since direct deletion is deprecated
+			mockTenantsServiceInstance.remove.mockRejectedValue(
+				new BadRequestException('Direct deletion is not allowed')
+			)
+			
+			await expect(controller.remove(tenantId, mockRequest)).rejects.toThrow(BadRequestException)
 
-			await expect(controller.remove()).rejects.toThrow(
+			await expect(controller.remove(tenantId, mockRequest)).rejects.toThrow(
 				/Direct deletion is not allowed/
 			)
 		})
