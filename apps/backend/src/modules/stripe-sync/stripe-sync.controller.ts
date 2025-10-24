@@ -13,7 +13,6 @@ import {
 	Header,
 	Inject,
 	Logger,
-	Optional,
 	Post,
 	Req,
 	SetMetadata
@@ -36,9 +35,8 @@ export class StripeSyncController {
 		@Inject(StripeSyncService)
 		private readonly stripeSyncService: StripeSyncService,
 		private readonly stripeClientService: StripeClientService,
-		@Optional() private readonly supabaseService?: SupabaseService,
-		@Optional()
-		private readonly accessControlService?: StripeAccessControlService
+		private readonly supabaseService: SupabaseService,
+		private readonly accessControlService: StripeAccessControlService
 	) {}
 
 	/**
@@ -73,12 +71,7 @@ export class StripeSyncController {
 			}
 
 			// Handle subscription access control
-			if (!this.accessControlService) {
-				this.logger.warn('Access control service not available')
-				return
-			}
-
-			switch (event.type) {
+switch (event.type) {
 				case 'customer.subscription.created':
 				case 'customer.subscription.updated': {
 					const subscription = event.data.object as Stripe.Subscription
@@ -122,12 +115,7 @@ export class StripeSyncController {
 	 * Uses the link_stripe_customer_to_user database function
 	 */
 	private async linkCustomerToUser(event: Stripe.Event) {
-		if (!this.supabaseService) {
-			this.logger.warn('Supabase service not available for customer linking')
-			return
-		}
-
-		const customer = event.data.object as Stripe.Customer
+const customer = event.data.object as Stripe.Customer
 
 		if (!customer.email) {
 			this.logger.warn('Customer has no email, skipping user linking', {

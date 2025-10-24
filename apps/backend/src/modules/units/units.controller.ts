@@ -20,7 +20,6 @@ import {
 	Delete,
 	Get,
 	NotFoundException,
-	Optional,
 	Param,
 	ParseIntPipe,
 	ParseUUIDPipe,
@@ -41,7 +40,7 @@ export class UnitsController {
 	// Logger available if needed for debugging
 	// private readonly logger = new Logger(UnitsController.name)
 
-	constructor(@Optional() private readonly unitsService?: UnitsService) {}
+	constructor(private readonly unitsService: UnitsService) {}
 
 	/**
 	 * Get all units for the authenticated user
@@ -81,16 +80,6 @@ export class UnitsController {
 			throw new BadRequestException('Invalid sortOrder value')
 		}
 
-		if (!this.unitsService) {
-			return {
-				message: 'Units service not available',
-				data: [],
-				total: 0,
-				limit,
-				offset
-			}
-		}
-
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 
@@ -111,16 +100,6 @@ export class UnitsController {
 	 */
 	@Get('stats')
 	async getStats(@Req() req: AuthenticatedRequest) {
-		if (!this.unitsService) {
-			return {
-				message: 'Units service not available',
-				totalUnits: 0,
-				vacantUnits: 0,
-				occupiedUnits: 0,
-				maintenanceUnits: 0,
-				reservedUnits: 0
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		return this.unitsService.getStats(userId)
@@ -135,13 +114,6 @@ export class UnitsController {
 		@Req() req: AuthenticatedRequest,
 		@Param('propertyId', ParseUUIDPipe) propertyId: string
 	) {
-		if (!this.unitsService) {
-			return {
-				message: 'Units service not available',
-				propertyId,
-				data: []
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		return this.unitsService.findByProperty(userId, propertyId)
@@ -156,13 +128,6 @@ export class UnitsController {
 		@Req() req: AuthenticatedRequest,
 		@Param('id', ParseUUIDPipe) id: string
 	) {
-		if (!this.unitsService) {
-			return {
-				message: 'Units service not available',
-				id,
-				data: undefined
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		const unit = await this.unitsService.findOne(userId, id)
@@ -181,13 +146,6 @@ export class UnitsController {
 		@Req() req: AuthenticatedRequest,
 		@Body() createUnitRequest: CreateUnitRequest
 	) {
-		if (!this.unitsService) {
-			return {
-				message: 'Units service not available',
-				data: createUnitRequest,
-				success: false
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		return this.unitsService.create(userId, createUnitRequest)
@@ -203,14 +161,6 @@ export class UnitsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateUnitRequest: UpdateUnitRequest
 	) {
-		if (!this.unitsService) {
-			return {
-				message: 'Units service not available',
-				id,
-				data: updateUnitRequest,
-				success: false
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		const unit = await this.unitsService.update(userId, id, updateUnitRequest)
@@ -229,13 +179,6 @@ export class UnitsController {
 		@Req() req: AuthenticatedRequest,
 		@Param('id', ParseUUIDPipe) id: string
 	) {
-		if (!this.unitsService) {
-			return {
-				message: 'Units service not available',
-				id,
-				success: false
-			}
-		}
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 		await this.unitsService.remove(userId, id)

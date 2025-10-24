@@ -1,3 +1,4 @@
+'use client'
 
 import { ChartAreaInteractive } from '@/components/dashboard/chart-area-interactive'
 import { Button } from '@/components/ui/button'

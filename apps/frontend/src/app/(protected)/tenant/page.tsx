@@ -54,9 +54,8 @@ export default function TenantDashboardPage() {
 		error: maintenanceError
 	} = useTenantMaintenanceRequests()
 
-	// Format currency
-	const formatCurrency = (amount: number | null | undefined) => {
-		if (amount == null || isNaN(amount) || !isFinite(amount)) return '$0'
+	// Modern currency formatting - assumes valid inputs
+	const formatCurrency = (amount: number) => {
 		return new Intl.NumberFormat('en-US', {
 			style: 'currency',
 			currency: 'USD'

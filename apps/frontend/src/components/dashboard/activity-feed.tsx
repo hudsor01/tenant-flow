@@ -22,21 +22,15 @@ import {
 
 type Activity = Tables<'activity'>
 
-// Safe helpers
-const formatDate = (date: string | Date | null | undefined): string => {
-	if (!date) return 'Unknown time'
-	try {
-		const dateObj = new Date(date)
-		if (isNaN(dateObj.getTime())) return 'Invalid date'
-		return formatDistanceToNow(dateObj, { addSuffix: true })
-	} catch {
-		return 'Invalid date'
-	}
+// Modern helpers - assume valid inputs
+const formatDate = (date: string | Date): string => {
+	const dateObj = new Date(date)
+	return formatDistanceToNow(dateObj, { addSuffix: true })
 }
 
 const safeEntityDisplay = (
-	entityName: string | null | undefined,
-	entityId: string | null | undefined
+	entityName: string | null,
+	entityId: string | null
 ): string => {
 	if (entityName) {
 		return `${entityName} (${entityId || 'Unknown ID'})`

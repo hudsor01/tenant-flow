@@ -26,7 +26,7 @@ export function SectionCards({ stats = {} }: SectionCardsProps) {
 			<CardLayout
 				title="Monthly Revenue"
 				description={formatCurrency(totalRevenue)}
-				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-primary/5 to-card dark:bg-card border-2 hover:border-primary/30"
+				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-primary/5 to-card dark:bg-card border-2 hover:border-primary/30"
 			>
 				<div className="flex flex-col gap-3 pt-2">
 					<Badge
@@ -60,7 +60,7 @@ export function SectionCards({ stats = {} }: SectionCardsProps) {
 			<CardLayout
 				title="Active Tenants"
 				description={`${activeTenants}`}
-				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-blue-500/5 to-card dark:bg-card border-2 hover:border-blue-500/30"
+				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-blue-500/5 to-card dark:bg-card border-2 hover:border-blue-500/30"
 			>
 				<div className="flex flex-col gap-3 pt-2">
 					<Badge
@@ -71,7 +71,7 @@ export function SectionCards({ stats = {} }: SectionCardsProps) {
 						{totalTenants} total
 					</Badge>
 					<div className="text-sm text-muted-foreground font-medium">
-						{activeTenants > 0 && totalTenants > 0
+						{activeTenants > 0
 							? `${((activeTenants / totalTenants) * 100).toFixed(0)}% active`
 							: 'No active tenants yet'}
 					</div>
@@ -82,7 +82,7 @@ export function SectionCards({ stats = {} }: SectionCardsProps) {
 			<CardLayout
 				title="Total Properties"
 				description={`${totalProperties}`}
-				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-purple-500/5 to-card dark:bg-card border-2 hover:border-purple-500/30"
+				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-purple-500/5 to-card dark:bg-card border-2 hover:border-purple-500/30"
 			>
 				<div className="flex flex-col gap-3 pt-2">
 					<Badge
@@ -104,7 +104,7 @@ export function SectionCards({ stats = {} }: SectionCardsProps) {
 			<CardLayout
 				title="Occupancy Rate"
 				description={`${occupancyRate.toFixed(1)}%`}
-				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-amber-500/5 to-card dark:bg-card border-2 hover:border-amber-500/30"
+				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-amber-500/5 to-card dark:bg-card border-2 hover:border-amber-500/30"
 			>
 				<div className="flex flex-col gap-3 pt-2">
 					<Badge
