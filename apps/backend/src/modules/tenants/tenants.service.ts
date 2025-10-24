@@ -225,7 +225,7 @@ export class TenantsService {
 			.select('*')
 			.eq('userId', userId)
 
-		const tenants: any[] = tenantsData || []
+		const tenants: Tenant[] = tenantsData || []
 
 		const total = tenants.length
 		const invited = tenants.filter(t => !!t.invitation_status).length
