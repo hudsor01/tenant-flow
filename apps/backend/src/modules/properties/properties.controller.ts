@@ -16,7 +16,6 @@ import {
 	Delete,
 	Get,
 	NotFoundException,
-	Optional,
 	Param,
 	ParseIntPipe,
 	ParseUUIDPipe,
@@ -38,9 +37,7 @@ import { PropertiesService } from './properties.service'
  */
 @Controller('properties')
 export class PropertiesController {
-	constructor(
-		@Optional() private readonly propertiesService?: PropertiesService
-	) {}
+	constructor(private readonly propertiesService: PropertiesService) {}
 
 	/**
 			NotFoundException,
@@ -54,16 +51,6 @@ export class PropertiesController {
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
 		@Request() req: AuthenticatedRequest
 	) {
-		if (!this.propertiesService) {
-			return {
-				message: 'Properties service not available',
-				data: [],
-				total: 0,
-				limit,
-				offset
-			}
-		}
-
 		// Authentication is required for this endpoint
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
@@ -87,18 +74,6 @@ export class PropertiesController {
 	 */
 	@Get('stats')
 	async getStats(@Request() req: AuthenticatedRequest) {
-		if (!this.propertiesService) {
-			return {
-				message: 'Properties service not available',
-				totalProperties: 0,
-				totalUnits: 0,
-				occupiedUnits: 0,
-				vacantUnits: 0,
-				occupancyRate: 0,
-				totalRent: 0
-			}
-		}
-
 		// Authentication is required for this endpoint
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
@@ -120,18 +95,9 @@ export class PropertiesController {
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
 		@Request() req: AuthenticatedRequest
 	) {
-		if (!this.propertiesService) {
-			return {
-				message: 'Properties service not available',
-				data: [],
-				total: 0,
-				limit,
-				offset
-			}
-		}
 		const safeLimit = Math.max(1, Math.min(limit, 50))
 		const safeOffset = Math.max(0, offset)
-		const userId = req.user?.id
+		const userId = req.user.id
 		const properties = await this.propertiesService.findAllWithUnits(userId, {
 			search,
 			limit: safeLimit,
@@ -157,14 +123,7 @@ export class PropertiesController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Request() req: AuthenticatedRequest
 	) {
-		if (!this.propertiesService) {
-			return {
-				message: 'Properties service not available',
-				id,
-				data: null
-			}
-		}
-		const userId = req.user?.id
+		const userId = req.user.id
 		const property = await this.propertiesService.findOne(userId, id)
 		if (!property) {
 			throw new NotFoundException('Property not found')
@@ -181,14 +140,7 @@ export class PropertiesController {
 		@Body() createPropertyRequest: CreatePropertyRequest,
 		@Request() req: AuthenticatedRequest
 	) {
-		if (!this.propertiesService) {
-			return {
-				message: 'Properties service not available',
-				data: createPropertyRequest,
-				success: false
-			}
-		}
-		const userId = req.user?.id
+		const userId = req.user.id
 		return this.propertiesService.create(userId, createPropertyRequest)
 	}
 
@@ -202,15 +154,7 @@ export class PropertiesController {
 		@Body() updatePropertyRequest: UpdatePropertyRequest,
 		@Request() req: AuthenticatedRequest
 	) {
-		if (!this.propertiesService) {
-			return {
-				message: 'Properties service not available',
-				id,
-				data: updatePropertyRequest,
-				success: false
-			}
-		}
-		const userId = req.user?.id
+		const userId = req.user.id
 		const property = await this.propertiesService.update(
 			userId,
 			id,
@@ -231,13 +175,6 @@ export class PropertiesController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Request() req: AuthenticatedRequest
 	) {
-		if (!this.propertiesService) {
-			return {
-				message: 'Properties service not available',
-				id,
-				success: false
-			}
-		}
 		const userId = req.user?.id
 		await this.propertiesService.remove(userId, id)
 		return { message: 'Property deleted successfully' }
@@ -255,15 +192,6 @@ export class PropertiesController {
 		@Query('timeframe', new DefaultValuePipe('30d')) timeframe?: string,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number
 	) {
-		if (!this.propertiesService) {
-			return {
-				message: 'Properties service not available',
-				data: [],
-				timeframe: timeframe ?? '30d',
-				propertyId
-			}
-		}
-
 		// Validate timeframe
 		if (!['7d', '30d', '90d', '1y'].includes(timeframe ?? '30d')) {
 			throw new BadRequestException(
@@ -271,7 +199,7 @@ export class PropertiesController {
 			)
 		}
 
-		const userId = req.user?.id
+		const userId = req.user.id
 		return this.propertiesService.getPropertyPerformanceAnalytics(userId, {
 			...(propertyId ? { propertyId } : {}),
 			timeframe: timeframe ?? '30d',
@@ -290,15 +218,6 @@ export class PropertiesController {
 		propertyId?: string,
 		@Query('period', new DefaultValuePipe('monthly')) period?: string
 	) {
-		if (!this.propertiesService) {
-			return {
-				message: 'Properties service not available',
-				data: [],
-				period: period ?? 'monthly',
-				propertyId
-			}
-		}
-
 		// Validate period
 		if (
 			!['daily', 'weekly', 'monthly', 'yearly'].includes(period ?? 'monthly')
@@ -308,7 +227,7 @@ export class PropertiesController {
 			)
 		}
 
-		const userId = req.user?.id
+		const userId = req.user.id
 		return this.propertiesService.getPropertyOccupancyAnalytics(userId, {
 			...(propertyId ? { propertyId } : {}),
 			period: period ?? 'monthly'
@@ -326,15 +245,6 @@ export class PropertiesController {
 		propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
 	) {
-		if (!this.propertiesService) {
-			return {
-				message: 'Properties service not available',
-				data: [],
-				timeframe: timeframe ?? '12m',
-				propertyId
-			}
-		}
-
 		// Validate timeframe
 		if (!['3m', '6m', '12m', '24m'].includes(timeframe ?? '12m')) {
 			throw new BadRequestException(
@@ -342,7 +252,7 @@ export class PropertiesController {
 			)
 		}
 
-		const userId = req.user?.id
+		const userId = req.user.id
 		return this.propertiesService.getPropertyFinancialAnalytics(userId, {
 			...(propertyId ? { propertyId } : {}),
 			timeframe: timeframe ?? '12m'
@@ -360,15 +270,6 @@ export class PropertiesController {
 		propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('6m')) timeframe?: string
 	) {
-		if (!this.propertiesService) {
-			return {
-				message: 'Properties service not available',
-				data: [],
-				timeframe: timeframe ?? '6m',
-				propertyId
-			}
-		}
-
 		// Validate timeframe
 		if (!['1m', '3m', '6m', '12m'].includes(timeframe ?? '6m')) {
 			throw new BadRequestException(
@@ -376,7 +277,7 @@ export class PropertiesController {
 			)
 		}
 
-		const userId = req.user?.id
+		const userId = req.user.id
 		return this.propertiesService.getPropertyMaintenanceAnalytics(userId, {
 			...(propertyId ? { propertyId } : {}),
 			timeframe: timeframe ?? '6m'
@@ -393,10 +294,6 @@ export class PropertiesController {
 		@Body() body: { dateSold: string; salePrice: number; saleNotes?: string },
 		@Request() req: AuthenticatedRequest
 	) {
-		if (!this.propertiesService) {
-			throw new NotFoundException('Properties service not available')
-		}
-
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}

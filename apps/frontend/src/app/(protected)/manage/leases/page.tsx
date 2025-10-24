@@ -1,3 +1,4 @@
+'use client'
 
 // Lease edit dialog now inlined below using ShadCN Dialog components
 import { Badge } from '@/components/ui/badge'
