@@ -82,11 +82,11 @@ export class DashboardService {
 
 			const [propertyResult, tenantResult, paymentResult] = await Promise.all([
 				client.from('property').select('id, status').eq('ownerId', internalUserId),
-				client.from('tenant').select('status, createdAt').eq('landlordId', internalUserId),
+				client.from('tenant').select('status, createdAt').eq('userId', internalUserId),
 				client
 					.from('rent_payment')
 					.select('landlordReceives, amount, paidAt, createdAt, status')
-					.eq('landlordId', internalUserId)
+					.eq('landlordId', userId) // rent_payment.landlordId stores Supabase Auth UIDs
 					.gte('createdAt', paymentQueryStart.toISOString())
 			])
 
