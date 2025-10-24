@@ -32,7 +32,10 @@ export const CSP_DOMAINS = {
 	VERCEL_DEV: ['https://vercel.live', 'https://*.vercel-scripts.com'],
 
 	// Image sources
-	IMAGES: ['https://images.unsplash.com', 'data:', 'blob:']
+	IMAGES: ['https://images.unsplash.com', 'data:', 'blob:'],
+
+	// External APIs
+	ZIP_API: ['http://api.zippopotam.us', 'https://api.zippopotam.us']
 } as const
 
 /**
@@ -79,7 +82,8 @@ export function generateCSPDirectives(
 			"'self'",
 			...CSP_DOMAINS.API_DOMAINS,
 			...CSP_DOMAINS.SUPABASE,
-			...CSP_DOMAINS.STRIPE
+			...CSP_DOMAINS.STRIPE,
+			...CSP_DOMAINS.ZIP_API
 		],
 
 		'frame-src': ["'self'", ...CSP_DOMAINS.STRIPE],
