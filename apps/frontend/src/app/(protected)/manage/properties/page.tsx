@@ -1,5 +1,3 @@
-import type { Metadata } from 'next'
-
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,18 +11,13 @@ import {
 } from '@/components/ui/card'
 import { DataTable } from '@/components/ui/data-table'
 import { propertiesApi } from '@/lib/api-client'
-import {
-	createActionsColumn,
-	createAddressColumn,
-	createBadgeColumn,
-	createStatusColumn,
-	createTextColumn
-} from '@/lib/table-columns'
+import { requireSession } from '@/lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
-import { ColumnDef } from '@tanstack/react-table'
 import { Plus, TrendingDown, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
+import type { Metadata } from 'next/types'
+import { columns } from './columns'
 
 export const metadata: Metadata = {
 	title: 'Properties | TenantFlow',
@@ -32,9 +25,12 @@ export const metadata: Metadata = {
 }
 
 export default async function PropertiesPage() {
+	// ✅ Server-side auth - NO client flash, instant 307 redirect
+	const user = await requireSession()
+
 	// ✅ Server Component: Fetch data on server during RSC render
 	// Harden against API errors so server render doesn't throw when there is no data
-	const logger = createLogger({ component: 'PropertiesPage' })
+	const logger = createLogger({ component: 'PropertiesPage', userId: user.id })
 
 	let properties: Property[] = []
 	let stats: PropertyStats = {
@@ -59,23 +55,6 @@ export default async function PropertiesPage() {
 			error: err instanceof Error ? err.message : String(err)
 		})
 	}
-
-	// ✅ Inline column composition using reusable helpers
-	const columns: ColumnDef<Property>[] = [
-		createTextColumn<Property>(
-			'name',
-			'Property Name',
-			true,
-			row => `/manage/properties/${row.id}`
-		),
-		createAddressColumn<Property>(),
-		createBadgeColumn<Property>('propertyType', 'Type'),
-		createStatusColumn<Property>(),
-		createActionsColumn<Property>(row => [
-			{ label: 'View details', href: `/manage/properties/${row.id}` },
-			{ label: 'Edit property', href: `/manage/properties/${row.id}/edit` }
-		])
-	]
 
 	return (
 		<div className="container mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
