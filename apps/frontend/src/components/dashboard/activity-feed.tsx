@@ -1,10 +1,14 @@
 'use client'
 
+import { ErrorFallback } from '@/components/error-boundary/error-fallback'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { useDashboardActivity } from '@/hooks/api/use-dashboard'
-import { getActivityBadgeClass, getActivityColorClass } from '@/lib/utils/color-helpers'
+import {
+	getActivityBadgeClass,
+	getActivityColorClass
+} from '@/lib/utils/color-helpers'
 import type { Tables } from '@repo/shared/types/supabase'
 import { formatDistanceToNow } from 'date-fns'
 import {
@@ -17,6 +21,28 @@ import {
 } from 'lucide-react'
 
 type Activity = Tables<'activity'>
+
+// Safe helpers
+const formatDate = (date: string | Date | null | undefined): string => {
+	if (!date) return 'Unknown time'
+	try {
+		const dateObj = new Date(date)
+		if (isNaN(dateObj.getTime())) return 'Invalid date'
+		return formatDistanceToNow(dateObj, { addSuffix: true })
+	} catch {
+		return 'Invalid date'
+	}
+}
+
+const safeEntityDisplay = (
+	entityName: string | null | undefined,
+	entityId: string | null | undefined
+): string => {
+	if (entityName) {
+		return `${entityName} (${entityId || 'Unknown ID'})`
+	}
+	return entityId || 'Unknown Entity'
+}
 
 const getActivityBadge = (type: string) => {
 	const labels = {
@@ -70,11 +96,12 @@ export function ActivityFeed() {
 
 	if (error) {
 		return (
-			<div className="text-center py-8">
-				<p className="text-sm text-muted-foreground">
-					Failed to load recent activities
-				</p>
-			</div>
+			<ErrorFallback
+				error={error as Error}
+				title="Failed to load activities"
+				description="Unable to load recent activities. Please try again."
+				onRetry={() => window.location.reload()}
+			/>
 		)
 	}
 
@@ -94,10 +121,15 @@ export function ActivityFeed() {
 				return (
 					<div
 						key={activity.id}
-						className="flex items-start gap-4 p-3 rounded-lg hover:bg-[var(--color-muted)] transition-colors duration-200"
+						className="flex items-start gap-4 p-3 rounded-lg hover:bg-(--color-muted) transition-colors duration-200"
 					>
 						{/* Activity Icon */}
-						<div className={getActivityColorClass(activity.entityType) + ' flex size-10 items-center justify-center rounded-full border border-[var(--color-border)]'}>
+						<div
+							className={
+								getActivityColorClass(activity.entityType) +
+								' flex size-10 items-center justify-center rounded-full border border-(--color-border)'
+							}
+						>
 							<Icon className="size-4" />
 						</div>
 
@@ -106,22 +138,18 @@ export function ActivityFeed() {
 							<div className="flex items-start justify-between gap-2">
 								<div className="min-w-0 flex-1">
 									<div className="flex items-center gap-2 mb-2">
-										<p className="font-medium text-[var(--color-label-primary)] text-body-md">
+										<p className="font-medium text-(--color-label-primary) text-body-md">
 											{activity.action}
 										</p>
 										{getActivityBadge(activity.entityType)}
 									</div>
-									<p className="mb-2 text-[var(--color-label-secondary)] text-body-md">
-										{activity.entityName
-											? `${activity.entityName} (${activity.entityId})`
-											: activity.entityId}
+									<p className="mb-2 text-(--color-label-secondary) text-body-md">
+										{safeEntityDisplay(activity.entityName, activity.entityId)}
 									</p>
 									<div className="flex items-center gap-2">
-										<span className="flex items-center gap-1 text-[var(--color-label-tertiary)] text-body-xs">
+										<span className="flex items-center gap-1 text-(--color-label-tertiary) text-body-xs">
 											<Clock className="size-3" />
-											{formatDistanceToNow(new Date(activity.createdAt), {
-												addSuffix: true
-											})}
+											{formatDate(activity.createdAt)}
 										</span>
 									</div>
 								</div>

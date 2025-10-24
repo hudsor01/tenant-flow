@@ -1,3 +1,4 @@
+'use client'
 
 /**
  * Reports Analytics Dashboard

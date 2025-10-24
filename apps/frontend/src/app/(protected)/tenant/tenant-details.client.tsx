@@ -33,6 +33,34 @@ interface TenantDetailsProps {
 	id: string
 }
 
+// Modern date formatting helper - assumes valid inputs
+const formatDate = (
+	date: string | Date,
+	options?: Intl.DateTimeFormatOptions
+): string => {
+	const dateObj = new Date(date)
+	return dateObj.toLocaleDateString('en-US', options)
+}
+
+// Modern date validation - throws on invalid input
+const validateMoveOutDate = (dateString: string): void => {
+	if (!dateString) {
+		throw new Error('Move out date is required')
+	}
+
+	const date = new Date(dateString)
+	if (isNaN(date.getTime())) {
+		throw new Error('Invalid date format')
+	}
+
+	const today = new Date()
+	today.setHours(0, 0, 0, 0)
+
+	if (date < today) {
+		throw new Error('Move out date cannot be in the past')
+	}
+}
+
 export function TenantDetails({ id }: TenantDetailsProps) {
 	const { data: tenant, isLoading, isError } = useTenant(id)
 	const router = useRouter()
@@ -45,17 +73,15 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 	const [additionalNotes, setAdditionalNotes] = React.useState('')
 
 	const handleMarkAsMovedOut = async () => {
-		if (!moveOutDate) {
-			toast.error('Please select a move-out date')
-			return
-		}
-
-		if (!moveOutReason) {
-			toast.error('Please select a reason')
-			return
-		}
-
 		try {
+			// Validate move-out date
+			validateMoveOutDate(moveOutDate)
+
+			if (!moveOutReason) {
+				toast.error('Please select a reason')
+				return
+			}
+
 			await markAsMovedOut.mutateAsync({
 				id,
 				data: {
@@ -67,9 +93,11 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 			setMoveOutDialogOpen(false)
 			router.push('/manage/tenants')
 		} catch (error) {
-			toast.error('Failed to mark tenant as moved out', {
-				description: error instanceof Error ? error.message : String(error)
-			})
+			toast.error(
+				error instanceof Error
+					? error.message
+					: 'Failed to mark tenant as moved out'
+			)
 		}
 	}
 
@@ -81,11 +109,11 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 		return (
 			<CardLayout
 				title="Tenant Not Found"
-				description="The tenant you&apos;re looking for doesn&apos;t exist."
+				description="The tenant you're looking for doesn't exist."
 			>
 				<div className="rounded-lg border-destructive/40 bg-destructive/10 p-6 text-destructive">
-					The tenant you&apos;re looking for doesn&apos;t exist or there was a problem
-					loading the data.
+					The tenant you&apos;re looking for doesn&apos;t exist or there was a
+					problem loading the data.
 				</div>
 			</CardLayout>
 		)
@@ -162,7 +190,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 									Created
 								</div>
 								<div className="font-medium">
-									{new Date(tenant.createdAt).toLocaleDateString('en-US', {
+									{formatDate(tenant.createdAt, {
 										year: 'numeric',
 										month: 'long',
 										day: 'numeric'
@@ -175,7 +203,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 									Updated
 								</div>
 								<div className="font-medium">
-									{new Date(tenant.updatedAt).toLocaleDateString('en-US', {
+									{formatDate(tenant.updatedAt, {
 										year: 'numeric',
 										month: 'long',
 										day: 'numeric'
@@ -205,8 +233,8 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 										<div className="text-sm text-muted-foreground flex items-center gap-4">
 											<span className="flex items-center gap-1">
 												<Calendar className="size-3" />
-												{new Date(lease.startDate).toLocaleDateString()} -{' '}
-												{new Date(lease.endDate).toLocaleDateString()}
+												{formatDate(lease.startDate)} -{' '}
+												{formatDate(lease.endDate)}
 											</span>
 											<span>${lease.rentAmount}/mo</span>
 										</div>

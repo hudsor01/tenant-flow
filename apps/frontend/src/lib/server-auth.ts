@@ -72,7 +72,8 @@ export async function requirePrimaryProperty(userId: string) {
 		.single()
 
 	if (error || !property) {
-		redirect('/manage/properties/new') // Redirect to onboarding
+		// Redirect to onboarding (outside protected layout, no infinite loop)
+		redirect('/properties/new')
 	}
 
 	return property

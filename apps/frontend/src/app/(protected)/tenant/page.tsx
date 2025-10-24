@@ -11,6 +11,7 @@
 
 'use client'
 
+import { ErrorFallback } from '@/components/error-boundary/error-fallback'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -29,6 +30,23 @@ import {
 import Link from 'next/link'
 
 export default function TenantDashboardPage() {
+	// Modern helpers - assume valid inputs
+	const formatDate = (
+		date: string | Date,
+		options?: Intl.DateTimeFormatOptions
+	): string => {
+		const dateObj = new Date(date)
+		return dateObj.toLocaleDateString('en-US', options)
+	}
+
+	const safeStringReplace = (
+		str: string,
+		search: string,
+		replace: string
+	): string => {
+		return str.replace(search, replace)
+	}
+
 	const { data: lease, isLoading } = useCurrentLease()
 	const {
 		data: maintenanceData,
@@ -38,7 +56,7 @@ export default function TenantDashboardPage() {
 
 	// Format currency
 	const formatCurrency = (amount: number | null | undefined) => {
-		if (!amount) return '$0'
+		if (amount == null || isNaN(amount) || !isFinite(amount)) return '$0'
 		return new Intl.NumberFormat('en-US', {
 			style: 'currency',
 			currency: 'USD'
@@ -272,11 +290,12 @@ export default function TenantDashboardPage() {
 								<Skeleton className="h-16 w-full" />
 							</div>
 						) : maintenanceError ? (
-							<div className="text-center py-8 bg-destructive/10 rounded-lg border-2 border-dashed border-destructive/50">
-								<p className="text-sm text-destructive">
-									Failed to load maintenance requests
-								</p>
-							</div>
+							<ErrorFallback
+								error={maintenanceError as Error}
+								title="Failed to load maintenance requests"
+								description="Unable to load your maintenance requests. Please try again."
+								onRetry={() => window.location.reload()}
+							/>
 						) : maintenanceData?.requests &&
 						  maintenanceData.requests.length > 0 ? (
 							maintenanceData.requests.slice(0, 3).map(request => (
@@ -287,7 +306,7 @@ export default function TenantDashboardPage() {
 									<div>
 										<p className="font-medium">{request.title}</p>
 										<p className="text-sm text-muted-foreground">
-											{new Date(request.createdAt).toLocaleDateString('en-US', {
+											{formatDate(request.createdAt, {
 												month: 'short',
 												day: 'numeric',
 												year: 'numeric'
@@ -306,7 +325,7 @@ export default function TenantDashboardPage() {
 															: 'text-amber-600'
 											}`}
 										>
-											{request.status.replace('_', ' ')}
+											{safeStringReplace(request.status, '_', ' ')}
 										</p>
 										<p
 											className={`text-xs ${
