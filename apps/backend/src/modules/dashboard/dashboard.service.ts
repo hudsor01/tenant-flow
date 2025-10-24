@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common'
 import type {
 	DashboardStats,
 	PropertyPerformance,
@@ -11,6 +11,8 @@ import {
 } from '@repo/shared/constants/empty-states'
 import { SupabaseService } from '../../database/supabase.service'
 import { DashboardAnalyticsService } from '../analytics/dashboard-analytics.service'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import type { Cache } from 'cache-manager'
 
 @Injectable()
 export class DashboardService {
@@ -18,9 +20,34 @@ export class DashboardService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly dashboardAnalyticsService: DashboardAnalyticsService
+		private readonly dashboardAnalyticsService: DashboardAnalyticsService,
+		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
 	) {}
 
+	/**
+	 * Map Supabase Auth ID to internal users.id with caching
+	 * This is required because JWT contains Supabase Auth ID but RLS policies use internal users.id
+	 */
+	private async getUserIdFromSupabaseId(supabaseId: string): Promise<string> {
+		const cacheKey = `user:supabaseId:${supabaseId}`
+		const cached = await this.cacheManager.get<string>(cacheKey)
+		if (cached) return cached
+
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('users')
+			.select('id')
+			.eq('supabaseId', supabaseId)
+			.single()
+
+		if (error || !data) {
+			this.logger.error('Failed to lookup user ID', { error, supabaseId })
+			throw new BadRequestException('User not found')
+		}
+
+		await this.cacheManager.set(cacheKey, data.id, 300000) // 5 min cache
+		return data.id
+	}
 
 	/**
 	 * Get comprehensive dashboard statistics
@@ -33,6 +60,8 @@ export class DashboardService {
 		}
 
 		try {
+			// Map Supabase Auth ID to internal users.id for RLS policies
+			const internalUserId = await this.getUserIdFromSupabaseId(userId)
 			const client = this.supabase.getAdminClient()
 
 			const now = new Date()
@@ -52,12 +81,12 @@ export class DashboardService {
 			)
 
 			const [propertyResult, tenantResult, paymentResult] = await Promise.all([
-				client.from('property').select('id, status').eq('ownerId', userId),
-				client.from('tenant').select('status, createdAt').eq('userId', userId),
+				client.from('property').select('id, status').eq('ownerId', internalUserId),
+				client.from('tenant').select('status, createdAt').eq('landlordId', internalUserId),
 				client
 					.from('rent_payment')
 					.select('landlordReceives, amount, paidAt, createdAt, status')
-					.eq('landlordId', userId)
+					.eq('landlordId', internalUserId)
 					.gte('createdAt', paymentQueryStart.toISOString())
 			])
 
