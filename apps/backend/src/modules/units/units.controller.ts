@@ -102,6 +102,7 @@ export class UnitsController {
 	async getStats(@Req() req: AuthenticatedRequest) {
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
+
 		return this.unitsService.getStats(userId)
 	}
 
@@ -116,6 +117,7 @@ export class UnitsController {
 	) {
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
+
 		return this.unitsService.findByProperty(userId, propertyId)
 	}
 
@@ -130,6 +132,7 @@ export class UnitsController {
 	) {
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
+
 		const unit = await this.unitsService.findOne(userId, id)
 		if (!unit) {
 			throw new NotFoundException('Unit not found')
@@ -148,6 +151,7 @@ export class UnitsController {
 	) {
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
+
 		return this.unitsService.create(userId, createUnitRequest)
 	}
 
@@ -163,6 +167,7 @@ export class UnitsController {
 	) {
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
+
 		const unit = await this.unitsService.update(userId, id, updateUnitRequest)
 		if (!unit) {
 			throw new NotFoundException('Unit not found')
@@ -181,6 +186,7 @@ export class UnitsController {
 	) {
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
+
 		await this.unitsService.remove(userId, id)
 		return { message: 'Unit deleted successfully' }
 	}

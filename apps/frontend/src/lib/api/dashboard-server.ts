@@ -237,10 +237,12 @@ export async function getPropertiesPageData(status?: string) {
  * Tenants page data - parallel fetch with stats
  */
 export async function getTenantsPageData() {
-	const [tenantsResult, tenantStatsResult] = await Promise.allSettled([
-		serverFetch<TenantWithLeaseInfo[]>('/api/v1/tenants'),
-		serverFetch<TenantStats>('/api/v1/tenants/stats')
-	])
+	const [tenantsResult, tenantStatsResult, tenantSummaryResult] =
+		await Promise.allSettled([
+			serverFetch<TenantWithLeaseInfo[]>('/api/v1/tenants'),
+			serverFetch<TenantStats>('/api/v1/tenants/stats'),
+			serverFetch('/api/v1/tenants/summary')
+		])
 
 	const tenants =
 		tenantsResult.status === 'fulfilled' ? tenantsResult.value || [] : []
@@ -261,9 +263,22 @@ export async function getTenantsPageData() {
 			? tenantStatsResult.value
 			: defaultTenantStats
 
+	const summary =
+		tenantSummaryResult.status === 'fulfilled' && tenantSummaryResult.value
+			? tenantSummaryResult.value
+			: {
+					total: 0,
+					invited: 0,
+					active: 0,
+					overdueBalanceCents: 0,
+					upcomingDueCents: 0,
+					timestamp: new Date().toISOString()
+				}
+
 	return {
 		tenants,
-		stats
+		stats,
+		summary
 	}
 }
 

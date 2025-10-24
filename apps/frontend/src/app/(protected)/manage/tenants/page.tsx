@@ -5,10 +5,15 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { tenantsApi } from '@/lib/api-client'
+import { getTenantsPageData } from '@/lib/api/dashboard-server'
 import { requireSession } from '@/lib/server-auth'
+import { formatCents } from '@repo/shared/lib/format'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { TenantStats, TenantWithLeaseInfo } from '@repo/shared/types/core'
+import type {
+	TenantStats,
+	TenantSummary,
+	TenantWithLeaseInfo
+} from '@repo/shared/types/core'
 import { Plus } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -31,18 +36,20 @@ export default async function TenantsPage() {
 		total: 0,
 		active: 0,
 		inactive: 0,
-		newThisMonth: 0,
-		currentPayments: 0,
-		latePayments: 0
+		newThisMonth: 0
 	}
 
+	// Tenant summary from backend (amounts in cents)
+	let summary: TenantSummary | null = null
+
 	try {
-		const result = await Promise.all([tenantsApi.list(), tenantsApi.stats()])
-		tenants = result[0] ?? []
-		stats = result[1] ?? stats
+		const data = await getTenantsPageData()
+		tenants = data.tenants ?? []
+		stats = (data.stats as TenantStats) ?? stats
+		summary = (data.summary as TenantSummary) ?? null
 	} catch (err) {
 		// Log server-side; avoid throwing to prevent resetting the RSC tree
-		logger.warn('Failed to fetch tenants or stats for TenantsPage', {
+		logger.warn('Failed to fetch tenants page data for TenantsPage', {
 			error: err instanceof Error ? err.message : String(err)
 		})
 	}
@@ -64,13 +71,13 @@ export default async function TenantsPage() {
 				</Button>
 			</div>
 
-			{/* Stats Cards */}
+			{/* Summary / Stats Cards */}
 			<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
 				<Card>
 					<CardHeader>
 						<CardDescription>Total Tenants</CardDescription>
 						<CardTitle className="text-2xl font-semibold">
-							{stats.total ?? tenants.length}
+							{summary ? summary.total : (stats.total ?? tenants.length)}
 						</CardTitle>
 					</CardHeader>
 				</Card>
@@ -78,23 +85,25 @@ export default async function TenantsPage() {
 					<CardHeader>
 						<CardDescription>Active Tenants</CardDescription>
 						<CardTitle className="text-2xl font-semibold">
-							{stats.active ?? 0}
+							{summary ? summary.active : (stats.active ?? 0)}
 						</CardTitle>
 					</CardHeader>
 				</Card>
 				<Card>
 					<CardHeader>
-						<CardDescription>Current Payments</CardDescription>
-						<CardTitle className="text-2xl font-semibold">
-							{stats.currentPayments ?? 0}
-						</CardTitle>
-					</CardHeader>
-				</Card>
-				<Card>
-					<CardHeader>
-						<CardDescription>Late Payments</CardDescription>
+						<CardDescription>Overdue Balance</CardDescription>
 						<CardTitle className="text-2xl font-semibold text-destructive">
-							{stats.latePayments ?? 0}
+							{summary
+								? formatCents(summary.overdueBalanceCents)
+								: formatCents(0)}
+						</CardTitle>
+					</CardHeader>
+				</Card>
+				<Card>
+					<CardHeader>
+						<CardDescription>Upcoming Due (30d)</CardDescription>
+						<CardTitle className="text-2xl font-semibold">
+							{summary ? formatCents(summary.upcomingDueCents) : formatCents(0)}
 						</CardTitle>
 					</CardHeader>
 				</Card>

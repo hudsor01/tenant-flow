@@ -78,6 +78,13 @@ export class TenantsController {
 		return this.tenantsService.getStats(userId)
 	}
 
+	@Get('summary')
+	async getSummary(@Req() req: AuthenticatedRequest) {
+		// Use Supabase's native auth.getUser() pattern
+		const userId = req.user.id
+		return this.tenantsService.getSummary(userId)
+	}
+
 	@Get(':id')
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
