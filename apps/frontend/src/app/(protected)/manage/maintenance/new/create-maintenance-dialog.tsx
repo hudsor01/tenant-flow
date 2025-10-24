@@ -150,7 +150,7 @@ export function CreateMaintenanceDialog() {
 			title="Create Maintenance Request"
 			description="Log a new maintenance issue for your properties"
 			steps={MAINTENANCE_STEPS}
-			formType="maintenance"
+			formType="MAINTENANCE"
 			isPending={createMaintenanceRequest.isPending}
 			submitText="Create Request"
 			submitPendingText="Creating..."
