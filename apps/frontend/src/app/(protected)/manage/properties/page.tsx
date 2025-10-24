@@ -1,6 +1,3 @@
-import type { Metadata } from 'next'
-import { requireSession } from '@/lib/server-auth'
-
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,6 +11,7 @@ import {
 } from '@/components/ui/card'
 import { DataTable } from '@/components/ui/data-table'
 import { propertiesApi } from '@/lib/api-client'
+import { requireSession } from '@/lib/server-auth'
 import {
 	createActionsColumn,
 	createAddressColumn,
@@ -26,6 +24,7 @@ import type { Property, PropertyStats } from '@repo/shared/types/core'
 import { ColumnDef } from '@tanstack/react-table'
 import { Plus, TrendingDown, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
+import type { Metadata } from 'next/types'
 
 export const metadata: Metadata = {
 	title: 'Properties | TenantFlow',
@@ -35,7 +34,7 @@ export const metadata: Metadata = {
 export default async function PropertiesPage() {
 	// ✅ Server-side auth - NO client flash, instant 307 redirect
 	const user = await requireSession()
-	
+
 	// ✅ Server Component: Fetch data on server during RSC render
 	// Harden against API errors so server render doesn't throw when there is no data
 	const logger = createLogger({ component: 'PropertiesPage', userId: user.id })
