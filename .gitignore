@@ -345,6 +345,7 @@ documentation/
 *.md
 !README.md
 !LICENSE.md
+!SECURITY.md
 *_GUIDE.md
 *_PLAN.md
 *_ANALYSIS.md
