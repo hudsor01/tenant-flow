@@ -48,7 +48,7 @@ function CheckoutPageContent() {
 							href="/pricing"
 							className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
 						>
-							<ArrowLeft className="w-4 h-4 mr-2" />
+							<ArrowLeft className="size-4 mr-2" />
 							Back to pricing
 						</Link>
 					</div>
@@ -61,7 +61,7 @@ function CheckoutPageContent() {
 							className="border-destructive/50"
 						>
 							<div className="flex items-start gap-3 p-4 bg-destructive/10 rounded-lg">
-								<AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+								<AlertCircle className="size-5 text-destructive shrink-0 mt-0.5" />
 								<div>
 									<p className="text-sm text-foreground mb-2">
 										{error
@@ -130,11 +130,11 @@ function CheckoutPageContent() {
 							href="/pricing"
 							className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
 						>
-							<ArrowLeft className="w-4 h-4 mr-2" />
+							<ArrowLeft className="size-4 mr-2" />
 							Back to pricing
 						</Link>
 						<div className="flex items-center gap-2">
-							<Shield className="w-4 h-4 text-green-600" />
+							<Shield className="size-4 text-green-600" />
 							<span className="text-sm text-muted-foreground">
 								Secure checkout
 							</span>
@@ -191,7 +191,7 @@ function CheckoutPageContent() {
 								<div className="space-y-2 mb-6">
 									{plan.features.map((feature, index) => (
 										<div key={index} className="flex items-center gap-2">
-											<CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
+											<CheckCircle className="size-4 text-green-600 shrink-0" />
 											<span className="text-sm text-foreground">{feature}</span>
 										</div>
 									))}
@@ -215,11 +215,11 @@ function CheckoutPageContent() {
 							{/* Trust indicators */}
 							<div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
 								<div className="flex items-center gap-1">
-									<Shield className="w-4 h-4" />
+									<Shield className="size-4" />
 									<span>SOC 2 Compliant</span>
 								</div>
 								<div className="flex items-center gap-1">
-									<Zap className="w-4 h-4" />
+									<Zap className="size-4" />
 									<span>99.9% Uptime</span>
 								</div>
 							</div>

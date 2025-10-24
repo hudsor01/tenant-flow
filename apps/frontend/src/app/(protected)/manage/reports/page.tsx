@@ -18,7 +18,7 @@ export default function ReportsPage() {
 		<div className="@container/main flex min-h-screen w-full flex-col">
 			{/* Top Section - Matching Dashboard */}
 			<div className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]">
-				<div className="mx-auto max-w-[1600px] py-4">
+				<div className="mx-auto max-w-400 py-4">
 					<div className="flex items-center justify-between mb-4">
 						<div>
 							<h1 className="text-3xl font-bold">Reports & Analytics</h1>

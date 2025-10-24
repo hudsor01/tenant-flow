@@ -89,7 +89,7 @@ export function NavUser() {
 							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 							data-testid="user-menu"
 						>
-							<Avatar className="h-8 w-8 rounded-lg grayscale">
+							<Avatar className="size-8 rounded-lg grayscale">
 								{avatarUrl ? (
 									<AvatarImage src={avatarUrl} alt={displayName} />
 								) : null}
@@ -119,7 +119,7 @@ export function NavUser() {
 					>
 						<DropdownMenuLabel className="p-0 font-normal">
 							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-								<Avatar className="h-8 w-8 rounded-lg">
+								<Avatar className="size-8 rounded-lg">
 									{avatarUrl ? (
 										<AvatarImage src={avatarUrl} alt={displayName} />
 									) : null}
@@ -146,15 +146,15 @@ export function NavUser() {
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
 							<DropdownMenuItem>
-								<UserCircle className="mr-2 h-4 w-4" />
+								<UserCircle className="mr-2 size-4" />
 								Account
 							</DropdownMenuItem>
 							<DropdownMenuItem>
-								<CreditCard className="mr-2 h-4 w-4" />
+								<CreditCard className="mr-2 size-4" />
 								Billing
 							</DropdownMenuItem>
 							<DropdownMenuItem>
-								<Bell className="mr-2 h-4 w-4" />
+								<Bell className="mr-2 size-4" />
 								Notifications
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
@@ -164,7 +164,7 @@ export function NavUser() {
 							onSelect={handleSignOut}
 							disabled={isSigningOut}
 						>
-							<LogOut className="mr-2 h-4 w-4" />
+							<LogOut className="mr-2 size-4" />
 							{isSigningOut ? 'Signing out…' : 'Log out'}
 						</DropdownMenuItem>
 					</DropdownMenuContent>

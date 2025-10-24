@@ -100,7 +100,7 @@ export function NavMain({
 									)}
 								>
 									<Link href={item.url}>
-										{item.icon && <item.icon className="h-5 w-5" />}
+										{item.icon && <item.icon className="size-5" />}
 										<span className="text-sm font-medium">{item.title}</span>
 									</Link>
 								</SidebarMenuButton>
@@ -161,7 +161,7 @@ function CollapsibleNavItem({
 					>
 						<div className="flex w-full items-center justify-between">
 							<span className="flex items-center gap-3">
-								{item.icon && <item.icon className="h-5 w-5" />}
+								{item.icon && <item.icon className="size-5" />}
 								<span className="text-sm font-medium">{item.title}</span>
 							</span>
 							<ChevronDown
@@ -189,7 +189,7 @@ function CollapsibleNavItem({
 										)}
 									>
 										<Link href={child.url}>
-											{child.icon && <child.icon className="h-4 w-4" />}
+											{child.icon && <child.icon className="size-4" />}
 											<span className="text-sm">{child.title}</span>
 										</Link>
 									</SidebarMenuSubButton>

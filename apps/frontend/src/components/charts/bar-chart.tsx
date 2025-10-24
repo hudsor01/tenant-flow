@@ -48,7 +48,7 @@ const CustomTooltip = ({
 				<div className="space-y-1">
 					<div className="flex items-center gap-2">
 						<div
-							className="w-3 h-3 rounded-full"
+							className="size-3 rounded-full"
 							style={{ backgroundColor: config.color }}
 						/>
 						<span className="text-muted-foreground">{config.name}:</span>

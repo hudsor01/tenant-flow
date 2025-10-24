@@ -30,8 +30,8 @@ export default function CheckoutCancelPage() {
 						className="text-center"
 					>
 						<div className="pb-8">
-							<div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">
-								<XCircle className="w-8 h-8 text-muted-foreground" />
+							<div className="size-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">
+								<XCircle className="size-8 text-muted-foreground" />
 							</div>
 							<p className="text-xl text-muted-foreground">
 								No worries! Your payment was cancelled and you haven&apos;t been
@@ -55,13 +55,13 @@ export default function CheckoutCancelPage() {
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<Link href="/pricing">
 										<Button className="w-full" size="lg">
-											<ArrowLeft className="w-4 h-4 mr-2" />
+											<ArrowLeft className="size-4 mr-2" />
 											Back to Pricing
 										</Button>
 									</Link>
 									<Link href="/dashboard">
 										<Button variant="outline" className="w-full" size="lg">
-											<Home className="w-4 h-4 mr-2" />
+											<Home className="size-4 mr-2" />
 											Go to Dashboard
 										</Button>
 									</Link>
@@ -76,7 +76,7 @@ export default function CheckoutCancelPage() {
 								<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
 									<Link href="/contact">
 										<Button variant="outline" size="sm">
-											<MessageCircle className="w-4 h-4 mr-2" />
+											<MessageCircle className="size-4 mr-2" />
 											Contact Support
 										</Button>
 									</Link>

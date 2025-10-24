@@ -25,7 +25,7 @@ export function HeroSection({
 			{trustBadge && (
 				<div className="pt-32 pb-8 text-center">
 					<div className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-primary/25 bg-primary/10">
-						<div className="w-2 h-2 bg-[var(--color-success)] rounded-full mr-3 animate-pulse" />
+						<div className="size-2 bg-[var(--color-success)] rounded-full mr-3 animate-pulse" />
 						<span className="text-muted-foreground font-medium text-sm">
 							{trustBadge}
 						</span>
@@ -39,8 +39,8 @@ export function HeroSection({
 					<div
 						className={
 							image
-								? 'grid grid-cols-1 lg:grid-cols-2 gap-16 items-center min-h-[600px]'
-								: 'flex flex-col items-center justify-center min-h-[400px] text-center'
+								? 'grid grid-cols-1 lg:grid-cols-2 gap-16 items-center min-h-150'
+								: 'flex flex-col items-center justify-center min-h-100 text-center'
 						}
 					>
 						{/* Content */}
@@ -69,7 +69,7 @@ export function HeroSection({
 							<div className="flex flex-row gap-4">
 								<Button onClick={() => router.push(primaryCta.href)}>
 									{primaryCta.label}
-									<ArrowRight className="ml-2 h-4 w-4" />
+									<ArrowRight className="ml-2 size-4" />
 								</Button>
 								<Button
 									variant="outline"
@@ -89,7 +89,7 @@ export function HeroSection({
 						{/* Image - Only show if provided */}
 						{image && (
 							<div className="relative">
-								<div className="relative h-[600px] rounded-3xl overflow-hidden shadow-2xl">
+								<div className="relative h-150 rounded-3xl overflow-hidden shadow-2xl">
 									<Image
 										src={image.src}
 										alt={image.alt}

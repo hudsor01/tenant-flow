@@ -257,7 +257,7 @@ function UnitsCreateDialog() {
 										<FieldLabel htmlFor="rent">Monthly Rent *</FieldLabel>
 										<InputGroup>
 											<InputGroupAddon align="inline-start">
-												<DollarSign className="w-4 h-4" />
+												<DollarSign className="size-4" />
 											</InputGroupAddon>
 											<InputGroupInput
 												id="rent"
@@ -410,7 +410,7 @@ export default function UnitsPage() {
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-						<Home className="w-8 h-8" />
+						<Home className="size-8" />
 						Units
 					</h1>
 					<p className="text-muted-foreground">
@@ -423,7 +423,7 @@ export default function UnitsPage() {
 			{/* Filters */}
 			<div className="flex items-center gap-4">
 				<div className="relative flex-1 max-w-sm">
-					<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+					<Search className="absolute left-3 top-1/2 translate-y-[-50%] size-4 text-muted-foreground" />
 					<Input
 						placeholder="Search units..."
 						value={search}
@@ -433,7 +433,7 @@ export default function UnitsPage() {
 				</div>
 
 				<Select value={statusFilter} onValueChange={setStatusFilter}>
-					<SelectTrigger className="w-[180px]">
+					<SelectTrigger className="w-45">
 						<SelectValue placeholder="Filter by status" />
 					</SelectTrigger>
 					<SelectContent>
@@ -453,12 +453,12 @@ export default function UnitsPage() {
 			{/* Table */}
 			{isLoading ? (
 				<div className="rounded-lg border p-8 text-center">
-					<div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
+					<div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
 					<p className="mt-2 text-sm text-muted-foreground">Loading units...</p>
 				</div>
 			) : units.length === 0 ? (
 				<div className="rounded-lg border p-8 text-center">
-					<Home className="mx-auto h-12 w-12 text-muted-foreground/50" />
+					<Home className="mx-auto size-12 text-muted-foreground/50" />
 					<h3 className="mt-4 text-lg font-semibold">No units found</h3>
 					<p className="mt-2 text-sm text-muted-foreground">
 						{search || statusFilter !== 'all'
@@ -503,14 +503,14 @@ export default function UnitsPage() {
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
 												<Button variant="ghost" size="icon">
-													<MoreVertical className="h-4 w-4" />
+													<MoreVertical className="size-4" />
 													<span className="sr-only">Open menu</span>
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent align="end">
 												<DropdownMenuLabel>Actions</DropdownMenuLabel>
 												<DropdownMenuItem>
-													<Edit className="mr-2 h-4 w-4" />
+													<Edit className="mr-2 size-4" />
 													Edit Unit
 												</DropdownMenuItem>
 												<DropdownMenuSeparator />
@@ -518,7 +518,7 @@ export default function UnitsPage() {
 													onClick={() => handleDelete(unit.id)}
 													className="text-destructive focus:text-destructive"
 												>
-													<Trash2 className="mr-2 h-4 w-4" />
+													<Trash2 className="mr-2 size-4" />
 													Delete
 												</DropdownMenuItem>
 											</DropdownMenuContent>

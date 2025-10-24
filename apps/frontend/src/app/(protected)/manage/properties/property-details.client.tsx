@@ -23,7 +23,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">{property.name}</h1>
 					<div className="flex items-center gap-2 mt-2 text-muted-foreground">
-						<MapPin className="w-4 h-4" />
+						<MapPin className="size-4" />
 						{property.address}, {property.city}, {property.state}{' '}
 						{property.zipCode}
 					</div>
@@ -31,7 +31,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 				<ButtonGroup>
 					<Button asChild variant="outline" size="sm">
 						<Link href={`/manage/properties/${property.id}/edit`}>
-							<Edit className="w-4 h-4 mr-2" />
+							<Edit className="size-4 mr-2" />
 							Edit
 						</Link>
 					</Button>
@@ -43,7 +43,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Property Type</CardTitle>
-						<Building className="h-4 w-4 text-muted-foreground" />
+						<Building className="size-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold capitalize">
@@ -55,7 +55,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Status</CardTitle>
-						<DollarSign className="h-4 w-4 text-muted-foreground" />
+						<DollarSign className="size-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -71,7 +71,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Added</CardTitle>
-						<Calendar className="h-4 w-4 text-muted-foreground" />
+						<Calendar className="size-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-sm">
