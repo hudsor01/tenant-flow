@@ -60,6 +60,11 @@ describe('TenantsController', () => {
 		move_out_date: null,
 		move_out_reason: null,
 		archived_at: null,
+		invitation_status: 'PENDING',
+		invitation_token: null,
+		invitation_sent_at: null,
+		invitation_accepted_at: null,
+		invitation_expires_at: null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 		...overrides
@@ -246,6 +251,10 @@ describe('TenantsController', () => {
 			const mockTenant = createMockTenant(validCreateTenantRequest)
 
 			mockTenantsServiceInstance.create.mockResolvedValue(mockTenant)
+			mockTenantsServiceInstance.sendTenantInvitation.mockResolvedValue({
+				success: true,
+				message: 'Invitation sent'
+			})
 
 			const result = await controller.create(
 				validCreateTenantRequest,
@@ -256,6 +265,13 @@ describe('TenantsController', () => {
 				validCreateTenantRequest
 			)
 			expect(result).toEqual(mockTenant)
+
+			// Wait for fire-and-forget email to process
+			await new Promise(resolve => setTimeout(resolve, 10))
+			expect(mockTenantsServiceInstance.sendTenantInvitation).toHaveBeenCalledWith(
+				mockUser.id,
+				mockTenant.id
+			)
 		})
 	})
 
