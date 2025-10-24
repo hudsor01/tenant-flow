@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { requireSession } from '@/lib/server-auth'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -32,9 +33,12 @@ export const metadata: Metadata = {
 }
 
 export default async function PropertiesPage() {
+	// ✅ Server-side auth - NO client flash, instant 307 redirect
+	const user = await requireSession()
+	
 	// ✅ Server Component: Fetch data on server during RSC render
 	// Harden against API errors so server render doesn't throw when there is no data
-	const logger = createLogger({ component: 'PropertiesPage' })
+	const logger = createLogger({ component: 'PropertiesPage', userId: user.id })
 
 	let properties: Property[] = []
 	let stats: PropertyStats = {
