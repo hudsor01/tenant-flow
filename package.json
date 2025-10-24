@@ -120,7 +120,8 @@
 			"rimraf": "^6.0.1",
 			"sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.5",
 			"inflight": "npm:lru-cache@^11.2.2",
-			"lightningcss": "1.30.2"
+			"lightningcss": "1.30.2",
+			"esbuild": "^0.25.11"
 		}
 	},
 	"dependencies": {
