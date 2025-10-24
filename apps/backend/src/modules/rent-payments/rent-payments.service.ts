@@ -6,8 +6,17 @@ import {
 	NotFoundException
 } from '@nestjs/common'
 import Stripe from 'stripe'
+import type {
+	CancelTenantAutopayParams,
+	CancelTenantAutopayResponse,
+	GetAutopayStatusParams,
+	SetupTenantAutopayParams,
+	SetupTenantAutopayResponse,
+	TenantAutopayStatusResponse
+} from '@repo/shared/types/stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
+import { StripeTenantService } from '../billing/stripe-tenant.service'
 import type {
 	Lease,
 	RentPayment,
@@ -26,7 +35,8 @@ export class RentPaymentsService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly stripeClientService: StripeClientService
+		private readonly stripeClientService: StripeClientService,
+		private readonly stripeTenantService: StripeTenantService
 	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
@@ -232,33 +242,32 @@ export class RentPaymentsService {
 		const paymentType: PaymentMethodType =
 			paymentMethod.type === 'us_bank_account' ? 'ach' : 'card'
 
-		let stripeCustomerId =
-			tenantUser.stripeCustomerId || paymentMethod.stripeCustomerId || null
+		// Use centralized StripeTenantService for customer management
+		let stripeCustomer =
+			await this.stripeTenantService.getStripeCustomerForTenant(tenantId)
 
-		if (!stripeCustomerId) {
-			const customer = await this.stripe.customers.create({
-				email: tenant.email,
-				name:
-					tenant.firstName && tenant.lastName
-						? `${tenant.firstName} ${tenant.lastName}`
-						: tenant.email,
-				metadata: {
-					tenantId,
-					tenantUserId: tenantUser.id,
-					leaseId
-				}
-			})
+		if (!stripeCustomer) {
+			const customerParams: {
+				tenantId: string
+				email: string
+				name?: string
+			} = {
+				tenantId,
+				email: tenant.email
+			}
 
-			stripeCustomerId = customer.id
+			// Only add name if both firstName and lastName exist
+			if (tenant.firstName && tenant.lastName) {
+				customerParams.name = `${tenant.firstName} ${tenant.lastName}`
+			}
 
-			await adminClient
-				.from('users')
-				.update({
-					stripeCustomerId,
-					updatedAt: new Date().toISOString()
-				})
-				.eq('id', tenantUser.id)
+			stripeCustomer =
+				await this.stripeTenantService.createStripeCustomerForTenant(
+					customerParams
+				)
 		}
+
+		const stripeCustomerId = stripeCustomer.id
 
 		const fees = this.calculateFees(
 			amountInCents,
@@ -460,5 +469,286 @@ export class RentPaymentsService {
 		}
 
 		return (data as RentPayment[]) ?? []
+	}
+
+	/**
+	 * Setup autopay (recurring Stripe Subscription) for a Tenant's lease
+	 *
+	 * Official Stripe Pattern:
+	 * - Create Subscription with destination charges to Owner's connected account
+	 * - Use application_fee_percent for platform revenue
+	 * - Billing anchor set to rent due date
+	 */
+	async setupTenantAutopay(
+		params: SetupTenantAutopayParams
+	): Promise<SetupTenantAutopayResponse> {
+		const { tenantId, leaseId, paymentMethodId } = params
+
+		try {
+			const adminClient = this.supabase.getAdminClient()
+
+			// Get Tenant context
+			const { tenant } = await this.getTenantContext(tenantId)
+
+			// Get Lease context
+			const { lease, landlord } = await this.getLeaseContext(leaseId, tenantId)
+
+			// Check if autopay already exists
+			const { data: existingLease } = await adminClient
+				.from('lease')
+				.select('stripe_subscription_id')
+				.eq('id', leaseId)
+				.single()
+
+			if (
+				existingLease &&
+				(existingLease as { stripe_subscription_id: string | null })
+					.stripe_subscription_id
+			) {
+				throw new BadRequestException(
+					'Autopay already enabled for this lease'
+				)
+			}
+
+			// Ensure Tenant has a Stripe Customer
+			let stripeCustomer =
+				await this.stripeTenantService.getStripeCustomerForTenant(tenantId)
+
+			if (!stripeCustomer) {
+				const customerParams: {
+					tenantId: string
+					email: string
+					name?: string
+				} = {
+					tenantId,
+					email: tenant.email
+				}
+
+				// Only add name if both firstName and lastName exist
+				if (tenant.firstName && tenant.lastName) {
+					customerParams.name = `${tenant.firstName} ${tenant.lastName}`
+				}
+
+				stripeCustomer =
+					await this.stripeTenantService.createStripeCustomerForTenant(
+						customerParams
+					)
+			}
+
+			// Attach payment method if provided
+			if (paymentMethodId) {
+				await this.stripeTenantService.attachPaymentMethod({
+					tenantId,
+					paymentMethodId,
+					setAsDefault: true
+				})
+			}
+
+			// Calculate platform fee percentage
+			const tierPercentages: Record<string, number> = {
+				STARTER: 3,
+				GROWTH: 2.5,
+				TENANTFLOW_MAX: 2
+			}
+			const feePercent =
+				tierPercentages[landlord.subscriptionTier || 'STARTER'] ?? 3
+
+			// Create Stripe Subscription for recurring rent
+			const amountInCents = this.normalizeAmount(lease.rentAmount)
+
+			const subscription = await this.stripe.subscriptions.create({
+				customer: stripeCustomer.id,
+				items: [
+					{
+						price_data: {
+							currency: 'usd',
+							product_data: {
+								name: `Monthly Rent - Lease ${lease.id.slice(0, 8)}`,
+								metadata: {
+									leaseId: lease.id,
+									tenantId,
+									landlordId: landlord.id
+								}
+							},
+							unit_amount: amountInCents,
+							recurring: {
+								interval: 'month'
+							}
+					} as unknown as Stripe.SubscriptionCreateParams.Item.PriceData
+					}
+				],
+				application_fee_percent: feePercent,
+				transfer_data: {
+					destination: landlord.stripeAccountId as string
+				},
+				metadata: {
+					tenantId,
+					leaseId: lease.id,
+					landlordId: landlord.id,
+					paymentType: 'autopay'
+				},
+				expand: ['latest_invoice.payment_intent']
+			})
+
+			// Update lease with Stripe Subscription ID
+			const { error: updateError } = await adminClient
+				.from('lease')
+				.update({ stripe_subscription_id: subscription.id })
+				.eq('id', leaseId)
+
+			if (updateError) {
+				this.logger.error('Failed to update lease with subscription_id', {
+					leaseId,
+					subscriptionId: subscription.id,
+					error: updateError
+				})
+				// Attempt to cancel the orphaned subscription
+				await this.stripe.subscriptions
+					.cancel(subscription.id)
+					.catch(err => {
+						this.logger.error('Failed to cancel orphaned subscription', {
+							subscriptionId: subscription.id,
+							error: err
+						})
+					})
+				throw updateError
+			}
+
+			this.logger.log(
+				`Setup autopay subscription ${subscription.id} for lease ${leaseId}`
+			)
+
+			return {
+				subscriptionId: subscription.id,
+				status: subscription.status
+			}
+		} catch (error) {
+			this.logger.error('Failed to setup tenant autopay', { params, error })
+			throw error
+		}
+	}
+
+	/**
+	 * Cancel autopay (Stripe Subscription) for a Tenant's lease
+	 */
+	async cancelTenantAutopay(
+		params: CancelTenantAutopayParams
+	): Promise<CancelTenantAutopayResponse> {
+		const { tenantId, leaseId } = params
+
+		try {
+			const adminClient = this.supabase.getAdminClient()
+
+			// Verify Tenant owns this lease
+			await this.getLeaseContext(leaseId, tenantId)
+
+			// Get subscription ID from lease
+			const { data: lease, error: leaseError } = await adminClient
+				.from('lease')
+				.select('stripe_subscription_id')
+				.eq('id', leaseId)
+				.single()
+
+			if (leaseError) {
+				throw new NotFoundException('Lease not found')
+			}
+
+			const subscriptionId = (
+				lease as { stripe_subscription_id: string | null }
+			).stripe_subscription_id
+
+			if (!subscriptionId) {
+				throw new BadRequestException('Autopay not enabled for this lease')
+			}
+
+			// Cancel Stripe Subscription
+			await this.stripe.subscriptions.cancel(subscriptionId)
+
+			// Remove subscription ID from lease
+			const { error: updateError } = await adminClient
+				.from('lease')
+				.update({ stripe_subscription_id: null })
+				.eq('id', leaseId)
+
+			if (updateError) {
+				this.logger.error('Failed to remove subscription_id from lease', {
+					leaseId,
+					error: updateError
+				})
+				throw updateError
+			}
+
+			this.logger.log(
+				`Cancelled autopay subscription ${subscriptionId} for lease ${leaseId}`
+			)
+
+			return { success: true }
+		} catch (error) {
+			this.logger.error('Failed to cancel tenant autopay', { params, error })
+			throw error
+		}
+	}
+
+	/**
+	 * Get autopay status for a Tenant's lease
+	 */
+	async getAutopayStatus(
+		params: GetAutopayStatusParams
+	): Promise<TenantAutopayStatusResponse> {
+		const { tenantId, leaseId } = params
+
+		try {
+			const adminClient = this.supabase.getAdminClient()
+
+			// Verify Tenant owns this lease
+			await this.getLeaseContext(leaseId, tenantId)
+
+			// Get subscription ID from lease
+			const { data: lease, error: leaseError } = await adminClient
+				.from('lease')
+				.select('stripe_subscription_id')
+				.eq('id', leaseId)
+				.single()
+
+			if (leaseError) {
+				throw new NotFoundException('Lease not found')
+			}
+
+			const subscriptionId = (
+				lease as { stripe_subscription_id: string | null }
+			).stripe_subscription_id
+
+			if (!subscriptionId) {
+				return {
+					enabled: false,
+					subscriptionId: null,
+					status: null,
+					nextPaymentDate: null
+				}
+			}
+
+			// Get subscription details from Stripe
+			const subscription =
+				await this.stripe.subscriptions.retrieve(subscriptionId)
+
+			// Extract current_period_end safely with proper Stripe Response type handling
+		const currentPeriodEnd =
+			'current_period_end' in subscription
+				? (subscription.current_period_end as number)
+				: undefined
+		const nextPaymentDate = currentPeriodEnd
+				? new Date(currentPeriodEnd * 1000).toISOString()
+				: null
+
+			return {
+				enabled: true,
+				subscriptionId: subscription.id,
+				status: subscription.status,
+				nextPaymentDate
+			}
+		} catch (error) {
+			this.logger.error('Failed to get autopay status', { params, error })
+			throw error
+		}
 	}
 }

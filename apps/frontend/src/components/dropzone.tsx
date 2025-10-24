@@ -53,8 +53,8 @@ const Dropzone = ({
 	const isActive = restProps.isDragActive
 	const isInvalid =
 		(restProps.isDragActive && restProps.isDragReject) ||
-		(restProps.errors.length > 0 && !restProps.isSuccess) ||
-		restProps.files.some(file => file.errors.length !== 0)
+		(restProps.errors?.length > 0 && !restProps.isSuccess) ||
+		restProps.files?.some(file => file.errors.length !== 0)
 
 	return (
 		<DropzoneContext.Provider value={{ ...restProps }}>
@@ -88,7 +88,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 		isSuccess
 	} = useDropzoneContext()
 
-	const exceedMaxFiles = files.length > maxFiles
+	const exceedMaxFiles = (files?.length ?? 0) > maxFiles
 
 	const handleRemoveFile = useCallback(
 		(fileName: string) => {

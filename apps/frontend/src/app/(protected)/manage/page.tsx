@@ -1,10 +1,11 @@
-import { getDashboardData } from '@/app/actions/dashboard'
+import { createServerApi } from '@/lib/api-client'
+import { requireSession } from '@/lib/server-auth'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardLayout } from '@/components/ui/card-layout'
 import { ArrowRight, Building2, FileText, Users } from 'lucide-react'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { ActivitySection } from './ActivitySection'
 import { ChartsSection } from './ChartsSection'
 import { PerformanceSection } from './PerformanceSection'
@@ -12,24 +13,27 @@ import { QuickActionsSection } from './QuickActionsSection'
 import { SectionCards } from './SectionCards'
 
 export default async function DashboardPage() {
-	const result = await getDashboardData()
+	// ✅ Server-side auth - NO client flash, instant 307 redirect
+	const { user, accessToken } = await requireSession()
+	
+	// ✅ Create authenticated server API client
+	const serverApi = createServerApi(accessToken)
+	
+	const logger = createLogger({ component: 'DashboardPage', userId: user.id })
 
-	if (!result.success) {
-		if ('shouldRedirect' in result && result.shouldRedirect) {
-			redirect(result.shouldRedirect)
-		}
-		// Show error state or redirect to error page
-		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<p className="text-muted-foreground">
-					Failed to load dashboard data. Please try again.
-				</p>
-			</div>
-		)
+	let stats: import('@repo/shared/types/core').DashboardStats | undefined
+
+
+	try {
+		// ✅ Fetch data with authenticated server API
+		stats = await serverApi.dashboard.getStats()
+	} catch (err) {
+		// Log server-side; avoid throwing to prevent resetting the RSC tree
+		logger.warn('Failed to fetch dashboard data for DashboardPage', {
+			error: err instanceof Error ? err.message : String(err)
+		})
+		// Continue rendering with empty/fallback data
 	}
-
-	const dashboardData = result.data
-	const stats = dashboardData?.stats
 
 	// Check if user has any data - show empty state for new users
 	const hasData =
@@ -242,7 +246,7 @@ export default async function DashboardPage() {
 			<div className="border-b bg-gradient-to-b from-background to-muted/20">
 				<div className="mx-auto max-w-400 px-6 py-6">
 					<div data-testid="dashboard-stats">
-						<SectionCards stats={stats} />
+						<SectionCards stats={stats ?? {}} />
 					</div>
 				</div>
 			</div>

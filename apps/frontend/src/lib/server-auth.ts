@@ -11,9 +11,9 @@ import { redirect } from 'next/navigation'
 /**
  * Require authenticated user session
  * @throws Redirects to /sign-in if no session
- * @returns Authenticated user object
+ * @returns Authenticated user object and access token
  */
-export async function requireSession(): Promise<User> {
+export async function requireSession(): Promise<{ user: User; accessToken: string }> {
 	const cookieStore = await cookies()
 	const supabase = createServerClient(
 		process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -35,11 +35,15 @@ export async function requireSession(): Promise<User> {
 		error
 	} = await supabase.auth.getUser()
 
-	if (error || !user) {
+	const {
+		data: { session }
+	} = await supabase.auth.getSession()
+
+	if (error || !user || !session) {
 		redirect('/login') // 307 redirect, no client flash
 	}
 
-	return user
+	return { user, accessToken: session.access_token }
 }
 
 /**

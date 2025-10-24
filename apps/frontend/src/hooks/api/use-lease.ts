@@ -254,6 +254,7 @@ export function useCreateLease() {
 				gracePeriodDays: newLease.gracePeriodDays || null,
 				lateFeeAmount: newLease.lateFeeAmount || null,
 				lateFeePercentage: newLease.lateFeePercentage || null,
+				stripe_subscription_id: null,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString()
 			}

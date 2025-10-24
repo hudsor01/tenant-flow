@@ -237,8 +237,8 @@ export const usePropertiesViewStore = create<PropertiesViewState>()(
 						: state.drafts
 				})),
 			applyPropertyUpdate: (id, updates) =>
-				set(state => {
-					const updated = state.data.map(property =>
+			set(state => {
+				const updated = (state.data ?? []).map(property =>
 						property.id === id ? { ...property, ...updates } : property
 					)
 					return {
@@ -256,7 +256,7 @@ export const usePropertiesViewStore = create<PropertiesViewState>()(
 			applyBulkStatus: (ids, status) =>
 				set(state => {
 					if (!ids.length) return state
-					const updates = state.data.map(property =>
+				const updates = (state.data ?? []).map(property =>
 						ids.includes(property.id) ? { ...property, status } : property
 					)
 					return {
@@ -282,7 +282,7 @@ const filteredPropertiesSelector = createSelector(
 	(state: PropertiesViewState) => state.prefixIndex,
 	(state: PropertiesViewState) => state.filters,
 	(data, idMap, searchIndex, prefixIndex, filters) => {
-		if (!data.length) return []
+		if (!data?.length) return []
 
 		let candidateIds: Set<string> | null = null
 
@@ -315,7 +315,7 @@ const filteredPropertiesSelector = createSelector(
 				selected.map(value => normaliseToken(value))
 			)
 			const sourceIds =
-				candidateIds ?? new Set<string>(data.map(property => property.id))
+			candidateIds ?? new Set<string>((data ?? []).map(property => property.id))
 			const nextIds = new Set<string>()
 			sourceIds.forEach(id => {
 				const property = idMap[id]
@@ -333,7 +333,7 @@ const filteredPropertiesSelector = createSelector(
 		applyFacet(filters.types, property => readStringField(property, TYPE_FIELD))
 
 		const idSet =
-			candidateIds ?? new Set<string>(data.map(property => property.id))
+		candidateIds ?? new Set<string>((data ?? []).map(property => property.id))
 
 		if (!idSet.size) return []
 
