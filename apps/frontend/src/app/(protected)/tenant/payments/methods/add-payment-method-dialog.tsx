@@ -98,7 +98,7 @@ export function AddPaymentMethodDialog({
 			onOpenChange={handleDialogChange}
 			title="Add Payment Method"
 			description="Add a card or bank account to pay rent automatically"
-			formType="tenant"
+			formType="TENANT"
 			isPending={createSetupIntent.isPending || savePaymentMethod.isPending}
 			submitText="Close"
 			submitPendingText="Closing..."

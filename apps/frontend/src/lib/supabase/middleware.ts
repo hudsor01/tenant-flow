@@ -71,43 +71,50 @@ export async function updateSession(request: NextRequest) {
 		return NextResponse.redirect(url)
 	}
 
-	// Payment gate: Check if authenticated user has active subscription
-	// Per Stripe best practices - check subscription_status field
-	// Skip for payment-exempt routes (pricing, stripe checkout, etc.)
-	if (isAuthenticated && !isPaymentExempt && user) {
+	// PERFORMANCE FIX: Fetch user profile once instead of twice
+	// Prevents infinite loop from repeated DB calls on every request
+	let userProfile: { subscription_status: string | null; stripeCustomerId: string | null; role: string } | null = null
+
+	if (isAuthenticated && user) {
 		try {
-			const { data: userProfile } = await supabase
+			const { data } = await supabase
 				.from('users')
 				.select('subscription_status, stripeCustomerId, role')
 				.eq('supabaseId', user.id)
 				.single()
-
-			// TENANT role doesn't need payment (they're invited by OWNER)
-			const requiresPayment = userProfile?.role !== 'TENANT'
-
-			// Check subscription status per Stripe best practices
-			// Valid statuses for access: active, trialing
-			const validStatuses = ['active', 'trialing']
-			const hasValidSubscription =
-				userProfile?.subscription_status &&
-				validStatuses.includes(userProfile.subscription_status)
-			const hasNoStripeCustomer = !userProfile?.stripeCustomerId
-
-			if (requiresPayment && (!hasValidSubscription || hasNoStripeCustomer)) {
-				const url = request.nextUrl.clone()
-				url.pathname = '/pricing'
-				url.searchParams.set('required', 'true')
-				url.searchParams.set('redirectTo', pathname)
-				return NextResponse.redirect(url)
-			}
+			userProfile = data
 		} catch (error) {
-			// Log error but don't block access - fail open for better UX
-			logger.error('Payment check failed', {
-				action: 'middleware_payment_check_failed',
+			// Log error but continue - fail open for better UX
+			logger.error('Failed to fetch user profile', {
+				action: 'middleware_user_profile_fetch_failed',
 				metadata: {
 					error: error instanceof Error ? error.message : String(error)
 				}
 			})
+		}
+	}
+
+	// Payment gate: Check if authenticated user has active subscription
+	// Per Stripe best practices - check subscription_status field
+	// Skip for payment-exempt routes (pricing, stripe checkout, etc.)
+	if (isAuthenticated && !isPaymentExempt && userProfile) {
+		// TENANT role doesn't need payment (they're invited by OWNER)
+		const requiresPayment = userProfile.role !== 'TENANT'
+
+		// Check subscription status per Stripe best practices
+		// Valid statuses for access: active, trialing
+		const validStatuses = ['active', 'trialing']
+		const hasValidSubscription =
+			userProfile.subscription_status &&
+			validStatuses.includes(userProfile.subscription_status)
+		const hasNoStripeCustomer = !userProfile.stripeCustomerId
+
+		if (requiresPayment && (!hasValidSubscription || hasNoStripeCustomer)) {
+			const url = request.nextUrl.clone()
+			url.pathname = '/pricing'
+			url.searchParams.set('required', 'true')
+			url.searchParams.set('redirectTo', pathname)
+			return NextResponse.redirect(url)
 		}
 	}
 
@@ -127,29 +134,11 @@ export async function updateSession(request: NextRequest) {
 			}
 		}
 
-		// Fetch user role to determine correct redirect destination
-		try {
-			const { data: userProfile } = await supabase
-				.from('users')
-				.select('role')
-				.eq('supabaseId', user.id)
-				.single()
-
-			// Redirect based on role
-			if (userProfile?.role === 'TENANT') {
-				url.pathname = '/tenant'
-			} else {
-				// Default redirect to management dashboard for OWNER, MANAGER, ADMIN
-				url.pathname = '/manage'
-			}
-		} catch (error) {
-			// If role fetch fails, default to /manage
-			logger.error('Failed to fetch user role for redirect', {
-				action: 'middleware_role_fetch_failed',
-				metadata: {
-					error: error instanceof Error ? error.message : String(error)
-				}
-			})
+		// Redirect based on role (already fetched above)
+		if (userProfile?.role === 'TENANT') {
+			url.pathname = '/tenant'
+		} else {
+			// Default redirect to management dashboard for OWNER, MANAGER, ADMIN
 			url.pathname = '/manage'
 		}
 

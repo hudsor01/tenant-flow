@@ -50,7 +50,7 @@ export interface EditDialogProps {
 	/**
 	 * Form type identifier (for Zustand store)
 	 */
-	formType: 'property' | 'tenant' | 'lease' | 'maintenance'
+	formType: 'PROPERTY' | 'TENANT' | 'LEASE' | 'MAINTENANCE'
 	/**
 	 * Whether the form submission is pending
 	 */
@@ -122,7 +122,7 @@ export interface EditDialogProps {
  *   triggerText="Edit Property"
  *   title="Edit Property"
  *   description="Update property information"
- *   formType="property"
+ *   formType="PROPERTY"
  *   onSubmit={handleSubmit}
  * >
  *   {() => <PropertyEditForm />}

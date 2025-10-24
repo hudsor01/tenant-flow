@@ -40,6 +40,11 @@ export const DEFAULT_TENANT: Tenant = {
 	move_out_date: null,
 	move_out_reason: null,
 	archived_at: null,
+	invitation_status: 'PENDING',
+	invitation_token: null,
+	invitation_sent_at: null,
+	invitation_accepted_at: null,
+	invitation_expires_at: null,
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z'
 }

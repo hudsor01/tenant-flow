@@ -135,7 +135,7 @@ export function RenewLeaseDialog({
 			onOpenChange={handleDialogChange}
 			title="Renew Lease"
 			description="Create a new lease term with optional rent adjustment"
-			formType="lease"
+			formType="LEASE"
 			isPending={renewLease.isPending}
 			submitText="Renew Lease"
 			submitPendingText="Renewing..."

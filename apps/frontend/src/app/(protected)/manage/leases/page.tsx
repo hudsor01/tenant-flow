@@ -176,7 +176,7 @@ function LeaseCreateDialog() {
 			title="Add New Lease"
 			description="Create a new lease agreement with tenant, unit, and terms"
 			steps={LEASE_FORM_STEPS}
-			formType="lease"
+			formType="LEASE"
 			isPending={createLeaseMutation.isPending}
 			submitText="Create Lease"
 			submitPendingText="Creating..."
