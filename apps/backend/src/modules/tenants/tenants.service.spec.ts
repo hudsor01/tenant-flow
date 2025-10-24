@@ -1,17 +1,31 @@
 import { Test } from '@nestjs/testing'
-import { beforeEach, describe, it } from 'node:test'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { createMockSupabaseService } from '../../test-utils/mocks'
+import { EmailService } from '../email/email.service'
 import { TenantsService } from './tenants.service'
 
 describe('TenantsService.getSummary', () => {
 	let tenantsService: TenantsService
+	let mockSupabaseService: ReturnType<typeof createMockSupabaseService>
+	let mockEventEmitter: jest.Mocked<EventEmitter2>
+	let mockEmailService: jest.Mocked<EmailService>
 
 	beforeEach(async () => {
+		mockSupabaseService = createMockSupabaseService()
+		mockEventEmitter = {
+			emit: jest.fn()
+		} as unknown as jest.Mocked<EventEmitter2>
+		mockEmailService = {
+			sendTenantInvitation: jest.fn()
+		} as unknown as jest.Mocked<EmailService>
+
 		const moduleRef = await Test.createTestingModule({
 			providers: [
 				TenantsService,
-				{ provide: SupabaseService, useValue: createMockSupabaseService() }
+				{ provide: SupabaseService, useValue: mockSupabaseService },
+				{ provide: EventEmitter2, useValue: mockEventEmitter },
+				{ provide: EmailService, useValue: mockEmailService }
 			]
 		}).compile()
 
@@ -67,8 +81,7 @@ describe('TenantsService.getSummary', () => {
 			}
 		}
 
-		const supabaseService = (tenantsService as any).supabase as any
-		supabaseService.getAdminClient = jest.fn().mockReturnValue(fakeAdminClient)
+		mockSupabaseService.getAdminClient.mockReturnValue(fakeAdminClient as any)
 
 		const summary = await tenantsService.getSummary('user-123')
 
