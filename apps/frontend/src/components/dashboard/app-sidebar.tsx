@@ -22,12 +22,10 @@ import {
 	type LucideIcon
 } from 'lucide-react'
 import Link from 'next/link'
-import * as React from 'react'
 
 import { NavDocuments } from '@/components/dashboard/nav-documents'
 import { NavMain } from '@/components/dashboard/nav-main'
 import { NavSecondary } from '@/components/dashboard/nav-secondary'
-import { Sidebar, SidebarContent } from '@/components/ui/sidebar'
 
 const navigation: {
 	navMain: {
@@ -180,13 +178,9 @@ const navigation: {
 	]
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar() {
 	return (
-		<Sidebar
-			collapsible="offcanvas"
-			className="border-0 bg-transparent"
-			{...props}
-		>
+		<div className="flex h-full flex-col gap-4 p-4">
 			{/* Card 1: Brand */}
 			<div className="rounded-xl border border-gray-200 bg-white p-4">
 				<Link href="/" className="flex items-center gap-2">
@@ -207,16 +201,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
 			{/* Card 3: Navigation */}
 			<div className="flex-1 overflow-hidden rounded-xl border border-gray-200 bg-white">
-				<SidebarContent className="overflow-visible">
+				<div className="flex h-full flex-col overflow-y-auto p-4">
 					<NavMain items={navigation.navMain} />
 					<NavDocuments items={navigation.documents} />
-				</SidebarContent>
+				</div>
 			</div>
 
 			{/* Card 4: Settings */}
 			<div className="rounded-xl border border-gray-200 bg-white p-2">
 				<NavSecondary items={navigation.navSecondary} />
 			</div>
-		</Sidebar>
+		</div>
 	)
 }
