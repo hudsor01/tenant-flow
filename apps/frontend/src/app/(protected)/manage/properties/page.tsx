@@ -57,7 +57,7 @@ export default async function PropertiesPage() {
 	}
 
 	return (
-		<div className="container mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+		<div className="flex-1 flex flex-col gap-8">
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Properties</h1>
@@ -74,7 +74,7 @@ export default async function PropertiesPage() {
 			</div>
 
 			{/* Stats Cards */}
-			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-4">
+			<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
 				<Card>
 					<CardHeader>
 						<CardDescription>Total Properties</CardDescription>
@@ -133,18 +133,15 @@ export default async function PropertiesPage() {
 				</Card>
 			</div>
 
-			{/* Properties Data Table - Inline */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Properties Portfolio</CardTitle>
-					<CardDescription>
-						Manage your property portfolio and track performance
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<PropertiesTableClient columns={columns} data={properties} />
-				</CardContent>
-			</Card>
+						{/* Properties Data Table */}
+			<section className="flex flex-col gap-4">
+				<h2 className="text-xl font-semibold">Portfolio</h2>
+				<Card>
+					<CardContent className="pt-6">
+						<PropertiesTableClient columns={columns} data={properties} />
+					</CardContent>
+				</Card>
+			</section>
 		</div>
 	)
 }

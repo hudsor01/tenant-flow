@@ -47,7 +47,7 @@ export function DeleteMaintenanceButton({
 				<Button
 					variant="outline"
 					size="sm"
-					className="flex items-center gap-2 text-[var(--color-system-red)] hover:text-[var(--color-system-red-85)]"
+					className="flex items-center gap-2 text-(--color-system-red) hover:text-(--color-system-red-85)"
 				>
 					<Trash2 className="size-4" />
 					Delete
@@ -62,7 +62,7 @@ export function DeleteMaintenanceButton({
 					</DialogDescription>
 				</DialogHeader>
 				<div className="py-4">
-					<p className="text-sm text-[var(--color-label-secondary)]">
+					<p className="text-sm text-(--color-label-secondary)">
 						<strong>Request:</strong> {maintenance.title}
 					</p>
 				</div>
