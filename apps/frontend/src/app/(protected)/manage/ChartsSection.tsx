@@ -1,7 +1,21 @@
 'use client'
 
 import { ChartSkeleton } from '@/components/charts/chart-skeleton'
+import { dashboardApi } from '@/lib/api-client'
 import dynamic from 'next/dynamic'
+import { useEffect, useState } from 'react'
+import type { OccupancyTrendResponse } from '@repo/shared/types/database-rpc'
+
+const OccupancyTrendsAreaChart = dynamic(
+	() =>
+		import('@/components/charts/area-chart').then(
+			mod => mod.OccupancyTrendsAreaChart
+		),
+	{
+		ssr: false,
+		loading: () => <ChartSkeleton />
+	}
+)
 
 const PropertyPerformanceBarChart = dynamic(
 	() =>
@@ -26,16 +40,41 @@ const ModernExplodedPieChart = dynamic(
 )
 
 export function ChartsSection() {
+	const [occupancyData, setOccupancyData] = useState<
+		OccupancyTrendResponse[] | undefined
+	>()
+	const [isLoading, setIsLoading] = useState(true)
+
+	useEffect(() => {
+		const fetchOccupancyTrends = async () => {
+			try {
+				setIsLoading(true)
+				const data = await dashboardApi.getOccupancyTrends(12)
+				setOccupancyData(data)
+			} catch (error) {
+				console.error('Failed to fetch occupancy trends:', error)
+			} finally {
+				setIsLoading(false)
+			}
+		}
+
+		fetchOccupancyTrends()
+	}, [])
+
 	return (
 		<div className="w-full p-6 gap-4">
 			<div className="mx-auto py-4">
 				<div className="grid grid-cols-1 @3xl/main:grid-cols-3 gap-4">
 					<div className="@3xl/main:col-span-2">
-						<PropertyPerformanceBarChart
-							metric="occupancy"
-							height={400}
-							className="h-full"
-						/>
+						{isLoading ? (
+							<ChartSkeleton />
+						) : occupancyData ? (
+							<OccupancyTrendsAreaChart
+								data={occupancyData}
+								height={400}
+								className="h-full"
+							/>
+						) : null}
 					</div>
 
 					<div className="@3xl/main:col-span-1">
