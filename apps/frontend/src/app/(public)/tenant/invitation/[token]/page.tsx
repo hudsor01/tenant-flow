@@ -67,7 +67,7 @@ export default async function TenantInvitationPage({ params }: PageProps) {
 		}
 
 		invitationData = await response.json()
-	} catch (error) {
+	} catch {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted px-4">
 				<Card className="max-w-md w-full">
