@@ -1,18 +1,18 @@
-'use client'
-
+import type { Metadata } from 'next'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { maintenanceApi } from '@/lib/api-client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { DataTable } from '@/components/ui/data-table'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Trash2, Wrench } from 'lucide-react'
+import { Wrench } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useOptimistic, useState, useTransition } from 'react'
-import { toast } from 'sonner'
 import { ColumnDef } from '@tanstack/react-table'
 import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
+import { MaintenanceTableClient } from './maintenance-table.client'
+
+export const metadata: Metadata = {
+	title: 'Maintenance | TenantFlow',
+	description: 'Stay on top of maintenance requests and keep residents updated on progress'
+}
 
 const logger = createLogger({ component: 'MaintenancePage' })
 
@@ -22,67 +22,19 @@ const PRIORITY_VARIANTS: Record<string, 'destructive' | 'secondary' | 'outline'>
 	LOW: 'outline'
 }
 
-async function deleteMaintenanceRequest(requestId: string) {
-	try {
-		await maintenanceApi.remove(requestId)
-		return { success: true }
-	} catch (error) {
-		logger.error('Failed to delete maintenance request', {
-			action: 'deleteMaintenanceRequest',
-			metadata: { requestId, error: error instanceof Error ? error.message : String(error) }
-		})
-		throw error
-	}
-}
-
-export default function MaintenancePage() {
-	// Fetch data client-side - simpler than Server/Client component split
-	const [data, setData] = useState<MaintenanceRequestResponse | null>(null)
-	const [isLoading, setIsLoading] = useState(true)
-
-	useEffect(() => {
-		maintenanceApi.list().then(result => {
-			setData(result)
-			setIsLoading(false)
-		})
-	}, [])
-
-	if (isLoading || !data) {
-		return <div className="flex items-center justify-center py-12">Loading...</div>
-	}
-
-	return <MaintenanceClient initialData={data} deleteAction={deleteMaintenanceRequest} />
-}
-
 type MaintenanceRequest = MaintenanceRequestResponse['data'][number]
 
-function MaintenanceClient({
-	initialData,
-	deleteAction
-}: {
-	initialData: MaintenanceRequestResponse
-	deleteAction: (id: string) => Promise<{ success: boolean }>
-}) {
-	const [isPending, startTransition] = useTransition()
-	const [deletingId, setDeletingId] = useState<string | null>(null)
-	const [optimisticRequests, removeOptimistic] = useOptimistic(
-		initialData.data,
-		(state: MaintenanceRequestResponse['data'], requestId: string) => state.filter(r => r.id !== requestId)
-	)
-
-	const handleDelete = (requestId: string, requestTitle: string) => {
-		setDeletingId(requestId)
-		startTransition(async () => {
-			removeOptimistic(requestId)
-			try {
-				await deleteAction(requestId)
-				toast.success(`Request "${requestTitle}" deleted`)
-			} catch (error) {
-				logger.error('Failed to delete maintenance request', undefined, error)
-				toast.error('Failed to delete request')
-			} finally {
-				setDeletingId(null)
-			}
+export default async function MaintenancePage() {
+	// ✅ Server Component: Fetch data on server during RSC render
+	let requests: MaintenanceRequestResponse['data'] = []
+	
+	try {
+		const result = await maintenanceApi.list()
+		requests = result?.data ?? []
+	} catch (err) {
+		// Log server-side; avoid throwing to prevent resetting the RSC tree
+		logger.warn('Failed to fetch maintenance requests for MaintenancePage', {
+			error: err instanceof Error ? err.message : String(err)
 		})
 	}
 
@@ -130,48 +82,6 @@ function MaintenanceClient({
 				const priority = row.getValue('priority') as string
 				return <Badge variant={PRIORITY_VARIANTS[priority] ?? 'outline'}>{priority}</Badge>
 			}
-		},
-		{
-			id: 'actions',
-			cell: ({ row }) => {
-				const request = row.original
-				return (
-					<div className="flex items-center justify-end gap-1">
-						<Button asChild size="sm" variant="ghost">
-							<Link href={`/manage/maintenance/${request.id}`}>View</Link>
-						</Button>
-						<Button asChild size="sm" variant="ghost">
-							<Link href={`/manage/maintenance/${request.id}/edit`}>Edit</Link>
-						</Button>
-						<AlertDialog>
-							<AlertDialogTrigger asChild>
-								<Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
-									<Trash2 className="size-4" />
-									<span className="sr-only">Delete</span>
-								</Button>
-							</AlertDialogTrigger>
-							<AlertDialogContent>
-								<AlertDialogHeader>
-									<AlertDialogTitle>Delete maintenance request</AlertDialogTitle>
-									<AlertDialogDescription>
-										Permanently remove <strong>{request.title}</strong>?
-									</AlertDialogDescription>
-								</AlertDialogHeader>
-								<AlertDialogFooter>
-									<AlertDialogCancel>Cancel</AlertDialogCancel>
-									<AlertDialogAction
-										disabled={isPending && deletingId === request.id}
-										onClick={() => handleDelete(request.id, request.title)}
-										className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-									>
-										{isPending && deletingId === request.id ? 'Deleting...' : 'Delete'}
-									</AlertDialogAction>
-								</AlertDialogFooter>
-							</AlertDialogContent>
-						</AlertDialog>
-					</div>
-				)
-			}
 		}
 	]
 
@@ -191,16 +101,8 @@ function MaintenanceClient({
 				</Button>
 			</div>
 
-			{/* Inline DataTable */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Maintenance Requests</CardTitle>
-					<CardDescription>Track maintenance tickets and resolution progress</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<DataTable columns={columns} data={optimisticRequests} filterColumn="title" filterPlaceholder="Filter by request title..." />
-				</CardContent>
-			</Card>
+			{/* Client Component for Delete Functionality */}
+			<MaintenanceTableClient columns={columns} initialRequests={requests} />
 		</div>
 	)
 }
