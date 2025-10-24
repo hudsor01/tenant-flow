@@ -17,7 +17,11 @@ export async function getSchedules(): Promise<ScheduledReport[]> {
 		return schedules
 	} catch (error) {
 		// Log error but don't throw - gracefully degrade
-		console.error('Error fetching schedules:', error)
+		const { createLogger } = await import('@repo/shared/lib/frontend-logger')
+		const logger = createLogger({ component: 'ReportsScheduleActions' })
+		logger.error('Error fetching schedules', {
+			error: error instanceof Error ? error.message : String(error)
+		})
 		return []
 	}
 }

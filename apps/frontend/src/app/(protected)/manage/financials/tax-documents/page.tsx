@@ -89,15 +89,6 @@ export default async function TaxDocumentsPage() {
 		)
 	}
 
-	const currentYear = new Date().getFullYear()
-	const yearOptions = Array.from({ length: 5 }, (_, i) => {
-		const year = currentYear - 1 - i
-		return {
-			value: year.toString(),
-			label: year.toString()
-		}
-	})
-
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
 			<div className="border-b bg-background p-6">

@@ -13,7 +13,7 @@ import { cn, formatCurrency } from '@/lib/utils'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { CashFlowData } from '@repo/shared/types/financial-statements'
 import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
-import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns'
+import { endOfMonth, format, startOfMonth } from 'date-fns'
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -84,14 +84,6 @@ export default async function CashFlowPage() {
 			</div>
 		)
 	}
-
-	const monthOptions = Array.from({ length: 12 }, (_, i) => {
-		const date = subMonths(new Date(), i)
-		return {
-			value: format(date, 'yyyy-MM'),
-			label: format(date, 'MMMM yyyy')
-		}
-	})
 
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">

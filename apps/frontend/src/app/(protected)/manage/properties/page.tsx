@@ -12,19 +12,12 @@ import {
 import { DataTable } from '@/components/ui/data-table'
 import { propertiesApi } from '@/lib/api-client'
 import { requireSession } from '@/lib/server-auth'
-import {
-	createActionsColumn,
-	createAddressColumn,
-	createBadgeColumn,
-	createStatusColumn,
-	createTextColumn
-} from '@/lib/table-columns'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
-import { ColumnDef } from '@tanstack/react-table'
 import { Plus, TrendingDown, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import type { Metadata } from 'next/types'
+import { columns } from './columns'
 
 export const metadata: Metadata = {
 	title: 'Properties | TenantFlow',
@@ -62,23 +55,6 @@ export default async function PropertiesPage() {
 			error: err instanceof Error ? err.message : String(err)
 		})
 	}
-
-	// ✅ Inline column composition using reusable helpers
-	const columns: ColumnDef<Property>[] = [
-		createTextColumn<Property>(
-			'name',
-			'Property Name',
-			true,
-			row => `/manage/properties/${row.id}`
-		),
-		createAddressColumn<Property>(),
-		createBadgeColumn<Property>('propertyType', 'Type'),
-		createStatusColumn<Property>(),
-		createActionsColumn<Property>(row => [
-			{ label: 'View details', href: `/manage/properties/${row.id}` },
-			{ label: 'Edit property', href: `/manage/properties/${row.id}/edit` }
-		])
-	]
 
 	return (
 		<div className="container mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
