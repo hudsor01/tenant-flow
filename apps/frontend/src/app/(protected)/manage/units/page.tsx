@@ -105,7 +105,7 @@ function UnitsCreateDialog() {
 			title="Add New Unit"
 			description="Create a new rental unit in your property portfolio"
 			steps={UNIT_FORM_STEPS}
-			formType="property"
+			formType="PROPERTY"
 			isPending={createUnitMutation.isPending}
 			submitText="Create Unit"
 			submitPendingText="Creating..."

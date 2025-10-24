@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { requireSession } from '@/lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar } from 'lucide-react'
@@ -8,10 +9,12 @@ export const metadata: Metadata = {
 	description: 'Automate report generation with recurring schedules'
 }
 
-const logger = createLogger({ component: 'ScheduleReportsPage' })
-
 export default async function ScheduleReportsPage() {
-	// Server Component: Fetch data on server during RSC render
+	// ✅ Server-side auth - NO client flash, instant 307 redirect
+	const user = await requireSession()
+	const logger = createLogger({ component: 'ScheduleReportsPage', userId: user.id })
+
+	// ✅ Server Component: Fetch data on server during RSC render
 	let schedules = []
 
 	try {

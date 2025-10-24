@@ -67,7 +67,7 @@ export function TerminateLeaseDialog({
 			onOpenChange={handleDialogChange}
 			title="Terminate Lease"
 			description="This action will terminate the lease early and mark it as TERMINATED. This action cannot be undone."
-			formType="lease"
+			formType="LEASE"
 			isPending={terminateLease.isPending}
 			submitText="Terminate Lease"
 			submitPendingText="Terminating..."

@@ -37,7 +37,7 @@ export interface EditModalProps {
 	/**
 	 * Form type identifier (for Zustand store)
 	 */
-	formType: 'property' | 'tenant' | 'lease' | 'maintenance'
+	formType: 'PROPERTY' | 'TENANT' | 'LEASE' | 'MAINTENANCE'
 	/**
 	 * Whether the form submission is pending
 	 */
@@ -97,7 +97,7 @@ export interface EditModalProps {
  *   triggerText="Edit Tenant"
  *   title="Edit Tenant"
  *   description="Update tenant information"
- *   formType="tenant"
+ *   formType="TENANT"
  *   onSubmit={handleSubmit}
  * >
  *   {() => <TenantEditForm />}

@@ -88,7 +88,7 @@ export function LateFeeConfigDialog({
 			onOpenChange={onOpenChange}
 			title="Configure Late Fees"
 			description="Set the grace period and flat fee amount for late rent payments"
-			formType="lease"
+			formType="LEASE"
 			isPending={updateConfig.isPending}
 			submitText="Save Configuration"
 			submitPendingText="Saving..."
