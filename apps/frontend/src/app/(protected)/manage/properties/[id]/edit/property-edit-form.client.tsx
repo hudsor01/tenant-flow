@@ -103,7 +103,7 @@ export function PropertyEditForm() {
 				<div className="text-2xl">Property not found</div>
 				<Button asChild>
 					<Link href="/manage/properties">
-						<ArrowLeft className="w-4 h-4 mr-2" />
+						<ArrowLeft className="size-4 mr-2" />
 						Back to Properties
 					</Link>
 				</Button>
@@ -116,7 +116,7 @@ export function PropertyEditForm() {
 			<div className="flex items-center gap-4">
 				<Button variant="outline" size="sm" asChild>
 					<Link href={`/manage/properties/${propertyId}`}>
-						<ArrowLeft className="w-4 h-4 mr-2" />
+						<ArrowLeft className="size-4 mr-2" />
 						Back
 					</Link>
 				</Button>

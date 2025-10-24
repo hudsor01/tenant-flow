@@ -183,7 +183,7 @@ export default function GenerateReportsPage() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Calendar className="h-5 w-5" />
+						<Calendar className="size-5" />
 						Report Period
 					</CardTitle>
 					<CardDescription>
@@ -194,7 +194,7 @@ export default function GenerateReportsPage() {
 					<div className="flex flex-col gap-2">
 						<Label htmlFor="period">Time Period</Label>
 						<Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-							<SelectTrigger id="period" className="w-full sm:w-[280px]">
+							<SelectTrigger id="period" className="w-full sm:w-70">
 								<SelectValue placeholder="Select period" />
 							</SelectTrigger>
 							<SelectContent>
@@ -225,7 +225,7 @@ export default function GenerateReportsPage() {
 								<Card key={report.id} className="flex flex-col">
 									<CardHeader>
 										<CardTitle className="flex items-center gap-2">
-											<Icon className="h-5 w-5" />
+											<Icon className="size-5" />
 											{report.title}
 										</CardTitle>
 										<CardDescription>{report.description}</CardDescription>
@@ -247,7 +247,7 @@ export default function GenerateReportsPage() {
 														disabled={isGenerating}
 														className="flex-1"
 													>
-														<Download className="mr-2 h-4 w-4" />
+														<Download className="mr-2 size-4" />
 														{isGenerating
 															? 'Generating...'
 															: format.toUpperCase()}
@@ -279,7 +279,7 @@ export default function GenerateReportsPage() {
 								<Card key={report.id} className="flex flex-col">
 									<CardHeader>
 										<CardTitle className="flex items-center gap-2">
-											<Icon className="h-5 w-5" />
+											<Icon className="size-5" />
 											{report.title}
 										</CardTitle>
 										<CardDescription>{report.description}</CardDescription>
@@ -301,7 +301,7 @@ export default function GenerateReportsPage() {
 														disabled={isGenerating}
 														className="flex-1"
 													>
-														<Download className="mr-2 h-4 w-4" />
+														<Download className="mr-2 size-4" />
 														{isGenerating
 															? 'Generating...'
 															: format.toUpperCase()}
@@ -333,7 +333,7 @@ export default function GenerateReportsPage() {
 								<Card key={report.id} className="flex flex-col">
 									<CardHeader>
 										<CardTitle className="flex items-center gap-2">
-											<Icon className="h-5 w-5" />
+											<Icon className="size-5" />
 											{report.title}
 										</CardTitle>
 										<CardDescription>{report.description}</CardDescription>
@@ -355,7 +355,7 @@ export default function GenerateReportsPage() {
 														disabled={isGenerating}
 														className="flex-1"
 													>
-														<Download className="mr-2 h-4 w-4" />
+														<Download className="mr-2 size-4" />
 														{isGenerating
 															? 'Generating...'
 															: format.toUpperCase()}

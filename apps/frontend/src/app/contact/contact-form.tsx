@@ -155,8 +155,8 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			>
 				<div className="max-w-md w-full p-8">
 					<div className="p-8 bg-card rounded-2xl border border-border shadow-lg">
-						<div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-							<Check className="w-8 h-8 text-primary" />
+						<div className="size-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+							<Check className="size-8 text-primary" />
 						</div>
 						<h2 className="text-2xl font-bold text-foreground text-center mb-4">
 							Thank You!
@@ -207,7 +207,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 					<div className="mt-8 space-y-6">
 						<div className="flex items-start">
 							<div className="p-2 rounded-lg bg-primary/10 backdrop-blur-sm">
-								<MapPin className="w-6 h-6 text-primary" />
+								<MapPin className="size-6 text-primary" />
 							</div>
 							<div className="ml-3">
 								<p className="text-foreground font-semibold">Headquarters</p>
@@ -221,7 +221,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 
 						<div className="flex items-start">
 							<div className="p-2 rounded-lg bg-primary/10 backdrop-blur-sm">
-								<Phone className="w-6 h-6 text-primary" />
+								<Phone className="size-6 text-primary" />
 							</div>
 							<div className="ml-3">
 								<p className="text-foreground font-semibold">Sales Hotline</p>
@@ -234,7 +234,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 
 						<div className="flex items-start">
 							<div className="p-2 rounded-lg bg-primary/10 backdrop-blur-sm">
-								<Mail className="w-6 h-6 text-primary" />
+								<Mail className="size-6 text-primary" />
 							</div>
 							<div className="ml-3">
 								<p className="text-foreground font-semibold">Email Us</p>
@@ -281,7 +281,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								<FieldLabel htmlFor="name">Full Name *</FieldLabel>
 								<InputGroup>
 									<InputGroupAddon align="inline-start">
-										<Mail className="w-4 h-4" />
+										<Mail className="size-4" />
 									</InputGroupAddon>
 									<InputGroupInput
 										id="name"
@@ -304,7 +304,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								<FieldLabel htmlFor="email">Email Address *</FieldLabel>
 								<InputGroup>
 									<InputGroupAddon align="inline-start">
-										<Mail className="w-4 h-4" />
+										<Mail className="size-4" />
 									</InputGroupAddon>
 									<InputGroupInput
 										id="email"
@@ -344,7 +344,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								<FieldLabel htmlFor="phone">Phone Number</FieldLabel>
 								<InputGroup>
 									<InputGroupAddon align="inline-start">
-										<Phone className="w-4 h-4" />
+										<Phone className="size-4" />
 									</InputGroupAddon>
 									<InputGroupInput
 										id="phone"

@@ -73,7 +73,7 @@ export function ChartAreaInteractive({
 			<CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
 				<div className="grid flex-1 gap-1 text-center sm:text-left">
 					<CardTitle className="flex items-center gap-2">
-						<DollarSign className="h-5 w-5" />
+						<DollarSign className="size-5" />
 						Revenue vs Expenses
 					</CardTitle>
 					<CardDescription>
@@ -84,7 +84,7 @@ export function ChartAreaInteractive({
 					{isMobile ? (
 						<Select value={timeRange} onValueChange={setTimeRange}>
 							<SelectTrigger
-								className="w-[160px] rounded-lg sm:ml-auto"
+								className="w-40 rounded-lg sm:ml-auto"
 								aria-label="Select time range"
 							>
 								<SelectValue placeholder="Last 6 months" />
@@ -148,13 +148,13 @@ export function ChartAreaInteractive({
 			<div className="grid grid-cols-2 gap-4 p-6 pb-0 lg:grid-cols-4">
 				<div className="space-y-1">
 					<p className="text-sm text-muted-foreground">Total Revenue</p>
-					<p className="text-lg font-semibold text-[var(--color-metric-success)]">
+					<p className="text-lg font-semibold text-success">
 						${totalRevenue.toLocaleString()}
 					</p>
 				</div>
 				<div className="space-y-1">
 					<p className="text-sm text-muted-foreground">Total Expenses</p>
-					<p className="text-lg font-semibold text-[var(--color-metric-warning)]">
+					<p className="text-lg font-semibold text-warning">
 						${totalExpenses.toLocaleString()}
 					</p>
 				</div>
@@ -164,14 +164,14 @@ export function ChartAreaInteractive({
 						className={cn(
 							'flex items-center gap-1 text-lg font-semibold',
 							netProfit >= 0
-								? 'text-[var(--color-metric-success)]'
-								: 'text-[var(--color-metric-warning)]'
+								? 'text-success'
+								: 'text-warning'
 						)}
 					>
 						{netProfit >= 0 ? (
-							<TrendingUp className="h-4 w-4" />
+							<TrendingUp className="size-4" />
 						) : (
-							<TrendingDown className="h-4 w-4" />
+							<TrendingDown className="size-4" />
 						)}
 						${Math.abs(netProfit).toLocaleString()}
 					</p>
@@ -182,8 +182,8 @@ export function ChartAreaInteractive({
 						className={cn(
 							'text-lg font-semibold',
 							profitMargin >= 0
-								? 'text-[var(--color-metric-success)]'
-								: 'text-[var(--color-metric-warning)]'
+								? 'text-success'
+								: 'text-warning'
 						)}
 					>
 						{profitMargin.toFixed(1)}%
@@ -193,17 +193,17 @@ export function ChartAreaInteractive({
 
 			<CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
 				{isLoading ? (
-					<div className="flex items-center justify-center h-[300px]">
-						<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+					<div className="flex items-center justify-center h-75">
+						<div className="animate-spin rounded-full size-8 border-b-2 border-primary"></div>
 					</div>
 				) : error ? (
-					<div className="flex items-center justify-center h-[300px] text-muted-foreground">
+					<div className="flex items-center justify-center h-75 text-muted-foreground">
 						Failed to load chart data
 					</div>
 				) : (
 					<ChartContainer
 						config={chartConfig}
-						className="aspect-auto h-[300px] w-full"
+						className="aspect-auto h-75 w-full"
 					>
 						<AreaChart data={chartData ?? []}>
 							<defs>

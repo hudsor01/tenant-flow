@@ -111,7 +111,7 @@ export function AddPaymentMethodDialog({
 			{() => (
 				<div className="space-y-6">
 					<div className="flex items-center gap-2 text-label-secondary">
-						<CreditCard className="w-5 h-5" />
+						<CreditCard className="size-5" />
 						<span>
 							Add a card or bank account to keep rent payments on autopilot.
 						</span>
@@ -155,7 +155,7 @@ export function AddPaymentMethodDialog({
 							>
 								{createSetupIntent.isPending ? (
 									<>
-										<Spinner className="mr-2 h-4 w-4 animate-spin" />
+										<Spinner className="mr-2 size-4 animate-spin" />
 										Initializing...
 									</>
 								) : (
