@@ -3,12 +3,11 @@ import { requireSession } from '@/lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { maintenanceApi } from '@/lib/api-client'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { DataTable } from '@/components/ui/data-table'
 import { Wrench } from 'lucide-react'
 import Link from 'next/link'
 import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
 import { columns } from './columns'
+import { MaintenanceTableClient } from './maintenance-table.client'
 
 export const metadata: Metadata = {
 	title: 'Maintenance | TenantFlow',
@@ -50,15 +49,7 @@ export default async function MaintenancePage() {
 			</div>
 
 			{/* Client Component for Delete Functionality */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Maintenance Requests</CardTitle>
-					<CardDescription>Track maintenance tickets and resolution progress</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<DataTable columns={columns} data={requests} filterColumn="title" filterPlaceholder="Filter by request title..." />
-				</CardContent>
-			</Card>
+			<MaintenanceTableClient columns={columns} initialRequests={requests} />
 		</div>
 	)
 }
