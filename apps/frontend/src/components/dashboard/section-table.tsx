@@ -64,7 +64,7 @@ export function SectionTable() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Building2 className="h-5 w-5" />
+						<Building2 className="size-5" />
 						Recent Properties
 					</CardTitle>
 					<CardDescription>
@@ -73,7 +73,7 @@ export function SectionTable() {
 				</CardHeader>
 				<CardContent className="p-3 sm:p-6">
 					<div className="flex items-center justify-center py-8">
-						<Spinner className="h-6 w-6 animate-spin" />
+						<Spinner className="size-6 animate-spin" />
 						<span className="ml-2 text-muted-foreground text-sm">
 							Loading properties...
 						</span>
@@ -88,7 +88,7 @@ export function SectionTable() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Building2 className="h-5 w-5" />
+						<Building2 className="size-5" />
 						Recent Properties
 					</CardTitle>
 					<CardDescription>
@@ -111,7 +111,7 @@ export function SectionTable() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Building2 className="h-5 w-5" />
+						<Building2 className="size-5" />
 						Recent Properties
 					</CardTitle>
 					<CardDescription>
@@ -133,7 +133,7 @@ export function SectionTable() {
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<Building2 className="h-5 w-5" />
+					<Building2 className="size-5" />
 					Recent Properties
 				</CardTitle>
 				<CardDescription>
@@ -145,10 +145,10 @@ export function SectionTable() {
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead className="min-w-[140px]">Property</TableHead>
+								<TableHead className="min-w-35">Property</TableHead>
 								<TableHead className="hidden sm:table-cell">Type</TableHead>
 								<TableHead className="hidden md:table-cell">Location</TableHead>
-								<TableHead className="text-center min-w-[80px]">
+								<TableHead className="text-center min-w-20">
 									Status
 								</TableHead>
 							</TableRow>
@@ -159,13 +159,13 @@ export function SectionTable() {
 									<TableCell className="font-medium">
 										<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
 											<div className="flex items-center gap-2">
-												<Building2 className="h-4 w-4 text-muted-foreground" />
+												<Building2 className="size-4 text-muted-foreground" />
 												<span className="font-medium">{property.name}</span>
 											</div>
 											<div className="flex items-center gap-3 text-xs text-muted-foreground sm:hidden">
 												<span>{formatPropertyType(property.propertyType)}</span>
 												<span className="flex items-center gap-1">
-													<MapPin className="h-3 w-3" />
+													<MapPin className="size-3" />
 													{property.city}, {property.state}
 												</span>
 											</div>
@@ -176,7 +176,7 @@ export function SectionTable() {
 									</TableCell>
 									<TableCell className="hidden md:table-cell">
 										<div className="flex items-center gap-1">
-											<MapPin className="h-3 w-3 text-muted-foreground" />
+											<MapPin className="size-3 text-muted-foreground" />
 											{property.city}, {property.state}
 										</div>
 									</TableCell>

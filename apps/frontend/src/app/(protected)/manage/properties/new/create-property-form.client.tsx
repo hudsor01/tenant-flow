@@ -1,6 +1,7 @@
 'use client'
 
 import { useCreateProperty } from '@/hooks/api/use-properties'
+import type { CreatePropertyInput } from '@repo/shared/types/api-inputs'
 import { CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -92,6 +93,7 @@ export function CreatePropertyForm() {
 			city: '',
 			state: '',
 			zipCode: '',
+			propertyId: '',
 			bedrooms: '',
 			bathrooms: '',
 			squareFootage: '',
@@ -121,7 +123,8 @@ export function CreatePropertyForm() {
 				form.reset()
 				setCurrentStep(1)
 			} catch (error) {
-				const errorMessage = error instanceof Error ? error.message : 'Failed to create property'
+				const errorMessage =
+					error instanceof Error ? error.message : 'Failed to create property'
 				toast.error(errorMessage)
 				logger.error(
 					'Form submission error',
@@ -141,15 +144,54 @@ export function CreatePropertyForm() {
 		}
 	})
 
-	
-
 	const handleNext = async () => {
 		// Validate current step fields
 		const isValid = await validateCurrentStep()
-		if (isValid) {
-			if (!isLastStep) {
+		if (!isValid) return
+
+		// If we're on the first step, call the react-query mutation to persist basic info
+		if (currentStep === 1) {
+			try {
+				const values = form.state.values
+				// Build payload compatible with CreatePropertyInput
+				const rawPayload = {
+					name: values.name,
+					propertyType: values.propertyType,
+					address: values.address,
+					city: values.city,
+					state: values.state,
+					zipCode: values.zipCode,
+					description: values.description || null,
+					imageUrl: values.imageUrl || null,
+					ownerId: user?.id ?? ''
+				}
+
+				const payload = rawPayload as unknown as CreatePropertyInput
+
+				const created = await createPropertyMutation.mutateAsync(payload)
+				if (created?.id) {
+					// Set propertyId on form for subsequent steps
+					// form typing does not expose setFieldValue index signature; use a narrow cast
+					;(
+						form as unknown as {
+							setFieldValue: (k: string, v: unknown) => void
+						}
+					).setFieldValue('propertyId', created.id)
+				}
+
 				nextStep()
+			} catch (error) {
+				const message =
+					error instanceof Error ? error.message : 'Failed to create property'
+				toast.error(message)
+				return
 			}
+
+			return
+		}
+
+		if (!isLastStep) {
+			nextStep()
 		}
 	}
 
@@ -180,7 +222,7 @@ export function CreatePropertyForm() {
 	if (isSubmitted) {
 		return (
 			<div className="flex flex-col items-center justify-center space-y-4 text-center">
-				<CheckCircle className="w-16 h-16 text-green-500" />
+				<CheckCircle className="size-16 text-green-500" />
 				<h2 className="text-2xl font-bold">Property Created!</h2>
 				<p className="text-muted-foreground">
 					Your property has been successfully added to your portfolio.
@@ -677,10 +719,12 @@ export function CreatePropertyForm() {
 							<Button
 								type="submit"
 								disabled={createPropertyMutation.isPending}
-					className="flex items-center gap-2"
-				>
-					<CheckCircle className="size-4" />
-					{createPropertyMutation.isPending ? 'Creating...' : 'Create Property'}
+								className="flex items-center gap-2"
+							>
+								<CheckCircle className="size-4" />
+								{createPropertyMutation.isPending
+									? 'Creating...'
+									: 'Create Property'}
 							</Button>
 						) : (
 							<Button

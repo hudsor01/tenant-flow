@@ -80,9 +80,9 @@ function OverduePaymentCard({
 				<div className="flex-1 space-y-2">
 					<div className="flex items-center gap-2">
 						{payment.lateFeeApplied ? (
-							<CheckCircle className="h-4 w-4 text-success-main flex-shrink-0" />
+							<CheckCircle className="size-4 text-success-main shrink-0" />
 						) : (
-							<AlertCircle className="h-4 w-4 text-error-main flex-shrink-0" />
+							<AlertCircle className="size-4 text-error-main shrink-0" />
 						)}
 						<span className="text-sm font-medium text-label-primary">
 							{formatCurrency(payment.amount)} Rent Payment
@@ -91,11 +91,11 @@ function OverduePaymentCard({
 
 					<div className="space-y-1 text-xs text-label-secondary">
 						<div className="flex items-center gap-2">
-							<Calendar className="h-3 w-3 text-label-tertiary" />
+							<Calendar className="size-3 text-label-tertiary" />
 							<span>Due: {formatDate(payment.dueDate)}</span>
 						</div>
 						<div className="flex items-center gap-2">
-							<AlertCircle className="h-3 w-3 text-label-tertiary" />
+							<AlertCircle className="size-3 text-label-tertiary" />
 							<span>
 								{payment.daysOverdue} days overdue ({daysOverGrace} days past
 								grace period)
@@ -105,7 +105,7 @@ function OverduePaymentCard({
 
 					{payment.lateFeeApplied && (
 						<div className="flex items-center gap-1 text-xs text-success-main">
-							<CheckCircle className="h-3 w-3" />
+							<CheckCircle className="size-3" />
 							<span>Late fee already applied</span>
 						</div>
 					)}
@@ -181,7 +181,7 @@ export function LateFeesSection({
 							{/* Grace Period Info */}
 							<div className="rounded-lg bg-fill-tertiary p-3">
 								<div className="flex items-start gap-2">
-									<Calendar className="h-4 w-4 text-accent-main flex-shrink-0 mt-0.5" />
+									<Calendar className="size-4 text-accent-main shrink-0 mt-0.5" />
 									<div className="flex-1">
 										<p className="text-sm text-label-primary">
 											Grace Period: {gracePeriod}{' '}
@@ -200,7 +200,7 @@ export function LateFeesSection({
 							size="sm"
 							onClick={() => setShowConfigDialog(true)}
 						>
-							<Settings className="mr-2 h-4 w-4" />
+							<Settings className="mr-2 size-4" />
 							Configure
 						</Button>
 					</div>
@@ -208,7 +208,7 @@ export function LateFeesSection({
 					{/* Loading State */}
 					{isLoading && (
 						<div className="flex items-center justify-center py-8">
-							<Spinner className="h-6 w-6 animate-spin text-accent-main" />
+							<Spinner className="size-6 animate-spin text-accent-main" />
 						</div>
 					)}
 
@@ -216,7 +216,7 @@ export function LateFeesSection({
 					{error && (
 						<div className="rounded-lg border border-error-main bg-error-background p-4">
 							<div className="flex items-start gap-2">
-								<AlertCircle className="h-5 w-5 text-error-main flex-shrink-0" />
+								<AlertCircle className="size-5 text-error-main shrink-0" />
 								<div>
 									<p className="text-sm font-medium text-error-main">
 										Failed to load overdue payments
@@ -233,7 +233,7 @@ export function LateFeesSection({
 					{!isLoading && !error && overduePayments.length === 0 && (
 						<div className="rounded-lg border border-success-main bg-success-background p-4">
 							<div className="flex items-center gap-2">
-								<CheckCircle className="h-5 w-5 text-success-main" />
+								<CheckCircle className="size-5 text-success-main" />
 								<p className="text-sm text-label-primary">
 									No overdue payments at this time
 								</p>
@@ -258,7 +258,7 @@ export function LateFeesSection({
 							{/* Batch Process Button */}
 							<div className="flex items-center justify-between gap-4 pt-2">
 								<div className="flex items-center gap-2 text-sm text-label-secondary">
-									<DollarSign className="h-4 w-4" />
+									<DollarSign className="size-4" />
 									<span>
 										{overduePayments.filter(p => !p.lateFeeApplied).length}{' '}
 										payment(s) eligible for late fees
@@ -272,7 +272,7 @@ export function LateFeesSection({
 									}
 								>
 									{processLateFees.isPending && (
-										<Spinner className="mr-2 h-4 w-4 animate-spin" />
+										<Spinner className="mr-2 size-4 animate-spin" />
 									)}
 									{processLateFees.isPending
 										? 'Processing...'

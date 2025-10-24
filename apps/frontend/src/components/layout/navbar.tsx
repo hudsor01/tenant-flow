@@ -193,10 +193,10 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 				ref={ref}
 				style={navbarSpring}
 				className={cn(
-					'fixed top-4 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 rounded-full px-4 py-2 w-auto',
+					'fixed top-4 left-1/2 transform translate-x-[-50%] z-50 transition-all duration-300 rounded-full px-4 py-2 w-auto',
 					isScrolled
-						? 'bg-card backdrop-blur-xl shadow-xl border border-[var(--color-fill-secondary)]/30 scale-[0.98]'
-						: 'bg-card/90 backdrop-blur-xl shadow-lg border border-[var(--color-fill-secondary)]/20',
+						? 'bg-card backdrop-blur-xl shadow-xl border border-(--color-fill-secondary)/30 scale-[0.98]'
+						: 'bg-card/90 backdrop-blur-xl shadow-lg border border-(--color-fill-secondary)/20',
 					'hover:bg-card hover:shadow-xl',
 					className
 				)}
@@ -210,13 +210,13 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 						onMouseLeave={() => setLogoHover(false)}
 						className="flex items-center space-x-2"
 					>
-						<div className="w-8 h-8 rounded-lg overflow-hidden bg-background border border-border flex items-center justify-center">
+						<div className="size-8 rounded-lg overflow-hidden bg-background border border-border flex items-center justify-center">
 							<Image
 								src="/tenant-flow-logo.png"
 								alt="TenantFlow"
 								width={24}
 								height={24}
-								className="w-6 h-6 object-contain"
+								className="size-6 object-contain"
 								priority
 							/>
 						</div>
@@ -245,7 +245,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 									>
 										{item.name}
 										{item.hasDropdown && (
-											<ChevronDown className="ml-1 h-4 w-4 transition-transform duration-200" />
+											<ChevronDown className="ml-1 size-4 transition-transform duration-200" />
 										)}
 									</Link>
 								</animated.div>
@@ -322,10 +322,10 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								>
 									<Link
 										href={ctaHref}
-										className="hidden sm:flex items-center px-6 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-medium text-sm rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg hover:shadow-xl"
+										className="hidden sm:flex items-center px-6 py-2.5 bg-linear-to-r from-primary to-primary/80 text-primary-foreground font-medium text-sm rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg hover:shadow-xl"
 									>
 										{ctaText}
-										<ArrowRight className="ml-2 h-4 w-4" />
+										<ArrowRight className="ml-2 size-4" />
 									</Link>
 								</animated.div>
 							</>
@@ -343,11 +343,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 							data-testid="mobile-nav-toggle"
 							className="md:hidden p-2 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
 						>
-							{isOpen ? (
-								<X className="h-5 w-5" />
-							) : (
-								<Menu className="h-5 w-5" />
-							)}
+							{isOpen ? <X className="size-5" /> : <Menu className="size-5" />}
 						</animated.button>
 					</div>
 				</div>
@@ -375,7 +371,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 												{item.name}
 												{item.hasDropdown && (
 													<ChevronDown
-														className={`h-4 w-4 transition-transform duration-200 ${
+														className={`size-4 transition-transform duration-200 ${
 															openDropdown === item.name ? 'rotate-180' : ''
 														}`}
 														onClick={e => {
@@ -471,10 +467,10 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 											<Link
 												href={ctaHref}
 												onClick={() => setIsOpen(false)}
-												className="flex items-center justify-center w-full px-6 py-3 mt-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-medium text-sm rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg"
+												className="flex items-center justify-center w-full px-6 py-3 mt-4 bg-linear-to-r from-primary to-primary/80 text-primary-foreground font-medium text-sm rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg"
 											>
 												{ctaText}
-												<ArrowRight className="ml-2 h-4 w-4" />
+												<ArrowRight className="ml-2 size-4" />
 											</Link>
 										</animated.div>
 									</>

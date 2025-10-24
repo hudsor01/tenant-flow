@@ -27,7 +27,7 @@ export default function DashboardError({
 	}, [error])
 
 	return (
-		<div className="flex h-[500px] w-full items-center justify-center">
+		<div className="flex h-125 w-full items-center justify-center">
 			<div className="flex max-w-md flex-col items-center gap-4 text-center">
 				<AlertCircle className="size-12 text-destructive" />
 				<div className="space-y-2">

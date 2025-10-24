@@ -359,12 +359,12 @@ export function ImageUpload({
 						>
 							{selectedIndices.size === images.length ? (
 								<>
-									<CheckSquare className="h-4 w-4" />
+									<CheckSquare className="size-4" />
 									Deselect All
 								</>
 							) : (
 								<>
-									<Square className="h-4 w-4" />
+									<Square className="size-4" />
 									Select All
 								</>
 							)}
@@ -377,7 +377,7 @@ export function ImageUpload({
 								onClick={handleBulkDelete}
 								className="gap-2"
 							>
-								<Trash2 className="h-4 w-4" />
+								<Trash2 className="size-4" />
 								Delete ({selectedIndices.size})
 							</Button>
 						)}
@@ -408,13 +408,13 @@ export function ImageUpload({
 								{/* Checkbox for selection */}
 								<div className="absolute top-2 left-2 z-10">
 									<div
-										className={`w-6 h-6 rounded flex items-center justify-center ${
+										className={`size-6 rounded flex items-center justify-center ${
 											isSelected
 												? 'bg-accent-main text-white'
 												: 'bg-white/80 border border-gray-300'
 										}`}
 									>
-										{isSelected && <CheckSquare className="h-4 w-4" />}
+										{isSelected && <CheckSquare className="size-4" />}
 									</div>
 								</div>
 								{/* Individual delete button (hidden when selecting) */}
@@ -427,7 +427,7 @@ export function ImageUpload({
 										}}
 										className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
 									>
-										<X className="h-4 w-4" />
+										<X className="size-4" />
 									</button>
 								)}
 							</div>
@@ -441,7 +441,7 @@ export function ImageUpload({
 								className="w-full h-full object-cover rounded-lg opacity-50"
 							/>
 							<div className="absolute inset-0 flex items-center justify-center">
-								<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-main" />
+								<div className="animate-spin rounded-full size-8 border-b-2 border-accent-main" />
 							</div>
 						</div>
 					))}
@@ -471,7 +471,7 @@ export function ImageUpload({
 						disabled={uploading}
 						className="sr-only"
 					/>
-					<Upload className="h-10 w-10 text-muted-foreground mb-2" />
+					<Upload className="size-10 text-muted-foreground mb-2" />
 					<p className="text-sm font-medium text-muted-foreground">
 						{uploading
 							? 'Uploading...'

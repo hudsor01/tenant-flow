@@ -102,7 +102,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 			<div className="flex items-center gap-2">
 				<Link href={`/manage/tenants/${id}/edit`}>
 					<Button variant="outline" className="flex items-center gap-2">
-						<Edit className="w-4 h-4" />
+						<Edit className="size-4" />
 						Edit
 					</Button>
 				</Link>
@@ -123,7 +123,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 					<div className="grid grid-cols-2 gap-4">
 						<div className="space-y-1">
 							<div className="text-sm text-muted-foreground flex items-center gap-2">
-								<Mail className="w-4 h-4" />
+								<Mail className="size-4" />
 								Email
 							</div>
 							<div className="font-medium">
@@ -133,7 +133,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 
 						<div className="space-y-1">
 							<div className="text-sm text-muted-foreground flex items-center gap-2">
-								<Phone className="w-4 h-4" />
+								<Phone className="size-4" />
 								Phone
 							</div>
 							<div className="font-medium">
@@ -158,7 +158,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 						<div className="grid grid-cols-2 gap-4 text-sm">
 							<div className="space-y-1">
 								<div className="text-muted-foreground flex items-center gap-2">
-									<Calendar className="w-4 h-4" />
+									<Calendar className="size-4" />
 									Created
 								</div>
 								<div className="font-medium">
@@ -171,7 +171,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 							</div>
 							<div className="space-y-1">
 								<div className="text-muted-foreground flex items-center gap-2">
-									<Calendar className="w-4 h-4" />
+									<Calendar className="size-4" />
 									Updated
 								</div>
 								<div className="font-medium">
@@ -204,7 +204,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 										</div>
 										<div className="text-sm text-muted-foreground flex items-center gap-4">
 											<span className="flex items-center gap-1">
-												<Calendar className="w-3 h-3" />
+												<Calendar className="size-3" />
 												{new Date(lease.startDate).toLocaleDateString()} -{' '}
 												{new Date(lease.endDate).toLocaleDateString()}
 											</span>

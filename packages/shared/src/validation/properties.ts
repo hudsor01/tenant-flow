@@ -148,6 +148,7 @@ export const propertyFormSchema = z.object({
 	rent: z.string().optional(),
 	deposit: z.string().optional(),
 	imageUrl: z.string().optional(), // Legacy single image field
+	propertyId: z.string().optional(), // Optional propertyId for form.setFieldValue
 	// Frontend-specific UI fields
 	hasGarage: z.boolean().optional(),
 	hasPool: z.boolean().optional(),

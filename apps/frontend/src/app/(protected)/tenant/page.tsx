@@ -84,7 +84,7 @@ export default function TenantDashboardPage() {
 				>
 					<div className="flex items-center gap-4">
 						<div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/30 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
-							<Home className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+							<Home className="size-7 text-blue-600 dark:text-blue-400" />
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Property</p>
@@ -109,7 +109,7 @@ export default function TenantDashboardPage() {
 				>
 					<div className="flex items-center gap-4">
 						<div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/30 group-hover:bg-green-200 dark:group-hover:bg-green-900/50 transition-colors">
-							<Calendar className="h-7 w-7 text-green-600 dark:text-green-400" />
+							<Calendar className="size-7 text-green-600 dark:text-green-400" />
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Due Date</p>
@@ -136,7 +136,7 @@ export default function TenantDashboardPage() {
 				>
 					<div className="flex items-center gap-4">
 						<div className="p-3 rounded-lg bg-amber-100 dark:bg-amber-900/30 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50 transition-colors">
-							<Wrench className="h-7 w-7 text-amber-600 dark:text-amber-400" />
+							<Wrench className="size-7 text-amber-600 dark:text-amber-400" />
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Open Requests</p>
@@ -167,7 +167,7 @@ export default function TenantDashboardPage() {
 							className="w-full h-auto flex-col gap-3 py-8 border-2 hover:border-primary/40 hover:bg-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-md"
 						>
 							<div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-								<CreditCard className="h-6 w-6 text-primary" />
+								<CreditCard className="size-6 text-primary" />
 							</div>
 							<span className="font-medium">Pay Rent</span>
 						</Button>
@@ -179,7 +179,7 @@ export default function TenantDashboardPage() {
 							className="w-full h-auto flex-col gap-3 py-8 border-2 hover:border-primary/40 hover:bg-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-md"
 						>
 							<div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-								<Wrench className="h-6 w-6 text-primary" />
+								<Wrench className="size-6 text-primary" />
 							</div>
 							<span className="font-medium">Submit Request</span>
 						</Button>
@@ -191,7 +191,7 @@ export default function TenantDashboardPage() {
 							className="w-full h-auto flex-col gap-3 py-8 border-2 hover:border-primary/40 hover:bg-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-md"
 						>
 							<div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-								<FileText className="h-6 w-6 text-primary" />
+								<FileText className="size-6 text-primary" />
 							</div>
 							<span className="font-medium">View Documents</span>
 						</Button>
@@ -203,7 +203,7 @@ export default function TenantDashboardPage() {
 							className="w-full h-auto flex-col gap-3 py-8 border-2 hover:border-primary/40 hover:bg-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-md"
 						>
 							<div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-								<Settings className="h-6 w-6 text-primary" />
+								<Settings className="size-6 text-primary" />
 							</div>
 							<span className="font-medium">My Profile</span>
 						</Button>

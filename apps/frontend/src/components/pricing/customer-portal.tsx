@@ -125,7 +125,7 @@ export function CustomerPortalButton({
 				onClick={() => router.push('/pricing')}
 				{...props}
 			>
-				<Sparkles className="w-4 h-4 mr-2" />
+				<Sparkles className="size-4 mr-2" />
 				Subscribe Now
 			</Button>
 		)
@@ -149,7 +149,7 @@ export function CustomerPortalButton({
 		>
 			{children || (
 				<>
-					<Settings className="w-4 h-4 mr-2" />
+					<Settings className="size-4 mr-2" />
 					{portalMutation.isPending ? 'Loading...' : 'Manage Subscription'}
 				</>
 			)}
@@ -243,7 +243,7 @@ export function CustomerPortalCard({
 								config.gradient
 							)}
 						>
-							<Settings className="w-8 h-8 text-primary-foreground" />
+							<Settings className="size-8 text-primary-foreground" />
 						</div>
 						<div>
 							<h3
@@ -270,11 +270,11 @@ export function CustomerPortalCard({
 								config.textColor
 							)}
 						>
-							<Award className="w-4 h-4 mr-2" />
+							<Award className="size-4 mr-2" />
 							{currentPlan}
 						</Badge>
 						<div className="flex items-center gap-2 mt-2">
-							<div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+							<div className="size-2 bg-primary rounded-full animate-pulse" />
 							<span className="text-xs text-muted-foreground font-medium">
 								Active Plan
 							</span>
@@ -297,19 +297,19 @@ export function CustomerPortalCard({
 									style={TYPOGRAPHY_SCALE['heading-md']}
 								>
 									<div className="p-2 bg-primary/10 rounded-lg">
-										<Activity className="h-5 w-5 text-primary" />
+										<Activity className="size-5 text-primary" />
 									</div>
 									Monthly Overview
 								</h4>
 								<Badge variant="outline" className="text-xs font-medium">
-									<Clock className="w-3 h-3 mr-1" />
+									<Clock className="size-3 mr-1" />
 									Updated 2 hours ago
 								</Badge>
 							</div>
 							<div className="grid grid-cols-2 lg:grid-cols-5 gap-6">
 								<div className="text-center p-4 bg-background/50 rounded-xl border border-muted/30">
-									<div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-2">
-										<FileText className="h-5 w-5 text-accent" />
+									<div className="size-10 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+										<FileText className="size-5 text-accent" />
 									</div>
 									<p className="text-2xl font-black text-foreground tabular-nums">
 										{usageStats.properties}
@@ -319,8 +319,8 @@ export function CustomerPortalCard({
 									</p>
 								</div>
 								<div className="text-center p-4 bg-background/50 rounded-xl border border-muted/30">
-									<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-2">
-										<Users className="h-5 w-5 text-primary" />
+									<div className="size-10 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+										<Users className="size-5 text-primary" />
 									</div>
 									<p className="text-2xl font-black text-foreground tabular-nums">
 										{usageStats.tenants}
@@ -330,8 +330,8 @@ export function CustomerPortalCard({
 									</p>
 								</div>
 								<div className="text-center p-4 bg-background/50 rounded-xl border border-muted/30">
-									<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-2">
-										<Zap className="h-5 w-5 text-primary" />
+									<div className="size-10 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+										<Zap className="size-5 text-primary" />
 									</div>
 									<p className="text-2xl font-black text-primary tabular-nums">
 										{usageStats.uptime}
@@ -342,8 +342,8 @@ export function CustomerPortalCard({
 								</div>
 								{usageStats.monthlyRevenue && (
 									<div className="text-center p-4 bg-background/50 rounded-xl border border-muted/30">
-										<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-2">
-											<TrendingUp className="h-5 w-5 text-primary" />
+										<div className="size-10 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+											<TrendingUp className="size-5 text-primary" />
 										</div>
 										<p className="text-2xl font-black text-primary tabular-nums">
 											${usageStats.monthlyRevenue.toLocaleString()}
@@ -355,8 +355,8 @@ export function CustomerPortalCard({
 								)}
 								{usageStats.activeLeases && (
 									<div className="text-center p-4 bg-background/50 rounded-xl border border-muted/30">
-										<div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-2">
-											<FileText className="h-5 w-5 text-accent" />
+										<div className="size-10 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+											<FileText className="size-5 text-accent" />
 										</div>
 										<p className="text-2xl font-black text-accent tabular-nums">
 											{usageStats.activeLeases}
@@ -379,12 +379,12 @@ export function CustomerPortalCard({
 									style={TYPOGRAPHY_SCALE['heading-md']}
 								>
 									<div className="p-2 bg-accent/10 rounded-lg">
-										<CreditCard className="h-5 w-5 text-accent" />
+										<CreditCard className="size-5 text-accent" />
 									</div>
 									Billing Information
 								</h4>
 								<Badge className="bg-primary/10 text-primary border-primary/20">
-									<Lock className="w-3 h-3 mr-1" />
+									<Lock className="size-3 mr-1" />
 									Secured
 								</Badge>
 							</div>
@@ -393,7 +393,7 @@ export function CustomerPortalCard({
 								{billingInfo.nextBillingDate && (
 									<div className="bg-background/70 rounded-lg p-4 border border-primary/20">
 										<div className="flex items-center gap-2 mb-2">
-											<Calendar className="h-4 w-4 text-primary" />
+											<Calendar className="size-4 text-primary" />
 											<span className="text-sm font-semibold text-muted-foreground">
 												Next Billing
 											</span>
@@ -413,7 +413,7 @@ export function CustomerPortalCard({
 								{billingInfo.lastPayment && (
 									<div className="bg-background/70 rounded-lg p-4 border-primary/20">
 										<div className="flex items-center gap-2 mb-2">
-											<CheckCircle2 className="h-4 w-4 text-accent" />
+											<CheckCircle2 className="size-4 text-accent" />
 											<span className="text-sm font-semibold text-muted-foreground">
 												Last Payment
 											</span>
@@ -433,7 +433,7 @@ export function CustomerPortalCard({
 								{billingInfo.paymentMethod && (
 									<div className="bg-background/70 rounded-lg p-4 border-primary/20">
 										<div className="flex items-center gap-2 mb-2">
-											<CreditCard className="h-4 w-4 text-primary" />
+											<CreditCard className="size-4 text-primary" />
 											<span className="text-sm font-semibold text-muted-foreground">
 												Payment Method
 											</span>
@@ -461,7 +461,7 @@ export function CustomerPortalCard({
 							<div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-2xl p-6 border-2 border-primary/20 max-w-2xl mx-auto">
 								<div className="flex items-center justify-center gap-1 mb-4">
 									{[...Array(testimonial.rating)].map((_, i) => (
-										<Star key={i} className="h-4 w-4 fill-accent text-accent" />
+										<Star key={i} className="size-4 fill-accent text-accent" />
 									))}
 									<span className="ml-2 text-sm font-bold text-primary">
 										{testimonial.rating}/5
@@ -471,8 +471,8 @@ export function CustomerPortalCard({
 									&quot;{testimonial.text}&quot;
 								</blockquote>
 								<div className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-primary/10">
-									<div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
-										<Users className="h-5 w-5 text-primary" />
+									<div className="size-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
+										<Users className="size-5 text-primary" />
 									</div>
 									<cite className="text-sm font-bold text-foreground not-italic">
 										{testimonial.author}
@@ -495,7 +495,7 @@ export function CustomerPortalCard({
 						<div className="group p-5 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border-2 border-primary/20 hover:border-primary/30 hover:shadow-lg cursor-pointer">
 							<div className="flex items-center gap-4 mb-3">
 								<div className="p-3 bg-primary/10 rounded-xl">
-									<CreditCard className="w-6 h-6 text-primary" />
+									<CreditCard className="size-6 text-primary" />
 								</div>
 								<div>
 									<h5 className="font-bold text-foreground">
@@ -510,14 +510,14 @@ export function CustomerPortalCard({
 								<span className="text-sm text-primary font-medium">
 									Secure & instant updates
 								</span>
-								<ArrowRight className="w-5 h-5 text-primary group-hover:translate-x-1 transition-transform" />
+								<ArrowRight className="size-5 text-primary group-hover:translate-x-1 transition-transform" />
 							</div>
 						</div>
 
 						<div className="group p-5 bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl border-2 border-accent/20 hover:border-accent/30 hover:shadow-lg cursor-pointer">
 							<div className="flex items-center gap-4 mb-3">
 								<div className="p-3 bg-accent/10 rounded-xl">
-									<FileText className="w-6 h-6 text-accent" />
+									<FileText className="size-6 text-accent" />
 								</div>
 								<div>
 									<h5 className="font-bold text-foreground">
@@ -532,14 +532,14 @@ export function CustomerPortalCard({
 								<span className="text-sm text-accent font-medium">
 									Instant PDF downloads
 								</span>
-								<ArrowRight className="w-5 h-5 text-accent group-hover:translate-x-1 transition-transform" />
+								<ArrowRight className="size-5 text-accent group-hover:translate-x-1 transition-transform" />
 							</div>
 						</div>
 
 						<div className="group p-5 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border-2 border-primary/20 hover:border-primary/30 hover:shadow-lg cursor-pointer">
 							<div className="flex items-center gap-4 mb-3">
 								<div className="p-3 bg-primary/10 rounded-xl">
-									<Download className="w-6 h-6 text-primary" />
+									<Download className="size-6 text-primary" />
 								</div>
 								<div>
 									<h5 className="font-bold text-foreground">Usage Reports</h5>
@@ -552,14 +552,14 @@ export function CustomerPortalCard({
 								<span className="text-sm text-primary font-medium">
 									Detailed breakdowns
 								</span>
-								<ArrowRight className="w-5 h-5 text-primary group-hover:translate-x-1 transition-transform" />
+								<ArrowRight className="size-5 text-primary group-hover:translate-x-1 transition-transform" />
 							</div>
 						</div>
 
 						<div className="group p-5 bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl border-2 border-accent/20 hover:border-accent/30 hover:shadow-lg cursor-pointer">
 							<div className="flex items-center gap-4 mb-3">
 								<div className="p-3 bg-accent/10 rounded-xl">
-									<Sparkles className="w-6 h-6 text-accent" />
+									<Sparkles className="size-6 text-accent" />
 								</div>
 								<div>
 									<h5 className="font-bold text-foreground">Plan Management</h5>
@@ -572,7 +572,7 @@ export function CustomerPortalCard({
 								<span className="text-sm text-accent font-medium">
 									Flexible changes
 								</span>
-								<ArrowRight className="w-5 h-5 text-accent group-hover:translate-x-1 transition-transform" />
+								<ArrowRight className="size-5 text-accent group-hover:translate-x-1 transition-transform" />
 							</div>
 						</div>
 					</div>
@@ -590,9 +590,9 @@ export function CustomerPortalCard({
 							size="lg"
 							variant="default"
 						>
-							<Settings className="w-6 h-6 mr-3" />
+							<Settings className="size-6 mr-3" />
 							Access Customer Portal
-							<ArrowRight className="w-5 h-5 ml-3" />
+							<ArrowRight className="size-5 ml-3" />
 						</CustomerPortalButton>
 					</div>
 				</div>
@@ -603,7 +603,7 @@ export function CustomerPortalCard({
 				<div className="flex flex-wrap items-center justify-center gap-6 text-sm">
 					<div className="flex items-center gap-3">
 						<div className="p-2 bg-accent/10 rounded-lg">
-							<Shield className="w-5 h-5 text-accent" />
+							<Shield className="size-5 text-accent" />
 						</div>
 						<div>
 							<p className="font-bold text-foreground">Bank-Level Security</p>
@@ -614,7 +614,7 @@ export function CustomerPortalCard({
 					</div>
 					<div className="flex items-center gap-3">
 						<div className="p-2 bg-primary/10 rounded-lg">
-							<CheckCircle2 className="w-5 h-5 text-primary" />
+							<CheckCircle2 className="size-5 text-primary" />
 						</div>
 						<div>
 							<p className="font-bold text-foreground">Powered by Stripe</p>
@@ -625,7 +625,7 @@ export function CustomerPortalCard({
 					</div>
 					<div className="flex items-center gap-3">
 						<div className="p-2 bg-primary/10 rounded-lg">
-							<Users className="w-5 h-5 text-primary" />
+							<Users className="size-5 text-primary" />
 						</div>
 						<div>
 							<p className="font-bold text-foreground">10,000+ Managers</p>

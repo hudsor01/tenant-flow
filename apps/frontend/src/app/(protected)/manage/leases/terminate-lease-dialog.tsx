@@ -71,42 +71,42 @@ export function TerminateLeaseDialog({
 			isPending={terminateLease.isPending}
 			submitText="Terminate Lease"
 			submitPendingText="Terminating..."
-			contentClassName="sm:max-w-[500px]"
+			contentClassName="sm:max-w-125"
 			onSubmit={handleSubmit}
 		>
 			{() => (
 				<div className="space-y-6">
-				{/* Warning Banner with Icon */}
-				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-					<div className="flex gap-3">
-						<AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0" />
-						<div className="space-y-1">
-							<p className="text-sm font-medium text-destructive">
-								Early Termination Warning
-							</p>
-							<p className="text-sm text-muted-foreground">
-								This lease will be marked as terminated immediately. Ensure
-								all financial settlements are complete before proceeding.
-							</p>
+					{/* Warning Banner with Icon */}
+					<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+						<div className="flex gap-3">
+							<AlertTriangle className="size-5 text-destructive shrink-0" />
+							<div className="space-y-1">
+								<p className="text-sm font-medium text-destructive">
+									Early Termination Warning
+								</p>
+								<p className="text-sm text-muted-foreground">
+									This lease will be marked as terminated immediately. Ensure
+									all financial settlements are complete before proceeding.
+								</p>
+							</div>
 						</div>
 					</div>
-				</div>
 
-				{/* Termination Reason */}
-				<div className="space-y-3">
-					<Label htmlFor="reason">Termination Reason (Optional)</Label>
-					<Textarea
-						id="reason"
-						placeholder="Reason for early termination (e.g., tenant request, violation, mutual agreement)..."
-						rows={4}
-						value={reason}
-						onChange={e => setReason(e.target.value)}
-					/>
-					<p className="text-xs text-muted-foreground">
-						Document the reason for termination for record-keeping purposes
-					</p>
+					{/* Termination Reason */}
+					<div className="space-y-3">
+						<Label htmlFor="reason">Termination Reason (Optional)</Label>
+						<Textarea
+							id="reason"
+							placeholder="Reason for early termination (e.g., tenant request, violation, mutual agreement)..."
+							rows={4}
+							value={reason}
+							onChange={e => setReason(e.target.value)}
+						/>
+						<p className="text-xs text-muted-foreground">
+							Document the reason for termination for record-keeping purposes
+						</p>
+					</div>
 				</div>
-			</div>
 			)}
 		</EditDialog>
 	)

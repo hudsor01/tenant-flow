@@ -113,7 +113,7 @@ function SortableHeader({
 		>
 			<div className="flex items-center gap-2">
 				{children}
-				<div className="w-4 h-4 flex items-center justify-center">
+				<div className="size-4 flex items-center justify-center">
 					{sortDirection === 'desc' ? (
 						<ArrowDown
 							className={cn(
@@ -235,7 +235,7 @@ const UnitStatusBadge: React.FC<{ status: UnitStatus; className?: string }> = ({
 			)}
 			
 		>
-			<IconComponent className="h-3 w-3" />
+			<IconComponent className="size-3" />
 			{config.label}
 		</Badge>
 	)
@@ -298,7 +298,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 							size="sm"
 							className={cn(
 								buttonClasses('ghost', 'sm'),
-								'h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50',
+								'size-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50',
 								'transition-all'
 							)}
 							
@@ -306,9 +306,9 @@ function UnitActions({ unit }: UnitActionsProps) {
 							<span className="sr-only">
 								Open actions menu for unit {unit.unitNumber}
 							</span>
-							<MoreHorizontalIcon className="h-4 w-4" />
+							<MoreHorizontalIcon className="size-4" />
 							{config.icon && (
-								<config.icon className="h-2 w-2 absolute -top-1 -right-1 opacity-60" />
+								<config.icon className="size-2 absolute -top-1 -right-1 opacity-60" />
 							)}
 						</Button>
 					</DropdownMenuTrigger>
@@ -324,14 +324,14 @@ function UnitActions({ unit }: UnitActionsProps) {
 							onClick={() => setViewOpen(true)}
 							className="gap-2 cursor-pointer"
 						>
-							<EyeIcon className="h-4 w-4 text-primary" />
+							<EyeIcon className="size-4 text-primary" />
 							<span>View Details</span>
 						</DropdownMenuItem>
 						<DropdownMenuItem
 							onClick={() => setEditOpen(true)}
 							className="gap-2 cursor-pointer"
 						>
-							<EditIcon className="h-4 w-4 text-accent" />
+							<EditIcon className="size-4 text-accent" />
 							<span>Edit Unit</span>
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
@@ -345,7 +345,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 									: 'opacity-50 cursor-not-allowed'
 							)}
 						>
-							<TrashIcon className="h-4 w-4" />
+							<TrashIcon className="size-4" />
 							<span>Delete Unit</span>
 							{!canDelete && (
 								<Badge variant="secondary" className="ml-auto text-xs">
@@ -366,21 +366,21 @@ function UnitActions({ unit }: UnitActionsProps) {
 					<div className="space-y-4">
 						<div className="grid grid-cols-2 gap-4">
 							<div className="flex items-center gap-2">
-								<BedDouble className="h-4 w-4 text-muted-foreground" />
+								<BedDouble className="size-4 text-muted-foreground" />
 								<span>{unit.bedrooms} Bedrooms</span>
 							</div>
 							<div className="flex items-center gap-2">
-								<ShowerHead className="h-4 w-4 text-muted-foreground" />
+								<ShowerHead className="size-4 text-muted-foreground" />
 								<span>{unit.bathrooms} Bathrooms</span>
 							</div>
 							{unit.squareFeet && (
 								<div className="flex items-center gap-2">
-									<Ruler className="h-4 w-4 text-muted-foreground" />
+									<Ruler className="size-4 text-muted-foreground" />
 									<span>{unit.squareFeet} sq ft</span>
 								</div>
 							)}
 							<div className="flex items-center gap-2">
-								<DollarSign className="h-4 w-4 text-muted-foreground" />
+								<DollarSign className="size-4 text-muted-foreground" />
 								<span>${unit.rent}/month</span>
 							</div>
 						</div>
@@ -450,8 +450,8 @@ function UnitActions({ unit }: UnitActionsProps) {
 			<AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
 				<AlertDialogContent className={cn(cardClasses('elevated'), 'max-w-md')}>
 					<AlertDialogHeader className="space-y-4">
-						<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
-							<TrashIcon className="h-6 w-6 text-destructive" />
+						<div className="mx-auto flex size-12 items-center justify-center rounded-full bg-destructive/10">
+							<TrashIcon className="size-6 text-destructive" />
 						</div>
 						<AlertDialogTitle
 							className="text-center"
@@ -473,7 +473,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 									)}
 								>
 									<div className="flex items-center gap-2 text-destructive">
-										<AlertTriangle className="h-4 w-4" />
+										<AlertTriangle className="size-4" />
 										<span
 											className="font-medium text-sm"
 											style={TYPOGRAPHY_SCALE['body-xs']}
@@ -500,7 +500,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 							{isDeleting ? (
 								<div className="flex items-center gap-2">
 									<div
-										className="h-4 w-4 animate-spin rounded-full border-2"
+										className="size-4 animate-spin rounded-full border-2"
 										style={{
 											borderColor:
 												'color-mix(in oklab, var(--color-fill-secondary) 60%, transparent)',
@@ -529,7 +529,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 		accessorKey: 'unitNumber',
 		header: ({ column }) => (
 			<SortableHeader column={column} align="left">
-				<Home className="h-4 w-4" />
+				<Home className="size-4" />
 				Unit Details
 			</SortableHeader>
 		),
@@ -548,7 +548,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 							className="text-muted-foreground text-xs"
 							style={TYPOGRAPHY_SCALE['body-xs']}
 						>
-							<MapPin className="h-3 w-3 inline mr-1" />
+							<MapPin className="size-3 inline mr-1" />
 							{unit.property.name}
 						</div>
 					)}
@@ -562,7 +562,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 		id: 'layout',
 		header: ({ column }) => (
 			<SortableHeader column={column} align="center">
-				<Bed className="h-4 w-4" />
+				<Bed className="size-4" />
 				Layout
 			</SortableHeader>
 		),
@@ -576,13 +576,13 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 				<div className="text-center space-y-1">
 					<div className="flex items-center justify-center gap-3">
 						<div className="flex items-center gap-1">
-							<Bed className="h-3 w-3 text-muted-foreground" />
+							<Bed className="size-3 text-muted-foreground" />
 							<span className="font-medium" style={TYPOGRAPHY_SCALE['body-md']}>
 								{bedrooms}
 							</span>
 						</div>
 						<div className="flex items-center gap-1">
-							<Bath className="h-3 w-3 text-muted-foreground" />
+							<Bath className="size-3 text-muted-foreground" />
 							<span className="font-medium" style={TYPOGRAPHY_SCALE['body-md']}>
 								{bathrooms}
 							</span>
@@ -590,7 +590,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 					</div>
 					{squareFeet && (
 						<div className="flex items-center justify-center gap-1">
-							<Maximize2 className="h-3 w-3 text-muted-foreground" />
+							<Maximize2 className="size-3 text-muted-foreground" />
 							<span
 								className="text-muted-foreground text-xs"
 								style={TYPOGRAPHY_SCALE['body-xs']}
@@ -613,7 +613,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 		accessorKey: 'rent',
 		header: ({ column }) => (
 			<SortableHeader column={column} align="right">
-				<DollarSign className="h-4 w-4" />
+				<DollarSign className="size-4" />
 				Rent & Value
 			</SortableHeader>
 		),
@@ -648,7 +648,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 						<div className="flex items-center justify-end gap-1">
 							<TrendingUp
 								className={cn(
-									'h-3 w-3',
+									'size-3',
 									variance > 0 ? 'text-accent' : 'text-destructive'
 								)}
 							/>
@@ -716,7 +716,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 		accessorKey: 'lastUpdated',
 		header: ({ column }) => (
 			<SortableHeader column={column} align="center">
-				<Calendar className="h-4 w-4" />
+				<Calendar className="size-4" />
 				Last Updated
 			</SortableHeader>
 		),
@@ -741,7 +741,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 						)}
 						style={TYPOGRAPHY_SCALE['body-xs']}
 					>
-						{isRecent && <Star className="h-3 w-3 inline mr-1" />}
+						{isRecent && <Star className="size-3 inline mr-1" />}
 						{date.toLocaleDateString('en-US', {
 							month: 'short',
 							day: 'numeric'

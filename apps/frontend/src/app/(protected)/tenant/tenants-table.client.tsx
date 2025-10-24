@@ -292,7 +292,7 @@ export function TenantsTable({
 								<TableHead>Status</TableHead>
 								<TableHead className="hidden lg:table-cell">Lease</TableHead>
 								<TableHead className="hidden lg:table-cell">Rent</TableHead>
-								<TableHead className="w-[120px] text-right">Actions</TableHead>
+								<TableHead className="w-30 text-right">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -332,7 +332,7 @@ export function TenantsTable({
 							<TableHead>Status</TableHead>
 							<TableHead className="hidden lg:table-cell">Lease</TableHead>
 							<TableHead className="hidden lg:table-cell">Rent</TableHead>
-							<TableHead className="w-[120px] text-right">Actions</TableHead>
+							<TableHead className="w-30 text-right">Actions</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>

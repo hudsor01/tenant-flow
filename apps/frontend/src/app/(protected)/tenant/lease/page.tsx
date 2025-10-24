@@ -61,13 +61,13 @@ export default function TenantLeasePage() {
 			<CardLayout title="Property Details" description="Your current residence">
 				<div className="space-y-4">
 					<div className="flex items-start gap-4">
-						<Home className="h-6 w-6 text-accent-main mt-1" />
+						<Home className="size-6 text-accent-main mt-1" />
 						<div>
 							<p className="font-semibold text-lg">
 								Sunset Apartments - Unit 204
 							</p>
 							<div className="flex items-center gap-2 text-muted-foreground mt-1">
-								<MapPin className="h-4 w-4" />
+								<MapPin className="size-4" />
 								<span>Loading address...</span>
 							</div>
 						</div>
@@ -80,7 +80,7 @@ export default function TenantLeasePage() {
 				<CardLayout title="Lease Term" description="Duration of your lease">
 					<div className="space-y-4">
 						<div className="flex items-center gap-3">
-							<Calendar className="h-5 w-5 text-accent-main" />
+							<Calendar className="size-5 text-accent-main" />
 							<div>
 								<p className="text-sm text-muted-foreground">Start Date</p>
 								{isLoading || !lease ? (
@@ -91,7 +91,7 @@ export default function TenantLeasePage() {
 							</div>
 						</div>
 						<div className="flex items-center gap-3">
-							<Calendar className="h-5 w-5 text-accent-main" />
+							<Calendar className="size-5 text-accent-main" />
 							<div>
 								<p className="text-sm text-muted-foreground">End Date</p>
 								{isLoading || !lease ? (
@@ -110,7 +110,7 @@ export default function TenantLeasePage() {
 				>
 					<div className="space-y-4">
 						<div className="flex items-center gap-3">
-							<DollarSign className="h-5 w-5 text-accent-main" />
+							<DollarSign className="size-5 text-accent-main" />
 							<div>
 								<p className="text-sm text-muted-foreground">Monthly Rent</p>
 								{isLoading || !lease ? (
@@ -123,7 +123,7 @@ export default function TenantLeasePage() {
 							</div>
 						</div>
 						<div className="flex items-center gap-3">
-							<DollarSign className="h-5 w-5 text-accent-main" />
+							<DollarSign className="size-5 text-accent-main" />
 							<div>
 								<p className="text-sm text-muted-foreground">
 									Security Deposit
@@ -149,7 +149,7 @@ export default function TenantLeasePage() {
 				<div className="space-y-3">
 					<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
 						<div className="flex items-center gap-3">
-							<FileText className="h-5 w-5 text-accent-main" />
+							<FileText className="size-5 text-accent-main" />
 							<div>
 								<p className="font-medium">Lease Agreement</p>
 								<p className="text-sm text-muted-foreground">

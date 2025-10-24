@@ -60,7 +60,7 @@ export function ActivityFeed() {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center py-8">
-				<Spinner className="h-6 w-6 animate-spin" />
+				<Spinner className="size-6 animate-spin" />
 				<span className="ml-2 text-muted-foreground text-body-md">
 					Loading activities...
 				</span>
@@ -97,8 +97,8 @@ export function ActivityFeed() {
 						className="flex items-start gap-4 p-3 rounded-lg hover:bg-[var(--color-muted)] transition-colors duration-200"
 					>
 						{/* Activity Icon */}
-						<div className={getActivityColorClass(activity.entityType) + ' flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-border)]'}>
-							<Icon className="h-4 w-4" />
+						<div className={getActivityColorClass(activity.entityType) + ' flex size-10 items-center justify-center rounded-full border border-[var(--color-border)]'}>
+							<Icon className="size-4" />
 						</div>
 
 						{/* Activity Content */}
@@ -118,7 +118,7 @@ export function ActivityFeed() {
 									</p>
 									<div className="flex items-center gap-2">
 										<span className="flex items-center gap-1 text-[var(--color-label-tertiary)] text-body-xs">
-											<Clock className="h-3 w-3" />
+											<Clock className="size-3" />
 											{formatDistanceToNow(new Date(activity.createdAt), {
 												addSuffix: true
 											})}

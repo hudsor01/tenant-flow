@@ -93,7 +93,7 @@ export default function PostCheckoutPage() {
 					isLoading={true}
 				>
 					<div className="flex items-center justify-center py-8">
-						<Spinner className="h-12 w-12 animate-spin text-muted-foreground" />
+						<Spinner className="size-12 animate-spin text-muted-foreground" />
 					</div>
 				</CardLayout>
 			</div>
@@ -137,7 +137,7 @@ export default function PostCheckoutPage() {
 			>
 				<div className="space-y-4">
 					<Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/50">
-						<Mail className="h-4 w-4 text-green-600" />
+						<Mail className="size-4 text-green-600" />
 						<AlertDescription className="text-green-900 dark:text-green-10">
 							We sent a login link to <strong>{email}</strong>
 						</AlertDescription>

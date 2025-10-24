@@ -38,14 +38,14 @@ export default function ConfirmEmailPage() {
 
 						<div className="relative text-center space-y-6 py-12 px-8 z-20">
 							{/* Logo */}
-							<div className="w-16 h-16 mx-auto mb-8 relative group">
-								<div className="absolute inset-0 bg-gradient-to-r from-primary/50 to-primary/60 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
+							<div className="size-16 mx-auto mb-8 relative group">
+								<div className="absolute inset-0 bg-linear-to-r from-primary/50 to-primary/60 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
 								<div className="relative w-full h-full bg-primary rounded-2xl flex items-center justify-center border border-white/20 shadow-lg">
 									<svg
 										viewBox="0 0 24 24"
 										fill="none"
 										xmlns="http://www.w3.org/2000/svg"
-										className="w-8 h-8 text-primary-foreground"
+										className="size-8 text-primary-foreground"
 									>
 										<path
 											d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
@@ -111,12 +111,12 @@ export default function ConfirmEmailPage() {
 					{/* Logo (Mobile only) */}
 					<div className="lg:hidden flex justify-center mb-8">
 						<div className="flex items-center space-x-3">
-							<div className="w-10 h-10 rounded-xl overflow-hidden bg-primary border border-border flex items-center justify-center shadow-lg">
+							<div className="size-10 rounded-xl overflow-hidden bg-primary border border-border flex items-center justify-center shadow-lg">
 								<svg
 									viewBox="0 0 24 24"
 									fill="none"
 									xmlns="http://www.w3.org/2000/svg"
-									className="w-6 h-6 text-primary-foreground"
+									className="size-6 text-primary-foreground"
 								>
 									<path
 										d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
@@ -136,8 +136,8 @@ export default function ConfirmEmailPage() {
 					{/* Header */}
 					<div className="space-y-4">
 						{/* Icon */}
-						<div className="mx-auto flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 border border-primary/20 shadow-lg">
-							<Mail className="w-10 h-10 text-primary" />
+						<div className="mx-auto flex items-center justify-center size-20 rounded-full bg-primary/10 border border-primary/20 shadow-lg">
+							<Mail className="size-10 text-primary" />
 						</div>
 
 						<div className="text-center space-y-2">
@@ -153,12 +153,12 @@ export default function ConfirmEmailPage() {
 					{/* Instructions Card */}
 					<div className="bg-muted/30 border border-border rounded-2xl p-6 space-y-4">
 						<h3 className="font-semibold text-foreground text-lg flex items-center gap-2">
-							<CheckCircle2 className="w-5 h-5 text-primary" />
+							<CheckCircle2 className="size-5 text-primary" />
 							What&apos;s next?
 						</h3>
 						<ol className="space-y-4">
 							<li className="flex items-start gap-3">
-								<span className="flex-shrink-0 w-7 h-7 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-bold">
+								<span className="shrink-0 size-7 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-bold">
 									1
 								</span>
 								<div className="pt-0.5">
@@ -171,7 +171,7 @@ export default function ConfirmEmailPage() {
 								</div>
 							</li>
 							<li className="flex items-start gap-3">
-								<span className="flex-shrink-0 w-7 h-7 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-bold">
+								<span className="shrink-0 size-7 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-bold">
 									2
 								</span>
 								<div className="pt-0.5">
@@ -184,7 +184,7 @@ export default function ConfirmEmailPage() {
 								</div>
 							</li>
 							<li className="flex items-start gap-3">
-								<span className="flex-shrink-0 w-7 h-7 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-bold">
+								<span className="shrink-0 size-7 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-bold">
 									3
 								</span>
 								<div className="pt-0.5">
@@ -218,7 +218,7 @@ export default function ConfirmEmailPage() {
 							<Button variant="default" size="lg" className="flex-1" asChild>
 								<Link href="/login">
 									Back to Sign In
-									<ArrowRight className="ml-2 h-4 w-4" />
+									<ArrowRight className="ml-2 size-4" />
 								</Link>
 							</Button>
 						</div>
@@ -240,11 +240,11 @@ export default function ConfirmEmailPage() {
 					{/* Trust Signals */}
 					<div className="flex items-center justify-center gap-8 text-xs text-muted-foreground pt-4">
 						<div className="flex items-center gap-2">
-							<CheckCircle2 className="w-4 h-4" />
+							<CheckCircle2 className="size-4" />
 							<span>Bank-level Security</span>
 						</div>
 						<div className="flex items-center gap-2">
-							<CheckCircle2 className="w-4 h-4" />
+							<CheckCircle2 className="size-4" />
 							<span>99.9% Uptime</span>
 						</div>
 					</div>

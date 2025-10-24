@@ -274,7 +274,7 @@ export function CreateLeaseForm() {
 						disabled={createLease.isPending}
 						className="flex items-center gap-2"
 					>
-						<CheckCircle className="w-4 h-4" />
+						<CheckCircle className="size-4" />
 						{createLease.isPending ? 'Creating...' : 'Create lease'}
 					</Button>
 				</div>

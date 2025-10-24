@@ -13,7 +13,7 @@ function CancelContent() {
 		>
 			<div className="w-full shadow-md bg-card/50 border border-border backdrop-blur-sm rounded-2xl p-8 text-center">
 				<div className="mb-6">
-					<XCircle className="mx-auto h-16 w-16 text-destructive" />
+					<XCircle className="mx-auto size-16 text-destructive" />
 				</div>
 
 				<h1 className="text-3xl font-bold mb-4 text-gradient-authority">
@@ -37,7 +37,7 @@ function CancelContent() {
 
 				<div className="mt-8 pt-6 border-t border-border">
 					<div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-						<MessageCircle className="w-4 h-4" />
+						<MessageCircle className="size-4" />
 						<span>Need help? Contact our support team</span>
 					</div>
 				</div>
@@ -55,7 +55,7 @@ export default function CancelPage() {
 					className="gradient-authority"
 					containerClass="flex items-center justify-center min-h-screen"
 				>
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-destructive"></div>
+					<div className="animate-spin rounded-full size-12 border-b-2 border-destructive"></div>
 				</PageLayout>
 			}
 		>

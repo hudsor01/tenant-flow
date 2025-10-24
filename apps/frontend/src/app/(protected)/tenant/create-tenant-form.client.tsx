@@ -68,7 +68,7 @@ export function CreateTenantForm() {
 		<Card>
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
-					<User className="w-5 h-5" />
+					<User className="size-5" />
 					Tenant Information
 				</CardTitle>
 			</CardHeader>
@@ -88,7 +88,7 @@ export function CreateTenantForm() {
 									<FieldLabel htmlFor="firstName">First Name</FieldLabel>
 									<InputGroup>
 										<InputGroupAddon align="inline-start">
-											<User className="w-4 h-4" />
+											<User className="size-4" />
 										</InputGroupAddon>
 										<InputGroupInput
 											id="firstName"
@@ -113,7 +113,7 @@ export function CreateTenantForm() {
 									<FieldLabel htmlFor="lastName">Last Name</FieldLabel>
 									<InputGroup>
 										<InputGroupAddon align="inline-start">
-											<User className="w-4 h-4" />
+											<User className="size-4" />
 										</InputGroupAddon>
 										<InputGroupInput
 											id="lastName"
@@ -139,7 +139,7 @@ export function CreateTenantForm() {
 								<FieldLabel htmlFor="email">Email Address</FieldLabel>
 								<InputGroup>
 									<InputGroupAddon align="inline-start">
-										<Mail className="w-4 h-4" />
+										<Mail className="size-4" />
 									</InputGroupAddon>
 									<InputGroupInput
 										id="email"
@@ -165,7 +165,7 @@ export function CreateTenantForm() {
 								<FieldLabel htmlFor="phone">Phone Number</FieldLabel>
 								<InputGroup>
 									<InputGroupAddon align="inline-start">
-										<Phone className="w-4 h-4" />
+										<Phone className="size-4" />
 									</InputGroupAddon>
 									<InputGroupInput
 										id="phone"
@@ -224,7 +224,7 @@ export function CreateTenantForm() {
 							disabled={createMutation.isPending}
 							className="flex items-center gap-2"
 						>
-							<Plus className="w-4 h-4" />
+							<Plus className="size-4" />
 							{createMutation.isPending ? 'Creating...' : 'Create Tenant'}
 						</Button>
 					</div>

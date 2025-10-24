@@ -6,7 +6,7 @@ export default function Footer() {
 			<div className="max-w-7xl mx-auto px-4">
 				<div className="flex justify-center items-center gap-8 text-sm text-muted-foreground">
 					<div className="flex items-center space-x-2">
-						<div className="w-4 h-4 rounded bg-primary flex items-center justify-center">
+						<div className="size-4 rounded bg-primary flex items-center justify-center">
 							<svg
 								viewBox="0 0 24 24"
 								fill="none"

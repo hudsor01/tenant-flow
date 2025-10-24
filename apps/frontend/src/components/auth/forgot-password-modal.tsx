@@ -94,7 +94,7 @@ export function ForgotPasswordModal({
 							<div className="space-y-2">
 								<Label htmlFor="email">Email address</Label>
 								<div className="relative">
-									<Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+									<Mail className="absolute left-3 top-1/2 translate-y-[-50%] size-4 text-muted-foreground" />
 									<Input
 										id="email"
 										name="email"
@@ -111,9 +111,9 @@ export function ForgotPasswordModal({
 								</div>
 							</div>
 
-							<Alert className="border-[var(--color-info-border)] bg-[var(--color-info-background)]">
-								<Info className="h-4 w-4 text-[var(--color-info)]" />
-								<AlertDescription className="text-sm text-[var(--color-info-foreground)]">
+							<Alert className="border-info bg-info/10">
+					<Info className="size-4 text-info" />
+					<AlertDescription className="text-sm text-info-foreground">
 									For security reasons, we&apos;ll always show a success message. If
 									an account exists with this email, you&apos;ll receive password
 									reset instructions.
@@ -137,7 +137,7 @@ export function ForgotPasswordModal({
 								>
 									{resetPasswordMutation.isPending ? (
 										<>
-											<Spinner className="w-4 h-4 mr-2 animate-spin" />
+											<Spinner className="size-4 mr-2 animate-spin" />
 											Sending...
 										</>
 									) : (
@@ -150,8 +150,8 @@ export function ForgotPasswordModal({
 				) : (
 					<>
 						<DialogHeader>
-							<div className="mx-auto mb-4 w-12 h-12 rounded-full bg-[var(--color-success-background)] flex items-center justify-center">
-								<CheckCircle2 className="w-6 h-6 text-[var(--color-success)]" />
+							<div className="mx-auto mb-4 size-12 rounded-full bg-success/10 flex items-center justify-center">
+						<CheckCircle2 className="size-6 text-success" />
 							</div>
 							<DialogTitle className="text-center">
 								Check Your Email
@@ -164,7 +164,7 @@ export function ForgotPasswordModal({
 
 						<div className="space-y-4">
 							<Alert>
-								<Mail className="h-4 w-4" />
+								<Mail className="size-4" />
 								<AlertDescription>
 									<strong>If an account exists with this email</strong>, you&apos;ll
 									receive a password reset link within the next few minutes.

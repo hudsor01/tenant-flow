@@ -43,7 +43,7 @@ export const GoogleButton = forwardRef<HTMLButtonElement, GoogleButtonProps>(
 						buttonClasses('outline', 'lg'),
 						'w-full relative overflow-hidden group',
 						`transition-all duration-[${ANIMATION_DURATIONS.default}] ease-out`,
-						'hover:bg-gradient-to-r hover:from-primary/5 hover:to-accent/5 dark:hover:from-primary/10 dark:hover:to-accent/10',
+						'hover:bg-linear-to-r hover:from-primary/5 hover:to-accent/5 dark:hover:from-primary/10 dark:hover:to-accent/10',
 						'hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]',
 						'active:scale-[0.98] active:shadow-md',
 						'border-2 border-border hover:border-primary dark:hover:border-primary',
@@ -86,7 +86,7 @@ export const GoogleButton = forwardRef<HTMLButtonElement, GoogleButtonProps>(
 					{/* Enhanced gradient hover effect */}
 					<div
 						className={cn(
-							'absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5',
+							'absolute inset-0 bg-linear-to-r from-primary/5 via-accent/5 to-primary/5',
 							'opacity-0 group-hover:opacity-100',
 							`transition-opacity duration-[${ANIMATION_DURATIONS.default}]`
 						)}
@@ -96,15 +96,15 @@ export const GoogleButton = forwardRef<HTMLButtonElement, GoogleButtonProps>(
 				{showTrustIndicators && (
 					<div className="flex items-center justify-center gap-4 mt-2 text-xs text-muted-foreground/60">
 						<div className="flex items-center gap-1">
-							<div className="w-2 h-2 rounded-full bg-primary" />
+							<div className="size-2 rounded-full bg-primary" />
 							<span>Encrypted</span>
 						</div>
 						<div className="flex items-center gap-1">
-							<div className="w-2 h-2 rounded-full bg-primary" />
+							<div className="size-2 rounded-full bg-primary" />
 							<span>No password needed</span>
 						</div>
 						<div className="flex items-center gap-1">
-							<div className="w-2 h-2 rounded-full bg-primary" />
+							<div className="size-2 rounded-full bg-primary" />
 							<span>One-click access</span>
 						</div>
 					</div>
@@ -127,7 +127,7 @@ function HighResGoogleIcon() {
 			height="18"
 			viewBox="0 0 48 48"
 			aria-hidden="true"
-			className="flex-shrink-0"
+			className="shrink-0"
 		>
 			<path
 				fill="var(--color-system-yellow)"

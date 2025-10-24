@@ -154,9 +154,9 @@ const PasswordStrength = React.forwardRef<
 											)}
 										>
 											{passed ? (
-												<Check className="shrink-0 h-4 w-4" />
+												<Check className="shrink-0 size-4" />
 											) : (
-												<X className="shrink-0 h-4 w-4" />
+												<X className="shrink-0 size-4" />
 											)}
 											<span>{rule.label}</span>
 										</li>

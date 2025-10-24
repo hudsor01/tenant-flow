@@ -43,7 +43,7 @@ function ClientFeedback() {
 						<h1>Trusted by Property Managers and Real Estate Professionals</h1>
 					</TimelineContent>
 					<TimelineContent
-						className={'mx-auto text-[var(--color-label-tertiary)]'}
+						className={'mx-auto text-muted-foreground'}
 						animationNum={1}
 						customVariants={revealVariants}
 						timelineRef={testimonialRef}
@@ -54,13 +54,13 @@ function ClientFeedback() {
 						</p>
 					</TimelineContent>
 				</article>
-				<div className="lg:grid lg:grid-cols-3  gap-[var(--spacing-2)] flex flex-col w-full lg:py-6 pt-6 pb-4 lg:px-10 px-4">
-					<div className="md:flex lg:flex-col lg:space-y-2 h-full lg:gap-0 gap-[var(--spacing-2)] ">
+				<div className="lg:grid lg:grid-cols-3  gap-2 flex flex-col w-full lg:py-6 pt-6 pb-4 lg:px-10 px-4">
+					<div className="md:flex lg:flex-col lg:space-y-2 h-full lg:gap-0 gap-2 ">
 						<TimelineContent
 							animationNum={0}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className=" lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
+							className=" lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
 								size={250}
@@ -82,7 +82,7 @@ function ClientFeedback() {
 										<h2 className=" font-semibold lg:text-xl text-sm">
 											Sarah Martinez
 										</h2>
-										<p className="text-[var(--color-label-tertiary)]">
+										<p className="text-muted-foreground">
 											Property Manager, SunSet Apartments
 										</p>
 									</div>
@@ -91,7 +91,7 @@ function ClientFeedback() {
 										alt="Sarah Martinez"
 										width={200}
 										height={200}
-										className="w-16 h-16 rounded object-cover"
+										className="size-16 rounded object-cover"
 										placeholder="blur"
 										blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
 									/>
@@ -102,7 +102,7 @@ function ClientFeedback() {
 							animationNum={1}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className="lg:flex-[3] flex-[4] lg:h-fit  lg:shrink-0 flex flex-col justify-between relative bg-[var(--color-accent-main)] text-primary-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
+							className="lg:flex-[3] flex-[4] lg:h-fit  lg:shrink-0 flex flex-col justify-between relative bg-accent text-primary-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
 								size={200}
@@ -130,7 +130,7 @@ function ClientFeedback() {
 										alt="Michael Chen"
 										width={200}
 										height={200}
-										className="w-16 h-16 rounded object-cover"
+										className="size-16 rounded object-cover"
 										placeholder="blur"
 										blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
 									/>
@@ -138,12 +138,12 @@ function ClientFeedback() {
 							</article>
 						</TimelineContent>
 					</div>
-					<div className="lg:h-full  md:flex lg:flex-col h-fit lg:space-y-2 lg:gap-0 gap-[var(--spacing-2)]">
+					<div className="lg:h-full  md:flex lg:flex-col h-fit lg:space-y-2 lg:gap-0 gap-2">
 						<TimelineContent
 							animationNum={2}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
+							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
 								size={180}
@@ -164,7 +164,7 @@ function ClientFeedback() {
 										<h2 className=" font-semibold lg:text-xl text-lg">
 											Jessica Thompson
 										</h2>
-										<p className="lg:text-base text-sm text-[var(--color-label-tertiary)]">
+										<p className="lg:text-base text-sm text-muted-foreground">
 											CEO, Prime Properties
 										</p>
 									</div>
@@ -173,7 +173,7 @@ function ClientFeedback() {
 										alt="Jessica Thompson"
 										width={200}
 										height={200}
-										className="lg:w-16 lg:h-16 w-12 h-12 rounded object-cover"
+										className="lg:size-16 size-12 rounded object-cover"
 										placeholder="blur"
 										blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
 									/>
@@ -184,7 +184,7 @@ function ClientFeedback() {
 							animationNum={3}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
+							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
 								size={180}
@@ -205,7 +205,7 @@ function ClientFeedback() {
 										<h2 className=" font-semibold lg:text-xl text-lg">
 											David Park
 										</h2>
-										<p className="lg:text-base text-sm text-[var(--color-label-tertiary)]">
+										<p className="lg:text-base text-sm text-muted-foreground">
 											Portfolio Manager
 										</p>
 									</div>
@@ -214,7 +214,7 @@ function ClientFeedback() {
 										alt="David Park"
 										width={200}
 										height={200}
-										className="lg:w-16 lg:h-16 w-12 h-12 rounded object-cover"
+										className="lg:size-16 size-12 rounded object-cover"
 										placeholder="blur"
 										blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
 									/>
@@ -225,7 +225,7 @@ function ClientFeedback() {
 							animationNum={4}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
+							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
 								size={180}
@@ -246,7 +246,7 @@ function ClientFeedback() {
 										<h2 className=" font-semibold lg:text-xl text-lg">
 											Amanda Rodriguez
 										</h2>
-										<p className="lg:text-base text-sm text-[var(--color-label-tertiary)]">
+										<p className="lg:text-base text-sm text-muted-foreground">
 											Regional Property Director
 										</p>
 									</div>
@@ -255,7 +255,7 @@ function ClientFeedback() {
 										alt="Amanda Rodriguez"
 										width={200}
 										height={200}
-										className="lg:w-16 lg:h-16 w-12 h-12 rounded object-cover"
+										className="lg:size-16 size-12 rounded object-cover"
 										placeholder="blur"
 										blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
 									/>
@@ -263,12 +263,12 @@ function ClientFeedback() {
 							</article>
 						</TimelineContent>
 					</div>
-					<div className="h-full md:flex lg:flex-col lg:space-y-2 lg:gap-0 gap-[var(--spacing-2)]">
+					<div className="h-full md:flex lg:flex-col lg:space-y-2 lg:gap-0 gap-2">
 						<TimelineContent
 							animationNum={5}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className=" lg:flex-[3] flex-[4] flex flex-col justify-between relative bg-[var(--color-accent-main)] text-primary-foreground overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
+							className=" lg:flex-[3] flex-[4] flex flex-col justify-between relative bg-accent text-primary-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
 								size={200}
@@ -295,7 +295,7 @@ function ClientFeedback() {
 										alt="Robert Kim"
 										width={200}
 										height={200}
-										className="w-16 h-16 rounded object-cover"
+										className="size-16 rounded object-cover"
 										placeholder="blur"
 										blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
 									/>
@@ -306,7 +306,7 @@ function ClientFeedback() {
 							animationNum={6}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className="lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden rounded border border-[var(--color-separator)] p-5 group"
+							className="lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
 								size={250}
@@ -326,7 +326,7 @@ function ClientFeedback() {
 								<div className="flex justify-between pt-5">
 									<div>
 										<h2 className=" font-semibold text-xl">Lisa Walsh</h2>
-										<p className="text-[var(--color-label-tertiary)]">
+										<p className="text-muted-foreground">
 											Operations Manager, Metro Properties
 										</p>
 									</div>
@@ -335,7 +335,7 @@ function ClientFeedback() {
 										alt="Lisa Walsh"
 										width={200}
 										height={200}
-										className="w-16 h-16 rounded object-cover"
+										className="size-16 rounded object-cover"
 										placeholder="blur"
 										blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
 									/>

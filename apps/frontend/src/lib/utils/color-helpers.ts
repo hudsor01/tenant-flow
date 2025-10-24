@@ -6,13 +6,13 @@ import { cn } from '@/lib/utils'
  */
 export function getActivityColorClass(type: string): string {
 	const colorMap: Record<string, string> = {
-		payment: 'text-[var(--color-metric-success)] bg-[var(--color-metric-success-bg)]',
-		maintenance: 'text-[var(--color-metric-info)] bg-[var(--color-metric-info-bg)]',
-		lease: 'text-[var(--color-metric-primary)] bg-[var(--color-metric-primary-bg)]',
-		property: 'text-[var(--color-metric-revenue)] bg-[var(--color-metric-revenue-bg)]',
-		tenant: 'text-[var(--color-metric-warning)] bg-[var(--color-metric-warning-bg)]'
+		payment: 'text-success bg-success/10',
+		maintenance: 'text-info bg-info/10',
+		lease: 'text-primary bg-primary/10',
+		property: 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950',
+		tenant: 'text-warning bg-warning/10'
 	}
-	return colorMap[type] || 'text-[var(--color-metric-neutral)] bg-[var(--color-metric-neutral-bg)]'
+	return colorMap[type] || 'text-muted-foreground bg-muted'
 }
 
 /**
@@ -21,13 +21,13 @@ export function getActivityColorClass(type: string): string {
  */
 export function getActivityBadgeClass(type: string): string {
 	const colorMap: Record<string, string> = {
-		payment: 'text-[var(--color-metric-success)] bg-[var(--color-metric-success-bg)] border-[var(--color-metric-success-border)]',
-		maintenance: 'text-[var(--color-metric-info)] bg-[var(--color-metric-info-bg)] border-[var(--color-metric-info-border)]',
-		lease: 'text-[var(--color-metric-primary)] bg-[var(--color-metric-primary-bg)] border-[var(--color-metric-primary-border)]',
-		property: 'text-[var(--color-metric-revenue)] bg-[var(--color-metric-revenue-bg)] border-[var(--color-metric-revenue-border)]',
-		tenant: 'text-[var(--color-metric-warning)] bg-[var(--color-metric-warning-bg)] border-[var(--color-metric-warning-border)]'
+		payment: 'text-success bg-success/10 border-success/20',
+		maintenance: 'text-info bg-info/10 border-info/20',
+		lease: 'text-primary bg-primary/10 border-primary/20',
+		property: 'text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-950 dark:border-blue-800',
+		tenant: 'text-warning bg-warning/10 border-warning/20'
 	}
-	return colorMap[type] || 'text-[var(--color-metric-neutral)] bg-[var(--color-metric-neutral-bg)] border-[var(--color-metric-neutral-border)]'
+	return colorMap[type] || 'text-muted-foreground bg-muted border-border'
 }
 
 /**
@@ -37,11 +37,11 @@ export function getActivityBadgeClass(type: string): string {
 export function getTrendColorClass(trend: 'up' | 'down' | 'stable' | string): string {
 	switch (trend) {
 		case 'up':
-			return 'text-[var(--color-metric-success)]'
+			return 'text-success'
 		case 'down':
-			return 'text-[var(--color-metric-warning)]'
+			return 'text-warning'
 		default:
-			return 'text-[var(--color-label-secondary)]'
+			return 'text-muted-foreground'
 	}
 }
 
@@ -51,11 +51,11 @@ export function getTrendColorClass(trend: 'up' | 'down' | 'stable' | string): st
  */
 export function getOccupancyBadgeClass(rate: number): string {
 	if (rate >= 90) {
-		return 'text-[var(--color-metric-success)] border-[var(--color-metric-success-border)]'
+		return 'text-success border-success/20'
 	} else if (rate >= 80) {
-		return 'text-[var(--color-metric-info)] border-[var(--color-metric-info-border)]'
+		return 'text-info border-info/20'
 	} else {
-		return 'text-[var(--color-metric-warning)] border-[var(--color-metric-warning-border)]'
+		return 'text-warning border-warning/20'
 	}
 }
 
@@ -65,14 +65,14 @@ export function getOccupancyBadgeClass(rate: number): string {
  */
 export function getStatusColorClass(status: string): string {
 	const colorMap: Record<string, string> = {
-		ACTIVE: 'text-[var(--color-metric-success)] bg-[var(--color-metric-success-bg)] border-[var(--color-metric-success-border)]',
-		PENDING: 'text-[var(--color-metric-warning)] bg-[var(--color-metric-warning-bg)] border-[var(--color-metric-warning-border)]',
-		INACTIVE: 'text-[var(--color-label-secondary)] bg-[var(--color-fill-secondary)] border-[var(--color-fill-tertiary)]',
-		OVERDUE: 'text-[var(--color-system-red)] bg-[var(--color-system-red-10)] border-[var(--color-system-red-15)]',
-		complete: 'text-[var(--color-success)] bg-[var(--color-success-bg)]',
-		error: 'text-[var(--color-error)] bg-[var(--color-error-background)]'
+		ACTIVE: 'text-success bg-success/10 border-success/20',
+		PENDING: 'text-warning bg-warning/10 border-warning/20',
+		INACTIVE: 'text-muted-foreground bg-muted border-border',
+		OVERDUE: 'text-destructive bg-destructive/10 border-destructive/20',
+		complete: 'text-success bg-success/10',
+		error: 'text-destructive bg-destructive/10'
 	}
-	return colorMap[status] || 'text-[var(--color-label-secondary)] bg-[var(--color-fill-secondary)] border-[var(--color-fill-tertiary)]'
+	return colorMap[status] || 'text-muted-foreground bg-muted border-border'
 }
 
 /**
@@ -80,7 +80,7 @@ export function getStatusColorClass(status: string): string {
  * Creates consistent icon background with color and border
  */
 export function getIconBgClass(type: string): string {
-	const baseClass = 'flex h-10 w-10 items-center justify-center rounded-full border'
+	const baseClass = 'flex size-10 items-center justify-center rounded-full border'
 	const colorClass = getActivityColorClass(type)
 	return cn(baseClass, colorClass)
 }

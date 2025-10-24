@@ -311,7 +311,7 @@ function LeaseCreateDialog() {
 										<FieldLabel htmlFor="rentAmount">Rent Amount (per lease term) *</FieldLabel>
 										<InputGroup>
 											<InputGroupAddon align="inline-start">
-												<DollarSign className="w-4 h-4" />
+												<DollarSign className="size-4" />
 											</InputGroupAddon>
 											<InputGroupInput
 												id="rentAmount"
@@ -338,7 +338,7 @@ function LeaseCreateDialog() {
 										<FieldLabel htmlFor="monthlyRent">Monthly Rent (Optional)</FieldLabel>
 										<InputGroup>
 											<InputGroupAddon align="inline-start">
-												<DollarSign className="w-4 h-4" />
+												<DollarSign className="size-4" />
 											</InputGroupAddon>
 											<InputGroupInput
 												id="monthlyRent"
@@ -362,7 +362,7 @@ function LeaseCreateDialog() {
 										<FieldLabel htmlFor="securityDeposit">Security Deposit *</FieldLabel>
 										<InputGroup>
 											<InputGroupAddon align="inline-start">
-												<DollarSign className="w-4 h-4" />
+												<DollarSign className="size-4" />
 											</InputGroupAddon>
 											<InputGroupInput
 												id="securityDeposit"
@@ -411,7 +411,7 @@ function LeaseCreateDialog() {
 											<FieldLabel htmlFor="lateFeeAmount">Late Fee Amount</FieldLabel>
 											<InputGroup>
 												<InputGroupAddon align="inline-start">
-													<DollarSign className="w-4 h-4" />
+													<DollarSign className="size-4" />
 												</InputGroupAddon>
 												<InputGroupInput
 													id="lateFeeAmount"
@@ -661,7 +661,7 @@ export default function LeasesPage() {
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-						<FileText className="w-8 h-8" />
+						<FileText className="size-8" />
 						Leases
 					</h1>
 					<p className="text-muted-foreground">
@@ -674,7 +674,7 @@ export default function LeasesPage() {
 			{/* Filters */}
 			<div className="flex items-center gap-4">
 				<div className="relative flex-1 max-w-sm">
-					<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+					<Search className="absolute left-3 top-1/2 translate-y-[-50%] size-4 text-muted-foreground" />
 					<Input
 						placeholder="Search leases..."
 						value={search}
@@ -691,7 +691,7 @@ export default function LeasesPage() {
 						setUrlState({ status: newStatus, page: 1 }) // Reset to page 1 on filter change
 					}}
 				>
-					<SelectTrigger className="w-[180px]">
+					<SelectTrigger className="w-45">
 						<SelectValue placeholder="Filter by status" />
 					</SelectTrigger>
 					<SelectContent>
@@ -710,14 +710,14 @@ export default function LeasesPage() {
 			{/* Table */}
 			{isLoading ? (
 				<div className="rounded-lg border p-8 text-center">
-					<div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
+					<div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
 					<p className="mt-2 text-sm text-muted-foreground">
 						Loading leases...
 					</p>
 				</div>
 			) : leases.length === 0 ? (
 				<div className="rounded-lg border p-8 text-center">
-					<FileText className="mx-auto h-12 w-12 text-muted-foreground/50" />
+					<FileText className="mx-auto size-12 text-muted-foreground/50" />
 					<h3 className="mt-4 text-lg font-semibold">No leases found</h3>
 					<p className="mt-2 text-sm text-muted-foreground">
 						{search || status !== 'all'
@@ -764,7 +764,7 @@ export default function LeasesPage() {
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
 												<Button variant="ghost" size="icon">
-													<MoreVertical className="h-4 w-4" />
+													<MoreVertical className="size-4" />
 													<span className="sr-only">Open menu</span>
 												</Button>
 											</DropdownMenuTrigger>
@@ -776,7 +776,7 @@ export default function LeasesPage() {
 														setEditDialogOpen(true)
 													}}
 												>
-													<Edit className="mr-2 h-4 w-4" />
+													<Edit className="mr-2 size-4" />
 													Edit Lease
 												</DropdownMenuItem>
 												{lease.status === 'ACTIVE' && (
@@ -784,13 +784,13 @@ export default function LeasesPage() {
 														<DropdownMenuItem
 															onClick={() => handleRenew(lease.id)}
 														>
-															<RefreshCw className="mr-2 h-4 w-4" />
+															<RefreshCw className="mr-2 size-4" />
 															Renew Lease
 														</DropdownMenuItem>
 														<DropdownMenuItem
 															onClick={() => handleTerminate(lease.id)}
 														>
-															<X className="mr-2 h-4 w-4" />
+															<X className="mr-2 size-4" />
 															Terminate Lease
 														</DropdownMenuItem>
 													</>
@@ -800,7 +800,7 @@ export default function LeasesPage() {
 													onClick={() => handleDelete(lease.id)}
 													className="text-destructive focus:text-destructive"
 												>
-													<Trash2 className="mr-2 h-4 w-4" />
+													<Trash2 className="mr-2 size-4" />
 													Delete
 												</DropdownMenuItem>
 											</DropdownMenuContent>

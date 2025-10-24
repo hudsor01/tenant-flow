@@ -44,7 +44,7 @@ export default async function DashboardPage() {
 			<div className="@container/main flex w-full flex-col min-h-screen bg-linear-to-b from-background to-muted/20">
 				{/* Match regular dashboard structure with proper padding */}
 				<div className="p-6 py-6">
-					<div className="mx-auto max-w-[1600px]">
+					<div className="mx-auto max-w-400">
 						{/* Asymmetric Hero Layout */}
 						<div className="dashboard-cards-container items-center min-h-[calc(100vh-16rem)] gap-6">
 							{/* Left: Hero Content */}
@@ -83,7 +83,7 @@ export default async function DashboardPage() {
 											className="shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
 										>
 											<Link href="/manage/properties/new">
-												<Building2 className="h-5 w-5 mr-2" />
+												<Building2 className="size-5 mr-2" />
 												Add Your First Property
 											</Link>
 										</Button>
@@ -140,13 +140,13 @@ export default async function DashboardPage() {
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-3">
 												<div className="p-3 rounded-lg bg-primary/20 group-hover:bg-primary/30 transition-colors">
-													<Building2 className="h-6 w-6 text-primary" />
+													<Building2 className="size-6 text-primary" />
 												</div>
 												<Badge className="text-xs bg-primary hover:bg-primary/90">
 													Start Here
 												</Badge>
 											</div>
-											<ArrowRight className="h-5 w-5 text-primary group-hover:translate-x-1 transition-transform" />
+											<ArrowRight className="size-5 text-primary group-hover:translate-x-1 transition-transform" />
 										</div>
 										<p className="text-sm text-muted-foreground leading-relaxed mt-3">
 											Start with property details, units, and amenities
@@ -166,7 +166,7 @@ export default async function DashboardPage() {
 											className="hover:bg-accent/50 hover:shadow-md transition-all duration-200 group-hover:scale-[1.02] cursor-pointer h-full"
 										>
 											<div className="p-2.5 rounded-lg bg-primary/10 w-fit group-hover:bg-primary/20 transition-colors">
-												<Users className="h-5 w-5 text-primary" />
+												<Users className="size-5 text-primary" />
 											</div>
 										</CardLayout>
 									</Link>
@@ -181,7 +181,7 @@ export default async function DashboardPage() {
 											className="hover:bg-accent/50 hover:shadow-md transition-all duration-200 group-hover:scale-[1.02] cursor-pointer h-full"
 										>
 											<div className="p-2.5 rounded-lg bg-primary/10 w-fit group-hover:bg-primary/20 transition-colors">
-												<FileText className="h-5 w-5 text-primary" />
+												<FileText className="size-5 text-primary" />
 											</div>
 										</CardLayout>
 									</Link>
@@ -194,19 +194,19 @@ export default async function DashboardPage() {
 								>
 									<div className="space-y-3.5">
 										<div className="flex items-start gap-3 group">
-											<div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0 group-hover:scale-125 transition-transform" />
+											<div className="size-2 rounded-full bg-primary mt-1.5 shrink-0 group-hover:scale-125 transition-transform" />
 											<span className="text-sm text-muted-foreground leading-relaxed">
 												Track rent payments and generate financial reports
 											</span>
 										</div>
 										<div className="flex items-start gap-3 group">
-											<div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0 group-hover:scale-125 transition-transform" />
+											<div className="size-2 rounded-full bg-primary mt-1.5 shrink-0 group-hover:scale-125 transition-transform" />
 											<span className="text-sm text-muted-foreground leading-relaxed">
 												Manage maintenance requests efficiently
 											</span>
 										</div>
 										<div className="flex items-start gap-3 group">
-											<div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0 group-hover:scale-125 transition-transform" />
+											<div className="size-2 rounded-full bg-primary mt-1.5 shrink-0 group-hover:scale-125 transition-transform" />
 											<span className="text-sm text-muted-foreground leading-relaxed">
 												Communicate with tenants in real-time
 											</span>
@@ -224,14 +224,14 @@ export default async function DashboardPage() {
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
 			<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
-				<div className="mx-auto max-w-[1600px] py-4">
+				<div className="mx-auto max-w-400 py-4">
 					<div data-testid="dashboard-stats">
 						<SectionCards stats={stats} />
 					</div>
 				</div>
 			</div>
 			<div className="flex-1 p-6 py-6">
-				<div className="mx-auto max-w-[1600px] space-y-8">
+				<div className="mx-auto max-w-400 space-y-8">
 					<ChartsSection />
 
 					<div className="grid lg:grid-cols-3 gap-6">
