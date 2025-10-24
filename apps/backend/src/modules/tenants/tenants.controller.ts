@@ -13,6 +13,7 @@ import {
 	DefaultValuePipe,
 	Delete,
 	Get,
+	Logger,
 	NotFoundException,
 	Optional,
 	Param,
@@ -32,8 +33,7 @@ import { TenantsService } from './tenants.service'
 
 @Controller('tenants')
 export class TenantsController {
-	// Logger available if needed for debugging
-	// private readonly logger = new Logger(TenantsController.name)
+	private readonly logger = new Logger(TenantsController.name)
 
 	constructor(@Optional() private readonly tenantsService?: TenantsService) {}
 
@@ -133,7 +133,19 @@ export class TenantsController {
 		}
 		// Use Supabase's native auth.getUser() pattern
 		const userId = req.user.id
-		return this.tenantsService.create(userId, createRequest)
+		const tenant = await this.tenantsService.create(userId, createRequest)
+
+		// Auto-send invitation email after tenant creation
+		// This is fire-and-forget to not block the response
+		this.tenantsService.sendTenantInvitation(userId, tenant.id).catch(err => {
+			// Log but don't fail the tenant creation if email fails
+			this.logger.warn('Failed to send invitation email after tenant creation', {
+				tenantId: tenant.id,
+				error: err instanceof Error ? err.message : String(err)
+			})
+		})
+
+		return tenant
 	}
 
 	@Put(':id')

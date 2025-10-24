@@ -1,7 +1,6 @@
 'use client'
 
 import Footer from '@/components/layout/footer'
-
 import FeaturesSectionDemo from '@/components/sections/features-section'
 import { HeroSection } from '@/components/sections/hero-section'
 import { PremiumCta } from '@/components/sections/premium-cta'
