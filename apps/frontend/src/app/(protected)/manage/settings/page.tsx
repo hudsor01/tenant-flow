@@ -1,4 +1,3 @@
-'use client'
 
 import { PasswordUpdateSection } from '@/app/(protected)/settings/password-update-section'
 import { Badge } from '@/components/ui/badge'

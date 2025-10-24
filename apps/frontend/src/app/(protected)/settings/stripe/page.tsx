@@ -1,4 +1,3 @@
-'use client'
 
 
 import { StripeConnectStatus } from '../stripe-connect-onboarding'
