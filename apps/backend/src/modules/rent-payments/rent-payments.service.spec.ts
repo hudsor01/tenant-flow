@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
+import { StripeTenantService } from '../billing/stripe-tenant.service'
 import { RentPaymentsService } from './rent-payments.service'
 
 const createSingleQueryMock = <T>(data: T): any => {
@@ -25,6 +26,12 @@ describe('RentPaymentsService', () => {
 	const mockStripeClientService = {
 		getClient: jest.fn(() => mockStripe)
 	}
+	const mockStripeTenantService = {
+		getStripeCustomerForTenant: jest.fn(),
+		createStripeCustomerForTenant: jest.fn(),
+		attachPaymentMethodToCustomer: jest.fn(),
+		detachPaymentMethodFromCustomer: jest.fn()
+	}
 
 	beforeEach(async () => {
 		adminClient.from.mockReset()
@@ -39,6 +46,10 @@ describe('RentPaymentsService', () => {
 				{
 					provide: StripeClientService,
 					useValue: mockStripeClientService
+				},
+				{
+					provide: StripeTenantService,
+					useValue: mockStripeTenantService
 				}
 			]
 		}).compile()
@@ -138,9 +149,19 @@ describe('RentPaymentsService', () => {
 				}
 			} as unknown as Stripe.Response<Stripe.PaymentIntent>
 
+			const mockStripeCustomer = {
+				id: 'cus_existing',
+				email: 'tenant@example.com',
+				name: 'Test Tenant'
+			} as unknown as Stripe.Customer
+
 			jest
 				.spyOn(service['stripe'].paymentIntents, 'create')
 				.mockResolvedValue(paymentIntent)
+
+			mockStripeTenantService.getStripeCustomerForTenant.mockResolvedValue(
+				mockStripeCustomer
+			)
 		})
 
 		it('creates destination charge and persists rent payment', async () => {

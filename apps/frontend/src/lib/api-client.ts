@@ -71,6 +71,204 @@ function getApiBaseUrl(): string {
 export const API_BASE_URL = getApiBaseUrl()
 
 /**
+ * Server-side API wrapper - requires token from requireSession()
+ * Use in Server Components for authenticated data fetching
+ *
+ * @example
+ * ```tsx
+ * // page.tsx (Server Component)
+ * export default async function MyPage() {
+ *   const { user, accessToken } = await requireSession()
+ *   const serverApi = createServerApi(accessToken)
+ *   const data = await serverApi.properties.list()
+ *   return <MyClientComponent data={data} />
+ * }
+ * ```
+ */
+export const createServerApi = (accessToken: string) => ({
+	properties: {
+		list: (params?: { status?: string }) =>
+			apiClient<Property[]>(
+				`${API_BASE_URL}/api/v1/properties${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`,
+				{ serverToken: accessToken }
+			),
+
+		getPropertiesWithAnalytics: () =>
+			apiClient<PropertyWithUnits[]>(`${API_BASE_URL}/api/v1/properties/with-units`, {
+				serverToken: accessToken
+			}),
+
+		getStats: () =>
+			apiClient<PropertyStats>(`${API_BASE_URL}/api/v1/properties/stats`, {
+				serverToken: accessToken
+			}),
+
+		get: (id: string) =>
+			apiClient<Property>(`${API_BASE_URL}/api/v1/properties/${id}`, {
+				serverToken: accessToken
+			})
+	},
+
+	tenants: {
+		list: (params?: { status?: string }) =>
+			apiClient<TenantWithLeaseInfo[]>(
+				`${API_BASE_URL}/api/v1/tenants${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`,
+				{ serverToken: accessToken }
+			),
+
+		get: (id: string) =>
+			apiClient<TenantWithLeaseInfo>(`${API_BASE_URL}/api/v1/tenants/${id}`, {
+				serverToken: accessToken
+			}),
+
+		getTenantsWithAnalytics: () =>
+			apiClient<TenantWithLeaseInfo[]>(`${API_BASE_URL}/api/v1/tenants/analytics`, {
+				serverToken: accessToken
+			}),
+
+		stats: () =>
+			apiClient<TenantStats>(`${API_BASE_URL}/api/v1/tenants/stats`, {
+				serverToken: accessToken
+			})
+	},
+
+	maintenance: {
+		list: (params?: { status?: string }) =>
+			apiClient<MaintenanceRequestResponse>(
+				`${API_BASE_URL}/api/v1/maintenance${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`,
+				{ serverToken: accessToken }
+			),
+
+		get: (id: string) =>
+			apiClient<MaintenanceRequest>(`${API_BASE_URL}/api/v1/maintenance/${id}`, {
+				serverToken: accessToken
+			}),
+
+		stats: () =>
+			apiClient<MaintenanceStats>(`${API_BASE_URL}/api/v1/maintenance/stats`, {
+				serverToken: accessToken
+			})
+	},
+
+	dashboard: {
+		getStats: () =>
+			apiClient<DashboardStats>(`${API_BASE_URL}/api/v1/dashboard/stats`, {
+				serverToken: accessToken
+			}),
+
+		getActivity: () =>
+			apiClient<{ activities: Activity[] }>(
+				`${API_BASE_URL}/api/v1/dashboard/activity`,
+				{ serverToken: accessToken }
+			),
+
+		getPropertyPerformance: () =>
+			apiClient<PropertyPerformance[]>(
+				`${API_BASE_URL}/api/v1/dashboard/property-performance`,
+				{ serverToken: accessToken }
+			),
+
+		getOccupancyTrends: (months: number = 12) =>
+			apiClient<
+				Array<{
+					month: string
+					occupancy_rate: number
+					total_units: number
+					occupied_units: number
+				}>
+			>(`${API_BASE_URL}/api/v1/dashboard/occupancy-trends?months=${months}`, {
+				serverToken: accessToken
+			}),
+
+		getRevenueTrends: (months: number = 12) =>
+			apiClient<
+				Array<{
+					month: string
+					revenue: number
+					growth: number
+					previous_period_revenue: number
+				}>
+			>(`${API_BASE_URL}/api/v1/dashboard/revenue-trends?months=${months}`, {
+				serverToken: accessToken
+			}),
+
+		getDashboardFinancialStatsCalculated: () =>
+			apiClient<DashboardFinancialStats>(
+				`${API_BASE_URL}/api/v1/financial/analytics/dashboard-metrics`,
+				{ serverToken: accessToken }
+			)
+	},
+
+	leases: {
+		list: (params?: { status?: string }) =>
+			apiClient<Lease[]>(
+				`${API_BASE_URL}/api/v1/leases${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`,
+				{ serverToken: accessToken }
+			),
+
+		get: (id: string) =>
+			apiClient<Lease>(`${API_BASE_URL}/api/v1/leases/${id}`, {
+				serverToken: accessToken
+			}),
+
+		getLeasesWithAnalytics: (status?: string) =>
+			apiClient<Lease[]>(
+				`${API_BASE_URL}/api/v1/leases/analytics${status ? `?status=${encodeURIComponent(status)}` : ''}`,
+				{ serverToken: accessToken }
+			),
+
+		getLeaseFinancialSummary: () =>
+			apiClient<LeaseStatsResponse>(`${API_BASE_URL}/api/v1/leases/financial-summary`, {
+				serverToken: accessToken
+			}),
+
+		stats: () =>
+			apiClient<LeaseStatsResponse>(`${API_BASE_URL}/api/v1/leases/stats`, {
+				serverToken: accessToken
+			})
+	},
+
+	units: {
+		list: (params?: { status?: string }) =>
+			apiClient<Unit[]>(
+				`${API_BASE_URL}/api/v1/units${params?.status ? `?status=${encodeURIComponent(params.status)}` : ''}`,
+				{ serverToken: accessToken }
+			),
+
+		stats: () =>
+			apiClient<{
+				totalUnits: number
+				vacantUnits: number
+				occupiedUnits: number
+				maintenanceUnits: number
+				reservedUnits: number
+				occupancyRate: number
+			}>(`${API_BASE_URL}/api/v1/units/stats`, {
+				serverToken: accessToken
+			})
+	},
+
+	reports: {
+		listSchedules: () =>
+			apiClient<{ data: import('@/lib/api/reports-client').ScheduledReport[] }>(
+				`${API_BASE_URL}/api/v1/reports/schedules`,
+				{ serverToken: accessToken }
+			).then(res => res.data)
+	},
+
+	users: {
+		getCurrentUser: () =>
+			apiClient<{
+				id: string
+				email: string
+				stripeCustomerId: string | null
+			}>(`${API_BASE_URL}/api/v1/users/me`, {
+				serverToken: accessToken
+			})
+	}
+})
+
+/**
  * Dashboard API endpoints
  */
 export const dashboardApi = {
@@ -431,7 +629,32 @@ export const stripeApi = {
 				} | null
 				active: boolean
 			}>
-		}>(`${API_BASE_URL}/api/v1/stripe/prices`)
+		}>(`${API_BASE_URL}/api/v1/stripe/prices`),
+
+	/**
+	 * Create Stripe Checkout Session for subscription purchase
+	 * Official Stripe pattern: checkout session with mode='subscription'
+	 */
+	createCheckoutSession: (params: {
+		priceId: string
+		tenantId: string
+		customerEmail?: string
+		productName: string
+	}) =>
+		apiClient<{
+			url: string
+			session_id: string
+		}>(`${API_BASE_URL}/api/v1/stripe/create-checkout-session`, {
+			method: 'POST',
+			body: JSON.stringify({
+				priceId: params.priceId,
+				tenantId: params.tenantId,
+				customerEmail: params.customerEmail,
+				productName: params.productName,
+				isSubscription: true,
+				domain: typeof window !== 'undefined' ? window.location.origin : ''
+			})
+		})
 }
 
 /**

@@ -2,17 +2,25 @@ import {
 	BadRequestException,
 	Body,
 	Controller,
+	Delete,
+	ForbiddenException,
 	Get,
 	HttpCode,
 	HttpStatus,
 	InternalServerErrorException,
 	Logger,
+	NotFoundException,
 	Param,
 	Post,
 	Query,
+	Request,
 	ServiceUnavailableException,
-	SetMetadata
+	SetMetadata,
+	UnauthorizedException,
+	UseGuards
 } from '@nestjs/common'
+import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 // REMOVED: EventEmitter2, Headers, Req, Request - Webhook endpoint removed
 import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
 import Stripe from 'stripe'
@@ -237,6 +245,269 @@ export class StripeController {
 				customer_id: customerId
 			}
 		} catch (error) {
+			this.handleStripeError(error as Stripe.errors.StripeError)
+		}
+	}
+
+	/**
+	 * Attach payment method to tenant customer
+	 * Phase 4.1: Tenant Portal Payment Method Management
+	 */
+	@Post('attach-tenant-payment-method')
+	@UseGuards(JwtAuthGuard)
+	async attachTenantPaymentMethod(
+		@Request() req: AuthenticatedRequest,
+		@Body() body: { payment_method_id: string; set_as_default?: boolean }
+	) {
+		const userId = req.user?.id
+		if (!userId) {
+			throw new UnauthorizedException('User not authenticated')
+		}
+
+		if (!body.payment_method_id) {
+			throw new BadRequestException('payment_method_id is required')
+		}
+
+		try {
+			// Get tenant record for current user
+			const { data: tenant, error: tenantError } = await this.supabaseService
+				.getAdminClient()
+				.from('tenant')
+				.select('id, stripe_customer_id')
+				.eq('userId', userId)
+				.single()
+
+			if (tenantError || !tenant) {
+				throw new NotFoundException('Tenant record not found')
+			}
+
+			let customerId = tenant.stripe_customer_id
+
+			// Create Stripe customer if doesn't exist
+			if (!customerId) {
+				const { data: user } = await this.supabaseService
+					.getAdminClient()
+					.from('users')
+					.select('email, firstName, lastName')
+					.eq('id', userId)
+					.single()
+
+				const customerName = user
+					? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+					: ''
+
+				const customer = await this.stripe.customers.create({
+					...(user?.email && { email: user.email }),
+					...(customerName && { name: customerName }),
+					metadata: {
+						tenant_id: tenant.id,
+						user_id: userId
+					}
+				})
+
+				customerId = customer.id
+
+				// Update tenant record with Stripe customer ID
+				await this.supabaseService
+					.getAdminClient()
+					.from('tenant')
+					.update({ stripe_customer_id: customerId })
+					.eq('id', tenant.id)
+
+				this.logger.log(`Created Stripe customer for tenant: ${customerId}`, {
+					tenantId: tenant.id,
+					userId
+				})
+			}
+
+			// Attach payment method to customer
+			const paymentMethod = await this.stripe.paymentMethods.attach(
+				body.payment_method_id,
+				{
+					customer: customerId
+				}
+			)
+
+			// Set as default if requested
+			if (body.set_as_default) {
+				await this.stripe.customers.update(customerId, {
+					invoice_settings: {
+						default_payment_method: body.payment_method_id
+					}
+				})
+			}
+
+			this.logger.log(
+				`Payment method ${body.payment_method_id} attached to tenant`,
+				{
+					tenantId: tenant.id,
+					customerId,
+					setAsDefault: body.set_as_default
+				}
+			)
+
+			return {
+				success: true,
+				payment_method: {
+					id: paymentMethod.id,
+					type: paymentMethod.type,
+					card: paymentMethod.card
+						? {
+								brand: paymentMethod.card.brand,
+								last4: paymentMethod.card.last4,
+								exp_month: paymentMethod.card.exp_month,
+								exp_year: paymentMethod.card.exp_year
+							}
+						: null
+				},
+				customer_id: customerId
+			}
+		} catch (error) {
+			this.logger.error('Failed to attach payment method', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				paymentMethodId: body.payment_method_id
+			})
+			this.handleStripeError(error as Stripe.errors.StripeError)
+		}
+	}
+
+	/**
+	 * Get tenant payment methods
+	 * Phase 4.3: Replace custom payment methods table with Stripe API
+	 */
+	@Get('tenant-payment-methods')
+	@UseGuards(JwtAuthGuard)
+	async getTenantPaymentMethods(@Request() req: AuthenticatedRequest) {
+		const userId = req.user?.id
+		if (!userId) {
+			throw new UnauthorizedException('User not authenticated')
+		}
+
+		try {
+			// Get tenant record with Stripe customer ID
+			const { data: tenant, error: tenantError } = await this.supabaseService
+				.getAdminClient()
+				.from('tenant')
+				.select('id, stripe_customer_id')
+				.eq('userId', userId)
+				.single()
+
+			if (tenantError || !tenant || !tenant.stripe_customer_id) {
+				// No Stripe customer yet - return empty array
+				return {
+					payment_methods: [],
+					default_payment_method: null
+				}
+			}
+
+			// Get customer to find default payment method
+			const customer = await this.stripe.customers.retrieve(
+				tenant.stripe_customer_id
+			)
+
+			if (customer.deleted) {
+				return {
+					payment_methods: [],
+					default_payment_method: null
+				}
+			}
+
+			// Get all payment methods for this customer
+			const paymentMethods = await this.stripe.paymentMethods.list({
+				customer: tenant.stripe_customer_id,
+				type: 'card'
+			})
+
+			const defaultPaymentMethodId =
+				typeof customer.invoice_settings.default_payment_method === 'string'
+					? customer.invoice_settings.default_payment_method
+					: customer.invoice_settings.default_payment_method?.id
+
+			// Transform to match PaymentMethodResponse type (flattened structure)
+			return {
+				payment_methods: paymentMethods.data.map(pm => ({
+					id: pm.id,
+					tenantId: tenant.id,
+					stripePaymentMethodId: pm.id,
+					type: pm.type,
+					last4: pm.card?.last4 || null,
+					brand: pm.card?.brand || null,
+					bankName: null, // Cards don't have bank names, only bank_account type does
+					isDefault: pm.id === defaultPaymentMethodId,
+					createdAt: new Date(pm.created * 1000).toISOString()
+				})),
+				default_payment_method: defaultPaymentMethodId
+			}
+		} catch (error) {
+			this.logger.error('Failed to retrieve payment methods', {
+				error: error instanceof Error ? error.message : String(error),
+				userId
+			})
+			this.handleStripeError(error as Stripe.errors.StripeError)
+		}
+	}
+
+	/**
+	 * Remove tenant payment method
+	 * Phase 4.3: Payment method management
+	 */
+	@Delete('tenant-payment-methods/:payment_method_id')
+	@UseGuards(JwtAuthGuard)
+	async removeTenantPaymentMethod(
+		@Request() req: AuthenticatedRequest,
+		@Param('payment_method_id') paymentMethodId: string
+	) {
+		const userId = req.user?.id
+		if (!userId) {
+			throw new UnauthorizedException('User not authenticated')
+		}
+
+		if (!paymentMethodId) {
+			throw new BadRequestException('payment_method_id is required')
+		}
+
+		try {
+			// Verify tenant owns this payment method
+			const { data: tenant } = await this.supabaseService
+				.getAdminClient()
+				.from('tenant')
+				.select('stripe_customer_id')
+				.eq('userId', userId)
+				.single()
+
+			if (!tenant?.stripe_customer_id) {
+				throw new NotFoundException('Tenant Stripe customer not found')
+			}
+
+			// Verify payment method belongs to this customer
+			const paymentMethod =
+				await this.stripe.paymentMethods.retrieve(paymentMethodId)
+
+			if (paymentMethod.customer !== tenant.stripe_customer_id) {
+				throw new ForbiddenException(
+					'Payment method does not belong to this customer'
+				)
+			}
+
+			// Detach payment method
+			await this.stripe.paymentMethods.detach(paymentMethodId)
+
+			this.logger.log(`Payment method ${paymentMethodId} detached`, {
+				userId,
+				customerId: tenant.stripe_customer_id
+			})
+
+			return {
+				success: true,
+				message: 'Payment method removed successfully'
+			}
+		} catch (error) {
+			this.logger.error('Failed to remove payment method', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				paymentMethodId
+			})
 			this.handleStripeError(error as Stripe.errors.StripeError)
 		}
 	}

@@ -343,6 +343,7 @@ export function createMockTenant(overrides?: Partial<Tenant>): Tenant {
 		invitation_sent_at: overrides?.invitation_sent_at || null,
 		invitation_accepted_at: overrides?.invitation_accepted_at || null,
 		invitation_expires_at: overrides?.invitation_expires_at || null,
+		stripe_customer_id: overrides?.stripe_customer_id || null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 		...overrides
@@ -369,6 +370,7 @@ export function createMockLease(overrides?: Partial<Lease>): Lease {
 		status:
 			(overrides?.status as Database['public']['Enums']['LeaseStatus']) ||
 			'ACTIVE',
+		stripe_subscription_id: overrides?.stripe_subscription_id || null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 		...overrides

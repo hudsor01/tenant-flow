@@ -120,3 +120,75 @@ export interface StripeProductWithPricing {
 	}
 	defaultPrice: StripePrice | null
 }
+
+// Tenant Payment Types
+
+/**
+ * Parameters for creating a Stripe Customer for a Tenant
+ */
+export interface CreateTenantCustomerParams {
+	tenantId: string
+	email: string
+	name?: string
+	phone?: string
+	metadata?: Record<string, string>
+}
+
+/**
+ * Parameters for attaching a payment method to a Tenant's Stripe Customer
+ */
+export interface AttachPaymentMethodParams {
+	tenantId: string
+	paymentMethodId: string
+	setAsDefault?: boolean
+}
+
+/**
+ * Parameters for setting up autopay (recurring rent subscription) for a Tenant
+ */
+export interface SetupTenantAutopayParams {
+	tenantId: string
+	leaseId: string
+	paymentMethodId?: string
+}
+
+/**
+ * Parameters for canceling autopay for a Tenant
+ */
+export interface CancelTenantAutopayParams {
+	tenantId: string
+	leaseId: string
+}
+
+/**
+ * Parameters for getting autopay status for a Tenant
+ */
+export interface GetAutopayStatusParams {
+	tenantId: string
+	leaseId: string
+}
+
+/**
+ * Response from autopay status query
+ */
+export interface TenantAutopayStatusResponse {
+	enabled: boolean
+	subscriptionId: string | null
+	status: string | null
+	nextPaymentDate: string | null
+}
+
+/**
+ * Response from setting up autopay
+ */
+export interface SetupTenantAutopayResponse {
+	subscriptionId: string
+	status: string
+}
+
+/**
+ * Response from canceling autopay
+ */
+export interface CancelTenantAutopayResponse {
+	success: boolean
+}
