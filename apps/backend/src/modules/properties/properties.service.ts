@@ -127,7 +127,10 @@ export class PropertiesService {
 		) {
 			throw new BadRequestException('City, state, and zip code are required')
 		}
-		if (!VALID_PROPERTY_TYPES.includes(request.propertyType as PropertyType)) {
+		if (
+			request.propertyType &&
+			!VALID_PROPERTY_TYPES.includes(request.propertyType as PropertyType)
+		) {
 			throw new BadRequestException('Invalid property type')
 		}
 

@@ -1,14 +1,19 @@
-import type { Metadata } from 'next'
+import { Button } from '@/components/ui/button'
+import {
+	Card,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
+import { tenantsApi } from '@/lib/api-client'
 import { requireSession } from '@/lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { tenantsApi } from '@/lib/api-client'
-import { Button } from '@/components/ui/button'
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus } from 'lucide-react'
-import Link from 'next/link'
 import type { TenantStats, TenantWithLeaseInfo } from '@repo/shared/types/core'
-import { TenantsTableClient } from './tenants-table.client'
+import { Plus } from 'lucide-react'
+import type { Metadata } from 'next'
+import Link from 'next/link'
 import { columns } from './columns'
+import { TenantsTableClient } from './tenants-table.client'
 
 export const metadata: Metadata = {
 	title: 'Tenants | TenantFlow',
@@ -43,11 +48,13 @@ export default async function TenantsPage() {
 	}
 
 	return (
-		<div className="space-y-8">
-			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-				<div className="space-y-2">
-					<h1 className="text-2xl font-bold tracking-tight">Tenants</h1>
-					<p className="text-muted-foreground">Manage your property tenants and their lease information.</p>
+		<div className="flex-1 flex flex-col gap-8 px-8 py-6">
+			<div className="flex items-center justify-between">
+				<div>
+					<h1 className="text-3xl font-bold tracking-tight">Tenants</h1>
+					<p className="text-muted-foreground">
+						Manage your property tenants and their lease information.
+					</p>
 				</div>
 				<Button asChild>
 					<Link href="/manage/tenants/new">
@@ -58,35 +65,46 @@ export default async function TenantsPage() {
 			</div>
 
 			{/* Stats Cards */}
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
 				<Card>
 					<CardHeader>
 						<CardDescription>Total Tenants</CardDescription>
-						<CardTitle className="text-2xl font-semibold">{stats.total ?? tenants.length}</CardTitle>
+						<CardTitle className="text-2xl font-semibold">
+							{stats.total ?? tenants.length}
+						</CardTitle>
 					</CardHeader>
 				</Card>
 				<Card>
 					<CardHeader>
 						<CardDescription>Active Tenants</CardDescription>
-						<CardTitle className="text-2xl font-semibold">{stats.active ?? 0}</CardTitle>
+						<CardTitle className="text-2xl font-semibold">
+							{stats.active ?? 0}
+						</CardTitle>
 					</CardHeader>
 				</Card>
 				<Card>
 					<CardHeader>
 						<CardDescription>Current Payments</CardDescription>
-						<CardTitle className="text-2xl font-semibold">{stats.currentPayments ?? 0}</CardTitle>
+						<CardTitle className="text-2xl font-semibold">
+							{stats.currentPayments ?? 0}
+						</CardTitle>
 					</CardHeader>
 				</Card>
 				<Card>
 					<CardHeader>
 						<CardDescription>Late Payments</CardDescription>
-						<CardTitle className="text-2xl font-semibold text-destructive">{stats.latePayments ?? 0}</CardTitle>
+						<CardTitle className="text-2xl font-semibold text-destructive">
+							{stats.latePayments ?? 0}
+						</CardTitle>
 					</CardHeader>
 				</Card>
 			</div>
 
 			{/* Client Component for Delete Functionality */}
-			<TenantsTableClient columns={columns} initialTenants={tenants} />
+			<section className="flex flex-col gap-4">
+				<h2 className="text-xl font-semibold">Tenant Directory</h2>
+				<TenantsTableClient columns={columns} initialTenants={tenants} />
+			</section>
 		</div>
 	)
 }

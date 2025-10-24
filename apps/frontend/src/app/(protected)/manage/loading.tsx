@@ -13,18 +13,14 @@ export default function DashboardLoading() {
 				} as React.CSSProperties
 			}
 		>
-			<AppSidebar variant="inset" />
+			<AppSidebar />
 			<SidebarInset>
 				<SiteHeader />
 				<div className="flex flex-1 flex-col">
 					<div className="@container/main flex min-h-screen w-full flex-col">
 						{/* Stats Cards Skeleton */}
-						<div
-							className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]"
-						>
-							<div
-								className="mx-auto max-w-400 py-4"
-							>
+						<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
+							<div className="mx-auto py-4">
 								<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 									{[...Array(4)].map((_, i) => (
 										<div
@@ -44,10 +40,8 @@ export default function DashboardLoading() {
 						</div>
 
 						{/* Main Content Skeleton */}
-						<div
-							className="flex-1 p-6 py-6"
-						>
-							<div className="mx-auto max-w-400 space-y-8">
+						<div className="flex-1 p-6 py-6">
+							<div className="mx-auto space-y-8">
 								{/* Charts Skeleton */}
 								<div className="grid grid-cols-1 @3xl/main:grid-cols-3 gap-8">
 									<div className="@3xl/main:col-span-2 rounded-lg border-2 border-border/50 bg-card p-6 animate-pulse">
@@ -61,9 +55,7 @@ export default function DashboardLoading() {
 								</div>
 
 								{/* Activity and Quick Actions Skeleton */}
-								<div
-									className="grid lg:grid-cols-3 gap-6"
-								>
+								<div className="grid lg:grid-cols-3 gap-6">
 									<div className="lg:col-span-2 space-y-6">
 										{/* Activity Skeleton */}
 										<div className="rounded-lg border-2 border-border/50 bg-card animate-pulse">
