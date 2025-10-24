@@ -1,5 +1,11 @@
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
 import { CheckCircle2, XCircle, Clock } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -18,7 +24,7 @@ export default async function TenantInvitationPage({ params }: PageProps) {
 	// Validate token format (basic check before API call)
 	if (!token || token.length < 32) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted px-4">
+			<div className="min-h-screen flex items-center justify-center bg-linear-to-b from-background to-muted px-4">
 				<Card className="max-w-md w-full">
 					<CardHeader className="text-center">
 						<div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-destructive/10">
@@ -31,7 +37,8 @@ export default async function TenantInvitationPage({ params }: PageProps) {
 					</CardHeader>
 					<CardContent className="text-center">
 						<p className="text-sm text-muted-foreground mb-4">
-							Please check the link in your email and try again, or contact your property manager for a new invitation.
+							Please check the link in your email and try again, or contact your
+							property manager for a new invitation.
 						</p>
 						<Button asChild className="w-full">
 							<Link href="/login">Go to Login</Link>
@@ -69,7 +76,7 @@ export default async function TenantInvitationPage({ params }: PageProps) {
 		invitationData = await response.json()
 	} catch {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted px-4">
+			<div className="min-h-screen flex items-center justify-center bg-linear-to-b from-background to-muted px-4">
 				<Card className="max-w-md w-full">
 					<CardHeader className="text-center">
 						<div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-destructive/10">
@@ -82,7 +89,8 @@ export default async function TenantInvitationPage({ params }: PageProps) {
 					</CardHeader>
 					<CardContent className="text-center">
 						<p className="text-sm text-muted-foreground mb-4">
-							This invitation may have been revoked or deleted. Please contact your property manager for assistance.
+							This invitation may have been revoked or deleted. Please contact
+							your property manager for assistance.
 						</p>
 						<Button asChild className="w-full">
 							<Link href="/login">Go to Login</Link>
@@ -96,24 +104,24 @@ export default async function TenantInvitationPage({ params }: PageProps) {
 	// Handle expired invitation
 	if (invitationData.expired) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted px-4">
+			<div className="min-h-screen flex items-center justify-center bg-linear-to-b from-background to-muted px-4">
 				<Card className="max-w-md w-full">
 					<CardHeader className="text-center">
 						<div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-orange-500/10">
 							<Clock className="size-6 text-orange-500" />
 						</div>
 						<CardTitle>Invitation Expired</CardTitle>
-						<CardDescription>
-							This invitation link has expired.
-						</CardDescription>
+						<CardDescription>This invitation link has expired.</CardDescription>
 					</CardHeader>
 					<CardContent className="text-center">
 						<p className="text-sm text-muted-foreground mb-4">
-							Invitation links expire after 7 days for security reasons. Please contact your property manager to request a new invitation.
+							Invitation links expire after 7 days for security reasons. Please
+							contact your property manager to request a new invitation.
 						</p>
 						{invitationData.expires_at && (
 							<p className="text-xs text-muted-foreground mb-4">
-								Expired on: {new Date(invitationData.expires_at).toLocaleDateString()}
+								Expired on:{' '}
+								{new Date(invitationData.expires_at).toLocaleDateString()}
 							</p>
 						)}
 						<Button asChild className="w-full">
@@ -128,7 +136,7 @@ export default async function TenantInvitationPage({ params }: PageProps) {
 	// Handle already accepted invitation
 	if (invitationData.already_accepted) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted px-4">
+			<div className="min-h-screen flex items-center justify-center bg-linear-to-b from-background to-muted px-4">
 				<Card className="max-w-md w-full">
 					<CardHeader className="text-center">
 						<div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-green-500/10">
@@ -154,12 +162,14 @@ export default async function TenantInvitationPage({ params }: PageProps) {
 
 	// Valid invitation - redirect to signup with token
 	if (invitationData.valid) {
-		redirect(`/signup?invitation=${token}&email=${encodeURIComponent(invitationData.tenant_email || '')}`)
+		redirect(
+			`/signup?invitation=${token}&email=${encodeURIComponent(invitationData.tenant_email || '')}`
+		)
 	}
 
 	// Fallback error state
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted px-4">
+		<div className="min-h-screen flex items-center justify-center bg-linear-to-b from-background to-muted px-4">
 			<Card className="max-w-md w-full">
 				<CardHeader className="text-center">
 					<div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-destructive/10">

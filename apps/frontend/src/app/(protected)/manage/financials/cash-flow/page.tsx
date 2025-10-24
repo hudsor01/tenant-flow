@@ -51,7 +51,7 @@ async function getCashFlowStatement(
 
 export default async function CashFlowPage() {
 	// Server-side auth
-	const user = await requireSession()
+	const { user } = await requireSession()
 	const logger = createLogger({ component: 'CashFlowPage', userId: user.id })
 
 	// Default to current month

@@ -58,7 +58,7 @@ async function getBalanceSheet(
 
 export default async function BalanceSheetPage() {
 	// Server-side auth
-	const user = await requireSession()
+	const { user } = await requireSession()
 	const logger = createLogger({ component: 'BalanceSheetPage', userId: user.id })
 
 	// Default to today's date

@@ -1,9 +1,8 @@
 /**
  * Shared API client using native fetch
+ * Works in BOTH browser and server contexts
  * Follows backend error handling standards from global-exception.filter.ts
- * 30 lines max - native functionality only
  */
-import { createBrowserClient } from '@supabase/ssr'
 import type { Json } from '../types/supabase-generated.js'
 
 export interface FetchResponse<T = Json> {
@@ -14,30 +13,47 @@ export interface FetchResponse<T = Json> {
 	statusCode?: number
 }
 
+/**
+ * Universal API client that works in both server and browser
+ * - Browser: Gets token from Supabase session automatically
+ * - Server: Expects token via serverToken option
+ */
 export async function apiClient<T = Json>(
 	url: string,
-	options?: RequestInit
+	options?: RequestInit & { serverToken?: string }
 ): Promise<T> {
-	const supabase = createBrowserClient(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-	)
-	const {
-		data: { session }
-	} = await supabase.auth.getSession()
+	// Get token from whatever environment we're in
+	let token: string | undefined
+
+	if (typeof window !== 'undefined') {
+		// ✅ BROWSER: Use Supabase session
+		const { createBrowserClient } = await import('@supabase/ssr')
+		const supabase = createBrowserClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+		)
+		const {
+			data: { session }
+		} = await supabase.auth.getSession()
+		token = session?.access_token
+	} else {
+		// ✅ SERVER: Use passed token
+		token = options?.serverToken
+	}
 
 	const baseHeaders: Record<string, string> = {
 		'Content-Type': 'application/json'
+	}
+
+	// Add authorization header if token exists
+	if (token) {
+		baseHeaders['Authorization'] = `Bearer ${token}`
 	}
 
 	// Add custom headers if provided
 	if (options?.headers) {
 		const customHeaders = options.headers as Record<string, string>
 		Object.assign(baseHeaders, customHeaders)
-	}
-
-	if (session) {
-		baseHeaders['Authorization'] = `Bearer ${session.access_token}`
 	}
 
 	const response = await fetch(url, {
@@ -93,10 +109,25 @@ export async function apiClient<T = Json>(
 	return (data.data ?? data) as T
 }
 
-// Convenience methods
-export const get = <T>(url: string) => apiClient<T>(url)
-export const post = <T>(url: string, body: Json) =>
-	apiClient<T>(url, { method: 'POST', body: JSON.stringify(body) })
-export const put = <T>(url: string, body: Json) =>
-	apiClient<T>(url, { method: 'PUT', body: JSON.stringify(body) })
-export const del = <T>(url: string) => apiClient<T>(url, { method: 'DELETE' })
+// Convenience methods with optional serverToken support
+export const get = <T>(url: string, serverToken?: string) =>
+	apiClient<T>(url, serverToken ? { serverToken } : undefined)
+
+export const post = <T>(url: string, body: Json, serverToken?: string) =>
+	apiClient<T>(
+		url,
+		serverToken
+			? { method: 'POST', body: JSON.stringify(body), serverToken }
+			: { method: 'POST', body: JSON.stringify(body) }
+	)
+
+export const put = <T>(url: string, body: Json, serverToken?: string) =>
+	apiClient<T>(
+		url,
+		serverToken
+			? { method: 'PUT', body: JSON.stringify(body), serverToken }
+			: { method: 'PUT', body: JSON.stringify(body) }
+	)
+
+export const del = <T>(url: string, serverToken?: string) =>
+	apiClient<T>(url, serverToken ? { method: 'DELETE', serverToken } : { method: 'DELETE' })

@@ -9,7 +9,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { propertiesApi } from '@/lib/api-client'
+import { createServerApi } from '@/lib/api-client'
 import { requireSession } from '@/lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
@@ -25,10 +25,11 @@ export const metadata: Metadata = {
 
 export default async function PropertiesPage() {
 	// ✅ Server-side auth - NO client flash, instant 307 redirect
-	const user = await requireSession()
+	const { user, accessToken } = await requireSession()
 
-	// ✅ Server Component: Fetch data on server during RSC render
-	// Harden against API errors so server render doesn't throw when there is no data
+	// ✅ Create authenticated server API client
+	const serverApi = createServerApi(accessToken)
+
 	const logger = createLogger({ component: 'PropertiesPage', userId: user.id })
 
 	let properties: Property[] = []
@@ -42,12 +43,13 @@ export default async function PropertiesPage() {
 	}
 
 	try {
-		const result = await Promise.all([
-			propertiesApi.list(),
-			propertiesApi.getStats()
+		// ✅ Fetch data with authenticated server API
+		const [propertiesData, statsData] = await Promise.all([
+			serverApi.properties.list(),
+			serverApi.properties.getStats()
 		])
-		properties = result[0] ?? []
-		stats = result[1] ?? stats
+		properties = propertiesData
+		stats = statsData
 	} catch (err) {
 		// Log server-side; avoid throwing to prevent resetting the RSC tree
 		logger.warn('Failed to fetch properties or stats for PropertiesPage', {

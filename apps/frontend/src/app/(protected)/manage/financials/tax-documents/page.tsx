@@ -58,7 +58,7 @@ async function getTaxDocuments(
 
 export default async function TaxDocumentsPage() {
 	// Server-side auth
-	const user = await requireSession()
+	const { user } = await requireSession()
 	const logger = createLogger({ component: 'TaxDocumentsPage', userId: user.id })
 
 	// Default to previous tax year

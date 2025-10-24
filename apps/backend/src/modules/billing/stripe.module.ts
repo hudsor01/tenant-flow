@@ -7,6 +7,7 @@ import { StripeDataService } from './stripe-data.service'
 // REMOVED: StripeEventProcessor - Event processing now handled by Stripe Sync Engine
 import { StripeRecoveryService } from './stripe-recovery.service'
 import { StripeSyncService } from './stripe-sync.service'
+import { StripeTenantService } from './stripe-tenant.service'
 import { StripeWebhookService } from './stripe-webhook.service'
 import { StripeController } from './stripe.controller'
 import { StripeService } from './stripe.service'
@@ -43,12 +44,15 @@ import { StripeService } from './stripe.service'
 		StripeRecoveryService,
 
 		// Subscription-based access control service
-		StripeAccessControlService
+		StripeAccessControlService,
+
+		// Tenant Stripe management service
+		StripeTenantService
 
 		// REMOVED: EventEmitter2 - Event emission now handled by Stripe Sync Engine
 	],
 	controllers: [
-		StripeController // Single production-grade controller with all Stripe functionality
+		StripeController // Main Stripe controller
 	],
 	exports: [
 		StripeService,
@@ -57,7 +61,8 @@ import { StripeService } from './stripe.service'
 		StripeWebhookService,
 		// REMOVED: StripeEventProcessor - Event processing now handled by Stripe Sync Engine
 		StripeRecoveryService,
-		StripeAccessControlService
+		StripeAccessControlService,
+		StripeTenantService
 	]
 })
 export class StripeModule {}

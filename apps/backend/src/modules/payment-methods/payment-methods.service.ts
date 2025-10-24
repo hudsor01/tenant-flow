@@ -263,50 +263,60 @@ export class PaymentMethodsService {
 	 * Mark a tenant payment method as the default option.
 	 */
 	async setDefaultPaymentMethod(userId: string, paymentMethodId: string) {
-		const adminClient = this.supabase.getAdminClient()
-
-		const { data: paymentMethod, error: fetchError } = await adminClient
-			.from('tenant_payment_method')
-			.select('id')
-			.eq('id', paymentMethodId)
-			.eq('tenantId', userId)
+		// Get tenant with Stripe customer ID
+		const { data: tenant, error: tenantError } = await this.supabase
+			.getAdminClient()
+			.from('tenant')
+			.select('id, stripe_customer_id')
+			.eq('userId', userId)
 			.single()
 
-		if (fetchError || !paymentMethod) {
-			this.logger.warn(
-				'Attempt to set default for non-existent payment method',
-				{
-					userId,
-					paymentMethodId,
-					error: fetchError?.message
-				}
-			)
-			throw new NotFoundException('Payment method not found')
+		if (tenantError || !tenant) {
+			this.logger.warn('Tenant not found for user', {
+				userId,
+				error: tenantError?.message
+			})
+			throw new NotFoundException('Tenant not found')
 		}
 
-		const now = new Date().toISOString()
+		if (!tenant.stripe_customer_id) {
+			this.logger.warn('No Stripe customer for tenant', {
+				userId,
+				tenantId: tenant.id
+			})
+			throw new BadRequestException('No Stripe customer found for tenant')
+		}
 
-		await adminClient
-			.from('tenant_payment_method')
-			.update({ isDefault: false, updatedAt: now })
-			.eq('tenantId', userId)
+		try {
+			// Verify payment method belongs to this customer
+			const paymentMethod = await this.stripe.paymentMethods.retrieve(paymentMethodId)
 
-		const { error } = await adminClient
-			.from('tenant_payment_method')
-			.update({ isDefault: true, updatedAt: now })
-			.eq('id', paymentMethodId)
-			.eq('tenantId', userId)
+			if (paymentMethod.customer !== tenant.stripe_customer_id) {
+				throw new BadRequestException('Payment method does not belong to this customer')
+			}
 
-		if (error) {
-			this.logger.error('Failed to update default payment method', {
+			// Set as default on Stripe customer
+			await this.stripe.customers.update(tenant.stripe_customer_id, {
+				invoice_settings: {
+					default_payment_method: paymentMethodId
+				}
+			})
+
+			this.logger.log('Set default payment method via Stripe API', {
+				userId,
+				tenantId: tenant.id,
+				paymentMethodId
+			})
+
+			return { success: true }
+		} catch (error) {
+			this.logger.error('Failed to set default payment method', {
 				userId,
 				paymentMethodId,
-				error: error.message
+				error: error instanceof Error ? error.message : String(error)
 			})
 			throw new BadRequestException('Failed to set default payment method')
 		}
-
-		return { success: true }
 	}
 
 	/**

@@ -265,13 +265,13 @@ export function useCreateProperty() {
 			queryClient.setQueriesData<{ data: Property[]; total: number }>(
 				{ queryKey: propertiesKeys.all },
 				old =>
-					old
-						? {
-								...old,
-								data: [optimisticProperty, ...old.data],
-								total: old.total + 1
-							}
-						: { data: [optimisticProperty], total: 1 }
+					old && Array.isArray(old.data)
+					? {
+							...old,
+							data: [optimisticProperty, ...old.data],
+							total: old.total + 1
+						}
+					: { data: [optimisticProperty], total: 1 }
 			)
 
 			return { previousLists, tempId }
@@ -302,7 +302,7 @@ export function useCreateProperty() {
 			queryClient.setQueriesData<{ data: Property[]; total: number }>(
 				{ queryKey: propertiesKeys.all },
 				old => {
-					if (!old) return { data: [data], total: 1 }
+					if (!old || !Array.isArray(old.data)) return { data: [data], total: 1 }
 					return {
 						...old,
 						data: old.data.map(property =>
@@ -375,7 +375,7 @@ export function useUpdateProperty() {
 			queryClient.setQueriesData<{ data: Property[]; total: number }>(
 				{ queryKey: propertiesKeys.all },
 				old => {
-					if (!old) return old
+					if (!old || !Array.isArray(old.data)) return old
 					return {
 						...old,
 						data: old.data.map(property =>
@@ -424,7 +424,7 @@ export function useUpdateProperty() {
 			queryClient.setQueriesData<{ data: Property[]; total: number }>(
 				{ queryKey: propertiesKeys.all },
 				old => {
-					if (!old) return old
+					if (!old || !Array.isArray(old.data)) return old
 					return {
 						...old,
 						data: old.data.map(property =>

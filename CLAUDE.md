@@ -52,43 +52,102 @@ You must follow PostgreSQL conventions: write SQL keywords in lowercase, choose 
 
 **PHILOSOPHY**: Server-first with selective client-side hydration. No mock data, all data from API endpoints.
 
-### Primary Pattern: Server Components + Server Actions
+**📚 COMPLETE REFERENCE**: See [apps/frontend/API_PATTERNS.md](apps/frontend/API_PATTERNS.md) for comprehensive API architecture documentation.
 
-**Data Fetching**: Use Server Components with `async/await` for initial page loads
+### Universal API Client (Single Source of Truth)
+
+**ALL API calls MUST use the standardized apiClient**:
+- **Location**: `packages/shared/src/utils/api-client.ts`
+- **Auto-detects environment**: Browser (session token) vs Server (passed token)
+- **Response unwrapping**: Handles both `{data: {...}}` and `{...}` formats
+- **Type-safe**: TypeScript generics for all responses
+
+```typescript
+// ✅ CORRECT - Use standardized client
+import { propertiesApi } from '@/lib/api-client'
+const properties = await propertiesApi.list()
+
+// ❌ WRONG - Creates orphaned routes
+const properties = await fetch('/api/v1/properties')
+```
+
+### Primary Pattern: Server Components + TanStack Query
+
+**Data Fetching**: Server Components with `createServerApi(accessToken)` for initial loads
 ```typescript
 // page.tsx (Server Component)
+import { createServerApi } from '@/lib/api-client'
+import { requireSession } from '@/lib/server-auth'
+
 export default async function PropertiesPage() {
-  const properties = await getPropertiesPageData() // Direct API call
-  return <PropertiesTableClient initialData={properties} />
+  const { accessToken } = await requireSession()
+  const serverApi = createServerApi(accessToken)
+
+  const [properties, stats] = await Promise.all([
+    serverApi.properties.list(),
+    serverApi.properties.getStats()
+  ])
+
+  return <PropertiesTableClient initialData={properties} stats={stats} />
 }
 ```
 
-**Mutations**: Use Server Actions with `useOptimistic()` for instant UI feedback
+**Mutations**: TanStack Query hooks in Client Components
 ```typescript
-// page.tsx (Server Action)
-async function deletePropertyAction(id: string) {
-  'use server'
-  await propertiesApi.remove(id)
-  revalidatePath('/manage/properties')
-}
-
 // Client Component
-const [optimisticProperties, removeOptimistic] = useOptimistic(...)
+'use client'
+import { useCreateProperty } from '@/hooks/api/use-properties'
+
+export function PropertiesTableClient({ initialData }) {
+  const { mutate: createProperty } = useCreateProperty()
+
+  return (
+    <Button onClick={() => createProperty({ name: 'New Property' })}>
+      Create Property
+    </Button>
+  )
+}
 ```
 
-**Benefits**: 0 client JavaScript for data fetching, SEO-friendly, instant mutations with `useOptimistic`, automatic revalidation with `revalidatePath()`
+**Benefits**:
+- Zero client JavaScript for data fetching
+- SEO-friendly
+- Automatic caching and invalidation via TanStack Query
+- Type-safe end-to-end
+- No orphaned API routes
 
-### Secondary Pattern: TanStack Query (Client-Side Only)
+### Secondary Pattern: Server Actions + useOptimistic (Optional)
 
 **Use ONLY for**:
-- Infinite scroll (`useInfiniteQuery`)
-- Real-time polling (`refetchInterval`)
-- Client-heavy dashboards with complex caching
-- Window focus refetching
+- Simple delete operations requiring instant UI feedback
+- Toggle operations (mark as paid, complete task)
+- Non-financial mutations where rollback is acceptable
 
-**DON'T use for**: Initial page loads, mutations, static data
+**DON'T use for**: Complex forms, financial operations, bulk actions
 
-**Configuration**: Set `staleTime: 60000` (60s) to avoid immediate refetch after SSR hydration
+### API Resource Organization
+
+**ALL endpoints defined in ONE file**: `apps/frontend/src/lib/api-client.ts`
+
+```typescript
+// Client API (browser - auto session token)
+export const propertiesApi = {
+  list: () => apiClient<Property[]>(...),
+  create: (body) => apiClient<Property>(...),
+  update: (id, body) => apiClient<Property>(...),
+  remove: (id) => apiClient<void>(...)
+}
+
+// Server API (RSC - requires accessToken)
+export const createServerApi = (accessToken: string) => ({
+  properties: {
+    list: () => apiClient<Property[]>(..., { serverToken: accessToken }),
+    get: (id) => apiClient<Property>(..., { serverToken: accessToken })
+  }
+})
+```
+
+**Covered Resources**: properties, tenants, units, leases, maintenance, dashboard, stripe, subscriptions, paymentMethods, lateFees, reports, users
 
 ## Remote State
 Anything coming from a backend, API, database, etc., should be handled by Server Components first. Only use client-side data-fetching libraries (TanStack Query, SWR) for advanced scenarios: infinite scroll, polling, client-heavy dashboards. They solve caching, deduplication, invalidation, retries, pagination, but Server Components + Server Actions handle 90% of use cases more efficiently.

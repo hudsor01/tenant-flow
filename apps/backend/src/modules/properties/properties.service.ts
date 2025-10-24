@@ -184,6 +184,8 @@ export class PropertiesService {
 			insertData.description = request.description.trim()
 		}
 
+		this.logger.debug('Attempting to create property', { insertData, userId })
+
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('property')
@@ -191,11 +193,25 @@ export class PropertiesService {
 			.select()
 			.single()
 
+		this.logger.debug('Supabase insert result', {
+			data,
+			error,
+			hasData: !!data,
+			hasError: !!error,
+			userId
+		})
+
 		if (error) {
 			this.logger.error('Failed to create property', { error, userId })
 			throw new BadRequestException('Failed to create property')
 		}
 
+		if (!data) {
+			this.logger.error('No data returned from insert', { userId })
+			throw new BadRequestException('Failed to create property - no data returned')
+		}
+
+		this.logger.log('Property created successfully', { propertyId: data.id, userId })
 		return data as Property
 	}
 

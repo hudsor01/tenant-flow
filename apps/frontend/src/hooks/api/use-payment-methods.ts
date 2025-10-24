@@ -22,16 +22,18 @@ export const paymentMethodKeys = {
 }
 
 /**
- * Hook to fetch user's payment methods
+ * Hook to fetch tenant payment methods (Phase 4: Stripe API integration)
  */
 export function usePaymentMethods() {
 	return useQuery({
 		queryKey: paymentMethodKeys.list(),
 		queryFn: async () => {
 			const response = await apiClient<{
-				paymentMethods: PaymentMethodResponse[]
-			}>(`${API_BASE_URL}/api/v1/payment-methods`)
-			return response.paymentMethods
+				payment_methods: PaymentMethodResponse[]
+			}>(`${API_BASE_URL}/api/v1/stripe/tenant-payment-methods`)
+
+			// Backend now returns proper PaymentMethodResponse structure
+			return response.payment_methods
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		retry: 2
@@ -56,20 +58,35 @@ export function useCreateSetupIntent() {
 }
 
 /**
- * Hook to save payment method after SetupIntent confirmation
+ * Hook to save payment method after SetupIntent confirmation (Phase 4: Stripe attach)
  */
 export function useSavePaymentMethod() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (request: { paymentMethodId: string }) => {
-			return await apiClient<{ success: boolean }>(
-				`${API_BASE_URL}/api/v1/payment-methods/save`,
-				{
-					method: 'POST',
-					body: JSON.stringify(request)
+		mutationFn: async (request: {
+			paymentMethodId: string
+			setAsDefault?: boolean
+		}) => {
+			return await apiClient<{
+				success: boolean
+				payment_method: {
+					id: string
+					type: string
+					card: {
+						brand: string
+						last4: string
+						exp_month: number
+						exp_year: number
+					} | null
 				}
-			)
+			}>(`${API_BASE_URL}/api/v1/stripe/attach-tenant-payment-method`, {
+				method: 'POST',
+				body: JSON.stringify({
+					payment_method_id: request.paymentMethodId,
+					set_as_default: request.setAsDefault ?? true
+				})
+			})
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: paymentMethodKeys.list() })
@@ -136,24 +153,24 @@ export function useSetDefaultPaymentMethod() {
 }
 
 /**
- * Hook to delete payment method
+ * Hook to delete tenant payment method (Phase 4: Stripe detach)
  */
 export function useDeletePaymentMethod() {
 	const queryClient = useQueryClient()
 
 	return useMutation<
-		{ success: boolean },
+		{ success: boolean; message?: string },
 		unknown,
 		string,
 		{ previous?: PaymentMethodResponse[] }
 	>({
 		mutationFn: async (paymentMethodId: string) => {
-			return await apiClient<{ success: boolean }>(
-				`${API_BASE_URL}/api/v1/payment-methods/${paymentMethodId}`,
-				{
-					method: 'DELETE'
-				}
-			)
+			return await apiClient<{
+				success: boolean
+				message?: string
+			}>(`${API_BASE_URL}/api/v1/stripe/tenant-payment-methods/${paymentMethodId}`, {
+				method: 'DELETE'
+			})
 		},
 		onMutate: async (
 			paymentMethodId: string

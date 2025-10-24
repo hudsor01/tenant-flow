@@ -45,6 +45,7 @@ export const DEFAULT_TENANT: Tenant = {
 	invitation_sent_at: null,
 	invitation_accepted_at: null,
 	invitation_expires_at: null,
+	stripe_customer_id: null,
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z'
 }
@@ -135,6 +136,7 @@ export const DEFAULT_LEASE: Lease = {
 	gracePeriodDays: null,
 	lateFeeAmount: null,
 	lateFeePercentage: null,
+	stripe_subscription_id: null,
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z'
 }
