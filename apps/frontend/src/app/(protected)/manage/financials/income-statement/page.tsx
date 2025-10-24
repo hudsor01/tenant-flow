@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { IncomeStatementData } from '@repo/shared/types/financial-statements'
 import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
-import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns'
+import { endOfMonth, format, startOfMonth } from 'date-fns'
 import { ArrowDownRight, ArrowUpRight, TrendingUp } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -112,14 +112,6 @@ export default async function IncomeStatementPage() {
 			</div>
 		)
 	}
-
-	const monthOptions = Array.from({ length: 12 }, (_, i) => {
-		const date = subMonths(new Date(), i)
-		return {
-			value: format(date, 'yyyy-MM'),
-			label: format(date, 'MMMM yyyy')
-		}
-	})
 
 	const revenueItems = [
 		{ label: 'Rental Income', value: data.revenue.rentalIncome },
