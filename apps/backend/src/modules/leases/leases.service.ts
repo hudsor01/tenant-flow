@@ -68,7 +68,7 @@ export class LeasesService {
 	async findAll(
 		userId: string,
 		query: Record<string, unknown>
-	): Promise<Lease[]> {
+	): Promise<{ data: Lease[]; total: number; limit: number; offset: number }> {
 		try {
 			if (!userId) {
 				this.logger.warn('Find all leases requested without userId')
@@ -92,12 +92,61 @@ export class LeasesService {
 				unitIds = await this.getUserUnitIds(userId)
 			}
 
-			// Return empty array if no units found
+			// Return empty result if no units found
 			if (unitIds.length === 0) {
-				return []
+				return { data: [], total: 0, limit: 50, offset: 0 }
 			}
 
-			// Build query with filters
+			// Build base query for counting
+			let countQuery = client
+				.from('lease')
+				.select('*', { count: 'exact', head: true })
+				.in('unitId', unitIds)
+
+			// Apply filters to count query
+			if (query.tenantId) {
+				countQuery = countQuery.eq('tenantId', String(query.tenantId))
+			}
+			if (query.status) {
+				countQuery = countQuery.eq(
+					'status',
+					query.status as Database['public']['Enums']['LeaseStatus']
+				)
+			}
+			if (query.startDate) {
+				countQuery = countQuery.gte(
+					'startDate',
+					new Date(query.startDate as string).toISOString()
+				)
+			}
+			if (query.endDate) {
+				countQuery = countQuery.lte(
+					'endDate',
+					new Date(query.endDate as string).toISOString()
+				)
+			}
+			// SECURITY FIX #2: Use safe search to prevent SQL injection
+			if (query.search) {
+				const sanitized = sanitizeSearchInput(String(query.search))
+				if (sanitized) {
+					countQuery = countQuery.or(
+						buildMultiColumnSearch(sanitized, ['tenantId', 'unitId'])
+					)
+				}
+			}
+
+			// Get total count
+			const { count, error: countError } = await countQuery
+			if (countError) {
+				this.logger.error('Failed to count leases', {
+					error: countError.message,
+					userId,
+					query
+				})
+				throw new BadRequestException('Failed to count leases')
+			}
+
+			// Build data query with filters
 			let queryBuilder = client.from('lease').select('*').in('unitId', unitIds)
 
 			// Apply filters
@@ -155,7 +204,12 @@ export class LeasesService {
 				throw new BadRequestException('Failed to fetch leases')
 			}
 
-			return data as Lease[]
+			return {
+				data: data as Lease[],
+				total: count ?? 0,
+				limit,
+				offset
+			}
 		} catch (error) {
 			this.logger.error('Leases service failed to find all leases', {
 				error: error instanceof Error ? error.message : String(error),
