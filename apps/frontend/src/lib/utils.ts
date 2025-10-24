@@ -25,6 +25,7 @@ export function formatCurrency(
 		convertFromCents = false
 	} = options ?? {}
 
+	// Assume valid input - let errors bubble up
 	const value = convertFromCents ? amount / 100 : amount
 
 	return new Intl.NumberFormat(locale, {
@@ -81,6 +82,7 @@ export function formatPercentage(
 		maximumFractionDigits = 2
 	} = options ?? {}
 
+	// Assume valid input - let errors bubble up
 	return new Intl.NumberFormat(locale, {
 		style: 'percent',
 		minimumFractionDigits,
