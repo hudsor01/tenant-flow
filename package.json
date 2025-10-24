@@ -135,6 +135,8 @@
 		"@manypkg/cli": "^0.25.1",
 		"@nestjs/terminus": "11.0.0",
 		"@playwright/test": "1.56.1",
+		"@react-email/components": "0.5.7",
+		"@react-email/render": "1.4.0",
 		"@repo/eslint-config": "workspace:*",
 		"@supabase/supabase-js": "catalog:",
 		"@types/node": "^24.9.1",
