@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -11,7 +13,7 @@ import Link from 'next/link'
 
 export default function DocumentsPage() {
 	return (
-		<div className="container mx-auto py-6 space-y-6">
+		<div className="container mx-auto space-y-6 py-6">
 			<div className="flex items-center gap-3">
 				<FileText className="size-8 text-primary" />
 				<div>
@@ -35,9 +37,9 @@ export default function DocumentsPage() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="text-sm text-muted-foreground space-y-2">
+						<div className="space-y-2 text-sm text-muted-foreground">
 							<p>Comprehensive lease template including:</p>
-							<ul className="list-disc pl-4 space-y-1">
+							<ul className="list-disc space-y-1 pl-4">
 								<li>State-specific requirements</li>
 								<li>Professional PDF formatting</li>
 								<li>Signature sections</li>
@@ -47,13 +49,13 @@ export default function DocumentsPage() {
 						<div className="flex gap-2">
 							<Button variant="outline" size="sm" asChild>
 								<Link href="/manage/documents/lease-template">
-									<Eye className="size-4 mr-2" />
+									<Eye className="mr-2 size-4" />
 									View Details
 								</Link>
 							</Button>
 							<Button size="sm" asChild>
 								<Link href="/manage/documents/lease-template">
-									<ArrowRight className="size-4 mr-2" />
+									<ArrowRight className="mr-2 size-4" />
 									Access Template
 								</Link>
 							</Button>
@@ -73,9 +75,9 @@ export default function DocumentsPage() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="text-sm text-muted-foreground space-y-2">
+						<div className="space-y-2 text-sm text-muted-foreground">
 							<p>Future templates will include:</p>
-							<ul className="list-disc pl-4 space-y-1">
+							<ul className="list-disc space-y-1 pl-4">
 								<li>Property inspection reports</li>
 								<li>Rental applications</li>
 								<li>Tenant notices</li>
@@ -99,19 +101,19 @@ export default function DocumentsPage() {
 					<div className="grid gap-3 md:grid-cols-3">
 						<Button variant="outline" className="justify-start" asChild>
 							<Link href="/manage/leases">
-								<FileText className="size-4 mr-2" />
+								<FileText className="mr-2 size-4" />
 								Generate Custom Lease
 							</Link>
 						</Button>
 						<Button variant="outline" className="justify-start" asChild>
 							<Link href="/manage/documents/lease-template">
-								<Download className="size-4 mr-2" />
+								<Download className="mr-2 size-4" />
 								Download Template
 							</Link>
 						</Button>
 						<Button variant="outline" className="justify-start" asChild>
 							<Link href="/manage/properties">
-								<FileText className="size-4 mr-2" />
+								<FileText className="mr-2 size-4" />
 								View Properties
 							</Link>
 						</Button>
