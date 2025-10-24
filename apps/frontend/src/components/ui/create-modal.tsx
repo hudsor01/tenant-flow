@@ -37,7 +37,7 @@ export interface CreateModalProps {
 	/**
 	 * Form type identifier (for Zustand store)
 	 */
-	formType: 'property' | 'tenant' | 'lease' | 'maintenance'
+	formType: 'PROPERTY' | 'TENANT' | 'LEASE' | 'MAINTENANCE'
 	/**
 	 * Whether the form submission is pending
 	 */
@@ -99,7 +99,7 @@ export interface CreateModalProps {
  *   title="Add New Tenant"
  *   description="Add a new tenant to your properties"
  *   steps={TENANT_STEPS}
- *   formType="tenant"
+ *   formType="TENANT"
  *   onSubmit={handleSubmit}
  *   onValidateStep={validateTenantStep}
  * >

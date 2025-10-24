@@ -645,6 +645,16 @@ export const lateFeesApi = {
 	}
 }
 
+/**
+ * Reports API - Server-side methods for report schedules
+ */
+export const reportsApi = {
+	listSchedules: () =>
+		apiClient<{ data: import('@/lib/api/reports-client').ScheduledReport[] }>(
+			`${API_BASE_URL}/api/v1/reports/schedules`
+		).then(res => res.data)
+}
+
 // Visitor Analytics - Future Feature
 // When implementing, add analytics endpoints here
 

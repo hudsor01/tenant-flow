@@ -1,5 +1,5 @@
-'use client'
-
+import type { Metadata } from 'next'
+import { requireSession } from '@/lib/server-auth'
 import { ExportButtons } from '@/components/export/export-buttons'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -9,9 +9,6 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
 	Table,
 	TableBody,
@@ -20,58 +17,68 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import { getBalanceSheet } from '@/lib/api/financials-client'
-import { createClient } from '@/lib/supabase/client'
 import { cn, formatCurrency } from '@/lib/utils'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { BalanceSheetData } from '@repo/shared/types/financial-statements'
+import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
 import { format } from 'date-fns'
 import { CheckCircle2, XCircle } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
 
-export default function BalanceSheetPage() {
-	const [data, setData] = useState<BalanceSheetData | null>(null)
-	const [loading, setLoading] = useState(true)
-	const [asOfDate, setAsOfDate] = useState(format(new Date(), 'yyyy-MM-dd'))
+export const metadata: Metadata = {
+	title: 'Balance Sheet | TenantFlow',
+	description: 'Assets, liabilities, and equity at a point in time'
+}
 
-	useEffect(() => {
-		async function loadData() {
-			try {
-				const supabase = createClient()
-				const {
-					data: { session }
-				} = await supabase.auth.getSession()
+async function getBalanceSheet(
+	token: string,
+	asOfDate: string
+): Promise<BalanceSheetData | null> {
+	try {
+		const API_BASE_URL = getApiBaseUrl()
+		const url = `${API_BASE_URL}/financials/balance-sheet?asOfDate=${asOfDate}`
 
-				if (!session?.access_token) {
-					throw new Error('No session')
-				}
+		const response = await fetch(url, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json'
+			},
+			cache: 'no-store'
+		})
 
-				const result = await getBalanceSheet(session.access_token, asOfDate)
-				setData(result)
-			} catch (error) {
-				toast.error(
-					error instanceof Error
-						? error.message
-						: 'Failed to load balance sheet'
-				)
-			} finally {
-				setLoading(false)
-			}
+		if (!response.ok) {
+			return null
 		}
 
-		loadData()
-	}, [asOfDate])
+		const result = await response.json()
+		return result.data
+	} catch {
+		return null
+	}
+}
 
-	if (loading) {
-		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<div className="space-y-4">
-					<Skeleton className="h-8 w-64" />
-					<Skeleton className="h-6 w-48" />
-					<Skeleton className="h-32 w-96" />
-				</div>
-			</div>
-		)
+export default async function BalanceSheetPage() {
+	// Server-side auth
+	const user = await requireSession()
+	const logger = createLogger({ component: 'BalanceSheetPage', userId: user.id })
+
+	// Default to today's date
+	const asOfDate = format(new Date(), 'yyyy-MM-dd')
+
+	// Fetch data
+	let data: BalanceSheetData | null = null
+	try {
+		// Get auth token for API call
+		const { createClient } = await import('@/lib/supabase/server')
+		const supabase = await createClient()
+		const { data: { session } } = await supabase.auth.getSession()
+
+		if (session?.access_token) {
+			data = await getBalanceSheet(session.access_token, asOfDate)
+		}
+	} catch (err) {
+		logger.warn('Failed to fetch balance sheet', {
+			error: err instanceof Error ? err.message : String(err)
+		})
 	}
 
 	if (!data) {
@@ -95,22 +102,8 @@ export default function BalanceSheetPage() {
 						</p>
 					</div>
 					<div className="flex flex-wrap items-center gap-3">
-						<div className="flex items-center gap-2">
-							<Label htmlFor="asOfDate" className="whitespace-nowrap">
-								As of Date
-							</Label>
-							<Input
-								id="asOfDate"
-								type="date"
-								value={asOfDate}
-								onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-									setAsOfDate(e.target.value)
-								}
-								className="w-50"
-							/>
-						</div>
 						<ExportButtons filename="balance-sheet" payload={data} />
-					</div>{' '}
+					</div>
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
 						<Card className="@container/card">
 							<CardHeader>
