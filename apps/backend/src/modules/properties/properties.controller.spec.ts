@@ -53,9 +53,17 @@ describe('PropertiesController', () => {
 	beforeEach(async () => {
 		jest.clearAllMocks()
 
+		// Create mock instance
+		const mockService = new PropertiesService(null as any, null as any, null as any)
+		
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [PropertiesController],
-			providers: [PropertiesService]
+			providers: [
+				{
+					provide: PropertiesService,
+					useValue: mockService
+				}
+			]
 		}).compile()
 
 		controller = module.get<PropertiesController>(PropertiesController)

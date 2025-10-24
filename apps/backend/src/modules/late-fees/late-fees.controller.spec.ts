@@ -3,10 +3,10 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { randomUUID } from 'crypto'
 import { SilentLogger } from '../../__test__/silent-logger'
-import type { SupabaseService } from '../../database/supabase.service'
+import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LateFeesController } from './late-fees.controller'
-import type { LateFeesService } from './late-fees.service'
+import { LateFeesService } from './late-fees.service'
 
 describe('LateFeesController', () => {
 	let controller: LateFeesController
@@ -92,11 +92,11 @@ describe('LateFeesController', () => {
 			controllers: [LateFeesController],
 			providers: [
 				{
-					provide: 'LateFeesService',
+					provide: LateFeesService,
 					useValue: mockLateFeesService
 				},
 				{
-					provide: 'SupabaseService',
+					provide: SupabaseService,
 					useValue: mockSupabaseService
 				}
 			]
