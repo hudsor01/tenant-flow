@@ -60,7 +60,8 @@ export async function apiClient<T = Json>(
 		throw new Error(`Invalid response format: ${text.substring(0, 100)}...`)
 	}
 
-	if (!response.ok || !data.success) {
+	// Only check response.ok - backend returns raw objects on success (201), not { success: true }
+	if (!response.ok) {
 		// Create detailed error message based on status code
 		let errorMessage = data.error || data.message || 'Request failed'
 
@@ -88,7 +89,8 @@ export async function apiClient<T = Json>(
 		throw error
 	}
 
-	return data.data as T
+	// Return data.data if wrapped, otherwise return data directly (backend returns raw objects on 201)
+	return (data.data ?? data) as T
 }
 
 // Convenience methods
