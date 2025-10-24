@@ -2,7 +2,7 @@
 
 import { safeDocumentEvents } from '@/lib/dom-utils'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useTransition, type ReactNode } from 'react'
+import { useEffect, useTransition, type ReactNode } from 'react'
 
 interface ViewTransitionsProviderProps {
 	children: ReactNode
@@ -12,12 +12,6 @@ export function ViewTransitionsProvider({
 	children
 }: ViewTransitionsProviderProps) {
 	const [isPending, startTransition] = useTransition()
-	const [shouldInjectStyles] = useState(() => {
-		if (typeof document === 'undefined') {
-			return false
-		}
-		return typeof document.startViewTransition === 'function'
-	})
 
 	// Wrap navigation with view transitions
 	useEffect(() => {
@@ -58,7 +52,7 @@ export function ViewTransitionsProvider({
 	return (
 		<>
 			{children}
-			{shouldInjectStyles ? <ViewTransitionStyles /> : null}
+			<ViewTransitionStyles />
 			{isPending && (
 				<div
 					className="fixed inset-0 pointer-events-none z-[9999]"

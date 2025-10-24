@@ -1,4 +1,3 @@
-'use client'
 
 import { PropertyEditForm } from './property-edit-form.client'
 
