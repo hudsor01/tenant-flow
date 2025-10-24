@@ -6,6 +6,8 @@ export default function RegisterServiceWorker() {
 	useEffect(() => {
 		if (typeof window === 'undefined') return
 		if (!('serviceWorker' in navigator)) return
+		// Only register service worker in production
+		if (process.env.NODE_ENV !== 'production') return
 
 		let refreshing = false
 

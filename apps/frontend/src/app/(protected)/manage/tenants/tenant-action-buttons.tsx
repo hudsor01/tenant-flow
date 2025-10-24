@@ -9,17 +9,15 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '@/components/ui/dialog'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { tenantKeys } from '@/hooks/api/use-tenant'
 import { tenantsApi } from '@/lib/api-client'
-import type { FormFieldApi } from '@/lib/form-types'
 import type { UpdateTenantInput } from '@repo/shared/types/api-inputs'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
 import {
 	tenantUpdateSchema,
 	type TenantUpdate
 } from '@repo/shared/validation/tenants'
-import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
 	Calendar,
@@ -34,7 +32,6 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { z } from 'zod'
 
 interface TenantActionButtonsProps {
 	tenant: TenantWithLeaseInfo
@@ -45,26 +42,13 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 	const [editOpen, setEditOpen] = useState(false)
 	const queryClient = useQueryClient()
 
-	const form = useForm({
-		defaultValues: {
-			firstName: tenant.name?.split(' ')[0] || '',
-			lastName: tenant.name?.split(' ').slice(1).join(' ') || '',
-			email: tenant.email || '',
-			phone: tenant.phone || '',
-			emergencyContact: tenant.emergencyContact || ''
-		},
-		onSubmit: async ({ value }) => {
-			updateMutation.mutate(value)
-		},
-		validators: {
-			onChange: ({ value }) => {
-				const result = tenantUpdateSchema.safeParse(value)
-				if (!result.success) {
-					return z.treeifyError(result.error)
-				}
-				return undefined
-			}
-		}
+	// Form state for edit dialog
+	const [formData, setFormData] = useState({
+		firstName: tenant.name?.split(' ')[0] || '',
+		lastName: tenant.name?.split(' ').slice(1).join(' ') || '',
+		email: tenant.email || '',
+		phone: tenant.phone || '',
+		emergencyContact: tenant.emergencyContact || ''
 	})
 
 	const updateMutation = useMutation({
@@ -148,6 +132,26 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 			toast.error(`Failed to send invitation: ${error.message}`)
 		}
 	})
+
+	const handleFormSubmit = (e: React.FormEvent) => {
+		e.preventDefault()
+
+		// Validate form data
+		const result = tenantUpdateSchema.safeParse(formData)
+		if (!result.success) {
+			const firstError = result.error.issues[0]
+			toast.error('Validation failed', {
+				description: firstError?.message || 'Please check your input'
+			})
+			return
+		}
+
+		updateMutation.mutate(formData)
+	}
+
+	const handleInputChange = (field: keyof typeof formData, value: string) => {
+		setFormData(prev => ({ ...prev, [field]: value }))
+	}
 
 	return (
 		<div className="flex items-center gap-1">
@@ -249,126 +253,66 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 						</DialogDescription>
 					</DialogHeader>
 
-					<form
-						onSubmit={e => {
-							e.preventDefault()
-							form.handleSubmit()
-						}}
-						className="space-y-4"
-					>
-						<form.Field name="firstName">
-							{(field: FormFieldApi<string>) => (
-								<Field>
-									<FieldLabel>First Name</FieldLabel>
-									<input
-										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-										type="text"
-										required
-										placeholder="Enter first name"
-										className="input"
-									/>
-									{Array.isArray(field.state.meta.errors) &&
-										field.state.meta.errors.length > 0 && (
-											<FieldError>
-												{String(field.state.meta.errors[0])}
-											</FieldError>
-										)}
-								</Field>
-							)}
-						</form.Field>
+					<form onSubmit={handleFormSubmit} className="space-y-4">
+						<Field>
+							<FieldLabel>First Name</FieldLabel>
+							<input
+								value={formData.firstName}
+								onChange={e => handleInputChange('firstName', e.target.value)}
+								type="text"
+								required
+								placeholder="Enter first name"
+								className="input"
+							/>
+						</Field>
 
-						<form.Field name="lastName">
-							{(field: FormFieldApi<string>) => (
-								<Field>
-									<FieldLabel>Last Name</FieldLabel>
-									<input
-										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-										type="text"
-										required
-										placeholder="Enter last name"
-										className="input"
-									/>
-									{Array.isArray(field.state.meta.errors) &&
-										field.state.meta.errors.length > 0 && (
-											<FieldError>
-												{String(field.state.meta.errors[0])}
-											</FieldError>
-										)}
-								</Field>
-							)}
-						</form.Field>
+						<Field>
+							<FieldLabel>Last Name</FieldLabel>
+							<input
+								value={formData.lastName}
+								onChange={e => handleInputChange('lastName', e.target.value)}
+								type="text"
+								required
+								placeholder="Enter last name"
+								className="input"
+							/>
+						</Field>
 
-						<form.Field name="email">
-							{(field: FormFieldApi<string>) => (
-								<Field>
-									<FieldLabel>Email</FieldLabel>
-									<input
-										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-										type="email"
-										required
-										placeholder="Enter email"
-										className="input"
-									/>
-									{Array.isArray(field.state.meta.errors) &&
-										field.state.meta.errors.length > 0 && (
-											<FieldError>
-												{String(field.state.meta.errors[0])}
-											</FieldError>
-										)}
-								</Field>
-							)}
-						</form.Field>
+						<Field>
+							<FieldLabel>Email</FieldLabel>
+							<input
+								value={formData.email}
+								onChange={e => handleInputChange('email', e.target.value)}
+								type="email"
+								required
+								placeholder="Enter email"
+								className="input"
+							/>
+						</Field>
 
-						<form.Field name="phone">
-							{(field: FormFieldApi<string>) => (
-								<Field>
-									<FieldLabel>Phone</FieldLabel>
-									<input
-										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-										type="text"
-										required
-										placeholder="Enter phone number"
-										className="input"
-									/>
-									{Array.isArray(field.state.meta.errors) &&
-										field.state.meta.errors.length > 0 && (
-											<FieldError>
-												{String(field.state.meta.errors[0])}
-											</FieldError>
-										)}
-								</Field>
-							)}
-						</form.Field>
+						<Field>
+							<FieldLabel>Phone</FieldLabel>
+							<input
+								value={formData.phone}
+								onChange={e => handleInputChange('phone', e.target.value)}
+								type="text"
+								placeholder="Enter phone number"
+								className="input"
+							/>
+						</Field>
 
-						<form.Field name="emergencyContact">
-							{(field: FormFieldApi<string>) => (
-								<Field>
-									<FieldLabel>Emergency Contact</FieldLabel>
-									<input
-										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-										type="text"
-										placeholder="Enter emergency contact"
-										className="input"
-									/>
-									{Array.isArray(field.state.meta.errors) &&
-										field.state.meta.errors.length > 0 && (
-											<FieldError>
-												{String(field.state.meta.errors[0])}
-											</FieldError>
-										)}
-								</Field>
-							)}
-						</form.Field>
+						<Field>
+							<FieldLabel>Emergency Contact</FieldLabel>
+							<input
+								value={formData.emergencyContact}
+								onChange={e =>
+									handleInputChange('emergencyContact', e.target.value)
+								}
+								type="text"
+								placeholder="Enter emergency contact"
+								className="input"
+							/>
+						</Field>
 
 						<div className="flex justify-end gap-2">
 							<Button
