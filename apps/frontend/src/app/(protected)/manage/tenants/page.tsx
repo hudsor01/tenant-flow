@@ -1,11 +1,10 @@
-import { Button } from '@/components/ui/button'
 import {
 	Card,
 	CardDescription,
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { getTenantsPageData } from '@/lib/api/dashboard-server'
+import { getTenantsPageData, getLeasesPageData } from '@/lib/api/dashboard-server'
 import { requireSession } from '@/lib/server-auth'
 import { formatCents } from '@repo/shared/lib/format'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -14,9 +13,8 @@ import type {
 	TenantSummary,
 	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
-import { Plus } from 'lucide-react'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { columns } from './columns'
 import { TenantsTableClient } from './tenants-table.client'
 
@@ -42,11 +40,21 @@ export default async function TenantsPage() {
 	// Tenant summary from backend (amounts in cents)
 	let summary: TenantSummary | null = null
 
+	// Fetch leases for invitation dialog
+	let availableLeases: Array<Database['public']['Tables']['lease']['Row']> = []
+
 	try {
-		const data = await getTenantsPageData()
-		tenants = data.tenants ?? []
-		stats = (data.stats as TenantStats) ?? stats
-		summary = (data.summary as TenantSummary) ?? null
+		const [tenantsData, leasesData] = await Promise.all([
+			getTenantsPageData(),
+			getLeasesPageData()
+		])
+
+		tenants = tenantsData.tenants ?? []
+		stats = (tenantsData.stats as TenantStats) ?? stats
+		summary = (tenantsData.summary as TenantSummary) ?? null
+
+		// Filter for leases without tenants (available for invitation)
+		availableLeases = (leasesData.leases ?? []).filter(lease => !lease.tenantId)
 	} catch (err) {
 		// Log server-side; avoid throwing to prevent resetting the RSC tree
 		logger.warn('Failed to fetch tenants page data for TenantsPage', {
@@ -60,15 +68,9 @@ export default async function TenantsPage() {
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Tenants</h1>
 					<p className="text-muted-foreground">
-						Manage your property tenants and their lease information.
+						Invite tenants to access their portal for payments, maintenance requests, and lease management.
 					</p>
 				</div>
-				<Button asChild>
-					<Link href="/manage/tenants/new">
-						<Plus className="size-4 mr-2" />
-						Add Tenant
-					</Link>
-				</Button>
 			</div>
 
 			{/* Summary / Stats Cards */}

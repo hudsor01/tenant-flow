@@ -12,7 +12,7 @@ import { LeaseGeneratorController } from './lease-generator.controller'
 
 describe('LeaseGeneratorController', () => {
 	let controller: LeaseGeneratorController
-	let pdfService: { generateLeaseAgreement: jest.Mock }
+	let pdfService: { generateLeasePDF: jest.Mock }
 
 	const validLease: LeaseFormData = {
 		property: {
@@ -79,7 +79,7 @@ describe('LeaseGeneratorController', () => {
 	}
 
 	beforeEach(async () => {
-		pdfService = { generateLeaseAgreement: jest.fn() }
+		pdfService = { generateLeasePDF: jest.fn() }
 
 		const module = await Test.createTestingModule({
 			controllers: [LeaseGeneratorController],
@@ -106,13 +106,13 @@ describe('LeaseGeneratorController', () => {
 
 	describe('generateLease', () => {
 		it('generates lease with valid data', async () => {
-			pdfService.generateLeaseAgreement.mockResolvedValue(Buffer.from('pdf'))
+			pdfService.generateLeasePDF.mockResolvedValue(Buffer.from('pdf'))
 
 			const result = await controller.generateLease(validLease)
 
 			expect(result.success).toBe(true)
 			expect(result.lease.monthlyRent).toBe(25)
-			expect(pdfService.generateLeaseAgreement).toHaveBeenCalledWith(validLease)
+			expect(pdfService.generateLeasePDF).toHaveBeenCalledWith(validLease)
 		})
 
 		it('rejects missing state', async () => {
@@ -182,7 +182,7 @@ describe('LeaseGeneratorController', () => {
 		})
 
 		it('handles PDF service errors', async () => {
-			pdfService.generateLeaseAgreement.mockRejectedValue(
+			pdfService.generateLeasePDF.mockRejectedValue(
 				new Error('PDF failed')
 			)
 
@@ -195,7 +195,7 @@ describe('LeaseGeneratorController', () => {
 	describe('downloadLease', () => {
 		it('streams PDF with attachment headers', async () => {
 			const pdfBuffer = Buffer.from('test-pdf')
-			pdfService.generateLeaseAgreement.mockResolvedValue(pdfBuffer)
+			pdfService.generateLeasePDF.mockResolvedValue(pdfBuffer)
 
 			await controller.downloadLease(
 				'test.pdf',
@@ -214,7 +214,7 @@ describe('LeaseGeneratorController', () => {
 	describe('previewLease', () => {
 		it('streams PDF with inline headers', async () => {
 			const pdfBuffer = Buffer.from('test-pdf')
-			pdfService.generateLeaseAgreement.mockResolvedValue(pdfBuffer)
+			pdfService.generateLeasePDF.mockResolvedValue(pdfBuffer)
 
 			await controller.previewLease(
 				'test.pdf',

@@ -337,12 +337,7 @@ describe('TenantDetails', () => {
 			})
 			await user.click(confirmButton)
 
-			expect(toast.error).toHaveBeenCalledWith(
-				'Failed to mark tenant as moved out',
-				{
-					description: 'Move-out failed'
-				}
-			)
+			expect(toast.error).toHaveBeenCalledWith('Move-out failed')
 		})
 
 		test('shows processing state during mutation', async () => {

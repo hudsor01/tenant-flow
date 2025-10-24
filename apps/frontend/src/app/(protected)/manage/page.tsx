@@ -99,33 +99,49 @@ export default async function DashboardPage() {
 								</div>
 
 								{/* Quick Stats Preview */}
-								<div className="dashboard-cards-container pt-6 border-t border-border/50 gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,120px),1fr))]">
-									<div className="space-y-2 group">
-										<div className="text-3xl font-bold text-primary group-hover:scale-110 transition-transform">
-											0
-										</div>
-										<div className="text-sm text-muted-foreground">
-											Properties
-										</div>
-									</div>
-									<div className="space-y-2 group">
-										<div className="text-3xl font-bold text-primary group-hover:scale-110 transition-transform">
-											0
-										</div>
-										<div className="text-sm text-muted-foreground">Tenants</div>
-									</div>
-									<div className="space-y-2 group">
-										<div className="text-3xl font-bold text-primary group-hover:scale-110 transition-transform">
-											0%
-										</div>
-										<div className="text-sm text-muted-foreground">
-											Occupancy
-										</div>
-									</div>
+						<div className="grid grid-cols-3 gap-4 pt-6 border-t border-border/50">
+							{/* Property Stat */}
+							<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:border-primary/50">
+								<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+								<div className="relative p-4">
+									<p className="text-xs font-medium text-muted-foreground mb-2">
+										Properties
+									</p>
+									<h3 className="text-2xl font-bold text-primary transition-colors">
+										0
+									</h3>
 								</div>
 							</div>
 
-							{/* Right: Action Cards using CardLayout */}
+							{/* Tenant Stat */}
+							<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:border-blue-500/50">
+								<div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+								<div className="relative p-4">
+									<p className="text-xs font-medium text-muted-foreground mb-2">
+										Tenants
+									</p>
+									<h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 transition-colors">
+										0
+									</h3>
+								</div>
+							</div>
+
+							{/* Occupancy Stat */}
+							<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:border-amber-500/50">
+								<div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+								<div className="relative p-4">
+									<p className="text-xs font-medium text-muted-foreground mb-2">
+										Occupancy
+									</p>
+									<h3 className="text-2xl font-bold text-amber-600 dark:text-amber-400 transition-colors">
+										0%
+									</h3>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					{/* Right: Action Cards using CardLayout */}
 							<div className="animate-in fade-in slide-in-from-right-8 duration-700 delay-150 flex flex-col gap-4">
 								{/* Primary Action Card */}
 								<Link
@@ -223,8 +239,8 @@ export default async function DashboardPage() {
 
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
-			<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
-				<div className="mx-auto max-w-400 py-4">
+			<div className="border-b bg-gradient-to-b from-background to-muted/20">
+				<div className="mx-auto max-w-400 px-6 py-6">
 					<div data-testid="dashboard-stats">
 						<SectionCards stats={stats} />
 					</div>

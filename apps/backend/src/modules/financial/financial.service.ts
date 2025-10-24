@@ -27,7 +27,7 @@ export class FinancialService {
 		const { data: properties } = await client
 			.from('property')
 			.select('id')
-			.eq('owner_id', userId)
+			.eq('ownerId', userId)
 
 		const propertyIds = properties?.map(p => p.id) || []
 		if (propertyIds.length === 0) return []
@@ -36,7 +36,7 @@ export class FinancialService {
 		const { data: units } = await client
 			.from('unit')
 			.select('id')
-			.in('property_id', propertyIds)
+			.in('propertyId', propertyIds)
 
 		return units?.map(u => u.id) || []
 	}
@@ -112,7 +112,7 @@ export class FinancialService {
 			const { data: properties } = await client
 				.from('property')
 				.select('id')
-				.eq('owner_id', userId)
+				.eq('ownerId', userId)
 
 			const propertyRows = (properties ?? []) as Array<{ id: string }>
 			const propertyIds = propertyRows.map(p => p.id)
@@ -124,7 +124,7 @@ export class FinancialService {
 			const { data: units } = await client
 				.from('unit')
 				.select('id, status')
-				.in('property_id', propertyIds)
+				.in('propertyId', propertyIds)
 
 			type UnitStatus = Database['public']['Enums']['UnitStatus']
 			const unitRows = (units ?? []).map(unit => ({
@@ -138,11 +138,11 @@ export class FinancialService {
 
 			// Fetch leases and maintenance data using unit IDs
 			const [leasesData, maintenanceData] = await Promise.all([
-				client.from('lease').select('*').in('unit_id', unitIds),
+				client.from('lease').select('*').in('unitId', unitIds),
 				client
 					.from('maintenance_request')
 					.select('estimatedCost, status')
-					.in('unit_id', unitIds)
+					.in('unitId', unitIds)
 			])
 
 			const leases = leasesData.data || []
@@ -259,7 +259,7 @@ export class FinancialService {
 			const { data: leases, error } = await client
 				.from('lease')
 				.select('*')
-				.in('unit_id', unitIds)
+				.in('unitId', unitIds)
 
 			if (error) {
 				throw new Error(`Failed to fetch leases: ${error.message}`)
@@ -353,7 +353,7 @@ export class FinancialService {
 			const { data: leases } = await client
 				.from('lease')
 				.select('*')
-				.in('unit_id', unitIds)
+				.in('unitId', unitIds)
 
 			const expenses = await this.fetchExpenses(propertyIds, yearStart, yearEnd)
 
@@ -412,7 +412,7 @@ export class FinancialService {
 			const { data: properties } = await client
 				.from('property')
 				.select('id, name')
-				.eq('owner_id', userId)
+				.eq('ownerId', userId)
 
 			const propertyRows = (properties ?? []) as Array<{
 				id: string
@@ -429,7 +429,7 @@ export class FinancialService {
 					const { data: units } = await client
 						.from('unit')
 						.select('id')
-						.eq('property_id', property.id)
+						.eq('propertyId', property.id)
 
 					const unitIds = units?.map(u => u.id) || []
 
@@ -438,7 +438,7 @@ export class FinancialService {
 						const { data: leases } = await client
 							.from('lease')
 							.select('rentAmount')
-							.in('unit_id', unitIds)
+							.in('unitId', unitIds)
 							.eq('status', 'ACTIVE')
 
 						revenue = (
@@ -483,7 +483,7 @@ export class FinancialService {
 		const { data } = await client
 			.from('property')
 			.select('id')
-			.eq('owner_id', userId)
+			.eq('ownerId', userId)
 		const rows = (data ?? []) as Array<{ id: string }>
 		return rows.map(property => property.id)
 	}
@@ -510,7 +510,7 @@ export class FinancialService {
 				.getAdminClient()
 				.from('expense')
 				.select('*')
-				.in('property_id', propertyIds)
+				.in('propertyId', propertyIds)
 
 			if (startDate) {
 				query = query.gte('date', startDate.toISOString())

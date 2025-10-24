@@ -48,8 +48,50 @@ You must follow PostgreSQL conventions: write SQL keywords in lowercase, choose 
 
 **Database Migrations**: Use psql with DIRECT_URL for DDL, DATABASE_URL for DML queries
 
+## Data Fetching Architecture (October 2025 Best Practices)
+
+**PHILOSOPHY**: Server-first with selective client-side hydration. No mock data, all data from API endpoints.
+
+### Primary Pattern: Server Components + Server Actions
+
+**Data Fetching**: Use Server Components with `async/await` for initial page loads
+```typescript
+// page.tsx (Server Component)
+export default async function PropertiesPage() {
+  const properties = await getPropertiesPageData() // Direct API call
+  return <PropertiesTableClient initialData={properties} />
+}
+```
+
+**Mutations**: Use Server Actions with `useOptimistic()` for instant UI feedback
+```typescript
+// page.tsx (Server Action)
+async function deletePropertyAction(id: string) {
+  'use server'
+  await propertiesApi.remove(id)
+  revalidatePath('/manage/properties')
+}
+
+// Client Component
+const [optimisticProperties, removeOptimistic] = useOptimistic(...)
+```
+
+**Benefits**: 0 client JavaScript for data fetching, SEO-friendly, instant mutations with `useOptimistic`, automatic revalidation with `revalidatePath()`
+
+### Secondary Pattern: TanStack Query (Client-Side Only)
+
+**Use ONLY for**:
+- Infinite scroll (`useInfiniteQuery`)
+- Real-time polling (`refetchInterval`)
+- Client-heavy dashboards with complex caching
+- Window focus refetching
+
+**DON'T use for**: Initial page loads, mutations, static data
+
+**Configuration**: Set `staleTime: 60000` (60s) to avoid immediate refetch after SSR hydration
+
 ## Remote State
-Anything coming from a backend, API, database, etc., could be handled by a data-fetching library. TanStack Query or SWR are the most popular choices these days. They solve caching, deduplication, invalidation, retries, pagination, optimistic updates, and many more, and likely much better than any manual implementation.
+Anything coming from a backend, API, database, etc., should be handled by Server Components first. Only use client-side data-fetching libraries (TanStack Query, SWR) for advanced scenarios: infinite scroll, polling, client-heavy dashboards. They solve caching, deduplication, invalidation, retries, pagination, but Server Components + Server Actions handle 90% of use cases more efficiently.
 
 ## Query params in URL state
 Use nuqs and save yourself massive pain implementing that sync manually.
@@ -227,16 +269,17 @@ TypeScript enums ONLY allowed in `packages/shared/src/types/security.ts` for Sec
 
 Protected file: `apps/backend/ULTRA_NATIVE_ARCHITECTURE.md`
 
-## Frontend - Hook-First Architecture
+## Frontend - Hook-First Architecture (October 2025)
 
-**File Organization**: `hooks/api/use-{entity}.ts` (TanStack Query for server state), `hooks/use-{entity}-form.ts` (TanStack Form)
+**PHILOSOPHY**: TanStack Query for data fetching ONLY, not mutations. Use Server Actions + useOptimistic for mutations.
 
-**TanStack Query Hook Pattern** (Mandatory):
+**File Organization**: `hooks/api/use-{entity}.ts` (TanStack Query for CLIENT-SIDE data fetching), `hooks/use-{entity}-form.ts` (TanStack Form)
+
+**TanStack Query Hook Pattern** (Data Fetching Only):
 - Query Keys: Hierarchical, typed (`entityKeys.all`, `entityKeys.list()`, `entityKeys.detail(id)`)
-- Query Hooks: `useEntity(id)`, `useAllEntities()` with placeholderData, Zustand sync, proper stale/gc times
-- Mutation Hooks: `useCreateEntity()`, `useUpdateEntity()`, `useDeleteEntity()` with optimistic updates, rollback, refetch
+- Query Hooks: `useEntity(id)`, `useAllEntities()` with Zustand sync, proper stale/gc times
 - Prefetch Hook: `usePrefetchEntity()` for hover prefetching
-- Combined Hook: `useEntityOperations()` combines all mutations
+- **NO MUTATIONS**: Remove `useCreateEntity()`, `useUpdateEntity()`, `useDeleteEntity()` - use Server Actions instead
 
 **TanStack Form Hook Pattern**:
 - Basic form: `useEntityForm()` with defaultValues and validators
@@ -246,20 +289,20 @@ Protected file: `apps/backend/ULTRA_NATIVE_ARCHITECTURE.md`
 - Conditional fields: `useConditionalEntityFields()` for show/hide logic
 
 **ABSOLUTE PROHIBITIONS**:
-- ❌ Inline queries/mutations (always use custom hooks)
+- ❌ Inline queries/mutations (always use custom hooks or Server Actions)
 - ❌ Duplicate hook logic (search first: `rg -r "useEntityName"`)
 - ❌ Mix concerns (separate query hooks from form hooks)
-- ❌ Skip optimistic updates (REQUIRED on all mutations)
-- ❌ Skip prefetching (REQUIRED on list views)
+- ❌ TanStack Query mutations (use Server Actions + useOptimistic instead)
+- ❌ Mock/placeholder data (all data must come from API endpoints)
+- ❌ Optimistic updates via TanStack Query (use React 19 useOptimistic instead)
 
-**Required Features**:
-- Optimistic updates on ALL mutations (create, update, delete) with rollback
-- Placeholder data from cache for instant loading
+**Required Features** (Data Fetching Only):
 - Zustand store integration via select callback
 - Prefetching on hover (list → detail navigation)
 - Structural sharing enabled (`structuralSharing: true`)
 - Proper cache config: Lists (10min stale/30min gc), Details (5min stale/10min gc)
-- Cancel in-flight queries before optimistic updates
+- **NO placeholder data**: Remove all mock/sample data, fetch from endpoints only
+- **NO optimistic updates**: Remove temp IDs and optimistic cache manipulation
 
 **Reference Implementations**:
 - `apps/frontend/src/hooks/api/use-tenant.ts` - Complete Query hook pattern
@@ -307,24 +350,42 @@ Protected file: `apps/backend/ULTRA_NATIVE_ARCHITECTURE.md`
 - ✅ Financial pages - Period selectors (year/quarter dropdowns)
 - ✅ Reports pages - Interactive report generation UI
 
-### TanStack Query Usage Guidelines
+### TanStack Query Usage Guidelines (October 2025 Best Practices)
+
+**PHILOSOPHY**: Use Server Components + Server Actions as default. Only use TanStack Query for advanced client-side scenarios.
 
 **Use TanStack Query When You Need:**
 - ✅ Infinite scroll (useInfiniteQuery for paginated lists)
 - ✅ Real-time polling (refetchInterval for status updates)
 - ✅ Window focus refetching (dashboard auto-refresh)
-- ✅ Optimistic updates (instant UI feedback with rollback)
 - ✅ Client-side cache synchronization (shared state across components)
 - ✅ Complex invalidation logic (multiple related queries)
 - ✅ Background refetching (stale-while-revalidate pattern)
+- ✅ Client-heavy dashboards with complex caching needs
+
+**DON'T Use TanStack Query For:**
+- ❌ Initial page data fetching (use Server Components with async/await)
+- ❌ Mutations/optimistic updates (use React 19 useOptimistic + Server Actions)
+- ❌ Static data (staleTime: Infinity → Server Component instead)
+- ❌ Simple CRUD operations (Server Actions handle this better)
 
 **Prefer Server Components When:**
-- ✅ Initial page data fetching (SEO, faster initial load)
+- ✅ Initial page data fetching (SEO, faster initial load, 0 client JavaScript)
 - ✅ Simple list/detail views (no client-side interactions)
 - ✅ Dashboard stats (static data, no real-time updates)
 - ✅ Content pages (blog posts, documentation, marketing)
+- ✅ Any data that doesn't need client-side caching/invalidation
 
-**Migration Path**: Convert `useQuery()` in Client Components → `await entityApi.list()` in Server Components for initial page loads
+**Prefer Server Actions + useOptimistic When:**
+- ✅ Mutations (POST/PUT/DELETE operations)
+- ✅ Form submissions requiring instant UI feedback
+- ✅ Simple CRUD operations with optimistic updates
+- ✅ Operations requiring revalidation of Server Component data
+
+**Migration Path**:
+1. Convert `useQuery()` in Client Components → `await entityApi.list()` in Server Components for initial page loads
+2. Convert TanStack Query mutations → Server Actions with `useOptimistic()` for instant feedback
+3. Keep TanStack Query only for: infinite scroll, polling, focus refetching, client-heavy dashboards
 
 ### React 19 useOptimistic for Mutations
 
