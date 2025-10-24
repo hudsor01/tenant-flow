@@ -152,7 +152,7 @@ export default function CompletePage() {
 							{/* Status Icon */}
 							<div
 								id="status-icon"
-								className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${status ? getStatusColorClass(status) : ''}`}
+								className={`size-16 rounded-full flex items-center justify-center mx-auto mb-6 ${status ? getStatusColorClass(status) : ''}`}
 							>
 								{icon}
 							</div>

@@ -120,14 +120,14 @@ export default function AcceptInvitePage() {
 				<Card className="w-full max-w-md">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<Spinner className="h-5 w-5 animate-spin" />
+							<Spinner className="size-5 animate-spin" />
 							Verifying invitation
 						</CardTitle>
 						<CardDescription>Please wait...</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div className="flex items-center justify-center py-8">
-							<Spinner className="h-12 w-12 animate-spin text-muted-foreground" />
+							<Spinner className="size-12 animate-spin text-muted-foreground" />
 						</div>
 					</CardContent>
 				</Card>
@@ -141,14 +141,14 @@ export default function AcceptInvitePage() {
 				<Card className="w-full max-w-md">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2 text-destructive">
-							<AlertCircle className="h-5 w-5" />
+							<AlertCircle className="size-5" />
 							Invalid Invitation
 						</CardTitle>
 						<CardDescription>This invitation link is not valid</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<Alert variant="destructive">
-							<AlertCircle className="h-4 w-4" />
+							<AlertCircle className="size-4" />
 							<AlertDescription>{errorMessage}</AlertDescription>
 						</Alert>
 						<div className="flex gap-2">
@@ -169,14 +169,14 @@ export default function AcceptInvitePage() {
 				<Card className="w-full max-w-md">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2 text-green-600">
-							<CheckCircle className="h-5 w-5" />
+							<CheckCircle className="size-5" />
 							Welcome to TenantFlow!
 						</CardTitle>
 						<CardDescription>Your account has been activated</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/50">
-							<CheckCircle className="h-4 w-4 text-green-600" />
+							<CheckCircle className="size-4 text-green-600" />
 							<AlertDescription className="text-green-900 dark:text-green-100">
 								Redirecting you to your tenant portal...
 							</AlertDescription>
@@ -192,7 +192,7 @@ export default function AcceptInvitePage() {
 			<Card className="w-full max-w-md">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Lock className="h-5 w-5" />
+						<Lock className="size-5" />
 						Set Your Password
 					</CardTitle>
 					<CardDescription>
@@ -235,7 +235,7 @@ export default function AcceptInvitePage() {
 
 						{errorMessage && (
 							<Alert variant="destructive">
-								<AlertCircle className="h-4 w-4" />
+								<AlertCircle className="size-4" />
 								<AlertDescription>{errorMessage}</AlertDescription>
 							</Alert>
 						)}
@@ -247,7 +247,7 @@ export default function AcceptInvitePage() {
 						>
 							{isSubmitting ? (
 								<>
-									<Spinner className="mr-2 h-4 w-4 animate-spin" />
+									<Spinner className="mr-2 size-4 animate-spin" />
 									Activating account...
 								</>
 							) : (

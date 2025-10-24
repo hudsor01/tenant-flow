@@ -143,7 +143,7 @@ export function EditMaintenanceButton({
 								<FieldLabel htmlFor="title">Title</FieldLabel>
 								<InputGroup>
 									<InputGroupAddon align="inline-start">
-										<FileText className="w-4 h-4" />
+										<FileText className="size-4" />
 									</InputGroupAddon>
 									<InputGroupInput
 										id="title"
@@ -248,7 +248,7 @@ export function EditMaintenanceButton({
 								</FieldLabel>
 								<InputGroup>
 									<InputGroupAddon align="inline-start">
-										<DollarSign className="w-4 h-4" />
+										<DollarSign className="size-4" />
 									</InputGroupAddon>
 									<InputGroupInput
 										id="estimatedCost"
@@ -276,7 +276,7 @@ export function EditMaintenanceButton({
 								</FieldLabel>
 								<InputGroup>
 									<InputGroupAddon align="inline-start">
-										<Calendar className="w-4 h-4" />
+										<Calendar className="size-4" />
 									</InputGroupAddon>
 									<InputGroupInput
 										id="preferredDate"

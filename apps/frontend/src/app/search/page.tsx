@@ -28,7 +28,7 @@ export default function SearchPage() {
 					{/* Search Bar */}
 					<div className="flex gap-2">
 						<div className="relative flex-1">
-							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground size-4" />
+							<Search className="absolute left-3 top-1/2 transform translate-y-[-50%] text-muted-foreground size-4" />
 							<Input
 								id="global-search"
 								name="search"

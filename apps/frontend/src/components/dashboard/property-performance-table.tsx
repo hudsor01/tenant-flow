@@ -27,11 +27,11 @@ const formatCurrency = (amount: number) => {
 const getTrendIcon = (trend: string) => {
 	switch (trend) {
 		case 'up':
-			return <TrendingUp className="h-3 w-3" />
+			return <TrendingUp className="size-3" />
 		case 'down':
-			return <TrendingDown className="h-3 w-3" />
+			return <TrendingDown className="size-3" />
 		default:
-			return <Minus className="h-3 w-3" />
+			return <Minus className="size-3" />
 	}
 }
 
@@ -50,7 +50,7 @@ export function PropertyPerformanceTable() {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center py-8">
-				<Spinner className="h-6 w-6 animate-spin" />
+				<Spinner className="size-6 animate-spin" />
 				<span className="ml-2 text-sm text-muted-foreground">
 					Loading property performance...
 				</span>
@@ -109,7 +109,7 @@ export function PropertyPerformanceTable() {
 								<TableRow key={property.propertyId}>
 									<TableCell>
 										<div className="flex items-center gap-3">
-											<Avatar className="h-8 w-8">
+											<Avatar className="size-8">
 												<AvatarFallback className="text-xs font-medium">
 													{avatar}
 												</AvatarFallback>
@@ -153,8 +153,8 @@ export function PropertyPerformanceTable() {
 										</div>
 									</TableCell>
 									<TableCell>
-										<Button variant="ghost" size="icon" className="h-8 w-8">
-											<ArrowUpRight className="h-4 w-4" />
+										<Button variant="ghost" size="icon" className="size-8">
+											<ArrowUpRight className="size-4" />
 											<span className="sr-only">View property details</span>
 										</Button>
 									</TableCell>

@@ -60,7 +60,7 @@ type VisitorAnalyticsChartProps = {
 
 function EmptyState({ message }: { message: string }) {
 	return (
-		<div className="flex h-[240px] flex-col items-center justify-center rounded-lg border border-dashed">
+		<div className="flex h-60 flex-col items-center justify-center rounded-lg border border-dashed">
 			<Badge variant="outline" className="mb-2">
 				No data
 			</Badge>
@@ -85,7 +85,7 @@ export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 	}))
 
 	return (
-		<ChartContainer className="h-[320px]" config={occupancyConfig}>
+		<ChartContainer className="h-80" config={occupancyConfig}>
 			<BarChart data={chartData}>
 				<CartesianGrid strokeDasharray="3 3" vertical={false} />
 				<XAxis
@@ -138,7 +138,7 @@ export function VisitorAnalyticsChart({ data }: VisitorAnalyticsChartProps) {
 	}))
 
 	return (
-		<ChartContainer className="h-[320px]" config={visitorConfig}>
+		<ChartContainer className="h-80" config={visitorConfig}>
 			<LineChart data={chartData}>
 				<CartesianGrid strokeDasharray="3 3" />
 				<XAxis dataKey="period" tickLine={false} axisLine={false} />

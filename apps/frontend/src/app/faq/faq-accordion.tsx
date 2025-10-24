@@ -102,8 +102,8 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 				<h3 className="text-foreground text-lg font-semibold pr-4">
 					{faq.question}
 				</h3>
-				<animated.div style={chevronAnimation} className="flex-shrink-0">
-					<ChevronDown className="h-5 w-5 text-muted-foreground" />
+				<animated.div style={chevronAnimation} className="shrink-0">
+					<ChevronDown className="size-5 text-muted-foreground" />
 				</animated.div>
 			</button>
 

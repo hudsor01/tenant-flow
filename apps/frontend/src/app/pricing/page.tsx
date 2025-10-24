@@ -87,7 +87,7 @@ export default function PricingPage() {
 				<TestimonialsSection />
 
 				{/* FAQ Section - Premium Split Layout */}
-				<section className="relative py-24 bg-gradient-to-b from-transparent to-muted/20">
+				<section className="relative py-24 bg-linear-to-b from-transparent to-muted/20">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
 						{/* Header */}
 						<div className="max-w-3xl mx-auto text-center mb-16">
@@ -133,7 +133,7 @@ export default function PricingPage() {
 							<Button size="lg" className="h-12 px-8" asChild>
 								<Link href="/contact">
 									Contact Sales
-									<ArrowRight className="w-4 h-4 ml-2" />
+									<ArrowRight className="size-4 ml-2" />
 								</Link>
 							</Button>
 						</div>
@@ -154,7 +154,7 @@ export default function PricingPage() {
 								<Button size="lg" className="px-10 h-14 text-lg" asChild>
 									<Link href="/signup">
 										Start Free Trial
-										<ArrowRight className="w-5 h-5 ml-2" />
+										<ArrowRight className="size-5 ml-2" />
 									</Link>
 								</Button>
 								<Button
@@ -168,19 +168,19 @@ export default function PricingPage() {
 							</div>
 							<div className="flex flex-wrap justify-center items-center gap-8 text-sm">
 								<div className="flex items-center gap-2">
-									<CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+									<CheckCircle2 className="size-5 text-green-600 dark:text-green-400" />
 									<span className="text-foreground font-medium">
 										14-day free trial
 									</span>
 								</div>
 								<div className="flex items-center gap-2">
-									<CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+									<CheckCircle2 className="size-5 text-green-600 dark:text-green-400" />
 									<span className="text-foreground font-medium">
 										No credit card required
 									</span>
 								</div>
 								<div className="flex items-center gap-2">
-									<CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+									<CheckCircle2 className="size-5 text-green-600 dark:text-green-400" />
 									<span className="text-foreground font-medium">
 										Cancel anytime
 									</span>
