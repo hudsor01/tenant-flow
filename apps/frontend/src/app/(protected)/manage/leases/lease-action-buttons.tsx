@@ -166,7 +166,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 		<ButtonGroup>
 			{/* Edit Button & Dialog */}
 			<Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-				<Edit className="w-4 h-4" />
+				<Edit className="size-4" />
 			</Button>
 
 			<Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -192,7 +192,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 										<FieldLabel htmlFor="edit-startDate">Start Date</FieldLabel>
 										<InputGroup>
 											<InputGroupAddon align="inline-start">
-												<Calendar className="w-4 h-4" />
+												<Calendar className="size-4" />
 											</InputGroupAddon>
 											<InputGroupInput
 												id="edit-startDate"
@@ -219,7 +219,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 										<FieldLabel htmlFor="edit-endDate">End Date</FieldLabel>
 										<InputGroup>
 											<InputGroupAddon align="inline-start">
-												<Calendar className="w-4 h-4" />
+												<Calendar className="size-4" />
 											</InputGroupAddon>
 											<InputGroupInput
 												id="edit-endDate"
@@ -250,7 +250,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 										</FieldLabel>
 										<InputGroup>
 											<InputGroupAddon align="inline-start">
-												<DollarSign className="w-4 h-4" />
+												<DollarSign className="size-4" />
 											</InputGroupAddon>
 											<InputGroupInput
 												id="edit-rentAmount"
@@ -279,7 +279,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 										</FieldLabel>
 										<InputGroup>
 											<InputGroupAddon align="inline-start">
-												<DollarSign className="w-4 h-4" />
+												<DollarSign className="size-4" />
 											</InputGroupAddon>
 											<InputGroupInput
 												id="edit-securityDeposit"
@@ -350,7 +350,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 				onClick={() => setRenewOpen(true)}
 				disabled={lease.status !== 'ACTIVE'}
 			>
-				<RotateCcw className="w-4 h-4" />
+				<RotateCcw className="size-4" />
 			</Button>
 
 			<RenewLeaseDialog
@@ -376,14 +376,14 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 
 			{/* View Button & Dialog */}
 			<Button variant="outline" size="sm" onClick={() => setViewOpen(true)}>
-				<Eye className="w-4 h-4" />
+				<Eye className="size-4" />
 			</Button>
 
 			<Dialog open={viewOpen} onOpenChange={setViewOpen}>
 				<DialogContent className="sm:max-w-lg">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
-							<FileText className="w-5 h-5" />
+							<FileText className="size-5" />
 							Lease Agreement
 						</DialogTitle>
 						<DialogDescription>
@@ -397,7 +397,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 						<div className="space-y-4">
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
-									<Calendar className="w-4 h-4 text-muted-foreground" />
+									<Calendar className="size-4 text-muted-foreground" />
 									<span className="text-sm font-medium">Lease Period</span>
 								</div>
 								<span className="text-sm text-muted-foreground">
@@ -408,7 +408,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
-									<DollarSign className="w-4 h-4 text-muted-foreground" />
+									<DollarSign className="size-4 text-muted-foreground" />
 									<span className="text-sm font-medium">Monthly Rent</span>
 								</div>
 								<span className="font-semibold">
@@ -418,7 +418,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
-									<DollarSign className="w-4 h-4 text-muted-foreground" />
+									<DollarSign className="size-4 text-muted-foreground" />
 									<span className="text-sm font-medium">Security Deposit</span>
 								</div>
 								<span className="text-sm text-muted-foreground">
@@ -444,7 +444,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
-									<Users className="w-4 h-4 text-muted-foreground" />
+									<Users className="size-4 text-muted-foreground" />
 									<span className="text-sm font-medium">Tenant ID</span>
 								</div>
 								<span className="text-sm text-muted-foreground font-mono">
@@ -454,7 +454,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
-									<Building className="w-4 h-4 text-muted-foreground" />
+									<Building className="size-4 text-muted-foreground" />
 									<span className="text-sm font-medium">Unit ID</span>
 								</div>
 								<span className="text-sm text-muted-foreground font-mono">
@@ -491,7 +491,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 												setPayRentOpen(true)
 											}}
 										>
-											<CreditCard className="w-4 h-4 mr-2" />
+											<CreditCard className="size-4 mr-2" />
 											Pay Rent
 										</Button>
 										<Button
@@ -531,7 +531,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
-							<CreditCard className="w-5 h-5" />
+							<CreditCard className="size-5" />
 							Pay Rent
 						</DialogTitle>
 						<DialogDescription>

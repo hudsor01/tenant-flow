@@ -63,7 +63,7 @@ export default function TenantPaymentHistoryPage() {
 				</div>
 				<Link href="/tenant/payments">
 					<Button>
-						<CreditCard className="h-4 w-4 mr-2" />
+						<CreditCard className="size-4 mr-2" />
 						Make Payment
 					</Button>
 				</Link>
@@ -73,7 +73,7 @@ export default function TenantPaymentHistoryPage() {
 			<div className="grid gap-4 md:grid-cols-3">
 				<CardLayout title="Total Paid" description="Lifetime payments">
 					<div className="flex items-center gap-3">
-						<DollarSign className="h-8 w-8 text-accent-main" />
+						<DollarSign className="size-8 text-accent-main" />
 						<div>
 							{paymentsLoading ? (
 								<Skeleton className="h-8 w-32" />
@@ -89,7 +89,7 @@ export default function TenantPaymentHistoryPage() {
 
 				<CardLayout title="Last Payment" description="Most recent payment">
 					<div className="flex items-center gap-3">
-						<Calendar className="h-8 w-8 text-accent-main" />
+						<Calendar className="size-8 text-accent-main" />
 						<div>
 							{paymentsLoading ? (
 								<Skeleton className="h-8 w-24" />
@@ -107,7 +107,7 @@ export default function TenantPaymentHistoryPage() {
 
 				<CardLayout title="Next Due" description="Upcoming payment">
 					<div className="flex items-center gap-3">
-						<Calendar className="h-8 w-8 text-accent-main" />
+						<Calendar className="size-8 text-accent-main" />
 						<div>
 							<Skeleton className="h-8 w-24" />
 							<p className="text-sm text-muted-foreground mt-1">Due date</p>
@@ -159,7 +159,7 @@ export default function TenantPaymentHistoryPage() {
 								</div>
 								<div>
 									<div className="flex items-center gap-2">
-										<CreditCard className="h-4 w-4 text-muted-foreground" />
+										<CreditCard className="size-4 text-muted-foreground" />
 										<span className="text-sm">Credit Card</span>
 									</div>
 								</div>
@@ -176,7 +176,7 @@ export default function TenantPaymentHistoryPage() {
 								</div>
 								<div className="text-right">
 									<Button variant="ghost" size="sm">
-										<Download className="h-4 w-4" />
+										<Download className="size-4" />
 									</Button>
 								</div>
 							</div>
@@ -218,7 +218,7 @@ export default function TenantPaymentHistoryPage() {
 								className="flex items-center justify-between p-4 border rounded-lg"
 							>
 								<div className="flex items-center gap-3">
-									<CreditCard className="h-5 w-5 text-accent-main" />
+									<CreditCard className="size-5 text-accent-main" />
 									<div>
 										<p className="font-medium">
 											{method.brand || 'Card'} •••• {method.last4}

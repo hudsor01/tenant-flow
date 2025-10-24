@@ -13,7 +13,7 @@ export default function DocumentsPage() {
 	return (
 		<div className="container mx-auto py-6 space-y-6">
 			<div className="flex items-center gap-3">
-				<FileText className="h-8 w-8 text-primary" />
+				<FileText className="size-8 text-primary" />
 				<div>
 					<h1 className="text-3xl font-bold">Documents</h1>
 					<p className="text-muted-foreground">
@@ -27,7 +27,7 @@ export default function DocumentsPage() {
 				<Card className="transition-all hover:shadow-md">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<FileText className="h-5 w-5" />
+							<FileText className="size-5" />
 							Lease Agreement Template
 						</CardTitle>
 						<CardDescription>
@@ -47,13 +47,13 @@ export default function DocumentsPage() {
 						<div className="flex gap-2">
 							<Button variant="outline" size="sm" asChild>
 								<Link href="/manage/documents/lease-template">
-									<Eye className="h-4 w-4 mr-2" />
+									<Eye className="size-4 mr-2" />
 									View Details
 								</Link>
 							</Button>
 							<Button size="sm" asChild>
 								<Link href="/manage/documents/lease-template">
-									<ArrowRight className="h-4 w-4 mr-2" />
+									<ArrowRight className="size-4 mr-2" />
 									Access Template
 								</Link>
 							</Button>
@@ -65,7 +65,7 @@ export default function DocumentsPage() {
 				<Card className="opacity-60">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<FileText className="h-5 w-5" />
+							<FileText className="size-5" />
 							Additional Templates
 						</CardTitle>
 						<CardDescription>
@@ -99,19 +99,19 @@ export default function DocumentsPage() {
 					<div className="grid gap-3 md:grid-cols-3">
 						<Button variant="outline" className="justify-start" asChild>
 							<Link href="/manage/leases">
-								<FileText className="h-4 w-4 mr-2" />
+								<FileText className="size-4 mr-2" />
 								Generate Custom Lease
 							</Link>
 						</Button>
 						<Button variant="outline" className="justify-start" asChild>
 							<Link href="/manage/documents/lease-template">
-								<Download className="h-4 w-4 mr-2" />
+								<Download className="size-4 mr-2" />
 								Download Template
 							</Link>
 						</Button>
 						<Button variant="outline" className="justify-start" asChild>
 							<Link href="/manage/properties">
-								<FileText className="h-4 w-4 mr-2" />
+								<FileText className="size-4 mr-2" />
 								View Properties
 							</Link>
 						</Button>

@@ -53,19 +53,19 @@ function getCardBrandDisplay(brand: string) {
 function formatPaymentMethod(paymentMethod: PaymentMethodResponse) {
 	if (paymentMethod.type === 'card') {
 		return {
-			icon: <CreditCard className="h-5 w-5" />,
+			icon: <CreditCard className="size-5" />,
 			label: `${getCardBrandDisplay(paymentMethod.brand || 'Card')} ••••${paymentMethod.last4}`,
 			details: null
 		}
 	} else if (paymentMethod.type === 'us_bank_account') {
 		return {
-			icon: <Building2 className="h-5 w-5" />,
+			icon: <Building2 className="size-5" />,
 			label: `${paymentMethod.bankName || 'Bank Account'} ••••${paymentMethod.last4}`,
 			details: 'ACH Direct Debit'
 		}
 	}
 	return {
-		icon: <CreditCard className="h-5 w-5" />,
+		icon: <CreditCard className="size-5" />,
 		label: `Payment Method ••••${paymentMethod.last4}`,
 		details: null
 	}
@@ -134,7 +134,7 @@ export default function PaymentMethodsPage() {
 								</CardDescription>
 							</div>
 							<Button onClick={() => setShowAddDialog(true)} size="sm">
-								<Plus className="mr-2 h-4 w-4" />
+								<Plus className="mr-2 size-4" />
 								Add Payment Method
 							</Button>
 						</div>
@@ -142,11 +142,11 @@ export default function PaymentMethodsPage() {
 					<CardContent>
 						{isLoading ? (
 							<div className="flex items-center justify-center py-8">
-								<Spinner className="h-8 w-8 animate-spin text-muted-foreground" />
+								<Spinner className="size-8 animate-spin text-muted-foreground" />
 							</div>
 						) : !hasPaymentMethods ? (
 							<div className="text-center py-8">
-								<CreditCard className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+								<CreditCard className="mx-auto size-12 text-muted-foreground mb-4" />
 								<p className="text-sm text-muted-foreground mb-4">
 									No payment methods saved yet
 								</p>
@@ -155,7 +155,7 @@ export default function PaymentMethodsPage() {
 									variant="outline"
 									size="sm"
 								>
-									<Plus className="mr-2 h-4 w-4" />
+									<Plus className="mr-2 size-4" />
 									Add Your First Payment Method
 								</Button>
 							</div>
@@ -178,7 +178,7 @@ export default function PaymentMethodsPage() {
 														<span className="font-medium">{display.label}</span>
 														{method.isDefault && (
 															<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-																<Check className="h-3 w-3" />
+																<Check className="size-3" />
 																Default
 															</span>
 														)}
@@ -194,7 +194,7 @@ export default function PaymentMethodsPage() {
 											<DropdownMenu>
 												<DropdownMenuTrigger asChild>
 													<Button variant="ghost" size="sm">
-														<MoreVertical className="h-4 w-4" />
+														<MoreVertical className="size-4" />
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent align="end">
@@ -203,7 +203,7 @@ export default function PaymentMethodsPage() {
 															onClick={() => handleSetDefault(method.id)}
 															disabled={setDefault.isPending}
 														>
-															<Check className="mr-2 h-4 w-4" />
+															<Check className="mr-2 size-4" />
 															Set as Default
 														</DropdownMenuItem>
 													)}
@@ -212,7 +212,7 @@ export default function PaymentMethodsPage() {
 														disabled={deleteMethod.isPending}
 														className="text-destructive focus:text-destructive"
 													>
-														<Trash2 className="mr-2 h-4 w-4" />
+														<Trash2 className="mr-2 size-4" />
 														Remove
 													</DropdownMenuItem>
 												</DropdownMenuContent>

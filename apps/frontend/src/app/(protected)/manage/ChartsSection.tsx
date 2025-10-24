@@ -31,7 +31,7 @@ export function ChartsSection() {
 			className="w-full p-6 gap-4"
 		>
 			<div
-				className="mx-auto max-w-[1600px] py-4"
+				className="mx-auto max-w-400 py-4"
 			>
 				<div
 					className="grid grid-cols-1 @3xl/main:grid-cols-3 gap-4"

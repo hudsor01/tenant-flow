@@ -17,10 +17,10 @@ export function ActivityFeedSkeleton({ items = 3 }: ActivityFeedSkeletonProps) {
 						<div className="flex items-start justify-between gap-2">
 							<div className="min-w-0 flex-1">
 								<div className="flex items-center gap-2 mb-2">
-									<Skeleton className="w-[120px] h-4 rounded-sm" />
-									<Skeleton className="w-[60px] h-5 rounded-full" />
+									<Skeleton className="w-30 h-4 rounded-sm" />
+									<Skeleton className="w-15 h-5 rounded-full" />
 								</div>
-								<Skeleton className="mb-2 w-[180px] h-3.5 rounded-sm" />
+								<Skeleton className="mb-2 w-45 h-3.5 rounded-sm" />
 								<Skeleton className="w-20 h-3 rounded-sm" />
 							</div>
 						</div>

@@ -82,7 +82,7 @@ export function UpdatePasswordForm({
 			>
 				<CardHeader className="text-center space-y-4 animate-slide-in-top">
 					<div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
-						<Lock className="w-6 h-6 text-primary" />
+						<Lock className="size-6 text-primary" />
 					</div>
 					<div className="space-y-2">
 						<CardTitle className="font-bold tracking-tight text-3xl">
@@ -152,13 +152,13 @@ export function UpdatePasswordForm({
 								</InputGroup>
 								{confirmPassword && password !== confirmPassword && (
 									<p className="text-xs text-destructive flex items-center gap-1">
-										<AlertTriangle className="w-3 h-3" />
+										<AlertTriangle className="size-3" />
 										Passwords do not match
 									</p>
 								)}
 								{confirmPassword && password === confirmPassword && (
 									<p className="text-xs text-primary flex items-center gap-1">
-										<CheckCircle2 className="w-3 h-3" />
+										<CheckCircle2 className="size-3" />
 										Passwords match
 									</p>
 								)}
@@ -167,7 +167,7 @@ export function UpdatePasswordForm({
 
 						{updatePasswordMutation.isError && (
 							<Alert variant="destructive">
-								<AlertTriangle className="h-4 w-4" />
+								<AlertTriangle className="size-4" />
 								<AlertDescription>
 									{updatePasswordMutation.error instanceof Error
 										? updatePasswordMutation.error.message
@@ -193,12 +193,12 @@ export function UpdatePasswordForm({
 						>
 							{updatePasswordMutation.isPending ? (
 								<>
-									<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+									<div className="animate-spin rounded-full size-4 border-b-2 border-white mr-2" />
 									Saving...
 								</>
 							) : (
 								<>
-									<Shield className="w-4 h-4 mr-2" />
+									<Shield className="size-4 mr-2" />
 									Save new password
 								</>
 							)}

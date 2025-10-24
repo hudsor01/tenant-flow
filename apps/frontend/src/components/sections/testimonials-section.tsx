@@ -60,7 +60,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 							<div className="relative group h-full">
 								<div className="relative bg-card border border-border rounded-2xl p-8 h-full hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5">
 									{/* Quote icon */}
-									<Quote className="w-10 h-10 text-primary/20 mb-6" />
+									<Quote className="size-10 text-primary/20 mb-6" />
 
 									{/* Quote text */}
 									<blockquote className="text-lg text-foreground/90 leading-relaxed mb-6 font-medium">

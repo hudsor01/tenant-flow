@@ -127,7 +127,7 @@ export default function NewMaintenanceRequestPage() {
 			<div>
 				<Link href="/tenant/maintenance">
 					<Button variant="ghost" size="sm" className="mb-4">
-						<ArrowLeft className="h-4 w-4 mr-2" />
+						<ArrowLeft className="size-4 mr-2" />
 						Back to Requests
 					</Button>
 				</Link>
@@ -191,7 +191,7 @@ export default function NewMaintenanceRequestPage() {
 					<Field>
 						<FieldLabel>Description *</FieldLabel>
 						<textarea
-							className="input w-full min-h-[120px]"
+							className="input w-full min-h-30"
 							placeholder="Please describe the issue in detail..."
 							value={formData.description}
 							onChange={e => handleChange('description', e.target.value)}
