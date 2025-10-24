@@ -16,7 +16,7 @@ import type { Property, PropertyStats } from '@repo/shared/types/core'
 import { Plus, TrendingDown, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import type { Metadata } from 'next/types'
-import { PropertiesTableClient } from './properties-table.client'
+import { PropertiesGridClient } from './properties-grid.client'
 
 export const metadata: Metadata = {
 	title: 'Properties | TenantFlow',
@@ -132,16 +132,63 @@ export default async function PropertiesPage() {
 						</div>
 					</CardFooter>
 				</Card>
+
+				<Card>
+					<CardHeader>
+						<CardDescription>Vacant Units</CardDescription>
+						<CardTitle className="text-2xl font-semibold">
+							{stats.vacant ?? 0}
+						</CardTitle>
+						<CardAction>
+							<Badge variant="outline">
+								{(stats.vacant ?? 0) === 0 ? (
+									<TrendingUp className="size-3" />
+								) : (
+									<TrendingDown className="size-3" />
+								)}
+								{(stats.vacant ?? 0) === 0 ? 'Fully occupied' : 'Available'}
+							</Badge>
+						</CardAction>
+					</CardHeader>
+					<CardFooter className="flex-col items-start gap-1.5 text-sm">
+						<div className="flex gap-2 font-medium">
+							Available units
+							<TrendingDown className="size-4" />
+						</div>
+						<div className="text-muted-foreground">
+							Units ready for new tenants
+						</div>
+					</CardFooter>
+				</Card>
+
+				<Card>
+					<CardHeader>
+						<CardDescription>Total Monthly Rent</CardDescription>
+						<CardTitle className="text-2xl font-semibold">
+							${(stats.totalMonthlyRent ?? 0).toLocaleString()}
+						</CardTitle>
+						<CardAction>
+							<Badge variant="outline">
+								<TrendingUp className="size-3" />
+								Revenue potential
+							</Badge>
+						</CardAction>
+					</CardHeader>
+					<CardFooter className="flex-col items-start gap-1.5 text-sm">
+						<div className="flex gap-2 font-medium">
+							Monthly income <TrendingUp className="size-4" />
+						</div>
+						<div className="text-muted-foreground">
+							Avg: ${(stats.averageRent ?? 0).toLocaleString()}/unit
+						</div>
+					</CardFooter>
+				</Card>
 			</div>
 
-		{/* Properties Data Table */}
+		{/* Properties Grid */}
 		<section className="flex flex-col gap-4">
 			<h2 className="text-xl font-semibold">Portfolio</h2>
-			<Card>
-				<CardContent className="pt-6">
-					<PropertiesTableClient data={properties} />
-				</CardContent>
-			</Card>
+			<PropertiesGridClient data={properties} />
 		</section>
 		</div>
 	)
