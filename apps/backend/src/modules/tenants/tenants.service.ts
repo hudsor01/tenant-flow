@@ -11,7 +11,11 @@ import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
 } from '@repo/shared/types/backend-domain'
-import type { Tenant, TenantStats } from '@repo/shared/types/core'
+import type {
+	Tenant,
+	TenantStats,
+	TenantSummary
+} from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
 import {
@@ -201,6 +205,59 @@ export class TenantsService {
 				userId
 			})
 			throw new BadRequestException('Failed to retrieve tenant statistics')
+		}
+	}
+
+	/**
+	 * Get tenant summary: totals and overdue/upcoming aggregates
+	 */
+	async getSummary(userId: string): Promise<TenantSummary> {
+		if (!userId) {
+			this.logger.warn('getSummary called without userId')
+			throw new BadRequestException('User ID is required')
+		}
+
+		const client = this.supabase.getAdminClient()
+
+		// Fetch tenants for counts
+		const { data: tenantsData } = await client
+			.from('tenant')
+			.select('*')
+			.eq('userId', userId)
+
+		const tenants: any[] = tenantsData || []
+
+		const total = tenants.length
+		const invited = tenants.filter(t => !!t.invitation_status).length
+		const active = tenants.filter(
+			t => t.status !== 'MOVED_OUT' && t.status !== 'ARCHIVED'
+		).length
+
+		// Simple aggregates: overdue (dueDate < today) and upcoming (dueDate >= today)
+		const today = new Date().toISOString()
+
+		const { data: overdueAgg } = await client
+			.from('rent_payment')
+			.select('sum(amount)')
+			.eq('userId', userId)
+			.lt('dueDate', today)
+
+		const { data: upcomingAgg } = await client
+			.from('rent_payment')
+			.select('sum(amount)')
+			.eq('userId', userId)
+			.gte('dueDate', today)
+
+		const overdueBalanceCents = Number((overdueAgg && overdueAgg[0]?.sum) || 0)
+		const upcomingDueCents = Number((upcomingAgg && upcomingAgg[0]?.sum) || 0)
+
+		return {
+			total,
+			invited,
+			active,
+			overdueBalanceCents,
+			upcomingDueCents,
+			timestamp: new Date().toISOString()
 		}
 	}
 
@@ -761,6 +818,7 @@ export class TenantsService {
 			// Update tenant with emergency contact via direct Supabase query
 			const client = this.supabase.getAdminClient()
 			const emergencyContactPayload = JSON.stringify(emergencyContact)
+
 			const { data, error } = await client
 				.from('tenant')
 				.update({ emergencyContact: emergencyContactPayload })
