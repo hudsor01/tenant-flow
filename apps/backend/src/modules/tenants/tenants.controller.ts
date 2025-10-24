@@ -203,6 +203,15 @@ export class TenantsController {
 		return this.tenantsService.resendInvitation(userId, id)
 	}
 
+	/**
+	 * Validate invitation token (public endpoint - no auth required)
+	 * Used by tenant invitation landing page
+	 */
+	@Get('invitation/:token')
+	async validateInvitation(@Param('token') token: string) {
+		return this.tenantsService.validateInvitationToken(token)
+	}
+
 	@Put(':id/emergency-contact')
 	async updateEmergencyContact(
 		@Param('id', ParseUUIDPipe) id: string,

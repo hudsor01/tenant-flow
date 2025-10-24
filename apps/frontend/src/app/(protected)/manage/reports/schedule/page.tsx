@@ -1,8 +1,17 @@
 import type { Metadata } from 'next'
 import { requireSession } from '@/lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
 import { Calendar } from 'lucide-react'
+import type { ScheduledReport } from '@/lib/api/reports-client'
+import { getSchedules } from './actions'
+import { ScheduleReportsClient } from './schedule-reports.client'
 
 export const metadata: Metadata = {
 	title: 'Schedule Reports | TenantFlow',
@@ -15,11 +24,10 @@ export default async function ScheduleReportsPage() {
 	const logger = createLogger({ component: 'ScheduleReportsPage', userId: user.id })
 
 	// ✅ Server Component: Fetch data on server during RSC render
-	let schedules = []
+	let schedules: ScheduledReport[] = []
 
 	try {
-		// TODO: Implement getSchedules action
-		schedules = []
+		schedules = await getSchedules()
 	} catch (err) {
 		// Log server-side; avoid throwing to prevent resetting the RSC tree
 		logger.warn('Failed to fetch schedules for ScheduleReportsPage', {
@@ -37,10 +45,7 @@ export default async function ScheduleReportsPage() {
 			</div>
 
 			{/* Client Component for Form and Mutations */}
-			{/* TODO: Implement ScheduleReportsClient component */}
-			<div className="text-sm text-muted-foreground">
-				Report scheduling coming soon
-			</div>
+			<ScheduleReportsClient initialSchedules={schedules} />
 
 			<Card>
 				<CardHeader>

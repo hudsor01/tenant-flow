@@ -401,6 +401,12 @@ export interface TenantWithLeaseInfo {
 	createdAt: string
 	updatedAt: string
 
+	// Invitation fields
+	invitation_status: 'PENDING' | 'SENT' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED' | null
+	invitation_sent_at: string | null
+	invitation_accepted_at: string | null
+	invitation_expires_at: string | null
+
 	// Current lease information
 	currentLease: {
 		id: string

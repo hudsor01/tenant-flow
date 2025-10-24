@@ -6,11 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DataTable } from '@/components/ui/data-table'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Trash2 } from 'lucide-react'
-import { useOptimistic, useState, useTransition } from 'react'
+import { useOptimistic, useState, useTransition, useEffect } from 'react'
 import { toast } from 'sonner'
 import { ColumnDef } from '@tanstack/react-table'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { useResendInvitation } from '@/hooks/api/use-tenant'
 
 const logger = createLogger({ component: 'TenantsTableClient' })
 
@@ -26,6 +27,22 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 		initialTenants,
 		(state, tenantId: string) => state.filter(t => t.id !== tenantId)
 	)
+
+	const resendInvitationMutation = useResendInvitation()
+
+	// Listen for resend invitation events from columns
+	useEffect(() => {
+		const handleResendInvitation = (event: Event) => {
+			const customEvent = event as CustomEvent<{ tenantId: string }>
+			const { tenantId } = customEvent.detail
+			resendInvitationMutation.mutate(tenantId)
+		}
+
+		window.addEventListener('resend-invitation', handleResendInvitation)
+		return () => {
+			window.removeEventListener('resend-invitation', handleResendInvitation)
+		}
+	}, [resendInvitationMutation])
 
 	const handleDelete = (tenantId: string, tenantName: string) => {
 		setDeletingId(tenantId)

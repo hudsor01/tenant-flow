@@ -795,6 +795,88 @@ export class TenantsService {
 	}
 
 	/**
+	 * Validate invitation token (public - no userId required)
+	 * Returns invitation status for tenant landing page
+	 */
+	async validateInvitationToken(token: string): Promise<{
+		valid: boolean
+		expired: boolean
+		already_accepted: boolean
+		tenant_email?: string
+		tenant_first_name?: string
+		property_name?: string
+		expires_at?: string
+	}> {
+		try {
+			this.logger.log('Validating invitation token', { tokenLength: token.length })
+
+			// Query tenant by invitation token
+			const client = this.supabase.getAdminClient()
+			const { data: tenant, error } = await client
+				.from('tenant')
+				.select('id, email, firstName, invitation_status, invitation_expires_at')
+				.eq('invitation_token', token)
+				.single()
+
+			if (error || !tenant) {
+				this.logger.warn('Invitation token not found', { error: error?.message })
+				return {
+					valid: false,
+					expired: false,
+					already_accepted: false
+				}
+			}
+
+			// Check if already accepted
+			if (tenant.invitation_status === 'ACCEPTED') {
+				return {
+					valid: false,
+					expired: false,
+					already_accepted: true,
+					tenant_email: tenant.email,
+					...(tenant.firstName && { tenant_first_name: tenant.firstName })
+				}
+			}
+
+			// Check if expired
+			const expiresAt = tenant.invitation_expires_at ? new Date(tenant.invitation_expires_at) : null
+			const now = new Date()
+			const expired = expiresAt ? expiresAt < now : false
+
+			if (expired) {
+				return {
+					valid: false,
+					expired: true,
+					already_accepted: false,
+					tenant_email: tenant.email,
+					...(tenant.firstName && { tenant_first_name: tenant.firstName }),
+					...(tenant.invitation_expires_at && { expires_at: tenant.invitation_expires_at })
+				}
+			}
+
+			// Valid invitation
+			return {
+				valid: true,
+				expired: false,
+				already_accepted: false,
+				tenant_email: tenant.email,
+				...(tenant.firstName && { tenant_first_name: tenant.firstName }),
+				...(tenant.invitation_expires_at && { expires_at: tenant.invitation_expires_at })
+			}
+		} catch (error) {
+			this.logger.error('Failed to validate invitation token', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+
+			return {
+				valid: false,
+				expired: false,
+				already_accepted: false
+			}
+		}
+	}
+
+	/**
 	 * Update tenant emergency contact
 	 */
 	async updateEmergencyContact(

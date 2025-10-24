@@ -63,7 +63,7 @@ export class LateFeesController {
 			.from('property')
 			.select('id')
 			.eq('id', unit.propertyId)
-			.eq('owner_id', userId)
+			.eq('ownerId', userId)
 			.single()
 
 		return !!property

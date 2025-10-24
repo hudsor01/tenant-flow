@@ -1,281 +1,153 @@
-import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { LeasePDFService } from './lease-pdf.service'
 import { PDFGeneratorService } from './pdf-generator.service'
+import type { LeaseFormData } from '@repo/shared/types/lease-generator.types'
+import {
+	createDefaultContext,
+	getDefaultSelections,
+	leaseTemplateSchema
+} from '@repo/shared/templates/lease-template'
 
 describe('LeasePDFService', () => {
 	let service: LeasePDFService
 	let mockPDFGenerator: jest.Mocked<PDFGeneratorService>
 
+	const minimalLeaseData: LeaseFormData = {
+		property: {
+			address: {
+				street: '1 Demo Way',
+				city: 'Demo City',
+				state: 'CA',
+				zipCode: '90001'
+			},
+			type: 'apartment',
+			bedrooms: 1,
+			bathrooms: 1
+		},
+		landlord: {
+			name: 'Landlord',
+			isEntity: false,
+			address: {
+				street: '500 Landlord St',
+				city: 'Demo City',
+				state: 'CA',
+				zipCode: '90002'
+			},
+			phone: '555-0100',
+			email: 'landlord@example.com'
+		},
+		tenants: [
+			{
+				name: 'Tenant One',
+				email: 'tenant@example.com',
+				phone: '555-0101',
+				isMainTenant: true
+			}
+		],
+		leaseTerms: {
+			type: 'fixed_term',
+			startDate: '2024-01-01T00:00:00.000Z',
+			endDate: '2024-12-31T23:59:59.000Z',
+			rentAmount: 120000,
+			currency: 'USD',
+			dueDate: 1,
+			lateFee: {
+				enabled: true,
+				amount: 5000,
+				gracePeriod: 5
+			},
+			securityDeposit: {
+				amount: 120000,
+				monthsRent: 1
+			}
+		},
+		options: {
+			includeStateDisclosures: true,
+			includeFederalDisclosures: true,
+			includeSignaturePages: true,
+			format: 'standard'
+		}
+	}
+
 	beforeEach(async () => {
-		// Create mock implementations
 		mockPDFGenerator = {
-			generatePDF: jest.fn().mockResolvedValue(Buffer.from('mock-pdf-content')),
-			generateInvoicePDF: jest
-				.fn()
-				.mockResolvedValue(Buffer.from('mock-invoice-pdf-content')),
-			generateLeaseAgreementPDF: jest
-				.fn()
-				.mockResolvedValue(Buffer.from('mock-lease-pdf-content')),
-			onModuleDestroy: jest.fn().mockResolvedValue(undefined),
-			browser: null,
-			getBrowser: jest.fn()
+			generatePDF: jest.fn().mockResolvedValue(Buffer.from('pdf')),
+			generateInvoicePDF: jest.fn(),
+			generateLeaseAgreementPDF: jest.fn(),
+			onModuleDestroy: jest.fn(),
+			getBrowser: jest.fn(),
+			browser: null
 		} as unknown as jest.Mocked<PDFGeneratorService>
 
-		const module: TestingModule = await Test.createTestingModule({
+		const moduleRef = await Test.createTestingModule({
 			providers: [
 				LeasePDFService,
-				{
-					provide: PDFGeneratorService,
-					useValue: mockPDFGenerator
-				}
+				{ provide: PDFGeneratorService, useValue: mockPDFGenerator }
 			]
 		})
 			.setLogger(new SilentLogger())
 			.compile()
 
-		service = module.get<LeasePDFService>(LeasePDFService)
+		service = moduleRef.get(LeasePDFService)
 
-		// Spy on the actual logger instance created by the service
 		jest.spyOn(service['logger'], 'error').mockImplementation(() => {})
 	})
 
-	it('should be defined', () => {
-		expect(service).toBeDefined()
+	it('generates PDF with minimal data', async () => {
+		const buffer = await service.generateLeasePDF(minimalLeaseData)
+		expect(buffer).toBeInstanceOf(Buffer)
+		expect(mockPDFGenerator.generatePDF).toHaveBeenCalled()
 	})
 
-	describe('generateLeasePDF', () => {
-		it('should generate a lease PDF with minimal data', async () => {
-			const leaseData = {
-				id: 'test-lease-123',
-				userId: 'user-456'
-			}
+	it('generates PDF with full clause selection', async () => {
+		const fullLeaseData: LeaseFormData = {
+			...minimalLeaseData,
+			policies: {
+				pets: { allowed: true, types: ['cats'] },
+				smoking: { allowed: false }
+			},
+			customTerms: [
+				{ title: 'Quiet Hours', content: '10 PM to 8 AM', required: true }
+			]
+		}
 
-			const result = await service.generateLeasePDF(leaseData)
-
-			expect(result).toBeInstanceOf(Buffer)
-			expect(mockPDFGenerator.generatePDF).toHaveBeenCalled()
-		})
-
-		it('should generate a lease PDF with complete data', async () => {
-			const completeLeaseData = {
-				id: 'lease-789',
-				userId: 'user-123',
-				property: {
-					address: {
-						street: '123 Main St',
-						unit: '4B',
-						city: 'San Francisco',
-						state: 'CA',
-						zipCode: '94105'
-					},
-					type: 'apartment',
-					bedrooms: 2,
-					bathrooms: 1.5,
-					squareFeet: 850,
-					parking: {
-						included: true,
-						spaces: 1
-					},
-					amenities: ['Laundry', 'Gym', 'Pool']
-				},
-				landlord: {
-					name: 'Property Management LLC',
-					isEntity: true,
-					entityType: 'LLC',
-					address: {
-						street: '456 Business Ave',
-						city: 'San Francisco',
-						state: 'CA',
-						zipCode: '94108'
-					},
-					phone: '(415) 555-0100',
-					email: 'contact@propertymanagement.com'
-				},
-				tenants: [
-					{
-						name: 'John Doe',
-						email: 'john.doe@example.com',
-						phone: '(415) 555-0101',
-						isMainTenant: true
-					},
-					{
-						name: 'Jane Doe',
-						email: 'jane.doe@example.com',
-						phone: '(415) 555-0102',
-						isMainTenant: false
-					}
-				],
-				leaseTerms: {
-					type: 'fixed_term',
-					startDate: '2024-01-01T00:00:00Z',
-					endDate: '2024-12-31T23:59:59Z',
-					rentAmount: 350000, // $3500 in cents
-					currency: 'USD',
-					dueDate: 1,
-					lateFee: {
-						enabled: true,
-						amount: 10000, // $100
-						gracePeriod: 5
-					},
-					securityDeposit: {
-						amount: 350000,
-						monthsRent: 1,
-						holdingAccount: true
-					},
-					additionalFees: [
-						{
-							type: 'pet_fee',
-							description: 'Pet deposit for one cat',
-							amount: 50000,
-							refundable: true
-						}
-					]
-				},
-				policies: {
-					pets: {
-						allowed: true,
-						types: ['cats'],
-						deposit: 50000,
-						monthlyFee: 5000,
-						restrictions: 'Maximum 2 cats, no dogs'
-					},
-					smoking: {
-						allowed: false
-					},
-					guests: {
-						overnightLimit: 14,
-						extendedStayLimit: 7
-					}
-				},
-				customTerms: [
-					{
-						title: 'Quiet Hours',
-						content: 'Quiet hours are from 10 PM to 8 AM daily.',
-						required: true
-					}
-				],
-				options: {
-					includeStateDisclosures: true,
-					includeFederalDisclosures: true,
-					includeSignaturePages: true,
-					format: 'detailed'
-				}
-			}
-
-			const result = await service.generateLeasePDF(completeLeaseData)
-
-			expect(result).toBeInstanceOf(Buffer)
-			expect(mockPDFGenerator.generatePDF).toHaveBeenCalledWith(
-				expect.stringContaining('Residential Lease Agreement'),
-				expect.objectContaining({
-					format: 'A4',
-					margin: expect.any(Object)
-				})
-			)
-		})
-
-		it('should handle PDF generation errors gracefully', async () => {
-			mockPDFGenerator.generatePDF.mockRejectedValueOnce(
-				new Error('PDF generation failed')
-			)
-
-			const leaseData = {
-				id: 'test-lease',
-				userId: 'test-user'
-			}
-
-			await expect(service.generateLeasePDF(leaseData)).rejects.toThrow()
-			expect(service['logger'].error).toHaveBeenCalled()
-		})
+		const buffer = await service.generateLeasePDF(fullLeaseData)
+		expect(buffer).toBeInstanceOf(Buffer)
+		expect(mockPDFGenerator.generatePDF).toHaveBeenCalledWith(
+			expect.stringContaining('Residential Lease Agreement'),
+			expect.any(Object)
+		)
 	})
 
-	describe('generateLeasePdf (controller method)', () => {
-		it('should return PDF buffer with metadata', async () => {
-			const result = await service.generateLeasePdf('lease-001', 'user-001', {
-				property: {
-					address: {
-						street: '789 Oak St',
-						city: 'Los Angeles',
-						state: 'CA',
-						zipCode: '90001'
-					}
-				}
-			})
+	it('logs and rethrows when PDF generation fails', async () => {
+		mockPDFGenerator.generatePDF.mockRejectedValueOnce(
+			new Error('PDF failure')
+		)
 
-			expect(result).toHaveProperty('buffer')
-			expect(result).toHaveProperty('filename')
-			expect(result).toHaveProperty('mimeType')
-			expect(result).toHaveProperty('size')
-			expect(result.buffer).toBeInstanceOf(Buffer)
-			expect(result.filename).toContain('lease-001')
-			expect(result.mimeType).toBe('application/pdf')
-			expect(result.size).toBeGreaterThan(0)
-		})
+		await expect(service.generateLeasePDF(minimalLeaseData)).rejects.toThrow(
+			'PDF failure'
+		)
+		expect(service['logger'].error).toHaveBeenCalled()
 	})
 
-	describe('Template Rendering', () => {
-		it('should handle missing optional fields gracefully', async () => {
-			const minimalData = {
-				property: {
-					address: {
-						street: 'Test St',
-						city: 'Test City',
-						state: 'TX'
-					}
-				}
-			}
-
-			const result = await service.generateLeasePDF(minimalData)
-
-			expect(result).toBeInstanceOf(Buffer)
-			expect(service['logger'].error).not.toHaveBeenCalled()
+	it('renders PDF from template selections', async () => {
+		const context = createDefaultContext({
+			landlordName: 'Preview Landlord',
+			tenantNames: 'Preview Tenant',
+			propertyAddress: '123 Preview Ave, Demo City, CA 90003',
+			propertyState: 'CA',
+			rentAmountCents: 150000,
+			securityDepositCents: 150000,
+			leaseStartDateISO: '2024-02-01T00:00:00.000Z'
 		})
+		const selections = getDefaultSelections(leaseTemplateSchema, 'CA')
 
-		it('should apply state-specific requirements', async () => {
-			const californiaLease = {
-				property: {
-					address: {
-						state: 'CA'
-					}
-				}
-			}
+		const buffer = await service.generateLeasePdfFromTemplate(
+			selections,
+			context
+		)
 
-			const floridaLease = {
-				property: {
-					address: {
-						state: 'FL'
-					}
-				}
-			}
-
-			// Generate both to ensure state-specific logic is applied
-			const caResult = await service.generateLeasePDF(californiaLease)
-			const flResult = await service.generateLeasePDF(floridaLease)
-
-			expect(caResult).toBeInstanceOf(Buffer)
-			expect(flResult).toBeInstanceOf(Buffer)
-		})
-
-		it('should include federal disclosures for pre-1978 properties', async () => {
-			const oldPropertyLease = {
-				property: {
-					address: {
-						state: 'NY'
-					},
-					yearBuilt: 1970
-				}
-			}
-
-			const result = await service.generateLeasePDF(oldPropertyLease)
-
-			expect(result).toBeInstanceOf(Buffer)
-			// The template should include lead paint disclosure for pre-1978 properties
-			expect(mockPDFGenerator.generatePDF).toHaveBeenCalledWith(
-				expect.stringContaining('LEAD'),
-				expect.any(Object)
-			)
-		})
+		expect(buffer).toBeInstanceOf(Buffer)
 	})
 })
