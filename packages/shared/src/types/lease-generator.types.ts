@@ -2,6 +2,10 @@
  * TenantFlow Lease Generator - Production SaaS Types
  * Core Types for Dynamic Lease Generation
  */
+import type {
+	LeaseTemplateContext,
+	LeaseTemplateSelections
+} from '../templates/lease-template'
 /**
  * US States with specific lease requirements
  */
@@ -157,6 +161,12 @@ export interface LeaseFormData {
     includeFederalDisclosures: boolean;
     includeSignaturePages: boolean;
     format: 'standard' | 'detailed' | 'simple';
+  };
+
+  // Template configuration (optional - used by custom builder)
+  templateConfig?: {
+    selections: LeaseTemplateSelections;
+    contextOverrides?: Partial<LeaseTemplateContext>;
   };
 }
 

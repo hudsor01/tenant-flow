@@ -34,7 +34,7 @@ export class LeasesService {
 		const { data: properties } = await client
 			.from('property')
 			.select('id')
-			.eq('owner_id', userId)
+			.eq('ownerId', userId)
 
 		const propertyIds = properties?.map(p => p.id) || []
 		if (propertyIds.length === 0) return []
@@ -43,7 +43,7 @@ export class LeasesService {
 		const { data: units } = await client
 			.from('unit')
 			.select('id')
-			.in('property_id', propertyIds)
+			.in('propertyId', propertyIds)
 
 		return units?.map(u => u.id) || []
 	}
@@ -57,7 +57,7 @@ export class LeasesService {
 		const { data: units } = await client
 			.from('unit')
 			.select('id')
-			.eq('property_id', propertyId)
+			.eq('propertyId', propertyId)
 
 		return units?.map(u => u.id) || []
 	}
@@ -98,11 +98,11 @@ export class LeasesService {
 			}
 
 			// Build query with filters
-			let queryBuilder = client.from('lease').select('*').in('unit_id', unitIds)
+			let queryBuilder = client.from('lease').select('*').in('unitId', unitIds)
 
 			// Apply filters
 			if (query.tenantId) {
-				queryBuilder = queryBuilder.eq('tenant_id', query.tenantId)
+				queryBuilder = queryBuilder.eq('tenantId', String(query.tenantId))
 			}
 			if (query.status) {
 				queryBuilder = queryBuilder.eq(
@@ -112,13 +112,13 @@ export class LeasesService {
 			}
 			if (query.startDate) {
 				queryBuilder = queryBuilder.gte(
-					'start_date',
+					'startDate',
 					new Date(query.startDate as string).toISOString()
 				)
 			}
 			if (query.endDate) {
 				queryBuilder = queryBuilder.lte(
-					'end_date',
+					'endDate',
 					new Date(query.endDate as string).toISOString()
 				)
 			}
@@ -127,7 +127,7 @@ export class LeasesService {
 				const sanitized = sanitizeSearchInput(String(query.search))
 				if (sanitized) {
 					queryBuilder = queryBuilder.or(
-						buildMultiColumnSearch(sanitized, ['tenant_id', 'unit_id'])
+						buildMultiColumnSearch(sanitized, ['tenantId', 'unitId'])
 					)
 				}
 			}
@@ -138,7 +138,7 @@ export class LeasesService {
 			queryBuilder = queryBuilder.range(offset, offset + limit - 1)
 
 			// Apply sorting
-			const sortBy = query.sortBy || 'created_at'
+			const sortBy = query.sortBy || 'createdAt'
 			const sortOrder = query.sortOrder || 'desc'
 			queryBuilder = queryBuilder.order(sortBy as string, {
 				ascending: sortOrder === 'asc'
@@ -203,7 +203,7 @@ export class LeasesService {
 			const { data, error } = await client
 				.from('lease')
 				.select('*')
-				.in('unit_id', unitIds)
+				.in('unitId', unitIds)
 
 			if (error) {
 				this.logger.error('Failed to get lease stats from Supabase', {
@@ -293,7 +293,7 @@ export class LeasesService {
 			const { data, error } = await client
 				.from('lease')
 				.select('*')
-				.in('unit_id', unitIds)
+				.in('unitId', unitIds)
 				.eq('status', 'ACTIVE')
 				.gte('end_date', now.toISOString())
 				.lte('end_date', futureDate.toISOString())
@@ -351,7 +351,7 @@ export class LeasesService {
 				.from('lease')
 				.select('*')
 				.eq('id', leaseId)
-				.in('unit_id', unitIds)
+				.in('unitId', unitIds)
 				.single()
 
 			if (error) {
@@ -786,7 +786,7 @@ export class LeasesService {
 				return []
 			}
 
-			let queryBuilder = client.from('lease').select('*').in('unit_id', unitIds)
+			let queryBuilder = client.from('lease').select('*').in('unitId', unitIds)
 
 			if (options.leaseId) {
 				queryBuilder = queryBuilder.eq('id', options.leaseId)

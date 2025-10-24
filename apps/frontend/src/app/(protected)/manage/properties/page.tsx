@@ -16,7 +16,6 @@ import type { Property, PropertyStats } from '@repo/shared/types/core'
 import { Plus, TrendingDown, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import type { Metadata } from 'next/types'
-import { columns } from './columns'
 import { PropertiesTableClient } from './properties-table.client'
 
 export const metadata: Metadata = {
@@ -133,15 +132,15 @@ export default async function PropertiesPage() {
 				</Card>
 			</div>
 
-						{/* Properties Data Table */}
-			<section className="flex flex-col gap-4">
-				<h2 className="text-xl font-semibold">Portfolio</h2>
-				<Card>
-					<CardContent className="pt-6">
-						<PropertiesTableClient columns={columns} data={properties} />
-					</CardContent>
-				</Card>
-			</section>
+		{/* Properties Data Table */}
+		<section className="flex flex-col gap-4">
+			<h2 className="text-xl font-semibold">Portfolio</h2>
+			<Card>
+				<CardContent className="pt-6">
+					<PropertiesTableClient data={properties} />
+				</CardContent>
+			</Card>
+		</section>
 		</div>
 	)
 }
