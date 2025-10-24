@@ -11,7 +11,6 @@ import {
 	Get,
 	Logger,
 	NotFoundException,
-	Optional,
 	Req
 } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
@@ -21,7 +20,7 @@ import type { AuthenticatedRequest } from '../../shared/types/express-request.ty
 export class UsersController {
 	private readonly logger = new Logger(UsersController.name)
 
-	constructor(@Optional() private readonly supabaseService?: SupabaseService) {}
+	constructor(private readonly supabaseService: SupabaseService) {}
 
 	/**
 	 * Get current user with Stripe customer ID

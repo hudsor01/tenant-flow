@@ -12,7 +12,6 @@ import {
 	Controller,
 	Get,
 	Logger,
-	Optional,
 	Param,
 	ParseUUIDPipe,
 	Post,
@@ -28,8 +27,8 @@ export class LateFeesController {
 	private readonly logger = new Logger(LateFeesController.name)
 
 	constructor(
-		@Optional() private readonly lateFeesService?: LateFeesService,
-		@Optional() private readonly supabaseService?: SupabaseService
+		private readonly lateFeesService: LateFeesService,
+		private readonly supabaseService: SupabaseService
 	) {}
 
 	/**
@@ -80,11 +79,7 @@ export class LateFeesController {
 		@Req() req: AuthenticatedRequest,
 		@Param('leaseId', ParseUUIDPipe) leaseId: string
 	) {
-		if (!this.lateFeesService) {
-			throw new BadRequestException('Late fees service not available')
-		}
-
-		// SECURITY FIX #1: Explicit auth check (defense in depth)
+// SECURITY FIX #1: Explicit auth check (defense in depth)
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
@@ -117,11 +112,7 @@ export class LateFeesController {
 		@Body('gracePeriodDays') gracePeriodDays?: number,
 		@Body('flatFeeAmount') flatFeeAmount?: number
 	) {
-		if (!this.lateFeesService) {
-			throw new BadRequestException('Late fees service not available')
-		}
-
-		// SECURITY FIX #1: Explicit auth check (defense in depth)
+// SECURITY FIX #1: Explicit auth check (defense in depth)
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
@@ -191,11 +182,7 @@ export class LateFeesController {
 		@Body('daysLate') daysLate: number,
 		@Body('leaseId') leaseId?: string
 	) {
-		if (!this.lateFeesService) {
-			throw new BadRequestException('Late fees service not available')
-		}
-
-		// SECURITY FIX #1: Explicit auth check (defense in depth)
+// SECURITY FIX #1: Explicit auth check (defense in depth)
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
@@ -251,11 +238,7 @@ export class LateFeesController {
 		@Req() req: AuthenticatedRequest,
 		@Param('leaseId', ParseUUIDPipe) leaseId: string
 	) {
-		if (!this.lateFeesService) {
-			throw new BadRequestException('Late fees service not available')
-		}
-
-		// SECURITY FIX #1: Explicit auth check (defense in depth)
+// SECURITY FIX #1: Explicit auth check (defense in depth)
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
@@ -293,11 +276,7 @@ export class LateFeesController {
 		@Req() req: AuthenticatedRequest,
 		@Param('leaseId', ParseUUIDPipe) leaseId: string
 	) {
-		if (!this.lateFeesService) {
-			throw new BadRequestException('Late fees service not available')
-		}
-
-		// SECURITY FIX #1: Explicit auth check (defense in depth)
+// SECURITY FIX #1: Explicit auth check (defense in depth)
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
@@ -331,11 +310,7 @@ export class LateFeesController {
 		@Body('lateFeeAmount') lateFeeAmount: number,
 		@Body('reason') reason: string
 	) {
-		if (!this.lateFeesService) {
-			throw new BadRequestException('Late fees service not available')
-		}
-
-		// SECURITY FIX #1: Explicit auth check (defense in depth)
+// SECURITY FIX #1: Explicit auth check (defense in depth)
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
