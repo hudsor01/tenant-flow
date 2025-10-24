@@ -101,11 +101,6 @@
 		"zod": "4.1.12",
 		"zustand": "5.0.8"
 	},
-	"eslintConfig": {
-		"extends": [
-			"./eslint.config.mjs"
-		]
-	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.11.0",
 		"@eslint/eslintrc": "^3.3.1",
