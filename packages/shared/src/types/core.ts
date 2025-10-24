@@ -229,6 +229,16 @@ export interface TenantStats extends BaseStats {
 	withContactInfo?: number
 }
 
+// Tenant monetary summary exposed to frontend (amounts in cents)
+export interface TenantSummary {
+	total: number
+	invited: number
+	active: number
+	overdueBalanceCents: number
+	upcomingDueCents: number
+	timestamp: string // ISO date
+}
+
 // Unit statistics
 export interface UnitStats extends BaseStats {
 	occupied: number
