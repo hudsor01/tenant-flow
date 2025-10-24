@@ -51,17 +51,48 @@ export class PropertiesService {
 	) {}
 
 	/**
+	 * Helper: Convert supabaseId (from JWT) to users.id (for foreign keys)
+	 * Cached for performance
+	 */
+	private async getUserIdFromSupabaseId(supabaseId: string): Promise<string> {
+		const cacheKey = `user:supabaseId:${supabaseId}`
+		const cached = await this.cacheManager.get<string>(cacheKey)
+		if (cached) return cached
+
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('users')
+			.select('id')
+			.eq('supabaseId', supabaseId)
+			.single()
+
+		if (error || !data) {
+			this.logger.error('Failed to lookup user ID', {
+				error,
+				supabaseId
+			})
+			throw new BadRequestException('User not found')
+		}
+
+		// Cache for 5 minutes (user ID doesn't change)
+		await this.cacheManager.set(cacheKey, data.id, 300000)
+		return data.id
+	}
+
+	/**
 	 * Get all properties with search and pagination
 	 */
 	async findAll(
 		userId: string,
 		query: { search?: string | null; limit: number; offset: number }
 	): Promise<Property[]> {
+		const ownerId = await this.getUserIdFromSupabaseId(userId)
+
 		let queryBuilder = this.supabase
 			.getAdminClient()
 			.from('property')
 			.select('*')
-			.eq('ownerId', userId)
+			.eq('ownerId', ownerId)
 			.order('createdAt', { ascending: false })
 			.range(query.offset, query.offset + query.limit - 1)
 
@@ -89,12 +120,14 @@ export class PropertiesService {
 	 * Get single property by ID
 	 */
 	async findOne(userId: string, propertyId: string): Promise<Property | null> {
+		const ownerId = await this.getUserIdFromSupabaseId(userId)
+
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('property')
 			.select('*')
 			.eq('id', propertyId)
-			.eq('ownerId', userId)
+			.eq('ownerId', ownerId)
 			.single()
 
 		if (error || !data) {
@@ -134,9 +167,11 @@ export class PropertiesService {
 			throw new BadRequestException('Invalid property type')
 		}
 
+		const ownerId = await this.getUserIdFromSupabaseId(userId)
+
 		// Build insert object conditionally per exactOptionalPropertyTypes
 		const insertData: Database['public']['Tables']['property']['Insert'] = {
-			ownerId: userId,
+			ownerId,
 			name: request.name.trim(),
 			address: request.address.trim(),
 			city: request.city.trim(),
@@ -177,6 +212,8 @@ export class PropertiesService {
 		if (!existing)
 			throw new BadRequestException('Property not found or access denied')
 
+		const ownerId = await this.getUserIdFromSupabaseId(userId)
+
 		// Validate fields if provided
 		if (request.name && !request.name.trim()) {
 			throw new BadRequestException('Property name cannot be empty')
@@ -212,7 +249,7 @@ export class PropertiesService {
 			.from('property')
 			.update(updateData)
 			.eq('id', propertyId)
-			.eq('ownerId', userId)
+			.eq('ownerId', ownerId)
 			.select()
 			.single()
 
@@ -239,6 +276,8 @@ export class PropertiesService {
 		const existing = await this.findOne(userId, propertyId)
 		if (!existing)
 			throw new BadRequestException('Property not found or access denied')
+
+		const ownerId = await this.getUserIdFromSupabaseId(userId)
 
 		// Delete property image from storage if exists
 		if (existing.imageUrl) {
@@ -272,7 +311,7 @@ export class PropertiesService {
 				status: 'INACTIVE' as Database['public']['Enums']['PropertyStatus']
 			})
 			.eq('id', propertyId)
-			.eq('ownerId', userId)
+			.eq('ownerId', ownerId)
 
 		if (error) {
 			this.logger.error('Failed to delete property', {
@@ -334,6 +373,8 @@ export class PropertiesService {
 		userId: string,
 		query: { search: string | null; limit: number; offset: number }
 	): Promise<Property[]> {
+		const ownerId = await this.getUserIdFromSupabaseId(userId)
+
 		// Clamp pagination values
 		const limit = Math.min(Math.max(query.limit || 10, 1), 100)
 		const offset = Math.max(query.offset || 0, 0)
@@ -342,7 +383,7 @@ export class PropertiesService {
 			.getAdminClient()
 			.from('property')
 			.select('*, units:unit(*)')
-			.eq('ownerId', userId)
+			.eq('ownerId', ownerId)
 			.order('createdAt', { ascending: false })
 			.range(offset, offset + limit - 1)
 
@@ -600,6 +641,8 @@ export class PropertiesService {
 			throw new BadRequestException('Property not found or access denied')
 		}
 
+		const ownerId = await this.getUserIdFromSupabaseId(userId)
+
 		// Prevent marking already sold properties (check date_sold field for accuracy)
 		if (property.date_sold) {
 			throw new BadRequestException(
@@ -618,7 +661,7 @@ export class PropertiesService {
 				updatedAt: new Date().toISOString()
 			})
 			.eq('id', propertyId)
-			.eq('ownerId', userId) // Double-check ownership in query
+			.eq('ownerId', ownerId) // Double-check ownership in query
 
 		if (error) {
 			this.logger.error('Failed to mark property as sold', {
