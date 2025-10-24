@@ -607,10 +607,7 @@ export function CreatePropertyForm() {
 								<Field>
 									<FieldLabel>Property Image</FieldLabel>
 									<div className="space-y-2">
-										<Dropzone
-											{...upload.getRootProps()}
-											{...upload.getInputProps()}
-										>
+										<Dropzone {...upload}>
 											<DropzoneEmptyState />
 											<DropzoneContent />
 										</Dropzone>

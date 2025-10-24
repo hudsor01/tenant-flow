@@ -4,7 +4,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { getTenantsPageData } from '@/lib/api/dashboard-server'
+import { createServerApi } from '@/lib/api-client'
 import { requireSession } from '@/lib/server-auth'
 import { formatCents } from '@repo/shared/lib/format'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -24,7 +24,11 @@ export const metadata: Metadata = {
 
 export default async function TenantsPage() {
 	// ✅ Server-side auth - NO client flash, instant 307 redirect
-	const user = await requireSession()
+	const { user, accessToken } = await requireSession()
+	
+	// ✅ Create authenticated server API client
+	const serverApi = createServerApi(accessToken)
+	
 	const logger = createLogger({ component: 'TenantsPage', userId: user.id })
 
 	// ✅ Server Component: Fetch data on server during RSC render
@@ -37,18 +41,24 @@ export default async function TenantsPage() {
 	}
 
 	// Tenant summary from backend (amounts in cents)
-	let summary: TenantSummary | null = null
+	let summary: TenantSummary | null = null as TenantSummary | null
 
 	// Fetch leases for invitation dialog
 	// TODO: Re-enable when InviteTenantDialog is implemented
 	// let availableLeases: Array<Database['public']['Tables']['lease']['Row']> = []
 
 	try {
-		const tenantsData = await getTenantsPageData()
+		// ✅ Fetch data with authenticated server API
+		const [tenantsData, statsData] = await Promise.all([
+			serverApi.tenants.list(),
+			serverApi.tenants.stats()
+		])
 
-		tenants = tenantsData.tenants ?? []
-		stats = (tenantsData.stats as TenantStats) ?? stats
-		summary = (tenantsData.summary as TenantSummary) ?? null
+		tenants = tenantsData ?? []
+		stats = statsData ?? stats
+		
+		// Note: Summary endpoint not yet in createServerApi - keeping null for now
+		summary = null
 
 		// TODO: Re-enable when InviteTenantDialog is implemented
 		// const leasesData = await getLeasesPageData()

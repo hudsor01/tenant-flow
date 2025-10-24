@@ -2,7 +2,7 @@
 
 import Footer from '@/components/layout/footer'
 import { Navbar } from '@/components/layout/navbar'
-import { StripePricingTable } from '@/components/pricing/stripe-pricing-table'
+import { StripePricingSection } from '@/components/pricing/stripe-pricing-section'
 import { TestimonialsSection } from '@/components/sections/testimonials-section'
 import {
 	Accordion,
@@ -76,10 +76,10 @@ export default function PricingPage() {
 					</div>
 				</section>
 
-				{/* Pricing Table Section - Native Stripe Component */}
+				{/* Pricing Section - Custom React Component */}
 				<section className="relative py-12">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
-						<StripePricingTable className="w-full" />
+						<StripePricingSection />
 					</div>
 				</section>
 

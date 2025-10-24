@@ -27,7 +27,7 @@ export class RentPaymentsController {
 	 */
 	@Post()
 	async createPayment(
-		@Request() req: Request & { user: User },
+		@Request() _req: Request & { user: User },
 		@Body()
 		body: {
 			tenantId: string
@@ -42,7 +42,7 @@ export class RentPaymentsController {
 
 		const result = await this.rentPaymentsService.createOneTimePayment(
 			body,
-			req.user?.id
+			_req.user?.id
 		)
 
 		return {
@@ -62,11 +62,11 @@ export class RentPaymentsController {
 	 * GET /api/v1/payments/history
 	 */
 	@Get('history')
-	async getPaymentHistory(@Request() req: Request & { user: User }) {
-		this.logger.log(`Getting payment history for user ${req.user?.id}`)
+	async getPaymentHistory(@Request() _req: Request & { user: User }) {
+		this.logger.log(`Getting payment history for user ${_req.user?.id}`)
 
 		const payments = await this.rentPaymentsService.getPaymentHistory(
-			req.user?.id
+			_req.user?.id
 		)
 
 		return {
@@ -98,17 +98,17 @@ export class RentPaymentsController {
 	 */
 	@Get('history/subscription/:subscriptionId')
 	async getSubscriptionPaymentHistory(
-		@Request() req: Request & { user: User },
+		@Request() _req: Request & { user: User },
 		@Param('subscriptionId') subscriptionId: string
 	) {
 		this.logger.log(
-			`Getting payment history for subscription ${subscriptionId} for user ${req.user?.id}`
+			`Getting payment history for subscription ${subscriptionId} for user ${_req.user?.id}`
 		)
 
 		const payments =
 			await this.rentPaymentsService.getSubscriptionPaymentHistory(
 				subscriptionId,
-				req.user?.id
+				_req.user?.id
 			)
 
 		return {
@@ -139,11 +139,11 @@ export class RentPaymentsController {
 	 * GET /api/v1/payments/failed-attempts
 	 */
 	@Get('failed-attempts')
-	async getFailedPaymentAttempts(@Request() req: Request & { user: User }) {
-		this.logger.log(`Getting failed payment attempts for user ${req.user?.id}`)
+	async getFailedPaymentAttempts(@Request() _req: Request & { user: User }) {
+		this.logger.log(`Getting failed payment attempts for user ${_req.user?.id}`)
 
 		const failedAttempts =
-			await this.rentPaymentsService.getFailedPaymentAttempts(req.user?.id)
+			await this.rentPaymentsService.getFailedPaymentAttempts(_req.user?.id)
 
 		return {
 			failedAttempts: failedAttempts.map(attempt => ({
@@ -166,17 +166,17 @@ export class RentPaymentsController {
 	 */
 	@Get('failed-attempts/subscription/:subscriptionId')
 	async getSubscriptionFailedAttempts(
-		@Request() req: Request & { user: User },
+		@Request() _req: Request & { user: User },
 		@Param('subscriptionId') subscriptionId: string
 	) {
 		this.logger.log(
-			`Getting failed payment attempts for subscription ${subscriptionId} for user ${req.user?.id}`
+			`Getting failed payment attempts for subscription ${subscriptionId} for user ${_req.user?.id}`
 		)
 
 		const failedAttempts =
 			await this.rentPaymentsService.getSubscriptionFailedAttempts(
 				subscriptionId,
-				req.user?.id
+				_req.user?.id
 			)
 
 		return {
@@ -189,6 +189,101 @@ export class RentPaymentsController {
 				stripePaymentIntentId: attempt.stripePaymentIntentId,
 				createdAt: attempt.createdAt
 			}))
+		}
+	}
+
+
+	/**
+	 * Setup autopay (recurring rent subscription) for a tenant
+	 * POST /api/v1/rent-payments/autopay/setup
+	 */
+	@Post('autopay/setup')
+	async setupAutopay(
+		@Request() _req: Request & { user: User },
+		@Body()
+		body: {
+			tenantId: string
+			leaseId: string
+			paymentMethodId?: string
+		}
+	) {
+		this.logger.log(
+			`Setting up autopay for tenant ${body.tenantId}, lease ${body.leaseId}`
+		)
+
+		const params: {
+			tenantId: string
+			leaseId: string
+			paymentMethodId?: string
+		} = {
+			tenantId: body.tenantId,
+			leaseId: body.leaseId
+		}
+		if (body.paymentMethodId !== undefined) {
+			params.paymentMethodId = body.paymentMethodId
+		}
+
+		const result = await this.rentPaymentsService.setupTenantAutopay(params)
+
+		return {
+			success: true,
+			subscriptionId: result.subscriptionId,
+			status: result.status
+		}
+	}
+
+	/**
+	 * Cancel autopay for a tenant
+	 * POST /api/v1/rent-payments/autopay/cancel
+	 */
+	@Post('autopay/cancel')
+	async cancelAutopay(
+		@Request() _req: Request & { user: User },
+		@Body()
+		body: {
+			tenantId: string
+			leaseId: string
+		}
+	) {
+		this.logger.log(
+			`Canceling autopay for tenant ${body.tenantId}, lease ${body.leaseId}`
+		)
+
+		await this.rentPaymentsService.cancelTenantAutopay({
+			tenantId: body.tenantId,
+			leaseId: body.leaseId
+		})
+
+		return {
+			success: true,
+			message: 'Autopay cancelled successfully'
+		}
+	}
+
+	/**
+	 * Get autopay status for a tenant
+	 * GET /api/v1/rent-payments/autopay/status/:tenantId/:leaseId
+	 */
+	@Get('autopay/status/:tenantId/:leaseId')
+	async getAutopayStatus(
+		@Request() _req: Request & { user: User },
+		@Param('tenantId') tenantId: string,
+		@Param('leaseId') leaseId: string
+	) {
+		this.logger.log(
+			`Getting autopay status for tenant ${tenantId}, lease ${leaseId}`
+		)
+
+		const status = await this.rentPaymentsService.getAutopayStatus({
+			tenantId,
+			leaseId
+		})
+
+		return {
+			enabled: status.enabled,
+			subscriptionId: status.subscriptionId,
+			status: status.status,
+			nextPaymentDate: status.nextPaymentDate
 		}
 	}
 }

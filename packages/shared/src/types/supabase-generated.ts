@@ -929,6 +929,7 @@ export type Database = {
           securityDeposit: number
           startDate: string
           status: Database["public"]["Enums"]["LeaseStatus"]
+          stripe_subscription_id: string | null
           tenantId: string
           terms: string | null
           unitId: string
@@ -947,6 +948,7 @@ export type Database = {
           securityDeposit: number
           startDate: string
           status?: Database["public"]["Enums"]["LeaseStatus"]
+          stripe_subscription_id?: string | null
           tenantId: string
           terms?: string | null
           unitId: string
@@ -965,6 +967,7 @@ export type Database = {
           securityDeposit?: number
           startDate?: string
           status?: Database["public"]["Enums"]["LeaseStatus"]
+          stripe_subscription_id?: string | null
           tenantId?: string
           terms?: string | null
           unitId?: string
@@ -2574,6 +2577,7 @@ export type Database = {
           name: string | null
           phone: string | null
           status: Database["public"]["Enums"]["TenantStatus"]
+          stripe_customer_id: string | null
           updatedAt: string
           userId: string | null
         }
@@ -2598,6 +2602,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["TenantStatus"]
+          stripe_customer_id?: string | null
           updatedAt?: string
           userId?: string | null
         }
@@ -2622,6 +2627,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["TenantStatus"]
+          stripe_customer_id?: string | null
           updatedAt?: string
           userId?: string | null
         }

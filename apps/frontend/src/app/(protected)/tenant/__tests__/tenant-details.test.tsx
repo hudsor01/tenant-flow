@@ -43,11 +43,13 @@ import { toast } from 'sonner'
 
 // Mock tenant hooks
 const mockUseTenant = jest.fn()
+const mockUseTenantWithLease = jest.fn()
 const mockUseDeleteTenant = jest.fn()
 const mockUseMarkTenantAsMovedOut = jest.fn()
 
 jest.mock('@/hooks/api/use-tenant', () => ({
 	useTenant: () => mockUseTenant(),
+	useTenantWithLease: () => mockUseTenantWithLease(),
 	useDeleteTenant: (options?: {
 		onSuccess?: () => void
 		onError?: (error: Error) => void
@@ -76,7 +78,7 @@ describe('TenantDetails', () => {
 	describe('Loading and Error States', () => {
 		test('renders loading skeleton while fetching tenant data', () => {
 			// Arrange
-			mockUseTenant.mockReturnValue(
+			mockUseTenantWithLease.mockReturnValue(
 				createMockQuery({ data: undefined, isLoading: true })
 			)
 			mockUseDeleteTenant.mockReturnValue(
@@ -93,7 +95,7 @@ describe('TenantDetails', () => {
 
 		test('renders error message when tenant is not found', () => {
 			// Arrange
-			mockUseTenant.mockReturnValue(
+			mockUseTenantWithLease.mockReturnValue(
 				createMockQuery({ data: null, isError: true })
 			)
 			mockUseDeleteTenant.mockReturnValue(
@@ -113,7 +115,7 @@ describe('TenantDetails', () => {
 
 	describe('Display and Rendering', () => {
 		beforeEach(() => {
-			mockUseTenant.mockReturnValue(
+			mockUseTenantWithLease.mockReturnValue(
 				createMockQuery({ data: defaultTenant, isLoading: false })
 			)
 			mockUseDeleteTenant.mockReturnValue(
@@ -177,7 +179,7 @@ describe('TenantDetails', () => {
 				...DEFAULT_TENANT,
 				emergencyContact: null
 			}
-			mockUseTenant.mockReturnValue(
+			mockUseTenantWithLease.mockReturnValue(
 				createMockQuery({ data: tenantWithoutContact, isLoading: false })
 			)
 
@@ -191,7 +193,7 @@ describe('TenantDetails', () => {
 
 	describe('Actions and Navigation', () => {
 		beforeEach(() => {
-			mockUseTenant.mockReturnValue(
+			mockUseTenantWithLease.mockReturnValue(
 				createMockQuery({ data: defaultTenant, isLoading: false })
 			)
 			mockUseDeleteTenant.mockReturnValue(
@@ -214,7 +216,7 @@ describe('TenantDetails', () => {
 
 	describe('Move-out Functionality', () => {
 		beforeEach(() => {
-			mockUseTenant.mockReturnValue(
+			mockUseTenantWithLease.mockReturnValue(
 				createMockQuery({ data: defaultTenant, isLoading: false })
 			)
 		})

@@ -79,7 +79,7 @@ async function getIncomeStatement(
 
 export default async function IncomeStatementPage() {
 	// Server-side auth
-	const user = await requireSession()
+	const { user } = await requireSession()
 	const logger = createLogger({ component: 'IncomeStatementPage', userId: user.id })
 
 	// Default to current month
