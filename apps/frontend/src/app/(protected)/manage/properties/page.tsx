@@ -9,7 +9,6 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import { DataTable } from '@/components/ui/data-table'
 import { propertiesApi } from '@/lib/api-client'
 import { requireSession } from '@/lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -18,6 +17,7 @@ import { Plus, TrendingDown, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import type { Metadata } from 'next/types'
 import { columns } from './columns'
+import { PropertiesTableClient } from './properties-table.client'
 
 export const metadata: Metadata = {
 	title: 'Properties | TenantFlow',
@@ -142,12 +142,7 @@ export default async function PropertiesPage() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<DataTable
-						columns={columns}
-						data={properties}
-						filterColumn="name"
-						filterPlaceholder="Filter by property name..."
-					/>
+					<PropertiesTableClient columns={columns} data={properties} />
 				</CardContent>
 			</Card>
 		</div>
