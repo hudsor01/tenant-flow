@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import * as React from 'react'
 
+import { QuickCreateDialog } from '@/components/dashboard/quick-create-dialog'
+
 import { Button } from '@/components/ui/button'
 import {
 	Collapsible,
@@ -48,6 +50,7 @@ export function NavMain({
 	label?: string
 }) {
 	const pathname = usePathname()
+	const [quickCreateOpen, setQuickCreateOpen] = React.useState(false)
 
 	return (
 		<SidebarGroup>
@@ -56,7 +59,8 @@ export function NavMain({
 					<SidebarMenuItem className="flex items-center gap-2 mb-2">
 						<SidebarMenuButton
 							tooltip="Quick Create"
-							className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
+							onClick={() => setQuickCreateOpen(true)}
+							className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear cursor-pointer"
 						>
 							<Plus />
 							<span>Quick Create</span>
@@ -109,6 +113,7 @@ export function NavMain({
 					})}
 				</SidebarMenu>
 			</SidebarGroupContent>
+			<QuickCreateDialog open={quickCreateOpen} onOpenChange={setQuickCreateOpen} />
 		</SidebarGroup>
 	)
 }

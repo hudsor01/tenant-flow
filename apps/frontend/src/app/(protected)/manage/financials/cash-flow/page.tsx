@@ -1,5 +1,5 @@
-'use client'
-
+import type { Metadata } from 'next'
+import { requireSession } from '@/lib/server-auth'
 import { ExportButtons } from '@/components/export/export-buttons'
 import {
 	Card,
@@ -8,78 +8,79 @@ import {
 	CardHeader,
 	CardTitle
 } from '@/components/ui/card'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
-import { getCashFlowStatement } from '@/lib/api/financials-client'
-import { createClient } from '@/lib/supabase/client'
 import { cn, formatCurrency } from '@/lib/utils'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { CashFlowData } from '@repo/shared/types/financial-statements'
+import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
 import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns'
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
-import { useEffect, useState } from 'react'
 
-export default function CashFlowPage() {
-	const [data, setData] = useState<CashFlowData | null>(null)
-	const [loading, setLoading] = useState(true)
-	const [selectedMonth, setSelectedMonth] = useState(
-		format(new Date(), 'yyyy-MM')
-	)
+export const metadata: Metadata = {
+	title: 'Cash Flow Statement | TenantFlow',
+	description: 'Track cash inflows and outflows across all activities'
+}
 
-	useEffect(() => {
-		async function loadData() {
-			try {
-				const supabase = createClient()
-				const {
-					data: { session }
-				} = await supabase.auth.getSession()
+async function getCashFlowStatement(
+	token: string,
+	startDate: string,
+	endDate: string
+): Promise<CashFlowData | null> {
+	try {
+		const API_BASE_URL = getApiBaseUrl()
+		const url = `${API_BASE_URL}/financials/cash-flow?startDate=${startDate}&endDate=${endDate}`
 
-				if (!session?.access_token) {
-					throw new Error('No session')
-				}
+		const response = await fetch(url, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json'
+			},
+			cache: 'no-store'
+		})
 
-				const monthDate = new Date(selectedMonth + '-01')
-				const startDate = format(startOfMonth(monthDate), 'yyyy-MM-dd')
-				const endDate = format(endOfMonth(monthDate), 'yyyy-MM-dd')
-
-				const result = await getCashFlowStatement(
-					session.access_token,
-					startDate,
-					endDate
-				)
-				setData(result)
-			} catch {
-				// Error handling - silent fail
-			} finally {
-				setLoading(false)
-			}
+		if (!response.ok) {
+			return null
 		}
 
-		loadData()
-	}, [selectedMonth])
+		const result = await response.json()
+		return result.data
+	} catch {
+		return null
+	}
+}
 
-	if (loading) {
-		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<div className="space-y-4">
-					<Skeleton className="h-8 w-64" />
-					<Skeleton className="h-6 w-48" />
-					<Skeleton className="h-32 w-96" />
-				</div>
-			</div>
-		)
+export default async function CashFlowPage() {
+	// Server-side auth
+	const user = await requireSession()
+	const logger = createLogger({ component: 'CashFlowPage', userId: user.id })
+
+	// Default to current month
+	const currentMonth = format(new Date(), 'yyyy-MM')
+	const monthDate = new Date(currentMonth + '-01')
+	const startDate = format(startOfMonth(monthDate), 'yyyy-MM-dd')
+	const endDate = format(endOfMonth(monthDate), 'yyyy-MM-dd')
+
+	// Fetch data
+	let data: CashFlowData | null = null
+	try {
+		// Get auth token for API call
+		const { createClient } = await import('@/lib/supabase/server')
+		const supabase = await createClient()
+		const { data: { session } } = await supabase.auth.getSession()
+
+		if (session?.access_token) {
+			data = await getCashFlowStatement(session.access_token, startDate, endDate)
+		}
+	} catch (err) {
+		logger.warn('Failed to fetch cash flow statement', {
+			error: err instanceof Error ? err.message : String(err)
+		})
 	}
 
 	if (!data) {
 		return (
 			<div className="flex min-h-screen items-center justify-center">
-				<p className="text-muted-foreground">No data available</p>
+				<p className="text-muted-foreground">No data available for the selected period</p>
 			</div>
 		)
 	}
@@ -106,18 +107,6 @@ export default function CashFlowPage() {
 					</div>
 
 					<div className="flex flex-wrap items-center gap-3">
-						<Select value={selectedMonth} onValueChange={setSelectedMonth}>
-							<SelectTrigger className="w-50">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{monthOptions.map(option => (
-									<SelectItem key={option.value} value={option.value}>
-										{option.label}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
 						<ExportButtons filename="cash-flow-statement" payload={data} />
 					</div>
 

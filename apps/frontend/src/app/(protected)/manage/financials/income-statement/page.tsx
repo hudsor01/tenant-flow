@@ -1,5 +1,5 @@
-'use client'
-
+import type { Metadata } from 'next'
+import { requireSession } from '@/lib/server-auth'
 import { ExportButtons } from '@/components/export/export-buttons'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -10,14 +10,6 @@ import {
 	CardTitle
 } from '@/components/ui/card'
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
-import {
 	Table,
 	TableBody,
 	TableCell,
@@ -25,15 +17,18 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
-import { getIncomeStatement } from '@/lib/api/financials-client'
 import { formatCurrency, formatPercentage } from '@/lib/design-system'
-import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { IncomeStatementData } from '@repo/shared/types/financial-statements'
+import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
 import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns'
 import { ArrowDownRight, ArrowUpRight, TrendingUp } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
+
+export const metadata: Metadata = {
+	title: 'Income Statement | TenantFlow',
+	description: 'Track revenue, expenses, and profitability over time'
+}
 
 function TrendPill({ value }: { value: number | null | undefined }) {
 	if (value === null || value === undefined) {
@@ -54,65 +49,66 @@ function TrendPill({ value }: { value: number | null | undefined }) {
 	)
 }
 
-export default function IncomeStatementPage() {
-	const [data, setData] = useState<IncomeStatementData | null>(null)
-	const [loading, setLoading] = useState(true)
-	const [selectedMonth, setSelectedMonth] = useState(
-		format(new Date(), 'yyyy-MM')
-	)
+async function getIncomeStatement(
+	token: string,
+	startDate: string,
+	endDate: string
+): Promise<IncomeStatementData | null> {
+	try {
+		const API_BASE_URL = getApiBaseUrl()
+		const url = `${API_BASE_URL}/financials/income-statement?startDate=${startDate}&endDate=${endDate}`
+		
+		const response = await fetch(url, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json'
+			},
+			cache: 'no-store'
+		})
 
-	useEffect(() => {
-		async function loadData() {
-			try {
-				const supabase = createClient()
-				const {
-					data: { session }
-				} = await supabase.auth.getSession()
-
-				if (!session?.access_token) {
-					throw new Error('No session')
-				}
-
-				const monthDate = new Date(selectedMonth + '-01')
-				const startDate = format(startOfMonth(monthDate), 'yyyy-MM-dd')
-				const endDate = format(endOfMonth(monthDate), 'yyyy-MM-dd')
-
-				const result = await getIncomeStatement(
-					session.access_token,
-					startDate,
-					endDate
-				)
-				setData(result)
-			} catch (error) {
-				toast.error(
-					error instanceof Error
-						? error.message
-						: 'Failed to load income statement'
-				)
-			} finally {
-				setLoading(false)
-			}
+		if (!response.ok) {
+			return null
 		}
 
-		loadData()
-	}, [selectedMonth])
+		const result = await response.json()
+		return result.data
+	} catch {
+		return null
+	}
+}
 
-	if (loading) {
-		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<div className="space-y-4">
-					<Skeleton className="h-8 w-64" />
-					<Skeleton className="h-6 w-48" />
-					<Skeleton className="h-32 w-96" />
-				</div>
-			</div>
-		)
+export default async function IncomeStatementPage() {
+	// Server-side auth
+	const user = await requireSession()
+	const logger = createLogger({ component: 'IncomeStatementPage', userId: user.id })
+
+	// Default to current month
+	const currentMonth = format(new Date(), 'yyyy-MM')
+	const monthDate = new Date(currentMonth + '-01')
+	const startDate = format(startOfMonth(monthDate), 'yyyy-MM-dd')
+	const endDate = format(endOfMonth(monthDate), 'yyyy-MM-dd')
+
+	// Fetch data
+	let data: IncomeStatementData | null = null
+	try {
+		// Get auth token for API call
+		const { createClient } = await import('@/lib/supabase/server')
+		const supabase = await createClient()
+		const { data: { session } } = await supabase.auth.getSession()
+		
+		if (session?.access_token) {
+			data = await getIncomeStatement(session.access_token, startDate, endDate)
+		}
+	} catch (err) {
+		logger.warn('Failed to fetch income statement', {
+			error: err instanceof Error ? err.message : String(err)
+		})
 	}
 
 	if (!data) {
 		return (
 			<div className="flex min-h-screen items-center justify-center">
-				<p className="text-muted-foreground">No data available</p>
+				<p className="text-muted-foreground">No data available for the selected period</p>
 			</div>
 		)
 	}
@@ -155,18 +151,6 @@ export default function IncomeStatementPage() {
 					</div>
 
 					<div className="flex flex-wrap items-center gap-3">
-						<Select value={selectedMonth} onValueChange={setSelectedMonth}>
-							<SelectTrigger className="w-50">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{monthOptions.map(option => (
-									<SelectItem key={option.value} value={option.value}>
-										{option.label}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
 						<ExportButtons filename="income-statement" payload={data} />
 					</div>
 
