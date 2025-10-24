@@ -648,13 +648,15 @@ export class DashboardService {
 				endDate
 			})
 
+			// Map Supabase Auth ID to internal users.id for RLS policies
+			const internalUserId = await this.getUserIdFromSupabaseId(userId)
 			const client = this.supabase.getAdminClient()
 
 			// Get billing insights - using a placeholder table, should be replaced with actual billing table
 			const queryBuilder = client
 				.from('property') // Using property table as placeholder - needs actual billing table
 				.select('*')
-				.eq('ownerId', userId) // Using ownerId instead of orgId for property table
+				.eq('ownerId', internalUserId) // Using ownerId instead of orgId for property table
 
 			if (startDate) {
 				queryBuilder.gte('created_at', startDate.toISOString())
@@ -722,6 +724,8 @@ export class DashboardService {
 				}
 			)
 
+			// Map Supabase Auth ID to internal users.id for RLS policies
+			const internalUserId = await this.getUserIdFromSupabaseId(userId)
 			const client = this.supabase.getAdminClient()
 
 			// Get property performance metrics - this would typically involve complex queries
@@ -729,7 +733,7 @@ export class DashboardService {
 			const { data: propertyData } = await client
 				.from('property')
 				.select('id, name')
-				.eq('ownerId', userId)
+				.eq('ownerId', internalUserId)
 
 		const { data: unitData } = (await client
 			.from('unit')
