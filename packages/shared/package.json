@@ -36,6 +36,10 @@
 		"./validation/*": {
 			"types": "./dist/validation/*.d.ts",
 			"default": "./dist/validation/*.js"
+		},
+		"./templates/*": {
+			"types": "./dist/templates/*.d.ts",
+			"default": "./dist/templates/*.js"
 		}
 	},
 	"files": [

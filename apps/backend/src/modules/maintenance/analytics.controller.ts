@@ -34,14 +34,14 @@ export class MaintenanceAnalyticsController {
 		const { data: properties } = await client
 			.from('property')
 			.select('id')
-			.eq('owner_id', userId)
+			.eq('ownerId', userId)
 		const propertyIds = properties?.map(p => p.id) || []
 		if (propertyIds.length === 0) return []
 
 		const { data: units } = await client
 			.from('unit')
 			.select('id')
-			.in('property_id', propertyIds)
+			.in('propertyId', propertyIds)
 		return units?.map(u => u.id) || []
 	}
 
@@ -235,18 +235,18 @@ export class MaintenanceAnalyticsController {
 		// Fetch all data with direct Supabase queries
 		const [maintenanceData, unitsData, propertiesData] = await Promise.all([
 			unitIds.length > 0
-				? client.from('maintenance_request').select('*').in('unit_id', unitIds)
+				? client.from('maintenance_request').select('*').in('unitId', unitIds)
 				: Promise.resolve({ data: [] }),
 			client
 				.from('unit')
 				.select('id, propertyId')
 				.in(
-					'property_id',
+					'propertyId',
 					(
-						await client.from('property').select('id').eq('owner_id', userId)
+						await client.from('property').select('id').eq('ownerId', userId)
 					).data?.map(p => p.id) || []
 				),
-			client.from('property').select('id, name').eq('owner_id', userId)
+			client.from('property').select('id, name').eq('ownerId', userId)
 		])
 
 		const maintenanceRequests = (maintenanceData.data ||

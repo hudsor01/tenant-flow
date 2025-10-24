@@ -69,6 +69,14 @@ describe('PropertiesService', () => {
 		}).compile()
 
 		service = module.get(PropertiesService)
+
+		// Mock getUserIdFromSupabaseId: Supabase ID 'user-123' -> internal ID 'internal-uid-1'
+		jest
+			.spyOn(service as any, 'getUserIdFromSupabaseId')
+			.mockImplementation(async (supabaseId: string) => {
+				if (supabaseId === 'user-123') return 'internal-uid-1'
+				return supabaseId
+			})
 	})
 
 	it('fetches properties for a user and sanitises search input', async () => {
@@ -84,7 +92,7 @@ describe('PropertiesService', () => {
 
 		expect(result).toEqual(properties)
 		expect(mockAdminClient.from).toHaveBeenCalledWith('property')
-		expect(listBuilder.eq).toHaveBeenCalledWith('ownerId', 'user-123')
+		expect(listBuilder.eq).toHaveBeenCalledWith('ownerId', 'internal-uid-1')
 		expect(listBuilder.or).toHaveBeenCalledWith(
 			buildMultiColumnSearch('Main', ['name', 'address', 'city'])
 		)
@@ -100,7 +108,7 @@ describe('PropertiesService', () => {
 
 		expect(singleBuilder.select).toHaveBeenCalled()
 		expect(singleBuilder.eq).toHaveBeenNthCalledWith(1, 'id', property.id)
-		expect(singleBuilder.eq).toHaveBeenNthCalledWith(2, 'ownerId', 'user-123')
+		expect(singleBuilder.eq).toHaveBeenNthCalledWith(2, 'ownerId', 'internal-uid-1')
 		expect(result).toEqual(property)
 	})
 
@@ -143,7 +151,7 @@ describe('PropertiesService', () => {
 
 		expect(insertBuilder.insert).toHaveBeenCalledWith(
 			expect.objectContaining({
-				ownerId: 'user-123',
+				ownerId: 'internal-uid-1',
 				name: 'Park View',
 				address: '123 Main St',
 				city: 'Austin',

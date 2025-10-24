@@ -6,7 +6,7 @@
 	"compilerOptions": {
 		"deleteOutDir": false,
 		"webpack": false,
-		"builder": "swc",
+		"builder": "tsc",
 		"typeCheck": true,
 		"tsConfigPath": "tsconfig.build.json",
 		"watchAssets": true,

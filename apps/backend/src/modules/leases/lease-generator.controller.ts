@@ -11,6 +11,7 @@ import {
 	Res
 } from '@nestjs/common'
 import type { LeaseFormData } from '@repo/shared/types/lease-generator.types'
+import type { LeaseTemplatePreviewRequest } from '@repo/shared/templates/lease-template'
 import type { Response } from 'express'
 import { LeasePDFService } from '../pdf/lease-pdf.service'
 
@@ -23,6 +24,20 @@ export class LeaseGeneratorController {
 	private readonly logger = new Logger(LeaseGeneratorController.name)
 
 	constructor(private readonly leasePDFService: LeasePDFService) {}
+
+	@Post('template/preview')
+	async previewTemplate(@Body() payload: LeaseTemplatePreviewRequest) {
+		this.logger.log(`Previewing lease template for state ${payload.selections.state}`)
+		const pdfBuffer = await this.leasePDFService.generateLeasePdfFromTemplate(
+			payload.selections,
+			payload.context
+		)
+		return {
+			success: true,
+			mimeType: 'application/pdf',
+			pdf: pdfBuffer.toString('base64')
+		}
+	}
 
 	/**
 	 * Generate a new lease agreement PDF
@@ -49,7 +64,7 @@ export class LeaseGeneratorController {
 			}
 
 			// Generate the PDF using the service
-			await this.leasePDFService.generateLeaseAgreement(
+			await this.leasePDFService.generateLeasePDF(
 				leaseData as unknown as Record<string, unknown>
 			)
 
@@ -108,7 +123,7 @@ export class LeaseGeneratorController {
 			// For demo purposes, generate a sample PDF
 			const sampleLeaseData = this.getSampleLeaseData()
 			const pdfBuffer =
-				await this.leasePDFService.generateLeaseAgreement(sampleLeaseData)
+				await this.leasePDFService.generateLeasePDF(sampleLeaseData)
 
 			reply
 				.type('application/pdf')
@@ -134,7 +149,7 @@ export class LeaseGeneratorController {
 			// Generate sample PDF for preview
 			const sampleLeaseData = this.getSampleLeaseData()
 			const pdfBuffer =
-				await this.leasePDFService.generateLeaseAgreement(sampleLeaseData)
+				await this.leasePDFService.generateLeasePDF(sampleLeaseData)
 
 			reply
 				.type('application/pdf')

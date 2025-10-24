@@ -27,14 +27,14 @@ export class UnitsService {
 	constructor(private readonly supabase: SupabaseService) {}
 
 	/**
-	 * Helper method to get property IDs for a user (via owner_id)
+	 * Helper method to get property IDs for a user (via ownerId)
 	 */
 	private async getUserPropertyIds(userId: string): Promise<string[]> {
 		const client = this.supabase.getAdminClient()
 		const { data: properties } = await client
 			.from('property')
 			.select('id')
-			.eq('owner_id', userId)
+			.eq('ownerId', userId)
 		return properties?.map(p => p.id) || []
 	}
 
@@ -64,11 +64,11 @@ export class UnitsService {
 			let queryBuilder = client
 				.from('unit')
 				.select('*')
-				.in('property_id', propertyIds)
+				.in('propertyId', propertyIds)
 
 			// Apply filters if provided
 			if (query.propertyId) {
-				queryBuilder = queryBuilder.eq('property_id', query.propertyId)
+				queryBuilder = queryBuilder.eq('propertyId', String(query.propertyId))
 			}
 
 			if (query.status) {
@@ -91,7 +91,7 @@ export class UnitsService {
 				const sanitized = sanitizeSearchInput(String(query.search))
 				if (sanitized) {
 					const pattern = buildILikePattern(sanitized)
-					queryBuilder = queryBuilder.ilike('unit_number', pattern)
+					queryBuilder = queryBuilder.ilike('unitNumber', pattern)
 				}
 			}
 
@@ -101,7 +101,7 @@ export class UnitsService {
 			queryBuilder = queryBuilder.range(offset, offset + limit - 1)
 
 			// Apply sorting
-			const sortBy = query.sortBy || 'created_at'
+			const sortBy = query.sortBy || 'createdAt'
 			const sortOrder = query.sortOrder || 'desc'
 			queryBuilder = queryBuilder.order(sortBy as string, {
 				ascending: sortOrder === 'asc'
@@ -165,7 +165,7 @@ export class UnitsService {
 			const { count: totalCount, error: countError } = await client
 				.from('unit')
 				.select('*', { count: 'exact', head: true })
-				.in('property_id', propertyIds)
+				.in('propertyId', propertyIds)
 
 			if (countError) {
 				this.logger.error('Failed to get total unit count', {
@@ -179,7 +179,7 @@ export class UnitsService {
 			const { data: statusData, error: statusError } = await client
 				.from('unit')
 				.select('status, rent')
-				.in('property_id', propertyIds)
+				.in('propertyId', propertyIds)
 
 			if (statusError) {
 				this.logger.error('Failed to get unit status data', {
@@ -262,7 +262,7 @@ export class UnitsService {
 				.from('property')
 				.select('id')
 				.eq('id', propertyId)
-				.eq('owner_id', userId)
+				.eq('ownerId', userId)
 				.single()
 
 			if (!property) {
@@ -276,8 +276,8 @@ export class UnitsService {
 			const { data, error } = await client
 				.from('unit')
 				.select('*')
-				.eq('property_id', propertyId)
-				.order('unit_number', { ascending: true })
+				.eq('propertyId', propertyId)
+				.order('unitNumber', { ascending: true })
 
 			if (error) {
 				this.logger.error('Failed to fetch units by property from Supabase', {
@@ -329,7 +329,7 @@ export class UnitsService {
 				.from('unit')
 				.select('*')
 				.eq('id', unitId)
-				.in('property_id', propertyIds)
+				.in('propertyId', propertyIds)
 				.single()
 
 			if (error) {
@@ -382,7 +382,7 @@ export class UnitsService {
 				.from('property')
 				.select('id')
 				.eq('id', createRequest.propertyId)
-				.eq('owner_id', userId)
+				.eq('ownerId', userId)
 				.single()
 
 			if (!property) {
@@ -478,7 +478,7 @@ export class UnitsService {
 				.from('unit')
 				.update(updateData)
 				.eq('id', unitId)
-				.in('property_id', propertyIds)
+				.in('propertyId', propertyIds)
 				.select()
 				.single()
 
@@ -533,7 +533,7 @@ export class UnitsService {
 				.from('unit')
 				.delete()
 				.eq('id', unitId)
-				.in('property_id', propertyIds)
+				.in('propertyId', propertyIds)
 
 			if (error) {
 				this.logger.error('Failed to remove unit in Supabase', {
@@ -581,10 +581,10 @@ export class UnitsService {
 			let queryBuilder = client
 				.from('unit')
 				.select('*')
-				.in('property_id', propertyIds)
+				.in('propertyId', propertyIds)
 
 			if (options.propertyId) {
-				queryBuilder = queryBuilder.eq('property_id', options.propertyId)
+				queryBuilder = queryBuilder.eq('propertyId', options.propertyId)
 			}
 
 			const { data, error } = await queryBuilder
@@ -627,7 +627,7 @@ export class UnitsService {
 			const { data, error } = await client
 				.from('unit')
 				.select('*')
-				.eq('property_id', propertyId)
+				.eq('propertyId', propertyId)
 				.eq('status', 'VACANT')
 
 			if (error) {

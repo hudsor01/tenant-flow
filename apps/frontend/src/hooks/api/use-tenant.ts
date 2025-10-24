@@ -21,6 +21,7 @@ import {
 	useQueryClient,
 	useSuspenseQuery
 } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 /**
  * Query keys for tenant endpoints
@@ -50,33 +51,7 @@ export function useTenant(id: string) {
 		},
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
-		gcTime: 10 * 60 * 1000, // 10 minutes cache time
-		select: (tenant: Tenant) => {
-			// Add to store for caching - convert basic Tenant to TenantWithLeaseInfo format
-			const tenantWithLeaseInfo: TenantWithLeaseInfo = {
-				id: tenant.id,
-				name: tenant.name || '',
-				email: tenant.email,
-				phone: tenant.phone,
-				avatarUrl: tenant.avatarUrl,
-				emergencyContact: tenant.emergencyContact,
-				createdAt: tenant.createdAt,
-				updatedAt: tenant.updatedAt,
-				currentLease: null,
-				leases: [],
-				unit: null,
-				property: null,
-				monthlyRent: 0, // Default to 0 for basic tenant (no lease info)
-				leaseStatus: 'inactive',
-				paymentStatus: 'pending',
-				unitDisplay: '',
-				propertyDisplay: '',
-				leaseStart: null,
-				leaseEnd: null
-			}
-			addTenant(tenantWithLeaseInfo)
-			return tenantWithLeaseInfo
-		}
+		gcTime: 10 * 60 * 1000 // 10 minutes cache time
 	})
 }
 
@@ -198,9 +173,8 @@ export function useAllTenants() {
 }
 
 /**
- * Mutation hook to create a new tenant with enhanced optimistic updates
- * Includes automatic rollback on error with proper context preservation
- * Enhanced with analytics tracking and error handling
+ * Mutation hook to create a new tenant
+ * No optimistic updates - waits for server response
  */
 export function useCreateTenant() {
 	const queryClient = useQueryClient()
@@ -216,71 +190,16 @@ export function useCreateTenant() {
 			)
 			return response
 		},
-		onMutate: async (newTenant: TenantInput) => {
-			// Cancel outgoing refetches to prevent overwriting optimistic update
-			await queryClient.cancelQueries({ queryKey: tenantKeys.list() })
-
-			// Snapshot previous state for rollback
-			const previousList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
-				tenantKeys.list()
-			)
-
-			// Create optimistic tenant entry
-			const tempId = `temp-${Date.now()}`
-			const optimisticTenant: TenantWithLeaseInfo = {
-				id: tempId,
-				name: `${newTenant.firstName || ''} ${newTenant.lastName || ''}`.trim(),
-				email: newTenant.email || '',
-				phone: newTenant.phone || null,
-				emergencyContact: newTenant.emergencyContact || null,
-				avatarUrl: newTenant.avatarUrl || null,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-				currentLease: null,
-				leases: [],
-				unit: null,
-				property: null,
-				monthlyRent: 0,
-				leaseStatus: 'inactive',
-				paymentStatus: 'pending',
-				unitDisplay: '',
-				propertyDisplay: '',
-				leaseStart: null,
-				leaseEnd: null
-			}
-
-			// Optimistically update cache
-			queryClient.setQueryData<TenantWithLeaseInfo[]>(tenantKeys.list(), old =>
-				old ? [optimisticTenant, ...old] : [optimisticTenant]
-			)
-
-			// Return context for rollback
-			return { previousList, tempId }
-		},
-		onError: (err, _variables, context) => {
-			// Rollback: restore previous state
-			if (context?.previousList) {
-				queryClient.setQueryData(tenantKeys.list(), context.previousList)
-			}
-
-			// Show user-friendly error message
+		onError: (err) => {
 			logger.error('Failed to create tenant', { error: err })
 		},
-		onSuccess: (data, _variables, context) => {
-			// Replace temporary entry with real data
-			queryClient.setQueryData<TenantWithLeaseInfo[]>(
-				tenantKeys.list(),
-				old => {
-					if (!old) return [data]
-					return old.map(tenant =>
-						tenant.id === context?.tempId ? data : tenant
-					)
-				}
-			)
-
+		onSuccess: (data) => {
 			// Cache individual tenant details
 			queryClient.setQueryData(tenantKeys.detail(data.id), data)
 			queryClient.setQueryData(tenantKeys.withLease(data.id), data)
+
+			// Invalidate list to refetch with new tenant
+			queryClient.invalidateQueries({ queryKey: tenantKeys.list() })
 		}
 	})
 }
@@ -438,8 +357,6 @@ export function useTenantOperations() {
  * Automatically throws errors to nearest Error Boundary
  */
 export function useTenantSuspense(id: string) {
-	const addTenant = useTenantStore(state => state.addTenant)
-
 	return useSuspenseQuery({
 		queryKey: tenantKeys.detail(id),
 		queryFn: async (): Promise<Tenant> => {
@@ -449,33 +366,7 @@ export function useTenantSuspense(id: string) {
 			return response
 		},
 		staleTime: 5 * 60 * 1000,
-		gcTime: 10 * 60 * 1000,
-		select: (tenant: Tenant) => {
-			// Add to store for caching - convert basic Tenant to TenantWithLeaseInfo format
-			const tenantWithLeaseInfo: TenantWithLeaseInfo = {
-				id: tenant.id,
-				name: tenant.name || '',
-				email: tenant.email,
-				phone: tenant.phone,
-				avatarUrl: tenant.avatarUrl,
-				emergencyContact: tenant.emergencyContact,
-				createdAt: tenant.createdAt,
-				updatedAt: tenant.updatedAt,
-				currentLease: null,
-				leases: [],
-				unit: null,
-				property: null,
-				monthlyRent: 0,
-				leaseStatus: 'inactive',
-				paymentStatus: 'pending',
-				unitDisplay: '',
-				propertyDisplay: '',
-				leaseStart: null,
-				leaseEnd: null
-			}
-			addTenant(tenantWithLeaseInfo)
-			return tenantWithLeaseInfo
-		}
+		gcTime: 10 * 60 * 1000
 	})
 }
 
@@ -733,7 +624,17 @@ export function useMarkTenantAsMovedOut() {
 				}
 			}
 
+			const errorMessage = err instanceof Error ? err.message : 'Failed to mark tenant as moved out'
+			toast.error('Error', {
+				description: errorMessage
+			})
+
 			logger.error('Failed to mark tenant as moved out', { error: err })
+		},
+		onSuccess: (data) => {
+			toast.success('Tenant moved out', {
+				description: `${data.name} has been marked as moved out`
+			})
 		},
 		onSettled: (_data, _error, variables) => {
 			// Refetch to ensure consistency
@@ -792,4 +693,117 @@ export function useBatchTenantOperations() {
 			return results
 		}
 	}
+}
+
+/**
+ * Invite tenant - Creates tenant record and sends invitation email
+ * Backend automatically sends invitation after tenant creation
+ */
+export function useInviteTenant() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async (data: {
+			email: string
+			firstName: string
+			lastName: string
+			phone: string | null
+			leaseId: string
+		}) => {
+			const response = await apiClient<Tenant>(
+				`${API_BASE_URL}/api/v1/tenants`,
+				{
+					method: 'POST',
+					body: JSON.stringify({
+						email: data.email,
+						firstName: data.firstName,
+						lastName: data.lastName,
+						phone: data.phone,
+						name: `${data.firstName} ${data.lastName}`,
+						status: 'PENDING' // Will be updated when invitation is accepted
+					})
+				}
+			)
+
+			// Associate tenant with lease
+			if (data.leaseId) {
+				await apiClient(`${API_BASE_URL}/api/v1/leases/${data.leaseId}`, {
+					method: 'PATCH',
+					body: JSON.stringify({ tenantId: response.id })
+				})
+			}
+
+			return response
+		},
+		onSuccess: (data) => {
+			toast.success('Invitation sent', {
+				description: `${data.name} will receive an email to accept the invitation`
+			})
+
+			// Invalidate tenant list to show new pending tenant
+			queryClient.invalidateQueries({ queryKey: tenantKeys.list() })
+
+			logger.info('Tenant invitation sent', {
+				action: 'invite_tenant',
+				metadata: { tenantId: data.id, email: data.email }
+			})
+		},
+		onError: (error) => {
+			const errorMessage =
+				error instanceof Error ? error.message : 'Failed to send invitation'
+			toast.error('Error', {
+				description: errorMessage
+			})
+
+			logger.error('Failed to send tenant invitation', {
+				action: 'invite_tenant_error',
+				metadata: { error: String(error) }
+			})
+		}
+	})
+}
+
+/**
+ * Resend invitation email for expired or pending invitations
+ */
+export function useResendInvitation() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async (tenantId: string) => {
+			const response = await apiClient<{ message: string }>(
+				`${API_BASE_URL}/api/v1/tenants/${tenantId}/resend-invitation`,
+				{
+					method: 'POST'
+				}
+			)
+			return response
+		},
+		onSuccess: (_, tenantId) => {
+			toast.success('Invitation resent', {
+				description: 'A new invitation email has been sent'
+			})
+
+			// Refresh tenant data to show updated invitation_sent_at
+			queryClient.invalidateQueries({ queryKey: tenantKeys.detail(tenantId) })
+			queryClient.invalidateQueries({ queryKey: tenantKeys.list() })
+
+			logger.info('Tenant invitation resent', {
+				action: 'resend_invitation',
+				metadata: { tenantId }
+			})
+		},
+		onError: (error) => {
+			const errorMessage =
+				error instanceof Error ? error.message : 'Failed to resend invitation'
+			toast.error('Error', {
+				description: errorMessage
+			})
+
+			logger.error('Failed to resend invitation', {
+				action: 'resend_invitation_error',
+				metadata: { error: String(error) }
+			})
+		}
+	})
 }

@@ -67,7 +67,7 @@ export async function requirePrimaryProperty(userId: string) {
 	const { data: property, error } = await supabase
 		.from('property')
 		.select('*')
-		.eq('owner_id', userId)
+		.eq('ownerId', userId)
 		.limit(1)
 		.single()
 

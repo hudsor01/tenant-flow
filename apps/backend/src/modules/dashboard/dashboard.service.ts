@@ -702,22 +702,22 @@ export class DashboardService {
 				.select('id, name')
 				.eq('ownerId', userId)
 
-			const { data: unitData } = (await client
-				.from('unit')
-				.select('id, property_id, status, rent')
-				.in('property_id', propertyData?.map(p => p.id) || [])) as unknown as {
-				data?: Array<{
-					id: string
-					property_id?: string
-					status?: string
-					rent?: number
-				}>
-			}
+		const { data: unitData } = (await client
+			.from('unit')
+			.select('id, propertyId, status, rent')
+			.in('propertyId', propertyData?.map(p => p.id) || [])) as unknown as {
+			data?: Array<{
+				id: string
+				propertyId?: string
+				status?: string
+				rent?: number
+			}>
+		}
 
 			// Calculate performance metrics
 			const performanceData = (propertyData ?? []).map(property => {
-				const propertyUnits =
-					unitData?.filter(unit => unit.property_id === property.id) || []
+			const propertyUnits =
+				unitData?.filter(unit => unit.propertyId === property.id) || []
 				const occupiedUnits = propertyUnits.filter(
 					unit => unit.status === 'OCCUPIED'
 				).length

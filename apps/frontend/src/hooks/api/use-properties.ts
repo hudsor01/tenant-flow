@@ -18,6 +18,7 @@ import type {
 import type { Property, PropertyStats } from '@repo/shared/types/core'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { API_BASE_URL } from '@/lib/api-client'
 
 /**
@@ -283,11 +284,20 @@ export function useCreateProperty() {
 				})
 			}
 
+			const errorMessage = err instanceof Error ? err.message : 'Failed to create property'
+			toast.error('Error', {
+				description: errorMessage
+			})
+
 			logger.error('Failed to create property', {
 				error: err instanceof Error ? err.message : String(err)
 			})
 		},
 		onSuccess: (data, _variables, context) => {
+			toast.success('Property created', {
+				description: `${data.name} has been added to your portfolio`
+			})
+
 			// Replace optimistic entry with real data
 			queryClient.setQueriesData<{ data: Property[]; total: number }>(
 				{ queryKey: propertiesKeys.all },
@@ -393,12 +403,21 @@ export function useUpdateProperty() {
 				})
 			}
 
+			const errorMessage = err instanceof Error ? err.message : 'Failed to update property'
+			toast.error('Error', {
+				description: errorMessage
+			})
+
 			logger.error('Failed to update property', {
 				propertyId: id,
 				error: err instanceof Error ? err.message : String(err)
 			})
 		},
 		onSuccess: (data, { id }) => {
+			toast.success('Property updated', {
+				description: `${data.name} has been updated successfully`
+			})
+
 			// Replace optimistic update with real data
 			queryClient.setQueryData(propertiesKeys.detail(id), data)
 
@@ -507,6 +526,85 @@ export function useMarkPropertySold() {
 }
 
 /**
+ * Delete property with optimistic updates and rollback
+ * Removes property from list immediately, rolls back on error
+ */
+export function useDeleteProperty() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async (id: string) => {
+			const response = await apiClient<{ message: string }>(
+				`${API_BASE_URL}/api/v1/properties/${id}`,
+				{
+					method: 'DELETE'
+				}
+			)
+			return response
+		},
+		onMutate: async (id) => {
+			// Cancel outgoing queries to avoid overwriting optimistic update
+			await queryClient.cancelQueries({ queryKey: propertiesKeys.all })
+			await queryClient.cancelQueries({ queryKey: propertiesKeys.detail(id) })
+
+			// Snapshot previous state for rollback
+			const previousList = queryClient.getQueryData<{
+				data: Property[]
+				total: number
+			}>(propertiesKeys.list())
+
+			// Optimistically remove from list
+			if (previousList) {
+				queryClient.setQueryData<{ data: Property[]; total: number }>(
+					propertiesKeys.list(),
+					{
+						...previousList,
+						data: previousList.data.filter(prop => prop.id !== id),
+						total: previousList.total - 1
+					}
+				)
+			}
+
+			return { previousList }
+		},
+		onError: (error, id, context) => {
+			// Rollback on error
+			if (context?.previousList) {
+				queryClient.setQueryData(propertiesKeys.list(), context.previousList)
+			}
+
+			const errorMessage = error instanceof Error ? error.message : 'Failed to delete property'
+			toast.error('Error', {
+				description: errorMessage
+			})
+
+			logger.error('Failed to delete property', {
+				action: 'delete_property',
+				metadata: { propertyId: id, error: String(error) }
+			})
+		},
+		onSuccess: (_, id) => {
+			toast.success('Property deleted', {
+				description: 'Property has been removed from your portfolio'
+			})
+
+			// Remove individual property cache
+			queryClient.removeQueries({ queryKey: propertiesKeys.detail(id) })
+
+			logger.info('Property deleted successfully', {
+				action: 'delete_property_success',
+				metadata: { propertyId: id }
+			})
+		},
+		onSettled: () => {
+			// Refetch to ensure consistency
+			queryClient.invalidateQueries({ queryKey: propertiesKeys.all })
+			queryClient.invalidateQueries({ queryKey: propertiesKeys.stats() })
+		}
+	})
+}
+
+/**
  * Hook for prefetching property details (for hover states)
  */
 export function usePrefetchProperty() {
@@ -534,6 +632,7 @@ export function usePropertyOperations() {
 	return {
 		create: useCreateProperty(),
 		update: useUpdateProperty(),
+		delete: useDeleteProperty(),
 		markSold: useMarkPropertySold()
 	}
 }

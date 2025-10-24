@@ -2,7 +2,6 @@ import type { DashboardStats } from '@repo/shared/types/core'
 import { TrendingDown, TrendingUp } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
-import { CardLayout } from '@/components/ui/card-layout'
 import { formatCurrency, formatPercentage } from '@/lib/utils'
 
 interface SectionCardsProps {
@@ -21,109 +20,137 @@ export function SectionCards({ stats = {} }: SectionCardsProps) {
 	const isExcellentOccupancy = occupancyRate >= 90
 
 	return (
-		<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+		<div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 			{/* Revenue Card */}
-			<CardLayout
-				title="Monthly Revenue"
-				description={formatCurrency(totalRevenue)}
-				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-primary/5 to-card dark:bg-card border-2 hover:border-primary/30"
-			>
-				<div className="flex flex-col gap-3 pt-2">
-					<Badge
-						variant={isPositiveGrowth ? 'default' : 'secondary'}
-						className={`w-fit ${isPositiveGrowth ? 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30' : 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30'}`}
-					>
-						{isPositiveGrowth ? (
-							<TrendingUp className="mr-1.5 h-3.5 w-3.5" />
-						) : (
-							<TrendingDown className="mr-1.5 h-3.5 w-3.5" />
-						)}
-						{formatPercentage(revenueGrowth)}
-					</Badge>
-					<div className="text-sm text-muted-foreground font-medium flex items-center gap-1.5">
-						{isPositiveGrowth ? (
-							<>
-								<TrendingUp className="h-3.5 w-3.5" />
-								Trending up this month
-							</>
-						) : (
-							<>
-								<TrendingDown className="h-3.5 w-3.5" />
-								Down this month
-							</>
-						)}
+			<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/50">
+				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+				<div className="relative p-5">
+					<div className="flex items-center justify-between mb-4">
+						<p className="text-sm font-medium text-muted-foreground">
+							Monthly Revenue
+						</p>
+						<Badge
+							variant={isPositiveGrowth ? 'default' : 'secondary'}
+							className={`transition-all duration-200 ${isPositiveGrowth ? 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30' : 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30'}`}
+						>
+							{isPositiveGrowth ? (
+								<TrendingUp className="mr-1 h-3 w-3" />
+							) : (
+								<TrendingDown className="mr-1 h-3 w-3" />
+							)}
+							{formatPercentage(revenueGrowth)}
+						</Badge>
+					</div>
+					<div className="space-y-2">
+						<h3 className="text-3xl font-bold tracking-tight transition-colors group-hover:text-primary">
+							{formatCurrency(totalRevenue)}
+						</h3>
+						<p className="text-xs text-muted-foreground flex items-center gap-1.5">
+							{isPositiveGrowth ? (
+								<>
+									<TrendingUp className="h-3 w-3" />
+									Trending up this month
+								</>
+							) : (
+								<>
+									<TrendingDown className="h-3 w-3" />
+									Down this month
+								</>
+							)}
+						</p>
 					</div>
 				</div>
-			</CardLayout>
+			</div>
 
 			{/* Tenants Card */}
-			<CardLayout
-				title="Active Tenants"
-				description={`${activeTenants}`}
-				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-blue-500/5 to-card dark:bg-card border-2 hover:border-blue-500/30"
-			>
-				<div className="flex flex-col gap-3 pt-2">
-					<Badge
-						variant="outline"
-						className="w-fit bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30"
-					>
-						<TrendingUp className="mr-1.5 h-3.5 w-3.5" />
-						{totalTenants} total
-					</Badge>
-					<div className="text-sm text-muted-foreground font-medium">
-						{activeTenants > 0
-							? `${((activeTenants / totalTenants) * 100).toFixed(0)}% active`
-							: 'No active tenants yet'}
+			<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-500/50">
+				<div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+				<div className="relative p-5">
+					<div className="flex items-center justify-between mb-4">
+						<p className="text-sm font-medium text-muted-foreground">
+							Active Tenants
+						</p>
+						<Badge
+							variant="outline"
+							className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30 transition-all duration-200"
+						>
+							<TrendingUp className="mr-1 h-3 w-3" />
+							{totalTenants} total
+						</Badge>
+					</div>
+					<div className="space-y-2">
+						<h3 className="text-3xl font-bold tracking-tight transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
+							{activeTenants}
+						</h3>
+						<p className="text-xs text-muted-foreground">
+							{activeTenants > 0
+								? `${((activeTenants / totalTenants) * 100).toFixed(0)}% active rate`
+								: 'No active tenants yet'}
+						</p>
 					</div>
 				</div>
-			</CardLayout>
+			</div>
 
 			{/* Properties Card */}
-			<CardLayout
-				title="Total Properties"
-				description={`${totalProperties}`}
-				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-purple-500/5 to-card dark:bg-card border-2 hover:border-purple-500/30"
-			>
-				<div className="flex flex-col gap-3 pt-2">
-					<Badge
-						variant="outline"
-						className="w-fit bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30"
-					>
-						<TrendingUp className="mr-1.5 h-3.5 w-3.5" />
-						{stats.properties?.occupied || 0} occupied
-					</Badge>
-					<div className="text-sm text-muted-foreground font-medium">
-						{totalProperties > 0
-							? `${stats.properties?.occupied || 0} properties generating revenue`
-							: 'Add your first property'}
+			<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/5 hover:border-purple-500/50">
+				<div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+				<div className="relative p-5">
+					<div className="flex items-center justify-between mb-4">
+						<p className="text-sm font-medium text-muted-foreground">
+							Total Properties
+						</p>
+						<Badge
+							variant="outline"
+							className="bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30 transition-all duration-200"
+						>
+							<TrendingUp className="mr-1 h-3 w-3" />
+							{stats.properties?.occupied || 0} occupied
+						</Badge>
+					</div>
+					<div className="space-y-2">
+						<h3 className="text-3xl font-bold tracking-tight transition-colors group-hover:text-purple-600 dark:group-hover:text-purple-400">
+							{totalProperties}
+						</h3>
+						<p className="text-xs text-muted-foreground">
+							{totalProperties > 0
+								? `${stats.properties?.occupied || 0} generating revenue`
+								: 'Add your first property'}
+						</p>
 					</div>
 				</div>
-			</CardLayout>
+			</div>
 
 			{/* Occupancy Rate Card */}
-			<CardLayout
-				title="Occupancy Rate"
-				description={`${occupancyRate.toFixed(1)}%`}
-				className="@container/card group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-amber-500/5 to-card dark:bg-card border-2 hover:border-amber-500/30"
-			>
-				<div className="flex flex-col gap-3 pt-2">
-					<Badge
-						variant={isExcellentOccupancy ? 'default' : 'secondary'}
-						className={`w-fit ${isExcellentOccupancy ? 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30' : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'}`}
-					>
-						{isExcellentOccupancy ? (
-							<TrendingUp className="mr-1.5 h-3.5 w-3.5" />
-						) : (
-							<TrendingDown className="mr-1.5 h-3.5 w-3.5" />
-						)}
-						{isExcellentOccupancy ? 'Excellent' : 'Good'}
-					</Badge>
-					<div className="text-sm text-muted-foreground font-medium">
-						{stats.units?.occupied || 0} of {stats.units?.total || 0} units
-						filled
+			<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/5 hover:border-amber-500/50">
+				<div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+				<div className="relative p-5">
+					<div className="flex items-center justify-between mb-4">
+						<p className="text-sm font-medium text-muted-foreground">
+							Occupancy Rate
+						</p>
+						<Badge
+							variant={isExcellentOccupancy ? 'default' : 'secondary'}
+							className={`transition-all duration-200 ${isExcellentOccupancy ? 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30' : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'}`}
+						>
+							{isExcellentOccupancy ? (
+								<TrendingUp className="mr-1 h-3 w-3" />
+							) : (
+								<TrendingDown className="mr-1 h-3 w-3" />
+							)}
+							{isExcellentOccupancy ? 'Excellent' : 'Good'}
+						</Badge>
+					</div>
+					<div className="space-y-2">
+						<h3 className="text-3xl font-bold tracking-tight transition-colors group-hover:text-amber-600 dark:group-hover:text-amber-400">
+							{occupancyRate.toFixed(1)}%
+						</h3>
+						<p className="text-xs text-muted-foreground">
+							{stats.units?.occupied || 0} of {stats.units?.total || 0} units
+							filled
+						</p>
 					</div>
 				</div>
-			</CardLayout>
+			</div>
 		</div>
 	)
 }

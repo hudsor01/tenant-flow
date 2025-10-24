@@ -37,14 +37,14 @@ export class FinancialAnalyticsController {
 		const { data: properties } = await client
 			.from('property')
 			.select('id')
-			.eq('owner_id', userId)
+			.eq('ownerId', userId)
 		const propertyIds = properties?.map(p => p.id) || []
 		if (propertyIds.length === 0) return []
 
 		const { data: units } = await client
 			.from('unit')
 			.select('id')
-			.in('property_id', propertyIds)
+			.in('propertyId', propertyIds)
 		return units?.map(u => u.id) || []
 	}
 
@@ -92,7 +92,7 @@ export class FinancialAnalyticsController {
 
 			const [leasesData, expenses] = await Promise.all([
 				unitIds.length > 0
-					? client.from('lease').select('*').in('unit_id', unitIds)
+					? client.from('lease').select('*').in('unitId', unitIds)
 					: Promise.resolve({ data: [] }),
 				this.fetchExpensesForProperties(
 					propertyContext.propertyIds,
@@ -169,13 +169,13 @@ export class FinancialAnalyticsController {
 
 			const [propertiesData, unitsData, leasesData, expenses] =
 				await Promise.all([
-					client.from('property').select('id').eq('owner_id', user.id),
+					client.from('property').select('id').eq('ownerId', user.id),
 					client
 						.from('unit')
 						.select('id, status')
-						.in('property_id', propertyContext.propertyIds),
+						.in('propertyId', propertyContext.propertyIds),
 					unitIds.length > 0
-						? client.from('lease').select('*').in('unit_id', unitIds)
+						? client.from('lease').select('*').in('unitId', unitIds)
 						: Promise.resolve({ data: [] }),
 					this.fetchExpensesForProperties(
 						propertyContext.propertyIds,
@@ -263,7 +263,7 @@ export class FinancialAnalyticsController {
 
 			const [leasesData, expenses] = await Promise.all([
 				unitIds.length > 0
-					? client.from('lease').select('*').in('unit_id', unitIds)
+					? client.from('lease').select('*').in('unitId', unitIds)
 					: Promise.resolve({ data: [] }),
 				this.fetchExpensesForProperties(
 					propertyContext.propertyIds,
@@ -342,9 +342,9 @@ export class FinancialAnalyticsController {
 				client
 					.from('unit')
 					.select('*')
-					.in('property_id', propertyContext.propertyIds),
+					.in('propertyId', propertyContext.propertyIds),
 				unitIds.length > 0
-					? client.from('lease').select('*').in('unit_id', unitIds)
+					? client.from('lease').select('*').in('unitId', unitIds)
 					: Promise.resolve({ data: [] }),
 				this.fetchExpensesForProperties(
 					propertyContext.propertyIds,
@@ -427,7 +427,7 @@ export class FinancialAnalyticsController {
 		const { data: properties } = await client
 			.from('property')
 			.select('id, name')
-			.eq('owner_id', userId)
+			.eq('ownerId', userId)
 
 		const propertyMap = new Map<string, string>()
 		const propertyIds: string[] = []

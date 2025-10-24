@@ -1,9 +1,8 @@
 'use client'
 
 import { useCreateProperty } from '@/hooks/api/use-properties'
-import type { CreatePropertyInput } from '@repo/shared/types/api-inputs'
 import { CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -20,6 +19,11 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { z } from 'zod'
+import { lookupZipCodeHybrid } from '@repo/shared/utils/zip-api'
+import type { CreatePropertyInput } from '@repo/shared/types/api-inputs'
+import type { Database } from '@repo/shared/types/supabase-generated'
+
+type PropertyType = Database['public']['Enums']['PropertyType']
 
 import {
 	Dropzone,
@@ -62,13 +66,54 @@ const FORM_STEPS = [
 export function CreatePropertyForm() {
 	const [isSubmitted, setIsSubmitted] = useState(false)
 	const [currentStep, setCurrentStep] = useState(1)
+	const [isZipLoading, setIsZipLoading] = useState(false)
 	const { data: user } = useSupabaseUser()
 	const logger = createLogger({ component: 'CreatePropertyForm' })
 	const createPropertyMutation = useCreateProperty()
+	
+	// Form telemetry for UX optimization
+	const [formMetrics] = useState(() => ({
+		startTime: Date.now(),
+		stepTimes: {} as Record<number, number>,
+		stepStartTimes: {} as Record<number, number>
+	}))
 
 	const totalSteps = FORM_STEPS.length
 	const isFirstStep = currentStep === 1
 	const isLastStep = currentStep === totalSteps
+	
+	// Track step changes for telemetry
+	useEffect(() => {
+		formMetrics.stepStartTimes[currentStep] = Date.now()
+		
+		logger.info('form_step_viewed', {
+			step: currentStep,
+			stepName: FORM_STEPS[currentStep - 1]?.title,
+			timeFromStart: Date.now() - formMetrics.startTime
+		})
+	}, [currentStep, formMetrics, logger])
+	
+	// Track form abandonment on unmount
+	useEffect(() => {
+		return () => {
+			if (!isSubmitted) {
+				const stepDurations = Object.entries(formMetrics.stepStartTimes).map(
+					([step, startTime]) => ({
+						step: parseInt(step),
+						duration: Date.now() - startTime
+					})
+				)
+				
+				logger.info('form_abandoned', {
+					abandonedAtStep: currentStep,
+					totalDuration: Date.now() - formMetrics.startTime,
+					stepDurations,
+					completedSteps: Object.keys(formMetrics.stepTimes).length
+				})
+			}
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []) // Only run on unmount
 
 	const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, totalSteps))
 	const previousStep = () => setCurrentStep(prev => Math.max(prev - 1, 1))
@@ -118,6 +163,26 @@ export function CreatePropertyForm() {
 					data: transformedData
 				})
 				await createPropertyMutation.mutateAsync(transformedData)
+				
+				// Log successful completion telemetry
+				const stepDurations = Object.entries(formMetrics.stepStartTimes).map(
+					([step, startTime]) => {
+						const endTime = formMetrics.stepTimes[parseInt(step)] || Date.now()
+						return {
+							step: parseInt(step),
+							duration: endTime - startTime
+						}
+					}
+				)
+				
+				logger.info('form_completed', {
+					totalDuration: Date.now() - formMetrics.startTime,
+					stepDurations,
+					totalSteps,
+					propertyType: transformedData.propertyType,
+					hasImage: !!transformedData.imageUrl
+				})
+				
 				toast.success('Property created successfully')
 				setIsSubmitted(true)
 				form.reset()
@@ -152,23 +217,24 @@ export function CreatePropertyForm() {
 		// If we're on the first step, call the react-query mutation to persist basic info
 		if (currentStep === 1) {
 			try {
-				const values = form.state.values
-				// Build payload compatible with CreatePropertyInput
-				const rawPayload = {
-					name: values.name,
-					propertyType: values.propertyType,
-					address: values.address,
-					city: values.city,
-					state: values.state,
-					zipCode: values.zipCode,
-					description: values.description || null,
-					imageUrl: values.imageUrl || null,
-					ownerId: user?.id ?? ''
-				}
+			const values = form.state.values
+			if (!user?.id) {
+				toast.error('You must be logged in to create a property')
+				return
+			}
+			// Build payload matching CreatePropertyRequest from backend-domain
+			const payload: CreatePropertyInput = {
+				ownerId: user.id,
+				name: values.name?.trim() ?? '',
+				propertyType: values.propertyType as PropertyType,
+				address: values.address?.trim() ?? '',
+				city: values.city?.trim() ?? '',
+				state: values.state?.trim() ?? '',
+				zipCode: values.zipCode?.trim() ?? '',
+				description: values.description?.trim() || null
+			}
 
-				const payload = rawPayload as unknown as CreatePropertyInput
-
-				const created = await createPropertyMutation.mutateAsync(payload)
+			const created = await createPropertyMutation.mutateAsync(payload)
 				if (created?.id) {
 					// Set propertyId on form for subsequent steps
 					// form typing does not expose setFieldValue index signature; use a narrow cast
@@ -191,6 +257,9 @@ export function CreatePropertyForm() {
 		}
 
 		if (!isLastStep) {
+			// Track step completion time
+			formMetrics.stepTimes[currentStep] = Date.now()
+			
 			nextStep()
 		}
 	}
@@ -217,7 +286,7 @@ export function CreatePropertyForm() {
 		return true
 	}
 
-	const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100
+	const progressPercentage = (currentStep / totalSteps) * 100
 
 	if (isSubmitted) {
 		return (
@@ -403,20 +472,36 @@ export function CreatePropertyForm() {
 							</form.Field>
 
 							<form.Field name="zipCode">
-								{field => (
-									<Field>
-										<FieldLabel htmlFor="zipCode">ZIP Code *</FieldLabel>
-										<Input
-											id="zipCode"
-											name="zipCode"
-											autoComplete="postal-code"
-											placeholder="12345"
-											value={field.state.value}
-											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-												field.handleChange(e.target.value)
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="zipCode">
+										ZIP Code * {isZipLoading && <span className="text-xs text-muted-foreground ml-2">(Looking up...)</span>}
+									</FieldLabel>
+									<Input
+										id="zipCode"
+										name="zipCode"
+										autoComplete="postal-code"
+										placeholder="12345"
+										value={field.state.value}
+										onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
+											const zip = e.target.value
+											field.handleChange(zip)
+											
+											// Auto-fill city/state from ZIP (hybrid: static + API fallback)
+											if (zip.length >= 5) {
+												setIsZipLoading(true)
+												const lookup = await lookupZipCodeHybrid(zip)
+												setIsZipLoading(false)
+												
+												if (lookup) {
+													form.setFieldValue('city', lookup.city)
+													form.setFieldValue('state', lookup.state)
+													toast.success(`Auto-filled: ${lookup.city}, ${lookup.state}`)
+												}
 											}
-											onBlur={field.handleBlur}
-										/>
+										}}
+										onBlur={field.handleBlur}
+									/>
 										{field.state.meta.errors?.length && (
 											<FieldError>
 												{String(field.state.meta.errors[0])}
