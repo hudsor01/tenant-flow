@@ -18,7 +18,7 @@ export default function ManageLayout({ children }: { children: ReactNode }) {
 				>
 					<div className="flex h-[calc(100vh-2rem)] gap-4">
 						{/* Sidebar - 4 Separate Cards */}
-						<div className="flex w-[280px] flex-col gap-4">
+						<div className="flex w-70 flex-col gap-4">
 							<AppSidebar variant="inset" />
 						</div>
 

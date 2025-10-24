@@ -14,7 +14,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 	return (
 		<section
 			className={cn(
-				'relative py-32 lg:py-40 overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/10',
+				'relative py-32 lg:py-40 overflow-hidden bg-linear-to-br from-primary/10 via-background to-accent/10',
 				className
 			)}
 		>
@@ -51,13 +51,13 @@ export function FinalCta({ className }: FinalCtaProps) {
 						<div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
 							<Button
 								size="lg"
-								className="group relative overflow-hidden bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-xl font-semibold px-12 py-6"
+								className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-xl font-semibold px-12 py-6"
 								asChild
 							>
 								<a href="/signup" aria-label="Start free trial">
 									<span className="relative z-10 flex items-center">
 										Start Free 14-Day Trial
-										<ArrowRight className="w-6 h-6 ml-3 transition-transform group-hover:translate-x-1" />
+										<ArrowRight className="size-6 ml-3 transition-transform group-hover:translate-x-1" />
 									</span>
 								</a>
 							</Button>
@@ -69,7 +69,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 								asChild
 							>
 								<a href="/contact" aria-label="Schedule demo">
-									<ArrowRight className="w-6 h-6 mr-3 opacity-70 group-hover:opacity-100" />
+									<ArrowRight className="size-6 mr-3 opacity-70 group-hover:opacity-100" />
 									Book a Demo
 								</a>
 							</Button>
@@ -79,19 +79,19 @@ export function FinalCta({ className }: FinalCtaProps) {
 					<BlurFade delay={0.4} inView>
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center max-w-3xl mx-auto">
 							<div className="flex flex-col items-center">
-								<Check className="w-6 h-6 text-accent mb-2" />
+								<Check className="size-6 text-accent mb-2" />
 								<span className="text-sm font-medium text-muted-foreground">
 									No setup fees or hidden costs
 								</span>
 							</div>
 							<div className="flex flex-col items-center">
-								<Check className="w-6 h-6 text-accent mb-2" />
+								<Check className="size-6 text-accent mb-2" />
 								<span className="text-sm font-medium text-muted-foreground">
 									Cancel anytime, no questions asked
 								</span>
 							</div>
 							<div className="flex flex-col items-center">
-								<Check className="w-6 h-6 text-accent mb-2" />
+								<Check className="size-6 text-accent mb-2" />
 								<span className="text-sm font-medium text-muted-foreground">
 									ROI guaranteed in 90 days
 								</span>
@@ -111,7 +111,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 			</div>
 
 			{/* Decorative gradient overlay */}
-			<div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-background/20 pointer-events-none" />
+			<div className="absolute inset-0 bg-linear-to-t from-background/20 via-transparent to-background/20 pointer-events-none" />
 		</section>
 	)
 }

@@ -93,7 +93,7 @@ export function ConnectOnboardingDialog({
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						<Building className="w-5 h-5" />
+						<Building className="size-5" />
 						Connect Stripe Account
 					</DialogTitle>
 					<DialogDescription>
@@ -169,13 +169,13 @@ export function ConnectOnboardingDialog({
 						<Button type="submit" disabled={createAccount.isPending}>
 							{createAccount.isPending ? (
 								<>
-									<Spinner className="mr-2 h-4 w-4 animate-spin" />
+									<Spinner className="mr-2 size-4 animate-spin" />
 									Creating...
 								</>
 							) : (
 								<>
 									Continue to Stripe
-									<ExternalLink className="ml-2 h-4 w-4" />
+									<ExternalLink className="ml-2 size-4" />
 								</>
 							)}
 						</Button>
@@ -199,7 +199,7 @@ export function StripeConnectStatus() {
 				description="Loading Stripe account status..."
 			>
 				<div className="flex items-center justify-center py-8">
-					<Spinner className="h-8 w-8 animate-spin text-muted-foreground" />
+					<Spinner className="size-8 animate-spin text-muted-foreground" />
 				</div>
 			</CardLayout>
 		)
@@ -221,7 +221,7 @@ export function StripeConnectStatus() {
 							</p>
 						</div>
 						<Button onClick={() => setShowOnboarding(true)} className="w-full">
-							<Building className="mr-2 h-4 w-4" />
+							<Building className="mr-2 size-4" />
 							Connect Stripe Account
 						</Button>
 					</div>
@@ -250,11 +250,11 @@ export function StripeConnectStatus() {
 	const getStatusIcon = (status: string) => {
 		switch (status) {
 			case 'active':
-				return <CheckCircle className="h-5 w-5 text-green-600" />
+				return <CheckCircle className="size-5 text-green-600" />
 			case 'pending':
-				return <Spinner className="h-5 w-5 text-amber-60 animate-spin" />
+				return <Spinner className="size-5 text-amber-60 animate-spin" />
 			default:
-				return <XCircle className="h-5 w-5 text-gray-600" />
+				return <XCircle className="size-5 text-gray-600" />
 		}
 	}
 
@@ -328,13 +328,13 @@ export function StripeConnectStatus() {
 						>
 							{refreshOnboarding.isPending ? (
 								<>
-									<Spinner className="mr-2 h-4 w-4 animate-spin" />
+									<Spinner className="mr-2 size-4 animate-spin" />
 									Loading...
 								</>
 							) : (
 								<>
 									Complete Onboarding
-									<ExternalLink className="ml-2 h-4 w-4" />
+									<ExternalLink className="ml-2 size-4" />
 								</>
 							)}
 						</Button>

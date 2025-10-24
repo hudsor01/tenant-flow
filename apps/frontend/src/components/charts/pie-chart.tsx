@@ -186,7 +186,7 @@ export function ModernExplodedPieChart({
 			{showFooter && (
 				<CardFooter className="flex-col gap-2 text-sm">
 					<div className="flex items-center gap-2 leading-none font-medium">
-						{occupancyRate}% occupancy rate <TrendingUp className="h-4 w-4" />
+						{occupancyRate}% occupancy rate <TrendingUp className="size-4" />
 					</div>
 					<div className="text-muted-foreground leading-none">
 						Showing current property status across portfolio

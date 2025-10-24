@@ -125,7 +125,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 						className="flex items-center gap-x-4 border-b py-2 first:mt-4 last:mb-4 "
 					>
 						{file.type.startsWith('image/') ? (
-							<div className="h-10 w-10 rounded border overflow-hidden shrink-0 bg-muted flex items-center justify-center">
+							<div className="size-10 rounded border overflow-hidden shrink-0 bg-muted flex items-center justify-center">
 								<img
 									src={file.preview}
 									alt={file.name}
@@ -133,7 +133,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 								/>
 							</div>
 						) : (
-							<div className="h-10 w-10 rounded border bg-muted flex items-center justify-center">
+							<div className="size-10 rounded border bg-muted flex items-center justify-center">
 								<File size={18} />
 							</div>
 						)}
@@ -200,7 +200,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 					>
 						{loading ? (
 							<>
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								<Loader2 className="mr-2 size-4 animate-spin" />
 								Uploading...
 							</>
 						) : (

@@ -72,7 +72,7 @@ export function TenantEditViewButtons({
 				size="sm"
 				onClick={(): void => setViewOpen(true)}
 			>
-				<Eye className="w-4 h-4" />
+				<Eye className="size-4" />
 				View
 			</Button>
 
@@ -82,7 +82,7 @@ export function TenantEditViewButtons({
 				size="sm"
 				onClick={(): void => setEditOpen(true)}
 			>
-				<Edit className="w-4 h-4" />
+				<Edit className="size-4" />
 				Edit
 			</Button>
 
@@ -262,7 +262,7 @@ export function TenantEditViewButtons({
 				<DialogContent className="sm:max-w-lg">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
-							<User className="w-5 h-5" />
+							<User className="size-5" />
 							{tenant.name}
 						</DialogTitle>
 					</DialogHeader>
@@ -271,7 +271,7 @@ export function TenantEditViewButtons({
 						{/* Contact Information */}
 						<div className="space-y-4">
 							<div className="flex items-center gap-2">
-								<Mail className="w-4 h-4 text-muted-foreground" />
+								<Mail className="size-4 text-muted-foreground" />
 								<div>
 									<p className="font-medium">{tenant.email}</p>
 									<p className="text-sm text-muted-foreground">Email Address</p>
@@ -280,7 +280,7 @@ export function TenantEditViewButtons({
 
 							{tenant.phone && (
 								<div className="flex items-center gap-2">
-									<Phone className="w-4 h-4 text-muted-foreground" />
+									<Phone className="size-4 text-muted-foreground" />
 									<div>
 										<p className="font-medium">{tenant.phone}</p>
 										<p className="text-sm text-muted-foreground">
@@ -292,7 +292,7 @@ export function TenantEditViewButtons({
 
 							{tenant.emergencyContact && (
 								<div className="flex items-start gap-2">
-									<Phone className="w-4 h-4 text-muted-foreground mt-1" />
+									<Phone className="size-4 text-muted-foreground mt-1" />
 									<div>
 										<p className="font-medium">Emergency Contact</p>
 										<p className="text-sm text-muted-foreground">
@@ -307,7 +307,7 @@ export function TenantEditViewButtons({
 						<div className="space-y-4">
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
-									<MapPin className="w-4 h-4 text-muted-foreground" />
+									<MapPin className="size-4 text-muted-foreground" />
 									<span className="text-sm font-medium">Property</span>
 								</div>
 								<span className="text-sm text-muted-foreground">
@@ -318,7 +318,7 @@ export function TenantEditViewButtons({
 							{tenant.currentLease && (
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-2">
-										<CreditCard className="w-4 h-4 text-muted-foreground" />
+										<CreditCard className="size-4 text-muted-foreground" />
 										<span className="text-sm font-medium">Monthly Rent</span>
 									</div>
 									<span className="text-sm text-muted-foreground">
@@ -330,7 +330,7 @@ export function TenantEditViewButtons({
 
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
-									<Calendar className="w-4 h-4 text-muted-foreground" />
+									<Calendar className="size-4 text-muted-foreground" />
 									<span className="text-sm font-medium">Tenant Since</span>
 								</div>
 								<span className="text-sm text-muted-foreground">
@@ -342,7 +342,7 @@ export function TenantEditViewButtons({
 
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
-									<User className="w-4 h-4 text-muted-foreground" />
+									<User className="size-4 text-muted-foreground" />
 									<span className="text-sm font-medium">Status</span>
 								</div>
 								<Badge

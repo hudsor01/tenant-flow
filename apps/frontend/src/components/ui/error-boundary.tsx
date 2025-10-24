@@ -53,8 +53,8 @@ export class ErrorBoundary extends Component<Props, State> {
 						description="We encountered an unexpected error. Please try refreshing the page."
 					>
 						<div className="flex flex-col items-center gap-4">
-							<div className="mx-auto w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center">
-								<AlertTriangle className="w-6 h-6 text-destructive" />
+							<div className="mx-auto size-12 bg-destructive/10 rounded-full flex items-center justify-center">
+								<AlertTriangle className="size-6 text-destructive" />
 							</div>
 
 							{process.env.NODE_ENV === 'development' && this.state.error && (
@@ -72,7 +72,7 @@ export class ErrorBoundary extends Component<Props, State> {
 									onClick={() => window.location.reload()}
 									className="flex-1"
 								>
-									<RefreshCw className="w-4 h-4 mr-2" />
+									<RefreshCw className="size-4 mr-2" />
 									Refresh Page
 								</Button>
 								<Button

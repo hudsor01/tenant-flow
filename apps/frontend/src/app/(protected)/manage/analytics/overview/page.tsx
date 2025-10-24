@@ -31,7 +31,7 @@ export default async function AnalyticsPage() {
 			<div
 				className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]"
 			>
-				<div className="mx-auto max-w-[1600px] py-4">
+				<div className="mx-auto max-w-400 py-4">
 					<div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 						{/* Total Revenue */}
 						<Card className="@container/card">
@@ -162,7 +162,7 @@ export default async function AnalyticsPage() {
 
 			{/* Main Content Section - Matching Dashboard */}
 			<div className="flex-1 p-6 pt-6 pb-6">
-				<div className="mx-auto max-w-[1600px] space-y-8">
+				<div className="mx-auto max-w-400 space-y-8">
 					{/* Charts Section */}
 					<div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
 						{/* Revenue Trend Chart */}
@@ -178,13 +178,13 @@ export default async function AnalyticsPage() {
 							<div className="px-6 pb-6">
 								<div className="flex items-center gap-4 mb-4">
 									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded-full bg-chart-3"></div>
+										<div className="size-3 rounded-full bg-chart-3"></div>
 										<span className="text-sm text-muted-foreground">
 											Revenue
 										</span>
 									</div>
 									<div className="flex items-center gap-2">
-										<div className="w-3 h-3 rounded-full bg-chart-5"></div>
+										<div className="size-3 rounded-full bg-chart-5"></div>
 										<span className="text-sm text-muted-foreground">
 											Expenses
 										</span>
@@ -216,7 +216,7 @@ export default async function AnalyticsPage() {
 												className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
 											>
 												<div className="flex items-center gap-3">
-													<div className="w-8 h-8 rounded-full bg-background border flex items-center justify-center font-semibold text-sm">
+													<div className="size-8 rounded-full bg-background border flex items-center justify-center font-semibold text-sm">
 														{index + 1}
 													</div>
 													<div>

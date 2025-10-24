@@ -33,7 +33,7 @@ export const ReactQueryErrorBoundary: React.FC<ReactQueryErrorBoundaryProps> = (
   return (
     <div className="flex items-center justify-center p-4">
       <Alert variant="destructive" className="max-w-md w-full">
-        <AlertCircle className="h-4 w-4" />
+        <AlertCircle className="size-4" />
         <AlertTitle>{title}</AlertTitle>
         <AlertDescription>
           <div className="space-y-2">
@@ -51,7 +51,7 @@ export const ReactQueryErrorBoundary: React.FC<ReactQueryErrorBoundaryProps> = (
                   onClick={handleReset}
                   className="flex items-center gap-2"
                 >
-                  <RotateCcw className="h-4 w-4" />
+                  <RotateCcw className="size-4" />
                   Try Again
                 </Button>
               </div>
@@ -144,7 +144,7 @@ export const FormMutationErrorBoundary: React.FC<FormMutationErrorBoundaryProps>
   return (
     <div className="flex items-center justify-center p-4">
       <Alert variant="destructive" className="max-w-md w-full">
-        <AlertCircle className="h-4 w-4" />
+        <AlertCircle className="size-4" />
         <AlertTitle>{getErrorTitle()}</AlertTitle>
         <AlertDescription>
           <div className="space-y-2">
@@ -170,7 +170,7 @@ export const FormMutationErrorBoundary: React.FC<FormMutationErrorBoundaryProps>
                   onClick={onRetry}
                   className="flex items-center gap-2"
                 >
-                  <RotateCcw className="h-4 w-4" />
+                  <RotateCcw className="size-4" />
                   Try Again
                 </Button>
               )}

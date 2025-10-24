@@ -59,7 +59,7 @@ export function QuickActions() {
 					<Link
 						key={action.href}
 						href={action.href}
-						className="group relative flex w-full items-center rounded-lg border-2 border-border/50 bg-card transition-all duration-300 hover:bg-accent hover:text-accent-foreground hover:border-primary/40 hover:shadow-md hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 animate-in fade-in slide-in-from-left-4 min-h-[44px] p-4 gap-3"
+						className="group relative flex w-full items-center rounded-lg border-2 border-border/50 bg-card transition-all duration-300 hover:bg-accent hover:text-accent-foreground hover:border-primary/40 hover:shadow-md hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 animate-in fade-in slide-in-from-left-4 min-h-11 p-4 gap-3"
 						style={{
 							animationDelay: `${index * 50}ms`
 						}}
@@ -67,25 +67,21 @@ export function QuickActions() {
 						tabIndex={0}
 						aria-label={`${action.title}: ${action.description}`}
 					>
-						<div className="flex shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300 w-10 h-10 p-2">
+						<div className="flex shrink-0 items-center justify-center rounded-md bg-linear-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300 size-10 p-2">
 							<Icon
-								className="text-primary group-hover:scale-110 transition-transform duration-300 w-5 h-5"
+								className="text-primary group-hover:scale-110 transition-transform duration-300 size-5"
 								aria-hidden="true"
 							/>
 						</div>
 						<div className="flex-1 text-left">
-							<div
-								className="font-semibold text-foreground group-hover:text-primary transition-colors text-base leading-normal"
-							>
+							<div className="font-semibold text-foreground group-hover:text-primary transition-colors text-base leading-normal">
 								{action.title}
 							</div>
-							<div
-								className="text-muted-foreground text-sm leading-tight"
-							>
+							<div className="text-muted-foreground text-sm leading-tight">
 								{action.description}
 							</div>
 						</div>
-						<ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300 shrink-0" />
+						<ArrowRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300 shrink-0" />
 					</Link>
 				)
 			})}

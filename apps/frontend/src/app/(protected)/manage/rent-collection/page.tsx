@@ -157,7 +157,7 @@ function RentCollectionContent() {
 						<CardTitle className="text-sm font-medium">
 							Monthly Revenue
 						</CardTitle>
-						<DollarSign className="h-4 w-4 text-muted-foreground" />
+						<DollarSign className="size-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -174,7 +174,7 @@ function RentCollectionContent() {
 						<CardTitle className="text-sm font-medium">
 							Active Subscriptions
 						</CardTitle>
-						<CheckCircle className="h-4 w-4 text-green-600" />
+						<CheckCircle className="size-4 text-green-600" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -191,7 +191,7 @@ function RentCollectionContent() {
 						<CardTitle className="text-sm font-medium">
 							Paused Subscriptions
 						</CardTitle>
-						<Pause className="h-4 w-4 text-amber-600" />
+						<Pause className="size-4 text-amber-600" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -206,7 +206,7 @@ function RentCollectionContent() {
 						<CardTitle className="text-sm font-medium">
 							Failed Payments
 						</CardTitle>
-						<AlertTriangle className="h-4 w-4 text-red-600" />
+						<AlertTriangle className="size-4 text-red-600" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -242,11 +242,11 @@ function RentCollectionContent() {
 						<TabsContent value="active">
 							{isLoading ? (
 								<div className="flex items-center justify-center py-8">
-									<Spinner className="h-8 w-8 animate-spin text-muted-foreground" />
+									<Spinner className="size-8 animate-spin text-muted-foreground" />
 								</div>
 							) : activeSubscriptions.length === 0 ? (
 								<div className="rounded-lg border p-8 text-center">
-									<AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+									<AlertCircle className="size-12 text-muted-foreground mx-auto mb-4" />
 									<p className="text-muted-foreground">
 										No active subscriptions
 									</p>
@@ -285,7 +285,7 @@ function RentCollectionContent() {
 													<TableCell>
 														{paymentMethodInfo ? (
 															<div className="flex items-center gap-2">
-																<CreditCard className="h-4 w-4" />
+																<CreditCard className="size-4" />
 																<span className="text-sm">
 																	{paymentMethodInfo.type} ending in{' '}
 																	{paymentMethodInfo.last4}
@@ -315,9 +315,9 @@ function RentCollectionContent() {
 																	disabled={actioningId === sub.id}
 																>
 																	{actioningId === sub.id ? (
-																		<Spinner className="h-4 w-4 animate-spin" />
+																		<Spinner className="size-4 animate-spin" />
 																	) : (
-																		<MoreVertical className="h-4 w-4" />
+																		<MoreVertical className="size-4" />
 																	)}
 																</Button>
 															</DropdownMenuTrigger>
@@ -327,14 +327,14 @@ function RentCollectionContent() {
 																<DropdownMenuItem
 																	onClick={() => handlePause(sub.id)}
 																>
-																	<Pause className="mr-2 h-4 w-4" />
+																	<Pause className="mr-2 size-4" />
 																	Pause Subscription
 																</DropdownMenuItem>
 																<DropdownMenuItem
 																	onClick={() => handleCancel(sub.id)}
 																	className="text-destructive"
 																>
-																	<XCircle className="mr-2 h-4 w-4" />
+																	<XCircle className="mr-2 size-4" />
 																	Cancel Subscription
 																</DropdownMenuItem>
 															</DropdownMenuContent>
@@ -386,7 +386,7 @@ function RentCollectionContent() {
 													<TableCell>
 														{paymentMethodInfo ? (
 															<div className="flex items-center gap-2">
-																<CreditCard className="h-4 w-4" />
+																<CreditCard className="size-4" />
 																<span className="text-sm">
 																	{paymentMethodInfo.type} ending in{' '}
 																	{paymentMethodInfo.last4}
@@ -413,9 +413,9 @@ function RentCollectionContent() {
 																	disabled={actioningId === sub.id}
 																>
 																	{actioningId === sub.id ? (
-																		<Spinner className="h-4 w-4 animate-spin" />
+																		<Spinner className="size-4 animate-spin" />
 																	) : (
-																		<MoreVertical className="h-4 w-4" />
+																		<MoreVertical className="size-4" />
 																	)}
 																</Button>
 															</DropdownMenuTrigger>
@@ -425,14 +425,14 @@ function RentCollectionContent() {
 																<DropdownMenuItem
 																	onClick={() => handleResume(sub.id)}
 																>
-																	<Play className="mr-2 h-4 w-4" />
+																	<Play className="mr-2 size-4" />
 																	Resume Subscription
 																</DropdownMenuItem>
 																<DropdownMenuItem
 																	onClick={() => handleCancel(sub.id)}
 																	className="text-destructive"
 																>
-																	<XCircle className="mr-2 h-4 w-4" />
+																	<XCircle className="mr-2 size-4" />
 																	Cancel Subscription
 																</DropdownMenuItem>
 															</DropdownMenuContent>
@@ -483,7 +483,7 @@ function RentCollectionContent() {
 													<TableCell>
 														{paymentMethodInfo ? (
 															<div className="flex items-center gap-2">
-																<CreditCard className="h-4 w-4" />
+																<CreditCard className="size-4" />
 																<span className="text-sm">
 																	{paymentMethodInfo.type} ending in{' '}
 																	{paymentMethodInfo.last4}
@@ -516,7 +516,7 @@ function RentCollectionContent() {
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<History className="h-5 w-5" />
+						<History className="size-5" />
 						Payment History & Failed Attempts
 					</CardTitle>
 					<CardDescription>
@@ -534,7 +534,7 @@ function RentCollectionContent() {
 								value="failed-attempts"
 								className="flex items-center gap-2"
 							>
-								<AlertTriangle className="h-4 w-4" />
+								<AlertTriangle className="size-4" />
 								Failed Attempts ({failedAttempts?.length || 0})
 							</TabsTrigger>
 						</TabsList>

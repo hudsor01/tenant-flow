@@ -30,7 +30,7 @@ export default async function PropertyPerformancePage() {
 			<section
 				className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]"
 			>
-				<div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 lg:px-6">
+				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
 					<div className="flex flex-col gap-2">
 						<h1 className="text-3xl font-semibold tracking-tight">
 							Property Performance
@@ -94,7 +94,7 @@ export default async function PropertyPerformancePage() {
 			</section>
 
 			<section className="flex-1 p-6 pt-6 pb-6">
-				<div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-4 lg:px-6">
+				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
 					<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
 						<Card className="xl:col-span-2">
 							<CardHeader>

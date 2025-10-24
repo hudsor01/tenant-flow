@@ -83,7 +83,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 				disabled={updateMutation.isPending}
 				className="flex items-center gap-2"
 			>
-				<Save className="w-4 h-4" />
+				<Save className="size-4" />
 				{updateMutation.isPending ? 'Saving...' : 'Save Changes'}
 			</Button>
 		</div>
@@ -105,7 +105,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 								<FieldLabel htmlFor="firstName">First Name</FieldLabel>
 								<InputGroup>
 									<InputGroupAddon align="inline-start">
-										<User className="w-4 h-4" />
+										<User className="size-4" />
 									</InputGroupAddon>
 									<InputGroupInput
 										id="firstName"
@@ -130,7 +130,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 								<FieldLabel htmlFor="lastName">Last Name</FieldLabel>
 								<InputGroup>
 									<InputGroupAddon align="inline-start">
-										<User className="w-4 h-4" />
+										<User className="size-4" />
 									</InputGroupAddon>
 									<InputGroupInput
 										id="lastName"
@@ -156,7 +156,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 							<FieldLabel htmlFor="email">Email Address</FieldLabel>
 							<InputGroup>
 								<InputGroupAddon align="inline-start">
-									<Mail className="w-4 h-4" />
+									<Mail className="size-4" />
 								</InputGroupAddon>
 								<InputGroupInput
 									id="email"
@@ -182,7 +182,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 							<FieldLabel htmlFor="phone">Phone Number</FieldLabel>
 							<InputGroup>
 								<InputGroupAddon align="inline-start">
-									<Phone className="w-4 h-4" />
+									<Phone className="size-4" />
 								</InputGroupAddon>
 								<InputGroupInput
 									id="phone"

@@ -160,13 +160,13 @@ export function PasswordUpdateSection() {
 					</InputGroup>
 					{confirmPassword && password !== confirmPassword && (
 						<p className="text-xs text-destructive flex items-center gap-1">
-							<AlertTriangle className="w-3 h-3" />
+							<AlertTriangle className="size-3" />
 							Passwords do not match
 						</p>
 					)}
 					{confirmPassword && password === confirmPassword && (
 						<p className="text-xs text-primary flex items-center gap-1">
-							<CheckCircle2 className="w-3 h-3" />
+							<CheckCircle2 className="size-3" />
 							Passwords match
 						</p>
 					)}
@@ -174,7 +174,7 @@ export function PasswordUpdateSection() {
 
 				{updatePasswordMutation.isError && (
 					<Alert variant="destructive">
-						<AlertTriangle className="h-4 w-4" />
+						<AlertTriangle className="size-4" />
 						<AlertDescription>
 							{updatePasswordMutation.error instanceof Error
 								? updatePasswordMutation.error.message
@@ -185,7 +185,7 @@ export function PasswordUpdateSection() {
 
 				{updatePasswordMutation.isSuccess && (
 					<Alert className="border-accent/20 bg-accent/10 text-accent-foreground">
-						<CheckCircle2 className="h-4 w-4 text-accent" />
+						<CheckCircle2 className="size-4 text-accent" />
 						<AlertDescription>
 							Your password has been successfully updated.
 						</AlertDescription>
@@ -211,7 +211,7 @@ export function PasswordUpdateSection() {
 						</>
 					) : (
 						<>
-							<Shield className="w-4 h-4 mr-2" />
+							<Shield className="size-4 mr-2" />
 							Update Password
 						</>
 					)}

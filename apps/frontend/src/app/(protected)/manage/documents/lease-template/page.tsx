@@ -13,7 +13,7 @@ export default function LeaseTemplatePage() {
 	return (
 		<div className="container mx-auto py-6 space-y-6">
 			<div className="flex items-center gap-3">
-				<FileText className="h-8 w-8 text-primary" />
+				<FileText className="size-8 text-primary" />
 				<div>
 					<h1 className="text-3xl font-bold">Lease Agreement Template</h1>
 					<p className="text-muted-foreground">
@@ -27,7 +27,7 @@ export default function LeaseTemplatePage() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<Info className="h-5 w-5" />
+							<Info className="size-5" />
 							Template Features
 						</CardTitle>
 						<CardDescription>
@@ -37,7 +37,7 @@ export default function LeaseTemplatePage() {
 					<CardContent className="space-y-4">
 						<div className="grid gap-3">
 							<div className="flex items-start gap-3">
-								<div className="w-2 h-2 rounded-full bg-primary mt-2" />
+								<div className="size-2 rounded-full bg-primary mt-2" />
 								<div>
 									<p className="font-medium">State Compliance</p>
 									<p className="text-sm text-muted-foreground">
@@ -46,7 +46,7 @@ export default function LeaseTemplatePage() {
 								</div>
 							</div>
 							<div className="flex items-start gap-3">
-								<div className="w-2 h-2 rounded-full bg-primary mt-2" />
+								<div className="size-2 rounded-full bg-primary mt-2" />
 								<div>
 									<p className="font-medium">Professional Layout</p>
 									<p className="text-sm text-muted-foreground">
@@ -55,7 +55,7 @@ export default function LeaseTemplatePage() {
 								</div>
 							</div>
 							<div className="flex items-start gap-3">
-								<div className="w-2 h-2 rounded-full bg-primary mt-2" />
+								<div className="size-2 rounded-full bg-primary mt-2" />
 								<div>
 									<p className="font-medium">Comprehensive Terms</p>
 									<p className="text-sm text-muted-foreground">
@@ -64,7 +64,7 @@ export default function LeaseTemplatePage() {
 								</div>
 							</div>
 							<div className="flex items-start gap-3">
-								<div className="w-2 h-2 rounded-full bg-primary mt-2" />
+								<div className="size-2 rounded-full bg-primary mt-2" />
 								<div>
 									<p className="font-medium">Customizable</p>
 									<p className="text-sm text-muted-foreground">

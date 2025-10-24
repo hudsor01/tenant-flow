@@ -50,14 +50,14 @@ const ImageSection = ({ imageUrl, content }: ImageSectionProps) => (
 
 					<div className="relative text-center space-y-6 py-12 px-8 z-20 transform ease-out animate-in fade-in slide-in-from-bottom-8 transition-all duration-700">
 						{/* Enhanced Logo Icon with better visibility */}
-						<div className="w-16 h-16 mx-auto mb-8 relative group">
+						<div className="size-16 mx-auto mb-8 relative group">
 							<div className="absolute inset-0 bg-gradient-to-r from-primary/50 to-primary/60 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
 							<div className="relative w-full h-full bg-primary rounded-2xl flex items-center justify-center border border-white/20 group-hover:border-white/30 group-hover:scale-105 transition-all duration-300 shadow-lg">
 								<svg
 									viewBox="0 0 24 24"
 									fill="none"
 									xmlns="http://www.w3.org/2000/svg"
-									className="w-8 h-8 text-primary-foreground group-hover:scale-110 transition-all duration-300"
+									className="size-8 text-primary-foreground group-hover:scale-110 transition-all duration-300"
 								>
 									<path
 										d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
@@ -114,16 +114,16 @@ const ImageSection = ({ imageUrl, content }: ImageSectionProps) => (
 
 			{/* Enhanced floating elements with smoother animations */}
 			<div
-				className="absolute top-1/4 left-1/4 w-2 h-2 rounded-full animate-pulse bg-primary/20 [animation-duration:3s]"
+				className="absolute top-1/4 left-1/4 size-2 rounded-full animate-pulse bg-primary/20 [animation-duration:3s]"
 			/>
 			<div
-				className="absolute top-2/3 right-1/4 w-1 h-1 rounded-full animate-pulse bg-primary/30 [animation-duration:4s] [animation-delay:1s]"
+				className="absolute top-2/3 right-1/4 size-1 rounded-full animate-pulse bg-primary/30 [animation-duration:4s] [animation-delay:1s]"
 			/>
 			<div
 				className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 rounded-full animate-pulse bg-primary/15 [animation-duration:2.5s] [animation-delay:0.5s]"
 			/>
 			<div
-				className="absolute top-1/2 right-1/3 w-1 h-1 rounded-full animate-pulse bg-primary/15 [animation-duration:3.5s] [animation-delay:2s]"
+				className="absolute top-1/2 right-1/3 size-1 rounded-full animate-pulse bg-primary/15 [animation-duration:3.5s] [animation-delay:2s]"
 			/>
 		</div>
 	</div>
@@ -134,13 +134,13 @@ const FormSection = ({ mode, authProps, title, subtitle }: FormSectionProps) => 
 		<div className="w-full max-w-sm space-y-8">
 			{/* Simple Logo/Brand with better spacing */}
 			<div className="text-center space-y-4">
-				<div className="w-14 h-14 mx-auto">
+				<div className="size-14 mx-auto">
 					<div className="w-full h-full bg-primary rounded-xl flex items-center justify-center shadow-sm">
 						<svg
 							viewBox="0 0 24 24"
 							fill="none"
 							xmlns="http://www.w3.org/2000/svg"
-							className="w-7 h-7 text-primary-foreground"
+							className="size-7 text-primary-foreground"
 						>
 							<path
 								d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
@@ -187,18 +187,18 @@ const FormSection = ({ mode, authProps, title, subtitle }: FormSectionProps) => 
 				</p>
 				<div className="flex items-center justify-center flex-wrap gap-4 sm:gap-6 text-xs">
 					<div className="flex items-center gap-1.5 text-muted-foreground/70 hover:text-muted-foreground transition-colors">
-						<Lock className="w-3 h-3" />
+						<Lock className="size-3" />
 						<span className="font-medium hidden sm:inline">
 							Bank-level Security
 						</span>
 						<span className="font-medium sm:hidden">Secure</span>
 					</div>
 					<div className="flex items-center gap-1.5 text-muted-foreground/70 hover:text-muted-foreground transition-colors">
-						<Zap className="w-3 h-3" />
+						<Zap className="size-3" />
 						<span className="font-medium">99.9% Uptime</span>
 					</div>
 					<div className="flex items-center gap-1.5 text-muted-foreground/70 hover:text-muted-foreground transition-colors">
-						<Smartphone className="w-3 h-3" />
+						<Smartphone className="size-3" />
 						<span className="font-medium hidden sm:inline">
 							Mobile Ready
 						</span>

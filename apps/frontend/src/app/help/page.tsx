@@ -36,18 +36,18 @@ export default function HelpPage() {
 			<GridPattern className="fixed inset-0 -z-10" />
 
 			{/* Navigation */}
-			<nav className="fixed top-6 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
+			<nav className="fixed top-6 left-1/2 z-50 w-auto translate-x-[-50%] transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
 				<div className="flex items-center justify-between gap-12">
 					<Link
 						href="/"
 						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
 					>
-						<div className="w-8 h-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
+						<div className="size-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
 							<svg
 								viewBox="0 0 24 24"
 								fill="none"
 								xmlns="http://www.w3.org/2000/svg"
-								className="w-5 h-5 text-primary-foreground"
+								className="size-5 text-primary-foreground"
 							>
 								<path
 									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
@@ -114,7 +114,7 @@ export default function HelpPage() {
 							className="flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
 						>
 							Get Started
-							<ArrowRight className="ml-2 h-4 w-4" />
+							<ArrowRight className="ml-2 size-4" />
 						</Link>
 					</div>
 				</div>
@@ -167,7 +167,7 @@ export default function HelpPage() {
 											variant="outline"
 											className="text-success border-success/30"
 										>
-											<div className="w-2 h-2 bg-primary rounded-full mr-2"></div>
+											<div className="size-2 bg-primary rounded-full mr-2"></div>
 											Online Now
 										</Badge>
 										<p className="text-sm text-muted-foreground">
@@ -275,7 +275,7 @@ export default function HelpPage() {
 								className="bg-card border border-border/50 shadow-md"
 							>
 								<div className="flex items-center mb-4">
-									<TrendingUp className="w-8 h-8 text-primary mr-3" />
+									<TrendingUp className="size-8 text-primary mr-3" />
 									<div>
 										<h3 className="font-semibold">Sarah M.</h3>
 										<p className="text-sm text-muted-foreground">
@@ -299,7 +299,7 @@ export default function HelpPage() {
 								className="bg-card border border-border/50 shadow-md"
 							>
 								<div className="flex items-center mb-4">
-									<Clock className="w-8 h-8 text-accent mr-3" />
+									<Clock className="size-8 text-accent mr-3" />
 									<div>
 										<h3 className="font-semibold">Michael R.</h3>
 										<p className="text-sm text-muted-foreground">
@@ -323,7 +323,7 @@ export default function HelpPage() {
 								className="bg-card border border-border/50 shadow-md"
 							>
 								<div className="flex items-center mb-4">
-									<Users className="w-8 h-8 text-primary mr-3" />
+									<Users className="size-8 text-primary mr-3" />
 									<div>
 										<h3 className="font-semibold">David L.</h3>
 										<p className="text-sm text-muted-foreground">
@@ -404,7 +404,7 @@ export default function HelpPage() {
 									</p>
 									<Button variant="outline" className="w-full">
 										Read Guide
-										<ArrowRight className="w-4 h-4 ml-2" />
+										<ArrowRight className="size-4 ml-2" />
 									</Button>
 								</CardLayout>
 							))}
@@ -426,7 +426,7 @@ export default function HelpPage() {
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
 							<Button size="lg" variant="secondary" className="px-8">
 								Start 14-day transformation
-								<ArrowRight className="w-5 h-5 ml-2" />
+								<ArrowRight className="size-5 ml-2" />
 							</Button>
 							<Button size="lg" variant="outline" className="px-8">
 								Talk to an Expert

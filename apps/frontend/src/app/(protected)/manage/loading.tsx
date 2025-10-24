@@ -23,7 +23,7 @@ export default function DashboardLoading() {
 							className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]"
 						>
 							<div
-								className="mx-auto max-w-[1600px] py-4"
+								className="mx-auto max-w-400 py-4"
 							>
 								<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 									{[...Array(4)].map((_, i) => (
@@ -47,16 +47,16 @@ export default function DashboardLoading() {
 						<div
 							className="flex-1 p-6 py-6"
 						>
-							<div className="mx-auto max-w-[1600px] space-y-8">
+							<div className="mx-auto max-w-400 space-y-8">
 								{/* Charts Skeleton */}
 								<div className="grid grid-cols-1 @3xl/main:grid-cols-3 gap-8">
 									<div className="@3xl/main:col-span-2 rounded-lg border-2 border-border/50 bg-card p-6 animate-pulse">
 										<Skeleton className="h-6 w-48 mb-4" />
-										<Skeleton className="h-[400px] w-full" />
+										<Skeleton className="h-100 w-full" />
 									</div>
 									<div className="rounded-lg border-2 border-border/50 bg-card p-6 animate-pulse">
 										<Skeleton className="h-6 w-32 mb-4" />
-										<Skeleton className="h-[400px] w-full" />
+										<Skeleton className="h-100 w-full" />
 									</div>
 								</div>
 
@@ -74,7 +74,7 @@ export default function DashboardLoading() {
 											<div className="p-6 space-y-4">
 												{[...Array(5)].map((_, i) => (
 													<div key={i} className="flex gap-4">
-														<Skeleton className="h-10 w-10 rounded-full" />
+														<Skeleton className="size-10 rounded-full" />
 														<div className="flex-1 space-y-2">
 															<Skeleton className="h-4 w-3/4" />
 															<Skeleton className="h-3 w-1/2" />
@@ -105,7 +105,7 @@ export default function DashboardLoading() {
 										<div className="p-6 space-y-3">
 											{[...Array(6)].map((_, i) => (
 												<div key={i} className="flex gap-3">
-													<Skeleton className="h-10 w-10 rounded-md" />
+													<Skeleton className="size-10 rounded-md" />
 													<div className="flex-1 space-y-2">
 														<Skeleton className="h-4 w-32" />
 														<Skeleton className="h-3 w-24" />

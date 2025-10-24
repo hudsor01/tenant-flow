@@ -42,7 +42,7 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 				className={cn(
 					cardClasses('interactive'),
 					'dashboard-metric-card @container/card transform-gpu will-change-transform touch-manipulation active:scale-[0.99]',
-					'border-l-[3px] hover:shadow-md transition-all duration-200 ease-out min-h-[120px]',
+					'border-l-[3px] hover:shadow-md transition-all duration-200 ease-out min-h-30',
 					'p-6',
 					className
 				)}
@@ -65,13 +65,13 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 						</CardDescription>
 						{Icon && (
 							<div
-								className="flex shrink-0 items-center justify-center rounded-lg w-10 h-10"
+								className="flex shrink-0 items-center justify-center rounded-lg size-10"
 								style={{
 									backgroundColor: `var(--color-${colorToken}-bg)`,
 									border: `1px solid var(--color-${colorToken}-border)`
 								}}
 							>
-								<Icon className="h-5 w-5" />
+								<Icon className="size-5" />
 							</div>
 						)}
 					</div>
@@ -95,7 +95,7 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 								color: `var(--color-${colorToken})`
 							}}
 							>
-								{status} <StatusIcon className="h-4 w-4" aria-hidden="true" />
+								{status} <StatusIcon className="size-4" aria-hidden="true" />
 							</div>
 						)}
 						{description && (

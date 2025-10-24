@@ -78,7 +78,7 @@ type BillingTimelineChartProps = {
 
 function EmptyState({ message }: { message: string }) {
 	return (
-		<div className="flex h-[280px] flex-col items-center justify-center rounded-lg border border-dashed">
+		<div className="flex h-70 flex-col items-center justify-center rounded-lg border border-dashed">
 			<Badge variant="outline" className="mb-2">
 				No data
 			</Badge>
@@ -104,7 +104,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 	}))
 
 	return (
-		<ChartContainer className="h-[320px]" config={revenueExpenseConfig}>
+		<ChartContainer className="h-80" config={revenueExpenseConfig}>
 			<AreaChart data={chartData}>
 				<CartesianGrid strokeDasharray="3 3" />
 				<XAxis dataKey="month" tickLine={false} axisLine={false} />
@@ -154,7 +154,7 @@ export function NetOperatingIncomeChart({
 	}))
 
 	return (
-		<ChartContainer className="h-[320px]" config={noiConfig}>
+		<ChartContainer className="h-80" config={noiConfig}>
 			<BarChart data={chartData}>
 				<CartesianGrid strokeDasharray="3 3" vertical={false} />
 				<XAxis
@@ -190,7 +190,7 @@ export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
 	}))
 
 	return (
-		<ChartContainer className="h-[320px]" config={billingTimelineConfig}>
+		<ChartContainer className="h-80" config={billingTimelineConfig}>
 			<LineChart data={chartData}>
 				<CartesianGrid strokeDasharray="3 3" />
 				<XAxis dataKey="period" tickLine={false} axisLine={false} />
