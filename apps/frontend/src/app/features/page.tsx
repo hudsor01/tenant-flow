@@ -88,18 +88,18 @@ export default function FeaturesPage() {
 			<GridPattern className="fixed inset-0 -z-10" />
 
 			{/* Navigation */}
-			<nav className="fixed top-6 left-1/2 z-50 w-auto -translate-x-1/2 transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
+			<nav className="fixed top-6 left-1/2 z-50 w-auto translate-x-[-50%] transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
 				<div className="flex items-center justify-between gap-12">
 					<Link
 						href="/"
 						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
 					>
-						<div className="w-8 h-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
+						<div className="size-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
 							<svg
 								viewBox="0 0 24 24"
 								fill="none"
 								xmlns="http://www.w3.org/2000/svg"
-								className="w-5 h-5 text-primary-foreground"
+								className="size-5 text-primary-foreground"
 							>
 								<path
 									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
@@ -166,7 +166,7 @@ export default function FeaturesPage() {
 							className="flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
 						>
 							Get Started
-							<ArrowRight className="ml-2 h-4 w-4" />
+							<ArrowRight className="ml-2 size-4" />
 						</Link>
 					</div>
 				</div>
@@ -188,7 +188,7 @@ export default function FeaturesPage() {
 				>
 					<a href="/signup" aria-label="Get started free">
 						Start Free Trial
-						<ArrowRight className="w-4 h-4 ml-2" />
+						<ArrowRight className="size-4 ml-2" />
 					</a>
 				</Button>
 			</div>
@@ -213,7 +213,7 @@ export default function FeaturesPage() {
 									variant="secondary"
 									className="px-4 py-2 text-sm font-medium bg-primary/5 text-primary border-primary/20 hover:bg-primary/10 transition-colors"
 								>
-									<Star className="w-4 h-4 mr-2 fill-current" />
+									<Star className="size-4 mr-2 fill-current" />
 									Trusted by 10,000+ property managers worldwide
 								</Badge>
 
@@ -264,7 +264,7 @@ export default function FeaturesPage() {
 										<div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50" />
 										<span className="relative z-10 flex items-center">
 											Start Free Trial
-											<ArrowRight className="w-5 h-5 ml-3 transition-transform group-hover:translate-x-1" />
+											<ArrowRight className="size-5 ml-3 transition-transform group-hover:translate-x-1" />
 										</span>
 									</a>
 								</Button>
@@ -275,7 +275,7 @@ export default function FeaturesPage() {
 									asChild
 								>
 									<a href="/contact" aria-label="See TenantFlow in action">
-										<ArrowRight className="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" />
+										<ArrowRight className="size-5 mr-3 opacity-70 group-hover:opacity-100" />
 										See it in action
 									</a>
 								</Button>
@@ -283,7 +283,7 @@ export default function FeaturesPage() {
 
 							{/* Social proof below CTAs */}
 							<p className="text-muted-foreground/80 text-sm font-medium">
-								<Check className="w-4 h-4 inline text-primary mr-2" />
+								<Check className="size-4 inline text-primary mr-2" />
 								Join 10,000+ managers already growing NOI • No credit card
 								required
 							</p>
@@ -299,17 +299,17 @@ export default function FeaturesPage() {
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="grid gap-3 md:grid-cols-3">
 						<FeaturePill
-							icon={<BarChart3 className="w-5 h-5" />}
+							icon={<BarChart3 className="size-5" />}
 							title="Reduce Vacancy by 65%"
 							description="Smart screening + marketing fill units faster"
 						/>
 						<FeaturePill
-							icon={<Zap className="w-5 h-5" />}
+							icon={<Zap className="size-5" />}
 							title="Automate 80% of Tasks"
 							description="Rent, renewals, and comms on autopilot"
 						/>
 						<FeaturePill
-							icon={<Shield className="w-5 h-5" />}
+							icon={<Shield className="size-5" />}
 							title="Enterprise Security"
 							description="SOC 2, RBAC, and audit logging"
 						/>
@@ -325,7 +325,7 @@ export default function FeaturesPage() {
 							{/* Press mentions and awards */}
 							<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/60">
 								<div className="flex items-center space-x-2">
-									<Star className="w-4 h-4 fill-current text-accent" />
+									<Star className="size-4 fill-current text-accent" />
 									<span className="font-medium">
 										Featured in PropTech Today
 									</span>
@@ -353,7 +353,7 @@ export default function FeaturesPage() {
 												alt={t.author}
 												width={48}
 												height={48}
-												className="w-12 h-12 rounded-full"
+												className="size-12 rounded-full"
 											/>
 											<div className="text-left">
 												<div className="font-semibold text-foreground">
@@ -373,7 +373,7 @@ export default function FeaturesPage() {
 												key={index}
 												onClick={() => setCurrentTestimonial(index)}
 												className={cn(
-													'w-2 h-2 rounded-full transition-colors duration-300',
+													'size-2 rounded-full transition-colors duration-300',
 													index === currentTestimonial
 														? 'bg-primary'
 														: 'bg-muted-foreground/30'
@@ -410,10 +410,10 @@ export default function FeaturesPage() {
 						{/* Horizontal transformation cards */}
 						<div className="grid md:grid-cols-3 gap-8 relative">
 							{/* Connection lines for desktop */}
-							<div className="hidden md:block absolute top-24 left-1/2 transform -translate-x-1/2 w-full max-w-4xl">
+							<div className="hidden md:block absolute top-24 left-1/2 transform translate-x-[-50%] w-full max-w-4xl">
 								<div className="flex items-center justify-between px-16">
-									<ChevronRight className="w-6 h-6 text-primary/40" />
-									<ChevronRight className="w-6 h-6 text-primary/40" />
+									<ChevronRight className="size-6 text-primary/40" />
+									<ChevronRight className="size-6 text-primary/40" />
 								</div>
 							</div>
 
@@ -426,8 +426,8 @@ export default function FeaturesPage() {
 									</div>
 
 									{/* Icon with enhanced visual metaphor */}
-									<div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-primary to-accent mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<TrendingUp className="w-8 h-8 text-primary-foreground" />
+									<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-accent mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<TrendingUp className="size-8 text-primary-foreground" />
 									</div>
 
 									<h3 className="font-bold text-foreground mb-4 text-xl">
@@ -455,15 +455,15 @@ export default function FeaturesPage() {
 
 									<ul className="space-y-2 text-sm">
 										<li className="flex items-center">
-											<Check className="w-4 h-4 text-primary mr-3 shrink-0" />
+											<Check className="size-4 text-primary mr-3 shrink-0" />
 											AI-powered tenant screening
 										</li>
 										<li className="flex items-center">
-											<Check className="w-4 h-4 text-primary mr-3 flex-shrink-0" />
+											<Check className="size-4 text-primary mr-3 shrink-0" />
 											Automated listing syndication
 										</li>
 										<li className="flex items-center">
-											<Check className="w-4 h-4 text-primary mr-3 flex-shrink-0" />
+											<Check className="size-4 text-primary mr-3 shrink-0" />
 											Quality tenant matching
 										</li>
 									</ul>
@@ -477,8 +477,8 @@ export default function FeaturesPage() {
 										Step 2
 									</div>
 
-									<div className="w-16 h-16 rounded-2xl bg-linear-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<Zap className="w-8 h-8 text-primary-foreground" />
+									<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<Zap className="size-8 text-primary-foreground" />
 									</div>
 
 									<h3 className="font-bold text-foreground mb-4 text-xl">
@@ -505,15 +505,15 @@ export default function FeaturesPage() {
 
 									<ul className="space-y-2 text-sm">
 										<li className="flex items-center">
-											<Check className="w-4 h-4 text-primary mr-3 flex-shrink-0" />
+											<Check className="size-4 text-primary mr-3 shrink-0" />
 											Automated rent collection
 										</li>
 										<li className="flex items-center">
-											<Check className="w-4 h-4 text-primary mr-3 flex-shrink-0" />
+											<Check className="size-4 text-primary mr-3 shrink-0" />
 											Smart lease renewals
 										</li>
 										<li className="flex items-center">
-											<Check className="w-4 h-4 text-primary mr-3 flex-shrink-0" />
+											<Check className="size-4 text-primary mr-3 shrink-0" />
 											Maintenance coordination
 										</li>
 									</ul>
@@ -527,8 +527,8 @@ export default function FeaturesPage() {
 										Step 3
 									</div>
 
-									<div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<Shield className="w-8 h-8 text-primary-foreground" />
+									<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<Shield className="size-8 text-primary-foreground" />
 									</div>
 
 									<h3 className="font-bold text-foreground mb-4 text-xl">
@@ -555,15 +555,15 @@ export default function FeaturesPage() {
 
 									<ul className="space-y-2 text-sm">
 										<li className="flex items-center">
-											<Check className="w-4 h-4 text-primary mr-3 flex-shrink-0" />
+											<Check className="size-4 text-primary mr-3 shrink-0" />
 											256-bit SSL encryption
 										</li>
 										<li className="flex items-center">
-											<Check className="w-4 h-4 text-primary mr-3 flex-shrink-0" />
+											<Check className="size-4 text-primary mr-3 shrink-0" />
 											Role-based access control
 										</li>
 										<li className="flex items-center">
-											<Check className="w-4 h-4 text-primary mr-3 flex-shrink-0" />
+											<Check className="size-4 text-primary mr-3 shrink-0" />
 											Regular security audits
 										</li>
 									</ul>
@@ -575,7 +575,7 @@ export default function FeaturesPage() {
 			</section>
 
 			{/* Results Proof Section */}
-			<section className="section-content bg-linear-to-br from-primary/[0.02] via-background to-accent/[0.02]">
+			<section className="section-content bg-linear-to-br from-primary/2 via-background to-accent/2">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.4} inView>
 						<div className="text-center mb-16">
@@ -591,8 +591,8 @@ export default function FeaturesPage() {
 						{/* Results grid with enhanced visual design */}
 						<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
 							<div className="text-center group">
-								<div className="w-20 h-20 rounded-full bg-linear-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-									<TrendingUp className="w-10 h-10 text-primary-foreground" />
+								<div className="size-20 rounded-full bg-linear-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<TrendingUp className="size-10 text-primary-foreground" />
 								</div>
 								<div className="text-4xl font-bold text-foreground mb-2">
 									40%
@@ -603,8 +603,8 @@ export default function FeaturesPage() {
 							</div>
 
 							<div className="text-center group">
-								<div className="w-20 h-20 rounded-full bg-linear-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-									<Clock className="w-10 h-10 text-primary-foreground" />
+								<div className="size-20 rounded-full bg-linear-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<Clock className="size-10 text-primary-foreground" />
 								</div>
 								<div className="text-4xl font-bold text-foreground mb-2">
 									25+
@@ -613,8 +613,8 @@ export default function FeaturesPage() {
 							</div>
 
 							<div className="text-center group">
-								<div className="w-20 h-20 rounded-full bg-linear-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-									<Users className="w-10 h-10 text-primary-foreground" />
+								<div className="size-20 rounded-full bg-linear-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<Users className="size-10 text-primary-foreground" />
 								</div>
 								<div className="text-4xl font-bold text-foreground mb-2">
 									10K+
@@ -623,8 +623,8 @@ export default function FeaturesPage() {
 							</div>
 
 							<div className="text-center group">
-								<div className="w-20 h-20 rounded-full bg-linear-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-									<BarChart3 className="w-10 h-10 text-primary-foreground" />
+								<div className="size-20 rounded-full bg-linear-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<BarChart3 className="size-10 text-primary-foreground" />
 								</div>
 								<div className="text-4xl font-bold text-foreground mb-2">
 									90
@@ -640,7 +640,7 @@ export default function FeaturesPage() {
 			<section className="section-content relative overflow-hidden">
 				{/* Enhanced background */}
 				<div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-accent/5">
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,oklch(var(--primary)_/_0.1),transparent_70%)]" />
+					<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,oklch(var(--primary)/0.1),transparent_70%)]" />
 				</div>
 
 				<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
@@ -648,7 +648,7 @@ export default function FeaturesPage() {
 						<div className="text-center space-y-8">
 							<h2 className="font-bold tracking-tight leading-tight">
 								Start your transformation{' '}
-								<span className="bg-gradient-to-r from-primary via-primary/90 to-accent bg-clip-text text-transparent">
+								<span className="bg-linear-to-r from-primary via-primary/90 to-accent bg-clip-text text-transparent">
 									today
 								</span>
 							</h2>
@@ -664,14 +664,14 @@ export default function FeaturesPage() {
 							<div className="flex flex-col sm:flex-row gap-6 justify-center">
 								<Button
 									size="lg"
-									className="group relative overflow-hidden bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"
+									className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"
 									asChild
 								>
 									<a href="/signup" aria-label="Start free trial">
 										<div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50" />
 										<span className="relative z-10 flex items-center">
 											Start Free Trial
-											<ArrowRight className="w-5 h-5 ml-3 transition-transform group-hover:translate-x-1" />
+											<ArrowRight className="size-5 ml-3 transition-transform group-hover:translate-x-1" />
 										</span>
 									</a>
 								</Button>
@@ -682,7 +682,7 @@ export default function FeaturesPage() {
 									asChild
 								>
 									<a href="/contact" aria-label="Schedule demo">
-										<ArrowRight className="w-5 h-5 mr-3 opacity-70 group-hover:opacity-100" />
+										<ArrowRight className="size-5 mr-3 opacity-70 group-hover:opacity-100" />
 										Schedule Demo
 									</a>
 								</Button>
@@ -690,19 +690,19 @@ export default function FeaturesPage() {
 
 							<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/80 text-sm font-medium">
 								<div className="flex items-center">
-									<Check className="w-4 h-4 text-primary mr-2" />
+									<Check className="size-4 text-primary mr-2" />
 									No setup fees
 								</div>
 								<div className="flex items-center">
-									<Check className="w-4 h-4 text-primary mr-2" />
+									<Check className="size-4 text-primary mr-2" />
 									Enterprise security
 								</div>
 								<div className="flex items-center">
-									<Check className="w-4 h-4 text-primary mr-2" />
+									<Check className="size-4 text-primary mr-2" />
 									99.9% uptime SLA
 								</div>
 								<div className="flex items-center">
-									<Check className="w-4 h-4 text-primary mr-2" />
+									<Check className="size-4 text-primary mr-2" />
 									Cancel anytime
 								</div>
 							</div>
@@ -727,7 +727,7 @@ function FeaturePill({
 }) {
 	return (
 		<div className="flex items-center gap-3 rounded-2xl border border-border/50 bg-card/70 backdrop-blur-sm px-4 py-3 hover:border-primary/30 transition-colors">
-			<div className="w-9 h-9 rounded-xl bg-primary/15 text-primary flex items-center justify-center">
+			<div className="size-9 rounded-xl bg-primary/15 text-primary flex items-center justify-center">
 				{icon}
 			</div>
 			<div>

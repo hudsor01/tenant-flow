@@ -36,7 +36,7 @@ export default function TenantDocumentsPage() {
 					<div className="space-y-3">
 						<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
 							<div className="flex items-center gap-4 flex-1">
-								<FileText className="h-6 w-6 text-accent-main" />
+								<FileText className="size-6 text-accent-main" />
 								<div className="flex-1">
 									<div className="flex items-center gap-3">
 										<p className="font-medium">Lease Agreement - 2024</p>
@@ -49,7 +49,7 @@ export default function TenantDocumentsPage() {
 									</div>
 									<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
 										<div className="flex items-center gap-1">
-											<Calendar className="h-3 w-3" />
+											<Calendar className="size-3" />
 											<span>
 												Signed on <Skeleton className="inline-block h-4 w-20" />
 											</span>
@@ -61,10 +61,10 @@ export default function TenantDocumentsPage() {
 							</div>
 							<div className="flex gap-2">
 								<Button variant="ghost" size="sm">
-									<Eye className="h-4 w-4" />
+									<Eye className="size-4" />
 								</Button>
 								<Button variant="outline" size="sm">
-									<Download className="h-4 w-4 mr-2" />
+									<Download className="size-4 mr-2" />
 									Download
 								</Button>
 							</div>
@@ -72,7 +72,7 @@ export default function TenantDocumentsPage() {
 
 						<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
 							<div className="flex items-center gap-4 flex-1">
-								<FileText className="h-6 w-6 text-accent-main" />
+								<FileText className="size-6 text-accent-main" />
 								<div className="flex-1">
 									<div className="flex items-center gap-3">
 										<p className="font-medium">Pet Addendum</p>
@@ -85,7 +85,7 @@ export default function TenantDocumentsPage() {
 									</div>
 									<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
 										<div className="flex items-center gap-1">
-											<Calendar className="h-3 w-3" />
+											<Calendar className="size-3" />
 											<span>
 												Signed on <Skeleton className="inline-block h-4 w-20" />
 											</span>
@@ -97,10 +97,10 @@ export default function TenantDocumentsPage() {
 							</div>
 							<div className="flex gap-2">
 								<Button variant="ghost" size="sm">
-									<Eye className="h-4 w-4" />
+									<Eye className="size-4" />
 								</Button>
 								<Button variant="outline" size="sm">
-									<Download className="h-4 w-4 mr-2" />
+									<Download className="size-4 mr-2" />
 									Download
 								</Button>
 							</div>
@@ -120,12 +120,12 @@ export default function TenantDocumentsPage() {
 					<div className="space-y-3">
 						<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
 							<div className="flex items-center gap-4 flex-1">
-								<FileText className="h-6 w-6 text-accent-main" />
+								<FileText className="size-6 text-accent-main" />
 								<div className="flex-1">
 									<p className="font-medium">Move-In Checklist</p>
 									<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
 										<div className="flex items-center gap-1">
-											<Calendar className="h-3 w-3" />
+											<Calendar className="size-3" />
 											<span>
 												Completed on{' '}
 												<Skeleton className="inline-block h-4 w-20" />
@@ -138,10 +138,10 @@ export default function TenantDocumentsPage() {
 							</div>
 							<div className="flex gap-2">
 								<Button variant="ghost" size="sm">
-									<Eye className="h-4 w-4" />
+									<Eye className="size-4" />
 								</Button>
 								<Button variant="outline" size="sm">
-									<Download className="h-4 w-4 mr-2" />
+									<Download className="size-4 mr-2" />
 									Download
 								</Button>
 							</div>
@@ -161,7 +161,7 @@ export default function TenantDocumentsPage() {
 					<div className="space-y-3">
 						<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
 							<div className="flex items-center gap-4 flex-1">
-								<FolderOpen className="h-6 w-6 text-accent-main" />
+								<FolderOpen className="size-6 text-accent-main" />
 								<div className="flex-1">
 									<p className="font-medium">Community Rules</p>
 									<p className="text-sm text-muted-foreground mt-1">
@@ -171,10 +171,10 @@ export default function TenantDocumentsPage() {
 							</div>
 							<div className="flex gap-2">
 								<Button variant="ghost" size="sm">
-									<Eye className="h-4 w-4" />
+									<Eye className="size-4" />
 								</Button>
 								<Button variant="outline" size="sm">
-									<Download className="h-4 w-4 mr-2" />
+									<Download className="size-4 mr-2" />
 									Download
 								</Button>
 							</div>
@@ -182,7 +182,7 @@ export default function TenantDocumentsPage() {
 
 						<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
 							<div className="flex items-center gap-4 flex-1">
-								<FolderOpen className="h-6 w-6 text-accent-main" />
+								<FolderOpen className="size-6 text-accent-main" />
 								<div className="flex-1">
 									<p className="font-medium">Emergency Procedures</p>
 									<p className="text-sm text-muted-foreground mt-1">
@@ -192,10 +192,10 @@ export default function TenantDocumentsPage() {
 							</div>
 							<div className="flex gap-2">
 								<Button variant="ghost" size="sm">
-									<Eye className="h-4 w-4" />
+									<Eye className="size-4" />
 								</Button>
 								<Button variant="outline" size="sm">
-									<Download className="h-4 w-4 mr-2" />
+									<Download className="size-4 mr-2" />
 									Download
 								</Button>
 							</div>

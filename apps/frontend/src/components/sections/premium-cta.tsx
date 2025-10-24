@@ -62,10 +62,10 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 									asChild
 								>
 									<a href="/signup" aria-label="Start free trial">
-										<div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+										<div className="absolute inset-0 bg-linear-to-r from-primary to-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 										<span className="relative z-10 flex items-center">
 											Start Free Trial
-											<ArrowRight className="w-6 h-6 ml-3 transition-transform group-hover:translate-x-2 duration-500" />
+											<ArrowRight className="size-6 ml-3 transition-transform group-hover:translate-x-2 duration-500" />
 										</span>
 									</a>
 								</Button>
@@ -79,7 +79,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 								asChild
 							>
 								<a href="/contact" aria-label="Calculate savings">
-									<TrendingUp className="w-6 h-6 mr-3 opacity-70 group-hover:opacity-100 group-hover:text-primary transition-all duration-500" />
+									<TrendingUp className="size-6 mr-3 opacity-70 group-hover:opacity-100 group-hover:text-primary transition-all duration-500" />
 									Calculate Your Savings
 								</a>
 							</Button>
@@ -90,7 +90,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 					<BlurFade delay={0.4} inView>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 max-w-3xl mx-auto">
 							<div className="group flex flex-col items-center p-6 rounded bg-card/20 backdrop-blur-sm border border-border/30 hover:border-primary/30 hover:bg-card/40 transition-all duration-500">
-								<Check className="w-8 h-8 text-accent mb-4 group-hover:scale-110 transition-transform duration-500" />
+								<Check className="size-8 text-accent mb-4 group-hover:scale-110 transition-transform duration-500" />
 								<div className="text-center">
 									<div className="text-lg font-semibold text-foreground mb-1">
 										No Setup Fees
@@ -102,7 +102,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 							</div>
 
 							<div className="group flex flex-col items-center p-6 rounded bg-card/20 backdrop-blur-sm border border-border/30 hover:border-primary/30 hover:bg-card/40 transition-all duration-500">
-								<Clock className="w-8 h-8 text-accent mb-4 group-hover:scale-110 transition-transform duration-500" />
+								<Clock className="size-8 text-accent mb-4 group-hover:scale-110 transition-transform duration-500" />
 								<div className="text-center">
 									<div className="text-lg font-semibold text-foreground mb-1">
 										ROI in 30 Days

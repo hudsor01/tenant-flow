@@ -125,7 +125,7 @@ export default function TenantProfilePage() {
 					<Field>
 						<FieldLabel>
 							<div className="flex items-center gap-2">
-								<Mail className="h-4 w-4" />
+								<Mail className="size-4" />
 								<span>Email Address *</span>
 							</div>
 						</FieldLabel>
@@ -144,7 +144,7 @@ export default function TenantProfilePage() {
 					<Field>
 						<FieldLabel>
 							<div className="flex items-center gap-2">
-								<Phone className="h-4 w-4" />
+								<Phone className="size-4" />
 								<span>Phone Number</span>
 							</div>
 						</FieldLabel>
@@ -230,7 +230,7 @@ export default function TenantProfilePage() {
 					<Field>
 						<FieldLabel>
 							<div className="flex items-center gap-2">
-								<Phone className="h-4 w-4" />
+								<Phone className="size-4" />
 								<span>Phone Number</span>
 							</div>
 						</FieldLabel>
@@ -257,7 +257,7 @@ export default function TenantProfilePage() {
 				<div className="space-y-4">
 					<div className="flex items-center justify-between p-4 border rounded-lg">
 						<div className="flex items-center gap-3">
-							<Bell className="h-5 w-5 text-accent-main" />
+							<Bell className="size-5 text-accent-main" />
 							<div>
 								<p className="font-medium">Rent Reminders</p>
 								<p className="text-sm text-muted-foreground">
@@ -273,7 +273,7 @@ export default function TenantProfilePage() {
 
 					<div className="flex items-center justify-between p-4 border rounded-lg">
 						<div className="flex items-center gap-3">
-							<Bell className="h-5 w-5 text-accent-main" />
+							<Bell className="size-5 text-accent-main" />
 							<div>
 								<p className="font-medium">Maintenance Updates</p>
 								<p className="text-sm text-muted-foreground">
@@ -289,7 +289,7 @@ export default function TenantProfilePage() {
 
 					<div className="flex items-center justify-between p-4 border rounded-lg">
 						<div className="flex items-center gap-3">
-							<Bell className="h-5 w-5 text-accent-main" />
+							<Bell className="size-5 text-accent-main" />
 							<div>
 								<p className="font-medium">Property Notices</p>
 								<p className="text-sm text-muted-foreground">
@@ -313,7 +313,7 @@ export default function TenantProfilePage() {
 				<div className="space-y-4">
 					<div className="flex items-center justify-between p-4 border rounded-lg">
 						<div className="flex items-center gap-3">
-							<Shield className="h-5 w-5 text-accent-main" />
+							<Shield className="size-5 text-accent-main" />
 							<div>
 								<p className="font-medium">Password</p>
 								<p className="text-sm text-muted-foreground">

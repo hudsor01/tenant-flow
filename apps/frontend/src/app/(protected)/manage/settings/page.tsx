@@ -293,8 +293,8 @@ export default function SettingsPage() {
 						<div className="space-y-4">
 							<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
 								<div className="flex items-center gap-3">
-									<div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-										<div className="w-3 h-3 rounded-full bg-primary"></div>
+									<div className="size-8 rounded-full bg-primary/20 flex items-center justify-center">
+										<div className="size-3 rounded-full bg-primary"></div>
 									</div>
 									<div>
 										<p className="font-medium">Current Session</p>
@@ -309,7 +309,7 @@ export default function SettingsPage() {
 							</div>
 							<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
 								<div className="flex items-center gap-3">
-									<div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+									<div className="size-8 rounded-full bg-muted flex items-center justify-center">
 										<Globe className="size-4" />
 									</div>
 									<div>
@@ -351,7 +351,7 @@ export default function SettingsPage() {
 					<CardLayout title="Payment Method" className="p-6 border shadow-sm">
 						<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
 							<div className="flex items-center gap-3">
-								<div className="w-10 h-10 rounded-lg bg-background border flex items-center justify-center">
+								<div className="size-10 rounded-lg bg-background border flex items-center justify-center">
 									<CreditCard className="size-5" />
 								</div>
 								<div>

@@ -10,7 +10,7 @@ export default function SettingsPage() {
 		<div className="container mx-auto py-8">
 			<div className="mb-8">
 				<h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-					<span className="w-8 h-8" />
+					<span className="size-8" />
 					Settings
 				</h1>
 				<p className="text-muted-foreground mt-2">

@@ -27,7 +27,7 @@ export default function TenantMaintenancePage() {
 				</div>
 				<Link href="/tenant/maintenance/new">
 					<Button>
-						<Plus className="h-4 w-4 mr-2" />
+						<Plus className="size-4 mr-2" />
 						New Request
 					</Button>
 				</Link>
@@ -41,7 +41,7 @@ export default function TenantMaintenancePage() {
 				<div className="space-y-3">
 					<div className="flex items-center justify-between p-4 border rounded-lg">
 						<div className="flex items-center gap-4">
-							<Wrench className="h-5 w-5 text-accent-main" />
+							<Wrench className="size-5 text-accent-main" />
 							<div>
 								<p className="font-medium">Leaky Faucet</p>
 								<p className="text-sm text-muted-foreground">

@@ -183,9 +183,9 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 							)}
 						>
 							{isPopular && (
-								<div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+								<div className="absolute -top-4 left-1/2 translate-x-[-50%] z-10">
 									<Badge className="bg-primary text-primary-foreground px-4 py-1">
-										<Sparkles className="w-3 h-3 mr-1" />
+										<Sparkles className="size-3 mr-1" />
 										Most Popular
 									</Badge>
 								</div>
@@ -225,7 +225,7 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 								<ul className="space-y-3">
 									{features.map((feature, index) => (
 										<li key={index} className="flex items-start gap-3">
-											<Check className="w-5 h-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+											<Check className="size-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
 											<span className="text-sm text-muted-foreground">
 												{feature}
 											</span>
@@ -258,7 +258,7 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 								>
 									{subscriptionMutation.isPending ? (
 										<>
-											<Spinner className="w-4 h-4 mr-2" />
+											<Spinner className="size-4 mr-2" />
 											Processing...
 										</>
 									) : isEnterprise ? (
@@ -280,15 +280,15 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 				</p>
 				<div className="flex items-center justify-center gap-8 flex-wrap">
 					<div className="flex items-center gap-2">
-						<Check className="w-4 h-4 text-green-600" />
+						<Check className="size-4 text-green-600" />
 						<span className="text-sm">14-day free trial</span>
 					</div>
 					<div className="flex items-center gap-2">
-						<Check className="w-4 h-4 text-green-600" />
+						<Check className="size-4 text-green-600" />
 						<span className="text-sm">No credit card required</span>
 					</div>
 					<div className="flex items-center gap-2">
-						<Check className="w-4 h-4 text-green-600" />
+						<Check className="size-4 text-green-600" />
 						<span className="text-sm">Cancel anytime</span>
 					</div>
 				</div>

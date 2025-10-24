@@ -82,7 +82,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 									/>
 
 									{/* Background glow effect */}
-									<div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-br from-primary/[0.08] via-transparent to-accent/[0.08] rounded pointer-events-none transition-all duration-500 blur-sm" />
+									<div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-linear-to-br from-primary/8 via-transparent to-accent/8 rounded pointer-events-none transition-all duration-500 blur-sm" />
 
 									<div className="relative z-10">
 										{/* Animated number with enhanced styling */}
@@ -108,10 +108,10 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 									</div>
 
 									{/* Enhanced hover gradient with animation */}
-									<div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-br from-primary/[0.04] to-accent/[0.04] rounded pointer-events-none transition-all duration-500" />
+									<div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-linear-to-br from-primary/4 to-accent/4 rounded pointer-events-none transition-all duration-500" />
 
 									{/* Floating accent particles */}
-									<div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-accent opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-125 animate-pulse" />
+									<div className="absolute top-3 right-3 size-2 rounded-full bg-accent opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-125 animate-pulse" />
 									<div className="absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full bg-primary/60 opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-150" />
 								</div>
 							</div>
