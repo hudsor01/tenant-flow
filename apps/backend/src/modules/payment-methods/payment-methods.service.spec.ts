@@ -138,10 +138,10 @@ describe('PaymentMethodsService', () => {
 			)
 
 			expect(result).toBe('cus_new_123')
-			expect(service['stripe'].customers.create).toHaveBeenCalledWith({
-				email: 'tenant@example.com',
-				metadata: { userId: 'user-1' }
-			})
+			expect(service['stripe'].customers.create).toHaveBeenCalledWith(
+				{ email: 'tenant@example.com', metadata: { userId: 'user-1' } },
+				expect.objectContaining({ idempotencyKey: expect.any(String) })
+			)
 		})
 	})
 
@@ -168,19 +168,22 @@ describe('PaymentMethodsService', () => {
 				setupIntentId: 'seti_123'
 			})
 
-			expect(service['stripe'].setupIntents.create).toHaveBeenCalledWith({
-				customer: 'cus_existing_123',
-				payment_method_types: ['us_bank_account'],
-				usage: 'off_session',
-				payment_method_options: {
-					us_bank_account: {
-						verification_method: 'instant',
-						financial_connections: {
-							permissions: ['payment_method', 'balances']
+			expect(service['stripe'].setupIntents.create).toHaveBeenCalledWith(
+				{
+					customer: 'cus_existing_123',
+					payment_method_types: ['us_bank_account'],
+					usage: 'off_session',
+					payment_method_options: {
+						us_bank_account: {
+							verification_method: 'instant',
+							financial_connections: {
+								permissions: ['payment_method', 'balances']
+							}
 						}
 					}
-				}
-			})
+				},
+				expect.objectContaining({ idempotencyKey: expect.any(String) })
+			)
 		})
 	})
 

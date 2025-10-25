@@ -660,10 +660,7 @@ export default function LeasesPage() {
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-						<FileText className="size-8" />
-						Leases
-					</h1>
+					<h1 className="text-3xl font-bold tracking-tight">Leases</h1>
 					<p className="text-muted-foreground">
 						Manage lease agreements and track tenant contracts
 					</p>
@@ -737,7 +734,7 @@ export default function LeasesPage() {
 								<TableHead>Rent Amount</TableHead>
 								<TableHead>Deposit</TableHead>
 								<TableHead>Status</TableHead>
-								<TableHead className="w-[70px]">Actions</TableHead>
+								<TableHead className="w-16">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>

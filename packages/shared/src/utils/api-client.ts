@@ -41,8 +41,12 @@ export async function apiClient<T = Json>(
 		token = options?.serverToken
 	}
 
-	const baseHeaders: Record<string, string> = {
-		'Content-Type': 'application/json'
+	const baseHeaders: Record<string, string> = {}
+
+	// Only set Content-Type for JSON if body is not FormData
+	// (FormData needs browser-generated boundary in Content-Type)
+	if (!(options?.body instanceof FormData)) {
+		baseHeaders['Content-Type'] = 'application/json'
 	}
 
 	// Add authorization header if token exists
