@@ -26,7 +26,7 @@ export default function TenantOnboardingPage() {
         // 1. Create Supabase browser client
         const supabase = createBrowserClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+          process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
         )
 
         // 2. Get current auth user (security best practice: use getUser() not getSession())

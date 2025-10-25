@@ -1,5 +1,5 @@
 -- ============================================================================
--- OFFICIAL SUPABASE AUTH SETUP - NO CUSTOM FUNCTIONS
+-- OFFICIAL SUPABASE auth-helpers - NO CUSTOM FUNCTIONS
 -- Following Supabase documentation exactly
 -- https://supabase.com/docs/guides/auth/row-level-security
 -- ============================================================================

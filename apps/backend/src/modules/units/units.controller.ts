@@ -32,6 +32,7 @@ import type {
 	CreateUnitRequest,
 	UpdateUnitRequest
 } from '@repo/shared/types/backend-domain'
+import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { UnitsService } from './units.service'
 
@@ -46,6 +47,7 @@ export class UnitsController {
 	 * Get all units for the authenticated user
 	 * Uses built-in pipes for automatic validation
 	 */
+	@SkipSubscriptionCheck()
 	@Get()
 	async findAll(
 		@Req() req: AuthenticatedRequest,
