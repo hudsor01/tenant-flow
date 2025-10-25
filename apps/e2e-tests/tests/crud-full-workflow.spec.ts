@@ -15,13 +15,16 @@
  */
 
 import { test, expect, type Page } from '@playwright/test'
-import { STORAGE_STATE } from '../auth.setup'
+import { loginAsOwner } from '../auth-helpers'
 
-// Use authenticated owner session
+// Ensure baseURL is configured for navigation
 test.use({
-	storageState: STORAGE_STATE.OWNER,
+	baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
 	viewport: { width: 1920, height: 1080 }
 })
+
+// NOTE: This test uses the 'chromium' project which has auth-helpers dependency
+// and uses the owner storageState automatically from the project configuration.
 
 // Helper function to wait for toast notification
 async function waitForToast(page: Page, expectedText?: string) {
@@ -61,7 +64,8 @@ async function verifyNoErrors(page: Page, testName: string) {
 test.describe('Properties CRUD - Full Workflow', () => {
 	let propertyName: string
 
-	test.beforeEach(() => {
+	test.beforeEach(async ({ page }) => {
+		await loginAsOwner(page)
 		// Generate unique property name for this test run
 		propertyName = `E2E Test Property ${Date.now()}`
 	})
@@ -237,7 +241,8 @@ test.describe('Properties CRUD - Full Workflow', () => {
 test.describe('Tenants CRUD - Full Workflow', () => {
 	let tenantEmail: string
 
-	test.beforeEach(() => {
+	test.beforeEach(async ({ page }) => {
+		await loginAsOwner(page)
 		tenantEmail = `e2e-test-${Date.now()}@example.com`
 	})
 
@@ -342,6 +347,10 @@ test.describe('Tenants CRUD - Full Workflow', () => {
 })
 
 test.describe('Leases CRUD - Full Workflow', () => {
+	test.beforeEach(async ({ page }) => {
+		await loginAsOwner(page)
+	})
+
 	test('should navigate to leases → verify page loads → verify data renders', async ({
 		page
 	}) => {
@@ -377,6 +386,10 @@ test.describe('Leases CRUD - Full Workflow', () => {
 })
 
 test.describe('Maintenance CRUD - Full Workflow', () => {
+	test.beforeEach(async ({ page }) => {
+		await loginAsOwner(page)
+	})
+
 	test('should navigate to maintenance → verify page loads → verify data renders', async ({
 		page
 	}) => {
@@ -412,6 +425,10 @@ test.describe('Maintenance CRUD - Full Workflow', () => {
 })
 
 test.describe('Analytics & Financial Reports - Rendering', () => {
+	test.beforeEach(async ({ page }) => {
+		await loginAsOwner(page)
+	})
+
 	test('should navigate to dashboard → verify analytics render without errors', async ({
 		page
 	}) => {
@@ -473,6 +490,10 @@ test.describe('Analytics & Financial Reports - Rendering', () => {
 })
 
 test.describe('Cross-Entity Data Persistence', () => {
+	test.beforeEach(async ({ page }) => {
+		await loginAsOwner(page)
+	})
+
 	test('should create property → create tenant → verify both persist after logout/login', async ({
 		page
 	}) => {

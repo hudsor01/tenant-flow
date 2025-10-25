@@ -12,25 +12,18 @@
  */
 
 import { expect, test } from '@playwright/test'
-import path from 'path'
-import { fileURLToPath } from 'url'
-
-// ESM-compatible __dirname
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-// Authentication state
-const STORAGE_STATE = {
-	OWNER: path.join(__dirname, '..', '.auth', 'owner.json')
-}
+import { loginAsOwner } from '../auth-helpers'
 
 test.describe('API Contract Validation', () => {
-	test.use({ storageState: STORAGE_STATE.OWNER })
+	test.beforeEach(async ({ page }) => {
+		await loginAsOwner(page)
+	})
 
 	const API_BASE =
 		process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
 
-	test('validate tenant endpoints contract', async ({ request }) => {
+	test('validate tenant endpoints contract', async ({ page }) => {
+		const request = page.request
 		console.log('\n🔍 VALIDATING TENANT ENDPOINTS\n')
 
 		// GET /api/v1/tenants - List all tenants
@@ -109,7 +102,8 @@ test.describe('API Contract Validation', () => {
 		console.log('\n✅ Tenant endpoints validated\n')
 	})
 
-	test('validate property endpoints contract', async ({ request }) => {
+	test('validate property endpoints contract', async ({ page }) => {
+		const request = page.request
 		console.log('\n🔍 VALIDATING PROPERTY ENDPOINTS\n')
 
 		// GET /api/v1/properties - List all properties
@@ -138,7 +132,8 @@ test.describe('API Contract Validation', () => {
 		console.log('\n✅ Property endpoints validated\n')
 	})
 
-	test('validate lease endpoints contract', async ({ request }) => {
+	test('validate lease endpoints contract', async ({ page }) => {
+		const request = page.request
 		console.log('\n🔍 VALIDATING LEASE ENDPOINTS\n')
 
 		// GET /api/v1/leases - List all leases
@@ -165,7 +160,8 @@ test.describe('API Contract Validation', () => {
 		console.log('\n✅ Lease endpoints validated\n')
 	})
 
-	test('validate maintenance endpoints contract', async ({ request }) => {
+	test('validate maintenance endpoints contract', async ({ page }) => {
+		const request = page.request
 		console.log('\n🔍 VALIDATING MAINTENANCE ENDPOINTS\n')
 
 		// GET /api/v1/maintenance - List all maintenance requests
@@ -203,7 +199,8 @@ test.describe('API Contract Validation', () => {
 		console.log('\n✅ Maintenance endpoints validated\n')
 	})
 
-	test('validate dashboard endpoints contract', async ({ request }) => {
+	test('validate dashboard endpoints contract', async ({ page }) => {
+		const request = page.request
 		console.log('\n🔍 VALIDATING DASHBOARD ENDPOINTS\n')
 
 		// GET /api/v1/dashboard/stats - Dashboard statistics
@@ -245,7 +242,8 @@ test.describe('API Contract Validation', () => {
 		console.log('\n✅ Dashboard endpoints validated\n')
 	})
 
-	test('validate units endpoints contract', async ({ request }) => {
+	test('validate units endpoints contract', async ({ page }) => {
+		const request = page.request
 		console.log('\n🔍 VALIDATING UNITS ENDPOINTS\n')
 
 		// GET /api/v1/units - List all units
@@ -261,7 +259,8 @@ test.describe('API Contract Validation', () => {
 		console.log('\n✅ Units endpoints validated\n')
 	})
 
-	test('validate error handling - 404 detection', async ({ request }) => {
+	test('validate error handling - 404 detection', async ({ page }) => {
+		const request = page.request
 		console.log('\n🔍 TESTING 404 ERROR HANDLING\n')
 
 		// Test non-existent endpoint
@@ -285,7 +284,8 @@ test.describe('API Contract Validation', () => {
 		console.log('\n✅ Error handling validated\n')
 	})
 
-	test('validate authentication requirement', async ({ request }) => {
+	test('validate authentication requirement', async ({ page }) => {
+		const request = page.request
 		console.log('\n🔍 TESTING AUTHENTICATION REQUIREMENTS\n')
 
 		// Create request without auth headers
@@ -367,12 +367,12 @@ test.describe('API Contract Validation', () => {
 })
 
 test.describe('Response Schema Validation', () => {
-	test.use({ storageState: STORAGE_STATE.OWNER })
 
 	const API_BASE =
 		process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
 
-	test('validate tenant response schema', async ({ request }) => {
+	test('validate tenant response schema', async ({ page }) => {
+		const request = page.request
 		const response = await request.get(`${API_BASE}/api/v1/tenants`)
 		expect(response.ok()).toBeTruthy()
 
@@ -388,7 +388,8 @@ test.describe('Response Schema Validation', () => {
 		}
 	})
 
-	test('validate dashboard stats response schema', async ({ request }) => {
+	test('validate dashboard stats response schema', async ({ page }) => {
+		const request = page.request
 		const response = await request.get(`${API_BASE}/api/v1/dashboard/stats`)
 		expect(response.ok()).toBeTruthy()
 

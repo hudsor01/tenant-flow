@@ -7,24 +7,12 @@
  * 3. Creating/inviting a new tenant
  * 4. Verifying the tenant appears in the property owner dashboard
  *
- * This test uses authenticated sessions via Playwright's auth.setup pattern
+ * This test uses authenticated sessions via Playwright's auth-helpers pattern
  */
 
 import { faker } from '@faker-js/faker'
 import { expect, test } from '@playwright/test'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-// ESM dirname equivalent
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-// Storage paths for authenticated sessions
-const STORAGE_STATE = {
-	OWNER: path.join(__dirname, '..', '.auth', 'owner.json'),
-	TENANT: path.join(__dirname, '..', '.auth', 'tenant.json'),
-	ADMIN: path.join(__dirname, '..', '.auth', 'admin.json')
-}
+import { loginAsOwner } from '../auth-helpers'
 
 // Test data generator for new tenant
 const generateTenantData = () => ({
@@ -36,13 +24,13 @@ const generateTenantData = () => ({
 })
 
 test.describe('Tenant Invitation Flow', () => {
-	// Use authenticated session as property owner
-	test.use({ storageState: STORAGE_STATE.OWNER })
-
 	let tenantData: ReturnType<typeof generateTenantData>
 	let tenantId: string | null = null
 
 	test.beforeEach(async ({ page }) => {
+		// Authenticate before each test (httpOnly cookies requirement)
+		await loginAsOwner(page)
+
 		// Generate fresh tenant data for each test
 		tenantData = generateTenantData()
 
@@ -417,7 +405,9 @@ test.describe('Tenant Invitation Flow', () => {
 })
 
 test.describe('Tenant Dashboard Integration', () => {
-	test.use({ storageState: STORAGE_STATE.OWNER })
+	test.beforeEach(async ({ page }) => {
+		await loginAsOwner(page)
+	})
 
 	test('dashboard displays tenant statistics correctly', async ({ page }) => {
 		await test.step('Navigate to dashboard', async () => {

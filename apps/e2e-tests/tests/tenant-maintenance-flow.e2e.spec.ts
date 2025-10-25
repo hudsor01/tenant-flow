@@ -10,24 +10,12 @@
  * 6. Verifying request appears in tenant portal
  * 7. Verifying property owner receives notification
  *
- * This test uses authenticated sessions via Playwright's auth.setup pattern
+ * This test uses authenticated sessions via Playwright's auth-helpers pattern
  */
 
 import { faker } from '@faker-js/faker'
 import { expect, test } from '@playwright/test'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-// ESM dirname equivalent
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-// Storage paths for authenticated sessions
-const STORAGE_STATE = {
-	OWNER: path.join(__dirname, '..', '.auth', 'owner.json'),
-	TENANT: path.join(__dirname, '..', '.auth', 'tenant.json'),
-	ADMIN: path.join(__dirname, '..', '.auth', 'admin.json')
-}
+import { loginAsTenant } from '../auth-helpers'
 
 // Test data generator for maintenance requests
 const generateMaintenanceRequest = () => ({
@@ -55,12 +43,12 @@ const generateMaintenanceRequest = () => ({
 })
 
 test.describe('Tenant Maintenance Request Flow', () => {
-	// Use authenticated session as tenant
-	test.use({ storageState: STORAGE_STATE.TENANT })
-
 	let requestData: ReturnType<typeof generateMaintenanceRequest>
 
 	test.beforeEach(async ({ page }) => {
+		// Authenticate before each test (httpOnly cookies requirement)
+		await loginAsTenant(page)
+
 		// Generate fresh request data for each test
 		requestData = generateMaintenanceRequest()
 
@@ -408,7 +396,9 @@ test.describe('Tenant Maintenance Request Flow', () => {
 })
 
 test.describe('Maintenance Dashboard Integration', () => {
-	test.use({ storageState: STORAGE_STATE.TENANT })
+	test.beforeEach(async ({ page }) => {
+		await loginAsTenant(page)
+	})
 
 	test('dashboard displays maintenance statistics correctly', async ({
 		page
