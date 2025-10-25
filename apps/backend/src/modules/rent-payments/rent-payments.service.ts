@@ -275,6 +275,8 @@ export class RentPaymentsService {
 			landlord.subscriptionTier || 'STARTER'
 		)
 
+		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate charges
+		const idempotencyKey = `payment-${tenantId}-${leaseId}-${paymentType}-${Date.now()}`
 		const paymentIntent = await this.stripe.paymentIntents.create({
 			amount: amountInCents,
 			currency: 'usd',
@@ -294,6 +296,8 @@ export class RentPaymentsService {
 				paymentType
 			},
 			expand: ['latest_charge']
+		}, {
+			idempotencyKey
 		})
 
 		const status =
@@ -556,6 +560,8 @@ export class RentPaymentsService {
 			// Create Stripe Subscription for recurring rent
 			const amountInCents = this.normalizeAmount(lease.rentAmount)
 
+			// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate subscriptions
+			const subscriptionIdempotencyKey = `subscription-${tenantId}-${leaseId}-${Date.now()}`
 			const subscription = await this.stripe.subscriptions.create({
 				customer: stripeCustomer.id,
 				items: [
@@ -588,6 +594,8 @@ export class RentPaymentsService {
 					paymentType: 'autopay'
 				},
 				expand: ['latest_invoice.payment_intent']
+			}, {
+				idempotencyKey: subscriptionIdempotencyKey
 			})
 
 			// Update lease with Stripe Subscription ID

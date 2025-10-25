@@ -1,6 +1,16 @@
 
 'use client'
 
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -360,19 +370,26 @@ export default function UnitsPage() {
 	const units = unitsResponse?.data || []
 	const total = unitsResponse?.total || 0
 
-	// Delete mutation
+	// Delete state and mutation
+	const [deleteUnitId, setDeleteUnitId] = useState<string | null>(null)
 	const deleteUnitMutation = useDeleteUnit({
 		onSuccess: () => {
 			toast.success('Unit deleted successfully')
+			setDeleteUnitId(null)
 		},
 		onError: () => {
 			toast.error('Failed to delete unit')
+			setDeleteUnitId(null)
 		}
 	})
 
-	const handleDelete = (unitId: string) => {
-		if (confirm('Are you sure you want to delete this unit?')) {
-			deleteUnitMutation.mutate(unitId)
+	const handleDeleteClick = (unitId: string) => {
+		setDeleteUnitId(unitId)
+	}
+
+	const handleDeleteConfirm = () => {
+		if (deleteUnitId) {
+			deleteUnitMutation.mutate(deleteUnitId)
 		}
 	}
 
@@ -410,10 +427,7 @@ export default function UnitsPage() {
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-						<Home className="size-8" />
-						Units
-					</h1>
+					<h1 className="text-3xl font-bold tracking-tight">Units</h1>
 					<p className="text-muted-foreground">
 						Manage your rental units across all properties
 					</p>
@@ -479,7 +493,7 @@ export default function UnitsPage() {
 								<TableHead>Square Feet</TableHead>
 								<TableHead>Rent</TableHead>
 								<TableHead>Status</TableHead>
-								<TableHead className="w-[70px]">Actions</TableHead>
+								<TableHead className="w-16">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -516,7 +530,7 @@ export default function UnitsPage() {
 												</DropdownMenuItem>
 												<DropdownMenuSeparator />
 												<DropdownMenuItem
-													onClick={() => handleDelete(unit.id)}
+													onClick={() => handleDeleteClick(unit.id)}
 													className="text-destructive focus:text-destructive"
 												>
 													<Trash2 className="mr-2 size-4" />
@@ -531,6 +545,27 @@ export default function UnitsPage() {
 					</Table>
 				</div>
 			)}
+
+			<AlertDialog open={!!deleteUnitId} onOpenChange={() => setDeleteUnitId(null)}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete unit</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to delete this unit? This action cannot be undone.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={handleDeleteConfirm}
+							disabled={deleteUnitMutation.isPending}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							{deleteUnitMutation.isPending ? 'Deleting...' : 'Delete'}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	)
 }

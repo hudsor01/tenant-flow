@@ -164,24 +164,23 @@ export const TYPOGRAPHY_TOKENS = {
 export const TOKEN_TO_TAILWIND_MAP = {
 	// Display variants (26px/22px) - with Roboto font
 	'sf-display-lg':
-		'font-sans text-[26px] font-normal leading-[1.23] tracking-normal',
+		'font-sans text-2xl font-normal leading-[1.23] tracking-normal',
 	'sf-display-lg-bold':
-		'font-sans text-[26px] font-bold leading-[1.23] tracking-normal',
+		'font-sans text-2xl font-bold leading-[1.23] tracking-normal',
 	'sf-display-md':
-		'font-sans text-[22px] font-normal leading-[1.18] tracking-normal',
+		'font-sans text-xl font-normal leading-[1.18] tracking-normal',
 	'sf-display-md-bold':
-		'font-sans text-[22px] font-bold leading-[1.18] tracking-normal',
+		'font-sans text-xl font-bold leading-[1.18] tracking-normal',
 
 	// Body variants (17px)
-	'sf-body': 'font-sans text-[17px] font-normal leading-[1.29] tracking-normal',
+	'sf-body': 'font-sans text-base font-normal leading-[1.29] tracking-normal',
 	'sf-body-bold':
-		'font-sans text-[17px] font-bold leading-[1.29] tracking-normal',
+		'font-sans text-base font-bold leading-[1.29] tracking-normal',
 
 	// Callout variants (15px)
-	'sf-callout':
-		'font-sans text-[15px] font-normal leading-[1.33] tracking-normal',
+	'sf-callout': 'font-sans text-sm font-normal leading-[1.33] tracking-normal',
 	'sf-callout-semibold':
-		'font-sans text-[15px] font-semibold leading-[1.33] tracking-normal',
+		'font-sans text-sm font-semibold leading-[1.33] tracking-normal',
 
 	// Label variants (13px)
 	'sf-label':
@@ -199,10 +198,9 @@ export const TOKEN_TO_TAILWIND_MAP = {
 		'font-sans text-xs font-semibold leading-[1.25] tracking-normal',
 
 	// Small variants (11px)
-	'sf-small':
-		'font-sans text-[11px] font-normal leading-[1.27] tracking-normal',
+	'sf-small': 'font-sans text-xs font-normal leading-[1.27] tracking-normal',
 	'sf-small-semibold':
-		'font-sans text-[11px] font-semibold leading-[1.27] tracking-normal',
+		'font-sans text-xs font-semibold leading-[1.27] tracking-normal',
 
 	// Micro variants (10px)
 	'sf-micro': 'font-sans text-[10px] font-normal leading-[1.3] tracking-normal',

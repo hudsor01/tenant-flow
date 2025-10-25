@@ -300,6 +300,7 @@ export function createMockProperty(overrides?: Partial<Property>): Property {
 		sale_notes: null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
+		version: 1, // 🔐 BUG FIX #2: Optimistic locking
 		...overrides
 	}
 }
@@ -319,6 +320,7 @@ export function createMockUnit(overrides?: Partial<Unit>): Unit {
 		lastInspectionDate: overrides?.lastInspectionDate || null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
+		version: 1, // 🔐 BUG FIX #2: Optimistic locking
 		...overrides
 	}
 }
@@ -338,14 +340,21 @@ export function createMockTenant(overrides?: Partial<Tenant>): Tenant {
 		move_out_date: overrides?.move_out_date || null,
 		move_out_reason: overrides?.move_out_reason || null,
 		archived_at: overrides?.archived_at || null,
+		auth_user_id: overrides?.auth_user_id || null,
 		invitation_status: overrides?.invitation_status || 'PENDING',
 		invitation_token: overrides?.invitation_token || null,
 		invitation_sent_at: overrides?.invitation_sent_at || null,
 		invitation_accepted_at: overrides?.invitation_accepted_at || null,
 		invitation_expires_at: overrides?.invitation_expires_at || null,
 		stripe_customer_id: overrides?.stripe_customer_id || null,
+		autopay_configured_at: null,
+		autopay_day: null,
+		autopay_enabled: null,
+		autopay_frequency: null,
+		payment_method_added_at: null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
+		version: 1, // 🔐 BUG FIX #2: Optimistic locking
 		...overrides
 	}
 }
@@ -371,8 +380,12 @@ export function createMockLease(overrides?: Partial<Lease>): Lease {
 			(overrides?.status as Database['public']['Enums']['LeaseStatus']) ||
 			'ACTIVE',
 		stripe_subscription_id: overrides?.stripe_subscription_id || null,
+		lease_document_url: null,
+		signature: null,
+		signed_at: null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
+		version: 1, // 🔐 BUG FIX #2: Optimistic locking
 		...overrides
 	}
 }
@@ -404,6 +417,7 @@ export function createMockMaintenanceRequest(
 		requestedBy: overrides?.requestedBy || null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
+		version: 1, // 🔐 BUG FIX #2: Optimistic locking
 		...overrides
 	}
 }

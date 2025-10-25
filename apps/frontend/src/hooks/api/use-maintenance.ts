@@ -158,7 +158,8 @@ export function useCreateMaintenanceRequest() {
 				contactPhone: null,
 				notes: null,
 				photos: [],
-				preferredDate: null
+				preferredDate: null,
+				version: 1 // 🔐 BUG FIX #2: Optimistic locking
 			}
 
 			queryClient.setQueryData<MaintenanceRequest[]>(

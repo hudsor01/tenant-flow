@@ -57,7 +57,11 @@ function getApplicationDomains() {
 	if (backendUrl) developmentOrigins.push(backendUrl)
 
 	// Always add localhost in non-production environments
-	developmentOrigins.push('http://localhost:3000', 'http://localhost:4600')
+	developmentOrigins.push(
+		'http://localhost:3000',
+		'http://localhost:3001', // Next.js alternate port
+		'http://localhost:4600'
+	)
 
 	return {
 		FRONTEND: developmentOrigins,

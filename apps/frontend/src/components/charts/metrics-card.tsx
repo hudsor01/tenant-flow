@@ -52,15 +52,9 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 				}}
 				{...props}
 			>
-				<CardHeader
-					className="p-0 gap-4"
-				>
-					<div
-						className="flex items-center justify-between gap-3"
-					>
-						<CardDescription
-							className="font-medium text-muted-foreground text-sm leading-normal"
-						>
+				<CardHeader className="p-0 gap-4">
+					<div className="flex items-center justify-between gap-3">
+						<CardDescription className="font-medium text-muted-foreground text-sm leading-normal">
 							{title}
 						</CardDescription>
 						{Icon && (
@@ -76,24 +70,22 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 						)}
 					</div>
 					<CardTitle
-						className="tabular-nums @[250px]/card:text-3xl font-semibold text-[26px] leading-tight"
-					style={{
-						color: `var(--color-${colorToken}-text)`
-					}}
+						className="tabular-nums @[250px]/card:text-3xl font-semibold text-2xl leading-tight"
+						style={{
+							color: `var(--color-${colorToken}-text)`
+						}}
 					>
 						{value}
 					</CardTitle>
 				</CardHeader>
 				{(status || description) && (
-					<CardFooter
-						className="flex-col items-start p-0 pt-4 gap-2"
-					>
+					<CardFooter className="flex-col items-start p-0 pt-4 gap-2">
 						{status && StatusIcon && (
 							<div
 								className="line-clamp-1 flex font-medium gap-2 text-sm leading-normal"
-							style={{
-								color: `var(--color-${colorToken})`
-							}}
+								style={{
+									color: `var(--color-${colorToken})`
+								}}
 							>
 								{status} <StatusIcon className="size-4" aria-hidden="true" />
 							</div>

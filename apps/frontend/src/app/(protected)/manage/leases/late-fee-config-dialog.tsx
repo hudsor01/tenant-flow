@@ -105,7 +105,7 @@ export function LateFeeConfigDialog({
 						<div className="space-y-3">
 							<Label
 								htmlFor="grace-period"
-								className="text-label-secondary text-[11px] font-medium uppercase tracking-[0.01em]"
+								className="text-label-secondary text-xs font-medium uppercase tracking-[0.01em]"
 							>
 								Grace Period
 							</Label>
@@ -145,7 +145,7 @@ export function LateFeeConfigDialog({
 						<div className="space-y-3">
 							<Label
 								htmlFor="flat-fee"
-								className="text-label-secondary text-[11px] font-medium uppercase tracking-[0.01em]"
+								className="text-label-secondary text-xs font-medium uppercase tracking-[0.01em]"
 							>
 								Flat Fee Amount
 							</Label>

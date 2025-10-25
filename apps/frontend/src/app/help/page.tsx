@@ -42,7 +42,7 @@ export default function HelpPage() {
 						href="/"
 						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
 					>
-						<div className="size-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
+						<div className="size-11 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
 							<svg
 								viewBox="0 0 24 24"
 								fill="none"

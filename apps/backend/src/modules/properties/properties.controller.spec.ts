@@ -254,7 +254,8 @@ describe('PropertiesController', () => {
 			expect(mockPropertiesServiceInstance.update).toHaveBeenCalledWith(
 				mockUser.id,
 				'property-1',
-				validUpdatePropertyRequest
+				validUpdatePropertyRequest,
+				undefined // expectedVersion for optimistic locking
 			)
 			expect(result).toEqual(mockProperty)
 		})

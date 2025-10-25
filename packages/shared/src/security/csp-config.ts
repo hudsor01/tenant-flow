@@ -35,7 +35,10 @@ export const CSP_DOMAINS = {
 	IMAGES: ['https://images.unsplash.com', 'data:', 'blob:'],
 
 	// External APIs
-	ZIP_API: ['http://api.zippopotam.us', 'https://api.zippopotam.us']
+	ZIP_API: ['http://api.zippopotam.us', 'https://api.zippopotam.us'],
+
+	// CDN for browser-image-compression library
+	CDN: ['https://cdn.jsdelivr.net']
 } as const
 
 /**
@@ -55,6 +58,7 @@ export function generateCSPDirectives(
 			"'unsafe-eval'", // Required for development and some libraries
 			...CSP_DOMAINS.STRIPE,
 			...CSP_DOMAINS.GOOGLE,
+			...CSP_DOMAINS.CDN, // Allow jsdelivr CDN for browser-image-compression
 			...(isDev ? CSP_DOMAINS.VERCEL_DEV : [])
 		],
 

@@ -16,6 +16,7 @@ import { Plus, TrendingDown, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import type { Metadata } from 'next/types'
 import { PropertiesGridClient } from './properties-grid.client'
+import { PropertyBulkImportDialog } from './property-bulk-import-dialog'
 
 export const metadata: Metadata = {
 	title: 'Properties | TenantFlow',
@@ -65,12 +66,15 @@ export default async function PropertiesPage() {
 						Manage your property portfolio and track performance.
 					</p>
 				</div>
-				<Button asChild>
-					<Link href="/manage/properties/new">
-						<Plus className="size-4 mr-2" />
-						New Property
-					</Link>
-				</Button>
+				<div className="flex gap-2">
+					<PropertyBulkImportDialog />
+					<Button asChild>
+						<Link href="/manage/properties/new">
+							<Plus className="size-4 mr-2" />
+							New Property
+						</Link>
+					</Button>
+				</div>
 			</div>
 
 			{/* Stats Cards */}

@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal } from "lucide-react"
-import Link from "next/link"
+import { ColumnDef } from '@tanstack/react-table'
+import { MoreHorizontal } from 'lucide-react'
+import Link from 'next/link'
 
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -12,9 +12,9 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
-import { DataTableColumnHeader } from "@/components/ui/data-table-column-header"
+} from '@/components/ui/dropdown-menu'
+import { Badge } from '@/components/ui/badge'
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 /**
  * Reusable Column Helpers for TanStack Table
@@ -61,11 +61,15 @@ export function createTextColumn<TData>(
 }
 
 // Address column (address, city, state)
-export function createAddressColumn<TData extends { address?: string | null; city?: string | null; state?: string | null }>(
-	title: string = "Address"
-): ColumnDef<TData> {
+export function createAddressColumn<
+	TData extends {
+		address?: string | null
+		city?: string | null
+		state?: string | null
+	}
+>(title: string = 'Address'): ColumnDef<TData> {
 	return {
-		accessorKey: "address" as keyof TData & string,
+		accessorKey: 'address' as keyof TData & string,
 		header: title,
 		cell: ({ row }) => {
 			const data = row.original
@@ -82,33 +86,36 @@ export function createAddressColumn<TData extends { address?: string | null; cit
 export function createBadgeColumn<TData>(
 	accessorKey: keyof TData & string,
 	title: string,
-	variantMap?: Record<string, "default" | "secondary" | "destructive" | "outline">
+	variantMap?: Record<
+		string,
+		'default' | 'secondary' | 'destructive' | 'outline'
+	>
 ): ColumnDef<TData> {
 	return {
 		accessorKey,
 		header: title,
 		cell: ({ row }) => {
 			const value = row.getValue(accessorKey) as string
-			const variant = variantMap?.[value] || "outline"
-			return <Badge variant={variant}>{value || "N/A"}</Badge>
+			const variant = variantMap?.[value] || 'outline'
+			return <Badge variant={variant}>{value || 'N/A'}</Badge>
 		}
 	}
 }
 
 // Status column with predefined variants
 export function createStatusColumn<TData>(
-	accessorKey: keyof TData & string = "status" as keyof TData & string,
-	title: string = "Status"
+	accessorKey: keyof TData & string = 'status' as keyof TData & string,
+	title: string = 'Status'
 ): ColumnDef<TData> {
 	return createBadgeColumn(accessorKey, title, {
-		ACTIVE: "default",
-		INACTIVE: "secondary",
-		DRAFT: "outline",
-		EXPIRED: "destructive",
-		TERMINATED: "destructive",
-		PENDING: "outline",
-		COMPLETED: "default",
-		CANCELLED: "destructive"
+		ACTIVE: 'default',
+		INACTIVE: 'secondary',
+		DRAFT: 'outline',
+		EXPIRED: 'destructive',
+		TERMINATED: 'destructive',
+		PENDING: 'outline',
+		COMPLETED: 'default',
+		CANCELLED: 'destructive'
 	})
 }
 
@@ -167,7 +174,7 @@ export function createActionsColumn<TData extends { id: string }>(
 	getActions: (row: TData) => ActionItem<TData>[]
 ): ColumnDef<TData> {
 	return {
-		id: "actions",
+		id: 'actions',
 		cell: ({ row }) => {
 			const data = row.original
 			const actions = getActions(data)
@@ -175,7 +182,7 @@ export function createActionsColumn<TData extends { id: string }>(
 			return (
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<Button variant="ghost" className="size-8 p-0">
+						<Button variant="ghost" className="size-11 p-0">
 							<span className="sr-only">Open menu</span>
 							<MoreHorizontal className="size-4" />
 						</Button>

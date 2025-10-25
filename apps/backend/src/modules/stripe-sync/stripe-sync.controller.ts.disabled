@@ -40,6 +40,50 @@ export class StripeSyncController {
 	) {}
 
 	/**
+	 * Check if webhook event already processed (idempotency per Stripe best practices 2025)
+	 * Prevents duplicate processing if Stripe sends same event multiple times
+	 */
+	private async isEventProcessed(eventId: string): Promise<boolean> {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.from('stripe_processed_events')
+			.select('event_id')
+			.eq('event_id', eventId)
+			.maybeSingle()
+
+		if (error && error.code !== 'PGRST116') {
+			// PGRST116 = not found, which is expected for new events
+			this.logger.error('Error checking event idempotency', {
+				error: error.message,
+				eventId
+			})
+		}
+
+		return !!data
+	}
+
+	/**
+	 * Mark webhook event as processed (idempotency tracking)
+	 */
+	private async markEventProcessed(eventId: string, eventType: string): Promise<void> {
+		const { error } = await this.supabaseService
+			.getAdminClient()
+			.from('stripe_processed_events')
+			.insert({
+				event_id: eventId,
+				event_type: eventType
+			})
+
+		if (error && error.code !== '23505') {
+			// 23505 = unique constraint violation (event already exists, safe to ignore)
+			this.logger.warn('Failed to mark event as processed', {
+				error: error.message,
+				eventId
+			})
+		}
+	}
+
+	/**
 	 * Link Stripe customer to Supabase user + Handle business logic
 	 * Called after Sync Engine processes webhook to maintain user_id mapping
 	 */
@@ -62,6 +106,15 @@ export class StripeSyncController {
 				eventId: event.id
 			})
 
+			// IDEMPOTENCY CHECK: Prevent duplicate processing
+			if (await this.isEventProcessed(event.id)) {
+				this.logger.log('Event already processed, skipping', {
+					eventId: event.id,
+					eventType: event.type
+				})
+				return
+			}
+
 			// Handle customer linking
 			if (
 				event.type === 'customer.created' ||
@@ -70,8 +123,18 @@ export class StripeSyncController {
 				await this.linkCustomerToUser(event)
 			}
 
+			// Handle checkout.session.completed (CRITICAL: was missing!)
+			if (event.type === 'checkout.session.completed') {
+				await this.handleCheckoutCompleted(event)
+			}
+
+			// Handle payment_intent.succeeded (CRITICAL: was missing!)
+			if (event.type === 'payment_intent.succeeded') {
+				await this.handlePaymentSucceeded(event)
+			}
+
 			// Handle subscription access control
-switch (event.type) {
+			switch (event.type) {
 				case 'customer.subscription.created':
 				case 'customer.subscription.updated': {
 					const subscription = event.data.object as Stripe.Subscription
@@ -102,12 +165,106 @@ switch (event.type) {
 					break
 				}
 			}
+
+			// Mark event as processed AFTER successful handling
+			await this.markEventProcessed(event.id, event.type)
 		} catch (error) {
 			this.logger.error('Error processing webhook business logic', {
 				error: error instanceof Error ? error.message : 'Unknown error'
 			})
 			// Don't throw - business logic errors shouldn't fail the webhook
 		}
+	}
+
+	/**
+	 * CRITICAL FIX: Handle checkout.session.completed webhook
+	 * Records one-time payments in rent_payment table
+	 *
+	 * Without this handler, payments succeed but are NEVER recorded in DB!
+	 */
+	private async handleCheckoutCompleted(event: Stripe.Event) {
+		const session = event.data.object as Stripe.Checkout.Session
+
+		this.logger.log('Processing checkout.session.completed', {
+			sessionId: session.id,
+			customerId: session.customer,
+			amountTotal: session.amount_total,
+			currency: session.currency,
+			paymentStatus: session.payment_status
+		})
+
+		// Only process successful payments
+		if (session.payment_status !== 'paid') {
+			this.logger.warn('Checkout session not paid, skipping', {
+				sessionId: session.id,
+				paymentStatus: session.payment_status
+			})
+			return
+		}
+
+		// Extract metadata (should contain leaseId, tenantId from frontend)
+		const leaseId = session.metadata?.leaseId
+		const tenantId = session.metadata?.tenantId
+		const paymentType = session.metadata?.paymentType || 'rent' // 'rent' or 'deposit'
+
+		if (!leaseId || !tenantId) {
+			this.logger.error('Missing required metadata in checkout session', {
+				sessionId: session.id,
+				metadata: session.metadata
+			})
+			return
+		}
+
+		// Record payment in database
+		const { error } = await this.supabaseService
+			.getAdminClient()
+			.from('rent_payment')
+			.insert({
+				leaseId,
+				tenantId,
+				amount: (session.amount_total || 0) / 100, // Convert cents to dollars
+				paymentDate: new Date().toISOString(),
+				paymentMethod: 'stripe_checkout',
+				status: 'completed',
+				stripePaymentId: session.payment_intent as string,
+				notes: `One-time payment via Stripe Checkout (${paymentType})`
+			})
+
+		if (error) {
+			this.logger.error('Failed to record checkout payment', {
+				error: error.message,
+				sessionId: session.id,
+				leaseId,
+				tenantId
+			})
+		} else {
+			this.logger.log('Checkout payment recorded successfully', {
+				sessionId: session.id,
+				leaseId,
+				tenantId,
+				amount: (session.amount_total || 0) / 100
+			})
+		}
+	}
+
+	/**
+	 * Handle payment_intent.succeeded webhook
+	 * Tracks successful payments for subscriptions and one-time charges
+	 */
+	private async handlePaymentSucceeded(event: Stripe.Event) {
+		const paymentIntent = event.data.object as Stripe.PaymentIntent
+
+		this.logger.log('Processing payment_intent.succeeded', {
+			paymentIntentId: paymentIntent.id,
+			customerId: paymentIntent.customer,
+			amount: paymentIntent.amount,
+			currency: paymentIntent.currency,
+			status: paymentIntent.status
+		})
+
+		// If payment is for a subscription, it's already handled by subscription webhooks
+		// This handler is for additional payment tracking/logging
+		// Can be extended for: fraud detection, analytics, email receipts, etc.
 	}
 
 	/**

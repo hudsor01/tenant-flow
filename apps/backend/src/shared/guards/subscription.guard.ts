@@ -1,174 +1,122 @@
 import {
-	type CanActivate,
-	type ExecutionContext,
+	CanActivate,
+	ExecutionContext,
 	ForbiddenException,
 	Injectable,
 	Logger,
+	SetMetadata,
 	UnauthorizedException
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import type { Request } from 'express'
+
+import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'
 
-export const SUBSCRIPTION_REQUIRED_KEY = 'subscriptionRequired'
-export const REQUIRE_ACTIVE_SUBSCRIPTION = () =>
-	Reflect.metadata(SUBSCRIPTION_REQUIRED_KEY, true)
-
-export const ALLOW_PAUSED_SUBSCRIPTION = 'allowPausedSubscription'
-export const PAUSED_SUBSCRIPTION_ALLOWED = () =>
-	Reflect.metadata(ALLOW_PAUSED_SUBSCRIPTION, true)
+export const SKIP_SUBSCRIPTION_CHECK_KEY = 'skipSubscriptionCheck'
+export const SkipSubscriptionCheck = () =>
+	SetMetadata(SKIP_SUBSCRIPTION_CHECK_KEY, true)
 
 @Injectable()
 export class SubscriptionGuard implements CanActivate {
 	private readonly logger = new Logger(SubscriptionGuard.name)
 
 	constructor(
-		private reflector: Reflector,
-		private supabaseService: SupabaseService
+		private readonly supabaseService: SupabaseService,
+		private readonly reflector: Reflector
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
-		const requiresSubscription = this.reflector.getAllAndOverride<boolean>(
-			SUBSCRIPTION_REQUIRED_KEY,
+		const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
+			context.getHandler(),
+			context.getClass()
+		])
+
+		const skipSubscriptionCheck = this.reflector.getAllAndOverride<boolean>(
+			SKIP_SUBSCRIPTION_CHECK_KEY,
 			[context.getHandler(), context.getClass()]
 		)
 
-		const allowsPausedSubscription = this.reflector.getAllAndOverride<boolean>(
-			ALLOW_PAUSED_SUBSCRIPTION,
-			[context.getHandler(), context.getClass()]
-		)
-
-		// If no subscription requirement is set, allow access
-		if (!requiresSubscription) {
+		if (isPublic || skipSubscriptionCheck) {
 			return true
 		}
 
-		const request = context.switchToHttp().getRequest<{
-			user?: { id: string }
-		}>()
+		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
 		const user = request.user
 
 		if (!user) {
-			throw new UnauthorizedException('User not authenticated')
+			throw new UnauthorizedException('Authentication required')
 		}
 
-		// Get user's subscription status
-		const { data: subscription } = await this.supabaseService
-			.getAdminClient()
-			.from('subscription')
-			.select(
-				'status, stripeSubscriptionId, planType, trialEnd, currentPeriodEnd'
-			)
-			.eq('userId', user.id)
-			.single()
+		// Tenant-facing routes are covered by invite-only access and do not require payment
+		if (user.role === 'TENANT') {
+			return true
+		}
 
-		if (!subscription) {
-			// No subscription found - block access to paid features
-			this.logger.warn('Access denied: No subscription found', {
+		const featureAccessResult = await this.supabaseService.rpcWithRetries(
+			'check_user_feature_access',
+			{
+				p_user_id: user.id,
+				p_feature: 'basic_properties'
+			},
+			2
+		)
+
+		let hasAccess = this.normalizeBoolean(featureAccessResult.data)
+
+		if (featureAccessResult.error) {
+			this.logger.error('Subscription RPC failed', {
 				userId: user.id,
-				endpoint: context.switchToHttp().getRequest<Request>().url
+				error: featureAccessResult.error?.message
+			})
+		}
+
+		// Fallback to direct user profile check if RPC indicates no access
+		if (!hasAccess) {
+			const { data: profile, error } = await this.supabaseService
+				.getAdminClient()
+				.from('users')
+				.select('subscription_status, stripeCustomerId')
+				.eq('supabaseId', user.id)
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to load user profile for subscription check', {
+					userId: user.id,
+					error: error.message
+				})
+			}
+
+			if (profile) {
+				const validStatuses = ['active', 'trialing']
+				const status = profile.subscription_status?.toLowerCase()
+				hasAccess =
+					!!profile.stripeCustomerId &&
+					!!status &&
+					validStatuses.includes(status)
+			}
+		}
+
+		if (!hasAccess) {
+			this.logger.warn('Access denied: Active subscription required', {
+				userId: user.id,
+				endpoint: request.url
 			})
 			throw new ForbiddenException({
-				code: 'NO_SUBSCRIPTION',
-				message: 'Active subscription required',
-				action: 'REDIRECT_TO_PRICING'
+				code: 'SUBSCRIPTION_REQUIRED',
+				message: 'An active subscription is required to use this feature.'
 			})
 		}
 
-		// Check subscription status
-		const status = subscription.status
+		return true
+	}
 
-		switch (status) {
-			case 'ACTIVE':
-				// Active subscription - full access
-				return true
-
-			case 'TRIALING':
-				// Trial period - full access
-				return true
-
-			case 'INCOMPLETE':
-				// Incomplete subscription (paused trial) - restricted access
-				if (allowsPausedSubscription) {
-					// This endpoint allows paused users (like billing management)
-					this.logger.log(
-						'Access allowed for paused subscription (billing management)',
-						{
-							userId: user.id,
-							subscriptionStatus: status,
-							endpoint: context.switchToHttp().getRequest<Request>().url
-						}
-					)
-					return true
-				}
-
-				// Block access and redirect to payment
-				this.logger.warn('Access denied: Subscription paused (trial ended)', {
-					userId: user.id,
-					subscriptionStatus: status,
-					trialEnd: subscription.trialEnd,
-					endpoint: context.switchToHttp().getRequest<Request>().url
-				})
-				throw new ForbiddenException({
-					code: 'SUBSCRIPTION_PAUSED',
-					message:
-						'Your free trial has ended. Add a payment method to continue.',
-					subscriptionId: subscription.stripeSubscriptionId,
-					action: 'REDIRECT_TO_PAYMENT',
-					trialEndDate: subscription.trialEnd,
-					planType: subscription.planType
-				})
-
-			case 'INCOMPLETE_EXPIRED':
-				// Expired incomplete subscription - no access
-				throw new ForbiddenException({
-					code: 'SUBSCRIPTION_EXPIRED',
-					message:
-						'Your subscription setup expired. Please restart the signup process.',
-					action: 'REDIRECT_TO_PRICING'
-				})
-
-			case 'UNPAID':
-				// Unpaid subscription - limited access with payment prompt
-				throw new ForbiddenException({
-					code: 'SUBSCRIPTION_UNPAID',
-					message:
-						'Your subscription is unpaid. Please update your payment method.',
-					subscriptionId: subscription.stripeSubscriptionId,
-					action: 'REDIRECT_TO_PAYMENT_UPDATE'
-				})
-
-			case 'PAST_DUE':
-				// Payment failed - limited access with payment prompt
-				throw new ForbiddenException({
-					code: 'PAYMENT_FAILED',
-					message: 'Your payment failed. Please update your payment method.',
-					subscriptionId: subscription.stripeSubscriptionId,
-					action: 'REDIRECT_TO_PAYMENT_UPDATE'
-				})
-
-			case 'CANCELED':
-				// Canceled subscription - no access to paid features
-				throw new ForbiddenException({
-					code: 'SUBSCRIPTION_CANCELED',
-					message:
-						'Your subscription has been canceled. Resubscribe to continue.',
-					action: 'REDIRECT_TO_PRICING'
-				})
-
-			default:
-				// Unknown status - default to blocking access
-				this.logger.error('Access denied: Unknown subscription status', {
-					userId: user.id,
-					subscriptionStatus: status,
-					endpoint: context.switchToHttp().getRequest<Request>().url
-				})
-				throw new ForbiddenException({
-					code: 'SUBSCRIPTION_ERROR',
-					message:
-						'Unable to verify subscription status. Please contact support.',
-					action: 'CONTACT_SUPPORT'
-				})
+	private normalizeBoolean(value: unknown): boolean {
+		if (typeof value === 'boolean') return value
+		if (typeof value === 'number') return value === 1
+		if (typeof value === 'string') {
+			const normalized = value.toLowerCase()
+			return normalized === 'true' || normalized === 't' || normalized === '1'
 		}
+		return false
 	}
 }

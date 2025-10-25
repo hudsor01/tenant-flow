@@ -121,6 +121,33 @@ export async function sendTenantInvitation(tenantId: string) {
 }
 
 /**
+ * Accept tenant invitation token via backend API
+ * Used by onboarding surfaces (web, mobile) to keep status in sync
+ */
+export async function acceptTenantInvitation(token: string) {
+	try {
+		const result = await serverFetch<{
+			success: boolean
+			tenantId?: string
+			acceptedAt?: string
+			alreadyAccepted?: boolean
+		}>(`/api/v1/tenants/invitation/${token}/accept`, {
+			method: 'POST'
+		})
+
+		return { success: true, data: result }
+	} catch (error) {
+		return {
+			success: false,
+			error:
+				error instanceof Error
+					? error.message
+					: 'Failed to accept tenant invitation'
+		}
+	}
+}
+
+/**
  * Create a lease for tenant
  * Backend calculates all financial metrics
  */

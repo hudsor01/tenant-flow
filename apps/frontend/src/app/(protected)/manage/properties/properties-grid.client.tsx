@@ -4,8 +4,18 @@ import { propertiesApi } from '@/lib/api-client'
 import type { Property } from '@repo/shared/types/core'
 import { Building2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useOptimistic, useTransition } from 'react'
+import { useOptimistic, useState, useTransition } from 'react'
 import { toast } from 'sonner'
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 import { PropertyCard } from './property-card'
 
 interface PropertiesGridClientProps {
@@ -19,26 +29,21 @@ export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 		data,
 		(state, propertyId: string) => state.filter(p => p.id !== propertyId)
 	)
+	const [deletePropertyId, setDeletePropertyId] = useState<string | null>(null)
 
-	const handleDelete = async (propertyId: string) => {
-		const property = data.find(p => p.id === propertyId)
-		if (!property) return
+	const handleDeleteClick = (propertyId: string) => {
+		setDeletePropertyId(propertyId)
+	}
 
-		// Confirm deletion
-		if (
-			!confirm(
-				`Are you sure you want to delete "${property.name}"? This action cannot be undone.`
-			)
-		) {
-			return
-		}
+	const handleDeleteConfirm = async () => {
+		if (!deletePropertyId) return
 
 		// Optimistically remove from UI
-		removeOptimisticProperty(propertyId)
+		removeOptimisticProperty(deletePropertyId)
 
 		startTransition(async () => {
 			try {
-				await propertiesApi.remove(propertyId)
+				await propertiesApi.remove(deletePropertyId)
 				toast.success('Property deleted successfully')
 				router.refresh() // Refresh server data
 			} catch (error) {
@@ -47,6 +52,8 @@ export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 				)
 				// Router refresh will restore the property if deletion failed
 				router.refresh()
+			} finally {
+				setDeletePropertyId(null)
 			}
 		})
 	}
@@ -64,18 +71,42 @@ export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 		)
 	}
 
+	const propertyToDelete = data.find(p => p.id === deletePropertyId)
+
 	return (
-		<div
-			className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-			style={{ opacity: isPending ? 0.7 : 1 }}
-		>
-			{optimisticProperties.map(property => (
-				<PropertyCard
-					key={property.id}
-					property={property}
-					onDelete={handleDelete}
-				/>
-			))}
-		</div>
+		<>
+			<div
+				className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+				style={{ opacity: isPending ? 0.7 : 1 }}
+			>
+				{optimisticProperties.map(property => (
+					<PropertyCard
+						key={property.id}
+						property={property}
+						onDelete={handleDeleteClick}
+					/>
+				))}
+			</div>
+
+			<AlertDialog open={!!deletePropertyId} onOpenChange={() => setDeletePropertyId(null)}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete property</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to delete <strong>{propertyToDelete?.name}</strong>? This action cannot be undone.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={handleDeleteConfirm}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							Delete
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
 	)
 }

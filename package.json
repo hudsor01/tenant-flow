@@ -45,7 +45,7 @@
 		"test:unit:coverage": "pnpm --filter @repo/backend test:unit --coverage",
 		"test:integration": "pnpm --filter @repo/backend test:integration",
 		"test:integration:watch": "pnpm --filter @repo/backend test:integration -- --watch",
-		"test:e2e": "pnpm --filter @repo/e2e-tests test",
+		"test:e2e": "pnpm exec playwright test",
 		"test:e2e:tenant": "pnpm --filter @repo/e2e-tests test:chromium -- tenant-management/",
 		"test:e2e:visual": "pnpm exec playwright test --project=chromium-visual",
 		"test:e2e:ui": "pnpm exec playwright test --ui",

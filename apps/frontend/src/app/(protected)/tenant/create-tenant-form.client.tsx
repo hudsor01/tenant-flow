@@ -8,26 +8,68 @@ import {
 	InputGroupAddon,
 	InputGroupInput
 } from '@/components/ui/input-group'
-import { Textarea } from '@/components/ui/textarea'
-import { useCreateTenant } from '@/hooks/api/use-tenant'
-
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-
 import {
-	tenantCreateFormSchema
-} from '@repo/shared/validation/tenants'
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { tenantsApi } from '@/lib/api-client'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+import type { Tables } from '@repo/shared/types/supabase'
 import { useForm } from '@tanstack/react-form'
-import { Mail, Phone, Plus, User } from 'lucide-react'
+import { Building2, Calendar, DollarSign, Home, Mail, Phone, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-export function CreateTenantForm() {
-	const router = useRouter()
-	const logger = createLogger({ component: 'CreateTenantForm' })
+type Property = Tables<'property'>
+type Unit = Tables<'unit'>
 
-	// Use custom hook instead of inline mutation
-	const createMutation = useCreateTenant()
+const logger = createLogger({ component: 'CreateTenantForm' })
+
+// Validation schema
+const inviteTenantSchema = {
+	// Tenant information
+	email: z.string().email('Invalid email address'),
+	firstName: z.string().min(1, 'First name is required'),
+	lastName: z.string().min(1, 'Last name is required'),
+	phone: z.string().optional(),
+	emergencyContact: z.string().optional(),
+
+	// Lease information
+	propertyId: z.string().min(1, 'Property is required'),
+	unitId: z.string().min(1, 'Unit is required'),
+	rentAmount: z.string().refine(
+		val => {
+			const num = Number.parseFloat(val)
+			return !Number.isNaN(num) && num > 0
+		},
+		{ message: 'Rent amount must be greater than 0' }
+	),
+	securityDeposit: z.string().refine(
+		val => {
+			const num = Number.parseFloat(val)
+			return !Number.isNaN(num) && num >= 0
+		},
+		{ message: 'Security deposit cannot be negative' }
+	),
+	startDate: z.string().min(1, 'Start date is required'),
+	endDate: z.string().min(1, 'End date is required')
+}
+
+interface CreateTenantFormProps {
+	properties: Property[]
+	units: Unit[]
+}
+
+export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
+	const router = useRouter()
+	const [selectedPropertyId, setSelectedPropertyId] = useState('')
+	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	const form = useForm({
 		defaultValues: {
@@ -35,54 +77,87 @@ export function CreateTenantForm() {
 			phone: '',
 			emergencyContact: '',
 			firstName: '',
-			lastName: ''
+			lastName: '',
+			propertyId: '',
+			unitId: '',
+			rentAmount: '',
+			securityDeposit: '',
+			startDate: '',
+			endDate: ''
 		},
 		onSubmit: async ({ value }) => {
+			setIsSubmitting(true)
 			try {
-				const tenant = await createMutation.mutateAsync(value)
-				toast.success('Tenant created successfully')
-				router.push(`/manage/tenants/${tenant.id}`)
-			} catch (error) {
-				toast.error('Failed to create tenant', { 
-					description: error instanceof Error ? error.message : 'Unknown error' 
+				const response = await tenantsApi.inviteWithLease({
+					tenantData: {
+						email: value.email,
+						firstName: value.firstName,
+						lastName: value.lastName,
+						...(value.phone && { phone: value.phone })
+					},
+					leaseData: {
+						propertyId: value.propertyId,
+						unitId: value.unitId,
+						rentAmount: Math.round(Number.parseFloat(value.rentAmount) * 100),
+						securityDeposit: Math.round(
+							Number.parseFloat(value.securityDeposit) * 100
+						),
+						startDate: value.startDate,
+						endDate: value.endDate
+					}
 				})
-				logger.error(
-					'Failed to create tenant',
-					{ action: 'createTenant' },
-					error
-				)
-			}
-		},
-		validators: {
-			onChange: ({ value }) => {
-				const result = tenantCreateFormSchema.safeParse(value)
-				if (!result.success) {
-					return z.treeifyError(result.error)
-				}
-				return undefined
+
+				logger.info('Tenant onboarded successfully', {
+					tenantId: response.tenantId,
+					leaseId: response.leaseId
+				})
+
+				toast.success('Tenant Onboarded', {
+					description: `${value.firstName} ${value.lastName} has been created and invited to the portal.`
+				})
+
+				router.push(`/manage/tenants/${response.tenantId}`)
+			} catch (error) {
+				logger.error('Failed to onboard tenant', {
+					error: error instanceof Error ? error.message : String(error)
+				})
+
+				toast.error('Failed to create tenant', {
+					description:
+						error instanceof Error
+							? error.message
+							: 'Please try again or contact support.'
+				})
+			} finally {
+				setIsSubmitting(false)
 			}
 		}
 	})
 
-	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="flex items-center gap-2">
-					<User className="size-5" />
-					Tenant Information
-				</CardTitle>
-			</CardHeader>
+	// Filter units based on selected property
+	const availableUnits = units.filter(
+		unit => unit.propertyId === selectedPropertyId
+	)
 
-			<CardContent>
-				<form
-					onSubmit={e => {
-						e.preventDefault()
-						form.handleSubmit()
-					}}
-					className="space-y-6"
-				>
+	return (
+		<div className="space-y-6">
+			{/* Tenant Information Card */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<User className="size-5" />
+						Tenant Information
+					</CardTitle>
+				</CardHeader>
+
+				<CardContent className="space-y-6">
 					<div className="grid grid-cols-2 gap-4">
-						<form.Field name="firstName">
+						<form.Field
+							name="firstName"
+							validators={{
+								onChange: inviteTenantSchema.firstName
+							}}
+						>
 							{field => (
 								<Field>
 									<FieldLabel htmlFor="firstName">First Name</FieldLabel>
@@ -107,7 +182,12 @@ export function CreateTenantForm() {
 							)}
 						</form.Field>
 
-						<form.Field name="lastName">
+						<form.Field
+							name="lastName"
+							validators={{
+								onChange: inviteTenantSchema.lastName
+							}}
+						>
 							{field => (
 								<Field>
 									<FieldLabel htmlFor="lastName">Last Name</FieldLabel>
@@ -133,7 +213,12 @@ export function CreateTenantForm() {
 						</form.Field>
 					</div>
 
-					<form.Field name="email">
+					<form.Field
+						name="email"
+						validators={{
+							onChange: inviteTenantSchema.email
+						}}
+					>
 						{field => (
 							<Field>
 								<FieldLabel htmlFor="email">Email Address</FieldLabel>
@@ -152,6 +237,9 @@ export function CreateTenantForm() {
 										placeholder="john.smith@example.com"
 									/>
 								</InputGroup>
+								<p className="text-sm text-muted-foreground">
+									Tenant will receive an invitation email to access their portal
+								</p>
 								<FieldError>
 									{String(field.state.meta.errors?.[0] ?? '')}
 								</FieldError>
@@ -162,7 +250,7 @@ export function CreateTenantForm() {
 					<form.Field name="phone">
 						{field => (
 							<Field>
-								<FieldLabel htmlFor="phone">Phone Number</FieldLabel>
+								<FieldLabel htmlFor="phone">Phone Number (Optional)</FieldLabel>
 								<InputGroup>
 									<InputGroupAddon align="inline-start">
 										<Phone className="size-4" />
@@ -189,7 +277,7 @@ export function CreateTenantForm() {
 						{field => (
 							<Field>
 								<FieldLabel htmlFor="emergencyContact">
-									Emergency Contact
+									Emergency Contact (Optional)
 								</FieldLabel>
 								<Textarea
 									id="emergencyContact"
@@ -210,26 +298,252 @@ export function CreateTenantForm() {
 							</Field>
 						)}
 					</form.Field>
+				</CardContent>
+			</Card>
 
-					<div className="flex justify-end gap-4 pt-6 border-t">
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => router.back()}
+			{/* Lease Information Card */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Building2 className="size-5" />
+						Lease Assignment
+					</CardTitle>
+				</CardHeader>
+
+				<CardContent className="space-y-6">
+					<form.Field
+						name="propertyId"
+						validators={{
+							onChange: inviteTenantSchema.propertyId
+						}}
+					>
+						{field => (
+							<Field>
+								<FieldLabel htmlFor="propertyId">Property</FieldLabel>
+								<Select
+									value={field.state.value}
+									onValueChange={value => {
+										field.handleChange(value)
+										setSelectedPropertyId(value)
+										// Reset unit selection when property changes
+										form.setFieldValue('unitId', '')
+									}}
+								>
+									<SelectTrigger id="propertyId">
+										<SelectValue placeholder="Select a property" />
+									</SelectTrigger>
+									<SelectContent>
+										{properties.map(property => (
+											<SelectItem key={property.id} value={property.id}>
+												<div className="flex items-center gap-2">
+													<Home className="size-4" />
+													{property.name}
+												</div>
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+								<FieldError>
+									{String(field.state.meta.errors?.[0] ?? '')}
+								</FieldError>
+							</Field>
+						)}
+					</form.Field>
+
+					<form.Field
+						name="unitId"
+						validators={{
+							onChange: inviteTenantSchema.unitId
+						}}
+					>
+						{field => (
+							<Field>
+								<FieldLabel htmlFor="unitId">Unit</FieldLabel>
+								<Select
+									value={field.state.value}
+									onValueChange={field.handleChange}
+									disabled={!selectedPropertyId}
+								>
+									<SelectTrigger id="unitId">
+										<SelectValue placeholder="Select a unit" />
+									</SelectTrigger>
+									<SelectContent>
+										{availableUnits.map(unit => (
+											<SelectItem key={unit.id} value={unit.id}>
+												{unit.unitNumber}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+								<p className="text-sm text-muted-foreground">
+									{!selectedPropertyId
+										? 'Select a property first'
+										: availableUnits.length === 0
+											? 'No units available for this property'
+											: null}
+								</p>
+								<FieldError>
+									{String(field.state.meta.errors?.[0] ?? '')}
+								</FieldError>
+							</Field>
+						)}
+					</form.Field>
+
+					<div className="grid grid-cols-2 gap-4">
+						<form.Field
+							name="rentAmount"
+							validators={{
+								onChange: inviteTenantSchema.rentAmount
+							}}
 						>
-							Cancel
-						</Button>
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="rentAmount">Monthly Rent</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<DollarSign className="size-4" />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="rentAmount"
+											type="number"
+											step="0.01"
+											min="0"
+											value={field.state.value}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+											placeholder="1500.00"
+										/>
+									</InputGroup>
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
+								</Field>
+							)}
+						</form.Field>
+
+						<form.Field
+							name="securityDeposit"
+							validators={{
+								onChange: inviteTenantSchema.securityDeposit
+							}}
+						>
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="securityDeposit">
+										Security Deposit
+									</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<DollarSign className="size-4" />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="securityDeposit"
+											type="number"
+											step="0.01"
+											min="0"
+											value={field.state.value}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+											placeholder="3000.00"
+										/>
+									</InputGroup>
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
+								</Field>
+							)}
+						</form.Field>
+					</div>
+
+					<div className="grid grid-cols-2 gap-4">
+						<form.Field
+							name="startDate"
+							validators={{
+								onChange: inviteTenantSchema.startDate
+							}}
+						>
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="startDate">Lease Start Date</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<Calendar className="size-4" />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="startDate"
+											type="date"
+											value={field.state.value}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+										/>
+									</InputGroup>
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
+								</Field>
+							)}
+						</form.Field>
+
+						<form.Field
+							name="endDate"
+							validators={{
+								onChange: inviteTenantSchema.endDate
+							}}
+						>
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="endDate">Lease End Date</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<Calendar className="size-4" />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="endDate"
+											type="date"
+											value={field.state.value}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+										/>
+									</InputGroup>
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
+								</Field>
+							)}
+						</form.Field>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Form Actions */}
+			<div className="flex justify-end gap-4">
+				<Button type="button" variant="outline" onClick={() => router.back()}>
+					Cancel
+				</Button>
+				<form.Subscribe
+					selector={state => [state.canSubmit, state.isSubmitting]}
+				>
+					{([canSubmit, isFormSubmitting]) => (
 						<Button
 							type="submit"
-							disabled={createMutation.isPending}
-							className="flex items-center gap-2"
+							disabled={!canSubmit || isSubmitting || isFormSubmitting}
+							onClick={form.handleSubmit}
 						>
-							<Plus className="size-4" />
-							{createMutation.isPending ? 'Creating...' : 'Create Tenant'}
+							{isSubmitting || isFormSubmitting
+								? 'Creating Tenant...'
+								: 'Create & Invite Tenant'}
 						</Button>
-					</div>
-				</form>
-			</CardContent>
-		</Card>
+					)}
+				</form.Subscribe>
+			</div>
+		</div>
 	)
 }
