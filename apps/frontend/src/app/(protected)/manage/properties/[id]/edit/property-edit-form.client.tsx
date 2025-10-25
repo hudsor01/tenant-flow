@@ -1,10 +1,8 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { useEffect } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -20,8 +18,8 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 
 import { useUpdateProperty } from '@/hooks/api/use-properties'
-import { propertiesApi } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import type { Property } from '@repo/shared/types/core'
 import {
 	propertyUpdateFormSchema,
 	transformPropertyUpdateData
@@ -29,26 +27,26 @@ import {
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 
-export function PropertyEditForm() {
+interface PropertyEditFormProps {
+	property: Property
+}
+
+export function PropertyEditForm({ property }: PropertyEditFormProps) {
 	const params = useParams()
 	const propertyId = params.id as string
 	const logger = createLogger({ component: 'PropertyEditForm' })
 
-	const { data: property, isLoading } = useQuery({
-		queryKey: ['property', propertyId],
-		queryFn: () => propertiesApi.get(propertyId),
-		enabled: !!propertyId
-	})
+	const updateProperty = useUpdateProperty()
 
 	const form = useForm({
 		defaultValues: {
-			name: '',
-			description: '',
-			propertyType: 'SINGLE_FAMILY',
-			address: '',
-			city: '',
-			state: '',
-			zipCode: ''
+			name: property.name,
+			description: property.description || '',
+			propertyType: property.propertyType || 'SINGLE_FAMILY',
+			address: property.address,
+			city: property.city,
+			state: property.state,
+			zipCode: property.zipCode
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -75,27 +73,6 @@ export function PropertyEditForm() {
 			}
 		}
 	})
-
-	// Update form values when property data loads
-	useEffect(() => {
-		if (property) {
-			form.reset({
-				name: property.name,
-				description: property.description || '',
-				propertyType: property.propertyType || 'SINGLE_FAMILY',
-				address: property.address,
-				city: property.city,
-				state: property.state,
-				zipCode: property.zipCode
-			})
-		}
-	}, [property, form])
-
-	const updateProperty = useUpdateProperty()
-
-	if (isLoading) {
-		return <div className="animate-pulse">Loading property...</div>
-	}
 
 	if (!property) {
 		return (
@@ -156,7 +133,7 @@ export function PropertyEditForm() {
 							<FieldLabel htmlFor="propertyType">Property Type *</FieldLabel>
 							<Select
 								value={field.state.value}
-								onValueChange={value => field.handleChange(value)}
+								onValueChange={value => field.handleChange(value as typeof field.state.value)}
 							>
 								<SelectTrigger>
 									<SelectValue />
