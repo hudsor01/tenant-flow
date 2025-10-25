@@ -164,10 +164,14 @@ export class MaintenanceController {
 	) {
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
+
+		// 🔐 BUG FIX #2: Pass version for optimistic locking
+		const expectedVersion = (updateRequest as { version?: number }).version
 		const maintenance = await this.maintenanceService.update(
 			userId,
 			id,
-			updateRequest
+			updateRequest,
+			expectedVersion
 		)
 		if (!maintenance) {
 			throw new NotFoundException('Maintenance request not found')

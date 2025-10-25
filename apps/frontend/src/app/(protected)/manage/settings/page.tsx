@@ -1,4 +1,3 @@
-
 import { PasswordUpdateSection } from '@/app/(protected)/settings/password-update-section'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -292,7 +291,7 @@ export default function SettingsPage() {
 						<div className="space-y-4">
 							<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
 								<div className="flex items-center gap-3">
-									<div className="size-8 rounded-full bg-primary/20 flex items-center justify-center">
+									<div className="size-11 rounded-full bg-primary/20 flex items-center justify-center">
 										<div className="size-3 rounded-full bg-primary"></div>
 									</div>
 									<div>
@@ -308,7 +307,7 @@ export default function SettingsPage() {
 							</div>
 							<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
 								<div className="flex items-center gap-3">
-									<div className="size-8 rounded-full bg-muted flex items-center justify-center">
+									<div className="size-11 rounded-full bg-muted flex items-center justify-center">
 										<Globe className="size-4" />
 									</div>
 									<div>

@@ -7,7 +7,8 @@ import {
 	Home,
 	Search,
 	UserPlus,
-	Wrench
+	Wrench,
+	Building
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -17,6 +18,12 @@ const quickActions = [
 		description: 'List a new property',
 		icon: Home,
 		href: '/manage/properties/new'
+	},
+	{
+		title: 'Add Unit',
+		description: 'Add a new unit to a property',
+		icon: Building,
+		href: '/manage/units/new'
 	},
 	{
 		title: 'Add Tenant',

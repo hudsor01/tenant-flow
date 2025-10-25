@@ -94,7 +94,7 @@ export default function FeaturesPage() {
 						href="/"
 						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
 					>
-						<div className="size-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
+						<div className="size-11 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
 							<svg
 								viewBox="0 0 24 24"
 								fill="none"
@@ -220,7 +220,7 @@ export default function FeaturesPage() {
 								{/* Customer Logos */}
 								<div className="flex flex-wrap items-center justify-center gap-8 opacity-60 grayscale hover:grayscale-0 transition-all duration-700">
 									{customerLogos.slice(0, 4).map(customer => (
-										<div key={customer.name} className="h-8 flex items-center">
+										<div key={customer.name} className="h-11 flex items-center">
 											<Image
 												src={customer.logo}
 												alt={customer.name}

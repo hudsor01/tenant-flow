@@ -20,6 +20,7 @@ import {
 	UseGuards
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 // REMOVED: EventEmitter2, Headers, Req, Request - Webhook endpoint removed
 import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
@@ -75,6 +76,7 @@ export class StripeController {
 	 * Official Pattern: Payment Intent lifecycle management
 	 */
 	@Post('create-payment-intent')
+	@SkipSubscriptionCheck()
 	@HttpCode(HttpStatus.OK)
 	async createPaymentIntent(@Body() body: CreatePaymentIntentRequest) {
 		this.logger.log('Payment Intent creation started', {
@@ -187,6 +189,7 @@ export class StripeController {
 	 * Official Pattern: Setup Intent creation for future payments
 	 */
 	@Post('create-setup-intent')
+	@SkipSubscriptionCheck()
 	async createSetupIntent(@Body() body: CreateSetupIntentRequest) {
 		// Native validation - CLAUDE.md compliant (outside try-catch)
 		if (!body.tenantId) {
@@ -956,6 +959,7 @@ export class StripeController {
 	 * Official Pattern: retrieve session status for return page
 	 */
 	@Get('session-status')
+	@SkipSubscriptionCheck()
 	async getSessionStatus(@Query('session_id') sessionId: string) {
 		if (!sessionId) {
 			throw new BadRequestException('session_id is required')
@@ -1250,6 +1254,7 @@ export class StripeController {
 	 * Official Pattern: session verification with subscription expansion
 	 */
 	@Post('verify-checkout-session')
+	@SkipSubscriptionCheck()
 	async verifyCheckoutSession(@Body() body: VerifyCheckoutSessionRequest) {
 		try {
 			if (!body.sessionId) {

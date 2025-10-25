@@ -25,6 +25,11 @@ import type {
 	UpdateSubscriptionRequest
 } from '@repo/shared/types/core'
 
+import type {
+	InviteTenantWithLeaseRequest,
+	InviteTenantWithLeaseResponse
+} from '@repo/shared/types/backend-domain'
+
 import type { PropertyWithUnits } from '@repo/shared/types/relations'
 import type {
 	Tables,
@@ -59,12 +64,12 @@ type UnitUpdate = TablesUpdate<'unit'>
 function getApiBaseUrl(): string {
 	// During Next.js build, provide placeholder - actual runtime will have proper env vars
 	if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_API_BASE_URL) {
-		return 'http://localhost:3001' // Build-time placeholder
+		return 'http://localhost:4600' // Build-time placeholder
 	}
 
 	return (
 		process.env.NEXT_PUBLIC_API_BASE_URL ||
-		'http://localhost:3001' // Dev fallback
+		'http://localhost:4600' // Dev fallback - backend port
 	)
 }
 
@@ -359,6 +364,24 @@ export const propertiesApi = {
 		apiClient<void>(`${API_BASE_URL}/api/v1/properties/${id}`, {
 			method: 'DELETE'
 		})
+
+,
+
+	bulkImport: (file: File) => {
+		const formData = new FormData()
+		formData.append('file', file)
+
+		return apiClient<{
+			success: boolean
+			imported: number
+			failed: number
+			errors: Array<{ row: number; error: string }>
+		}>(`${API_BASE_URL}/api/v1/properties/bulk-import`, {
+			method: 'POST',
+			body: formData
+			// Don't set headers - let apiClient handle auth and browser handle Content-Type
+		})
+	}
 }
 
 export { apiClient }
@@ -439,6 +462,28 @@ export const tenantsApi = {
 			`${API_BASE_URL}/api/v1/tenants/${id}/invite`,
 			{
 				method: 'POST'
+			}
+		),
+	/**
+	 * ✅ NEW: Send tenant invitation via Supabase Auth (V2 - Phase 3.1)
+	 */
+	sendInvitationV2: (id: string, params?: { propertyId?: string; leaseId?: string }) =>
+		apiClient<{ success: boolean; authUserId?: string; message: string }>(
+			`${API_BASE_URL}/api/v1/tenants/${id}/invite-v2`,
+			{
+				method: 'POST',
+				body: JSON.stringify(params || {})
+			}
+		),
+	/**
+	 * ✅ NEW: Create tenant + lease atomically and send Supabase Auth invitation (Phase 3.1)
+	 */
+	inviteWithLease: (body: InviteTenantWithLeaseRequest) =>
+		apiClient<InviteTenantWithLeaseResponse>(
+			`${API_BASE_URL}/api/v1/tenants/invite-with-lease`,
+			{
+				method: 'POST',
+				body: JSON.stringify(body)
 			}
 		)
 }

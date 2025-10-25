@@ -19,6 +19,8 @@ import { createClient } from '@/lib/supabase/client'
 import { AlertCircle, CheckCircle, Lock } from 'lucide-react'
 
 const supabase = createClient()
+const API_BASE_URL =
+	process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.tenantflow.app'
 
 /**
  * Accept Invite Page - Tenant Onboarding
@@ -100,6 +102,22 @@ export default function AcceptInvitePage() {
 				password
 			})
 			if (updateError) throw updateError
+
+			// Notify backend so invitation status is updated immediately
+			const acceptResponse = await fetch(
+				`${API_BASE_URL}/api/v1/tenants/invitation/${token}/accept`,
+				{
+					method: 'POST'
+				}
+			)
+			if (!acceptResponse.ok) {
+				const payload = (await acceptResponse.json().catch(() => null)) as
+					| { message?: string }
+					| null
+				throw new Error(
+					payload?.message || 'Failed to finalize invitation acceptance'
+				)
+			}
 
 			setStatus('success')
 

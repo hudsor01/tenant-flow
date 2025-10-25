@@ -26,6 +26,7 @@ jest.mock('./tenants.service', () => {
 			markAsMovedOut: jest.fn(),
 			hardDelete: jest.fn(),
 			sendTenantInvitation: jest.fn(),
+			sendTenantInvitationV2: jest.fn().mockResolvedValue(undefined),
 			resendInvitation: jest.fn()
 		}))
 	}
@@ -294,7 +295,7 @@ describe('TenantsController', () => {
 			// Wait for fire-and-forget email to process
 			await new Promise(resolve => setTimeout(resolve, 10))
 			expect(
-				mockTenantsServiceInstance.sendTenantInvitation
+				mockTenantsServiceInstance.sendTenantInvitationV2
 			).toHaveBeenCalledWith(mockUser.id, mockTenant.id)
 		})
 	})
@@ -316,7 +317,8 @@ describe('TenantsController', () => {
 			expect(mockTenantsServiceInstance.update).toHaveBeenCalledWith(
 				mockUser.id,
 				'tenant-1',
-				validUpdateTenantRequest
+				validUpdateTenantRequest,
+				undefined // expectedVersion for optimistic locking
 			)
 			expect(result).toEqual(mockTenant)
 		})
