@@ -1,12 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { loginAsOwner } from '../auth-helpers';
 
 test.describe('Property Bulk Import', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login');
-    await page.fill('input[name="email"]', 'test@example.com');
-    await page.fill('input[name="password"]', 'password');
-    await page.click('button[type="submit"]');
-    await page.waitForURL('/manage');
+    await loginAsOwner(page);
   });
 
   test('should upload a valid Excel file and import properties', async ({ page }) => {
