@@ -169,11 +169,11 @@ class CSSClassValidator {
 			// Check for Tailwind utility patterns commonly used in your project
 			if (this.isTailwindUtility(cls)) return
 
-			// Skip arbitrary values, properties, and variants like w-[200px], [mask-type:luminance], [&>*]
+			// Skip arbitrary values, properties, and variants like w-48, [mask-type:luminance], [&>*]
 			if (cls.includes('[') && cls.includes(']')) {
 				// Handle arbitrary properties [property:value]
 				if (/^\[[\w-]+:.*\]$/.test(cls)) return
-				// Handle arbitrary values like bg-[#123456], w-[200px]
+				// Handle arbitrary values like bg-[#123456], w-48
 				if (/^[\w-]+\[.*\]$/.test(cls)) return
 				// Handle arbitrary variants like [&>*]:utility (handled separately)
 				return
