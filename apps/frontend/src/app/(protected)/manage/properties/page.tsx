@@ -15,7 +15,7 @@ import type { Property, PropertyStats } from '@repo/shared/types/core'
 import { Plus, TrendingDown, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import type { Metadata } from 'next/types'
-import { PropertiesGridClient } from './properties-grid.client'
+import { PropertiesViewClient } from './properties-view.client'
 import { PropertyBulkImportDialog } from './property-bulk-import-dialog'
 
 export const metadata: Metadata = {
@@ -188,11 +188,8 @@ export default async function PropertiesPage() {
 				</Card>
 			</div>
 
-		{/* Properties Grid */}
-		<section className="flex flex-col gap-4">
-			<h2 className="text-xl font-semibold">Portfolio</h2>
-			<PropertiesGridClient data={properties} />
-		</section>
+		{/* Properties View with Grid/Table Toggle */}
+		<PropertiesViewClient data={properties} />
 		</div>
 	)
 }
