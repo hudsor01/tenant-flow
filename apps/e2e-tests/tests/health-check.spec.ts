@@ -15,14 +15,10 @@ test.describe('TenantFlow Health Check', () => {
 	test('Backend API should respond', async ({ request }) => {
 		const backendHealthUrl =
 			process.env.PLAYWRIGHT_BACKEND_HEALTH_URL ||
-			process.env.BACKEND_HEALTH_URL
+			process.env.BACKEND_HEALTH_URL ||
+			'http://localhost:4600/health'
 
-		test.skip(
-			!backendHealthUrl,
-			'BACKEND health URL not configured for smoke test'
-		)
-
-		const response = await request.get(backendHealthUrl!)
+		const response = await request.get(backendHealthUrl)
 
 		expect(response.ok()).toBeTruthy()
 
