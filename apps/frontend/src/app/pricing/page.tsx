@@ -10,8 +10,9 @@ import {
 	AccordionItem,
 	AccordionTrigger
 } from '@/components/ui/accordion'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Info } from 'lucide-react'
 import Link from 'next/link'
 
 const faqs = [
@@ -72,6 +73,18 @@ export default function PricingPage() {
 								Start with a 14-day free trial. No credit card required. Upgrade
 								or downgrade anytime.
 							</p>
+						</div>
+
+						{/* Tenant Clarification Banner */}
+						<div className="max-w-3xl mx-auto mt-8">
+							<Alert className="border-primary/20 bg-primary/5">
+								<Info className="h-4 w-4 text-primary" />
+								<AlertTitle className="text-foreground">For Property Owners & Managers</AlertTitle>
+								<AlertDescription className="text-muted-foreground">
+									These plans are for property owners and managers only. If you're a tenant,
+									your property manager will invite you to a free tenant portal at no cost to you.
+								</AlertDescription>
+							</Alert>
 						</div>
 					</div>
 				</section>

@@ -40,14 +40,21 @@ export const DEFAULT_TENANT: Tenant = {
 	move_out_date: null,
 	move_out_reason: null,
 	archived_at: null,
+	auth_user_id: null,
 	invitation_status: 'PENDING',
 	invitation_token: null,
 	invitation_sent_at: null,
 	invitation_accepted_at: null,
 	invitation_expires_at: null,
 	stripe_customer_id: null,
+	autopay_configured_at: null,
+	autopay_day: null,
+	autopay_enabled: null,
+	autopay_frequency: null,
+	payment_method_added_at: null,
 	createdAt: '2024-01-01T00:00:00Z',
-	updatedAt: '2024-01-01T00:00:00Z'
+	updatedAt: '2024-01-01T00:00:00Z',
+	version: 1 // 🔐 BUG FIX #2: Optimistic locking
 }
 
 /**
@@ -79,7 +86,8 @@ export const DEFAULT_USER: User = {
 	profileComplete: true,
 	lastLoginAt: null,
 	createdAt: '2024-01-01T00:00:00Z',
-	updatedAt: '2024-01-01T00:00:00Z'
+	updatedAt: '2024-01-01T00:00:00Z',
+	version: 1 // 🔐 BUG FIX #2: Optimistic locking
 }
 
 /**
@@ -108,7 +116,8 @@ export const DEFAULT_PROPERTY: Property = {
 	sale_price: null,
 	sale_notes: null,
 	createdAt: '2024-01-01T00:00:00Z',
-	updatedAt: '2024-01-01T00:00:00Z'
+	updatedAt: '2024-01-01T00:00:00Z',
+	version: 1 // 🔐 BUG FIX #2: Optimistic locking
 }
 
 /**
@@ -137,6 +146,10 @@ export const DEFAULT_LEASE: Lease = {
 	lateFeeAmount: null,
 	lateFeePercentage: null,
 	stripe_subscription_id: null,
+	lease_document_url: null,
+	signature: null,
+	signed_at: null,
 	createdAt: '2024-01-01T00:00:00Z',
-	updatedAt: '2024-01-01T00:00:00Z'
+	updatedAt: '2024-01-01T00:00:00Z',
+	version: 1 // 🔐 BUG FIX #2: Optimistic locking
 }

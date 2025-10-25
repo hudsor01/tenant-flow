@@ -219,7 +219,11 @@ export interface UnitQueryRequest {
 
 // Lease types
 export interface CreateLeaseRequest {
-	tenantId: string
+	tenant: {
+		email: string
+		firstName: string
+		lastName: string
+	}
 	unitId: string
 	startDate: string
 	endDate: string
@@ -304,6 +308,35 @@ export interface CreateTenantRequest {
 	name?: string
 	emergencyContact?: string
 	avatarUrl?: string
+}
+
+/**
+ * ✅ NEW: Complete tenant invitation with lease (Industry Standard - Phase 3.1)
+ * Creates tenant + lease + sends Supabase Auth invitation in one atomic operation
+ */
+export interface InviteTenantWithLeaseRequest {
+	tenantData: {
+		email: string
+		firstName: string
+		lastName: string
+		phone?: string
+	}
+	leaseData: {
+		propertyId: string
+		unitId: string
+		rentAmount: number
+		securityDeposit: number
+		startDate: string
+		endDate: string
+	}
+}
+
+export interface InviteTenantWithLeaseResponse {
+	success: boolean
+	tenantId: string
+	leaseId: string
+	authUserId: string
+	message: string
 }
 
 export interface UpdateTenantRequest {

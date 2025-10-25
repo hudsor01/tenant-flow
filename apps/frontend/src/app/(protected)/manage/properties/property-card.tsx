@@ -83,7 +83,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 							<Button
 								variant="ghost"
 								size="icon"
-								className="size-8 flex-shrink-0"
+								className="size-11 flex-shrink-0"
 							>
 								<MoreHorizontal className="size-4" />
 								<span className="sr-only">Open menu</span>

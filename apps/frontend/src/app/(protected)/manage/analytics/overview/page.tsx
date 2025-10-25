@@ -214,7 +214,7 @@ export default async function AnalyticsPage() {
 												className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
 											>
 												<div className="flex items-center gap-3">
-													<div className="size-8 rounded-full bg-background border flex items-center justify-center font-semibold text-sm">
+													<div className="size-11 rounded-full bg-background border flex items-center justify-center font-semibold text-sm">
 														{index + 1}
 													</div>
 													<div>

@@ -1,5 +1,6 @@
 "use client"
 
+import { InviteTenantDialog } from '@/components/tenants/invite-tenant-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
@@ -116,39 +117,75 @@ export const columns: ColumnDef<TenantWithLeaseInfo>[] = [
 		}
 	},
 	{
-		id: 'actions',
-		header: 'Actions',
+		id: 'invitation',
+		header: 'Portal Access',
 		cell: ({ row }) => {
 			const tenant = row.original
 			const invitationStatus = tenant.invitation_status
 
-			// Show resend button only for PENDING, SENT, or EXPIRED invitations
-			const showResendButton =
-				invitationStatus === 'PENDING' ||
-				invitationStatus === 'SENT' ||
-				invitationStatus === 'EXPIRED'
+			// No invitation sent yet - show "Invite to Portal" button
+			if (!invitationStatus || invitationStatus === null) {
+				// Build props object with only defined values (exactOptionalPropertyTypes compliance)
+				const dialogProps: {
+					tenantId: string
+					tenantEmail: string
+					tenantName: string
+					propertyId?: string
+					leaseId?: string
+				} = {
+					tenantId: tenant.id,
+					tenantEmail: tenant.email,
+					tenantName: tenant.name
+				}
+				if (tenant.property?.id) dialogProps.propertyId = tenant.property.id
+				if (tenant.currentLease?.id) dialogProps.leaseId = tenant.currentLease.id
 
-			if (!showResendButton) {
-				return null
+				return <InviteTenantDialog {...dialogProps} />
 			}
 
-			return (
-				<Button
-					variant="ghost"
-					size="sm"
-					onClick={(e) => {
-						e.preventDefault()
-						// This will be handled by the TenantsTableClient component
-						const event = new CustomEvent('resend-invitation', {
-							detail: { tenantId: tenant.id }
-						})
-						window.dispatchEvent(event)
-					}}
-				>
-					<Mail className="size-4 mr-2" />
-					Resend
-				</Button>
-			)
+			// Invitation already sent - show "Resend" button for PENDING, SENT, or EXPIRED
+			const canResend = ['PENDING', 'SENT', 'EXPIRED'].includes(invitationStatus)
+			
+			if (canResend) {
+				return (
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={(e) => {
+							e.preventDefault()
+							// Dispatch event for TenantsTableClient to handle
+							const event = new CustomEvent('resend-invitation', {
+								detail: { tenantId: tenant.id }
+							})
+							window.dispatchEvent(event)
+						}}
+					>
+						<Mail className="size-4 mr-2" />
+						Resend
+					</Button>
+				)
+			}
+
+			// Invitation accepted - show badge
+			if (invitationStatus === 'ACCEPTED') {
+				return (
+					<Badge variant="secondary" className="gap-1">
+						<Mail className="size-3" />
+						Active
+					</Badge>
+				)
+			}
+
+			// Revoked - show revoked badge
+			if (invitationStatus === 'REVOKED') {
+				return (
+					<Badge variant="destructive" className="gap-1">
+						Revoked
+					</Badge>
+				)
+			}
+
+			return null
 		}
 	}
 ]

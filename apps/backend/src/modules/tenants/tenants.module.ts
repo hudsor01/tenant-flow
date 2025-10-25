@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { EmailModule } from '../email/email.module'
+import { AuthWebhookController } from './auth-webhook.controller'
 import { TenantsController } from './tenants.controller'
 import { TenantsService } from './tenants.service'
 
@@ -11,7 +12,7 @@ import { TenantsService } from './tenants.service'
  */
 @Module({
 	imports: [SupabaseModule, EmailModule],
-	controllers: [TenantsController],
+	controllers: [TenantsController, AuthWebhookController],
 	providers: [TenantsService],
 	exports: [TenantsService]
 })

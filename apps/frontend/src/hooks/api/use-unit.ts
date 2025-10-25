@@ -11,6 +11,7 @@
  */
 
 import { logger } from '@repo/shared/lib/frontend-logger'
+import { handleConflictError, isConflictError, withVersion, incrementVersion } from '@/lib/optimistic-locking'
 import type {
 	CreateUnitInput,
 	UpdateUnitInput
@@ -18,6 +19,7 @@ import type {
 import type { Unit, UnitStats } from '@repo/shared/types/core'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { API_BASE_URL } from '@/lib/api-client'
 
 /**
@@ -192,7 +194,8 @@ export function useCreateUnit() {
 				status: newUnit.status || 'VACANT',
 				lastInspectionDate: newUnit.lastInspectionDate || null,
 				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
+				updatedAt: new Date().toISOString(),
+				version: 1 // 🔐 BUG FIX #2: Optimistic locking
 			}
 
 			// Optimistically update all relevant caches
@@ -260,11 +263,15 @@ export function useUpdateUnit() {
 
 	return useMutation({
 		mutationFn: async ({ id, data }: { id: string; data: UpdateUnitInput }) => {
+			// 🔐 BUG FIX #2: Get current version from cache for optimistic locking
+			const currentUnit = queryClient.getQueryData<Unit>(unitKeys.detail(id))
+			
 			const response = await apiClient<Unit>(
 				`${API_BASE_URL}/api/v1/units/${id}`,
 				{
 					method: 'PUT',
-					body: JSON.stringify(data)
+					// Use withVersion helper to include version in request
+					body: JSON.stringify(withVersion(data, currentUnit?.version))
 				}
 			)
 			return response
@@ -283,11 +290,9 @@ export function useUpdateUnit() {
 				queryKey: unitKeys.all
 			})
 
-			// Optimistically update detail cache
+			// Optimistically update detail cache (use incrementVersion helper)
 			queryClient.setQueryData<Unit>(unitKeys.detail(id), old =>
-				old
-					? { ...old, ...data, updatedAt: new Date().toISOString() }
-					: undefined
+				old ? incrementVersion(old, data) : undefined
 			)
 
 			// Optimistically update list caches
@@ -298,9 +303,7 @@ export function useUpdateUnit() {
 					return {
 						...old,
 						data: old.data.map(unit =>
-							unit.id === id
-								? { ...unit, ...data, updatedAt: new Date().toISOString() }
-								: unit
+							unit.id === id ? incrementVersion(unit, data) : unit
 						)
 					}
 				}
@@ -320,13 +323,26 @@ export function useUpdateUnit() {
 				})
 			}
 
+			// 🔐 BUG FIX #2: Handle 409 Conflict using helper
+			if (isConflictError(err)) {
+				handleConflictError('unit', id, queryClient, [
+					unitKeys.detail(id) as unknown as string[],
+					unitKeys.all as unknown as string[]
+				])
+			} else {
+				const errorMessage = err instanceof Error ? err.message : 'Failed to update unit'
+				toast.error('Error', {
+					description: errorMessage
+				})
+			}
+
 			logger.error('Failed to update unit', {
 				unitId: id,
 				error: err instanceof Error ? err.message : String(err)
 			})
 		},
 		onSuccess: (data, { id }) => {
-			// Replace optimistic update with real server data
+			// Replace optimistic update with real server data (including correct version)
 			queryClient.setQueryData(unitKeys.detail(id), data)
 
 			queryClient.setQueriesData<{ data: Unit[]; total: number }>(
