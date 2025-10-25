@@ -4,7 +4,7 @@
  * Simplified: Removed helper methods, consolidated status updates
  */
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	CreateMaintenanceRequest,
@@ -550,7 +550,8 @@ export class MaintenanceService {
 	async update(
 		userId: string,
 		maintenanceId: string,
-		updateRequest: UpdateMaintenanceRequest
+		updateRequest: UpdateMaintenanceRequest,
+		expectedVersion?: number // 🔐 BUG FIX #2: Optimistic locking
 	): Promise<MaintenanceRequest | null> {
 		try {
 			if (!userId || !maintenanceId) {
@@ -608,6 +609,11 @@ export class MaintenanceService {
 					updatedAt: new Date().toISOString()
 				}
 
+			// 🔐 BUG FIX #2: Increment version for optimistic locking
+			if (expectedVersion !== undefined) {
+				updateData.version = expectedVersion + 1
+			}
+
 			if (updateRequest.title !== undefined)
 				updateData.title = updateRequest.title
 			if (updateRequest.description !== undefined)
@@ -623,22 +629,42 @@ export class MaintenanceService {
 					updateRequest.completedDate
 				).toISOString()
 
-			const { data, error } = await client
+			// 🔐 BUG FIX #2: Add version check for optimistic locking
+			let query = client
 				.from('maintenance_request')
 				.update(updateData)
 				.eq('id', maintenanceId)
 				.eq('requestedBy', userId)
-				.select()
-				.single()
 
-			if (error) {
+			// Add version check if expectedVersion provided
+			if (expectedVersion !== undefined) {
+				query = query.eq('version', expectedVersion)
+			}
+
+			const { data, error } = await query.select().single()
+
+			if (error || !data) {
+				// 🔐 BUG FIX #2: Detect optimistic locking conflict
+				if (error?.code === 'PGRST116') {
+					// PGRST116 = 0 rows affected (version mismatch)
+					this.logger.warn('Optimistic locking conflict detected', {
+						userId,
+						maintenanceId,
+						expectedVersion
+					})
+					throw new ConflictException(
+						'Maintenance request was modified by another user. Please refresh and try again.'
+					)
+				}
+
+				// Other database errors
 				this.logger.error('Failed to update maintenance request in Supabase', {
-					error: error.message,
+					error: error ? String(error) : 'Unknown error',
 					userId,
 					maintenanceId,
 					updateRequest
 				})
-				return null
+				throw new BadRequestException('Failed to update maintenance request')
 			}
 
 			const updated = data as MaintenanceRequest
@@ -681,6 +707,11 @@ export class MaintenanceService {
 
 			return updated
 		} catch (error) {
+			// Re-throw ConflictException as-is
+			if (error instanceof ConflictException) {
+				throw error
+			}
+
 			this.logger.error(
 				'Maintenance service failed to update maintenance request',
 				{
@@ -690,7 +721,9 @@ export class MaintenanceService {
 					updateRequest
 				}
 			)
-			return null
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to update maintenance request'
+			)
 		}
 	}
 

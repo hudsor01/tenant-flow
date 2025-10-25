@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import * as React from 'react'
 import type { Property } from '@repo/shared/types/core'
@@ -39,7 +39,11 @@ import {
 	CommandList
 } from '@/components/ui/command'
 import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger
+} from '@/components/ui/popover'
 import {
 	Select,
 	SelectContent,
@@ -119,9 +123,8 @@ export function PropertiesTableClient({ data }: PropertiesTableClientProps) {
 
 	const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
 	const [sorting, setSorting] = React.useState<SortingState>([])
-	const [bulkStatus, setBulkStatus] = React.useState<
-		typeof STATUS_OPTIONS[number]
-	>('ACTIVE')
+	const [bulkStatus, setBulkStatus] =
+		React.useState<(typeof STATUS_OPTIONS)[number]>('ACTIVE')
 	const [isBulkUpdating, setIsBulkUpdating] = React.useState(false)
 
 	const updatePropertyMutation = useUpdateProperty()
@@ -179,12 +182,7 @@ export function PropertiesTableClient({ data }: PropertiesTableClientProps) {
 		} finally {
 			setIsBulkUpdating(false)
 		}
-	}, [
-		applyBulkStatusInStore,
-		bulkStatus,
-		selectedIds,
-		updatePropertyMutation
-	])
+	}, [applyBulkStatusInStore, bulkStatus, selectedIds, updatePropertyMutation])
 
 	const columns = React.useMemo<ColumnDef<Property>[]>(() => {
 		return [
@@ -197,7 +195,9 @@ export function PropertiesTableClient({ data }: PropertiesTableClientProps) {
 					<div className="flex items-center justify-center">
 						<Checkbox
 							checked={table.getIsAllPageRowsSelected()}
-							onCheckedChange={value => table.toggleAllPageRowsSelected(!!value)}
+							onCheckedChange={value =>
+								table.toggleAllPageRowsSelected(!!value)
+							}
 							aria-label="Select all"
 						/>
 					</div>
@@ -268,10 +268,7 @@ export function PropertiesTableClient({ data }: PropertiesTableClientProps) {
 				)
 			}
 		]
-	}, [
-		handleInlineSave,
-		updatePropertyMutation.isPending
-	])
+	}, [handleInlineSave, updatePropertyMutation.isPending])
 
 	const computedColumnOrder = React.useMemo(
 		() => ['select', ...columnOrder],
@@ -363,7 +360,10 @@ export function PropertiesTableClient({ data }: PropertiesTableClientProps) {
 								>
 									{row.getVisibleCells().map(cell => (
 										<TableCell key={cell.id}>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											{flexRender(
+												cell.column.columnDef.cell,
+												cell.getContext()
+											)}
 										</TableCell>
 									))}
 								</TableRow>
@@ -399,8 +399,8 @@ type ToolbarProps = {
 	columnOrder: string[]
 	onReorderColumns: (order: string[]) => void
 	rowSelection: string[]
-	bulkStatus: typeof STATUS_OPTIONS[number]
-	onBulkStatusChange: (value: typeof STATUS_OPTIONS[number]) => void
+	bulkStatus: (typeof STATUS_OPTIONS)[number]
+	onBulkStatusChange: (value: (typeof STATUS_OPTIONS)[number]) => void
 	onBulkApply: () => void
 	isBulkUpdating: boolean
 }
@@ -442,7 +442,9 @@ function Toolbar({
 			<FacetFilter
 				label="Status"
 				icon={ListFilter}
-				options={facets.statuses.length ? facets.statuses : Array.from(STATUS_OPTIONS)}
+				options={
+					facets.statuses.length ? facets.statuses : Array.from(STATUS_OPTIONS)
+				}
 				selected={filters.statuses}
 				onToggle={value => onToggleFacet('statuses', value)}
 				onClear={() => onClearFacet('statuses')}
@@ -473,10 +475,10 @@ function Toolbar({
 					<Select
 						value={bulkStatus}
 						onValueChange={value =>
-							onBulkStatusChange(value as typeof STATUS_OPTIONS[number])
+							onBulkStatusChange(value as (typeof STATUS_OPTIONS)[number])
 						}
 					>
-						<SelectTrigger className="h-8 w-[150px]">
+						<SelectTrigger className="h-11 w-36">
 							<SelectValue placeholder="Set status" />
 						</SelectTrigger>
 						<SelectContent>
@@ -688,7 +690,10 @@ function NameCell({ property }: { property: Property }) {
 	}
 
 	return (
-		<Link href={`/manage/properties/${property.id}`} className="hover:underline">
+		<Link
+			href={`/manage/properties/${property.id}`}
+			className="hover:underline"
+		>
 			<span className="font-medium">{property.name}</span>
 		</Link>
 	)
@@ -713,7 +718,7 @@ function TypeCell({ property }: { property: Property }) {
 					updateDraft(property.id, { propertyType: selected as PropertyType })
 				}
 			>
-				<SelectTrigger className="h-8 w-full">
+				<SelectTrigger className="h-11 w-full">
 					<SelectValue placeholder="Type" />
 				</SelectTrigger>
 				<SelectContent>
@@ -755,7 +760,7 @@ function StatusCell({ property }: { property: Property }) {
 					updateDraft(property.id, { status: selected as PropertyStatus })
 				}
 			>
-				<SelectTrigger className="h-8 w-full">
+				<SelectTrigger className="h-11 w-full">
 					<SelectValue placeholder="Status" />
 				</SelectTrigger>
 				<SelectContent>
@@ -770,11 +775,7 @@ function StatusCell({ property }: { property: Property }) {
 	}
 
 	const variant =
-		value === 'ACTIVE'
-			? 'default'
-			: value === 'SOLD'
-				? 'secondary'
-				: 'outline'
+		value === 'ACTIVE' ? 'default' : value === 'SOLD' ? 'secondary' : 'outline'
 
 	return (
 		<Badge variant={variant}>

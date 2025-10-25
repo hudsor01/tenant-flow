@@ -246,9 +246,7 @@ export function CustomerPortalCard({
 							<Settings className="size-8 text-primary-foreground" />
 						</div>
 						<div>
-							<h3
-								className="font-bold tracking-tight text-foreground text-[22px] leading-tight"
-							>
+							<h3 className="font-bold tracking-tight text-foreground text-xl leading-tight">
 								Account Management
 							</h3>
 							<p
@@ -449,9 +447,7 @@ export function CustomerPortalCard({
 
 					{/* Enhanced Description */}
 					<div className="text-center space-y-4">
-						<p
-							className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-[17px]"
-						>
+						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-base">
 							Manage your subscription, update payment methods, view invoices,
 							download reports, and access all billing features in our secure,
 							enterprise-grade customer portal.

@@ -6,6 +6,7 @@ import { cn } from '@/lib/design-system'
 import type { LoginLayoutProps } from '@repo/shared/types/auth'
 import { Lock, Smartphone, Zap } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import * as React from 'react'
 
 interface ImageSectionProps {
@@ -71,16 +72,12 @@ const ImageSection = ({ imageUrl, content }: ImageSectionProps) => (
 						</div>
 
 						{/* Dark text on light panel */}
-						<h2
-							className="text-foreground font-bold animate-in fade-in slide-in-from-bottom-4 delay-200 duration-500 text-[22px] leading-tight"
-						>
+						<h2 className="text-foreground font-bold animate-in fade-in slide-in-from-bottom-4 delay-200 duration-500 text-xl leading-tight">
 							{content.heading}
 						</h2>
 
 						{/* Dark description text */}
-						<p
-							className="text-muted-foreground max-w-md mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-4 delay-300 duration-500 text-[17px] font-normal"
-						>
+						<p className="text-muted-foreground max-w-md mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-4 delay-300 duration-500 text-base font-normal">
 							{content.description}
 						</p>
 
@@ -93,9 +90,7 @@ const ImageSection = ({ imageUrl, content }: ImageSectionProps) => (
 										className="text-center group animate-in fade-in slide-in-from-bottom-4 duration-500"
 										style={{ animationDelay: `${400 + index * 100}ms` }}
 									>
-										<div
-											className="text-foreground font-bold mb-1 group-hover:scale-105 transition-transform duration-300 text-[17px] leading-[1.29]"
-										>
+										<div className="text-foreground font-bold mb-1 group-hover:scale-105 transition-transform duration-300 text-base leading-[1.29]">
 											{stat.value}
 										</div>
 										<div
@@ -113,23 +108,20 @@ const ImageSection = ({ imageUrl, content }: ImageSectionProps) => (
 			</div>
 
 			{/* Enhanced floating elements with smoother animations */}
-			<div
-				className="absolute top-1/4 left-1/4 size-2 rounded-full animate-pulse bg-primary/20 [animation-duration:3s]"
-			/>
-			<div
-				className="absolute top-2/3 right-1/4 size-1 rounded-full animate-pulse bg-primary/30 [animation-duration:4s] [animation-delay:1s]"
-			/>
-			<div
-				className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 rounded-full animate-pulse bg-primary/15 [animation-duration:2.5s] [animation-delay:0.5s]"
-			/>
-			<div
-				className="absolute top-1/2 right-1/3 size-1 rounded-full animate-pulse bg-primary/15 [animation-duration:3.5s] [animation-delay:2s]"
-			/>
+			<div className="absolute top-1/4 left-1/4 size-2 rounded-full animate-pulse bg-primary/20 [animation-duration:3s]" />
+			<div className="absolute top-2/3 right-1/4 size-1 rounded-full animate-pulse bg-primary/30 [animation-duration:4s] [animation-delay:1s]" />
+			<div className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 rounded-full animate-pulse bg-primary/15 [animation-duration:2.5s] [animation-delay:0.5s]" />
+			<div className="absolute top-1/2 right-1/3 size-1 rounded-full animate-pulse bg-primary/15 [animation-duration:3.5s] [animation-delay:2s]" />
 		</div>
 	</div>
 )
 
-const FormSection = ({ mode, authProps, title, subtitle }: FormSectionProps) => (
+const FormSection = ({
+	mode,
+	authProps,
+	title,
+	subtitle
+}: FormSectionProps) => (
 	<div className="flex-1 lg:w-1/2 flex items-center justify-center p-6 sm:p-8 lg:p-12 bg-background min-h-screen">
 		<div className="w-full max-w-sm space-y-8">
 			{/* Simple Logo/Brand with better spacing */}
@@ -163,6 +155,26 @@ const FormSection = ({ mode, authProps, title, subtitle }: FormSectionProps) => 
 				</div>
 			</div>
 
+			{/* Helper Text for Owners vs Tenants - Only show on login mode */}
+			{mode === 'login' && (
+				<div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm border border-border/50">
+					<p className="text-muted-foreground">
+						<strong className="text-foreground">Property Owners:</strong> New to
+						TenantFlow?{' '}
+						<Link
+							href="/pricing"
+							className="text-primary hover:underline font-medium"
+						>
+							View plans & pricing
+						</Link>
+					</p>
+					<p className="text-muted-foreground">
+						<strong className="text-foreground">Tenants:</strong> Check your
+						email for an invitation link from your property manager
+					</p>
+				</div>
+			)}
+
 			{/* Auth Form with better spacing */}
 			<div>
 				{mode === 'login' ? (
@@ -170,9 +182,7 @@ const FormSection = ({ mode, authProps, title, subtitle }: FormSectionProps) => 
 				) : (
 					<SignupForm
 						className="w-full"
-						{...(authProps?.onSubmit
-							? { onSubmit: authProps.onSubmit }
-							: {})}
+						{...(authProps?.onSubmit ? { onSubmit: authProps.onSubmit } : {})}
 						{...(authProps?.isLoading !== undefined
 							? { isLoading: authProps.isLoading }
 							: {})}
@@ -199,9 +209,7 @@ const FormSection = ({ mode, authProps, title, subtitle }: FormSectionProps) => 
 					</div>
 					<div className="flex items-center gap-1.5 text-muted-foreground/70 hover:text-muted-foreground transition-colors">
 						<Smartphone className="size-3" />
-						<span className="font-medium hidden sm:inline">
-							Mobile Ready
-						</span>
+						<span className="font-medium hidden sm:inline">Mobile Ready</span>
 						<span className="font-medium sm:hidden">Mobile</span>
 					</div>
 				</div>
@@ -246,13 +254,23 @@ export const LoginLayout = React.forwardRef<HTMLDivElement, LoginLayoutProps>(
 				<div className="w-full flex">
 					{imageOnRight ? (
 						<>
-							<FormSection mode={mode} authProps={authProps} title={title} subtitle={subtitle} />
+							<FormSection
+								mode={mode}
+								authProps={authProps}
+								title={title}
+								subtitle={subtitle}
+							/>
 							<ImageSection imageUrl={imageUrl} content={content} />
 						</>
 					) : (
 						<>
 							<ImageSection imageUrl={imageUrl} content={content} />
-							<FormSection mode={mode} authProps={authProps} title={title} subtitle={subtitle} />
+							<FormSection
+								mode={mode}
+								authProps={authProps}
+								title={title}
+								subtitle={subtitle}
+							/>
 						</>
 					)}
 				</div>

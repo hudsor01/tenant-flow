@@ -255,9 +255,13 @@ export function useCreateLease() {
 				lateFeeAmount: newLease.lateFeeAmount || null,
 				lateFeePercentage: newLease.lateFeePercentage || null,
 				stripe_subscription_id: null,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
-			}
+			lease_document_url: null,
+			signature: null,
+			signed_at: null,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+			version: 1 // 🔐 BUG FIX #2: Optimistic locking
+		}
 
 			// Optimistically update all caches
 			queryClient.setQueriesData<{ data: Lease[]; total: number }>(

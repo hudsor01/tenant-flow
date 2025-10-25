@@ -211,7 +211,7 @@ export function LeaseTemplateBuilder() {
 						</div>
 					</CardHeader>
 					<CardContent>
-						<div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+						<div className="grid gap-6 lg:grid-cols-[20rem_1fr]">
 							<aside className="space-y-6">
 								<ConfigurationPanel
 									builderInputs={builderInputs}

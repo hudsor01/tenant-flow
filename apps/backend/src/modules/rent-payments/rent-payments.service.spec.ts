@@ -241,7 +241,8 @@ describe('RentPaymentsService', () => {
 					amount: 150000,
 					application_fee_amount: 4500,
 					transfer_data: { destination: 'acct_456' }
-				})
+				}),
+				expect.objectContaining({ idempotencyKey: expect.any(String) })
 			)
 		})
 	})

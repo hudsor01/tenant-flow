@@ -239,7 +239,8 @@ describe('UnitsController', () => {
 			expect(mockUnitsServiceInstance.update).toHaveBeenCalledWith(
 				mockUser.id,
 				'unit-1',
-				validUpdateUnitRequest
+				validUpdateUnitRequest,
+				undefined // expectedVersion for optimistic locking
 			)
 			expect(result).toEqual(mockUnit)
 		})

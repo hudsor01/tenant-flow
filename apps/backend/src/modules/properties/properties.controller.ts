@@ -23,8 +23,12 @@ import {
 	Put,
 	Query,
 	Request,
-	SetMetadata
+	SetMetadata,
+	UploadedFile,
+	UseInterceptors
 } from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
+import { memoryStorage } from 'multer'
 import type {
 	CreatePropertyRequest,
 	UpdatePropertyRequest
@@ -148,6 +152,40 @@ export class PropertiesController {
 	}
 
 	/**
+	 * Bulk import properties from Excel file
+	 * Ephemeral processing: parse → validate → insert → discard file
+	 */
+	@Post('bulk-import')
+	@UseInterceptors(
+		FileInterceptor('file', {
+			storage: memoryStorage(),
+			limits: { fileSize: 5 * 1024 * 1024 } // 5MB max
+		})
+	)
+	async bulkImport(
+		@UploadedFile() file: Express.Multer.File,
+		@Request() req: AuthenticatedRequest
+	) {
+		if (!file) {
+			throw new BadRequestException('No file uploaded')
+		}
+
+		// Validate file type
+		const allowedMimeTypes = [
+			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+			'application/vnd.ms-excel' // .xls
+		]
+		if (!allowedMimeTypes.includes(file.mimetype)) {
+			throw new BadRequestException(
+				'Invalid file type. Only Excel files (.xlsx, .xls) are allowed'
+			)
+		}
+
+		const userId = req.user.id
+		return this.propertiesService.bulkImport(userId, file.buffer)
+	}
+
+	/**
 	 * Update existing property
 	 * Combination of UUID validation and JSON Schema
 	 */
@@ -159,10 +197,13 @@ export class PropertiesController {
 	) {
 		const userId = req.user.id
 
+		// 🔐 BUG FIX #2: Pass version for optimistic locking
+		const expectedVersion = (updatePropertyRequest as { version?: number }).version
 		const property = await this.propertiesService.update(
 			userId,
 			id,
-			updatePropertyRequest
+			updatePropertyRequest,
+			expectedVersion
 		)
 		if (!property) {
 			throw new NotFoundException('Property not found')

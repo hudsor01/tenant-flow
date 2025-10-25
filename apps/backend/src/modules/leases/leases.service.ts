@@ -4,7 +4,7 @@
  * Simplified: Removed duplicate methods, consolidated analytics
  */
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common'
 import type {
 	CreateLeaseRequest,
 	UpdateLeaseRequest
@@ -16,12 +16,16 @@ import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
 } from '../../shared/utils/sql-safe.utils'
+import { TenantsService } from '../tenants/tenants.service'
 
 @Injectable()
 export class LeasesService {
 	private readonly logger = new Logger(LeasesService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly tenantsService: TenantsService
+	) {}
 
 	/**
 	 * Helper: Get unit IDs for user's properties
@@ -436,17 +440,17 @@ export class LeasesService {
 		createRequest: CreateLeaseRequest
 	): Promise<Lease> {
 		try {
-			if (!userId || !createRequest.tenantId || !createRequest.unitId) {
+			if (!userId || !createRequest.unitId || !createRequest.tenant) {
 				this.logger.warn('Create lease called with missing parameters', {
 					userId,
 					createRequest
 				})
 				throw new BadRequestException(
-					'User ID, tenant ID, and unit ID are required'
+					'User ID, unit ID, and tenant details are required'
 				)
 			}
 
-			this.logger.log('Creating lease via direct Supabase query', {
+			this.logger.log('Creating lease with tenant creation', {
 				userId,
 				createRequest
 			})
@@ -474,8 +478,15 @@ export class LeasesService {
 				throw new BadRequestException('Unit does not belong to user')
 			}
 
+			// Create tenant first
+			const tenant = await this.tenantsService.create(userId, {
+				email: createRequest.tenant.email,
+				firstName: createRequest.tenant.firstName,
+				lastName: createRequest.tenant.lastName
+			})
+
 			const leaseData = {
-				tenantId: createRequest.tenantId,
+				tenantId: tenant.id,
 				unitId: createRequest.unitId,
 				startDate: createRequest.startDate,
 				endDate: createRequest.endDate,
@@ -500,7 +511,17 @@ export class LeasesService {
 				throw new BadRequestException('Failed to create lease')
 			}
 
-			return data as Lease
+			const lease = data as Lease
+
+			// Send invitation
+			await this.tenantsService.sendTenantInvitation(
+				userId,
+				tenant.id,
+				unit.propertyId,
+				lease.id
+			)
+
+			return lease
 		} catch (error) {
 			this.logger.error('Leases service failed to create lease', {
 				error: error instanceof Error ? error.message : String(error),
@@ -519,7 +540,8 @@ export class LeasesService {
 	async update(
 		userId: string,
 		leaseId: string,
-		updateRequest: UpdateLeaseRequest
+		updateRequest: UpdateLeaseRequest,
+		expectedVersion?: number // 🔐 BUG FIX #2: Optimistic locking
 	): Promise<Lease | null> {
 		try {
 			if (!userId || !leaseId) {
@@ -548,6 +570,11 @@ export class LeasesService {
 				updatedAt: new Date().toISOString()
 			}
 
+			// 🔐 BUG FIX #2: Increment version for optimistic locking
+			if (expectedVersion !== undefined) {
+				updateData.version = expectedVersion + 1
+			}
+
 			if (updateRequest.startDate !== undefined)
 				updateData.startDate = updateRequest.startDate
 			if (updateRequest.endDate !== undefined)
@@ -559,25 +586,50 @@ export class LeasesService {
 			if (updateRequest.status !== undefined)
 				updateData.status = updateRequest.status
 
-			const { data, error } = await client
+			// 🔐 BUG FIX #2: Add version check for optimistic locking
+			let query = client
 				.from('lease')
 				.update(updateData)
 				.eq('id', leaseId)
-				.select()
-				.single()
 
-			if (error) {
+			// Add version check if expectedVersion provided
+			if (expectedVersion !== undefined) {
+				query = query.eq('version', expectedVersion)
+			}
+
+			const { data, error } = await query.select().single()
+
+			if (error || !data) {
+				// 🔐 BUG FIX #2: Detect optimistic locking conflict
+				if (error?.code === 'PGRST116') {
+					// PGRST116 = 0 rows affected (version mismatch)
+					this.logger.warn('Optimistic locking conflict detected', {
+						userId,
+						leaseId,
+						expectedVersion
+					})
+					throw new ConflictException(
+						'Lease was modified by another user. Please refresh and try again.'
+					)
+				}
+
+				// Other database errors
 				this.logger.error('Failed to update lease in Supabase', {
-					error: error.message,
+					error: error ? String(error) : 'Unknown error',
 					userId,
 					leaseId,
 					updateRequest
 				})
-				return null
+				throw new BadRequestException('Failed to update lease')
 			}
 
 			return data as Lease
 		} catch (error) {
+			// Re-throw ConflictException as-is
+			if (error instanceof ConflictException) {
+				throw error
+			}
+
 			this.logger.error('Leases service failed to update lease', {
 				error: error instanceof Error ? error.message : String(error),
 				userId,
@@ -896,7 +948,6 @@ export class LeasesService {
 					leaseId
 				}
 			)
-
 			const client = this.supabase.getAdminClient()
 
 			const { data, error } = await client

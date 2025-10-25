@@ -27,7 +27,13 @@ import {
 	DialogTitle
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { useDeleteUnit } from '@/hooks/api/use-unit'
 import {
@@ -108,7 +114,7 @@ function SortableHeader({
 				'gap-2',
 				isActive && 'text-primary',
 				className,
-				'text-[15px] leading-[1.33] font-normal duration-150'
+				'text-sm leading-[1.33] font-normal duration-150'
 			)}
 		>
 			<div className="flex items-center gap-2">
@@ -117,24 +123,19 @@ function SortableHeader({
 					{sortDirection === 'desc' ? (
 						<ArrowDown
 							className={cn(
-							'h-3.5 w-3.5 transition-all duration-150',
-							isActive ? 'text-primary' : 'text-muted-foreground'
-						)}
-							
+								'h-3.5 w-3.5 transition-all duration-150',
+								isActive ? 'text-primary' : 'text-muted-foreground'
+							)}
 						/>
 					) : sortDirection === 'asc' ? (
 						<ArrowUp
 							className={cn(
-							'h-3.5 w-3.5 transition-all duration-150',
-							isActive ? 'text-primary' : 'text-muted-foreground'
-						)}
-							
+								'h-3.5 w-3.5 transition-all duration-150',
+								isActive ? 'text-primary' : 'text-muted-foreground'
+							)}
 						/>
 					) : (
-						<ArrowUpDown
-							className="h-3.5 w-3.5 opacity-50 transition-opacity hover:opacity-75 duration-150"
-							
-						/>
+						<ArrowUpDown className="h-3.5 w-3.5 opacity-50 transition-opacity hover:opacity-75 duration-150" />
 					)}
 				</div>
 			</div>
@@ -233,7 +234,6 @@ const UnitStatusBadge: React.FC<{ status: UnitStatus; className?: string }> = ({
 				'hover:shadow-sm hover:scale-105',
 				className
 			)}
-			
 		>
 			<IconComponent className="size-3" />
 			{config.label}
@@ -301,7 +301,6 @@ function UnitActions({ unit }: UnitActionsProps) {
 								'size-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50',
 								'transition-all'
 							)}
-							
 						>
 							<span className="sr-only">
 								Open actions menu for unit {unit.unitNumber}

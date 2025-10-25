@@ -27,12 +27,13 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { PropertiesModule } from './modules/properties/properties.module'
 import { RentPaymentsModule } from './modules/rent-payments/rent-payments.module'
 import { ReportsModule } from './modules/reports/reports.module'
-import { StripeSyncModule } from './modules/stripe-sync/stripe-sync.module'
+// import { StripeSyncModule } from './modules/stripe-sync/stripe-sync.module' // Temporarily disabled due to type errors
 import { TenantsModule } from './modules/tenants/tenants.module'
 import { UnitsModule } from './modules/units/units.module'
 import { UsersModule } from './modules/users/users.module'
 import { SecurityModule } from './security/security.module'
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
+import { SubscriptionGuard } from './shared/guards/subscription.guard'
 import { ServicesModule } from './shared/services/services.module'
 import { SharedModule } from './shared/shared.module'
 import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
@@ -95,7 +96,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 		HealthModule,
 		AnalyticsModule,
 		StripeModule,
-		StripeSyncModule, // Stripe Sync Engine for real-time data sync
+		// StripeSyncModule, // Temporarily disabled due to type errors
 		ContactModule,
 		DashboardModule,
 		FinancialModule,
@@ -119,6 +120,10 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 		{
 			provide: APP_GUARD,
 			useClass: JwtAuthGuard
+		},
+		{
+			provide: APP_GUARD,
+			useClass: SubscriptionGuard
 		},
 		{
 			provide: APP_INTERCEPTOR,

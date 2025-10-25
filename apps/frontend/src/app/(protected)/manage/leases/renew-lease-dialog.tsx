@@ -171,7 +171,7 @@ export function RenewLeaseDialog({
 					<div className="space-y-3">
 						<Label
 							htmlFor="end-date"
-							className="text-label-secondary text-[11px] font-medium uppercase tracking-[0.01em]"
+							className="text-label-secondary text-xs font-medium uppercase tracking-[0.01em]"
 						>
 							New End Date
 						</Label>
@@ -228,7 +228,7 @@ export function RenewLeaseDialog({
 					{/* Rent Adjustment Toggle */}
 					<div className="space-y-3">
 						<div className="flex items-center justify-between">
-							<Label className="text-label-secondary text-[11px] font-medium uppercase tracking-[0.01em]">
+							<Label className="text-label-secondary text-xs font-medium uppercase tracking-[0.01em]">
 								Rent Adjustment
 							</Label>
 							<Button

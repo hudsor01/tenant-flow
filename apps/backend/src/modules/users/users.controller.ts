@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
+import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 
 @Controller('users')
 export class UsersController {
@@ -34,6 +35,7 @@ export class UsersController {
 	 * - stripeCustomerId: stripe.customers.id (from Stripe Sync Engine)
 	 */
 	@Get('me')
+	@SkipSubscriptionCheck()
 	async getCurrentUser(@Req() req: AuthenticatedRequest) {
 		const authUserId = req.user.id // auth.users.id from JWT
 		const authUserEmail = req.user.email

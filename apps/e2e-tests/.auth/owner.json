@@ -1,35 +1,25 @@
 {
-	"cookies": [
-		{
-			"name": "tenantflow_theme_mode",
-			"value": "light",
-			"domain": "localhost",
-			"path": "/",
-			"expires": 1792296844.784161,
-			"httpOnly": false,
-			"secure": false,
-			"sameSite": "Lax"
-		},
-		{
-			"name": "sb-bshjmbshupiibfiewpxb-auth-token",
-			"value": "base64-eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSklVekkxTmlJc0ltdHBaQ0k2SW5kNmVYQlFNaXRHWkVFMlVXNW5OM0VpTENKMGVYQWlPaUpLVjFRaWZRLmV5SnBjM01pT2lKb2RIUndjem92TDJKemFHcHRZbk5vZFhCcGFXSm1hV1YzY0hoaUxuTjFjR0ZpWVhObExtTnZMMkYxZEdndmRqRWlMQ0p6ZFdJaU9pSTFPV0ZoTWprMVl5MWpPRE5oTFRSaFptWXRPRGMwTWkwME9UWm1ZMll3WWpOa05HWWlMQ0poZFdRaU9pSmhkWFJvWlc1MGFXTmhkR1ZrSWl3aVpYaHdJam94TnpZd056WTBORFEzTENKcFlYUWlPakUzTmpBM05qQTRORGNzSW1WdFlXbHNJam9pY21oMVpITnZiblJ6Y0hJck5EWkFaMjFoYVd3dVkyOXRJaXdpY0dodmJtVWlPaUlpTENKaGNIQmZiV1YwWVdSaGRHRWlPbnNpY0hKdmRtbGtaWElpT2lKbGJXRnBiQ0lzSW5CeWIzWnBaR1Z5Y3lJNld5SmxiV0ZwYkNKZGZTd2lkWE5sY2w5dFpYUmhaR0YwWVNJNmV5SmxiV0ZwYkY5MlpYSnBabWxsWkNJNmRISjFaU3dpY205c1pTSTZJazlYVGtWU0lpd2ljMlZsWkNJNkltVXlaU0o5TENKeWIyeGxJam9pWVhWMGFHVnVkR2xqWVhSbFpDSXNJbUZoYkNJNkltRmhiREVpTENKaGJYSWlPbHQ3SW0xbGRHaHZaQ0k2SW5CaGMzTjNiM0prSWl3aWRHbHRaWE4wWVcxd0lqb3hOell3TnpZd09EUTNmVjBzSW5ObGMzTnBiMjVmYVdRaU9pSXhZekUxTjJNNVlTMDBaV0l4TFRRME4yVXRPVGN4TnkwMVpUWXlOVGcyWVRReE1qTWlMQ0pwYzE5aGJtOXVlVzF2ZFhNaU9tWmhiSE5sZlEuOGJ0N0hHSlpLVnluTjJpZjdsaDZRb083MnlCbnJLUVB0cDJZeUNab2hjbyIsInRva2VuX3R5cGUiOiJiZWFyZXIiLCJleHBpcmVzX2luIjozNjAwLCJleHBpcmVzX2F0IjoxNzYwNzY0NDQ3LCJyZWZyZXNoX3Rva2VuIjoicGp0Ym01anV2a2lkIiwidXNlciI6eyJpZCI6IjU5YWEyOTVjLWM4M2EtNGFmZi04NzQyLTQ5NmZjZjBiM2Q0ZiIsImF1ZCI6ImF1dGhlbnRpY2F0ZWQiLCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImVtYWlsIjoicmh1ZHNvbnRzcHIrNDZAZ21haWwuY29tIiwiZW1haWxfY29uZmlybWVkX2F0IjoiMjAyNS0xMC0xN1QwMDo1Mzo1My45ODQyODVaIiwicGhvbmUiOiIiLCJjb25maXJtZWRfYXQiOiIyMDI1LTEwLTE3VDAwOjUzOjUzLjk4NDI4NVoiLCJsYXN0X3NpZ25faW5fYXQiOiIyMDI1LTEwLTE4VDA0OjE0OjA3LjE5MTE5MTg3NloiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicm9sZSI6Ik9XTkVSIiwic2VlZCI6ImUyZSJ9LCJpZGVudGl0aWVzIjpbeyJpZGVudGl0eV9pZCI6ImY4NWUyZGZhLWY1ZmUtNGNiMy1hYWQ3LTU5ZjY1YWI0YTFiOSIsImlkIjoiNTlhYTI5NWMtYzgzYS00YWZmLTg3NDItNDk2ZmNmMGIzZDRmIiwidXNlcl9pZCI6IjU5YWEyOTVjLWM4M2EtNGFmZi04NzQyLTQ5NmZjZjBiM2Q0ZiIsImlkZW50aXR5X2RhdGEiOnsiZW1haWwiOiJyaHVkc29udHNwcis0NkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwic3ViIjoiNTlhYTI5NWMtYzgzYS00YWZmLTg3NDItNDk2ZmNmMGIzZDRmIn0sInByb3ZpZGVyIjoiZW1haWwiLCJsYXN0X3NpZ25faW5fYXQiOiIyMDI1LTEwLTE3VDAwOjUzOjUzLjkzOTc0NloiLCJjcmVhdGVkX2F0IjoiMjAyNS0xMC0xN1QwMDo1Mzo1My45Mzk4MzJaIiwidXBkYXRlZF9hdCI6IjIwMjUtMTAtMTdUMDA6NTM6NTMuOTM5ODMyWiIsImVtYWlsIjoicmh1ZHNvbnRzcHIrNDZAZ21haWwuY29tIn1dLCJjcmVhdGVkX2F0IjoiMjAyNS0xMC0xN1QwMDo1Mzo1My43NzkxNTZaIiwidXBkYXRlZF9hdCI6IjIwMjUtMTAtMThUMDQ6MTQ6MDcuMjAzODY1WiIsImlzX2Fub255bW91cyI6ZmFsc2V9LCJ3ZWFrX3Bhc3N3b3JkIjpudWxsfQ",
-			"domain": "localhost",
-			"path": "/",
-			"expires": 1795320847.753292,
-			"httpOnly": false,
-			"secure": false,
-			"sameSite": "Lax"
-		}
-	],
-	"origins": [
-		{
-			"origin": "http://localhost:3000",
-			"localStorage": [
-				{
-					"name": "tenantflow-theme-mode",
-					"value": "light"
-				}
-			]
-		}
-	]
+  "cookies": [
+    {
+      "name": "tenantflow_theme_mode",
+      "value": "light",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1792907604.773623,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "tenantflow-theme-mode",
+          "value": "light"
+        }
+      ]
+    }
+  ]
 }

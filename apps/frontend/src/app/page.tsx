@@ -18,7 +18,7 @@ export default function HomePage() {
 						href="/"
 						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
 					>
-						<div className="size-8 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
+						<div className="size-11 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
 							<svg
 								viewBox="0 0 24 24"
 								fill="none"
@@ -89,7 +89,7 @@ export default function HomePage() {
 							href="/signup"
 							className="flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
 						>
-							Get Started
+							Start Managing Properties
 							<ArrowRight className="ml-2 size-4" />
 						</Link>
 					</div>
@@ -102,7 +102,7 @@ export default function HomePage() {
 				title="Stop juggling"
 				titleHighlight="multiple tools"
 				subtitle="TenantFlow brings all your property management needs together. Streamline operations, automate workflows, and scale your business."
-				primaryCta={{ label: 'Get Started Free', href: '/signup' }}
+				primaryCta={{ label: 'Start Managing Properties', href: '/signup' }}
 				secondaryCta={{ label: 'View Pricing', href: '/pricing' }}
 				trustSignals="No setup fees • Enterprise security • 99.9% uptime SLA"
 				image={{

@@ -13,7 +13,10 @@ import {
 	TableRow
 } from '@/components/ui/table'
 import { usePropertyPerformance } from '@/hooks/api/use-dashboard'
-import { getOccupancyBadgeClass, getTrendColorClass } from '@/lib/utils/color-helpers'
+import {
+	getOccupancyBadgeClass,
+	getTrendColorClass
+} from '@/lib/utils/color-helpers'
 import { ArrowUpRight, Minus, TrendingDown, TrendingUp } from 'lucide-react'
 
 const formatCurrency = (amount: number) => {
@@ -36,7 +39,14 @@ const getTrendIcon = (trend: string) => {
 }
 
 const getOccupancyBadge = (rate: number) => {
-	const label = rate >= 90 ? 'Excellent' : rate >= 80 ? 'Good' : rate >= 70 ? 'Fair' : 'Poor'
+	const label =
+		rate >= 90
+			? 'Excellent'
+			: rate >= 80
+				? 'Good'
+				: rate >= 70
+					? 'Fair'
+					: 'Poor'
 	return (
 		<Badge variant="outline" className={getOccupancyBadgeClass(rate)}>
 			{label}
@@ -89,7 +99,7 @@ export function PropertyPerformanceTable() {
 							<TableHead>Occupancy</TableHead>
 							<TableHead>Revenue</TableHead>
 							<TableHead>Trend</TableHead>
-							<TableHead className="w-[50px]"></TableHead>
+							<TableHead className="w-12"></TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -109,7 +119,7 @@ export function PropertyPerformanceTable() {
 								<TableRow key={property.propertyId}>
 									<TableCell>
 										<div className="flex items-center gap-3">
-											<Avatar className="size-8">
+											<Avatar className="size-11">
 												<AvatarFallback className="text-xs font-medium">
 													{avatar}
 												</AvatarFallback>
@@ -147,13 +157,15 @@ export function PropertyPerformanceTable() {
 										<div className="text-sm text-muted-foreground">monthly</div>
 									</TableCell>
 									<TableCell>
-										<div className={`flex items-center gap-1 text-sm font-medium ${getTrendColorClass(trend)}`}>
+										<div
+											className={`flex items-center gap-1 text-sm font-medium ${getTrendColorClass(trend)}`}
+										>
 											{getTrendIcon(trend)}
 											{Math.abs(trendPercentage)}%
 										</div>
 									</TableCell>
 									<TableCell>
-										<Button variant="ghost" size="icon" className="size-8">
+										<Button variant="ghost" size="icon" className="size-11">
 											<ArrowUpRight className="size-4" />
 											<span className="sr-only">View property details</span>
 										</Button>

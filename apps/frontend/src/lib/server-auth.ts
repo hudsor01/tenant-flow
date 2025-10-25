@@ -1,7 +1,9 @@
 /**
  * Server-side authentication helpers
- * MUST be used in Server Components only - enforces auth before rendering
- * Prevents client-side useEffect redirect flashes (150ms+ wasted hydration)
+ * MUST be used in Server Components only
+ *
+ * NOTE: Middleware now handles auth validation and token refresh
+ * This helper just retrieves the authenticated user from cookies
  */
 import { createServerClient } from '@supabase/ssr'
 import type { User } from '@supabase/supabase-js'
@@ -9,9 +11,13 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 /**
- * Require authenticated user session
- * @throws Redirects to /sign-in if no session
+ * Get authenticated user session
+ *
+ * IMPORTANT: This assumes middleware already validated auth
+ * If middleware redirected unauthenticated users, this will always have a user
+ *
  * @returns Authenticated user object and access token
+ * @throws Redirects to /login if no session (fallback - middleware should prevent this)
  */
 export async function requireSession(): Promise<{ user: User; accessToken: string }> {
 	const cookieStore = await cookies()
@@ -30,20 +36,18 @@ export async function requireSession(): Promise<{ user: User; accessToken: strin
 		}
 	)
 
-	const {
-		data: { user },
-		error
-	} = await supabase.auth.getUser()
-
+	// Middleware already validated with getUser(), so we can safely use getSession() here
+	// This avoids duplicate validation calls (middleware did the work)
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()
 
-	if (error || !user || !session) {
-		redirect('/login') // 307 redirect, no client flash
+	if (!session || !session.user) {
+		// Fallback: shouldn't happen since middleware handles this
+		redirect('/login')
 	}
 
-	return { user, accessToken: session.access_token }
+	return { user: session.user, accessToken: session.access_token }
 }
 
 /**

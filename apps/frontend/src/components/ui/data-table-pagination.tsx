@@ -1,19 +1,19 @@
-import { Table } from "@tanstack/react-table"
+import { Table } from '@tanstack/react-table'
 import {
 	ChevronLeft,
 	ChevronRight,
 	ChevronsLeft,
 	ChevronsRight
-} from "lucide-react"
+} from 'lucide-react'
 
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from "@/components/ui/select"
+} from '@/components/ui/select'
 
 interface DataTablePaginationProps<TData> {
 	table: Table<TData>
@@ -25,7 +25,7 @@ export function DataTablePagination<TData>({
 	return (
 		<div className="flex items-center justify-between px-2">
 			<div className="text-muted-foreground flex-1 text-sm">
-				{table.getFilteredSelectedRowModel().rows.length} of{" "}
+				{table.getFilteredSelectedRowModel().rows.length} of{' '}
 				{table.getFilteredRowModel().rows.length} row(s) selected.
 			</div>
 			<div className="flex items-center space-x-6 lg:space-x-8">
@@ -37,10 +37,8 @@ export function DataTablePagination<TData>({
 							table.setPageSize(Number(value))
 						}}
 					>
-						<SelectTrigger className="h-8 w-[70px]">
-							<SelectValue
-								placeholder={table.getState().pagination.pageSize}
-							/>
+						<SelectTrigger className="h-11 w-16">
+							<SelectValue placeholder={table.getState().pagination.pageSize} />
 						</SelectTrigger>
 						<SelectContent side="top">
 							{[10, 20, 25, 30, 40, 50].map(pageSize => (
@@ -52,14 +50,14 @@ export function DataTablePagination<TData>({
 					</Select>
 				</div>
 				<div className="flex w-25 items-center justify-center text-sm font-medium">
-					Page {table.getState().pagination.pageIndex + 1} of{" "}
+					Page {table.getState().pagination.pageIndex + 1} of{' '}
 					{table.getPageCount()}
 				</div>
 				<div className="flex items-center space-x-2">
 					<Button
 						variant="outline"
 						size="icon"
-						className="hidden size-8 lg:flex"
+						className="hidden size-11 lg:flex"
 						onClick={() => table.setPageIndex(0)}
 						disabled={!table.getCanPreviousPage()}
 					>
@@ -69,7 +67,7 @@ export function DataTablePagination<TData>({
 					<Button
 						variant="outline"
 						size="icon"
-						className="size-8"
+						className="size-11"
 						onClick={() => table.previousPage()}
 						disabled={!table.getCanPreviousPage()}
 					>
@@ -79,7 +77,7 @@ export function DataTablePagination<TData>({
 					<Button
 						variant="outline"
 						size="icon"
-						className="size-8"
+						className="size-11"
 						onClick={() => table.nextPage()}
 						disabled={!table.getCanNextPage()}
 					>
@@ -89,7 +87,7 @@ export function DataTablePagination<TData>({
 					<Button
 						variant="outline"
 						size="icon"
-						className="hidden size-8 lg:flex"
+						className="hidden size-11 lg:flex"
 						onClick={() => table.setPageIndex(table.getPageCount() - 1)}
 						disabled={!table.getCanNextPage()}
 					>

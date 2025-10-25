@@ -11,6 +11,7 @@
  */
 
 import { logger } from '@repo/shared/lib/frontend-logger'
+import { handleConflictError, isConflictError, withVersion, incrementVersion } from '@/lib/optimistic-locking'
 import type {
 	CreatePropertyInput,
 	UpdatePropertyInput
@@ -257,8 +258,9 @@ export function useCreateProperty() {
 				imageUrl: newProperty.imageUrl || null,
 			date_sold: null,
 			sale_price: null,
-			sale_notes: null,				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
+			sale_notes: null,			createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				version: 1 // 🔐 BUG FIX #2: Optimistic locking
 			}
 
 			// Optimistically update all caches
@@ -339,11 +341,17 @@ export function useUpdateProperty() {
 			id: string
 			data: UpdatePropertyInput
 		}) => {
+			// 🔐 BUG FIX #2: Get current version from cache for optimistic locking
+			const currentProperty = queryClient.getQueryData<Property>(
+				propertiesKeys.detail(id)
+			)
+			
 			const response = await apiClient<Property>(
 				`${API_BASE_URL}/api/v1/properties/${id}`,
 				{
 					method: 'PUT',
-					body: JSON.stringify(data)
+					// Use withVersion helper to include version in request
+					body: JSON.stringify(withVersion(data, currentProperty?.version))
 				}
 			)
 			return response
@@ -364,11 +372,9 @@ export function useUpdateProperty() {
 				queryKey: propertiesKeys.all
 			})
 
-			// Optimistically update detail cache
+			// Optimistically update detail cache (use incrementVersion helper)
 			queryClient.setQueryData<Property>(propertiesKeys.detail(id), old =>
-				old
-					? { ...old, ...data, updatedAt: new Date().toISOString() }
-					: undefined
+				old ? incrementVersion(old, data) : undefined
 			)
 
 			// Optimistically update list caches
@@ -380,7 +386,7 @@ export function useUpdateProperty() {
 						...old,
 						data: old.data.map(property =>
 							property.id === id
-								? { ...property, ...data, updatedAt: new Date().toISOString() }
+								? incrementVersion(property, data)
 								: property
 						)
 					}
@@ -403,10 +409,18 @@ export function useUpdateProperty() {
 				})
 			}
 
-			const errorMessage = err instanceof Error ? err.message : 'Failed to update property'
-			toast.error('Error', {
-				description: errorMessage
-			})
+			// 🔐 BUG FIX #2: Handle 409 Conflict using helper
+			if (isConflictError(err)) {
+				handleConflictError('property', id, queryClient, [
+					propertiesKeys.detail(id) as unknown as string[],
+					propertiesKeys.all as unknown as string[]
+				])
+			} else {
+				const errorMessage = err instanceof Error ? err.message : 'Failed to update property'
+				toast.error('Error', {
+					description: errorMessage
+				})
+			}
 
 			logger.error('Failed to update property', {
 				propertyId: id,
@@ -418,7 +432,7 @@ export function useUpdateProperty() {
 				description: `${data.name} has been updated successfully`
 			})
 
-			// Replace optimistic update with real data
+			// Replace optimistic update with real data (including correct version)
 			queryClient.setQueryData(propertiesKeys.detail(id), data)
 
 			queryClient.setQueriesData<{ data: Property[]; total: number }>(

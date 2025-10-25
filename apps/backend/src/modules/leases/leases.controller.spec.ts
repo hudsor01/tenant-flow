@@ -398,7 +398,8 @@ describe('LeasesController', () => {
 			expect(mockLeasesService.update).toHaveBeenCalledWith(
 				user.id,
 				leaseId,
-				updateRequest
+				updateRequest,
+				undefined // expectedVersion for optimistic locking
 			)
 			expect(result).toEqual(mockLease)
 		})
