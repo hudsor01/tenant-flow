@@ -163,9 +163,7 @@ export function ChartAreaInteractive({
 					<p
 						className={cn(
 							'flex items-center gap-1 text-lg font-semibold',
-							netProfit >= 0
-								? 'text-success'
-								: 'text-warning'
+							netProfit >= 0 ? 'text-success' : 'text-warning'
 						)}
 					>
 						{netProfit >= 0 ? (
@@ -181,9 +179,7 @@ export function ChartAreaInteractive({
 					<p
 						className={cn(
 							'text-lg font-semibold',
-							profitMargin >= 0
-								? 'text-success'
-								: 'text-warning'
+							profitMargin >= 0 ? 'text-success' : 'text-warning'
 						)}
 					>
 						{profitMargin.toFixed(1)}%
@@ -194,7 +190,7 @@ export function ChartAreaInteractive({
 			<CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
 				{isLoading ? (
 					<div className="flex items-center justify-center h-75">
-						<div className="animate-spin rounded-full size-8 border-b-2 border-primary"></div>
+						<div className="animate-spin rounded-full size-11 border-b-2 border-primary"></div>
 					</div>
 				) : error ? (
 					<div className="flex items-center justify-center h-75 text-muted-foreground">

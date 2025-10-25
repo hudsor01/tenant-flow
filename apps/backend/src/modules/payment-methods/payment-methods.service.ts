@@ -51,7 +51,12 @@ export class PaymentMethodsService {
 		if (resolvedEmail) {
 			customerParams.email = resolvedEmail
 		}
-		const customer = await this.stripe.customers.create(customerParams)
+		
+		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate customers
+		const idempotencyKey = `customer-create-${userId}-${Date.now()}`
+		const customer = await this.stripe.customers.create(customerParams, {
+			idempotencyKey
+		})
 
 		const { error: updateError } = await adminClient
 			.from('users')
@@ -108,7 +113,11 @@ export class PaymentMethodsService {
 			}
 		}
 
-		const setupIntent = await this.stripe.setupIntents.create(setupIntentParams)
+		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate setup intents
+		const idempotencyKey = `setup-intent-${userId}-${paymentMethodType}-${Date.now()}`
+		const setupIntent = await this.stripe.setupIntents.create(setupIntentParams, {
+			idempotencyKey
+		})
 
 		return {
 			clientSecret: setupIntent.client_secret ?? null,
