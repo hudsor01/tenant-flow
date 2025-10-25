@@ -6,6 +6,7 @@ import { PDFModule } from '../pdf/pdf.module'
 import { LeaseGeneratorController } from './lease-generator.controller'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
+import { TenantsModule } from '../tenants/tenants.module'
 
 /**
  * Leases module - Repository pattern implementation
@@ -14,7 +15,7 @@ import { LeasesService } from './leases.service'
 @Module({
 	imports: [
 		SupabaseModule,
-
+		TenantsModule,
 		PDFModule, // For lease PDF generation
 		SharedModule
 	],

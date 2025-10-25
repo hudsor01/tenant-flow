@@ -300,7 +300,15 @@ export class LeasesController {
 	) {
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
-		const lease = await this.leasesService.update(userId, id, updateRequest)
+
+		// 🔐 BUG FIX #2: Pass version for optimistic locking
+		const expectedVersion = (updateRequest as { version?: number }).version
+		const lease = await this.leasesService.update(
+			userId,
+			id,
+			updateRequest,
+			expectedVersion
+		)
 		if (!lease) {
 			throw new NotFoundException('Lease not found')
 		}

@@ -7,7 +7,7 @@
  * - Production mirror: Matches controller interface exactly
  */
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common'
 import type {
 	CreateUnitRequest,
 	UpdateUnitRequest
@@ -433,7 +433,8 @@ export class UnitsService {
 	async update(
 		userId: string,
 		unitId: string,
-		updateRequest: UpdateUnitRequest
+		updateRequest: UpdateUnitRequest,
+		expectedVersion?: number // 🔐 BUG FIX #2: Optimistic locking
 	): Promise<Unit | null> {
 		try {
 			if (!userId || !unitId) {
@@ -454,7 +455,7 @@ export class UnitsService {
 			const propertyIds = await this.getUserPropertyIds(userId)
 			if (propertyIds.length === 0) return null
 
-			const updateData = {
+			const updateData: Record<string, unknown> = {
 				...(updateRequest.bedrooms !== undefined && {
 					bedrooms: updateRequest.bedrooms
 				}),
@@ -474,17 +475,40 @@ export class UnitsService {
 				updatedAt: new Date().toISOString()
 			}
 
-			const { data, error } = await client
+			// 🔐 BUG FIX #2: Increment version for optimistic locking
+			if (expectedVersion !== undefined) {
+				updateData.version = expectedVersion + 1
+			}
+
+			// 🔐 BUG FIX #2: Add version check for optimistic locking
+			let query = client
 				.from('unit')
 				.update(updateData)
 				.eq('id', unitId)
 				.in('propertyId', propertyIds)
-				.select()
-				.single()
 
-			if (error) {
+			if (expectedVersion !== undefined) {
+				query = query.eq('version', expectedVersion)
+			}
+
+			const { data, error } = await query.select().single()
+
+			if (error || !data) {
+				// 🔐 BUG FIX #2: Detect optimistic locking conflict
+				if (error?.code === 'PGRST116' || !data) {
+					this.logger.warn('Optimistic locking conflict detected', {
+						userId,
+						unitId,
+						expectedVersion
+					})
+					throw new ConflictException(
+						'Unit was modified by another user. Please refresh and try again.'
+					)
+				}
+
+				// If we get here, there was a different error
 				this.logger.error('Failed to update unit in Supabase', {
-					error: error.message,
+					error: error,
 					userId,
 					unitId,
 					updateRequest

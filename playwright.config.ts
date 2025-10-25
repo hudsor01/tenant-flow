@@ -64,6 +64,7 @@ export default defineConfig({
 				const port = process.env.PLAYWRIGHT_PORT || '3000'
 				const url =
 					process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${port}`
+				console.log('projects', projects)
 				return {
 					// Forward the desired port via env so doppler/next receive it consistently.
 					command: `pnpm --filter @repo/frontend dev`,

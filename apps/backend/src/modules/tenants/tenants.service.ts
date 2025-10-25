@@ -5,7 +5,7 @@
  * Controller → Service → Supabase
  */
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	CreateTenantRequest,
@@ -112,10 +112,19 @@ export class TenantsService {
 				}
 			}
 
-			// Apply status filter - REMOVED: invitationStatus column doesn't exist in database
-			// if (query.invitationStatus) {
-			// 	queryBuilder = queryBuilder.eq('invitationStatus', query.invitationStatus)
-			// }
+			if (query.invitationStatus) {
+				const statusFilter = String(query.invitationStatus).toUpperCase()
+				const allowedInvitationStatuses = [
+					'PENDING',
+					'SENT',
+					'ACCEPTED',
+					'EXPIRED',
+					'REVOKED'
+				] as const
+				if (allowedInvitationStatuses.includes(statusFilter as typeof allowedInvitationStatuses[number])) {
+					queryBuilder = queryBuilder.eq('invitation_status', statusFilter as typeof allowedInvitationStatuses[number])
+				}
+			}
 
 			// Apply pagination
 			const limit = query.limit ? Number(query.limit) : 50
@@ -349,7 +358,10 @@ export class TenantsService {
 				phone: createRequest.phone || null,
 				emergencyContact: createRequest.emergencyContact || null,
 				name: createRequest.name || null,
-				avatarUrl: createRequest.avatarUrl || null
+				avatarUrl: createRequest.avatarUrl || null,
+				status: 'PENDING' as Database['public']['Enums']['TenantStatus'],
+				invitation_status:
+					'PENDING' as Database['public']['Enums']['invitation_status']
 			}
 
 			const { data, error } = await client
@@ -400,7 +412,8 @@ export class TenantsService {
 	async update(
 		userId: string,
 		tenantId: string,
-		updateRequest: UpdateTenantRequest
+		updateRequest: UpdateTenantRequest,
+		expectedVersion?: number // 🔐 BUG FIX #2: Optimistic locking
 	): Promise<Tenant | null> {
 		// Business logic: Validate inputs
 		if (!userId || !tenantId) {
@@ -424,6 +437,11 @@ export class TenantsService {
 				updatedAt: new Date().toISOString()
 			}
 
+			// 🔐 BUG FIX #2: Increment version for optimistic locking
+			if (expectedVersion !== undefined) {
+				updateData.version = expectedVersion + 1
+			}
+
 			if (updateRequest.firstName !== undefined)
 				updateData.firstName = updateRequest.firstName
 			if (updateRequest.lastName !== undefined)
@@ -433,31 +451,58 @@ export class TenantsService {
 			if (updateRequest.phone !== undefined)
 				updateData.phone = updateRequest.phone
 
-			const { data, error } = await client
+			// 🔐 BUG FIX #2: Add version check for optimistic locking
+			let query = client
 				.from('tenant')
 				.update(updateData)
 				.eq('id', tenantId)
 				.eq('userId', userId)
-				.select()
-				.single()
 
-			if (error) {
+			// Add version check if expectedVersion provided
+			if (expectedVersion !== undefined) {
+				query = query.eq('version', expectedVersion)
+			}
+
+			const { data, error } = await query.select().single()
+
+			if (error || !data) {
+				// 🔐 BUG FIX #2: Detect optimistic locking conflict
+				if (error?.code === 'PGRST116') {
+					// PGRST116 = 0 rows affected (version mismatch)
+					this.logger.warn('Optimistic locking conflict detected', {
+						userId,
+						tenantId,
+						expectedVersion
+					})
+					throw new ConflictException(
+						'Tenant was modified by another user. Please refresh and try again.'
+					)
+				}
+
+				// Other database errors
 				this.logger.error('Failed to update tenant in Supabase', {
-					error: error.message,
+					error: error ? String(error) : 'Unknown error',
 					userId,
 					tenantId
 				})
-				return null
+				throw new BadRequestException('Failed to update tenant')
 			}
 
 			return data as Tenant
 		} catch (error) {
+			// Re-throw ConflictException as-is
+			if (error instanceof ConflictException) {
+				throw error
+			}
+
 			this.logger.error('Tenants service failed to update tenant', {
 				error: error instanceof Error ? error.message : String(error),
 				userId,
 				tenantId
 			})
-			return null
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to update tenant'
+			)
 		}
 	}
 
@@ -635,13 +680,15 @@ export class TenantsService {
 	async sendTenantInvitation(
 		userId: string,
 		tenantId: string,
-		propertyId?: string
+		propertyId?: string,
+		leaseId?: string
 	): Promise<Record<string, unknown>> {
 		try {
 			this.logger.log('Sending tenant invitation', {
 				userId,
 				tenantId,
-				propertyId
+				propertyId,
+				leaseId
 			})
 
 			// Business logic: Verify tenant exists and belongs to user
@@ -680,7 +727,8 @@ export class TenantsService {
 						'SENT' as Database['public']['Enums']['invitation_status'],
 					invitation_token: invitationToken,
 					invitation_sent_at: now.toISOString(),
-					invitation_expires_at: expiresAt.toISOString()
+					invitation_expires_at: expiresAt.toISOString(),
+					lease_id: leaseId
 				})
 				.eq('id', tenantId)
 				.eq('userId', userId)
@@ -701,7 +749,17 @@ export class TenantsService {
 			let propertyName: string | undefined
 			let unitNumber: string | undefined
 
-			if (propertyId) {
+			if (leaseId) {
+				const { data: lease } = await client
+					.from('lease')
+					.select('unit(unitNumber, property(name))')
+					.eq('id', leaseId)
+					.single()
+				if (lease) {
+					propertyName = lease.unit?.property?.name
+					unitNumber = lease.unit?.unitNumber
+				}
+			} else if (propertyId) {
 				const { data: property } = await client
 					.from('property')
 					.select('name')
@@ -745,6 +803,355 @@ export class TenantsService {
 			}
 
 			throw new BadRequestException('Failed to send tenant invitation')
+		}
+	}
+
+	/**
+	 * ✅ NEW: Send tenant invitation via Supabase Auth (Phase 3.1)
+	 * Uses Supabase Auth's built-in invitation system instead of custom tokens
+	 * 
+	 * @param userId - Owner user ID
+	 * @param tenantId - Tenant ID to invite
+	 * @param propertyId - Optional property ID for context
+	 * @param leaseId - Optional lease ID for context
+	 * @returns Invitation result with auth user ID
+	 */
+	async sendTenantInvitationV2(
+		userId: string,
+		tenantId: string,
+		propertyId?: string,
+		leaseId?: string
+	): Promise<{
+		success: boolean
+		authUserId?: string
+		message: string
+	}> {
+		try {
+			this.logger.log('Sending tenant invitation via Supabase Auth (V2)', {
+				userId,
+				tenantId,
+				propertyId,
+				leaseId
+			})
+
+			// 1. Verify tenant exists and belongs to user
+			const tenant = await this.findOne(userId, tenantId)
+			if (!tenant) {
+				throw new BadRequestException('Tenant not found or access denied')
+			}
+
+			// 2. Check if already has auth user linked
+			if (tenant.auth_user_id) {
+				this.logger.warn('Tenant already has auth user linked', {
+					tenantId,
+					authUserId: tenant.auth_user_id
+				})
+				return {
+					success: false,
+					message: 'Tenant already has an account',
+					authUserId: tenant.auth_user_id
+				}
+			}
+
+			// 3. Get property/unit info for email metadata
+			const client = this.supabase.getAdminClient()
+			let propertyName: string | undefined
+			let unitNumber: string | undefined
+
+			if (leaseId) {
+				const { data: lease } = await client
+					.from('lease')
+					.select('unit(unitNumber, property(name))')
+					.eq('id', leaseId)
+					.single()
+				if (lease) {
+					propertyName = lease.unit?.property?.name
+					unitNumber = lease.unit?.unitNumber
+				}
+			} else if (propertyId) {
+				const { data: property } = await client
+					.from('property')
+					.select('name')
+					.eq('id', propertyId)
+					.single()
+				propertyName = property?.name
+			}
+
+			// 4. Send invitation via Supabase Auth Admin API
+			const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
+			const { data: authUser, error: authError } = await client.auth.admin.inviteUserByEmail(
+				tenant.email,
+				{
+					data: {
+						tenantId,
+						propertyId,
+						leaseId,
+						firstName: tenant.firstName,
+						lastName: tenant.lastName,
+						propertyName,
+						unitNumber,
+						role: 'tenant' // Custom metadata for role-based access
+					},
+					redirectTo: `${frontendUrl}/tenant/onboarding`
+				}
+			)
+
+			if (authError || !authUser?.user) {
+				this.logger.error('Failed to send Supabase Auth invitation', {
+					error: authError?.message,
+					tenantEmail: tenant.email
+				})
+				throw new BadRequestException(
+					`Failed to send invitation: ${authError?.message || 'Unknown error'}`
+				)
+			}
+
+			// 5. Link tenant record to auth user
+			const { error: updateError } = await client
+				.from('tenant')
+				.update({
+					auth_user_id: authUser.user.id,
+					invitation_status: 'SENT' as Database['public']['Enums']['invitation_status'],
+					invitation_sent_at: new Date().toISOString()
+				})
+				.eq('id', tenantId)
+				.eq('userId', userId)
+
+			if (updateError) {
+				this.logger.error('Failed to link tenant to auth user', {
+					error: updateError.message,
+					tenantId,
+					authUserId: authUser.user.id
+				})
+				throw new BadRequestException('Failed to link tenant to auth user')
+			}
+
+			this.logger.log('Tenant invitation sent successfully via Supabase Auth', {
+				tenantId,
+				authUserId: authUser.user.id,
+				tenantEmail: tenant.email
+			})
+
+			return {
+				success: true,
+				authUserId: authUser.user.id,
+				message: 'Invitation sent successfully'
+			}
+		} catch (error) {
+			this.logger.error('Failed to send tenant invitation V2', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				tenantId,
+				propertyId,
+				leaseId
+			})
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
+			throw new BadRequestException('Failed to send tenant invitation')
+		}
+	}
+
+	/**
+	 * ✅ NEW: Complete tenant invitation with lease creation (Industry Standard)
+	 * Creates tenant + lease + sends Supabase Auth invitation in one atomic operation
+	 * Based on Buildium/AppFolio/TurboTenant best practices
+	 */
+	async inviteTenantWithLease(
+		userId: string,
+		tenantData: {
+			email: string
+			firstName: string
+			lastName: string
+			phone?: string
+		},
+		leaseData: {
+			propertyId: string
+			unitId: string
+			rentAmount: number
+			securityDeposit: number
+			startDate: string
+			endDate: string
+		}
+	): Promise<{
+		success: boolean
+		tenantId: string
+		leaseId: string
+		authUserId: string
+		message: string
+	}> {
+		try {
+			this.logger.log('Creating tenant with lease and sending invitation', {
+				userId,
+				tenantEmail: tenantData.email,
+				propertyId: leaseData.propertyId,
+				unitId: leaseData.unitId
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			// 1. Create tenant record
+			const { data: tenant, error: tenantError } = await client
+				.from('tenant')
+				.insert({
+					email: tenantData.email,
+					firstName: tenantData.firstName,
+					lastName: tenantData.lastName,
+					phone: tenantData.phone ?? null,
+					userId,
+					status: 'PENDING' as Database['public']['Enums']['TenantStatus'],
+					invitation_status: 'PENDING' as Database['public']['Enums']['invitation_status']
+				})
+				.select()
+				.single()
+
+			if (tenantError || !tenant) {
+				this.logger.error('Failed to create tenant', {
+					error: tenantError?.message
+				})
+				throw new BadRequestException(
+					`Failed to create tenant: ${tenantError?.message || 'Unknown error'}`
+				)
+			}
+
+			this.logger.log('Tenant created successfully', { tenantId: tenant.id })
+
+			// 2. Create lease record
+			const { data: lease, error: leaseError } = await client
+				.from('lease')
+				.insert({
+					tenantId: tenant.id,
+					propertyId: leaseData.propertyId,
+					unitId: leaseData.unitId,
+					rentAmount: leaseData.rentAmount,
+					monthlyRent: leaseData.rentAmount,
+					securityDeposit: leaseData.securityDeposit,
+					startDate: leaseData.startDate,
+					endDate: leaseData.endDate,
+					status: 'PENDING' as Database['public']['Enums']['LeaseStatus'] // Active after signature
+				})
+				.select()
+				.single()
+
+			if (leaseError || !lease) {
+				// Rollback: Delete tenant if lease creation fails
+				await client.from('tenant').delete().eq('id', tenant.id)
+
+				this.logger.error('Failed to create lease, rolled back tenant', {
+					error: leaseError?.message,
+					tenantId: tenant.id
+				})
+				throw new BadRequestException(
+					`Failed to create lease: ${leaseError?.message || 'Unknown error'}`
+				)
+			}
+
+			this.logger.log('Lease created successfully', { leaseId: lease.id })
+
+			// 3. Get property/unit info for email metadata
+			const { data: property } = await client
+				.from('property')
+				.select('name')
+				.eq('id', leaseData.propertyId)
+				.single()
+
+			const { data: unit } = await client
+				.from('unit')
+				.select('unitNumber')
+				.eq('id', leaseData.unitId)
+				.single()
+
+			const propertyName = property?.name || 'Your Property'
+			const unitNumber = unit?.unitNumber
+
+			// 4. Send invitation via Supabase Auth Admin API
+			const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
+			const { data: authUser, error: authError } = await client.auth.admin.inviteUserByEmail(
+				tenant.email,
+				{
+					data: {
+						tenantId: tenant.id,
+						leaseId: lease.id,
+						propertyId: leaseData.propertyId,
+						unitId: leaseData.unitId,
+						firstName: tenantData.firstName,
+						lastName: tenantData.lastName,
+						propertyName,
+						unitNumber,
+						rentAmount: leaseData.rentAmount,
+						startDate: leaseData.startDate,
+						endDate: leaseData.endDate,
+						role: 'tenant'
+					},
+					redirectTo: `${frontendUrl}/auth/confirm`
+				}
+			)
+
+			if (authError || !authUser?.user) {
+				// Rollback: Delete tenant and lease if invitation fails
+				await client.from('lease').delete().eq('id', lease.id)
+				await client.from('tenant').delete().eq('id', tenant.id)
+
+				this.logger.error('Failed to send Supabase Auth invitation, rolled back', {
+					error: authError?.message,
+					tenantEmail: tenant.email
+				})
+				throw new BadRequestException(
+					`Failed to send invitation: ${authError?.message || 'Unknown error'}`
+				)
+			}
+
+			this.logger.log('Supabase Auth invitation sent successfully', {
+				authUserId: authUser.user.id
+			})
+
+			// 5. Link tenant record to auth user
+			const { error: updateError } = await client
+				.from('tenant')
+				.update({
+					auth_user_id: authUser.user.id,
+					invitation_status: 'SENT' as Database['public']['Enums']['invitation_status'],
+					invitation_sent_at: new Date().toISOString()
+				})
+				.eq('id', tenant.id)
+
+			if (updateError) {
+				this.logger.error('Failed to link tenant to auth user', {
+					error: updateError.message,
+					tenantId: tenant.id,
+					authUserId: authUser.user.id
+				})
+				throw new BadRequestException('Failed to link tenant to auth user')
+			}
+
+			this.logger.log('Tenant invitation complete', {
+				tenantId: tenant.id,
+				leaseId: lease.id,
+				authUserId: authUser.user.id,
+				tenantEmail: tenant.email
+			})
+
+			return {
+				success: true,
+				tenantId: tenant.id,
+				leaseId: lease.id,
+				authUserId: authUser.user.id,
+				message: 'Tenant created and invitation sent successfully'
+			}
+		} catch (error) {
+			this.logger.error('Failed to invite tenant with lease', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				tenantEmail: tenantData.email
+			})
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
+			throw new BadRequestException('Failed to invite tenant with lease')
 		}
 	}
 
@@ -876,6 +1283,66 @@ export class TenantsService {
 		}
 	}
 
+	async acceptInvitationToken(token: string): Promise<{
+		success: boolean
+		tenantId?: string
+		acceptedAt?: string
+		alreadyAccepted?: boolean
+	}> {
+		if (!token || token.length < 12) {
+			throw new BadRequestException('Invalid invitation token')
+		}
+
+		const client = this.supabase.getAdminClient()
+		const { data: tenant, error } = await client
+			.from('tenant')
+			.select('id, invitation_status, invitation_expires_at')
+			.eq('invitation_token', token)
+			.single()
+
+		if (error || !tenant) {
+			throw new BadRequestException('Invitation not found')
+		}
+
+		if (tenant.invitation_status === 'ACCEPTED') {
+			return {
+				success: true,
+				tenantId: tenant.id,
+				alreadyAccepted: true
+			}
+		}
+
+		const expiresAt = tenant.invitation_expires_at
+			? new Date(tenant.invitation_expires_at)
+			: null
+		if (expiresAt && expiresAt.getTime() < Date.now()) {
+			throw new BadRequestException('Invitation token has expired')
+		}
+
+		const acceptedAt = new Date().toISOString()
+		const { data: updatedTenant, error: updateError } = await client
+			.from('tenant')
+			.update({
+				invitation_status:
+					'ACCEPTED' as Database['public']['Enums']['invitation_status'],
+				invitation_accepted_at: acceptedAt,
+				status: 'ACTIVE' as Database['public']['Enums']['TenantStatus']
+			})
+			.eq('id', tenant.id)
+			.select('id, invitation_accepted_at')
+			.single()
+
+		if (updateError || !updatedTenant) {
+			throw new BadRequestException('Failed to accept invitation')
+		}
+
+		return {
+			success: true,
+			tenantId: updatedTenant.id,
+			acceptedAt: updatedTenant.invitation_accepted_at || acceptedAt
+		}
+	}
+
 	/**
 	 * Update tenant emergency contact
 	 */
@@ -972,6 +1439,79 @@ export class TenantsService {
 			}
 
 			throw new BadRequestException('Failed to remove emergency contact')
+		}
+	}
+
+	/**
+	 * ✅ NEW: Activate tenant from Supabase Auth user ID (Phase 3.1)
+	 * Called from frontend after successful invitation acceptance
+	 * Calls database function to update tenant status
+	 */
+	async activateTenantFromAuthUser(authUserId: string): Promise<{
+		success: boolean
+		tenantId?: string
+		message: string
+	}> {
+		try {
+			this.logger.log('Activating tenant from auth user', { authUserId })
+
+			const client = this.supabase.getAdminClient()
+
+			// Call database function to activate tenant
+			const { data, error } = await client.rpc('activate_tenant_from_auth_user', {
+				p_auth_user_id: authUserId
+			})
+
+			if (error) {
+				this.logger.error('Database function failed', {
+					error: error.message,
+					authUserId
+				})
+				throw new BadRequestException('Failed to activate tenant')
+			}
+
+			// Database function returns { tenant_id, activated }
+			const result = data as unknown as Array<{
+				tenant_id: string
+				activated: boolean
+			}>
+
+			if (!result || result.length === 0) {
+				return {
+					success: false,
+					message: 'Tenant not found'
+				}
+			}
+
+			const firstResult = result[0]
+			if (!firstResult || !firstResult.activated) {
+				return {
+					success: false,
+					message: 'Tenant not found or already activated'
+				}
+			}
+
+			this.logger.log('Tenant activated successfully', {
+				tenantId: firstResult.tenant_id,
+				authUserId
+			})
+
+			return {
+				success: true,
+				tenantId: firstResult.tenant_id,
+				message: 'Tenant activated successfully'
+			}
+		} catch (error) {
+			this.logger.error('Failed to activate tenant', {
+				error: error instanceof Error ? error.message : String(error),
+				authUserId
+			})
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
+			throw new BadRequestException('Failed to activate tenant')
 		}
 	}
 

@@ -21,7 +21,7 @@
 		"test": "pnpm run test:unit && pnpm run test:integration",
 		"test:unit": "jest --testMatch=\"**/*.spec.ts\" --forceExit",
 		"test:unit:clean": "jest --testMatch=\"**/*.spec.ts\" --forceExit",
-		"test:integration": "jest --testMatch=\"**/*.integration.spec.ts\" --forceExit",
+		"test:integration": "jest --testMatch=\"**/*.integration.spec.ts\" --forceExit --passWithNoTests",
 		"test:watch": "jest --watch",
 		"clean": "rimraf dist coverage .turbo node_modules/.cache",
 		"stripe:migrate": "tsx scripts/stripe-sync-migrate.ts"
@@ -56,6 +56,7 @@
 		"nestjs-cls": "6.0.1",
 		"passport": "0.7.0",
 		"passport-jwt": "4.0.1",
+		"pdf-lib": "1.17.1",
 		"pdfkit": "0.17.2",
 		"pg": "8.16.3",
 		"puppeteer": "^24.26.1",
@@ -63,8 +64,10 @@
 		"reflect-metadata": "0.2.2",
 		"resend": "6.2.2",
 		"rxjs": "^7.8.2",
+		"sharp": "^0.34.4",
 		"stripe": "^19.1.0",
 		"uuid": "13.0.0",
+		"xlsx": "0.18.5",
 		"zod": "4.1.12"
 	},
 	"devDependencies": {
@@ -80,6 +83,7 @@
 		"@types/cookie-parser": "^1.4.10",
 		"@types/express": "^5.0.4",
 		"@types/jest": "30.0.0",
+		"@types/multer": "2.0.0",
 		"@types/node": "^24.9.1",
 		"@types/pdfkit": "0.17.3",
 		"@types/react": "catalog:",

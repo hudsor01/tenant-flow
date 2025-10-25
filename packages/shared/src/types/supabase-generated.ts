@@ -82,6 +82,39 @@ export type Database = {
           },
         ]
       }
+      auth_webhook_log: {
+        Row: {
+          created_at: string | null
+          error: string | null
+          event_type: string
+          id: string
+          payload: Json
+          processed: boolean | null
+          processed_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error?: string | null
+          event_type: string
+          id?: string
+          payload: Json
+          processed?: boolean | null
+          processed_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed?: boolean | null
+          processed_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       blog_article: {
         Row: {
           authorFirstName: string | null
@@ -468,6 +501,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      documents: {
+        Row: {
+          compressed_size: number
+          compression_ratio: number | null
+          created_at: string | null
+          document_type: string
+          entity_id: string
+          entity_type: string
+          file_name: string
+          file_path: string
+          id: string
+          mime_type: string
+          original_size: number
+          retention_until: string
+          soft_deleted_at: string | null
+          updated_at: string | null
+          uploaded_at: string | null
+          user_id: string
+          version: number
+        }
+        Insert: {
+          compressed_size: number
+          compression_ratio?: number | null
+          created_at?: string | null
+          document_type: string
+          entity_id: string
+          entity_type: string
+          file_name: string
+          file_path: string
+          id?: string
+          mime_type: string
+          original_size: number
+          retention_until: string
+          soft_deleted_at?: string | null
+          updated_at?: string | null
+          uploaded_at?: string | null
+          user_id: string
+          version?: number
+        }
+        Update: {
+          compressed_size?: number
+          compression_ratio?: number | null
+          created_at?: string | null
+          document_type?: string
+          entity_id?: string
+          entity_type?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          mime_type?: string
+          original_size?: number
+          retention_until?: string
+          soft_deleted_at?: string | null
+          updated_at?: string | null
+          uploaded_at?: string | null
+          user_id?: string
+          version?: number
+        }
+        Relationships: []
       }
       expense: {
         Row: {
@@ -923,10 +1016,13 @@ export type Database = {
           id: string
           lateFeeAmount: number | null
           lateFeePercentage: number | null
+          lease_document_url: string | null
           monthlyRent: number | null
           propertyId: string | null
           rentAmount: number
           securityDeposit: number
+          signature: string | null
+          signed_at: string | null
           startDate: string
           status: Database["public"]["Enums"]["LeaseStatus"]
           stripe_subscription_id: string | null
@@ -934,6 +1030,7 @@ export type Database = {
           terms: string | null
           unitId: string
           updatedAt: string
+          version: number
         }
         Insert: {
           createdAt?: string
@@ -942,10 +1039,13 @@ export type Database = {
           id?: string
           lateFeeAmount?: number | null
           lateFeePercentage?: number | null
+          lease_document_url?: string | null
           monthlyRent?: number | null
           propertyId?: string | null
           rentAmount: number
           securityDeposit: number
+          signature?: string | null
+          signed_at?: string | null
           startDate: string
           status?: Database["public"]["Enums"]["LeaseStatus"]
           stripe_subscription_id?: string | null
@@ -953,6 +1053,7 @@ export type Database = {
           terms?: string | null
           unitId: string
           updatedAt?: string
+          version?: number
         }
         Update: {
           createdAt?: string
@@ -961,10 +1062,13 @@ export type Database = {
           id?: string
           lateFeeAmount?: number | null
           lateFeePercentage?: number | null
+          lease_document_url?: string | null
           monthlyRent?: number | null
           propertyId?: string | null
           rentAmount?: number
           securityDeposit?: number
+          signature?: string | null
+          signed_at?: string | null
           startDate?: string
           status?: Database["public"]["Enums"]["LeaseStatus"]
           stripe_subscription_id?: string | null
@@ -972,6 +1076,7 @@ export type Database = {
           terms?: string | null
           unitId?: string
           updatedAt?: string
+          version?: number
         }
         Relationships: [
           {
@@ -1080,6 +1185,7 @@ export type Database = {
           title: string
           unitId: string
           updatedAt: string
+          version: number
         }
         Insert: {
           actualCost?: number | null
@@ -1101,6 +1207,7 @@ export type Database = {
           title: string
           unitId: string
           updatedAt?: string
+          version?: number
         }
         Update: {
           actualCost?: number | null
@@ -1122,6 +1229,7 @@ export type Database = {
           title?: string
           unitId?: string
           updatedAt?: string
+          version?: number
         }
         Relationships: [
           {
@@ -1281,6 +1389,7 @@ export type Database = {
           type: string
           updatedAt: string
           userId: string
+          version: number
         }
         Insert: {
           actionUrl?: string | null
@@ -1300,6 +1409,7 @@ export type Database = {
           type: string
           updatedAt?: string
           userId: string
+          version?: number
         }
         Update: {
           actionUrl?: string | null
@@ -1319,6 +1429,7 @@ export type Database = {
           type?: string
           updatedAt?: string
           userId?: string
+          version?: number
         }
         Relationships: [
           {
@@ -1547,6 +1658,7 @@ export type Database = {
           paidAt: string | null
           state: string
           status: string | null
+          version: number
         }
         Insert: {
           amount: number
@@ -1559,6 +1671,7 @@ export type Database = {
           paidAt?: string | null
           state: string
           status?: string | null
+          version?: number
         }
         Update: {
           amount?: number
@@ -1571,6 +1684,7 @@ export type Database = {
           paidAt?: string | null
           state?: string
           status?: string | null
+          version?: number
         }
         Relationships: [
           {
@@ -1625,6 +1739,7 @@ export type Database = {
           full_name: string | null
           id: string
           updatedAt: string | null
+          version: number
         }
         Insert: {
           company?: string | null
@@ -1632,6 +1747,7 @@ export type Database = {
           full_name?: string | null
           id: string
           updatedAt?: string | null
+          version?: number
         }
         Update: {
           company?: string | null
@@ -1639,6 +1755,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           updatedAt?: string | null
+          version?: number
         }
         Relationships: []
       }
@@ -1659,6 +1776,7 @@ export type Database = {
           state: string
           status: Database["public"]["Enums"]["PropertyStatus"]
           updatedAt: string
+          version: number
           zipCode: string
         }
         Insert: {
@@ -1677,6 +1795,7 @@ export type Database = {
           state: string
           status?: Database["public"]["Enums"]["PropertyStatus"]
           updatedAt?: string
+          version?: number
           zipCode: string
         }
         Update: {
@@ -1695,6 +1814,7 @@ export type Database = {
           state?: string
           status?: Database["public"]["Enums"]["PropertyStatus"]
           updatedAt?: string
+          version?: number
           zipCode?: string
         }
         Relationships: [
@@ -1887,6 +2007,7 @@ export type Database = {
           stripePaymentIntentId: string | null
           subscriptionId: string | null
           tenantId: string
+          version: number
         }
         Insert: {
           amount: number
@@ -1909,6 +2030,7 @@ export type Database = {
           stripePaymentIntentId?: string | null
           subscriptionId?: string | null
           tenantId: string
+          version?: number
         }
         Update: {
           amount?: number
@@ -1931,6 +2053,7 @@ export type Database = {
           stripePaymentIntentId?: string | null
           subscriptionId?: string | null
           tenantId?: string
+          version?: number
         }
         Relationships: [
           {
@@ -2066,6 +2189,7 @@ export type Database = {
           stripeSubscriptionId: string
           tenantId: string
           updatedAt: string | null
+          version: number
         }
         Insert: {
           amount: number
@@ -2084,6 +2208,7 @@ export type Database = {
           stripeSubscriptionId: string
           tenantId: string
           updatedAt?: string | null
+          version?: number
         }
         Update: {
           amount?: number
@@ -2102,6 +2227,7 @@ export type Database = {
           stripeSubscriptionId?: string
           tenantId?: string
           updatedAt?: string | null
+          version?: number
         }
         Relationships: [
           {
@@ -2368,6 +2494,30 @@ export type Database = {
           },
         ]
       }
+      stripe_processed_events: {
+        Row: {
+          created_at: string
+          event_id: string
+          event_type: string
+          id: string
+          processed_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          event_type: string
+          id?: string
+          processed_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          event_type?: string
+          id?: string
+          processed_at?: string
+        }
+        Relationships: []
+      }
       stripe_products: {
         Row: {
           active: boolean | null
@@ -2558,6 +2708,11 @@ export type Database = {
       tenant: {
         Row: {
           archived_at: string | null
+          auth_user_id: string | null
+          autopay_configured_at: string | null
+          autopay_day: number | null
+          autopay_enabled: boolean | null
+          autopay_frequency: string | null
           avatarUrl: string | null
           createdAt: string
           email: string
@@ -2575,14 +2730,21 @@ export type Database = {
           move_out_date: string | null
           move_out_reason: string | null
           name: string | null
+          payment_method_added_at: string | null
           phone: string | null
           status: Database["public"]["Enums"]["TenantStatus"]
           stripe_customer_id: string | null
           updatedAt: string
           userId: string | null
+          version: number
         }
         Insert: {
           archived_at?: string | null
+          auth_user_id?: string | null
+          autopay_configured_at?: string | null
+          autopay_day?: number | null
+          autopay_enabled?: boolean | null
+          autopay_frequency?: string | null
           avatarUrl?: string | null
           createdAt?: string
           email: string
@@ -2600,14 +2762,21 @@ export type Database = {
           move_out_date?: string | null
           move_out_reason?: string | null
           name?: string | null
+          payment_method_added_at?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["TenantStatus"]
           stripe_customer_id?: string | null
           updatedAt?: string
           userId?: string | null
+          version?: number
         }
         Update: {
           archived_at?: string | null
+          auth_user_id?: string | null
+          autopay_configured_at?: string | null
+          autopay_day?: number | null
+          autopay_enabled?: boolean | null
+          autopay_frequency?: string | null
           avatarUrl?: string | null
           createdAt?: string
           email?: string
@@ -2625,11 +2794,13 @@ export type Database = {
           move_out_date?: string | null
           move_out_reason?: string | null
           name?: string | null
+          payment_method_added_at?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["TenantStatus"]
           stripe_customer_id?: string | null
           updatedAt?: string
           userId?: string | null
+          version?: number
         }
         Relationships: [
           {
@@ -2707,6 +2878,7 @@ export type Database = {
           status: Database["public"]["Enums"]["UnitStatus"]
           unitNumber: string
           updatedAt: string
+          version: number
         }
         Insert: {
           bathrooms?: number
@@ -2720,6 +2892,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["UnitStatus"]
           unitNumber: string
           updatedAt?: string
+          version?: number
         }
         Update: {
           bathrooms?: number
@@ -2733,6 +2906,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["UnitStatus"]
           unitNumber?: string
           updatedAt?: string
+          version?: number
         }
         Relationships: [
           {
@@ -2974,6 +3148,7 @@ export type Database = {
           subscriptionTier: string | null
           supabaseId: string
           updatedAt: string
+          version: number
         }
         Insert: {
           avatarUrl?: string | null
@@ -2995,6 +3170,7 @@ export type Database = {
           subscriptionTier?: string | null
           supabaseId: string
           updatedAt?: string
+          version?: number
         }
         Update: {
           avatarUrl?: string | null
@@ -3016,6 +3192,7 @@ export type Database = {
           subscriptionTier?: string | null
           supabaseId?: string
           updatedAt?: string
+          version?: number
         }
         Relationships: []
       }
@@ -3096,6 +3273,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_tenant_from_auth_user: {
+        Args: { p_auth_user_id: string }
+        Returns: {
+          activated: boolean
+          tenant_id: string
+        }[]
+      }
       auth_get_user_by_email: {
         Args: { p_email: string }
         Returns: {
@@ -3261,6 +3445,7 @@ export type Database = {
         Returns: Json
       }
       check_event_processed: { Args: { p_event_id: string }; Returns: boolean }
+      check_lease_expiry_notifications: { Args: never; Returns: undefined }
       check_user_feature_access: {
         Args: { p_feature: string; p_user_id: string }
         Returns: boolean

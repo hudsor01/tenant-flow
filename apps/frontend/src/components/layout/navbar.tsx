@@ -210,7 +210,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 						onMouseLeave={() => setLogoHover(false)}
 						className="flex items-center space-x-2"
 					>
-						<div className="size-8 rounded-lg overflow-hidden bg-background border border-border flex items-center justify-center">
+						<div className="size-11 rounded-lg overflow-hidden bg-background border border-border flex items-center justify-center">
 							<Image
 								src="/tenant-flow-logo.png"
 								alt="TenantFlow"

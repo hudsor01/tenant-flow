@@ -168,7 +168,14 @@ export class UnitsController {
 		// Modern 2025 pattern: Direct Supabase validation
 		const userId = req.user.id
 
-		const unit = await this.unitsService.update(userId, id, updateUnitRequest)
+		// 🔐 BUG FIX #2: Pass version for optimistic locking
+		const expectedVersion = (updateUnitRequest as { version?: number }).version
+		const unit = await this.unitsService.update(
+			userId,
+			id,
+			updateUnitRequest,
+			expectedVersion
+		)
 		if (!unit) {
 			throw new NotFoundException('Unit not found')
 		}
