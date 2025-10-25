@@ -15,7 +15,7 @@
  */
 
 import { test, expect, type Page } from '@playwright/test'
-import { loginAsOwner } from '../auth-helpers'
+import { loginAsOwner } from '../auth.setup'
 
 // Ensure baseURL is configured for navigation
 test.use({
