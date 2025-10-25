@@ -153,3 +153,63 @@ export const DEFAULT_LEASE: Lease = {
 	updatedAt: '2024-01-01T00:00:00Z',
 	version: 1 // 🔐 BUG FIX #2: Optimistic locking
 }
+
+
+/**
+ * Default Unit - Use with spread operator for overrides
+ *
+ * @example
+ * const unit: Unit = {
+ *   ...DEFAULT_UNIT,
+ *   name: 'Apt 2B',
+ *   status: 'OCCUPIED'
+ * }
+ */
+export const DEFAULT_UNIT = {
+	id: 'unit-1',
+	propertyId: 'property-1',
+	name: 'Apt 101',
+	bedrooms: 2,
+	bathrooms: 1,
+	squareFeet: 850,
+	status: 'AVAILABLE' as const,
+	monthlyRent: 1500,
+	createdAt: '2024-01-01T00:00:00Z',
+	updatedAt: '2024-01-01T00:00:00Z'
+}
+
+/**
+ * Default Maintenance Request - Use with spread operator for overrides
+ *
+ * @example
+ * const urgentRequest = {
+ *   ...DEFAULT_MAINTENANCE_REQUEST,
+ *   priority: 'EMERGENCY',
+ *   status: 'IN_PROGRESS'
+ * }
+ */
+export const DEFAULT_MAINTENANCE_REQUEST = {
+	id: 'maintenance-1',
+	title: 'Leaky faucet in kitchen',
+	description: 'Kitchen faucet has been dripping for the past week',
+	status: 'OPEN' as const,
+	priority: 'MEDIUM' as const,
+	category: 'PLUMBING',
+	unitId: 'unit-1',
+	propertyId: 'property-1',
+	requestedBy: 'tenant-1',
+	assignedTo: null,
+	contactPhone: '(555) 123-4567',
+	allowEntry: true,
+	estimatedCost: 150,
+	actualCost: null,
+	photos: [],
+	notes: null,
+	preferredDate: null,
+	completedAt: null,
+	createdAt: '2024-01-01T00:00:00Z',
+	updatedAt: '2024-01-01T00:00:00Z',
+	version: 1,
+	property: DEFAULT_PROPERTY,
+	unit: DEFAULT_UNIT
+}

@@ -29,7 +29,7 @@ export const APP_CONFIG = {
 		URL: process.env.SUPABASE_URL,
 		SERVICE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
 		JWT_SECRET: process.env.SUPABASE_JWT_SECRET,
-		ANON_KEY: process.env.SUPABASE_ANON_KEY
+		ANON_KEY: process.env.SUPABASE_PUBLISHABLE_KEY
 	},
 
 	// Stripe Configuration

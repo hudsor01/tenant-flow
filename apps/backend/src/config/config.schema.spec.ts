@@ -20,7 +20,7 @@ describe('Configuration Schema Validation', () => {
 				SUPABASE_URL: 'https://project.supabase.co',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123'
 			}
@@ -38,7 +38,7 @@ describe('Configuration Schema Validation', () => {
 				SUPABASE_URL: 'https://project.supabase.co',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123'
 			}
@@ -53,7 +53,7 @@ describe('Configuration Schema Validation', () => {
 				SUPABASE_URL: 'https://project.supabase.co',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123'
 			}
@@ -68,7 +68,7 @@ describe('Configuration Schema Validation', () => {
 				SUPABASE_URL: 'https://project.supabase.co',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'short',
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123'
 			}
@@ -85,7 +85,7 @@ describe('Configuration Schema Validation', () => {
 				SUPABASE_URL: 'not-a-valid-url',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123'
 			}
@@ -103,7 +103,7 @@ describe('Configuration Schema Validation', () => {
 				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123'
 			}
@@ -130,7 +130,7 @@ describe('Configuration Schema Validation', () => {
 				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				NODE_ENV: 'development',
@@ -161,7 +161,7 @@ describe('Configuration Schema Validation', () => {
 				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				PORT: '8080'
@@ -180,7 +180,7 @@ describe('Configuration Schema Validation', () => {
 				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				ENABLE_METRICS: 'true',
@@ -204,7 +204,7 @@ describe('Configuration Schema Validation', () => {
 				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				STRIPE_SYNC_MAX_POSTGRES_CONNECTIONS: '20'
@@ -228,7 +228,7 @@ describe('Configuration Schema Validation', () => {
 					SERVICE_ROLE_KEY: 'service-role-key',
 					SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 					SUPABASE_JWT_SECRET: 'b'.repeat(32),
-					SUPABASE_ANON_KEY: 'anon-key',
+					SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 					STRIPE_SECRET_KEY: 'sk_test_123',
 					STRIPE_WEBHOOK_SECRET: 'whsec_123',
 					NODE_ENV: env
@@ -248,7 +248,7 @@ describe('Configuration Schema Validation', () => {
 				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				NODE_ENV: 'invalid-env'
@@ -268,7 +268,7 @@ describe('Configuration Schema Validation', () => {
 					SERVICE_ROLE_KEY: 'service-role-key',
 					SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 					SUPABASE_JWT_SECRET: 'b'.repeat(32),
-					SUPABASE_ANON_KEY: 'anon-key',
+					SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 					STRIPE_SECRET_KEY: 'sk_test_123',
 					STRIPE_WEBHOOK_SECRET: 'whsec_123',
 					LOG_LEVEL: level
@@ -291,7 +291,7 @@ describe('Configuration Schema Validation', () => {
 					SERVICE_ROLE_KEY: 'service-role-key',
 					SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 					SUPABASE_JWT_SECRET: 'b'.repeat(32),
-					SUPABASE_ANON_KEY: 'anon-key',
+					SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 					STRIPE_SECRET_KEY: 'sk_test_123',
 					STRIPE_WEBHOOK_SECRET: 'whsec_123',
 					STORAGE_PROVIDER: provider
@@ -313,7 +313,7 @@ describe('Configuration Schema Validation', () => {
 				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				FROM_EMAIL: 'noreply@example.com'
@@ -330,7 +330,7 @@ describe('Configuration Schema Validation', () => {
 				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				FROM_EMAIL: 'not-an-email'
@@ -347,7 +347,7 @@ describe('Configuration Schema Validation', () => {
 				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				RESEND_FROM_EMAIL: 'support@tenantflow.app'
@@ -366,7 +366,7 @@ describe('Configuration Schema Validation', () => {
 				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				DATABASE_MAX_CONNECTIONS: '20',
@@ -389,7 +389,7 @@ describe('Configuration Schema Validation', () => {
 				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				DATABASE_MAX_CONNECTIONS: 'not-a-number'
@@ -409,7 +409,7 @@ describe('Configuration Schema Validation', () => {
 				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				SESSION_SECRET: 'c'.repeat(32)
@@ -426,7 +426,7 @@ describe('Configuration Schema Validation', () => {
 				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				SESSION_SECRET: 'short'
@@ -445,7 +445,7 @@ describe('Configuration Schema Validation', () => {
 				SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'also-short', // Too short
-				SUPABASE_ANON_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				FROM_EMAIL: 'not-an-email', // Invalid email
