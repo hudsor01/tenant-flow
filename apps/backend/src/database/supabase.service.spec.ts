@@ -30,7 +30,7 @@ describe('SupabaseService', () => {
 		process.env.SUPABASE_URL = 'https://test-project.supabase.co'
 		process.env.SUPABASE_SERVICE_ROLE_KEY =
 			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-service-key'
-		process.env.SUPABASE_ANON_KEY =
+		process.env.SUPABASE_PUBLISHABLE_KEY =
 			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-anon-key'
 
 		// Spy on Logger before creating the service (logs happen in constructor)
@@ -138,7 +138,7 @@ describe('SupabaseService', () => {
 
 			// Mock environment variables for user client
 			process.env.SUPABASE_URL = 'https://test-project.supabase.co'
-			process.env.SUPABASE_ANON_KEY =
+			process.env.SUPABASE_PUBLISHABLE_KEY =
 				'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-anon-key'
 
 			const userClient = service.getUserClient(userToken)
@@ -150,16 +150,16 @@ describe('SupabaseService', () => {
 
 		it('should throw error when creating user client without SUPABASE_URL', () => {
 			delete process.env.SUPABASE_URL
-			process.env.SUPABASE_ANON_KEY = 'test-anon-key'
+			process.env.SUPABASE_PUBLISHABLE_KEY = 'test-anon-key'
 
 			expect(() => service.getUserClient('test-token')).toThrow(
 				InternalServerErrorException
 			)
 		})
 
-		it('should throw error when creating user client without SUPABASE_ANON_KEY', () => {
+		it('should throw error when creating user client without SUPABASE_PUBLISHABLE_KEY', () => {
 			process.env.SUPABASE_URL = 'https://test-project.supabase.co'
-			delete process.env.SUPABASE_ANON_KEY
+			delete process.env.SUPABASE_PUBLISHABLE_KEY
 
 			expect(() => service.getUserClient('test-token')).toThrow(
 				InternalServerErrorException
@@ -201,7 +201,7 @@ describe('SupabaseService', () => {
 		it('should provide user client with required methods', () => {
 			// Set required environment variables for user client
 			process.env.SUPABASE_URL = 'https://test-project.supabase.co'
-			process.env.SUPABASE_ANON_KEY = 'test-anon-key'
+			process.env.SUPABASE_PUBLISHABLE_KEY = 'test-anon-key'
 
 			const userClient = service.getUserClient('test-token')
 
@@ -215,7 +215,7 @@ describe('SupabaseService', () => {
 		it('should handle missing environment variables correctly', () => {
 			// Test environment variable validation
 			delete process.env.SUPABASE_URL
-			delete process.env.SUPABASE_ANON_KEY
+			delete process.env.SUPABASE_PUBLISHABLE_KEY
 
 			expect(() => service.getUserClient('test-token')).toThrow()
 		})

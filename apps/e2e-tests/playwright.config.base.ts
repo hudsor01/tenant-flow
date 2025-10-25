@@ -4,18 +4,6 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT_DIR = path.dirname(fileURLToPath(import.meta.url))
 const TESTS_DIR = path.join(ROOT_DIR, 'tests')
-const AUTH_DIR = path.join(ROOT_DIR, '.auth')
-
-/**
- * Authentication setup project
- * Runs before all tests to establish authenticated sessions
- * Official Playwright pattern: https://playwright.dev/docs/auth
- */
-export const authSetupProject = {
-	name: 'auth-setup',
-	testMatch: /auth\.setup\.ts/,
-	testDir: ROOT_DIR
-}
 
 /**
  * Smoke test projects - core functionality verification
@@ -23,32 +11,27 @@ export const authSetupProject = {
 export const smokeProjects = [
 	{
 		name: 'chromium',
-		use: { ...devices['Desktop Chrome'] },
+		use: {
+			...devices['Desktop Chrome']
+		},
 		testDir: TESTS_DIR,
 		testIgnore: ['staging/**', 'production/**', 'tenant-management/**']
 	},
 	{
 		name: 'chromium-tenant-management',
 		use: {
-			...devices['Desktop Chrome'],
-			// Use owner authentication state
-			storageState: path.join(AUTH_DIR, 'owner.json')
+			...devices['Desktop Chrome']
 		},
 		testDir: path.join(TESTS_DIR, 'tenant-management'),
-		testMatch: ['**/*.e2e.spec.ts'],
-		// Depend on auth setup - ensures login happens first
-		dependencies: ['auth-setup']
+		testMatch: ['**/*.e2e.spec.ts']
 	},
 	{
 		name: 'chromium-visual',
 		use: {
-			...devices['Desktop Chrome'],
-			// Visual tests need authentication to access protected pages
-			storageState: path.join(AUTH_DIR, 'owner.json')
+			...devices['Desktop Chrome']
 		},
 		testDir: path.join(TESTS_DIR, 'tenant-management'),
-		testMatch: ['**/*.visual.spec.ts'],
-		dependencies: ['auth-setup']
+		testMatch: ['**/*.visual.spec.ts']
 	},
 	{
 		name: 'public',
@@ -71,12 +54,10 @@ export const smokeProjects = [
 export const stagingProject = {
 	name: 'staging',
 	use: {
-		...devices['Desktop Chrome'],
-		storageState: path.join(AUTH_DIR, 'owner.json')
+		...devices['Desktop Chrome']
 	},
 	testDir: path.join(TESTS_DIR, 'staging'),
-	testMatch: ['**/*.spec.ts'],
-	dependencies: ['auth-setup']
+	testMatch: ['**/*.spec.ts']
 }
 
 /**
@@ -85,12 +66,10 @@ export const stagingProject = {
 export const productionProject = {
 	name: 'prod',
 	use: {
-		...devices['Desktop Chrome'],
-		storageState: path.join(AUTH_DIR, 'owner.json')
+		...devices['Desktop Chrome']
 	},
 	testDir: path.join(TESTS_DIR, 'production'),
-	testMatch: ['**/*.spec.ts'],
-	dependencies: ['auth-setup']
+	testMatch: ['**/*.spec.ts']
 }
 
 /**

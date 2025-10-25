@@ -133,13 +133,13 @@ fi
 
 # Step 6: Test authentication
 echo -e "${BLUE}Testing authentication...${NC}"
-pnpm test:e2e auth.setup.ts --project=chromium > /dev/null 2>&1
+pnpm test:e2e auth-helpers.ts --project=chromium > /dev/null 2>&1
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓${NC} Authentication test passed!\n"
 else
     echo -e "${RED}❌ Authentication test failed${NC}"
-    echo -e "   Run manually to see error: ${YELLOW}pnpm test:e2e auth.setup.ts${NC}\n"
+    echo -e "   Run manually to see error: ${YELLOW}pnpm test:e2e auth-helpers.ts${NC}\n"
     exit 1
 fi
 

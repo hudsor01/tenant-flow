@@ -1,0 +1,25 @@
+{
+  "cookies": [
+    {
+      "name": "tenantflow_theme_mode",
+      "value": "light",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1792965268.143034,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "tenantflow-theme-mode",
+          "value": "light"
+        }
+      ]
+    }
+  ]
+}

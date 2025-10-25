@@ -205,8 +205,8 @@ process.env.PUBLIC_CACHE_MAX_AGE = '3600'
 // Provide test environment variables if not already set (for CI/CD)
 if (!process.env.SUPABASE_URL)
 	process.env.SUPABASE_URL = 'https://bshjmbshupiibfiewpxb.supabase.co'
-if (!process.env.SUPABASE_ANON_KEY)
-	process.env.SUPABASE_ANON_KEY =
+if (!process.env.SUPABASE_PUBLISHABLE_KEY)
+	process.env.SUPABASE_PUBLISHABLE_KEY =
 		'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGptYnNodXBpaWJmaWV3cHhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0MDc1MDYsImV4cCI6MjA2Mzk4MzUwNn0.K9cR4SN_MtutRWPJsymtAtlHpEJFyfnQgtu8BjQRqko'
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY)
 	process.env.SUPABASE_SERVICE_ROLE_KEY =
@@ -288,7 +288,7 @@ if (!process.env.PORT) process.env.PORT = '3001'
 // Use actual environment variables (native platform feature)
 export const testSupabase = createClient<Database>(
 	process.env.SUPABASE_URL!,
-	process.env.SUPABASE_ANON_KEY!
+	process.env.SUPABASE_PUBLISHABLE_KEY!
 )
 
 export const testSupabaseAdmin = createClient<Database>(

@@ -2,7 +2,6 @@ import { defineConfig } from '@playwright/test'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
-	authSetupProject,
 	baseConfig,
 	productionProject,
 	smokeProjects,
@@ -18,11 +17,8 @@ const ROOT_DIR = path.dirname(fileURLToPath(import.meta.url))
 const TEST_DIR =
 	baseConfig.testDir ?? path.join(ROOT_DIR, 'apps/e2e-tests/tests')
 
-// Build projects array with auth setup first
-const projects = [
-	authSetupProject, // Always run auth setup first
-	...smokeProjects
-]
+// Build projects array without auth-helpers (httpOnly cookies require per-test login)
+const projects = [...smokeProjects]
 
 // Conditionally add staging/production projects
 if (process.env.PLAYWRIGHT_INCLUDE_STAGING === 'true') {

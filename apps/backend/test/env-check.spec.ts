@@ -26,24 +26,24 @@ describe('Environment Variables Access', () => {
     expect(process.env.SUPABASE_SERVICE_ROLE_KEY).toMatch(/^(eyJ|demo-service-key)/)
   })
 
-  it('should check SUPABASE_ANON_KEY availability', () => {
-    testLogger.log('SUPABASE_ANON_KEY available:', !!process.env.SUPABASE_ANON_KEY)
+  it('should check SUPABASE_PUBLISHABLE_KEY availability', () => {
+    testLogger.log('SUPABASE_PUBLISHABLE_KEY available:', !!process.env.SUPABASE_PUBLISHABLE_KEY)
 
-    // SUPABASE_ANON_KEY may not be in all environments - that's OK
-    if (process.env.SUPABASE_ANON_KEY) {
+    // SUPABASE_PUBLISHABLE_KEY may not be in all environments - that's OK
+    if (process.env.SUPABASE_PUBLISHABLE_KEY) {
       // Accept both JWT format and demo keys for testing
-      const isValidFormat = process.env.SUPABASE_ANON_KEY.match(/^eyJ/) || process.env.SUPABASE_ANON_KEY.includes('demo')
+      const isValidFormat = process.env.SUPABASE_PUBLISHABLE_KEY.match(/^eyJ/) || process.env.SUPABASE_PUBLISHABLE_KEY.includes('demo')
       expect(isValidFormat).toBeTruthy()
-      testLogger.log('SUPABASE_ANON_KEY is properly formatted (JWT or demo key)')
+      testLogger.log('SUPABASE_PUBLISHABLE_KEY is properly formatted (JWT or demo key)')
     } else {
-      testLogger.log('SUPABASE_ANON_KEY not set - using fallback in tests')
+      testLogger.log('SUPABASE_PUBLISHABLE_KEY not set - using fallback in tests')
     }
   })
 
   it('should show environment status', () => {
     testLogger.log('\n=== ENVIRONMENT STATUS ===')
     testLogger.log('SUPABASE_URL:', process.env.SUPABASE_URL)
-    testLogger.log('SUPABASE_ANON_KEY:', !!process.env.SUPABASE_ANON_KEY)
+    testLogger.log('SUPABASE_PUBLISHABLE_KEY:', !!process.env.SUPABASE_PUBLISHABLE_KEY)
     testLogger.log('SUPABASE_SERVICE_ROLE_KEY:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
     testLogger.log('STRIPE_SECRET_KEY:', !!process.env.STRIPE_SECRET_KEY, '(optional)')
     testLogger.log('DATABASE_URL:', !!process.env.DATABASE_URL, '(optional)')
