@@ -2,23 +2,8 @@
  * Stripe integration client using Supabase Edge Functions
  * CLAUDE.md compliant - Native platform integration
  */
+import { API_BASE_URL } from '@/lib/api-client'
 import { createClient } from '@/lib/supabase/client'
-
-/**
- * Get the API URL for Stripe endpoints
- * In production, requires environment variables to be set
- * In development, falls back to local backend
- */
-function getStripeApiUrl(): string {
-	return (
-		process.env.NEXT_PUBLIC_API_BASE_URL ||
-		(() => {
-			throw new Error(
-				'NEXT_PUBLIC_API_BASE_URL is required for Stripe API client configuration'
-			)
-		})()
-	)
-}
 
 interface CreateCheckoutSessionRequest {
 	priceId: string
@@ -44,9 +29,6 @@ export async function createCheckoutSession(
 		data: { session }
 	} = await supabase.auth.getSession()
 
-	// Get API URL from environment or development fallback
-	const apiUrl = getStripeApiUrl()
-
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json'
 	}
@@ -57,7 +39,7 @@ export async function createCheckoutSession(
 	}
 
 	const response = await fetch(
-		`${apiUrl}/api/v1/stripe/create-checkout-session`,
+		`${API_BASE_URL}/api/v1/stripe/create-checkout-session`,
 		{
 			method: 'POST',
 			headers,
@@ -137,8 +119,6 @@ export async function createPaymentIntent({
 		data: { session }
 	} = await supabase.auth.getSession()
 
-	// Get API URL from environment or development fallback
-	const apiUrl = getStripeApiUrl()
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json'
 	}
@@ -149,7 +129,7 @@ export async function createPaymentIntent({
 	}
 
 	const response = await fetch(
-		`${apiUrl}/api/v1/stripe/create-payment-intent`,
+		`${API_BASE_URL}/api/v1/stripe/create-payment-intent`,
 		{
 			method: 'POST',
 			headers,
@@ -200,9 +180,8 @@ export async function createCustomerPortalSession(
 		throw new Error('No Stripe customer found. Please contact support.')
 	}
 
-	const apiUrl = getStripeApiUrl()
 	const response = await fetch(
-		`${apiUrl}/api/v1/stripe/create-billing-portal`,
+		`${API_BASE_URL}/api/v1/stripe/create-billing-portal`,
 		{
 			method: 'POST',
 			headers: {

@@ -1,4 +1,4 @@
-import { createServerApi } from '@/lib/api-client'
+import { createServerApi, API_BASE_URL } from '@/lib/api-client'
 import { requireSession } from '@/lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
@@ -55,7 +55,7 @@ export default async function NewTenantPage() {
 			statusCode,
 			responseData,
 			errorObject: JSON.stringify(err, Object.getOwnPropertyNames(err)),
-			apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600',
+			apiBaseUrl: API_BASE_URL,
 			hasToken: !!accessToken,
 			tokenLength: accessToken?.length,
 			tokenPreview: accessToken?.substring(0, 30) + '...'
