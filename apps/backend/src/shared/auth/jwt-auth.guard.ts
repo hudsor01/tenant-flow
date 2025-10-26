@@ -45,15 +45,19 @@ export class JwtAuthGuard extends AuthGuard('supabase') {
 		status?: string | number | null
 	): TUser {
 		void status
-		void info
 		const request = context.switchToHttp().getRequest<Request>()
 
 		// For protected routes, require authentication
 		if (err || !user) {
+			// Log full error details for debugging
 			this.logger.warn('Authentication failed for protected route', {
 				error: err instanceof Error ? err.message : 'Unknown error',
+				errorName: err instanceof Error ? err.name : undefined,
+				errorStack: err instanceof Error ? err.stack : undefined,
+				info: info,
 				path: (request as { url?: string }).url,
-				method: (request as { method?: string }).method
+				method: (request as { method?: string }).method,
+				hasAuthHeader: !!(request.headers as { authorization?: string }).authorization
 			})
 			// Throw a NestJS UnauthorizedException so the framework returns 401
 			// instead of a generic 500 Internal Server Error.

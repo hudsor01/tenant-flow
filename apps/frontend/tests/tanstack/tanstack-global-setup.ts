@@ -60,7 +60,7 @@ async function globalSetup() {
 				})
 			}
 		} catch {
-			// Silently ignore auth setup failures
+			// Silently ignore auth-helpers failures
 		}
 
 		// 3. Expose TanStack Query Client for testing

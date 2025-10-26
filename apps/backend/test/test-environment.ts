@@ -138,11 +138,11 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 			)
 		})()
 	const anonKey =
-		process.env.TEST_SUPABASE_ANON_KEY ||
-		process.env.SUPABASE_ANON_KEY ||
+		process.env.TEST_SUPABASE_PUBLISHABLE_KEY ||
+		process.env.SUPABASE_PUBLISHABLE_KEY ||
 		(() => {
 			throw new Error(
-				'TEST_SUPABASE_ANON_KEY or SUPABASE_ANON_KEY environment variable is required for integration/e2e tests'
+				'TEST_SUPABASE_PUBLISHABLE_KEY or SUPABASE_PUBLISHABLE_KEY environment variable is required for integration/e2e tests'
 			)
 		})()
 	const serviceRoleKey =
@@ -296,7 +296,7 @@ export async function createTestModule(moduleMetadata: {
 	process.env.NODE_ENV = 'test'
 	process.env.DATABASE_URL = testConfig.database.url
 	process.env.SUPABASE_URL = testConfig.supabase.url
-	process.env.SUPABASE_ANON_KEY = testConfig.supabase.anonKey
+	process.env.SUPABASE_PUBLISHABLE_KEY = testConfig.supabase.anonKey
 	process.env.SUPABASE_SERVICE_ROLE_KEY = testConfig.supabase.serviceRoleKey
 	process.env.SUPABASE_JWT_SECRET = testConfig.supabase.jwtSecret
 	process.env.STRIPE_SECRET_KEY = testConfig.stripe.secretKey

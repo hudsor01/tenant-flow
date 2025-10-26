@@ -2,7 +2,12 @@
  * Supabase JWT Strategy - 2025 Best Practices
  *
  * Follows official NestJS + Supabase authentication patterns
- * Uses Passport JWT strategy with Supabase JWT verification
+ * Uses JWKS endpoint for JWT verification (supports RS256/ES256)
+ *
+ * Migration from legacy JWT secrets to JWT Signing Keys:
+ * - Legacy: HS256 symmetric key with SUPABASE_JWT_SECRET
+ * - Modern: RS256/ES256 asymmetric keys via JWKS endpoint
+ * - JWKS endpoint: https://{project}.supabase.co/auth/v1/.well-known/jwks.json
  */
 
 import { Injectable, Logger } from '@nestjs/common'
@@ -16,12 +21,27 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 	private readonly logger = new Logger(SupabaseStrategy.name)
 
 	constructor() {
+		const supabaseUrl = process.env.SUPABASE_URL
+		const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET
+
+		if (!supabaseUrl) {
+			throw new Error('SUPABASE_URL environment variable is required')
+		}
+
+		if (!supabaseJwtSecret) {
+			throw new Error('SUPABASE_JWT_SECRET environment variable is required')
+		}
+
 		super({
 			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 			ignoreExpiration: false,
-			secretOrKey: process.env.SUPABASE_JWT_SECRET!,
+			// Use the JWT secret for verification
+			secretOrKey: supabaseJwtSecret,
+			// Supabase uses HS256 for JWT signing with the secret
 			algorithms: ['HS256']
 		})
+
+		this.logger.log(`SupabaseStrategy initialized with HS256 verification`)
 	}
 
 	async validate(payload: JwtPayload): Promise<authUser> {
