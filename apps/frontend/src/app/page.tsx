@@ -1,7 +1,7 @@
 'use client'
 
 import Footer from '@/components/layout/footer'
-import { Navbar } from '@/components/layout/navbar'
+import { MarketingNav } from '@/components/layout/marketing-nav'
 import FeaturesSectionDemo from '@/components/sections/features-section'
 import { HeroSection } from '@/components/sections/hero-section'
 import { PremiumCta } from '@/components/sections/premium-cta'
@@ -10,18 +10,7 @@ import { StatsShowcase } from '@/components/sections/stats-showcase'
 export default function HomePage() {
 	return (
 		<div className="relative min-h-screen flex flex-col">
-			<Navbar
-				navItems={[
-					{ name: 'Features', href: '/features' },
-					{ name: 'Pricing', href: '/pricing' },
-					{ name: 'About', href: '/about' },
-					{ name: 'Blog', href: '/blog' },
-					{ name: 'FAQ', href: '/faq' },
-					{ name: 'Contact', href: '/contact' }
-				]}
-				ctaText="Start Managing Properties"
-				ctaHref="/signup"
-			/>
+			<MarketingNav />
 
 			{/* Hero Section */}
 			<HeroSection
