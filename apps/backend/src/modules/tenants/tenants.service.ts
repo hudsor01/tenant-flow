@@ -969,7 +969,7 @@ export class TenantsService {
 		},
 		leaseData: {
 			propertyId: string
-			unitId: string
+			unitId?: string
 			rentAmount: number
 			securityDeposit: number
 			startDate: string
@@ -1024,7 +1024,7 @@ export class TenantsService {
 				.insert({
 					tenantId: tenant.id,
 					propertyId: leaseData.propertyId,
-					unitId: leaseData.unitId,
+					unitId: leaseData.unitId || null,
 					rentAmount: leaseData.rentAmount,
 					monthlyRent: leaseData.rentAmount,
 					securityDeposit: leaseData.securityDeposit,
@@ -1057,14 +1057,18 @@ export class TenantsService {
 				.eq('id', leaseData.propertyId)
 				.single()
 
-			const { data: unit } = await client
-				.from('unit')
-				.select('unitNumber')
-				.eq('id', leaseData.unitId)
-				.single()
+			// Only fetch unit if unitId is provided
+			let unitNumber: string | undefined
+			if (leaseData.unitId) {
+				const { data: unit } = await client
+					.from('unit')
+					.select('unitNumber')
+					.eq('id', leaseData.unitId)
+					.single()
+				unitNumber = unit?.unitNumber
+			}
 
 			const propertyName = property?.name || 'Your Property'
-			const unitNumber = unit?.unitNumber
 
 			// 4. Send invitation via Supabase Auth Admin API
 			const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
@@ -1075,11 +1079,11 @@ export class TenantsService {
 						tenantId: tenant.id,
 						leaseId: lease.id,
 						propertyId: leaseData.propertyId,
-						unitId: leaseData.unitId,
+						...(leaseData.unitId && { unitId: leaseData.unitId }),
 						firstName: tenantData.firstName,
 						lastName: tenantData.lastName,
 						propertyName,
-						unitNumber,
+						...(unitNumber && { unitNumber }),
 						rentAmount: leaseData.rentAmount,
 						startDate: leaseData.startDate,
 						endDate: leaseData.endDate,
