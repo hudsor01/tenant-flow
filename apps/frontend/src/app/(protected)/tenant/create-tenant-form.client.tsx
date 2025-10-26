@@ -22,7 +22,7 @@ import type { Tables } from '@repo/shared/types/supabase'
 import { useForm } from '@tanstack/react-form'
 import { Building2, Calendar, DollarSign, Home, Mail, Phone, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -140,10 +140,11 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 	)
 
 	// Auto-select the first unit if only one exists
-	const shouldAutoSelectUnit = availableUnits.length === 1 && !form.getFieldValue('unitId')
-	if (shouldAutoSelectUnit && availableUnits[0]) {
-		form.setFieldValue('unitId', availableUnits[0].id)
-	}
+	useEffect(() => {
+		if (availableUnits.length === 1 && !form.getFieldValue('unitId') && availableUnits[0]) {
+			form.setFieldValue('unitId', availableUnits[0].id)
+		}
+	}, [availableUnits, form])
 
 	return (
 		<div className="space-y-6">
