@@ -68,6 +68,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 			null
 		)
 		const [isMounted, setIsMounted] = useState(false)
+		const [scrollProgress, setScrollProgress] = useState(0)
 
 		// Get current pathname for active link indicator
 		const pathname = usePathname()
@@ -111,6 +112,14 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 		useEffect(() => {
 			const handleScroll = () => {
 				setIsScrolled(window.scrollY > 20)
+
+				// Calculate scroll progress
+				const windowHeight = window.innerHeight
+				const documentHeight = document.documentElement.scrollHeight
+				const scrollTop = window.scrollY
+				const scrollableHeight = documentHeight - windowHeight
+				const progress = scrollableHeight > 0 ? (scrollTop / scrollableHeight) * 100 : 0
+				setScrollProgress(progress)
 			}
 
 			window.addEventListener('scroll', handleScroll)
@@ -214,14 +223,6 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 			config: { mass: 1, tension: 120, friction: 14 }
 		})
 
-		// Mobile menu transition
-		const mobileMenuTransition = useTransition(isOpen, {
-			from: { opacity: 0, height: 0 },
-			enter: { opacity: 1, height: 'auto' },
-			leave: { opacity: 0, height: 0 },
-			config: { mass: 1, tension: 120, friction: 14 }
-		})
-
 		// Check if nav item is active
 		const isActiveLink = (href: string) => {
 			if (href === '/') return pathname === '/'
@@ -263,6 +264,14 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 				)}
 				{...props}
 			>
+				{/* Scroll Progress Bar */}
+				<div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[--color-fill-secondary] rounded-full overflow-hidden">
+					<div
+						className="h-full bg-[--color-accent-main] transition-all duration-150 ease-out"
+						style={{ width: `${scrollProgress}%` }}
+					/>
+				</div>
+
 				<div className="flex items-center justify-between">
 					{/* Logo */}
 					<animated.div
