@@ -38,7 +38,7 @@ export default async function MaintenancePage() {
 	}
 
 	return (
-		<div className="space-y-10">
+		<main role="main" className="space-y-10">
 			<div className="space-y-2">
 				<h1 className="text-2xl font-semibold tracking-tight">Maintenance</h1>
 				<p className="text-muted-foreground">Stay on top of maintenance requests and keep residents updated on progress.</p>
@@ -55,6 +55,6 @@ export default async function MaintenancePage() {
 
 			{/* Client Component for View Switcher and Data Display */}
 			<MaintenanceViewClient initialRequests={requests} />
-		</div>
+		</main>
 	)
 }
