@@ -290,7 +290,6 @@ test-results.json
 # Test cache only (keep test files tracked)
 playwright/.cache/
 playwright/.auth/
-apps/e2e-tests/.auth/
 .npm
 .eslintcache
 .stylelintcache

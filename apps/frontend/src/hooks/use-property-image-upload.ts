@@ -12,7 +12,7 @@ import {
 import { compressImage, formatFileSize } from '@/lib/image-compression'
 import { createClient } from '@/lib/supabase/client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { toast } from 'sonner'
 
 const logger = createLogger({ component: 'PropertyImageUpload' })
@@ -173,6 +173,28 @@ export function usePropertyImageUpload(
 			}
 		}
 	}, [files, setFiles, uploadHook, onUploadComplete, onUploadError, uploadPath])
+
+	// Track if we've already auto-uploaded to prevent duplicate uploads
+	const hasAutoUploaded = useRef(false)
+
+	// Auto-upload when files are selected (for better UX - image ready before form submission)
+	useEffect(() => {
+		const shouldAutoUpload =
+			files.length > 0 &&
+			!uploadHook.loading &&
+			!uploadHook.isSuccess &&
+			!hasAutoUploaded.current
+
+		if (shouldAutoUpload) {
+			hasAutoUploaded.current = true
+			onUploadWithCompression()
+		}
+
+		// Reset flag when files are cleared
+		if (files.length === 0) {
+			hasAutoUploaded.current = false
+		}
+	}, [files.length, uploadHook.loading, uploadHook.isSuccess, onUploadWithCompression])
 
 	// Return modified hook with compression
 	return {
