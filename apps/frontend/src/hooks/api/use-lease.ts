@@ -242,7 +242,7 @@ export function useCreateLease() {
 			const optimisticLease: Lease = {
 				id: tempId,
 				tenantId: newLease.tenantId,
-				unitId: newLease.unitId,
+				unitId: newLease.unitId || null,
 				propertyId: newLease.propertyId || null,
 				startDate: newLease.startDate,
 				endDate: newLease.endDate,
