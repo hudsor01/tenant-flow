@@ -169,7 +169,7 @@ export function CreatePropertyForm() {
 									}
 									onBlur={field.handleBlur}
 								/>
-								{field.state.meta.errors?.length && (
+								{(field.state.meta.errors?.length ?? 0) > 0 && (
 									<FieldError>
 										{String(field.state.meta.errors[0])}
 									</FieldError>
@@ -228,7 +228,7 @@ export function CreatePropertyForm() {
 									}
 									onBlur={field.handleBlur}
 								/>
-								{field.state.meta.errors?.length && (
+								{(field.state.meta.errors?.length ?? 0) > 0 && (
 									<FieldError>
 										{String(field.state.meta.errors[0])}
 									</FieldError>
@@ -253,7 +253,7 @@ export function CreatePropertyForm() {
 										}
 										onBlur={field.handleBlur}
 									/>
-									{field.state.meta.errors?.length && (
+									{(field.state.meta.errors?.length ?? 0) > 0 && (
 										<FieldError>
 											{String(field.state.meta.errors[0])}
 										</FieldError>
@@ -278,7 +278,7 @@ export function CreatePropertyForm() {
 										}
 										onBlur={field.handleBlur}
 									/>
-									{field.state.meta.errors?.length && (
+									{(field.state.meta.errors?.length ?? 0) > 0 && (
 										<FieldError>
 											{String(field.state.meta.errors[0])}
 										</FieldError>
@@ -318,7 +318,7 @@ export function CreatePropertyForm() {
 										}}
 										onBlur={field.handleBlur}
 									/>
-									{field.state.meta.errors?.length && (
+									{(field.state.meta.errors?.length ?? 0) > 0 && (
 										<FieldError>
 											{String(field.state.meta.errors[0])}
 										</FieldError>
