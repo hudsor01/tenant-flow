@@ -92,7 +92,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 
 			// Call backend directly instead of Next.js proxy
 			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
-			const response = await fetch(`${apiBaseUrl}/contact`, {
+			const response = await fetch(`${apiBaseUrl}/api/v1/contact`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
