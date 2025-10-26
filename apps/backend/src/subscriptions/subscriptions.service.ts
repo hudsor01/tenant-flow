@@ -46,7 +46,17 @@ export class SubscriptionsService {
 		const { data: lease, error: leaseError } = await this.supabase
 			.getAdminClient()
 			.from('lease')
-			.select('*, property(*), unit(*, property(*))')
+			.select(`
+				id,
+				tenantId,
+				propertyId,
+				unitId,
+				rentAmount,
+				startDate,
+				endDate,
+				property:propertyId(id, name, ownerId),
+				unit:unitId(id, unitNumber)
+			`)
 			.eq('id', request.leaseId)
 			.eq('tenantId', tenantId)
 			.single()
@@ -55,11 +65,11 @@ export class SubscriptionsService {
 			throw new NotFoundException('Lease not found')
 		}
 
-		// Get landlord ID from property (either through unit or directly)
-		const landlordId = lease.unit?.property?.ownerId || lease.property?.ownerId
-		if (!landlordId) {
+		// Get landlord ID from property
+		if (!lease.property?.ownerId) {
 			throw new NotFoundException('Property owner not found for lease')
 		}
+		const landlordId = lease.property.ownerId
 
 		// Get landlord's Stripe Connect account
 		const { data: connectedAccount, error: accountError } = await this.supabase
@@ -153,7 +163,7 @@ export class SubscriptionsService {
 
 		// 5. Create a product and price first for the subscription
 		const productName = lease.unit
-			? `Rent for Unit ${lease.unit.unitNumber} at ${lease.unit.property.name}`
+			? `Rent for Unit ${lease.unit.unitNumber} at ${lease.property?.name || 'Property'}`
 			: `Rent for ${lease.property?.name || 'Property'}`
 		const product = await this.stripe.products.create({
 			name: productName
