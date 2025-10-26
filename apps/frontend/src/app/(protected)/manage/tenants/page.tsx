@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import {
 	Card,
 	CardDescription,
@@ -13,6 +14,7 @@ import type {
 	TenantSummary,
 	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
+import { Mail } from 'lucide-react'
 import type { Metadata } from 'next'
 import { columns } from './columns'
 import { TenantsTableClient } from './tenants-table.client'
@@ -78,6 +80,14 @@ export default async function TenantsPage() {
 					<p className="text-muted-foreground">
 						Invite tenants to access their portal for payments, maintenance requests, and lease management.
 					</p>
+				</div>
+				<div className="flex gap-2">
+					<Button asChild>
+						<a href="/manage/tenants/new">
+							<Mail className="size-4 mr-2" />
+							Invite Tenant
+						</a>
+					</Button>
 				</div>
 			</div>
 
