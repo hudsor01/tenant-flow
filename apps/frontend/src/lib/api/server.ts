@@ -2,8 +2,8 @@
  * Server-side API client for Next.js App Router
  * Uses existing Supabase authentication pattern
  */
-import { API_BASE_URL } from '@/lib/api-client'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { API_BASE_URL } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
