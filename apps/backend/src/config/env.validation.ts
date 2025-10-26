@@ -5,7 +5,6 @@ export interface RequiredEnvVars {
 	DIRECT_URL: string
 	SUPABASE_URL: string
 	SUPABASE_SERVICE_ROLE_KEY: string
-	SUPABASE_JWT_SECRET: string
 	JWT_SECRET: string
 	CORS_ORIGINS: string
 }
@@ -14,12 +13,12 @@ export function validateEnvironment(): void {
 	const logger = new Logger('EnvValidation')
 
 	// Define required environment variables
+	// Note: SUPABASE_JWT_SECRET is no longer required - we use JWKS endpoint for JWT verification
 	const requiredVars: (keyof RequiredEnvVars)[] = [
 		'DATABASE_URL',
 		'DIRECT_URL',
 		'SUPABASE_URL',
 		'SUPABASE_SERVICE_ROLE_KEY',
-		'SUPABASE_JWT_SECRET',
 		'JWT_SECRET',
 		'CORS_ORIGINS'
 	]
@@ -41,12 +40,10 @@ export function validateEnvironment(): void {
 			'SERVICE_ROLE_KEY is set but SUPABASE_SERVICE_ROLE_KEY is missing. Please migrate to the new variable name.'
 		)
 	}
-	if (
-		missing.includes('SUPABASE_JWT_SECRET') &&
-		process.env.JWT_SECRET
-	) {
+	// SUPABASE_JWT_SECRET is now optional - we use JWKS endpoint for JWT verification
+	if (process.env.SUPABASE_JWT_SECRET) {
 		logger.warn(
-			'JWT_SECRET is set but SUPABASE_JWT_SECRET is missing. Provide SUPABASE_JWT_SECRET for Supabase authentication.'
+			'SUPABASE_JWT_SECRET is set but no longer required. We now use JWKS endpoint for JWT verification. You can remove this variable.'
 		)
 	}
 

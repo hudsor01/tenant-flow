@@ -28,10 +28,10 @@ const SUPABASE_URL = (() => {
 })()
 
 const SUPABASE_ANON_KEY = (() => {
-	const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+	const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY
 	if (!key) {
 		throw new Error(
-			'SUPABASE_ANON_KEY environment variable is required (NEXT_PUBLIC_SUPABASE_ANON_KEY for frontend, SUPABASE_ANON_KEY for backend)'
+			'SUPABASE_ANON_KEY environment variable is required (NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY for frontend, SUPABASE_ANON_KEY for backend)'
 		)
 	}
 	return key

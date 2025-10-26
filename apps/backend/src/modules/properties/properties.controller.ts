@@ -33,6 +33,7 @@ import type {
 	CreatePropertyRequest,
 	UpdatePropertyRequest
 } from '@repo/shared/types/backend-domain'
+import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { PropertiesService } from './properties.service'
 
@@ -44,10 +45,10 @@ export class PropertiesController {
 	constructor(private readonly propertiesService: PropertiesService) {}
 
 	/**
-			NotFoundException,
 	 * Get all properties for authenticated user
 	 * Built-in pipes handle all validation
 	 */
+	@SkipSubscriptionCheck()
 	@Get()
 	async findAll(
 		@Query('search', new DefaultValuePipe(null)) search: string | null,

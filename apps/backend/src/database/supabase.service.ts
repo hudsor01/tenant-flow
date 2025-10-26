@@ -262,7 +262,7 @@ export class SupabaseService {
 	 */
 	getUserClient(userToken: string): SupabaseClient<Database> {
 		const supabaseUrl = process.env.SUPABASE_URL
-		const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
+		const supabaseAnonKey = process.env.SUPABASE_PUBLISHABLE_KEY
 
 		if (!supabaseUrl || !supabaseAnonKey) {
 			throw new InternalServerErrorException(
