@@ -323,7 +323,7 @@ export interface InviteTenantWithLeaseRequest {
 	}
 	leaseData: {
 		propertyId: string
-		unitId: string
+		unitId?: string
 		rentAmount: number
 		securityDeposit: number
 		startDate: string

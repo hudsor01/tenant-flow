@@ -320,11 +320,6 @@ export const dashboardApi = {
 	getDashboardStats: (): Promise<DashboardFinancialStats> =>
 		apiClient<DashboardFinancialStats>(
 			`${API_BASE_URL}/api/v1/financial/analytics/dashboard-metrics`
-		),
-
-	getDashboardFinancialStatsCalculated: (): Promise<DashboardFinancialStats> =>
-		apiClient<DashboardFinancialStats>(
-			`${API_BASE_URL}/api/v1/financial/analytics/dashboard-metrics`
 		)
 }
 
@@ -505,25 +500,6 @@ export const leasesApi = {
 		apiClient<LeaseStatsResponse>(
 			`${API_BASE_URL}/api/v1/leases/financial-summary`
 		),
-
-	// Note: "Financial calculations" endpoints removed - use standard create/update/terminate
-	// The backend performs all financial calculations automatically via database triggers
-	createLeaseWithFinancialCalculations: (body: LeaseInsert) =>
-		apiClient<Lease>(`${API_BASE_URL}/api/v1/leases`, {
-			method: 'POST',
-			body: JSON.stringify(body)
-		}),
-
-	updateLeaseWithFinancialCalculations: (id: string, body: LeaseUpdate) =>
-		apiClient<Lease>(`${API_BASE_URL}/api/v1/leases/${id}`, {
-			method: 'PUT',
-			body: JSON.stringify(body)
-		}),
-
-	terminateLeaseWithFinancialCalculations: (id: string) =>
-		apiClient<void>(`${API_BASE_URL}/api/v1/leases/${id}/terminate`, {
-			method: 'POST'
-		}),
 
 	stats: (): Promise<LeaseStatsResponse> =>
 		apiClient<LeaseStatsResponse>(`${API_BASE_URL}/api/v1/leases/stats`),
