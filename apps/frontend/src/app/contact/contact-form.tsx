@@ -90,7 +90,9 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 				throw new Error('Please check your input')
 			}
 
-			const response = await fetch('/api/contact', {
+			// Call backend directly instead of Next.js proxy
+			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
+			const response = await fetch(`${apiBaseUrl}/api/v1/contact`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'

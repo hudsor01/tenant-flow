@@ -157,20 +157,37 @@ export class RentPaymentsService {
 			throw new BadRequestException('Lease does not belong to tenant')
 		}
 
-		const { data: unit, error: unitError } = await adminClient
-			.from('unit')
-			.select('propertyId')
-			.eq('id', lease.unitId)
-			.single()
+		// Get propertyId either from unit or directly from lease
+		let propertyId: string
+		if (lease.unitId) {
+			const { data: unit, error: unitError } = await adminClient
+				.from('unit')
+				.select('propertyId')
+				.eq('id', lease.unitId)
+				.single()
 
-		if (unitError || !unit) {
-			throw new NotFoundException('Unit not found for lease')
+			if (unitError || !unit) {
+				throw new NotFoundException('Unit not found for lease')
+			}
+			propertyId = unit.propertyId
+		} else {
+			// For single-family properties without units, fetch property directly from lease
+			const { data: leaseWithProperty, error: leasePropertyError } = await adminClient
+				.from('lease')
+				.select('propertyId')
+				.eq('id', leaseId)
+				.single()
+
+			if (leasePropertyError || !leaseWithProperty || !leaseWithProperty.propertyId) {
+				throw new NotFoundException('Property not found for lease')
+			}
+			propertyId = leaseWithProperty.propertyId
 		}
 
 		const { data: property, error: propertyError } = await adminClient
 			.from('property')
 			.select('ownerId')
-			.eq('id', unit.propertyId)
+			.eq('id', propertyId)
 			.single()
 
 		if (propertyError || !property) {

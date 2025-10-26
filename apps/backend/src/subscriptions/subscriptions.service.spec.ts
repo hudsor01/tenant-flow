@@ -108,16 +108,24 @@ describe('SubscriptionsService', () => {
 
 	describe('createSubscription', () => {
 		beforeEach(() => {
-			// Mock lease query
+			// Mock lease query - property and unit are now separate fields (unitId nullable)
 			supabaseClient.single.mockResolvedValueOnce({
 				data: {
 					id: 'lease123',
+					tenantId: 'tenant123',
+					propertyId: 'property123',
+					unitId: 'unit123',
+					rentAmount: 100000,
+					startDate: '2024-01-01',
+					endDate: '2025-01-01',
+					property: {
+						id: 'property123',
+						name: 'Test Property',
+						ownerId: 'landlord123'
+					},
 					unit: {
-						unitNumber: '101',
-						property: {
-							name: 'Test Property',
-							ownerId: 'landlord123'
-						}
+						id: 'unit123',
+						unitNumber: '101'
 					}
 				},
 				error: null
@@ -223,13 +231,21 @@ describe('SubscriptionsService', () => {
 		it('should throw error if connected account not found', async () => {
 			supabaseClient.single.mockReset()
 
-			// Lease found
+			// Lease found - property and unit are separate fields
 			supabaseClient.single.mockResolvedValueOnce({
 				data: {
+					id: 'lease123',
+					tenantId: 'tenant123',
+					propertyId: 'property123',
+					unitId: 'unit123',
+					property: {
+						id: 'property123',
+						name: 'Test Property',
+						ownerId: 'landlord123'
+					},
 					unit: {
-						property: {
-							ownerId: 'landlord123'
-						}
+						id: 'unit123',
+						unitNumber: '101'
 					}
 				},
 				error: null

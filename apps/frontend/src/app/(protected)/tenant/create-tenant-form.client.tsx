@@ -22,7 +22,7 @@ import type { Tables } from '@repo/shared/types/supabase'
 import { useForm } from '@tanstack/react-form'
 import { Building2, Calendar, DollarSign, Home, Mail, Phone, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -31,7 +31,7 @@ type Unit = Tables<'unit'>
 
 const logger = createLogger({ component: 'CreateTenantForm' })
 
-// Validation schema
+// Validation schema - Note: unitId validation is conditional based on available units
 const inviteTenantSchema = {
 	// Tenant information
 	email: z.string().email('Invalid email address'),
@@ -42,7 +42,7 @@ const inviteTenantSchema = {
 
 	// Lease information
 	propertyId: z.string().min(1, 'Property is required'),
-	unitId: z.string().min(1, 'Unit is required'),
+	unitId: z.string().optional(), // Made optional - will be validated conditionally
 	rentAmount: z.string().refine(
 		val => {
 			const num = Number.parseFloat(val)
@@ -97,7 +97,7 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 					},
 					leaseData: {
 						propertyId: value.propertyId,
-						unitId: value.unitId,
+						...(value.unitId && { unitId: value.unitId }),
 						rentAmount: Math.round(Number.parseFloat(value.rentAmount) * 100),
 						securityDeposit: Math.round(
 							Number.parseFloat(value.securityDeposit) * 100
@@ -138,6 +138,13 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 	const availableUnits = units.filter(
 		unit => unit.propertyId === selectedPropertyId
 	)
+
+	// Auto-select the first unit if only one exists
+	useEffect(() => {
+		if (availableUnits.length === 1 && !form.getFieldValue('unitId') && availableUnits[0]) {
+			form.setFieldValue('unitId', availableUnits[0].id)
+		}
+	}, [availableUnits, form])
 
 	return (
 		<div className="space-y-6">
@@ -341,19 +348,31 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 					<form.Field
 						name="unitId"
 						validators={{
-							onChange: inviteTenantSchema.unitId
+							onChange: ({ value }) => {
+								// Only require unit if there are available units
+								if (availableUnits.length > 0 && !value) {
+									return 'Unit is required when units are available'
+								}
+								return undefined
+							}
 						}}
 					>
 						{field => (
 							<Field>
-								<FieldLabel htmlFor="unitId">Unit</FieldLabel>
+								<FieldLabel htmlFor="unitId">
+									Unit {availableUnits.length > 0 ? '' : '(Optional - No units configured)'}
+								</FieldLabel>
 								<Select
 									value={field.state.value}
 									onValueChange={field.handleChange}
-									disabled={!selectedPropertyId}
+									disabled={!selectedPropertyId || availableUnits.length === 0}
 								>
 									<SelectTrigger id="unitId">
-										<SelectValue placeholder="Select a unit" />
+										<SelectValue placeholder={
+											availableUnits.length === 0 
+												? 'No units available' 
+												: 'Select a unit'
+										} />
 									</SelectTrigger>
 									<SelectContent>
 										{availableUnits.map(unit => (
@@ -367,8 +386,10 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 									{!selectedPropertyId
 										? 'Select a property first'
 										: availableUnits.length === 0
-											? 'No units available for this property'
-											: null}
+											? 'This property has no units configured. The lease will be created without a specific unit.'
+											: availableUnits.length === 1
+												? 'Single unit automatically selected'
+												: null}
 								</p>
 								<FieldError errors={field.state.meta.errors} />
 							</Field>

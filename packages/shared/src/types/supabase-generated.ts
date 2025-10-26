@@ -1028,7 +1028,7 @@ export type Database = {
           stripe_subscription_id: string | null
           tenantId: string
           terms: string | null
-          unitId: string
+          unitId: string | null
           updatedAt: string
           version: number
         }
@@ -1051,7 +1051,7 @@ export type Database = {
           stripe_subscription_id?: string | null
           tenantId: string
           terms?: string | null
-          unitId: string
+          unitId?: string | null
           updatedAt?: string
           version?: number
         }
@@ -1074,7 +1074,7 @@ export type Database = {
           stripe_subscription_id?: string | null
           tenantId?: string
           terms?: string | null
-          unitId?: string
+          unitId?: string | null
           updatedAt?: string
           version?: number
         }
