@@ -2,6 +2,16 @@
 -- Created: 2025-10-26
 -- Purpose: Allow leases without specific unit assignments for single-family homes, condos, townhouses
 
+-- ROLLBACK PROCEDURE (if needed):
+-- 1. Check for leases with NULL unitId:
+--    SELECT COUNT(*) FROM lease WHERE "unitId" IS NULL;
+-- 2. If count > 0, assign units or delete those leases first
+-- 3. Then rollback with:
+--    DROP TRIGGER IF EXISTS validate_lease_unit_requirement_trigger ON lease;
+--    DROP FUNCTION IF EXISTS validate_lease_unit_requirement();
+--    DROP INDEX IF EXISTS idx_lease_property_null_unit;
+--    ALTER TABLE lease ALTER COLUMN "unitId" SET NOT NULL;
+
 -- Make unitId nullable
 ALTER TABLE lease 
 ALTER COLUMN "unitId" DROP NOT NULL;
@@ -36,3 +46,12 @@ CREATE TRIGGER validate_lease_unit_requirement_trigger
   BEFORE INSERT OR UPDATE ON lease
   FOR EACH ROW
   EXECUTE FUNCTION validate_lease_unit_requirement();
+
+-- Performance: Index for queries on single-family properties without units
+-- Common query pattern: "find all leases for this single-family property"
+CREATE INDEX IF NOT EXISTS idx_lease_property_null_unit 
+ON lease("propertyId") 
+WHERE "unitId" IS NULL;
+
+COMMENT ON INDEX idx_lease_property_null_unit IS 
+'Optimizes queries for leases without units (single-family properties, condos, townhouses)';
