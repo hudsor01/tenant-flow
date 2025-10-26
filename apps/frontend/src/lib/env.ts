@@ -3,8 +3,8 @@
  * Centralized configuration for environment variables with validation
  */
 
-import { API_BASE_URL } from '@/lib/api-client'
 import type { StripeEnvironmentConfig } from '@/types/stripe'
+import { API_BASE_URL } from '@/lib/api-client'
 
 /**
  * Get Stripe configuration from environment variables
