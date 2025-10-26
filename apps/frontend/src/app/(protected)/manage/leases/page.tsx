@@ -745,9 +745,9 @@ export default function LeasesPage() {
 											{lease.tenantId.substring(0, 8)}...
 										</span>
 									</TableCell>
-									<TableCell>
-										<span className="text-sm text-muted-foreground">
-											{lease.unitId.substring(0, 8)}...
+							<TableCell>
+								<span className="text-sm text-muted-foreground">
+									{lease.unitId ? `${lease.unitId.substring(0, 8)}...` : 'N/A'}
 										</span>
 									</TableCell>
 									<TableCell>{formatDate(lease.startDate)}</TableCell>
