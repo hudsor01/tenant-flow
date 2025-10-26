@@ -99,8 +99,9 @@ describe('Environment Validation', () => {
 			delete process.env.SUPABASE_JWT_SECRET
 			delete process.env.CORS_ORIGINS
 
+			// Note: SUPABASE_JWT_SECRET is no longer required - we use JWKS endpoint
 			expect(() => validateEnvironment()).toThrow(
-				'Critical environment variables missing: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_JWT_SECRET, JWT_SECRET, CORS_ORIGINS'
+				'Critical environment variables missing: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, JWT_SECRET, CORS_ORIGINS'
 			)
 		})
 	})

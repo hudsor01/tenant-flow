@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Wrench } from 'lucide-react'
 import Link from 'next/link'
 import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
-import { columns } from './columns'
-import { MaintenanceTableClient } from './maintenance-table.client'
+
+import { MaintenanceViewClient } from './maintenance-view.client'
 
 export const metadata: Metadata = {
 	title: 'Maintenance | TenantFlow',
@@ -53,8 +53,8 @@ export default async function MaintenancePage() {
 				</Button>
 			</div>
 
-			{/* Client Component for Delete Functionality */}
-			<MaintenanceTableClient columns={columns} initialRequests={requests} />
+			{/* Client Component for View Switcher and Data Display */}
+			<MaintenanceViewClient initialRequests={requests} />
 		</div>
 	)
 }

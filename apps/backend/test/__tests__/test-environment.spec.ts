@@ -87,7 +87,7 @@ describe('Test Environment Configuration', () => {
 		it('should use environment variables for integration tests', () => {
 			process.env.TEST_TYPE = 'integration'
 			process.env.TEST_SUPABASE_URL = 'https://test.supabase.co'
-			process.env.TEST_SUPABASE_ANON_KEY = 'test_anon_key'
+			process.env.TEST_SUPABASE_PUBLISHABLE_KEY = 'test_anon_key'
 
 			const config = getTestSupabaseConfig()
 			expect(config.url).toBe('https://test.supabase.co')
