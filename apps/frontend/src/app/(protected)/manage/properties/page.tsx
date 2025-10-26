@@ -1,3 +1,4 @@
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -41,6 +42,8 @@ export default async function PropertiesPage() {
 		totalMonthlyRent: 0,
 		averageRent: 0
 	}
+	let hasError = false
+	let errorMessage: string | null = null
 
 	try {
 		// ✅ Fetch data with authenticated server API
@@ -55,10 +58,12 @@ export default async function PropertiesPage() {
 		logger.warn('Failed to fetch properties or stats for PropertiesPage', {
 			error: err instanceof Error ? err.message : String(err)
 		})
+		hasError = true
+		errorMessage = err instanceof Error ? err.message : 'Failed to load properties'
 	}
 
 	return (
-		<div className="flex-1 flex flex-col gap-8">
+		<main role="main" className="flex-1 flex flex-col gap-8">
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Properties</h1>
@@ -76,6 +81,14 @@ export default async function PropertiesPage() {
 					</Button>
 				</div>
 			</div>
+
+			{/* Error Alert */}
+			{hasError && errorMessage && (
+				<Alert variant="destructive">
+					<AlertTitle>Failed to load properties</AlertTitle>
+					<AlertDescription>{errorMessage}</AlertDescription>
+				</Alert>
+			)}
 
 			{/* Stats Cards */}
 			<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -190,6 +203,6 @@ export default async function PropertiesPage() {
 
 		{/* Properties View with Grid/Table Toggle */}
 		<PropertiesViewClient data={properties} />
-		</div>
+		</main>
 	)
 }

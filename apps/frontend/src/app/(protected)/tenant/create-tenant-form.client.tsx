@@ -175,9 +175,7 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 											placeholder="John"
 										/>
 									</InputGroup>
-									<FieldError>
-										{String(field.state.meta.errors?.[0] ?? '')}
-									</FieldError>
+									<FieldError errors={field.state.meta.errors} />
 								</Field>
 							)}
 						</form.Field>
@@ -205,9 +203,7 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 											placeholder="Smith"
 										/>
 									</InputGroup>
-									<FieldError>
-										{String(field.state.meta.errors?.[0] ?? '')}
-									</FieldError>
+									<FieldError errors={field.state.meta.errors} />
 								</Field>
 							)}
 						</form.Field>
@@ -240,9 +236,7 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 								<p className="text-sm text-muted-foreground">
 									Tenant will receive an invitation email to access their portal
 								</p>
-								<FieldError>
-									{String(field.state.meta.errors?.[0] ?? '')}
-								</FieldError>
+								<FieldError errors={field.state.meta.errors} />
 							</Field>
 						)}
 					</form.Field>
@@ -266,9 +260,7 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 										placeholder="(555) 123-4567"
 									/>
 								</InputGroup>
-								<FieldError>
-									{String(field.state.meta.errors?.[0] ?? '')}
-								</FieldError>
+								<FieldError errors={field.state.meta.errors} />
 							</Field>
 						)}
 					</form.Field>
@@ -292,9 +284,7 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 								<p className="text-sm text-muted-foreground">
 									Include name, relationship, and contact information
 								</p>
-								<FieldError>
-									{String(field.state.meta.errors?.[0] ?? '')}
-								</FieldError>
+								<FieldError errors={field.state.meta.errors} />
 							</Field>
 						)}
 					</form.Field>
@@ -343,9 +333,7 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 										))}
 									</SelectContent>
 								</Select>
-								<FieldError>
-									{String(field.state.meta.errors?.[0] ?? '')}
-								</FieldError>
+								<FieldError errors={field.state.meta.errors} />
 							</Field>
 						)}
 					</form.Field>
@@ -382,9 +370,7 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 											? 'No units available for this property'
 											: null}
 								</p>
-								<FieldError>
-									{String(field.state.meta.errors?.[0] ?? '')}
-								</FieldError>
+								<FieldError errors={field.state.meta.errors} />
 							</Field>
 						)}
 					</form.Field>
@@ -416,9 +402,7 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 											placeholder="1500.00"
 										/>
 									</InputGroup>
-									<FieldError>
-										{String(field.state.meta.errors?.[0] ?? '')}
-									</FieldError>
+									<FieldError errors={field.state.meta.errors} />
 								</Field>
 							)}
 						</form.Field>
@@ -451,9 +435,7 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 											placeholder="3000.00"
 										/>
 									</InputGroup>
-									<FieldError>
-										{String(field.state.meta.errors?.[0] ?? '')}
-									</FieldError>
+									<FieldError errors={field.state.meta.errors} />
 								</Field>
 							)}
 						</form.Field>
@@ -483,9 +465,7 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 											onBlur={field.handleBlur}
 										/>
 									</InputGroup>
-									<FieldError>
-										{String(field.state.meta.errors?.[0] ?? '')}
-									</FieldError>
+									<FieldError errors={field.state.meta.errors} />
 								</Field>
 							)}
 						</form.Field>
@@ -513,9 +493,7 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 											onBlur={field.handleBlur}
 										/>
 									</InputGroup>
-									<FieldError>
-										{String(field.state.meta.errors?.[0] ?? '')}
-									</FieldError>
+									<FieldError errors={field.state.meta.errors} />
 								</Field>
 							)}
 						</form.Field>

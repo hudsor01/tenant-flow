@@ -642,7 +642,7 @@ export default function LeasesPage() {
 
 	if (error) {
 		return (
-			<div className="container py-8">
+			<main role="main" className="container py-8">
 				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
 					<h2 className="text-lg font-semibold text-destructive">
 						Error Loading Leases
@@ -651,12 +651,12 @@ export default function LeasesPage() {
 						{error instanceof Error ? error.message : 'Failed to load leases'}
 					</p>
 				</div>
-			</div>
+			</main>
 		)
 	}
 
 	return (
-		<div className="container py-8 space-y-6">
+		<main role="main" className="container py-8 space-y-6">
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
@@ -993,6 +993,6 @@ export default function LeasesPage() {
 					</DialogContent>
 				</Dialog>
 			)}
-		</div>
+		</main>
 	)
 }
