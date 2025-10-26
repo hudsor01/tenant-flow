@@ -15,6 +15,7 @@ import type {
 	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
 import { Mail } from 'lucide-react'
+import Link from 'next/link'
 import type { Metadata } from 'next'
 import { columns } from './columns'
 import { TenantsTableClient } from './tenants-table.client'
@@ -83,10 +84,10 @@ export default async function TenantsPage() {
 				</div>
 				<div className="flex gap-2">
 					<Button asChild>
-						<a href="/manage/tenants/new">
+						<Link href="/manage/tenants/new">
 							<Mail className="size-4 mr-2" />
 							Invite Tenant
-						</a>
+						</Link>
 					</Button>
 				</div>
 			</div>
