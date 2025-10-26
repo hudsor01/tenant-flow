@@ -1,5 +1,6 @@
 'use client'
 
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { useSignOut } from '@/hooks/api/use-auth'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/providers/auth-provider'
@@ -8,6 +9,7 @@ import { animated } from '@react-spring/web'
 import { ArrowRight, ChevronDown, Menu, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 
 interface NavItem {
@@ -67,6 +69,9 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 		)
 		const [isMounted, setIsMounted] = useState(false)
 
+		// Get current pathname for active link indicator
+		const pathname = usePathname()
+
 		// Auth state - now includes user directly from improved auth context
 		const { isAuthenticated, isLoading, user } = useAuth()
 
@@ -120,6 +125,56 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 			setOpenDropdown(openDropdown === itemName ? null : itemName)
 		}
 
+		const handleKeyDown = (
+			event: React.KeyboardEvent,
+			item: NavItem,
+			dropdownIndex?: number
+		) => {
+			if (!item.hasDropdown || !item.dropdownItems) return
+
+			const currentIndex = dropdownIndex ?? -1
+			const maxIndex = item.dropdownItems.length - 1
+
+			switch (event.key) {
+				case 'Escape':
+					setOpenDropdown(null)
+					event.preventDefault()
+					break
+				case 'ArrowDown':
+					event.preventDefault()
+					if (openDropdown !== item.name) {
+						setOpenDropdown(item.name)
+					} else if (currentIndex < maxIndex) {
+						// Focus next item
+						const nextIndex = currentIndex + 1
+						const nextEl = document.querySelector(
+							`[data-dropdown-item="${item.name}-${nextIndex}"]`
+						) as HTMLElement
+						nextEl?.focus()
+					}
+					break
+				case 'ArrowUp':
+					event.preventDefault()
+					if (currentIndex > 0) {
+						// Focus previous item
+						const prevIndex = currentIndex - 1
+						const prevEl = document.querySelector(
+							`[data-dropdown-item="${item.name}-${prevIndex}"]`
+						) as HTMLElement
+						prevEl?.focus()
+					} else {
+						setOpenDropdown(null)
+					}
+					break
+				case 'Enter':
+					if (openDropdown === item.name && currentIndex === -1) {
+						event.preventDefault()
+						setOpenDropdown(null)
+					}
+					break
+			}
+		}
+
 		const handleSignOut = () => {
 			// Use improved sign out with React Query mutation benefits
 			signOutMutation.mutate(undefined, {
@@ -167,6 +222,12 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 			config: { mass: 1, tension: 120, friction: 14 }
 		})
 
+		// Check if nav item is active
+		const isActiveLink = (href: string) => {
+			if (href === '/') return pathname === '/'
+			return pathname === href || pathname.startsWith(`${href}/`)
+		}
+
 		// Simple hover animation styles (using CSS transitions instead of hooks-in-callbacks)
 		const getNavItemStyle = (itemName: string) => ({
 			transform: hoveredNavItem === itemName ? 'scale(1.05)' : 'scale(1)',
@@ -193,10 +254,10 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 				ref={ref}
 				style={navbarSpring}
 				className={cn(
-					'fixed top-4 left-1/2 transform translate-x-[-50%] z-50 transition-all duration-300 rounded-full px-4 py-2 w-auto',
+					'fixed left-1/2 transform translate-x-[-50%] z-50 transition-all duration-300 rounded-full px-4 py-2 w-auto',
 					isScrolled
-						? 'bg-card backdrop-blur-xl shadow-xl border border-(--color-fill-secondary)/30 scale-[0.98]'
-						: 'bg-card/90 backdrop-blur-xl shadow-lg border border-(--color-fill-secondary)/20',
+						? 'top-0 bg-card backdrop-blur-2xl shadow-2xl border border-(--color-fill-secondary)/30 scale-[0.98]'
+						: 'top-4 bg-card/90 backdrop-blur-xl shadow-lg border border-(--color-fill-secondary)/20',
 					'hover:bg-card hover:shadow-xl',
 					className
 				)}
@@ -241,7 +302,12 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								<animated.div style={getNavItemStyle(item.name)}>
 									<Link
 										href={item.href}
-										className="flex items-center px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-muted/50 transition-all duration-200"
+										onKeyDown={e => handleKeyDown(e, item)}
+										className={cn(
+											'relative flex items-center px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-muted/50 transition-all duration-200',
+											isActiveLink(item.href) &&
+												'text-foreground after:absolute after:bottom-0 after:left-4 after:right-4 after:h-[2px] after:bg-[--color-accent-main] after:animate-in after:slide-in-from-bottom-1'
+										)}
 									>
 										{item.name}
 										{item.hasDropdown && (
@@ -258,7 +324,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 												style={style}
 												className="absolute top-full left-0 mt-2 w-56 bg-background/98 backdrop-blur-lg rounded-xl shadow-xl border border-border/50 py-2"
 											>
-												{item.dropdownItems?.map(dropdownItem => (
+												{item.dropdownItems?.map((dropdownItem, index) => (
 													<animated.div
 														key={dropdownItem.name}
 														style={getDropdownItemStyle(dropdownItem.name)}
@@ -269,6 +335,8 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 													>
 														<Link
 															href={dropdownItem.href}
+															data-dropdown-item={`${item.name}-${index}`}
+															onKeyDown={e => handleKeyDown(e, item, index)}
 															className="block px-4 py-2.5 text-foreground hover:bg-primary/5 hover:text-primary transition-all duration-200 font-medium text-sm"
 														>
 															{dropdownItem.name}
@@ -348,14 +416,14 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 					</div>
 				</div>
 
-				{/* Mobile Menu */}
-				{mobileMenuTransition((style, show) =>
-					show ? (
-						<animated.div
-							style={style}
-							className="md:hidden mt-4 pt-4 border-t border-border/50"
-						>
-							<div className="space-y-2">
+				{/* Mobile Menu - Premium Sheet Pattern */}
+			<Sheet open={isOpen} onOpenChange={setIsOpen}>
+				<SheetContent side="right" className="w-[300px] sm:w-[350px]">
+					<SheetHeader>
+						<SheetTitle className="text-left">Menu</SheetTitle>
+					</SheetHeader>
+					<div className="mt-6">
+						<nav className="flex flex-col space-y-2">
 								{currentNavItems.map(item => (
 									<div key={item.name}>
 										<animated.div
@@ -366,7 +434,11 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 											<Link
 												href={item.href}
 												onClick={() => !item.hasDropdown && setIsOpen(false)}
-												className="flex items-center justify-between px-4 py-3 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
+												className={cn(
+													'relative flex items-center justify-between px-4 py-3 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200',
+													isActiveLink(item.href) &&
+														'text-foreground bg-muted/50 border-l-2 border-l-[--color-accent-main]'
+												)}
 											>
 												{item.name}
 												{item.hasDropdown && (
@@ -475,11 +547,11 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 										</animated.div>
 									</>
 								)}
-							</div>
-						</animated.div>
-					) : null
-				)}
-			</animated.nav>
+						</nav>
+					</div>
+				</SheetContent>
+			</Sheet>
+		</animated.nav>
 		)
 	}
 )
