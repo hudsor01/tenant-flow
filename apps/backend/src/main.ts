@@ -2,20 +2,12 @@ import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { getCORSConfig } from '@repo/shared/security/cors-config'
-import type { NextFunction, Request, Response } from 'express'
-import { randomUUID } from 'node:crypto'
 import 'reflect-metadata'
 import { AppModule } from './app.module'
 import { registerExpressMiddleware } from './config/express.config'
 
 // Trigger Railway deployment after fixing husky script
 import { HEALTH_PATHS } from './shared/constants/routes'
-
-// Extend Express Request interface for request timing
-interface RequestWithTiming extends Request {
-	startTime?: number
-	id?: string
-}
 
 const DEFAULT_PORT = 4600
 
@@ -128,85 +120,8 @@ async function bootstrap() {
 	// Enable graceful shutdown
 	app.enableShutdownHooks()
 
-	// Health endpoint is now handled by HealthController at /api/v1/health
-	// Express request timing middleware
-	app.use((req: RequestWithTiming, _res: Response, next: () => void) => {
-		req.startTime = Date.now()
-		next()
-	})
-
-	// Express response logging middleware with enhanced error details
-	app.use((req: RequestWithTiming, res: Response, next: () => void) => {
-		const originalSend = res.send
-		res.send = function (body: unknown) {
-			const duration = Date.now() - (req.startTime ?? Date.now())
-
-			// Enhanced logging for errors
-			if (res.statusCode >= 400) {
-				// Safely convert body to string for logging
-				let bodyString: string | undefined
-				if (res.statusCode >= 500 && body !== null) {
-					try {
-						bodyString = String(body).substring(0, 500)
-					} catch {
-						bodyString = '[Unable to stringify body]'
-					}
-				}
-
-				bootstrapLogger.warn(
-					`${req.method} ${req.url} -> ${res.statusCode} in ${duration}ms`,
-					{
-						statusCode: res.statusCode,
-						path: req.url,
-						method: req.method,
-						duration: `${duration}ms`,
-						headers: {
-							origin: req.headers.origin,
-							referer: req.headers.referer,
-							userAgent: req.headers['user-agent']?.substring(0, 100)
-						},
-						body: bodyString
-					}
-				)
-			} else {
-				bootstrapLogger.log(
-					`${req.method} ${req.url} -> ${res.statusCode} in ${duration}ms`
-				)
-			}
-			return originalSend.call(this, body)
-		}
-		next()
-	})
-
-	app.use((req: RequestWithTiming, _res: Response, next: () => void) => {
-		req.id = randomUUID()
-		next()
-	})
-
-	app.use(
-		(
-			err: Error,
-			req: RequestWithTiming,
-			res: Response,
-			_next: NextFunction
-		) => {
-			const duration = Date.now() - (req.startTime ?? Date.now())
-			bootstrapLogger.error('Unhandled error in Express middleware', {
-				error: err.message,
-				stack: err.stack?.split('\n').slice(0, 5).join('\n'),
-				path: req.url,
-				method: req.method,
-				requestId: req.id,
-				duration: `${duration}ms`,
-				headers: {
-					origin: req.headers.origin,
-					referer: req.headers.referer,
-					userAgent: req.headers['user-agent']?.substring(0, 100)
-				}
-			})
-			res.status(500).send('Internal Server Error')
-		}
-	)
+	// ✅ Request timing, ID, and logging now handled by NestJS middleware classes
+	// See: AppModule.configure() and ClsModule setup
 
 	// Start server
 	await app.listen(port, '0.0.0.0')
