@@ -3,14 +3,12 @@
  * Uses existing Supabase authentication pattern
  */
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { API_BASE_URL } from '@/lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 const logger = createLogger({ component: 'ServerAPI' })
-
-const API_BASE_URL =
-	process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.tenantflow.app'
 
 /**
  * Server-side fetch with Supabase authentication

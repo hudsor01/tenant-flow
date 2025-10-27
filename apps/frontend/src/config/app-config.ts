@@ -1,3 +1,5 @@
+import { API_BASE_URL } from '@/lib/api-client'
+
 // Environment variable validation - only in runtime, not during build
 const isBuildTime =
 	typeof window === 'undefined' && !process.env.NEXT_PUBLIC_APP_URL
@@ -23,7 +25,7 @@ export const APP_CONFIG = {
 		redirectUrl: '/auth/callback'
 	},
 	api: {
-		baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || ''
+		baseUrl: API_BASE_URL
 	},
 	features: {
 		registration: true,
