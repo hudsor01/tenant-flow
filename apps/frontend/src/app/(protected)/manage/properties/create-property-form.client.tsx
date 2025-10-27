@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { z } from 'zod'
-import { lookupZipCodeHybrid } from '@repo/shared/utils/zip-api'
 import type { Database } from '@repo/shared/types/supabase-generated'
 
 type PropertyType = Database['public']['Enums']['PropertyType']
@@ -44,7 +43,6 @@ import { useForm } from '@tanstack/react-form'
 
 export function CreatePropertyForm() {
 	const [isSubmitted, setIsSubmitted] = useState(false)
-	const [isZipLoading, setIsZipLoading] = useState(false)
 	const { data: user } = useSupabaseUser()
 	const logger = createLogger({ component: 'CreatePropertyForm' })
 	const createPropertyMutation = useCreateProperty()
@@ -291,7 +289,7 @@ export function CreatePropertyForm() {
 							{field => (
 								<Field>
 									<FieldLabel htmlFor="zipCode">
-										ZIP Code * {isZipLoading && <span className="text-xs text-muted-foreground ml-2">(Looking up...)</span>}
+										ZIP Code *
 									</FieldLabel>
 									<Input
 										id="zipCode"
@@ -299,23 +297,9 @@ export function CreatePropertyForm() {
 										autoComplete="postal-code"
 										placeholder="12345"
 										value={field.state.value}
-										onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
-											const zip = e.target.value
-											field.handleChange(zip)
-
-											// Auto-fill city/state from ZIP (hybrid: static + API fallback)
-											if (zip.length >= 5) {
-												setIsZipLoading(true)
-												const lookup = await lookupZipCodeHybrid(zip)
-												setIsZipLoading(false)
-
-												if (lookup) {
-													form.setFieldValue('city', lookup.city)
-													form.setFieldValue('state', lookup.state)
-													toast.success(`Auto-filled: ${lookup.city}, ${lookup.state}`)
-												}
-											}
-										}}
+										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										field.handleChange(e.target.value)
+									}
 										onBlur={field.handleBlur}
 									/>
 									{(field.state.meta.errors?.length ?? 0) > 0 && (
