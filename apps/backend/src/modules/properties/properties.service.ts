@@ -217,7 +217,7 @@ export class PropertiesService {
 	}
 
 	/**
-	 * Bulk import properties from Excel file
+	 * Bulk import properties from CSV file
 	 * Ephemeral processing: parse → validate ALL rows → atomic insert → discard file
 	 * Returns summary of success/errors for user feedback
 	 */
@@ -230,24 +230,43 @@ export class PropertiesService {
 		failed: number
 		errors: Array<{ row: number; error: string }>
 	}> {
-		const XLSX = await import('xlsx')
-
 		try {
-			// Parse Excel file
-			const workbook = XLSX.read(fileBuffer, { type: 'buffer' })
-			const sheetName = workbook.SheetNames[0]
-			if (!sheetName) {
-				throw new BadRequestException('Excel file contains no sheets')
+			// Parse CSV file (native Node.js)
+			const csvContent = fileBuffer.toString('utf-8')
+			const lines = csvContent.split('\n').filter((line) => line.trim())
+
+			if (lines.length === 0) {
+				throw new BadRequestException('CSV file is empty')
 			}
 
-			const worksheet = workbook.Sheets[sheetName]
-			if (!worksheet) {
-				throw new BadRequestException('Excel file sheet is invalid')
+			// Parse header row
+			const headerLine = lines[0]
+			if (!headerLine) {
+				throw new BadRequestException('CSV file has no headers')
 			}
-			const rows = XLSX.utils.sheet_to_json(worksheet) as Record<string, unknown>[]
+			const headers = this.parseCSVLine(headerLine)
+			if (headers.length === 0) {
+				throw new BadRequestException('CSV file has no headers')
+			}
+
+			// Parse data rows
+			const rows: Record<string, unknown>[] = []
+			for (let i = 1; i < lines.length; i++) {
+				const line = lines[i]
+				if (!line) continue
+
+				const values = this.parseCSVLine(line)
+				if (values.length === 0) continue
+
+				const row: Record<string, unknown> = {}
+				headers.forEach((header, index) => {
+					row[header] = values[index] || ''
+				})
+				rows.push(row)
+			}
 
 			if (rows.length === 0) {
-				throw new BadRequestException('Excel file contains no data rows')
+				throw new BadRequestException('CSV file contains no data rows')
 			}
 
 			if (rows.length > 100) {
@@ -265,7 +284,7 @@ export class PropertiesService {
 				const row = rows[i]
 				if (!row) continue // Skip undefined rows
 				
-				const rowNumber = i + 2 // Excel row number (header is row 1)
+				const rowNumber = i + 2 // CSV row number (header is row 1)
 
 				try {
 					// Required field validation
@@ -379,9 +398,40 @@ export class PropertiesService {
 	}
 
 	/**
-	 * Helper: Safely extract string value from Excel row
-	 * Handles various Excel data types
+	 * Parse CSV line handling quoted fields (RFC 4180 compliant)
 	 */
+	private parseCSVLine(line: string): string[] {
+		const result: string[] = []
+		let current = ''
+		let inQuotes = false
+
+		for (let i = 0; i < line.length; i++) {
+			const char = line[i]
+
+			if (char === '"') {
+				if (inQuotes && line[i + 1] === '"') {
+					// Escaped quote
+					current += '"'
+					i++ // Skip next quote
+				} else {
+					// Toggle quote state
+					inQuotes = !inQuotes
+				}
+			} else if (char === ',' && !inQuotes) {
+				// Field separator
+				result.push(current.trim())
+				current = ''
+			} else {
+				current += char
+			}
+		}
+
+		// Push last field
+		result.push(current.trim())
+
+		return result
+	}
+
 	private getStringValue(
 		row: Record<string, unknown>,
 		key: string
