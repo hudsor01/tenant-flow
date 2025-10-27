@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef } from 'react'
 import { useStore, type StoreApi } from 'zustand'
 import {
 	getStoredThemeMode,
@@ -39,9 +39,17 @@ export const PreferencesStoreProvider = ({
 	children,
 	themeMode
 }: PreferencesProviderProps) => {
-	const [store] = useState(() => createPreferencesStore({ themeMode }))
+	// ✅ FIXED: Use useRef instead of useState (per official Zustand Next.js docs)
+	// This ensures store is created before first render, preventing undefined errors
+	const storeRef = useRef<StoreApi<PreferencesState> | null>(null)
+	
+	if (storeRef.current === null) {
+		storeRef.current = createPreferencesStore({ themeMode })
+	}
 
 	useEffect(() => {
+		const store = storeRef.current
+		if (!store) return
 
 		const initialTheme = store.getState().themeMode
 		applyTheme(initialTheme)
@@ -81,10 +89,10 @@ export const PreferencesStoreProvider = ({
 			unsubscribe()
 			mediaQuery.removeEventListener('change', handleSystemChange)
 		}
-	}, [store])
+	}, [])
 
 	return (
-		<PreferencesStoreContext.Provider value={store}>
+		<PreferencesStoreContext.Provider value={storeRef.current}>
 			{children}
 		</PreferencesStoreContext.Provider>
 	)
