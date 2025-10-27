@@ -286,13 +286,113 @@ TypeScript enums ONLY allowed in `packages/shared/src/types/security.ts` for Sec
 - Direct PostgreSQL RPC via Supabase, JSON Schema definitions
 
 **FORBIDDEN**:
-- Custom service layers, repositories, custom DTOs
+- Custom service layers, repositories
 - Custom decorators (@CurrentUserId, @CurrentContext)
 - Custom validation pipes, custom interceptors
 - Custom event definitions and listeners
 - Wrappers, helper classes, factories, builders, custom error handlers
 
 **DECISION CRITERIA**: If published on npm under @nestjs/* or has official NestJS docs = allowed. If you're creating it = forbidden.
+
+**DTO Pattern - Native NestJS (AUTHORIZED)**:
+
+**Why Classes Over Interfaces for DTOs**:
+- **Runtime Existence**: Classes persist after TypeScript compilation, interfaces are erased
+- **Reflection Metadata**: ValidationPipe requires runtime type information (only classes provide this)
+- **Decorator Support**: Validation decorators (@IsString, @Exclude) only work on classes
+- **Technical Constraint**: Without classes, runtime validation is IMPOSSIBLE in JavaScript/TypeScript
+
+**ALLOWED - Native NestJS Ecosystem Packages**:
+- ✅ **Input Validation**: `nestjs-zod` + `createZodDto()` + `ZodValidationPipe`
+  - Define Zod schemas in `packages/shared/src/validation/`
+  - Create DTO classes with `createZodDto(schema)`
+  - Apply in controllers with `@Body()`, `@Query()`, `@Param()`
+
+- ✅ **Response Serialization**: `class-transformer` + `ClassSerializerInterceptor`
+  - Use `@Exclude()` to hide sensitive fields (passwords, internal IDs, secrets)
+  - Use `@Expose()` for explicit field whitelisting
+  - Use `@Type(() => NestedDto)` for nested object serialization
+  - Use `@Transform()` for field transformation (dates, formatting)
+
+- ✅ **Validation Groups**: Zod built-in methods (NOT custom factories)
+  - Use `.partial()` for update DTOs (all fields optional)
+  - Use `.pick()` to select specific fields
+  - Use `.omit()` to exclude specific fields
+  - These are **built-in Zod methods**, not custom abstractions
+
+**Implementation Pattern**:
+
+```typescript
+// Step 1: Define Zod schema in packages/shared/src/validation/
+export const createUserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  name: z.string().min(2)
+})
+
+export const updateUserSchema = createUserSchema.partial() // All fields optional
+
+// Step 2: Create Input DTO in apps/backend/src/modules/{domain}/dto/
+import { createZodDto } from 'nestjs-zod'
+
+export class CreateUserDto extends createZodDto(createUserSchema) {}
+export class UpdateUserDto extends createZodDto(updateUserSchema) {}
+
+// Step 3: Create Response DTO for serialization
+import { Exclude, Expose } from 'class-transformer'
+
+export class UserResponseDto {
+  @Expose()
+  id: string
+
+  @Expose()
+  email: string
+
+  @Exclude() // ✅ Password NEVER sent to client
+  password: string
+
+  @Exclude() // ✅ Internal notes stay internal
+  internalNotes: string
+
+  @Expose()
+  @Type(() => Date)
+  createdAt: Date
+}
+
+// Step 4: Use in controller
+import { SerializeOptions } from '@nestjs/common'
+
+@Post()
+@SerializeOptions({ type: UserResponseDto })
+async create(@Body() body: CreateUserDto): Promise<UserResponseDto> {
+  // Input validated by ZodValidationPipe
+  // Response serialized by ClassSerializerInterceptor
+  return this.userService.create(body)
+}
+```
+
+**FORBIDDEN - Custom Abstractions**:
+- ❌ Custom decorators (not native NestJS)
+- ❌ Custom validation pipes (use ZodValidationPipe or native ValidationPipe only)
+- ❌ DTO factories/builders (use `createZodDto()` only)
+- ❌ Custom DTO base classes (extend `createZodDto()` directly)
+- ❌ Wrapper functions around native features
+
+**Single Source of Truth**:
+```
+Zod Schema (packages/shared/src/validation/)
+    ↓
+Input DTO Class (via createZodDto)
+    ↓
+TypeScript Types (via z.infer)
+    ↓
+Response DTO Class (via class-transformer)
+```
+
+**OpenAPI/Swagger Documentation**:
+- ⏸️ **Deferred**: Skip for active development phase
+- ✅ **Add later**: 5-minute setup when project enters maintenance mode
+- 📦 **Package**: `@nestjs/swagger` (official NestJS package)
 
 **Module Structure**:
 - SharedModule (@Global()): Guards, pipes, core services, Logger, Reflector
