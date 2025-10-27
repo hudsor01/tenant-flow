@@ -45,6 +45,7 @@ import {
 	RefreshCw
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { API_BASE_URL } from '@/lib/api-client'
 
 const ALL_US_STATES: USState[] = [
 	'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'
@@ -143,7 +144,8 @@ export function LeaseTemplateBuilder() {
 	const handlePreviewPdf = React.useCallback(async () => {
 		setIsGeneratingPdf(true)
 		try {
-			const response = await fetch('/api/lease/template/preview', {
+			// Call backend PDF service with correct /api/v1/ prefix
+			const response = await fetch(`${API_BASE_URL}/api/v1/pdf/lease/template/preview`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ selections, context })

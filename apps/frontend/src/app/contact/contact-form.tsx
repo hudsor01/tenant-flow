@@ -21,6 +21,7 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { ContactFormRequest } from '@repo/shared/types/domain'
 import { Check, Mail, MapPin, Phone } from 'lucide-react'
 import { useState } from 'react'
+import { API_BASE_URL } from '@/lib/api-client'
 
 const logger = createLogger({ component: 'ContactForm' })
 
@@ -91,8 +92,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			}
 
 			// Call backend directly instead of Next.js proxy
-			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
-			const response = await fetch(`${apiBaseUrl}/api/v1/contact`, {
+			const response = await fetch(`${API_BASE_URL}/api/v1/contact`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'

@@ -16,7 +16,7 @@ interface MaintenanceViewClientProps {
 export function MaintenanceViewClient({ initialRequests }: MaintenanceViewClientProps) {
 	const viewPreferences = usePreferencesStore(state => state.viewPreferences)
 	const setViewPreference = usePreferencesStore(state => state.setViewPreference)
-	const currentView = viewPreferences.maintenance
+	const currentView = viewPreferences?.maintenance ?? 'kanban'
 
 	const handleViewChange = (view: ViewType) => {
 		if (view === 'kanban' || view === 'table') {
