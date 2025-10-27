@@ -84,9 +84,6 @@ importers:
       '@nestjs/terminus':
         specifier: 11.0.0
         version: 11.0.0(@nestjs/common@11.1.7(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.7)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@playwright/test':
-        specifier: 1.56.1
-        version: 1.56.1
       '@react-email/components':
         specifier: 0.5.7
         version: 0.5.7(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -157,12 +154,18 @@ importers:
         specifier: ^8.46.2
         version: 8.46.2(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3)
     devDependencies:
+      '@playwright/test':
+        specifier: 1.56.1
+        version: 1.56.1
       '@swc/cli':
         specifier: 0.7.8
         version: 0.7.8(@swc/core@1.13.21(@swc/helpers@0.5.17))(chokidar@4.0.3)
       '@swc/core':
         specifier: 1.13.21
         version: 1.13.21(@swc/helpers@0.5.17)
+      playwright:
+        specifier: 1.56.1
+        version: 1.56.1
       vercel:
         specifier: 48.6.0
         version: 48.6.0(@swc/core@1.13.21(@swc/helpers@0.5.17))
@@ -290,6 +293,9 @@ importers:
       nestjs-cls:
         specifier: 6.0.1
         version: 6.0.1(@nestjs/common@11.1.7(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.7)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      nestjs-zod:
+        specifier: 5.0.1
+        version: 5.0.1(@nestjs/common@11.1.7(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)(zod@4.1.12)
       passport:
         specifier: 0.7.0
         version: 0.7.0
@@ -329,9 +335,6 @@ importers:
       uuid:
         specifier: 13.0.0
         version: 13.0.0
-      xlsx:
-        specifier: 0.18.5
-        version: 0.18.5
       zod:
         specifier: 4.1.12
         version: 4.1.12
@@ -667,9 +670,6 @@ importers:
       web-vitals:
         specifier: ^5.1.0
         version: 5.1.0
-      xlsx:
-        specifier: 0.18.5
-        version: 0.18.5
       zod:
         specifier: 4.1.12
         version: 4.1.12
@@ -4468,10 +4468,6 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  adler-32@1.3.1:
-    resolution: {integrity: sha512-ynZ4w/nUUv5rrsR8UUGoe1VC9hZj6V5hU9Qw1HlMDJGEJw5S7TfTErWTjMys6M7vr0YWcPqs3qAr4ss0nDfP+A==}
-    engines: {node: '>=0.8'}
-
   agent-base@7.1.4:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
@@ -4920,10 +4916,6 @@ packages:
   canvas-confetti@1.9.3:
     resolution: {integrity: sha512-rFfTURMvmVEX1gyXFgn5QMn81bYk70qa0HLzcIOSVEyl57n6o9ItHeBtUSWdvKAPY0xlvBHno4/v3QPrT83q9g==}
 
-  cfb@1.2.2:
-    resolution: {integrity: sha512-KfdUZsSOw19/ObEWasvBP/Ac4reZvAGauZhs6S/gqNhXhI7cKwvlH7ulj+dOEYnca4bm4SGo8C1bTAQvnTjgQA==}
-    engines: {node: '>=0.8'}
-
   chainsaw@0.1.0:
     resolution: {integrity: sha512-75kWfWt6MEKNC8xYXIdRpDehRYY/tNSgwKaJq+dbbDcxORuVrrQ+SEHoWsniVn9XPYfP4gmdWIeDk/4YNp1rNQ==}
 
@@ -5057,10 +5049,6 @@ packages:
 
   code-block-writer@10.1.1:
     resolution: {integrity: sha512-67ueh2IRGst/51p0n6FvPrnRjAGHY5F8xdjkgrYE7DDzpJe6qA07RYQ9VcoUeo5ATOjSOiWpSL3SWBRRbempMw==}
-
-  codepage@1.15.0:
-    resolution: {integrity: sha512-3g6NUTPd/YtuuGrhMnOMRjFc+LJw/bnMp3+0r/Wcz3IXUuCosKRJvMphm5+Q+bvTVGcJJuRvVLuYba+WojaFaA==}
-    engines: {node: '>=0.8'}
 
   collect-v8-coverage@1.0.3:
     resolution: {integrity: sha512-1L5aqIkwPfiodaMgQunkF1zRhNqifHBmtbbbxcr6yVxxBnliw4TDOW6NxpO8DJLgJ16OT+Y4ztZqP6p/FtXnAw==}
@@ -6065,10 +6053,6 @@ packages:
   forwarded@0.2.0:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
     engines: {node: '>= 0.6'}
-
-  frac@1.1.2:
-    resolution: {integrity: sha512-w/XBfkibaTl3YDqASwfDUqkna4Z2p9cFSr1aHDt0WoMTECnRfBOv2WArlZILlqgWlmdIlALXGpM2AOhEk5W3IA==}
-    engines: {node: '>=0.8'}
 
   framer-motion@12.23.24:
     resolution: {integrity: sha512-HMi5HRoRCTou+3fb3h9oTLyJGBxHfW+HnNE25tAXOvVx/IvwMHK0cx7IR4a2ZU6sh3IX1Z+4ts32PcYBOqka8w==}
@@ -7436,6 +7420,17 @@ packages:
       reflect-metadata: '*'
       rxjs: '>= 7'
 
+  nestjs-zod@5.0.1:
+    resolution: {integrity: sha512-IjK99tpK+04UobLJJA5tlHv94Ml3wNWiRr7pRVDFJ62Jy/c/aYhMQa90WKiy7qUcmIDMWyPHQpHQN/MehESOmw==}
+    peerDependencies:
+      '@nestjs/common': ^10.0.0 || ^11.0.0
+      '@nestjs/swagger': ^7.4.2 || ^8.0.0 || ^11.0.0
+      rxjs: ^7.0.0
+      zod: ^3.25.0 || ^4.0.0
+    peerDependenciesMeta:
+      '@nestjs/swagger':
+        optional: true
+
   netmask@2.0.2:
     resolution: {integrity: sha512-dBpDMdxv9Irdq66304OLfEmQ9tbNRFnFTuZiLo+bD+r332bBmMJ8GBLXklIXXgxd3+v9+KUnZaUR5PJMa75Gsg==}
     engines: {node: '>= 0.4.0'}
@@ -8511,10 +8506,6 @@ packages:
     resolution: {integrity: sha512-UXhXR2869FQaD+GMly8jAMCRZ94nU5KcrFetZfWEMd+LVVG6y0ExgHAhatEcKZ/wk8YcKPdi+hiD2wm75lq3/Q==}
     engines: {node: '>=4.0.0'}
 
-  ssf@0.11.2:
-    resolution: {integrity: sha512-+idbmIXoYET47hH+d7dfm2epdOMUDjqcB4648sTZ+t2JwoyBFL/insLfB/racrDmsKB3diwsDA696pZMieAC5g==}
-    engines: {node: '>=0.8'}
-
   stable-hash@0.0.5:
     resolution: {integrity: sha512-+L3ccpzibovGXFK+Ap/f8LOS0ahMrHTf3xu7mMLSpEGU0EO9ucaysSylKo9eRDFNhWve/y275iPmIZ4z39a9iA==}
 
@@ -9313,17 +9304,9 @@ packages:
     resolution: {integrity: sha512-NsmoXalsWVDMGupxZ5R08ka9flZjjiLvHVAWYOKtiKM8ujtZWr9cRffak+uSE48+Ob8ObalXpwyeUiyDD6QFgg==}
     engines: {node: '>=8'}
 
-  wmf@1.0.2:
-    resolution: {integrity: sha512-/p9K7bEh0Dj6WbXg4JG0xvLQmIadrner1bi45VMJTfnbVHsc7yIajZyoSoK60/dtVBs12Fm6WkUI5/3WAVsNMw==}
-    engines: {node: '>=0.8'}
-
   word-wrap@1.2.5:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
     engines: {node: '>=0.10.0'}
-
-  word@0.3.0:
-    resolution: {integrity: sha512-OELeY0Q61OXpdUfTp+oweA/vtLVg5VDOXh+3he3PNzLGG/y0oylSOC1xRVj0+l4vQ3tj/bB1HVHv1ocXkQceFA==}
-    engines: {node: '>=0.8'}
 
   wordwrap@1.0.0:
     resolution: {integrity: sha512-gvVzJFlPycKc5dZN4yPkP8w7Dc37BtP1yczEneOb4uq34pXZcvrtRTmWV8W+Ume+XCxKgbjM+nevkyFPMybd4Q==}
@@ -9370,11 +9353,6 @@ packages:
   xdg-portable@7.3.0:
     resolution: {integrity: sha512-sqMMuL1rc0FmMBOzCpd0yuy9trqF2yTTVe+E9ogwCSWQCdDEtQUwrZPT6AxqtsFGRNxycgncbP/xmOOSPw5ZUw==}
     engines: {node: '>= 6.0'}
-
-  xlsx@0.18.5:
-    resolution: {integrity: sha512-dmg3LCjBPHZnQp5/F/+nnTa+miPJxUXB6vtk42YjBBKayDNagxGEeIdWApkYPOf3Z3pm3k62Knjzp7lMeTEtFQ==}
-    engines: {node: '>=0.8'}
-    hasBin: true
 
   xml-name-validator@5.0.0:
     resolution: {integrity: sha512-EvGK8EJ3DhaHfbRlETOWAS5pO9MZITeauHKJyb8wyajUfQUenkIg2MvLDTZ4T/TgIcm3HU0TFBgWWboAZ30UHg==}
@@ -13451,8 +13429,6 @@ snapshots:
 
   acorn@8.15.0: {}
 
-  adler-32@1.3.1: {}
-
   agent-base@7.1.4: {}
 
   ajv-formats@2.1.1(ajv@8.17.1):
@@ -13960,11 +13936,6 @@ snapshots:
 
   canvas-confetti@1.9.3: {}
 
-  cfb@1.2.2:
-    dependencies:
-      adler-32: 1.3.1
-      crc-32: 1.2.2
-
   chainsaw@0.1.0:
     dependencies:
       traverse: 0.3.9
@@ -14080,8 +14051,6 @@ snapshots:
   co@4.6.0: {}
 
   code-block-writer@10.1.1: {}
-
-  codepage@1.15.0: {}
 
   collect-v8-coverage@1.0.3: {}
 
@@ -15267,8 +15236,6 @@ snapshots:
       once: 1.4.0
 
   forwarded@0.2.0: {}
-
-  frac@1.1.2: {}
 
   framer-motion@12.23.24(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
     dependencies:
@@ -16758,6 +16725,13 @@ snapshots:
       reflect-metadata: 0.2.2
       rxjs: 7.8.2
 
+  nestjs-zod@5.0.1(@nestjs/common@11.1.7(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)(zod@4.1.12):
+    dependencies:
+      '@nestjs/common': 11.1.7(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      deepmerge: 4.3.1
+      rxjs: 7.8.2
+      zod: 4.1.12
+
   netmask@2.0.2: {}
 
   next-themes@0.4.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
@@ -17920,10 +17894,6 @@ snapshots:
 
   sql-template-strings@2.2.2: {}
 
-  ssf@0.11.2:
-    dependencies:
-      frac: 1.1.2
-
   stable-hash@0.0.5: {}
 
   stack-utils@2.0.6:
@@ -18869,11 +18839,7 @@ snapshots:
     dependencies:
       string-width: 4.2.3
 
-  wmf@1.0.2: {}
-
   word-wrap@1.2.5: {}
-
-  word@0.3.0: {}
 
   wordwrap@1.0.0: {}
 
@@ -18917,16 +18883,6 @@ snapshots:
   xdg-portable@7.3.0:
     dependencies:
       os-paths: 4.4.0
-
-  xlsx@0.18.5:
-    dependencies:
-      adler-32: 1.3.1
-      cfb: 1.2.2
-      codepage: 1.15.0
-      crc-32: 1.2.2
-      ssf: 0.11.2
-      wmf: 1.0.2
-      word: 0.3.0
 
   xml-name-validator@5.0.0: {}
 

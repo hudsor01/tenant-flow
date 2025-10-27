@@ -1,6 +1,7 @@
 'use client'
 
 import { Spinner } from '@/components/ui/spinner'
+import { API_BASE_URL } from '@/lib/api-client'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -33,7 +34,7 @@ export default function PostCheckoutPage() {
 		mutationFn: async (sessionId: string) => {
 			// Call backend to get customer email from Stripe session
 			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_BASE_URL}/billing/checkout-session/${sessionId}`,
+				`${API_BASE_URL}/billing/checkout-session/${sessionId}`,
 				{
 					method: 'GET',
 					headers: { 'Content-Type': 'application/json' }
