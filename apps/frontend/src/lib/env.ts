@@ -4,6 +4,7 @@
  */
 
 import type { StripeEnvironmentConfig } from '@/types/stripe'
+import { API_BASE_URL } from '@/lib/api-client'
 
 /**
  * Get Stripe configuration from environment variables
@@ -66,14 +67,9 @@ export function getSiteConfig() {
 		throw new Error('NEXT_PUBLIC_SITE_URL is required')
 	}
 
-	// Standard backend API base URL
-	const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || (() => {
-		throw new Error('NEXT_PUBLIC_API_BASE_URL is required for frontend API configuration')
-	})()
-
 	return {
 		siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
-		backendUrl
+		backendUrl: API_BASE_URL
 	}
 }
 

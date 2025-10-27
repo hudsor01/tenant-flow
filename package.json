@@ -135,7 +135,6 @@
 		"@humanfs/node": "0.16.7",
 		"@manypkg/cli": "^0.25.1",
 		"@nestjs/terminus": "11.0.0",
-		"@playwright/test": "1.56.1",
 		"@react-email/components": "0.5.7",
 		"@react-email/render": "1.4.0",
 		"@repo/eslint-config": "workspace:*",
@@ -153,16 +152,18 @@
 		"lint-staged": "16.2.6",
 		"next": "15.5.6",
 		"prettier": "catalog:",
+		"reselect": "^5.1.1",
 		"syncpack": "^13.0.4",
 		"tsx": "^4.20.6",
 		"turbo": "2.5.8",
 		"typescript": "^5.9.3",
-		"typescript-eslint": "^8.46.2",
-		"reselect": "^5.1.1"
+		"typescript-eslint": "^8.46.2"
 	},
 	"devDependencies": {
+		"@playwright/test": "1.56.1",
 		"@swc/cli": "0.7.8",
 		"@swc/core": "1.13.21",
+		"playwright": "1.56.1",
 		"vercel": "48.6.0"
 	}
 }
