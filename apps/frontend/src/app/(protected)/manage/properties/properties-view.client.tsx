@@ -13,7 +13,7 @@ interface PropertiesViewClientProps {
 export function PropertiesViewClient({ data }: PropertiesViewClientProps) {
 	const viewPreferences = usePreferencesStore(state => state.viewPreferences)
 	const setViewPreference = usePreferencesStore(state => state.setViewPreference)
-	const currentView = viewPreferences.properties
+	const currentView = viewPreferences?.properties ?? 'grid'
 
 	const handleViewChange = (view: ViewType) => {
 		if (view === 'grid' || view === 'table') {
