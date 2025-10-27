@@ -2,12 +2,8 @@
 
 import { ChartSkeleton } from '@/components/charts/chart-skeleton'
 import { dashboardApi } from '@/lib/api-client'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { useQuery } from '@tanstack/react-query'
 import dynamic from 'next/dynamic'
-import { useEffect, useState } from 'react'
-import type { OccupancyTrendResponse } from '@repo/shared/types/database-rpc'
-
-const logger = createLogger({ component: 'ChartsSection' })
 
 const OccupancyTrendsAreaChart = dynamic(
 	() =>
@@ -43,28 +39,13 @@ const ModernExplodedPieChart = dynamic(
 )
 
 export function ChartsSection() {
-	const [occupancyData, setOccupancyData] = useState<
-		OccupancyTrendResponse[] | undefined
-	>()
-	const [isLoading, setIsLoading] = useState(true)
-
-	useEffect(() => {
-		const fetchOccupancyTrends = async () => {
-			try {
-				setIsLoading(true)
-				const data = await dashboardApi.getOccupancyTrends(12)
-				setOccupancyData(data)
-			} catch (error) {
-				logger.error('Failed to fetch occupancy trends', {
-					error: error instanceof Error ? error.message : String(error)
-				})
-			} finally {
-				setIsLoading(false)
-			}
-		}
-
-		fetchOccupancyTrends()
-	}, [])
+	// ✅ React 19 pattern: TanStack Query instead of useState + useEffect + fetch
+	const { data: occupancyData, isLoading } = useQuery({
+		queryKey: ['dashboard', 'occupancy-trends', 12],
+		queryFn: () => dashboardApi.getOccupancyTrends(12),
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		gcTime: 10 * 60 * 1000 // 10 minutes
+	})
 
 	return (
 		<div className="w-full p-6 gap-4">
