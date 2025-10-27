@@ -99,7 +99,7 @@ export function PropertiesTableClient({ data }: PropertiesTableClientProps) {
 	const setProperties = usePropertiesViewStore(state => state.setProperties)
 	React.useEffect(() => {
 		setProperties(data)
-	}, [data, setProperties])
+	}, [data])
 
 	const filters = usePropertiesViewStore(selectFilters)
 	const facets = usePropertiesViewStore(selectFacets)
