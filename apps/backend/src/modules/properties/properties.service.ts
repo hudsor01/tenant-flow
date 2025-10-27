@@ -392,7 +392,7 @@ export class PropertiesService {
 
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 			throw new BadRequestException(
-				`Failed to process Excel file: ${errorMessage}`
+				`Failed to process CSV file: ${errorMessage}`
 			)
 		}
 	}
