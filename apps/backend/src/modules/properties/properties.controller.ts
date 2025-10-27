@@ -153,7 +153,7 @@ export class PropertiesController {
 	}
 
 	/**
-	 * Bulk import properties from Excel file
+	 * Bulk import properties from CSV file
 	 * Ephemeral processing: parse → validate → insert → discard file
 	 */
 	@Post('bulk-import')
@@ -171,14 +171,18 @@ export class PropertiesController {
 			throw new BadRequestException('No file uploaded')
 		}
 
-		// Validate file type
+		// Validate file type (CSV only)
 		const allowedMimeTypes = [
-			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-			'application/vnd.ms-excel' // .xls
+			'text/csv',
+			'application/csv',
+			'text/plain' // Some browsers send CSV as text/plain
 		]
-		if (!allowedMimeTypes.includes(file.mimetype)) {
+		if (
+			!allowedMimeTypes.includes(file.mimetype) &&
+			!file.originalname?.endsWith('.csv')
+		) {
 			throw new BadRequestException(
-				'Invalid file type. Only Excel files (.xlsx, .xls) are allowed'
+				'Invalid file type. Only CSV files (.csv) are allowed'
 			)
 		}
 

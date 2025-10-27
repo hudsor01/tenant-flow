@@ -1,4 +1,5 @@
-import { HttpStatus, INestApplication } from '@nestjs/common'
+import type { INestApplication } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { ZodValidationPipe } from 'nestjs-zod'
