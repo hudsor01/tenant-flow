@@ -209,6 +209,12 @@ export default [
 						'BinaryExpression[left.type="MemberExpression"][left.property.name="NEXT_PUBLIC_API_BASE_URL"]',
 					message:
 						'Direct access to NEXT_PUBLIC_API_BASE_URL detected. Import API_BASE_URL from @/lib/api-client instead. See CLAUDE.md DRY principle.'
+				},
+				{
+					selector:
+						'TemplateLiteral MemberExpression[property.name="NEXT_PUBLIC_API_BASE_URL"]',
+					message:
+						'Template literal with NEXT_PUBLIC_API_BASE_URL detected. Import API_BASE_URL from @/lib/api-client instead. See CLAUDE.md DRY principle.'
 				}
 			]
 		}

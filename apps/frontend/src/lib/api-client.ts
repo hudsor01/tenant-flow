@@ -89,7 +89,7 @@ function getApiBaseUrl(): string {
  * const response = await fetch(`${API_BASE_URL}/api/v1/properties`)
  * ```
  *
- * @see {@link https://github.com/your-org/tenant-flow/blob/main/CLAUDE.md CLAUDE.md} - DRY principle enforcement
+ * @see CLAUDE.md (repository root) - DRY principle enforcement
  * @see {@link getApiBaseUrl} - Internal resolution logic
  */
 export const API_BASE_URL = getApiBaseUrl()

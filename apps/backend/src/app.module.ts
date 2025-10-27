@@ -1,4 +1,5 @@
 import { CacheModule } from '@nestjs/cache-manager'
+import type { MiddlewareConsumer, NestModule } from '@nestjs/common'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
@@ -34,6 +35,7 @@ import { UsersModule } from './modules/users/users.module'
 import { SecurityModule } from './security/security.module'
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
 import { SubscriptionGuard } from './shared/guards/subscription.guard'
+import { RequestLoggerMiddleware } from './shared/middleware/request-logger.middleware'
 import { ServicesModule } from './shared/services/services.module'
 import { SharedModule } from './shared/shared.module'
 import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
@@ -136,4 +138,13 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 	],
 	exports: []
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+	/**
+	 * Configure middleware using official NestJS pattern
+	 * https://docs.nestjs.com/middleware#applying-middleware
+	 */
+	configure(consumer: MiddlewareConsumer) {
+		// Apply request logger to all routes
+		consumer.apply(RequestLoggerMiddleware).forRoutes('*')
+	}
+}
