@@ -15,7 +15,7 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { AlertCircle, CheckCircle2, Download, Upload } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import * as XLSX from 'xlsx'
+// CSV handling (native browser APIs - zero dependencies)
 
 const logger = createLogger({ component: 'PropertyBulkImportDialog' })
 
@@ -35,13 +35,13 @@ export function PropertyBulkImportDialog() {
 		const selectedFile = e.target.files?.[0]
 		if (selectedFile) {
 			// Validate file type
-			const validTypes = [
-				'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-				'application/vnd.ms-excel'
-			]
-			if (!validTypes.includes(selectedFile.type)) {
+			const validTypes = ['text/csv', 'application/csv']
+			if (
+				!validTypes.includes(selectedFile.type) &&
+				!selectedFile.name.endsWith('.csv')
+			) {
 				logger.warn('Invalid file type selected', { type: selectedFile.type })
-				alert('Please select an Excel file (.xlsx or .xls)')
+				alert('Please select a CSV file (.csv)')
 				return
 			}
 
@@ -92,45 +92,59 @@ export function PropertyBulkImportDialog() {
 	}
 
 	const downloadTemplate = () => {
-		// Create sample Excel template
-		const templateData = [
-			{
-				name: 'Sample Property 1',
-				address: '123 Main St',
-				city: 'San Francisco',
-				state: 'CA',
-				zipCode: '94105',
-				propertyType: 'APARTMENT',
-				description: 'Modern apartment building'
-			},
-			{
-				name: 'Sample Property 2',
-				address: '456 Oak Ave',
-				city: 'Los Angeles',
-				state: 'CA',
-				zipCode: '90001',
-				propertyType: 'SINGLE_FAMILY',
-				description: 'Single family home'
-			}
+		// Create sample CSV template (native browser APIs)
+		const headers = [
+			'name',
+			'address',
+			'city',
+			'state',
+			'zipCode',
+			'propertyType',
+			'description'
 		]
 
-		const worksheet = XLSX.utils.json_to_sheet(templateData)
-		const workbook = XLSX.utils.book_new()
-		XLSX.utils.book_append_sheet(workbook, worksheet, 'Properties')
-
-		// Set column widths
-		worksheet['!cols'] = [
-			{ wch: 20 }, // name
-			{ wch: 25 }, // address
-			{ wch: 15 }, // city
-			{ wch: 10 }, // state
-			{ wch: 10 }, // zipCode
-			{ wch: 15 }, // propertyType
-			{ wch: 30 } // description
+		const sampleRows = [
+			[
+				'Sample Property 1',
+				'123 Main St',
+				'San Francisco',
+				'CA',
+				'94105',
+				'APARTMENT',
+				'Modern apartment building'
+			],
+			[
+				'Sample Property 2',
+				'456 Oak Ave',
+				'Los Angeles',
+				'CA',
+				'90001',
+				'SINGLE_FAMILY',
+				'Single family home'
+			]
 		]
 
-		XLSX.writeFile(workbook, 'property-import-template.xlsx')
-		logger.info('Template downloaded')
+		// Convert to CSV format
+		const csvContent = [
+			headers.join(','),
+			...sampleRows.map((row) =>
+				row.map((cell) => `"${cell}"`).join(',')
+			)
+		].join('\n')
+
+		// Create download
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+		const link = document.createElement('a')
+		const url = URL.createObjectURL(blob)
+
+		link.setAttribute('href', url)
+		link.setAttribute('download', 'property-import-template.csv')
+		link.style.visibility = 'hidden'
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+
+		logger.info('CSV template downloaded')
 	}
 
 	return (
@@ -145,8 +159,8 @@ export function PropertyBulkImportDialog() {
 				<DialogHeader>
 					<DialogTitle>Bulk Import Properties</DialogTitle>
 					<DialogDescription>
-						Upload an Excel file to import multiple properties at once. Maximum
-						100 properties per import.
+						Upload a CSV file to import multiple properties at once. Maximum 100
+						properties per import.
 					</DialogDescription>
 				</DialogHeader>
 
@@ -156,7 +170,7 @@ export function PropertyBulkImportDialog() {
 						<div>
 							<p className="font-medium">Download Template</p>
 							<p className="text-sm text-muted-foreground">
-								Get the Excel template with sample data
+								Get the CSV template with sample data
 							</p>
 						</div>
 						<Button variant="outline" size="sm" onClick={downloadTemplate}>
@@ -171,12 +185,12 @@ export function PropertyBulkImportDialog() {
 							htmlFor="file-upload"
 							className="block text-sm font-medium text-foreground"
 						>
-							Select Excel File
+							Select CSV File
 						</label>
 						<input
 							id="file-upload"
 							type="file"
-							accept=".xlsx,.xls"
+							accept=".csv,text/csv"
 							onChange={handleFileChange}
 							className="block w-full text-sm text-muted-foreground
 								file:mr-4 file:py-2 file:px-4
