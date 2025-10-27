@@ -1,9 +1,6 @@
 import { getCSPString } from '@repo/shared/security/csp-config'
 import type { NextConfig } from 'next'
 
-const import { getCSPString } from '@repo/shared/security/csp-config'
-import type { NextConfig } from 'next'
-
 const nextConfig: NextConfig = {
 	// Core optimizations
 	reactStrictMode: true, // RE-ENABLED: Auth fix verified compatible
