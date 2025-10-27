@@ -8,6 +8,7 @@ import { Reflector } from '@nestjs/core'
 import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { getCORSConfig } from '@repo/shared/security/cors-config'
+import compression from 'compression'
 import 'reflect-metadata'
 import { AppModule } from './app.module'
 import { registerExpressMiddleware } from './config/express.config'
@@ -59,6 +60,17 @@ async function bootstrap() {
 	bootstrapLogger.log('NestFactory application created successfully')
 
 	app.set('trust proxy', 1)
+
+	// Enable compression (NestJS official pattern)
+	bootstrapLogger.log('Enabling compression middleware...')
+	app.use(
+		compression({
+			threshold: 1024, // Only compress responses > 1KB
+			level: 6, // Balanced compression (0-9)
+			memLevel: 8 // Memory allocated for compression (1-9)
+		})
+	)
+	bootstrapLogger.log('Compression middleware enabled')
 
 	// Register Express middleware with full TypeScript support
 	bootstrapLogger.log('Registering Express middleware...')

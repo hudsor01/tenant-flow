@@ -2,12 +2,13 @@ import { CacheModule } from '@nestjs/cache-manager'
 import type { MiddlewareConsumer, NestModule } from '@nestjs/common'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
+import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
 import { ThrottlerModule } from '@nestjs/throttler'
 import type { Request } from 'express'
 import { ClsModule } from 'nestjs-cls'
+import { ZodValidationPipe } from 'nestjs-zod'
 import { randomUUID } from 'node:crypto'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
@@ -35,7 +36,9 @@ import { UsersModule } from './modules/users/users.module'
 import { SecurityModule } from './security/security.module'
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
 import { SubscriptionGuard } from './shared/guards/subscription.guard'
+import { RequestIdMiddleware } from './shared/middleware/request-id.middleware'
 import { RequestLoggerMiddleware } from './shared/middleware/request-logger.middleware'
+import { RequestTimingMiddleware } from './shared/middleware/request-timing.middleware'
 import { ServicesModule } from './shared/services/services.module'
 import { SharedModule } from './shared/shared.module'
 import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
@@ -120,6 +123,10 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 	providers: [
 		AppService,
 		{
+			provide: APP_PIPE,
+			useClass: ZodValidationPipe
+		},
+		{
 			provide: APP_GUARD,
 			useClass: JwtAuthGuard
 		},
@@ -144,7 +151,11 @@ export class AppModule implements NestModule {
 	 * https://docs.nestjs.com/middleware#applying-middleware
 	 */
 	configure(consumer: MiddlewareConsumer) {
-		// Apply request logger to all routes
-		consumer.apply(RequestLoggerMiddleware).forRoutes('*')
+		// Apply middleware in order: timing → ID → logging
+		// Timing must run first to capture startTime
+		// ID must run before logging to include requestId in logs
+		consumer
+			.apply(RequestTimingMiddleware, RequestIdMiddleware, RequestLoggerMiddleware)
+			.forRoutes('*')
 	}
 }
