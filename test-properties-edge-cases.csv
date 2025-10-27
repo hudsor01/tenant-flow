@@ -1,5 +1,0 @@
-name,address,city,state,zipCode,propertyType,description
-"Property with, comma in name","123 Main St, Apt 5",San Francisco,CA,94105,APARTMENT,Regular description
-Property with quotes,"456 ""The Oaks"" Drive",Los Angeles,CA,90001,SINGLE_FAMILY,"Description with ""quoted text"" inside"
-Empty Optional Fields,789 Plain Street,San Diego,CA,92101,,
-"Mixed edge cases","999 Complex, ""Street"" Name","City, State",NY,10001,TOWNHOUSE,"Complex ""description"" with, commas"
