@@ -1,4 +1,10 @@
-import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common'
+import {
+	ClassSerializerInterceptor,
+	Logger,
+	RequestMethod,
+	ValidationPipe
+} from '@nestjs/common'
+import { Reflector } from '@nestjs/core'
 import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { getCORSConfig } from '@repo/shared/security/cors-config'
@@ -90,6 +96,11 @@ async function bootstrap() {
 	bootstrapLogger.log('Configuring CORS...')
 	app.enableCors(getCORSConfig())
 	bootstrapLogger.log('CORS enabled')
+
+	// Enable response serialization globally
+	bootstrapLogger.log('Enabling response serialization...')
+	app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
+	bootstrapLogger.log('ClassSerializerInterceptor enabled')
 
 	// Express middleware already registered via registerExpressMiddleware()
 	bootstrapLogger.log(
