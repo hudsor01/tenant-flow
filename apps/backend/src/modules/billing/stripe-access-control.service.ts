@@ -2,6 +2,10 @@ import { Injectable, Logger } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { EmailService } from '../email/email.service'
+import {
+	MAX_STRIPE_PAYMENT_ATTEMPTS,
+	DEFAULT_RPC_RETRY_ATTEMPTS
+} from './stripe.constants'
 
 /**
  * ULTRA-NATIVE: Subscription-based Access Control Service
@@ -39,7 +43,7 @@ export class StripeAccessControlService {
 				await this.supabaseService.rpcWithRetries(
 					'get_user_id_by_stripe_customer',
 					{ p_stripe_customer_id: customerId },
-					2
+					DEFAULT_RPC_RETRY_ATTEMPTS
 				)
 
 			if (userError || !userId) {
@@ -91,7 +95,7 @@ export class StripeAccessControlService {
 				await this.supabaseService.rpcWithRetries(
 					'get_user_id_by_stripe_customer',
 					{ p_stripe_customer_id: customerId },
-					2
+					DEFAULT_RPC_RETRY_ATTEMPTS
 				)
 
 			if (userError || !userId) {
@@ -170,7 +174,7 @@ export class StripeAccessControlService {
 				await this.supabaseService.rpcWithRetries(
 					'get_user_id_by_stripe_customer',
 					{ p_stripe_customer_id: customerId },
-					2
+					DEFAULT_RPC_RETRY_ATTEMPTS
 				)
 
 			if (userError || !userId) {
@@ -240,7 +244,7 @@ export class StripeAccessControlService {
 				await this.supabaseService.rpcWithRetries(
 					'get_user_id_by_stripe_customer',
 					{ p_stripe_customer_id: customerId },
-					2
+					DEFAULT_RPC_RETRY_ATTEMPTS
 				)
 
 			if (userError || !userId) {
@@ -279,8 +283,8 @@ export class StripeAccessControlService {
 			return
 		}
 
-		// Determine if this is the last attempt (Stripe usually tries 4 times)
-		const isLastAttempt = invoice.attempt_count >= 4
+		// Determine if this is the last attempt
+		const isLastAttempt = invoice.attempt_count >= MAX_STRIPE_PAYMENT_ATTEMPTS
 
 		// Send payment failed email using React template
 		await this.emailService.sendPaymentFailedEmail({
@@ -321,7 +325,7 @@ export class StripeAccessControlService {
 				await this.supabaseService.rpcWithRetries(
 					'get_user_id_by_stripe_customer',
 					{ p_stripe_customer_id: customerId },
-					2
+					DEFAULT_RPC_RETRY_ATTEMPTS
 				)
 
 			if (userError || !userId) {
@@ -377,16 +381,12 @@ export class StripeAccessControlService {
 	 */
 	async checkFeatureAccess(userId: string, feature: string): Promise<boolean> {
 		try {
-			// Note: This RPC function will be added to Supabase types after migration is applied
-			const { data: hasAccess, error } = (await this.supabaseService
+			const { data: hasAccess, error } = await this.supabaseService
 				.getAdminClient()
-				.rpc(
-					'check_user_feature_access' as never,
-					{
-						p_user_id: userId,
-						p_feature: feature
-					} as never
-				)) as { data: boolean | null; error: { message: string } | null }
+				.rpc('check_user_feature_access', {
+					p_user_id: userId,
+					p_feature: feature
+				})
 
 			if (error) {
 				this.logger.error('Failed to check feature access', {
@@ -422,27 +422,12 @@ export class StripeAccessControlService {
 		supportLevel: string
 	} | null> {
 		try {
-			// Note: This RPC function will be added to Supabase types after migration is applied
-			const { data, error } = (await this.supabaseService
+			const { data, error } = await this.supabaseService
 				.getAdminClient()
-				.rpc(
-					'get_user_plan_limits' as never,
-					{
-						p_user_id: userId
-					} as never
-				)
-				.single()) as {
-				data: {
-					property_limit: number
-					unit_limit: number
-					user_limit: number
-					storage_gb: number
-					has_api_access: boolean
-					has_white_label: boolean
-					support_level: string
-				} | null
-				error: { message: string } | null
-			}
+				.rpc('get_user_plan_limits', {
+					p_user_id: userId
+				})
+				.single()
 
 			if (error || !data) {
 				this.logger.warn('Could not get plan limits', {
