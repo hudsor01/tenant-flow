@@ -31,10 +31,11 @@ type DatabaseUser = Database['public']['Tables']['users']['Row']
 export function createMockEmailService(): jest.Mocked<EmailService> {
 	return {
 		sendTenantInvitation: jest.fn().mockResolvedValue(undefined),
+		sendInvitationReminder: jest.fn().mockResolvedValue(undefined),
 		sendPaymentSuccessEmail: jest.fn().mockResolvedValue(undefined),
 		sendPaymentFailedEmail: jest.fn().mockResolvedValue(undefined),
 		sendSubscriptionCanceledEmail: jest.fn().mockResolvedValue(undefined)
-	} as any
+	} as unknown as jest.Mocked<EmailService>
 }
 
 /**
