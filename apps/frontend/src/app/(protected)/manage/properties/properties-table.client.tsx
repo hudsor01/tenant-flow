@@ -97,6 +97,9 @@ type PropertiesTableClientProps = {
 
 export function PropertiesTableClient({ data }: PropertiesTableClientProps) {
 	const setProperties = usePropertiesViewStore(state => state.setProperties)
+
+	// Sync server data to Zustand store on mount/data change
+	// Note: setProperties is a stable Zustand selector and doesn't need to be in deps
 	React.useEffect(() => {
 		setProperties(data)
 	}, [data])
