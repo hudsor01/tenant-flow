@@ -11,7 +11,7 @@
  */
 
 import { logger } from '@repo/shared/lib/frontend-logger'
-import { handleConflictError, isConflictError, withVersion, incrementVersion } from '#lib/optimistic-locking'
+import { handleConflictError, isConflictError, withVersion, incrementVersion } from '@repo/shared/utils/optimistic-locking'
 import type {
 	CreatePropertyInput,
 	UpdatePropertyInput

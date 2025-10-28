@@ -10,7 +10,7 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { getAnalyticsPageData } from '#lib/api/dashboard-server'
-import { formatCurrency, formatPercentage } from '#lib/utils'
+import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
 import { Calendar, TrendingDown, TrendingUp } from 'lucide-react'
 
 export default async function AnalyticsPage() {

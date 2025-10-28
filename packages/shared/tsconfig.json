@@ -1,36 +1,12 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Shared Package Config - Composite Root",
+	"display": "TenantFlow Shared Package Config (October 2025)",
 	"extends": "../typescript-config/library.json",
 	"compilerOptions": {
 		"composite": true,
 		"outDir": "./dist",
 		"rootDir": "./src",
 		"baseUrl": ".",
-		"paths": {
-			"zod": ["../../node_modules/zod"],
-			"zod/*": ["../../node_modules/zod/*"],
-			"@tanstack/react-query": ["../../node_modules/@tanstack/react-query"],
-			"@tanstack/react-query/*": ["../../node_modules/@tanstack/react-query/*"],
-			"react-hook-form": [
-				"node_modules/react-hook-form",
-				"../../node_modules/react-hook-form"
-			],
-			"react-hook-form/*": [
-				"node_modules/react-hook-form/*",
-				"../../node_modules/react-hook-form/*"
-			],
-			"class-variance-authority": [
-				"node_modules/class-variance-authority",
-				"../../node_modules/class-variance-authority"
-			],
-			"class-variance-authority/*": [
-				"node_modules/class-variance-authority/*",
-				"../../node_modules/class-variance-authority/*"
-			],
-			"*": ["node_modules/*", "../../node_modules/*"]
-		},
-		"typeRoots": ["./node_modules/@types", "../../node_modules/@types"],
 		"tsBuildInfoFile": "./dist/.tsbuildinfo"
 	},
 	"include": ["src/**/*"],
@@ -41,6 +17,5 @@
 		"**/*.spec.ts",
 		"src/types/frontend-only.ts",
 		"vitest.config.ts"
-	],
-	"references": []
+	]
 }

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
+import { EmailService } from '../email/email.service'
 
 /**
  * ULTRA-NATIVE: Subscription-based Access Control Service
@@ -15,7 +16,10 @@ import { SupabaseService } from '../../database/supabase.service'
 export class StripeAccessControlService {
 	private readonly logger = new Logger(StripeAccessControlService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly emailService: EmailService
+	) {}
 
 	/**
 	 * Grant access to features when subscription becomes active
@@ -108,10 +112,39 @@ export class StripeAccessControlService {
 			})
 
 			// Access is automatically revoked via stripe.subscriptions table
-			// The get_user_active_subscription() function filters by status
-			// canceled/incomplete_expired subscriptions won't be returned
+		// The get_user_active_subscription() function filters by status
+		// canceled/incomplete_expired subscriptions won't be returned
 
-			// No additional database writes needed - stripe.* schema is source of truth
+		// Get user email for sending cancellation notice
+		const { data: userData, error: emailError } = await this.supabaseService
+			.getAdminClient()
+			.from('users')
+			.select('email')
+			.eq('id', userId)
+			.single()
+
+		if (emailError || !userData?.email) {
+			this.logger.warn('Could not fetch user email for cancellation notice', {
+				userId,
+				error: emailError?.message
+			})
+		} else {
+			// Send subscription canceled email using React template
+			// Type assertion needed because Stripe types don't expose all fields
+			const sub = subscription as Stripe.Subscription & { current_period_end?: number }
+			const currentPeriodEnd = sub.current_period_end
+				? new Date(sub.current_period_end * 1000)
+				: null
+
+			await this.emailService.sendSubscriptionCanceledEmail({
+				customerEmail: userData.email,
+				subscriptionId: subscription.id,
+				cancelAtPeriodEnd: subscription.cancel_at_period_end,
+				currentPeriodEnd
+			})
+		}
+
+		// No additional database writes needed - stripe.* schema is source of truth
 		} catch (error) {
 			this.logger.error('Failed to revoke subscription access', {
 				subscriptionId: subscription.id,
@@ -230,27 +263,34 @@ export class StripeAccessControlService {
 				attemptCount: invoice.attempt_count
 			})
 
-			// Send payment failed email via Supabase function
-			// Includes admin alert logic for multiple failures (attemptCount > 2)
-			const subscriptionId =
-				typeof invoice.subscription === 'string'
-					? invoice.subscription
-					: invoice.subscription?.id
+			// Get user email for sending failed payment notice
+		const { data: userData, error: emailError } = await this.supabaseService
+			.getAdminClient()
+			.from('users')
+			.select('email')
+			.eq('id', userId)
+			.single()
 
-			if (subscriptionId) {
-				await this.supabaseService
-					.getAdminClient()
-					.rpc('send_payment_failed_email', {
-						p_user_id: userId,
-						p_subscription_id: subscriptionId,
-						p_amount: invoice.amount_due,
-						p_currency: invoice.currency,
-						p_attempt_count: invoice.attempt_count,
-						...(invoice.last_finalization_error?.message && {
-							p_failure_message: invoice.last_finalization_error.message
-						})
-					})
-			}
+		if (emailError || !userData?.email) {
+			this.logger.warn('Could not fetch user email for payment failed notice', {
+				userId,
+				error: emailError?.message
+			})
+			return
+		}
+
+		// Determine if this is the last attempt (Stripe usually tries 4 times)
+		const isLastAttempt = invoice.attempt_count >= 4
+
+		// Send payment failed email using React template
+		await this.emailService.sendPaymentFailedEmail({
+			customerEmail: userData.email,
+			amount: invoice.amount_due,
+			currency: invoice.currency,
+			attemptCount: invoice.attempt_count,
+			invoiceUrl: invoice.hosted_invoice_url ?? null,
+			isLastAttempt
+		})
 		} catch (error) {
 			this.logger.error('Failed to handle payment failure', {
 				invoiceId: invoice.id,
@@ -299,22 +339,30 @@ export class StripeAccessControlService {
 				currency: invoice.currency
 			})
 
-			// Send payment success receipt email via Supabase function
-			const subscriptionId =
-				typeof invoice.subscription === 'string'
-					? invoice.subscription
-					: invoice.subscription?.id
+			// Get user email for sending receipt
+		const { data: userData, error: emailError } = await this.supabaseService
+			.getAdminClient()
+			.from('users')
+			.select('email')
+			.eq('id', userId)
+			.single()
 
-			if (subscriptionId) {
-				await this.supabaseService
-					.getAdminClient()
-					.rpc('send_payment_success_email', {
-						p_user_id: userId,
-						p_subscription_id: subscriptionId,
-						p_amount_paid: invoice.amount_paid,
-						p_currency: invoice.currency
-					})
-			}
+		if (emailError || !userData?.email) {
+			this.logger.warn('Could not fetch user email for payment receipt', {
+				userId,
+				error: emailError?.message
+			})
+			return
+		}
+
+		// Send payment success receipt email using React template
+		await this.emailService.sendPaymentSuccessEmail({
+			customerEmail: userData.email,
+			amount: invoice.amount_paid,
+			currency: invoice.currency,
+			invoiceUrl: invoice.hosted_invoice_url ?? null,
+			invoicePdf: invoice.invoice_pdf ?? null
+		})
 		} catch (error) {
 			this.logger.error('Failed to handle payment success', {
 				invoiceId: invoice.id,

@@ -30,6 +30,7 @@ import type { Tables } from '@repo/shared/types/supabase'
 import { leaseUpdateSchema } from '@repo/shared/validation/leases'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
+import { formatCurrency } from '@repo/shared/utils/currency'
 import {
 	Building,
 	Calendar,
@@ -113,13 +114,6 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			}
 		}
 	})
-
-	const formatCurrency = (amount: number) => {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: 'USD'
-		}).format(amount)
-	}
 
 	const handlePayRent = async () => {
 		if (!selectedPaymentMethodId) {

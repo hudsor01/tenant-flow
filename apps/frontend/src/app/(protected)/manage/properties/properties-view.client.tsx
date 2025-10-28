@@ -36,8 +36,9 @@ export function PropertiesViewClient({ data }: PropertiesViewClientProps) {
 			{currentView === 'grid' ? (
 				<PropertiesGridClient data={data} />
 			) : (
-				<PropertiesTableClient data={data} />
+				<PropertiesTableClient initialProperties={data} />
 			)}
+		
 		</div>
 	)
 }
