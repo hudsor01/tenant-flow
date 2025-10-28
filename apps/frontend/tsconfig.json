@@ -44,6 +44,10 @@
 		"*.config.js",
 		"*.config.mjs",
 		"jest.config.js",
-		"vitest.config.production.ts"
+		"vitest.config.production.ts",
+		"src/test/**/*",
+		"src/**/*.test.ts",
+		"src/**/*.test.tsx",
+		"src/**/__tests__/**/*"
 	]
 }

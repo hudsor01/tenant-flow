@@ -1,6 +1,8 @@
 'use client'
 
+
 import * as React from 'react'
+import DOMPurify from 'dompurify'
 import {
 	leaseTemplateSchema,
 	renderLeaseHtmlBody,
@@ -522,6 +524,15 @@ function ClauseSelector(props: {
 }
 
 function PreviewPanel({ html }: { html: string }) {
+	// Sanitize HTML to prevent XSS attacks
+	const sanitizedHtml = React.useMemo(() => {
+		if (typeof window === 'undefined') return html
+		return DOMPurify.sanitize(html, {
+			ALLOWED_TAGS: ['p', 'div', 'span', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+			ALLOWED_ATTR: ['class', 'style']
+		})
+	}, [html])
+
 	return (
 		<Card className="shadow-sm">
 			<CardHeader>
@@ -533,7 +544,7 @@ function PreviewPanel({ html }: { html: string }) {
 			<CardContent>
 				<div
 					className="prose max-w-none rounded-lg border bg-white p-6 text-sm shadow-inner"
-					dangerouslySetInnerHTML={{ __html: html }}
+					dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
 				/>
 			</CardContent>
 		</Card>
