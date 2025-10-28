@@ -436,13 +436,6 @@ export const tenantsApi = {
 		apiClient<void>(`${API_BASE_URL}/api/v1/tenants/${id}/hard-delete`, {
 			method: 'DELETE'
 		}),
-	sendInvitation: (id: string) =>
-		apiClient<{ message: string; success: boolean }>(
-			`${API_BASE_URL}/api/v1/tenants/${id}/invite`,
-			{
-				method: 'POST'
-			}
-		),
 	/**
 	 * ✅ NEW: Send tenant invitation via Supabase Auth (V2 - Phase 3.1)
 	 */
@@ -507,7 +500,18 @@ export const leasesApi = {
 		apiClient<Lease>(`${API_BASE_URL}/api/v1/leases/${leaseId}/renew`, {
 			method: 'POST',
 			body: JSON.stringify(data)
-		})
+		}),
+
+	// Lease termination
+	terminate: (leaseId: string, data: { terminationDate: string; reason?: string }) =>
+		apiClient<Lease>(`${API_BASE_URL}/api/v1/leases/${leaseId}/terminate`, {
+			method: 'POST',
+			body: JSON.stringify(data)
+		}),
+
+	// Expiring leases
+	getExpiring: (days: number = 30) =>
+		apiClient<Lease[]>(`${API_BASE_URL}/api/v1/leases/expiring?days=${days}`)
 }
 
 export const maintenanceApi = {

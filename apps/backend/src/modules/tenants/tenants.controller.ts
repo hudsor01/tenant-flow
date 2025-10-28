@@ -197,16 +197,6 @@ export class TenantsController {
 		await this.tenantsService.remove(userId, id)
 	}
 
-	@Post(':id/invite')
-	async sendInvitation(
-		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest,
-		@Body() body: { leaseId?: string }
-	) {
-		// Use Supabase's native auth.getUser() pattern
-		const userId = req.user.id
-		return this.tenantsService.sendTenantInvitation(userId, id, body.leaseId)
-	}
 
 	/**
 	 * ✅ NEW: Send tenant invitation via Supabase Auth (V2 - Phase 3.1)

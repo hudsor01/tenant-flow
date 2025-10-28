@@ -1,3 +1,5 @@
+import { reportsClient } from '#lib/api/reports-client'
+import type { Report } from '#lib/api/reports-client'
 import {
 	getMonthlyRevenue,
 	getOccupancyMetrics,
@@ -6,7 +8,6 @@ import {
 	type PaymentAnalytics,
 	type RevenueData
 } from '#lib/api/reports'
-import { reportsClient } from '#lib/api/reports-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -28,8 +29,6 @@ export const reportsKeys = {
 	occupancyMetrics: () => [...reportsKeys.all, 'analytics', 'occupancy'] as const
 }
 
-import type { Report } from '#lib/api/reports-client'
-
 import type { UseMutationResult } from '@tanstack/react-query'
 
 type UseReportsResult = {
@@ -38,12 +37,12 @@ type UseReportsResult = {
 	isLoading: boolean
 	isFetching: boolean
 	deleteMutation: UseMutationResult<
-		void,
+		unknown,
 		unknown,
 		string,
 		{ previous?: unknown }
 	>
-	downloadMutation: UseMutationResult<void, unknown, string, unknown>
+	downloadMutation: UseMutationResult<unknown, unknown, string, unknown>
 	downloadingIds: Set<string>
 	deletingIds: Set<string>
 	downloadReport: (reportId: string) => void
@@ -92,7 +91,7 @@ export function useReports({
 			if (previous) {
 				const cloned: ListResponse = {
 					...previous,
-					data: previous.data.filter(r => r.id !== reportId)
+					data: previous.data.filter((r: Report) => r.id !== reportId)
 				}
 				queryClient.setQueryData(queryKey, cloned)
 			}
@@ -182,7 +181,7 @@ export function useReports({
 		if (previous) {
 			const cloned: ListResponse = {
 				...previous,
-				data: previous.data.filter(r => r.id !== reportId)
+				data: previous.data.filter((r: Report) => r.id !== reportId)
 			}
 			queryClient.setQueryData(queryKey, cloned)
 		}
@@ -244,39 +243,6 @@ export function useReports({
 }
 
 /**
- * Hook to get monthly revenue data for charts
- * Phase 5: Advanced Features
- */
-export function useMonthlyRevenue(months: number = 12) {
-	return useQuery<RevenueData[]>({
-		queryKey: reportsKeys.revenue(months),
-		queryFn: () => getMonthlyRevenue(months)
-	})
-}
-
-/**
- * Hook to get payment analytics for dashboard
- * Phase 5: Advanced Features
- */
-export function usePaymentAnalytics(startDate?: string, endDate?: string) {
-	return useQuery<PaymentAnalytics>({
-		queryKey: reportsKeys.paymentAnalytics(startDate, endDate),
-		queryFn: () => getPaymentAnalytics(startDate, endDate)
-	})
-}
-
-/**
- * Hook to get occupancy metrics across all properties
- * Phase 5: Advanced Features
- */
-export function useOccupancyMetrics() {
-	return useQuery<OccupancyMetrics>({
-		queryKey: reportsKeys.occupancyMetrics(),
-		queryFn: getOccupancyMetrics
-	})
-}
-
-/**
  * Hook for prefetching reports
  */
 export function usePrefetchReports() {
@@ -331,4 +297,34 @@ export function usePrefetchOccupancyMetrics() {
 			queryFn: getOccupancyMetrics
 		})
 	}
+}
+
+/**
+ * Hook for fetching monthly revenue data
+ */
+export function useMonthlyRevenue(months: number = 12) {
+	return useQuery<RevenueData[]>({
+		queryKey: reportsKeys.revenue(months),
+		queryFn: () => getMonthlyRevenue(months)
+	})
+}
+
+/**
+ * Hook for fetching payment analytics
+ */
+export function usePaymentAnalytics(startDate?: string, endDate?: string) {
+	return useQuery<PaymentAnalytics>({
+		queryKey: reportsKeys.paymentAnalytics(startDate, endDate),
+		queryFn: () => getPaymentAnalytics(startDate, endDate)
+	})
+}
+
+/**
+ * Hook for fetching occupancy metrics
+ */
+export function useOccupancyMetrics() {
+	return useQuery<OccupancyMetrics>({
+		queryKey: reportsKeys.occupancyMetrics(),
+		queryFn: getOccupancyMetrics
+	})
 }
