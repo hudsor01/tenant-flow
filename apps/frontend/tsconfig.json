@@ -1,10 +1,9 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Frontend - Next.js 15 + React 19 (Modernized 2025)",
+	"display": "TenantFlow Frontend - Next.js 15 + React 19 (October 2025)",
 	"extends": "../../packages/typescript-config/next.json",
 	"compilerOptions": {
 		"baseUrl": ".",
-		"jsx": "preserve",
 		"paths": {
 			"#app/*": ["./src/app/*"],
 			"#components/*": ["./src/components/*"],
@@ -17,9 +16,7 @@
 			"#providers/*": ["./src/providers/*"],
 			"#test/*": ["./src/test/*"]
 		},
-		"composite": false,
 		"incremental": true,
-		"noEmit": true,
 		"plugins": [
 			{
 				"name": "next"
@@ -43,8 +40,7 @@
 		"dist",
 		"build",
 		".tsc-output",
-		"coverage/**/*",
-		"coverage/**/*",
+		"coverage",
 		"*.config.js",
 		"*.config.mjs",
 		"jest.config.js",

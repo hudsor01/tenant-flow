@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 
 // REMOVED: EventEmitter2 - Event emission now handled by Stripe Sync Engine
 import { SupabaseModule } from '../../database/supabase.module'
+import { EmailModule } from '../email/email.module'
 import { StripeAccessControlService } from './stripe-access-control.service'
 import { StripeDataService } from './stripe-data.service'
 // REMOVED: StripeEventProcessor - Event processing now handled by Stripe Sync Engine
@@ -24,7 +25,7 @@ import { StripeService } from './stripe.service'
  * - Type-safe DTOs with comprehensive validation
  */
 @Module({
-	imports: [SupabaseModule],
+	imports: [SupabaseModule, EmailModule],
 	providers: [
 		// Native Stripe SDK service
 		StripeService,
