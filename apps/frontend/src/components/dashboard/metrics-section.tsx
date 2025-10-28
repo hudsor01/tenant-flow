@@ -1,12 +1,12 @@
 'use client'
 
-import { MetricsCardSkeleton } from '@/components/charts/metrics-card-skeleton'
+import { MetricsCardSkeleton } from '#components/charts/metrics-card-skeleton'
 // import { SectionCards } from '../../../../app/(protected)/manage/SectionCards'
 import {
 	useDashboardStats,
 	useLeaseStats,
 	usePropertyStats
-} from '@/hooks/api/use-dashboard'
+} from '#hooks/api/use-dashboard'
 
 /**
  * MetricsSection - Single Responsibility: Display key metrics cards

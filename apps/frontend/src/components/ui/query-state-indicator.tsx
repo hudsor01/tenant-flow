@@ -14,7 +14,7 @@
  */
 import { RefreshCw } from 'lucide-react'
 import { Badge } from './badge'
-import { cn } from '@/lib/utils'
+import { cn } from '#lib/utils'
 
 interface QueryStateIndicatorProps {
 	isStale?: boolean

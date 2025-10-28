@@ -1,13 +1,13 @@
 'use client'
 
-import { ChartSkeleton } from '@/components/charts/chart-skeleton'
-import { dashboardApi } from '@/lib/api-client'
+import { ChartSkeleton } from '#components/charts/chart-skeleton'
+import { dashboardApi } from '#lib/api-client'
 import { useQuery } from '@tanstack/react-query'
 import dynamic from 'next/dynamic'
 
 const OccupancyTrendsAreaChart = dynamic(
 	() =>
-		import('@/components/charts/area-chart').then(
+		import('#components/charts/area-chart').then(
 			mod => mod.OccupancyTrendsAreaChart
 		),
 	{
@@ -18,7 +18,7 @@ const OccupancyTrendsAreaChart = dynamic(
 
 const PropertyPerformanceBarChart = dynamic(
 	() =>
-		import('@/components/charts/bar-chart').then(
+		import('#components/charts/bar-chart').then(
 			mod => mod.PropertyPerformanceBarChart
 		),
 	{
@@ -29,7 +29,7 @@ const PropertyPerformanceBarChart = dynamic(
 
 const ModernExplodedPieChart = dynamic(
 	() =>
-		import('@/components/charts/pie-chart').then(
+		import('#components/charts/pie-chart').then(
 			mod => mod.ModernExplodedPieChart
 		),
 	{

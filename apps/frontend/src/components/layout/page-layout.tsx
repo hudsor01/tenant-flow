@@ -1,5 +1,5 @@
-import { Navbar } from '@/components/layout/navbar'
-import { cn } from '@/lib/utils'
+import { Navbar } from '#components/layout/navbar'
+import { cn } from '#lib/utils'
 import React from 'react'
 
 interface PageLayoutProps extends React.ComponentProps<'div'> {

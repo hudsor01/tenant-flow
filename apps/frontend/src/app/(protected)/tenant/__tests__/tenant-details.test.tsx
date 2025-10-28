@@ -13,7 +13,7 @@ import {
 	screen,
 	userEvent,
 	waitFor
-} from '@/test/utils'
+} from '#test/utils'
 import type { Tenant } from '@repo/shared/types/core'
 import { TenantDetails } from '../tenant-details.client'
 

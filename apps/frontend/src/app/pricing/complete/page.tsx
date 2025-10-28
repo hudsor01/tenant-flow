@@ -1,10 +1,10 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { LoadingDots } from '@/components/ui/loading-spinner'
-import { useSessionStatus } from '@/hooks/api/use-payment-verification'
-import { getStatusColorClass } from '@/lib/utils/color-helpers'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { LoadingDots } from '#components/ui/loading-spinner'
+import { useSessionStatus } from '#hooks/api/use-payment-verification'
+import { getStatusColorClass } from '#lib/utils/color-helpers'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 

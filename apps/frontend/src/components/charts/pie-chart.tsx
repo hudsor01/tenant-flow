@@ -11,20 +11,20 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
-import type { ChartConfig } from '@/components/ui/chart'
+} from '#components/ui/card'
+import type { ChartConfig } from '#components/ui/chart'
 import {
 	ChartContainer,
 	ChartTooltip,
 	ChartTooltipContent
-} from '@/components/ui/chart'
+} from '#components/ui/chart'
 import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
 	EmptyMedia,
 	EmptyTitle
-} from '@/components/ui/empty'
+} from '#components/ui/empty'
 import type { ModernExplodedPieChartProps } from '@repo/shared/types/frontend'
 
 export const description =

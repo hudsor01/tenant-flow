@@ -11,14 +11,14 @@
 
 'use client'
 
-import { ErrorFallback } from '@/components/error-boundary/error-fallback'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorFallback } from '#components/error-boundary/error-fallback'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Skeleton } from '#components/ui/skeleton'
 import {
 	useCurrentLease,
 	useTenantMaintenanceRequests
-} from '@/hooks/api/use-lease'
+} from '#hooks/api/use-lease'
 import {
 	Calendar,
 	CreditCard,

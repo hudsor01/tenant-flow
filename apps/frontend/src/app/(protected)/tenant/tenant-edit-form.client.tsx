@@ -1,15 +1,15 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupInput
-} from '@/components/ui/input-group'
-import { Textarea } from '@/components/ui/textarea'
-import { useTenant, useUpdateTenant } from '@/hooks/api/use-tenant'
+} from '#components/ui/input-group'
+import { Textarea } from '#components/ui/textarea'
+import { useTenant, useUpdateTenant } from '#hooks/api/use-tenant'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	tenantUpdateSchema

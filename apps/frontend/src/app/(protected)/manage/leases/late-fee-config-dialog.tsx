@@ -1,14 +1,14 @@
 'use client'
 
-import { EditDialog } from '@/components/ui/base-dialogs'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Slider } from '@/components/ui/slider'
-import { Spinner } from '@/components/ui/spinner'
+import { EditDialog } from '#components/ui/base-dialogs'
+import { Input } from '#components/ui/input'
+import { Label } from '#components/ui/label'
+import { Slider } from '#components/ui/slider'
+import { Spinner } from '#components/ui/spinner'
 import {
 	useLateFeeConfig,
 	useUpdateLateFeeConfig
-} from '@/hooks/api/use-late-fees'
+} from '#hooks/api/use-late-fees'
 import { Calendar, DollarSign, Info } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'

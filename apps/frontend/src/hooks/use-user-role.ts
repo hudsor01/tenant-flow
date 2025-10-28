@@ -1,6 +1,6 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from './use-current-user'

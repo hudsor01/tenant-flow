@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '#components/ui/button'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { AlertCircle } from 'lucide-react'
 import { useEffect } from 'react'

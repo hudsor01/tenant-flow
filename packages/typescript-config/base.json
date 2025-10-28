@@ -37,9 +37,6 @@
 		"noPropertyAccessFromIndexSignature": false,
 		"allowUnusedLabels": false,
 		"allowUnreachableCode": false,
-		"declaration": true,
-		"declarationMap": true,
-		"sourceMap": true,
-		"composite": true
+		"sourceMap": true
 	}
 }

@@ -2,7 +2,7 @@
  * Native Supabase Auth hooks using React Query
  * Direct integration without backend API layer
  */
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import type { LoginCredentials, SignupFormData } from '@repo/shared/types/auth'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'

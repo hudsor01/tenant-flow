@@ -1,22 +1,22 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { Button } from '#components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupInput
-} from '@/components/ui/input-group'
+} from '#components/ui/input-group'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { tenantsApi } from '@/lib/api-client'
+} from '#components/ui/select'
+import { Textarea } from '#components/ui/textarea'
+import { tenantsApi } from '#lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
 import { useForm } from '@tanstack/react-form'

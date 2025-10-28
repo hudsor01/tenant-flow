@@ -1,7 +1,7 @@
 /**
  * TanStack Query hooks for dashboard data
  */
-import { API_BASE_URL, dashboardApi } from '@/lib/api-client'
+import { API_BASE_URL, dashboardApi } from '#lib/api-client'
 import type {
 	FinancialMetrics,
 	LeaseStatsResponse,

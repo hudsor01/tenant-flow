@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '@/lib/design-system'
+import { cn } from '#lib/design-system'
 import { Eye, EyeOff } from 'lucide-react'
 import * as React from 'react'
 

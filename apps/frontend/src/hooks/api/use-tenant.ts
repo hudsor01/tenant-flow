@@ -4,8 +4,8 @@
  * React 19 + TanStack Query v5 patterns with Suspense support
  */
 
-import { API_BASE_URL } from '@/lib/api-client'
-import { useTenantStore } from '@/stores/tenant-store'
+import { API_BASE_URL } from '#lib/api-client'
+import { useTenantStore } from '#stores/tenant-store'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
 	Tenant,

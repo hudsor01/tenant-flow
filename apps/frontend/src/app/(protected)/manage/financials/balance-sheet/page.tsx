@@ -1,14 +1,14 @@
 import type { Metadata } from 'next'
-import { requireSession } from '@/lib/server-auth'
-import { ExportButtons } from '@/components/export/export-buttons'
-import { Badge } from '@/components/ui/badge'
+import { requireSession } from '#lib/server-auth'
+import { ExportButtons } from '#components/export/export-buttons'
+import { Badge } from '#components/ui/badge'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
+} from '#components/ui/card'
 import {
 	Table,
 	TableBody,
@@ -16,8 +16,8 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { cn, formatCurrency } from '@/lib/utils'
+} from '#components/ui/table'
+import { cn, formatCurrency } from '#lib/utils'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { BalanceSheetData } from '@repo/shared/types/financial-statements'
 import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
@@ -68,7 +68,7 @@ export default async function BalanceSheetPage() {
 	let data: BalanceSheetData | null = null
 	try {
 		// Get auth token for API call
-		const { createClient } = await import('@/lib/supabase/server')
+		const { createClient } = await import('#lib/supabase/server')
 		const supabase = await createClient()
 		const { data: { session } } = await supabase.auth.getSession()
 

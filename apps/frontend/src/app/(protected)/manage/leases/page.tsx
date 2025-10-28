@@ -1,8 +1,8 @@
 'use client'
 
 // Lease edit dialog now inlined below using ShadCN Dialog components
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
 import {
 	Dialog,
 	DialogContent,
@@ -10,7 +10,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle
-} from '@/components/ui/dialog'
+} from '#components/ui/dialog'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -18,22 +18,22 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Field, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from '#components/ui/dropdown-menu'
+import { Field, FieldLabel } from '#components/ui/field'
+import { Input } from '#components/ui/input'
+import { Label } from '#components/ui/label'
 import {
 	Pagination,
 	PaginationContent,
 	PaginationItem
-} from '@/components/ui/pagination'
+} from '#components/ui/pagination'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
+} from '#components/ui/select'
 import {
 	Table,
 	TableBody,
@@ -41,14 +41,14 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { Textarea } from '@/components/ui/textarea'
+} from '#components/ui/table'
+import { Textarea } from '#components/ui/textarea'
 import {
 	useDeleteLease,
 	useLeaseList,
 	useRenewLease,
 	useTerminateLease
-} from '@/hooks/api/use-lease'
+} from '#hooks/api/use-lease'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Lease } from '@repo/shared/types/core'
 import {
@@ -63,13 +63,13 @@ import {
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { CreateDialog } from '@/components/ui/base-dialogs'
+import { CreateDialog } from '#components/ui/base-dialogs'
 import { useForm } from '@tanstack/react-form'
-import { useCreateLease } from '@/hooks/api/use-lease'
-import { useTenantList } from '@/hooks/api/use-tenant'
-import { useUnitList } from '@/hooks/api/use-unit'
-import { FieldError } from '@/components/ui/field'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { useCreateLease } from '#hooks/api/use-lease'
+import { useTenantList } from '#hooks/api/use-tenant'
+import { useUnitList } from '#hooks/api/use-unit'
+import { FieldError } from '#components/ui/field'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '#components/ui/input-group'
 import { DollarSign } from 'lucide-react'
 import type { CreateLeaseInput } from '@repo/shared/types/api-inputs'
 

@@ -1,18 +1,18 @@
 'use client'
 
-import { EditMaintenanceButton } from '@/app/(protected)/manage/maintenance/[id]/edit/edit-button'
-import { DeleteMaintenanceButton } from '@/app/(protected)/manage/maintenance/delete-button'
-import { StatusUpdateButton } from '@/app/(protected)/manage/maintenance/status-button'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { ButtonGroup } from '@/components/ui/button-group'
+import { EditMaintenanceButton } from '#app/(protected)/manage/maintenance/[id]/edit/edit-button'
+import { DeleteMaintenanceButton } from '#app/(protected)/manage/maintenance/delete-button'
+import { StatusUpdateButton } from '#app/(protected)/manage/maintenance/status-button'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { ButtonGroup } from '#components/ui/button-group'
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle
-} from '@/components/ui/dialog'
+} from '#components/ui/dialog'
 import type { Tables } from '@repo/shared/types/supabase-generated'
 import {
 	AlertTriangle,

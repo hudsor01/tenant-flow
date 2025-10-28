@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { useEffectEvent } from 'react'
 import type { Property } from '@repo/shared/types/core'
 import type { UpdatePropertyInput } from '@repo/shared/types/api-inputs'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -26,11 +25,11 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { DataTablePagination } from '@/components/ui/data-table-pagination'
+} from '#components/ui/table'
+import { DataTablePagination } from '#components/ui/data-table-pagination'
 import Link from 'next/link'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
 import {
 	Command,
 	CommandEmpty,
@@ -38,21 +37,21 @@ import {
 	CommandInput,
 	CommandItem,
 	CommandList
-} from '@/components/ui/command'
-import { Input } from '@/components/ui/input'
+} from '#components/ui/command'
+import { Input } from '#components/ui/input'
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger
-} from '@/components/ui/popover'
+} from '#components/ui/popover'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
+} from '#components/ui/select'
+import { Checkbox } from '#components/ui/checkbox'
 import { toast } from 'sonner'
 import {
 	Ban,
@@ -67,7 +66,7 @@ import {
 	SlidersHorizontal,
 	X
 } from 'lucide-react'
-import { useUpdateProperty } from '@/hooks/api/use-properties'
+import { useUpdateProperty } from '#hooks/api/use-properties'
 import {
 	selectColumnOrder,
 	selectDraftById,
@@ -79,7 +78,7 @@ import {
 	selectTypeaheadSuggestions,
 	usePropertiesViewStore
 } from './properties-view.store'
-import { cn } from '@/lib/utils'
+import { cn } from '#lib/utils'
 
 const STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'UNDER_CONTRACT', 'SOLD'] as const
 const TYPE_OPTIONS = [
@@ -99,15 +98,11 @@ type PropertiesTableClientProps = {
 export function PropertiesTableClient({ data }: PropertiesTableClientProps) {
 	const setProperties = usePropertiesViewStore(state => state.setProperties)
 
-	// Use React 19.2 useEffectEvent for functions that are "events" from effects
-	// This prevents setProperties from being in dependency array (which causes infinite loops)
-	const onDataChange = useEffectEvent(() => {
-		setProperties(data)
-	})
-
+	// Sync server data to Zustand store
+	// setProperties is stable from Zustand, safe to include in deps
 	React.useEffect(() => {
-		onDataChange()
-	}, [data])
+		setProperties(data)
+	}, [data, setProperties])
 
 	const filters = usePropertiesViewStore(selectFilters)
 	const facets = usePropertiesViewStore(selectFacets)
