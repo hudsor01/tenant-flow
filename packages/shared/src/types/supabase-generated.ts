@@ -562,6 +562,54 @@ export type Database = {
         }
         Relationships: []
       }
+      email_queue: {
+        Row: {
+          attempt_count: number
+          completed_at: string | null
+          created_at: string
+          email_type: string
+          failed_at: string | null
+          id: string
+          last_attempt_at: string | null
+          last_error: string | null
+          next_retry_at: string
+          payload: Json
+          priority: string
+          recipient_email: string
+          status: string
+        }
+        Insert: {
+          attempt_count?: number
+          completed_at?: string | null
+          created_at?: string
+          email_type: string
+          failed_at?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          next_retry_at: string
+          payload: Json
+          priority?: string
+          recipient_email: string
+          status?: string
+        }
+        Update: {
+          attempt_count?: number
+          completed_at?: string | null
+          created_at?: string
+          email_type?: string
+          failed_at?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          next_retry_at?: string
+          payload?: Json
+          priority?: string
+          recipient_email?: string
+          status?: string
+        }
+        Relationships: []
+      }
       expense: {
         Row: {
           amount: number
@@ -3270,7 +3318,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      email_queue_stats: {
+        Row: {
+          avg_attempts: number | null
+          count: number | null
+          email_type: string | null
+          last_completed: string | null
+          last_created: string | null
+          last_failed: string | null
+          priority: string | null
+          status: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       activate_tenant_from_auth_user: {
@@ -3451,6 +3511,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_drafts: { Args: never; Returns: undefined }
+      cleanup_old_email_queue_entries: { Args: never; Returns: number }
       cleanup_old_stripe_events: {
         Args: { p_days_to_keep?: number }
         Returns: number
