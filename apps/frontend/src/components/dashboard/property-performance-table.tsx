@@ -1,9 +1,9 @@
 'use client'
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/spinner'
+import { Avatar, AvatarFallback } from '#components/ui/avatar'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { Spinner } from '#components/ui/spinner'
 import {
 	Table,
 	TableBody,
@@ -11,12 +11,12 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { usePropertyPerformance } from '@/hooks/api/use-dashboard'
+} from '#components/ui/table'
+import { usePropertyPerformance } from '#hooks/api/use-dashboard'
 import {
 	getOccupancyBadgeClass,
 	getTrendColorClass
-} from '@/lib/utils/color-helpers'
+} from '#lib/utils/color-helpers'
 import { ArrowUpRight, Minus, TrendingDown, TrendingUp } from 'lucide-react'
 
 const formatCurrency = (amount: number) => {

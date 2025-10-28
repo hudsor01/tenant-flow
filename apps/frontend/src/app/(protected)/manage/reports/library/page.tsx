@@ -8,16 +8,16 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+} from '#components/ui/alert-dialog'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
+} from '#components/ui/card'
 import {
 	Empty,
 	EmptyContent,
@@ -25,7 +25,7 @@ import {
 	EmptyHeader,
 	EmptyMedia,
 	EmptyTitle
-} from '@/components/ui/empty'
+} from '#components/ui/empty'
 import {
 	Table,
 	TableBody,
@@ -33,9 +33,9 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
+} from '#components/ui/table'
 // reportsClient intentionally not imported here; used by hooks
-import { useReports } from '@/hooks/api/use-reports'
+import { useReports } from '#hooks/api/use-reports'
 import { format } from 'date-fns'
 import { Download, FileText, Trash2 } from 'lucide-react'
 import { useState } from 'react'

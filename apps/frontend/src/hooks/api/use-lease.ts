@@ -9,7 +9,7 @@
  * - Proper error handling
  */
 
-import { API_BASE_URL } from '@/lib/api-client'
+import { API_BASE_URL } from '#lib/api-client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
 	CreateLeaseInput,

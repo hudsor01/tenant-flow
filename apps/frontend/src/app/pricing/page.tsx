@@ -1,17 +1,17 @@
 'use client'
 
-import Footer from '@/components/layout/footer'
-import { Navbar } from '@/components/layout/navbar'
-import { StripePricingSection } from '@/components/pricing/stripe-pricing-section'
-import { TestimonialsSection } from '@/components/sections/testimonials-section'
+import Footer from '#components/layout/footer'
+import { Navbar } from '#components/layout/navbar'
+import { StripePricingSection } from '#components/pricing/stripe-pricing-section'
+import { TestimonialsSection } from '#components/sections/testimonials-section'
 import {
 	Accordion,
 	AccordionContent,
 	AccordionItem,
 	AccordionTrigger
-} from '@/components/ui/accordion'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
+} from '#components/ui/accordion'
+import { Alert, AlertDescription, AlertTitle } from '#components/ui/alert'
+import { Button } from '#components/ui/button'
 import { ArrowRight, CheckCircle2, Info } from 'lucide-react'
 import Link from 'next/link'
 

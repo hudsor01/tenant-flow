@@ -6,13 +6,13 @@ import type {
 } from '@repo/shared/types/occupancy-analytics'
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts'
 
-import { Badge } from '@/components/ui/badge'
-import { CardDescription } from '@/components/ui/card'
+import { Badge } from '#components/ui/badge'
+import { CardDescription } from '#components/ui/card'
 import {
 	ChartContainer,
 	ChartTooltipContent,
 	type ChartConfig
-} from '@/components/ui/chart'
+} from '#components/ui/chart'
 
 const occupancyConfig = {
 	occupancyRate: {

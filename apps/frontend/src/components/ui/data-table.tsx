@@ -14,7 +14,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 
-import { Input } from '@/components/ui/input'
+import { Input } from '#components/ui/input'
 import {
 	Table,
 	TableBody,
@@ -22,9 +22,9 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { DataTablePagination } from '@/components/ui/data-table-pagination'
-import { DataTableViewOptions } from '@/components/ui/data-table-view-options'
+} from '#components/ui/table'
+import { DataTablePagination } from '#components/ui/data-table-pagination'
+import { DataTableViewOptions } from '#components/ui/data-table-view-options'
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[]

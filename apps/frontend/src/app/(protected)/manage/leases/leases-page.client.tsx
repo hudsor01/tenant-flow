@@ -6,25 +6,25 @@
  * Initial data provided by Server Component parent
  */
 
-import { Input } from '@/components/ui/input'
+import { Input } from '#components/ui/input'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
+} from '#components/ui/select'
 
-import { useLeaseList } from '@/hooks/api/use-lease'
+import { useLeaseList } from '#hooks/api/use-lease'
 import type { Lease } from '@repo/shared/types/core'
 import { FileText, Search } from 'lucide-react'
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { toast } from 'sonner'
-import { CreateDialog } from '@/components/ui/base-dialogs'
+import { CreateDialog } from '#components/ui/base-dialogs'
 import { useForm } from '@tanstack/react-form'
-import { useCreateLease } from '@/hooks/api/use-lease'
-import { useTenantList } from '@/hooks/api/use-tenant'
-import { useUnitList } from '@/hooks/api/use-unit'
+import { useCreateLease } from '#hooks/api/use-lease'
+import { useTenantList } from '#hooks/api/use-tenant'
+import { useUnitList } from '#hooks/api/use-unit'
 
 import type { CreateLeaseInput } from '@repo/shared/types/api-inputs'
 

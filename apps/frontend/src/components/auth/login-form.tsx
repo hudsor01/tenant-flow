@@ -1,15 +1,15 @@
 'use client'
 
-import { GoogleButton } from '@/components/auth/google-button'
-import { Button } from '@/components/ui/button'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { GoogleButton } from '#components/auth/google-button'
+import { Button } from '#components/ui/button'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupInput
-} from '@/components/ui/input-group'
-import { useFormProgress } from '@/hooks/use-form-progress'
-import { cn } from '@/lib/design-system'
+} from '#components/ui/input-group'
+import { useFormProgress } from '#hooks/use-form-progress'
+import { cn } from '#lib/design-system'
 import type { AuthFormProps } from '@repo/shared/types/frontend'
 import { loginZodSchema } from '@repo/shared/validation/auth'
 import { useForm } from '@tanstack/react-form'

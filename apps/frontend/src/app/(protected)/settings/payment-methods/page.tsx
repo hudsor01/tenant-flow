@@ -1,6 +1,6 @@
 'use client'
 
-import { Spinner } from '@/components/ui/spinner'
+import { Spinner } from '#components/ui/spinner'
 import type { PaymentMethodResponse } from '@repo/shared/types/core'
 import {
 	Building2,
@@ -13,28 +13,28 @@ import {
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '#components/ui/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
+} from '#components/ui/card'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+} from '#components/ui/dropdown-menu'
 
 import {
 	useDeletePaymentMethod,
 	usePaymentMethods,
 	useSetDefaultPaymentMethod
-} from '@/hooks/api/use-payment-methods'
+} from '#hooks/api/use-payment-methods'
 
-import { AddPaymentMethodDialog } from '@/app/(protected)/tenant/payments/methods/add-payment-method-dialog'
+import { AddPaymentMethodDialog } from '#app/(protected)/tenant/payments/methods/add-payment-method-dialog'
 
 // Helper functions inlined from payment-methods-list.tsx
 function getCardBrandDisplay(brand: string) {

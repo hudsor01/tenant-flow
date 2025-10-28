@@ -5,7 +5,7 @@
  * @jest-environment jsdom
  */
 
-import { DEFAULT_MAINTENANCE_REQUEST, render, screen } from '@/test/utils'
+import { DEFAULT_MAINTENANCE_REQUEST, render, screen } from '#test/utils'
 import { MaintenanceKanban } from '../maintenance-kanban.client'
 
 // Mock API client

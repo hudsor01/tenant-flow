@@ -357,7 +357,7 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
 	try {
 		if (typeof window !== 'undefined') {
 			// Use Supabase session (consistent with rest of app)
-			const { createClient } = await import('@/lib/supabase/client')
+			const { createClient } = await import('#lib/supabase/client')
 			const supabase = createClient()
 			const {
 				data: { session },

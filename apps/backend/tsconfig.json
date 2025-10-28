@@ -33,9 +33,5 @@
 		"**/*.test.*",
 		"**/*.spec.*",
 		"**/*.e2e-spec.*"
-	],
-	"references": [
-		{ "path": "../../packages/shared" },
-		{ "path": "../../packages/database" }
 	]
 }

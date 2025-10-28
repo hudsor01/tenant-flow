@@ -1,14 +1,14 @@
 'use client'
 
-import { Checkout } from '@/components/pricing/checkout'
-import { StripeProvider } from '@/components/providers/stripe-provider'
-import { CardLayout } from '@/components/ui/card-layout'
-import { LoadingDots } from '@/components/ui/loading-spinner'
+import { Checkout } from '#components/pricing/checkout'
+import { StripeProvider } from '#providers/stripe-provider'
+import { CardLayout } from '#components/ui/card-layout'
+import { LoadingDots } from '#components/ui/loading-spinner'
 import {
 	formatStripePrice,
 	getPlanFeatures,
 	useStripeProducts
-} from '@/hooks/use-stripe-products'
+} from '#hooks/use-stripe-products'
 import { AlertCircle, ArrowLeft, CheckCircle, Shield, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'

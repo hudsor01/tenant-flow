@@ -1,7 +1,7 @@
 'use client'
 
-import { tenantKeys, useTenantWithLeaseSuspense } from '@/hooks/api/use-tenant'
-import { useTenantStore } from '@/stores/tenant-store'
+import { tenantKeys, useTenantWithLeaseSuspense } from '#hooks/api/use-tenant'
+import { useTenantStore } from '#stores/tenant-store'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { useQueryClient } from '@tanstack/react-query'
 import { createContext, use, useCallback, useMemo, type ReactNode } from 'react'

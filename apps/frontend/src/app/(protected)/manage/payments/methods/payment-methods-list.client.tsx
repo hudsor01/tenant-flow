@@ -14,17 +14,17 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
+} from '#components/ui/alert-dialog'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
 import {
 	Empty,
 	EmptyContent,
 	EmptyDescription,
 	EmptyHeader,
 	EmptyTitle
-} from '@/components/ui/empty'
+} from '#components/ui/empty'
 import {
 	Table,
 	TableBody,
@@ -32,12 +32,12 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
+} from '#components/ui/table'
 import {
 	useDeletePaymentMethod,
 	usePaymentMethods,
 	useSetDefaultPaymentMethod
-} from '@/hooks/api/use-payment-methods'
+} from '#hooks/api/use-payment-methods'
 
 function formatMethodLabel(type: string) {
 	switch (type) {

@@ -7,21 +7,21 @@ import { useRouter } from 'next/router'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
+import { Input } from '#components/ui/input'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { useAllTenants } from '@/hooks/api/use-tenant'
-import { useCreateLease } from '@/hooks/api/use-lease'
-import { unitsApi } from '@/lib/api-client'
+} from '#components/ui/select'
+import { Textarea } from '#components/ui/textarea'
+import { useAllTenants } from '#hooks/api/use-tenant'
+import { useCreateLease } from '#hooks/api/use-lease'
+import { unitsApi } from '#lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Unit } from '@repo/shared/types/supabase'
 import { leaseInputSchema } from '@repo/shared/validation/leases'

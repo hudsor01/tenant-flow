@@ -1,8 +1,8 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { useFormStep, useUIStore } from '@/stores/ui-store'
+import { Button } from '#components/ui/button'
+import { Progress } from '#components/ui/progress'
+import { useFormStep, useUIStore } from '#stores/ui-store'
 import { CheckCircle, ChevronLeft, ChevronRight, Edit, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useState } from 'react'

@@ -1,5 +1,5 @@
-import { createServerApi } from '@/lib/api-client'
-import { requireSession } from '@/lib/server-auth'
+import { createServerApi } from '#lib/api-client'
+import { requireSession } from '#lib/server-auth'
 import { PropertyEditForm } from './property-edit-form.client'
 
 export default async function EditPropertyPage({

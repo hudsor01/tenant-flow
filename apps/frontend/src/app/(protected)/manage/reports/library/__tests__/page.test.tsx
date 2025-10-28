@@ -27,7 +27,7 @@ jest.mock('sonner', () => ({
 	}
 }))
 
-import * as realReportsClient from '@/lib/api/reports-client'
+import * as realReportsClient from '#lib/api/reports-client'
 import { toast } from 'sonner'
 
 const fakeReports = () => ({

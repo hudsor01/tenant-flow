@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { requireSession } from '@/lib/server-auth'
+import { requireSession } from '#lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	Card,
@@ -7,9 +7,9 @@ import {
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
+} from '#components/ui/card'
 import { Calendar } from 'lucide-react'
-import type { ScheduledReport } from '@/lib/api/reports-client'
+import type { ScheduledReport } from '#lib/api/reports-client'
 import { getSchedules } from './actions'
 import { ScheduleReportsClient } from './schedule-reports.client'
 

@@ -84,7 +84,7 @@ function getApiBaseUrl(): string {
  *
  * @example
  * ```typescript
- * import { API_BASE_URL } from '@/lib/api-client'
+ * import { API_BASE_URL } from '#lib/api-client'
  *
  * const response = await fetch(`${API_BASE_URL}/api/v1/properties`)
  * ```
@@ -274,7 +274,7 @@ export const createServerApi = (accessToken: string) => ({
 
 	reports: {
 		listSchedules: () =>
-			apiClient<{ data: import('@/lib/api/reports-client').ScheduledReport[] }>(
+			apiClient<{ data: import('#lib/api/reports-client').ScheduledReport[] }>(
 				`${API_BASE_URL}/api/v1/reports/schedules`,
 				{ serverToken: accessToken }
 			).then(res => res.data)
@@ -913,7 +913,7 @@ export const lateFeesApi = {
  */
 export const reportsApi = {
 	listSchedules: () =>
-		apiClient<{ data: import('@/lib/api/reports-client').ScheduledReport[] }>(
+		apiClient<{ data: import('#lib/api/reports-client').ScheduledReport[] }>(
 			`${API_BASE_URL}/api/v1/reports/schedules`
 		).then(res => res.data)
 }

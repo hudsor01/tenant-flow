@@ -7,10 +7,10 @@ import {
 	getStoredThemeMode,
 	persistThemeMode,
 	updateThemeMode
-} from '@/lib/theme-utils'
+} from '#lib/theme-utils'
 import type { ThemeMode } from '@repo/shared/types/domain'
-import type { PreferencesState } from '@/stores/preferences-store'
-import { createPreferencesStore } from '@/stores/preferences-store'
+import type { PreferencesState } from '#stores/preferences-store'
+import { createPreferencesStore } from '#stores/preferences-store'
 
 const PreferencesStoreContext =
 	createContext<StoreApi<PreferencesState> | null>(null)

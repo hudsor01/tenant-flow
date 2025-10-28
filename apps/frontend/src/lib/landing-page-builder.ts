@@ -5,20 +5,20 @@ export const availableComponents = {
 	cta: {
 		1: {
 			name: 'Simple CTA',
-			import: "import { CTASimple } from '@/components/sections/cta-simple'"
+			import: "import { CTASimple } from '#components/sections/cta-simple'"
 		}
 	},
 	testimonials: {
 		1: {
 			name: 'Minimal Testimonials',
 			import:
-				"import { TestimonialsMinimal } from '@/components/sections/testimonials-minimal'"
+				"import { TestimonialsMinimal } from '#components/sections/testimonials-minimal'"
 		}
 	},
 	footer: {
 		1: {
 			name: 'Standard Footer',
-			import: "import Footer from '@/components/layout/footer'"
+			import: "import Footer from '#components/layout/footer'"
 		}
 	}
 }
@@ -54,13 +54,13 @@ export const generateLandingPageComponents = () => {
 
 	// Always include selected components
 	imports.push(
-		"import { PremiumHeroSection } from '@/components/sections/hero-section'"
+		"import { PremiumHeroSection } from '#components/sections/hero-section'"
 	)
 	imports.push(
-		"import { FeaturesSection } from '@/components/sections/features-section'"
+		"import { FeaturesSection } from '#components/sections/features-section'"
 	)
 	imports.push(
-		"import { StripePricingSection } from '@/components/pricing/stripe-pricing-section'"
+		"import { StripePricingSection } from '#components/pricing/stripe-pricing-section'"
 	)
 
 	components.push('<PremiumHeroSection />')

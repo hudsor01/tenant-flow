@@ -1,12 +1,12 @@
-import { Button } from '@/components/ui/button'
+import { Button } from '#components/ui/button'
 import {
 	Card,
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
-import { createServerApi } from '@/lib/api-client'
-import { requireSession } from '@/lib/server-auth'
+} from '#components/ui/card'
+import { createServerApi } from '#lib/api-client'
+import { requireSession } from '#lib/server-auth'
 import { formatCents } from '@repo/shared/lib/format'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {

@@ -9,12 +9,12 @@
  */
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Skeleton } from '@/components/ui/skeleton'
-import { usePaymentHistory } from '@/hooks/api/use-payment-history'
-import { usePaymentMethods } from '@/hooks/api/use-payment-methods'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Skeleton } from '#components/ui/skeleton'
+import { usePaymentHistory } from '#hooks/api/use-payment-history'
+import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { Calendar, CreditCard, DollarSign, Download } from 'lucide-react'
 import Link from 'next/link'
 

@@ -16,7 +16,7 @@
  *
  * @example
  * ```tsx
- * import { CreateDialog } from '@/components/ui/base-dialogs'
+ * import { CreateDialog } from '#components/ui/base-dialogs'
  *
  * <CreateDialog
  *   triggerText="Add Property"

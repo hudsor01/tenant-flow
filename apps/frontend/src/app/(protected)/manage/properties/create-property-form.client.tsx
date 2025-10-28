@@ -1,21 +1,21 @@
 'use client'
 
-import { useCreateProperty } from '@/hooks/api/use-properties'
+import { useCreateProperty } from '#hooks/api/use-properties'
 import { CheckCircle } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-import { Button } from '@/components/ui/button'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { Button } from '#components/ui/button'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
+import { Input } from '#components/ui/input'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
+} from '#components/ui/select'
+import { Textarea } from '#components/ui/textarea'
 import { z } from 'zod'
 import type { Database } from '@repo/shared/types/supabase-generated'
 
@@ -25,9 +25,9 @@ import {
 	Dropzone,
 	DropzoneContent,
 	DropzoneEmptyState
-} from '@/components/dropzone'
-import { useSupabaseUser } from '@/hooks/api/use-supabase-auth'
-import { usePropertyImageUpload } from '@/hooks/use-property-image-upload'
+} from '#components/dropzone'
+import { useSupabaseUser } from '#hooks/api/use-supabase-auth'
+import { usePropertyImageUpload } from '#hooks/use-property-image-upload'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { transformPropertyFormData } from '@repo/shared/validation/properties'
 import { useForm } from '@tanstack/react-form'

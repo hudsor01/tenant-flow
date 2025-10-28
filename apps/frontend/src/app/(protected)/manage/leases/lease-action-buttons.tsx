@@ -1,31 +1,31 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { ButtonGroup } from '@/components/ui/button-group'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { ButtonGroup } from '#components/ui/button-group'
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle
-} from '@/components/ui/dialog'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+} from '#components/ui/dialog'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupInput
-} from '@/components/ui/input-group'
-import { Label } from '@/components/ui/label'
+} from '#components/ui/input-group'
+import { Label } from '#components/ui/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { cn } from '@/lib/utils'
+} from '#components/ui/select'
+import { Textarea } from '#components/ui/textarea'
+import { cn } from '#lib/utils'
 import type { Tables } from '@repo/shared/types/supabase'
 import { leaseUpdateSchema } from '@repo/shared/validation/leases'
 import { useForm } from '@tanstack/react-form'
@@ -45,9 +45,9 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { useUpdateLease } from '@/hooks/api/use-lease'
-import { usePaymentMethods } from '@/hooks/api/use-payment-methods'
-import { useCreateRentPayment } from '@/hooks/api/use-rent-payments'
+import { useUpdateLease } from '#hooks/api/use-lease'
+import { usePaymentMethods } from '#hooks/api/use-payment-methods'
+import { useCreateRentPayment } from '#hooks/api/use-rent-payments'
 import { LateFeesSection } from './late-fees-section'
 import { RenewLeaseDialog } from './renew-lease-dialog'
 import { TerminateLeaseDialog } from './terminate-lease-dialog'

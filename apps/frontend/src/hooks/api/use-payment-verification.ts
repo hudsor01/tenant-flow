@@ -1,7 +1,7 @@
 'use client'
 
-import { apiClient, API_BASE_URL } from '@/lib/api-client'
-import type { SubscriptionData } from '@/types/stripe'
+import { apiClient, API_BASE_URL } from '#lib/api-client'
+import type { SubscriptionData } from '#types/stripe'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { StripeSessionStatusResponse } from '@repo/shared/types/core'
 import { useQuery, useQueryClient } from '@tanstack/react-query'

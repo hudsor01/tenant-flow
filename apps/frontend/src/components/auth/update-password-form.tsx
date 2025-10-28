@@ -1,22 +1,22 @@
 'use client'
 
-import { PasswordStrength } from '@/components/auth/password-strength'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
+import { PasswordStrength } from '#components/auth/password-strength'
+import { Alert, AlertDescription } from '#components/ui/alert'
+import { Button } from '#components/ui/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+} from '#components/ui/card'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupInput
-} from '@/components/ui/input-group'
-import { buttonClasses, cardClasses, cn } from '@/lib/design-system'
+} from '#components/ui/input-group'
+import { buttonClasses, cardClasses, cn } from '#lib/design-system'
 import { supabaseClient } from '@repo/shared/lib/supabase-client'
 import { useMutation } from '@tanstack/react-query'
 import {

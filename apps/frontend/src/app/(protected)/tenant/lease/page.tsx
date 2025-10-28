@@ -11,11 +11,11 @@
 
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useCurrentLease } from '@/hooks/api/use-lease'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Skeleton } from '#components/ui/skeleton'
+import { useCurrentLease } from '#hooks/api/use-lease'
 import { Calendar, DollarSign, FileText, Home, MapPin } from 'lucide-react'
 import Link from 'next/link'
 

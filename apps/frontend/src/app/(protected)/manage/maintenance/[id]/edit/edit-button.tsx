@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '#components/ui/button'
 import {
 	Dialog,
 	DialogContent,
@@ -8,22 +8,22 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger
-} from '@/components/ui/dialog'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+} from '#components/ui/dialog'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupInput
-} from '@/components/ui/input-group'
+} from '#components/ui/input-group'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { useUpdateMaintenanceRequest } from '@/hooks/api/use-maintenance'
+} from '#components/ui/select'
+import { Textarea } from '#components/ui/textarea'
+import { useUpdateMaintenanceRequest } from '#hooks/api/use-maintenance'
 import {
 	maintenanceRequestUpdateFormSchema
 } from '@repo/shared/validation/maintenance'

@@ -1,7 +1,7 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { propertiesApi } from '@/lib/api-client'
+import { Button } from '#components/ui/button'
+import { propertiesApi } from '#lib/api-client'
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'

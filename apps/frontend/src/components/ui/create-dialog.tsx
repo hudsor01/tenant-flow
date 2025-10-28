@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '#components/ui/button'
 import {
 	Dialog,
 	DialogContent,
@@ -8,9 +8,9 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger
-} from '@/components/ui/dialog'
-import { Progress } from '@/components/ui/progress'
-import { useFormStep, useUIStore } from '@/stores/ui-store'
+} from '#components/ui/dialog'
+import { Progress } from '#components/ui/progress'
+import { useFormStep, useUIStore } from '#stores/ui-store'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import type { FormProgress } from '@repo/shared/types/frontend'
 import { CheckCircle, ChevronLeft, ChevronRight, Plus } from 'lucide-react'

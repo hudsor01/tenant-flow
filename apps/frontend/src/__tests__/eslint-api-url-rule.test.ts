@@ -87,11 +87,11 @@ describe('ESLint Rule: no-inline-api-url-fallback', () => {
 
 	/**
 	 * Test Pattern 4: Correct usage (should NOT trigger error)
-	 * Example: import { API_BASE_URL } from '@/lib/api-client'
+	 * Example: import { API_BASE_URL } from '#lib/api-client'
 	 */
 	it('should allow correct usage with API_BASE_URL constant', async () => {
 		const code = `
-			import { API_BASE_URL } from '@/lib/api-client'
+			import { API_BASE_URL } from '#lib/api-client'
 
 			const response = await fetch(\`\${API_BASE_URL}/api/v1/properties\`)
 		`

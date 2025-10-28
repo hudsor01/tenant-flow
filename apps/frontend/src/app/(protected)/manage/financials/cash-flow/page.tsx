@@ -1,15 +1,15 @@
 import type { Metadata } from 'next'
-import { requireSession } from '@/lib/server-auth'
-import { ExportButtons } from '@/components/export/export-buttons'
+import { requireSession } from '#lib/server-auth'
+import { ExportButtons } from '#components/export/export-buttons'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
-import { cn, formatCurrency } from '@/lib/utils'
+} from '#components/ui/card'
+import { Table, TableBody, TableCell, TableRow } from '#components/ui/table'
+import { cn, formatCurrency } from '#lib/utils'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { CashFlowData } from '@repo/shared/types/financial-statements'
 import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
@@ -64,7 +64,7 @@ export default async function CashFlowPage() {
 	let data: CashFlowData | null = null
 	try {
 		// Get auth token for API call
-		const { createClient } = await import('@/lib/supabase/server')
+		const { createClient } = await import('#lib/supabase/server')
 		const supabase = await createClient()
 		const { data: { session } } = await supabase.auth.getSession()
 

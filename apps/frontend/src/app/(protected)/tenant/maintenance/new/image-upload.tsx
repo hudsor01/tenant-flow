@@ -5,8 +5,8 @@
 
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { createClient } from '@/lib/supabase/client'
+import { Button } from '#components/ui/button'
+import { createClient } from '#lib/supabase/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { CheckSquare, Square, Trash2, Upload, X } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'

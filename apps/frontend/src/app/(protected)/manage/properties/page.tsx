@@ -1,6 +1,6 @@
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription, AlertTitle } from '#components/ui/alert'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
 import {
 	Card,
 	CardAction,
@@ -8,9 +8,9 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
-import { createServerApi } from '@/lib/api-client'
-import { requireSession } from '@/lib/server-auth'
+} from '#components/ui/card'
+import { createServerApi } from '#lib/api-client'
+import { requireSession } from '#lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
 import { Plus, TrendingDown, TrendingUp } from 'lucide-react'

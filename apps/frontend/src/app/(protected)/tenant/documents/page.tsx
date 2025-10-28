@@ -10,10 +10,10 @@
  * - Important notices
  */
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Skeleton } from '#components/ui/skeleton'
 import { Calendar, Download, Eye, FileText, FolderOpen } from 'lucide-react'
 
 export default function TenantDocumentsPage() {

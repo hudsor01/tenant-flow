@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 
-import { AddPaymentMethod } from '@/app/(protected)/manage/payments/methods/add-payment-method.client'
+import { AddPaymentMethod } from '#app/(protected)/manage/payments/methods/add-payment-method.client'
 import { TenantPaymentMethods } from './tenant-payment-methods.client'
 
 export default function TenantPaymentMethodsPage() {

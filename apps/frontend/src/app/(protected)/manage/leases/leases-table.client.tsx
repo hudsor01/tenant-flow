@@ -15,10 +15,10 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
+} from '#components/ui/alert-dialog'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
 import {
 	Table,
 	TableBody,
@@ -26,10 +26,10 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { useAllTenants } from '@/hooks/api/use-tenant'
-import { useDeleteLease } from '@/hooks/api/use-lease'
-import { leasesApi, unitsApi } from '@/lib/api-client'
+} from '#components/ui/table'
+import { useAllTenants } from '#hooks/api/use-tenant'
+import { useDeleteLease } from '#hooks/api/use-lease'
+import { leasesApi, unitsApi } from '#lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
 

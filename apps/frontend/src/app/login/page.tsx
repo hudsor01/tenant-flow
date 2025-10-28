@@ -1,7 +1,7 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import { createLogger } from '@repo/shared/lib/frontend-logger.js'
+import { createClient } from '#lib/supabase/client'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {
 	LoginCredentials,
 	LoginFormData,
@@ -10,9 +10,9 @@ import type {
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 
-import { loginAction } from '@/app/login/actions'
-import { ForgotPasswordModal } from '@/components/auth/forgot-password-modal'
-import { LoginLayout } from '@/components/auth/login-layout'
+import { loginAction } from '#app/login/actions'
+import { ForgotPasswordModal } from '#components/auth/forgot-password-modal'
+import { LoginLayout } from '#components/auth/login-layout'
 import { toast } from 'sonner'
 
 const logger = createLogger({ component: 'LoginPage' })

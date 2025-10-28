@@ -1,5 +1,5 @@
-import { createServerApi, API_BASE_URL } from '@/lib/api-client'
-import { requireSession } from '@/lib/server-auth'
+import { createServerApi, API_BASE_URL } from '#lib/api-client'
+import { requireSession } from '#lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
 import { CreateTenantForm } from '../../../tenant/create-tenant-form.client'

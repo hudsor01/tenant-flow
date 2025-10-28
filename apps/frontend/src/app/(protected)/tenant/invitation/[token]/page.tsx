@@ -1,11 +1,11 @@
-import { Button } from '@/components/ui/button'
+import { Button } from '#components/ui/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
+} from '#components/ui/card'
 import { CheckCircle2, XCircle, Clock } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'

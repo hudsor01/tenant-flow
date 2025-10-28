@@ -3,7 +3,7 @@
  * Uses existing Supabase authentication pattern
  */
 import type { Database } from '@repo/shared/types/supabase-generated'
-import { API_BASE_URL } from '@/lib/api-client'
+import { API_BASE_URL } from '#lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'

@@ -7,9 +7,9 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+} from '#components/ui/alert-dialog'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -17,7 +17,7 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+} from '#components/ui/dropdown-menu'
 import {
 	Dialog,
 	DialogContent,
@@ -25,24 +25,24 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
+} from '#components/ui/dialog'
+import { Label } from '#components/ui/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { useDeleteUnit } from '@/hooks/api/use-unit'
+} from '#components/ui/select'
+import { Input } from '#components/ui/input'
+import { useDeleteUnit } from '#hooks/api/use-unit'
 import {
 	TYPOGRAPHY_SCALE,
 	buttonClasses,
 	cardClasses,
 	cn,
 	inputClasses
-} from '@/lib/design-system'
+} from '#lib/design-system'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { UnitStats } from '@repo/shared/types/core'
 import type { UnitRow } from '@repo/shared/types/frontend'

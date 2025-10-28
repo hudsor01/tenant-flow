@@ -1,6 +1,6 @@
 'use client'
-import { BorderBeam } from '@/components/ui/border-beam'
-import { TimelineContent } from '@/components/ui/timeline-animation'
+import { BorderBeam } from '#components/ui/border-beam'
+import { TimelineContent } from '#components/ui/timeline-animation'
 import Image from 'next/image'
 import { useRef } from 'react'
 

@@ -1,8 +1,8 @@
 'use client'
 
-import { NavUser } from '@/components/dashboard/nav-user'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { NavUser } from '#components/dashboard/nav-user'
+import { Button } from '#components/ui/button'
+import { cn } from '#lib/utils'
 import { ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'

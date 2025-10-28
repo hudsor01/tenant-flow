@@ -1,4 +1,4 @@
-import { DEFAULT_THEME_MODE } from '@/lib/theme-utils'
+import { DEFAULT_THEME_MODE } from '#lib/theme-utils'
 import type { ThemeMode } from '@repo/shared/types/domain'
 import { createStore } from 'zustand/vanilla'
 

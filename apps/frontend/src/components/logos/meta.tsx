@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils'
+import { cn } from '#lib/utils'
 
 // Define Meta brand colors as CSS variables
 const metaColors = {

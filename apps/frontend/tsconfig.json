@@ -5,6 +5,18 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"jsx": "preserve",
+		"paths": {
+			"#app/*": ["./src/app/*"],
+			"#components/*": ["./src/components/*"],
+			"#contexts/*": ["./src/contexts/*"],
+			"#design-system/*": ["./src/design-system/*"],
+			"#lib/*": ["./src/lib/*"],
+			"#hooks/*": ["./src/hooks/*"],
+			"#stores/*": ["./src/stores/*"],
+			"#types/*": ["./src/types/*"],
+			"#providers/*": ["./src/providers/*"],
+			"#test/*": ["./src/test/*"]
+		},
 		"composite": false,
 		"incremental": true,
 		"noEmit": true,
@@ -13,19 +25,6 @@
 				"name": "next"
 			}
 		],
-		"paths": {
-			"@/*": ["./src/*"],
-			"@/components/*": ["./src/components/*"],
-			"@/lib/*": ["./src/lib/*"],
-			"@/hooks/*": ["./src/hooks/*"],
-			"@/stores/*": ["./src/stores/*"],
-			"@/types/*": ["./src/types/*"],
-			"@/components/providers/*": ["./src/providers/*"],
-			"@repo/shared": ["../../packages/shared/dist"],
-			"@repo/shared/*": ["../../packages/shared/dist/*"],
-			"@repo/ui": ["../../packages/ui/src"],
-			"@repo/ui/components/ui/*": ["../../packages/ui/src/*"]
-		},
 		"types": ["node", "react", "react-dom"]
 	},
 	"include": [
@@ -50,6 +49,5 @@
 		"*.config.mjs",
 		"jest.config.js",
 		"vitest.config.production.ts"
-	],
-	"references": [{ "path": "../../packages/shared" }]
+	]
 }

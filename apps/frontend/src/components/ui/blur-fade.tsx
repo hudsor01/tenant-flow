@@ -1,6 +1,6 @@
 "use client"
 
-import { animationClasses, cn } from '@/lib/design-system'
+import { animationClasses, cn } from '#lib/design-system'
 import { useSpring } from '@react-spring/core'
 import { animated } from '@react-spring/web'
 import type {

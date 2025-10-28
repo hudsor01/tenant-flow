@@ -4,6 +4,18 @@
 	"version": "0.1.0",
 	"private": true,
 	"type": "module",
+	"imports": {
+		"#app/*": "./src/app/*",
+		"#components/*": "./src/components/*",
+		"#contexts/*": "./src/contexts/*",
+		"#design-system/*": "./src/design-system/*",
+		"#lib/*": "./src/lib/*",
+		"#hooks/*": "./src/hooks/*",
+		"#stores/*": "./src/stores/*",
+		"#types/*": "./src/types/*",
+		"#providers/*": "./src/providers/*",
+		"#test/*": "./src/test/*"
+	},
 	"scripts": {
 		"dev": "doppler run -- next dev --turbo",
 		"dev:clean": "pnpm clean && pnpm dev",

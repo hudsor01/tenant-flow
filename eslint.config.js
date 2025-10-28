@@ -8,6 +8,8 @@
 
 import globals from 'globals'
 import baseConfig from './packages/eslint-config/base.js'
+import turboConfig from './packages/eslint-config/turbo.js'
+import nextPlugin from '@next/eslint-plugin-next'
 
 /**
  * Root-level configuration with project-specific overrides
@@ -26,6 +28,20 @@ export default [
 	},
 	// Use the shared base configuration (includes TypeScript ESLint)
 	...baseConfig,
+	// Next.js ESLint plugin for framework-specific rules (flat config format)
+	{
+		name: 'nextjs/core-rules',
+		files: ['apps/frontend/**/*.{js,jsx,ts,tsx}'],
+		plugins: {
+			'@next/next': nextPlugin
+		},
+		rules: {
+			...nextPlugin.configs.recommended.rules,
+			...nextPlugin.configs['core-web-vitals'].rules
+		}
+	},
+	// Turborepo environment variable validation
+	...turboConfig,
 	{
 		name: 'root/monorepo-files',
 		files: ['*.js', '*.mjs', '*.ts'],

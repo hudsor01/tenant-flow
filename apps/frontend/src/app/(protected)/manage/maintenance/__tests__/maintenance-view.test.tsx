@@ -5,7 +5,7 @@
  * @jest-environment jsdom
  */
 
-import { DEFAULT_MAINTENANCE_REQUEST, render, screen, userEvent } from '@/test/utils'
+import { DEFAULT_MAINTENANCE_REQUEST, render, screen, userEvent } from '#test/utils'
 import { MaintenanceViewClient } from '../maintenance-view.client'
 
 // Mock preferences provider

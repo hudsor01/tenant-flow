@@ -5,7 +5,7 @@
  * @jest-environment jsdom
  */
 
-import { render, screen, userEvent } from '@/test/utils'
+import { render, screen, userEvent } from '#test/utils'
 import { ViewSwitcher } from '../view-switcher'
 
 describe('ViewSwitcher', () => {

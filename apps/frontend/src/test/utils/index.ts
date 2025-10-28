@@ -5,7 +5,7 @@
  * NO FACTORIES, NO BUILDERS - Only native platform features and provider setup
  *
  * @example
- * import { render, screen, DEFAULT_TENANT, createMockQuery } from '@/test/utils'
+ * import { render, screen, DEFAULT_TENANT, createMockQuery } from '#test/utils'
  */
 
 // Re-export render utilities (allowed - reduces React Query boilerplate)
