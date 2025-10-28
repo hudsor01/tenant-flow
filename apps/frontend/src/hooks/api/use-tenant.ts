@@ -11,7 +11,7 @@
  * - Optimistic updates
  */
 
-import { API_BASE_URL } from '#lib/api-client'
+import { API_BASE_URL, tenantsApi } from '#lib/api-client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
 	Tenant,
@@ -47,12 +47,7 @@ export const tenantKeys = {
 export function useTenant(id: string) {
 	return useQuery({
 		queryKey: tenantKeys.detail(id),
-		queryFn: async (): Promise<Tenant> => {
-			const response = await apiClient<Tenant>(
-				`${API_BASE_URL}/api/v1/tenants/${id}`
-			)
-			return response
-		},
+		queryFn: () => tenantsApi.get(id),
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes cache time
@@ -160,16 +155,7 @@ export function useCreateTenant() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (tenantData: TenantInput) => {
-			const response = await apiClient<TenantWithLeaseInfo>(
-				`${API_BASE_URL}/api/v1/tenants`,
-				{
-					method: 'POST',
-					body: JSON.stringify(tenantData)
-				}
-			)
-			return response
-		},
+		mutationFn: (tenantData: TenantInput) => tenantsApi.create(tenantData),
 		onError: (err) => {
 			logger.error('Failed to create tenant', { error: err })
 		},
@@ -192,16 +178,7 @@ export function useUpdateTenant() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({ id, data }: { id: string; data: TenantUpdate }) => {
-			const response = await apiClient<TenantWithLeaseInfo>(
-				`${API_BASE_URL}/api/v1/tenants/${id}`,
-				{
-					method: 'PUT',
-					body: JSON.stringify(data)
-				}
-			)
-			return response
-		},
+		mutationFn: ({ id, data }: { id: string; data: TenantUpdate }) => tenantsApi.update(id, data),
 		onMutate: async ({ id, data }) => {
 			// Cancel all outgoing queries for this tenant
 			await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })
@@ -500,22 +477,8 @@ export function useMarkTenantAsMovedOut() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({
-			id,
-			data
-		}: {
-			id: string
-			data: { moveOutDate: string; moveOutReason: string }
-		}) => {
-			const response = await apiClient<TenantWithLeaseInfo>(
-				`${API_BASE_URL}/api/v1/tenants/${id}/mark-moved-out`,
-				{
-					method: 'PUT',
-					body: JSON.stringify(data)
-				}
-			)
-			return response
-		},
+		mutationFn: ({ id, data }: { id: string; data: { moveOutDate: string; moveOutReason: string } }) => 
+			tenantsApi.markAsMovedOut(id, data),
 		onMutate: async ({ id, data }) => {
 			// Cancel in-flight queries
 			await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })

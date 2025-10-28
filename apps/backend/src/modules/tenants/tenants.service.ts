@@ -22,7 +22,6 @@ import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
 } from '../../shared/utils/sql-safe.utils'
-import { EmailService } from '../email/email.service'
 import { TenantCreatedEvent } from '../notifications/events/notification.events'
 
 export interface TenantWithRelations extends Tenant {
@@ -56,8 +55,7 @@ export class TenantsService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly eventEmitter: EventEmitter2,
-		private readonly emailService: EmailService
+		private readonly eventEmitter: EventEmitter2
 	) {}
 
 	/**
@@ -674,139 +672,6 @@ export class TenantsService {
 	// These are kept as RPC calls since they involve complex workflows beyond basic CRUD
 
 	/**
-	 * Send tenant invitation - Direct implementation with email service
-	 * Ultra-Native: Direct Supabase update + direct Resend email
-	 */
-	async sendTenantInvitation(
-		userId: string,
-		tenantId: string,
-		propertyId?: string,
-		leaseId?: string
-	): Promise<Record<string, unknown>> {
-		try {
-			this.logger.log('Sending tenant invitation', {
-				userId,
-				tenantId,
-				propertyId,
-				leaseId
-			})
-
-			// Business logic: Verify tenant exists and belongs to user
-			const tenant = await this.findOne(userId, tenantId)
-			if (!tenant) {
-				throw new BadRequestException('Tenant not found or access denied')
-			}
-
-			// Check if invitation already sent or accepted
-			if (
-				tenant.invitation_status === 'SENT' ||
-				tenant.invitation_status === 'ACCEPTED'
-			) {
-				this.logger.warn('Invitation already sent or accepted', {
-					tenantId,
-					status: tenant.invitation_status
-				})
-				return {
-					success: false,
-					message: 'Invitation already sent or accepted',
-					status: tenant.invitation_status
-				}
-			}
-
-			// Business logic: Generate invitation token and expiry (7 days)
-			const invitationToken = this.generateInvitationToken()
-			const now = new Date()
-			const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) // 7 days
-
-			// Update tenant with invitation data via direct Supabase query
-			const client = this.supabase.getAdminClient()
-			const { data: updatedTenant, error } = await client
-				.from('tenant')
-				.update({
-					invitation_status:
-						'SENT' as Database['public']['Enums']['invitation_status'],
-					invitation_token: invitationToken,
-					invitation_sent_at: now.toISOString(),
-					invitation_expires_at: expiresAt.toISOString(),
-					lease_id: leaseId
-				})
-				.eq('id', tenantId)
-				.eq('userId', userId)
-				.select()
-				.single()
-
-			if (error || !updatedTenant) {
-				this.logger.error('Failed to update tenant invitation status', {
-					error: error?.message,
-					tenantId
-				})
-				throw new BadRequestException(
-					'Failed to update tenant invitation status'
-				)
-			}
-
-			// Get property/unit info if available for better email context
-			let propertyName: string | undefined
-			let unitNumber: string | undefined
-
-			if (leaseId) {
-				const { data: lease } = await client
-					.from('lease')
-					.select('unit(unitNumber, property(name))')
-					.eq('id', leaseId)
-					.single()
-				if (lease) {
-					propertyName = lease.unit?.property?.name
-					unitNumber = lease.unit?.unitNumber
-				}
-			} else if (propertyId) {
-				const { data: property } = await client
-					.from('property')
-					.select('name')
-					.eq('id', propertyId)
-					.single()
-				propertyName = property?.name
-			}
-
-			// Build invitation link
-			const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
-			const invitationLink = `${frontendUrl}/tenant/invitation/${invitationToken}`
-
-			// Send invitation email via EmailService (direct Resend call)
-			await this.emailService.sendTenantInvitation({
-				tenantEmail: tenant.email,
-				tenantFirstName: tenant.firstName,
-				invitationToken,
-				invitationLink,
-				propertyName,
-				unitNumber
-			})
-
-			return {
-				success: true,
-				message: 'Invitation sent successfully',
-				invitationToken,
-				invitationLink,
-				sentAt: now.toISOString(),
-				expiresAt: expiresAt.toISOString()
-			}
-		} catch (error) {
-			this.logger.error('Failed to send tenant invitation', {
-				error: error instanceof Error ? error.message : String(error),
-				userId,
-				tenantId,
-				propertyId
-			})
-
-			if (error instanceof BadRequestException) {
-				throw error
-			}
-
-			throw new BadRequestException('Failed to send tenant invitation')
-		}
-	}
-
-	/**
 	 * ✅ NEW: Send tenant invitation via Supabase Auth (Phase 3.1)
 	 * Uses Supabase Auth's built-in invitation system instead of custom tokens
 	 * 
@@ -1189,7 +1054,7 @@ export class TenantsService {
 
 			// Use sendTenantInvitation method to handle the resend
 			// This will generate a new token and update expiry
-			return await this.sendTenantInvitation(userId, tenantId)
+			return await this.sendTenantInvitationV2(userId, tenantId)
 		} catch (error) {
 			this.logger.error('Failed to resend tenant invitation', {
 				error: error instanceof Error ? error.message : String(error),
@@ -1523,14 +1388,5 @@ export class TenantsService {
 	 * Generate a secure invitation token
 	 * Private helper method for invitation functionality
 	 */
-	private generateInvitationToken(): string {
-		// Generate a secure random token for tenant invitation
-		const chars =
-			'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-		let token = ''
-		for (let i = 0; i < 32; i++) {
-			token += chars.charAt(Math.floor(Math.random() * chars.length))
-		}
-		return token
-	}
+
 }
