@@ -14,24 +14,6 @@ const nextConfig: NextConfig = {
 		ignoreDuringBuilds: true // Linting enforced via pre-commit hooks + GitHub Actions
 	},
 
-	// Webpack configuration with cache optimization and performance improvements
-	webpack: (config, { isServer }) => {
-		if (!isServer) {
-			config.ignoreWarnings = [
-				{
-					module: /supabase/,
-					message: /which is not supported in the Edge Runtime/
-				},
-				{
-					module: /chrome-extension/,
-					message: /Failed to parse source map/
-				}
-			]
-		}
-
-		return config
-	},
-
 	// Experimental performance optimizations
 	experimental: {
 		// ✅ RE-ENABLED (2025-10-26): Stable in Next.js 15.5.6 + React 19.2.0
