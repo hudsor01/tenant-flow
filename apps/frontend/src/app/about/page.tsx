@@ -1,9 +1,9 @@
 'use client'
 
-import Footer from '@/components/layout/footer'
-import { HeroSection } from '@/components/sections/hero-section'
-import { BlurFade } from '@/components/ui/blur-fade'
-import { Button } from '@/components/ui/button'
+import Footer from '#components/layout/footer'
+import { HeroSection } from '#components/sections/hero-section'
+import { BlurFade } from '#components/ui/blur-fade'
+import { Button } from '#components/ui/button'
 
 import {
 	Item,
@@ -13,7 +13,7 @@ import {
 	ItemMedia,
 	ItemSeparator,
 	ItemTitle
-} from '@/components/ui/item'
+} from '#components/ui/item'
 import {
 	ArrowRight,
 	Bolt,

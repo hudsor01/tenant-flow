@@ -1,11 +1,11 @@
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '#components/ui/badge'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
+} from '#components/ui/card'
 import {
 	Table,
 	TableBody,
@@ -13,9 +13,9 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { getMaintenanceInsightsPageData } from '@/lib/api/analytics-server'
-import { formatCurrency, formatNumber } from '@/lib/utils'
+} from '#components/ui/table'
+import { getMaintenanceInsightsPageData } from '#lib/api/analytics-server'
+import { formatCurrency, formatNumber } from '#lib/utils'
 import {
 	MaintenanceCostChart,
 	MaintenanceTrendChart

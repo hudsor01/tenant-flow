@@ -1,8 +1,8 @@
-import { PasswordUpdateSection } from '@/app/(protected)/settings/password-update-section'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Input } from '@/components/ui/input'
+import { PasswordUpdateSection } from '#app/(protected)/settings/password-update-section'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Input } from '#components/ui/input'
 import {
 	Item,
 	ItemActions,
@@ -12,18 +12,18 @@ import {
 	ItemMedia,
 	ItemSeparator,
 	ItemTitle
-} from '@/components/ui/item'
-import { Label } from '@/components/ui/label'
+} from '#components/ui/item'
+import { Label } from '#components/ui/label'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
+} from '#components/ui/select'
+import { Switch } from '#components/ui/switch'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
+import { Textarea } from '#components/ui/textarea'
 import {
 	AlertTriangle,
 	Bell,

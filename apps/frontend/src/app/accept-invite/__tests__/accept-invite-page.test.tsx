@@ -4,7 +4,7 @@ import {
 	screen,
 	userEvent,
 	waitFor
-} from '@/test/utils/test-render'
+} from '#test/utils/test-render'
 import AcceptInvitePage from '../page'
 
 const mockPush = jest.fn()

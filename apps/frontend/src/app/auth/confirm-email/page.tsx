@@ -1,7 +1,7 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { GridPattern } from '@/components/ui/grid-pattern'
+import { Button } from '#components/ui/button'
+import { GridPattern } from '#components/ui/grid-pattern'
 import { ArrowRight, CheckCircle2, Mail } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'

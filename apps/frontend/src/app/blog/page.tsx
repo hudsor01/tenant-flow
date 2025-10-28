@@ -1,10 +1,10 @@
 'use client'
 
-import Footer from '@/components/layout/footer'
-import { HeroSection } from '@/components/sections/hero-section'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { getAllBlogPosts } from '@/lib/blog-posts'
+import Footer from '#components/layout/footer'
+import { HeroSection } from '#components/sections/hero-section'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { getAllBlogPosts } from '#lib/blog-posts'
 import {
 	ArrowRight,
 	BarChart3,

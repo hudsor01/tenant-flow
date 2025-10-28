@@ -1,9 +1,9 @@
 'use client'
 
-import { BlurFade } from '@/components/ui/blur-fade'
-import { Button } from '@/components/ui/button'
-import { GlowingEffect } from '@/components/ui/glowing-effect'
-import { cn } from '@/lib/utils'
+import { BlurFade } from '#components/ui/blur-fade'
+import { Button } from '#components/ui/button'
+import { GlowingEffect } from '#components/ui/glowing-effect'
+import { cn } from '#lib/utils'
 import { ArrowRight, Check, Clock, TrendingUp } from 'lucide-react'
 
 interface PremiumCtaProps {

@@ -1,16 +1,16 @@
 'use client'
 
-import { Spinner } from '@/components/ui/spinner'
-import { API_BASE_URL } from '@/lib/api-client'
+import { Spinner } from '#components/ui/spinner'
+import { API_BASE_URL } from '#lib/api-client'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
+import { Alert, AlertDescription } from '#components/ui/alert'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
 
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { Mail } from 'lucide-react'
 
 /**

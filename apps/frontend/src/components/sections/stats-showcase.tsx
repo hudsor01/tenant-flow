@@ -1,9 +1,9 @@
 'use client'
 
-import { BlurFade } from '@/components/ui/blur-fade'
-import { BorderBeam } from '@/components/ui/border-beam'
-import { NumberTicker } from '@/components/ui/number-ticker'
-import { cn } from '@/lib/utils'
+import { BlurFade } from '#components/ui/blur-fade'
+import { BorderBeam } from '#components/ui/border-beam'
+import { NumberTicker } from '#components/ui/number-ticker'
+import { cn } from '#lib/utils'
 
 interface StatsShowcaseProps {
 	className?: string

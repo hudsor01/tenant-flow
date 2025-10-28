@@ -23,9 +23,9 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-import { NavDocuments } from '@/components/dashboard/nav-documents'
-import { NavMain } from '@/components/dashboard/nav-main'
-import { NavSecondary } from '@/components/dashboard/nav-secondary'
+import { NavDocuments } from '#components/dashboard/nav-documents'
+import { NavMain } from '#components/dashboard/nav-main'
+import { NavSecondary } from '#components/dashboard/nav-secondary'
 
 const navigation: {
 	navMain: {

@@ -5,7 +5,7 @@
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { API_BASE_URL } from '@/lib/api-client'
+import { API_BASE_URL } from '#lib/api-client'
 
 type ConnectedAccount = Database['public']['Tables']['connected_account']['Row']
 

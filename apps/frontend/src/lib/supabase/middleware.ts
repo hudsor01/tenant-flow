@@ -2,7 +2,7 @@ import {
 	PAYMENT_EXEMPT_ROUTES,
 	PROTECTED_ROUTE_PREFIXES,
 	PUBLIC_AUTH_ROUTES
-} from '@/lib/auth-constants'
+} from '#lib/auth-constants'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { createServerClient } from '@supabase/ssr'

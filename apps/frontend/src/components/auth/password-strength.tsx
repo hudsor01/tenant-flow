@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '@/lib/design-system'
+import { cn } from '#lib/design-system'
 import * as Popover from '@radix-ui/react-popover'
 import { Check, X } from 'lucide-react'
 import * as React from 'react'

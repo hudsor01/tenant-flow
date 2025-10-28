@@ -1,11 +1,11 @@
 'use client'
 
-import Footer from '@/components/layout/footer'
-import { Badge } from '@/components/ui/badge'
-import { BlurFade } from '@/components/ui/blur-fade'
-import { Button } from '@/components/ui/button'
-import { GridPattern } from '@/components/ui/grid-pattern'
-import { cn } from '@/lib/utils'
+import Footer from '#components/layout/footer'
+import { Badge } from '#components/ui/badge'
+import { BlurFade } from '#components/ui/blur-fade'
+import { Button } from '#components/ui/button'
+import { GridPattern } from '#components/ui/grid-pattern'
+import { cn } from '#lib/utils'
 import {
 	ArrowRight,
 	BarChart3,

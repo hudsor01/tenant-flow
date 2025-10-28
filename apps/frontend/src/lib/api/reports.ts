@@ -3,7 +3,7 @@
  * Phase 5: Advanced Features - Custom Reports & Analytics
  */
 
-import { API_BASE_URL } from '@/lib/api-client'
+import { API_BASE_URL } from '#lib/api-client'
 import { apiClient } from '@repo/shared/utils/api-client'
 
 export interface RevenueData {

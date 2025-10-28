@@ -1,9 +1,9 @@
 'use client'
 
-import { EditDialog } from '@/components/ui/base-dialogs'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { useTerminateLease } from '@/hooks/api/use-lease'
+import { EditDialog } from '#components/ui/base-dialogs'
+import { Label } from '#components/ui/label'
+import { Textarea } from '#components/ui/textarea'
+import { useTerminateLease } from '#hooks/api/use-lease'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { AlertTriangle } from 'lucide-react'
