@@ -57,42 +57,7 @@ type TenantUpdate = TablesUpdate<'tenant'>
 type UnitInsert = TablesInsert<'unit'>
 type UnitUpdate = TablesUpdate<'unit'>
 
-// API Base URL Configuration
-// In production, environment variables are required for proper deployment
-// In development, falls back to local backend port
-// During build, uses placeholder (Server Components won't actually fetch at build time in production)
-function getApiBaseUrl(): string {
-	// During Next.js build, provide placeholder - actual runtime will have proper env vars
-	if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_API_BASE_URL) {
-		return 'http://localhost:4600' // Build-time placeholder
-	}
-
-	return (
-		process.env.NEXT_PUBLIC_API_BASE_URL ||
-		'http://localhost:4600' // Dev fallback - backend port
-	)
-}
-
-/**
- * Centralized API base URL constant
- *
- * **Single source of truth for all backend API calls**
- *
- * - Production: `https://api.tenantflow.app` (via Doppler)
- * - Development: `http://localhost:4600` (NestJS backend)
- * - Build-time: Placeholder for Next.js static analysis
- *
- * @example
- * ```typescript
- * import { API_BASE_URL } from '#lib/api-client'
- *
- * const response = await fetch(`${API_BASE_URL}/api/v1/properties`)
- * ```
- *
- * @see CLAUDE.md (repository root) - DRY principle enforcement
- * @see {@link getApiBaseUrl} - Internal resolution logic
- */
-export const API_BASE_URL = getApiBaseUrl()
+import { API_BASE_URL } from '@repo/shared/config/api'
 
 /**
  * Server-side API wrapper - requires token from requireSession()
@@ -398,7 +363,7 @@ export const propertiesApi = {
 	}
 }
 
-export { apiClient }
+export { apiClient, API_BASE_URL }
 
 export const unitsApi = {
 	list: (params?: { status?: string }) =>

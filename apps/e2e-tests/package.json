@@ -15,11 +15,7 @@
 		"lint": "pnpm exec eslint \"tests/**/*.ts\"",
 		"typecheck": "tsc --project tsconfig.json --noEmit"
 	},
-	"dependencies": {
-		"@repo/api-client": "workspace:*",
-		"@repo/config": "workspace:*"
-	},
-	"devDependencies": {
+"devDependencies": {
 		"@faker-js/faker": "10.1.0",
 		"@playwright/test": "1.56.1",
 		"eslint": "9.38.0",

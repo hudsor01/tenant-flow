@@ -17,7 +17,7 @@ import {
 	TableHeader,
 	TableRow
 } from '#components/ui/table'
-import { formatCurrency, formatPercentage } from '#lib/design-system'
+import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
 import { cn } from '#lib/utils'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { IncomeStatementData } from '@repo/shared/types/financial-statements'
@@ -44,7 +44,7 @@ function TrendPill({ value }: { value: number | null | undefined }) {
 			className="flex items-center gap-1 font-medium"
 		>
 			<Icon className="size-3" />
-			{formatPercentage(Math.abs(value), 1)}
+			{formatPercentage(Math.abs(value), { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
 		</Badge>
 	)
 }

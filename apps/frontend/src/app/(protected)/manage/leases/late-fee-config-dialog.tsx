@@ -20,12 +20,8 @@ interface LateFeeConfigDialogProps {
 	onSuccess?: () => void
 }
 
-function formatCurrency(amount: number): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD'
-	}).format(amount)
-}
+import { formatCurrency } from '@repo/shared/utils/currency'
+
 
 export function LateFeeConfigDialog({
 	open,

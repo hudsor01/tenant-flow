@@ -101,7 +101,14 @@ export default [
 			'@typescript-eslint/no-unsafe-call': 'off',
 			'@typescript-eslint/no-unsafe-return': 'off',
 			'@typescript-eslint/no-unsafe-argument': 'off',
-			'@typescript-eslint/no-unused-vars': 'error',
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_',
+					destructuredArrayIgnorePattern: '^_'
+				}
+			],
 			'@typescript-eslint/no-explicit-any': 'error',
 			'@typescript-eslint/no-unused-expressions': 'warn'
 		}

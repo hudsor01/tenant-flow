@@ -9,7 +9,8 @@ import tsParser from '@typescript-eslint/parser'
 import globals from 'globals'
 import baseConfig from './base.js'
 
-export default [
+/** @type {import('eslint').Linter.Config[]} */
+const config = [
 	...baseConfig,
 	{
 		name: 'nestjs/backend',
@@ -353,3 +354,5 @@ export default [
 		}
 	}
 ]
+
+export default config

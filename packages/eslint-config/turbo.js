@@ -7,6 +7,6 @@
  * @see https://turbo.build/repo/docs/reference/eslint-config-turbo
  */
 
-import turboConfig from 'eslint-config-turbo'
+import turboConfig from 'eslint-config-turbo/flat'
 
 export default turboConfig

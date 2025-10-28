@@ -513,35 +513,6 @@ export function tableClasses(
 }
 
 /**
- * Format currency with proper locale formatting
- * @param amount - Amount to format
- * @param currency - Currency code (default: USD)
- * @returns Formatted currency string
- */
-export function formatCurrency(amount: number, currency = 'USD'): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency,
-		minimumFractionDigits: 0,
-		maximumFractionDigits: 2
-	}).format(amount)
-}
-
-/**
- * Format percentage with proper locale formatting
- * @param value - Percentage value (0-100)
- * @param decimals - Number of decimal places
- * @returns Formatted percentage string
- */
-export function formatPercentage(value: number, decimals = 1): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'percent',
-		minimumFractionDigits: decimals,
-		maximumFractionDigits: decimals
-	}).format(value / 100)
-}
-
-/**
  * Generate random ID for component keys
  * @param prefix - Optional prefix for the ID
  * @returns Random ID string

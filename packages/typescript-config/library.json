@@ -1,6 +1,6 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Frontend Library TypeScript Config",
+	"display": "TenantFlow Library TypeScript Config (October 2025)",
 	"extends": "./base.json",
 	"compilerOptions": {
 		"declaration": true,
@@ -9,8 +9,7 @@
 		"composite": true,
 		"jsx": "react-jsx",
 		"removeComments": false,
-		"module": "nodenext",
-		"moduleResolution": "nodenext",
-		"verbatimModuleSyntax": false
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext"
 	}
 }

@@ -31,8 +31,10 @@ module.exports = {
 	coverageReporters: ['text', 'lcov', 'html'],
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
-		'^(\\.{1,2}/.*)\\.js$': '$1'
+		'^(\\.{1,2}/.*)\\.js$': '$1',
+		'^src/(.*)$': '<rootDir>/src/$1'
 	},
+	moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
 	setupFilesAfterEnv,
 	testTimeout: 10000,
 	maxWorkers: 1,
@@ -43,7 +45,7 @@ module.exports = {
 	bail: false,
 	coverageProvider: 'v8',
 	transform: {
-		'^.+\\.ts$': [
+		'^.+\\.(ts|tsx)$': [
 			'ts-jest',
 			{
 				useESM: false,
@@ -56,7 +58,8 @@ module.exports = {
 					skipLibCheck: true,
 					forceConsistentCasingInFileNames: true,
 					strict: true,
-					isolatedModules: true
+					isolatedModules: true,
+					jsx: 'react'
 				}
 			}
 		]

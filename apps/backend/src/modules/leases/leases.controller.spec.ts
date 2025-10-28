@@ -7,7 +7,8 @@ import { SilentLogger } from '../../__test__/silent-logger'
 import { SupabaseService } from '../../database/supabase.service'
 import { CurrentUserProvider } from '../../shared/providers/current-user.provider'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
-import { createMockUser } from '../../test-utils/mocks'
+import { createMockEmailService, createMockUser } from '../../test-utils/mocks'
+import { EmailService } from '../email/email.service'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
 
@@ -92,6 +93,10 @@ describe('LeasesController', () => {
 							.fn()
 							.mockResolvedValue({ id: 'user-123', email: 'test@example.com' })
 					}
+				},
+				{
+					provide: EmailService,
+					useValue: createMockEmailService()
 				}
 			]
 		})

@@ -1,18 +1,17 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
+	"display": "TenantFlow Backend - ESLint TypeScript Configuration (October 2025)",
 	"extends": "./tsconfig.json",
 	"compilerOptions": {
 		"noEmit": true
 	},
-	"include": ["src/**/*.ts", "src/**/*.tsx", "src/types/**/*.d.ts"],
-	"exclude": [
-		"dist",
-		"node_modules",
+	"include": [
+		"src/**/*.ts",
+		"scripts/**/*.ts",
+		"test/**/*.ts",
 		"**/*.spec.ts",
 		"**/*.test.ts",
-		"**/*.e2e-spec.ts",
-		"test/**/*",
-		"**/test/**/*",
-		"apps/backend/test/**/*"
-	]
+		"**/*.e2e-spec.ts"
+	],
+	"exclude": ["node_modules", "dist"]
 }

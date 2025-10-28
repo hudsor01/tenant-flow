@@ -17,7 +17,7 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { getFinancialAnalyticsPageData } from '#lib/api/analytics-server'
-import { formatCurrency, formatNumber, formatPercentage } from '#lib/utils'
+import { formatCurrency, formatNumber, formatPercentage } from '@repo/shared/utils/currency'
 import type {
 	FinancialBreakdownRow,
 	LeaseFinancialInsight
