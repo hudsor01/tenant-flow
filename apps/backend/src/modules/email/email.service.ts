@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Resend } from 'resend'
 import { render } from '@react-email/render'
-import PaymentSuccessEmail from 'src/emails/payment-success-email'
-import PaymentFailedEmail from 'src/emails/payment-failed-email'
-import SubscriptionCanceledEmail from 'src/emails/subscription-canceled-email'
+import { PaymentSuccessEmail } from '../../emails/payment-success-email'
+import { PaymentFailedEmail } from '../../emails/payment-failed-email'
+import { SubscriptionCanceledEmail } from '../../emails/subscription-canceled-email'
 
 export interface TenantInvitationEmailData {
 	tenantEmail: string
