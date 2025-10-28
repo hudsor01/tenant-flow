@@ -1,25 +1,25 @@
 'use client'
 
-import { Spinner } from '@/components/ui/spinner'
+import { Spinner } from '#components/ui/spinner'
 import { CreditCard } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-import { Button } from '@/components/ui/button'
-import { EditDialog } from '@/components/ui/base-dialogs'
-import { Field, FieldLabel } from '@/components/ui/field'
+import { Button } from '#components/ui/button'
+import { EditDialog } from '#components/ui/base-dialogs'
+import { Field, FieldLabel } from '#components/ui/field'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
+} from '#components/ui/select'
 
 import {
 	useCreateSetupIntent,
 	useSavePaymentMethod
-} from '@/hooks/api/use-payment-methods'
+} from '#hooks/api/use-payment-methods'
 
 import { PaymentMethodSetupForm } from './payment-method-setup-form'
 

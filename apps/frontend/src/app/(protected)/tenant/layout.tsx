@@ -1,7 +1,7 @@
-import { SiteHeader } from '@/components/dashboard/site-header'
-import { TenantSidebar } from '@/components/dashboard/tenant-sidebar'
-import { ViewTransitionsProvider } from '@/components/providers/view-transitions-provider'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { SiteHeader } from '#components/dashboard/site-header'
+import { TenantSidebar } from '#components/dashboard/tenant-sidebar'
+import { ViewTransitionsProvider } from '#providers/view-transitions-provider'
+import { SidebarInset, SidebarProvider } from '#components/ui/sidebar'
 import type { ReactNode } from 'react'
 
 export default function TenantLayout({ children }: { children: ReactNode }) {

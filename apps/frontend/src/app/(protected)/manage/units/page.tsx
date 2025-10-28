@@ -10,9 +10,9 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+} from '#components/ui/alert-dialog'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -20,15 +20,15 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
+} from '#components/ui/dropdown-menu'
+import { Input } from '#components/ui/input'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
+} from '#components/ui/select'
 import {
 	Table,
 	TableBody,
@@ -36,18 +36,18 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { useDeleteUnit, useUnitList } from '@/hooks/api/use-unit'
+} from '#components/ui/table'
+import { useDeleteUnit, useUnitList } from '#hooks/api/use-unit'
 import type { Unit } from '@repo/shared/types/core'
 import { Edit, Home, MoreVertical, Search, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { CreateDialog } from '@/components/ui/base-dialogs'
+import { CreateDialog } from '#components/ui/base-dialogs'
 import { useForm } from '@tanstack/react-form'
-import { useCreateUnit } from '@/hooks/api/use-unit'
-import { usePropertyList } from '@/hooks/api/use-properties'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { useCreateUnit } from '#hooks/api/use-unit'
+import { usePropertyList } from '#hooks/api/use-properties'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '#components/ui/input-group'
 import { DollarSign } from 'lucide-react'
 
 // Form steps configuration

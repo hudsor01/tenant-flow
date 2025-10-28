@@ -4,22 +4,22 @@ import { CreditCard } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-import { PaymentMethodSetupForm } from '@/app/(protected)/tenant/payments/methods/payment-method-setup-form'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Field, FieldLabel } from '@/components/ui/field'
+import { PaymentMethodSetupForm } from '#app/(protected)/tenant/payments/methods/payment-method-setup-form'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Field, FieldLabel } from '#components/ui/field'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { Spinner } from '@/components/ui/spinner'
+} from '#components/ui/select'
+import { Spinner } from '#components/ui/spinner'
 import {
 	useCreateSetupIntent,
 	useSavePaymentMethod
-} from '@/hooks/api/use-payment-methods'
+} from '#hooks/api/use-payment-methods'
 
 export function AddPaymentMethod() {
 	const [paymentMethodType, setPaymentMethodType] = useState<

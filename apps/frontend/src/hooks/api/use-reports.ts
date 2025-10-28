@@ -5,8 +5,8 @@ import {
 	type OccupancyMetrics,
 	type PaymentAnalytics,
 	type RevenueData
-} from '@/lib/api/reports'
-import { reportsClient } from '@/lib/api/reports-client'
+} from '#lib/api/reports'
+import { reportsClient } from '#lib/api/reports-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -28,7 +28,7 @@ export const reportsKeys = {
 	occupancyMetrics: () => [...reportsKeys.all, 'analytics', 'occupancy'] as const
 }
 
-import type { Report } from '@/lib/api/reports-client'
+import type { Report } from '#lib/api/reports-client'
 
 import type { UseMutationResult } from '@tanstack/react-query'
 

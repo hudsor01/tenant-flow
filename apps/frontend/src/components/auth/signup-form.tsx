@@ -1,7 +1,7 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/design-system'
+import { Button } from '#components/ui/button'
+import { cn } from '#lib/design-system'
 import type { AuthFormProps } from '@repo/shared/types/frontend'
 
 export function SignupForm({

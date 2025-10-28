@@ -4,7 +4,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal } from 'lucide-react'
 import Link from 'next/link'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '#components/ui/button'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -12,9 +12,9 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Badge } from '@/components/ui/badge'
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
+} from '#components/ui/dropdown-menu'
+import { Badge } from '#components/ui/badge'
+import { DataTableColumnHeader } from '#components/ui/data-table-column-header'
 
 /**
  * Reusable Column Helpers for TanStack Table

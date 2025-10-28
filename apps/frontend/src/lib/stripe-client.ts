@@ -2,8 +2,8 @@
  * Stripe integration client using Supabase Edge Functions
  * CLAUDE.md compliant - Native platform integration
  */
-import { API_BASE_URL } from '@/lib/api-client'
-import { createClient } from '@/lib/supabase/client'
+import { API_BASE_URL } from '#lib/api-client'
+import { createClient } from '#lib/supabase/client'
 
 interface CreateCheckoutSessionRequest {
 	priceId: string

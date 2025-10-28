@@ -1,7 +1,7 @@
 'use client'
 
-import { safeScript } from '@/lib/dom-utils'
-import { cn } from '@/lib/utils'
+import { safeScript } from '#lib/dom-utils'
+import { cn } from '#lib/utils'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { StripePricingTableProps } from '@repo/shared/types/core'
 import { useEffect, useMemo, useState } from 'react'

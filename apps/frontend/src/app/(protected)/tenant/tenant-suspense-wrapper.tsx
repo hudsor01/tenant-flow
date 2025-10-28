@@ -4,7 +4,7 @@ import {
 	TenantDetailSkeleton,
 	TenantFormSkeleton,
 	TenantTableSkeleton
-} from '@/app/(protected)/tenant/tenant-loading-skeleton'
+} from '#app/(protected)/tenant/tenant-loading-skeleton'
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
 import { Suspense, type ReactNode } from 'react'
 import { TenantErrorBoundary } from './tenant-error-boundary'

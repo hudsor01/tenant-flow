@@ -1,6 +1,6 @@
 'use no memo' // Complex file upload hook with manual memoization
 
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { type FileError, type FileRejection, useDropzone } from 'react-dropzone'
 

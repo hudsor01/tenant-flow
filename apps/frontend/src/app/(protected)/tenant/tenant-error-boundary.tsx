@@ -1,7 +1,7 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'

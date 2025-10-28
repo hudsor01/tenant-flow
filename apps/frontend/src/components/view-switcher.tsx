@@ -1,6 +1,6 @@
 'use client'
 
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { ToggleGroup, ToggleGroupItem } from '#components/ui/toggle-group'
 import { KanbanSquare, LayoutGrid, Table2 } from 'lucide-react'
 import type { ReactElement } from 'react'
 

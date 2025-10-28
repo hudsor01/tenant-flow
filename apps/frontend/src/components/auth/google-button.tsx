@@ -1,9 +1,9 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { ButtonLoader } from '@/components/ui/loading-spinner'
+import { Button } from '#components/ui/button'
+import { ButtonLoader } from '#components/ui/loading-spinner'
 
-import { ANIMATION_DURATIONS, buttonClasses, cn } from '@/lib/design-system'
+import { ANIMATION_DURATIONS, buttonClasses, cn } from '#lib/design-system'
 import { forwardRef } from 'react'
 
 interface GoogleButtonProps extends React.ComponentProps<typeof Button> {

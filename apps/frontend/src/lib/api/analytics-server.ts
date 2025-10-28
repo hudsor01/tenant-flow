@@ -15,7 +15,7 @@ import type { MaintenanceAnalyticsPageResponse } from '@repo/shared/types/mainte
 import type { OccupancyAnalyticsPageResponse } from '@repo/shared/types/occupancy-analytics'
 import type { PropertyPerformancePageResponse } from '@repo/shared/types/property-analytics'
 
-import { serverFetch } from '@/lib/api/server'
+import { serverFetch } from '#lib/api/server'
 
 const ENDPOINT_BASE = '/api/v1/analytics'
 

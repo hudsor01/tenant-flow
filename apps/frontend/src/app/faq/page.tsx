@@ -1,10 +1,10 @@
 'use client'
-import { GridPattern } from '@/components/ui/grid-pattern'
+import { GridPattern } from '#components/ui/grid-pattern'
 
-import { FaqsAccordion } from '@/app/faq/faq-accordion'
-import Footer from '@/components/layout/footer'
-import { HeroSection } from '@/components/sections/hero-section'
-import { Button } from '@/components/ui/button'
+import { FaqsAccordion } from '#app/faq/faq-accordion'
+import Footer from '#components/layout/footer'
+import { HeroSection } from '#components/sections/hero-section'
+import { Button } from '#components/ui/button'
 
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'

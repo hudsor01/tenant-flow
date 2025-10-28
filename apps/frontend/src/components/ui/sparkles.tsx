@@ -1,5 +1,5 @@
 'use client'
-import { cn } from '@/lib/design-system'
+import { cn } from '#lib/design-system'
 import { animated, useSpring } from '@react-spring/web'
 import type { Container, SingleOrMultiple } from '@tsparticles/engine'
 import Particles, { initParticlesEngine } from '@tsparticles/react'

@@ -1,5 +1,5 @@
 
-import { CardLayout } from '@/components/ui/card-layout'
+import { CardLayout } from '#components/ui/card-layout'
 import { Suspense, lazy, use } from 'react'
 
 // Dynamic import with code splitting

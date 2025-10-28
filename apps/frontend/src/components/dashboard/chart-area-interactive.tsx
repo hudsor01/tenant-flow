@@ -10,24 +10,24 @@ import {
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
-import type { ChartConfig } from '@/components/ui/chart'
+} from '#components/ui/card'
+import type { ChartConfig } from '#components/ui/chart'
 import {
 	ChartContainer,
 	ChartTooltip,
 	ChartTooltipContent
-} from '@/components/ui/chart'
+} from '#components/ui/chart'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { useFinancialChartData } from '@/hooks/api/use-dashboard'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { cn } from '@/lib/utils'
+} from '#components/ui/select'
+import { ToggleGroup, ToggleGroupItem } from '#components/ui/toggle-group'
+import { useFinancialChartData } from '#hooks/api/use-dashboard'
+import { useIsMobile } from '#hooks/use-mobile'
+import { cn } from '#lib/utils'
 
 export const description = 'Revenue vs Expenses Chart - Dashboard Focal Point'
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '#components/ui/button'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { RefreshCw } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'

@@ -1,8 +1,8 @@
 "use client"
 
-import { InviteTenantDialog } from '@/components/tenants/invite-tenant-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { InviteTenantDialog } from '#components/tenants/invite-tenant-dialog'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { ColumnDef } from '@tanstack/react-table'
 import { Mail } from 'lucide-react'

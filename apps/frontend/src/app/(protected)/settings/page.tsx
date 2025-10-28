@@ -1,5 +1,5 @@
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
 
 import { PaymentMethodsTab } from './payment-methods-tab'
 import { StripeConnectTab } from './stripe-connect-tab'

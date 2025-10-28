@@ -1,13 +1,13 @@
-import { Providers } from '@/components/providers'
-import SeoJsonLd from '@/components/seo/SeoJsonLd'
-import RegisterServiceWorker from '@/components/sw/register-sw'
-import { ErrorBoundary } from '@/components/ui/error-boundary'
-import { generateSiteMetadata } from '@/lib/generate-metadata'
+import { Providers } from '#components/providers'
+import SeoJsonLd from '#components/seo/SeoJsonLd'
+import RegisterServiceWorker from '#components/sw/register-sw'
+import { ErrorBoundary } from '#components/ui/error-boundary'
+import { generateSiteMetadata } from '#lib/generate-metadata'
 import {
 	DEFAULT_THEME_MODE,
 	THEME_MODE_COOKIE_NAME,
 	parseThemeMode
-} from '@/lib/theme-utils'
+} from '#lib/theme-utils'
 import type { ThemeMode } from '@repo/shared/types/domain'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'

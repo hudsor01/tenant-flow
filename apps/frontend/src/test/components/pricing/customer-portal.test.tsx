@@ -1,4 +1,4 @@
-import { render, screen } from '@/test/utils'
+import { render, screen } from '#test/utils'
 import { CustomerPortalCard } from '../../../components/pricing/customer-portal'
 
 // Mock Next.js navigation
