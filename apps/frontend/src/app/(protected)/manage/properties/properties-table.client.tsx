@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useEffectEvent } from 'react'
 import type { Property } from '@repo/shared/types/core'
 import type { UpdatePropertyInput } from '@repo/shared/types/api-inputs'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -98,10 +99,14 @@ type PropertiesTableClientProps = {
 export function PropertiesTableClient({ data }: PropertiesTableClientProps) {
 	const setProperties = usePropertiesViewStore(state => state.setProperties)
 
-	// Sync server data to Zustand store on mount/data change
-	// Note: setProperties is a stable Zustand selector and doesn't need to be in deps
-	React.useEffect(() => {
+	// Use React 19.2 useEffectEvent for functions that are "events" from effects
+	// This prevents setProperties from being in dependency array (which causes infinite loops)
+	const onDataChange = useEffectEvent(() => {
 		setProperties(data)
+	})
+
+	React.useEffect(() => {
+		onDataChange()
 	}, [data])
 
 	const filters = usePropertiesViewStore(selectFilters)
