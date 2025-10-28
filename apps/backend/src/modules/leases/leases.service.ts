@@ -514,7 +514,7 @@ export class LeasesService {
 			const lease = data as Lease
 
 			// Send invitation
-			await this.tenantsService.sendTenantInvitation(
+			await this.tenantsService.sendTenantInvitationV2(
 				userId,
 				tenant.id,
 				unit.propertyId,
