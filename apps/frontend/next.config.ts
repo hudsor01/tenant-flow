@@ -7,10 +7,11 @@ const nextConfig: NextConfig = {
 	productionBrowserSourceMaps: false,
 	poweredByHeader: false,
 
-	// ESLint configuration
+	// ESLint configuration - Disabled during builds (pre-commit hooks + CI handle linting)
+	// Flat config (ESLint 9) with @next/eslint-plugin-next properly integrated in root eslint.config.js
 	eslint: {
 		dirs: ['src'],
-		ignoreDuringBuilds: false
+		ignoreDuringBuilds: true // Linting enforced via pre-commit hooks + GitHub Actions
 	},
 
 	// Webpack configuration with cache optimization and performance improvements
@@ -103,7 +104,5 @@ const nextConfig: NextConfig = {
 		imageSizes: [32, 64, 128, 256]
 	}
 }
-
-export default nextConfig
 
 export default nextConfig
