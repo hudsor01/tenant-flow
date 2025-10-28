@@ -1,6 +1,0 @@
-name,address,city,state,zipCode,propertyType,description
-,456 Oak Ave,Los Angeles,CA,90001,SINGLE_FAMILY,Should fail - no name
-Valid Property,123 Main St,San Francisco,CA,94105,APARTMENT,This one is valid
-Missing Address,,Los Angeles,CA,90001,CONDO,Should fail - no address
-Invalid Property Type,789 Test Ave,San Diego,CA,92101,INVALID_TYPE,Should fail - bad property type
-Missing City,456 Street,,CA,90001,APARTMENT,Should fail - no city
