@@ -14,6 +14,37 @@ const nextConfig: NextConfig = {
 		ignoreDuringBuilds: true // Linting enforced via pre-commit hooks + GitHub Actions
 	},
 
+	// TypeScript configuration - Type-safe routing (Next.js 15.5+)
+	// Compile-time route validation: catches invalid routes at build time
+	// Zero runtime cost, full autocomplete in IDE for all routes
+	typescript: {
+		typedRoutes: true
+	},
+
+	// Compiler optimizations (production builds only)
+	// Remove console.log statements (keeps error/warn for debugging)
+	compiler: {
+		removeConsole: {
+			exclude: ['error', 'warn']
+		}
+	},
+
+	// Build-time logging configuration
+	// Useful for debugging SSR data fetching and external API calls
+	logging: {
+		fetches: {
+			fullUrl: true // Log complete URLs during builds
+		}
+	},
+
+	// Turbopack configuration (Next.js 15.5+)
+	// Stable for development, beta for production builds
+	// Reference: https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack
+	turbopack: {
+		// Empty config = use defaults (no custom loaders/aliases needed)
+		// Turbopack automatically handles CSS Modules, PostCSS, Sass, TypeScript
+	},
+
 	// Experimental performance optimizations
 	experimental: {
 		// ✅ RE-ENABLED (2025-10-26): Stable in Next.js 15.5.6 + React 19.2.0
@@ -30,7 +61,14 @@ const nextConfig: NextConfig = {
 			'react-dropzone'
 		],
 
-		serverComponentsHmrCache: true
+		serverComponentsHmrCache: true,
+
+		// Railway deployment optimization: Include native dependencies in output bundle
+		// Ensures .node files and native modules are properly bundled for Docker deployments
+		// Reduces Railway cold start time and prevents "Cannot find module" errors
+		outputFileTracingIncludes: {
+			'/api/*': ['./node_modules/**/*.node']
+		}
 	},
 
 	// Security headers

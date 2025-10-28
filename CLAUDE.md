@@ -130,6 +130,10 @@ ActivityEntityType, BlogCategory, BlogStatus, customer_invoice_status, DocumentT
 - ❌ Union types mirroring database enums
 - ❌ String literals instead of generated types
 
+**Supabase migrations and auto gen types**
+After any database migration, always run:
+pnpm update-supabase-types
+
 ## Backend - Ultra-Native NestJS
 
 **ALLOWED**: Official @nestjs/* packages, built-in pipes/guards/decorators, native exceptions, direct Supabase RPC

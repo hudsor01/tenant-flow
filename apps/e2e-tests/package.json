@@ -12,13 +12,20 @@
 		"test:mobile": "pnpm exec playwright test --project=mobile-chrome",
 		"test:staging": "pnpm exec playwright test --project=staging",
 		"test:prod": "pnpm exec playwright test --project=prod",
+		"test:performance": "pnpm exec playwright test tests/performance.spec.ts",
+		"test:accessibility": "pnpm exec playwright test tests/accessibility.spec.ts",
+		"test:contracts": "pnpm exec playwright test tests/integration/api-contracts.spec.ts",
+		"lighthouse": "pnpm exec lhci autorun",
 		"lint": "pnpm exec eslint \"tests/**/*.ts\"",
 		"typecheck": "tsc --project tsconfig.json --noEmit"
 	},
-"devDependencies": {
+	"devDependencies": {
+		"@axe-core/playwright": "^4.11.0",
 		"@faker-js/faker": "10.1.0",
+		"@lhci/cli": "0.15.1",
 		"@playwright/test": "1.56.1",
 		"eslint": "9.38.0",
+		"lighthouse": "13.0.1",
 		"typescript": "^5.9.3"
 	}
 }
