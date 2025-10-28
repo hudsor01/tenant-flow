@@ -127,7 +127,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 	})
 
 	const inviteMutation = useMutation({
-		mutationFn: () => tenantsApi.sendInvitation(tenant.id),
+		mutationFn: () => tenantsApi.sendInvitationV2(tenant.id, {}),
 		onSuccess: () => {
 			toast.success('Invitation sent successfully')
 		},
