@@ -16,19 +16,14 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { useCurrentLease } from '#hooks/api/use-lease'
+import { formatCurrency } from '@repo/shared/utils/formatting'
 import { Calendar, DollarSign, FileText, Home, MapPin } from 'lucide-react'
 import Link from 'next/link'
 
 export default function TenantLeasePage() {
 	const { data: lease, isLoading } = useCurrentLease()
 
-	const formatCurrency = (amount: number | null | undefined) => {
-		if (!amount) return '$0'
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: 'USD'
-		}).format(amount)
-	}
+
 
 	const formatDate = (dateString: string) => {
 		return new Date(dateString).toLocaleDateString('en-US', {

@@ -19,13 +19,8 @@ import {
 } from '#lib/utils/color-helpers'
 import { ArrowUpRight, Minus, TrendingDown, TrendingUp } from 'lucide-react'
 
-const formatCurrency = (amount: number) => {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD',
-		maximumFractionDigits: 0
-	}).format(amount)
-}
+import { formatCurrency } from '@repo/shared/utils/currency'
+
 
 const getTrendIcon = (trend: string) => {
 	switch (trend) {

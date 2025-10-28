@@ -3,47 +3,7 @@
  * Client-side security helpers for Stripe integration
  */
 
-/**
- * Validate email format
- */
-export function isValidEmail(email: string): boolean {
-	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-	return emailRegex.test(email) && email.length <= 254
-}
-
-/**
- * Validate URL format and security
- */
-export function isValidUrl(url: string): boolean {
-	try {
-		const parsedUrl = new URL(url)
-
-		// Only allow http and https protocols
-		if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-			return false
-		}
-
-		// Prevent localhost in production
-		if (
-			process.env.NODE_ENV === 'production' &&
-			(parsedUrl.hostname === 'localhost' || parsedUrl.hostname === '127.0.0.1')
-		) {
-			return false
-		}
-
-		return true
-	} catch {
-		return false
-	}
-}
-
-/**
- * Validate Stripe session ID format
- */
-export function isValidStripeSessionId(sessionId: string): boolean {
-	const sessionIdRegex = /^cs_[a-zA-Z0-9_-]{24,}$/
-	return sessionIdRegex.test(sessionId)
-}
+import { isValidUrl } from '@repo/shared/validation/common'
 
 /**
  * Generate a secure random string for state/CSRF protection

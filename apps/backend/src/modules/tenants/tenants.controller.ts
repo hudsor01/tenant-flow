@@ -243,7 +243,7 @@ export class TenantsController {
 			}
 			leaseData: { 
 				propertyId: string
-				unitId: string
+				unitId?: string
 				rentAmount: number
 				securityDeposit: number
 				startDate: string
@@ -259,8 +259,8 @@ export class TenantsController {
 			throw new BadRequestException('Tenant email, firstName, and lastName are required')
 		}
 		
-		if (!body.leaseData?.propertyId || !body.leaseData?.unitId || !body.leaseData?.rentAmount || !body.leaseData?.startDate || !body.leaseData?.endDate) {
-			throw new BadRequestException('Lease propertyId, unitId, rentAmount, startDate, and endDate are required')
+		if (!body.leaseData?.propertyId || !body.leaseData?.rentAmount || !body.leaseData?.startDate || !body.leaseData?.endDate) {
+			throw new BadRequestException('Lease propertyId, rentAmount, startDate, and endDate are required')
 		}
 		
 		return this.tenantsService.inviteTenantWithLease(

@@ -96,74 +96,11 @@ export type PageType =
 	| 'maintenance'
 	| 'unknown'
 
-// UI STORE TYPES
-
-export interface FormProgress {
-	currentStep: number
-	totalSteps: number
-	completedSteps: number[]
-	formData: Record<string, unknown>
-	formType: Database['public']['Enums']['ActivityEntityType'] | null
-}
-
-export interface ModalState {
-	createProperty: boolean
-	createTenant: boolean
-	createLease: boolean
-	createMaintenance: boolean
-	editMode: { type: string; id: string } | null
-	viewMode: { type: string; id: string } | null
-	deleteConfirmation: { type: string; id: string; name: string } | null
-}
-
-export interface NotificationState {
-	show: boolean
-	type: 'success' | 'error' | 'info' | 'warning'
-	title: string
-	message: string
-	duration?: number
-}
-
-export interface UIStore {
-	// Form Progress State
-	formProgress: FormProgress
-	setFormProgress: (progress: Partial<FormProgress>) => void
-	resetFormProgress: () => void
-	nextStep: () => void
-	previousStep: () => void
-	completeStep: (stepNumber: number) => void
-	setFormData: (data: Record<string, unknown>) => void
-
-	// Modal State
-	modals: ModalState
-	openModal: (modalType: keyof ModalState, data?: unknown) => void
-	closeModal: (modalType: keyof ModalState) => void
-	closeAllModals: () => void
-
-	// Notification State
-	notification: NotificationState
-	showNotification: (notification: Omit<NotificationState, 'show'>) => void
-	hideNotification: () => void
-
-	// Loading States
-	loading: {
-		global: boolean
-		create: boolean
-		update: boolean
-		delete: boolean
-	}
-	setLoading: (type: keyof UIStore['loading'], state: boolean) => void
-
-	// Data Refresh Triggers
-	refreshTriggers: {
-		properties: number
-		tenants: number
-		leases: number
-		maintenance: number
-		units: number
-	}
-	triggerRefresh: (entity: keyof UIStore['refreshTriggers']) => void
-}
+// UI STORE TYPES (Legacy - Removed)
+// Modals → Use component-local useState or URL state (nuqs)
+// Notifications → Use Sonner toast library
+// Loading → Use TanStack Query or component-local useState
+// Refresh Triggers → Use TanStack Query invalidation
 
 // Note: ErrorContext and UserFriendlyError moved to frontend-ui.ts to avoid duplicate exports
 export type { ErrorType } from './api'

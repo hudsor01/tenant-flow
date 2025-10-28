@@ -10,9 +10,8 @@ import {
 	DialogTrigger
 } from '#components/ui/dialog'
 import { Progress } from '#components/ui/progress'
-import { useFormStep, useUIStore } from '#stores/ui-store'
+import { useFormStep, useUIStore, type FormProgress } from '#stores/ui-store'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import type { FormProgress } from '@repo/shared/types/frontend'
 import { CheckCircle, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
