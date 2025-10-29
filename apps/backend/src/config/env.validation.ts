@@ -4,7 +4,7 @@ export interface RequiredEnvVars {
 	DATABASE_URL: string
 	DIRECT_URL: string
 	SUPABASE_URL: string
-	SUPABASE_SERVICE_ROLE_KEY: string
+	SUPABASE_SECRET_KEY: string
 	JWT_SECRET: string
 	CORS_ORIGINS: string
 }
@@ -18,7 +18,7 @@ export function validateEnvironment(): void {
 		'DATABASE_URL',
 		'DIRECT_URL',
 		'SUPABASE_URL',
-		'SUPABASE_SERVICE_ROLE_KEY',
+		'SUPABASE_SECRET_KEY',
 		'JWT_SECRET',
 		'CORS_ORIGINS'
 	]
@@ -31,13 +31,14 @@ export function validateEnvironment(): void {
 		}
 	}
 
-	// Provide targeted guidance if legacy env vars are set but new ones are missing
-	if (
-		missing.includes('SUPABASE_SERVICE_ROLE_KEY') &&
-		process.env.SERVICE_ROLE_KEY
-	) {
-		logger.warn(
-			'SERVICE_ROLE_KEY is set but SUPABASE_SERVICE_ROLE_KEY is missing. Please migrate to the new variable name.'
+	// Detect legacy keys and warn user to migrate
+	// eslint-disable-next-line turbo/no-undeclared-env-vars -- Intentionally checking for legacy key to throw error
+	if (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY) {
+		logger.error(
+			'❌ LEGACY KEY DETECTED: SUPABASE_SERVICE_ROLE_KEY is deprecated as of October 2025. Please update Doppler to use SUPABASE_SECRET_KEY instead. See: https://supabase.com/docs/guides/api/api-keys'
+		)
+		throw new Error(
+			'SUPABASE_SERVICE_ROLE_KEY is no longer supported. Use SUPABASE_SECRET_KEY instead.'
 		)
 	}
 	// SUPABASE_JWT_SECRET is now optional - we use JWKS endpoint for JWT verification

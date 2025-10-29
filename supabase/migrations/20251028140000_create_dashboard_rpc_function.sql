@@ -103,6 +103,17 @@ BEGIN
       AND (l."endDate" IS NULL OR l."endDate" >= v_now)
   ),
 
+  -- Aggregate rent amounts per property
+  property_active_rent_summary AS (
+    SELECT
+      property_id,
+      SUM(rent_amount) as total_rent,
+      AVG(rent_amount) as avg_rent,
+      COUNT(*) as active_lease_count
+    FROM property_active_rent
+    GROUP BY property_id
+  ),
+
   -- Calculate property stats
   property_stats AS (
     SELECT
@@ -118,19 +129,14 @@ BEGIN
           2
         ),
         'totalMonthlyRent', ROUND(
-          COALESCE(
-            (SELECT SUM(rent_amount) FROM property_active_rent 
-             WHERE property_id = user_properties.id), 0
-          )::numeric, 2
+          COALESCE(rents.total_rent, 0)::numeric, 2
         ),
         'averageRent', ROUND(
-          COALESCE(
-            (SELECT AVG(rent_amount) FROM property_active_rent 
-             WHERE property_id = user_properties.id), 0
-          )::numeric, 2
+          COALESCE(rents.avg_rent, 0)::numeric, 2
         )
       ) as stats
     FROM user_properties
+    LEFT JOIN property_active_rent_summary rents ON rents.property_id = user_properties.id
   ),
 
   -- Calculate unit stats with occupancy
