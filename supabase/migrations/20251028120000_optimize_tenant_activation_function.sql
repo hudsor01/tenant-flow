@@ -25,7 +25,7 @@ BEGIN
   ELSE
     -- To ensure the function always returns a row, select the tenant_id if it exists,
     -- but return FALSE for the activated status.
-    RETURN QUERY SELECT id, FALSE FROM tenant WHERE auth_user_id = p_auth_user_id;
+    RETURN QUERY SELECT id, FALSE FROM tenant WHERE auth_user_id = p_auth_user_id LIMIT 1;
   END IF;
 END;
 $$;

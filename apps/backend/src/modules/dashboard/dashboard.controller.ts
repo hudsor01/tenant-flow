@@ -8,7 +8,6 @@ import {
 	UnauthorizedException,
 	InternalServerErrorException
 } from '@nestjs/common'
-import { CacheKey, CacheTTL } from '@nestjs/cache-manager'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { DashboardService } from './dashboard.service'
@@ -20,8 +19,8 @@ export class DashboardController {
 	constructor(private readonly dashboardService: DashboardService) {}
 
 	@Get('stats')
-	@CacheKey('dashboard-stats')
-	@CacheTTL(120000) // 2 minutes - optimized cache duration
+	// NOTE: Caching disabled - @CacheKey doesn't support per-user keys
+	// User-specific data cannot use global cache without exposing data across users
 	async getStats(
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
@@ -49,8 +48,8 @@ export class DashboardController {
 	 * Reduces 5 HTTP requests to 1 for 40-50% faster initial page load
 	 */
 	@Get('page-data')
-	@CacheKey('dashboard-page-data')
-	@CacheTTL(120000) // 2 minutes - unified endpoint cache
+	// NOTE: Caching disabled - @CacheKey doesn't support per-user keys
+	// User-specific data cannot use global cache without exposing data across users
 	async getPageData(@Request() req: AuthenticatedRequest) {
 		const userId = req.user?.id
 
