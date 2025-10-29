@@ -33,10 +33,6 @@ import type {
 	CreatePropertyRequest,
 	UpdatePropertyRequest
 } from '@repo/shared/types/backend-domain'
-import {
-	propertyInputSchema,
-	propertyUpdateSchema
-} from '@repo/shared/validation/properties'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { PropertiesService } from './properties.service'
@@ -148,7 +144,7 @@ export class PropertiesController {
 	 */
 	@Post()
 	async create(
-		@Body(propertyInputSchema) createPropertyRequest: CreatePropertyRequest,
+		@Body() createPropertyRequest: CreatePropertyRequest,
 		@Request() req: AuthenticatedRequest
 	) {
 		const userId = req.user.id
@@ -201,7 +197,7 @@ export class PropertiesController {
 	@Put(':id')
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Body(propertyUpdateSchema) updatePropertyRequest: UpdatePropertyRequest,
+		@Body() updatePropertyRequest: UpdatePropertyRequest,
 		@Request() req: AuthenticatedRequest
 	) {
 		const userId = req.user.id
