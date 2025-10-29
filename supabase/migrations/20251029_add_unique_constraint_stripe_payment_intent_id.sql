@@ -4,17 +4,15 @@
 
 -- Add unique constraint on stripePaymentIntentId column
 -- This ensures database-level idempotency and prevents duplicate payment records
-ALTER TABLE "RentPayment"
+ALTER TABLE rent_payments
 ADD CONSTRAINT unique_rent_payment_stripe_intent_id UNIQUE ("stripePaymentIntentId");
 
 -- Add index for faster lookups (unique constraint already creates index, but being explicit)
--- CREATE INDEX IF NOT EXISTS idx_rent_payment_stripe_intent_id ON "RentPayment"("stripePaymentIntentId");
+-- CREATE INDEX IF NOT EXISTS idx_rent_payment_stripe_intent_id ON rent_payments("stripePaymentIntentId");
 -- Note: UNIQUE constraint already creates an index, so this is redundant
 
--- Add createdAt column if it doesn't exist for audit trail
-ALTER TABLE "RentPayment"
-ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+-- Note: createdAt already exists in rent_payments table schema
 
 -- Comment on the constraint for documentation
-COMMENT ON CONSTRAINT unique_rent_payment_stripe_intent_id ON "RentPayment" IS
+COMMENT ON CONSTRAINT unique_rent_payment_stripe_intent_id ON rent_payments IS
 'Ensures atomic idempotency for rent payments. Prevents duplicate records when Stripe webhooks are retried by rejecting duplicate stripePaymentIntentId values at database level.';
