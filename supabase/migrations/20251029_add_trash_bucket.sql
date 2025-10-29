@@ -12,16 +12,22 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
--- Add RLS policy for trash bucket - allow authenticated users with proper org_id
+-- Add RLS policy for trash bucket - allow authenticated users to access their own trash
+-- Path structure: trash/{userId}/{entityId}/filename
+-- Extract userId from path and verify it matches the authenticated user
 CREATE POLICY "Users can access trash bucket" ON storage.objects
 FOR ALL TO authenticated
 USING (
     bucket_id = 'trash'
-    AND auth.uid()::text = (storage.foldername(name))[1] -- User can access their own org's trash
+    AND (storage.foldername(name))[1] IN (
+        SELECT id FROM public.users WHERE "supabaseId" = auth.uid()::text
+    )
 )
 WITH CHECK (
     bucket_id = 'trash'
-    AND auth.uid()::text = (storage.foldername(name))[1]  -- User can write to their own org's trash
+    AND (storage.foldername(name))[1] IN (
+        SELECT id FROM public.users WHERE "supabaseId" = auth.uid()::text
+    )
 );
 
 -- Also allow service role for system operations
