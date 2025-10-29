@@ -9,12 +9,13 @@
  */
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Skeleton } from '@/components/ui/skeleton'
-import { usePaymentHistory } from '@/hooks/api/use-payment-history'
-import { usePaymentMethods } from '@/hooks/api/use-payment-methods'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Skeleton } from '#components/ui/skeleton'
+import { usePaymentHistory } from '#hooks/api/use-payment-history'
+import { usePaymentMethods } from '#hooks/api/use-payment-methods'
+import { formatCurrency } from '@repo/shared/utils/formatting'
 import { Calendar, CreditCard, DollarSign, Download } from 'lucide-react'
 import Link from 'next/link'
 
@@ -43,13 +44,6 @@ export default function TenantPaymentHistoryPage() {
 			default:
 				return ''
 		}
-	}
-
-	const formatCurrency = (amount: number) => {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: 'USD'
-		}).format(amount / 100)
 	}
 
 	return (

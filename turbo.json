@@ -43,48 +43,6 @@
 			"cache": true,
 			"persistent": false
 		},
-		"@repo/ui#build": {
-			"dependsOn": ["^build"],
-			"inputs": [
-				"src/**",
-				"tsconfig*.json",
-				"package.json",
-				"!**/*.md",
-				"!**/*.test.*",
-				"!**/*.spec.*"
-			],
-			"outputs": ["dist/**"],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/api-client#build": {
-			"dependsOn": ["^build"],
-			"inputs": [
-				"src/**",
-				"tsconfig*.json",
-				"package.json",
-				"!**/*.md",
-				"!**/*.test.*",
-				"!**/*.spec.*"
-			],
-			"outputs": ["dist/**"],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/config#build": {
-			"dependsOn": ["^build"],
-			"inputs": [
-				"src/**",
-				"tsconfig*.json",
-				"package.json",
-				"!**/*.md",
-				"!**/*.test.*",
-				"!**/*.spec.*"
-			],
-			"outputs": ["dist/**"],
-			"cache": true,
-			"persistent": false
-		},
 		"@repo/testing#build": {
 			"dependsOn": ["^build"],
 			"inputs": [
@@ -110,20 +68,6 @@
 				"!**/*.spec.*"
 			],
 			"outputs": ["dist/**"],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/eslint-config#build": {
-			"dependsOn": [],
-			"inputs": ["*.js", "package.json"],
-			"outputs": [],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/typescript-config#build": {
-			"dependsOn": [],
-			"inputs": ["*.json", "package.json"],
-			"outputs": [],
 			"cache": true,
 			"persistent": false
 		},
@@ -285,33 +229,6 @@
 			"cache": false,
 			"persistent": false
 		},
-		"format": {
-			"inputs": [
-				"src/**/*.{ts,tsx,js,jsx}",
-				"app/**/*.{ts,tsx,js,jsx}",
-				"prettier.config.*",
-				"!node_modules/**",
-				"!dist/**",
-				"!.next/**"
-			],
-			"outputs": [],
-			"cache": false,
-			"persistent": false
-		},
-		"format:check": {
-			"inputs": [
-				"src/**/*.{ts,tsx,js,jsx}",
-				"app/**/*.{ts,tsx,js,jsx}",
-				".prettierrc*",
-				"prettier.config.*",
-				"!node_modules/**",
-				"!dist/**",
-				"!.next/**"
-			],
-			"outputs": [],
-			"cache": false,
-			"persistent": false
-		},
 		"@repo/frontend#typecheck": {
 			"dependsOn": ["^build"],
 			"inputs": ["src/**", "tsconfig*.json", "package.json"],
@@ -338,27 +255,6 @@
 			"dependsOn": [],
 			"inputs": ["src/**/*.ts", "tsconfig*.json", "package.json"],
 			"outputs": ["dist/.tsbuildinfo"],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/ui#typecheck": {
-			"dependsOn": ["^build"],
-			"inputs": ["src/**/*.{ts,tsx}", "tsconfig*.json", "package.json"],
-			"outputs": [],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/api-client#typecheck": {
-			"dependsOn": ["^build"],
-			"inputs": ["src/**/*.ts", "tsconfig*.json", "package.json"],
-			"outputs": [],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/config#typecheck": {
-			"dependsOn": ["^build"],
-			"inputs": ["src/**/*.ts", "tsconfig*.json", "package.json"],
-			"outputs": [],
 			"cache": true,
 			"persistent": false
 		},
@@ -410,6 +306,8 @@
 				"NEXT_PUBLIC_SUPABASE_URL",
 				"NEXT_PUBLIC_SUPABASE_ANON_KEY",
 				"NEXT_PUBLIC_API_BASE_URL",
+				"NEXT_PUBLIC_APP_URL",
+				"TEST_AUTH_TOKEN",
 				"PLAYWRIGHT_BACKEND_HEALTH_URL",
 				"BACKEND_HEALTH_URL",
 				"PROD_HEALTH_URL",
@@ -439,38 +337,9 @@
 			"cache": true,
 			"persistent": false
 		},
-		"@repo/config#lint": {
-			"dependsOn": [],
-			"inputs": ["src/**/*.{ts,tsx,js,jsx}", "eslint.config.*", "package.json"],
-			"outputs": [],
-			"env": [
-				"NEXT_PUBLIC_SUPABASE_URL",
-				"NEXT_PUBLIC_SUPABASE_ANON_KEY",
-				"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-				"SUPABASE_ANON_KEY",
-				"ANON_KEY",
-				"NEXT_PUBLIC_API_BASE_URL"
-			],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/typescript-config#typecheck": {
-			"dependsOn": [],
-			"inputs": ["*.json", "package.json"],
-			"outputs": [],
-			"cache": true,
-			"persistent": false
-		},
 		"clean": {
 			"cache": false,
 			"outputs": [],
-			"persistent": false
-		},
-		"generate:schemas": {
-			"dependsOn": ["@repo/backend#build"],
-			"inputs": ["scripts/generate-frontend-schemas.ts", "package.json"],
-			"outputs": ["src/lib/validation/generated-*.ts"],
-			"cache": true,
 			"persistent": false
 		}
 	}

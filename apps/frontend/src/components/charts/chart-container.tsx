@@ -6,8 +6,8 @@ import {
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
-import { cn } from '@/lib/utils'
+} from '#components/ui/card'
+import { cn } from '#lib/utils'
 import type { ChartContainerProps } from '@repo/shared/types/frontend'
 
 export function ChartContainer({

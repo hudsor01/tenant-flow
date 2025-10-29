@@ -1,19 +1,19 @@
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
+} from '#components/ui/card'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+} from '#components/ui/dropdown-menu'
 import type { Property } from '@repo/shared/types/core'
 import { Building2, MapPin, MoreHorizontal, PencilIcon, Trash2 } from 'lucide-react'
 import Image from 'next/image'

@@ -1,17 +1,17 @@
 'use client'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '#components/ui/alert'
+import { Button } from '#components/ui/button'
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Spinner } from '@/components/ui/spinner'
+} from '#components/ui/dialog'
+import { Input } from '#components/ui/input'
+import { Label } from '#components/ui/label'
+import { Spinner } from '#components/ui/spinner'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { supabaseClient } from '@repo/shared/lib/supabase-client'
 import { useMutation } from '@tanstack/react-query'

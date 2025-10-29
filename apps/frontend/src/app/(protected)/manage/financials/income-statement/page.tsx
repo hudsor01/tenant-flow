@@ -1,14 +1,14 @@
 import type { Metadata } from 'next'
-import { requireSession } from '@/lib/server-auth'
-import { ExportButtons } from '@/components/export/export-buttons'
-import { Badge } from '@/components/ui/badge'
+import { requireSession } from '#lib/server-auth'
+import { ExportButtons } from '#components/export/export-buttons'
+import { Badge } from '#components/ui/badge'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
+} from '#components/ui/card'
 import {
 	Table,
 	TableBody,
@@ -16,9 +16,9 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { formatCurrency, formatPercentage } from '@/lib/design-system'
-import { cn } from '@/lib/utils'
+} from '#components/ui/table'
+import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
+import { cn } from '#lib/utils'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { IncomeStatementData } from '@repo/shared/types/financial-statements'
 import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
@@ -44,7 +44,7 @@ function TrendPill({ value }: { value: number | null | undefined }) {
 			className="flex items-center gap-1 font-medium"
 		>
 			<Icon className="size-3" />
-			{formatPercentage(Math.abs(value), 1)}
+			{formatPercentage(Math.abs(value), { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
 		</Badge>
 	)
 }
@@ -92,7 +92,7 @@ export default async function IncomeStatementPage() {
 	let data: IncomeStatementData | null = null
 	try {
 		// Get auth token for API call
-		const { createClient } = await import('@/lib/supabase/server')
+		const { createClient } = await import('#lib/supabase/server')
 		const supabase = await createClient()
 		const { data: { session } } = await supabase.auth.getSession()
 		

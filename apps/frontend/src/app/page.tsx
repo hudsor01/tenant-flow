@@ -1,11 +1,11 @@
 'use client'
 
-import Footer from '@/components/layout/footer'
-import { MarketingNav } from '@/components/layout/marketing-nav'
-import FeaturesSectionDemo from '@/components/sections/features-section'
-import { HeroSection } from '@/components/sections/hero-section'
-import { PremiumCta } from '@/components/sections/premium-cta'
-import { StatsShowcase } from '@/components/sections/stats-showcase'
+import Footer from '#components/layout/footer'
+import { MarketingNav } from '#components/layout/marketing-nav'
+import FeaturesSectionDemo from '#components/sections/features-section'
+import { HeroSection } from '#components/sections/hero-section'
+import { PremiumCta } from '#components/sections/premium-cta'
+import { StatsShowcase } from '#components/sections/stats-showcase'
 
 export default function HomePage() {
 	return (

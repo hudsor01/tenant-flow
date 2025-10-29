@@ -1,15 +1,12 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Next.js TypeScript Config - App base",
+	"display": "TenantFlow Next.js TypeScript Config - App Router (October 2025)",
 	"extends": "./base.json",
 	"compilerOptions": {
 		"composite": false,
 		"declaration": false,
 		"declarationMap": false,
 		"noEmit": true,
-		"jsx": "preserve",
-		"module": "ESNext",
-		"moduleResolution": "bundler",
-		"verbatimModuleSyntax": false
+		"jsx": "preserve"
 	}
 }

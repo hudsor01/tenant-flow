@@ -1,194 +1,109 @@
+/**
+ * UI Store - Multi-Step Form State
+ *
+ * Follows Zustand best practices and CLAUDE.md guidelines:
+ * - ONLY shared UI state that needs cross-component coordination
+ * - Component-local state (useState) for: modals, loading, notifications
+ * - URL state for: dialogs, filters (use nuqs)
+ * - Sonner for: toast notifications
+ * - TanStack Query for: data loading states
+ *
+ * This store handles ONLY multi-step form wizards that span multiple components.
+ */
+
 import { create } from 'zustand'
-import { subscribeWithSelector } from 'zustand/middleware'
-import type { UIStore, FormProgress, ModalState, NotificationState } from '@repo/shared/types/frontend'
+
+export type FormProgress = {
+	currentStep: number
+	totalSteps: number
+	completedSteps: number[]
+	formData: Record<string, unknown>
+	formType: string | null
+}
+
+type FormState = {
+	formProgress: FormProgress
+	setFormProgress: (progress: Partial<FormProgress>) => void
+	resetFormProgress: () => void
+	nextStep: () => void
+	previousStep: () => void
+	completeStep: (stepNumber: number) => void
+	setFormData: (data: Record<string, unknown>) => void
+}
 
 const initialFormProgress: FormProgress = {
-  currentStep: 1,
-  totalSteps: 1,
-  completedSteps: [],
-  formData: {},
-  formType: null
+	currentStep: 1,
+	totalSteps: 1,
+	completedSteps: [],
+	formData: {},
+	formType: null
 }
 
-const initialModalState: ModalState = {
-  createProperty: false,
-  createTenant: false,
-  createLease: false,
-  createMaintenance: false,
-  editMode: null,
-  viewMode: null,
-  deleteConfirmation: null
-}
+export const useUIStore = create<FormState>(set => ({
+	formProgress: initialFormProgress,
 
-const initialNotificationState: NotificationState = {
-  show: false,
-  type: 'info',
-  title: '',
-  message: '',
-  duration: 5000
-}
+	setFormProgress: progress =>
+		set(state => ({
+			formProgress: { ...state.formProgress, ...progress }
+		})),
 
-export const useUIStore = create<UIStore>()(
-  subscribeWithSelector((set) => ({
-    // Form Progress
-    formProgress: initialFormProgress,
+	resetFormProgress: () => set({ formProgress: initialFormProgress }),
 
-    setFormProgress: (progress) =>
-      set((state) => ({
-        formProgress: { ...state.formProgress, ...progress }
-      })),
+	nextStep: () =>
+		set(state => ({
+			formProgress: {
+				...state.formProgress,
+				currentStep: Math.min(
+					state.formProgress.currentStep + 1,
+					state.formProgress.totalSteps
+				)
+			}
+		})),
 
-    resetFormProgress: () =>
-      set({ formProgress: initialFormProgress }),
+	previousStep: () =>
+		set(state => ({
+			formProgress: {
+				...state.formProgress,
+				currentStep: Math.max(state.formProgress.currentStep - 1, 1)
+			}
+		})),
 
-    nextStep: () =>
-      set((state) => ({
-        formProgress: {
-          ...state.formProgress,
-          currentStep: Math.min(
-            state.formProgress.currentStep + 1,
-            state.formProgress.totalSteps
-          )
-        }
-      })),
+	completeStep: stepNumber =>
+		set(state => ({
+			formProgress: {
+				...state.formProgress,
+				completedSteps: Array.from(
+					new Set([...state.formProgress.completedSteps, stepNumber])
+				)
+			}
+		})),
 
-    previousStep: () =>
-      set((state) => ({
-        formProgress: {
-          ...state.formProgress,
-          currentStep: Math.max(state.formProgress.currentStep - 1, 1)
-        }
-      })),
+	setFormData: data =>
+		set(state => ({
+			formProgress: {
+				...state.formProgress,
+				formData: { ...state.formProgress.formData, ...data }
+			}
+		}))
+}))
 
-    completeStep: (stepNumber) =>
-      set((state) => ({
-        formProgress: {
-          ...state.formProgress,
-          completedSteps: Array.from(
-            new Set([...state.formProgress.completedSteps, stepNumber])
-          )
-        }
-      })),
+// Stable selector
+export const useFormProgress = () => useUIStore(state => state.formProgress)
 
-    setFormData: (data) =>
-      set((state) => ({
-        formProgress: {
-          ...state.formProgress,
-          formData: { ...state.formProgress.formData, ...data }
-        }
-      })),
-
-    // Modals
-    modals: initialModalState,
-
-    openModal: (modalType, data) =>
-      set((state) => {
-        const newModals = { ...state.modals }
-
-        if (modalType === 'editMode' || modalType === 'viewMode') {
-          newModals[modalType] = data as { type: string; id: string }
-        } else if (modalType === 'deleteConfirmation') {
-          newModals[modalType] = data as { type: string; id: string; name: string }
-        } else {
-          newModals[modalType] = true
-        }
-
-        return { modals: newModals }
-      }),
-
-    closeModal: (modalType) =>
-      set((state) => {
-        const newModals = { ...state.modals }
-
-        if (modalType === 'editMode' || modalType === 'viewMode' || modalType === 'deleteConfirmation') {
-          newModals[modalType] = null
-        } else {
-          newModals[modalType] = false
-        }
-
-        return { modals: newModals }
-      }),
-
-    closeAllModals: () =>
-      set({ modals: initialModalState }),
-
-    // Notifications
-    notification: initialNotificationState,
-
-    showNotification: (notification) =>
-      set({ notification: { ...notification, show: true } }),
-
-    hideNotification: () =>
-      set({ notification: initialNotificationState }),
-
-    // Loading States
-    loading: {
-      global: false,
-      create: false,
-      update: false,
-      delete: false
-    },
-
-    setLoading: (type, state) =>
-      set((prev) => ({
-        loading: { ...prev.loading, [type]: state }
-      })),
-
-    // Refresh Triggers
-    refreshTriggers: {
-      properties: 0,
-      tenants: 0,
-      leases: 0,
-      maintenance: 0,
-      units: 0
-    },
-
-    triggerRefresh: (entity) =>
-      set((state) => ({
-        refreshTriggers: {
-          ...state.refreshTriggers,
-          [entity]: state.refreshTriggers[entity] + 1
-        }
-      }))
-  }))
-)
-
-// Selectors for specific parts of the store
-export const useFormProgress = () => useUIStore((state) => state.formProgress)
-export const useModals = () => useUIStore((state) => state.modals)
-export const useNotification = () => useUIStore((state) => state.notification)
-export const useLoading = () => useUIStore((state) => state.loading)
-
-// Helper hooks for common patterns
+// Helper hook for multi-step forms
 export const useFormStep = () => {
-  const { currentStep, totalSteps, completedSteps } = useFormProgress()
-  const { nextStep, previousStep, completeStep } = useUIStore()
+	const { currentStep, totalSteps, completedSteps } = useFormProgress()
+	const { nextStep, previousStep, completeStep } = useUIStore()
 
-  return {
-    currentStep,
-    totalSteps,
-    completedSteps,
-    nextStep,
-    previousStep,
-    completeStep,
-    isFirstStep: currentStep === 1,
-    isLastStep: currentStep === totalSteps,
-    isStepCompleted: (step: number) => completedSteps.includes(step)
-  }
-}
-
-export const useModalControls = () => {
-  const { openModal, closeModal, closeAllModals } = useUIStore()
-
-  return {
-    openModal,
-    closeModal,
-    closeAllModals,
-    openCreateProperty: () => openModal('createProperty'),
-    openCreateTenant: () => openModal('createTenant'),
-    openEditMode: (type: string, id: string) => openModal('editMode', { type, id }),
-    openViewMode: (type: string, id: string) => openModal('viewMode', { type, id }),
-    openDeleteConfirmation: (type: string, id: string, name: string) =>
-      openModal('deleteConfirmation', { type, id, name })
-  }
+	return {
+		currentStep,
+		totalSteps,
+		completedSteps,
+		nextStep,
+		previousStep,
+		completeStep,
+		isFirstStep: currentStep === 1,
+		isLastStep: currentStep === totalSteps,
+		isStepCompleted: (step: number) => completedSteps.includes(step)
+	}
 }

@@ -1,8 +1,8 @@
 import type { DashboardStats } from '@repo/shared/types/core'
 import { TrendingDown, TrendingUp } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
-import { formatCurrency, formatPercentage } from '@/lib/utils'
+import { Badge } from '#components/ui/badge'
+import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
 
 interface SectionCardsProps {
 	stats?: Partial<DashboardStats>

@@ -7,11 +7,11 @@
 
 'use client'
 
-import { EditDialog } from '@/components/ui/base-dialogs'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useRenewLease } from '@/hooks/api/use-lease'
+import { EditDialog } from '#components/ui/base-dialogs'
+import { Button } from '#components/ui/button'
+import { Input } from '#components/ui/input'
+import { Label } from '#components/ui/label'
+import { useRenewLease } from '#hooks/api/use-lease'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { addMonths, addYears, format, isAfter, parseISO } from 'date-fns'
@@ -31,12 +31,7 @@ interface RenewLeaseDialogProps {
 /**
  * Format currency for display
  */
-function formatCurrency(amount: number): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD'
-	}).format(amount)
-}
+import { formatCurrency } from '@repo/shared/utils/currency'
 
 /**
  * Main dialog component for lease renewal

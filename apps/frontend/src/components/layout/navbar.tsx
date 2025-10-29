@@ -1,9 +1,9 @@
 'use client'
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { useSignOut } from '@/hooks/api/use-auth'
-import { cn } from '@/lib/utils'
-import { useAuth } from '@/providers/auth-provider'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '#components/ui/sheet'
+import { useSignOut } from '#hooks/api/use-auth'
+import { cn } from '#lib/utils'
+import { useAuth } from '#providers/auth-provider'
 import { useSpring, useTransition } from '@react-spring/core'
 import { animated } from '@react-spring/web'
 import { ArrowRight, ChevronDown, Menu, X } from 'lucide-react'

@@ -1,16 +1,16 @@
 'use client'
 
-import { ChartAreaInteractive } from '@/components/dashboard/chart-area-interactive'
-import { Button } from '@/components/ui/button'
+import { ChartAreaInteractive } from '#components/dashboard/chart-area-interactive'
+import { Button } from '#components/ui/button'
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from '#components/ui/dialog'
+import { Input } from '#components/ui/input'
+import { Label } from '#components/ui/label'
 import {
 	Pagination,
 	PaginationContent,
@@ -18,14 +18,14 @@ import {
 	PaginationLink,
 	PaginationNext,
 	PaginationPrevious
-} from '@/components/ui/pagination'
+} from '#components/ui/pagination'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
+} from '#components/ui/select'
 import {
 	Table,
 	TableBody,
@@ -33,10 +33,10 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
+} from '#components/ui/table'
 import { unitColumns, type UnitRow } from './columns'
-import { useUnitList, useUnitStats, useCreateUnit } from '@/hooks/api/use-unit'
-import { propertiesApi } from '@/lib/api-client'
+import { useUnitList, useUnitStats, useCreateUnit } from '#hooks/api/use-unit'
+import { propertiesApi } from '#lib/api-client'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'

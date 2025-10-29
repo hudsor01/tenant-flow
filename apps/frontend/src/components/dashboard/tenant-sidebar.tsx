@@ -12,9 +12,9 @@ import {
 import Link from 'next/link'
 import * as React from 'react'
 
-import { NavMain } from '@/components/dashboard/nav-main'
-import { NavSecondary } from '@/components/dashboard/nav-secondary'
-import { Sidebar, SidebarContent } from '@/components/ui/sidebar'
+import { NavMain } from '#components/dashboard/nav-main'
+import { NavSecondary } from '#components/dashboard/nav-secondary'
+import { Sidebar, SidebarContent } from '#components/ui/sidebar'
 import { Settings } from 'lucide-react'
 
 const navigation: {

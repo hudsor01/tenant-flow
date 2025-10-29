@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect } from 'react'

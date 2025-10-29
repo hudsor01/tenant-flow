@@ -1,7 +1,7 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Component } from 'react'
