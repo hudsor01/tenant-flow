@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "TenantFlow Test TypeScript Config (Modernized 2025)",
+  "display": "TenantFlow Test TypeScript Config",
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "nodenext",
