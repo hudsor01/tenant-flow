@@ -29,7 +29,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { PropertiesModule } from './modules/properties/properties.module'
 import { RentPaymentsModule } from './modules/rent-payments/rent-payments.module'
 import { ReportsModule } from './modules/reports/reports.module'
-// import { StripeSyncModule } from './modules/stripe-sync/stripe-sync.module' // Temporarily disabled due to type errors
+import { StripeSyncModule } from './modules/stripe-sync/stripe-sync.module'
 import { TenantsModule } from './modules/tenants/tenants.module'
 import { UnitsModule } from './modules/units/units.module'
 import { UsersModule } from './modules/users/users.module'
@@ -101,7 +101,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 		HealthModule,
 		AnalyticsModule,
 		StripeModule,
-		// StripeSyncModule, // Temporarily disabled due to type errors
+		StripeSyncModule,
 		ContactModule,
 		DashboardModule,
 		FinancialModule,
@@ -155,7 +155,11 @@ export class AppModule implements NestModule {
 		// Timing must run first to capture startTime
 		// ID must run before logging to include requestId in logs
 		consumer
-			.apply(RequestTimingMiddleware, RequestIdMiddleware, RequestLoggerMiddleware)
+			.apply(
+				RequestTimingMiddleware,
+				RequestIdMiddleware,
+				RequestLoggerMiddleware
+			)
 			.forRoutes('*')
 	}
 }
