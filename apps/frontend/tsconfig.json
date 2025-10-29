@@ -1,6 +1,6 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Frontend - Next.js 15 + React 19 (October 2025)",
+	"display": "TenantFlow Frontend - Next.js 15 + React 19",
 	"extends": "../../packages/typescript-config/next.json",
 	"compilerOptions": {
 		"baseUrl": ".",

@@ -33,7 +33,7 @@ module.exports = {
 		'^@/(.*)$': '<rootDir>/src/$1',
 		'^(\\.{1,2}/.*)\\.js$': '$1',
 		'^src/(.*)$': '<rootDir>/src/$1',
-		'^@react-pdf/renderer$': '<rootDir>/test/mocks/react-pdf-renderer.mock.js'
+		'^@react-pdf/renderer$': '<rootDir>/__mocks__/@react-pdf__renderer.js'
 	},
 	moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
 	setupFilesAfterEnv,
