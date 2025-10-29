@@ -5,8 +5,9 @@ test.describe('Production Monitoring Placeholder', () => {
 
 	test.beforeAll(() => {
 		const missing = requiredEnv.filter(key => !process.env[key])
+		const forceRun = process.env.E2E_FORCE_RUN === 'true'
 		test.skip(
-			missing.length > 0,
+			missing.length > 0 && !forceRun,
 			`Missing production env vars: ${missing.join(', ')}`
 		)
 	})

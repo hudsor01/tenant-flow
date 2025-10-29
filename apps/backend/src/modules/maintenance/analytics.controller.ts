@@ -27,25 +27,6 @@ export class MaintenanceAnalyticsController {
 	constructor(private readonly supabaseService: SupabaseService) {}
 
 	/**
-	 * Helper method to get unit IDs for a user (via property ownership)
-	 */
-	private async getUserUnitIds(userId: string): Promise<string[]> {
-		const client = this.supabaseService.getAdminClient()
-		const { data: properties } = await client
-			.from('property')
-			.select('id')
-			.eq('ownerId', userId)
-		const propertyIds = properties?.map(p => p.id) || []
-		if (propertyIds.length === 0) return []
-
-		const { data: units } = await client
-			.from('unit')
-			.select('id')
-			.in('propertyId', propertyIds)
-		return units?.map(u => u.id) || []
-	}
-
-	/**
 	 * Get maintenance metrics via existing optimized analytics service
 	 * Delegates to DashboardAnalyticsService.getMaintenanceAnalytics()
 	 */
@@ -229,47 +210,69 @@ export class MaintenanceAnalyticsController {
 		timeframe: string,
 		propertyId?: string
 	) {
-		const client = this.supabaseService.getAdminClient()
-		const unitIds = await this.getUserUnitIds(userId)
+                const client = this.supabaseService.getAdminClient()
 
-		// Fetch all data with direct Supabase queries
-		const [maintenanceData, unitsData, propertiesData] = await Promise.all([
-			unitIds.length > 0
-				? client.from('maintenance_request').select('*').in('unitId', unitIds)
-				: Promise.resolve({ data: [] }),
-			client
-				.from('unit')
-				.select('id, propertyId')
-				.in(
-					'propertyId',
-					(
-						await client.from('property').select('id').eq('ownerId', userId)
-					).data?.map(p => p.id) || []
-				),
-			client.from('property').select('id, name').eq('ownerId', userId)
-		])
+                const { data: propertyRows } = await client
+                        .from('property')
+                        .select('id, name')
+                        .eq('ownerId', userId)
 
-		const maintenanceRequests = (maintenanceData.data ||
-			[]) as MaintenanceRequest[]
-		const units = unitsData.data || []
-		const properties = propertiesData.data || []
+                const propertyNames = new Map<string, string>()
+                const propertyIds: string[] = []
+                for (const property of propertyRows || []) {
+                        if (!property?.id) {
+                                continue
+                        }
+                        propertyIds.push(property.id)
+                        if (typeof property.name === 'string') {
+                                propertyNames.set(property.id, property.name)
+                        }
+                }
+
+                if (propertyIds.length === 0) {
+                        return {
+                                requests: [],
+                                unitToProperty: new Map<string, string>(),
+                                propertyNames
+                        }
+                }
+
+                const { data: unitRows } = await client
+                        .from('unit')
+                        .select('id, propertyId')
+                        .in('propertyId', propertyIds)
+
+                const unitToProperty = new Map<string, string>()
+                const unitIds: string[] = []
+                for (const unit of unitRows || []) {
+                        if (!unit?.id) {
+                                continue
+                        }
+                        unitIds.push(unit.id)
+                        if (typeof unit.propertyId === 'string' && unit.propertyId.length > 0) {
+                                unitToProperty.set(unit.id, unit.propertyId)
+                        }
+                }
+
+                if (unitIds.length === 0) {
+                        return {
+                                requests: [],
+                                unitToProperty,
+                                propertyNames
+                        }
+                }
+
+                const { data: maintenanceRows } = await client
+                        .from('maintenance_request')
+                        .select('*')
+                        .in('unitId', unitIds)
+
+                const maintenanceRequests = (maintenanceRows || []) as MaintenanceRequest[]
 
 		const start = this.calculateStartDate(timeframe)
-		const unitToProperty = new Map<string, string>()
-		for (const unit of units) {
-			if (unit.id && unit.propertyId) {
-				unitToProperty.set(unit.id, unit.propertyId)
-			}
-		}
-
-		const propertyNames = new Map<string, string>()
-		for (const property of properties) {
-			propertyNames.set(property.id, property.name)
-		}
-
-		const filteredRequests = maintenanceRequests.filter(request => {
-			if (start && request.createdAt) {
-				const createdAt = new Date(request.createdAt)
+                const filteredRequests = maintenanceRequests.filter(request => {
+                        if (start && request.createdAt) {
+                                const createdAt = new Date(request.createdAt)
 				if (Number.isFinite(start.getTime()) && createdAt < start) {
 					return false
 				}
