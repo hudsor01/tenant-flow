@@ -15,6 +15,7 @@ import { PassportStrategy } from '@nestjs/passport'
 import type { JwtPayload, authUser } from '@repo/shared/types/auth'
 
 import { ExtractJwt, Strategy } from 'passport-jwt'
+import * as jwksRsa from 'jwks-rsa'
 
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
@@ -22,26 +23,25 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 
 	constructor() {
 		const supabaseUrl = process.env.SUPABASE_URL
-		const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET
 
 		if (!supabaseUrl) {
 			throw new Error('SUPABASE_URL environment variable is required')
 		}
 
-		if (!supabaseJwtSecret) {
-			throw new Error('SUPABASE_JWT_SECRET environment variable is required')
-		}
-
 		super({
 			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 			ignoreExpiration: false,
-			// Use the JWT secret for verification
-			secretOrKey: supabaseJwtSecret,
-			// Supabase uses HS256 for JWT signing with the secret
-			algorithms: ['HS256']
+			// Use JWKS endpoint for RS256 verification (October 2025 best practice)
+			secretOrKeyProvider: jwksRsa.passportJwtSecret({
+				jwksUri: `${supabaseUrl}/auth/v1/.well-known/jwks.json`,
+				cache: true,
+				rateLimit: true,
+				jwksRequestsPerMinute: 10
+			}),
+			algorithms: ['RS256']
 		})
 
-		this.logger.log(`SupabaseStrategy initialized with HS256 verification`)
+		this.logger.log(`SupabaseStrategy initialized with RS256 JWKS verification`)
 	}
 
 	async validate(payload: JwtPayload): Promise<authUser> {

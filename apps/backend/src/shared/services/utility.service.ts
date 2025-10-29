@@ -4,7 +4,7 @@
  * Handles utility functions and global search operations
  */
 
-import { Inject, Injectable, Logger, BadRequestException } from '@nestjs/common'
+import { Inject, Injectable, Logger, NotFoundException, InternalServerErrorException } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import type { Cache } from 'cache-manager'
 import type { SearchResult } from '@repo/shared/types/search'
@@ -219,9 +219,18 @@ export class UtilityService {
 			.eq('supabaseId', supabaseId)
 			.single()
 
-		if (error || !data) {
-			this.logger.error('Failed to lookup user ID', { error, supabaseId })
-			throw new BadRequestException('User not found')
+		// Handle database errors separately from missing user
+		if (error) {
+			this.logger.error('Database error during user ID lookup', { 
+				error: error.message || error, 
+				supabaseId 
+			})
+			throw new InternalServerErrorException('Failed to lookup user information')
+		}
+
+		if (!data) {
+			this.logger.error('User not found in database', { supabaseId })
+			throw new NotFoundException('User not found')
 		}
 
 		await this.cacheManager.set(cacheKey, data.id, 300000) // 5 min cache
