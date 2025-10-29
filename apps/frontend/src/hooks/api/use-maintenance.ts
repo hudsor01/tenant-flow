@@ -57,14 +57,14 @@ export function useAllMaintenanceRequests(query?: {
 			const response = await apiClient<MaintenanceRequest[]>(url)
 
 			// Prefetch individual details for instant navigation
-			response.forEach(maintenance => {
+			response?.forEach?.(maintenance => {
 				queryClient.setQueryData(
 					maintenanceKeys.detail(maintenance.id),
 					maintenance
 				)
 			})
 
-			return response
+			return response || []
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes cache
