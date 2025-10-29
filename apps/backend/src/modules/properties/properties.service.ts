@@ -519,13 +519,14 @@ export class PropertiesService {
 
 		// 🔐 BUG FIX #3: Use Saga pattern for transactional delete with compensation
 		let imageFilePath: string | null = null
+		let trashFilePath: string | null = null
 
 		const result = await new SagaBuilder(this.logger)
 			.addStep({
-				name: 'Delete property image from storage',
+				name: 'Move property image to trash bucket',
 				execute: async () => {
 					if (!existing.imageUrl) {
-						return { deleted: false }
+						return { moved: false, originalPath: null, trashPath: null }
 					}
 
 					try {
@@ -535,31 +536,75 @@ export class PropertiesService {
 						const pathParts = url.pathname.split('/property-images/')
 						if (pathParts.length > 1 && pathParts[1]) {
 							imageFilePath = pathParts[1]
-							await this.storage.deleteFile('property-images', imageFilePath)
-							this.logger.log('Deleted property image from storage', {
+
+							// Create trash path with timestamp to avoid conflicts
+							const timestamp = Date.now()
+							trashFilePath = `property-images/${ownerId}/${timestamp}-${pathParts[1]}`
+
+							// Move image to trash bucket (copy + delete original)
+							await this.storage.moveFile(
+								'property-images',
+								imageFilePath,
+								'trash',
+								trashFilePath
+							)
+
+							this.logger.log('Moved property image to trash bucket', {
 								propertyId,
-								filePath: imageFilePath
+								originalPath: imageFilePath,
+								trashPath: trashFilePath
 							})
-							return { deleted: true, filePath: imageFilePath }
+
+							return {
+								moved: true,
+								originalPath: imageFilePath,
+								trashPath: trashFilePath
+							}
 						}
 					} catch (error) {
-						this.logger.warn('Failed to delete property image', {
-							error,
+						this.logger.error('Failed to move property image to trash', {
+							error: error instanceof Error ? error.message : 'Unknown error',
 							propertyId,
-							imageUrl: existing.imageUrl
+							imageUrl: existing.imageUrl,
+							originalPath: imageFilePath
 						})
+						// Don't fail the entire operation if image move fails, just log the error
 					}
-					return { deleted: false }
+					return { moved: false, originalPath: null, trashPath: null }
 				},
 				compensate: async result => {
-					// Compensation: Restore image if it was deleted
-					// TODO: In production, you'd need to store the image bytes before deletion
-					// or use soft-delete pattern for storage
-					if (result.deleted && imageFilePath) {
-						this.logger.warn(
-							'Image deletion compensation not implemented - image cannot be restored',
-							{ propertyId, filePath: imageFilePath }
-						)
+					// Compensation: Restore image from trash if it was moved
+					if (result.moved && result.trashPath) {
+						try {
+							// Move image back from trash to original location
+							await this.storage.moveFile(
+								'trash',
+								result.trashPath,
+								'property-images',
+								result.originalPath
+							)
+
+							this.logger.log(
+								'Restored property image from trash during compensation',
+								{
+									propertyId,
+									originalPath: result.originalPath,
+									trashPath: result.trashPath
+								}
+							)
+						} catch (error) {
+							this.logger.error(
+								'Failed to restore property image from trash during compensation',
+								{
+									error:
+										error instanceof Error ? error.message : 'Unknown error',
+									propertyId,
+									originalPath: result.originalPath,
+									trashPath: result.trashPath
+								}
+							)
+							// Log error but don't throw - we don't want to mask the original error
+						}
 					}
 					return noCompensation()
 				}
@@ -620,6 +665,37 @@ export class PropertiesService {
 						propertyId,
 						status: result.previousStatus
 					})
+				}
+			})
+			.addStep({
+				name: 'Permanently delete image from trash bucket',
+				execute: async () => {
+					// This step only runs if the database operation succeeds
+					if (trashFilePath) {
+						await this.storage.deleteFile('trash', trashFilePath)
+						this.logger.log(
+							'Permanently deleted property image from trash bucket',
+							{
+								propertyId,
+								trashPath: trashFilePath
+							}
+						)
+					}
+					return { permanentDeleted: !!trashFilePath }
+				},
+				compensate: async result => {
+					// This compensation runs if the permanent delete fails
+					// In this case, the image remains in trash which is acceptable
+					if (result.permanentDeleted && trashFilePath) {
+						this.logger.warn(
+							'Failed to permanently delete image from trash - file remains in trash',
+							{
+								propertyId,
+								trashPath: trashFilePath
+							}
+						)
+					}
+					return noCompensation()
 				}
 			})
 			.execute()
