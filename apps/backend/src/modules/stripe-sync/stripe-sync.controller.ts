@@ -218,6 +218,10 @@ export class StripeSyncController {
 			return
 		}
 
+		// Type assertion to ensure TypeScript knows these are defined after the guard
+		const safeLeaseId = leaseId!
+		const safeTenantId = tenantId!
+
 		// Get lease with property to retrieve ownerId (landlordId)
 		const { data: lease, error: leaseError } = await this.supabaseService
 			.getAdminClient()
@@ -244,14 +248,15 @@ export class StripeSyncController {
 		const platformFee = Math.round(amountInCents * 0.03) / 100 // 3%
 		const landlordReceives = amountInDollars - stripeFee - platformFee
 
-		// Record payment in database with upsert to handle webhook retries
-		// Use ON CONFLICT DO NOTHING to prevent duplicates when stripePaymentIntentId already exists
+		// Record payment in database
+		// NOTE: We rely on unique constraint on stripePaymentIntentId to prevent duplicates
+		// If duplicate, we handle the error gracefully below
 		const { error } = await this.supabaseService
 			.getAdminClient()
 			.from('rent_payment')
-			.upsert({
-				leaseId,
-				tenantId,
+			.insert({
+				leaseId: safeLeaseId,
+				tenantId: safeTenantId,
 				landlordId,
 				amount: amountInDollars,
 				paidAt: new Date().toISOString(),
@@ -261,9 +266,6 @@ export class StripeSyncController {
 				platformFee,
 				stripeFee,
 				landlordReceives
-			}, {
-				onConflict: 'stripePaymentIntentId',
-				ignoreDuplicates: true
 			})
 
 		if (error) {
