@@ -3,6 +3,7 @@
 import { Button } from '#components/ui/button'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { AlertCircle } from 'lucide-react'
+import Link from 'next/link'
 import { useEffect } from 'react'
 
 const logger = createLogger({ component: 'ProtectedError' })
@@ -37,7 +38,7 @@ export default function ProtectedError({
 						Try Again
 					</Button>
 					<Button asChild size="sm">
-						<a href="/login">Sign In</a>
+						<Link href="/login">Sign In</Link>
 					</Button>
 				</div>
 			</div>

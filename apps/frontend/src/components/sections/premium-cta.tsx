@@ -5,6 +5,7 @@ import { Button } from '#components/ui/button'
 import { GlowingEffect } from '#components/ui/glowing-effect'
 import { cn } from '#lib/utils'
 import { ArrowRight, Check, Clock, TrendingUp } from 'lucide-react'
+import Link from 'next/link'
 
 interface PremiumCtaProps {
 	className?: string
@@ -61,13 +62,13 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 									className="relative overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-bold px-10 py-6 rounded shadow-2xl hover:shadow-primary/25 transform hover:scale-[1.02] transition-all duration-500 group"
 									asChild
 								>
-									<a href="/signup" aria-label="Start free trial">
+									<Link href="/signup" aria-label="Start free trial">
 										<div className="absolute inset-0 bg-linear-to-r from-primary to-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 										<span className="relative z-10 flex items-center">
 											Start Free Trial
 											<ArrowRight className="size-6 ml-3 transition-transform group-hover:translate-x-2 duration-500" />
 										</span>
-									</a>
+									</Link>
 								</Button>
 							</GlowingEffect>
 
@@ -78,10 +79,10 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 								className="group border-2 border-border/50 hover:border-primary/40 hover:bg-primary/5 text-lg font-semibold px-10 py-6 rounded transition-all duration-500 backdrop-blur-sm hover:shadow-lg"
 								asChild
 							>
-								<a href="/contact" aria-label="Calculate savings">
+								<Link href="/contact" aria-label="Calculate savings">
 									<TrendingUp className="size-6 mr-3 opacity-70 group-hover:opacity-100 group-hover:text-primary transition-all duration-500" />
 									Calculate Your Savings
-								</a>
+								</Link>
 							</Button>
 						</div>
 					</BlurFade>
