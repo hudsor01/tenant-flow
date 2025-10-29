@@ -11,14 +11,15 @@
 
 'use client'
 
-import { ErrorFallback } from '@/components/error-boundary/error-fallback'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorFallback } from '#components/error-boundary/error-fallback'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Skeleton } from '#components/ui/skeleton'
 import {
 	useCurrentLease,
 	useTenantMaintenanceRequests
-} from '@/hooks/api/use-lease'
+} from '#hooks/api/use-lease'
+import { formatCurrency } from '@repo/shared/utils/formatting'
 import {
 	Calendar,
 	CreditCard,
@@ -53,14 +54,6 @@ export default function TenantDashboardPage() {
 		isLoading: maintenanceLoading,
 		error: maintenanceError
 	} = useTenantMaintenanceRequests()
-
-	// Modern currency formatting - assumes valid inputs
-	const formatCurrency = (amount: number) => {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: 'USD'
-		}).format(amount)
-	}
 
 	// Calculate next payment date (1st of next month)
 	const getNextPaymentDate = () => {

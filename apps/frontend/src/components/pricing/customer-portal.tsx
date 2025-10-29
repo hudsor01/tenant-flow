@@ -1,11 +1,11 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { useUser } from '@/hooks/api/use-current-user'
-import { API_BASE_URL } from '@/lib/api-client'
-import { cn } from '@/lib/utils'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { useUser } from '#hooks/api/use-current-user'
+import { API_BASE_URL } from '#lib/api-client'
+import { cn } from '#lib/utils'
 import type { CustomerPortalCardProps } from '@repo/shared/types/frontend'
 import { useMutation } from '@tanstack/react-query'
 import {

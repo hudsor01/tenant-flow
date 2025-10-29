@@ -1,6 +1,8 @@
 'use client'
 
+
 import * as React from 'react'
+import DOMPurify from 'dompurify'
 import {
 	leaseTemplateSchema,
 	renderLeaseHtmlBody,
@@ -18,24 +20,24 @@ import {
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
+} from '#components/ui/card'
+import { Button } from '#components/ui/button'
+import { Badge } from '#components/ui/badge'
+import { Checkbox } from '#components/ui/checkbox'
+import { Input } from '#components/ui/input'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
+} from '#components/ui/select'
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger
-} from '@/components/ui/tooltip'
+} from '#components/ui/tooltip'
 import { toast } from 'sonner'
 import {
 	BookOpen,
@@ -44,8 +46,8 @@ import {
 	Info,
 	RefreshCw
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { API_BASE_URL } from '@/lib/api-client'
+import { cn } from '#lib/utils'
+import { API_BASE_URL } from '#lib/api-client'
 
 const ALL_US_STATES: USState[] = [
 	'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'
@@ -522,6 +524,19 @@ function ClauseSelector(props: {
 }
 
 function PreviewPanel({ html }: { html: string }) {
+	// Sanitize HTML to prevent XSS attacks
+	const sanitizedHtml = React.useMemo(() => {
+		if (typeof window === 'undefined') return html
+		return DOMPurify.sanitize(html, {
+			ALLOWED_TAGS: ['p', 'div', 'span', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+			ALLOWED_ATTR: ['class', 'style'],
+			ADD_ATTR: [], // Explicitly block all attributes except allowed
+			ALLOW_DATA_ATTR: false, // Block data-* attributes
+			FORBID_TAGS: ['script', 'iframe', 'embed', 'object', 'form'], // Explicitly block dangerous tags
+			FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'] // Block event handlers
+		})
+	}, [html])
+
 	return (
 		<Card className="shadow-sm">
 			<CardHeader>
@@ -533,7 +548,7 @@ function PreviewPanel({ html }: { html: string }) {
 			<CardContent>
 				<div
 					className="prose max-w-none rounded-lg border bg-white p-6 text-sm shadow-inner"
-					dangerouslySetInnerHTML={{ __html: html }}
+					dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
 				/>
 			</CardContent>
 		</Card>

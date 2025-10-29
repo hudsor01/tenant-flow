@@ -1,4 +1,4 @@
-import { requireSession } from '@/lib/server-auth'
+import { requireSession } from '#lib/server-auth'
 import type { ReactNode } from 'react'
 
 export default async function ProtectedLayout({

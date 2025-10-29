@@ -1,31 +1,27 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Frontend - Next.js 15 + React 19 (Modernized 2025)",
+	"display": "TenantFlow Frontend - Next.js 15 + React 19",
 	"extends": "../../packages/typescript-config/next.json",
 	"compilerOptions": {
 		"baseUrl": ".",
-		"jsx": "preserve",
-		"composite": false,
+		"paths": {
+			"#app/*": ["./src/app/*"],
+			"#components/*": ["./src/components/*"],
+			"#contexts/*": ["./src/contexts/*"],
+			"#design-system/*": ["./src/design-system/*"],
+			"#lib/*": ["./src/lib/*"],
+			"#hooks/*": ["./src/hooks/*"],
+			"#stores/*": ["./src/stores/*"],
+			"#types/*": ["./src/types/*"],
+			"#providers/*": ["./src/providers/*"],
+			"#test/*": ["./src/test/*"]
+		},
 		"incremental": true,
-		"noEmit": true,
 		"plugins": [
 			{
 				"name": "next"
 			}
 		],
-		"paths": {
-			"@/*": ["./src/*"],
-			"@/components/*": ["./src/components/*"],
-			"@/lib/*": ["./src/lib/*"],
-			"@/hooks/*": ["./src/hooks/*"],
-			"@/stores/*": ["./src/stores/*"],
-			"@/types/*": ["./src/types/*"],
-			"@/components/providers/*": ["./src/providers/*"],
-			"@repo/shared": ["../../packages/shared/dist"],
-			"@repo/shared/*": ["../../packages/shared/dist/*"],
-			"@repo/ui": ["../../packages/ui/src"],
-			"@repo/ui/components/ui/*": ["../../packages/ui/src/*"]
-		},
 		"types": ["node", "react", "react-dom"]
 	},
 	"include": [
@@ -44,12 +40,14 @@
 		"dist",
 		"build",
 		".tsc-output",
-		"coverage/**/*",
-		"coverage/**/*",
+		"coverage",
 		"*.config.js",
 		"*.config.mjs",
 		"jest.config.js",
-		"vitest.config.production.ts"
-	],
-	"references": [{ "path": "../../packages/shared" }]
+		"vitest.config.production.ts",
+		"src/test/**/*",
+		"src/**/*.test.ts",
+		"src/**/*.test.tsx",
+		"src/**/__tests__/**/*"
+	]
 }

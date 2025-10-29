@@ -1,24 +1,16 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Backend TypeScript Config (Modernized 2025)",
+	"display": "TenantFlow Backend TypeScript Config (October 2025)",
 	"extends": "../../packages/typescript-config/nestjs.json",
 	"compilerOptions": {
 		"baseUrl": ".",
 		"outDir": "./dist",
 		"tsBuildInfoFile": "./.tsbuildinfo",
 		"types": ["node", "jest"],
-		"skipLibCheck": true,
-		"isolatedModules": true,
 		"composite": true,
 		"declaration": true,
 		"declarationMap": true,
-		"incremental": true,
-		"noEmit": false,
-		"module": "nodenext",
-		"moduleResolution": "nodenext",
-		"strict": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true
+		"incremental": true
 	},
 	"include": ["src", "scripts", "test/setup.ts"],
 	"exclude": [
@@ -33,9 +25,5 @@
 		"**/*.test.*",
 		"**/*.spec.*",
 		"**/*.e2e-spec.*"
-	],
-	"references": [
-		{ "path": "../../packages/shared" },
-		{ "path": "../../packages/database" }
 	]
 }

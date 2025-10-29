@@ -1,19 +1,19 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Spinner } from '@/components/ui/spinner'
-import { Switch } from '@/components/ui/switch'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Spinner } from '#components/ui/spinner'
+import { Switch } from '#components/ui/switch'
 import {
 	calculateAnnualSavings,
 	formatStripePrice,
 	getPlanFeatures,
 	useStripeProducts
-} from '@/hooks/use-stripe-products'
-import { checkoutRateLimiter } from '@/lib/security'
-import { createCheckoutSession, isUserAuthenticated } from '@/lib/stripe-client'
-import { cn } from '@/lib/utils'
+} from '#hooks/use-stripe-products'
+import { checkoutRateLimiter } from '#lib/security'
+import { createCheckoutSession, isUserAuthenticated } from '#lib/stripe-client'
+import { cn } from '#lib/utils'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { useMutation } from '@tanstack/react-query'
 import { Check, Sparkles } from 'lucide-react'

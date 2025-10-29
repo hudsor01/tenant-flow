@@ -1,17 +1,17 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle
-} from '@/components/ui/dialog'
-import { Field, FieldLabel } from '@/components/ui/field'
-import { tenantKeys } from '@/hooks/api/use-tenant'
-import { tenantsApi } from '@/lib/api-client'
+} from '#components/ui/dialog'
+import { Field, FieldLabel } from '#components/ui/field'
+import { tenantKeys } from '#hooks/api/use-tenant'
+import { tenantsApi } from '#lib/api-client'
 import type { UpdateTenantInput } from '@repo/shared/types/api-inputs'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
 import {
@@ -127,7 +127,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 	})
 
 	const inviteMutation = useMutation({
-		mutationFn: () => tenantsApi.sendInvitation(tenant.id),
+		mutationFn: () => tenantsApi.sendInvitationV2(tenant.id, {}),
 		onSuccess: () => {
 			toast.success('Invitation sent successfully')
 		},

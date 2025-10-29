@@ -1,14 +1,14 @@
 'use client'
 
-import { ErrorFallback } from '@/components/error-boundary/error-fallback'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/spinner'
-import { useDashboardActivity } from '@/hooks/api/use-dashboard'
+import { ErrorFallback } from '#components/error-boundary/error-fallback'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { Spinner } from '#components/ui/spinner'
+import { useDashboardActivity } from '#hooks/api/use-dashboard'
 import {
 	getActivityBadgeClass,
 	getActivityColorClass
-} from '@/lib/utils/color-helpers'
+} from '#lib/utils/color-helpers'
 import type { Tables } from '@repo/shared/types/supabase'
 import { formatDistanceToNow } from 'date-fns'
 import {

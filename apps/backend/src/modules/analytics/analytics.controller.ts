@@ -7,8 +7,20 @@ import {
 	Post,
 	SetMetadata
 } from '@nestjs/common'
-import type { WebVitalData } from '@repo/shared/types/frontend'
 import { AnalyticsService } from './analytics.service'
+
+// Local type definition - web vitals removed from frontend but keeping backend endpoint
+interface WebVitalData {
+	name: string
+	value: number
+	rating: 'good' | 'needs-improvement' | 'poor'
+	delta: number
+	id: string
+	page: string
+	timestamp?: string
+	sessionId?: string
+	userId?: string
+}
 
 @Controller('analytics')
 export class AnalyticsController {

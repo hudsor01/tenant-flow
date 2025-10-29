@@ -1,6 +1,6 @@
 'use client'
 
-import { propertiesApi } from '@/lib/api-client'
+import { propertiesApi } from '#lib/api-client'
 import type { Property } from '@repo/shared/types/core'
 import { Building2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -15,7 +15,7 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from '@/components/ui/alert-dialog'
+} from '#components/ui/alert-dialog'
 import { PropertyCard } from './property-card'
 
 interface PropertiesGridClientProps {

@@ -9,7 +9,7 @@
  * - Proper error handling
  */
 
-import { API_BASE_URL } from '@/lib/api-client'
+import { API_BASE_URL, leasesApi } from '#lib/api-client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
 	CreateLeaseInput,
@@ -43,12 +43,7 @@ export const leaseKeys = {
 export function useLease(id: string) {
 	return useQuery({
 		queryKey: leaseKeys.detail(id),
-		queryFn: async (): Promise<Lease> => {
-			const response = await apiClient<Lease>(
-				`${API_BASE_URL}/api/v1/leases/${id}`
-			)
-			return response
-		},
+		queryFn: () => leasesApi.get(id),
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes
@@ -185,12 +180,7 @@ export function useLeaseList(params?: {
 export function useExpiringLeases(daysUntilExpiry: number = 30) {
 	return useQuery({
 		queryKey: [...leaseKeys.expiring(), { days: daysUntilExpiry }],
-		queryFn: async (): Promise<Lease[]> => {
-			const response = await apiClient<Lease[]>(
-				`${API_BASE_URL}/api/v1/leases/expiring?days=${daysUntilExpiry}`
-			)
-			return response
-		},
+		queryFn: () => leasesApi.getExpiring(daysUntilExpiry),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		retry: 2
 	})
@@ -202,10 +192,7 @@ export function useExpiringLeases(daysUntilExpiry: number = 30) {
 export function useLeaseStats() {
 	return useQuery({
 		queryKey: leaseKeys.stats(),
-		queryFn: async () => {
-			const response = await apiClient(`${API_BASE_URL}/api/v1/leases/stats`)
-			return response
-		},
+		queryFn: () => leasesApi.stats(),
 		staleTime: 10 * 60 * 1000, // 10 minutes
 		retry: 2
 	})
@@ -218,13 +205,7 @@ export function useCreateLease() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (leaseData: CreateLeaseInput) => {
-			const response = await apiClient<Lease>(`${API_BASE_URL}/api/v1/leases`, {
-				method: 'POST',
-				body: JSON.stringify(leaseData)
-			})
-			return response
-		},
+		mutationFn: (leaseData: CreateLeaseInput) => leasesApi.create(leaseData),
 		onMutate: async (newLease: CreateLeaseInput) => {
 			// Cancel outgoing refetches
 			await queryClient.cancelQueries({ queryKey: leaseKeys.all })
@@ -325,22 +306,7 @@ export function useUpdateLease() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({
-			id,
-			data
-		}: {
-			id: string
-			data: UpdateLeaseInput
-		}) => {
-			const response = await apiClient<Lease>(
-				`${API_BASE_URL}/api/v1/leases/${id}`,
-				{
-					method: 'PUT',
-					body: JSON.stringify(data)
-				}
-			)
-			return response
-		},
+		mutationFn: ({ id, data }: { id: string; data: UpdateLeaseInput }) => leasesApi.update(id, data),
 		onMutate: async ({ id, data }) => {
 			// Cancel outgoing queries
 			await queryClient.cancelQueries({ queryKey: leaseKeys.detail(id) })
@@ -435,9 +401,7 @@ export function useDeleteLease(options?: {
 
 	return useMutation({
 		mutationFn: async (id: string) => {
-			await apiClient(`${API_BASE_URL}/api/v1/leases/${id}`, {
-				method: 'DELETE'
-			})
+			await leasesApi.remove(id)
 			return id
 		},
 		onMutate: async (id: string) => {
@@ -509,22 +473,8 @@ export function useRenewLease() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({
-			id,
-			newEndDate
-		}: {
-			id: string
-			newEndDate: string
-		}) => {
-			const response = await apiClient<Lease>(
-				`${API_BASE_URL}/api/v1/leases/${id}/renew`,
-				{
-					method: 'POST',
-					body: JSON.stringify({ endDate: newEndDate })
-				}
-			)
-			return response
-		},
+		mutationFn: ({ id, newEndDate }: { id: string; newEndDate: string }) => 
+			leasesApi.renew(id, { endDate: newEndDate }),
 		onSuccess: (data, { id }) => {
 			// Update caches with renewed lease
 			queryClient.setQueryData(leaseKeys.detail(id), data)
@@ -557,24 +507,8 @@ export function useTerminateLease() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({
-			id,
-			terminationDate,
-			reason
-		}: {
-			id: string
-			terminationDate: string
-			reason?: string
-		}) => {
-			const response = await apiClient<Lease>(
-				`${API_BASE_URL}/api/v1/leases/${id}/terminate`,
-				{
-					method: 'POST',
-					body: JSON.stringify({ terminationDate, reason })
-				}
-			)
-			return response
-		},
+		mutationFn: ({ id, terminationDate, reason }: { id: string; terminationDate: string; reason?: string }) => 
+			leasesApi.terminate(id, reason !== undefined ? { terminationDate, reason } : { terminationDate }),
 		onSuccess: (data, { id }) => {
 			// Update caches with terminated lease
 			queryClient.setQueryData(leaseKeys.detail(id), data)

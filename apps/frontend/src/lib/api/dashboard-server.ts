@@ -2,7 +2,7 @@
  * Server-side dashboard API functions
  * Mirrors the existing dashboardApi structure for consistency
  */
-import { serverFetch } from '@/lib/api/server'
+import { serverFetch } from '#lib/api/server'
 import type {
 	DashboardStats,
 	LeaseStatsResponse,
@@ -11,9 +11,9 @@ import type {
 	SystemUptime,
 	TenantStats,
 	TenantWithLeaseInfo
-} from '@repo/shared/types/core.js'
-import type { PropertyWithUnits } from '@repo/shared/types/relations.js'
-import type { Database } from '@repo/shared/types/supabase-generated.js'
+} from '@repo/shared/types/core'
+import type { PropertyWithUnits } from '@repo/shared/types/relations'
+import type { Database } from '@repo/shared/types/supabase-generated'
 
 /**
  * Dashboard API endpoints - server-side versions

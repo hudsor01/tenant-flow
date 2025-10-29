@@ -20,9 +20,23 @@ import type {
 } from '@repo/shared/types/supabase'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { User } from '@supabase/supabase-js'
+import type { EmailService } from '../modules/email/email.service'
 import type { SupabaseService } from '../database/supabase.service'
 
 type DatabaseUser = Database['public']['Tables']['users']['Row']
+
+/**
+ * Create a mock EmailService for testing
+ */
+export function createMockEmailService(): jest.Mocked<EmailService> {
+	return {
+		sendTenantInvitation: jest.fn().mockResolvedValue(undefined),
+		sendInvitationReminder: jest.fn().mockResolvedValue(undefined),
+		sendPaymentSuccessEmail: jest.fn().mockResolvedValue(undefined),
+		sendPaymentFailedEmail: jest.fn().mockResolvedValue(undefined),
+		sendSubscriptionCanceledEmail: jest.fn().mockResolvedValue(undefined)
+	} as unknown as jest.Mocked<EmailService>
+}
 
 /**
 /**
