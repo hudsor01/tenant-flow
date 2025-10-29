@@ -9,7 +9,8 @@ import {
 	ConflictException,
 	Inject,
 	Injectable,
-	Logger
+	Logger,
+	NotFoundException
 } from '@nestjs/common'
 import type {
 	CreatePropertyRequest,
@@ -1024,6 +1025,162 @@ export class PropertiesService {
 	 * Mark property as sold with compliance fields (7-year retention)
 	 * Sets status to SOLD and records sale date, price, and notes
 	 */
+	/**
+	 * Upload property image
+	 */
+	async uploadPropertyImage(
+		userId: string,
+		propertyId: string,
+		file: Express.Multer.File,
+		isPrimary: boolean,
+		caption?: string
+	) {
+		// Verify property ownership
+		const ownerId = await this.utilityService.getUserIdFromSupabaseId(userId)
+		const { data: property } = await this.supabase
+			.getAdminClient()
+			.from('property')
+			.select('id')
+			.eq('id', propertyId)
+			.eq('ownerId', ownerId)
+			.single()
+
+		if (!property) {
+			throw new NotFoundException('Property not found')
+		}
+
+		// Generate unique file path
+		const timestamp = Date.now()
+		const filename = `${propertyId}/${timestamp}-${file.originalname}`
+
+		// Upload to storage
+		const uploadResult = await this.storage.uploadFile(
+			'property-images',
+			filename,
+			file.buffer,
+			{ contentType: file.mimetype }
+		)
+
+		// Get next display order
+		const { count } = await this.supabase
+			.getAdminClient()
+			.from('property_images')
+			.select('*', { count: 'exact', head: true })
+			.eq('propertyId', propertyId)
+
+		// Insert image record with error handling
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('property_images')
+			.insert({
+				propertyId,
+				url: uploadResult.url,
+				displayOrder: (count || 0) + 1,
+				isPrimary,
+				caption: caption || null,
+				uploadedById: userId
+			})
+			.select()
+			.single()
+
+		if (error) {
+			// Cleanup: Delete uploaded file if DB insert fails
+			try {
+				await this.storage.deleteFile('property-images', filename)
+				this.logger.warn('Cleaned up orphaned file after DB insert failure', {
+					filename,
+					error: error.message
+				})
+			} catch (cleanupError) {
+				this.logger.error('Failed to cleanup orphaned file', {
+					filename,
+					dbError: error.message,
+					cleanupError: cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
+				})
+			}
+			throw new BadRequestException(`Failed to save image: ${error.message}`)
+		}
+
+		return data
+	}
+
+	/**
+	 * Get all images for a property
+	 */
+	async getPropertyImages(userId: string, propertyId: string) {
+		// Verify property ownership
+		const ownerId = await this.utilityService.getUserIdFromSupabaseId(userId)
+		const { data: property } = await this.supabase
+			.getAdminClient()
+			.from('property')
+			.select('id')
+			.eq('id', propertyId)
+			.eq('ownerId', ownerId)
+			.single()
+
+		if (!property) {
+			throw new NotFoundException('Property not found')
+		}
+
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('property_images')
+			.select('*')
+			.eq('propertyId', propertyId)
+			.order('displayOrder', { ascending: true })
+
+		if (error) {
+			throw new BadRequestException(`Failed to fetch images: ${error.message}`)
+		}
+
+		return data || []
+	}
+
+	/**
+	 * Delete property image
+	 */
+	async deletePropertyImage(userId: string, imageId: string) {
+		// Get image and verify ownership
+		const { data: image } = await this.supabase
+			.getAdminClient()
+			.from('property_images')
+			.select('*, property:propertyId(ownerId)')
+			.eq('id', imageId)
+			.single()
+
+		if (!image) {
+			throw new NotFoundException('Image not found')
+		}
+
+		// Verify ownership through ownerId
+		const ownerId = await this.utilityService.getUserIdFromSupabaseId(userId)
+		if (image.property?.ownerId !== ownerId) {
+			throw new NotFoundException('Image not found')
+		}
+
+		// Extract path from URL for storage deletion
+		const urlPath = new URL(image.url).pathname
+		const pathParts = urlPath.split('/property-images/')
+		if (pathParts.length < 2 || !pathParts[1]) {
+			throw new BadRequestException('Invalid image URL format')
+		}
+		const bucketPath = pathParts[1]
+
+		// Delete from storage
+		await this.storage.deleteFile('property-images', bucketPath)
+
+		// Delete database record
+		const { error } = await this.supabase
+			.getAdminClient()
+			.from('property_images')
+			.delete()
+			.eq('id', imageId)
+
+		if (error) {
+			throw new BadRequestException(`Failed to delete image: ${error.message}`)
+		}
+	}
+
 	async markAsSold(
 		propertyId: string,
 		userId: string,

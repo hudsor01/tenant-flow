@@ -343,6 +343,65 @@ export class PropertiesController {
 	 * Mark property as sold (7-year retention compliance)
 	 * Updates status to SOLD with required date_sold and sale_price
 	 */
+	/**
+	 * Upload property image
+	 * Stores image in property-images bucket and records in property_images table
+	 */
+	@Post(':id/images')
+	@UseInterceptors(
+		FileInterceptor('file', {
+			storage: memoryStorage(),
+			limits: { fileSize: 5 * 1024 * 1024 } // 5MB max (optimize for storage)
+		})
+	)
+	async uploadImage(
+		@Param('id', ParseUUIDPipe) propertyId: string,
+		@UploadedFile() file: Express.Multer.File,
+		@Body('isPrimary') isPrimary: string,
+		@Body('caption') caption: string,
+		@Request() req: AuthenticatedRequest
+	) {
+		if (!file) {
+			throw new BadRequestException('No file uploaded')
+		}
+
+		const userId = req.user.id
+		const isPrimaryBool = isPrimary === 'true'
+
+		return this.propertiesService.uploadPropertyImage(
+			userId,
+			propertyId,
+			file,
+			isPrimaryBool,
+			caption
+		)
+	}
+
+	/**
+	 * Get all images for a property
+	 */
+	@Get(':id/images')
+	async getImages(
+		@Param('id', ParseUUIDPipe) propertyId: string,
+		@Request() req: AuthenticatedRequest
+	) {
+		const userId = req.user.id
+		return this.propertiesService.getPropertyImages(userId, propertyId)
+	}
+
+	/**
+	 * Delete property image
+	 */
+	@Delete('images/:imageId')
+	async deleteImage(
+		@Param('imageId', ParseUUIDPipe) imageId: string,
+		@Request() req: AuthenticatedRequest
+	) {
+		const userId = req.user.id
+		await this.propertiesService.deletePropertyImage(userId, imageId)
+		return { message: 'Image deleted successfully' }
+	}
+
 	@Put(':id/mark-sold')
 	async markPropertyAsSold(
 		@Param('id', ParseUUIDPipe) propertyId: string,

@@ -17,6 +17,8 @@ import type {
 	UpdatePropertyInput
 } from '@repo/shared/types/api-inputs'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
+import type { PropertyImage } from '@repo/shared/types/supabase'
+import { compressImage } from '#lib/image-compression'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -646,6 +648,119 @@ export function usePrefetchProperty() {
  * Combined hook for all property operations
  * Convenience hook for components that need multiple operations
  */
+/**
+ * Hook to fetch property images
+ */
+export function usePropertyImages(propertyId: string) {
+	return useQuery({
+		queryKey: [...propertiesKeys.detail(propertyId), 'images'] as const,
+		queryFn: async () => {
+			const response = await apiClient<PropertyImage[]>(
+				`${API_BASE_URL}/api/v1/properties/${propertyId}/images`
+			)
+			return response
+		},
+		enabled: !!propertyId,
+		staleTime: 5 * 60 * 1000,
+		gcTime: 10 * 60 * 1000
+	})
+}
+
+/**
+ * Hook to upload property image
+ */
+export function useUploadPropertyImage() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async ({ 
+			propertyId, 
+			file, 
+			isPrimary = false, 
+			caption 
+		}: { 
+			propertyId: string
+			file: File
+			isPrimary?: boolean
+			caption?: string
+		}) => {
+			// Get Supabase session token for authentication
+			const { createBrowserClient } = await import('@supabase/ssr')
+			const supabase = createBrowserClient(
+				process.env.NEXT_PUBLIC_SUPABASE_URL!,
+				process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+			)
+			const { data: { session } } = await supabase.auth.getSession()
+			
+			if (!session?.access_token) {
+				throw new Error('Authentication required')
+			}
+
+			// Compress image before upload (reduces storage usage by ~70-90%)
+			const compressed = await compressImage(file)
+			toast.info(`Compressed: ${Math.round((1 - compressed.compressionRatio) * 100)}% reduction`)
+
+			const formData = new FormData()
+			formData.append('file', compressed.file)
+			formData.append('isPrimary', String(isPrimary))
+			if (caption) formData.append('caption', caption)
+
+			const response = await fetch(`${API_BASE_URL}/api/v1/properties/${propertyId}/images`, {
+				method: 'POST',
+				headers: {
+					'Authorization': `Bearer ${session.access_token}`
+				},
+				body: formData
+			})
+
+			if (!response.ok) {
+				const errorText = await response.text()
+				throw new Error(`Failed to upload image: ${errorText}`)
+			}
+
+			return response.json()
+		},
+		onSuccess: (_, { propertyId }) => {
+			toast.success('Image uploaded successfully')
+			queryClient.invalidateQueries({ 
+				queryKey: [...propertiesKeys.detail(propertyId), 'images'] 
+			})
+			logger.info('Image uploaded', { propertyId })
+		},
+		onError: (error) => {
+			toast.error('Failed to upload image')
+			logger.error('Image upload failed', { error: String(error) })
+		}
+	})
+}
+
+/**
+ * Hook to delete property image
+ */
+export function useDeletePropertyImage() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async ({ imageId, propertyId: _propertyId }: { imageId: string; propertyId: string }) => {
+			const response = await apiClient<{ message: string }>(
+				`${API_BASE_URL}/api/v1/properties/images/${imageId}`,
+				{ method: 'DELETE' }
+			)
+			return response
+		},
+		onSuccess: (_, { propertyId }) => {
+			toast.success('Image deleted successfully')
+			queryClient.invalidateQueries({ 
+				queryKey: [...propertiesKeys.detail(propertyId), 'images'] 
+			})
+		},
+		onError: (error) => {
+			toast.error('Failed to delete image')
+			logger.error('Image deletion failed', { error: String(error) })
+		}
+	})
+}
+
 export function usePropertyOperations() {
 	return {
 		create: useCreateProperty(),

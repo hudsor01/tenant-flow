@@ -16,14 +16,14 @@ describe('Environment Variables Access', () => {
     expect(process.env.SUPABASE_URL).toMatch(/^https?:\/\//)
   })
 
-  it('should access SUPABASE_SERVICE_ROLE_KEY from environment', () => {
-    testLogger.log('SUPABASE_SERVICE_ROLE_KEY available:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
-    testLogger.log('First 20 chars:', process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 20))
+  it('should access SUPABASE_SECRET_KEY from environment', () => {
+    testLogger.log('SUPABASE_SECRET_KEY available:', !!process.env.SUPABASE_SECRET_KEY)
+    testLogger.log('First 20 chars:', process.env.SUPABASE_SECRET_KEY?.substring(0, 20))
 
-    expect(process.env.SUPABASE_SERVICE_ROLE_KEY).toBeDefined()
+    expect(process.env.SUPABASE_SECRET_KEY).toBeDefined()
     
     // Should be a JWT token or demo value
-    expect(process.env.SUPABASE_SERVICE_ROLE_KEY).toMatch(/^(eyJ|demo-service-key)/)
+    expect(process.env.SUPABASE_SECRET_KEY).toMatch(/^(eyJ|demo-service-key)/)
   })
 
   it('should check SUPABASE_PUBLISHABLE_KEY availability', () => {
@@ -44,7 +44,7 @@ describe('Environment Variables Access', () => {
     testLogger.log('\n=== ENVIRONMENT STATUS ===')
     testLogger.log('SUPABASE_URL:', process.env.SUPABASE_URL)
     testLogger.log('SUPABASE_PUBLISHABLE_KEY:', !!process.env.SUPABASE_PUBLISHABLE_KEY)
-    testLogger.log('SUPABASE_SERVICE_ROLE_KEY:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+    testLogger.log('SUPABASE_SECRET_KEY:', !!process.env.SUPABASE_SECRET_KEY)
     testLogger.log('STRIPE_SECRET_KEY:', !!process.env.STRIPE_SECRET_KEY, '(optional)')
     testLogger.log('DATABASE_URL:', !!process.env.DATABASE_URL, '(optional)')
   })

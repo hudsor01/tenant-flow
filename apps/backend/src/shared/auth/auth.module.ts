@@ -7,20 +7,16 @@
 
 import { Module } from '@nestjs/common'
 import { PassportModule } from '@nestjs/passport'
-import { SupabaseStrategy } from './supabase.strategy'
+import { SupabaseStrategy, TokenExpirationService } from './supabase.strategy'
 import { JwtAuthGuard } from './jwt-auth.guard'
 
 @Module({
-  imports: [
-    PassportModule.register({ defaultStrategy: 'supabase' })
-  ],
-  providers: [
-    SupabaseStrategy,
-    JwtAuthGuard
-  ],
-  exports: [
-    JwtAuthGuard,
-    PassportModule
-  ]
+	imports: [PassportModule.register({ defaultStrategy: 'supabase' })],
+	providers: [
+		TokenExpirationService, // Must be before SupabaseStrategy
+		SupabaseStrategy,
+		JwtAuthGuard
+	],
+	exports: [JwtAuthGuard, PassportModule]
 })
 export class AuthModule {}

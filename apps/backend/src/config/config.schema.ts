@@ -21,19 +21,16 @@ const environmentSchema = z.object({
 	JWT_SECRET: z.string().min(32, 'JWT secret must be at least 32 characters'),
 	JWT_EXPIRES_IN: z.string().default('7d'),
 
-	// Supabase
+	// Supabase (Modern API Keys - October 2025)
 	SUPABASE_URL: z.string().url('Must be a valid URL'),
-	SUPABASE_SERVICE_ROLE_KEY: z.string(),
-	// SUPABASE_JWT_SECRET is now optional - we use JWKS endpoint for JWT verification
+	SUPABASE_SECRET_KEY: z.string(), // Replaces service_role key
+	SUPABASE_PUBLISHABLE_KEY: z.string(), // Replaces anon key
+	// SUPABASE_JWT_SECRET is optional - we use JWKS endpoint for JWT verification
 	// Only needed for legacy HS256 symmetric key verification
 	SUPABASE_JWT_SECRET: z
 		.string()
 		.min(32, 'Supabase JWT secret must be at least 32 characters')
 		.optional(),
-	SUPABASE_PUBLISHABLE_KEY: z.string(),
-	// Legacy aliases (optional, maintained for backward compatibility)
-	SERVICE_ROLE_KEY: z.string().optional(),
-	SUPABASE_SERVICE_KEY: z.string().optional(),
 
 	// CORS
 	CORS_ORIGINS: z.string().optional(),
