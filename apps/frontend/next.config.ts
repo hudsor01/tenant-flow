@@ -14,9 +14,7 @@ const nextConfig: NextConfig = {
 	typedRoutes: true,
 
 	compiler: {
-		removeConsole: {
-			exclude: ['error', 'warn']
-		}
+		removeConsole: true
 	},
 
 	logging: {
@@ -31,19 +29,32 @@ const nextConfig: NextConfig = {
 		'/api/*': ['./node_modules/**/*.node']
 	},
 
-	optimizePackageImports: [
-		'@radix-ui/react-icons',
-		'lucide-react',
-		'date-fns',
-		'recharts',
-		'@tanstack/react-query',
-		'@tanstack/react-table',
-		'framer-motion',
-		'react-dropzone'
-	],
-
 	experimental: {
-		serverComponentsHmrCache: true
+		optimizePackageImports: ['lucide-react', 'date-fns', 'recharts'],
+		serverComponentsHmrCache: true,
+		serverActions: {
+			bodySizeLimit: '2mb',
+			allowedOrigins: [
+				'tenantflow.app',
+				'*.tenantflow.app',
+				'*.vercel.app'
+			]
+		}
+	},
+
+	webpack: (config, { isServer }) => {
+		// Suppress warnings for Chrome extension modules in SSR
+		if (isServer) {
+			config.resolve.fallback = {
+				...config.resolve.fallback,
+				fs: false,
+				net: false,
+				tls: false
+			}
+		}
+
+		// Important: return the modified config
+		return config
 	},
 
 	async headers() {
