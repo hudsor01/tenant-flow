@@ -741,7 +741,8 @@ export function useDeletePropertyImage() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({ imageId, propertyId: _propertyId }: { imageId: string; propertyId: string }) => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		mutationFn: async ({ imageId, propertyId }: { imageId: string; propertyId: string }) => {
 			const response = await apiClient<{ message: string }>(
 				`${API_BASE_URL}/api/v1/properties/images/${imageId}`,
 				{ method: 'DELETE' }

@@ -22,8 +22,6 @@ import {
 	TrendingDown
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { getIncomeStatement } from '#lib/api/financials-client'
-import { useAuth } from '#providers/auth-provider'
 
 type FinancialLineItem = {
 	name: string
@@ -31,106 +29,38 @@ type FinancialLineItem = {
 	previous: number
 }
 
-interface IncomeStatementData {
-	revenue: FinancialLineItem[]
-	expenses: FinancialLineItem[]
-	other: FinancialLineItem[]
+// Mock data for income statement
+const mockIncomeStatementData = {
+	revenue: [
+		{ name: 'Gross Rental Income', amount: 250000, previous: 230000 },
+		{ name: 'Other Income', amount: 15000, previous: 12000 }
+	],
+	expenses: [
+		{ name: 'Operating Expenses', amount: 85000, previous: 80000 },
+		{ name: 'Maintenance & Repairs', amount: 25000, previous: 22000 },
+		{ name: 'Property Management', amount: 15000, previous: 14000 },
+		{ name: 'Utilities', amount: 8000, previous: 7500 },
+		{ name: 'Insurance', amount: 12000, previous: 11000 },
+		{ name: 'Taxes', amount: 18000, previous: 16500 }
+	],
+	other: [
+		{ name: 'Depreciation', amount: 15000, previous: 14000 },
+		{ name: 'Interest Expense', amount: 8000, previous: 7500 }
+	]
 }
 
 const IncomeStatementPage = () => {
 	const [period, setPeriod] = useState('monthly')
 	const [year, setYear] = useState('2024')
 	const [isLoading, setIsLoading] = useState(true)
-	const [incomeStatementData, setIncomeStatementData] =
-		useState<IncomeStatementData | null>(null)
-	const [error, setError] = useState<string | null>(null)
-	const { accessToken } = useAuth()
 
 	useEffect(() => {
-		const fetchIncomeStatement = async () => {
-			if (!accessToken) return
-
-			try {
-				setIsLoading(true)
-				setError(null)
-
-				// Calculate date range based on period and year
-				const startDate = `${year}-01-01`
-				const endDate = `${year}-12-31`
-
-				const data = await getIncomeStatement(accessToken, startDate, endDate)
-
-				// Transform the API response to match our UI structure
-				const transformedData: IncomeStatementData = {
-					revenue: [
-						{
-							name: 'Gross Rental Income',
-							amount: data.revenue.rentalIncome,
-							previous: data.previousPeriod?.revenue?.rentalIncome || 0
-						},
-						{
-							name: 'Other Income',
-							amount: data.revenue.otherIncome,
-							previous: data.previousPeriod?.revenue?.otherIncome || 0
-						}
-					],
-					expenses: [
-						{
-							name: 'Operating Expenses',
-							amount: data.expenses.propertyManagement,
-							previous: data.previousPeriod?.expenses?.propertyManagement || 0
-						},
-						{
-							name: 'Maintenance & Repairs',
-							amount: data.expenses.maintenance,
-							previous: data.previousPeriod?.expenses?.maintenance || 0
-						},
-						{
-							name: 'Property Management',
-							amount: data.expenses.propertyManagement,
-							previous: data.previousPeriod?.expenses?.propertyManagement || 0
-						},
-						{
-							name: 'Utilities',
-							amount: data.expenses.utilities,
-							previous: data.previousPeriod?.expenses?.utilities || 0
-						},
-						{
-							name: 'Insurance',
-							amount: data.expenses.insurance,
-							previous: data.previousPeriod?.expenses?.insurance || 0
-						},
-						{
-							name: 'Taxes',
-							amount: data.expenses.propertyTax,
-							previous: data.previousPeriod?.expenses?.propertyTax || 0
-						}
-					],
-					other: [
-						{
-							name: 'Depreciation',
-							amount: data.expenses.depreciation || 0,
-							previous: data.previousPeriod?.expenses?.depreciation || 0
-						},
-						{
-							name: 'Interest Expense',
-							amount: data.expenses.interestExpense || 0,
-							previous: data.previousPeriod?.expenses?.interestExpense || 0
-						}
-					]
-				}
-
-				setIncomeStatementData(transformedData)
-			} catch (err) {
-				console.error('Error fetching income statement:', err)
-				setError('Failed to load income statement data. Please try again.')
-			} finally {
-				setIsLoading(false)
-			}
-		}
-
-		fetchIncomeStatement()
-	}, [accessToken, year, period])
+		// Simulate loading data
+		const timer = setTimeout(() => {
+			setIsLoading(false)
+		}, 1000)
+		return () => clearTimeout(timer)
+	}, [])
 
 	const calculateTotal = (items: FinancialLineItem[]) => {
 		return items.reduce((sum, item) => sum + item.amount, 0)
@@ -165,7 +95,7 @@ const IncomeStatementPage = () => {
 								</div>
 								<div
 									className={`text-sm flex items-center gap-1 ${
-										change.amount >= 0 ? 'text-green-600' : 'text-red-600'
+										change.amount >= 0 ? 'text-green-600' : 'text-red-6000'
 									}`}
 								>
 									{change.amount >= 0 ? (
@@ -191,7 +121,7 @@ const IncomeStatementPage = () => {
 				<div className="flex items-center justify-between">
 					<div>
 						<h1 className="text-3xl font-bold">Income Statement</h1>
-						<p className="text-gray-600">
+						<p className="text-gray-6000">
 							Revenue, expenses, and net income over a period
 						</p>
 					</div>
@@ -237,48 +167,9 @@ const IncomeStatementPage = () => {
 		)
 	}
 
-	if (error) {
-		return (
-			<div className="p-6">
-				<Card>
-					<CardContent className="p-8 text-center">
-						<div className="text-red-600 mb-4">
-							<DollarSign className="w-12 h-12 mx-auto" />
-						</div>
-						<h3 className="text-lg font-semibold text-gray-900 mb-2">
-							Error Loading Income Statement
-						</h3>
-						<p className="text-gray-600 mb-4">{error}</p>
-						<Button onClick={() => window.location.reload()}>Try Again</Button>
-					</CardContent>
-				</Card>
-			</div>
-		)
-	}
-
-	if (!incomeStatementData) {
-		return (
-			<div className="p-6">
-				<Card>
-					<CardContent className="p-8 text-center">
-						<div className="text-gray-400 mb-4">
-							<DollarSign className="w-12 h-12 mx-auto" />
-						</div>
-						<h3 className="text-lg font-semibold text-gray-900 mb-2">
-							No Data Available
-						</h3>
-						<p className="text-gray-600">
-							No income statement data found for the selected period.
-						</p>
-					</CardContent>
-				</Card>
-			</div>
-		)
-	}
-
-	const totalRevenue = calculateTotal(incomeStatementData.revenue)
-	const totalExpenses = calculateTotal(incomeStatementData.expenses)
-	const totalOther = calculateTotal(incomeStatementData.other)
+	const totalRevenue = calculateTotal(mockIncomeStatementData.revenue)
+	const totalExpenses = calculateTotal(mockIncomeStatementData.expenses)
+	const totalOther = calculateTotal(mockIncomeStatementData.other)
 	const netIncome = totalRevenue - totalExpenses - totalOther
 
 	return (
@@ -287,7 +178,7 @@ const IncomeStatementPage = () => {
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold">Income Statement</h1>
-					<p className="text-gray-60">
+					<p className="text-gray-600">
 						Revenue, expenses, and net income over a period
 					</p>
 				</div>
@@ -362,10 +253,10 @@ const IncomeStatementPage = () => {
 						<CardTitle className="text-sm font-medium">
 							Total Expenses
 						</CardTitle>
-						<DollarSign className="h-4 w-4 text-red-600" />
+						<DollarSign className="h-4 w-4 text-red-6000" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-red-60">
+						<div className="text-2xl font-bold text-red-600">
 							${totalExpenses.toLocaleString()}
 						</div>
 						<p className="text-xs text-muted-foreground">Current period</p>
@@ -390,7 +281,7 @@ const IncomeStatementPage = () => {
 					</CardHeader>
 					<CardContent>
 						<div
-							className={`text-2xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}
+							className={`text-2xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-6000'}`}
 						>
 							{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString()}
 						</div>
@@ -410,7 +301,7 @@ const IncomeStatementPage = () => {
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-6">
-						{renderSection('Revenue Sources', incomeStatementData.revenue)}
+						{renderSection('Revenue Sources', mockIncomeStatementData.revenue)}
 						<Separator />
 						<div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
 							<div className="font-semibold">Total Revenue</div>
@@ -426,19 +317,19 @@ const IncomeStatementPage = () => {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<DollarSign className="w-5 h-5 text-red-600" />
+								<DollarSign className="w-5 h-5 text-red-6000" />
 								Operating Expenses
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-6">
 							{renderSection(
 								'Operating Expenses',
-								incomeStatementData.expenses
+								mockIncomeStatementData.expenses
 							)}
 							<Separator />
 							<div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
 								<div className="font-semibold">Total Operating Expenses</div>
-								<div className="font-bold text-lg text-red-600">
+								<div className="font-bold text-lg text-red-6000">
 									${totalExpenses.toLocaleString()}
 								</div>
 							</div>
@@ -453,7 +344,7 @@ const IncomeStatementPage = () => {
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-6">
-							{renderSection('Other Items', incomeStatementData.other)}
+							{renderSection('Other Items', mockIncomeStatementData.other)}
 							<Separator />
 							<div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
 								<div className="font-semibold">Total Other Items</div>
@@ -482,7 +373,7 @@ const IncomeStatementPage = () => {
 							</div>
 							<div className="flex justify-between py-2 border-b">
 								<span>Total Operating Expenses</span>
-								<span className="font-semibold text-red-600">
+								<span className="font-semibold text-red-6000">
 									-${totalExpenses.toLocaleString()}
 								</span>
 							</div>
@@ -497,7 +388,7 @@ const IncomeStatementPage = () => {
 						<div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
 							<div className="text-lg font-semibold">Net Income</div>
 							<div
-								className={`text-xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}
+								className={`text-xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-6000'}`}
 							>
 								{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString()}
 							</div>
