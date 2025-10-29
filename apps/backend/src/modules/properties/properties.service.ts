@@ -4,7 +4,13 @@
  */
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
-import { BadRequestException, ConflictException, Inject, Injectable, Logger } from '@nestjs/common'
+import {
+	BadRequestException,
+	ConflictException,
+	Inject,
+	Injectable,
+	Logger
+} from '@nestjs/common'
 import type {
 	CreatePropertyRequest,
 	UpdatePropertyRequest
@@ -14,6 +20,7 @@ import type { Database } from '@repo/shared/types/supabase-generated'
 import type { Cache } from 'cache-manager'
 import { StorageService } from '../../database/storage.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { UtilityService } from '../../shared/services/utility.service'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -48,37 +55,9 @@ export class PropertiesService {
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly storage: StorageService,
+		private readonly utilityService: UtilityService,
 		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
 	) {}
-
-	/**
-	 * Helper: Convert supabaseId (from JWT) to users.id (for foreign keys)
-	 * Cached for performance
-	 */
-	private async getUserIdFromSupabaseId(supabaseId: string): Promise<string> {
-		const cacheKey = `user:supabaseId:${supabaseId}`
-		const cached = await this.cacheManager.get<string>(cacheKey)
-		if (cached) return cached
-
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('users')
-			.select('id')
-			.eq('supabaseId', supabaseId)
-			.single()
-
-		if (error || !data) {
-			this.logger.error('Failed to lookup user ID', {
-				error,
-				supabaseId
-			})
-			throw new BadRequestException('User not found')
-		}
-
-		// Cache for 5 minutes (user ID doesn't change)
-		await this.cacheManager.set(cacheKey, data.id, 300000)
-		return data.id
-	}
 
 	/**
 	 * Get all properties with search and pagination
@@ -87,7 +66,7 @@ export class PropertiesService {
 		userId: string,
 		query: { search?: string | null; limit: number; offset: number }
 	): Promise<Property[]> {
-		const ownerId = await this.getUserIdFromSupabaseId(userId)
+		const ownerId = await this.utilityService.getUserIdFromSupabaseId(userId)
 
 		let queryBuilder = this.supabase
 			.getAdminClient()
@@ -121,7 +100,7 @@ export class PropertiesService {
 	 * Get single property by ID
 	 */
 	async findOne(userId: string, propertyId: string): Promise<Property | null> {
-		const ownerId = await this.getUserIdFromSupabaseId(userId)
+		const ownerId = await this.utilityService.getUserIdFromSupabaseId(userId)
 
 		const { data, error } = await this.supabase
 			.getAdminClient()
@@ -144,31 +123,16 @@ export class PropertiesService {
 
 	/**
 	 * Create property with validation
+	 * ✅ October 2025: Validation now handled by ZodValidationPipe in controller
 	 */
 	async create(
 		userId: string,
 		request: CreatePropertyRequest
 	): Promise<Property> {
-		// Validate required fields using native TypeScript
-		if (!request.name?.trim())
-			throw new BadRequestException('Property name is required')
-		if (!request.address?.trim())
-			throw new BadRequestException('Property address is required')
-		if (
-			!request.city?.trim() ||
-			!request.state?.trim() ||
-			!request.zipCode?.trim()
-		) {
-			throw new BadRequestException('City, state, and zip code are required')
-		}
-		if (
-			request.propertyType &&
-			!VALID_PROPERTY_TYPES.includes(request.propertyType as PropertyType)
-		) {
-			throw new BadRequestException('Invalid property type')
-		}
+		// Validation is now handled by ZodValidationPipe in controller
+		// No manual validation needed here
 
-		const ownerId = await this.getUserIdFromSupabaseId(userId)
+		const ownerId = await this.utilityService.getUserIdFromSupabaseId(userId)
 
 		// Build insert object conditionally per exactOptionalPropertyTypes
 		const insertData: Database['public']['Tables']['property']['Insert'] = {
@@ -209,10 +173,15 @@ export class PropertiesService {
 
 		if (!data) {
 			this.logger.error('No data returned from insert', { userId })
-			throw new BadRequestException('Failed to create property - no data returned')
+			throw new BadRequestException(
+				'Failed to create property - no data returned'
+			)
 		}
 
-		this.logger.log('Property created successfully', { propertyId: data.id, userId })
+		this.logger.log('Property created successfully', {
+			propertyId: data.id,
+			userId
+		})
 		return data as Property
 	}
 
@@ -233,7 +202,7 @@ export class PropertiesService {
 		try {
 			// Parse CSV file (native Node.js)
 			const csvContent = fileBuffer.toString('utf-8')
-			const lines = csvContent.split('\n').filter((line) => line.trim())
+			const lines = csvContent.split('\n').filter(line => line.trim())
 
 			if (lines.length === 0) {
 				throw new BadRequestException('CSV file is empty')
@@ -275,15 +244,17 @@ export class PropertiesService {
 				)
 			}
 
-			const ownerId = await this.getUserIdFromSupabaseId(userId)
+			const ownerId = await this.utilityService.getUserIdFromSupabaseId(userId)
 			const errors: Array<{ row: number; error: string }> = []
-			const validRows: Array<Database['public']['Tables']['property']['Insert']> = []
+			const validRows: Array<
+				Database['public']['Tables']['property']['Insert']
+			> = []
 
 			// PHASE 1: Validate ALL rows before inserting anything
 			for (let i = 0; i < rows.length; i++) {
 				const row = rows[i]
 				if (!row) continue // Skip undefined rows
-				
+
 				const rowNumber = i + 2 // CSV row number (header is row 1)
 
 				try {
@@ -318,15 +289,16 @@ export class PropertiesService {
 					const description = this.getStringValue(row, 'description')
 
 					// Build insert object
-					const insertData: Database['public']['Tables']['property']['Insert'] = {
-						ownerId,
-						name: name.trim(),
-						address: address.trim(),
-						city: city.trim(),
-						state: state.trim(),
-						zipCode: zipCode.trim(),
-						propertyType: (propertyType as PropertyType) || 'OTHER'
-					}
+					const insertData: Database['public']['Tables']['property']['Insert'] =
+						{
+							ownerId,
+							name: name.trim(),
+							address: address.trim(),
+							city: city.trim(),
+							state: state.trim(),
+							zipCode: zipCode.trim(),
+							propertyType: (propertyType as PropertyType) || 'OTHER'
+						}
 
 					if (description?.trim()) {
 						insertData.description = description.trim()
@@ -334,7 +306,8 @@ export class PropertiesService {
 
 					validRows.push(insertData)
 				} catch (error) {
-					const errorMessage = error instanceof Error ? error.message : 'Validation failed'
+					const errorMessage =
+						error instanceof Error ? error.message : 'Validation failed'
 					errors.push({
 						row: rowNumber,
 						error: errorMessage
@@ -390,7 +363,8 @@ export class PropertiesService {
 				throw error
 			}
 
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error'
 			throw new BadRequestException(
 				`Failed to process CSV file: ${errorMessage}`
 			)
@@ -455,7 +429,7 @@ export class PropertiesService {
 		if (!existing)
 			throw new BadRequestException('Property not found or access denied')
 
-		const ownerId = await this.getUserIdFromSupabaseId(userId)
+		const ownerId = await this.utilityService.getUserIdFromSupabaseId(userId)
 
 		// Validate fields if provided
 		if (request.name && !request.name.trim()) {
@@ -541,17 +515,18 @@ export class PropertiesService {
 		if (!existing)
 			throw new BadRequestException('Property not found or access denied')
 
-		const ownerId = await this.getUserIdFromSupabaseId(userId)
+		const ownerId = await this.utilityService.getUserIdFromSupabaseId(userId)
 
 		// 🔐 BUG FIX #3: Use Saga pattern for transactional delete with compensation
 		let imageFilePath: string | null = null
+		let trashFilePath: string | null = null
 
 		const result = await new SagaBuilder(this.logger)
 			.addStep({
-				name: 'Delete property image from storage',
+				name: 'Move property image to trash bucket',
 				execute: async () => {
 					if (!existing.imageUrl) {
-						return { deleted: false }
+						return { moved: false, originalPath: null, trashPath: null }
 					}
 
 					try {
@@ -560,32 +535,76 @@ export class PropertiesService {
 						const url = new URL(existing.imageUrl)
 						const pathParts = url.pathname.split('/property-images/')
 						if (pathParts.length > 1 && pathParts[1]) {
-						imageFilePath = pathParts[1]
-							await this.storage.deleteFile('property-images', imageFilePath)
-							this.logger.log('Deleted property image from storage', {
+							imageFilePath = pathParts[1]
+
+							// Create trash path with timestamp to avoid conflicts
+							const timestamp = Date.now()
+							trashFilePath = `property-images/${ownerId}/${timestamp}-${pathParts[1]}`
+
+							// Move image to trash bucket (copy + delete original)
+							await this.storage.moveFile(
+								'property-images',
+								imageFilePath,
+								'trash',
+								trashFilePath
+							)
+
+							this.logger.log('Moved property image to trash bucket', {
 								propertyId,
-								filePath: imageFilePath
+								originalPath: imageFilePath,
+								trashPath: trashFilePath
 							})
-							return { deleted: true, filePath: imageFilePath }
+
+							return {
+								moved: true,
+								originalPath: imageFilePath,
+								trashPath: trashFilePath
+							}
 						}
 					} catch (error) {
-						this.logger.warn('Failed to delete property image', {
-							error,
+						this.logger.error('Failed to move property image to trash', {
+							error: error instanceof Error ? error.message : 'Unknown error',
 							propertyId,
-							imageUrl: existing.imageUrl
+							imageUrl: existing.imageUrl,
+							originalPath: imageFilePath
 						})
+						// Don't fail the entire operation if image move fails, just log the error
 					}
-					return { deleted: false }
+					return { moved: false, originalPath: null, trashPath: null }
 				},
 				compensate: async result => {
-					// Compensation: Restore image if it was deleted
-					// Note: In production, you'd need to store the image bytes before deletion
-					// or use soft-delete pattern for storage
-					if (result.deleted && imageFilePath) {
-						this.logger.warn(
-							'Image deletion compensation not implemented - image cannot be restored',
-							{ propertyId, filePath: imageFilePath }
-						)
+					// Compensation: Restore image from trash if it was moved
+					if (result.moved && result.trashPath) {
+						try {
+							// Move image back from trash to original location
+							await this.storage.moveFile(
+								'trash',
+								result.trashPath,
+								'property-images',
+								result.originalPath
+							)
+
+							this.logger.log(
+								'Restored property image from trash during compensation',
+								{
+									propertyId,
+									originalPath: result.originalPath,
+									trashPath: result.trashPath
+								}
+							)
+						} catch (error) {
+							this.logger.error(
+								'Failed to restore property image from trash during compensation',
+								{
+									error:
+										error instanceof Error ? error.message : 'Unknown error',
+									propertyId,
+									originalPath: result.originalPath,
+									trashPath: result.trashPath
+								}
+							)
+							// Log error but don't throw - we don't want to mask the original error
+						}
 					}
 					return noCompensation()
 				}
@@ -597,7 +616,8 @@ export class PropertiesService {
 						.getAdminClient()
 						.from('property')
 						.update({
-							status: 'INACTIVE' as Database['public']['Enums']['PropertyStatus'],
+							status:
+								'INACTIVE' as Database['public']['Enums']['PropertyStatus'],
 							updatedAt: new Date().toISOString()
 						})
 						.eq('id', propertyId)
@@ -630,11 +650,14 @@ export class PropertiesService {
 						.eq('ownerId', ownerId)
 
 					if (error) {
-						this.logger.error('Failed to restore property status during compensation', {
-							error,
-							propertyId,
-							previousStatus: result.previousStatus
-						})
+						this.logger.error(
+							'Failed to restore property status during compensation',
+							{
+								error,
+								propertyId,
+								previousStatus: result.previousStatus
+							}
+						)
 						throw error
 					}
 
@@ -642,6 +665,37 @@ export class PropertiesService {
 						propertyId,
 						status: result.previousStatus
 					})
+				}
+			})
+			.addStep({
+				name: 'Permanently delete image from trash bucket',
+				execute: async () => {
+					// This step only runs if the database operation succeeds
+					if (trashFilePath) {
+						await this.storage.deleteFile('trash', trashFilePath)
+						this.logger.log(
+							'Permanently deleted property image from trash bucket',
+							{
+								propertyId,
+								trashPath: trashFilePath
+							}
+						)
+					}
+					return { permanentDeleted: !!trashFilePath }
+				},
+				compensate: async result => {
+					// This compensation runs if the permanent delete fails
+					// In this case, the image remains in trash which is acceptable
+					if (result.permanentDeleted && trashFilePath) {
+						this.logger.warn(
+							'Failed to permanently delete image from trash - file remains in trash',
+							{
+								propertyId,
+								trashPath: trashFilePath
+							}
+						)
+					}
+					return noCompensation()
 				}
 			})
 			.execute()
@@ -715,7 +769,7 @@ export class PropertiesService {
 		userId: string,
 		query: { search: string | null; limit: number; offset: number }
 	): Promise<Property[]> {
-		const ownerId = await this.getUserIdFromSupabaseId(userId)
+		const ownerId = await this.utilityService.getUserIdFromSupabaseId(userId)
 
 		// Clamp pagination values
 		const limit = Math.min(Math.max(query.limit || 10, 1), 100)
@@ -983,7 +1037,7 @@ export class PropertiesService {
 			throw new BadRequestException('Property not found or access denied')
 		}
 
-		const ownerId = await this.getUserIdFromSupabaseId(userId)
+		const ownerId = await this.utilityService.getUserIdFromSupabaseId(userId)
 
 		// Prevent marking already sold properties (check date_sold field for accuracy)
 		if (property.date_sold) {
