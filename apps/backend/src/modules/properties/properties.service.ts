@@ -1166,10 +1166,7 @@ export class PropertiesService {
 		}
 		const bucketPath = pathParts[1]
 
-		// Delete from storage
-		await this.storage.deleteFile('property-images', bucketPath)
-
-		// Delete database record
+		// Delete database record FIRST
 		const { error } = await this.supabase
 			.getAdminClient()
 			.from('property_images')
@@ -1178,6 +1175,16 @@ export class PropertiesService {
 
 		if (error) {
 			throw new BadRequestException(`Failed to delete image: ${error.message}`)
+		}
+
+		// Delete from storage SECOND (non-blocking, log failures)
+		try {
+			await this.storage.deleteFile('property-images', bucketPath)
+		} catch (storageError) {
+			// Log warning but don't throw - DB cleanup is intact
+			this.logger.warn(
+				`Storage deletion failed for image ${imageId} at ${bucketPath}: ${storageError instanceof Error ? storageError.message : 'Unknown error'}`
+			)
 		}
 	}
 

@@ -39,11 +39,11 @@ const mockBalanceSheetData = {
 			{ name: 'Cash & Cash Equivalents', amount: 125000, previous: 110000 },
 			{ name: 'Accounts Receivable', amount: 89000, previous: 95000 },
 			{ name: 'Inventory', amount: 45000, previous: 42000 },
-			{ name: 'Prepaid Expenses', amount: 12000, previous: 1000 }
+			{ name: 'Prepaid Expenses', amount: 12000, previous: 11000 }
 		],
 		nonCurrent: [
 			{ name: 'Property, Plant & Equipment', amount: 450000, previous: 425000 },
-			{ name: 'Investments', amount: 75000, previous: 700 },
+			{ name: 'Investments', amount: 75000, previous: 70000 },
 			{ name: 'Intangible Assets', amount: 25000, previous: 28000 }
 		]
 	},
@@ -55,11 +55,11 @@ const mockBalanceSheetData = {
 		],
 		nonCurrent: [
 			{ name: 'Long-term Debt', amount: 200000, previous: 225000 },
-			{ name: 'Deferred Tax Liability', amount: 2500, previous: 22000 }
+			{ name: 'Deferred Tax Liability', amount: 2500, previous: 2200 }
 		]
 	},
 	equity: [
-		{ name: 'Common Stock', amount: 200000, previous: 2000 },
+		{ name: 'Common Stock', amount: 200000, previous: 200000 },
 		{ name: 'Retained Earnings', amount: 182000, previous: 158000 }
 	]
 }
@@ -83,7 +83,9 @@ const BalanceSheetPage = () => {
 
 	const calculateChange = (current: number, previous: number) => {
 		const change = current - previous
-		const percentage = previous ? (change / previous) * 100 : 0
+		const percentage = previous === 0 
+			? (current === 0 ? 0 : null)
+			: (change / previous) * 100
 		return { amount: change, percentage }
 	}
 
@@ -113,7 +115,7 @@ const BalanceSheetPage = () => {
 								</div>
 								<div
 									className={`text-sm flex items-center gap-1 ${
-										change.amount >= 0 ? 'text-green-600' : 'text-red-600'
+										change.amount >= 0 ? 'text-green-6000' : 'text-red-6000'
 									}`}
 								>
 									{change.amount >= 0 ? (
@@ -123,7 +125,7 @@ const BalanceSheetPage = () => {
 									)}
 									{change.amount >= 0 ? '+' : ''}
 									{change.amount.toLocaleString()} (
-									{change.percentage.toFixed(1)}%)
+								{change.percentage !== null ? `${change.percentage.toFixed(1)}%` : 'N/A'})
 								</div>
 							</div>
 						</div>
@@ -139,7 +141,7 @@ const BalanceSheetPage = () => {
 				<div className="flex items-center justify-between">
 					<div>
 						<h1 className="text-3xl font-bold">Balance Sheet</h1>
-						<p className="text-gray-600">
+						<p className="text-gray-6000">
 							Financial position at a specific point in time
 						</p>
 					</div>
@@ -201,7 +203,7 @@ const BalanceSheetPage = () => {
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold">Balance Sheet</h1>
-					<p className="text-gray-600">
+					<p className="text-gray-6000">
 						Financial position at a specific point in time
 					</p>
 				</div>
@@ -390,30 +392,30 @@ const BalanceSheetPage = () => {
 				<CardContent>
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 						<div className="text-center p-4 bg-gray-50 rounded-lg">
-							<div className="text-2xl font-bold text-blue-60">
+							<div className="text-2xl font-bold text-blue-600">
 								${totalAssets.toLocaleString()}
 							</div>
-							<div className="text-sm text-gray-600">Total Assets</div>
+							<div className="text-sm text-gray-6000">Total Assets</div>
 						</div>
 						<div className="text-center p-4 bg-gray-50 rounded-lg">
-							<div className="text-2xl font-bold text-red-60">
+							<div className="text-2xl font-bold text-red-600">
 								${totalLiabilities.toLocaleString()}
 							</div>
-							<div className="text-sm text-gray-60">Total Liabilities</div>
+							<div className="text-sm text-gray-600">Total Liabilities</div>
 						</div>
 						<div className="text-center p-4 bg-gray-50 rounded-lg">
-							<div className="text-2xl font-bold text-green-60">
+							<div className="text-2xl font-bold text-green-600">
 								${totalEquity.toLocaleString()}
 							</div>
-							<div className="text-sm text-gray-600">Total Equity</div>
+							<div className="text-sm text-gray-6000">Total Equity</div>
 						</div>
 					</div>
 					<div className="mt-4 p-4 bg-blue-50 rounded-lg">
-						<div className="text-sm text-gray-600">
+						<div className="text-sm text-gray-6000">
 							<strong>Balance Sheet Equation:</strong> Assets = Liabilities +
 							Equity
 						</div>
-						<div className="text-sm text-gray-600 mt-1">
+						<div className="text-sm text-gray-6000 mt-1">
 							${totalAssets.toLocaleString()} = $
 							{totalLiabilities.toLocaleString()} + $
 							{totalEquity.toLocaleString()}

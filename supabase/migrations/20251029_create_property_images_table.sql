@@ -83,7 +83,7 @@ BEGIN
   
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql;
 
 -- Trigger to ensure single primary image
 CREATE TRIGGER ensure_single_primary_image_trigger

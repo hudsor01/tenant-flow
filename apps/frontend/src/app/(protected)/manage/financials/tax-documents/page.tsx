@@ -80,31 +80,123 @@ const TaxDocumentsPage = ({
 	const [isLoading, setIsLoading] = useState(true)
 	const [taxData, setTaxData] = useState<TaxData | null>(null)
 	const [error, setError] = useState<string | null>(null)
+	const [searchQuery, setSearchQuery] = useState('')
 	const { session } = useAuth()
 
 	useEffect(() => {
+		let isMounted = true
+		const abortController = new AbortController()
+
 		const fetchTaxDocuments = async () => {
-			if (!session?.access_token) return
+			if (!session?.access_token) {
+				if (isMounted) {
+					setIsLoading(false)
+					setError('Authentication required. Please sign in to view tax documents.')
+				}
+				return
+			}
 
 			try {
-				setIsLoading(true)
-				setError(null)
+				if (isMounted) {
+					setIsLoading(true)
+					setError(null)
+				}
 
 				const data = await getTaxDocuments(session.access_token, parseInt(selectedYear))
-				setTaxData(data)
-			} catch {
-				setError('Failed to load tax documents. Please try again.')
+				
+				if (isMounted) {
+					setTaxData(data)
+				}
+			} catch (err) {
+				if (isMounted) {
+					const errorMessage = err instanceof Error 
+						? `Failed to load tax documents: ${err.message}` 
+						: 'Failed to load tax documents. Please try again.'
+					setError(errorMessage)
+					console.error('Tax documents fetch error:', err)
+				}
 			} finally {
-				setIsLoading(false)
+				if (isMounted) {
+					setIsLoading(false)
+				}
 			}
 		}
 
 		fetchTaxDocuments()
+
+		return () => {
+			isMounted = false
+			abortController.abort()
+		}
 	}, [session, selectedYear])
 
 	const years = Array.from({ length: 5 }, (_, i) =>
 		(new Date().getFullYear() - i).toString()
 	)
+
+	// Handler for exporting tax documents
+	const handleExport = async () => {
+		if (!taxData) return
+		try {
+			const jsonData = JSON.stringify(taxData, null, 2)
+			const blob = new Blob([jsonData], { type: 'application/json' })
+			const url = URL.createObjectURL(blob)
+			const a = document.createElement('a')
+			a.href = url
+			a.download = `tax-documents-${selectedYear}.json`
+			document.body.appendChild(a)
+			a.click()
+			document.body.removeChild(a)
+			URL.revokeObjectURL(url)
+		} catch (error) {
+			console.error('Export failed:', error)
+			setError('Failed to export documents')
+		}
+	}
+
+	// Handler for importing tax documents
+	const handleImport = () => {
+		const input = document.createElement('input')
+		input.type = 'file'
+		input.accept = '.json'
+		input.onchange = async (e) => {
+			const file = (e.target as HTMLInputElement).files?.[0]
+			if (!file) return
+			try {
+				const text = await file.text()
+				const data = JSON.parse(text)
+				setTaxData(data)
+			} catch (error) {
+				console.error('Import failed:', error)
+				setError('Failed to import documents. Please check the file format.')
+			}
+		}
+		input.click()
+	}
+
+	// Handler for generating tax report
+	const handleGenerateTaxReport = async () => {
+		try {
+			console.log('Generating tax report for year:', selectedYear)
+			// TODO: Call API endpoint to generate report
+			setError('Tax report generation not yet implemented')
+		} catch (error) {
+			console.error('Failed to generate report:', error)
+			setError('Failed to generate tax report')
+		}
+	}
+
+	// Handler for viewing detailed breakdown
+	const handleViewDetailedBreakdown = () => {
+		try {
+			console.log('Opening detailed breakdown for year:', selectedYear)
+			// TODO: Navigate to breakdown route or open modal
+			setError('Detailed breakdown view not yet implemented')
+		} catch (error) {
+			console.error('Failed to open breakdown:', error)
+			setError('Failed to open detailed breakdown')
+		}
+	}
 
 	const renderExpenseCategories = () => {
 		if (!taxData?.expenseCategories?.length) return null
@@ -113,7 +205,7 @@ const TaxDocumentsPage = ({
 			<div className="space-y-3">
 				{taxData.expenseCategories.map((category, index) => (
 					<div
-						key={index}
+						key={category.category || `category-${index}`}
 						className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
 					>
 						<div className="flex-1">
@@ -146,7 +238,7 @@ const TaxDocumentsPage = ({
 		return (
 			<div className="space-y-3">
 				{taxData.propertyDepreciation.map((property, index) => (
-					<Card key={index} className="border border-gray-200">
+					<Card key={property.propertyId || `property-${index}`} className="border border-gray-200">
 						<CardContent className="p-4">
 							<div className="space-y-3">
 								<div className="flex items-center justify-between">
@@ -297,11 +389,11 @@ const TaxDocumentsPage = ({
 					<p className="text-gray-600">Tax preparation and filing documents</p>
 				</div>
 				<div className="flex gap-2">
-					<Button variant="outline" size="sm">
+					<Button variant="outline" size="sm" onClick={handleExport}>
 						<Download className="w-4 h-4 mr-2" />
 						Export
 					</Button>
-					<Button size="sm">
+					<Button size="sm" onClick={handleImport}>
 						<Upload className="w-4 h-4 mr-2" />
 						Import
 					</Button>
@@ -328,7 +420,12 @@ const TaxDocumentsPage = ({
 							</Select>
 						</div>
 						<div className="flex items-center gap-2">
-							<Input placeholder="Search documents..." className="w-64" />
+							<Input 
+								placeholder="Search documents..." 
+								className="w-64"
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+							/>
 							<Button variant="outline" size="sm">
 								<Search className="w-4 h-4" />
 							</Button>
@@ -511,11 +608,11 @@ const TaxDocumentsPage = ({
 
 			{/* Action Buttons */}
 			<div className="flex justify-center gap-4">
-				<Button size="lg">
+				<Button size="lg" onClick={handleGenerateTaxReport}>
 					<Download className="w-4 h-4 mr-2" />
 					Generate Tax Report
 				</Button>
-				<Button variant="outline" size="lg">
+				<Button variant="outline" size="lg" onClick={handleViewDetailedBreakdown}>
 					<FileText className="w-4 h-4 mr-2" />
 					View Detailed Breakdown
 				</Button>

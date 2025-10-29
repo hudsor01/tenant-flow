@@ -42,19 +42,21 @@ function createWrapper() {
 }
 
 describe('Property Image Upload Integration', () => {
-	let uploadedImageId: string
-
 	/**
-	 * TEST 1: Upload image
+	 * TEST 1: Upload image (isolated)
 	 * Verifies: Backend accepts file, compresses, stores, returns record
+	 * Cleanup: Deletes uploaded image after test
 	 */
 	it('should upload image successfully', async () => {
 		const wrapper = createWrapper()
-		const { result } = renderHook(() => useUploadPropertyImage(), { wrapper })
+		const { result: uploadResult } = renderHook(() => useUploadPropertyImage(), { wrapper })
+		const { result: deleteResult } = renderHook(() => useDeletePropertyImage(), { wrapper })
+
+		let uploadedImageId: string
 
 		// Upload image
 		await waitFor(async () => {
-			const uploaded = await result.current.mutateAsync({
+			const uploaded = await uploadResult.current.mutateAsync({
 				propertyId: TEST_PROPERTY_ID,
 				file: TEST_IMAGE_FILE,
 				isPrimary: false,
@@ -68,55 +70,71 @@ describe('Property Image Upload Integration', () => {
 
 			uploadedImageId = uploaded.id
 		})
+
+		// Cleanup
+		await waitFor(async () => {
+			await deleteResult.current.mutateAsync({
+				imageId: uploadedImageId,
+				propertyId: TEST_PROPERTY_ID
+			})
+		})
 	})
 
 	/**
-	 * TEST 2: Fetch images
-	 * Verifies: GET endpoint returns uploaded images
+	 * TEST 2: Complete image lifecycle (upload → fetch → delete → verify)
+	 * Verifies: Full CRUD operations work end-to-end
 	 */
-	it('should fetch property images', async () => {
+	it('should complete full image lifecycle', async () => {
 		const wrapper = createWrapper()
-		const { result } = renderHook(() => usePropertyImages(TEST_PROPERTY_ID), {
+		let uploadedImageId: string
+
+		// Step 1: Upload image
+		const { result: uploadResult } = renderHook(() => useUploadPropertyImage(), { wrapper })
+		await waitFor(async () => {
+			const uploaded = await uploadResult.current.mutateAsync({
+				propertyId: TEST_PROPERTY_ID,
+				file: TEST_IMAGE_FILE,
+				isPrimary: false,
+				caption: 'Lifecycle test image'
+			})
+
+			expect(uploaded).toBeDefined()
+			expect(uploaded.id).toBeDefined()
+			uploadedImageId = uploaded.id
+		})
+
+		// Step 2: Fetch and verify image exists
+		const { result: fetchResult } = renderHook(() => usePropertyImages(TEST_PROPERTY_ID), {
 			wrapper
 		})
 
 		await waitFor(() => {
-			expect(result.current.isSuccess).toBe(true)
-			expect(result.current.data).toBeDefined()
-			expect(Array.isArray(result.current.data)).toBe(true)
-			expect(result.current.data!.length).toBeGreaterThan(0)
-
-			const testImage = result.current.data!.find(
+			expect(fetchResult.current.isSuccess).toBe(true)
+			expect(fetchResult.current.data).toBeDefined()
+			const testImage = fetchResult.current.data!.find(
 				img => img.id === uploadedImageId
 			)
 			expect(testImage).toBeDefined()
-			expect(testImage!.caption).toBe('Test image')
+			expect(testImage!.caption).toBe('Lifecycle test image')
 		})
-	})
 
-	/**
-	 * TEST 3: Delete image
-	 * Verifies: DELETE endpoint removes from storage and DB
-	 */
-	it('should delete image and cleanup', async () => {
-		const wrapper = createWrapper()
-		const { result } = renderHook(() => useDeletePropertyImage(), { wrapper })
-
+		// Step 3: Delete image
+		const { result: deleteResult } = renderHook(() => useDeletePropertyImage(), { wrapper })
 		await waitFor(async () => {
-			await result.current.mutateAsync({
+			await deleteResult.current.mutateAsync({
 				imageId: uploadedImageId,
 				propertyId: TEST_PROPERTY_ID
 			})
 		})
 
-		// Verify deletion
-		const { result: fetchResult } = renderHook(
+		// Step 4: Verify deletion
+		const { result: verifyResult } = renderHook(
 			() => usePropertyImages(TEST_PROPERTY_ID),
 			{ wrapper }
 		)
 
 		await waitFor(() => {
-			const deletedImage = fetchResult.current.data?.find(
+			const deletedImage = verifyResult.current.data?.find(
 				img => img.id === uploadedImageId
 			)
 			expect(deletedImage).toBeUndefined()
