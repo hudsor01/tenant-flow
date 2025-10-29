@@ -83,9 +83,12 @@ export const createServerApi = (accessToken: string) => ({
 			),
 
 		getPropertiesWithAnalytics: () =>
-			apiClient<PropertyWithUnits[]>(`${API_BASE_URL}/api/v1/properties/with-units`, {
-				serverToken: accessToken
-			}),
+			apiClient<PropertyWithUnits[]>(
+				`${API_BASE_URL}/api/v1/properties/with-units`,
+				{
+					serverToken: accessToken
+				}
+			),
 
 		getStats: () =>
 			apiClient<PropertyStats>(`${API_BASE_URL}/api/v1/properties/stats`, {
@@ -111,9 +114,12 @@ export const createServerApi = (accessToken: string) => ({
 			}),
 
 		getTenantsWithAnalytics: () =>
-			apiClient<TenantWithLeaseInfo[]>(`${API_BASE_URL}/api/v1/tenants/analytics`, {
-				serverToken: accessToken
-			}),
+			apiClient<TenantWithLeaseInfo[]>(
+				`${API_BASE_URL}/api/v1/tenants/analytics`,
+				{
+					serverToken: accessToken
+				}
+			),
 
 		stats: () =>
 			apiClient<TenantStats>(`${API_BASE_URL}/api/v1/tenants/stats`, {
@@ -129,9 +135,12 @@ export const createServerApi = (accessToken: string) => ({
 			),
 
 		get: (id: string) =>
-			apiClient<MaintenanceRequest>(`${API_BASE_URL}/api/v1/maintenance/${id}`, {
-				serverToken: accessToken
-			}),
+			apiClient<MaintenanceRequest>(
+				`${API_BASE_URL}/api/v1/maintenance/${id}`,
+				{
+					serverToken: accessToken
+				}
+			),
 
 		stats: () =>
 			apiClient<MaintenanceStats>(`${API_BASE_URL}/api/v1/maintenance/stats`, {
@@ -207,9 +216,12 @@ export const createServerApi = (accessToken: string) => ({
 			),
 
 		getLeaseFinancialSummary: () =>
-			apiClient<LeaseStatsResponse>(`${API_BASE_URL}/api/v1/leases/financial-summary`, {
-				serverToken: accessToken
-			}),
+			apiClient<LeaseStatsResponse>(
+				`${API_BASE_URL}/api/v1/leases/financial-summary`,
+				{
+					serverToken: accessToken
+				}
+			),
 
 		stats: () =>
 			apiClient<LeaseStatsResponse>(`${API_BASE_URL}/api/v1/leases/stats`, {
@@ -342,9 +354,7 @@ export const propertiesApi = {
 	remove: (id: string) =>
 		apiClient<void>(`${API_BASE_URL}/api/v1/properties/${id}`, {
 			method: 'DELETE'
-		})
-
-,
+		}),
 
 	bulkImport: (file: File) => {
 		const formData = new FormData()
@@ -439,7 +449,10 @@ export const tenantsApi = {
 	/**
 	 * ✅ NEW: Send tenant invitation via Supabase Auth (V2 - Phase 3.1)
 	 */
-	sendInvitationV2: (id: string, params?: { propertyId?: string; leaseId?: string }) =>
+	sendInvitationV2: (
+		id: string,
+		params?: { propertyId?: string; leaseId?: string }
+	) =>
 		apiClient<{ success: boolean; authUserId?: string; message: string }>(
 			`${API_BASE_URL}/api/v1/tenants/${id}/invite-v2`,
 			{
@@ -503,7 +516,10 @@ export const leasesApi = {
 		}),
 
 	// Lease termination
-	terminate: (leaseId: string, data: { terminationDate: string; reason?: string }) =>
+	terminate: (
+		leaseId: string,
+		data: { terminationDate: string; reason?: string }
+	) =>
 		apiClient<Lease>(`${API_BASE_URL}/api/v1/leases/${leaseId}/terminate`, {
 			method: 'POST',
 			body: JSON.stringify(data)

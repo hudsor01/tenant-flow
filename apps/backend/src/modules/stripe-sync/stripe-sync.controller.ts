@@ -65,7 +65,10 @@ export class StripeSyncController {
 	/**
 	 * Mark webhook event as processed (idempotency tracking)
 	 */
-	private async markEventProcessed(eventId: string, eventType: string): Promise<void> {
+	private async markEventProcessed(
+		eventId: string,
+		eventType: string
+	): Promise<void> {
 		const { error } = await this.supabaseService
 			.getAdminClient()
 			.from('stripe_processed_events')
@@ -237,15 +240,16 @@ export class StripeSyncController {
 		// Calculate fees (Stripe takes 2.9% + $0.30, platform takes 3%)
 		const amountInCents = session.amount_total || 0
 		const amountInDollars = amountInCents / 100
-		const stripeFee = Math.round((amountInCents * 0.029 + 30)) / 100 // 2.9% + $0.30
+		const stripeFee = Math.round(amountInCents * 0.029 + 30) / 100 // 2.9% + $0.30
 		const platformFee = Math.round(amountInCents * 0.03) / 100 // 3%
 		const landlordReceives = amountInDollars - stripeFee - platformFee
 
-		// Record payment in database
+		// Record payment in database with upsert to handle webhook retries
+		// Use ON CONFLICT DO NOTHING to prevent duplicates when stripePaymentIntentId already exists
 		const { error } = await this.supabaseService
 			.getAdminClient()
 			.from('rent_payment')
-			.insert({
+			.upsert({
 				leaseId,
 				tenantId,
 				landlordId,
@@ -257,21 +261,43 @@ export class StripeSyncController {
 				platformFee,
 				stripeFee,
 				landlordReceives
+			}, {
+				onConflict: 'stripePaymentIntentId',
+				ignoreDuplicates: true
 			})
 
 		if (error) {
-			this.logger.error('Failed to record checkout payment', {
-				error: error.message,
-				sessionId: session.id,
-				leaseId,
-				tenantId
-			})
+			// Check if it's a conflict (duplicate) or actual error
+			if (
+				error.code === '23505' ||
+				error.message.includes('duplicate key value')
+			) {
+				this.logger.log(
+					'Checkout payment already exists (webhook retry), skipping duplicate',
+					{
+						sessionId: session.id,
+						leaseId,
+						tenantId,
+						stripePaymentIntentId: session.payment_intent,
+						amount: amountInDollars
+					}
+				)
+			} else {
+				this.logger.error('Failed to record checkout payment', {
+					error: error.message,
+					sessionId: session.id,
+					leaseId,
+					tenantId,
+					stripePaymentIntentId: session.payment_intent
+				})
+			}
 		} else {
 			this.logger.log('Checkout payment recorded successfully', {
 				sessionId: session.id,
 				leaseId,
 				tenantId,
-				amount: amountInDollars
+				amount: amountInDollars,
+				stripePaymentIntentId: session.payment_intent
 			})
 		}
 	}
@@ -301,7 +327,7 @@ export class StripeSyncController {
 	 * Uses the link_stripe_customer_to_user database function
 	 */
 	private async linkCustomerToUser(event: Stripe.Event) {
-const customer = event.data.object as Stripe.Customer
+		const customer = event.data.object as Stripe.Customer
 
 		if (!customer.email) {
 			this.logger.warn('Customer has no email, skipping user linking', {

@@ -14,8 +14,6 @@ import type { Database } from './supabase-generated.js'
 // - Health types: '@repo/shared/types/health'
 // - Stripe types: '@repo/shared/types/stripe'
 
-// TYPE PROVIDER INTERFACES
-
 export interface TypeProvider {
 	output: Record<string, unknown>
 	input: Record<string, unknown>
@@ -72,9 +70,6 @@ export interface RequestContext {
 	startTime: Date
 	metadata: Record<string, unknown>
 }
-
-// AUTH REQUEST/RESPONSE TYPES
-// Import from '@repo/shared/types/auth' instead
 
 export interface UserProfileResponse {
 	id: string
@@ -140,6 +135,9 @@ export interface UpdatePropertyRequest {
 		| 'TOWNHOUSE'
 		| 'COMMERCIAL'
 	amenities?: string[]
+
+	// Optional version for optimistic locking from frontend inline edits
+	version?: number
 }
 
 export interface PropertyQueryRequest {
@@ -616,10 +614,6 @@ export interface SecurityAuditReport {
 	}
 }
 
-// CACHE TYPES
-
-// Cache types are exported from core.ts to avoid duplication
-
 export type CacheInvalidationReason =
 	| 'ttl_expired'
 	| 'manual'
@@ -634,9 +628,6 @@ export type CacheableEntityType =
 	| 'lease'
 	| 'maintenance'
 
-// SECURITY AUDIT TYPES
-
-// Script-specific endpoint info for security audit
 export interface EndpointInfo {
 	controller: string
 	method: string
@@ -660,9 +651,6 @@ export interface EndpointAudit {
 	recommendations: string[]
 	description?: string
 }
-
-// Script-specific audit report
-// Duplicate SecurityAuditReport removed - defined above with summary property
 
 // ERROR BOUNDARY TYPES
 

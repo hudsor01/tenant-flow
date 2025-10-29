@@ -12,13 +12,9 @@ test.describe('Staging Tenant Portal Smoke', () => {
 			process.env.E2E_BASE_URL ||
 			''
 		adminEmail =
-			process.env.STAGING_ADMIN_EMAIL ||
-			process.env.E2E_ADMIN_EMAIL ||
-			''
+			process.env.STAGING_ADMIN_EMAIL || process.env.E2E_ADMIN_EMAIL || ''
 		adminPassword =
-			process.env.STAGING_ADMIN_PASSWORD ||
-			process.env.E2E_ADMIN_PASSWORD ||
-			''
+			process.env.STAGING_ADMIN_PASSWORD || process.env.E2E_ADMIN_PASSWORD || ''
 
 		const missing: string[] = []
 		if (!baseUrl) {
@@ -31,7 +27,8 @@ test.describe('Staging Tenant Portal Smoke', () => {
 			missing.push('STAGING_ADMIN_PASSWORD | E2E_ADMIN_PASSWORD')
 		}
 
-		if (missing.length > 0) {
+		const forceRun = process.env.E2E_FORCE_RUN === 'true'
+		if (missing.length > 0 && !forceRun) {
 			test.skip(true, `Missing staging env vars: ${missing.join(', ')}`)
 		}
 	})
@@ -54,9 +51,11 @@ test.describe('Staging Tenant Portal Smoke', () => {
 
 		await test.step('wait for dashboard redirect', async () => {
 			await page.waitForURL('**/dashboard', { timeout: 45_000 })
-			await expect(page.locator('[data-testid="dashboard-stats"]')).toBeVisible({
-				timeout: 45_000
-			})
+			await expect(page.locator('[data-testid="dashboard-stats"]')).toBeVisible(
+				{
+					timeout: 45_000
+				}
+			)
 		})
 
 		await test.step('assert key dashboard widgets render', async () => {
