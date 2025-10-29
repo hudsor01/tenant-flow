@@ -69,7 +69,7 @@ LANGUAGE sql STABLE AS $$
       COALESCE(SUM(rp.amount), 0) / 100.0 as current_revenue,
       LAG(COALESCE(SUM(rp.amount), 0) / 100.0) OVER (ORDER BY ms.month_start) as prev_revenue
     FROM month_series ms
-    LEFT JOIN rent_payments rp ON EXISTS (
+    LEFT JOIN rent_payment rp ON EXISTS (
         SELECT 1 FROM lease l
         JOIN unit u ON l.unitId = u.id
         JOIN property p ON u.propertyId = p.id

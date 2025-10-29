@@ -208,14 +208,17 @@ if (!process.env.SUPABASE_URL)
 if (!process.env.SUPABASE_PUBLISHABLE_KEY)
 	process.env.SUPABASE_PUBLISHABLE_KEY =
 		'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGptYnNodXBpaWJmaWV3cHhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0MDc1MDYsImV4cCI6MjA2Mzk4MzUwNn0.K9cR4SN_MtutRWPJsymtAtlHpEJFyfnQgtu8BjQRqko'
-if (!process.env.SUPABASE_SERVICE_ROLE_KEY)
-	process.env.SUPABASE_SERVICE_ROLE_KEY =
+if (!process.env.SUPABASE_SECRET_KEY)
+	process.env.SUPABASE_SECRET_KEY =
 		'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGptYnNodXBpaWJmaWV3cHhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODQwNzUwNiwiZXhwIjoyMDYzOTgzNTA2fQ.PFaXW2WMhUSF9cFpZLdc8gA2zPwtNQSUW9MSiVINdKs'
-if (!process.env.SERVICE_ROLE_KEY)
-	process.env.SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+if (!process.env.SUPABASE_SECRET_KEY)
+	process.env.SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY
 if (!process.env.SUPABASE_JWT_SECRET)
 	process.env.SUPABASE_JWT_SECRET =
 		'roIee9N/nuHVDkCJ02oLN8FenefLLqFARAtincoPCR73wZhE9do/08rdeBqM5VnYwncUsqAhWECt2Ulr8oNtlA=='
+// Backwards-compat test fallback for older config names
+if (!process.env.SUPABASE_SECRET_KEY && process.env.SUPABASE_SECRET_KEY)
+	process.env.SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY
 const DEFAULT_TEST_JWT_SECRET = 'test-jwt-secret-for-authentication-2025!!'
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
 	process.env.JWT_SECRET = DEFAULT_TEST_JWT_SECRET
@@ -293,7 +296,7 @@ export const testSupabase = createClient<Database>(
 
 export const testSupabaseAdmin = createClient<Database>(
 	process.env.SUPABASE_URL!,
-	process.env.SUPABASE_SERVICE_ROLE_KEY!
+	process.env.SUPABASE_SECRET_KEY!
 )
 
 // Simple unique ID generation (no abstraction)
