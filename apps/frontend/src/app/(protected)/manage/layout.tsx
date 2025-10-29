@@ -1,11 +1,11 @@
 'use client'
 
-import { AppSidebar } from '@/components/dashboard/app-sidebar'
-import { SiteHeader } from '@/components/dashboard/site-header'
-import { ViewTransitionsProvider } from '@/components/providers/view-transitions-provider'
-import { Breadcrumbs } from '@/components/ui/breadcrumbs'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { generateBreadcrumbs } from '@/lib/breadcrumbs'
+import { AppSidebar } from '#components/dashboard/app-sidebar'
+import { SiteHeader } from '#components/dashboard/site-header'
+import { ViewTransitionsProvider } from '#providers/view-transitions-provider'
+import { Breadcrumbs } from '#components/ui/breadcrumbs'
+import { SidebarInset, SidebarProvider } from '#components/ui/sidebar'
+import { generateBreadcrumbs } from '#lib/breadcrumbs'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 

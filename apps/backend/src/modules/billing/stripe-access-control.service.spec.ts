@@ -2,6 +2,8 @@ import type { Logger } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
+import { EmailService } from '../email/email.service'
+import { createMockEmailService } from '../../test-utils/mocks'
 import { StripeAccessControlService } from './stripe-access-control.service'
 
 describe('StripeAccessControlService', () => {
@@ -26,6 +28,10 @@ describe('StripeAccessControlService', () => {
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
+				},
+				{
+					provide: EmailService,
+					useValue: createMockEmailService()
 				}
 			]
 		}).compile()

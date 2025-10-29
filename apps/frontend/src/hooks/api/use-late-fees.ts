@@ -6,7 +6,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { lateFeesApi } from '@/lib/api-client'
+import { lateFeesApi } from '#lib/api-client'
 import { toast } from 'sonner'
 
 /**

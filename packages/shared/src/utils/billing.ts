@@ -3,10 +3,10 @@
  * Helper functions for subscription calculations and plan management
  */
 
-import { PLANS } from '../constants/billing.js'
+import { BILLING_PLANS, type PlanType, type BillingPlan } from '../constants/billing.js'
 
-export function getPlanById(planId: string): (typeof PLANS)[0] | undefined {
-	return PLANS.find(plan => plan.id === planId)
+export function getPlanById(planId: string): BillingPlan | undefined {
+	return BILLING_PLANS[planId as PlanType]
 }
 
 export function calculateProratedAmount(

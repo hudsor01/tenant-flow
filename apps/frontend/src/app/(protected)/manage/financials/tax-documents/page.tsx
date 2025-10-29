@@ -1,15 +1,15 @@
 import type { Metadata } from 'next'
-import { requireSession } from '@/lib/server-auth'
-import { ExportButtons } from '@/components/export/export-buttons'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { requireSession } from '#lib/server-auth'
+import { ExportButtons } from '#components/export/export-buttons'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
+} from '#components/ui/card'
 import {
 	Table,
 	TableBody,
@@ -17,9 +17,10 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { cn, formatCurrency } from '@/lib/utils'
+} from '#components/ui/table'
+import { cn } from '#lib/utils'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { formatCurrency } from '@repo/shared/utils/formatting'
 import type { TaxDocumentsData } from '@repo/shared/types/financial-statements'
 import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
 import { CheckCircle, Download, XCircle } from 'lucide-react'
@@ -68,7 +69,7 @@ export default async function TaxDocumentsPage() {
 	let data: TaxDocumentsData | null = null
 	try {
 		// Get auth token for API call
-		const { createClient } = await import('@/lib/supabase/server')
+		const { createClient } = await import('#lib/supabase/server')
 		const supabase = await createClient()
 		const { data: { session } } = await supabase.auth.getSession()
 

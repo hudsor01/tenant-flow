@@ -1,9 +1,9 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { ButtonGroup } from '@/components/ui/button-group'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { ButtonGroup } from '#components/ui/button-group'
+import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import type { Tables } from '@repo/shared/types/supabase'
 import { Building, Calendar, DollarSign, Edit, MapPin } from 'lucide-react'
 import Image from 'next/image'

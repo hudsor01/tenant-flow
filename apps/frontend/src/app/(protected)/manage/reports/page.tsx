@@ -1,5 +1,5 @@
 
-import { Button } from '@/components/ui/button'
+import { Button } from '#components/ui/button'
 import {
 	Empty,
 	EmptyContent,
@@ -7,7 +7,7 @@ import {
 	EmptyHeader,
 	EmptyMedia,
 	EmptyTitle
-} from '@/components/ui/empty'
+} from '#components/ui/empty'
 import { BarChart3, FileText, Filter, Plus } from 'lucide-react'
 
 import Link from 'next/link'

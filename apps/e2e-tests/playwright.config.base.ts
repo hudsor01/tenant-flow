@@ -8,6 +8,18 @@ const TESTS_DIR = path.join(ROOT_DIR, 'tests')
 /**
  * Smoke test projects - core functionality verification
  */
+/**
+ * Accessibility testing project
+ */
+export const accessibilityProject = {
+	name: 'accessibility',
+	use: {
+		...devices['Desktop Chrome']
+	},
+	testDir: TESTS_DIR,
+	testMatch: ['accessibility.spec.ts']
+}
+
 export const smokeProjects = [
 	{
 		name: 'chromium',
@@ -105,6 +117,9 @@ export const baseConfig: PlaywrightTestConfig = {
 	],
 
 	use: {
+		// Base URL for tests (can be overridden by environment variables)
+		baseURL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+
 		headless: true,
 
 		// Capture diagnostic info

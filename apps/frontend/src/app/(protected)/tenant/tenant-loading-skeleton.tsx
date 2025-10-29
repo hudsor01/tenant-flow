@@ -1,5 +1,5 @@
-import { CardLayout } from '@/components/ui/card-layout'
-import { Skeleton } from '@/components/ui/skeleton'
+import { CardLayout } from '#components/ui/card-layout'
+import { Skeleton } from '#components/ui/skeleton'
 import type { HTMLAttributes } from 'react'
 
 export function TenantFormSkeleton() {

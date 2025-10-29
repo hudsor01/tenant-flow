@@ -10,8 +10,8 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
+} from '#components/ui/alert-dialog'
+import { Button } from '#components/ui/button'
 import { AlertTriangle, Trash2 } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
 import { useState } from 'react'

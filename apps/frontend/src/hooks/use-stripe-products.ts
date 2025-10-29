@@ -4,7 +4,7 @@
  * Fetches from backend Stripe API endpoints
  */
 
-import { stripeApi } from '@/lib/api-client'
+import { stripeApi } from '#lib/api-client'
 import type { StripeProductWithPricing } from '@repo/shared/types/stripe'
 import { useQuery } from '@tanstack/react-query'
 

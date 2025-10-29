@@ -5,7 +5,7 @@
  * Phase 5: Advanced Features - Custom Reports & Analytics
  */
 
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '#components/ui/badge'
 import {
 	Card,
 	CardAction,
@@ -13,20 +13,20 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
+} from '#components/ui/card'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
+} from '#components/ui/select'
+import { Skeleton } from '#components/ui/skeleton'
 import {
 	useMonthlyRevenue,
 	useOccupancyMetrics,
 	usePaymentAnalytics
-} from '@/hooks/api/use-reports'
+} from '#hooks/api/use-reports'
 import { TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 import {

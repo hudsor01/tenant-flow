@@ -6,21 +6,21 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { toast } from 'sonner'
 
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { Button } from '#components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
+import { Input } from '#components/ui/input'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { useAllTenants } from '@/hooks/api/use-tenant'
-import { useUpdateLease } from '@/hooks/api/use-lease'
-import { leasesApi, unitsApi } from '@/lib/api-client'
+} from '#components/ui/select'
+import { Textarea } from '#components/ui/textarea'
+import { useAllTenants } from '#hooks/api/use-tenant'
+import { useUpdateLease } from '#hooks/api/use-lease'
+import { leasesApi, unitsApi } from '#lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { leaseInputSchema } from '@repo/shared/validation/leases'
 import { useForm } from '@tanstack/react-form'

@@ -1,8 +1,8 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/spinner'
-import { cn } from '@/lib/design-system'
+import { Button } from '#components/ui/button'
+import { Spinner } from '#components/ui/spinner'
+import { cn } from '#lib/design-system'
 
 interface LoadingSpinnerProps {
 	size?: 'sm' | 'default' | 'lg' | 'xl'

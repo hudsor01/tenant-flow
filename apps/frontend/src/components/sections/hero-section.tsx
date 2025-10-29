@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '#components/ui/button'
 import type { HeroSectionProps } from '@repo/shared/types/frontend-ui'
 import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'

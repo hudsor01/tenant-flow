@@ -1,6 +1,6 @@
 'use client'
 
-import { CardLayout } from '@/components/ui/card-layout'
+import { CardLayout } from '#components/ui/card-layout'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { EmbeddedCheckout } from '@stripe/react-stripe-js'
 

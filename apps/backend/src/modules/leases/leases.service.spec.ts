@@ -59,6 +59,7 @@ describe('LeasesService', () => {
   const mockTenantsService = {
     create: jest.fn(() => Promise.resolve({ id: 'tenant-id', email: 'test@example.com' })),
     sendTenantInvitation: jest.fn(() => Promise.resolve({ success: true })),
+    sendTenantInvitationV2: jest.fn(() => Promise.resolve({ success: true })),
   };
 
   const mockEmailService = {
@@ -107,7 +108,7 @@ describe('LeasesService', () => {
         lastName: 'User',
       });
 
-      expect(tenantsService.sendTenantInvitation).toHaveBeenCalledWith(
+      expect(tenantsService.sendTenantInvitationV2).toHaveBeenCalledWith(
         'user-id',
         'tenant-id',
         'property-id',

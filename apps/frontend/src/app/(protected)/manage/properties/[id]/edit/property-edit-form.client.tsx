@@ -5,19 +5,19 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
 
-import { Button } from '@/components/ui/button'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { Button } from '#components/ui/button'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
+import { Input } from '#components/ui/input'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
+} from '#components/ui/select'
+import { Textarea } from '#components/ui/textarea'
 
-import { useUpdateProperty } from '@/hooks/api/use-properties'
+import { useUpdateProperty } from '#hooks/api/use-properties'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property } from '@repo/shared/types/core'
 import {

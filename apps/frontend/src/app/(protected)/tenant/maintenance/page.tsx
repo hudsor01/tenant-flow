@@ -9,11 +9,11 @@
 
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useTenantMaintenanceRequests } from '@/hooks/api/use-lease'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Skeleton } from '#components/ui/skeleton'
+import { useTenantMaintenanceRequests } from '#hooks/api/use-lease'
 import { Calendar, Plus, Wrench } from 'lucide-react'
 import Link from 'next/link'
 

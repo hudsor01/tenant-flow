@@ -12,9 +12,9 @@ import {
 	closestCorners
 } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { maintenanceApi } from '@/lib/api-client'
+import { Badge } from '#components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
+import { maintenanceApi } from '#lib/api-client'
 import { toast } from 'sonner'
 import { MaintenanceCard } from './maintenance-card'
 import { MaintenanceSortableCard } from './maintenance-sortable-card'

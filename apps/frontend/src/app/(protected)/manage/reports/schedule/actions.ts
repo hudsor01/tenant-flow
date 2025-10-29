@@ -3,7 +3,7 @@
  * These functions run on the server and can be called from Server Components
  */
 
-import type { ScheduledReport } from '@/lib/api/reports-client'
+import type { ScheduledReport } from '#lib/api/reports-client'
 
 /**
  * Fetch scheduled reports from the backend API
@@ -12,7 +12,7 @@ import type { ScheduledReport } from '@/lib/api/reports-client'
 export async function getSchedules(): Promise<ScheduledReport[]> {
 	try {
 		// Use the reports API from api-client which handles auth automatically
-		const { reportsApi } = await import('@/lib/api-client')
+		const { reportsApi } = await import('#lib/api-client')
 		const schedules = await reportsApi.listSchedules()
 		return schedules
 	} catch (error) {

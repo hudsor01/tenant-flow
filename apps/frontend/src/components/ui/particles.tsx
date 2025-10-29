@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '@/lib/design-system'
+import { cn } from '#lib/design-system'
 import { useQuery } from '@tanstack/react-query'
 import React, { useCallback, useEffect, useRef } from 'react'
 

@@ -5,14 +5,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import * as React from 'react'
 
-import { QuickCreateDialog } from '@/components/dashboard/quick-create-dialog'
+import { QuickCreateDialog } from '#components/dashboard/quick-create-dialog'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '#components/ui/button'
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger
-} from '@/components/ui/collapsible'
+} from '#components/ui/collapsible'
 import {
 	SidebarGroup,
 	SidebarGroupContent,
@@ -23,8 +23,8 @@ import {
 	SidebarMenuSub,
 	SidebarMenuSubButton,
 	SidebarMenuSubItem
-} from '@/components/ui/sidebar'
-import { cn } from '@/lib/utils'
+} from '#components/ui/sidebar'
+import { cn } from '#lib/utils'
 
 type NavMainItem = {
 	title: string

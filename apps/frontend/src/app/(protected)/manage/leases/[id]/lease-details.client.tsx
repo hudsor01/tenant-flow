@@ -1,9 +1,9 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { useAllTenants } from '@/hooks/api/use-tenant'
-import { leasesApi, unitsApi } from '@/lib/api-client'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { useAllTenants } from '#hooks/api/use-tenant'
+import { leasesApi, unitsApi } from '#lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { useQuery } from '@tanstack/react-query'
 import { Calendar, Home, User } from 'lucide-react'

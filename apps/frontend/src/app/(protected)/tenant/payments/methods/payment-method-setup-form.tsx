@@ -1,6 +1,6 @@
 'use client'
 
-import { Spinner } from '@/components/ui/spinner'
+import { Spinner } from '#components/ui/spinner'
 import {
 	Elements,
 	PaymentElement,
@@ -12,7 +12,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '#components/ui/button'
 
 const stripePromise = loadStripe(
 	process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''

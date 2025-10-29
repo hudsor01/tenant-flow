@@ -1,4 +1,4 @@
-import { updateSession } from '@/lib/supabase/middleware'
+import { updateSession } from '#lib/supabase/middleware'
 import { type NextRequest } from 'next/server'
 
 /**

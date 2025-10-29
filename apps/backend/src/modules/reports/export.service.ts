@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import ExcelJS from 'exceljs'
-import PDFDocument from 'pdfkit'
 
 @Injectable()
 export class ExportService {
@@ -98,42 +97,17 @@ export class ExportService {
 		return [headerRow, ...rows].join('\n')
 	}
 
+	/**
+	 * PDF export disabled (pdfkit removed)
+	 * Use Excel or CSV exports instead
+	 * TODO: Implement PDF export using @react-pdf/renderer if needed
+	 */
 	async generatePDF(
-		payload: unknown,
-		title = 'Analytics Export'
+		_payload: unknown,
+		_title = 'Analytics Export'
 	): Promise<Buffer> {
-		return new Promise((resolve, reject) => {
-			const doc = new PDFDocument({ margin: 48 })
-			const chunks: Buffer[] = []
-
-			doc.on('data', chunk => chunks.push(chunk))
-			doc.on('end', () => resolve(Buffer.concat(chunks)))
-			doc.on('error', reject)
-
-			doc.fontSize(18).text(title, { underline: true })
-			doc.moveDown()
-
-			const records = this.normalizeRecords(payload)
-
-			if (!records.length) {
-				doc.fontSize(12).text('No data available for this export.')
-				doc.end()
-				return
-			}
-
-			records.forEach((record, index) => {
-				doc.fontSize(12).text(`Record ${index + 1}`, { continued: false })
-				Object.entries(record).forEach(([key, value]) => {
-					doc.font('Helvetica-Bold').text(`${this.toTitleCase(key)}: `, {
-						continued: true
-					})
-					doc.font('Helvetica').text(String(value))
-				})
-				doc.moveDown()
-			})
-
-			doc.end()
-		})
+		this.logger.warn('PDF export not implemented - use Excel or CSV')
+		throw new Error('PDF export is not currently supported. Please use Excel or CSV format.')
 	}
 
 	private normalizeRecords(payload: unknown): Record<string, unknown>[] {

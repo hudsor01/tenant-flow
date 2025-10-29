@@ -1,4 +1,4 @@
-import { getJsonLd } from '@/lib/generate-metadata'
+import { getJsonLd } from '#lib/generate-metadata'
 
 export default function SeoJsonLd() {
 	const json = getJsonLd()

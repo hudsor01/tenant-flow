@@ -1,7 +1,7 @@
 'use client'
 
-import { ViewSwitcher, type ViewType } from '@/components/view-switcher'
-import { usePreferencesStore } from '@/providers/preferences-provider'
+import { ViewSwitcher, type ViewType } from '#components/view-switcher'
+import { usePreferencesStore } from '#providers/preferences-provider'
 import { PropertiesGridClient } from './properties-grid.client'
 import { PropertiesTableClient } from './properties-table.client'
 import type { Property } from '@repo/shared/types/core'
@@ -36,8 +36,9 @@ export function PropertiesViewClient({ data }: PropertiesViewClientProps) {
 			{currentView === 'grid' ? (
 				<PropertiesGridClient data={data} />
 			) : (
-				<PropertiesTableClient data={data} />
+				<PropertiesTableClient initialProperties={data} />
 			)}
+		
 		</div>
 	)
 }

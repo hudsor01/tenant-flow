@@ -1,11 +1,11 @@
 'use client'
 
-import { Spinner } from '@/components/ui/spinner'
+import { Spinner } from '#components/ui/spinner'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
 import { Building, CheckCircle, ExternalLink, XCircle } from 'lucide-react'
 
 import {
@@ -14,22 +14,22 @@ import {
 	DialogDescription,
 	DialogHeader,
 	DialogTitle
-} from '@/components/ui/dialog'
-import { Field, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+} from '#components/ui/dialog'
+import { Field, FieldLabel } from '#components/ui/field'
+import { Input } from '#components/ui/input'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
+} from '#components/ui/select'
 
 import {
 	useConnectedAccount,
 	useCreateConnectedAccount,
 	useRefreshOnboarding
-} from '@/hooks/api/use-stripe-connect'
+} from '#hooks/api/use-stripe-connect'
 
 interface ConnectOnboardingDialogProps {
 	open: boolean

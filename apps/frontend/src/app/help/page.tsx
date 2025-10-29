@@ -1,11 +1,11 @@
 'use client'
 
-import Footer from '@/components/layout/footer'
-import { HeroSection } from '@/components/sections/hero-section'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { GridPattern } from '@/components/ui/grid-pattern'
+import Footer from '#components/layout/footer'
+import { HeroSection } from '#components/sections/hero-section'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { GridPattern } from '#components/ui/grid-pattern'
 
 import {
 	Item,
@@ -16,7 +16,7 @@ import {
 	ItemMedia,
 	ItemSeparator,
 	ItemTitle
-} from '@/components/ui/item'
+} from '#components/ui/item'
 import {
 	ArrowRight,
 	Book,

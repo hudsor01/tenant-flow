@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import sharp from 'sharp'
-import { PDFDocument } from 'pdf-lib'
 
 export interface CompressionResult {
 	compressed: Buffer
@@ -95,35 +94,12 @@ export class CompressionService {
 	}
 
 	/**
-	 * Compress PDF using pdf-lib
-	 * - Remove metadata
-	 * - Optimize object streams
-	 * Target: 10-30% size reduction
-	 *
-	 * Note: For better compression (60-80%), consider Ghostscript in future
+	 * PDF compression disabled (pdf-lib removed)
+	 * Returns original buffer without compression
+	 * TODO: Implement PDF compression using Ghostscript or similar if needed
 	 */
 	private async compressPDF(buffer: Buffer): Promise<Buffer> {
-		this.logger.debug('Compressing PDF')
-
-		try {
-			// Load PDF document
-			const pdfDoc = await PDFDocument.load(buffer, {
-				ignoreEncryption: true
-			})
-
-			// Save with compression options
-			const compressedBytes = await pdfDoc.save({
-				useObjectStreams: false, // Smaller file size
-				addDefaultPage: false,
-				objectsPerTick: 50 // Performance optimization
-			})
-
-			return Buffer.from(compressedBytes)
-		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-			this.logger.warn(`PDF compression failed: ${errorMessage}`)
-			// Return original if compression fails
-			return buffer
-		}
+		this.logger.debug('PDF compression disabled - returning original')
+		return buffer
 	}
 }

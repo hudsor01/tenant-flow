@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Resend } from 'resend'
+import { render } from '@react-email/render'
+import { PaymentSuccessEmail } from '../../emails/payment-success-email'
+import { PaymentFailedEmail } from '../../emails/payment-failed-email'
+import { SubscriptionCanceledEmail } from '../../emails/subscription-canceled-email'
 
 export interface TenantInvitationEmailData {
 	tenantEmail: string
@@ -146,6 +150,123 @@ export class EmailService {
 			this.logger.error('Failed to send invitation reminder', {
 				error: error instanceof Error ? error.message : String(error),
 				tenantEmail: data.tenantEmail
+			})
+		}
+	}
+
+	/**
+	 * Send payment success email using React template
+	 */
+	async sendPaymentSuccessEmail(data: {
+		customerEmail: string
+		amount: number
+		currency: string
+		invoiceUrl: string | null
+		invoicePdf: string | null
+	}): Promise<void> {
+		if (!this.resend) {
+			this.logger.warn('Resend not configured, skipping payment success email', {
+				customerEmail: data.customerEmail
+			})
+			return
+		}
+
+		try {
+			const emailHtml = await render(PaymentSuccessEmail(data))
+
+			const result = await this.resend.emails.send({
+				from: 'TenantFlow <noreply@tenantflow.app>',
+				to: [data.customerEmail],
+				subject: `Payment Receipt - ${data.currency.toUpperCase()} ${(data.amount / 100).toFixed(2)}`,
+				html: emailHtml
+			})
+
+			this.logger.log('Payment success email sent successfully', {
+				customerEmail: data.customerEmail,
+				emailId: result.data?.id
+			})
+		} catch (error) {
+			this.logger.error('Failed to send payment success email', {
+				error: error instanceof Error ? error.message : String(error),
+				customerEmail: data.customerEmail
+			})
+		}
+	}
+
+	/**
+	 * Send payment failed email using React template
+	 */
+	async sendPaymentFailedEmail(data: {
+		customerEmail: string
+		amount: number
+		currency: string
+		attemptCount: number
+		invoiceUrl: string | null
+		isLastAttempt: boolean
+	}): Promise<void> {
+		if (!this.resend) {
+			this.logger.warn('Resend not configured, skipping payment failed email', {
+				customerEmail: data.customerEmail
+			})
+			return
+		}
+
+		try {
+			const emailHtml = await render(PaymentFailedEmail(data))
+
+			const result = await this.resend.emails.send({
+				from: 'TenantFlow <noreply@tenantflow.app>',
+				to: [data.customerEmail],
+				subject: `Payment Failed - Action Required`,
+				html: emailHtml
+			})
+
+			this.logger.log('Payment failed email sent successfully', {
+				customerEmail: data.customerEmail,
+				emailId: result.data?.id
+			})
+		} catch (error) {
+			this.logger.error('Failed to send payment failed email', {
+				error: error instanceof Error ? error.message : String(error),
+				customerEmail: data.customerEmail
+			})
+		}
+	}
+
+	/**
+	 * Send subscription canceled email using React template
+	 */
+	async sendSubscriptionCanceledEmail(data: {
+		customerEmail: string
+		subscriptionId: string
+		cancelAtPeriodEnd: boolean
+		currentPeriodEnd: Date | null
+	}): Promise<void> {
+		if (!this.resend) {
+			this.logger.warn('Resend not configured, skipping subscription canceled email', {
+				customerEmail: data.customerEmail
+			})
+			return
+		}
+
+		try {
+			const emailHtml = await render(SubscriptionCanceledEmail(data))
+
+			const result = await this.resend.emails.send({
+				from: 'TenantFlow <noreply@tenantflow.app>',
+				to: [data.customerEmail],
+				subject: 'Subscription Canceled - TenantFlow',
+				html: emailHtml
+			})
+
+			this.logger.log('Subscription canceled email sent successfully', {
+				customerEmail: data.customerEmail,
+				emailId: result.data?.id
+			})
+		} catch (error) {
+			this.logger.error('Failed to send subscription canceled email', {
+				error: error instanceof Error ? error.message : String(error),
+				customerEmail: data.customerEmail
 			})
 		}
 	}

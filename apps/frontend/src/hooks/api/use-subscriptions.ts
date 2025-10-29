@@ -11,7 +11,7 @@ import type {
 	RentSubscriptionResponse,
 	UpdateSubscriptionRequest
 } from '@repo/shared/types/core'
-import { subscriptionsApi } from '@/lib/api-client'
+import { subscriptionsApi } from '#lib/api-client'
 import { toast } from 'sonner'
 
 /**

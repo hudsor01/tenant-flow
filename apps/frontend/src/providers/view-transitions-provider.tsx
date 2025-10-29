@@ -1,6 +1,6 @@
 'use client'
 
-import { safeDocumentEvents } from '@/lib/dom-utils'
+import { safeDocumentEvents } from '#lib/dom-utils'
 import { useRouter } from 'next/navigation'
 import { useEffect, useTransition, type ReactNode } from 'react'
 

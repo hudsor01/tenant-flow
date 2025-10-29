@@ -1,6 +1,6 @@
 import { 
   cn
-} from "@/lib/design-system"
+} from "#lib/design-system"
 
 interface BorderBeamProps {
   className?: string

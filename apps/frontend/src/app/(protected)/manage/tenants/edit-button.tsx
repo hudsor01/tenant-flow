@@ -1,17 +1,17 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { ButtonGroup } from '@/components/ui/button-group'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { ButtonGroup } from '#components/ui/button-group'
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle
-} from '@/components/ui/dialog'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
-import { useTenantOperations } from '@/hooks/api/use-tenant'
-import type { FormFieldApi } from '@/lib/form-types'
+} from '#components/ui/dialog'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
+import { useTenantOperations } from '#hooks/api/use-tenant'
+import type { FormFieldApi } from '@repo/shared/types/forms'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
 import { tenantUpdateSchema } from '@repo/shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'

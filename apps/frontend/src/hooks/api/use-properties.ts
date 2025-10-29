@@ -11,7 +11,7 @@
  */
 
 import { logger } from '@repo/shared/lib/frontend-logger'
-import { handleConflictError, isConflictError, withVersion, incrementVersion } from '@/lib/optimistic-locking'
+import { handleConflictError, isConflictError, withVersion, incrementVersion } from '@repo/shared/utils/optimistic-locking'
 import type {
 	CreatePropertyInput,
 	UpdatePropertyInput
@@ -20,7 +20,7 @@ import type { Property, PropertyStats } from '@repo/shared/types/core'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { API_BASE_URL } from '@/lib/api-client'
+import { API_BASE_URL } from '#lib/api-client'
 
 /**
  * Query keys for property endpoints (hierarchical, typed)
@@ -412,8 +412,8 @@ export function useUpdateProperty() {
 			// 🔐 BUG FIX #2: Handle 409 Conflict using helper
 			if (isConflictError(err)) {
 				handleConflictError('property', id, queryClient, [
-					propertiesKeys.detail(id) as unknown as string[],
-					propertiesKeys.all as unknown as string[]
+					propertiesKeys.detail(id),
+					propertiesKeys.all
 				])
 			} else {
 				const errorMessage = err instanceof Error ? err.message : 'Failed to update property'

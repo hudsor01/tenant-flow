@@ -1,8 +1,8 @@
 'use client'
 
-import { LoginForm } from '@/components/auth/login-form'
-import { SignupForm } from '@/components/auth/signup-form'
-import { cn } from '@/lib/design-system'
+import { LoginForm } from '#components/auth/login-form'
+import { SignupForm } from '#components/auth/signup-form'
+import { cn } from '#lib/design-system'
 import type { LoginLayoutProps } from '@repo/shared/types/auth'
 import { Lock, Smartphone, Zap } from 'lucide-react'
 import Image from 'next/image'

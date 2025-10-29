@@ -8,9 +8,9 @@
 import {
 	useSupabaseUpload,
 	type UseSupabaseUploadOptions
-} from '@/hooks/use-supabase-upload'
-import { compressImage, formatFileSize } from '@/lib/image-compression'
-import { createClient } from '@/lib/supabase/client'
+} from '#hooks/use-supabase-upload'
+import { compressImage, formatFileSize } from '#lib/image-compression'
+import { createClient } from '#lib/supabase/client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { toast } from 'sonner'

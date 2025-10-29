@@ -1,17 +1,17 @@
 'use client'
 
-import { tenantsApi } from '@/lib/api-client'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { DataTable } from '@/components/ui/data-table'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import { tenantsApi } from '#lib/api-client'
+import { Button } from '#components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
+import { DataTable } from '#components/ui/data-table'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '#components/ui/alert-dialog'
 import { Trash2 } from 'lucide-react'
 import { useOptimistic, useState, useTransition, useEffect } from 'react'
 import { toast } from 'sonner'
 import { ColumnDef } from '@tanstack/react-table'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { useResendInvitation } from '@/hooks/api/use-tenant'
+import { useResendInvitation } from '#hooks/api/use-tenant'
 
 const logger = createLogger({ component: 'TenantsTableClient' })
 

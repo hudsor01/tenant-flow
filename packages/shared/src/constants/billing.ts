@@ -1,26 +1,10 @@
 /**
- * Billing constants
- * Central source of truth for billing enums and constants
+ * Billing Plans Constants
+ *
+ * Defines the available billing plans and related utility functions.
+ * This file is a single source of truth for both frontend and backend.
  */
 
-import type { BillingPeriod } from '../types/stripe.js'
-
-export interface BillingPlan {
-	id: string
-	name: string
-	description: string
-	price: {
-		monthly: number
-		annual: number
-	}
-	features: string[]
-	propertyLimit: number
-	storageLimit: number
-	apiCallLimit: number
-	priority: boolean
-}
-
-// Plan type enum
 export const PLAN_TYPE = {
 	FREETRIAL: 'FREETRIAL',
 	STARTER: 'STARTER',
@@ -30,75 +14,93 @@ export const PLAN_TYPE = {
 
 export type PlanType = (typeof PLAN_TYPE)[keyof typeof PLAN_TYPE]
 
-// Subscription status enum
-export const SUB_STATUS = {
-	ACTIVE: 'ACTIVE',
-	CANCELLED: 'CANCELLED',
-	PAST_DUE: 'PAST_DUE',
-	INCOMPLETE: 'INCOMPLETE',
-	INCOMPLETE_EXPIRED: 'INCOMPLETE_EXPIRED',
-	TRIALING: 'TRIALING',
-	UNPAID: 'UNPAID'
-} as const
+export interface BillingPlan {
+	id: PlanType
+	name: string
+	description: string
+	price: {
+		monthly: number
+		annual: number
+	}
+	features: string[]
+	propertyLimit: number
+	storageLimit: number // in GB
+	apiCallLimit: number
+	priority: boolean
+}
 
-export type SubStatus = (typeof SUB_STATUS)[keyof typeof SUB_STATUS]
-
-// Plan configuration data
-export const PLANS: BillingPlan[] = [
-	{
-		id: 'FREETRIAL',
+export const BILLING_PLANS: Record<PlanType, BillingPlan> = {
+	[PLAN_TYPE.FREETRIAL]: {
+		id: PLAN_TYPE.FREETRIAL,
 		name: 'Free Trial',
-		description: 'Perfect for getting started',
-		price: { monthly: 0, annual: 0 },
-		features: ['Up to 2 properties', '5GB storage', 'Basic support'],
+		description: '14-day free trial with 2 properties',
+		price: {
+			monthly: 0,
+			annual: 0
+		},
+		features: ['2 properties', 'Basic features', '14-day trial'],
 		propertyLimit: 2,
-		storageLimit: 5000,
+		storageLimit: 1,
 		apiCallLimit: 1000,
 		priority: false
 	},
-	{
-		id: 'STARTER',
+	[PLAN_TYPE.STARTER]: {
+		id: PLAN_TYPE.STARTER,
 		name: 'Starter',
-		description: 'Great for small portfolios',
-		price: { monthly: 2900, annual: 29000 },
-		features: ['Up to 10 properties', '50GB storage', 'Email support'],
+		description: 'Perfect for small landlords',
+		price: {
+			monthly: 19,
+			annual: 190
+		},
+		features: ['10 properties', 'Standard features', 'Email support'],
 		propertyLimit: 10,
-		storageLimit: 50000,
+		storageLimit: 5,
 		apiCallLimit: 10000,
 		priority: false
 	},
-	{
-		id: 'GROWTH',
+	[PLAN_TYPE.GROWTH]: {
+		id: PLAN_TYPE.GROWTH,
 		name: 'Growth',
-		description: 'Scale your property business',
-		price: { monthly: 7900, annual: 79000 },
-		features: ['Up to 50 properties', '200GB storage', 'Priority support'],
+		description: 'For growing property managers',
+		price: {
+			monthly: 49,
+			annual: 490
+		},
+		features: ['50 properties', 'Advanced features', 'Priority support'],
 		propertyLimit: 50,
-		storageLimit: 200000,
+		storageLimit: 25,
 		apiCallLimit: 50000,
 		priority: true
 	},
-	{
-		id: 'TENANTFLOW_MAX',
-		name: 'TenantFlow MAX',
+	[PLAN_TYPE.TENANTFLOW_MAX]: {
+		id: PLAN_TYPE.TENANTFLOW_MAX,
+		name: 'TenantFlow Max',
 		description: 'For large property portfolios',
-		price: { monthly: 19900, annual: 199000 },
-		features: [
-			'Unlimited properties',
-			'Unlimited storage',
-			'24/7 support',
-			'Custom integrations'
-		],
-		propertyLimit: -1,
-		storageLimit: -1,
-		apiCallLimit: -1,
+		price: {
+			monthly: 99,
+			annual: 990
+		},
+		features: ['200 properties', 'Enterprise features', '24/7 support'],
+		propertyLimit: 200,
+		storageLimit: 100,
+		apiCallLimit: 200000,
 		priority: true
 	}
-]
+}
 
-// Derived options arrays for frontend use
-export const PLAN_TYPE_OPTIONS = Object.values(PLAN_TYPE)
-export const SUB_STATUS_OPTIONS = Object.values(SUB_STATUS)
+export const getBillingPlans = () => BILLING_PLANS
 
-// Re-export BillingPeriod type for convenience
-export type { BillingPeriod }
+// Backward compatibility alias
+export const PLANS = BILLING_PLANS
+
+export const getPlanById = (planId: PlanType): BillingPlan | undefined => {
+	return BILLING_PLANS[planId]
+}
+
+export const getDefaultPlan = (): BillingPlan => {
+	const plan = BILLING_PLANS[PLAN_TYPE.FREETRIAL]
+	if (!plan) {
+		throw new Error('Default plan not found')
+	}
+	return plan
+}

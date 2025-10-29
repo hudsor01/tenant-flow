@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/avatar'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -20,15 +20,15 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+} from '#components/ui/dropdown-menu'
 import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar
-} from '@/components/ui/sidebar'
-import { useSignOut } from '@/hooks/api/use-auth'
-import { useAuth } from '@/providers/auth-provider'
+} from '#components/ui/sidebar'
+import { useSignOut } from '#hooks/api/use-auth'
+import { useAuth } from '#providers/auth-provider'
 
 export function NavUser() {
 	const { isMobile } = useSidebar()

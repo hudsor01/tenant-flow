@@ -8,14 +8,14 @@
 
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Spinner } from '@/components/ui/spinner'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Spinner } from '#components/ui/spinner'
 import {
 	useApplyLateFee,
 	useOverduePayments,
 	useProcessLateFees
-} from '@/hooks/api/use-late-fees'
+} from '#hooks/api/use-late-fees'
 import { format } from 'date-fns'
 import {
 	AlertCircle,
@@ -36,12 +36,7 @@ interface LateFeesSectionProps {
 /**
  * Format currency for display
  */
-function formatCurrency(amount: number): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD'
-	}).format(amount)
-}
+import { formatCurrency } from '@repo/shared/utils/currency'
 
 /**
  * Format date for display

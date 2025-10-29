@@ -1,6 +1,6 @@
 'use client'
 
-import { propertiesApi, tenantsApi } from '@/lib/api-client'
+import { propertiesApi, tenantsApi } from '#lib/api-client'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import type { PropertyWithUnits } from '@repo/shared/types/relations'
 import type { Database } from '@repo/shared/types/supabase-generated'

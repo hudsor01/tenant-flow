@@ -11,7 +11,7 @@
  */
 
 import { logger } from '@repo/shared/lib/frontend-logger'
-import { handleConflictError, isConflictError, withVersion, incrementVersion } from '@/lib/optimistic-locking'
+import { handleConflictError, isConflictError, withVersion, incrementVersion } from '@repo/shared/utils/optimistic-locking'
 import type {
 	CreateUnitInput,
 	UpdateUnitInput
@@ -20,7 +20,7 @@ import type { Unit, UnitStats } from '@repo/shared/types/core'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { API_BASE_URL } from '@/lib/api-client'
+import { API_BASE_URL } from '#lib/api-client'
 
 /**
  * Query keys for unit endpoints (hierarchical, typed)
@@ -326,8 +326,8 @@ export function useUpdateUnit() {
 			// 🔐 BUG FIX #2: Handle 409 Conflict using helper
 			if (isConflictError(err)) {
 				handleConflictError('unit', id, queryClient, [
-					unitKeys.detail(id) as unknown as string[],
-					unitKeys.all as unknown as string[]
+					unitKeys.detail(id),
+					unitKeys.all
 				])
 			} else {
 				const errorMessage = err instanceof Error ? err.message : 'Failed to update unit'

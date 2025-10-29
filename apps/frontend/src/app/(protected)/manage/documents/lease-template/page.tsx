@@ -4,7 +4,7 @@ import {
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
+} from '#components/ui/card'
 import { FileText } from 'lucide-react'
 import { LeaseTemplateBuilder } from './lease-template-builder.client'
 
