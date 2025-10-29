@@ -31,24 +31,24 @@ BEGIN
   v_thirty_days_from_now := v_now + INTERVAL '30 days';
 
   -- Build complete dashboard stats in single query
-  WITH 
+  WITH
   -- Get all user's properties
   user_properties AS (
     SELECT id, status
     FROM property
     WHERE "ownerId" = p_internal_user_id
   ),
-  
+
   -- Get all units for user's properties
   user_units AS (
     SELECT u.id, u."propertyId", u.status, u.rent
     FROM unit u
     INNER JOIN user_properties p ON p.id = u."propertyId"
   ),
-  
+
   -- Get all leases for user's units
   user_leases AS (
-    SELECT 
+    SELECT
       l.id,
       l.status,
       l."startDate",
@@ -62,24 +62,24 @@ BEGIN
     FROM lease l
     INNER JOIN user_units u ON u.id = l."unitId"
   ),
-  
+
   -- Get all tenants
   user_tenants AS (
     SELECT status, "createdAt"
     FROM tenant
     WHERE "userId" = p_internal_user_id
   ),
-  
+
   -- Get all maintenance requests
   user_maintenance AS (
     SELECT m.id, m.status, m.priority, m."createdAt", m."updatedAt", m."completedAt"
     FROM maintenance_request m
     INNER JOIN user_units u ON u.id = m."unitId"
   ),
-  
+
   -- Get all rent payments
   user_payments AS (
-    SELECT 
+    SELECT
       "landlordReceives",
       amount,
       "paidAt",
@@ -89,7 +89,20 @@ BEGIN
     WHERE "landlordId" = p_supabase_auth_id
       AND "createdAt" >= LEAST(v_start_of_previous_month, v_start_of_year)
   ),
-  
+
+  -- Pre-calculate active rent amounts per property to avoid duplicate joins
+  property_active_rent AS (
+    SELECT
+      p.id as property_id,
+      COALESCE(l."rentAmount", l."monthlyRent", u.rent) as rent_amount
+    FROM lease l
+    JOIN unit u ON l."unitId" = u.id
+    JOIN user_properties p ON u."propertyId" = p.id
+    WHERE l.status = 'ACTIVE'
+      AND (l."startDate" IS NULL OR l."startDate" <= v_now)
+      AND (l."endDate" IS NULL OR l."endDate" >= v_now)
+  ),
+
   -- Calculate property stats
   property_stats AS (
     SELECT
@@ -104,20 +117,30 @@ BEGIN
           ),
           2
         ),
-        'totalMonthlyRent', 0::numeric,  -- Will be calculated from leases
-        'averageRent', 0::numeric        -- Will be calculated from leases
+        'totalMonthlyRent', ROUND(
+          COALESCE(
+            (SELECT SUM(rent_amount) FROM property_active_rent 
+             WHERE property_id = user_properties.id), 0
+          )::numeric, 2
+        ),
+        'averageRent', ROUND(
+          COALESCE(
+            (SELECT AVG(rent_amount) FROM property_active_rent 
+             WHERE property_id = user_properties.id), 0
+          )::numeric, 2
+        )
       ) as stats
     FROM user_properties
   ),
-  
+
   -- Calculate unit stats with occupancy
   unit_stats AS (
     SELECT
       json_build_object(
         'total', COUNT(*),
         'occupied', COUNT(*) FILTER (WHERE u.status = 'OCCUPIED' OR EXISTS (
-          SELECT 1 FROM user_leases l 
-          WHERE l."unitId" = u.id 
+          SELECT 1 FROM user_leases l
+          WHERE l."unitId" = u.id
             AND l.status = 'ACTIVE'
             AND (l."startDate" IS NULL OR l."startDate" <= v_now)
             AND (l."endDate" IS NULL OR l."endDate" >= v_now)
@@ -139,7 +162,7 @@ BEGIN
       ) as stats
     FROM user_units u
   ),
-  
+
   -- Calculate lease stats
   lease_stats AS (
     SELECT
@@ -175,7 +198,7 @@ BEGIN
       ) as stats
     FROM user_leases
   ),
-  
+
   -- Calculate tenant stats
   tenant_stats AS (
     SELECT
@@ -189,7 +212,7 @@ BEGIN
       ) as stats
     FROM user_tenants
   ),
-  
+
   -- Calculate maintenance stats
   maintenance_stats AS (
     SELECT
@@ -220,7 +243,7 @@ BEGIN
       ) as stats
     FROM user_maintenance
   ),
-  
+
   -- Calculate revenue stats
   revenue_stats AS (
     SELECT
@@ -278,7 +301,7 @@ BEGIN
       ) as stats
     FROM user_payments
   )
-  
+
   -- Combine all stats into final result
   SELECT json_build_object(
     'properties', (SELECT stats FROM property_stats),
@@ -303,5 +326,5 @@ $$;
 GRANT EXECUTE ON FUNCTION get_dashboard_stats_optimized(TEXT, TEXT) TO authenticated;
 
 -- Add comment for documentation
-COMMENT ON FUNCTION get_dashboard_stats_optimized(TEXT, TEXT) IS 
+COMMENT ON FUNCTION get_dashboard_stats_optimized(TEXT, TEXT) IS
 'High-performance dashboard statistics aggregation. Replaces 558 lines of Node.js computation with optimized SQL. Expected 80-90% performance improvement.';
