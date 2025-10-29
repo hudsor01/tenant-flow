@@ -326,8 +326,8 @@ export function useUpdateUnit() {
 			// 🔐 BUG FIX #2: Handle 409 Conflict using helper
 			if (isConflictError(err)) {
 				handleConflictError('unit', id, queryClient, [
-					unitKeys.detail(id) as unknown as string[],
-					unitKeys.all as unknown as string[]
+					unitKeys.detail(id),
+					unitKeys.all
 				])
 			} else {
 				const errorMessage = err instanceof Error ? err.message : 'Failed to update unit'

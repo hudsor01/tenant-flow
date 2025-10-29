@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "TenantFlow Frontend - ESLint TypeScript Configuration (Modernized 2025)",
+  "display": "TenantFlow Frontend - ESLint TypeScript Configuration",
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": true

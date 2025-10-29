@@ -208,21 +208,6 @@ export interface ThemeCSSVariables {
 	[key: string]: string
 }
 
-// WEB VITALS TYPES
-
-export interface WebVitalData {
-	name: string
-	value: number
-	rating: 'good' | 'needs-improvement' | 'poor'
-	delta: number
-	id: string
-	navigationType?: string
-	page: string
-	timestamp: string
-	sessionId?: string
-	userId?: string
-}
-
 // HEALTH CHECK TYPES
 
 export interface FrontendHealthCheckResponse {

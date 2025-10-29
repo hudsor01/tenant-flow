@@ -28,8 +28,21 @@ export default defineConfig({
 				statements: 80
 			}
 		},
-		include: ['src/**/*.{test,spec}.{ts,tsx}', '__tests__/**/*.{test,spec}.{ts,tsx}'],
-		exclude: ['node_modules', 'dist', '.next', 'out', 'build', 'coverage', 'tests/**', 'e2e/**', 'playwright/**'],
+		include: [
+			'src/**/*.{test,spec}.{ts,tsx}',
+			'__tests__/**/*.{test,spec}.{ts,tsx}'
+		],
+		exclude: [
+			'node_modules',
+			'dist',
+			'.next',
+			'out',
+			'build',
+			'coverage',
+			'tests/**',
+			'e2e/**',
+			'playwright/**'
+		],
 		testTimeout: 10000,
 		hookTimeout: 10000
 	},

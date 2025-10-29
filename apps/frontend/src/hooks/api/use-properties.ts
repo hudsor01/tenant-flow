@@ -412,8 +412,8 @@ export function useUpdateProperty() {
 			// 🔐 BUG FIX #2: Handle 409 Conflict using helper
 			if (isConflictError(err)) {
 				handleConflictError('property', id, queryClient, [
-					propertiesKeys.detail(id) as unknown as string[],
-					propertiesKeys.all as unknown as string[]
+					propertiesKeys.detail(id),
+					propertiesKeys.all
 				])
 			} else {
 				const errorMessage = err instanceof Error ? err.message : 'Failed to update property'
