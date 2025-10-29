@@ -92,51 +92,33 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 
 	constructor() {
 		const supabaseUrl = process.env.SUPABASE_URL
-		const jwtSecret = process.env.SUPABASE_JWT_SECRET
 
 		if (!supabaseUrl) {
 			throw new Error('SUPABASE_URL environment variable is required')
 		}
 
-		// Support both legacy HS256 (JWT secret) and modern JWKS (RS256/ES256)
-		if (jwtSecret) {
-			// Legacy mode: Use JWT secret for HS256
-			super({
-				jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-				ignoreExpiration: false,
-				secretOrKey: jwtSecret,
-				algorithms: ['HS256', 'RS256', 'ES256']
-			})
-		} else {
-			// Modern mode: Use JWKS for RS256/ES256
-			super({
-				jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-				ignoreExpiration: false,
-				secretOrKeyProvider: jwksRsa.passportJwtSecret({
-					jwksUri: `${supabaseUrl}/auth/v1/.well-known/jwks.json`,
-					cache: true,
-					cacheMaxEntries: 5,
-					cacheMaxAge: 600000, // 10 minutes
-					rateLimit: true,
-					jwksRequestsPerMinute: 10
-				}),
-				algorithms: ['HS256', 'RS256', 'ES256']
-			})
-		}
+		// Modern JWKS-based authentication (RS256/ES256)
+		super({
+			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+			ignoreExpiration: false,
+			secretOrKeyProvider: jwksRsa.passportJwtSecret({
+				jwksUri: `${supabaseUrl}/auth/v1/.well-known/jwks.json`,
+				cache: true,
+				cacheMaxEntries: 5,
+				cacheMaxAge: 600000, // 10 minutes
+				rateLimit: true,
+				jwksRequestsPerMinute: 10
+			}),
+			algorithms: ['RS256', 'ES256']
+		})
 
-		// Log after super() call
-		if (jwtSecret) {
-			this.logger.log('SupabaseStrategy initialized with HS256 JWT secret (legacy mode)')
-		} else {
-			this.logger.log('SupabaseStrategy initialized with JWKS verification (modern mode)')
-		}
+		this.logger.log('SupabaseStrategy initialized with JWKS verification (RS256/ES256)')
 	}
 
 	async validate(payload: SupabaseJwtPayload): Promise<TokenValidationResult> {
 		const userId = payload.sub ?? 'unknown'
 		this.logger.debug('Starting JWT validation', {
 			userId,
-			email: payload.email,
 			issuer: payload.iss,
 			audience: payload.aud,
 			expiresAt: payload.exp ? new Date(payload.exp * 1000) : null
@@ -232,7 +214,6 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 
 		this.logger.debug('User authenticated successfully', {
 			userId: user.id,
-			email: user.email,
 			role: user.role,
 			timeUntilExpiry,
 			tokenAge

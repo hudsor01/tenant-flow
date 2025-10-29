@@ -351,7 +351,17 @@ export class PropertiesController {
 	@UseInterceptors(
 		FileInterceptor('file', {
 			storage: memoryStorage(),
-			limits: { fileSize: 5 * 1024 * 1024 } // 5MB max (optimize for storage)
+			limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max (optimize for storage)
+			fileFilter: (_req, file, callback) => {
+				const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+				if (!allowedMimeTypes.includes(file.mimetype)) {
+					return callback(
+						new BadRequestException('Invalid file type; only images are allowed'),
+						false
+					)
+				}
+				callback(null, true)
+			}
 		})
 	)
 	async uploadImage(
