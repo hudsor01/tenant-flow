@@ -2,276 +2,354 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { BadRequestException } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
 import { StorageService } from '../../database/storage.service'
-import { UtilityService } from '../../shared/services/utility.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { UtilityService } from '../../shared/services/utility.service'
 import { buildMultiColumnSearch } from '../../shared/utils/sql-safe.utils'
 import { createMockProperty } from '../../test-utils/mocks'
 import { PropertiesService } from './properties.service'
 
-type SupabaseResponse<T> = { data: T; error: unknown }
-
-const createQueryBuilder = <T>(response: SupabaseResponse<T>) => {
-	const builder: any = {
-		select: jest.fn(() => builder),
-		eq: jest.fn(() => builder),
-		order: jest.fn(() => builder),
-		range: jest.fn(() => builder),
-		or: jest.fn(() => builder),
-		insert: jest.fn(() => builder),
-		update: jest.fn(() => builder),
-		// Supabase builders are thenable – emulate that behaviour
-		then: (onFulfilled: any, onRejected: any) =>
-			Promise.resolve(response).then(onFulfilled, onRejected),
-		catch: (onRejected: any) => Promise.resolve(response).catch(onRejected),
-		single: jest.fn(() => Promise.resolve(response))
-	}
-	return builder
-}
-
 describe('PropertiesService', () => {
 	let service: PropertiesService
-	let mockSupabaseService: { getAdminClient: jest.Mock }
-	let mockCacheManager: { get: jest.Mock; set: jest.Mock }
-	let mockStorageService: { deleteFile: jest.Mock }
-	let mockAdminClient: { from: jest.Mock; rpc: jest.Mock }
+	let supabaseService: SupabaseService
+	let utilityService: UtilityService
+	let cacheManager: {
+		get: jest.Mock
+		set: jest.Mock
+	}
+	let mockAdminClient: {
+		from: jest.Mock
+		rpc: jest.Mock
+	}
 
 	beforeEach(async () => {
+		// Create mock admin client
 		mockAdminClient = {
 			from: jest.fn(),
 			rpc: jest.fn()
 		}
-		mockSupabaseService = {
-			getAdminClient: jest.fn(() => mockAdminClient)
-		}
-		mockCacheManager = {
-			get: jest.fn(),
-			set: jest.fn()
-		}
-		mockStorageService = {
-			deleteFile: jest.fn()
-		}
 
-		const mockUtilityService = {
-			getUserIdFromSupabaseId: jest.fn()
-		}
-
+		// Create module with mocked dependencies
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				PropertiesService,
 				{
-					provide: UtilityService,
-					useValue: mockUtilityService
+					provide: SupabaseService,
+					useValue: {
+						getAdminClient: jest.fn(() => mockAdminClient)
+					}
 				},
 				{
-					provide: SupabaseService,
-					useValue: mockSupabaseService
+					provide: UtilityService,
+					useValue: {
+						getUserIdFromSupabaseId: jest
+							.fn()
+							.mockImplementation(async (supabaseId: string) => {
+								// Maps Supabase auth ID to internal user ID
+								if (supabaseId === 'user-123') return 'internal-uid-1'
+								return supabaseId
+							})
+					}
 				},
 				{
 					provide: StorageService,
-					useValue: mockStorageService
+					useValue: {
+						deleteFile: jest.fn()
+					}
 				},
 				{
 					provide: CACHE_MANAGER,
-					useValue: mockCacheManager
+					useValue: {
+						get: jest.fn(),
+						set: jest.fn()
+					}
 				}
 			]
 		}).compile()
 
-		service = module.get(PropertiesService)
+		service = module.get<PropertiesService>(PropertiesService)
+		supabaseService = module.get<SupabaseService>(SupabaseService)
+		utilityService = module.get<UtilityService>(UtilityService)
+		cacheManager = module.get(CACHE_MANAGER)
+	})
 
-		// Mock UtilityService getUserIdFromSupabaseId: Supabase ID 'user-123' -> internal ID 'internal-uid-1'
-		mockUtilityService.getUserIdFromSupabaseId.mockImplementation(
-			async (supabaseId: string) => {
-				if (supabaseId === 'user-123') return 'internal-uid-1'
-				return supabaseId
+	describe('findAll', () => {
+		it('should fetch properties with search and pagination', async () => {
+			const mockProperties = [createMockProperty({ name: 'Main Street Apartments' })]
+
+			// Create chainable query builder mock
+			const mockQueryBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				order: jest.fn().mockReturnThis(),
+				range: jest.fn().mockReturnThis(),
+				or: jest.fn().mockResolvedValue({ data: mockProperties, error: null })
 			}
-		)
-	})
 
-	it('fetches properties for a user and sanitises search input', async () => {
-		const properties = [createMockProperty()]
-		const listBuilder = createQueryBuilder({ data: properties, error: null })
-		mockAdminClient.from.mockReturnValue(listBuilder)
+			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
 
-		const result = await service.findAll('user-123', {
-			search: '  Main  ',
-			limit: 10,
-			offset: 0
+			const result = await service.findAll('user-123', {
+				search: '  Main  ',
+				limit: 10,
+				offset: 0
+			})
+
+			expect(result).toEqual(mockProperties)
+			expect(mockAdminClient.from).toHaveBeenCalledWith('property')
+			expect(mockQueryBuilder.eq).toHaveBeenCalledWith('ownerId', 'internal-uid-1')
+			expect(mockQueryBuilder.or).toHaveBeenCalledWith(
+				buildMultiColumnSearch('Main', ['name', 'address', 'city'])
+			)
 		})
 
-		expect(result).toEqual(properties)
-		expect(mockAdminClient.from).toHaveBeenCalledWith('property')
-		expect(listBuilder.eq).toHaveBeenCalledWith('ownerId', 'internal-uid-1')
-		expect(listBuilder.or).toHaveBeenCalledWith(
-			buildMultiColumnSearch('Main', ['name', 'address', 'city'])
-		)
+		it('should return empty array on database error', async () => {
+			const mockQueryBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				order: jest.fn().mockReturnThis(),
+				range: jest.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } })
+			}
+
+			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+
+			const result = await service.findAll('user-123', {
+				search: null,
+				limit: 10,
+				offset: 0
+			})
+
+			expect(result).toEqual([])
+		})
 	})
 
-	it('returns a single property when located', async () => {
-		const property = createMockProperty()
-		const singleBuilder = createQueryBuilder({ data: property, error: null })
-		singleBuilder.single.mockResolvedValue({ data: property, error: null })
-		mockAdminClient.from.mockReturnValue(singleBuilder)
+	describe('findOne', () => {
+		it('should return a property when found', async () => {
+			const mockProperty = createMockProperty({ id: 'prop-1' })
 
-		const result = await service.findOne('user-123', property.id)
+			const mockQueryBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				single: jest.fn().mockResolvedValue({ data: mockProperty, error: null })
+			}
 
-		expect(singleBuilder.select).toHaveBeenCalled()
-		expect(singleBuilder.eq).toHaveBeenNthCalledWith(1, 'id', property.id)
-		expect(singleBuilder.eq).toHaveBeenNthCalledWith(2, 'ownerId', 'internal-uid-1')
-		expect(result).toEqual(property)
+			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+
+			const result = await service.findOne('user-123', 'prop-1')
+
+			expect(result).toEqual(mockProperty)
+			expect(mockQueryBuilder.eq).toHaveBeenCalledWith('id', 'prop-1')
+			expect(mockQueryBuilder.eq).toHaveBeenCalledWith('ownerId', 'internal-uid-1')
+		})
+
+		it('should return null when property not found', async () => {
+			const mockQueryBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } })
+			}
+
+			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+
+			const result = await service.findOne('user-123', 'nonexistent')
+
+			expect(result).toBeNull()
+		})
 	})
 
-	it('returns null when a property cannot be found', async () => {
-		const singleBuilder = createQueryBuilder({
-			data: null,
-			error: { message: 'not found' }
-		})
-		singleBuilder.single.mockResolvedValue({
-			data: null,
-			error: { message: 'not found' }
-		})
-		mockAdminClient.from.mockReturnValue(singleBuilder)
-
-		const result = await service.findOne('user-123', 'missing-property')
-
-		expect(result).toBeNull()
-	})
-
-	it('creates a property with trimmed values and validates type', async () => {
-		const created = createMockProperty({
-			name: 'Park View',
-			address: '123 Main St'
-		})
-		const insertBuilder = createQueryBuilder({ data: created, error: null })
-		insertBuilder.single.mockResolvedValue({ data: created, error: null })
-		mockAdminClient.from.mockReturnValue(insertBuilder)
-
-		const payload = {
-			name: '  Park View  ',
-			address: ' 123 Main St ',
-			city: ' Austin ',
-			state: ' TX ',
-			zipCode: ' 78701 ',
-			propertyType: 'APARTMENT',
-			description: '  Beautiful views '
-		} as Parameters<typeof service.create>[1]
-
-		const result = await service.create('user-123', payload)
-
-		expect(insertBuilder.insert).toHaveBeenCalledWith(
-			expect.objectContaining({
-				ownerId: 'internal-uid-1',
+	describe('create', () => {
+		it('should create a property with trimmed values', async () => {
+			const mockCreated = createMockProperty({
 				name: 'Park View',
-				address: '123 Main St',
-				city: 'Austin',
-				state: 'TX',
-				zipCode: '78701',
-				propertyType: 'APARTMENT',
-				description: 'Beautiful views'
+				address: '123 Main St'
 			})
-		)
-		expect(result).toEqual(created)
-	})
 
-	// NOTE: Property type validation now happens at controller level via Zod schema
-	// This test was removed as it's redundant with controller validation tests
+			const mockQueryBuilder = {
+				insert: jest.fn().mockReturnThis(),
+				select: jest.fn().mockReturnThis(),
+				single: jest.fn().mockResolvedValue({ data: mockCreated, error: null })
+			}
 
-	it('updates a property after verifying ownership', async () => {
-		const existing = createMockProperty({ id: 'prop-1', ownerId: 'user-123' })
-		jest.spyOn(service, 'findOne').mockResolvedValue(existing as any)
+			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
 
-		const updated = { ...existing, name: 'Updated Name' }
-		const updateBuilder = createQueryBuilder({ data: updated, error: null })
-		updateBuilder.single.mockResolvedValue({ data: updated, error: null })
-		mockAdminClient.from.mockReturnValue(updateBuilder)
+			const payload = {
+				name: '  Park View  ',
+				address: ' 123 Main St ',
+				city: ' Austin ',
+				state: ' TX ',
+				zipCode: ' 78701 ',
+				propertyType: 'APARTMENT' as const,
+				description: '  Beautiful views '
+			}
 
-		const result = await service.update('user-123', 'prop-1', {
-			name: ' Updated Name '
+			const result = await service.create('user-123', payload)
+
+			expect(result).toEqual(mockCreated)
+			expect(mockQueryBuilder.insert).toHaveBeenCalledWith(
+				expect.objectContaining({
+					ownerId: 'internal-uid-1',
+					name: 'Park View',
+					address: '123 Main St',
+					city: 'Austin',
+					state: 'TX',
+					zipCode: '78701',
+					propertyType: 'APARTMENT',
+					description: 'Beautiful views'
+				})
+			)
 		})
 
-		expect(updateBuilder.update).toHaveBeenCalledWith(
-			expect.objectContaining({
-				name: 'Updated Name',
-				updatedAt: expect.any(String)
+		it('should throw BadRequestException on database error', async () => {
+			const mockQueryBuilder = {
+				insert: jest.fn().mockReturnThis(),
+				select: jest.fn().mockReturnThis(),
+				single: jest.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } })
+			}
+
+			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+
+			await expect(
+				service.create('user-123', {
+					name: 'Test',
+					address: '123 Main',
+					city: 'Austin',
+					state: 'TX',
+					zipCode: '78701',
+					propertyType: 'APARTMENT'
+				})
+			).rejects.toThrow(BadRequestException)
+		})
+	})
+
+	describe('update', () => {
+		it('should update a property after verifying ownership', async () => {
+			const mockExisting = createMockProperty({ id: 'prop-1', ownerId: 'internal-uid-1' })
+			const mockUpdated = { ...mockExisting, name: 'Updated Name' }
+
+			// Mock findOne
+			jest.spyOn(service, 'findOne').mockResolvedValue(mockExisting)
+
+			const mockQueryBuilder = {
+				update: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				select: jest.fn().mockReturnThis(),
+				single: jest.fn().mockResolvedValue({ data: mockUpdated, error: null })
+			}
+
+			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+
+			const result = await service.update('user-123', 'prop-1', {
+				name: ' Updated Name '
 			})
-		)
-		expect(result).toEqual(updated)
-	})
 
-	it('deletes a property by marking it inactive', async () => {
-		const existing = createMockProperty({ id: 'prop-1', ownerId: 'user-123' })
-		jest.spyOn(service, 'findOne').mockResolvedValue(existing as any)
-		const deleteBuilder = createQueryBuilder({ data: null, error: null })
-		mockAdminClient.from.mockReturnValue(deleteBuilder)
-
-		const result = await service.remove('user-123', 'prop-1')
-
-		expect(deleteBuilder.update).toHaveBeenCalledWith(
-			expect.objectContaining({ status: 'INACTIVE' })
-		)
-		expect(result).toEqual({
-			success: true,
-			message: 'Property deleted successfully'
+			expect(result).toEqual(mockUpdated)
+			expect(mockQueryBuilder.update).toHaveBeenCalledWith(
+				expect.objectContaining({
+					name: 'Updated Name',
+					updatedAt: expect.any(String)
+				})
+			)
 		})
 	})
 
-	it('returns cached stats when available', async () => {
-		const stats = {
-			total: 10,
-			occupied: 9,
-			vacant: 1,
-			occupancyRate: 90,
-			totalMonthlyRent: 10000,
-			averageRent: 1200
-		}
-		mockCacheManager.get.mockResolvedValue(stats)
+	describe('remove', () => {
+		it('should soft delete a property by marking it inactive', async () => {
+			const mockExisting = createMockProperty({ id: 'prop-1' })
 
-		const result = await service.getStats('user-123')
+			jest.spyOn(service, 'findOne').mockResolvedValue(mockExisting)
 
-		expect(result).toEqual(stats)
-		expect(mockAdminClient.rpc).not.toHaveBeenCalled()
+			const mockQueryBuilder = {
+				update: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				select: jest.fn().mockReturnThis(),
+				single: jest.fn().mockResolvedValue({ data: mockExisting, error: null })
+			}
+
+			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+
+			const result = await service.remove('user-123', 'prop-1')
+
+			expect(result).toEqual({
+				success: true,
+				message: 'Property deleted successfully'
+			})
+			expect(mockQueryBuilder.update).toHaveBeenCalledWith(
+				expect.objectContaining({ status: 'INACTIVE' })
+			)
+		})
 	})
 
-	it('fetches stats via RPC and caches the result when not cached', async () => {
-		mockCacheManager.get.mockResolvedValue(null)
-		const stats = {
-			total: 2,
-			occupied: 2,
-			vacant: 0,
-			occupancyRate: 100,
-			totalMonthlyRent: 4000,
-			averageRent: 2000
-		}
-		mockAdminClient.rpc.mockResolvedValue({ data: stats, error: null })
+	describe('getStats', () => {
+		it('should return cached stats when available', async () => {
+			const mockStats = {
+				total: 10,
+				occupied: 9,
+				vacant: 1,
+				occupancyRate: 90,
+				totalMonthlyRent: 10000,
+				averageRent: 1200
+			}
 
-		const result = await service.getStats('user-123')
+			cacheManager.get.mockResolvedValue(mockStats)
 
-		expect(mockAdminClient.rpc).toHaveBeenCalledWith('get_property_stats', {
-			p_user_id: 'user-123'
+			const result = await service.getStats('user-123')
+
+			expect(result).toEqual(mockStats)
+			expect(cacheManager.get).toHaveBeenCalledWith('property-stats:user-123')
+			expect(mockAdminClient.rpc).not.toHaveBeenCalled()
 		})
-		expect(mockCacheManager.set).toHaveBeenCalledWith(
-			'property-stats:user-123',
-			stats,
-			30000
-		)
-		expect(result).toEqual(stats)
+
+		it('should fetch stats via RPC and cache the result when not cached', async () => {
+			cacheManager.get.mockResolvedValue(null)
+
+			const mockStats = {
+				total: 2,
+				occupied: 2,
+				vacant: 0,
+				occupancyRate: 100,
+				totalMonthlyRent: 4000,
+				averageRent: 2000
+			}
+
+			mockAdminClient.rpc.mockResolvedValue({ data: mockStats, error: null })
+
+			const result = await service.getStats('user-123')
+
+			expect(result).toEqual(mockStats)
+			expect(mockAdminClient.rpc).toHaveBeenCalledWith('get_property_stats', {
+				p_user_id: 'user-123'
+			})
+			expect(cacheManager.set).toHaveBeenCalledWith(
+				'property-stats:user-123',
+				mockStats,
+				30000
+			)
+		})
 	})
 
-	it('returns properties with units and applies search filter', async () => {
-		const properties = [createMockProperty()]
-		const builder = createQueryBuilder({ data: properties, error: null })
-		mockAdminClient.from.mockReturnValue(builder)
+	describe('findAllWithUnits', () => {
+		it('should return properties with units and apply search filter', async () => {
+			const mockProperties = [createMockProperty({ name: 'Downtown Loft' })]
 
-		const result = await service.findAllWithUnits('user-123', {
-			search: 'Loft',
-			limit: 5,
-			offset: 0
+			const mockQueryBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				order: jest.fn().mockReturnThis(),
+				range: jest.fn().mockReturnThis(),
+				or: jest.fn().mockResolvedValue({ data: mockProperties, error: null })
+			}
+
+			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+
+			const result = await service.findAllWithUnits('user-123', {
+				search: 'Loft',
+				limit: 5,
+				offset: 0
+			})
+
+			expect(result).toEqual(mockProperties)
+			expect(mockQueryBuilder.select).toHaveBeenCalledWith('*, units:unit(*)')
+			expect(mockQueryBuilder.or).toHaveBeenCalledWith(
+				buildMultiColumnSearch('Loft', ['name', 'address'])
+			)
 		})
-
-		expect(result).toEqual(properties)
-		expect(builder.select).toHaveBeenCalledWith('*, units:unit(*)')
-		expect(builder.or).toHaveBeenCalledWith(
-			buildMultiColumnSearch('Loft', ['name', 'address'])
-		)
 	})
 })
