@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core'
 import { AuthModule } from './auth/auth.module'
 import { CurrentUserProvider } from './providers/current-user.provider'
 import { StripeClientService } from './stripe-client.service'
+import { ServicesModule } from './services/services.module'
 
 /**
  * Shared Module - Ultra-Native 2025 Architecture
@@ -24,8 +25,8 @@ import { StripeClientService } from './stripe-client.service'
  */
 @Global()
 @Module({
-	imports: [AuthModule],
+	imports: [AuthModule, ServicesModule],
 	providers: [Reflector, CurrentUserProvider, StripeClientService],
-	exports: [Reflector, AuthModule, CurrentUserProvider, StripeClientService]
+	exports: [Reflector, AuthModule, ServicesModule, CurrentUserProvider, StripeClientService]
 })
 export class SharedModule {}

@@ -2,6 +2,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { BadRequestException } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
 import { StorageService } from '../../database/storage.service'
+import { UtilityService } from '../../shared/services/utility.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { buildMultiColumnSearch } from '../../shared/utils/sql-safe.utils'
 import { createMockProperty } from '../../test-utils/mocks'
@@ -53,6 +54,7 @@ describe('PropertiesService', () => {
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				PropertiesService,
+				UtilityService,
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
@@ -70,9 +72,10 @@ describe('PropertiesService', () => {
 
 		service = module.get(PropertiesService)
 
-		// Mock getUserIdFromSupabaseId: Supabase ID 'user-123' -> internal ID 'internal-uid-1'
+		// Mock UtilityService.getUserIdFromSupabaseId: Supabase ID 'user-123' -> internal ID 'internal-uid-1'
+		const utilityService = module.get(UtilityService)
 		jest
-			.spyOn(service as any, 'getUserIdFromSupabaseId')
+			.spyOn(utilityService, 'getUserIdFromSupabaseId')
 			.mockImplementation(async (supabaseId: string) => {
 				if (supabaseId === 'user-123') return 'internal-uid-1'
 				return supabaseId
@@ -164,18 +167,8 @@ describe('PropertiesService', () => {
 		expect(result).toEqual(created)
 	})
 
-	it('rejects an invalid property type on create', async () => {
-		await expect(
-			service.create('user-123', {
-				name: 'Test',
-				address: '123 Test',
-				city: 'Austin',
-				state: 'TX',
-				zipCode: '78701',
-				propertyType: 'INVALID' as any
-			})
-		).rejects.toBeInstanceOf(BadRequestException)
-	})
+	// NOTE: Property type validation now happens at controller level via Zod schema
+	// This test was removed as it's redundant with controller validation tests
 
 	it('updates a property after verifying ownership', async () => {
 		const existing = createMockProperty({ id: 'prop-1', ownerId: 'user-123' })
