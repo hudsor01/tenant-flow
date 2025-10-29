@@ -51,10 +51,17 @@ describe('PropertiesService', () => {
 			deleteFile: jest.fn()
 		}
 
+		const mockUtilityService = {
+			getUserIdFromSupabaseId: jest.fn()
+		}
+
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				PropertiesService,
-				UtilityService,
+				{
+					provide: UtilityService,
+					useValue: mockUtilityService
+				},
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
@@ -72,14 +79,13 @@ describe('PropertiesService', () => {
 
 		service = module.get(PropertiesService)
 
-		// Mock UtilityService.getUserIdFromSupabaseId: Supabase ID 'user-123' -> internal ID 'internal-uid-1'
-		const utilityService = module.get(UtilityService)
-		jest
-			.spyOn(utilityService, 'getUserIdFromSupabaseId')
-			.mockImplementation(async (supabaseId: string) => {
+		// Mock UtilityService getUserIdFromSupabaseId: Supabase ID 'user-123' -> internal ID 'internal-uid-1'
+		mockUtilityService.getUserIdFromSupabaseId.mockImplementation(
+			async (supabaseId: string) => {
 				if (supabaseId === 'user-123') return 'internal-uid-1'
 				return supabaseId
-			})
+			}
+		)
 	})
 
 	it('fetches properties for a user and sanitises search input', async () => {
