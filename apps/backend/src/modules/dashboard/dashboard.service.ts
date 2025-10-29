@@ -76,13 +76,18 @@ export class DashboardService {
 			)
 			const endOfPreviousMonth = new Date(startOfCurrentMonth.getTime() - 1)
 			const startOfYear = new Date(Date.UTC(now.getUTCFullYear(), 0, 1))
-			const paymentQueryStart = (
+			const paymentQueryStart =
 				startOfPreviousMonth < startOfYear ? startOfPreviousMonth : startOfYear
-			)
 
 			const [propertyResult, tenantResult, paymentResult] = await Promise.all([
-				client.from('property').select('id, status').eq('ownerId', internalUserId),
-				client.from('tenant').select('status, createdAt').eq('userId', internalUserId),
+				client
+					.from('property')
+					.select('id, status')
+					.eq('ownerId', internalUserId),
+				client
+					.from('tenant')
+					.select('status, createdAt')
+					.eq('userId', internalUserId),
 				client
 					.from('rent_payment')
 					.select('landlordReceives, amount, paidAt, createdAt, status')
@@ -208,7 +213,9 @@ export class DashboardService {
 			if (unitIds.length > 0) {
 				const maintenanceResult = await client
 					.from('maintenance_request')
-					.select('id, status, priority, createdAt, updatedAt, completedAt, unitId')
+					.select(
+						'id, status, priority, createdAt, updatedAt, completedAt, unitId'
+					)
 					.in('unitId', unitIds)
 
 				if (maintenanceResult.error) {
@@ -277,7 +284,8 @@ export class DashboardService {
 				const status = (lease.status ?? '').toUpperCase()
 				const startDate = parseDate(lease.startDate)
 				const endDate = parseDate(lease.endDate)
-				const propertyId = lease.propertyId ?? unitPropertyMap.get(lease.unitId) ?? null
+				const propertyId =
+					lease.propertyId ?? unitPropertyMap.get(lease.unitId) ?? null
 
 				if (status === 'ACTIVE') {
 					activeLeaseCount++
@@ -287,7 +295,12 @@ export class DashboardService {
 				}
 				if (endDate && endDate < now) {
 					expiredLeaseCount++
-				} else if (status === 'ACTIVE' && endDate && endDate >= now && endDate <= soonThreshold) {
+				} else if (
+					status === 'ACTIVE' &&
+					endDate &&
+					endDate >= now &&
+					endDate <= soonThreshold
+				) {
 					expiringSoonCount++
 				}
 
@@ -335,7 +348,10 @@ export class DashboardService {
 				...propertyOccupiedFromUnits,
 				...propertyOccupiedFromLeases
 			])
-			const propertyOccupiedCount = Math.min(propertyOccupiedSet.size, propertyTotal)
+			const propertyOccupiedCount = Math.min(
+				propertyOccupiedSet.size,
+				propertyTotal
+			)
 
 			let totalActualRent = totalLeaseRent
 			if (totalActualRent === 0 && occupiedUnitIds.size > 0) {
@@ -374,7 +390,9 @@ export class DashboardService {
 						: 0,
 				available: vacantUnitCount + reservedUnitCount,
 				occupancyRate: Number(occupancyRate.toFixed(2)),
-				occupancyChange: Number((occupancyRate - previousOccupancyRate).toFixed(2)),
+				occupancyChange: Number(
+					(occupancyRate - previousOccupancyRate).toFixed(2)
+				),
 				totalPotentialRent: Number(totalPotentialRent.toFixed(2)),
 				totalActualRent: Number(totalActualRent.toFixed(2))
 			}
@@ -495,7 +513,9 @@ export class DashboardService {
 				avgResolutionTime:
 					resolvedCount > 0
 						? Number(
-								(resolutionTotalMs / resolvedCount / (1000 * 60 * 60)).toFixed(2)
+								(resolutionTotalMs / resolvedCount / (1000 * 60 * 60)).toFixed(
+									2
+								)
 							)
 						: 0,
 				byPriority: priorityCounts
@@ -526,7 +546,10 @@ export class DashboardService {
 
 				lifetimeRevenueCents += amountCents
 
-				if (paymentDate >= startOfCurrentMonth && paymentDate < startOfNextMonth) {
+				if (
+					paymentDate >= startOfCurrentMonth &&
+					paymentDate < startOfNextMonth
+				) {
 					monthlyRevenueCents += amountCents
 				}
 
@@ -735,22 +758,22 @@ export class DashboardService {
 				.select('id, name')
 				.eq('ownerId', internalUserId)
 
-		const { data: unitData } = (await client
-			.from('unit')
-			.select('id, propertyId, status, rent')
-			.in('propertyId', propertyData?.map(p => p.id) || [])) as unknown as {
-			data?: Array<{
-				id: string
-				propertyId?: string
-				status?: string
-				rent?: number
-			}>
-		}
+			const { data: unitData } = (await client
+				.from('unit')
+				.select('id, propertyId, status, rent')
+				.in('propertyId', propertyData?.map(p => p.id) || [])) as unknown as {
+				data?: Array<{
+					id: string
+					propertyId?: string
+					status?: string
+					rent?: number
+				}>
+			}
 
 			// Calculate performance metrics
 			const performanceData = (propertyData ?? []).map(property => {
-			const propertyUnits =
-				unitData?.filter(unit => unit.propertyId === property.id) || []
+				const propertyUnits =
+					unitData?.filter(unit => unit.propertyId === property.id) || []
 				const occupiedUnits = propertyUnits.filter(
 					unit => unit.status === 'OCCUPIED'
 				).length
