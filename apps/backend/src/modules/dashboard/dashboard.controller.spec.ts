@@ -170,11 +170,11 @@ describe('DashboardController', () => {
 				true
 			)
 
-			const result = await controller.getBillingHealth()
+			const result = await controller.getBillingHealth(mockRequest)
 
 			expect(
 				mockDashboardServiceInstance.isBillingInsightsAvailable
-			).toHaveBeenCalled()
+			).toHaveBeenCalledWith(mockUser.id)
 			expect(result).toEqual({
 				success: true,
 				data: {
@@ -198,7 +198,7 @@ describe('DashboardController', () => {
 				false
 			)
 
-			const result = await controller.getBillingHealth()
+			const result = await controller.getBillingHealth(mockRequest)
 
 			expect(result).toEqual({
 				success: true,
