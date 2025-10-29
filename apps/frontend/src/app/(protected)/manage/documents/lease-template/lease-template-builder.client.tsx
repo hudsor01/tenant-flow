@@ -529,7 +529,11 @@ function PreviewPanel({ html }: { html: string }) {
 		if (typeof window === 'undefined') return html
 		return DOMPurify.sanitize(html, {
 			ALLOWED_TAGS: ['p', 'div', 'span', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
-			ALLOWED_ATTR: ['class', 'style']
+			ALLOWED_ATTR: ['class', 'style'],
+			ADD_ATTR: [], // Explicitly block all attributes except allowed
+			ALLOW_DATA_ATTR: false, // Block data-* attributes
+			FORBID_TAGS: ['script', 'iframe', 'embed', 'object', 'form'], // Explicitly block dangerous tags
+			FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'] // Block event handlers
 		})
 	}, [html])
 
