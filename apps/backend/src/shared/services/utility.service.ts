@@ -36,34 +36,6 @@ export class UtilityService {
 	 * Global search by name - replaces search_by_name function
 	 * Uses direct Supabase queries
 	 */
-	/**
-	 * Map Supabase Auth ID to internal users.id
-	 * Cached for 5 minutes to reduce database lookups
-	 * 
-	 * @param supabaseId - Supabase Auth UID from JWT token
-	 * @returns Internal users.id for RLS policies
-	 */
-	async getUserIdFromSupabaseId(supabaseId: string): Promise<string> {
-		const cacheKey = `user:supabaseId:${supabaseId}`
-		const cached = await this.cacheManager.get<string>(cacheKey)
-		if (cached) return cached
-
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('users')
-			.select('id')
-			.eq('supabaseId', supabaseId)
-			.single()
-
-		if (error || !data) {
-			this.logger.error('Failed to lookup user ID', { error, supabaseId })
-			throw new BadRequestException('User not found')
-		}
-
-		await this.cacheManager.set(cacheKey, data.id, 300000) // 5 min cache
-		return data.id
-	}
-
 	async searchByName(
 		userId: string,
 		searchTerm: string,
@@ -226,6 +198,34 @@ export class UtilityService {
 			})
 			return []
 		}
+	}
+
+	/**
+	 * Map Supabase Auth ID to internal users.id
+	 * Cached for 5 minutes to reduce database lookups
+	 * 
+	 * @param supabaseId - Supabase Auth UID from JWT token
+	 * @returns Internal users.id for RLS policies
+	 */
+	async getUserIdFromSupabaseId(supabaseId: string): Promise<string> {
+		const cacheKey = `user:supabaseId:${supabaseId}`
+		const cached = await this.cacheManager.get<string>(cacheKey)
+		if (cached) return cached
+
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('users')
+			.select('id')
+			.eq('supabaseId', supabaseId)
+			.single()
+
+		if (error || !data) {
+			this.logger.error('Failed to lookup user ID', { error, supabaseId })
+			throw new BadRequestException('User not found')
+		}
+
+		await this.cacheManager.set(cacheKey, data.id, 300000) // 5 min cache
+		return data.id
 	}
 
 	/**
