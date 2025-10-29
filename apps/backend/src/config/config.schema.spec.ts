@@ -1,5 +1,7 @@
 import 'reflect-metadata'
 import { validate } from './config.schema'
+import { type describe, beforeEach, afterEach } from 'node:test'
+import type { it } from 'zod/v4/locales'
 
 describe('Configuration Schema Validation', () => {
 	let originalEnv: NodeJS.ProcessEnv
@@ -58,7 +60,9 @@ describe('Configuration Schema Validation', () => {
 				STRIPE_WEBHOOK_SECRET: 'whsec_123'
 			}
 
-			expect(() => validate(config)).toThrow('JWT secret must be at least 32 characters')
+			expect(() => validate(config)).toThrow(
+				'JWT secret must be at least 32 characters'
+			)
 		})
 
 		it('should throw error for short SUPABASE_JWT_SECRET', () => {
@@ -101,7 +105,6 @@ describe('Configuration Schema Validation', () => {
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
 				SUPABASE_SECRET_KEY: 'service-role-key',
-				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
 				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
@@ -127,7 +130,6 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
 				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
@@ -159,7 +161,6 @@ describe('Configuration Schema Validation', () => {
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
 				SUPABASE_SECRET_KEY: 'service-role-key',
-				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
 				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
@@ -177,7 +178,6 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
 				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
@@ -202,7 +202,6 @@ describe('Configuration Schema Validation', () => {
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
 				SUPABASE_SECRET_KEY: 'service-role-key',
-				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
 				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
@@ -226,7 +225,6 @@ describe('Configuration Schema Validation', () => {
 					JWT_SECRET: 'a'.repeat(32),
 					SUPABASE_URL: 'https://project.supabase.co',
 					SUPABASE_SECRET_KEY: 'service-role-key',
-					SUPABASE_SECRET_KEY: 'service-role-key',
 					SUPABASE_JWT_SECRET: 'b'.repeat(32),
 					SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 					STRIPE_SECRET_KEY: 'sk_test_123',
@@ -246,7 +244,6 @@ describe('Configuration Schema Validation', () => {
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
 				SUPABASE_SECRET_KEY: 'service-role-key',
-				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
 				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
@@ -265,7 +262,6 @@ describe('Configuration Schema Validation', () => {
 					DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 					JWT_SECRET: 'a'.repeat(32),
 					SUPABASE_URL: 'https://project.supabase.co',
-					SUPABASE_SECRET_KEY: 'service-role-key',
 					SUPABASE_SECRET_KEY: 'service-role-key',
 					SUPABASE_JWT_SECRET: 'b'.repeat(32),
 					SUPABASE_PUBLISHABLE_KEY: 'anon-key',
@@ -289,7 +285,6 @@ describe('Configuration Schema Validation', () => {
 					JWT_SECRET: 'a'.repeat(32),
 					SUPABASE_URL: 'https://project.supabase.co',
 					SUPABASE_SECRET_KEY: 'service-role-key',
-					SUPABASE_SECRET_KEY: 'service-role-key',
 					SUPABASE_JWT_SECRET: 'b'.repeat(32),
 					SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 					STRIPE_SECRET_KEY: 'sk_test_123',
@@ -311,7 +306,6 @@ describe('Configuration Schema Validation', () => {
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
 				SUPABASE_SECRET_KEY: 'service-role-key',
-				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
 				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
@@ -328,7 +322,6 @@ describe('Configuration Schema Validation', () => {
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
 				SUPABASE_SECRET_KEY: 'service-role-key',
-				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
 				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
@@ -344,7 +337,6 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
 				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
@@ -363,7 +355,6 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
 				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
@@ -387,7 +378,6 @@ describe('Configuration Schema Validation', () => {
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
 				SUPABASE_SECRET_KEY: 'service-role-key',
-				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
 				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
@@ -407,7 +397,6 @@ describe('Configuration Schema Validation', () => {
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
 				SUPABASE_SECRET_KEY: 'service-role-key',
-				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
 				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
@@ -424,7 +413,6 @@ describe('Configuration Schema Validation', () => {
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
 				SUPABASE_SECRET_KEY: 'service-role-key',
-				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
 				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
@@ -432,7 +420,9 @@ describe('Configuration Schema Validation', () => {
 				SESSION_SECRET: 'short'
 			}
 
-			expect(() => validate(config)).toThrow('Session secret must be at least 32 characters')
+			expect(() => validate(config)).toThrow(
+				'Session secret must be at least 32 characters'
+			)
 		})
 	})
 
@@ -442,7 +432,6 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'short', // Too short
 				SUPABASE_URL: 'not-a-url', // Invalid URL
-				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_SECRET_KEY: 'service-role-key',
 				SUPABASE_JWT_SECRET: 'also-short', // Too short
 				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
