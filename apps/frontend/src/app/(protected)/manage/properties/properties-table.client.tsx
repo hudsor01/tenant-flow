@@ -8,6 +8,7 @@ import { DataTableColumnHeader } from '#components/ui/data-table-column-header'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '#components/ui/alert-dialog'
 import { Badge } from '#components/ui/badge'
 import { Trash2, MapPin } from 'lucide-react'
+import Link from 'next/link'
 import { useOptimistic, useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { ColumnDef } from '@tanstack/react-table'
@@ -131,10 +132,10 @@ export function PropertiesTableClient({ initialProperties }: PropertiesTableClie
 				return (
 					<div className="flex items-center justify-end gap-1">
 						<Button asChild size="sm" variant="ghost">
-							<a href={`/manage/properties/${property.id}`}>View</a>
+							<Link href={`/manage/properties/${property.id}`}>View</Link>
 						</Button>
 						<Button asChild size="sm" variant="ghost">
-							<a href={`/manage/properties/${property.id}/edit`}>Edit</a>
+							<Link href={`/manage/properties/${property.id}/edit`}>Edit</Link>
 						</Button>
 						<AlertDialog>
 							<AlertDialogTrigger asChild>
