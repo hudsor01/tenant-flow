@@ -81,23 +81,30 @@ export function useTenantWithLease(id: string) {
 export function useTenantList(page: number = 1, limit: number = 50) {
 	const queryClient = useQueryClient()
 
+	// Convert page to offset (backend expects offset, not page)
+	const offset = (page - 1) * limit
+
 	return useQuery({
 		queryKey: [...tenantKeys.list(), { page, limit }],
 		queryFn: async () => {
-			const response = await apiClient<{
-				data: TenantWithLeaseInfo[]
-				total: number
-				page: number
-				limit: number
-			}>(`${API_BASE_URL}/api/v1/tenants?page=${page}&limit=${limit}`)
+			// Backend returns Tenant[] directly, not paginated object
+			const response = await apiClient<TenantWithLeaseInfo[]>(
+				`${API_BASE_URL}/api/v1/tenants?limit=${limit}&offset=${offset}`
+			)
 
 			// Prefetch individual tenant details for faster navigation
-			response.data.forEach(tenant => {
+			response?.forEach?.(tenant => {
 				queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
 				queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
 			})
 
-			return response
+			// Transform to expected paginated format for backwards compatibility
+			return {
+				data: response || [],
+				total: response?.length || 0,
+				page,
+				limit
+			}
 		},
 		staleTime: 3 * 60 * 1000, // 3 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes cache time

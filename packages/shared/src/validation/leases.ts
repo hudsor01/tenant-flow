@@ -44,7 +44,8 @@ const leaseBaseSchema = z.object({
 	startDate: dateString,
 	endDate: dateString,
 	rentAmount: positiveMoneyAmount,
-	securityDeposit: positiveMoneyAmount,
+	// Security deposit is optional - 0 or empty is valid (some leases may not require a deposit)
+	securityDeposit: positiveMoneyAmount.optional().nullable().or(z.literal(0)),
 	terms: z.string().optional().nullable(),
 	status: leaseStatusEnum.default('DRAFT' as const),
 	propertyId: uuidString.optional().nullable(),
