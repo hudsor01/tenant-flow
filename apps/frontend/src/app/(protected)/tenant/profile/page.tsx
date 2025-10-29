@@ -11,12 +11,12 @@
 
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Field, FieldLabel } from '@/components/ui/field'
-import { useSupabaseUpdateProfile } from '@/hooks/api/use-supabase-auth'
-import { useCurrentUser } from '@/hooks/use-current-user'
-import { useUserProfile } from '@/hooks/use-user-role'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Field, FieldLabel } from '#components/ui/field'
+import { useSupabaseUpdateProfile } from '#hooks/api/use-supabase-auth'
+import { useCurrentUser } from '#hooks/use-current-user'
+import { useUserProfile } from '#hooks/use-user-role'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { Bell, Mail, Phone, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'

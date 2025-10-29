@@ -88,7 +88,7 @@ if [ -d "$HOOKS_DIR" ]; then
   HOOK_FILES=$(find "$HOOKS_DIR" -name "*.ts" -o -name "*.tsx" 2>/dev/null || true)
 
   for hook_file in $HOOK_FILES; do
-    if rg -q "from '@/lib/api-client'" "$hook_file" 2>/dev/null; then
+    if rg -q "from '#lib/api-client'" "$hook_file" 2>/dev/null; then
       echo "${GREEN}✅ $hook_file uses api-client${NC}"
     else
       echo "${YELLOW}⚠️  $hook_file doesn't import from api-client${NC}"

@@ -1,14 +1,14 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '#components/ui/badge'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
-import { Spinner } from '@/components/ui/spinner'
+} from '#components/ui/card'
+import { Spinner } from '#components/ui/spinner'
 import {
 	Table,
 	TableBody,
@@ -16,9 +16,9 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { useRecentProperties } from '@/hooks/api/use-properties'
-import { cn } from '@/lib/utils'
+} from '#components/ui/table'
+import { useRecentProperties } from '#hooks/api/use-properties'
+import { cn } from '#lib/utils'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { Building2, MapPin } from 'lucide-react'
 

@@ -18,7 +18,6 @@ import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import colorTokensConfig from './color-tokens.eslint.js'
 
 export default [
-	// Next.js plugin using native ESLint 9 flat config (eliminates "plugin not detected" warning)
 	{
 		name: 'frontend/next.js-plugin',
 		plugins: {
@@ -101,7 +100,14 @@ export default [
 			'@typescript-eslint/no-unsafe-call': 'off',
 			'@typescript-eslint/no-unsafe-return': 'off',
 			'@typescript-eslint/no-unsafe-argument': 'off',
-			'@typescript-eslint/no-unused-vars': 'error',
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_',
+					destructuredArrayIgnorePattern: '^_'
+				}
+			],
 			'@typescript-eslint/no-explicit-any': 'error',
 			'@typescript-eslint/no-unused-expressions': 'warn'
 		}
@@ -148,9 +154,6 @@ export default [
 			'**/next.config.*'
 		],
 		rules: {
-			// PRODUCTION LOGGING ENFORCEMENT - Prefer shared logger instead of console
-			// Import: import { createLogger } from '@repo/shared'
-			// Usage: const logger = createLogger({ component: 'ComponentName' }); logger.info('message', { metadata })
 			'no-console': 'warn',
 			'no-restricted-syntax': [
 				'warn',
@@ -186,15 +189,13 @@ export default [
 			'**/use-data-table-instance.ts'
 		],
 		rules: {
-			// TanStack libraries (Table, Virtual) intentionally return non-memoizable functions
-			// to prevent stale UI. These warnings are expected and safe to suppress.
 			'react-hooks/incompatible-library': 'off'
 		}
 	},
 	{
 		name: 'frontend/no-inline-api-url-fallback',
 		files: ['**/*.ts', '**/*.tsx'],
-		ignores: ['**/lib/api-client.ts'], // Exempt the source of truth
+		ignores: ['**/lib/api-client.ts'],
 		rules: {
 			'no-restricted-syntax': [
 				'error',

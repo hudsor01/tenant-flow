@@ -9,14 +9,15 @@
 
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useCurrentLease } from '@/hooks/api/use-lease'
-import { usePaymentMethods } from '@/hooks/api/use-payment-methods'
-import { useCreateRentPayment } from '@/hooks/api/use-rent-payments'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Skeleton } from '#components/ui/skeleton'
+import { useCurrentLease } from '#hooks/api/use-lease'
+import { usePaymentMethods } from '#hooks/api/use-payment-methods'
+import { useCreateRentPayment } from '#hooks/api/use-rent-payments'
 import { logger } from '@repo/shared/lib/frontend-logger'
+import { formatCurrency } from '@repo/shared/utils/currency'
 import {
 	AlertCircle,
 	Calendar,
@@ -48,14 +49,6 @@ export default function TenantPaymentPage() {
 			setSelectedMethodId(preferredMethod.id)
 		}
 	}, [methodsLoading, paymentMethods, selectedMethodId])
-
-	const formatCurrency = (amount: number | null | undefined) => {
-		if (!amount) return '$0.00'
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: 'USD'
-		}).format(amount)
-	}
 
 	// Calculate next payment date (1st of next month)
 	const getNextPaymentDate = () => {

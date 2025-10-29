@@ -2,8 +2,8 @@
 
 import { ComponentPropsWithoutRef, RefObject, useEffect, useRef, useState } from "react"
 import { useSpring, animated } from "@react-spring/web"
-import { useIntersectionObserver } from "@/hooks/use-intersection-observer"
-import { cn } from "@/lib/utils"
+import { useIntersectionObserver } from "#hooks/use-intersection-observer"
+import { cn } from "#lib/utils"
 
 interface NumberTickerProps extends ComponentPropsWithoutRef<"span"> {
   value: number

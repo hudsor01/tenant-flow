@@ -1,8 +1,8 @@
 'use client'
 
-import { ContactForm } from '@/app/contact/contact-form'
-import Footer from '@/components/layout/footer'
-import { GridPattern } from '@/components/ui/grid-pattern'
+import { ContactForm } from '#app/contact/contact-form'
+import Footer from '#components/layout/footer'
+import { GridPattern } from '#components/ui/grid-pattern'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 

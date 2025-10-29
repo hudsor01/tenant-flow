@@ -1,7 +1,7 @@
 'use client'
 
-import { BlurFade } from '@/components/ui/blur-fade'
-import { cn } from '@/lib/utils'
+import { BlurFade } from '#components/ui/blur-fade'
+import { cn } from '#lib/utils'
 import { Quote } from 'lucide-react'
 
 interface TestimonialsSectionProps {

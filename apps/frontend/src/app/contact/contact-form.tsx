@@ -1,27 +1,27 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { Button } from '#components/ui/button'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
+import { Input } from '#components/ui/input'
 import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupInput
-} from '@/components/ui/input-group'
+} from '#components/ui/input-group'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { useFormWithProgress } from '@/hooks/use-form-progress'
+} from '#components/ui/select'
+import { Textarea } from '#components/ui/textarea'
+import { useFormWithProgress } from '#hooks/use-form-progress'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { ContactFormRequest } from '@repo/shared/types/domain'
 import { Check, Mail, MapPin, Phone } from 'lucide-react'
 import { useState } from 'react'
-import { API_BASE_URL } from '@/lib/api-client'
+import { API_BASE_URL } from '#lib/api-client'
 
 const logger = createLogger({ component: 'ContactForm' })
 

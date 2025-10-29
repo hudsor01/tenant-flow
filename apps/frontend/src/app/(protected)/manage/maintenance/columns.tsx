@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { ColumnDef } from '@tanstack/react-table'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -14,10 +14,10 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '@/components/ui/alert-dialog'
+} from '#components/ui/alert-dialog'
 import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { maintenanceApi } from '@/lib/api-client'
+import { maintenanceApi } from '#lib/api-client'
 import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
 
 const PRIORITY_VARIANTS: Record<string, 'destructive' | 'secondary' | 'outline'> = {

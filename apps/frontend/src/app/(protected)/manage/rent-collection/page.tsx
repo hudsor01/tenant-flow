@@ -14,19 +14,19 @@ import {
 	XCircle
 } from 'lucide-react'
 
-import { Spinner } from '@/components/ui/spinner'
+import { Spinner } from '#components/ui/spinner'
 import type { PaymentMethodResponse } from '@repo/shared/types/core'
 import { useState } from 'react'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
+} from '#components/ui/card'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -34,7 +34,7 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+} from '#components/ui/dropdown-menu'
 import {
 	Table,
 	TableBody,
@@ -42,20 +42,20 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow
-} from '@/components/ui/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+} from '#components/ui/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
 
 import {
 	useFailedPaymentAttempts,
 	usePaymentHistory
-} from '@/hooks/api/use-payment-history'
-import { usePaymentMethods } from '@/hooks/api/use-payment-methods'
+} from '#hooks/api/use-payment-history'
+import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import {
 	useCancelSubscription,
 	usePauseSubscription,
 	useResumeSubscription,
 	useSubscriptions
-} from '@/hooks/api/use-subscriptions'
+} from '#hooks/api/use-subscriptions'
 
 export default function RentCollectionPage() {
 	return <RentCollectionContent />

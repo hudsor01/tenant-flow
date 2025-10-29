@@ -1,7 +1,7 @@
 'use client'
 
-import * as scn from '@/components/ui/field'
-import { cn } from '@/lib/utils'
+import * as scn from '#components/ui/field'
+import { cn } from '#lib/utils'
 import { Slot } from '@radix-ui/react-slot'
 import { createFormHookContexts, useStore } from '@tanstack/react-form'
 import * as React from 'react'

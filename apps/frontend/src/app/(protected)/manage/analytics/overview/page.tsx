@@ -1,6 +1,6 @@
-import { ChartAreaInteractive } from '@/components/dashboard/chart-area-interactive'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { ChartAreaInteractive } from '#components/dashboard/chart-area-interactive'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
 import {
 	Card,
 	CardAction,
@@ -8,9 +8,9 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
-import { getAnalyticsPageData } from '@/lib/api/dashboard-server'
-import { formatCurrency, formatPercentage } from '@/lib/utils'
+} from '#components/ui/card'
+import { getAnalyticsPageData } from '#lib/api/dashboard-server'
+import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
 import { Calendar, TrendingDown, TrendingUp } from 'lucide-react'
 
 export default async function AnalyticsPage() {

@@ -7,9 +7,9 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle
-} from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
+} from '#components/ui/card'
+import { Skeleton } from '#components/ui/skeleton'
+import { cn } from '#lib/utils'
 
 interface CardLayoutProps {
 	title: string

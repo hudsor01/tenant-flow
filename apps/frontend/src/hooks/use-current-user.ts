@@ -1,6 +1,6 @@
 'use client'
 
-import { useAuth } from '@/providers/auth-provider'
+import { useAuth } from '#providers/auth-provider'
 
 /**
  * Hook to get current authenticated user information

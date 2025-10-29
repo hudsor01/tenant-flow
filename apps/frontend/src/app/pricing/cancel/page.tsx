@@ -1,11 +1,11 @@
 'use client'
 
-import Footer from '@/components/layout/footer'
-import { Navbar } from '@/components/layout/navbar'
-import { HeroSection } from '@/components/sections/hero-section'
+import Footer from '#components/layout/footer'
+import { Navbar } from '#components/layout/navbar'
+import { HeroSection } from '#components/sections/hero-section'
 
-import { Button } from '@/components/ui/button'
-import { CardLayout } from '@/components/ui/card-layout'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
 import { ArrowLeft, Home, MessageCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 

@@ -1,11 +1,17 @@
 /**
  * Tenant Hooks
- * TanStack Query hooks for tenant management with Zustand store integration
+ * TanStack Query hooks for tenant management - Single Source of Truth
  * React 19 + TanStack Query v5 patterns with Suspense support
+ *
+ * TanStack Query provides:
+ * - Normalized cache (query keys)
+ * - Global state (accessible anywhere)
+ * - Automatic deduplication
+ * - Loading/error states
+ * - Optimistic updates
  */
 
-import { API_BASE_URL } from '@/lib/api-client'
-import { useTenantStore } from '@/stores/tenant-store'
+import { API_BASE_URL, tenantsApi } from '#lib/api-client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
 	Tenant,
@@ -35,18 +41,13 @@ export const tenantKeys = {
 }
 
 /**
- * Hook to fetch tenant by ID with Zustand store integration
- * Optimized with placeholder data from list cache
+ * Hook to fetch tenant by ID
+ * TanStack Query cache is the single source of truth
  */
 export function useTenant(id: string) {
 	return useQuery({
 		queryKey: tenantKeys.detail(id),
-		queryFn: async (): Promise<Tenant> => {
-			const response = await apiClient<Tenant>(
-				`${API_BASE_URL}/api/v1/tenants/${id}`
-			)
-			return response
-		},
+		queryFn: () => tenantsApi.get(id),
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes cache time
@@ -55,11 +56,9 @@ export function useTenant(id: string) {
 
 /**
  * Hook to fetch tenant with lease information
- * Optimized with placeholder data from list cache
+ * TanStack Query cache is the single source of truth
  */
 export function useTenantWithLease(id: string) {
-	const addTenant = useTenantStore(state => state.addTenant)
-
 	return useQuery({
 		queryKey: tenantKeys.withLease(id),
 		queryFn: async (): Promise<TenantWithLeaseInfo> => {
@@ -71,21 +70,15 @@ export function useTenantWithLease(id: string) {
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes cache time
-		retry: 2,
-		select: (tenant: TenantWithLeaseInfo) => {
-			// Add to store for caching
-			addTenant(tenant)
-			return tenant
-		}
+		retry: 2
 	})
 }
 
 /**
- * Hook to fetch tenant list with pagination and Zustand store integration
- * Optimized with prefetching and intelligent caching
+ * Hook to fetch tenant list with pagination
+ * TanStack Query cache is the single source of truth
  */
 export function useTenantList(page: number = 1, limit: number = 50) {
-	const setTenants = useTenantStore(state => state.setTenants)
 	const queryClient = useQueryClient()
 
 	return useQuery({
@@ -110,26 +103,15 @@ export function useTenantList(page: number = 1, limit: number = 50) {
 		gcTime: 10 * 60 * 1000, // 10 minutes cache time
 		retry: 2,
 		// Keep previous data while fetching new page (official v5 helper)
-		placeholderData: keepPreviousData,
-		select: (response: {
-			data: TenantWithLeaseInfo[]
-			total: number
-			page: number
-			limit: number
-		}) => {
-			// Add all tenants to store for caching
-			setTenants(response.data)
-			return response
-		}
+		placeholderData: keepPreviousData
 	})
 }
 
 /**
  * Hook to fetch all tenants (for dropdowns, selects, etc.)
- * Optimized with aggressive caching for rarely changing data
+ * TanStack Query cache is the single source of truth
  */
 export function useAllTenants() {
-	const setTenants = useTenantStore(state => state.setTenants)
 	const queryClient = useQueryClient()
 
 	return useQuery({
@@ -161,12 +143,7 @@ export function useAllTenants() {
 		retry: 3, // Retry up to 3 times
 		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff: 1s, 2s, 4s (max 30s)
 		// Enable structural sharing to prevent re-renders when data hasn't changed
-		structuralSharing: true,
-		select: data => {
-			// Add all tenants to store for caching
-			setTenants(data)
-			return data
-		}
+		structuralSharing: true
 	})
 }
 
@@ -178,16 +155,7 @@ export function useCreateTenant() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (tenantData: TenantInput) => {
-			const response = await apiClient<TenantWithLeaseInfo>(
-				`${API_BASE_URL}/api/v1/tenants`,
-				{
-					method: 'POST',
-					body: JSON.stringify(tenantData)
-				}
-			)
-			return response
-		},
+		mutationFn: (tenantData: TenantInput) => tenantsApi.create(tenantData),
 		onError: (err) => {
 			logger.error('Failed to create tenant', { error: err })
 		},
@@ -210,16 +178,7 @@ export function useUpdateTenant() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({ id, data }: { id: string; data: TenantUpdate }) => {
-			const response = await apiClient<TenantWithLeaseInfo>(
-				`${API_BASE_URL}/api/v1/tenants/${id}`,
-				{
-					method: 'PUT',
-					body: JSON.stringify(data)
-				}
-			)
-			return response
-		},
+		mutationFn: ({ id, data }: { id: string; data: TenantUpdate }) => tenantsApi.update(id, data),
 		onMutate: async ({ id, data }) => {
 			// Cancel all outgoing queries for this tenant
 			await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })
@@ -373,8 +332,6 @@ export function useTenantSuspense(id: string) {
  * Use this with Suspense boundaries for automatic loading states
  */
 export function useTenantWithLeaseSuspense(id: string) {
-	const addTenant = useTenantStore(state => state.addTenant)
-
 	return useSuspenseQuery({
 		queryKey: tenantKeys.withLease(id),
 		queryFn: async (): Promise<TenantWithLeaseInfo> => {
@@ -384,11 +341,7 @@ export function useTenantWithLeaseSuspense(id: string) {
 			return response
 		},
 		staleTime: 5 * 60 * 1000,
-		gcTime: 10 * 60 * 1000,
-		select: (tenant: TenantWithLeaseInfo) => {
-			addTenant(tenant)
-			return tenant
-		}
+		gcTime: 10 * 60 * 1000
 	})
 }
 
@@ -397,7 +350,6 @@ export function useTenantWithLeaseSuspense(id: string) {
  * Use this with Suspense boundaries for automatic loading states
  */
 export function useAllTenantsSuspense() {
-	const setTenants = useTenantStore(state => state.setTenants)
 	const queryClient = useQueryClient()
 
 	return useSuspenseQuery({
@@ -416,11 +368,7 @@ export function useAllTenantsSuspense() {
 			return response
 		},
 		staleTime: 10 * 60 * 1000,
-		gcTime: 30 * 60 * 1000,
-		select: data => {
-			setTenants(data)
-			return data
-		}
+		gcTime: 30 * 60 * 1000
 	})
 }
 
@@ -529,22 +477,8 @@ export function useMarkTenantAsMovedOut() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({
-			id,
-			data
-		}: {
-			id: string
-			data: { moveOutDate: string; moveOutReason: string }
-		}) => {
-			const response = await apiClient<TenantWithLeaseInfo>(
-				`${API_BASE_URL}/api/v1/tenants/${id}/mark-moved-out`,
-				{
-					method: 'PUT',
-					body: JSON.stringify(data)
-				}
-			)
-			return response
-		},
+		mutationFn: ({ id, data }: { id: string; data: { moveOutDate: string; moveOutReason: string } }) => 
+			tenantsApi.markAsMovedOut(id, data),
 		onMutate: async ({ id, data }) => {
 			// Cancel in-flight queries
 			await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })

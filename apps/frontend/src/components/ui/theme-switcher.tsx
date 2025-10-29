@@ -1,7 +1,7 @@
 'use client'
 
-import { useThemeConfig } from '@/components/ui/active-theme'
-import { Label } from '@/components/ui/label'
+import { useThemeConfig } from '#components/ui/active-theme'
+import { Label } from '#components/ui/label'
 import {
 	Select,
 	SelectContent,
@@ -11,8 +11,8 @@ import {
 	SelectSeparator,
 	SelectTrigger,
 	SelectValue
-} from '@/components/ui/select'
-import { cn } from '@/lib/utils'
+} from '#components/ui/select'
+import { cn } from '#lib/utils'
 import { animated, config, useSpring } from '@react-spring/web'
 import * as React from 'react'
 
