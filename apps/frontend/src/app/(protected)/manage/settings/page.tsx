@@ -95,35 +95,58 @@ export default function SettingsPage() {
 						title="Profile Information"
 						className="p-6 border shadow-sm"
 					>
-						<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+						<form className="grid grid-cols-1 gap-6 md:grid-cols-2">
 							<div className="space-y-2">
 								<Label htmlFor="firstName">First Name</Label>
-								<Input id="firstName" defaultValue="Johnathan" />
+								<Input
+									id="firstName"
+									name="firstName"
+									autoComplete="given-name"
+									defaultValue="Johnathan"
+								/>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="lastName">Last Name</Label>
-								<Input id="lastName" defaultValue="Doe" />
+								<Input
+									id="lastName"
+									name="lastName"
+									autoComplete="family-name"
+									defaultValue="Doe"
+								/>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="email">Email Address</Label>
 								<Input
 									id="email"
+									name="email"
+									autoComplete="email"
 									type="email"
 									defaultValue="john.doe@placeholder.com"
 								/>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="phone">Phone Number</Label>
-								<Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
+								<Input
+									id="phone"
+									name="phone"
+									autoComplete="tel"
+									type="tel"
+									defaultValue="+1 (555) 123-4567"
+								/>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="company">Company</Label>
-								<Input id="company" defaultValue="Property Management Co." />
+								<Input
+									id="company"
+									name="company"
+									autoComplete="organization"
+									defaultValue="Property Management Co."
+								/>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="timezone">Timezone</Label>
-								<Select defaultValue="pst">
-									<SelectTrigger>
+								<Select name="timezone" defaultValue="cst">
+									<SelectTrigger id="timezone">
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
@@ -134,16 +157,17 @@ export default function SettingsPage() {
 									</SelectContent>
 								</Select>
 							</div>
-						</div>
-						<div className="mt-6">
-							<Label htmlFor="bio">Bio</Label>
-							<Textarea
-								id="bio"
-								className="mt-2"
-								placeholder="Tell us about yourself..."
-								rows={3}
-							/>
-						</div>
+							<div className="mt-6 md:col-span-2">
+								<Label htmlFor="bio">Bio</Label>
+								<Textarea
+									id="bio"
+									name="bio"
+									className="mt-2"
+									placeholder="Tell us about yourself..."
+									rows={3}
+								/>
+							</div>
+						</form>
 					</CardLayout>
 				</TabsContent>
 
@@ -158,13 +182,21 @@ export default function SettingsPage() {
 									<Bell />
 								</ItemMedia>
 								<ItemContent>
-									<ItemTitle>New Maintenance Requests</ItemTitle>
+									<ItemTitle>
+										<Label htmlFor="notify-maintenance">
+											New Maintenance Requests
+										</Label>
+									</ItemTitle>
 									<ItemDescription>
 										Get notified when new maintenance requests are submitted
 									</ItemDescription>
 								</ItemContent>
 								<ItemActions>
-									<Switch defaultChecked />
+									<Switch
+										id="notify-maintenance"
+										name="notify-maintenance"
+										defaultChecked
+									/>
 								</ItemActions>
 							</Item>
 
@@ -175,13 +207,19 @@ export default function SettingsPage() {
 									<RefreshCw />
 								</ItemMedia>
 								<ItemContent>
-									<ItemTitle>Lease Renewals</ItemTitle>
+									<ItemTitle>
+										<Label htmlFor="notify-renewals">Lease Renewals</Label>
+									</ItemTitle>
 									<ItemDescription>
 										Reminders for upcoming lease renewals
 									</ItemDescription>
 								</ItemContent>
 								<ItemActions>
-									<Switch defaultChecked />
+									<Switch
+										id="notify-renewals"
+										name="notify-renewals"
+										defaultChecked
+									/>
 								</ItemActions>
 							</Item>
 
@@ -192,13 +230,19 @@ export default function SettingsPage() {
 									<CreditCard />
 								</ItemMedia>
 								<ItemContent>
-									<ItemTitle>Payment Notifications</ItemTitle>
+									<ItemTitle>
+										<Label htmlFor="notify-payments">Payment Notifications</Label>
+									</ItemTitle>
 									<ItemDescription>
 										Alerts for rent payments and overdue accounts
 									</ItemDescription>
 								</ItemContent>
 								<ItemActions>
-									<Switch defaultChecked />
+									<Switch
+										id="notify-payments"
+										name="notify-payments"
+										defaultChecked
+									/>
 								</ItemActions>
 							</Item>
 
@@ -209,13 +253,15 @@ export default function SettingsPage() {
 									<Settings />
 								</ItemMedia>
 								<ItemContent>
-									<ItemTitle>System Updates</ItemTitle>
+									<ItemTitle>
+										<Label htmlFor="notify-system">System Updates</Label>
+									</ItemTitle>
 									<ItemDescription>
 										Information about system maintenance and updates
 									</ItemDescription>
 								</ItemContent>
 								<ItemActions>
-									<Switch />
+									<Switch id="notify-system" name="notify-system" />
 								</ItemActions>
 							</Item>
 						</ItemGroup>
@@ -231,13 +277,19 @@ export default function SettingsPage() {
 									<AlertTriangle />
 								</ItemMedia>
 								<ItemContent>
-									<ItemTitle>Emergency Maintenance</ItemTitle>
+									<ItemTitle>
+										<Label htmlFor="push-emergency">Emergency Maintenance</Label>
+									</ItemTitle>
 									<ItemDescription>
 										Immediate alerts for critical issues
 									</ItemDescription>
 								</ItemContent>
 								<ItemActions>
-									<Switch defaultChecked />
+									<Switch
+										id="push-emergency"
+										name="push-emergency"
+										defaultChecked
+									/>
 								</ItemActions>
 							</Item>
 
@@ -248,13 +300,19 @@ export default function SettingsPage() {
 									<Bell />
 								</ItemMedia>
 								<ItemContent>
-									<ItemTitle>New Messages</ItemTitle>
+									<ItemTitle>
+										<Label htmlFor="push-messages">New Messages</Label>
+									</ItemTitle>
 									<ItemDescription>
 										Notifications for tenant messages
 									</ItemDescription>
 								</ItemContent>
 								<ItemActions>
-									<Switch defaultChecked />
+									<Switch
+										id="push-messages"
+										name="push-messages"
+										defaultChecked
+									/>
 								</ItemActions>
 							</Item>
 						</ItemGroup>
@@ -271,12 +329,14 @@ export default function SettingsPage() {
 						<div className="space-y-4">
 							<div className="flex items-center justify-between">
 								<div>
-									<p className="font-medium">Enable 2FA</p>
+									<Label htmlFor="enable-2fa" className="font-medium">
+										Enable 2FA
+									</Label>
 									<p className="text-sm text-muted-foreground">
 										Add an extra layer of security to your account
 									</p>
 								</div>
-								<Switch />
+								<Switch id="enable-2fa" name="enable-2fa" />
 							</div>
 							<div className="pt-4 border-t">
 								<Button variant="outline">
@@ -399,12 +459,14 @@ export default function SettingsPage() {
 						<div className="space-y-4">
 							<div className="flex items-center justify-between">
 								<div>
-									<p className="font-medium">Auto-backup</p>
+									<Label htmlFor="auto-backup" className="font-medium">
+										Auto-backup
+									</Label>
 									<p className="text-sm text-muted-foreground">
 										Automatically backup your data weekly
 									</p>
 								</div>
-								<Switch defaultChecked />
+								<Switch id="auto-backup" name="auto-backup" defaultChecked />
 							</div>
 							<div className="pt-4 border-t">
 								<div className="flex items-center gap-2">
@@ -427,9 +489,9 @@ export default function SettingsPage() {
 					>
 						<div className="space-y-4">
 							<div className="space-y-2">
-								<Label>Default Currency</Label>
+								<Label htmlFor="default-currency">Default Currency</Label>
 								<Select defaultValue="usd">
-									<SelectTrigger className="w-48">
+									<SelectTrigger id="default-currency" className="w-48">
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
@@ -440,9 +502,9 @@ export default function SettingsPage() {
 								</Select>
 							</div>
 							<div className="space-y-2">
-								<Label>Date Format</Label>
+								<Label htmlFor="date-format">Date Format</Label>
 								<Select defaultValue="mdy">
-									<SelectTrigger className="w-48">
+									<SelectTrigger id="date-format" className="w-48">
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>

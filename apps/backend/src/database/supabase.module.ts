@@ -16,18 +16,15 @@ export class SupabaseModule {
 					provide: SUPABASE_ADMIN_CLIENT,
 					useFactory: (config: ConfigService) => {
 						const envUrl = process.env.SUPABASE_URL
-						const envKey =
-							process.env.SUPABASE_SERVICE_ROLE_KEY ||
-							process.env.SERVICE_ROLE_KEY
+						const envKey = process.env.SUPABASE_SECRET_KEY
 
 						const url = envUrl ?? config.get<string>('SUPABASE_URL')
-						const key =
-							envKey ?? config.get<string>('SUPABASE_SERVICE_ROLE_KEY')
+						const key = envKey ?? config.get<string>('SUPABASE_SECRET_KEY')
 
 						if (!url || !key) {
 							// Helpful error to aid developers who forget to run with Doppler
 							throw new Error(
-								'Missing Supabase configuration - ensure you run the process with Doppler (e.g. `doppler run -- pnpm dev`) or set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the environment.'
+								'Missing Supabase configuration - ensure you run the process with Doppler (e.g. `doppler run -- pnpm dev`) or set SUPABASE_URL and SUPABASE_SECRET_KEY in the environment.'
 							)
 						}
 

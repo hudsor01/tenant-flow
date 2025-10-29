@@ -27,17 +27,17 @@ const SUPABASE_URL = (() => {
 	return url
 })()
 
-const SUPABASE_ANON_KEY = (() => {
-	const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY
+const SUPABASE_PUBLISHABLE_KEY = (() => {
+	const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY
 	if (!key) {
 		throw new Error(
-			'SUPABASE_ANON_KEY environment variable is required (NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY for frontend, SUPABASE_ANON_KEY for backend)'
+			'SUPABASE_PUBLISHABLE_KEY environment variable is required (NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY for frontend, SUPABASE_PUBLISHABLE_KEY for backend)'
 		)
 	}
 	return key
 })()
 
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY
 
 // Create a lazy-initialized client to avoid build-time errors
 let _client: SupabaseClient<Database> | null = null
@@ -45,7 +45,7 @@ let _client: SupabaseClient<Database> | null = null
 function getSupabaseClient(): SupabaseClient<Database> {
 	if (!_client) {
 		// Environment variables are validated at module load time
-		_client = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+		_client = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
 			auth: {
 				persistSession: true,
 				autoRefreshToken: true,
@@ -82,16 +82,16 @@ export const supabaseClient = new Proxy({} as SupabaseClient<Database>, {
  * ONLY use this in backend services where you need to bypass RLS
  *
  * SECURITY WARNING: Never use this client with user input without validation
- * IMPORTANT: This will throw an error if used in frontend without SUPABASE_SERVICE_KEY
+ * IMPORTANT: This will throw an error if used in frontend without SUPABASE_SECRET_KEY
  */
 export function getSupabaseAdmin(): SupabaseClient<Database> {
-	if (!SUPABASE_SERVICE_KEY) {
+	if (!SUPABASE_SECRET_KEY) {
 		throw new Error(
-			'SUPABASE_SERVICE_KEY required for admin client - this should only be used in backend services'
+			'SUPABASE_SECRET_KEY required for admin client - this should only be used in backend services'
 		)
 	}
 
-	return createClient<Database>(SUPABASE_URL!, SUPABASE_SERVICE_KEY, {
+	return createClient<Database>(SUPABASE_URL!, SUPABASE_SECRET_KEY, {
 		auth: {
 			persistSession: false,
 			autoRefreshToken: false
