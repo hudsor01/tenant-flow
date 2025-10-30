@@ -1,6 +1,5 @@
 'use client'
 
-// Lease edit dialog now inlined below using ShadCN Dialog components
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {
@@ -69,7 +68,11 @@ import { useCreateLease } from '#hooks/api/use-lease'
 import { useTenantList } from '#hooks/api/use-tenant'
 import { useUnitList } from '#hooks/api/use-unit'
 import { FieldError } from '#components/ui/field'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '#components/ui/input-group'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '#components/ui/input-group'
 import { DollarSign } from 'lucide-react'
 import type { CreateLeaseInput } from '@repo/shared/types/api-inputs'
 
@@ -77,10 +80,26 @@ const ITEMS_PER_PAGE = 25
 
 // Form steps configuration
 const LEASE_FORM_STEPS = [
-	{ id: 1, title: 'Tenant & Unit', description: 'Select tenant and unit for this lease' },
-	{ id: 2, title: 'Lease Dates', description: 'Start date, end date, and duration' },
-	{ id: 3, title: 'Financial Terms', description: 'Rent amount, deposit, and fees' },
-	{ id: 4, title: 'Additional Terms', description: 'Late fees, grace period, and notes' }
+	{
+		id: 1,
+		title: 'Tenant & Unit',
+		description: 'Select tenant and unit for this lease'
+	},
+	{
+		id: 2,
+		title: 'Lease Dates',
+		description: 'Start date, end date, and duration'
+	},
+	{
+		id: 3,
+		title: 'Financial Terms',
+		description: 'Rent amount, deposit, and fees'
+	},
+	{
+		id: 4,
+		title: 'Additional Terms',
+		description: 'Late fees, grace period, and notes'
+	}
 ]
 
 type LeaseStatus = NonNullable<CreateLeaseInput['status']>
@@ -119,9 +138,15 @@ function LeaseCreateDialog() {
 					rentAmount: parseFloat(value.rentAmount),
 					securityDeposit: parseFloat(value.securityDeposit),
 					monthlyRent: value.monthlyRent ? parseFloat(value.monthlyRent) : null,
-					gracePeriodDays: value.gracePeriodDays ? parseInt(value.gracePeriodDays, 10) : null,
-					lateFeeAmount: value.lateFeeAmount ? parseFloat(value.lateFeeAmount) : null,
-					lateFeePercentage: value.lateFeePercentage ? parseFloat(value.lateFeePercentage) : null,
+					gracePeriodDays: value.gracePeriodDays
+						? parseInt(value.gracePeriodDays, 10)
+						: null,
+					lateFeeAmount: value.lateFeeAmount
+						? parseFloat(value.lateFeeAmount)
+						: null,
+					lateFeePercentage: value.lateFeePercentage
+						? parseFloat(value.lateFeePercentage)
+						: null,
 					terms: value.terms || null,
 					status: value.status
 				}
@@ -158,7 +183,10 @@ function LeaseCreateDialog() {
 					toast.error('Please enter rent amount and security deposit')
 					return false
 				}
-				if (parseFloat(values.rentAmount) <= 0 || parseFloat(values.securityDeposit) < 0) {
+				if (
+					parseFloat(values.rentAmount) <= 0 ||
+					parseFloat(values.securityDeposit) < 0
+				) {
 					toast.error('Please enter valid amounts')
 					return false
 				}
@@ -195,7 +223,10 @@ function LeaseCreateDialog() {
 								{field => (
 									<Field>
 										<FieldLabel htmlFor="tenantId">Tenant *</FieldLabel>
-										<Select value={field.state.value ?? ''} onValueChange={field.handleChange}>
+										<Select
+											value={field.state.value ?? ''}
+											onValueChange={field.handleChange}
+										>
 											<SelectTrigger>
 												<SelectValue placeholder="Select a tenant" />
 											</SelectTrigger>
@@ -208,7 +239,9 @@ function LeaseCreateDialog() {
 											</SelectContent>
 										</Select>
 										{field.state.meta.errors?.length && (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										)}
 									</Field>
 								)}
@@ -218,7 +251,10 @@ function LeaseCreateDialog() {
 								{field => (
 									<Field>
 										<FieldLabel htmlFor="unitId">Unit *</FieldLabel>
-										<Select value={field.state.value ?? ''} onValueChange={field.handleChange}>
+										<Select
+											value={field.state.value ?? ''}
+											onValueChange={field.handleChange}
+										>
 											<SelectTrigger>
 												<SelectValue placeholder="Select a unit" />
 											</SelectTrigger>
@@ -230,9 +266,13 @@ function LeaseCreateDialog() {
 												))}
 											</SelectContent>
 										</Select>
-										<p className="text-sm text-muted-foreground">Only vacant units are shown</p>
+										<p className="text-sm text-muted-foreground">
+											Only vacant units are shown
+										</p>
 										{field.state.meta.errors?.length && (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										)}
 									</Field>
 								)}
@@ -255,7 +295,9 @@ function LeaseCreateDialog() {
 											onBlur={field.handleBlur}
 										/>
 										{field.state.meta.errors?.length && (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										)}
 									</Field>
 								)}
@@ -273,7 +315,9 @@ function LeaseCreateDialog() {
 											onBlur={field.handleBlur}
 										/>
 										{field.state.meta.errors?.length && (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										)}
 									</Field>
 								)}
@@ -285,7 +329,9 @@ function LeaseCreateDialog() {
 										<FieldLabel htmlFor="status">Status *</FieldLabel>
 										<Select
 											value={field.state.value}
-											onValueChange={value => field.handleChange(value as LeaseStatus)}
+											onValueChange={value =>
+												field.handleChange(value as LeaseStatus)
+											}
 										>
 											<SelectTrigger>
 												<SelectValue placeholder="Select status" />
@@ -308,7 +354,9 @@ function LeaseCreateDialog() {
 							<form.Field name="rentAmount">
 								{field => (
 									<Field>
-										<FieldLabel htmlFor="rentAmount">Rent Amount (per lease term) *</FieldLabel>
+										<FieldLabel htmlFor="rentAmount">
+											Rent Amount (per lease term) *
+										</FieldLabel>
 										<InputGroup>
 											<InputGroupAddon align="inline-start">
 												<DollarSign className="size-4" />
@@ -324,9 +372,13 @@ function LeaseCreateDialog() {
 												onBlur={field.handleBlur}
 											/>
 										</InputGroup>
-										<p className="text-sm text-muted-foreground">Total rent for the entire lease term</p>
+										<p className="text-sm text-muted-foreground">
+											Total rent for the entire lease term
+										</p>
 										{field.state.meta.errors?.length && (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										)}
 									</Field>
 								)}
@@ -335,7 +387,9 @@ function LeaseCreateDialog() {
 							<form.Field name="monthlyRent">
 								{field => (
 									<Field>
-										<FieldLabel htmlFor="monthlyRent">Monthly Rent (Optional)</FieldLabel>
+										<FieldLabel htmlFor="monthlyRent">
+											Monthly Rent (Optional)
+										</FieldLabel>
 										<InputGroup>
 											<InputGroupAddon align="inline-start">
 												<DollarSign className="size-4" />
@@ -351,7 +405,9 @@ function LeaseCreateDialog() {
 												onBlur={field.handleBlur}
 											/>
 										</InputGroup>
-										<p className="text-sm text-muted-foreground">Monthly payment amount</p>
+										<p className="text-sm text-muted-foreground">
+											Monthly payment amount
+										</p>
 									</Field>
 								)}
 							</form.Field>
@@ -359,7 +415,9 @@ function LeaseCreateDialog() {
 							<form.Field name="securityDeposit">
 								{field => (
 									<Field>
-										<FieldLabel htmlFor="securityDeposit">Security Deposit *</FieldLabel>
+										<FieldLabel htmlFor="securityDeposit">
+											Security Deposit *
+										</FieldLabel>
 										<InputGroup>
 											<InputGroupAddon align="inline-start">
 												<DollarSign className="size-4" />
@@ -376,7 +434,9 @@ function LeaseCreateDialog() {
 											/>
 										</InputGroup>
 										{field.state.meta.errors?.length && (
-											<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
 										)}
 									</Field>
 								)}
@@ -391,7 +451,9 @@ function LeaseCreateDialog() {
 								<form.Field name="gracePeriodDays">
 									{field => (
 										<Field>
-											<FieldLabel htmlFor="gracePeriodDays">Grace Period (Days)</FieldLabel>
+											<FieldLabel htmlFor="gracePeriodDays">
+												Grace Period (Days)
+											</FieldLabel>
 											<Input
 												id="gracePeriodDays"
 												type="number"
@@ -408,7 +470,9 @@ function LeaseCreateDialog() {
 								<form.Field name="lateFeeAmount">
 									{field => (
 										<Field>
-											<FieldLabel htmlFor="lateFeeAmount">Late Fee Amount</FieldLabel>
+											<FieldLabel htmlFor="lateFeeAmount">
+												Late Fee Amount
+											</FieldLabel>
 											<InputGroup>
 												<InputGroupAddon align="inline-start">
 													<DollarSign className="size-4" />
@@ -432,7 +496,9 @@ function LeaseCreateDialog() {
 							<form.Field name="lateFeePercentage">
 								{field => (
 									<Field>
-										<FieldLabel htmlFor="lateFeePercentage">Late Fee Percentage</FieldLabel>
+										<FieldLabel htmlFor="lateFeePercentage">
+											Late Fee Percentage
+										</FieldLabel>
 										<Input
 											id="lateFeePercentage"
 											type="number"
@@ -444,7 +510,9 @@ function LeaseCreateDialog() {
 											onChange={e => field.handleChange(e.target.value)}
 											onBlur={field.handleBlur}
 										/>
-										<p className="text-sm text-muted-foreground">Percentage of monthly rent as late fee</p>
+										<p className="text-sm text-muted-foreground">
+											Percentage of monthly rent as late fee
+										</p>
 									</Field>
 								)}
 							</form.Field>
@@ -452,7 +520,9 @@ function LeaseCreateDialog() {
 							<form.Field name="terms">
 								{field => (
 									<Field>
-										<FieldLabel htmlFor="terms">Additional Terms & Conditions</FieldLabel>
+										<FieldLabel htmlFor="terms">
+											Additional Terms & Conditions
+										</FieldLabel>
 										<Textarea
 											id="terms"
 											placeholder="Special terms, conditions, or notes about this lease..."
@@ -469,13 +539,21 @@ function LeaseCreateDialog() {
 								<h4 className="font-medium mb-2">Summary</h4>
 								<div className="space-y-1 text-sm text-muted-foreground">
 									<div>
-										Lease Term: {form.state.values.startDate || 'N/A'} to {form.state.values.endDate || 'N/A'}
+										Lease Term: {form.state.values.startDate || 'N/A'} to{' '}
+										{form.state.values.endDate || 'N/A'}
 									</div>
 									<div>Total Rent: ${form.state.values.rentAmount || '0'}</div>
-									{form.state.values.monthlyRent && <div>Monthly: ${form.state.values.monthlyRent}</div>}
-									<div>Security Deposit: ${form.state.values.securityDeposit || '0'}</div>
+									{form.state.values.monthlyRent && (
+										<div>Monthly: ${form.state.values.monthlyRent}</div>
+									)}
+									<div>
+										Security Deposit: $
+										{form.state.values.securityDeposit || '0'}
+									</div>
 									{form.state.values.gracePeriodDays && (
-										<div>Grace Period: {form.state.values.gracePeriodDays} days</div>
+										<div>
+											Grace Period: {form.state.values.gracePeriodDays} days
+										</div>
 									)}
 								</div>
 							</div>
@@ -490,7 +568,7 @@ function LeaseCreateDialog() {
 export default function LeasesPage() {
 	const logger = createLogger({ component: 'LeasesPage' })
 
-	// ✅ nuqs: Type-safe URL state with automatic batching and clean URLs
+	// nuqs: Type-safe URL state with automatic batching and clean URLs
 	const [{ page, search, status }, setUrlState] = useQueryStates(
 		{
 			page: parseAsInteger.withDefault(1),
@@ -502,7 +580,7 @@ export default function LeasesPage() {
 			scroll: false,
 			shallow: true,
 			throttleMs: 200,
-			clearOnDefault: true // Clean URLs: /leases instead of /leases?page=1&search=&status=all
+			clearOnDefault: true
 		}
 	)
 	const [renewDialogOpen, setRenewDialogOpen] = useState(false)
@@ -598,7 +676,7 @@ export default function LeasesPage() {
 			const payload: { id: string; terminationDate: string; reason?: string } =
 				{
 					id: selectedLeaseId,
-					terminationDate: new Date().toISOString().split('T')[0]! // Today's date in YYYY-MM-DD format
+					terminationDate: new Date().toISOString().split('T')[0]!
 				}
 			if (terminationReason) {
 				payload.reason = terminationReason
@@ -676,7 +754,7 @@ export default function LeasesPage() {
 						placeholder="Search leases..."
 						value={search}
 						onChange={e => {
-							setUrlState({ search: e.target.value, page: 1 }) // Reset to page 1 on search
+							setUrlState({ search: e.target.value, page: 1 })
 						}}
 						className="pl-9"
 					/>
@@ -685,7 +763,7 @@ export default function LeasesPage() {
 				<Select
 					value={status}
 					onValueChange={newStatus => {
-						setUrlState({ status: newStatus, page: 1 }) // Reset to page 1 on filter change
+						setUrlState({ status: newStatus, page: 1 })
 					}}
 				>
 					<SelectTrigger className="w-45">
@@ -744,10 +822,12 @@ export default function LeasesPage() {
 										<span className="text-sm text-muted-foreground">
 											{lease.tenantId.substring(0, 8)}...
 										</span>
-											</TableCell>
+									</TableCell>
 									<TableCell>
 										<span className="text-sm text-muted-foreground">
-											{lease.unitId ? `${lease.unitId.substring(0, 8)}...` : 'N/A'}
+											{lease.unitId
+												? `${lease.unitId.substring(0, 8)}...`
+												: 'N/A'}
 										</span>
 									</TableCell>
 									<TableCell>{formatDate(lease.startDate)}</TableCell>
@@ -959,9 +1039,7 @@ export default function LeasesPage() {
 					<DialogContent className="sm:max-w-lg">
 						<DialogHeader>
 							<DialogTitle>Lease Details</DialogTitle>
-							<DialogDescription>
-								View lease information
-							</DialogDescription>
+							<DialogDescription>View lease information</DialogDescription>
 						</DialogHeader>
 						<div className="space-y-4">
 							<div>
@@ -974,11 +1052,19 @@ export default function LeasesPage() {
 							</div>
 							<div>
 								<Label>Rent Amount</Label>
-								<Input type="number" value={selectedLease.rentAmount} disabled />
+								<Input
+									type="number"
+									value={selectedLease.rentAmount}
+									disabled
+								/>
 							</div>
 							<div>
 								<Label>Security Deposit</Label>
-								<Input type="number" value={selectedLease.securityDeposit} disabled />
+								<Input
+									type="number"
+									value={selectedLease.securityDeposit}
+									disabled
+								/>
 							</div>
 							<div>
 								<Label>Status</Label>
@@ -986,7 +1072,10 @@ export default function LeasesPage() {
 							</div>
 						</div>
 						<DialogFooter>
-							<Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+							<Button
+								variant="outline"
+								onClick={() => setEditDialogOpen(false)}
+							>
 								Close
 							</Button>
 						</DialogFooter>

@@ -149,9 +149,7 @@ export function SectionTable() {
 								<TableHead className="min-w-35">Property</TableHead>
 								<TableHead className="hidden sm:table-cell">Type</TableHead>
 								<TableHead className="hidden md:table-cell">Location</TableHead>
-								<TableHead className="text-center min-w-20">
-									Status
-								</TableHead>
+								<TableHead className="text-center min-w-20">Status</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -189,12 +187,12 @@ export function SectionTable() {
 											className={cn(
 												'rounded-full border border-transparent px-3 py-1 font-medium',
 												property.status === 'ACTIVE'
-													? 'bg-[var(--color-system-green-10)] text-[var(--color-system-green)] hover:bg-[var(--color-system-green-15)]'
+													? 'bg-(--color-system-green-10) text-(--color-system-green) hover:bg-(--color-system-green-15)'
 													: property.status === 'UNDER_CONTRACT'
-														? 'bg-[var(--color-system-blue-10)] text-[var(--color-system-blue)] hover:bg-[var(--color-system-blue-15)]'
+														? 'bg-(--color-system-blue-10) text-(--color-system-blue) hover:bg-(--color-system-blue-15)'
 														: property.status === 'SOLD'
-															? 'bg-[var(--color-system-purple-10)] text-[var(--color-system-purple)] hover:bg-[var(--color-system-purple-15)]'
-															: 'bg-[var(--color-system-gray-10)] text-[var(--color-label-tertiary)] hover:bg-[var(--color-system-gray-15)]'
+															? 'bg-(--color-system-purple-10) text-(--color-system-purple) hover:bg-(--color-system-purple-15)'
+															: 'bg-(--color-system-gray-10) text-(--color-label-tertiary) hover:bg-(--color-system-gray-15)'
 											)}
 										>
 											{formatPropertyStatus(property.status)}

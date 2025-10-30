@@ -57,11 +57,6 @@ export class PropertiesController {
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
 		@Request() req: AuthenticatedRequest
 	) {
-		// Authentication is required for this endpoint
-		if (!req.user?.id) {
-			throw new BadRequestException('Authentication required')
-		}
-
 		// Clamp limit/offset to safe bounds
 		const safeLimit = Math.max(1, Math.min(limit, 50))
 		const safeOffset = Math.max(0, offset)
@@ -80,11 +75,6 @@ export class PropertiesController {
 	 */
 	@Get('stats')
 	async getStats(@Request() req: AuthenticatedRequest) {
-		// Authentication is required for this endpoint
-		if (!req.user?.id) {
-			throw new BadRequestException('Authentication required')
-		}
-
 		const userId = req.user.id
 		return this.propertiesService.getStats(userId)
 	}
