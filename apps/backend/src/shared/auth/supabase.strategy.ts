@@ -104,6 +104,11 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			throw new Error('Token missing expiration or issued-at timestamp')
 		}
 
+		if (!payload.email) {
+			this.logger.warn('JWT missing email claim', { userId: payload.sub })
+			throw new Error('Invalid token: missing email')
+		}
+
 		// Validate audience is authenticated
 		const expectedAud = 'authenticated'
 		const actualAud = Array.isArray(payload.aud)
@@ -123,14 +128,15 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			aud: actualAud,
 			email: payload.email,
 			role: payload.app_metadata?.role ?? 'authenticated',
-			email_confirmed_at: new Date().toISOString(),
-			confirmed_at: new Date().toISOString(),
-			last_sign_in_at: new Date().toISOString(),
+			// Use timestamps from JWT payload instead of hardcoded current time
+			email_confirmed_at: payload.email_confirmed_at ?? null,
+			confirmed_at: payload.confirmed_at ?? null,
+			last_sign_in_at: payload.last_sign_in_at ?? null,
 			app_metadata: payload.app_metadata ?? {},
 			user_metadata: payload.user_metadata ?? {},
 			identities: [],
-			created_at: new Date().toISOString(),
-			updated_at: new Date().toISOString(),
+			created_at: payload.created_at ?? new Date().toISOString(),
+			updated_at: payload.updated_at ?? new Date().toISOString(),
 			is_anonymous: false
 		}
 
