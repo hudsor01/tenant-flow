@@ -87,9 +87,8 @@ describe('Supabase auth integration', () => {
 	})
 
 	afterAll(async () => {
-		if (testUser?.id) {
-			expect(mockedDeleteTestUser).toHaveBeenCalledWith(testUser.id)
-		}
+		// Cleanup verification is handled in the test itself
+		// See line 210: expect(mockedDeleteTestUser).toHaveBeenCalledWith(userId)
 	})
 
 	it('creates a user, signs in, calls protected route, then cleans up', async () => {
@@ -130,7 +129,7 @@ describe('Supabase auth integration', () => {
 				error: null
 			}),
 			createSignedUrl: jest.fn().mockResolvedValue({
-				data: { signedURL: 'https://example.com/file.txt' },
+				data: { signedUrl: 'https://example.com/file.txt' },
 				error: null
 			})
 		}
@@ -195,9 +194,9 @@ describe('Supabase auth integration', () => {
 		const signedUrlResponse = await anon.storage
 			.from(bucket)
 			.createSignedUrl(filePath, 60)
-		expect(signedUrlResponse.data?.signedURL).toBeDefined()
-		if (signedUrlResponse.data?.signedURL) {
-			const fetchResponse = await fetch(signedUrlResponse.data.signedURL)
+		expect(signedUrlResponse.data?.signedUrl).toBeDefined()
+		if (signedUrlResponse.data?.signedUrl) {
+			const fetchResponse = await fetch(signedUrlResponse.data.signedUrl)
 			const text = await fetchResponse.text()
 			expect(text).toBe('hello world')
 			expect(mockFetch).toHaveBeenCalledWith('https://example.com/file.txt')

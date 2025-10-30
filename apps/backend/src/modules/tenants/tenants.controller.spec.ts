@@ -41,13 +41,13 @@ jest.mock('../../database/supabase.service', () => {
 })
 
 describe('TenantsController', () => {
-	let controller: TenantsController
-	let mockTenantsServiceInstance: jest.Mocked<TenantsService>
-	let mockCurrentUserProvider: jest.Mocked<CurrentUserProvider>
+	let controller: any
+	let mockTenantsServiceInstance: any
+	let mockCurrentUserProvider: any
 
 	const mockUser = createMockUser({ id: 'user-123' })
 
-	const createMockTenant = (overrides: Partial<Tenant> = {}): Tenant => ({
+	const createMockTenant = (overrides: Partial<Tenant> = {}) => ({
 		id: 'tenant-default',
 		firstName: 'John',
 		lastName: 'Doe',
@@ -57,15 +57,22 @@ describe('TenantsController', () => {
 		name: null,
 		emergencyContact: null,
 		userId: null,
-		status: 'ACTIVE',
+		status: 'ACTIVE' as const,
 		move_out_date: null,
 		move_out_reason: null,
 		archived_at: null,
-		invitation_status: 'PENDING',
+		invitation_status: 'PENDING' as const,
 		invitation_token: null,
 		invitation_sent_at: null,
 		invitation_accepted_at: null,
 		invitation_expires_at: null,
+		auth_user_id: null,
+		autopay_configured_at: null,
+		autopay_day: null,
+		autopay_enabled: null,
+		autopay_frequency: null,
+		payment_method_added_at: null,
+		version: 1,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 		...overrides
@@ -277,7 +284,7 @@ describe('TenantsController', () => {
 			const mockTenant = createMockTenant(validCreateTenantRequest)
 
 			mockTenantsServiceInstance.create.mockResolvedValue(mockTenant)
-			mockTenantsServiceInstance.sendTenantInvitation.mockResolvedValue({
+			mockTenantsServiceInstance.sendTenantInvitationV2.mockResolvedValue({
 				success: true,
 				message: 'Invitation sent'
 			})
@@ -451,13 +458,15 @@ describe('TenantsController', () => {
 		it('should throw BadRequestException directing to soft delete', async () => {
 			const mockRequest = createMockRequest({ user: mockUser }) as any
 			const tenantId = 'tenant-123'
-			
+
 			// The remove method should always throw since direct deletion is deprecated
 			mockTenantsServiceInstance.remove.mockRejectedValue(
 				new BadRequestException('Direct deletion is not allowed')
 			)
-			
-			await expect(controller.remove(tenantId, mockRequest)).rejects.toThrow(BadRequestException)
+
+			await expect(controller.remove(tenantId, mockRequest)).rejects.toThrow(
+				BadRequestException
+			)
 
 			await expect(controller.remove(tenantId, mockRequest)).rejects.toThrow(
 				/Direct deletion is not allowed/

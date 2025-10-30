@@ -30,8 +30,11 @@ BEGIN
 END;
 $$;
 
--- Grant execute permission to authenticated users
-GRANT EXECUTE ON FUNCTION public.activate_tenant_from_auth_user(UUID) TO authenticated;
+-- Revoke execute permission from authenticated users (security: backend-only function)
+REVOKE EXECUTE ON FUNCTION public.activate_tenant_from_auth_user(UUID) FROM authenticated;
+
+-- Grant execute permission only to service_role (backend use only)
+GRANT EXECUTE ON FUNCTION public.activate_tenant_from_auth_user(UUID) TO service_role;
 
 COMMENT ON FUNCTION public.activate_tenant_from_auth_user(UUID) IS
 'Activates tenant record when called after Supabase Auth user confirms invitation. Called from backend after successful auth. Optimized to use a single query.';

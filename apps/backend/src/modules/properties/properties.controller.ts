@@ -2,7 +2,7 @@
  * Properties Controller - Ultra-Native Implementation
  *
  * Uses:
- * - Express request validation (no DTOs)
+ * - Zod DTOs via nestjs-zod + createZodDto pattern
  * - Built-in NestJS pipes for validation
  * - Native exception handling
  * - Direct PostgreSQL RPC calls
@@ -29,13 +29,14 @@ import {
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { memoryStorage } from 'multer'
-import type {
-	CreatePropertyRequest,
-	UpdatePropertyRequest
-} from '@repo/shared/types/backend-domain'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
+import type { CreatePropertyRequest, UpdatePropertyRequest } from '@repo/shared/types/backend-domain'
 import { PropertiesService } from './properties.service'
+import { CreatePropertyDto } from './dto/create-property.dto'
+import { UpdatePropertyDto } from './dto/update-property.dto'
+import { MarkPropertyAsSoldDto } from './dto/mark-sold.dto'
+import { PropertyImageUploadDto } from './dto/upload-image.dto'
 
 /**
  * No base classes, no abstraction, just clean endpoints
@@ -144,12 +145,12 @@ export class PropertiesController {
 	 */
 	@Post()
 	async create(
-		@Body() createPropertyRequest: CreatePropertyRequest,
+		@Body() dto: CreatePropertyDto,
 		@Request() req: AuthenticatedRequest
 	) {
 		const userId = req.user.id
 
-		return this.propertiesService.create(userId, createPropertyRequest)
+		return this.propertiesService.create(userId, dto as unknown as CreatePropertyRequest)
 	}
 
 	/**
@@ -197,17 +198,17 @@ export class PropertiesController {
 	@Put(':id')
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Body() updatePropertyRequest: UpdatePropertyRequest,
+		@Body() dto: UpdatePropertyDto,
 		@Request() req: AuthenticatedRequest
 	) {
 		const userId = req.user.id
 
 		// 🔐 BUG FIX #2: Pass version for optimistic locking
-		const expectedVersion = updatePropertyRequest.version
+		const expectedVersion = (dto as unknown as { version?: number }).version
 		const property = await this.propertiesService.update(
 			userId,
 			id,
-			updatePropertyRequest,
+			dto as unknown as UpdatePropertyRequest,
 			expectedVersion
 		)
 		if (!property) {
@@ -343,38 +344,89 @@ export class PropertiesController {
 	 * Mark property as sold (7-year retention compliance)
 	 * Updates status to SOLD with required date_sold and sale_price
 	 */
+	/**
+	 * Upload property image
+	 * Stores image in property-images bucket and records in property_images table
+	 */
+	@Post(':id/images')
+	@UseInterceptors(
+		FileInterceptor('file', {
+			storage: memoryStorage(),
+			limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max (optimize for storage)
+			fileFilter: (_req, file, callback) => {
+				const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+				if (!allowedMimeTypes.includes(file.mimetype)) {
+					return callback(
+						new BadRequestException('Invalid file type; only images are allowed'),
+						false
+					)
+				}
+				callback(null, true)
+			}
+		})
+	)
+	async uploadImage(
+		@Param('id', ParseUUIDPipe) propertyId: string,
+		@UploadedFile() file: Express.Multer.File,
+		@Body() dto: PropertyImageUploadDto,
+		@Request() req: AuthenticatedRequest
+	) {
+		if (!file) {
+			throw new BadRequestException('No file uploaded')
+		}
+
+		const userId = req.user.id
+
+		return this.propertiesService.uploadPropertyImage(
+			userId,
+			propertyId,
+			file,
+			dto.isPrimary,
+			dto.caption
+		)
+	}
+
+	/**
+	 * Get all images for a property
+	 */
+	@Get(':id/images')
+	async getImages(
+		@Param('id', ParseUUIDPipe) propertyId: string,
+		@Request() req: AuthenticatedRequest
+	) {
+		const userId = req.user.id
+		return this.propertiesService.getPropertyImages(userId, propertyId)
+	}
+
+	/**
+	 * Delete property image
+	 */
+	@Delete('images/:imageId')
+	async deleteImage(
+		@Param('imageId', ParseUUIDPipe) imageId: string,
+		@Request() req: AuthenticatedRequest
+	) {
+		const userId = req.user.id
+		await this.propertiesService.deletePropertyImage(userId, imageId)
+		return { message: 'Image deleted successfully' }
+	}
+
 	@Put(':id/mark-sold')
 	async markPropertyAsSold(
 		@Param('id', ParseUUIDPipe) propertyId: string,
-		@Body() body: { dateSold: string; salePrice: number; saleNotes?: string },
+		@Body() dto: MarkPropertyAsSoldDto,
 		@Request() req: AuthenticatedRequest
 	) {
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
 
-		// Validate sale price
-		if (!body.salePrice || body.salePrice <= 0) {
-			throw new BadRequestException('Sale price must be greater than $0')
-		}
-
-		// Validate date sold
-		const dateSold = new Date(body.dateSold)
-		if (isNaN(dateSold.getTime())) {
-			throw new BadRequestException('Invalid sale date format')
-		}
-
-		// Date sold cannot be in the future
-		if (dateSold > new Date()) {
-			throw new BadRequestException('Sale date cannot be in the future')
-		}
-
 		return this.propertiesService.markAsSold(
 			propertyId,
 			req.user.id,
-			dateSold,
-			body.salePrice,
-			body.saleNotes
+			new Date(dto.dateSold),
+			dto.salePrice,
+			dto.saleNotes
 		)
 	}
 }

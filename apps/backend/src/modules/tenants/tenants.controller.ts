@@ -24,12 +24,11 @@ import {
 	Req,
 	SetMetadata
 } from '@nestjs/common'
-import type {
-	CreateTenantRequest,
-	UpdateTenantRequest
-} from '@repo/shared/types/backend-domain'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
+import type { CreateTenantRequest, UpdateTenantRequest } from '@repo/shared/types/backend-domain'
 import { TenantsService } from './tenants.service'
+import { CreateTenantDto } from './dto/create-tenant.dto'
+import { UpdateTenantDto } from './dto/update-tenant.dto'
 
 @Controller('tenants')
 export class TenantsController {
@@ -104,12 +103,12 @@ export class TenantsController {
 
 	@Post()
 	async create(
-		@Body() createRequest: CreateTenantRequest,
+		@Body() dto: CreateTenantDto,
 		@Req() req: AuthenticatedRequest
 	) {
-		// Use Supabase's native auth.getUser() pattern
+		// Use Supabase's native auth.getUser() pattern with Zod validation
 		const userId = req.user.id
-		const tenant = await this.tenantsService.create(userId, createRequest)
+		const tenant = await this.tenantsService.create(userId, dto as unknown as CreateTenantRequest)
 
 		// Auto-send invitation email after tenant creation (V2 - Supabase Auth)
 		// This is fire-and-forget to not block the response
@@ -133,18 +132,18 @@ export class TenantsController {
 	@Put(':id')
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Body() updateRequest: UpdateTenantRequest,
+		@Body() dto: UpdateTenantDto,
 		@Req() req: AuthenticatedRequest
 	) {
-		// Use Supabase's native auth.getUser() pattern
+		// Use Supabase's native auth.getUser() pattern with Zod validation
 		const userId = req.user.id
 
 		// 🔐 BUG FIX #2: Pass version for optimistic locking
-		const expectedVersion = (updateRequest as { version?: number }).version
+		const expectedVersion = (dto as unknown as { version?: number }).version
 		const tenant = await this.tenantsService.update(
 			userId,
 			id,
-			updateRequest,
+			dto as unknown as UpdateTenantRequest,
 			expectedVersion
 		)
 		if (!tenant) {

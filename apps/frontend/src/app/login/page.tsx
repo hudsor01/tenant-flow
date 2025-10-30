@@ -10,7 +10,6 @@ import type {
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 
-import { loginAction } from '#app/login/actions'
 import { ForgotPasswordModal } from '#components/auth/forgot-password-modal'
 import { LoginLayout } from '#components/auth/login-layout'
 import { toast } from 'sonner'
@@ -41,29 +40,31 @@ function LoginPageContent() {
 	const handleSubmit = async (data: LoginFormData | SignupFormData) => {
 		setIsLoading(true)
 		try {
+			const supabase = createClient()
+
 			// Validate and cast the data to LoginCredentials
 			const credentials: LoginCredentials = {
 				email: data.email as string,
 				password: data.password as string
 			}
 
-			// Get the redirectTo parameter from URL
-			const redirectTo = searchParams?.get('redirectTo') || undefined
+			// Sign in with Supabase
+			const { data: authData, error } = await supabase.auth.signInWithPassword({
+				email: credentials.email,
+				password: credentials.password
+			})
 
-			// Use server action for proper cookie-based authentication
-			const result = await loginAction(credentials, redirectTo)
-
-			if (!result.success) {
+			if (error) {
 				logger.error('Login failed', {
 					action: 'email_login_failed',
 					metadata: {
-						error: result.error,
+						error: error.message,
 						emailProvided: !!credentials.email
 					}
 				})
 
 				// Redirect to email confirmation page if email not confirmed
-				if (result.needsEmailConfirmation) {
+				if (error.message.includes('Email not confirmed')) {
 					logger.info('Email not confirmed, redirecting to confirmation page', {
 						action: 'redirect_to_email_confirmation'
 					})
@@ -73,23 +74,53 @@ function LoginPageContent() {
 
 				// Show error toast for authentication failures
 				toast.error('Sign in failed', {
-					description: result.error?.includes('Invalid login credentials')
+					description: error.message.includes('Invalid login credentials')
 						? 'Invalid email or password. Please check your credentials and try again.'
-						: result.error
+						: error.message
 				})
 				return
 			}
 
-			// Success - server action will handle redirect
-			logger.info('Login successful, redirecting to dashboard', {
-				action: 'email_login_success',
-				metadata: {
-					email: credentials.email
+			if (authData.user) {
+				// Fetch user role from database to determine redirect
+				const { data: userProfile } = await supabase
+					.from('users')
+					.select('role')
+					.eq('supabaseId', authData.user.id)
+					.single()
+
+				// Determine destination based on user role
+				let destination = '/manage' // Default for OWNER, MANAGER, ADMIN
+
+				if (userProfile?.role === 'TENANT') {
+					destination = '/tenant'
 				}
-			})
-			toast.success('Welcome back!', {
-				description: `Signed in as ${credentials.email}`
-			})
+
+				// Honor explicit redirectTo if provided (unless it conflicts with role)
+				const redirectTo = searchParams?.get('redirectTo')
+				if (
+					redirectTo &&
+					redirectTo.startsWith('/') &&
+					!redirectTo.startsWith('//')
+				) {
+					destination = redirectTo
+				}
+
+				logger.info('Login successful, redirecting to dashboard', {
+					action: 'email_login_success',
+					metadata: {
+						email: credentials.email,
+						destination
+					}
+				})
+
+				toast.success('Welcome back!', {
+					description: `Signed in as ${credentials.email}`
+				})
+
+				// Redirect to destination
+				router.push(destination)
+			}
 		} catch (error) {
 			logger.error('Unexpected error during login', {
 				action: 'email_login_unexpected_error',

@@ -11,12 +11,19 @@
  */
 
 import { logger } from '@repo/shared/lib/frontend-logger'
-import { handleConflictError, isConflictError, withVersion, incrementVersion } from '@repo/shared/utils/optimistic-locking'
+import {
+	handleConflictError,
+	isConflictError,
+	withVersion,
+	incrementVersion
+} from '@repo/shared/utils/optimistic-locking'
 import type {
 	CreatePropertyInput,
 	UpdatePropertyInput
 } from '@repo/shared/types/api-inputs'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
+import type { Tables } from '@repo/shared/types/supabase'
+import { compressImage } from '#lib/image-compression'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -260,9 +267,10 @@ export function useCreateProperty() {
 				status: newProperty.status || 'ACTIVE',
 				description: newProperty.description || null,
 				imageUrl: newProperty.imageUrl || null,
-			date_sold: null,
-			sale_price: null,
-			sale_notes: null,			createdAt: new Date().toISOString(),
+				date_sold: null,
+				sale_price: null,
+				sale_notes: null,
+				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
 				version: 1 // 🔐 BUG FIX #2: Optimistic locking
 			}
@@ -272,12 +280,12 @@ export function useCreateProperty() {
 				{ queryKey: propertiesKeys.all },
 				old =>
 					old && Array.isArray(old.data)
-					? {
-							...old,
-							data: [optimisticProperty, ...old.data],
-							total: old.total + 1
-						}
-					: { data: [optimisticProperty], total: 1 }
+						? {
+								...old,
+								data: [optimisticProperty, ...old.data],
+								total: old.total + 1
+							}
+						: { data: [optimisticProperty], total: 1 }
 			)
 
 			return { previousLists, tempId }
@@ -290,7 +298,8 @@ export function useCreateProperty() {
 				})
 			}
 
-			const errorMessage = err instanceof Error ? err.message : 'Failed to create property'
+			const errorMessage =
+				err instanceof Error ? err.message : 'Failed to create property'
 			toast.error('Error', {
 				description: errorMessage
 			})
@@ -308,7 +317,8 @@ export function useCreateProperty() {
 			queryClient.setQueriesData<{ data: Property[]; total: number }>(
 				{ queryKey: propertiesKeys.all },
 				old => {
-					if (!old || !Array.isArray(old.data)) return { data: [data], total: 1 }
+					if (!old || !Array.isArray(old.data))
+						return { data: [data], total: 1 }
 					return {
 						...old,
 						data: old.data.map(property =>
@@ -349,7 +359,7 @@ export function useUpdateProperty() {
 			const currentProperty = queryClient.getQueryData<Property>(
 				propertiesKeys.detail(id)
 			)
-			
+
 			const response = await apiClient<Property>(
 				`${API_BASE_URL}/api/v1/properties/${id}`,
 				{
@@ -389,9 +399,7 @@ export function useUpdateProperty() {
 					return {
 						...old,
 						data: old.data.map(property =>
-							property.id === id
-								? incrementVersion(property, data)
-								: property
+							property.id === id ? incrementVersion(property, data) : property
 						)
 					}
 				}
@@ -420,7 +428,8 @@ export function useUpdateProperty() {
 					propertiesKeys.all
 				])
 			} else {
-				const errorMessage = err instanceof Error ? err.message : 'Failed to update property'
+				const errorMessage =
+					err instanceof Error ? err.message : 'Failed to update property'
 				toast.error('Error', {
 					description: errorMessage
 				})
@@ -560,7 +569,7 @@ export function useDeleteProperty() {
 			)
 			return response
 		},
-		onMutate: async (id) => {
+		onMutate: async id => {
 			// Cancel outgoing queries to avoid overwriting optimistic update
 			await queryClient.cancelQueries({ queryKey: propertiesKeys.all })
 			await queryClient.cancelQueries({ queryKey: propertiesKeys.detail(id) })
@@ -591,7 +600,8 @@ export function useDeleteProperty() {
 				queryClient.setQueryData(propertiesKeys.list(), context.previousList)
 			}
 
-			const errorMessage = error instanceof Error ? error.message : 'Failed to delete property'
+			const errorMessage =
+				error instanceof Error ? error.message : 'Failed to delete property'
 			toast.error('Error', {
 				description: errorMessage
 			})
@@ -646,6 +656,120 @@ export function usePrefetchProperty() {
  * Combined hook for all property operations
  * Convenience hook for components that need multiple operations
  */
+/**
+ * Hook to fetch property images
+ */
+export function usePropertyImages(propertyId: string) {
+	return useQuery({
+		queryKey: [...propertiesKeys.detail(propertyId), 'images'] as const,
+		queryFn: async () => {
+			const response = await apiClient<Tables<'property_images'>[]>(
+				`${API_BASE_URL}/api/v1/properties/${propertyId}/images`
+			)
+			return response
+		},
+		enabled: !!propertyId,
+		staleTime: 5 * 60 * 1000,
+		gcTime: 10 * 60 * 1000
+	})
+}
+
+/**
+ * Hook to upload property image
+ */
+export function useUploadPropertyImage() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async ({
+			propertyId,
+			file,
+			isPrimary = false,
+			caption
+		}: {
+			propertyId: string
+			file: File
+			isPrimary?: boolean
+			caption?: string
+		}) => {
+			// Compress image before upload (reduces storage usage by ~70-90%)
+			const compressed = await compressImage(file)
+
+			const formData = new FormData()
+			formData.append('file', compressed.file)
+			formData.append('isPrimary', String(isPrimary))
+			if (caption) formData.append('caption', caption)
+
+			const result = await apiClient(
+				`/api/v1/properties/${propertyId}/images`,
+				{
+					method: 'POST',
+					body: formData
+				}
+			)
+
+			return { result, compressionRatio: compressed.compressionRatio }
+		},
+		onSuccess: ({ compressionRatio }, { propertyId }) => {
+			toast.info(
+				`Compressed: ${Math.round((1 - compressionRatio) * 100)}% reduction`
+			)
+			toast.success('Image uploaded successfully')
+			// Invalidate property images
+			queryClient.invalidateQueries({
+				queryKey: [...propertiesKeys.detail(propertyId), 'images']
+			})
+			// Invalidate property list (primary image may have changed)
+			queryClient.invalidateQueries({
+				queryKey: propertiesKeys.all
+			})
+			logger.info('Image uploaded', { propertyId })
+		},
+		onError: error => {
+			toast.error('Failed to upload image')
+			logger.error('Image upload failed', { error: String(error) })
+		}
+	})
+}
+
+/**
+ * Hook to delete property image
+ */
+export function useDeletePropertyImage() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async ({
+			imageId,
+			propertyId: _propertyId
+		}: {
+			imageId: string
+			propertyId: string
+		}) => {
+			const response = await apiClient<{ message: string }>(
+				`${API_BASE_URL}/api/v1/properties/images/${imageId}`,
+				{ method: 'DELETE' }
+			)
+			return response
+		},
+		onSuccess: (_, { propertyId }) => {
+			toast.success('Image deleted successfully')
+			// Invalidate property images
+			queryClient.invalidateQueries({
+				queryKey: [...propertiesKeys.detail(propertyId), 'images']
+			})
+			// Invalidate property list (primary image may have been deleted)
+			queryClient.invalidateQueries({
+				queryKey: propertiesKeys.all
+			})
+		},
+		onError: error => {
+			toast.error('Failed to delete image')
+			logger.error('Image deletion failed', { error: String(error) })
+		}
+	})
+}
+
 export function usePropertyOperations() {
 	return {
 		create: useCreateProperty(),
@@ -653,24 +777,4 @@ export function usePropertyOperations() {
 		delete: useDeleteProperty(),
 		markSold: useMarkPropertySold()
 	}
-}
-
-/**
- * Hook to fetch recent properties (limit 5)
- * Optimized for dashboard display
- * @deprecated Use usePropertyList({ limit: 5, offset: 0 }) instead
- */
-export function useRecentProperties() {
-	return usePropertyList({ limit: 5, offset: 0 })
-}
-
-/**
- * @deprecated Use usePropertyList instead
- */
-export function useProperties(params?: {
-	search?: string | null
-	limit?: number
-	offset?: number
-}) {
-	return usePropertyList(params)
 }

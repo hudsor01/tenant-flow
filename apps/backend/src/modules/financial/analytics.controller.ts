@@ -32,39 +32,28 @@ export class FinancialAnalyticsController {
 	/**
 	 * Helper method to get unit IDs for a user (via property ownership)
 	 */
-        private async getUserUnitIds(
-                userId: string,
-                propertyIds?: string[]
-        ): Promise<string[]> {
-                const client = this.supabaseService.getAdminClient()
+	private async getUserUnitIds(
+		propertyIds: string[]
+	): Promise<string[]> {
+		const client = this.supabaseService.getAdminClient()
 
-                let ownedPropertyIds = Array.isArray(propertyIds)
-                        ? propertyIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
-                        : []
+		const ownedPropertyIds = propertyIds.filter(
+			(id): id is string => typeof id === 'string' && id.length > 0
+		)
 
-                if (ownedPropertyIds.length === 0) {
-                        const { data: properties } = await client
-                                .from('property')
-                                .select('id')
-                                .eq('ownerId', userId)
-                        ownedPropertyIds = (properties || [])
-                                .map(property => property?.id)
-                                .filter((id): id is string => typeof id === 'string' && id.length > 0)
-                }
+		if (ownedPropertyIds.length === 0) {
+			return []
+		}
 
-                if (ownedPropertyIds.length === 0) {
-                        return []
-                }
+		const { data: units } = await client
+			.from('unit')
+			.select('id')
+			.in('propertyId', ownedPropertyIds)
 
-                const { data: units } = await client
-                        .from('unit')
-                        .select('id')
-                        .in('propertyId', ownedPropertyIds)
-
-                return (units || [])
-                        .map(unit => unit?.id)
-                        .filter((id): id is string => typeof id === 'string' && id.length > 0)
-        }
+		return (units || [])
+			.map(unit => unit?.id)
+			.filter((id): id is string => typeof id === 'string' && id.length > 0)
+	}
 
 	/**
 	 * Get revenue trends - DIRECT TABLE QUERIES
@@ -105,11 +94,10 @@ export class FinancialAnalyticsController {
 			const yearEnd = new Date(targetYear + 1, 0, 1)
 
 			const client = this.supabaseService.getAdminClient()
-                        const propertyContext = await this.buildPropertyContext(user.id)
-                        const unitIds = await this.getUserUnitIds(
-                                user.id,
-                                propertyContext.propertyIds
-                        )
+			const propertyContext = await this.buildPropertyContext(user.id)
+			const unitIds = await this.getUserUnitIds(
+				propertyContext.propertyIds
+			)
 
 			const [leasesData, expenses] = await Promise.all([
 				unitIds.length > 0
@@ -184,35 +172,34 @@ export class FinancialAnalyticsController {
 				}
 			)
 
-                        const client = this.supabaseService.getAdminClient()
-                        const propertyContext = await this.buildPropertyContext(user.id)
-                        const unitIds = await this.getUserUnitIds(
-                                user.id,
-                                propertyContext.propertyIds
-                        )
+			const client = this.supabaseService.getAdminClient()
+			const propertyContext = await this.buildPropertyContext(user.id)
+			const unitIds = await this.getUserUnitIds(
+				propertyContext.propertyIds
+			)
 
-                        const [unitsData, leasesData, expenses] = await Promise.all([
-                                propertyContext.propertyIds.length > 0
-                                        ? client
-                                                .from('unit')
-                                                .select('id, status')
-                                                .in('propertyId', propertyContext.propertyIds)
-                                        : Promise.resolve({ data: [] }),
-                                unitIds.length > 0
-                                        ? client.from('lease').select('*').in('unitId', unitIds)
-                                        : Promise.resolve({ data: [] }),
-                                this.fetchExpensesForProperties(
-                                        propertyContext.propertyIds,
-                                        this.subtractMonths(12),
-                                        new Date()
-                                )
-                        ])
+			const [unitsData, leasesData, expenses] = await Promise.all([
+				propertyContext.propertyIds.length > 0
+					? client
+							.from('unit')
+							.select('id, status')
+							.in('propertyId', propertyContext.propertyIds)
+					: Promise.resolve({ data: [] }),
+				unitIds.length > 0
+					? client.from('lease').select('*').in('unitId', unitIds)
+					: Promise.resolve({ data: [] }),
+				this.fetchExpensesForProperties(
+					propertyContext.propertyIds,
+					this.subtractMonths(12),
+					new Date()
+				)
+			])
 
-                        const units = unitsData.data || []
-                        const leaseAnalytics = leasesData.data || []
-                        const propertyStats = {
-                                total: propertyContext.propertyIds.length
-                        }
+			const units = unitsData.data || []
+			const leaseAnalytics = leasesData.data || []
+			const propertyStats = {
+				total: propertyContext.propertyIds.length
+			}
 			const unitStats = {
 				occupancyRate:
 					units.length > 0
@@ -283,11 +270,10 @@ export class FinancialAnalyticsController {
 			const client = this.supabaseService.getAdminClient()
 			const yearStart = new Date(targetYear, 0, 1)
 			const yearEnd = new Date(targetYear + 1, 0, 1)
-                        const propertyContext = await this.buildPropertyContext(user.id)
-                        const unitIds = await this.getUserUnitIds(
-                                user.id,
-                                propertyContext.propertyIds
-                        )
+			const propertyContext = await this.buildPropertyContext(user.id)
+			const unitIds = await this.getUserUnitIds(
+				propertyContext.propertyIds
+			)
 
 			const [leasesData, expenses] = await Promise.all([
 				unitIds.length > 0
@@ -363,19 +349,18 @@ export class FinancialAnalyticsController {
 			)
 
 			const client = this.supabaseService.getAdminClient()
-                        const propertyContext = await this.buildPropertyContext(user.id)
-                        const unitIds = await this.getUserUnitIds(
-                                user.id,
-                                propertyContext.propertyIds
-                        )
+			const propertyContext = await this.buildPropertyContext(user.id)
+			const unitIds = await this.getUserUnitIds(
+				propertyContext.propertyIds
+			)
 
-                        const [unitsData, leasesData, expenses] = await Promise.all([
-                                propertyContext.propertyIds.length > 0
-                                        ? client
-                                                .from('unit')
-                                                .select('*')
-                                                .in('propertyId', propertyContext.propertyIds)
-                                        : Promise.resolve({ data: [] }),
+			const [unitsData, leasesData, expenses] = await Promise.all([
+				propertyContext.propertyIds.length > 0
+					? client
+							.from('unit')
+							.select('*')
+							.in('propertyId', propertyContext.propertyIds)
+					: Promise.resolve({ data: [] }),
 				unitIds.length > 0
 					? client.from('lease').select('*').in('unitId', unitIds)
 					: Promise.resolve({ data: [] }),
@@ -457,24 +442,24 @@ export class FinancialAnalyticsController {
 
 	private async buildPropertyContext(userId: string) {
 		const client = this.supabaseService.getAdminClient()
-                const { data: properties } = await client
-                        .from('property')
-                        .select('id, name')
-                        .eq('ownerId', userId)
+		const { data: properties } = await client
+			.from('property')
+			.select('id, name')
+			.eq('ownerId', userId)
 
-                const propertyMap = new Map<string, string>()
-                const propertyIds: string[] = []
-                for (const property of properties || []) {
-                        if (typeof property?.id !== 'string' || property.id.length === 0) {
-                                continue
-                        }
-                        propertyIds.push(property.id)
-                        if (typeof property.name === 'string') {
-                                propertyMap.set(property.id, property.name)
-                        }
-                }
-                return { propertyIds, propertyMap }
-        }
+		const propertyMap = new Map<string, string>()
+		const propertyIds: string[] = []
+		for (const property of properties || []) {
+			if (typeof property?.id !== 'string' || property.id.length === 0) {
+				continue
+			}
+			propertyIds.push(property.id)
+			if (typeof property.name === 'string') {
+				propertyMap.set(property.id, property.name)
+			}
+		}
+		return { propertyIds, propertyMap }
+	}
 
 	private async fetchExpensesForProperties(
 		propertyIds: string[],

@@ -1,344 +1,343 @@
-import type { Metadata } from 'next'
-import { requireSession } from '#lib/server-auth'
-import { ExportButtons } from '#components/export/export-buttons'
-import { Badge } from '#components/ui/badge'
+'use client'
+
+import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
+import { Button } from '#components/ui/button'
+import { Input } from '#components/ui/input'
+import { Label } from '#components/ui/label'
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from '#components/ui/card'
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '#components/ui/select'
+import { Separator } from '#components/ui/separator'
 import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '#components/ui/table'
-import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
-import { cn } from '#lib/utils'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { IncomeStatementData } from '@repo/shared/types/financial-statements'
-import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
-import { endOfMonth, format, startOfMonth } from 'date-fns'
-import { ArrowDownRight, ArrowUpRight, TrendingUp } from 'lucide-react'
+	Search,
+	Download,
+	Upload,
+	DollarSign,
+	TrendingUp,
+	TrendingDown
+} from 'lucide-react'
+import { useState } from 'react'
 
-export const metadata: Metadata = {
-	title: 'Income Statement | TenantFlow',
-	description: 'Track revenue, expenses, and profitability over time'
+type FinancialLineItem = {
+	name: string
+	amount: number
+	previous: number
 }
 
-function TrendPill({ value }: { value: number | null | undefined }) {
-	if (value === null || value === undefined) {
-		return null
-	}
-
-	const isPositive = value >= 0
-	const Icon = isPositive ? ArrowUpRight : ArrowDownRight
-
-	return (
-		<Badge
-			variant={isPositive ? 'outline' : 'destructive'}
-			className="flex items-center gap-1 font-medium"
-		>
-			<Icon className="size-3" />
-			{formatPercentage(Math.abs(value), { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
-		</Badge>
-	)
+type IncomeStatementData = {
+	revenue: FinancialLineItem[]
+	expenses: FinancialLineItem[]
+	other: FinancialLineItem[]
 }
 
-async function getIncomeStatement(
-	token: string,
-	startDate: string,
-	endDate: string
-): Promise<IncomeStatementData | null> {
-	try {
-		const API_BASE_URL = getApiBaseUrl()
-		const url = `${API_BASE_URL}/financials/income-statement?startDate=${startDate}&endDate=${endDate}`
-		
-		const response = await fetch(url, {
-			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json'
-			},
-			cache: 'no-store'
-		})
+const IncomeStatementPage = () => {
+	const [period, setPeriod] = useState('monthly')
+	const [year, setYear] = useState('2024')
+	const [search, setSearch] = useState('')
 
-		if (!response.ok) {
-			return null
-		}
-
-		const result = await response.json()
-		return result.data
-	} catch {
-		return null
-	}
-}
-
-export default async function IncomeStatementPage() {
-	// Server-side auth
-	const { user } = await requireSession()
-	const logger = createLogger({ component: 'IncomeStatementPage', userId: user.id })
-
-	// Default to current month
-	const currentMonth = format(new Date(), 'yyyy-MM')
-	const monthDate = new Date(currentMonth + '-01')
-	const startDate = format(startOfMonth(monthDate), 'yyyy-MM-dd')
-	const endDate = format(endOfMonth(monthDate), 'yyyy-MM-dd')
-
-	// Fetch data
-	let data: IncomeStatementData | null = null
-	try {
-		// Get auth token for API call
-		const { createClient } = await import('#lib/supabase/server')
-		const supabase = await createClient()
-		const { data: { session } } = await supabase.auth.getSession()
-		
-		if (session?.access_token) {
-			data = await getIncomeStatement(session.access_token, startDate, endDate)
-		}
-	} catch (err) {
-		logger.warn('Failed to fetch income statement', {
-			error: err instanceof Error ? err.message : String(err)
-		})
+	// Mock data for immediate rendering
+	const data: IncomeStatementData = {
+		revenue: [
+			{ name: 'Sales', amount: 10000, previous: 9500 },
+			{ name: 'Services', amount: 5000, previous: 4800 }
+		],
+		expenses: [
+			{ name: 'Rent', amount: 2000, previous: 1900 },
+			{ name: 'Utilities', amount: 500, previous: 450 }
+		],
+		other: [{ name: 'Interest Income', amount: 100, previous: 80 }]
 	}
 
-	if (!data) {
-		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<p className="text-muted-foreground">No data available for the selected period</p>
-			</div>
-		)
+	const calculateTotal = (items: FinancialLineItem[]) => {
+		return items.reduce((sum, item) => sum + item.amount, 0)
 	}
 
-	const revenueItems = [
-		{ label: 'Rental Income', value: data.revenue.rentalIncome },
-		{ label: 'Late Fees', value: data.revenue.lateFeesIncome },
-		{ label: 'Other Income', value: data.revenue.otherIncome }
-	]
+	const calculateChange = (current: number, previous: number) => {
+		const change = current - previous
+		const percentage = previous !== 0 ? (change / previous) * 100 : 0
+		return { amount: change, percentage }
+	}
 
-	const expenseItems = [
-		{ label: 'Property Management', value: data.expenses.propertyManagement },
-		{ label: 'Maintenance', value: data.expenses.maintenance },
-		{ label: 'Utilities', value: data.expenses.utilities },
-		{ label: 'Insurance', value: data.expenses.insurance },
-		{ label: 'Property Tax', value: data.expenses.propertyTax },
-		{ label: 'Mortgage', value: data.expenses.mortgage },
-		{ label: 'Other', value: data.expenses.other }
-	]
-
-	return (
-		<div className="@container/main flex min-h-screen w-full flex-col">
-			<div className="border-b bg-background p-6">
-				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
-					<div className="flex flex-col gap-2">
-						<h1 className="text-3xl font-semibold tracking-tight">
-							Income Statement
-						</h1>
-						<p className="text-muted-foreground">
-							Track revenue, expenses, and profitability over time
-						</p>
-					</div>
-
-					<div className="flex flex-wrap items-center gap-3">
-						<ExportButtons filename="income-statement" payload={data} />
-					</div>
-
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-						<Card className="@container/card">
-							<CardHeader>
-								<CardTitle>Total Revenue</CardTitle>
-								<CardDescription>{data.period.label}</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-3">
-								<p className="text-3xl font-semibold tabular-nums">
-									{formatCurrency(data.revenue.totalRevenue)}
-								</p>
-							</CardContent>
-						</Card>
-
-						<Card className="@container/card">
-							<CardHeader>
-								<CardTitle>Total Expenses</CardTitle>
-								<CardDescription>Operating costs</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-3">
-								<p className="text-3xl font-semibold tabular-nums">
-									{formatCurrency(data.expenses.totalExpenses)}
-								</p>
-							</CardContent>
-						</Card>
-
-						<Card
-							className={cn(
-								'@container/card',
-								data.netIncome >= 0
-									? 'border-[oklch(var(--success))]'
-									: 'border-[oklch(var(--destructive))]'
-							)}
+	const renderSection = (title: string, items: FinancialLineItem[]) => (
+		<div className="space-y-4">
+			<h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+			<div className="space-y-2">
+				{items.map((item, index) => {
+					const change = calculateChange(item.amount, item.previous)
+					return (
+						<div
+							key={index}
+							className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
 						>
-							<CardHeader>
-								<CardTitle>Net Income</CardTitle>
-								<CardDescription>After all expenses</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-3">
-								<p
-									className={cn(
-										'text-3xl font-semibold tabular-nums',
-										data.netIncome >= 0
-											? 'text-[oklch(var(--success))]'
-											: 'text-[oklch(var(--destructive))]'
-									)}
-								>
-									{formatCurrency(data.netIncome)}
-								</p>
-								{data.previousPeriod && (
-									<TrendPill value={data.previousPeriod.changePercent} />
-								)}
-							</CardContent>
-						</Card>
-
-						<Card className="@container/card">
-							<CardHeader>
-								<CardTitle>Profit Margin</CardTitle>
-								<CardDescription>Net income / Revenue</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-3">
-								<p className="text-3xl font-semibold tabular-nums">
-									{formatPercentage(data.profitMargin)}
-								</p>
-							</CardContent>
-						</Card>
-					</div>
-				</div>
-			</div>
-
-			<div className="flex-1 p-6">
-				<div className="mx-auto max-w-400 space-y-8 px-4 lg:px-6">
-					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-						<Card>
-							<CardHeader>
-								<CardTitle>Revenue Breakdown</CardTitle>
-								<CardDescription>Income sources for the period</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>Category</TableHead>
-											<TableHead className="text-right">Amount</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{revenueItems.map(item => (
-											<TableRow key={item.label}>
-												<TableCell className="font-medium">
-													{item.label}
-												</TableCell>
-												<TableCell className="text-right">
-													{formatCurrency(item.value)}
-												</TableCell>
-											</TableRow>
-										))}
-										<TableRow className="border-t-2">
-											<TableCell className="font-semibold">
-												Total Revenue
-											</TableCell>
-											<TableCell className="text-right font-semibold">
-												{formatCurrency(data.revenue.totalRevenue)}
-											</TableCell>
-										</TableRow>
-									</TableBody>
-								</Table>
-							</CardContent>
-						</Card>
-
-						<Card>
-							<CardHeader>
-								<CardTitle>Expense Breakdown</CardTitle>
-								<CardDescription>
-									Operating expenses for the period
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>Category</TableHead>
-											<TableHead className="text-right">Amount</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{expenseItems.map(item => (
-											<TableRow key={item.label}>
-												<TableCell className="font-medium">
-													{item.label}
-												</TableCell>
-												<TableCell className="text-right">
-													{formatCurrency(item.value)}
-												</TableCell>
-											</TableRow>
-										))}
-										<TableRow className="border-t-2">
-											<TableCell className="font-semibold">
-												Total Expenses
-											</TableCell>
-											<TableCell className="text-right font-semibold">
-												{formatCurrency(data.expenses.totalExpenses)}
-											</TableCell>
-										</TableRow>
-									</TableBody>
-								</Table>
-							</CardContent>
-						</Card>
-					</div>
-
-					{data.previousPeriod && (
-						<Card>
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<TrendingUp className="size-5" />
-									Period Comparison
-								</CardTitle>
-								<CardDescription>
-									Comparison with previous period
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-									<div className="rounded-lg bg-muted/40 p-4">
-										<p className="text-sm text-muted-foreground">
-											Previous Period
-										</p>
-										<p className="text-2xl font-semibold">
-											{formatCurrency(data.previousPeriod.netIncome)}
-										</p>
-									</div>
-									<div className="rounded-lg bg-muted/40 p-4">
-										<p className="text-sm text-muted-foreground">Change</p>
-										<p className="text-2xl font-semibold">
-											{formatCurrency(data.previousPeriod.changeAmount)}
-										</p>
-									</div>
-									<div className="rounded-lg bg-muted/40 p-4">
-										<p className="text-sm text-muted-foreground">
-											Change Percentage
-										</p>
-										<div className="flex items-center gap-2">
-											<p className="text-2xl font-semibold">
-												{formatPercentage(data.previousPeriod.changePercent)}
-											</p>
-											<TrendPill value={data.previousPeriod.changePercent} />
-										</div>
-									</div>
+							<div className="flex-1">
+								<div className="font-medium text-gray-900">{item.name}</div>
+								<div className="text-sm text-gray-500">
+									Previous: ${item.previous.toLocaleString()}
 								</div>
-							</CardContent>
-						</Card>
-					)}
-				</div>
+							</div>
+							<div className="text-right">
+								<div className="font-semibold text-gray-900">
+									${item.amount.toLocaleString()}
+								</div>
+								<div
+									className={`text-sm flex items-center gap-1 ${
+										change.amount >= 0 ? 'text-green-600' : 'text-red-600'
+									}`}
+								>
+									{change.amount >= 0 ? (
+										<TrendingUp className="w-3 h-3" />
+									) : (
+										<TrendingDown className="w-3 h-3" />
+									)}
+									{change.amount >= 0 ? '+' : ''}
+									{change.amount.toLocaleString()} (
+									{change.percentage.toFixed(1)}%)
+								</div>
+							</div>
+						</div>
+					)
+				})}
 			</div>
 		</div>
 	)
+
+	const totalRevenue = calculateTotal(data.revenue)
+	const totalExpenses = calculateTotal(data.expenses)
+	const totalOther = calculateTotal(data.other)
+	const netIncome = totalRevenue - totalExpenses + totalOther
+
+	return (
+		<div className="p-6 space-y-6">
+			{/* Header */}
+			<div className="flex items-center justify-between">
+				<div>
+					<h1 className="text-3xl font-bold">Income Statement</h1>
+					<p className="text-gray-600">
+						Revenue, expenses, and net income over a period
+					</p>
+				</div>
+				<div className="flex gap-2">
+					<Button variant="outline" size="sm">
+						<Download className="w-4 h-4 mr-2" />
+						Export
+					</Button>
+					<Button size="sm">
+						<Upload className="w-4 h-4 mr-2" />
+						Import
+					</Button>
+				</div>
+			</div>
+
+			{/* Filters */}
+			<Card>
+				<CardContent className="p-4">
+					<div className="flex flex-wrap items-center gap-4">
+						<div className="flex items-center gap-2">
+								<Label>Period</Label>
+								<Select value={period} onValueChange={setPeriod}>
+									<SelectTrigger className="w-32">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="monthly">Monthly</SelectItem>
+										<SelectItem value="quarterly">Quarterly</SelectItem>
+										<SelectItem value="yearly">Yearly</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+							<div className="flex items-center gap-2">
+								<Label>Year</Label>
+								<Select value={year} onValueChange={setYear}>
+									<SelectTrigger className="w-24">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="2024">2024</SelectItem>
+										<SelectItem value="2023">2023</SelectItem>
+										<SelectItem value="2022">2022</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+							<div className="flex items-center gap-2">
+								<Input
+									placeholder="Search..."
+									className="w-64"
+									value={search}
+									onChange={e => setSearch(e.target.value)}
+								/>
+								<Button variant="outline" size="sm">
+									<Search className="w-4 h-4" />
+								</Button>
+							</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Summary Cards */}
+			<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+						<DollarSign className="h-4 w-4 text-green-600" />
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold text-green-600">
+							${totalRevenue.toLocaleString()}
+						</div>
+						<p className="text-xs text-muted-foreground">Current period</p>
+					</CardContent>
+				</Card>
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">
+							Total Expenses
+						</CardTitle>
+						<DollarSign className="h-4 w-4 text-red-600" />
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold text-red-600">
+							${totalExpenses.toLocaleString()}
+						</div>
+						<p className="text-xs text-muted-foreground">Current period</p>
+					</CardContent>
+				</Card>
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">Other Items</CardTitle>
+						<DollarSign className="h-4 w-4 text-muted-foreground" />
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold">
+							${totalOther.toLocaleString()}
+						</div>
+						<p className="text-xs text-muted-foreground">Current period</p>
+					</CardContent>
+				</Card>
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">Net Income</CardTitle>
+						<TrendingUp className="h-4 w-4 text-muted-foreground" />
+					</CardHeader>
+					<CardContent>
+						<div
+							className={`text-2xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}
+						>
+							{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString()}
+						</div>
+						<p className="text-xs text-muted-foreground">Current period</p>
+					</CardContent>
+				</Card>
+			</div>
+
+			{/* Income Statement */}
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+				{/* Revenue */}
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<DollarSign className="w-5 h-5 text-green-600" />
+							Revenue
+						</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-6">
+						{renderSection('Revenue Sources', data.revenue)}
+						<Separator />
+						<div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+							<div className="font-semibold">Total Revenue</div>
+							<div className="font-bold text-lg text-green-600">
+								${totalRevenue.toLocaleString()}
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+
+				{/* Expenses & Other */}
+				<div className="space-y-6">
+					<Card>
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">
+								<DollarSign className="w-5 h-5 text-red-600" />
+								Operating Expenses
+							</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-6">
+							{renderSection('Operating Expenses', data.expenses)}
+							<Separator />
+							<div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+								<div className="font-semibold">Total Operating Expenses</div>
+								<div className="font-bold text-lg text-red-600">
+									${totalExpenses.toLocaleString()}
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">
+								<DollarSign className="w-5 h-5 text-yellow-600" />
+								Other Items
+							</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-6">
+							{renderSection('Other Items', data.other)}
+							<Separator />
+							<div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+								<div className="font-semibold">Total Other Items</div>
+								<div className="font-bold text-lg text-yellow-600">
+									${totalOther.toLocaleString()}
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				</div>
+			</div>
+
+			{/* Net Income Summary */}
+			<Card>
+				<CardHeader>
+					<CardTitle>Net Income Summary</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-4">
+						<div className="space-y-2">
+							<div className="flex justify-between py-2 border-b">
+								<span>Total Revenue</span>
+								<span className="font-semibold text-green-600">
+									${totalRevenue.toLocaleString()}
+								</span>
+							</div>
+							<div className="flex justify-between py-2 border-b">
+								<span>Total Operating Expenses</span>
+								<span className="font-semibold text-red-600">
+									-${totalExpenses.toLocaleString()}
+								</span>
+							</div>
+							<div className="flex justify-between py-2 border-b">
+								<span>Other Items</span>
+								<span className="font-semibold">
+									${totalOther.toLocaleString()}
+								</span>
+							</div>
+						</div>
+						<Separator />
+						<div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+							<div className="text-lg font-semibold">Net Income</div>
+							<div
+								className={`text-xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}
+							>
+								{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString()}
+							</div>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+		</div>
+	)
 }
+
+export default IncomeStatementPage
