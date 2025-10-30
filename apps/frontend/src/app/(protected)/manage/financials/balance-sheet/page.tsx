@@ -83,16 +83,12 @@ const BalanceSheetPage = () => {
 
 	const calculateChange = (current: number, previous: number) => {
 		const change = current - previous
-		const percentage = previous === 0 
-			? (current === 0 ? 0 : null)
-			: (change / previous) * 100
+		const percentage =
+			previous === 0 ? (current === 0 ? 0 : null) : (change / previous) * 100
 		return { amount: change, percentage }
 	}
 
-	const renderSection = (
-		title: string,
-		items: FinancialLineItem[]
-	) => (
+	const renderSection = (title: string, items: FinancialLineItem[]) => (
 		<div className="space-y-4">
 			<h3 className="text-lg font-semibold text-gray-900">{title}</h3>
 			<div className="space-y-2">
@@ -115,7 +111,7 @@ const BalanceSheetPage = () => {
 								</div>
 								<div
 									className={`text-sm flex items-center gap-1 ${
-										change.amount >= 0 ? 'text-green-6000' : 'text-red-6000'
+										change.amount >= 0 ? 'text-green-600' : 'text-red-600'
 									}`}
 								>
 									{change.amount >= 0 ? (
@@ -125,7 +121,10 @@ const BalanceSheetPage = () => {
 									)}
 									{change.amount >= 0 ? '+' : ''}
 									{change.amount.toLocaleString()} (
-								{change.percentage !== null ? `${change.percentage.toFixed(1)}%` : 'N/A'})
+									{change.percentage !== null
+										? `${change.percentage.toFixed(1)}%`
+										: 'N/A'}
+									)
 								</div>
 							</div>
 						</div>
@@ -141,7 +140,7 @@ const BalanceSheetPage = () => {
 				<div className="flex items-center justify-between">
 					<div>
 						<h1 className="text-3xl font-bold">Balance Sheet</h1>
-						<p className="text-gray-6000">
+						<p className="text-gray-600">
 							Financial position at a specific point in time
 						</p>
 					</div>
@@ -203,7 +202,7 @@ const BalanceSheetPage = () => {
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold">Balance Sheet</h1>
-					<p className="text-gray-6000">
+					<p className="text-gray-600">
 						Financial position at a specific point in time
 					</p>
 				</div>
@@ -395,7 +394,7 @@ const BalanceSheetPage = () => {
 							<div className="text-2xl font-bold text-blue-600">
 								${totalAssets.toLocaleString()}
 							</div>
-							<div className="text-sm text-gray-6000">Total Assets</div>
+							<div className="text-sm text-gray-600">Total Assets</div>
 						</div>
 						<div className="text-center p-4 bg-gray-50 rounded-lg">
 							<div className="text-2xl font-bold text-red-600">
@@ -407,15 +406,15 @@ const BalanceSheetPage = () => {
 							<div className="text-2xl font-bold text-green-600">
 								${totalEquity.toLocaleString()}
 							</div>
-							<div className="text-sm text-gray-6000">Total Equity</div>
+							<div className="text-sm text-gray-600">Total Equity</div>
 						</div>
 					</div>
 					<div className="mt-4 p-4 bg-blue-50 rounded-lg">
-						<div className="text-sm text-gray-6000">
+						<div className="text-sm text-gray-600">
 							<strong>Balance Sheet Equation:</strong> Assets = Liabilities +
 							Equity
 						</div>
-						<div className="text-sm text-gray-6000 mt-1">
+						<div className="text-sm text-gray-600 mt-1">
 							${totalAssets.toLocaleString()} = $
 							{totalLiabilities.toLocaleString()} + $
 							{totalEquity.toLocaleString()}

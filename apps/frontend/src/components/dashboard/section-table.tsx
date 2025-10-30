@@ -17,8 +17,9 @@ import {
 	TableHeader,
 	TableRow
 } from '#components/ui/table'
-import { useRecentProperties } from '#hooks/api/use-properties'
+import { usePropertyList } from '#hooks/api/use-properties'
 import { cn } from '#lib/utils'
+import type { Property } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { Building2, MapPin } from 'lucide-react'
 
@@ -51,11 +52,11 @@ const formatPropertyStatus = (status: PropertyStatus): string => {
 }
 
 export function SectionTable() {
-	const { data: properties, isLoading, error } = useRecentProperties()
+	const { data: properties, isLoading, error } = usePropertyList({ limit: 5 })
 
-	// useRecentProperties may return either an array or a paginated object
+	// usePropertyList returns a paginated object
 	// (e.g. { data: Property[] }). Normalize to an array for rendering.
-	const propertiesList = Array.isArray(properties)
+	const propertiesList: Property[] = Array.isArray(properties)
 		? properties
 		: (properties?.data ?? [])
 

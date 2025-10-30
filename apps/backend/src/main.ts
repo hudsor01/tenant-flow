@@ -143,9 +143,6 @@ async function bootstrap() {
 	// Enable graceful shutdown
 	app.enableShutdownHooks()
 
-	// ✅ Request timing, ID, and logging now handled by NestJS middleware classes
-	// See: AppModule.configure() and ClsModule setup
-
 	// Start server
 	await app.listen(port, '0.0.0.0')
 	bootstrapLogger.log(`Listening on port ${port} (bind 0.0.0.0)`)

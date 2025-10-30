@@ -3,6 +3,7 @@
  */
 import { API_BASE_URL, dashboardApi } from '#lib/api-client'
 import type {
+	ActivityItem,
 	DashboardStats,
 	FinancialMetrics,
 	LeaseStatsResponse,
@@ -371,7 +372,7 @@ export function useDashboardPageDataUnified() {
 		queryFn: async () => {
 			const response = await apiClient<{
 				stats: DashboardStats
-				activity: unknown[]
+				activity: ActivityItem[]
 			}>('/api/v1/dashboard/page-data')
 			return response
 		},

@@ -21,12 +21,10 @@ import {
 	Query,
 	Req
 } from '@nestjs/common'
-import type {
-	CreateLeaseRequest,
-	UpdateLeaseRequest
-} from '@repo/shared/types/backend-domain'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LeasesService } from './leases.service'
+import { CreateLeaseDto } from './dto/create-lease.dto'
+import { UpdateLeaseDto } from './dto/update-lease.dto'
 
 @Controller('leases')
 export class LeasesController {
@@ -284,29 +282,29 @@ export class LeasesController {
 
 	@Post()
 	async create(
-		@Body() createRequest: CreateLeaseRequest,
+		@Body() dto: CreateLeaseDto,
 		@Req() req: AuthenticatedRequest
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
+		// Modern 2025 pattern: Zod validation via nestjs-zod
 		const userId = req.user.id
-		return this.leasesService.create(userId, createRequest)
+		return this.leasesService.create(userId, dto)
 	}
 
 	@Put(':id')
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Body() updateRequest: UpdateLeaseRequest,
+		@Body() dto: UpdateLeaseDto,
 		@Req() req: AuthenticatedRequest
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
+		// Modern 2025 pattern: Zod validation via nestjs-zod
 		const userId = req.user.id
 
 		// 🔐 BUG FIX #2: Pass version for optimistic locking
-		const expectedVersion = (updateRequest as { version?: number }).version
+		const expectedVersion = (dto as { version?: number }).version
 		const lease = await this.leasesService.update(
 			userId,
 			id,
-			updateRequest,
+			dto,
 			expectedVersion
 		)
 		if (!lease) {

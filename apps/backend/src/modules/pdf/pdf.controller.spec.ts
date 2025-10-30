@@ -1,11 +1,10 @@
-import { BadRequestException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { PDFController } from './pdf.controller'
 import { LeasePDFService } from './lease-pdf.service'
 
 describe('PDFController', () => {
-	let controller: PDFController
+	let controller: any
 	let leasePdfService: jest.Mocked<LeasePDFService>
 
 	beforeEach(async () => {
@@ -58,10 +57,12 @@ describe('PDFController', () => {
 	describe('generateLeaseTemplatePreview', () => {
 		it('should generate PDF preview and return base64', async () => {
 			const mockPdfBuffer = Buffer.from('mock-pdf-content')
-			leasePdfService.generateLeasePdfFromTemplate.mockResolvedValue(mockPdfBuffer)
+			leasePdfService.generateLeasePdfFromTemplate.mockResolvedValue(
+				mockPdfBuffer
+			)
 
 			const selections = {
-				state: 'CA',
+				state: 'CA' as const,
 				selectedClauses: ['rent-amount', 'security-deposit'],
 				includeFederalDisclosures: true,
 				includeStateDisclosures: true,
@@ -73,7 +74,7 @@ describe('PDFController', () => {
 				landlordAddress: '123 Test St',
 				tenantNames: 'Test Tenant',
 				propertyAddress: '456 Rental Ave',
-				propertyState: 'CA',
+				propertyState: 'CA' as const,
 				rentAmountCents: 200000,
 				rentAmountFormatted: '$2,000.00',
 				rentDueDay: 1,
@@ -90,7 +91,10 @@ describe('PDFController', () => {
 				formattedDateGenerated: 'October 26, 2025'
 			}
 
-			const result = await controller.generateLeaseTemplatePreview({ selections, context })
+			const result = await controller.generateLeaseTemplatePreview({
+				selections,
+				context
+			})
 
 			expect(leasePdfService.generateLeasePdfFromTemplate).toHaveBeenCalledWith(
 				selections,
@@ -107,7 +111,7 @@ describe('PDFController', () => {
 			)
 
 			const selections = {
-				state: 'CA',
+				state: 'CA' as const,
 				selectedClauses: [],
 				includeFederalDisclosures: true,
 				includeStateDisclosures: true,
@@ -119,7 +123,7 @@ describe('PDFController', () => {
 				landlordAddress: 'Test',
 				tenantNames: 'Test',
 				propertyAddress: 'Test',
-				propertyState: 'CA',
+				propertyState: 'CA' as const,
 				rentAmountCents: 100000,
 				rentAmountFormatted: '$1,000.00',
 				rentDueDay: 1,
@@ -155,7 +159,9 @@ describe('PDFController', () => {
 			expect(invalidPatterns.state.length).not.toBe(2)
 			expect(invalidPatterns.landlordName).toBe('')
 			expect(invalidPatterns.rentAmountCents).toBeLessThan(0)
-			expect(invalidPatterns.leaseStartDateISO).not.toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+			expect(invalidPatterns.leaseStartDateISO).not.toMatch(
+				/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/
+			)
 		})
 
 		it('should document ISO datetime format requirements', () => {
@@ -174,11 +180,57 @@ describe('PDFController', () => {
 		describe('Valid State Codes', () => {
 			it('should accept all valid US state codes', async () => {
 				const validStates = [
-					'CA', 'NY', 'TX', 'FL', 'IL', 'PA', 'OH', 'GA', 'NC', 'MI',
-					'NJ', 'VA', 'WA', 'AZ', 'MA', 'TN', 'IN', 'MO', 'MD', 'WI',
-					'CO', 'MN', 'SC', 'AL', 'LA', 'KY', 'OR', 'OK', 'CT', 'UT',
-					'IA', 'NV', 'AR', 'MS', 'KS', 'NM', 'NE', 'ID', 'WV', 'HI',
-					'NH', 'ME', 'RI', 'MT', 'DE', 'SD', 'ND', 'AK', 'VT', 'WY', 'DC'
+					'CA',
+					'NY',
+					'TX',
+					'FL',
+					'IL',
+					'PA',
+					'OH',
+					'GA',
+					'NC',
+					'MI',
+					'NJ',
+					'VA',
+					'WA',
+					'AZ',
+					'MA',
+					'TN',
+					'IN',
+					'MO',
+					'MD',
+					'WI',
+					'CO',
+					'MN',
+					'SC',
+					'AL',
+					'LA',
+					'KY',
+					'OR',
+					'OK',
+					'CT',
+					'UT',
+					'IA',
+					'NV',
+					'AR',
+					'MS',
+					'KS',
+					'NM',
+					'NE',
+					'ID',
+					'WV',
+					'HI',
+					'NH',
+					'ME',
+					'RI',
+					'MT',
+					'DE',
+					'SD',
+					'ND',
+					'AK',
+					'VT',
+					'WY',
+					'DC'
 				]
 
 				// Verify our DTO schema includes all valid states
@@ -191,21 +243,24 @@ describe('PDFController', () => {
 		describe('Required Fields Validation', () => {
 			it('should require landlordName in context', async () => {
 				const mockPdfBuffer = Buffer.from('mock-pdf-content')
-				leasePdfService.generateLeasePdfFromTemplate.mockResolvedValue(mockPdfBuffer)
+				leasePdfService.generateLeasePdfFromTemplate.mockResolvedValue(
+					mockPdfBuffer
+				)
 
 				const validBody = {
 					selections: {
-						state: 'CA',
+						state: 'CA' as const,
 						selectedClauses: [],
 						includeStateDisclosures: false,
-						includeFederalDisclosures: false
+						includeFederalDisclosures: false,
+						customClauses: []
 					},
 					context: {
 						landlordName: '$1',
 						landlordAddress: '$2',
 						tenantNames: '$3',
 						propertyAddress: '$4',
-						propertyState: 'CA',
+						propertyState: 'CA' as const,
 						rentAmountCents: 100000,
 						rentAmountFormatted: '$1,000.00',
 						rentDueDay: 1,
@@ -256,26 +311,25 @@ describe('PDFController', () => {
 				]
 
 				validDates.forEach(date => {
-					expect(date).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/)
+					expect(date).toMatch(
+						/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/
+					)
 				})
 			})
 
 			it('should document invalid date formats', () => {
-				const invalidDates = [
-					'2025-01-01',           // Missing time - fails regex
-					'01/01/2025',           // Wrong format - fails regex
-					'2025-13-01T00:00:00Z', // Invalid month - passes regex but fails Zod validation
-					'invalid'               // Not a date - fails regex
-				]
-
 				// Note: Regex validation catches syntax errors, but Zod's datetime() catches semantic errors
 				const syntaxInvalid = ['2025-01-01', '01/01/2025', 'invalid']
 				syntaxInvalid.forEach(date => {
-					expect(date).not.toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/)
+					expect(date).not.toMatch(
+						/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/
+					)
 				})
 
 				// '2025-13-01T00:00:00Z' passes regex (correct syntax) but Zod rejects it (invalid month)
-				expect('2025-13-01T00:00:00Z').toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/)
+				expect('2025-13-01T00:00:00Z').toMatch(
+					/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/
+				)
 			})
 		})
 
@@ -299,11 +353,13 @@ describe('PDFController', () => {
 		describe('Custom Clauses Validation', () => {
 			it('should accept empty custom clauses array', async () => {
 				const mockPdfBuffer = Buffer.from('mock-pdf-content')
-				leasePdfService.generateLeasePdfFromTemplate.mockResolvedValue(mockPdfBuffer)
+				leasePdfService.generateLeasePdfFromTemplate.mockResolvedValue(
+					mockPdfBuffer
+				)
 
 				const validBody = {
 					selections: {
-						state: 'CA',
+						state: 'CA' as const,
 						selectedClauses: [],
 						includeStateDisclosures: false,
 						includeFederalDisclosures: false,
@@ -314,7 +370,7 @@ describe('PDFController', () => {
 						landlordAddress: '$2',
 						tenantNames: '$3',
 						propertyAddress: '$4',
-						propertyState: 'CA',
+						propertyState: 'CA' as const,
 						rentAmountCents: 100000,
 						rentAmountFormatted: '$1,000.00',
 						rentDueDay: 1,
@@ -335,11 +391,13 @@ describe('PDFController', () => {
 
 			it('should accept valid custom clauses', async () => {
 				const mockPdfBuffer = Buffer.from('mock-pdf-content')
-				leasePdfService.generateLeasePdfFromTemplate.mockResolvedValue(mockPdfBuffer)
+				leasePdfService.generateLeasePdfFromTemplate.mockResolvedValue(
+					mockPdfBuffer
+				)
 
 				const validBody = {
 					selections: {
-						state: 'CA',
+						state: 'CA' as const,
 						selectedClauses: [],
 						includeStateDisclosures: false,
 						includeFederalDisclosures: false,
@@ -356,7 +414,7 @@ describe('PDFController', () => {
 						landlordAddress: '$2',
 						tenantNames: '$3',
 						propertyAddress: '$4',
-						propertyState: 'CA',
+						propertyState: 'CA' as const,
 						rentAmountCents: 100000,
 						rentAmountFormatted: '$1,000.00',
 						rentDueDay: 1,

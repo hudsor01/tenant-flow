@@ -1,5 +1,6 @@
 import { ForbiddenException } from '@nestjs/common'
 import type { ExecutionContext } from '@nestjs/common'
+import { createMockUser } from '../../test-utils/mocks'
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SubscriptionGuard, SKIP_SUBSCRIPTION_CHECK_KEY } from './subscription.guard'
 
@@ -50,11 +51,11 @@ describe('SubscriptionGuard', () => {
 
 		const result = await guard.canActivate(
 			createContext({
-				user: {
+				user: createMockUser({
 					id: 'tenant-1',
 					email: 'tenant@example.com',
 					role: 'TENANT'
-				}
+				})
 			})
 		)
 
@@ -73,11 +74,11 @@ describe('SubscriptionGuard', () => {
 
 		const result = await guard.canActivate(
 			createContext({
-				user: {
+				user: createMockUser({
 					id: 'owner-1',
 					email: 'owner@example.com',
 					role: 'OWNER'
-				}
+				})
 			})
 		)
 
@@ -94,11 +95,11 @@ describe('SubscriptionGuard', () => {
 
 		const result = await guard.canActivate(
 			createContext({
-				user: {
+				user: createMockUser({
 					id: 'owner-2',
 					email: 'owner@example.com',
 					role: 'OWNER'
-				}
+				})
 			})
 		)
 
@@ -139,11 +140,11 @@ describe('SubscriptionGuard', () => {
 		await expect(
 			guard.canActivate(
 				createContext({
-					user: {
+					user: createMockUser({
 						id: 'owner-3',
 						email: 'owner@example.com',
 						role: 'OWNER'
-					},
+					}),
 					url: path
 				})
 			)

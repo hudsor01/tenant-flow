@@ -184,6 +184,29 @@ export const validateTenantForm = (
 	return validationResult
 }
 
+// Backend DTO schemas - match CreateTenantRequest/UpdateTenantRequest from backend-domain.ts
+export const createTenantRequestSchema = z.object({
+	firstName: nonEmptyStringSchema.max(100).optional(),
+	lastName: nonEmptyStringSchema.max(100).optional(),
+	email: emailSchema,
+	phone: phoneSchema.optional(),
+	dateOfBirth: z.string().optional(),
+	ssn: z.string().optional(),
+	name: nonEmptyStringSchema.max(200).optional(),
+	emergencyContact: emergencyContactSchema,
+	avatarUrl: z.string().url().optional()
+})
+
+export const updateTenantRequestSchema = z.object({
+	firstName: nonEmptyStringSchema.max(100).optional(),
+	lastName: nonEmptyStringSchema.max(100).optional(),
+	email: emailSchema.optional(),
+	phone: phoneSchema.optional(),
+	dateOfBirth: z.string().optional(),
+	name: nonEmptyStringSchema.max(200).optional(),
+	emergencyContact: emergencyContactSchema
+})
+
 export const validateTenantCreateForm = (
 	data: TenantCreateFormData
 ): TenantFormValidationResult<z.output<typeof tenantCreateFormSchema>> => {

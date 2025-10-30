@@ -17,12 +17,33 @@ import {
 
 describe('Test Environment Configuration', () => {
 	// Store original env to restore after tests
-	const originalEnv = process.env.NODE_ENV
-	const originalTestType = process.env.TEST_TYPE
+	let savedEnv: Record<string, string | undefined>
+
+	beforeEach(() => {
+		// Save all environment variables that tests might mutate
+		savedEnv = {
+			NODE_ENV: process.env.NODE_ENV,
+			TEST_TYPE: process.env.TEST_TYPE,
+			TEST_SUPABASE_URL: process.env.TEST_SUPABASE_URL,
+			TEST_SUPABASE_PUBLISHABLE_KEY: process.env.TEST_SUPABASE_PUBLISHABLE_KEY,
+			TEST_SUPABASE_SECRET_KEY: process.env.TEST_SUPABASE_SECRET_KEY,
+			TEST_SUPABASE_JWT_SECRET: process.env.TEST_SUPABASE_JWT_SECRET,
+			TEST_STRIPE_SECRET_KEY: process.env.TEST_STRIPE_SECRET_KEY,
+			TEST_STRIPE_PUBLISHABLE_KEY: process.env.TEST_STRIPE_PUBLISHABLE_KEY,
+			TEST_STRIPE_WEBHOOK_SECRET: process.env.TEST_STRIPE_WEBHOOK_SECRET,
+			STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY
+		}
+	})
 
 	afterEach(() => {
-		process.env.NODE_ENV = originalEnv
-		process.env.TEST_TYPE = originalTestType
+		// Restore all saved environment variables
+		Object.keys(savedEnv).forEach(key => {
+			if (savedEnv[key] === undefined) {
+				delete process.env[key]
+			} else {
+				process.env[key] = savedEnv[key]
+			}
+		})
 	})
 
 	describe('getTestEnvironment', () => {

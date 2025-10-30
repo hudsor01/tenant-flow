@@ -22,52 +22,13 @@ import {
 	FileSpreadsheet,
 	FileBarChart
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import { getTaxDocuments } from '#lib/api/financials-client'
-import { useAuth } from '#providers/auth-provider'
-
-type ExpenseCategory = {
-	category: string
-	amount: number
-	deductible: boolean
-	notes?: string
-}
-
-type PropertyDepreciation = {
-	propertyId: string
-	propertyName: string
-	propertyValue: number
-	annualDepreciation: number
-	accumulatedDepreciation: number
-	remainingBasis: number
-}
-
-type TaxData = {
-	taxYear: number
-	totals: {
-		totalIncome: number
-		totalDeductions: number
-		netTaxableIncome: number
-	}
-	incomeBreakdown: {
-		grossRentalIncome: number
-		totalExpenses: number
-		netOperatingIncome: number
-		depreciation: number
-		mortgageInterest: number
-		taxableIncome: number
-	}
-	schedule: {
-		scheduleE: {
-			grossRentalIncome: number
-			totalExpenses: number
-			depreciation: number
-			netIncome: number
-		}
-	}
-	expenseCategories: ExpenseCategory[]
-	propertyDepreciation: PropertyDepreciation[]
-}
+import { useState } from 'react'
+import { useTaxDocuments } from '#hooks/api/use-tax-documents'
+import { toast } from 'sonner'
+import type {
+	TaxExpenseCategory,
+	TaxPropertyDepreciation
+} from '@repo/shared/types/financial-statements'
 
 interface TaxDocumentsPageProps {
 	initialYear?: number
@@ -77,58 +38,10 @@ const TaxDocumentsPage = ({
 	initialYear = new Date().getFullYear()
 }: TaxDocumentsPageProps) => {
 	const [selectedYear, setSelectedYear] = useState(initialYear.toString())
-	const [isLoading, setIsLoading] = useState(true)
-	const [taxData, setTaxData] = useState<TaxData | null>(null)
-	const [error, setError] = useState<string | null>(null)
 	const [searchQuery, setSearchQuery] = useState('')
-	const { session } = useAuth()
-
-	useEffect(() => {
-		let isMounted = true
-		const abortController = new AbortController()
-
-		const fetchTaxDocuments = async () => {
-			if (!session?.access_token) {
-				if (isMounted) {
-					setIsLoading(false)
-					setError('Authentication required. Please sign in to view tax documents.')
-				}
-				return
-			}
-
-			try {
-				if (isMounted) {
-					setIsLoading(true)
-					setError(null)
-				}
-
-				const data = await getTaxDocuments(session.access_token, parseInt(selectedYear))
-				
-				if (isMounted) {
-					setTaxData(data)
-				}
-			} catch (err) {
-				if (isMounted) {
-					const errorMessage = err instanceof Error 
-						? `Failed to load tax documents: ${err.message}` 
-						: 'Failed to load tax documents. Please try again.'
-					setError(errorMessage)
-					console.error('Tax documents fetch error:', err)
-				}
-			} finally {
-				if (isMounted) {
-					setIsLoading(false)
-				}
-			}
-		}
-
-		fetchTaxDocuments()
-
-		return () => {
-			isMounted = false
-			abortController.abort()
-		}
-	}, [session, selectedYear])
+	
+	const { data: taxData, isLoading, error: queryError } = useTaxDocuments(parseInt(selectedYear, 10))
+	const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to load tax documents') : null
 
 	const years = Array.from({ length: 5 }, (_, i) =>
 		(new Date().getFullYear() - i).toString()
@@ -149,8 +62,9 @@ const TaxDocumentsPage = ({
 			document.body.removeChild(a)
 			URL.revokeObjectURL(url)
 		} catch (error) {
-			console.error('Export failed:', error)
-			setError('Failed to export documents')
+			toast.error('Failed to export documents', {
+				description: error instanceof Error ? error.message : 'An unexpected error occurred'
+			})
 		}
 	}
 
@@ -165,10 +79,20 @@ const TaxDocumentsPage = ({
 			try {
 				const text = await file.text()
 				const data = JSON.parse(text)
-				setTaxData(data)
+
+				// Validate the data structure
+				if (!data.taxYear || !data.totals || !data.incomeBreakdown) {
+					throw new Error('Invalid tax data format')
+				}
+
+				// TODO: Implement import functionality with API call
+				toast.info('Import feature coming soon', {
+					description: 'This feature is currently in development and will be available in a future update.'
+				})
 			} catch (error) {
-				console.error('Import failed:', error)
-				setError('Failed to import documents. Please check the file format.')
+				toast.error('Failed to import documents', {
+					description: error instanceof Error ? error.message : 'Please check the file format and try again.'
+				})
 			}
 		}
 		input.click()
@@ -177,33 +101,62 @@ const TaxDocumentsPage = ({
 	// Handler for generating tax report
 	const handleGenerateTaxReport = async () => {
 		try {
-			console.log('Generating tax report for year:', selectedYear)
 			// TODO: Call API endpoint to generate report
-			setError('Tax report generation not yet implemented')
+			// const report = await generateTaxReport(session.access_token, parseInt(selectedYear, 10))
+			// downloadReport(report)
+			
+			toast.info('Tax report generation coming soon', {
+				description: 'This feature is currently in development and will be available in a future update.'
+			})
 		} catch (error) {
-			console.error('Failed to generate report:', error)
-			setError('Failed to generate tax report')
+			toast.error('Failed to generate tax report', {
+				description: error instanceof Error ? error.message : 'An unexpected error occurred'
+			})
 		}
 	}
 
 	// Handler for viewing detailed breakdown
 	const handleViewDetailedBreakdown = () => {
 		try {
-			console.log('Opening detailed breakdown for year:', selectedYear)
 			// TODO: Navigate to breakdown route or open modal
-			setError('Detailed breakdown view not yet implemented')
+			// router.push(`/manage/financials/tax-documents/${selectedYear}/breakdown`)
+			// or: setShowBreakdownModal(true)
+			
+			toast.info('Detailed breakdown view coming soon', {
+				description: 'This feature is currently in development and will be available in a future update.'
+			})
 		} catch (error) {
-			console.error('Failed to open breakdown:', error)
-			setError('Failed to open detailed breakdown')
+			toast.error('Failed to open detailed breakdown', {
+				description: error instanceof Error ? error.message : 'An unexpected error occurred'
+			})
 		}
 	}
 
 	const renderExpenseCategories = () => {
 		if (!taxData?.expenseCategories?.length) return null
 
+		// Filter expense categories based on search query
+		const filteredCategories = taxData.expenseCategories.filter((category: TaxExpenseCategory) => {
+			if (!searchQuery.trim()) return true
+			
+			const query = searchQuery.toLowerCase().trim()
+			const categoryName = (category.category || '').toLowerCase()
+			const notes = (category.notes || '').toLowerCase()
+			
+			return categoryName.includes(query) || notes.includes(query)
+		})
+
+		if (filteredCategories.length === 0) {
+			return (
+				<div className="text-center py-8 text-gray-500">
+					No expense categories match your search.
+				</div>
+			)
+		}
+
 		return (
 			<div className="space-y-3">
-				{taxData.expenseCategories.map((category, index) => (
+				{filteredCategories.map((category: TaxExpenseCategory, index: number) => (
 					<div
 						key={category.category || `category-${index}`}
 						className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -235,9 +188,28 @@ const TaxDocumentsPage = ({
 	const renderPropertyDepreciation = () => {
 		if (!taxData?.propertyDepreciation?.length) return null
 
+		// Filter property depreciation based on search query
+		const filteredProperties = taxData.propertyDepreciation.filter((property: TaxPropertyDepreciation) => {
+			if (!searchQuery.trim()) return true
+			
+			const query = searchQuery.toLowerCase().trim()
+			const propertyName = (property.propertyName || '').toLowerCase()
+			const propertyId = (property.propertyId || '').toLowerCase()
+			
+			return propertyName.includes(query) || propertyId.includes(query)
+		})
+
+		if (filteredProperties.length === 0) {
+			return (
+				<div className="text-center py-8 text-gray-500">
+					No properties match your search.
+				</div>
+			)
+		}
+
 		return (
 			<div className="space-y-3">
-				{taxData.propertyDepreciation.map((property, index) => (
+				{filteredProperties.map((property: TaxPropertyDepreciation, index: number) => (
 					<Card key={property.propertyId || `property-${index}`} className="border border-gray-200">
 						<CardContent className="p-4">
 							<div className="space-y-3">

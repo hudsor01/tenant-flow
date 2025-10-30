@@ -16,14 +16,29 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
 	usePropertyImages,
 	useUploadPropertyImage,
-	useDeletePropertyImage
+	useDeletePropertyImage,
+	useCreateProperty,
+	useDeleteProperty
 } from '../use-properties'
 import type { ReactNode } from 'react'
+import type { CreatePropertyInput } from '@repo/shared/types/api-inputs'
 
-// Mock test data
-const TEST_PROPERTY_ID = 'test-property-id'
+// Test image file
 const TEST_IMAGE_FILE = new File(['test'], 'test-image.jpg', {
 	type: 'image/jpeg'
+})
+
+// Test property data factory
+const createTestPropertyData = (): CreatePropertyInput => ({
+	name: `Test Property ${Date.now()}`,
+	address: '123 Test St',
+	city: 'Test City',
+	state: 'TS',
+	zipCode: '12345',
+	propertyType: 'SINGLE_FAMILY',
+	status: 'ACTIVE',
+	description: 'Test property for image upload tests',
+	ownerId: '' // Will be set by backend from authenticated user
 })
 
 // Test wrapper with QueryClient
@@ -42,6 +57,46 @@ function createWrapper() {
 }
 
 describe('Property Image Upload Integration', () => {
+	let testPropertyId: string
+	let queryClient: QueryClient
+
+	// Setup: Create a real test property before all tests
+	beforeAll(async () => {
+		queryClient = new QueryClient({
+			defaultOptions: {
+				queries: { retry: false },
+				mutations: { retry: false }
+			}
+		})
+
+		const wrapper = ({ children }: { children: ReactNode }) => (
+			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+		)
+
+		const { result } = renderHook(() => useCreateProperty(), { wrapper })
+
+		await waitFor(async () => {
+			const property = await result.current.mutateAsync(createTestPropertyData())
+			testPropertyId = property.id
+			expect(testPropertyId).toBeDefined()
+		})
+	})
+
+	// Teardown: Delete test property after all tests
+	afterAll(async () => {
+		if (!testPropertyId) return
+
+		const wrapper = ({ children }: { children: ReactNode }) => (
+			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+		)
+
+		const { result } = renderHook(() => useDeleteProperty(), { wrapper })
+
+		await waitFor(async () => {
+			await result.current.mutateAsync(testPropertyId)
+		})
+	})
+
 	/**
 	 * TEST 1: Upload image (isolated)
 	 * Verifies: Backend accepts file, compresses, stores, returns record
@@ -57,7 +112,7 @@ describe('Property Image Upload Integration', () => {
 		// Upload image
 		await waitFor(async () => {
 			const uploaded = await uploadResult.current.mutateAsync({
-				propertyId: TEST_PROPERTY_ID,
+				propertyId: testPropertyId,
 				file: TEST_IMAGE_FILE,
 				isPrimary: false,
 				caption: 'Test image'
@@ -66,7 +121,7 @@ describe('Property Image Upload Integration', () => {
 			expect(uploaded).toBeDefined()
 			expect(uploaded.id).toBeDefined()
 			expect(uploaded.url).toContain('property-images')
-			expect(uploaded.propertyId).toBe(TEST_PROPERTY_ID)
+			expect(uploaded.propertyId).toBe(testPropertyId)
 
 			uploadedImageId = uploaded.id
 		})
@@ -75,7 +130,7 @@ describe('Property Image Upload Integration', () => {
 		await waitFor(async () => {
 			await deleteResult.current.mutateAsync({
 				imageId: uploadedImageId,
-				propertyId: TEST_PROPERTY_ID
+				propertyId: testPropertyId
 			})
 		})
 	})
@@ -92,7 +147,7 @@ describe('Property Image Upload Integration', () => {
 		const { result: uploadResult } = renderHook(() => useUploadPropertyImage(), { wrapper })
 		await waitFor(async () => {
 			const uploaded = await uploadResult.current.mutateAsync({
-				propertyId: TEST_PROPERTY_ID,
+				propertyId: testPropertyId,
 				file: TEST_IMAGE_FILE,
 				isPrimary: false,
 				caption: 'Lifecycle test image'
@@ -104,7 +159,7 @@ describe('Property Image Upload Integration', () => {
 		})
 
 		// Step 2: Fetch and verify image exists
-		const { result: fetchResult } = renderHook(() => usePropertyImages(TEST_PROPERTY_ID), {
+		const { result: fetchResult } = renderHook(() => usePropertyImages(testPropertyId), {
 			wrapper
 		})
 
@@ -123,13 +178,13 @@ describe('Property Image Upload Integration', () => {
 		await waitFor(async () => {
 			await deleteResult.current.mutateAsync({
 				imageId: uploadedImageId,
-				propertyId: TEST_PROPERTY_ID
+				propertyId: testPropertyId
 			})
 		})
 
 		// Step 4: Verify deletion
 		const { result: verifyResult } = renderHook(
-			() => usePropertyImages(TEST_PROPERTY_ID),
+			() => usePropertyImages(testPropertyId),
 			{ wrapper }
 		)
 
@@ -162,7 +217,7 @@ describe('Property Image Upload Integration', () => {
 		// Upload small
 		await waitFor(async () => {
 			const small = await result.current.mutateAsync({
-				propertyId: TEST_PROPERTY_ID,
+				propertyId: testPropertyId,
 				file: smallFile,
 				isPrimary: false
 			})
@@ -172,7 +227,7 @@ describe('Property Image Upload Integration', () => {
 		// Upload large
 		await waitFor(async () => {
 			const large = await result.current.mutateAsync({
-				propertyId: TEST_PROPERTY_ID,
+				propertyId: testPropertyId,
 				file: largeFile,
 				isPrimary: false
 			})
@@ -197,7 +252,7 @@ describe('Property Image Upload Integration', () => {
 
 		await expect(
 			result.current.mutateAsync({
-				propertyId: TEST_PROPERTY_ID,
+				propertyId: testPropertyId,
 				file: oversizedFile,
 				isPrimary: false
 			})

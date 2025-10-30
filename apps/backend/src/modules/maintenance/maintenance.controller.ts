@@ -21,12 +21,11 @@ import {
 	Query,
 	Req
 } from '@nestjs/common'
-import type {
-	CreateMaintenanceRequest,
-	UpdateMaintenanceRequest
-} from '@repo/shared/types/backend-domain'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
+import type { CreateMaintenanceRequest, UpdateMaintenanceRequest } from '@repo/shared/types/backend-domain'
 import { MaintenanceService } from './maintenance.service'
+import { CreateMaintenanceDto } from './dto/create-maintenance.dto'
+import { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
 
 @Controller('maintenance')
 export class MaintenanceController {
@@ -148,29 +147,29 @@ export class MaintenanceController {
 
 	@Post()
 	async create(
-		@Body() createRequest: CreateMaintenanceRequest,
+		@Body() dto: CreateMaintenanceDto,
 		@Req() req: AuthenticatedRequest
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
+		// Modern 2025 pattern: Zod validation via nestjs-zod
 		const userId = req.user.id
-		return this.maintenanceService.create(userId, createRequest)
+		return this.maintenanceService.create(userId, dto as unknown as CreateMaintenanceRequest)
 	}
 
 	@Put(':id')
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Body() updateRequest: UpdateMaintenanceRequest,
+		@Body() dto: UpdateMaintenanceDto,
 		@Req() req: AuthenticatedRequest
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
+		// Modern 2025 pattern: Zod validation via nestjs-zod
 		const userId = req.user.id
 
 		// 🔐 BUG FIX #2: Pass version for optimistic locking
-		const expectedVersion = (updateRequest as { version?: number }).version
+		const expectedVersion = (dto as unknown as { version?: number }).version
 		const maintenance = await this.maintenanceService.update(
 			userId,
 			id,
-			updateRequest,
+			dto as unknown as UpdateMaintenanceRequest,
 			expectedVersion
 		)
 		if (!maintenance) {

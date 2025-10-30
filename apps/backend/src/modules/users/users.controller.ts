@@ -7,21 +7,28 @@
  */
 
 import {
+	Body,
 	Controller,
 	Get,
 	Logger,
 	NotFoundException,
+	Patch,
 	Req
 } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
+import { UsersService } from './users.service'
+import { UpdateProfileDto } from './dto/update-profile.dto'
 
 @Controller('users')
 export class UsersController {
 	private readonly logger = new Logger(UsersController.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly usersService: UsersService
+	) {}
 
 	/**
 	 * Get current user with Stripe customer ID
@@ -91,5 +98,46 @@ export class UsersController {
 		})
 
 		return response
+	}
+
+	/**
+	 * Update current user's profile
+	 *
+	 * Updates the authenticated user's profile information including:
+	 * - firstName, lastName
+	 * - email (must be unique)
+	 * - phone, company, timezone, bio
+	 */
+	@Patch('profile')
+	@SkipSubscriptionCheck()
+	async updateProfile(
+		@Req() req: AuthenticatedRequest,
+		@Body() dto: UpdateProfileDto
+	) {
+		const userId = req.user.id
+
+		this.logger.debug('Updating user profile', {
+			userId,
+			fields: Object.keys(dto)
+		})
+
+		const updatedUser = await this.usersService.updateUser(userId, {
+			firstName: dto.firstName,
+			lastName: dto.lastName,
+			email: dto.email,
+			phone: dto.phone ?? null,
+			bio: dto.bio ?? null
+		})
+
+		this.logger.log('User profile updated successfully', { userId })
+
+		return {
+			id: updatedUser.id,
+			firstName: updatedUser.firstName,
+			lastName: updatedUser.lastName,
+			email: updatedUser.email,
+			phone: updatedUser.phone,
+			bio: updatedUser.bio
+		}
 	}
 }

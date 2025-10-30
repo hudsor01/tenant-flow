@@ -10,8 +10,6 @@ import { PropertiesService } from './properties.service'
 
 describe('PropertiesService', () => {
 	let service: PropertiesService
-	let supabaseService: SupabaseService
-	let utilityService: UtilityService
 	let cacheManager: {
 		get: jest.Mock
 		set: jest.Mock
@@ -67,8 +65,6 @@ describe('PropertiesService', () => {
 		}).compile()
 
 		service = module.get<PropertiesService>(PropertiesService)
-		supabaseService = module.get<SupabaseService>(SupabaseService)
-		utilityService = module.get<UtilityService>(UtilityService)
 		cacheManager = module.get(CACHE_MANAGER)
 	})
 

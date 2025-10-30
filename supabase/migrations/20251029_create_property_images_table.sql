@@ -18,7 +18,10 @@ CREATE TABLE IF NOT EXISTS property_images (
 -- Create indexes for performance
 CREATE INDEX idx_property_images_property_id ON property_images("propertyId");
 CREATE INDEX idx_property_images_display_order ON property_images("propertyId", "displayOrder");
-CREATE INDEX idx_property_images_primary ON property_images("propertyId", "isPrimary") WHERE "isPrimary" = true;
+
+-- Partial unique index to enforce single primary image per property at DB level
+-- This prevents race conditions where concurrent inserts could both set isPrimary=true
+CREATE UNIQUE INDEX idx_property_images_unique_primary ON property_images("propertyId") WHERE "isPrimary" = true;
 
 -- Enable Row Level Security
 ALTER TABLE property_images ENABLE ROW LEVEL SECURITY;
@@ -72,6 +75,10 @@ CREATE POLICY "property_images_owner_delete"
 CREATE OR REPLACE FUNCTION ensure_single_primary_image()
 RETURNS TRIGGER AS $$
 BEGIN
+  -- Acquire transaction-scoped advisory lock to serialize primary image updates
+  -- This prevents race conditions when concurrent transactions try to set isPrimary=true
+  PERFORM pg_advisory_xact_lock(hashtext(NEW."propertyId"));
+  
   -- If setting an image as primary, unset all other primary images for this property
   IF NEW."isPrimary" = true THEN
     UPDATE property_images 
@@ -95,6 +102,10 @@ CREATE TRIGGER ensure_single_primary_image_trigger
 CREATE OR REPLACE FUNCTION auto_set_first_image_primary()
 RETURNS TRIGGER AS $$
 BEGIN
+  -- Acquire transaction-scoped advisory lock to serialize primary image updates
+  -- This prevents race conditions when concurrent inserts both try to be the first image
+  PERFORM pg_advisory_xact_lock(hashtext(NEW."propertyId"));
+  
   -- If this is the first image for the property, make it primary
   IF NOT EXISTS (
     SELECT 1 FROM property_images 

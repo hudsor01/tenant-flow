@@ -1,18 +1,18 @@
 /* eslint-env serviceworker, browser */
 /* global caches, fetch, Response, self, URL, console */
 /*
- 	TenantFlow service worker
+TenantFlow service worker
 
-	Goals:
-	- Precache critical shell assets for fast first load
-	- Runtime caching: cache-first for static assets, network-first for API
-	- Navigation fallback for SPA routing
-	- Cache size limits and safe cleanup
-	- Safe update flow: support skipWaiting via message and notify clients
+Goals:
+- Precache critical shell assets for fast first load
+- Runtime caching: cache-first for static assets, network-first for API
+- Navigation fallback for SPA routing
+- Cache size limits and safe cleanup
+- Safe update flow: support skipWaiting via message and notify clients
 
-	This worker is intentionally small and conservative to avoid surprising
-	behavior. It does not attempt to cache every request; it focuses on
-	assets that meaningfully improve performance and resilience.
+This worker is intentionally small and conservative to avoid surprising
+behavior. It does not attempt to cache every request; it focuses on
+assets that meaningfully improve performance and resilience.
 */
 
 const CACHE_VERSION = 'v1'

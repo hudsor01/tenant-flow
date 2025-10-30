@@ -52,6 +52,7 @@ describe('UnitsController', () => {
 		rent: 150000,
 		status: 'VACANT',
 		lastInspectionDate: null,
+		version: 1,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 		...overrides

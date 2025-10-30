@@ -1,7 +1,5 @@
 import 'reflect-metadata'
 import { validate } from './config.schema'
-import { type describe, beforeEach, afterEach } from 'node:test'
-import type { it } from 'zod/v4/locales'
 
 describe('Configuration Schema Validation', () => {
 	let originalEnv: NodeJS.ProcessEnv
