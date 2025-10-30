@@ -1,29 +1,26 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Backend TypeScript Config (October 2025)",
+	"display": "TenantFlow Backend - Single Config (2025)",
 	"extends": "../../packages/typescript-config/nestjs.json",
 	"compilerOptions": {
 		"baseUrl": ".",
 		"outDir": "./dist",
 		"tsBuildInfoFile": "./.tsbuildinfo",
-		"types": ["node", "jest"],
+		"types": ["node", "jest", "express"],
 		"composite": true,
 		"declaration": true,
 		"declarationMap": true,
-		"incremental": true
+		"sourceMap": true,
+		"incremental": true,
+		"removeComments": true,
+		"skipLibCheck": true,
+		"verbatimModuleSyntax": false
 	},
-	"include": ["src", "scripts", "test/setup.ts"],
+	"include": ["src/**/*", "scripts/**/*.ts", "test/**/*.ts"],
 	"exclude": [
+		"node_modules",
+		"dist",
 		"src/auth/auth-production-diagnostic.ts",
-		"src/services/base-crud.service.example.ts",
-		"src/services/base-crud.service.test.template.ts",
-		"supabase/functions/**/*",
-		"test/email/**/*",
-		"node_modules/zod/v4/locales/**/*",
-		"dist/**/*",
-		"src/emails/**/*.js",
-		"**/*.test.*",
-		"**/*.spec.*",
-		"**/*.e2e-spec.*"
+		"test/email/**/*"
 	]
 }
