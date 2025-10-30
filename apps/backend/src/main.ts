@@ -87,7 +87,7 @@ async function bootstrap() {
 			env: process.env.NODE_ENV,
 			port,
 			hasSupabaseUrl: !!process.env.SUPABASE_URL,
-			hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+			hasServiceKey: !!process.env.SUPABASE_SECRET_KEY
 		},
 		'Environment summary'
 	)

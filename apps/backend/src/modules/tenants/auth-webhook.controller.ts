@@ -54,7 +54,7 @@ export class AuthWebhookController {
 		// Initialize Supabase client for webhook log writes
 		this.supabase = createClient<Database>(
 			process.env.SUPABASE_URL!,
-			process.env.SERVICE_ROLE_KEY!,
+			process.env.SUPABASE_SECRET_KEY!,
 			{
 				auth: {
 					autoRefreshToken: false,

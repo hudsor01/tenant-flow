@@ -4,7 +4,7 @@ export interface RequiredEnvVars {
 	DATABASE_URL: string
 	DIRECT_URL: string
 	SUPABASE_URL: string
-	SUPABASE_SERVICE_ROLE_KEY: string
+	SUPABASE_SECRET_KEY: string
 	JWT_SECRET: string
 	CORS_ORIGINS: string
 }
@@ -18,7 +18,7 @@ export function validateEnvironment(): void {
 		'DATABASE_URL',
 		'DIRECT_URL',
 		'SUPABASE_URL',
-		'SUPABASE_SERVICE_ROLE_KEY',
+		'SUPABASE_SECRET_KEY',
 		'JWT_SECRET',
 		'CORS_ORIGINS'
 	]
@@ -33,11 +33,11 @@ export function validateEnvironment(): void {
 
 	// Provide targeted guidance if legacy env vars are set but new ones are missing
 	if (
-		missing.includes('SUPABASE_SERVICE_ROLE_KEY') &&
-		process.env.SERVICE_ROLE_KEY
+		missing.includes('SUPABASE_SECRET_KEY') &&
+		process.env.SUPABASE_SECRET_KEY
 	) {
 		logger.warn(
-			'SERVICE_ROLE_KEY is set but SUPABASE_SERVICE_ROLE_KEY is missing. Please migrate to the new variable name.'
+			'SUPABASE_SECRET_KEY is set but SUPABASE_SECRET_KEY is missing. Please migrate to the new variable name.'
 		)
 	}
 	// SUPABASE_JWT_SECRET is now optional - we use JWKS endpoint for JWT verification
