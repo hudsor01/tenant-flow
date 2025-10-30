@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.9
-ARG NODE_VERSION=24-alpine3.21
+ARG NODE_VERSION=22.14.0-alpine3.21
 
 FROM node:${NODE_VERSION} AS base
 
