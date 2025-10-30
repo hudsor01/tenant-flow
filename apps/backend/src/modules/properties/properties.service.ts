@@ -10,7 +10,9 @@ import {
 	Inject,
 	Injectable,
 	Logger,
-	NotFoundException
+	LoggerService,
+	NotFoundException,
+	Optional
 } from '@nestjs/common'
 import type {
 	CreatePropertyRequest,
@@ -51,14 +53,22 @@ const VALID_PROPERTY_TYPES: PropertyType[] = [
 
 @Injectable()
 export class PropertiesService {
-	private readonly logger = new Logger(PropertiesService.name)
+	private readonly logger: LoggerService
 
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly storage: StorageService,
 		private readonly utilityService: UtilityService,
-		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
-	) {}
+		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+		@Optional() @Inject(Logger) logger?: LoggerService
+	) {
+		if (logger instanceof Logger) {
+			logger.setContext(PropertiesService.name)
+			this.logger = logger
+		} else {
+			this.logger = logger ?? new Logger(PropertiesService.name)
+		}
+	}
 
 	/**
 	 * Get all properties with search and pagination
