@@ -1,6 +1,6 @@
 'use client'
 
-import { propertiesApi } from '#lib/api-client'
+import { api } from '#lib/api'
 import type { Property } from '@repo/shared/types/core'
 import { Building2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -43,7 +43,7 @@ export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 
 		startTransition(async () => {
 			try {
-				await propertiesApi.remove(deletePropertyId)
+				await api(`properties/${deletePropertyId}`, { method: 'DELETE' })
 				toast.success('Property deleted successfully')
 				router.refresh() // Refresh server data
 			} catch (error) {
