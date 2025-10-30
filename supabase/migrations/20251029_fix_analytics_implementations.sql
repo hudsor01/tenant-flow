@@ -23,23 +23,23 @@ LANGUAGE sql STABLE AS $$
       COUNT(CASE
         WHEN EXISTS (
           SELECT 1 FROM lease l
-          WHERE l.unitId = u.id
+          WHERE l."unitId" = u.id
             AND l.status = 'ACTIVE'
-            AND l.startDate <= (ms.month_start + INTERVAL '1 month' - INTERVAL '1 day')
-            AND l.endDate >= ms.month_start
+            AND l."startDate" <= (ms.month_start + INTERVAL '1 month' - INTERVAL '1 day')
+            AND l."endDate" >= ms.month_start
         ) THEN 1
       END) as occupied_units
     FROM month_series ms
     CROSS JOIN unit u
-    JOIN property p ON u.propertyId = p.id
-    WHERE p.ownerId = p_user_id
-      AND u.createdAt <= (ms.month_start + INTERVAL '1 month' - INTERVAL '1 day')
+    JOIN property p ON u."propertyId" = p.id
+    WHERE p."ownerId" = p_user_id::text
+      AND u."createdAt" <= (ms.month_start + INTERVAL '1 month' - INTERVAL '1 day')
     GROUP BY ms.month_start
   )
   SELECT
     to_char(mst.month_start, 'YYYY-MM') as period,
     CASE
-      WHEN mst.total_units > 0 THEN ROUND((mst.occupied_units::FLOAT / mst.total_units::FLOAT) * 100, 2)
+      WHEN mst.total_units > 0 THEN ROUND(((mst.occupied_units::NUMERIC / mst.total_units::NUMERIC) * 100)::NUMERIC, 2)
       ELSE 0
     END as occupancy_rate
   FROM monthly_stats mst
@@ -63,22 +63,28 @@ LANGUAGE sql STABLE AS $$
         '1 month'::interval
       ) as month_start
   ),
+  valid_payments AS (
+    SELECT
+      rp.id,
+      rp.amount,
+      rp."paidAt",
+      p."ownerId"
+    FROM rent_payment rp
+    JOIN lease l ON rp."tenantId" = l."tenantId"
+    JOIN unit u ON l."unitId" = u.id
+    JOIN property p ON u."propertyId" = p.id
+    WHERE rp.status = 'SUCCEEDED'
+      AND p."ownerId" = p_user_id::text
+  ),
   monthly_revenue AS (
     SELECT
       ms.month_start,
-      COALESCE(SUM(rp.amount), 0) / 100.0 as current_revenue,
-      LAG(COALESCE(SUM(rp.amount), 0) / 100.0) OVER (ORDER BY ms.month_start) as prev_revenue
+      COALESCE(SUM(vp.amount), 0) / 100.0 as current_revenue,
+      LAG(COALESCE(SUM(vp.amount), 0) / 100.0) OVER (ORDER BY ms.month_start) as prev_revenue
     FROM month_series ms
-    LEFT JOIN rent_payment rp ON EXISTS (
-        SELECT 1 FROM lease l
-        JOIN unit u ON l.unitId = u.id
-        JOIN property p ON u.propertyId = p.id
-        WHERE p.ownerId = p_user_id
-          AND rp.tenantId = l.tenantId
-          AND rp.status = 'SUCCEEDED'
-          AND rp.paidAt >= ms.month_start
-          AND rp.paidAt < (ms.month_start + INTERVAL '1 month')
-      )
+    LEFT JOIN valid_payments vp ON vp."paidAt" >= ms.month_start
+      AND vp."paidAt" < (ms.month_start + INTERVAL '1 month')
+      AND vp."ownerId" = p_user_id::text
     GROUP BY ms.month_start
     ORDER BY ms.month_start
   )

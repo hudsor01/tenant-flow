@@ -68,7 +68,7 @@ const IncomeStatementPage = () => {
 
 	const calculateChange = (current: number, previous: number) => {
 		const change = current - previous
-		const percentage = previous ? (change / previous) * 100 : 0
+		const percentage = previous !== 0 ? (change / previous) * 100 : 0
 		return { amount: change, percentage }
 	}
 
@@ -95,7 +95,7 @@ const IncomeStatementPage = () => {
 								</div>
 								<div
 									className={`text-sm flex items-center gap-1 ${
-										change.amount >= 0 ? 'text-green-600' : 'text-red-6000'
+										change.amount >= 0 ? 'text-green-600' : 'text-red-600'
 									}`}
 								>
 									{change.amount >= 0 ? (
@@ -121,7 +121,7 @@ const IncomeStatementPage = () => {
 				<div className="flex items-center justify-between">
 					<div>
 						<h1 className="text-3xl font-bold">Income Statement</h1>
-						<p className="text-gray-6000">
+						<p className="text-gray-600">
 							Revenue, expenses, and net income over a period
 						</p>
 					</div>
@@ -253,7 +253,7 @@ const IncomeStatementPage = () => {
 						<CardTitle className="text-sm font-medium">
 							Total Expenses
 						</CardTitle>
-						<DollarSign className="h-4 w-4 text-red-6000" />
+						<DollarSign className="h-4 w-4 text-red-600" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold text-red-600">
@@ -281,7 +281,7 @@ const IncomeStatementPage = () => {
 					</CardHeader>
 					<CardContent>
 						<div
-							className={`text-2xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-6000'}`}
+							className={`text-2xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}
 						>
 							{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString()}
 						</div>
@@ -317,7 +317,7 @@ const IncomeStatementPage = () => {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<DollarSign className="w-5 h-5 text-red-6000" />
+								<DollarSign className="w-5 h-5 text-red-600" />
 								Operating Expenses
 							</CardTitle>
 						</CardHeader>
@@ -329,7 +329,7 @@ const IncomeStatementPage = () => {
 							<Separator />
 							<div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
 								<div className="font-semibold">Total Operating Expenses</div>
-								<div className="font-bold text-lg text-red-6000">
+								<div className="font-bold text-lg text-red-600">
 									${totalExpenses.toLocaleString()}
 								</div>
 							</div>
@@ -373,7 +373,7 @@ const IncomeStatementPage = () => {
 							</div>
 							<div className="flex justify-between py-2 border-b">
 								<span>Total Operating Expenses</span>
-								<span className="font-semibold text-red-6000">
+								<span className="font-semibold text-red-600">
 									-${totalExpenses.toLocaleString()}
 								</span>
 							</div>
@@ -388,7 +388,7 @@ const IncomeStatementPage = () => {
 						<div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
 							<div className="text-lg font-semibold">Net Income</div>
 							<div
-								className={`text-xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-6000'}`}
+								className={`text-xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}
 							>
 								{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString()}
 							</div>

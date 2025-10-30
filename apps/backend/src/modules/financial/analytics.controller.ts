@@ -32,39 +32,40 @@ export class FinancialAnalyticsController {
 	/**
 	 * Helper method to get unit IDs for a user (via property ownership)
 	 */
-        private async getUserUnitIds(
-                userId: string,
-                propertyIds?: string[]
-        ): Promise<string[]> {
-                const client = this.supabaseService.getAdminClient()
+private async getUserUnitIds(
+        userId: string,
+        propertyIds?: string[]
+): Promise<string[]> {
+        const client = this.supabaseService.getAdminClient()
 
-                let ownedPropertyIds = Array.isArray(propertyIds)
-                        ? propertyIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
-                        : []
-
-                if (ownedPropertyIds.length === 0) {
-                        const { data: properties } = await client
-                                .from('property')
-                                .select('id')
-                                .eq('ownerId', userId)
-                        ownedPropertyIds = (properties || [])
-                                .map(property => property?.id)
-                                .filter((id): id is string => typeof id === 'string' && id.length > 0)
-                }
-
-                if (ownedPropertyIds.length === 0) {
-                        return []
-                }
-
-                const { data: units } = await client
-                        .from('unit')
+        let ownedPropertyIds: string[] = []
+        
+        if (Array.isArray(propertyIds)) {
+                ownedPropertyIds = propertyIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
+        } else {
+                // Only query if propertyIds was not explicitly provided
+                const { data: properties } = await client
+                        .from('property')
                         .select('id')
-                        .in('propertyId', ownedPropertyIds)
-
-                return (units || [])
-                        .map(unit => unit?.id)
+                        .eq('ownerId', userId)
+                ownedPropertyIds = (properties || [])
+                        .map(property => property?.id)
                         .filter((id): id is string => typeof id === 'string' && id.length > 0)
         }
+
+        if (ownedPropertyIds.length === 0) {
+                return []
+        }
+
+        const { data: units } = await client
+                .from('unit')
+                .select('id')
+                .in('propertyId', ownedPropertyIds)
+
+        return (units || [])
+                .map(unit => unit?.id)
+                .filter((id): id is string => typeof id === 'string' && id.length > 0)
+}
 
 	/**
 	 * Get revenue trends - DIRECT TABLE QUERIES

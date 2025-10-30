@@ -75,7 +75,7 @@ describe('StripeAccessControlService', () => {
 				items: {
 					data: [{ price: { id: 'price_test123' } }]
 				}
-			} as Stripe.Subscription
+			} as unknown as Stripe.Subscription
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
 				data: 'user-123',
@@ -94,12 +94,12 @@ describe('StripeAccessControlService', () => {
 		it('should handle expanded customer object', async () => {
 			const mockSubscription = {
 				id: 'sub_test123',
-				customer: { id: 'cus_test123' } as Stripe.Customer,
+				customer: { id: 'cus_test123' } as unknown as Stripe.Customer,
 				status: 'active',
 				items: {
 					data: [{ price: { id: 'price_test123' } }]
 				}
-			} as Stripe.Subscription
+			} as unknown as Stripe.Subscription
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
 				data: 'user-123',
@@ -123,7 +123,7 @@ describe('StripeAccessControlService', () => {
 				items: {
 					data: [{ price: { id: 'price_test123' } }]
 				}
-			} as Stripe.Subscription
+			} as unknown as Stripe.Subscription
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
 				data: null,
@@ -144,7 +144,7 @@ describe('StripeAccessControlService', () => {
 				items: {
 					data: [{ price: { id: 'price_test123' } }]
 				}
-			} as Stripe.Subscription
+			} as unknown as Stripe.Subscription
 
 			supabaseService.rpcWithRetries.mockRejectedValue(
 				new Error('Database connection failed')
@@ -167,7 +167,7 @@ describe('StripeAccessControlService', () => {
 				items: {
 					data: [{ price: { id: 'price_test123' } }]
 				}
-			} as Stripe.Subscription
+			} as unknown as Stripe.Subscription
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
 				data: 'user-123',
@@ -191,7 +191,7 @@ describe('StripeAccessControlService', () => {
 				items: {
 					data: []
 				}
-			} as Stripe.Subscription
+			} as unknown as Stripe.Subscription
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
 				data: null,
@@ -216,7 +216,7 @@ describe('StripeAccessControlService', () => {
 				items: {
 					data: [{ price: { id: 'price_test123' } }]
 				}
-			} as Stripe.Subscription
+			} as unknown as Stripe.Subscription
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
 				data: 'user-123',
@@ -237,7 +237,7 @@ describe('StripeAccessControlService', () => {
 				items: {
 					data: []
 				}
-			} as Stripe.Subscription
+			} as unknown as Stripe.Subscription
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
 				data: 'user-123',
@@ -259,7 +259,7 @@ describe('StripeAccessControlService', () => {
 				amount_due: 2900,
 				currency: 'usd',
 				attempt_count: 1
-			} as Stripe.Invoice & { subscription?: string }
+			} as unknown as Stripe.Invoice & { subscription?: string }
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
 				data: 'user-123',
@@ -291,7 +291,7 @@ describe('StripeAccessControlService', () => {
 				amount_due: 2900,
 				currency: 'usd',
 				attempt_count: 1
-			} as Stripe.Invoice
+			} as unknown as Stripe.Invoice
 
 			await expect(
 				service.handlePaymentFailed(mockInvoice)
@@ -304,11 +304,11 @@ describe('StripeAccessControlService', () => {
 				customer: 'cus_test123',
 				subscription: {
 					id: 'sub_test123'
-				} as Stripe.Subscription,
+				} as unknown as Stripe.Subscription,
 				amount_due: 2900,
 				currency: 'usd',
 				attempt_count: 2
-			} as Stripe.Invoice & { subscription?: Stripe.Subscription }
+			} as unknown as Stripe.Invoice & { subscription?: Stripe.Subscription }
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
 				data: 'user-123',
@@ -329,7 +329,7 @@ describe('StripeAccessControlService', () => {
 				subscription: 'sub_test123',
 				amount_paid: 2900,
 				currency: 'usd'
-			} as Stripe.Invoice & { subscription?: string }
+			} as unknown as Stripe.Invoice & { subscription?: string }
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
 				data: 'user-123',
@@ -347,7 +347,7 @@ describe('StripeAccessControlService', () => {
 				customer: null,
 				amount_paid: 2900,
 				currency: 'usd'
-			} as Stripe.Invoice
+			} as unknown as Stripe.Invoice
 
 			await expect(
 				service.handlePaymentSucceeded(mockInvoice)
@@ -520,7 +520,7 @@ describe('StripeAccessControlService', () => {
 				items: {
 					data: []
 				}
-			} as Stripe.Subscription
+			} as unknown as Stripe.Subscription
 
 			// Simulate complete database failure
 			supabaseService.rpcWithRetries.mockRejectedValue(
@@ -545,7 +545,7 @@ describe('StripeAccessControlService', () => {
 				customer: 'cus_test123',
 				amount_due: 2900,
 				currency: 'usd'
-			} as Stripe.Invoice
+			} as unknown as Stripe.Invoice
 
 			supabaseService.rpcWithRetries.mockRejectedValue(
 				new Error('Database is down')
@@ -565,7 +565,7 @@ describe('StripeAccessControlService', () => {
 				customer: 'cus_test123',
 				amount_due: 2900,
 				currency: 'usd'
-			} as Stripe.Invoice
+			} as unknown as Stripe.Invoice
 
 			// Simulate system failure
 			supabaseService.rpcWithRetries.mockRejectedValue(

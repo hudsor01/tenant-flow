@@ -291,6 +291,40 @@ export const maintenanceCommentSchema = z.object({
 })
 export type MaintenanceRequestData = MaintenanceRequest
 
+// Backend DTO schemas - match CreateMaintenanceRequest/UpdateMaintenanceRequest from backend-domain.ts
+export const createMaintenanceRequestSchema = z.object({
+	unitId: uuidSchema,
+	title: nonEmptyStringSchema
+		.min(5, 'Title must be at least 5 characters')
+		.max(200, 'Title cannot exceed 200 characters'),
+	description: nonEmptyStringSchema
+		.min(10, 'Description must be at least 10 characters')
+		.max(2000, 'Description cannot exceed 2000 characters'),
+	priority: maintenancePrioritySchema.optional(),
+	category: z.string().optional(),
+	scheduledDate: z.string().optional(),
+	estimatedCost: nonNegativeNumberSchema.optional(),
+	photos: z.array(z.string()).optional(),
+	allowEntry: z.boolean().optional(),
+	contactPhone: z.string().optional(),
+	notes: z.string().max(1000).optional().nullable()
+})
+
+export const updateMaintenanceRequestSchema = z.object({
+	title: z.string().optional(),
+	description: z.string().optional(),
+	priority: z.string().optional(),
+	category: z.string().optional(),
+	status: z.string().optional(),
+	scheduledDate: z.string().optional(),
+	completedDate: z.string().optional(),
+	estimatedCost: z.number().optional(),
+	actualCost: z.number().optional(),
+	notes: z.string().optional(),
+	allowEntry: z.boolean().optional(),
+	contactPhone: z.string().optional()
+})
+
 // Backend DTO compatibility aliases
 export type CreateMaintenanceRequestInput = MaintenanceRequestInput
 export type UpdateMaintenanceRequestInput = MaintenanceRequestUpdate

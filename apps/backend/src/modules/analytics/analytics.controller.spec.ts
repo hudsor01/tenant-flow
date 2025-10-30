@@ -1,8 +1,20 @@
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { WebVitalData } from '@repo/shared/types/frontend'
 import { AnalyticsController } from './analytics.controller'
 import { AnalyticsService } from './analytics.service'
+
+// Define WebVitalData type for test purposes - matches controller definition
+interface WebVitalData {
+	name: string
+	value: number
+	rating: 'good' | 'needs-improvement' | 'poor'
+	delta: number
+	id: string
+	page: string
+	timestamp?: string
+	sessionId?: string
+	userId?: string
+}
 
 // Mock the AnalyticsService
 jest.mock('./analytics.service', () => {
@@ -14,7 +26,7 @@ jest.mock('./analytics.service', () => {
 })
 
 describe('AnalyticsController', () => {
-	let controller: AnalyticsController
+	let controller: any
 	let mockAnalyticsServiceInstance: jest.Mocked<AnalyticsService>
 
 	beforeEach(async () => {

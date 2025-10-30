@@ -1,4 +1,10 @@
+'use client'
+
 import { PasswordUpdateSection } from '#app/(protected)/settings/password-update-section'
+import { useTransition } from 'react'
+import { toast } from 'sonner'
+import { useAuth } from '#providers/auth-provider'
+import { updateProfile } from '#lib/api/users-client'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -40,6 +46,42 @@ import {
 } from 'lucide-react'
 
 export default function SettingsPage() {
+	const [isPending, startTransition] = useTransition()
+	const { session } = useAuth()
+
+	const handleProfileSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+
+		if (!session?.access_token) {
+			toast.error('Authentication required', {
+				description: 'Please sign in to update your profile'
+			})
+			return
+		}
+
+		const formData = new FormData(e.currentTarget)
+		const profileData = {
+			firstName: formData.get('firstName') as string,
+			lastName: formData.get('lastName') as string,
+			email: formData.get('email') as string,
+			phone: (formData.get('phone') as string) || undefined,
+			company: (formData.get('company') as string) || undefined,
+			timezone: (formData.get('timezone') as string) || undefined,
+			bio: (formData.get('bio') as string) || undefined
+		}
+
+		startTransition(async () => {
+			try {
+				await updateProfile(session.access_token, profileData)
+				toast.success('Profile updated successfully')
+			} catch (error) {
+				toast.error('Failed to update profile', {
+					description: error instanceof Error ? error.message : 'An unexpected error occurred'
+				})
+			}
+		})
+	}
+
 	return (
 		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 			<div className="flex items-center justify-between">
@@ -48,18 +90,8 @@ export default function SettingsPage() {
 						Settings & Preferences
 					</h1>
 					<p className="text-muted-foreground mt-1">
-						Manage your account settings, notifications, and system preferences
+						Manage your account and application preferences
 					</p>
-				</div>
-				<div className="flex items-center gap-2">
-					<Button variant="outline" size="sm">
-						<RefreshCw className="size-4 mr-2" />
-						Reset to Defaults
-					</Button>
-					<Button size="sm">
-						<Save className="size-4 mr-2" />
-						Save Changes
-					</Button>
 				</div>
 			</div>
 
@@ -95,7 +127,7 @@ export default function SettingsPage() {
 						title="Profile Information"
 						className="p-6 border shadow-sm"
 					>
-						<form className="grid grid-cols-1 gap-6 md:grid-cols-2">
+						<form onSubmit={handleProfileSubmit} className="grid grid-cols-1 gap-6 md:grid-cols-2">
 							<div className="space-y-2">
 								<Label htmlFor="firstName">First Name</Label>
 								<Input
@@ -166,6 +198,24 @@ export default function SettingsPage() {
 									placeholder="Tell us about yourself..."
 									rows={3}
 								/>
+							</div>
+							<div className="md:col-span-2 flex justify-end gap-2">
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => {
+										const form = document.querySelector('form') as HTMLFormElement
+										form?.reset()
+										toast.info('Form reset to defaults')
+									}}
+								>
+									<RefreshCw className="size-4 mr-2" />
+									Reset to Defaults
+								</Button>
+								<Button type="submit" disabled={isPending}>
+									<Save className="size-4 mr-2" />
+									{isPending ? 'Saving...' : 'Save Changes'}
+								</Button>
 							</div>
 						</form>
 					</CardLayout>
