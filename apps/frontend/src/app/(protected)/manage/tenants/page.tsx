@@ -5,7 +5,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { createServerApi } from '#lib/api-client'
+import { api } from '#lib/api'
 import { requireSession } from '#lib/server-auth'
 import { formatCents } from '@repo/shared/lib/format'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -29,10 +29,7 @@ export default async function TenantsPage() {
 	// ✅ Server-side auth - NO client flash, instant 307 redirect
 	const { user, accessToken } = await requireSession()
 	
-	// ✅ Create authenticated server API client
-	const serverApi = createServerApi(accessToken)
-	
-	const logger = createLogger({ component: 'TenantsPage', userId: user.id })
+const logger = createLogger({ component: 'TenantsPage', userId: user.id })
 
 	// ✅ Server Component: Fetch data on server during RSC render
 	let tenants: TenantWithLeaseInfo[] = []
@@ -51,10 +48,10 @@ export default async function TenantsPage() {
 	// let availableLeases: Array<Database['public']['Tables']['lease']['Row']> = []
 
 	try {
-		// ✅ Fetch data with authenticated server API
+		// ✅ Fetch data with native fetch() - cookie-based auth
 		const [tenantsData, statsData] = await Promise.all([
-			serverApi.tenants.list(),
-			serverApi.tenants.stats()
+			api<TenantWithLeaseInfo[]>('tenants', { token: accessToken }),
+			api<TenantStats>('tenants/stats', { token: accessToken })
 		])
 
 		tenants = tenantsData ?? []
