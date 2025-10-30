@@ -94,10 +94,10 @@ describe('Supabase Analytics RPC Endpoints', () => {
 
 	analyticsRpcs.forEach(rpc => {
 		it(`should call ${rpc} and return data`, async () => {
-			const { data, error } = await supabase.rpc(rpc, {})
+			const { data, error } = await supabase.rpc(rpc)
 			expect(error).toBeNull()
 			expect(data).toBeDefined()
-			expect(mockRpc).toHaveBeenCalledWith(rpc, {})
+			expect(mockRpc).toHaveBeenCalledWith(rpc)
 			// Optionally: check data shape or required fields
 		})
 	})

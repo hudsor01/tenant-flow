@@ -1875,6 +1875,57 @@ export type Database = {
           },
         ]
       }
+      property_images: {
+        Row: {
+          caption: string | null
+          createdAt: string
+          displayOrder: number
+          id: string
+          isPrimary: boolean
+          propertyId: string
+          updatedAt: string
+          uploadedById: string | null
+          url: string
+        }
+        Insert: {
+          caption?: string | null
+          createdAt?: string
+          displayOrder?: number
+          id?: string
+          isPrimary?: boolean
+          propertyId: string
+          updatedAt?: string
+          uploadedById?: string | null
+          url: string
+        }
+        Update: {
+          caption?: string | null
+          createdAt?: string
+          displayOrder?: number
+          id?: string
+          isPrimary?: boolean
+          propertyId?: string
+          updatedAt?: string
+          uploadedById?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_images_propertyId_fkey"
+            columns: ["propertyId"]
+            isOneToOne: false
+            referencedRelation: "property"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_images_uploadedById_fkey"
+            columns: ["uploadedById"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rent_collection_settings: {
         Row: {
           allowedPaymentMethods: string[] | null

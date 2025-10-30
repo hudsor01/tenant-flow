@@ -230,9 +230,13 @@ export type TransformedPropertyUpdateData = ReturnType<
 
 // Property sold schema (for marking properties as sold with required compliance fields)
 export const propertyMarkedSoldSchema = z.object({
-	dateSold: z.coerce
-		.date()
-		.refine(date => date <= new Date(), 'Sale date cannot be in the future'),
+	dateSold: z.string().refine(
+		val => {
+			const date = new Date(val)
+			return !isNaN(date.getTime()) && date <= new Date()
+		},
+		'Sale date must be valid and cannot be in the future'
+	),
 	salePrice: positiveNumberSchema
 		.max(100000000, 'Sale price seems unrealistic')
 		.refine(val => val > 0, 'Sale price must be greater than $0'),
@@ -244,3 +248,60 @@ export const propertyMarkedSoldSchema = z.object({
 })
 
 export type PropertyMarkedSold = z.infer<typeof propertyMarkedSoldSchema>
+
+// Backend DTO schemas - match CreatePropertyRequest/UpdatePropertyRequest from backend-domain.ts
+export const createPropertyRequestSchema = z.object({
+	name: z.string(),
+	address: z.string(),
+	city: z.string(),
+	state: z.string(),
+	zipCode: z.string(),
+	unitCount: z.number().int().positive().optional(),
+	description: z.string().optional(),
+	type: z.string().optional(),
+	propertyType: z.string().optional(),
+	amenities: z.array(z.string()).optional()
+})
+
+export const updatePropertyRequestSchema = z.object({
+	name: z.string().optional(),
+	address: z.string().optional(),
+	city: z.string().optional(),
+	state: z.string().optional(),
+	zipCode: z.string().optional(),
+	unitCount: z.number().int().positive().optional(),
+	description: z.string().optional(),
+	type: propertyTypeSchema.optional(),
+	propertyType: propertyTypeSchema.optional(),
+	amenities: z.array(z.string()).optional(),
+	version: z.number().optional()
+})
+
+// Property image upload schema
+export const propertyImageUploadSchema = z.object({
+	isPrimary: z
+		.union([
+			z.boolean(),
+			z
+				.string()
+				.toLowerCase()
+				.transform(val => val.trim())
+				.refine(
+					val => ['true', 'false', '1', '0', 'yes', 'no'].includes(val),
+					{
+						message:
+							'isPrimary must be one of: true, false, 1, 0, yes, no (case-insensitive)'
+					}
+				)
+				.transform(val => ['true', '1', 'yes'].includes(val))
+		])
+		.default(false),
+	caption: z
+		.string()
+		.trim()
+		.max(255, 'Caption cannot exceed 255 characters')
+		.optional()
+		.transform(val => (val && val.length > 0 ? val : undefined))
+})
+
+export type PropertyImageUpload = z.infer<typeof propertyImageUploadSchema>
