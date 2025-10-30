@@ -13,82 +13,14 @@
 
 import { Injectable, Logger } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
-import type { JwtPayload, authUser, UserRole } from '@repo/shared/types/auth'
+import type { SupabaseJwtPayload, authUser } from '@repo/shared/types/auth'
 
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import * as jwksRsa from 'jwks-rsa'
 
-/**
- * Extended JWT payload with Supabase-specific fields
- */
-interface SupabaseJwtPayload extends JwtPayload {
-	iss?: string
-	aud?: string | string[]
-	email: string
-	role?: UserRole
-	user_metadata?: Record<string, unknown>
-	exp?: number
-	iat?: number
-	sub: string
-}
-
-/**
- * Enhanced token validation result with expiration info
- */
-export interface TokenValidationResult {
-	user: authUser
-	tokenInfo: {
-		expiresAt: Date
-		issuedAt: Date
-		issuer: string
-		audience: string
-		timeUntilExpiry: number // seconds
-		tokenAge: number // seconds
-	}
-}
-
-/**
- * Token expiration service for proper handling
- */
-@Injectable()
-export class TokenExpirationService {
-	private readonly clockSkewTolerance = 30 // seconds for clock skew
-
-	/** Check if token is expired with clock skew tolerance */
-	isTokenExpired(expiresAt: Date): boolean {
-		const now = Date.now()
-		const expiry = expiresAt.getTime()
-		const adjustedExpiry = expiry - this.clockSkewTolerance * 1000
-
-		return now >= adjustedExpiry
-	}
-
-	/** Calculate time until expiry in seconds */
-	getTimeUntilExpiry(expiresAt: Date): number {
-		const now = Date.now()
-		const expiry = expiresAt.getTime()
-		const adjustedExpiry = expiry - this.clockSkewTolerance * 1000
-
-		return Math.max(0, Math.floor((adjustedExpiry - now) / 1000))
-	}
-
-	/** Get token age in seconds */
-	getTokenAge(issuedAt: Date): number {
-		return Math.floor((Date.now() - issuedAt.getTime()) / 1000)
-	}
-
-	/** Determine if token needs refresh (within N minutes of expiry) */
-	needsRefresh(expiresAt: Date, refreshThresholdMinutes = 5): boolean {
-		const timeUntilExpiry = this.getTimeUntilExpiry(expiresAt)
-		const refreshThreshold = refreshThresholdMinutes * 60
-		return timeUntilExpiry <= refreshThreshold
-	}
-}
-
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 	private readonly logger = new Logger(SupabaseStrategy.name)
-	private readonly tokenExpiration = new TokenExpirationService()
 
 	constructor() {
 		const supabaseUrl = process.env.SUPABASE_URL
@@ -112,18 +44,27 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			algorithms: ['RS256', 'ES256']
 		})
 
-		this.logger.log('SupabaseStrategy initialized with JWKS verification (RS256/ES256)')
+		this.logger.log(
+			'SupabaseStrategy initialized with JWKS verification (RS256/ES256)'
+		)
 	}
 
-	async validate(payload: SupabaseJwtPayload): Promise<TokenValidationResult> {
+	async validate(payload: SupabaseJwtPayload): Promise<authUser> {
 		const userId = payload.sub ?? 'unknown'
-		this.logger.debug('Starting JWT validation', {
+		this.logger.debug('Validating JWT payload', {
 			userId,
 			issuer: payload.iss,
 			audience: payload.aud,
-			expiresAt: payload.exp ? new Date(payload.exp * 1000) : null
+			expiration: payload.exp ? new Date(payload.exp * 1000) : null
 		})
 
+		// Basic validation - Passport.js has already verified the JWT signature via JWKS
+		if (!payload.sub) {
+			this.logger.error('JWT missing subject (sub) claim')
+			throw new Error('Invalid token: missing user ID')
+		}
+
+		// Validate issuer matches Supabase project
 		const supabaseUrl = process.env.SUPABASE_URL
 		if (
 			supabaseUrl &&
@@ -137,6 +78,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			throw new Error('Invalid token issuer')
 		}
 
+		// Validate required timestamps exist
 		if (!payload.exp || !payload.iat) {
 			this.logger.warn('Token missing required timestamps', {
 				hasExp: !!payload.exp,
@@ -145,32 +87,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			throw new Error('Token missing expiration or issued-at timestamp')
 		}
 
-		const expiresAt = new Date(payload.exp * 1000)
-		const issuedAt = new Date(payload.iat * 1000)
-
-		const isExpired = this.tokenExpiration.isTokenExpired(expiresAt)
-		const timeUntilExpiry = this.tokenExpiration.getTimeUntilExpiry(expiresAt)
-		const tokenAge = this.tokenExpiration.getTokenAge(issuedAt)
-
-		if (isExpired) {
-			this.logger.warn('Token is expired', {
-				expiresAt,
-				issuedAt,
-				tokenAge,
-				timeUntilExpiry,
-				userId
-			})
-			throw new Error('Token has expired')
-		}
-
-		if (timeUntilExpiry < 300) {
-			this.logger.warn('Token approaching expiry', { timeUntilExpiry, userId })
-		}
-
-		if (tokenAge > 86400) {
-			this.logger.warn('Token is unusually old', { tokenAge, userId })
-		}
-
+		// Validate audience is authenticated
 		const expectedAud = 'authenticated'
 		const actualAud = Array.isArray(payload.aud)
 			? payload.aud[0]
@@ -183,13 +100,16 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			throw new Error('Invalid token audience')
 		}
 
+		// Create user object from JWT payload
 		const user: authUser = {
-			id: payload.sub ?? '',
+			id: payload.sub,
 			aud: actualAud,
+			email: payload.email,
+			role: payload.app_metadata?.role ?? 'authenticated',
 			email_confirmed_at: new Date().toISOString(),
 			confirmed_at: new Date().toISOString(),
 			last_sign_in_at: new Date().toISOString(),
-			app_metadata: {},
+			app_metadata: payload.app_metadata ?? {},
 			user_metadata: payload.user_metadata ?? {},
 			identities: [],
 			created_at: new Date().toISOString(),
@@ -197,28 +117,12 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			is_anonymous: false
 		}
 
-		if (payload.role !== undefined) user.role = payload.role
-		if (payload.email !== undefined) user.email = payload.email
-
-		const validationResult: TokenValidationResult = {
-			user,
-			tokenInfo: {
-				expiresAt,
-				issuedAt,
-				issuer: payload.iss ?? 'unknown',
-				audience: actualAud,
-				timeUntilExpiry,
-				tokenAge
-			}
-		}
-
 		this.logger.debug('User authenticated successfully', {
 			userId: user.id,
 			role: user.role,
-			timeUntilExpiry,
-			tokenAge
+			email: user.email
 		})
 
-		return validationResult
+		return user
 	}
 }
