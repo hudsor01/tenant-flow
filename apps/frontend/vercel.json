@@ -135,7 +135,16 @@
 			]
 		},
 		{
-			"source": "/dashboard",
+			"source": "/manage",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "private, no-cache, must-revalidate"
+				}
+			]
+		},
+		{
+			"source": "/tenant",
 			"headers": [
 				{
 					"key": "Cache-Control",

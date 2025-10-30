@@ -197,7 +197,7 @@ BEGIN
         <p><strong>Payment Date:</strong> %s</p>
       </div>
       <p>Your subscription is active and you have full access to TenantFlow.</p>
-      <p><a href="https://tenantflow.app/dashboard" style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Go to Dashboard</a></p>
+      <p><a href="https://tenantflow.app/manage" style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Go to Dashboard</a></p>
     </div>
   ',
     v_amount_formatted,

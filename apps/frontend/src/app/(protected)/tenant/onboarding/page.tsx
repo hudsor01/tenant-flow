@@ -67,7 +67,7 @@ export default function TenantOnboardingPage() {
         if (data.success) {
           setStatus('success')
           // Redirect to tenant dashboard after 2 seconds
-          setTimeout(() => router.push('/tenant/dashboard'), 2000)
+          setTimeout(() => router.push('/tenant'), 2000)
         } else {
           setErrorMessage(data.message || 'Failed to activate tenant')
           setStatus('error')

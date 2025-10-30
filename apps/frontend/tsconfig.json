@@ -22,7 +22,7 @@
 				"name": "next"
 			}
 		],
-		"types": ["node", "react", "react-dom"]
+		"types": ["node", "react", "react-dom", "vitest/globals"]
 	},
 	"include": [
 		"next-env.d.ts",

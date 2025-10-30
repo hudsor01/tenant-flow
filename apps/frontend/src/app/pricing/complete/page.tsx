@@ -249,7 +249,7 @@ export default function CompletePage() {
 							<p className="text-(--color-text-secondary)">
 								Welcome to TenantFlow! Your subscription is now active.
 							</p>
-							<Link href="/dashboard" className="inline-block mt-4">
+							<Link href="/manage" className="inline-block mt-4">
 								<Button className="h-11 px-8">Go to Dashboard</Button>
 							</Link>
 						</div>

@@ -721,7 +721,7 @@ export class NotificationsService {
 				type: 'system',
 				priority: priority.toLowerCase(),
 				metadata: {
-					actionUrl: actionUrl || '/dashboard'
+					actionUrl: actionUrl || '/manage'
 				},
 				isRead: false
 			})

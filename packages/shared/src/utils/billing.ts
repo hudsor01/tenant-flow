@@ -29,10 +29,10 @@ export function calculateAnnualSavings(monthlyPrice: number): number {
 }
 
 export const SUBSCRIPTION_URLS = {
-	MANAGE: '/dashboard/subscription',
-	UPGRADE: '/dashboard/subscription/upgrade',
-	CANCEL: '/dashboard/subscription/cancel',
-	PORTAL: '/dashboard/billing-portal',
-	dashboardWithTrial: '/dashboard?trial=success',
-	dashboardWithSetup: '/dashboard?setup=complete'
+	MANAGE: '/manage/subscription',
+	UPGRADE: '/manage/subscription/upgrade',
+	CANCEL: '/manage/subscription/cancel',
+	PORTAL: '/manage/billing-portal',
+	dashboardWithTrial: '/manage?trial=success',
+	dashboardWithSetup: '/manage?setup=complete'
 } as const
