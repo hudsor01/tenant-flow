@@ -1,398 +1,596 @@
-import type { Metadata } from 'next'
-import { requireSession } from '#lib/server-auth'
-import { ExportButtons } from '#components/export/export-buttons'
-import { Badge } from '#components/ui/badge'
+'use client'
+
+import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Button } from '#components/ui/button'
+import { Input } from '#components/ui/input'
+import { Label } from '#components/ui/label'
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from '#components/ui/card'
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '#components/ui/select'
+import { Separator } from '#components/ui/separator'
+import { Skeleton } from '#components/ui/skeleton'
 import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '#components/ui/table'
-import { cn } from '#lib/utils'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { formatCurrency } from '@repo/shared/utils/formatting'
-import type { TaxDocumentsData } from '@repo/shared/types/financial-statements'
-import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
-import { CheckCircle, Download, XCircle } from 'lucide-react'
+	Search,
+	Download,
+	Upload,
+	FileText,
+	DollarSign,
+	FileSpreadsheet,
+	FileBarChart
+} from 'lucide-react'
+import { useState } from 'react'
+import { useTaxDocuments } from '#hooks/api/use-tax-documents'
+import { toast } from 'sonner'
+import type {
+	TaxExpenseCategory,
+	TaxPropertyDepreciation
+} from '@repo/shared/types/financial-statements'
 
-export const metadata: Metadata = {
-	title: 'Tax Documents | TenantFlow',
-	description: 'Schedule E and supporting documentation for tax preparation'
+interface TaxDocumentsPageProps {
+	initialYear?: number
 }
 
-async function getTaxDocuments(
-	token: string,
-	taxYear: number
-): Promise<TaxDocumentsData | null> {
-	try {
-		const API_BASE_URL = getApiBaseUrl()
-		const url = `${API_BASE_URL}/financials/tax-documents?taxYear=${taxYear}`
+const TaxDocumentsPage = ({
+	initialYear = new Date().getFullYear()
+}: TaxDocumentsPageProps) => {
+	const [selectedYear, setSelectedYear] = useState(initialYear.toString())
+	const [searchQuery, setSearchQuery] = useState('')
+	
+	const { data: taxData, isLoading, error: queryError } = useTaxDocuments(parseInt(selectedYear, 10))
+	const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to load tax documents') : null
 
-		const response = await fetch(url, {
-			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json'
-			},
-			cache: 'no-store'
-		})
+	const years = Array.from({ length: 5 }, (_, i) =>
+		(new Date().getFullYear() - i).toString()
+	)
 
-		if (!response.ok) {
-			return null
+	// Handler for exporting tax documents
+	const handleExport = async () => {
+		if (!taxData) return
+		try {
+			const jsonData = JSON.stringify(taxData, null, 2)
+			const blob = new Blob([jsonData], { type: 'application/json' })
+			const url = URL.createObjectURL(blob)
+			const a = document.createElement('a')
+			a.href = url
+			a.download = `tax-documents-${selectedYear}.json`
+			document.body.appendChild(a)
+			a.click()
+			document.body.removeChild(a)
+			URL.revokeObjectURL(url)
+		} catch (error) {
+			toast.error('Failed to export documents', {
+				description: error instanceof Error ? error.message : 'An unexpected error occurred'
+			})
 		}
-
-		const result = await response.json()
-		return result.data
-	} catch {
-		return null
-	}
-}
-
-export default async function TaxDocumentsPage() {
-	// Server-side auth
-	const { user } = await requireSession()
-	const logger = createLogger({ component: 'TaxDocumentsPage', userId: user.id })
-
-	// Default to previous tax year
-	const selectedYear = new Date().getFullYear() - 1
-
-	// Fetch data
-	let data: TaxDocumentsData | null = null
-	try {
-		// Get auth token for API call
-		const { createClient } = await import('#lib/supabase/server')
-		const supabase = await createClient()
-		const { data: { session } } = await supabase.auth.getSession()
-
-		if (session?.access_token) {
-			data = await getTaxDocuments(session.access_token, selectedYear)
-		}
-	} catch (err) {
-		logger.warn('Failed to fetch tax documents', {
-			error: err instanceof Error ? err.message : String(err)
-		})
 	}
 
-	if (!data) {
+	// Handler for importing tax documents
+	const handleImport = () => {
+		const input = document.createElement('input')
+		input.type = 'file'
+		input.accept = '.json'
+		input.onchange = async (e) => {
+			const file = (e.target as HTMLInputElement).files?.[0]
+			if (!file) return
+			try {
+				const text = await file.text()
+				const data = JSON.parse(text)
+
+				// Validate the data structure
+				if (!data.taxYear || !data.totals || !data.incomeBreakdown) {
+					throw new Error('Invalid tax data format')
+				}
+
+				// TODO: Implement import functionality with API call
+				toast.info('Import feature coming soon', {
+					description: 'This feature is currently in development and will be available in a future update.'
+				})
+			} catch (error) {
+				toast.error('Failed to import documents', {
+					description: error instanceof Error ? error.message : 'Please check the file format and try again.'
+				})
+			}
+		}
+		input.click()
+	}
+
+	// Handler for generating tax report
+	const handleGenerateTaxReport = async () => {
+		try {
+			// TODO: Call API endpoint to generate report
+			// const report = await generateTaxReport(session.access_token, parseInt(selectedYear, 10))
+			// downloadReport(report)
+			
+			toast.info('Tax report generation coming soon', {
+				description: 'This feature is currently in development and will be available in a future update.'
+			})
+		} catch (error) {
+			toast.error('Failed to generate tax report', {
+				description: error instanceof Error ? error.message : 'An unexpected error occurred'
+			})
+		}
+	}
+
+	// Handler for viewing detailed breakdown
+	const handleViewDetailedBreakdown = () => {
+		try {
+			// TODO: Navigate to breakdown route or open modal
+			// router.push(`/manage/financials/tax-documents/${selectedYear}/breakdown`)
+			// or: setShowBreakdownModal(true)
+			
+			toast.info('Detailed breakdown view coming soon', {
+				description: 'This feature is currently in development and will be available in a future update.'
+			})
+		} catch (error) {
+			toast.error('Failed to open detailed breakdown', {
+				description: error instanceof Error ? error.message : 'An unexpected error occurred'
+			})
+		}
+	}
+
+	const renderExpenseCategories = () => {
+		if (!taxData?.expenseCategories?.length) return null
+
+		// Filter expense categories based on search query
+		const filteredCategories = taxData.expenseCategories.filter((category: TaxExpenseCategory) => {
+			if (!searchQuery.trim()) return true
+			
+			const query = searchQuery.toLowerCase().trim()
+			const categoryName = (category.category || '').toLowerCase()
+			const notes = (category.notes || '').toLowerCase()
+			
+			return categoryName.includes(query) || notes.includes(query)
+		})
+
+		if (filteredCategories.length === 0) {
+			return (
+				<div className="text-center py-8 text-gray-500">
+					No expense categories match your search.
+				</div>
+			)
+		}
+
 		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<p className="text-muted-foreground">No data available for the selected year</p>
+			<div className="space-y-3">
+				{filteredCategories.map((category: TaxExpenseCategory, index: number) => (
+					<div
+						key={category.category || `category-${index}`}
+						className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+					>
+						<div className="flex-1">
+							<div className="font-medium text-gray-900">
+								{category.category}
+							</div>
+							{category.notes && (
+								<div className="text-sm text-gray-500">{category.notes}</div>
+							)}
+						</div>
+						<div className="text-right">
+							<div className="font-semibold text-gray-900">
+								${category.amount.toLocaleString()}
+							</div>
+							<div
+								className={`text-sm ${category.deductible ? 'text-green-600' : 'text-red-600'}`}
+							>
+								{category.deductible ? 'Deductible' : 'Not Deductible'}
+							</div>
+						</div>
+					</div>
+				))}
+			</div>
+		)
+	}
+
+	const renderPropertyDepreciation = () => {
+		if (!taxData?.propertyDepreciation?.length) return null
+
+		// Filter property depreciation based on search query
+		const filteredProperties = taxData.propertyDepreciation.filter((property: TaxPropertyDepreciation) => {
+			if (!searchQuery.trim()) return true
+			
+			const query = searchQuery.toLowerCase().trim()
+			const propertyName = (property.propertyName || '').toLowerCase()
+			const propertyId = (property.propertyId || '').toLowerCase()
+			
+			return propertyName.includes(query) || propertyId.includes(query)
+		})
+
+		if (filteredProperties.length === 0) {
+			return (
+				<div className="text-center py-8 text-gray-500">
+					No properties match your search.
+				</div>
+			)
+		}
+
+		return (
+			<div className="space-y-3">
+				{filteredProperties.map((property: TaxPropertyDepreciation, index: number) => (
+					<Card key={property.propertyId || `property-${index}`} className="border border-gray-200">
+						<CardContent className="p-4">
+							<div className="space-y-3">
+								<div className="flex items-center justify-between">
+									<h4 className="font-semibold text-gray-900">
+										{property.propertyName}
+									</h4>
+									<span className="text-sm text-gray-500">
+										ID: {property.propertyId}
+									</span>
+								</div>
+
+								<div className="grid grid-cols-2 gap-4 text-sm">
+									<div>
+										<div className="text-gray-500">Property Value</div>
+										<div className="font-semibold">
+											${property.propertyValue.toLocaleString()}
+										</div>
+									</div>
+									<div>
+										<div className="text-gray-500">Annual Depreciation</div>
+										<div className="font-semibold text-green-600">
+											${property.annualDepreciation.toLocaleString()}
+										</div>
+									</div>
+								</div>
+
+								<div className="grid grid-cols-2 gap-4 text-sm">
+									<div>
+										<div className="text-gray-500">
+											Accumulated Depreciation
+										</div>
+										<div className="font-semibold">
+											${property.accumulatedDepreciation.toLocaleString()}
+										</div>
+									</div>
+									<div>
+										<div className="text-gray-500">Remaining Basis</div>
+										<div className="font-semibold">
+											${property.remainingBasis.toLocaleString()}
+										</div>
+									</div>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				))}
+			</div>
+		)
+	}
+
+	if (isLoading) {
+		return (
+			<div className="p-6 space-y-6">
+				<div className="flex items-center justify-between">
+					<div>
+						<h1 className="text-3xl font-bold">Tax Documents</h1>
+						<p className="text-gray-600">
+							Tax preparation and filing documents
+						</p>
+					</div>
+					<div className="flex gap-2">
+						<Skeleton className="h-10 w-24" />
+						<Skeleton className="h-10 w-24" />
+					</div>
+				</div>
+
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					{[1, 2, 3].map(i => (
+						<Card key={i}>
+							<CardHeader>
+								<Skeleton className="h-6 w-32" />
+							</CardHeader>
+							<CardContent>
+								<Skeleton className="h-8 w-full" />
+								<Skeleton className="h-4 w-24 mt-2" />
+							</CardContent>
+						</Card>
+					))}
+				</div>
+
+				<div className="space-y-4">
+					{[1, 2, 3].map(i => (
+						<div key={i}>
+							<Skeleton className="h-6 w-48 mb-4" />
+							<div className="space-y-2">
+								{[1, 2, 3].map(j => (
+									<div
+										key={j}
+										className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+									>
+										<Skeleton className="h-4 w-32" />
+										<Skeleton className="h-6 w-24" />
+									</div>
+								))}
+							</div>
+						</div>
+					))}
+				</div>
+			</div>
+		)
+	}
+
+	if (error) {
+		return (
+			<div className="p-6">
+				<Card>
+					<CardContent className="p-8 text-center">
+						<div className="text-red-600 mb-4">
+							<FileText className="w-12 h-12 mx-auto" />
+						</div>
+						<h3 className="text-lg font-semibold text-gray-900 mb-2">
+							Error Loading Tax Documents
+						</h3>
+						<p className="text-gray-600 mb-4">{error}</p>
+						<Button onClick={() => window.location.reload()}>Try Again</Button>
+					</CardContent>
+				</Card>
+			</div>
+		)
+	}
+
+	if (!taxData) {
+		return (
+			<div className="p-6">
+				<Card>
+					<CardContent className="p-8 text-center">
+						<div className="text-gray-400 mb-4">
+							<FileText className="w-12 h-12 mx-auto" />
+						</div>
+						<h3 className="text-lg font-semibold text-gray-900 mb-2">
+							No Tax Data Available
+						</h3>
+						<p className="text-gray-600">
+							No tax documents found for the selected year.
+						</p>
+					</CardContent>
+				</Card>
 			</div>
 		)
 	}
 
 	return (
-		<div className="@container/main flex min-h-screen w-full flex-col">
-			<div className="border-b bg-background p-6">
-				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
-					<div className="flex flex-col gap-2">
-						<h1 className="text-3xl font-semibold tracking-tight">
-							Tax Documents
-						</h1>
-						<p className="text-muted-foreground">
-							Schedule E and supporting documentation for tax preparation
-						</p>
-					</div>
-
-					<div className="flex flex-wrap items-center gap-3">
-						<ExportButtons filename="tax-documents" payload={data} />
-						<Button variant="outline" className="gap-2">
-							<Download className="size-4" />
-							Download for Accountant
-						</Button>
-					</div>
-
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-						<Card className="@container/card">
-							<CardHeader>
-								<CardTitle>Total Income</CardTitle>
-								<CardDescription>Tax year {data.taxYear}</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-3">
-								<p className="text-3xl font-semibold tabular-nums">
-									{formatCurrency(data.totals.totalIncome)}
-								</p>
-							</CardContent>
-						</Card>
-
-						<Card className="@container/card">
-							<CardHeader>
-								<CardTitle>Total Deductions</CardTitle>
-								<CardDescription>Deductible expenses</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-3">
-								<p className="text-3xl font-semibold tabular-nums">
-									{formatCurrency(data.totals.totalDeductions)}
-								</p>
-							</CardContent>
-						</Card>
-
-						<Card className="@container/card">
-							<CardHeader>
-								<CardTitle>Net Taxable Income</CardTitle>
-								<CardDescription>Schedule E total</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-3">
-								<p
-									className={cn(
-										'text-3xl font-semibold tabular-nums',
-										data.totals.netTaxableIncome >= 0
-											? 'text-[oklch(var(--success))]'
-											: 'text-[oklch(var(--destructive))]'
-									)}
-								>
-									{formatCurrency(data.totals.netTaxableIncome)}
-								</p>
-							</CardContent>
-						</Card>
-					</div>
+		<div className="p-6 space-y-6">
+			{/* Header */}
+			<div className="flex items-center justify-between">
+				<div>
+					<h1 className="text-3xl font-bold">Tax Documents</h1>
+					<p className="text-gray-600">Tax preparation and filing documents</p>
+				</div>
+				<div className="flex gap-2">
+					<Button variant="outline" size="sm" onClick={handleExport}>
+						<Download className="w-4 h-4 mr-2" />
+						Export
+					</Button>
+					<Button size="sm" onClick={handleImport}>
+						<Upload className="w-4 h-4 mr-2" />
+						Import
+					</Button>
 				</div>
 			</div>
 
-			<div className="flex-1 p-6">
-				<div className="mx-auto max-w-400 space-y-8 px-4 lg:px-6">
-					<Card>
-						<CardHeader>
-							<CardTitle>Schedule E Summary</CardTitle>
-							<CardDescription>
-								Supplemental Income and Loss (Form 1040)
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-								<div className="rounded-lg bg-muted/40 p-4">
-									<p className="text-sm text-muted-foreground">
-										Gross Rental Income
-									</p>
-									<p className="text-2xl font-semibold">
-										{formatCurrency(data.schedule.scheduleE.grossRentalIncome)}
-									</p>
-								</div>
-								<div className="rounded-lg bg-muted/40 p-4">
-									<p className="text-sm text-muted-foreground">
-										Total Expenses
-									</p>
-									<p className="text-2xl font-semibold">
-										{formatCurrency(data.schedule.scheduleE.totalExpenses)}
-									</p>
-								</div>
-								<div className="rounded-lg bg-muted/40 p-4">
-									<p className="text-sm text-muted-foreground">Depreciation</p>
-									<p className="text-2xl font-semibold">
-										{formatCurrency(data.schedule.scheduleE.depreciation)}
-									</p>
-								</div>
-								<div className="rounded-lg bg-muted/40 p-4">
-									<p className="text-sm text-muted-foreground">Net Income</p>
-									<p
-										className={cn(
-											'text-2xl font-semibold',
-											data.schedule.scheduleE.netIncome >= 0
-												? 'text-[oklch(var(--success))]'
-												: 'text-[oklch(var(--destructive))]'
-										)}
-									>
-										{formatCurrency(data.schedule.scheduleE.netIncome)}
-									</p>
+			{/* Filters */}
+			<Card>
+				<CardContent className="p-4">
+					<div className="flex flex-wrap items-center gap-4">
+						<div className="flex items-center gap-2">
+							<Label>Tax Year</Label>
+							<Select value={selectedYear} onValueChange={setSelectedYear}>
+								<SelectTrigger className="w-32">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									{years.map(year => (
+										<SelectItem key={year} value={year}>
+											{year}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="flex items-center gap-2">
+							<Input 
+								placeholder="Search documents..." 
+								className="w-64"
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+							/>
+							<Button variant="outline" size="sm">
+								<Search className="w-4 h-4" />
+							</Button>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Summary Cards */}
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">Total Income</CardTitle>
+						<DollarSign className="h-4 w-4 text-green-600" />
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold text-green-600">
+							${taxData.totals.totalIncome.toLocaleString()}
+						</div>
+						<p className="text-xs text-muted-foreground">
+							Tax year {taxData.taxYear}
+						</p>
+					</CardContent>
+				</Card>
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">
+							Total Deductions
+						</CardTitle>
+						<FileText className="h-4 w-4 text-red-600" />
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold text-red-600">
+							${taxData.totals.totalDeductions.toLocaleString()}
+						</div>
+						<p className="text-xs text-muted-foreground">
+							Tax year {taxData.taxYear}
+						</p>
+					</CardContent>
+				</Card>
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">
+							Net Taxable Income
+						</CardTitle>
+						<FileBarChart className="h-4 w-4 text-muted-foreground" />
+					</CardHeader>
+					<CardContent>
+						<div
+							className={`text-2xl font-bold ${taxData.totals.netTaxableIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}
+						>
+							${Math.abs(taxData.totals.netTaxableIncome).toLocaleString()}
+						</div>
+						<p className="text-xs text-muted-foreground">
+							Tax year {taxData.taxYear}
+						</p>
+					</CardContent>
+				</Card>
+			</div>
+
+			{/* Income Breakdown */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<FileBarChart className="w-5 h-5" />
+						Income Breakdown
+					</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div className="p-4 bg-gray-50 rounded-lg">
+							<div className="text-sm text-gray-600">Gross Rental Income</div>
+							<div className="text-xl font-bold">
+								${taxData.incomeBreakdown.grossRentalIncome.toLocaleString()}
+							</div>
+						</div>
+						<div className="p-4 bg-gray-50 rounded-lg">
+							<div className="text-sm text-gray-600">Total Expenses</div>
+							<div className="text-xl font-bold text-red-600">
+								${taxData.incomeBreakdown.totalExpenses.toLocaleString()}
+							</div>
+						</div>
+						<div className="p-4 bg-gray-50 rounded-lg">
+							<div className="text-sm text-gray-600">Net Operating Income</div>
+							<div className="text-xl font-bold">
+								${taxData.incomeBreakdown.netOperatingIncome.toLocaleString()}
+							</div>
+						</div>
+					</div>
+
+					<Separator />
+
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div className="p-4 bg-blue-50 rounded-lg">
+							<div className="text-sm text-gray-600">Depreciation</div>
+							<div className="text-xl font-bold text-green-600">
+								${taxData.incomeBreakdown.depreciation.toLocaleString()}
+							</div>
+						</div>
+						<div className="p-4 bg-blue-50 rounded-lg">
+							<div className="text-sm text-gray-600">Mortgage Interest</div>
+							<div className="text-xl font-bold">
+								${taxData.incomeBreakdown.mortgageInterest.toLocaleString()}
+							</div>
+						</div>
+						<div className="p-4 bg-green-50 rounded-lg">
+							<div className="text-sm text-gray-600">Taxable Income</div>
+							<div className="text-xl font-bold text-green-600">
+								${taxData.incomeBreakdown.taxableIncome.toLocaleString()}
+							</div>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Schedule E */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<FileSpreadsheet className="w-5 h-5" />
+						Schedule E (Supplemental Income and Loss)
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-4">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+							<div className="p-4 bg-gray-50 rounded-lg">
+								<div className="text-sm text-gray-600">Gross Rental Income</div>
+								<div className="text-lg font-bold">
+									$
+									{taxData.schedule.scheduleE.grossRentalIncome.toLocaleString()}
 								</div>
 							</div>
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardHeader>
-							<CardTitle>Expense Categories</CardTitle>
-							<CardDescription>
-								Deductibility and amounts by category
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Category</TableHead>
-										<TableHead className="text-center">Deductible</TableHead>
-										<TableHead className="text-right">Amount</TableHead>
-										<TableHead className="text-right">% of Total</TableHead>
-										<TableHead>Notes</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{data.expenseCategories.map(expense => (
-										<TableRow key={expense.category}>
-											<TableCell className="font-medium">
-												{expense.category}
-											</TableCell>
-											<TableCell className="text-center">
-												{expense.deductible ? (
-													<Badge
-														variant="outline"
-														className="flex w-fit items-center gap-1"
-													>
-														<CheckCircle className="size-3 text-[oklch(var(--success))]" />
-														Yes
-													</Badge>
-												) : (
-													<Badge
-														variant="destructive"
-														className="flex w-fit items-center gap-1"
-													>
-														<XCircle className="size-3" />
-														No
-													</Badge>
-												)}
-											</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(expense.amount)}
-											</TableCell>
-											<TableCell className="text-right text-muted-foreground">
-												{expense.percentage.toFixed(1)}%
-											</TableCell>
-											<TableCell className="text-sm text-muted-foreground">
-												{expense.notes || '—'}
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardHeader>
-							<CardTitle>Property Depreciation Schedule</CardTitle>
-							<CardDescription>Annual depreciation by property</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Property</TableHead>
-										<TableHead className="text-right">Property Value</TableHead>
-										<TableHead className="text-right">
-											Annual Depreciation
-										</TableHead>
-										<TableHead className="text-right">
-											Accumulated Depreciation
-										</TableHead>
-										<TableHead className="text-right">
-											Remaining Basis
-										</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{data.propertyDepreciation.map(property => (
-										<TableRow key={property.propertyId}>
-											<TableCell className="font-medium">
-												{property.propertyName}
-											</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(property.propertyValue)}
-											</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(property.annualDepreciation)}
-											</TableCell>
-											<TableCell className="text-right text-muted-foreground">
-												(
-												{formatCurrency(
-													Math.abs(property.accumulatedDepreciation)
-												)}
-												)
-											</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(property.remainingBasis)}
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardHeader>
-							<CardTitle>Income Breakdown</CardTitle>
-							<CardDescription>
-								Detailed income calculation for tax year {data.taxYear}
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<div className="space-y-4">
-								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground">
-										Gross Rental Income
-									</span>
-									<span className="font-semibold">
-										{formatCurrency(data.incomeBreakdown.grossRentalIncome)}
-									</span>
-								</div>
-								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground">Total Expenses</span>
-									<span className="font-semibold text-[oklch(var(--destructive))]">
-										(
-										{formatCurrency(
-											Math.abs(data.incomeBreakdown.totalExpenses)
-										)}
-										)
-									</span>
-								</div>
-								<div className="flex items-center justify-between border-t pt-4">
-									<span className="font-medium">Net Operating Income</span>
-									<span className="font-semibold">
-										{formatCurrency(data.incomeBreakdown.netOperatingIncome)}
-									</span>
-								</div>
-								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground">Depreciation</span>
-									<span className="font-semibold text-[oklch(var(--destructive))]">
-										(
-										{formatCurrency(
-											Math.abs(data.incomeBreakdown.depreciation)
-										)}
-										)
-									</span>
-								</div>
-								<div className="flex items-center justify-between">
-									<span className="text-muted-foreground">
-										Mortgage Interest
-									</span>
-									<span className="font-semibold text-[oklch(var(--destructive))]">
-										(
-										{formatCurrency(
-											Math.abs(data.incomeBreakdown.mortgageInterest)
-										)}
-										)
-									</span>
-								</div>
-								<div className="flex items-center justify-between border-t-2 pt-4">
-									<span className="text-lg font-semibold">
-										Taxable Income (Schedule E)
-									</span>
-									<span
-										className={cn(
-											'text-2xl font-bold',
-											data.incomeBreakdown.taxableIncome >= 0
-												? 'text-[oklch(var(--success))]'
-												: 'text-[oklch(var(--destructive))]'
-										)}
-									>
-										{formatCurrency(data.incomeBreakdown.taxableIncome)}
-									</span>
+							<div className="p-4 bg-gray-50 rounded-lg">
+								<div className="text-sm text-gray-600">Total Expenses</div>
+								<div className="text-lg font-bold text-red-600">
+									${taxData.schedule.scheduleE.totalExpenses.toLocaleString()}
 								</div>
 							</div>
-						</CardContent>
-					</Card>
-				</div>
+							<div className="p-4 bg-gray-50 rounded-lg">
+								<div className="text-sm text-gray-600">Depreciation</div>
+								<div className="text-lg font-bold text-green-600">
+									${taxData.schedule.scheduleE.depreciation.toLocaleString()}
+								</div>
+							</div>
+							<div className="p-4 bg-green-50 rounded-lg">
+								<div className="text-sm text-gray-600">Net Income</div>
+								<div className="text-lg font-bold text-green-600">
+									${taxData.schedule.scheduleE.netIncome.toLocaleString()}
+								</div>
+							</div>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Expense Categories */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<FileText className="w-5 h-5" />
+						Expense Categories
+					</CardTitle>
+				</CardHeader>
+				<CardContent>{renderExpenseCategories()}</CardContent>
+			</Card>
+
+			{/* Property Depreciation */}
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<FileBarChart className="w-5 h-5" />
+						Property Depreciation
+					</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					{renderPropertyDepreciation()}
+				</CardContent>
+			</Card>
+
+			{/* Action Buttons */}
+			<div className="flex justify-center gap-4">
+				<Button size="lg" onClick={handleGenerateTaxReport}>
+					<Download className="w-4 h-4 mr-2" />
+					Generate Tax Report
+				</Button>
+				<Button variant="outline" size="lg" onClick={handleViewDetailedBreakdown}>
+					<FileText className="w-4 h-4 mr-2" />
+					View Detailed Breakdown
+				</Button>
 			</div>
 		</div>
 	)
 }
+
+export default TaxDocumentsPage

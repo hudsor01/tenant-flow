@@ -210,69 +210,121 @@ export class MaintenanceAnalyticsController {
 		timeframe: string,
 		propertyId?: string
 	) {
-                const client = this.supabaseService.getAdminClient()
+		const client = this.supabaseService.getAdminClient()
 
-                const { data: propertyRows } = await client
-                        .from('property')
-                        .select('id, name')
-                        .eq('ownerId', userId)
+		const { data: propertyRows, error: propertyError } = await client
+			.from('property')
+			.select('id, name')
+			.eq('ownerId', userId)
 
-                const propertyNames = new Map<string, string>()
-                const propertyIds: string[] = []
-                for (const property of propertyRows || []) {
-                        if (!property?.id) {
-                                continue
-                        }
-                        propertyIds.push(property.id)
-                        if (typeof property.name === 'string') {
-                                propertyNames.set(property.id, property.name)
-                        }
-                }
+		if (propertyError) {
+			this.logger.error(
+				'Failed to fetch properties, proceeding with empty data',
+				{
+					error: propertyError.message || propertyError,
+					userId
+				}
+			)
+		}
 
-                if (propertyIds.length === 0) {
-                        return {
-                                requests: [],
-                                unitToProperty: new Map<string, string>(),
-                                propertyNames
-                        }
-                }
+		const propertyNames = new Map<string, string>()
+		const propertyIds: string[] = []
+		for (const property of propertyRows || []) {
+			if (!property?.id) {
+				continue
+			}
+			propertyIds.push(property.id)
+			if (typeof property.name === 'string') {
+				propertyNames.set(property.id, property.name)
+			}
+		}
 
-                const { data: unitRows } = await client
-                        .from('unit')
-                        .select('id, propertyId')
-                        .in('propertyId', propertyIds)
+		if (propertyIds.length === 0) {
+			return {
+				requests: [],
+				unitToProperty: new Map<string, string>(),
+				propertyNames
+			}
+		}
 
-                const unitToProperty = new Map<string, string>()
-                const unitIds: string[] = []
-                for (const unit of unitRows || []) {
-                        if (!unit?.id) {
-                                continue
-                        }
-                        unitIds.push(unit.id)
-                        if (typeof unit.propertyId === 'string' && unit.propertyId.length > 0) {
-                                unitToProperty.set(unit.id, unit.propertyId)
-                        }
-                }
+		const { data: unitRows, error: unitError } = await client
+			.from('unit')
+			.select('id, propertyId')
+			.in('propertyId', propertyIds)
 
-                if (unitIds.length === 0) {
-                        return {
-                                requests: [],
-                                unitToProperty,
-                                propertyNames
-                        }
-                }
+		if (unitError) {
+			this.logger.error('Failed to fetch units, proceeding with empty data', {
+				error: unitError.message || unitError,
+				userId,
+				propertyIdsCount: propertyIds.length
+			})
+		}
 
-                const { data: maintenanceRows } = await client
-                        .from('maintenance_request')
-                        .select('*')
-                        .in('unitId', unitIds)
+		const unitToProperty = new Map<string, string>()
+		const unitIds: string[] = []
+		for (const unit of unitRows || []) {
+			if (!unit?.id) {
+				continue
+			}
+			unitIds.push(unit.id)
+			if (typeof unit.propertyId === 'string' && unit.propertyId.length > 0) {
+				unitToProperty.set(unit.id, unit.propertyId)
+			}
+		}
 
-                const maintenanceRequests = (maintenanceRows || []) as MaintenanceRequest[]
+		if (unitIds.length === 0) {
+			return {
+				requests: [],
+				unitToProperty,
+				propertyNames
+			}
+		}
+
+		let maintenanceRequests: MaintenanceRequest[] = []
+		try {
+			const { data: maintenanceRows, error: maintenanceError } = await client
+				.from('maintenance_request')
+				.select('*')
+				.in('unitId', unitIds)
+
+			if (maintenanceError) {
+				this.logger.error(
+					'Failed to fetch maintenance requests, proceeding with empty data',
+					{
+						error: maintenanceError.message || maintenanceError,
+						userId,
+						unitIdsCount: unitIds.length
+					}
+				)
+				// Return empty result shape on error instead of throwing
+				return {
+					requests: [],
+					unitToProperty,
+					propertyNames
+				}
+			}
+
+			maintenanceRequests = (maintenanceRows || []) as MaintenanceRequest[]
+		} catch (error) {
+			this.logger.error(
+				'Unexpected error fetching maintenance requests, proceeding with empty data',
+				{
+					error: error instanceof Error ? error.message : String(error),
+					userId
+				}
+			)
+			// Return empty result shape on unexpected errors
+			return {
+				requests: [],
+				unitToProperty,
+				propertyNames
+			}
+		}
 
 		const start = this.calculateStartDate(timeframe)
-                const filteredRequests = maintenanceRequests.filter(request => {
-                        if (start && request.createdAt) {
-                                const createdAt = new Date(request.createdAt)
+		const filteredRequests = maintenanceRequests.filter(request => {
+			if (start && request.createdAt) {
+				const createdAt = new Date(request.createdAt)
 				if (Number.isFinite(start.getTime()) && createdAt < start) {
 					return false
 				}

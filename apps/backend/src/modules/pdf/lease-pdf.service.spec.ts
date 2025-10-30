@@ -95,24 +95,30 @@ describe('LeasePDFService', () => {
 	})
 
 	it('generates PDF with minimal data', async () => {
-		const buffer = await service.generateLeasePDF(minimalLeaseData)
+		const buffer = await service.generateLeasePDF(
+			minimalLeaseData as unknown as Record<string, unknown>
+		)
 		expect(buffer).toBeInstanceOf(Buffer)
 		expect(mockPDFGenerator.generatePDF).toHaveBeenCalled()
 	})
 
 	it('generates PDF with full clause selection', async () => {
-		const fullLeaseData: LeaseFormData = {
+		const fullLeaseData = {
 			...minimalLeaseData,
 			policies: {
 				pets: { allowed: true, types: ['cats'] },
-				smoking: { allowed: false }
+				smoking: { allowed: false },
+				guests: { allowed: true },
+				maintenance: { requestProcess: 'Contact landlord' }
 			},
 			customTerms: [
 				{ title: 'Quiet Hours', content: '10 PM to 8 AM', required: true }
 			]
 		}
 
-		const buffer = await service.generateLeasePDF(fullLeaseData)
+		const buffer = await service.generateLeasePDF(
+			fullLeaseData as unknown as Record<string, unknown>
+		)
 		expect(buffer).toBeInstanceOf(Buffer)
 		expect(mockPDFGenerator.generatePDF).toHaveBeenCalledWith(
 			expect.stringContaining('Residential Lease Agreement'),
@@ -121,13 +127,13 @@ describe('LeasePDFService', () => {
 	})
 
 	it('logs and rethrows when PDF generation fails', async () => {
-		mockPDFGenerator.generatePDF.mockRejectedValueOnce(
-			new Error('PDF failure')
-		)
+		mockPDFGenerator.generatePDF.mockRejectedValueOnce(new Error('PDF failure'))
 
-		await expect(service.generateLeasePDF(minimalLeaseData)).rejects.toThrow(
-			'PDF failure'
-		)
+		await expect(
+			service.generateLeasePDF(
+				minimalLeaseData as unknown as Record<string, unknown>
+			)
+		).rejects.toThrow('PDF failure')
 		expect(service['logger'].error).toHaveBeenCalled()
 	})
 

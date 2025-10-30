@@ -25,7 +25,7 @@ export default [
 		],
 		languageOptions: {
 			parserOptions: {
-				project: './tsconfig.eslint.json',
+				project: './tsconfig.json',
 				tsconfigRootDir: import.meta.dirname
 			},
 			globals: {
@@ -103,7 +103,7 @@ export default [
 		],
 		languageOptions: {
 			parserOptions: {
-				project: './tsconfig.test.json',
+				project: './tsconfig.json',
 				tsconfigRootDir: import.meta.dirname
 			},
 			globals: {

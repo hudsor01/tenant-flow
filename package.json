@@ -120,14 +120,14 @@
 		"@eslint/eslintrc": "^3.3.1",
 		"@eslint/js": "9.38.0",
 		"@eslint/object-schema": "2.1.7",
-		"@eslint/plugin-kit": "0.4.0",
+		"@eslint/plugin-kit": "0.4.1",
 		"@humanfs/node": "0.16.7",
 		"@nestjs/terminus": "11.0.0",
 		"@react-email/components": "0.5.7",
 		"@react-email/render": "1.4.0",
 		"@repo/eslint-config": "workspace:*",
 		"@supabase/supabase-js": "catalog:",
-		"@types/node": "^24.9.1",
+		"@types/node": "^24.9.2",
 		"babel-plugin-react-compiler": "1.0.0",
 		"eslint": "9.38.0",
 		"eslint-config-next": "15.5.6",
@@ -151,8 +151,8 @@
 		"@next/eslint-plugin-next": "~15.5.6",
 		"@playwright/test": "1.56.1",
 		"@swc/cli": "0.7.8",
-		"@swc/core": "1.13.5",
+		"@swc/core": "1.14.0",
 		"playwright": "1.56.1",
-		"vercel": "48.6.0"
+		"vercel": "48.6.7"
 	}
 }

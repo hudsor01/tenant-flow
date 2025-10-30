@@ -4,11 +4,14 @@
  * Simplified: Removed duplicate methods, consolidated analytics
  */
 
-import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common'
-import type {
-	CreateLeaseRequest,
-	UpdateLeaseRequest
-} from '@repo/shared/types/backend-domain'
+import {
+	BadRequestException,
+	ConflictException,
+	Injectable,
+	Logger
+} from '@nestjs/common'
+import type { CreateLeaseDto } from './dto/create-lease.dto'
+import type { UpdateLeaseDto } from './dto/update-lease.dto'
 import type { Lease, LeaseStatsResponse } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
@@ -16,16 +19,12 @@ import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
 } from '../../shared/utils/sql-safe.utils'
-import { TenantsService } from '../tenants/tenants.service'
 
 @Injectable()
 export class LeasesService {
 	private readonly logger = new Logger(LeasesService.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly tenantsService: TenantsService
-	) {}
+	constructor(private readonly supabase: SupabaseService) {}
 
 	/**
 	 * Helper: Get unit IDs for user's properties
@@ -435,24 +434,21 @@ export class LeasesService {
 	/**
 	 * Create lease
 	 */
-	async create(
-		userId: string,
-		createRequest: CreateLeaseRequest
-	): Promise<Lease> {
+	async create(userId: string, dto: CreateLeaseDto): Promise<Lease> {
 		try {
-			if (!userId || !createRequest.unitId || !createRequest.tenant) {
+			if (!userId || !dto.unitId || !dto.tenantId) {
 				this.logger.warn('Create lease called with missing parameters', {
 					userId,
-					createRequest
+					dto
 				})
 				throw new BadRequestException(
-					'User ID, unit ID, and tenant details are required'
+					'User ID, unit ID, and tenant ID are required'
 				)
 			}
 
-			this.logger.log('Creating lease with tenant creation', {
+			this.logger.log('Creating lease', {
 				userId,
-				createRequest
+				dto
 			})
 
 			const client = this.supabase.getAdminClient()
@@ -461,7 +457,7 @@ export class LeasesService {
 			const { data: unit } = await client
 				.from('unit')
 				.select('propertyId')
-				.eq('id', createRequest.unitId)
+				.eq('id', dto.unitId)
 				.single()
 
 			if (!unit) {
@@ -478,27 +474,34 @@ export class LeasesService {
 				throw new BadRequestException('Unit does not belong to user')
 			}
 
-			// Create tenant first
-			const tenant = await this.tenantsService.create(userId, {
-				email: createRequest.tenant.email,
-				firstName: createRequest.tenant.firstName,
-				lastName: createRequest.tenant.lastName
-			})
+			// Verify tenant exists
+			const { data: tenant } = await client
+				.from('tenant')
+				.select('id')
+				.eq('id', dto.tenantId)
+				.eq('userId', userId)
+				.single()
 
-			const leaseData = {
-				tenantId: tenant.id,
-				unitId: createRequest.unitId,
-				startDate: createRequest.startDate,
-				endDate: createRequest.endDate,
-				rentAmount: createRequest.monthlyRent,
-				securityDeposit: createRequest.securityDeposit || 0,
-				status: (createRequest.status ||
-					'DRAFT') as Database['public']['Enums']['LeaseStatus']
+			if (!tenant) {
+				throw new BadRequestException('Tenant not found or access denied')
 			}
 
+			// Insert lease directly from DTO (matches database schema)
 			const { data, error } = await client
 				.from('lease')
-				.insert(leaseData)
+				.insert({
+					tenantId: dto.tenantId,
+					unitId: dto.unitId,
+					startDate: dto.startDate,
+					endDate: dto.endDate,
+					rentAmount: dto.rentAmount,
+					securityDeposit: dto.securityDeposit || 0,
+					status: (dto.status ||
+						'DRAFT') as Database['public']['Enums']['LeaseStatus'],
+					terms: dto.terms || null,
+					propertyId: dto.propertyId || null,
+					monthlyRent: dto.monthlyRent || null
+				})
 				.select()
 				.single()
 
@@ -506,27 +509,19 @@ export class LeasesService {
 				this.logger.error('Failed to create lease in Supabase', {
 					error: error.message,
 					userId,
-					createRequest
+					dto
 				})
 				throw new BadRequestException('Failed to create lease')
 			}
 
 			const lease = data as Lease
 
-			// Send invitation
-			await this.tenantsService.sendTenantInvitationV2(
-				userId,
-				tenant.id,
-				unit.propertyId,
-				lease.id
-			)
-
 			return lease
 		} catch (error) {
 			this.logger.error('Leases service failed to create lease', {
 				error: error instanceof Error ? error.message : String(error),
 				userId,
-				createRequest
+				dto
 			})
 			throw new BadRequestException(
 				error instanceof Error ? error.message : 'Failed to create lease'
@@ -540,7 +535,7 @@ export class LeasesService {
 	async update(
 		userId: string,
 		leaseId: string,
-		updateRequest: UpdateLeaseRequest,
+		updateRequest: UpdateLeaseDto,
 		expectedVersion?: number // 🔐 BUG FIX #2: Optimistic locking
 	): Promise<Lease | null> {
 		try {
@@ -579,18 +574,19 @@ export class LeasesService {
 				updateData.startDate = updateRequest.startDate
 			if (updateRequest.endDate !== undefined)
 				updateData.endDate = updateRequest.endDate
-			if (updateRequest.monthlyRent !== undefined)
-				updateData.rentAmount = updateRequest.monthlyRent
-			if (updateRequest.securityDeposit !== undefined)
+			if (updateRequest.rentAmount !== undefined && updateRequest.rentAmount !== null)
+				updateData.rentAmount = updateRequest.rentAmount
+			if (
+				updateRequest.securityDeposit !== undefined &&
+				updateRequest.securityDeposit !== null
+			)
 				updateData.securityDeposit = updateRequest.securityDeposit
 			if (updateRequest.status !== undefined)
-				updateData.status = updateRequest.status
+				updateData.status =
+					updateRequest.status as Database['public']['Enums']['LeaseStatus']
 
 			// 🔐 BUG FIX #2: Add version check for optimistic locking
-			let query = client
-				.from('lease')
-				.update(updateData)
-				.eq('id', leaseId)
+			let query = client.from('lease').update(updateData).eq('id', leaseId)
 
 			// Add version check if expectedVersion provided
 			if (expectedVersion !== undefined) {

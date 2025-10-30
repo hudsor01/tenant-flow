@@ -1,6 +1,6 @@
-import { createServerApi } from '#lib/api-client'
 import { requireSession } from '#lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createServerApi } from '#lib/api-client'
 import { Alert, AlertTitle, AlertDescription } from '#components/ui/alert'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
@@ -12,6 +12,7 @@ import { ChartsSection } from './ChartsSection'
 import { PerformanceSection } from './PerformanceSection'
 import { QuickActionsSection } from './QuickActionsSection'
 import { SectionCards } from './SectionCards'
+import { TrendsSection } from './TrendsSection'
 
 export default async function DashboardPage() {
 	// ✅ Server-side auth - NO client flash, instant 307 redirect
@@ -264,6 +265,8 @@ export default async function DashboardPage() {
 			</div>
 			<div className="flex-1 p-6 py-6">
 				<div className="mx-auto max-w-400 space-y-8">
+					<TrendsSection />
+					
 					<ChartsSection />
 
 					<div className="grid lg:grid-cols-3 gap-6">

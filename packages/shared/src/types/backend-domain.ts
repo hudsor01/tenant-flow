@@ -924,7 +924,7 @@ export interface RequiredEnvVars {
 	DIRECT_URL: string
 	SUPABASE_URL: string
 	SERVICE_ROLE_KEY: string
-	SUPABASE_ANON_KEY: string
+	SUPABASE_PUBLISHABLE_KEY: string
 	NEXTAUTH_SECRET: string
 	NEXTAUTH_URL: string
 }

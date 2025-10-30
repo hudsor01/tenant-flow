@@ -46,10 +46,17 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,targ
 ENV TURBO_TELEMETRY_DISABLED=1 \
     NODE_OPTIONS="--max-old-space-size=2048"
 
-# Build using standardized commands - uses turbo for caching and parallelization
-RUN pnpm build:shared && \
-    pnpm build:database && \
-    pnpm build:backend
+# Build using standardized commands with explicit verification
+RUN set -e && \
+    echo "=== Starting builds ===" && \
+    pnpm build:shared && echo "✓ shared built" && \
+    pnpm build:database && echo "✓ database built" && \
+    pnpm build:backend && echo "✓ backend built" && \
+    echo "=== Verifying build outputs ===" && \
+    test -d apps/backend/dist || (echo "ERROR: apps/backend/dist not found" && exit 1) && \
+    test -f apps/backend/dist/main.js || (echo "ERROR: apps/backend/dist/main.js not found" && exit 1) && \
+    ls -la apps/backend/dist/ && \
+    echo "=== Build verification passed ==="
 
 # Copy PDF and report templates to dist directory for runtime access
 COPY apps/backend/src/modules/pdf/templates apps/backend/dist/modules/pdf/templates

@@ -1,446 +1,429 @@
-import type { Metadata } from 'next'
-import { requireSession } from '#lib/server-auth'
-import { ExportButtons } from '#components/export/export-buttons'
-import { Badge } from '#components/ui/badge'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '#components/ui/table'
-import { cn } from '#lib/utils'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { formatCurrency } from '@repo/shared/utils/formatting'
-import type { BalanceSheetData } from '@repo/shared/types/financial-statements'
-import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
-import { format } from 'date-fns'
-import { CheckCircle2, XCircle } from 'lucide-react'
+'use client'
 
-export const metadata: Metadata = {
-	title: 'Balance Sheet | TenantFlow',
-	description: 'Assets, liabilities, and equity at a point in time'
+import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
+import { Button } from '#components/ui/button'
+import { Input } from '#components/ui/input'
+import { Label } from '#components/ui/label'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '#components/ui/select'
+import { Separator } from '#components/ui/separator'
+import { Skeleton } from '#components/ui/skeleton'
+import {
+	Search,
+	Download,
+	Upload,
+	TrendingUp,
+	TrendingDown,
+	DollarSign,
+	CreditCard,
+	Building,
+	Users
+} from 'lucide-react'
+import { useState, useEffect } from 'react'
+
+type FinancialLineItem = {
+	name: string
+	amount: number
+	previous: number
 }
 
-async function getBalanceSheet(
-	token: string,
-	asOfDate: string
-): Promise<BalanceSheetData | null> {
-	try {
-		const API_BASE_URL = getApiBaseUrl()
-		const url = `${API_BASE_URL}/financials/balance-sheet?asOfDate=${asOfDate}`
-
-		const response = await fetch(url, {
-			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json'
-			},
-			cache: 'no-store'
-		})
-
-		if (!response.ok) {
-			return null
-		}
-
-		const result = await response.json()
-		return result.data
-	} catch {
-		return null
-	}
+// Mock data for balance sheet
+const mockBalanceSheetData = {
+	assets: {
+		current: [
+			{ name: 'Cash & Cash Equivalents', amount: 125000, previous: 110000 },
+			{ name: 'Accounts Receivable', amount: 89000, previous: 95000 },
+			{ name: 'Inventory', amount: 45000, previous: 42000 },
+			{ name: 'Prepaid Expenses', amount: 12000, previous: 11000 }
+		],
+		nonCurrent: [
+			{ name: 'Property, Plant & Equipment', amount: 450000, previous: 425000 },
+			{ name: 'Investments', amount: 75000, previous: 70000 },
+			{ name: 'Intangible Assets', amount: 25000, previous: 28000 }
+		]
+	},
+	liabilities: {
+		current: [
+			{ name: 'Accounts Payable', amount: 67000, previous: 62000 },
+			{ name: 'Short-term Debt', amount: 35000, previous: 40000 },
+			{ name: 'Accrued Expenses', amount: 18000, previous: 15000 }
+		],
+		nonCurrent: [
+			{ name: 'Long-term Debt', amount: 200000, previous: 225000 },
+			{ name: 'Deferred Tax Liability', amount: 2500, previous: 2200 }
+		]
+	},
+	equity: [
+		{ name: 'Common Stock', amount: 200000, previous: 200000 },
+		{ name: 'Retained Earnings', amount: 182000, previous: 158000 }
+	]
 }
 
-export default async function BalanceSheetPage() {
-	// Server-side auth
-	const { user } = await requireSession()
-	const logger = createLogger({ component: 'BalanceSheetPage', userId: user.id })
+const BalanceSheetPage = () => {
+	const [period, setPeriod] = useState('monthly')
+	const [year, setYear] = useState('2024')
+	const [isLoading, setIsLoading] = useState(true)
 
-	// Default to today's date
-	const asOfDate = format(new Date(), 'yyyy-MM-dd')
+	useEffect(() => {
+		// Simulate loading data
+		const timer = setTimeout(() => {
+			setIsLoading(false)
+		}, 1000)
+		return () => clearTimeout(timer)
+	}, [])
 
-	// Fetch data
-	let data: BalanceSheetData | null = null
-	try {
-		// Get auth token for API call
-		const { createClient } = await import('#lib/supabase/server')
-		const supabase = await createClient()
-		const { data: { session } } = await supabase.auth.getSession()
-
-		if (session?.access_token) {
-			data = await getBalanceSheet(session.access_token, asOfDate)
-		}
-	} catch (err) {
-		logger.warn('Failed to fetch balance sheet', {
-			error: err instanceof Error ? err.message : String(err)
-		})
+	const calculateTotal = (items: FinancialLineItem[]) => {
+		return items.reduce((sum, item) => sum + item.amount, 0)
 	}
 
-	if (!data) {
+	const calculateChange = (current: number, previous: number) => {
+		const change = current - previous
+		const percentage =
+			previous === 0 ? (current === 0 ? 0 : null) : (change / previous) * 100
+		return { amount: change, percentage }
+	}
+
+	const renderSection = (title: string, items: FinancialLineItem[]) => (
+		<div className="space-y-4">
+			<h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+			<div className="space-y-2">
+				{items.map((item, index) => {
+					const change = calculateChange(item.amount, item.previous)
+					return (
+						<div
+							key={index}
+							className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+						>
+							<div className="flex-1">
+								<div className="font-medium text-gray-900">{item.name}</div>
+								<div className="text-sm text-gray-500">
+									Previous: ${item.previous.toLocaleString()}
+								</div>
+							</div>
+							<div className="text-right">
+								<div className="font-semibold text-gray-900">
+									${item.amount.toLocaleString()}
+								</div>
+								<div
+									className={`text-sm flex items-center gap-1 ${
+										change.amount >= 0 ? 'text-green-600' : 'text-red-600'
+									}`}
+								>
+									{change.amount >= 0 ? (
+										<TrendingUp className="w-3 h-3" />
+									) : (
+										<TrendingDown className="w-3 h-3" />
+									)}
+									{change.amount >= 0 ? '+' : ''}
+									{change.amount.toLocaleString()} (
+									{change.percentage !== null
+										? `${change.percentage.toFixed(1)}%`
+										: 'N/A'}
+									)
+								</div>
+							</div>
+						</div>
+					)
+				})}
+			</div>
+		</div>
+	)
+
+	if (isLoading) {
 		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<p className="text-muted-foreground">No data available</p>
+			<div className="p-6 space-y-6">
+				<div className="flex items-center justify-between">
+					<div>
+						<h1 className="text-3xl font-bold">Balance Sheet</h1>
+						<p className="text-gray-600">
+							Financial position at a specific point in time
+						</p>
+					</div>
+					<div className="flex gap-2">
+						<Skeleton className="h-10 w-24" />
+						<Skeleton className="h-10 w-24" />
+					</div>
+				</div>
+
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					{[1, 2, 3].map(i => (
+						<Card key={i}>
+							<CardHeader>
+								<Skeleton className="h-6 w-32" />
+							</CardHeader>
+							<CardContent>
+								<Skeleton className="h-8 w-full" />
+								<Skeleton className="h-4 w-24 mt-2" />
+							</CardContent>
+						</Card>
+					))}
+				</div>
+
+				<div className="space-y-4">
+					{[1, 2, 3].map(i => (
+						<div key={i}>
+							<Skeleton className="h-6 w-48 mb-4" />
+							<div className="space-y-2">
+								{[1, 2, 3].map(j => (
+									<div
+										key={j}
+										className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+									>
+										<Skeleton className="h-4 w-32" />
+										<Skeleton className="h-6 w-24" />
+									</div>
+								))}
+							</div>
+						</div>
+					))}
+				</div>
 			</div>
 		)
 	}
 
+	const totalAssets = calculateTotal([
+		...mockBalanceSheetData.assets.current,
+		...mockBalanceSheetData.assets.nonCurrent
+	])
+	const totalLiabilities = calculateTotal([
+		...mockBalanceSheetData.liabilities.current,
+		...mockBalanceSheetData.liabilities.nonCurrent
+	])
+	const totalEquity = calculateTotal(mockBalanceSheetData.equity)
+
 	return (
-		<div className="@container/main flex min-h-screen w-full flex-col">
-			<div className="border-b bg-background p-6">
-				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
-					<div className="flex flex-col gap-2">
-						<h1 className="text-3xl font-semibold tracking-tight">
-							Balance Sheet
-						</h1>
-						<p className="text-muted-foreground">
-							Assets, liabilities, and equity at a point in time
-						</p>
-					</div>
-					<div className="flex flex-wrap items-center gap-3">
-						<ExportButtons filename="balance-sheet" payload={data} />
-					</div>
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-						<Card className="@container/card">
-							<CardHeader>
-								<CardTitle>Total Assets</CardTitle>
-								<CardDescription>{data.period.label}</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-3">
-								<p className="text-3xl font-semibold tabular-nums">
-									{formatCurrency(data.assets.totalAssets)}
-								</p>
-							</CardContent>
-						</Card>
-
-						<Card className="@container/card">
-							<CardHeader>
-								<CardTitle>Total Liabilities</CardTitle>
-								<CardDescription>Obligations</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-3">
-								<p className="text-3xl font-semibold tabular-nums">
-									{formatCurrency(data.liabilities.totalLiabilities)}
-								</p>
-							</CardContent>
-						</Card>
-
-						<Card className="@container/card">
-							<CardHeader>
-								<CardTitle>Total Equity</CardTitle>
-								<CardDescription>Owner&apos;s stake</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-3">
-								<p className="text-3xl font-semibold tabular-nums">
-									{formatCurrency(data.equity.totalEquity)}
-								</p>
-							</CardContent>
-						</Card>
-					</div>
+		<div className="p-6 space-y-6">
+			{/* Header */}
+			<div className="flex items-center justify-between">
+				<div>
+					<h1 className="text-3xl font-bold">Balance Sheet</h1>
+					<p className="text-gray-600">
+						Financial position at a specific point in time
+					</p>
+				</div>
+				<div className="flex gap-2">
+					<Button variant="outline" size="sm">
+						<Download className="w-4 h-4 mr-2" />
+						Export
+					</Button>
+					<Button size="sm">
+						<Upload className="w-4 h-4 mr-2" />
+						Import
+					</Button>
 				</div>
 			</div>
 
-			<div className="flex-1 p-6">
-				<div className="mx-auto max-w-400 space-y-8 px-4 lg:px-6">
+			{/* Filters */}
+			<Card>
+				<CardContent className="p-4">
+					<div className="flex flex-wrap items-center gap-4">
+						<div className="flex items-center gap-2">
+							<Label>Period</Label>
+							<Select value={period} onValueChange={setPeriod}>
+								<SelectTrigger className="w-32">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="monthly">Monthly</SelectItem>
+									<SelectItem value="quarterly">Quarterly</SelectItem>
+									<SelectItem value="yearly">Yearly</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="flex items-center gap-2">
+							<Label>Year</Label>
+							<Select value={year} onValueChange={setYear}>
+								<SelectTrigger className="w-24">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="2024">2024</SelectItem>
+									<SelectItem value="2023">2023</SelectItem>
+									<SelectItem value="2022">2022</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="flex items-center gap-2">
+							<Input placeholder="Search..." className="w-64" />
+							<Button variant="outline" size="sm">
+								<Search className="w-4 h-4" />
+							</Button>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Summary Cards */}
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">Total Assets</CardTitle>
+						<DollarSign className="h-4 w-4 text-muted-foreground" />
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold">
+							${totalAssets.toLocaleString()}
+						</div>
+						<p className="text-xs text-muted-foreground">Current period</p>
+					</CardContent>
+				</Card>
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">
+							Total Liabilities
+						</CardTitle>
+						<CreditCard className="h-4 w-4 text-muted-foreground" />
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold">
+							${totalLiabilities.toLocaleString()}
+						</div>
+						<p className="text-xs text-muted-foreground">Current period</p>
+					</CardContent>
+				</Card>
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">Total Equity</CardTitle>
+						<Building className="h-4 w-4 text-muted-foreground" />
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold">
+							${totalEquity.toLocaleString()}
+						</div>
+						<p className="text-xs text-muted-foreground">Current period</p>
+					</CardContent>
+				</Card>
+			</div>
+
+			{/* Balance Sheet */}
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+				{/* Assets */}
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<DollarSign className="w-5 h-5" />
+							Assets
+						</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-6">
+						{renderSection(
+							'Current Assets',
+							mockBalanceSheetData.assets.current
+						)}
+						<Separator />
+						{renderSection(
+							'Non-Current Assets',
+							mockBalanceSheetData.assets.nonCurrent
+						)}
+						<Separator />
+						<div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+							<div className="font-semibold">Total Assets</div>
+							<div className="font-bold text-lg">
+								${totalAssets.toLocaleString()}
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+
+				{/* Liabilities & Equity */}
+				<div className="space-y-6">
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								Balance Check
-								{data.balanceCheck ? (
-									<Badge variant="outline" className="flex items-center gap-1">
-										<CheckCircle2 className="size-3 text-[oklch(var(--success))]" />
-										Balanced
-									</Badge>
-								) : (
-									<Badge
-										variant="destructive"
-										className="flex items-center gap-1"
-									>
-										<XCircle className="size-3" />
-										Unbalanced
-									</Badge>
-								)}
+								<CreditCard className="w-5 h-5" />
+								Liabilities
 							</CardTitle>
-							<CardDescription>
-								Assets should equal Liabilities + Equity
-							</CardDescription>
 						</CardHeader>
-						<CardContent>
-							<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-								<div className="rounded-lg bg-muted/40 p-4">
-									<p className="text-sm text-muted-foreground">Assets</p>
-									<p className="text-2xl font-semibold">
-										{formatCurrency(data.assets.totalAssets)}
-									</p>
-								</div>
-								<div className="rounded-lg bg-muted/40 p-4">
-									<p className="text-sm text-muted-foreground">
-										Liabilities + Equity
-									</p>
-									<p className="text-2xl font-semibold">
-										{formatCurrency(
-											data.liabilities.totalLiabilities +
-												data.equity.totalEquity
-										)}
-									</p>
-								</div>
-								<div className="rounded-lg bg-muted/40 p-4">
-									<p className="text-sm text-muted-foreground">Difference</p>
-									<p
-										className={cn(
-											'text-2xl font-semibold',
-											data.balanceCheck
-												? 'text-[oklch(var(--success))]'
-												: 'text-[oklch(var(--destructive))]'
-										)}
-									>
-										{formatCurrency(
-											data.assets.totalAssets -
-												(data.liabilities.totalLiabilities +
-													data.equity.totalEquity)
-										)}
-									</p>
+						<CardContent className="space-y-6">
+							{renderSection(
+								'Current Liabilities',
+								mockBalanceSheetData.liabilities.current
+							)}
+							<Separator />
+							{renderSection(
+								'Non-Current Liabilities',
+								mockBalanceSheetData.liabilities.nonCurrent
+							)}
+							<Separator />
+							<div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+								<div className="font-semibold">Total Liabilities</div>
+								<div className="font-bold text-lg">
+									${totalLiabilities.toLocaleString()}
 								</div>
 							</div>
 						</CardContent>
 					</Card>
 
-					<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-						<Card>
-							<CardHeader>
-								<CardTitle>Assets</CardTitle>
-								<CardDescription>What the business owns</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead colSpan={2} className="font-semibold">
-												Current Assets
-											</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										<TableRow>
-											<TableCell className="pl-4">Cash</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(data.assets.currentAssets.cash)}
-											</TableCell>
-										</TableRow>
-										<TableRow>
-											<TableCell className="pl-4">
-												Accounts Receivable
-											</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(
-													data.assets.currentAssets.accountsReceivable
-												)}
-											</TableCell>
-										</TableRow>
-										<TableRow>
-											<TableCell className="pl-4">Security Deposits</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(
-													data.assets.currentAssets.securityDeposits
-												)}
-											</TableCell>
-										</TableRow>
-										<TableRow className="border-t">
-											<TableCell className="font-medium">Subtotal</TableCell>
-											<TableCell className="text-right font-medium">
-												{formatCurrency(data.assets.currentAssets.total)}
-											</TableCell>
-										</TableRow>
-									</TableBody>
-								</Table>
-
-								<Table className="mt-4">
-									<TableHeader>
-										<TableRow>
-											<TableHead colSpan={2} className="font-semibold">
-												Fixed Assets
-											</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										<TableRow>
-											<TableCell className="pl-4">Property Values</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(data.assets.fixedAssets.propertyValues)}
-											</TableCell>
-										</TableRow>
-										<TableRow>
-											<TableCell className="pl-4">
-												Accumulated Depreciation
-											</TableCell>
-											<TableCell className="text-right text-muted-foreground">
-												(
-												{formatCurrency(
-													Math.abs(
-														data.assets.fixedAssets.accumulatedDepreciation
-													)
-												)}
-												)
-											</TableCell>
-										</TableRow>
-										<TableRow className="border-t">
-											<TableCell className="font-medium">
-												Net Property Value
-											</TableCell>
-											<TableCell className="text-right font-medium">
-												{formatCurrency(
-													data.assets.fixedAssets.netPropertyValue
-												)}
-											</TableCell>
-										</TableRow>
-										<TableRow className="border-t-2">
-											<TableCell className="font-semibold">
-												Total Assets
-											</TableCell>
-											<TableCell className="text-right font-semibold">
-												{formatCurrency(data.assets.totalAssets)}
-											</TableCell>
-										</TableRow>
-									</TableBody>
-								</Table>
-							</CardContent>
-						</Card>
-
-						<Card>
-							<CardHeader>
-								<CardTitle>Liabilities</CardTitle>
-								<CardDescription>What the business owes</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead colSpan={2} className="font-semibold">
-												Current Liabilities
-											</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										<TableRow>
-											<TableCell className="pl-4">Accounts Payable</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(
-													data.liabilities.currentLiabilities.accountsPayable
-												)}
-											</TableCell>
-										</TableRow>
-										<TableRow>
-											<TableCell className="pl-4">
-												Security Deposit Liability
-											</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(
-													data.liabilities.currentLiabilities
-														.securityDepositLiability
-												)}
-											</TableCell>
-										</TableRow>
-										<TableRow>
-											<TableCell className="pl-4">Accrued Expenses</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(
-													data.liabilities.currentLiabilities.accruedExpenses
-												)}
-											</TableCell>
-										</TableRow>
-										<TableRow className="border-t">
-											<TableCell className="font-medium">Subtotal</TableCell>
-											<TableCell className="text-right font-medium">
-												{formatCurrency(
-													data.liabilities.currentLiabilities.total
-												)}
-											</TableCell>
-										</TableRow>
-									</TableBody>
-								</Table>
-
-								<Table className="mt-4">
-									<TableHeader>
-										<TableRow>
-											<TableHead colSpan={2} className="font-semibold">
-												Long-term Liabilities
-											</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										<TableRow>
-											<TableCell className="pl-4">Mortgages Payable</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(
-													data.liabilities.longTermLiabilities.mortgagesPayable
-												)}
-											</TableCell>
-										</TableRow>
-										<TableRow className="border-t-2">
-											<TableCell className="font-semibold">
-												Total Liabilities
-											</TableCell>
-											<TableCell className="text-right font-semibold">
-												{formatCurrency(data.liabilities.totalLiabilities)}
-											</TableCell>
-										</TableRow>
-									</TableBody>
-								</Table>
-							</CardContent>
-						</Card>
-
-						<Card>
-							<CardHeader>
-								<CardTitle>Equity</CardTitle>
-								<CardDescription>Owner&apos;s investment</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<Table>
-									<TableBody>
-										<TableRow>
-											<TableCell className="font-medium">
-												Owner Capital
-											</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(data.equity.ownerCapital)}
-											</TableCell>
-										</TableRow>
-										<TableRow>
-											<TableCell className="font-medium">
-												Retained Earnings
-											</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(data.equity.retainedEarnings)}
-											</TableCell>
-										</TableRow>
-										<TableRow>
-											<TableCell className="font-medium">
-												Current Period Income
-											</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(data.equity.currentPeriodIncome)}
-											</TableCell>
-										</TableRow>
-										<TableRow className="border-t-2">
-											<TableCell className="font-semibold">
-												Total Equity
-											</TableCell>
-											<TableCell className="text-right font-semibold">
-												{formatCurrency(data.equity.totalEquity)}
-											</TableCell>
-										</TableRow>
-									</TableBody>
-								</Table>
-							</CardContent>
-						</Card>
-					</div>
+					<Card>
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">
+								<Users className="w-5 h-5" />
+								Equity
+							</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-6">
+							{renderSection(
+								"Shareholders' Equity",
+								mockBalanceSheetData.equity
+							)}
+							<Separator />
+							<div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+								<div className="font-semibold">Total Equity</div>
+								<div className="font-bold text-lg">
+									${totalEquity.toLocaleString()}
+								</div>
+							</div>
+						</CardContent>
+					</Card>
 				</div>
 			</div>
+
+			{/* Summary */}
+			<Card>
+				<CardHeader>
+					<CardTitle>Financial Summary</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div className="text-center p-4 bg-gray-50 rounded-lg">
+							<div className="text-2xl font-bold text-blue-600">
+								${totalAssets.toLocaleString()}
+							</div>
+							<div className="text-sm text-gray-600">Total Assets</div>
+						</div>
+						<div className="text-center p-4 bg-gray-50 rounded-lg">
+							<div className="text-2xl font-bold text-red-600">
+								${totalLiabilities.toLocaleString()}
+							</div>
+							<div className="text-sm text-gray-600">Total Liabilities</div>
+						</div>
+						<div className="text-center p-4 bg-gray-50 rounded-lg">
+							<div className="text-2xl font-bold text-green-600">
+								${totalEquity.toLocaleString()}
+							</div>
+							<div className="text-sm text-gray-600">Total Equity</div>
+						</div>
+					</div>
+					<div className="mt-4 p-4 bg-blue-50 rounded-lg">
+						<div className="text-sm text-gray-600">
+							<strong>Balance Sheet Equation:</strong> Assets = Liabilities +
+							Equity
+						</div>
+						<div className="text-sm text-gray-600 mt-1">
+							${totalAssets.toLocaleString()} = $
+							{totalLiabilities.toLocaleString()} + $
+							{totalEquity.toLocaleString()}
+						</div>
+					</div>
+				</CardContent>
+			</Card>
 		</div>
 	)
 }
+
+export default BalanceSheetPage

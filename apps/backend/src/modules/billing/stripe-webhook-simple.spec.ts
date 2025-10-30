@@ -5,7 +5,7 @@ import { SilentLogger } from '../../__test__/silent-logger'
 import { StripeSyncService } from './stripe-sync.service'
 
 describe('StripeSyncService Webhook Processing', () => {
-	let service: StripeSyncService
+	let service: any
 
 	beforeEach(async () => {
 		// Set required environment variables

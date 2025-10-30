@@ -68,7 +68,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await client.rpc('get_dashboard_stats', {
+		const { data, error } = await (client as any).rpc('get_dashboard_stats', {
 			user_id_param: userId
 		})
 
@@ -102,7 +102,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await client.rpc('get_property_performance', {
+		const { data, error } = await (client as any).rpc('get_property_performance', {
 			p_user_id: userId
 		})
 
@@ -129,7 +129,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await client.rpc('calculate_maintenance_metrics', {
+		const { data, error } = await (client as any).rpc('calculate_maintenance_metrics', {
 			p_user_id: userId
 		})
 
@@ -160,7 +160,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await client.rpc('get_maintenance_analytics', {
+		const { data, error } = await (client as any).rpc('get_maintenance_analytics', {
 			user_id: userId
 		})
 

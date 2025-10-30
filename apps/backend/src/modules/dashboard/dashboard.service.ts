@@ -631,16 +631,13 @@ export class DashboardService {
 
 			// Recent maintenance activities - first get unit IDs for the properties
 			// Then query maintenance requests for those units
-			const unitIdsForMaintenance: string[] = []
-			for (const pid of propertyIds) {
-				const { data: unitIds } = await client
-					.from('unit')
-					.select('id')
-					.eq('propertyId', pid)
-				if (unitIds) {
-					unitIdsForMaintenance.push(...unitIds.map(u => u.id))
-				}
-			}
+			// Fetch all units for these properties in a single query
+			const { data: unitsForMaintenance } = await client
+				.from('unit')
+				.select('id')
+				.in('propertyId', propertyIds)
+			
+			const unitIdsForMaintenance = unitsForMaintenance?.map(u => u.id) || []
 
 			// Fetch recent activities from multiple related tables
 			const [leases, payments, maintenance, units] = await Promise.all([
