@@ -36,7 +36,6 @@ export type Invoice = Database['public']['Tables']['invoice']['Row']
 export type MaintenanceRequest =
 	Database['public']['Tables']['maintenance_request']['Row']
 export type Document = Database['public']['Tables']['document']['Row']
-export type PropertyImage = Database['public']['Tables']['property_images']['Row']
 export type Activity = Database['public']['Tables']['activity']['Row']
 // InAppNotification table doesn't exist in current schema
 // export type TenantFlowNotification = Database['public']['Tables']['InAppNotification']['Row']
@@ -47,7 +46,6 @@ export type PaymentMethod =
 // Insert type aliases - LEGACY
 export type UserInsert = Database['public']['Tables']['users']['Insert']
 export type PropertyInsert = Database['public']['Tables']['property']['Insert']
-export type PropertyImageInsert = Database['public']['Tables']['property_images']['Insert']
 export type TenantInsert = Database['public']['Tables']['tenant']['Insert']
 
 // Custom JSON Metadata Types (Business Logic)
