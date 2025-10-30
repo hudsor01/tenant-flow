@@ -1,6 +1,6 @@
 'use client'
 
-import { api } from '#lib/api'
+import { apiClient } from '#lib/api-client-side'
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
 import { DataTable } from '#components/ui/data-table'
@@ -53,7 +53,7 @@ export function PropertiesTableClient({ initialProperties }: PropertiesTableClie
 		startTransition(async () => {
 			removeOptimistic(propertyId)
 			try {
-				await api(`properties/${propertyId}`, { method: 'DELETE' })
+				await apiClient(`properties/${propertyId}`, { method: 'DELETE' })
 				toast.success(`Property "${propertyName}" deleted`)
 			} catch (error) {
 				logger.error('Delete failed', { action: 'handleDelete', metadata: { propertyId, error } })
