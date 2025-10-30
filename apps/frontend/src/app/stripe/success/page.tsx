@@ -27,7 +27,7 @@ function SuccessContent() {
 
 				<div className="space-y-4">
 					<Button asChild className="w-full" size="lg">
-						<Link href="/dashboard">Go to Dashboard</Link>
+						<Link href="/manage">Go to Dashboard</Link>
 					</Button>
 
 					<Button asChild variant="outline" className="w-full" size="lg">

@@ -7,7 +7,8 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 Disallow: /auth/
-Disallow: /dashboard/
+Disallow: /manage/
+Disallow: /tenant/
 Disallow: /settings/
 Disallow: /profile/
 Disallow: /billing/
@@ -22,7 +23,8 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 Disallow: /auth/
-Disallow: /dashboard/
+Disallow: /manage/
+Disallow: /tenant/
 Disallow: /settings/
 Disallow: /profile/
 Disallow: /billing/
@@ -34,7 +36,8 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 Disallow: /auth/
-Disallow: /dashboard/
+Disallow: /manage/
+Disallow: /tenant/
 Disallow: /settings/
 Disallow: /profile/
 Disallow: /billing/

@@ -88,20 +88,20 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 		const getNavItems = () => {
 			if (isAuthenticated) {
 				return [
-					{ name: 'Dashboard', href: '/dashboard' },
-					{ name: 'Properties', href: '/dashboard/properties' },
-					{ name: 'Analytics', href: '/dashboard/analytics' },
-					{
-						name: 'More',
-						href: '#',
-						hasDropdown: true,
-						dropdownItems: [
-							{ name: 'Leases', href: '/dashboard/leases' },
-							{ name: 'Maintenance', href: '/dashboard/maintenance' },
-							{ name: 'Reports', href: '/dashboard/reports' },
-							{ name: 'Settings', href: '/dashboard/settings' }
-						]
-					}
+					{ name: 'Dashboard', href: '/manage' },
+				{ name: 'Properties', href: '/manage/properties' },
+				{ name: 'Analytics', href: '/manage/analytics' },
+				{
+					name: 'More',
+					href: '#',
+					hasDropdown: true,
+					dropdownItems: [
+						{ name: 'Leases', href: '/manage/leases' },
+						{ name: 'Maintenance', href: '/manage/maintenance' },
+						{ name: 'Reports', href: '/manage/reports' },
+						{ name: 'Settings', href: '/manage/settings' }
+					]
+				}
 				]
 			}
 			return navItems
