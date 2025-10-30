@@ -1,4 +1,4 @@
-import { createServerApi, API_BASE_URL } from '#lib/api-client'
+import { api } from '#lib/api'
 import { requireSession } from '#lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
@@ -9,7 +9,6 @@ type Unit = Tables<'unit'>
 
 export default async function NewTenantPage() {
 	const { user, accessToken } = await requireSession()
-	const serverApi = createServerApi(accessToken)
 	const logger = createLogger({ component: 'NewTenantPage', userId: user.id })
 
 	// DEBUG: Log token info
@@ -27,8 +26,8 @@ export default async function NewTenantPage() {
 		logger.info('Fetching properties and units for tenant creation...')
 
 		const [propertiesData, unitsData] = await Promise.all([
-			serverApi.properties.list(),
-			serverApi.units.list()
+			api<import('@repo/shared/types/core').Property[]>('properties', { token: accessToken }),
+			api<import('@repo/shared/types/core').Unit[]>('units', { token: accessToken })
 		])
 
 		properties = propertiesData ?? []
@@ -55,7 +54,7 @@ export default async function NewTenantPage() {
 			statusCode,
 			responseData,
 			errorObject: JSON.stringify(err, Object.getOwnPropertyNames(err)),
-			apiBaseUrl: API_BASE_URL,
+			
 			hasToken: !!accessToken,
 			tokenLength: accessToken?.length,
 			tokenPreview: accessToken?.substring(0, 30) + '...'

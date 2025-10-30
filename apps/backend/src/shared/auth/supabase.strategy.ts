@@ -129,9 +129,9 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			email: payload.email,
 			role: payload.app_metadata?.role ?? 'authenticated',
 			// Use timestamps from JWT payload instead of hardcoded current time
-			email_confirmed_at: payload.email_confirmed_at ?? null,
-			confirmed_at: payload.confirmed_at ?? null,
-			last_sign_in_at: payload.last_sign_in_at ?? null,
+			email_confirmed_at: payload.email_confirmed_at ?? '',
+			confirmed_at: payload.confirmed_at ?? '',
+			last_sign_in_at: payload.last_sign_in_at ?? '',
 			app_metadata: payload.app_metadata ?? {},
 			user_metadata: payload.user_metadata ?? {},
 			identities: [],
