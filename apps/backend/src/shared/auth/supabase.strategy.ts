@@ -29,9 +29,26 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			throw new Error('SUPABASE_URL environment variable is required')
 		}
 
+		// Extract project ID from Supabase URL for cookie name
+		const projectId = supabaseUrl.match(/https:\/\/(.*?)\.supabase\.co/)?.[1]
+		if (!projectId) {
+			throw new Error('Invalid SUPABASE_URL format - cannot extract project ID')
+		}
+
 		// Modern JWKS-based authentication (RS256/ES256)
+		// Supports both Authorization header AND Supabase cookies (Next.js middleware)
 		super({
-			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+			jwtFromRequest: ExtractJwt.fromExtractors([
+				ExtractJwt.fromAuthHeaderAsBearerToken(),
+				(request) => {
+					// Extract from Supabase auth cookie (set by Next.js middleware)
+					// Cookie format: sb-{project-id}-auth-token
+					const cookieName = `sb-${projectId}-auth-token`
+
+					// cookie-parser middleware parses cookies into req.cookies object
+					return request?.cookies?.[cookieName] || null
+				}
+			]),
 			ignoreExpiration: false,
 			secretOrKeyProvider: jwksRsa.passportJwtSecret({
 				jwksUri: `${supabaseUrl}/auth/v1/.well-known/jwks.json`,
@@ -45,7 +62,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 		})
 
 		this.logger.log(
-			'SupabaseStrategy initialized with JWKS verification (RS256/ES256)'
+			'SupabaseStrategy initialized with JWKS verification (RS256/ES256) - supports Authorization header and cookies'
 		)
 	}
 
