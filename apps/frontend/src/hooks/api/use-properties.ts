@@ -26,7 +26,7 @@ import type { Tables } from '@repo/shared/types/supabase'
 import { compressImage } from '#lib/image-compression'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { api } from '#lib/api'
+import { apiClient as api } from '#lib/api-client-side'
 
 /**
  * Query keys for property endpoints (hierarchical, typed)
