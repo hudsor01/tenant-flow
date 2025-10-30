@@ -21,12 +21,6 @@ import {
 	TrendingDown
 } from 'lucide-react'
 import { useState } from 'react'
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger
-} from '#components/ui/tooltip'
 
 type FinancialLineItem = {
 	name: string
@@ -114,7 +108,7 @@ const IncomeStatementPage = () => {
 	const totalRevenue = calculateTotal(data.revenue)
 	const totalExpenses = calculateTotal(data.expenses)
 	const totalOther = calculateTotal(data.other)
-	const netIncome = totalRevenue - totalExpenses - totalOther
+	const netIncome = totalRevenue - totalExpenses + totalOther
 
 	return (
 		<div className="p-6 space-y-6">
@@ -142,8 +136,7 @@ const IncomeStatementPage = () => {
 			<Card>
 				<CardContent className="p-4">
 					<div className="flex flex-wrap items-center gap-4">
-						<TooltipProvider>
-							<div className="flex items-center gap-2">
+						<div className="flex items-center gap-2">
 								<Label>Period</Label>
 								<Select value={period} onValueChange={setPeriod}>
 									<SelectTrigger className="w-32">
@@ -180,7 +173,6 @@ const IncomeStatementPage = () => {
 									<Search className="w-4 h-4" />
 								</Button>
 							</div>
-						</TooltipProvider>
 					</div>
 				</CardContent>
 			</Card>

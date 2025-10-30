@@ -23,6 +23,18 @@ import {
 import type { ReactNode } from 'react'
 import type { CreatePropertyInput } from '@repo/shared/types/api-inputs'
 
+// Type for the property image upload response
+type PropertyImageUploadResult = {
+	result: {
+		id: string
+		url: string
+		propertyId: string
+		isPrimary: boolean
+		caption?: string
+	}
+	compressionRatio: number
+}
+
 // Test image file
 const TEST_IMAGE_FILE = new File(['test'], 'test-image.jpg', {
 	type: 'image/jpeg'
@@ -120,11 +132,12 @@ describe('Property Image Upload Integration', () => {
 
 			expect(uploaded).toBeDefined()
 			expect(uploaded.result).toBeDefined()
-			expect((uploaded.result as any).id).toBeDefined()
-			expect((uploaded.result as any).url).toContain('property-images')
-			expect((uploaded.result as any).propertyId).toBe(testPropertyId)
+			const typedResult = uploaded as PropertyImageUploadResult
+			expect(typedResult.result.id).toBeDefined()
+			expect(typedResult.result.url).toContain('property-images')
+			expect(typedResult.result.propertyId).toBe(testPropertyId)
 
-			uploadedImageId = (uploaded.result as any).id
+			uploadedImageId = typedResult.result.id
 		})
 
 		// Cleanup
@@ -155,8 +168,9 @@ describe('Property Image Upload Integration', () => {
 			})
 
 			expect(uploaded).toBeDefined()
-			expect((uploaded.result as any).id).toBeDefined()
-			uploadedImageId = (uploaded.result as any).id
+			const typedResult = uploaded as PropertyImageUploadResult
+			expect(typedResult.result.id).toBeDefined()
+			uploadedImageId = typedResult.result.id
 		})
 
 		// Step 2: Fetch and verify image exists
