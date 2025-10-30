@@ -9,7 +9,7 @@ catalog:
   '@nestjs/swagger': ^11.2.1
   '@nestjs/terminus': ^11.0.0
   '@supabase/ssr': ^0.7.0
-  '@supabase/supabase-js': ^2.76.1
+  '@supabase/supabase-js': ^2.78.0
   '@types/jest': 30.0.0
   '@types/node': ^24.9.1
   '@types/react': 19.2.2

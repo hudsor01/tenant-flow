@@ -7,114 +7,55 @@ import {
 import type { authUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createClient } from '@supabase/supabase-js'
 import type { Request } from 'express'
 import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
-
-interface CachedClient {
-	client: SupabaseClient<Database>
-	lastUsed: number
-	createdAt: number
-}
-
-interface ClientPoolMetrics {
-	hits: number
-	misses: number
-	evictions: number
-	totalClients: number
-}
+import {
+	SupabaseAuthTokenResolver,
+	type ResolvedSupabaseToken
+} from './supabase-auth-token.resolver'
+import {
+	SupabaseUserClientPool,
+	type SupabaseClientPoolMetrics
+} from './supabase-user-client-pool'
 
 @Injectable()
 export class SupabaseService {
 	private readonly logger = new Logger(SupabaseService.name)
-
-	// LRU cache for user-scoped Supabase clients (performance optimization)
-	private readonly userClients = new Map<string, CachedClient>()
-	private readonly poolMetrics: ClientPoolMetrics = {
-		hits: 0,
-		misses: 0,
-		evictions: 0,
-		totalClients: 0
-	}
-
-	// Pool configuration (production-tuned)
-	private readonly MAX_POOL_SIZE = 100 // Maximum cached clients
-	private readonly CLIENT_TTL = 5 * 60 * 1000 // 5 minutes
-	private readonly CLEANUP_INTERVAL = 60 * 1000 // 1 minute
-	private cleanupTimer?: NodeJS.Timeout
+	private readonly tokenResolver: SupabaseAuthTokenResolver
+	private userClientPool?: SupabaseUserClientPool
 
 	constructor(
 		@Inject(SUPABASE_ADMIN_CLIENT)
 		private readonly adminClient: SupabaseClient<Database>
 	) {
 		this.logger.debug('SupabaseService initialized with injected admin client')
-		this.startCleanupTimer()
+		this.tokenResolver = new SupabaseAuthTokenResolver()
 	}
 
-	/**
-	 * Start periodic cleanup of stale clients
-	 * Prevents memory leaks and ensures fresh connections
-	 */
-	private startCleanupTimer(): void {
-		this.cleanupTimer = setInterval(() => {
-			this.cleanupStaleClients()
-		}, this.CLEANUP_INTERVAL)
-
-		// Ensure cleanup runs on service destruction
-		if (this.cleanupTimer.unref) {
-			this.cleanupTimer.unref()
-		}
+	getPoolMetrics(): SupabaseClientPoolMetrics {
+		return this.userClientPool
+			? this.userClientPool.getMetrics()
+			: { hits: 0, misses: 0, evictions: 0, totalClients: 0 }
 	}
+	private getUserClientPool(): SupabaseUserClientPool {
+		if (!this.userClientPool) {
+			const supabaseUrl = process.env.SUPABASE_URL
+			const supabaseAnonKey = process.env.SUPABASE_PUBLISHABLE_KEY
 
-	/**
-	 * Cleanup stale clients using LRU eviction strategy
-	 * Removes clients older than TTL or when pool exceeds max size
-	 */
-	private cleanupStaleClients(): void {
-		const now = Date.now()
-		let evicted = 0
-
-		// Remove clients older than TTL
-		for (const [key, cached] of this.userClients.entries()) {
-			if (now - cached.lastUsed > this.CLIENT_TTL) {
-				this.userClients.delete(key)
-				evicted++
+			if (!supabaseUrl || !supabaseAnonKey) {
+				throw new InternalServerErrorException(
+					'Authentication service unavailable [SUP-002]'
+				)
 			}
+
+			this.userClientPool = new SupabaseUserClientPool({
+				supabaseUrl,
+				supabaseAnonKey,
+				logger: this.logger
+			})
 		}
 
-		// If still over max size, evict oldest clients (LRU)
-		if (this.userClients.size > this.MAX_POOL_SIZE) {
-			const entries = Array.from(this.userClients.entries()).sort(
-				([, a], [, b]) => a.lastUsed - b.lastUsed
-			)
-
-			const toRemove = this.userClients.size - this.MAX_POOL_SIZE
-			for (let i = 0; i < toRemove; i++) {
-				const entry = entries[i]
-				if (entry) {
-					this.userClients.delete(entry[0])
-					evicted++
-				}
-			}
-		}
-
-		if (evicted > 0) {
-			this.poolMetrics.evictions += evicted
-			this.poolMetrics.totalClients = this.userClients.size
-			this.logger.debug(
-				`Client pool cleanup: evicted ${evicted} clients, ${this.userClients.size} remaining`
-			)
-		}
-	}
-
-	/**
-	 * Get pool metrics for monitoring and debugging
-	 */
-	getPoolMetrics(): ClientPoolMetrics {
-		return {
-			...this.poolMetrics,
-			totalClients: this.userClients.size
-		}
+		return this.userClientPool
 	}
 
 	/**
@@ -122,10 +63,7 @@ export class SupabaseService {
 	 * Call this in OnModuleDestroy lifecycle hook
 	 */
 	onModuleDestroy(): void {
-		if (this.cleanupTimer) {
-			clearInterval(this.cleanupTimer)
-		}
-		this.userClients.clear()
+		this.userClientPool?.close()
 		this.logger.debug('SupabaseService cleanup complete')
 	}
 
@@ -261,65 +199,7 @@ export class SupabaseService {
 	 * @returns User-scoped Supabase client with RLS enabled
 	 */
 	getUserClient(userToken: string): SupabaseClient<Database> {
-		const supabaseUrl = process.env.SUPABASE_URL
-		const supabaseAnonKey = process.env.SUPABASE_PUBLISHABLE_KEY
-
-		if (!supabaseUrl || !supabaseAnonKey) {
-			throw new InternalServerErrorException(
-				'Authentication service unavailable [SUP-002]'
-			)
-		}
-
-		// Generate cache key from token (first 16 chars for uniqueness)
-		// This balances collision resistance with memory efficiency
-		const tokenKey = userToken.substring(0, 16)
-
-		// Check cache first (hot path - 90%+ hit rate in production)
-		const cached = this.userClients.get(tokenKey)
-		if (cached) {
-			cached.lastUsed = Date.now()
-			this.poolMetrics.hits++
-			return cached.client
-		}
-
-		// Cache miss - create new client (cold path)
-		this.poolMetrics.misses++
-
-		const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-			auth: {
-				persistSession: false,
-				autoRefreshToken: false
-			},
-			global: {
-				headers: {
-					Authorization: `Bearer ${userToken}`
-				}
-			}
-		})
-
-		// Store in cache with timestamp
-		const now = Date.now()
-		this.userClients.set(tokenKey, {
-			client,
-			lastUsed: now,
-			createdAt: now
-		})
-
-		this.poolMetrics.totalClients = this.userClients.size
-
-		// Log pool status every 100 misses for monitoring
-		if (this.poolMetrics.misses % 100 === 0) {
-			const hitRate = (
-				(this.poolMetrics.hits /
-					(this.poolMetrics.hits + this.poolMetrics.misses)) *
-				100
-			).toFixed(1)
-			this.logger.debug(
-				`Client pool stats: ${hitRate}% hit rate, ${this.userClients.size} cached clients, ${this.poolMetrics.evictions} evictions`
-			)
-		}
-
-		return client
+		return this.getUserClientPool().getClient(userToken)
 	}
 
 	/**
@@ -330,52 +210,13 @@ export class SupabaseService {
 	async getUser(req: Request): Promise<authUser | null> {
 		const startTime = Date.now()
 		try {
-			let token: string | undefined
-
-			// First check Authorization header (standard pattern for APIs)
-			const authHeader = req.headers.authorization
-			if (authHeader?.startsWith('Bearer ')) {
-				token = authHeader.replace('Bearer ', '')
-				this.logger.log('Using token from Authorization header', {
-					endpoint: req.path,
-					method: req.method
-				})
-			}
-
-			// Fallback to cookie if no Authorization header (SSR pattern)
-			if (!token) {
-				const cookieName = `sb-${process.env.SUPABASE_PROJECT_REF || 'bshjmbshupiibfiewpxb'}-auth-token`
-				const cookieValue = req.cookies?.[cookieName] as string | undefined
-
-				if (cookieValue) {
-					const extractedToken = this.extractAccessTokenFromCookie(cookieValue)
-					token = extractedToken
-
-					this.logger.log('Using token from SSR cookie', {
-						endpoint: req.path,
-						method: req.method,
-						cookieName,
-						hadExtractableToken: !!extractedToken
-					})
-
-					if (!extractedToken) {
-						this.logger.warn(
-							'Supabase auth cookie present but no access token extracted',
-							{
-								endpoint: req.path,
-								cookieName,
-								cookieLength: cookieValue.length
-							}
-						)
-					}
-				}
-			}
+			const tokenDetails: ResolvedSupabaseToken = this.tokenResolver.resolve(req)
+			const token = tokenDetails.token
 
 			if (!token) {
 				this.logger.warn('No auth token found in request', {
 					endpoint: req.path,
-					hasAuthHeader: !!authHeader,
-					availableCookies: Object.keys(req.cookies || {}),
+					hasAuthHeader: tokenDetails.authHeaderPresent,
 					headers: {
 						origin: req.headers.origin,
 						referer: req.headers.referer
@@ -383,6 +224,11 @@ export class SupabaseService {
 				})
 				return null
 			}
+
+			this.logger.debug('Using token from Authorization header', {
+				endpoint: req.path,
+				method: req.method
+			})
 
 			// Use Supabase's native auth.getUser() with the token
 			// This sends a request to Supabase Auth server to validate the token
@@ -424,78 +270,6 @@ export class SupabaseService {
 			})
 			return null
 		}
-	}
-
-	private extractAccessTokenFromCookie(
-		cookieValue: string
-	): string | undefined {
-		const candidates = new Set<string>()
-		if (cookieValue) {
-			candidates.add(cookieValue)
-			try {
-				const decoded = decodeURIComponent(cookieValue)
-				candidates.add(decoded)
-			} catch {
-				// Silently ignore decoding errors
-			}
-		}
-
-		for (const candidate of candidates) {
-			try {
-				const parsed = JSON.parse(candidate)
-
-				if (typeof parsed === 'string') {
-					try {
-						const innerParsed = JSON.parse(parsed)
-						const token = this.extractAccessTokenFromParsedCookie(innerParsed)
-						if (token) return token
-					} catch {
-						// Silently ignore nested parsing errors
-					}
-				}
-
-				const token = this.extractAccessTokenFromParsedCookie(parsed)
-				if (token) return token
-			} catch {
-				// Ignore JSON parse errors for this candidate
-			}
-		}
-
-		// Final fallback: attempt regex search for access_token pattern
-		for (const candidate of candidates) {
-			const match = candidate.match(/"access[_-]?token"\s*:\s*"([^"]+)"/)
-			if (match?.[1]) {
-				return match[1]
-			}
-		}
-
-		return undefined
-	}
-
-	private extractAccessTokenFromParsedCookie(
-		parsed: unknown
-	): string | undefined {
-		if (!parsed || typeof parsed !== 'object') return undefined
-
-		const obj = parsed as Record<string, unknown>
-		const possibleSessions = [
-			obj.currentSession,
-			obj.session,
-			obj,
-			Array.isArray(parsed) ? parsed[0] : undefined
-		]
-
-		for (const session of possibleSessions) {
-			if (!session || typeof session !== 'object') continue
-			const directToken =
-				session.access_token || session.accessToken || session['access-token']
-
-			if (typeof directToken === 'string' && directToken.length > 0) {
-				return directToken
-			}
-		}
-
-		return undefined
 	}
 
 	async checkConnection(): Promise<{
