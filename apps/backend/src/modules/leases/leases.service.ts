@@ -574,7 +574,7 @@ export class LeasesService {
 				updateData.startDate = updateRequest.startDate
 			if (updateRequest.endDate !== undefined)
 				updateData.endDate = updateRequest.endDate
-			if (updateRequest.rentAmount !== undefined)
+			if (updateRequest.rentAmount !== undefined && updateRequest.rentAmount !== null)
 				updateData.rentAmount = updateRequest.rentAmount
 			if (
 				updateRequest.securityDeposit !== undefined &&
