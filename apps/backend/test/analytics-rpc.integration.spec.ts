@@ -4,7 +4,7 @@
  * This test verifies that all analytics-related RPC endpoints are callable and return expected results.
  * It also ensures that the test database is seeded with required data for analytics queries.
  *
- * NOTE: These tests require SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_RPC_TEST_USER_ID
+ * NOTE: These tests require SUPABASE_URL, SUPABASE_SECRET_KEY, and SUPABASE_RPC_TEST_USER_ID
  * to be set in the environment. They will be skipped if not configured.
  */
 
@@ -13,33 +13,23 @@ import { createClient } from '@supabase/supabase-js'
 if (!process.env.SUPABASE_URL) {
 	process.env.SUPABASE_URL = 'https://mock.supabase.co'
 }
-if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-	process.env.SUPABASE_SERVICE_ROLE_KEY = 'mock-service-role-key'
+if (!process.env.SUPABASE_SECRET_KEY) {
+	process.env.SUPABASE_SECRET_KEY = 'mock-service-role-key'
 }
 if (!process.env.SUPABASE_RPC_TEST_USER_ID) {
 	process.env.SUPABASE_RPC_TEST_USER_ID = '11111111-1111-1111-1111-111111111111'
 }
 
+const testUserId = process.env.SUPABASE_RPC_TEST_USER_ID
+
 const mockRpc = jest.fn()
 const mockFrom = jest.fn()
 
-jest.mock('@supabase/supabase-js', () => {
-	const actual = jest.requireActual('@supabase/supabase-js')
-	return {
-		...actual,
-		createClient: () =>
-			({
-				rpc: mockRpc,
-				from: mockFrom
-			}) as ReturnType<typeof actual.createClient>
-	}
-})
-
-const supabaseUrl = process.env.SUPABASE_URL as string
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string
-const testUserId = process.env.SUPABASE_RPC_TEST_USER_ID
-
-const supabase = createClient(supabaseUrl, supabaseKey)
+// Create a mock client with proper Jest mocks
+const supabase = {
+	rpc: mockRpc,
+	from: mockFrom
+} as unknown as ReturnType<typeof createClient>
 
 describe('Supabase Analytics RPC Endpoints', () => {
 	// Example analytics RPCs to test
