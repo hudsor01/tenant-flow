@@ -1,6 +1,6 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Backend - Single Config (2025)",
+	"display": "TenantFlow Backend - Single Config",
 	"extends": "../../packages/typescript-config/nestjs.json",
 	"compilerOptions": {
 		"baseUrl": ".",
