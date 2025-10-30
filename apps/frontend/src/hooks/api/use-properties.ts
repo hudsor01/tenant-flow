@@ -24,10 +24,9 @@ import type {
 import type { Property, PropertyStats } from '@repo/shared/types/core'
 import type { Tables } from '@repo/shared/types/supabase'
 import { compressImage } from '#lib/image-compression'
-import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { API_BASE_URL } from '#lib/api-client'
+import { api } from '#lib/api'
 
 /**
  * Query keys for property endpoints (hierarchical, typed)
@@ -59,10 +58,7 @@ export function useProperty(id: string) {
 	return useQuery({
 		queryKey: propertiesKeys.detail(id),
 		queryFn: async (): Promise<Property> => {
-			const response = await apiClient<Property>(
-				`${API_BASE_URL}/api/v1/properties/${id}`
-			)
-			return response
+			return api<Property>(`properties/${id}`)
 		},
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
@@ -95,9 +91,7 @@ export function usePropertyList(params?: {
 			searchParams.append('offset', offset.toString())
 
 			// Backend returns Property[] directly, not paginated object
-			const response = await apiClient<Property[]>(
-				`${API_BASE_URL}/api/v1/properties?${searchParams.toString()}`
-			)
+			const response = await api<Property[]>(`properties?${searchParams.toString()}`)
 
 			// Prefetch individual property details
 			response?.forEach?.(property => {
@@ -127,10 +121,7 @@ export function usePropertiesWithUnits() {
 	return useQuery({
 		queryKey: propertiesKeys.withUnits(),
 		queryFn: async () => {
-			const response = await apiClient<Property[]>(
-				`${API_BASE_URL}/api/v1/properties/with-units`
-			)
-			return response
+			return api<Property[]>('properties/with-units')
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes
@@ -145,10 +136,7 @@ export function usePropertyStats() {
 	return useQuery({
 		queryKey: propertiesKeys.stats(),
 		queryFn: async (): Promise<PropertyStats> => {
-			const response = await apiClient<PropertyStats>(
-				`${API_BASE_URL}/api/v1/properties/stats`
-			)
-			return response
+			return api<PropertyStats>('properties/stats')
 		},
 		staleTime: 10 * 60 * 1000, // 10 minutes
 		gcTime: 30 * 60 * 1000, // 30 minutes
@@ -163,10 +151,7 @@ export function usePropertyPerformanceAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.performance(),
 		queryFn: async () => {
-			const response = await apiClient(
-				`${API_BASE_URL}/api/v1/properties/analytics/performance`
-			)
-			return response
+			return api(`properties/analytics/$1`)
 		},
 		staleTime: 15 * 60 * 1000, // 15 minutes
 		retry: 2
@@ -180,10 +165,7 @@ export function usePropertyOccupancyAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.occupancy(),
 		queryFn: async () => {
-			const response = await apiClient(
-				`${API_BASE_URL}/api/v1/properties/analytics/occupancy`
-			)
-			return response
+			return api(`properties/analytics/$1`)
 		},
 		staleTime: 15 * 60 * 1000, // 15 minutes
 		retry: 2
@@ -197,10 +179,7 @@ export function usePropertyFinancialAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.financial(),
 		queryFn: async () => {
-			const response = await apiClient(
-				`${API_BASE_URL}/api/v1/properties/analytics/financial`
-			)
-			return response
+			return api(`properties/analytics/$1`)
 		},
 		staleTime: 15 * 60 * 1000, // 15 minutes
 		retry: 2
@@ -214,10 +193,7 @@ export function usePropertyMaintenanceAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.maintenance(),
 		queryFn: async () => {
-			const response = await apiClient(
-				`${API_BASE_URL}/api/v1/properties/analytics/maintenance`
-			)
-			return response
+			return api(`properties/analytics/$1`)
 		},
 		staleTime: 15 * 60 * 1000, // 15 minutes
 		retry: 2
@@ -232,14 +208,10 @@ export function useCreateProperty() {
 
 	return useMutation({
 		mutationFn: async (propertyData: CreatePropertyInput) => {
-			const response = await apiClient<Property>(
-				`${API_BASE_URL}/api/v1/properties`,
-				{
-					method: 'POST',
-					body: JSON.stringify(propertyData)
-				}
-			)
-			return response
+			return api<Property>('properties', {
+				method: 'POST',
+				body: JSON.stringify(propertyData)
+			})
 		},
 		onMutate: async (newProperty: CreatePropertyInput) => {
 			// Cancel outgoing refetches
@@ -360,15 +332,11 @@ export function useUpdateProperty() {
 				propertiesKeys.detail(id)
 			)
 
-			const response = await apiClient<Property>(
-				`${API_BASE_URL}/api/v1/properties/${id}`,
-				{
-					method: 'PUT',
-					// Use withVersion helper to include version in request
-					body: JSON.stringify(withVersion(data, currentProperty?.version))
-				}
-			)
-			return response
+			return api<Property>(`properties/${id}`, {
+				method: 'PUT',
+				// Use withVersion helper to include version in request
+				body: JSON.stringify(withVersion(data, currentProperty?.version))
+			})
 		},
 		onMutate: async ({ id, data }) => {
 			// Cancel outgoing queries
@@ -491,10 +459,7 @@ export function useMarkPropertySold() {
 			salePrice: number
 			saleNotes?: string
 		}) => {
-			const response = await apiClient<{
-				success: boolean
-				message: string
-			}>(`${API_BASE_URL}/api/v1/properties/${id}/mark-sold`, {
+			return api<{ success: boolean; message: string }>(`properties/${id}/mark-sold`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					dateSold: dateSold.toISOString(),
@@ -502,7 +467,6 @@ export function useMarkPropertySold() {
 					saleNotes
 				})
 			})
-			return response
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries
@@ -561,13 +525,9 @@ export function useDeleteProperty() {
 
 	return useMutation({
 		mutationFn: async (id: string) => {
-			const response = await apiClient<{ message: string }>(
-				`${API_BASE_URL}/api/v1/properties/${id}`,
-				{
-					method: 'DELETE'
-				}
-			)
-			return response
+			return api<{ message: string }>(`properties/${id}`, {
+				method: 'DELETE'
+			})
 		},
 		onMutate: async id => {
 			// Cancel outgoing queries to avoid overwriting optimistic update
@@ -642,10 +602,7 @@ export function usePrefetchProperty() {
 		queryClient.prefetchQuery({
 			queryKey: propertiesKeys.detail(id),
 			queryFn: async (): Promise<Property> => {
-				const response = await apiClient<Property>(
-					`${API_BASE_URL}/api/v1/properties/${id}`
-				)
-				return response
+				return api<Property>(`properties/${id}`)
 			},
 			staleTime: 5 * 60 * 1000
 		})
@@ -663,10 +620,7 @@ export function usePropertyImages(propertyId: string) {
 	return useQuery({
 		queryKey: [...propertiesKeys.detail(propertyId), 'images'] as const,
 		queryFn: async () => {
-			const response = await apiClient<Tables<'property_images'>[]>(
-				`${API_BASE_URL}/api/v1/properties/${propertyId}/images`
-			)
-			return response
+			return api<Tables<'property_images'>[]>(`properties/${propertyId}/images`)
 		},
 		enabled: !!propertyId,
 		staleTime: 5 * 60 * 1000,
@@ -700,13 +654,11 @@ export function useUploadPropertyImage() {
 			formData.append('isPrimary', String(isPrimary))
 			if (caption) formData.append('caption', caption)
 
-			const result = await apiClient(
-				`/api/v1/properties/${propertyId}/images`,
-				{
-					method: 'POST',
-					body: formData
-				}
-			)
+			const result = await api(`properties/${propertyId}/images`, {
+				method: 'POST',
+				body: formData,
+				headers: {} // Let browser set Content-Type for FormData
+			})
 
 			return { result, compressionRatio: compressed.compressionRatio }
 		},
@@ -746,11 +698,9 @@ export function useDeletePropertyImage() {
 			imageId: string
 			propertyId: string
 		}) => {
-			const response = await apiClient<{ message: string }>(
-				`${API_BASE_URL}/api/v1/properties/images/${imageId}`,
-				{ method: 'DELETE' }
-			)
-			return response
+			return api<{ message: string }>(`properties/images/${imageId}`, {
+				method: 'DELETE'
+			})
 		},
 		onSuccess: (_, { propertyId }) => {
 			toast.success('Image deleted successfully')

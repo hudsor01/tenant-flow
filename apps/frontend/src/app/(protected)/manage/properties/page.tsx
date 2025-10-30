@@ -9,7 +9,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { createServerApi } from '#lib/api-client'
+import { api } from '#lib/api'
 import { requireSession } from '#lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
@@ -28,10 +28,7 @@ export default async function PropertiesPage() {
 	// ✅ Server-side auth - NO client flash, instant 307 redirect
 	const { user, accessToken } = await requireSession()
 
-	// ✅ Create authenticated server API client
-	const serverApi = createServerApi(accessToken)
-
-	const logger = createLogger({ component: 'PropertiesPage', userId: user.id })
+const logger = createLogger({ component: 'PropertiesPage', userId: user.id })
 
 	let properties: Property[] = []
 	let stats: PropertyStats = {
@@ -46,10 +43,10 @@ export default async function PropertiesPage() {
 	let errorMessage: string | null = null
 
 	try {
-		// ✅ Fetch data with authenticated server API
+		// ✅ Production pattern: Server Component with explicit token
 		const [propertiesData, statsData] = await Promise.all([
-			serverApi.properties.list(),
-			serverApi.properties.getStats()
+			api<Property[]>('properties', { token: accessToken }),
+			api<PropertyStats>('properties/stats', { token: accessToken })
 		])
 		properties = propertiesData
 		stats = statsData
