@@ -4,14 +4,20 @@
 
 -- Add unique constraint on stripePaymentIntentId column
 -- This ensures database-level idempotency and prevents duplicate payment records
-ALTER TABLE rent_payments
-ADD CONSTRAINT unique_rent_payment_stripe_intent_id UNIQUE ("stripePaymentIntentId");
-
--- Add index for faster lookups (unique constraint already creates index, but being explicit)
--- CREATE INDEX IF NOT EXISTS idx_rent_payment_stripe_intent_id ON rent_payments("stripePaymentIntentId");
--- Note: UNIQUE constraint already creates an index, so this is redundant
-
--- Note: createdAt already exists in rent_payments table schema
+-- Idempotent: Only adds constraint if it doesn't already exist
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.table_constraints
+    WHERE constraint_name = 'unique_rent_payment_stripe_intent_id'
+      AND table_name = 'rent_payments'
+      AND constraint_type = 'UNIQUE'
+  ) THEN
+    ALTER TABLE rent_payments
+    ADD CONSTRAINT unique_rent_payment_stripe_intent_id UNIQUE ("stripePaymentIntentId");
+  END IF;
+END $$;
 
 -- Comment on the constraint for documentation
 COMMENT ON CONSTRAINT unique_rent_payment_stripe_intent_id ON rent_payments IS
