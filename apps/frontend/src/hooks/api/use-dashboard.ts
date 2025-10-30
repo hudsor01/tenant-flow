@@ -373,7 +373,7 @@ export function useDashboardPageDataUnified() {
 			const response = await apiClient<{
 				stats: DashboardStats
 				activity: ActivityItem[]
-			}>('/api/v1/dashboard/page-data')
+			}>('/api/v1/manage/page-data')
 			return response
 		},
 		staleTime: 2 * 60 * 1000, // 2 minutes (increased from 30s to reduce server load)

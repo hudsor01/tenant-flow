@@ -12,7 +12,7 @@ import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { DashboardService } from './dashboard.service'
 
-@Controller('dashboard')
+@Controller('manage')
 export class DashboardController {
 	private readonly logger = new Logger(DashboardController.name)
 
