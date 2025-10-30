@@ -1,6 +1,6 @@
 'use client'
 
-import { tenantsApi } from '#lib/api-client'
+import { apiClient } from '#lib/api-client-side'
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
 import { DataTable } from '#components/ui/data-table'
@@ -50,7 +50,7 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 		startTransition(async () => {
 			removeOptimistic(tenantId)
 			try {
-				await tenantsApi.remove(tenantId)
+				await apiClient(`tenants/${tenantId}`, { method: 'DELETE' })
 				toast.success(`Tenant "${tenantName}" deleted`)
 			} catch (error) {
 				logger.error('Delete failed', { action: 'handleDelete', metadata: { tenantId, error } })

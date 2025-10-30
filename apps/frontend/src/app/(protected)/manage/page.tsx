@@ -17,8 +17,8 @@ import { TrendsSection } from './TrendsSection'
 export default async function DashboardPage() {
 	// ✅ Server-side auth - NO client flash, instant 307 redirect
 	const { user, accessToken } = await requireSession()
-	
-const logger = createLogger({ component: 'DashboardPage', userId: user.id })
+
+	const logger = createLogger({ component: 'DashboardPage', userId: user.id })
 
 	let stats: import('@repo/shared/types/core').DashboardStats | undefined
 	let hasError = false
@@ -37,7 +37,8 @@ const logger = createLogger({ component: 'DashboardPage', userId: user.id })
 		})
 		// Set error state for display
 		hasError = true
-		errorMessage = err instanceof Error ? err.message : 'Failed to load dashboard data'
+		errorMessage =
+			err instanceof Error ? err.message : 'Failed to load dashboard data'
 	}
 
 	// Check if user has any data - show empty state for new users
@@ -47,10 +48,13 @@ const logger = createLogger({ component: 'DashboardPage', userId: user.id })
 			(stats.tenants?.total ?? 0) > 0 ||
 			(stats.units?.total ?? 0) > 0)
 
-// Show empty state for brand new users with no data
+	// Show empty state for brand new users with no data
 	if (!hasData) {
 		return (
-			<main role="main" className="@container/main flex w-full flex-col min-h-screen bg-linear-to-b from-background to-muted/20">
+			<main
+				role="main"
+				className="@container/main flex w-full flex-col min-h-screen bg-linear-to-b from-background to-muted/20"
+			>
 				<h1 className="sr-only">Dashboard</h1>
 				{/* Match regular dashboard structure with proper padding */}
 				<div className="p-6 py-6">
@@ -109,49 +113,49 @@ const logger = createLogger({ component: 'DashboardPage', userId: user.id })
 								</div>
 
 								{/* Quick Stats Preview */}
-						<div className="grid grid-cols-3 gap-4 pt-6 border-t border-border/50">
-							{/* Property Stat */}
-							<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:border-primary/50">
-								<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-								<div className="relative p-4">
-									<p className="text-xs font-medium text-muted-foreground mb-2">
-										Properties
-									</p>
-									<h3 className="text-2xl font-bold text-primary transition-colors">
-										0
-									</h3>
+								<div className="grid grid-cols-3 gap-4 pt-6 border-t border-border/50">
+									{/* Property Stat */}
+									<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:border-primary/50">
+										<div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+										<div className="relative p-4">
+											<p className="text-xs font-medium text-muted-foreground mb-2">
+												Properties
+											</p>
+											<h3 className="text-2xl font-bold text-primary transition-colors">
+												0
+											</h3>
+										</div>
+									</div>
+
+									{/* Tenant Stat */}
+									<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:border-blue-500/50">
+										<div className="absolute inset-0 bg-linear-to-br from-blue-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+										<div className="relative p-4">
+											<p className="text-xs font-medium text-muted-foreground mb-2">
+												Tenants
+											</p>
+											<h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 transition-colors">
+												0
+											</h3>
+										</div>
+									</div>
+
+									{/* Occupancy Stat */}
+									<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:border-amber-500/50">
+										<div className="absolute inset-0 bg-linear-to-br from-amber-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+										<div className="relative p-4">
+											<p className="text-xs font-medium text-muted-foreground mb-2">
+												Occupancy
+											</p>
+											<h3 className="text-2xl font-bold text-amber-600 dark:text-amber-400 transition-colors">
+												0%
+											</h3>
+										</div>
+									</div>
 								</div>
 							</div>
 
-							{/* Tenant Stat */}
-							<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:border-blue-500/50">
-								<div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-								<div className="relative p-4">
-									<p className="text-xs font-medium text-muted-foreground mb-2">
-										Tenants
-									</p>
-									<h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 transition-colors">
-										0
-									</h3>
-								</div>
-							</div>
-
-							{/* Occupancy Stat */}
-							<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-lg hover:border-amber-500/50">
-								<div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-								<div className="relative p-4">
-									<p className="text-xs font-medium text-muted-foreground mb-2">
-										Occupancy
-									</p>
-									<h3 className="text-2xl font-bold text-amber-600 dark:text-amber-400 transition-colors">
-										0%
-									</h3>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					{/* Right: Action Cards using CardLayout */}
+							{/* Right: Action Cards using CardLayout */}
 							<div className="animate-in fade-in slide-in-from-right-8 duration-700 delay-150 flex flex-col gap-4">
 								{/* Primary Action Card */}
 								<Link
@@ -239,17 +243,20 @@ const logger = createLogger({ component: 'DashboardPage', userId: user.id })
 										</div>
 									</div>
 								</CardLayout>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-		</main>
-	)
-}
+			</main>
+		)
+	}
 
 	return (
-		<main role="main" className="@container/main flex min-h-screen w-full flex-col">
-			<div className="border-b bg-gradient-to-b from-background to-muted/20">
+		<main
+			role="main"
+			className="@container/main flex min-h-screen w-full flex-col"
+		>
+			<div className="border-b bg-linear-to-b from-background to-muted/20">
 				<div className="mx-auto max-w-400 px-6 py-6">
 					<h1 className="text-3xl font-bold tracking-tight mb-6">Dashboard</h1>
 					{hasError && errorMessage && (
@@ -266,21 +273,17 @@ const logger = createLogger({ component: 'DashboardPage', userId: user.id })
 			<div className="flex-1 p-6 py-6">
 				<div className="mx-auto max-w-400 space-y-8">
 					<TrendsSection />
-					
+
 					<ChartsSection />
 
 					<div className="grid lg:grid-cols-3 gap-6">
-						<div
-							className="lg:col-span-2 flex flex-col gap-4"
-						>
+						<div className="lg:col-span-2 flex flex-col gap-4">
 							<ActivitySection />
 
 							<PerformanceSection />
 						</div>
 
-						<div
-							className="flex flex-col gap-4"
-						>
+						<div className="flex flex-col gap-4">
 							<QuickActionsSection />
 						</div>
 					</div>
