@@ -400,7 +400,7 @@ BEGIN
   -- Delete daily snapshots older than 2 years, keep only month-end snapshots
   DELETE FROM dashboard_stats_history
   WHERE snapshot_date < CURRENT_DATE - INTERVAL '2 years'
-    AND snapshot_date != date_trunc('month', snapshot_date) + INTERVAL '1 month - 1 day';
+    AND snapshot_date != (date_trunc('month', snapshot_date) + INTERVAL '1 month - 1 day')::date;
   
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
   
