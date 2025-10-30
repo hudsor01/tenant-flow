@@ -186,10 +186,10 @@ export default function FeaturesPage() {
 					className="shadow-2xl shadow-primary/25 font-semibold"
 					asChild
 				>
-					<a href="/signup" aria-label="Get started free">
+					<Link href="/signup" aria-label="Get started free">
 						Start Free Trial
 						<ArrowRight className="size-4 ml-2" />
-					</a>
+					</Link>
 				</Button>
 			</div>
 
@@ -260,13 +260,13 @@ export default function FeaturesPage() {
 									className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-8 py-4"
 									asChild
 								>
-									<a href="/signup" aria-label="Start free trial">
+									<Link href="/signup" aria-label="Start free trial">
 										<div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50" />
 										<span className="relative z-10 flex items-center">
 											Start Free Trial
 											<ArrowRight className="size-5 ml-3 transition-transform group-hover:translate-x-1" />
 										</span>
-									</a>
+									</Link>
 								</Button>
 								<Button
 									size="lg"
@@ -274,10 +274,10 @@ export default function FeaturesPage() {
 									className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 text-lg font-semibold px-8 py-4 transition-all duration-300"
 									asChild
 								>
-									<a href="/contact" aria-label="See TenantFlow in action">
+									<Link href="/contact" aria-label="See TenantFlow in action">
 										<ArrowRight className="size-5 mr-3 opacity-70 group-hover:opacity-100" />
 										See it in action
-									</a>
+									</Link>
 								</Button>
 							</div>
 
@@ -667,13 +667,13 @@ export default function FeaturesPage() {
 									className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"
 									asChild
 								>
-									<a href="/signup" aria-label="Start free trial">
+									<Link href="/signup" aria-label="Start free trial">
 										<div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50" />
 										<span className="relative z-10 flex items-center">
 											Start Free Trial
 											<ArrowRight className="size-5 ml-3 transition-transform group-hover:translate-x-1" />
 										</span>
-									</a>
+									</Link>
 								</Button>
 								<Button
 									variant="outline"
@@ -681,10 +681,10 @@ export default function FeaturesPage() {
 									className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 text-lg font-semibold px-10 py-5 transition-all duration-300"
 									asChild
 								>
-									<a href="/contact" aria-label="Schedule demo">
+									<Link href="/contact" aria-label="Schedule demo">
 										<ArrowRight className="size-5 mr-3 opacity-70 group-hover:opacity-100" />
 										Schedule Demo
-									</a>
+									</Link>
 								</Button>
 							</div>
 

@@ -140,7 +140,7 @@ export class PropertiesController {
 
 	/**
 	 * Create new property
-	 * JSON Schema validation via Express
+	 * ✅ October 2025: Zod schema validation with shared validation rules
 	 */
 	@Post()
 	async create(
@@ -203,7 +203,7 @@ export class PropertiesController {
 		const userId = req.user.id
 
 		// 🔐 BUG FIX #2: Pass version for optimistic locking
-		const expectedVersion = (updatePropertyRequest as { version?: number }).version
+		const expectedVersion = updatePropertyRequest.version
 		const property = await this.propertiesService.update(
 			userId,
 			id,

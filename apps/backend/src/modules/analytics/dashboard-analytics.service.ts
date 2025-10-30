@@ -154,45 +154,25 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				months
 			})
 
-			// Use simple direct query approach for occupancy trends
-			// Generate monthly data for the requested period
-			const monthsData = []
-			const currentDate = new Date()
+			// Use the actual RPC function instead of fake data
+			const raw = await this.callRpc<OccupancyTrendResponse[]>(
+				'get_occupancy_trends_optimized',
+				{ p_user_id: userId, p_months: months }
+			)
 
-			for (let i = months - 1; i >= 0; i--) {
-				const monthStart = new Date(
-					currentDate.getFullYear(),
-					currentDate.getMonth() - i,
-					1
-				)
-				const monthKey = monthStart.toISOString().slice(0, 7) // YYYY-MM format
-
-				// For now, return placeholder data - this should be replaced with actual calculations
-				monthsData.push({
-					month: monthKey,
-					occupancy_rate: Math.floor(Math.random() * 40) + 60, // 60-100% placeholder
-					total_units: Math.floor(Math.random() * 20) + 10,
-					occupied_units: Math.floor(Math.random() * 15) + 8
-				})
-			}
-
-			const data = monthsData
-			const error = null
-
-			if (error) {
-				this.logger.error('Failed to calculate occupancy trends via RPC', {
-					error,
+			if (!raw || raw.length === 0) {
+				this.logger.warn('No occupancy trends data from RPC, returning empty array', {
 					userId,
 					months
 				})
 				return []
 			}
 
-			return (data || []).map(item => ({
-				month: item.month,
-				occupancy_rate: item.occupancy_rate,
-				total_units: item.total_units,
-				occupied_units: item.occupied_units
+			return raw.map(item => ({
+				month: item.month || (item as { period?: string }).period || '',
+				occupancy_rate: item.occupancy_rate || 0,
+				total_units: item.total_units || 0,
+				occupied_units: item.occupied_units || 0
 			}))
 		} catch (error) {
 			this.logger.error(
@@ -216,59 +196,27 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				months
 			})
 
-			// Use simple direct query approach for revenue trends
-			// Generate monthly revenue data for the requested period
-			const monthsData = []
-			const currentDate = new Date()
-			let prevRevenue = 1000 // Starting baseline
+			// Use the actual RPC function instead of fake data
+			const raw = await this.callRpc<RevenueTrendResponse[]>(
+				'get_revenue_trends_optimized',
+				{ p_user_id: userId, p_months: months }
+			)
 
-			for (let i = months - 1; i >= 0; i--) {
-				const monthStart = new Date(
-					currentDate.getFullYear(),
-					currentDate.getMonth() - i,
-					1
-				)
-				const monthKey = monthStart.toISOString().slice(0, 7) // YYYY-MM format
-
-				const currentRevenue = prevRevenue + (Math.random() * 200 - 100) // +/- $100 variance
-				const growth =
-					prevRevenue > 0
-						? Math.round(((currentRevenue - prevRevenue) / prevRevenue) * 100)
-						: 0
-
-				monthsData.push({
-					month: monthKey,
-					revenue: parseFloat(currentRevenue.toFixed(2)),
-					growth: growth,
-					previous_period_revenue: parseFloat(prevRevenue.toFixed(2))
-				})
-
-				prevRevenue = currentRevenue
-			}
-
-			const data = monthsData
-			const error = null
-
-			if (error) {
-				this.logger.error('Failed to calculate revenue trends via RPC', {
-					error,
+			if (!raw || raw.length === 0) {
+				this.logger.warn('No revenue trends data from RPC, returning empty array', {
 					userId,
 					months
 				})
 				return []
 			}
 
-			return (data || []).map(item => ({
-				month: item.month,
-				revenue:
-					typeof item.revenue === 'number'
-						? item.revenue
-						: parseFloat(item.revenue) || 0,
+			return raw.map(item => ({
+				month: item.month || (item as { period?: string }).period || '',
+				revenue: typeof item.revenue === 'number' ? item.revenue : parseFloat(item.revenue) || 0,
 				growth: item.growth || 0,
-				previous_period_revenue:
-					typeof item.previous_period_revenue === 'number'
-						? item.previous_period_revenue
-						: parseFloat(item.previous_period_revenue) || 0
+				previous_period_revenue: typeof item.previous_period_revenue === 'number'
+					? item.previous_period_revenue
+					: parseFloat(item.previous_period_revenue) || 0
 			}))
 		} catch (error) {
 			this.logger.error(

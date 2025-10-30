@@ -3,10 +3,10 @@
 	"display": "TenantFlow Backend Test TypeScript Config",
 	"extends": "./tsconfig.json",
 	"compilerOptions": {
-		"types": ["node", "jest", "supabase"],
+		"types": ["node", "jest"],
 		"noEmit": true,
 		"skipLibCheck": true,
-		"strict": false,
+	"strict": false,
 		"noUnusedLocals": false,
 		"noUnusedParameters": false
 	},

@@ -38,6 +38,7 @@ import {
 import { useReports } from '#hooks/api/use-reports'
 import { format } from 'date-fns'
 import { Download, FileText, Trash2 } from 'lucide-react'
+import Link from 'next/link'
 import { useState } from 'react'
 
 export default function ReportLibraryPage() {
@@ -142,7 +143,7 @@ export default function ReportLibraryPage() {
 							</EmptyHeader>
 							<EmptyContent>
 								<Button asChild>
-									<a href="/manage/reports/generate">Generate Report</a>
+									<Link href="/manage/reports/generate">Generate Report</Link>
 								</Button>
 							</EmptyContent>
 						</Empty>

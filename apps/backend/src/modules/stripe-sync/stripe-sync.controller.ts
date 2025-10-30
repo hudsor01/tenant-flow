@@ -65,7 +65,10 @@ export class StripeSyncController {
 	/**
 	 * Mark webhook event as processed (idempotency tracking)
 	 */
-	private async markEventProcessed(eventId: string, eventType: string): Promise<void> {
+	private async markEventProcessed(
+		eventId: string,
+		eventType: string
+	): Promise<void> {
 		const { error } = await this.supabaseService
 			.getAdminClient()
 			.from('stripe_processed_events')
@@ -205,7 +208,7 @@ export class StripeSyncController {
 		// Extract metadata (should contain leaseId, tenantId from frontend)
 		const leaseId = session.metadata?.leaseId
 		const tenantId = session.metadata?.tenantId
-		const paymentType = session.metadata?.paymentType || 'rent' // 'rent' or 'deposit'
+		const paymentType = session.metadata?.paymentType || 'rent'
 
 		if (!leaseId || !tenantId) {
 			this.logger.error('Missing required metadata in checkout session', {
@@ -215,34 +218,88 @@ export class StripeSyncController {
 			return
 		}
 
+		// Type assertion to ensure TypeScript knows these are defined after the guard
+		const safeLeaseId = leaseId!
+		const safeTenantId = tenantId!
+
+		// Get lease with property to retrieve ownerId (landlordId)
+		const { data: lease, error: leaseError } = await this.supabaseService
+			.getAdminClient()
+			.from('lease')
+			.select('propertyId, property:propertyId(ownerId)')
+			.eq('id', leaseId)
+			.single()
+
+		if (leaseError || !lease || !lease.property) {
+			this.logger.error('Failed to fetch lease/property for checkout payment', {
+				error: leaseError?.message,
+				leaseId,
+				sessionId: session.id
+			})
+			return
+		}
+
+		const landlordId = (lease.property as { ownerId: string }).ownerId
+
+		// Calculate fees (Stripe takes 2.9% + $0.30, platform takes 3%)
+		const amountInCents = session.amount_total || 0
+		const amountInDollars = amountInCents / 100
+		const stripeFee = Math.round(amountInCents * 0.029 + 30) / 100 // 2.9% + $0.30
+		const platformFee = Math.round(amountInCents * 0.03) / 100 // 3%
+		const landlordReceives = amountInDollars - stripeFee - platformFee
+
 		// Record payment in database
+		// NOTE: We rely on unique constraint on stripePaymentIntentId to prevent duplicates
+		// If duplicate, we handle the error gracefully below
 		const { error } = await this.supabaseService
 			.getAdminClient()
 			.from('rent_payment')
 			.insert({
-				leaseId,
-				tenantId,
-				amount: (session.amount_total || 0) / 100, // Convert cents to dollars
-				paymentDate: new Date().toISOString(),
-				paymentMethod: 'stripe_checkout',
+				leaseId: safeLeaseId,
+				tenantId: safeTenantId,
+				landlordId,
+				amount: amountInDollars,
+				paidAt: new Date().toISOString(),
+				paymentType,
 				status: 'completed',
-				stripePaymentId: session.payment_intent as string,
-				notes: `One-time payment via Stripe Checkout (${paymentType})`
+				stripePaymentIntentId: session.payment_intent as string,
+				platformFee,
+				stripeFee,
+				landlordReceives
 			})
 
 		if (error) {
-			this.logger.error('Failed to record checkout payment', {
-				error: error.message,
-				sessionId: session.id,
-				leaseId,
-				tenantId
-			})
+			// Check if it's a conflict (duplicate) or actual error
+			if (
+				error.code === '23505' ||
+				error.message.includes('duplicate key value')
+			) {
+				this.logger.log(
+					'Checkout payment already exists (webhook retry), skipping duplicate',
+					{
+						sessionId: session.id,
+						leaseId,
+						tenantId,
+						stripePaymentIntentId: session.payment_intent,
+						amount: amountInDollars
+					}
+				)
+			} else {
+				this.logger.error('Failed to record checkout payment', {
+					error: error.message,
+					sessionId: session.id,
+					leaseId,
+					tenantId,
+					stripePaymentIntentId: session.payment_intent
+				})
+			}
 		} else {
 			this.logger.log('Checkout payment recorded successfully', {
 				sessionId: session.id,
 				leaseId,
 				tenantId,
-				amount: (session.amount_total || 0) / 100
+				amount: amountInDollars,
+				stripePaymentIntentId: session.payment_intent
 			})
 		}
 	}
@@ -272,7 +329,7 @@ export class StripeSyncController {
 	 * Uses the link_stripe_customer_to_user database function
 	 */
 	private async linkCustomerToUser(event: Stripe.Event) {
-const customer = event.data.object as Stripe.Customer
+		const customer = event.data.object as Stripe.Customer
 
 		if (!customer.email) {
 			this.logger.warn('Customer has no email, skipping user linking', {
