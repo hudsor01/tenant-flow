@@ -7,9 +7,8 @@ import type {
 	PaymentMethodResponse,
 	PaymentMethodSetupIntent
 } from '@repo/shared/types/core'
-import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { API_BASE_URL } from '#lib/api-client'
+import { API_BASE_URL, apiClient } from '#lib/api-client'
 
 /**
  * Query keys for payment methods endpoints

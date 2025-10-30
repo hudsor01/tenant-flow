@@ -31,6 +31,13 @@ export const CSP_DOMAINS = {
 	// Development/build tools (only in non-production)
 	VERCEL_DEV: ['https://vercel.live', 'https://*.vercel-scripts.com'],
 
+	// Vercel analytics and speed insights
+	VERCEL_ANALYTICS: [
+		'https://*.vercel-insights.com',
+		'https://*.speed-insights.com',
+		'https://*.vercel-spdinsghts.com'
+	],
+
 	// Image sources
 	IMAGES: ['https://images.unsplash.com', 'data:', 'blob:'],
 
@@ -87,7 +94,8 @@ export function generateCSPDirectives(
 			...CSP_DOMAINS.API_DOMAINS,
 			...CSP_DOMAINS.SUPABASE,
 			...CSP_DOMAINS.STRIPE,
-			...CSP_DOMAINS.ZIP_API
+			...CSP_DOMAINS.ZIP_API,
+			...CSP_DOMAINS.VERCEL_ANALYTICS
 		],
 
 		'frame-src': ["'self'", ...CSP_DOMAINS.STRIPE],

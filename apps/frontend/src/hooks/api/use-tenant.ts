@@ -11,7 +11,7 @@
  * - Optimistic updates
  */
 
-import { API_BASE_URL, tenantsApi } from '#lib/api-client'
+import { API_BASE_URL, apiClient, tenantsApi } from '#lib/api-client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
 	Tenant,
@@ -19,7 +19,6 @@ import type {
 	TenantUpdate,
 	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
-import { apiClient } from '@repo/shared/utils/api-client'
 import {
 	keepPreviousData,
 	useMutation,

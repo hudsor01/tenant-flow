@@ -36,7 +36,7 @@ import type {
 	TablesInsert,
 	TablesUpdate
 } from '@repo/shared/types/supabase'
-import { apiClient } from '@repo/shared/utils/api-client'
+import { api } from '#lib/api'
 import type {
 	MaintenanceRequestInput,
 	MaintenanceRequestUpdate
@@ -58,6 +58,52 @@ type UnitInsert = TablesInsert<'unit'>
 type UnitUpdate = TablesUpdate<'unit'>
 
 import { API_BASE_URL } from '@repo/shared/config/api'
+
+type ApiClientOptions = RequestInit & { serverToken?: string }
+
+function normalizeEndpoint(url: string): string {
+	let endpoint = url
+
+	if (endpoint.startsWith(API_BASE_URL)) {
+		endpoint = endpoint.slice(API_BASE_URL.length)
+	}
+
+	// Remove leading slash
+	endpoint = endpoint.replace(/^\/+/, '')
+
+	if (endpoint.startsWith('api/v1/')) {
+		endpoint = endpoint.slice('api/v1/'.length)
+	}
+
+	return endpoint
+}
+
+async function apiClient<T>(
+	url: string,
+	options?: ApiClientOptions
+): Promise<T> {
+	const { serverToken, ...requestInit } = options ?? {}
+	const endpoint = normalizeEndpoint(url)
+	const apiOptions = serverToken
+		? ({ ...(requestInit as RequestInit), token: serverToken } as Parameters<
+				typeof api
+		  >[1])
+		: (requestInit as Parameters<typeof api>[1])
+	const result = (await api(endpoint, apiOptions)) as T | {
+		data?: T
+	}
+
+	if (
+		result &&
+		typeof result === 'object' &&
+		'data' in (result as { data?: T })
+	) {
+		const { data } = result as { data?: T }
+		return (data ?? (result as unknown as T)) as T
+	}
+
+	return result as T
+}
 
 /**
  * Server-side API wrapper - requires token from requireSession()
