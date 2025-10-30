@@ -3,9 +3,8 @@
  * Follows NestJS 2025 best practices for clean architecture
  */
 
-import { Controller, Get, Logger, Res, SetMetadata } from '@nestjs/common'
+import { Controller, Get, Logger, SetMetadata } from '@nestjs/common'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
-import type { Response } from 'express'
 import { StripeSyncService } from '../modules/billing/stripe-sync.service'
 import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthService } from './health.service'
@@ -30,9 +29,9 @@ export class HealthController {
 	 */
 	@Get('check')
 	@SetMetadata('isPublic', true)
-	async checkEndpoint(@Res() res: Response) {
+	async checkEndpoint() {
 		this.logger.log('Health check alias /check routed to main health handler')
-		return this.check(res)
+		return this.check()
 	}
 
 	/**
@@ -87,9 +86,8 @@ export class HealthController {
 	 */
 	@Get()
 	@SetMetadata('isPublic', true)
-	async check(@Res() res: Response) {
-		const requestPath = res.req?.originalUrl ?? 'unknown'
-		this.logger.log(`Health check received via ${requestPath}`)
+	async check() {
+		this.logger.log('Health check received via /health')
 		const startedAt = Date.now()
 		const healthResult = await this.healthService.checkSystemHealth()
 		const duration = Date.now() - startedAt
@@ -97,6 +95,7 @@ export class HealthController {
 		this.logger.log(
 			`Health check completed with status ${statusCode} (${healthResult.status}) in ${duration}ms`
 		)
-		return res.status(statusCode).json(healthResult)
+		// Let NestJS handle the response - this avoids ClassSerializerInterceptor issues
+		return healthResult
 	}
 }
