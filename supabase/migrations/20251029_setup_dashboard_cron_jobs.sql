@@ -21,11 +21,12 @@ SELECT cron.schedule(
   $$SELECT cleanup_dashboard_history();$$
 );
 
--- Hourly materialized view refresh during business hours (9 AM - 6 PM UTC)
+-- Hourly materialized view refresh during business hours (9 AM - 5 PM UTC)
 -- Ensures dashboard data is fresh without constant refresh overhead
+-- Note: Ends at 5 PM to avoid overlap with off-hours refresh at 6 PM
 SELECT cron.schedule(
   'hourly-dashboard-refresh',
-  '0 9-18 * * *', -- Every hour from 9 AM to 6 PM UTC
+  '0 9-17 * * *', -- Every hour from 9 AM to 5 PM UTC
   $$SELECT refresh_dashboard_stats_mv();$$
 );
 
