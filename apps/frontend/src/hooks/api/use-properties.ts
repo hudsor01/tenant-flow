@@ -692,50 +692,28 @@ export function useUploadPropertyImage() {
 			isPrimary?: boolean
 			caption?: string
 		}) => {
-			// Get Supabase session token for authentication
-			const { createBrowserClient } = await import('@supabase/ssr')
-			const supabase = createBrowserClient(
-				process.env.NEXT_PUBLIC_SUPABASE_URL!,
-				process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-			)
-			const {
-				data: { session }
-			} = await supabase.auth.getSession()
-
-			if (!session?.access_token) {
-				throw new Error('Authentication required')
-			}
-
 			// Compress image before upload (reduces storage usage by ~70-90%)
 			const compressed = await compressImage(file)
-			toast.info(
-				`Compressed: ${Math.round((1 - compressed.compressionRatio) * 100)}% reduction`
-			)
 
 			const formData = new FormData()
 			formData.append('file', compressed.file)
 			formData.append('isPrimary', String(isPrimary))
 			if (caption) formData.append('caption', caption)
 
-			const response = await fetch(
-				`${API_BASE_URL}/api/v1/properties/${propertyId}/images`,
+			const result = await apiClient(
+				`/api/v1/properties/${propertyId}/images`,
 				{
 					method: 'POST',
-					headers: {
-						Authorization: `Bearer ${session.access_token}`
-					},
 					body: formData
 				}
 			)
 
-			if (!response.ok) {
-				const errorText = await response.text()
-				throw new Error(`Failed to upload image: ${errorText}`)
-			}
-
-			return response.json()
+			return { result, compressionRatio: compressed.compressionRatio }
 		},
-		onSuccess: (_, { propertyId }) => {
+		onSuccess: ({ compressionRatio }, { propertyId }) => {
+			toast.info(
+				`Compressed: ${Math.round((1 - compressionRatio) * 100)}% reduction`
+			)
 			toast.success('Image uploaded successfully')
 			// Invalidate property images
 			queryClient.invalidateQueries({
