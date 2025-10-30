@@ -1,10 +1,11 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
-import { BadRequestException } from '@nestjs/common'
+import { BadRequestException, Logger } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
 import { StorageService } from '../../database/storage.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { UtilityService } from '../../shared/services/utility.service'
 import { buildMultiColumnSearch } from '../../shared/utils/sql-safe.utils'
+import { SilentLogger } from '../../__test__/silent-logger'
 import { createMockProperty } from '../../test-utils/mocks'
 import { PropertiesService } from './properties.service'
 
@@ -60,6 +61,10 @@ describe('PropertiesService', () => {
 						get: jest.fn(),
 						set: jest.fn()
 					}
+				},
+				{
+					provide: Logger,
+					useValue: new SilentLogger()
 				}
 			]
 		}).compile()

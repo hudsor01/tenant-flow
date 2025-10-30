@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Logger, Module } from '@nestjs/common'
 import { StorageService } from '../../database/storage.service'
 import { SupabaseModule } from '../../database/supabase.module'
 import { SharedModule } from '../../shared/shared.module'
@@ -12,7 +12,7 @@ import { PropertiesService } from './properties.service'
 @Module({
 	imports: [SupabaseModule, SharedModule],
 	controllers: [PropertiesController],
-	providers: [PropertiesService, StorageService],
+	providers: [PropertiesService, StorageService, Logger],
 	exports: [PropertiesService]
 })
 export class PropertiesModule {}
