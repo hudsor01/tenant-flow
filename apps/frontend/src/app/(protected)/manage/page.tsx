@@ -1,6 +1,6 @@
 import { requireSession } from '#lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { createServerApi } from '#lib/api-client'
+import { api } from '#lib/api'
 import { Alert, AlertTitle, AlertDescription } from '#components/ui/alert'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
@@ -18,18 +18,18 @@ export default async function DashboardPage() {
 	// ✅ Server-side auth - NO client flash, instant 307 redirect
 	const { user, accessToken } = await requireSession()
 	
-	// ✅ Create authenticated server API client
-	const serverApi = createServerApi(accessToken)
-	
-	const logger = createLogger({ component: 'DashboardPage', userId: user.id })
+const logger = createLogger({ component: 'DashboardPage', userId: user.id })
 
 	let stats: import('@repo/shared/types/core').DashboardStats | undefined
 	let hasError = false
 	let errorMessage: string | null = null
 
 	try {
-		// ✅ Fetch data with authenticated server API
-		stats = await serverApi.dashboard.getStats()
+		// ✅ Production pattern: Server Component with explicit token
+		stats = await api<import('@repo/shared/types/core').DashboardStats>(
+			'dashboard/stats',
+			{ token: accessToken }
+		)
 	} catch (err) {
 		// Log server-side; avoid throwing to prevent resetting the RSC tree
 		logger.warn('Failed to fetch dashboard data for DashboardPage', {
