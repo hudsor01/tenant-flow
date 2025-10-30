@@ -19,7 +19,7 @@ import { Mail } from 'lucide-react'
  * Flow:
  * 1. User completes Stripe Checkout → redirected here with session_id
  * 2. We send magic link to their email (via Supabase OTP)
- * 3. User clicks link → auto-logged in → redirected to /dashboard
+ * 3. User clicks link → auto-logged in → redirected to /manage
  *
  * This implements passwordless authentication after payment.
  * Official Supabase pattern: signInWithOtp({ email, options: { emailRedirectTo } })
@@ -58,7 +58,7 @@ export default function PostCheckoutPage() {
 			const { error } = await supabase.auth.signInWithOtp({
 				email: customerEmail,
 				options: {
-					emailRedirectTo: `${window.location.origin}/dashboard`
+					emailRedirectTo: `${window.location.origin}/manage`
 				}
 			})
 

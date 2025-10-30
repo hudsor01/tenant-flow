@@ -10,7 +10,7 @@ const getPageTypeFromPath = (pathname: string): PageType => {
 	if (pathname.includes('/leases')) return 'leases'
 	if (pathname.includes('/tenants')) return 'tenants'
 	if (pathname.includes('/maintenance')) return 'maintenance'
-	if (pathname.includes('/dashboard')) return 'dashboard'
+	if (pathname.includes('/manage') || pathname.includes('/tenant')) return 'dashboard'
 	return 'unknown'
 }
 

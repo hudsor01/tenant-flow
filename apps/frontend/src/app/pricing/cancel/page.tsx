@@ -59,7 +59,7 @@ export default function CheckoutCancelPage() {
 											Back to Pricing
 										</Button>
 									</Link>
-									<Link href="/dashboard">
+									<Link href="/manage">
 										<Button variant="outline" className="w-full" size="lg">
 											<Home className="size-4 mr-2" />
 											Go to Dashboard

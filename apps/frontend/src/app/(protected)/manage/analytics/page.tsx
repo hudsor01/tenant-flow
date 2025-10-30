@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
 
 export default function AnalyticsIndexPage() {
-	redirect('/dashboard/analytics/overview')
+	redirect('/manage/analytics/overview')
 }

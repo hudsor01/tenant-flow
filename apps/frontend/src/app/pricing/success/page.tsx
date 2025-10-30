@@ -74,7 +74,7 @@ export default function CheckoutSuccessPage() {
 			<HeroSection
 				title="Payment Successful!"
 				subtitle="Welcome to TenantFlow! Your subscription is now active and ready to use. Start managing your properties with enterprise-grade tools."
-				primaryCta={{ label: 'Go to Dashboard', href: '/dashboard' }}
+				primaryCta={{ label: 'Go to Dashboard', href: '/manage' }}
 				secondaryCta={{ label: 'Contact Support', href: '/contact' }}
 			/>
 
@@ -127,7 +127,7 @@ export default function CheckoutSuccessPage() {
 							<div className="space-y-4">
 								<h3 className="font-semibold">What&apos;s next?</h3>
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-									<Link href="/dashboard">
+									<Link href="/manage">
 										<Button className="w-full justify-start" size="lg">
 											<Home className="size-4 mr-2" />
 											Go to Dashboard

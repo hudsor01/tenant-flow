@@ -19,8 +19,8 @@ additional_redirect_urls = [
   "https://tenantflow.app/auth/callback",
   "https://tenantflow.app/auth/signup",
   "https://tenantflow.app/login",
-  "https://tenantflow.app/dashboard",
-  "https://tenantflow.app/tenant/dashboard",
+  "https://tenantflow.app/manage",
+  "https://tenantflow.app/tenant",
   "https://tenantflow.app/api/auth/callback/google"
 ]
 jwt_expiry = 3600
