@@ -28,7 +28,7 @@ describe('SupabaseService', () => {
 	beforeEach(async () => {
 		// Set up environment variables that SupabaseService actually uses
 		process.env.SUPABASE_URL = 'https://test-project.supabase.co'
-		process.env.SUPABASE_SERVICE_ROLE_KEY =
+		process.env.SUPABASE_SECRET_KEY =
 			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-service-key'
 		process.env.SUPABASE_PUBLISHABLE_KEY =
 			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-anon-key'
@@ -102,15 +102,15 @@ describe('SupabaseService', () => {
 			const mockConfigService = {
 				get: jest.fn((key: string) => {
 					if (key === 'SUPABASE_URL') return undefined
-					if (key === 'SUPABASE_SERVICE_ROLE_KEY') return 'test-key'
+					if (key === 'SUPABASE_SECRET_KEY') return 'test-key'
 					return undefined
 				})
 			} as unknown as ConfigService
 
 			const previousUrl = process.env.SUPABASE_URL
-			const previousKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+			const previousKey = process.env.SUPABASE_SECRET_KEY
 			delete process.env.SUPABASE_URL
-			delete process.env.SUPABASE_SERVICE_ROLE_KEY
+			delete process.env.SUPABASE_SECRET_KEY
 
 			expect(() =>
 				(
@@ -119,7 +119,7 @@ describe('SupabaseService', () => {
 			).toThrow(/Missing Supabase configuration/i)
 
 			if (previousUrl) process.env.SUPABASE_URL = previousUrl
-			if (previousKey) process.env.SUPABASE_SERVICE_ROLE_KEY = previousKey
+			if (previousKey) process.env.SUPABASE_SECRET_KEY = previousKey
 		})
 	})
 
