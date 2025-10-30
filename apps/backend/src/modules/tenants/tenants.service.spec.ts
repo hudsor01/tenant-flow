@@ -139,7 +139,7 @@ describe('TenantsService.sendTenantInvitationV2', () => {
 		}
 
 		const mockAdminClient: any = {
-			from: jest.fn((table: string) => {
+			from: jest.fn((_table: string) => {
 				const queryBuilder: any = {
 					select: jest.fn(() => queryBuilder),
 					eq: jest.fn(() => queryBuilder),
@@ -206,7 +206,7 @@ describe('TenantsService.sendTenantInvitationV2', () => {
 		}
 
 		const mockAdminClient: any = {
-			from: jest.fn((table: string) => {
+			from: jest.fn((_table: string) => {
 				const queryBuilder: any = {
 					select: jest.fn(() => queryBuilder),
 					eq: jest.fn(() => queryBuilder),
