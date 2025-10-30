@@ -332,7 +332,8 @@
 				"TEST_ADMIN_PASSWORD",
 				"SHARD",
 				"TOTAL_SHARDS",
-				"CURRENT_SHARD"
+				"CURRENT_SHARD",
+				"E2E_FORCE_RUN"
 			],
 			"cache": true,
 			"persistent": false
