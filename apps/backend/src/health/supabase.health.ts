@@ -30,7 +30,7 @@ export class SupabaseHealthIndicator {
 					hasUrl: !!process.env.SUPABASE_URL,
 					hasKey:
 						!!(
-							process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY
+							process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SECRET_KEY
 						)
 				})
 			}
@@ -42,7 +42,7 @@ export class SupabaseHealthIndicator {
 				hasUrl: !!process.env.SUPABASE_URL,
 				hasKey:
 					!!(
-						process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY
+						process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SECRET_KEY
 					)
 			})
 		} catch (error: unknown) {
