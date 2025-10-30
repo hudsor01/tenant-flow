@@ -182,14 +182,7 @@ AS $$
       'total', COALESCE(total_properties, 0),
       'occupied', COALESCE(occupied_properties, 0),
       'vacant', COALESCE(total_properties - occupied_properties, 0),
-      'occupancyRate', COALESCE(
-        CASE
-          WHEN total_units > 0
-          THEN ROUND((occupied_units::numeric / total_units) * 100, 2)
-          ELSE 0
-        END,
-        0
-      ),
+      'occupancyRate', COALESCE(occupancy_rate, 0),
       'totalMonthlyRent', COALESCE(total_lease_rent, 0),
       'averageRent', COALESCE(
         CASE 

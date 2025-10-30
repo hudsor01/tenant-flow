@@ -254,6 +254,21 @@ DECLARE
   result JSON;
   interval_value INTERVAL;
 BEGIN
+  -- SECURITY: Whitelist validation to prevent SQL injection
+  -- Only allow known metric column names from dashboard_stats_history table
+  IF p_metric_name NOT IN (
+    'total_properties', 'occupied_properties', 'total_units', 'occupied_units',
+    'vacant_units', 'maintenance_units', 'occupancy_rate', 'total_potential_rent',
+    'total_actual_rent', 'total_leases', 'active_leases', 'expired_leases',
+    'expiring_soon_leases', 'total_lease_rent', 'total_tenants', 'active_tenants',
+    'inactive_tenants', 'total_maintenance', 'open_maintenance', 'in_progress_maintenance',
+    'completed_maintenance', 'avg_resolution_time_hours', 'daily_revenue',
+    'monthly_revenue', 'yearly_revenue'
+  ) THEN
+    RAISE EXCEPTION 'Invalid metric name: %. Must be a valid dashboard metric.', p_metric_name
+      USING HINT = 'Use one of: occupancy_rate, total_units, monthly_revenue, etc.';
+  END IF;
+
   -- Determine interval based on period
   interval_value := CASE p_period
     WHEN 'day' THEN INTERVAL '1 day'
@@ -262,9 +277,8 @@ BEGIN
     WHEN 'year' THEN INTERVAL '365 days'
     ELSE INTERVAL '30 days'
   END;
-  
-  -- Build dynamic query based on metric name
-  -- This is safe because p_metric_name is validated against column names
+
+  -- Build dynamic query - now safe after whitelist validation
   EXECUTE format(
     'SELECT json_build_object(
        ''current'', (SELECT %I FROM dashboard_stats_mv WHERE user_id = $1),
@@ -337,6 +351,21 @@ AS $$
 DECLARE
   result JSON;
 BEGIN
+  -- SECURITY: Whitelist validation to prevent SQL injection
+  -- Only allow known metric column names from dashboard_stats_history table
+  IF p_metric_name NOT IN (
+    'total_properties', 'occupied_properties', 'total_units', 'occupied_units',
+    'vacant_units', 'maintenance_units', 'occupancy_rate', 'total_potential_rent',
+    'total_actual_rent', 'total_leases', 'active_leases', 'expired_leases',
+    'expiring_soon_leases', 'total_lease_rent', 'total_tenants', 'active_tenants',
+    'inactive_tenants', 'total_maintenance', 'open_maintenance', 'in_progress_maintenance',
+    'completed_maintenance', 'avg_resolution_time_hours', 'daily_revenue',
+    'monthly_revenue', 'yearly_revenue'
+  ) THEN
+    RAISE EXCEPTION 'Invalid metric name: %. Must be a valid dashboard metric.', p_metric_name
+      USING HINT = 'Use one of: occupancy_rate, total_units, monthly_revenue, etc.';
+  END IF;
+
   EXECUTE format(
     'SELECT json_agg(data ORDER BY data->>''date'')
      FROM (

@@ -52,6 +52,10 @@ RUN set -e && \
     pnpm build:shared && echo "✓ shared built" && \
     pnpm build:database && echo "✓ database built" && \
     pnpm build:backend && echo "✓ backend built" && \
+    echo "=== Checking dist directory structure ===" && \
+    find apps/backend -type d -name dist && \
+    find apps/backend/dist -type f -name "*.js" 2>/dev/null | head -20 || echo "No JS files found" && \
+    ls -la apps/backend/ && \
     echo "=== Verifying build outputs ===" && \
     test -d apps/backend/dist || (echo "ERROR: apps/backend/dist not found" && exit 1) && \
     test -f apps/backend/dist/main.js || (echo "ERROR: apps/backend/dist/main.js not found" && exit 1) && \

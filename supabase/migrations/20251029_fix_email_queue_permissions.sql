@@ -6,8 +6,8 @@
 -- Grant full access to email_queue table for service role
 GRANT ALL ON public.email_queue TO service_role;
 
--- Also grant usage on sequences if any (for id generation)
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO service_role;
+-- Note: email_queue uses gen_random_uuid() for IDs, not sequences
+-- No sequence grants needed for this table
 
 -- Add comment
 COMMENT ON TABLE public.email_queue IS 'Email retry queue with exponential backoff. Service role has full access for queue processing.';

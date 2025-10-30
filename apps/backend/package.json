@@ -11,7 +11,7 @@
 	"scripts": {
 		"dev": "NODE_NO_WARNINGS=1 nest start --watch",
 		"dev:clean": "pnpm clean && pnpm dev",
-		"build": "nest build",
+		"build": "tsc --project tsconfig.build.json && mkdir -p dist/modules/pdf && mkdir -p dist/modules/reports && cp -r src/modules/pdf/templates dist/modules/pdf/ && cp -r src/modules/reports/templates dist/modules/reports/ && cp -r src/emails dist/",
 		"start": "node dist/main.js",
 		"start:dev": "doppler run -- node dist/main.js",
 		"start:prod": "NODE_ENV=production pnpm start",
