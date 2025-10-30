@@ -1,7 +1,7 @@
 /**
  * TanStack Query hooks for dashboard data
  */
-import { API_BASE_URL, dashboardApi } from '#lib/api-client'
+import { API_BASE_URL, apiClient, dashboardApi } from '#lib/api-client'
 import type {
 	ActivityItem,
 	DashboardStats,
@@ -9,7 +9,6 @@ import type {
 	LeaseStatsResponse,
 	TenantStats
 } from '@repo/shared/types/core'
-import { apiClient } from '@repo/shared/utils/api-client'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 export interface FinancialChartDatum {
