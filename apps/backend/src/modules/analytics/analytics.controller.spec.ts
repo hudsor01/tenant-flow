@@ -26,7 +26,7 @@ jest.mock('./analytics.service', () => {
 })
 
 describe('AnalyticsController', () => {
-	let controller: any
+	let controller: AnalyticsController
 	let mockAnalyticsServiceInstance: jest.Mocked<AnalyticsService>
 
 	beforeEach(async () => {

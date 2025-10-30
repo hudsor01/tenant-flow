@@ -12,7 +12,6 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Separator } from '#components/ui/separator'
-import { Skeleton } from '#components/ui/skeleton'
 import {
 	Search,
 	Download,
@@ -21,7 +20,13 @@ import {
 	TrendingUp,
 	TrendingDown
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger
+} from '#components/ui/tooltip'
 
 type FinancialLineItem = {
 	name: string
@@ -29,38 +34,29 @@ type FinancialLineItem = {
 	previous: number
 }
 
-// Mock data for income statement
-const mockIncomeStatementData = {
-	revenue: [
-		{ name: 'Gross Rental Income', amount: 250000, previous: 230000 },
-		{ name: 'Other Income', amount: 15000, previous: 12000 }
-	],
-	expenses: [
-		{ name: 'Operating Expenses', amount: 85000, previous: 80000 },
-		{ name: 'Maintenance & Repairs', amount: 25000, previous: 22000 },
-		{ name: 'Property Management', amount: 15000, previous: 14000 },
-		{ name: 'Utilities', amount: 8000, previous: 7500 },
-		{ name: 'Insurance', amount: 12000, previous: 11000 },
-		{ name: 'Taxes', amount: 18000, previous: 16500 }
-	],
-	other: [
-		{ name: 'Depreciation', amount: 15000, previous: 14000 },
-		{ name: 'Interest Expense', amount: 8000, previous: 7500 }
-	]
+type IncomeStatementData = {
+	revenue: FinancialLineItem[]
+	expenses: FinancialLineItem[]
+	other: FinancialLineItem[]
 }
 
 const IncomeStatementPage = () => {
 	const [period, setPeriod] = useState('monthly')
 	const [year, setYear] = useState('2024')
-	const [isLoading, setIsLoading] = useState(true)
+	const [search, setSearch] = useState('')
 
-	useEffect(() => {
-		// Simulate loading data
-		const timer = setTimeout(() => {
-			setIsLoading(false)
-		}, 1000)
-		return () => clearTimeout(timer)
-	}, [])
+	// Mock data for immediate rendering
+	const data: IncomeStatementData = {
+		revenue: [
+			{ name: 'Sales', amount: 10000, previous: 9500 },
+			{ name: 'Services', amount: 5000, previous: 4800 }
+		],
+		expenses: [
+			{ name: 'Rent', amount: 2000, previous: 1900 },
+			{ name: 'Utilities', amount: 500, previous: 450 }
+		],
+		other: [{ name: 'Interest Income', amount: 100, previous: 80 }]
+	}
 
 	const calculateTotal = (items: FinancialLineItem[]) => {
 		return items.reduce((sum, item) => sum + item.amount, 0)
@@ -115,61 +111,9 @@ const IncomeStatementPage = () => {
 		</div>
 	)
 
-	if (isLoading) {
-		return (
-			<div className="p-6 space-y-6">
-				<div className="flex items-center justify-between">
-					<div>
-						<h1 className="text-3xl font-bold">Income Statement</h1>
-						<p className="text-gray-600">
-							Revenue, expenses, and net income over a period
-						</p>
-					</div>
-					<div className="flex gap-2">
-						<Skeleton className="h-10 w-24" />
-						<Skeleton className="h-10 w-24" />
-					</div>
-				</div>
-
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-					{[1, 2, 3].map(i => (
-						<Card key={i}>
-							<CardHeader>
-								<Skeleton className="h-6 w-32" />
-							</CardHeader>
-							<CardContent>
-								<Skeleton className="h-8 w-full" />
-								<Skeleton className="h-4 w-24 mt-2" />
-							</CardContent>
-						</Card>
-					))}
-				</div>
-
-				<div className="space-y-4">
-					{[1, 2, 3].map(i => (
-						<div key={i}>
-							<Skeleton className="h-6 w-48 mb-4" />
-							<div className="space-y-2">
-								{[1, 2, 3].map(j => (
-									<div
-										key={j}
-										className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-									>
-										<Skeleton className="h-4 w-32" />
-										<Skeleton className="h-6 w-24" />
-									</div>
-								))}
-							</div>
-						</div>
-					))}
-				</div>
-			</div>
-		)
-	}
-
-	const totalRevenue = calculateTotal(mockIncomeStatementData.revenue)
-	const totalExpenses = calculateTotal(mockIncomeStatementData.expenses)
-	const totalOther = calculateTotal(mockIncomeStatementData.other)
+	const totalRevenue = calculateTotal(data.revenue)
+	const totalExpenses = calculateTotal(data.expenses)
+	const totalOther = calculateTotal(data.other)
 	const netIncome = totalRevenue - totalExpenses - totalOther
 
 	return (
@@ -198,38 +142,45 @@ const IncomeStatementPage = () => {
 			<Card>
 				<CardContent className="p-4">
 					<div className="flex flex-wrap items-center gap-4">
-						<div className="flex items-center gap-2">
-							<Label>Period</Label>
-							<Select value={period} onValueChange={setPeriod}>
-								<SelectTrigger className="w-32">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="monthly">Monthly</SelectItem>
-									<SelectItem value="quarterly">Quarterly</SelectItem>
-									<SelectItem value="yearly">Yearly</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-						<div className="flex items-center gap-2">
-							<Label>Year</Label>
-							<Select value={year} onValueChange={setYear}>
-								<SelectTrigger className="w-24">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="2024">2024</SelectItem>
-									<SelectItem value="2023">2023</SelectItem>
-									<SelectItem value="2022">2022</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-						<div className="flex items-center gap-2">
-							<Input placeholder="Search..." className="w-64" />
-							<Button variant="outline" size="sm">
-								<Search className="w-4 h-4" />
-							</Button>
-						</div>
+						<TooltipProvider>
+							<div className="flex items-center gap-2">
+								<Label>Period</Label>
+								<Select value={period} onValueChange={setPeriod}>
+									<SelectTrigger className="w-32">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="monthly">Monthly</SelectItem>
+										<SelectItem value="quarterly">Quarterly</SelectItem>
+										<SelectItem value="yearly">Yearly</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+							<div className="flex items-center gap-2">
+								<Label>Year</Label>
+								<Select value={year} onValueChange={setYear}>
+									<SelectTrigger className="w-24">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="2024">2024</SelectItem>
+										<SelectItem value="2023">2023</SelectItem>
+										<SelectItem value="2022">2022</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+							<div className="flex items-center gap-2">
+								<Input
+									placeholder="Search..."
+									className="w-64"
+									value={search}
+									onChange={e => setSearch(e.target.value)}
+								/>
+								<Button variant="outline" size="sm">
+									<Search className="w-4 h-4" />
+								</Button>
+							</div>
+						</TooltipProvider>
 					</div>
 				</CardContent>
 			</Card>
@@ -301,7 +252,7 @@ const IncomeStatementPage = () => {
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-6">
-						{renderSection('Revenue Sources', mockIncomeStatementData.revenue)}
+						{renderSection('Revenue Sources', data.revenue)}
 						<Separator />
 						<div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
 							<div className="font-semibold">Total Revenue</div>
@@ -322,10 +273,7 @@ const IncomeStatementPage = () => {
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-6">
-							{renderSection(
-								'Operating Expenses',
-								mockIncomeStatementData.expenses
-							)}
+							{renderSection('Operating Expenses', data.expenses)}
 							<Separator />
 							<div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
 								<div className="font-semibold">Total Operating Expenses</div>
@@ -344,7 +292,7 @@ const IncomeStatementPage = () => {
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-6">
-							{renderSection('Other Items', mockIncomeStatementData.other)}
+							{renderSection('Other Items', data.other)}
 							<Separator />
 							<div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
 								<div className="font-semibold">Total Other Items</div>

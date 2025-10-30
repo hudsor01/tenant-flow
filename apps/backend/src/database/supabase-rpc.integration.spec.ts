@@ -68,7 +68,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await client.rpc('get_dashboard_stats' as any, {
+		const { data, error } = await (client as any).rpc('get_dashboard_stats', {
 			user_id_param: userId
 		})
 
@@ -102,12 +102,9 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await client.rpc(
-			'get_property_performance' as any,
-			{
-				p_user_id: userId
-			}
-		)
+		const { data, error } = await (client as any).rpc('get_property_performance', {
+			p_user_id: userId
+		})
 
 		expect(error).toBeNull()
 		expect(Array.isArray(data)).toBe(true)
@@ -132,12 +129,9 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await client.rpc(
-			'calculate_maintenance_metrics' as any,
-			{
-				p_user_id: userId
-			}
-		)
+		const { data, error } = await (client as any).rpc('calculate_maintenance_metrics', {
+			p_user_id: userId
+		})
 
 		expect(error).toBeNull()
 		expect(data).toBeTruthy()
@@ -166,12 +160,9 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await client.rpc(
-			'get_maintenance_analytics' as any,
-			{
-				user_id: userId
-			}
-		)
+		const { data, error } = await (client as any).rpc('get_maintenance_analytics', {
+			user_id: userId
+		})
 
 		expect(error).toBeNull()
 		expect(data).toBeTruthy()
