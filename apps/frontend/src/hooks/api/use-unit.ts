@@ -64,16 +64,21 @@ export function useUnitsByProperty(propertyId: string) {
 	return useQuery({
 		queryKey: unitKeys.byProperty(propertyId),
 		queryFn: async (): Promise<{ data: Unit[]; total: number }> => {
-			const response = await apiClient<{ data: Unit[]; total: number }>(
+			// Backend returns Unit[] directly, not paginated object
+			const response = await apiClient<Unit[]>(
 				`${API_BASE_URL}/api/v1/units/by-property/${propertyId}`
 			)
 
 			// Prefetch individual unit details for faster navigation
-			response.data.forEach(unit => {
+			response?.forEach?.(unit => {
 				queryClient.setQueryData(unitKeys.detail(unit.id), unit)
 			})
 
-			return response
+			// Transform to expected paginated format for backwards compatibility
+			return {
+				data: response || [],
+				total: response?.length || 0
+			}
 		},
 		enabled: !!propertyId,
 		staleTime: 5 * 60 * 1000, // 5 minutes
@@ -114,19 +119,23 @@ export function useUnitList(params?: {
 			searchParams.append('limit', limit.toString())
 			searchParams.append('offset', offset.toString())
 
-			const response = await apiClient<{
-				data: Unit[]
-				total: number
-				limit: number
-				offset: number
-			}>(`${API_BASE_URL}/api/v1/units?${searchParams.toString()}`)
+			// Backend returns Unit[] directly, not paginated object
+			const response = await apiClient<Unit[]>(
+				`${API_BASE_URL}/api/v1/units?${searchParams.toString()}`
+			)
 
 			// Prefetch individual unit details for faster navigation
-			response.data.forEach(unit => {
+			response?.forEach?.(unit => {
 				queryClient.setQueryData(unitKeys.detail(unit.id), unit)
 			})
 
-			return response
+			// Transform to expected paginated format for backwards compatibility
+			return {
+				data: response || [],
+				total: response?.length || 0,
+				limit,
+				offset
+			}
 		},
 		staleTime: 10 * 60 * 1000, // 10 minutes - list data rarely changes
 		gcTime: 30 * 60 * 1000, // 30 minutes cache time

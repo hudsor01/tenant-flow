@@ -4,7 +4,9 @@
  * Handles utility functions and global search operations
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger, NotFoundException, InternalServerErrorException } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import type { Cache } from 'cache-manager'
 import type { SearchResult } from '@repo/shared/types/search'
 import { SupabaseService } from '../../database/supabase.service'
 
@@ -25,7 +27,10 @@ export interface PasswordValidationResult {
 export class UtilityService {
 	private readonly logger = new Logger(UtilityService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
+	) {}
 
 	/**
 	 * Global search by name - replaces search_by_name function
@@ -193,6 +198,43 @@ export class UtilityService {
 			})
 			return []
 		}
+	}
+
+	/**
+	 * Map Supabase Auth ID to internal users.id
+	 * Cached for 5 minutes to reduce database lookups
+	 * 
+	 * @param supabaseId - Supabase Auth UID from JWT token
+	 * @returns Internal users.id for RLS policies
+	 */
+	async getUserIdFromSupabaseId(supabaseId: string): Promise<string> {
+		const cacheKey = `user:supabaseId:${supabaseId}`
+		const cached = await this.cacheManager.get<string>(cacheKey)
+		if (cached) return cached
+
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('users')
+			.select('id')
+			.eq('supabaseId', supabaseId)
+			.single()
+
+		// Handle database errors separately from missing user
+		if (error) {
+			this.logger.error('Database error during user ID lookup', { 
+				error: error.message || error, 
+				supabaseId 
+			})
+			throw new InternalServerErrorException('Failed to lookup user information')
+		}
+
+		if (!data) {
+			this.logger.error('User not found in database', { supabaseId })
+			throw new NotFoundException('User not found')
+		}
+
+		await this.cacheManager.set(cacheKey, data.id, 300000) // 5 min cache
+		return data.id
 	}
 
 	/**
