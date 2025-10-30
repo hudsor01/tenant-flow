@@ -34,7 +34,9 @@ describe('LeasesService', () => {
           return {
             select: jest.fn(() => ({
               eq: jest.fn(() => ({
-                single: jest.fn(() => ({ data: { id: 'tenant-id' }, error: null })),
+                eq: jest.fn(() => ({
+                  single: jest.fn(() => ({ data: { id: 'tenant-id' }, error: null })),
+                })),
               })),
             })),
           };
