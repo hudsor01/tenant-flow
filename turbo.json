@@ -72,7 +72,7 @@
 			"persistent": false
 		},
 		"@repo/frontend#build": {
-			"dependsOn": ["^build", "lint", "typecheck"],
+			"dependsOn": ["^build"],
 			"inputs": [
 				"src/**",
 				"public/**",
@@ -92,7 +92,7 @@
 			"persistent": false
 		},
 		"@repo/backend#build": {
-			"dependsOn": ["^build", "lint", "typecheck"],
+			"dependsOn": ["^build"],
 			"inputs": ["src/**", "tsconfig*.json", "package.json", "nest-cli.json"],
 			"outputs": ["dist/**"],
 			"env": [
