@@ -58,9 +58,7 @@ describe('Configuration Schema Validation', () => {
 				STRIPE_WEBHOOK_SECRET: 'whsec_123'
 			}
 
-			expect(() => validate(config)).toThrow(
-				'JWT secret must be at least 32 characters'
-			)
+			expect(() => validate(config)).toThrow('JWT secret must be at least 32 characters')
 		})
 
 		it('should throw error for short SUPABASE_JWT_SECRET', () => {
@@ -418,9 +416,7 @@ describe('Configuration Schema Validation', () => {
 				SESSION_SECRET: 'short'
 			}
 
-			expect(() => validate(config)).toThrow(
-				'Session secret must be at least 32 characters'
-			)
+			expect(() => validate(config)).toThrow('Session secret must be at least 32 characters')
 		})
 	})
 
