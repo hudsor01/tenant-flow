@@ -2,7 +2,7 @@ import type { HealthCheckResult } from '@nestjs/terminus'
 import { HealthCheckService } from '@nestjs/terminus'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { Response } from 'express'
+
 import { SilentLogger } from '../__test__/silent-logger'
 import { StripeSyncService } from '../modules/billing/stripe-sync.service'
 import { CircuitBreakerService } from './circuit-breaker.service'
@@ -16,7 +16,6 @@ describe('HealthController', () => {
 	let module: TestingModule
 	let healthCheckService: HealthCheckService
 	let supabaseHealth: SupabaseHealthIndicator
-	let mockResponse: Partial<Response>
 
 	beforeEach(async () => {
 		module = await Test.createTestingModule({
@@ -143,12 +142,6 @@ describe('HealthController', () => {
 
 		// Logger is handled by SilentLogger in the module
 
-		// Setup mock response for all tests
-		mockResponse = {
-			status: jest.fn().mockReturnThis(),
-			json: jest.fn().mockReturnThis()
-		}
-
 		jest.clearAllMocks()
 	})
 
@@ -164,10 +157,9 @@ describe('HealthController', () => {
 
 	describe('GET /health', () => {
 		it('should perform comprehensive health check with database connectivity', async () => {
-			await controller.check(mockResponse as Response)
+			const result = await controller.check()
 
-			expect(mockResponse.status).toHaveBeenCalledWith(200)
-			expect(mockResponse.json).toHaveBeenCalledWith({
+			expect(result).toEqual({
 				status: 'ok',
 				timestamp: expect.any(String),
 				environment: 'test', // Test environment sets NODE_ENV=test
@@ -211,10 +203,9 @@ describe('HealthController', () => {
 				error: 'Database connection failed'
 			})
 
-			await controller.check(mockResponse as Response)
+			const result = await controller.check()
 
-			expect(mockResponse.status).toHaveBeenCalledWith(503)
-			expect(mockResponse.json).toHaveBeenCalledWith(
+			expect(result).toEqual(
 				expect.objectContaining({
 					status: 'unhealthy',
 					database: {
@@ -230,7 +221,7 @@ describe('HealthController', () => {
 			const healthService = module.get<HealthService>(HealthService)
 			const spy = jest.spyOn(healthService, 'checkSystemHealth')
 
-			await controller.check(mockResponse as Response)
+			await controller.check()
 
 			expect(spy).toHaveBeenCalledTimes(1)
 		})
@@ -238,10 +229,9 @@ describe('HealthController', () => {
 
 	describe('GET /health/check', () => {
 		it('should use the main check endpoint as an alias', async () => {
-			await controller.checkEndpoint(mockResponse as Response)
+			const result = await controller.checkEndpoint()
 
-			expect(mockResponse.status).toHaveBeenCalledWith(200)
-			expect(mockResponse.json).toHaveBeenCalledWith(
+			expect(result).toEqual(
 				expect.objectContaining({
 					status: 'ok',
 					database: {
@@ -360,12 +350,11 @@ describe('HealthController', () => {
 			// Simulate concurrent requests
 			const readyResult = await controller.ready()
 
-			// check() needs to be called separately with response
-			await controller.check(mockResponse as Response)
+			// check() needs to be called separately
+			const checkResult = await controller.check()
 
-			// check() now returns via response.json()
-			expect(mockResponse.status).toHaveBeenCalledWith(200)
-			expect(mockResponse.json).toHaveBeenCalledWith({
+			// check() now returns the health check result directly
+			expect(checkResult).toEqual({
 				status: 'ok',
 				timestamp: expect.any(String),
 				environment: 'test', // Test environment sets NODE_ENV=test
@@ -404,13 +393,7 @@ describe('HealthController', () => {
 			// Simulate multiple concurrent requests
 			const promises = Array(10)
 				.fill(null)
-				.map(() => {
-					const res = {
-						status: jest.fn().mockReturnThis(),
-						json: jest.fn().mockReturnThis()
-					} as unknown as Response
-					return controller.check(res)
-				})
+				.map(() => controller.check())
 			await Promise.all(promises)
 
 			const endTime = Date.now()
