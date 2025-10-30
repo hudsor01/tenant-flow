@@ -11,7 +11,7 @@ export const contactFormSchema = z
 			.trim()
 			.min(1, 'Name is required')
 			.max(100, 'Name must be 100 characters or less'),
-		email: z.string().email('Valid email address is required'),
+		email: z.string().trim().email('Valid email address is required'),
 		subject: z
 			.string()
 			.trim()

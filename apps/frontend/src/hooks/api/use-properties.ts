@@ -22,7 +22,7 @@ import type {
 	UpdatePropertyInput
 } from '@repo/shared/types/api-inputs'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
-import type { PropertyImage } from '@repo/shared/types/supabase'
+import type { Tables } from '@repo/shared/types/supabase'
 import { compressImage } from '#lib/image-compression'
 import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -663,7 +663,7 @@ export function usePropertyImages(propertyId: string) {
 	return useQuery({
 		queryKey: [...propertiesKeys.detail(propertyId), 'images'] as const,
 		queryFn: async () => {
-			const response = await apiClient<PropertyImage[]>(
+			const response = await apiClient<Tables<'property_images'>[]>(
 				`${API_BASE_URL}/api/v1/properties/${propertyId}/images`
 			)
 			return response
