@@ -20,20 +20,20 @@ import type { Database } from '@repo/shared/types/supabase-generated'
  */
 export const dashboardServerApi = {
 	// Core dashboard stats
-	getStats: () => serverFetch<DashboardStats>('/api/v1/dashboard/stats'),
+	getStats: () => serverFetch<DashboardStats>('/api/v1/manage/stats'),
 
 	// Activity feed
 	getActivity: () =>
-		serverFetch<{ activities: Array<unknown> }>('/api/v1/dashboard/activity'),
+		serverFetch<{ activities: Array<unknown> }>('/api/v1/manage/activity'),
 
 	// Property performance metrics
 	getPropertyPerformance: () =>
 		serverFetch<PropertyPerformance[]>(
-			'/api/v1/dashboard/property-performance'
+			'/api/v1/manage/property-performance'
 		),
 
 	// System uptime
-	getUptime: () => serverFetch<SystemUptime>('/api/v1/dashboard/uptime'),
+	getUptime: () => serverFetch<SystemUptime>('/api/v1/manage/uptime'),
 
 	// Maintenance statistics
 	getMaintenanceStats: () =>
@@ -42,7 +42,7 @@ export const dashboardServerApi = {
 			inProgress: number
 			completedToday: number
 			avgResolutionTime: number
-		}>('/api/v1/dashboard/maintenance-analytics')
+		}>('/api/v1/manage/maintenance-analytics')
 }
 
 /**
