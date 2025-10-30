@@ -31,14 +31,13 @@ export function validateEnvironment(): void {
 		}
 	}
 
-	// Detect legacy keys and warn user to migrate
-	// eslint-disable-next-line turbo/no-undeclared-env-vars -- Intentionally checking for legacy key to throw error
-	if (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_KEY) {
-		logger.error(
-			'❌ LEGACY KEY DETECTED: SUPABASE_SERVICE_ROLE_KEY is deprecated as of October 2025. Please update Doppler to use SUPABASE_SECRET_KEY instead. See: https://supabase.com/docs/guides/api/api-keys'
-		)
-		throw new Error(
-			'SUPABASE_SERVICE_ROLE_KEY is no longer supported. Use SUPABASE_SECRET_KEY instead.'
+	// Provide targeted guidance if legacy env vars are set but new ones are missing
+	if (
+		missing.includes('SUPABASE_SECRET_KEY') &&
+		process.env.SUPABASE_SECRET_KEY
+	) {
+		logger.warn(
+			'SUPABASE_SECRET_KEY is set but SUPABASE_SECRET_KEY is missing. Please migrate to the new variable name.'
 		)
 	}
 	// SUPABASE_JWT_SECRET is now optional - we use JWKS endpoint for JWT verification
