@@ -9,14 +9,13 @@
  * - Proper error handling
  */
 
-import { API_BASE_URL, leasesApi } from '#lib/api-client'
+import { API_BASE_URL, apiClient, leasesApi } from '#lib/api-client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
 	CreateLeaseInput,
 	UpdateLeaseInput
 } from '@repo/shared/types/api-inputs'
 import type { Lease } from '@repo/shared/types/core'
-import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 /**

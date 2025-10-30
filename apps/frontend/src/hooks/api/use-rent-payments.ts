@@ -2,9 +2,8 @@
  * TanStack Query hooks for rent payments API
  * Phase 6D: One-Time Rent Payment UI
  */
-import { apiClient } from '@repo/shared/utils/api-client'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { API_BASE_URL } from '#lib/api-client'
+import { API_BASE_URL, apiClient } from '#lib/api-client'
 
 /**
  * Query keys for rent payments endpoints
