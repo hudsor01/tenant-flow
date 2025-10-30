@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#comp
 import { DataTable } from '#components/ui/data-table'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '#components/ui/alert-dialog'
 import { Trash2 } from 'lucide-react'
+import Link from 'next/link'
 import { useOptimistic, useState, useTransition, useEffect } from 'react'
 import { toast } from 'sonner'
 import { ColumnDef } from '@tanstack/react-table'
@@ -71,10 +72,10 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 				return (
 					<div className="flex items-center justify-end gap-1">
 						<Button asChild size="sm" variant="ghost">
-							<a href={`/manage/tenants/${tenant.id}`}>View</a>
+							<Link href={`/manage/tenants/${tenant.id}`}>View</Link>
 						</Button>
 						<Button asChild size="sm" variant="ghost">
-							<a href={`/manage/tenants/${tenant.id}/edit`}>Edit</a>
+							<Link href={`/manage/tenants/${tenant.id}/edit`}>Edit</Link>
 						</Button>
 						<AlertDialog>
 							<AlertDialogTrigger asChild>

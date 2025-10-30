@@ -3318,6 +3318,45 @@ export type Database = {
       }
     }
     Views: {
+      dashboard_stats_mv: {
+        Row: {
+          active_leases: number | null
+          active_tenants: number | null
+          average_unit_rent: number | null
+          completed_maintenance: number | null
+          emergency_maintenance: number | null
+          expired_leases: number | null
+          in_progress_maintenance: number | null
+          inactive_tenants: number | null
+          last_updated: string | null
+          maintenance_units: number | null
+          occupancy_rate: number | null
+          occupied_properties: number | null
+          occupied_units: number | null
+          open_maintenance: number | null
+          terminated_leases: number | null
+          total_actual_rent: number | null
+          total_lease_rent: number | null
+          total_leases: number | null
+          total_maintenance: number | null
+          total_potential_rent: number | null
+          total_properties: number | null
+          total_security_deposits: number | null
+          total_tenants: number | null
+          total_units: number | null
+          user_id: string | null
+          vacant_units: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_ownerid_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_queue_stats: {
         Row: {
           avg_attempts: number | null
@@ -3556,19 +3595,14 @@ export type Database = {
         Returns: Json
       }
       get_dashboard_metrics: { Args: { p_user_id: string }; Returns: Json }
-      get_dashboard_stats:
-        | {
-            Args: { user_id_param: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.get_dashboard_stats(user_id_param => text), public.get_dashboard_stats(user_id_param => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
-          }
-        | {
-            Args: { user_id_param: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.get_dashboard_stats(user_id_param => text), public.get_dashboard_stats(user_id_param => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
-          }
+      get_dashboard_stats_fast: {
+        Args: { p_internal_user_id: string }
+        Returns: Json
+      }
+      get_dashboard_stats_optimized: {
+        Args: { p_internal_user_id: string; p_supabase_auth_id: string }
+        Returns: Json
+      }
       get_dashboard_summary: { Args: { p_user_id: string }; Returns: Json }
       get_entity_permissions: {
         Args: { p_entity_id: string; p_entity_type: string; p_user_id: string }
@@ -3841,6 +3875,7 @@ export type Database = {
         Args: { p_event_id: string; p_event_type: string }
         Returns: boolean
       }
+      refresh_dashboard_stats_mv: { Args: never; Returns: undefined }
       renew_lease: {
         Args: { p_lease_id: string; p_new_end_date: string; p_user_id: string }
         Returns: Json

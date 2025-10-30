@@ -141,6 +141,92 @@ export class StorageService {
 	}
 
 	/**
+	 * Copy file to another location in storage
+	 */
+	async copyFile(
+		sourceBucket: string,
+		sourcePath: string,
+		targetBucket: string,
+		targetPath: string
+	): Promise<boolean> {
+		// SECURITY: Validate both source and target paths
+		const safeSourcePath = this.validateFilePath(sourcePath)
+		const safeTargetPath = this.validateFilePath(targetPath)
+
+		try {
+			// Download the source file
+			const { data: downloadData, error: downloadError } =
+				await this.supabase.storage.from(sourceBucket).download(safeSourcePath)
+
+			if (downloadError) {
+				this.logger.error('Storage download failed', {
+					error: downloadError.message,
+					path: safeSourcePath,
+					bucket: sourceBucket
+				})
+				throw new BadRequestException(
+					`Failed to download file: ${downloadError.message}`
+				)
+			}
+
+			// Upload to target location
+			const { error: uploadError } = await this.supabase.storage
+				.from(targetBucket)
+				.upload(safeTargetPath, downloadData, {
+					cacheControl: '3600',
+					upsert: false // Don't overwrite existing files
+				})
+
+			if (uploadError) {
+				this.logger.error('Storage copy upload failed', {
+					error: uploadError.message,
+					sourcePath: safeSourcePath,
+					targetPath: safeTargetPath,
+					sourceBucket,
+					targetBucket
+				})
+				throw new BadRequestException(
+					`Failed to copy file: ${uploadError.message}`
+				)
+			}
+
+			return true
+		} catch (error) {
+			this.logger.error('Storage copy operation failed', {
+				error: error instanceof Error ? error.message : 'Unknown error',
+				sourcePath: safeSourcePath,
+				targetPath: safeTargetPath,
+				sourceBucket,
+				targetBucket
+			})
+			throw new BadRequestException(
+				`Failed to copy file: ${error instanceof Error ? error.message : 'Unknown error'}`
+			)
+		}
+	}
+
+	/**
+	 * Move file to another location in storage (copy + delete)
+	 */
+	async moveFile(
+		sourceBucket: string,
+		sourcePath: string,
+		targetBucket: string,
+		targetPath: string
+	): Promise<boolean> {
+		const success = await this.copyFile(
+			sourceBucket,
+			sourcePath,
+			targetBucket,
+			targetPath
+		)
+		if (success) {
+			await this.deleteFile(sourceBucket, sourcePath)
+		}
+		return success
+	}
+
+	/**
 	 * Delete file from storage
 	 */
 	async deleteFile(bucket: string, filePath: string): Promise<boolean> {

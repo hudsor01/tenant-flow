@@ -87,19 +87,23 @@ export function usePropertyList(params?: {
 			searchParams.append('limit', limit.toString())
 			searchParams.append('offset', offset.toString())
 
-			const response = await apiClient<{
-				data: Property[]
-				total: number
-				limit: number
-				offset: number
-			}>(`${API_BASE_URL}/api/v1/properties?${searchParams.toString()}`)
+			// Backend returns Property[] directly, not paginated object
+			const response = await apiClient<Property[]>(
+				`${API_BASE_URL}/api/v1/properties?${searchParams.toString()}`
+			)
 
 			// Prefetch individual property details
-			response.data.forEach(property => {
+			response?.forEach?.(property => {
 				queryClient.setQueryData(propertiesKeys.detail(property.id), property)
 			})
 
-			return response
+			// Transform to expected paginated format for backwards compatibility
+			return {
+				data: response || [],
+				total: response?.length || 0,
+				limit,
+				offset
+			}
 		},
 		staleTime: 10 * 60 * 1000, // 10 minutes
 		gcTime: 30 * 60 * 1000, // 30 minutes
