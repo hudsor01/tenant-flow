@@ -8,7 +8,8 @@ module.exports = {
 	exclude: [
 		'/admin/*',
 		'/api/*',
-		'/dashboard/*',
+		'/manage/*',
+		'/tenant/*',
 		'/settings/*',
 		'/profile/*'
 	],
@@ -20,7 +21,8 @@ module.exports = {
 				disallow: [
 					'/admin/',
 					'/api/',
-					'/dashboard/',
+					'/manage/',
+					'/tenant/',
 					'/settings/',
 					'/profile/'
 				]

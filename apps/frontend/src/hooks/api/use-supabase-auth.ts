@@ -83,7 +83,7 @@ export function useSupabaseLogin() {
 			})
 
 			// Redirect to dashboard
-			router.push('/dashboard')
+			router.push('/manage')
 		},
 		onError: (error: Error) => {
 			toast.error('Login failed', {
@@ -132,7 +132,7 @@ export function useSupabaseSignup() {
 				toast.success('Welcome to TenantFlow!', {
 					description: 'Your account has been created successfully.'
 				})
-				router.push('/dashboard')
+				router.push('/manage')
 			}
 		},
 		onError: (error: Error) => {

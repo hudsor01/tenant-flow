@@ -122,7 +122,7 @@ BEGIN
       '&line_items[0][price]=' || v_price_id ||
       '&line_items[0][quantity]=1' ||
       '&mode=subscription' ||
-      '&success_url=' || urlencode(COALESCE(p_success_url, v_frontend_url || '/dashboard?success=true')) ||
+      '&success_url=' || urlencode(COALESCE(p_success_url, v_frontend_url || '/manage?success=true')) ||
       '&cancel_url=' || urlencode(COALESCE(p_cancel_url, v_frontend_url || '/pricing?canceled=true')) ||
       '&allow_promotion_codes=true' ||
       '&billing_address_collection=auto' ||
@@ -211,7 +211,7 @@ BEGIN
     'https://api.stripe.com/v1/billing_portal/sessions',
     encode(
       'customer=' || v_customer_id ||
-      '&return_url=' || urlencode(COALESCE(p_return_url, v_frontend_url || '/dashboard')),
+      '&return_url=' || urlencode(COALESCE(p_return_url, v_frontend_url || '/manage')),
       'utf8'
     ),
     'application/x-www-form-urlencoded',

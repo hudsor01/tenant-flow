@@ -31,7 +31,7 @@ export const emailTemplates = {
           <p><strong>Amount:</strong> ${(params.amount! / 100).toFixed(2)} ${params.currency!.toUpperCase()}/${params.interval}</p>
           ${params.nextBillingDate ? `<p><strong>Next billing:</strong> ${params.nextBillingDate}</p>` : ''}
         </div>
-        <p><a href="https://tenantflow.app/dashboard" style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Go to Dashboard</a></p>
+        <p><a href="https://tenantflow.app/manage" style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Go to Dashboard</a></p>
         <p>Thanks for choosing TenantFlow!</p>
       </div>
     `

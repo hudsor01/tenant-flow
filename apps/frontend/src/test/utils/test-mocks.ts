@@ -4,25 +4,27 @@
  * Provides consistent mock behavior across all tests
  */
 
+import { vi } from 'vitest'
+
 /**
  * Mock Next.js router with common methods
  * Returns a router mock with all common navigation methods
  *
  * @example
  * const mockRouter = createMockRouter()
- * jest.mock('next/navigation', () => ({
+ * vi.mock('next/navigation', () => ({
  *   useRouter: () => mockRouter,
  *   usePathname: () => '/current/path'
  * }))
  */
 export function createMockRouter() {
 	return {
-		push: jest.fn(),
-		replace: jest.fn(),
-		prefetch: jest.fn(),
-		back: jest.fn(),
-		forward: jest.fn(),
-		refresh: jest.fn(),
+		push: vi.fn(),
+		replace: vi.fn(),
+		prefetch: vi.fn(),
+		back: vi.fn(),
+		forward: vi.fn(),
+		refresh: vi.fn(),
 		pathname: '/',
 		query: {}
 	}
@@ -34,20 +36,20 @@ export function createMockRouter() {
  *
  * @example
  * const mockToast = createMockToast()
- * jest.mock('sonner', () => ({
+ * vi.mock('sonner', () => ({
  *   toast: mockToast
  * }))
  */
 export function createMockToast() {
 	return {
-		success: jest.fn(),
-		error: jest.fn(),
-		loading: jest.fn(),
-		info: jest.fn(),
-		warning: jest.fn(),
-		promise: jest.fn(),
-		custom: jest.fn(),
-		dismiss: jest.fn()
+		success: vi.fn(),
+		error: vi.fn(),
+		loading: vi.fn(),
+		info: vi.fn(),
+		warning: vi.fn(),
+		promise: vi.fn(),
+		custom: vi.fn(),
+		dismiss: vi.fn()
 	}
 }
 
@@ -77,7 +79,7 @@ export function setupCommonMocks() {
 		router,
 		toast,
 		reset: () => {
-			jest.clearAllMocks()
+			vi.clearAllMocks()
 			router.push.mockClear()
 			router.replace.mockClear()
 			router.prefetch.mockClear()
@@ -100,7 +102,7 @@ export function createMockQuery<TData>(
 		isLoading: boolean
 		isError: boolean
 		error: Error | null
-		refetch: jest.Mock
+		refetch: ReturnType<typeof vi.fn>
 	}>
 ) {
 	return {
@@ -108,7 +110,7 @@ export function createMockQuery<TData>(
 		isLoading: overrides?.isLoading ?? false,
 		isError: overrides?.isError ?? false,
 		error: overrides?.error ?? null,
-		refetch: overrides?.refetch ?? jest.fn(),
+		refetch: overrides?.refetch ?? vi.fn(),
 		isFetching: false,
 		isSuccess: !overrides?.isLoading && !overrides?.isError,
 		status: overrides?.isLoading
@@ -137,10 +139,10 @@ export function createMockMutation<TData = unknown>(config?: {
 	isPending?: boolean
 }) {
 	return {
-		mutate: jest.fn(() => {
+		mutate: vi.fn(() => {
 			config?.onSuccess?.(undefined as TData)
 		}),
-		mutateAsync: jest.fn(async (): Promise<TData> => {
+		mutateAsync: vi.fn(async (): Promise<TData> => {
 			config?.onSuccess?.(undefined as TData)
 			return undefined as TData
 		}),
@@ -148,6 +150,6 @@ export function createMockMutation<TData = unknown>(config?: {
 		isError: false,
 		isSuccess: false,
 		error: null,
-		reset: jest.fn()
+		reset: vi.fn()
 	}
 }
