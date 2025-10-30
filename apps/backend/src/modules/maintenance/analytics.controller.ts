@@ -210,67 +210,77 @@ export class MaintenanceAnalyticsController {
 		timeframe: string,
 		propertyId?: string
 	) {
-                const client = this.supabaseService.getAdminClient()
+		const client = this.supabaseService.getAdminClient()
 
-                const { data: propertyRows, error: propertyError } = await client
+		const { data: propertyRows, error: propertyError } = await client
 			.from('property')
 			.select('id, name')
 			.eq('ownerId', userId)
 
 		if (propertyError) {
-			throw new Error(`Failed to fetch properties: ${propertyError.message || propertyError}`)
+			this.logger.error(
+				'Failed to fetch properties, proceeding with empty data',
+				{
+					error: propertyError.message || propertyError,
+					userId
+				}
+			)
 		}
 
-                const propertyNames = new Map<string, string>()
-                const propertyIds: string[] = []
-                for (const property of propertyRows || []) {
-                        if (!property?.id) {
-                                continue
-                        }
-                        propertyIds.push(property.id)
-                        if (typeof property.name === 'string') {
-                                propertyNames.set(property.id, property.name)
-                        }
-                }
+		const propertyNames = new Map<string, string>()
+		const propertyIds: string[] = []
+		for (const property of propertyRows || []) {
+			if (!property?.id) {
+				continue
+			}
+			propertyIds.push(property.id)
+			if (typeof property.name === 'string') {
+				propertyNames.set(property.id, property.name)
+			}
+		}
 
-                if (propertyIds.length === 0) {
-                        return {
-                                requests: [],
-                                unitToProperty: new Map<string, string>(),
-                                propertyNames
-                        }
-                }
+		if (propertyIds.length === 0) {
+			return {
+				requests: [],
+				unitToProperty: new Map<string, string>(),
+				propertyNames
+			}
+		}
 
-                const { data: unitRows, error: unitError } = await client
+		const { data: unitRows, error: unitError } = await client
 			.from('unit')
 			.select('id, propertyId')
 			.in('propertyId', propertyIds)
 
 		if (unitError) {
-			throw new Error(`Failed to fetch units: ${unitError.message || unitError}`)
+			this.logger.error('Failed to fetch units, proceeding with empty data', {
+				error: unitError.message || unitError,
+				userId,
+				propertyIdsCount: propertyIds.length
+			})
 		}
 
-                const unitToProperty = new Map<string, string>()
-                const unitIds: string[] = []
-                for (const unit of unitRows || []) {
-                        if (!unit?.id) {
-                                continue
-                        }
-                        unitIds.push(unit.id)
-                        if (typeof unit.propertyId === 'string' && unit.propertyId.length > 0) {
-                                unitToProperty.set(unit.id, unit.propertyId)
-                        }
-                }
+		const unitToProperty = new Map<string, string>()
+		const unitIds: string[] = []
+		for (const unit of unitRows || []) {
+			if (!unit?.id) {
+				continue
+			}
+			unitIds.push(unit.id)
+			if (typeof unit.propertyId === 'string' && unit.propertyId.length > 0) {
+				unitToProperty.set(unit.id, unit.propertyId)
+			}
+		}
 
-                if (unitIds.length === 0) {
-                        return {
-                                requests: [],
-                                unitToProperty,
-                                propertyNames
-                        }
-                }
+		if (unitIds.length === 0) {
+			return {
+				requests: [],
+				unitToProperty,
+				propertyNames
+			}
+		}
 
-                let maintenanceRequests: MaintenanceRequest[] = []
+		let maintenanceRequests: MaintenanceRequest[] = []
 		try {
 			const { data: maintenanceRows, error: maintenanceError } = await client
 				.from('maintenance_request')
@@ -278,11 +288,14 @@ export class MaintenanceAnalyticsController {
 				.in('unitId', unitIds)
 
 			if (maintenanceError) {
-				this.logger.error('Failed to fetch maintenance requests', {
-					error: maintenanceError.message || maintenanceError,
-					userId,
-					unitIdsCount: unitIds.length
-				})
+				this.logger.error(
+					'Failed to fetch maintenance requests, proceeding with empty data',
+					{
+						error: maintenanceError.message || maintenanceError,
+						userId,
+						unitIdsCount: unitIds.length
+					}
+				)
 				// Return empty result shape on error instead of throwing
 				return {
 					requests: [],
@@ -293,10 +306,13 @@ export class MaintenanceAnalyticsController {
 
 			maintenanceRequests = (maintenanceRows || []) as MaintenanceRequest[]
 		} catch (error) {
-			this.logger.error('Unexpected error fetching maintenance requests', {
-				error: error instanceof Error ? error.message : String(error),
-				userId
-			})
+			this.logger.error(
+				'Unexpected error fetching maintenance requests, proceeding with empty data',
+				{
+					error: error instanceof Error ? error.message : String(error),
+					userId
+				}
+			)
 			// Return empty result shape on unexpected errors
 			return {
 				requests: [],
@@ -306,9 +322,9 @@ export class MaintenanceAnalyticsController {
 		}
 
 		const start = this.calculateStartDate(timeframe)
-                const filteredRequests = maintenanceRequests.filter(request => {
-                        if (start && request.createdAt) {
-                                const createdAt = new Date(request.createdAt)
+		const filteredRequests = maintenanceRequests.filter(request => {
+			if (start && request.createdAt) {
+				const createdAt = new Date(request.createdAt)
 				if (Number.isFinite(start.getTime()) && createdAt < start) {
 					return false
 				}

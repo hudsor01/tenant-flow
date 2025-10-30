@@ -4,7 +4,12 @@
  * Simplified: Removed duplicate methods, consolidated analytics
  */
 
-import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common'
+import {
+	BadRequestException,
+	ConflictException,
+	Injectable,
+	Logger
+} from '@nestjs/common'
 import type { CreateLeaseDto } from './dto/create-lease.dto'
 import type { UpdateLeaseDto } from './dto/update-lease.dto'
 import type { Lease, LeaseStatsResponse } from '@repo/shared/types/core'
@@ -19,9 +24,7 @@ import {
 export class LeasesService {
 	private readonly logger = new Logger(LeasesService.name)
 
-	constructor(
-		private readonly supabase: SupabaseService
-	) {}
+	constructor(private readonly supabase: SupabaseService) {}
 
 	/**
 	 * Helper: Get unit IDs for user's properties
@@ -431,10 +434,7 @@ export class LeasesService {
 	/**
 	 * Create lease
 	 */
-	async create(
-		userId: string,
-		dto: CreateLeaseDto
-	): Promise<Lease> {
+	async create(userId: string, dto: CreateLeaseDto): Promise<Lease> {
 		try {
 			if (!userId || !dto.unitId || !dto.tenantId) {
 				this.logger.warn('Create lease called with missing parameters', {
@@ -479,10 +479,11 @@ export class LeasesService {
 				.from('tenant')
 				.select('id')
 				.eq('id', dto.tenantId)
+				.eq('userId', userId)
 				.single()
 
 			if (!tenant) {
-				throw new BadRequestException('Tenant not found')
+				throw new BadRequestException('Tenant not found or access denied')
 			}
 
 			// Insert lease directly from DTO (matches database schema)
@@ -574,17 +575,18 @@ export class LeasesService {
 			if (updateRequest.endDate !== undefined)
 				updateData.endDate = updateRequest.endDate
 			if (updateRequest.rentAmount !== undefined)
-			updateData.rentAmount = updateRequest.rentAmount
-			if (updateRequest.securityDeposit !== undefined && updateRequest.securityDeposit !== null)
-			updateData.securityDeposit = updateRequest.securityDeposit
-		if (updateRequest.status !== undefined)
-			updateData.status = updateRequest.status as Database['public']['Enums']['LeaseStatus']
+				updateData.rentAmount = updateRequest.rentAmount
+			if (
+				updateRequest.securityDeposit !== undefined &&
+				updateRequest.securityDeposit !== null
+			)
+				updateData.securityDeposit = updateRequest.securityDeposit
+			if (updateRequest.status !== undefined)
+				updateData.status =
+					updateRequest.status as Database['public']['Enums']['LeaseStatus']
 
 			// 🔐 BUG FIX #2: Add version check for optimistic locking
-			let query = client
-				.from('lease')
-				.update(updateData)
-				.eq('id', leaseId)
+			let query = client.from('lease').update(updateData).eq('id', leaseId)
 
 			// Add version check if expectedVersion provided
 			if (expectedVersion !== undefined) {
