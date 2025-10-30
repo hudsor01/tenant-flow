@@ -27,9 +27,9 @@ export const APP_CONFIG = {
 	// External Services
 	SUPABASE: {
 		URL: process.env.SUPABASE_URL,
-		SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
+		SERVICE_KEY: process.env.SUPABASE_SECRET_KEY,
 		JWT_SECRET: process.env.SUPABASE_JWT_SECRET,
-		PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY
+		ANON_KEY: process.env.SUPABASE_PUBLISHABLE_KEY
 	},
 
 	// Stripe Configuration
@@ -48,7 +48,7 @@ export const APP_CONFIG = {
 
 	// Email Configuration
 	EMAIL: {
-		RESEND_API_KEY: process.env.RESEND_API_KEY,
+		RESEND_API_KEY: process.env.TEST_RESEND_API_KEY,
 		FROM_ADDRESS:
 			process.env.TEST_EMAIL_FROM ||
 			(() => {
@@ -88,7 +88,7 @@ export function validateConfig(): void {
 		{ key: 'SUPABASE_URL', value: APP_CONFIG.SUPABASE.URL },
 		{
 			key: 'SUPABASE_SECRET_KEY',
-			value: APP_CONFIG.SUPABASE.SECRET_KEY
+			value: APP_CONFIG.SUPABASE.SERVICE_KEY
 		},
 		{
 			key: 'SUPABASE_JWT_SECRET',

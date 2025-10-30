@@ -56,7 +56,7 @@ describe('Environment Validation', () => {
 			// Clear required variables to trigger failure
 			delete process.env.DATABASE_URL
 			delete process.env.SUPABASE_URL
-			delete process.env.SERVICE_ROLE_KEY
+			delete process.env.SUPABASE_SECRET_KEY
 			delete process.env.SUPABASE_SECRET_KEY
 			delete process.env.SUPABASE_SERVICE_KEY
 
@@ -73,7 +73,7 @@ describe('Environment Validation', () => {
 			// Clear required variables to trigger failure
 			delete process.env.DATABASE_URL
 			delete process.env.SUPABASE_URL
-			delete process.env.SERVICE_ROLE_KEY
+			delete process.env.SUPABASE_SECRET_KEY
 			delete process.env.SUPABASE_SECRET_KEY
 			delete process.env.SUPABASE_SERVICE_KEY
 
@@ -93,7 +93,7 @@ describe('Environment Validation', () => {
 			// Clear the ones we're testing are missing
 			delete process.env.JWT_SECRET
 			delete process.env.SUPABASE_URL
-			delete process.env.SERVICE_ROLE_KEY
+			delete process.env.SUPABASE_SECRET_KEY
 			delete process.env.SUPABASE_SECRET_KEY
 			delete process.env.SUPABASE_SERVICE_KEY
 			delete process.env.SUPABASE_JWT_SECRET
@@ -254,7 +254,7 @@ describe('Environment Validation', () => {
 			// Clear required variables to trigger failure
 			delete process.env.DATABASE_URL
 			delete process.env.SUPABASE_URL
-			delete process.env.SERVICE_ROLE_KEY
+			delete process.env.SUPABASE_SECRET_KEY
 			delete process.env.SUPABASE_SECRET_KEY
 			delete process.env.SUPABASE_SERVICE_KEY
 
@@ -269,7 +269,7 @@ describe('Environment Validation', () => {
 			// Clear required variables to trigger failure
 			delete process.env.DATABASE_URL
 			delete process.env.SUPABASE_URL
-			delete process.env.SERVICE_ROLE_KEY
+			delete process.env.SUPABASE_SECRET_KEY
 			delete process.env.SUPABASE_SECRET_KEY
 			delete process.env.SUPABASE_SERVICE_KEY
 

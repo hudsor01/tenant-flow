@@ -763,7 +763,7 @@ export function useDeletePropertyImage() {
 	return useMutation({
 		mutationFn: async ({
 			imageId,
-			propertyId
+			propertyId: _propertyId
 		}: {
 			imageId: string
 			propertyId: string
