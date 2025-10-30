@@ -119,11 +119,12 @@ describe('Property Image Upload Integration', () => {
 			})
 
 			expect(uploaded).toBeDefined()
-			expect(uploaded.id).toBeDefined()
-			expect(uploaded.url).toContain('property-images')
-			expect(uploaded.propertyId).toBe(testPropertyId)
+			expect(uploaded.result).toBeDefined()
+			expect((uploaded.result as any).id).toBeDefined()
+			expect((uploaded.result as any).url).toContain('property-images')
+			expect((uploaded.result as any).propertyId).toBe(testPropertyId)
 
-			uploadedImageId = uploaded.id
+			uploadedImageId = (uploaded.result as any).id
 		})
 
 		// Cleanup
@@ -154,8 +155,8 @@ describe('Property Image Upload Integration', () => {
 			})
 
 			expect(uploaded).toBeDefined()
-			expect(uploaded.id).toBeDefined()
-			uploadedImageId = uploaded.id
+			expect((uploaded.result as any).id).toBeDefined()
+			uploadedImageId = (uploaded.result as any).id
 		})
 
 		// Step 2: Fetch and verify image exists
