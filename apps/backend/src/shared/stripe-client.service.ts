@@ -25,7 +25,7 @@ export class StripeClientService {
 		// Initialize Stripe client with recommended configuration
 		// Using latest stable API version with TypeScript support
 		this.stripe = new Stripe(stripeSecretKey, {
-			apiVersion: '2025-09-30.clover',
+			apiVersion: '2025-10-29.clover',
 			typescript: true
 		})
 	}
