@@ -34,40 +34,92 @@ export async function api<T = unknown>(
 	options?: FetchOptions
 ): Promise<T> {
 	const { token, ...fetchOptions } = options || {}
-	
+	let resolvedToken = token
+
 	// Build full URL
 	const url = `${getApiBaseUrl()}/api/v1/${endpoint.startsWith('/') ? endpoint.slice(1) : endpoint}`
-	
-	// Build headers
-	const headers: Record<string, string> = {
-		'Content-Type': 'application/json',
-		...((fetchOptions.headers as Record<string, string>) || {})
+
+	// If we're in the browser without an explicit token, fetch it from Supabase
+	if (!resolvedToken && typeof window !== 'undefined') {
+		try {
+			const { createBrowserClient } = await import('@supabase/ssr')
+			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+			const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+
+			if (!supabaseUrl || !supabaseAnonKey) {
+				throw new Error('Missing Supabase environment variables')
+			}
+
+			const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
+			const {
+				data: { session },
+				error
+			} = await supabase.auth.getSession()
+
+			if (error) {
+				// Log to console to aid debugging in the browser without breaking flow
+				console.warn('[api] Supabase session lookup failed', error.message)
+			}
+
+			resolvedToken = session?.access_token || undefined
+		} catch (err) {
+			// Avoid throwing here to keep behaviour consistent with previous implementation
+			const message =
+				err instanceof Error ? err.message : 'Unknown Supabase client error'
+			console.warn('[api] Unable to resolve Supabase access token', message)
+		}
 	}
-	
-	// Server Components: Use explicit Authorization header
-	if (token) {
-		headers['Authorization'] = `Bearer ${token}`
+
+	const headers = new Headers(fetchOptions.headers as HeadersInit | undefined)
+
+	// Only set JSON content type when the body isn't FormData and header not provided
+	if (!(fetchOptions.body instanceof FormData) && !headers.has('Content-Type')) {
+		headers.set('Content-Type', 'application/json')
 	}
-	
-	// Client Components: Send cookies via credentials
+
+	if (resolvedToken) {
+		headers.set('Authorization', `Bearer ${resolvedToken}`)
+	}
+
 	const finalOptions: RequestInit = {
 		...fetchOptions,
 		headers,
-		...(token ? {} : { credentials: 'include' as RequestCredentials })
+		...(resolvedToken
+			? {}
+			: {
+					credentials:
+						(fetchOptions.credentials as RequestCredentials | undefined) ??
+						('include' as RequestCredentials)
+			  })
 	}
-	
+
 	const response = await fetch(url, finalOptions)
-	
-	// Handle errors
+
 	if (!response.ok) {
-		const errorText = await response.text()
-		throw new Error(errorText || `HTTP ${response.status}`)
+		let errorPayload: unknown
+		try {
+			errorPayload = await response.json()
+		} catch {
+			errorPayload = await response.text()
+		}
+
+		const errorMessage =
+			typeof errorPayload === 'string'
+				? errorPayload
+				: (errorPayload as { message?: string })?.message ??
+				  `HTTP ${response.status}`
+
+		const error = new Error(errorMessage)
+		Object.assign(error, {
+			status: response.status,
+			payload: errorPayload
+		})
+		throw error
 	}
-	
-	// Handle empty responses (204 No Content)
+
 	if (response.status === 204) {
 		return undefined as T
 	}
-	
+
 	return response.json()
 }
