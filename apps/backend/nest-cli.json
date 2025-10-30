@@ -4,12 +4,25 @@
 	"sourceRoot": "src",
 	"entryFile": "main",
 	"compilerOptions": {
-		"deleteOutDir": true,
+		"deleteOutDir": false,
 		"webpack": false,
 		"builder": "tsc",
 		"tsConfigPath": "tsconfig.build.json",
-		"watchAssets": false,
-		"assets": [],
+		"watchAssets": true,
+		"assets": [
+			{
+				"include": "modules/pdf/templates/**/*",
+				"watchAssets": true
+			},
+			{
+				"include": "modules/reports/templates/**/*",
+				"watchAssets": true
+			},
+			{
+				"include": "emails/**/*",
+				"watchAssets": true
+			}
+		],
 		"plugins": []
 	}
 }
