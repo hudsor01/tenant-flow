@@ -29,7 +29,9 @@ export class SupabaseService {
 		private readonly adminClient: SupabaseClient<Database>
 	) {
 		this.logger.debug('SupabaseService initialized with injected admin client')
-		this.tokenResolver = new SupabaseAuthTokenResolver()
+		this.tokenResolver = new SupabaseAuthTokenResolver(
+			process.env.SUPABASE_PROJECT_REF ?? 'bshjmbshupiibfiewpxb'
+		)
 	}
 
 	getPoolMetrics(): SupabaseClientPoolMetrics {
@@ -217,6 +219,9 @@ export class SupabaseService {
 				this.logger.warn('No auth token found in request', {
 					endpoint: req.path,
 					hasAuthHeader: tokenDetails.authHeaderPresent,
+					expectedCookieName: tokenDetails.expectedCookieName,
+					availableCookies: tokenDetails.availableCookies,
+					cookieKeys: tokenDetails.cookieKeys,
 					headers: {
 						origin: req.headers.origin,
 						referer: req.headers.referer
@@ -225,9 +230,11 @@ export class SupabaseService {
 				return null
 			}
 
-			this.logger.debug('Using token from Authorization header', {
+			this.logger.debug('Authentication token resolved', {
 				endpoint: req.path,
-				method: req.method
+				method: req.method,
+				source: tokenDetails.source,
+				cookieKeys: tokenDetails.cookieKeys
 			})
 
 			// Use Supabase's native auth.getUser() with the token
