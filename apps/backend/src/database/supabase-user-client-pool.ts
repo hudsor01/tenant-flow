@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common'
+import type { Logger } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
