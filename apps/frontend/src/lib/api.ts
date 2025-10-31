@@ -1,15 +1,18 @@
 /**
  * Production-Ready API Client (October 2025)
- * 
+ *
  * PHILOSOPHY: Native fetch() with minimal utility helper
  * - Browser: Sends cookies automatically via `credentials: 'include'`
  * - Server: Requires explicit Authorization header with token
  * - No abstractions, no wrappers, just fetch()
- * 
+ *
  * Per Next.js 15 and TanStack Query v5 official docs
  */
 
 import { getApiBaseUrl } from './api-config'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'api-client' })
 
 interface FetchOptions extends RequestInit {
 	token?: string // Optional for Server Components
@@ -17,12 +20,12 @@ interface FetchOptions extends RequestInit {
 
 /**
  * Universal fetch helper for API calls
- * 
+ *
  * CLIENT USAGE (automatic cookie auth):
  * ```ts
  * const data = await api<Property[]>('properties')
  * ```
- * 
+ *
  * SERVER USAGE (manual token from requireSession):
  * ```ts
  * const { accessToken } = await requireSession()
@@ -58,7 +61,10 @@ export async function api<T = unknown>(
 
 			if (error) {
 				// Log to console to aid debugging in the browser without breaking flow
-				console.warn('[api] Supabase session lookup failed', error.message)
+				logger.warn('Supabase session lookup failed', {
+					error: error.message,
+					endpoint: url
+				})
 			}
 
 			resolvedToken = session?.access_token || undefined
@@ -66,14 +72,20 @@ export async function api<T = unknown>(
 			// Avoid throwing here to keep behaviour consistent with previous implementation
 			const message =
 				err instanceof Error ? err.message : 'Unknown Supabase client error'
-			console.warn('[api] Unable to resolve Supabase access token', message)
+			logger.warn('Unable to resolve Supabase access token', {
+				error: message,
+				endpoint: url
+			})
 		}
 	}
 
 	const headers = new Headers(fetchOptions.headers as HeadersInit | undefined)
 
 	// Only set JSON content type when the body isn't FormData and header not provided
-	if (!(fetchOptions.body instanceof FormData) && !headers.has('Content-Type')) {
+	if (
+		!(fetchOptions.body instanceof FormData) &&
+		!headers.has('Content-Type')
+	) {
 		headers.set('Content-Type', 'application/json')
 	}
 
@@ -90,7 +102,7 @@ export async function api<T = unknown>(
 					credentials:
 						(fetchOptions.credentials as RequestCredentials | undefined) ??
 						('include' as RequestCredentials)
-			  })
+				})
 	}
 
 	const response = await fetch(url, finalOptions)
@@ -106,8 +118,8 @@ export async function api<T = unknown>(
 		const errorMessage =
 			typeof errorPayload === 'string'
 				? errorPayload
-				: (errorPayload as { message?: string })?.message ??
-				  `HTTP ${response.status}`
+				: ((errorPayload as { message?: string })?.message ??
+					`HTTP ${response.status}`)
 
 		const error = new Error(errorMessage)
 		Object.assign(error, {
