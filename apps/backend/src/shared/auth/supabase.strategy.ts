@@ -35,19 +35,24 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			throw new Error('Invalid SUPABASE_URL format - cannot extract project ID')
 		}
 
+		const cookieExtractor = (request: unknown): string | null => {
+			if (!request || typeof request !== 'object') return null
+			const cookies = (request as { cookies?: Record<string, unknown> }).cookies
+			if (!cookies) return null
+
+			const baseName = `sb-${projectId}-auth-token`
+			const combinedValue = this.combineCookieValues(cookies, baseName)
+			if (!combinedValue) return null
+
+			return this.extractAccessTokenFromCookieValue(combinedValue)
+		}
+
 		// Modern JWKS-based authentication (RS256/ES256)
 		// Supports both Authorization header AND Supabase cookies (Next.js middleware)
 		super({
 			jwtFromRequest: ExtractJwt.fromExtractors([
 				ExtractJwt.fromAuthHeaderAsBearerToken(),
-				(request) => {
-					// Extract from Supabase auth cookie (set by Next.js middleware)
-					// Cookie format: sb-{project-id}-auth-token
-					const cookieName = `sb-${projectId}-auth-token`
-
-					// cookie-parser middleware parses cookies into req.cookies object
-					return request?.cookies?.[cookieName] || null
-				}
+				cookieExtractor
 			]),
 			ignoreExpiration: false,
 			secretOrKeyProvider: jwksRsa.passportJwtSecret({
@@ -147,5 +152,98 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 		})
 
 		return user
+	}
+
+	private combineCookieValues(
+		cookies: Record<string, unknown>,
+		baseName: string
+	): string | null {
+		const baseValue = cookies[baseName]
+		if (typeof baseValue === 'string' && baseValue.length > 0) {
+			return baseValue
+		}
+		if (Array.isArray(baseValue) && baseValue.length > 0) {
+			return baseValue.join('')
+		}
+
+		const combined = Object.keys(cookies)
+			.filter(key => key.startsWith(`${baseName}.`))
+			.sort((a, b) => {
+				const suffixA = a.substring(baseName.length + 1)
+				const suffixB = b.substring(baseName.length + 1)
+				const numA = Number.parseInt(suffixA, 10)
+				const numB = Number.parseInt(suffixB, 10)
+				const isNumA = Number.isFinite(numA)
+				const isNumB = Number.isFinite(numB)
+				if (isNumA && isNumB) return numA - numB
+				if (isNumA) return -1
+				if (isNumB) return 1
+				return suffixA.localeCompare(suffixB)
+			})
+			.map(key => cookies[key])
+			.filter(Boolean)
+			.map(value =>
+				typeof value === 'string'
+					? value
+					: Array.isArray(value)
+						? value.join('')
+						: ''
+			)
+			.join('')
+
+		return combined.length > 0 ? combined : null
+	}
+
+	private extractAccessTokenFromCookieValue(value: string): string | null {
+		const candidates = new Set<string>([value])
+		try {
+			const decoded = decodeURIComponent(value)
+			candidates.add(decoded)
+		} catch {
+			// ignore decode failures
+		}
+
+		for (const candidate of candidates) {
+			const token = this.tryParseAccessToken(candidate)
+			if (token) return token
+		}
+
+		return null
+	}
+
+	private tryParseAccessToken(raw: string): string | null {
+		try {
+			const parsed = JSON.parse(raw)
+
+			if (typeof parsed === 'string') {
+				return this.tryParseAccessToken(parsed)
+			}
+
+			if (parsed && typeof parsed === 'object') {
+				const possibleSessions = [
+					(parsed as { currentSession?: unknown }).currentSession,
+					(parsed as { session?: unknown }).session,
+					parsed,
+					Array.isArray(parsed) ? parsed[0] : undefined
+				]
+
+				for (const session of possibleSessions) {
+					if (!session || typeof session !== 'object') continue
+					const directToken =
+						(session as Record<string, unknown>).access_token ??
+						(session as Record<string, unknown>).accessToken ??
+						(session as Record<string, unknown>)['access-token']
+
+					if (typeof directToken === 'string' && directToken.length > 0) {
+						return directToken
+					}
+				}
+			}
+		} catch {
+			// ignore parse errors
+		}
+
+		const regexMatch = raw.match(/"access[_-]?token"\s*:\s*"([^"]+)"/)
+		return regexMatch?.[1] ?? null
 	}
 }

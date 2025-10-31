@@ -23,7 +23,9 @@ const nextConfig: NextConfig = {
 		}
 	},
 
-	turbopack: {},
+	turbopack: {
+		resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.mdx']
+	},
 
 	outputFileTracingIncludes: {
 		'/api/*': ['./node_modules/**/*.node']
@@ -34,27 +36,8 @@ const nextConfig: NextConfig = {
 		serverComponentsHmrCache: true,
 		serverActions: {
 			bodySizeLimit: '2mb',
-			allowedOrigins: [
-				'tenantflow.app',
-				'*.tenantflow.app',
-				'*.vercel.app'
-			]
+			allowedOrigins: ['tenantflow.app', '*.tenantflow.app', '*.vercel.app']
 		}
-	},
-
-	webpack: (config, { isServer }) => {
-		// Suppress warnings for Chrome extension modules in SSR
-		if (isServer) {
-			config.resolve.fallback = {
-				...config.resolve.fallback,
-				fs: false,
-				net: false,
-				tls: false
-			}
-		}
-
-		// Important: return the modified config
-		return config
 	},
 
 	async headers() {
