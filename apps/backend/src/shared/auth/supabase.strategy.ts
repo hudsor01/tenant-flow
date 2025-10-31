@@ -35,6 +35,8 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			throw new Error('Invalid SUPABASE_URL format - cannot extract project ID')
 		}
 
+		const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET
+
 		const cookieExtractor = (request: unknown): string | null => {
 			if (!request || typeof request !== 'object') return null
 			const cookies = (request as { cookies?: Record<string, unknown> }).cookies
@@ -47,28 +49,44 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			return this.extractAccessTokenFromCookieValue(combinedValue)
 		}
 
-		// Modern JWKS-based authentication (RS256/ES256)
-		// Supports both Authorization header AND Supabase cookies (Next.js middleware)
-		super({
-			jwtFromRequest: ExtractJwt.fromExtractors([
-				ExtractJwt.fromAuthHeaderAsBearerToken(),
-				cookieExtractor
-			]),
-			ignoreExpiration: false,
-			secretOrKeyProvider: jwksRsa.passportJwtSecret({
-				jwksUri: `${supabaseUrl}/auth/v1/.well-known/jwks.json`,
-				cache: true,
-				cacheMaxEntries: 5,
-				cacheMaxAge: 600000, // 10 minutes
-				rateLimit: true,
-				jwksRequestsPerMinute: 10
-			}),
-			algorithms: ['RS256', 'ES256']
-		})
+		const extractors = [
+			ExtractJwt.fromAuthHeaderAsBearerToken(),
+			cookieExtractor
+		]
 
-		this.logger.log(
-			'SupabaseStrategy initialized with JWKS verification (RS256/ES256) - supports Authorization header and cookies'
-		)
+		if (supabaseJwtSecret) {
+			// Legacy HS256 projects - use shared secret
+			super({
+				jwtFromRequest: ExtractJwt.fromExtractors(extractors),
+				ignoreExpiration: false,
+				secretOrKey: supabaseJwtSecret,
+				algorithms: ['HS256']
+			})
+
+			this.logger.log(
+				'SupabaseStrategy initialized with shared JWT secret (HS256) - supports Authorization header and cookies'
+			)
+		} else {
+			// Modern JWKS-based authentication (RS256/ES256)
+			// Supports both Authorization header AND Supabase cookies (Next.js middleware)
+			super({
+				jwtFromRequest: ExtractJwt.fromExtractors(extractors),
+				ignoreExpiration: false,
+				secretOrKeyProvider: jwksRsa.passportJwtSecret({
+					jwksUri: `${supabaseUrl}/auth/v1/.well-known/jwks.json`,
+					cache: true,
+					cacheMaxEntries: 5,
+					cacheMaxAge: 600000, // 10 minutes
+					rateLimit: true,
+					jwksRequestsPerMinute: 10
+				}),
+				algorithms: ['RS256', 'ES256']
+			})
+
+			this.logger.log(
+				'SupabaseStrategy initialized with JWKS verification (RS256/ES256) - supports Authorization header and cookies'
+			)
+		}
 	}
 
 	async validate(payload: SupabaseJwtPayload): Promise<authUser> {
