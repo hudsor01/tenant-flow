@@ -128,6 +128,18 @@ export class SupabaseAuthTokenResolver {
 			}
 		}
 
+		for (const candidate of Array.from(candidates)) {
+			if (candidate.startsWith('base64-')) {
+				const payload = candidate.slice('base64-'.length)
+				try {
+					const decodedBase64 = Buffer.from(payload, 'base64').toString('utf-8')
+					candidates.add(decodedBase64)
+				} catch {
+					// ignore base64 decode errors
+				}
+			}
+		}
+
 		for (const candidate of candidates) {
 			try {
 				const parsed = JSON.parse(candidate)

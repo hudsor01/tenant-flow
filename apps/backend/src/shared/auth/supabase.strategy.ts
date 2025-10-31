@@ -203,6 +203,18 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			// ignore decode failures
 		}
 
+		for (const candidate of Array.from(candidates)) {
+			if (candidate.startsWith('base64-')) {
+				const base64Payload = candidate.slice('base64-'.length)
+				try {
+					const decodedBase64 = Buffer.from(base64Payload, 'base64').toString('utf-8')
+					candidates.add(decodedBase64)
+				} catch {
+					// ignore base64 decode errors
+				}
+			}
+		}
+
 		for (const candidate of candidates) {
 			const token = this.tryParseAccessToken(candidate)
 			if (token) return token
