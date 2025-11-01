@@ -5,6 +5,7 @@
  * TanStack Query hooks for payment history management
  */
 
+import { API_BASE_URL } from '#lib/api-config'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 /**
@@ -64,7 +65,7 @@ export function usePaymentHistory() {
 	return useQuery({
 		queryKey: paymentHistoryKeys.list(),
 		queryFn: async (): Promise<PaymentHistoryItem[]> => {
-			const res = await fetch('/api/v1/rent-payments/history', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/rent-payments/history`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -106,7 +107,7 @@ export function useFailedPaymentAttempts() {
 	return useQuery({
 		queryKey: [...paymentHistoryKeys.all, 'failed'],
 		queryFn: async (): Promise<FailedPaymentAttempt[]> => {
-			const res = await fetch('/api/v1/rent-payments/failed-attempts', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/rent-payments/failed-attempts`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -151,7 +152,7 @@ export function usePrefetchPaymentHistory() {
 		queryClient.prefetchQuery({
 			queryKey: paymentHistoryKeys.list(),
 			queryFn: async (): Promise<PaymentHistoryItem[]> => {
-				const res = await fetch('/api/v1/rent-payments/history', {
+				const res = await fetch(`${API_BASE_URL}/api/v1/rent-payments/history`, {
 					credentials: 'include'
 				})
 				if (!res.ok) {
