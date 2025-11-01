@@ -68,7 +68,7 @@
 		"generate:schemas": "turbo run generate:schemas --filter=@repo/frontend",
 		"validate": "pnpm clean && pnpm build:shared && pnpm typecheck && pnpm lint && doppler run -- pnpm --filter @repo/backend test:unit && doppler run -- pnpm test:integration && vercel build --no-wait && echo '✅ ALL VALIDATION PASSED - READY TO COMMIT'",
 		"validate:quick": "pnpm typecheck && pnpm lint && doppler run -- pnpm test:unit && echo '✅ QUICK VALIDATION PASSED'",
-		"validate:clean": "pnpm typecheck && pnpm lint && doppler run -- pnpm --filter @repo/backend test:unit:clean && npx lint-staged --allow-empty --no-stash && echo '✅ CLEAN VALIDATION PASSED'",
+		"validate:clean": "pnpm typecheck && pnpm lint && doppler run -- pnpm --filter @repo/backend test:unit:clean && echo '✅ CLEAN VALIDATION PASSED'",
 		"audit:routes": "tsx scripts/audit-api-routes.ts",
 		"stripe:migrate": "doppler run -- pnpm --filter @repo/backend stripe:migrate"
 	},
@@ -119,7 +119,6 @@
 		"@commitlint/config-conventional": "20.0.0",
 		"@repo/eslint-config": "workspace:*",
 		"husky": "9.1.7",
-		"lint-staged": "16.2.6",
 		"prettier": "catalog:",
 		"rimraf": "^6.1.0",
 		"syncpack": "^13.0.4",

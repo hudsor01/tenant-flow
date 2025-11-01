@@ -7,7 +7,7 @@ import type {
   DashboardTrendData,
   DashboardTimeSeriesOptions,
 } from '@repo/shared/types/dashboard-repository'
-import { API_BASE_URL } from '#lib/api-config'
+import { clientFetch } from '#lib/api/client'
 
 export const dashboardTrendKeys = {
   all: ['dashboard-trends'] as const,
@@ -31,12 +31,9 @@ export function useMetricTrend(
     queryFn: async (): Promise<MetricTrend> => {
       if (!userId) throw new Error('User ID required')
 
-      const res = await fetch(
-        `${API_BASE_URL}/api/v1/manage/metric-trend?metric=${metric}&period=${period}`,
-        { credentials: 'include' }
+      const response = await clientFetch<{ data: MetricTrend }>(
+        `/api/v1/manage/metric-trend?metric=${metric}&period=${period}`
       )
-      if (!res.ok) throw new Error('Failed to fetch metric trend')
-      const response = await res.json()
       return response.data as MetricTrend
     },
     enabled: !!userId,
@@ -59,12 +56,9 @@ export function useDashboardTimeSeries(
     queryFn: async (): Promise<TimeSeriesDataPoint[]> => {
       if (!userId) throw new Error('User ID required')
 
-      const res = await fetch(
-        `${API_BASE_URL}/api/v1/manage/time-series?metric=${metric}&days=${days}`,
-        { credentials: 'include' }
+      const response = await clientFetch<{ data: TimeSeriesDataPoint[] }>(
+        `/api/v1/manage/time-series?metric=${metric}&days=${days}`
       )
-      if (!res.ok) throw new Error('Failed to fetch time-series data')
-      const response = await res.json()
       return response.data || []
     },
     enabled: !!userId,
@@ -84,18 +78,10 @@ export function useDashboardTrendData(userId: string | undefined) {
 
       // Fetch all trends in parallel via backend API
       const [occupancyRate, activeTenants, monthlyRevenue, openMaintenance] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/v1/manage/metric-trend?metric=occupancy_rate&period=month`, {
-          credentials: 'include'
-        }).then(r => r.json()),
-        fetch(`${API_BASE_URL}/api/v1/manage/metric-trend?metric=active_tenants&period=month`, {
-          credentials: 'include'
-        }).then(r => r.json()),
-        fetch(`${API_BASE_URL}/api/v1/manage/metric-trend?metric=monthly_revenue&period=month`, {
-          credentials: 'include'
-        }).then(r => r.json()),
-        fetch(`${API_BASE_URL}/api/v1/manage/metric-trend?metric=open_maintenance&period=month`, {
-          credentials: 'include'
-        }).then(r => r.json()),
+        clientFetch<{ success: boolean; data: MetricTrend }>('/api/v1/manage/metric-trend?metric=occupancy_rate&period=month'),
+        clientFetch<{ success: boolean; data: MetricTrend }>('/api/v1/manage/metric-trend?metric=active_tenants&period=month'),
+        clientFetch<{ success: boolean; data: MetricTrend }>('/api/v1/manage/metric-trend?metric=monthly_revenue&period=month'),
+        clientFetch<{ success: boolean; data: MetricTrend }>('/api/v1/manage/metric-trend?metric=open_maintenance&period=month'),
       ])
 
       if (!occupancyRate.success) throw new Error('Failed to fetch occupancy rate trend')

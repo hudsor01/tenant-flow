@@ -10,7 +10,7 @@
  * - Proper error handling
  */
 
-import { API_BASE_URL } from '#lib/api-config'
+import { clientFetch } from '#lib/api/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import {
 	handleConflictError,
@@ -58,13 +58,7 @@ export function useProperty(id: string) {
 	return useQuery({
 		queryKey: propertiesKeys.detail(id),
 		queryFn: async (): Promise<Property> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties/${id}`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch property')
-			}
-			return res.json()
+			return clientFetch<Property>(`/api/v1/properties/${id}`)
 		},
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
@@ -96,15 +90,7 @@ export function usePropertyList(params?: {
 			searchParams.append('limit', limit.toString())
 			searchParams.append('offset', offset.toString())
 
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties?${searchParams.toString()}`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch properties')
-			}
-
-			// Backend returns Property[] directly, not paginated object
-			const response = await res.json() as Property[]
+			const response = await clientFetch<Property[]>(`/api/v1/properties?${searchParams.toString()}`)
 
 			// Prefetch individual property details
 			response?.forEach?.(property => {
@@ -134,13 +120,7 @@ export function usePropertiesWithUnits() {
 	return useQuery({
 		queryKey: propertiesKeys.withUnits(),
 		queryFn: async (): Promise<Property[]> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties/with-units`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch properties with units')
-			}
-			return res.json()
+			return clientFetch('/api/v1/properties/with-units')
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes
@@ -155,13 +135,7 @@ export function usePropertyStats() {
 	return useQuery({
 		queryKey: propertiesKeys.stats(),
 		queryFn: async (): Promise<PropertyStats> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties/stats`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch property stats')
-			}
-			return res.json()
+			return clientFetch('/api/v1/properties/stats')
 		},
 		staleTime: 10 * 60 * 1000, // 10 minutes
 		gcTime: 30 * 60 * 1000, // 30 minutes
@@ -176,13 +150,7 @@ export function usePropertyPerformanceAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.performance(),
 		queryFn: async () => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties/analytics/performance`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch property performance analytics')
-			}
-			return res.json()
+			return clientFetch('/api/v1/properties/analytics/performance')
 		},
 		staleTime: 15 * 60 * 1000, // 15 minutes
 		retry: 2
@@ -196,13 +164,7 @@ export function usePropertyOccupancyAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.occupancy(),
 		queryFn: async () => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties/analytics/occupancy`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch property occupancy analytics')
-			}
-			return res.json()
+			return clientFetch('/api/v1/properties/analytics/occupancy')
 		},
 		staleTime: 15 * 60 * 1000, // 15 minutes
 		retry: 2
@@ -216,13 +178,7 @@ export function usePropertyFinancialAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.financial(),
 		queryFn: async () => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties/analytics/financial`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch property financial analytics')
-			}
-			return res.json()
+			return clientFetch('/api/v1/properties/analytics/financial')
 		},
 		staleTime: 15 * 60 * 1000, // 15 minutes
 		retry: 2
@@ -236,13 +192,7 @@ export function usePropertyMaintenanceAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.maintenance(),
 		queryFn: async () => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties/analytics/maintenance`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch property maintenance analytics')
-			}
-			return res.json()
+			return clientFetch('/api/v1/properties/analytics/maintenance')
 		},
 		staleTime: 15 * 60 * 1000, // 15 minutes
 		retry: 2
@@ -257,18 +207,10 @@ export function useCreateProperty() {
 
 	return useMutation({
 		mutationFn: async (propertyData: CreatePropertyInput): Promise<Property> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
-				body: JSON.stringify(propertyData)
-			})
-			if (!res.ok) {
-				throw new Error('Failed to create property')
-			}
-			return res.json()
+			return clientFetch<Property>('/api/v1/properties', {
+			method: 'POST',
+			body: JSON.stringify(propertyData)
+		})
 		},
 		onMutate: async (newProperty: CreatePropertyInput) => {
 			// Cancel outgoing refetches
@@ -377,19 +319,11 @@ export function useUpdateProperty() {
 				propertiesKeys.detail(id)
 			)
 
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties/${id}`, {
+			return clientFetch<Property>(`/api/v1/properties/${id}`, {
 				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				// Use withVersion helper to include version in request
 				body: JSON.stringify(withVersion(data, currentProperty?.version))
 			})
-			if (!res.ok) {
-				throw new Error('Failed to update property')
-			}
-			return res.json()
 		},
 		onMutate: async ({ id, data }) => {
 			// Cancel outgoing queries
@@ -499,22 +433,14 @@ export function useMarkPropertySold() {
 			salePrice: number
 			saleNotes?: string
 		}): Promise<{ success: boolean; message: string }> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties/${id}/mark-sold`, {
+			return clientFetch<{ success: boolean; message: string }>(`/api/v1/properties/${id}/mark-sold`, {
 				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify({
 					dateSold: dateSold.toISOString(),
 					salePrice,
 					saleNotes
 				})
 			})
-			if (!res.ok) {
-				throw new Error('Failed to mark property as sold')
-			}
-			return res.json()
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries
@@ -573,14 +499,9 @@ export function useDeleteProperty() {
 
 	return useMutation({
 		mutationFn: async (id: string): Promise<{ message: string }> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties/${id}`, {
-				method: 'DELETE',
-				credentials: 'include'
+			return clientFetch<{ message: string }>(`/api/v1/properties/${id}`, {
+				method: 'DELETE'
 			})
-			if (!res.ok) {
-				throw new Error('Failed to delete property')
-			}
-			return res.json()
 		},
 		onMutate: async id => {
 			// Cancel outgoing queries to avoid overwriting optimistic update
@@ -639,13 +560,7 @@ export function usePrefetchProperty() {
 		queryClient.prefetchQuery({
 			queryKey: propertiesKeys.detail(id),
 			queryFn: async (): Promise<Property> => {
-				const res = await fetch(`${API_BASE_URL}/api/v1/properties/${id}`, {
-					credentials: 'include'
-				})
-				if (!res.ok) {
-					throw new Error('Failed to fetch property')
-				}
-				return res.json()
+				return clientFetch<Property>(`/api/v1/properties/${id}`)
 			},
 			staleTime: 5 * 60 * 1000
 		})
@@ -662,15 +577,7 @@ export function usePrefetchProperty() {
 export function usePropertyImages(propertyId: string) {
 	return useQuery({
 		queryKey: [...propertiesKeys.detail(propertyId), 'images'] as const,
-		queryFn: async (): Promise<Tables<'property_images'>[]> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties/${propertyId}/images`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch property images')
-			}
-			return res.json()
-		},
+		queryFn: () => clientFetch<Tables<'property_images'>[]>(`/api/v1/properties/${propertyId}/images`),
 		enabled: !!propertyId,
 		staleTime: 5 * 60 * 1000,
 		gcTime: 10 * 60 * 1000
@@ -703,15 +610,10 @@ export function useUploadPropertyImage() {
 			formData.append('isPrimary', String(isPrimary))
 			if (caption) formData.append('caption', caption)
 
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties/${propertyId}/images`, {
+			const result = await clientFetch(`/api/v1/properties/${propertyId}/images`, {
 				method: 'POST',
-				credentials: 'include',
 				body: formData
 			})
-			if (!res.ok) {
-				throw new Error('Failed to upload property image')
-			}
-			const result = await res.json()
 
 			return { result, compressionRatio: compressed.compressionRatio }
 		},
@@ -737,22 +639,16 @@ export function useDeletePropertyImage() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({
+		mutationFn: ({
 			imageId,
 			propertyId: _propertyId
 		}: {
 			imageId: string
 			propertyId: string
-		}): Promise<{ message: string }> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties/images/${imageId}`, {
-				method: 'DELETE',
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to delete property image')
-			}
-			return res.json()
-		},
+		}) =>
+			clientFetch<{ message: string }>(`/api/v1/properties/images/${imageId}`, {
+				method: 'DELETE'
+			}),
 		onSuccess: (_, { propertyId }) => {
 			handleMutationSuccess('Delete image')
 			// Invalidate property images

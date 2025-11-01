@@ -1,6 +1,7 @@
 'use client'
 
 import type { SubscriptionData } from '#types/stripe'
+import { clientFetch } from '#lib/api/client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { StripeSessionStatusResponse } from '@repo/shared/types/core'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -22,29 +23,22 @@ export function usePaymentVerification(sessionId: string | null, options: { thro
 				throw new Error('No session ID provided')
 			}
 
-			const response = await fetch('/stripe/verify-session', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
-				body: JSON.stringify({ sessionId })
-			})
-
-			if (!response.ok) {
-				const errorText = await response.text()
+			let data
+			try {
+				data = await clientFetch<{ subscription: SubscriptionData }>('/stripe/verify-session', {
+					method: 'POST',
+					body: JSON.stringify({ sessionId })
+				})
+			} catch (error) {
 				logger.error('Payment verification failed', {
 					action: 'payment_verification_failed',
 					metadata: {
 						sessionId,
-						status: response.status,
-						error: errorText
+						error: error instanceof Error ? error.message : String(error)
 					}
 				})
-				throw new Error(`Failed to verify payment: ${response.statusText}`)
+				throw error
 			}
-
-			const data = await response.json()
 
 			logger.info('Payment verification successful', {
 				action: 'payment_verification_success',
@@ -76,16 +70,9 @@ export function useSessionStatus(sessionId: string | null, options: { throwOnErr
 				throw new Error('No session ID provided')
 			}
 
-			const res = await fetch(
-				`/stripe/session-status?session_id=${sessionId}`,
-				{ credentials: 'include' }
+			const data = await clientFetch<StripeSessionStatusResponse>(
+				`/stripe/session-status?session_id=${sessionId}`
 			)
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch session status')
-			}
-
-			const data = await res.json() as StripeSessionStatusResponse
 
 			logger.info('Session status retrieved', {
 				action: 'session_status_retrieved',
@@ -132,16 +119,10 @@ export function usePrefetchSessionStatus() {
 	return (sessionId: string) => {
 		queryClient.prefetchQuery({
 			queryKey: paymentQueryKeys.sessionStatus(sessionId),
-			queryFn: async (): Promise<StripeSessionStatusResponse> => {
-				const res = await fetch(
-					`/stripe/session-status?session_id=${sessionId}`,
-					{ credentials: 'include' }
-				)
-				if (!res.ok) {
-					throw new Error('Failed to fetch session status')
-				}
-				return res.json()
-			},
+			queryFn: () =>
+				clientFetch<StripeSessionStatusResponse>(
+					`/stripe/session-status?session_id=${sessionId}`
+				),
 			staleTime: 1 * 60 * 1000
 		})
 	}
