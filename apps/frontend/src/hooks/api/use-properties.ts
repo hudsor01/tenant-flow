@@ -10,6 +10,7 @@
  * - Proper error handling
  */
 
+import { API_BASE_URL } from '#lib/api-config'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import {
 	handleConflictError,
@@ -57,7 +58,7 @@ export function useProperty(id: string) {
 	return useQuery({
 		queryKey: propertiesKeys.detail(id),
 		queryFn: async (): Promise<Property> => {
-			const res = await fetch(`/api/v1/properties/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties/${id}`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -95,7 +96,7 @@ export function usePropertyList(params?: {
 			searchParams.append('limit', limit.toString())
 			searchParams.append('offset', offset.toString())
 
-			const res = await fetch(`/api/v1/properties?${searchParams.toString()}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties?${searchParams.toString()}`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -133,7 +134,7 @@ export function usePropertiesWithUnits() {
 	return useQuery({
 		queryKey: propertiesKeys.withUnits(),
 		queryFn: async (): Promise<Property[]> => {
-			const res = await fetch('/api/v1/properties/with-units', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties/with-units`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -154,7 +155,7 @@ export function usePropertyStats() {
 	return useQuery({
 		queryKey: propertiesKeys.stats(),
 		queryFn: async (): Promise<PropertyStats> => {
-			const res = await fetch('/api/v1/properties/stats', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties/stats`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -175,7 +176,7 @@ export function usePropertyPerformanceAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.performance(),
 		queryFn: async () => {
-			const res = await fetch('/api/v1/properties/analytics/performance', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties/analytics/performance`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -195,7 +196,7 @@ export function usePropertyOccupancyAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.occupancy(),
 		queryFn: async () => {
-			const res = await fetch('/api/v1/properties/analytics/occupancy', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties/analytics/occupancy`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -215,7 +216,7 @@ export function usePropertyFinancialAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.financial(),
 		queryFn: async () => {
-			const res = await fetch('/api/v1/properties/analytics/financial', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties/analytics/financial`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -235,7 +236,7 @@ export function usePropertyMaintenanceAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.maintenance(),
 		queryFn: async () => {
-			const res = await fetch('/api/v1/properties/analytics/maintenance', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties/analytics/maintenance`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -256,7 +257,7 @@ export function useCreateProperty() {
 
 	return useMutation({
 		mutationFn: async (propertyData: CreatePropertyInput): Promise<Property> => {
-			const res = await fetch('/api/v1/properties', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -376,7 +377,7 @@ export function useUpdateProperty() {
 				propertiesKeys.detail(id)
 			)
 
-			const res = await fetch(`/api/v1/properties/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties/${id}`, {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json'
@@ -498,7 +499,7 @@ export function useMarkPropertySold() {
 			salePrice: number
 			saleNotes?: string
 		}): Promise<{ success: boolean; message: string }> => {
-			const res = await fetch(`/api/v1/properties/${id}/mark-sold`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties/${id}/mark-sold`, {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json'
@@ -572,7 +573,7 @@ export function useDeleteProperty() {
 
 	return useMutation({
 		mutationFn: async (id: string): Promise<{ message: string }> => {
-			const res = await fetch(`/api/v1/properties/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties/${id}`, {
 				method: 'DELETE',
 				credentials: 'include'
 			})
@@ -638,7 +639,7 @@ export function usePrefetchProperty() {
 		queryClient.prefetchQuery({
 			queryKey: propertiesKeys.detail(id),
 			queryFn: async (): Promise<Property> => {
-				const res = await fetch(`/api/v1/properties/${id}`, {
+				const res = await fetch(`${API_BASE_URL}/api/v1/properties/${id}`, {
 					credentials: 'include'
 				})
 				if (!res.ok) {
@@ -662,7 +663,7 @@ export function usePropertyImages(propertyId: string) {
 	return useQuery({
 		queryKey: [...propertiesKeys.detail(propertyId), 'images'] as const,
 		queryFn: async (): Promise<Tables<'property_images'>[]> => {
-			const res = await fetch(`/api/v1/properties/${propertyId}/images`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties/${propertyId}/images`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -702,7 +703,7 @@ export function useUploadPropertyImage() {
 			formData.append('isPrimary', String(isPrimary))
 			if (caption) formData.append('caption', caption)
 
-			const res = await fetch(`/api/v1/properties/${propertyId}/images`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties/${propertyId}/images`, {
 				method: 'POST',
 				credentials: 'include',
 				body: formData
@@ -743,7 +744,7 @@ export function useDeletePropertyImage() {
 			imageId: string
 			propertyId: string
 		}): Promise<{ message: string }> => {
-			const res = await fetch(`/api/v1/properties/images/${imageId}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties/images/${imageId}`, {
 				method: 'DELETE',
 				credentials: 'include'
 			})

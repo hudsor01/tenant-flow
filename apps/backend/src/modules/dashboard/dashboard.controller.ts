@@ -324,6 +324,94 @@ export class DashboardController {
 		}
 	}
 
+	/**
+	 * Get time-series data for dashboard charts
+	 */
+	@Get('time-series')
+	async getTimeSeries(
+		@Req() req: AuthenticatedRequest,
+		@Query('metric') metric: string,
+		@Query('days') days?: string
+	): Promise<ControllerApiResponse> {
+		const userId = req.user.id
+		const token = this.supabase.getTokenFromRequest(req) || undefined
+
+		if (!metric) {
+			return {
+				success: false,
+				data: null,
+				message: 'metric parameter is required',
+				timestamp: new Date()
+			}
+		}
+
+		const parsedDays = days ? parseInt(days, 10) : 30
+		this.logger?.log(
+			{
+				dashboard: {
+					action: 'getTimeSeries',
+					userId: userId,
+					metric,
+					days: parsedDays
+				}
+			},
+			'Getting time-series data via RPC'
+		)
+
+		const data = await this.dashboardService.getTimeSeries(userId, metric, parsedDays, token)
+
+		return {
+			success: true,
+			data,
+			message: 'Time-series data retrieved successfully',
+			timestamp: new Date()
+		}
+	}
+
+	/**
+	 * Get metric trend comparing current vs previous period
+	 */
+	@Get('metric-trend')
+	async getMetricTrend(
+		@Req() req: AuthenticatedRequest,
+		@Query('metric') metric: string,
+		@Query('period') period?: string
+	): Promise<ControllerApiResponse> {
+		const userId = req.user.id
+		const token = this.supabase.getTokenFromRequest(req) || undefined
+
+		if (!metric) {
+			return {
+				success: false,
+				data: null,
+				message: 'metric parameter is required',
+				timestamp: new Date()
+			}
+		}
+
+		const validPeriod = period || 'month'
+		this.logger?.log(
+			{
+				dashboard: {
+					action: 'getMetricTrend',
+					userId: userId,
+					metric,
+					period: validPeriod
+				}
+			},
+			'Getting metric trend via RPC'
+		)
+
+		const data = await this.dashboardService.getMetricTrend(userId, metric, validPeriod, token)
+
+		return {
+			success: true,
+			data,
+			message: 'Metric trend retrieved successfully',
+			timestamp: new Date()
+		}
+	}
+
 	@Get('maintenance-analytics')
 	async getMaintenanceAnalytics(
 		@Request() req: AuthenticatedRequest

@@ -1,13 +1,13 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { createClient } from '#lib/supabase/client'
 import type {
   MetricTrend,
   TimeSeriesDataPoint,
   DashboardTrendData,
   DashboardTimeSeriesOptions,
 } from '@repo/shared/types/dashboard-repository'
+import { API_BASE_URL } from '#lib/api-config'
 
 export const dashboardTrendKeys = {
   all: ['dashboard-trends'] as const,
@@ -31,15 +31,13 @@ export function useMetricTrend(
     queryFn: async (): Promise<MetricTrend> => {
       if (!userId) throw new Error('User ID required')
 
-      const supabase = createClient()
-      const { data, error } = await supabase.rpc('get_metric_trend', {
-        p_user_id: userId,
-        p_metric_name: metric,
-        p_period: period,
-      })
-
-      if (error) throw error
-      return data as MetricTrend
+      const res = await fetch(
+        `${API_BASE_URL}/api/v1/manage/metric-trend?metric=${metric}&period=${period}`,
+        { credentials: 'include' }
+      )
+      if (!res.ok) throw new Error('Failed to fetch metric trend')
+      const response = await res.json()
+      return response.data as MetricTrend
     },
     enabled: !!userId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -61,15 +59,13 @@ export function useDashboardTimeSeries(
     queryFn: async (): Promise<TimeSeriesDataPoint[]> => {
       if (!userId) throw new Error('User ID required')
 
-      const supabase = createClient()
-      const { data, error } = await supabase.rpc('get_dashboard_time_series', {
-        p_user_id: userId,
-        p_metric_name: metric,
-        p_days: days,
-      })
-
-      if (error) throw error
-      return (data as TimeSeriesDataPoint[]) || []
+      const res = await fetch(
+        `${API_BASE_URL}/api/v1/manage/time-series?metric=${metric}&days=${days}`,
+        { credentials: 'include' }
+      )
+      if (!res.ok) throw new Error('Failed to fetch time-series data')
+      const response = await res.json()
+      return response.data || []
     },
     enabled: !!userId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -86,36 +82,26 @@ export function useDashboardTrendData(userId: string | undefined) {
     queryFn: async (): Promise<DashboardTrendData> => {
       if (!userId) throw new Error('User ID required')
 
-      const supabase = createClient()
-
-      // Fetch all trends in parallel
+      // Fetch all trends in parallel via backend API
       const [occupancyRate, activeTenants, monthlyRevenue, openMaintenance] = await Promise.all([
-        supabase.rpc('get_metric_trend', {
-          p_user_id: userId,
-          p_metric_name: 'occupancy_rate',
-          p_period: 'month',
-        }),
-        supabase.rpc('get_metric_trend', {
-          p_user_id: userId,
-          p_metric_name: 'active_tenants',
-          p_period: 'month',
-        }),
-        supabase.rpc('get_metric_trend', {
-          p_user_id: userId,
-          p_metric_name: 'monthly_revenue',
-          p_period: 'month',
-        }),
-        supabase.rpc('get_metric_trend', {
-          p_user_id: userId,
-          p_metric_name: 'open_maintenance',
-          p_period: 'month',
-        }),
+        fetch(`${API_BASE_URL}/api/v1/manage/metric-trend?metric=occupancy_rate&period=month`, {
+          credentials: 'include'
+        }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/v1/manage/metric-trend?metric=active_tenants&period=month`, {
+          credentials: 'include'
+        }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/v1/manage/metric-trend?metric=monthly_revenue&period=month`, {
+          credentials: 'include'
+        }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/v1/manage/metric-trend?metric=open_maintenance&period=month`, {
+          credentials: 'include'
+        }).then(r => r.json()),
       ])
 
-      if (occupancyRate.error) throw occupancyRate.error
-      if (activeTenants.error) throw activeTenants.error
-      if (monthlyRevenue.error) throw monthlyRevenue.error
-      if (openMaintenance.error) throw openMaintenance.error
+      if (!occupancyRate.success) throw new Error('Failed to fetch occupancy rate trend')
+      if (!activeTenants.success) throw new Error('Failed to fetch active tenants trend')
+      if (!monthlyRevenue.success) throw new Error('Failed to fetch monthly revenue trend')
+      if (!openMaintenance.success) throw new Error('Failed to fetch open maintenance trend')
 
       return {
         occupancyRate: occupancyRate.data as MetricTrend,

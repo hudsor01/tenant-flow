@@ -3,6 +3,7 @@
  * Phase 5: Advanced Features - Custom Reports & Analytics
  */
 
+import { API_BASE_URL } from '#lib/api-config'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { UseMutationResult } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -148,7 +149,7 @@ export function useReports({
 			queryParams.append('limit', limit.toString())
 			queryParams.append('offset', offset.toString())
 
-			const res = await fetch(`/reports?${queryParams.toString()}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/reports?${queryParams.toString()}`, {
 				credentials: 'include'
 			})
 
@@ -165,7 +166,7 @@ export function useReports({
 
 	const deleteMutation = useMutation({
 		mutationFn: async (reportId: string): Promise<void> => {
-			const res = await fetch(`/reports/${reportId}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/reports/${reportId}`, {
 				method: 'DELETE',
 				credentials: 'include'
 			})
@@ -218,7 +219,7 @@ export function useReports({
 
 	const downloadMutation = useMutation({
 		mutationFn: async (reportId: string): Promise<void> => {
-			const res = await fetch(`/reports/${reportId}/download`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/reports/${reportId}/download`, {
 				credentials: 'include'
 			})
 
@@ -368,7 +369,7 @@ export function useMonthlyRevenue(months: number = 12) {
 		queryKey: reportsKeys.revenue(months),
 		queryFn: async (): Promise<RevenueData[]> => {
 			const res = await fetch(
-				`/api/v1/reports/analytics/revenue/monthly?months=${months}`,
+				`${API_BASE_URL}/api/v1/reports/analytics/revenue/monthly?months=${months}`,
 				{
 					credentials: 'include'
 				}
@@ -400,7 +401,7 @@ export function usePaymentAnalytics(startDate?: string, endDate?: string) {
 
 			const queryString = params.toString() ? `?${params.toString()}` : ''
 			const res = await fetch(
-				`/api/v1/reports/analytics/payments${queryString}`,
+				`${API_BASE_URL}/api/v1/reports/analytics/payments${queryString}`,
 				{
 					credentials: 'include'
 				}
@@ -426,7 +427,7 @@ export function useOccupancyMetrics() {
 	return useQuery<OccupancyMetrics>({
 		queryKey: reportsKeys.occupancyMetrics(),
 		queryFn: async (): Promise<OccupancyMetrics> => {
-			const res = await fetch('/api/v1/reports/analytics/occupancy', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/reports/analytics/occupancy`, {
 				credentials: 'include'
 			})
 
@@ -458,7 +459,7 @@ export function usePrefetchReports() {
 				queryParams.append('limit', limit.toString())
 				queryParams.append('offset', offset.toString())
 
-				const res = await fetch(`/reports?${queryParams.toString()}`, {
+				const res = await fetch(`${API_BASE_URL}/api/v1/reports?${queryParams.toString()}`, {
 					credentials: 'include'
 				})
 
@@ -483,7 +484,7 @@ export function usePrefetchMonthlyRevenue() {
 			queryKey: reportsKeys.revenue(months),
 			queryFn: async (): Promise<RevenueData[]> => {
 				const res = await fetch(
-					`/api/v1/reports/analytics/revenue/monthly?months=${months}`,
+					`${API_BASE_URL}/api/v1/reports/analytics/revenue/monthly?months=${months}`,
 					{
 						credentials: 'include'
 					}
@@ -519,7 +520,7 @@ export function usePrefetchPaymentAnalytics() {
 
 				const queryString = params.toString() ? `?${params.toString()}` : ''
 				const res = await fetch(
-					`/api/v1/reports/analytics/payments${queryString}`,
+					`${API_BASE_URL}/api/v1/reports/analytics/payments${queryString}`,
 					{
 						credentials: 'include'
 					}
@@ -549,7 +550,7 @@ export function usePrefetchOccupancyMetrics() {
 		queryClient.prefetchQuery({
 			queryKey: reportsKeys.occupancyMetrics(),
 			queryFn: async (): Promise<OccupancyMetrics> => {
-				const res = await fetch('/api/v1/reports/analytics/occupancy', {
+				const res = await fetch(`${API_BASE_URL}/api/v1/reports/analytics/occupancy`, {
 					credentials: 'include'
 				})
 

@@ -5,12 +5,20 @@
 	"type": "module",
 	"description": "Shared ESLint configuration for TenantFlow monorepo",
 	"main": "index.js",
+	"exports": {
+		".": "./index.js",
+		"./base.js": "./base.js",
+		"./nextjs.js": "./nextjs.js",
+		"./nestjs.js": "./nestjs.js",
+		"./turbo.js": "./turbo.js"
+	},
 	"files": [
-		"library.js",
-		"next.js",
-		"react-internal.js",
+		"nextjs.js",
+		"nestjs.js",
 		"base.js",
-		"turbo.js"
+		"turbo.js",
+		"index.js",
+		"rules"
 	],
 	"dependencies": {
 		"@eslint/js": "9.38.0",

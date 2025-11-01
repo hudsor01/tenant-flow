@@ -372,6 +372,106 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	}
 
 	/**
+	 * Get time-series data for dashboard charts
+	 */
+	async getTimeSeries(
+		userId: string,
+		metric: string,
+		days: number,
+		token?: string
+	): Promise<unknown[]> {
+		try {
+			this.logger.log('Fetching time-series data via RPC', {
+				userId,
+				metric,
+				days
+			})
+
+			const raw = await this.callRpc<unknown[]>(
+				'get_dashboard_time_series',
+				{
+					p_user_id: userId,
+					p_metric_name: metric,
+					p_days: days
+				},
+				token
+			)
+
+			if (!raw || raw.length === 0) {
+				this.logger.warn('No time-series data from RPC, returning empty array', {
+					userId,
+					metric,
+					days
+				})
+				return []
+			}
+
+			return raw
+		} catch (error) {
+			this.logger.error(
+				`Database error in getTimeSeries: ${error instanceof Error ? error.message : String(error)}`,
+				{
+					userId,
+					metric,
+					days,
+					error
+				}
+			)
+			return []
+		}
+	}
+
+	/**
+	 * Get metric trend comparing current vs previous period
+	 */
+	async getMetricTrend(
+		userId: string,
+		metric: string,
+		period: string,
+		token?: string
+	): Promise<unknown> {
+		try {
+			this.logger.log('Fetching metric trend via RPC', {
+				userId,
+				metric,
+				period
+			})
+
+			const raw = await this.callRpc<unknown>(
+				'get_metric_trend',
+				{
+					p_user_id: userId,
+					p_metric_name: metric,
+					p_period: period
+				},
+				token
+			)
+
+			if (!raw) {
+				this.logger.warn('No metric trend data from RPC', {
+					userId,
+					metric,
+					period
+				})
+				return null
+			}
+
+			return raw
+		} catch (error) {
+			this.logger.error(
+				`Database error in getMetricTrend: ${error instanceof Error ? error.message : String(error)}`,
+				{
+					userId,
+					metric,
+					period,
+					error
+				}
+			)
+			return null
+		}
+	}
+
+	/**
 	 * Helper method to return empty dashboard stats for fallback
 	 */
 	private getEmptyDashboardStats(): DashboardStats {

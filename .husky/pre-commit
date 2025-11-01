@@ -9,7 +9,7 @@ echo "🔍 Running pre-commit validation (lint + typecheck + tests)..."
 npx lint-staged
 
 # Run comprehensive checks on all changed files
-npx turbo run typecheck test:unit \
+npx turbo run lint typecheck test:unit \
   --cache-dir=.turbo \
   --filter='[HEAD^1]' \
   --concurrency=10 || {

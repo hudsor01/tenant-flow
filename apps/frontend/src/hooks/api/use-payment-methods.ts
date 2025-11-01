@@ -2,6 +2,7 @@
  * TanStack Query hooks for payment methods API
  * Phase 3: Frontend Integration for Tenant Payment System
  */
+import { API_BASE_URL } from '#lib/api-config'
 import type {
 	CreateSetupIntentRequest,
 	PaymentMethodResponse,
@@ -26,7 +27,7 @@ export function usePaymentMethods() {
 	return useQuery({
 		queryKey: paymentMethodKeys.list(),
 		queryFn: async (): Promise<PaymentMethodResponse[]> => {
-			const res = await fetch('/api/v1/stripe/tenant-payment-methods', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/stripe/tenant-payment-methods`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -47,7 +48,7 @@ export function usePaymentMethods() {
 export function useCreateSetupIntent() {
 	return useMutation({
 		mutationFn: async (request: CreateSetupIntentRequest): Promise<PaymentMethodSetupIntent> => {
-			const res = await fetch('/api/v1/payment-methods/setup-intent', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/payment-methods/setup-intent`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -86,7 +87,7 @@ export function useSavePaymentMethod() {
 				} | null
 			}
 		}> => {
-			const res = await fetch('/api/v1/stripe/attach-tenant-payment-method', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/stripe/attach-tenant-payment-method`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -121,7 +122,7 @@ export function useSetDefaultPaymentMethod() {
 		{ previous?: PaymentMethodResponse[] }
 	>({
 		mutationFn: async (paymentMethodId: string): Promise<{ success: boolean }> => {
-			const res = await fetch(`/api/v1/payment-methods/${paymentMethodId}/default`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/payment-methods/${paymentMethodId}/default`, {
 				method: 'PATCH',
 				credentials: 'include'
 			})
@@ -184,7 +185,7 @@ export function useDeletePaymentMethod() {
 			success: boolean
 			message?: string
 		}> => {
-			const res = await fetch(`/api/v1/stripe/tenant-payment-methods/${paymentMethodId}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/stripe/tenant-payment-methods/${paymentMethodId}`, {
 				method: 'DELETE',
 				credentials: 'include'
 			})
@@ -235,7 +236,7 @@ export function usePrefetchPaymentMethods() {
 		queryClient.prefetchQuery({
 			queryKey: paymentMethodKeys.list(),
 			queryFn: async (): Promise<PaymentMethodResponse[]> => {
-				const res = await fetch('/api/v1/payment-methods', {
+				const res = await fetch(`${API_BASE_URL}/api/v1/payment-methods`, {
 					credentials: 'include'
 				})
 				if (!res.ok) {
