@@ -7,11 +7,11 @@ echo "🔍 Running pre-commit validation (lockfile + lint + typecheck + tests)..
 
 # Step 1: Verify pnpm lockfile is in sync
 echo "📦 Verifying pnpm lockfile is up to date..."
-pnpm install --frozen-lockfile --prefer-offline 2>&1 | grep -q "ERR_PNPM_OUTDATED_LOCKFILE" && {
+if ! pnpm install --frozen-lockfile --prefer-offline > /dev/null 2>&1; then
   echo "❌ pnpm-lock.yaml is out of sync!"
   echo "Please run 'pnpm install' and commit the lockfile changes."
   exit 1
-}
+fi
 
 # Step 2: Turbo runs lint, typecheck, and tests on all changed files with caching
 npx turbo run lint typecheck test:unit \

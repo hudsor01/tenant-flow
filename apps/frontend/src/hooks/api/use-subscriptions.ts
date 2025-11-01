@@ -36,7 +36,7 @@ export function useSubscriptions() {
 		queryFn: async (): Promise<RentSubscriptionResponse[]> => {
 			return clientFetch<RentSubscriptionResponse[]>('/api/v1/subscriptions')
 		},
-		staleTime: 30 * 100 // 30 seconds
+		staleTime: 30 * 1000 // 30 seconds
 	})
 }
 

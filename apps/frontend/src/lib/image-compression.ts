@@ -30,6 +30,40 @@ export function isHEICFile(file: File): boolean {
 	)
 }
 
+/**
+ * Check if browser supports HEIC conversion
+ * Some browsers (Chrome, Firefox) may not support HEIC decoding
+ * Safari supports it natively
+ */
+async function canConvertHEIC(): Promise<boolean> {
+	try {
+		// Check if heic2any library is available
+		if (typeof heic2any === 'undefined') {
+			return false
+		}
+
+		// Additional check: Some browsers may have heic2any but still fail
+		// We can't reliably test without actual HEIC data, so we assume
+		// if the library loaded, it should work. The actual conversion
+		// will catch any issues.
+		return true
+	} catch {
+		return false
+	}
+}
+
+/**
+ * Get user-friendly browser name for error messages
+ */
+function getBrowserName(): string {
+	const userAgent = navigator.userAgent
+	if (userAgent.includes('Firefox')) return 'Firefox'
+	if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) return 'Chrome'
+	if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari'
+	if (userAgent.includes('Edg')) return 'Edge'
+	return 'your browser'
+}
+
 export interface CompressionOptions {
 	/**
 	 * Maximum file size in MB
@@ -141,6 +175,20 @@ export async function compressImage(
 	const isHEIC = isHEICFile(file)
 
 	if (isHEIC) {
+		// Check browser support before attempting conversion
+		const supported = await canConvertHEIC()
+		if (!supported) {
+			const browserName = getBrowserName()
+			logger.error('HEIC conversion not supported', {
+				action: 'convert',
+				fileName: file.name,
+				browser: browserName
+			})
+			throw new HEICConversionError(
+				`${browserName} does not fully support HEIC images. Please convert your image to JPEG or PNG first, or try using Safari.`
+			)
+		}
+
 		try {
 			logger.info('Converting HEIC to JPEG', {
 				action: 'convert',
@@ -177,8 +225,11 @@ export async function compressImage(
 			})
 		} catch (conversionError) {
 			logger.error('HEIC conversion failed', { action: 'convert' }, conversionError)
+
+			// Provide helpful error message
+			const browserName = getBrowserName()
 			throw new HEICConversionError(
-				'Failed to convert HEIC image. Please try converting it to JPEG manually or use a different image.'
+				`Failed to convert HEIC image in ${browserName}. Please convert it to JPEG or PNG manually, or try using Safari.`
 			)
 		}
 	}
