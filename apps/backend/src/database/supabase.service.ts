@@ -205,6 +205,77 @@ export class SupabaseService {
 	}
 
 	/**
+	 * Extract JWT token from Express request
+	 * Supports both Authorization header and Supabase cookies
+	 */
+	getTokenFromRequest(request: Request): string | null {
+		// Try Authorization header first
+		const authHeader = request.headers?.authorization
+		if (authHeader && typeof authHeader === 'string') {
+			const match = authHeader.match(/^Bearer\s+(.+)$/i)
+			if (match && match[1]) {
+				return match[1]
+			}
+		}
+
+		// Try Supabase cookies
+		const supabaseUrl = process.env.SUPABASE_URL
+		if (!supabaseUrl || !request.cookies) {
+			return null
+		}
+
+		// Extract project ID from Supabase URL
+		const projectId = supabaseUrl.match(/https:\/\/(.*?)\.supabase\.co/)?.[1]
+		if (!projectId) {
+			return null
+		}
+
+		const baseName = `sb-${projectId}-auth-token`
+		const cookieValue = request.cookies[baseName]
+
+		if (cookieValue) {
+			// Try to parse as JSON object with session data
+			try {
+				const parsed = JSON.parse(cookieValue)
+				const accessToken = parsed?.access_token || parsed?.accessToken
+				if (accessToken && typeof accessToken === 'string') {
+					return accessToken
+				}
+			} catch {
+				// If parsing fails, cookie might be the token itself
+				if (typeof cookieValue === 'string' && cookieValue.length > 20) {
+					return cookieValue
+				}
+			}
+		}
+
+		// Check for chunked cookies
+		const cookieChunks = Object.keys(request.cookies)
+			.filter((key) => key.startsWith(`${baseName}.`))
+			.sort((a, b) => {
+				const numA = parseInt(a.split('.').pop() || '0', 10)
+				const numB = parseInt(b.split('.').pop() || '0', 10)
+				return numA - numB
+			})
+			.map((key) => request.cookies[key])
+			.join('')
+
+		if (cookieChunks) {
+			try {
+				const parsed = JSON.parse(cookieChunks)
+				const accessToken = parsed?.access_token || parsed?.accessToken
+				if (accessToken && typeof accessToken === 'string') {
+					return accessToken
+				}
+			} catch {
+				// Ignore parse errors
+			}
+		}
+
+		return null
+	}
+
+	/**
 	 * Get authenticated user from request
 	 * Uses Supabase's native auth.getUser() method as per official docs
 	 * Supports both Authorization header (Bearer token) and SSR cookies

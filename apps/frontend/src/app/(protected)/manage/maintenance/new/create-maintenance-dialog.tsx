@@ -12,7 +12,6 @@ import {
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
 import { useCreateMaintenanceRequest } from '#hooks/api/use-maintenance'
-import { propertiesApi, unitsApi } from '#lib/api-client'
 import { maintenanceRequestFormSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
 import { useQuery } from '@tanstack/react-query'
@@ -40,12 +39,20 @@ export function CreateMaintenanceDialog() {
 
 	const { data: properties = [] } = useQuery({
 		queryKey: ['properties'],
-		queryFn: () => propertiesApi.list()
+		queryFn: async () => {
+			const res = await fetch('/api/v1/properties', { credentials: 'include' })
+			if (!res.ok) throw new Error('Failed to fetch properties')
+			return res.json()
+		}
 	})
 
 	const { data: units = [] } = useQuery({
 		queryKey: ['units', selectedPropertyId],
-		queryFn: () => unitsApi.list(),
+		queryFn: async () => {
+			const res = await fetch('/api/v1/units', { credentials: 'include' })
+			if (!res.ok) throw new Error('Failed to fetch units')
+			return res.json()
+		},
 		enabled: !!selectedPropertyId
 	})
 
@@ -174,7 +181,7 @@ export function CreateMaintenanceDialog() {
 										<SelectValue placeholder="Select property" />
 									</SelectTrigger>
 									<SelectContent>
-										{properties.map(property => (
+										{properties.map((property: import('@repo/shared/types/core').Property) => (
 											<SelectItem key={property.id} value={property.id}>
 												{property.name}
 											</SelectItem>
@@ -196,7 +203,7 @@ export function CreateMaintenanceDialog() {
 													<SelectValue placeholder="Select unit (optional)" />
 												</SelectTrigger>
 												<SelectContent>
-													{units.map(unit => (
+													{units.map((unit: import('@repo/shared/types/core').Unit) => (
 														<SelectItem key={unit.id} value={unit.id}>
 															Unit {unit.unitNumber}
 														</SelectItem>
@@ -264,7 +271,7 @@ export function CreateMaintenanceDialog() {
 													<SelectItem value="LOW">Low</SelectItem>
 													<SelectItem value="MEDIUM">Medium</SelectItem>
 													<SelectItem value="HIGH">High</SelectItem>
-													<SelectItem value="EMERGENCY">Emergency</SelectItem>
+													<SelectItem value="URGENT">Emergency</SelectItem>
 												</SelectContent>
 											</Select>
 										</Field>

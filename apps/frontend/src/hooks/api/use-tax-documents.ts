@@ -1,8 +1,8 @@
 /**
  * TanStack Query hook for tax documents
  */
+import type { TaxDocumentsData } from '@repo/shared/types/financial-statements'
 import { useQuery } from '@tanstack/react-query'
-import { getTaxDocuments } from '#lib/api/financials-client'
 import { useAuth } from '#providers/auth-provider'
 
 export const taxDocumentsKeys = {
@@ -15,11 +15,25 @@ export function useTaxDocuments(taxYear: number) {
 
 	return useQuery({
 		queryKey: taxDocumentsKeys.byYear(taxYear),
-		queryFn: async () => {
+		queryFn: async (): Promise<TaxDocumentsData> => {
 			if (!session?.access_token) {
 				throw new Error('Authentication required')
 			}
-			return getTaxDocuments(session.access_token, taxYear)
+			
+			const res = await fetch(
+				`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/financials/tax-documents?taxYear=${taxYear}`,
+				{
+					credentials: 'include',
+					cache: 'no-store'
+				}
+			)
+			
+			if (!res.ok) {
+				throw new Error('Failed to fetch tax documents')
+			}
+			
+			const response = await res.json()
+			return response.data
 		},
 		enabled: !!session?.access_token,
 		staleTime: 5 * 60 * 1000, // 5 minutes

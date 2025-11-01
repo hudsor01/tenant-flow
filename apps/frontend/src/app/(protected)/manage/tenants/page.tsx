@@ -5,7 +5,8 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { api } from '#lib/api'
+import { serverFetch } from '#lib/api/server'
+import { getLeasesPageData } from '#lib/api/dashboard-server'
 import { requireSession } from '#lib/server-auth'
 import { formatCents } from '@repo/shared/lib/format'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -14,6 +15,7 @@ import type {
 	TenantSummary,
 	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import { Mail } from 'lucide-react'
 import Link from 'next/link'
 import type { Metadata } from 'next'
@@ -28,8 +30,8 @@ export const metadata: Metadata = {
 export default async function TenantsPage() {
 	// ✅ Server-side auth - NO client flash, instant 307 redirect
 	const { user, accessToken } = await requireSession()
-	
-const logger = createLogger({ component: 'TenantsPage', userId: user.id })
+
+	const logger = createLogger({ component: 'TenantsPage', userId: user.id })
 
 	// ✅ Server Component: Fetch data on server during RSC render
 	let tenants: TenantWithLeaseInfo[] = []
@@ -44,14 +46,14 @@ const logger = createLogger({ component: 'TenantsPage', userId: user.id })
 	let summary: TenantSummary | null = null as TenantSummary | null
 
 	// Fetch leases for invitation dialog
-	// TODO: Re-enable when InviteTenantDialog is implemented
-	// let availableLeases: Array<Database['public']['Tables']['lease']['Row']> = []
+	let availableLeases: Array<Database['public']['Tables']['lease']['Row']> = []
 
 	try {
 		// ✅ Fetch data with native fetch() - cookie-based auth
-		const [tenantsData, statsData] = await Promise.all([
-			api<TenantWithLeaseInfo[]>('tenants', { token: accessToken }),
-			api<TenantStats>('tenants/stats', { token: accessToken })
+		const [tenantsData, statsData, leasesData] = await Promise.all([
+			serverFetch<TenantWithLeaseInfo[]>('/api/v1/tenants'),
+			serverFetch<TenantStats>('/api/v1/tenants/stats'),
+			getLeasesPageData()
 		])
 
 		tenants = tenantsData ?? []
@@ -60,9 +62,8 @@ const logger = createLogger({ component: 'TenantsPage', userId: user.id })
 		// Note: Summary endpoint not yet in createServerApi - keeping null for now
 		summary = null
 
-		// TODO: Re-enable when InviteTenantDialog is implemented
-		// const leasesData = await getLeasesPageData()
-		// availableLeases = (leasesData.leases ?? []).filter(lease => !lease.tenantId)
+		availableLeases =
+			leasesData?.leases?.filter((lease: import('@repo/shared/types/core').Lease) => !lease.tenantId) ?? []
 	} catch (err) {
 		// Log server-side; avoid throwing to prevent resetting the RSC tree
 		logger.warn('Failed to fetch tenants page data for TenantsPage', {
@@ -71,7 +72,11 @@ const logger = createLogger({ component: 'TenantsPage', userId: user.id })
 	}
 
 	return (
-		<main role="main" className="flex-1 flex flex-col gap-8 px-8 py-6">
+		<main
+			role="main"
+			data-available-leases={availableLeases.length}
+			className="flex-1 flex flex-col gap-8 px-8 py-6"
+		>
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Tenants</h1>

@@ -24,9 +24,7 @@ import {
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
 import { useUpdateMaintenanceRequest } from '#hooks/api/use-maintenance'
-import {
-	maintenanceRequestUpdateFormSchema
-} from '@repo/shared/validation/maintenance'
+import { maintenanceRequestUpdateFormSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
 import { Calendar, DollarSign, Edit, FileText } from 'lucide-react'
 import { useState } from 'react'
@@ -71,14 +69,22 @@ export function EditMaintenanceButton({
 
 			if (value.title) updateData.title = value.title
 			if (value.description) updateData.description = value.description
-			if (value.priority) updateData.priority = value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+			if (value.priority)
+				updateData.priority = value.priority as
+					| 'LOW'
+					| 'MEDIUM'
+					| 'HIGH'
+					| 'URGENT'
 			if (value.category) updateData.category = value.category
-			if (value.estimatedCost) updateData.estimatedCost = Number(value.estimatedCost)
+			if (value.estimatedCost)
+				updateData.estimatedCost = Number(value.estimatedCost)
 			if (value.notes) updateData.notes = value.notes
-			if (value.preferredDate) updateData.preferredDate = new Date(value.preferredDate)
+			if (value.preferredDate)
+				updateData.preferredDate = new Date(value.preferredDate)
 			if (value.status) updateData.status = value.status
 			if (value.actualCost) updateData.actualCost = Number(value.actualCost)
-			if (value.completedAt) updateData.completedAt = new Date(value.completedAt)
+			if (value.completedAt)
+				updateData.completedAt = new Date(value.completedAt)
 
 			updateMaintenanceRequest.mutate(
 				{ id: maintenance.id, data: updateData },
@@ -227,7 +233,7 @@ export function EditMaintenanceButton({
 											<SelectItem value="LOW">Low</SelectItem>
 											<SelectItem value="MEDIUM">Medium</SelectItem>
 											<SelectItem value="HIGH">High</SelectItem>
-											<SelectItem value="EMERGENCY">Emergency</SelectItem>
+											<SelectItem value="URGENT">Emergency</SelectItem>
 										</SelectContent>
 									</Select>
 									{field.state.meta.errors?.length && (
@@ -350,7 +356,9 @@ export function EditMaintenanceButton({
 							Cancel
 						</Button>
 						<Button type="submit" disabled={updateMaintenanceRequest.isPending}>
-							{updateMaintenanceRequest.isPending ? 'Updating...' : 'Update Request'}
+							{updateMaintenanceRequest.isPending
+								? 'Updating...'
+								: 'Update Request'}
 						</Button>
 					</div>
 				</form>

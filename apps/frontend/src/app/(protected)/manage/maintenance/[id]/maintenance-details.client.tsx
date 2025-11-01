@@ -3,7 +3,6 @@
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { propertiesApi, unitsApi } from '#lib/api-client'
 import { useMaintenanceRequest } from '#hooks/api/use-maintenance'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
@@ -21,27 +20,31 @@ type Unit = Tables<'unit'>
 const logger = createLogger({ component: 'MaintenanceDetails' })
 
 export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
-	const {
-		data: request,
-		isLoading,
-		isError
-	} = useMaintenanceRequest(id)
+	const { data: request, isLoading, isError } = useMaintenanceRequest(id)
 
 	const { data: properties = [] } = useQuery({
 		queryKey: ['properties'],
-		queryFn: () => propertiesApi.list()
+		queryFn: async () => {
+			const res = await fetch('/api/v1/properties', { credentials: 'include' })
+			if (!res.ok) throw new Error('Failed to fetch properties')
+			return res.json()
+		}
 	})
 
 	const { data: units = [] } = useQuery({
 		queryKey: ['units'],
-		queryFn: () => unitsApi.list()
+		queryFn: async () => {
+			const res = await fetch('/api/v1/units', { credentials: 'include' })
+			if (!res.ok) throw new Error('Failed to fetch units')
+			return res.json()
+		}
 	})
 
-	const unit = units.find(unit => unit.id === request?.unitId) as
+	const unit = units.find((unit: import('@repo/shared/types/core').Unit) => unit.id === request?.unitId) as
 		| Unit
 		| undefined
 	const property = properties.find(
-		property => property.id === unit?.propertyId
+		(property: import('@repo/shared/types/core').Property) => property.id === unit?.propertyId
 	) as Property | undefined
 
 	if (isLoading) {

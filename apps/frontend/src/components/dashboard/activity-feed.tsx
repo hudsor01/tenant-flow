@@ -22,6 +22,11 @@ import {
 
 type Activity = Tables<'activity'>
 
+// Type assertion to handle Supabase entityType as enum
+type ActivityWithEnum = Omit<Activity, 'entityType'> & {
+	entityType: import('@repo/shared/types/supabase-generated').Database['public']['Enums']['ActivityEntityType']
+}
+
 // Modern helpers - assume valid inputs
 const formatDate = (date: string | Date): string => {
 	const dateObj = new Date(date)
@@ -74,8 +79,8 @@ const getIconForType = (type: string) => {
 export function ActivityFeed() {
 	const { data, isLoading, error } = useDashboardActivity()
 
-	// Extract activities array from the response
-	const activities: Activity[] = data?.activities || []
+	// Extract activities array from the response and cast to proper enum type
+	const activities: ActivityWithEnum[] = (data?.activities || []) as ActivityWithEnum[]
 
 	if (isLoading) {
 		return (

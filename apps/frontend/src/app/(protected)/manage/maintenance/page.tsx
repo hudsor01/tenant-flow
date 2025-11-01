@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { requireSession } from '#lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { api } from '#lib/api'
+import { serverFetch } from '#lib/api/server'
 import { Button } from '#components/ui/button'
 import { Wrench } from 'lucide-react'
 import Link from 'next/link'
@@ -25,7 +25,7 @@ const logger = createLogger({ component: 'MaintenancePage', userId: user.id })
 	
 	try {
 		// ✅ Production pattern: Server Component with explicit token
-		const result: MaintenanceRequestResponse = await api('maintenance', { token: accessToken })
+		const result: MaintenanceRequestResponse = await serverFetch('/api/v1/maintenance')
 		requests = result?.data ?? []
 	} catch (err) {
 		// Log server-side; avoid throwing to prevent resetting the RSC tree

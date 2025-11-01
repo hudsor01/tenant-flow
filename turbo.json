@@ -8,6 +8,7 @@
 	},
 	"envMode": "loose",
 	"globalEnv": [
+		"API_BASE_URL",
 		"CI",
 		"NODE_ENV",
 		"npm_package_version",

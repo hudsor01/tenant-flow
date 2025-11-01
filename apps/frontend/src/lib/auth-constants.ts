@@ -19,6 +19,14 @@ export const PUBLIC_AUTH_ROUTES = [
 	'/auth/register'
 ] as const
 
+// Marketing routes that should redirect authenticated users to their dashboard
+// These pages show "Get Started" CTAs which don't make sense for logged-in users
+export const MARKETING_REDIRECT_ROUTES = [
+	'/',
+	'/features',
+	'/about'
+] as const
+
 // Routes that don't require payment (public pages + payment flow itself)
 export const PAYMENT_EXEMPT_ROUTES = [
 	'/login',
@@ -34,3 +42,4 @@ export const PAYMENT_EXEMPT_ROUTES = [
 
 export type ProtectedRoutePrefix = (typeof PROTECTED_ROUTE_PREFIXES)[number]
 export type PublicAuthRoute = (typeof PUBLIC_AUTH_ROUTES)[number]
+export type MarketingRedirectRoute = (typeof MARKETING_REDIRECT_ROUTES)[number]

@@ -1,6 +1,5 @@
 'use client'
 
-
 import * as React from 'react'
 import DOMPurify from 'dompurify'
 import {
@@ -39,18 +38,62 @@ import {
 	TooltipTrigger
 } from '#components/ui/tooltip'
 import { toast } from 'sonner'
-import {
-	BookOpen,
-	Download,
-	FileText,
-	Info,
-	RefreshCw
-} from 'lucide-react'
+import { BookOpen, Download, FileText, Info, RefreshCw } from 'lucide-react'
 import { cn } from '#lib/utils'
-import { API_BASE_URL } from '#lib/api-client'
+import { API_BASE_URL } from '#lib/api-config'
 
 const ALL_US_STATES: USState[] = [
-	'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'
+	'AL',
+	'AK',
+	'AZ',
+	'AR',
+	'CA',
+	'CO',
+	'CT',
+	'DE',
+	'FL',
+	'GA',
+	'HI',
+	'ID',
+	'IL',
+	'IN',
+	'IA',
+	'KS',
+	'KY',
+	'LA',
+	'ME',
+	'MD',
+	'MA',
+	'MI',
+	'MN',
+	'MS',
+	'MO',
+	'MT',
+	'NE',
+	'NV',
+	'NH',
+	'NJ',
+	'NM',
+	'NY',
+	'NC',
+	'ND',
+	'OH',
+	'OK',
+	'OR',
+	'PA',
+	'RI',
+	'SC',
+	'SD',
+	'TN',
+	'TX',
+	'UT',
+	'VT',
+	'VA',
+	'WA',
+	'WV',
+	'WI',
+	'WY',
+	'DC'
 ]
 
 const stateSelectOptions = ALL_US_STATES.map(code => ({
@@ -68,10 +111,13 @@ function dollarsToCents(value: string) {
 
 export function LeaseTemplateBuilder() {
 	const [state, setState] = React.useState<USState>(defaultState)
-	const [includeStateDisclosures, setIncludeStateDisclosures] = React.useState(true)
-	const [includeFederalDisclosures, setIncludeFederalDisclosures] = React.useState(true)
+	const [includeStateDisclosures, setIncludeStateDisclosures] =
+		React.useState(true)
+	const [includeFederalDisclosures, setIncludeFederalDisclosures] =
+		React.useState(true)
 	const [selectedClauses, setSelectedClauses] = React.useState<string[]>(
-		() => getDefaultSelections(leaseTemplateSchema, defaultState).selectedClauses
+		() =>
+			getDefaultSelections(leaseTemplateSchema, defaultState).selectedClauses
 	)
 	const customClauses = React.useMemo<CustomClause[]>(() => [], [])
 	const [pdfPreview, setPdfPreview] = React.useState<string | null>(null)
@@ -147,11 +193,14 @@ export function LeaseTemplateBuilder() {
 		setIsGeneratingPdf(true)
 		try {
 			// Call backend PDF service with correct /api/v1/ prefix
-			const response = await fetch(`${API_BASE_URL}/api/v1/pdf/lease/template/preview`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ selections, context })
-			})
+			const response = await fetch(
+				`${API_BASE_URL}/api/v1/pdf/lease/template/preview`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ selections, context })
+				}
+			)
 
 			if (!response.ok) {
 				throw new Error('Failed to generate PDF preview')
@@ -166,7 +215,9 @@ export function LeaseTemplateBuilder() {
 			toast.success('PDF preview generated')
 		} catch (error) {
 			const message =
-				error instanceof Error ? error.message : 'Unable to generate PDF preview'
+				error instanceof Error
+					? error.message
+					: 'Unable to generate PDF preview'
 			toast.error(message)
 		} finally {
 			setIsGeneratingPdf(false)
@@ -184,11 +235,15 @@ export function LeaseTemplateBuilder() {
 								Dynamic Lease Builder
 							</CardTitle>
 							<CardDescription>
-								Choose clauses, review state rules, and preview the generated lease before downloading the PDF.
+								Choose clauses, review state rules, and preview the generated
+								lease before downloading the PDF.
 							</CardDescription>
 						</div>
 						<div className="flex flex-wrap items-center gap-2">
-							<Select value={state} onValueChange={value => setState(value as USState)}>
+							<Select
+								value={state}
+								onValueChange={value => setState(value as USState)}
+							>
 								<SelectTrigger className="w-[160px]">
 									<SelectValue placeholder="Select state" />
 								</SelectTrigger>
@@ -205,7 +260,8 @@ export function LeaseTemplateBuilder() {
 								size="sm"
 								onClick={() => {
 									setSelectedClauses(
-										getDefaultSelections(leaseTemplateSchema, state).selectedClauses
+										getDefaultSelections(leaseTemplateSchema, state)
+											.selectedClauses
 									)
 									toast.success('Restored default clause selection')
 								}}
@@ -221,13 +277,17 @@ export function LeaseTemplateBuilder() {
 									builderInputs={builderInputs}
 									onChange={setBuilderInputs}
 									includeStateDisclosures={includeStateDisclosures}
-									onToggleStateDisclosures={() => setIncludeStateDisclosures(prev => !prev)}
+									onToggleStateDisclosures={() =>
+										setIncludeStateDisclosures(prev => !prev)
+									}
 									includeFederalDisclosures={includeFederalDisclosures}
-									onToggleFederalDisclosures={() => setIncludeFederalDisclosures(prev => !prev)}
+									onToggleFederalDisclosures={() =>
+										setIncludeFederalDisclosures(prev => !prev)
+									}
 								/>
 
 								<StateRuleSummary state={state} />
-						</aside>
+							</aside>
 							<div className="space-y-6">
 								<ClauseSelector
 									selectedClauses={selectedClauses}
@@ -253,16 +313,22 @@ export function LeaseTemplateBuilder() {
 							<BookOpen className="size-5 text-primary" /> Legal Glossary
 						</CardTitle>
 						<CardDescription>
-							Hover over clauses to see plain-language explanations of legal terminology.
+							Hover over clauses to see plain-language explanations of legal
+							terminology.
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-						{Object.entries(leaseTemplateSchema.glossary).map(([term, definition]) => (
-							<div key={term} className="rounded-lg border bg-muted/30 p-4 text-sm">
-								<p className="font-medium text-foreground">{term}</p>
-								<p className="text-muted-foreground">{definition}</p>
-							</div>
-						))}
+						{Object.entries(leaseTemplateSchema.glossary).map(
+							([term, definition]) => (
+								<div
+									key={term}
+									className="rounded-lg border bg-muted/30 p-4 text-sm"
+								>
+									<p className="font-medium text-foreground">{term}</p>
+									<p className="text-muted-foreground">{definition}</p>
+								</div>
+							)
+						)}
 					</CardContent>
 				</Card>
 			</div>
@@ -317,7 +383,9 @@ function ConfigurationPanel(props: {
 		<Card className="shadow-sm">
 			<CardHeader>
 				<CardTitle className="text-base">Lease Details</CardTitle>
-				<CardDescription>Provide base information to personalize the clause text.</CardDescription>
+				<CardDescription>
+					Provide base information to personalize the clause text.
+				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-3 text-sm">
 				<LabeledInput
@@ -361,7 +429,10 @@ function ConfigurationPanel(props: {
 						label="Deposit (USD)"
 						value={builderInputs.securityDeposit}
 						onChange={event =>
-							onChange(prev => ({ ...prev, securityDeposit: event.target.value }))
+							onChange(prev => ({
+								...prev,
+								securityDeposit: event.target.value
+							}))
 						}
 					/>
 				</div>
@@ -379,7 +450,10 @@ function ConfigurationPanel(props: {
 						type="number"
 						value={builderInputs.gracePeriodDays}
 						onChange={event =>
-							onChange(prev => ({ ...prev, gracePeriodDays: event.target.value }))
+							onChange(prev => ({
+								...prev,
+								gracePeriodDays: event.target.value
+							}))
 						}
 					/>
 				</div>
@@ -389,7 +463,10 @@ function ConfigurationPanel(props: {
 						type="date"
 						value={builderInputs.leaseStartDate}
 						onChange={event =>
-							onChange(prev => ({ ...prev, leaseStartDate: event.target.value }))
+							onChange(prev => ({
+								...prev,
+								leaseStartDate: event.target.value
+							}))
 						}
 					/>
 					<LabeledInput
@@ -410,12 +487,26 @@ function ConfigurationPanel(props: {
 				/>
 
 				<div className="flex flex-col gap-2 pt-4">
-					<label htmlFor="include-state-disclosures" className="flex items-center gap-2 text-sm font-medium">
-						<Checkbox id="include-state-disclosures" checked={includeStateDisclosures} onCheckedChange={onToggleStateDisclosures} />
+					<label
+						htmlFor="include-state-disclosures"
+						className="flex items-center gap-2 text-sm font-medium"
+					>
+						<Checkbox
+							id="include-state-disclosures"
+							checked={includeStateDisclosures}
+							onCheckedChange={onToggleStateDisclosures}
+						/>
 						Include state disclosures
 					</label>
-					<label htmlFor="include-federal-disclosures" className="flex items-center gap-2 text-sm font-medium">
-						<Checkbox id="include-federal-disclosures" checked={includeFederalDisclosures} onCheckedChange={onToggleFederalDisclosures} />
+					<label
+						htmlFor="include-federal-disclosures"
+						className="flex items-center gap-2 text-sm font-medium"
+					>
+						<Checkbox
+							id="include-federal-disclosures"
+							checked={includeFederalDisclosures}
+							onCheckedChange={onToggleFederalDisclosures}
+						/>
 						Include federal notices
 					</label>
 				</div>
@@ -437,10 +528,12 @@ function LabeledInput(
 			<label htmlFor={id} className="font-medium text-muted-foreground">
 				{label}
 			</label>
-	<Input id={id} {...inputProps} className={cn('h-9 text-sm', inputProps.className)} />
-			{helpText ? (
-				<p className="text-muted-foreground/80">{helpText}</p>
-			) : null}
+			<Input
+				id={id}
+				{...inputProps}
+				className={cn('h-9 text-sm', inputProps.className)}
+			/>
+			{helpText ? <p className="text-muted-foreground/80">{helpText}</p> : null}
 		</div>
 	)
 }
@@ -458,7 +551,8 @@ function ClauseSelector(props: {
 			<CardHeader>
 				<CardTitle className="text-base">Clause Library</CardTitle>
 				<CardDescription>
-					Choose the clauses to include. Recommended clauses for {state} are highlighted.
+					Choose the clauses to include. Recommended clauses for {state} are
+					highlighted.
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-5">
@@ -485,7 +579,10 @@ function ClauseSelector(props: {
 										)}
 									>
 										<div className="flex items-start justify-between gap-2">
-											<label className="flex flex-1 cursor-pointer items-start gap-3 text-sm" htmlFor={clause.id}>
+											<label
+												className="flex flex-1 cursor-pointer items-start gap-3 text-sm"
+												htmlFor={clause.id}
+											>
 												<Checkbox
 													id={clause.id}
 													checked={selected}
@@ -494,7 +591,9 @@ function ClauseSelector(props: {
 												<span>
 													<span className="font-medium text-foreground flex items-center gap-2">
 														{clause.title}
-														{recommended && <Badge variant="secondary">Recommended</Badge>}
+														{recommended && (
+															<Badge variant="secondary">Recommended</Badge>
+														)}
 													</span>
 													<span className="text-xs text-muted-foreground">
 														{clause.description}
@@ -503,7 +602,10 @@ function ClauseSelector(props: {
 											</label>
 											<Tooltip>
 												<TooltipTrigger asChild>
-													<button type="button" className="text-muted-foreground">
+													<button
+														type="button"
+														className="text-muted-foreground"
+													>
 														<Info className="size-4" />
 													</button>
 												</TooltipTrigger>
@@ -528,7 +630,30 @@ function PreviewPanel({ html }: { html: string }) {
 	const sanitizedHtml = React.useMemo(() => {
 		if (typeof window === 'undefined') return html
 		return DOMPurify.sanitize(html, {
-			ALLOWED_TAGS: ['p', 'div', 'span', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+			ALLOWED_TAGS: [
+				'p',
+				'div',
+				'span',
+				'br',
+				'strong',
+				'em',
+				'u',
+				'h1',
+				'h2',
+				'h3',
+				'h4',
+				'h5',
+				'h6',
+				'ul',
+				'ol',
+				'li',
+				'table',
+				'thead',
+				'tbody',
+				'tr',
+				'th',
+				'td'
+			],
 			ALLOWED_ATTR: ['class', 'style'],
 			ADD_ATTR: [], // Explicitly block all attributes except allowed
 			ALLOW_DATA_ATTR: false, // Block data-* attributes
@@ -543,7 +668,9 @@ function PreviewPanel({ html }: { html: string }) {
 				<CardTitle className="flex items-center gap-2 text-base">
 					<FileText className="size-4 text-primary" /> HTML Preview
 				</CardTitle>
-				<CardDescription>Rendered lease agreement using the selected clauses.</CardDescription>
+				<CardDescription>
+					Rendered lease agreement using the selected clauses.
+				</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<div
@@ -568,9 +695,16 @@ function PdfPreviewPanel(props: {
 					<CardTitle className="flex items-center gap-2 text-base">
 						<Download className="size-4 text-primary" /> PDF Preview
 					</CardTitle>
-					<CardDescription>Generate a printable PDF using the current selections.</CardDescription>
+					<CardDescription>
+						Generate a printable PDF using the current selections.
+					</CardDescription>
 				</div>
-				<Button onClick={onGenerate} disabled={isGenerating} variant="default" size="sm">
+				<Button
+					onClick={onGenerate}
+					disabled={isGenerating}
+					variant="default"
+					size="sm"
+				>
 					{isGenerating ? (
 						<span className="flex items-center gap-2">
 							<RefreshCw className="size-4 animate-spin" /> Generating…
@@ -585,11 +719,16 @@ function PdfPreviewPanel(props: {
 			<CardContent>
 				{dataUrl ? (
 					<div className="h-[480px] w-full overflow-hidden rounded-lg border">
-						<iframe src={dataUrl} title="Lease PDF Preview" className="h-full w-full" />
+						<iframe
+							src={dataUrl}
+							title="Lease PDF Preview"
+							className="h-full w-full"
+						/>
 					</div>
 				) : (
 					<p className="text-sm text-muted-foreground">
-						Generate a preview to view the PDF in-line. You can download it directly from the preview frame.
+						Generate a preview to view the PDF in-line. You can download it
+						directly from the preview frame.
 					</p>
 				)}
 			</CardContent>
@@ -603,8 +742,12 @@ function StateRuleSummary({ state }: { state: USState }) {
 	return (
 		<Card className="shadow-sm">
 			<CardHeader>
-				<CardTitle className="text-base">{rules.stateName} Highlights</CardTitle>
-				<CardDescription>Automatic notes drawn from TenantFlow’s compliance library.</CardDescription>
+				<CardTitle className="text-base">
+					{rules.stateName} Highlights
+				</CardTitle>
+				<CardDescription>
+					Automatic notes drawn from TenantFlow’s compliance library.
+				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-2 text-xs">
 				<ul className="list-disc space-y-2 pl-4">
