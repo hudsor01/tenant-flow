@@ -12,13 +12,13 @@
 -- Dashboard and Stats Functions
 -- ============================================================================
 
--- 1. get_dashboard_stats_optimized
-ALTER FUNCTION public.get_dashboard_stats_optimized(text, text)
-SET search_path TO 'public', 'pg_temp';
+-- 1. get_dashboard_stats_optimized (will be dropped by consolidation migration)
+-- ALTER FUNCTION public.get_dashboard_stats_optimized(text, text)
+-- SET search_path TO 'public', 'pg_temp';
 
--- 2. get_dashboard_stats_fast
-ALTER FUNCTION public.get_dashboard_stats_fast(text)
-SET search_path TO 'public', 'pg_temp';
+-- 2. get_dashboard_stats_fast (will be dropped by consolidation migration)
+-- ALTER FUNCTION public.get_dashboard_stats_fast(text)
+-- SET search_path TO 'public', 'pg_temp';
 
 -- 3. create_dashboard_stats_snapshot
 ALTER FUNCTION public.create_dashboard_stats_snapshot()
@@ -32,9 +32,9 @@ SET search_path TO 'public', 'pg_temp';
 ALTER FUNCTION public.cleanup_dashboard_history()
 SET search_path TO 'public', 'pg_temp';
 
--- 6. get_dashboard_time_series
-ALTER FUNCTION public.get_dashboard_time_series(text, text, integer)
-SET search_path TO 'public', 'pg_temp';
+-- 6. get_dashboard_time_series (will be recreated by consolidation migration)
+-- ALTER FUNCTION public.get_dashboard_time_series(text, text, integer)
+-- SET search_path TO 'public', 'pg_temp';
 
 -- 7. get_metric_trend
 ALTER FUNCTION public.get_metric_trend(text, text, text)
@@ -112,6 +112,6 @@ SET search_path TO 'public', 'pg_temp';
 -- Comments for Verification
 -- ============================================================================
 
-COMMENT ON FUNCTION public.get_dashboard_stats_optimized IS 'SECURITY FIX 2025-01-11: Added search_path protection against privilege escalation';
+-- COMMENT ON FUNCTION public.get_dashboard_stats_optimized IS 'SECURITY FIX 2025-01-11: Added search_path protection against privilege escalation';
 COMMENT ON FUNCTION public.record_stripe_event IS 'SECURITY FIX 2025-01-11: Added search_path protection against privilege escalation';
 COMMENT ON FUNCTION public.ensure_single_primary_image IS 'SECURITY FIX 2025-01-11: Added search_path protection against privilege escalation';

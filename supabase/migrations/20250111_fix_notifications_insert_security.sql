@@ -12,12 +12,12 @@
 DROP POLICY IF EXISTS "notifications_system_insert" ON notifications;
 
 -- Create secure policy: Users can only insert their own notifications
-CREATE POLICY "notifications_user_insert"
+CREATE POLICY IF NOT EXISTS "notifications_user_insert"
 ON notifications
 FOR INSERT
 TO authenticated
 WITH CHECK (
-  "userId" = get_auth_uid()
+  "userId" = (select auth.uid())
 );
 
 -- Add comment for verification
