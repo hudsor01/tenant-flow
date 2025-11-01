@@ -163,7 +163,7 @@ export const transformPropertyFormData = (
 	ownerId: string = ''
 ) => ({
 	name: data.name,
-	description: data.description || null,
+	description: data.description || '',
 	propertyType:
 		data.propertyType as Database['public']['Enums']['PropertyType'],
 	address: data.address,
