@@ -22,13 +22,13 @@ export interface IDashboardAnalyticsService {
 	 * Get comprehensive dashboard statistics
 	 * Complex calculation involving multiple tables and aggregations
 	 */
-	getDashboardStats(userId: string): Promise<DashboardStats>
+	getDashboardStats(userId: string, token?: string): Promise<DashboardStats>
 
 	/**
 	 * Get property performance metrics
 	 * Multi-table joins with complex calculations
 	 */
-	getPropertyPerformance(userId: string): Promise<PropertyPerformance[]>
+	getPropertyPerformance(userId: string, token?: string): Promise<PropertyPerformance[]>
 
 	/**
 	 * Get occupancy trends over time
@@ -36,6 +36,7 @@ export interface IDashboardAnalyticsService {
 	 */
 	getOccupancyTrends(
 		userId: string,
+		token?: string,
 		months?: number
 	): Promise<OccupancyTrendResponse[]>
 
@@ -45,6 +46,7 @@ export interface IDashboardAnalyticsService {
 	 */
 	getRevenueTrends(
 		userId: string,
+		token?: string,
 		months?: number
 	): Promise<RevenueTrendResponse[]>
 
@@ -52,7 +54,7 @@ export interface IDashboardAnalyticsService {
 	 * Get maintenance analytics
 	 * Aggregations with priority grouping and resolution time calculations
 	 */
-	getMaintenanceAnalytics(userId: string): Promise<{
+	getMaintenanceAnalytics(userId: string, token?: string): Promise<{
 		avgResolutionTime: number
 		completionRate: number
 		priorityBreakdown: Record<string, number>
@@ -69,6 +71,7 @@ export interface IDashboardAnalyticsService {
 	 */
 	getBillingInsights(
 		userId: string,
+		token?: string,
 		options?: {
 			startDate?: Date
 			endDate?: Date

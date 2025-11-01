@@ -25,15 +25,14 @@ import {
 	ParseUUIDPipe,
 	Post,
 	Put,
-	Query,
-	Req
+	Query
 } from '@nestjs/common'
 import type {
 	CreateUnitRequest,
 	UpdateUnitRequest
 } from '@repo/shared/types/backend-domain'
+import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
-import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { UnitsService } from './units.service'
 
 @Controller('units')
@@ -46,11 +45,12 @@ export class UnitsController {
 	/**
 	 * Get all units for the authenticated user
 	 * Uses built-in pipes for automatic validation
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@SkipSubscriptionCheck()
 	@Get()
 	async findAll(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Query('propertyId', new DefaultValuePipe(null))
 		propertyId: string | null,
 		@Query('status', new DefaultValuePipe(null)) status: string | null,
@@ -82,10 +82,8 @@ export class UnitsController {
 			throw new BadRequestException('Invalid sortOrder value')
 		}
 
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-
-		return this.unitsService.findAll(userId, {
+		// ✅ RLS: Pass JWT token to service layer
+		return this.unitsService.findAll(token, {
 			propertyId,
 			status,
 			search,
@@ -98,44 +96,35 @@ export class UnitsController {
 
 	/**
 	 * Get unit statistics
-	 * Direct RPC call to PostgreSQL
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Get('stats')
-	async getStats(@Req() req: AuthenticatedRequest) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-
-		return this.unitsService.getStats(userId)
+	async getStats(@JwtToken() token: string) {
+		return this.unitsService.getStats(token)
 	}
 
 	/**
 	 * Get units by property
-	 * Uses ParseUUIDPipe for automatic UUID validation
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Get('by-property/:propertyId')
 	async findByProperty(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Param('propertyId', ParseUUIDPipe) propertyId: string
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-
-		return this.unitsService.findByProperty(userId, propertyId)
+		return this.unitsService.findByProperty(token, propertyId)
 	}
 
 	/**
 	 * Get single unit by ID
-	 * Built-in UUID validation
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Get(':id')
 	async findOne(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Param('id', ParseUUIDPipe) id: string
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-
-		const unit = await this.unitsService.findOne(userId, id)
+		const unit = await this.unitsService.findOne(token, id)
 		if (!unit) {
 			throw new NotFoundException('Unit not found')
 		}
@@ -144,36 +133,30 @@ export class UnitsController {
 
 	/**
 	 * Create new unit
-	 * JSON Schema validation via Express
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Post()
 	async create(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Body() createUnitRequest: CreateUnitRequest
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-
-		return this.unitsService.create(userId, createUnitRequest)
+		return this.unitsService.create(token, createUnitRequest)
 	}
 
 	/**
 	 * Update existing unit
-	 * Built-in UUID validation + JSON Schema for body
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Put(':id')
 	async update(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateUnitRequest: UpdateUnitRequest
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-
 		// 🔐 BUG FIX #2: Pass version for optimistic locking
 		const expectedVersion = (updateUnitRequest as { version?: number }).version
 		const unit = await this.unitsService.update(
-			userId,
+			token,
 			id,
 			updateUnitRequest,
 			expectedVersion
@@ -186,17 +169,14 @@ export class UnitsController {
 
 	/**
 	 * Delete unit
-	 * Simple and direct
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Delete(':id')
 	async remove(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Param('id', ParseUUIDPipe) id: string
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-
-		await this.unitsService.remove(userId, id)
+		await this.unitsService.remove(token, id)
 		return { message: 'Unit deleted successfully' }
 	}
 }

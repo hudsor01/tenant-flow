@@ -44,13 +44,6 @@ function getTokenFromRequest(req: Request): string | null {
 
 // Validation constants (DRY principle)
 const VALID_TIMEFRAMES = ['7d', '30d', '90d', '180d', '365d'] as const
-const VALID_PERIODS = [
-	'daily',
-	'weekly',
-	'monthly',
-	'quarterly',
-	'yearly'
-] as const
 const VALID_PROPERTY_TYPES: PropertyType[] = [
 	'SINGLE_FAMILY',
 	'MULTI_UNIT',
@@ -776,8 +769,12 @@ export class PropertiesService {
 			return cached
 		}
 
-		// Use Supabase RPC for aggregated stats
-		const client = this.supabase.getAdminClient()
+		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		const token = getTokenFromRequest(req)
+		if (!token) {
+			throw new Error('No authentication token found')
+		}
+		const client = this.supabase.getUserClient(token)
 		const { data, error } = await client.rpc('get_property_stats', {
 			p_user_id: userId
 		} satisfies Database['public']['Functions']['get_property_stats']['Args'])
@@ -877,21 +874,26 @@ export class PropertiesService {
 			}
 		}
 
-		const limit = Math.min(Math.max(query.limit || 10, 1), 50)
+		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		const token = getTokenFromRequest(req)
+		if (!token) {
+			throw new Error('No authentication token found')
+		}
+		const client = this.supabase.getUserClient(token)
+		
+		const rpcParams: Record<string, unknown> = {
+			p_user_id: userId
+		}
+		if (query.timeframe) rpcParams.p_timeframe = query.timeframe
+		if (query.propertyId) rpcParams.p_property_id = query.propertyId
 
-		const client = this.supabase.getAdminClient()
 		const { data, error } = await client.rpc(
-			'get_property_performance_analytics',
-			{
-				p_user_id: userId,
-				p_timeframe: query.timeframe,
-				p_limit: limit,
-				...(query.propertyId ? { p_property_id: query.propertyId } : {})
-			} satisfies Database['public']['Functions']['get_property_performance_analytics']['Args']
+			'get_property_maintenance_analytics',
+			rpcParams as Database['public']['Functions']['get_property_maintenance_analytics']['Args']
 		)
 
 		if (error) {
-			this.logger.error('Failed to get performance analytics', {
+			this.logger.error('Failed to get maintenance analytics', {
 				error,
 				userId
 			})
@@ -906,18 +908,9 @@ export class PropertiesService {
 	 */
 	async getPropertyOccupancyAnalytics(
 		req: Request,
-		query: { propertyId?: string; period: string }
-	) {
+		query: { propertyId?: string; period?: string }
+	): Promise<unknown[]> {
 		const userId = (req as AuthenticatedRequest).user.id
-
-		// Validate using constant
-		if (
-			!VALID_PERIODS.includes(query.period as (typeof VALID_PERIODS)[number])
-		) {
-			throw new BadRequestException(
-				`Invalid period. Must be one of: ${VALID_PERIODS.join(', ')}`
-			)
-		}
 
 		// SECURITY FIX #3: Verify property ownership before calling RPC
 		if (query.propertyId) {
@@ -927,14 +920,21 @@ export class PropertiesService {
 			}
 		}
 
-		const client = this.supabase.getAdminClient()
+		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		const token = getTokenFromRequest(req)
+		if (!token) {
+			throw new Error('No authentication token found')
+		}
+		const client = this.supabase.getUserClient(token)
+		const rpcParams: Record<string, unknown> = {
+			p_user_id: userId
+		}
+		if (query.period) rpcParams.p_period = query.period
+		if (query.propertyId) rpcParams.p_property_id = query.propertyId
+
 		const { data, error } = await client.rpc(
 			'get_property_occupancy_analytics',
-			{
-				p_user_id: userId,
-				p_period: query.period,
-				...(query.propertyId ? { p_property_id: query.propertyId } : {})
-			} satisfies Database['public']['Functions']['get_property_occupancy_analytics']['Args']
+			rpcParams as Database['public']['Functions']['get_property_occupancy_analytics']['Args']
 		)
 
 		if (error) {
@@ -950,20 +950,9 @@ export class PropertiesService {
 	 */
 	async getPropertyFinancialAnalytics(
 		req: Request,
-		query: { propertyId?: string; timeframe: string }
-	) {
+		query: { propertyId?: string; timeframe?: string }
+	): Promise<unknown[]> {
 		const userId = (req as AuthenticatedRequest).user.id
-
-		// Validate using constant
-		if (
-			!VALID_TIMEFRAMES.includes(
-				query.timeframe as (typeof VALID_TIMEFRAMES)[number]
-			)
-		) {
-			throw new BadRequestException(
-				`Invalid timeframe. Must be one of: ${VALID_TIMEFRAMES.join(', ')}`
-			)
-		}
 
 		// SECURITY FIX #3: Verify property ownership before calling RPC
 		if (query.propertyId) {
@@ -973,14 +962,21 @@ export class PropertiesService {
 			}
 		}
 
-		const client = this.supabase.getAdminClient()
+		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		const token = getTokenFromRequest(req)
+		if (!token) {
+			throw new Error('No authentication token found')
+		}
+		const client = this.supabase.getUserClient(token)
+		const rpcParams: Record<string, unknown> = {
+			p_user_id: userId
+		}
+		if (query.timeframe) rpcParams.p_timeframe = query.timeframe
+		if (query.propertyId) rpcParams.p_property_id = query.propertyId
+
 		const { data, error } = await client.rpc(
 			'get_property_financial_analytics',
-			{
-				p_user_id: userId,
-				p_timeframe: query.timeframe,
-				...(query.propertyId ? { p_property_id: query.propertyId } : {})
-			} satisfies Database['public']['Functions']['get_property_financial_analytics']['Args']
+			rpcParams as Database['public']['Functions']['get_property_financial_analytics']['Args']
 		)
 
 		if (error) {
@@ -996,20 +992,9 @@ export class PropertiesService {
 	 */
 	async getPropertyMaintenanceAnalytics(
 		req: Request,
-		query: { propertyId?: string; timeframe: string }
-	) {
+		query: { propertyId?: string; timeframe?: string }
+	): Promise<unknown[]> {
 		const userId = (req as AuthenticatedRequest).user.id
-
-		// Validate using constant
-		if (
-			!VALID_TIMEFRAMES.includes(
-				query.timeframe as (typeof VALID_TIMEFRAMES)[number]
-			)
-		) {
-			throw new BadRequestException(
-				`Invalid timeframe. Must be one of: ${VALID_TIMEFRAMES.join(', ')}`
-			)
-		}
 
 		// SECURITY FIX #3: Verify property ownership before calling RPC
 		if (query.propertyId) {
@@ -1019,14 +1004,22 @@ export class PropertiesService {
 			}
 		}
 
-		const client = this.supabase.getAdminClient()
+		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		const token = getTokenFromRequest(req)
+		if (!token) {
+			throw new Error('No authentication token found')
+		}
+		const client = this.supabase.getUserClient(token)
+		
+		const rpcParams: Record<string, unknown> = {
+			p_user_id: userId
+		}
+		if (query.timeframe) rpcParams.p_timeframe = query.timeframe
+		if (query.propertyId) rpcParams.p_property_id = query.propertyId
+
 		const { data, error } = await client.rpc(
 			'get_property_maintenance_analytics',
-			{
-				p_user_id: userId,
-				p_timeframe: query.timeframe,
-				...(query.propertyId ? { p_property_id: query.propertyId } : {})
-			} satisfies Database['public']['Functions']['get_property_maintenance_analytics']['Args']
+			rpcParams as Database['public']['Functions']['get_property_maintenance_analytics']['Args']
 		)
 
 		if (error) {

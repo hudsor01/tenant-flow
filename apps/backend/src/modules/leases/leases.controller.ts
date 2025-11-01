@@ -18,10 +18,9 @@ import {
 	ParseUUIDPipe,
 	Post,
 	Put,
-	Query,
-	Req
+	Query
 } from '@nestjs/common'
-import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
+import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { LeasesService } from './leases.service'
 import { CreateLeaseDto } from './dto/create-lease.dto'
 import { UpdateLeaseDto } from './dto/update-lease.dto'
@@ -32,7 +31,7 @@ export class LeasesController {
 
 	@Get()
 	async findAll(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Query('tenantId') tenantId?: string,
 		@Query('unitId') unitId?: string,
 		@Query('propertyId') propertyId?: string,
@@ -81,10 +80,8 @@ export class LeasesController {
 			throw new BadRequestException('Limit must be between 1 and 50')
 		}
 
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-
-		return this.leasesService.findAll(userId, {
+		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		return this.leasesService.findAll(token, {
 			tenantId,
 			unitId,
 			propertyId,
@@ -97,15 +94,14 @@ export class LeasesController {
 	}
 
 	@Get('stats')
-	async getStats(@Req() req: AuthenticatedRequest) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-		return this.leasesService.getStats(userId)
+	async getStats(@JwtToken() token: string) {
+		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		return this.leasesService.getStats(token)
 	}
 
 	@Get('analytics/performance')
 	async getLeasePerformanceAnalytics(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Query('leaseId') leaseId?: string,
 		@Query('propertyId') propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('90d')) timeframe?: string
@@ -135,10 +131,8 @@ export class LeasesController {
 			)
 		}
 
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-
-		return this.leasesService.getAnalytics(userId, {
+		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		return this.leasesService.getAnalytics(token, {
 			...(leaseId ? { leaseId } : {}),
 			...(propertyId ? { propertyId } : {}),
 			timeframe: timeframe ?? '90d'
@@ -147,7 +141,7 @@ export class LeasesController {
 
 	@Get('analytics/duration')
 	async getLeaseDurationAnalytics(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Query('propertyId') propertyId?: string,
 		@Query('period', new DefaultValuePipe('yearly')) period?: string
 	) {
@@ -168,10 +162,8 @@ export class LeasesController {
 			)
 		}
 
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-
-		return this.leasesService.getAnalytics(userId, {
+		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		return this.leasesService.getAnalytics(token, {
 			...(propertyId ? { propertyId } : {}),
 			timeframe: '90d',
 			period: period ?? 'yearly'
@@ -180,7 +172,7 @@ export class LeasesController {
 
 	@Get('analytics/turnover')
 	async getLeaseTurnoverAnalytics(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Query('propertyId') propertyId?: string,
 		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
 	) {
@@ -201,10 +193,8 @@ export class LeasesController {
 			)
 		}
 
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-
-		return this.leasesService.getAnalytics(userId, {
+		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		return this.leasesService.getAnalytics(token, {
 			...(propertyId ? { propertyId } : {}),
 			timeframe: timeframe ?? '12m'
 		})
@@ -212,7 +202,7 @@ export class LeasesController {
 
 	@Get('analytics/revenue')
 	async getLeaseRevenueAnalytics(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Query('leaseId') leaseId?: string,
 		@Query('propertyId') propertyId?: string,
 		@Query('period', new DefaultValuePipe('monthly')) period?: string
@@ -242,10 +232,8 @@ export class LeasesController {
 			)
 		}
 
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-
-		return this.leasesService.getAnalytics(userId, {
+		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		return this.leasesService.getAnalytics(token, {
 			...(leaseId ? { leaseId } : {}),
 			...(propertyId ? { propertyId } : {}),
 			timeframe: '90d',
@@ -255,25 +243,23 @@ export class LeasesController {
 
 	@Get('expiring')
 	async getExpiring(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Query('days', new DefaultValuePipe(30), ParseIntPipe) days?: number
 	) {
 		if (days && (days < 1 || days > 365)) {
 			throw new BadRequestException('Days must be between 1 and 365')
 		}
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-		return this.leasesService.getExpiring(userId, days ?? 30)
+		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		return this.leasesService.getExpiring(token, days ?? 30)
 	}
 
 	@Get(':id')
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest
+		@JwtToken() token: string
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-		const lease = await this.leasesService.findOne(userId, id)
+		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		const lease = await this.leasesService.findOne(token, id)
 		if (!lease) {
 			throw new NotFoundException('Lease not found')
 		}
@@ -283,26 +269,22 @@ export class LeasesController {
 	@Post()
 	async create(
 		@Body() dto: CreateLeaseDto,
-		@Req() req: AuthenticatedRequest
+		@JwtToken() token: string
 	) {
-		// Modern 2025 pattern: Zod validation via nestjs-zod
-		const userId = req.user.id
-		return this.leasesService.create(userId, dto)
+		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		return this.leasesService.create(token, dto)
 	}
 
 	@Put(':id')
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() dto: UpdateLeaseDto,
-		@Req() req: AuthenticatedRequest
+		@JwtToken() token: string
 	) {
-		// Modern 2025 pattern: Zod validation via nestjs-zod
-		const userId = req.user.id
-
 		// 🔐 BUG FIX #2: Pass version for optimistic locking
 		const expectedVersion = (dto as { version?: number }).version
 		const lease = await this.leasesService.update(
-			userId,
+			token,
 			id,
 			dto,
 			expectedVersion
@@ -316,11 +298,10 @@ export class LeasesController {
 	@Delete(':id')
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest
+		@JwtToken() token: string
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-		await this.leasesService.remove(userId, id)
+		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		await this.leasesService.remove(token, id)
 		return { message: 'Lease deleted successfully' }
 	}
 
@@ -328,27 +309,25 @@ export class LeasesController {
 	async renew(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body('endDate') endDate: string,
-		@Req() req: AuthenticatedRequest
+		@JwtToken() token: string
 	) {
 		// Validate date format
 		if (!endDate || !endDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
 			throw new BadRequestException('Invalid date format (YYYY-MM-DD required)')
 		}
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-		return this.leasesService.renew(userId, id, endDate)
+		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		return this.leasesService.renew(token, id, endDate)
 	}
 
 	@Post(':id/terminate')
 	async terminate(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Body('reason') reason?: string
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
+		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.terminate(
-			userId,
+			token,
 			id,
 			new Date().toISOString(),
 			reason

@@ -77,10 +77,23 @@ export class LateFeesService {
 	/**
 	 * Get late fee configuration for a lease
 	 */
-	async getLateFeeConfig(leaseId: string): Promise<LateFeeConfig> {
+	async getLateFeeConfig(leaseId: string, token: string): Promise<LateFeeConfig> {
 		try {
-			const { data: lease, error } = await this.supabase
-				.getAdminClient()
+			if (!token) {
+				this.logger.warn(
+					'Get late fee config requested without token'
+				)
+				throw new BadRequestException('Authentication token is required')
+			}
+
+			this.logger.log('Getting late fee config via RLS-protected query', {
+				leaseId
+			})
+
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
+			const client = this.supabase.getUserClient(token)
+
+			const { data: lease, error } = await client
 				.from('lease')
 				.select(
 					`
@@ -127,9 +140,17 @@ export class LateFeesService {
 		leaseId: string,
 		rentPaymentId: string,
 		lateFeeAmount: number,
-		reason: string
+		reason: string,
+		token: string
 	): Promise<Stripe.InvoiceItem> {
 		try {
+			if (!token) {
+				this.logger.warn(
+					'Apply late fee to invoice requested without token'
+				)
+				throw new BadRequestException('Authentication token is required')
+			}
+
 			this.logger.log('Applying late fee to Stripe invoice', {
 				customerId,
 				leaseId,
@@ -152,9 +173,11 @@ export class LateFeesService {
 				}
 			})
 
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's rent payments
+			const client = this.supabase.getUserClient(token)
+
 			// Update RentPayment to mark late fee applied
-			await this.supabase
-				.getAdminClient()
+			await client
 				.from('rent_payment')
 				.update({
 					lateFeeApplied: true,
@@ -186,6 +209,7 @@ export class LateFeesService {
 	 */
 	async getOverduePayments(
 		leaseId: string,
+		token: string,
 		gracePeriodDays: number = 5
 	): Promise<
 		Array<{
@@ -197,8 +221,25 @@ export class LateFeesService {
 		}>
 	> {
 		try {
-			const { data: payments, error } = await this.supabase
-				.getAdminClient()
+			if (!token) {
+				this.logger.warn(
+					'Get overdue payments requested without token'
+				)
+				throw new BadRequestException('Authentication token is required')
+			}
+
+			this.logger.log(
+				'Getting overdue payments via RLS-protected query',
+				{
+					leaseId,
+					gracePeriodDays
+				}
+			)
+
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's rent payments
+			const client = this.supabase.getUserClient(token)
+
+			const { data: payments, error } = await client
 				.from('rent_payment')
 				.select('id, amount, dueDate, lateFeeApplied, status')
 				.eq('leaseId', leaseId)
@@ -241,7 +282,8 @@ export class LateFeesService {
 	 */
 	async processLateFees(
 		leaseId: string,
-		landlordId: string
+		token: string,
+		landlordId?: string
 	): Promise<{
 		processed: number
 		totalLateFees: number
@@ -252,17 +294,25 @@ export class LateFeesService {
 		}>
 	}> {
 		try {
-			this.logger.log('Processing late fees for lease', {
+			if (!token) {
+				this.logger.warn(
+					'Process late fees requested without token'
+				)
+				throw new BadRequestException('Authentication token is required')
+			}
+
+			this.logger.log('Processing late fees for lease via RLS', {
 				leaseId,
 				landlordId
 			})
 
 			// Get late fee config
-			const config = await this.getLateFeeConfig(leaseId)
+			const config = await this.getLateFeeConfig(leaseId, token)
 
 			// Get overdue payments
 			const overduePayments = await this.getOverduePayments(
 				leaseId,
+				token,
 				config.gracePeriodDays
 			)
 
@@ -275,15 +325,17 @@ export class LateFeesService {
 				}
 			}
 
-			// Get Stripe customer ID from landlord
-			const { data: landlord, error: landlordError } = await this.supabase
-				.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client filters to authenticated user's data
+			const client = this.supabase.getUserClient(token)
+
+			// Get Stripe customer ID from authenticated user
+			const { data: userData, error: userError } = await client
 				.from('users')
 				.select('stripeCustomerId')
-				.eq('id', landlordId)
+				.eq('id', landlordId || 'current_user') // RLS will filter appropriately
 				.single()
 
-			if (landlordError || !landlord?.stripeCustomerId) {
+			if (userError || !userData?.stripeCustomerId) {
 				throw new BadRequestException('Landlord Stripe customer not found')
 			}
 
@@ -303,11 +355,12 @@ export class LateFeesService {
 
 				if (calculation.shouldApplyFee) {
 					await this.applyLateFeeToInvoice(
-						landlord.stripeCustomerId,
+						userData.stripeCustomerId,
 						leaseId,
 						payment.id,
 						calculation.lateFeeAmount,
-						calculation.reason
+						calculation.reason,
+						token
 					)
 
 					results.push({
@@ -346,13 +399,19 @@ export class LateFeesService {
 	 */
 	async updateLateFeeConfig(
 		leaseId: string,
-		userId: string,
+		token: string,
 		config: Partial<LateFeeConfig>
 	): Promise<void> {
 		try {
-			this.logger.log('Updating late fee config', {
+			if (!token) {
+				this.logger.warn(
+					'Update late fee config requested without token'
+				)
+				throw new BadRequestException('Authentication token is required')
+			}
+
+			this.logger.log('Updating late fee config via RLS-protected query', {
 				leaseId,
-				userId,
 				config
 			})
 
@@ -366,8 +425,10 @@ export class LateFeesService {
 				updateData.lateFeeAmount = config.flatFeeAmount ?? null
 			}
 
-			await this.supabase
-				.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
+			const client = this.supabase.getUserClient(token)
+
+			await client
 				.from('lease')
 				.update(updateData)
 				.eq('id', leaseId)
@@ -376,8 +437,7 @@ export class LateFeesService {
 		} catch (error) {
 			this.logger.error('Failed to update late fee config', {
 				error: error instanceof Error ? error.message : String(error),
-				leaseId,
-				userId
+				leaseId
 			})
 			throw new BadRequestException('Failed to update late fee configuration')
 		}

@@ -117,7 +117,7 @@ const TaxDocumentsPage = ({
 				
 				// Import tax documents via API
 				const res = await fetch(
-					`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/financials/tax-documents`,
+					'/api/v1/financials/tax-documents',
 					{
 						method: 'POST',
 						headers: {
@@ -170,7 +170,7 @@ const TaxDocumentsPage = ({
 			const endDate = `${taxYear}-12-31`
 
 			const res = await fetch(
-				`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/reports/generate-tax-preparation`,
+				'/api/v1/reports/generate-tax-preparation',
 				{
 					method: 'POST',
 					headers: {

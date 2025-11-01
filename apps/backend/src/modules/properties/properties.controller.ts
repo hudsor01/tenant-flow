@@ -244,80 +244,6 @@ export class PropertiesController {
 	}
 
 	/**
-	 * Get property occupancy trends and analytics
-	 * Tracks occupancy rates over time per property
-	 */
-	@Get('analytics/occupancy')
-	async getPropertyOccupancyAnalytics(
-		@Request() req: AuthenticatedRequest,
-		@Query('propertyId', new ParseUUIDPipe({ optional: true }))
-		propertyId?: string,
-		@Query('period', new DefaultValuePipe('monthly')) period?: string
-	) {
-		// Validate period
-		if (
-			!['daily', 'weekly', 'monthly', 'yearly'].includes(period ?? 'monthly')
-		) {
-			throw new BadRequestException(
-				'Invalid period. Must be one of: daily, weekly, monthly, yearly'
-			)
-		}
-
-		return this.propertiesService.getPropertyOccupancyAnalytics(req, {
-			...(propertyId ? { propertyId } : {}),
-			period: period ?? 'monthly'
-		})
-	}
-
-	/**
-	 * Get property financial analytics
-	 * Revenue, expenses, and profitability per property
-	 */
-	@Get('analytics/financial')
-	async getPropertyFinancialAnalytics(
-		@Request() req: AuthenticatedRequest,
-		@Query('propertyId', new ParseUUIDPipe({ optional: true }))
-		propertyId?: string,
-		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
-	) {
-		// Validate timeframe
-		if (!['3m', '6m', '12m', '24m'].includes(timeframe ?? '12m')) {
-			throw new BadRequestException(
-				'Invalid timeframe. Must be one of: 3m, 6m, 12m, 24m'
-			)
-		}
-
-		return this.propertiesService.getPropertyFinancialAnalytics(req, {
-			...(propertyId ? { propertyId } : {}),
-			timeframe: timeframe ?? '12m'
-		})
-	}
-
-	/**
-	 * Get property maintenance analytics
-	 * Maintenance costs, frequency, and trends per property
-	 */
-	@Get('analytics/maintenance')
-	async getPropertyMaintenanceAnalytics(
-		@Request() req: AuthenticatedRequest,
-		@Query('propertyId', new ParseUUIDPipe({ optional: true }))
-		propertyId?: string,
-		@Query('timeframe', new DefaultValuePipe('6m')) timeframe?: string
-	) {
-		// Validate timeframe
-		if (!['1m', '3m', '6m', '12m'].includes(timeframe ?? '6m')) {
-			throw new BadRequestException(
-				'Invalid timeframe. Must be one of: 1m, 3m, 6m, 12m'
-			)
-		}
-
-		return this.propertiesService.getPropertyMaintenanceAnalytics(req, {
-			...(propertyId ? { propertyId } : {}),
-			timeframe: timeframe ?? '6m'
-		})
-	}
-
-	/**
 	 * Mark property as sold (7-year retention compliance)
 	 * Updates status to SOLD with required date_sold and sale_price
 	 */
@@ -389,6 +315,80 @@ export class PropertiesController {
 	) {
 		await this.propertiesService.deletePropertyImage(req, imageId)
 		return { message: 'Image deleted successfully' }
+	}
+
+	/**
+	 * Get property occupancy trends and analytics
+	 * Tracks occupancy rates over time per property
+	 */
+	@Get('analytics/occupancy')
+	async getPropertyOccupancyAnalytics(
+		@Request() req: AuthenticatedRequest,
+		@Query('propertyId', new ParseUUIDPipe({ optional: true }))
+		propertyId?: string,
+		@Query('period', new DefaultValuePipe('monthly')) period?: string
+	) {
+		// Validate period
+		if (
+			!['daily', 'weekly', 'monthly', 'yearly'].includes(period ?? 'monthly')
+		) {
+			throw new BadRequestException(
+				'Invalid period. Must be one of: daily, weekly, monthly, yearly'
+			)
+		}
+
+		return this.propertiesService.getPropertyOccupancyAnalytics(req, {
+			...(propertyId ? { propertyId } : {}),
+			period: period ?? 'monthly'
+		})
+	}
+
+	/**
+	 * Get property financial analytics
+	 * Revenue, expenses, and profitability per property
+	 */
+	@Get('analytics/financial')
+	async getPropertyFinancialAnalytics(
+		@Request() req: AuthenticatedRequest,
+		@Query('propertyId', new ParseUUIDPipe({ optional: true }))
+		propertyId?: string,
+		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
+	) {
+		// Validate timeframe
+		if (!['3m', '6m', '12m', '24m'].includes(timeframe ?? '12m')) {
+			throw new BadRequestException(
+				'Invalid timeframe. Must be one of: 3m, 6m, 12m, 24m'
+			)
+		}
+
+		return this.propertiesService.getPropertyFinancialAnalytics(req, {
+			...(propertyId ? { propertyId } : {}),
+			timeframe: timeframe ?? '12m'
+		})
+	}
+
+	/**
+	 * Get property maintenance analytics
+	 * Maintenance costs, frequency, and trends per property
+	 */
+	@Get('analytics/maintenance')
+	async getPropertyMaintenanceAnalytics(
+		@Request() req: AuthenticatedRequest,
+		@Query('propertyId', new ParseUUIDPipe({ optional: true }))
+		propertyId?: string,
+		@Query('timeframe', new DefaultValuePipe('6m')) timeframe?: string
+	) {
+		// Validate timeframe
+		if (!['1m', '3m', '6m', '12m'].includes(timeframe ?? '6m')) {
+			throw new BadRequestException(
+				'Invalid timeframe. Must be one of: 1m, 3m, 6m, 12m'
+			)
+		}
+
+		return this.propertiesService.getPropertyMaintenanceAnalytics(req, {
+			...(propertyId ? { propertyId } : {}),
+			timeframe: timeframe ?? '6m'
+		})
 	}
 
 	@Put(':id/mark-sold')

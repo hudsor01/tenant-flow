@@ -21,8 +21,6 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 **Shared**: Node.js, pnpm, Turborepo, TypeScript strict, Zod
 
 
-## Shared Packages
-
 ## Database Migrations
 **SUPABASE MCP Server**: All writes via `doppler run -- psql $DIRECT_URL -f file.sql`
 
@@ -74,14 +72,8 @@ ActivityEntityType, BlogCategory, BlogStatus, customer_invoice_status, DocumentT
 - NO: Union types mirroring database enums
 - NO: String literals instead of generated types
 
-**Supabase migrations and auto gen types**
-After any database migration, always run:
-pnpm update-supabase-types
 
-
-## Frontend
-
-## Data Fetching Architecture
+## Frontend - Data Fetching Architecture
 **ARCHITECTURE**: Separated deployment (Vercel frontend → Railway NestJS backend → Supabase)
 
 **PHILOSOPHY**: Native platform features ONLY. Use `fetch()` directly per Next.js/TanStack Query official docs. NO abstraction layers, NO wrapper functions, NO api-client helpers.
@@ -124,12 +116,6 @@ Use for: Initial loads, dashboards, SEO pages, read-only data
 Use for: Forms, URL state, dialogs, filtering, real-time, infinite scroll, complex interactions
 
 
-### Optimistic Updates
-**Single Component (React 19 useOptimistic):**
-Use `useOptimistic` + `useTransition` for component-scoped instant UI feedback:
-
-**Multiple Components (TanStack Query Cache):**
-Use `useMutation` with cache-based optimistic updates for cross-component synchronization:
 
 ### TanStack Query (Client-Side Queries Only)
 **USE FOR:**
@@ -232,12 +218,34 @@ Simple client data? → useState/useReducer
 - Colors: OKLCH only
 - Animations: 200-300ms
 
-**Principles**: Reuse first, ShadCN/Magic UI, flat organization, Zustand for UI preferences only (NOT entity data), direct hooks (no prop drilling), shadcn charts
+**Component Libraries**: ShadCN/UI, Magic UI, shadcn charts
 
 ## Backend - Ultra-Native NestJS
-**ALLOWED**: Official @nestjs/* packages, built-in pipes/guards/decorators, native exceptions, direct Supabase RPC
-**FORBIDDEN**: Custom decorators/pipes/interceptors/events, wrappers, helpers, factories, builders, custom errors
-**DECISION**: Published on npm under @nestjs/* or official docs = allowed. You're creating it = forbidden.
+**PHILOSOPHY**: Follow official NestJS architectural patterns exactly as documented. Prefer platform idioms over custom abstractions.
+
+**DECISION RULE**: Published on npm under @nestjs/* or in official NestJS docs = **ALLOWED**. Custom abstractions not in docs = **FORBIDDEN**.
+
+**ALLOWED**:
+- Official @nestjs/* packages
+- Built-in pipes/guards/decorators
+- Native exceptions (BadRequestException, NotFoundException, etc.)
+- Direct Supabase RPC calls
+- **Custom param decorators** (`@User()`, `@UserId()`) per [NestJS Custom Decorators](https://docs.nestjs.com/custom-decorators)
+- **Metadata decorators** (`@Roles()`, `@Public()`) using `SetMetadata()` per [NestJS Execution Context](https://docs.nestjs.com/fundamentals/execution-context)
+- **Custom interceptors** (cache, timeout, logging) per [NestJS Interceptors](https://docs.nestjs.com/interceptors)
+- **Custom guards** (auth, roles, subscription) per [NestJS Guards](https://docs.nestjs.com/guards)
+- **Custom pipes** (validation, transformation) per [NestJS Pipes](https://docs.nestjs.com/pipes)
+- **Saga pattern** for distributed transactions (Supabase + Auth + Stripe coordination)
+- **Transaction compensation** with rollback logic across multiple systems
+- **Multi-step workflows** (invitation → onboarding → payment setup)
+
+**FORBIDDEN**:
+- Custom exception classes extending HttpException (use built-in exceptions)
+- Wrapper functions around fetch/Supabase/Stripe (call directly)
+- Helper utilities not following NestJS patterns
+- Factory patterns for object creation
+- Builder classes (except official NestJS patterns)
+- Custom event emitters (use @nestjs/event-emitter)
 
 ### Validation (nestjs-zod ONLY)
 **Method**: `nestjs-zod` + `createZodDto()` + `ZodValidationPipe` (globally configured in app.module.ts)
@@ -248,24 +256,25 @@ Simple client data? → useState/useReducer
 **Output**: `class-transformer` + ClassSerializerInterceptor - `@Exclude()` for sensitive fields
 **Validation Groups**: `.partial()`, `.pick()`, `.omit()` (Zod built-in, NOT custom)
 
-**FORBIDDEN:**
+**VALIDATION FORBIDDEN:**
 - NO: Manual inline validation in controllers
 - NO: `class-validator` decorators (`@IsString`, `@IsEmail`, etc.)
-- NO: Custom decorators/pipes
 - NO: DTO factories
-- NO: Custom base classes
-- NO: Wrappers around validation
+- NO: Custom base classes for DTOs
+- NO: Wrappers around Zod validation
 
-### Patterns
-- SharedModule (@Global()): Guards, pipes, Logger, Reflector
-- Domain Modules: Controller + Service + Module (flat, no sub-modules)
-- Route Ordering: Static before dynamic
-- Controllers: Delegate to services
-- Services: Direct Supabase RPC, <30 lines/method
-- Guards: Constructor init, Reflector metadata, cache lookups
-- Caching: `@CacheKey` + `@CacheTTL`
-- Context: `@Request() req: AuthenticatedRequest`
-- Errors: Built-in exceptions only
+### Architecture Patterns
+- **SharedModule** (@Global()): Guards, pipes, Logger, Reflector, custom decorators
+- **Domain Modules**: Controller + Service + Module (flat, no sub-modules)
+- **Route Ordering**: Static before dynamic
+- **Controllers**: Delegate to services, use custom param decorators (`@User()`, `@UserId()`)
+- **Services**: Simple queries: Direct Supabase RPC <30 lines; Multi-system workflows: Saga pattern allowed <150 lines; Extract private methods for clarity
+- **Guards**: Constructor init, Reflector metadata, cache lookups, composition via `applyDecorators()`
+- **Interceptors**: Response transformation, logging, caching, timeout handling
+- **Decorators**: Param extraction (`@User()`), metadata (`@Roles()`), composition (`@Auth()`)
+- **Caching**: `@CacheKey()` + `@CacheTTL()` decorators
+- **Context**: `@Request() req: AuthenticatedRequest` or custom `@User()` decorator
+- **Errors**: Built-in NestJS exceptions only (BadRequestException, NotFoundException, etc.)
 
 ### DI Checklist
 1. Service in `providers[]`?
@@ -279,20 +288,15 @@ Simple client data? → useState/useReducer
 
 
 
-## Infrastructure
-
 ## Code Quality
 
-**ESLint Rules (ERRORS)**:
-1. `no-typescript-enums` - Database enums only (except `security.ts`)
-2. `no-client-fetch-on-mount` - No `useEffect + fetch`
-3. `no-factory-patterns` - No abstraction layers
+**Commands**:
+- `pnpm lint:fix` - Fix linting errors
+- `prettier --write .` - Format code
+- `pnpm typecheck` - Check TypeScript
+- `pnpm validate` - Run all checks
 
-**Pre-commit**: Validation only (no auto-fix). `pnpm lint:fix` for manual fixes.
-
-**Playwright MCP**: `claude mcp add playwright npx -- @playwright/mcp@latest`
-
-**Commands**: `pnpm lint:fix`, `prettier --write`, `pnpm typecheck`, `pnpm validate`
+**ESLint**: Pre-commit validation only (no auto-fix)
 
 ### Pre-Change Checklist
 1. Does this exist? (`rg -r "pattern"`)
@@ -340,7 +344,6 @@ Simple client data? → useState/useReducer
 4. NO: Root file changes (invalidates caches)
 5. NO: Nested packages (use `apps/*`, `packages/*` only)
 
-**Validation**: `pnpm typecheck && pnpm lint && pnpm build`
 
 
 ## Reference Implementations

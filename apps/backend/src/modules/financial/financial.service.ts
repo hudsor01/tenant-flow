@@ -20,19 +20,18 @@ export class FinancialService {
 	 * Helper: Get unit IDs for user's properties
 	 * Used to filter leases/maintenance since they don't have org_id/owner_id
 	 */
-	private async getUserUnitIds(userId: string): Promise<string[]> {
-		const client = this.supabaseService.getAdminClient()
+	private async getUserUnitIds(token: string): Promise<string[]> {
+		const client = this.supabaseService.getUserClient(token)
 
-		// Get user's property IDs
+		// Get user's property IDs - RLS automatically filters to user's properties
 		const { data: properties } = await client
 			.from('property')
 			.select('id')
-			.eq('ownerId', userId)
 
 		const propertyIds = properties?.map(p => p.id) || []
 		if (propertyIds.length === 0) return []
 
-		// Get unit IDs for those properties
+		// Get unit IDs for those properties - RLS enforces property ownership
 		const { data: units } = await client
 			.from('unit')
 			.select('id')
@@ -46,17 +45,16 @@ export class FinancialService {
 	 * Uses repository pattern instead of database function
 	 */
 	async getExpenseSummary(
-		userId: string,
+		token: string,
 		year?: number
 	): Promise<Record<string, unknown>> {
 		try {
 			const targetYear = year || new Date().getFullYear()
 			this.logger.log('Getting expense summary via repositories', {
-				userId,
 				targetYear
 			})
 
-			const propertyIds = await this.getUserPropertyIds(userId)
+			const propertyIds = await this.getUserPropertyIds(token)
 			const { startDate, endDate } = this.calculateYearRange(targetYear)
 			const expenses = await this.fetchExpenses(propertyIds, startDate, endDate)
 
@@ -82,7 +80,6 @@ export class FinancialService {
 		} catch (error) {
 			this.logger.error('Failed to get expense summary', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				year
 			})
 			return {}
@@ -93,7 +90,7 @@ export class FinancialService {
 	 * Get financial overview - Direct Supabase queries
 	 */
 	async getOverview(
-		userId: string,
+		token: string,
 		year?: number
 	): Promise<Record<string, unknown>> {
 		try {
@@ -101,18 +98,16 @@ export class FinancialService {
 			this.logger.log(
 				'Getting financial overview via direct Supabase queries',
 				{
-					userId,
 					targetYear
 				}
 			)
 
-			const client = this.supabaseService.getAdminClient()
+			const client = this.supabaseService.getUserClient(token)
 
-			// Get user's property IDs first
+			// Get user's property IDs - RLS automatically filters
 			const { data: properties } = await client
 				.from('property')
 				.select('id')
-				.eq('ownerId', userId)
 
 			const propertyRows = (properties ?? []) as Array<{ id: string }>
 			const propertyIds = propertyRows.map(p => p.id)
@@ -227,7 +222,6 @@ export class FinancialService {
 		} catch (error) {
 			this.logger.error('Failed to get financial overview', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				year
 			})
 			return {}
@@ -238,20 +232,17 @@ export class FinancialService {
 	 * Get lease financial summary - Direct Supabase queries
 	 */
 	async getLeaseFinancialSummary(
-		userId: string
+		token: string
 	): Promise<Record<string, unknown>> {
 		try {
 			this.logger.log(
-				'Getting lease financial summary via direct Supabase queries',
-				{
-					userId
-				}
+				'Getting lease financial summary via direct Supabase queries'
 			)
 
-			const client = this.supabaseService.getAdminClient()
+			const client = this.supabaseService.getUserClient(token)
 
-			// Get user's unit IDs
-			const unitIds = await this.getUserUnitIds(userId)
+			// Get user's unit IDs - RLS enforces ownership
+			const unitIds = await this.getUserUnitIds(token)
 			if (unitIds.length === 0) {
 				return this.getEmptyLeaseSummary()
 			}
@@ -318,8 +309,7 @@ export class FinancialService {
 			}
 		} catch (error) {
 			this.logger.error('Failed to get lease financial summary', {
-				error: error instanceof Error ? error.message : String(error),
-				userId
+				error: error instanceof Error ? error.message : String(error)
 			})
 			return {}
 		}
@@ -329,18 +319,17 @@ export class FinancialService {
 	 * Get revenue trends - Direct Supabase queries
 	 */
 	async getRevenueTrends(
-		userId: string,
+		token: string,
 		year?: number
 	): Promise<FinancialMetrics[]> {
 		try {
 			const targetYear = year || new Date().getFullYear()
 			this.logger.log('Getting revenue trends via direct Supabase queries', {
-				userId,
 				targetYear
 			})
 
-			const propertyIds = await this.getUserPropertyIds(userId)
-			const unitIds = await this.getUserUnitIds(userId)
+			const propertyIds = await this.getUserPropertyIds(token)
+			const unitIds = await this.getUserUnitIds(token)
 
 			if (unitIds.length === 0) {
 				return this.getEmptyMonthlyMetrics(targetYear)
@@ -349,7 +338,7 @@ export class FinancialService {
 			const yearStart = new Date(targetYear, 0, 1)
 			const yearEnd = new Date(targetYear + 1, 0, 1)
 
-			const client = this.supabaseService.getAdminClient()
+			const client = this.supabaseService.getUserClient(token)
 			const { data: leases } = await client
 				.from('lease')
 				.select('*')
@@ -385,7 +374,6 @@ export class FinancialService {
 		} catch (error) {
 			this.logger.error('Failed to get revenue trends', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				year
 			})
 			return []
@@ -396,23 +384,21 @@ export class FinancialService {
 	 * Get Net Operating Income - Direct Supabase queries
 	 */
 	async getNetOperatingIncome(
-		userId: string,
+		token: string,
 		period = 'monthly'
 	): Promise<PropertyFinancialMetrics[]> {
 		try {
 			this.logger.log(
 				'Getting Net Operating Income via direct Supabase queries',
 				{
-					userId,
 					period
 				}
 			)
 
-			const client = this.supabaseService.getAdminClient()
+			const client = this.supabaseService.getUserClient(token)
 			const { data: properties } = await client
 				.from('property')
 				.select('id, name')
-				.eq('ownerId', userId)
 
 			const propertyRows = (properties ?? []) as Array<{
 				id: string
@@ -471,19 +457,17 @@ export class FinancialService {
 		} catch (error) {
 			this.logger.error('Failed to get Net Operating Income', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				period
 			})
 			return []
 		}
 	}
 
-	private async getUserPropertyIds(userId: string) {
-		const client = this.supabaseService.getAdminClient()
+	private async getUserPropertyIds(token: string) {
+		const client = this.supabaseService.getUserClient(token)
 		const { data } = await client
 			.from('property')
 			.select('id')
-			.eq('ownerId', userId)
 		const rows = (data ?? []) as Array<{ id: string }>
 		return rows.map(property => property.id)
 	}
@@ -506,6 +490,9 @@ export class FinancialService {
 		}
 
 		try {
+			// Note: This method is called from other methods that already have token/client
+			// but we use admin client here because it's a private helper and expense table
+			// doesn't have RLS - it's filtered by propertyId which we already verified ownership of
 			let query = this.supabaseService
 				.getAdminClient()
 				.from('expense')

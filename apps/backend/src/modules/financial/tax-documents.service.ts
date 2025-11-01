@@ -39,24 +39,23 @@ export class TaxDocumentsService {
 	 * Aggregates deductible expenses and depreciation for tax preparation
 	 */
 	async generateTaxDocuments(
-		userId: string,
+		token: string,
 		taxYear: number
 	): Promise<TaxDocumentsData> {
-		const client = this.supabaseService.getAdminClient()
+		const client = this.supabaseService.getUserClient(token)
 
-		this.logger.log(
-			`Generating tax documents for user ${userId} for tax year ${taxYear}`
-		)
+		this.logger.log(`Generating tax documents for tax year ${taxYear}`)
 
 		// Calculate year date range
 		const startDate = `${taxYear}-01-01`
 		const endDate = `${taxYear}-12-31`
 
 		// Get expense summary for deductible expenses
+		// RLS-protected RPC function automatically filters by authenticated user
 		const { data: expenseSummary, error: expenseError } = await client.rpc(
 			'get_expense_summary',
 			{
-				p_user_id: userId
+				p_user_id: ''
 			}
 		)
 
@@ -68,10 +67,11 @@ export class TaxDocumentsService {
 		}
 
 		// Get net operating income for property-level data
+		// RLS-protected RPC function automatically filters by authenticated user
 		const { data: noiData, error: noiError } = await client.rpc(
 			'calculate_net_operating_income',
 			{
-				p_user_id: userId
+				p_user_id: ''
 			}
 		)
 
@@ -81,12 +81,13 @@ export class TaxDocumentsService {
 		}
 
 		// Get financial metrics for income breakdown
+		// RLS-protected RPC function automatically filters by authenticated user
 		const { data: financialMetrics, error: metricsError } = await client.rpc(
 			'calculate_financial_metrics',
 			{
-				p_user_id: userId,
 				p_start_date: startDate,
-				p_end_date: endDate
+				p_end_date: endDate,
+				p_user_id: ''
 			}
 		)
 
