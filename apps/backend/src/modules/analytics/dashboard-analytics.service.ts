@@ -26,6 +26,15 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 	constructor(private readonly supabase: SupabaseService) {}
 
+	/**
+	 * Get client based on token - centralizes client selection logic
+	 */
+	private getClientForToken(token?: string) {
+		return token
+			? this.supabase.getUserClient(token)
+			: this.supabase.getAdminClient()
+	}
+
 	private async callRpc<T = unknown>(
 		functionName: string,
 		payload: Record<string, unknown>,
@@ -33,9 +42,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	): Promise<T | null> {
 		try {
 			// Use user-scoped client if token provided (RLS-enforced), otherwise admin
-			const client = token
-				? this.supabase.getUserClient(token)
-				: this.supabase.getAdminClient()
+			const client = this.getClientForToken(token)
 			
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const result = await (client as any).rpc(functionName, payload)
@@ -312,16 +319,14 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	): Promise<Record<string, unknown>> {
 		try {
 			this.logger.log('Calculating billing insights via RPC', {
-				userId,
-				options
-			})
+			userId,
+			options
+		})
 
-			// Use user-scoped client if token provided (RLS-enforced), otherwise admin
-			const client = token
-				? this.supabase.getUserClient(token)
-				: this.supabase.getAdminClient()
+		// Use centralized client selection
+		const client = this.getClientForToken(token)
 
-			// Simple billing insights (placeholder for now)
+		// Simple billing insights (placeholder for now)
 			const { data, error } = await client
 				.from('property')
 				.select('id')

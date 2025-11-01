@@ -260,7 +260,8 @@ export const createPropertyRequestSchema = z.object({
 	description: z.string().optional(),
 	type: z.string().optional(),
 	propertyType: z.string().optional(),
-	amenities: z.array(z.string()).optional()
+	amenities: z.array(z.string()).optional(),
+	imageUrl: z.string().url().nullable().optional().or(z.literal('').transform(() => undefined))
 })
 
 export const updatePropertyRequestSchema = z.object({
@@ -274,6 +275,7 @@ export const updatePropertyRequestSchema = z.object({
 	type: propertyTypeSchema.optional(),
 	propertyType: propertyTypeSchema.optional(),
 	amenities: z.array(z.string()).optional(),
+	imageUrl: z.string().url().nullable().optional().or(z.literal('').transform(() => undefined)),
 	version: z.number().optional()
 })
 

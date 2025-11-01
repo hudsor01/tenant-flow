@@ -237,8 +237,7 @@ export class PaymentMethodsService {
 			brand: paymentMethod.card?.brand || null,
 			bankName: paymentMethod.us_bank_account?.bank_name || null,
 			isDefault: shouldBeDefault,
-			verificationStatus:
-				paymentMethod.type === 'card' ? 'verified' : 'verified',
+			verificationStatus: 'verified',
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString()
 		})

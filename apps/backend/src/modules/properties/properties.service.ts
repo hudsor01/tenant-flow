@@ -11,7 +11,8 @@ import {
 	Injectable,
 	Logger,
 	NotFoundException,
-	Optional
+	Optional,
+	UnauthorizedException
 } from '@nestjs/common'
 import type {
 	CreatePropertyRequest,
@@ -167,6 +168,10 @@ export class PropertiesService {
 
 		if (request.description?.trim()) {
 			insertData.description = request.description.trim()
+		}
+
+		if (request.imageUrl?.trim()) {
+			insertData.imageUrl = request.imageUrl.trim()
 		}
 
 		this.logger.debug('Attempting to create property', { insertData })
@@ -772,7 +777,7 @@ export class PropertiesService {
 		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
-			throw new Error('No authentication token found')
+			throw new UnauthorizedException('No authentication token found')
 		}
 		const client = this.supabase.getUserClient(token)
 		const { data, error } = await client.rpc('get_property_stats', {
@@ -877,7 +882,7 @@ export class PropertiesService {
 		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
-			throw new Error('No authentication token found')
+			throw new UnauthorizedException('No authentication token found')
 		}
 		const client = this.supabase.getUserClient(token)
 		
@@ -923,7 +928,7 @@ export class PropertiesService {
 		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
-			throw new Error('No authentication token found')
+			throw new UnauthorizedException('No authentication token found')
 		}
 		const client = this.supabase.getUserClient(token)
 		const rpcParams: Record<string, unknown> = {
@@ -965,7 +970,7 @@ export class PropertiesService {
 		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
-			throw new Error('No authentication token found')
+			throw new UnauthorizedException('No authentication token found')
 		}
 		const client = this.supabase.getUserClient(token)
 		const rpcParams: Record<string, unknown> = {
@@ -1007,7 +1012,7 @@ export class PropertiesService {
 		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
-			throw new Error('No authentication token found')
+			throw new UnauthorizedException('No authentication token found')
 		}
 		const client = this.supabase.getUserClient(token)
 		
