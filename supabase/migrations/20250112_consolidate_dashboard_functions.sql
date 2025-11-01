@@ -177,9 +177,115 @@ BEGIN
   start_date := end_date - (p_days || ' days')::interval;
 
   -- Generate time-series data based on metric
-  -- For now, return empty array placeholder
-  -- TODO: Implement metric-specific logic
-  result := '[]'::jsonb;
+  CASE p_metric_name
+    WHEN 'occupancy_rate' THEN
+      -- Daily occupancy rate over period
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'date', day::text,
+          'value', CASE
+            WHEN total_units > 0 THEN
+              ROUND((occupied_units::numeric / total_units::numeric) * 100, 2)
+            ELSE 0
+          END
+        ) ORDER BY day
+      ) INTO result
+      FROM (
+        SELECT
+          d.day,
+          COUNT(DISTINCT u.id) AS total_units,
+          COUNT(DISTINCT CASE
+            WHEN EXISTS (
+              SELECT 1 FROM lease l
+              WHERE l."unitId" = u.id
+              AND l.status = 'ACTIVE'
+              AND l."startDate" <= d.day
+              AND (l."endDate" IS NULL OR l."endDate" >= d.day)
+            ) THEN u.id
+          END) AS occupied_units
+        FROM generate_series(start_date, end_date, '1 day'::interval) AS d(day)
+        CROSS JOIN unit u
+        JOIN property p ON u."propertyId" = p.id
+        WHERE p."ownerId" = p_user_id::uuid
+        GROUP BY d.day
+      ) daily_occupancy;
+
+    WHEN 'monthly_revenue' THEN
+      -- Daily revenue over period
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'date', day::text,
+          'value', COALESCE(daily_revenue, 0)
+        ) ORDER BY day
+      ) INTO result
+      FROM (
+        SELECT
+          d.day,
+          COALESCE(SUM(rp.amount) / 100.0, 0) AS daily_revenue
+        FROM generate_series(start_date, end_date, '1 day'::interval) AS d(day)
+        LEFT JOIN rent_payment rp ON DATE(rp."paidAt") = d.day
+        LEFT JOIN lease l ON rp."leaseId" = l.id
+        LEFT JOIN unit u ON l."unitId" = u.id
+        LEFT JOIN property p ON u."propertyId" = p.id
+        WHERE (p."ownerId" = p_user_id::uuid OR p."ownerId" IS NULL)
+        AND (rp.status = 'PAID' OR rp.status IS NULL)
+        GROUP BY d.day
+      ) daily_revenue;
+
+    WHEN 'active_tenants' THEN
+      -- Daily active tenant count over period
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'date', day::text,
+          'value', COALESCE(active_count, 0)
+        ) ORDER BY day
+      ) INTO result
+      FROM (
+        SELECT
+          d.day,
+          COUNT(DISTINCT t.id) AS active_count
+        FROM generate_series(start_date, end_date, '1 day'::interval) AS d(day)
+        LEFT JOIN lease l ON l.status = 'ACTIVE'
+          AND l."startDate" <= d.day
+          AND (l."endDate" IS NULL OR l."endDate" >= d.day)
+        LEFT JOIN tenant t ON l."tenantId" = t.id
+        LEFT JOIN unit u ON l."unitId" = u.id
+        LEFT JOIN property p ON u."propertyId" = p.id
+        WHERE p."ownerId" = p_user_id::uuid OR p."ownerId" IS NULL
+        GROUP BY d.day
+      ) daily_tenants;
+
+    WHEN 'open_maintenance' THEN
+      -- Daily open maintenance count over period
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'date', day::text,
+          'value', COALESCE(open_count, 0)
+        ) ORDER BY day
+      ) INTO result
+      FROM (
+        SELECT
+          d.day,
+          COUNT(DISTINCT m.id) AS open_count
+        FROM generate_series(start_date, end_date, '1 day'::interval) AS d(day)
+        LEFT JOIN maintenance_request m ON DATE(m."createdAt") <= d.day
+          AND (m.status IN ('PENDING', 'IN_PROGRESS')
+            OR (m.status = 'COMPLETED' AND DATE(m."completedAt") > d.day))
+        LEFT JOIN unit u ON m."unitId" = u.id
+        LEFT JOIN property p ON u."propertyId" = p.id
+        WHERE p."ownerId" = p_user_id::uuid OR p."ownerId" IS NULL
+        GROUP BY d.day
+      ) daily_maintenance;
+
+    ELSE
+      -- Unknown metric - return empty array
+      result := '[]'::jsonb;
+  END CASE;
+
+  -- Handle NULL result (no data)
+  IF result IS NULL THEN
+    result := '[]'::jsonb;
+  END IF;
 
   RETURN result;
 END;

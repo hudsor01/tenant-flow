@@ -7,8 +7,7 @@ import type {
   DashboardTrendData,
   DashboardTimeSeriesOptions,
 } from '@repo/shared/types/dashboard-repository'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+import { API_BASE_URL } from '#lib/api-config'
 
 export const dashboardTrendKeys = {
   all: ['dashboard-trends'] as const,
