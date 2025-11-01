@@ -13,8 +13,14 @@ const logger = createLogger({ component: 'ClientAPI' })
 /**
  * Get auth headers with Supabase JWT token
  * Extracted for reuse across fetch calls
+ *
+ * @param additionalHeaders - Custom headers to merge with auth headers
+ * @param requireAuth - Whether to throw error if no session exists (default: true)
  */
-async function getAuthHeaders(additionalHeaders?: Record<string, string>): Promise<Record<string, string>> {
+async function getAuthHeaders(
+	additionalHeaders?: Record<string, string>,
+	requireAuth: boolean = true
+): Promise<Record<string, string>> {
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json',
 		...additionalHeaders
@@ -28,10 +34,21 @@ async function getAuthHeaders(additionalHeaders?: Record<string, string>): Promi
 	// Add Authorization header if session exists
 	if (session?.access_token) {
 		headers['Authorization'] = `Bearer ${session.access_token}`
+	} else if (requireAuth) {
+		// Fail fast if authentication is required but no session exists
+		logger.error('Authentication required but no session found', {
+			metadata: {
+				hasSession: !!session,
+				requireAuth
+			}
+		})
+		throw new Error('Authentication session expired. Please log in again.')
 	} else {
+		// Log warning for optional auth endpoints
 		logger.warn('No valid session found for API request', {
 			metadata: {
-				hasSession: !!session
+				hasSession: !!session,
+				requireAuth
 			}
 		})
 	}
@@ -42,6 +59,10 @@ async function getAuthHeaders(additionalHeaders?: Record<string, string>): Promi
 /**
  * Client-side fetch with Supabase authentication
  *
+ * The backend returns responses in two formats:
+ * 1. Wrapped: { success: true, data: T } or { success: false, error: string }
+ * 2. Direct: T (for some endpoints)
+ *
  * Usage in TanStack Query hooks:
  * ```typescript
  * queryFn: () => clientFetch<Property>('/api/v1/properties/123')
@@ -49,16 +70,20 @@ async function getAuthHeaders(additionalHeaders?: Record<string, string>): Promi
  *   method: 'POST',
  *   body: JSON.stringify(data)
  * })
+ * // For public endpoints (no auth required)
+ * queryFn: () => clientFetch<Data>('/api/v1/public/data', { requireAuth: false })
  * ```
  */
 export async function clientFetch<T>(
 	endpoint: string,
-	options?: RequestInit
+	options?: RequestInit & { requireAuth?: boolean }
 ): Promise<T> {
+	const { requireAuth = true, ...fetchOptions } = options || {}
+
 	// Build headers from options
 	const customHeaders: Record<string, string> = {}
-	if (options?.headers) {
-		Object.entries(options.headers).forEach(([key, value]) => {
+	if (fetchOptions?.headers) {
+		Object.entries(fetchOptions.headers).forEach(([key, value]) => {
 			if (typeof value === 'string') {
 				customHeaders[key] = value
 			}
@@ -66,10 +91,10 @@ export async function clientFetch<T>(
 	}
 
 	// Get auth headers (includes Authorization + custom headers)
-	const headers = await getAuthHeaders(customHeaders)
+	const headers = await getAuthHeaders(customHeaders, requireAuth)
 
 	const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-		...options,
+		...fetchOptions,
 		headers
 	})
 
@@ -94,10 +119,17 @@ export async function clientFetch<T>(
 	const data = await response.json()
 
 	// Handle API response format (success/data pattern)
-	if (data.success === false) {
+	// Check for explicit false to avoid treating falsy values as errors
+	if ('success' in data && data.success === false) {
 		throw new Error(data.error || data.message || 'API request failed')
 	}
 
-	// Return data directly or the whole response based on API format
-	return data.data || data
+	// Return wrapped data or direct response
+	// Use 'in' operator to check for data property existence
+	// This prevents returning falsy values (0, false, '', null) incorrectly
+	if ('data' in data) {
+		return data.data as T
+	}
+
+	return data as T
 }
