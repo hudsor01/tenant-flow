@@ -2,6 +2,7 @@
  * TanStack Query hooks for rent payments API
  * Phase 6D: One-Time Rent Payment UI
  */
+import { API_BASE_URL } from '#lib/api-config'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 /**
@@ -26,7 +27,7 @@ export function useCreateRentPayment() {
 			amount: number
 			paymentMethodId: string
 		}) => {
-			const res = await fetch('/api/v1/rent-payments', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/rent-payments`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'

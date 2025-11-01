@@ -4,6 +4,7 @@
  * Follows CUSTOM HOOKS architecture patterns
  */
 
+import { API_BASE_URL } from '#lib/api-config'
 import type {
 	CreateMaintenanceRequest,
 	UpdateMaintenanceRequest
@@ -92,7 +93,7 @@ export function useMaintenanceRequest(id: string) {
 	return useQuery({
 		queryKey: maintenanceKeys.detail(id),
 		queryFn: async (): Promise<MaintenanceRequest> => {
-			const res = await fetch(`/api/v1/maintenance/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/maintenance/${id}`, {
 				credentials: 'include'
 			})
 
@@ -122,7 +123,7 @@ export function useMaintenanceStats() {
 			completedRequests: number
 			urgentRequests: number
 		}> => {
-			const res = await fetch('/api/v1/maintenance/stats', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/maintenance/stats`, {
 				credentials: 'include'
 			})
 
@@ -147,7 +148,7 @@ export function useCreateMaintenanceRequest() {
 		mutationFn: async (
 			data: CreateMaintenanceRequest
 		): Promise<MaintenanceRequest> => {
-			const res = await fetch('/api/v1/maintenance', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/maintenance`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -236,7 +237,7 @@ export function useUpdateMaintenanceRequest() {
 			id: string
 			data: UpdateMaintenanceRequest
 		}): Promise<MaintenanceRequest> => {
-			const res = await fetch(`/api/v1/maintenance/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/maintenance/${id}`, {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json'
@@ -316,7 +317,7 @@ export function usePrefetchMaintenanceRequest() {
 			return queryClient.prefetchQuery({
 				queryKey: maintenanceKeys.detail(id),
 				queryFn: async (): Promise<MaintenanceRequest> => {
-					const res = await fetch(`/api/v1/maintenance/${id}`, {
+					const res = await fetch(`${API_BASE_URL}/api/v1/maintenance/${id}`, {
 						credentials: 'include'
 					})
 
@@ -349,7 +350,7 @@ export function useCompleteMaintenance() {
 			actualCost?: number
 			notes?: string
 		}): Promise<MaintenanceRequest> => {
-			const res = await fetch(`/api/v1/maintenance/${id}/complete`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/maintenance/${id}/complete`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -456,7 +457,7 @@ export function useCancelMaintenance() {
 			id: string
 			reason?: string
 		}): Promise<MaintenanceRequest> => {
-			const res = await fetch(`/api/v1/maintenance/${id}/cancel`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/maintenance/${id}/cancel`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'

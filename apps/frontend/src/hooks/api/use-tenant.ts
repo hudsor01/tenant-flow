@@ -11,6 +11,7 @@
  * - Optimistic updates
  */
 
+import { API_BASE_URL } from '#lib/api-config'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { toast } from 'sonner' // Still needed for some success handlers
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
@@ -48,7 +49,7 @@ export function useTenant(id: string) {
 	return useQuery({
 		queryKey: tenantKeys.detail(id),
 		queryFn: async (): Promise<Tenant> => {
-			const res = await fetch(`/api/v1/tenants/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -70,7 +71,7 @@ export function useTenantWithLease(id: string) {
 	return useQuery({
 		queryKey: tenantKeys.withLease(id),
 		queryFn: async (): Promise<TenantWithLeaseInfo> => {
-			const res = await fetch(`/api/v1/tenants/${id}/with-lease`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}/with-lease`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -98,7 +99,7 @@ export function useTenantList(page: number = 1, limit: number = 50) {
 	return useQuery({
 		queryKey: [...tenantKeys.list(), { page, limit }],
 		queryFn: async () => {
-			const res = await fetch(`/api/v1/tenants?limit=${limit}&offset=${offset}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/tenants?limit=${limit}&offset=${offset}`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -141,7 +142,7 @@ export function useAllTenants() {
 		queryKey: tenantKeys.list(),
 		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
 			try {
-				const res = await fetch('/api/v1/tenants', {
+				const res = await fetch(`${API_BASE_URL}/api/v1/tenants`, {
 					credentials: 'include'
 				})
 				if (!res.ok) {
@@ -183,7 +184,7 @@ export function useCreateTenant() {
 
 	return useMutation({
 		mutationFn: async (tenantData: TenantInput): Promise<Tenant> => {
-			const res = await fetch('/api/v1/tenants', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/tenants`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -217,7 +218,7 @@ export function useUpdateTenant() {
 
 	return useMutation({
 		mutationFn: async ({ id, data }: { id: string; data: TenantUpdate }): Promise<TenantWithLeaseInfo> => {
-			const res = await fetch(`/api/v1/tenants/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}`, {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json'
@@ -367,7 +368,7 @@ export function useTenantSuspense(id: string) {
 	return useSuspenseQuery({
 		queryKey: tenantKeys.detail(id),
 		queryFn: async (): Promise<Tenant> => {
-			const res = await fetch(`/api/v1/tenants/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -388,7 +389,7 @@ export function useTenantWithLeaseSuspense(id: string) {
 	return useSuspenseQuery({
 		queryKey: tenantKeys.withLease(id),
 		queryFn: async (): Promise<TenantWithLeaseInfo> => {
-			const res = await fetch(`/api/v1/tenants/${id}/with-lease`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}/with-lease`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -411,7 +412,7 @@ export function useAllTenantsSuspense() {
 	return useSuspenseQuery({
 		queryKey: tenantKeys.list(),
 		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
-			const res = await fetch('/api/v1/tenants', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/tenants`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -440,7 +441,7 @@ export function useTenantPolling(id: string, interval: number = 30000) {
 	return useQuery({
 		queryKey: [...tenantKeys.detail(id), 'polling'],
 		queryFn: async (): Promise<Tenant> => {
-			const res = await fetch(`/api/v1/tenants/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -467,7 +468,7 @@ export function usePrefetchTenant() {
 			return queryClient.prefetchQuery({
 				queryKey: tenantKeys.detail(id),
 				queryFn: async (): Promise<Tenant> => {
-					const res = await fetch(`/api/v1/tenants/${id}`, {
+					const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}`, {
 						credentials: 'include'
 					})
 					if (!res.ok) {
@@ -482,7 +483,7 @@ export function usePrefetchTenant() {
 			return queryClient.prefetchQuery({
 				queryKey: tenantKeys.withLease(id),
 				queryFn: async (): Promise<TenantWithLeaseInfo> => {
-					const res = await fetch(`/api/v1/tenants/${id}/with-lease`, {
+					const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}/with-lease`, {
 						credentials: 'include'
 					})
 					if (!res.ok) {
@@ -547,7 +548,7 @@ export function useMarkTenantAsMovedOut() {
 
 	return useMutation({
 		mutationFn: async ({ id, data }: { id: string; data: { moveOutDate: string; moveOutReason: string } }): Promise<TenantWithLeaseInfo> => {
-			const res = await fetch(`/api/v1/tenants/${id}/mark-moved-out`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}/mark-moved-out`, {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json'
@@ -666,7 +667,7 @@ export function useBatchTenantOperations() {
 		batchUpdate: async (updates: Array<{ id: string; data: TenantUpdate }>) => {
 			const results = await Promise.allSettled(
 				updates.map(async ({ id, data }) => {
-					const res = await fetch(`/api/v1/tenants/${id}`, {
+					const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}`, {
 						method: 'PUT',
 						headers: {
 							'Content-Type': 'application/json'
@@ -692,7 +693,7 @@ export function useBatchTenantOperations() {
 		batchDelete: async (ids: string[]) => {
 			const results = await Promise.allSettled(
 				ids.map(async (id) => {
-					const res = await fetch(`/api/v1/tenants/${id}`, {
+					const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}`, {
 						method: 'DELETE',
 						credentials: 'include'
 					})
@@ -726,7 +727,7 @@ export function useInviteTenant() {
 			phone: string | null
 			leaseId: string
 		}): Promise<Tenant> => {
-			const res = await fetch('/api/v1/tenants', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/tenants`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -748,7 +749,7 @@ export function useInviteTenant() {
 
 			// Associate tenant with lease
 			if (data.leaseId) {
-				const leaseRes = await fetch(`/api/v1/leases/${data.leaseId}`, {
+				const leaseRes = await fetch(`${API_BASE_URL}/api/v1/leases/${data.leaseId}`, {
 					method: 'PATCH',
 					headers: {
 						'Content-Type': 'application/json'
@@ -790,7 +791,7 @@ export function useResendInvitation() {
 
 	return useMutation({
 		mutationFn: async (tenantId: string): Promise<{ message: string }> => {
-			const res = await fetch(`/api/v1/tenants/${tenantId}/resend-invitation`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${tenantId}/resend-invitation`, {
 				method: 'POST',
 				credentials: 'include'
 			})

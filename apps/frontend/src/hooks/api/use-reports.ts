@@ -3,6 +3,7 @@
  * Phase 5: Advanced Features - Custom Reports & Analytics
  */
 
+import { API_BASE_URL } from '#lib/api-config'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { UseMutationResult } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -426,7 +427,7 @@ export function useOccupancyMetrics() {
 	return useQuery<OccupancyMetrics>({
 		queryKey: reportsKeys.occupancyMetrics(),
 		queryFn: async (): Promise<OccupancyMetrics> => {
-			const res = await fetch('/api/v1/reports/analytics/occupancy', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/reports/analytics/occupancy`, {
 				credentials: 'include'
 			})
 
@@ -549,7 +550,7 @@ export function usePrefetchOccupancyMetrics() {
 		queryClient.prefetchQuery({
 			queryKey: reportsKeys.occupancyMetrics(),
 			queryFn: async (): Promise<OccupancyMetrics> => {
-				const res = await fetch('/api/v1/reports/analytics/occupancy', {
+				const res = await fetch(`${API_BASE_URL}/api/v1/reports/analytics/occupancy`, {
 					credentials: 'include'
 				})
 
