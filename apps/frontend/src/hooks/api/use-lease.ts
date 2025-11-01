@@ -9,6 +9,7 @@
  * - Proper error handling
  */
 
+import { API_BASE_URL } from '#lib/api-config'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
 	CreateLeaseInput,
@@ -42,7 +43,7 @@ export function useLease(id: string) {
 	return useQuery({
 		queryKey: leaseKeys.detail(id),
 		queryFn: async (): Promise<Lease> => {
-			const res = await fetch(`/api/v1/leases/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/leases/${id}`, {
 				credentials: 'include'
 			})
 
@@ -66,7 +67,7 @@ export function useCurrentLease() {
 	return useQuery({
 		queryKey: leaseKeys.list({ status: 'ACTIVE' }),
 		queryFn: async (): Promise<Lease | null> => {
-			const res = await fetch('/api/v1/leases?status=ACTIVE&limit=1', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/leases?status=ACTIVE&limit=1`, {
 				credentials: 'include'
 			})
 
@@ -117,7 +118,7 @@ export function useTenantMaintenanceRequests() {
 				return { requests: [], total: 0, open: 0, inProgress: 0, completed: 0 }
 			}
 
-			const res = await fetch(`/api/v1/maintenance?unitId=${lease.unitId}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/maintenance?unitId=${lease.unitId}`, {
 				credentials: 'include'
 			})
 
@@ -177,7 +178,7 @@ export function useLeaseList(params?: {
 			searchParams.append('limit', limit.toString())
 			searchParams.append('offset', offset.toString())
 
-			const res = await fetch(`/api/v1/leases?${searchParams.toString()}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/leases?${searchParams.toString()}`, {
 				credentials: 'include'
 			})
 
@@ -238,7 +239,7 @@ export function useLeaseStats() {
 	return useQuery({
 		queryKey: leaseKeys.stats(),
 		queryFn: async () => {
-			const res = await fetch('/api/v1/leases/stats', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/leases/stats`, {
 				credentials: 'include'
 			})
 
@@ -261,7 +262,7 @@ export function useCreateLease() {
 
 	return useMutation({
 		mutationFn: async (leaseData: CreateLeaseInput): Promise<Lease> => {
-			const res = await fetch('/api/v1/leases', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/leases`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -383,7 +384,7 @@ export function useUpdateLease() {
 			id: string
 			data: UpdateLeaseInput
 		}): Promise<Lease> => {
-			const res = await fetch(`/api/v1/leases/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/leases/${id}`, {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json'
@@ -490,7 +491,7 @@ export function useDeleteLease(options?: {
 
 	return useMutation({
 		mutationFn: async (id: string): Promise<string> => {
-			const res = await fetch(`/api/v1/leases/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/leases/${id}`, {
 				method: 'DELETE',
 				credentials: 'include'
 			})
@@ -577,7 +578,7 @@ export function useRenewLease() {
 			id: string
 			newEndDate: string
 		}): Promise<Lease> => {
-			const res = await fetch(`/api/v1/leases/${id}/renew`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/leases/${id}/renew`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -633,7 +634,7 @@ export function useTerminateLease() {
 			terminationDate: string
 			reason?: string
 		}): Promise<Lease> => {
-			const res = await fetch(`/api/v1/leases/${id}/terminate`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/leases/${id}/terminate`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -684,7 +685,7 @@ export function usePrefetchLease() {
 		queryClient.prefetchQuery({
 			queryKey: leaseKeys.detail(id),
 			queryFn: async (): Promise<Lease> => {
-				const res = await fetch(`/api/v1/leases/${id}`, {
+				const res = await fetch(`${API_BASE_URL}/api/v1/leases/${id}`, {
 					credentials: 'include'
 				})
 

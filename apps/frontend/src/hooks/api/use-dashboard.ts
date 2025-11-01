@@ -1,6 +1,7 @@
 /**
  * TanStack Query hooks for dashboard data
  */
+import { API_BASE_URL } from '#lib/api-config'
 import type { Activity } from '@repo/shared/types/activity'
 import type {
 	ActivityItem,
@@ -45,7 +46,7 @@ export function useDashboardStats() {
 	return useQuery({
 		queryKey: dashboardKeys.stats(),
 		queryFn: async (): Promise<DashboardStats> => {
-			const res = await fetch('/api/v1/manage/stats', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/manage/stats`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -71,7 +72,7 @@ export function useDashboardActivity() {
 	return useQuery({
 		queryKey: dashboardKeys.activity(),
 		queryFn: async (): Promise<{ activities: Activity[] }> => {
-			const res = await fetch('/api/v1/manage/activity', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/manage/activity`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -98,7 +99,7 @@ export function usePropertyPerformance() {
 	return useQuery({
 		queryKey: dashboardKeys.propertyPerformance(),
 		queryFn: async (): Promise<PropertyPerformance[]> => {
-			const res = await fetch('/api/v1/manage/property-performance', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/manage/property-performance`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -124,7 +125,7 @@ export function useSystemUptime() {
 	return useQuery({
 		queryKey: dashboardKeys.uptime(),
 		queryFn: async (): Promise<SystemUptime> => {
-			const res = await fetch('/api/v1/manage/uptime', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/manage/uptime`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -157,7 +158,7 @@ export function usePropertyStats() {
 			vacantUnits: number
 			maintenanceUnits: number
 		}> => {
-			const res = await fetch('/api/v1/properties/stats', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/properties/stats`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -182,7 +183,7 @@ export function useTenantStats() {
 	return useQuery({
 		queryKey: dashboardKeys.tenantStats(),
 		queryFn: async (): Promise<TenantStats> => {
-			const res = await fetch('/api/v1/tenants/stats', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/stats`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -207,7 +208,7 @@ export function useLeaseStats() {
 	return useQuery({
 		queryKey: dashboardKeys.leaseStats(),
 		queryFn: async (): Promise<LeaseStatsResponse> => {
-			const res = await fetch('/api/v1/leases/stats', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/leases/stats`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -277,7 +278,7 @@ export function usePrefetchDashboardStats() {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.stats(),
 			queryFn: async (): Promise<DashboardStats> => {
-				const res = await fetch('/api/v1/manage/stats', {
+				const res = await fetch(`${API_BASE_URL}/api/v1/manage/stats`, {
 					credentials: 'include'
 				})
 				if (!res.ok) {
@@ -300,7 +301,7 @@ export function usePrefetchDashboardActivity() {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.activity(),
 			queryFn: async (): Promise<{ activities: Activity[] }> => {
-				const res = await fetch('/api/v1/manage/activity', {
+				const res = await fetch(`${API_BASE_URL}/api/v1/manage/activity`, {
 					credentials: 'include'
 				})
 				if (!res.ok) {
@@ -323,7 +324,7 @@ export function usePrefetchPropertyPerformance() {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.propertyPerformance(),
 			queryFn: async (): Promise<PropertyPerformance[]> => {
-				const res = await fetch('/api/v1/manage/property-performance', {
+				const res = await fetch(`${API_BASE_URL}/api/v1/manage/property-performance`, {
 					credentials: 'include'
 				})
 				if (!res.ok) {
@@ -354,7 +355,7 @@ export function usePrefetchPropertyStats() {
 				vacantUnits: number
 				maintenanceUnits: number
 			}> => {
-				const res = await fetch('/api/v1/properties/stats', {
+				const res = await fetch(`${API_BASE_URL}/api/v1/properties/stats`, {
 					credentials: 'include'
 				})
 				if (!res.ok) {
@@ -377,7 +378,7 @@ export function usePrefetchTenantStats() {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.tenantStats(),
 			queryFn: async (): Promise<TenantStats> => {
-				const res = await fetch('/api/v1/tenants/stats', {
+				const res = await fetch(`${API_BASE_URL}/api/v1/tenants/stats`, {
 					credentials: 'include'
 				})
 				if (!res.ok) {
@@ -400,7 +401,7 @@ export function usePrefetchLeaseStats() {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.leaseStats(),
 			queryFn: async (): Promise<LeaseStatsResponse> => {
-				const res = await fetch('/api/v1/leases/stats', {
+				const res = await fetch(`${API_BASE_URL}/api/v1/leases/stats`, {
 					credentials: 'include'
 				})
 				if (!res.ok) {
@@ -463,7 +464,7 @@ export function useDashboardPageDataUnified() {
 			stats: DashboardStats
 			activity: ActivityItem[]
 		}> => {
-			const res = await fetch('/api/v1/manage/page-data', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/manage/page-data`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {

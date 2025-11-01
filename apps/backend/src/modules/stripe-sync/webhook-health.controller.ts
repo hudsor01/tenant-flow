@@ -14,9 +14,13 @@ import {
 	Patch,
 	Param,
 	HttpStatus,
-	HttpCode
+	HttpCode,
+	SetMetadata
 } from '@nestjs/common'
 import { WebhookMonitoringService } from './webhook-monitoring.service'
+
+// Public decorator for monitoring endpoints (bypasses JWT auth)
+const Public = () => SetMetadata('isPublic', true)
 
 @Controller('webhooks/health')
 export class WebhookHealthController {
@@ -30,6 +34,7 @@ export class WebhookHealthController {
 	 * Returns overall webhook system health status
 	 * Used by monitoring systems (e.g., Uptime Kuma, Datadog)
 	 */
+	@Public()
 	@Get()
 	@HttpCode(HttpStatus.OK)
 	async getHealth() {
@@ -56,6 +61,7 @@ export class WebhookHealthController {
 	 * Returns detailed 24-hour health summary with hourly breakdown
 	 * Used for dashboards and trend analysis
 	 */
+	@Public()
 	@Get('summary')
 	async getHealthSummary() {
 		const [healthSummary, eventTypeSummary] = await Promise.all([
@@ -75,6 +81,7 @@ export class WebhookHealthController {
 	 *
 	 * Returns unresolved webhook failures for investigation
 	 */
+	@Public()
 	@Get('failures')
 	async getFailures() {
 		const failures = await this.webhookMonitoringService.getUnresolvedFailures()
@@ -117,6 +124,7 @@ export class WebhookHealthController {
 	 * Returns webhook configuration status and recommendations
 	 * Helps diagnose setup issues
 	 */
+	@Public()
 	@Get('configuration')
 	async getConfiguration() {
 		const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET

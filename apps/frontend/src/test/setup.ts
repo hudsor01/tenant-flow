@@ -9,6 +9,11 @@ import { cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { createElement, type ReactNode } from 'react'
 
+// Mock HEIC conversion library to avoid native browser dependencies during tests
+vi.mock('heic2any', () => ({
+	default: vi.fn(async ({ blob }) => blob)
+}))
+
 // Cleanup after each test
 afterEach(() => {
 	cleanup()
@@ -79,6 +84,35 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 	unobserve: vi.fn(),
 	disconnect: vi.fn()
 })) as unknown as typeof ResizeObserver
+
+// Mock Web Worker (used by libraries like heic2any during tests)
+if (typeof globalThis.Worker === 'undefined') {
+	class MockWorker {
+		onmessage: ((this: Worker, ev: MessageEvent) => unknown) | null = null
+		onerror: ((this: Worker, ev: ErrorEvent) => unknown) | null = null
+
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		constructor() {}
+
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		postMessage(): void {}
+
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		terminate(): void {}
+
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		addEventListener(): void {}
+
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		removeEventListener(): void {}
+
+		dispatchEvent(): boolean {
+			return false
+		}
+	}
+
+	;(globalThis as unknown as { Worker: typeof Worker }).Worker = MockWorker as unknown as typeof Worker
+}
 
 // Suppress console errors in tests (optional)
 if (process.env.VITEST_SUPPRESS_CONSOLE) {
