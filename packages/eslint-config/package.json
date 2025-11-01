@@ -8,19 +8,13 @@
 	"exports": {
 		".": "./index.js",
 		"./base.js": "./base.js",
-		"./library.js": "./library.js",
-		"./next.js": "./next.js",
 		"./nextjs.js": "./nextjs.js",
 		"./nestjs.js": "./nestjs.js",
-		"./react-internal.js": "./react-internal.js",
 		"./turbo.js": "./turbo.js"
 	},
 	"files": [
-		"library.js",
-		"next.js",
 		"nextjs.js",
 		"nestjs.js",
-		"react-internal.js",
 		"base.js",
 		"turbo.js",
 		"index.js",
