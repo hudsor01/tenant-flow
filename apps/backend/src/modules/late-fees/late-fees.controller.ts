@@ -224,8 +224,11 @@ export class LateFeesController {
 		// Get config if leaseId provided
 		// SECURITY FIX #2: Extract JWT token from request for RLS
 		const token = this.supabaseService!.getTokenFromRequest(req)
+		if (!token) {
+			throw new BadRequestException('JWT token not found')
+		}
 		const config = leaseId
-			? await this.lateFeesService.getLateFeeConfig(leaseId, token!)
+			? await this.lateFeesService.getLateFeeConfig(leaseId, token)
 			: undefined
 
 		const calculation = this.lateFeesService.calculateLateFee(

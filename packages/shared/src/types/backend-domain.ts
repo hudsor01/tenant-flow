@@ -110,6 +110,7 @@ export interface CreatePropertyRequest {
 		| 'TOWNHOUSE'
 		| 'COMMERCIAL'
 	amenities?: string[]
+	imageUrl?: string
 }
 
 export interface UpdatePropertyRequest {
@@ -135,6 +136,7 @@ export interface UpdatePropertyRequest {
 		| 'TOWNHOUSE'
 		| 'COMMERCIAL'
 	amenities?: string[]
+	imageUrl?: string
 
 	// Optional version for optimistic locking from frontend inline edits
 	version?: number
