@@ -99,7 +99,37 @@ export function usePropertyImageUpload(
 	})
 
 	// Modify files before they're uploaded by compressing them
-	const { files, setFiles } = uploadHook
+	const { files, setFiles, setErrors, setSuccesses } = uploadHook
+
+	/**
+	 * Upload compressed files directly to Supabase
+	 * This bypasses the uploadHook.onUpload() to ensure we upload the correct compressed files
+	 */
+	const uploadCompressedFiles = useCallback(async (filesToUpload: File[]) => {
+		const responses = await Promise.all(
+			filesToUpload.map(async file => {
+				const { error } = await supabase.storage
+					.from('property-images')
+					.upload(`${uploadPath}/${file.name}`, file, {
+						cacheControl: '3600',
+						upsert: false
+					})
+				if (error) {
+					return { name: file.name, message: error.message }
+				} else {
+					return { name: file.name, message: undefined }
+				}
+			})
+		)
+
+		const responseErrors = responses.filter(x => x.message !== undefined)
+		setErrors(responseErrors)
+
+		const responseSuccesses = responses.filter(x => x.message === undefined)
+		setSuccesses((prev: string[]) =>
+			Array.from(new Set([...prev, ...responseSuccesses.map(x => x.name)]))
+		)
+	}, [uploadPath, setErrors, setSuccesses])
 
 	// Override the onUpload function to add compression
 	const onUploadWithCompression = useCallback(async () => {
@@ -125,6 +155,8 @@ export function usePropertyImageUpload(
 
 					logger.info('Image compressed', {
 						action: 'compress',
+						originalFileName: file.name,
+						compressedFileName: compressed.file.name,
 						originalSize: compressed.originalSize,
 						compressedSize: compressed.compressedSize,
 						reduction: `${Math.round((1 - compressed.compressionRatio) * 100)}%`
@@ -154,6 +186,7 @@ export function usePropertyImageUpload(
 			}
 
 			// Replace files with compressed versions
+			// Use functional update to ensure we're working with latest state
 			setFiles(
 				compressedFiles.map(file => {
 					const fileWithPreview = file as File & {
@@ -166,23 +199,19 @@ export function usePropertyImageUpload(
 				})
 			)
 
-			// Now call the original upload function
-			await uploadHook.onUpload()
+			// Wait for state update then upload compressed files
+			// We need to upload the compressed files directly, not call uploadHook.onUpload()
+			// because that would use the old file state
+			await uploadCompressedFiles(compressedFiles)
 
 			// Check if upload succeeded and trigger callback
-			if (uploadHook.isSuccess && onUploadComplete) {
-				// Get the uploaded URL
-				if (uploadHook.successes.length > 0) {
-					const fileName = uploadHook.files.find(f =>
-						uploadHook.successes.includes(f.name)
-					)?.name
-					if (fileName) {
-						const { data } = supabase.storage
-							.from('property-images')
-							.getPublicUrl(`${uploadPath}/${fileName}`)
-						onUploadComplete(data.publicUrl)
-					}
-				}
+			// Note: We check the compressed file since that's what got uploaded
+			const uploadedFile = compressedFiles[0]
+			if (onUploadComplete && uploadedFile) {
+				const { data } = supabase.storage
+					.from('property-images')
+					.getPublicUrl(`${uploadPath}/${uploadedFile.name}`)
+				onUploadComplete(data.publicUrl)
 			}
 		} catch (error) {
 			logger.error('Upload failed', { action: 'upload' }, error)
@@ -191,7 +220,7 @@ export function usePropertyImageUpload(
 				onUploadError(error)
 			}
 		}
-	}, [files, setFiles, uploadHook, onUploadComplete, onUploadError, uploadPath])
+	}, [files, setFiles, onUploadComplete, onUploadError, uploadPath, uploadCompressedFiles])
 
 	// Track if we've already auto-uploaded to prevent duplicate uploads
 	const hasAutoUploaded = useRef(false)
@@ -222,14 +251,14 @@ export function usePropertyImageUpload(
 		// Helper to get the uploaded URL
 		getUploadedUrl: (): string | null => {
 			if (uploadHook.successes.length === 0) return null
-			const fileName = uploadHook.files.find(f =>
+			const uploadedFile = uploadHook.files.find(f =>
 				uploadHook.successes.includes(f.name)
-			)?.name
-			if (!fileName) return null
+			)
+			if (!uploadedFile) return null
 
 			const { data } = supabase.storage
 				.from('property-images')
-				.getPublicUrl(`${uploadPath}/${fileName}`)
+				.getPublicUrl(`${uploadPath}/${uploadedFile.name}`)
 
 			return data.publicUrl
 		}

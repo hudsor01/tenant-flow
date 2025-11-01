@@ -2,7 +2,7 @@
  * TanStack Query hooks for payment methods API
  * Phase 3: Frontend Integration for Tenant Payment System
  */
-import { API_BASE_URL } from '#lib/api-config'
+import { clientFetch } from '#lib/api/client'
 import type {
 	CreateSetupIntentRequest,
 	PaymentMethodResponse,
@@ -27,13 +27,7 @@ export function usePaymentMethods() {
 	return useQuery({
 		queryKey: paymentMethodKeys.list(),
 		queryFn: async (): Promise<PaymentMethodResponse[]> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/stripe/tenant-payment-methods`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch payment methods')
-			}
-			const response = await res.json() as { payment_methods: PaymentMethodResponse[] }
+			const response = await clientFetch<{ payment_methods: PaymentMethodResponse[] }>('/api/v1/stripe/tenant-payment-methods')
 			// Backend now returns proper PaymentMethodResponse structure
 			return response.payment_methods
 		},
@@ -48,18 +42,10 @@ export function usePaymentMethods() {
 export function useCreateSetupIntent() {
 	return useMutation({
 		mutationFn: async (request: CreateSetupIntentRequest): Promise<PaymentMethodSetupIntent> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/payment-methods/setup-intent`, {
+			return clientFetch<PaymentMethodSetupIntent>('/api/v1/payment-methods/setup-intent', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify(request)
 			})
-			if (!res.ok) {
-				throw new Error('Failed to create setup intent')
-			}
-			return res.json()
 		}
 	})
 }
@@ -87,21 +73,13 @@ export function useSavePaymentMethod() {
 				} | null
 			}
 		}> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/stripe/attach-tenant-payment-method`, {
+			return clientFetch('/api/v1/stripe/attach-tenant-payment-method', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify({
 					payment_method_id: request.paymentMethodId,
 					set_as_default: request.setAsDefault ?? true
 				})
 			})
-			if (!res.ok) {
-				throw new Error('Failed to save payment method')
-			}
-			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: paymentMethodKeys.list() })
@@ -122,14 +100,9 @@ export function useSetDefaultPaymentMethod() {
 		{ previous?: PaymentMethodResponse[] }
 	>({
 		mutationFn: async (paymentMethodId: string): Promise<{ success: boolean }> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/payment-methods/${paymentMethodId}/default`, {
-				method: 'PATCH',
-				credentials: 'include'
+			return clientFetch<{ success: boolean }>(`/api/v1/payment-methods/${paymentMethodId}/default`, {
+				method: 'PATCH'
 			})
-			if (!res.ok) {
-				throw new Error('Failed to set default payment method')
-			}
-			return res.json()
 		},
 		onMutate: async (
 			paymentMethodId: string
@@ -185,14 +158,12 @@ export function useDeletePaymentMethod() {
 			success: boolean
 			message?: string
 		}> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/stripe/tenant-payment-methods/${paymentMethodId}`, {
-				method: 'DELETE',
-				credentials: 'include'
+			return clientFetch<{
+				success: boolean
+				message?: string
+			}>(`/api/v1/stripe/tenant-payment-methods/${paymentMethodId}`, {
+				method: 'DELETE'
 			})
-			if (!res.ok) {
-				throw new Error('Failed to delete payment method')
-			}
-			return res.json()
 		},
 		onMutate: async (
 			paymentMethodId: string
@@ -236,13 +207,7 @@ export function usePrefetchPaymentMethods() {
 		queryClient.prefetchQuery({
 			queryKey: paymentMethodKeys.list(),
 			queryFn: async (): Promise<PaymentMethodResponse[]> => {
-				const res = await fetch(`${API_BASE_URL}/api/v1/payment-methods`, {
-					credentials: 'include'
-				})
-				if (!res.ok) {
-					throw new Error('Failed to fetch payment methods')
-				}
-				const response = await res.json() as { paymentMethods: PaymentMethodResponse[] }
+				const response = await clientFetch<{ paymentMethods: PaymentMethodResponse[] }>('/api/v1/payment-methods')
 				return response.paymentMethods
 			},
 			staleTime: 5 * 60 * 1000
