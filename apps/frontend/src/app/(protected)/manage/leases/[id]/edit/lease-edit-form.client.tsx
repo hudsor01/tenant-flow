@@ -5,7 +5,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { toast } from 'sonner'
-
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
@@ -20,7 +19,7 @@ import {
 import { Textarea } from '#components/ui/textarea'
 import { useAllTenants } from '#hooks/api/use-tenant'
 import { useUpdateLease } from '#hooks/api/use-lease'
-import { leasesApi, unitsApi } from '#lib/api-client'
+
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { leaseInputSchema } from '@repo/shared/validation/leases'
 import { useForm } from '@tanstack/react-form'
@@ -43,14 +42,22 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 		isError
 	} = useQuery({
 		queryKey: ['leases', id],
-		queryFn: () => leasesApi.get(id)
+		queryFn: async () => {
+			const res = await fetch(`/api/v1/leases/${id}`, { credentials: 'include' })
+			if (!res.ok) throw new Error('Failed to fetch lease')
+			return res.json()
+		}
 	})
 
 	const { data: tenants = [] } = useAllTenants()
 
 	const { data: units = [] } = useQuery({
 		queryKey: ['units'],
-		queryFn: () => unitsApi.list()
+		queryFn: async () => {
+			const res = await fetch('/api/v1/units', { credentials: 'include' })
+			if (!res.ok) throw new Error('Failed to fetch units')
+			return res.json()
+		}
 	})
 
 	const form = useForm({
@@ -182,7 +189,7 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 												<SelectValue placeholder="Select unit" />
 											</SelectTrigger>
 											<SelectContent>
-												{units.map(unit => (
+												{units.map((unit: import('@repo/shared/types/core').Unit) => (
 													<SelectItem key={unit.id} value={unit.id}>
 														Unit {unit.unitNumber}
 													</SelectItem>

@@ -457,7 +457,7 @@ export class DashboardService {
 				if (priority === 'LOW') priorityCounts.low++
 				if (priority === 'MEDIUM') priorityCounts.medium++
 				if (priority === 'HIGH') priorityCounts.high++
-				if (priority === 'EMERGENCY') priorityCounts.emergency++
+				if (priority === 'URGENT') priorityCounts.emergency++
 
 				const createdAt = parseDate(request.createdAt)
 				const completedAt =

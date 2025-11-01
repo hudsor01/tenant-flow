@@ -45,7 +45,7 @@ export function MaintenanceActionButtons({
 
 	const getPriorityColor = (priority: string) => {
 		switch (priority) {
-			case 'EMERGENCY':
+			case 'URGENT':
 				return 'bg-destructive text-destructive-foreground'
 			case 'HIGH':
 				return 'bg-chart-5 text-white'
@@ -90,7 +90,10 @@ export function MaintenanceActionButtons({
 			<StatusUpdateButton maintenance={maintenance} />
 
 			{/* Delete Button */}
-			<DeleteMaintenanceButton maintenance={maintenance} deleteAction={deleteAction} />
+			<DeleteMaintenanceButton
+				maintenance={maintenance}
+				deleteAction={deleteAction}
+			/>
 
 			{/* View Dialog */}
 			<Dialog open={viewOpen} onOpenChange={setViewOpen}>

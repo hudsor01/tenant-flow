@@ -12,7 +12,7 @@ import {
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { Spinner } from '#components/ui/spinner'
-import { API_BASE_URL } from '#lib/api-client'
+import { API_BASE_URL } from '#lib/api-config'
 import { createClient } from '#lib/supabase/client'
 import { AlertCircle, CheckCircle, Lock } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -109,9 +109,9 @@ export default function AcceptInvitePage() {
 				}
 			)
 			if (!acceptResponse.ok) {
-				const payload = (await acceptResponse.json().catch(() => null)) as
-					| { message?: string }
-					| null
+				const payload = (await acceptResponse.json().catch(() => null)) as {
+					message?: string
+				} | null
 				throw new Error(
 					payload?.message || 'Failed to finalize invitation acceptance'
 				)

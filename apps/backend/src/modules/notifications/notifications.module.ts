@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { NotificationsController } from './notifications.controller'
+import { NotificationsService } from './notifications.service'
+import { FailedNotificationsService } from './failed-notifications.service'
 
 /**
  * ULTRA-NATIVE Notifications Module
@@ -9,7 +11,7 @@ import { NotificationsController } from './notifications.controller'
 @Module({
 	imports: [SupabaseModule],
 	controllers: [NotificationsController],
-	providers: [],
-	exports: []
+	providers: [NotificationsService, FailedNotificationsService],
+	exports: [NotificationsService, FailedNotificationsService]
 })
 export class NotificationsModule {}

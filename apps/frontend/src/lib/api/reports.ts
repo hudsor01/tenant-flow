@@ -3,7 +3,7 @@
  * Phase 5: Advanced Features - Custom Reports & Analytics
  */
 
-import { API_BASE_URL, apiClient } from '#lib/api-client'
+import { API_BASE_URL } from '#lib/api-config'
 
 export interface RevenueData {
 	month: string
@@ -52,9 +52,12 @@ export interface OccupancyMetrics {
 export async function getMonthlyRevenue(
 	months: number = 12
 ): Promise<RevenueData[]> {
-	const response = await apiClient<{ success: boolean; data: RevenueData[] }>(
-		`${API_BASE_URL}/api/v1/reports/analytics/revenue/monthly?months=${months}`
+	const res = await fetch(
+		`${API_BASE_URL}/api/v1/reports/analytics/revenue/monthly?months=${months}`,
+		{ credentials: 'include' }
 	)
+	if (!res.ok) throw new Error('Failed to fetch monthly revenue')
+	const response = await res.json() as { success: boolean; data: RevenueData[] }
 	return response.data
 }
 
@@ -70,10 +73,12 @@ export async function getPaymentAnalytics(
 	if (endDate) params.append('endDate', endDate)
 
 	const queryString = params.toString() ? `?${params.toString()}` : ''
-	const response = await apiClient<{
-		success: boolean
-		data: PaymentAnalytics
-	}>(`${API_BASE_URL}/api/v1/reports/analytics/payments${queryString}`)
+	const res = await fetch(
+		`${API_BASE_URL}/api/v1/reports/analytics/payments${queryString}`,
+		{ credentials: 'include' }
+	)
+	if (!res.ok) throw new Error('Failed to fetch payment analytics')
+	const response = await res.json() as { success: boolean; data: PaymentAnalytics }
 	return response.data
 }
 
@@ -81,9 +86,11 @@ export async function getPaymentAnalytics(
  * Get occupancy metrics across all properties
  */
 export async function getOccupancyMetrics(): Promise<OccupancyMetrics> {
-	const response = await apiClient<{
-		success: boolean
-		data: OccupancyMetrics
-	}>(`${API_BASE_URL}/api/v1/reports/analytics/occupancy`)
+	const res = await fetch(
+		`${API_BASE_URL}/api/v1/reports/analytics/occupancy`,
+		{ credentials: 'include' }
+	)
+	if (!res.ok) throw new Error('Failed to fetch occupancy metrics')
+	const response = await res.json() as { success: boolean; data: OccupancyMetrics }
 	return response.data
 }

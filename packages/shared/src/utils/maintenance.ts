@@ -13,7 +13,7 @@ export const getPriorityLabel = (priority: Priority): string => {
 		LOW: 'Low Priority',
 		MEDIUM: 'Medium Priority',
 		HIGH: 'High Priority',
-		EMERGENCY: 'Emergency'
+		URGENT: 'Urgent'
 	}
 	return labels[priority] || priority
 }
@@ -23,7 +23,7 @@ export const getPriorityColor = (priority: Priority): string => {
 		LOW: 'bg-green-100 text-green-800',
 		MEDIUM: 'bg-yellow-100 text-yellow-800',
 		HIGH: 'bg-orange-100 text-orange-800',
-		EMERGENCY: 'bg-red-100 text-red-800'
+		URGENT: 'bg-red-100 text-red-800'
 	}
 	return colors[priority] || 'bg-gray-100 text-gray-800'
 }

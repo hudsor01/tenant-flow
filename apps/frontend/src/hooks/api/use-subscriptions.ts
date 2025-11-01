@@ -11,8 +11,7 @@ import type {
 	RentSubscriptionResponse,
 	UpdateSubscriptionRequest
 } from '@repo/shared/types/core'
-import { subscriptionsApi } from '#lib/api-client'
-import { toast } from 'sonner'
+import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 
 /**
  * Query keys for subscriptions
@@ -29,7 +28,15 @@ export const subscriptionsKeys = {
 export function useSubscriptions() {
 	return useQuery({
 		queryKey: subscriptionsKeys.list(),
-		queryFn: () => subscriptionsApi.list(),
+		queryFn: async (): Promise<RentSubscriptionResponse[]> => {
+			const res = await fetch('/api/v1/subscriptions', {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch subscriptions')
+			}
+			return res.json()
+		},
 		staleTime: 30 * 1000 // 30 seconds
 	})
 }
@@ -40,7 +47,15 @@ export function useSubscriptions() {
 export function useSubscription(id: string) {
 	return useQuery({
 		queryKey: subscriptionsKeys.detail(id),
-		queryFn: () => subscriptionsApi.get(id),
+		queryFn: async (): Promise<RentSubscriptionResponse> => {
+			const res = await fetch(`/api/v1/subscriptions/${id}`, {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch subscription')
+			}
+			return res.json()
+		},
 		enabled: !!id
 	})
 }
@@ -52,23 +67,29 @@ export function useCreateSubscription() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (data: CreateSubscriptionRequest) =>
-			subscriptionsApi.create(data),
+		mutationFn: async (data: CreateSubscriptionRequest): Promise<RentSubscriptionResponse> => {
+			const res = await fetch('/api/v1/subscriptions', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: JSON.stringify(data)
+			})
+			if (!res.ok) {
+				throw new Error('Failed to create subscription')
+			}
+			return res.json()
+		},
 		onSuccess: (created: RentSubscriptionResponse) => {
 			// Insert created subscription into cache if present
 			queryClient.setQueryData<RentSubscriptionResponse[] | undefined>(
 				subscriptionsKeys.list(),
 				old => (old ? [created, ...old] : [created])
 			)
-			toast.success('Autopay subscription created', {
-				description: 'Your rent will be automatically charged each month'
-			})
+			handleMutationSuccess('Create subscription', 'Your rent will be automatically charged each month')
 		},
-		onError: (error: Error) => {
-			toast.error('Failed to create subscription', {
-				description: error.message
-			})
-		}
+		onError: (error) => handleMutationError(error, 'Create subscription')
 	})
 }
 
@@ -79,13 +100,26 @@ export function useUpdateSubscription() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({
+		mutationFn: async ({
 			id,
 			data
 		}: {
 			id: string
 			data: UpdateSubscriptionRequest
-		}) => subscriptionsApi.update(id, data),
+		}): Promise<RentSubscriptionResponse> => {
+			const res = await fetch(`/api/v1/subscriptions/${id}`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: JSON.stringify(data)
+			})
+			if (!res.ok) {
+				throw new Error('Failed to update subscription')
+			}
+			return res.json()
+		},
 		onSuccess: (updated: RentSubscriptionResponse, variables) => {
 			// Update list cache and detail cache if present
 			queryClient.setQueryData<RentSubscriptionResponse[] | undefined>(
@@ -96,13 +130,9 @@ export function useUpdateSubscription() {
 				subscriptionsKeys.detail(variables.id),
 				updated
 			)
-			toast.success('Subscription updated')
+			handleMutationSuccess('Update subscription')
 		},
-		onError: (error: Error) => {
-			toast.error('Failed to update subscription', {
-				description: error.message
-			})
-		}
+		onError: (error) => handleMutationError(error, 'Update subscription')
 	})
 }
 
@@ -113,7 +143,16 @@ export function usePauseSubscription() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (id: string) => subscriptionsApi.pause(id),
+		mutationFn: async (id: string): Promise<{ subscription?: RentSubscriptionResponse }> => {
+			const res = await fetch(`/api/v1/subscriptions/${id}/pause`, {
+				method: 'POST',
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to pause subscription')
+			}
+			return res.json()
+		},
 		onSuccess: res => {
 			// Update cache entry if pause returns subscription
 			if (res.subscription) {
@@ -127,15 +166,9 @@ export function usePauseSubscription() {
 							: old
 				)
 			}
-			toast.success('Subscription paused', {
-				description: 'No charges will be made until you resume'
-			})
+			handleMutationSuccess('Pause subscription', 'No charges will be made until you resume')
 		},
-		onError: (error: Error) => {
-			toast.error('Failed to pause subscription', {
-				description: error.message
-			})
-		}
+		onError: (error) => handleMutationError(error, 'Pause subscription')
 	})
 }
 
@@ -146,7 +179,16 @@ export function useResumeSubscription() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (id: string) => subscriptionsApi.resume(id),
+		mutationFn: async (id: string): Promise<{ subscription?: RentSubscriptionResponse }> => {
+			const res = await fetch(`/api/v1/subscriptions/${id}/resume`, {
+				method: 'POST',
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to resume subscription')
+			}
+			return res.json()
+		},
 		onSuccess: res => {
 			if (res.subscription) {
 				queryClient.setQueryData<RentSubscriptionResponse[] | undefined>(
@@ -159,15 +201,9 @@ export function useResumeSubscription() {
 							: old
 				)
 			}
-			toast.success('Subscription resumed', {
-				description: 'Automatic payments will continue'
-			})
+			handleMutationSuccess('Resume subscription', 'Automatic payments will continue')
 		},
-		onError: (error: Error) => {
-			toast.error('Failed to resume subscription', {
-				description: error.message
-			})
-		}
+		onError: (error) => handleMutationError(error, 'Resume subscription')
 	})
 }
 
@@ -178,7 +214,16 @@ export function useCancelSubscription() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (id: string) => subscriptionsApi.cancel(id),
+		mutationFn: async (id: string): Promise<{ subscription?: RentSubscriptionResponse }> => {
+			const res = await fetch(`/api/v1/subscriptions/${id}`, {
+				method: 'DELETE',
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to cancel subscription')
+			}
+			return res.json()
+		},
 		onSuccess: res => {
 			if (res.subscription) {
 				queryClient.setQueryData<RentSubscriptionResponse[] | undefined>(
@@ -186,15 +231,9 @@ export function useCancelSubscription() {
 					old => (old ? old.filter(s => s.id !== res.subscription!.id) : old)
 				)
 			}
-			toast.success('Subscription canceled', {
-				description: 'You will not be charged after the current period ends'
-			})
+			handleMutationSuccess('Cancel subscription', 'You will not be charged after the current period ends')
 		},
-		onError: (error: Error) => {
-			toast.error('Failed to cancel subscription', {
-				description: error.message
-			})
-		}
+		onError: (error) => handleMutationError(error, 'Cancel subscription')
 	})
 }
 
@@ -227,7 +266,15 @@ export function usePrefetchSubscriptions() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: subscriptionsKeys.list(),
-			queryFn: () => subscriptionsApi.list(),
+			queryFn: async (): Promise<RentSubscriptionResponse[]> => {
+				const res = await fetch('/api/v1/subscriptions', {
+					credentials: 'include'
+				})
+				if (!res.ok) {
+					throw new Error('Failed to fetch subscriptions')
+				}
+				return res.json()
+			},
 			staleTime: 60 * 1000
 		})
 	}
@@ -242,7 +289,15 @@ export function usePrefetchSubscription() {
 	return (id: string) => {
 		queryClient.prefetchQuery({
 			queryKey: subscriptionsKeys.detail(id),
-			queryFn: () => subscriptionsApi.get(id),
+			queryFn: async (): Promise<RentSubscriptionResponse> => {
+				const res = await fetch(`/api/v1/subscriptions/${id}`, {
+					credentials: 'include'
+				})
+				if (!res.ok) {
+					throw new Error('Failed to fetch subscription')
+				}
+				return res.json()
+			},
 			staleTime: 60 * 1000
 		})
 	}

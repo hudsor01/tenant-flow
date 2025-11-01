@@ -104,7 +104,7 @@
 			"glob": "^11.0.3",
 			"@types/glob": "^9.0.0",
 			"@types/mdx": "^2.0.13",
-			"minimatch": "10.0.3",
+			"minimatch": "10.1.1",
 			"cross-spawn": "^7.0.6",
 			"rimraf": "^6.0.1",
 			"sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.5",
@@ -153,6 +153,6 @@
 		"@swc/cli": "0.7.8",
 		"@swc/core": "1.14.0",
 		"playwright": "1.56.1",
-		"vercel": "48.6.7"
+		"vercel": "48.7.1"
 	}
 }

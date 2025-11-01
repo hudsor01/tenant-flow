@@ -36,7 +36,6 @@ import {
 } from '#components/ui/table'
 import { unitColumns, type UnitRow } from './columns'
 import { useUnitList, useUnitStats, useCreateUnit } from '#hooks/api/use-unit'
-import { propertiesApi } from '#lib/api-client'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -85,7 +84,11 @@ export default function UnitsPage() {
 
 	const { data: properties = [] } = useQuery({
 		queryKey: ['properties'],
-		queryFn: () => propertiesApi.list()
+		queryFn: async () => {
+			const res = await fetch('/api/v1/properties', { credentials: 'include' })
+			if (!res.ok) throw new Error('Failed to fetch properties')
+			return res.json()
+		}
 	})
 
 	// Use backend RPC functions for statistics - NO CLIENT-SIDE CALCULATIONS
@@ -139,9 +142,7 @@ export default function UnitsPage() {
 						<div className="size-2 rounded-full bg-chart-7" />
 					</div>
 					<div className="text-2xl font-bold">{vacantCount}</div>
-					<div className="text-xs mt-1 text-chart-7">
-						Available now
-					</div>
+					<div className="text-xs mt-1 text-chart-7">Available now</div>
 				</div>
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
@@ -152,9 +153,7 @@ export default function UnitsPage() {
 						<div className="size-2 rounded-full bg-chart-5" />
 					</div>
 					<div className="text-2xl font-bold">{maintenanceCount}</div>
-					<div className="text-xs mt-1 text-chart-5">
-						Needs attention
-					</div>
+					<div className="text-xs mt-1 text-chart-5">Needs attention</div>
 				</div>
 			</div>
 
@@ -236,15 +235,17 @@ export default function UnitsPage() {
 							<PaginationContent>
 								<PaginationItem>
 									<PaginationPrevious
-							page={page - 1}
-							currentPage={page}
-							onPageChange={(newPage: number) => setUrlState({ page: newPage })}
-							className={
-								page === 1 ? 'pointer-events-none opacity-50' : ''
-							}
-						>
-							Previous
-						</PaginationPrevious>
+										page={page - 1}
+										currentPage={page}
+										onPageChange={(newPage: number) =>
+											setUrlState({ page: newPage })
+										}
+										className={
+											page === 1 ? 'pointer-events-none opacity-50' : ''
+										}
+									>
+										Previous
+									</PaginationPrevious>
 								</PaginationItem>
 
 								{Array.from(
@@ -263,10 +264,12 @@ export default function UnitsPage() {
 												<span className="px-2">...</span>
 											) : null}
 											<PaginationLink
-								page={pageNum}
-								currentPage={page}
-								onPageChange={(newPage: number) => setUrlState({ page: newPage })}
-								isActive={page === pageNum}
+												page={pageNum}
+												currentPage={page}
+												onPageChange={(newPage: number) =>
+													setUrlState({ page: newPage })
+												}
+												isActive={page === pageNum}
 											>
 												{pageNum}
 											</PaginationLink>
@@ -275,21 +278,21 @@ export default function UnitsPage() {
 
 								<PaginationItem>
 									<PaginationNext
-							page={page + 1}
-							currentPage={page}
-							onPageChange={(newPage: number) => {
-								if (page < Math.ceil(totalItems / ITEMS_PER_PAGE)) {
-									setUrlState({ page: newPage })
-								}
-							}}
-							className={
-								page === Math.ceil(totalItems / ITEMS_PER_PAGE)
-									? 'pointer-events-none opacity-50'
-									: ''
-							}
-						>
-							Next
-						</PaginationNext>
+										page={page + 1}
+										currentPage={page}
+										onPageChange={(newPage: number) => {
+											if (page < Math.ceil(totalItems / ITEMS_PER_PAGE)) {
+												setUrlState({ page: newPage })
+											}
+										}}
+										className={
+											page === Math.ceil(totalItems / ITEMS_PER_PAGE)
+												? 'pointer-events-none opacity-50'
+												: ''
+										}
+									>
+										Next
+									</PaginationNext>
 								</PaginationItem>
 							</PaginationContent>
 						</Pagination>
@@ -406,7 +409,11 @@ function NewUnitButton() {
 	const qc = useQueryClient()
 	const { data: properties = [] } = useQuery({
 		queryKey: ['properties'],
-		queryFn: () => propertiesApi.list()
+		queryFn: async () => {
+			const res = await fetch('/api/v1/properties', { credentials: 'include' })
+			if (!res.ok) throw new Error('Failed to fetch properties')
+			return res.json()
+		}
 	})
 
 	const create = useCreateUnit()

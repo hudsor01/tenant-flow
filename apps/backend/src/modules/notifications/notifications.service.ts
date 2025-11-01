@@ -10,6 +10,7 @@ import {
 } from '@repo/shared/validation/common'
 import { z } from 'zod'
 import { SupabaseService } from '../../database/supabase.service'
+import { FailedNotificationsService } from './failed-notifications.service'
 import {
 	LeaseExpiringEvent,
 	MaintenanceUpdatedEvent,
@@ -19,13 +20,16 @@ import {
 } from './events/notification.events'
 
 type NotificationType = 'maintenance' | 'lease' | 'payment' | 'system'
-type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
+type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 
 @Injectable()
 export class NotificationsService {
 	private readonly logger = new Logger(NotificationsService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly failedNotifications: FailedNotificationsService
+	) {}
 
 	/**
 	 * Zod schemas for notification validation
@@ -36,7 +40,7 @@ export class NotificationsService {
 			title: requiredTitle,
 			message: requiredDescription,
 			type: requiredString,
-			priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY'], {
+			priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT'], {
 				message: 'Invalid priority level'
 			}),
 			actionUrl: z.string().optional(),
@@ -53,7 +57,7 @@ export class NotificationsService {
 			ownerId: uuidSchema,
 			title: requiredTitle,
 			description: requiredDescription,
-			priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY']),
+			priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
 			propertyName: requiredString,
 			unitNumber: requiredString,
 			maintenanceId: uuidSchema.optional(),
@@ -73,7 +77,7 @@ export class NotificationsService {
 			: 'maintenance_update'
 
 		switch (priority) {
-			case 'EMERGENCY':
+			case 'URGENT':
 				return `${baseType}_emergency` as NotificationType
 			case 'HIGH':
 				return `${baseType}_high` as NotificationType
@@ -91,7 +95,7 @@ export class NotificationsService {
 	 */
 	getPriorityLabel(priority: Priority): string {
 		const labels = {
-			EMERGENCY: 'Emergency',
+			URGENT: 'Urgent',
 			HIGH: 'High Priority',
 			MEDIUM: 'Medium Priority',
 			LOW: 'Low Priority'
@@ -103,7 +107,7 @@ export class NotificationsService {
 	 * Get notification urgency for system processing
 	 */
 	getNotificationUrgency(priority: Priority): boolean {
-		return priority === 'EMERGENCY' || priority === 'HIGH'
+		return priority === 'URGENT' || priority === 'HIGH'
 	}
 
 	/**
@@ -214,7 +218,7 @@ export class NotificationsService {
 	 */
 	getNotificationTimeout(priority: Priority): number {
 		switch (priority) {
-			case 'EMERGENCY':
+			case 'URGENT':
 				return 15000
 			case 'HIGH':
 				return 12000
@@ -231,7 +235,7 @@ export class NotificationsService {
 	 * Determine if notification should be sent immediately
 	 */
 	shouldSendImmediately(priority: Priority): boolean {
-		return priority === 'EMERGENCY' || priority === 'HIGH'
+		return priority === 'URGENT' || priority === 'HIGH'
 	}
 
 	/**
@@ -499,26 +503,26 @@ export class NotificationsService {
 			}
 		)
 
-		try {
-			await this.createMaintenanceNotification(
-				event.userId,
-				event.title,
-				event.description,
-				event.priority,
-				event.propertyName,
-				event.unitNumber,
-				event.maintenanceId
-			)
+		// 🔐 BUG FIX #3: Retry with exponential backoff instead of silent failure
+		await this.failedNotifications.retryWithBackoff(
+			async () => {
+				await this.createMaintenanceNotification(
+					event.userId,
+					event.title,
+					event.description,
+					event.priority,
+					event.propertyName,
+					event.unitNumber,
+					event.maintenanceId
+				)
 
-			this.logger.log(
-				`Maintenance notification created for user ${event.userId}`
-			)
-		} catch (error) {
-			this.logger.error(
-				`Failed to create maintenance notification for user ${event.userId}`,
-				error
-			)
-		}
+				this.logger.log(
+					`Maintenance notification created for user ${event.userId}`
+				)
+			},
+			'maintenance.updated',
+			event
+		)
 	}
 
 	/**
@@ -535,24 +539,24 @@ export class NotificationsService {
 			}
 		)
 
-		try {
-			await this.createPaymentNotification(
-				event.userId,
-				'Payment Received',
-				event.description,
-				'MEDIUM',
-				'Subscription', // Generic property name for payments
-				event.subscriptionId,
-				event.subscriptionId
-			)
+		// 🔐 BUG FIX #3: Retry with exponential backoff instead of silent failure
+		await this.failedNotifications.retryWithBackoff(
+			async () => {
+				await this.createPaymentNotification(
+					event.userId,
+					'Payment Received',
+					event.description,
+					'MEDIUM',
+					'Subscription', // Generic property name for payments
+					event.subscriptionId,
+					event.subscriptionId
+				)
 
-			this.logger.log(`Payment notification created for user ${event.userId}`)
-		} catch (error) {
-			this.logger.error(
-				`Failed to create payment notification for user ${event.userId}`,
-				error
-			)
-		}
+				this.logger.log(`Payment notification created for user ${event.userId}`)
+			},
+			'payment.received',
+			event
+		)
 	}
 
 	/**
@@ -569,27 +573,27 @@ export class NotificationsService {
 			}
 		)
 
-		try {
-			await this.createPaymentNotification(
-				event.userId,
-				'Payment Failed',
-				event.reason,
-				'HIGH',
-				'Subscription', // Generic property name for payments
-				event.subscriptionId,
-				undefined,
-				'/billing/payment-methods'
-			)
+		// 🔐 BUG FIX #3: Retry with exponential backoff instead of silent failure
+		await this.failedNotifications.retryWithBackoff(
+			async () => {
+				await this.createPaymentNotification(
+					event.userId,
+					'Payment Failed',
+					event.reason,
+					'HIGH',
+					'Subscription', // Generic property name for payments
+					event.subscriptionId,
+					undefined,
+					'/billing/payment-methods'
+				)
 
-			this.logger.log(
-				`Payment failed notification created for user ${event.userId}`
-			)
-		} catch (error) {
-			this.logger.error(
-				`Failed to create payment failed notification for user ${event.userId}`,
-				error
-			)
-		}
+				this.logger.log(
+					`Payment failed notification created for user ${event.userId}`
+				)
+			},
+			'payment.failed',
+			event
+		)
 	}
 
 	/**
@@ -606,24 +610,24 @@ export class NotificationsService {
 			}
 		)
 
-		try {
-			await this.createSystemNotification(
-				event.userId,
-				'New Tenant Added',
-				event.description,
-				'LOW',
-				'/tenants'
-			)
+		// 🔐 BUG FIX #3: Retry with exponential backoff instead of silent failure
+		await this.failedNotifications.retryWithBackoff(
+			async () => {
+				await this.createSystemNotification(
+					event.userId,
+					'New Tenant Added',
+					event.description,
+					'LOW',
+					'/tenants'
+				)
 
-			this.logger.log(
-				`Tenant created notification sent for user ${event.userId}`
-			)
-		} catch (error) {
-			this.logger.error(
-				`Failed to create tenant notification for user ${event.userId}`,
-				error
-			)
-		}
+				this.logger.log(
+					`Tenant created notification sent for user ${event.userId}`
+				)
+			},
+			'tenant.created',
+			event
+		)
 	}
 
 	/**
@@ -641,24 +645,24 @@ export class NotificationsService {
 
 		const priority = event.daysUntilExpiry <= 7 ? 'HIGH' : 'MEDIUM'
 
-		try {
-			await this.createSystemNotification(
-				event.userId,
-				'Lease Expiring Soon',
-				`Lease for ${event.tenantName} at ${event.propertyName} - Unit ${event.unitNumber} expires in ${event.daysUntilExpiry} days`,
-				priority,
-				'/leases'
-			)
+		// 🔐 BUG FIX #3: Retry with exponential backoff instead of silent failure
+		await this.failedNotifications.retryWithBackoff(
+			async () => {
+				await this.createSystemNotification(
+					event.userId,
+					'Lease Expiring Soon',
+					`Lease for ${event.tenantName} at ${event.propertyName} - Unit ${event.unitNumber} expires in ${event.daysUntilExpiry} days`,
+					priority,
+					'/leases'
+				)
 
-			this.logger.log(
-				`Lease expiring notification sent for user ${event.userId}`
-			)
-		} catch (error) {
-			this.logger.error(
-				`Failed to create lease expiring notification for user ${event.userId}`,
-				error
-			)
-		}
+				this.logger.log(
+					`Lease expiring notification sent for user ${event.userId}`
+				)
+			},
+			'lease.expiring',
+			event
+		)
 	}
 
 	// ==================

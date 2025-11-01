@@ -155,6 +155,14 @@ describe('TenantsService.sendTenantInvitationV2', () => {
 			}),
 			auth: {
 				admin: {
+					listUsers: jest.fn(() =>
+						Promise.resolve({
+							data: {
+								users: []
+							},
+							error: null
+						})
+					),
 					inviteUserByEmail: jest.fn(() =>
 						Promise.resolve({
 							data: {

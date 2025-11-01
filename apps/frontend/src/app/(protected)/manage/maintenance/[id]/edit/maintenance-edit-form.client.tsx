@@ -12,8 +12,10 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
-import { propertiesApi, unitsApi } from '#lib/api-client'
-import { useMaintenanceRequest, useUpdateMaintenanceRequest } from '#hooks/api/use-maintenance'
+import {
+	useMaintenanceRequest,
+	useUpdateMaintenanceRequest
+} from '#hooks/api/use-maintenance'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { maintenanceRequestFormSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
@@ -35,20 +37,24 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 	const totalSteps = 2
 	const updateMaintenanceRequest = useUpdateMaintenanceRequest()
 
-	const {
-		data: request,
-		isLoading,
-		isError
-	} = useMaintenanceRequest(id)
+	const { data: request, isLoading, isError } = useMaintenanceRequest(id)
 
 	const { data: properties = [] } = useQuery({
 		queryKey: ['properties'],
-		queryFn: () => propertiesApi.list()
+		queryFn: async () => {
+			const res = await fetch('/api/v1/properties', { credentials: 'include' })
+			if (!res.ok) throw new Error('Failed to fetch properties')
+			return res.json()
+		}
 	})
 
 	const { data: units = [] } = useQuery({
 		queryKey: ['units'],
-		queryFn: () => unitsApi.list()
+		queryFn: async () => {
+			const res = await fetch('/api/v1/units', { credentials: 'include' })
+			if (!res.ok) throw new Error('Failed to fetch units')
+			return res.json()
+		}
 	})
 
 	const [selectedPropertyId, setSelectedPropertyId] = useState('')
@@ -56,7 +62,7 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 	useEffect(() => {
 		// Get property ID from the request's unit
 		if (request?.unitId) {
-			const unit = units.find(u => u.id === request.unitId)
+			const unit = units.find((u: import('@repo/shared/types/core').Unit) => u.id === request.unitId)
 			if (unit?.propertyId) {
 				queueMicrotask(() => {
 					setSelectedPropertyId(unit.propertyId)
@@ -67,7 +73,7 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 
 	const availableUnits = useMemo(() => {
 		if (!selectedPropertyId) return []
-		return units.filter(unit => unit.propertyId === selectedPropertyId)
+		return units.filter((unit: import('@repo/shared/types/core').Unit) => unit.propertyId === selectedPropertyId)
 	}, [selectedPropertyId, units])
 
 	const form = useForm({
@@ -87,10 +93,17 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 
 			if (value.title) payload.title = value.title
 			if (value.description) payload.description = value.description
-			if (value.priority) payload.priority = value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+			if (value.priority)
+				payload.priority = value.priority as
+					| 'LOW'
+					| 'MEDIUM'
+					| 'HIGH'
+					| 'URGENT'
 			if (value.category) payload.category = value.category
-			if (value.estimatedCost) payload.estimatedCost = Number.parseFloat(value.estimatedCost)
-			if (value.preferredDate) payload.preferredDate = new Date(value.preferredDate)
+			if (value.estimatedCost)
+				payload.estimatedCost = Number.parseFloat(value.estimatedCost)
+			if (value.preferredDate)
+				payload.preferredDate = new Date(value.preferredDate)
 
 			updateMaintenanceRequest.mutate(
 				{ id, data: payload },
@@ -140,7 +153,7 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 					: ''
 			})
 			// Get property ID from unit
-			const unit = units.find(u => u.id === request.unitId)
+			const unit = units.find((u: import('@repo/shared/types/core').Unit) => u.id === request.unitId)
 			if (unit?.propertyId) {
 				queueMicrotask(() => {
 					setSelectedPropertyId(unit.propertyId)
@@ -195,7 +208,7 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 										<SelectValue placeholder="Select property" />
 									</SelectTrigger>
 									<SelectContent>
-										{properties.map(property => (
+										{properties.map((property: import('@repo/shared/types/core').Property) => (
 											<SelectItem key={property.id} value={property.id}>
 												{property.name}
 											</SelectItem>
@@ -217,7 +230,7 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 												<SelectValue placeholder="Select unit" />
 											</SelectTrigger>
 											<SelectContent>
-												{availableUnits.map(unit => (
+												{availableUnits.map((unit: import('@repo/shared/types/core').Unit) => (
 													<SelectItem key={unit.id} value={unit.id}>
 														Unit {unit.unitNumber}
 													</SelectItem>
@@ -400,7 +413,9 @@ export function MaintenanceEditForm({ id }: MaintenanceEditFormProps) {
 								size="lg"
 								disabled={updateMaintenanceRequest.isPending}
 							>
-								{updateMaintenanceRequest.isPending ? 'Saving...' : 'Save changes'}
+								{updateMaintenanceRequest.isPending
+									? 'Saving...'
+									: 'Save changes'}
 							</Button>
 						) : (
 							<Button

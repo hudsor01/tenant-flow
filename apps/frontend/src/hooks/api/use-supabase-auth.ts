@@ -7,6 +7,7 @@ import type { LoginCredentials, SignupFormData } from '@repo/shared/types/auth'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 
 const supabase = createClient()
 
@@ -78,18 +79,12 @@ export function useSupabaseLogin() {
 			queryClient.invalidateQueries({ queryKey: supabaseAuthKeys.all })
 
 			// Show success message
-			toast.success('Welcome back!', {
-				description: `Logged in as ${data.user.email}`
-			})
+			handleMutationSuccess('Login', `Logged in as ${data.user.email}`)
 
 			// Redirect to dashboard
 			router.push('/manage')
 		},
-		onError: (error: Error) => {
-			toast.error('Login failed', {
-				description: error.message
-			})
-		}
+		onError: (error: Error) => handleMutationError(error, 'Login')
 	})
 }
 
@@ -135,11 +130,7 @@ export function useSupabaseSignup() {
 				router.push('/manage')
 			}
 		},
-		onError: (error: Error) => {
-			toast.error('Signup failed', {
-				description: error.message
-			})
-		}
+		onError: (error: Error) => handleMutationError(error, 'Signup')
 	})
 }
 
@@ -159,14 +150,10 @@ export function useSupabaseLogout() {
 			// Clear all queries
 			queryClient.clear()
 
-			toast.success('Logged out successfully')
+			handleMutationSuccess('Logout')
 			router.push('/login')
 		},
-		onError: (error: Error) => {
-			toast.error('Logout failed', {
-				description: error.message
-			})
-		}
+		onError: (error: Error) => handleMutationError(error, 'Logout')
 	})
 }
 
@@ -181,16 +168,8 @@ export function useSupabasePasswordReset() {
 			})
 			if (error) throw error
 		},
-		onSuccess: () => {
-			toast.success('Password reset email sent', {
-				description: 'Please check your email for instructions.'
-			})
-		},
-		onError: (error: Error) => {
-			toast.error('Password reset failed', {
-				description: error.message
-			})
-		}
+		onSuccess: () => handleMutationSuccess('Password reset', 'Please check your email for instructions'),
+		onError: (error: Error) => handleMutationError(error, 'Password reset')
 	})
 }
 
@@ -215,13 +194,9 @@ export function useSupabaseUpdateProfile() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: supabaseAuthKeys.user() })
-			toast.success('Profile updated successfully')
+			handleMutationSuccess('Update profile')
 		},
-		onError: (error: Error) => {
-			toast.error('Profile update failed', {
-				description: error.message
-			})
-		}
+		onError: (error: Error) => handleMutationError(error, 'Update profile')
 	})
 }
 
