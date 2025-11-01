@@ -9,7 +9,12 @@ import {
 	useSupabaseUpload,
 	type UseSupabaseUploadOptions
 } from '#hooks/use-supabase-upload'
-import { compressImage, formatFileSize } from '#lib/image-compression'
+import {
+	compressImage,
+	formatFileSize,
+	HEICConversionError,
+	isHEICFile
+} from '#lib/image-compression'
 import { createClient } from '#lib/supabase/client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
@@ -105,11 +110,17 @@ export function usePropertyImageUpload(
 			const compressedFiles: File[] = []
 
 			for (const file of files) {
-				try {
-					// Show compression toast
-					toast.info(`Compressing ${file.name}...`)
+					try {
+						// Show conversion/compression toast
+						const isHEIC = isHEICFile(file)
 
-					// Compress image
+						if (isHEIC) {
+							toast.info(`Converting and compressing ${file.name}...`)
+						} else {
+							toast.info(`Compressing ${file.name}...`)
+						}
+
+					// Compress image (handles HEIC conversion internally)
 					const compressed = await compressImage(file)
 
 					logger.info('Image compressed', {
@@ -126,7 +137,15 @@ export function usePropertyImageUpload(
 					compressedFiles.push(compressed.file)
 				} catch (error) {
 					logger.error('Compression failed', { action: 'compress' }, error)
-					toast.error(`Failed to compress ${file.name}`)
+
+					// Show user-friendly error message
+					if (error instanceof HEICConversionError) {
+						toast.error(error.message, { duration: 6000 })
+					} else {
+						const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+						toast.error(`Failed to compress ${file.name}: ${errorMessage}`)
+					}
+
 					if (error instanceof Error && onUploadError) {
 						onUploadError(error)
 					}

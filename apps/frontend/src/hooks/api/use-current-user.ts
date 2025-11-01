@@ -8,6 +8,7 @@
  * Reference: apps/frontend/src/hooks/api/use-tenant.ts
  */
 
+import { API_BASE_URL } from '#lib/api-config'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 /**
@@ -45,7 +46,7 @@ export function useUser() {
 	return useQuery({
 		queryKey: userKeys.me,
 		queryFn: async (): Promise<User> => {
-			const res = await fetch('/api/v1/users/me', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -69,7 +70,7 @@ export function usePrefetchUser() {
 		queryClient.prefetchQuery({
 			queryKey: userKeys.me,
 			queryFn: async (): Promise<User> => {
-				const res = await fetch('/api/v1/users/me', {
+				const res = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
 					credentials: 'include'
 				})
 				if (!res.ok) {

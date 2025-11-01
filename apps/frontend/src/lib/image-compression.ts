@@ -7,8 +7,28 @@
 
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import imageCompression from 'browser-image-compression'
+import heic2any from 'heic2any'
 
 const logger = createLogger({ component: 'ImageCompression' })
+
+export class HEICConversionError extends Error {
+	constructor(message: string) {
+		super(message)
+		this.name = 'HEICConversionError'
+	}
+}
+
+/**
+ * Check if a file is HEIC/HEIF format
+ */
+export function isHEICFile(file: File): boolean {
+	return (
+		file.type === 'image/heic' ||
+		file.type === 'image/heif' ||
+		file.name.toLowerCase().endsWith('.heic') ||
+		file.name.toLowerCase().endsWith('.heif')
+	)
+}
 
 export interface CompressionOptions {
 	/**
@@ -115,6 +135,54 @@ export async function compressImage(
 		fileType: file.type
 	})
 
+	let fileToCompress = file
+
+	// Convert HEIC/HEIF to JPEG first
+	const isHEIC = isHEICFile(file)
+
+	if (isHEIC) {
+		try {
+			logger.info('Converting HEIC to JPEG', {
+				action: 'convert',
+				fileName: file.name
+			})
+
+			// Convert HEIC to JPEG using heic2any
+			const convertedBlob = await heic2any({
+				blob: file,
+				toType: 'image/jpeg',
+				quality: 0.9 // High quality for conversion
+			})
+
+			// heic2any can return Blob or Blob[], handle both cases
+			const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob
+
+			if (!blob) {
+				throw new Error('HEIC conversion returned empty result')
+			}
+
+			// Create a new File from the converted Blob
+			const originalName = file.name.replace(/\.(heic|heif)$/i, '.jpg')
+			fileToCompress = new File([blob], originalName, {
+				type: 'image/jpeg',
+				lastModified: Date.now()
+			})
+
+			logger.info('HEIC conversion successful', {
+				action: 'convert',
+				originalFormat: file.type,
+				convertedFormat: fileToCompress.type,
+				originalSize: file.size,
+				convertedSize: fileToCompress.size
+			})
+		} catch (conversionError) {
+			logger.error('HEIC conversion failed', { action: 'convert' }, conversionError)
+			throw new HEICConversionError(
+				'Failed to convert HEIC image. Please try converting it to JPEG manually or use a different image.'
+			)
+		}
+	}
+
 	// Merge with defaults
 	const compressionOptions = {
 		...DEFAULT_OPTIONS,
@@ -122,8 +190,8 @@ export async function compressImage(
 	}
 
 	try {
-		// Compress the image
-		const compressedFile = await imageCompression(file, compressionOptions)
+		// Compress the image (either original or converted)
+		const compressedFile = await imageCompression(fileToCompress, compressionOptions)
 
 		const compressedSize = compressedFile.size
 		const compressionRatio = compressedSize / originalSize
@@ -151,9 +219,24 @@ export async function compressImage(
 		}
 	} catch (error) {
 		logger.error('Image compression failed', { action: 'compress' }, error)
-		throw new Error(
-			`Failed to compress image: ${error instanceof Error ? error.message : 'Unknown error'}`
-		)
+
+		// Provide specific error messages for common issues
+		if (error instanceof Error) {
+			// Browser-image-compression specific errors
+			if (error.message.includes('MIME')) {
+				throw new Error(
+					`Unsupported image format. Please use JPEG, PNG, or WebP images.`
+				)
+			}
+			if (error.message.includes('memory') || error.message.includes('Out of memory')) {
+				throw new Error(
+					`Image is too large to process. Please use a smaller image or reduce the resolution.`
+				)
+			}
+			throw new Error(`Failed to compress image: ${error.message}`)
+		}
+
+		throw new Error('Failed to compress image: Unknown error')
 	}
 }
 
@@ -172,7 +255,11 @@ export function isValidImageFile(file: File): boolean {
 		'image/heic',
 		'image/heif'
 	]
-	return validTypes.includes(file.type.toLowerCase())
+	// Also check file extension for browsers that don't set MIME type correctly
+	const fileName = file.name.toLowerCase()
+	const validExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif']
+
+	return validTypes.includes(file.type.toLowerCase()) || validExtensions.some(ext => fileName.endsWith(ext))
 }
 
 /**
