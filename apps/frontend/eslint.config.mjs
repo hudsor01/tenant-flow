@@ -198,7 +198,7 @@ export default defineConfig([
 	{
 		name: 'frontend/no-inline-api-url-fallback',
 		files: ['**/*.ts', '**/*.tsx'],
-		ignores: ['**/lib/api-client.ts'],
+		ignores: ['**/lib/api-client.ts', '**/lib/api-config.ts'],
 		rules: {
 			'no-restricted-syntax': [
 				'error',
