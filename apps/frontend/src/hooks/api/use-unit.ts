@@ -10,6 +10,7 @@
  * - Proper error handling
  */
 
+import { API_BASE_URL } from '#lib/api-config'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import {
@@ -46,7 +47,7 @@ export function useUnit(id: string) {
 	return useQuery({
 		queryKey: unitKeys.detail(id),
 		queryFn: async (): Promise<Unit> => {
-			const res = await fetch(`/api/v1/units/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/units/${id}`, {
 				credentials: 'include'
 			})
 
@@ -72,7 +73,7 @@ export function useUnitsByProperty(propertyId: string) {
 	return useQuery({
 		queryKey: unitKeys.byProperty(propertyId),
 		queryFn: async (): Promise<{ data: Unit[]; total: number }> => {
-			const res = await fetch(`/api/v1/units/by-property/${propertyId}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/units/by-property/${propertyId}`, {
 				credentials: 'include'
 			})
 
@@ -133,7 +134,7 @@ export function useUnitList(params?: {
 			searchParams.append('limit', limit.toString())
 			searchParams.append('offset', offset.toString())
 
-			const res = await fetch(`/api/v1/units?${searchParams.toString()}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/units?${searchParams.toString()}`, {
 				credentials: 'include'
 			})
 
@@ -329,7 +330,7 @@ export function useUpdateUnit() {
 			// 🔐 BUG FIX #2: Get current version from cache for optimistic locking
 			const currentUnit = queryClient.getQueryData<Unit>(unitKeys.detail(id))
 
-			const res = await fetch(`/api/v1/units/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/units/${id}`, {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json'
@@ -442,7 +443,7 @@ export function useDeleteUnit(options?: {
 
 	return useMutation({
 		mutationFn: async (id: string): Promise<string> => {
-			const res = await fetch(`/api/v1/units/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/units/${id}`, {
 				method: 'DELETE',
 				credentials: 'include'
 			})
@@ -521,7 +522,7 @@ export function usePrefetchUnit() {
 		queryClient.prefetchQuery({
 			queryKey: unitKeys.detail(id),
 			queryFn: async (): Promise<Unit> => {
-				const res = await fetch(`/api/v1/units/${id}`, {
+				const res = await fetch(`${API_BASE_URL}/api/v1/units/${id}`, {
 					credentials: 'include'
 				})
 

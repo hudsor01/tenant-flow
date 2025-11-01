@@ -2,6 +2,7 @@
  * TanStack Query hooks for Stripe Connect API
  * Phase 6: Frontend Integration for Landlord Payment Collection
  */
+import { API_BASE_URL } from '#lib/api-config'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
@@ -41,7 +42,7 @@ export function useConnectedAccount() {
 	return useQuery({
 		queryKey: stripeConnectKeys.account(),
 		queryFn: async (): Promise<ConnectedAccount> => {
-			const res = await fetch('/api/v1/stripe-connect/account', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/stripe-connect/account`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -64,7 +65,7 @@ export function useCreateConnectedAccount() {
 
 	return useMutation({
 		mutationFn: async (request: CreateConnectAccountRequest): Promise<ConnectAccountResponse> => {
-			const res = await fetch('/api/v1/stripe-connect/create', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/stripe-connect/create`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -90,7 +91,7 @@ export function useCreateConnectedAccount() {
 export function useRefreshOnboarding() {
 	return useMutation({
 		mutationFn: async (): Promise<OnboardingUrlResponse> => {
-			const res = await fetch('/api/v1/stripe-connect/refresh-onboarding', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/stripe-connect/refresh-onboarding`, {
 				method: 'POST',
 				credentials: 'include'
 			})
@@ -112,7 +113,7 @@ export function usePrefetchConnectedAccount() {
 		queryClient.prefetchQuery({
 			queryKey: stripeConnectKeys.account(),
 			queryFn: async (): Promise<ConnectedAccount> => {
-				const res = await fetch('/api/v1/stripe-connect/account', {
+				const res = await fetch(`${API_BASE_URL}/api/v1/stripe-connect/account`, {
 					credentials: 'include'
 				})
 				if (!res.ok) {
