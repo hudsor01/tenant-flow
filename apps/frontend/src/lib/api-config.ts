@@ -6,9 +6,17 @@
 /**
  * API base URL for backend (Railway)
  * Works in both Server Components and Client Components
+ * Falls back to production URL if env var not set
  */
-// eslint-disable-next-line no-restricted-syntax -- Central definition per DRY principle
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.tenantflow.app'
+const API_BASE_URL_RAW = process.env.NEXT_PUBLIC_API_BASE_URL
+
+if (!API_BASE_URL_RAW) {
+	console.warn(
+		'[API Config] NEXT_PUBLIC_API_BASE_URL is not defined, falling back to production URL: https://api.tenantflow.app'
+	)
+}
+
+export const API_BASE_URL = API_BASE_URL_RAW || 'https://api.tenantflow.app'
 
 /**
  * Get API base URL (single source of truth)
