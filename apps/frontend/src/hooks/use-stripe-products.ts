@@ -4,6 +4,7 @@
  * Fetches from backend Stripe API endpoints
  */
 
+import { API_BASE_URL } from '#lib/api-config'
 import type { StripeProductWithPricing } from '@repo/shared/types/stripe'
 import { useQuery } from '@tanstack/react-query'
 
@@ -112,7 +113,7 @@ export function useStripeProducts() {
 	const query = useQuery({
 		queryKey: ['stripe', 'products'],
 		queryFn: async () => {
-			const res = await fetch('/api/v1/stripe/products', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/stripe/products`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {

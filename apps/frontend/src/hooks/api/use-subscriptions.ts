@@ -5,6 +5,7 @@
  * TanStack Query hooks for subscription management
  */
 
+import { API_BASE_URL } from '#lib/api-config'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
 	CreateSubscriptionRequest,
@@ -29,7 +30,7 @@ export function useSubscriptions() {
 	return useQuery({
 		queryKey: subscriptionsKeys.list(),
 		queryFn: async (): Promise<RentSubscriptionResponse[]> => {
-			const res = await fetch('/api/v1/subscriptions', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/subscriptions`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -48,7 +49,7 @@ export function useSubscription(id: string) {
 	return useQuery({
 		queryKey: subscriptionsKeys.detail(id),
 		queryFn: async (): Promise<RentSubscriptionResponse> => {
-			const res = await fetch(`/api/v1/subscriptions/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/subscriptions/${id}`, {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -68,7 +69,7 @@ export function useCreateSubscription() {
 
 	return useMutation({
 		mutationFn: async (data: CreateSubscriptionRequest): Promise<RentSubscriptionResponse> => {
-			const res = await fetch('/api/v1/subscriptions', {
+			const res = await fetch(`${API_BASE_URL}/api/v1/subscriptions`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -107,7 +108,7 @@ export function useUpdateSubscription() {
 			id: string
 			data: UpdateSubscriptionRequest
 		}): Promise<RentSubscriptionResponse> => {
-			const res = await fetch(`/api/v1/subscriptions/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/subscriptions/${id}`, {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json'
@@ -144,7 +145,7 @@ export function usePauseSubscription() {
 
 	return useMutation({
 		mutationFn: async (id: string): Promise<{ subscription?: RentSubscriptionResponse }> => {
-			const res = await fetch(`/api/v1/subscriptions/${id}/pause`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/subscriptions/${id}/pause`, {
 				method: 'POST',
 				credentials: 'include'
 			})
@@ -180,7 +181,7 @@ export function useResumeSubscription() {
 
 	return useMutation({
 		mutationFn: async (id: string): Promise<{ subscription?: RentSubscriptionResponse }> => {
-			const res = await fetch(`/api/v1/subscriptions/${id}/resume`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/subscriptions/${id}/resume`, {
 				method: 'POST',
 				credentials: 'include'
 			})
@@ -215,7 +216,7 @@ export function useCancelSubscription() {
 
 	return useMutation({
 		mutationFn: async (id: string): Promise<{ subscription?: RentSubscriptionResponse }> => {
-			const res = await fetch(`/api/v1/subscriptions/${id}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/subscriptions/${id}`, {
 				method: 'DELETE',
 				credentials: 'include'
 			})
@@ -267,7 +268,7 @@ export function usePrefetchSubscriptions() {
 		queryClient.prefetchQuery({
 			queryKey: subscriptionsKeys.list(),
 			queryFn: async (): Promise<RentSubscriptionResponse[]> => {
-				const res = await fetch('/api/v1/subscriptions', {
+				const res = await fetch(`${API_BASE_URL}/api/v1/subscriptions`, {
 					credentials: 'include'
 				})
 				if (!res.ok) {
@@ -290,7 +291,7 @@ export function usePrefetchSubscription() {
 		queryClient.prefetchQuery({
 			queryKey: subscriptionsKeys.detail(id),
 			queryFn: async (): Promise<RentSubscriptionResponse> => {
-				const res = await fetch(`/api/v1/subscriptions/${id}`, {
+				const res = await fetch(`${API_BASE_URL}/api/v1/subscriptions/${id}`, {
 					credentials: 'include'
 				})
 				if (!res.ok) {
