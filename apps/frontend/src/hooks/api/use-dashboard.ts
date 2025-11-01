@@ -1,7 +1,7 @@
 /**
  * TanStack Query hooks for dashboard data
  */
-import { API_BASE_URL } from '#lib/api-config'
+import { clientFetch } from '#lib/api/client'
 import type { Activity } from '@repo/shared/types/activity'
 import type {
 	ActivityItem,
@@ -45,15 +45,7 @@ export const dashboardKeys = {
 export function useDashboardStats() {
 	return useQuery({
 		queryKey: dashboardKeys.stats(),
-		queryFn: async (): Promise<DashboardStats> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/manage/stats`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch dashboard stats')
-			}
-			return res.json()
-		},
+		queryFn: () => clientFetch<DashboardStats>('/api/v1/manage/stats'),
 		staleTime: 2 * 60 * 1000, // 2 minutes (optimized from 30s to reduce server load by 75%)
 		gcTime: 10 * 60 * 1000, // 10 minutes - remove from cache after this period
 		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes (optimized from 30s)
@@ -71,15 +63,7 @@ export function useDashboardStats() {
 export function useDashboardActivity() {
 	return useQuery({
 		queryKey: dashboardKeys.activity(),
-		queryFn: async (): Promise<{ activities: Activity[] }> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/manage/activity`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch dashboard activity')
-			}
-			return res.json()
-		},
+		queryFn: () => clientFetch<{ activities: Activity[] }>('/api/v1/manage/activity'),
 		staleTime: 2 * 60 * 1000, // 2 minutes (optimized from 60s to reduce server load)
 		gcTime: 10 * 60 * 1000, // 10 minutes - remove from cache after this period
 		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes (optimized from 60s)
@@ -98,15 +82,7 @@ export function useDashboardActivity() {
 export function usePropertyPerformance() {
 	return useQuery({
 		queryKey: dashboardKeys.propertyPerformance(),
-		queryFn: async (): Promise<PropertyPerformance[]> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/manage/property-performance`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch property performance')
-			}
-			return res.json()
-		},
+		queryFn: () => clientFetch<PropertyPerformance[]>('/api/v1/manage/property-performance'),
 		staleTime: 5 * 60 * 1000, // 5 minutes - reduced server load
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes (reduced from 30s)
 		refetchIntervalInBackground: false, // Stop refreshing when tab inactive
@@ -124,15 +100,7 @@ export function usePropertyPerformance() {
 export function useSystemUptime() {
 	return useQuery({
 		queryKey: dashboardKeys.uptime(),
-		queryFn: async (): Promise<SystemUptime> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/manage/uptime`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch system uptime')
-			}
-			return res.json()
-		},
+		queryFn: () => clientFetch<SystemUptime>('/api/v1/manage/uptime'),
 		staleTime: 5 * 60 * 1000, // 5 minutes - uptime data doesn't change frequently
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
 		refetchIntervalInBackground: false, // No need to refresh in background for uptime
@@ -149,7 +117,7 @@ export function useSystemUptime() {
 export function usePropertyStats() {
 	return useQuery({
 		queryKey: dashboardKeys.propertyStats(),
-		queryFn: async (): Promise<{
+		queryFn: () => clientFetch<{
 			totalProperties: number
 			totalUnits: number
 			occupiedUnits: number
@@ -157,15 +125,7 @@ export function usePropertyStats() {
 			totalRevenue: number
 			vacantUnits: number
 			maintenanceUnits: number
-		}> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/properties/stats`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch property stats')
-			}
-			return res.json()
-		},
+		}>('/api/v1/properties/stats'),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
 		refetchIntervalInBackground: true,
@@ -182,15 +142,7 @@ export function usePropertyStats() {
 export function useTenantStats() {
 	return useQuery({
 		queryKey: dashboardKeys.tenantStats(),
-		queryFn: async (): Promise<TenantStats> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/stats`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch tenant stats')
-			}
-			return res.json()
-		},
+		queryFn: () => clientFetch<TenantStats>('/api/v1/tenants/stats'),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
 		refetchIntervalInBackground: true,
@@ -207,15 +159,7 @@ export function useTenantStats() {
 export function useLeaseStats() {
 	return useQuery({
 		queryKey: dashboardKeys.leaseStats(),
-		queryFn: async (): Promise<LeaseStatsResponse> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/leases/stats`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch lease stats')
-			}
-			return res.json()
-		},
+		queryFn: () => clientFetch<LeaseStatsResponse>('/api/v1/leases/stats'),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
 		refetchIntervalInBackground: true,
@@ -236,14 +180,9 @@ export function useFinancialChartData(timeRange: string = '6m') {
 		queryFn: async () => {
 			// Map timeRange to year for the revenue-trends endpoint
 			const currentYear = new Date().getFullYear()
-			const res = await fetch(
-				`/api/v1/financial/analytics/revenue-trends?year=${currentYear}`,
-				{ credentials: 'include' }
+			const data = await clientFetch<FinancialMetrics[]>(
+				`/api/v1/financial/analytics/revenue-trends?year=${currentYear}`
 			)
-			if (!res.ok) {
-				throw new Error('Failed to fetch financial chart data')
-			}
-			const data = await res.json() as FinancialMetrics[]
 
 			// Transform FinancialMetrics to chart format
 			if (Array.isArray(data)) {
@@ -277,15 +216,7 @@ export function usePrefetchDashboardStats() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.stats(),
-			queryFn: async (): Promise<DashboardStats> => {
-				const res = await fetch(`${API_BASE_URL}/api/v1/manage/stats`, {
-					credentials: 'include'
-				})
-				if (!res.ok) {
-					throw new Error('Failed to fetch dashboard stats')
-				}
-				return res.json()
-			},
+			queryFn: () => clientFetch<DashboardStats>('/api/v1/manage/stats'),
 			staleTime: 2 * 60 * 1000 // 2 minutes (reduced from 30s)
 		})
 	}
@@ -300,15 +231,7 @@ export function usePrefetchDashboardActivity() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.activity(),
-			queryFn: async (): Promise<{ activities: Activity[] }> => {
-				const res = await fetch(`${API_BASE_URL}/api/v1/manage/activity`, {
-					credentials: 'include'
-				})
-				if (!res.ok) {
-					throw new Error('Failed to fetch dashboard activity')
-				}
-				return res.json()
-			},
+			queryFn: () => clientFetch<{ activities: Activity[] }>('/api/v1/manage/activity'),
 			staleTime: 60 * 1000
 		})
 	}
@@ -323,15 +246,7 @@ export function usePrefetchPropertyPerformance() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.propertyPerformance(),
-			queryFn: async (): Promise<PropertyPerformance[]> => {
-				const res = await fetch(`${API_BASE_URL}/api/v1/manage/property-performance`, {
-					credentials: 'include'
-				})
-				if (!res.ok) {
-					throw new Error('Failed to fetch property performance')
-				}
-				return res.json()
-			},
+			queryFn: () => clientFetch<PropertyPerformance[]>('/api/v1/manage/property-performance'),
 			staleTime: 5 * 60 * 1000 // 5 minutes (reduced from 30s)
 		})
 	}
@@ -346,7 +261,7 @@ export function usePrefetchPropertyStats() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.propertyStats(),
-			queryFn: async (): Promise<{
+			queryFn: () => clientFetch<{
 				totalProperties: number
 				totalUnits: number
 				occupiedUnits: number
@@ -354,15 +269,7 @@ export function usePrefetchPropertyStats() {
 				totalRevenue: number
 				vacantUnits: number
 				maintenanceUnits: number
-			}> => {
-				const res = await fetch(`${API_BASE_URL}/api/v1/properties/stats`, {
-					credentials: 'include'
-				})
-				if (!res.ok) {
-					throw new Error('Failed to fetch property stats')
-				}
-				return res.json()
-			},
+			}>('/api/v1/properties/stats'),
 			staleTime: 5 * 60 * 1000
 		})
 	}
@@ -377,15 +284,7 @@ export function usePrefetchTenantStats() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.tenantStats(),
-			queryFn: async (): Promise<TenantStats> => {
-				const res = await fetch(`${API_BASE_URL}/api/v1/tenants/stats`, {
-					credentials: 'include'
-				})
-				if (!res.ok) {
-					throw new Error('Failed to fetch tenant stats')
-				}
-				return res.json()
-			},
+			queryFn: () => clientFetch<TenantStats>('/api/v1/tenants/stats'),
 			staleTime: 5 * 60 * 1000
 		})
 	}
@@ -400,15 +299,7 @@ export function usePrefetchLeaseStats() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.leaseStats(),
-			queryFn: async (): Promise<LeaseStatsResponse> => {
-				const res = await fetch(`${API_BASE_URL}/api/v1/leases/stats`, {
-					credentials: 'include'
-				})
-				if (!res.ok) {
-					throw new Error('Failed to fetch lease stats')
-				}
-				return res.json()
-			},
+			queryFn: () => clientFetch<LeaseStatsResponse>('/api/v1/leases/stats'),
 			staleTime: 5 * 60 * 1000
 		})
 	}
@@ -460,18 +351,10 @@ export function useDashboardPageData() {
 export function useDashboardPageDataUnified() {
 	return useQuery({
 		queryKey: dashboardKeys.pageData(),
-		queryFn: async (): Promise<{
+		queryFn: () => clientFetch<{
 			stats: DashboardStats
 			activity: ActivityItem[]
-		}> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/manage/page-data`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch dashboard page data')
-			}
-			return res.json()
-		},
+		}>('/api/v1/manage/page-data'),
 		staleTime: 2 * 60 * 1000, // 2 minutes (increased from 30s to reduce server load)
 		gcTime: 10 * 60 * 1000, // 10 minutes
 		refetchInterval: 2 * 60 * 1000, // 2 minutes (reduced from 30s)

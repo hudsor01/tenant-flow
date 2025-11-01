@@ -93,15 +93,19 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 		const validFiles = acceptedFiles
 			.filter(file => !files.find(x => x.name === file.name))
 			.map(file => {
-				;(file as FileWithPreview).preview = URL.createObjectURL(file)
-				;(file as FileWithPreview).errors = []
-				return file as FileWithPreview
+				const fileWithPreview = Object.assign(file, {
+					preview: URL.createObjectURL(file),
+					errors: [] as readonly FileError[]
+				})
+				return fileWithPreview as FileWithPreview
 			})
 
 		const invalidFiles = fileRejections.map(({ file, errors }) => {
-			;(file as FileWithPreview).preview = URL.createObjectURL(file)
-			;(file as FileWithPreview).errors = errors
-			return file as FileWithPreview
+			const fileWithPreview = Object.assign(file, {
+				preview: URL.createObjectURL(file),
+				errors: errors as readonly FileError[]
+			})
+			return fileWithPreview as FileWithPreview
 		})
 
 		const newFiles = [...files, ...validFiles, ...invalidFiles]
@@ -186,10 +190,22 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 		}
 	}, [files, setFiles, maxFiles, errors.length])
 
+	// Cleanup: Revoke object URLs to prevent memory leaks
+	useEffect(() => {
+		return () => {
+			files.forEach(file => {
+				if (file.preview) {
+					URL.revokeObjectURL(file.preview)
+				}
+			})
+		}
+	}, [files])
+
 	return {
 		files,
 		setFiles,
 		successes,
+		setSuccesses,
 		isSuccess,
 		loading,
 		errors,

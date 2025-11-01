@@ -4,6 +4,7 @@
  */
 
 import { API_BASE_URL } from '#lib/api-config'
+import { clientFetch } from '#lib/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { UseMutationResult } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -148,16 +149,7 @@ export function useReports({
 			const queryParams = new URLSearchParams()
 			queryParams.append('limit', limit.toString())
 			queryParams.append('offset', offset.toString())
-
-			const res = await fetch(`${API_BASE_URL}/api/v1/reports?${queryParams.toString()}`, {
-				credentials: 'include'
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch reports')
-			}
-
-			return res.json()
+			return clientFetch<ListReportsResponse>(`/api/v1/reports?${queryParams.toString()}`)
 		}
 	})
 
@@ -165,16 +157,10 @@ export function useReports({
 	const total = listResponse?.pagination?.total ?? 0
 
 	const deleteMutation = useMutation({
-		mutationFn: async (reportId: string): Promise<void> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/reports/${reportId}`, {
-				method: 'DELETE',
-				credentials: 'include'
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to delete report')
-			}
-		},
+		mutationFn: (reportId: string) =>
+			clientFetch<void>(`/api/v1/reports/${reportId}`, {
+				method: 'DELETE'
+			}),
 		onMutate: async (reportId: string) => {
 			// mark this id as deleting so callers can show row-level loading
 			setDeletingIds(prev => {
@@ -219,8 +205,18 @@ export function useReports({
 
 	const downloadMutation = useMutation({
 		mutationFn: async (reportId: string): Promise<void> => {
+			// For blob downloads, we can't use clientFetch (it calls .json())
+			// But we still need to add Authorization header manually
+			const supabase = (await import('#lib/supabase/client')).createClient()
+			const { data: { session } } = await supabase.auth.getSession()
+			
+			const headers: Record<string, string> = {}
+			if (session?.access_token) {
+				headers['Authorization'] = `Bearer ${session.access_token}`
+			}
+
 			const res = await fetch(`${API_BASE_URL}/api/v1/reports/${reportId}/download`, {
-				credentials: 'include'
+				headers
 			})
 
 			if (!res.ok) {
@@ -367,24 +363,7 @@ export function useReports({
 export function useMonthlyRevenue(months: number = 12) {
 	return useQuery<RevenueData[]>({
 		queryKey: reportsKeys.revenue(months),
-		queryFn: async (): Promise<RevenueData[]> => {
-			const res = await fetch(
-				`${API_BASE_URL}/api/v1/reports/analytics/revenue/monthly?months=${months}`,
-				{
-					credentials: 'include'
-				}
-			)
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch monthly revenue')
-			}
-
-			const response = (await res.json()) as {
-				success: boolean
-				data: RevenueData[]
-			}
-			return response.data
-		}
+		queryFn: () => clientFetch<RevenueData[]>(`/api/v1/reports/analytics/revenue/monthly?months=${months}`)
 	})
 }
 
@@ -394,28 +373,12 @@ export function useMonthlyRevenue(months: number = 12) {
 export function usePaymentAnalytics(startDate?: string, endDate?: string) {
 	return useQuery<PaymentAnalytics>({
 		queryKey: reportsKeys.paymentAnalytics(startDate, endDate),
-		queryFn: async (): Promise<PaymentAnalytics> => {
+		queryFn: (): Promise<PaymentAnalytics> => {
 			const params = new URLSearchParams()
 			if (startDate) params.append('startDate', startDate)
 			if (endDate) params.append('endDate', endDate)
-
 			const queryString = params.toString() ? `?${params.toString()}` : ''
-			const res = await fetch(
-				`${API_BASE_URL}/api/v1/reports/analytics/payments${queryString}`,
-				{
-					credentials: 'include'
-				}
-			)
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch payment analytics')
-			}
-
-			const response = (await res.json()) as {
-				success: boolean
-				data: PaymentAnalytics
-			}
-			return response.data
+			return clientFetch<PaymentAnalytics>(`/api/v1/reports/analytics/payments${queryString}`)
 		}
 	})
 }
@@ -426,21 +389,7 @@ export function usePaymentAnalytics(startDate?: string, endDate?: string) {
 export function useOccupancyMetrics() {
 	return useQuery<OccupancyMetrics>({
 		queryKey: reportsKeys.occupancyMetrics(),
-		queryFn: async (): Promise<OccupancyMetrics> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/reports/analytics/occupancy`, {
-				credentials: 'include'
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch occupancy metrics')
-			}
-
-			const response = (await res.json()) as {
-				success: boolean
-				data: OccupancyMetrics
-			}
-			return response.data
-		}
+		queryFn: () => clientFetch<OccupancyMetrics>('/api/v1/reports/analytics/occupancy')
 	})
 }
 
@@ -455,20 +404,11 @@ export function usePrefetchReports() {
 		queryClient.prefetchQuery({
 			queryKey,
 			queryFn: async (): Promise<ListReportsResponse> => {
-				const queryParams = new URLSearchParams()
-				queryParams.append('limit', limit.toString())
-				queryParams.append('offset', offset.toString())
-
-				const res = await fetch(`${API_BASE_URL}/api/v1/reports?${queryParams.toString()}`, {
-					credentials: 'include'
-				})
-
-				if (!res.ok) {
-					throw new Error('Failed to fetch reports')
-				}
-
-				return res.json()
-			}
+			const queryParams = new URLSearchParams()
+			queryParams.append('limit', limit.toString())
+			queryParams.append('offset', offset.toString())
+			return clientFetch<ListReportsResponse>(`/api/v1/reports?${queryParams.toString()}`)
+		}
 		})
 	}
 }
@@ -482,24 +422,7 @@ export function usePrefetchMonthlyRevenue() {
 	return (months: number = 12) => {
 		queryClient.prefetchQuery({
 			queryKey: reportsKeys.revenue(months),
-			queryFn: async (): Promise<RevenueData[]> => {
-				const res = await fetch(
-					`${API_BASE_URL}/api/v1/reports/analytics/revenue/monthly?months=${months}`,
-					{
-						credentials: 'include'
-					}
-				)
-
-				if (!res.ok) {
-					throw new Error('Failed to fetch monthly revenue')
-				}
-
-				const response = (await res.json()) as {
-					success: boolean
-					data: RevenueData[]
-				}
-				return response.data
-			}
+			queryFn: () => clientFetch<RevenueData[]>(`/api/v1/reports/analytics/revenue/monthly?months=${months}`)
 		})
 	}
 }
@@ -513,29 +436,13 @@ export function usePrefetchPaymentAnalytics() {
 	return (startDate?: string, endDate?: string) => {
 		queryClient.prefetchQuery({
 			queryKey: reportsKeys.paymentAnalytics(startDate, endDate),
-			queryFn: async (): Promise<PaymentAnalytics> => {
-				const params = new URLSearchParams()
-				if (startDate) params.append('startDate', startDate)
-				if (endDate) params.append('endDate', endDate)
-
-				const queryString = params.toString() ? `?${params.toString()}` : ''
-				const res = await fetch(
-					`${API_BASE_URL}/api/v1/reports/analytics/payments${queryString}`,
-					{
-						credentials: 'include'
-					}
-				)
-
-				if (!res.ok) {
-					throw new Error('Failed to fetch payment analytics')
-				}
-
-				const response = (await res.json()) as {
-					success: boolean
-					data: PaymentAnalytics
-				}
-				return response.data
-			}
+			queryFn: (): Promise<PaymentAnalytics> => {
+			const params = new URLSearchParams()
+			if (startDate) params.append('startDate', startDate)
+			if (endDate) params.append('endDate', endDate)
+			const queryString = params.toString() ? `?${params.toString()}` : ''
+			return clientFetch<PaymentAnalytics>(`/api/v1/reports/analytics/payments${queryString}`)
+		}
 		})
 	}
 }
@@ -549,21 +456,7 @@ export function usePrefetchOccupancyMetrics() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: reportsKeys.occupancyMetrics(),
-			queryFn: async (): Promise<OccupancyMetrics> => {
-				const res = await fetch(`${API_BASE_URL}/api/v1/reports/analytics/occupancy`, {
-					credentials: 'include'
-				})
-
-				if (!res.ok) {
-					throw new Error('Failed to fetch occupancy metrics')
-				}
-
-				const response = (await res.json()) as {
-					success: boolean
-					data: OccupancyMetrics
-				}
-				return response.data
-			}
+			queryFn: () => clientFetch<OccupancyMetrics>('/api/v1/reports/analytics/occupancy')
 		})
 	}
 }
