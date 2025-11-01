@@ -3,6 +3,10 @@
  * Single source of truth for API URL
  */
 
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'APIConfig' })
+
 /**
  * API base URL for backend (Railway)
  * Works in both Server Components and Client Components
@@ -11,8 +15,8 @@
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.tenantflow.app'
 
 if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
-	console.warn(
-		'[API Config] NEXT_PUBLIC_API_BASE_URL is not defined, falling back to production URL: https://api.tenantflow.app'
+	logger.warn(
+		'NEXT_PUBLIC_API_BASE_URL is not defined, falling back to production URL: https://api.tenantflow.app'
 	)
 }
 
