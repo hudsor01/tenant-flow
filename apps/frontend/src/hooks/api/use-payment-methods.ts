@@ -8,7 +8,6 @@ import type {
 	PaymentMethodSetupIntent
 } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { API_BASE_URL, apiClient } from '#lib/api-client'
 
 /**
  * Query keys for payment methods endpoints
@@ -26,11 +25,14 @@ export const paymentMethodKeys = {
 export function usePaymentMethods() {
 	return useQuery({
 		queryKey: paymentMethodKeys.list(),
-		queryFn: async () => {
-			const response = await apiClient<{
-				payment_methods: PaymentMethodResponse[]
-			}>(`${API_BASE_URL}/api/v1/stripe/tenant-payment-methods`)
-
+		queryFn: async (): Promise<PaymentMethodResponse[]> => {
+			const res = await fetch('/api/v1/stripe/tenant-payment-methods', {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch payment methods')
+			}
+			const response = await res.json() as { payment_methods: PaymentMethodResponse[] }
 			// Backend now returns proper PaymentMethodResponse structure
 			return response.payment_methods
 		},
@@ -44,14 +46,19 @@ export function usePaymentMethods() {
  */
 export function useCreateSetupIntent() {
 	return useMutation({
-		mutationFn: async (request: CreateSetupIntentRequest) => {
-			return await apiClient<PaymentMethodSetupIntent>(
-				`${API_BASE_URL}/api/v1/payment-methods/setup-intent`,
-				{
-					method: 'POST',
-					body: JSON.stringify(request)
-				}
-			)
+		mutationFn: async (request: CreateSetupIntentRequest): Promise<PaymentMethodSetupIntent> => {
+			const res = await fetch('/api/v1/payment-methods/setup-intent', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: JSON.stringify(request)
+			})
+			if (!res.ok) {
+				throw new Error('Failed to create setup intent')
+			}
+			return res.json()
 		}
 	})
 }
@@ -66,26 +73,34 @@ export function useSavePaymentMethod() {
 		mutationFn: async (request: {
 			paymentMethodId: string
 			setAsDefault?: boolean
-		}) => {
-			return await apiClient<{
-				success: boolean
-				payment_method: {
-					id: string
-					type: string
-					card: {
-						brand: string
-						last4: string
-						exp_month: number
-						exp_year: number
-					} | null
-				}
-			}>(`${API_BASE_URL}/api/v1/stripe/attach-tenant-payment-method`, {
+		}): Promise<{
+			success: boolean
+			payment_method: {
+				id: string
+				type: string
+				card: {
+					brand: string
+					last4: string
+					exp_month: number
+					exp_year: number
+				} | null
+			}
+		}> => {
+			const res = await fetch('/api/v1/stripe/attach-tenant-payment-method', {
 				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
 				body: JSON.stringify({
 					payment_method_id: request.paymentMethodId,
 					set_as_default: request.setAsDefault ?? true
 				})
 			})
+			if (!res.ok) {
+				throw new Error('Failed to save payment method')
+			}
+			return res.json()
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: paymentMethodKeys.list() })
@@ -105,13 +120,15 @@ export function useSetDefaultPaymentMethod() {
 		string,
 		{ previous?: PaymentMethodResponse[] }
 	>({
-		mutationFn: async (paymentMethodId: string) => {
-			return await apiClient<{ success: boolean }>(
-				`${API_BASE_URL}/api/v1/payment-methods/${paymentMethodId}/default`,
-				{
-					method: 'PATCH'
-				}
-			)
+		mutationFn: async (paymentMethodId: string): Promise<{ success: boolean }> => {
+			const res = await fetch(`/api/v1/payment-methods/${paymentMethodId}/default`, {
+				method: 'PATCH',
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to set default payment method')
+			}
+			return res.json()
 		},
 		onMutate: async (
 			paymentMethodId: string
@@ -163,13 +180,18 @@ export function useDeletePaymentMethod() {
 		string,
 		{ previous?: PaymentMethodResponse[] }
 	>({
-		mutationFn: async (paymentMethodId: string) => {
-			return await apiClient<{
-				success: boolean
-				message?: string
-			}>(`${API_BASE_URL}/api/v1/stripe/tenant-payment-methods/${paymentMethodId}`, {
-				method: 'DELETE'
+		mutationFn: async (paymentMethodId: string): Promise<{
+			success: boolean
+			message?: string
+		}> => {
+			const res = await fetch(`/api/v1/stripe/tenant-payment-methods/${paymentMethodId}`, {
+				method: 'DELETE',
+				credentials: 'include'
 			})
+			if (!res.ok) {
+				throw new Error('Failed to delete payment method')
+			}
+			return res.json()
 		},
 		onMutate: async (
 			paymentMethodId: string
@@ -212,10 +234,14 @@ export function usePrefetchPaymentMethods() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: paymentMethodKeys.list(),
-			queryFn: async () => {
-				const response = await apiClient<{
-					paymentMethods: PaymentMethodResponse[]
-				}>(`${API_BASE_URL}/api/v1/payment-methods`)
+			queryFn: async (): Promise<PaymentMethodResponse[]> => {
+				const res = await fetch('/api/v1/payment-methods', {
+					credentials: 'include'
+				})
+				if (!res.ok) {
+					throw new Error('Failed to fetch payment methods')
+				}
+				const response = await res.json() as { paymentMethods: PaymentMethodResponse[] }
 				return response.paymentMethods
 			},
 			staleTime: 5 * 60 * 1000

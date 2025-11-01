@@ -150,7 +150,7 @@ describe('MaintenanceController', () => {
 		const urgent = [
 			{
 				...createMockMaintenanceRequest(),
-				priority: 'EMERGENCY' as Database['public']['Enums']['Priority']
+				priority: 'URGENT' as Database['public']['Enums']['Priority']
 			}
 		]
 		service.getUrgent.mockResolvedValue(urgent)

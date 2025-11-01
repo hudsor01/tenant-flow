@@ -37,15 +37,15 @@ export function LateFeeConfigDialog({
 
 	useEffect(() => {
 		if (config) {
-			setGracePeriodDays(config.gracePeriodDays)
-			setFlatFeeAmount(config.flatFeeAmount)
+			setGracePeriodDays(config.gracePeriodDays ?? 0)
+			setFlatFeeAmount(config.flatFeeAmount ?? 50)
 		}
 	}, [config])
 
 	useEffect(() => {
 		if (!open && config) {
-			setGracePeriodDays(config.gracePeriodDays)
-			setFlatFeeAmount(config.flatFeeAmount)
+			setGracePeriodDays(config.gracePeriodDays ?? 0)
+			setFlatFeeAmount(config.flatFeeAmount ?? 50)
 		}
 	}, [open, config])
 

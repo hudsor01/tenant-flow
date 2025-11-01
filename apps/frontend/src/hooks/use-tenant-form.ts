@@ -8,7 +8,7 @@ import { tenantFormSchema } from '@repo/shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
 import { useCallback, useState } from 'react'
 import { z } from 'zod'
-import { API_BASE_URL } from '#lib/api-client'
+import { API_BASE_URL } from '#lib/api-config'
 
 /**
  * Hook for tenant creation forms with shared validation and state management

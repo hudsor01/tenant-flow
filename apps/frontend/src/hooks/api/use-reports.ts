@@ -1,16 +1,89 @@
-import { reportsClient } from '#lib/api/reports-client'
-import type { Report } from '#lib/api/reports-client'
-import {
-	getMonthlyRevenue,
-	getOccupancyMetrics,
-	getPaymentAnalytics,
-	type OccupancyMetrics,
-	type PaymentAnalytics,
-	type RevenueData
-} from '#lib/api/reports'
+/**
+ * TanStack Query hooks for reports API
+ * Phase 5: Advanced Features - Custom Reports & Analytics
+ */
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { UseMutationResult } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import {
+	handleMutationError,
+	handleMutationSuccess
+} from '#lib/mutation-error-handler'
+
+/**
+ * Report types
+ */
+export interface Report {
+	id: string
+	userId: string
+	reportType: string
+	reportName: string
+	format: string
+	status: string
+	fileUrl: string | null
+	filePath: string | null
+	fileSize: number | null
+	startDate: string
+	endDate: string
+	metadata: Record<string, unknown>
+	errorMessage: string | null
+	createdAt: string
+	updatedAt: string
+}
+
+export interface ListReportsResponse {
+	success: boolean
+	data: Report[]
+	pagination: {
+		total: number
+		limit: number
+		offset: number
+		hasMore: boolean
+	}
+}
+
+export interface RevenueData {
+	month: string
+	revenue: number
+	expenses: number
+	profit: number
+	propertyCount: number
+	unitCount: number
+	occupiedUnits: number
+}
+
+export interface PaymentAnalytics {
+	totalPayments: number
+	successfulPayments: number
+	failedPayments: number
+	totalRevenue: number
+	averagePayment: number
+	paymentsByMethod: {
+		card: number
+		ach: number
+	}
+	paymentsByStatus: {
+		completed: number
+		pending: number
+		failed: number
+	}
+}
+
+export interface OccupancyMetrics {
+	totalUnits: number
+	occupiedUnits: number
+	vacantUnits: number
+	occupancyRate: number
+	byProperty: Array<{
+		propertyId: string
+		propertyName: string
+		totalUnits: number
+		occupiedUnits: number
+		occupancyRate: number
+	}>
+}
 
 // module-scoped timers map for delete undo timeouts
 const deleteReportTimers = new Map<string, number>()
@@ -22,14 +95,15 @@ const deleteReportTimers = new Map<string, number>()
 export const reportsKeys = {
 	all: ['reports'] as const,
 	lists: () => [...reportsKeys.all, 'list'] as const,
-	list: (offset: number, limit: number) => [...reportsKeys.lists(), offset, limit] as const,
-	revenue: (months: number) => [...reportsKeys.all, 'revenue', 'monthly', months] as const,
+	list: (offset: number, limit: number) =>
+		[...reportsKeys.lists(), offset, limit] as const,
+	revenue: (months: number) =>
+		[...reportsKeys.all, 'revenue', 'monthly', months] as const,
 	paymentAnalytics: (startDate?: string, endDate?: string) =>
 		[...reportsKeys.all, 'analytics', 'payments', startDate, endDate] as const,
-	occupancyMetrics: () => [...reportsKeys.all, 'analytics', 'occupancy'] as const
+	occupancyMetrics: () =>
+		[...reportsKeys.all, 'analytics', 'occupancy'] as const
 }
-
-import type { UseMutationResult } from '@tanstack/react-query'
 
 type UseReportsResult = {
 	reports: Report[]
@@ -58,7 +132,6 @@ export function useReports({
 }): UseReportsResult {
 	const queryClient = useQueryClient()
 	const queryKey = reportsKeys.list(offset, limit)
-	type ListResponse = Awaited<ReturnType<typeof reportsClient.listReports>>
 
 	// Keep track of per-id pending operations so the UI can show per-row spinners
 	const [downloadingIds, setDownloadingIds] = useState<Set<string>>(new Set())
@@ -68,17 +141,39 @@ export function useReports({
 		data: listResponse,
 		isLoading,
 		isFetching
-	} = useQuery<ListResponse>({
+	} = useQuery<ListReportsResponse>({
 		queryKey,
-		queryFn: () => reportsClient.listReports({ offset, limit })
+		queryFn: async (): Promise<ListReportsResponse> => {
+			const queryParams = new URLSearchParams()
+			queryParams.append('limit', limit.toString())
+			queryParams.append('offset', offset.toString())
+
+			const res = await fetch(`/reports?${queryParams.toString()}`, {
+				credentials: 'include'
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to fetch reports')
+			}
+
+			return res.json()
+		}
 	})
 
-	const reports = (listResponse as ListResponse | undefined)?.data ?? []
-	const total =
-		(listResponse as ListResponse | undefined)?.pagination?.total ?? 0
+	const reports = listResponse?.data ?? []
+	const total = listResponse?.pagination?.total ?? 0
 
 	const deleteMutation = useMutation({
-		mutationFn: (reportId: string) => reportsClient.deleteReport(reportId),
+		mutationFn: async (reportId: string): Promise<void> => {
+			const res = await fetch(`/reports/${reportId}`, {
+				method: 'DELETE',
+				credentials: 'include'
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to delete report')
+			}
+		},
 		onMutate: async (reportId: string) => {
 			// mark this id as deleting so callers can show row-level loading
 			setDeletingIds(prev => {
@@ -87,9 +182,9 @@ export function useReports({
 				return s
 			})
 			await queryClient.cancelQueries({ queryKey })
-			const previous = queryClient.getQueryData<ListResponse>(queryKey)
+			const previous = queryClient.getQueryData<ListReportsResponse>(queryKey)
 			if (previous) {
-				const cloned: ListResponse = {
+				const cloned: ListReportsResponse = {
 					...previous,
 					data: previous.data.filter((r: Report) => r.id !== reportId)
 				}
@@ -97,15 +192,17 @@ export function useReports({
 			}
 			return previous ? { previous } : {}
 		},
-		onError: (err: unknown, _id, context?: { previous?: ListResponse }) => {
+		onError: (
+			err: unknown,
+			_id,
+			context?: { previous?: ListReportsResponse }
+		) => {
 			if (context?.previous)
 				queryClient.setQueryData(queryKey, context.previous)
-			const message =
-				err instanceof Error ? err.message : 'Failed to delete report'
-			toast.error(message)
+			handleMutationError(err, 'Delete report')
 		},
 		onSuccess: () => {
-			toast.success('Report deleted successfully')
+			handleMutationSuccess('Delete report')
 		},
 		onSettled: () => {
 			// remove deleting flag and refresh top-level reports list
@@ -120,12 +217,33 @@ export function useReports({
 	})
 
 	const downloadMutation = useMutation({
-		mutationFn: (reportId: string) => reportsClient.downloadReport(reportId),
-		onSuccess: () => toast.success('Report downloaded successfully'),
-		onError: (err: unknown) =>
-			toast.error(
-				err instanceof Error ? err.message : 'Failed to download report'
-			)
+		mutationFn: async (reportId: string): Promise<void> => {
+			const res = await fetch(`/reports/${reportId}/download`, {
+				credentials: 'include'
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to download report')
+			}
+
+			// Extract filename from Content-Disposition header
+			const contentDisposition = res.headers.get('Content-Disposition')
+			const filenameMatch = contentDisposition?.match(/filename="(.+)"/)
+			const filename = filenameMatch?.[1] || 'report.pdf'
+
+			// Create blob and download
+			const blob = await res.blob()
+			const url = window.URL.createObjectURL(blob)
+			const link = document.createElement('a')
+			link.href = url
+			link.download = filename
+			document.body.appendChild(link)
+			link.click()
+			document.body.removeChild(link)
+			setTimeout(() => window.URL.revokeObjectURL(url), 100)
+		},
+		onSuccess: () => handleMutationSuccess('Download report'),
+		onError: (err: unknown) => handleMutationError(err, 'Download report')
 	})
 
 	function downloadReport(reportId: string) {
@@ -175,11 +293,11 @@ export function useReports({
 			return s
 		})
 
-		const previous = queryClient.getQueryData<ListResponse>(queryKey)
+		const previous = queryClient.getQueryData<ListReportsResponse>(queryKey)
 
 		// remove the item optimistically (onMutate-like behavior)
 		if (previous) {
-			const cloned: ListResponse = {
+			const cloned: ListReportsResponse = {
 				...previous,
 				data: previous.data.filter((r: Report) => r.id !== reportId)
 			}
@@ -243,6 +361,89 @@ export function useReports({
 }
 
 /**
+ * Hook for fetching monthly revenue data
+ */
+export function useMonthlyRevenue(months: number = 12) {
+	return useQuery<RevenueData[]>({
+		queryKey: reportsKeys.revenue(months),
+		queryFn: async (): Promise<RevenueData[]> => {
+			const res = await fetch(
+				`/api/v1/reports/analytics/revenue/monthly?months=${months}`,
+				{
+					credentials: 'include'
+				}
+			)
+
+			if (!res.ok) {
+				throw new Error('Failed to fetch monthly revenue')
+			}
+
+			const response = (await res.json()) as {
+				success: boolean
+				data: RevenueData[]
+			}
+			return response.data
+		}
+	})
+}
+
+/**
+ * Hook for fetching payment analytics
+ */
+export function usePaymentAnalytics(startDate?: string, endDate?: string) {
+	return useQuery<PaymentAnalytics>({
+		queryKey: reportsKeys.paymentAnalytics(startDate, endDate),
+		queryFn: async (): Promise<PaymentAnalytics> => {
+			const params = new URLSearchParams()
+			if (startDate) params.append('startDate', startDate)
+			if (endDate) params.append('endDate', endDate)
+
+			const queryString = params.toString() ? `?${params.toString()}` : ''
+			const res = await fetch(
+				`/api/v1/reports/analytics/payments${queryString}`,
+				{
+					credentials: 'include'
+				}
+			)
+
+			if (!res.ok) {
+				throw new Error('Failed to fetch payment analytics')
+			}
+
+			const response = (await res.json()) as {
+				success: boolean
+				data: PaymentAnalytics
+			}
+			return response.data
+		}
+	})
+}
+
+/**
+ * Hook for fetching occupancy metrics
+ */
+export function useOccupancyMetrics() {
+	return useQuery<OccupancyMetrics>({
+		queryKey: reportsKeys.occupancyMetrics(),
+		queryFn: async (): Promise<OccupancyMetrics> => {
+			const res = await fetch('/api/v1/reports/analytics/occupancy', {
+				credentials: 'include'
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to fetch occupancy metrics')
+			}
+
+			const response = (await res.json()) as {
+				success: boolean
+				data: OccupancyMetrics
+			}
+			return response.data
+		}
+	})
+}
+
+/**
  * Hook for prefetching reports
  */
 export function usePrefetchReports() {
@@ -252,7 +453,21 @@ export function usePrefetchReports() {
 		const queryKey = reportsKeys.list(offset, limit)
 		queryClient.prefetchQuery({
 			queryKey,
-			queryFn: () => reportsClient.listReports({ offset, limit })
+			queryFn: async (): Promise<ListReportsResponse> => {
+				const queryParams = new URLSearchParams()
+				queryParams.append('limit', limit.toString())
+				queryParams.append('offset', offset.toString())
+
+				const res = await fetch(`/reports?${queryParams.toString()}`, {
+					credentials: 'include'
+				})
+
+				if (!res.ok) {
+					throw new Error('Failed to fetch reports')
+				}
+
+				return res.json()
+			}
 		})
 	}
 }
@@ -266,7 +481,24 @@ export function usePrefetchMonthlyRevenue() {
 	return (months: number = 12) => {
 		queryClient.prefetchQuery({
 			queryKey: reportsKeys.revenue(months),
-			queryFn: () => getMonthlyRevenue(months)
+			queryFn: async (): Promise<RevenueData[]> => {
+				const res = await fetch(
+					`/api/v1/reports/analytics/revenue/monthly?months=${months}`,
+					{
+						credentials: 'include'
+					}
+				)
+
+				if (!res.ok) {
+					throw new Error('Failed to fetch monthly revenue')
+				}
+
+				const response = (await res.json()) as {
+					success: boolean
+					data: RevenueData[]
+				}
+				return response.data
+			}
 		})
 	}
 }
@@ -280,7 +512,29 @@ export function usePrefetchPaymentAnalytics() {
 	return (startDate?: string, endDate?: string) => {
 		queryClient.prefetchQuery({
 			queryKey: reportsKeys.paymentAnalytics(startDate, endDate),
-			queryFn: () => getPaymentAnalytics(startDate, endDate)
+			queryFn: async (): Promise<PaymentAnalytics> => {
+				const params = new URLSearchParams()
+				if (startDate) params.append('startDate', startDate)
+				if (endDate) params.append('endDate', endDate)
+
+				const queryString = params.toString() ? `?${params.toString()}` : ''
+				const res = await fetch(
+					`/api/v1/reports/analytics/payments${queryString}`,
+					{
+						credentials: 'include'
+					}
+				)
+
+				if (!res.ok) {
+					throw new Error('Failed to fetch payment analytics')
+				}
+
+				const response = (await res.json()) as {
+					success: boolean
+					data: PaymentAnalytics
+				}
+				return response.data
+			}
 		})
 	}
 }
@@ -294,37 +548,21 @@ export function usePrefetchOccupancyMetrics() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: reportsKeys.occupancyMetrics(),
-			queryFn: getOccupancyMetrics
+			queryFn: async (): Promise<OccupancyMetrics> => {
+				const res = await fetch('/api/v1/reports/analytics/occupancy', {
+					credentials: 'include'
+				})
+
+				if (!res.ok) {
+					throw new Error('Failed to fetch occupancy metrics')
+				}
+
+				const response = (await res.json()) as {
+					success: boolean
+					data: OccupancyMetrics
+				}
+				return response.data
+			}
 		})
 	}
-}
-
-/**
- * Hook for fetching monthly revenue data
- */
-export function useMonthlyRevenue(months: number = 12) {
-	return useQuery<RevenueData[]>({
-		queryKey: reportsKeys.revenue(months),
-		queryFn: () => getMonthlyRevenue(months)
-	})
-}
-
-/**
- * Hook for fetching payment analytics
- */
-export function usePaymentAnalytics(startDate?: string, endDate?: string) {
-	return useQuery<PaymentAnalytics>({
-		queryKey: reportsKeys.paymentAnalytics(startDate, endDate),
-		queryFn: () => getPaymentAnalytics(startDate, endDate)
-	})
-}
-
-/**
- * Hook for fetching occupancy metrics
- */
-export function useOccupancyMetrics() {
-	return useQuery<OccupancyMetrics>({
-		queryKey: reportsKeys.occupancyMetrics(),
-		queryFn: getOccupancyMetrics
-	})
 }

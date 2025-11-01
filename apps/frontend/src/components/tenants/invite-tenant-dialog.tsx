@@ -10,7 +10,6 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from '#components/ui/dialog'
-import { tenantsApi } from '#lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { Mail } from 'lucide-react'
 import { useState } from 'react'
@@ -56,7 +55,16 @@ export function InviteTenantDialog({
 			if (propertyId) params.propertyId = propertyId
 			if (leaseId) params.leaseId = leaseId
 
-			const invitationResponse = await tenantsApi.sendInvitationV2(tenantId, params)
+			const res = await fetch(`/api/v1/tenants/${tenantId}/send-invitation-v2`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include',
+				body: JSON.stringify(params)
+			})
+			if (!res.ok) {
+				throw new Error('Failed to send invitation')
+			}
+			const invitationResponse = await res.json()
 
 			const logContext: Record<string, unknown> = {
 				tenantId,

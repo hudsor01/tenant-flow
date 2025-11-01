@@ -36,7 +36,6 @@ api-keys.*
 *.api-key
 .tokens
 tokens.*
-*.token
 
 # SECRETS & CREDENTIALS (CRITICAL)
 # Private keys and certificates
@@ -70,7 +69,6 @@ id_ed25519*
 **/*_ed25519
 known_hosts
 authorized_keys
-tenantflow-ui-kit.tokens.json
 
 # GPG keys
 *.gpg
@@ -91,7 +89,6 @@ tenantflow-ui-kit.tokens.json
 
 # But explicitly allow TypeScript/JavaScript source files
 !**/*[_-]token*.ts
-!**/*[_-]token*.tsx
 !**/*[_-]token*.js
 !**/*[_-]token*.jsx
 !**/*[_-]secret*.ts
@@ -101,15 +98,6 @@ tenantflow-ui-kit.tokens.json
 !**/secret-*.tsx
 !**/key-*.tsx
 !**/auth-token.decorator.ts
-
-# Service accounts
-**/service[_-]account*
-**/gcp[_-]key*
-**/aws[_-]credentials*
-**/firebase[_-]admin*
-service-account*.json
-*.service-account.json
-gcloud-service-key.json
 
 # Database URLs
 **/*connection[_-]string*
@@ -191,21 +179,9 @@ secrets.*
 
 # dependencies
 node_modules/
-yarn.lock
-!/yarn.lock
 test/node_modules
 .pnpm-store/
 .github/**/node_modules
-jspm_packages/
-.pnp
-.pnp.js
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
 
 # test output
 test/**/out/*
@@ -263,8 +239,6 @@ apps/*/dist/
 apps/*/.turbo/
 logs/
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 lerna-debug.log*
 pnpm-debug.log*
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
@@ -333,7 +307,7 @@ CLAUDE.md
 claude.md
 mcp.json
 .mcp.json
-.claude
+.claude/
 ROADMAP.md
 roadmap.md
 backend_logs.json

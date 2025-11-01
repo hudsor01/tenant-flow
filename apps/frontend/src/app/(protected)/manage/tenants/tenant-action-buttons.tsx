@@ -11,7 +11,6 @@ import {
 } from '#components/ui/dialog'
 import { Field, FieldLabel } from '#components/ui/field'
 import { tenantKeys } from '#hooks/api/use-tenant'
-import { tenantsApi } from '#lib/api-client'
 import type { UpdateTenantInput } from '@repo/shared/types/api-inputs'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
 import {
@@ -52,7 +51,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 	})
 
 	const updateMutation = useMutation({
-		mutationFn: (data: TenantUpdate) => {
+		mutationFn: async (data: TenantUpdate) => {
 			const payload: UpdateTenantInput = {}
 
 			const assignNullable = (
@@ -85,7 +84,16 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 			assignNullable('name', data.name)
 			assignNullable('userId', data.userId)
 
-			return tenantsApi.update(tenant.id, payload)
+			const res = await fetch(`/api/v1/tenants/${tenant.id}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include',
+				body: JSON.stringify(payload)
+			})
+			if (!res.ok) {
+				throw new Error('Failed to update tenant')
+			}
+			return res.json()
 		},
 		onSuccess: (updated: TenantWithLeaseInfo) => {
 			// Update single tenant cache and the tenants list without refetch
@@ -106,7 +114,15 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 	})
 
 	const deleteMutation = useMutation({
-		mutationFn: () => tenantsApi.remove(tenant.id),
+		mutationFn: async () => {
+			const res = await fetch(`/api/v1/tenants/${tenant.id}`, {
+				method: 'DELETE',
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to delete tenant')
+			}
+		},
 		onSuccess: () => {
 			queryClient.setQueryData(
 				['tenants'],
@@ -127,7 +143,16 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 	})
 
 	const inviteMutation = useMutation({
-		mutationFn: () => tenantsApi.sendInvitationV2(tenant.id, {}),
+		mutationFn: async () => {
+			const res = await fetch(`/api/v1/tenants/${tenant.id}/resend-invitation`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include',
+				body: JSON.stringify({})
+			})
+			if (!res.ok) throw new Error('Failed to send invitation')
+			return res.json()
+		},
 		onSuccess: () => {
 			toast.success('Invitation sent successfully')
 		},

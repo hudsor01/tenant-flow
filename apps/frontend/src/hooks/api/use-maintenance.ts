@@ -10,8 +10,10 @@ import type {
 } from '@repo/shared/types/backend-domain'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { API_BASE_URL, apiClient } from '#lib/api-client'
+import {
+	handleMutationError,
+	handleMutationSuccess
+} from '#lib/mutation-error-handler'
 
 /**
  * Query keys for maintenance endpoints (hierarchical structure)
@@ -52,8 +54,18 @@ export function useAllMaintenanceRequests(query?: {
 			if (query?.limit) params.append('limit', query.limit.toString())
 			if (query?.offset) params.append('offset', query.offset.toString())
 
-			const url = `${API_BASE_URL}/api/v1/maintenance${params.toString() ? `?${params.toString()}` : ''}`
-			const response = await apiClient<MaintenanceRequest[]>(url)
+			const res = await fetch(
+				`/api/v1/maintenance${params.toString() ? `?${params.toString()}` : ''}`,
+				{
+					credentials: 'include'
+				}
+			)
+
+			if (!res.ok) {
+				throw new Error('Failed to fetch maintenance requests')
+			}
+
+			const response = (await res.json()) as MaintenanceRequest[]
 
 			// Prefetch individual details for instant navigation
 			response?.forEach?.(maintenance => {
@@ -79,10 +91,16 @@ export function useAllMaintenanceRequests(query?: {
 export function useMaintenanceRequest(id: string) {
 	return useQuery({
 		queryKey: maintenanceKeys.detail(id),
-		queryFn: async () => {
-			return await apiClient<MaintenanceRequest>(
-				`${API_BASE_URL}/api/v1/maintenance/${id}`
-			)
+		queryFn: async (): Promise<MaintenanceRequest> => {
+			const res = await fetch(`/api/v1/maintenance/${id}`, {
+				credentials: 'include'
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to fetch maintenance request')
+			}
+
+			return res.json()
 		},
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000,
@@ -97,14 +115,22 @@ export function useMaintenanceRequest(id: string) {
 export function useMaintenanceStats() {
 	return useQuery({
 		queryKey: maintenanceKeys.stats(),
-		queryFn: async () => {
-			return await apiClient<{
-				totalRequests: number
-				pendingRequests: number
-				inProgressRequests: number
-				completedRequests: number
-				urgentRequests: number
-			}>(`${API_BASE_URL}/api/v1/maintenance/stats`)
+		queryFn: async (): Promise<{
+			totalRequests: number
+			pendingRequests: number
+			inProgressRequests: number
+			completedRequests: number
+			urgentRequests: number
+		}> => {
+			const res = await fetch('/api/v1/maintenance/stats', {
+				credentials: 'include'
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to fetch maintenance stats')
+			}
+
+			return res.json()
 		},
 		staleTime: 10 * 60 * 1000, // 10 minutes
 		retry: 2
@@ -118,14 +144,23 @@ export function useCreateMaintenanceRequest() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (data: CreateMaintenanceRequest) => {
-			return await apiClient<MaintenanceRequest>(
-				`${API_BASE_URL}/api/v1/maintenance`,
-				{
-					method: 'POST',
-					body: JSON.stringify(data)
-				}
-			)
+		mutationFn: async (
+			data: CreateMaintenanceRequest
+		): Promise<MaintenanceRequest> => {
+			const res = await fetch('/api/v1/maintenance', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: JSON.stringify(data)
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to create maintenance request')
+			}
+
+			return res.json()
 		},
 		onMutate: async newRequest => {
 			// Cancel outgoing queries
@@ -141,7 +176,7 @@ export function useCreateMaintenanceRequest() {
 				title: newRequest.title,
 				description: newRequest.description,
 				priority:
-					(newRequest.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY') ||
+					(newRequest.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT') ||
 					'MEDIUM',
 				category: newRequest.category || null,
 				status: 'OPEN',
@@ -173,10 +208,10 @@ export function useCreateMaintenanceRequest() {
 			if (context?.previous) {
 				queryClient.setQueryData(maintenanceKeys.list(), context.previous)
 			}
-			toast.error('Failed to create maintenance request')
+			handleMutationError(_err, 'Create maintenance request')
 		},
 		onSuccess: data => {
-			toast.success('Maintenance request created successfully')
+			handleMutationSuccess('Create maintenance request')
 			// Update cache with real data
 			queryClient.setQueryData(maintenanceKeys.detail(data.id), data)
 		},
@@ -200,14 +235,21 @@ export function useUpdateMaintenanceRequest() {
 		}: {
 			id: string
 			data: UpdateMaintenanceRequest
-		}) => {
-			return await apiClient<MaintenanceRequest>(
-				`${API_BASE_URL}/api/v1/maintenance/${id}`,
-				{
-					method: 'PUT',
-					body: JSON.stringify(data)
-				}
-			)
+		}): Promise<MaintenanceRequest> => {
+			const res = await fetch(`/api/v1/maintenance/${id}`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: JSON.stringify(data)
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to update maintenance request')
+			}
+
+			return res.json()
 		},
 		onMutate: async ({ id, data }) => {
 			await queryClient.cancelQueries({ queryKey: maintenanceKeys.detail(id) })
@@ -250,10 +292,10 @@ export function useUpdateMaintenanceRequest() {
 			if (context?.previous) {
 				queryClient.setQueryData(maintenanceKeys.detail(id), context.previous)
 			}
-			toast.error('Failed to update maintenance request')
+			handleMutationError(_err, 'Update maintenance request')
 		},
 		onSuccess: () => {
-			toast.success('Maintenance request updated successfully')
+			handleMutationSuccess('Update maintenance request')
 		}
 	})
 }
@@ -273,10 +315,16 @@ export function usePrefetchMaintenanceRequest() {
 		prefetchMaintenanceRequest: (id: string) => {
 			return queryClient.prefetchQuery({
 				queryKey: maintenanceKeys.detail(id),
-				queryFn: async () => {
-					return await apiClient<MaintenanceRequest>(
-						`${API_BASE_URL}/api/v1/maintenance/${id}`
-					)
+				queryFn: async (): Promise<MaintenanceRequest> => {
+					const res = await fetch(`/api/v1/maintenance/${id}`, {
+						credentials: 'include'
+					})
+
+					if (!res.ok) {
+						throw new Error('Failed to fetch maintenance request')
+					}
+
+					return res.json()
 				},
 				staleTime: 5 * 60 * 1000
 			})
@@ -300,15 +348,21 @@ export function useCompleteMaintenance() {
 			id: string
 			actualCost?: number
 			notes?: string
-		}) => {
-			const response = await apiClient<MaintenanceRequest>(
-				`${API_BASE_URL}/api/v1/maintenance/${id}/complete`,
-				{
-					method: 'POST',
-					body: JSON.stringify({ actualCost, notes })
-				}
-			)
-			return response
+		}): Promise<MaintenanceRequest> => {
+			const res = await fetch(`/api/v1/maintenance/${id}/complete`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: JSON.stringify({ actualCost, notes })
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to complete maintenance request')
+			}
+
+			return res.json()
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries
@@ -365,7 +419,7 @@ export function useCompleteMaintenance() {
 			if (context?.previousList) {
 				queryClient.setQueryData(maintenanceKeys.list(), context.previousList)
 			}
-			toast.error('Failed to complete maintenance request')
+			handleMutationError(_err, 'Complete maintenance request')
 		},
 		onSuccess: (data, { id }) => {
 			// Update with real server data
@@ -374,7 +428,10 @@ export function useCompleteMaintenance() {
 				maintenanceKeys.list(),
 				old => old?.map(item => (item.id === id ? data : item))
 			)
-			toast.success('Maintenance request marked as complete')
+			handleMutationSuccess(
+				'Complete maintenance request',
+				'Maintenance request marked as complete'
+			)
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
@@ -392,15 +449,27 @@ export function useCancelMaintenance() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({ id, reason }: { id: string; reason?: string }) => {
-			const response = await apiClient<MaintenanceRequest>(
-				`${API_BASE_URL}/api/v1/maintenance/${id}/cancel`,
-				{
-					method: 'POST',
-					body: JSON.stringify({ reason })
-				}
-			)
-			return response
+		mutationFn: async ({
+			id,
+			reason
+		}: {
+			id: string
+			reason?: string
+		}): Promise<MaintenanceRequest> => {
+			const res = await fetch(`/api/v1/maintenance/${id}/cancel`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: JSON.stringify({ reason })
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to cancel maintenance request')
+			}
+
+			return res.json()
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries
@@ -455,7 +524,7 @@ export function useCancelMaintenance() {
 			if (context?.previousList) {
 				queryClient.setQueryData(maintenanceKeys.list(), context.previousList)
 			}
-			toast.error('Failed to cancel maintenance request')
+			handleMutationError(_err, 'Cancel maintenance request')
 		},
 		onSuccess: (data, { id }) => {
 			// Update with real server data
@@ -464,7 +533,10 @@ export function useCancelMaintenance() {
 				maintenanceKeys.list(),
 				old => old?.map(item => (item.id === id ? data : item))
 			)
-			toast.success('Maintenance request cancelled')
+			handleMutationSuccess(
+				'Cancel maintenance request',
+				'Maintenance request cancelled'
+			)
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency

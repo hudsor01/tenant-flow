@@ -16,11 +16,18 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
-import { tenantsApi } from '#lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
 import { useForm } from '@tanstack/react-form'
-import { Building2, Calendar, DollarSign, Home, Mail, Phone, User } from 'lucide-react'
+import {
+	Building2,
+	Calendar,
+	DollarSign,
+	Home,
+	Mail,
+	Phone,
+	User
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -88,7 +95,11 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 		onSubmit: async ({ value }) => {
 			setIsSubmitting(true)
 			try {
-				const response = await tenantsApi.inviteWithLease({
+				const res = await fetch('/api/v1/tenants/invite-with-lease', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					credentials: 'include',
+					body: JSON.stringify({
 					tenantData: {
 						email: value.email,
 						firstName: value.firstName,
@@ -104,8 +115,12 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 						),
 						startDate: value.startDate,
 						endDate: value.endDate
-					}
-				})
+				}
+			})
+			})
+
+			if (!res.ok) throw new Error('Failed to invite tenant with lease')
+			const response = await res.json()
 
 				logger.info('Tenant onboarded successfully', {
 					tenantId: response.tenantId,
@@ -141,7 +156,11 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 
 	// Auto-select the first unit if only one exists
 	useEffect(() => {
-		if (availableUnits.length === 1 && !form.getFieldValue('unitId') && availableUnits[0]) {
+		if (
+			availableUnits.length === 1 &&
+			!form.getFieldValue('unitId') &&
+			availableUnits[0]
+		) {
 			form.setFieldValue('unitId', availableUnits[0].id)
 		}
 	}, [availableUnits, form])
@@ -360,7 +379,10 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 						{field => (
 							<Field>
 								<FieldLabel htmlFor="unitId">
-									Unit {availableUnits.length > 0 ? '' : '(Optional - No units configured)'}
+									Unit{' '}
+									{availableUnits.length > 0
+										? ''
+										: '(Optional - No units configured)'}
 								</FieldLabel>
 								<Select
 									value={field.state.value}
@@ -368,11 +390,13 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 									disabled={!selectedPropertyId || availableUnits.length === 0}
 								>
 									<SelectTrigger id="unitId">
-										<SelectValue placeholder={
-											availableUnits.length === 0 
-												? 'No units available' 
-												: 'Select a unit'
-										} />
+										<SelectValue
+											placeholder={
+												availableUnits.length === 0
+													? 'No units available'
+													: 'Select a unit'
+											}
+										/>
 									</SelectTrigger>
 									<SelectContent>
 										{availableUnits.map(unit => (

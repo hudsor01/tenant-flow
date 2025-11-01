@@ -4,7 +4,6 @@
  */
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { API_BASE_URL, apiClient } from '#lib/api-client'
 
 type ConnectedAccount = Database['public']['Tables']['connected_account']['Row']
 
@@ -41,10 +40,14 @@ export const stripeConnectKeys = {
 export function useConnectedAccount() {
 	return useQuery({
 		queryKey: stripeConnectKeys.account(),
-		queryFn: async () => {
-			const response = await apiClient<ConnectAccountResponse>(
-				`${API_BASE_URL}/api/v1/stripe-connect/account`
-			)
+		queryFn: async (): Promise<ConnectedAccount> => {
+			const res = await fetch('/api/v1/stripe-connect/account', {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch connected account')
+			}
+			const response = await res.json() as ConnectAccountResponse
 			return response.data
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
@@ -60,14 +63,19 @@ export function useCreateConnectedAccount() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (request: CreateConnectAccountRequest) => {
-			return await apiClient<ConnectAccountResponse>(
-				`${API_BASE_URL}/api/v1/stripe-connect/create`,
-				{
-					method: 'POST',
-					body: JSON.stringify(request)
-				}
-			)
+		mutationFn: async (request: CreateConnectAccountRequest): Promise<ConnectAccountResponse> => {
+			const res = await fetch('/api/v1/stripe-connect/create', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: JSON.stringify(request)
+			})
+			if (!res.ok) {
+				throw new Error('Failed to create connected account')
+			}
+			return res.json()
 		},
 		onSuccess: () => {
 			// Invalidate account query to fetch newly created account
@@ -81,13 +89,15 @@ export function useCreateConnectedAccount() {
  */
 export function useRefreshOnboarding() {
 	return useMutation({
-		mutationFn: async () => {
-			return await apiClient<OnboardingUrlResponse>(
-				`${API_BASE_URL}/api/v1/stripe-connect/refresh-onboarding`,
-				{
-					method: 'POST'
-				}
-			)
+		mutationFn: async (): Promise<OnboardingUrlResponse> => {
+			const res = await fetch('/api/v1/stripe-connect/refresh-onboarding', {
+				method: 'POST',
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to refresh onboarding')
+			}
+			return res.json()
 		}
 	})
 }
@@ -101,10 +111,15 @@ export function usePrefetchConnectedAccount() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: stripeConnectKeys.account(),
-			queryFn: async () => {
-				return await apiClient<ConnectAccountResponse>(
-					`${API_BASE_URL}/api/v1/stripe-connect/account`
-				)
+			queryFn: async (): Promise<ConnectedAccount> => {
+				const res = await fetch('/api/v1/stripe-connect/account', {
+					credentials: 'include'
+				})
+				if (!res.ok) {
+					throw new Error('Failed to fetch connected account')
+				}
+				const response = await res.json() as ConnectAccountResponse
+				return response.data
 			},
 			staleTime: 5 * 60 * 1000
 		})

@@ -398,7 +398,7 @@ export class MaintenanceAnalyticsController {
 		for (const { request } of requests) {
 			aggregates.totalRequests += 1
 
-			if (request.priority === 'EMERGENCY') {
+			if (request.priority === 'URGENT') {
 				aggregates.emergencyCount += 1
 			}
 			if (request.priority === 'HIGH') {
@@ -498,7 +498,7 @@ export class MaintenanceAnalyticsController {
 
 			aggregate.totalRequests += 1
 			aggregate.totalCost += this.deriveCost(request)
-			if (request.priority === 'EMERGENCY') {
+			if (request.priority === 'URGENT') {
 				aggregate.emergencyCount += 1
 			}
 

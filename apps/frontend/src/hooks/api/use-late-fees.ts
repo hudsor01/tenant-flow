@@ -6,8 +6,42 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { lateFeesApi } from '#lib/api-client'
-import { toast } from 'sonner'
+import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
+
+/**
+ * Late fee types
+ */
+interface LateFeeConfig {
+	leaseId: string
+	gracePeriodDays: number
+	flatFeeAmount: number | null
+	percentageFee: number | null
+	maxFeeAmount: number | null
+}
+
+interface OverduePayment {
+	id: string
+	amount: number
+	dueDate: string
+	daysOverdue: number
+	lateFeeApplied: boolean
+}
+
+interface ProcessLateFeesResult {
+	processed: number
+	totalLateFees: number
+	details: Array<{
+		paymentId: string
+		lateFeeAmount: number
+		daysOverdue: number
+	}>
+}
+
+interface ApplyLateFeeResult {
+	invoiceItemId: string
+	amount: number
+	paymentId: string
+}
 
 /**
  * Query keys for late fees
@@ -24,7 +58,16 @@ export const lateFeesKeys = {
 export function useLateFeeConfig(leaseId: string) {
 	return useQuery({
 		queryKey: lateFeesKeys.config(leaseId),
-		queryFn: () => lateFeesApi.getConfig(leaseId),
+		queryFn: async (): Promise<LateFeeConfig> => {
+			const res = await fetch(`/api/v1/late-fees/lease/${leaseId}/config`, {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch late fee config')
+			}
+			const response = await res.json() as { success: boolean; data: LateFeeConfig }
+			return response.data
+		},
 		enabled: !!leaseId,
 		staleTime: 5 * 60 * 1000 // 5 minutes
 	})
@@ -37,7 +80,7 @@ export function useUpdateLateFeeConfig() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({
+		mutationFn: async ({
 			leaseId,
 			gracePeriodDays,
 			flatFeeAmount
@@ -45,7 +88,20 @@ export function useUpdateLateFeeConfig() {
 			leaseId: string
 			gracePeriodDays?: number
 			flatFeeAmount?: number
-		}) => lateFeesApi.updateConfig(leaseId, gracePeriodDays, flatFeeAmount),
+		}): Promise<{ success: boolean; message: string }> => {
+			const res = await fetch(`/api/v1/late-fees/lease/${leaseId}/config`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: JSON.stringify({ gracePeriodDays, flatFeeAmount })
+			})
+			if (!res.ok) {
+				throw new Error('Failed to update late fee config')
+			}
+			return res.json()
+		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({
 				queryKey: lateFeesKeys.config(variables.leaseId)
@@ -53,15 +109,9 @@ export function useUpdateLateFeeConfig() {
 			queryClient.invalidateQueries({
 				queryKey: ['lease', variables.leaseId]
 			})
-			toast.success('Late fee configuration updated', {
-				description: 'Your changes have been saved successfully'
-			})
+			handleMutationSuccess('Update late fee configuration', 'Configuration updated successfully')
 		},
-		onError: (error: Error) => {
-			toast.error('Failed to update late fee configuration', {
-				description: error.message
-			})
-		}
+		onError: (error) => handleMutationError(error, 'Update late fee configuration')
 	})
 }
 
@@ -71,7 +121,19 @@ export function useUpdateLateFeeConfig() {
 export function useOverduePayments(leaseId: string) {
 	return useQuery({
 		queryKey: lateFeesKeys.overdue(leaseId),
-		queryFn: () => lateFeesApi.getOverduePayments(leaseId),
+		queryFn: async (): Promise<{ payments: OverduePayment[]; gracePeriod: number }> => {
+			const res = await fetch(`/api/v1/late-fees/lease/${leaseId}/overdue`, {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch overdue payments')
+			}
+			const response = await res.json() as {
+				success: boolean
+				data: { payments: OverduePayment[]; gracePeriod: number }
+			}
+			return response.data
+		},
 		enabled: !!leaseId,
 		staleTime: 60 * 1000 // 1 minute
 	})
@@ -84,7 +146,21 @@ export function useProcessLateFees() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (leaseId: string) => lateFeesApi.processLateFees(leaseId),
+		mutationFn: async (leaseId: string): Promise<ProcessLateFeesResult> => {
+			const res = await fetch(`/api/v1/late-fees/lease/${leaseId}/process`, {
+				method: 'POST',
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to process late fees')
+			}
+			const response = await res.json() as {
+				success: boolean
+				data: ProcessLateFeesResult
+				message: string
+			}
+			return response.data
+		},
 		onSuccess: (result, leaseId) => {
 			queryClient.invalidateQueries({
 				queryKey: lateFeesKeys.overdue(leaseId)
@@ -101,15 +177,12 @@ export function useProcessLateFees() {
 				currency: 'USD'
 			}).format(result.totalLateFees)
 
-			toast.success(`Processed ${result.processed} late fee(s)`, {
-				description: `Total late fees applied: ${totalFormatted}`
-			})
+			handleMutationSuccess(
+				'Process late fees',
+				`Processed ${result.processed} late fee(s) - Total: ${totalFormatted}`
+			)
 		},
-		onError: (error: Error) => {
-			toast.error('Failed to process late fees', {
-				description: error.message
-			})
-		}
+		onError: (error) => handleMutationError(error, 'Process late fees')
 	})
 }
 
@@ -120,7 +193,7 @@ export function useApplyLateFee() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({
+		mutationFn: async ({
 			paymentId,
 			lateFeeAmount,
 			reason
@@ -128,7 +201,24 @@ export function useApplyLateFee() {
 			paymentId: string
 			lateFeeAmount: number
 			reason: string
-		}) => lateFeesApi.applyLateFee(paymentId, lateFeeAmount, reason),
+		}): Promise<ApplyLateFeeResult> => {
+			const res = await fetch(`/api/v1/late-fees/payment/${paymentId}/apply`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: JSON.stringify({ lateFeeAmount, reason })
+			})
+			if (!res.ok) {
+				throw new Error('Failed to apply late fee')
+			}
+			const response = await res.json() as {
+				success: boolean
+				data: ApplyLateFeeResult
+			}
+			return response.data
+		},
 		onSuccess: result => {
 			queryClient.invalidateQueries({
 				queryKey: ['payments']
@@ -142,15 +232,12 @@ export function useApplyLateFee() {
 				currency: 'USD'
 			}).format(result.amount)
 
-			toast.success('Late fee applied', {
-				description: `${amountFormatted} late fee has been added to the invoice`
-			})
+			handleMutationSuccess(
+				'Apply late fee',
+				`${amountFormatted} late fee added to invoice`
+			)
 		},
-		onError: (error: Error) => {
-			toast.error('Failed to apply late fee', {
-				description: error.message
-			})
-		}
+		onError: (error) => handleMutationError(error, 'Apply late fee')
 	})
 }
 
@@ -163,7 +250,16 @@ export function usePrefetchLateFeeConfig() {
 	return (leaseId: string) => {
 		queryClient.prefetchQuery({
 			queryKey: lateFeesKeys.config(leaseId),
-			queryFn: () => lateFeesApi.getConfig(leaseId),
+			queryFn: async (): Promise<LateFeeConfig> => {
+				const res = await fetch(`/api/v1/late-fees/lease/${leaseId}/config`, {
+					credentials: 'include'
+				})
+				if (!res.ok) {
+					throw new Error('Failed to fetch late fee config')
+				}
+				const response = await res.json() as { success: boolean; data: LateFeeConfig }
+				return response.data
+			},
 			staleTime: 5 * 60 * 1000
 		})
 	}
@@ -178,7 +274,19 @@ export function usePrefetchOverduePayments() {
 	return (leaseId: string) => {
 		queryClient.prefetchQuery({
 			queryKey: lateFeesKeys.overdue(leaseId),
-			queryFn: () => lateFeesApi.getOverduePayments(leaseId),
+			queryFn: async (): Promise<{ payments: OverduePayment[]; gracePeriod: number }> => {
+				const res = await fetch(`/api/v1/late-fees/lease/${leaseId}/overdue`, {
+					credentials: 'include'
+				})
+				if (!res.ok) {
+					throw new Error('Failed to fetch overdue payments')
+				}
+				const response = await res.json() as {
+					success: boolean
+					data: { payments: OverduePayment[]; gracePeriod: number }
+				}
+				return response.data
+			},
 			staleTime: 60 * 1000
 		})
 	}

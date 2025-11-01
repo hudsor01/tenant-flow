@@ -1,8 +1,7 @@
 'use client'
 
 import { cn } from '#lib/design-system'
-import { useQuery } from '@tanstack/react-query'
-import React, { useCallback, useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 
 interface ParticleType {
 	x: number
@@ -47,44 +46,40 @@ function ParticlesComponent({
 	const animationFrameRef = useRef<number | null>(null)
 	const mouseRef = useRef({ x: 0, y: 0 })
 
-	// TanStack Query-based preset configuration (replaces useMemo with automatic structural sharing)
-	const { data: presetConfig } = useQuery({
-		queryKey: ['particles', 'preset-config', preset],
-		queryFn: () =>
-			Promise.resolve({
-				subtle: {
-					quantity: 30,
-					size: 0.8,
-					ease: 20,
-					opacity: 0.3,
-					speed: 0.5
-				},
-				dynamic: {
-					quantity: 80,
-					size: 1.2,
-					ease: 60,
-					opacity: 0.6,
-					speed: 1.0
-				},
-				floating: {
-					quantity: 40,
-					size: 1.5,
-					ease: 30,
-					opacity: 0.4,
-					speed: 0.3
-				},
-				sparkling: {
-					quantity: 120,
-					size: 0.5,
-					ease: 80,
-					opacity: 0.8,
-					speed: 1.5
-				}
-			}),
-		select: configs => configs[preset],
-		staleTime: Infinity, // Static data, never refetch
-		gcTime: Infinity // Keep in memory indefinitely
-	})
+	// Preset configuration (static data, no need for TanStack Query)
+	const presetConfig = useMemo(() => {
+		const configs = {
+			subtle: {
+				quantity: 30,
+				size: 0.8,
+				ease: 20,
+				opacity: 0.3,
+				speed: 0.5
+			},
+			dynamic: {
+				quantity: 80,
+				size: 1.2,
+				ease: 60,
+				opacity: 0.6,
+				speed: 1.0
+			},
+			floating: {
+				quantity: 40,
+				size: 1.5,
+				ease: 30,
+				opacity: 0.4,
+				speed: 0.3
+			},
+			sparkling: {
+				quantity: 120,
+				size: 0.5,
+				ease: 80,
+				opacity: 0.8,
+				speed: 1.5
+			}
+		}
+		return configs[preset]
+	}, [preset])
 
 	// Theme-aware color handling
 	const getThemeColor = useCallback(() => {
@@ -97,23 +92,16 @@ function ParticlesComponent({
 			: 'oklch(var(--foreground))'
 	}, [theme])
 
-	// TanStack Query-based quantity calculation (replaces useMemo with select transformation)
-	const { data: calculatedQuantity } = useQuery({
-		queryKey: ['particles', 'quantity', preset, density, quantity],
-		queryFn: () => Promise.resolve({ preset, density, quantity }),
-		select: ({ preset, density, quantity }) => {
-			const densityMultiplier = { low: 0.5, medium: 1, high: 1.5 }[density]
-			// Use preset to determine base quantity if quantity not provided
-			const presetQuantities = { snow: 80, stars: 120, bubbles: 60 }
-			const baseQuantity =
-				quantity ||
-				presetQuantities[preset as keyof typeof presetQuantities] ||
-				(presetConfig?.quantity ?? 50)
-			return Math.floor(baseQuantity * densityMultiplier)
-		},
-		staleTime: Infinity, // Static calculation, never refetch
-		enabled: !!presetConfig // Only calculate when presetConfig is available
-	})
+	// Calculate particle quantity based on preset and density
+	const calculatedQuantity = useMemo(() => {
+		const densityMultiplier = { low: 0.5, medium: 1, high: 1.5 }[density]
+		const presetQuantities = { snow: 80, stars: 120, bubbles: 60 }
+		const baseQuantity =
+			quantity ||
+			presetQuantities[preset as keyof typeof presetQuantities] ||
+			(presetConfig?.quantity ?? 50)
+		return Math.floor(baseQuantity * densityMultiplier)
+	}, [preset, density, quantity, presetConfig])
 
 	useEffect(() => {
 		const canvas = canvasRef.current

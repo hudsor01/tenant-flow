@@ -179,5 +179,5 @@ export interface MaintenanceRequestEmailProps {
 	propertyName: string
 	unitNumber: string
 	description: string
-	priority: 'EMERGENCY' | 'HIGH' | 'MEDIUM' | 'LOW'
+	priority: 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW'
 }

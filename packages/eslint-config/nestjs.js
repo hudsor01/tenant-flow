@@ -8,6 +8,7 @@
 import tsParser from '@typescript-eslint/parser'
 import globals from 'globals'
 import baseConfig from './base.js'
+import noAdminClientBypass from './rules/no-admin-client-bypass.js'
 
 /** @type {import('eslint').Linter.Config[]} */
 const config = [
@@ -15,6 +16,13 @@ const config = [
 	{
 		name: 'nestjs/backend',
 		files: ['**/*.ts'],
+		plugins: {
+			'custom': {
+				rules: {
+					'no-admin-client-bypass': noAdminClientBypass
+				}
+			}
+		},
 		ignores: [
 			'**/*.spec.ts',
 			'**/*.test.ts',
@@ -179,6 +187,8 @@ const config = [
 		name: 'nestjs/services',
 		files: ['**/*.service.ts', '**/*.repository.ts', '**/*.provider.ts'],
 		rules: {
+			// SECURITY: Prevent RLS bypass
+			'custom/no-admin-client-bypass': 'error',
 			'@typescript-eslint/explicit-function-return-type': [
 				'warn',
 				{
@@ -324,6 +334,8 @@ const config = [
 		name: 'nestjs/stripe-webhooks',
 		files: ['**/stripe/**/*.ts', '**/*stripe*.ts', '**/webhooks/**/*.ts'],
 		rules: {
+			// SECURITY: Webhooks may use getAdminClient() but must justify with comment
+			'custom/no-admin-client-bypass': 'error',
 			'@typescript-eslint/no-unsafe-assignment': 'off',
 			'@typescript-eslint/no-unsafe-member-access': 'off',
 			'@typescript-eslint/no-unsafe-call': 'off',

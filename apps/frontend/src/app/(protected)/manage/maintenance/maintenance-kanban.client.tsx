@@ -14,7 +14,6 @@ import {
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Badge } from '#components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { maintenanceApi } from '#lib/api-client'
 import { toast } from 'sonner'
 import { MaintenanceCard } from './maintenance-card'
 import { MaintenanceSortableCard } from './maintenance-sortable-card'
@@ -26,7 +25,11 @@ const logger = createLogger({ component: 'MaintenanceKanban' })
 type MaintenanceRequest = MaintenanceRequestResponse['data'][number]
 type Status = 'OPEN' | 'IN_PROGRESS' | 'ON_HOLD' | 'COMPLETED' | 'CANCELED'
 
-const COLUMNS: { id: Status; title: string; variant: 'default' | 'secondary' | 'outline' }[] = [
+const COLUMNS: {
+	id: Status
+	title: string
+	variant: 'default' | 'secondary' | 'outline'
+}[] = [
 	{ id: 'OPEN', title: 'Open', variant: 'default' },
 	{ id: 'IN_PROGRESS', title: 'In Progress', variant: 'secondary' },
 	{ id: 'ON_HOLD', title: 'On Hold', variant: 'outline' },
@@ -38,8 +41,11 @@ interface MaintenanceKanbanProps {
 }
 
 export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
-	const [requests, setRequests] = useState<MaintenanceRequest[]>(initialRequests)
-	const [activeRequest, setActiveRequest] = useState<MaintenanceRequest | null>(null)
+	const [requests, setRequests] =
+		useState<MaintenanceRequest[]>(initialRequests)
+	const [activeRequest, setActiveRequest] = useState<MaintenanceRequest | null>(
+		null
+	)
 	const [, startTransition] = useTransition()
 
 	const sensors = useSensors(
@@ -90,8 +96,23 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		// API update
 		startTransition(async () => {
 			try {
-				await maintenanceApi.update(requestId, { status: newStatus, completedAt: undefined })
-				toast.success(`Request moved to ${COLUMNS.find(c => c.id === newStatus)?.title}`)
+				const res = await fetch(`/api/v1/maintenance/${requestId}`, {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					credentials: 'include',
+					body: JSON.stringify({
+					status: newStatus,
+					completedAt: undefined
+				})
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to update status')
+			}
+
+			toast.success(
+					`Request moved to ${COLUMNS.find(c => c.id === newStatus)?.title}`
+				)
 			} catch (error) {
 				logger.error('Status update failed', {
 					action: 'handleDragEnd',
@@ -123,7 +144,9 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 									<CardTitle className="text-base font-medium">
 										{column.title}
 									</CardTitle>
-									<Badge variant={column.variant}>{columnRequests.length}</Badge>
+									<Badge variant={column.variant}>
+										{columnRequests.length}
+									</Badge>
 								</div>
 							</CardHeader>
 							<CardContent className="flex-1 space-y-3 min-h-[400px]">
@@ -147,7 +170,9 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 			</div>
 
 			<DragOverlay>
-				{activeRequest ? <MaintenanceCard request={activeRequest} isDragging /> : null}
+				{activeRequest ? (
+					<MaintenanceCard request={activeRequest} isDragging />
+				) : null}
 			</DragOverlay>
 		</DndContext>
 	)

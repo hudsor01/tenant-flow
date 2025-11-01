@@ -3,7 +3,7 @@
  * Uses existing Supabase authentication pattern
  */
 import type { Database } from '@repo/shared/types/supabase-generated'
-import { API_BASE_URL } from '#lib/api-client'
+import { API_BASE_URL } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
@@ -21,28 +21,28 @@ export async function serverFetch<T>(
 	const cookieStore = await cookies()
 
 	// Create Supabase client with cookie handling (pattern from login/actions.ts)
-		const supabase = createServerClient<Database>(
-			process.env.NEXT_PUBLIC_SUPABASE_URL!,
-			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-			{
-				cookies: {
-					getAll() {
-						return cookieStore.getAll()
-					},
-					setAll(cookiesToSet) {
-						try {
-							cookiesToSet.forEach(({ name, value, options }) =>
-								cookieStore.set(name, value, options)
+	const supabase = createServerClient<Database>(
+		process.env.NEXT_PUBLIC_SUPABASE_URL!,
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+		{
+			cookies: {
+				getAll() {
+					return cookieStore.getAll()
+				},
+				setAll(cookiesToSet) {
+					try {
+						cookiesToSet.forEach(({ name, value, options }) =>
+							cookieStore.set(name, value, options)
 						)
-						} catch {
-							// The `setAll` method was called from a Server Component.
-							// This can be ignored if you have middleware refreshing
-							// user sessions.
-						}
+					} catch {
+						// The `setAll` method was called from a Server Component.
+						// This can be ignored if you have middleware refreshing
+						// user sessions.
 					}
 				}
 			}
-		)
+		}
+	)
 
 	// Get current session
 	const {

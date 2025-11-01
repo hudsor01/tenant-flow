@@ -56,7 +56,7 @@ export class NotificationsController {
 			title: string
 			content: string
 			type: 'maintenance' | 'lease' | 'payment' | 'system'
-			priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
+			priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 			actionUrl?: string
 		}
 	) {

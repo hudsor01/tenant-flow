@@ -1,7 +1,7 @@
 'use client'
 
 import { Spinner } from '#components/ui/spinner'
-import { API_BASE_URL } from '#lib/api-client'
+import { API_BASE_URL } from '#lib/api-config'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -83,7 +83,8 @@ export default function PostCheckoutPage() {
 		) {
 			sendMagicLinkMutation.mutate(sessionId)
 		}
-	}, [searchParams, sendMagicLinkMutation])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [searchParams]) // Only re-run if searchParams changes
 
 	if (sendMagicLinkMutation.isPending) {
 		return (

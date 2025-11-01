@@ -1,6 +1,7 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { BadRequestException, Logger } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { StorageService } from '../../database/storage.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { UtilityService } from '../../shared/services/utility.service'
@@ -8,6 +9,31 @@ import { buildMultiColumnSearch } from '../../shared/utils/sql-safe.utils'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { createMockProperty } from '../../test-utils/mocks'
 import { PropertiesService } from './properties.service'
+
+// Helper function to create mock Request objects
+function createMockRequest(userId: string, token = 'mock-token'): AuthenticatedRequest {
+	return {
+		user: {
+			id: userId,
+			email: 'test@example.com',
+			aud: 'authenticated',
+			role: 'authenticated',
+			email_confirmed_at: '',
+			confirmed_at: '',
+			last_sign_in_at: '',
+			app_metadata: {},
+			user_metadata: {},
+			identities: [],
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
+			is_anonymous: false
+		},
+		headers: {
+			authorization: `Bearer ${token}`
+		},
+		cookies: {}
+	} as unknown as AuthenticatedRequest
+}
 
 describe('PropertiesService', () => {
 	let service: PropertiesService
@@ -19,10 +45,20 @@ describe('PropertiesService', () => {
 		from: jest.Mock
 		rpc: jest.Mock
 	}
+	let mockUserClient: {
+		from: jest.Mock
+		rpc: jest.Mock
+	}
 
 	beforeEach(async () => {
 		// Create mock admin client
 		mockAdminClient = {
+			from: jest.fn(),
+			rpc: jest.fn()
+		}
+
+		// Create mock user client
+		mockUserClient = {
 			from: jest.fn(),
 			rpc: jest.fn()
 		}
@@ -32,11 +68,13 @@ describe('PropertiesService', () => {
 			providers: [
 				PropertiesService,
 				{
-					provide: SupabaseService,
-					useValue: {
-						getAdminClient: jest.fn(() => mockAdminClient)
-					}
-				},
+				provide: SupabaseService,
+				useValue: {
+					getAdminClient: jest.fn(() => mockAdminClient),
+					getUserClient: jest.fn(() => mockUserClient),
+					getTokenFromRequest: jest.fn(() => 'mock-token')
+				}
+			},
 				{
 					provide: UtilityService,
 					useValue: {
@@ -86,17 +124,17 @@ describe('PropertiesService', () => {
 				or: jest.fn().mockResolvedValue({ data: mockProperties, error: null })
 			}
 
-			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
-
-			const result = await service.findAll('user-123', {
+			mockUserClient.from.mockReturnValue(mockQueryBuilder)
+			
+			const result = await service.findAll('mock-jwt-token', {
 				search: '  Main  ',
 				limit: 10,
 				offset: 0
 			})
 
 			expect(result).toEqual(mockProperties)
-			expect(mockAdminClient.from).toHaveBeenCalledWith('property')
-			expect(mockQueryBuilder.eq).toHaveBeenCalledWith('ownerId', 'internal-uid-1')
+			expect(mockUserClient.from).toHaveBeenCalledWith('property')
+			// RLS enforces ownership, so no manual .eq('ownerId') filter needed
 			expect(mockQueryBuilder.or).toHaveBeenCalledWith(
 				buildMultiColumnSearch('Main', ['name', 'address', 'city'])
 			)
@@ -110,9 +148,9 @@ describe('PropertiesService', () => {
 				range: jest.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } })
 			}
 
-			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+			mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
-			const result = await service.findAll('user-123', {
+			const result = await service.findAll('mock-jwt-token', {
 				search: null,
 				limit: 10,
 				offset: 0
@@ -132,13 +170,13 @@ describe('PropertiesService', () => {
 				single: jest.fn().mockResolvedValue({ data: mockProperty, error: null })
 			}
 
-			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+			mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
-			const result = await service.findOne('user-123', 'prop-1')
+			const result = await service.findOne(createMockRequest('user-123'), 'prop-1')
 
 			expect(result).toEqual(mockProperty)
 			expect(mockQueryBuilder.eq).toHaveBeenCalledWith('id', 'prop-1')
-			expect(mockQueryBuilder.eq).toHaveBeenCalledWith('ownerId', 'internal-uid-1')
+			// RLS enforces ownership, so no manual .eq('ownerId') filter needed
 		})
 
 		it('should return null when property not found', async () => {
@@ -148,9 +186,9 @@ describe('PropertiesService', () => {
 				single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } })
 			}
 
-			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+			mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
-			const result = await service.findOne('user-123', 'nonexistent')
+			const result = await service.findOne(createMockRequest('user-123'), 'nonexistent')
 
 			expect(result).toBeNull()
 		})
@@ -169,7 +207,7 @@ describe('PropertiesService', () => {
 				single: jest.fn().mockResolvedValue({ data: mockCreated, error: null })
 			}
 
-			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+			mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
 			const payload = {
 				name: '  Park View  ',
@@ -181,7 +219,7 @@ describe('PropertiesService', () => {
 				description: '  Beautiful views '
 			}
 
-			const result = await service.create('user-123', payload)
+			const result = await service.create(createMockRequest('user-123'), payload)
 
 			expect(result).toEqual(mockCreated)
 			expect(mockQueryBuilder.insert).toHaveBeenCalledWith(
@@ -205,10 +243,10 @@ describe('PropertiesService', () => {
 				single: jest.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } })
 			}
 
-			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+			mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
 			await expect(
-				service.create('user-123', {
+				service.create(createMockRequest('user-123'), {
 					name: 'Test',
 					address: '123 Main',
 					city: 'Austin',
@@ -235,9 +273,9 @@ describe('PropertiesService', () => {
 				single: jest.fn().mockResolvedValue({ data: mockUpdated, error: null })
 			}
 
-			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+			mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
-			const result = await service.update('user-123', 'prop-1', {
+			const result = await service.update(createMockRequest('user-123'), 'prop-1', {
 				name: ' Updated Name '
 			})
 
@@ -264,9 +302,9 @@ describe('PropertiesService', () => {
 				single: jest.fn().mockResolvedValue({ data: mockExisting, error: null })
 			}
 
-			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+			mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
-			const result = await service.remove('user-123', 'prop-1')
+			const result = await service.remove(createMockRequest('user-123'), 'prop-1')
 
 			expect(result).toEqual({
 				success: true,
@@ -291,7 +329,7 @@ describe('PropertiesService', () => {
 
 			cacheManager.get.mockResolvedValue(mockStats)
 
-			const result = await service.getStats('user-123')
+			const result = await service.getStats(createMockRequest('user-123'))
 
 			expect(result).toEqual(mockStats)
 			expect(cacheManager.get).toHaveBeenCalledWith('property-stats:user-123')
@@ -312,7 +350,7 @@ describe('PropertiesService', () => {
 
 			mockAdminClient.rpc.mockResolvedValue({ data: mockStats, error: null })
 
-			const result = await service.getStats('user-123')
+			const result = await service.getStats(createMockRequest('user-123'))
 
 			expect(result).toEqual(mockStats)
 			expect(mockAdminClient.rpc).toHaveBeenCalledWith('get_property_stats', {
@@ -338,9 +376,9 @@ describe('PropertiesService', () => {
 				or: jest.fn().mockResolvedValue({ data: mockProperties, error: null })
 			}
 
-			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+			mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
-			const result = await service.findAllWithUnits('user-123', {
+			const result = await service.findAllWithUnits(createMockRequest('user-123'), {
 				search: 'Loft',
 				limit: 5,
 				offset: 0

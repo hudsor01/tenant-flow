@@ -9,6 +9,11 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import type { Cache } from 'cache-manager'
 import type { SearchResult } from '@repo/shared/types/search'
 import { SupabaseService } from '../../database/supabase.service'
+import {
+	buildILikePattern,
+	buildMultiColumnSearch,
+	sanitizeSearchInput
+} from '../utils/sql-safe.utils'
 
 export interface PasswordValidationResult {
 	isValid: boolean
@@ -52,9 +57,17 @@ export class UtilityService {
 				return []
 			}
 
-			const trimmedSearch = searchTerm.trim().toLowerCase()
+			// ✅ SECURITY FIX: Sanitize search input to prevent SQL injection
+			const sanitized = sanitizeSearchInput(searchTerm)
+			if (!sanitized) {
+				return []
+			}
+
 			const searchLimit = Math.min(limit, 50)
 			const client = this.supabase.getAdminClient()
+
+			// ✅ SECURITY FIX: Use safe search pattern building
+			const pattern = buildILikePattern(sanitized)
 
 			// Search across all entity types in parallel
 			const [propertiesResult, tenantsResult, unitsResult, leasesResult] =
@@ -64,7 +77,8 @@ export class UtilityService {
 						.select('id, name, address, city, state, propertyType')
 						.eq('userId', userId)
 						.or(
-							`name.ilike.%${trimmedSearch}%,address.ilike.%${trimmedSearch}%,city.ilike.%${trimmedSearch}%`
+							// ✅ SAFE: Uses sanitized pattern
+							buildMultiColumnSearch(sanitized, ['name', 'address', 'city'])
 						)
 						.limit(searchLimit),
 					client
@@ -72,7 +86,8 @@ export class UtilityService {
 						.select('id, email, firstName, lastName, phone')
 						.eq('userId', userId)
 						.or(
-							`email.ilike.%${trimmedSearch}%,firstName.ilike.%${trimmedSearch}%,lastName.ilike.%${trimmedSearch}%`
+							// ✅ SAFE: Uses sanitized pattern
+							buildMultiColumnSearch(sanitized, ['email', 'firstName', 'lastName'])
 						)
 						.limit(searchLimit),
 					client
@@ -81,7 +96,8 @@ export class UtilityService {
 							'id, unitNumber, bedrooms, bathrooms, rent, status, propertyId'
 						)
 						.eq('userId', userId)
-						.ilike('unitNumber', `%${trimmedSearch}%`)
+						// ✅ SAFE: Uses sanitized pattern
+						.ilike('unitNumber', pattern)
 						.limit(searchLimit),
 					client
 						.from('lease')
@@ -174,16 +190,16 @@ export class UtilityService {
 
 			// Sort results by relevance (exact matches first, then partial matches)
 			const sortedResults = results.sort((a, b) => {
-				const aExact = a.name.toLowerCase() === trimmedSearch.toLowerCase()
-				const bExact = b.name.toLowerCase() === trimmedSearch.toLowerCase()
+				const aExact = a.name.toLowerCase() === sanitized.toLowerCase()
+				const bExact = b.name.toLowerCase() === sanitized.toLowerCase()
 
 				if (aExact && !bExact) return -1
 				if (!aExact && bExact) return 1
 
 				// Then sort by name similarity
 				return (
-					a.name.toLowerCase().indexOf(trimmedSearch.toLowerCase()) -
-					b.name.toLowerCase().indexOf(trimmedSearch.toLowerCase())
+					a.name.toLowerCase().indexOf(sanitized.toLowerCase()) -
+					b.name.toLowerCase().indexOf(sanitized.toLowerCase())
 				)
 			})
 

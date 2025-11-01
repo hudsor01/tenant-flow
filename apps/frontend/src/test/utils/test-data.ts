@@ -154,7 +154,6 @@ export const DEFAULT_LEASE: Lease = {
 	version: 1 // 🔐 BUG FIX #2: Optimistic locking
 }
 
-
 /**
  * Default Unit - Use with spread operator for overrides
  *
@@ -184,7 +183,7 @@ export const DEFAULT_UNIT = {
  * @example
  * const urgentRequest = {
  *   ...DEFAULT_MAINTENANCE_REQUEST,
- *   priority: 'EMERGENCY',
+ *   priority: 'URGENT',
  *   status: 'IN_PROGRESS'
  * }
  */

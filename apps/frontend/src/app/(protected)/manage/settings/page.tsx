@@ -3,8 +3,9 @@
 import { PasswordUpdateSection } from '#app/(protected)/settings/password-update-section'
 import { useTransition } from 'react'
 import { toast } from 'sonner'
+
 import { useAuth } from '#providers/auth-provider'
-import { updateProfile } from '#lib/api/users-client'
+import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -72,12 +73,22 @@ export default function SettingsPage() {
 
 		startTransition(async () => {
 			try {
-				await updateProfile(session.access_token, profileData)
-				toast.success('Profile updated successfully')
-			} catch (error) {
-				toast.error('Failed to update profile', {
-					description: error instanceof Error ? error.message : 'An unexpected error occurred'
+				const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/users/profile`, {
+					method: 'PATCH',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					credentials: 'include',
+					body: JSON.stringify(profileData)
 				})
+				
+				if (!res.ok) {
+					throw new Error('Failed to update profile')
+				}
+				
+				handleMutationSuccess('Update profile')
+			} catch (error) {
+				handleMutationError(error, 'Update profile')
 			}
 		})
 	}

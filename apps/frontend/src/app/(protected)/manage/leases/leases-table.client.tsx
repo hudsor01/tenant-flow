@@ -29,7 +29,6 @@ import {
 } from '#components/ui/table'
 import { useAllTenants } from '#hooks/api/use-tenant'
 import { useDeleteLease } from '#hooks/api/use-lease'
-import { leasesApi, unitsApi } from '#lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
 
@@ -45,14 +44,30 @@ export function LeasesTable() {
 		isError
 	} = useQuery({
 		queryKey: ['leases'],
-		queryFn: () => leasesApi.list()
+		queryFn: async () => {
+			const res = await fetch('/api/v1/leases', {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch leases')
+			}
+			return res.json()
+		}
 	})
 
 	const { data: tenants = [] } = useAllTenants()
 
-	const { data: units = [] } = useQuery({
+	const { data: units = [] } = useQuery<Unit[]>({
 		queryKey: ['units'],
-		queryFn: () => unitsApi.list()
+		queryFn: async () => {
+			const res = await fetch('/api/v1/units', {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch units')
+			}
+			return res.json() as Promise<Unit[]>
+		}
 	})
 
 	const removeLease = useDeleteLease({

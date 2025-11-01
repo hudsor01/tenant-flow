@@ -1,6 +1,5 @@
 'use client'
 
-import { apiClient, API_BASE_URL } from '#lib/api-client'
 import type { SubscriptionData } from '#types/stripe'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { StripeSessionStatusResponse } from '@repo/shared/types/core'
@@ -23,12 +22,12 @@ export function usePaymentVerification(sessionId: string | null, options: { thro
 				throw new Error('No session ID provided')
 			}
 
-			const response = await fetch(`${API_BASE_URL}/stripe/verify-session`, {
+			const response = await fetch('/stripe/verify-session', {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${localStorage.getItem('auth-token') || ''}`
+					'Content-Type': 'application/json'
 				},
+				credentials: 'include',
 				body: JSON.stringify({ sessionId })
 			})
 
@@ -77,9 +76,16 @@ export function useSessionStatus(sessionId: string | null, options: { throwOnErr
 				throw new Error('No session ID provided')
 			}
 
-			const data = await apiClient<StripeSessionStatusResponse>(
-				`/stripe/session-status?session_id=${sessionId}`
+			const res = await fetch(
+				`/stripe/session-status?session_id=${sessionId}`,
+				{ credentials: 'include' }
 			)
+
+			if (!res.ok) {
+				throw new Error('Failed to fetch session status')
+			}
+
+			const data = await res.json() as StripeSessionStatusResponse
 
 			logger.info('Session status retrieved', {
 				action: 'session_status_retrieved',
@@ -127,9 +133,14 @@ export function usePrefetchSessionStatus() {
 		queryClient.prefetchQuery({
 			queryKey: paymentQueryKeys.sessionStatus(sessionId),
 			queryFn: async (): Promise<StripeSessionStatusResponse> => {
-				return await apiClient<StripeSessionStatusResponse>(
-					`/stripe/session-status?session_id=${sessionId}`
+				const res = await fetch(
+					`/stripe/session-status?session_id=${sessionId}`,
+					{ credentials: 'include' }
 				)
+				if (!res.ok) {
+					throw new Error('Failed to fetch session status')
+				}
+				return res.json()
 			},
 			staleTime: 1 * 60 * 1000
 		})

@@ -25,8 +25,7 @@ import type { Property, PropertyStats } from '@repo/shared/types/core'
 import type { Tables } from '@repo/shared/types/supabase'
 import { compressImage } from '#lib/image-compression'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { apiClient as api } from '#lib/api-client-side'
+import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 
 /**
  * Query keys for property endpoints (hierarchical, typed)
@@ -58,7 +57,13 @@ export function useProperty(id: string) {
 	return useQuery({
 		queryKey: propertiesKeys.detail(id),
 		queryFn: async (): Promise<Property> => {
-			return api<Property>(`properties/${id}`)
+			const res = await fetch(`/api/v1/properties/${id}`, {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch property')
+			}
+			return res.json()
 		},
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
@@ -90,8 +95,15 @@ export function usePropertyList(params?: {
 			searchParams.append('limit', limit.toString())
 			searchParams.append('offset', offset.toString())
 
+			const res = await fetch(`/api/v1/properties?${searchParams.toString()}`, {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch properties')
+			}
+
 			// Backend returns Property[] directly, not paginated object
-			const response = await api<Property[]>(`properties?${searchParams.toString()}`)
+			const response = await res.json() as Property[]
 
 			// Prefetch individual property details
 			response?.forEach?.(property => {
@@ -120,8 +132,14 @@ export function usePropertyList(params?: {
 export function usePropertiesWithUnits() {
 	return useQuery({
 		queryKey: propertiesKeys.withUnits(),
-		queryFn: async () => {
-			return api<Property[]>('properties/with-units')
+		queryFn: async (): Promise<Property[]> => {
+			const res = await fetch('/api/v1/properties/with-units', {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch properties with units')
+			}
+			return res.json()
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes
@@ -136,7 +154,13 @@ export function usePropertyStats() {
 	return useQuery({
 		queryKey: propertiesKeys.stats(),
 		queryFn: async (): Promise<PropertyStats> => {
-			return api<PropertyStats>('properties/stats')
+			const res = await fetch('/api/v1/properties/stats', {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch property stats')
+			}
+			return res.json()
 		},
 		staleTime: 10 * 60 * 1000, // 10 minutes
 		gcTime: 30 * 60 * 1000, // 30 minutes
@@ -151,7 +175,13 @@ export function usePropertyPerformanceAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.performance(),
 		queryFn: async () => {
-			return api(`properties/analytics/$1`)
+			const res = await fetch('/api/v1/properties/analytics/$1', {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch property performance analytics')
+			}
+			return res.json()
 		},
 		staleTime: 15 * 60 * 1000, // 15 minutes
 		retry: 2
@@ -165,7 +195,13 @@ export function usePropertyOccupancyAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.occupancy(),
 		queryFn: async () => {
-			return api(`properties/analytics/$1`)
+			const res = await fetch('/api/v1/properties/analytics/$1', {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch property occupancy analytics')
+			}
+			return res.json()
 		},
 		staleTime: 15 * 60 * 1000, // 15 minutes
 		retry: 2
@@ -179,7 +215,13 @@ export function usePropertyFinancialAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.financial(),
 		queryFn: async () => {
-			return api(`properties/analytics/$1`)
+			const res = await fetch('/api/v1/properties/analytics/$1', {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch property financial analytics')
+			}
+			return res.json()
 		},
 		staleTime: 15 * 60 * 1000, // 15 minutes
 		retry: 2
@@ -193,7 +235,13 @@ export function usePropertyMaintenanceAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.maintenance(),
 		queryFn: async () => {
-			return api(`properties/analytics/$1`)
+			const res = await fetch('/api/v1/properties/analytics/$1', {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch property maintenance analytics')
+			}
+			return res.json()
 		},
 		staleTime: 15 * 60 * 1000, // 15 minutes
 		retry: 2
@@ -207,11 +255,19 @@ export function useCreateProperty() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (propertyData: CreatePropertyInput) => {
-			return api<Property>('properties', {
+		mutationFn: async (propertyData: CreatePropertyInput): Promise<Property> => {
+			const res = await fetch('/api/v1/properties', {
 				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
 				body: JSON.stringify(propertyData)
 			})
+			if (!res.ok) {
+				throw new Error('Failed to create property')
+			}
+			return res.json()
 		},
 		onMutate: async (newProperty: CreatePropertyInput) => {
 			// Cancel outgoing refetches
@@ -270,20 +326,10 @@ export function useCreateProperty() {
 				})
 			}
 
-			const errorMessage =
-				err instanceof Error ? err.message : 'Failed to create property'
-			toast.error('Error', {
-				description: errorMessage
-			})
-
-			logger.error('Failed to create property', {
-				error: err instanceof Error ? err.message : String(err)
-			})
+			handleMutationError(err, 'Create property')
 		},
 		onSuccess: (data, _variables, context) => {
-			toast.success('Property created', {
-				description: `${data.name} has been added to your portfolio`
-			})
+			handleMutationSuccess('Create property', `${data.name} has been added to your portfolio`)
 
 			// Replace optimistic entry with real data
 			queryClient.setQueriesData<{ data: Property[]; total: number }>(
@@ -302,8 +348,6 @@ export function useCreateProperty() {
 
 			// Cache individual property details
 			queryClient.setQueryData(propertiesKeys.detail(data.id), data)
-
-			logger.info('Property created successfully', { propertyId: data.id })
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
@@ -326,17 +370,25 @@ export function useUpdateProperty() {
 		}: {
 			id: string
 			data: UpdatePropertyInput
-		}) => {
+		}): Promise<Property> => {
 			// 🔐 BUG FIX #2: Get current version from cache for optimistic locking
 			const currentProperty = queryClient.getQueryData<Property>(
 				propertiesKeys.detail(id)
 			)
 
-			return api<Property>(`properties/${id}`, {
+			const res = await fetch(`/api/v1/properties/${id}`, {
 				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
 				// Use withVersion helper to include version in request
 				body: JSON.stringify(withVersion(data, currentProperty?.version))
 			})
+			if (!res.ok) {
+				throw new Error('Failed to update property')
+			}
+			return res.json()
 		},
 		onMutate: async ({ id, data }) => {
 			// Cancel outgoing queries
@@ -396,22 +448,11 @@ export function useUpdateProperty() {
 					propertiesKeys.all
 				])
 			} else {
-				const errorMessage =
-					err instanceof Error ? err.message : 'Failed to update property'
-				toast.error('Error', {
-					description: errorMessage
-				})
+				handleMutationError(err, 'Update property')
 			}
-
-			logger.error('Failed to update property', {
-				propertyId: id,
-				error: err instanceof Error ? err.message : String(err)
-			})
 		},
 		onSuccess: (data, { id }) => {
-			toast.success('Property updated', {
-				description: `${data.name} has been updated successfully`
-			})
+			handleMutationSuccess('Update property', `${data.name} has been updated successfully`)
 
 			// Replace optimistic update with real data (including correct version)
 			queryClient.setQueryData(propertiesKeys.detail(id), data)
@@ -428,8 +469,6 @@ export function useUpdateProperty() {
 					}
 				}
 			)
-
-			logger.info('Property updated successfully', { propertyId: id })
 		},
 		onSettled: (_data, _error, { id }) => {
 			// Refetch to ensure consistency
@@ -458,15 +497,23 @@ export function useMarkPropertySold() {
 			dateSold: Date
 			salePrice: number
 			saleNotes?: string
-		}) => {
-			return api<{ success: boolean; message: string }>(`properties/${id}/mark-sold`, {
+		}): Promise<{ success: boolean; message: string }> => {
+			const res = await fetch(`/api/v1/properties/${id}/mark-sold`, {
 				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
 				body: JSON.stringify({
 					dateSold: dateSold.toISOString(),
 					salePrice,
 					saleNotes
 				})
 			})
+			if (!res.ok) {
+				throw new Error('Failed to mark property as sold')
+			}
+			return res.json()
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries
@@ -524,10 +571,15 @@ export function useDeleteProperty() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (id: string) => {
-			return api<{ message: string }>(`properties/${id}`, {
-				method: 'DELETE'
+		mutationFn: async (id: string): Promise<{ message: string }> => {
+			const res = await fetch(`/api/v1/properties/${id}`, {
+				method: 'DELETE',
+				credentials: 'include'
 			})
+			if (!res.ok) {
+				throw new Error('Failed to delete property')
+			}
+			return res.json()
 		},
 		onMutate: async id => {
 			// Cancel outgoing queries to avoid overwriting optimistic update
@@ -560,29 +612,13 @@ export function useDeleteProperty() {
 				queryClient.setQueryData(propertiesKeys.list(), context.previousList)
 			}
 
-			const errorMessage =
-				error instanceof Error ? error.message : 'Failed to delete property'
-			toast.error('Error', {
-				description: errorMessage
-			})
-
-			logger.error('Failed to delete property', {
-				action: 'delete_property',
-				metadata: { propertyId: id, error: String(error) }
-			})
+			handleMutationError(error, 'Delete property')
 		},
 		onSuccess: (_, id) => {
-			toast.success('Property deleted', {
-				description: 'Property has been removed from your portfolio'
-			})
+			handleMutationSuccess('Delete property', 'Property has been removed from your portfolio')
 
 			// Remove individual property cache
 			queryClient.removeQueries({ queryKey: propertiesKeys.detail(id) })
-
-			logger.info('Property deleted successfully', {
-				action: 'delete_property_success',
-				metadata: { propertyId: id }
-			})
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
@@ -602,7 +638,13 @@ export function usePrefetchProperty() {
 		queryClient.prefetchQuery({
 			queryKey: propertiesKeys.detail(id),
 			queryFn: async (): Promise<Property> => {
-				return api<Property>(`properties/${id}`)
+				const res = await fetch(`/api/v1/properties/${id}`, {
+					credentials: 'include'
+				})
+				if (!res.ok) {
+					throw new Error('Failed to fetch property')
+				}
+				return res.json()
 			},
 			staleTime: 5 * 60 * 1000
 		})
@@ -619,8 +661,14 @@ export function usePrefetchProperty() {
 export function usePropertyImages(propertyId: string) {
 	return useQuery({
 		queryKey: [...propertiesKeys.detail(propertyId), 'images'] as const,
-		queryFn: async () => {
-			return api<Tables<'property_images'>[]>(`properties/${propertyId}/images`)
+		queryFn: async (): Promise<Tables<'property_images'>[]> => {
+			const res = await fetch(`/api/v1/properties/${propertyId}/images`, {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch property images')
+			}
+			return res.json()
 		},
 		enabled: !!propertyId,
 		staleTime: 5 * 60 * 1000,
@@ -654,19 +702,20 @@ export function useUploadPropertyImage() {
 			formData.append('isPrimary', String(isPrimary))
 			if (caption) formData.append('caption', caption)
 
-			const result = await api(`properties/${propertyId}/images`, {
+			const res = await fetch(`/api/v1/properties/${propertyId}/images`, {
 				method: 'POST',
-				body: formData,
-				headers: {} // Let browser set Content-Type for FormData
+				credentials: 'include',
+				body: formData
 			})
+			if (!res.ok) {
+				throw new Error('Failed to upload property image')
+			}
+			const result = await res.json()
 
 			return { result, compressionRatio: compressed.compressionRatio }
 		},
 		onSuccess: ({ compressionRatio }, { propertyId }) => {
-			toast.info(
-				`Compressed: ${Math.round((1 - compressionRatio) * 100)}% reduction`
-			)
-			toast.success('Image uploaded successfully')
+			handleMutationSuccess('Upload image', `Image uploaded (${Math.round((1 - compressionRatio) * 100)}% size reduction)`)
 			// Invalidate property images
 			queryClient.invalidateQueries({
 				queryKey: [...propertiesKeys.detail(propertyId), 'images']
@@ -675,12 +724,8 @@ export function useUploadPropertyImage() {
 			queryClient.invalidateQueries({
 				queryKey: propertiesKeys.all
 			})
-			logger.info('Image uploaded', { propertyId })
 		},
-		onError: error => {
-			toast.error('Failed to upload image')
-			logger.error('Image upload failed', { error: String(error) })
-		}
+		onError: error => handleMutationError(error, 'Upload image')
 	})
 }
 
@@ -697,13 +742,18 @@ export function useDeletePropertyImage() {
 		}: {
 			imageId: string
 			propertyId: string
-		}) => {
-			return api<{ message: string }>(`properties/images/${imageId}`, {
-				method: 'DELETE'
+		}): Promise<{ message: string }> => {
+			const res = await fetch(`/api/v1/properties/images/${imageId}`, {
+				method: 'DELETE',
+				credentials: 'include'
 			})
+			if (!res.ok) {
+				throw new Error('Failed to delete property image')
+			}
+			return res.json()
 		},
 		onSuccess: (_, { propertyId }) => {
-			toast.success('Image deleted successfully')
+			handleMutationSuccess('Delete image')
 			// Invalidate property images
 			queryClient.invalidateQueries({
 				queryKey: [...propertiesKeys.detail(propertyId), 'images']
@@ -713,10 +763,7 @@ export function useDeletePropertyImage() {
 				queryKey: propertiesKeys.all
 			})
 		},
-		onError: error => {
-			toast.error('Failed to delete image')
-			logger.error('Image deletion failed', { error: String(error) })
-		}
+		onError: error => handleMutationError(error, 'Delete image')
 	})
 }
 

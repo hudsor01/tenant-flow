@@ -3,7 +3,6 @@
  * Phase 6D: One-Time Rent Payment UI
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { API_BASE_URL, apiClient } from '#lib/api-client'
 
 /**
  * Query keys for rent payments endpoints
@@ -27,7 +26,20 @@ export function useCreateRentPayment() {
 			amount: number
 			paymentMethodId: string
 		}) => {
-			const response = await apiClient<{
+			const res = await fetch('/api/v1/rent-payments', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: JSON.stringify(params)
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to create rent payment')
+			}
+
+			const response = await res.json() as {
 				success: boolean
 				payment: {
 					id: string
@@ -41,10 +53,7 @@ export function useCreateRentPayment() {
 					receiptUrl?: string
 					receipt_url?: string
 				}
-			}>(`${API_BASE_URL}/api/v1/rent-payments`, {
-				method: 'POST',
-				body: JSON.stringify(params)
-			})
+			}
 
 			return {
 				...response,

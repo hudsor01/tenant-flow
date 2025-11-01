@@ -23,7 +23,6 @@ import {
 	Put,
 	Query,
 	Request,
-	SetMetadata,
 	UploadedFile,
 	UseInterceptors
 } from '@nestjs/common'
@@ -31,12 +30,16 @@ import { FileInterceptor } from '@nestjs/platform-express'
 import { memoryStorage } from 'multer'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
-import type { CreatePropertyRequest, UpdatePropertyRequest } from '@repo/shared/types/backend-domain'
+import type {
+	CreatePropertyRequest,
+	UpdatePropertyRequest
+} from '@repo/shared/types/backend-domain'
 import { PropertiesService } from './properties.service'
 import { CreatePropertyDto } from './dto/create-property.dto'
 import { UpdatePropertyDto } from './dto/update-property.dto'
 import { MarkPropertyAsSoldDto } from './dto/mark-sold.dto'
 import { PropertyImageUploadDto } from './dto/upload-image.dto'
+import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 
 /**
  * No base classes, no abstraction, just clean endpoints
@@ -55,13 +58,14 @@ export class PropertiesController {
 		@Query('search', new DefaultValuePipe(null)) search: string | null,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
-		@Request() req: AuthenticatedRequest
+		@JwtToken() token: string  // ✅ Extract JWT token for user-scoped client
 	) {
 		// Clamp limit/offset to safe bounds
 		const safeLimit = Math.max(1, Math.min(limit, 50))
 		const safeOffset = Math.max(0, offset)
-		const userId = req.user.id
-		return this.propertiesService.findAll(userId, {
+		
+		// ✅ Pass JWT token to service for RLS-enforced queries
+		return this.propertiesService.findAll(token, {
 			search,
 			limit: safeLimit,
 			offset: safeOffset
@@ -75,8 +79,7 @@ export class PropertiesController {
 	 */
 	@Get('stats')
 	async getStats(@Request() req: AuthenticatedRequest) {
-		const userId = req.user.id
-		return this.propertiesService.getStats(userId)
+		return this.propertiesService.getStats(req)
 	}
 
 	/**
@@ -93,9 +96,7 @@ export class PropertiesController {
 	) {
 		const safeLimit = Math.max(1, Math.min(limit, 50))
 		const safeOffset = Math.max(0, offset)
-		const userId = req.user.id
-
-		const properties = await this.propertiesService.findAllWithUnits(userId, {
+		const properties = await this.propertiesService.findAllWithUnits(req, {
 			search,
 			limit: safeLimit,
 			offset: safeOffset
@@ -115,14 +116,12 @@ export class PropertiesController {
 	 * ParseUUIDPipe validates the ID format
 	 */
 	@Get(':id')
-	@SetMetadata('isPublic', true)
+	@SkipSubscriptionCheck()
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Request() req: AuthenticatedRequest
 	) {
-		const userId = req.user.id
-
-		const property = await this.propertiesService.findOne(userId, id)
+		const property = await this.propertiesService.findOne(req, id)
 		if (!property) {
 			throw new NotFoundException('Property not found')
 		}
@@ -138,9 +137,10 @@ export class PropertiesController {
 		@Body() dto: CreatePropertyDto,
 		@Request() req: AuthenticatedRequest
 	) {
-		const userId = req.user.id
-
-		return this.propertiesService.create(userId, dto as unknown as CreatePropertyRequest)
+		return this.propertiesService.create(
+			req,
+			dto as unknown as CreatePropertyRequest
+		)
 	}
 
 	/**
@@ -177,8 +177,7 @@ export class PropertiesController {
 			)
 		}
 
-		const userId = req.user.id
-		return this.propertiesService.bulkImport(userId, file.buffer)
+		return this.propertiesService.bulkImport(req, file.buffer)
 	}
 
 	/**
@@ -191,12 +190,10 @@ export class PropertiesController {
 		@Body() dto: UpdatePropertyDto,
 		@Request() req: AuthenticatedRequest
 	) {
-		const userId = req.user.id
-
 		// 🔐 BUG FIX #2: Pass version for optimistic locking
 		const expectedVersion = (dto as unknown as { version?: number }).version
 		const property = await this.propertiesService.update(
-			userId,
+			req,
 			id,
 			dto as unknown as UpdatePropertyRequest,
 			expectedVersion
@@ -216,9 +213,7 @@ export class PropertiesController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Request() req: AuthenticatedRequest
 	) {
-		const userId = req.user?.id
-
-		await this.propertiesService.remove(userId, id)
+		await this.propertiesService.remove(req, id)
 		return { message: 'Property deleted successfully' }
 	}
 
@@ -241,9 +236,7 @@ export class PropertiesController {
 			)
 		}
 
-		const userId = req.user.id
-
-		return this.propertiesService.getPropertyPerformanceAnalytics(userId, {
+		return this.propertiesService.getPropertyPerformanceAnalytics(req, {
 			...(propertyId ? { propertyId } : {}),
 			timeframe: timeframe ?? '30d',
 			...(limit !== undefined ? { limit } : {})
@@ -270,9 +263,7 @@ export class PropertiesController {
 			)
 		}
 
-		const userId = req.user.id
-
-		return this.propertiesService.getPropertyOccupancyAnalytics(userId, {
+		return this.propertiesService.getPropertyOccupancyAnalytics(req, {
 			...(propertyId ? { propertyId } : {}),
 			period: period ?? 'monthly'
 		})
@@ -296,9 +287,7 @@ export class PropertiesController {
 			)
 		}
 
-		const userId = req.user.id
-
-		return this.propertiesService.getPropertyFinancialAnalytics(userId, {
+		return this.propertiesService.getPropertyFinancialAnalytics(req, {
 			...(propertyId ? { propertyId } : {}),
 			timeframe: timeframe ?? '12m'
 		})
@@ -322,9 +311,7 @@ export class PropertiesController {
 			)
 		}
 
-		const userId = req.user.id
-
-		return this.propertiesService.getPropertyMaintenanceAnalytics(userId, {
+		return this.propertiesService.getPropertyMaintenanceAnalytics(req, {
 			...(propertyId ? { propertyId } : {}),
 			timeframe: timeframe ?? '6m'
 		})
@@ -344,10 +331,17 @@ export class PropertiesController {
 			storage: memoryStorage(),
 			limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max (optimize for storage)
 			fileFilter: (_req, file, callback) => {
-				const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+				const allowedMimeTypes = [
+					'image/jpeg',
+					'image/png',
+					'image/webp',
+					'image/gif'
+				]
 				if (!allowedMimeTypes.includes(file.mimetype)) {
 					return callback(
-						new BadRequestException('Invalid file type; only images are allowed'),
+						new BadRequestException(
+							'Invalid file type; only images are allowed'
+						),
 						false
 					)
 				}
@@ -365,10 +359,8 @@ export class PropertiesController {
 			throw new BadRequestException('No file uploaded')
 		}
 
-		const userId = req.user.id
-
 		return this.propertiesService.uploadPropertyImage(
-			userId,
+			req,
 			propertyId,
 			file,
 			dto.isPrimary,
@@ -384,8 +376,7 @@ export class PropertiesController {
 		@Param('id', ParseUUIDPipe) propertyId: string,
 		@Request() req: AuthenticatedRequest
 	) {
-		const userId = req.user.id
-		return this.propertiesService.getPropertyImages(userId, propertyId)
+		return this.propertiesService.getPropertyImages(req, propertyId)
 	}
 
 	/**
@@ -396,8 +387,7 @@ export class PropertiesController {
 		@Param('imageId', ParseUUIDPipe) imageId: string,
 		@Request() req: AuthenticatedRequest
 	) {
-		const userId = req.user.id
-		await this.propertiesService.deletePropertyImage(userId, imageId)
+		await this.propertiesService.deletePropertyImage(req, imageId)
 		return { message: 'Image deleted successfully' }
 	}
 
@@ -412,8 +402,8 @@ export class PropertiesController {
 		}
 
 		return this.propertiesService.markAsSold(
+			req,
 			propertyId,
-			req.user.id,
 			new Date(dto.dateSold),
 			dto.salePrice,
 			dto.saleNotes

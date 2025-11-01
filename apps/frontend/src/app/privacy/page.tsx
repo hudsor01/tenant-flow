@@ -1,3 +1,5 @@
+import Footer from '#components/layout/footer'
+import { Navbar } from '#components/layout/navbar'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -7,7 +9,9 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
 	return (
-		<div className="mx-auto min-h-screen max-w-4xl px-6 py-16">
+		<div className="relative min-h-screen flex flex-col">
+			<Navbar />
+			<div className="mx-auto min-h-screen max-w-4xl px-6 py-16 pt-32">
 			<h1 className="mb-8 text-4xl font-bold">Privacy Policy</h1>
 			<p className="mb-6 text-sm text-muted-foreground">
 				Last Updated: October 5, 2025
@@ -429,6 +433,8 @@ export default function PrivacyPage() {
 					</p>
 				</div>
 			</div>
+			</div>
+			<Footer />
 		</div>
 	)
 }

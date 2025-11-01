@@ -10,12 +10,10 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from '#components/ui/dialog'
-import { propertiesApi } from '#lib/api-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { AlertCircle, CheckCircle2, Download, Upload } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-// CSV handling (native browser APIs - zero dependencies)
 
 const logger = createLogger({ component: 'PropertyBulkImportDialog' })
 
@@ -65,7 +63,15 @@ export function PropertyBulkImportDialog() {
 
 		try {
 			logger.info('Starting bulk import', { fileName: file.name })
-			const response = await propertiesApi.bulkImport(file)
+			const formData = new FormData()
+			formData.append('file', file)
+			const res = await fetch('/api/v1/properties/bulk-import', {
+				method: 'POST',
+				credentials: 'include',
+				body: formData
+			})
+			if (!res.ok) throw new Error('Failed to import properties')
+			const response = await res.json()
 
 			logger.info('Bulk import completed', response)
 			setResult(response)
@@ -127,9 +133,7 @@ export function PropertyBulkImportDialog() {
 		// Convert to CSV format
 		const csvContent = [
 			headers.join(','),
-			...sampleRows.map((row) =>
-				row.map((cell) => `"${cell}"`).join(',')
-			)
+			...sampleRows.map(row => row.map(cell => `"${cell}"`).join(','))
 		].join('\n')
 
 		// Create download
@@ -211,7 +215,9 @@ export function PropertyBulkImportDialog() {
 					{result && (
 						<div
 							className={`p-4 border rounded-lg ${
-								result.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+								result.success
+									? 'bg-green-50 border-green-200'
+									: 'bg-red-50 border-red-200'
 							}`}
 						>
 							<div className="flex items-start gap-3">

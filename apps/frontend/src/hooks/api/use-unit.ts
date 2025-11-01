@@ -11,15 +11,19 @@
  */
 
 import { logger } from '@repo/shared/lib/frontend-logger'
-import { handleConflictError, isConflictError, withVersion, incrementVersion } from '@repo/shared/utils/optimistic-locking'
+import { handleMutationError } from '#lib/mutation-error-handler'
+import {
+	handleConflictError,
+	isConflictError,
+	withVersion,
+	incrementVersion
+} from '@repo/shared/utils/optimistic-locking'
 import type {
 	CreateUnitInput,
 	UpdateUnitInput
 } from '@repo/shared/types/api-inputs'
 import type { Unit, UnitStats } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { API_BASE_URL, apiClient } from '#lib/api-client'
 
 /**
  * Query keys for unit endpoints (hierarchical, typed)
@@ -42,14 +46,19 @@ export function useUnit(id: string) {
 	return useQuery({
 		queryKey: unitKeys.detail(id),
 		queryFn: async (): Promise<Unit> => {
-			const response = await apiClient<Unit>(
-				`${API_BASE_URL}/api/v1/units/${id}`
-			)
-			return response
+			const res = await fetch(`/api/v1/units/${id}`, {
+				credentials: 'include'
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to fetch unit')
+			}
+
+			return res.json()
 		},
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
-		gcTime: 10 * 60 * 1000, // 10 minutes cache time
+		gcTime: 10 * 60 * 1000 // 10 minutes cache time
 	})
 }
 
@@ -63,10 +72,16 @@ export function useUnitsByProperty(propertyId: string) {
 	return useQuery({
 		queryKey: unitKeys.byProperty(propertyId),
 		queryFn: async (): Promise<{ data: Unit[]; total: number }> => {
+			const res = await fetch(`/api/v1/units/by-property/${propertyId}`, {
+				credentials: 'include'
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to fetch units by property')
+			}
+
 			// Backend returns Unit[] directly, not paginated object
-			const response = await apiClient<Unit[]>(
-				`${API_BASE_URL}/api/v1/units/by-property/${propertyId}`
-			)
+			const response = (await res.json()) as Unit[]
 
 			// Prefetch individual unit details for faster navigation
 			response?.forEach?.(unit => {
@@ -118,10 +133,16 @@ export function useUnitList(params?: {
 			searchParams.append('limit', limit.toString())
 			searchParams.append('offset', offset.toString())
 
+			const res = await fetch(`/api/v1/units?${searchParams.toString()}`, {
+				credentials: 'include'
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to fetch units')
+			}
+
 			// Backend returns Unit[] directly, not paginated object
-			const response = await apiClient<Unit[]>(
-				`${API_BASE_URL}/api/v1/units?${searchParams.toString()}`
-			)
+			const response = (await res.json()) as Unit[]
 
 			// Prefetch individual unit details for faster navigation
 			response?.forEach?.(unit => {
@@ -151,15 +172,36 @@ export function useUnitStats() {
 	return useQuery({
 		queryKey: unitKeys.stats(),
 		queryFn: async (): Promise<UnitStats> => {
-			const response = await apiClient<UnitStats>(
-				`${API_BASE_URL}/api/v1/units/stats`
-			)
-			return response
+			const res = await fetch('/api/v1/units/stats', {
+				credentials: 'include'
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to fetch unit stats')
+			}
+
+			return res.json()
 		},
 		staleTime: 10 * 60 * 1000, // 10 minutes
 		gcTime: 30 * 60 * 1000, // 30 minutes
 		retry: 2
 	})
+}
+
+/**
+ * Hook to fetch vacant units only
+ * Convenience hook for lease/maintenance forms
+ */
+export function useVacantUnits() {
+	return useUnitList({ status: 'VACANT' })
+}
+
+/**
+ * Hook to fetch all units (no filtering)
+ * Convenience hook for general dropdowns/selects
+ */
+export function useAllUnits() {
+	return useUnitList()
 }
 
 /**
@@ -170,12 +212,21 @@ export function useCreateUnit() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (unitData: CreateUnitInput) => {
-			const response = await apiClient<Unit>(`${API_BASE_URL}/api/v1/units`, {
+		mutationFn: async (unitData: CreateUnitInput): Promise<Unit> => {
+			const res = await fetch('/api/v1/units', {
 				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
 				body: JSON.stringify(unitData)
 			})
-			return response
+
+			if (!res.ok) {
+				throw new Error('Failed to create unit')
+			}
+
+			return res.json()
 		},
 		onMutate: async (newUnit: CreateUnitInput) => {
 			// Cancel outgoing refetches to prevent overwriting optimistic update
@@ -230,9 +281,7 @@ export function useCreateUnit() {
 				})
 			}
 
-			logger.error('Failed to create unit', {
-				error: err instanceof Error ? err.message : String(err)
-			})
+			handleMutationError(err, 'Create unit')
 		},
 		onSuccess: (data, _variables, context) => {
 			// Replace optimistic entry with real data
@@ -270,19 +319,31 @@ export function useUpdateUnit() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({ id, data }: { id: string; data: UpdateUnitInput }) => {
+		mutationFn: async ({
+			id,
+			data
+		}: {
+			id: string
+			data: UpdateUnitInput
+		}): Promise<Unit> => {
 			// 🔐 BUG FIX #2: Get current version from cache for optimistic locking
 			const currentUnit = queryClient.getQueryData<Unit>(unitKeys.detail(id))
-			
-			const response = await apiClient<Unit>(
-				`${API_BASE_URL}/api/v1/units/${id}`,
-				{
-					method: 'PUT',
-					// Use withVersion helper to include version in request
-					body: JSON.stringify(withVersion(data, currentUnit?.version))
-				}
-			)
-			return response
+
+			const res = await fetch(`/api/v1/units/${id}`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				// Use withVersion helper to include version in request
+				body: JSON.stringify(withVersion(data, currentUnit?.version))
+			})
+
+			if (!res.ok) {
+				throw new Error('Failed to update unit')
+			}
+
+			return res.json()
 		},
 		onMutate: async ({ id, data }) => {
 			// Cancel all outgoing queries for this unit
@@ -290,7 +351,9 @@ export function useUpdateUnit() {
 			await queryClient.cancelQueries({ queryKey: unitKeys.all })
 
 			// Snapshot all relevant caches for comprehensive rollback
-			const previousDetail = queryClient.getQueryData<Unit>(unitKeys.detail(id))
+			const previousDetail = queryClient.getQueryData<Unit>(
+				unitKeys.detail(id)
+			)
 			const previousLists = queryClient.getQueriesData<{
 				data: Unit[]
 				total: number
@@ -338,16 +401,8 @@ export function useUpdateUnit() {
 					unitKeys.all
 				])
 			} else {
-				const errorMessage = err instanceof Error ? err.message : 'Failed to update unit'
-				toast.error('Error', {
-					description: errorMessage
-				})
+				handleMutationError(err, 'Update unit')
 			}
-
-			logger.error('Failed to update unit', {
-				unitId: id,
-				error: err instanceof Error ? err.message : String(err)
-			})
 		},
 		onSuccess: (data, { id }) => {
 			// Replace optimistic update with real server data (including correct version)
@@ -386,10 +441,16 @@ export function useDeleteUnit(options?: {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (id: string) => {
-			await apiClient(`${API_BASE_URL}/api/v1/units/${id}`, {
-				method: 'DELETE'
+		mutationFn: async (id: string): Promise<string> => {
+			const res = await fetch(`/api/v1/units/${id}`, {
+				method: 'DELETE',
+				credentials: 'include'
 			})
+
+			if (!res.ok) {
+				throw new Error('Failed to delete unit')
+			}
+
 			return id
 		},
 		onMutate: async (id: string) => {
@@ -398,7 +459,9 @@ export function useDeleteUnit(options?: {
 			await queryClient.cancelQueries({ queryKey: unitKeys.all })
 
 			// Snapshot previous state
-			const previousDetail = queryClient.getQueryData<Unit>(unitKeys.detail(id))
+			const previousDetail = queryClient.getQueryData<Unit>(
+				unitKeys.detail(id)
+			)
 			const previousLists = queryClient.getQueriesData<{
 				data: Unit[]
 				total: number
@@ -433,11 +496,7 @@ export function useDeleteUnit(options?: {
 				})
 			}
 
-			logger.error('Failed to delete unit', {
-				unitId: id,
-				error: err instanceof Error ? err.message : String(err)
-			})
-
+			handleMutationError(err, 'Delete unit')
 			options?.onError?.(err instanceof Error ? err : new Error(String(err)))
 		},
 		onSuccess: id => {
@@ -462,10 +521,15 @@ export function usePrefetchUnit() {
 		queryClient.prefetchQuery({
 			queryKey: unitKeys.detail(id),
 			queryFn: async (): Promise<Unit> => {
-				const response = await apiClient<Unit>(
-					`${API_BASE_URL}/api/v1/units/${id}`
-				)
-				return response
+				const res = await fetch(`/api/v1/units/${id}`, {
+					credentials: 'include'
+				})
+
+				if (!res.ok) {
+					throw new Error('Failed to fetch unit')
+				}
+
+				return res.json()
 			},
 			staleTime: 5 * 60 * 1000
 		})

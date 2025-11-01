@@ -87,7 +87,7 @@ export class MaintenanceService {
 					'LOW',
 					'MEDIUM',
 					'HIGH',
-					'EMERGENCY'
+					'URGENT'
 				]
 				const normalizedPriority = String(
 					query.priority
@@ -246,7 +246,7 @@ export class MaintenanceService {
 					low: requests.filter(r => r.priority === 'LOW').length,
 					medium: requests.filter(r => r.priority === 'MEDIUM').length,
 					high: requests.filter(r => r.priority === 'HIGH').length,
-					emergency: requests.filter(r => r.priority === 'EMERGENCY').length
+					emergency: requests.filter(r => r.priority === 'URGENT').length
 				},
 				totalCost: requests.reduce(
 					(sum: number, r) => sum + (r.estimatedCost || 0),
@@ -292,7 +292,8 @@ export class MaintenanceService {
 				.from('maintenance_request')
 				.select('*')
 				.eq('requestedBy', userId)
-				.in('priority', ['HIGH', 'EMERGENCY'])
+				.in('priority', ['HIGH',
+					'URGENT'])
 				.neq('status', 'COMPLETED')
 				.order('priority', { ascending: false })
 				.order('createdAt', { ascending: true })
@@ -481,7 +482,7 @@ export class MaintenanceService {
 				LOW: 'LOW',
 				MEDIUM: 'MEDIUM',
 				HIGH: 'HIGH',
-				URGENT: 'EMERGENCY'
+				URGENT: 'URGENT'
 			}
 
 			const maintenanceData: Database['public']['Tables']['maintenance_request']['Insert'] =
@@ -591,7 +592,7 @@ export class MaintenanceService {
 				LOW: 'LOW',
 				MEDIUM: 'MEDIUM',
 				HIGH: 'HIGH',
-				URGENT: 'EMERGENCY'
+				URGENT: 'URGENT'
 			}
 
 			const statusMap: Record<
@@ -914,7 +915,7 @@ export class MaintenanceService {
 							| 'LOW'
 							| 'MEDIUM'
 							| 'HIGH'
-							| 'EMERGENCY',
+							| 'URGENT',
 						propertyLabel,
 						unitNumberLabel,
 						updated.description ?? ''

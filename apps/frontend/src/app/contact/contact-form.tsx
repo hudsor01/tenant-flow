@@ -21,7 +21,7 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { ContactFormRequest } from '@repo/shared/types/domain'
 import { Check, Mail, MapPin, Phone } from 'lucide-react'
 import { useState } from 'react'
-import { API_BASE_URL } from '#lib/api-client'
+import { API_BASE_URL } from '#lib/api-config'
 
 const logger = createLogger({ component: 'ContactForm' })
 
@@ -189,11 +189,14 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 				{/* Background Image - Warm modern residential building */}
 				<div
 					className="absolute inset-0 bg-cover bg-center"
-					style={{backgroundImage: "url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop')"}}
+					style={{
+						backgroundImage:
+							"url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop')"
+					}}
 				/>
 
 				{/* Subtle gradient overlay for text contrast */}
-				<div className="absolute inset-0 bg-gradient-to-br from-background/30 via-transparent to-background/20" />
+				<div className="absolute inset-0 bg-linear-to-br from-background/30 via-transparent to-background/20" />
 
 				{/* Glassmorphism Container */}
 				<div className="relative z-10 p-8 rounded-2xl backdrop-blur-lg bg-background/60 dark:bg-card/60 border border-border/20 shadow-2xl">
@@ -202,8 +205,8 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 					</h1>
 
 					<p className="mt-4 text-muted-foreground text-lg">
-						Whether you manage 5 or 500 units, we&apos;re here to help streamline
-						your operations and save you time every day.
+						Whether you manage 5 or 500 units, we&apos;re here to help
+						streamline your operations and save you time every day.
 					</p>
 
 					<div className="mt-8 space-y-6">
@@ -257,8 +260,8 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						Get in Touch
 					</h2>
 					<p className="text-muted-foreground mb-8">
-						Have questions about TenantFlow? Want to see a demo? We&apos;d love to
-						hear from you. Our team typically responds within 4 hours.
+						Have questions about TenantFlow? Want to see a demo? We&apos;d love
+						to hear from you. Our team typically responds within 4 hours.
 					</p>
 
 					{/* Progress indicator */}
@@ -366,7 +369,9 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						</div>
 
 						<Field>
-							<FieldLabel htmlFor="subject">I&apos;m interested in... *</FieldLabel>
+							<FieldLabel htmlFor="subject">
+								I&apos;m interested in... *
+							</FieldLabel>
 							<Select
 								name="subject"
 								value={formData.subject}

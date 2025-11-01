@@ -4,6 +4,7 @@
  */
 
 import type { ScheduledReport } from '#lib/api/reports-client'
+import { serverFetch } from '#lib/api/server'
 
 /**
  * Fetch scheduled reports from the backend API
@@ -11,10 +12,8 @@ import type { ScheduledReport } from '#lib/api/reports-client'
  */
 export async function getSchedules(): Promise<ScheduledReport[]> {
 	try {
-		// Use the reports API from api-client which handles auth automatically
-		const { reportsApi } = await import('#lib/api-client')
-		const schedules = await reportsApi.listSchedules()
-		return schedules
+		const result = await serverFetch<{ data: ScheduledReport[] }>('/api/v1/reports/schedules')
+		return result.data
 	} catch (error) {
 		// Log error but don't throw - gracefully degrade
 		const { createLogger } = await import('@repo/shared/lib/frontend-logger')

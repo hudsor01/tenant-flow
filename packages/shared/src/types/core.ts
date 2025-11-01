@@ -622,11 +622,14 @@ export interface SetDefaultPaymentMethodRequest {
 // RENT SUBSCRIPTION TYPES - Autopay subscriptions (Phase 4)
 
 export type SubscriptionStatus =
-	| 'active'
-	| 'paused'
-	| 'canceled'
-	| 'past_due'
 	| 'incomplete'
+	| 'incomplete_expired'
+	| 'trialing'
+	| 'active'
+	| 'past_due'
+	| 'canceled'
+	| 'unpaid'
+	| 'paused'
 
 export interface RentSubscriptionResponse {
 	id: string

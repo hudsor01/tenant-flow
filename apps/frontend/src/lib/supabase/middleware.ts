@@ -1,9 +1,9 @@
 import {
+	MARKETING_REDIRECT_ROUTES,
 	PAYMENT_EXEMPT_ROUTES,
 	PROTECTED_ROUTE_PREFIXES,
 	PUBLIC_AUTH_ROUTES
 } from '#lib/auth-constants'
-import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
@@ -38,18 +38,25 @@ export async function updateSession(request: NextRequest) {
 
 	// This will refresh the session if expired - required for Server Components
 	// IMPORTANT: Use getUser() to validate the session with Supabase instead of just checking local storage
-	const {
-		data: { user },
-		error
-	} = await supabase.auth.getUser()
+	// Wrapped in try-catch to handle network failures gracefully
+	let isAuthenticated = false
+	let user: any = null
+	try {
+		const {
+			data: { user: userData },
+			error
+		} = await supabase.auth.getUser()
+		user = userData
 
-	// Get session info for expiration checks
-	const {
-		data: { session }
-	} = await supabase.auth.getSession()
-
-	// Only consider user authenticated if getUser() succeeds (validates with Supabase)
-	const isAuthenticated = !error && user && session
+		// Only consider user authenticated if getUser() succeeds (validates with Supabase)
+		// Note: getSession() is redundant here as getUser() already validates the token
+		isAuthenticated = !error && !!user
+	} catch (err) {
+		// Network failure or Supabase API error - fail closed for security
+		// Log error but don't crash the middleware
+		console.error('[Middleware] Auth check failed:', err instanceof Error ? err.message : String(err))
+		isAuthenticated = false
+	}
 
 	// Check route protection using centralized constants
 	const pathname = request.nextUrl.pathname
@@ -71,43 +78,52 @@ export async function updateSession(request: NextRequest) {
 		return NextResponse.redirect(url)
 	}
 
-	// PERFORMANCE FIX: Fetch user profile once instead of twice
-	// Prevents infinite loop from repeated DB calls on every request
-	let userProfile: { subscription_status: string | null; stripeCustomerId: string | null; role: string } | null = null
+	// Redirect authenticated users from marketing pages to their dashboard
+	// Marketing pages show "Get Started" CTAs which don't make sense for logged-in users
+	const isMarketingRedirect = MARKETING_REDIRECT_ROUTES.includes(
+		pathname as (typeof MARKETING_REDIRECT_ROUTES)[number]
+	)
+
+	// PERFORMANCE OPTIMIZATION: Use JWT claims instead of database queries
+	// Custom claims are added via Auth Hook (see migration: 20251031_auth_hook_custom_claims.sql)
+	// This eliminates database calls on every request per Next.js middleware best practices
+	// NOTE: Claims are in the JWT token, we need to decode it OR use user_metadata as fallback
+	let userRole: string | null = null
+	let subscriptionStatus: string | null = null
+	let stripeCustomerId: string | null = null
 
 	if (isAuthenticated && user) {
-		try {
-			const { data } = await supabase
-				.from('users')
-				.select('subscription_status, stripeCustomerId, role')
-				.eq('supabaseId', user.id)
-				.single()
-			userProfile = data
-		} catch (error) {
-			// Log error but continue - fail open for better UX
-			logger.error('Failed to fetch user profile', {
-				action: 'middleware_user_profile_fetch_failed',
-				metadata: {
-					error: error instanceof Error ? error.message : String(error)
-				}
-			})
-		}
+		// For now, use user_metadata as the source since that's populated
+		// TODO: Once tokens are refreshed, the Auth Hook will add claims to JWT
+		// and we can decode the JWT to get claims from the token payload
+		userRole = user.user_metadata?.role || null
+		subscriptionStatus = user.user_metadata?.subscription_status || null
+		stripeCustomerId = user.user_metadata?.stripe_customer_id || null
+	}
+
+	// Early redirect for authenticated users on marketing pages
+	// Do this before payment gate to avoid showing pricing page to users who just need dashboard
+	if (isAuthenticated && isMarketingRedirect && userRole) {
+		const url = request.nextUrl.clone()
+		const destination = userRole === 'TENANT' ? '/tenant' : '/manage'
+		url.pathname = destination
+		return NextResponse.redirect(url)
 	}
 
 	// Payment gate: Check if authenticated user has active subscription
 	// Per Stripe best practices - check subscription_status field
 	// Skip for payment-exempt routes (pricing, stripe checkout, etc.)
-	if (isAuthenticated && !isPaymentExempt && userProfile) {
+	if (isAuthenticated && !isPaymentExempt && userRole) {
 		// TENANT role doesn't need payment (they're invited by OWNER)
-		const requiresPayment = userProfile.role !== 'TENANT'
+		const requiresPayment = userRole !== 'TENANT'
 
 		// Check subscription status per Stripe best practices
 		// Valid statuses for access: active, trialing
 		const validStatuses = ['active', 'trialing']
 		const hasValidSubscription =
-			userProfile.subscription_status &&
-			validStatuses.includes(userProfile.subscription_status)
-		const hasNoStripeCustomer = !userProfile.stripeCustomerId
+			subscriptionStatus &&
+			validStatuses.includes(subscriptionStatus)
+		const hasNoStripeCustomer = !stripeCustomerId
 
 		if (requiresPayment && (!hasValidSubscription || hasNoStripeCustomer)) {
 			const url = request.nextUrl.clone()
@@ -134,8 +150,8 @@ export async function updateSession(request: NextRequest) {
 			}
 		}
 
-		// Redirect based on role (already fetched above)
-		if (userProfile?.role === 'TENANT') {
+		// Redirect based on role (from JWT claims)
+		if (userRole === 'TENANT') {
 			url.pathname = '/tenant'
 		} else {
 			// Default redirect to management dashboard for OWNER, MANAGER, ADMIN

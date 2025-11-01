@@ -1,7 +1,7 @@
 'use client'
 
 import { useForm } from '@tanstack/react-form'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { CheckCircle } from 'lucide-react'
 import { useRouter } from 'next/router'
 import { toast } from 'sonner'
@@ -21,7 +21,7 @@ import {
 import { Textarea } from '#components/ui/textarea'
 import { useAllTenants } from '#hooks/api/use-tenant'
 import { useCreateLease } from '#hooks/api/use-lease'
-import { unitsApi } from '#lib/api-client'
+import { useVacantUnits } from '#hooks/api/use-unit'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Unit } from '@repo/shared/types/supabase'
 import { leaseInputSchema } from '@repo/shared/validation/leases'
@@ -36,10 +36,8 @@ export function CreateLeaseForm() {
 
 	const { data: tenants = [], isLoading: isLoadingTenants } = useAllTenants()
 
-	const { data: units = [], isLoading: isLoadingUnits } = useQuery({
-		queryKey: ['units', 'vacant'],
-		queryFn: () => unitsApi.list({ status: 'vacant' })
-	})
+	const { data: vacantUnits, isLoading: isLoadingUnits } = useVacantUnits()
+	const units = vacantUnits?.data || []
 
 	const createLease = useCreateLease()
 

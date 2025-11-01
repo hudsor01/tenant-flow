@@ -9,7 +9,15 @@
  */
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { usersApi } from '../../lib/api-client'
+
+/**
+ * User type returned from API
+ */
+interface User {
+	id: string
+	email: string
+	stripeCustomerId: string | null
+}
 
 /**
  * Query keys for current user data
@@ -36,7 +44,15 @@ export const userKeys = {
 export function useUser() {
 	return useQuery({
 		queryKey: userKeys.me,
-		queryFn: () => usersApi.getCurrentUser(),
+		queryFn: async (): Promise<User> => {
+			const res = await fetch('/api/v1/users/me', {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch current user')
+			}
+			return res.json()
+		},
 		staleTime: 5 * 60 * 1000,
 		gcTime: 10 * 60 * 1000,
 		retry: 1
@@ -52,7 +68,15 @@ export function usePrefetchUser() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: userKeys.me,
-			queryFn: () => usersApi.getCurrentUser(),
+			queryFn: async (): Promise<User> => {
+				const res = await fetch('/api/v1/users/me', {
+					credentials: 'include'
+				})
+				if (!res.ok) {
+					throw new Error('Failed to fetch current user')
+				}
+				return res.json()
+			},
 			staleTime: 5 * 60 * 1000
 		})
 	}
