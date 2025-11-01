@@ -2,6 +2,14 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Button } from '#components/ui/button'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '#components/ui/dialog'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import {
@@ -23,12 +31,15 @@ import {
 	FileBarChart
 } from 'lucide-react'
 import { useState } from 'react'
-import { useTaxDocuments } from '#hooks/api/use-tax-documents'
-import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
+import { taxDocumentsKeys, useTaxDocuments } from '#hooks/api/use-tax-documents'
+import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 import type {
+	TaxDocumentsData,
 	TaxExpenseCategory,
 	TaxPropertyDepreciation
 } from '@repo/shared/types/financial-statements'
+import { useAuth } from '#providers/auth-provider'
 
 interface TaxDocumentsPageProps {
 	initialYear?: number
@@ -37,11 +48,22 @@ interface TaxDocumentsPageProps {
 const TaxDocumentsPage = ({
 	initialYear = new Date().getFullYear()
 }: TaxDocumentsPageProps) => {
+	const { session } = useAuth()
+	const queryClient = useQueryClient()
 	const [selectedYear, setSelectedYear] = useState(initialYear.toString())
 	const [searchQuery, setSearchQuery] = useState('')
-	
-	const { data: taxData, isLoading, error: queryError } = useTaxDocuments(parseInt(selectedYear, 10))
-	const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to load tax documents') : null
+	const [isBreakdownModalOpen, setIsBreakdownModalOpen] = useState(false)
+
+	const {
+		data: taxData,
+		isLoading,
+		error: queryError
+	} = useTaxDocuments(parseInt(selectedYear, 10))
+	const error = queryError
+		? queryError instanceof Error
+			? queryError.message
+			: 'Failed to load tax documents'
+		: null
 
 	const years = Array.from({ length: 5 }, (_, i) =>
 		(new Date().getFullYear() - i).toString()
@@ -62,9 +84,7 @@ const TaxDocumentsPage = ({
 			document.body.removeChild(a)
 			URL.revokeObjectURL(url)
 		} catch (error) {
-			toast.error('Failed to export documents', {
-				description: error instanceof Error ? error.message : 'An unexpected error occurred'
-			})
+			handleMutationError(error, 'Export tax documents')
 		}
 	}
 
@@ -73,7 +93,7 @@ const TaxDocumentsPage = ({
 		const input = document.createElement('input')
 		input.type = 'file'
 		input.accept = '.json'
-		input.onchange = async (e) => {
+		input.onchange = async e => {
 			const file = (e.target as HTMLInputElement).files?.[0]
 			if (!file) return
 			try {
@@ -81,18 +101,52 @@ const TaxDocumentsPage = ({
 				const data = JSON.parse(text)
 
 				// Validate the data structure
-				if (!data.taxYear || !data.totals || !data.incomeBreakdown) {
+				if (
+					typeof data.taxYear !== 'number' ||
+					!data.totals ||
+					!data.incomeBreakdown
+				) {
 					throw new Error('Invalid tax data format')
 				}
 
-				// TODO: Implement import functionality with API call
-				toast.info('Import feature coming soon', {
-					description: 'This feature is currently in development and will be available in a future update.'
+				if (!session?.access_token) {
+					throw new Error('Authentication required')
+				}
+
+				const parsedData = data as TaxDocumentsData
+				
+				// Import tax documents via API
+				const res = await fetch(
+					`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/financials/tax-documents`,
+					{
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						credentials: 'include',
+						body: JSON.stringify(parsedData)
+					}
+				)
+				
+				if (!res.ok) {
+					throw new Error('Failed to import tax documents')
+				}
+				
+				const importYear =
+					typeof parsedData.taxYear === 'number'
+						? parsedData.taxYear
+						: parseInt(selectedYear, 10)
+
+				await queryClient.invalidateQueries({
+					queryKey: taxDocumentsKeys.byYear(importYear)
 				})
+
+				// Keep UI in sync with imported year
+				setSelectedYear(importYear.toString())
+
+				handleMutationSuccess('Import tax documents', `Imported tax documents for ${importYear}`)
 			} catch (error) {
-				toast.error('Failed to import documents', {
-					description: error instanceof Error ? error.message : 'Please check the file format and try again.'
-				})
+				handleMutationError(error, 'Import tax documents')
 			}
 		}
 		input.click()
@@ -101,34 +155,52 @@ const TaxDocumentsPage = ({
 	// Handler for generating tax report
 	const handleGenerateTaxReport = async () => {
 		try {
-			// TODO: Call API endpoint to generate report
-			// const report = await generateTaxReport(session.access_token, parseInt(selectedYear, 10))
-			// downloadReport(report)
-			
-			toast.info('Tax report generation coming soon', {
-				description: 'This feature is currently in development and will be available in a future update.'
-			})
+			if (!session?.user?.id || !session?.access_token) {
+				handleMutationError(new Error('Authentication required'), 'Generate tax report')
+				return
+			}
+
+			const taxYear = parseInt(selectedYear, 10)
+			if (Number.isNaN(taxYear)) {
+				handleMutationError(new Error('Invalid tax year selected'), 'Generate tax report')
+				return
+			}
+
+			const startDate = `${taxYear}-01-01`
+			const endDate = `${taxYear}-12-31`
+
+			const res = await fetch(
+				`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/reports/generate-tax-preparation`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					credentials: 'include',
+					body: JSON.stringify({
+						userId: session.user.id,
+						startDate,
+						endDate
+					})
+				}
+			)
+
+			if (!res.ok) {
+				throw new Error('Failed to generate tax report')
+			}
+
+			handleMutationSuccess('Generate tax report', `Downloading tax preparation report for ${taxYear}`)
 		} catch (error) {
-			toast.error('Failed to generate tax report', {
-				description: error instanceof Error ? error.message : 'An unexpected error occurred'
-			})
+			handleMutationError(error, 'Generate tax report')
 		}
 	}
 
 	// Handler for viewing detailed breakdown
 	const handleViewDetailedBreakdown = () => {
 		try {
-			// TODO: Navigate to breakdown route or open modal
-			// router.push(`/manage/financials/tax-documents/${selectedYear}/breakdown`)
-			// or: setShowBreakdownModal(true)
-			
-			toast.info('Detailed breakdown view coming soon', {
-				description: 'This feature is currently in development and will be available in a future update.'
-			})
+			setIsBreakdownModalOpen(true)
 		} catch (error) {
-			toast.error('Failed to open detailed breakdown', {
-				description: error instanceof Error ? error.message : 'An unexpected error occurred'
-			})
+			handleMutationError(error, 'Open detailed breakdown')
 		}
 	}
 
@@ -136,15 +208,17 @@ const TaxDocumentsPage = ({
 		if (!taxData?.expenseCategories?.length) return null
 
 		// Filter expense categories based on search query
-		const filteredCategories = taxData.expenseCategories.filter((category: TaxExpenseCategory) => {
-			if (!searchQuery.trim()) return true
-			
-			const query = searchQuery.toLowerCase().trim()
-			const categoryName = (category.category || '').toLowerCase()
-			const notes = (category.notes || '').toLowerCase()
-			
-			return categoryName.includes(query) || notes.includes(query)
-		})
+		const filteredCategories = taxData.expenseCategories.filter(
+			(category: TaxExpenseCategory) => {
+				if (!searchQuery.trim()) return true
+
+				const query = searchQuery.toLowerCase().trim()
+				const categoryName = (category.category || '').toLowerCase()
+				const notes = (category.notes || '').toLowerCase()
+
+				return categoryName.includes(query) || notes.includes(query)
+			}
+		)
 
 		if (filteredCategories.length === 0) {
 			return (
@@ -156,31 +230,33 @@ const TaxDocumentsPage = ({
 
 		return (
 			<div className="space-y-3">
-				{filteredCategories.map((category: TaxExpenseCategory, index: number) => (
-					<div
-						key={category.category || `category-${index}`}
-						className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-					>
-						<div className="flex-1">
-							<div className="font-medium text-gray-900">
-								{category.category}
+				{filteredCategories.map(
+					(category: TaxExpenseCategory, index: number) => (
+						<div
+							key={category.category || `category-${index}`}
+							className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+						>
+							<div className="flex-1">
+								<div className="font-medium text-gray-900">
+									{category.category}
+								</div>
+								{category.notes && (
+									<div className="text-sm text-gray-500">{category.notes}</div>
+								)}
 							</div>
-							{category.notes && (
-								<div className="text-sm text-gray-500">{category.notes}</div>
-							)}
+							<div className="text-right">
+								<div className="font-semibold text-gray-900">
+									${category.amount.toLocaleString()}
+								</div>
+								<div
+									className={`text-sm ${category.deductible ? 'text-green-600' : 'text-red-600'}`}
+								>
+									{category.deductible ? 'Deductible' : 'Not Deductible'}
+								</div>
+							</div>
 						</div>
-						<div className="text-right">
-							<div className="font-semibold text-gray-900">
-								${category.amount.toLocaleString()}
-							</div>
-							<div
-								className={`text-sm ${category.deductible ? 'text-green-600' : 'text-red-600'}`}
-							>
-								{category.deductible ? 'Deductible' : 'Not Deductible'}
-							</div>
-						</div>
-					</div>
-				))}
+					)
+				)}
 			</div>
 		)
 	}
@@ -189,15 +265,17 @@ const TaxDocumentsPage = ({
 		if (!taxData?.propertyDepreciation?.length) return null
 
 		// Filter property depreciation based on search query
-		const filteredProperties = taxData.propertyDepreciation.filter((property: TaxPropertyDepreciation) => {
-			if (!searchQuery.trim()) return true
-			
-			const query = searchQuery.toLowerCase().trim()
-			const propertyName = (property.propertyName || '').toLowerCase()
-			const propertyId = (property.propertyId || '').toLowerCase()
-			
-			return propertyName.includes(query) || propertyId.includes(query)
-		})
+		const filteredProperties = taxData.propertyDepreciation.filter(
+			(property: TaxPropertyDepreciation) => {
+				if (!searchQuery.trim()) return true
+
+				const query = searchQuery.toLowerCase().trim()
+				const propertyName = (property.propertyName || '').toLowerCase()
+				const propertyId = (property.propertyId || '').toLowerCase()
+
+				return propertyName.includes(query) || propertyId.includes(query)
+			}
+		)
 
 		if (filteredProperties.length === 0) {
 			return (
@@ -209,54 +287,59 @@ const TaxDocumentsPage = ({
 
 		return (
 			<div className="space-y-3">
-				{filteredProperties.map((property: TaxPropertyDepreciation, index: number) => (
-					<Card key={property.propertyId || `property-${index}`} className="border border-gray-200">
-						<CardContent className="p-4">
-							<div className="space-y-3">
-								<div className="flex items-center justify-between">
-									<h4 className="font-semibold text-gray-900">
-										{property.propertyName}
-									</h4>
-									<span className="text-sm text-gray-500">
-										ID: {property.propertyId}
-									</span>
-								</div>
+				{filteredProperties.map(
+					(property: TaxPropertyDepreciation, index: number) => (
+						<Card
+							key={property.propertyId || `property-${index}`}
+							className="border border-gray-200"
+						>
+							<CardContent className="p-4">
+								<div className="space-y-3">
+									<div className="flex items-center justify-between">
+										<h4 className="font-semibold text-gray-900">
+											{property.propertyName}
+										</h4>
+										<span className="text-sm text-gray-500">
+											ID: {property.propertyId}
+										</span>
+									</div>
 
-								<div className="grid grid-cols-2 gap-4 text-sm">
-									<div>
-										<div className="text-gray-500">Property Value</div>
-										<div className="font-semibold">
-											${property.propertyValue.toLocaleString()}
+									<div className="grid grid-cols-2 gap-4 text-sm">
+										<div>
+											<div className="text-gray-500">Property Value</div>
+											<div className="font-semibold">
+												${property.propertyValue.toLocaleString()}
+											</div>
+										</div>
+										<div>
+											<div className="text-gray-500">Annual Depreciation</div>
+											<div className="font-semibold text-green-600">
+												${property.annualDepreciation.toLocaleString()}
+											</div>
 										</div>
 									</div>
-									<div>
-										<div className="text-gray-500">Annual Depreciation</div>
-										<div className="font-semibold text-green-600">
-											${property.annualDepreciation.toLocaleString()}
-										</div>
-									</div>
-								</div>
 
-								<div className="grid grid-cols-2 gap-4 text-sm">
-									<div>
-										<div className="text-gray-500">
-											Accumulated Depreciation
+									<div className="grid grid-cols-2 gap-4 text-sm">
+										<div>
+											<div className="text-gray-500">
+												Accumulated Depreciation
+											</div>
+											<div className="font-semibold">
+												${property.accumulatedDepreciation.toLocaleString()}
+											</div>
 										</div>
-										<div className="font-semibold">
-											${property.accumulatedDepreciation.toLocaleString()}
-										</div>
-									</div>
-									<div>
-										<div className="text-gray-500">Remaining Basis</div>
-										<div className="font-semibold">
-											${property.remainingBasis.toLocaleString()}
+										<div>
+											<div className="text-gray-500">Remaining Basis</div>
+											<div className="font-semibold">
+												${property.remainingBasis.toLocaleString()}
+											</div>
 										</div>
 									</div>
 								</div>
-							</div>
-						</CardContent>
-					</Card>
-				))}
+							</CardContent>
+						</Card>
+					)
+				)}
 			</div>
 		)
 	}
@@ -392,11 +475,11 @@ const TaxDocumentsPage = ({
 							</Select>
 						</div>
 						<div className="flex items-center gap-2">
-							<Input 
-								placeholder="Search documents..." 
+							<Input
+								placeholder="Search documents..."
 								className="w-64"
 								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
+								onChange={e => setSearchQuery(e.target.value)}
 							/>
 							<Button variant="outline" size="sm">
 								<Search className="w-4 h-4" />
@@ -584,11 +667,144 @@ const TaxDocumentsPage = ({
 					<Download className="w-4 h-4 mr-2" />
 					Generate Tax Report
 				</Button>
-				<Button variant="outline" size="lg" onClick={handleViewDetailedBreakdown}>
+				<Button
+					variant="outline"
+					size="lg"
+					onClick={handleViewDetailedBreakdown}
+				>
 					<FileText className="w-4 h-4 mr-2" />
 					View Detailed Breakdown
 				</Button>
 			</div>
+
+			<Dialog
+				open={isBreakdownModalOpen}
+				onOpenChange={setIsBreakdownModalOpen}
+			>
+				<DialogContent className="max-w-3xl">
+					<DialogHeader>
+						<DialogTitle>Detailed Breakdown</DialogTitle>
+						<DialogDescription>
+							Tax year {taxData.taxYear}. Review income, expense, and deduction
+							details.
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className="space-y-6">
+						<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+							<div className="p-4 rounded-lg bg-gray-50">
+								<div className="text-sm text-gray-600">Total Income</div>
+								<div className="text-xl font-semibold text-green-600">
+									${taxData.totals.totalIncome.toLocaleString()}
+								</div>
+							</div>
+							<div className="p-4 rounded-lg bg-gray-50">
+								<div className="text-sm text-gray-600">Total Deductions</div>
+								<div className="text-xl font-semibold text-red-600">
+									${taxData.totals.totalDeductions.toLocaleString()}
+								</div>
+							</div>
+							<div className="p-4 rounded-lg bg-gray-50">
+								<div className="text-sm text-gray-600">Net Taxable Income</div>
+								<div
+									className={`text-xl font-semibold ${taxData.totals.netTaxableIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}
+								>
+									${Math.abs(taxData.totals.netTaxableIncome).toLocaleString()}
+								</div>
+							</div>
+						</div>
+
+						<div className="space-y-3">
+							<h4 className="text-sm font-semibold text-gray-900">
+								Income Breakdown
+							</h4>
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+								<div className="p-3 rounded border border-gray-200">
+									<div className="text-sm text-gray-600">
+										Gross Rental Income
+									</div>
+									<div className="text-lg font-semibold">
+										$
+										{taxData.incomeBreakdown.grossRentalIncome.toLocaleString()}
+									</div>
+								</div>
+								<div className="p-3 rounded border border-gray-200">
+									<div className="text-sm text-gray-600">Total Expenses</div>
+									<div className="text-lg font-semibold text-red-600">
+										${taxData.incomeBreakdown.totalExpenses.toLocaleString()}
+									</div>
+								</div>
+								<div className="p-3 rounded border border-gray-200">
+									<div className="text-sm text-gray-600">
+										Net Operating Income
+									</div>
+									<div className="text-lg font-semibold">
+										$
+										{taxData.incomeBreakdown.netOperatingIncome.toLocaleString()}
+									</div>
+								</div>
+								<div className="p-3 rounded border border-gray-200">
+									<div className="text-sm text-gray-600">Taxable Income</div>
+									<div className="text-lg font-semibold text-green-600">
+										${taxData.incomeBreakdown.taxableIncome.toLocaleString()}
+									</div>
+								</div>
+							</div>
+						</div>
+
+						{taxData.expenseCategories?.length ? (
+							<div className="space-y-3">
+								<h4 className="text-sm font-semibold text-gray-900">
+									Top Expense Categories
+								</h4>
+								<div className="max-h-64 overflow-y-auto space-y-2">
+									{taxData.expenseCategories
+										.sort((a, b) => b.amount - a.amount)
+										.slice(0, 10)
+										.map((category, index) => (
+											<div
+												key={category.category || `expense-${index}`}
+												className="flex items-center justify-between rounded border border-gray-100 p-3"
+											>
+												<div>
+													<div className="font-medium text-gray-900">
+														{category.category || 'Uncategorized'}
+													</div>
+													{category.notes && (
+														<div className="text-xs text-gray-500">
+															{category.notes}
+														</div>
+													)}
+												</div>
+												<div className="text-right">
+													<div className="font-semibold">
+														${category.amount.toLocaleString()}
+													</div>
+													<div
+														className={`text-xs ${category.deductible ? 'text-green-600' : 'text-red-600'}`}
+													>
+														{category.deductible
+															? 'Deductible'
+															: 'Not Deductible'}
+													</div>
+												</div>
+											</div>
+										))}
+								</div>
+							</div>
+						) : null}
+					</div>
+
+					<DialogFooter>
+						<Button
+							variant="secondary"
+							onClick={() => setIsBreakdownModalOpen(false)}
+						>
+							Close
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	)
 }

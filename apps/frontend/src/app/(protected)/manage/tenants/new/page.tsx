@@ -1,4 +1,4 @@
-import { api } from '#lib/api'
+import { serverFetch } from '#lib/api/server'
 import { requireSession } from '#lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
@@ -26,8 +26,8 @@ export default async function NewTenantPage() {
 		logger.info('Fetching properties and units for tenant creation...')
 
 		const [propertiesData, unitsData] = await Promise.all([
-			api<import('@repo/shared/types/core').Property[]>('properties', { token: accessToken }),
-			api<import('@repo/shared/types/core').Unit[]>('units', { token: accessToken })
+			serverFetch<import('@repo/shared/types/core').Property[]>('/api/v1/properties'),
+			serverFetch<import('@repo/shared/types/core').Unit[]>('/api/v1/units')
 		])
 
 		properties = propertiesData ?? []

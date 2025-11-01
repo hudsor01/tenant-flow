@@ -5,14 +5,13 @@
  * Use these instead of raw createClient calls throughout the application.
  */
 
-import
-  {
-    createClient,
-    type AuthError,
-    type Session,
-    type SupabaseClient,
-    type User
-  } from '@supabase/supabase-js'
+import {
+	createClient,
+	type AuthError,
+	type Session,
+	type SupabaseClient,
+	type User
+} from '@supabase/supabase-js'
 import type { Database } from '../types/supabase.js'
 
 // Platform compatibility: Frontend uses NEXT_PUBLIC_*, Backend uses regular env vars
@@ -28,7 +27,9 @@ const SUPABASE_URL = (() => {
 })()
 
 const SUPABASE_PUBLISHABLE_KEY = (() => {
-	const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY
+	const key =
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+		process.env.SUPABASE_PUBLISHABLE_KEY
 	if (!key) {
 		throw new Error(
 			'SUPABASE_PUBLISHABLE_KEY environment variable is required (NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY for frontend, SUPABASE_PUBLISHABLE_KEY for backend)'
@@ -153,23 +154,21 @@ export async function signOut(): Promise<{ error: AuthError | null }> {
 	return { error }
 }
 
-// ULTRA-NATIVE Multi-tenant
-
 // Use RLS policies directly - no wrapper classes
 // Example: supabaseClient.from('Property').select('*').eq('organizationId', orgId)
 
 export type {
-  Database,
-  Enums,
-  Tables,
-  TablesInsert,
-  TablesUpdate
+	Database,
+	Enums,
+	Tables,
+	TablesInsert,
+	TablesUpdate
 } from '../types/supabase-generated.js'
 
 export type {
-  QueryData,
-  QueryError,
-  TenantFlowOrganizationSettings,
-  TenantFlowPropertyMetadata,
-  TenantFlowUserMetadata
+	QueryData,
+	QueryError,
+	TenantFlowOrganizationSettings,
+	TenantFlowPropertyMetadata,
+	TenantFlowUserMetadata
 } from '../types/supabase.js'

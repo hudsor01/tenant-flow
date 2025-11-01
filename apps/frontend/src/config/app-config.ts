@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '#lib/api-client'
+import { API_BASE_URL } from '#lib/api-config'
 
 // Environment variable validation - only in runtime, not during build
 const isBuildTime =

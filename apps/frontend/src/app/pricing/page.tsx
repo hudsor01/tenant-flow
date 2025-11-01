@@ -49,18 +49,9 @@ const faqs = [
 ]
 
 export default function PricingPage() {
-	const navItems = [
-		{ name: 'Features', href: '/features' },
-		{ name: 'Pricing', href: '/pricing' },
-		{ name: 'About', href: '/about' },
-		{ name: 'Blog', href: '/blog' },
-		{ name: 'FAQ', href: '/faq' },
-		{ name: 'Contact', href: '/contact' }
-	]
-
 	return (
 		<div className="relative min-h-screen flex flex-col">
-			<Navbar navItems={navItems} ctaText="Get Started" ctaHref="/signup" />
+			<Navbar />
 			<main className="flex-1 pt-20">
 				{/* Simple Header */}
 				<section className="relative py-12">

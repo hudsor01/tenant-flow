@@ -1,7 +1,13 @@
 'use client'
 
 import { Badge } from '#components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '#components/ui/card'
 import { Button } from '#components/ui/button'
 import { Calendar, MapPin } from 'lucide-react'
 import Link from 'next/link'
@@ -9,8 +15,11 @@ import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
 
 type MaintenanceRequest = MaintenanceRequestResponse['data'][number]
 
-const PRIORITY_VARIANTS: Record<string, 'destructive' | 'secondary' | 'outline'> = {
-	EMERGENCY: 'destructive',
+const PRIORITY_VARIANTS: Record<
+	string,
+	'destructive' | 'secondary' | 'outline'
+> = {
+	URGENT: 'destructive',
 	HIGH: 'destructive',
 	MEDIUM: 'secondary',
 	LOW: 'outline'
@@ -29,7 +38,10 @@ export function MaintenanceCard({ request, isDragging }: MaintenanceCardProps) {
 					<CardTitle className="text-base font-medium line-clamp-2">
 						{request.title}
 					</CardTitle>
-					<Badge variant={PRIORITY_VARIANTS[request.priority] ?? 'outline'} className="shrink-0">
+					<Badge
+						variant={PRIORITY_VARIANTS[request.priority] ?? 'outline'}
+						className="shrink-0"
+					>
 						{request.priority}
 					</Badge>
 				</div>
@@ -47,7 +59,9 @@ export function MaintenanceCard({ request, isDragging }: MaintenanceCardProps) {
 						<div className="flex flex-col min-w-0">
 							<span className="truncate">{request.property.name}</span>
 							{request.unit && (
-								<span className="text-xs truncate">Unit {request.unit.name}</span>
+								<span className="text-xs truncate">
+									Unit {request.unit.name}
+								</span>
 							)}
 						</div>
 					</div>

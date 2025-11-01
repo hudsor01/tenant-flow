@@ -18,7 +18,7 @@ import {
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
 import { useCreateMaintenanceRequest } from '#hooks/api/use-maintenance'
-import { propertiesApi, unitsApi } from '#lib/api-client'
+
 import { maintenanceRequestFormSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
@@ -49,17 +49,25 @@ export function CreateMaintenanceForm() {
 
 	const { data: properties = [] } = useQuery({
 		queryKey: ['properties'],
-		queryFn: () => propertiesApi.list()
+		queryFn: async () => {
+			const res = await fetch('/api/v1/properties', { credentials: 'include' })
+			if (!res.ok) throw new Error('Failed to fetch properties')
+			return res.json()
+		}
 	})
 
 	const { data: units = [] } = useQuery({
 		queryKey: ['units'],
-		queryFn: () => unitsApi.list()
+		queryFn: async () => {
+			const res = await fetch('/api/v1/units', { credentials: 'include' })
+			if (!res.ok) throw new Error('Failed to fetch units')
+			return res.json()
+		}
 	})
 
 	const availableUnits = useMemo(() => {
 		if (!selectedPropertyId) return []
-		return units.filter(unit => unit.propertyId === selectedPropertyId)
+		return units.filter((unit: import('@repo/shared/types/core').Unit) => unit.propertyId === selectedPropertyId)
 	}, [selectedPropertyId, units])
 
 	const form = useForm({
@@ -151,7 +159,7 @@ export function CreateMaintenanceForm() {
 									<SelectValue placeholder="Select property" />
 								</SelectTrigger>
 								<SelectContent>
-									{properties.map(property => (
+									{properties.map((property: import('@repo/shared/types/core').Property) => (
 										<SelectItem key={property.id} value={property.id}>
 											{property.name}
 										</SelectItem>
@@ -173,7 +181,7 @@ export function CreateMaintenanceForm() {
 											<SelectValue placeholder="Select unit" />
 										</SelectTrigger>
 										<SelectContent>
-											{availableUnits.map(unit => (
+											{availableUnits.map((unit: import('@repo/shared/types/core').Unit) => (
 												<SelectItem key={unit.id} value={unit.id}>
 													Unit {unit.unitNumber}
 												</SelectItem>

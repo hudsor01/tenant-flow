@@ -9,7 +9,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { api } from '#lib/api'
+import { serverFetch } from '#lib/api/server'
 import { requireSession } from '#lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
@@ -45,8 +45,8 @@ const logger = createLogger({ component: 'PropertiesPage', userId: user.id })
 	try {
 		// ✅ Production pattern: Server Component with explicit token
 		const [propertiesData, statsData] = await Promise.all([
-			api<Property[]>('properties', { token: accessToken }),
-			api<PropertyStats>('properties/stats', { token: accessToken })
+			serverFetch<Property[]>('/api/v1/properties'),
+			serverFetch<PropertyStats>('/api/v1/properties/stats')
 		])
 		properties = propertiesData
 		stats = statsData

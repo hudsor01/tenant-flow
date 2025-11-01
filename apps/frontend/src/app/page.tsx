@@ -1,7 +1,7 @@
 'use client'
 
 import Footer from '#components/layout/footer'
-import { MarketingNav } from '#components/layout/marketing-nav'
+import Navbar from '#components/layout/navbar'
 import FeaturesSectionDemo from '#components/sections/features-section'
 import { HeroSection } from '#components/sections/hero-section'
 import { PremiumCta } from '#components/sections/premium-cta'
@@ -10,7 +10,7 @@ import { StatsShowcase } from '#components/sections/stats-showcase'
 export default function HomePage() {
 	return (
 		<div className="relative min-h-screen flex flex-col">
-			<MarketingNav />
+			<Navbar />
 
 			{/* Hero Section */}
 			<HeroSection

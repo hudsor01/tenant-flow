@@ -442,6 +442,102 @@ export type Database = {
           },
         ]
       }
+      dashboard_stats_history: {
+        Row: {
+          active_leases: number
+          active_tenants: number
+          avg_resolution_time_hours: number
+          completed_maintenance: number
+          daily_revenue: number
+          expired_leases: number
+          expiring_soon_leases: number
+          id: string
+          in_progress_maintenance: number
+          inactive_tenants: number
+          maintenance_units: number
+          monthly_revenue: number
+          occupancy_rate: number
+          occupied_properties: number
+          occupied_units: number
+          open_maintenance: number
+          snapshot_date: string
+          snapshot_timestamp: string
+          total_actual_rent: number
+          total_lease_rent: number
+          total_leases: number
+          total_maintenance: number
+          total_potential_rent: number
+          total_properties: number
+          total_tenants: number
+          total_units: number
+          user_id: string
+          vacant_units: number
+          yearly_revenue: number
+        }
+        Insert: {
+          active_leases?: number
+          active_tenants?: number
+          avg_resolution_time_hours?: number
+          completed_maintenance?: number
+          daily_revenue?: number
+          expired_leases?: number
+          expiring_soon_leases?: number
+          id?: string
+          in_progress_maintenance?: number
+          inactive_tenants?: number
+          maintenance_units?: number
+          monthly_revenue?: number
+          occupancy_rate?: number
+          occupied_properties?: number
+          occupied_units?: number
+          open_maintenance?: number
+          snapshot_date?: string
+          snapshot_timestamp?: string
+          total_actual_rent?: number
+          total_lease_rent?: number
+          total_leases?: number
+          total_maintenance?: number
+          total_potential_rent?: number
+          total_properties?: number
+          total_tenants?: number
+          total_units?: number
+          user_id: string
+          vacant_units?: number
+          yearly_revenue?: number
+        }
+        Update: {
+          active_leases?: number
+          active_tenants?: number
+          avg_resolution_time_hours?: number
+          completed_maintenance?: number
+          daily_revenue?: number
+          expired_leases?: number
+          expiring_soon_leases?: number
+          id?: string
+          in_progress_maintenance?: number
+          inactive_tenants?: number
+          maintenance_units?: number
+          monthly_revenue?: number
+          occupancy_rate?: number
+          occupied_properties?: number
+          occupied_units?: number
+          open_maintenance?: number
+          snapshot_date?: string
+          snapshot_timestamp?: string
+          total_actual_rent?: number
+          total_lease_rent?: number
+          total_leases?: number
+          total_maintenance?: number
+          total_potential_rent?: number
+          total_properties?: number
+          total_tenants?: number
+          total_units?: number
+          user_id?: string
+          vacant_units?: number
+          yearly_revenue?: number
+        }
+        Relationships: []
+      }
       document: {
         Row: {
           createdAt: string | null
@@ -3331,6 +3427,84 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_failures: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          error_stack: string | null
+          event_type: string
+          failure_reason: string
+          id: string
+          last_retry_at: string | null
+          raw_event_data: Json | null
+          resolved_at: string | null
+          retry_count: number | null
+          stripe_event_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          error_stack?: string | null
+          event_type: string
+          failure_reason: string
+          id?: string
+          last_retry_at?: string | null
+          raw_event_data?: Json | null
+          resolved_at?: string | null
+          retry_count?: number | null
+          stripe_event_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          error_stack?: string | null
+          event_type?: string
+          failure_reason?: string
+          id?: string
+          last_retry_at?: string | null
+          raw_event_data?: Json | null
+          resolved_at?: string | null
+          retry_count?: number | null
+          stripe_event_id?: string
+        }
+        Relationships: []
+      }
+      webhook_metrics: {
+        Row: {
+          business_logic_ms: number | null
+          created_at: string | null
+          database_operations_ms: number | null
+          event_type: string
+          id: string
+          processing_duration_ms: number
+          signature_verification_ms: number | null
+          stripe_event_id: string
+          success: boolean
+        }
+        Insert: {
+          business_logic_ms?: number | null
+          created_at?: string | null
+          database_operations_ms?: number | null
+          event_type: string
+          id?: string
+          processing_duration_ms: number
+          signature_verification_ms?: number | null
+          stripe_event_id: string
+          success: boolean
+        }
+        Update: {
+          business_logic_ms?: number | null
+          created_at?: string | null
+          database_operations_ms?: number | null
+          event_type?: string
+          id?: string
+          processing_duration_ms?: number
+          signature_verification_ms?: number | null
+          stripe_event_id?: string
+          success?: boolean
+        }
+        Relationships: []
+      }
       wrappers_fdw_stats: {
         Row: {
           bytes_in: number | null
@@ -3374,17 +3548,27 @@ export type Database = {
           active_leases: number | null
           active_tenants: number | null
           average_unit_rent: number | null
+          avg_resolution_time_hours: number | null
           completed_maintenance: number | null
+          completed_today_maintenance: number | null
           emergency_maintenance: number | null
           expired_leases: number | null
+          expiring_soon_leases: number | null
+          high_priority_maintenance: number | null
           in_progress_maintenance: number | null
           inactive_tenants: number | null
           last_updated: string | null
+          low_priority_maintenance: number | null
           maintenance_units: number | null
+          medium_priority_maintenance: number | null
+          monthly_revenue: number | null
+          new_tenants_this_month: number | null
+          occupancy_change_percentage: number | null
           occupancy_rate: number | null
           occupied_properties: number | null
           occupied_units: number | null
           open_maintenance: number | null
+          previous_month_revenue: number | null
           terminated_leases: number | null
           total_actual_rent: number | null
           total_lease_rent: number | null
@@ -3397,6 +3581,7 @@ export type Database = {
           total_units: number | null
           user_id: string | null
           vacant_units: number | null
+          yearly_revenue: number | null
         }
         Relationships: [
           {
@@ -3418,6 +3603,30 @@ export type Database = {
           last_failed: string | null
           priority: string | null
           status: string | null
+        }
+        Relationships: []
+      }
+      webhook_event_type_summary: {
+        Row: {
+          avg_duration_ms: number | null
+          event_type: string | null
+          failed_count: number | null
+          last_received_at: string | null
+          successful_count: number | null
+          total_count: number | null
+        }
+        Relationships: []
+      }
+      webhook_health_summary: {
+        Row: {
+          avg_duration_ms: number | null
+          failed_events: number | null
+          hour: string | null
+          max_duration_ms: number | null
+          min_duration_ms: number | null
+          success_rate_percentage: number | null
+          successful_events: number | null
+          total_events: number | null
         }
         Relationships: []
       }
@@ -3600,12 +3809,21 @@ export type Database = {
         Args: { p_feature: string; p_user_id: string }
         Returns: boolean
       }
+      cleanup_dashboard_history: { Args: never; Returns: number }
       cleanup_expired_drafts: { Args: never; Returns: undefined }
       cleanup_old_email_queue_entries: { Args: never; Returns: number }
       cleanup_old_stripe_events: {
         Args: { p_days_to_keep?: number }
         Returns: number
       }
+      cleanup_old_webhook_data: {
+        Args: never
+        Returns: {
+          rows_deleted: number
+          table_name: string
+        }[]
+      }
+      create_dashboard_stats_snapshot: { Args: never; Returns: number }
       create_lease_with_financial_calculations: {
         Args: {
           p_end_date: string
@@ -3618,6 +3836,18 @@ export type Database = {
           p_user_id: string
         }
         Returns: Json
+      }
+      custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      detect_webhook_health_issues: {
+        Args: never
+        Returns: {
+          affected_count: number
+          description: string
+          first_occurrence: string
+          issue_type: string
+          last_occurrence: string
+          severity: string
+        }[]
       }
       execute_stripe_fdw_query: { Args: { sql_query: string }; Returns: Json }
       get_active_stripe_products: {
@@ -3655,6 +3885,10 @@ export type Database = {
         Returns: Json
       }
       get_dashboard_summary: { Args: { p_user_id: string }; Returns: Json }
+      get_dashboard_time_series: {
+        Args: { p_days?: number; p_metric_name: string; p_user_id: string }
+        Returns: Json
+      }
       get_entity_permissions: {
         Args: { p_entity_id: string; p_entity_type: string; p_user_id: string }
         Returns: Json
@@ -3689,7 +3923,22 @@ export type Database = {
         Returns: Json
       }
       get_maintenance_analytics: { Args: { user_id: string }; Returns: Json }
+      get_metric_trend: {
+        Args: { p_metric_name: string; p_period?: string; p_user_id: string }
+        Returns: Json
+      }
       get_n8n_webhook_url: { Args: never; Returns: string }
+      get_occupancy_change: {
+        Args: { p_days_back?: number; p_user_id: string }
+        Returns: number
+      }
+      get_occupancy_trends: {
+        Args: { p_months?: number; p_user_id: string }
+        Returns: {
+          occupancy_rate: number
+          period: string
+        }[]
+      }
       get_property_financial_analytics: {
         Args: {
           p_property_id?: string
@@ -3738,6 +3987,15 @@ export type Database = {
         Returns: Json
       }
       get_resend_api_key: { Args: never; Returns: string }
+      get_revenue_trends: {
+        Args: { p_months?: number; p_user_id: string }
+        Returns: {
+          growth: number
+          period: string
+          previous_period_revenue: number
+          revenue: number
+        }[]
+      }
       get_stripe_customer_by_user_id: {
         Args: { p_user_id: string }
         Returns: string
@@ -4070,7 +4328,7 @@ export type Database = {
         | "SAFETY"
         | "OTHER"
       PlanType: "FREETRIAL" | "STARTER" | "GROWTH" | "TENANTFLOW_MAX"
-      Priority: "LOW" | "MEDIUM" | "HIGH" | "EMERGENCY"
+      Priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT"
       PropertyStatus: "ACTIVE" | "INACTIVE" | "UNDER_CONTRACT" | "SOLD"
       PropertyType:
         | "SINGLE_FAMILY"
@@ -4299,7 +4557,7 @@ export const Constants = {
         "OTHER",
       ],
       PlanType: ["FREETRIAL", "STARTER", "GROWTH", "TENANTFLOW_MAX"],
-      Priority: ["LOW", "MEDIUM", "HIGH", "EMERGENCY"],
+      Priority: ["LOW", "MEDIUM", "HIGH", "URGENT"],
       PropertyStatus: ["ACTIVE", "INACTIVE", "UNDER_CONTRACT", "SOLD"],
       PropertyType: [
         "SINGLE_FAMILY",

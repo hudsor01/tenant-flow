@@ -13,7 +13,8 @@ export const NotificationType = {
 	INFO: 'INFO' // Add INFO for compatibility
 } as const
 
-export type NotificationTypeValue = typeof NotificationType[keyof typeof NotificationType]
+export type NotificationTypeValue =
+	(typeof NotificationType)[keyof typeof NotificationType]
 
 // API Request/Response types (consolidated from frontend)
 export interface NotificationRequest {
@@ -23,7 +24,7 @@ export interface NotificationRequest {
 	recipientId?: string
 	actionUrl?: string
 	data?: Record<string, unknown>
-	priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'EMERGENCY'
+	priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'URGENT'
 }
 
 export interface NotificationResponse {
@@ -115,7 +116,8 @@ export const NOTIFICATION_PRIORITY = {
 	URGENT: 'URGENT'
 } as const
 
-export type NotificationPriorityValue = typeof NOTIFICATION_PRIORITY[keyof typeof NOTIFICATION_PRIORITY]
+export type NotificationPriorityValue =
+	(typeof NOTIFICATION_PRIORITY)[keyof typeof NOTIFICATION_PRIORITY]
 
 export const NOTIFICATION_PRIORITY_OPTIONS = [
 	{ value: 'LOW', label: 'Low' },
@@ -146,7 +148,7 @@ export interface CreateNotificationRequest {
 	recipientId: string
 	title: string
 	message: string
-	priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
+	priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 	actionUrl?: string
 	data?: Record<string, unknown>
 }

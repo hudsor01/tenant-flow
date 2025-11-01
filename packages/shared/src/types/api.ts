@@ -157,7 +157,10 @@ export interface UpdateMaintenanceDto {
 }
 
 // Notification API types
-export type { CreateNotificationDto, UpdateNotificationDto } from './notifications'
+export type {
+	CreateNotificationDto,
+	UpdateNotificationDto
+} from './notifications'
 
 // File upload types
 export interface FileUploadResponse {
@@ -392,7 +395,7 @@ export interface MaintenanceRequestApiResponse {
 	id: string
 	title: string
 	description: string
-	priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY'
+	priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 	status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED' | 'ON_HOLD'
 	category: string | null
 	unitId: string

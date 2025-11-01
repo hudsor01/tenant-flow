@@ -4,7 +4,6 @@
  * Fetches from backend Stripe API endpoints
  */
 
-import { stripeApi } from '#lib/api-client'
 import type { StripeProductWithPricing } from '@repo/shared/types/stripe'
 import { useQuery } from '@tanstack/react-query'
 
@@ -113,7 +112,13 @@ export function useStripeProducts() {
 	const query = useQuery({
 		queryKey: ['stripe', 'products'],
 		queryFn: async () => {
-			const response = await stripeApi.getProducts()
+			const res = await fetch('/api/v1/stripe/products', {
+				credentials: 'include'
+			})
+			if (!res.ok) {
+				throw new Error('Failed to fetch Stripe products')
+			}
+			const response = await res.json()
 			return transformStripeProducts(response.products)
 		},
 		staleTime: 1000 * 60 * 5, // 5 minutes

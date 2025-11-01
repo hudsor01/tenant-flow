@@ -38,13 +38,12 @@ describe('MaintenanceCard', () => {
 			render(<MaintenanceCard request={defaultRequest} />)
 
 			// Assert
-			const formattedDate = new Date(defaultRequest.createdAt).toLocaleDateString(
-				'en-US',
-				{
-					month: 'short',
-					day: 'numeric'
-				}
-			)
+			const formattedDate = new Date(
+				defaultRequest.createdAt
+			).toLocaleDateString('en-US', {
+				month: 'short',
+				day: 'numeric'
+			})
 			expect(screen.getByText(formattedDate)).toBeInTheDocument()
 		})
 
@@ -81,18 +80,18 @@ describe('MaintenanceCard', () => {
 	})
 
 	describe('Priority Badges', () => {
-		test('displays EMERGENCY priority with destructive variant', () => {
+		test('displays URGENT priority with destructive variant', () => {
 			// Arrange
 			const emergencyRequest = {
 				...defaultRequest,
-				priority: 'EMERGENCY' as const
+				priority: 'URGENT' as const
 			}
 
 			// Act
 			render(<MaintenanceCard request={emergencyRequest} />)
 
 			// Assert
-			expect(screen.getByText('EMERGENCY')).toBeInTheDocument()
+			expect(screen.getByText('URGENT')).toBeInTheDocument()
 		})
 
 		test('displays HIGH priority with destructive variant', () => {

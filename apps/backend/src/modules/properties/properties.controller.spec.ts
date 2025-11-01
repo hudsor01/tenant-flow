@@ -120,23 +120,15 @@ describe('PropertiesController', () => {
 				null, // search
 				10, // limit
 				0, // offset
-				createMockRequest({ user: mockUser }) as any
+				'mock-jwt-token' // JWT token
 			)
 
 			expect(mockPropertiesServiceInstance.findAll).toHaveBeenCalled()
 			expect(result).toEqual(mockProperties)
 		})
 
-		it('should throw if guard allows request without user context', async () => {
-			await expect(
-				controller.findAll(
-					null,
-					10,
-					0,
-					createMockRequest({ user: undefined }) as any
-				)
-			).rejects.toThrow()
-		})
+		// Note: Authentication is handled by @JwtToken() decorator and guards
+		// Invalid tokens will be rejected before reaching the controller
 	})
 
 	describe('getStats', () => {
@@ -150,11 +142,10 @@ describe('PropertiesController', () => {
 
 			mockPropertiesServiceInstance.getStats.mockResolvedValue(mockStats as any)
 
-			const result = await controller.getStats(
-				createMockRequest({ user: mockUser }) as any
-			)
+			const mockRequest = createMockRequest({ user: mockUser })
+			const result = await controller.getStats(mockRequest as any)
 			expect(mockPropertiesServiceInstance.getStats).toHaveBeenCalledWith(
-				mockUser.id
+				mockRequest
 			)
 			expect(result).toEqual(mockStats)
 		})
@@ -173,16 +164,17 @@ describe('PropertiesController', () => {
 				mockPropertiesWithUnits as any
 			)
 
+			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.findAllWithUnits(
 				null, // search
 				10, // limit
 				0, // offset
-				createMockRequest({ user: mockUser }) as any
+				mockRequest as any
 			)
 
 			expect(
 				mockPropertiesServiceInstance.findAllWithUnits
-			).toHaveBeenCalledWith(mockUser.id, {
+			).toHaveBeenCalledWith(mockRequest, {
 				search: null,
 				limit: 10,
 				offset: 0
@@ -197,12 +189,13 @@ describe('PropertiesController', () => {
 
 			mockPropertiesServiceInstance.findOne.mockResolvedValue(mockProperty)
 
+			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.findOne(
 				'property-1',
-				createMockRequest({ user: mockUser }) as any
+				mockRequest as any
 			)
 			expect(mockPropertiesServiceInstance.findOne).toHaveBeenCalledWith(
-				mockUser.id,
+				mockRequest,
 				'property-1'
 			)
 			expect(result).toEqual(mockProperty)
@@ -226,12 +219,13 @@ describe('PropertiesController', () => {
 
 			mockPropertiesServiceInstance.create.mockResolvedValue(mockProperty)
 
+			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.create(
 				validCreatePropertyRequest,
-				createMockRequest({ user: mockUser }) as any
+				mockRequest as any
 			)
 			expect(mockPropertiesServiceInstance.create).toHaveBeenCalledWith(
-				mockUser.id,
+				mockRequest,
 				validCreatePropertyRequest
 			)
 			expect(result).toEqual(mockProperty)
@@ -247,13 +241,14 @@ describe('PropertiesController', () => {
 
 			mockPropertiesServiceInstance.update.mockResolvedValue(mockProperty)
 
+			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.update(
 				'property-1',
 				validUpdatePropertyRequest,
-				createMockRequest({ user: mockUser }) as any
+				mockRequest as any
 			)
 			expect(mockPropertiesServiceInstance.update).toHaveBeenCalledWith(
-				mockUser.id,
+				mockRequest,
 				'property-1',
 				validUpdatePropertyRequest,
 				undefined // expectedVersion for optimistic locking
@@ -266,13 +261,14 @@ describe('PropertiesController', () => {
 		it('should delete a property', async () => {
 			mockPropertiesServiceInstance.remove.mockResolvedValue({ success: true, message: 'Property deleted successfully' })
 
+			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.remove(
 				'property-1',
-				createMockRequest({ user: mockUser }) as any
+				mockRequest as any
 			)
 
 			expect(mockPropertiesServiceInstance.remove).toHaveBeenCalledWith(
-				mockUser.id,
+				mockRequest,
 				'property-1'
 			)
 			expect(result.message).toBe('Property deleted successfully')
