@@ -85,7 +85,9 @@ describe('LateFeesController', () => {
 
 		mockSupabaseService = {
 			getUser: jest.fn(),
-			getAdminClient: jest.fn().mockReturnValue(mockAdminClient)
+			getAdminClient: jest.fn().mockReturnValue(mockAdminClient),
+			getUserClient: jest.fn().mockReturnValue(mockAdminClient),
+			getTokenFromRequest: jest.fn().mockReturnValue('mock-jwt-token')
 		}
 
 		const module: TestingModule = await Test.createTestingModule({
@@ -139,7 +141,7 @@ describe('LateFeesController', () => {
 
 			expect(result.success).toBe(true)
 			expect(result.data).toEqual(mockConfig)
-			expect(mockLateFeesService.getLateFeeConfig).toHaveBeenCalledWith(leaseId)
+			expect(mockLateFeesService.getLateFeeConfig).toHaveBeenCalledWith(leaseId, 'mock-jwt-token')
 		})
 
 		it('should throw BadRequestException when service not available', async () => {
@@ -177,7 +179,7 @@ describe('LateFeesController', () => {
 			expect(result.message).toContain('updated successfully')
 			expect(mockLateFeesService.updateLateFeeConfig).toHaveBeenCalledWith(
 				leaseId,
-				userId,
+				'mock-jwt-token',
 				{
 					leaseId,
 					gracePeriodDays: 7,
@@ -301,7 +303,7 @@ describe('LateFeesController', () => {
 				leaseId
 			)
 
-			expect(mockLateFeesService.getLateFeeConfig).toHaveBeenCalledWith(leaseId)
+			expect(mockLateFeesService.getLateFeeConfig).toHaveBeenCalledWith(leaseId, 'mock-jwt-token')
 			expect(mockLateFeesService.calculateLateFee).toHaveBeenCalledWith(
 				1500,
 				10,
@@ -446,7 +448,8 @@ describe('LateFeesController', () => {
 				leaseId,
 				paymentId,
 				50,
-				'Payment overdue'
+				'Payment overdue',
+				'mock-jwt-token'
 			)
 		})
 

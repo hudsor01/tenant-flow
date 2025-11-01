@@ -175,7 +175,7 @@ export function usePropertyPerformanceAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.performance(),
 		queryFn: async () => {
-			const res = await fetch('/api/v1/properties/analytics/$1', {
+			const res = await fetch('/api/v1/properties/analytics/performance', {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -195,7 +195,7 @@ export function usePropertyOccupancyAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.occupancy(),
 		queryFn: async () => {
-			const res = await fetch('/api/v1/properties/analytics/$1', {
+			const res = await fetch('/api/v1/properties/analytics/occupancy', {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -215,7 +215,7 @@ export function usePropertyFinancialAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.financial(),
 		queryFn: async () => {
-			const res = await fetch('/api/v1/properties/analytics/$1', {
+			const res = await fetch('/api/v1/properties/analytics/financial', {
 				credentials: 'include'
 			})
 			if (!res.ok) {
@@ -235,7 +235,7 @@ export function usePropertyMaintenanceAnalytics() {
 	return useQuery({
 		queryKey: propertiesKeys.analytics.maintenance(),
 		queryFn: async () => {
-			const res = await fetch('/api/v1/properties/analytics/$1', {
+			const res = await fetch('/api/v1/properties/analytics/maintenance', {
 				credentials: 'include'
 			})
 			if (!res.ok) {

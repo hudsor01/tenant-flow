@@ -20,7 +20,8 @@ describe('TaxDocumentsService', () => {
 		}
 
 		supabaseService = {
-			getAdminClient: jest.fn().mockReturnValue(mockClient)
+			getAdminClient: jest.fn().mockReturnValue(mockClient),
+			getUserClient: jest.fn().mockReturnValue(mockClient)
 		} as unknown as jest.Mocked<SupabaseService>
 
 		const module: TestingModule = await Test.createTestingModule({
@@ -91,18 +92,18 @@ describe('TaxDocumentsService', () => {
 
 			// Verify RPC calls
 			expect(mockClient.rpc).toHaveBeenCalledWith('get_expense_summary', {
-				p_user_id: 'user-123'
+				p_user_id: ''
 			})
 			expect(mockClient.rpc).toHaveBeenCalledWith(
 				'calculate_net_operating_income',
 				{
-					p_user_id: 'user-123'
+					p_user_id: ''
 				}
 			)
 			expect(mockClient.rpc).toHaveBeenCalledWith(
 				'calculate_financial_metrics',
 				{
-					p_user_id: 'user-123',
+					p_user_id: '',
 					p_start_date: '2024-01-01',
 					p_end_date: '2024-12-31'
 				}

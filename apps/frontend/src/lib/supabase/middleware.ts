@@ -5,8 +5,12 @@ import {
 	PUBLIC_AUTH_ROUTES
 } from '#lib/auth-constants'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import type { User } from '@supabase/supabase-js'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+
+const logger = createLogger({ component: 'SupabaseMiddleware' })
 
 export async function updateSession(request: NextRequest) {
 	let supabaseResponse = NextResponse.next({
@@ -40,7 +44,7 @@ export async function updateSession(request: NextRequest) {
 	// IMPORTANT: Use getUser() to validate the session with Supabase instead of just checking local storage
 	// Wrapped in try-catch to handle network failures gracefully
 	let isAuthenticated = false
-	let user: any = null
+	let user: User | null = null
 	try {
 		const {
 			data: { user: userData },
@@ -53,8 +57,9 @@ export async function updateSession(request: NextRequest) {
 		isAuthenticated = !error && !!user
 	} catch (err) {
 		// Network failure or Supabase API error - fail closed for security
-		// Log error but don't crash the middleware
-		console.error('[Middleware] Auth check failed:', err instanceof Error ? err.message : String(err))
+		logger.error('Auth check failed', { 
+			error: err instanceof Error ? err.message : String(err) 
+		})
 		isAuthenticated = false
 	}
 

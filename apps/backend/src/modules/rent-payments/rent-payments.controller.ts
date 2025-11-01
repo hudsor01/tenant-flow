@@ -5,12 +5,11 @@ import {
 	Logger,
 	Param,
 	Post,
-	Request,
 	UseGuards
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { RentPaymentsService } from './rent-payments.service'
-import { User } from './types'
 
 @Controller('rent-payments')
 @UseGuards(JwtAuthGuard)
@@ -27,13 +26,13 @@ export class RentPaymentsController {
 	 */
 	@Post()
 	async createPayment(
-		@Request() _req: Request & { user: User },
 		@Body()
 		body: {
 			tenantId: string
 			leaseId: string
 			amount: number
 			paymentMethodId: string
+			requestingUserId: string
 		}
 	) {
 		this.logger.log(
@@ -42,7 +41,7 @@ export class RentPaymentsController {
 
 		const result = await this.rentPaymentsService.createOneTimePayment(
 			body,
-			_req.user?.id
+			body.requestingUserId
 		)
 
 		return {
@@ -60,14 +59,13 @@ export class RentPaymentsController {
 	 * Phase 4: Payment History Enhancement
 	 *
 	 * GET /api/v1/payments/history
+	 * ✅ RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('history')
-	async getPaymentHistory(@Request() _req: Request & { user: User }) {
-		this.logger.log(`Getting payment history for user ${_req.user?.id}`)
+	async getPaymentHistory(@JwtToken() token: string) {
+		this.logger.log('Getting payment history for authenticated user')
 
-		const payments = await this.rentPaymentsService.getPaymentHistory(
-			_req.user?.id
-		)
+		const payments = await this.rentPaymentsService.getPaymentHistory(token)
 
 		return {
 			payments: payments.map(payment => ({
@@ -95,20 +93,21 @@ export class RentPaymentsController {
 	 * Phase 4: Payment History Enhancement
 	 *
 	 * GET /api/v1/payments/history/subscription/:subscriptionId
+	 * ✅ RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('history/subscription/:subscriptionId')
 	async getSubscriptionPaymentHistory(
-		@Request() _req: Request & { user: User },
+		@JwtToken() token: string,
 		@Param('subscriptionId') subscriptionId: string
 	) {
 		this.logger.log(
-			`Getting payment history for subscription ${subscriptionId} for user ${_req.user?.id}`
+			`Getting payment history for subscription ${subscriptionId}`
 		)
 
 		const payments =
 			await this.rentPaymentsService.getSubscriptionPaymentHistory(
 				subscriptionId,
-				_req.user?.id
+				token
 			)
 
 		return {
@@ -137,13 +136,14 @@ export class RentPaymentsController {
 	 * Phase 4: Payment History Enhancement
 	 *
 	 * GET /api/v1/payments/failed-attempts
+	 * ✅ RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('failed-attempts')
-	async getFailedPaymentAttempts(@Request() _req: Request & { user: User }) {
-		this.logger.log(`Getting failed payment attempts for user ${_req.user?.id}`)
+	async getFailedPaymentAttempts(@JwtToken() token: string) {
+		this.logger.log('Getting failed payment attempts for authenticated user')
 
 		const failedAttempts =
-			await this.rentPaymentsService.getFailedPaymentAttempts(_req.user?.id)
+			await this.rentPaymentsService.getFailedPaymentAttempts(token)
 
 		return {
 			failedAttempts: failedAttempts.map(attempt => ({
@@ -163,20 +163,21 @@ export class RentPaymentsController {
 	 * Phase 4: Payment History Enhancement
 	 *
 	 * GET /api/v1/payments/failed-attempts/subscription/:subscriptionId
+	 * ✅ RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('failed-attempts/subscription/:subscriptionId')
 	async getSubscriptionFailedAttempts(
-		@Request() _req: Request & { user: User },
+		@JwtToken() token: string,
 		@Param('subscriptionId') subscriptionId: string
 	) {
 		this.logger.log(
-			`Getting failed payment attempts for subscription ${subscriptionId} for user ${_req.user?.id}`
+			`Getting failed payment attempts for subscription ${subscriptionId}`
 		)
 
 		const failedAttempts =
 			await this.rentPaymentsService.getSubscriptionFailedAttempts(
 				subscriptionId,
-				_req.user?.id
+				token
 			)
 
 		return {
@@ -199,7 +200,6 @@ export class RentPaymentsController {
 	 */
 	@Post('autopay/setup')
 	async setupAutopay(
-		@Request() _req: Request & { user: User },
 		@Body()
 		body: {
 			tenantId: string
@@ -238,7 +238,6 @@ export class RentPaymentsController {
 	 */
 	@Post('autopay/cancel')
 	async cancelAutopay(
-		@Request() _req: Request & { user: User },
 		@Body()
 		body: {
 			tenantId: string
@@ -266,7 +265,6 @@ export class RentPaymentsController {
 	 */
 	@Get('autopay/status/:tenantId/:leaseId')
 	async getAutopayStatus(
-		@Request() _req: Request & { user: User },
 		@Param('tenantId') tenantId: string,
 		@Param('leaseId') leaseId: string
 	) {

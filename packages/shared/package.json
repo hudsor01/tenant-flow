@@ -49,23 +49,24 @@
 		"build": "tsc",
 		"dev": "tsc --watch",
 		"typecheck": "tsc --noEmit",
-		"lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/__tests__/**\"",
+		"lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/__tests__/**\" --no-error-on-unmatched-pattern --no-warn-ignored",
 		"lint:fix": "pnpm lint --fix",
 		"update-types": "node scripts/update-supabase-types.js",
 		"clean": "rimraf dist .turbo"
 	},
 	"dependencies": {
 		"@supabase/ssr": "catalog:",
-		"@supabase/supabase-js": "^2.78.0",
+		"@supabase/supabase-js": "catalog:",
 		"@tanstack/react-query": "5.90.5",
 		"zod": "4.1.12"
 	},
 	"devDependencies": {
 		"@types/express": "^5.0.5",
-		"@types/node": "^24.9.2",
+		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
-		"rimraf": "6.0.1",
-		"typescript": "^5.9.3"
+		"eslint": "catalog:",
+		"rimraf": "^6.1.0",
+		"typescript": "catalog:"
 	}
 }

@@ -147,12 +147,8 @@ describe('UnitsController', () => {
 
 			mockUnitsServiceInstance.getStats.mockResolvedValue(mockStats as any)
 
-			const result = await controller.getStats(
-				createMockRequest({ user: mockUser }) as any
-			)
-			expect(mockUnitsServiceInstance.getStats).toHaveBeenCalledWith(
-				mockUser.id
-			)
+			const result = await controller.getStats('mock-jwt-token')
+			expect(mockUnitsServiceInstance.getStats).toHaveBeenCalledWith('mock-jwt-token')
 			expect(result).toEqual(mockStats)
 		})
 	})
@@ -164,12 +160,12 @@ describe('UnitsController', () => {
 			mockUnitsServiceInstance.findByProperty.mockResolvedValue(mockUnits)
 
 			const result = await controller.findByProperty(
-				createMockRequest({ user: mockUser }) as any,
+				'mock-jwt-token',
 				'property-123'
 			)
 
 			expect(mockUnitsServiceInstance.findByProperty).toHaveBeenCalledWith(
-				mockUser.id,
+				'mock-jwt-token',
 				'property-123'
 			)
 			expect(result).toEqual(mockUnits)
@@ -183,11 +179,11 @@ describe('UnitsController', () => {
 			mockUnitsServiceInstance.findOne.mockResolvedValue(mockUnit)
 
 			const result = await controller.findOne(
-				createMockRequest({ user: mockUser }) as any,
+				'mock-jwt-token',
 				'unit-1'
 			)
 			expect(mockUnitsServiceInstance.findOne).toHaveBeenCalledWith(
-				mockUser.id,
+				'mock-jwt-token',
 				'unit-1'
 			)
 			expect(result).toEqual(mockUnit)
@@ -198,7 +194,7 @@ describe('UnitsController', () => {
 
 			await expect(
 				controller.findOne(
-					createMockRequest({ user: mockUser }) as any,
+					'mock-jwt-token',
 					'non-existent'
 				)
 			).rejects.toThrow(NotFoundException)
@@ -212,11 +208,11 @@ describe('UnitsController', () => {
 			mockUnitsServiceInstance.create.mockResolvedValue(mockUnit)
 
 			const result = await controller.create(
-				createMockRequest({ user: mockUser }) as any,
+				'mock-jwt-token',
 				validCreateUnitRequest
 			)
 			expect(mockUnitsServiceInstance.create).toHaveBeenCalledWith(
-				mockUser.id,
+				'mock-jwt-token',
 				validCreateUnitRequest
 			)
 			expect(result).toEqual(mockUnit)
@@ -233,12 +229,12 @@ describe('UnitsController', () => {
 			mockUnitsServiceInstance.update.mockResolvedValue(mockUnit)
 
 			const result = await controller.update(
-				createMockRequest({ user: mockUser }) as any,
+				'mock-jwt-token',
 				'unit-1',
 				validUpdateUnitRequest
 			)
 			expect(mockUnitsServiceInstance.update).toHaveBeenCalledWith(
-				mockUser.id,
+				'mock-jwt-token',
 				'unit-1',
 				validUpdateUnitRequest,
 				undefined // expectedVersion for optimistic locking
@@ -252,12 +248,12 @@ describe('UnitsController', () => {
 			mockUnitsServiceInstance.remove.mockResolvedValue(undefined)
 
 			const result = await controller.remove(
-				createMockRequest({ user: mockUser }) as any,
+				'mock-jwt-token',
 				'unit-1'
 			)
 
 			expect(mockUnitsServiceInstance.remove).toHaveBeenCalledWith(
-				mockUser.id,
+				'mock-jwt-token',
 				'unit-1'
 			)
 			expect(result.message).toBe('Unit deleted successfully')

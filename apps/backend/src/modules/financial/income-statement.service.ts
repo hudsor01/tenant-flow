@@ -27,23 +27,22 @@ export class IncomeStatementService {
 	 * Uses existing financial metrics RPC function
 	 */
 	async generateIncomeStatement(
-		userId: string,
+		token: string,
 		startDate: string,
 		endDate: string
 	): Promise<IncomeStatementData> {
-		const client = this.supabaseService.getAdminClient()
+		const client = this.supabaseService.getUserClient(token)
 
-		this.logger.log(
-			`Generating income statement for user ${userId} (${startDate} to ${endDate})`
-		)
+		this.logger.log(`Generating income statement (${startDate} to ${endDate})`)
 
 		// Use existing calculate_financial_metrics RPC
+		// RLS-protected RPC function automatically filters by authenticated user
 		const { data: metrics, error } = await client.rpc(
 			'calculate_financial_metrics',
 			{
-				p_user_id: userId,
 				p_start_date: startDate,
-				p_end_date: endDate
+				p_end_date: endDate,
+				p_user_id: ''
 			}
 		)
 
@@ -55,6 +54,7 @@ export class IncomeStatementService {
 		// Get maintenance costs
 		// Note: maintenance_request links to unit, which links to property
 		// We need to join through unit to filter by property owner
+		// RLS automatically filters maintenance requests by user's properties
 		const { data: maintenanceData, error: maintenanceError } = await client
 			.from('maintenance_request')
 			.select(
@@ -62,12 +62,11 @@ export class IncomeStatementService {
 				estimatedCost,
 				unit!inner(
 					property!inner(
-						ownerId
+						id
 					)
 				)
 			`
 			)
-			.eq('unit.property.ownerId', userId)
 			.gte('createdAt', startDate)
 			.lte('createdAt', endDate)
 			.eq('status', 'COMPLETED')
@@ -117,7 +116,7 @@ export class IncomeStatementService {
 
 		// Calculate previous period comparison
 		const previousPeriod = await this.calculatePreviousPeriod(
-			userId,
+			token,
 			startDate,
 			endDate,
 			netIncome
@@ -153,7 +152,7 @@ export class IncomeStatementService {
 	 * Calculate previous period net income for comparison
 	 */
 	private async calculatePreviousPeriod(
-		userId: string,
+		token: string,
 		startDate: string,
 		endDate: string,
 		currentNetIncome: number
@@ -174,14 +173,14 @@ export class IncomeStatementService {
 		const previousEndStr = previousEnd.toISOString().split('T')[0] as string
 
 		try {
-			const client = this.supabaseService.getAdminClient()
+			const client = this.supabaseService.getUserClient(token)
 
 			const { data: previousMetrics, error } = await client.rpc(
 				'calculate_financial_metrics',
 				{
-					p_user_id: userId,
 					p_start_date: previousStartStr,
-					p_end_date: previousEndStr
+					p_end_date: previousEndStr,
+					p_user_id: ''
 				}
 			)
 

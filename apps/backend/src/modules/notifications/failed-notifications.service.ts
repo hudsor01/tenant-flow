@@ -31,7 +31,7 @@ export class FailedNotificationsService {
 	 */
 	async logFailure(
 		eventType: string,
-		eventData: any,
+		eventData: unknown,
 		error: Error
 	): Promise<void> {
 		try {
@@ -76,7 +76,7 @@ export class FailedNotificationsService {
 	async retryWithBackoff<T>(
 		operation: () => Promise<T>,
 		eventType: string,
-		eventData: any,
+		eventData: unknown,
 		attempt = 0
 	): Promise<T | null> {
 		try {
@@ -106,7 +106,7 @@ export class FailedNotificationsService {
 	/**
 	 * Query failed notifications for manual retry
 	 */
-	async getFailedNotifications(limit = 50): Promise<any[]> {
+	async getFailedNotifications(limit = 50): Promise<unknown[]> {
 		try {
 			const client = this.supabase.getAdminClient()
 

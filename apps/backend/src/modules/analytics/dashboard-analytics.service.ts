@@ -28,10 +28,17 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 	private async callRpc<T = unknown>(
 		functionName: string,
-		payload: Record<string, unknown>
+		payload: Record<string, unknown>,
+		token?: string
 	): Promise<T | null> {
 		try {
-			const result = await this.supabase.rpcWithRetries(functionName, payload)
+			// Use user-scoped client if token provided (RLS-enforced), otherwise admin
+			const client = token
+				? this.supabase.getUserClient(token)
+				: this.supabase.getAdminClient()
+			
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const result = await (client as any).rpc(functionName, payload)
 			const res = result as {
 				data?: T
 				error?: { message?: string } | null
@@ -53,7 +60,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		}
 	}
 
-	async getDashboardStats(userId: string): Promise<DashboardStats> {
+	async getDashboardStats(userId: string, token?: string): Promise<DashboardStats> {
 		try {
 			this.logger.log('Calculating dashboard stats via optimized RPC', {
 				userId
@@ -64,7 +71,8 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				'get_dashboard_stats',
 				{
 					user_id_param: userId
-				}
+				},
+				token
 			)
 
 			if (primary) return primary
@@ -81,7 +89,8 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				'get_dashboard_stats',
 				{
 					user_id_param: userId
-				}
+				},
+				token
 			)
 
 			if (!fallback) {
@@ -105,13 +114,14 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		}
 	}
 
-	async getPropertyPerformance(userId: string): Promise<PropertyPerformance[]> {
+	async getPropertyPerformance(userId: string, token?: string): Promise<PropertyPerformance[]> {
 		try {
 			this.logger.log('Calculating property performance via RPC', { userId })
 
 			const raw = await this.callRpc<PropertyPerformanceRpcResponse[]>(
 				'get_property_performance',
-				{ p_user_id: userId }
+				{ p_user_id: userId },
+				token
 			)
 
 			if (!raw) return []
@@ -146,6 +156,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 	async getOccupancyTrends(
 		userId: string,
+		token?: string,
 		months: number = 12
 	): Promise<OccupancyTrendResponse[]> {
 		try {
@@ -157,7 +168,8 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			// Use the actual RPC function instead of fake data
 			const raw = await this.callRpc<OccupancyTrendResponse[]>(
 				'get_occupancy_trends_optimized',
-				{ p_user_id: userId, p_months: months }
+				{ p_user_id: userId, p_months: months },
+				token
 			)
 
 			if (!raw || raw.length === 0) {
@@ -188,6 +200,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 	async getRevenueTrends(
 		userId: string,
+		token?: string,
 		months: number = 12
 	): Promise<RevenueTrendResponse[]> {
 		try {
@@ -199,7 +212,8 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			// Use the actual RPC function instead of fake data
 			const raw = await this.callRpc<RevenueTrendResponse[]>(
 				'get_revenue_trends_optimized',
-				{ p_user_id: userId, p_months: months }
+				{ p_user_id: userId, p_months: months },
+				token
 			)
 
 			if (!raw || raw.length === 0) {
@@ -230,7 +244,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		}
 	}
 
-	async getMaintenanceAnalytics(userId: string): Promise<{
+	async getMaintenanceAnalytics(userId: string, token?: string): Promise<{
 		avgResolutionTime: number
 		completionRate: number
 		priorityBreakdown: Record<string, number>
@@ -254,7 +268,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 					completed: number
 					avgResolutionDays: number
 				}>
-			}>('get_maintenance_analytics', { user_id: userId })
+			}>('get_maintenance_analytics', { user_id: userId }, token)
 
 			if (!maintenanceRaw) {
 				this.logger.error('Failed to calculate maintenance analytics via RPC', {
@@ -290,6 +304,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 	async getBillingInsights(
 		userId: string,
+		token?: string,
 		options?: {
 			startDate?: Date
 			endDate?: Date
@@ -301,7 +316,10 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				options
 			})
 
-			const client = this.supabase.getAdminClient()
+			// Use user-scoped client if token provided (RLS-enforced), otherwise admin
+			const client = token
+				? this.supabase.getUserClient(token)
+				: this.supabase.getAdminClient()
 
 			// Simple billing insights (placeholder for now)
 			const { data, error } = await client

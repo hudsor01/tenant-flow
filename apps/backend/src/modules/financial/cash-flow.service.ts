@@ -31,23 +31,24 @@ export class CashFlowService {
 	 * Orchestrates data from monthly metrics and billing insights
 	 */
 	async generateCashFlowStatement(
-		userId: string,
+		token: string,
 		startDate: string,
 		endDate: string,
 		// When false, do not calculate the previous period to avoid recursive calls
 		includePreviousPeriod = true
 	): Promise<CashFlowData> {
-		const client = this.supabaseService.getAdminClient()
+		const client = this.supabaseService.getUserClient(token)
 
 		this.logger.log(
-			`Generating cash flow statement for user ${userId} (${startDate} to ${endDate})`
+			`Generating cash flow statement (${startDate} to ${endDate})`
 		)
 
 		// Get monthly metrics for cash flow patterns
+		// RLS-protected RPC function automatically filters by authenticated user
 		const { data: monthlyMetrics, error: monthlyError } = await client.rpc(
 			'calculate_monthly_metrics',
 			{
-				p_user_id: userId
+				p_user_id: ''
 			}
 		)
 
@@ -59,10 +60,11 @@ export class CashFlowService {
 		}
 
 		// Get billing insights for collections
+		// RLS-protected RPC function automatically filters by authenticated user
 		const { data: billingInsights, error: billingError } = await client.rpc(
 			'get_billing_insights',
 			{
-				user_id: userId
+				user_id: ''
 			}
 		)
 
@@ -74,10 +76,11 @@ export class CashFlowService {
 		}
 
 		// Get invoice statistics for accounts receivable changes
+		// RLS-protected RPC function automatically filters by authenticated user
 		const { data: _invoiceStats, error: invoiceError } = await client.rpc(
 			'get_invoice_statistics',
 			{
-				p_user_id: userId
+				p_user_id: ''
 			}
 		)
 
@@ -122,7 +125,7 @@ export class CashFlowService {
 		// Calculate previous period comparison (optional)
 		const previousPeriod = includePreviousPeriod
 			? await this.calculatePreviousPeriod(
-					userId,
+					token,
 					startDate,
 					endDate,
 					netCashFlow
@@ -165,7 +168,7 @@ export class CashFlowService {
 	 * Calculate previous period net cash flow for comparison
 	 */
 	private async calculatePreviousPeriod(
-		userId: string,
+		token: string,
 		startDate: string,
 		endDate: string,
 		currentNetCashFlow: number
@@ -183,7 +186,7 @@ export class CashFlowService {
 
 		try {
 			const previousData = await this.generateCashFlowStatement(
-				userId,
+				token,
 				previousStartStr,
 				previousEndStr,
 				// do not include previousPeriod for the previous period (avoid recursion)

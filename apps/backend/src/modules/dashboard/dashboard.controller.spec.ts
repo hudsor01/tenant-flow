@@ -4,12 +4,21 @@ import { Test } from '@nestjs/testing'
 import { createAuthenticatedRequest } from '../../shared/test-utils/types'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { createMockUser } from '../../test-utils/mocks'
+import { SupabaseService } from '../../database/supabase.service'
 import { DashboardController } from './dashboard.controller'
 import { DashboardService } from './dashboard.service'
 
-// Mock only the service - controllers don't call SupabaseService directly
+// Mock the services
 jest.mock('./dashboard.service')
-jest.mock('../../database/supabase.service')
+jest.mock('../../database/supabase.service', () => {
+	return {
+		SupabaseService: jest.fn().mockImplementation(() => ({
+			getTokenFromRequest: jest.fn().mockReturnValue('mock-jwt-token'),
+			getUserClient: jest.fn(),
+			getAdminClient: jest.fn()
+		}))
+	}
+})
 
 describe('DashboardController', () => {
 	let controller: DashboardController
@@ -32,7 +41,17 @@ describe('DashboardController', () => {
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [DashboardController],
-			providers: [DashboardService]
+			providers: [
+				DashboardService,
+				{
+					provide: SupabaseService,
+					useValue: {
+						getTokenFromRequest: jest.fn().mockReturnValue('mock-jwt-token'),
+						getUserClient: jest.fn(),
+						getAdminClient: jest.fn()
+					}
+				}
+			]
 		}).compile()
 
 		controller = module.get<DashboardController>(DashboardController)
@@ -54,7 +73,8 @@ describe('DashboardController', () => {
 			const result = await controller.getStats(mockRequest)
 
 			expect(mockDashboardServiceInstance.getStats).toHaveBeenCalledWith(
-				mockUser.id
+				mockUser.id,
+				'mock-jwt-token'
 			)
 			expect(result).toEqual({
 				success: true,
@@ -84,7 +104,8 @@ describe('DashboardController', () => {
 			const result = await controller.getActivity(mockRequest)
 
 			expect(mockDashboardServiceInstance.getActivity).toHaveBeenCalledWith(
-				mockUser.id
+				mockUser.id,
+				'mock-jwt-token'
 			)
 			expect(result).toEqual({
 				success: true,
@@ -117,6 +138,7 @@ describe('DashboardController', () => {
 				mockDashboardServiceInstance.getBillingInsights
 			).toHaveBeenCalledWith(
 				mockUser.id,
+				'mock-jwt-token',
 				new Date('2024-01-01'),
 				new Date('2024-01-31')
 			)
@@ -144,7 +166,7 @@ describe('DashboardController', () => {
 
 			expect(
 				mockDashboardServiceInstance.getBillingInsights
-			).toHaveBeenCalledWith(mockUser.id, undefined, undefined)
+			).toHaveBeenCalledWith(mockUser.id, 'mock-jwt-token', undefined, undefined)
 			expect(result.success).toBe(true)
 		})
 
@@ -174,7 +196,7 @@ describe('DashboardController', () => {
 
 			expect(
 				mockDashboardServiceInstance.isBillingInsightsAvailable
-			).toHaveBeenCalledWith(mockUser.id)
+			).toHaveBeenCalledWith(mockUser.id, 'mock-jwt-token')
 			expect(result).toEqual({
 				success: true,
 				data: {
@@ -243,7 +265,7 @@ describe('DashboardController', () => {
 
 			expect(
 				mockDashboardServiceInstance.getPropertyPerformance
-			).toHaveBeenCalledWith(mockUser.id)
+			).toHaveBeenCalledWith(mockUser.id, 'mock-jwt-token')
 			expect(result).toEqual({
 				success: true,
 				data: mockPerformance,

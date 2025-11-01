@@ -26,8 +26,10 @@ const createSelectSingleMock = <T>(result: T): any => {
 
 describe('PaymentMethodsService', () => {
 	let service: PaymentMethodsService
+	const userClient: any = { from: jest.fn() }
 	const adminClient: any = { from: jest.fn() }
 	const mockSupabaseService = {
+		getUserClient: jest.fn(() => userClient),
 		getAdminClient: jest.fn(() => adminClient)
 	}
 	const mockStripe = {
@@ -45,6 +47,7 @@ describe('PaymentMethodsService', () => {
 	}
 
 	beforeEach(async () => {
+		userClient.from.mockReset()
 		adminClient.from.mockReset()
 
 		const module: TestingModule = await Test.createTestingModule({
@@ -158,6 +161,7 @@ describe('PaymentMethodsService', () => {
 			})
 
 			const result = await service.createSetupIntent(
+				'token_123',
 				'user-1',
 				'tenant@example.com',
 				'us_bank_account'
@@ -194,6 +198,14 @@ describe('PaymentMethodsService', () => {
 				email: 'tenant@example.com'
 			})
 
+			// Mock adminClient for getOrCreateStripeCustomer call
+			adminClient.from.mockImplementation((table: string) => {
+				if (table === 'users') {
+					return userBuilder
+				}
+				throw new Error(`Unexpected table ${table}`)
+			})
+
 			const duplicateCheckBuilder: any = {
 				select: jest.fn(() => duplicateCheckBuilder),
 				match: jest.fn(() => duplicateCheckBuilder),
@@ -217,7 +229,7 @@ describe('PaymentMethodsService', () => {
 
 			let tenantPaymentMethodCall = 0
 
-			adminClient.from.mockImplementation((table: string) => {
+			userClient.from.mockImplementation((table: string) => {
 				if (table === 'users') {
 					return userBuilder
 				}
@@ -240,7 +252,11 @@ describe('PaymentMethodsService', () => {
 				throw new Error(`Unexpected table ${table}`)
 			})
 
-			const result = await service.savePaymentMethod('user-1', 'pm_123')
+			const result = await service.savePaymentMethod(
+				'token_123',
+				'user-1',
+				'pm_123'
+			)
 
 			expect(result).toEqual({ success: true })
 			expect(insertBuilder.insert).toHaveBeenCalledWith(

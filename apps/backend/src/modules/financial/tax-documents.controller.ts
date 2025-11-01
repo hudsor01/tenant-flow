@@ -3,19 +3,12 @@ import {
 	Controller,
 	Get,
 	Query,
-	Req,
+	UnauthorizedException,
 	UseGuards
 } from '@nestjs/common'
-import type { Request } from 'express'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { TaxDocumentsService } from './tax-documents.service'
-
-interface AuthenticatedRequest extends Request {
-	user?: {
-		id: string
-		email: string
-	}
-}
 
 @Controller('financials/tax-documents')
 @UseGuards(JwtAuthGuard)
@@ -24,13 +17,11 @@ export class TaxDocumentsController {
 
 	@Get()
 	async getTaxDocuments(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Query('taxYear') taxYear?: string
 	) {
-		const userId = req.user?.id
-
-		if (!userId) {
-			throw new BadRequestException('User ID is required')
+		if (!token) {
+			throw new UnauthorizedException('Authentication token is required')
 		}
 
 		// Default to current year if no tax year provided
@@ -43,7 +34,7 @@ export class TaxDocumentsController {
 		}
 
 		const data = await this.taxDocumentsService.generateTaxDocuments(
-			userId,
+			token,
 			finalYear
 		)
 

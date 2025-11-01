@@ -38,21 +38,28 @@ export class BalanceSheetService {
 	 * Aggregates assets, liabilities, and equity
 	 */
 	async generateBalanceSheet(
-		userId: string,
+		token: string,
 		asOfDate: string
 	): Promise<BalanceSheetData> {
-		const client = this.supabaseService.getAdminClient()
+		const client = this.supabaseService.getUserClient(token)
 
-		this.logger.log(
-			`Generating balance sheet for user ${userId} as of ${asOfDate}`
-		)
+		// Get user ID from token
+		const {
+			data: { user },
+			error: authError
+		} = await this.supabaseService.getAdminClient().auth.getUser(token)
+
+		if (authError || !user) {
+			throw new Error('Failed to authenticate user from token')
+		}
+
+		this.logger.log(`Generating balance sheet as of ${asOfDate}`)
 
 		// Get financial overview for balance sheet data
+		// RLS-protected RPC function automatically filters by authenticated user
 		const { data: financialOverview, error: overviewError } = await client.rpc(
 			'get_financial_overview',
-			{
-				p_user_id: userId
-			}
+			{ p_user_id: user.id }
 		)
 
 		if (overviewError) {
@@ -63,10 +70,11 @@ export class BalanceSheetService {
 		}
 
 		// Get net operating income for property values
+		// RLS-protected RPC function automatically filters by authenticated user
 		const { data: noiData, error: noiError } = await client.rpc(
 			'calculate_net_operating_income',
 			{
-				p_user_id: userId
+				p_user_id: ''
 			}
 		)
 
@@ -76,10 +84,11 @@ export class BalanceSheetService {
 		}
 
 		// Get lease financial summary for receivables
+		// RLS-protected RPC function automatically filters by authenticated user
 		const { data: leaseSummary, error: leaseError } = await client.rpc(
 			'get_lease_financial_summary',
 			{
-				p_user_id: userId
+				p_user_id: ''
 			}
 		)
 

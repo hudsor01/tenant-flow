@@ -15,7 +15,7 @@
 		"start": "node dist/main.js",
 		"start:dev": "doppler run -- node dist/main.js",
 		"start:prod": "NODE_ENV=production pnpm start",
-		"lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/*.d.ts\"",
+		"lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/*.d.ts\" --no-error-on-unmatched-pattern --no-warn-ignored",
 		"lint:fix": "pnpm lint --fix",
 		"typecheck": "tsc --noEmit",
 		"test": "pnpm run test:unit && pnpm run test:integration",
@@ -91,19 +91,14 @@
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"@types/supertest": "^6.0.3",
-		"eslint": "9.39.0",
+		"eslint": "catalog:",
 		"globals": "16.4.0",
 		"jest": "catalog:",
-		"rimraf": "6.1.0",
+		"rimraf": "^6.1.0",
 		"supertest": "^7.1.4",
 		"ts-jest": "29.4.5",
 		"ts-node": "^10.9.2",
 		"tsx": "^4.20.6",
-		"typescript": "^5.9.3",
-		"typescript-eslint": "^8.46.2"
-	},
-	"overrides": {
-		"path-to-regexp": "^8.3.0",
-		"minimatch": "^10.1.1"
+		"typescript": "catalog:"
 	}
 }

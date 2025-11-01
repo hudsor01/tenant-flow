@@ -11,12 +11,16 @@ import {
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { DashboardService } from './dashboard.service'
+import { SupabaseService } from '../../database/supabase.service'
 
 @Controller('manage')
 export class DashboardController {
 	private readonly logger = new Logger(DashboardController.name)
 
-	constructor(private readonly dashboardService: DashboardService) {}
+	constructor(
+		private readonly dashboardService: DashboardService,
+		private readonly supabase: SupabaseService
+	) {}
 
 	@Get('stats')
 	// NOTE: Caching disabled - @CacheKey doesn't support per-user keys
@@ -25,6 +29,7 @@ export class DashboardController {
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
 		const userId = req.user.id
+		const token = this.supabase.getTokenFromRequest(req) || undefined
 
 		this.logger?.log(
 			{
@@ -34,7 +39,7 @@ export class DashboardController {
 			'Getting dashboard stats for authenticated user'
 		)
 
-		const data = await this.dashboardService.getStats(userId)
+		const data = await this.dashboardService.getStats(userId, token)
 		return {
 			success: true,
 			data,
@@ -47,22 +52,25 @@ export class DashboardController {
 	 * Unified dashboard endpoint - combines all dashboard data in one request
 	 * Reduces 5 HTTP requests to 1 for 40-50% faster initial page load
 	 */
-	@Get('page-data')
-	// NOTE: Caching disabled - @CacheKey doesn't support per-user keys
-	// User-specific data cannot use global cache without exposing data across users
 	async getPageData(@Request() req: AuthenticatedRequest) {
 		const userId = req.user?.id
+		const token = this.supabase.getTokenFromRequest(req)
 
 		if (!userId) {
 			this.logger.warn('Dashboard page data requested without user ID')
 			throw new UnauthorizedException('User not authenticated')
 		}
 
+		if (!token) {
+			this.logger.warn('Dashboard page data requested without token')
+			throw new UnauthorizedException('Authentication token missing')
+		}
+
 		try {
 			// Fetch all dashboard data in parallel
 			const [stats, activity] = await Promise.all([
-				this.dashboardService.getStats(userId),
-				this.dashboardService.getActivity(userId)
+				this.dashboardService.getStats(userId, token),
+				this.dashboardService.getActivity(userId, token)
 			])
 
 			return {
@@ -80,11 +88,16 @@ export class DashboardController {
 		}
 	}
 
-	@Get('activity')
 	async getActivity(
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
 		const userId = req.user.id
+		const token = this.supabase.getTokenFromRequest(req)
+
+		if (!token) {
+			this.logger.warn('Dashboard activity requested without token')
+			throw new UnauthorizedException('Authentication token missing')
+		}
 
 		this.logger?.log(
 			{
@@ -96,7 +109,7 @@ export class DashboardController {
 			'Getting dashboard activity via DashboardService'
 		)
 
-		const data = await this.dashboardService.getActivity(userId)
+		const data = await this.dashboardService.getActivity(userId, token!)
 
 		return {
 			success: true,
@@ -113,6 +126,7 @@ export class DashboardController {
 		@Query('endDate') endDate?: string
 	): Promise<ControllerApiResponse> {
 		const userId = req.user.id
+		const token = this.supabase.getTokenFromRequest(req) || undefined
 
 		this.logger?.log(
 			{
@@ -141,6 +155,7 @@ export class DashboardController {
 
 		const data = await this.dashboardService.getBillingInsights(
 			userId,
+			token,
 			parsedStartDate,
 			parsedEndDate
 		)
@@ -154,10 +169,16 @@ export class DashboardController {
 		}
 	}
 
-	@Get('billing/health')
 	async getBillingHealth(
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
+		const token = this.supabase.getTokenFromRequest(req)
+
+		if (!token) {
+			this.logger.warn('Billing health check requested without token')
+			throw new UnauthorizedException('Authentication token missing')
+		}
+
 		this.logger?.log(
 			{
 				dashboard: {
@@ -167,7 +188,7 @@ export class DashboardController {
 			'Checking billing insights availability via DashboardService'
 		)
 
-		const isAvailable = await this.dashboardService.isBillingInsightsAvailable(req.user.id)
+		const isAvailable = await this.dashboardService.isBillingInsightsAvailable(req.user.id, token!)
 
 		return {
 			success: true,
@@ -196,6 +217,7 @@ export class DashboardController {
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
 		const userId = req.user.id
+		const token = this.supabase.getTokenFromRequest(req) || undefined
 
 		this.logger?.log(
 			{
@@ -207,7 +229,7 @@ export class DashboardController {
 			'Getting property performance via DashboardService'
 		)
 
-		const data = await this.dashboardService.getPropertyPerformance(userId)
+		const data = await this.dashboardService.getPropertyPerformance(userId, token)
 
 		return {
 			success: true,
@@ -244,6 +266,7 @@ export class DashboardController {
 		@Query('months') months: string = '12'
 	): Promise<ControllerApiResponse> {
 		const userId = req.user.id
+		const token = this.supabase.getTokenFromRequest(req) || undefined
 		const monthsNum = parseInt(months, 10) || 12
 
 		this.logger?.log(
@@ -259,6 +282,7 @@ export class DashboardController {
 
 		const data = await this.dashboardService.getOccupancyTrends(
 			userId,
+			token,
 			monthsNum
 		)
 
@@ -276,6 +300,7 @@ export class DashboardController {
 		@Query('months') months: string = '12'
 	): Promise<ControllerApiResponse> {
 		const userId = req.user.id
+		const token = this.supabase.getTokenFromRequest(req) || undefined
 		const monthsNum = parseInt(months, 10) || 12
 
 		this.logger?.log(
@@ -289,7 +314,7 @@ export class DashboardController {
 			'Getting revenue trends via optimized RPC'
 		)
 
-		const data = await this.dashboardService.getRevenueTrends(userId, monthsNum)
+		const data = await this.dashboardService.getRevenueTrends(userId, token, monthsNum)
 
 		return {
 			success: true,
@@ -304,6 +329,7 @@ export class DashboardController {
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
 		const userId = req.user.id
+		const token = this.supabase.getTokenFromRequest(req) || undefined
 
 		this.logger?.log(
 			{
@@ -315,7 +341,7 @@ export class DashboardController {
 			'Getting maintenance analytics via optimized RPC'
 		)
 
-		const data = await this.dashboardService.getMaintenanceAnalytics(userId)
+		const data = await this.dashboardService.getMaintenanceAnalytics(userId, token)
 
 		return {
 			success: true,

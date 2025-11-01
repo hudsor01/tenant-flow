@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 
 export default async function TenantsPage() {
 	// ✅ Server-side auth - NO client flash, instant 307 redirect
-	const { user, accessToken } = await requireSession()
+	const { user } = await requireSession()
 
 	const logger = createLogger({ component: 'TenantsPage', userId: user.id })
 

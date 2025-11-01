@@ -10,6 +10,7 @@ import {
 	Post,
 	Request
 } from '@nestjs/common'
+import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { PaymentMethodsService } from './payment-methods.service'
 
 interface AuthenticatedRequest extends Request {
@@ -29,6 +30,7 @@ export class PaymentMethodsController {
 	 */
 	@Post('setup-intent')
 	async createSetupIntent(
+		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest,
 		@Body() body: { type?: 'card' | 'us_bank_account' }
 	) {
@@ -46,7 +48,7 @@ export class PaymentMethodsController {
 			)
 		}
 
-		return this.paymentMethodsService.createSetupIntent(userId, email, type)
+		return this.paymentMethodsService.createSetupIntent(token, userId, email, type)
 	}
 
 	/**
@@ -55,6 +57,7 @@ export class PaymentMethodsController {
 	 */
 	@Post('save')
 	async savePaymentMethod(
+		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest,
 		@Body() body: { paymentMethodId: string }
 	) {
@@ -69,6 +72,7 @@ export class PaymentMethodsController {
 		}
 
 		return this.paymentMethodsService.savePaymentMethod(
+			token,
 			userId,
 			body.paymentMethodId
 		)
@@ -79,7 +83,10 @@ export class PaymentMethodsController {
 	 * GET /payment-methods
 	 */
 	@Get()
-	async listPaymentMethods(@Request() req: AuthenticatedRequest) {
+	async listPaymentMethods(
+		@JwtToken() token: string,
+		@Request() req: AuthenticatedRequest
+	) {
 		const userId = req.user?.id
 
 		if (!userId) {
@@ -87,7 +94,7 @@ export class PaymentMethodsController {
 		}
 
 		const paymentMethods =
-			await this.paymentMethodsService.listPaymentMethods(userId)
+			await this.paymentMethodsService.listPaymentMethods(token, userId)
 
 		return { paymentMethods }
 	}
@@ -98,6 +105,7 @@ export class PaymentMethodsController {
 	 */
 	@Patch(':id/default')
 	async setDefaultPaymentMethod(
+		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest,
 		@Param('id', ParseUUIDPipe) paymentMethodId: string
 	) {
@@ -108,6 +116,7 @@ export class PaymentMethodsController {
 		}
 
 		return this.paymentMethodsService.setDefaultPaymentMethod(
+			token,
 			userId,
 			paymentMethodId
 		)
@@ -119,6 +128,7 @@ export class PaymentMethodsController {
 	 */
 	@Delete(':id')
 	async deletePaymentMethod(
+		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest,
 		@Param('id', ParseUUIDPipe) paymentMethodId: string
 	) {
@@ -129,6 +139,7 @@ export class PaymentMethodsController {
 		}
 
 		return this.paymentMethodsService.deletePaymentMethod(
+			token,
 			userId,
 			paymentMethodId
 		)

@@ -2,7 +2,7 @@
  *  ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS
  *
  * ONLY built-in NestJS pipes, native exceptions, direct RPC calls.
- * FORBIDDEN: Custom decorators, DTOs, validation layers, middleware
+ * FORBIDDEN: Custom decorators (except @JwtToken/@UserId), validation layers, middleware
  */
 
 import {
@@ -18,11 +18,11 @@ import {
 	ParseUUIDPipe,
 	Post,
 	Put,
-	Query,
-	Req
+	Query
 } from '@nestjs/common'
-import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import type { CreateMaintenanceRequest, UpdateMaintenanceRequest } from '@repo/shared/types/backend-domain'
+import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import { UserId } from '../../shared/decorators/user.decorator'
 import { MaintenanceService } from './maintenance.service'
 import { CreateMaintenanceDto } from './dto/create-maintenance.dto'
 import { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
@@ -31,9 +31,13 @@ import { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
 export class MaintenanceController {
 	constructor(private readonly maintenanceService: MaintenanceService) {}
 
+	/**
+	 * Get all maintenance requests
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 */
 	@Get()
 	async findAll(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Query('unitId') unitId?: string,
 		@Query('propertyId') propertyId?: string,
 		@Query('priority') priority?: string,
@@ -94,10 +98,8 @@ export class MaintenanceController {
 			throw new BadRequestException('Limit must be between 1 and 50')
 		}
 
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-
-		return this.maintenanceService.findAll(userId, {
+		// ✅ RLS: Pass JWT token to service layer
+		return this.maintenanceService.findAll(token, {
 			unitId,
 			propertyId,
 			priority,
@@ -110,64 +112,76 @@ export class MaintenanceController {
 		})
 	}
 
+	/**
+	 * Get maintenance statistics
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 */
 	@Get('stats')
-	async getStats(@Req() req: AuthenticatedRequest) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-		return this.maintenanceService.getStats(userId)
+	async getStats(@JwtToken() token: string) {
+		return this.maintenanceService.getStats(token)
 	}
 
+	/**
+	 * Get urgent maintenance requests
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 */
 	@Get('urgent')
-	async getUrgent(@Req() req: AuthenticatedRequest) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-		return this.maintenanceService.getUrgent(userId)
+	async getUrgent(@JwtToken() token: string) {
+		return this.maintenanceService.getUrgent(token)
 	}
 
+	/**
+	 * Get overdue maintenance requests
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 */
 	@Get('overdue')
-	async getOverdue(@Req() req: AuthenticatedRequest) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-		return this.maintenanceService.getOverdue(userId)
+	async getOverdue(@JwtToken() token: string) {
+		return this.maintenanceService.getOverdue(token)
 	}
 
+	/**
+	 * Get one maintenance request by ID
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 */
 	@Get(':id')
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest
+		@JwtToken() token: string
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-		const maintenance = await this.maintenanceService.findOne(userId, id)
+		const maintenance = await this.maintenanceService.findOne(token, id)
 		if (!maintenance) {
 			throw new NotFoundException('Maintenance request not found')
 		}
 		return maintenance
 	}
 
+	/**
+	 * Create maintenance request
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() and @UserId() decorators
+	 */
 	@Post()
 	async create(
 		@Body() dto: CreateMaintenanceDto,
-		@Req() req: AuthenticatedRequest
+		@JwtToken() token: string,
+		@UserId() userId: string
 	) {
-		// Modern 2025 pattern: Zod validation via nestjs-zod
-		const userId = req.user.id
-		return this.maintenanceService.create(userId, dto as unknown as CreateMaintenanceRequest)
+		return this.maintenanceService.create(token, userId, dto as unknown as CreateMaintenanceRequest)
 	}
 
+	/**
+	 * Update maintenance request
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 */
 	@Put(':id')
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() dto: UpdateMaintenanceDto,
-		@Req() req: AuthenticatedRequest
+		@JwtToken() token: string
 	) {
-		// Modern 2025 pattern: Zod validation via nestjs-zod
-		const userId = req.user.id
-
-		// 🔐 BUG FIX #2: Pass version for optimistic locking
+		// 🔐 Pass version for optimistic locking
 		const expectedVersion = (dto as unknown as { version?: number }).version
 		const maintenance = await this.maintenanceService.update(
-			userId,
+			token,
 			id,
 			dto as unknown as UpdateMaintenanceRequest,
 			expectedVersion
@@ -178,40 +192,46 @@ export class MaintenanceController {
 		return maintenance
 	}
 
+	/**
+	 * Delete maintenance request
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 */
 	@Delete(':id')
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest
+		@JwtToken() token: string
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-		await this.maintenanceService.remove(userId, id)
+		await this.maintenanceService.remove(token, id)
 		return { message: 'Maintenance request deleted successfully' }
 	}
 
+	/**
+	 * Complete maintenance request
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 */
 	@Post(':id/complete')
 	async complete(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Body('actualCost') actualCost?: number,
 		@Body('notes') notes?: string
 	) {
 		if (actualCost && (actualCost < 0 || actualCost > 999999)) {
 			throw new BadRequestException('Actual cost must be between 0 and 999999')
 		}
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-		return this.maintenanceService.complete(userId, id, actualCost, notes)
+		return this.maintenanceService.complete(token, id, actualCost, notes)
 	}
 
+	/**
+	 * Cancel maintenance request
+	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 */
 	@Post(':id/cancel')
 	async cancel(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Body('reason') reason?: string
 	) {
-		// Modern 2025 pattern: Direct Supabase validation
-		const userId = req.user.id
-		return this.maintenanceService.cancel(userId, id, reason)
+		return this.maintenanceService.cancel(token, id, reason)
 	}
 }

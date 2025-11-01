@@ -916,9 +916,9 @@ export class TenantsService {
 
 		// 🔐 BUG FIX #2: Use Saga pattern for transactional tenant+lease+auth creation
 		// This ensures proper rollback if any step fails, with comprehensive logging
-		let createdTenant: any = null
-		let createdLease: any = null
-		let createdAuthUser: any = null
+		let createdTenant: Tenant | null = null
+		let createdLease: { id: string } | null = null
+		let createdAuthUser: { id: string; email?: string } | null = null
 
 		const result = await new SagaBuilder(this.logger)
 			.addStep({
@@ -972,10 +972,10 @@ export class TenantsService {
 					this.logger.log('Tenant created successfully', { tenantId: tenant.id })
 					return tenant
 				},
-				compensate: async (tenant: any) => {
+				compensate: async (tenant: unknown) => {
 					// Rollback: Delete tenant record
-					if (tenant?.id) {
-						await client.from('tenant').delete().eq('id', tenant.id)
+					if (tenant && typeof tenant === 'object' && 'id' in tenant && tenant.id) {
+						await client.from('tenant').delete().eq('id', String(tenant.id))
 						this.logger.log('Compensated: Deleted tenant', { tenantId: tenant.id })
 					}
 				}
@@ -1013,10 +1013,10 @@ export class TenantsService {
 					this.logger.log('Lease created successfully', { leaseId: lease.id })
 					return lease
 				},
-				compensate: async (lease: any) => {
+				compensate: async (lease: { id: string } | null) => {
 					// Rollback: Delete lease record
-					if (lease?.id) {
-						await client.from('lease').delete().eq('id', lease.id)
+					if (lease && typeof lease === 'object' && 'id' in lease && lease.id) {
+						await client.from('lease').delete().eq('id', String(lease.id))
 						this.logger.log('Compensated: Deleted lease', { leaseId: lease.id })
 					}
 				}
@@ -1085,11 +1085,11 @@ export class TenantsService {
 					})
 					return authUser.user
 				},
-				compensate: async (authUser: any) => {
+				compensate: async (authUser: { id: string } | null) => {
 					// Rollback: Delete auth user
-					if (authUser?.id) {
+					if (authUser && typeof authUser === 'object' && 'id' in authUser && authUser.id) {
 						try {
-							await client.auth.admin.deleteUser(authUser.id)
+							await client.auth.admin.deleteUser(String(authUser.id))
 							this.logger.log('Compensated: Deleted auth user', { authUserId: authUser.id })
 						} catch (error) {
 							this.logger.error('Failed to delete auth user during compensation', {
@@ -1157,9 +1157,9 @@ export class TenantsService {
 		}
 
 		this.logger.log('Tenant invitation complete', {
-			tenantId: createdTenant?.id,
-			leaseId: createdLease?.id,
-			authUserId: createdAuthUser?.id,
+			tenantId: createdTenant!.id,
+			leaseId: createdLease!.id,
+			authUserId: createdAuthUser!.id,
 			tenantEmail: tenantData.email
 		})
 

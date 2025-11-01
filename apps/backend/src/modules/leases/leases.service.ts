@@ -27,86 +27,40 @@ export class LeasesService {
 	constructor(private readonly supabase: SupabaseService) {}
 
 	/**
-	 * Helper: Get unit IDs for user's properties
-	 * Used to filter leases since lease table doesn't have org_id
+	 * ❌ REMOVED: Manual unit filtering violates RLS pattern
+	 * RLS policies automatically filter data to user's scope via getUserClient(token)
 	 */
-	private async getUserUnitIds(userId: string): Promise<string[]> {
-		const client = this.supabase.getAdminClient()
-
-		// Get user's property IDs
-		const { data: properties } = await client
-			.from('property')
-			.select('id')
-			.eq('ownerId', userId)
-
-		const propertyIds = properties?.map(p => p.id) || []
-		if (propertyIds.length === 0) return []
-
-		// Get unit IDs for those properties
-		const { data: units } = await client
-			.from('unit')
-			.select('id')
-			.in('propertyId', propertyIds)
-
-		return units?.map(u => u.id) || []
-	}
-
-	/**
-	 * Helper: Get unit IDs for a specific property
-	 */
-	private async getPropertyUnitIds(propertyId: string): Promise<string[]> {
-		const client = this.supabase.getAdminClient()
-
-		const { data: units } = await client
-			.from('unit')
-			.select('id')
-			.eq('propertyId', propertyId)
-
-		return units?.map(u => u.id) || []
-	}
 
 	/**
 	 * Get all leases for a user with search and filters
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
 	async findAll(
-		userId: string,
+		token: string,
 		query: Record<string, unknown>
 	): Promise<{ data: Lease[]; total: number; limit: number; offset: number }> {
 		try {
-			if (!userId) {
-				this.logger.warn('Find all leases requested without userId')
-				throw new BadRequestException('User ID is required')
+			if (!token) {
+				this.logger.warn('Find all leases requested without token')
+				throw new BadRequestException('Authentication token is required')
 			}
 
-			this.logger.log('Finding all leases via direct Supabase query', {
-				userId,
+			this.logger.log('Finding all leases via RLS-protected query', {
 				query
 			})
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
+			const client = this.supabase.getUserClient(token)
 
-			// Get unit IDs based on filters
-			let unitIds: string[]
-			if (query.propertyId) {
-				// Filter by specific property
-				unitIds = await this.getPropertyUnitIds(query.propertyId as string)
-			} else {
-				// Get all user's units
-				unitIds = await this.getUserUnitIds(userId)
-			}
-
-			// Return empty result if no units found
-			if (unitIds.length === 0) {
-				return { data: [], total: 0, limit: 50, offset: 0 }
-			}
-
-			// Build base query for counting
+			// Build base query for counting (NO manual userId/unitId filtering needed)
 			let countQuery = client
 				.from('lease')
 				.select('*', { count: 'exact', head: true })
-				.in('unitId', unitIds)
 
 			// Apply filters to count query
+			if (query.propertyId) {
+				countQuery = countQuery.eq('propertyId', String(query.propertyId))
+			}
 			if (query.tenantId) {
 				countQuery = countQuery.eq('tenantId', String(query.tenantId))
 			}
@@ -143,16 +97,18 @@ export class LeasesService {
 			if (countError) {
 				this.logger.error('Failed to count leases', {
 					error: countError.message,
-					userId,
 					query
 				})
 				throw new BadRequestException('Failed to count leases')
 			}
 
-			// Build data query with filters
-			let queryBuilder = client.from('lease').select('*').in('unitId', unitIds)
+			// Build data query with filters (NO manual userId/unitId filtering needed)
+			let queryBuilder = client.from('lease').select('*')
 
 			// Apply filters
+			if (query.propertyId) {
+				queryBuilder = queryBuilder.eq('propertyId', String(query.propertyId))
+			}
 			if (query.tenantId) {
 				queryBuilder = queryBuilder.eq('tenantId', String(query.tenantId))
 			}
@@ -201,7 +157,6 @@ export class LeasesService {
 			if (error) {
 				this.logger.error('Failed to fetch leases from Supabase', {
 					error: error.message,
-					userId,
 					query
 				})
 				throw new BadRequestException('Failed to fetch leases')
@@ -216,7 +171,6 @@ export class LeasesService {
 		} catch (error) {
 			this.logger.error('Leases service failed to find all leases', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				query
 			})
 			throw new BadRequestException(
@@ -227,45 +181,27 @@ export class LeasesService {
 
 	/**
 	 * Get lease statistics
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
-	async getStats(userId: string): Promise<LeaseStatsResponse> {
+	async getStats(token: string): Promise<LeaseStatsResponse> {
 		try {
-			if (!userId) {
-				this.logger.warn('Lease stats requested without userId')
-				throw new BadRequestException('User ID is required')
+			if (!token) {
+				this.logger.warn('Lease stats requested without token')
+				throw new BadRequestException('Authentication token is required')
 			}
 
-			this.logger.log('Getting lease stats via direct Supabase query', {
-				userId
-			})
+			this.logger.log('Getting lease stats via RLS-protected query')
 
-			const client = this.supabase.getAdminClient()
-
-			// Get user's unit IDs
-			const unitIds = await this.getUserUnitIds(userId)
-			if (unitIds.length === 0) {
-				// Return empty stats if user has no units
-				return {
-					totalLeases: 0,
-					activeLeases: 0,
-					expiredLeases: 0,
-					terminatedLeases: 0,
-					totalMonthlyRent: 0,
-					averageRent: 0,
-					totalSecurityDeposits: 0,
-					expiringLeases: 0
-				}
-			}
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
+			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
 				.from('lease')
 				.select('*')
-				.in('unitId', unitIds)
 
 			if (error) {
 				this.logger.error('Failed to get lease stats from Supabase', {
-					error: error.message,
-					userId
+					error: error.message
 				})
 				throw new BadRequestException('Failed to get lease statistics')
 			}
@@ -310,8 +246,7 @@ export class LeasesService {
 			return stats
 		} catch (error) {
 			this.logger.error('Leases service failed to get stats', {
-				error: error instanceof Error ? error.message : String(error),
-				userId
+				error: error instanceof Error ? error.message : String(error)
 			})
 			throw new BadRequestException(
 				error instanceof Error
@@ -323,26 +258,21 @@ export class LeasesService {
 
 	/**
 	 * Get leases expiring soon
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
-	async getExpiring(userId: string, days: number = 30): Promise<Lease[]> {
+	async getExpiring(token: string, days: number = 30): Promise<Lease[]> {
 		try {
-			if (!userId) {
-				this.logger.warn('Expiring leases requested without userId')
-				throw new BadRequestException('User ID is required')
+			if (!token) {
+				this.logger.warn('Expiring leases requested without token')
+				throw new BadRequestException('Authentication token is required')
 			}
 
-			this.logger.log('Getting expiring leases via direct Supabase query', {
-				userId,
+			this.logger.log('Getting expiring leases via RLS-protected query', {
 				days
 			})
 
-			const client = this.supabase.getAdminClient()
-
-			// Get user's unit IDs
-			const unitIds = await this.getUserUnitIds(userId)
-			if (unitIds.length === 0) {
-				return []
-			}
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
+			const client = this.supabase.getUserClient(token)
 
 			const now = new Date()
 			const futureDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000)
@@ -350,7 +280,6 @@ export class LeasesService {
 			const { data, error } = await client
 				.from('lease')
 				.select('*')
-				.in('unitId', unitIds)
 				.eq('status', 'ACTIVE')
 				.gte('end_date', now.toISOString())
 				.lte('end_date', futureDate.toISOString())
@@ -359,7 +288,6 @@ export class LeasesService {
 			if (error) {
 				this.logger.error('Failed to get expiring leases from Supabase', {
 					error: error.message,
-					userId,
 					days
 				})
 				throw new BadRequestException('Failed to get expiring leases')
@@ -369,7 +297,6 @@ export class LeasesService {
 		} catch (error) {
 			this.logger.error('Leases service failed to get expiring leases', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				days
 			})
 			throw new BadRequestException(
@@ -380,41 +307,33 @@ export class LeasesService {
 
 	/**
 	 * Find one lease by ID
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
-	async findOne(userId: string, leaseId: string): Promise<Lease | null> {
+	async findOne(token: string, leaseId: string): Promise<Lease | null> {
 		try {
-			if (!userId || !leaseId) {
+			if (!token || !leaseId) {
 				this.logger.warn('Find one lease called with missing parameters', {
-					userId,
 					leaseId
 				})
 				return null
 			}
 
-			this.logger.log('Finding one lease via direct Supabase query', {
-				userId,
+			this.logger.log('Finding one lease via RLS-protected query', {
 				leaseId
 			})
 
-			const client = this.supabase.getAdminClient()
-
-			// Get user's unit IDs for ownership verification
-			const unitIds = await this.getUserUnitIds(userId)
-			if (unitIds.length === 0) {
-				return null
-			}
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
+			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
 				.from('lease')
 				.select('*')
 				.eq('id', leaseId)
-				.in('unitId', unitIds)
 				.single()
 
 			if (error) {
 				this.logger.error('Failed to fetch lease from Supabase', {
 					error: error.message,
-					userId,
 					leaseId
 				})
 				return null
@@ -424,7 +343,6 @@ export class LeasesService {
 		} catch (error) {
 			this.logger.error('Leases service failed to find one lease', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				leaseId
 			})
 			return null
@@ -433,53 +351,42 @@ export class LeasesService {
 
 	/**
 	 * Create lease
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
-	async create(userId: string, dto: CreateLeaseDto): Promise<Lease> {
+	async create(token: string, dto: CreateLeaseDto): Promise<Lease> {
 		try {
-			if (!userId || !dto.unitId || !dto.tenantId) {
+			if (!token || !dto.unitId || !dto.tenantId) {
 				this.logger.warn('Create lease called with missing parameters', {
-					userId,
 					dto
 				})
 				throw new BadRequestException(
-					'User ID, unit ID, and tenant ID are required'
+					'Authentication token, unit ID, and tenant ID are required'
 				)
 			}
 
-			this.logger.log('Creating lease', {
-				userId,
+			this.logger.log('Creating lease via RLS-protected query', {
 				dto
 			})
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically validates unit/tenant ownership
+			const client = this.supabase.getUserClient(token)
 
-			// Verify unit belongs to user
+			// Verify unit exists and belongs to user (RLS will enforce ownership)
 			const { data: unit } = await client
 				.from('unit')
-				.select('propertyId')
+				.select('id, propertyId')
 				.eq('id', dto.unitId)
 				.single()
 
 			if (!unit) {
-				throw new BadRequestException('Unit not found')
+				throw new BadRequestException('Unit not found or access denied')
 			}
 
-			const { data: property } = await client
-				.from('property')
-				.select('ownerId')
-				.eq('id', unit.propertyId)
-				.single()
-
-			if (!property || property.ownerId !== userId) {
-				throw new BadRequestException('Unit does not belong to user')
-			}
-
-			// Verify tenant exists
+			// Verify tenant exists and belongs to user (RLS will enforce ownership)
 			const { data: tenant } = await client
 				.from('tenant')
 				.select('id')
 				.eq('id', dto.tenantId)
-				.eq('userId', userId)
 				.single()
 
 			if (!tenant) {
@@ -508,7 +415,6 @@ export class LeasesService {
 			if (error) {
 				this.logger.error('Failed to create lease in Supabase', {
 					error: error.message,
-					userId,
 					dto
 				})
 				throw new BadRequestException('Failed to create lease')
@@ -520,7 +426,6 @@ export class LeasesService {
 		} catch (error) {
 			this.logger.error('Leases service failed to create lease', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				dto
 			})
 			throw new BadRequestException(
@@ -531,35 +436,35 @@ export class LeasesService {
 
 	/**
 	 * Update lease
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
 	async update(
-		userId: string,
+		token: string,
 		leaseId: string,
 		updateRequest: UpdateLeaseDto,
 		expectedVersion?: number // 🔐 BUG FIX #2: Optimistic locking
 	): Promise<Lease | null> {
 		try {
-			if (!userId || !leaseId) {
+			if (!token || !leaseId) {
 				this.logger.warn('Update lease called with missing parameters', {
-					userId,
 					leaseId
 				})
 				return null
 			}
 
-			this.logger.log('Updating lease via direct Supabase query', {
-				userId,
+			this.logger.log('Updating lease via RLS-protected query', {
 				leaseId,
 				updateRequest
 			})
 
-			// Verify ownership via findOne
-			const existingLease = await this.findOne(userId, leaseId)
+			// Verify ownership via findOne (RLS will enforce ownership)
+			const existingLease = await this.findOne(token, leaseId)
 			if (!existingLease) {
 				throw new BadRequestException('Lease not found or access denied')
 			}
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically validates ownership
+			const client = this.supabase.getUserClient(token)
 
 			const updateData: Database['public']['Tables']['lease']['Update'] = {
 				updatedAt: new Date().toISOString()
@@ -600,7 +505,6 @@ export class LeasesService {
 				if (error?.code === 'PGRST116') {
 					// PGRST116 = 0 rows affected (version mismatch)
 					this.logger.warn('Optimistic locking conflict detected', {
-						userId,
 						leaseId,
 						expectedVersion
 					})
@@ -612,7 +516,6 @@ export class LeasesService {
 				// Other database errors
 				this.logger.error('Failed to update lease in Supabase', {
 					error: error ? String(error) : 'Unknown error',
-					userId,
 					leaseId,
 					updateRequest
 				})
@@ -628,7 +531,6 @@ export class LeasesService {
 
 			this.logger.error('Leases service failed to update lease', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				leaseId,
 				updateRequest
 			})
@@ -640,36 +542,35 @@ export class LeasesService {
 
 	/**
 	 * Remove lease (hard delete - no soft delete column in schema)
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
-	async remove(userId: string, leaseId: string): Promise<void> {
+	async remove(token: string, leaseId: string): Promise<void> {
 		try {
-			if (!userId || !leaseId) {
+			if (!token || !leaseId) {
 				this.logger.warn('Remove lease called with missing parameters', {
-					userId,
 					leaseId
 				})
-				throw new BadRequestException('User ID and lease ID are required')
+				throw new BadRequestException('Authentication token and lease ID are required')
 			}
 
-			this.logger.log('Removing lease via direct Supabase query', {
-				userId,
+			this.logger.log('Removing lease via RLS-protected query', {
 				leaseId
 			})
 
-			// Verify ownership via findOne
-			const existingLease = await this.findOne(userId, leaseId)
+			// Verify ownership via findOne (RLS will enforce ownership)
+			const existingLease = await this.findOne(token, leaseId)
 			if (!existingLease) {
 				throw new BadRequestException('Lease not found or access denied')
 			}
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically validates ownership
+			const client = this.supabase.getUserClient(token)
 
 			const { error } = await client.from('lease').delete().eq('id', leaseId)
 
 			if (error) {
 				this.logger.error('Failed to delete lease in Supabase', {
 					error: error.message,
-					userId,
 					leaseId
 				})
 				throw new BadRequestException('Failed to delete lease')
@@ -677,7 +578,6 @@ export class LeasesService {
 		} catch (error) {
 			this.logger.error('Leases service failed to remove lease', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				leaseId
 			})
 			throw new BadRequestException(
@@ -688,23 +588,23 @@ export class LeasesService {
 
 	/**
 	 * Renew lease - consolidated method with validation
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
 	async renew(
-		userId: string,
+		token: string,
 		leaseId: string,
 		newEndDate: string,
 		newRentAmount?: number
 	): Promise<Lease | null> {
 		try {
-			this.logger.log('Renewing lease via direct Supabase query', {
-				userId,
+			this.logger.log('Renewing lease via RLS-protected query', {
 				leaseId,
 				newEndDate,
 				newRentAmount
 			})
 
-			// Verify ownership and lease exists
-			const existingLease = await this.findOne(userId, leaseId)
+			// Verify ownership and lease exists (RLS will enforce ownership)
+			const existingLease = await this.findOne(token, leaseId)
 			if (!existingLease) {
 				throw new BadRequestException('Lease not found or access denied')
 			}
@@ -723,8 +623,8 @@ export class LeasesService {
 				throw new BadRequestException('Rent amount must be positive')
 			}
 
-			// Update lease
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically validates ownership
+			const client = this.supabase.getUserClient(token)
 
 			const updateData: Database['public']['Tables']['lease']['Update'] = {
 				endDate: newEndDate,
@@ -742,7 +642,6 @@ export class LeasesService {
 			if (error) {
 				this.logger.error('Failed to renew lease in Supabase', {
 					error: error.message,
-					userId,
 					leaseId
 				})
 				throw new BadRequestException('Failed to renew lease')
@@ -752,7 +651,6 @@ export class LeasesService {
 		} catch (error) {
 			this.logger.error('Failed to renew lease', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				leaseId,
 				newEndDate,
 				newRentAmount
@@ -768,23 +666,23 @@ export class LeasesService {
 
 	/**
 	 * Terminate lease - consolidated method with validation
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
 	async terminate(
-		userId: string,
+		token: string,
 		leaseId: string,
 		terminationDate: string,
 		reason?: string
 	): Promise<Lease | null> {
 		try {
-			this.logger.log('Terminating lease via direct Supabase query', {
-				userId,
+			this.logger.log('Terminating lease via RLS-protected query', {
 				leaseId,
 				terminationDate,
 				reason
 			})
 
-			// Verify ownership and lease exists
-			const existingLease = await this.findOne(userId, leaseId)
+			// Verify ownership and lease exists (RLS will enforce ownership)
+			const existingLease = await this.findOne(token, leaseId)
 			if (!existingLease) {
 				throw new BadRequestException('Lease not found or access denied')
 			}
@@ -804,8 +702,8 @@ export class LeasesService {
 				throw new BadRequestException('Lease is already terminated or expired')
 			}
 
-			// Update lease status
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically validates ownership
+			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
 				.from('lease')
@@ -822,7 +720,6 @@ export class LeasesService {
 			if (error) {
 				this.logger.error('Failed to terminate lease in Supabase', {
 					error: error.message,
-					userId,
 					leaseId
 				})
 				throw new BadRequestException('Failed to terminate lease')
@@ -832,7 +729,6 @@ export class LeasesService {
 		} catch (error) {
 			this.logger.error('Failed to terminate lease', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				leaseId,
 				terminationDate,
 				reason
@@ -850,9 +746,10 @@ export class LeasesService {
 	 * Get lease analytics - consolidated single method
 	 * Replaces: getAnalytics, getLeasePerformanceAnalytics, getLeaseDurationAnalytics,
 	 * getLeaseTurnoverAnalytics, getLeaseRevenueAnalytics
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
 	async getAnalytics(
-		userId: string,
+		token: string,
 		options: {
 			leaseId?: string
 			propertyId?: string
@@ -861,37 +758,26 @@ export class LeasesService {
 		}
 	): Promise<unknown[]> {
 		try {
-			if (!userId) {
-				this.logger.warn('Lease analytics requested without userId')
-				throw new BadRequestException('User ID is required')
+			if (!token) {
+				this.logger.warn('Lease analytics requested without token')
+				throw new BadRequestException('Authentication token is required')
 			}
 
-			this.logger.log('Getting lease analytics via direct Supabase query', {
-				userId,
+			this.logger.log('Getting lease analytics via RLS-protected query', {
 				options
 			})
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
+			const client = this.supabase.getUserClient(token)
 
-			// Get unit IDs based on filters
-			let unitIds: string[]
-			if (options.propertyId) {
-				// Filter by specific property
-				unitIds = await this.getPropertyUnitIds(options.propertyId)
-			} else {
-				// Get all user's units
-				unitIds = await this.getUserUnitIds(userId)
-			}
-
-			// Return empty array if no units found
-			if (unitIds.length === 0) {
-				return []
-			}
-
-			let queryBuilder = client.from('lease').select('*').in('unitId', unitIds)
+			let queryBuilder = client.from('lease').select('*')
 
 			if (options.leaseId) {
 				queryBuilder = queryBuilder.eq('id', options.leaseId)
+			}
+
+			if (options.propertyId) {
+				queryBuilder = queryBuilder.eq('propertyId', options.propertyId)
 			}
 
 			const { data, error } = await queryBuilder
@@ -899,7 +785,6 @@ export class LeasesService {
 			if (error) {
 				this.logger.error('Failed to fetch lease analytics from Supabase', {
 					error: error.message,
-					userId,
 					options
 				})
 				throw new BadRequestException('Failed to get lease analytics')
@@ -909,7 +794,6 @@ export class LeasesService {
 		} catch (error) {
 			this.logger.error('Leases service failed to get analytics', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				options
 			})
 			throw new BadRequestException(
@@ -920,31 +804,32 @@ export class LeasesService {
 
 	/**
 	 * Get lease payment history
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
-	async getPaymentHistory(userId: string, leaseId: string): Promise<unknown[]> {
+	async getPaymentHistory(token: string, leaseId: string): Promise<unknown[]> {
 		try {
-			if (!userId || !leaseId) {
+			if (!token || !leaseId) {
 				this.logger.warn('Payment history requested with missing parameters', {
-					userId,
 					leaseId
 				})
-				throw new BadRequestException('User ID and lease ID are required')
+				throw new BadRequestException('Authentication token and lease ID are required')
 			}
 
-			// Verify ownership
-			const lease = await this.findOne(userId, leaseId)
+			// Verify ownership (RLS will enforce ownership)
+			const lease = await this.findOne(token, leaseId)
 			if (!lease) {
 				throw new BadRequestException('Lease not found or access denied')
 			}
 
 			this.logger.log(
-				'Getting lease payment history via direct Supabase query',
+				'Getting lease payment history via RLS-protected query',
 				{
-					userId,
 					leaseId
 				}
 			)
-			const client = this.supabase.getAdminClient()
+
+			// ✅ RLS SECURITY: User-scoped client automatically validates ownership
+			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
 				.from('rent_payment')
@@ -955,7 +840,6 @@ export class LeasesService {
 			if (error) {
 				this.logger.error('Failed to fetch payment history from Supabase', {
 					error: error.message,
-					userId,
 					leaseId
 				})
 				return []
@@ -965,7 +849,6 @@ export class LeasesService {
 		} catch (error) {
 			this.logger.error('Leases service failed to get payment history', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				leaseId
 			})
 			throw new BadRequestException(

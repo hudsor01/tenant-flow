@@ -3,10 +3,11 @@
  * Extends shared base config with NestJS-specific overrides
  */
 
+import { defineConfig } from 'eslint/config'
 import baseConfig from '@repo/eslint-config/base.js'
 import globals from 'globals'
 
-export default [
+export default defineConfig([
 	...baseConfig,
 	{
 		name: 'backend/ignores',
@@ -162,6 +163,6 @@ export default [
 			'@typescript-eslint/no-require-imports': 'off',
 			'@typescript-eslint/no-var-requires': 'off',
 			'no-undef': 'off'
-		}
+			}
 	}
-]
+])

@@ -10,11 +10,8 @@
 		"composite": false,
 		"declaration": false,
 		"declarationMap": false,
-		"sourceMap": true,
 		"incremental": false,
-		"removeComments": true,
-		"skipLibCheck": true,
-		"verbatimModuleSyntax": false
+		"removeComments": true
 	},
 	"include": ["src/**/*.ts", "test/**/*.ts"],
 	"exclude": [

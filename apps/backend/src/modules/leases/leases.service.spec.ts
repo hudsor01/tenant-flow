@@ -10,13 +10,13 @@ describe('LeasesService', () => {
   let leasesService: LeasesService;
 
   const mockSupabaseService = {
-    getAdminClient: jest.fn(() => ({
+    getUserClient: jest.fn((_token: string) => ({
       from: jest.fn((table: string) => {
         if (table === 'unit') {
           return {
             select: jest.fn(() => ({
               eq: jest.fn(() => ({
-                single: jest.fn(() => ({ data: { propertyId: 'property-id' }, error: null })),
+                single: jest.fn(() => Promise.resolve({ data: { id: 'unit-id', propertyId: 'property-id' }, error: null })),
               })),
             })),
           };
@@ -25,7 +25,7 @@ describe('LeasesService', () => {
           return {
             select: jest.fn(() => ({
               eq: jest.fn(() => ({
-                single: jest.fn(() => ({ data: { id: 'property-id', ownerId: 'user-id' }, error: null })),
+                single: jest.fn(() => Promise.resolve({ data: { id: 'property-id', ownerId: 'user-id' }, error: null })),
               })),
             })),
           };
@@ -34,9 +34,7 @@ describe('LeasesService', () => {
           return {
             select: jest.fn(() => ({
               eq: jest.fn(() => ({
-                eq: jest.fn(() => ({
-                  single: jest.fn(() => ({ data: { id: 'tenant-id' }, error: null })),
-                })),
+                single: jest.fn(() => Promise.resolve({ data: { id: 'tenant-id' }, error: null })),
               })),
             })),
           };
@@ -45,7 +43,48 @@ describe('LeasesService', () => {
           return {
             insert: jest.fn(() => ({
               select: jest.fn(() => ({
-                single: jest.fn(() => ({ data: { id: 'lease-id' }, error: null })),
+                single: jest.fn(() => Promise.resolve({ data: { id: 'lease-id' }, error: null })),
+              })),
+            })),
+          };
+        }
+        return {};
+      }),
+    })),
+    getAdminClient: jest.fn(() => ({
+      from: jest.fn((table: string) => {
+        if (table === 'unit') {
+          return {
+            select: jest.fn(() => ({
+              eq: jest.fn(() => ({
+                single: jest.fn(() => Promise.resolve({ data: { id: 'unit-id', propertyId: 'property-id' }, error: null })),
+              })),
+            })),
+          };
+        }
+        if (table === 'property') {
+          return {
+            select: jest.fn(() => ({
+              eq: jest.fn(() => ({
+                single: jest.fn(() => Promise.resolve({ data: { id: 'property-id', ownerId: 'user-id' }, error: null })),
+              })),
+            })),
+          };
+        }
+        if (table === 'tenant') {
+          return {
+            select: jest.fn(() => ({
+              eq: jest.fn(() => ({
+                single: jest.fn(() => Promise.resolve({ data: { id: 'tenant-id' }, error: null })),
+              })),
+            })),
+          };
+        }
+        if (table === 'lease') {
+          return {
+            insert: jest.fn(() => ({
+              select: jest.fn(() => ({
+                single: jest.fn(() => Promise.resolve({ data: { id: 'lease-id' }, error: null })),
               })),
             })),
           };
@@ -53,12 +92,12 @@ describe('LeasesService', () => {
         return {
           select: jest.fn(() => ({
             eq: jest.fn(() => ({
-              single: jest.fn(() => ({ data: {}, error: null })),
+              single: jest.fn(() => Promise.resolve({ data: {}, error: null })),
             })),
           })),
           insert: jest.fn(() => ({
             select: jest.fn(() => ({
-              single: jest.fn(() => ({ data: {}, error: null })),
+              single: jest.fn(() => Promise.resolve({ data: {}, error: null })),
             })),
           })),
         };
@@ -106,7 +145,7 @@ describe('LeasesService', () => {
         status: 'DRAFT' as const
       };
 
-      const result = await leasesService.create('user-id', createLeaseDto as any);
+      const result = await leasesService.create('mock-jwt-token', createLeaseDto as any);
 
       expect(result).toEqual({ id: 'lease-id' });
     });

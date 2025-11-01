@@ -21,7 +21,7 @@ export function useTaxDocuments(taxYear: number) {
 			}
 			
 			const res = await fetch(
-				`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/financials/tax-documents?taxYear=${taxYear}`,
+				`/api/v1/financials/tax-documents?taxYear=${taxYear}`,
 				{
 					credentials: 'include',
 					cache: 'no-store'

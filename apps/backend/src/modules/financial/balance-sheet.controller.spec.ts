@@ -4,6 +4,17 @@ import { Test } from '@nestjs/testing'
 import type { BalanceSheetData } from '@repo/shared/types/financial-statements'
 import { BalanceSheetController } from './balance-sheet.controller'
 import { BalanceSheetService } from './balance-sheet.service'
+import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+
+// Mock the JwtToken decorator to return our test token
+jest.mock('../../shared/decorators/jwt-token.decorator', () => ({
+	JwtToken: () => (target: any, propertyKey: string, parameterIndex: number) => {
+		// Store metadata for the decorator
+		const existingParams = Reflect.getMetadata('custom:jwt-token-params', target, propertyKey) || []
+		existingParams.push(parameterIndex)
+		Reflect.defineMetadata('custom:jwt-token-params', existingParams, target, propertyKey)
+	}
+}))
 
 describe('BalanceSheetController', () => {
 	let controller: BalanceSheetController
@@ -65,68 +76,53 @@ describe('BalanceSheetController', () => {
 					useValue: service
 				}
 			]
-		}).compile()
+		})
+			.overrideGuard(JwtAuthGuard)
+			.useValue({ canActivate: () => true })
+			.compile()
 
 		controller = module.get(BalanceSheetController)
 	})
 
 	describe('GET /financials/balance-sheet', () => {
 		it('should return balance sheet with provided date', async () => {
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
-			const result = await controller.getBalanceSheet(mockReq, '2024-10-31')
+			const result = await controller.getBalanceSheet('mock-jwt-token', '2024-10-31')
 
 			expect(result).toEqual({
 				success: true,
 				data: mockBalanceSheet
 			})
 			expect(service.generateBalanceSheet).toHaveBeenCalledWith(
-				'user-123',
+				'mock-jwt-token',
 				'2024-10-31'
 			)
 		})
 
 		it('should use current date as default when no date provided', async () => {
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
 			const expectedDate = new Date().toISOString().split('T')[0] as string
 
-			await controller.getBalanceSheet(mockReq)
+			await controller.getBalanceSheet('mock-jwt-token')
 
 			expect(service.generateBalanceSheet).toHaveBeenCalledWith(
-				'user-123',
+				'mock-jwt-token',
 				expectedDate
 			)
 		})
 
-		it('should throw BadRequestException when user ID is missing', async () => {
-			const mockReq = {} as any
-
+		it('should throw UnauthorizedException when token is missing', async () => {
 			await expect(
-				controller.getBalanceSheet(mockReq, '2024-10-31')
-			).rejects.toThrow(BadRequestException)
+				controller.getBalanceSheet('' as any, '2024-10-31')
+			).rejects.toThrow('Authentication token is required')
 		})
 
 		it('should throw BadRequestException for invalid date format', async () => {
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
 			await expect(
-				controller.getBalanceSheet(mockReq, 'invalid-date')
+				controller.getBalanceSheet('mock-jwt-token', 'invalid-date')
 			).rejects.toThrow(BadRequestException)
 		})
 
 		it('should verify balance check equals assets = liabilities + equity', async () => {
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
-			const result = await controller.getBalanceSheet(mockReq, '2024-10-31')
+			const result = await controller.getBalanceSheet('mock-jwt-token', '2024-10-31')
 
 			const { assets, liabilities, equity } = result.data
 			const leftSide = assets.totalAssets
@@ -136,16 +132,12 @@ describe('BalanceSheetController', () => {
 		})
 
 		it('should handle service errors', async () => {
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
 			service.generateBalanceSheet.mockRejectedValueOnce(
 				new Error('Database error')
 			)
 
 			await expect(
-				controller.getBalanceSheet(mockReq, '2024-10-31')
+				controller.getBalanceSheet('mock-jwt-token', '2024-10-31')
 			).rejects.toThrow('Database error')
 		})
 
@@ -161,11 +153,7 @@ describe('BalanceSheetController', () => {
 
 			service.generateBalanceSheet.mockResolvedValueOnce(unbalancedSheet)
 
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
-			const result = await controller.getBalanceSheet(mockReq, '2024-10-31')
+			const result = await controller.getBalanceSheet('mock-jwt-token', '2024-10-31')
 
 			expect(result.data.balanceCheck).toBe(false)
 		})

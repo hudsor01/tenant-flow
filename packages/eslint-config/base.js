@@ -7,13 +7,13 @@
  */
 
 import js from '@eslint/js'
+import { defineConfig } from 'eslint/config'
 import eslintConfigPrettier from 'eslint-config-prettier'
-import turboPlugin from 'eslint-plugin-turbo'
+// import turboPlugin from 'eslint-plugin-turbo' // Removed - using turbo.js config instead
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
-/** @type {import('eslint').Linter.FlatConfig[]} */
-export const config = [
+export const config = defineConfig([
 	{
 		files: [
 			'**/eslint-config/*.js',
@@ -38,15 +38,7 @@ export const config = [
 	},
 	eslintConfigPrettier,
 	...tseslint.configs.recommended,
-	{
-		name: 'base/turbo',
-		plugins: {
-			turbo: turboPlugin
-		},
-		rules: {
-			'turbo/no-undeclared-env-vars': 'error'
-		}
-	},
+
 	{
 		name: 'base/ignores',
 		ignores: [
@@ -187,6 +179,6 @@ export const config = [
 			'@typescript-eslint/explicit-module-boundary-types': 'off'
 		}
 	}
-]
+])
 
 export default config

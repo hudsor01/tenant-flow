@@ -1,11 +1,9 @@
 import { NotFoundException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
-import type { authUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { randomUUID } from 'crypto'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { SupabaseService } from '../../database/supabase.service'
-import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import {
 	createMockMaintenanceRequest,
 	createMockUser
@@ -19,18 +17,7 @@ describe('MaintenanceController', () => {
 	let mockSupabaseService: jest.Mocked<SupabaseService>
 
 	const mockUser = createMockUser()
-
-	const createMockRequest = (user?: authUser) =>
-		({
-			user: user ?? mockUser,
-			cookies: {
-				'sb-bshjmbshupiibfiewpxb-auth-token': 'mock-auth-token'
-			},
-			headers: {},
-			query: {},
-			params: {},
-			body: {}
-		}) as unknown as AuthenticatedRequest
+	const mockToken = 'mock-jwt-token'
 
 	beforeEach(async () => {
 		const mockService = {
@@ -67,10 +54,10 @@ describe('MaintenanceController', () => {
 	it('returns maintenance requests (findAll)', async () => {
 		const requests = [createMockMaintenanceRequest()]
 		service.findAll.mockResolvedValue(requests)
-		const result = await controller.findAll(createMockRequest() as any)
+		const result = await controller.findAll(mockToken)
 		expect(result).toEqual(requests)
 		expect(service.findAll).toHaveBeenCalledWith(
-			mockUser.id,
+			mockToken,
 			expect.any(Object)
 		)
 	})
@@ -78,14 +65,14 @@ describe('MaintenanceController', () => {
 	it('returns single maintenance request (findOne)', async () => {
 		const mockRequest = createMockMaintenanceRequest()
 		service.findOne.mockResolvedValue(mockRequest)
-		const result = await controller.findOne(mockRequest.id, createMockRequest())
+		const result = await controller.findOne(mockRequest.id, mockToken)
 		expect(result).toEqual(mockRequest)
 	})
 
 	it('throws NotFoundException when findOne not found', async () => {
 		service.findOne.mockResolvedValue(null)
 		await expect(
-			controller.findOne(randomUUID(), createMockRequest())
+			controller.findOne(randomUUID(), mockToken)
 		).rejects.toThrow(NotFoundException)
 	})
 
@@ -99,7 +86,7 @@ describe('MaintenanceController', () => {
 		}
 		const mockMaintenanceRequest = createMockMaintenanceRequest()
 		service.create.mockResolvedValue(mockMaintenanceRequest)
-		const result = await controller.create(createData, createMockRequest())
+		const result = await controller.create(createData, mockToken, mockUser.id)
 		expect(result).toEqual(mockMaintenanceRequest)
 	})
 
@@ -109,7 +96,7 @@ describe('MaintenanceController', () => {
 		const result = await controller.update(
 			createMockMaintenanceRequest().id,
 			{ title: 'Updated' },
-			createMockRequest()
+			mockToken
 		)
 		expect(result).toEqual(updated)
 	})
@@ -117,16 +104,16 @@ describe('MaintenanceController', () => {
 	it('throws NotFoundException when update not found', async () => {
 		service.update.mockResolvedValue(null)
 		await expect(
-			controller.update(randomUUID(), {}, createMockRequest())
+			controller.update(randomUUID(), {}, mockToken)
 		).rejects.toThrow(NotFoundException)
 	})
 
 	it('removes maintenance request (remove)', async () => {
 		const mockMaintenanceRequest = createMockMaintenanceRequest()
 		service.remove.mockResolvedValue(undefined)
-		await controller.remove(mockMaintenanceRequest.id, createMockRequest())
+		await controller.remove(mockMaintenanceRequest.id, mockToken)
 		expect(service.remove).toHaveBeenCalledWith(
-			mockUser.id,
+			mockToken,
 			mockMaintenanceRequest.id
 		)
 	})
@@ -142,7 +129,7 @@ describe('MaintenanceController', () => {
 			byPriority: { low: 2, medium: 4, high: 3, emergency: 1 }
 		}
 		service.getStats.mockResolvedValue(stats as any)
-		const result = await controller.getStats(createMockRequest())
+		const result = await controller.getStats(mockToken)
 		expect(result).toEqual(stats)
 	})
 
@@ -154,7 +141,7 @@ describe('MaintenanceController', () => {
 			}
 		]
 		service.getUrgent.mockResolvedValue(urgent)
-		const urgentResult = await controller.getUrgent(createMockRequest())
+		const urgentResult = await controller.getUrgent(mockToken)
 		expect(urgentResult).toEqual(urgent)
 
 		const overdue = [
@@ -164,7 +151,7 @@ describe('MaintenanceController', () => {
 			}
 		]
 		service.getOverdue.mockResolvedValue(overdue)
-		const overdueResult = await controller.getOverdue(createMockRequest())
+		const overdueResult = await controller.getOverdue(mockToken)
 		expect(overdueResult).toEqual(overdue)
 	})
 
@@ -177,13 +164,13 @@ describe('MaintenanceController', () => {
 		service.complete.mockResolvedValue(completed)
 		const result = await controller.complete(
 			mockMaintenanceRequest.id,
-			createMockRequest(),
+			mockToken,
 			500,
 			'Fixed'
 		)
 		expect(result).toEqual(completed)
 		expect(service.complete).toHaveBeenCalledWith(
-			mockUser.id,
+			mockToken,
 			mockMaintenanceRequest.id,
 			500,
 			'Fixed'
@@ -194,7 +181,7 @@ describe('MaintenanceController', () => {
 		await expect(
 			controller.complete(
 				createMockMaintenanceRequest().id,
-				createMockRequest(),
+				mockToken,
 				-1,
 				undefined
 			)
@@ -202,7 +189,7 @@ describe('MaintenanceController', () => {
 		await expect(
 			controller.complete(
 				createMockMaintenanceRequest().id,
-				createMockRequest(),
+				mockToken,
 				1_000_000,
 				undefined
 			)
@@ -217,7 +204,7 @@ describe('MaintenanceController', () => {
 		service.cancel.mockResolvedValue(cancelled)
 		const result = await controller.cancel(
 			createMockMaintenanceRequest().id,
-			createMockRequest(),
+			mockToken,
 			undefined
 		)
 		expect(result).toEqual(cancelled)

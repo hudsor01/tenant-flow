@@ -4,39 +4,12 @@
  * Non-type-aware config due to Playwright/Test files
  */
 
-import js from '@eslint/js'
-import eslintConfigPrettier from 'eslint-config-prettier'
-import turboPlugin from 'eslint-plugin-turbo'
-import globals from 'globals'
-import tseslint from 'typescript-eslint'
+import { defineConfig } from 'eslint/config'
+import baseConfig from '@repo/eslint-config/base.js'
 
-/** @type {import('eslint').Linter.FlatConfig[]} */
-export const config = [
-	{
-		files: ['**/*.ts'],
-		languageOptions: {
-			globals: {
-				...globals.node,
-				...globals.browser,
-				...globals.es2024
-			},
-			parserOptions: {
-				projectService: false // Disable type-aware linting for e2e tests
-			}
-		}
-	},
-	js.configs.recommended,
-	eslintConfigPrettier,
-	...tseslint.configs.recommended,
-	{
-		name: 'turbo',
-		plugins: {
-			turbo: turboPlugin
-		},
-		rules: {
-			'turbo/no-undeclared-env-vars': 'error'
-		}
-	},
+export const config = defineConfig([
+	// Extend shared base configuration (includes turbo plugin via root config)
+	...baseConfig,
 	{
 		name: 'test-files',
 		files: ['**/*.ts', '**/*.spec.ts'],
@@ -51,6 +24,6 @@ export const config = [
 			'@typescript-eslint/no-unused-vars': 'off'
 		}
 	}
-]
+])
 
 export default config
