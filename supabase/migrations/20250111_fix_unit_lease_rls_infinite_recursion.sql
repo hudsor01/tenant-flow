@@ -35,7 +35,7 @@ AS $$
   SELECT EXISTS (
     SELECT 1 FROM property
     WHERE id = property_id
-    AND "ownerId" = get_auth_uid()
+    AND "ownerId" = (select auth.uid())
   );
 $$;
 
@@ -60,7 +60,7 @@ AS $$
   SELECT EXISTS (
     SELECT 1 FROM lease
     WHERE "unitId" = unit_id
-    AND "tenantId" = get_auth_uid()
+    AND "tenantId" = (select auth.uid())
     AND status = 'ACTIVE'::"LeaseStatus"
   );
 $$;
@@ -148,7 +148,7 @@ USING (
     AND user_owns_property(unit."propertyId")
   )
   OR
-  "tenantId" = get_auth_uid()
+  "tenantId" = (select auth.uid())
 );
 
 -- INSERT: Allow property owners to create leases for their units
@@ -209,7 +209,7 @@ ON property
 FOR SELECT
 TO authenticated
 USING (
-  "ownerId" = get_auth_uid()
+  "ownerId" = (select auth.uid())
 );
 
 -- INSERT: Allow owners to create their own properties
@@ -218,7 +218,7 @@ ON property
 FOR INSERT
 TO authenticated
 WITH CHECK (
-  "ownerId" = get_auth_uid()
+  "ownerId" = (select auth.uid())
 );
 
 -- UPDATE: Allow owners to update their own properties
@@ -227,10 +227,10 @@ ON property
 FOR UPDATE
 TO authenticated
 USING (
-  "ownerId" = get_auth_uid()
+  "ownerId" = (select auth.uid())
 )
 WITH CHECK (
-  "ownerId" = get_auth_uid()
+  "ownerId" = (select auth.uid())
 );
 
 -- DELETE: Allow owners to delete their own properties
@@ -239,7 +239,7 @@ ON property
 FOR DELETE
 TO authenticated
 USING (
-  "ownerId" = get_auth_uid()
+  "ownerId" = (select auth.uid())
 );
 
 -- ============================================================================
@@ -254,7 +254,7 @@ ON notifications
 FOR SELECT
 TO authenticated
 USING (
-  "userId" = get_auth_uid()
+  "userId" = (select auth.uid())
 );
 
 -- INSERT: System can create notifications for users
@@ -272,10 +272,10 @@ ON notifications
 FOR UPDATE
 TO authenticated
 USING (
-  "userId" = get_auth_uid()
+  "userId" = (select auth.uid())
 )
 WITH CHECK (
-  "userId" = get_auth_uid()
+  "userId" = (select auth.uid())
 );
 
 -- DELETE: Allow users to delete their own notifications
@@ -284,7 +284,7 @@ ON notifications
 FOR DELETE
 TO authenticated
 USING (
-  "userId" = get_auth_uid()
+  "userId" = (select auth.uid())
 );
 
 -- ============================================================================
