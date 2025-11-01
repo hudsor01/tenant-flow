@@ -11,7 +11,7 @@
  * - Optimistic updates
  */
 
-import { API_BASE_URL } from '#lib/api-config'
+import { clientFetch } from '#lib/api/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { toast } from 'sonner' // Still needed for some success handlers
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
@@ -48,15 +48,7 @@ export const tenantKeys = {
 export function useTenant(id: string) {
 	return useQuery({
 		queryKey: tenantKeys.detail(id),
-		queryFn: async (): Promise<Tenant> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch tenant')
-			}
-			return res.json()
-		},
+		queryFn: () => clientFetch<Tenant>(`/api/v1/tenants/${id}`),
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes cache time
@@ -71,13 +63,7 @@ export function useTenantWithLease(id: string) {
 	return useQuery({
 		queryKey: tenantKeys.withLease(id),
 		queryFn: async (): Promise<TenantWithLeaseInfo> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}/with-lease`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch tenant with lease')
-			}
-			return res.json()
+			return clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${id}/with-lease`)
 		},
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
@@ -99,15 +85,7 @@ export function useTenantList(page: number = 1, limit: number = 50) {
 	return useQuery({
 		queryKey: [...tenantKeys.list(), { page, limit }],
 		queryFn: async () => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/tenants?limit=${limit}&offset=${offset}`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch tenants')
-			}
-
-			// Backend returns Tenant[] directly, not paginated object
-			const response = await res.json() as TenantWithLeaseInfo[]
+			const response = await clientFetch<TenantWithLeaseInfo[]>(`/api/v1/tenants?limit=${limit}&offset=${offset}`)
 
 			// Prefetch individual tenant details for faster navigation
 			response?.forEach?.(tenant => {
@@ -142,13 +120,7 @@ export function useAllTenants() {
 		queryKey: tenantKeys.list(),
 		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
 			try {
-				const res = await fetch(`${API_BASE_URL}/api/v1/tenants`, {
-					credentials: 'include'
-				})
-				if (!res.ok) {
-					throw new Error('Failed to fetch tenants')
-				}
-				const response = await res.json() as TenantWithLeaseInfo[]
+				const response = await clientFetch<TenantWithLeaseInfo[]>('/api/v1/tenants')
 
 				// Prefetch individual tenant details for instant navigation
 				response.forEach(tenant => {
@@ -183,20 +155,11 @@ export function useCreateTenant() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (tenantData: TenantInput): Promise<Tenant> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/tenants`, {
+		mutationFn: (tenantData: TenantInput) =>
+			clientFetch<Tenant>('/api/v1/tenants', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify(tenantData)
-			})
-			if (!res.ok) {
-				throw new Error('Failed to create tenant')
-			}
-			return res.json()
-		},
+			}),
 		onError: (err) => handleMutationError(err, 'Create tenant'),
 		onSuccess: (data) => {
 			// Cache individual tenant details
@@ -217,20 +180,11 @@ export function useUpdateTenant() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({ id, data }: { id: string; data: TenantUpdate }): Promise<TenantWithLeaseInfo> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}`, {
+		mutationFn: ({ id, data }: { id: string; data: TenantUpdate }) =>
+			clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${id}`, {
 				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify(data)
-			})
-			if (!res.ok) {
-				throw new Error('Failed to update tenant')
-			}
-			return res.json()
-		},
+			}),
 		onMutate: async ({ id, data }) => {
 			// Cancel all outgoing queries for this tenant
 			await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })
@@ -367,15 +321,7 @@ export function useTenantOperations() {
 export function useTenantSuspense(id: string) {
 	return useSuspenseQuery({
 		queryKey: tenantKeys.detail(id),
-		queryFn: async (): Promise<Tenant> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch tenant')
-			}
-			return res.json()
-		},
+		queryFn: () => clientFetch<Tenant>(`/api/v1/tenants/${id}`),
 		staleTime: 5 * 60 * 1000,
 		gcTime: 10 * 60 * 1000
 	})
@@ -389,13 +335,7 @@ export function useTenantWithLeaseSuspense(id: string) {
 	return useSuspenseQuery({
 		queryKey: tenantKeys.withLease(id),
 		queryFn: async (): Promise<TenantWithLeaseInfo> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}/with-lease`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch tenant with lease')
-			}
-			return res.json()
+			return clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${id}/with-lease`)
 		},
 		staleTime: 5 * 60 * 1000,
 		gcTime: 10 * 60 * 1000
@@ -412,13 +352,7 @@ export function useAllTenantsSuspense() {
 	return useSuspenseQuery({
 		queryKey: tenantKeys.list(),
 		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/tenants`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch tenants')
-			}
-			const response = await res.json() as TenantWithLeaseInfo[]
+			const response = await clientFetch<TenantWithLeaseInfo[]>('/api/v1/tenants')
 
 			// Prefetch individual tenant details for instant navigation
 			response.forEach(tenant => {
@@ -440,15 +374,7 @@ export function useAllTenantsSuspense() {
 export function useTenantPolling(id: string, interval: number = 30000) {
 	return useQuery({
 		queryKey: [...tenantKeys.detail(id), 'polling'],
-		queryFn: async (): Promise<Tenant> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch tenant')
-			}
-			return res.json()
-		},
+		queryFn: () => clientFetch<Tenant>(`/api/v1/tenants/${id}`),
 		enabled: !!id,
 		refetchInterval: interval,
 		refetchIntervalInBackground: false,
@@ -467,15 +393,7 @@ export function usePrefetchTenant() {
 		prefetchTenant: (id: string) => {
 			return queryClient.prefetchQuery({
 				queryKey: tenantKeys.detail(id),
-				queryFn: async (): Promise<Tenant> => {
-					const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}`, {
-						credentials: 'include'
-					})
-					if (!res.ok) {
-						throw new Error('Failed to fetch tenant')
-					}
-					return res.json()
-				},
+				queryFn: () => clientFetch<Tenant>(`/api/v1/tenants/${id}`),
 				staleTime: 5 * 60 * 1000
 			})
 		},
@@ -483,13 +401,7 @@ export function usePrefetchTenant() {
 			return queryClient.prefetchQuery({
 				queryKey: tenantKeys.withLease(id),
 				queryFn: async (): Promise<TenantWithLeaseInfo> => {
-					const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}/with-lease`, {
-						credentials: 'include'
-					})
-					if (!res.ok) {
-						throw new Error('Failed to fetch tenant with lease')
-					}
-					return res.json()
+					return clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${id}/with-lease`)
 				},
 				staleTime: 5 * 60 * 1000
 			})
@@ -548,18 +460,10 @@ export function useMarkTenantAsMovedOut() {
 
 	return useMutation({
 		mutationFn: async ({ id, data }: { id: string; data: { moveOutDate: string; moveOutReason: string } }): Promise<TenantWithLeaseInfo> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}/mark-moved-out`, {
+			return clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${id}/mark-moved-out`, {
 				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify(data)
 			})
-			if (!res.ok) {
-				throw new Error('Failed to mark tenant as moved out')
-			}
-			return res.json()
 		},
 		onMutate: async ({ id, data }) => {
 			// Cancel in-flight queries
@@ -667,18 +571,10 @@ export function useBatchTenantOperations() {
 		batchUpdate: async (updates: Array<{ id: string; data: TenantUpdate }>) => {
 			const results = await Promise.allSettled(
 				updates.map(async ({ id, data }) => {
-					const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}`, {
-						method: 'PUT',
-						headers: {
-							'Content-Type': 'application/json'
-						},
-						credentials: 'include',
-						body: JSON.stringify(data)
-					})
-					if (!res.ok) {
-						throw new Error('Failed to update tenant')
-					}
-					return res.json() as Promise<TenantWithLeaseInfo>
+					return clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${id}`, {
+							method: 'PUT',
+							body: JSON.stringify(data)
+						})
 				})
 			)
 
@@ -693,14 +589,9 @@ export function useBatchTenantOperations() {
 		batchDelete: async (ids: string[]) => {
 			const results = await Promise.allSettled(
 				ids.map(async (id) => {
-					const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${id}`, {
-						method: 'DELETE',
-						credentials: 'include'
-					})
-					if (!res.ok) {
-						throw new Error('Failed to delete tenant')
-					}
-					return res.json()
+					return clientFetch(`/api/v1/tenants/${id}`, {
+							method: 'DELETE'
+						})
 				})
 			)
 
@@ -727,12 +618,8 @@ export function useInviteTenant() {
 			phone: string | null
 			leaseId: string
 		}): Promise<Tenant> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/tenants`, {
+			const response = await clientFetch<Tenant>('/api/v1/tenants', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify({
 					email: data.email,
 					firstName: data.firstName,
@@ -742,24 +629,13 @@ export function useInviteTenant() {
 					status: 'PENDING' // Will be updated when invitation is accepted
 				})
 			})
-			if (!res.ok) {
-				throw new Error('Failed to create tenant')
-			}
-			const response = await res.json() as Tenant
 
 			// Associate tenant with lease
 			if (data.leaseId) {
-				const leaseRes = await fetch(`${API_BASE_URL}/api/v1/leases/${data.leaseId}`, {
+				await clientFetch(`/api/v1/leases/${data.leaseId}`, {
 					method: 'PATCH',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					credentials: 'include',
 					body: JSON.stringify({ tenantId: response.id })
 				})
-				if (!leaseRes.ok) {
-					throw new Error('Failed to associate tenant with lease')
-				}
 			}
 
 			return response
@@ -790,16 +666,10 @@ export function useResendInvitation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (tenantId: string): Promise<{ message: string }> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/tenants/${tenantId}/resend-invitation`, {
-				method: 'POST',
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to resend invitation')
-			}
-			return res.json()
-		},
+		mutationFn: (tenantId: string) =>
+			clientFetch<{ message: string }>(`/api/v1/tenants/${tenantId}/resend-invitation`, {
+				method: 'POST'
+			}),
 		onSuccess: (_, tenantId) => {
 			toast.success('Invitation resent', {
 				description: 'A new invitation email has been sent'

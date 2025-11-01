@@ -4,7 +4,7 @@
  * Follows CUSTOM HOOKS architecture patterns
  */
 
-import { API_BASE_URL } from '#lib/api-config'
+import { clientFetch } from '#lib/api/client'
 import type {
 	CreateMaintenanceRequest,
 	UpdateMaintenanceRequest
@@ -55,18 +55,9 @@ export function useAllMaintenanceRequests(query?: {
 			if (query?.limit) params.append('limit', query.limit.toString())
 			if (query?.offset) params.append('offset', query.offset.toString())
 
-			const res = await fetch(
-				`/api/v1/maintenance${params.toString() ? `?${params.toString()}` : ''}`,
-				{
-					credentials: 'include'
-				}
+			const response = await clientFetch<MaintenanceRequest[]>(
+				`/api/v1/maintenance${params.toString() ? `?${params.toString()}` : ''}`
 			)
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch maintenance requests')
-			}
-
-			const response = (await res.json()) as MaintenanceRequest[]
 
 			// Prefetch individual details for instant navigation
 			response?.forEach?.(maintenance => {
@@ -93,15 +84,7 @@ export function useMaintenanceRequest(id: string) {
 	return useQuery({
 		queryKey: maintenanceKeys.detail(id),
 		queryFn: async (): Promise<MaintenanceRequest> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/maintenance/${id}`, {
-				credentials: 'include'
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch maintenance request')
-			}
-
-			return res.json()
+			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`)
 		},
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000,
@@ -123,15 +106,7 @@ export function useMaintenanceStats() {
 			completedRequests: number
 			urgentRequests: number
 		}> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/maintenance/stats`, {
-				credentials: 'include'
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch maintenance stats')
-			}
-
-			return res.json()
+			return clientFetch(`/api/v1/maintenance/stats`)
 		},
 		staleTime: 10 * 60 * 1000, // 10 minutes
 		retry: 2
@@ -145,24 +120,11 @@ export function useCreateMaintenanceRequest() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (
-			data: CreateMaintenanceRequest
-		): Promise<MaintenanceRequest> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/maintenance`, {
+		mutationFn: (data: CreateMaintenanceRequest) =>
+			clientFetch<MaintenanceRequest>('/api/v1/maintenance', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify(data)
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to create maintenance request')
-			}
-
-			return res.json()
-		},
+			}),
 		onMutate: async newRequest => {
 			// Cancel outgoing queries
 			await queryClient.cancelQueries({ queryKey: maintenanceKeys.list() })
@@ -237,20 +199,10 @@ export function useUpdateMaintenanceRequest() {
 			id: string
 			data: UpdateMaintenanceRequest
 		}): Promise<MaintenanceRequest> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/maintenance/${id}`, {
-				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
-				body: JSON.stringify(data)
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to update maintenance request')
-			}
-
-			return res.json()
+			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`, {
+					method: 'PUT',
+					body: JSON.stringify(data)
+				})
 		},
 		onMutate: async ({ id, data }) => {
 			await queryClient.cancelQueries({ queryKey: maintenanceKeys.detail(id) })
@@ -317,15 +269,7 @@ export function usePrefetchMaintenanceRequest() {
 			return queryClient.prefetchQuery({
 				queryKey: maintenanceKeys.detail(id),
 				queryFn: async (): Promise<MaintenanceRequest> => {
-					const res = await fetch(`${API_BASE_URL}/api/v1/maintenance/${id}`, {
-						credentials: 'include'
-					})
-
-					if (!res.ok) {
-						throw new Error('Failed to fetch maintenance request')
-					}
-
-					return res.json()
+					return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`)
 				},
 				staleTime: 5 * 60 * 1000
 			})
@@ -350,20 +294,10 @@ export function useCompleteMaintenance() {
 			actualCost?: number
 			notes?: string
 		}): Promise<MaintenanceRequest> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/maintenance/${id}/complete`, {
+			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}/complete`, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify({ actualCost, notes })
 			})
-
-			if (!res.ok) {
-				throw new Error('Failed to complete maintenance request')
-			}
-
-			return res.json()
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries
@@ -457,20 +391,10 @@ export function useCancelMaintenance() {
 			id: string
 			reason?: string
 		}): Promise<MaintenanceRequest> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/maintenance/${id}/cancel`, {
+			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}/cancel`, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify({ reason })
 			})
-
-			if (!res.ok) {
-				throw new Error('Failed to cancel maintenance request')
-			}
-
-			return res.json()
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries

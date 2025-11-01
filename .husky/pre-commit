@@ -3,12 +3,17 @@
 # Husky v9.1.7 optimized pre-commit hook
 # Comprehensive validation before commit
 
-echo "🔍 Running pre-commit validation (lint + typecheck + tests)..."
+echo "🔍 Running pre-commit validation (lockfile + lint + typecheck + tests)..."
 
-# Run lint-staged first for immediate feedback
-npx lint-staged
+# Step 1: Verify pnpm lockfile is in sync
+echo "📦 Verifying pnpm lockfile is up to date..."
+if ! pnpm install --frozen-lockfile --prefer-offline > /dev/null 2>&1; then
+  echo "❌ pnpm-lock.yaml is out of sync!"
+  echo "Please run 'pnpm install' and commit the lockfile changes."
+  exit 1
+fi
 
-# Run comprehensive checks on all changed files
+# Step 2: Turbo runs lint, typecheck, and tests on all changed files with caching
 npx turbo run lint typecheck test:unit \
   --cache-dir=.turbo \
   --filter='[HEAD^1]' \

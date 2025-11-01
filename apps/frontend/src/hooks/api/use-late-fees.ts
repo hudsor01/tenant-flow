@@ -6,6 +6,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { clientFetch } from '#lib/api/client'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 
 /**
@@ -58,16 +59,7 @@ export const lateFeesKeys = {
 export function useLateFeeConfig(leaseId: string) {
 	return useQuery({
 		queryKey: lateFeesKeys.config(leaseId),
-		queryFn: async (): Promise<LateFeeConfig> => {
-			const res = await fetch(`/api/v1/late-fees/lease/${leaseId}/config`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch late fee config')
-			}
-			const response = await res.json() as { success: boolean; data: LateFeeConfig }
-			return response.data
-		},
+		queryFn: () => clientFetch<LateFeeConfig>(`/api/v1/late-fees/lease/${leaseId}/config`),
 		enabled: !!leaseId,
 		staleTime: 5 * 60 * 1000 // 5 minutes
 	})
@@ -80,7 +72,7 @@ export function useUpdateLateFeeConfig() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({
+		mutationFn: ({
 			leaseId,
 			gracePeriodDays,
 			flatFeeAmount
@@ -88,20 +80,14 @@ export function useUpdateLateFeeConfig() {
 			leaseId: string
 			gracePeriodDays?: number
 			flatFeeAmount?: number
-		}): Promise<{ success: boolean; message: string }> => {
-			const res = await fetch(`/api/v1/late-fees/lease/${leaseId}/config`, {
-				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
-				body: JSON.stringify({ gracePeriodDays, flatFeeAmount })
-			})
-			if (!res.ok) {
-				throw new Error('Failed to update late fee config')
-			}
-			return res.json()
-		},
+		}) =>
+			clientFetch<{ success: boolean; message: string }>(
+				`/api/v1/late-fees/lease/${leaseId}/config`,
+				{
+					method: 'PUT',
+					body: JSON.stringify({ gracePeriodDays, flatFeeAmount })
+				}
+			),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({
 				queryKey: lateFeesKeys.config(variables.leaseId)
@@ -121,19 +107,10 @@ export function useUpdateLateFeeConfig() {
 export function useOverduePayments(leaseId: string) {
 	return useQuery({
 		queryKey: lateFeesKeys.overdue(leaseId),
-		queryFn: async (): Promise<{ payments: OverduePayment[]; gracePeriod: number }> => {
-			const res = await fetch(`/api/v1/late-fees/lease/${leaseId}/overdue`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch overdue payments')
-			}
-			const response = await res.json() as {
-				success: boolean
-				data: { payments: OverduePayment[]; gracePeriod: number }
-			}
-			return response.data
-		},
+		queryFn: () =>
+			clientFetch<{ payments: OverduePayment[]; gracePeriod: number }>(
+				`/api/v1/late-fees/lease/${leaseId}/overdue`
+			),
 		enabled: !!leaseId,
 		staleTime: 60 * 1000 // 1 minute
 	})
@@ -146,21 +123,10 @@ export function useProcessLateFees() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (leaseId: string): Promise<ProcessLateFeesResult> => {
-			const res = await fetch(`/api/v1/late-fees/lease/${leaseId}/process`, {
-				method: 'POST',
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to process late fees')
-			}
-			const response = await res.json() as {
-				success: boolean
-				data: ProcessLateFeesResult
-				message: string
-			}
-			return response.data
-		},
+		mutationFn: (leaseId: string) =>
+			clientFetch<ProcessLateFeesResult>(`/api/v1/late-fees/lease/${leaseId}/process`, {
+				method: 'POST'
+			}),
 		onSuccess: (result, leaseId) => {
 			queryClient.invalidateQueries({
 				queryKey: lateFeesKeys.overdue(leaseId)
@@ -193,7 +159,7 @@ export function useApplyLateFee() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({
+		mutationFn: ({
 			paymentId,
 			lateFeeAmount,
 			reason
@@ -201,24 +167,11 @@ export function useApplyLateFee() {
 			paymentId: string
 			lateFeeAmount: number
 			reason: string
-		}): Promise<ApplyLateFeeResult> => {
-			const res = await fetch(`/api/v1/late-fees/payment/${paymentId}/apply`, {
+		}) =>
+			clientFetch<ApplyLateFeeResult>(`/api/v1/late-fees/payment/${paymentId}/apply`, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify({ lateFeeAmount, reason })
-			})
-			if (!res.ok) {
-				throw new Error('Failed to apply late fee')
-			}
-			const response = await res.json() as {
-				success: boolean
-				data: ApplyLateFeeResult
-			}
-			return response.data
-		},
+			}),
 		onSuccess: result => {
 			queryClient.invalidateQueries({
 				queryKey: ['payments']
@@ -250,16 +203,7 @@ export function usePrefetchLateFeeConfig() {
 	return (leaseId: string) => {
 		queryClient.prefetchQuery({
 			queryKey: lateFeesKeys.config(leaseId),
-			queryFn: async (): Promise<LateFeeConfig> => {
-				const res = await fetch(`/api/v1/late-fees/lease/${leaseId}/config`, {
-					credentials: 'include'
-				})
-				if (!res.ok) {
-					throw new Error('Failed to fetch late fee config')
-				}
-				const response = await res.json() as { success: boolean; data: LateFeeConfig }
-				return response.data
-			},
+			queryFn: () => clientFetch<LateFeeConfig>(`/api/v1/late-fees/lease/${leaseId}/config`),
 			staleTime: 5 * 60 * 1000
 		})
 	}
@@ -274,19 +218,10 @@ export function usePrefetchOverduePayments() {
 	return (leaseId: string) => {
 		queryClient.prefetchQuery({
 			queryKey: lateFeesKeys.overdue(leaseId),
-			queryFn: async (): Promise<{ payments: OverduePayment[]; gracePeriod: number }> => {
-				const res = await fetch(`/api/v1/late-fees/lease/${leaseId}/overdue`, {
-					credentials: 'include'
-				})
-				if (!res.ok) {
-					throw new Error('Failed to fetch overdue payments')
-				}
-				const response = await res.json() as {
-					success: boolean
-					data: { payments: OverduePayment[]; gracePeriod: number }
-				}
-				return response.data
-			},
+			queryFn: () =>
+			clientFetch<{ payments: OverduePayment[]; gracePeriod: number }>(
+				`/api/v1/late-fees/lease/${leaseId}/overdue`
+			),
 			staleTime: 60 * 1000
 		})
 	}
