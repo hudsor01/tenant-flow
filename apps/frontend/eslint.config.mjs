@@ -198,7 +198,7 @@ export default defineConfig([
 	{
 		name: 'frontend/no-inline-api-url-fallback',
 		files: ['**/*.ts', '**/*.tsx'],
-		ignores: ['**/lib/api-client.ts', '**/lib/api-config.ts'],
+		ignores: ['**/lib/api-config.ts'],
 		rules: {
 			'no-restricted-syntax': [
 				'error',
@@ -206,19 +206,19 @@ export default defineConfig([
 					selector:
 						'LogicalExpression[operator="||"][left.type="MemberExpression"][left.property.name="NEXT_PUBLIC_API_BASE_URL"]',
 					message:
-						'Inline API URL fallback detected. Import API_BASE_URL from @/lib/api-client instead of using process.env.NEXT_PUBLIC_API_BASE_URL || fallback. See CLAUDE.md DRY principle.'
+						'Inline API URL fallback detected. Import API_BASE_URL from #lib/api-config instead of using process.env.NEXT_PUBLIC_API_BASE_URL || fallback. See CLAUDE.md DRY principle.'
 				},
 				{
 					selector:
 						'BinaryExpression[left.type="MemberExpression"][left.property.name="NEXT_PUBLIC_API_BASE_URL"]',
 					message:
-						'Direct access to NEXT_PUBLIC_API_BASE_URL detected. Import API_BASE_URL from @/lib/api-client instead. See CLAUDE.md DRY principle.'
+						'Direct access to NEXT_PUBLIC_API_BASE_URL detected. Import API_BASE_URL from #lib/api-config instead. See CLAUDE.md DRY principle.'
 				},
 				{
 					selector:
 						'TemplateLiteral MemberExpression[property.name="NEXT_PUBLIC_API_BASE_URL"]',
 					message:
-						'Template literal with NEXT_PUBLIC_API_BASE_URL detected. Import API_BASE_URL from @/lib/api-client instead. See CLAUDE.md DRY principle.'
+						'Template literal with NEXT_PUBLIC_API_BASE_URL detected. Import API_BASE_URL from #lib/api-config instead. See CLAUDE.md DRY principle.'
 				}
 			]
 		}
