@@ -91,19 +91,19 @@ if (typeof globalThis.Worker === 'undefined') {
 		onmessage: ((this: Worker, ev: MessageEvent) => unknown) | null = null
 		onerror: ((this: Worker, ev: ErrorEvent) => unknown) | null = null
 
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		 
 		constructor() {}
 
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		 
 		postMessage(): void {}
 
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		 
 		terminate(): void {}
 
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		 
 		addEventListener(): void {}
 
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		 
 		removeEventListener(): void {}
 
 		dispatchEvent(): boolean {
