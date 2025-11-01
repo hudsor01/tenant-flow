@@ -10,7 +10,7 @@
  * - Proper error handling
  */
 
-import { API_BASE_URL } from '#lib/api-config'
+import { clientFetch } from '#lib/api/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import {
@@ -47,15 +47,7 @@ export function useUnit(id: string) {
 	return useQuery({
 		queryKey: unitKeys.detail(id),
 		queryFn: async (): Promise<Unit> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/units/${id}`, {
-				credentials: 'include'
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch unit')
-			}
-
-			return res.json()
+			return clientFetch<Unit>(`/api/v1/units/${id}`)
 		},
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
@@ -73,16 +65,7 @@ export function useUnitsByProperty(propertyId: string) {
 	return useQuery({
 		queryKey: unitKeys.byProperty(propertyId),
 		queryFn: async (): Promise<{ data: Unit[]; total: number }> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/units/by-property/${propertyId}`, {
-				credentials: 'include'
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch units by property')
-			}
-
-			// Backend returns Unit[] directly, not paginated object
-			const response = (await res.json()) as Unit[]
+			const response = await clientFetch<Unit[]>(`/api/v1/units/by-property/${propertyId}`)
 
 			// Prefetch individual unit details for faster navigation
 			response?.forEach?.(unit => {
@@ -134,16 +117,7 @@ export function useUnitList(params?: {
 			searchParams.append('limit', limit.toString())
 			searchParams.append('offset', offset.toString())
 
-			const res = await fetch(`${API_BASE_URL}/api/v1/units?${searchParams.toString()}`, {
-				credentials: 'include'
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch units')
-			}
-
-			// Backend returns Unit[] directly, not paginated object
-			const response = (await res.json()) as Unit[]
+			const response = await clientFetch<Unit[]>(`/api/v1/units?${searchParams.toString()}`)
 
 			// Prefetch individual unit details for faster navigation
 			response?.forEach?.(unit => {
@@ -172,17 +146,7 @@ export function useUnitList(params?: {
 export function useUnitStats() {
 	return useQuery({
 		queryKey: unitKeys.stats(),
-		queryFn: async (): Promise<UnitStats> => {
-			const res = await fetch('/api/v1/units/stats', {
-				credentials: 'include'
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch unit stats')
-			}
-
-			return res.json()
-		},
+		queryFn: () => clientFetch<UnitStats>('/api/v1/units/stats'),
 		staleTime: 10 * 60 * 1000, // 10 minutes
 		gcTime: 30 * 60 * 1000, // 30 minutes
 		retry: 2
@@ -213,22 +177,11 @@ export function useCreateUnit() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (unitData: CreateUnitInput): Promise<Unit> => {
-			const res = await fetch('/api/v1/units', {
+		mutationFn: (unitData: CreateUnitInput) =>
+			clientFetch<Unit>('/api/v1/units', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify(unitData)
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to create unit')
-			}
-
-			return res.json()
-		},
+			}),
 		onMutate: async (newUnit: CreateUnitInput) => {
 			// Cancel outgoing refetches to prevent overwriting optimistic update
 			await queryClient.cancelQueries({ queryKey: unitKeys.all })
@@ -330,21 +283,11 @@ export function useUpdateUnit() {
 			// 🔐 BUG FIX #2: Get current version from cache for optimistic locking
 			const currentUnit = queryClient.getQueryData<Unit>(unitKeys.detail(id))
 
-			const res = await fetch(`${API_BASE_URL}/api/v1/units/${id}`, {
+			return clientFetch<Unit>(`/api/v1/units/${id}`, {
 				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				// Use withVersion helper to include version in request
 				body: JSON.stringify(withVersion(data, currentUnit?.version))
 			})
-
-			if (!res.ok) {
-				throw new Error('Failed to update unit')
-			}
-
-			return res.json()
 		},
 		onMutate: async ({ id, data }) => {
 			// Cancel all outgoing queries for this unit
@@ -443,15 +386,9 @@ export function useDeleteUnit(options?: {
 
 	return useMutation({
 		mutationFn: async (id: string): Promise<string> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/units/${id}`, {
-				method: 'DELETE',
-				credentials: 'include'
+			await clientFetch(`/api/v1/units/${id}`, {
+				method: 'DELETE'
 			})
-
-			if (!res.ok) {
-				throw new Error('Failed to delete unit')
-			}
-
 			return id
 		},
 		onMutate: async (id: string) => {
@@ -522,15 +459,7 @@ export function usePrefetchUnit() {
 		queryClient.prefetchQuery({
 			queryKey: unitKeys.detail(id),
 			queryFn: async (): Promise<Unit> => {
-				const res = await fetch(`${API_BASE_URL}/api/v1/units/${id}`, {
-					credentials: 'include'
-				})
-
-				if (!res.ok) {
-					throw new Error('Failed to fetch unit')
-				}
-
-				return res.json()
+				return clientFetch<Unit>(`/api/v1/units/${id}`)
 			},
 			staleTime: 5 * 60 * 1000
 		})
