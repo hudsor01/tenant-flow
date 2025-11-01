@@ -9,7 +9,7 @@
  * - Proper error handling
  */
 
-import { API_BASE_URL } from '#lib/api-config'
+import { clientFetch } from '#lib/api/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
 	CreateLeaseInput,
@@ -42,17 +42,7 @@ export const leaseKeys = {
 export function useLease(id: string) {
 	return useQuery({
 		queryKey: leaseKeys.detail(id),
-		queryFn: async (): Promise<Lease> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/leases/${id}`, {
-				credentials: 'include'
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch lease')
-			}
-
-			return res.json()
-		},
+		queryFn: () => clientFetch<Lease>(`/api/v1/leases/${id}`),
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes
@@ -67,20 +57,12 @@ export function useCurrentLease() {
 	return useQuery({
 		queryKey: leaseKeys.list({ status: 'ACTIVE' }),
 		queryFn: async (): Promise<Lease | null> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/leases?status=ACTIVE&limit=1`, {
-				credentials: 'include'
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch current lease')
-			}
-
-			const response = (await res.json()) as {
+			const response = await clientFetch<{
 				data: Lease[]
 				total: number
 				limit: number
 				offset: number
-			}
+			}>('/api/v1/leases?status=ACTIVE&limit=1')
 			return response.data?.[0] || null
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
@@ -118,31 +100,23 @@ export function useTenantMaintenanceRequests() {
 				return { requests: [], total: 0, open: 0, inProgress: 0, completed: 0 }
 			}
 
-			const res = await fetch(`${API_BASE_URL}/api/v1/maintenance?unitId=${lease.unitId}`, {
-				credentials: 'include'
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch tenant maintenance requests')
-			}
-
-			// Backend returns MaintenanceRequest[] directly, not wrapped in { data: [...] }
-			const requests = (await res.json()) as Array<{
-				id: string
-				title: string
-				description: string
-				priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-				status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED'
-				category: string | null
-				createdAt: string
-				updatedAt: string
-				completedAt: string | null
-			}>
+			const requests = await clientFetch<
+				Array<{
+					id: string
+					title: string
+					description: string
+					priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+					status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED'
+					category: string | null
+					createdAt: string
+					updatedAt: string
+					completedAt: string | null
+				}>
+			>(`/api/v1/maintenance?unitId=${lease.unitId}`)
 
 			const total = requests.length
 			const open = requests.filter(r => r.status === 'OPEN').length
-			const inProgress = requests.filter(r => r.status === 'IN_PROGRESS')
-				.length
+			const inProgress = requests.filter(r => r.status === 'IN_PROGRESS').length
 			const completed = requests.filter(r => r.status === 'COMPLETED').length
 
 			return { requests, total, open, inProgress, completed }
@@ -178,20 +152,12 @@ export function useLeaseList(params?: {
 			searchParams.append('limit', limit.toString())
 			searchParams.append('offset', offset.toString())
 
-			const res = await fetch(`${API_BASE_URL}/api/v1/leases?${searchParams.toString()}`, {
-				credentials: 'include'
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch leases')
-			}
-
-			const response = (await res.json()) as {
+			const response = await clientFetch<{
 				data: Lease[]
 				total: number
 				limit: number
 				offset: number
-			}
+			}>(`/api/v1/leases?${searchParams.toString()}`)
 
 			// Prefetch individual lease details
 			response.data.forEach(lease => {
@@ -213,20 +179,8 @@ export function useLeaseList(params?: {
 export function useExpiringLeases(daysUntilExpiry: number = 30) {
 	return useQuery({
 		queryKey: [...leaseKeys.expiring(), { days: daysUntilExpiry }],
-		queryFn: async (): Promise<Lease[]> => {
-			const res = await fetch(
-				`/api/v1/leases/expiring?days=${daysUntilExpiry}`,
-				{
-					credentials: 'include'
-				}
-			)
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch expiring leases')
-			}
-
-			return res.json()
-		},
+		queryFn: () =>
+			clientFetch<Lease[]>(`/api/v1/leases/expiring?days=${daysUntilExpiry}`),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		retry: 2
 	})
@@ -238,17 +192,7 @@ export function useExpiringLeases(daysUntilExpiry: number = 30) {
 export function useLeaseStats() {
 	return useQuery({
 		queryKey: leaseKeys.stats(),
-		queryFn: async () => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/leases/stats`, {
-				credentials: 'include'
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch lease stats')
-			}
-
-			return res.json()
-		},
+		queryFn: () => clientFetch('/api/v1/leases/stats'),
 		staleTime: 10 * 60 * 1000, // 10 minutes
 		retry: 2
 	})
@@ -261,22 +205,11 @@ export function useCreateLease() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (leaseData: CreateLeaseInput): Promise<Lease> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/leases`, {
+		mutationFn: (leaseData: CreateLeaseInput) =>
+			clientFetch<Lease>('/api/v1/leases', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify(leaseData)
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to create lease')
-			}
-
-			return res.json()
-		},
+			}),
 		onMutate: async (newLease: CreateLeaseInput) => {
 			// Cancel outgoing refetches
 			await queryClient.cancelQueries({ queryKey: leaseKeys.all })
@@ -377,28 +310,11 @@ export function useUpdateLease() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({
-			id,
-			data
-		}: {
-			id: string
-			data: UpdateLeaseInput
-		}): Promise<Lease> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/leases/${id}`, {
+		mutationFn: ({ id, data }: { id: string; data: UpdateLeaseInput }) =>
+			clientFetch<Lease>(`/api/v1/leases/${id}`, {
 				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify(data)
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to update lease')
-			}
-
-			return res.json()
-		},
+			}),
 		onMutate: async ({ id, data }) => {
 			// Cancel outgoing queries
 			await queryClient.cancelQueries({ queryKey: leaseKeys.detail(id) })
@@ -417,7 +333,9 @@ export function useUpdateLease() {
 
 			// Optimistically update detail cache
 			queryClient.setQueryData<Lease>(leaseKeys.detail(id), old =>
-				old ? { ...old, ...data, updatedAt: new Date().toISOString() } : undefined
+				old
+					? { ...old, ...data, updatedAt: new Date().toISOString() }
+					: undefined
 			)
 
 			// Optimistically update list caches
@@ -491,15 +409,9 @@ export function useDeleteLease(options?: {
 
 	return useMutation({
 		mutationFn: async (id: string): Promise<string> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/leases/${id}`, {
-				method: 'DELETE',
-				credentials: 'include'
+			await clientFetch(`/api/v1/leases/${id}`, {
+				method: 'DELETE'
 			})
-
-			if (!res.ok) {
-				throw new Error('Failed to delete lease')
-			}
-
 			return id
 		},
 		onMutate: async (id: string) => {
@@ -571,28 +483,11 @@ export function useRenewLease() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({
-			id,
-			newEndDate
-		}: {
-			id: string
-			newEndDate: string
-		}): Promise<Lease> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/leases/${id}/renew`, {
+		mutationFn: ({ id, newEndDate }: { id: string; newEndDate: string }) =>
+			clientFetch<Lease>(`/api/v1/leases/${id}/renew`, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify({ endDate: newEndDate })
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to renew lease')
-			}
-
-			return res.json()
-		},
+			}),
 		onSuccess: (data, { id }) => {
 			// Update caches with renewed lease
 			queryClient.setQueryData(leaseKeys.detail(id), data)
@@ -625,7 +520,7 @@ export function useTerminateLease() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({
+		mutationFn: ({
 			id,
 			terminationDate,
 			reason
@@ -633,24 +528,15 @@ export function useTerminateLease() {
 			id: string
 			terminationDate: string
 			reason?: string
-		}): Promise<Lease> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/leases/${id}/terminate`, {
+		}) =>
+			clientFetch<Lease>(`/api/v1/leases/${id}/terminate`, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
 				body: JSON.stringify(
-					reason !== undefined ? { terminationDate, reason } : { terminationDate }
+					reason !== undefined
+						? { terminationDate, reason }
+						: { terminationDate }
 				)
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to terminate lease')
-			}
-
-			return res.json()
-		},
+			}),
 		onSuccess: (data, { id }) => {
 			// Update caches with terminated lease
 			queryClient.setQueryData(leaseKeys.detail(id), data)
@@ -684,17 +570,7 @@ export function usePrefetchLease() {
 	return (id: string) => {
 		queryClient.prefetchQuery({
 			queryKey: leaseKeys.detail(id),
-			queryFn: async (): Promise<Lease> => {
-				const res = await fetch(`${API_BASE_URL}/api/v1/leases/${id}`, {
-					credentials: 'include'
-				})
-
-				if (!res.ok) {
-					throw new Error('Failed to fetch lease')
-				}
-
-				return res.json()
-			},
+			queryFn: () => clientFetch<Lease>(`/api/v1/leases/${id}`),
 			staleTime: 5 * 60 * 1000
 		})
 	}

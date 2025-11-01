@@ -5,10 +5,7 @@
 
 echo "🔍 Running pre-commit validation (lint + typecheck + tests)..."
 
-# Run lint-staged first for immediate feedback
-npx lint-staged
-
-# Run comprehensive checks on all changed files
+# Turbo runs lint, typecheck, and tests on all changed files with caching
 npx turbo run lint typecheck test:unit \
   --cache-dir=.turbo \
   --filter='[HEAD^1]' \
