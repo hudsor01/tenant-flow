@@ -333,7 +333,7 @@ describe('PropertiesService', () => {
 
 			expect(result).toEqual(mockStats)
 			expect(cacheManager.get).toHaveBeenCalledWith('property-stats:user-123')
-			expect(mockAdminClient.rpc).not.toHaveBeenCalled()
+			expect(mockUserClient.rpc).not.toHaveBeenCalled()
 		})
 
 		it('should fetch stats via RPC and cache the result when not cached', async () => {
@@ -348,12 +348,12 @@ describe('PropertiesService', () => {
 				averageRent: 2000
 			}
 
-			mockAdminClient.rpc.mockResolvedValue({ data: mockStats, error: null })
+			mockUserClient.rpc.mockResolvedValue({ data: mockStats, error: null })
 
 			const result = await service.getStats(createMockRequest('user-123'))
 
 			expect(result).toEqual(mockStats)
-			expect(mockAdminClient.rpc).toHaveBeenCalledWith('get_property_stats', {
+			expect(mockUserClient.rpc).toHaveBeenCalledWith('get_property_stats', {
 				p_user_id: 'user-123'
 			})
 			expect(cacheManager.set).toHaveBeenCalledWith(

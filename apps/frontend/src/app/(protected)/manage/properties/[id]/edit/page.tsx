@@ -8,7 +8,7 @@ export default async function EditPropertyPage({
 	params: Promise<{ id: string }>
 }) {
 	const { id } = await params
-	const { accessToken } = await requireSession()
+	await requireSession()
 
 	// Fetch property data on server
 	const property = await serverFetch<import('@repo/shared/types/core').Property>(`/api/v1/properties/${id}`)

@@ -23,7 +23,7 @@
 		"build": "tsc",
 		"dev": "tsc --watch",
 		"typecheck": "tsc --noEmit",
-		"lint": "eslint \"src/**/*.ts\"",
+		"lint": "eslint \"src/**/*.ts\" --no-error-on-unmatched-pattern --no-warn-ignored",
 		"lint:fix": "pnpm lint --fix",
 		"clean": "rimraf dist .turbo"
 	},
@@ -40,6 +40,7 @@
 	"devDependencies": {
 		"@types/jest": "catalog:",
 		"@types/node": "catalog:",
+		"eslint": "catalog:",
 		"jest": "catalog:",
 		"rimraf": "6.0.1",
 		"typescript": "catalog:"

@@ -5,6 +5,17 @@
 
 echo "🚀 Running lightweight pre-push validation..."
 
+# Ensure lockfile is in sync
+echo "📦 Verifying pnpm lockfile is up to date..."
+pnpm install --lockfile-only --ignore-scripts
+
+if git diff --quiet pnpm-lock.yaml; then
+  echo "✅ Lockfile is in sync"
+else
+  echo "❌ pnpm-lock.yaml is out of sync! Please run 'pnpm install' and commit the changes."
+  exit 1
+fi
+
 # Only verify that commits are properly formatted and branch is ready
 # Heavy validation already happened at commit time
 echo "✅ Pre-push validation passed! Pushing to remote..."

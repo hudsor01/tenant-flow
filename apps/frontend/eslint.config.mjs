@@ -9,15 +9,17 @@
  * - 2024 monorepo patterns with separate lint/build configs
  */
 
+import { defineConfig } from 'eslint/config'
+import baseConfig from '@repo/eslint-config/base.js'
 import { createRequire } from 'module'
 const require = createRequire(import.meta.url)
 const nextPlugin = require('@next/eslint-plugin-next')
-import tseslint from '@typescript-eslint/eslint-plugin'
-import tsParser from '@typescript-eslint/parser'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import colorTokensConfig from './color-tokens.eslint.js'
 
-export default [
+export default defineConfig([
+	// Extend shared base configuration (TypeScript, ignores, test rules)
+	...baseConfig,
 	{
 		name: 'frontend/next.js-plugin',
 		plugins: {
@@ -59,11 +61,10 @@ export default [
 		name: 'frontend/react-typescript',
 		files: ['**/*.ts', '**/*.tsx'],
 		plugins: {
-			'react-hooks': reactHooksPlugin,
-			'@typescript-eslint': tseslint
+			'react-hooks': reactHooksPlugin
 		},
 		languageOptions: {
-			parser: tsParser,
+			// Parser already configured in base.js, just override parserOptions
 			parserOptions: {
 				project: './tsconfig.json',
 				tsconfigRootDir: import.meta.dirname,
@@ -85,6 +86,8 @@ export default [
 			}
 		},
 		rules: {
+			// Override base.js rule to allow inline import() type annotations in React components
+			'@typescript-eslint/consistent-type-imports': 'off',
 			'react/react-in-jsx-scope': 'off',
 			'react/jsx-uses-react': 'off',
 			'react-hooks/rules-of-hooks': 'error',
@@ -220,4 +223,4 @@ export default [
 			]
 		}
 	}
-]
+])

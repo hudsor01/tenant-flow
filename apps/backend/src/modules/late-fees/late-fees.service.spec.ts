@@ -31,7 +31,9 @@ describe('LateFeesService', () => {
 		}
 
 		mockSupabaseService = {
-			getAdminClient: jest.fn().mockReturnValue(mockAdminClient)
+			getAdminClient: jest.fn().mockReturnValue(mockAdminClient),
+			getUserClient: jest.fn().mockReturnValue(mockAdminClient),
+			getTokenFromRequest: jest.fn().mockReturnValue('mock-jwt-token')
 		}
 
 		// Mock Stripe instance
@@ -129,7 +131,7 @@ describe('LateFeesService', () => {
 				error: null
 			})
 
-			const result = await service.getLateFeeConfig(leaseId)
+			const result = await service.getLateFeeConfig(leaseId, 'mock-jwt-token')
 
 			expect(result).toEqual({
 				leaseId,
@@ -148,7 +150,7 @@ describe('LateFeesService', () => {
 				error: { message: 'Not found' }
 			})
 
-			const result = await service.getLateFeeConfig(leaseId)
+			const result = await service.getLateFeeConfig(leaseId, 'mock-jwt-token')
 
 			expect(result).toEqual({
 				leaseId,
@@ -171,7 +173,7 @@ describe('LateFeesService', () => {
 				error: null
 			})
 
-			const result = await service.getLateFeeConfig(leaseId)
+			const result = await service.getLateFeeConfig(leaseId, 'mock-jwt-token')
 
 			expect(result.gracePeriodDays).toBe(5)
 			expect(result.flatFeeAmount).toBe(50)
@@ -200,12 +202,13 @@ describe('LateFeesService', () => {
 			mockAdminClient.eq.mockResolvedValue({ data: {}, error: null })
 
 			const result = await service.applyLateFeeToInvoice(
-				customerId,
-				leaseId,
-				rentPaymentId,
-				lateFeeAmount,
-				reason
-			)
+			customerId,
+			leaseId,
+			rentPaymentId,
+			lateFeeAmount,
+			reason,
+			'mock-jwt-token'
+		)
 
 			// Verify Stripe invoice item created
 			expect(mockStripe.invoiceItems!.create).toHaveBeenCalledWith({
@@ -238,12 +241,13 @@ describe('LateFeesService', () => {
 
 			await expect(
 				service.applyLateFeeToInvoice(
-					'cus_123',
-					generateUUID(),
-					generateUUID(),
-					50,
-					'test'
-				)
+				'cus_123',
+				generateUUID(),
+				generateUUID(),
+				50,
+				'test',
+				'mock-jwt-token'
+			)
 			).rejects.toThrow(BadRequestException)
 		})
 	})
@@ -273,7 +277,7 @@ describe('LateFeesService', () => {
 				error: null
 			})
 
-			const result = await service.getOverduePayments(leaseId, 5)
+			const result = await service.getOverduePayments(leaseId, 'mock-jwt-token', 5)
 
 			expect(result).toHaveLength(1)
 			expect(result[0]?.amount).toBe(1500) // Converted from cents
@@ -301,7 +305,7 @@ describe('LateFeesService', () => {
 				error: null
 			})
 
-			const result = await service.getOverduePayments(leaseId, 5)
+			const result = await service.getOverduePayments(leaseId, 'mock-jwt-token', 5)
 
 			expect(result).toHaveLength(0)
 		})
@@ -326,7 +330,7 @@ describe('LateFeesService', () => {
 				error: null
 			})
 
-			const result = await service.getOverduePayments(leaseId, 5)
+			const result = await service.getOverduePayments(leaseId, 'mock-jwt-token', 5)
 
 			expect(result).toHaveLength(0)
 		})
@@ -337,9 +341,9 @@ describe('LateFeesService', () => {
 				error: { message: 'Database error' }
 			})
 
-			await expect(service.getOverduePayments(generateUUID())).rejects.toThrow(
-				BadRequestException
-			)
+			await expect(
+			service.getOverduePayments(generateUUID(), 'mock-jwt-token')
+		).rejects.toThrow(BadRequestException)
 		})
 	})
 

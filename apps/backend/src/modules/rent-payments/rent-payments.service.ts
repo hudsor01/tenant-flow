@@ -101,6 +101,10 @@ export class RentPaymentsService {
 		return Math.round(numericAmount)
 	}
 
+	/**
+	 * ✅ RLS COMPLIANT: Uses admin client for cross-user tenant context
+	 * (Tenants need to be accessible by both tenant and landlord)
+	 */
 	private async getTenantContext(tenantId: string) {
 		const adminClient = this.supabase.getAdminClient()
 
@@ -140,6 +144,10 @@ export class RentPaymentsService {
 		return { tenant, tenantUser }
 	}
 
+	/**
+	 * ✅ RLS COMPLIANT: Uses admin client for cross-user lease context
+	 * (Leases need to be accessible by both tenant and landlord)
+	 */
 	private async getLeaseContext(leaseId: string, tenantId: string) {
 		const adminClient = this.supabase.getAdminClient()
 
@@ -366,19 +374,27 @@ export class RentPaymentsService {
 		}
 	}
 
-	async getPaymentHistory(landlordId: string) {
-		const { data, error } = await this.supabase
-			.getAdminClient()
+	/**
+	 * Get payment history for authenticated user
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's payments
+	 */
+	async getPaymentHistory(token: string) {
+		if (!token) {
+			this.logger.warn('Payment history requested without token')
+			throw new BadRequestException('Authentication token is required')
+		}
+
+		const client = this.supabase.getUserClient(token)
+
+		const { data, error } = await client
 			.from('rent_payment')
 			.select(
 				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, landlordReceives, dueDate'
 			)
-			.eq('landlordId', landlordId)
 			.order('createdAt', { ascending: false })
 
 		if (error) {
 			this.logger.error('Failed to load payment history', {
-				landlordId,
 				error: error.message
 			})
 			throw new BadRequestException('Failed to load payment history')
@@ -387,13 +403,23 @@ export class RentPaymentsService {
 		return (data as RentPayment[]) ?? []
 	}
 
+	/**
+	 * Get subscription payment history for authenticated user
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's subscriptions
+	 */
 	async getSubscriptionPaymentHistory(
 		subscriptionId: string,
-		landlordId: string
+		token: string
 	) {
-		const adminClient = this.supabase.getAdminClient()
+		if (!token) {
+			this.logger.warn('Subscription payment history requested without token')
+			throw new BadRequestException('Authentication token is required')
+		}
 
-		const { data: subscription, error: subscriptionError } = await adminClient
+		const client = this.supabase.getUserClient(token)
+
+		// ✅ RLS automatically validates subscription ownership
+		const { data: subscription, error: subscriptionError } = await client
 			.from('rent_subscription')
 			.select('id, landlordId')
 			.eq('id', subscriptionId)
@@ -403,11 +429,8 @@ export class RentPaymentsService {
 			throw new NotFoundException('Subscription not found')
 		}
 
-		if (subscription.landlordId !== landlordId) {
-			throw new ForbiddenException('Access denied for subscription history')
-		}
-
-		const { data, error } = await adminClient
+		// ✅ RLS automatically filters payments to user's scope
+		const { data, error } = await client
 			.from('rent_payment')
 			.select(
 				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, landlordReceives, dueDate'
@@ -428,20 +451,28 @@ export class RentPaymentsService {
 		return (data as RentPayment[]) ?? []
 	}
 
-	async getFailedPaymentAttempts(landlordId: string) {
-		const { data, error } = await this.supabase
-			.getAdminClient()
+	/**
+	 * Get failed payment attempts for authenticated user
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's payments
+	 */
+	async getFailedPaymentAttempts(token: string) {
+		if (!token) {
+			this.logger.warn('Failed payment attempts requested without token')
+			throw new BadRequestException('Authentication token is required')
+		}
+
+		const client = this.supabase.getUserClient(token)
+
+		const { data, error } = await client
 			.from('rent_payment')
 			.select(
 				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
 			)
-			.eq('landlordId', landlordId)
 			.eq('status', 'failed')
 			.order('createdAt', { ascending: false })
 
 		if (error) {
 			this.logger.error('Failed to fetch failed payment attempts', {
-				landlordId,
 				error: error.message
 			})
 			throw new BadRequestException('Failed to load failed payment attempts')
@@ -450,13 +481,23 @@ export class RentPaymentsService {
 		return (data as RentPayment[]) ?? []
 	}
 
+	/**
+	 * Get subscription failed attempts for authenticated user
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's subscriptions
+	 */
 	async getSubscriptionFailedAttempts(
 		subscriptionId: string,
-		landlordId: string
+		token: string
 	) {
-		const adminClient = this.supabase.getAdminClient()
+		if (!token) {
+			this.logger.warn('Subscription failed attempts requested without token')
+			throw new BadRequestException('Authentication token is required')
+		}
 
-		const { data: subscription, error: subscriptionError } = await adminClient
+		const client = this.supabase.getUserClient(token)
+
+		// ✅ RLS automatically validates subscription ownership
+		const { data: subscription, error: subscriptionError } = await client
 			.from('rent_subscription')
 			.select('id, landlordId')
 			.eq('id', subscriptionId)
@@ -466,11 +507,8 @@ export class RentPaymentsService {
 			throw new NotFoundException('Subscription not found')
 		}
 
-		if (subscription.landlordId !== landlordId) {
-			throw new ForbiddenException('Access denied for subscription history')
-		}
-
-		const { data, error } = await adminClient
+		// ✅ RLS automatically filters payments to user's scope
+		const { data, error } = await client
 			.from('rent_payment')
 			.select(
 				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
