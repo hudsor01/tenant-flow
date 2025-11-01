@@ -145,10 +145,19 @@ export class RentPaymentsService {
 	}
 
 	/**
-	 * ✅ RLS COMPLIANT: Uses admin client for cross-user lease context
-	 * (Leases need to be accessible by both tenant and landlord)
+	 * ✅ AUTHORIZATION ENFORCED: Validates requesting user has access to lease context
+	 * Uses admin client for cross-user queries but enforces authorization checks
+	 * 
+	 * @param leaseId - The lease ID to fetch context for
+	 * @param tenantId - The tenant ID associated with the lease
+	 * @param requestingUserId - The user making the request (for authorization)
+	 * @throws ForbiddenException if user is not authorized
 	 */
-	private async getLeaseContext(leaseId: string, tenantId: string) {
+	private async getLeaseContext(
+		leaseId: string,
+		tenantId: string,
+		requestingUserId?: string
+	) {
 		const adminClient = this.supabase.getAdminClient()
 
 		const { data: lease, error: leaseError } = await adminClient
@@ -218,6 +227,31 @@ export class RentPaymentsService {
 			)
 		}
 
+		// Authorization check: verify requesting user has access to this lease context
+		if (requestingUserId) {
+			// Get tenant user to check authorization
+			const { data: tenantUserData, error: tenantUserError } = await adminClient
+				.from('tenant')
+				.select('userId')
+				.eq('id', tenantId)
+				.single()
+
+			if (tenantUserError || !tenantUserData) {
+				throw new NotFoundException('Tenant user not found')
+			}
+
+			const tenantUserId = tenantUserData.userId
+			const isAuthorized =
+				requestingUserId === tenantUserId || // User is the tenant
+				requestingUserId === landlord.id // User is the landlord
+
+			if (!isAuthorized) {
+				throw new ForbiddenException(
+					'You are not authorized to access this lease context'
+				)
+			}
+		}
+
 		return { lease, landlord }
 	}
 
@@ -241,15 +275,12 @@ export class RentPaymentsService {
 
 		const adminClient = this.supabase.getAdminClient()
 		const { tenant, tenantUser } = await this.getTenantContext(tenantId)
-		const { lease, landlord } = await this.getLeaseContext(leaseId, tenantId)
-
-		if (
-			requestingUserId &&
-			requestingUserId !== tenantUser.id &&
-			requestingUserId !== landlord.id
-		) {
-			throw new ForbiddenException('You are not allowed to create this payment')
-		}
+		// Authorization is now handled within getLeaseContext
+		const { lease, landlord } = await this.getLeaseContext(
+			leaseId,
+			tenantId,
+			requestingUserId
+		)
 
 		const amountInCents = this.normalizeAmount(amount)
 
@@ -549,8 +580,12 @@ export class RentPaymentsService {
 			// Get Tenant context
 			const { tenant } = await this.getTenantContext(tenantId)
 
-			// Get Lease context
-			const { lease, landlord } = await this.getLeaseContext(leaseId, tenantId)
+			// Get Lease context (no authorization check - legacy method without user context)
+			const { lease, landlord } = await this.getLeaseContext(
+				leaseId,
+				tenantId,
+				undefined
+			)
 
 			// Check if autopay already exists
 			const { data: existingLease } = await adminClient
@@ -702,8 +737,8 @@ export class RentPaymentsService {
 		try {
 			const adminClient = this.supabase.getAdminClient()
 
-			// Verify Tenant owns this lease
-			await this.getLeaseContext(leaseId, tenantId)
+			// Verify Tenant owns this lease (no authorization check - legacy method without user context)
+			await this.getLeaseContext(leaseId, tenantId, undefined)
 
 			// Get subscription ID from lease
 			const { data: lease, error: leaseError } = await adminClient
@@ -763,8 +798,8 @@ export class RentPaymentsService {
 		try {
 			const adminClient = this.supabase.getAdminClient()
 
-			// Verify Tenant owns this lease
-			await this.getLeaseContext(leaseId, tenantId)
+			// Verify Tenant owns this lease (no authorization check - legacy method without user context)
+			await this.getLeaseContext(leaseId, tenantId, undefined)
 
 			// Get subscription ID from lease
 			const { data: lease, error: leaseError } = await adminClient

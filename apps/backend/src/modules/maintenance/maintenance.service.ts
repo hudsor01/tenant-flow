@@ -487,7 +487,7 @@ export class MaintenanceService {
 					estimatedCost: createRequest.estimatedCost || null
 				}
 
-			const { data, error} = await client
+			const { data, error } = await client
 				.from('maintenance_request')
 				.insert(maintenanceData)
 				.select()
