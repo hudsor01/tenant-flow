@@ -526,4 +526,48 @@ export class DashboardService {
 			return EMPTY_MAINTENANCE_ANALYTICS
 		}
 	}
+
+	/**
+	 * Get time-series data for dashboard charts
+	 */
+	async getTimeSeries(userId: string, metric: string, days: number, token?: string) {
+		if (!userId) {
+			return []
+		}
+
+		try {
+			// Delegate to DashboardAnalyticsService
+			return await this.dashboardAnalyticsService.getTimeSeries(userId, metric, days, token)
+		} catch (error) {
+			this.logger.error('Failed to get time-series data', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				metric,
+				days
+			})
+			return []
+		}
+	}
+
+	/**
+	 * Get metric trend comparing current vs previous period
+	 */
+	async getMetricTrend(userId: string, metric: string, period: string, token?: string) {
+		if (!userId) {
+			return null
+		}
+
+		try {
+			// Delegate to DashboardAnalyticsService
+			return await this.dashboardAnalyticsService.getMetricTrend(userId, metric, period, token)
+		} catch (error) {
+			this.logger.error('Failed to get metric trend', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				metric,
+				period
+			})
+			return null
+		}
+	}
 }

@@ -97,8 +97,12 @@ COMMENT ON FUNCTION public.get_user_active_subscription IS 'Get active subscript
 -- ============================================================================
 -- 2. Create get_dashboard_stats wrapper function
 -- ============================================================================
-
--- This creates a simple wrapper that matches the signature the backend expects
+-- DEPENDENCY: Requires get_dashboard_stats_optimized function created in migration:
+-- 20250111_create_dashboard_stats_optimized.sql (executed before this file)
+--
+-- This wrapper provides backward compatibility for the backend which calls
+-- get_dashboard_stats(user_id) with a single parameter. It delegates to the
+-- optimized version passing the user_id to both parameters.
 CREATE OR REPLACE FUNCTION public.get_dashboard_stats(user_id_param text)
 RETURNS jsonb
 LANGUAGE plpgsql

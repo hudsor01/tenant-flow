@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -3788,8 +3788,14 @@ export type Database = {
         Returns: Json
       }
       calculate_net_operating_income: {
-        Args: { p_period?: string; p_user_id: string }
-        Returns: Json
+        Args: { p_user_id: string }
+        Returns: {
+          noi: number
+          property_id: string
+          property_name: string
+          total_expenses: number
+          total_revenue: number
+        }[]
       }
       calculate_property_performance: {
         Args: { p_period?: string; p_property_id: string; p_user_id: string }
@@ -3876,15 +3882,7 @@ export type Database = {
         Returns: Json
       }
       get_dashboard_metrics: { Args: { p_user_id: string }; Returns: Json }
-      get_dashboard_stats_fast: {
-        Args: { p_internal_user_id: string }
-        Returns: Json
-      }
-      get_dashboard_stats_optimized: {
-        Args: { p_internal_user_id: string; p_supabase_auth_id: string }
-        Returns: Json
-      }
-      get_dashboard_summary: { Args: { p_user_id: string }; Returns: Json }
+      get_dashboard_stats: { Args: { p_user_id: string }; Returns: Json }
       get_dashboard_time_series: {
         Args: { p_days?: number; p_metric_name: string; p_user_id: string }
         Returns: Json
@@ -3916,7 +3914,15 @@ export type Database = {
       get_jwt_role: { Args: never; Returns: string }
       get_lease_financial_summary: {
         Args: { p_user_id: string }
-        Returns: Json
+        Returns: {
+          active_leases: number
+          total_deposits: number
+          total_leases: number
+          total_monthly_rent: number
+          total_outstanding_balance: number
+          total_paid_amount: number
+          total_pending_amount: number
+        }[]
       }
       get_leases_with_financial_analytics: {
         Args: { p_status?: string; p_user_id: string }
@@ -4270,6 +4276,11 @@ export type Database = {
         Args: { p_event_id: string; p_retry_count: number }
         Returns: boolean
       }
+      user_is_active_tenant_of_unit: {
+        Args: { unit_id: string }
+        Returns: boolean
+      }
+      user_owns_property: { Args: { property_id: string }; Returns: boolean }
       validate_password_strength: {
         Args: { p_password: string }
         Returns: Json
