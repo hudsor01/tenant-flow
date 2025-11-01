@@ -149,7 +149,7 @@ export function useReports({
 			queryParams.append('limit', limit.toString())
 			queryParams.append('offset', offset.toString())
 
-			const res = await fetch(`/reports?${queryParams.toString()}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/reports?${queryParams.toString()}`, {
 				credentials: 'include'
 			})
 
@@ -166,7 +166,7 @@ export function useReports({
 
 	const deleteMutation = useMutation({
 		mutationFn: async (reportId: string): Promise<void> => {
-			const res = await fetch(`/reports/${reportId}`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/reports/${reportId}`, {
 				method: 'DELETE',
 				credentials: 'include'
 			})
@@ -219,7 +219,7 @@ export function useReports({
 
 	const downloadMutation = useMutation({
 		mutationFn: async (reportId: string): Promise<void> => {
-			const res = await fetch(`/reports/${reportId}/download`, {
+			const res = await fetch(`${API_BASE_URL}/api/v1/reports/${reportId}/download`, {
 				credentials: 'include'
 			})
 
@@ -369,7 +369,7 @@ export function useMonthlyRevenue(months: number = 12) {
 		queryKey: reportsKeys.revenue(months),
 		queryFn: async (): Promise<RevenueData[]> => {
 			const res = await fetch(
-				`/api/v1/reports/analytics/revenue/monthly?months=${months}`,
+				`${API_BASE_URL}/api/v1/reports/analytics/revenue/monthly?months=${months}`,
 				{
 					credentials: 'include'
 				}
@@ -401,7 +401,7 @@ export function usePaymentAnalytics(startDate?: string, endDate?: string) {
 
 			const queryString = params.toString() ? `?${params.toString()}` : ''
 			const res = await fetch(
-				`/api/v1/reports/analytics/payments${queryString}`,
+				`${API_BASE_URL}/api/v1/reports/analytics/payments${queryString}`,
 				{
 					credentials: 'include'
 				}
@@ -459,7 +459,7 @@ export function usePrefetchReports() {
 				queryParams.append('limit', limit.toString())
 				queryParams.append('offset', offset.toString())
 
-				const res = await fetch(`/reports?${queryParams.toString()}`, {
+				const res = await fetch(`${API_BASE_URL}/api/v1/reports?${queryParams.toString()}`, {
 					credentials: 'include'
 				})
 
@@ -484,7 +484,7 @@ export function usePrefetchMonthlyRevenue() {
 			queryKey: reportsKeys.revenue(months),
 			queryFn: async (): Promise<RevenueData[]> => {
 				const res = await fetch(
-					`/api/v1/reports/analytics/revenue/monthly?months=${months}`,
+					`${API_BASE_URL}/api/v1/reports/analytics/revenue/monthly?months=${months}`,
 					{
 						credentials: 'include'
 					}
@@ -520,7 +520,7 @@ export function usePrefetchPaymentAnalytics() {
 
 				const queryString = params.toString() ? `?${params.toString()}` : ''
 				const res = await fetch(
-					`/api/v1/reports/analytics/payments${queryString}`,
+					`${API_BASE_URL}/api/v1/reports/analytics/payments${queryString}`,
 					{
 						credentials: 'include'
 					}

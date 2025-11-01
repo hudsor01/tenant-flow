@@ -32,8 +32,6 @@ STABLE SECURITY DEFINER
 SET search_path TO 'public', 'pg_temp'
 AS $$
 BEGIN
-  PERFORM set_config('search_path', 'public,pg_temp', true);
-
   -- Return active subscription if stripe schema exists
   IF EXISTS (
     SELECT 1 FROM information_schema.tables
