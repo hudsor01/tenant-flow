@@ -73,7 +73,7 @@ export default function SettingsPage() {
 
 		startTransition(async () => {
 			try {
-				const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/users/profile`, {
+				const res = await fetch('/api/v1/users/profile', {
 					method: 'PATCH',
 					headers: {
 						'Content-Type': 'application/json'

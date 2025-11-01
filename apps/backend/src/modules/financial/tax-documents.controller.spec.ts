@@ -4,6 +4,17 @@ import { Test } from '@nestjs/testing'
 import type { TaxDocumentsData } from '@repo/shared/types/financial-statements'
 import { TaxDocumentsController } from './tax-documents.controller'
 import { TaxDocumentsService } from './tax-documents.service'
+import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+
+// Mock the JwtToken decorator to return our test token
+jest.mock('../../shared/decorators/jwt-token.decorator', () => ({
+	JwtToken: () => (target: any, propertyKey: string, parameterIndex: number) => {
+		// Store metadata for the decorator
+		const existingParams = Reflect.getMetadata('custom:jwt-token-params', target, propertyKey) || []
+		existingParams.push(parameterIndex)
+		Reflect.defineMetadata('custom:jwt-token-params', existingParams, target, propertyKey)
+	}
+}))
 
 describe('TaxDocumentsController', () => {
 	let controller: TaxDocumentsController
@@ -134,102 +145,75 @@ describe('TaxDocumentsController', () => {
 					useValue: service
 				}
 			]
-		}).compile()
+		})
+			.overrideGuard(JwtAuthGuard)
+			.useValue({ canActivate: () => true })
+			.compile()
 
 		controller = module.get(TaxDocumentsController)
 	})
 
 	describe('GET /financials/tax-documents', () => {
 		it('should return tax documents with provided tax year', async () => {
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
-			const result = await controller.getTaxDocuments(mockReq, '2024')
+			const result = await controller.getTaxDocuments('mock-jwt-token', '2024')
 
 			expect(result).toEqual({
 				success: true,
 				data: mockTaxDocuments
 			})
 			expect(service.generateTaxDocuments).toHaveBeenCalledWith(
-				'user-123',
+				'mock-jwt-token',
 				2024
 			)
 		})
 
 		it('should use current year as default when no tax year provided', async () => {
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
 			const expectedYear = new Date().getFullYear()
 
-			await controller.getTaxDocuments(mockReq)
+			await controller.getTaxDocuments('mock-jwt-token')
 
 			expect(service.generateTaxDocuments).toHaveBeenCalledWith(
-				'user-123',
+				'mock-jwt-token',
 				expectedYear
 			)
 		})
 
-		it('should throw BadRequestException when user ID is missing', async () => {
-			const mockReq = {} as any
-
-			await expect(controller.getTaxDocuments(mockReq, '2024')).rejects.toThrow(
-				BadRequestException
+		it('should throw UnauthorizedException when token is missing', async () => {
+			await expect(controller.getTaxDocuments('', '2024')).rejects.toThrow(
+				'Authentication token is required'
 			)
 		})
 
 		it('should throw BadRequestException for invalid tax year format', async () => {
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
 			await expect(
-				controller.getTaxDocuments(mockReq, 'invalid-year')
+				controller.getTaxDocuments('mock-jwt-token', 'invalid-year')
 			).rejects.toThrow(BadRequestException)
 		})
 
 		it('should throw BadRequestException for tax year below 2000', async () => {
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
-			await expect(controller.getTaxDocuments(mockReq, '1999')).rejects.toThrow(
+			await expect(controller.getTaxDocuments('mock-jwt-token', '1999')).rejects.toThrow(
 				BadRequestException
 			)
 		})
 
 		it('should throw BadRequestException for tax year above 2100', async () => {
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
-			await expect(controller.getTaxDocuments(mockReq, '2101')).rejects.toThrow(
+			await expect(controller.getTaxDocuments('mock-jwt-token', '2101')).rejects.toThrow(
 				BadRequestException
 			)
 		})
 
 		it('should handle service errors', async () => {
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
 			service.generateTaxDocuments.mockRejectedValueOnce(
 				new Error('Service error')
 			)
 
-			await expect(controller.getTaxDocuments(mockReq, '2024')).rejects.toThrow(
+			await expect(controller.getTaxDocuments('mock-jwt-token', '2024')).rejects.toThrow(
 				'Service error'
 			)
 		})
 
 		it('should verify Schedule E calculations', async () => {
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
-			const result = await controller.getTaxDocuments(mockReq, '2024')
+			const result = await controller.getTaxDocuments('mock-jwt-token', '2024')
 
 			const { scheduleE } = result.data.schedule
 			const calculatedNet =
@@ -241,11 +225,7 @@ describe('TaxDocumentsController', () => {
 		})
 
 		it('should verify all expense categories are present', async () => {
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
-			const result = await controller.getTaxDocuments(mockReq, '2024')
+			const result = await controller.getTaxDocuments('mock-jwt-token', '2024')
 
 			const { expenseCategories } = result.data
 
@@ -260,11 +240,7 @@ describe('TaxDocumentsController', () => {
 		})
 
 		it('should verify depreciation schedule structure', async () => {
-			const mockReq = {
-				user: { id: 'user-123', email: 'test@example.com' }
-			} as any
-
-			const result = await controller.getTaxDocuments(mockReq, '2024')
+			const result = await controller.getTaxDocuments('mock-jwt-token', '2024')
 
 			const { propertyDepreciation } = result.data
 			expect(Array.isArray(propertyDepreciation)).toBe(true)

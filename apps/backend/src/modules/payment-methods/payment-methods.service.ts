@@ -81,10 +81,16 @@ export class PaymentMethodsService {
 	 * Supports both card and ACH (us_bank_account) payment method types.
 	 */
 	async createSetupIntent(
+		token: string,
 		userId: string,
 		email: string | undefined,
 		paymentMethodType: 'card' | 'us_bank_account'
 	) {
+		if (!token) {
+			this.logger.warn('Create setup intent requested without token')
+			throw new BadRequestException('Authentication token is required')
+		}
+
 		if (!userId) {
 			throw new BadRequestException('User not authenticated')
 		}
@@ -129,7 +135,12 @@ export class PaymentMethodsService {
 	 * Save a confirmed Stripe payment method in the TenantPaymentMethod table.
 	 * Automatically flags the first method as default and ensures ownership checks.
 	 */
-	async savePaymentMethod(userId: string, stripePaymentMethodId: string) {
+	async savePaymentMethod(token: string, userId: string, stripePaymentMethodId: string) {
+		if (!token) {
+			this.logger.warn('Save payment method requested without token')
+			throw new BadRequestException('Authentication token is required')
+		}
+
 		if (!userId || !stripePaymentMethodId) {
 			throw new BadRequestException('Missing required payment method details')
 		}
@@ -139,7 +150,7 @@ export class PaymentMethodsService {
 			stripePaymentMethodId
 		})
 
-		const adminClient = this.supabase.getAdminClient()
+		const client = this.supabase.getUserClient(token)
 		const stripeCustomerId = await this.getOrCreateStripeCustomer(userId)
 
 		const paymentMethod = await this.stripe.paymentMethods.retrieve(
@@ -163,7 +174,7 @@ export class PaymentMethodsService {
 			})
 		}
 
-		const { data: existing, error: existingError } = await adminClient
+		const { data: existing, error: existingError } = await client
 			.from('tenant_payment_method')
 			.select('id')
 			.match({
@@ -189,7 +200,7 @@ export class PaymentMethodsService {
 			return { success: true }
 		}
 
-		const { data: existingMethods, error: listError } = await adminClient
+		const { data: existingMethods, error: listError } = await client
 			.from('tenant_payment_method')
 			.select('id')
 			.eq('tenantId', userId)
@@ -205,7 +216,7 @@ export class PaymentMethodsService {
 		const shouldBeDefault = !existingMethods || existingMethods.length === 0
 
 		if (shouldBeDefault) {
-			await adminClient
+			await client
 				.from('tenant_payment_method')
 				.update({
 					isDefault: false,
@@ -214,7 +225,7 @@ export class PaymentMethodsService {
 				.eq('tenantId', userId)
 		}
 
-		const { error } = await adminClient.from('tenant_payment_method').insert({
+		const { error } = await client.from('tenant_payment_method').insert({
 			tenantId: userId,
 			stripePaymentMethodId,
 			stripeCustomerId,
@@ -227,7 +238,7 @@ export class PaymentMethodsService {
 			bankName: paymentMethod.us_bank_account?.bank_name || null,
 			isDefault: shouldBeDefault,
 			verificationStatus:
-				paymentMethod.type === 'card' ? 'verified' : 'verified', // US bank accounts are verified through Financial Connections during setup
+				paymentMethod.type === 'card' ? 'verified' : 'verified',
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString()
 		})
@@ -247,9 +258,14 @@ export class PaymentMethodsService {
 	/**
 	 * List payment methods saved by the authenticated tenant.
 	 */
-	async listPaymentMethods(userId: string) {
+	async listPaymentMethods(token: string, userId: string) {
+		if (!token) {
+			this.logger.warn('List payment methods requested without token')
+			throw new BadRequestException('Authentication token is required')
+		}
+
 		const { data, error } = await this.supabase
-			.getAdminClient()
+			.getUserClient(token)
 			.from('tenant_payment_method')
 			.select(
 				'id, tenantId, stripePaymentMethodId, type, last4, brand, bankName, isDefault, verificationStatus, createdAt, updatedAt'
@@ -271,10 +287,16 @@ export class PaymentMethodsService {
 	/**
 	 * Mark a tenant payment method as the default option.
 	 */
-	async setDefaultPaymentMethod(userId: string, paymentMethodId: string) {
+	async setDefaultPaymentMethod(token: string, userId: string, paymentMethodId: string) {
+		if (!token) {
+			this.logger.warn('Set default payment method requested without token')
+			throw new BadRequestException('Authentication token is required')
+		}
+
+		const client = this.supabase.getUserClient(token)
+
 		// Get tenant with Stripe customer ID
-		const { data: tenant, error: tenantError } = await this.supabase
-			.getAdminClient()
+		const { data: tenant, error: tenantError } = await client
 			.from('tenant')
 			.select('id, stripe_customer_id')
 			.eq('userId', userId)
@@ -332,10 +354,15 @@ export class PaymentMethodsService {
 	 * Delete a tenant payment method both in Stripe and in the database.
 	 * If the deleted method was default, promote the next oldest method.
 	 */
-	async deletePaymentMethod(userId: string, paymentMethodId: string) {
-		const adminClient = this.supabase.getAdminClient()
+	async deletePaymentMethod(token: string, userId: string, paymentMethodId: string) {
+		if (!token) {
+			this.logger.warn('Delete payment method requested without token')
+			throw new BadRequestException('Authentication token is required')
+		}
 
-		const { data: paymentMethod, error: fetchError } = await adminClient
+		const client = this.supabase.getUserClient(token)
+
+		const { data: paymentMethod, error: fetchError } = await client
 			.from('tenant_payment_method')
 			.select('stripePaymentMethodId, isDefault')
 			.eq('id', paymentMethodId)
@@ -357,7 +384,7 @@ export class PaymentMethodsService {
 			)
 		}
 
-		const { error } = await adminClient
+		const { error } = await client
 			.from('tenant_payment_method')
 			.delete()
 			.eq('id', paymentMethodId)
@@ -373,7 +400,7 @@ export class PaymentMethodsService {
 		}
 
 		if (paymentMethod.isDefault) {
-			const { data: nextDefault } = await adminClient
+			const { data: nextDefault } = await client
 				.from('tenant_payment_method')
 				.select('id')
 				.eq('tenantId', userId)
@@ -383,7 +410,7 @@ export class PaymentMethodsService {
 			if (nextDefault && nextDefault.length > 0) {
 				const firstMethod = nextDefault[0]
 				if (firstMethod) {
-					await adminClient
+					await client
 						.from('tenant_payment_method')
 						.update({
 							isDefault: true,

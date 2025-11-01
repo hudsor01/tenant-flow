@@ -16,7 +16,6 @@
 			"#providers/*": ["./src/providers/*"],
 			"#test/*": ["./src/test/*"]
 		},
-		"incremental": true,
 		"plugins": [
 			{
 				"name": "next"

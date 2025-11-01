@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 
 export default async function PropertiesPage() {
 	// ✅ Server-side auth - NO client flash, instant 307 redirect
-	const { user, accessToken } = await requireSession()
+	const { user } = await requireSession()
 
 const logger = createLogger({ component: 'PropertiesPage', userId: user.id })
 

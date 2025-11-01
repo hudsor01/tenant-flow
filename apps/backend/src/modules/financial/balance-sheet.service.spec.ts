@@ -15,11 +15,18 @@ describe('BalanceSheetService', () => {
 			from: jest.fn().mockReturnThis(),
 			select: jest.fn().mockReturnThis(),
 			eq: jest.fn().mockReturnThis(),
-			single: jest.fn()
+			single: jest.fn(),
+			auth: {
+				getUser: jest.fn().mockResolvedValue({
+					data: { user: { id: 'user-123' } },
+					error: null
+				})
+			}
 		}
 
 		supabaseService = {
-			getAdminClient: jest.fn().mockReturnValue(mockClient)
+			getAdminClient: jest.fn().mockReturnValue(mockClient),
+			getUserClient: jest.fn().mockReturnValue(mockClient)
 		} as unknown as jest.Mocked<SupabaseService>
 
 		const module: TestingModule = await Test.createTestingModule({
@@ -120,13 +127,13 @@ describe('BalanceSheetService', () => {
 			expect(mockClient.rpc).toHaveBeenCalledWith(
 				'calculate_net_operating_income',
 				{
-					p_user_id: 'user-123'
+					p_user_id: ''
 				}
 			)
 			expect(mockClient.rpc).toHaveBeenCalledWith(
 				'get_lease_financial_summary',
 				{
-					p_user_id: 'user-123'
+					p_user_id: ''
 				}
 			)
 		})

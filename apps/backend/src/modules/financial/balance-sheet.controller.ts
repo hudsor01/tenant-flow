@@ -3,19 +3,12 @@ import {
 	Controller,
 	Get,
 	Query,
-	Req,
+	UnauthorizedException,
 	UseGuards
 } from '@nestjs/common'
-import type { Request } from 'express'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { BalanceSheetService } from './balance-sheet.service'
-
-interface AuthenticatedRequest extends Request {
-	user?: {
-		id: string
-		email: string
-	}
-}
 
 @Controller('financials/balance-sheet')
 @UseGuards(JwtAuthGuard)
@@ -24,13 +17,11 @@ export class BalanceSheetController {
 
 	@Get()
 	async getBalanceSheet(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Query('asOfDate') asOfDate?: string
 	) {
-		const userId = req.user?.id
-
-		if (!userId) {
-			throw new BadRequestException('User ID is required')
+		if (!token) {
+			throw new UnauthorizedException('Authentication token is required')
 		}
 
 		// Default to today if no date provided
@@ -45,7 +36,7 @@ export class BalanceSheetController {
 		}
 
 		const data = await this.balanceSheetService.generateBalanceSheet(
-			userId,
+			token,
 			finalDate
 		)
 

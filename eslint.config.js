@@ -6,6 +6,7 @@
  * following Turborepo best practices for monorepo configuration
  */
 
+import { defineConfig } from 'eslint/config'
 import globals from 'globals'
 import baseConfig from './packages/eslint-config/base.js'
 import turboConfig from './packages/eslint-config/turbo.js'
@@ -14,19 +15,10 @@ import nextPlugin from '@next/eslint-plugin-next'
 /**
  * Root-level configuration with project-specific overrides
  * Extends the base configuration from @repo/eslint-config
- * Using ESLint 9 flat config format (no defineConfig wrapper needed)
+ * Using ESLint 9 flat config format with defineConfig for type safety
  */
-export default [
-	{
-		ignores: [
-			'node_modules/**',
-			'.next/**',
-			'out/**',
-			'build/**',
-			'next-env.d.ts'
-		]
-	},
-	// Use the shared base configuration (includes TypeScript ESLint)
+export default defineConfig([
+	// Use the shared base configuration (includes TypeScript ESLint, global ignores, test rules)
 	...baseConfig,
 	// Next.js ESLint plugin for framework-specific rules (flat config format)
 	{
@@ -87,36 +79,6 @@ export default [
 			'apps/frontend/src/lib/__tests__/**/*' // Test files not in tsconfig
 		]
 	},
-	// FRONTEND LOGGING - Console discouraged, use shared structured logger
-	{
-		name: 'frontend/no-console-logging',
-		files: ['apps/frontend/**/*.{ts,tsx}'],
-		ignores: [
-			'**/*.test.*',
-			'**/*.spec.*',
-			'**/*.config.*',
-			'**/node_modules/**',
-			'**/dist/**',
-			'**/build/**',
-			'**/next.config.*'
-		],
-		rules: {
-			'no-console': 'warn',
-			'no-restricted-syntax': [
-				'warn',
-				{
-					selector: 'MemberExpression[object.name="console"]',
-					message:
-						'Direct console access is discouraged. Consider using the shared createLogger() helper from @repo/shared instead.'
-				},
-				{
-					selector: 'CallExpression[callee.object.name="console"]',
-					message:
-						'Console method calls are discouraged. Consider structured logging: const logger = createLogger({ component: "ComponentName" }); logger.info/warn/error("message")'
-				}
-			]
-		}
-	},
 	// SHARED PACKAGE LOGGING EXCEPTION - Allow console only in logger implementation
 	{
 		name: 'shared/logging-implementation-exception',
@@ -126,23 +88,6 @@ export default [
 		}
 	},
 	// Project-specific anti-pattern guards and SECURITY RULES
-	{
-		name: 'root/test-files',
-		files: ['**/*.test.*', '**/*.spec.*'],
-		ignores: [
-			'apps/backend/test/**/*',
-			'apps/frontend/test/**/*',
-			'apps/e2e-tests/**/*'
-		],
-		rules: {
-			'@typescript-eslint/no-explicit-any': 'error',
-			'@typescript-eslint/no-unsafe-argument': 'error',
-			'@typescript-eslint/no-unsafe-member-access': 'off',
-			'@typescript-eslint/no-unsafe-return': 'error',
-			'@typescript-eslint/no-unsafe-call': 'off',
-			'@typescript-eslint/no-unused-vars': 'error'
-		}
-	},
 	{
 		name: 'root/anti-patterns-and-security',
 		files: ['**/*.ts', '**/*.tsx'],
@@ -244,4 +189,4 @@ export default [
 			'no-restricted-syntax': 'off' // Allow SecurityEventType and SecurityEventSeverity enums
 		}
 	}
-]
+])

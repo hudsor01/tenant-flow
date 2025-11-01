@@ -33,34 +33,34 @@ export class MaintenanceService {
 
 	/**
 	 * Get all maintenance requests for a user with search and filters
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
 	 */
 	async findAll(
-		userId: string,
+		token: string,
 		query: Record<string, unknown>
 	): Promise<MaintenanceRequest[]> {
 		try {
-			if (!userId) {
+			if (!token) {
 				this.logger.warn(
-					'Find all maintenance requests requested without userId'
+					'Find all maintenance requests requested without token'
 				)
-				throw new BadRequestException('User ID is required')
+				throw new BadRequestException('Authentication token is required')
 			}
 
 			this.logger.log(
-				'Finding all maintenance requests via direct Supabase query',
+				'Finding all maintenance requests via RLS-protected query',
 				{
-					userId,
 					query
 				}
 			)
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
+			const client = this.supabase.getUserClient(token)
 
-			// Build query with filters
+			// Build query with filters (NO manual userId filtering needed)
 			let queryBuilder = client
 				.from('maintenance_request')
 				.select('*')
-				.eq('requestedBy', userId)
 
 			// Apply filters
 			if (query.propertyId) {
@@ -143,7 +143,6 @@ export class MaintenanceService {
 					'Failed to fetch maintenance requests from Supabase',
 					{
 						error: error.message,
-						userId,
 						query
 					}
 				)
@@ -156,7 +155,6 @@ export class MaintenanceService {
 				'Maintenance service failed to find all maintenance requests',
 				{
 					error: error instanceof Error ? error.message : String(error),
-					userId,
 					query
 				}
 			)
@@ -170,33 +168,31 @@ export class MaintenanceService {
 
 	/**
 	 * Get maintenance statistics
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
 	 */
 	async getStats(
-		userId: string
+		token: string
 	): Promise<
 		MaintenanceStats & { totalCost: number; avgResponseTimeHours: number }
 	> {
 		try {
-			if (!userId) {
-				this.logger.warn('Maintenance stats requested without userId')
-				throw new BadRequestException('User ID is required')
+			if (!token) {
+				this.logger.warn('Maintenance stats requested without token')
+				throw new BadRequestException('Authentication token is required')
 			}
 
-			this.logger.log('Getting maintenance stats via direct Supabase query', {
-				userId
-			})
+			this.logger.log('Getting maintenance stats via RLS-protected query')
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
+			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
 				.from('maintenance_request')
 				.select('status, priority, estimatedCost, createdAt, completedAt')
-				.eq('requestedBy', userId)
 
 			if (error) {
 				this.logger.error('Failed to get maintenance stats from Supabase', {
-					error: error.message,
-					userId
+					error: error.message
 				})
 				throw new BadRequestException('Failed to get maintenance statistics')
 			}
@@ -258,8 +254,7 @@ export class MaintenanceService {
 			return stats
 		} catch (error) {
 			this.logger.error('Maintenance service failed to get stats', {
-				error: error instanceof Error ? error.message : String(error),
-				userId
+				error: error instanceof Error ? error.message : String(error)
 			})
 			throw new BadRequestException(
 				error instanceof Error
@@ -270,30 +265,27 @@ export class MaintenanceService {
 	}
 
 	/**
-	 * Get urgent maintenance requests (HIGH and EMERGENCY priority)
+	 * Get urgent maintenance requests (HIGH and URGENT priority)
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
 	 */
-	async getUrgent(userId: string): Promise<MaintenanceRequest[]> {
+	async getUrgent(token: string): Promise<MaintenanceRequest[]> {
 		try {
-			if (!userId) {
-				this.logger.warn('Urgent maintenance requests requested without userId')
-				throw new BadRequestException('User ID is required')
+			if (!token) {
+				this.logger.warn('Urgent maintenance requests requested without token')
+				throw new BadRequestException('Authentication token is required')
 			}
 
 			this.logger.log(
-				'Getting urgent maintenance requests via direct Supabase query',
-				{
-					userId
-				}
+				'Getting urgent maintenance requests via RLS-protected query'
 			)
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
+			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
 				.from('maintenance_request')
 				.select('*')
-				.eq('requestedBy', userId)
-				.in('priority', ['HIGH',
-					'URGENT'])
+				.in('priority', ['HIGH', 'URGENT'])
 				.neq('status', 'COMPLETED')
 				.order('priority', { ascending: false })
 				.order('createdAt', { ascending: true })
@@ -302,8 +294,7 @@ export class MaintenanceService {
 				this.logger.error(
 					'Failed to get urgent maintenance requests from Supabase',
 					{
-						error: error.message,
-						userId
+						error: error.message
 					}
 				)
 				throw new BadRequestException(
@@ -314,8 +305,7 @@ export class MaintenanceService {
 			return data as MaintenanceRequest[]
 		} catch (error) {
 			this.logger.error('Maintenance service failed to get urgent requests', {
-				error: error instanceof Error ? error.message : String(error),
-				userId
+				error: error instanceof Error ? error.message : String(error)
 			})
 			throw new BadRequestException(
 				error instanceof Error
@@ -327,29 +317,27 @@ export class MaintenanceService {
 
 	/**
 	 * Get overdue maintenance requests
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
 	 */
-	async getOverdue(userId: string): Promise<MaintenanceRequest[]> {
+	async getOverdue(token: string): Promise<MaintenanceRequest[]> {
 		try {
-			if (!userId) {
+			if (!token) {
 				this.logger.warn(
-					'Overdue maintenance requests requested without userId'
+					'Overdue maintenance requests requested without token'
 				)
-				throw new BadRequestException('User ID is required')
+				throw new BadRequestException('Authentication token is required')
 			}
 
 			this.logger.log(
-				'Getting overdue maintenance requests via direct Supabase query',
-				{
-					userId
-				}
+				'Getting overdue maintenance requests via RLS-protected query'
 			)
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
+			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
 				.from('maintenance_request')
 				.select('*')
-				.eq('requestedBy', userId)
 				.neq('status', 'COMPLETED')
 				.lt('preferredDate', new Date().toISOString())
 				.order('preferredDate', { ascending: true })
@@ -358,8 +346,7 @@ export class MaintenanceService {
 				this.logger.error(
 					'Failed to get overdue maintenance requests from Supabase',
 					{
-						error: error.message,
-						userId
+						error: error.message
 					}
 				)
 				throw new BadRequestException(
@@ -370,8 +357,7 @@ export class MaintenanceService {
 			return data as MaintenanceRequest[]
 		} catch (error) {
 			this.logger.error('Maintenance service failed to get overdue requests', {
-				error: error instanceof Error ? error.message : String(error),
-				userId
+				error: error instanceof Error ? error.message : String(error)
 			})
 			throw new BadRequestException(
 				error instanceof Error
@@ -383,41 +369,40 @@ export class MaintenanceService {
 
 	/**
 	 * Find one maintenance request by ID
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
 	 */
 	async findOne(
-		userId: string,
+		token: string,
 		maintenanceId: string
 	): Promise<MaintenanceRequest | null> {
 		try {
-			if (!userId || !maintenanceId) {
+			if (!token || !maintenanceId) {
 				this.logger.warn(
 					'Find one maintenance request called with missing parameters',
-					{ userId, maintenanceId }
+					{ maintenanceId }
 				)
 				return null
 			}
 
 			this.logger.log(
-				'Finding one maintenance request via direct Supabase query',
+				'Finding one maintenance request via RLS-protected query',
 				{
-					userId,
 					maintenanceId
 				}
 			)
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
+			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
 				.from('maintenance_request')
 				.select('*')
 				.eq('id', maintenanceId)
-				.eq('requestedBy', userId)
 				.single()
 
 			if (error) {
 				this.logger.error('Failed to fetch maintenance request from Supabase', {
 					error: error.message,
-					userId,
 					maintenanceId
 				})
 				return null
@@ -429,7 +414,6 @@ export class MaintenanceService {
 				'Maintenance service failed to find one maintenance request',
 				{
 					error: error instanceof Error ? error.message : String(error),
-					userId,
 					maintenanceId
 				}
 			)
@@ -439,24 +423,25 @@ export class MaintenanceService {
 
 	/**
 	 * Create maintenance request with event emission
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies unit access
 	 */
 	async create(
+		token: string,
 		userId: string,
 		createRequest: CreateMaintenanceRequest
 	): Promise<MaintenanceRequest> {
 		try {
-			if (!userId || !createRequest.title) {
+			if (!token || !userId || !createRequest.title) {
 				this.logger.warn(
 					'Create maintenance request called with missing parameters',
-					{ userId, createRequest }
+					{ createRequest }
 				)
-				throw new BadRequestException('User ID and title are required')
+				throw new BadRequestException('Authentication token, user ID, and title are required')
 			}
 
 			this.logger.log(
-				'Creating maintenance request via direct Supabase query',
+				'Creating maintenance request via RLS-protected query',
 				{
-					userId,
 					createRequest
 				}
 			)
@@ -472,7 +457,8 @@ export class MaintenanceService {
 				}
 			}
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically verifies unit access
+			const client = this.supabase.getUserClient(token)
 
 			// Map priority
 			const priorityMap: Record<
@@ -501,7 +487,7 @@ export class MaintenanceService {
 					estimatedCost: createRequest.estimatedCost || null
 				}
 
-			const { data, error } = await client
+			const { data, error} = await client
 				.from('maintenance_request')
 				.insert(maintenanceData)
 				.select()
@@ -510,7 +496,6 @@ export class MaintenanceService {
 			if (error) {
 				this.logger.error('Failed to create maintenance request in Supabase', {
 					error: error.message,
-					userId,
 					createRequest
 				})
 				throw new BadRequestException('Failed to create maintenance request')
@@ -533,7 +518,6 @@ export class MaintenanceService {
 				'Maintenance service failed to create maintenance request',
 				{
 					error: error instanceof Error ? error.message : String(error),
-					userId,
 					createRequest
 				}
 			)
@@ -547,42 +531,42 @@ export class MaintenanceService {
 
 	/**
 	 * Update maintenance request
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
 	 */
 	async update(
-		userId: string,
+		token: string,
 		maintenanceId: string,
 		updateRequest: UpdateMaintenanceRequest,
-		expectedVersion?: number // 🔐 BUG FIX #2: Optimistic locking
+		expectedVersion?: number // 🔐 Optimistic locking
 	): Promise<MaintenanceRequest | null> {
 		try {
-			if (!userId || !maintenanceId) {
+			if (!token || !maintenanceId) {
 				this.logger.warn(
 					'Update maintenance request called with missing parameters',
-					{ userId, maintenanceId }
+					{ maintenanceId }
 				)
 				return null
 			}
 
-			// Verify ownership
-			const existing = await this.findOne(userId, maintenanceId)
+			// Verify ownership via RLS
+			const existing = await this.findOne(token, maintenanceId)
 			if (!existing) {
 				this.logger.warn('Maintenance request not found', {
-					userId,
 					maintenanceId
 				})
 				return null
 			}
 
 			this.logger.log(
-				'Updating maintenance request via direct Supabase query',
+				'Updating maintenance request via RLS-protected query',
 				{
-					userId,
 					maintenanceId,
 					updateRequest
 				}
 			)
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically verifies ownership
+			const client = this.supabase.getUserClient(token)
 
 			// Map status and priority
 			const priorityMap: Record<
@@ -630,12 +614,11 @@ export class MaintenanceService {
 					updateRequest.completedDate
 				).toISOString()
 
-			// 🔐 BUG FIX #2: Add version check for optimistic locking
+			// 🔐 Optimistic locking: Add version check
 			let query = client
 				.from('maintenance_request')
 				.update(updateData)
 				.eq('id', maintenanceId)
-				.eq('requestedBy', userId)
 
 			// Add version check if expectedVersion provided
 			if (expectedVersion !== undefined) {
@@ -645,11 +628,10 @@ export class MaintenanceService {
 			const { data, error } = await query.select().single()
 
 			if (error || !data) {
-				// 🔐 BUG FIX #2: Detect optimistic locking conflict
+				// 🔐 Detect optimistic locking conflict
 				if (error?.code === 'PGRST116') {
 					// PGRST116 = 0 rows affected (version mismatch)
 					this.logger.warn('Optimistic locking conflict detected', {
-						userId,
 						maintenanceId,
 						expectedVersion
 					})
@@ -661,7 +643,6 @@ export class MaintenanceService {
 				// Other database errors
 				this.logger.error('Failed to update maintenance request in Supabase', {
 					error: error ? String(error) : 'Unknown error',
-					userId,
 					maintenanceId,
 					updateRequest
 				})
@@ -694,7 +675,7 @@ export class MaintenanceService {
 				this.eventEmitter.emit(
 					'maintenance.updated',
 					new MaintenanceUpdatedEvent(
-						userId,
+						updated.requestedBy ?? '',
 						updated.id,
 						updated.title,
 						updated.status,
@@ -717,7 +698,6 @@ export class MaintenanceService {
 				'Maintenance service failed to update maintenance request',
 				{
 					error: error instanceof Error ? error.message : String(error),
-					userId,
 					maintenanceId,
 					updateRequest
 				}
@@ -730,37 +710,36 @@ export class MaintenanceService {
 
 	/**
 	 * Remove maintenance request (soft delete)
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
 	 */
-	async remove(userId: string, maintenanceId: string): Promise<void> {
+	async remove(token: string, maintenanceId: string): Promise<void> {
 		try {
-			if (!userId || !maintenanceId) {
+			if (!token || !maintenanceId) {
 				this.logger.warn(
 					'Remove maintenance request called with missing parameters',
-					{ userId, maintenanceId }
+					{ maintenanceId }
 				)
-				throw new BadRequestException('User ID and maintenance ID are required')
+				throw new BadRequestException('Authentication token and maintenance ID are required')
 			}
 
 			this.logger.log(
-				'Removing maintenance request via direct Supabase query',
+				'Removing maintenance request via RLS-protected query',
 				{
-					userId,
 					maintenanceId
 				}
 			)
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically verifies ownership
+			const client = this.supabase.getUserClient(token)
 
 			const { error } = await client
 				.from('maintenance_request')
 				.delete()
 				.eq('id', maintenanceId)
-				.eq('requestedBy', userId)
 
 			if (error) {
 				this.logger.error('Failed to delete maintenance request in Supabase', {
 					error: error.message,
-					userId,
 					maintenanceId
 				})
 				throw new BadRequestException('Failed to delete maintenance request')
@@ -770,7 +749,6 @@ export class MaintenanceService {
 				'Maintenance service failed to remove maintenance request',
 				{
 					error: error instanceof Error ? error.message : String(error),
-					userId,
 					maintenanceId
 				}
 			)
@@ -784,30 +762,31 @@ export class MaintenanceService {
 
 	/**
 	 * Update status - consolidated method (replaces complete and cancel)
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
 	 */
 	async updateStatus(
-		userId: string,
+		token: string,
 		maintenanceId: string,
 		status: Database['public']['Enums']['RequestStatus'],
 		notes?: string
 	): Promise<MaintenanceRequest | null> {
 		try {
-			if (!userId || !maintenanceId || !status) {
+			if (!token || !maintenanceId || !status) {
 				this.logger.warn(
 					'Update maintenance status called with missing parameters',
-					{ userId, maintenanceId, status }
+					{ maintenanceId, status }
 				)
 				return null
 			}
 
-			this.logger.log('Updating maintenance status via direct Supabase query', {
-				userId,
+			this.logger.log('Updating maintenance status via RLS-protected query', {
 				maintenanceId,
 				status,
 				notes
 			})
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically verifies ownership
+			const client = this.supabase.getUserClient(token)
 
 			const updateData: Database['public']['Tables']['maintenance_request']['Update'] =
 				{
@@ -823,14 +802,12 @@ export class MaintenanceService {
 				.from('maintenance_request')
 				.update(updateData)
 				.eq('id', maintenanceId)
-				.eq('requestedBy', userId)
 				.select()
 				.single()
 
 			if (error) {
 				this.logger.error('Failed to update maintenance status in Supabase', {
 					error: error.message,
-					userId,
 					maintenanceId,
 					status
 				})
@@ -841,7 +818,6 @@ export class MaintenanceService {
 		} catch (error) {
 			this.logger.error('Maintenance service failed to update status', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				maintenanceId,
 				status,
 				notes
@@ -852,22 +828,23 @@ export class MaintenanceService {
 
 	/**
 	 * Complete maintenance request - convenience method for marking as completed
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
 	 */
 	async complete(
-		userId: string,
+		token: string,
 		maintenanceId: string,
 		actualCost?: number,
 		notes?: string
 	): Promise<MaintenanceRequest | null> {
 		try {
 			this.logger.log('Completing maintenance request', {
-				userId,
 				maintenanceId,
 				actualCost,
 				notes
 			})
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically verifies ownership
+			const client = this.supabase.getUserClient(token)
 
 			const updateData: Database['public']['Tables']['maintenance_request']['Update'] =
 				{
@@ -883,14 +860,12 @@ export class MaintenanceService {
 				.from('maintenance_request')
 				.update(updateData)
 				.eq('id', maintenanceId)
-				.eq('requestedBy', userId)
 				.select()
 				.single()
 
 			if (error) {
 				this.logger.error('Failed to complete maintenance request', {
 					error: error.message,
-					userId,
 					maintenanceId
 				})
 				return null
@@ -907,7 +882,7 @@ export class MaintenanceService {
 				this.eventEmitter.emit(
 					'maintenance.updated',
 					new MaintenanceUpdatedEvent(
-						userId,
+						updated.requestedBy ?? '',
 						updated.id,
 						updated.title ?? 'Maintenance request updated',
 						updated.status ?? 'COMPLETED',
@@ -927,7 +902,6 @@ export class MaintenanceService {
 		} catch (error) {
 			this.logger.error('Failed to complete maintenance request', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				maintenanceId
 			})
 			return null
@@ -936,24 +910,23 @@ export class MaintenanceService {
 
 	/**
 	 * Cancel maintenance request - convenience method for marking as canceled
+	 * ✅ RLS COMPLIANT: Delegates to updateStatus() which uses getUserClient(token)
 	 */
 	async cancel(
-		userId: string,
+		token: string,
 		maintenanceId: string,
 		reason?: string
 	): Promise<MaintenanceRequest | null> {
 		try {
 			this.logger.log('Canceling maintenance request', {
-				userId,
 				maintenanceId,
 				reason
 			})
 
-			return this.updateStatus(userId, maintenanceId, 'CANCELED', reason)
+			return this.updateStatus(token, maintenanceId, 'CANCELED', reason)
 		} catch (error) {
 			this.logger.error('Failed to cancel maintenance request', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				maintenanceId
 			})
 			return null

@@ -27,44 +27,31 @@ export class UnitsService {
 	constructor(private readonly supabase: SupabaseService) {}
 
 	/**
-	 * Helper method to get property IDs for a user (via ownerId)
+	 * ❌ REMOVED: Manual property filtering violates RLS pattern
+	 * RLS policies automatically filter data to user's scope via getUserClient(token)
 	 */
-	private async getUserPropertyIds(userId: string): Promise<string[]> {
-		const client = this.supabase.getAdminClient()
-		const { data: properties } = await client
-			.from('property')
-			.select('id')
-			.eq('ownerId', userId)
-		return properties?.map(p => p.id) || []
-	}
 
 	/**
 	 * Get all units for a user via direct Supabase query
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
 	async findAll(
-		userId: string,
+		token: string,
 		query: Record<string, unknown>
 	): Promise<Unit[]> {
 		try {
-			if (!userId) {
-				this.logger.warn('Find all units requested without userId')
-				throw new BadRequestException('User ID is required')
+			if (!token) {
+				this.logger.warn('Find all units requested without token')
+				throw new BadRequestException('Authentication token is required')
 			}
 
-			this.logger.log('Finding all units via direct Supabase query', {
-				userId,
-				query
-			})
+			this.logger.log('Finding all units via RLS-protected query', { query })
 
-			const client = this.supabase.getAdminClient()
-			const propertyIds = await this.getUserPropertyIds(userId)
-			if (propertyIds.length === 0) return []
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			const client = this.supabase.getUserClient(token)
 
-			// Build query with filters
-			let queryBuilder = client
-				.from('unit')
-				.select('*')
-				.in('propertyId', propertyIds)
+			// Build query with filters (NO manual userId/propertyId filtering needed)
+			let queryBuilder = client.from('unit').select('*')
 
 			// Apply filters if provided
 			if (query.propertyId) {
@@ -112,7 +99,6 @@ export class UnitsService {
 			if (error) {
 				this.logger.error('Failed to fetch units from Supabase', {
 					error: error.message,
-					userId,
 					query
 				})
 				throw new BadRequestException('Failed to fetch units')
@@ -122,7 +108,6 @@ export class UnitsService {
 		} catch (error) {
 			this.logger.error('Units service failed to find all units', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				query
 			})
 			throw new BadRequestException(
@@ -133,58 +118,40 @@ export class UnitsService {
 
 	/**
 	 * Get unit statistics via direct Supabase query
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
-	async getStats(userId: string): Promise<UnitStats> {
+	async getStats(token: string): Promise<UnitStats> {
 		try {
-			if (!userId) {
-				this.logger.warn('Unit stats requested without userId')
-				throw new BadRequestException('User ID is required')
+			if (!token) {
+				this.logger.warn('Unit stats requested without token')
+				throw new BadRequestException('Authentication token is required')
 			}
 
-			this.logger.log('Getting unit stats via direct Supabase query', {
-				userId
-			})
+			this.logger.log('Getting unit stats via RLS-protected query')
 
-			const client = this.supabase.getAdminClient()
-			const propertyIds = await this.getUserPropertyIds(userId)
-			if (propertyIds.length === 0) {
-				return {
-					total: 0,
-					occupied: 0,
-					vacant: 0,
-					maintenance: 0,
-					available: 0,
-					occupancyRate: 0,
-					averageRent: 0,
-					totalPotentialRent: 0,
-					totalActualRent: 0
-				} as UnitStats
-			}
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			const client = this.supabase.getUserClient(token)
 
-			// Get total units count
+			// Get total units count (RLS automatically scopes to user's units)
 			const { count: totalCount, error: countError } = await client
 				.from('unit')
 				.select('*', { count: 'exact', head: true })
-				.in('propertyId', propertyIds)
 
 			if (countError) {
 				this.logger.error('Failed to get total unit count', {
-					error: countError.message,
-					userId
+					error: countError.message
 				})
 				throw new BadRequestException('Failed to get unit statistics')
 			}
 
-			// Get units by status
+			// Get units by status (RLS automatically scopes to user's units)
 			const { data: statusData, error: statusError } = await client
 				.from('unit')
 				.select('status, rent')
-				.in('propertyId', propertyIds)
 
 			if (statusError) {
 				this.logger.error('Failed to get unit status data', {
-					error: statusError.message,
-					userId
+					error: statusError.message
 				})
 				throw new BadRequestException('Failed to get unit statistics')
 			}
@@ -228,8 +195,7 @@ export class UnitsService {
 			} as UnitStats
 		} catch (error) {
 			this.logger.error('Units service failed to get stats', {
-				error: error instanceof Error ? error.message : String(error),
-				userId
+				error: error instanceof Error ? error.message : String(error)
 			})
 			throw new BadRequestException(
 				error instanceof Error ? error.message : 'Failed to get unit statistics'
@@ -239,40 +205,27 @@ export class UnitsService {
 
 	/**
 	 * Get units by property via direct Supabase query
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's properties
 	 */
-	async findByProperty(userId: string, propertyId: string): Promise<Unit[]> {
+	async findByProperty(token: string, propertyId: string): Promise<Unit[]> {
 		try {
-			if (!userId || !propertyId) {
+			if (!token || !propertyId) {
 				this.logger.warn('Find by property called with missing parameters', {
-					userId,
 					propertyId
 				})
-				throw new BadRequestException('User ID and property ID are required')
+				throw new BadRequestException(
+					'Authentication token and property ID are required'
+				)
 			}
 
-			this.logger.log('Finding units by property via direct Supabase query', {
-				userId,
+			this.logger.log('Finding units by property via RLS-protected query', {
 				propertyId
 			})
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			const client = this.supabase.getUserClient(token)
 
-			// Verify property ownership
-			const { data: property } = await client
-				.from('property')
-				.select('id')
-				.eq('id', propertyId)
-				.eq('ownerId', userId)
-				.single()
-
-			if (!property) {
-				this.logger.warn('Property not found or access denied', {
-					userId,
-					propertyId
-				})
-				return []
-			}
-
+			// RLS automatically verifies property ownership - no manual check needed
 			const { data, error } = await client
 				.from('unit')
 				.select('*')
@@ -282,7 +235,6 @@ export class UnitsService {
 			if (error) {
 				this.logger.error('Failed to fetch units by property from Supabase', {
 					error: error.message,
-					userId,
 					propertyId
 				})
 				throw new BadRequestException('Failed to retrieve property units')
@@ -292,7 +244,6 @@ export class UnitsService {
 		} catch (error) {
 			this.logger.error('Units service failed to find units by property', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				propertyId
 			})
 			throw new BadRequestException(
@@ -305,37 +256,32 @@ export class UnitsService {
 
 	/**
 	 * Find one unit by ID via direct Supabase query
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
-	async findOne(userId: string, unitId: string): Promise<Unit | null> {
+	async findOne(token: string, unitId: string): Promise<Unit | null> {
 		try {
-			if (!userId || !unitId) {
+			if (!token || !unitId) {
 				this.logger.warn('Find one unit called with missing parameters', {
-					userId,
 					unitId
 				})
 				return null
 			}
 
-			this.logger.log('Finding one unit via direct Supabase query', {
-				userId,
-				unitId
-			})
+			this.logger.log('Finding one unit via RLS-protected query', { unitId })
 
-			const client = this.supabase.getAdminClient()
-			const propertyIds = await this.getUserPropertyIds(userId)
-			if (propertyIds.length === 0) return null
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			const client = this.supabase.getUserClient(token)
 
+			// RLS automatically verifies unit belongs to user's property
 			const { data, error } = await client
 				.from('unit')
 				.select('*')
 				.eq('id', unitId)
-				.in('propertyId', propertyIds)
 				.single()
 
 			if (error) {
 				this.logger.error('Failed to fetch unit from Supabase', {
 					error: error.message,
-					userId,
 					unitId
 				})
 				return null
@@ -345,7 +291,6 @@ export class UnitsService {
 		} catch (error) {
 			this.logger.error('Units service failed to find one unit', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				unitId
 			})
 			return null
@@ -354,41 +299,27 @@ export class UnitsService {
 
 	/**
 	 * Create unit via direct Supabase query
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies property ownership
 	 */
-	async create(
-		userId: string,
-		createRequest: CreateUnitRequest
-	): Promise<Unit> {
+	async create(token: string, createRequest: CreateUnitRequest): Promise<Unit> {
 		try {
-			if (!userId || !createRequest.propertyId || !createRequest.unitNumber) {
+			if (!token || !createRequest.propertyId || !createRequest.unitNumber) {
 				this.logger.warn('Create unit called with missing parameters', {
-					userId,
 					createRequest
 				})
 				throw new BadRequestException(
-					'User ID, property ID, and unit number are required'
+					'Authentication token, property ID, and unit number are required'
 				)
 			}
 
-			this.logger.log('Creating unit via direct Supabase query', {
-				userId,
+			this.logger.log('Creating unit via RLS-protected query', {
 				createRequest
 			})
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically verifies property ownership
+			const client = this.supabase.getUserClient(token)
 
-			// Verify property ownership
-			const { data: property } = await client
-				.from('property')
-				.select('id')
-				.eq('id', createRequest.propertyId)
-				.eq('ownerId', userId)
-				.single()
-
-			if (!property) {
-				throw new BadRequestException('Property not found or access denied')
-			}
-
+			// RLS automatically verifies property ownership - no manual check needed
 			const unitData = {
 				propertyId: createRequest.propertyId,
 				unitNumber: createRequest.unitNumber,
@@ -408,7 +339,6 @@ export class UnitsService {
 			if (error) {
 				this.logger.error('Failed to create unit in Supabase', {
 					error: error.message,
-					userId,
 					createRequest
 				})
 				throw new BadRequestException('Failed to create unit')
@@ -418,7 +348,6 @@ export class UnitsService {
 		} catch (error) {
 			this.logger.error('Units service failed to create unit', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				createRequest
 			})
 			throw new BadRequestException(
@@ -429,31 +358,29 @@ export class UnitsService {
 
 	/**
 	 * Update unit via direct Supabase query
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies unit ownership
 	 */
 	async update(
-		userId: string,
+		token: string,
 		unitId: string,
 		updateRequest: UpdateUnitRequest,
 		expectedVersion?: number // 🔐 BUG FIX #2: Optimistic locking
 	): Promise<Unit | null> {
 		try {
-			if (!userId || !unitId) {
+			if (!token || !unitId) {
 				this.logger.warn('Update unit called with missing parameters', {
-					userId,
 					unitId
 				})
 				return null
 			}
 
-			this.logger.log('Updating unit via direct Supabase query', {
-				userId,
+			this.logger.log('Updating unit via RLS-protected query', {
 				unitId,
 				updateRequest
 			})
 
-			const client = this.supabase.getAdminClient()
-			const propertyIds = await this.getUserPropertyIds(userId)
-			if (propertyIds.length === 0) return null
+			// ✅ RLS SECURITY: User-scoped client automatically verifies unit ownership
+			const client = this.supabase.getUserClient(token)
 
 			const updateData: Record<string, unknown> = {
 				...(updateRequest.bedrooms !== undefined && {
@@ -481,11 +408,8 @@ export class UnitsService {
 			}
 
 			// 🔐 BUG FIX #2: Add version check for optimistic locking
-			let query = client
-				.from('unit')
-				.update(updateData)
-				.eq('id', unitId)
-				.in('propertyId', propertyIds)
+			// RLS automatically verifies unit ownership - no manual propertyId check needed
+			let query = client.from('unit').update(updateData).eq('id', unitId)
 
 			if (expectedVersion !== undefined) {
 				query = query.eq('version', expectedVersion)
@@ -497,7 +421,6 @@ export class UnitsService {
 				// 🔐 BUG FIX #2: Detect optimistic locking conflict
 				if (error?.code === 'PGRST116' || !data) {
 					this.logger.warn('Optimistic locking conflict detected', {
-						userId,
 						unitId,
 						expectedVersion
 					})
@@ -509,7 +432,6 @@ export class UnitsService {
 				// If we get here, there was a different error
 				this.logger.error('Failed to update unit in Supabase', {
 					error: error,
-					userId,
 					unitId,
 					updateRequest
 				})
@@ -520,7 +442,6 @@ export class UnitsService {
 		} catch (error) {
 			this.logger.error('Units service failed to update unit', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				unitId,
 				updateRequest
 			})
@@ -530,39 +451,30 @@ export class UnitsService {
 
 	/**
 	 * Remove unit via direct Supabase query
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies unit ownership
 	 */
-	async remove(userId: string, unitId: string): Promise<void> {
+	async remove(token: string, unitId: string): Promise<void> {
 		try {
-			if (!userId || !unitId) {
+			if (!token || !unitId) {
 				this.logger.warn('Remove unit called with missing parameters', {
-					userId,
 					unitId
 				})
-				throw new BadRequestException('User ID and unit ID are required')
+				throw new BadRequestException(
+					'Authentication token and unit ID are required'
+				)
 			}
 
-			this.logger.log('Removing unit via direct Supabase query', {
-				userId,
-				unitId
-			})
+			this.logger.log('Removing unit via RLS-protected query', { unitId })
 
-			const client = this.supabase.getAdminClient()
-			const propertyIds = await this.getUserPropertyIds(userId)
-			if (propertyIds.length === 0) {
-				throw new BadRequestException('No properties found for user')
-			}
+			// ✅ RLS SECURITY: User-scoped client automatically verifies unit ownership
+			const client = this.supabase.getUserClient(token)
 
-			// Soft delete by deleting the record directly
-			const { error } = await client
-				.from('unit')
-				.delete()
-				.eq('id', unitId)
-				.in('propertyId', propertyIds)
+			// RLS automatically verifies unit ownership - no manual propertyId check needed
+			const { error } = await client.from('unit').delete().eq('id', unitId)
 
 			if (error) {
 				this.logger.error('Failed to remove unit in Supabase', {
 					error: error.message,
-					userId,
 					unitId
 				})
 				throw new BadRequestException('Failed to remove unit')
@@ -570,7 +482,6 @@ export class UnitsService {
 		} catch (error) {
 			this.logger.error('Units service failed to remove unit', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				unitId
 			})
 			throw new BadRequestException(
@@ -581,31 +492,26 @@ export class UnitsService {
 
 	/**
 	 * Get units analytics via direct Supabase query
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
 	async getAnalytics(
-		userId: string,
+		token: string,
 		options: { propertyId?: string; timeframe: string }
 	): Promise<Unit[]> {
 		try {
-			if (!userId) {
-				this.logger.warn('Unit analytics requested without userId')
-				throw new BadRequestException('User ID is required')
+			if (!token) {
+				this.logger.warn('Unit analytics requested without token')
+				throw new BadRequestException('Authentication token is required')
 			}
 
-			this.logger.log('Getting unit analytics via direct Supabase query', {
-				userId,
+			this.logger.log('Getting unit analytics via RLS-protected query', {
 				options
 			})
 
-			// Simple query to get units for analytics
-			const client = this.supabase.getAdminClient()
-			const propertyIds = await this.getUserPropertyIds(userId)
-			if (propertyIds.length === 0) return []
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			const client = this.supabase.getUserClient(token)
 
-			let queryBuilder = client
-				.from('unit')
-				.select('*')
-				.in('propertyId', propertyIds)
+			let queryBuilder = client.from('unit').select('*')
 
 			if (options.propertyId) {
 				queryBuilder = queryBuilder.eq('propertyId', options.propertyId)
@@ -616,7 +522,6 @@ export class UnitsService {
 			if (error) {
 				this.logger.error('Failed to get unit analytics', {
 					error: error.message,
-					userId,
 					options
 				})
 				return []
@@ -626,7 +531,6 @@ export class UnitsService {
 		} catch (error) {
 			this.logger.error('Units service failed to get analytics', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				options
 			})
 			return []
@@ -635,19 +539,23 @@ export class UnitsService {
 
 	/**
 	 * Get available units for a property via Supabase Functions
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's properties
 	 */
-	async getAvailable(propertyId: string): Promise<Unit[]> {
+	async getAvailable(token: string, propertyId: string): Promise<Unit[]> {
 		try {
-			if (!propertyId) {
-				this.logger.warn('Available units requested without propertyId')
-				throw new BadRequestException('Property ID is required')
+			if (!token || !propertyId) {
+				this.logger.warn('Available units requested without token or propertyId')
+				throw new BadRequestException(
+					'Authentication token and property ID are required'
+				)
 			}
 
-			this.logger.log('Getting available units via Supabase Functions', {
+			this.logger.log('Getting available units via RLS-protected query', {
 				propertyId
 			})
 
-			const client = this.supabase.getAdminClient()
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			const client = this.supabase.getUserClient(token)
 			const { data, error } = await client
 				.from('unit')
 				.select('*')
@@ -676,34 +584,32 @@ export class UnitsService {
 
 	/**
 	 * Update unit status via Supabase RPC function
+	 * ✅ RLS COMPLIANT: Delegates to update() which uses getUserClient(token)
 	 */
 	async updateStatus(
-		userId: string,
+		token: string,
 		unitId: string,
 		status: Database['public']['Enums']['UnitStatus']
 	): Promise<Unit | null> {
 		try {
-			if (!userId || !unitId || !status) {
+			if (!token || !unitId || !status) {
 				this.logger.warn('Update unit status called with missing parameters', {
-					userId,
 					unitId,
 					status
 				})
 				return null
 			}
 
-			this.logger.log('Updating unit status via direct Supabase query', {
-				userId,
+			this.logger.log('Updating unit status via RLS-protected query', {
 				unitId,
 				status
 			})
 
-			// Update the unit status directly
-			return this.update(userId, unitId, { status })
+			// Delegate to update() which uses RLS-protected client
+			return this.update(token, unitId, { status })
 		} catch (error) {
 			this.logger.error('Units service failed to update unit status', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				unitId,
 				status
 			})
@@ -714,21 +620,21 @@ export class UnitsService {
 	/**
 	 * Get unit statistics - replaces get_unit_statistics function
 	 * Uses Supabase Functions pattern instead of database function
+	 * ✅ RLS COMPLIANT: Delegates to getStats() and getAnalytics() which use getUserClient(token)
 	 */
 	async getUnitStatistics(
-		userId: string,
+		token: string,
 		propertyId?: string
 	): Promise<Record<string, unknown>> {
 		try {
-			this.logger.log('Getting unit statistics via direct Supabase query', {
-				userId,
+			this.logger.log('Getting unit statistics via RLS-protected queries', {
 				propertyId
 			})
 
-			// Get unit stats and analytics directly
+			// Get unit stats and analytics directly (both use RLS-protected clients)
 			const [stats, analytics] = await Promise.all([
-				this.getStats(userId),
-				this.getAnalytics(userId, {
+				this.getStats(token),
+				this.getAnalytics(token, {
 					...(propertyId ? { propertyId } : {}),
 					timeframe: '12m'
 				})
@@ -793,7 +699,6 @@ export class UnitsService {
 		} catch (error) {
 			this.logger.error('Failed to get unit statistics', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
 				propertyId
 			})
 			return {}

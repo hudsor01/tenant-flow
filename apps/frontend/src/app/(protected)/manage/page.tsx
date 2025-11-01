@@ -16,7 +16,7 @@ import { TrendsSection } from './TrendsSection'
 
 export default async function DashboardPage() {
 	// ✅ Server-side auth - NO client flash, instant 307 redirect
-	const { user, accessToken } = await requireSession()
+	const { user } = await requireSession()
 
 	const logger = createLogger({ component: 'DashboardPage', userId: user.id })
 

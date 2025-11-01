@@ -3,19 +3,12 @@ import {
 	Controller,
 	Get,
 	Query,
-	Req,
+	UnauthorizedException,
 	UseGuards
 } from '@nestjs/common'
-import type { Request } from 'express'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { CashFlowService } from './cash-flow.service'
-
-interface AuthenticatedRequest extends Request {
-	user?: {
-		id: string
-		email: string
-	}
-}
 
 @Controller('financials/cash-flow')
 @UseGuards(JwtAuthGuard)
@@ -24,14 +17,12 @@ export class CashFlowController {
 
 	@Get()
 	async getCashFlowStatement(
-		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Query('startDate') startDate?: string,
 		@Query('endDate') endDate?: string
 	) {
-		const userId = req.user?.id
-
-		if (!userId) {
-			throw new BadRequestException('User ID is required')
+		if (!token) {
+			throw new UnauthorizedException('Authentication token is required')
 		}
 
 		// Default to current month if no dates provided
@@ -55,7 +46,7 @@ export class CashFlowController {
 		}
 
 		const data = await this.cashFlowService.generateCashFlowStatement(
-			userId,
+			token,
 			finalStartDate,
 			finalEndDate
 		)
