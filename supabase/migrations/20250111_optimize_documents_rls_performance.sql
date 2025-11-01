@@ -29,12 +29,15 @@ USING (
 );
 
 -- INSERT: Users can upload documents (optimized)
+-- NOTE: Entity type restriction added as security hardening measure
+-- to prevent insertion of unintended document types. Only 'lease' and
+-- 'receipt' documents are currently supported in the application.
 CREATE POLICY "Users can upload documents"
 ON documents
 FOR INSERT
 TO authenticated
 WITH CHECK (
-  (user_id = (select auth.uid())) 
+  (user_id = (select auth.uid()))
   AND (entity_type = ANY (ARRAY['lease'::text, 'receipt'::text]))
 );
 
