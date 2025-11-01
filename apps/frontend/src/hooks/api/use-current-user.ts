@@ -8,7 +8,7 @@
  * Reference: apps/frontend/src/hooks/api/use-tenant.ts
  */
 
-import { API_BASE_URL } from '#lib/api-config'
+import { clientFetch } from '#lib/api/client'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 /**
@@ -45,15 +45,7 @@ export const userKeys = {
 export function useUser() {
 	return useQuery({
 		queryKey: userKeys.me,
-		queryFn: async (): Promise<User> => {
-			const res = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch current user')
-			}
-			return res.json()
-		},
+		queryFn: () => clientFetch<User>('/api/v1/users/me'),
 		staleTime: 5 * 60 * 1000,
 		gcTime: 10 * 60 * 1000,
 		retry: 1
@@ -69,15 +61,7 @@ export function usePrefetchUser() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: userKeys.me,
-			queryFn: async (): Promise<User> => {
-				const res = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
-					credentials: 'include'
-				})
-				if (!res.ok) {
-					throw new Error('Failed to fetch current user')
-				}
-				return res.json()
-			},
+			queryFn: () => clientFetch<User>('/api/v1/users/me'),
 			staleTime: 5 * 60 * 1000
 		})
 	}
