@@ -9,11 +9,6 @@ import type { Request, Response } from 'express'
 import type { ServiceHealth } from './health.js'
 import type { Database } from './supabase-generated.js'
 
-// NOTE: Removed re-exports. Import directly from primary sources:
-// - Auth types: '@repo/shared/types/auth'
-// - Health types: '@repo/shared/types/health'
-// - Stripe types: '@repo/shared/types/stripe'
-
 export interface TypeProvider {
 	output: Record<string, unknown>
 	input: Record<string, unknown>
@@ -50,9 +45,6 @@ export interface JSONSchema {
 	default?: unknown
 }
 
-// BACKEND CONTEXT TYPES
-
-// Application user type from public.users table (not auth.users)
 export type authUser = Database['public']['Tables']['users']['Row']
 
 export interface Context {
@@ -84,10 +76,6 @@ export interface UserProfileResponse {
 	updatedAt: string
 }
 
-// PROPERTY MANAGEMENT REQUEST TYPES
-
-// Property types
-// NOTE: ownerId is NOT in request - backend derives from authenticated user for security
 export interface CreatePropertyRequest {
 	name: string
 	address: string
@@ -385,8 +373,6 @@ export interface SecurityHeadersConfig {
 	permissionsPolicy: Record<string, string[]>
 }
 
-// ROUTER OUTPUT TYPES (API Response Structures)
-
 type MaintenanceRequest =
 	Database['public']['Tables']['maintenance_request']['Row']
 type Property = Database['public']['Tables']['property']['Row']
@@ -487,13 +473,9 @@ export interface QueryPerformanceMetric {
 	tablesUsed: string[]
 }
 
-// PERFORMANCE MONITORING
-
 // Note: PerformanceMetrics interface moved to health.ts to resolve conflicts
 
 export type { HealthCheckResponse } from './health'
-
-// DATABASE PERFORMANCE & HEALTH (Supabase / Postgres)
 
 // Row describing index usage metrics (derived from pg_stat_* views or RPC)
 export interface DbIndexUsageRow {
@@ -531,11 +513,6 @@ export interface DbPerformanceOverview {
 	health?: unknown
 	[k: string]: unknown
 }
-
-// HEALTH MONITORING TYPES
-// Import from '@repo/shared/types/health' instead
-
-// CONFIG TYPES
 
 export interface AppConfig {
 	port: number
@@ -686,8 +663,6 @@ export type SecurityEventType =
 	| 'account_takeover'
 	| 'auth_failure'
 
-// SecurityMetrics moved to security.ts to eliminate duplication
-
 // SECURITY EXCEPTION FILTER TYPES
 
 export type { ErrorResponse } from './errors'
@@ -713,8 +688,6 @@ export type StripeSubscriptionStatus =
 	| 'UNPAID'
 	| 'INCOMPLETE'
 	| 'INCOMPLETE_EXPIRED'
-
-// EXPRESS REQUEST TYPES - CONSOLIDATED FROM APPS
 
 // Authenticated request with user attached
 export interface AuthenticatedRequest extends Request {
@@ -770,12 +743,6 @@ export interface RateLimitConfig {
 	skipSuccessfulRequests?: boolean
 	skipFailedRequests?: boolean
 }
-
-// Removed duplicate - JSONSchema already defined above
-
-// Removed duplicate TypeProvider and ExpressTypeProvider - already defined above
-
-// REQUEST TIMING AND PERFORMANCE
 
 export interface RequestWithTiming extends Request {
 	startTime?: number
@@ -959,5 +926,3 @@ export interface SerializerMetrics {
 	totalSerializations: number
 	avgSerializationTime: number
 }
-
-// Express migration complete

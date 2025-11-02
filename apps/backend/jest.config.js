@@ -31,9 +31,9 @@ module.exports = {
 	coverageReporters: ['text', 'lcov', 'html'],
 	moduleNameMapper: {
 		'^@/(.*)$': '<rootDir>/src/$1',
-		'^(\\.{1,2}/.*)\\.js$': '$1',
 		'^src/(.*)$': '<rootDir>/src/$1',
-		'^@react-pdf/renderer$': '<rootDir>/__mocks__/@react-pdf__renderer.js'
+		'^@react-pdf/renderer$': '<rootDir>/__mocks__/@react-pdf__renderer.js',
+		'^uuid$': '<rootDir>/__mocks__/uuid.js'
 	},
 	moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
 	setupFilesAfterEnv,
@@ -65,6 +65,8 @@ module.exports = {
 			}
 		]
 	},
-	transformIgnorePatterns: ['node_modules/(?!(@repo|@supabase)/)'],
+	transformIgnorePatterns: [
+		'node_modules/(?!(uuid|@repo|@supabase)/)'
+	],
 	injectGlobals: true
 }

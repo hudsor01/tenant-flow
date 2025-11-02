@@ -452,7 +452,7 @@ export interface TenantWithLeaseInfo {
 	// Derived fields for UI display
 	monthlyRent: number
 	leaseStatus: string
-	paymentStatus: string
+	paymentStatus: string | null
 	unitDisplay: string
 	propertyDisplay: string
 	leaseStart: string | null

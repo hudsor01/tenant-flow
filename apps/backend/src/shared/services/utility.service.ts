@@ -251,7 +251,7 @@ export class UtilityService {
 			throw new NotFoundException('User not found')
 		}
 
-		await this.cacheManager.set(cacheKey, data.id, 300000) // 5 min cache
+		await this.cacheManager.set(cacheKey, data.id, 1800000) // 30 min cache (reduced DB lookups for auth)
 		return data.id
 	}
 
@@ -312,6 +312,17 @@ export class UtilityService {
 					.single()
 
 				if (insertError) {
+					// Check if it's a unique constraint violation (race condition)
+					// PostgreSQL error code 23505 = unique_violation
+					if ((insertError as { code?: string }).code === '23505' || insertError.message?.includes('duplicate')) {
+						this.logger.warn('User creation race condition detected, retrying lookup', {
+							supabaseId: authUser.id,
+							email: authUser.email
+						})
+						// Another request created the user, retry the lookup
+						return await this.getUserIdFromSupabaseId(authUser.id)
+					}
+
 					this.logger.error('Failed to create user record', {
 						error: insertError.message || insertError,
 						supabaseId: authUser.id,
@@ -336,7 +347,7 @@ export class UtilityService {
 
 				// Cache the new user ID
 				const cacheKey = `user:supabaseId:${authUser.id}`
-				await this.cacheManager.set(cacheKey, data.id, 300000) // 5 min cache
+				await this.cacheManager.set(cacheKey, data.id, 1800000) // 30 min cache (reduced DB lookups for auth)
 
 				return data.id
 			}

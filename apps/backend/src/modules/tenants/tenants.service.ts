@@ -14,7 +14,8 @@ import type {
 import type {
 	Tenant,
 	TenantStats,
-	TenantSummary
+	TenantSummary,
+	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
@@ -45,6 +46,70 @@ export interface TenantWithRelations extends Tenant {
 	}[]
 }
 
+interface TenantWithLeaseRelations {
+	id: string
+	firstName: string | null
+	lastName: string | null
+	email: string
+	phone: string | null
+	avatarUrl: string | null
+	emergencyContact: string | null
+	createdAt: string
+	updatedAt: string
+	invitation_status: string | null
+	invitation_sent_at: string | null
+	invitation_accepted_at: string | null
+	invitation_expires_at: string | null
+	userId: string
+	lease: Array<{
+		id: string
+		startDate: string
+		endDate: string
+		rentAmount: number
+		securityDeposit: number
+		status: string
+		terms: string | null
+		unit: {
+			id: string
+			unitNumber: string
+			bedrooms: number
+			bathrooms: number
+			squareFeet: number | null
+			property: {
+				id: string
+				name: string
+				address: string
+				city: string
+				state: string
+				zipCode: string
+			}
+		} | null
+	}> | {
+		id: string
+		startDate: string
+		endDate: string
+		rentAmount: number
+		securityDeposit: number
+		status: string
+		terms: string | null
+		unit: {
+			id: string
+			unitNumber: string
+			bedrooms: number
+			bathrooms: number
+			squareFeet: number | null
+			property: {
+				id: string
+				name: string
+				address: string
+				city: string
+				state: string
+				zipCode: string
+			}
+		} | null
+	}
+}
+
 /**
  * Tenants service - Ultra-Native Implementation
  * Direct Supabase queries, no repository layer
@@ -58,6 +123,44 @@ export class TenantsService {
 		private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2
 	) {}
+
+	/**
+	 * Calculate user-friendly payment status from rent_payment data
+	 * @private
+	 */
+	/**
+	 * Calculate user-friendly payment status from rent_payment data
+	 * @private
+	 */
+	private calculatePaymentStatus(
+		payment: { status: string | null; dueDate: string | null } | null
+	): string | null {
+		if (!payment || !payment.status) {
+			return null
+		}
+
+		const today = new Date()
+		const dueDate = payment.dueDate ? new Date(payment.dueDate) : null
+
+		// Map payment status to user-friendly status
+		if (payment.status === 'PAID' || payment.status === 'SUCCEEDED') {
+			return 'Current'
+		} else if (payment.status === 'DUE' || payment.status === 'PENDING') {
+			// Check if overdue
+			if (dueDate && dueDate < today) {
+				return 'Overdue'
+			} else {
+				return 'Due Soon'
+			}
+		} else if (payment.status === 'FAILED') {
+			return 'Payment Failed'
+		} else if (payment.status === 'REQUIRES_ACTION') {
+			return 'Action Required'
+		} else {
+			// For CANCELLED, VOID, or unknown statuses
+			return null
+		}
+	}
 
 	/**
 	 * Get all tenants for a user via direct Supabase query
@@ -144,6 +247,263 @@ export class TenantsService {
 			return (data as Tenant[]) || []
 		} catch (error) {
 			this.logger.error('Tenants service failed to find all tenants', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				query
+			})
+			throw new BadRequestException('Failed to retrieve tenants')
+		}
+	}
+
+	/**
+	 * Find all tenants with lease and payment information
+	 * Used for tenant list view with payment status
+	 */
+	async findAllWithLeaseInfo(
+		userId: string,
+		query: Record<string, unknown>
+	): Promise<TenantWithLeaseInfo[]> {
+		// Business logic: Validate userId
+		if (!userId) {
+			this.logger.warn('Find all tenants with lease info requested without userId')
+			throw new BadRequestException('User ID is required')
+		}
+
+		try {
+			this.logger.log('Finding all tenants with lease info via direct Supabase query', {
+				userId,
+				query
+			})
+
+			const client = this.supabase.getAdminClient()
+			
+			// Fetch tenants with their leases and related data
+			let queryBuilder = client
+				.from('tenant')
+				.select(`
+					id,
+					firstName,
+					lastName,
+					email,
+					phone,
+					avatarUrl,
+					emergencyContact,
+					createdAt,
+					updatedAt,
+					invitation_status,
+					invitation_sent_at,
+					invitation_accepted_at,
+					invitation_expires_at,
+					userId,
+					lease!inner (
+						id,
+						startDate,
+						endDate,
+						rentAmount,
+						securityDeposit,
+						status,
+						terms,
+						unitId,
+						unit:unitId (
+							id,
+							unitNumber,
+							bedrooms,
+							bathrooms,
+							squareFeet,
+							propertyId,
+							property:propertyId (
+								id,
+								name,
+								address,
+								city,
+								state,
+								zipCode
+							)
+						)
+					)
+				`)
+				.eq('userId', userId)
+
+			// Filter out MOVED_OUT and ARCHIVED tenants by default
+			if (!query.status) {
+				queryBuilder = queryBuilder.not(
+					'status',
+					'in',
+					'("MOVED_OUT","ARCHIVED")'
+				)
+			} else if (query.status && query.status !== 'all') {
+				const statusValue = String(
+					query.status
+				) as Database['public']['Enums']['TenantStatus']
+				queryBuilder = queryBuilder.eq('status', statusValue)
+			}
+
+			// Apply search filter
+			if (query.search) {
+				const searchTerm = String(query.search)
+				const sanitized = sanitizeSearchInput(searchTerm)
+				if (sanitized) {
+					queryBuilder = queryBuilder.or(
+						buildMultiColumnSearch(sanitized, [
+							'firstName',
+							'lastName',
+							'email'
+						])
+					)
+				}
+			}
+
+			if (query.invitationStatus) {
+				const statusFilter = String(query.invitationStatus).toUpperCase()
+				const allowedInvitationStatuses = [
+					'PENDING',
+					'SENT',
+					'ACCEPTED',
+					'EXPIRED',
+					'REVOKED'
+				] as const
+				if (allowedInvitationStatuses.includes(statusFilter as typeof allowedInvitationStatuses[number])) {
+					queryBuilder = queryBuilder.eq('invitation_status', statusFilter as typeof allowedInvitationStatuses[number])
+				}
+			}
+
+			// Apply pagination
+			const limit = query.limit ? Number(query.limit) : 50
+			const offset = query.offset ? Number(query.offset) : 0
+			queryBuilder = queryBuilder.range(offset, offset + limit - 1)
+
+			const { data, error } = await queryBuilder
+
+			if (error) {
+				this.logger.error('Failed to fetch tenants with lease info from Supabase', {
+					error: error.message,
+					userId,
+					query
+				})
+				throw new BadRequestException('Failed to retrieve tenants')
+			}
+
+			if (!data || data.length === 0) {
+				return []
+			}
+
+			// Fetch payment statuses for all tenants in a single query (fix N+1 problem)
+			const tenantIds = (data as TenantWithLeaseRelations[]).map(t => t.id)
+			const leaseIds = (data as TenantWithLeaseRelations[])
+				.flatMap(t => {
+					const leases = Array.isArray(t.lease) ? t.lease : [t.lease]
+					const currentLease = leases.find(l => l.status === 'ACTIVE') || leases[0]
+					return currentLease ? [currentLease.id] : []
+				})
+
+			// Fetch most recent payment for each lease in one query
+			const { data: payments } = await client
+				.from('rent_payment')
+				.select('tenantId, leaseId, status, dueDate')
+				.in('tenantId', tenantIds)
+				.in('leaseId', leaseIds)
+				.order('dueDate', { ascending: false })
+
+			// Build a map of tenantId+leaseId -> most recent payment
+			const paymentMap = new Map<string, { status: string; dueDate: string }>()
+			if (payments) {
+				for (const payment of payments) {
+					const key = `${payment.tenantId}-${payment.leaseId}`
+					if (!paymentMap.has(key) && payment.status && payment.dueDate) {
+						paymentMap.set(key, {
+							status: payment.status,
+							dueDate: payment.dueDate
+						})
+					}
+				}
+			}
+
+			// Transform each tenant to TenantWithLeaseInfo format with payment status
+			const tenantsWithLeaseInfo = (data as TenantWithLeaseRelations[]).map((tenant) => {
+				const leases = Array.isArray(tenant.lease) ? tenant.lease : [tenant.lease]
+				const currentLease = leases.find((l) => l.status === 'ACTIVE') || leases[0]
+
+				// Get payment status from the pre-fetched map
+				let paymentStatus: string | null = null
+				if (currentLease) {
+					const key = `${tenant.id}-${currentLease.id}`
+					const payment = paymentMap.get(key) || null
+					paymentStatus = this.calculatePaymentStatus(payment)
+				}
+
+					// Calculate other derived fields
+					const monthlyRent = currentLease?.rentAmount || 0
+					const leaseStatus = currentLease?.status || 'None'
+					const unitDisplay = currentLease?.unit 
+						? `Unit ${currentLease.unit.unitNumber}` 
+						: 'No unit assigned'
+					const propertyDisplay = currentLease?.unit?.property
+						? `${currentLease.unit.property.name}, ${currentLease.unit.property.city}`
+						: 'No property assigned'
+					const leaseStart = currentLease?.startDate || null
+					const leaseEnd = currentLease?.endDate || null
+
+					const result: TenantWithLeaseInfo = {
+						id: tenant.id,
+						name: `${tenant.firstName || ''} ${tenant.lastName || ''}`.trim(),
+						email: tenant.email,
+						phone: tenant.phone,
+						avatarUrl: tenant.avatarUrl,
+						emergencyContact: tenant.emergencyContact,
+						createdAt: tenant.createdAt,
+						updatedAt: tenant.updatedAt,
+						invitation_status: tenant.invitation_status as TenantWithLeaseInfo['invitation_status'],
+						invitation_sent_at: tenant.invitation_sent_at,
+						invitation_accepted_at: tenant.invitation_accepted_at,
+						invitation_expires_at: tenant.invitation_expires_at,
+						currentLease: currentLease ? {
+							id: currentLease.id,
+							startDate: currentLease.startDate,
+							endDate: currentLease.endDate,
+							rentAmount: currentLease.rentAmount,
+							securityDeposit: currentLease.securityDeposit,
+							status: currentLease.status,
+							terms: currentLease.terms
+						} : null,
+						leases: leases.map((lease) => ({
+							id: lease.id,
+							startDate: lease.startDate,
+							endDate: lease.endDate,
+							rentAmount: lease.rentAmount,
+							status: lease.status,
+							...(lease.unit?.property ? { property: { address: lease.unit.property.address } } : {})
+						})),
+						unit: currentLease?.unit ? {
+							id: currentLease.unit.id,
+							unitNumber: currentLease.unit.unitNumber,
+							bedrooms: currentLease.unit.bedrooms,
+							bathrooms: currentLease.unit.bathrooms,
+							squareFootage: currentLease.unit.squareFeet
+						} : null,
+						property: currentLease?.unit?.property ? {
+							id: currentLease.unit.property.id,
+							name: currentLease.unit.property.name,
+							address: currentLease.unit.property.address,
+							city: currentLease.unit.property.city,
+							state: currentLease.unit.property.state,
+							zipCode: currentLease.unit.property.zipCode
+						} : null,
+						// Derived fields for UI display
+						monthlyRent,
+						leaseStatus,
+						paymentStatus,
+						unitDisplay,
+						propertyDisplay,
+						leaseStart,
+						leaseEnd
+					}
+
+					return result
+				})
+
+			return tenantsWithLeaseInfo
+		} catch (error) {
+			this.logger.error('Tenants service failed to find all tenants with lease info', {
 				error: error instanceof Error ? error.message : String(error),
 				userId,
 				query
@@ -308,6 +668,188 @@ export class TenantsService {
 			return data as Tenant
 		} catch (error) {
 			this.logger.error('Tenants service failed to find one tenant', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				tenantId
+			})
+			return null
+		}
+	}
+
+	/**
+	 * Find one tenant with full lease and unit information
+	 * Optimized query for tenant detail pages
+	 */
+	async findOneWithLease(userId: string, tenantId: string): Promise<TenantWithLeaseInfo | null> {
+		if (!userId || !tenantId) {
+			this.logger.warn('Find one tenant with lease requested with missing parameters', {
+				userId,
+				tenantId
+			})
+			return null
+		}
+
+		try {
+			this.logger.log('Finding tenant with lease info', { userId, tenantId })
+
+			const client = this.supabase.getAdminClient()
+
+			// Fetch tenant with all related information
+			const { data: tenant, error: tenantError } = await client
+				.from('tenant')
+				.select(`
+					*,
+					lease!inner (
+						id,
+						startDate,
+						endDate,
+						rentAmount,
+						securityDeposit,
+						status,
+						terms,
+						unitId,
+						unit:unitId (
+							id,
+							unitNumber,
+							bedrooms,
+							bathrooms,
+							squareFeet,
+							propertyId,
+							property:propertyId (
+								id,
+								name,
+								address,
+								city,
+								state,
+								zipCode
+							)
+						)
+					)
+				`)
+				.eq('id', tenantId)
+				.eq('userId', userId)
+				.single()
+
+			if (tenantError) {
+				this.logger.error('Failed to fetch tenant with lease', {
+					error: tenantError.message,
+					userId,
+					tenantId
+				})
+				return null
+			}
+
+			if (!tenant) {
+				return null
+			}
+
+			// Transform to TenantWithLeaseInfo format
+		const leases = Array.isArray(tenant.lease) ? tenant.lease : [tenant.lease]
+					const currentLease = leases.find((l) => l.status === 'ACTIVE') || leases[0]
+
+		// Calculate payment status from rent_payment table
+		let paymentStatus: string | null = null
+		if (currentLease) {
+			const { data: recentPayments } = await client
+				.from('rent_payment')
+				.select('status, dueDate')
+				.eq('tenantId', tenantId)
+				.eq('leaseId', currentLease.id)
+				.order('dueDate', { ascending: false })
+				.limit(1)
+
+			if (recentPayments && recentPayments.length > 0) {
+				const payment = recentPayments[0]
+				paymentStatus = this.calculatePaymentStatus(payment || null)
+			}
+		}
+
+		// Calculate other derived fields
+		const monthlyRent = currentLease?.rentAmount || 0
+		const leaseStatus = currentLease?.status || 'None'
+			const unitDisplay = currentLease?.unit 
+				? `Unit ${currentLease.unit.unitNumber}` 
+				: 'No unit assigned'
+			const propertyDisplay = currentLease?.unit?.property
+				? `${currentLease.unit.property.name}, ${currentLease.unit.property.city}`
+				: 'No property assigned'
+			const leaseStart = currentLease?.startDate || null
+			const leaseEnd = currentLease?.endDate || null
+
+			const result: TenantWithLeaseInfo = {
+				id: tenant.id,
+				name: `${tenant.firstName || ''} ${tenant.lastName || ''}`.trim(),
+				email: tenant.email,
+				phone: tenant.phone,
+				avatarUrl: tenant.avatarUrl,
+				emergencyContact: tenant.emergencyContact,
+				createdAt: tenant.createdAt,
+				updatedAt: tenant.updatedAt,
+				invitation_status: tenant.invitation_status as TenantWithLeaseInfo['invitation_status'],
+				invitation_sent_at: tenant.invitation_sent_at,
+				invitation_accepted_at: tenant.invitation_accepted_at,
+				invitation_expires_at: tenant.invitation_expires_at,
+				currentLease: currentLease ? {
+					id: currentLease.id,
+					startDate: currentLease.startDate,
+					endDate: currentLease.endDate,
+					rentAmount: currentLease.rentAmount,
+					securityDeposit: currentLease.securityDeposit,
+					status: currentLease.status,
+					terms: currentLease.terms
+				} : null,
+				leases: leases.map(lease => {
+					const leaseItem: {
+						id: string
+						startDate: string
+						endDate: string
+						rentAmount: number
+						status: string
+						property?: { address: string }
+					} = {
+						id: lease.id,
+						startDate: lease.startDate,
+						endDate: lease.endDate,
+						rentAmount: lease.rentAmount,
+						status: lease.status
+					}
+					
+					if (lease.unit?.property) {
+						leaseItem.property = {
+							address: lease.unit.property.address
+						}
+					}
+					
+					return leaseItem
+				}),
+				unit: currentLease?.unit ? {
+					id: currentLease.unit.id,
+					unitNumber: currentLease.unit.unitNumber,
+					bedrooms: currentLease.unit.bedrooms,
+					bathrooms: currentLease.unit.bathrooms,
+					squareFootage: currentLease.unit.squareFeet
+				} : null,
+				property: currentLease?.unit?.property ? {
+					id: currentLease.unit.property.id,
+					name: currentLease.unit.property.name,
+					address: currentLease.unit.property.address,
+					city: currentLease.unit.property.city,
+					state: currentLease.unit.property.state,
+					zipCode: currentLease.unit.property.zipCode
+				} : null,
+				// Derived fields for UI display
+				monthlyRent,
+				leaseStatus,
+				paymentStatus,
+				unitDisplay,
+				propertyDisplay,
+				leaseStart,
+				leaseEnd
+			}
+
+			return result
+		} catch (error) {
+			this.logger.error('Failed to find tenant with lease', {
 				error: error instanceof Error ? error.message : String(error),
 				userId,
 				tenantId
