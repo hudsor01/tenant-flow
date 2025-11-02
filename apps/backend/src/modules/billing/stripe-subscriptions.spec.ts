@@ -304,6 +304,9 @@ describe('StripeController - Subscription Management', () => {
 							price: mockPriceIdProfessional
 						})
 					])
+				}),
+				expect.objectContaining({
+					idempotencyKey: expect.any(String)
 				})
 			)
 		})
@@ -353,6 +356,9 @@ describe('StripeController - Subscription Management', () => {
 				mockSubscriptionId,
 				expect.objectContaining({
 					proration_behavior: 'none'
+				}),
+				expect.objectContaining({
+					idempotencyKey: expect.any(String)
 				})
 			)
 		})
@@ -407,6 +413,9 @@ describe('StripeController - Subscription Management', () => {
 				mockSubscriptionId,
 				expect.objectContaining({
 					cancel_at_period_end: true
+				}),
+				expect.objectContaining({
+					idempotencyKey: expect.any(String)
 				})
 			)
 		})

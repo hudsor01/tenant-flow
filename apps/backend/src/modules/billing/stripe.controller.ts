@@ -26,6 +26,7 @@ import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 // REMOVED: EventEmitter2, Headers, Req, Request - Webhook endpoint removed
 import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
 import Stripe from 'stripe'
+import { createHmac } from 'crypto'
 import { SupabaseService } from '../../database/supabase.service'
 import type {
 	CreateBillingPortalRequest,
@@ -81,22 +82,36 @@ export class StripeController {
 	}
 
 	/**
-	 * Generate idempotency key for Stripe API calls
-	 * Prevents duplicate charges/subscriptions on network failures (Stripe 2025 best practice)
-	 * @param operation - Operation type (e.g., 'pi', 'cus', 'sub', 'inv')
-	 * @param userId - User ID for uniqueness
-	 * @param additionalContext - Optional additional context for uniqueness
-	 * @returns Idempotency key string
+	 * Generate a deterministic idempotency key for Stripe API calls
+	 * Uses HMAC-SHA256 to create a stable, unique key for the same logical operation
+	 * This prevents duplicate charges on retries by producing the same key for identical inputs
+	 *
+	 * @param operation - Type of operation (e.g., 'pi', 'pi_connected', 'sub', 'cus')
+	 * @param userId - User/tenant ID making the request
+	 * @param additionalContext - Additional identifying fields (e.g., connectedAccountId, amount)
+	 * @returns A deterministic idempotency key (max 255 chars for Stripe)
 	 */
 	private generateIdempotencyKey(
 		operation: string,
 		userId: string,
 		additionalContext?: string
 	): string {
-		const timestamp = Date.now()
-		const random = Math.random().toString(36).substring(7)
+		// Use server secret for HMAC to ensure keys are unique per deployment
+		const secret = process.env.SUPABASE_JWT_SECRET || 'fallback-secret-for-dev'
+
+		// Combine all inputs into a stable string
 		const context = additionalContext ? `_${additionalContext}` : ''
-		return `${operation}_${userId}${context}_${timestamp}_${random}`
+		const input = `${operation}_${userId}${context}`
+
+		// Generate deterministic hash using HMAC-SHA256
+		const hash = createHmac('sha256', secret)
+			.update(input)
+			.digest('hex')
+			.substring(0, 32) // Shorten to keep total length reasonable
+
+		// Format: operation_hash (e.g., pi_connected_a1b2c3d4...)
+		// This ensures same operation+userId+context always produces same key
+		return `${operation}_${hash}`
 	}
 
 	/**
@@ -151,7 +166,7 @@ export class StripeController {
 					})
 				}
 			}, {
-				idempotencyKey: this.generateIdempotencyKey('pi', body.tenantId, `${body.amount}_${Date.now()}`)
+				idempotencyKey: this.generateIdempotencyKey('pi', body.tenantId, body.amount.toString())
 			})
 
 			this.logger.log(
