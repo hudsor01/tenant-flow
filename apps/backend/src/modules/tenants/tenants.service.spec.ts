@@ -335,3 +335,536 @@ describe('TenantsService.activateTenantFromAuthUser', () => {
 		expect(result.message).toBe('Tenant not found or already activated')
 	})
 })
+
+describe('TenantsService.findOneWithLease - Payment Status Calculation', () => {
+	let tenantsService: TenantsService
+	let mockSupabaseService: ReturnType<typeof createMockSupabaseService>
+	let mockEventEmitter: jest.Mocked<EventEmitter2>
+	let mockEmailService: jest.Mocked<EmailService>
+
+	beforeEach(async () => {
+		mockSupabaseService = createMockSupabaseService()
+		mockEventEmitter = {
+			emit: jest.fn()
+		} as unknown as jest.Mocked<EventEmitter2>
+		mockEmailService = {
+			sendTenantInvitation: jest.fn()
+		} as unknown as jest.Mocked<EmailService>
+
+		const moduleRef = await Test.createTestingModule({
+			providers: [
+				TenantsService,
+				{ provide: SupabaseService, useValue: mockSupabaseService },
+				{ provide: EventEmitter2, useValue: mockEventEmitter },
+				{ provide: EmailService, useValue: mockEmailService }
+			]
+		}).compile()
+
+		tenantsService = moduleRef.get(TenantsService)
+	})
+
+	it('should return "Current" status when payment is PAID', async () => {
+		const userId = 'user-123'
+		const tenantId = 'tenant-123'
+		const leaseId = 'lease-123'
+
+		const mockTenant = {
+			id: tenantId,
+			firstName: 'John',
+			lastName: 'Doe',
+			email: 'john@example.com',
+			phone: null,
+			avatarUrl: null,
+			emergencyContact: null,
+			createdAt: '2025-01-01T00:00:00Z',
+			updatedAt: '2025-01-01T00:00:00Z',
+			invitation_status: null,
+			invitation_sent_at: null,
+			invitation_accepted_at: null,
+			invitation_expires_at: null,
+			userId,
+			lease: {
+				id: leaseId,
+				startDate: '2025-01-01',
+				endDate: '2025-12-31',
+				rentAmount: 150000,
+				securityDeposit: 150000,
+				status: 'ACTIVE',
+				terms: null,
+				unit: {
+					id: 'unit-123',
+					unitNumber: '101',
+					bedrooms: 2,
+					bathrooms: 1,
+					squareFeet: 1000,
+					property: {
+						id: 'prop-123',
+						name: 'Test Property',
+						address: '123 Main St',
+						city: 'Test City',
+						state: 'TS',
+						zipCode: '12345'
+					}
+				}
+			}
+		}
+
+		const mockPayment = {
+			status: 'PAID',
+			dueDate: '2025-01-01T00:00:00Z'
+		}
+
+		const mockAdminClient: any = {
+			from: jest.fn((_table: string) => {
+				const chain: any = {
+					select: jest.fn().mockReturnThis(),
+					eq: jest.fn().mockReturnThis(),
+					single: jest.fn().mockResolvedValue({ data: mockTenant, error: null }),
+					order: jest.fn().mockReturnThis(),
+					limit: jest.fn().mockResolvedValue({ data: [mockPayment], error: null })
+				}
+				return chain
+			})
+		}
+
+		mockSupabaseService.getAdminClient.mockReturnValue(mockAdminClient)
+
+		const result = await tenantsService.findOneWithLease(userId, tenantId)
+
+		expect(result).toBeDefined()
+		expect(result?.paymentStatus).toBe('Current')
+	})
+
+	it('should return "Overdue" status when payment is DUE and past due date', async () => {
+		const userId = 'user-123'
+		const tenantId = 'tenant-123'
+		const leaseId = 'lease-123'
+
+		const mockTenant = {
+			id: tenantId,
+			firstName: 'John',
+			lastName: 'Doe',
+			email: 'john@example.com',
+			phone: null,
+			avatarUrl: null,
+			emergencyContact: null,
+			createdAt: '2025-01-01T00:00:00Z',
+			updatedAt: '2025-01-01T00:00:00Z',
+			invitation_status: null,
+			invitation_sent_at: null,
+			invitation_accepted_at: null,
+			invitation_expires_at: null,
+			userId,
+			lease: {
+				id: leaseId,
+				startDate: '2025-01-01',
+				endDate: '2025-12-31',
+				rentAmount: 150000,
+				securityDeposit: 150000,
+				status: 'ACTIVE',
+				terms: null,
+				unit: {
+					id: 'unit-123',
+					unitNumber: '101',
+					bedrooms: 2,
+					bathrooms: 1,
+					squareFeet: 1000,
+					property: {
+						id: 'prop-123',
+						name: 'Test Property',
+						address: '123 Main St',
+						city: 'Test City',
+						state: 'TS',
+						zipCode: '12345'
+					}
+				}
+			}
+		}
+
+		const pastDate = new Date()
+		pastDate.setDate(pastDate.getDate() - 30)
+
+		const mockPayment = {
+			status: 'DUE',
+			dueDate: pastDate.toISOString()
+		}
+
+		const mockAdminClient: any = {
+			from: jest.fn((_table: string) => {
+				const chain: any = {
+					select: jest.fn().mockReturnThis(),
+					eq: jest.fn().mockReturnThis(),
+					single: jest.fn().mockResolvedValue({ data: mockTenant, error: null }),
+					order: jest.fn().mockReturnThis(),
+					limit: jest.fn().mockResolvedValue({ data: [mockPayment], error: null })
+				}
+				return chain
+			})
+		}
+
+		mockSupabaseService.getAdminClient.mockReturnValue(mockAdminClient)
+
+		const result = await tenantsService.findOneWithLease(userId, tenantId)
+
+		expect(result).toBeDefined()
+		expect(result?.paymentStatus).toBe('Overdue')
+	})
+
+	it('should return "Due Soon" status when payment is DUE but not past due date', async () => {
+		const userId = 'user-123'
+		const tenantId = 'tenant-123'
+		const leaseId = 'lease-123'
+
+		const mockTenant = {
+			id: tenantId,
+			firstName: 'John',
+			lastName: 'Doe',
+			email: 'john@example.com',
+			phone: null,
+			avatarUrl: null,
+			emergencyContact: null,
+			createdAt: '2025-01-01T00:00:00Z',
+			updatedAt: '2025-01-01T00:00:00Z',
+			invitation_status: null,
+			invitation_sent_at: null,
+			invitation_accepted_at: null,
+			invitation_expires_at: null,
+			userId,
+			lease: {
+				id: leaseId,
+				startDate: '2025-01-01',
+				endDate: '2025-12-31',
+				rentAmount: 150000,
+				securityDeposit: 150000,
+				status: 'ACTIVE',
+				terms: null,
+				unit: {
+					id: 'unit-123',
+					unitNumber: '101',
+					bedrooms: 2,
+					bathrooms: 1,
+					squareFeet: 1000,
+					property: {
+						id: 'prop-123',
+						name: 'Test Property',
+						address: '123 Main St',
+						city: 'Test City',
+						state: 'TS',
+						zipCode: '12345'
+					}
+				}
+			}
+		}
+
+		const futureDate = new Date()
+		futureDate.setDate(futureDate.getDate() + 5)
+
+		const mockPayment = {
+			status: 'DUE',
+			dueDate: futureDate.toISOString()
+		}
+
+		const mockAdminClient: any = {
+			from: jest.fn((_table: string) => {
+				const chain: any = {
+					select: jest.fn().mockReturnThis(),
+					eq: jest.fn().mockReturnThis(),
+					single: jest.fn().mockResolvedValue({ data: mockTenant, error: null }),
+					order: jest.fn().mockReturnThis(),
+					limit: jest.fn().mockResolvedValue({ data: [mockPayment], error: null })
+				}
+				return chain
+			})
+		}
+
+		mockSupabaseService.getAdminClient.mockReturnValue(mockAdminClient)
+
+		const result = await tenantsService.findOneWithLease(userId, tenantId)
+
+		expect(result).toBeDefined()
+		expect(result?.paymentStatus).toBe('Due Soon')
+	})
+
+	it('should return "Payment Failed" status when payment is FAILED', async () => {
+		const userId = 'user-123'
+		const tenantId = 'tenant-123'
+		const leaseId = 'lease-123'
+
+		const mockTenant = {
+			id: tenantId,
+			firstName: 'John',
+			lastName: 'Doe',
+			email: 'john@example.com',
+			phone: null,
+			avatarUrl: null,
+			emergencyContact: null,
+			createdAt: '2025-01-01T00:00:00Z',
+			updatedAt: '2025-01-01T00:00:00Z',
+			invitation_status: null,
+			invitation_sent_at: null,
+			invitation_accepted_at: null,
+			invitation_expires_at: null,
+			userId,
+			lease: {
+				id: leaseId,
+				startDate: '2025-01-01',
+				endDate: '2025-12-31',
+				rentAmount: 150000,
+				securityDeposit: 150000,
+				status: 'ACTIVE',
+				terms: null,
+				unit: {
+					id: 'unit-123',
+					unitNumber: '101',
+					bedrooms: 2,
+					bathrooms: 1,
+					squareFeet: 1000,
+					property: {
+						id: 'prop-123',
+						name: 'Test Property',
+						address: '123 Main St',
+						city: 'Test City',
+						state: 'TS',
+						zipCode: '12345'
+					}
+				}
+			}
+		}
+
+		const mockPayment = {
+			status: 'FAILED',
+			dueDate: '2025-01-01T00:00:00Z'
+		}
+
+		const mockAdminClient: any = {
+			from: jest.fn((_table: string) => {
+				const chain: any = {
+					select: jest.fn().mockReturnThis(),
+					eq: jest.fn().mockReturnThis(),
+					single: jest.fn().mockResolvedValue({ data: mockTenant, error: null }),
+					order: jest.fn().mockReturnThis(),
+					limit: jest.fn().mockResolvedValue({ data: [mockPayment], error: null })
+				}
+				return chain
+			})
+		}
+
+		mockSupabaseService.getAdminClient.mockReturnValue(mockAdminClient)
+
+		const result = await tenantsService.findOneWithLease(userId, tenantId)
+
+		expect(result).toBeDefined()
+		expect(result?.paymentStatus).toBe('Payment Failed')
+	})
+
+	it('should return "Action Required" status when payment is REQUIRES_ACTION', async () => {
+		const userId = 'user-123'
+		const tenantId = 'tenant-123'
+		const leaseId = 'lease-123'
+
+		const mockTenant = {
+			id: tenantId,
+			firstName: 'John',
+			lastName: 'Doe',
+			email: 'john@example.com',
+			phone: null,
+			avatarUrl: null,
+			emergencyContact: null,
+			createdAt: '2025-01-01T00:00:00Z',
+			updatedAt: '2025-01-01T00:00:00Z',
+			invitation_status: null,
+			invitation_sent_at: null,
+			invitation_accepted_at: null,
+			invitation_expires_at: null,
+			userId,
+			lease: {
+				id: leaseId,
+				startDate: '2025-01-01',
+				endDate: '2025-12-31',
+				rentAmount: 150000,
+				securityDeposit: 150000,
+				status: 'ACTIVE',
+				terms: null,
+				unit: {
+					id: 'unit-123',
+					unitNumber: '101',
+					bedrooms: 2,
+					bathrooms: 1,
+					squareFeet: 1000,
+					property: {
+						id: 'prop-123',
+						name: 'Test Property',
+						address: '123 Main St',
+						city: 'Test City',
+						state: 'TS',
+						zipCode: '12345'
+					}
+				}
+			}
+		}
+
+		const mockPayment = {
+			status: 'REQUIRES_ACTION',
+			dueDate: '2025-01-01T00:00:00Z'
+		}
+
+		const mockAdminClient: any = {
+			from: jest.fn((_table: string) => {
+				const chain: any = {
+					select: jest.fn().mockReturnThis(),
+					eq: jest.fn().mockReturnThis(),
+					single: jest.fn().mockResolvedValue({ data: mockTenant, error: null }),
+					order: jest.fn().mockReturnThis(),
+					limit: jest.fn().mockResolvedValue({ data: [mockPayment], error: null })
+				}
+				return chain
+			})
+		}
+
+		mockSupabaseService.getAdminClient.mockReturnValue(mockAdminClient)
+
+		const result = await tenantsService.findOneWithLease(userId, tenantId)
+
+		expect(result).toBeDefined()
+		expect(result?.paymentStatus).toBe('Action Required')
+	})
+
+	it('should return null status when no payment data exists', async () => {
+		const userId = 'user-123'
+		const tenantId = 'tenant-123'
+		const leaseId = 'lease-123'
+
+		const mockTenant = {
+			id: tenantId,
+			firstName: 'John',
+			lastName: 'Doe',
+			email: 'john@example.com',
+			phone: null,
+			avatarUrl: null,
+			emergencyContact: null,
+			createdAt: '2025-01-01T00:00:00Z',
+			updatedAt: '2025-01-01T00:00:00Z',
+			invitation_status: null,
+			invitation_sent_at: null,
+			invitation_accepted_at: null,
+			invitation_expires_at: null,
+			userId,
+			lease: {
+				id: leaseId,
+				startDate: '2025-01-01',
+				endDate: '2025-12-31',
+				rentAmount: 150000,
+				securityDeposit: 150000,
+				status: 'ACTIVE',
+				terms: null,
+				unit: {
+					id: 'unit-123',
+					unitNumber: '101',
+					bedrooms: 2,
+					bathrooms: 1,
+					squareFeet: 1000,
+					property: {
+						id: 'prop-123',
+						name: 'Test Property',
+						address: '123 Main St',
+						city: 'Test City',
+						state: 'TS',
+						zipCode: '12345'
+					}
+				}
+			}
+		}
+
+		const mockAdminClient: any = {
+			from: jest.fn((_table: string) => {
+				const chain: any = {
+					select: jest.fn().mockReturnThis(),
+					eq: jest.fn().mockReturnThis(),
+					single: jest.fn().mockResolvedValue({ data: mockTenant, error: null }),
+					order: jest.fn().mockReturnThis(),
+					limit: jest.fn().mockResolvedValue({ data: [], error: null })
+				}
+				return chain
+			})
+		}
+
+		mockSupabaseService.getAdminClient.mockReturnValue(mockAdminClient)
+
+		const result = await tenantsService.findOneWithLease(userId, tenantId)
+
+		expect(result).toBeDefined()
+		expect(result?.paymentStatus).toBeNull()
+	})
+
+	it('should return null status when payment status is CANCELLED', async () => {
+		const userId = 'user-123'
+		const tenantId = 'tenant-123'
+		const leaseId = 'lease-123'
+
+		const mockTenant = {
+			id: tenantId,
+			firstName: 'John',
+			lastName: 'Doe',
+			email: 'john@example.com',
+			phone: null,
+			avatarUrl: null,
+			emergencyContact: null,
+			createdAt: '2025-01-01T00:00:00Z',
+			updatedAt: '2025-01-01T00:00:00Z',
+			invitation_status: null,
+			invitation_sent_at: null,
+			invitation_accepted_at: null,
+			invitation_expires_at: null,
+			userId,
+			lease: {
+				id: leaseId,
+				startDate: '2025-01-01',
+				endDate: '2025-12-31',
+				rentAmount: 150000,
+				securityDeposit: 150000,
+				status: 'ACTIVE',
+				terms: null,
+				unit: {
+					id: 'unit-123',
+					unitNumber: '101',
+					bedrooms: 2,
+					bathrooms: 1,
+					squareFeet: 1000,
+					property: {
+						id: 'prop-123',
+						name: 'Test Property',
+						address: '123 Main St',
+						city: 'Test City',
+						state: 'TS',
+						zipCode: '12345'
+					}
+				}
+			}
+		}
+
+		const mockPayment = {
+			status: 'CANCELLED',
+			dueDate: '2025-01-01T00:00:00Z'
+		}
+
+		const mockAdminClient: any = {
+			from: jest.fn((_table: string) => {
+				const chain: any = {
+					select: jest.fn().mockReturnThis(),
+					eq: jest.fn().mockReturnThis(),
+					single: jest.fn().mockResolvedValue({ data: mockTenant, error: null }),
+					order: jest.fn().mockReturnThis(),
+					limit: jest.fn().mockResolvedValue({ data: [mockPayment], error: null })
+				}
+				return chain
+			})
+		}
+
+		mockSupabaseService.getAdminClient.mockReturnValue(mockAdminClient)
+
+		const result = await tenantsService.findOneWithLease(userId, tenantId)
+
+		expect(result).toBeDefined()
+		expect(result?.paymentStatus).toBeNull()
+	})
+})

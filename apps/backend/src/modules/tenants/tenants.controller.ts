@@ -63,7 +63,7 @@ export class TenantsController {
 		// Use Supabase's native auth.getUser() pattern
 		const userId = req.user.id
 
-		return this.tenantsService.findAll(userId, {
+		return this.tenantsService.findAllWithLeaseInfo(userId, {
 			search,
 			invitationStatus,
 			limit,
@@ -85,6 +85,24 @@ export class TenantsController {
 		// Use Supabase's native auth.getUser() pattern
 		const userId = req.user.id
 		return this.tenantsService.getSummary(userId)
+	}
+
+	/**
+	 * GET /tenants/:id/with-lease
+	 * Returns tenant with full lease and unit information
+	 * Optimized endpoint for tenant detail pages
+	 */
+	@Get(':id/with-lease')
+	async findOneWithLease(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest
+	) {
+		const userId = req.user.id
+		const tenantWithLease = await this.tenantsService.findOneWithLease(userId, id)
+		if (!tenantWithLease) {
+			throw new NotFoundException('Tenant not found')
+		}
+		return tenantWithLease
 	}
 
 	@Get(':id')
