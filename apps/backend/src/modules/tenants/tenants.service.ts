@@ -745,7 +745,7 @@ export class TenantsService {
 
 			// Transform to TenantWithLeaseInfo format
 		const leases = Array.isArray(tenant.lease) ? tenant.lease : [tenant.lease]
-					const currentLease = leases.find((l) => l.status === 'ACTIVE') || leases[0]
+		const currentLease = leases.find((l) => l.status === 'ACTIVE') || leases[0]
 
 		// Calculate payment status from rent_payment table
 		let paymentStatus: string | null = null
