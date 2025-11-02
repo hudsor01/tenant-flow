@@ -105,6 +105,7 @@ export class TenantsService {
 
 	/**
 	 * Calculate user-friendly payment status from rent_payment data
+	 * Uses UTC date comparison to ensure consistent results across timezones
 	 * @private
 	 */
 	private calculatePaymentStatus(
@@ -114,8 +115,14 @@ export class TenantsService {
 			return null
 		}
 
-		const today = new Date()
+		// Normalize dates to UTC midnight for consistent comparison across timezones
+		const now = new Date()
+		const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+		
 		const dueDate = payment.dueDate ? new Date(payment.dueDate) : null
+		const dueDateUTC = dueDate 
+			? Date.UTC(dueDate.getUTCFullYear(), dueDate.getUTCMonth(), dueDate.getUTCDate())
+			: null
 
 		// Use enum constants for type-safe comparisons
 		type PaymentStatus = Database['public']['Enums']['RentPaymentStatus']
@@ -125,8 +132,8 @@ export class TenantsService {
 		if (status === 'PAID' || status === 'SUCCEEDED') {
 			return 'Current'
 		} else if (status === 'DUE' || status === 'PENDING') {
-			// Check if overdue
-			if (dueDate && dueDate < today) {
+			// Check if overdue using UTC timestamps
+			if (dueDateUTC !== null && dueDateUTC < todayUTC) {
 				return 'Overdue'
 			} else {
 				return 'Due Soon'
