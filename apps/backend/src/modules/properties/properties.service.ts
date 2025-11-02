@@ -23,7 +23,6 @@ import type { Database } from '@repo/shared/types/supabase-generated'
 import type { Cache } from 'cache-manager'
 import { StorageService } from '../../database/storage.service'
 import { SupabaseService } from '../../database/supabase.service'
-import { UtilityService } from '../../shared/services/utility.service'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -62,7 +61,6 @@ export class PropertiesService {
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly storage: StorageService,
-		private readonly utilityService: UtilityService,
 		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
 		@Optional() @Inject(Logger) logger?: Logger
 	) {
@@ -147,11 +145,10 @@ export class PropertiesService {
 			throw new BadRequestException('Authentication required')
 		}
 
-		// 🔒 CRITICAL FIX: Convert auth.uid() to internal users.id
-		// RLS policies check: ownerId IN (SELECT id FROM users WHERE supabaseId = auth.uid())
-		// Backend must insert users.id (internal), not auth.uid()
-		const authUserId = (req as AuthenticatedRequest).user.id
-		const ownerId = await this.utilityService.getUserIdFromSupabaseId(authUserId)
+		// ✅ NOVEMBER 2025 FIX: req.user.id already contains users.id (from JWT)
+		// RLS policy validates: ownerId IN (SELECT id FROM users WHERE supabaseId = auth.uid())
+		// No need to query users table - just use the ID from the authenticated request
+		const ownerId = (req as AuthenticatedRequest).user.id
 
 		// Zod validation already handles trim().min(1) - no need for redundant checks
 
