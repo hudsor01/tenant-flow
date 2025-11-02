@@ -5,11 +5,13 @@ import {
 	Logger,
 	Param,
 	Post,
+	Request,
 	UseGuards
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { RentPaymentsService } from './rent-payments.service'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
 @Controller('rent-payments')
 @UseGuards(JwtAuthGuard)
@@ -205,7 +207,8 @@ export class RentPaymentsController {
 			tenantId: string
 			leaseId: string
 			paymentMethodId?: string
-		}
+		},
+		@Request() req: AuthenticatedRequest
 	) {
 		this.logger.log(
 			`Setting up autopay for tenant ${body.tenantId}, lease ${body.leaseId}`
@@ -223,7 +226,7 @@ export class RentPaymentsController {
 			params.paymentMethodId = body.paymentMethodId
 		}
 
-		const result = await this.rentPaymentsService.setupTenantAutopay(params)
+		const result = await this.rentPaymentsService.setupTenantAutopay(params, req.user.id)
 
 		return {
 			success: true,
@@ -242,7 +245,8 @@ export class RentPaymentsController {
 		body: {
 			tenantId: string
 			leaseId: string
-		}
+		},
+		@Request() req: AuthenticatedRequest
 	) {
 		this.logger.log(
 			`Canceling autopay for tenant ${body.tenantId}, lease ${body.leaseId}`
@@ -251,7 +255,7 @@ export class RentPaymentsController {
 		await this.rentPaymentsService.cancelTenantAutopay({
 			tenantId: body.tenantId,
 			leaseId: body.leaseId
-		})
+		}, req.user.id)
 
 		return {
 			success: true,
@@ -266,7 +270,8 @@ export class RentPaymentsController {
 	@Get('autopay/status/:tenantId/:leaseId')
 	async getAutopayStatus(
 		@Param('tenantId') tenantId: string,
-		@Param('leaseId') leaseId: string
+		@Param('leaseId') leaseId: string,
+		@Request() req: AuthenticatedRequest
 	) {
 		this.logger.log(
 			`Getting autopay status for tenant ${tenantId}, lease ${leaseId}`
@@ -275,7 +280,7 @@ export class RentPaymentsController {
 		const status = await this.rentPaymentsService.getAutopayStatus({
 			tenantId,
 			leaseId
-		})
+		}, req.user.id)
 
 		return {
 			enabled: status.enabled,

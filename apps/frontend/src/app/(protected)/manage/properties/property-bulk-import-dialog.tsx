@@ -11,6 +11,7 @@ import {
 	DialogTrigger
 } from '#components/ui/dialog'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { clientFetch } from '#lib/api/client'
 import { AlertCircle, CheckCircle2, Download, Upload } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -65,13 +66,16 @@ export function PropertyBulkImportDialog() {
 			logger.info('Starting bulk import', { fileName: file.name })
 			const formData = new FormData()
 			formData.append('file', file)
-			const res = await fetch('/api/v1/properties/bulk-import', {
+			const response = await clientFetch<{
+				success: boolean
+				imported: number
+				failed: number
+				errors: Array<{ row: number; error: string }>
+			}>('/api/v1/properties/bulk-import', {
 				method: 'POST',
-				credentials: 'include',
+				headers: {},
 				body: formData
 			})
-			if (!res.ok) throw new Error('Failed to import properties')
-			const response = await res.json()
 
 			logger.info('Bulk import completed', response)
 			setResult(response)

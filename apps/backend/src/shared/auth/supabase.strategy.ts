@@ -29,29 +29,14 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			throw new Error('SUPABASE_URL environment variable is required')
 		}
 
-		// Extract project ID from Supabase URL for cookie name
-		const projectId = supabaseUrl.match(/https:\/\/(.*?)\.supabase\.co/)?.[1]
-		if (!projectId) {
-			throw new Error('Invalid SUPABASE_URL format - cannot extract project ID')
-		}
-
 		const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET
 
-		const cookieExtractor = (request: unknown): string | null => {
-			if (!request || typeof request !== 'object') return null
-			const cookies = (request as { cookies?: Record<string, unknown> }).cookies
-			if (!cookies) return null
-
-			const baseName = `sb-${projectId}-auth-token`
-			const combinedValue = this.combineCookieValues(cookies, baseName)
-			if (!combinedValue) return null
-
-			return this.extractAccessTokenFromCookieValue(combinedValue)
-		}
-
+		// HEADERS-ONLY AUTHENTICATION
+		// Frontend and backend are on separate deployments (Vercel + Railway)
+		// All API calls MUST use Authorization: Bearer <token> header
+		// NO cookie support - cookies are for Next.js middleware only
 		const extractors = [
-			ExtractJwt.fromAuthHeaderAsBearerToken(),
-			cookieExtractor
+			ExtractJwt.fromAuthHeaderAsBearerToken()
 		]
 
 		if (supabaseJwtSecret) {
@@ -64,11 +49,11 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			})
 
 			this.logger.log(
-				'SupabaseStrategy initialized with shared JWT secret (HS256) - supports Authorization header and cookies'
+				'SupabaseStrategy initialized with shared JWT secret (HS256) - HEADERS ONLY (Authorization: Bearer)'
 			)
 		} else {
 			// Modern JWKS-based authentication (RS256/ES256)
-			// Supports both Authorization header AND Supabase cookies (Next.js middleware)
+			// HEADERS ONLY - Authorization: Bearer <token>
 			super({
 				jwtFromRequest: ExtractJwt.fromExtractors(extractors),
 				ignoreExpiration: false,
@@ -84,7 +69,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			})
 
 			this.logger.log(
-				'SupabaseStrategy initialized with JWKS verification (RS256/ES256) - supports Authorization header and cookies'
+				'SupabaseStrategy initialized with JWKS verification (RS256/ES256) - HEADERS ONLY (Authorization: Bearer)'
 			)
 		}
 	}
@@ -172,108 +157,4 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 		return user
 	}
 
-	private combineCookieValues(
-		cookies: Record<string, unknown>,
-		baseName: string
-	): string | null {
-		const baseValue = cookies[baseName]
-		if (typeof baseValue === 'string' && baseValue.length > 0) {
-			return baseValue
-		}
-		if (Array.isArray(baseValue) && baseValue.length > 0) {
-			return baseValue.join('')
-		}
-
-		const combined = Object.keys(cookies)
-			.filter(key => key.startsWith(`${baseName}.`))
-			.sort((a, b) => {
-				const suffixA = a.substring(baseName.length + 1)
-				const suffixB = b.substring(baseName.length + 1)
-				const numA = Number.parseInt(suffixA, 10)
-				const numB = Number.parseInt(suffixB, 10)
-				const isNumA = Number.isFinite(numA)
-				const isNumB = Number.isFinite(numB)
-				if (isNumA && isNumB) return numA - numB
-				if (isNumA) return -1
-				if (isNumB) return 1
-				return suffixA.localeCompare(suffixB)
-			})
-			.map(key => cookies[key])
-			.filter(Boolean)
-			.map(value =>
-				typeof value === 'string'
-					? value
-					: Array.isArray(value)
-						? value.join('')
-						: ''
-			)
-			.join('')
-
-		return combined.length > 0 ? combined : null
 	}
-
-	private extractAccessTokenFromCookieValue(value: string): string | null {
-		const candidates = new Set<string>([value])
-		try {
-			const decoded = decodeURIComponent(value)
-			candidates.add(decoded)
-		} catch {
-			// ignore decode failures
-		}
-
-		for (const candidate of Array.from(candidates)) {
-			if (candidate.startsWith('base64-')) {
-				const base64Payload = candidate.slice('base64-'.length)
-				try {
-					const decodedBase64 = Buffer.from(base64Payload, 'base64').toString('utf-8')
-					candidates.add(decodedBase64)
-				} catch {
-					// ignore base64 decode errors
-				}
-			}
-		}
-
-		for (const candidate of candidates) {
-			const token = this.tryParseAccessToken(candidate)
-			if (token) return token
-		}
-
-		return null
-	}
-
-	private tryParseAccessToken(raw: string): string | null {
-		try {
-			const parsed = JSON.parse(raw)
-
-			if (typeof parsed === 'string') {
-				return this.tryParseAccessToken(parsed)
-			}
-
-			if (parsed && typeof parsed === 'object') {
-				const possibleSessions = [
-					(parsed as { currentSession?: unknown }).currentSession,
-					(parsed as { session?: unknown }).session,
-					parsed,
-					Array.isArray(parsed) ? parsed[0] : undefined
-				]
-
-				for (const session of possibleSessions) {
-					if (!session || typeof session !== 'object') continue
-					const directToken =
-						(session as Record<string, unknown>).access_token ??
-						(session as Record<string, unknown>).accessToken ??
-						(session as Record<string, unknown>)['access-token']
-
-					if (typeof directToken === 'string' && directToken.length > 0) {
-						return directToken
-					}
-				}
-			}
-		} catch {
-			// ignore parse errors
-		}
-
-		const regexMatch = raw.match(/"access[_-]?token"\s*:\s*"([^"]+)"/)
-		return regexMatch?.[1] ?? null
-	}
-}

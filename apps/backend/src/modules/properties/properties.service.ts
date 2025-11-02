@@ -141,28 +141,30 @@ export class PropertiesService {
 		req: Request,
 		request: CreatePropertyRequest
 	): Promise<Property> {
-		// Validation is now handled by ZodValidationPipe in controller
-		// No manual validation needed here
-
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			this.logger.error('No authentication token found in request')
 			throw new BadRequestException('Authentication required')
 		}
 
-		const userId = (req as AuthenticatedRequest).user.id
-		const ownerId = await this.utilityService.getUserIdFromSupabaseId(userId)
+		// 🔒 CRITICAL FIX: Convert auth.uid() to internal users.id
+		// RLS policies check: ownerId IN (SELECT id FROM users WHERE supabaseId = auth.uid())
+		// Backend must insert users.id (internal), not auth.uid()
+		const authUserId = (req as AuthenticatedRequest).user.id
+		const ownerId = await this.utilityService.getUserIdFromSupabaseId(authUserId)
+
+		// Zod validation already handles trim().min(1) - no need for redundant checks
 
 		const client = this.supabase.getUserClient(token)
 
 		// Build insert object conditionally per exactOptionalPropertyTypes
 		const insertData: Database['public']['Tables']['property']['Insert'] = {
-			ownerId,
-			name: request.name.trim(),
-			address: request.address.trim(),
-			city: request.city.trim(),
-			state: request.state.trim(),
-			zipCode: request.zipCode.trim(),
+			ownerId, // Use internal users.id for RLS compatibility
+			name: request.name,
+			address: request.address,
+			city: request.city,
+			state: request.state,
+			zipCode: request.zipCode,
 			propertyType: request.propertyType as PropertyType
 		}
 
@@ -275,7 +277,8 @@ export class PropertiesService {
 				)
 			}
 
-			const ownerId = await this.utilityService.getUserIdFromSupabaseId(userId)
+			// 🔒 Use Supabase auth UUID directly for RLS (same fix as create method)
+			const ownerId = userId
 			const errors: Array<{ row: number; error: string }> = []
 			const validRows: Array<
 				Database['public']['Tables']['property']['Insert']
@@ -550,7 +553,8 @@ export class PropertiesService {
 
 		const client = this.supabase.getUserClient(token)
 		const userId = (req as AuthenticatedRequest).user.id
-		const ownerId = await this.utilityService.getUserIdFromSupabaseId(userId)
+		// 🔒 Use Supabase auth UUID directly for RLS (same fix as create method)
+		const ownerId = userId
 
 		// Verify ownership through RLS
 		const existing = await this.findOne(req, propertyId)

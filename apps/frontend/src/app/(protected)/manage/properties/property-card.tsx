@@ -15,7 +15,13 @@ import {
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
 import type { Property } from '@repo/shared/types/core'
-import { Building2, MapPin, MoreHorizontal, PencilIcon, Trash2 } from 'lucide-react'
+import {
+	Building2,
+	MapPin,
+	MoreHorizontal,
+	PencilIcon,
+	Trash2
+} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -72,7 +78,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 					<div className="space-y-1 flex-1 min-w-0">
 						<CardTitle className="text-lg truncate">{property.name}</CardTitle>
 						<CardDescription className="flex items-center gap-1.5 text-sm">
-							<MapPin className="size-3.5 flex-shrink-0" />
+							<MapPin className="size-3.5 shrink-0" />
 							<span className="truncate">{property.address}</span>
 						</CardDescription>
 					</div>
@@ -80,11 +86,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 					{/* Actions Menu */}
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="size-11 flex-shrink-0"
-							>
+							<Button variant="ghost" size="icon" className="size-11 shrink-0">
 								<MoreHorizontal className="size-4" />
 								<span className="sr-only">Open menu</span>
 							</Button>
@@ -133,9 +135,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 
 				{/* View Details Button */}
 				<Button asChild className="w-full" variant="default">
-					<Link href={`/manage/properties/${property.id}`}>
-						View Details
-					</Link>
+					<Link href={`/manage/properties/${property.id}`}>View Details</Link>
 				</Button>
 			</CardContent>
 		</Card>
