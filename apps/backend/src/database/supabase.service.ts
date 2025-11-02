@@ -206,69 +206,31 @@ export class SupabaseService {
 
 	/**
 	 * Extract JWT token from Express request
-	 * Supports both Authorization header and Supabase cookies
+	 * Simplified to use Authorization header (standard API pattern) with basic cookie fallback
+	 * Per CLAUDE.md: Backend APIs should use header-based authentication
 	 */
 	getTokenFromRequest(request: Request): string | null {
-		// Try Authorization header first
+		// 1. Try Authorization header (standard for APIs)
 		const authHeader = request.headers?.authorization
 		if (authHeader && typeof authHeader === 'string') {
 			const match = authHeader.match(/^Bearer\s+(.+)$/i)
-			if (match && match[1]) {
+			if (match?.[1]) {
 				return match[1]
 			}
 		}
 
-		// Try Supabase cookies
-		const supabaseUrl = process.env.SUPABASE_URL
-		if (!supabaseUrl || !request.cookies) {
-			return null
-		}
-
-		// Extract project ID from Supabase URL
-		const projectId = supabaseUrl.match(/https:\/\/(.*?)\.supabase\.co/)?.[1]
-		if (!projectId) {
-			return null
-		}
-
-		const baseName = `sb-${projectId}-auth-token`
-		const cookieValue = request.cookies[baseName]
-
-		if (cookieValue) {
-			// Try to parse as JSON object with session data
-			try {
-				const parsed = JSON.parse(cookieValue)
-				const accessToken = parsed?.access_token || parsed?.accessToken
-				if (accessToken && typeof accessToken === 'string') {
-					return accessToken
+		// 2. Try basic cookie fallback (for browser requests via middleware)
+		const cookies = request.headers?.cookie
+		if (cookies && typeof cookies === 'string') {
+			const match = cookies.match(/sb-[^=]+-auth-token=([^;]+)/)
+			if (match?.[1]) {
+				try {
+					const parsed = JSON.parse(decodeURIComponent(match[1]))
+					return parsed?.access_token || parsed?.accessToken || null
+				} catch {
+					// If not JSON, might be token directly
+					return match[1].length > 20 ? match[1] : null
 				}
-			} catch {
-				// If parsing fails, cookie might be the token itself
-				if (typeof cookieValue === 'string' && cookieValue.length > 20) {
-					return cookieValue
-				}
-			}
-		}
-
-		// Check for chunked cookies
-		const cookieChunks = Object.keys(request.cookies)
-			.filter((key) => key.startsWith(`${baseName}.`))
-			.sort((a, b) => {
-				const numA = parseInt(a.split('.').pop() || '0', 10)
-				const numB = parseInt(b.split('.').pop() || '0', 10)
-				return numA - numB
-			})
-			.map((key) => request.cookies[key])
-			.join('')
-
-		if (cookieChunks) {
-			try {
-				const parsed = JSON.parse(cookieChunks)
-				const accessToken = parsed?.access_token || parsed?.accessToken
-				if (accessToken && typeof accessToken === 'string') {
-					return accessToken
-				}
-			} catch {
-				// Ignore parse errors
 			}
 		}
 
