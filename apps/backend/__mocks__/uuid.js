@@ -4,7 +4,7 @@
 //
 // IMPORTANT: Call resetCounters() in your test's beforeEach hook to ensure test isolation:
 //
-//   import { v4, resetCounters } from 'uuid'
+//   const { v4, resetCounters } = require('uuid')
 //
 //   describe('MyService', () => {
 //     beforeEach(() => {
