@@ -6,7 +6,7 @@ import { EmbeddedCheckoutProvider } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { useMutation } from '@tanstack/react-query'
 
-import { API_BASE_URL } from '#lib/api-config'
+import { clientFetch } from '#lib/api/client'
 import type { StripeCheckoutSessionResponse } from '@repo/shared/types/core'
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -32,29 +32,19 @@ export function StripeProvider({
 }: StripeProviderProps) {
 	const { mutateAsync: createClientSecret } = useMutation({
 		mutationFn: async () => {
-			const res = await fetch(
-				`${API_BASE_URL}/api/v1/stripe/create-embedded-checkout-session`,
+			const response = await clientFetch<StripeCheckoutSessionResponse>(
+				'/api/v1/stripe/create-embedded-checkout-session',
 				{
 					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					credentials: 'include',
 					body: JSON.stringify({
 						priceId,
 						domain: window.location.origin,
 						mode
-				})
-			}
-		)
+					})
+				}
+			)
 
-		if (!res.ok) {
-			throw new Error('Failed to create checkout session')
-		}
-
-		const response = (await res.json()) as StripeCheckoutSessionResponse
-
-		return response.client_secret
+			return response.client_secret
 		}
 	})
 

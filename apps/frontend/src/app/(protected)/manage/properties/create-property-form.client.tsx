@@ -2,7 +2,7 @@
 
 import { useCreateProperty } from '#hooks/api/use-properties'
 import { CheckCircle } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '#components/ui/button'
@@ -25,9 +25,9 @@ import {
 	Dropzone,
 	DropzoneContent,
 	DropzoneEmptyState
-} from '#components/dropzone'
+} from '#components/ui/dropzone'
 import { useSupabaseUser } from '#hooks/api/use-supabase-auth'
-import { usePropertyImageUpload } from '#hooks/use-property-image-upload'
+import { useSupabaseUpload } from '#hooks/use-supabase-upload'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { transformPropertyFormData } from '@repo/shared/validation/properties'
 import { useForm } from '@tanstack/react-form'
@@ -47,17 +47,7 @@ export function CreatePropertyForm() {
 	const logger = createLogger({ component: 'CreatePropertyForm' })
 	const createPropertyMutation = useCreateProperty()
 
-	// Initialize image upload hook
-	const upload = usePropertyImageUpload({
-		onUploadComplete: url => {
-			form.setFieldValue('imageUrl', url)
-			toast.success('Property image uploaded successfully')
-		},
-		onUploadError: error => {
-			toast.error(`Failed to upload image: ${error.message}`)
-		}
-	})
-
+	// Initialize form first (before useEffect that depends on it)
 	const form = useForm({
 		defaultValues: {
 			name: '',
@@ -76,7 +66,7 @@ export function CreatePropertyForm() {
 					logger.error('User not authenticated', { action: 'formSubmission' })
 					return
 				}
-				const transformedData = transformPropertyFormData(value, user.id)
+				const transformedData = transformPropertyFormData(value)
 				logger.info('Submitting property data', {
 					action: 'formSubmission',
 					data: transformedData
@@ -87,6 +77,13 @@ export function CreatePropertyForm() {
 				setIsSubmitted(true)
 				form.reset()
 			} catch (error) {
+				// Log full error details for debugging
+				logger.error('Property creation failed', {
+					error: error instanceof Error ? error.message : String(error),
+					stack: error instanceof Error ? error.stack : undefined,
+					details: JSON.stringify(error, null, 2)
+				})
+
 				const errorMessage =
 					error instanceof Error ? error.message : 'Failed to create property'
 				toast.error(errorMessage)
@@ -101,7 +98,9 @@ export function CreatePropertyForm() {
 			onChange: ({ value }) => {
 				// Simplify schema validation - only required fields
 				const requiredSchema = z.object({
-					name: z.string().min(3, 'Property name must be at least 3 characters'),
+					name: z
+						.string()
+						.min(3, 'Property name must be at least 3 characters'),
 					propertyType: z.string(),
 					address: z.string().min(5, 'Address is required'),
 					city: z.string().min(2, 'City is required'),
@@ -117,6 +116,32 @@ export function CreatePropertyForm() {
 			}
 		}
 	})
+
+	// Initialize image upload hook (after form is defined)
+	const upload = useSupabaseUpload({
+		bucketName: 'property-images',
+		path: 'temp',
+		allowedMimeTypes: [
+			'image/png',
+			'image/jpeg',
+			'image/jpg',
+			'image/webp',
+			'image/heic'
+		],
+		maxFileSize: 10 * 1024 * 1024, // 10MB
+		maxFiles: 1
+	})
+
+	// Watch for successful uploads and update imageUrl field
+	useEffect(() => {
+		if (upload.isSuccess && upload.successes.length > 0) {
+			// Get the uploaded file URL from Supabase Storage
+			const uploadedFileName = upload.successes[0]
+			const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/property-images/temp/${uploadedFileName}`
+			form.setFieldValue('imageUrl', imageUrl)
+			toast.success('Property image uploaded successfully')
+		}
+	}, [form, upload.isSuccess, upload.successes])
 
 	if (isSubmitted) {
 		return (
@@ -168,9 +193,7 @@ export function CreatePropertyForm() {
 									onBlur={field.handleBlur}
 								/>
 								{(field.state.meta.errors?.length ?? 0) > 0 && (
-									<FieldError>
-										{String(field.state.meta.errors[0])}
-									</FieldError>
+									<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 								)}
 							</Field>
 						)}
@@ -179,9 +202,7 @@ export function CreatePropertyForm() {
 					<form.Field name="propertyType">
 						{field => (
 							<Field>
-								<FieldLabel htmlFor="propertyType">
-									Property Type *
-								</FieldLabel>
+								<FieldLabel htmlFor="propertyType">Property Type *</FieldLabel>
 								<input
 									type="hidden"
 									name="propertyType"
@@ -190,15 +211,15 @@ export function CreatePropertyForm() {
 								/>
 								<Select
 									value={field.state.value}
-									onValueChange={(value: string) => field.handleChange(value as PropertyType)}
+									onValueChange={(value: string) =>
+										field.handleChange(value as PropertyType)
+									}
 								>
 									<SelectTrigger>
 										<SelectValue placeholder="Select property type" />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="SINGLE_FAMILY">
-											Single Family
-										</SelectItem>
+										<SelectItem value="SINGLE_FAMILY">Single Family</SelectItem>
 										<SelectItem value="MULTI_UNIT">Multi Unit</SelectItem>
 										<SelectItem value="APARTMENT">Apartment</SelectItem>
 										<SelectItem value="COMMERCIAL">Commercial</SelectItem>
@@ -227,9 +248,7 @@ export function CreatePropertyForm() {
 									onBlur={field.handleBlur}
 								/>
 								{(field.state.meta.errors?.length ?? 0) > 0 && (
-									<FieldError>
-										{String(field.state.meta.errors[0])}
-									</FieldError>
+									<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 								)}
 							</Field>
 						)}
@@ -288,9 +307,7 @@ export function CreatePropertyForm() {
 						<form.Field name="zipCode">
 							{field => (
 								<Field>
-									<FieldLabel htmlFor="zipCode">
-										ZIP Code *
-									</FieldLabel>
+									<FieldLabel htmlFor="zipCode">ZIP Code *</FieldLabel>
 									<Input
 										id="zipCode"
 										name="zipCode"
@@ -298,8 +315,8 @@ export function CreatePropertyForm() {
 										placeholder="12345"
 										value={field.state.value}
 										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-										field.handleChange(e.target.value)
-									}
+											field.handleChange(e.target.value)
+										}
 										onBlur={field.handleBlur}
 									/>
 									{(field.state.meta.errors?.length ?? 0) > 0 && (

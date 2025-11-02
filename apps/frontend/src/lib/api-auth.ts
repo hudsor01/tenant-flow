@@ -1,7 +1,14 @@
 /**
- * API Route Authentication Utilities
+ * Next.js API Route Authentication Utilities (Cookie-Based)
  * 
- * Official Supabase pattern for Next.js App Router API routes
+ * ⚠️  IMPORTANT: This file is ONLY for Next.js API routes (e.g., /api/security/csp-report)
+ * ❌ DO NOT USE for backend API authentication (Railway NestJS backend)
+ * 
+ * Architecture:
+ * - Next.js API routes: Use this file (cookie-based, same-domain)
+ * - Backend API routes: Use clientFetch() with Authorization headers (cross-domain)
+ * 
+ * Official Supabase pattern for Next.js App Router API routes:
  * https://supabase.com/docs/guides/auth/server-side/nextjs
  */
 

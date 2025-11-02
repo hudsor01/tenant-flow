@@ -30,7 +30,7 @@ export const createLeaseSchema: JSONSchema = {
 		'unitId',
 		'startDate',
 		'endDate',
-		'monthlyRent',
+		'rentAmount',
 		'securityDeposit'
 	],
 	additionalProperties: false,
@@ -39,7 +39,7 @@ export const createLeaseSchema: JSONSchema = {
 		unitId: uuidSchema,
 		startDate: dateSchema,
 		endDate: dateSchema,
-		monthlyRent: moneySchema,
+		rentAmount: moneySchema,
 		securityDeposit: moneySchema,
 		paymentFrequency: paymentFrequencySchema,
 		status: leaseStatusSchema

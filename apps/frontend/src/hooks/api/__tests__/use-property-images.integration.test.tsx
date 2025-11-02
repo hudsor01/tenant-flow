@@ -21,7 +21,7 @@ import {
 	useDeleteProperty
 } from '../use-properties'
 import type { ReactNode } from 'react'
-import type { CreatePropertyInput } from '@repo/shared/types/api-inputs'
+import type { CreatePropertyRequest } from '@repo/shared/types/backend-domain'
 
 // Type for the property image upload response
 type PropertyImageUploadResult = {
@@ -41,16 +41,15 @@ const TEST_IMAGE_FILE = new File(['test'], 'test-image.jpg', {
 })
 
 // Test property data factory
-const createTestPropertyData = (): CreatePropertyInput => ({
+const createTestPropertyData = (): CreatePropertyRequest => ({
 	name: `Test Property ${Date.now()}`,
 	address: '123 Test St',
 	city: 'Test City',
 	state: 'TS',
 	zipCode: '12345',
 	propertyType: 'SINGLE_FAMILY',
-	status: 'ACTIVE',
-	description: 'Test property for image upload tests',
-	ownerId: '' // Will be set by backend from authenticated user
+	description: 'Test property for image upload tests'
+	// NOTE: ownerId and status removed - backend derives from auth
 })
 
 // Test wrapper with QueryClient

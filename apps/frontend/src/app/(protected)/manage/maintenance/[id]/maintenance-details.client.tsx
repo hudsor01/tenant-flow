@@ -4,18 +4,16 @@ import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { useMaintenanceRequest } from '#hooks/api/use-maintenance'
+import { clientFetch } from '#lib/api/client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { Tables } from '@repo/shared/types/supabase'
 import { useQuery } from '@tanstack/react-query'
 import { Calendar, MapPin, Phone, Wrench } from 'lucide-react'
 import Link from 'next/link'
+import type { Property, Unit } from '@repo/shared/types/core'
 
 interface MaintenanceDetailsProps {
 	id: string
 }
-
-type Property = Tables<'property'>
-type Unit = Tables<'unit'>
 
 const logger = createLogger({ component: 'MaintenanceDetails' })
 
@@ -24,28 +22,18 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 
 	const { data: properties = [] } = useQuery({
 		queryKey: ['properties'],
-		queryFn: async () => {
-			const res = await fetch('/api/v1/properties', { credentials: 'include' })
-			if (!res.ok) throw new Error('Failed to fetch properties')
-			return res.json()
-		}
+		queryFn: () => clientFetch<Property[]>('/api/v1/properties')
 	})
 
 	const { data: units = [] } = useQuery({
 		queryKey: ['units'],
-		queryFn: async () => {
-			const res = await fetch('/api/v1/units', { credentials: 'include' })
-			if (!res.ok) throw new Error('Failed to fetch units')
-			return res.json()
-		}
+		queryFn: () => clientFetch<Unit[]>('/api/v1/units')
 	})
 
-	const unit = units.find((unit: import('@repo/shared/types/core').Unit) => unit.id === request?.unitId) as
-		| Unit
-		| undefined
+	const unit = units.find((u) => u.id === request?.unitId)
 	const property = properties.find(
-		(property: import('@repo/shared/types/core').Property) => property.id === unit?.propertyId
-	) as Property | undefined
+		(p) => p.id === unit?.propertyId
+	)
 
 	if (isLoading) {
 		return (

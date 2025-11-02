@@ -35,6 +35,7 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { unitColumns, type UnitRow } from './columns'
+import { clientFetch } from '#lib/api/client'
 import { useUnitList, useUnitStats, useCreateUnit } from '#hooks/api/use-unit'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -43,10 +44,10 @@ import { DoorOpen, Filter, Plus } from 'lucide-react'
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { useRef } from 'react'
 import { toast } from 'sonner'
+import type { Property } from '@repo/shared/types/core'
 
 type InsertUnit = Database['public']['Tables']['unit']['Insert']
 type UnitStatus = Database['public']['Enums']['UnitStatus']
-type PropertyRowDB = Database['public']['Tables']['property']['Row']
 
 const ITEMS_PER_PAGE = 25
 
@@ -84,11 +85,7 @@ export default function UnitsPage() {
 
 	const { data: properties = [] } = useQuery({
 		queryKey: ['properties'],
-		queryFn: async () => {
-			const res = await fetch('/api/v1/properties', { credentials: 'include' })
-			if (!res.ok) throw new Error('Failed to fetch properties')
-			return res.json()
-		}
+		queryFn: () => clientFetch<Property[]>('/api/v1/properties')
 	})
 
 	// Use backend RPC functions for statistics - NO CLIENT-SIDE CALCULATIONS
@@ -209,7 +206,7 @@ export default function UnitsPage() {
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="ALL">All Properties</SelectItem>
-								{properties.map((property: PropertyRowDB) => (
+								{properties.map((property) => (
 									<SelectItem key={property.id} value={property.id}>
 										{property.name}
 									</SelectItem>
@@ -409,11 +406,7 @@ function NewUnitButton() {
 	const qc = useQueryClient()
 	const { data: properties = [] } = useQuery({
 		queryKey: ['properties'],
-		queryFn: async () => {
-			const res = await fetch('/api/v1/properties', { credentials: 'include' })
-			if (!res.ok) throw new Error('Failed to fetch properties')
-			return res.json()
-		}
+		queryFn: () => clientFetch<Property[]>('/api/v1/properties')
 	})
 
 	const create = useCreateUnit()
@@ -479,7 +472,7 @@ function NewUnitButton() {
 									<SelectValue placeholder="Select property" />
 								</SelectTrigger>
 								<SelectContent>
-									{properties.map((property: PropertyRowDB) => (
+									{properties.map((property) => (
 										<SelectItem key={property.id} value={property.id}>
 											{property.name}
 										</SelectItem>

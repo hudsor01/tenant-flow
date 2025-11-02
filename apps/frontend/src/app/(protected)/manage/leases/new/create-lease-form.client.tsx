@@ -55,10 +55,7 @@ export function CreateLeaseForm() {
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				await createLease.mutateAsync({
-					...value,
-					status: 'ACTIVE'
-				})
+				await createLease.mutateAsync(value)
 				await Promise.all([
 					queryClient.invalidateQueries({ queryKey: ['units'] }),
 					queryClient.invalidateQueries({ queryKey: ['tenants'] })

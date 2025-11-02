@@ -3,6 +3,7 @@
 import { PasswordUpdateSection } from '#app/(protected)/settings/password-update-section'
 import { useTransition } from 'react'
 import { toast } from 'sonner'
+import { clientFetch } from '#lib/api/client'
 
 import { useAuth } from '#providers/auth-provider'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
@@ -73,18 +74,10 @@ export default function SettingsPage() {
 
 		startTransition(async () => {
 			try {
-				const res = await fetch('/api/v1/users/profile', {
+				await clientFetch('/api/v1/users/profile', {
 					method: 'PATCH',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					credentials: 'include',
 					body: JSON.stringify(profileData)
 				})
-				
-				if (!res.ok) {
-					throw new Error('Failed to update profile')
-				}
 				
 				handleMutationSuccess('Update profile')
 			} catch (error) {

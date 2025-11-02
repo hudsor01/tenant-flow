@@ -17,6 +17,7 @@ import {
 	AlertDialogTitle
 } from '#components/ui/alert-dialog'
 import { PropertyCard } from './property-card'
+import { clientFetch } from '#lib/api/client'
 
 interface PropertiesGridClientProps {
 	data: Property[]
@@ -43,13 +44,7 @@ export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 
 		startTransition(async () => {
 			try {
-				const res = await fetch(`/api/v1/properties/${deletePropertyId}`, {
-					method: 'DELETE',
-					credentials: 'include'
-				})
-				if (!res.ok) {
-					throw new Error('Failed to delete property')
-				}
+				await clientFetch(`/api/v1/properties/${deletePropertyId}`, { method: 'DELETE' })
 				toast.success('Property deleted successfully')
 				router.refresh() // Refresh server data
 			} catch (error) {

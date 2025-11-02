@@ -73,6 +73,8 @@ interface CreateTenantFormProps {
 	units: Unit[]
 }
 
+import { clientFetch } from '#lib/api/client'
+
 export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 	const router = useRouter()
 	const [selectedPropertyId, setSelectedPropertyId] = useState('')
@@ -95,32 +97,28 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 		onSubmit: async ({ value }) => {
 			setIsSubmitting(true)
 			try {
-				const res = await fetch('/api/v1/tenants/invite-with-lease', {
+				const response = await clientFetch<{tenantId: string, leaseId: string}>('/api/v1/tenants/invite-with-lease', {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					credentials: 'include',
 					body: JSON.stringify({
-					tenantData: {
-						email: value.email,
-						firstName: value.firstName,
-						lastName: value.lastName,
-						...(value.phone && { phone: value.phone })
-					},
-					leaseData: {
-						propertyId: value.propertyId,
-						...(value.unitId && { unitId: value.unitId }),
-						rentAmount: Math.round(Number.parseFloat(value.rentAmount) * 100),
-						securityDeposit: Math.round(
-							Number.parseFloat(value.securityDeposit) * 100
-						),
-						startDate: value.startDate,
-						endDate: value.endDate
-				}
-			})
-			})
+						tenantData: {
+							email: value.email,
+							firstName: value.firstName,
+							lastName: value.lastName,
+							...(value.phone && { phone: value.phone })
+						},
+						leaseData: {
+							propertyId: value.propertyId,
+							...(value.unitId && { unitId: value.unitId }),
+							rentAmount: Math.round(Number.parseFloat(value.rentAmount) * 100),
+							securityDeposit: Math.round(
+								Number.parseFloat(value.securityDeposit) * 100
+							),
+							startDate: value.startDate,
+							endDate: value.endDate
+						}
+					})
+				})
 
-			if (!res.ok) throw new Error('Failed to invite tenant with lease')
-			const response = await res.json()
 
 				logger.info('Tenant onboarded successfully', {
 					tenantId: response.tenantId,

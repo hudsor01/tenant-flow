@@ -27,6 +27,7 @@ import { toast } from 'sonner'
 import { ColumnDef } from '@tanstack/react-table'
 import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { clientFetch } from '#lib/api/client'
 
 const logger = createLogger({ component: 'MaintenanceTableClient' })
 
@@ -53,11 +54,7 @@ export function MaintenanceTableClient({
 		startTransition(async () => {
 			removeOptimistic(requestId)
 			try {
-				const res = await fetch(`/api/v1/maintenance/${requestId}`, {
-					method: 'DELETE',
-					credentials: 'include'
-				})
-				if (!res.ok) throw new Error('Failed to delete maintenance request')
+				await clientFetch(`/api/v1/maintenance/${requestId}`, { method: 'DELETE' })
 				toast.success(`Request "${requestTitle}" deleted`)
 			} catch (error) {
 				logger.error('Delete failed', {

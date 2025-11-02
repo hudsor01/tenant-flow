@@ -20,10 +20,12 @@ import { Textarea } from '#components/ui/textarea'
 import { useAllTenants } from '#hooks/api/use-tenant'
 import { useUpdateLease } from '#hooks/api/use-lease'
 
+import { clientFetch } from '#lib/api/client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { leaseInputSchema } from '@repo/shared/validation/leases'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
+import type { Lease, Unit } from '@repo/shared/types/core'
 
 interface LeaseEditFormProps {
 	id: string
@@ -42,22 +44,14 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 		isError
 	} = useQuery({
 		queryKey: ['leases', id],
-		queryFn: async () => {
-			const res = await fetch(`/api/v1/leases/${id}`, { credentials: 'include' })
-			if (!res.ok) throw new Error('Failed to fetch lease')
-			return res.json()
-		}
+		queryFn: () => clientFetch<Lease>(`/api/v1/leases/${id}`)
 	})
 
 	const { data: tenants = [] } = useAllTenants()
 
 	const { data: units = [] } = useQuery({
 		queryKey: ['units'],
-		queryFn: async () => {
-			const res = await fetch('/api/v1/units', { credentials: 'include' })
-			if (!res.ok) throw new Error('Failed to fetch units')
-			return res.json()
-		}
+		queryFn: () => clientFetch<Unit[]>('/api/v1/units')
 	})
 
 	const form = useForm({
@@ -189,7 +183,7 @@ export function LeaseEditForm({ id }: LeaseEditFormProps) {
 												<SelectValue placeholder="Select unit" />
 											</SelectTrigger>
 											<SelectContent>
-												{units.map((unit: import('@repo/shared/types/core').Unit) => (
+												{units.map((unit) => (
 													<SelectItem key={unit.id} value={unit.id}>
 														Unit {unit.unitNumber}
 													</SelectItem>

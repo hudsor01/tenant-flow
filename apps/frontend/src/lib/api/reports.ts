@@ -3,7 +3,7 @@
  * Phase 5: Advanced Features - Custom Reports & Analytics
  */
 
-import { API_BASE_URL } from '#lib/api-config'
+import { clientFetch } from '#lib/api/client'
 
 export interface RevenueData {
 	month: string
@@ -52,13 +52,9 @@ export interface OccupancyMetrics {
 export async function getMonthlyRevenue(
 	months: number = 12
 ): Promise<RevenueData[]> {
-	const res = await fetch(
-		`${API_BASE_URL}/api/v1/reports/analytics/revenue/monthly?months=${months}`,
-		{ credentials: 'include' }
+	return clientFetch<RevenueData[]>(
+		`/api/v1/reports/analytics/revenue/monthly?months=${months}`
 	)
-	if (!res.ok) throw new Error('Failed to fetch monthly revenue')
-	const response = await res.json() as { success: boolean; data: RevenueData[] }
-	return response.data
 }
 
 /**
@@ -73,24 +69,16 @@ export async function getPaymentAnalytics(
 	if (endDate) params.append('endDate', endDate)
 
 	const queryString = params.toString() ? `?${params.toString()}` : ''
-	const res = await fetch(
-		`${API_BASE_URL}/api/v1/reports/analytics/payments${queryString}`,
-		{ credentials: 'include' }
+	return clientFetch<PaymentAnalytics>(
+		`/api/v1/reports/analytics/payments${queryString}`
 	)
-	if (!res.ok) throw new Error('Failed to fetch payment analytics')
-	const response = await res.json() as { success: boolean; data: PaymentAnalytics }
-	return response.data
 }
 
 /**
  * Get occupancy metrics across all properties
  */
 export async function getOccupancyMetrics(): Promise<OccupancyMetrics> {
-	const res = await fetch(
-		`${API_BASE_URL}/api/v1/reports/analytics/occupancy`,
-		{ credentials: 'include' }
+	return clientFetch<OccupancyMetrics>(
+		'/api/v1/reports/analytics/occupancy'
 	)
-	if (!res.ok) throw new Error('Failed to fetch occupancy metrics')
-	const response = await res.json() as { success: boolean; data: OccupancyMetrics }
-	return response.data
 }
