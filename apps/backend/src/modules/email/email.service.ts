@@ -249,9 +249,8 @@ export class EmailService {
 			})
 		} catch (error) {
 			this.logger.error('Failed to send subscription canceled email', {
-				error: error instanceof Error ? error.message : String(error),
-				customerEmail: data.customerEmail
-			})
+			error: error instanceof Error ? error.message : String(error)
+		})
 		}
 	}
 }
