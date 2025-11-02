@@ -19,6 +19,8 @@ permissions:
 
 env:
   CI: true
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
   lint:
@@ -44,7 +46,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-${{ hashFiles('**/pnpm-lock.yaml', 'turbo.json', '**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-turbo-
 

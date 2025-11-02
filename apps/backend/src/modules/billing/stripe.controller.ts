@@ -19,6 +19,7 @@ import {
 	UnauthorizedException,
 	UseGuards
 } from '@nestjs/common'
+import { Cron, CronExpression } from '@nestjs/schedule'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
@@ -63,12 +64,39 @@ export class StripeController {
 		private readonly stripeService: StripeService
 	) {
 		this.stripe = this.stripeService.getStripe()
+	}
 
-		// Schedule cleanup of old webhook events every 24 hours
-		setInterval(
-			() => this.webhookService.cleanupOldEvents(30),
-			24 * 60 * 60 * 1000
-		)
+	/**
+	 * Cleanup old webhook events daily
+	 * Runs at midnight to remove events older than 30 days
+	 */
+	@Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+	async handleWebhookCleanup() {
+		try {
+			await this.webhookService.cleanupOldEvents(30)
+			this.logger.log('Webhook cleanup completed successfully')
+		} catch (error) {
+			this.logger.error('Webhook cleanup failed', error)
+		}
+	}
+
+	/**
+	 * Generate idempotency key for Stripe API calls
+	 * Prevents duplicate charges/subscriptions on network failures (Stripe 2025 best practice)
+	 * @param operation - Operation type (e.g., 'pi', 'cus', 'sub', 'inv')
+	 * @param userId - User ID for uniqueness
+	 * @param additionalContext - Optional additional context for uniqueness
+	 * @returns Idempotency key string
+	 */
+	private generateIdempotencyKey(
+		operation: string,
+		userId: string,
+		additionalContext?: string
+	): string {
+		const timestamp = Date.now()
+		const random = Math.random().toString(36).substring(7)
+		const context = additionalContext ? `_${additionalContext}` : ''
+		return `${operation}_${userId}${context}_${timestamp}_${random}`
 	}
 
 	/**
@@ -122,6 +150,8 @@ export class StripeController {
 						subscription_type: sanitizedSubscriptionType
 					})
 				}
+			}, {
+				idempotencyKey: this.generateIdempotencyKey('pi', body.tenantId, `${body.amount}_${Date.now()}`)
 			})
 
 			this.logger.log(
@@ -220,6 +250,8 @@ export class StripeController {
 						tenant_id: sanitizedTenantId,
 						created_from: 'setup_intent'
 					}
+				}, {
+					idempotencyKey: this.generateIdempotencyKey('cus', body.tenantId)
 				})
 
 				customerId = customer.id
@@ -235,6 +267,8 @@ export class StripeController {
 				metadata: {
 					tenant_id: sanitizedTenantId
 				}
+			}, {
+				idempotencyKey: this.generateIdempotencyKey('si', body.tenantId)
 			})
 
 			this.logger.log(`Setup Intent created: ${setupIntent.id}`, {
@@ -306,6 +340,8 @@ export class StripeController {
 						tenant_id: tenant.id,
 						user_id: userId
 					}
+				}, {
+					idempotencyKey: this.generateIdempotencyKey('cus', userId, tenant.id)
 				})
 
 				customerId = customer.id
@@ -337,6 +373,8 @@ export class StripeController {
 					invoice_settings: {
 						default_payment_method: body.payment_method_id
 					}
+				}, {
+					idempotencyKey: this.generateIdempotencyKey('cus_update', userId, customerId)
 				})
 			}
 
@@ -566,6 +604,8 @@ export class StripeController {
 						subscription_type: sanitizedSubscriptionType
 					})
 				}
+			}, {
+				idempotencyKey: this.generateIdempotencyKey('sub', body.customerId, body.tenantId)
 			})
 
 			this.logger.log(`Subscription created: ${subscription.id}`, {
@@ -660,6 +700,9 @@ export class StripeController {
 					// Keep same billing date (don't reset billing cycle)
 					billing_cycle_anchor: 'unchanged',
 					expand: ['latest_invoice']
+				},
+				{
+					idempotencyKey: this.generateIdempotencyKey('sub_update', body.subscriptionId, body.newPriceId)
 				}
 			)
 
@@ -727,6 +770,9 @@ export class StripeController {
 					body.subscriptionId,
 					{
 						cancel_at_period_end: true
+					},
+					{
+						idempotencyKey: this.generateIdempotencyKey('sub_cancel', body.subscriptionId)
 					}
 				)
 
@@ -1117,7 +1163,7 @@ export class StripeController {
 				throw linkError
 			}
 
-			this.logger.log(`Tenant invitation sent successfully: ${body.email}`)
+			this.logger.log('Tenant invitation sent successfully')
 
 			return {
 				success: true,
@@ -1214,7 +1260,8 @@ export class StripeController {
 					}
 				},
 				{
-					stripeAccount: body.connectedAccountId // Property owner account
+					stripeAccount: body.connectedAccountId, // Property owner account
+					idempotencyKey: this.generateIdempotencyKey('pi_connected', body.tenantId, body.connectedAccountId)
 				}
 			)
 
