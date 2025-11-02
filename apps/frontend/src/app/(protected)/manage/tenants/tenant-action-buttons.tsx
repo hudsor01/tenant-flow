@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { clientFetch } from '#lib/api/client'
 
 interface TenantActionButtonsProps {
 	tenant: TenantWithLeaseInfo
@@ -84,16 +85,10 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 			assignNullable('name', data.name)
 			assignNullable('userId', data.userId)
 
-			const res = await fetch(`/api/v1/tenants/${tenant.id}`, {
+			return await clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${tenant.id}`, {
 				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				credentials: 'include',
 				body: JSON.stringify(payload)
 			})
-			if (!res.ok) {
-				throw new Error('Failed to update tenant')
-			}
-			return res.json()
 		},
 		onSuccess: (updated: TenantWithLeaseInfo) => {
 			// Update single tenant cache and the tenants list without refetch
@@ -115,13 +110,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 
 	const deleteMutation = useMutation({
 		mutationFn: async () => {
-			const res = await fetch(`/api/v1/tenants/${tenant.id}`, {
-				method: 'DELETE',
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to delete tenant')
-			}
+			await clientFetch(`/api/v1/tenants/${tenant.id}`, { method: 'DELETE' })
 		},
 		onSuccess: () => {
 			queryClient.setQueryData(
@@ -144,14 +133,10 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 
 	const inviteMutation = useMutation({
 		mutationFn: async () => {
-			const res = await fetch(`/api/v1/tenants/${tenant.id}/resend-invitation`, {
+			return await clientFetch(`/api/v1/tenants/${tenant.id}/resend-invitation`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				credentials: 'include',
 				body: JSON.stringify({})
 			})
-			if (!res.ok) throw new Error('Failed to send invitation')
-			return res.json()
 		},
 		onSuccess: () => {
 			toast.success('Invitation sent successfully')

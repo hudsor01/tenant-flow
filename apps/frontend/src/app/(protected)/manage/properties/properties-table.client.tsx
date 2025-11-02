@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import { ColumnDef } from '@tanstack/react-table'
 import type { Property } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { clientFetch } from '#lib/api/client'
 
 const logger = createLogger({ component: 'PropertiesTableClient' })
 
@@ -53,13 +54,7 @@ export function PropertiesTableClient({ initialProperties }: PropertiesTableClie
 		startTransition(async () => {
 			removeOptimistic(propertyId)
 			try {
-				const res = await fetch(`/api/v1/properties/${propertyId}`, {
-					method: 'DELETE',
-					credentials: 'include'
-				})
-				if (!res.ok) {
-					throw new Error('Failed to delete property')
-				}
+				await clientFetch(`/api/v1/properties/${propertyId}`, { method: 'DELETE' })
 				toast.success(`Property "${propertyName}" deleted`)
 			} catch (error) {
 				logger.error('Delete failed', { action: 'handleDelete', metadata: { propertyId, error } })

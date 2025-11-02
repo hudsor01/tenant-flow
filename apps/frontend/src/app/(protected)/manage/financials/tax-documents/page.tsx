@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Button } from '#components/ui/button'
+import { clientFetch } from '#lib/api/client'
 import {
 	Dialog,
 	DialogContent,
@@ -116,21 +117,10 @@ const TaxDocumentsPage = ({
 				const parsedData = data as TaxDocumentsData
 				
 				// Import tax documents via API
-				const res = await fetch(
-					'/api/v1/financials/tax-documents',
-					{
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json'
-						},
-						credentials: 'include',
-						body: JSON.stringify(parsedData)
-					}
-				)
-				
-				if (!res.ok) {
-					throw new Error('Failed to import tax documents')
-				}
+				await clientFetch('/api/v1/financials/tax-documents', {
+					method: 'POST',
+					body: JSON.stringify(parsedData)
+				})
 				
 				const importYear =
 					typeof parsedData.taxYear === 'number'
@@ -169,25 +159,14 @@ const TaxDocumentsPage = ({
 			const startDate = `${taxYear}-01-01`
 			const endDate = `${taxYear}-12-31`
 
-			const res = await fetch(
-				'/api/v1/reports/generate-tax-preparation',
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					credentials: 'include',
-					body: JSON.stringify({
-						userId: session.user.id,
-						startDate,
-						endDate
-					})
-				}
-			)
-
-			if (!res.ok) {
-				throw new Error('Failed to generate tax report')
-			}
+			await clientFetch('/api/v1/reports/generate-tax-preparation', {
+				method: 'POST',
+				body: JSON.stringify({
+					userId: session.user.id,
+					startDate,
+					endDate
+				})
+			})
 
 			handleMutationSuccess('Generate tax report', `Downloading tax preparation report for ${taxYear}`)
 		} catch (error) {

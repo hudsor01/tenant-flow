@@ -147,7 +147,7 @@ export class RentPaymentsService {
 	/**
 	 * ✅ AUTHORIZATION ENFORCED: Validates requesting user has access to lease context
 	 * Uses admin client for cross-user queries but enforces authorization checks
-	 * 
+	 *
 	 * @param leaseId - The lease ID to fetch context for
 	 * @param tenantId - The tenant ID associated with the lease
 	 * @param requestingUserId - The user making the request (for authorization)
@@ -189,13 +189,18 @@ export class RentPaymentsService {
 			propertyId = unit.propertyId
 		} else {
 			// For single-family properties without units, fetch property directly from lease
-			const { data: leaseWithProperty, error: leasePropertyError } = await adminClient
-				.from('lease')
-				.select('propertyId')
-				.eq('id', leaseId)
-				.single()
+			const { data: leaseWithProperty, error: leasePropertyError } =
+				await adminClient
+					.from('lease')
+					.select('propertyId')
+					.eq('id', leaseId)
+					.single()
 
-			if (leasePropertyError || !leaseWithProperty || !leaseWithProperty.propertyId) {
+			if (
+				leasePropertyError ||
+				!leaseWithProperty ||
+				!leaseWithProperty.propertyId
+			) {
 				throw new NotFoundException('Property not found for lease')
 			}
 			propertyId = leaseWithProperty.propertyId
@@ -333,28 +338,31 @@ export class RentPaymentsService {
 
 		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate charges
 		const idempotencyKey = `payment-${tenantId}-${leaseId}-${paymentType}-${Date.now()}`
-		const paymentIntent = await this.stripe.paymentIntents.create({
-			amount: amountInCents,
-			currency: 'usd',
-			customer: stripeCustomerId,
-			payment_method: paymentMethod.stripePaymentMethodId,
-			confirm: true,
-			off_session: true,
-			application_fee_amount: fees.platformFee,
-			transfer_data: {
-				destination: landlord.stripeAccountId as string
+		const paymentIntent = await this.stripe.paymentIntents.create(
+			{
+				amount: amountInCents,
+				currency: 'usd',
+				customer: stripeCustomerId,
+				payment_method: paymentMethod.stripePaymentMethodId,
+				confirm: true,
+				off_session: true,
+				application_fee_amount: fees.platformFee,
+				transfer_data: {
+					destination: landlord.stripeAccountId as string
+				},
+				metadata: {
+					tenantId,
+					tenantUserId: tenantUser.id,
+					landlordId: landlord.id,
+					leaseId,
+					paymentType
+				},
+				expand: ['latest_charge']
 			},
-			metadata: {
-				tenantId,
-				tenantUserId: tenantUser.id,
-				landlordId: landlord.id,
-				leaseId,
-				paymentType
-			},
-			expand: ['latest_charge']
-		}, {
-			idempotencyKey
-		})
+			{
+				idempotencyKey
+			}
+		)
 
 		const status =
 			paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending'
@@ -438,10 +446,7 @@ export class RentPaymentsService {
 	 * Get subscription payment history for authenticated user
 	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's subscriptions
 	 */
-	async getSubscriptionPaymentHistory(
-		subscriptionId: string,
-		token: string
-	) {
+	async getSubscriptionPaymentHistory(subscriptionId: string, token: string) {
 		if (!token) {
 			this.logger.warn('Subscription payment history requested without token')
 			throw new BadRequestException('Authentication token is required')
@@ -516,10 +521,7 @@ export class RentPaymentsService {
 	 * Get subscription failed attempts for authenticated user
 	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's subscriptions
 	 */
-	async getSubscriptionFailedAttempts(
-		subscriptionId: string,
-		token: string
-	) {
+	async getSubscriptionFailedAttempts(subscriptionId: string, token: string) {
 		if (!token) {
 			this.logger.warn('Subscription failed attempts requested without token')
 			throw new BadRequestException('Authentication token is required')
@@ -570,7 +572,8 @@ export class RentPaymentsService {
 	 * - Billing anchor set to rent due date
 	 */
 	async setupTenantAutopay(
-		params: SetupTenantAutopayParams
+		params: SetupTenantAutopayParams,
+		requestingUserId: string
 	): Promise<SetupTenantAutopayResponse> {
 		const { tenantId, leaseId, paymentMethodId } = params
 
@@ -580,11 +583,11 @@ export class RentPaymentsService {
 			// Get Tenant context
 			const { tenant } = await this.getTenantContext(tenantId)
 
-			// Get Lease context (no authorization check - legacy method without user context)
+			// Get Lease context with authorization check
 			const { lease, landlord } = await this.getLeaseContext(
 				leaseId,
 				tenantId,
-				undefined
+				requestingUserId
 			)
 
 			// Check if autopay already exists
@@ -599,9 +602,7 @@ export class RentPaymentsService {
 				(existingLease as { stripe_subscription_id: string | null })
 					.stripe_subscription_id
 			) {
-				throw new BadRequestException(
-					'Autopay already enabled for this lease'
-				)
+				throw new BadRequestException('Autopay already enabled for this lease')
 			}
 
 			// Ensure Tenant has a Stripe Customer
@@ -652,41 +653,44 @@ export class RentPaymentsService {
 
 			// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate subscriptions
 			const subscriptionIdempotencyKey = `subscription-${tenantId}-${leaseId}-${Date.now()}`
-			const subscription = await this.stripe.subscriptions.create({
-				customer: stripeCustomer.id,
-				items: [
-					{
-						price_data: {
-							currency: 'usd',
-							product_data: {
-								name: `Monthly Rent - Lease ${lease.id.slice(0, 8)}`,
-								metadata: {
-									leaseId: lease.id,
-									tenantId,
-									landlordId: landlord.id
+			const subscription = await this.stripe.subscriptions.create(
+				{
+					customer: stripeCustomer.id,
+					items: [
+						{
+							price_data: {
+								currency: 'usd',
+								product_data: {
+									name: `Monthly Rent - Lease ${lease.id.slice(0, 8)}`,
+									metadata: {
+										leaseId: lease.id,
+										tenantId,
+										landlordId: landlord.id
+									}
+								},
+								unit_amount: amountInCents,
+								recurring: {
+									interval: 'month'
 								}
-							},
-							unit_amount: amountInCents,
-							recurring: {
-								interval: 'month'
-							}
-					} as unknown as Stripe.SubscriptionCreateParams.Item.PriceData
-					}
-				],
-				application_fee_percent: feePercent,
-				transfer_data: {
-					destination: landlord.stripeAccountId as string
+							} as unknown as Stripe.SubscriptionCreateParams.Item.PriceData
+						}
+					],
+					application_fee_percent: feePercent,
+					transfer_data: {
+						destination: landlord.stripeAccountId as string
+					},
+					metadata: {
+						tenantId,
+						leaseId: lease.id,
+						landlordId: landlord.id,
+						paymentType: 'autopay'
+					},
+					expand: ['latest_invoice.payment_intent']
 				},
-				metadata: {
-					tenantId,
-					leaseId: lease.id,
-					landlordId: landlord.id,
-					paymentType: 'autopay'
-				},
-				expand: ['latest_invoice.payment_intent']
-			}, {
-				idempotencyKey: subscriptionIdempotencyKey
-			})
+				{
+					idempotencyKey: subscriptionIdempotencyKey
+				}
+			)
 
 			// Update lease with Stripe Subscription ID
 			const { error: updateError } = await adminClient
@@ -701,14 +705,12 @@ export class RentPaymentsService {
 					error: updateError
 				})
 				// Attempt to cancel the orphaned subscription
-				await this.stripe.subscriptions
-					.cancel(subscription.id)
-					.catch(err => {
-						this.logger.error('Failed to cancel orphaned subscription', {
-							subscriptionId: subscription.id,
-							error: err
-						})
+				await this.stripe.subscriptions.cancel(subscription.id).catch(err => {
+					this.logger.error('Failed to cancel orphaned subscription', {
+						subscriptionId: subscription.id,
+						error: err
 					})
+				})
 				throw updateError
 			}
 
@@ -730,15 +732,16 @@ export class RentPaymentsService {
 	 * Cancel autopay (Stripe Subscription) for a Tenant's lease
 	 */
 	async cancelTenantAutopay(
-		params: CancelTenantAutopayParams
+		params: CancelTenantAutopayParams,
+		requestingUserId: string
 	): Promise<CancelTenantAutopayResponse> {
 		const { tenantId, leaseId } = params
 
 		try {
 			const adminClient = this.supabase.getAdminClient()
 
-			// Verify Tenant owns this lease (no authorization check - legacy method without user context)
-			await this.getLeaseContext(leaseId, tenantId, undefined)
+			// Verify Tenant owns this lease with authorization check
+			await this.getLeaseContext(leaseId, tenantId, requestingUserId)
 
 			// Get subscription ID from lease
 			const { data: lease, error: leaseError } = await adminClient
@@ -791,15 +794,16 @@ export class RentPaymentsService {
 	 * Get autopay status for a Tenant's lease
 	 */
 	async getAutopayStatus(
-		params: GetAutopayStatusParams
+		params: GetAutopayStatusParams,
+		requestingUserId: string
 	): Promise<TenantAutopayStatusResponse> {
 		const { tenantId, leaseId } = params
 
 		try {
 			const adminClient = this.supabase.getAdminClient()
 
-			// Verify Tenant owns this lease (no authorization check - legacy method without user context)
-			await this.getLeaseContext(leaseId, tenantId, undefined)
+			// Verify Tenant owns this lease with authorization check
+			await this.getLeaseContext(leaseId, tenantId, requestingUserId)
 
 			// Get subscription ID from lease
 			const { data: lease, error: leaseError } = await adminClient
@@ -830,11 +834,11 @@ export class RentPaymentsService {
 				await this.stripe.subscriptions.retrieve(subscriptionId)
 
 			// Extract current_period_end safely with proper Stripe Response type handling
-		const currentPeriodEnd =
-			'current_period_end' in subscription
-				? (subscription.current_period_end as number)
-				: undefined
-		const nextPaymentDate = currentPeriodEnd
+			const currentPeriodEnd =
+				'current_period_end' in subscription
+					? (subscription.current_period_end as number)
+					: undefined
+			const nextPaymentDate = currentPeriodEnd
 				? new Date(currentPeriodEnd * 1000).toISOString()
 				: null
 

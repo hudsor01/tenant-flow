@@ -19,9 +19,9 @@ import {
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
 import type {
-	CreatePropertyInput,
 	UpdatePropertyInput
 } from '@repo/shared/types/api-inputs'
+import type { CreatePropertyRequest } from '@repo/shared/types/backend-domain'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
 import type { Tables } from '@repo/shared/types/supabase'
 import { compressImage } from '#lib/image-compression'
@@ -206,13 +206,13 @@ export function useCreateProperty() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (propertyData: CreatePropertyInput): Promise<Property> => {
+		mutationFn: async (propertyData: CreatePropertyRequest): Promise<Property> => {
 			return clientFetch<Property>('/api/v1/properties', {
 			method: 'POST',
 			body: JSON.stringify(propertyData)
 		})
 		},
-		onMutate: async (newProperty: CreatePropertyInput) => {
+		onMutate: async (newProperty: CreatePropertyRequest) => {
 			// Cancel outgoing refetches
 			await queryClient.cancelQueries({ queryKey: propertiesKeys.all })
 
@@ -235,7 +235,7 @@ export function useCreateProperty() {
 				zipCode: newProperty.zipCode,
 				ownerId: '', // Will be set by backend
 				propertyType: newProperty.propertyType || 'SINGLE_FAMILY',
-				status: newProperty.status || 'ACTIVE',
+				status: 'ACTIVE', // Backend default status for new properties
 				description: newProperty.description || null,
 				imageUrl: newProperty.imageUrl || null,
 				date_sold: null,

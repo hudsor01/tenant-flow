@@ -87,28 +87,23 @@ export interface UserProfileResponse {
 // PROPERTY MANAGEMENT REQUEST TYPES
 
 // Property types
+// NOTE: ownerId is NOT in request - backend derives from authenticated user for security
 export interface CreatePropertyRequest {
 	name: string
 	address: string
 	city: string
 	state: string
 	zipCode: string
+	propertyType:
+		| 'SINGLE_FAMILY'
+		| 'MULTI_UNIT'
+		| 'APARTMENT'
+		| 'CONDO'
+		| 'TOWNHOUSE'
+		| 'COMMERCIAL'
+		| 'OTHER'
 	unitCount?: number
 	description?: string
-	type?:
-		| 'SINGLE_FAMILY'
-		| 'MULTI_UNIT'
-		| 'APARTMENT'
-		| 'CONDO'
-		| 'TOWNHOUSE'
-		| 'COMMERCIAL'
-	propertyType?:
-		| 'SINGLE_FAMILY'
-		| 'MULTI_UNIT'
-		| 'APARTMENT'
-		| 'CONDO'
-		| 'TOWNHOUSE'
-		| 'COMMERCIAL'
 	amenities?: string[]
 	imageUrl?: string
 }
@@ -121,13 +116,6 @@ export interface UpdatePropertyRequest {
 	zipCode?: string
 	unitCount?: number
 	description?: string
-	type?:
-		| 'SINGLE_FAMILY'
-		| 'MULTI_UNIT'
-		| 'APARTMENT'
-		| 'CONDO'
-		| 'TOWNHOUSE'
-		| 'COMMERCIAL'
 	propertyType?:
 		| 'SINGLE_FAMILY'
 		| 'MULTI_UNIT'
@@ -135,6 +123,7 @@ export interface UpdatePropertyRequest {
 		| 'CONDO'
 		| 'TOWNHOUSE'
 		| 'COMMERCIAL'
+		| 'OTHER'
 	amenities?: string[]
 	imageUrl?: string
 

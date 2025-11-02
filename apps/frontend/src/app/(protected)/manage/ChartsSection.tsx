@@ -3,6 +3,8 @@
 import { ChartSkeleton } from '#components/charts/chart-skeleton'
 import { useQuery } from '@tanstack/react-query'
 import dynamic from 'next/dynamic'
+import { clientFetch } from '#lib/api/client'
+import type { OccupancyTrendResponse } from '@repo/shared/types/database-rpc'
 
 const OccupancyTrendsAreaChart = dynamic(
 	() =>
@@ -41,15 +43,7 @@ export function ChartsSection() {
 	// ✅ React 19 pattern: TanStack Query instead of useState + useEffect + fetch
 	const { data: occupancyData, isLoading } = useQuery({
 		queryKey: ['dashboard', 'occupancy-trends', 12],
-		queryFn: async () => {
-			const res = await fetch('/api/v1/manage/occupancy-trends?months=12', {
-				credentials: 'include'
-			})
-			if (!res.ok) {
-				throw new Error('Failed to fetch occupancy trends')
-			}
-			return res.json()
-		},
+		queryFn: () => clientFetch<OccupancyTrendResponse[]>('/api/v1/manage/occupancy-trends?months=12'),
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})

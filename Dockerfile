@@ -15,8 +15,8 @@ RUN apk add --no-cache bash python3 make g++ dumb-init ca-certificates && \
 
 WORKDIR /app
 
-ENV PNPM_HOME=/root/.local/share/pnpm \
-    PATH=$PNPM_HOME:$PATH \
+ENV PNPM_HOME=/root/.local/share/pnpm
+ENV PATH=/root/.local/share/pnpm:$PATH \
     HUSKY=0 \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
@@ -82,13 +82,13 @@ RUN npm install -g pnpm@10
 
 WORKDIR /app
 
+ENV PNPM_HOME=/root/.local/share/pnpm
 ENV NODE_ENV=production \
     DOCKER_CONTAINER=true \
     NODE_OPTIONS="--enable-source-maps --max-old-space-size=512" \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
-    PNPM_HOME=/root/.local/share/pnpm \
-    PATH=$PNPM_HOME:$PATH
+    PATH=/root/.local/share/pnpm:$PATH
 
 # Copy workspace configuration for proper module resolution
 COPY --from=build --chown=node:node /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./

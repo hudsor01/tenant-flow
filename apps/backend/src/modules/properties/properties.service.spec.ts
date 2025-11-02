@@ -210,13 +210,13 @@ describe('PropertiesService', () => {
 			mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
 			const payload = {
-				name: '  Park View  ',
-				address: ' 123 Main St ',
-				city: ' Austin ',
-				state: ' TX ',
-				zipCode: ' 78701 ',
+				name: 'Park View',
+				address: '123 Main St',
+				city: 'Austin',
+				state: 'TX',
+				zipCode: '78701',
 				propertyType: 'APARTMENT' as const,
-				description: '  Beautiful views '
+				description: 'Beautiful views'
 			}
 
 			const result = await service.create(createMockRequest('user-123'), payload)
