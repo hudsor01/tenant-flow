@@ -1,6 +1,20 @@
 // Mock for uuid package - Jest ESM compatibility
 // uuid v13+ is ESM-only, this provides a CommonJS mock for Jest tests
 // Generates unique UUIDs per call to prevent test collisions
+//
+// IMPORTANT: Call resetCounters() in your test's beforeEach hook to ensure test isolation:
+//
+//   import { v4, resetCounters } from 'uuid'
+//
+//   describe('MyService', () => {
+//     beforeEach(() => {
+//       resetCounters()  // Reset UUID counters between tests
+//     })
+//
+//     it('should generate UUIDs', () => {
+//       expect(v4()).toBe('00000000-0000-4000-8000-000000000000')
+//     })
+//   })
 
 let v4Counter = 0
 let v1Counter = 0
@@ -8,6 +22,20 @@ let v3Counter = 0
 let v5Counter = 0
 
 module.exports = {
+	/**
+	 * Resets all UUID counters to 0 for test isolation.
+	 * Call this in beforeEach() hooks to ensure deterministic UUID generation across tests.
+	 * @example
+	 * beforeEach(() => {
+	 *   resetCounters()
+	 * })
+	 */
+	resetCounters: () => {
+		v4Counter = 0
+		v1Counter = 0
+		v3Counter = 0
+		v5Counter = 0
+	},
 	v4: () => {
 		const counter = String(v4Counter++).padStart(12, '0')
 		return `${counter.slice(0, 8)}-${counter.slice(8, 12)}-4000-8000-000000000000`
