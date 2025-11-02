@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
+import { Cron, CronExpression } from '@nestjs/schedule'
 import { SupabaseService } from '../../database/supabase.service'
 
 /**
@@ -187,6 +188,20 @@ export class StripeWebhookService {
 				daysToKeep
 			})
 			throw error
+		}
+	}
+
+	/**
+	 * Scheduled cleanup of old webhook events
+	 * Runs daily at midnight to keep database lean
+	 */
+	@Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+	async handleScheduledCleanup() {
+		try {
+			await this.cleanupOldEvents(30)
+			this.logger.log('Scheduled webhook cleanup completed successfully')
+		} catch (error) {
+			this.logger.error('Scheduled webhook cleanup failed', error)
 		}
 	}
 

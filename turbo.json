@@ -4,7 +4,8 @@
 	"cacheDir": ".turbo",
 	"concurrency": "10",
 	"remoteCache": {
-		"enabled": true
+		"enabled": true,
+		"signature": true
 	},
 	"envMode": "loose",
 	"globalEnv": [
