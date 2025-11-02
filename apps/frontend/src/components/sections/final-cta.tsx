@@ -2,6 +2,7 @@
 
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
+import { ErrorBoundary } from '#components/ui/error-boundary'
 import { Particles } from '#components/ui/particles'
 import { cn } from '#lib/utils'
 import { ArrowRight, Check } from 'lucide-react'
@@ -19,15 +20,17 @@ export function FinalCta({ className }: FinalCtaProps) {
 				className
 			)}
 		>
-			{/* Particles background */}
-			<Particles
-				className="absolute inset-0"
-				quantity={60}
-				preset="floating"
-				size={1}
-				color="oklch(var(--primary))"
-				density="medium"
-			/>
+			{/* Particles background - wrapped in error boundary for graceful canvas failures */}
+			<ErrorBoundary fallback={null}>
+				<Particles
+					className="absolute inset-0"
+					quantity={60}
+					preset="floating"
+					size={1}
+					color="oklch(var(--primary))"
+					density="medium"
+				/>
+			</ErrorBoundary>
 
 			<div className="container px-4 mx-auto relative z-10">
 				<div className="max-w-4xl mx-auto text-center">
