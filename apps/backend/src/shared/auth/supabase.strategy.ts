@@ -149,11 +149,13 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			userToEnsure.app_metadata = payload.app_metadata
 		}
 
-		await this.utilityService.ensureUserExists(userToEnsure)
+		// ✅ CRITICAL FIX: Get users.id (not auth.uid()) for RLS policies
+		// RLS policies reference users.id, so req.user.id must be users.id (not supabaseId)
+		const internalUserId = await this.utilityService.ensureUserExists(userToEnsure)
 
 		// Create user object from JWT payload
 		const user: authUser = {
-			id: payload.sub,
+			id: internalUserId, // Use users.id for RLS compatibility
 			aud: actualAud,
 			email: payload.email,
 			role: payload.app_metadata?.role ?? 'authenticated',
