@@ -99,8 +99,7 @@ export class EmailService {
 			})
 		} catch (error) {
 			this.logger.error('Failed to send tenant invitation email', {
-				error: error instanceof Error ? error.message : String(error),
-				tenantEmail: data.tenantEmail
+				error: error instanceof Error ? error.message : String(error)
 			})
 			// Don't throw - email failure shouldn't block tenant creation
 		}
@@ -142,11 +141,10 @@ export class EmailService {
 				html: emailHtml
 			})
 
-			this.logger.log('Invitation reminder sent', { tenantEmail: data.tenantEmail })
+			this.logger.log('Invitation reminder sent')
 		} catch (error) {
 			this.logger.error('Failed to send invitation reminder', {
-				error: error instanceof Error ? error.message : String(error),
-				tenantEmail: data.tenantEmail
+				error: error instanceof Error ? error.message : String(error)
 			})
 		}
 	}
@@ -162,9 +160,7 @@ export class EmailService {
 		invoicePdf: string | null
 	}): Promise<void> {
 		if (!this.resend) {
-			this.logger.warn('Resend not configured, skipping payment success email', {
-				customerEmail: data.customerEmail
-			})
+			this.logger.warn('Resend not configured, skipping payment success email')
 			return
 		}
 
@@ -183,8 +179,7 @@ export class EmailService {
 			})
 		} catch (error) {
 			this.logger.error('Failed to send payment success email', {
-				error: error instanceof Error ? error.message : String(error),
-				customerEmail: data.customerEmail
+				error: error instanceof Error ? error.message : String(error)
 			})
 		}
 	}
@@ -201,9 +196,7 @@ export class EmailService {
 		isLastAttempt: boolean
 	}): Promise<void> {
 		if (!this.resend) {
-			this.logger.warn('Resend not configured, skipping payment failed email', {
-				customerEmail: data.customerEmail
-			})
+			this.logger.warn('Resend not configured, skipping payment failed email')
 			return
 		}
 
@@ -222,8 +215,7 @@ export class EmailService {
 			})
 		} catch (error) {
 			this.logger.error('Failed to send payment failed email', {
-				error: error instanceof Error ? error.message : String(error),
-				customerEmail: data.customerEmail
+				error: error instanceof Error ? error.message : String(error)
 			})
 		}
 	}
@@ -238,9 +230,7 @@ export class EmailService {
 		currentPeriodEnd: Date | null
 	}): Promise<void> {
 		if (!this.resend) {
-			this.logger.warn('Resend not configured, skipping subscription canceled email', {
-				customerEmail: data.customerEmail
-			})
+			this.logger.warn('Resend not configured, skipping subscription canceled email')
 			return
 		}
 
