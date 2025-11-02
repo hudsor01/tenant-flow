@@ -22,15 +22,15 @@ import * as jwksRsa from 'jwks-rsa'
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 	private readonly logger = new Logger(SupabaseStrategy.name)
+	private readonly utilityService: UtilityService
 
-	constructor(private readonly utilityService: UtilityService) {
-		// Must call super() as first statement before accessing 'this' or using local variables
+	constructor(utilityService: UtilityService) {
+		// Validate environment before super() - no 'this' access allowed
 		const supabaseUrl = process.env.SUPABASE_URL
 		const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET
 		const extractors = [ExtractJwt.fromAuthHeaderAsBearerToken()]
 
 		if (!supabaseUrl) {
-			// This throw happens before super(), which is allowed for validation
 			throw new Error('SUPABASE_URL environment variable is required')
 		}
 
@@ -60,7 +60,9 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			})
 		}
 
-		// Now safe to access 'this' after super()
+		// NOW safe to assign to 'this' after super()
+		this.utilityService = utilityService
+
 		// HEADERS-ONLY AUTHENTICATION: Frontend and backend are on separate deployments (Vercel + Railway)
 		// All API calls MUST use Authorization: Bearer <token> header - NO cookie support
 		this.logger.log(
