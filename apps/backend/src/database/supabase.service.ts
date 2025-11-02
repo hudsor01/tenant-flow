@@ -290,7 +290,6 @@ export class SupabaseService {
 			const duration = Date.now() - startTime
 			this.logger.log('User authenticated successfully', {
 				userId: user.id,
-				email: user.email,
 				endpoint: req.path,
 				duration: `${duration}ms`
 			})
