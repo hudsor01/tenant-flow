@@ -4,6 +4,7 @@ import {
 	ForbiddenException,
 	Injectable,
 	Logger,
+	ServiceUnavailableException,
 	SetMetadata,
 	UnauthorizedException
 } from '@nestjs/common'
@@ -62,16 +63,17 @@ export class SubscriptionGuard implements CanActivate {
 		)
 
 		let hasAccess = this.normalizeBoolean(featureAccessResult.data)
+		const rpcFailed = !!featureAccessResult.error
 
-		if (featureAccessResult.error) {
-			this.logger.error('Subscription RPC failed', {
+		if (rpcFailed) {
+			this.logger.error('Subscription RPC failed, using fallback', {
 				userId: user.id,
 				error: featureAccessResult.error?.message
 			})
 		}
 
-		// Fallback to direct user profile check if RPC indicates no access
-		if (!hasAccess) {
+		// Fallback to direct user profile check if RPC failed OR indicates no access
+		if (rpcFailed || !hasAccess) {
 			const { data: profile, error } = await this.supabaseService
 				.getAdminClient()
 				.from('users')
@@ -80,9 +82,18 @@ export class SubscriptionGuard implements CanActivate {
 				.single()
 
 			if (error) {
-				this.logger.error('Failed to load user profile for subscription check', {
-					userId: user.id,
-					error: error.message
+				this.logger.error(
+					'Failed to load user profile for subscription check',
+					{
+						userId: user.id,
+						error: error.message
+					}
+				)
+				// If we can't verify subscription status due to infrastructure error, return service unavailable
+				throw new ServiceUnavailableException({
+					code: 'SERVICE_UNAVAILABLE',
+					message:
+						'Unable to verify subscription status due to a temporary service issue. Please try again later.'
 				})
 			}
 

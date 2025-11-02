@@ -766,6 +766,39 @@ export type Database = {
           },
         ]
       }
+      failed_notifications: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          error_message: string
+          error_stack: string | null
+          event_data: Json
+          event_type: string
+          id: string
+          last_attempt_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          error_message: string
+          error_stack?: string | null
+          event_data?: Json
+          event_type: string
+          id?: string
+          last_attempt_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          error_message?: string
+          error_stack?: string | null
+          event_data?: Json
+          event_type?: string
+          id?: string
+          last_attempt_at?: string
+        }
+        Relationships: []
+      }
       failed_webhook_event: {
         Row: {
           createdAt: string
