@@ -261,7 +261,10 @@ export const createPropertyRequestSchema = z.object({
 	type: z.string().optional(),
 	propertyType: z.string().optional(),
 	amenities: z.array(z.string()).optional(),
-	imageUrl: z.string().url().nullable().optional().or(z.literal('').transform(() => undefined))
+	imageUrl: z
+		.union([z.string().url(), z.literal(''), z.null(), z.undefined()])
+		.transform(val => (val === '' || val === null ? undefined : val))
+		.optional()
 })
 
 export const updatePropertyRequestSchema = z.object({
@@ -275,7 +278,10 @@ export const updatePropertyRequestSchema = z.object({
 	type: propertyTypeSchema.optional(),
 	propertyType: propertyTypeSchema.optional(),
 	amenities: z.array(z.string()).optional(),
-	imageUrl: z.string().url().nullable().optional().or(z.literal('').transform(() => undefined)),
+	imageUrl: z
+		.union([z.string().url(), z.literal(''), z.null(), z.undefined()])
+		.transform(val => (val === '' || val === null ? undefined : val))
+		.optional(),
 	version: z.number().optional()
 })
 
