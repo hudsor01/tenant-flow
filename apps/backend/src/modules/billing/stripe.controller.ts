@@ -19,7 +19,6 @@ import {
 	UnauthorizedException,
 	UseGuards
 } from '@nestjs/common'
-import { Cron, CronExpression } from '@nestjs/schedule'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
@@ -38,7 +37,6 @@ import type {
 	// InvoiceWithSubscription,
 	VerifyCheckoutSessionRequest
 } from './stripe-interfaces'
-import { StripeWebhookService } from './stripe-webhook.service'
 import { StripeService } from './stripe.service'
 // CLAUDE.md Compliant: NO custom DTOs - using native validation only
 
@@ -60,25 +58,10 @@ export class StripeController {
 
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly webhookService: StripeWebhookService,
 		// REMOVED: eventEmitter - Event emission now handled by Stripe Sync Engine
 		private readonly stripeService: StripeService
 	) {
 		this.stripe = this.stripeService.getStripe()
-	}
-
-	/**
-	 * Cleanup old webhook events daily
-	 * Runs at midnight to remove events older than 30 days
-	 */
-	@Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-	async handleWebhookCleanup() {
-		try {
-			await this.webhookService.cleanupOldEvents(30)
-			this.logger.log('Webhook cleanup completed successfully')
-		} catch (error) {
-			this.logger.error('Webhook cleanup failed', error)
-		}
 	}
 
 	/**
