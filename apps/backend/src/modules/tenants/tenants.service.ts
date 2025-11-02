@@ -767,14 +767,14 @@ export class TenantsService {
 		// Calculate other derived fields
 		const monthlyRent = currentLease?.rentAmount || 0
 		const leaseStatus = currentLease?.status || 'None'
-			const unitDisplay = currentLease?.unit 
-				? `Unit ${currentLease.unit.unitNumber}` 
-				: 'No unit assigned'
-			const propertyDisplay = currentLease?.unit?.property
-				? `${currentLease.unit.property.name}, ${currentLease.unit.property.city}`
-				: 'No property assigned'
-			const leaseStart = currentLease?.startDate || null
-			const leaseEnd = currentLease?.endDate || null
+		const unitDisplay = currentLease?.unit 
+			? `Unit ${currentLease.unit.unitNumber}` 
+			: 'No unit assigned'
+		const propertyDisplay = currentLease?.unit?.property
+			? `${currentLease.unit.property.name}, ${currentLease.unit.property.city}`
+			: 'No property assigned'
+		const leaseStart = currentLease?.startDate || null
+		const leaseEnd = currentLease?.endDate || null
 
 			const result: TenantWithLeaseInfo = {
 				id: tenant.id,
