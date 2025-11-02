@@ -1,7 +1,7 @@
 'use client'
 
-import { useCreateProperty } from '#hooks/api/use-properties'
 import { CheckCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -16,99 +16,153 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
-import { z } from 'zod'
-import type { Database } from '@repo/shared/types/supabase-generated'
-
-type PropertyType = Database['public']['Enums']['PropertyType']
-
 import {
 	Dropzone,
 	DropzoneContent,
 	DropzoneEmptyState
 } from '#components/ui/dropzone'
+
+import {
+	useCreateProperty,
+	useUpdateProperty,
+	propertiesKeys
+} from '#hooks/api/use-properties'
 import { useSupabaseUser } from '#hooks/api/use-supabase-auth'
 import { useSupabaseUpload } from '#hooks/use-supabase-upload'
+
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { transformPropertyFormData } from '@repo/shared/validation/properties'
+import {
+	transformPropertyFormData,
+	transformPropertyUpdateData
+} from '@repo/shared/validation/properties'
+import type { Property } from '@repo/shared/types/core'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import { useForm } from '@tanstack/react-form'
+import { useQueryClient } from '@tanstack/react-query'
+import { z } from 'zod'
+
+type PropertyType = Database['public']['Enums']['PropertyType']
+
+interface PropertyFormProps {
+	mode: 'create' | 'edit'
+	property?: Property
+	onSuccess?: () => void
+	showSuccessState?: boolean
+}
 
 /**
- * ✅ SIMPLIFIED Property Creation Form (Phase 2.1 Fix)
+ * Consolidated Property Form Component
  *
- * BEFORE: Multi-step wizard that persisted data on Step 1 → orphaned records
- * AFTER: Single-step form that creates property only on final submit
+ * Supports both create and edit modes with a single, reusable implementation.
  *
- * Unit-specific data (bedrooms, bathrooms, rent) created separately via Units page
+ * @param mode - 'create' | 'edit' determines form behavior
+ * @param property - Required for edit mode, provides initial values
+ * @param onSuccess - Optional callback after successful submission
+ * @param showSuccessState - Whether to show success UI (default: true for create, false for edit)
  */
-
-export function CreatePropertyForm() {
+export function PropertyForm({
+	mode,
+	property,
+	onSuccess,
+	showSuccessState = mode === 'create'
+}: PropertyFormProps) {
 	const [isSubmitted, setIsSubmitted] = useState(false)
 	const { data: user } = useSupabaseUser()
-	const logger = createLogger({ component: 'CreatePropertyForm' })
-	const createPropertyMutation = useCreateProperty()
+	const router = useRouter()
+	const queryClient = useQueryClient()
+	const logger = createLogger({ component: 'PropertyForm' })
 
-	// Initialize form first (before useEffect that depends on it)
+	const createPropertyMutation = useCreateProperty()
+	const updatePropertyMutation = useUpdateProperty()
+
+	const mutation = mode === 'create' ? createPropertyMutation : updatePropertyMutation
+
+	// Validation schema
+	const validationSchema = z.object({
+		name: z.string().min(3, 'Property name must be at least 3 characters'),
+		propertyType: z.string(),
+		address: z.string().min(5, 'Address is required'),
+		city: z.string().min(2, 'City is required'),
+		state: z.string().length(2, 'State must be 2 characters'),
+		zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, 'Invalid ZIP code')
+	})
+
+	// Sync server-fetched property into TanStack Query cache (edit mode only)
+	useEffect(() => {
+		if (mode === 'edit' && property) {
+			queryClient.setQueryData(propertiesKeys.detail(property.id), property)
+		}
+	}, [mode, property, queryClient])
+
+	// Initialize form
 	const form = useForm({
 		defaultValues: {
-			name: '',
-			description: '',
-			propertyType: 'SINGLE_FAMILY' as PropertyType,
-			address: '',
-			city: '',
-			state: '',
-			zipCode: '',
-			imageUrl: ''
+			name: property?.name ?? '',
+			description: property?.description ?? '',
+			propertyType: (property?.propertyType ?? 'SINGLE_FAMILY') as PropertyType,
+			address: property?.address ?? '',
+			city: property?.city ?? '',
+			state: property?.state ?? '',
+			zipCode: property?.zipCode ?? '',
+			imageUrl: property?.imageUrl ?? ''
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				if (!user?.id) {
-					toast.error('You must be logged in to create a property')
-					logger.error('User not authenticated', { action: 'formSubmission' })
-					return
-				}
-				const transformedData = transformPropertyFormData(value)
-				logger.info('Submitting property data', {
-					action: 'formSubmission',
-					data: transformedData
-				})
-				await createPropertyMutation.mutateAsync(transformedData)
+				if (mode === 'create') {
+					if (!user?.id) {
+						toast.error('You must be logged in to create a property')
+						logger.error('User not authenticated', { action: 'formSubmission' })
+						return
+					}
+					const transformedData = transformPropertyFormData(value)
+					logger.info('Creating property', {
+						action: 'formSubmission',
+						data: transformedData
+					})
+					await createPropertyMutation.mutateAsync(transformedData)
+					toast.success('Property created successfully')
 
-				toast.success('Property created successfully')
-				setIsSubmitted(true)
-				form.reset()
+					if (showSuccessState) {
+						setIsSubmitted(true)
+					}
+					form.reset()
+				} else {
+					// Edit mode
+					if (!property?.id) {
+						toast.error('Property ID is missing')
+						return
+					}
+					const transformedData = transformPropertyUpdateData(value)
+					logger.info('Updating property', {
+						action: 'formSubmission',
+						propertyId: property.id,
+						data: transformedData
+					})
+					await updatePropertyMutation.mutateAsync({
+						id: property.id,
+						data: transformedData
+					})
+					toast.success('Property updated successfully')
+				}
+
+				onSuccess?.()
 			} catch (error) {
-				// Log full error details for debugging
-				logger.error('Property creation failed', {
+				logger.error(`Property ${mode} failed`, {
 					error: error instanceof Error ? error.message : String(error),
 					stack: error instanceof Error ? error.stack : undefined,
 					details: JSON.stringify(error, null, 2)
 				})
 
 				const errorMessage =
-					error instanceof Error ? error.message : 'Failed to create property'
+					error instanceof Error
+						? error.message
+						: `Failed to ${mode} property`
 				toast.error(errorMessage)
-				logger.error(
-					'Form submission error',
-					{ action: 'formSubmission' },
-					error
-				)
 			}
 		},
 		validators: {
 			onChange: ({ value }) => {
-				// Simplify schema validation - only required fields
-				const requiredSchema = z.object({
-					name: z
-						.string()
-						.min(3, 'Property name must be at least 3 characters'),
-					propertyType: z.string(),
-					address: z.string().min(5, 'Address is required'),
-					city: z.string().min(2, 'City is required'),
-					state: z.string().length(2, 'State must be 2 characters'),
-					zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, 'Invalid ZIP code')
-				})
-
-				const result = requiredSchema.safeParse(value)
+				const result = validationSchema.safeParse(value)
 				if (!result.success) {
 					return z.treeifyError(result.error)
 				}
@@ -117,7 +171,7 @@ export function CreatePropertyForm() {
 		}
 	})
 
-	// Initialize image upload hook (after form is defined)
+	// Initialize image upload hook (create mode only)
 	const upload = useSupabaseUpload({
 		bucketName: 'property-images',
 		path: 'temp',
@@ -132,18 +186,18 @@ export function CreatePropertyForm() {
 		maxFiles: 1
 	})
 
-	// Watch for successful uploads and update imageUrl field
+	// Watch for successful uploads and update imageUrl field (create mode only)
 	useEffect(() => {
-		if (upload.isSuccess && upload.successes.length > 0) {
-			// Get the uploaded file URL from Supabase Storage
+		if (mode === 'create' && upload.isSuccess && upload.successes.length > 0) {
 			const uploadedFileName = upload.successes[0]
 			const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/property-images/temp/${uploadedFileName}`
 			form.setFieldValue('imageUrl', imageUrl)
 			toast.success('Property image uploaded successfully')
 		}
-	}, [form, upload.isSuccess, upload.successes])
+	}, [mode, form, upload.isSuccess, upload.successes])
 
-	if (isSubmitted) {
+	// Success state (create mode only)
+	if (showSuccessState && isSubmitted) {
 		return (
 			<div className="flex flex-col items-center justify-center space-y-4 text-center">
 				<CheckCircle className="size-16 text-green-500" />
@@ -151,7 +205,7 @@ export function CreatePropertyForm() {
 				<p className="text-muted-foreground">
 					Your property has been successfully added to your portfolio.
 				</p>
-				<Button onClick={() => window.history.back()}>
+				<Button onClick={() => router.push('/manage/properties')}>
 					Return to Properties
 				</Button>
 			</div>
@@ -160,14 +214,6 @@ export function CreatePropertyForm() {
 
 	return (
 		<div className="max-w-2xl mx-auto space-y-6">
-			{/* Header */}
-			<div className="space-y-2">
-				<h2 className="text-2xl font-bold">Add New Property</h2>
-				<p className="text-muted-foreground">
-					Enter property details to add it to your portfolio
-				</p>
-			</div>
-
 			<form
 				onSubmit={e => {
 					e.preventDefault()
@@ -347,24 +393,26 @@ export function CreatePropertyForm() {
 						)}
 					</form.Field>
 
-					<form.Field name="imageUrl">
-						{field => (
-							<Field>
-								<FieldLabel>Property Image (Optional)</FieldLabel>
-								<div className="space-y-2">
-									<Dropzone {...upload}>
-										<DropzoneEmptyState />
-										<DropzoneContent />
-									</Dropzone>
-									{field.state.value && (
-										<p className="text-sm text-muted-foreground">
-											Image uploaded successfully
-										</p>
-									)}
-								</div>
-							</Field>
-						)}
-					</form.Field>
+					{mode === 'create' && (
+						<form.Field name="imageUrl">
+							{field => (
+								<Field>
+									<FieldLabel>Property Image (Optional)</FieldLabel>
+									<div className="space-y-2">
+										<Dropzone {...upload}>
+											<DropzoneEmptyState />
+											<DropzoneContent />
+										</Dropzone>
+										{field.state.value && (
+											<p className="text-sm text-muted-foreground">
+												Image uploaded successfully
+											</p>
+										)}
+									</div>
+								</Field>
+							)}
+						</form.Field>
+					)}
 				</div>
 
 				{/* Submit Button */}
@@ -379,13 +427,17 @@ export function CreatePropertyForm() {
 
 					<Button
 						type="submit"
-						disabled={createPropertyMutation.isPending}
+						disabled={mutation.isPending}
 						className="flex items-center gap-2"
 					>
 						<CheckCircle className="size-4" />
-						{createPropertyMutation.isPending
-							? 'Creating...'
-							: 'Create Property'}
+						{mutation.isPending
+							? mode === 'create'
+								? 'Creating...'
+								: 'Updating...'
+							: mode === 'create'
+								? 'Create Property'
+								: 'Update Property'}
 					</Button>
 				</div>
 			</form>
