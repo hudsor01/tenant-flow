@@ -7,7 +7,9 @@
 import { Inject, Injectable, Logger, NotFoundException, InternalServerErrorException } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import type { Cache } from 'cache-manager'
+import { v4 as uuidv4 } from 'uuid'
 import type { SearchResult } from '@repo/shared/types/search'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
 import {
 	buildILikePattern,
@@ -249,8 +251,124 @@ export class UtilityService {
 			throw new NotFoundException('User not found')
 		}
 
-		await this.cacheManager.set(cacheKey, data.id, 300000) // 5 min cache
+		await this.cacheManager.set(cacheKey, data.id, 1800) // 30 min cache (reduced DB lookups for auth)
 		return data.id
+	}
+
+	/**
+	 * Ensures a user exists in the users table for the given Supabase auth ID
+	 * Creates the user if they don't exist (e.g., OAuth sign-ins)
+	 * Returns the internal users.id
+	 * 
+	 * This is the proper way to handle OAuth users who may not have a users table record yet
+	 * 
+	 * @param authUser - User data from Supabase auth
+	 * @param retryCount - Internal retry counter to prevent infinite loops (default: 0, max: 1)
+	 */
+	async ensureUserExists(authUser: {
+		id: string
+		email: string
+		user_metadata?: {
+			full_name?: string
+			name?: string
+			avatar_url?: string
+			picture?: string
+			[key: string]: unknown
+		}
+		app_metadata?: {
+			role?: string
+			[key: string]: unknown
+		}
+	}, retryCount = 0): Promise<string> {
+		try {
+			// First try to get existing user
+			return await this.getUserIdFromSupabaseId(authUser.id)
+		} catch (error) {
+			// User doesn't exist - create them
+			if (error instanceof NotFoundException) {
+				this.logger.log('Creating new user record for OAuth user', {
+					supabaseId: authUser.id,
+					email: authUser.email
+				})
+
+				// Extract name from user metadata (OAuth providers)
+				const fullName = authUser.user_metadata?.full_name || authUser.user_metadata?.name
+				const avatarUrl = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture
+
+				// Determine user role - default to OWNER for new sign-ups
+				const role = authUser.app_metadata?.role === 'TENANT' ? 'TENANT' : 'OWNER'
+
+				const { data, error: insertError } = await this.supabase
+					.getAdminClient()
+					.from('users')
+					.insert({
+						id: uuidv4(),
+						supabaseId: authUser.id,
+						email: authUser.email,
+						name: fullName || null,
+						avatarUrl: avatarUrl || null,
+						role: role as Database['public']['Enums']['UserRole'],
+						profileComplete: false,
+						subscription_status: 'trialing' // New users start with trial
+					})
+					.select('id')
+					.single()
+
+				if (insertError) {
+					// Check if it's a unique constraint violation (race condition)
+					// PostgreSQL error code 23505 = unique_violation
+					if ((insertError as { code?: string }).code === '23505' || insertError.message?.includes('duplicate')) {
+						// Prevent infinite retry loops
+						if (retryCount >= 1) {
+							this.logger.error('Max retries exceeded for user creation race condition', {
+								supabaseId: authUser.id,
+								email: authUser.email,
+								retryCount
+							})
+							throw new InternalServerErrorException('Failed to create user account after retry')
+						}
+						
+						this.logger.warn('User creation race condition detected, retrying lookup', {
+							supabaseId: authUser.id,
+							email: authUser.email,
+							retryCount
+						})
+						// Another request created the user, retry the lookup with incremented counter
+						return await this.ensureUserExists(authUser, retryCount + 1)
+					}
+
+					this.logger.error('Failed to create user record', {
+						error: insertError.message || insertError,
+						supabaseId: authUser.id,
+						email: authUser.email
+					})
+					throw new InternalServerErrorException('Failed to create user account')
+				}
+
+				if (!data) {
+					this.logger.error('No data returned from user insert', {
+						supabaseId: authUser.id
+					})
+					throw new InternalServerErrorException('Failed to create user account')
+				}
+
+				this.logger.log('User record created successfully', {
+					userId: data.id,
+					supabaseId: authUser.id,
+					email: authUser.email,
+					role
+				})
+
+				// Cache the new user ID
+				const cacheKey = `user:supabaseId:${authUser.id}`
+				await this.cacheManager.set(cacheKey, data.id, 1800) // 30 min cache (reduced DB lookups for auth)
+
+				return data.id
+			}
+
+			// Re-throw if it's not a NotFoundException
+			throw error
+		}
 	}
 
 	/**
