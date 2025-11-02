@@ -9,6 +9,7 @@ import type { Property } from '@repo/shared/types/core'
 import { CurrentUserProvider } from '../../shared/providers/current-user.provider'
 import { createMockRequest } from '../../shared/test-utils/types'
 import { createMockUser } from '../../test-utils/mocks'
+import type { CreatePropertyDto } from './dto/create-property.dto'
 import { PropertiesController } from './properties.controller'
 import { PropertiesService } from './properties.service'
 
@@ -221,7 +222,7 @@ describe('PropertiesController', () => {
 
 			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.create(
-				validCreatePropertyRequest,
+				validCreatePropertyRequest as CreatePropertyDto,
 				mockRequest as any
 			)
 			expect(mockPropertiesServiceInstance.create).toHaveBeenCalledWith(

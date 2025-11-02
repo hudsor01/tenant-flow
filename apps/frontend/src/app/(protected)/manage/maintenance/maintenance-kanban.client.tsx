@@ -19,6 +19,7 @@ import { MaintenanceCard } from './maintenance-card'
 import { MaintenanceSortableCard } from './maintenance-sortable-card'
 import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { clientFetch } from '#lib/api/client'
 
 const logger = createLogger({ component: 'MaintenanceKanban' })
 
@@ -96,19 +97,13 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		// API update
 		startTransition(async () => {
 			try {
-				const res = await fetch(`/api/v1/maintenance/${requestId}`, {
+				await clientFetch(`/api/v1/maintenance/${requestId}`, {
 					method: 'PUT',
-					headers: { 'Content-Type': 'application/json' },
-					credentials: 'include',
 					body: JSON.stringify({
-					status: newStatus,
-					completedAt: undefined
+						status: newStatus,
+						completedAt: undefined
+					})
 				})
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to update status')
-			}
 
 			toast.success(
 					`Request moved to ${COLUMNS.find(c => c.id === newStatus)?.title}`
