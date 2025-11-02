@@ -229,7 +229,9 @@ export class SupabaseService {
 					return parsed?.access_token || parsed?.accessToken || null
 				} catch {
 					// If not JSON, might be token directly
-					return match[1].length > 20 ? match[1] : null
+					// JWT tokens have format: header.payload.signature
+					const token = match[1]
+					return token.split('.').length === 3 && token.length > 20 ? token : null
 				}
 			}
 		}

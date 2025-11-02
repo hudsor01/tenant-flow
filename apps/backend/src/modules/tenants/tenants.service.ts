@@ -1363,9 +1363,8 @@ export class TenantsService {
 				// Handle duplicate email error specifically
 				if (authError?.message?.includes('already') || authError?.message?.includes('exists')) {
 					this.logger.error('Race condition detected: Auth user created between check and invite', {
-						error: authError.message,
-						tenantEmail: tenant.email
-					})
+					error: authError.message
+				})
 					throw new ConflictException('Account already exists for this email. Please try again.')
 				}
 
@@ -1454,7 +1453,6 @@ export class TenantsService {
 	}> {
 		this.logger.log('Creating tenant with lease and sending invitation', {
 			userId,
-			tenantEmail: tenantData.email,
 			propertyId: leaseData.propertyId,
 			unitId: leaseData.unitId
 		})
