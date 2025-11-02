@@ -9,7 +9,7 @@
  * - Security event logging and alerting
  */
 
-import { Injectable, Logger, NestMiddleware } from '@nestjs/common'
+import { Injectable, Logger, NestMiddleware, OnModuleDestroy } from '@nestjs/common'
 import type { RateLimitConfig, RateLimitWindow } from '@repo/shared/types/backend-domain'
 import type { Request, Response } from 'express'
 
@@ -62,17 +62,31 @@ const RATE_LIMIT_CONFIGS: Record<string, ExtendedRateLimitConfig> = {
 }
 
 @Injectable()
-export class RateLimitMiddleware implements NestMiddleware {
+export class RateLimitMiddleware implements NestMiddleware, OnModuleDestroy {
 	private readonly logger = new Logger(RateLimitMiddleware.name)
 	private readonly rateLimitStore = new Map<string, ExtendedRateLimitWindow>()
 
 	// Track IPs with suspicious activity
 	private readonly suspiciousIPs = new Set<string>()
 	private readonly blockedIPs = new Set<string>()
+	
+	// Store cleanup interval for proper resource cleanup
+	private cleanupInterval: NodeJS.Timeout | null = null
 
 	constructor() {
 		// Cleanup expired rate limit entries every 5 minutes
-		setInterval(() => this.cleanupExpiredEntries(), 5 * 60 * 1000)
+		this.cleanupInterval = setInterval(() => this.cleanupExpiredEntries(), 5 * 60 * 1000)
+	}
+
+	/**
+	 * Cleanup interval on module destruction to prevent memory leaks
+	 */
+	onModuleDestroy(): void {
+		if (this.cleanupInterval) {
+			clearInterval(this.cleanupInterval)
+			this.cleanupInterval = null
+		}
+		this.logger.log('Rate limit middleware cleanup completed')
 	}
 
 	use(req: Request, res: Response, next: () => void): void {
