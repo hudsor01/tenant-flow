@@ -130,7 +130,7 @@ async function bootstrap() {
 			transformOptions: { enableImplicitConversion: true },
 			whitelist: true,
 			forbidNonWhitelisted: true,
-			disableErrorMessages: process.env.NODE_ENV === 'production',
+			// ALWAYS enable error messages for debugging - security through proper validation, not obscurity
 			validationError: { target: false, value: false },
 			validateCustomDecorators: true,
 			stopAtFirstError: false,

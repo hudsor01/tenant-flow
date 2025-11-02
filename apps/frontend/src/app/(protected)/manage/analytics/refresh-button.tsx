@@ -3,7 +3,7 @@
 import { Button } from '#components/ui/button'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { RefreshCw } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 interface RefreshButtonProps {
@@ -32,6 +32,17 @@ export function RefreshButton({
 	const [isRefreshing, setIsRefreshing] = useState(false)
 	const [cooldownRemaining, setCooldownRemaining] = useState(0)
 	const logger = useMemo(() => createLogger({ component: 'RefreshButton' }), [])
+	const intervalRef = useRef<NodeJS.Timeout | null>(null)
+
+	// Cleanup interval on unmount to prevent memory leaks
+	useEffect(() => {
+		return () => {
+			if (intervalRef.current) {
+				clearInterval(intervalRef.current)
+				intervalRef.current = null
+			}
+		}
+	}, [])
 
 	const handleRefresh = useCallback(async () => {
 		if (isRefreshing || cooldownRemaining > 0) {
@@ -50,10 +61,19 @@ export function RefreshButton({
 
 			// Start cooldown
 			setCooldownRemaining(cooldownSeconds)
-			const interval = setInterval(() => {
+			
+			// Clear any existing interval before creating new one
+			if (intervalRef.current) {
+				clearInterval(intervalRef.current)
+			}
+			
+			intervalRef.current = setInterval(() => {
 				setCooldownRemaining(prev => {
 					if (prev <= 1) {
-						clearInterval(interval)
+						if (intervalRef.current) {
+							clearInterval(intervalRef.current)
+							intervalRef.current = null
+						}
 						return 0
 					}
 					return prev - 1

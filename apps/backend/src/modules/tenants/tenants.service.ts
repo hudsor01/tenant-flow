@@ -882,10 +882,7 @@ export class TenantsService {
 		// Business logic: Validate inputs separately for better error messages
 		if (!userId) {
 			this.logger.warn(
-				'Create tenant requested without authenticated user ID',
-				{
-					email: createRequest.email
-				}
+				'Create tenant requested without authenticated user ID'
 			)
 			throw new BadRequestException(
 				'Authentication required - user ID missing from session'
@@ -899,8 +896,7 @@ export class TenantsService {
 
 		try {
 			this.logger.log('Creating tenant via direct Supabase query', {
-				userId,
-				email: createRequest.email
+				userId
 			})
 
 			const client = this.supabase.getAdminClient()
@@ -928,8 +924,7 @@ export class TenantsService {
 			if (error) {
 				this.logger.error('Failed to create tenant in Supabase', {
 					error: error.message,
-					userId,
-					email: createRequest.email
+					userId
 				})
 				throw new BadRequestException('Failed to create tenant')
 			}
@@ -954,8 +949,7 @@ export class TenantsService {
 		} catch (error) {
 			this.logger.error('Tenants service failed to create tenant', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
-				email: createRequest.email
+				userId
 			})
 			throw new BadRequestException('Failed to create tenant')
 		}
@@ -1293,7 +1287,6 @@ export class TenantsService {
 
 			if (existingAuthUser) {
 				this.logger.warn('Auth user already exists for this email', {
-					tenantEmail: tenant.email,
 					existingAuthUserId: existingAuthUser.id
 				})
 
@@ -1370,15 +1363,13 @@ export class TenantsService {
 				// Handle duplicate email error specifically
 				if (authError?.message?.includes('already') || authError?.message?.includes('exists')) {
 					this.logger.error('Race condition detected: Auth user created between check and invite', {
-						error: authError.message,
-						tenantEmail: tenant.email
-					})
+					error: authError.message
+				})
 					throw new ConflictException('Account already exists for this email. Please try again.')
 				}
 
 				this.logger.error('Failed to send Supabase Auth invitation', {
-					error: authError?.message,
-					tenantEmail: tenant.email
+					error: authError?.message
 				})
 				throw new BadRequestException(
 					`Failed to send invitation: ${authError?.message || 'Unknown error'}`
@@ -1407,8 +1398,7 @@ export class TenantsService {
 
 			this.logger.log('Tenant invitation sent successfully via Supabase Auth', {
 				tenantId,
-				authUserId: authUser.user.id,
-				tenantEmail: tenant.email
+				authUserId: authUser.user.id
 			})
 
 			return {
@@ -1463,7 +1453,6 @@ export class TenantsService {
 	}> {
 		this.logger.log('Creating tenant with lease and sending invitation', {
 			userId,
-			tenantEmail: tenantData.email,
 			propertyId: leaseData.propertyId,
 			unitId: leaseData.unitId
 		})
@@ -1715,8 +1704,7 @@ export class TenantsService {
 		this.logger.log('Tenant invitation complete', {
 			tenantId: createdTenant!.id,
 			leaseId: createdLease!.id,
-			authUserId: createdAuthUser!.id,
-			tenantEmail: tenantData.email
+			authUserId: createdAuthUser!.id
 		})
 
 		return {

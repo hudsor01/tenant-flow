@@ -1,6 +1,10 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "./Dockerfile"
+cacheMount = [
+  ".turbo",
+  "node_modules/.cache"
+]
 # Watch patterns trigger deployment when these paths change
 watchPatterns = [
   "apps/backend/**",

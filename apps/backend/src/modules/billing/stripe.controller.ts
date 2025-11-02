@@ -25,6 +25,7 @@ import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 // REMOVED: EventEmitter2, Headers, Req, Request - Webhook endpoint removed
 import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
 import Stripe from 'stripe'
+import { createHmac } from 'crypto'
 import { SupabaseService } from '../../database/supabase.service'
 import type {
 	CreateBillingPortalRequest,
@@ -36,7 +37,6 @@ import type {
 	// InvoiceWithSubscription,
 	VerifyCheckoutSessionRequest
 } from './stripe-interfaces'
-import { StripeWebhookService } from './stripe-webhook.service'
 import { StripeService } from './stripe.service'
 // CLAUDE.md Compliant: NO custom DTOs - using native validation only
 
@@ -58,17 +58,43 @@ export class StripeController {
 
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly webhookService: StripeWebhookService,
 		// REMOVED: eventEmitter - Event emission now handled by Stripe Sync Engine
 		private readonly stripeService: StripeService
 	) {
 		this.stripe = this.stripeService.getStripe()
+	}
 
-		// Schedule cleanup of old webhook events every 24 hours
-		setInterval(
-			() => this.webhookService.cleanupOldEvents(30),
-			24 * 60 * 60 * 1000
-		)
+	/**
+	 * Generate a deterministic idempotency key for Stripe API calls
+	 * Uses HMAC-SHA256 to create a stable, unique key for the same logical operation
+	 * This prevents duplicate charges on retries by producing the same key for identical inputs
+	 *
+	 * @param operation - Type of operation (e.g., 'pi', 'pi_connected', 'sub', 'cus')
+	 * @param userId - User/tenant ID making the request
+	 * @param additionalContext - Additional identifying fields (e.g., connectedAccountId, amount)
+	 * @returns A deterministic idempotency key (max 255 chars for Stripe)
+	 */
+	private generateIdempotencyKey(
+		operation: string,
+		userId: string,
+		additionalContext?: string
+	): string {
+		// Use server secret for HMAC to ensure keys are unique per deployment
+		const secret = process.env.SUPABASE_JWT_SECRET || 'fallback-secret-for-dev'
+
+		// Combine all inputs into a stable string
+		const context = additionalContext ? `_${additionalContext}` : ''
+		const input = `${operation}_${userId}${context}`
+
+		// Generate deterministic hash using HMAC-SHA256
+		const hash = createHmac('sha256', secret)
+			.update(input)
+			.digest('hex')
+			.substring(0, 32) // Shorten to keep total length reasonable
+
+		// Format: operation_hash (e.g., pi_connected_a1b2c3d4...)
+		// This ensures same operation+userId+context always produces same key
+		return `${operation}_${hash}`
 	}
 
 	/**
@@ -122,6 +148,8 @@ export class StripeController {
 						subscription_type: sanitizedSubscriptionType
 					})
 				}
+			}, {
+				idempotencyKey: this.generateIdempotencyKey('pi', body.tenantId, body.amount.toString())
 			})
 
 			this.logger.log(
@@ -220,6 +248,8 @@ export class StripeController {
 						tenant_id: sanitizedTenantId,
 						created_from: 'setup_intent'
 					}
+				}, {
+					idempotencyKey: this.generateIdempotencyKey('cus', body.tenantId)
 				})
 
 				customerId = customer.id
@@ -235,6 +265,8 @@ export class StripeController {
 				metadata: {
 					tenant_id: sanitizedTenantId
 				}
+			}, {
+				idempotencyKey: this.generateIdempotencyKey('si', body.tenantId)
 			})
 
 			this.logger.log(`Setup Intent created: ${setupIntent.id}`, {
@@ -306,6 +338,8 @@ export class StripeController {
 						tenant_id: tenant.id,
 						user_id: userId
 					}
+				}, {
+					idempotencyKey: this.generateIdempotencyKey('cus', userId, tenant.id)
 				})
 
 				customerId = customer.id
@@ -337,6 +371,8 @@ export class StripeController {
 					invoice_settings: {
 						default_payment_method: body.payment_method_id
 					}
+				}, {
+					idempotencyKey: this.generateIdempotencyKey('cus_update', userId, customerId)
 				})
 			}
 
@@ -566,6 +602,8 @@ export class StripeController {
 						subscription_type: sanitizedSubscriptionType
 					})
 				}
+			}, {
+				idempotencyKey: this.generateIdempotencyKey('sub', body.customerId, body.tenantId)
 			})
 
 			this.logger.log(`Subscription created: ${subscription.id}`, {
@@ -660,6 +698,9 @@ export class StripeController {
 					// Keep same billing date (don't reset billing cycle)
 					billing_cycle_anchor: 'unchanged',
 					expand: ['latest_invoice']
+				},
+				{
+					idempotencyKey: this.generateIdempotencyKey('sub_update', body.subscriptionId, body.newPriceId)
 				}
 			)
 
@@ -727,6 +768,9 @@ export class StripeController {
 					body.subscriptionId,
 					{
 						cancel_at_period_end: true
+					},
+					{
+						idempotencyKey: this.generateIdempotencyKey('sub_cancel', body.subscriptionId)
 					}
 				)
 
@@ -1117,7 +1161,7 @@ export class StripeController {
 				throw linkError
 			}
 
-			this.logger.log(`Tenant invitation sent successfully: ${body.email}`)
+			this.logger.log('Tenant invitation sent successfully')
 
 			return {
 				success: true,
@@ -1214,7 +1258,8 @@ export class StripeController {
 					}
 				},
 				{
-					stripeAccount: body.connectedAccountId // Property owner account
+					stripeAccount: body.connectedAccountId, // Property owner account
+					idempotencyKey: this.generateIdempotencyKey('pi_connected', body.tenantId, body.connectedAccountId)
 				}
 			)
 

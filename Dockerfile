@@ -47,7 +47,8 @@ ENV TURBO_TELEMETRY_DISABLED=1 \
     NODE_OPTIONS="--max-old-space-size=2048"
 
 # Build using standardized commands with explicit verification
-RUN set -e && \
+RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-turbo-cache,target=/app/.turbo \
+    set -e && \
     echo "=== Starting builds ===" && \
     pnpm build:shared && echo "✓ shared built" && \
     pnpm build:database && echo "✓ database built" && \
