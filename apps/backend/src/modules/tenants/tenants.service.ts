@@ -46,6 +46,31 @@ export interface TenantWithRelations extends Tenant {
 	}[]
 }
 
+interface LeaseWithUnitAndProperty {
+	id: string
+	startDate: string
+	endDate: string
+	rentAmount: number
+	securityDeposit: number
+	status: string
+	terms: string | null
+	unit: {
+		id: string
+		unitNumber: string
+		bedrooms: number
+		bathrooms: number
+		squareFeet: number | null
+		property: {
+			id: string
+			name: string
+			address: string
+			city: string
+			state: string
+			zipCode: string
+		}
+	} | null
+}
+
 interface TenantWithLeaseRelations {
 	id: string
 	firstName: string | null
@@ -61,53 +86,7 @@ interface TenantWithLeaseRelations {
 	invitation_accepted_at: string | null
 	invitation_expires_at: string | null
 	userId: string
-	lease: Array<{
-		id: string
-		startDate: string
-		endDate: string
-		rentAmount: number
-		securityDeposit: number
-		status: string
-		terms: string | null
-		unit: {
-			id: string
-			unitNumber: string
-			bedrooms: number
-			bathrooms: number
-			squareFeet: number | null
-			property: {
-				id: string
-				name: string
-				address: string
-				city: string
-				state: string
-				zipCode: string
-			}
-		} | null
-	}> | {
-		id: string
-		startDate: string
-		endDate: string
-		rentAmount: number
-		securityDeposit: number
-		status: string
-		terms: string | null
-		unit: {
-			id: string
-			unitNumber: string
-			bedrooms: number
-			bathrooms: number
-			squareFeet: number | null
-			property: {
-				id: string
-				name: string
-				address: string
-				city: string
-				state: string
-				zipCode: string
-			}
-		} | null
-	}
+	lease: LeaseWithUnitAndProperty[] | LeaseWithUnitAndProperty
 }
 
 /**
