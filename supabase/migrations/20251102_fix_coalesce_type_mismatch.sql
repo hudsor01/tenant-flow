@@ -51,7 +51,7 @@ BEGIN
         -- Get plan amount from price
         COALESCE(p.unit_amount, 0) AS plan_amount,
         COALESCE(p.currency, ''usd'') AS plan_currency,
-        COALESCE(p.recurring->>''interval'', ''month'') AS plan_interval,
+        COALESCE(p.attrs->''recurring''->>>''interval'', ''month'') AS plan_interval,
         s.customer AS customer_id
       FROM stripe.subscriptions s
       JOIN stripe.customers c ON s.customer = c.id

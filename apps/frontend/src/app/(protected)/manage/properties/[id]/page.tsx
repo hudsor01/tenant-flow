@@ -1,10 +1,12 @@
 'use client'
 
 import { Button } from '#components/ui/button'
+import { clientFetch } from '#lib/api/client'
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { PropertyDetails } from '../property-details.client'
+import type { Property } from '@repo/shared/types/core'
 
 export default function PropertyDetailPage() {
 	const params = useParams()
@@ -16,11 +18,7 @@ export default function PropertyDetailPage() {
 		isError
 	} = useQuery({
 		queryKey: ['property', propertyId],
-		queryFn: async () => {
-			const res = await fetch(`/api/v1/properties/${propertyId}`, { credentials: 'include' })
-			if (!res.ok) throw new Error('Failed to fetch property')
-			return res.json()
-		},
+		queryFn: () => clientFetch<Property>(`/api/v1/properties/${propertyId}`),
 		enabled: !!propertyId
 	})
 

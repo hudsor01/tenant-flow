@@ -18,6 +18,7 @@ import {
 import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
+import { clientFetch } from '#lib/api/client'
 
 const PRIORITY_VARIANTS: Record<string, 'destructive' | 'secondary' | 'outline'> = {
 	HIGH: 'destructive',
@@ -99,20 +100,14 @@ export const columns: ColumnDef<MaintenanceRequest>[] = [
 								<AlertDialogAction
 									className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 									onClick={async () => {
-										try {
-											const res = await fetch(`/api/v1/maintenance/${request.id}`, {
-												method: 'DELETE',
-												credentials: 'include'
-											})
-											if (!res.ok) {
-												throw new Error('Failed to delete')
-											}
-											toast.success('Request deleted')
-											window.location.reload()
-										} catch {
-											toast.error('Failed to delete')
-										}
-									}}
+									try {
+										await clientFetch(`/api/v1/maintenance/${request.id}`, { method: 'DELETE' })
+										toast.success('Request deleted')
+										window.location.reload()
+									} catch {
+										toast.error('Failed to delete')
+									}
+								}}
 								>
 									Delete
 								</AlertDialogAction>
