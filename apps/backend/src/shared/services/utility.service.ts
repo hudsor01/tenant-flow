@@ -251,7 +251,7 @@ export class UtilityService {
 			throw new NotFoundException('User not found')
 		}
 
-		await this.cacheManager.set(cacheKey, data.id, 1800000) // 30 min cache (reduced DB lookups for auth)
+		await this.cacheManager.set(cacheKey, data.id, 1800) // 30 min cache (reduced DB lookups for auth)
 		return data.id
 	}
 
@@ -261,6 +261,9 @@ export class UtilityService {
 	 * Returns the internal users.id
 	 * 
 	 * This is the proper way to handle OAuth users who may not have a users table record yet
+	 * 
+	 * @param authUser - User data from Supabase auth
+	 * @param retryCount - Internal retry counter to prevent infinite loops (default: 0, max: 1)
 	 */
 	async ensureUserExists(authUser: {
 		id: string
@@ -276,7 +279,7 @@ export class UtilityService {
 			role?: string
 			[key: string]: unknown
 		}
-	}): Promise<string> {
+	}, retryCount = 0): Promise<string> {
 		try {
 			// First try to get existing user
 			return await this.getUserIdFromSupabaseId(authUser.id)
@@ -315,12 +318,23 @@ export class UtilityService {
 					// Check if it's a unique constraint violation (race condition)
 					// PostgreSQL error code 23505 = unique_violation
 					if ((insertError as { code?: string }).code === '23505' || insertError.message?.includes('duplicate')) {
+						// Prevent infinite retry loops
+						if (retryCount >= 1) {
+							this.logger.error('Max retries exceeded for user creation race condition', {
+								supabaseId: authUser.id,
+								email: authUser.email,
+								retryCount
+							})
+							throw new InternalServerErrorException('Failed to create user account after retry')
+						}
+						
 						this.logger.warn('User creation race condition detected, retrying lookup', {
 							supabaseId: authUser.id,
-							email: authUser.email
+							email: authUser.email,
+							retryCount
 						})
-						// Another request created the user, retry the lookup
-						return await this.getUserIdFromSupabaseId(authUser.id)
+						// Another request created the user, retry the lookup with incremented counter
+						return await this.ensureUserExists(authUser, retryCount + 1)
 					}
 
 					this.logger.error('Failed to create user record', {
@@ -347,7 +361,7 @@ export class UtilityService {
 
 				// Cache the new user ID
 				const cacheKey = `user:supabaseId:${authUser.id}`
-				await this.cacheManager.set(cacheKey, data.id, 1800000) // 30 min cache (reduced DB lookups for auth)
+				await this.cacheManager.set(cacheKey, data.id, 1800) // 30 min cache (reduced DB lookups for auth)
 
 				return data.id
 			}

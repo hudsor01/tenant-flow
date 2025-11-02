@@ -128,12 +128,8 @@ export class TenantsService {
 	 * Calculate user-friendly payment status from rent_payment data
 	 * @private
 	 */
-	/**
-	 * Calculate user-friendly payment status from rent_payment data
-	 * @private
-	 */
 	private calculatePaymentStatus(
-		payment: { status: string | null; dueDate: string | null } | null
+		payment: { status: Database['public']['Enums']['RentPaymentStatus'] | null; dueDate: string | null } | null
 	): string | null {
 		if (!payment || !payment.status) {
 			return null
@@ -142,19 +138,23 @@ export class TenantsService {
 		const today = new Date()
 		const dueDate = payment.dueDate ? new Date(payment.dueDate) : null
 
+		// Use enum constants for type-safe comparisons
+		type PaymentStatus = Database['public']['Enums']['RentPaymentStatus']
+		const status: PaymentStatus = payment.status
+
 		// Map payment status to user-friendly status
-		if (payment.status === 'PAID' || payment.status === 'SUCCEEDED') {
+		if (status === 'PAID' || status === 'SUCCEEDED') {
 			return 'Current'
-		} else if (payment.status === 'DUE' || payment.status === 'PENDING') {
+		} else if (status === 'DUE' || status === 'PENDING') {
 			// Check if overdue
 			if (dueDate && dueDate < today) {
 				return 'Overdue'
 			} else {
 				return 'Due Soon'
 			}
-		} else if (payment.status === 'FAILED') {
+		} else if (status === 'FAILED') {
 			return 'Payment Failed'
-		} else if (payment.status === 'REQUIRES_ACTION') {
+		} else if (status === 'REQUIRES_ACTION') {
 			return 'Action Required'
 		} else {
 			// For CANCELLED, VOID, or unknown statuses
@@ -397,21 +397,30 @@ export class TenantsService {
 				})
 
 			// Fetch most recent payment for each lease in one query
-			const { data: payments } = await client
+			const { data: payments, error: paymentsError } = await client
 				.from('rent_payment')
 				.select('tenantId, leaseId, status, dueDate')
 				.in('tenantId', tenantIds)
 				.in('leaseId', leaseIds)
 				.order('dueDate', { ascending: false })
 
+			if (paymentsError) {
+				this.logger.warn('Failed to fetch payment statuses for tenants', {
+					error: paymentsError.message,
+					tenantIds,
+					leaseIds
+				})
+				// Continue without payment data - statuses will be null
+			}
+
 			// Build a map of tenantId+leaseId -> most recent payment
-			const paymentMap = new Map<string, { status: string; dueDate: string }>()
+			const paymentMap = new Map<string, { status: Database['public']['Enums']['RentPaymentStatus']; dueDate: string }>()
 			if (payments) {
 				for (const payment of payments) {
 					const key = `${payment.tenantId}-${payment.leaseId}`
 					if (!paymentMap.has(key) && payment.status && payment.dueDate) {
 						paymentMap.set(key, {
-							status: payment.status,
+							status: payment.status as Database['public']['Enums']['RentPaymentStatus'],
 							dueDate: payment.dueDate
 						})
 					}
@@ -750,7 +759,7 @@ export class TenantsService {
 		// Calculate payment status from rent_payment table
 		let paymentStatus: string | null = null
 		if (currentLease) {
-			const { data: recentPayments } = await client
+			const { data: recentPayments, error: paymentsError } = await client
 				.from('rent_payment')
 				.select('status, dueDate')
 				.eq('tenantId', tenantId)
@@ -758,9 +767,21 @@ export class TenantsService {
 				.order('dueDate', { ascending: false })
 				.limit(1)
 
-			if (recentPayments && recentPayments.length > 0) {
+			if (paymentsError) {
+				this.logger.warn('Failed to fetch payment status for tenant', {
+					error: paymentsError.message,
+					tenantId,
+					leaseId: currentLease.id
+				})
+				// Continue without payment data - status will remain null
+			} else if (recentPayments && recentPayments.length > 0) {
 				const payment = recentPayments[0]
-				paymentStatus = this.calculatePaymentStatus(payment || null)
+				// Type assertion for payment status from database
+				const typedPayment = payment ? {
+					status: payment.status as Database['public']['Enums']['RentPaymentStatus'] | null,
+					dueDate: payment.dueDate
+				} : null
+				paymentStatus = this.calculatePaymentStatus(typedPayment)
 			}
 		}
 
