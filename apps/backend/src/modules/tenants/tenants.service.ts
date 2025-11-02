@@ -666,6 +666,7 @@ export class TenantsService {
 
 	/**
 	 * Find one tenant with full lease and unit information
+	 * Returns tenant even if they have no leases (lease fields will be null)
 	 * Optimized query for tenant detail pages
 	 */
 	async findOneWithLease(userId: string, tenantId: string): Promise<TenantWithLeaseInfo | null> {
@@ -683,11 +684,12 @@ export class TenantsService {
 			const client = this.supabase.getAdminClient()
 
 			// Fetch tenant with all related information
+			// Note: Using lease (not lease!inner) to return tenants even without leases
 			const { data: tenant, error: tenantError } = await client
 				.from('tenant')
 				.select(`
 					*,
-					lease!inner (
+					lease (
 						id,
 						startDate,
 						endDate,
@@ -732,8 +734,13 @@ export class TenantsService {
 			}
 
 			// Transform to TenantWithLeaseInfo format
-		const leases = Array.isArray(tenant.lease) ? tenant.lease : [tenant.lease]
-		const currentLease = leases.find((l) => l.status === 'ACTIVE') || leases[0]
+			// Handle cases: lease can be null, undefined, single object, or array
+			const leases = Array.isArray(tenant.lease) 
+				? tenant.lease 
+				: tenant.lease 
+					? [tenant.lease] 
+					: []
+			const currentLease = leases.find((l) => l.status === 'ACTIVE') || leases[0] || null
 
 		// Calculate payment status from rent_payment table
 		let paymentStatus: string | null = null
