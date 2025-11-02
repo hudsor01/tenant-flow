@@ -9,9 +9,13 @@ import { Module } from '@nestjs/common'
 import { PassportModule } from '@nestjs/passport'
 import { SupabaseStrategy } from './supabase.strategy'
 import { JwtAuthGuard } from './jwt-auth.guard'
+import { SharedModule } from '../shared.module'
 
 @Module({
-	imports: [PassportModule.register({ defaultStrategy: 'supabase' })],
+	imports: [
+		PassportModule.register({ defaultStrategy: 'supabase' }),
+		SharedModule
+	],
 	providers: [SupabaseStrategy, JwtAuthGuard],
 	exports: [JwtAuthGuard, PassportModule]
 })

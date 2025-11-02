@@ -14,6 +14,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
 import type { SupabaseJwtPayload, authUser } from '@repo/shared/types/auth'
+import { UtilityService } from '../services/utility.service'
 
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import * as jwksRsa from 'jwks-rsa'
@@ -22,7 +23,7 @@ import * as jwksRsa from 'jwks-rsa'
 export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 	private readonly logger = new Logger(SupabaseStrategy.name)
 
-	constructor() {
+	constructor(private readonly utilityService: UtilityService) {
 		const supabaseUrl = process.env.SUPABASE_URL
 
 		if (!supabaseUrl) {
@@ -129,6 +130,29 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			})
 			throw new Error('Invalid token audience')
 		}
+
+		// Ensure user exists in users table (creates if doesn't exist - e.g., OAuth sign-ins)
+		// This is critical for RLS policies that reference users.id
+		const userToEnsure: Parameters<typeof this.utilityService.ensureUserExists>[0] = {
+			id: payload.sub,
+			email: payload.email
+		}
+
+		if (payload.user_metadata) {
+			userToEnsure.user_metadata = payload.user_metadata as {
+				full_name?: string
+				name?: string
+				avatar_url?: string
+				picture?: string
+				[key: string]: unknown
+			}
+		}
+
+		if (payload.app_metadata) {
+			userToEnsure.app_metadata = payload.app_metadata
+		}
+
+		await this.utilityService.ensureUserExists(userToEnsure)
 
 		// Create user object from JWT payload
 		const user: authUser = {
