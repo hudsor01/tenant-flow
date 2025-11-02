@@ -78,7 +78,7 @@ export class SubscriptionGuard implements CanActivate {
 				.getAdminClient()
 				.from('users')
 				.select('subscription_status, stripeCustomerId')
-				.eq('supabaseId', user.id)
+				.eq('id', user.id) // ✅ user.id is now database users.id (not supabaseId)
 				.single()
 
 			if (error) {
