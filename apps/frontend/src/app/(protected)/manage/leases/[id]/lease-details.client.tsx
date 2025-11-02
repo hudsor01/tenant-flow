@@ -3,10 +3,12 @@
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { useAllTenants } from '#hooks/api/use-tenant'
+import { clientFetch } from '#lib/api/client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { useQuery } from '@tanstack/react-query'
 import { Calendar, Home, User } from 'lucide-react'
 import Link from 'next/link'
+import type { Lease, Unit } from '@repo/shared/types/core'
 
 interface LeaseDetailsProps {
 	id: string
@@ -21,26 +23,18 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 		isError
 	} = useQuery({
 		queryKey: ['leases', id],
-		queryFn: async () => {
-			const res = await fetch(`/api/v1/leases/${id}`, { credentials: 'include' })
-			if (!res.ok) throw new Error('Failed to fetch lease')
-			return res.json()
-		}
+		queryFn: () => clientFetch<Lease>(`/api/v1/leases/${id}`)
 	})
 
 	const { data: tenants = [] } = useAllTenants()
 
 	const { data: units = [] } = useQuery({
 		queryKey: ['units'],
-		queryFn: async () => {
-			const res = await fetch('/api/v1/units', { credentials: 'include' })
-			if (!res.ok) throw new Error('Failed to fetch units')
-			return res.json()
-		}
+		queryFn: () => clientFetch<Unit[]>('/api/v1/units')
 	})
 
 	const tenant = tenants.find(t => t.id === lease?.tenantId)
-	const unit = units.find((u: import('@repo/shared/types/core').Unit) => u.id === lease?.unitId)
+	const unit = units.find((u) => u.id === lease?.unitId)
 
 	if (isLoading) {
 		return (

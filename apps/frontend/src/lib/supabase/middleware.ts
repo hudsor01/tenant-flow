@@ -5,10 +5,11 @@ import {
 	PUBLIC_AUTH_ROUTES
 } from '#lib/auth-constants'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import type { User } from '@supabase/supabase-js'
+import type { SupabaseClient, User } from '@supabase/supabase-js'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { decodeJwt } from 'jose'
 
 const logger = createLogger({ component: 'SupabaseMiddleware' })
 
@@ -42,7 +43,6 @@ export async function updateSession(request: NextRequest) {
 
 	// This will refresh the session if expired - required for Server Components
 	// IMPORTANT: Use getUser() to validate the session with Supabase instead of just checking local storage
-	// Wrapped in try-catch to handle network failures gracefully
 	let isAuthenticated = false
 	let user: User | null = null
 	try {
@@ -57,8 +57,8 @@ export async function updateSession(request: NextRequest) {
 		isAuthenticated = !error && !!user
 	} catch (err) {
 		// Network failure or Supabase API error - fail closed for security
-		logger.error('Auth check failed', { 
-			error: err instanceof Error ? err.message : String(err) 
+		logger.error('Auth check failed', {
+			error: err instanceof Error ? err.message : String(err)
 		})
 		isAuthenticated = false
 	}
@@ -98,12 +98,16 @@ export async function updateSession(request: NextRequest) {
 	let stripeCustomerId: string | null = null
 
 	if (isAuthenticated && user) {
-		// For now, use user_metadata as the source since that's populated
-		// TODO: Once tokens are refreshed, the Auth Hook will add claims to JWT
-		// and we can decode the JWT to get claims from the token payload
-		userRole = user.user_metadata?.role || null
-		subscriptionStatus = user.user_metadata?.subscription_status || null
-		stripeCustomerId = user.user_metadata?.stripe_customer_id || null
+		const claims = await getJwtClaims(supabase)
+		const roleFromClaims = getStringClaim(claims, 'user_role')
+		const subscriptionFromClaims = getStringClaim(claims, 'subscription_status')
+		const stripeIdFromClaims = getStringClaim(claims, 'stripe_customer_id')
+
+		userRole = roleFromClaims ?? user.user_metadata?.role ?? null
+		subscriptionStatus =
+			subscriptionFromClaims ?? user.user_metadata?.subscription_status ?? null
+		stripeCustomerId =
+			stripeIdFromClaims ?? user.user_metadata?.stripe_customer_id ?? null
 	}
 
 	// Early redirect for authenticated users on marketing pages
@@ -126,8 +130,7 @@ export async function updateSession(request: NextRequest) {
 		// Valid statuses for access: active, trialing
 		const validStatuses = ['active', 'trialing']
 		const hasValidSubscription =
-			subscriptionStatus &&
-			validStatuses.includes(subscriptionStatus)
+			subscriptionStatus && validStatuses.includes(subscriptionStatus)
 		const hasNoStripeCustomer = !stripeCustomerId
 
 		if (requiresPayment && (!hasValidSubscription || hasNoStripeCustomer)) {
@@ -168,4 +171,46 @@ export async function updateSession(request: NextRequest) {
 	}
 
 	return supabaseResponse
+}
+
+async function getJwtClaims(
+	supabase: SupabaseClient<Database>
+): Promise<Record<string, unknown> | null> {
+	try {
+		const {
+			data: { session },
+			error
+		} = await supabase.auth.getSession()
+
+		if (error || !session?.access_token) {
+			return null
+		}
+
+		// Use jose library for robust JWT decoding with proper error handling
+		const payload = decodeJwt(session.access_token)
+		return typeof payload === 'object' && payload !== null ? payload : null
+	} catch (err) {
+		logger.error('getJwtClaims failed while decoding session token', {
+			error: err instanceof Error ? err.message : String(err),
+			stack: err instanceof Error ? err.stack : undefined
+		})
+		return null
+	}
+}
+
+function getStringClaim(
+	claims: Record<string, unknown> | null,
+	key: string
+): string | null {
+	if (!claims) {
+		return null
+	}
+
+	const value = claims[key]
+	if (typeof value !== 'string') {
+		return null
+	}
+
+	const normalized = value.trim()
+	return normalized && normalized !== 'null' ? normalized : null
 }

@@ -506,10 +506,10 @@ importers:
         specifier: ^8.2.0
         version: 8.2.0
       '@supabase/ssr':
-        specifier: 'catalog:'
+        specifier: 0.7.0
         version: 0.7.0(@supabase/supabase-js@2.78.0)
       '@supabase/supabase-js':
-        specifier: 'catalog:'
+        specifier: 2.78.0
         version: 2.78.0
       '@tanstack/react-form':
         specifier: 1.23.8
@@ -565,6 +565,9 @@ importers:
       input-otp:
         specifier: 1.4.2
         version: 1.4.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      jose:
+        specifier: 6.1.0
+        version: 6.1.0
       lucide-react:
         specifier: 0.552.0
         version: 0.552.0(react@19.2.0)

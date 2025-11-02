@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { Constants, type Database } from '../types/supabase-generated.js'
+import type { CreatePropertyRequest } from '../types/backend-domain.js'
 import {
 	nonEmptyStringSchema,
 	nonNegativeNumberSchema,
@@ -157,22 +158,30 @@ export const propertyFormSchema = z.object({
 })
 
 // Transform function for converting form data to API format
-// Returns PropertyInsert type compatible with Supabase
+// NOTE: Does NOT include ownerId - backend extracts from authenticated user
 export const transformPropertyFormData = (
-	data: PropertyFormData,
-	ownerId: string = ''
-) => ({
-	name: data.name,
-	description: data.description || '',
-	propertyType:
-		data.propertyType as Database['public']['Enums']['PropertyType'],
-	address: data.address,
-	city: data.city,
-	state: data.state,
-	zipCode: data.zipCode,
-	ownerId,
-	imageUrl: data.imageUrl || null
-})
+	data: PropertyFormData
+): CreatePropertyRequest => {
+	const result: CreatePropertyRequest = {
+		name: data.name,
+		address: data.address,
+		city: data.city,
+		state: data.state,
+		zipCode: data.zipCode,
+		propertyType: data.propertyType as Database['public']['Enums']['PropertyType']
+	}
+
+	// Only include optional fields if they have truthy values (exactOptionalPropertyTypes)
+	if (data.description) {
+		result.description = data.description
+	}
+
+	if (data.imageUrl) {
+		result.imageUrl = data.imageUrl
+	}
+
+	return result
+}
 
 // Frontend-specific form schema for updates (handles string inputs from HTML forms)
 export const propertyUpdateFormSchema = z.object({
@@ -251,31 +260,60 @@ export type PropertyMarkedSold = z.infer<typeof propertyMarkedSoldSchema>
 
 // Backend DTO schemas - match CreatePropertyRequest/UpdatePropertyRequest from backend-domain.ts
 export const createPropertyRequestSchema = z.object({
-	name: z.string(),
-	address: z.string(),
-	city: z.string(),
-	state: z.string(),
-	zipCode: z.string(),
+	name: z.string().trim().min(1, 'Property name is required'),
+	address: z.string().trim().min(1, 'Address is required'),
+	city: z.string().trim().min(1, 'City is required'),
+	state: z
+		.string()
+		.trim()
+		.length(2, 'State must be exactly 2 characters')
+		.regex(/^[A-Z]{2}$/, 'State must be 2 uppercase letters'),
+	zipCode: z
+		.string()
+		.trim()
+		.regex(
+			/^\d{5}(-\d{4})?$/,
+			'Please enter a valid ZIP code (12345 or 12345-6789)'
+		),
+	// NOTE: ownerId is NOT in request - backend derives from authenticated user for security
 	unitCount: z.number().int().positive().optional(),
 	description: z.string().optional(),
-	type: z.string().optional(),
-	propertyType: z.string().optional(),
+	propertyType: z.enum(
+		Constants.public.Enums.PropertyType as readonly [string, ...string[]]
+	),
 	amenities: z.array(z.string()).optional(),
-	imageUrl: z.string().url().nullable().optional().or(z.literal('').transform(() => undefined))
+	imageUrl: z
+		.union([z.string().url(), z.literal(''), z.null(), z.undefined()])
+		.transform(val => (val === '' || val === null ? undefined : val))
+		.optional()
 })
 
 export const updatePropertyRequestSchema = z.object({
-	name: z.string().optional(),
-	address: z.string().optional(),
-	city: z.string().optional(),
-	state: z.string().optional(),
-	zipCode: z.string().optional(),
+	name: z.string().trim().min(1, 'Property name is required').optional(),
+	address: z.string().trim().min(1, 'Address is required').optional(),
+	city: z.string().trim().min(1, 'City is required').optional(),
+	state: z
+		.string()
+		.trim()
+		.length(2, 'State must be exactly 2 characters')
+		.regex(/^[A-Z]{2}$/, 'State must be 2 uppercase letters')
+		.optional(),
+	zipCode: z
+		.string()
+		.trim()
+		.regex(
+			/^\d{5}(-\d{4})?$/,
+			'Please enter a valid ZIP code (12345 or 12345-6789)'
+		)
+		.optional(),
 	unitCount: z.number().int().positive().optional(),
 	description: z.string().optional(),
-	type: propertyTypeSchema.optional(),
 	propertyType: propertyTypeSchema.optional(),
 	amenities: z.array(z.string()).optional(),
-	imageUrl: z.string().url().nullable().optional().or(z.literal('').transform(() => undefined)),
+	imageUrl: z
+		.union([z.string().url(), z.literal(''), z.null(), z.undefined()])
+		.transform(val => (val === '' || val === null ? undefined : val))
+		.optional(),
 	version: z.number().optional()
 })
 

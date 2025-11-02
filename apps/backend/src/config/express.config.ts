@@ -63,6 +63,10 @@ export async function registerExpressMiddleware(app: NestExpressApplication) {
 	)
 
 	// Body parsing limits - exclude Stripe webhook paths to preserve raw buffer
+	// FIX: Create middleware instances ONCE, not on every request
+	const jsonParser = express.json({ limit: '10mb' })
+	const urlencodedParser = express.urlencoded({ extended: true, limit: '10mb' })
+
 	app.use((req: Request, res: Response, next: NextFunction) => {
 		if (
 			req.path === '/api/v1/stripe/webhook' ||
@@ -70,7 +74,7 @@ export async function registerExpressMiddleware(app: NestExpressApplication) {
 		) {
 			return next() // Skip JSON parsing for webhooks
 		}
-		express.json({ limit: '10mb' })(req, res, next)
+		jsonParser(req, res, next)
 	})
 
 	app.use((req: Request, res: Response, next: NextFunction) => {
@@ -80,6 +84,6 @@ export async function registerExpressMiddleware(app: NestExpressApplication) {
 		) {
 			return next() // Skip URL encoding for webhooks
 		}
-		express.urlencoded({ extended: true, limit: '10mb' })(req, res, next)
+		urlencodedParser(req, res, next)
 	})
 }
