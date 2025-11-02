@@ -1,9 +1,9 @@
 import {
 	ClassSerializerInterceptor,
 	Logger,
-	RequestMethod,
-	ValidationPipe
+	RequestMethod
 } from '@nestjs/common'
+import { ZodValidationPipe } from 'nestjs-zod'
 import { Reflector } from '@nestjs/core'
 import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
@@ -123,22 +123,9 @@ async function bootstrap() {
 	bootstrapLogger.log('Security: Using native NestJS validation')
 	bootstrapLogger.log('Security exception filter enabled')
 
-	// Global validation pipe with enhanced security
-	app.useGlobalPipes(
-		new ValidationPipe({
-			transform: true,
-			transformOptions: { enableImplicitConversion: true },
-			whitelist: true,
-			forbidNonWhitelisted: true,
-			// ALWAYS enable error messages for debugging - security through proper validation, not obscurity
-			validationError: { target: false, value: false },
-			validateCustomDecorators: true,
-			stopAtFirstError: false,
-			skipMissingProperties: false,
-			skipNullProperties: false,
-			skipUndefinedProperties: false
-		})
-	)
+	// Global Zod validation pipe (required for nestjs-zod DTOs)
+	// NOTE: ZodValidationPipe handles transform, whitelist, and validation automatically
+	app.useGlobalPipes(new ZodValidationPipe())
 
 	// Enable graceful shutdown
 	app.enableShutdownHooks()
