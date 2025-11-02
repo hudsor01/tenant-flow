@@ -43,9 +43,7 @@ export class EmailService {
 	 */
 	async sendTenantInvitation(data: TenantInvitationEmailData): Promise<void> {
 		if (!this.resend) {
-			this.logger.warn('Resend not configured, skipping invitation email', {
-				tenantEmail: data.tenantEmail
-			})
+			this.logger.warn('Resend not configured, skipping invitation email')
 			return
 		}
 
@@ -97,7 +95,6 @@ export class EmailService {
 			})
 
 			this.logger.log('Tenant invitation email sent successfully', {
-				tenantEmail: data.tenantEmail,
 				emailId: result.data?.id
 			})
 		} catch (error) {
@@ -182,7 +179,6 @@ export class EmailService {
 			})
 
 			this.logger.log('Payment success email sent successfully', {
-				customerEmail: data.customerEmail,
 				emailId: result.data?.id
 			})
 		} catch (error) {
@@ -222,7 +218,6 @@ export class EmailService {
 			})
 
 			this.logger.log('Payment failed email sent successfully', {
-				customerEmail: data.customerEmail,
 				emailId: result.data?.id
 			})
 		} catch (error) {
@@ -260,7 +255,6 @@ export class EmailService {
 			})
 
 			this.logger.log('Subscription canceled email sent successfully', {
-				customerEmail: data.customerEmail,
 				emailId: result.data?.id
 			})
 		} catch (error) {
