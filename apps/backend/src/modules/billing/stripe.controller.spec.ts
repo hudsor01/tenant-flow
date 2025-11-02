@@ -178,6 +178,9 @@ describe('StripeController', () => {
 					metadata: expect.objectContaining({
 						tenant_id: "test' DROP TABLE users--" // After sanitization (apostrophe preserved, semicolon removed)
 					})
+				}),
+				expect.objectContaining({
+					idempotencyKey: expect.any(String)
 				})
 			)
 		})
@@ -500,6 +503,9 @@ describe('StripeController', () => {
 					metadata: expect.objectContaining({
 						tenant_id: "test' UNION SELECT * FROM users--" // After sanitization (apostrophe preserved)
 					})
+				}),
+				expect.objectContaining({
+					idempotencyKey: expect.any(String)
 				})
 			)
 		})
@@ -530,6 +536,9 @@ describe('StripeController', () => {
 					metadata: expect.objectContaining({
 						tenant_id: "test' OR 1=1--" // After sanitization (apostrophe preserved)
 					})
+				}),
+				expect.objectContaining({
+					idempotencyKey: expect.any(String)
 				})
 			)
 		})

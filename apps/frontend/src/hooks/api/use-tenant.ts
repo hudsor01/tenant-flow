@@ -87,10 +87,19 @@ export function useTenantList(page: number = 1, limit: number = 50) {
 		queryFn: async () => {
 			const response = await clientFetch<TenantWithLeaseInfo[]>(`/api/v1/tenants?limit=${limit}&offset=${offset}`)
 
-			// Prefetch individual tenant details for faster navigation
+			// Prefetch individual tenant details only if not already cached
+			// This prevents overwriting fresher detail data with potentially stale list data
 			response?.forEach?.(tenant => {
-				queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
-				queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
+				const existingDetail = queryClient.getQueryData(tenantKeys.detail(tenant.id))
+				const existingWithLease = queryClient.getQueryData(tenantKeys.withLease(tenant.id))
+				
+				// Only set if no existing data (avoids race condition where detail is fresher)
+				if (!existingDetail) {
+					queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
+				}
+				if (!existingWithLease) {
+					queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
+				}
 			})
 
 			// Transform to expected paginated format for backwards compatibility
@@ -122,10 +131,19 @@ export function useAllTenants() {
 			try {
 				const response = await clientFetch<TenantWithLeaseInfo[]>('/api/v1/tenants')
 
-				// Prefetch individual tenant details for instant navigation
+				// Prefetch individual tenant details only if not already cached
+				// This prevents overwriting fresher detail data with potentially stale list data
 				response.forEach(tenant => {
-					queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
-					queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
+					const existingDetail = queryClient.getQueryData(tenantKeys.detail(tenant.id))
+					const existingWithLease = queryClient.getQueryData(tenantKeys.withLease(tenant.id))
+					
+					// Only set if no existing data (avoids race condition where detail is fresher)
+					if (!existingDetail) {
+						queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
+					}
+					if (!existingWithLease) {
+						queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
+					}
 				})
 
 				return response
@@ -354,10 +372,19 @@ export function useAllTenantsSuspense() {
 		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
 			const response = await clientFetch<TenantWithLeaseInfo[]>('/api/v1/tenants')
 
-			// Prefetch individual tenant details for instant navigation
+			// Prefetch individual tenant details only if not already cached
+			// This prevents overwriting fresher detail data with potentially stale list data
 			response.forEach(tenant => {
-				queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
-				queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
+				const existingDetail = queryClient.getQueryData(tenantKeys.detail(tenant.id))
+				const existingWithLease = queryClient.getQueryData(tenantKeys.withLease(tenant.id))
+				
+				// Only set if no existing data (avoids race condition where detail is fresher)
+				if (!existingDetail) {
+					queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
+				}
+				if (!existingWithLease) {
+					queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
+				}
 			})
 
 			return response

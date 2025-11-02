@@ -23,7 +23,7 @@ export class StripeClientService {
 		}
 
 		// Initialize Stripe client with recommended configuration
-		// Using latest stable API version with TypeScript support
+		// Using pinned API version to prevent breaking changes (2025 best practice)
 		this.stripe = new Stripe(stripeSecretKey, {
 			apiVersion: '2025-10-29.clover',
 			typescript: true
@@ -40,6 +40,7 @@ export class StripeClientService {
 
 	/**
 	 * Construct webhook event from raw body and signature
+	 * Includes 5-minute tolerance to prevent replay attacks (Stripe 2025 best practice)
 	 * @param rawBody - Raw request body
 	 * @param signature - Stripe-Signature header value
 	 * @param webhookSecret - Webhook endpoint secret
@@ -53,7 +54,8 @@ export class StripeClientService {
 		return this.stripe.webhooks.constructEvent(
 			rawBody,
 			signature,
-			webhookSecret
+			webhookSecret,
+			300 // 5 minutes tolerance - prevents replay attacks
 		)
 	}
 }
