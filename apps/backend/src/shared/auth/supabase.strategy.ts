@@ -14,6 +14,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
 import type { SupabaseJwtPayload, authUser } from '@repo/shared/types/auth'
+import { UtilityService } from '../services/utility.service'
 
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import * as jwksRsa from 'jwks-rsa'
@@ -21,24 +22,19 @@ import * as jwksRsa from 'jwks-rsa'
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 	private readonly logger = new Logger(SupabaseStrategy.name)
+	private readonly utilityService: UtilityService
 
-	constructor() {
+	constructor(utilityService: UtilityService) {
+		// Validate environment before super() - no 'this' access allowed
 		const supabaseUrl = process.env.SUPABASE_URL
+		const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET
+		const extractors = [ExtractJwt.fromAuthHeaderAsBearerToken()]
 
 		if (!supabaseUrl) {
 			throw new Error('SUPABASE_URL environment variable is required')
 		}
 
-		const supabaseJwtSecret = process.env.SUPABASE_JWT_SECRET
-
-		// HEADERS-ONLY AUTHENTICATION
-		// Frontend and backend are on separate deployments (Vercel + Railway)
-		// All API calls MUST use Authorization: Bearer <token> header
-		// NO cookie support - cookies are for Next.js middleware only
-		const extractors = [
-			ExtractJwt.fromAuthHeaderAsBearerToken()
-		]
-
+		// Call super() immediately with configuration
 		if (supabaseJwtSecret) {
 			// Legacy HS256 projects - use shared secret
 			super({
@@ -47,13 +43,8 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 				secretOrKey: supabaseJwtSecret,
 				algorithms: ['HS256']
 			})
-
-			this.logger.log(
-				'SupabaseStrategy initialized with shared JWT secret (HS256) - HEADERS ONLY (Authorization: Bearer)'
-			)
 		} else {
 			// Modern JWKS-based authentication (RS256/ES256)
-			// HEADERS ONLY - Authorization: Bearer <token>
 			super({
 				jwtFromRequest: ExtractJwt.fromExtractors(extractors),
 				ignoreExpiration: false,
@@ -67,11 +58,18 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 				}),
 				algorithms: ['RS256', 'ES256']
 			})
-
-			this.logger.log(
-				'SupabaseStrategy initialized with JWKS verification (RS256/ES256) - HEADERS ONLY (Authorization: Bearer)'
-			)
 		}
+
+		// NOW safe to assign to 'this' after super()
+		this.utilityService = utilityService
+
+		// HEADERS-ONLY AUTHENTICATION: Frontend and backend are on separate deployments (Vercel + Railway)
+		// All API calls MUST use Authorization: Bearer <token> header - NO cookie support
+		this.logger.log(
+			supabaseJwtSecret
+				? 'SupabaseStrategy initialized with shared JWT secret (HS256) - HEADERS ONLY (Authorization: Bearer)'
+				: 'SupabaseStrategy initialized with JWKS verification (RS256/ES256) - HEADERS ONLY (Authorization: Bearer)'
+		)
 	}
 
 	async validate(payload: SupabaseJwtPayload): Promise<authUser> {
@@ -129,6 +127,29 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			})
 			throw new Error('Invalid token audience')
 		}
+
+		// Ensure user exists in users table (creates if doesn't exist - e.g., OAuth sign-ins)
+		// This is critical for RLS policies that reference users.id
+		const userToEnsure: Parameters<typeof this.utilityService.ensureUserExists>[0] = {
+			id: payload.sub,
+			email: payload.email
+		}
+
+		if (payload.user_metadata) {
+			userToEnsure.user_metadata = payload.user_metadata as {
+				full_name?: string
+				name?: string
+				avatar_url?: string
+				picture?: string
+				[key: string]: unknown
+			}
+		}
+
+		if (payload.app_metadata) {
+			userToEnsure.app_metadata = payload.app_metadata
+		}
+
+		await this.utilityService.ensureUserExists(userToEnsure)
 
 		// Create user object from JWT payload
 		const user: authUser = {
