@@ -80,8 +80,8 @@ export class WebhookHealthController {
 	 * GET /webhooks/health/failures
 	 *
 	 * Returns unresolved webhook failures for investigation
+	 * Requires authentication to prevent exposing error details
 	 */
-	@Public()
 	@Get('failures')
 	async getFailures() {
 		const failures = await this.webhookMonitoringService.getUnresolvedFailures()
@@ -123,8 +123,8 @@ export class WebhookHealthController {
 	 *
 	 * Returns webhook configuration status and recommendations
 	 * Helps diagnose setup issues
+	 * Requires authentication to prevent exposing internal configuration
 	 */
-	@Public()
 	@Get('configuration')
 	async getConfiguration() {
 		const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET

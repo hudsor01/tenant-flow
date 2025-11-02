@@ -17,6 +17,7 @@ jest.mock('./tenants.service', () => {
 	return {
 		TenantsService: jest.fn().mockImplementation(() => ({
 			findAll: jest.fn(),
+			findAllWithLeaseInfo: jest.fn(),
 			getStats: jest.fn(),
 			getSummary: jest.fn(),
 			findOne: jest.fn(),
@@ -123,12 +124,12 @@ describe('TenantsController', () => {
 		it('should return tenants with default parameters', async () => {
 			const mockTenants = [createMockTenant({ id: 'tenant-1' })]
 
-			mockTenantsServiceInstance.findAll.mockResolvedValue(mockTenants)
+			mockTenantsServiceInstance.findAllWithLeaseInfo.mockResolvedValue(mockTenants)
 
 			const result = await controller.findAll(
 				createMockRequest({ user: mockUser }) as any
 			)
-			expect(mockTenantsServiceInstance.findAll).toHaveBeenCalledWith(
+			expect(mockTenantsServiceInstance.findAllWithLeaseInfo).toHaveBeenCalledWith(
 				mockUser.id,
 				{
 					search: undefined,
@@ -145,7 +146,7 @@ describe('TenantsController', () => {
 		it('should handle all query parameters', async () => {
 			const mockTenants: Tenant[] = []
 
-			mockTenantsServiceInstance.findAll.mockResolvedValue(mockTenants)
+			mockTenantsServiceInstance.findAllWithLeaseInfo.mockResolvedValue(mockTenants)
 
 			await controller.findAll(
 				createMockRequest({ user: mockUser }) as any,
@@ -157,7 +158,7 @@ describe('TenantsController', () => {
 				'asc'
 			)
 
-			expect(mockTenantsServiceInstance.findAll).toHaveBeenCalledWith(
+			expect(mockTenantsServiceInstance.findAllWithLeaseInfo).toHaveBeenCalledWith(
 				mockUser.id,
 				{
 					search: 'search term',
