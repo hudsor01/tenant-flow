@@ -9,6 +9,7 @@ import DOMPurify from 'dompurify'
 import { ArrowLeft, ArrowRight, Clock, User } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { useMemo } from 'react'
 
 export default function BlogArticlePage({
 	params
@@ -20,6 +21,27 @@ export default function BlogArticlePage({
 	if (!post) {
 		notFound()
 	}
+
+	const sanitizedContent = useMemo(() => {
+		// SSR guard: DOMPurify requires window object
+		if (typeof window === 'undefined') {
+			return post.content.replace(/\n/g, '<br />')
+		}
+
+		return DOMPurify.sanitize(post.content.replace(/\n/g, '<br />'), {
+			ALLOWED_TAGS: [
+				'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br',
+				'strong', 'em', 'a', 'ul', 'ol', 'li',
+				'blockquote', 'code', 'pre', 'b', 'i', 'img'
+			],
+			ALLOWED_ATTR: [
+				'href', 'target', 'rel',
+				'src', 'alt', 'width', 'height',
+				'srcset', 'sizes', 'loading', 'decoding',
+				'class', 'title'
+			]
+		})
+	}, [post.content])
 
 	return (
 		<div className="relative min-h-screen flex flex-col">
@@ -169,10 +191,7 @@ export default function BlogArticlePage({
 								[&>img]:rounded-lg [&>img]:my-8 [&>img]:shadow-lg
 							"
 							dangerouslySetInnerHTML={{
-								__html: DOMPurify.sanitize(post.content.replace(/\n/g, '<br />'), {
-								ALLOWED_TAGS: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'strong', 'em', 'a', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'b', 'i'],
-								ALLOWED_ATTR: ['href', 'target', 'rel']
-							})
+								__html: sanitizedContent
 							}}
 						/>
 					</div>
