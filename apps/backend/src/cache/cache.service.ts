@@ -4,11 +4,11 @@
  * Follows DATABASE FIRST approach with in-memory performance layer
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
 import type { CacheEntry, CacheStats } from '@repo/shared/types/core'
 
 @Injectable()
-export class ZeroCacheService {
+export class ZeroCacheService implements OnModuleDestroy {
 	private cache = new Map<string, CacheEntry>()
 	private stats: CacheStats = {
 		hits: 0,
@@ -20,13 +20,30 @@ export class ZeroCacheService {
 	}
 	private versionCounter = 1
 	private readonly logger = new Logger(ZeroCacheService.name)
+	private cleanupInterval: NodeJS.Timeout | null = null
+	private statsInterval: NodeJS.Timeout | null = null
 
 	constructor() {
 		// Auto-cleanup expired entries every 30 seconds
-		setInterval(() => this.cleanupExpired(), 30_000)
+		this.cleanupInterval = setInterval(() => this.cleanupExpired(), 30_000)
 
 		// Performance monitoring every 60 seconds
-		setInterval(() => this.updateStats(), 60_000)
+		this.statsInterval = setInterval(() => this.updateStats(), 60_000)
+	}
+
+	/**
+	 * Cleanup intervals on module destruction to prevent memory leaks
+	 */
+	onModuleDestroy(): void {
+		if (this.cleanupInterval) {
+			clearInterval(this.cleanupInterval)
+			this.cleanupInterval = null
+		}
+		if (this.statsInterval) {
+			clearInterval(this.statsInterval)
+			this.statsInterval = null
+		}
+		this.logger.log('Cache service cleanup completed')
 	}
 
 	/**

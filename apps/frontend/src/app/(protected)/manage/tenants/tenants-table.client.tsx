@@ -6,7 +6,7 @@ import { DataTable } from '#components/ui/data-table'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '#components/ui/alert-dialog'
 import { Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import { useOptimistic, useState, useTransition, useEffect } from 'react'
+import { useOptimistic, useState, useTransition, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 import { ColumnDef } from '@tanstack/react-table'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
@@ -30,20 +30,24 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 	)
 
 	const resendInvitationMutation = useResendInvitation()
+	
+	// Store mutation in ref to prevent re-registering event listener
+	const mutationRef = useRef(resendInvitationMutation)
+	mutationRef.current = resendInvitationMutation
 
 	// Listen for resend invitation events from columns
 	useEffect(() => {
 		const handleResendInvitation = (event: Event) => {
 			const customEvent = event as CustomEvent<{ tenantId: string }>
 			const { tenantId } = customEvent.detail
-			resendInvitationMutation.mutate(tenantId)
+			mutationRef.current.mutate(tenantId)
 		}
 
 		window.addEventListener('resend-invitation', handleResendInvitation)
 		return () => {
 			window.removeEventListener('resend-invitation', handleResendInvitation)
 		}
-	}, [resendInvitationMutation])
+	}, []) // Empty deps - listener only registered once
 
 	const handleDelete = (tenantId: string, tenantName: string) => {
 		setDeletingId(tenantId)
