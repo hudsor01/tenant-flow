@@ -199,6 +199,265 @@ Simple client data? → useState/useReducer
 - Hierarchical query keys: `entityKeys.all`, `entityKeys.list()`, `entityKeys.detail(id)`
 - TanStack Form: `useEntityForm()`, `useEntityUpdateForm()`, `useEntityFieldTransformers()`, `useAsyncEntityValidation()`
 
+### Custom Hooks vs Raw useQuery (2025 Best Practices)
+
+**IMPORTANT**: The "NO ABSTRACTIONS" principle applies to **HTTP wrapper layers**, NOT React custom hooks.
+
+**✅ ALLOWED - Custom TanStack Query Hooks**:
+```typescript
+// ✅ CORRECT - Custom hook using native platform features
+export function useProperty(id: string) {
+  return useQuery({
+    queryKey: propertiesKeys.detail(id),
+    queryFn: () => fetch(`/api/v1/properties/${id}`).then(r => r.json())
+  })
+}
+```
+
+**❌ FORBIDDEN - HTTP Abstraction Layers**:
+```typescript
+// ❌ WRONG - Wrapper around fetch (violates "NO ABSTRACTIONS")
+class ApiClient {
+  async get(url: string) {
+    return fetch(url).then(r => r.json())
+  }
+}
+```
+
+**Why Custom Hooks Are Allowed**:
+1. Official TanStack Query recommendation: "custom hooks that wrap around" built-in hooks
+2. React official docs recommend custom hooks for "complex patterns with side effects"
+3. TkDodo (React Query maintainer) uses custom hooks in all testing examples
+4. Custom hooks use native `useQuery` + `fetch()` directly - no abstraction layer
+5. Better testing, maintainability, and consistency
+
+**Hook Pattern**:
+- **READ**: `useEntity(id)` - wraps `useQuery`
+- **LIST**: `useEntityList(filters)` - wraps `useQuery`
+- **CREATE**: `useCreateEntity()` - wraps `useMutation`
+- **UPDATE**: `useUpdateEntity()` - wraps `useMutation`
+- **DELETE**: `useDeleteEntity()` - wraps `useMutation` (test cleanup only if legal constraints)
+- **Special Operations**: `useMarkEntitySold()`, `useCompleteEntity()`, etc.
+
+**Production Code Should**:
+```typescript
+// ✅ DO THIS - Use custom hooks consistently
+const { data: property } = useProperty(id)
+const { data: properties } = usePropertyList(filters)
+const createMutation = useCreateProperty()
+
+// ❌ NOT THIS - Raw useQuery scattered throughout components
+const { data: property } = useQuery({
+  queryKey: ['property', id],
+  queryFn: () => fetch(`/api/v1/properties/${id}`).then(r => r.json())
+})
+```
+
+## Testing - Integration Tests (2025 Best Practices)
+
+### Philosophy
+**Mirror production usage exactly** - test what the UI actually uses, not every hook that exists.
+
+### Test Organization
+```
+apps/frontend/tests/integration/hooks/api/
+├── use-properties-crud.test.tsx
+├── use-units-crud.test.tsx
+├── use-leases-crud.test.tsx
+├── use-maintenance-crud.test.tsx
+└── use-rent-payments-crud.test.tsx
+```
+
+### What to Test
+**✅ Test hooks used in production**:
+- If form uses `useCreateProperty()` → test it
+- If detail page uses `useProperty(id)` → test it
+- If list page uses `usePropertyList()` → test it
+
+**❌ Don't test unused hooks**:
+- Hook exists but no UI uses it → skip test
+- Feature not implemented yet → skip test
+- Legal constraints prevent usage → skip test (e.g., delete with 7-year retention)
+
+### Audit Production Usage First
+Before writing tests, search for actual usage:
+```bash
+# Find hook imports
+grep -r "from '#hooks/api/use-entity'" apps/frontend/src/
+
+# Find hook usage
+grep -r "useEntity\|useCreateEntity\|useUpdateEntity" apps/frontend/src/
+```
+
+### Test Pattern (Custom Hooks)
+```typescript
+describe('Properties Integration Tests', () => {
+  let createdPropertyIds: string[] = []
+
+  afterEach(async () => {
+    // Cleanup in reverse foreign key order
+    for (const id of createdPropertyIds) {
+      await fetch(`/api/v1/properties/${id}`, { method: 'DELETE' })
+    }
+    createdPropertyIds = []
+  })
+
+  function createWrapper() {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false, gcTime: 0 },
+        mutations: { retry: false }
+      }
+    })
+    return ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    )
+  }
+
+  describe('CREATE Property', () => {
+    it('creates property successfully', async () => {
+      const { result } = renderHook(() => useCreateProperty(), {
+        wrapper: createWrapper()
+      })
+
+      const newProperty: CreatePropertyInput = {
+        name: `TEST Property ${Date.now()}`,
+        propertyType: 'APARTMENT'
+      }
+
+      const created = await result.current.mutateAsync(newProperty)
+
+      expect(created.version).toBe(1)
+      createdPropertyIds.push(created.id)
+    })
+  })
+
+  describe('UPDATE Property', () => {
+    it('updates property with optimistic locking', async () => {
+      const wrapper = createWrapper()
+
+      // CRITICAL: Populate cache first for optimistic locking
+      const { result: readResult } = renderHook(() => useProperty(testPropertyId), {
+        wrapper
+      })
+
+      await waitFor(() => {
+        expect(readResult.current.isSuccess).toBe(true)
+      })
+
+      // Now update has version in cache
+      const { result } = renderHook(() => useUpdateProperty(), { wrapper })
+
+      const updated = await result.current.mutateAsync({
+        id: testPropertyId,
+        data: { name: 'Updated Name' }
+      })
+
+      expect(updated.version).toBe(2) // Version incremented
+    })
+  })
+})
+```
+
+### Critical Patterns
+
+**1. Shared QueryClient for Cache Tests**
+```typescript
+// ❌ WRONG - Different QueryClients, cache won't coordinate
+const { result: mutation } = renderHook(() => useMutation(), {
+  wrapper: createWrapper() // QueryClient #1
+})
+const { result: query } = renderHook(() => useQuery(), {
+  wrapper: createWrapper() // QueryClient #2 - different!
+})
+
+// ✅ CORRECT - Same QueryClient
+const wrapper = createWrapper()
+const { result: mutation } = renderHook(() => useMutation(), { wrapper })
+const { result: query } = renderHook(() => useQuery(), { wrapper })
+```
+
+**2. Optimistic Locking Requires Cache Population**
+```typescript
+// ❌ WRONG - Cache empty, no version, 409 error
+await updateMutation.mutateAsync({ id, data })
+
+// ✅ CORRECT - Fetch first to populate cache
+const { result } = renderHook(() => useProperty(id), { wrapper })
+await waitFor(() => expect(result.current.isSuccess).toBe(true))
+// Now cache has version field
+await updateMutation.mutateAsync({ id, data })
+```
+
+**3. Never Use waitFor with Async Functions**
+```typescript
+// ❌ WRONG - Causes 30-second timeouts
+await waitFor(async () => {
+  const result = await mutation.mutateAsync(data)
+})
+
+// ✅ CORRECT - Direct await
+const result = await mutation.mutateAsync(data)
+
+// ✅ CORRECT - waitFor for sync assertions
+await waitFor(() => {
+  expect(result.current.isSuccess).toBe(true)
+})
+```
+
+**4. Foreign Key Cleanup Order**
+```typescript
+afterEach(async () => {
+  // Delete children first, parents last
+  for (const id of createdLeaseIds) { /* delete */ }
+  for (const id of createdTenantIds) { /* delete */ }
+  for (const id of createdUnitIds) { /* delete */ }
+  for (const id of createdPropertyIds) { /* delete */ }
+})
+```
+
+### Business Rules to Mirror
+
+**Properties**:
+- ❌ NO DELETE tests (7-year legal retention requirement)
+- ✅ YES MARK SOLD tests (end-of-lifecycle operation)
+- DELETE endpoint exists ONLY for test cleanup
+
+**Rent Payments**:
+- ✅ YES CREATE tests
+- ✅ YES READ tests
+- ❌ NO UPDATE tests (immutable - accounting best practice)
+- ❌ NO DELETE tests (immutable - accounting best practice)
+
+### Running Tests
+```bash
+# All integration tests
+pnpm --filter @repo/frontend test:integration
+
+# Specific entity
+pnpm --filter @repo/frontend test:integration use-properties-crud
+
+# With UI for debugging
+pnpm --filter @repo/frontend test:integration --ui
+
+# Prerequisites
+doppler run -- pnpm --filter @repo/backend dev  # Backend must be running
+```
+
+### Test Configuration
+**File**: `apps/frontend/vitest.integration.config.js`
+- Environment: jsdom
+- Setup: `apps/frontend/src/test/setup.ts` (authenticates before tests)
+- Timeout: 30000ms
+- Threads: false (serial execution)
+- Retry: 1
+
+### Documentation
+- **TESTING-BEST-PRACTICES-ANALYSIS.md** - Official recommendations vs project principles
+- **CRUD-TESTING-LESSONS-LEARNED.md** - Patterns, gotchas, performance improvements
+- **PRODUCTION-HOOKS-AUDIT.md** - Which hooks are actually used in production
+- **CRUD-TESTING-IMPLEMENTATION-SUMMARY.md** - Complete implementation overview
+
 ## CSS - TailwindCSS 4.1
 
 **90% Tailwind utilities**, 10% design tokens (`@theme`)

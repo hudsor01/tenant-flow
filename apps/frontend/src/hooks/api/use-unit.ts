@@ -65,7 +65,9 @@ export function useUnitsByProperty(propertyId: string) {
 	return useQuery({
 		queryKey: unitKeys.byProperty(propertyId),
 		queryFn: async (): Promise<{ data: Unit[]; total: number }> => {
-			const response = await clientFetch<Unit[]>(`/api/v1/units/by-property/${propertyId}`)
+			const response = await clientFetch<Unit[]>(
+				`/api/v1/units/by-property/${propertyId}`
+			)
 
 			// Prefetch individual unit details for faster navigation
 			response?.forEach?.(unit => {
@@ -117,7 +119,9 @@ export function useUnitList(params?: {
 			searchParams.append('limit', limit.toString())
 			searchParams.append('offset', offset.toString())
 
-			const response = await clientFetch<Unit[]>(`/api/v1/units?${searchParams.toString()}`)
+			const response = await clientFetch<Unit[]>(
+				`/api/v1/units?${searchParams.toString()}`
+			)
 
 			// Prefetch individual unit details for faster navigation
 			response?.forEach?.(unit => {
@@ -286,7 +290,11 @@ export function useUpdateUnit() {
 			return clientFetch<Unit>(`/api/v1/units/${id}`, {
 				method: 'PUT',
 				// Use withVersion helper to include version in request
-				body: JSON.stringify(withVersion(data, currentUnit?.version))
+				body: JSON.stringify(
+					currentUnit?.version !== null
+						? withVersion(data, currentUnit.version)
+						: data
+				)
 			})
 		},
 		onMutate: async ({ id, data }) => {
@@ -295,9 +303,7 @@ export function useUpdateUnit() {
 			await queryClient.cancelQueries({ queryKey: unitKeys.all })
 
 			// Snapshot all relevant caches for comprehensive rollback
-			const previousDetail = queryClient.getQueryData<Unit>(
-				unitKeys.detail(id)
-			)
+			const previousDetail = queryClient.getQueryData<Unit>(unitKeys.detail(id))
 			const previousLists = queryClient.getQueriesData<{
 				data: Unit[]
 				total: number
@@ -397,9 +403,7 @@ export function useDeleteUnit(options?: {
 			await queryClient.cancelQueries({ queryKey: unitKeys.all })
 
 			// Snapshot previous state
-			const previousDetail = queryClient.getQueryData<Unit>(
-				unitKeys.detail(id)
-			)
+			const previousDetail = queryClient.getQueryData<Unit>(unitKeys.detail(id))
 			const previousLists = queryClient.getQueriesData<{
 				data: Unit[]
 				total: number
