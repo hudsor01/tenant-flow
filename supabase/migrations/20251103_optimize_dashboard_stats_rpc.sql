@@ -3,7 +3,7 @@
 -- Impact: 90% reduction in execution time (25s → 2.5s for 100 properties)
 -- November 3, 2025
 
-CREATE OR REPLACE FUNCTION get_dashboard_stats_optimized(p_user_id TEXT)
+CREATE OR REPLACE FUNCTION get_dashboard_stats(p_user_id TEXT)
 RETURNS JSON AS $$
 DECLARE
   stats JSON;
@@ -71,4 +71,4 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
-COMMENT ON FUNCTION get_dashboard_stats_optimized IS 'Optimized dashboard stats with LEFT JOINs instead of correlated subqueries - performance audit 2025-11-03';
+COMMENT ON FUNCTION get_dashboard_stats IS 'Optimized dashboard stats with LEFT JOINs instead of correlated subqueries - performance audit 2025-11-03';
