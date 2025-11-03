@@ -121,8 +121,8 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			annual: 790
 		},
 		stripePriceIds: {
-			monthly: 'price_1RtWFdP3WCR53Sdoz98FFpSu' as StripePriceId,
-			annual: 'price_1RtWFdP3WCR53SdoHDRR9kAJ' as StripePriceId
+			monthly: 'price_1SPGCNP3WCR53SdorjDpiSy5' as StripePriceId,
+			annual: 'price_1SPGCRP3WCR53SdonqLUTJgK' as StripePriceId
 		},
 		limits: {
 			properties: 20,
@@ -152,12 +152,12 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		name: 'TenantFlow Max',
 		description: 'Enterprise solution for property management professionals',
 		price: {
-			monthly: 299,
-			annual: 2990
+			monthly: 199,
+			annual: 1989
 		},
 		stripePriceIds: {
-			monthly: 'price_1S645BP3WCR53SdoSGL8gzLd' as StripePriceId,
-			annual: 'price_1S645BP3WCR53SdobSnLUXFx' as StripePriceId
+			monthly: 'price_1SPGCjP3WCR53SdoIpidDn0T' as StripePriceId,
+			annual: 'price_1SPGCoP3WCR53SdoID50geIC' as StripePriceId
 		},
 		limits: {
 			properties: -1,

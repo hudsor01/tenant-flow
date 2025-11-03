@@ -23,7 +23,7 @@ export function SectionCards({ stats = {} }: SectionCardsProps) {
 		<div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 			{/* Revenue Card */}
 			<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/50">
-				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+				<div className="absolute inset-0 bg-primary/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 				<div className="relative p-5">
 					<div className="flex items-center justify-between mb-4">
 						<p className="text-sm font-medium text-muted-foreground">
@@ -64,7 +64,7 @@ export function SectionCards({ stats = {} }: SectionCardsProps) {
 
 			{/* Tenants Card */}
 			<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-500/50">
-				<div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+				<div className="absolute inset-0 bg-blue-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 				<div className="relative p-5">
 					<div className="flex items-center justify-between mb-4">
 						<p className="text-sm font-medium text-muted-foreground">
@@ -93,7 +93,7 @@ export function SectionCards({ stats = {} }: SectionCardsProps) {
 
 			{/* Properties Card */}
 			<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/5 hover:border-purple-500/50">
-				<div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+				<div className="absolute inset-0 bg-purple-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 				<div className="relative p-5">
 					<div className="flex items-center justify-between mb-4">
 						<p className="text-sm font-medium text-muted-foreground">
@@ -122,7 +122,7 @@ export function SectionCards({ stats = {} }: SectionCardsProps) {
 
 			{/* Occupancy Rate Card */}
 			<div className="group relative overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/5 hover:border-amber-500/50">
-				<div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+				<div className="absolute inset-0 bg-amber-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 				<div className="relative p-5">
 					<div className="flex items-center justify-between mb-4">
 						<p className="text-sm font-medium text-muted-foreground">

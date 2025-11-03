@@ -3,7 +3,7 @@
 import { AppSidebar } from '#components/dashboard/app-sidebar'
 import { SiteHeader } from '#components/dashboard/site-header'
 import { ViewTransitionsProvider } from '#providers/view-transitions-provider'
-import { Breadcrumbs } from '#components/ui/breadcrumbs'
+import { Breadcrumbs } from '#components/ui/breadcrumb'
 import { SidebarInset, SidebarProvider } from '#components/ui/sidebar'
 import { generateBreadcrumbs } from '#lib/breadcrumbs'
 import { usePathname } from 'next/navigation'

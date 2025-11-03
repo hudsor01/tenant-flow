@@ -196,7 +196,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 		// React Spring animations
 		const navbarSpring = useSpring({
 			y: 0,
-			from: { y: -100 },
+			from: { y: 0 },
 			config: { mass: 1, tension: 120, friction: 14 }
 		})
 

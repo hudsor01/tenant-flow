@@ -151,7 +151,7 @@ export function cardClasses(
 		elevated: 'shadow-md',
 		interactive: 'shadow-sm hover:shadow-md transition-shadow cursor-pointer',
 		premium:
-			'shadow-lg border-primary/20 bg-gradient-to-br from-card to-card/50'
+			'shadow-lg border-primary/20 bg-card/80'
 	}
 
 	return cn(baseClasses, variantClasses[variant], className)

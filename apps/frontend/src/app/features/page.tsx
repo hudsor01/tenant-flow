@@ -5,6 +5,8 @@ import { Badge } from '#components/ui/badge'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
+import { LazySection } from '#components/ui/lazy-section'
+import { SectionSkeleton } from '#components/ui/section-skeleton'
 import { cn } from '#lib/utils'
 import {
 	ArrowRight,
@@ -23,6 +25,8 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 export default function FeaturesPage() {
+	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
+
 	const [currentTestimonial, setCurrentTestimonial] = useState(0)
 	const [stickyCtaVisible, setStickyCtaVisible] = useState(false)
 
@@ -34,6 +38,26 @@ export default function FeaturesPage() {
 		window.addEventListener('scroll', handleScroll)
 		return () => window.removeEventListener('scroll', handleScroll)
 	}, [])
+
+	// Breadcrumb Schema
+	const breadcrumbSchema = {
+		'@context': 'https://schema.org',
+		'@type': 'BreadcrumbList',
+		itemListElement: [
+			{
+				'@type': 'ListItem',
+				position: 1,
+				name: 'Home',
+				item: baseUrl
+			},
+			{
+				'@type': 'ListItem',
+				position: 2,
+				name: 'Features',
+				item: `${baseUrl}/features`
+			}
+		]
+	}
 
 	const testimonials = [
 		{
@@ -84,6 +108,12 @@ export default function FeaturesPage() {
 
 	return (
 		<div className="relative min-h-screen flex flex-col">
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{
+					__html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')
+				}}
+			/>
 			{/* Full page grid background */}
 			<GridPattern className="fixed inset-0 -z-10" />
 
@@ -318,6 +348,10 @@ export default function FeaturesPage() {
 			</section>
 
 			{/* Trust Indicators with Customer Testimonials */}
+			<LazySection
+				fallback={<SectionSkeleton height={400} variant="card" />}
+				minHeight={400}
+			>
 			<section className="section-compact bg-linear-to-r from-primary/2 via-background to-primary/2">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.2} inView>
@@ -387,10 +421,15 @@ export default function FeaturesPage() {
 					</BlurFade>
 				</div>
 			</section>
+			</LazySection>
 
 			{/* Canonical Bento features grid - Removed: Component deleted during refactoring */}
 
 			{/* Transformation Journey - Redesigned Feature Callouts */}
+			<LazySection
+				fallback={<SectionSkeleton height={600} variant="grid" />}
+				minHeight={600}
+			>
 			<section className="section-content">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.3} inView>
@@ -573,8 +612,13 @@ export default function FeaturesPage() {
 					</BlurFade>
 				</div>
 			</section>
+			</LazySection>
 
 			{/* Results Proof Section */}
+			<LazySection
+				fallback={<SectionSkeleton height={500} variant="grid" />}
+				minHeight={500}
+			>
 			<section className="section-content bg-linear-to-br from-primary/2 via-background to-accent/2">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.4} inView>
@@ -635,8 +679,13 @@ export default function FeaturesPage() {
 					</BlurFade>
 				</div>
 			</section>
+			</LazySection>
 
 			{/* Final CTA Section with Enhanced Design */}
+			<LazySection
+				fallback={<SectionSkeleton height={400} variant="card" />}
+				minHeight={400}
+			>
 			<section className="section-content relative overflow-hidden">
 				{/* Enhanced background */}
 				<div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-accent/5">
@@ -710,6 +759,7 @@ export default function FeaturesPage() {
 					</BlurFade>
 				</div>
 			</section>
+			</LazySection>
 
 			<Footer />
 		</div>

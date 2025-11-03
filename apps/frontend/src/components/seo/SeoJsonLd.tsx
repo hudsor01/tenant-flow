@@ -1,12 +1,19 @@
 import { getJsonLd } from '#lib/generate-metadata'
 
 export default function SeoJsonLd() {
-	const json = getJsonLd()
+	const schemas = getJsonLd()
 
 	return (
-		<script
-			type="application/ld+json"
-			dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
-		/>
+		<>
+			{schemas.map((schema, index) => (
+				<script
+					key={`schema-${index}`}
+					type="application/ld+json"
+					dangerouslySetInnerHTML={{
+						__html: JSON.stringify(schema).replace(/</g, '\\u003c')
+					}}
+				/>
+			))}
+		</>
 	)
 }

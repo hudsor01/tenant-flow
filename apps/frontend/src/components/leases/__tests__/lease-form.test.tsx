@@ -5,9 +5,9 @@
  * @jest-environment jsdom
  */
 
-import { render, screen, waitFor } from '#test/utils'
+import { render, screen } from '#test/utils'
 import { LeaseForm } from '../lease-form.client'
-import type { Lease, Unit } from '@repo/shared/types/core'
+import type { Lease } from '@repo/shared/types/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
@@ -28,17 +28,31 @@ vi.mock('#hooks/api/use-lease', () => ({
 }))
 
 vi.mock('#hooks/api/use-tenant', () => ({
-	useAllTenants: () => ({
-		data: [
-			{ id: 'tenant-1', name: 'John Doe', email: 'john@example.com' },
-			{ id: 'tenant-2', name: 'Jane Smith', email: 'jane@example.com' }
-		],
+	useTenantList: () => ({
+		data: {
+			data: [
+				{ id: 'tenant-1', name: 'John Doe', email: 'john@example.com' },
+				{ id: 'tenant-2', name: 'Jane Smith', email: 'jane@example.com' }
+			]
+		},
+		isLoading: false
+	})
+}))
+
+vi.mock('#hooks/api/use-properties', () => ({
+	usePropertyList: () => ({
+		data: {
+			data: [
+				{ id: 'property-1', name: 'Main Street Apartments', address: '123 Main St' },
+				{ id: 'property-2', name: 'Oak Avenue Complex', address: '456 Oak Ave' }
+			]
+		},
 		isLoading: false
 	})
 }))
 
 vi.mock('#hooks/api/use-unit', () => ({
-	useVacantUnits: () => ({
+	useUnitsByProperty: () => ({
 		data: {
 			data: [
 				{
@@ -87,7 +101,14 @@ const DEFAULT_LEASE: Lease = {
 	securityDeposit: 1500,
 	terms: 'Standard lease terms',
 	status: 'ACTIVE',
-	leaseType: 'FIXED',
+	gracePeriodDays: null,
+	lateFeeAmount: null,
+	lateFeePercentage: null,
+	lease_document_url: null,
+	monthlyRent: null,
+	signature: null,
+	signed_at: null,
+	stripe_subscription_id: null,
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z',
 	version: 1
@@ -129,10 +150,13 @@ describe('LeaseForm', () => {
 			// Note: In create mode, only vacant units from useVacantUnits should be shown
 		})
 
-		test('does not show status field in create mode', () => {
+		test('shows status field defaulting to DRAFT in create mode', () => {
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
-			expect(screen.queryByLabelText(/status/i)).not.toBeInTheDocument()
+			const statusSelect = screen.getByLabelText(/status/i)
+			expect(statusSelect).toBeInTheDocument()
+			// Default status should be DRAFT - check the button has Draft selected
+			expect(statusSelect).toHaveTextContent('Draft')
 		})
 
 		test('displays correct button text in create mode', () => {
@@ -150,8 +174,9 @@ describe('LeaseForm', () => {
 			expect(screen.getByText(/unit \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/start date \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/end date \*/i)).toBeInTheDocument()
-			expect(screen.getByText(/monthly rent \(usd\) \*/i)).toBeInTheDocument()
-			expect(screen.getByText(/security deposit \(usd\) \*/i)).toBeInTheDocument()
+			expect(screen.getByText(/monthly rent \*/i)).toBeInTheDocument()
+			expect(screen.getByText(/security deposit \*/i)).toBeInTheDocument()
+			expect(screen.getByText(/status \*/i)).toBeInTheDocument()
 		})
 	})
 
@@ -163,7 +188,7 @@ describe('LeaseForm', () => {
 			expect(screen.getByLabelText(/end date/i)).toHaveValue('2024-12-31')
 			expect(screen.getByLabelText(/monthly rent/i)).toHaveValue(1500)
 			expect(screen.getByLabelText(/security deposit/i)).toHaveValue(1500)
-			expect(screen.getByLabelText(/lease terms/i)).toHaveValue('Standard lease terms')
+			expect(screen.getByLabelText(/terms/i)).toHaveValue('Standard lease terms')
 		})
 
 		test('shows status field in edit mode', () => {
@@ -274,7 +299,7 @@ describe('LeaseForm', () => {
 			await user.type(screen.getByLabelText(/monthly rent/i), '1500')
 			await user.type(screen.getByLabelText(/security deposit/i), '1500')
 			await user.type(
-				screen.getByLabelText(/lease terms/i),
+				screen.getByLabelText(/terms/i),
 				'Standard lease agreement'
 			)
 
@@ -282,7 +307,7 @@ describe('LeaseForm', () => {
 			expect(screen.getByLabelText(/end date/i)).toHaveValue('2024-12-31')
 			expect(screen.getByLabelText(/monthly rent/i)).toHaveValue(1500)
 			expect(screen.getByLabelText(/security deposit/i)).toHaveValue(1500)
-			expect(screen.getByLabelText(/lease terms/i)).toHaveValue(
+			expect(screen.getByLabelText(/terms/i)).toHaveValue(
 				'Standard lease agreement'
 			)
 		})
@@ -296,6 +321,15 @@ describe('LeaseForm', () => {
 
 			// Note: window.history.back() is called, which we can't easily test in jsdom
 			// This test verifies the button exists and is clickable
+		})
+
+		test('handles property selection', async () => {
+			renderWithQueryClient(<LeaseForm mode="create" />)
+
+			const propertySelect = screen.getByLabelText(/property/i)
+			expect(propertySelect).toBeInTheDocument()
+			// Note: SelectValue placeholder should be visible
+			expect(screen.getByText(/select property/i)).toBeInTheDocument()
 		})
 
 		test('handles tenant selection', async () => {
@@ -321,13 +355,15 @@ describe('LeaseForm', () => {
 		test('all form fields have proper labels', () => {
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
-			expect(screen.getByLabelText(/tenant/i)).toBeInTheDocument()
+			expect(screen.getByLabelText(/property/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/unit/i)).toBeInTheDocument()
+			expect(screen.getByLabelText(/tenant/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/start date/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/end date/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/monthly rent/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/security deposit/i)).toBeInTheDocument()
-			expect(screen.getByLabelText(/lease terms/i)).toBeInTheDocument()
+			expect(screen.getByLabelText(/status/i)).toBeInTheDocument()
+			expect(screen.getByLabelText(/terms/i)).toBeInTheDocument()
 		})
 
 		test('numeric inputs have appropriate type and constraints', () => {
@@ -354,7 +390,7 @@ describe('LeaseForm', () => {
 		test('textarea has appropriate rows attribute', () => {
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
-			const termsTextarea = screen.getByLabelText(/lease terms/i)
+			const termsTextarea = screen.getByLabelText(/terms/i)
 			expect(termsTextarea).toHaveAttribute('rows', '4')
 		})
 	})
@@ -394,29 +430,11 @@ describe('LeaseForm', () => {
 		})
 
 		test('shows correct placeholder text based on mode', () => {
-			const { rerender } = renderWithQueryClient(<LeaseForm mode="create" />)
+			renderWithQueryClient(<LeaseForm mode="create" />)
 
+			// Form uses same placeholder in both modes
 			expect(
-				screen.getByPlaceholderText(/outline key lease terms and notes/i)
-			).toBeInTheDocument()
-
-			rerender(
-				<QueryClientProvider
-					client={
-						new QueryClient({
-							defaultOptions: {
-								queries: { retry: false },
-								mutations: { retry: false }
-							}
-						})
-					}
-				>
-					<LeaseForm mode="edit" lease={DEFAULT_LEASE} />
-				</QueryClientProvider>
-			)
-
-			expect(
-				screen.getByPlaceholderText(/update lease terms and notes/i)
+				screen.getByPlaceholderText(/additional lease terms and conditions/i)
 			).toBeInTheDocument()
 		})
 
@@ -432,18 +450,16 @@ describe('LeaseForm', () => {
 	})
 
 	describe('Financial Fields', () => {
-		test('renders rent amount with USD label', () => {
+		test('renders monthly rent label', () => {
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
-			expect(screen.getByText(/monthly rent \(usd\)/i)).toBeInTheDocument()
+			expect(screen.getByText(/monthly rent \*/i)).toBeInTheDocument()
 		})
 
-		test('renders security deposit with USD label', () => {
+		test('renders security deposit label', () => {
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
-			expect(
-				screen.getByText(/security deposit \(usd\)/i)
-			).toBeInTheDocument()
+			expect(screen.getByText(/security deposit \*/i)).toBeInTheDocument()
 		})
 
 		test('initializes rent amount to 0 in create mode', () => {

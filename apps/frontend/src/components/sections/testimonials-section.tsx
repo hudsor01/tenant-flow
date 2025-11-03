@@ -81,7 +81,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 									</div>
 
 									{/* Subtle gradient overlay on hover */}
-									<div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-br from-primary/[0.02] to-transparent rounded-2xl pointer-events-none transition-opacity duration-300" />
+									<div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-primary/2 rounded-2xl pointer-events-none transition-opacity duration-300" />
 								</div>
 							</div>
 						</BlurFade>

@@ -62,7 +62,6 @@ Disallow: /
 # Host and Sitemaps
 Host: https://tenantflow.app
 Sitemap: https://tenantflow.app/sitemap.xml
-Sitemap: https://tenantflow.app/sitemap-index.xml
 
 # Crawl rate
 Request-rate: 1/10s

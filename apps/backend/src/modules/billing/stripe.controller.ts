@@ -7,6 +7,7 @@ import {
 	Get,
 	HttpCode,
 	HttpStatus,
+	Inject,
 	InternalServerErrorException,
 	Logger,
 	NotFoundException,
@@ -19,10 +20,12 @@ import {
 	UnauthorizedException,
 	UseGuards
 } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import type { Cache } from 'cache-manager'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import { RolesGuard } from '../../shared/guards/roles.guard'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
-// REMOVED: EventEmitter2, Headers, Req, Request - Webhook endpoint removed
 import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
 import Stripe from 'stripe'
 import { createHmac } from 'crypto'
@@ -38,7 +41,6 @@ import type {
 	VerifyCheckoutSessionRequest
 } from './stripe-interfaces'
 import { StripeService } from './stripe.service'
-// CLAUDE.md Compliant: NO custom DTOs - using native validation only
 
 /**
  * Production-Grade Stripe Integration Controller
@@ -58,8 +60,8 @@ export class StripeController {
 
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		// REMOVED: eventEmitter - Event emission now handled by Stripe Sync Engine
-		private readonly stripeService: StripeService
+		private readonly stripeService: StripeService,
+		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
 	) {
 		this.stripe = this.stripeService.getStripe()
 	}
@@ -137,20 +139,27 @@ export class StripeController {
 		const currency = body.currency ?? 'usd'
 
 		try {
-			const paymentIntent = await this.stripe.paymentIntents.create({
-				amount: body.amount,
-				currency,
-				automatic_payment_methods: { enabled: true },
-				metadata: {
-					tenant_id: sanitizedTenantId,
-					...(sanitizedPropertyId && { property_id: sanitizedPropertyId }),
-					...(sanitizedSubscriptionType && {
-						subscription_type: sanitizedSubscriptionType
-					})
+			const paymentIntent = await this.stripe.paymentIntents.create(
+				{
+					amount: body.amount,
+					currency,
+					automatic_payment_methods: { enabled: true },
+					metadata: {
+						tenant_id: sanitizedTenantId,
+						...(sanitizedPropertyId && { property_id: sanitizedPropertyId }),
+						...(sanitizedSubscriptionType && {
+							subscription_type: sanitizedSubscriptionType
+						})
+					}
+				},
+				{
+					idempotencyKey: this.generateIdempotencyKey(
+						'pi',
+						body.tenantId,
+						body.amount.toString()
+					)
 				}
-			}, {
-				idempotencyKey: this.generateIdempotencyKey('pi', body.tenantId, body.amount.toString())
-			})
+			)
 
 			this.logger.log(
 				`Payment Intent created successfully: ${paymentIntent.id}`,
@@ -239,18 +248,21 @@ export class StripeController {
 					tenantId: body.tenantId
 				})
 
-				const customer = await this.stripe.customers.create({
-					...(body.customerEmail !== undefined && {
-						email: body.customerEmail
-					}),
-					...(body.customerName !== undefined && { name: body.customerName }),
-					metadata: {
-						tenant_id: sanitizedTenantId,
-						created_from: 'setup_intent'
+				const customer = await this.stripe.customers.create(
+					{
+						...(body.customerEmail !== undefined && {
+							email: body.customerEmail
+						}),
+						...(body.customerName !== undefined && { name: body.customerName }),
+						metadata: {
+							tenant_id: sanitizedTenantId,
+							created_from: 'setup_intent'
+						}
+					},
+					{
+						idempotencyKey: this.generateIdempotencyKey('cus', body.tenantId)
 					}
-				}, {
-					idempotencyKey: this.generateIdempotencyKey('cus', body.tenantId)
-				})
+				)
 
 				customerId = customer.id
 				this.logger.log(`Created Stripe customer: ${customerId}`, {
@@ -258,16 +270,19 @@ export class StripeController {
 				})
 			}
 
-			const setupIntent = await this.stripe.setupIntents.create({
-				customer: customerId,
-				usage: 'off_session',
-				payment_method_types: ['card'],
-				metadata: {
-					tenant_id: sanitizedTenantId
+			const setupIntent = await this.stripe.setupIntents.create(
+				{
+					customer: customerId,
+					usage: 'off_session',
+					payment_method_types: ['card'],
+					metadata: {
+						tenant_id: sanitizedTenantId
+					}
+				},
+				{
+					idempotencyKey: this.generateIdempotencyKey('si', body.tenantId)
 				}
-			}, {
-				idempotencyKey: this.generateIdempotencyKey('si', body.tenantId)
-			})
+			)
 
 			this.logger.log(`Setup Intent created: ${setupIntent.id}`, {
 				customer: customerId,
@@ -331,16 +346,23 @@ export class StripeController {
 					? `${user.firstName || ''} ${user.lastName || ''}`.trim()
 					: ''
 
-				const customer = await this.stripe.customers.create({
-					...(user?.email && { email: user.email }),
-					...(customerName && { name: customerName }),
-					metadata: {
-						tenant_id: tenant.id,
-						user_id: userId
+				const customer = await this.stripe.customers.create(
+					{
+						...(user?.email && { email: user.email }),
+						...(customerName && { name: customerName }),
+						metadata: {
+							tenant_id: tenant.id,
+							user_id: userId
+						}
+					},
+					{
+						idempotencyKey: this.generateIdempotencyKey(
+							'cus',
+							userId,
+							tenant.id
+						)
 					}
-				}, {
-					idempotencyKey: this.generateIdempotencyKey('cus', userId, tenant.id)
-				})
+				)
 
 				customerId = customer.id
 
@@ -367,13 +389,21 @@ export class StripeController {
 
 			// Set as default if requested
 			if (body.set_as_default) {
-				await this.stripe.customers.update(customerId, {
-					invoice_settings: {
-						default_payment_method: body.payment_method_id
+				await this.stripe.customers.update(
+					customerId,
+					{
+						invoice_settings: {
+							default_payment_method: body.payment_method_id
+						}
+					},
+					{
+						idempotencyKey: this.generateIdempotencyKey(
+							'cus_update',
+							userId,
+							customerId
+						)
 					}
-				}, {
-					idempotencyKey: this.generateIdempotencyKey('cus_update', userId, customerId)
-				})
+				)
 			}
 
 			this.logger.log(
@@ -578,33 +608,40 @@ export class StripeController {
 			: undefined
 
 		try {
-			const subscription = await this.stripe.subscriptions.create({
-				customer: body.customerId,
-				items: [
-					{
-						price_data: {
-							currency: 'usd',
-							product: body.productId,
-							recurring: { interval: 'month' },
-							unit_amount: body.amount
+			const subscription = await this.stripe.subscriptions.create(
+				{
+					customer: body.customerId,
+					items: [
+						{
+							price_data: {
+								currency: 'usd',
+								product: body.productId,
+								recurring: { interval: 'month' },
+								unit_amount: body.amount
+							}
 						}
+					],
+					payment_behavior: 'default_incomplete',
+					expand: ['latest_invoice.payment_intent'], // Official expand pattern
+					// P1: Free trial support (14-day trial)
+					trial_period_days: 14,
+					// P0: Automatic tax calculation (legal requirement)
+					automatic_tax: { enabled: true },
+					metadata: {
+						tenant_id: sanitizedTenantId,
+						...(sanitizedSubscriptionType && {
+							subscription_type: sanitizedSubscriptionType
+						})
 					}
-				],
-				payment_behavior: 'default_incomplete',
-				expand: ['latest_invoice.payment_intent'], // Official expand pattern
-				// P1: Free trial support (14-day trial)
-				trial_period_days: 14,
-				// P0: Automatic tax calculation (legal requirement)
-				automatic_tax: { enabled: true },
-				metadata: {
-					tenant_id: sanitizedTenantId,
-					...(sanitizedSubscriptionType && {
-						subscription_type: sanitizedSubscriptionType
-					})
+				},
+				{
+					idempotencyKey: this.generateIdempotencyKey(
+						'sub',
+						body.customerId,
+						body.tenantId
+					)
 				}
-			}, {
-				idempotencyKey: this.generateIdempotencyKey('sub', body.customerId, body.tenantId)
-			})
+			)
 
 			this.logger.log(`Subscription created: ${subscription.id}`, {
 				customer: body.customerId,
@@ -700,7 +737,11 @@ export class StripeController {
 					expand: ['latest_invoice']
 				},
 				{
-					idempotencyKey: this.generateIdempotencyKey('sub_update', body.subscriptionId, body.newPriceId)
+					idempotencyKey: this.generateIdempotencyKey(
+						'sub_update',
+						body.subscriptionId,
+						body.newPriceId
+					)
 				}
 			)
 
@@ -770,7 +811,10 @@ export class StripeController {
 						cancel_at_period_end: true
 					},
 					{
-						idempotencyKey: this.generateIdempotencyKey('sub_cancel', body.subscriptionId)
+						idempotencyKey: this.generateIdempotencyKey(
+							'sub_cancel',
+							body.subscriptionId
+						)
 					}
 				)
 
@@ -1259,7 +1303,11 @@ export class StripeController {
 				},
 				{
 					stripeAccount: body.connectedAccountId, // Property owner account
-					idempotencyKey: this.generateIdempotencyKey('pi_connected', body.tenantId, body.connectedAccountId)
+					idempotencyKey: this.generateIdempotencyKey(
+						'pi_connected',
+						body.tenantId,
+						body.connectedAccountId
+					)
 				}
 			)
 
@@ -1427,21 +1475,126 @@ export class StripeController {
 	@SetMetadata('isPublic', true)
 	@Get('products')
 	@HttpCode(HttpStatus.OK)
-	async getProducts() {
+	async getProducts(): Promise<{
+		success: boolean
+		products: Array<{
+			id: string
+			name: string
+			description: string | null
+			active: boolean
+			metadata: Stripe.Metadata
+			prices: Array<{
+				id: string
+				unit_amount: number
+				currency: string
+				recurring: {
+					interval: 'month' | 'year'
+					interval_count: number
+				} | null
+			}>
+			default_price: string | Stripe.Price | null | undefined
+		}>
+	}> {
+		const cacheKey = 'stripe:products'
+
+		// Try cache first (5 minute TTL for public pricing data)
+		const cached = await this.cacheManager.get(cacheKey) as {
+			success: boolean
+			products: Array<{
+				id: string
+				name: string
+				description: string | null
+				active: boolean
+				metadata: Stripe.Metadata
+				prices: Array<{
+					id: string
+					unit_amount: number
+					currency: string
+					recurring: {
+						interval: 'month' | 'year'
+						interval_count: number
+					} | null
+				}>
+				default_price: string | Stripe.Price | null | undefined
+			}>
+		} | undefined
+		if (cached) {
+			this.logger.debug('Returning cached products')
+			return cached
+		}
+
 		this.logger.log('Fetching products from Stripe API')
 
 		try {
-			const products = await this.stripe.products.list({
-				active: true,
-				limit: 100,
-				expand: ['data.default_price']
-			})
+			// Fetch products and prices in parallel for better performance
+			const [products, prices] = await Promise.all([
+				this.stripe.products.list({
+					active: true,
+					limit: 100,
+					expand: ['data.default_price']
+				}),
+				this.stripe.prices.list({
+					active: true,
+					limit: 100
+				})
+			])
 
-			this.logger.log(`Successfully fetched ${products.data.length} products`)
-			return {
-				success: true,
-				products: products.data
+			// Group prices by product
+			const pricesByProduct = new Map<
+				string,
+				Array<{
+					id: string
+					unit_amount: number
+					currency: string
+					recurring: {
+						interval: 'month' | 'year'
+						interval_count: number
+					} | null
+				}>
+			>()
+
+			for (const price of prices.data) {
+				const productId =
+					typeof price.product === 'string' ? price.product : price.product.id
+				if (!pricesByProduct.has(productId)) {
+					pricesByProduct.set(productId, [])
+				}
+				pricesByProduct.get(productId)!.push({
+					id: price.id,
+					unit_amount: price.unit_amount || 0,
+					currency: price.currency,
+					recurring: price.recurring
+						? {
+								interval: price.recurring.interval as 'month' | 'year',
+								interval_count: price.recurring.interval_count
+							}
+						: null
+				})
 			}
+
+			// Combine products with their prices
+			const productsWithPrices = products.data.map(product => ({
+				id: product.id,
+				name: product.name,
+				description: product.description,
+				active: product.active,
+				metadata: product.metadata,
+				prices: pricesByProduct.get(product.id) || [],
+				default_price: product.default_price
+			}))
+
+			const result = {
+				success: true,
+				products: productsWithPrices
+			}
+
+			// Cache for 5 minutes (300000ms)
+			await this.cacheManager.set(cacheKey, result, 300000)
+
+			this.logger.log(
+				`Successfully fetched ${productsWithPrices.length} products with prices`
+			)
+			return result
 		} catch (error) {
 			this.logger.error('Failed to fetch products from Stripe', error)
 
@@ -1465,7 +1618,22 @@ export class StripeController {
 	 */
 	@Get('prices')
 	@HttpCode(HttpStatus.OK)
-	async getPrices() {
+	async getPrices(): Promise<{
+		success: boolean
+		prices: Stripe.Price[]
+	}> {
+		const cacheKey = 'stripe:prices'
+
+		// Try cache first (5 minute TTL)
+		const cached = await this.cacheManager.get(cacheKey) as {
+			success: boolean
+			prices: Stripe.Price[]
+		} | undefined
+		if (cached) {
+			this.logger.debug('Returning cached prices')
+			return cached
+		}
+
 		this.logger.log('Fetching prices from Stripe API')
 
 		try {
@@ -1475,12 +1643,17 @@ export class StripeController {
 				expand: ['data.product']
 			})
 
-			this.logger.log(`Successfully fetched ${prices.data.length} prices`)
-
-			return {
+			const result = {
 				success: true,
 				prices: prices.data
 			}
+
+			// Cache for 5 minutes (300000ms)
+			await this.cacheManager.set(cacheKey, result, 300000)
+
+			this.logger.log(`Successfully fetched ${prices.data.length} prices`)
+
+			return result
 		} catch (error) {
 			this.logger.error('Failed to fetch prices from Stripe', error)
 			if (error instanceof Stripe.errors.StripeError) {
@@ -1499,6 +1672,15 @@ export class StripeController {
 	@Get('pricing-config')
 	@HttpCode(HttpStatus.OK)
 	async getPricingConfig() {
+		const cacheKey = 'stripe:pricing-config'
+
+		// Try cache first (10 minute TTL for pricing config - longer since it changes rarely)
+		const cached = await this.cacheManager.get(cacheKey)
+		if (cached) {
+			this.logger.debug('Returning cached pricing configuration')
+			return cached
+		}
+
 		this.logger.log('Fetching pricing configuration from Stripe API')
 
 		try {
@@ -1593,15 +1775,20 @@ export class StripeController {
 				})
 				.sort((a, b) => a.order - b.order)
 
-			this.logger.log(
-				`Successfully built pricing configuration for ${pricingConfig.length} products`
-			)
-
-			return {
+			const result = {
 				success: true,
 				config: pricingConfig,
 				lastUpdated: new Date().toISOString()
 			}
+
+			// Cache for 10 minutes (600000ms) - pricing config changes rarely
+			await this.cacheManager.set(cacheKey, result, 600000)
+
+			this.logger.log(
+				`Successfully built pricing configuration for ${pricingConfig.length} products`
+			)
+
+			return result
 		} catch (error) {
 			this.logger.error(
 				'Failed to fetch pricing configuration from Stripe',
@@ -1613,6 +1800,37 @@ export class StripeController {
 			throw new InternalServerErrorException(
 				'Pricing service unavailable [STR-004]'
 			)
+		}
+	}
+
+	/**
+	 * Clear pricing cache (admin only)
+	 * Use this when products/prices are updated in Stripe dashboard
+	 * Rate limiting and IP whitelist should be configured at infrastructure level
+	 */
+	@Post('pricing-config/invalidate-cache')
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@SetMetadata('admin-only', true)
+	@HttpCode(HttpStatus.OK)
+	async invalidatePricingCache() {
+		this.logger.log('Invalidating pricing cache')
+
+		try {
+			await Promise.all([
+				this.cacheManager.del('stripe:products'),
+				this.cacheManager.del('stripe:prices'),
+				this.cacheManager.del('stripe:pricing-config')
+			])
+
+			this.logger.log('Successfully invalidated pricing cache')
+
+			return {
+				success: true,
+				message: 'Pricing cache invalidated successfully'
+			}
+		} catch (error) {
+			this.logger.error('Failed to invalidate pricing cache', error)
+			throw new InternalServerErrorException('Failed to invalidate cache')
 		}
 	}
 
