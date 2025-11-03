@@ -22,9 +22,10 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	const { data: propertiesData } = usePropertyList()
 	const properties = propertiesData?.data ?? []
 
-	const { data: units = [] } = useAllUnits()
+	const { data: unitsResponse } = useAllUnits()
+	const units = unitsResponse?.data || []
 
-	const unit = units.find((u) => u.id === request?.unitId)
+	const unit = units.find(u => u.id === request?.unitId)
 	const property = properties.find(
 		(p) => p.id === unit?.propertyId
 	)

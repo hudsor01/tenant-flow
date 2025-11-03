@@ -2,17 +2,45 @@
 
 import Footer from '#components/layout/footer'
 import Navbar from '#components/layout/navbar'
-import FeaturesSectionDemo from '#components/sections/features-section'
 import { HeroSection } from '#components/sections/hero-section'
-import { PremiumCta } from '#components/sections/premium-cta'
-import { StatsShowcase } from '#components/sections/stats-showcase'
+import { LazySection } from '#components/ui/lazy-section'
+import { SectionSkeleton } from '#components/ui/section-skeleton'
+import dynamic from 'next/dynamic'
+
+// Lazy load below-the-fold sections
+const FeaturesSectionDemo = dynamic(
+	() => import('#components/sections/features-section'),
+	{
+		loading: () => <SectionSkeleton height={600} variant="grid" />
+	}
+)
+
+const StatsShowcase = dynamic(
+	() =>
+		import('#components/sections/stats-showcase').then(mod => ({
+			default: mod.StatsShowcase
+		})),
+	{
+		loading: () => <SectionSkeleton height={400} variant="card" />
+	}
+)
+
+const PremiumCta = dynamic(
+	() =>
+		import('#components/sections/premium-cta').then(mod => ({
+			default: mod.PremiumCta
+		})),
+	{
+		loading: () => <SectionSkeleton height={400} variant="card" />
+	}
+)
 
 export default function HomePage() {
 	return (
 		<div className="relative min-h-screen flex flex-col">
 			<Navbar />
 
-			{/* Hero Section */}
+			{/* Hero Section - Loaded immediately (above fold) */}
 			<HeroSection
 				trustBadge="Trusted by 10,000+ property managers"
 				title="Stop juggling"
@@ -27,10 +55,27 @@ export default function HomePage() {
 				}}
 			/>
 
-			{/* Magic UI Components */}
-			<FeaturesSectionDemo />
-			<StatsShowcase />
-			<PremiumCta />
+			{/* Below-the-fold sections - Lazy loaded with intersection observer */}
+			<LazySection
+				fallback={<SectionSkeleton height={600} variant="grid" />}
+				minHeight={600}
+			>
+				<FeaturesSectionDemo />
+			</LazySection>
+
+			<LazySection
+				fallback={<SectionSkeleton height={400} variant="card" />}
+				minHeight={400}
+			>
+				<StatsShowcase />
+			</LazySection>
+
+			<LazySection
+				fallback={<SectionSkeleton height={400} variant="card" />}
+				minHeight={400}
+			>
+				<PremiumCta />
+			</LazySection>
 
 			<Footer />
 		</div>

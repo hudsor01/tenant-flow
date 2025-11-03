@@ -17,6 +17,8 @@ import {
 	Req,
 	SetMetadata
 } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import type { Cache } from 'cache-manager'
 import type { Request } from 'express'
 import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
@@ -36,7 +38,8 @@ export class StripeSyncController {
 		private readonly stripeSyncService: StripeSyncService,
 		private readonly stripeClientService: StripeClientService,
 		private readonly supabaseService: SupabaseService,
-		private readonly accessControlService: StripeAccessControlService
+		private readonly accessControlService: StripeAccessControlService,
+		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
 	) {}
 
 	/**
@@ -136,6 +139,18 @@ export class StripeSyncController {
 				await this.handlePaymentSucceeded(event)
 			}
 
+			// Handle pricing cache invalidation when products/prices change
+			if (
+				event.type === 'product.created' ||
+				event.type === 'product.updated' ||
+				event.type === 'product.deleted' ||
+				event.type === 'price.created' ||
+				event.type === 'price.updated' ||
+				event.type === 'price.deleted'
+			) {
+				await this.invalidatePricingCache(event.type)
+			}
+
 			// Handle subscription access control
 			switch (event.type) {
 				case 'customer.subscription.created':
@@ -176,6 +191,35 @@ export class StripeSyncController {
 				error: error instanceof Error ? error.message : 'Unknown error'
 			})
 			// Don't throw - business logic errors shouldn't fail the webhook
+		}
+	}
+
+
+	/**
+	 * Invalidate pricing cache when products/prices change in Stripe
+	 * Called automatically by webhook handler on product/price events
+	 */
+	private async invalidatePricingCache(eventType: string) {
+		this.logger.log('Invalidating pricing cache due to webhook', {
+			eventType
+		})
+
+		try {
+			await Promise.all([
+				this.cacheManager.del('stripe:products'),
+				this.cacheManager.del('stripe:prices'),
+				this.cacheManager.del('stripe:pricing-config')
+			])
+
+			this.logger.log('Pricing cache invalidated successfully', {
+				eventType
+			})
+		} catch (error) {
+			this.logger.error('Failed to invalidate pricing cache', {
+				error: error instanceof Error ? error.message : 'Unknown error',
+				eventType
+			})
+			// Don't throw - cache invalidation errors shouldn't fail the webhook
 		}
 	}
 

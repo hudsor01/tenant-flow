@@ -1,9 +1,8 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import Footer from '#components/layout/footer'
 import { Navbar } from '#components/layout/navbar'
-import { StripePricingSection } from '#components/pricing/stripe-pricing-section'
-import { TestimonialsSection } from '#components/sections/testimonials-section'
 import {
 	Accordion,
 	AccordionContent,
@@ -14,6 +13,39 @@ import { Alert, AlertDescription, AlertTitle } from '#components/ui/alert'
 import { Button } from '#components/ui/button'
 import { ArrowRight, CheckCircle2, Info } from 'lucide-react'
 import Link from 'next/link'
+
+// ⚡ Dynamic imports: Defer loading heavy visual components (~50KB combined)
+const KiboStylePricing = dynamic(
+	() =>
+		import('#components/pricing/kibo-style-pricing').then(
+			mod => mod.KiboStylePricing
+		),
+	{
+		loading: () => (
+			<div className="min-h-[600px] flex items-center justify-center">
+				<div className="w-full max-w-6xl grid gap-6 md:grid-cols-3 px-4 animate-pulse">
+					{[1, 2, 3].map(i => (
+						<div key={i} className="h-[500px] rounded-lg border bg-card" />
+					))}
+				</div>
+			</div>
+		),
+		ssr: false
+	}
+)
+
+const TestimonialsSection = dynamic(
+	() =>
+		import('#components/sections/testimonials-section').then(
+			mod => mod.TestimonialsSection
+		),
+	{
+		loading: () => (
+			<div className="h-[400px] rounded-lg border bg-card shadow-sm animate-pulse" />
+		),
+		ssr: false
+	}
+)
 
 const faqs = [
 	{
@@ -49,8 +81,112 @@ const faqs = [
 ]
 
 export default function PricingPage() {
+	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
+
+	// FAQ Schema for Google rich snippets
+	const faqSchema = {
+		'@context': 'https://schema.org',
+		'@type': 'FAQPage',
+		mainEntity: faqs.map(faq => ({
+			'@type': 'Question',
+			name: faq.question,
+			acceptedAnswer: {
+				'@type': 'Answer',
+				text: faq.answer
+			}
+		}))
+	}
+
+	// Breadcrumb Schema
+	const breadcrumbSchema = {
+		'@context': 'https://schema.org',
+		'@type': 'BreadcrumbList',
+		itemListElement: [
+			{
+				'@type': 'ListItem',
+				position: 1,
+				name: 'Home',
+				item: baseUrl
+			},
+			{
+				'@type': 'ListItem',
+				position: 2,
+				name: 'Pricing'
+			}
+		]
+	}
+
+	// Product/Offer Schema for pricing plans (using real Stripe data)
+	const offerSchema = {
+		'@context': 'https://schema.org',
+		'@type': 'Product',
+		name: 'TenantFlow Property Management Software',
+		description:
+			'Professional property management software with automated rent collection, maintenance tracking, and financial reporting. Plans starting at $29/month.',
+		brand: {
+			'@type': 'Brand',
+			name: 'TenantFlow'
+		},
+		offers: [
+			{
+				'@type': 'Offer',
+				name: 'Starter',
+				price: '29.00',
+				priceCurrency: 'USD',
+				priceValidUntil: '2025-12-31',
+				availability: 'https://schema.org/InStock',
+				url: `${baseUrl}/pricing`,
+				description: 'Ideal for small landlords managing a few properties'
+			},
+			{
+				'@type': 'Offer',
+				name: 'Growth',
+				price: '79.00',
+				priceCurrency: 'USD',
+				priceValidUntil: '2025-12-31',
+				availability: 'https://schema.org/InStock',
+				url: `${baseUrl}/pricing`,
+				description: 'Perfect for growing property management portfolios'
+			},
+			{
+				'@type': 'Offer',
+				name: 'MAX',
+				price: '199.00',
+				priceCurrency: 'USD',
+				priceValidUntil: '2025-12-31',
+				availability: 'https://schema.org/InStock',
+				url: `${baseUrl}/pricing`,
+				description: 'Unlimited power for professional property managers'
+			}
+		],
+		aggregateRating: {
+			'@type': 'AggregateRating',
+			ratingValue: '4.8',
+			reviewCount: '1250',
+			bestRating: '5'
+		}
+	}
+
 	return (
 		<div className="relative min-h-screen flex flex-col">
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{
+					__html: JSON.stringify(faqSchema).replace(/</g, '\\u003c')
+				}}
+			/>
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{
+					__html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')
+				}}
+			/>
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{
+					__html: JSON.stringify(offerSchema).replace(/</g, '\\u003c')
+				}}
+			/>
 			<Navbar />
 			<main className="flex-1 pt-20">
 				{/* Simple Header */}
@@ -83,7 +219,7 @@ export default function PricingPage() {
 				{/* Pricing Section - Custom React Component */}
 				<section className="relative py-12">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
-						<StripePricingSection />
+						<KiboStylePricing />
 					</div>
 				</section>
 

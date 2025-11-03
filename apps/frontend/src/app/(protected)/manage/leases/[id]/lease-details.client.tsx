@@ -24,10 +24,11 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 
 	const { data: tenants = [] } = useAllTenants()
 
-	const { data: units = [] } = useAllUnits()
+	const { data: unitsResponse } = useAllUnits()
+	const units = unitsResponse?.data || []
 
 	const tenant = tenants.find(t => t.id === lease?.tenantId)
-	const unit = units.find((u) => u.id === lease?.unitId)
+	const unit = units.find(u => u.id === lease?.unitId)
 
 	if (isLoading) {
 		return (

@@ -1,4 +1,5 @@
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
@@ -83,6 +84,14 @@ describe('StripeController', () => {
 						createCustomer: jest.fn().mockResolvedValue({ id: 'cus_test' }),
 						createSubscription: jest.fn().mockResolvedValue({ id: 'sub_test' }),
 						getCustomer: jest.fn().mockResolvedValue({ id: 'cus_test' })
+					}
+				},
+				{
+					provide: CACHE_MANAGER,
+					useValue: {
+						get: jest.fn(),
+						set: jest.fn(),
+						del: jest.fn()
 					}
 				}
 			]

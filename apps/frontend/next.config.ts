@@ -40,6 +40,26 @@ const nextConfig: NextConfig = {
 		}
 	},
 
+	async redirects() {
+		return [
+			{
+				source: '/terms-of-service',
+				destination: '/terms',
+				permanent: true
+			},
+			{
+				source: '/privacy-policy',
+				destination: '/privacy',
+				permanent: true
+			},
+			{
+				source: '/security',
+				destination: '/privacy',
+				permanent: true
+			}
+		]
+	},
+
 	async headers() {
 		const securityHeaders = [
 			{

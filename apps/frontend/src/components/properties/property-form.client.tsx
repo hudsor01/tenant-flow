@@ -4,7 +4,6 @@ import { CheckCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-
 import { Button } from '#components/ui/button'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import { Input } from '#components/ui/input'
@@ -75,7 +74,8 @@ export function PropertyForm({
 	const createPropertyMutation = useCreateProperty()
 	const updatePropertyMutation = useUpdateProperty()
 
-	const mutation = mode === 'create' ? createPropertyMutation : updatePropertyMutation
+	const mutation =
+		mode === 'create' ? createPropertyMutation : updatePropertyMutation
 
 	// Validation schema
 	const validationSchema = z.object({
@@ -144,15 +144,15 @@ export function PropertyForm({
 						version: property.version
 					})
 					toast.success('Property updated successfully')
-				
-				// Navigate back if no custom onSuccess handler
-				if (!onSuccess) {
-					router.back()
-				}
-			}
 
-			onSuccess?.()
-		} catch (error) {
+					// Navigate back if no custom onSuccess handler
+					if (!onSuccess) {
+						router.back()
+					}
+				}
+
+				onSuccess?.()
+			} catch (error) {
 				logger.error(`Property ${mode} failed`, {
 					error: error instanceof Error ? error.message : String(error),
 					stack: error instanceof Error ? error.stack : undefined,
@@ -160,9 +160,7 @@ export function PropertyForm({
 				})
 
 				const errorMessage =
-					error instanceof Error
-						? error.message
-						: `Failed to ${mode} property`
+					error instanceof Error ? error.message : `Failed to ${mode} property`
 				toast.error(errorMessage)
 			}
 		},

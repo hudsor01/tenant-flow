@@ -1,6 +1,6 @@
 'use client'
 
-import { ChartAreaInteractive } from '#components/dashboard/chart-area-interactive'
+import dynamic from 'next/dynamic'
 import { Button } from '#components/ui/button'
 import {
 	Dialog,
@@ -35,17 +35,29 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { unitColumns, type UnitRow } from './columns'
-import { clientFetch } from '#lib/api/client'
 import { useUnitList, useUnitStats, useCreateUnit } from '#hooks/api/use-unit'
 import { usePropertyList } from '#hooks/api/use-properties'
 import type { Database } from '@repo/shared/types/supabase-generated'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DoorOpen, Filter, Plus } from 'lucide-react'
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { useRef } from 'react'
 import { toast } from 'sonner'
-import type { Property } from '@repo/shared/types/core'
+
+// ⚡ Dynamic import: ChartAreaInteractive is heavy (~40KB), defer loading until needed
+const ChartAreaInteractive = dynamic(
+	() =>
+		import('#components/dashboard/chart-area-interactive').then(
+			mod => mod.ChartAreaInteractive
+		),
+	{
+		loading: () => (
+			<div className="h-[300px] rounded-lg border bg-card shadow-sm animate-pulse" />
+		),
+		ssr: false // Chart renders client-side only
+	}
+)
 
 type InsertUnit = Database['public']['Tables']['unit']['Insert']
 type UnitStatus = Database['public']['Enums']['UnitStatus']

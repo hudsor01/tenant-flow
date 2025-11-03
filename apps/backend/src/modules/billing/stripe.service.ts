@@ -1,4 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import type { Cache } from 'cache-manager'
 import Stripe from 'stripe'
 import { StripeClientService } from '../../shared/stripe-client.service'
 
@@ -13,7 +15,10 @@ export class StripeService {
 	private readonly logger = new Logger(StripeService.name)
 	private stripe: Stripe
 
-	constructor(private readonly stripeClientService: StripeClientService) {
+	constructor(
+		private readonly stripeClientService: StripeClientService,
+		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
+	) {
 		this.stripe = this.stripeClientService.getClient()
 		this.logger.log('Stripe SDK initialized')
 	}
@@ -33,9 +38,18 @@ export class StripeService {
 		status?: Stripe.SubscriptionListParams.Status
 		limit?: number
 	}): Promise<Stripe.Subscription[]> {
+		// PERFORMANCE: Cache subscriptions per customer, status, and limit
+		const cacheKey = `stripe:subscriptions:${params?.customer || 'all'}:${params?.status || 'all'}:${params?.limit || 'all'}`
+		
+		const cached = await this.cacheManager.get<Stripe.Subscription[]>(cacheKey)
+		if (cached) {
+			this.logger.debug('Returning cached subscriptions', { cacheKey })
+			return cached
+		}
+
 		try {
 			const requestParams: Stripe.SubscriptionListParams = {
-				limit: params?.limit ?? 100,
+				limit: params?.limit ?? 10,
 				expand: ['data.customer', 'data.items']
 			}
 			if (params?.customer) {
@@ -45,6 +59,10 @@ export class StripeService {
 				requestParams.status = params.status
 			}
 			const subscriptions = await this.stripe.subscriptions.list(requestParams)
+			
+			// Cache for 2 minutes (subscriptions change frequently)
+			await this.cacheManager.set(cacheKey, subscriptions.data, 120000)
+			
 			return subscriptions.data
 		} catch (error) {
 			this.logger.error('Failed to list subscriptions', { error })
@@ -108,9 +126,18 @@ export class StripeService {
 		created?: { gte?: number; lte?: number }
 		limit?: number
 	}): Promise<Stripe.Invoice[]> {
+		// PERFORMANCE: Cache invoices per customer, subscription, status, created date, and limit
+		const cacheKey = `stripe:invoices:${params?.customer || 'all'}:${params?.subscription || 'all'}:${params?.status || 'all'}:${params?.limit || 'all'}:${params?.created ? JSON.stringify(params.created) : 'all'}`
+		
+		const cached = await this.cacheManager.get<Stripe.Invoice[]>(cacheKey)
+		if (cached) {
+			this.logger.debug('Returning cached invoices', { cacheKey })
+			return cached
+		}
+
 		try {
 			const requestParams: Stripe.InvoiceListParams = {
-				limit: params?.limit ?? 100,
+				limit: params?.limit ?? 10,
 				expand: ['data.subscription', 'data.customer']
 			}
 			if (params?.customer) {
@@ -126,6 +153,10 @@ export class StripeService {
 				requestParams.created = params.created
 			}
 			const invoices = await this.stripe.invoices.list(requestParams)
+			
+			// Cache for 1 minute (invoices can update frequently)
+			await this.cacheManager.set(cacheKey, invoices.data, 60000)
+			
 			return invoices.data
 		} catch (error) {
 			this.logger.error('Failed to list invoices', { error })
@@ -196,7 +227,7 @@ export class StripeService {
 	}): Promise<Stripe.Customer[]> {
 		try {
 			const requestParams: Stripe.CustomerListParams = {
-				limit: params?.limit ?? 100,
+				limit: params?.limit ?? 10,
 				expand: ['data.subscriptions']
 			}
 			if (params?.email) {
