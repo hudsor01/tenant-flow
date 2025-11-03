@@ -11,7 +11,8 @@
  * - End of data handling
  */
 
-import { test, expect, Page } from '@playwright/test'
+import type { Page } from '@playwright/test';
+import { test, expect } from '@playwright/test'
 import { createLargePropertyDataset, createTestProperties } from '../fixtures/property-data'
 import { 
   TanStackQueryHelper, 
@@ -73,7 +74,8 @@ test.describe('TanStack Query Infinite Scrolling', () => {
   test.describe('Basic Infinite Scroll Behavior', () => {
     test('should load first page of properties automatically', async () => {
       // Wait for initial load
-      await page.waitForTimeout(2000)
+      await page.waitForLoadState('networkidle')
+      await expect(page.locator('table tbody tr').nth(19)).toBeVisible()
 
       // Verify first page loaded (20 properties)
       const initialCount = await tableHelper.getPropertyCount()
@@ -108,11 +110,12 @@ test.describe('TanStack Query Infinite Scrolling', () => {
     })
 
     test('should continue loading pages as user scrolls', async () => {
-      await page.waitForTimeout(2000)
+      await page.waitForLoadState('networkidle')
+      await expect(page.locator('table tbody tr').nth(19)).toBeVisible()
 
       // Load multiple pages by scrolling
-      for (let page = 1; page <= 3; page++) {
-        const expectedCount = (page + 1) * 20
+      for (let pageNum = 1; pageNum <= 3; pageNum++) {
+        const expectedCount = (pageNum + 1) * 20
 
         await tableHelper.scrollToLoadMore()
         await tableHelper.waitForLoading(true)
@@ -122,7 +125,7 @@ test.describe('TanStack Query Infinite Scrolling', () => {
         expect(currentCount).toBe(expectedCount)
 
         // Verify properties from current page
-        const firstPropertyInPage = `Property ${String((page * 20) + 1).padStart(3, '0')}`
+        const firstPropertyInPage = `Property ${String((pageNum * 20) + 1).padStart(3, '0')}`
         await expect(tableHelper.getPropertyByName(firstPropertyInPage)).toBeVisible()
       }
     })
@@ -255,47 +258,36 @@ test.describe('TanStack Query Infinite Scrolling', () => {
 
   test.describe('Intersection Observer Behavior', () => {
     test('should trigger at 10% visibility threshold', async () => {
-      await page.waitForTimeout(2000)
+      await page.waitForLoadState('networkidle')
+      await expect(page.locator('table tbody tr').nth(19)).toBeVisible()
 
-      // Create a custom intersection observer test
-      const observerTest = await page.evaluate(async () => {
-        return new Promise<boolean>((resolve) => {
-          // Find the load more trigger element
-          const trigger = document.querySelector('[ref="loadMoreRef"], .load-more-trigger')
-          if (!trigger) {
-            resolve(false)
-            return
-          }
-
-          let triggered = false
+      // Set up observer and flag before scrolling
+      await page.evaluate(() => {
+        window.__intersectionObserverTriggered = false
+        const trigger = document.querySelector('[ref="loadMoreRef"], .load-more-trigger')
+        if (trigger) {
           const observer = new IntersectionObserver(
             (entries) => {
               entries.forEach(entry => {
                 if (entry.isIntersecting && entry.intersectionRatio >= 0.1) {
-                  triggered = true
+                  window.__intersectionObserverTriggered = true
                   observer.disconnect()
-                  resolve(true)
                 }
               })
             },
             { threshold: 0.1 }
           )
-
           observer.observe(trigger)
-
-          // Timeout after 5 seconds
-          setTimeout(() => {
-            observer.disconnect()
-            resolve(triggered)
-          }, 5000)
-        })
+        }
       })
 
-      // Scroll to trigger the observer
+      // Now scroll to trigger the observer
       await tableHelper.scrollToLoadMore()
+      await page.waitForTimeout(500) // Brief wait for observer to fire
       
-      // The observer should have triggered at 10% visibility
-      expect(observerTest).toBe(true)
+      // Check if observer was triggered
+      const wasTriggered = await page.evaluate(() => window.__intersectionObserverTriggered)
+      expect(wasTriggered).toBe(true)
     })
 
     test('should disconnect observer when component unmounts', async () => {

@@ -274,8 +274,7 @@ export class PropertiesService {
 				)
 			}
 
-			// 🔒 Use Supabase auth UUID directly for RLS (same fix as create method)
-			const ownerId = userId
+			// 🔒 Use userId from req.user.id (Supabase auth UUID) for RLS-compliant inserts
 			const errors: Array<{ row: number; error: string }> = []
 			const validRows: Array<
 				Database['public']['Tables']['property']['Insert']
@@ -322,7 +321,7 @@ export class PropertiesService {
 					// Build insert object
 					const insertData: Database['public']['Tables']['property']['Insert'] =
 						{
-							ownerId,
+							ownerId: userId,
 							name: name.trim(),
 							address: address.trim(),
 							city: city.trim(),
@@ -480,10 +479,10 @@ export class PropertiesService {
 
 		// Build update object conditionally per exactOptionalPropertyTypes
 		const updateData: Database['public']['Tables']['property']['Update'] = {
-			updatedAt: new Date().toISOString()
+			updatedAt: new Date().toISOString(),
+			// 🔐 OPTIMISTIC LOCKING: Increment version on every update
+			version: (existing.version || 0) + 1
 		}
-
-		// Version field not implemented in database schema
 
 		if (request.name !== undefined) updateData.name = request.name.trim()
 		if (request.address !== undefined)
@@ -550,8 +549,7 @@ export class PropertiesService {
 
 		const client = this.supabase.getUserClient(token)
 		const userId = (req as AuthenticatedRequest).user.id
-		// 🔒 Use Supabase auth UUID directly for RLS (same fix as create method)
-		const ownerId = userId
+		// 🔒 Use userId from req.user.id (Supabase auth UUID) for RLS-compliant inserts
 
 		// Verify ownership through RLS
 		const existing = await this.findOne(req, propertyId)
@@ -654,13 +652,15 @@ export class PropertiesService {
 				name: 'Mark property as INACTIVE in database',
 				execute: async () => {
 					const { data, error } = await client
-						.from('property')
-						.update({
-							status:
-								'INACTIVE' as Database['public']['Enums']['PropertyStatus'],
-							updatedAt: new Date().toISOString()
-						})
-						.eq('id', propertyId)
+					.from('property')
+					.update({
+						status:
+							'INACTIVE' as Database['public']['Enums']['PropertyStatus'],
+						updatedAt: new Date().toISOString(),
+						// 🔐 OPTIMISTIC LOCKING: Increment version on soft delete
+						version: (existing.version || 0) + 1
+					})
+					.eq('id', propertyId)
 						.select()
 						.single()
 

@@ -1,6 +1,9 @@
-import { CreateMaintenanceForm } from './create-maintenance-form.client'
+import { MaintenanceForm } from '#components/maintenance/maintenance-form.client'
+import { requireSession } from '#lib/server-auth'
 
-export default function NewMaintenanceRequestPage() {
+export default async function NewMaintenanceRequestPage() {
+	await requireSession()
+
 	return (
 		<div className="mx-auto w-full max-w-4xl space-y-10">
 			<div className="space-y-2">
@@ -11,7 +14,7 @@ export default function NewMaintenanceRequestPage() {
 					Capture maintenance issues and coordinate with your operations team.
 				</p>
 			</div>
-			<CreateMaintenanceForm />
+			<MaintenanceForm mode="create" />
 		</div>
 	)
 }

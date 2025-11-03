@@ -24,7 +24,8 @@ export default defineConfig({
 				'**/*.config.{ts,js}',
 				'**/generated/**',
 				'**/__mocks__/**',
-				'src/types/**'
+				'src/types/**',
+				'tests/**' // Exclude integration tests from coverage
 			],
 			thresholds: {
 				lines: 80,
@@ -36,6 +37,7 @@ export default defineConfig({
 		include: [
 			'src/**/*.{test,spec}.{ts,tsx}',
 			'__tests__/**/*.{test,spec}.{ts,tsx}'
+			// Integration tests in tests/ directory are excluded by default
 		],
 		exclude: [
 			'node_modules',
@@ -44,7 +46,7 @@ export default defineConfig({
 			'out',
 			'build',
 			'coverage',
-			'tests/**',
+			'tests/**', // Exclude integration tests from unit test runs
 			'e2e/**',
 			'playwright/**'
 		],

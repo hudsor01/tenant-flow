@@ -7,7 +7,6 @@
 
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import imageCompression from 'browser-image-compression'
-import heic2any from 'heic2any'
 
 const logger = createLogger({ component: 'ImageCompression' })
 
@@ -37,15 +36,8 @@ export function isHEICFile(file: File): boolean {
  */
 async function canConvertHEIC(): Promise<boolean> {
 	try {
-		// Check if heic2any library is available
-		if (typeof heic2any === 'undefined') {
-			return false
-		}
-
-		// Additional check: Some browsers may have heic2any but still fail
-		// We can't reliably test without actual HEIC data, so we assume
-		// if the library loaded, it should work. The actual conversion
-		// will catch any issues.
+		// Try to dynamically import heic2any (browser-only)
+		await import('heic2any')
 		return true
 	} catch {
 		return false
@@ -195,7 +187,8 @@ export async function compressImage(
 				fileName: file.name
 			})
 
-			// Convert HEIC to JPEG using heic2any
+			// Convert HEIC to JPEG using heic2any (dynamic import)
+			const heic2any = (await import('heic2any')).default
 			const convertedBlob = await heic2any({
 				blob: file,
 				toType: 'image/jpeg',

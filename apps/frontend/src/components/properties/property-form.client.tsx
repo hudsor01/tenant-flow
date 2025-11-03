@@ -140,13 +140,19 @@ export function PropertyForm({
 					})
 					await updatePropertyMutation.mutateAsync({
 						id: property.id,
-						data: transformedData
+						data: transformedData,
+						version: property.version
 					})
 					toast.success('Property updated successfully')
+				
+				// Navigate back if no custom onSuccess handler
+				if (!onSuccess) {
+					router.back()
 				}
+			}
 
-				onSuccess?.()
-			} catch (error) {
+			onSuccess?.()
+		} catch (error) {
 				logger.error(`Property ${mode} failed`, {
 					error: error instanceof Error ? error.message : String(error),
 					stack: error instanceof Error ? error.stack : undefined,

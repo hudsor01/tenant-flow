@@ -32,7 +32,15 @@ const requiredEnv = [
 ] as const
 
 const missingEnv = requiredEnv.filter(key => !process.env[key])
-const describeSupabase = describe
+
+// Check for missing environment variables and skip tests if any are missing
+if (missingEnv.length > 0) {
+	process.stderr.write(
+		`⚠️  Skipping Supabase RPC contract tests. Missing env: ${missingEnv.join(', ')}\n`
+	)
+}
+
+const describeSupabase = missingEnv.length > 0 ? describe.skip : describe
 
 jest.setTimeout(30_000)
 
@@ -175,10 +183,3 @@ describeSupabase('Supabase RPC contract tests', () => {
 		})
 	})
 })
-
-if (missingEnv.length > 0) {
-	// Test environment warning - intentionally using console
-	process.stderr.write(
-		`⚠️  Skipping Supabase RPC contract tests. Missing env: ${missingEnv.join(', ')}\n`
-	)
-}

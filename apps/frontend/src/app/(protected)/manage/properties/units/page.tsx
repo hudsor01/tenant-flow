@@ -37,6 +37,7 @@ import {
 import { unitColumns, type UnitRow } from './columns'
 import { clientFetch } from '#lib/api/client'
 import { useUnitList, useUnitStats, useCreateUnit } from '#hooks/api/use-unit'
+import { usePropertyList } from '#hooks/api/use-properties'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -83,10 +84,8 @@ export default function UnitsPage() {
 
 	const { data: unitsData, isLoading } = useUnitList(params)
 
-	const { data: properties = [] } = useQuery({
-		queryKey: ['properties'],
-		queryFn: () => clientFetch<Property[]>('/api/v1/properties')
-	})
+	const { data: propertiesData } = usePropertyList()
+	const properties = propertiesData?.data ?? []
 
 	// Use backend RPC functions for statistics - NO CLIENT-SIDE CALCULATIONS
 	const { data: unitsStats } = useUnitStats()
@@ -404,10 +403,8 @@ function UnitsTable({
 
 function NewUnitButton() {
 	const qc = useQueryClient()
-	const { data: properties = [] } = useQuery({
-		queryKey: ['properties'],
-		queryFn: () => clientFetch<Property[]>('/api/v1/properties')
-	})
+	const { data: propertiesData } = usePropertyList()
+	const properties = propertiesData?.data ?? []
 
 	const create = useCreateUnit()
 

@@ -4,12 +4,11 @@ import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { useMaintenanceRequest } from '#hooks/api/use-maintenance'
-import { clientFetch } from '#lib/api/client'
+import { usePropertyList } from '#hooks/api/use-properties'
+import { useAllUnits } from '#hooks/api/use-unit'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { useQuery } from '@tanstack/react-query'
 import { Calendar, MapPin, Phone, Wrench } from 'lucide-react'
 import Link from 'next/link'
-import type { Property, Unit } from '@repo/shared/types/core'
 
 interface MaintenanceDetailsProps {
 	id: string
@@ -20,15 +19,10 @@ const logger = createLogger({ component: 'MaintenanceDetails' })
 export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	const { data: request, isLoading, isError } = useMaintenanceRequest(id)
 
-	const { data: properties = [] } = useQuery({
-		queryKey: ['properties'],
-		queryFn: () => clientFetch<Property[]>('/api/v1/properties')
-	})
+	const { data: propertiesData } = usePropertyList()
+	const properties = propertiesData?.data ?? []
 
-	const { data: units = [] } = useQuery({
-		queryKey: ['units'],
-		queryFn: () => clientFetch<Unit[]>('/api/v1/units')
-	})
+	const { data: units = [] } = useAllUnits()
 
 	const unit = units.find((u) => u.id === request?.unitId)
 	const property = properties.find(

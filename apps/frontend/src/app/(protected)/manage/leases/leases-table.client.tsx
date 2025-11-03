@@ -1,6 +1,5 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
 import { FileText, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -27,11 +26,11 @@ import {
 	TableHeader,
 	TableRow
 } from '#components/ui/table'
+import { useLeaseList, useDeleteLease } from '#hooks/api/use-lease'
 import { useAllTenants } from '#hooks/api/use-tenant'
-import { useDeleteLease } from '#hooks/api/use-lease'
+import { useAllUnits } from '#hooks/api/use-unit'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
-import { clientFetch } from '#lib/api/client'
 
 type Lease = Tables<'lease'>
 type Unit = Tables<'unit'>
@@ -40,20 +39,15 @@ const logger = createLogger({ component: 'LeasesTable' })
 
 export function LeasesTable() {
 	const {
-		data: leases = [],
+		data: leasesData,
 		isLoading,
 		isError
-	} = useQuery({
-		queryKey: ['leases'],
-		queryFn: () => clientFetch<Lease[]>('/api/v1/leases')
-	})
+	} = useLeaseList()
+
+	const leases = leasesData?.data ?? []
 
 	const { data: tenants = [] } = useAllTenants()
-
-	const { data: units = [] } = useQuery<Unit[]>({
-		queryKey: ['units'],
-		queryFn: () => clientFetch<Unit[]>('/api/v1/units')
-	})
+	const { data: units = [] } = useAllUnits()
 
 	const removeLease = useDeleteLease({
 		onSuccess: () => {

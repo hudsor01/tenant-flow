@@ -11,7 +11,8 @@
  * - Query deduplication
  */
 
-import { test, expect, Page } from '@playwright/test'
+import type { Page } from '@playwright/test';
+import { test, expect } from '@playwright/test'
 import { createTestProperty, createTestProperties } from '../fixtures/property-data'
 import { 
   TanStackQueryHelper, 
@@ -79,8 +80,9 @@ test.describe('TanStack Query Cache Behavior', () => {
 
   test.describe('Cache Population and Retrieval', () => {
     test('should populate cache on initial load', async () => {
-      // Wait for initial data load
-      await page.waitForTimeout(2000)
+      // Wait for table to load and display properties
+      await page.waitForLoadState('networkidle')
+      await expect(page.locator('table tbody tr').first()).toBeVisible()
 
       // Verify cache contains data
       const cacheData = await queryHelper.getQueryData(['properties', 'ALL'])
@@ -93,7 +95,9 @@ test.describe('TanStack Query Cache Behavior', () => {
     })
 
     test('should serve data from cache on subsequent visits', async () => {
-      await page.waitForTimeout(2000)
+      // Wait for initial load
+      await page.waitForLoadState('networkidle')
+      await expect(page.locator('table tbody tr').first()).toBeVisible()
 
       // Record network requests
       const requests: string[] = []
@@ -105,9 +109,10 @@ test.describe('TanStack Query Cache Behavior', () => {
 
       // Navigate away and back
       await page.goto('/dashboard')
-      await page.waitForTimeout(500)
+      await page.waitForLoadState('networkidle')
       await page.goto('/dashboard/properties')
-      await page.waitForTimeout(2000)
+      await page.waitForLoadState('networkidle')
+      await expect(page.locator('table tbody tr').first()).toBeVisible()
 
       // Data should be visible immediately from cache
       const propertyCount = await tableHelper.getPropertyCount()
@@ -154,14 +159,24 @@ test.describe('TanStack Query Cache Behavior', () => {
 
   test.describe('Cache Invalidation', () => {
     test('should invalidate cache after successful mutations', async () => {
-      await page.waitForTimeout(2000)
+      // Wait for initial load
+      await page.waitForLoadState('networkidle')
+      await expect(page.locator('table tbody tr').first()).toBeVisible()
       const initialData = await queryHelper.getQueryData(['properties', 'ALL'])
       
       const testProperty = createTestProperty({ name: 'Invalidation Test Property' })
 
       // Create property (should trigger invalidation)
+      const createPromise = page.waitForResponse(response => 
+        response.url().includes('/api/v1/properties') && 
+        response.request().method() === 'POST' &&
+        response.status() === 201
+      )
       await formHelper.createProperty(testProperty)
-      await page.waitForTimeout(3000)
+      await createPromise
+      
+      // Wait for cache to update
+      await expect(page.locator('table tbody tr', { hasText: testProperty.name })).toBeVisible()
 
       // Verify cache was invalidated and refetched
       const newData = await queryHelper.getQueryData(['properties', 'ALL'])
@@ -477,18 +492,21 @@ test.describe('TanStack Query Cache Behavior', () => {
 
   test.describe('Cache Persistence Across Routes', () => {
     test('should maintain cache during route navigation', async () => {
-      await page.waitForTimeout(2000)
+      // Wait for initial load
+      await page.waitForLoadState('networkidle')
+      await expect(page.locator('table tbody tr').first()).toBeVisible()
 
       const initialData = await queryHelper.getQueryData(['properties', 'ALL'])
       expect(initialData).toBeDefined()
 
       // Navigate through different routes
       await page.goto('/dashboard/units')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
       await page.goto('/dashboard/tenants')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
       await page.goto('/dashboard/properties')
-      await page.waitForTimeout(1000)
+      await page.waitForLoadState('networkidle')
+      await expect(page.locator('table tbody tr').first()).toBeVisible()
 
       // Cache should be preserved
       const preservedData = await queryHelper.getQueryData(['properties', 'ALL'])

@@ -4,8 +4,8 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { ZodValidationPipe } from 'nestjs-zod'
 import request from 'supertest'
-import { PropertiesController } from './properties.controller'
-import { PropertiesService } from './properties.service'
+import { PropertiesController } from '../../src/modules/properties/properties.controller'
+import { PropertiesService } from '../../src/modules/properties/properties.service'
 
 /**
  * Integration Tests - Properties Controller Production Validation

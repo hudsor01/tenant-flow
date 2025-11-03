@@ -10,7 +10,8 @@
  * - Proper rollback on API failures
  */
 
-import { test, expect, Page } from '@playwright/test'
+import type { Page } from '@playwright/test';
+import { test, expect } from '@playwright/test'
 import { createTestProperty, basePropertyData } from '../fixtures/property-data'
 import { 
   TanStackQueryHelper, 
@@ -42,22 +43,12 @@ test.describe('TanStack Query Optimistic Updates', () => {
     await page.goto('/dashboard/properties')
     await page.waitForLoadState('networkidle')
 
-    // Ensure QueryClient is available for testing
+    // NOTE: App should expose QueryClient via window.__QUERY_CLIENT__ for tests
+    // This should be done in the app's query provider when NODE_ENV === 'test'
+    // For now, we'll rely on the helpers that don't need direct QueryClient access
     await page.addInitScript(() => {
-      // Expose QueryClient to window for test access
-      window.addEventListener('DOMContentLoaded', () => {
-        const checkForQueryClient = () => {
-          // Look for TanStack Query DevTools or direct access
-          const reactRoot = document.querySelector('#__next') as any
-          if (reactRoot?._reactInternalFiber?.stateNode?.context?.queryClient) {
-            (window as any).__QUERY_CLIENT__ = reactRoot._reactInternalFiber.stateNode.context.queryClient
-          } else {
-            // Alternative: look for query client in React DevTools
-            setTimeout(checkForQueryClient, 100)
-          }
-        }
-        checkForQueryClient()
-      })
+      // Placeholder for app-level QueryClient exposure
+      // App should set: window.__QUERY_CLIENT__ = queryClient in test mode
     })
   })
 
@@ -108,9 +99,6 @@ test.describe('TanStack Query Optimistic Updates', () => {
       await statsHelper.waitForStatsUpdate(initialStats + 1)
 
       // Wait for API failure and rollback
-      await page.waitForTimeout(2000)
-
-      // Verify rollback occurred
       await tableHelper.waitForPropertyToDisappear(testProperty.name!)
       
       // Verify counts returned to original values
@@ -136,7 +124,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
       // Create multiple properties rapidly
       for (const property of properties) {
         await formHelper.createProperty(property)
-        await page.waitForTimeout(100) // Small delay between submissions
+        // No delay needed - mutations should queue properly
       }
 
       // Verify all properties appear optimistically
@@ -149,7 +137,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
       expect(finalCount).toBe(initialCount + properties.length)
 
       // Wait for all server confirmations
-      await page.waitForTimeout(3000)
+      await page.waitForLoadState('networkidle')
 
       // Verify all still visible after server sync
       for (const property of properties) {
@@ -181,7 +169,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
       await tableHelper.waitForPropertyToDisappear(originalProperty.name!)
 
       // Wait for server confirmation
-      await page.waitForTimeout(2000)
+      await page.waitForLoadState('networkidle')
 
       // Verify update persisted
       await expect(tableHelper.getPropertyByName(updatedName)).toBeVisible()
@@ -207,10 +195,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
       // Verify optimistic update appears first
       await tableHelper.waitForPropertyInTable(updatedName)
 
-      // Wait for failure and rollback
-      await page.waitForTimeout(3000)
-
-      // Verify rollback to original name
+      // Wait for failure and rollback to original name
       await tableHelper.waitForPropertyInTable(originalProperty.name!)
       await tableHelper.waitForPropertyToDisappear(updatedName)
     })
@@ -247,7 +232,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
       await statsHelper.waitForStatsUpdate(initialStats - 1)
 
       // Wait for server confirmation
-      await page.waitForTimeout(2000)
+      await page.waitForLoadState('networkidle')
 
       // Verify property stays deleted
       await expect(tableHelper.getPropertyByName(testProperty.name!)).toBeHidden()
@@ -277,10 +262,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
       // Verify optimistic removal
       await tableHelper.waitForPropertyToDisappear(testProperty.name!)
 
-      // Wait for API failure and restoration
-      await page.waitForTimeout(3000)
-
-      // Verify property is restored
+      // Wait for API failure and property restoration
       await tableHelper.waitForPropertyInTable(testProperty.name!)
       
       // Verify counts restored
@@ -358,7 +340,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
       expect(optimisticTime).toBeLessThan(500)
 
       // Wait for slow server response
-      await page.waitForTimeout(5000)
+      await page.waitForLoadState('networkidle')
 
       // Verify property persisted
       await expect(tableHelper.getPropertyByName(testProperty.name!)).toBeVisible()

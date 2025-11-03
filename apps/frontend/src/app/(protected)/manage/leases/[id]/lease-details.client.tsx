@@ -2,13 +2,12 @@
 
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
+import { useLease } from '#hooks/api/use-lease'
 import { useAllTenants } from '#hooks/api/use-tenant'
-import { clientFetch } from '#lib/api/client'
+import { useAllUnits } from '#hooks/api/use-unit'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { useQuery } from '@tanstack/react-query'
 import { Calendar, Home, User } from 'lucide-react'
 import Link from 'next/link'
-import type { Lease, Unit } from '@repo/shared/types/core'
 
 interface LeaseDetailsProps {
 	id: string
@@ -21,17 +20,11 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 		data: lease,
 		isLoading,
 		isError
-	} = useQuery({
-		queryKey: ['leases', id],
-		queryFn: () => clientFetch<Lease>(`/api/v1/leases/${id}`)
-	})
+	} = useLease(id)
 
 	const { data: tenants = [] } = useAllTenants()
 
-	const { data: units = [] } = useQuery({
-		queryKey: ['units'],
-		queryFn: () => clientFetch<Unit[]>('/api/v1/units')
-	})
+	const { data: units = [] } = useAllUnits()
 
 	const tenant = tenants.find(t => t.id === lease?.tenantId)
 	const unit = units.find((u) => u.id === lease?.unitId)

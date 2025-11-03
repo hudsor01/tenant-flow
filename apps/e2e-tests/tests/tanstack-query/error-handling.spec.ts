@@ -11,7 +11,8 @@
  * - Error boundary integration
  */
 
-import { test, expect, Page } from '@playwright/test'
+import type { Page } from '@playwright/test';
+import { test, expect } from '@playwright/test'
 import { createTestProperty, networkDelays } from '../fixtures/property-data'
 import { 
   TanStackQueryHelper, 
@@ -126,6 +127,9 @@ test.describe('TanStack Query Error Handling', () => {
 
         // Reset for next iteration
         await networkSim.resetNetworkMocks()
+        await page.reload()
+        await page.waitForLoadState('networkidle')
+        await expect(page.locator('table tbody tr').first()).toBeVisible()
         
         const finalCount = await tableHelper.getPropertyCount()
         expect(finalCount).toBe(initialCount)
@@ -464,6 +468,9 @@ test.describe('TanStack Query Error Handling', () => {
 
         // Reset for next scenario
         await networkSim.resetNetworkMocks()
+        await page.reload()
+        await page.waitForLoadState('networkidle')
+        await expect(page.locator('table tbody tr').first()).toBeVisible()
       }
     })
 
