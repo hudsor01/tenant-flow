@@ -53,5 +53,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
+      - name: Build shared package
+        run: pnpm --filter @repo/shared build
+
       - name: Run tests
         run: ${{ inputs.test-script }}
