@@ -309,20 +309,19 @@ export function useUpdateProperty() {
 	return useMutation({
 		mutationFn: async ({
 			id,
-			data
+			data,
+			version
 		}: {
 			id: string
 			data: UpdatePropertyInput
+			version?: number
 		}): Promise<Property> => {
-			// 🔐 BUG FIX #2: Get current version from cache for optimistic locking
-			const currentProperty = queryClient.getQueryData<Property>(
-				propertiesKeys.detail(id)
-			)
-
 			return clientFetch<Property>(`/api/v1/properties/${id}`, {
 				method: 'PUT',
-				// Use withVersion helper to include version in request
-				body: JSON.stringify(withVersion(data, currentProperty?.version))
+				// 🔐 OPTIMISTIC LOCKING: Include version if provided
+				body: JSON.stringify(
+					version != null ? withVersion(data, version) : data
+				)
 			})
 		},
 		onMutate: async ({ id, data }) => {

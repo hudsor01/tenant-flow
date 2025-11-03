@@ -17,6 +17,13 @@ import type {
 } from '@repo/shared/types/api-inputs'
 import type { Lease } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+	handleConflictError,
+	isConflictError,
+	withVersion,
+	incrementVersion
+} from '@repo/shared/utils/optimistic-locking'
+import { handleMutationError } from '#lib/mutation-error-handler'
 
 /**
  * Query keys for lease endpoints (hierarchical, typed)
@@ -310,11 +317,23 @@ export function useUpdateLease() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: UpdateLeaseInput }) =>
-			clientFetch<Lease>(`/api/v1/leases/${id}`, {
+		mutationFn: async ({
+			id,
+			data,
+			version
+		}: {
+			id: string
+			data: UpdateLeaseInput
+			version?: number
+		}): Promise<Lease> => {
+			return clientFetch<Lease>(`/api/v1/leases/${id}`, {
 				method: 'PUT',
-				body: JSON.stringify(data)
-			}),
+				// 🔐 OPTIMISTIC LOCKING: Include version if provided
+				body: JSON.stringify(
+					version !== null && version !== undefined ? withVersion(data, version) : data
+				)
+			})
+		},
 		onMutate: async ({ id, data }) => {
 			// Cancel outgoing queries
 			await queryClient.cancelQueries({ queryKey: leaseKeys.detail(id) })
@@ -331,11 +350,9 @@ export function useUpdateLease() {
 				queryKey: leaseKeys.all
 			})
 
-			// Optimistically update detail cache
+			// Optimistically update detail cache (use incrementVersion helper)
 			queryClient.setQueryData<Lease>(leaseKeys.detail(id), old =>
-				old
-					? { ...old, ...data, updatedAt: new Date().toISOString() }
-					: undefined
+				old ? incrementVersion(old, data) : undefined
 			)
 
 			// Optimistically update list caches
@@ -346,9 +363,7 @@ export function useUpdateLease() {
 					return {
 						...old,
 						data: old.data.map(lease =>
-							lease.id === id
-								? { ...lease, ...data, updatedAt: new Date().toISOString() }
-								: lease
+							lease.id === id ? incrementVersion(lease, data) : lease
 						)
 					}
 				}
@@ -367,13 +382,18 @@ export function useUpdateLease() {
 				})
 			}
 
-			logger.error('Failed to update lease', {
-				leaseId: id,
-				error: err instanceof Error ? err.message : String(err)
-			})
+			// 🔐 Handle 409 Conflict using helper
+			if (isConflictError(err)) {
+				handleConflictError('lease', id, queryClient, [
+					leaseKeys.detail(id),
+					leaseKeys.all
+				])
+			} else {
+				handleMutationError(err, 'Update lease')
+			}
 		},
 		onSuccess: (data, { id }) => {
-			// Replace optimistic update with real data
+			// Replace optimistic update with real data (including correct version)
 			queryClient.setQueryData(leaseKeys.detail(id), data)
 
 			queryClient.setQueriesData<{ data: Lease[]; total: number }>(

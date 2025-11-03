@@ -55,12 +55,13 @@ export function handleConflictError(
 
 /**
  * Add version field to an object for optimistic locking
+ * ONLY call this when you have a valid version number!
  */
 export function withVersion<T extends object>(
 	data: T,
-	version: number | null | undefined
+	version: number
 ): T & { version: number } {
-	return { ...data, version: version ?? 0 }
+	return { ...data, version }
 }
 
 /**

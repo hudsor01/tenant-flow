@@ -1,10 +1,19 @@
-import { LeaseEditForm } from './lease-edit-form.client'
+import { LeaseForm } from '#components/leases/lease-form.client'
+import { serverFetch } from '#lib/api/server'
+import { requireSession } from '#lib/server-auth'
+import type { Lease } from '@repo/shared/types/core'
 
 interface LeaseEditPageProps {
-	params: { id: string }
+	params: Promise<{ id: string }>
 }
 
-export default function LeaseEditPage({ params }: LeaseEditPageProps) {
+export default async function LeaseEditPage({ params }: LeaseEditPageProps) {
+	const { id } = await params
+	await requireSession()
+
+	// Fetch lease data on server
+	const lease = await serverFetch<Lease>(`/api/v1/leases/${id}`)
+
 	return (
 		<div className="mx-auto w-full max-w-4xl space-y-10">
 			<div className="space-y-2">
@@ -14,7 +23,16 @@ export default function LeaseEditPage({ params }: LeaseEditPageProps) {
 					terms.
 				</p>
 			</div>
-			<LeaseEditForm id={params.id} />
+			<LeaseForm
+				mode="edit"
+				lease={lease}
+				onSuccess={() => {
+					// Navigate back after successful update
+					if (typeof window !== 'undefined') {
+						window.history.back()
+					}
+				}}
+			/>
 		</div>
 	)
 }
