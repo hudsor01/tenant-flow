@@ -227,20 +227,19 @@ export function CustomerPortalCard({
 				description="Manage your subscription and billing preferences"
 				className={cn(
 					cardClasses('premium'),
-					'shadow-2xl hover:shadow-3xl border-2 bg-gradient-to-br from-background via-muted/5 to-background',
+					'shadow-2xl hover:shadow-3xl border-2 bg-background',
 					'relative overflow-hidden',
 					animationClasses('fade-in'),
 					className
 				)}
 			>
-				<div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-50" />
+				<div className="absolute inset-0 bg-primary/5 opacity-50" />
 
 				<div className="flex items-center justify-between mb-6">
 					<div className="flex items-center gap-4">
 						<div
 							className={cn(
-								'p-4 rounded-2xl bg-gradient-to-br shadow-lg',
-								config.gradient
+								'p-4 rounded-2xl gradient-background shadow-lg'
 							)}
 						>
 							<Settings className="size-8 text-primary-foreground" />
@@ -288,7 +287,7 @@ export function CustomerPortalCard({
 				>
 					{/* Enhanced Usage Stats */}
 					{showStats && (
-						<div className="bg-gradient-to-r from-muted/10 via-background to-muted/10 rounded-2xl p-6 border-2 border-muted/20">
+						<div className="bg-muted/10 rounded-2xl p-6 border-2 border-muted/20">
 							<div className="flex items-center justify-between mb-6">
 								<h4
 									className="text-foreground flex items-center gap-3"
@@ -370,7 +369,7 @@ export function CustomerPortalCard({
 
 					{/* Billing Information */}
 					{billingInfo && (
-						<div className="bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl p-6 border border-accent/20">
+						<div className="bg-accent/8 rounded-2xl p-6 border border-accent/20">
 							<div className="flex items-center justify-between mb-6">
 								<h4
 									className="text-foreground flex items-center gap-3"
@@ -454,7 +453,7 @@ export function CustomerPortalCard({
 						</p>
 
 						{showTestimonial && testimonial && (
-							<div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-2xl p-6 border-2 border-primary/20 max-w-2xl mx-auto">
+							<div className="bg-primary/8 rounded-2xl p-6 border-2 border-primary/20 max-w-2xl mx-auto">
 								<div className="flex items-center justify-center gap-1 mb-4">
 									{[...Array(testimonial.rating)].map((_, i) => (
 										<Star key={i} className="size-4 fill-accent text-accent" />
@@ -467,7 +466,7 @@ export function CustomerPortalCard({
 									&quot;{testimonial.text}&quot;
 								</blockquote>
 								<div className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-primary/10">
-									<div className="size-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
+									<div className="size-10 bg-primary/15 rounded-full flex items-center justify-center">
 										<Users className="size-5 text-primary" />
 									</div>
 									<cite className="text-sm font-bold text-foreground not-italic">
@@ -488,7 +487,7 @@ export function CustomerPortalCard({
 							animationClasses('fade-in')
 						)}
 					>
-						<div className="group p-5 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border-2 border-primary/20 hover:border-primary/30 hover:shadow-lg cursor-pointer">
+						<div className="group p-5 bg-primary/8 rounded-2xl border-2 border-primary/20 hover:border-primary/30 hover:shadow-lg cursor-pointer">
 							<div className="flex items-center gap-4 mb-3">
 								<div className="p-3 bg-primary/10 rounded-xl">
 									<CreditCard className="size-6 text-primary" />
@@ -510,7 +509,7 @@ export function CustomerPortalCard({
 							</div>
 						</div>
 
-						<div className="group p-5 bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl border-2 border-accent/20 hover:border-accent/30 hover:shadow-lg cursor-pointer">
+						<div className="group p-5 bg-accent/8 rounded-2xl border-2 border-accent/20 hover:border-accent/30 hover:shadow-lg cursor-pointer">
 							<div className="flex items-center gap-4 mb-3">
 								<div className="p-3 bg-accent/10 rounded-xl">
 									<FileText className="size-6 text-accent" />
@@ -532,7 +531,7 @@ export function CustomerPortalCard({
 							</div>
 						</div>
 
-						<div className="group p-5 bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border-2 border-primary/20 hover:border-primary/30 hover:shadow-lg cursor-pointer">
+						<div className="group p-5 bg-primary/8 rounded-2xl border-2 border-primary/20 hover:border-primary/30 hover:shadow-lg cursor-pointer">
 							<div className="flex items-center gap-4 mb-3">
 								<div className="p-3 bg-primary/10 rounded-xl">
 									<Download className="size-6 text-primary" />
@@ -552,7 +551,7 @@ export function CustomerPortalCard({
 							</div>
 						</div>
 
-						<div className="group p-5 bg-gradient-to-br from-accent/5 to-accent/10 rounded-2xl border-2 border-accent/20 hover:border-accent/30 hover:shadow-lg cursor-pointer">
+						<div className="group p-5 bg-accent/8 rounded-2xl border-2 border-accent/20 hover:border-accent/30 hover:shadow-lg cursor-pointer">
 							<div className="flex items-center gap-4 mb-3">
 								<div className="p-3 bg-accent/10 rounded-xl">
 									<Sparkles className="size-6 text-accent" />
@@ -578,7 +577,7 @@ export function CustomerPortalCard({
 						<CustomerPortalButton
 							className={cn(
 								'w-full h-16 text-lg font-bold shadow-xl hover:shadow-2xl',
-								'bg-gradient-to-r from-primary via-primary to-primary/90',
+								'gradient-background',
 								'hover:from-primary/90 hover:via-primary/95 hover:to-primary/80',
 								'transform hover:scale-[1.02] active:scale-[0.98]',
 								'border-2 border-primary/20'
@@ -595,7 +594,7 @@ export function CustomerPortalCard({
 			</CardLayout>
 
 			{/* Enhanced Trust Signals */}
-			<div className="bg-gradient-to-r from-muted/10 via-background to-muted/10 rounded-2xl p-6 border-2 border-muted/20">
+			<div className="bg-muted/10 rounded-2xl p-6 border-2 border-muted/20">
 				<div className="flex flex-wrap items-center justify-center gap-6 text-sm">
 					<div className="flex items-center gap-3">
 						<div className="p-2 bg-accent/10 rounded-lg">

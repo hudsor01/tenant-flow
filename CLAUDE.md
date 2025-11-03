@@ -253,6 +253,262 @@ const { data: property } = useQuery({
 })
 ```
 
+## Routing - Intercepting Routes + Parallel Routes (2025 Best Practices)
+
+**ARCHITECTURE**: Modal UX with full URL support using Next.js 15 intercepting routes + parallel routes pattern.
+
+**WHY**: Best of both worlds - fast modal overlays that maintain context, with shareable URLs, browser back/forward support, and progressive enhancement.
+
+### Pattern Overview
+
+**Soft Navigation** (client-side): Opens as modal overlay
+**Hard Navigation** (direct URL, refresh, new tab): Opens as full page
+
+### File Structure
+```plaintext
+apps/frontend/src/app/(protected)/manage/{entity}/
+├── layout.tsx                      # Enables parallel routes with @modal slot
+├── page.tsx                        # List page
+├── new/
+│   └── page.tsx                   # Full-page create form (fallback)
+├── [id]/
+│   └── edit/
+│       └── page.tsx               # Full-page edit form (fallback)
+└── @modal/
+    ├── default.tsx                # Required: returns null for unmatched routes
+    ├── (.)new/
+    │   └── page.tsx              # Intercepting route: create modal
+    └── (.)[id]/
+        └── edit/
+            └── page.tsx          # Intercepting route: edit modal
+```
+
+### Key Components
+
+**RouteModal** (`components/ui/route-modal.tsx`):
+- Reusable wrapper for all intercepting routes
+- Handles dialog open/close with `router.back()`
+- Single source of truth for modal behavior
+
+**Layout Pattern**:
+```typescript
+export default function EntityLayout({
+  children,
+  modal
+}: {
+  children: ReactNode
+  modal: ReactNode
+}) {
+  return (
+    <>
+      {children}
+      {modal}
+    </>
+  )
+}
+```
+
+**Intercepting Route Pattern (Create)**:
+```typescript
+import { EntityForm } from '#components/entity/entity-form.client'
+import { RouteModal } from '#components/ui/route-modal'
+
+export default function NewEntityModal() {
+  return (
+    <RouteModal className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold">Create New Entity</h2>
+          <p className="text-muted-foreground">Description</p>
+        </div>
+        <EntityForm mode="create" />
+      </div>
+    </RouteModal>
+  )
+}
+```
+
+**Intercepting Route Pattern (Edit)**:
+```typescript
+import { EntityForm } from '#components/entity/entity-form.client'
+import { RouteModal } from '#components/ui/route-modal'
+import { clientFetch } from '#lib/api/client'
+import type { Entity } from '@repo/shared/types/core'
+
+export default async function EditEntityModal({
+  params
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const entity = await clientFetch<Entity>(
+    `${process.env.API_BASE_URL}/api/v1/entities/${id}`
+  )
+
+  return (
+    <RouteModal className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <EntityForm mode="edit" entity={entity} />
+    </RouteModal>
+  )
+}
+```
+
+**Full-Page Route Pattern (Create)**:
+```typescript
+import { EntityForm } from '#components/entity/entity-form.client'
+import { requireSession } from '#lib/auth'
+
+export default async function NewEntityPage() {
+  await requireSession()
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-6 p-6">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold">Create New Entity</h1>
+        <p className="text-muted-foreground">Description</p>
+      </div>
+      <EntityForm mode="create" />
+    </div>
+  )
+}
+```
+
+**List Page Navigation**:
+```typescript
+import Link from 'next/link'
+
+// In your list page component:
+<Link href="/manage/entities/new">
+  <Button>Add Entity</Button>
+</Link>
+```
+
+### Route Segment Matching Rules
+
+**CRITICAL**: The `(.)` pattern matches **route segments**, NOT file system depth.
+
+**What counts as a segment**:
+- Regular folders: `properties`, `[id]`, `edit`
+- Route groups: `(protected)`, `(.)new`
+
+**What does NOT count**:
+- `@modal` parallel route slot folders
+- `app` directory
+
+**Examples**:
+```plaintext
+/manage/properties/new
+├── Route segments: ['manage', 'properties', 'new']
+├── Intercept from /manage/properties/@modal/(.)new
+└── (.) = up 0 segments (same level)
+
+/manage/properties/[id]/edit
+├── Route segments: ['manage', 'properties', '[id]', 'edit']
+├── Intercept from /manage/properties/@modal/(.)[id]/edit
+└── (.) = up 0 segments, then match [id]/edit
+```
+
+**Common Pattern**: `(.)` for same-level intercepting (used in this codebase)
+
+### Consolidated Forms Pattern
+
+Forms use a unified component with `mode` prop instead of separate create/edit components:
+
+```typescript
+interface EntityFormProps {
+  mode: 'create' | 'edit'
+  entity?: Entity // Required when mode='edit'
+  showSuccessState?: boolean // Default true for full-page, false for modal
+}
+
+export function EntityForm({ mode, entity, showSuccessState = true }: EntityFormProps) {
+  // Single form implementation handles both create and edit
+  // Uses TanStack Form for state management
+  // Uses TanStack Query mutations for API calls
+  // Navigates with router.push() on success
+}
+```
+
+### Migration from Inline Dialogs
+
+**OLD** (Inline CreateDialog):
+```typescript
+// ❌ Inline component with CreateDialog base component
+function EntityCreateDialog() {
+  const form = useForm({ ... })
+  return (
+    <CreateDialog {...props}>
+      {/* Inline form fields */}
+    </CreateDialog>
+  )
+}
+
+// Usage in list page
+<EntityCreateDialog />
+```
+
+**NEW** (Intercepting Routes):
+```typescript
+// ✅ Extracted form component
+export function EntityCreateForm() {
+  const router = useRouter()
+  const form = useForm({
+    onSubmit: async ({ value }) => {
+      await createMutation.mutateAsync(value)
+      router.push('/manage/entities')
+    }
+  })
+  return <form>{/* form fields */}</form>
+}
+
+// Modal route: apps/frontend/src/app/(protected)/manage/entities/@modal/(.)new/page.tsx
+export default function NewEntityModal() {
+  return (
+    <RouteModal>
+      <EntityCreateForm />
+    </RouteModal>
+  )
+}
+
+// Full-page route: apps/frontend/src/app/(protected)/manage/entities/new/page.tsx
+export default async function NewEntityPage() {
+  return <EntityCreateForm />
+}
+
+// Usage in list page
+<Link href="/manage/entities/new">
+  <Button>Add Entity</Button>
+</Link>
+```
+
+### Current Implementation Status
+
+**✅ Fully Migrated**:
+- Properties (consolidated form)
+- Tenants (separate forms, TODO: consolidate)
+- Leases (consolidated form)
+- Maintenance (consolidated form)
+- Units (create form extracted)
+
+**📦 Removed**:
+- All inline CreateDialog components
+- Dead code: CreateModal, EditModal, ViewDialog, ViewModal, DeleteDialog (~1,090 lines)
+
+### PROHIBITIONS
+- NO: Inline dialog components with form logic (extract to standalone components)
+- NO: Base dialog components (CreateDialog, EditDialog) for new features (use intercepting routes)
+- NO: Separate create/edit form components (use consolidated form with mode prop)
+- NO: Modal-only routes (always provide full-page fallback)
+
+### Benefits
+1. **Modal UX**: Fast, maintains context, smooth transitions
+2. **URL Support**: Shareable, bookmarkable, SEO-friendly
+3. **Browser Navigation**: Back/forward works perfectly
+4. **Progressive Enhancement**: Soft navigation → modal, hard navigation → full page
+5. **Type Safety**: Same form component, consistent validation
+6. **Code Reuse**: Single form for modal + full-page routes
+7. **Testing**: Full-page routes are easier to test
+
 ## Testing - Integration Tests (2025 Best Practices)
 
 ### Philosophy

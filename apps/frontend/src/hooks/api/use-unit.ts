@@ -292,7 +292,7 @@ export function useUpdateUnit() {
 				// Use withVersion helper to include version in request
 				body: JSON.stringify(
 					currentUnit?.version !== null
-						? withVersion(data, currentUnit.version)
+						? withVersion(data, currentUnit!.version)
 						: data
 				)
 			})

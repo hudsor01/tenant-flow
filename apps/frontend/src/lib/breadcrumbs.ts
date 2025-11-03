@@ -1,4 +1,4 @@
-import type { BreadcrumbItem } from '#components/ui/breadcrumbs';
+import type { BreadcrumbItem } from '#components/ui/breadcrumb';
 
 // Map of route segments to readable labels
 const LABEL_MAP: Record<string, string> = {

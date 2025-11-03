@@ -102,7 +102,7 @@ const Feature = ({ title, description, icon }: FeatureProps) => {
 	return (
 		<div className="group/feature relative p-6 rounded bg-card/50 border border-border/40 hover:border-primary/40 hover:bg-card/90 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 backdrop-blur-sm hover:-translate-y-2 hover:scale-[1.02]">
 			{/* Enhanced hover background glow */}
-			<div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 bg-gradient-to-br from-primary/[0.08] via-primary/[0.04] to-accent/[0.08] rounded pointer-events-none transition-all duration-500 blur-sm" />
+			<div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 bg-primary/5 rounded pointer-events-none transition-all duration-500 blur-sm" />
 
 			{/* Icon with enhanced animations */}
 			<div className="mb-4 relative z-10">
@@ -129,11 +129,11 @@ const Feature = ({ title, description, icon }: FeatureProps) => {
 
 			{/* Animated border beam effect */}
 			<div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 rounded overflow-hidden pointer-events-none">
-				<div className="absolute inset-[-2px] bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-pulse duration-1000 rounded" />
+				<div className="absolute inset-[-2px] bg-primary/10 animate-pulse duration-1000 rounded" />
 			</div>
 
 			{/* Subtle hover gradient overlay */}
-			<div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 bg-gradient-to-br from-primary/[0.03] to-accent/[0.03] rounded pointer-events-none transition-opacity duration-500" />
+			<div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 bg-primary/3 rounded pointer-events-none transition-opacity duration-500" />
 		</div>
 	)
 }

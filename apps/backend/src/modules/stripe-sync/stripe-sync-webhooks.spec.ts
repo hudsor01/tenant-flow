@@ -2,6 +2,7 @@ import { createMock } from '@golevelup/ts-jest'
 import type { DeepMocked } from '@golevelup/ts-jest'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
@@ -64,6 +65,10 @@ describe('StripeSyncController - Webhook Processing', () => {
 				{
 					provide: WebhookMonitoringService,
 					useValue: webhookMonitoringService
+				},
+				{
+					provide: CACHE_MANAGER,
+					useValue: createMock()
 				}
 			]
 		}).compile()

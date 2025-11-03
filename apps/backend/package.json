@@ -51,6 +51,7 @@
 		"class-validator": "0.14.2",
 		"compression": "^1.8.1",
 		"cookie-parser": "^1.4.7",
+		"csv-parse": "6.1.0",
 		"exceljs": "4.4.0",
 		"express": "^5.1.0",
 		"handlebars": "4.7.8",
