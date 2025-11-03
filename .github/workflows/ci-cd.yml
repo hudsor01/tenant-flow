@@ -32,4 +32,5 @@ jobs:
     with:
       pnpm-version: '10.18.3'
       node-version: '22'
+      test-script: 'pnpm --filter @repo/backend test:unit && pnpm --filter @repo/frontend test:unit'
     secrets: inherit

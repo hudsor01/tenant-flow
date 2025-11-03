@@ -7,7 +7,7 @@
 
 import { render, screen, waitFor } from '#test/utils'
 import { MaintenanceForm } from '../maintenance-form.client'
-import type { MaintenanceRequest, Property, Unit } from '@repo/shared/types/core'
+import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
@@ -77,15 +77,22 @@ vi.mock('#lib/api/client', () => ({
 
 const DEFAULT_REQUEST: MaintenanceRequest = {
 	id: 'request-1',
-	propertyId: 'property-1',
 	unitId: 'unit-1',
 	requestedBy: 'tenant-1',
 	title: 'Kitchen faucet leak',
 	description: 'The kitchen faucet is dripping continuously',
 	priority: 'MEDIUM',
 	category: 'PLUMBING',
-	status: 'PENDING',
+	status: 'OPEN',
 	estimatedCost: 150,
+	actualCost: null,
+	allowEntry: true,
+	assignedTo: null,
+	completedAt: null,
+	contactPhone: null,
+	notes: null,
+	photos: null,
+	preferredDate: null,
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z',
 	version: 1

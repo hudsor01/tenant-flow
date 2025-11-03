@@ -1,4 +1,5 @@
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
@@ -42,10 +43,10 @@ const createMockStripe = (): jest.Mocked<Stripe> => {
 		},
 		prices: {
 			list: jest.fn()
-		},
+		} as unknown as jest.Mocked<Stripe.PricesResource>,
 		products: {
 			list: jest.fn()
-		}
+		} as unknown as jest.Mocked<Stripe.ProductsResource>
 	} as unknown as jest.Mocked<Stripe>
 }
 
@@ -96,6 +97,14 @@ describe('StripeController - Subscription Management', () => {
 					provide: StripeService,
 					useValue: {
 						getStripe: jest.fn(() => mockStripe)
+					}
+				},
+				{
+					provide: CACHE_MANAGER,
+					useValue: {
+						get: jest.fn().mockResolvedValue(null),
+						set: jest.fn().mockResolvedValue(undefined),
+						del: jest.fn().mockResolvedValue(undefined)
 					}
 				}
 			]
@@ -715,18 +724,42 @@ describe('StripeController - Subscription Management', () => {
 						id: 'prod_starter',
 						name: 'Starter Plan',
 						active: true,
-						metadata: {}
+						metadata: {},
+						description: null,
+						default_price: null
 					},
 					{
 						id: 'prod_professional',
 						name: 'Professional Plan',
 						active: true,
-						metadata: {}
+						metadata: {},
+						description: null,
+						default_price: null
 					}
 				]
 			} as Stripe.ApiList<Stripe.Product>
 
+			const mockPrices = {
+				data: [
+					{
+						id: mockPriceIdStarter,
+						product: 'prod_starter',
+						unit_amount: 1900,
+						currency: 'usd',
+						recurring: { interval: 'month', interval_count: 1 }
+					},
+					{
+						id: mockPriceIdProfessional,
+						product: 'prod_professional',
+						unit_amount: 4900,
+						currency: 'usd',
+						recurring: { interval: 'month', interval_count: 1 }
+					}
+				]
+			} as Stripe.ApiList<Stripe.Price>
+
 			;(mockStripe.products.list as jest.Mock).mockResolvedValue(mockProducts)
+			;(mockStripe.prices.list as jest.Mock).mockResolvedValue(mockPrices)
 
 			const result = await controller.getProducts()
 

@@ -60,7 +60,7 @@ function ClientFeedback() {
 							animationNum={0}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className=" lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden rounded border border-border p-5 group"
+							className=" lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-primary/5 overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
 								size={250}
@@ -306,7 +306,7 @@ function ClientFeedback() {
 							animationNum={6}
 							customVariants={revealVariants}
 							timelineRef={testimonialRef}
-							className="lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden rounded border border-border p-5 group"
+							className="lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-primary/5 overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
 								size={250}

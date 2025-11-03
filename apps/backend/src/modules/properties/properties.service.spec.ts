@@ -224,7 +224,7 @@ describe('PropertiesService', () => {
 			expect(result).toEqual(mockCreated)
 			expect(mockQueryBuilder.insert).toHaveBeenCalledWith(
 				expect.objectContaining({
-					ownerId: 'internal-uid-1',
+					ownerId: 'user-123',
 					name: 'Park View',
 					address: '123 Main St',
 					city: 'Austin',
@@ -385,7 +385,7 @@ describe('PropertiesService', () => {
 			})
 
 			expect(result).toEqual(mockProperties)
-			expect(mockQueryBuilder.select).toHaveBeenCalledWith('*, units:unit(*)')
+			expect(mockQueryBuilder.select).toHaveBeenCalledWith('*, units:unit(*, lease(*))')
 			expect(mockQueryBuilder.or).toHaveBeenCalledWith(
 				buildMultiColumnSearch('Loft', ['name', 'address'])
 			)

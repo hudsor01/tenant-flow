@@ -41,7 +41,7 @@ const ImageSection = ({ imageUrl, content }: ImageSectionProps) => (
 				/>
 			</div>
 			{/* Minimal overlay - let the image be the star */}
-			<div className="absolute inset-0 bg-gradient-to-br from-black/30 via-black/20 to-black/30" />
+			<div className="absolute inset-0 bg-black/25" />
 
 			<div className="absolute inset-0 flex items-center justify-center">
 				{/* Content container with semi-transparent panel */}
@@ -52,7 +52,7 @@ const ImageSection = ({ imageUrl, content }: ImageSectionProps) => (
 					<div className="relative text-center space-y-6 py-12 px-8 z-20 transform ease-out animate-in fade-in slide-in-from-bottom-8 transition-all duration-700">
 						{/* Enhanced Logo Icon with better visibility */}
 						<div className="size-16 mx-auto mb-8 relative group">
-							<div className="absolute inset-0 bg-gradient-to-r from-primary/50 to-primary/60 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
+							<div className="absolute inset-0 bg-primary/55 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
 							<div className="relative w-full h-full bg-primary rounded-2xl flex items-center justify-center border border-white/20 group-hover:border-white/30 group-hover:scale-105 transition-all duration-300 shadow-lg">
 								<svg
 									viewBox="0 0 24 24"

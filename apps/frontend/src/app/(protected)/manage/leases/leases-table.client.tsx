@@ -33,7 +33,6 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Tables } from '@repo/shared/types/supabase'
 
 type Lease = Tables<'lease'>
-type Unit = Tables<'unit'>
 
 const logger = createLogger({ component: 'LeasesTable' })
 
@@ -47,7 +46,9 @@ export function LeasesTable() {
 	const leases = leasesData?.data ?? []
 
 	const { data: tenants = [] } = useAllTenants()
-	const { data: units = [] } = useAllUnits()
+
+	const { data: unitsResponse } = useAllUnits()
+	const units = unitsResponse?.data || []
 
 	const removeLease = useDeleteLease({
 		onSuccess: () => {
@@ -60,7 +61,7 @@ export function LeasesTable() {
 	})
 
 	const tenantMap = new Map(tenants.map(tenant => [tenant.id, tenant.name]))
-	const unitMap = new Map(units.map((unit: Unit) => [unit.id, unit]))
+	const unitMap = new Map(units.map(unit => [unit.id, unit]))
 
 	if (isLoading) {
 		return (

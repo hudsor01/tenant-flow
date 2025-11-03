@@ -82,7 +82,40 @@ export const defaultMetadata: Metadata = {
 }
 
 export function getJsonLd() {
-	return {
+	// Organization schema for global presence
+	const organization = {
+		'@context': 'https://schema.org',
+		'@type': 'Organization',
+		name: 'TenantFlow',
+		url: SITE_URL,
+		logo: `${SITE_URL}/tenant-flow-logo.png`,
+		description:
+			'Professional property management software trusted by thousands. Streamline operations, automate workflows, and scale your business.',
+		foundingDate: '2024',
+		contactPoint: {
+			'@type': 'ContactPoint',
+			telephone: '+1-888-TENANT-1',
+			contactType: 'Customer Service',
+			email: 'support@tenantflow.app',
+			areaServed: 'US',
+			availableLanguage: 'English'
+		},
+		sameAs: [
+			'https://twitter.com/tenantflow',
+			'https://linkedin.com/company/tenantflow',
+			'https://facebook.com/tenantflow'
+		],
+		aggregateRating: {
+			'@type': 'AggregateRating',
+			ratingValue: '4.8',
+			reviewCount: '1250',
+			bestRating: '5',
+			worstRating: '1'
+		}
+	}
+
+	// SoftwareApplication schema
+	const software = {
 		'@context': 'https://schema.org',
 		'@type': 'SoftwareApplication',
 		name: 'TenantFlow',
@@ -90,7 +123,7 @@ export function getJsonLd() {
 		applicationSubCategory: 'Property Management Software',
 		operatingSystem: 'Web Browser',
 		description:
-			'Professional property management software trusted by thousands. Streamline operations, automate workflows, and scale your business.',
+			'Professional property management software trusted by thousands. Streamline operations, automate workflows, and scale your business with TenantFlow.',
 		url: SITE_URL,
 		author: {
 			'@type': 'Organization',
@@ -98,14 +131,12 @@ export function getJsonLd() {
 			url: SITE_URL
 		},
 		offers: {
-			'@type': 'Offer',
-			category: 'SaaS',
-			priceSpecification: {
-				'@type': 'PriceSpecification',
-				price: '0',
-				priceCurrency: 'USD',
-				description: 'Free trial available'
-			}
+			'@type': 'AggregateOffer',
+			priceCurrency: 'USD',
+			lowPrice: '0',
+			highPrice: '399',
+			offerCount: '3',
+			availability: 'https://schema.org/InStock'
 		},
 		screenshot: `${SITE_URL}/images/property-management-og.jpg`,
 		featureList: [
@@ -114,14 +145,21 @@ export function getJsonLd() {
 			'Rent Collection',
 			'Maintenance Tracking',
 			'Financial Reporting',
-			'Automated Workflows'
+			'Automated Workflows',
+			'Lease Management',
+			'Online Payments',
+			'Document Storage',
+			'Tenant Screening'
 		],
 		aggregateRating: {
 			'@type': 'AggregateRating',
 			ratingValue: '4.8',
-			reviewCount: '1250'
+			reviewCount: '1250',
+			bestRating: '5'
 		}
 	}
+
+	return [organization, software]
 }
 
 export async function generateSiteMetadata(): Promise<Metadata> {

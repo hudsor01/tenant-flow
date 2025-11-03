@@ -29,6 +29,8 @@ import {
 } from '../../shared/utils/sql-safe.utils'
 import { SagaBuilder, noCompensation } from '../../shared/patterns/saga.pattern'
 import type { Request } from 'express'
+import { parse } from 'csv-parse'
+import { Readable } from 'stream'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
 type PropertyType = Database['public']['Enums']['PropertyType']
@@ -70,6 +72,25 @@ export class PropertiesService {
 	/**
 	 * Get all properties with search and pagination
 	 */
+
+	/**
+	 * Invalidate property stats cache for a user
+	 * Called after create/update/delete operations
+	 */
+	private async invalidatePropertyStatsCache(userId: string): Promise<void> {
+		const cacheKey = `property-stats:${userId}`
+		try {
+			await this.cacheManager.del(cacheKey)
+			this.logger.debug('Invalidated property stats cache', { userId })
+		} catch (error) {
+			this.logger.error('Failed to invalidate property stats cache', {
+				error: error instanceof Error ? error.message : 'Unknown error',
+				userId
+			})
+			// Don't throw - cache invalidation errors shouldn't fail the operation
+		}
+	}
+
 	async findAll(
 		userToken: string,
 		query: { search?: string | null; limit: number; offset: number }
@@ -200,6 +221,9 @@ export class PropertiesService {
 			)
 		}
 
+		// 🚀 PERFORMANCE: Invalidate property stats cache after mutation
+		await this.invalidatePropertyStatsCache(ownerId)
+
 		this.logger.log('Property created successfully', {
 			propertyId: data.id
 		})
@@ -230,45 +254,42 @@ export class PropertiesService {
 		const userId = (req as AuthenticatedRequest).user.id
 
 		try {
-			// Parse CSV file (native Node.js)
-			const csvContent = fileBuffer.toString('utf-8')
-			const lines = csvContent.split('\n').filter(line => line.trim())
+			// Parse CSV file using csv-parse (RFC 4180 compliant streaming parser)
+			const records = await new Promise<Record<string, string>[]>(
+				(resolve, reject) => {
+					const rows: Record<string, string>[] = []
+					const stream = Readable.from(fileBuffer.toString('utf-8'))
 
-			if (lines.length === 0) {
-				throw new BadRequestException('CSV file is empty')
-			}
+					stream
+						.pipe(
+							parse({
+								columns: true, // Use first row as headers
+								skip_empty_lines: true,
+								trim: true,
+								relax_quotes: true, // Allow quotes in unquoted fields
+								relax_column_count: true, // Allow variable column counts
+								max_record_size: 100000 // 100KB max per record
+							})
+						)
+						.on('data', (row: Record<string, string>) => {
+							rows.push(row)
+						})
+						.on('error', (error: Error) => {
+							reject(
+								new BadRequestException(`CSV parsing failed: ${error.message}`)
+							)
+						})
+						.on('end', () => {
+							resolve(rows)
+						})
+				}
+			)
 
-			// Parse header row
-			const headerLine = lines[0]
-			if (!headerLine) {
-				throw new BadRequestException('CSV file has no headers')
-			}
-			const headers = this.parseCSVLine(headerLine)
-			if (headers.length === 0) {
-				throw new BadRequestException('CSV file has no headers')
-			}
-
-			// Parse data rows
-			const rows: Record<string, unknown>[] = []
-			for (let i = 1; i < lines.length; i++) {
-				const line = lines[i]
-				if (!line) continue
-
-				const values = this.parseCSVLine(line)
-				if (values.length === 0) continue
-
-				const row: Record<string, unknown> = {}
-				headers.forEach((header, index) => {
-					row[header] = values[index] || ''
-				})
-				rows.push(row)
-			}
-
-			if (rows.length === 0) {
+			if (records.length === 0) {
 				throw new BadRequestException('CSV file contains no data rows')
 			}
 
-			if (rows.length > 100) {
+			if (records.length > 100) {
 				throw new BadRequestException(
 					'Maximum 100 properties per import. Please split into smaller files.'
 				)
@@ -281,8 +302,8 @@ export class PropertiesService {
 			> = []
 
 			// PHASE 1: Validate ALL rows before inserting anything
-			for (let i = 0; i < rows.length; i++) {
-				const row = rows[i]
+			for (let i = 0; i < records.length; i++) {
+				const row = records[i]
 				if (!row) continue // Skip undefined rows
 
 				const rowNumber = i + 2 // CSV row number (header is row 1)
@@ -349,7 +370,7 @@ export class PropertiesService {
 			if (errors.length > 0) {
 				this.logger.warn('Bulk import validation failed', {
 					userId,
-					totalRows: rows.length,
+					totalRows: records.length,
 					failedRows: errors.length
 				})
 
@@ -398,41 +419,6 @@ export class PropertiesService {
 				`Failed to process CSV file: ${errorMessage}`
 			)
 		}
-	}
-
-	/**
-	 * Parse CSV line handling quoted fields (RFC 4180 compliant)
-	 */
-	private parseCSVLine(line: string): string[] {
-		const result: string[] = []
-		let current = ''
-		let inQuotes = false
-
-		for (let i = 0; i < line.length; i++) {
-			const char = line[i]
-
-			if (char === '"') {
-				if (inQuotes && line[i + 1] === '"') {
-					// Escaped quote
-					current += '"'
-					i++ // Skip next quote
-				} else {
-					// Toggle quote state
-					inQuotes = !inQuotes
-				}
-			} else if (char === ',' && !inQuotes) {
-				// Field separator
-				result.push(current.trim())
-				current = ''
-			} else {
-				current += char
-			}
-		}
-
-		// Push last field
-		result.push(current.trim())
-
-		return result
 	}
 
 	private getStringValue(
@@ -531,6 +517,10 @@ export class PropertiesService {
 			throw new BadRequestException('Failed to update property')
 		}
 
+		// 🚀 PERFORMANCE: Invalidate property stats cache after update
+		const userId = (req as AuthenticatedRequest).user.id
+		await this.invalidatePropertyStatsCache(userId)
+
 		return data as Property
 	}
 
@@ -578,7 +568,7 @@ export class PropertiesService {
 
 							// Create trash path with timestamp to avoid conflicts
 							const timestamp = Date.now()
-							trashFilePath = `property-images/${ownerId}/${timestamp}-${pathParts[1]}`
+							trashFilePath = `property-images/${userId}/${timestamp}-${pathParts[1]}`
 
 							// Move image to trash bucket (copy + delete original)
 							await this.storage.moveFile(
@@ -755,6 +745,9 @@ export class PropertiesService {
 			completedSteps: result.completedSteps
 		})
 
+		// 🚀 PERFORMANCE: Invalidate property stats cache after deletion
+		await this.invalidatePropertyStatsCache(userId)
+
 		return { success: true, message: 'Property deleted successfully' }
 	}
 
@@ -826,7 +819,10 @@ export class PropertiesService {
 
 		let queryBuilder = client
 			.from('property')
-			.select('*, units:unit(*)')
+			// 🚀 PERFORMANCE FIX: Eager load nested relations to prevent N+1 queries
+			// Previously: .select('*, units:unit(*)')
+			// Now includes lease data on units to avoid 200+ additional queries
+			.select('*, units:unit(*, lease(*))')
 			.order('createdAt', { ascending: false })
 			.range(offset, offset + limit - 1)
 

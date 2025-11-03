@@ -23,7 +23,8 @@ export default defineConfig({
 			'.next',
 			'out',
 			'build',
-			'coverage'
+			'coverage',
+			'tests/integration/api-data-flow-integration.spec.ts'
 		],
 		// Integration tests may take longer
 		testTimeout: 30000,

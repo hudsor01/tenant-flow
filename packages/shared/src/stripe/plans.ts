@@ -23,12 +23,12 @@ export const STRIPE_PRICE_IDS: Record<
 		annual: 'price_1RtWFdP3WCR53SdoArRRXYrL' // $290.00/year (17% savings)
 	},
 	GROWTH: {
-		monthly: 'price_1RtWFdP3WCR53Sdoz98FFpSu', // $79.00/month
-		annual: 'price_1RtWFdP3WCR53SdoHDRR9kAJ' // $790.00/year (17% savings)
+		monthly: 'price_1SPGCNP3WCR53SdorjDpiSy5', // $79.00/month
+		annual: 'price_1SPGCRP3WCR53SdonqLUTJgK' // $790.00/year (17% savings)
 	},
 	TENANTFLOW_MAX: {
-		monthly: 'price_1RtWFeP3WCR53Sdo9AsL7oGv', // $199.00/month
-		annual: 'price_1RtWFeP3WCR53Sdoxm2iY4mt' // $1990.00/year (17% savings)
+		monthly: 'price_1SPGCjP3WCR53SdoIpidDn0T', // $199.00/month
+		annual: 'price_1SPGCoP3WCR53SdoID50geIC' // $1989.00/year (17% savings)
 	}
 } as const
 
@@ -36,10 +36,10 @@ export const STRIPE_PRICE_IDS: Record<
  * Stripe product IDs from live account
  */
 export const STRIPE_PRODUCT_IDS: Record<PlanType, string> = {
-	FREETRIAL: 'tenantflow_free_trial',
+	FREETRIAL: 'prod_SbujfadeHK2q0w',
 	STARTER: 'tenantflow_starter',
-	GROWTH: 'tenantflow_growth',
-	TENANTFLOW_MAX: 'tenantflow_max'
+	GROWTH: 'prod_TLy8IZ0jV68wF6',
+	TENANTFLOW_MAX: 'prod_TLy85YNN2Unmyj'
 } as const
 
 /**

@@ -1,64 +1,38 @@
 /**
- * Base Dialog and Modal Components
+ * Base Dialog Components
  *
- * These are reusable UI patterns that wrap ShadCN/UI components with
- * common CRUD operation patterns. Domains customize inline for their needs.
+ * Reusable dialog patterns for quick operations that stay on the current page.
+ * For complex CRUD operations, use full-page routes with consolidated forms.
  *
- * PHILOSOPHY:
- * - Dialogs: Smaller, overlays content (use for quick actions)
- * - Modals: Full-page overlays (use for complex multi-step forms)
+ * ARCHITECTURE:
+ * - Quick operations → Dialogs (CreateDialog, EditDialog)
+ * - Complex CRUD → Full-page routes + consolidated forms
  *
- * USAGE PATTERN:
- * 1. Import base component
- * 2. Pass domain-specific props (title, steps, formType)
- * 3. Customize form fields inline via children render function
- * 4. Handle submission with TanStack Query mutation
+ * USAGE:
+ * - CreateDialog: Quick inline creates on list pages
+ * - EditDialog: Special operations (renew, terminate, configure)
  *
  * @example
  * ```tsx
  * import { CreateDialog } from '#components/ui/base-dialogs'
  *
  * <CreateDialog
- *   triggerText="Add Property"
- *   title="Add New Property"
- *   description="Add a new property to your portfolio"
- *   steps={PROPERTY_STEPS}
- *   formType="property"
+ *   triggerText="Add Unit"
+ *   title="Create New Unit"
+ *   description="Add a unit to this property"
+ *   steps={UNIT_STEPS}
+ *   formType="unit"
  *   onSubmit={handleSubmit}
- *   onValidateStep={validateStep}
  * >
- *   {(currentStep) => (
- *     <>
- *       {currentStep === 1 && <PropertyBasicInfoStep />}
- *       {currentStep === 2 && <PropertyAddressStep />}
- *       {currentStep === 3 && <PropertyDetailsStep />}
- *     </>
- *   )}
+ *   {(currentStep) => <UnitFormFields step={currentStep} />}
  * </CreateDialog>
  * ```
  */
 
-// CREATE OPERATIONS
+// Quick inline create operations
 export { CreateDialog } from './create-dialog'
 export type { CreateDialogProps, FormStep } from './create-dialog'
 
-export { CreateModal } from './create-modal'
-export type { CreateModalProps } from './create-modal'
-
-// EDIT/UPDATE OPERATIONS
+// Special operations (renew, terminate, configure)
 export { EditDialog } from './edit-dialog'
 export type { EditDialogProps } from './edit-dialog'
-
-export { EditModal } from './edit-modal'
-export type { EditModalProps } from './edit-modal'
-
-// DELETE OPERATIONS
-export { DeleteDialog } from './delete-dialog'
-export type { DeleteDialogProps } from './delete-dialog'
-
-// VIEW OPERATIONS (Read-Only)
-export { ViewDialog } from './view-dialog'
-export type { ViewDialogProps } from './view-dialog'
-
-export { ViewModal } from './view-modal'
-export type { ViewModalProps } from './view-modal'

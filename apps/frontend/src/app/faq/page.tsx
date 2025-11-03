@@ -107,8 +107,56 @@ const faqs = [
 ]
 
 export default function FAQPage() {
+	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
+
+	// FAQ Schema for Google rich snippets - flatten all questions
+	const allQuestions = faqs.flatMap(category => category.questions)
+	const faqSchema = {
+		'@context': 'https://schema.org',
+		'@type': 'FAQPage',
+		mainEntity: allQuestions.map(q => ({
+			'@type': 'Question',
+			name: q.question,
+			acceptedAnswer: {
+				'@type': 'Answer',
+				text: q.answer
+			}
+		}))
+	}
+
+	// Breadcrumb Schema
+	const breadcrumbSchema = {
+		'@context': 'https://schema.org',
+		'@type': 'BreadcrumbList',
+		itemListElement: [
+			{
+				'@type': 'ListItem',
+				position: 1,
+				name: 'Home',
+				item: baseUrl
+			},
+			{
+				'@type': 'ListItem',
+				position: 2,
+				name: 'FAQ'
+			}
+		]
+	}
+
 	return (
 		<div className="relative min-h-screen flex flex-col">
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{
+					__html: JSON.stringify(faqSchema).replace(/</g, '\\u003c')
+				}}
+			/>
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{
+					__html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')
+				}}
+			/>
 			{/* Full page grid background */}
 			<GridPattern className="fixed inset-0 -z-10" />
 

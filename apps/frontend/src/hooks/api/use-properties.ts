@@ -320,7 +320,7 @@ export function useUpdateProperty() {
 				method: 'PUT',
 				// 🔐 OPTIMISTIC LOCKING: Include version if provided
 				body: JSON.stringify(
-					version != null ? withVersion(data, version) : data
+					version !== null && version !== undefined ? withVersion(data, version) : data
 				)
 			})
 		},

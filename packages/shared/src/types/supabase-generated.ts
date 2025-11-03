@@ -598,66 +598,6 @@ export type Database = {
           },
         ]
       }
-      documents: {
-        Row: {
-          compressed_size: number
-          compression_ratio: number | null
-          created_at: string | null
-          document_type: string
-          entity_id: string
-          entity_type: string
-          file_name: string
-          file_path: string
-          id: string
-          mime_type: string
-          original_size: number
-          retention_until: string
-          soft_deleted_at: string | null
-          updated_at: string | null
-          uploaded_at: string | null
-          user_id: string
-          version: number
-        }
-        Insert: {
-          compressed_size: number
-          compression_ratio?: number | null
-          created_at?: string | null
-          document_type: string
-          entity_id: string
-          entity_type: string
-          file_name: string
-          file_path: string
-          id?: string
-          mime_type: string
-          original_size: number
-          retention_until: string
-          soft_deleted_at?: string | null
-          updated_at?: string | null
-          uploaded_at?: string | null
-          user_id: string
-          version?: number
-        }
-        Update: {
-          compressed_size?: number
-          compression_ratio?: number | null
-          created_at?: string | null
-          document_type?: string
-          entity_id?: string
-          entity_type?: string
-          file_name?: string
-          file_path?: string
-          id?: string
-          mime_type?: string
-          original_size?: number
-          retention_until?: string
-          soft_deleted_at?: string | null
-          updated_at?: string | null
-          uploaded_at?: string | null
-          user_id?: string
-          version?: number
-        }
-        Relationships: []
-      }
       email_queue: {
         Row: {
           attempt_count: number
@@ -1695,15 +1635,7 @@ export type Database = {
           status?: string
           stripePaymentIntentId?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "paymentattempt_rentpaymentid_fkey"
-            columns: ["rentPaymentId"]
-            isOneToOne: false
-            referencedRelation: "rent_payments"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       payment_failure: {
         Row: {
@@ -2310,91 +2242,6 @@ export type Database = {
             columns: ["tenantId"]
             isOneToOne: false
             referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rent_payments: {
-        Row: {
-          amount: number
-          createdAt: string
-          currency: string
-          failureReason: string | null
-          id: string
-          netAmount: number
-          organizationId: string
-          paidAt: string | null
-          paymentMethodId: string | null
-          processingFee: number
-          receiptUrl: string | null
-          rentDueId: string
-          status: Database["public"]["Enums"]["RentPaymentStatus"]
-          stripeChargeId: string | null
-          stripePaymentIntentId: string
-          stripeReceiptUrl: string | null
-          tenantId: string
-          updatedAt: string
-        }
-        Insert: {
-          amount: number
-          createdAt?: string
-          currency?: string
-          failureReason?: string | null
-          id?: string
-          netAmount: number
-          organizationId: string
-          paidAt?: string | null
-          paymentMethodId?: string | null
-          processingFee?: number
-          receiptUrl?: string | null
-          rentDueId: string
-          status?: Database["public"]["Enums"]["RentPaymentStatus"]
-          stripeChargeId?: string | null
-          stripePaymentIntentId: string
-          stripeReceiptUrl?: string | null
-          tenantId: string
-          updatedAt?: string
-        }
-        Update: {
-          amount?: number
-          createdAt?: string
-          currency?: string
-          failureReason?: string | null
-          id?: string
-          netAmount?: number
-          organizationId?: string
-          paidAt?: string | null
-          paymentMethodId?: string | null
-          processingFee?: number
-          receiptUrl?: string | null
-          rentDueId?: string
-          status?: Database["public"]["Enums"]["RentPaymentStatus"]
-          stripeChargeId?: string | null
-          stripePaymentIntentId?: string
-          stripeReceiptUrl?: string | null
-          tenantId?: string
-          updatedAt?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rentpayment_paymentmethodid_fkey"
-            columns: ["paymentMethodId"]
-            isOneToOne: false
-            referencedRelation: "payment_method"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rentpayment_rentchargeid_fkey"
-            columns: ["rentDueId"]
-            isOneToOne: false
-            referencedRelation: "rent_due"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rentpayment_tenantid_fkey"
-            columns: ["tenantId"]
-            isOneToOne: false
-            referencedRelation: "tenant"
             referencedColumns: ["id"]
           },
         ]
@@ -3576,56 +3423,6 @@ export type Database = {
       }
     }
     Views: {
-      dashboard_stats_mv: {
-        Row: {
-          active_leases: number | null
-          active_tenants: number | null
-          average_unit_rent: number | null
-          avg_resolution_time_hours: number | null
-          completed_maintenance: number | null
-          completed_today_maintenance: number | null
-          emergency_maintenance: number | null
-          expired_leases: number | null
-          expiring_soon_leases: number | null
-          high_priority_maintenance: number | null
-          in_progress_maintenance: number | null
-          inactive_tenants: number | null
-          last_updated: string | null
-          low_priority_maintenance: number | null
-          maintenance_units: number | null
-          medium_priority_maintenance: number | null
-          monthly_revenue: number | null
-          new_tenants_this_month: number | null
-          occupancy_change_percentage: number | null
-          occupancy_rate: number | null
-          occupied_properties: number | null
-          occupied_units: number | null
-          open_maintenance: number | null
-          previous_month_revenue: number | null
-          terminated_leases: number | null
-          total_actual_rent: number | null
-          total_lease_rent: number | null
-          total_leases: number | null
-          total_maintenance: number | null
-          total_potential_rent: number | null
-          total_properties: number | null
-          total_security_deposits: number | null
-          total_tenants: number | null
-          total_units: number | null
-          user_id: string | null
-          vacant_units: number | null
-          yearly_revenue: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "property_ownerid_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       email_queue_stats: {
         Row: {
           avg_attempts: number | null

@@ -4,10 +4,6 @@
  * Design with OKLCH color space and Roboto Flex typography
  */
 
-// ============================================================================
-// TYPOGRAPHY TOKENS
-// ============================================================================
-
 export const typography = {
 	// Font Family
 	fontFamily: {
@@ -69,10 +65,6 @@ export const typography = {
 		black: 900
 	}
 } as const
-
-// ============================================================================
-// COLOR TOKENS (OKLCH Color Space)
-// ============================================================================
 
 export const colors = {
 	// Primary brand colors

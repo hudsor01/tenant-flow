@@ -5,12 +5,13 @@
  * @jest-environment jsdom
  */
 
-import { render, screen, waitFor } from '#test/utils'
+import { render, screen } from '#test/utils'
 import { PropertyForm } from '../property-form.client'
 import type { Property } from '@repo/shared/types/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
+import '@testing-library/jest-dom/vitest'
 
 // Mock hooks
 vi.mock('#hooks/api/use-properties', () => ({
@@ -58,7 +59,9 @@ const DEFAULT_PROPERTY: Property = {
 	description: 'Beautiful apartment complex',
 	status: 'ACTIVE',
 	imageUrl: null,
-	unitCount: null,
+	date_sold: null,
+	sale_notes: null,
+	sale_price: null,
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z',
 	version: 1
