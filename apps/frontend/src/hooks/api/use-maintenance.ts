@@ -15,6 +15,12 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
+import {
+	handleConflictError,
+	isConflictError,
+	withVersion,
+	incrementVersion
+} from '@repo/shared/utils/optimistic-locking'
 
 /**
  * Query keys for maintenance endpoints (hierarchical structure)
@@ -194,15 +200,20 @@ export function useUpdateMaintenanceRequest() {
 	return useMutation({
 		mutationFn: async ({
 			id,
-			data
+			data,
+			version
 		}: {
 			id: string
 			data: UpdateMaintenanceRequest
+			version?: number
 		}): Promise<MaintenanceRequest> => {
 			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`, {
-					method: 'PUT',
-					body: JSON.stringify(data)
-				})
+				method: 'PUT',
+				// 🔐 OPTIMISTIC LOCKING: Include version if provided
+				body: JSON.stringify(
+					version !== null && version !== undefined ? withVersion(data, version) : data
+				)
+			})
 		},
 		onMutate: async ({ id, data }) => {
 			await queryClient.cancelQueries({ queryKey: maintenanceKeys.detail(id) })
@@ -210,17 +221,10 @@ export function useUpdateMaintenanceRequest() {
 				maintenanceKeys.detail(id)
 			)
 
-			// Optimistic update
+			// Optimistic update (use incrementVersion helper)
 			queryClient.setQueryData<MaintenanceRequest>(
 				maintenanceKeys.detail(id),
-				old => {
-					if (!old) return undefined
-					return {
-						...old,
-						...data,
-						updatedAt: new Date().toISOString()
-					} as MaintenanceRequest
-				}
+				old => (old ? incrementVersion(old, data as Partial<MaintenanceRequest>) : undefined)
 			)
 
 			// Also update list cache
@@ -228,14 +232,9 @@ export function useUpdateMaintenanceRequest() {
 				maintenanceKeys.list(),
 				old => {
 					if (!old) return old
-					return old.map(m => {
-						if (m.id !== id) return m
-						return {
-							...m,
-							...data,
-							updatedAt: new Date().toISOString()
-						} as MaintenanceRequest
-					})
+					return old.map(m =>
+						m.id === id ? incrementVersion(m, data as Partial<MaintenanceRequest>) : m
+					)
 				}
 			)
 
@@ -245,7 +244,16 @@ export function useUpdateMaintenanceRequest() {
 			if (context?.previous) {
 				queryClient.setQueryData(maintenanceKeys.detail(id), context.previous)
 			}
-			handleMutationError(_err, 'Update maintenance request')
+
+			// 🔐 Handle 409 Conflict using helper
+			if (isConflictError(_err)) {
+				handleConflictError('maintenance request', id, queryClient, [
+					maintenanceKeys.detail(id),
+					maintenanceKeys.list()
+				])
+			} else {
+				handleMutationError(_err, 'Update maintenance request')
+			}
 		},
 		onSuccess: () => {
 			handleMutationSuccess('Update maintenance request')

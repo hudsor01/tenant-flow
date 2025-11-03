@@ -10,7 +10,8 @@
  * - Performance with realistic usage patterns
  */
 
-import { test, expect, Page } from '@playwright/test'
+import type { Page } from '@playwright/test';
+import { test, expect } from '@playwright/test'
 import {
 	createTestProperty,
 	createTestProperties
@@ -136,7 +137,8 @@ test.describe('TanStack Query Real User Workflows', () => {
 
 		test('should handle rapid property management operations', async () => {
 			await page.goto('/dashboard/properties')
-			await page.waitForTimeout(2000)
+			await page.waitForLoadState('networkidle')
+			await expect(page.locator('table tbody tr').first()).toBeVisible()
 
 			const initialCount = await tableHelper.getPropertyCount()
 
@@ -150,7 +152,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			// Create all properties in quick succession
 			for (const property of properties) {
 				await formHelper.createProperty(property)
-				await page.waitForTimeout(200) // Small delay between operations
+				await tableHelper.waitForPropertyInTable(property.name!)
 			}
 
 			// Verify all appear optimistically
@@ -163,9 +165,10 @@ test.describe('TanStack Query Real User Workflows', () => {
 
 			// Navigate away and back
 			await page.goto('/dashboard')
-			await page.waitForTimeout(1000)
+			await page.waitForLoadState('networkidle')
 			await page.goto('/dashboard/properties')
-			await page.waitForTimeout(3000)
+			await page.waitForLoadState('networkidle')
+			await expect(page.locator('table tbody tr').first()).toBeVisible()
 
 			// All properties should persist
 			for (const property of properties) {
@@ -186,7 +189,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 					await confirmButton.click()
 				}
 
-				await page.waitForTimeout(200)
+				await tableHelper.waitForPropertyToDisappear(property.name!)
 			}
 
 			// Verify all removed

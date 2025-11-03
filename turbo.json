@@ -169,6 +169,26 @@
 			"cache": true,
 			"persistent": false
 		},
+		"@repo/backend#test": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"src/**/*.spec.ts",
+				"test/**/*.spec.ts",
+				"jest.config.*",
+				"package.json"
+			],
+			"outputs": ["coverage/**"],
+			"env": [
+				"STRIPE_SECRET_KEY",
+				"STRIPE_WEBHOOK_SECRET",
+				"DATABASE_URL",
+				"SUPABASE_URL",
+				"SUPABASE_SECRET_KEY",
+				"JWT_SECRET"
+			],
+			"cache": true,
+			"persistent": false
+		},
 		"@repo/backend#test:unit": {
 			"dependsOn": ["^build"],
 			"inputs": ["src/**/*.{test,spec}.ts", "jest.config.*", "package.json"],
@@ -187,7 +207,7 @@
 		"@repo/backend#test:integration": {
 			"dependsOn": ["^build"],
 			"inputs": [
-				"src/**/*.integration.spec.ts",
+				"test/integration/**/*.integration.spec.ts",
 				"jest.config.*",
 				"package.json"
 			],
@@ -201,6 +221,47 @@
 				"JWT_SECRET"
 			],
 			"cache": true,
+			"persistent": false
+		},
+		"@repo/frontend#test": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"src/**/*.{test,spec}.{ts,tsx}",
+				"vitest.config.*",
+				"package.json"
+			],
+			"outputs": ["coverage/**"],
+			"env": ["NEXT_PUBLIC_*"],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/frontend#test:unit": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"src/**/__tests__/**/*.{test,spec}.{ts,tsx}",
+				"vitest.config.js",
+				"package.json"
+			],
+			"outputs": ["coverage/**"],
+			"env": ["NEXT_PUBLIC_*"],
+			"cache": true,
+			"persistent": false
+		},
+		"@repo/frontend#test:integration": {
+			"dependsOn": ["^build"],
+			"inputs": [
+				"tests/integration/**/*.{test,spec}.{ts,tsx}",
+				"vitest.integration.config.js",
+				"package.json"
+			],
+			"outputs": ["coverage/**"],
+			"env": [
+				"NEXT_PUBLIC_*",
+				"API_BASE_URL",
+				"SUPABASE_URL",
+				"SUPABASE_ANON_KEY"
+			],
+			"cache": false,
 			"persistent": false
 		},
 		"dev": {

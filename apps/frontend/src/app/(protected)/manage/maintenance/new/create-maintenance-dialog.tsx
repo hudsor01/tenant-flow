@@ -11,11 +11,11 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
-import { clientFetch } from '#lib/api/client'
 import { useCreateMaintenanceRequest } from '#hooks/api/use-maintenance'
+import { usePropertyList } from '#hooks/api/use-properties'
+import { useUnitsByProperty } from '#hooks/api/use-unit'
 import { maintenanceRequestFormSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
-import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { z } from 'zod'
@@ -39,14 +39,10 @@ export function CreateMaintenanceDialog() {
 	const [selectedPropertyId, setSelectedPropertyId] = useState<string>('')
 	const createMaintenanceRequest = useCreateMaintenanceRequest()
 
-	const { data: properties = [] } = useQuery({
-		queryKey: ['properties'],
-		queryFn: () => clientFetch<Property[]>('/api/v1/properties')
-	})
+	const { data: propertiesData } = usePropertyList()
+	const properties = propertiesData?.data ?? []
 
-	const { data: units = [] } = useQuery({
-		queryKey: ['units', selectedPropertyId],
-		queryFn: () => clientFetch<Unit[]>('/api/v1/units'),
+	const { data: units = [] } = useUnitsByProperty(selectedPropertyId, {
 		enabled: !!selectedPropertyId
 	})
 

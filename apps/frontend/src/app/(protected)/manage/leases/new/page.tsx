@@ -1,6 +1,9 @@
-import { CreateLeaseForm } from './create-lease-form.client'
+import { LeaseForm } from '#components/leases/lease-form.client'
+import { requireSession } from '#lib/server-auth'
 
-export default function NewLeasePage() {
+export default async function NewLeasePage() {
+	await requireSession()
+
 	return (
 		<div className="mx-auto w-full max-w-4xl space-y-10">
 			<div className="space-y-2">
@@ -10,7 +13,7 @@ export default function NewLeasePage() {
 					details.
 				</p>
 			</div>
-			<CreateLeaseForm />
+			<LeaseForm mode="create" />
 		</div>
 	)
 }

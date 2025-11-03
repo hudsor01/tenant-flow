@@ -150,13 +150,13 @@ export function UpdatePasswordForm({
 										</button>
 									</InputGroupAddon>
 								</InputGroup>
-								{confirmPassword && password !== confirmPassword && (
+								{confirmPassword.length > 0 && password.length > 0 && password !== confirmPassword && (
 									<p className="text-xs text-destructive flex items-center gap-1">
 										<AlertTriangle className="size-3" />
 										Passwords do not match
 									</p>
 								)}
-								{confirmPassword && password === confirmPassword && (
+								{confirmPassword.length > 0 && password.length > 0 && password === confirmPassword && (
 									<p className="text-xs text-primary flex items-center gap-1">
 										<CheckCircle2 className="size-3" />
 										Passwords match

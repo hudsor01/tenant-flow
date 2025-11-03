@@ -4,8 +4,8 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { ZodValidationPipe } from 'nestjs-zod'
 import request from 'supertest'
-import { PDFController } from './pdf.controller'
-import { LeasePDFService } from './lease-pdf.service'
+import { PDFController } from '../../src/modules/pdf/pdf.controller'
+import { LeasePDFService } from '../../src/modules/pdf/lease-pdf.service'
 
 /**
  * Integration Tests - PDF Controller DTO Validation

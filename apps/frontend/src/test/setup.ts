@@ -1,124 +1,76 @@
 /**
- * Vitest Setup File
+ * Integration Test Setup
  *
- * Runs before all tests to configure the test environment
+ * Sets up environment for integration tests that call real APIs
+ * Uses REAL Supabase authentication with session persistence
  */
 
-import { afterEach, vi } from 'vitest'
-import { cleanup } from '@testing-library/react'
-import '@testing-library/jest-dom/vitest'
-import { createElement, type ReactNode } from 'react'
+import { beforeAll, vi } from 'vitest'
+import { createBrowserClient } from '@supabase/ssr'
 
-// Mock HEIC conversion library to avoid native browser dependencies during tests
-vi.mock('heic2any', () => ({
-	default: vi.fn(async ({ blob }) => blob)
-}))
+// Set Supabase environment variables
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://bshjmbshupiibfiewpxb.supabase.co'
+process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY =
+	'sb_publishable_YYaHlF11DF7tVIpF9-PVMQ_BynUAN8e'
 
-// Cleanup after each test
-afterEach(() => {
-	cleanup()
-})
-
-// Mock Next.js router
-vi.mock('next/navigation', () => ({
-	useRouter: () => ({
-		push: vi.fn(),
-		replace: vi.fn(),
-		prefetch: vi.fn(),
-		back: vi.fn(),
-		pathname: '/',
-		query: {},
-		asPath: '/'
-	}),
-	useSearchParams: () => new URLSearchParams(),
-	usePathname: () => '/',
-	useParams: () => ({}),
-	notFound: vi.fn()
-}))
-
-// Mock Next.js Image component
-vi.mock('next/image', () => ({
-	default: (props: Record<string, unknown>) => {
-		return createElement('img', props)
-	}
-}))
-
-// Mock Next.js Link component
-vi.mock('next/link', () => ({
-	default: ({ children, href, ...props }: { children: ReactNode; href: string; [key: string]: unknown }) => {
-		return createElement('a', { href, ...props }, children)
-	}
-}))
-
-// Mock environment variables
-process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000'
+// Set API base URL to local backend
 process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:4600'
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
-process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = 'test-key'
 
-// Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
-	writable: true,
-	value: vi.fn().mockImplementation((query) => ({
-		matches: false,
-		media: query,
-		onchange: null,
-		addListener: vi.fn(), // deprecated
-		removeListener: vi.fn(), // deprecated
-		addEventListener: vi.fn(),
-		removeEventListener: vi.fn(),
-		dispatchEvent: vi.fn()
-	}))
+// Test credentials (must match E2E_TESTING_GUIDE.md)
+const E2E_OWNER_EMAIL = 'rhudsontspr@gmail.com'
+const E2E_OWNER_PASSWORD = 'COmmos@69%'
+
+// Store the authenticated session globally
+let globalSession: any = null
+let globalUser: any = null
+
+// Login to Supabase before all tests and store session
+beforeAll(async () => {
+	const supabase = createBrowserClient(
+		process.env.NEXT_PUBLIC_SUPABASE_URL!,
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+	)
+
+	// Sign in with test credentials
+	const { data, error } = await supabase.auth.signInWithPassword({
+		email: E2E_OWNER_EMAIL,
+		password: E2E_OWNER_PASSWORD
+	})
+
+	if (error) {
+		throw new Error(
+			`Failed to authenticate for integration tests: ${error.message}`
+		)
+	}
+
+	if (!data.session) {
+		throw new Error('No session returned from Supabase auth')
+	}
+
+	// Store session globally
+	globalSession = data.session
+	globalUser = data.user
+
+	console.log('✅ Integration tests authenticated as:', data.user?.email)
+	console.log('✅ Session access token:', data.session.access_token.substring(0, 20) + '...')
 })
 
-// Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
-	observe: vi.fn(),
-	unobserve: vi.fn(),
-	disconnect: vi.fn()
-})) as unknown as typeof IntersectionObserver
-
-// Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-	observe: vi.fn(),
-	unobserve: vi.fn(),
-	disconnect: vi.fn()
-})) as unknown as typeof ResizeObserver
-
-// Mock Web Worker (used by libraries like heic2any during tests)
-if (typeof globalThis.Worker === 'undefined') {
-	class MockWorker {
-		onmessage: ((this: Worker, ev: MessageEvent) => unknown) | null = null
-		onerror: ((this: Worker, ev: ErrorEvent) => unknown) | null = null
-
-		 
-		constructor() {}
-
-		 
-		postMessage(): void {}
-
-		 
-		terminate(): void {}
-
-		 
-		addEventListener(): void {}
-
-		 
-		removeEventListener(): void {}
-
-		dispatchEvent(): boolean {
-			return false
+// Mock the Supabase client to return our authenticated session
+vi.mock('#lib/supabase/client', () => ({
+	createClient: () => ({
+		auth: {
+			getSession: vi.fn().mockImplementation(async () => ({
+				data: {
+					session: globalSession
+				},
+				error: null
+			})),
+			getUser: vi.fn().mockImplementation(async () => ({
+				data: {
+					user: globalUser
+				},
+				error: null
+			}))
 		}
-	}
-
-	;(globalThis as unknown as { Worker: typeof Worker }).Worker = MockWorker as unknown as typeof Worker
-}
-
-// Suppress console errors in tests (optional)
-if (process.env.VITEST_SUPPRESS_CONSOLE) {
-	global.console = {
-		...console,
-		error: vi.fn(),
-		warn: vi.fn()
-	}
-}
+	})
+}))

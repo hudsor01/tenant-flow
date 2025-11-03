@@ -33,12 +33,7 @@ export default async function EditPropertyPage({
 					<p className="text-muted-foreground">Update property information</p>
 				</div>
 			</div>
-			<PropertyForm
-				mode="edit"
-				property={property}
-				onSuccess={() => window.history.back()}
-				showSuccessState={false}
-			/>
+			<PropertyForm mode="edit" property={property} showSuccessState={false} />
 		</div>
 	)
 }
