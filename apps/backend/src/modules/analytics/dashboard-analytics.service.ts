@@ -77,7 +77,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			const primary = await this.callRpc<DashboardStats>(
 				'get_dashboard_stats',
 				{
-					user_id_param: userId
+					p_user_id: userId
 				},
 				token
 			)
@@ -95,7 +95,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			const fallback = await this.callRpc<DashboardStats>(
 				'get_dashboard_stats',
 				{
-					user_id_param: userId
+					p_user_id: userId
 				},
 				token
 			)
