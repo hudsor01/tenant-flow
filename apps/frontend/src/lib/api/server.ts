@@ -48,7 +48,14 @@ export async function serverFetch<T>(
 		}
 	)
 
-	// Get current session
+	// SECURITY FIX: Validate user with getUser() before extracting token
+	// This ensures the session is authentic by contacting Supabase Auth server
+	const {
+		data: { user },
+		error: userError
+	} = await supabase.auth.getUser()
+
+	// Get access token from session (only after validation)
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()
@@ -56,6 +63,7 @@ export async function serverFetch<T>(
 	// Debug authentication in production
 	logger.debug('serverFetch session check', {
 		metadata: {
+			hasUser: !!user,
 			hasSession: !!session,
 			hasAccessToken: !!session?.access_token,
 			endpoint,
@@ -77,13 +85,16 @@ export async function serverFetch<T>(
 		})
 	}
 
-	if (session?.access_token) {
+	// Only use access token if user validation succeeded
+	if (!userError && user && session?.access_token) {
 		headers['Authorization'] = `Bearer ${session.access_token}`
 	} else {
 		logger.warn('No valid session found for API request', {
 			metadata: {
 				endpoint,
+				hasUser: !!user,
 				hasSession: !!session,
+				userError: userError?.message,
 				cookieCount: cookieStore.getAll().length
 			}
 		})

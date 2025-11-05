@@ -181,6 +181,11 @@ async function getJwtClaims(
 	supabase: SupabaseClient<Database>
 ): Promise<Record<string, unknown> | null> {
 	try {
+		// NOTE: Using getSession() here is acceptable because:
+		// 1. We already validated the user with getUser() (line 56)
+		// 2. We only use the access_token from session, not session.user
+		// 3. The token itself is what we're decoding (the source of truth)
+		// This is the recommended pattern per Supabase docs when you need the JWT token
 		const {
 			data: { session },
 			error
