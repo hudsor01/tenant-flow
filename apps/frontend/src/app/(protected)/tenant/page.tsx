@@ -11,6 +11,7 @@
 
 'use client'
 
+import { TenantGuard } from '#components/auth/tenant-guard'
 import { ErrorFallback } from '#components/error-boundary/error-fallback'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -77,6 +78,7 @@ export default function TenantDashboardPage() {
 	}
 
 	return (
+		<TenantGuard>
 		<div className="space-y-10">
 			{/* Welcome Section */}
 			<div className="space-y-3">
@@ -398,5 +400,6 @@ export default function TenantDashboardPage() {
 				</CardLayout>
 			</div>
 		</div>
+		</TenantGuard>
 	)
 }
