@@ -81,7 +81,7 @@ export default function TenantLeasePage() {
 						</div>
 					</div>
 				</div>
-			</CardLayout>{' '}
+			</CardLayout>
 			{/* Lease Terms */}
 			<div className="grid gap-4 md:grid-cols-2">
 				<CardLayout title="Lease Term" description="Duration of your lease">
