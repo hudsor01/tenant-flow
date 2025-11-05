@@ -1825,11 +1825,17 @@ export class TenantsService {
 
 					const stripe = this.stripeConnectService.getStripe()
 
+					// Normalize rent amount to cents (Stripe requires smallest currency unit)
+					const rentAmountInCents =
+						leaseData.rentAmount >= 100000
+							? Math.round(leaseData.rentAmount)
+							: Math.round(leaseData.rentAmount * 100)
+
 					// Create a Price for the rent amount on the connected account
 					const price = await stripe.prices.create(
 						{
 							currency: 'usd',
-							unit_amount: leaseData.rentAmount, // Already in cents
+							unit_amount: rentAmountInCents,
 							recurring: {
 								interval: 'month',
 								interval_count: 1
