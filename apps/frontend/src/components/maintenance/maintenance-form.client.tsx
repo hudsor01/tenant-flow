@@ -30,22 +30,15 @@ import {
 import { useMaintenanceForm } from '#hooks/use-maintenance-form'
 import { clientFetch } from '#lib/api/client'
 import type {
+	Database,
 	MaintenanceRequest,
 	Property,
 	Unit
 } from '@repo/shared/types/core'
+import { NOTIFICATION_PRIORITY_OPTIONS } from '@repo/shared/types/notifications'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'MaintenanceForm' })
-
-const _PRIORITY_OPTIONS = [
-	{ label: 'Low', value: 'LOW' },
-	{ label: 'Medium', value: 'MEDIUM' },
-	{ label: 'High', value: 'HIGH' },
-	{ label: 'Urgent', value: 'URGENT' }
-] as const
-
-type PriorityValue = (typeof _PRIORITY_OPTIONS)[number]['value']
 
 interface MaintenanceFormProps {
 	mode: 'create' | 'edit'
@@ -70,7 +63,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 	const form = useMaintenanceForm(mode, {
 		title: extendedRequest?.title ?? '',
 		description: extendedRequest?.description ?? '',
-		priority: ((extendedRequest?.priority as PriorityValue)?.toLowerCase() as PriorityValue) ?? 'low',
+		priority: (extendedRequest?.priority as Database['public']['Enums']['Priority']) ?? 'LOW',
 		category: extendedRequest?.category ?? '',
 		unitId: extendedRequest?.unitId ?? '',
 		propertyId: extendedRequest?.propertyId ?? '',
@@ -273,10 +266,11 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 											<SelectValue placeholder="Select priority level" />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="LOW">Low</SelectItem>
-											<SelectItem value="MEDIUM">Medium</SelectItem>
-											<SelectItem value="HIGH">High</SelectItem>
-											<SelectItem value="URGENT">Urgent</SelectItem>
+											{NOTIFICATION_PRIORITY_OPTIONS.map(option => (
+												<SelectItem key={option.value} value={option.value}>
+													{option.label}
+												</SelectItem>
+											))}
 										</SelectContent>
 									</Select>
 									{(field.state.meta.errors?.length ?? 0) > 0 && (
