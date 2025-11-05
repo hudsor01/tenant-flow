@@ -30,6 +30,10 @@ import { TenantsService } from './tenants.service'
 import { CreateTenantDto } from './dto/create-tenant.dto'
 import { UpdateTenantDto } from './dto/update-tenant.dto'
 import { UpdateNotificationPreferencesDto } from './dto/notification-preferences.dto'
+import {
+	CreateEmergencyContactDto,
+	UpdateEmergencyContactDto
+} from './dto/emergency-contact.dto'
 
 @Controller('tenants')
 export class TenantsController {
@@ -360,29 +364,111 @@ export class TenantsController {
 		return this.tenantsService.activateTenantFromAuthUser(body.authUserId)
 	}
 
+	// ========================================
+	// Emergency Contact Endpoints
+	// ========================================
+
+	/**
+	 * Get emergency contact for a tenant
+	 * Returns null if no emergency contact exists
+	 */
+	@Get(':id/emergency-contact')
+	async getEmergencyContact(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest
+	) {
+		const userId = req.user.id
+		const emergencyContact = await this.tenantsService.getEmergencyContact(
+			userId,
+			id
+		)
+
+		// Return null if not found (not an error - just no contact yet)
+		return emergencyContact
+	}
+
+	/**
+	 * Create emergency contact for a tenant
+	 * Enforces one-to-one relationship (unique constraint on tenant_id)
+	 */
+	@Post(':id/emergency-contact')
+	async createEmergencyContact(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Body() dto: CreateEmergencyContactDto,
+		@Req() req: AuthenticatedRequest
+	) {
+		const userId = req.user.id
+
+		const emergencyContact = await this.tenantsService.createEmergencyContact(
+			userId,
+			id,
+			{
+				contactName: dto.contactName,
+				relationship: dto.relationship,
+				phoneNumber: dto.phoneNumber,
+				email: dto.email ?? null
+			}
+		)
+
+		if (!emergencyContact) {
+			throw new BadRequestException('Failed to create emergency contact')
+		}
+
+		return emergencyContact
+	}
+
+	/**
+	 * Update emergency contact for a tenant
+	 * Partial update - only provided fields will be updated
+	 */
 	@Put(':id/emergency-contact')
 	async updateEmergencyContact(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Body()
-		emergencyContact: { name: string; phone: string; relationship: string },
+		@Body() dto: UpdateEmergencyContactDto,
 		@Req() req: AuthenticatedRequest
 	) {
-		// Use Supabase's native auth.getUser() pattern
 		const userId = req.user.id
-		return this.tenantsService.updateEmergencyContact(
+
+		// Build update object with only defined fields
+		const updateData: {
+			contactName?: string
+			relationship?: string
+			phoneNumber?: string
+			email?: string | null
+		} = {}
+		if (dto.contactName !== undefined) updateData.contactName = dto.contactName
+		if (dto.relationship !== undefined) updateData.relationship = dto.relationship
+		if (dto.phoneNumber !== undefined) updateData.phoneNumber = dto.phoneNumber
+		if (dto.email !== undefined) updateData.email = dto.email ?? null
+
+		const emergencyContact = await this.tenantsService.updateEmergencyContact(
 			userId,
 			id,
-			emergencyContact
+			updateData
 		)
+
+		if (!emergencyContact) {
+			throw new NotFoundException('Emergency contact not found')
+		}
+
+		return emergencyContact
 	}
 
+	/**
+	 * Delete emergency contact for a tenant
+	 */
 	@Delete(':id/emergency-contact')
-	async removeEmergencyContact(
+	async deleteEmergencyContact(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		// Use Supabase's native auth.getUser() pattern
 		const userId = req.user.id
-		return this.tenantsService.removeEmergencyContact(userId, id)
+		const deleted = await this.tenantsService.deleteEmergencyContact(userId, id)
+
+		if (!deleted) {
+			throw new NotFoundException('Emergency contact not found')
+		}
+
+		return { success: true, message: 'Emergency contact deleted successfully' }
 	}
 }
