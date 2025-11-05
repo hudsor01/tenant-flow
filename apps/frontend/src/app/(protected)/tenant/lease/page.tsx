@@ -58,13 +58,29 @@ export default function TenantLeasePage() {
 					<div className="flex items-start gap-4">
 						<Home className="size-6 text-accent-main mt-1" />
 						<div>
-							<p className="font-semibold text-lg">
-								Sunset Apartments - Unit 204
-							</p>
-							<div className="flex items-center gap-2 text-muted-foreground mt-1">
-								<MapPin className="size-4" />
-								<span>Loading address...</span>
-							</div>
+							{isLoading || !lease ? (
+								<>
+									<Skeleton className="h-7 w-64 mb-2" />
+									<Skeleton className="h-5 w-48" />
+								</>
+							) : (
+								<>
+									<p className="font-semibold text-lg">
+										{lease.unit?.property?.name || 'Property'} - Unit{' '}
+										{lease.unit?.unitNumber || 'N/A'}
+									</p>
+									<div className="flex items-center gap-2 text-muted-foreground mt-1">
+										<MapPin className="size-4" />
+										<span>
+											{lease.unit?.property?.address || 'Address not available'}
+											{lease.unit?.property?.city &&
+												lease.unit?.property?.state &&
+												lease.unit?.property?.zipCode &&
+												`, ${lease.unit.property.city}, ${lease.unit.property.state} ${lease.unit.property.zipCode}`}
+										</span>
+									</div>
+								</>
+							)}
 						</div>
 					</div>
 				</div>

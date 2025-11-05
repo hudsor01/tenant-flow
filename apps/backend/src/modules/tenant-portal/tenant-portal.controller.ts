@@ -50,7 +50,7 @@ export class TenantPortalController {
 	constructor(private readonly supabase: SupabaseService) {}
 
 	/**
-	 * Get the authenticated tenant's current active lease
+	 * Get the authenticated tenant's current active lease with property and unit details
 	 * RLS ensures tenant can only see their own lease data
 	 */
 	@Get('my-lease')
@@ -61,7 +61,35 @@ export class TenantPortalController {
 			.getUserClient(token)
 			.from('lease')
 			.select(
-				'id, startDate, endDate, rentAmount, securityDeposit, status, leaseType, unitId, tenantId, createdAt, updatedAt'
+				`
+				id,
+				startDate,
+				endDate,
+				rentAmount,
+				securityDeposit,
+				status,
+				leaseType,
+				unitId,
+				tenantId,
+				createdAt,
+				updatedAt,
+				unit:unit!inner(
+					id,
+					unitNumber,
+					bedrooms,
+					bathrooms,
+					squareFeet,
+					property:property!inner(
+						id,
+						name,
+						address,
+						city,
+						state,
+						zipCode,
+						propertyType
+					)
+				)
+				`
 			)
 			.eq('tenantId', userId)
 			.eq('status', 'ACTIVE')

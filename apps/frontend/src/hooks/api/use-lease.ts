@@ -58,22 +58,24 @@ export function useLease(id: string) {
 }
 
 /**
- * Hook to fetch user's current active lease
+ * Hook to fetch user's current active lease with property and unit details
+ * Uses tenant portal endpoint which includes nested property/unit data
  */
 export function useCurrentLease() {
 	return useQuery({
-		queryKey: leaseKeys.list({ status: 'ACTIVE' }),
+		queryKey: ['tenant-portal', 'my-lease'],
 		queryFn: async (): Promise<Lease | null> => {
-			const response = await clientFetch<{
-				data: Lease[]
-				total: number
-				limit: number
-				offset: number
-			}>('/api/v1/leases?status=ACTIVE&limit=1')
-			return response.data?.[0] || null
+			try {
+				const lease = await clientFetch<Lease>('/api/v1/tenant-portal/my-lease')
+				return lease
+			} catch (error) {
+				// If tenant has no active lease, return null instead of throwing
+				logger.warn('No active lease found for tenant', { error })
+				return null
+			}
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
-		retry: 2
+		retry: 1 // Reduce retries since 404 is expected for tenants without leases
 	})
 }
 
