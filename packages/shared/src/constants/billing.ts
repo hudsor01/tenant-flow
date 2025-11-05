@@ -47,7 +47,7 @@ export const BILLING_PLANS: Record<PlanType, BillingPlan> = {
 	[PLAN_TYPE.STARTER]: {
 		id: PLAN_TYPE.STARTER,
 		name: 'Starter',
-		description: 'Perfect for small landlords',
+		description: 'Perfect for property owners getting started',
 		price: {
 			monthly: 19,
 			annual: 190
