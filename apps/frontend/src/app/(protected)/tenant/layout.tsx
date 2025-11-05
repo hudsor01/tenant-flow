@@ -4,7 +4,13 @@ import { ViewTransitionsProvider } from '#providers/view-transitions-provider'
 import { SidebarInset, SidebarProvider } from '#components/ui/sidebar'
 import type { ReactNode } from 'react'
 
-export default function TenantLayout({ children }: { children: ReactNode }) {
+export default function TenantLayout({
+	children,
+	modal
+}: {
+	children: ReactNode
+	modal?: ReactNode
+}) {
 	return (
 		<ViewTransitionsProvider>
 			<div className="min-h-screen bg-gray-50 p-4">
@@ -36,6 +42,7 @@ export default function TenantLayout({ children }: { children: ReactNode }) {
 					</div>
 				</SidebarProvider>
 			</div>
+			{modal}
 		</ViewTransitionsProvider>
 	)
 }

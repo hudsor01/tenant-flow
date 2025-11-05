@@ -155,7 +155,7 @@ function formatOrdinal(input: number) {
 }
 
 const DEFAULT_CONTEXT: LeaseTemplateContext = {
-	ownerName: 'owner Name',
+	ownerName: 'Property Owner Name',
 	ownerAddress: '123 Main Street, Suite 200, Springfield, IL 62701',
 	tenantNames: 'Tenant One; Tenant Two',
 	propertyAddress: '456 Elm Street, Springfield, IL 62701',
