@@ -84,8 +84,33 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 		}
 	}, [queryClient])
 
-	// Get session with React Query benefits (automatic refetching, error handling)
-	const { data: session, isLoading } = useQuery({
+	// SECURITY: Validate user with getUser() instead of using session.user from getSession()
+	// getUser() authenticates with Supabase Auth server, preventing cookie tampering
+	const { data: user, isLoading: isUserLoading } = useQuery({
+		queryKey: authQueryKeys.user,
+		queryFn: async () => {
+			logger.info('Fetching user', { action: 'fetchUser' })
+			const {
+				data: { user },
+				error
+			} = await supabaseClient.auth.getUser()
+			if (error) {
+				logger.error('Failed to get auth user', {
+					action: 'get_user_error',
+					metadata: { error: error.message }
+				})
+				// Don't throw - user might not be authenticated
+				return null
+			}
+			return user
+		},
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 1
+	})
+
+	// Get session for access token (only after user validation)
+	const { data: session, isLoading: isSessionLoading } = useQuery({
 		queryKey: authQueryKeys.session,
 		queryFn: async () => {
 			logger.info('Fetching session', { action: 'fetchSession' })
@@ -98,23 +123,27 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 					action: 'get_session_error',
 					metadata: { error: error.message }
 				})
-				throw error
+				// Don't throw - might not be authenticated
+				return null
 			}
 			return session
 		},
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false,
-		retry: 1
+		retry: 1,
+		enabled: !!user // Only fetch session if user is validated
 	})
+
+	const isLoading = isUserLoading || isSessionLoading
 
 	const authState: AuthContextType = useMemo(
 		() => ({
 			session,
-			isAuthenticated: !!session?.user,
+			isAuthenticated: !!user, // Use validated user, not session.user
 			isLoading,
-			user: session?.user || null
+			user: user || null // Use validated user from getUser()
 		}),
-		[session, isLoading]
+		[session, user, isLoading]
 	)
 
 	return (

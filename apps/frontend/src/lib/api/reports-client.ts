@@ -359,18 +359,32 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
 			// Use Supabase session (consistent with rest of app)
 			const { createClient } = await import('#lib/supabase/client')
 			const supabase = createClient()
-			const {
-				data: { session },
-				error
-			} = await supabase.auth.getSession()
 
-			if (error) {
+			// SECURITY FIX: Validate user with getUser() before extracting token
+			const {
+				data: { user },
+				error: userError
+			} = await supabase.auth.getUser()
+
+			if (userError) {
 				// Log auth errors in development mode
 				const { logErrorInDev } = await import('@repo/shared/utils/api-error')
-				logErrorInDev(error, 'getAuthHeaders')
+				logErrorInDev(userError, 'getAuthHeaders')
 			}
 
-			if (session?.access_token) {
+			// Get session for access token (only after user validation)
+			const {
+				data: { session },
+				error: sessionError
+			} = await supabase.auth.getSession()
+
+			if (sessionError) {
+				// Log auth errors in development mode
+				const { logErrorInDev } = await import('@repo/shared/utils/api-error')
+				logErrorInDev(sessionError, 'getAuthHeaders')
+			}
+
+			if (!userError && user && session?.access_token) {
 				headers['Authorization'] = `Bearer ${session.access_token}`
 			}
 		}
