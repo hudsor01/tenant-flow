@@ -1165,7 +1165,6 @@ export class TenantsService {
 		}
 
 		// Return preferences or default values
-		// @ts-expect-error - notification_preferences column will exist after migration
 		return (data.notification_preferences as Record<string, boolean>) || {
 			rentReminders: true,
 			maintenanceUpdates: true,
@@ -1198,14 +1197,12 @@ export class TenantsService {
 		}
 
 		// Merge with current preferences (partial update)
-		// @ts-expect-error - notification_preferences column will exist after migration
 		const updatedPreferences = {
 			...(currentData.notification_preferences as Record<string, boolean>),
 			...preferences
 		}
 
 		// Update preferences
-		// @ts-expect-error - notification_preferences column will exist after migration
 		const { data, error } = await client
 			.from('tenant')
 			.update({ notification_preferences: updatedPreferences })
@@ -1222,7 +1219,6 @@ export class TenantsService {
 			throw new BadRequestException('Failed to update notification preferences')
 		}
 
-		// @ts-expect-error - notification_preferences column will exist after migration
 		return data.notification_preferences as Record<string, boolean>
 	}
 
