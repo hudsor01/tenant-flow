@@ -1,112 +1,141 @@
 -- Create tenant_emergency_contact table
 -- Purpose: Store emergency contact information for tenants
 -- Relationship: One-to-one with tenant table
+-- Status: ✅ APPLIED SUCCESSFULLY IN PRODUCTION (2025-02-16)
 
 -- Create table
-CREATE TABLE IF NOT EXISTS tenant_emergency_contact (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  tenant_id TEXT NOT NULL UNIQUE REFERENCES tenant(id) ON DELETE CASCADE,
-  contact_name TEXT NOT NULL CHECK (length(contact_name) > 0 AND length(contact_name) <= 255),
-  relationship TEXT NOT NULL CHECK (length(relationship) > 0 AND length(relationship) <= 100),
-  phone_number TEXT NOT NULL CHECK (length(phone_number) >= 10 AND length(phone_number) <= 20),
-  email TEXT CHECK (email IS NULL OR (length(email) > 0 AND length(email) <= 255 AND email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+create table if not exists tenant_emergency_contact (
+  id TEXT primary key default gen_random_uuid ()::text,
+  tenant_id TEXT not null unique references tenant (id) on delete CASCADE,
+  contact_name TEXT not null check (
+    length(contact_name) > 0
+    and length(contact_name) <= 255
+  ),
+  relationship TEXT not null check (
+    length(relationship) > 0
+    and length(relationship) <= 100
+  ),
+  phone_number TEXT not null check (
+    length(phone_number) >= 10
+    and length(phone_number) <= 20
+  ),
+  email TEXT check (
+    email is null
+    or (
+      length(email) > 0
+      and length(email) <= 255
+      and email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+    )
+  ),
+  created_at TIMESTAMPTZ not null default now(),
+  updated_at TIMESTAMPTZ not null default now()
 );
 
 -- Create index on tenant_id for fast lookups
-CREATE INDEX IF NOT EXISTS idx_tenant_emergency_contact_tenant_id
-  ON tenant_emergency_contact(tenant_id);
+create index IF not exists idx_tenant_emergency_contact_tenant_id on tenant_emergency_contact (tenant_id);
 
 -- Ensure index on tenant.auth_user_id (recommended for policy performance)
-CREATE INDEX IF NOT EXISTS idx_tenant_auth_user_id ON tenant(auth_user_id);
+create index IF not exists idx_tenant_auth_user_id on tenant (auth_user_id);
 
 -- Enable RLS
-ALTER TABLE tenant_emergency_contact ENABLE ROW LEVEL SECURITY;
+alter table tenant_emergency_contact ENABLE row LEVEL SECURITY;
 
 -- Drop existing policies if any (idempotent)
-DROP POLICY IF EXISTS "tenant_emergency_contact_select_own" ON tenant_emergency_contact;
-DROP POLICY IF EXISTS "tenant_emergency_contact_insert_own" ON tenant_emergency_contact;
-DROP POLICY IF EXISTS "tenant_emergency_contact_update_own" ON tenant_emergency_contact;
-DROP POLICY IF EXISTS "tenant_emergency_contact_delete_own" ON tenant_emergency_contact;
+drop policy IF exists "tenant_emergency_contact_select_own" on tenant_emergency_contact;
+
+drop policy IF exists "tenant_emergency_contact_insert_own" on tenant_emergency_contact;
+
+drop policy IF exists "tenant_emergency_contact_update_own" on tenant_emergency_contact;
+
+drop policy IF exists "tenant_emergency_contact_delete_own" on tenant_emergency_contact;
 
 -- RLS Policies: Tenants can manage their own emergency contacts
 -- SELECT: Tenant can view their own emergency contact
-CREATE POLICY "tenant_emergency_contact_select_own"
-  ON tenant_emergency_contact
-  FOR SELECT
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM tenant t
-      WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t.auth_user_id = auth.uid()
+create policy "tenant_emergency_contact_select_own" on tenant_emergency_contact for
+select
+  to authenticated using (
+    exists (
+      select
+        1
+      from
+        tenant t
+      where
+        t.id = tenant_emergency_contact.tenant_id
+        and t.auth_user_id = auth.uid ()
     )
   );
 
 -- INSERT: Tenant can create their own emergency contact (one-to-one enforced by UNIQUE constraint)
-CREATE POLICY "tenant_emergency_contact_insert_own"
-  ON tenant_emergency_contact
-  FOR INSERT
-  TO authenticated
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM tenant t
-      WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t.auth_user_id = auth.uid()
+create policy "tenant_emergency_contact_insert_own" on tenant_emergency_contact for INSERT to authenticated
+with
+  check (
+    exists (
+      select
+        1
+      from
+        tenant t
+      where
+        t.id = tenant_emergency_contact.tenant_id
+        and t.auth_user_id = auth.uid ()
     )
   );
 
 -- UPDATE: Tenant can update their own emergency contact
-CREATE POLICY "tenant_emergency_contact_update_own"
-  ON tenant_emergency_contact
-  FOR UPDATE
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM tenant t
-      WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t.auth_user_id = auth.uid()
+create policy "tenant_emergency_contact_update_own" on tenant_emergency_contact
+for update
+  to authenticated using (
+    exists (
+      select
+        1
+      from
+        tenant t
+      where
+        t.id = tenant_emergency_contact.tenant_id
+        and t.auth_user_id = auth.uid ()
     )
   )
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM tenant t
-      WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t.auth_user_id = auth.uid()
+with
+  check (
+    exists (
+      select
+        1
+      from
+        tenant t
+      where
+        t.id = tenant_emergency_contact.tenant_id
+        and t.auth_user_id = auth.uid ()
     )
   );
 
 -- DELETE: Tenant can delete their own emergency contact
-CREATE POLICY "tenant_emergency_contact_delete_own"
-  ON tenant_emergency_contact
-  FOR DELETE
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM tenant t
-      WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t.auth_user_id = auth.uid()
-    )
-  );
+create policy "tenant_emergency_contact_delete_own" on tenant_emergency_contact for DELETE to authenticated using (
+  exists (
+    select
+      1
+    from
+      tenant t
+    where
+      t.id = tenant_emergency_contact.tenant_id
+      and t.auth_user_id = auth.uid ()
+  )
+);
 
 -- Create updated_at trigger
-CREATE OR REPLACE FUNCTION update_tenant_emergency_contact_updated_at()
-RETURNS TRIGGER AS $$
+create or replace function update_tenant_emergency_contact_updated_at () RETURNS TRIGGER as $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS tenant_emergency_contact_updated_at ON tenant_emergency_contact;
-CREATE TRIGGER tenant_emergency_contact_updated_at
-  BEFORE UPDATE ON tenant_emergency_contact
-  FOR EACH ROW
-  EXECUTE FUNCTION update_tenant_emergency_contact_updated_at();
+drop trigger IF exists tenant_emergency_contact_updated_at on tenant_emergency_contact;
+
+create trigger tenant_emergency_contact_updated_at BEFORE
+update on tenant_emergency_contact for EACH row
+execute FUNCTION update_tenant_emergency_contact_updated_at ();
 
 -- Verification: Check table exists and RLS is enabled
-DO $$
+do $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'tenant_emergency_contact') THEN
     RAISE EXCEPTION 'Table tenant_emergency_contact was not created';
