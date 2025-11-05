@@ -11,9 +11,6 @@ if (!isBuildTime) {
 	if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
 		throw new Error('NEXT_PUBLIC_API_BASE_URL is required')
 	}
-	if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-		throw new Error('NEXT_PUBLIC_SUPABASE_URL is required')
-	}
 }
 
 export const APP_CONFIG = {
