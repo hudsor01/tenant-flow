@@ -51,42 +51,33 @@ export default function TenantLeasePage() {
 					</Badge>
 				)}
 			</div>
+
 			{/* Property Information */}
 			<CardLayout title="Property Details" description="Your current residence">
 				<div className="space-y-4">
 					<div className="flex items-start gap-4">
 						<Home className="size-6 text-accent-main mt-1" />
 						<div>
-							<p className="font-semibold text-lg">
-								{isLoading || !lease ? (
-									<Skeleton className="h-7 w-64" />
-								) : (
-									`${lease.unit?.property?.name ?? 'Property'} - Unit ${lease.unit?.unitNumber ?? 'N/A'}`
-								)}
-							</p>
+							{isLoading || !lease ? (
+								<Skeleton className="h-7 w-64" />
+							) : (
+								<p className="font-semibold text-lg">
+									{lease.unit?.property?.name || 'Property'}{lease.unit?.unitNumber ? ` - Unit ${lease.unit.unitNumber}` : ''}
+								</p>
+							)}
 							<div className="flex items-center gap-2 text-muted-foreground mt-1">
 								<MapPin className="size-4" />
-								<span>
-									{isLoading || !lease ? (
-										<Skeleton className="h-4 w-48" />
-									) : (
-										(() => {
-											const addressParts = [
-												lease.unit?.property?.address,
-												lease.unit?.property?.city,
-												lease.unit?.property?.state
-											].filter(Boolean)
-											return addressParts.length > 0
-												? addressParts.join(', ')
-												: 'Address not available'
-										})()
-									)}
-								</span>
+								{isLoading || !lease ? (
+									<Skeleton className="h-5 w-48" />
+								) : (
+									<span>{lease.unit?.property?.address || 'Address not available'}</span>
+								)}
 							</div>
 						</div>
 					</div>
 				</div>
 			</CardLayout>
+
 			{/* Lease Terms */}
 			<div className="grid gap-4 md:grid-cols-2">
 				<CardLayout title="Lease Term" description="Duration of your lease">
@@ -152,6 +143,7 @@ export default function TenantLeasePage() {
 					</div>
 				</CardLayout>
 			</div>
+
 			{/* Lease Documents */}
 			<CardLayout
 				title="Lease Documents"
@@ -177,6 +169,7 @@ export default function TenantLeasePage() {
 					</p>
 				</div>
 			</CardLayout>
+
 			{/* Quick Actions */}
 			<div className="flex gap-4">
 				<Link href="/tenant/payments">
