@@ -16,6 +16,10 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
 import { useSupabaseUpdateProfile } from '#hooks/api/use-supabase-auth'
+import {
+	useNotificationPreferences,
+	useUpdateNotificationPreferences
+} from '#hooks/api/use-notification-preferences'
 import { useCurrentUser } from '#hooks/use-current-user'
 import { useUserProfile } from '#hooks/use-user-role'
 import { logger } from '@repo/shared/lib/frontend-logger'
@@ -29,6 +33,12 @@ export default function TenantProfilePage() {
 	const { user, isLoading: authLoading } = useCurrentUser()
 	const { data: profile, isLoading: profileLoading } = useUserProfile()
 	const updateProfile = useSupabaseUpdateProfile()
+
+	// Notification preferences (get tenant ID from profile)
+	const tenantId = profile?.id || ''
+	const { data: notificationPrefs, isLoading: prefsLoading } =
+		useNotificationPreferences(tenantId)
+	const updatePreferences = useUpdateNotificationPreferences(tenantId)
 
 	// Form state
 	const [formData, setFormData] = useState({
@@ -82,6 +92,17 @@ export default function TenantProfilePage() {
 	}
 
 	const isLoading = authLoading || profileLoading || updateProfile.isPending
+
+	const handleTogglePreference = async (key: string, value: boolean) => {
+		try {
+			await updatePreferences.mutateAsync({ [key]: value })
+		} catch (error) {
+			logger.error('Failed to update notification preference', {
+				action: 'toggle_notification_preference',
+				metadata: { key, value, error }
+			})
+		}
+	}
 
 	return (
 		<div className="max-w-4xl mx-auto space-y-8">
@@ -268,8 +289,16 @@ export default function TenantProfilePage() {
 							</div>
 						</div>
 						<label className="relative inline-flex items-center cursor-pointer">
-							<input type="checkbox" className="sr-only peer" defaultChecked />
-							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent-main/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-main"></div>
+							<input
+								type="checkbox"
+								className="sr-only peer"
+								checked={notificationPrefs?.rentReminders ?? true}
+								onChange={e =>
+									handleTogglePreference('rentReminders', e.target.checked)
+								}
+								disabled={prefsLoading || updatePreferences.isPending}
+							/>
+							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent-main/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-main peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
 						</label>
 					</div>
 
@@ -284,8 +313,16 @@ export default function TenantProfilePage() {
 							</div>
 						</div>
 						<label className="relative inline-flex items-center cursor-pointer">
-							<input type="checkbox" className="sr-only peer" defaultChecked />
-							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent-main/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-main"></div>
+							<input
+								type="checkbox"
+								className="sr-only peer"
+								checked={notificationPrefs?.maintenanceUpdates ?? true}
+								onChange={e =>
+									handleTogglePreference('maintenanceUpdates', e.target.checked)
+								}
+								disabled={prefsLoading || updatePreferences.isPending}
+							/>
+							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent-main/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-main peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
 						</label>
 					</div>
 
@@ -300,8 +337,16 @@ export default function TenantProfilePage() {
 							</div>
 						</div>
 						<label className="relative inline-flex items-center cursor-pointer">
-							<input type="checkbox" className="sr-only peer" defaultChecked />
-							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent-main/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-main"></div>
+							<input
+								type="checkbox"
+								className="sr-only peer"
+								checked={notificationPrefs?.propertyNotices ?? true}
+								onChange={e =>
+									handleTogglePreference('propertyNotices', e.target.checked)
+								}
+								disabled={prefsLoading || updatePreferences.isPending}
+							/>
+							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent-main/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-main peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
 						</label>
 					</div>
 				</div>
