@@ -16,6 +16,7 @@ import type {
 	UpdateLeaseInput
 } from '@repo/shared/types/api-inputs'
 import type { Lease, MaintenanceRequest } from '@repo/shared/types/core'
+import type { LeaseWithDetails } from '@repo/shared/types/relations'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
 	handleConflictError,
@@ -25,7 +26,7 @@ import {
 } from '@repo/shared/utils/optimistic-locking'
 import { handleMutationError } from '#lib/mutation-error-handler'
 
-type TenantPortalLeaseUnit = {
+type _TenantPortalLeaseUnit = {
 	id: string
 	unitNumber: string | null
 	bedrooms: number | null
@@ -40,11 +41,10 @@ type TenantPortalLeaseUnit = {
 	} | null
 } | null
 
-export type TenantPortalLease = Lease & {
+export type TenantPortalLease = LeaseWithDetails & {
 	metadata: {
 		documentUrl: string | null
 	}
-	unit: TenantPortalLeaseUnit
 }
 
 /**
@@ -90,7 +90,9 @@ export function useCurrentLease() {
 	return useQuery({
 		queryKey: [...leaseKeys.all, 'tenant-portal', 'active'],
 		queryFn: async (): Promise<TenantPortalLease | null> => {
-			return clientFetch<TenantPortalLease | null>('/api/v1/tenant-portal/lease')
+			return clientFetch<TenantPortalLease | null>(
+				'/api/v1/tenant-portal/lease'
+			)
 		},
 		staleTime: 60 * 1000,
 		retry: 2
