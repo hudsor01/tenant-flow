@@ -101,7 +101,7 @@ describe('Test Environment Configuration', () => {
 
 			const config = getTestSupabaseConfig()
 			expect(config.url).toBe('https://mock-supabase-project.supabase.co')
-			expect(config.anonKey).toBe('mock_anon_key_for_unit_tests')
+			expect(config.publishableKey).toBe('mock_anon_key_for_unit_tests')
 			expect(config.serviceRoleKey).toBe('mock_service_role_key_for_unit_tests')
 		})
 
@@ -114,7 +114,7 @@ describe('Test Environment Configuration', () => {
 
 			const config = getTestSupabaseConfig()
 			expect(config.url).toBe('https://test.supabase.co')
-			expect(config.anonKey).toBe('test_anon_key')
+			expect(config.publishableKey).toBe('test_anon_key')
 			expect(config.serviceRoleKey).toBe('test_service_role_key')
 			expect(config.jwtSecret).toBe('test_jwt_secret')
 		})

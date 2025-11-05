@@ -25,12 +25,14 @@ export interface TestCredentials {
 
 export const TEST_USERS = {
 	LANDLORD_A: {
-		email: process.env.E2E_LANDLORD_A_EMAIL || 'landlord-a@test.tenantflow.local',
+		email:
+			process.env.E2E_LANDLORD_A_EMAIL || 'landlord-a@test.tenantflow.local',
 		password: process.env.E2E_LANDLORD_A_PASSWORD || 'TestPassword123!',
 		role: 'LANDLORD' as const
 	},
 	LANDLORD_B: {
-		email: process.env.E2E_LANDLORD_B_EMAIL || 'landlord-b@test.tenantflow.local',
+		email:
+			process.env.E2E_LANDLORD_B_EMAIL || 'landlord-b@test.tenantflow.local',
 		password: process.env.E2E_LANDLORD_B_PASSWORD || 'TestPassword123!',
 		role: 'LANDLORD' as const
 	},
@@ -61,13 +63,15 @@ export interface AuthenticatedTestClient {
  * Create Supabase client for testing
  */
 function createTestClient(): SupabaseClient<Database> {
-	const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+	const supabaseUrl =
+		process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
 	const supabaseKey =
-		process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+		process.env.SUPABASE_PUBLISHABLE_KEY ||
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
 	if (!supabaseUrl || !supabaseKey) {
 		throw new Error(
-			'Missing Supabase credentials. Set SUPABASE_URL and SUPABASE_ANON_KEY in environment.'
+			'Missing Supabase credentials. Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in environment.'
 		)
 	}
 
@@ -111,12 +115,13 @@ export async function authenticateAs(
  * Get service role client for cleanup operations
  */
 export function getServiceRoleClient(): SupabaseClient<Database> {
-	const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-	const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+	const supabaseUrl =
+		process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+	const serviceRoleKey = process.env.SUPABASE_SECRET_KEY
 
 	if (!supabaseUrl || !serviceRoleKey) {
 		throw new Error(
-			'Missing service role credentials. Set SUPABASE_SERVICE_ROLE_KEY in environment.'
+			'Missing service role credentials. Set SUPABASE_SECRET_KEY in environment.'
 		)
 	}
 
@@ -176,10 +181,7 @@ export async function cleanupTestData(
 /**
  * Helper to expect query to return empty results (RLS filtered)
  */
-export function expectEmptyResult<T>(
-	data: T[] | null,
-	context: string
-): void {
+export function expectEmptyResult<T>(data: T[] | null, context: string): void {
 	if (data === null || data.length === 0) {
 		return // Success - RLS filtered results
 	}
@@ -191,10 +193,7 @@ export function expectEmptyResult<T>(
 /**
  * Helper to expect query to fail with permission error
  */
-export function expectPermissionError(
-	error: any,
-	context: string
-): void {
+export function expectPermissionError(error: any, context: string): void {
 	if (!error) {
 		throw new Error(
 			`Expected permission error for ${context}, but query succeeded. RLS policy may be broken!`
