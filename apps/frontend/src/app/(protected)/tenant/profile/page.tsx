@@ -11,6 +11,7 @@
 
 'use client'
 
+import { ChangePasswordDialog } from '#components/auth/change-password-dialog'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
@@ -24,6 +25,7 @@ import { toast } from 'sonner'
 
 export default function TenantProfilePage() {
 	const [isEditing, setIsEditing] = useState(false)
+	const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
 	const { user, isLoading: authLoading } = useCurrentUser()
 	const { data: profile, isLoading: profileLoading } = useUserProfile()
 	const updateProfile = useSupabaseUpdateProfile()
@@ -324,12 +326,22 @@ export default function TenantProfilePage() {
 								</p>
 							</div>
 						</div>
-						<Button variant="outline" size="sm">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setPasswordDialogOpen(true)}
+						>
 							Change Password
 						</Button>
 					</div>
 				</div>
 			</CardLayout>
+
+			{/* Password Change Dialog */}
+			<ChangePasswordDialog
+				open={passwordDialogOpen}
+				onOpenChange={setPasswordDialogOpen}
+			/>
 		</div>
 	)
 }
