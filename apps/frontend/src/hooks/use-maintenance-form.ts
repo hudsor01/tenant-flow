@@ -22,7 +22,7 @@ export function useMaintenanceForm(
 		defaultValues: {
 			title: '',
 			description: '',
-			priority: 'low',
+			priority: 'LOW',
 			category: undefined,
 			propertyId: '',
 			unitId: '',

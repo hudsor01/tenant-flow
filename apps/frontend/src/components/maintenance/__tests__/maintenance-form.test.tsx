@@ -634,7 +634,7 @@ describe('MaintenanceForm', () => {
 			await waitFor(() => {
 				expect(screen.getByLabelText(/priority/i)).toBeInTheDocument()
 			})
-			// Note: Priority options defined in PRIORITY_OPTIONS constant:
+			// Note: Priority options defined in NOTIFICATION_PRIORITY_OPTIONS from @repo/shared:
 			// Low, Medium, High, Urgent
 		})
 	})
