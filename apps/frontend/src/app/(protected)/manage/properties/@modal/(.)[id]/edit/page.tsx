@@ -3,6 +3,9 @@ import { RouteModal } from '#components/ui/route-modal'
 import { clientFetch } from '#lib/api/client'
 import type { Property } from '@repo/shared/types/core'
 import { notFound } from 'next/navigation'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'EditPropertyModal' })
 
 /**
  * Edit Property Modal (Intercepting Route)
@@ -33,11 +36,15 @@ export default async function EditPropertyModal({
 
 		return (
 			<RouteModal className="max-w-3xl max-h-[90vh] overflow-y-auto">
-				<PropertyForm mode="edit" property={property} showSuccessState={false} />
+				<PropertyForm
+					mode="edit"
+					property={property}
+					showSuccessState={false}
+				/>
 			</RouteModal>
 		)
 	} catch (error) {
-		console.error('Failed to fetch property:', error)
+		logger.error('Failed to fetch property', { error })
 		notFound()
 	}
 }

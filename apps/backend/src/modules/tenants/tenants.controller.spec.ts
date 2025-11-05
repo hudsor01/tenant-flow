@@ -12,27 +12,6 @@ import { createMockUser } from '../../test-utils/mocks'
 import { TenantsController } from './tenants.controller'
 import { TenantsService } from './tenants.service'
 
-// Mock the services
-jest.mock('./tenants.service', () => {
-	return {
-		TenantsService: jest.fn().mockImplementation(() => ({
-			findAll: jest.fn(),
-			findAllWithLeaseInfo: jest.fn(),
-			getStats: jest.fn(),
-			getSummary: jest.fn(),
-			findOne: jest.fn(),
-			create: jest.fn(),
-			update: jest.fn(),
-			remove: jest.fn(),
-			markAsMovedOut: jest.fn(),
-			hardDelete: jest.fn(),
-			sendTenantInvitation: jest.fn(),
-			sendTenantInvitationV2: jest.fn().mockResolvedValue(undefined),
-			resendInvitation: jest.fn()
-		}))
-	}
-})
-
 jest.mock('../../database/supabase.service', () => {
 	return {
 		SupabaseService: jest.fn().mockImplementation(() => ({
@@ -105,7 +84,24 @@ describe('TenantsController', () => {
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [TenantsController],
 			providers: [
-				TenantsService,
+				{
+					provide: TenantsService,
+					useValue: {
+						findAll: jest.fn(),
+						findAllWithLeaseInfo: jest.fn(),
+						getStats: jest.fn(),
+						getSummary: jest.fn(),
+						findOne: jest.fn(),
+						create: jest.fn(),
+						update: jest.fn(),
+						remove: jest.fn(),
+						markAsMovedOut: jest.fn(),
+						hardDelete: jest.fn(),
+						sendTenantInvitation: jest.fn(),
+						sendTenantInvitationV2: jest.fn().mockResolvedValue(undefined),
+						resendInvitation: jest.fn()
+					}
+				},
 				{ provide: CurrentUserProvider, useValue: mockCurrentUserProvider }
 			]
 		}).compile()
@@ -124,29 +120,32 @@ describe('TenantsController', () => {
 		it('should return tenants with default parameters', async () => {
 			const mockTenants = [createMockTenant({ id: 'tenant-1' })]
 
-			mockTenantsServiceInstance.findAllWithLeaseInfo.mockResolvedValue(mockTenants)
+			mockTenantsServiceInstance.findAllWithLeaseInfo.mockResolvedValue(
+				mockTenants
+			)
 
 			const result = await controller.findAll(
 				createMockRequest({ user: mockUser }) as any
 			)
-			expect(mockTenantsServiceInstance.findAllWithLeaseInfo).toHaveBeenCalledWith(
-				mockUser.id,
-				{
-					search: undefined,
-					invitationStatus: undefined,
-					limit: undefined,
-					offset: undefined,
-					sortBy: undefined,
-					sortOrder: undefined
-				}
-			)
+			expect(
+				mockTenantsServiceInstance.findAllWithLeaseInfo
+			).toHaveBeenCalledWith(mockUser.id, {
+				search: undefined,
+				invitationStatus: undefined,
+				limit: undefined,
+				offset: undefined,
+				sortBy: undefined,
+				sortOrder: undefined
+			})
 			expect(result).toEqual(mockTenants)
 		})
 
 		it('should handle all query parameters', async () => {
 			const mockTenants: Tenant[] = []
 
-			mockTenantsServiceInstance.findAllWithLeaseInfo.mockResolvedValue(mockTenants)
+			mockTenantsServiceInstance.findAllWithLeaseInfo.mockResolvedValue(
+				mockTenants
+			)
 
 			await controller.findAll(
 				createMockRequest({ user: mockUser }) as any,
@@ -158,17 +157,16 @@ describe('TenantsController', () => {
 				'asc'
 			)
 
-			expect(mockTenantsServiceInstance.findAllWithLeaseInfo).toHaveBeenCalledWith(
-				mockUser.id,
-				{
-					search: 'search term',
-					invitationStatus: 'PENDING',
-					limit: 20,
-					offset: 10,
-					sortBy: 'name',
-					sortOrder: 'asc'
-				}
-			)
+			expect(
+				mockTenantsServiceInstance.findAllWithLeaseInfo
+			).toHaveBeenCalledWith(mockUser.id, {
+				search: 'search term',
+				invitationStatus: 'PENDING',
+				limit: 20,
+				offset: 10,
+				sortBy: 'name',
+				sortOrder: 'asc'
+			})
 		})
 
 		it('should validate limit parameter', async () => {

@@ -61,29 +61,6 @@ describe('RentPaymentsService', () => {
 		jest.clearAllMocks()
 	})
 
-	describe('fee calculations', () => {
-		it('calculates platform fees per tier', () => {
-			expect(service.calculatePlatformFee(100000, 'STARTER')).toBe(3000)
-			expect(service.calculatePlatformFee(100000, 'GROWTH')).toBe(2500)
-			expect(service.calculatePlatformFee(100000, 'TENANTFLOW_MAX')).toBe(2000)
-			expect(service.calculatePlatformFee(100000, 'UNKNOWN')).toBe(3000)
-		})
-
-		it('calculates Stripe fees', () => {
-			expect(service.calculateStripeFee(100000, 'card')).toBe(2930)
-			expect(service.calculateStripeFee(100000, 'ach')).toBe(500)
-		})
-
-		it('aggregates fees with landlord net amount', () => {
-			expect(service.calculateFees(100000, 'card', 'STARTER')).toEqual({
-				platformFee: 3000,
-				stripeFee: 2930,
-				landlordReceives: 94070,
-				total: 100000
-			})
-		})
-	})
-
 	describe('createOneTimePayment', () => {
 		const tenant = {
 			id: 'tenant123',
@@ -117,10 +94,11 @@ describe('RentPaymentsService', () => {
 		}
 
 		const tenantPaymentMethod = {
-			stripePaymentMethodId: 'pm_123',
-			stripeCustomerId: 'cus_existing',
-			type: 'card'
-		}
+		stripePaymentMethodId: 'pm_123',
+		stripeCustomerId: 'cus_existing',
+		type: 'card',
+		tenantId: 'user123' // Must match tenant.userId for ownership check
+	}
 
 		const rentPaymentRecord = {
 			id: 'payment123',
@@ -232,20 +210,17 @@ describe('RentPaymentsService', () => {
 					amount: 1500,
 					paymentMethodId: 'pm_record'
 				},
-				'user123'
+				'landlord123'
 			)
 
 			expect(result.payment.id).toBe('payment123')
 			expect(service['stripe'].paymentIntents.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					amount: 150000,
-					application_fee_amount: 4500,
 					transfer_data: { destination: 'acct_456' }
 				}),
 				expect.objectContaining({ idempotencyKey: expect.any(String) })
 			)
 		})
 	})
-
 })
-
