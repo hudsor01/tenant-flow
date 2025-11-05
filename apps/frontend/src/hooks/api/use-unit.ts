@@ -31,8 +31,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
  */
 export const unitKeys = {
 	all: ['units'] as const,
-	list: (params?: { propertyId?: string; status?: string; search?: string }) =>
-		[...unitKeys.all, 'list', params] as const,
+	list: (params?: {
+		propertyId?: string
+		status?: string
+		search?: string
+		limit?: number
+		offset?: number
+	}) => [...unitKeys.all, 'list', params] as const,
 	detail: (id: string) => [...unitKeys.all, 'detail', id] as const,
 	byProperty: (propertyId: string) =>
 		[...unitKeys.all, 'by-property', propertyId] as const,
@@ -102,15 +107,13 @@ export function useUnitList(params?: {
 	const queryClient = useQueryClient()
 
 	return useQuery({
-		queryKey: unitKeys.list(
-			propertyId || status || search
-				? {
-						...(propertyId && { propertyId }),
-						...(status && { status }),
-						...(search && { search })
-					}
-				: undefined
-		),
+		queryKey: unitKeys.list({
+			...(propertyId && { propertyId }),
+			...(status && { status }),
+			...(search && { search }),
+			...(limit !== 50 && { limit }),
+			...(offset !== 0 && { offset })
+		}),
 		queryFn: async () => {
 			const searchParams = new URLSearchParams()
 			if (propertyId) searchParams.append('propertyId', propertyId)

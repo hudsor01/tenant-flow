@@ -15,10 +15,8 @@ import { ErrorFallback } from '#components/error-boundary/error-fallback'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
-import {
-	useCurrentLease,
-	useTenantMaintenanceRequests
-} from '#hooks/api/use-lease'
+import { useCurrentLease } from '#hooks/api/use-lease'
+import { useTenantPortalDashboard } from '#hooks/api/use-tenant-portal'
 import { formatCurrency } from '@repo/shared/utils/formatting'
 import {
 	Calendar,
@@ -48,22 +46,34 @@ export default function TenantDashboardPage() {
 		return str.replace(search, replace)
 	}
 
-	const { data: lease, isLoading } = useCurrentLease()
+	const { data: lease } = useCurrentLease()
 	const {
-		data: maintenanceData,
-		isLoading: maintenanceLoading,
-		error: maintenanceError
-	} = useTenantMaintenanceRequests()
+		data: dashboard,
+		isLoading: dashboardLoading,
+		error: dashboardError
+	} = useTenantPortalDashboard()
+
+	const activeLease = dashboard?.lease ?? lease ?? null
+	const maintenanceSummary = dashboard?.maintenance
+	const recentRequests = dashboard?.maintenance.recent ?? []
+	const recentPayments = dashboard?.payments.recent ?? []
+	const upcomingPayment = dashboard?.payments.upcoming ?? null
+	const leaseLoading = dashboardLoading && !activeLease
 
 	// Calculate next payment date (1st of next month)
 	const getNextPaymentDate = () => {
-		const today = new Date()
-		const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-		return nextMonth.toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric'
-		})
+		if (upcomingPayment?.dueDate) {
+			return formatDate(upcomingPayment.dueDate, {
+				month: 'short',
+				day: 'numeric',
+				year: 'numeric'
+			})
+		}
+		return 'TBD'
+	}
+
+	if (dashboardError) {
+		return <ErrorFallback error={dashboardError} />
 	}
 
 	return (
@@ -98,7 +108,7 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Property</p>
-							{isLoading || !lease ? (
+							{leaseLoading || !activeLease ? (
 								<Skeleton className="h-7 w-48" />
 							) : (
 								<p className="text-xl font-semibold">Active Lease</p>
@@ -123,7 +133,7 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Due Date</p>
-							{isLoading || !lease ? (
+							{leaseLoading || !activeLease ? (
 								<Skeleton className="h-7 w-32" />
 							) : (
 								<p className="text-xl font-semibold">{getNextPaymentDate()}</p>
@@ -150,13 +160,11 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Open Requests</p>
-							{isLoading || maintenanceLoading ? (
+							{dashboardLoading ? (
 								<Skeleton className="h-7 w-12" />
-							) : maintenanceError ? (
-								<p className="text-xl font-semibold text-destructive">!</p>
 							) : (
 								<p className="text-xl font-semibold">
-									{maintenanceData?.open || 0}
+									{maintenanceSummary?.open ?? 0}
 								</p>
 							)}
 						</div>
@@ -236,20 +244,24 @@ export default function TenantDashboardPage() {
 					}
 				>
 					<div className="space-y-4">
-						{lease ? (
+						{leaseLoading ? (
+							<Skeleton className="h-16 w-full" />
+						) : activeLease ? (
 							<div className="flex items-center justify-between py-3 border-b border-border/50">
 								<div>
 									<p className="font-medium">Monthly Rent</p>
 									<p className="text-sm text-muted-foreground">
-										Due: 1st of each month
+										Due: {getNextPaymentDate()}
 									</p>
 								</div>
 								<div className="text-right">
 									<p className="font-semibold">
-										{formatCurrency(lease.rentAmount)}
+										{formatCurrency(activeLease.rentAmount)}
 									</p>
 									<p className="text-xs text-muted-foreground">
-										{lease.status === 'ACTIVE' ? 'Active' : lease.status}
+										{activeLease.status === 'ACTIVE'
+											? 'Active'
+											: activeLease.status}
 									</p>
 								</div>
 							</div>
@@ -257,6 +269,56 @@ export default function TenantDashboardPage() {
 							<div className="text-center py-8 bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
 								<p className="text-sm text-muted-foreground">
 									No active lease found
+								</p>
+							</div>
+						)}
+
+						{dashboardLoading ? (
+							<div className="space-y-3">
+								<Skeleton className="h-14 w-full" />
+								<Skeleton className="h-14 w-full" />
+								<Skeleton className="h-14 w-full" />
+							</div>
+						) : recentPayments.length > 0 ? (
+							recentPayments.slice(0, 3).map(payment => (
+								<div
+									key={payment.id}
+									className="flex items-center justify-between py-3 border-b border-border/50 last:border-0"
+								>
+									<div>
+										<p className="font-medium">
+											{(() => {
+							const dateValue = payment.createdAt ?? payment.dueDate
+							return dateValue ? formatDate(dateValue, {
+								month: 'short',
+								day: 'numeric',
+								year: 'numeric'
+							}) : '—'
+						})()}
+										</p>
+										<p className="text-sm text-muted-foreground">
+											{payment.status === 'SUCCEEDED' ||
+											payment.status === 'PAID'
+												? 'Paid'
+												: payment.status
+													? payment.status.replace('_', ' ')
+													: 'Unknown'}
+										</p>
+									</div>
+									<div className="text-right">
+										<p className="font-semibold">
+											{formatCurrency(payment.amount / 100)}
+										</p>
+										<p className="text-xs text-muted-foreground">
+											{payment.receiptUrl ? 'Receipt available' : 'Processing'}
+										</p>
+									</div>
+								</div>
+							))
+						) : (
+							<div className="text-center py-8 bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
+								<p className="text-sm text-muted-foreground">
+									No recent payments found
 								</p>
 							</div>
 						)}
@@ -276,21 +338,13 @@ export default function TenantDashboardPage() {
 					}
 				>
 					<div className="space-y-4">
-						{maintenanceLoading ? (
+						{dashboardLoading ? (
 							<div className="space-y-3">
 								<Skeleton className="h-16 w-full" />
 								<Skeleton className="h-16 w-full" />
 							</div>
-						) : maintenanceError ? (
-							<ErrorFallback
-								error={maintenanceError as Error}
-								title="Failed to load maintenance requests"
-								description="Unable to load your maintenance requests. Please try again."
-								onRetry={() => window.location.reload()}
-							/>
-						) : maintenanceData?.requests &&
-						  maintenanceData.requests.length > 0 ? (
-							maintenanceData.requests.slice(0, 3).map(request => (
+						) : recentRequests.length > 0 ? (
+							recentRequests.slice(0, 3).map(request => (
 								<div
 									key={request.id}
 									className="flex items-center justify-between py-3 border-b border-border/50 last:border-0"

@@ -57,7 +57,7 @@ export function LoginForm({
 			}
 		},
 		validators: {
-			onChange: loginZodSchema
+			onBlur: loginZodSchema
 		}
 	})
 
@@ -132,7 +132,12 @@ export function LoginForm({
 								/>
 							</InputGroup>
 							<FieldError>
-								{String(field.state.meta.errors?.[0] ?? '')}
+								{field.state.meta.errors?.[0]
+									? typeof field.state.meta.errors[0] === 'string'
+										? field.state.meta.errors[0]
+										: field.state.meta.errors[0]?.message ||
+											'Invalid email address'
+									: ''}
 							</FieldError>
 						</Field>
 					)}
@@ -176,7 +181,12 @@ export function LoginForm({
 								</InputGroupAddon>
 							</InputGroup>
 							<FieldError>
-								{String(field.state.meta.errors?.[0] ?? '')}
+								{field.state.meta.errors?.[0]
+									? typeof field.state.meta.errors[0] === 'string'
+										? field.state.meta.errors[0]
+										: field.state.meta.errors[0]?.message ||
+											'Password is required'
+									: ''}
 							</FieldError>
 						</Field>
 					)}

@@ -9,6 +9,8 @@ interface CreateCheckoutSessionRequest {
 	priceId: string
 	planName: string
 	description?: string
+	customerEmail?: string
+	tenantId?: string
 }
 
 interface CreateCheckoutSessionResponse {
@@ -46,11 +48,12 @@ export async function createCheckoutSession(
 			body: JSON.stringify({
 				priceId: request.priceId,
 				productName: request.planName,
-				tenantId: session?.user?.id || 'pending_signup',
+				tenantId: request.tenantId || session?.user?.id || 'pending_signup',
 				domain: window.location.origin,
 				description: request.description,
 				isSubscription: true,
-				customerEmail: session?.user?.email || undefined
+				customerEmail:
+					request.customerEmail || session?.user?.email || undefined
 			})
 		}
 	)

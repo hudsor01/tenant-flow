@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, OnModuleDestroy } from '@nestjs/common'
 import type { ServiceHealth } from '@repo/shared/types/health'
 
 export interface CircuitBreakerStatus {
@@ -15,11 +15,19 @@ export interface CircuitBreakerStatus {
 }
 
 @Injectable()
-export class CircuitBreakerService {
+export class CircuitBreakerService implements OnModuleDestroy {
 	private healthCheckCache = new Map<
 		string,
 		{ result: ServiceHealth; timestamp: number }
 	>()
+	private readonly MAX_CACHE_SIZE = 50 // Limit cache size to prevent memory leaks
+
+	/**
+	 * Cleanup cache on module destruction to prevent memory leaks
+	 */
+	onModuleDestroy(): void {
+		this.healthCheckCache.clear()
+	}
 
 	/**
 	 * Get circuit breaker status for all monitored services
@@ -65,6 +73,23 @@ export class CircuitBreakerService {
 			result: health,
 			timestamp: Date.now()
 		})
+
+		// Prevent memory leaks by limiting cache size
+		if (this.healthCheckCache.size > this.MAX_CACHE_SIZE) {
+			// Remove oldest entries
+			const entries = Array.from(this.healthCheckCache.entries())
+			entries.sort((a, b) => a[1].timestamp - b[1].timestamp)
+			const toRemove = Math.min(
+				this.healthCheckCache.size - this.MAX_CACHE_SIZE,
+				entries.length
+			)
+			for (let i = 0; i < toRemove; i++) {
+				const entry = entries[i]
+				if (entry) {
+					this.healthCheckCache.delete(entry[0])
+				}
+			}
+		}
 	}
 
 	/**

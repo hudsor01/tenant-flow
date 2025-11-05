@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common'
 import { TenantPortalController } from './tenant-portal.controller'
-import { SupabaseService } from '../../database/supabase.service'
+import { SupabaseModule } from '../../database/supabase.module'
 
 @Module({
-	controllers: [TenantPortalController],
-	providers: [SupabaseService]
+	imports: [SupabaseModule],
+	controllers: [TenantPortalController]
 })
 export class TenantPortalModule {}

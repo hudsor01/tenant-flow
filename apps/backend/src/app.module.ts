@@ -21,6 +21,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module'
 import { StripeModule } from './modules/billing/stripe.module'
 import { ContactModule } from './modules/contact/contact.module'
 import { DashboardModule } from './modules/dashboard/dashboard.module'
+import { FAQModule } from './modules/faq/faq.module'
 import { FinancialModule } from './modules/financial/financial.module'
 import { LateFeesModule } from './modules/late-fees/late-fees.module'
 import { LeasesModule } from './modules/leases/leases.module'
@@ -43,6 +44,7 @@ import { ServicesModule } from './shared/services/services.module'
 import { SharedModule } from './shared/shared.module'
 import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
+import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module'
 
 /**
  * Core App Module - KISS principle
@@ -103,11 +105,13 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 		StripeModule,
 		StripeSyncModule,
 		ContactModule,
+		FAQModule,
 		DashboardModule,
 		FinancialModule,
 		PropertiesModule,
 		UnitsModule,
 		TenantsModule,
+		TenantPortalModule,
 		LeasesModule,
 		LateFeesModule,
 		MaintenanceModule,

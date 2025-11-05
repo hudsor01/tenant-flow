@@ -285,12 +285,9 @@ export class StripeSyncController {
 
 		const landlordId = (lease.property as { ownerId: string }).ownerId
 
-		// Calculate fees (Stripe takes 2.9% + $0.30, platform takes 3%)
+		// Calculate amount (no platform fees - landlord receives full amount minus Stripe fees)
 		const amountInCents = session.amount_total || 0
 		const amountInDollars = amountInCents / 100
-		const stripeFee = Math.round(amountInCents * 0.029 + 30) / 100 // 2.9% + $0.30
-		const platformFee = Math.round(amountInCents * 0.03) / 100 // 3%
-		const landlordReceives = amountInDollars - stripeFee - platformFee
 
 		// Record payment in database
 		// NOTE: We rely on unique constraint on stripePaymentIntentId to prevent duplicates
@@ -307,9 +304,9 @@ export class StripeSyncController {
 				paymentType,
 				status: 'completed',
 				stripePaymentIntentId: session.payment_intent as string,
-				platformFee,
-				stripeFee,
-				landlordReceives
+				platformFee: 0,
+				stripeFee: 0,
+				landlordReceives: amountInDollars
 			})
 
 		if (error) {

@@ -9,8 +9,16 @@
  * - Security event logging and alerting
  */
 
-import { Injectable, Logger, NestMiddleware, OnModuleDestroy } from '@nestjs/common'
-import type { RateLimitConfig, RateLimitWindow } from '@repo/shared/types/backend-domain'
+import {
+	Injectable,
+	Logger,
+	NestMiddleware,
+	OnModuleDestroy
+} from '@nestjs/common'
+import type {
+	RateLimitConfig,
+	RateLimitWindow
+} from '@repo/shared/types/backend-domain'
 import type { Request, Response } from 'express'
 
 // Extend the shared interfaces for local needs
@@ -69,24 +77,16 @@ export class RateLimitMiddleware implements NestMiddleware, OnModuleDestroy {
 	// Track IPs with suspicious activity
 	private readonly suspiciousIPs = new Set<string>()
 	private readonly blockedIPs = new Set<string>()
-	
+
 	// Store cleanup interval for proper resource cleanup
 	private cleanupInterval: NodeJS.Timeout | null = null
 
 	constructor() {
 		// Cleanup expired rate limit entries every 5 minutes
-		this.cleanupInterval = setInterval(() => this.cleanupExpiredEntries(), 5 * 60 * 1000)
-	}
-
-	/**
-	 * Cleanup interval on module destruction to prevent memory leaks
-	 */
-	onModuleDestroy(): void {
-		if (this.cleanupInterval) {
-			clearInterval(this.cleanupInterval)
-			this.cleanupInterval = null
-		}
-		this.logger.log('Rate limit middleware cleanup completed')
+		this.cleanupInterval = setInterval(
+			() => this.cleanupExpiredEntries(),
+			5 * 60 * 1000
+		)
 	}
 
 	use(req: Request, res: Response, next: () => void): void {
@@ -278,13 +278,16 @@ export class RateLimitMiddleware implements NestMiddleware, OnModuleDestroy {
 				() => {
 					if (this.suspiciousIPs.has(clientIP)) {
 						this.blockedIPs.add(clientIP)
-						this.logger.error('IP automatically blocked due to repeated violations', {
-							operation: 'rate_limit_ip_auto_blocked',
-							ip: clientIP,
-							reason: 'repeated_violations',
-							blockDuration: 60 * 60 * 1000,
-							severity: 'CRITICAL'
-						})
+						this.logger.error(
+							'IP automatically blocked due to repeated violations',
+							{
+								operation: 'rate_limit_ip_auto_blocked',
+								ip: clientIP,
+								reason: 'repeated_violations',
+								blockDuration: 60 * 60 * 1000,
+								severity: 'CRITICAL'
+							}
+						)
 
 						// Remove from blocked list after 1 hour
 						setTimeout(() => this.blockedIPs.delete(clientIP), 60 * 60 * 1000)
@@ -358,5 +361,19 @@ export class RateLimitMiddleware implements NestMiddleware, OnModuleDestroy {
 			suspiciousIPs: this.suspiciousIPs.size,
 			blockedIPs: this.blockedIPs.size
 		}
+	}
+
+	/**
+	 * Cleanup resources on module destruction to prevent memory leaks
+	 */
+	onModuleDestroy(): void {
+		if (this.cleanupInterval) {
+			clearInterval(this.cleanupInterval)
+			this.cleanupInterval = null
+		}
+		this.rateLimitStore.clear()
+		this.suspiciousIPs.clear()
+		this.blockedIPs.clear()
+		this.logger.debug('Rate limit middleware cleanup completed')
 	}
 }

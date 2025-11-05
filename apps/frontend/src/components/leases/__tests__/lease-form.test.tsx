@@ -43,7 +43,11 @@ vi.mock('#hooks/api/use-properties', () => ({
 	usePropertyList: () => ({
 		data: {
 			data: [
-				{ id: 'property-1', name: 'Main Street Apartments', address: '123 Main St' },
+				{
+					id: 'property-1',
+					name: 'Main Street Apartments',
+					address: '123 Main St'
+				},
 				{ id: 'property-2', name: 'Oak Avenue Complex', address: '456 Oak Ave' }
 			]
 		},
@@ -109,6 +113,7 @@ const DEFAULT_LEASE: Lease = {
 	signature: null,
 	signed_at: null,
 	stripe_subscription_id: null,
+	stripeSubscriptionId: null,
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z',
 	version: 1
@@ -139,7 +144,9 @@ describe('LeaseForm', () => {
 			expect(screen.getByLabelText(/unit/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/start date/i)).toHaveValue('')
 			expect(screen.getByLabelText(/end date/i)).toHaveValue('')
-			expect(screen.getByRole('button', { name: /create lease/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole('button', { name: /create lease/i })
+			).toBeInTheDocument()
 		})
 
 		test('shows only vacant units in create mode', () => {
@@ -188,16 +195,20 @@ describe('LeaseForm', () => {
 			expect(screen.getByLabelText(/end date/i)).toHaveValue('2024-12-31')
 			expect(screen.getByLabelText(/monthly rent/i)).toHaveValue(1500)
 			expect(screen.getByLabelText(/security deposit/i)).toHaveValue(1500)
-			expect(screen.getByLabelText(/terms/i)).toHaveValue('Standard lease terms')
+			expect(screen.getByLabelText(/terms/i)).toHaveValue(
+				'Standard lease terms'
+			)
 		})
 
 		test('shows status field in edit mode', () => {
-		renderWithQueryClient(<LeaseForm mode="edit" lease={DEFAULT_LEASE} />)
+			renderWithQueryClient(<LeaseForm mode="edit" lease={DEFAULT_LEASE} />)
 
-		expect(screen.getByLabelText(/status/i)).toBeInTheDocument()
-		// Status select should be a combobox
-		expect(screen.getByRole('combobox', { name: /status/i })).toBeInTheDocument()
-	})
+			expect(screen.getByLabelText(/status/i)).toBeInTheDocument()
+			// Status select should be a combobox
+			expect(
+				screen.getByRole('combobox', { name: /status/i })
+			).toBeInTheDocument()
+		})
 
 		test('displays correct button text in edit mode', () => {
 			renderWithQueryClient(<LeaseForm mode="edit" lease={DEFAULT_LEASE} />)
@@ -216,11 +227,13 @@ describe('LeaseForm', () => {
 		})
 
 		test('populates status select with correct value', () => {
-		renderWithQueryClient(<LeaseForm mode="edit" lease={DEFAULT_LEASE} />)
+			renderWithQueryClient(<LeaseForm mode="edit" lease={DEFAULT_LEASE} />)
 
-		// Status select should be a combobox with the value
-		expect(screen.getByRole('combobox', { name: /status/i })).toBeInTheDocument()
-	})
+			// Status select should be a combobox with the value
+			expect(
+				screen.getByRole('combobox', { name: /status/i })
+			).toBeInTheDocument()
+		})
 	})
 
 	describe('Form Validation', () => {
@@ -383,7 +396,10 @@ describe('LeaseForm', () => {
 		test('date inputs have appropriate type', () => {
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
-			expect(screen.getByLabelText(/start date/i)).toHaveAttribute('type', 'date')
+			expect(screen.getByLabelText(/start date/i)).toHaveAttribute(
+				'type',
+				'date'
+			)
 			expect(screen.getByLabelText(/end date/i)).toHaveAttribute('type', 'date')
 		})
 
@@ -409,7 +425,7 @@ describe('LeaseForm', () => {
 		})
 
 		test('accepts onSuccess callback prop', async () => {
-		const onSuccess = vi.fn()
+			const onSuccess = vi.fn()
 			renderWithQueryClient(
 				<LeaseForm mode="edit" lease={DEFAULT_LEASE} onSuccess={onSuccess} />
 			)
