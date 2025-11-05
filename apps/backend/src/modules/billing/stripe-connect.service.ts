@@ -49,7 +49,10 @@ export class StripeConnectService {
 			.single()
 
 		if (fetchError) {
-			this.logger.error('Failed to fetch user', { error: fetchError, userId: params.userId })
+			this.logger.error('Failed to fetch user', {
+				error: fetchError,
+				userId: params.userId
+			})
 			throw new BadRequestException('Failed to fetch user')
 		}
 
@@ -58,7 +61,9 @@ export class StripeConnectService {
 				userId: params.userId,
 				accountId: existingUser.connectedAccountId
 			})
-			const accountLink = await this.createAccountLink(existingUser.connectedAccountId)
+			const accountLink = await this.createAccountLink(
+				existingUser.connectedAccountId
+			)
 			return {
 				accountId: existingUser.connectedAccountId,
 				onboardingUrl: accountLink.url
@@ -72,7 +77,7 @@ export class StripeConnectService {
 			const account = await this.stripe.accounts.create(
 				{
 					type: 'express',
-					country: 'US', // TODO: Make configurable based on landlord location
+					country: 'US', // TODO: Make configurable based on property owner location
 					email: params.email,
 					capabilities: {
 						card_payments: { requested: true },
@@ -122,7 +127,9 @@ export class StripeConnectService {
 				// Cleanup: Delete the Stripe account since DB update failed
 				try {
 					await this.stripe.accounts.del(account.id)
-					this.logger.log('Cleaned up orphaned Stripe account', { accountId: account.id })
+					this.logger.log('Cleaned up orphaned Stripe account', {
+						accountId: account.id
+					})
 				} catch (deleteError) {
 					this.logger.error('Failed to cleanup Stripe account', {
 						error: deleteError,
