@@ -7,6 +7,7 @@
 import { createClient } from '#lib/supabase/client'
 import { API_BASE_URL } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { handleMutationError } from '#lib/mutation-error-handler'
 
 const logger = createLogger({ component: 'ClientAPI' })
 
@@ -31,17 +32,14 @@ async function getAuthHeaders(
 		data: { session }
 	} = await supabase.auth.getSession()
 
-	// Add Authorization header if session exists
 	if (session?.access_token) {
 		headers['Authorization'] = `Bearer ${session.access_token}`
 	} else if (requireAuth) {
-		// Fail fast if authentication is required but no session exists
-		logger.error('Authentication required but no session found', {
-			metadata: {
-				hasSession: !!session,
-				requireAuth
-			}
-		})
+		// Use centralized error handler for user feedback
+		handleMutationError(
+			new Error('Authentication session expired. Please log in again.'),
+			'API authentication'
+		)
 		throw new Error('Authentication session expired. Please log in again.')
 	} else {
 		// Log warning for optional auth endpoints
@@ -99,18 +97,14 @@ export async function clientFetch<T>(
 	})
 
 	if (!response.ok) {
-		// Log error for debugging
 		const errorText = await response.text()
-		logger.error('API request failed', {
-			metadata: {
-				status: response.status,
-				endpoint,
-				statusText: response.statusText,
-				errorText: errorText.substring(0, 500)
-			}
-		})
-
-		// Throw error with status for error handling
+		// Use centralized error handler for user feedback
+		handleMutationError(
+			new Error(
+				`API Error (${response.status}): ${errorText || response.statusText}`
+			),
+			`API request to ${endpoint}`
+		)
 		throw new Error(
 			`API Error (${response.status}): ${errorText || response.statusText}`
 		)
@@ -119,14 +113,14 @@ export async function clientFetch<T>(
 	const data = await response.json()
 
 	// Handle API response format (success/data pattern)
-	// Check for explicit false to avoid treating falsy values as errors
 	if ('success' in data && data.success === false) {
+		handleMutationError(
+			new Error(data.error || data.message || 'API request failed'),
+			`API request to ${endpoint}`
+		)
 		throw new Error(data.error || data.message || 'API request failed')
 	}
 
-	// Return wrapped data or direct response
-	// Use 'in' operator to check for data property existence
-	// This prevents returning falsy values (0, false, '', null) incorrectly
 	if ('data' in data) {
 		return data.data as T
 	}

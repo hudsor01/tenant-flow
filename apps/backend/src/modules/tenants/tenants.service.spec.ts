@@ -1,35 +1,31 @@
-import { Test } from '@nestjs/testing'
-import { EventEmitter2 } from '@nestjs/event-emitter'
-import { SupabaseService } from '../../database/supabase.service'
-import { createMockSupabaseService } from '../../test-utils/mocks'
-import { EmailService } from '../email/email.service'
+import type { EventEmitter2 } from '@nestjs/event-emitter'
+import {
+	createMockSupabaseService,
+	createMockStripeConnectService
+} from '../../test-utils/mocks'
 import { TenantsService } from './tenants.service'
 
 describe('TenantsService.getSummary', () => {
 	let tenantsService: TenantsService
 	let mockSupabaseService: ReturnType<typeof createMockSupabaseService>
+	let mockStripeConnectService: ReturnType<
+		typeof createMockStripeConnectService
+	>
 	let mockEventEmitter: jest.Mocked<EventEmitter2>
-	let mockEmailService: jest.Mocked<EmailService>
 
 	beforeEach(async () => {
 		mockSupabaseService = createMockSupabaseService()
+		mockStripeConnectService = createMockStripeConnectService()
 		mockEventEmitter = {
 			emit: jest.fn()
 		} as unknown as jest.Mocked<EventEmitter2>
-		mockEmailService = {
-			sendTenantInvitation: jest.fn()
-		} as unknown as jest.Mocked<EmailService>
 
-		const moduleRef = await Test.createTestingModule({
-			providers: [
-				TenantsService,
-				{ provide: SupabaseService, useValue: mockSupabaseService },
-				{ provide: EventEmitter2, useValue: mockEventEmitter },
-				{ provide: EmailService, useValue: mockEmailService }
-			]
-		}).compile()
-
-		tenantsService = moduleRef.get(TenantsService)
+		// Directly instantiate the service to avoid Nest DI resolution issues
+		tenantsService = new TenantsService(
+			mockSupabaseService as any,
+			mockEventEmitter as any,
+			mockStripeConnectService as any
+		)
 	})
 
 	it('should compute totals and return a TenantSummary', async () => {
@@ -98,28 +94,24 @@ describe('TenantsService.getSummary', () => {
 describe('TenantsService.sendTenantInvitationV2', () => {
 	let tenantsService: TenantsService
 	let mockSupabaseService: ReturnType<typeof createMockSupabaseService>
+	let mockStripeConnectService: ReturnType<
+		typeof createMockStripeConnectService
+	>
 	let mockEventEmitter: jest.Mocked<EventEmitter2>
-	let mockEmailService: jest.Mocked<EmailService>
 
 	beforeEach(async () => {
 		mockSupabaseService = createMockSupabaseService()
+		mockStripeConnectService = createMockStripeConnectService()
 		mockEventEmitter = {
 			emit: jest.fn()
 		} as unknown as jest.Mocked<EventEmitter2>
-		mockEmailService = {
-			sendTenantInvitation: jest.fn()
-		} as unknown as jest.Mocked<EmailService>
 
-		const moduleRef = await Test.createTestingModule({
-			providers: [
-				TenantsService,
-				{ provide: SupabaseService, useValue: mockSupabaseService },
-				{ provide: EventEmitter2, useValue: mockEventEmitter },
-				{ provide: EmailService, useValue: mockEmailService }
-			]
-		}).compile()
-
-		tenantsService = moduleRef.get(TenantsService)
+		// Direct instantiation to avoid DI issues in unit tests
+		tenantsService = new TenantsService(
+			mockSupabaseService as any,
+			mockEventEmitter as any,
+			mockStripeConnectService as any
+		)
 	})
 
 	it('should send invitation via Supabase Auth', async () => {
@@ -231,10 +223,7 @@ describe('TenantsService.sendTenantInvitationV2', () => {
 
 		mockSupabaseService.getAdminClient.mockReturnValue(mockAdminClient)
 
-		const result = await tenantsService.sendTenantInvitationV2(
-			userId,
-			tenantId
-		)
+		const result = await tenantsService.sendTenantInvitationV2(userId, tenantId)
 
 		expect(result.success).toBe(false)
 		expect(result.message).toBe('Tenant already has an account')
@@ -245,28 +234,24 @@ describe('TenantsService.sendTenantInvitationV2', () => {
 describe('TenantsService.activateTenantFromAuthUser', () => {
 	let tenantsService: TenantsService
 	let mockSupabaseService: ReturnType<typeof createMockSupabaseService>
+	let mockStripeConnectService: ReturnType<
+		typeof createMockStripeConnectService
+	>
 	let mockEventEmitter: jest.Mocked<EventEmitter2>
-	let mockEmailService: jest.Mocked<EmailService>
 
 	beforeEach(async () => {
 		mockSupabaseService = createMockSupabaseService()
+		mockStripeConnectService = createMockStripeConnectService()
 		mockEventEmitter = {
 			emit: jest.fn()
 		} as unknown as jest.Mocked<EventEmitter2>
-		mockEmailService = {
-			sendTenantInvitation: jest.fn()
-		} as unknown as jest.Mocked<EmailService>
 
-		const moduleRef = await Test.createTestingModule({
-			providers: [
-				TenantsService,
-				{ provide: SupabaseService, useValue: mockSupabaseService },
-				{ provide: EventEmitter2, useValue: mockEventEmitter },
-				{ provide: EmailService, useValue: mockEmailService }
-			]
-		}).compile()
-
-		tenantsService = moduleRef.get(TenantsService)
+		// Direct instantiation to avoid DI issues in unit tests
+		tenantsService = new TenantsService(
+			mockSupabaseService as any,
+			mockEventEmitter as any,
+			mockStripeConnectService as any
+		)
 	})
 
 	it('should activate tenant from auth user ID', async () => {
@@ -339,28 +324,24 @@ describe('TenantsService.activateTenantFromAuthUser', () => {
 describe('TenantsService.findOneWithLease - Payment Status Calculation', () => {
 	let tenantsService: TenantsService
 	let mockSupabaseService: ReturnType<typeof createMockSupabaseService>
+	let mockStripeConnectService: ReturnType<
+		typeof createMockStripeConnectService
+	>
 	let mockEventEmitter: jest.Mocked<EventEmitter2>
-	let mockEmailService: jest.Mocked<EmailService>
 
 	beforeEach(async () => {
 		mockSupabaseService = createMockSupabaseService()
+		mockStripeConnectService = createMockStripeConnectService()
 		mockEventEmitter = {
 			emit: jest.fn()
 		} as unknown as jest.Mocked<EventEmitter2>
-		mockEmailService = {
-			sendTenantInvitation: jest.fn()
-		} as unknown as jest.Mocked<EmailService>
 
-		const moduleRef = await Test.createTestingModule({
-			providers: [
-				TenantsService,
-				{ provide: SupabaseService, useValue: mockSupabaseService },
-				{ provide: EventEmitter2, useValue: mockEventEmitter },
-				{ provide: EmailService, useValue: mockEmailService }
-			]
-		}).compile()
-
-		tenantsService = moduleRef.get(TenantsService)
+		// Direct instantiation to avoid DI issues in unit tests
+		tenantsService = new TenantsService(
+			mockSupabaseService as any,
+			mockEventEmitter as any,
+			mockStripeConnectService as any
+		)
 	})
 
 	it('should return "Current" status when payment is PAID', async () => {
@@ -419,9 +400,13 @@ describe('TenantsService.findOneWithLease - Payment Status Calculation', () => {
 				const chain: any = {
 					select: jest.fn().mockReturnThis(),
 					eq: jest.fn().mockReturnThis(),
-					single: jest.fn().mockResolvedValue({ data: mockTenant, error: null }),
+					single: jest
+						.fn()
+						.mockResolvedValue({ data: mockTenant, error: null }),
 					order: jest.fn().mockReturnThis(),
-					limit: jest.fn().mockResolvedValue({ data: [mockPayment], error: null })
+					limit: jest
+						.fn()
+						.mockResolvedValue({ data: [mockPayment], error: null })
 				}
 				return chain
 			})
@@ -494,9 +479,13 @@ describe('TenantsService.findOneWithLease - Payment Status Calculation', () => {
 				const chain: any = {
 					select: jest.fn().mockReturnThis(),
 					eq: jest.fn().mockReturnThis(),
-					single: jest.fn().mockResolvedValue({ data: mockTenant, error: null }),
+					single: jest
+						.fn()
+						.mockResolvedValue({ data: mockTenant, error: null }),
 					order: jest.fn().mockReturnThis(),
-					limit: jest.fn().mockResolvedValue({ data: [mockPayment], error: null })
+					limit: jest
+						.fn()
+						.mockResolvedValue({ data: [mockPayment], error: null })
 				}
 				return chain
 			})
@@ -569,9 +558,13 @@ describe('TenantsService.findOneWithLease - Payment Status Calculation', () => {
 				const chain: any = {
 					select: jest.fn().mockReturnThis(),
 					eq: jest.fn().mockReturnThis(),
-					single: jest.fn().mockResolvedValue({ data: mockTenant, error: null }),
+					single: jest
+						.fn()
+						.mockResolvedValue({ data: mockTenant, error: null }),
 					order: jest.fn().mockReturnThis(),
-					limit: jest.fn().mockResolvedValue({ data: [mockPayment], error: null })
+					limit: jest
+						.fn()
+						.mockResolvedValue({ data: [mockPayment], error: null })
 				}
 				return chain
 			})
@@ -641,9 +634,13 @@ describe('TenantsService.findOneWithLease - Payment Status Calculation', () => {
 				const chain: any = {
 					select: jest.fn().mockReturnThis(),
 					eq: jest.fn().mockReturnThis(),
-					single: jest.fn().mockResolvedValue({ data: mockTenant, error: null }),
+					single: jest
+						.fn()
+						.mockResolvedValue({ data: mockTenant, error: null }),
 					order: jest.fn().mockReturnThis(),
-					limit: jest.fn().mockResolvedValue({ data: [mockPayment], error: null })
+					limit: jest
+						.fn()
+						.mockResolvedValue({ data: [mockPayment], error: null })
 				}
 				return chain
 			})
@@ -713,9 +710,13 @@ describe('TenantsService.findOneWithLease - Payment Status Calculation', () => {
 				const chain: any = {
 					select: jest.fn().mockReturnThis(),
 					eq: jest.fn().mockReturnThis(),
-					single: jest.fn().mockResolvedValue({ data: mockTenant, error: null }),
+					single: jest
+						.fn()
+						.mockResolvedValue({ data: mockTenant, error: null }),
 					order: jest.fn().mockReturnThis(),
-					limit: jest.fn().mockResolvedValue({ data: [mockPayment], error: null })
+					limit: jest
+						.fn()
+						.mockResolvedValue({ data: [mockPayment], error: null })
 				}
 				return chain
 			})
@@ -780,7 +781,9 @@ describe('TenantsService.findOneWithLease - Payment Status Calculation', () => {
 				const chain: any = {
 					select: jest.fn().mockReturnThis(),
 					eq: jest.fn().mockReturnThis(),
-					single: jest.fn().mockResolvedValue({ data: mockTenant, error: null }),
+					single: jest
+						.fn()
+						.mockResolvedValue({ data: mockTenant, error: null }),
 					order: jest.fn().mockReturnThis(),
 					limit: jest.fn().mockResolvedValue({ data: [], error: null })
 				}
@@ -852,9 +855,13 @@ describe('TenantsService.findOneWithLease - Payment Status Calculation', () => {
 				const chain: any = {
 					select: jest.fn().mockReturnThis(),
 					eq: jest.fn().mockReturnThis(),
-					single: jest.fn().mockResolvedValue({ data: mockTenant, error: null }),
+					single: jest
+						.fn()
+						.mockResolvedValue({ data: mockTenant, error: null }),
 					order: jest.fn().mockReturnThis(),
-					limit: jest.fn().mockResolvedValue({ data: [mockPayment], error: null })
+					limit: jest
+						.fn()
+						.mockResolvedValue({ data: [mockPayment], error: null })
 				}
 				return chain
 			})

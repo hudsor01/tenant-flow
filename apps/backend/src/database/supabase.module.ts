@@ -1,4 +1,9 @@
-import { DynamicModule, Global, Logger, Module } from '@nestjs/common'
+import {
+	DynamicModule,
+	Global,
+	Logger,
+	Module
+} from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { createClient } from '@supabase/supabase-js'
 import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
@@ -17,12 +22,10 @@ export class SupabaseModule {
 					useFactory: (config: ConfigService) => {
 						const envUrl = process.env.SUPABASE_URL
 						const envKey =
-							process.env.SUPABASE_SECRET_KEY ||
-							process.env.SUPABASE_SECRET_KEY
+							process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SECRET_KEY
 
 						const url = envUrl ?? config.get<string>('SUPABASE_URL')
-						const key =
-							envKey ?? config.get<string>('SUPABASE_SECRET_KEY')
+						const key = envKey ?? config.get<string>('SUPABASE_SECRET_KEY')
 
 						if (!url || !key) {
 							// Helpful error to aid developers who forget to run with Doppler

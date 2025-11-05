@@ -5,7 +5,12 @@
  * Controller → Service → Supabase
  */
 
-import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common'
+import {
+	BadRequestException,
+	ConflictException,
+	Injectable,
+	Logger
+} from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	CreateTenantRequest,
@@ -25,6 +30,7 @@ import {
 } from '../../shared/utils/sql-safe.utils'
 import { TenantCreatedEvent } from '../notifications/events/notification.events'
 import { SagaBuilder } from '../../shared/patterns/saga.pattern'
+import { StripeConnectService } from '../billing/stripe-connect.service'
 
 export interface TenantWithRelations extends Tenant {
 	_Lease?: {
@@ -100,7 +106,8 @@ export class TenantsService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly eventEmitter: EventEmitter2
+		private readonly eventEmitter: EventEmitter2,
+		private readonly stripeConnectService: StripeConnectService
 	) {}
 
 	/**
@@ -109,7 +116,10 @@ export class TenantsService {
 	 * @private
 	 */
 	private calculatePaymentStatus(
-		payment: { status: Database['public']['Enums']['RentPaymentStatus'] | null; dueDate: string | null } | null
+		payment: {
+			status: Database['public']['Enums']['RentPaymentStatus'] | null
+			dueDate: string | null
+		} | null
 	): string | null {
 		if (!payment || !payment.status) {
 			return null
@@ -117,11 +127,19 @@ export class TenantsService {
 
 		// Normalize dates to UTC midnight for consistent comparison across timezones
 		const now = new Date()
-		const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-		
+		const todayUTC = Date.UTC(
+			now.getUTCFullYear(),
+			now.getUTCMonth(),
+			now.getUTCDate()
+		)
+
 		const dueDate = payment.dueDate ? new Date(payment.dueDate) : null
-		const dueDateUTC = dueDate 
-			? Date.UTC(dueDate.getUTCFullYear(), dueDate.getUTCMonth(), dueDate.getUTCDate())
+		const dueDateUTC = dueDate
+			? Date.UTC(
+					dueDate.getUTCFullYear(),
+					dueDate.getUTCMonth(),
+					dueDate.getUTCDate()
+				)
 			: null
 
 		// Use enum constants for type-safe comparisons
@@ -209,8 +227,15 @@ export class TenantsService {
 					'EXPIRED',
 					'REVOKED'
 				] as const
-				if (allowedInvitationStatuses.includes(statusFilter as typeof allowedInvitationStatuses[number])) {
-					queryBuilder = queryBuilder.eq('invitation_status', statusFilter as typeof allowedInvitationStatuses[number])
+				if (
+					allowedInvitationStatuses.includes(
+						statusFilter as (typeof allowedInvitationStatuses)[number]
+					)
+				) {
+					queryBuilder = queryBuilder.eq(
+						'invitation_status',
+						statusFilter as (typeof allowedInvitationStatuses)[number]
+					)
 				}
 			}
 
@@ -251,22 +276,28 @@ export class TenantsService {
 	): Promise<TenantWithLeaseInfo[]> {
 		// Business logic: Validate userId
 		if (!userId) {
-			this.logger.warn('Find all tenants with lease info requested without userId')
+			this.logger.warn(
+				'Find all tenants with lease info requested without userId'
+			)
 			throw new BadRequestException('User ID is required')
 		}
 
 		try {
-			this.logger.log('Finding all tenants with lease info via direct Supabase query', {
-				userId,
-				query
-			})
+			this.logger.log(
+				'Finding all tenants with lease info via direct Supabase query',
+				{
+					userId,
+					query
+				}
+			)
 
 			const client = this.supabase.getAdminClient()
-			
+
 			// Fetch tenants with their leases and related data
 			let queryBuilder = client
 				.from('tenant')
-				.select(`
+				.select(
+					`
 					id,
 					firstName,
 					lastName,
@@ -307,7 +338,8 @@ export class TenantsService {
 							)
 						)
 					)
-				`)
+				`
+				)
 				.eq('userId', userId)
 
 			// Filter out MOVED_OUT and ARCHIVED tenants by default
@@ -348,8 +380,15 @@ export class TenantsService {
 					'EXPIRED',
 					'REVOKED'
 				] as const
-				if (allowedInvitationStatuses.includes(statusFilter as typeof allowedInvitationStatuses[number])) {
-					queryBuilder = queryBuilder.eq('invitation_status', statusFilter as typeof allowedInvitationStatuses[number])
+				if (
+					allowedInvitationStatuses.includes(
+						statusFilter as (typeof allowedInvitationStatuses)[number]
+					)
+				) {
+					queryBuilder = queryBuilder.eq(
+						'invitation_status',
+						statusFilter as (typeof allowedInvitationStatuses)[number]
+					)
 				}
 			}
 
@@ -361,11 +400,14 @@ export class TenantsService {
 			const { data, error } = await queryBuilder
 
 			if (error) {
-				this.logger.error('Failed to fetch tenants with lease info from Supabase', {
-					error: error.message,
-					userId,
-					query
-				})
+				this.logger.error(
+					'Failed to fetch tenants with lease info from Supabase',
+					{
+						error: error.message,
+						userId,
+						query
+					}
+				)
 				throw new BadRequestException('Failed to retrieve tenants')
 			}
 
@@ -375,12 +417,12 @@ export class TenantsService {
 
 			// Fetch payment statuses for all tenants in a single query (fix N+1 problem)
 			const tenantIds = (data as TenantWithLeaseRelations[]).map(t => t.id)
-			const leaseIds = (data as TenantWithLeaseRelations[])
-				.flatMap(t => {
-					const leases = Array.isArray(t.lease) ? t.lease : [t.lease]
-					const currentLease = leases.find(l => l.status === 'ACTIVE') || leases[0]
-					return currentLease ? [currentLease.id] : []
-				})
+			const leaseIds = (data as TenantWithLeaseRelations[]).flatMap(t => {
+				const leases = Array.isArray(t.lease) ? t.lease : [t.lease]
+				const currentLease =
+					leases.find(l => l.status === 'ACTIVE') || leases[0]
+				return currentLease ? [currentLease.id] : []
+			})
 
 			// Fetch most recent payment for each lease in one query
 			const { data: payments, error: paymentsError } = await client
@@ -400,13 +442,20 @@ export class TenantsService {
 			}
 
 			// Build a map of tenantId+leaseId -> most recent payment
-			const paymentMap = new Map<string, { status: Database['public']['Enums']['RentPaymentStatus']; dueDate: string }>()
+			const paymentMap = new Map<
+				string,
+				{
+					status: Database['public']['Enums']['RentPaymentStatus']
+					dueDate: string
+				}
+			>()
 			if (payments) {
 				for (const payment of payments) {
 					const key = `${payment.tenantId}-${payment.leaseId}`
 					if (!paymentMap.has(key) && payment.status && payment.dueDate) {
 						paymentMap.set(key, {
-							status: payment.status as Database['public']['Enums']['RentPaymentStatus'],
+							status:
+								payment.status as Database['public']['Enums']['RentPaymentStatus'],
 							dueDate: payment.dueDate
 						})
 					}
@@ -414,29 +463,33 @@ export class TenantsService {
 			}
 
 			// Transform each tenant to TenantWithLeaseInfo format with payment status
-			const tenantsWithLeaseInfo = (data as TenantWithLeaseRelations[]).map((tenant) => {
-				const leases = Array.isArray(tenant.lease) ? tenant.lease : [tenant.lease]
-				const currentLease = leases.find((l) => l.status === 'ACTIVE') || leases[0]
+			const tenantsWithLeaseInfo = (data as TenantWithLeaseRelations[]).map(
+				tenant => {
+					const leases = Array.isArray(tenant.lease)
+						? tenant.lease
+						: [tenant.lease]
+					const currentLease =
+						leases.find(l => l.status === 'ACTIVE') || leases[0]
 
-				// Get payment status from the pre-fetched map
-				let paymentStatus: string | null = null
-				if (currentLease) {
-					const key = `${tenant.id}-${currentLease.id}`
-					const payment = paymentMap.get(key) || null
-					paymentStatus = this.calculatePaymentStatus(payment)
-				}
+					// Get payment status from the pre-fetched map
+					let paymentStatus: string | null = null
+					if (currentLease) {
+						const key = `${tenant.id}-${currentLease.id}`
+						const payment = paymentMap.get(key) || null
+						paymentStatus = this.calculatePaymentStatus(payment)
+					}
 
-				// Calculate other derived fields
-				const monthlyRent = currentLease?.rentAmount || 0
-				const leaseStatus = currentLease?.status || 'None'
-				const unitDisplay = currentLease?.unit 
-					? `Unit ${currentLease.unit.unitNumber}` 
-					: 'No unit assigned'
-				const propertyDisplay = currentLease?.unit?.property
-					? `${currentLease.unit.property.name}, ${currentLease.unit.property.city}`
-					: 'No property assigned'
-				const leaseStart = currentLease?.startDate || null
-				const leaseEnd = currentLease?.endDate || null
+					// Calculate other derived fields
+					const monthlyRent = currentLease?.rentAmount || 0
+					const leaseStatus = currentLease?.status || 'None'
+					const unitDisplay = currentLease?.unit
+						? `Unit ${currentLease.unit.unitNumber}`
+						: 'No unit assigned'
+					const propertyDisplay = currentLease?.unit?.property
+						? `${currentLease.unit.property.name}, ${currentLease.unit.property.city}`
+						: 'No property assigned'
+					const leaseStart = currentLease?.startDate || null
+					const leaseEnd = currentLease?.endDate || null
 
 					const result: TenantWithLeaseInfo = {
 						id: tenant.id,
@@ -447,42 +500,51 @@ export class TenantsService {
 						emergencyContact: tenant.emergencyContact,
 						createdAt: tenant.createdAt,
 						updatedAt: tenant.updatedAt,
-						invitation_status: tenant.invitation_status as TenantWithLeaseInfo['invitation_status'],
+						invitation_status:
+							tenant.invitation_status as TenantWithLeaseInfo['invitation_status'],
 						invitation_sent_at: tenant.invitation_sent_at,
 						invitation_accepted_at: tenant.invitation_accepted_at,
 						invitation_expires_at: tenant.invitation_expires_at,
-						currentLease: currentLease ? {
-							id: currentLease.id,
-							startDate: currentLease.startDate,
-							endDate: currentLease.endDate,
-							rentAmount: currentLease.rentAmount,
-							securityDeposit: currentLease.securityDeposit,
-							status: currentLease.status,
-							terms: currentLease.terms
-						} : null,
-						leases: leases.map((lease) => ({
+						currentLease: currentLease
+							? {
+									id: currentLease.id,
+									startDate: currentLease.startDate,
+									endDate: currentLease.endDate,
+									rentAmount: currentLease.rentAmount,
+									securityDeposit: currentLease.securityDeposit,
+									status: currentLease.status,
+									terms: currentLease.terms
+								}
+							: null,
+						leases: leases.map(lease => ({
 							id: lease.id,
 							startDate: lease.startDate,
 							endDate: lease.endDate,
 							rentAmount: lease.rentAmount,
 							status: lease.status,
-							...(lease.unit?.property ? { property: { address: lease.unit.property.address } } : {})
+							...(lease.unit?.property
+								? { property: { address: lease.unit.property.address } }
+								: {})
 						})),
-						unit: currentLease?.unit ? {
-							id: currentLease.unit.id,
-							unitNumber: currentLease.unit.unitNumber,
-							bedrooms: currentLease.unit.bedrooms,
-							bathrooms: currentLease.unit.bathrooms,
-							squareFootage: currentLease.unit.squareFeet
-						} : null,
-						property: currentLease?.unit?.property ? {
-							id: currentLease.unit.property.id,
-							name: currentLease.unit.property.name,
-							address: currentLease.unit.property.address,
-							city: currentLease.unit.property.city,
-							state: currentLease.unit.property.state,
-							zipCode: currentLease.unit.property.zipCode
-						} : null,
+						unit: currentLease?.unit
+							? {
+									id: currentLease.unit.id,
+									unitNumber: currentLease.unit.unitNumber,
+									bedrooms: currentLease.unit.bedrooms,
+									bathrooms: currentLease.unit.bathrooms,
+									squareFootage: currentLease.unit.squareFeet
+								}
+							: null,
+						property: currentLease?.unit?.property
+							? {
+									id: currentLease.unit.property.id,
+									name: currentLease.unit.property.name,
+									address: currentLease.unit.property.address,
+									city: currentLease.unit.property.city,
+									state: currentLease.unit.property.state,
+									zipCode: currentLease.unit.property.zipCode
+								}
+							: null,
 						// Derived fields for UI display
 						monthlyRent,
 						leaseStatus,
@@ -494,15 +556,19 @@ export class TenantsService {
 					}
 
 					return result
-				})
+				}
+			)
 
 			return tenantsWithLeaseInfo
 		} catch (error) {
-			this.logger.error('Tenants service failed to find all tenants with lease info', {
-				error: error instanceof Error ? error.message : String(error),
-				userId,
-				query
-			})
+			this.logger.error(
+				'Tenants service failed to find all tenants with lease info',
+				{
+					error: error instanceof Error ? error.message : String(error),
+					userId,
+					query
+				}
+			)
 			throw new BadRequestException('Failed to retrieve tenants')
 		}
 	}
@@ -676,12 +742,18 @@ export class TenantsService {
 	 * Returns tenant even if they have no leases (lease fields will be null)
 	 * Optimized query for tenant detail pages
 	 */
-	async findOneWithLease(userId: string, tenantId: string): Promise<TenantWithLeaseInfo | null> {
+	async findOneWithLease(
+		userId: string,
+		tenantId: string
+	): Promise<TenantWithLeaseInfo | null> {
 		if (!userId || !tenantId) {
-			this.logger.warn('Find one tenant with lease requested with missing parameters', {
-				userId,
-				tenantId
-			})
+			this.logger.warn(
+				'Find one tenant with lease requested with missing parameters',
+				{
+					userId,
+					tenantId
+				}
+			)
 			return null
 		}
 
@@ -694,7 +766,8 @@ export class TenantsService {
 			// Note: Using lease (not lease!inner) to return tenants even without leases
 			const { data: tenant, error: tenantError } = await client
 				.from('tenant')
-				.select(`
+				.select(
+					`
 					*,
 					lease (
 						id,
@@ -722,7 +795,8 @@ export class TenantsService {
 							)
 						)
 					)
-				`)
+				`
+				)
 				.eq('id', tenantId)
 				.eq('userId', userId)
 				.single()
@@ -742,53 +816,58 @@ export class TenantsService {
 
 			// Transform to TenantWithLeaseInfo format
 			// Handle cases: lease can be null, undefined, single object, or array
-			const leases = Array.isArray(tenant.lease) 
-				? tenant.lease 
-				: tenant.lease 
-					? [tenant.lease] 
+			const leases = Array.isArray(tenant.lease)
+				? tenant.lease
+				: tenant.lease
+					? [tenant.lease]
 					: []
-			const currentLease = leases.find((l) => l.status === 'ACTIVE') || leases[0] || null
+			const currentLease =
+				leases.find(l => l.status === 'ACTIVE') || leases[0] || null
 
-		// Calculate payment status from rent_payment table
-		let paymentStatus: string | null = null
-		if (currentLease) {
-			const { data: recentPayments, error: paymentsError } = await client
-				.from('rent_payment')
-				.select('status, dueDate')
-				.eq('tenantId', tenantId)
-				.eq('leaseId', currentLease.id)
-				.order('dueDate', { ascending: false })
-				.limit(1)
+			// Calculate payment status from rent_payment table
+			let paymentStatus: string | null = null
+			if (currentLease) {
+				const { data: recentPayments, error: paymentsError } = await client
+					.from('rent_payment')
+					.select('status, dueDate')
+					.eq('tenantId', tenantId)
+					.eq('leaseId', currentLease.id)
+					.order('dueDate', { ascending: false })
+					.limit(1)
 
-			if (paymentsError) {
-				this.logger.warn('Failed to fetch payment status for tenant', {
-					error: paymentsError.message,
-					tenantId,
-					leaseId: currentLease.id
-				})
-				// Continue without payment data - status will remain null
-			} else if (recentPayments && recentPayments.length > 0) {
-				const payment = recentPayments[0]
-				// Type assertion for payment status from database
-				const typedPayment = payment ? {
-					status: payment.status as Database['public']['Enums']['RentPaymentStatus'] | null,
-					dueDate: payment.dueDate
-				} : null
-				paymentStatus = this.calculatePaymentStatus(typedPayment)
+				if (paymentsError) {
+					this.logger.warn('Failed to fetch payment status for tenant', {
+						error: paymentsError.message,
+						tenantId,
+						leaseId: currentLease.id
+					})
+					// Continue without payment data - status will remain null
+				} else if (recentPayments && recentPayments.length > 0) {
+					const payment = recentPayments[0]
+					// Type assertion for payment status from database
+					const typedPayment = payment
+						? {
+								status: payment.status as
+									| Database['public']['Enums']['RentPaymentStatus']
+									| null,
+								dueDate: payment.dueDate
+							}
+						: null
+					paymentStatus = this.calculatePaymentStatus(typedPayment)
+				}
 			}
-		}
 
-		// Calculate other derived fields
-		const monthlyRent = currentLease?.rentAmount || 0
-		const leaseStatus = currentLease?.status || 'None'
-		const unitDisplay = currentLease?.unit 
-			? `Unit ${currentLease.unit.unitNumber}` 
-			: 'No unit assigned'
-		const propertyDisplay = currentLease?.unit?.property
-			? `${currentLease.unit.property.name}, ${currentLease.unit.property.city}`
-			: 'No property assigned'
-		const leaseStart = currentLease?.startDate || null
-		const leaseEnd = currentLease?.endDate || null
+			// Calculate other derived fields
+			const monthlyRent = currentLease?.rentAmount || 0
+			const leaseStatus = currentLease?.status || 'None'
+			const unitDisplay = currentLease?.unit
+				? `Unit ${currentLease.unit.unitNumber}`
+				: 'No unit assigned'
+			const propertyDisplay = currentLease?.unit?.property
+				? `${currentLease.unit.property.name}, ${currentLease.unit.property.city}`
+				: 'No property assigned'
+			const leaseStart = currentLease?.startDate || null
+			const leaseEnd = currentLease?.endDate || null
 
 			const result: TenantWithLeaseInfo = {
 				id: tenant.id,
@@ -799,19 +878,22 @@ export class TenantsService {
 				emergencyContact: tenant.emergencyContact,
 				createdAt: tenant.createdAt,
 				updatedAt: tenant.updatedAt,
-				invitation_status: tenant.invitation_status as TenantWithLeaseInfo['invitation_status'],
+				invitation_status:
+					tenant.invitation_status as TenantWithLeaseInfo['invitation_status'],
 				invitation_sent_at: tenant.invitation_sent_at,
 				invitation_accepted_at: tenant.invitation_accepted_at,
 				invitation_expires_at: tenant.invitation_expires_at,
-				currentLease: currentLease ? {
-					id: currentLease.id,
-					startDate: currentLease.startDate,
-					endDate: currentLease.endDate,
-					rentAmount: currentLease.rentAmount,
-					securityDeposit: currentLease.securityDeposit,
-					status: currentLease.status,
-					terms: currentLease.terms
-				} : null,
+				currentLease: currentLease
+					? {
+							id: currentLease.id,
+							startDate: currentLease.startDate,
+							endDate: currentLease.endDate,
+							rentAmount: currentLease.rentAmount,
+							securityDeposit: currentLease.securityDeposit,
+							status: currentLease.status,
+							terms: currentLease.terms
+						}
+					: null,
 				leases: leases.map(lease => {
 					const leaseItem: {
 						id: string
@@ -827,30 +909,34 @@ export class TenantsService {
 						rentAmount: lease.rentAmount,
 						status: lease.status
 					}
-					
+
 					if (lease.unit?.property) {
 						leaseItem.property = {
 							address: lease.unit.property.address
 						}
 					}
-					
+
 					return leaseItem
 				}),
-				unit: currentLease?.unit ? {
-					id: currentLease.unit.id,
-					unitNumber: currentLease.unit.unitNumber,
-					bedrooms: currentLease.unit.bedrooms,
-					bathrooms: currentLease.unit.bathrooms,
-					squareFootage: currentLease.unit.squareFeet
-				} : null,
-				property: currentLease?.unit?.property ? {
-					id: currentLease.unit.property.id,
-					name: currentLease.unit.property.name,
-					address: currentLease.unit.property.address,
-					city: currentLease.unit.property.city,
-					state: currentLease.unit.property.state,
-					zipCode: currentLease.unit.property.zipCode
-				} : null,
+				unit: currentLease?.unit
+					? {
+							id: currentLease.unit.id,
+							unitNumber: currentLease.unit.unitNumber,
+							bedrooms: currentLease.unit.bedrooms,
+							bathrooms: currentLease.unit.bathrooms,
+							squareFootage: currentLease.unit.squareFeet
+						}
+					: null,
+				property: currentLease?.unit?.property
+					? {
+							id: currentLease.unit.property.id,
+							name: currentLease.unit.property.name,
+							address: currentLease.unit.property.address,
+							city: currentLease.unit.property.city,
+							state: currentLease.unit.property.state,
+							zipCode: currentLease.unit.property.zipCode
+						}
+					: null,
 				// Derived fields for UI display
 				monthlyRent,
 				leaseStatus,
@@ -881,9 +967,7 @@ export class TenantsService {
 	): Promise<Tenant> {
 		// Business logic: Validate inputs separately for better error messages
 		if (!userId) {
-			this.logger.warn(
-				'Create tenant requested without authenticated user ID'
-			)
+			this.logger.warn('Create tenant requested without authenticated user ID')
 			throw new BadRequestException(
 				'Authentication required - user ID missing from session'
 			)
@@ -1225,7 +1309,7 @@ export class TenantsService {
 	/**
 	 * ✅ NEW: Send tenant invitation via Supabase Auth (Phase 3.1)
 	 * Uses Supabase Auth's built-in invitation system instead of custom tokens
-	 * 
+	 *
 	 * @param userId - Owner user ID
 	 * @param tenantId - Tenant ID to invite
 	 * @param propertyId - Optional property ID for context
@@ -1273,7 +1357,8 @@ export class TenantsService {
 
 			// 🔐 BUG FIX #1: Atomic check for existing auth user BEFORE invitation
 			// This prevents race condition where two simultaneous invitations create duplicate auth users
-			const { data: existingUsers, error: listError } = await client.auth.admin.listUsers()
+			const { data: existingUsers, error: listError } =
+				await client.auth.admin.listUsers()
 			if (listError) {
 				this.logger.error('Failed to list auth users', {
 					error: listError.message
@@ -1296,7 +1381,8 @@ export class TenantsService {
 						.from('tenant')
 						.update({
 							auth_user_id: existingAuthUser.id,
-							invitation_status: 'SENT' as Database['public']['Enums']['invitation_status']
+							invitation_status:
+								'SENT' as Database['public']['Enums']['invitation_status']
 						})
 						.eq('id', tenantId)
 						.eq('userId', userId)
@@ -1342,9 +1428,8 @@ export class TenantsService {
 
 			// 4. Send invitation via Supabase Auth Admin API
 			const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
-			const { data: authUser, error: authError } = await client.auth.admin.inviteUserByEmail(
-				tenant.email,
-				{
+			const { data: authUser, error: authError } =
+				await client.auth.admin.inviteUserByEmail(tenant.email, {
 					data: {
 						tenantId,
 						propertyId,
@@ -1356,16 +1441,23 @@ export class TenantsService {
 						role: 'tenant' // Custom metadata for role-based access
 					},
 					redirectTo: `${frontendUrl}/tenant/onboarding`
-				}
-			)
+				})
 
 			if (authError || !authUser?.user) {
 				// Handle duplicate email error specifically
-				if (authError?.message?.includes('already') || authError?.message?.includes('exists')) {
-					this.logger.error('Race condition detected: Auth user created between check and invite', {
-					error: authError.message
-				})
-					throw new ConflictException('Account already exists for this email. Please try again.')
+				if (
+					authError?.message?.includes('already') ||
+					authError?.message?.includes('exists')
+				) {
+					this.logger.error(
+						'Race condition detected: Auth user created between check and invite',
+						{
+							error: authError.message
+						}
+					)
+					throw new ConflictException(
+						'Account already exists for this email. Please try again.'
+					)
 				}
 
 				this.logger.error('Failed to send Supabase Auth invitation', {
@@ -1381,7 +1473,8 @@ export class TenantsService {
 				.from('tenant')
 				.update({
 					auth_user_id: authUser.user.id,
-					invitation_status: 'SENT' as Database['public']['Enums']['invitation_status'],
+					invitation_status:
+						'SENT' as Database['public']['Enums']['invitation_status'],
 					invitation_sent_at: new Date().toISOString()
 				})
 				.eq('id', tenantId)
@@ -1415,7 +1508,10 @@ export class TenantsService {
 				leaseId
 			})
 
-			if (error instanceof BadRequestException || error instanceof ConflictException) {
+			if (
+				error instanceof BadRequestException ||
+				error instanceof ConflictException
+			) {
 				throw error
 			}
 
@@ -1470,7 +1566,8 @@ export class TenantsService {
 				name: 'Check for existing auth user (prevent race condition)',
 				execute: async () => {
 					// 🔐 BUG FIX #1: Atomic check for existing auth user
-					const { data: existingUsers, error: listError } = await client.auth.admin.listUsers()
+					const { data: existingUsers, error: listError } =
+						await client.auth.admin.listUsers()
 					if (listError) {
 						throw new BadRequestException('Failed to verify email uniqueness')
 					}
@@ -1502,7 +1599,8 @@ export class TenantsService {
 							phone: tenantData.phone ?? null,
 							userId,
 							status: 'PENDING' as Database['public']['Enums']['TenantStatus'],
-							invitation_status: 'PENDING' as Database['public']['Enums']['invitation_status']
+							invitation_status:
+								'PENDING' as Database['public']['Enums']['invitation_status']
 						})
 						.select()
 						.single()
@@ -1514,14 +1612,23 @@ export class TenantsService {
 					}
 
 					createdTenant = tenant as Tenant
-					this.logger.log('Tenant created successfully', { tenantId: tenant.id })
+					this.logger.log('Tenant created successfully', {
+						tenantId: tenant.id
+					})
 					return tenant
 				},
 				compensate: async (tenant: unknown) => {
 					// Rollback: Delete tenant record
-					if (tenant && typeof tenant === 'object' && 'id' in tenant && tenant.id) {
+					if (
+						tenant &&
+						typeof tenant === 'object' &&
+						'id' in tenant &&
+						tenant.id
+					) {
 						await client.from('tenant').delete().eq('id', String(tenant.id))
-						this.logger.log('Compensated: Deleted tenant', { tenantId: tenant.id })
+						this.logger.log('Compensated: Deleted tenant', {
+							tenantId: tenant.id
+						})
 					}
 				}
 			})
@@ -1539,7 +1646,7 @@ export class TenantsService {
 							propertyId: leaseData.propertyId,
 							unitId: leaseData.unitId || null,
 							rentAmount: leaseData.rentAmount,
-							monthlyRent: leaseData.rentAmount,
+							// monthlyRent is a GENERATED ALWAYS column (copies rentAmount automatically)
 							securityDeposit: leaseData.securityDeposit,
 							startDate: leaseData.startDate,
 							endDate: leaseData.endDate,
@@ -1563,6 +1670,260 @@ export class TenantsService {
 					if (lease && typeof lease === 'object' && 'id' in lease && lease.id) {
 						await client.from('lease').delete().eq('id', String(lease.id))
 						this.logger.log('Compensated: Deleted lease', { leaseId: lease.id })
+					}
+				}
+			})
+			.addStep({
+				name: 'Verify landlord Connected Account',
+				execute: async () => {
+					// Get landlord's connected account from users table
+					const { data: landlord, error: landlordError } = await client
+						.from('users')
+						.select('connectedAccountId, onboardingComplete, email')
+						.eq('id', userId)
+						.single()
+
+					if (landlordError || !landlord) {
+						throw new BadRequestException('Landlord not found')
+					}
+
+					if (!landlord.connectedAccountId) {
+						throw new BadRequestException(
+							'Please complete Stripe onboarding before inviting tenants. Go to Settings → Billing to set up payments.'
+						)
+					}
+
+					if (!landlord.onboardingComplete) {
+						throw new BadRequestException(
+							'Your Stripe account setup is incomplete. Please complete onboarding in Settings → Billing before inviting tenants.'
+						)
+					}
+
+					this.logger.log('Landlord Connected Account verified', {
+						connectedAccountId: landlord.connectedAccountId
+					})
+
+					return {
+						connectedAccountId: landlord.connectedAccountId,
+						landlordEmail: landlord.email
+					}
+				},
+				compensate: async () => {
+					// No compensation needed for verification step
+					return Promise.resolve()
+				}
+			})
+			.addStep({
+				name: 'Create Stripe Customer on Connected Account',
+				execute: async () => {
+					if (!createdTenant || !createdLease) {
+						throw new BadRequestException('Tenant or lease not created')
+					}
+
+					// Get landlord's connected account ID
+					const { data: landlord } = await client
+						.from('users')
+						.select('connectedAccountId')
+						.eq('id', userId)
+						.single()
+
+					if (!landlord?.connectedAccountId) {
+						throw new BadRequestException('Connected account not found')
+					}
+
+					// Create Stripe Customer on connected account
+					const stripe = this.stripeConnectService.getStripe()
+					const customer = await stripe.customers.create(
+						{
+							email: createdTenant.email,
+							name: `${createdTenant.firstName} ${createdTenant.lastName}`,
+							...(createdTenant.phone && { phone: createdTenant.phone }),
+							metadata: {
+								tenantId: createdTenant.id,
+								leaseId: createdLease.id,
+								platform: 'tenantflow'
+							}
+						},
+						{
+							stripeAccount: landlord.connectedAccountId
+						}
+					)
+
+					// Store Stripe Customer ID in tenant record
+					const { error: updateError } = await client
+						.from('tenant')
+						.update({ stripeCustomerId: customer.id })
+						.eq('id', createdTenant.id)
+
+					if (updateError) {
+						this.logger.error('Failed to save stripeCustomerId', {
+							error: updateError
+						})
+						// Don't throw - we'll try to delete the Stripe customer in compensation
+					}
+
+					this.logger.log('Stripe Customer created on Connected Account', {
+						customerId: customer.id,
+						connectedAccountId: landlord.connectedAccountId
+					})
+
+					return {
+						customerId: customer.id,
+						connectedAccountId: landlord.connectedAccountId
+					}
+				},
+				compensate: async (
+					result: {
+						customerId: string
+						connectedAccountId: string
+					} | null
+				) => {
+					// Rollback: Delete Stripe Customer
+					if (result && result.customerId && result.connectedAccountId) {
+						try {
+							const stripe = this.stripeConnectService.getStripe()
+							await stripe.customers.del(result.customerId, {
+								stripeAccount: result.connectedAccountId
+							})
+							this.logger.log('Compensated: Deleted Stripe Customer', {
+								customerId: result.customerId
+							})
+						} catch (error) {
+							this.logger.error(
+								'Failed to delete Stripe Customer during compensation',
+								{ error }
+							)
+						}
+					}
+				}
+			})
+			.addStep({
+				name: 'Create Stripe Subscription for Rent Payment',
+				execute: async () => {
+					if (!createdTenant || !createdLease) {
+						throw new BadRequestException('Tenant or lease not created')
+					}
+
+					// Get landlord's connected account and tenant's customer ID
+					const { data: landlord } = await client
+						.from('users')
+						.select('connectedAccountId')
+						.eq('id', userId)
+						.single()
+
+					const { data: tenant } = await client
+						.from('tenant')
+						.select('stripeCustomerId')
+						.eq('id', createdTenant.id)
+						.single()
+
+					if (!landlord?.connectedAccountId || !tenant?.stripeCustomerId) {
+						throw new BadRequestException(
+							'Missing Stripe account or customer information'
+						)
+					}
+
+					const stripe = this.stripeConnectService.getStripe()
+
+					// Create a Price for the rent amount on the connected account
+					const price = await stripe.prices.create(
+						{
+							currency: 'usd',
+							unit_amount: leaseData.rentAmount, // Already in cents
+							recurring: {
+								interval: 'month',
+								interval_count: 1
+							},
+							product_data: {
+								name: 'Monthly Rent'
+							},
+							metadata: {
+								leaseId: createdLease.id,
+								tenantId: createdTenant.id,
+								propertyId: leaseData.propertyId,
+								...(leaseData.unitId && { unitId: leaseData.unitId })
+							}
+						},
+						{
+							stripeAccount: landlord.connectedAccountId
+						}
+					)
+
+					// Create subscription (NO application fee - landlord gets 100% of rent)
+					// Landlords pay for platform via separate SaaS subscription on /pricing page
+					const subscription = await stripe.subscriptions.create(
+						{
+							customer: tenant.stripeCustomerId,
+							items: [{ price: price.id }],
+							payment_behavior: 'default_incomplete',
+							payment_settings: {
+								payment_method_types: ['card'],
+								save_default_payment_method: 'on_subscription'
+							},
+							expand: ['latest_invoice.payment_intent'],
+							metadata: {
+								leaseId: createdLease.id,
+								tenantId: createdTenant.id,
+								propertyId: leaseData.propertyId,
+								...(leaseData.unitId && { unitId: leaseData.unitId }),
+								platform: 'tenantflow'
+							},
+							billing_cycle_anchor_config: {
+								day_of_month: 1 // Rent due on 1st of each month
+							}
+						},
+						{
+							stripeAccount: landlord.connectedAccountId
+						}
+					)
+
+					// Store Stripe Subscription ID in lease record
+					const { error: updateError } = await client
+						.from('lease')
+						.update({ stripeSubscriptionId: subscription.id })
+						.eq('id', createdLease.id)
+
+					if (updateError) {
+						this.logger.error('Failed to save stripeSubscriptionId', {
+							error: updateError
+						})
+					}
+
+					this.logger.log('Stripe Subscription created for rent payment', {
+						subscriptionId: subscription.id,
+						priceId: price.id,
+						rentAmount: leaseData.rentAmount,
+						connectedAccountId: landlord.connectedAccountId
+					})
+
+					return {
+						subscriptionId: subscription.id,
+						priceId: price.id,
+						connectedAccountId: landlord.connectedAccountId
+					}
+				},
+				compensate: async (
+					result: {
+						subscriptionId: string
+						connectedAccountId: string
+					} | null
+				) => {
+					// Rollback: Cancel Stripe Subscription
+					if (result && result.subscriptionId && result.connectedAccountId) {
+						try {
+							const stripe = this.stripeConnectService.getStripe()
+							await stripe.subscriptions.cancel(result.subscriptionId, {
+								stripeAccount: result.connectedAccountId
+							})
+							this.logger.log('Compensated: Canceled Stripe Subscription', {
+								subscriptionId: result.subscriptionId
+							})
+						} catch (error) {
+							this.logger.error(
+								'Failed to cancel Stripe Subscription during compensation',
+								{ error }
+							)
+						}
 					}
 				}
 			})
@@ -1591,11 +1952,11 @@ export class TenantsService {
 					}
 
 					const propertyName = property?.name || 'Your Property'
-					const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
+					const frontendUrl =
+						process.env.FRONTEND_URL || 'https://tenantflow.app'
 
-					const { data: authUser, error: authError } = await client.auth.admin.inviteUserByEmail(
-						createdTenant.email,
-						{
+					const { data: authUser, error: authError } =
+						await client.auth.admin.inviteUserByEmail(createdTenant.email, {
 							data: {
 								tenantId: createdTenant.id,
 								leaseId: createdLease.id,
@@ -1611,13 +1972,17 @@ export class TenantsService {
 								role: 'tenant'
 							},
 							redirectTo: `${frontendUrl}/auth/confirm`
-						}
-					)
+						})
 
 					if (authError || !authUser?.user) {
 						// Handle race condition where user was created between check and invite
-						if (authError?.message?.includes('already') || authError?.message?.includes('exists')) {
-							throw new ConflictException('Account already exists for this email')
+						if (
+							authError?.message?.includes('already') ||
+							authError?.message?.includes('exists')
+						) {
+							throw new ConflictException(
+								'Account already exists for this email'
+							)
 						}
 						throw new BadRequestException(
 							`Failed to send invitation: ${authError?.message || 'Unknown error'}`
@@ -1632,15 +1997,25 @@ export class TenantsService {
 				},
 				compensate: async (authUser: { id: string } | null) => {
 					// Rollback: Delete auth user
-					if (authUser && typeof authUser === 'object' && 'id' in authUser && authUser.id) {
+					if (
+						authUser &&
+						typeof authUser === 'object' &&
+						'id' in authUser &&
+						authUser.id
+					) {
 						try {
 							await client.auth.admin.deleteUser(String(authUser.id))
-							this.logger.log('Compensated: Deleted auth user', { authUserId: authUser.id })
-						} catch (error) {
-							this.logger.error('Failed to delete auth user during compensation', {
-								error: error instanceof Error ? error.message : String(error),
+							this.logger.log('Compensated: Deleted auth user', {
 								authUserId: authUser.id
 							})
+						} catch (error) {
+							this.logger.error(
+								'Failed to delete auth user during compensation',
+								{
+									error: error instanceof Error ? error.message : String(error),
+									authUserId: authUser.id
+								}
+							)
 						}
 					}
 				}
@@ -1656,7 +2031,8 @@ export class TenantsService {
 						.from('tenant')
 						.update({
 							auth_user_id: createdAuthUser.id,
-							invitation_status: 'SENT' as Database['public']['Enums']['invitation_status'],
+							invitation_status:
+								'SENT' as Database['public']['Enums']['invitation_status'],
 							invitation_sent_at: new Date().toISOString()
 						})
 						.eq('id', createdTenant.id)
@@ -1680,7 +2056,8 @@ export class TenantsService {
 							.from('tenant')
 							.update({
 								auth_user_id: null,
-								invitation_status: 'PENDING' as Database['public']['Enums']['invitation_status'],
+								invitation_status:
+									'PENDING' as Database['public']['Enums']['invitation_status'],
 								invitation_sent_at: null
 							})
 							.eq('id', createdTenant.id)
@@ -1698,7 +2075,10 @@ export class TenantsService {
 				completedSteps: result.completedSteps,
 				compensatedSteps: result.compensatedSteps
 			})
-			throw result.error || new BadRequestException('Failed to invite tenant with lease')
+			throw (
+				result.error ||
+				new BadRequestException('Failed to invite tenant with lease')
+			)
 		}
 
 		this.logger.log('Tenant invitation complete', {
@@ -1776,18 +2156,24 @@ export class TenantsService {
 		expires_at?: string
 	}> {
 		try {
-			this.logger.log('Validating invitation token', { tokenLength: token.length })
+			this.logger.log('Validating invitation token', {
+				tokenLength: token.length
+			})
 
 			// Query tenant by invitation token
 			const client = this.supabase.getAdminClient()
 			const { data: tenant, error } = await client
 				.from('tenant')
-				.select('id, email, firstName, invitation_status, invitation_expires_at')
+				.select(
+					'id, email, firstName, invitation_status, invitation_expires_at'
+				)
 				.eq('invitation_token', token)
 				.single()
 
 			if (error || !tenant) {
-				this.logger.warn('Invitation token not found', { error: error?.message })
+				this.logger.warn('Invitation token not found', {
+					error: error?.message
+				})
 				return {
 					valid: false,
 					expired: false,
@@ -1807,7 +2193,9 @@ export class TenantsService {
 			}
 
 			// Check if expired
-			const expiresAt = tenant.invitation_expires_at ? new Date(tenant.invitation_expires_at) : null
+			const expiresAt = tenant.invitation_expires_at
+				? new Date(tenant.invitation_expires_at)
+				: null
 			const now = new Date()
 			const expired = expiresAt ? expiresAt < now : false
 
@@ -1818,7 +2206,9 @@ export class TenantsService {
 					already_accepted: false,
 					tenant_email: tenant.email,
 					...(tenant.firstName && { tenant_first_name: tenant.firstName }),
-					...(tenant.invitation_expires_at && { expires_at: tenant.invitation_expires_at })
+					...(tenant.invitation_expires_at && {
+						expires_at: tenant.invitation_expires_at
+					})
 				}
 			}
 
@@ -1829,7 +2219,9 @@ export class TenantsService {
 				already_accepted: false,
 				tenant_email: tenant.email,
 				...(tenant.firstName && { tenant_first_name: tenant.firstName }),
-				...(tenant.invitation_expires_at && { expires_at: tenant.invitation_expires_at })
+				...(tenant.invitation_expires_at && {
+					expires_at: tenant.invitation_expires_at
+				})
 			}
 		} catch (error) {
 			this.logger.error('Failed to validate invitation token', {
@@ -2019,9 +2411,12 @@ export class TenantsService {
 			const client = this.supabase.getAdminClient()
 
 			// Call database function to activate tenant
-			const { data, error } = await client.rpc('activate_tenant_from_auth_user', {
-				p_auth_user_id: authUserId
-			})
+			const { data, error } = await client.rpc(
+				'activate_tenant_from_auth_user',
+				{
+					p_auth_user_id: authUserId
+				}
+			)
 
 			if (error) {
 				this.logger.error('Database function failed', {
@@ -2080,5 +2475,4 @@ export class TenantsService {
 	 * Generate a secure invitation token
 	 * Private helper method for invitation functionality
 	 */
-
 }
