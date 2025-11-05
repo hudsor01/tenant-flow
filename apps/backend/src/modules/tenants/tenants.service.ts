@@ -1140,6 +1140,93 @@ export class TenantsService {
 	}
 
 	/**
+	 * Get notification preferences for a tenant
+	 */
+	async getNotificationPreferences(
+		userId: string,
+		tenantId: string
+	): Promise<Record<string, boolean> | null> {
+		const client = this.supabase.getAdminClient()
+
+		// Fetch tenant's notification preferences
+		const { data, error } = await client
+			.from('tenant')
+			.select('notification_preferences')
+			.eq('id', tenantId)
+			.eq('ownerId', userId)
+			.single()
+
+		if (error) {
+			this.logger.error(
+				`Failed to fetch notification preferences for tenant ${tenantId}`,
+				{ error }
+			)
+			return null
+		}
+
+		// Return preferences or default values
+		// @ts-expect-error - notification_preferences column will exist after migration
+		return (data.notification_preferences as Record<string, boolean>) || {
+			rentReminders: true,
+			maintenanceUpdates: true,
+			propertyNotices: true,
+			emailNotifications: true,
+			smsNotifications: false
+		}
+	}
+
+	/**
+	 * Update notification preferences for a tenant
+	 */
+	async updateNotificationPreferences(
+		userId: string,
+		tenantId: string,
+		preferences: Record<string, boolean>
+	): Promise<Record<string, boolean> | null> {
+		const client = this.supabase.getAdminClient()
+
+		// Get current preferences
+		const { data: currentData } = await client
+			.from('tenant')
+			.select('notification_preferences')
+			.eq('id', tenantId)
+			.eq('ownerId', userId)
+			.single()
+
+		if (!currentData) {
+			return null
+		}
+
+		// Merge with current preferences (partial update)
+		// @ts-expect-error - notification_preferences column will exist after migration
+		const updatedPreferences = {
+			...(currentData.notification_preferences as Record<string, boolean>),
+			...preferences
+		}
+
+		// Update preferences
+		// @ts-expect-error - notification_preferences column will exist after migration
+		const { data, error } = await client
+			.from('tenant')
+			.update({ notification_preferences: updatedPreferences })
+			.eq('id', tenantId)
+			.eq('ownerId', userId)
+			.select('notification_preferences')
+			.single()
+
+		if (error) {
+			this.logger.error(
+				`Failed to update notification preferences for tenant ${tenantId}`,
+				{ error }
+			)
+			throw new BadRequestException('Failed to update notification preferences')
+		}
+
+		// @ts-expect-error - notification_preferences column will exist after migration
+		return data.notification_preferences as Record<string, boolean>
+	}
+
+	/**
 	 * Mark tenant as moved out (soft delete with 7-year retention)
 	 */
 	async markAsMovedOut(
