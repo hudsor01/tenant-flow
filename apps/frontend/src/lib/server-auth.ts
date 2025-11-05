@@ -83,20 +83,7 @@ export async function requirePrimaryProperty(userId: string) {
 		.single()
 
 	if (error || !property) {
-		// Modern UX: show error toast before redirect
-		if (typeof window !== 'undefined') {
-			// Use a global error handler or toast system (e.g., React Query, TanStack, or custom)
-			window.dispatchEvent(
-				new CustomEvent('show-toast', {
-					detail: {
-						type: 'error',
-						message:
-							error?.message ||
-							'No property found. Please add a property to continue.'
-					}
-				})
-			)
-		}
+		// Server-side redirect - client can show UI based on searchParams if needed
 		redirect('/manage')
 	}
 

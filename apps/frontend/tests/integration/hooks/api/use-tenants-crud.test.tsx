@@ -7,7 +7,7 @@
 
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
 	useTenantList,
 	useTenant,
@@ -15,8 +15,7 @@ import {
 	useUpdateTenant,
 	useMarkTenantAsMovedOut,
 	useInviteTenant,
-	useResendInvitation,
-	tenantKeys
+	useResendInvitation
 } from '#hooks/api/use-tenant'
 import type { Tenant } from '@repo/shared/types/core'
 import type {

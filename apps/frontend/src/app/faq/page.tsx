@@ -208,14 +208,12 @@ export default function FAQPage() {
 			{/* FAQ Section */}
 			<section className="section-hero">
 				<div className="max-w-4xl mx-auto px-6 lg:px-8">
-					{!isLoading && !error && faqCategories.length === 0 && (
+					{faqCategories.length === 0 && (
 						<div className="py-8 text-center text-muted-foreground">
 							No FAQs available at the moment. Please check back later.
 						</div>
 					)}
-					{!isLoading &&
-						!error &&
-						faqCategories.length > 0 &&
+					{faqCategories.length > 0 &&
 						faqCategories.map((category, categoryIndex) => (
 							<FaqsAccordion
 								key={categoryIndex}
