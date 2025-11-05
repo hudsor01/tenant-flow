@@ -5,15 +5,17 @@
 
 /**
  * Validates and returns the Supabase URL from environment variables.
- * Throws an error at build time if NEXT_PUBLIC_SUPABASE_URL is missing.
+ * Prefers SUPABASE_URL for server contexts, falls back to NEXT_PUBLIC_SUPABASE_URL for browser builds.
+ * Throws an error at build time if neither environment variable is present.
  */
 function getSupabaseUrl(): string {
-	const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+	// Prefer server env var, fall back to Next.js public env var
+	const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
 
 	if (!url) {
 		throw new Error(
-			'NEXT_PUBLIC_SUPABASE_URL environment variable is required. ' +
-				'Please set it in your environment variables.'
+			'SUPABASE_URL environment variable is required. ' +
+				'Please set it in your environment variables (or NEXT_PUBLIC_SUPABASE_URL for browser builds).'
 		)
 	}
 
@@ -22,15 +24,19 @@ function getSupabaseUrl(): string {
 
 /**
  * Validates and returns the Supabase publishable key from environment variables.
- * Throws an error at build time if NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is missing.
+ * Prefers SUPABASE_PUBLISHABLE_KEY for server contexts, falls back to NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY for browser builds.
+ * Throws an error at build time if neither environment variable is present.
  */
 function getSupabasePublishableKey(): string {
-	const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+	// Prefer server env var, fall back to Next.js public env var
+	const key =
+		process.env.SUPABASE_PUBLISHABLE_KEY ||
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
 	if (!key) {
 		throw new Error(
-			'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY environment variable is required. ' +
-				'Please set it in your environment variables.'
+			'SUPABASE_PUBLISHABLE_KEY environment variable is required. ' +
+				'Please set it in your environment variables (or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY for browser builds).'
 		)
 	}
 
