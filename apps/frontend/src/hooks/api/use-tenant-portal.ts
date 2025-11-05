@@ -1,9 +1,9 @@
 import { clientFetch } from '#lib/api/client'
 import type {
-	LeaseWithDetails,
 	MaintenanceRequest,
 	RentPayment
 } from '@repo/shared/types/core'
+import type { LeaseWithDetails } from '@repo/shared/types/relations'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 export interface TenantPortalDashboardResponse {
