@@ -2386,105 +2386,6 @@ export class TenantsService {
 	}
 
 	/**
-	 * Update tenant emergency contact
-	 */
-	async updateEmergencyContact(
-		userId: string,
-		tenantId: string,
-		emergencyContact: { name: string; phone: string; relationship: string }
-	): Promise<Tenant | null> {
-		try {
-			this.logger.log('Updating tenant emergency contact', {
-				userId,
-				tenantId,
-				emergencyContact
-			})
-
-			// Verify tenant exists and belongs to user
-			const tenant = await this.findOne(userId, tenantId)
-			if (!tenant) {
-				throw new BadRequestException('Tenant not found or access denied')
-			}
-
-			// Update tenant with emergency contact via direct Supabase query
-			const client = this.supabase.getAdminClient()
-			const emergencyContactPayload = JSON.stringify(emergencyContact)
-
-			const { data, error } = await client
-				.from('tenant')
-				.update({ emergencyContact: emergencyContactPayload })
-				.eq('id', tenantId)
-				.eq('userId', userId)
-				.select()
-				.single()
-
-			if (error) {
-				throw new BadRequestException('Failed to update emergency contact')
-			}
-
-			return data as Tenant
-		} catch (error) {
-			this.logger.error('Failed to update emergency contact', {
-				error: error instanceof Error ? error.message : String(error),
-				userId,
-				tenantId
-			})
-
-			if (error instanceof BadRequestException) {
-				throw error
-			}
-
-			throw new BadRequestException('Failed to update emergency contact')
-		}
-	}
-
-	/**
-	 * Remove tenant emergency contact
-	 */
-	async removeEmergencyContact(
-		userId: string,
-		tenantId: string
-	): Promise<Tenant | null> {
-		try {
-			this.logger.log('Removing tenant emergency contact', { userId, tenantId })
-
-			// Verify tenant exists and belongs to user
-			const tenant = await this.findOne(userId, tenantId)
-			if (!tenant) {
-				throw new BadRequestException('Tenant not found or access denied')
-			}
-
-			// Remove emergency contact by setting to null via direct Supabase query
-			const client = this.supabase.getAdminClient()
-			const { data, error } = await client
-				.from('tenant')
-				.update({ emergencyContact: null })
-				.eq('id', tenantId)
-				.eq('userId', userId)
-				.select()
-				.single()
-
-			if (error) {
-				throw new BadRequestException('Failed to remove emergency contact')
-			}
-
-			return data as Tenant
-		} catch (error) {
-			this.logger.error('Failed to remove emergency contact', {
-				error: error instanceof Error ? error.message : String(error),
-				userId,
-				tenantId
-			})
-
-			if (error instanceof BadRequestException) {
-				throw error
-			}
-
-			throw new BadRequestException('Failed to remove emergency contact')
-		}
-	}
-
-	/**
 	 * ✅ NEW: Activate tenant from Supabase Auth user ID (Phase 3.1)
 	 * Called from frontend after successful invitation acceptance
 	 * Calls database function to update tenant status
@@ -2564,4 +2465,289 @@ export class TenantsService {
 	 * Generate a secure invitation token
 	 * Private helper method for invitation functionality
 	 */
+
+	// ========================================
+	// Emergency Contact Methods
+	// ========================================
+
+	/**
+	 * Get emergency contact for a tenant
+	 * Ensures owner can only access their own tenant's emergency contact
+	 */
+	async getEmergencyContact(
+		userId: string,
+		tenantId: string
+	): Promise<{
+		id: string
+		tenantId: string
+		contactName: string
+		relationship: string
+		phoneNumber: string
+		email: string | null
+		createdAt: string
+		updatedAt: string
+	} | null> {
+		const client = this.supabase.getAdminClient()
+
+		// Verify ownership first
+		const { data: tenant } = await client
+			.from('tenant')
+			.select('id')
+			.eq('id', tenantId)
+			.eq('ownerId', userId)
+			.single()
+
+		if (!tenant) {
+			this.logger.warn('Tenant not found or access denied', {
+				userId,
+				tenantId
+			})
+			return null
+		}
+
+		// Fetch emergency contact (RLS will double-check access)
+		const { data, error } = await client
+			.from('tenant_emergency_contact')
+			.select('*')
+			.eq('tenant_id', tenantId)
+			.single()
+
+		if (error) {
+			// No emergency contact found is not an error
+			if (error.code === 'PGRST116') {
+				return null
+			}
+			this.logger.error('Failed to fetch emergency contact', {
+				error: error.message,
+				tenantId
+			})
+			return null
+		}
+
+		return {
+			id: data.id,
+			tenantId: data.tenant_id,
+			contactName: data.contact_name,
+			relationship: data.relationship,
+			phoneNumber: data.phone_number,
+			email: data.email,
+			createdAt: data.created_at,
+			updatedAt: data.updated_at
+		}
+	}
+
+	/**
+	 * Create emergency contact for a tenant
+	 * Enforces one-to-one relationship (unique constraint on tenant_id)
+	 */
+	async createEmergencyContact(
+		userId: string,
+		tenantId: string,
+		data: {
+			contactName: string
+			relationship: string
+			phoneNumber: string
+			email?: string | null
+		}
+	): Promise<{
+		id: string
+		tenantId: string
+		contactName: string
+		relationship: string
+		phoneNumber: string
+		email: string | null
+		createdAt: string
+		updatedAt: string
+	} | null> {
+		const client = this.supabase.getAdminClient()
+
+		// Verify ownership
+		const { data: tenant } = await client
+			.from('tenant')
+			.select('id')
+			.eq('id', tenantId)
+			.eq('ownerId', userId)
+			.single()
+
+		if (!tenant) {
+			this.logger.warn('Tenant not found or access denied', {
+				userId,
+				tenantId
+			})
+			throw new BadRequestException('Tenant not found or access denied')
+		}
+
+		// Create emergency contact
+		const { data: created, error } = await client
+			.from('tenant_emergency_contact')
+			.insert({
+				tenant_id: tenantId,
+				contact_name: data.contactName,
+				relationship: data.relationship,
+				phone_number: data.phoneNumber,
+				email: data.email || null
+			})
+			.select('*')
+			.single()
+
+		if (error) {
+			// Handle unique constraint violation (one-to-one)
+			if (error.code === '23505') {
+				this.logger.warn('Emergency contact already exists for tenant', {
+					tenantId
+				})
+				throw new ConflictException(
+					'Emergency contact already exists for this tenant. Use update instead.'
+				)
+			}
+
+			this.logger.error('Failed to create emergency contact', {
+				error: error.message,
+				tenantId
+			})
+			throw new BadRequestException('Failed to create emergency contact')
+		}
+
+		this.logger.log('Emergency contact created', {
+			tenantId,
+			contactId: created.id
+		})
+
+		return {
+			id: created.id,
+			tenantId: created.tenant_id,
+			contactName: created.contact_name,
+			relationship: created.relationship,
+			phoneNumber: created.phone_number,
+			email: created.email,
+			createdAt: created.created_at,
+			updatedAt: created.updated_at
+		}
+	}
+
+	/**
+	 * Update emergency contact for a tenant
+	 */
+	async updateEmergencyContact(
+		userId: string,
+		tenantId: string,
+		data: {
+			contactName?: string
+			relationship?: string
+			phoneNumber?: string
+			email?: string | null
+		}
+	): Promise<{
+		id: string
+		tenantId: string
+		contactName: string
+		relationship: string
+		phoneNumber: string
+		email: string | null
+		createdAt: string
+		updatedAt: string
+	} | null> {
+		const client = this.supabase.getAdminClient()
+
+		// Verify ownership
+		const { data: tenant } = await client
+			.from('tenant')
+			.select('id')
+			.eq('id', tenantId)
+			.eq('ownerId', userId)
+			.single()
+
+		if (!tenant) {
+			this.logger.warn('Tenant not found or access denied', {
+				userId,
+				tenantId
+			})
+			return null
+		}
+
+		// Build update object (only include provided fields)
+		const updateData: Record<string, unknown> = {}
+		if (data.contactName !== undefined)
+			updateData.contact_name = data.contactName
+		if (data.relationship !== undefined)
+			updateData.relationship = data.relationship
+		if (data.phoneNumber !== undefined)
+			updateData.phone_number = data.phoneNumber
+		if (data.email !== undefined) updateData.email = data.email
+
+		// Update emergency contact
+		const { data: updated, error } = await client
+			.from('tenant_emergency_contact')
+			.update(updateData)
+			.eq('tenant_id', tenantId)
+			.select('*')
+			.single()
+
+		if (error) {
+			this.logger.error('Failed to update emergency contact', {
+				error: error.message,
+				tenantId
+			})
+			throw new BadRequestException('Failed to update emergency contact')
+		}
+
+		this.logger.log('Emergency contact updated', {
+			tenantId,
+			contactId: updated.id
+		})
+
+		return {
+			id: updated.id,
+			tenantId: updated.tenant_id,
+			contactName: updated.contact_name,
+			relationship: updated.relationship,
+			phoneNumber: updated.phone_number,
+			email: updated.email,
+			createdAt: updated.created_at,
+			updatedAt: updated.updated_at
+		}
+	}
+
+	/**
+	 * Delete emergency contact for a tenant
+	 */
+	async deleteEmergencyContact(
+		userId: string,
+		tenantId: string
+	): Promise<boolean> {
+		const client = this.supabase.getAdminClient()
+
+		// Verify ownership
+		const { data: tenant } = await client
+			.from('tenant')
+			.select('id')
+			.eq('id', tenantId)
+			.eq('ownerId', userId)
+			.single()
+
+		if (!tenant) {
+			this.logger.warn('Tenant not found or access denied', {
+				userId,
+				tenantId
+			})
+			return false
+		}
+
+		// Delete emergency contact
+		const { error } = await client
+			.from('tenant_emergency_contact')
+			.delete()
+			.eq('tenant_id', tenantId)
+
+		if (error) {
+			this.logger.error('Failed to delete emergency contact', {
+				error: error.message,
+				tenantId
+			})
+			throw new BadRequestException('Failed to delete emergency contact')
+		}
+
+		this.logger.log('Emergency contact deleted', { tenantId })
+		return true
+	}
 }
