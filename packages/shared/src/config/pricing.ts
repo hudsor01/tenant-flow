@@ -81,7 +81,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		id: 'STARTER',
 		planId: 'starter',
 		name: 'Starter',
-		description: 'Ideal for small landlords managing a few properties',
+		description: 'Ideal for property owners managing a few properties',
 		price: {
 			monthly: 29,
 			annual: 290
@@ -214,10 +214,7 @@ export function checkPlanLimits(
 	const limits: string[] = []
 	let exceeded = false
 
-	if (
-		plan.limits.properties > 0 &&
-		usage.properties > plan.limits.properties
-	) {
+	if (plan.limits.properties > 0 && usage.properties > plan.limits.properties) {
 		limits.push(`Properties: ${usage.properties}/${plan.limits.properties}`)
 		exceeded = true
 	}
@@ -252,10 +249,14 @@ export function getRecommendedUpgrade(
 	// Check each higher plan to see if it fits
 	for (let i = currentIndex + 1; i < plans.length; i++) {
 		const planId = plans[i]
-		if (!planId) {continue}
+		if (!planId) {
+			continue
+		}
 
 		const plan = getPricingPlan(planId)
-		if (!plan) {continue}
+		if (!plan) {
+			continue
+		}
 
 		const { exceeded } = checkPlanLimits(usage, planId)
 		if (!exceeded) {
@@ -274,9 +275,7 @@ export function calculateAnnualSavings(monthlyPrice: number): number {
 }
 
 // Get product tier configuration by ID (supports both PlanId and legacy PlanType)
-export function getProductTier(
-	planId: PlanId
-): PricingConfig | undefined {
+export function getProductTier(planId: PlanId): PricingConfig | undefined {
 	// Handle legacy PlanType constants
 	if (typeof planId === 'string' && planId in PRICING_PLANS) {
 		return PRICING_PLANS[planId]
@@ -317,7 +316,9 @@ export function getStripePriceId(
 	period: 'monthly' | 'annual'
 ): StripePriceId | null {
 	const plan = getPricingPlan(planId)
-	if (!plan) {return null}
+	if (!plan) {
+		return null
+	}
 
 	return period === 'monthly'
 		? plan.stripePriceIds.monthly
