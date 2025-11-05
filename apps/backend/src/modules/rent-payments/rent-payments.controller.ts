@@ -34,16 +34,18 @@ export class RentPaymentsController {
 			leaseId: string
 			amount: number
 			paymentMethodId: string
-			requestingUserId: string
-		}
+		},
+		@Request() req: AuthenticatedRequest
 	) {
+		const requestingUserId = req.user.id
+
 		this.logger.log(
 			`Creating one-time payment for tenant ${body.tenantId}, lease ${body.leaseId}`
 		)
 
 		const result = await this.rentPaymentsService.createOneTimePayment(
 			body,
-			body.requestingUserId
+			requestingUserId
 		)
 
 		return {

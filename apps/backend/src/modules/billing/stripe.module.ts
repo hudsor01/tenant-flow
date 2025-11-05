@@ -12,6 +12,8 @@ import { StripeTenantService } from './stripe-tenant.service'
 import { StripeWebhookService } from './stripe-webhook.service'
 import { StripeController } from './stripe.controller'
 import { StripeService } from './stripe.service'
+import { StripeConnectService } from './stripe-connect.service'
+import { StripeConnectController } from './stripe-connect.controller'
 
 /**
  * Production-Grade Stripe Module
@@ -48,12 +50,16 @@ import { StripeService } from './stripe.service'
 		StripeAccessControlService,
 
 		// Tenant Stripe management service
-		StripeTenantService
+		StripeTenantService,
+
+		// Stripe Connect service for multi-landlord SaaS
+		StripeConnectService
 
 		// REMOVED: EventEmitter2 - Event emission now handled by Stripe Sync Engine
 	],
 	controllers: [
-		StripeController // Main Stripe controller
+		StripeController, // Main Stripe controller
+		StripeConnectController // Stripe Connect for multi-landlord SaaS
 	],
 	exports: [
 		StripeService,
@@ -63,7 +69,8 @@ import { StripeService } from './stripe.service'
 		// REMOVED: StripeEventProcessor - Event processing now handled by Stripe Sync Engine
 		StripeRecoveryService,
 		StripeAccessControlService,
-		StripeTenantService
+		StripeTenantService,
+		StripeConnectService
 	]
 })
 export class StripeModule {}

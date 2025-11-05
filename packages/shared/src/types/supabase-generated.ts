@@ -784,6 +784,86 @@ export type Database = {
         }
         Relationships: []
       }
+      faq_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      faq_questions: {
+        Row: {
+          answer: string
+          category_id: string
+          created_at: string | null
+          display_order: number | null
+          helpful_count: number | null
+          id: string
+          is_active: boolean | null
+          question: string
+          updated_at: string | null
+          view_count: number | null
+        }
+        Insert: {
+          answer: string
+          category_id: string
+          created_at?: string | null
+          display_order?: number | null
+          helpful_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          question: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          answer?: string
+          category_id?: string
+          created_at?: string | null
+          display_order?: number | null
+          helpful_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          question?: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faq_questions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "faq_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       file: {
         Row: {
           createdAt: string
@@ -1143,6 +1223,7 @@ export type Database = {
           startDate: string
           status: Database["public"]["Enums"]["LeaseStatus"]
           stripe_subscription_id: string | null
+          stripeSubscriptionId: string | null
           tenantId: string
           terms: string | null
           unitId: string | null
@@ -1166,6 +1247,7 @@ export type Database = {
           startDate: string
           status?: Database["public"]["Enums"]["LeaseStatus"]
           stripe_subscription_id?: string | null
+          stripeSubscriptionId?: string | null
           tenantId: string
           terms?: string | null
           unitId?: string | null
@@ -1189,6 +1271,7 @@ export type Database = {
           startDate?: string
           status?: Database["public"]["Enums"]["LeaseStatus"]
           stripe_subscription_id?: string | null
+          stripeSubscriptionId?: string | null
           tenantId?: string
           terms?: string | null
           unitId?: string | null
@@ -2809,6 +2892,7 @@ export type Database = {
           phone: string | null
           status: Database["public"]["Enums"]["TenantStatus"]
           stripe_customer_id: string | null
+          stripeCustomerId: string | null
           updatedAt: string
           userId: string | null
           version: number
@@ -2841,6 +2925,7 @@ export type Database = {
           phone?: string | null
           status?: Database["public"]["Enums"]["TenantStatus"]
           stripe_customer_id?: string | null
+          stripeCustomerId?: string | null
           updatedAt?: string
           userId?: string | null
           version?: number
@@ -2873,6 +2958,7 @@ export type Database = {
           phone?: string | null
           status?: Database["public"]["Enums"]["TenantStatus"]
           stripe_customer_id?: string | null
+          stripeCustomerId?: string | null
           updatedAt?: string
           userId?: string | null
           version?: number
@@ -3206,14 +3292,20 @@ export type Database = {
         Row: {
           avatarUrl: string | null
           bio: string | null
+          chargesEnabled: boolean | null
+          connectedAccountId: string | null
           createdAt: string
+          detailsSubmitted: boolean | null
           email: string
           firstName: string | null
           id: string
           lastLoginAt: string | null
           lastName: string | null
           name: string | null
+          onboardingComplete: boolean | null
+          onboardingCompletedAt: string | null
           orgId: string | null
+          payoutsEnabled: boolean | null
           phone: string | null
           profileComplete: boolean | null
           role: Database["public"]["Enums"]["UserRole"]
@@ -3228,14 +3320,20 @@ export type Database = {
         Insert: {
           avatarUrl?: string | null
           bio?: string | null
+          chargesEnabled?: boolean | null
+          connectedAccountId?: string | null
           createdAt?: string
+          detailsSubmitted?: boolean | null
           email: string
           firstName?: string | null
           id: string
           lastLoginAt?: string | null
           lastName?: string | null
           name?: string | null
+          onboardingComplete?: boolean | null
+          onboardingCompletedAt?: string | null
           orgId?: string | null
+          payoutsEnabled?: boolean | null
           phone?: string | null
           profileComplete?: boolean | null
           role?: Database["public"]["Enums"]["UserRole"]
@@ -3250,14 +3348,20 @@ export type Database = {
         Update: {
           avatarUrl?: string | null
           bio?: string | null
+          chargesEnabled?: boolean | null
+          connectedAccountId?: string | null
           createdAt?: string
+          detailsSubmitted?: boolean | null
           email?: string
           firstName?: string | null
           id?: string
           lastLoginAt?: string | null
           lastName?: string | null
           name?: string | null
+          onboardingComplete?: boolean | null
+          onboardingCompletedAt?: string | null
           orgId?: string | null
+          payoutsEnabled?: boolean | null
           phone?: string | null
           profileComplete?: boolean | null
           role?: Database["public"]["Enums"]["UserRole"]
@@ -3713,6 +3817,10 @@ export type Database = {
       }
       get_dashboard_metrics: { Args: { p_user_id: string }; Returns: Json }
       get_dashboard_stats: { Args: { p_user_id: string }; Returns: Json }
+      get_dashboard_stats_optimized: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       get_dashboard_time_series: {
         Args: { p_days?: number; p_metric_name: string; p_user_id: string }
         Returns: Json
@@ -3734,6 +3842,16 @@ export type Database = {
       get_expense_summary: {
         Args: { p_user_id: string; p_year?: number }
         Returns: Json
+      }
+      get_faq_analytics: {
+        Args: never
+        Returns: {
+          avg_helpful_rate: number
+          total_categories: number
+          total_helpful: number
+          total_questions: number
+          total_views: number
+        }[]
       }
       get_financial_overview: {
         Args: { p_user_id: string; p_year?: number }
@@ -3821,6 +3939,19 @@ export type Database = {
       get_property_units: {
         Args: { p_property_id: string; p_user_id: string }
         Returns: Json
+      }
+      get_recent_activity: {
+        Args: { p_limit?: number; p_user_id: string }
+        Returns: {
+          activity_timestamp: string
+          activity_type: string
+          description: string
+          entity_id: string
+          entity_name: string
+          id: string
+          metadata: Json
+          status: string
+        }[]
       }
       get_resend_api_key: { Args: never; Returns: string }
       get_revenue_trends: {
@@ -4002,6 +4133,14 @@ export type Database = {
       hook_password_verification_attempt: {
         Args: { event: Json }
         Returns: Json
+      }
+      increment_faq_helpful_count: {
+        Args: { question_id: string }
+        Returns: undefined
+      }
+      increment_faq_view_count: {
+        Args: { question_id: string }
+        Returns: undefined
       }
       is_user_on_trial: { Args: { p_user_id: string }; Returns: boolean }
       link_stripe_customer_to_user: {
