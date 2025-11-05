@@ -1,9 +1,4 @@
-import {
-	Injectable,
-	InternalServerErrorException,
-	Logger,
-	OnModuleDestroy
-} from '@nestjs/common'
+import { Injectable, InternalServerErrorException, Logger, OnModuleDestroy } from '@nestjs/common'
 import React from 'react'
 import {
 	Document,
@@ -73,11 +68,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					React.createElement(
 						View,
 						{ style: styles.invoiceMeta },
-						React.createElement(
-							Text,
-							{ style: styles.invoiceTitle },
-							'INVOICE'
-						),
+						React.createElement(Text, { style: styles.invoiceTitle }, 'INVOICE'),
 						React.createElement(
 							Text,
 							{ style: styles.metaText },
@@ -93,21 +84,9 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					React.createElement(
 						View,
 						{ style: styles.customerInfo },
-						React.createElement(
-							Text,
-							{ style: styles.sectionTitle },
-							'Bill To:'
-						),
-						React.createElement(
-							Text,
-							{ style: styles.customerName },
-							invoiceData.customerName
-						),
-						React.createElement(
-							Text,
-							{ style: styles.customerEmail },
-							invoiceData.customerEmail
-						)
+						React.createElement(Text, { style: styles.sectionTitle }, 'Bill To:'),
+						React.createElement(Text, { style: styles.customerName }, invoiceData.customerName),
+						React.createElement(Text, { style: styles.customerEmail }, invoiceData.customerEmail)
 					),
 					// Items Table
 					React.createElement(
@@ -117,11 +96,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 						React.createElement(
 							View,
 							{ style: styles.tableHeader },
-							React.createElement(
-								Text,
-								{ style: styles.tableColHeader },
-								'Description'
-							),
+							React.createElement(Text, { style: styles.tableColHeader }, 'Description'),
 							React.createElement(
 								Text,
 								{ style: [styles.tableColHeader, styles.amountCol] },
@@ -133,11 +108,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 							React.createElement(
 								View,
 								{ key: item.description, style: styles.tableRow },
-								React.createElement(
-									Text,
-									{ style: styles.tableCol },
-									item.description
-								),
+								React.createElement(Text, { style: styles.tableCol }, item.description),
 								React.createElement(
 									Text,
 									{ style: [styles.tableCol, styles.amountCol] },
@@ -184,7 +155,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 	async generateLeaseAgreementPDF(leaseData: {
 		propertyAddress: string
 		tenantName: string
-		ownerName: string
+		ownerName: string // Updated from landlordName for consistency
 		startDate: string
 		endDate: string
 		rentAmount: number
@@ -222,15 +193,11 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					React.createElement(
 						View,
 						{ style: styles.leaseSection },
-						React.createElement(
-							Text,
-							{ style: styles.leaseSectionTitle },
-							'PARTIES'
-						),
+						React.createElement(Text, { style: styles.leaseSectionTitle }, 'PARTIES'),
 						React.createElement(
 							Text,
 							{ style: styles.leaseText },
-							`Owner: ${leaseData.ownerName}`
+							`Landlord: ${leaseData.ownerName}`
 						),
 						React.createElement(
 							Text,
@@ -242,11 +209,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					React.createElement(
 						View,
 						{ style: styles.leaseSection },
-						React.createElement(
-							Text,
-							{ style: styles.leaseSectionTitle },
-							'LEASE TERM'
-						),
+						React.createElement(Text, { style: styles.leaseSectionTitle }, 'LEASE TERM'),
 						React.createElement(
 							Text,
 							{ style: styles.leaseText },
@@ -262,11 +225,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					React.createElement(
 						View,
 						{ style: styles.leaseSection },
-						React.createElement(
-							Text,
-							{ style: styles.leaseSectionTitle },
-							'RENT'
-						),
+						React.createElement(Text, { style: styles.leaseSectionTitle }, 'RENT'),
 						React.createElement(
 							Text,
 							{ style: styles.leaseText },
@@ -296,11 +255,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					React.createElement(
 						View,
 						{ style: styles.signatures },
-						React.createElement(
-							Text,
-							{ style: styles.leaseSectionTitle },
-							'SIGNATURES'
-						),
+						React.createElement(Text, { style: styles.leaseSectionTitle }, 'SIGNATURES'),
 						React.createElement(
 							View,
 							{ style: styles.signatureRow },
@@ -311,13 +266,9 @@ export class PDFGeneratorService implements OnModuleDestroy {
 								React.createElement(
 									Text,
 									{ style: styles.signatureLabel },
-									`Owner: ${leaseData.ownerName}`
+									`Landlord: ${leaseData.ownerName}`
 								),
-								React.createElement(
-									Text,
-									{ style: styles.signatureDate },
-									'Date: _________________'
-								)
+								React.createElement(Text, { style: styles.signatureDate }, 'Date: _________________')
 							),
 							React.createElement(
 								View,
@@ -328,11 +279,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 									{ style: styles.signatureLabel },
 									`Tenant: ${leaseData.tenantName}`
 								),
-								React.createElement(
-									Text,
-									{ style: styles.signatureDate },
-									'Date: _________________'
-								)
+								React.createElement(Text, { style: styles.signatureDate }, 'Date: _________________')
 							)
 						)
 					)
@@ -347,18 +294,14 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			return pdfBuffer
 		} catch (error) {
 			this.logger.error('Error generating lease agreement PDF:', error)
-			throw new InternalServerErrorException(
-				'Failed to generate lease agreement PDF'
-			)
+			throw new InternalServerErrorException('Failed to generate lease agreement PDF')
 		}
 	}
 
 	/**
 	 * Generic PDF generation from React components (for future use)
 	 */
-	async generatePDFFromReact(
-		document: React.ReactElement<DocumentProps>
-	): Promise<Buffer> {
+	async generatePDFFromReact(document: React.ReactElement<DocumentProps>): Promise<Buffer> {
 		try {
 			const pdfBuffer = await renderToBuffer(document)
 			this.logger.log('PDF generated successfully', {

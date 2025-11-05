@@ -681,16 +681,27 @@ export function createDefaultContext(overrides?: Partial<LeaseTemplateContext>) 
 export function createContextFromLeaseData(
 	leaseData: LeaseFormData
 ): LeaseTemplateContext {
+	// Support legacy 'landlord' field for backward compatibility with existing lease records
+	// @ts-expect-error - Legacy field from before owner rename
+	const ownerData = leaseData.owner || leaseData.landlord
+
+	if (!ownerData) {
+		throw new Error(
+			'Lease data must contain either "owner" or "landlord" (legacy) field. ' +
+			'Please ensure the lease record has owner information.'
+		)
+	}
+
 	const tenantNames = leaseData.tenants
 		.map(tenant => tenant.name)
 		.join('; ')
-	const ownerAddress = `${leaseData.owner.address.street}, ${leaseData.owner.address.city}, ${leaseData.owner.address.state} ${leaseData.owner.address.zipCode}`
+	const ownerAddress = `${ownerData.address.street}, ${ownerData.address.city}, ${ownerData.address.state} ${ownerData.address.zipCode}`
 	const propertyAddress = `${leaseData.property.address.street}${
 		leaseData.property.address.unit ? `, ${leaseData.property.address.unit}` : ''
 	}, ${leaseData.property.address.city}, ${leaseData.property.address.state} ${leaseData.property.address.zipCode}`
 
 	const overrides: Partial<LeaseTemplateContext> = {
-		ownerName: leaseData.owner.name,
+		ownerName: ownerData.name,
 		ownerAddress,
 		tenantNames,
 		propertyAddress,
