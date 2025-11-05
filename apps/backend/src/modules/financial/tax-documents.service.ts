@@ -44,6 +44,16 @@ export class TaxDocumentsService {
 	): Promise<TaxDocumentsData> {
 		const client = this.supabaseService.getUserClient(token)
 
+		// Get user ID from token for defense-in-depth security
+		const {
+			data: { user },
+			error: authError
+		} = await this.supabaseService.getAdminClient().auth.getUser(token)
+
+		if (authError || !user) {
+			throw new Error('Failed to authenticate user from token')
+		}
+
 		this.logger.log(`Generating tax documents for tax year ${taxYear}`)
 
 		// Calculate year date range
@@ -51,11 +61,11 @@ export class TaxDocumentsService {
 		const endDate = `${taxYear}-12-31`
 
 		// Get expense summary for deductible expenses
-		// RLS-protected RPC function automatically filters by authenticated user
+		// RLS-protected RPC function with explicit user ID for defense-in-depth
 		const { data: expenseSummary, error: expenseError } = await client.rpc(
 			'get_expense_summary',
 			{
-				p_user_id: ''
+				p_user_id: user.id
 			}
 		)
 
@@ -67,11 +77,11 @@ export class TaxDocumentsService {
 		}
 
 		// Get net operating income for property-level data
-		// RLS-protected RPC function automatically filters by authenticated user
+		// RLS-protected RPC function with explicit user ID for defense-in-depth
 		const { data: noiData, error: noiError } = await client.rpc(
 			'calculate_net_operating_income',
 			{
-				p_user_id: ''
+				p_user_id: user.id
 			}
 		)
 
@@ -81,13 +91,13 @@ export class TaxDocumentsService {
 		}
 
 		// Get financial metrics for income breakdown
-		// RLS-protected RPC function automatically filters by authenticated user
+		// RLS-protected RPC function with explicit user ID for defense-in-depth
 		const { data: financialMetrics, error: metricsError } = await client.rpc(
 			'calculate_financial_metrics',
 			{
 				p_start_date: startDate,
 				p_end_date: endDate,
-				p_user_id: ''
+				p_user_id: user.id
 			}
 		)
 

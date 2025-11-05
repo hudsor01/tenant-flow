@@ -39,16 +39,26 @@ export class CashFlowService {
 	): Promise<CashFlowData> {
 		const client = this.supabaseService.getUserClient(token)
 
+		// Get user ID from token for defense-in-depth security
+		const {
+			data: { user },
+			error: authError
+		} = await this.supabaseService.getAdminClient().auth.getUser(token)
+
+		if (authError || !user) {
+			throw new Error('Failed to authenticate user from token')
+		}
+
 		this.logger.log(
 			`Generating cash flow statement (${startDate} to ${endDate})`
 		)
 
 		// Get monthly metrics for cash flow patterns
-		// RLS-protected RPC function automatically filters by authenticated user
+		// RLS-protected RPC function with explicit user ID for defense-in-depth
 		const { data: monthlyMetrics, error: monthlyError } = await client.rpc(
 			'calculate_monthly_metrics',
 			{
-				p_user_id: ''
+				p_user_id: user.id
 			}
 		)
 
@@ -60,11 +70,11 @@ export class CashFlowService {
 		}
 
 		// Get billing insights for collections
-		// RLS-protected RPC function automatically filters by authenticated user
+		// RLS-protected RPC function with explicit user ID for defense-in-depth
 		const { data: billingInsights, error: billingError } = await client.rpc(
 			'get_billing_insights',
 			{
-				user_id: ''
+				user_id: user.id
 			}
 		)
 
@@ -76,11 +86,11 @@ export class CashFlowService {
 		}
 
 		// Get invoice statistics for accounts receivable changes
-		// RLS-protected RPC function automatically filters by authenticated user
+		// RLS-protected RPC function with explicit user ID for defense-in-depth
 		const { data: _invoiceStats, error: invoiceError } = await client.rpc(
 			'get_invoice_statistics',
 			{
-				p_user_id: ''
+				p_user_id: user.id
 			}
 		)
 

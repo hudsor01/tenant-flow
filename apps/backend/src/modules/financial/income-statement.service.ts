@@ -33,16 +33,26 @@ export class IncomeStatementService {
 	): Promise<IncomeStatementData> {
 		const client = this.supabaseService.getUserClient(token)
 
+		// Get user ID from token for defense-in-depth security
+		const {
+			data: { user },
+			error: authError
+		} = await this.supabaseService.getAdminClient().auth.getUser(token)
+
+		if (authError || !user) {
+			throw new Error('Failed to authenticate user from token')
+		}
+
 		this.logger.log(`Generating income statement (${startDate} to ${endDate})`)
 
 		// Use existing calculate_financial_metrics RPC
-		// RLS-protected RPC function automatically filters by authenticated user
+		// RLS-protected RPC function with explicit user ID for defense-in-depth
 		const { data: metrics, error } = await client.rpc(
 			'calculate_financial_metrics',
 			{
 				p_start_date: startDate,
 				p_end_date: endDate,
-				p_user_id: ''
+				p_user_id: user.id
 			}
 		)
 
@@ -175,12 +185,22 @@ export class IncomeStatementService {
 		try {
 			const client = this.supabaseService.getUserClient(token)
 
+			// Get user ID from token for defense-in-depth security
+			const {
+				data: { user },
+				error: authError
+			} = await this.supabaseService.getAdminClient().auth.getUser(token)
+
+			if (authError || !user) {
+				throw new Error('Failed to authenticate user from token')
+			}
+
 			const { data: previousMetrics, error } = await client.rpc(
 				'calculate_financial_metrics',
 				{
 					p_start_date: previousStartStr,
 					p_end_date: previousEndStr,
-					p_user_id: ''
+					p_user_id: user.id
 				}
 			)
 
