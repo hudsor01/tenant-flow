@@ -13,8 +13,8 @@
 import { TenantGuard } from '#components/auth/tenant-guard'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
-import { Field, FieldLabel } from '#components/ui/field'
-import { Bell, Lock, User, Mail } from 'lucide-react'
+import { FieldLabel } from '#components/ui/field'
+// Icons removed - CardLayout doesn't support icon prop
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -43,7 +43,6 @@ export default function TenantSettingsPage() {
 			<CardLayout
 				title="Notification Preferences"
 				description="Choose how you want to receive updates"
-				icon={<Bell className="size-5" />}
 			>
 				<div className="space-y-6">
 					<div className="space-y-4">
@@ -120,7 +119,6 @@ export default function TenantSettingsPage() {
 			<CardLayout
 				title="Security"
 				description="Manage your account security"
-				icon={<Lock className="size-5" />}
 			>
 				<div className="space-y-4">
 					<div>
@@ -145,7 +143,6 @@ export default function TenantSettingsPage() {
 			<CardLayout
 				title="Account Information"
 				description="Manage your account details"
-				icon={<User className="size-5" />}
 			>
 				<div className="space-y-4">
 					<div>

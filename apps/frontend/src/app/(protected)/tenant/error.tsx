@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '#components/ui/button'
+import { logger } from '@repo/shared/lib/frontend-logger'
 import { AlertCircle } from 'lucide-react'
 import { useEffect } from 'react'
 
@@ -20,8 +21,15 @@ export default function TenantError({
 	reset: () => void
 }) {
 	useEffect(() => {
-		// Log error to console for debugging
-		console.error('Tenant portal error:', error)
+		// Log error using structured logger
+		logger.error('Tenant portal error', {
+			action: 'tenant_error_boundary',
+			metadata: {
+				error: error.message,
+				digest: error.digest,
+				stack: error.stack
+			}
+		})
 	}, [error])
 
 	return (
