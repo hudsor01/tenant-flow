@@ -59,10 +59,7 @@ export default function TenantLeasePage() {
 								{isLoading || !lease ? (
 									<Skeleton className="h-7 w-64" />
 								) : (
-									<p className="font-semibold text-lg">
-										{lease.unit?.property?.name ?? 'Property'} - Unit{' '}
-										{lease.unit?.unitNumber ?? 'N/A'}
-									</p>
+									`${lease.unit?.property?.name ?? 'Property'} - Unit ${lease.unit?.unitNumber ?? 'N/A'}`
 								)}
 							</p>
 							<div className="flex items-center gap-2 text-muted-foreground mt-1">
