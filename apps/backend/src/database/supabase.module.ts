@@ -21,8 +21,7 @@ export class SupabaseModule {
 					provide: SUPABASE_ADMIN_CLIENT,
 					useFactory: (config: ConfigService) => {
 						const envUrl = process.env.SUPABASE_URL
-						const envKey =
-							process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SECRET_KEY
+						const envKey = process.env.SUPABASE_SECRET_KEY
 
 						const url = envUrl ?? config.get<string>('SUPABASE_URL')
 						const key = envKey ?? config.get<string>('SUPABASE_SECRET_KEY')

@@ -3,11 +3,13 @@
  * Mirrors server.ts pattern with Authorization header from Supabase session
  *
  * Pattern consistent with reports-client.ts and stripe-client.ts
+ *
+ * NOTE: This utility can be called from both client and server contexts,
+ * so it MUST NOT call browser-only APIs like toast()
  */
 import { createClient } from '#lib/supabase/client'
 import { API_BASE_URL } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { handleMutationError } from '#lib/mutation-error-handler'
 
 const logger = createLogger({ component: 'ClientAPI' })
 
@@ -35,11 +37,13 @@ async function getAuthHeaders(
 	if (session?.access_token) {
 		headers['Authorization'] = `Bearer ${session.access_token}`
 	} else if (requireAuth) {
-		// Use centralized error handler for user feedback
-		handleMutationError(
-			new Error('Authentication session expired. Please log in again.'),
-			'API authentication'
-		)
+		// Log warning - caller should handle error appropriately for their context
+		logger.warn('Authentication session expired', {
+			metadata: {
+				hasSession: !!session,
+				requireAuth
+			}
+		})
 		throw new Error('Authentication session expired. Please log in again.')
 	} else {
 		// Log warning for optional auth endpoints
@@ -98,13 +102,15 @@ export async function clientFetch<T>(
 
 	if (!response.ok) {
 		const errorText = await response.text()
-		// Use centralized error handler for user feedback
-		handleMutationError(
-			new Error(
-				`API Error (${response.status}): ${errorText || response.statusText}`
-			),
-			`API request to ${endpoint}`
-		)
+		// Log error - caller should handle error appropriately for their context
+		logger.error('API request failed', {
+			metadata: {
+				endpoint,
+				status: response.status,
+				statusText: response.statusText,
+				error: errorText
+			}
+		})
 		throw new Error(
 			`API Error (${response.status}): ${errorText || response.statusText}`
 		)
@@ -114,10 +120,14 @@ export async function clientFetch<T>(
 
 	// Handle API response format (success/data pattern)
 	if ('success' in data && data.success === false) {
-		handleMutationError(
-			new Error(data.error || data.message || 'API request failed'),
-			`API request to ${endpoint}`
-		)
+		// Log error - caller should handle error appropriately for their context
+		logger.error('API returned error response', {
+			metadata: {
+				endpoint,
+				error: data.error || data.message,
+				data
+			}
+		})
 		throw new Error(data.error || data.message || 'API request failed')
 	}
 

@@ -255,10 +255,7 @@ export class RentPaymentsService {
 			throw new NotFoundException('Payment method not found')
 		}
 
-		if (
-			paymentMethod.tenantId !== tenant.id &&
-			paymentMethod.tenantId !== tenant.auth_user_id
-		) {
+		if (paymentMethod.tenantId !== tenant.userId) {
 			this.logger.warn('Payment method does not belong to tenant', {
 				requestingUserId,
 				tenantId,

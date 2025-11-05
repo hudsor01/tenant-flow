@@ -5,7 +5,8 @@ import {
 	Post,
 	HttpStatus,
 	HttpException,
-	Logger
+	Logger,
+	ParseUUIDPipe
 } from '@nestjs/common'
 import { FAQService } from './faq.service'
 import { FAQCategoryWithQuestions } from '@repo/shared/types/faq'
@@ -63,7 +64,7 @@ export class FAQController {
 	 */
 	@Post('question/:questionId/view')
 	async trackQuestionView(
-		@Param('questionId') questionId: string
+		@Param('questionId', ParseUUIDPipe) questionId: string
 	): Promise<{ success: boolean }> {
 		try {
 			await this.faqService.incrementQuestionView(questionId)
@@ -80,7 +81,7 @@ export class FAQController {
 	 */
 	@Post('question/:questionId/helpful')
 	async markQuestionHelpful(
-		@Param('questionId') questionId: string
+		@Param('questionId', ParseUUIDPipe) questionId: string
 	): Promise<{ success: boolean }> {
 		try {
 			await this.faqService.incrementQuestionHelpful(questionId)
