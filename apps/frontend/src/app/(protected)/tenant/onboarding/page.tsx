@@ -47,7 +47,7 @@ export default function TenantOnboardingPage() {
 
         // 3. Call backend activation endpoint
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/tenants/activate`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/tenants/activate`,
           {
             method: 'POST',
             headers: {
