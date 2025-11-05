@@ -15,7 +15,7 @@ import type {
 	CreateLeaseInput,
 	UpdateLeaseInput
 } from '@repo/shared/types/api-inputs'
-import type { Lease } from '@repo/shared/types/core'
+import type { Lease, MaintenanceRequest } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
 	handleConflictError,
@@ -25,13 +25,39 @@ import {
 } from '@repo/shared/utils/optimistic-locking'
 import { handleMutationError } from '#lib/mutation-error-handler'
 
+type TenantPortalLeaseUnit = {
+	id: string
+	unitNumber: string | null
+	bedrooms: number | null
+	bathrooms: number | null
+	property?: {
+		id: string
+		name: string | null
+		address: string | null
+		city: string | null
+		state: string | null
+		zipCode: string | null
+	} | null
+} | null
+
+export type TenantPortalLease = Lease & {
+	metadata: {
+		documentUrl: string | null
+	}
+	unit: TenantPortalLeaseUnit
+}
+
 /**
  * Query keys for lease endpoints (hierarchical, typed)
  */
 export const leaseKeys = {
 	all: ['leases'] as const,
-	list: (params?: { status?: string; search?: string }) =>
-		[...leaseKeys.all, 'list', params] as const,
+	list: (params?: {
+		status?: string
+		search?: string
+		limit?: number
+		offset?: number
+	}) => [...leaseKeys.all, 'list', params] as const,
 	detail: (id: string) => [...leaseKeys.all, 'detail', id] as const,
 	expiring: () => [...leaseKeys.all, 'expiring'] as const,
 	stats: () => [...leaseKeys.all, 'stats'] as const,
@@ -63,19 +89,12 @@ export function useLease(id: string) {
  */
 export function useCurrentLease() {
 	return useQuery({
-		queryKey: ['tenant-portal', 'my-lease'],
-		queryFn: async (): Promise<Lease | null> => {
-			try {
-				const lease = await clientFetch<Lease>('/api/v1/tenant-portal/my-lease')
-				return lease
-			} catch (error) {
-				// If tenant has no active lease, return null instead of throwing
-				logger.warn('No active lease found for tenant', { error })
-				return null
-			}
+		queryKey: [...leaseKeys.all, 'tenant-portal', 'active'],
+		queryFn: async (): Promise<TenantPortalLease | null> => {
+			return clientFetch<TenantPortalLease | null>('/api/v1/tenant-portal/lease')
 		},
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		retry: 1 // Reduce retries since 404 is expected for tenants without leases
+		staleTime: 60 * 1000,
+		retry: 2
 	})
 }
 
@@ -84,54 +103,31 @@ export function useCurrentLease() {
  * Filters maintenance requests by the tenant's unit from their active lease
  */
 export function useTenantMaintenanceRequests() {
-	const { data: lease, isLoading: leaseLoading } = useCurrentLease()
-
 	return useQuery({
-		queryKey: ['maintenance', 'tenant', lease?.unitId],
+		queryKey: ['tenant-portal', 'maintenance'],
 		queryFn: async (): Promise<{
-			requests: Array<{
-				id: string
-				title: string
-				description: string
-				priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-				status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED'
-				category: string | null
-				createdAt: string
-				updatedAt: string
-				completedAt: string | null
-			}>
+			requests: MaintenanceRequest[]
 			total: number
 			open: number
 			inProgress: number
 			completed: number
 		}> => {
-			if (!lease?.unitId) {
-				return { requests: [], total: 0, open: 0, inProgress: 0, completed: 0 }
+			const response = await clientFetch<{
+				requests: MaintenanceRequest[]
+				summary: {
+					total: number
+					open: number
+					inProgress: number
+					completed: number
+				}
+			}>('/api/v1/tenant-portal/maintenance')
+
+			return {
+				requests: response.requests,
+				...response.summary
 			}
-
-			const requests = await clientFetch<
-				Array<{
-					id: string
-					title: string
-					description: string
-					priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-					status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED'
-					category: string | null
-					createdAt: string
-					updatedAt: string
-					completedAt: string | null
-				}>
-			>(`/api/v1/maintenance?unitId=${lease.unitId}`)
-
-			const total = requests.length
-			const open = requests.filter(r => r.status === 'OPEN').length
-			const inProgress = requests.filter(r => r.status === 'IN_PROGRESS').length
-			const completed = requests.filter(r => r.status === 'COMPLETED').length
-
-			return { requests, total, open, inProgress, completed }
 		},
-		enabled: !!lease?.unitId && !leaseLoading,
-		staleTime: 2 * 60 * 1000, // 2 minutes - refresh more frequently for tenant dashboard
+		staleTime: 2 * 60 * 1000,
 		retry: 2
 	})
 }
@@ -149,11 +145,12 @@ export function useLeaseList(params?: {
 	const queryClient = useQueryClient()
 
 	return useQuery({
-		queryKey: leaseKeys.list(
-			status || search
-				? { ...(status && { status }), ...(search && { search }) }
-				: undefined
-		),
+		queryKey: leaseKeys.list({
+			...(status && { status }),
+			...(search && { search }),
+			...(limit !== 50 && { limit }),
+			...(offset !== 0 && { offset })
+		}),
 		queryFn: async () => {
 			const searchParams = new URLSearchParams()
 			if (status) searchParams.append('status', status)
@@ -254,7 +251,8 @@ export function useCreateLease() {
 				signed_at: null,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
-				version: 1 // 🔐 BUG FIX #2: Optimistic locking
+				version: 1,
+				stripeSubscriptionId: null
 			}
 
 			// Optimistically update all caches
@@ -332,7 +330,9 @@ export function useUpdateLease() {
 				method: 'PUT',
 				// 🔐 OPTIMISTIC LOCKING: Include version if provided
 				body: JSON.stringify(
-					version !== null && version !== undefined ? withVersion(data, version) : data
+					version !== null && version !== undefined
+						? withVersion(data, version)
+						: data
 				)
 			})
 		},
