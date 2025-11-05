@@ -53,6 +53,13 @@ export const DEFAULT_TENANT: Tenant = {
 	autopay_enabled: null,
 	autopay_frequency: null,
 	payment_method_added_at: null,
+	notification_preferences: {
+		rentReminders: true,
+		maintenanceUpdates: true,
+		propertyNotices: true,
+		emailNotifications: true,
+		smsNotifications: false
+	},
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z',
 	version: 1 // 🔐 BUG FIX #2: Optimistic locking
