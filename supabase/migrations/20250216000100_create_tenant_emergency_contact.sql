@@ -4,8 +4,8 @@
 
 -- Create table
 CREATE TABLE IF NOT EXISTS tenant_emergency_contact (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id UUID NOT NULL UNIQUE REFERENCES tenant(id) ON DELETE CASCADE,
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  tenant_id TEXT NOT NULL UNIQUE REFERENCES tenant(id) ON DELETE CASCADE,
   contact_name TEXT NOT NULL CHECK (length(contact_name) > 0 AND length(contact_name) <= 255),
   relationship TEXT NOT NULL CHECK (length(relationship) > 0 AND length(relationship) <= 100),
   phone_number TEXT NOT NULL CHECK (length(phone_number) >= 10 AND length(phone_number) <= 20),
