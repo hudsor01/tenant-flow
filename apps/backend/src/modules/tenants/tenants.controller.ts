@@ -29,6 +29,7 @@ import type { CreateTenantRequest, UpdateTenantRequest } from '@repo/shared/type
 import { TenantsService } from './tenants.service'
 import { CreateTenantDto } from './dto/create-tenant.dto'
 import { UpdateTenantDto } from './dto/update-tenant.dto'
+import { UpdateNotificationPreferencesDto } from './dto/notification-preferences.dto'
 
 @Controller('tenants')
 export class TenantsController {
@@ -168,6 +169,48 @@ export class TenantsController {
 			throw new NotFoundException('Tenant not found')
 		}
 		return tenant
+	}
+
+	/**
+	 * GET /tenants/:id/notification-preferences
+	 * Get notification preferences for a specific tenant
+	 */
+	@Get(':id/notification-preferences')
+	async getNotificationPreferences(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest
+	) {
+		const userId = req.user.id
+		const preferences = await this.tenantsService.getNotificationPreferences(
+			userId,
+			id
+		)
+		if (!preferences) {
+			throw new NotFoundException('Tenant not found')
+		}
+		return preferences
+	}
+
+	/**
+	 * PUT /tenants/:id/notification-preferences
+	 * Update notification preferences for a specific tenant
+	 */
+	@Put(':id/notification-preferences')
+	async updateNotificationPreferences(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Body() dto: UpdateNotificationPreferencesDto,
+		@Req() req: AuthenticatedRequest
+	) {
+		const userId = req.user.id
+		const preferences = await this.tenantsService.updateNotificationPreferences(
+			userId,
+			id,
+			dto
+		)
+		if (!preferences) {
+			throw new NotFoundException('Tenant not found')
+		}
+		return preferences
 	}
 
 	@Put(':id/mark-moved-out')
