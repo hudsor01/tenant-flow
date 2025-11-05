@@ -5,7 +5,7 @@
 
 ## Progress Summary
 
-**Overall**: 3/5 tasks complete (60%)
+**Overall**: 4/5 tasks complete (80%)
 
 ---
 
@@ -92,20 +92,51 @@ ADD COLUMN notification_preferences JSONB DEFAULT '{...}'::jsonb;
 
 ---
 
-## ⏳ Task 2.1: Emergency Contact - Not Started
+## ✅ Task 2.1: Emergency Contact - COMPLETE
 
-**Status**: ⏳ Pending
+**Status**: ✅ Fully Implemented
 
-**Scope**:
-- Create `tenant_emergency_contact` table migration
-- Add RLS policies
-- Create backend endpoints (CRUD)
-- Create frontend hooks
-- Wire up frontend UI
+**Database Implementation**: ✅ Complete
+- ✅ Created tenant_emergency_contact table with one-to-one relationship
+- ✅ RLS policies (SELECT, INSERT, UPDATE, DELETE for tenant owner)
+- ✅ Indexes on tenant_id for performance
+- ✅ Updated_at trigger for automatic timestamp updates
+- ✅ Unique constraint enforces one-to-one relationship
+- ✅ Verification block confirms all components
 
-**Estimated Effort**: ~4 hours
-**Dependencies**: None
-**Priority**: P1
+**Backend Implementation**: ✅ Complete
+- ✅ Created emergency-contact.dto.ts with Zod validation
+- ✅ CRUD service methods (get, create, update, delete)
+- ✅ CRUD endpoints in tenants.controller.ts
+- ✅ Owner-scoped access (users can only manage their own tenant's contacts)
+- ✅ Removed old emergency contact methods (JSON in tenant table)
+
+**Frontend Implementation**: ✅ Complete
+- ✅ Created use-emergency-contact.ts with TanStack Query hooks
+- ✅ Query hook with caching (5 min stale time)
+- ✅ Mutation hooks with optimistic updates and rollback
+- ✅ Wired up profile page UI (edit/add/delete modes)
+- ✅ Form validation for required fields
+- ✅ Loading/disabled states
+- ✅ Delete confirmation dialog
+- ✅ Toast notifications
+
+**Features**:
+- Add emergency contact (name, relationship, phone, optional email)
+- Edit emergency contact (partial updates)
+- Remove emergency contact with confirmation
+- Optimistic UI updates with error rollback
+- One-to-one relationship enforced (one contact per tenant)
+
+**Migration SQL**:
+```sql
+-- supabase/migrations/20250216000100_create_tenant_emergency_contact.sql
+```
+
+**Commits**:
+- `98c0757` - feat(profile): implement emergency contact feature (Task 2.1 - Complete)
+
+**Ready for**: Migration application via SQL editor, then testing
 
 ---
 
@@ -148,6 +179,7 @@ ADD COLUMN notification_preferences JSONB DEFAULT '{...}'::jsonb;
 | `84bbc22` | 2.3 | Password change flow - Complete |
 | `f056c93` | 2.2 | Notification preferences backend - Part 1 |
 | `c32c7ac` | 2.2 | Notification preferences frontend - Complete |
+| `98c0757` | 2.1 | Emergency contact feature - Complete |
 
 ---
 
@@ -155,11 +187,14 @@ ADD COLUMN notification_preferences JSONB DEFAULT '{...}'::jsonb;
 
 **Backend**:
 - `apps/backend/src/modules/tenants/dto/notification-preferences.dto.ts`
+- `apps/backend/src/modules/tenants/dto/emergency-contact.dto.ts`
 - `supabase/migrations/20250216000000_add_notification_preferences.sql`
+- `supabase/migrations/20250216000100_create_tenant_emergency_contact.sql`
 
 **Frontend**:
 - `apps/frontend/src/components/auth/change-password-dialog.tsx`
 - `apps/frontend/src/hooks/api/use-notification-preferences.ts`
+- `apps/frontend/src/hooks/api/use-emergency-contact.ts`
 
 **Documentation**:
 - `PHASE-2-PLAN.md`
@@ -194,18 +229,25 @@ ADD COLUMN notification_preferences JSONB DEFAULT '{...}'::jsonb;
 - ✅ Toggle switches wired to backend
 - ⏳ End-to-end manual testing pending
 
+**Emergency Contact**:
+- ✅ Frontend TypeScript compilation passes
+- ✅ Backend implementation complete
+- ✅ Frontend UI fully wired (CRUD operations)
+- ✅ Optimistic updates with rollback
+- ⏳ Migration not applied yet (backend type errors expected)
+- ⏳ End-to-end manual testing pending
+
 ---
 
 ## Next Steps (In Order)
 
-1. **Start Task 2.1: Emergency Contact** ⬅️ NEXT
-   - Create `tenant_emergency_contact` table migration
-   - Add RLS policies
-   - Create backend endpoints (CRUD)
-   - Create frontend hooks
-   - Wire up frontend UI
+1. **Apply Emergency Contact Migration** (User action required)
+   ```bash
+   # Copy and paste this SQL into Supabase SQL editor:
+   # supabase/migrations/20250216000100_create_tenant_emergency_contact.sql
+   ```
 
-2. **Start Task 2.4: Payment Status Tracking**
+2. **Start Task 2.4: Payment Status Tracking** ⬅️ NEXT
    - Audit existing implementation
    - Add backend endpoint
    - Update frontend
@@ -218,7 +260,7 @@ ADD COLUMN notification_preferences JSONB DEFAULT '{...}'::jsonb;
 4. **Manual Testing Session**
    - Test password change flow
    - Test notification preferences toggles
-   - Test emergency contact CRUD
+   - Test emergency contact CRUD (after migration)
    - Test payment status display
 
 ---
@@ -228,11 +270,11 @@ ADD COLUMN notification_preferences JSONB DEFAULT '{...}'::jsonb;
 **Phase 2 Complete When**:
 - ✅ Task 2.3: Password change (COMPLETE)
 - ✅ Task 2.2: Notification preferences (COMPLETE)
-- ❌ Task 2.1: Emergency contact (Not started)
+- ✅ Task 2.1: Emergency contact (COMPLETE)
 - ❌ Task 2.4: Payment status tracking (Not started)
 - ❌ Task 2.5: RLS boundary tests (Not started)
 
-**Overall**: 60% complete (3/5 tasks done)
+**Overall**: 80% complete (4/5 tasks done)
 
 ---
 
@@ -256,14 +298,19 @@ ADD COLUMN notification_preferences JSONB DEFAULT '{...}'::jsonb;
 **Completed Tasks**:
 - ✅ Password change flow fully implemented
 - ✅ Notification preferences fully implemented (backend + frontend)
-- ✅ Migration applied in production by user via SQL editor
-- ✅ All TypeScript compilation passing
+- ✅ Emergency contact fully implemented (backend + frontend + migration)
+- ✅ Notification preferences migration applied in production by user
+- ✅ Frontend TypeScript compilation passing for all tasks
+
+**Pending User Actions**:
+- Apply emergency contact migration via SQL editor (20250216000100_create_tenant_emergency_contact.sql)
+- Manual testing of all three features
 
 **Dependencies**:
 - Task 2.5 should be done last (depends on all other tasks)
-- Tasks 2.1 and 2.4 are independent and can be done in parallel
+- Task 2.4 is independent and can be done next
 
-**Manual Testing Pending**:
-- Password change flow (end-to-end)
-- Notification preferences toggles (end-to-end)
-- Both features ready for production after manual testing
+**Phase 2 Progress**:
+- 4/5 tasks complete (80%)
+- Only 2 tasks remaining (2.4, 2.5)
+- All profile/settings features complete
