@@ -185,7 +185,6 @@ export class SubscriptionsService {
 			default_payment_method: paymentMethod.stripePaymentMethodId,
 			billing_cycle_anchor: billingCycleAnchor,
 			proration_behavior: 'none',
-			application_fee_percent: 2.9, // Platform fee percentage
 			transfer_data: {
 				destination: stripeAccountId
 			},
@@ -211,7 +210,7 @@ export class SubscriptionsService {
 				currency: request.currency || 'usd',
 				dueDay: request.billingDayOfMonth,
 				status: subscription.status === 'active' ? 'active' : 'paused',
-				platformFeePercent: 2.9,
+				platformFeePercent: 0,
 				pausedAt:
 					subscription.status !== 'active' ? new Date().toISOString() : null
 			})

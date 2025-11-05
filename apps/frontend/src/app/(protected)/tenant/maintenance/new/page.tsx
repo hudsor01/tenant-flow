@@ -10,10 +10,8 @@ import { ImageUpload } from './image-upload'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
-import { useCurrentLease } from '#hooks/api/use-lease'
-import { useCreateMaintenanceRequest } from '#hooks/api/use-maintenance'
+import { useCreateTenantMaintenanceRequest } from '#hooks/api/use-tenant-portal'
 import { logger } from '@repo/shared/lib/frontend-logger'
-import type { CreateMaintenanceRequest } from '@repo/shared/types/backend-domain'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -22,8 +20,7 @@ import { toast } from 'sonner'
 
 export default function NewMaintenanceRequestPage() {
 	const router = useRouter()
-	const createRequest = useCreateMaintenanceRequest()
-	const { data: currentLease } = useCurrentLease()
+	const createRequest = useCreateTenantMaintenanceRequest()
 
 	// Form state
 	const [formData, setFormData] = useState({
@@ -84,23 +81,12 @@ export default function NewMaintenanceRequestPage() {
 			other: 'OTHER'
 		}
 
-		// Get unitId from current tenant's lease
-		if (!currentLease?.unitId) {
-			toast.error(
-				'No active lease found. Please contact your property manager.'
-			)
-			return
-		}
-
-		const requestData: CreateMaintenanceRequest = {
-			unitId: currentLease.unitId,
+		const requestData = {
 			title: formData.title,
 			description: formData.description,
 			priority: priorityMap[formData.priority] || 'MEDIUM',
-			category: categoryMap[formData.category] || 'GENERAL'
-		}
-		if (photoUrls.length > 0) {
-			requestData.photos = photoUrls
+			category: categoryMap[formData.category] || 'GENERAL',
+			photos: photoUrls
 		}
 
 		try {

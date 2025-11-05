@@ -3,6 +3,9 @@ import { RouteModal } from '#components/ui/route-modal'
 import { clientFetch } from '#lib/api/client'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { notFound } from 'next/navigation'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'EditMaintenanceModal' })
 
 /**
  * Edit Maintenance Request Modal (Intercepting Route)
@@ -28,7 +31,7 @@ export default async function EditMaintenanceModal({
 			</RouteModal>
 		)
 	} catch (error) {
-		console.error('Failed to fetch maintenance request:', error)
+		logger.error('Failed to fetch maintenance request', { error })
 		notFound()
 	}
 }
