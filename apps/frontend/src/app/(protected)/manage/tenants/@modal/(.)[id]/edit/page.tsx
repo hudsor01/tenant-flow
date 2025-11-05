@@ -1,6 +1,9 @@
 import { RouteModal } from '#components/ui/route-modal'
 import { TenantEditForm } from '#app/(protected)/tenant/tenant-edit-form.client'
 import { notFound } from 'next/navigation'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'EditTenantModal' })
 
 /**
  * Edit Tenant Modal (Intercepting Route)
@@ -29,7 +32,7 @@ export default async function EditTenantModal({
 			</RouteModal>
 		)
 	} catch (error) {
-		console.error('Failed to load tenant edit modal:', error)
+		logger.error('Failed to load tenant edit modal', { error })
 		notFound()
 	}
 }

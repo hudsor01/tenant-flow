@@ -137,7 +137,7 @@ export function useStripeProducts() {
 						interval_count: number
 					} | null
 				}
-			}> }>('/api/v1/stripe/products')
+			}> }>('/api/v1/stripe/products', { requireAuth: false })
 			return transformStripeProducts(response.products)
 		},
 		staleTime: 1000 * 60 * 5, // 5 minutes
