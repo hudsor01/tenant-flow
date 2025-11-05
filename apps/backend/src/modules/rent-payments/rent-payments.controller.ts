@@ -291,4 +291,31 @@ export class RentPaymentsController {
 			nextPaymentDate: status.nextPaymentDate
 		}
 	}
+
+	/**
+	 * Get current payment status for a tenant
+	 * Task 2.4: Payment Status Tracking
+	 *
+	 * GET /api/v1/rent-payments/status/:tenantId
+	 * ✅ RLS COMPLIANT: Uses @JwtToken decorator
+	 */
+	@Get('status/:tenantId')
+	async getCurrentPaymentStatus(
+		@JwtToken() token: string,
+		@Param('tenantId') tenantId: string
+	) {
+		this.logger.log(`Getting current payment status for tenant ${tenantId}`)
+
+		const paymentStatus =
+			await this.rentPaymentsService.getCurrentPaymentStatus(token, tenantId)
+
+		return {
+			status: paymentStatus.status,
+			rentAmount: paymentStatus.rentAmount,
+			nextDueDate: paymentStatus.nextDueDate,
+			lastPaymentDate: paymentStatus.lastPaymentDate,
+			outstandingBalance: paymentStatus.outstandingBalance,
+			isOverdue: paymentStatus.isOverdue
+		}
+	}
 }

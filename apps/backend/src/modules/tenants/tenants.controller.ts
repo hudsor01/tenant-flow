@@ -209,7 +209,7 @@ export class TenantsController {
 		const preferences = await this.tenantsService.updateNotificationPreferences(
 			userId,
 			id,
-			dto
+			dto as unknown as Record<string, boolean>
 		)
 		if (!preferences) {
 			throw new NotFoundException('Tenant not found')

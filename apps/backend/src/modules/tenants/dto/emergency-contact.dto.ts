@@ -26,7 +26,7 @@ export const EmergencyContactSchema = z.object({
 		.string()
 		.min(10, 'Phone number must be at least 10 characters')
 		.max(20, 'Phone number must be less than 20 characters')
-		.regex(/^[\d\s\-\+\(\)]+$/, 'Phone number contains invalid characters')
+		.regex(/^[\d\s\-+()]+$/, 'Phone number contains invalid characters')
 		.describe('Phone number of emergency contact'),
 
 	email: z

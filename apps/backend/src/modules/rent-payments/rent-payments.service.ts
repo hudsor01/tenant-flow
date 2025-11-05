@@ -801,4 +801,112 @@ export class RentPaymentsService {
 			throw error
 		}
 	}
+
+	/**
+	 * Get current payment status for a tenant
+	 * Returns the current balance, next due date, and payment status
+	 *
+	 * Task 2.4: Payment Status Tracking
+	 */
+	async getCurrentPaymentStatus(token: string, tenantId: string): Promise<{
+		status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
+		rentAmount: number
+		nextDueDate: string | null
+		lastPaymentDate: string | null
+		outstandingBalance: number
+		isOverdue: boolean
+	}> {
+		try {
+			const adminClient = this.supabase.getAdminClient()
+
+			// Get tenant's active lease
+			const { data: lease, error: leaseError } = await adminClient
+				.from('lease')
+				.select('id, rentAmount, startDate, endDate, status')
+				.eq('tenantId', tenantId)
+				.eq('status', 'ACTIVE')
+				.single()
+
+			if (leaseError || !lease) {
+				throw new NotFoundException('Active lease not found for tenant')
+			}
+
+			const rentAmount = lease.rentAmount || 0
+
+			// Get the most recent payment for this lease
+			const { data: lastPayment } = await adminClient
+				.from('rent_payment')
+				.select('id, status, paidAt, dueDate, amount')
+				.eq('leaseId', lease.id)
+				.order('createdAt', { ascending: false })
+				.limit(1)
+				.single()
+
+			// Get any unpaid payments (DUE, PENDING, FAILED)
+			const { data: unpaidPayments } = await adminClient
+				.from('rent_payment')
+				.select('id, status, dueDate, amount')
+				.eq('leaseId', lease.id)
+				.in('status', ['DUE', 'PENDING', 'FAILED'])
+				.order('dueDate', { ascending: true })
+
+			const now = new Date()
+			const today: string = now.toISOString().split('T')[0]!
+
+			// Calculate status based on unpaid payments
+			let status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING' = 'PAID'
+			let outstandingBalance = 0
+			let nextDueDate: string | null = null
+			let isOverdue = false
+
+			if (unpaidPayments && unpaidPayments.length > 0) {
+				// Sum up all unpaid payments amounts
+				outstandingBalance = unpaidPayments.reduce(
+					(sum: number, payment: { amount: number | null }) => sum + (payment.amount || 0),
+					0
+				)
+
+				// Get the earliest due date
+				const earliestDue = unpaidPayments[0]
+				if (earliestDue) {
+					nextDueDate = earliestDue.dueDate ?? null
+
+					// Check if any payment is overdue
+					const hasOverdue = unpaidPayments.some(
+						(payment: { dueDate: string | null }) => payment.dueDate && payment.dueDate < today
+					)
+
+					if (hasOverdue) {
+						status = 'OVERDUE'
+						isOverdue = true
+					} else if (unpaidPayments.some((p: { status: string | null }) => p.status === 'PENDING')) {
+						status = 'PENDING'
+					} else {
+						status = 'DUE'
+					}
+				}
+			} else {
+				// No unpaid payments - calculate next due date (1st of next month)
+				const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+				nextDueDate = nextMonth.toISOString().split('T')[0] ?? null
+			}
+
+			const lastPaymentDate = lastPayment?.paidAt ?? null
+
+			return {
+				status,
+				rentAmount,
+				nextDueDate,
+				lastPaymentDate,
+				outstandingBalance,
+				isOverdue
+			}
+		} catch (error) {
+			this.logger.error('Failed to get current payment status', {
+				tenantId,
+				error: error instanceof Error ? error.message : String(error)
+			})
+			throw error
+		}
+	}
 }

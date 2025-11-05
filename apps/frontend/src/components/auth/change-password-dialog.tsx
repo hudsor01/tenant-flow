@@ -13,7 +13,6 @@ import { useChangePassword } from '#hooks/api/use-supabase-auth'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { Eye, EyeOff, Lock } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
 
 interface ChangePasswordDialogProps {
 	open: boolean
