@@ -26,10 +26,10 @@ describe('LeasePDFService', () => {
 			bathrooms: 1
 		},
 		owner: {
-			name: 'owner',
+			name: 'Landlord',
 			isEntity: false,
 			address: {
-				street: '500 owner St',
+				street: '500 Landlord St',
 				city: 'Demo City',
 				state: 'CA',
 				zipCode: '90002'
@@ -139,7 +139,7 @@ describe('LeasePDFService', () => {
 
 	it('renders PDF from template selections', async () => {
 		const context = createDefaultContext({
-			ownerName: 'Preview owner',
+			ownerName: 'Preview Owner',
 			tenantNames: 'Preview Tenant',
 			propertyAddress: '123 Preview Ave, Demo City, CA 90003',
 			propertyState: 'CA',

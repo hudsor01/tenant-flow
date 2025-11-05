@@ -27,7 +27,7 @@ describe('LeaseGeneratorController', () => {
 			bathrooms: 1
 		},
 		owner: {
-			name: 'Test owner',
+			name: 'Test Owner',
 			isEntity: false,
 			address: {
 				street: '456 Owner Ave',
@@ -150,7 +150,7 @@ describe('LeaseGeneratorController', () => {
 			}
 
 			await expect(controller.generateLease(invalidLease)).rejects.toThrow(
-				new BadRequestException('Owner name is required')
+				new BadRequestException('Landlord name is required')
 			)
 		})
 
@@ -182,7 +182,10 @@ describe('LeaseGeneratorController', () => {
 		})
 
 		it('handles PDF service errors', async () => {
-			pdfService.generateLeasePDF.mockRejectedValue(new Error('PDF failed'))
+			pdfService.generateLeasePDF.mockRejectedValue(
+				new Error('PDF failed')
+			)
+
 			await expect(controller.generateLease(validLease)).rejects.toThrow(
 				new InternalServerErrorException('Failed to generate lease agreement')
 			)

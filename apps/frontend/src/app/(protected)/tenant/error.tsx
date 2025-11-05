@@ -3,6 +3,7 @@
 import { Button } from '#components/ui/button'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { AlertCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 /**
@@ -20,6 +21,8 @@ export default function TenantError({
 	error: Error & { digest?: string }
 	reset: () => void
 }) {
+	const router = useRouter()
+
 	useEffect(() => {
 		// Log error using structured logger
 		logger.error('Tenant portal error', {
@@ -55,7 +58,7 @@ export default function TenantError({
 
 				<div className="flex gap-4 justify-center">
 					<Button onClick={() => reset()}>Try again</Button>
-					<Button variant="outline" onClick={() => (window.location.href = '/tenant')}>
+					<Button variant="outline" onClick={() => router.push('/tenant')}>
 						Go to Dashboard
 					</Button>
 				</div>
