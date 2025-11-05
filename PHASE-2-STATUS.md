@@ -230,24 +230,25 @@ ADD COLUMN notification_preferences JSONB DEFAULT '{...}'::jsonb;
 - ⏳ End-to-end manual testing pending
 
 **Emergency Contact**:
+- ✅ Migration applied successfully in production (2025-02-16)
 - ✅ Frontend TypeScript compilation passes
 - ✅ Backend implementation complete
 - ✅ Frontend UI fully wired (CRUD operations)
 - ✅ Optimistic updates with rollback
-- ⏳ Migration not applied yet (backend type errors expected)
+- ✅ RLS policies working (tenant self-management via auth_user_id)
 - ⏳ End-to-end manual testing pending
 
 ---
 
 ## Next Steps (In Order)
 
-1. **Apply Emergency Contact Migration** (User action required)
-   ```bash
-   # Copy and paste this SQL into Supabase SQL editor:
-   # supabase/migrations/20250216000100_create_tenant_emergency_contact.sql
-   ```
+1. **Manual Testing Session** ⬅️ RECOMMENDED NEXT
+   - Test password change flow
+   - Test notification preferences toggles
+   - Test emergency contact CRUD (migration applied ✅)
+   - Verify all profile features working end-to-end
 
-2. **Start Task 2.4: Payment Status Tracking** ⬅️ NEXT
+2. **Start Task 2.4: Payment Status Tracking**
    - Audit existing implementation
    - Add backend endpoint
    - Update frontend
@@ -257,11 +258,10 @@ ADD COLUMN notification_preferences JSONB DEFAULT '{...}'::jsonb;
    - Implement boundary tests
    - Document test coverage
 
-4. **Manual Testing Session**
-   - Test password change flow
-   - Test notification preferences toggles
-   - Test emergency contact CRUD (after migration)
-   - Test payment status display
+4. **Final Phase 2 Review**
+   - All features tested and working
+   - Documentation updated
+   - Ready for Phase 3
 
 ---
 
@@ -299,12 +299,14 @@ ADD COLUMN notification_preferences JSONB DEFAULT '{...}'::jsonb;
 - ✅ Password change flow fully implemented
 - ✅ Notification preferences fully implemented (backend + frontend)
 - ✅ Emergency contact fully implemented (backend + frontend + migration)
-- ✅ Notification preferences migration applied in production by user
+- ✅ All migrations applied successfully in production:
+  * Notification preferences (20250216000000) - Applied ✅
+  * Emergency contact (20250216000100) - Applied ✅ (2025-02-16)
 - ✅ Frontend TypeScript compilation passing for all tasks
 
 **Pending User Actions**:
-- Apply emergency contact migration via SQL editor (20250216000100_create_tenant_emergency_contact.sql)
-- Manual testing of all three features
+- Manual testing of all three profile features
+- Verification that all features work end-to-end in production
 
 **Dependencies**:
 - Task 2.5 should be done last (depends on all other tasks)
