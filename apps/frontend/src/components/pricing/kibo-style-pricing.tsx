@@ -1,6 +1,7 @@
 'use client'
 
 import NumberFlow from '@number-flow/react'
+import { OwnerSubscribeDialog } from '#components/pricing/owner-subscribe-dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {
@@ -15,13 +16,14 @@ import { Tabs, TabsList, TabsTrigger } from '#components/ui/tabs'
 import { Spinner } from '#components/ui/spinner'
 import { cn } from '#lib/utils'
 import { ArrowRight, BadgeCheck } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useStripeProducts } from '#hooks/use-stripe-products'
 import { createCheckoutSession, isUserAuthenticated } from '#lib/stripe-client'
 import { checkoutRateLimiter } from '#lib/security'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { getAllPricingPlans } from '@repo/shared/config/pricing'
 
 const logger = createLogger({ component: 'KiboStylePricing' })
 
@@ -61,53 +63,73 @@ const PLAN_FEATURES = {
 	]
 }
 
+interface PricingPlan {
+	id: string
+	name: string
+	price: {
+		monthly: number | string
+		yearly: number | string
+	}
+	description: string
+	features: string[]
+	cta: string
+	popular: boolean
+	stripeMonthlyPriceId?: string
+	stripeAnnualPriceId?: string
+}
+
 export function KiboStylePricing() {
 	const [frequency, setFrequency] = useState<'monthly' | 'yearly'>('monthly')
+	const [isSignupOpen, setIsSignupOpen] = useState(false)
+	const [pendingPlan, setPendingPlan] = useState<PricingPlan | null>(null)
 	const { products, isLoading } = useStripeProducts()
 
 	const subscriptionMutation = useMutation({
-		mutationFn: async (planData: {
-			planId: string
-			planName: string
-			monthlyPriceId?: string | undefined
-			annualPriceId?: string | undefined
+		mutationFn: async ({
+			plan,
+			billingCycle,
+			overrides
+		}: {
+			plan: PricingPlan
+			billingCycle: 'monthly' | 'yearly'
+			overrides?: { customerEmail?: string; tenantId?: string }
 		}) => {
-			// Enterprise/MAX plan redirects to contact
-			if (planData.planId === 'max') {
+			if (plan.id === 'max') {
 				window.location.href = '/contact'
 				return { success: true }
 			}
 
-			// Rate limiting check
 			if (!checkoutRateLimiter.canMakeRequest()) {
 				throw new Error(
 					'Too many requests. Please wait a moment before trying again.'
 				)
 			}
 
-			// Auth check
-			const isAuthenticated = await isUserAuthenticated()
-			if (!isAuthenticated) {
-				window.location.href = '/login'
-				throw new Error('Please sign in to subscribe')
+			if (!overrides?.tenantId) {
+				const authenticated = await isUserAuthenticated()
+				if (!authenticated) {
+					window.location.href = '/login'
+					throw new Error('Please sign in or create an account to subscribe')
+				}
 			}
 
-			// Get appropriate price ID
 			const stripePriceId =
-				frequency === 'yearly'
-					? planData.annualPriceId
-					: planData.monthlyPriceId
+				billingCycle === 'yearly'
+					? plan.stripeAnnualPriceId
+					: plan.stripeMonthlyPriceId
 			if (!stripePriceId) {
-				throw new Error(
-					`No ${frequency} price configured for ${planData.planName}`
-				)
+				throw new Error(`No ${billingCycle} price configured for ${plan.name}`)
 			}
 
 			toast.loading('Creating checkout session...', { id: 'checkout' })
 
 			const result = await createCheckoutSession({
 				priceId: stripePriceId,
-				planName: planData.planName
+				planName: plan.name,
+				...(overrides?.customerEmail && {
+					customerEmail: overrides.customerEmail
+				}),
+				...(overrides?.tenantId && { tenantId: overrides.tenantId })
 			})
 
 			if (!result.url) {
@@ -118,7 +140,6 @@ export function KiboStylePricing() {
 			return { success: true }
 		},
 		onError: (error: Error) => {
-			toast.dismiss('checkout')
 			logger.error('Checkout failed', {
 				metadata: {
 					error: error instanceof Error ? error.message : 'Unknown error'
@@ -127,6 +148,9 @@ export function KiboStylePricing() {
 			toast.error(
 				error.message || 'Failed to start checkout. Please try again.'
 			)
+		},
+		onSettled: () => {
+			toast.dismiss('checkout')
 		}
 	})
 
@@ -140,7 +164,7 @@ export function KiboStylePricing() {
 		})
 
 	// Map products to pricing data structure
-	const pricingPlans = mainProducts.map(product => {
+	const dynamicPricingPlans: PricingPlan[] = mainProducts.map(product => {
 		const planId = product.metadata.planId || product.name.toLowerCase()
 		const monthlyPrice = product.prices.monthly?.unit_amount || 0
 		const annualPrice = product.prices.annual?.unit_amount || 0
@@ -157,27 +181,99 @@ export function KiboStylePricing() {
 			features: PLAN_FEATURES[planId as keyof typeof PLAN_FEATURES] || [],
 			cta: planId === 'max' ? 'Contact Sales' : `Subscribe to ${product.name}`,
 			popular: product.metadata.popular === 'true',
-			stripeMonthlyPriceId: product.prices.monthly?.id,
-			stripeAnnualPriceId: product.prices.annual?.id
+			...(product.prices.monthly?.id && {
+				stripeMonthlyPriceId: product.prices.monthly.id
+			}),
+			...(product.prices.annual?.id && {
+				stripeAnnualPriceId: product.prices.annual.id
+			})
 		}
 	})
 
-	const handleSubscribe = (plan: (typeof pricingPlans)[0]) => {
-		const payload: {
-			planId: string
-			planName: string
-			monthlyPriceId?: string | undefined
-			annualPriceId?: string | undefined
-		} = {
-			planId: plan.id,
-			planName: plan.name
-		}
-		if (plan.stripeMonthlyPriceId)
-			payload.monthlyPriceId = plan.stripeMonthlyPriceId
-		if (plan.stripeAnnualPriceId)
-			payload.annualPriceId = plan.stripeAnnualPriceId
+	const fallbackPricingPlans = useMemo<PricingPlan[]>(() => {
+		const plans = getAllPricingPlans()
+			.filter(plan => plan.planId !== 'trial')
+			.map(plan => {
+				const monthlyPrice = plan.price.monthly
+				const annualPrice = plan.price.annual
 
-		subscriptionMutation.mutate(payload)
+				return {
+					id: plan.planId,
+					name: plan.name,
+					price: {
+						monthly: monthlyPrice || 'Free forever',
+						yearly:
+							annualPrice > 0
+								? Math.round((annualPrice / 12) * 100) / 100
+								: 'Free forever'
+					},
+					description: plan.description,
+					features:
+						PLAN_FEATURES[plan.planId as keyof typeof PLAN_FEATURES] ||
+						plan.features.slice(0, 9),
+					cta:
+						plan.planId === 'max'
+							? 'Contact Sales'
+							: `Subscribe to ${plan.name}`,
+					popular: plan.planId === 'growth',
+					...(plan.stripePriceIds.monthly && {
+						stripeMonthlyPriceId: plan.stripePriceIds.monthly
+					}),
+					...(plan.stripePriceIds.annual && {
+						stripeAnnualPriceId: plan.stripePriceIds.annual
+					})
+				}
+			})
+
+		// Preserve display ordering Starter -> Growth -> Max
+		return plans.sort((a, b) => {
+			const order = { starter: 1, growth: 2, max: 3 } as Record<string, number>
+			return (order[a.id] || 99) - (order[b.id] || 99)
+		})
+	}, [])
+
+	const pricingPlans =
+		dynamicPricingPlans.length > 0 ? dynamicPricingPlans : fallbackPricingPlans
+	const usingFallback = dynamicPricingPlans.length === 0
+
+	const startCheckout = async (
+		plan: PricingPlan,
+		overrides?: { customerEmail?: string; tenantId?: string }
+	) => {
+		await subscriptionMutation.mutateAsync({
+			plan,
+			billingCycle: frequency,
+			...(overrides && { overrides })
+		})
+	}
+
+	const handleSubscribe = async (plan: PricingPlan) => {
+		if (subscriptionMutation.isPending) return
+
+		if (plan.id === 'max') {
+			await startCheckout(plan)
+			return
+		}
+
+		const authenticated = await isUserAuthenticated()
+		if (!authenticated) {
+			setPendingPlan(plan)
+			setIsSignupOpen(true)
+			return
+		}
+
+		try {
+			await startCheckout(plan)
+		} catch (error) {
+			const message =
+				error instanceof Error
+					? error.message
+					: 'Unable to start checkout. Please try again.'
+			logger.error('Failed to start checkout', {
+				metadata: { error: message }
+			})
+			// onError handler already shows a toast for checkout failures; avoid duplicates
+		}
 	}
 
 	if (isLoading) {
@@ -189,86 +285,112 @@ export function KiboStylePricing() {
 	}
 
 	return (
-		<div className="@container flex flex-col gap-16 px-8 py-24 text-center">
-			<div className="flex flex-col items-center justify-center gap-8">
-				<h1 className="mb-0 text-balance font-medium text-5xl tracking-tighter">
-					Simple, transparent pricing
-				</h1>
-				<p className="mx-auto mt-0 mb-0 max-w-2xl text-balance text-lg text-muted-foreground">
-					Property management is hard enough. Choose a plan that scales with
-					your portfolio and makes your life easier.
-				</p>
+		<>
+			<div className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-4 py-16 text-center sm:px-6 lg:px-0">
+				<div className="flex flex-col items-center justify-center gap-8">
+					<h1 className="mb-0 text-balance font-medium text-5xl tracking-tighter">
+						Simple, transparent pricing
+					</h1>
+					<p className="mx-auto mt-0 mb-0 max-w-2xl text-balance text-lg text-muted-foreground">
+						Property management is hard enough. Choose a plan that scales with
+						your portfolio and makes your life easier.
+					</p>
+					{usingFallback && (
+						<p className="text-sm text-muted-foreground">
+							Live pricing is warming up. Showing the default TenantFlow plans
+							with active Stripe checkout links.
+						</p>
+					)}
+				</div>
 				<Tabs
 					defaultValue={frequency}
 					onValueChange={value => setFrequency(value as 'monthly' | 'yearly')}
 				>
-					<TabsList>
-						<TabsTrigger value="monthly">Monthly</TabsTrigger>
-						<TabsTrigger value="yearly">
+					<TabsList className="inline-flex rounded-full bg-muted/60 p-1 shadow-sm">
+						<TabsTrigger value="monthly" className="rounded-full px-5 py-2">
+							Monthly
+						</TabsTrigger>
+						<TabsTrigger value="yearly" className="rounded-full px-5 py-2">
 							Yearly
-							<Badge variant="secondary">Save 17%</Badge>
+							<Badge
+								variant="secondary"
+								className="ml-2 rounded-full bg-primary/10 text-primary"
+							>
+								Save 17%
+							</Badge>
 						</TabsTrigger>
 					</TabsList>
 				</Tabs>
-				<div className="mt-8 grid w-full max-w-4xl @2xl:grid-cols-3 gap-4">
+				<div className="mt-10 grid w-full gap-6 sm:grid-cols-2 xl:grid-cols-3">
 					{pricingPlans.map(plan => (
 						<Card
 							className={cn(
-								'relative w-full text-left',
-								plan.popular && 'ring-2 ring-primary'
+								'relative flex h-full flex-col overflow-hidden border border-border/60 bg-card/80 text-left shadow-sm backdrop-blur transition duration-300 ease-out hover:-translate-y-1 hover:shadow-lg',
+								plan.popular && 'ring-2 ring-primary/70'
 							)}
 							key={plan.id}
 						>
 							{plan.popular && (
-								<Badge className="-translate-x-1/2 -translate-y-1/2 absolute top-0 left-1/2 rounded-full">
+								<Badge className="absolute right-4 top-4 rounded-full bg-primary text-primary-foreground">
 									Most Popular
 								</Badge>
 							)}
-							<CardHeader>
-								<CardTitle className="font-medium text-xl">
+							<CardHeader className="space-y-4 pb-6 text-left">
+								<CardTitle className="text-2xl font-semibold tracking-tight">
 									{plan.name}
 								</CardTitle>
-								<CardDescription>
+								<CardDescription className="space-y-2 text-left text-base text-muted-foreground">
 									<p>{plan.description}</p>
 									{typeof plan.price[frequency] === 'number' ? (
-										<NumberFlow
-											className="font-medium text-foreground text-3xl"
-											format={{
-												style: 'currency',
-												currency: 'USD',
-												maximumFractionDigits: 0
-											}}
-											suffix={`/month, billed ${frequency}.`}
-											value={plan.price[frequency] as number}
-										/>
+										<div className="space-y-1 text-left">
+											<div className="flex items-baseline gap-2 text-left">
+												<NumberFlow
+													className="text-4xl font-bold text-foreground"
+													format={{
+														style: 'currency',
+														currency: 'USD',
+														maximumFractionDigits: 0
+													}}
+													value={plan.price[frequency] as number}
+												/>
+												<span className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+													/ {frequency}
+												</span>
+											</div>
+											<span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+												{frequency === 'yearly'
+													? 'Billed annually'
+													: 'Billed monthly'}
+											</span>
+										</div>
 									) : (
-										<span className="font-medium text-foreground text-xl">
-											{plan.price[frequency]}.
+										<span className="text-2xl font-bold text-foreground">
+											{plan.price[frequency]}
 										</span>
 									)}
 								</CardDescription>
 							</CardHeader>
-							<CardContent className="grid gap-2">
+							<CardContent className="flex flex-1 flex-col gap-3 pb-6 text-left">
 								{plan.features.map((feature, index) => (
 									<div
-										className="flex gap-2 text-muted-foreground text-sm"
+										className="flex gap-2 text-left text-sm leading-6 text-muted-foreground"
 										key={index}
 									>
-										<BadgeCheck className="h-lh w-4 flex-none text-green-600 dark:text-green-400" />
+										<BadgeCheck className="mt-1 h-4 w-4 flex-none text-green-600 dark:text-green-400" />
 										{feature}
 									</div>
 								))}
 							</CardContent>
-							<CardFooter>
+							<CardFooter className="mt-auto pt-2">
 								<Button
 									className="w-full"
-									variant={plan.popular ? 'default' : 'secondary'}
+									variant={plan.popular ? 'default' : 'outline'}
 									disabled={subscriptionMutation.isPending}
 									onClick={() => handleSubscribe(plan)}
 								>
 									{subscriptionMutation.isPending ? (
 										<>
-											<Spinner className="size-4 mr-2" />
+											<Spinner className="mr-2 size-4" />
 											Processing...
 										</>
 									) : (
@@ -283,6 +405,43 @@ export function KiboStylePricing() {
 					))}
 				</div>
 			</div>
-		</div>
+			<OwnerSubscribeDialog
+				open={isSignupOpen}
+				onOpenChange={open => {
+					setIsSignupOpen(open)
+					if (!open) {
+						setPendingPlan(null)
+					}
+				}}
+				{...(pendingPlan?.name && { planName: pendingPlan.name })}
+				{...(pendingPlan?.cta && { planCta: pendingPlan.cta })}
+				onComplete={async ({ email, tenantId, requiresEmailConfirmation }) => {
+					if (!pendingPlan) return
+					try {
+						await startCheckout(pendingPlan, {
+							customerEmail: email,
+							...(tenantId && { tenantId })
+						})
+						setIsSignupOpen(false)
+						setPendingPlan(null)
+						if (requiresEmailConfirmation) {
+							logger.info(
+								'Signup requires email confirmation before first login',
+								{
+									metadata: { email }
+								}
+							)
+						}
+					} catch (error) {
+						logger.error('Checkout failed after signup', {
+							metadata: {
+								error: error instanceof Error ? error.message : 'Unknown error'
+							}
+						})
+						throw error
+					}
+				}}
+			/>
+		</>
 	)
 }

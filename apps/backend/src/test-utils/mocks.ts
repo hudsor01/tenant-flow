@@ -361,6 +361,7 @@ export function createMockTenant(overrides?: Partial<Tenant>): Tenant {
 		invitation_accepted_at: overrides?.invitation_accepted_at || null,
 		invitation_expires_at: overrides?.invitation_expires_at || null,
 		stripe_customer_id: overrides?.stripe_customer_id || null,
+		stripeCustomerId: overrides?.stripeCustomerId || null,
 		autopay_configured_at: null,
 		autopay_day: null,
 		autopay_enabled: null,
@@ -394,6 +395,7 @@ export function createMockLease(overrides?: Partial<Lease>): Lease {
 			(overrides?.status as Database['public']['Enums']['LeaseStatus']) ||
 			'ACTIVE',
 		stripe_subscription_id: overrides?.stripe_subscription_id || null,
+		stripeSubscriptionId: overrides?.stripeSubscriptionId || null,
 		lease_document_url: null,
 		signature: null,
 		signed_at: null,
@@ -433,5 +435,24 @@ export function createMockMaintenanceRequest(
 		updatedAt: new Date().toISOString(),
 		version: 1, // 🔐 BUG FIX #2: Optimistic locking
 		...overrides
+	}
+}
+
+/**
+ * Create a mock StripeConnectService for testing
+ */
+export function createMockStripeConnectService(): jest.Mocked<{
+	getStripe: () => unknown
+}> {
+	return {
+		getStripe: jest.fn().mockReturnValue({
+			accounts: {
+				create: jest.fn(),
+				retrieve: jest.fn()
+			},
+			accountLinks: {
+				create: jest.fn()
+			}
+		})
 	}
 }

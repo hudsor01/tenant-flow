@@ -38,8 +38,12 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	private async callRpc<T = unknown>(
 		functionName: string,
 		payload: Record<string, unknown>,
-		token?: string
+		token?: string,
+		attempt: number = 0
 	): Promise<T | null> {
+		const MAX_RETRIES = 3
+		const RETRY_DELAYS_MS = [1000, 5000, 15000] // 1s, 5s, 15s exponential backoff
+
 		try {
 			// Use user-scoped client if token provided (RLS-enforced), otherwise admin
 			const client = this.getClientForToken(token)
@@ -50,19 +54,47 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				data?: T
 				error?: { message?: string } | null
 			}
+
 			if (res.error) {
 				this.logger.warn('Dashboard analytics RPC failed', {
 					functionName,
-					error: res.error?.message
+					error: res.error?.message,
+					attempt: attempt + 1,
+					maxRetries: MAX_RETRIES
 				})
+
+				// Retry with exponential backoff
+				if (attempt < MAX_RETRIES) {
+					const delay = RETRY_DELAYS_MS[attempt]
+					this.logger.log(
+						`Retrying RPC ${functionName} after ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES})`
+					)
+					await new Promise(resolve => setTimeout(resolve, delay))
+					return this.callRpc<T>(functionName, payload, token, attempt + 1)
+				}
+
 				return null
 			}
+
 			return res.data ?? null
 		} catch (error) {
 			this.logger.error('Unexpected RPC failure', {
 				functionName,
-				error: error instanceof Error ? error.message : String(error)
+				error: error instanceof Error ? error.message : String(error),
+				attempt: attempt + 1,
+				maxRetries: MAX_RETRIES
 			})
+
+			// Retry on unexpected errors too
+			if (attempt < MAX_RETRIES) {
+				const delay = RETRY_DELAYS_MS[attempt]
+				this.logger.log(
+					`Retrying RPC ${functionName} after ${delay}ms due to exception (attempt ${attempt + 1}/${MAX_RETRIES})`
+				)
+				await new Promise(resolve => setTimeout(resolve, delay))
+				return this.callRpc<T>(functionName, payload, token, attempt + 1)
+			}
+
 			return null
 		}
 	}
@@ -73,8 +105,8 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				userId
 			})
 
-			// Try primary RPC function first using centralized callRpc (with retries)
-			const primary = await this.callRpc<DashboardStats>(
+			// Call RPC with built-in retry logic (3 attempts with exponential backoff)
+			const stats = await this.callRpc<DashboardStats>(
 				'get_dashboard_stats',
 				{
 					p_user_id: userId
@@ -82,32 +114,12 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				token
 			)
 
-			if (primary) return primary
-
-			this.logger.warn(
-				'Primary dashboard stats RPC failed, using optimized fallback',
-				{
-					userId
-				}
-			)
-
-			// Fallback attempt (may be identical or a different implementation in DB)
-			const fallback = await this.callRpc<DashboardStats>(
-				'get_dashboard_stats',
-				{
-					p_user_id: userId
-				},
-				token
-			)
-
-			if (!fallback) {
-				this.logger.error('Both primary and fallback dashboard stats failed', {
-					userId
-				})
+			if (!stats) {
+				this.logger.error('Dashboard stats RPC failed after retries', { userId })
 				return this.getEmptyDashboardStats()
 			}
 
-			return fallback
+			return stats
 		} catch (error) {
 			this.logger.error(
 				`Database error in getDashboardStats: ${error instanceof Error ? error.message : String(error)}`,
