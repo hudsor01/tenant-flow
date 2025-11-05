@@ -201,6 +201,54 @@ export function useSupabaseUpdateProfile() {
 }
 
 /**
+ * Hook to change user password
+ */
+export function useChangePassword() {
+	return useMutation({
+		mutationFn: async ({
+			currentPassword,
+			newPassword
+		}: {
+			currentPassword: string
+			newPassword: string
+		}) => {
+			// First verify current password by attempting to sign in
+			const {
+				data: { user },
+				error: userError
+			} = await supabase.auth.getUser()
+			if (userError || !user?.email) {
+				throw new Error('User not authenticated')
+			}
+
+			// Verify current password
+			const { error: signInError } = await supabase.auth.signInWithPassword({
+				email: user.email,
+				password: currentPassword
+			})
+
+			if (signInError) {
+				throw new Error('Current password is incorrect')
+			}
+
+			// Update to new password
+			const { data, error } = await supabase.auth.updateUser({
+				password: newPassword
+			})
+
+			if (error) throw error
+			return data
+		},
+		onSuccess: () => {
+			handleMutationSuccess('Change password', 'Your password has been updated successfully')
+		},
+		onError: (error: Error) => {
+			handleMutationError(error, 'Change password')
+		}
+	})
+}
+
+/**
  * Hook for prefetching Supabase user
  */
 export function usePrefetchSupabaseUser() {
