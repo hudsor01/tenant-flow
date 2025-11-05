@@ -39,6 +39,7 @@ import type { Database } from '@repo/shared/types/supabase-generated'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
+import { SUPABASE_URL } from '@repo/shared/config/supabase'
 
 type PropertyType = Database['public']['Enums']['PropertyType']
 
@@ -194,7 +195,7 @@ export function PropertyForm({
 	useEffect(() => {
 		if (mode === 'create' && upload.isSuccess && upload.successes.length > 0) {
 			const uploadedFileName = upload.successes[0]
-			const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/property-images/temp/${uploadedFileName}`
+			const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/property-images/temp/${uploadedFileName}`
 			form.setFieldValue('imageUrl', imageUrl)
 			toast.success('Property image uploaded successfully')
 		}

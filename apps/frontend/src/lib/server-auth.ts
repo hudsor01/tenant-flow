@@ -9,6 +9,10 @@ import { createServerClient } from '@supabase/ssr'
 import type { User } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import {
+	SUPABASE_URL,
+	SUPABASE_PUBLISHABLE_KEY
+} from '@repo/shared/config/supabase'
 
 /**
  * Get authenticated user session
@@ -24,20 +28,16 @@ export async function requireSession(): Promise<{
 	accessToken: string
 }> {
 	const cookieStore = await cookies()
-	const supabase = createServerClient(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-		{
-			cookies: {
-				getAll: () => cookieStore.getAll(),
-				setAll: cookiesToSet => {
-					cookiesToSet.forEach(({ name, value, options }) => {
-						cookieStore.set(name, value, options)
-					})
-				}
+	const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+		cookies: {
+			getAll: () => cookieStore.getAll(),
+			setAll: cookiesToSet => {
+				cookiesToSet.forEach(({ name, value, options }) => {
+					cookieStore.set(name, value, options)
+				})
 			}
 		}
-	)
+	})
 
 	// Middleware already validated with getUser(), so we can safely use getSession() here
 	// This avoids duplicate validation calls (middleware did the work)
@@ -60,20 +60,16 @@ export async function requireSession(): Promise<{
  */
 export async function requirePrimaryProperty(userId: string) {
 	const cookieStore = await cookies()
-	const supabase = createServerClient(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-		{
-			cookies: {
-				getAll: () => cookieStore.getAll(),
-				setAll: cookiesToSet => {
-					cookiesToSet.forEach(({ name, value, options }) => {
-						cookieStore.set(name, value, options)
-					})
-				}
+	const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+		cookies: {
+			getAll: () => cookieStore.getAll(),
+			setAll: cookiesToSet => {
+				cookiesToSet.forEach(({ name, value, options }) => {
+					cookieStore.set(name, value, options)
+				})
 			}
 		}
-	)
+	})
 
 	const { data: property, error } = await supabase
 		.from('property')
