@@ -17,7 +17,6 @@ import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { useCurrentLease } from '#hooks/api/use-lease'
 import { formatCurrency } from '@repo/shared/utils/formatting'
-import type { LeaseWithDetails } from '@repo/shared/types/relations'
 import { Calendar, DollarSign, FileText, Home, MapPin } from 'lucide-react'
 import Link from 'next/link'
 
@@ -57,25 +56,32 @@ export default function TenantLeasePage() {
 						<Home className="size-6 text-accent-main mt-1" />
 						<div>
 							<p className="font-semibold text-lg">
-								{lease?.unit?.property?.name || 'Property'} - Unit{' '}
-								{lease?.unit?.unitNumber || 'N/A'}
+								{isLoading || !lease ? (
+									<Skeleton className="h-7 w-64" />
+								) : (
+									<p className="font-semibold text-lg">
+										{lease.unit?.property?.name ?? 'Property'} - Unit{' '}
+										{lease.unit?.unitNumber ?? 'N/A'}
+									</p>
+								)}
 							</p>
 							<div className="flex items-center gap-2 text-muted-foreground mt-1">
 								<MapPin className="size-4" />
 								<span>
-									{isLoading || !lease
-										? 'Loading address...'
-										: (() => {
-												const addressParts = [
-													lease.unit?.property?.address,
-													lease.unit?.property?.city,
-													lease.unit?.property?.state,
-													lease.unit?.property?.zipCode
-												].filter(Boolean)
-												return addressParts.length > 0
-													? addressParts.join(', ')
-													: 'Address not available'
-											})()}
+									{isLoading || !lease ? (
+										<Skeleton className="h-4 w-48" />
+									) : (
+										(() => {
+											const addressParts = [
+												lease.unit?.property?.address,
+												lease.unit?.property?.city,
+												lease.unit?.property?.state
+											].filter(Boolean)
+											return addressParts.length > 0
+												? addressParts.join(', ')
+												: 'Address not available'
+										})()
+									)}
 								</span>
 							</div>
 						</div>
