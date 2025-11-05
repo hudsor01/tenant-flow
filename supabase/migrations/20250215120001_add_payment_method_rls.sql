@@ -33,7 +33,7 @@ FOR SELECT
 TO authenticated
 USING (
   tenantId IN (
-    SELECT id FROM users WHERE "supabaseId" = auth.uid()::text
+    SELECT id FROM users WHERE "supabaseId" = (SELECT auth.uid()::text)
   )
 );
 
@@ -50,7 +50,7 @@ FOR INSERT
 TO authenticated
 WITH CHECK (
   tenantId IN (
-    SELECT id FROM users WHERE "supabaseId" = auth.uid()::text
+    SELECT id FROM users WHERE "supabaseId" = (SELECT auth.uid()::text)
   )
 );
 
@@ -68,12 +68,12 @@ FOR UPDATE
 TO authenticated
 USING (
   tenantId IN (
-    SELECT id FROM users WHERE "supabaseId" = auth.uid()::text
+    SELECT id FROM users WHERE "supabaseId" = (SELECT auth.uid()::text)
   )
 )
 WITH CHECK (
   tenantId IN (
-    SELECT id FROM users WHERE "supabaseId" = auth.uid()::text
+    SELECT id FROM users WHERE "supabaseId" = (SELECT auth.uid()::text)
   )
 );
 
@@ -92,7 +92,7 @@ FOR DELETE
 TO authenticated
 USING (
   tenantId IN (
-    SELECT id FROM users WHERE "supabaseId" = auth.uid()::text
+    SELECT id FROM users WHERE "supabaseId" = (SELECT auth.uid()::text)
   )
 );
 
