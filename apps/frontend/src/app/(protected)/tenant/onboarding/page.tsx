@@ -37,7 +37,7 @@ export default function TenantOnboardingPage() {
 					SUPABASE_PUBLISHABLE_KEY
 				)
 
-				// 3. Get current auth user and session (security best practice: use getUser() not getSession())
+				// 3. Get current auth user (validates JWT securely)
 				const {
 					data: { user },
 					error: authError
@@ -55,7 +55,7 @@ export default function TenantOnboardingPage() {
 					return
 				}
 
-				// 4. Get current session for authentication token
+				// 4. Get session to extract access token for backend API call
 				const {
 					data: { session },
 					error: sessionError
@@ -99,7 +99,9 @@ export default function TenantOnboardingPage() {
 					} catch (error) {
 						jsonError = error
 						try {
-							const textContent = await response.text()
+							// Clone response to avoid consuming the body twice
+							const responseClone = response.clone()
+							const textContent = await responseClone.text()
 							errorMessage = textContent.substring(0, 200) || errorMessage
 						} catch (error) {
 							textError = error
