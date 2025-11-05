@@ -2494,7 +2494,7 @@ export class TenantsService {
 			.from('tenant')
 			.select('id')
 			.eq('id', tenantId)
-			.eq('userId', userId)
+			.eq('auth_user_id', userId)
 			.single()
 
 		if (!tenant) {
@@ -2566,7 +2566,7 @@ export class TenantsService {
 			.from('tenant')
 			.select('id')
 			.eq('id', tenantId)
-			.eq('userId', userId)
+			.eq('auth_user_id', userId)
 			.single()
 
 		if (!tenant) {
@@ -2654,7 +2654,7 @@ export class TenantsService {
 			.from('tenant')
 			.select('id')
 			.eq('id', tenantId)
-			.eq('userId', userId)
+			.eq('auth_user_id', userId)
 			.single()
 
 		if (!tenant) {
@@ -2722,7 +2722,7 @@ export class TenantsService {
 			.from('tenant')
 			.select('id')
 			.eq('id', tenantId)
-			.eq('userId', userId)
+			.eq('auth_user_id', userId)
 			.single()
 
 		if (!tenant) {
