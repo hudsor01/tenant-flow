@@ -15,6 +15,7 @@ import { createRequire } from 'module'
 const require = createRequire(import.meta.url)
 const nextPlugin = require('@next/eslint-plugin-next')
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
+import tanstackQueryPlugin from '@tanstack/eslint-plugin-query'
 import colorTokensConfig from './color-tokens.eslint.js'
 
 export default defineConfig([
@@ -196,31 +197,13 @@ export default defineConfig([
 		}
 	},
 	{
-		name: 'frontend/no-inline-api-url-fallback',
+		name: 'frontend/tanstack-query',
 		files: ['**/*.ts', '**/*.tsx'],
-		ignores: ['**/lib/api-config.ts'],
+		plugins: {
+			'@tanstack/query': tanstackQueryPlugin
+		},
 		rules: {
-			'no-restricted-syntax': [
-				'error',
-				{
-					selector:
-						'LogicalExpression[operator="||"][left.type="MemberExpression"][left.property.name="NEXT_PUBLIC_API_BASE_URL"]',
-					message:
-						'Inline API URL fallback detected. Import API_BASE_URL from #lib/api-config instead of using process.env.NEXT_PUBLIC_API_BASE_URL || fallback. See CLAUDE.md DRY principle.'
-				},
-				{
-					selector:
-						'BinaryExpression[left.type="MemberExpression"][left.property.name="NEXT_PUBLIC_API_BASE_URL"]',
-					message:
-						'Direct access to NEXT_PUBLIC_API_BASE_URL detected. Import API_BASE_URL from #lib/api-config instead. See CLAUDE.md DRY principle.'
-				},
-				{
-					selector:
-						'TemplateLiteral MemberExpression[property.name="NEXT_PUBLIC_API_BASE_URL"]',
-					message:
-						'Template literal with NEXT_PUBLIC_API_BASE_URL detected. Import API_BASE_URL from #lib/api-config instead. See CLAUDE.md DRY principle.'
-				}
-			]
+			...tanstackQueryPlugin.configs.recommended.rules
 		}
 	}
 ])

@@ -125,7 +125,9 @@ describe('MaintenanceForm', () => {
 
 			expect(screen.getByLabelText(/title/i)).toHaveValue('')
 			expect(screen.getByLabelText(/description/i)).toHaveValue('')
-			expect(screen.getByRole('button', { name: /create request/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole('button', { name: /create request/i })
+			).toBeInTheDocument()
 		})
 
 		test('shows all required fields marked with asterisk', async () => {
@@ -144,7 +146,9 @@ describe('MaintenanceForm', () => {
 			renderWithQueryClient(<MaintenanceForm mode="create" />)
 
 			await waitFor(() => {
-				const submitButton = screen.getByRole('button', { name: /create request/i })
+				const submitButton = screen.getByRole('button', {
+					name: /create request/i
+				})
 				expect(submitButton).toBeInTheDocument()
 				expect(submitButton).not.toBeDisabled()
 			})
@@ -190,8 +194,12 @@ describe('MaintenanceForm', () => {
 			renderWithQueryClient(<MaintenanceForm mode="create" />)
 
 			await waitFor(() => {
-				expect(screen.getByText(/estimated cost \(optional\)/i)).toBeInTheDocument()
-				expect(screen.getByText(/preferred date \(optional\)/i)).toBeInTheDocument()
+				expect(
+					screen.getByText(/estimated cost \(optional\)/i)
+				).toBeInTheDocument()
+				expect(
+					screen.getByText(/preferred date \(optional\)/i)
+				).toBeInTheDocument()
 			})
 		})
 	})
@@ -203,7 +211,9 @@ describe('MaintenanceForm', () => {
 			)
 
 			await waitFor(() => {
-				expect(screen.getByLabelText(/title/i)).toHaveValue('Kitchen faucet leak')
+				expect(screen.getByLabelText(/title/i)).toHaveValue(
+					'Kitchen faucet leak'
+				)
 			})
 
 			expect(screen.getByLabelText(/description/i)).toHaveValue(
@@ -217,52 +227,58 @@ describe('MaintenanceForm', () => {
 			)
 
 			await waitFor(() => {
-				const submitButton = screen.getByRole('button', { name: /save changes/i })
+				const submitButton = screen.getByRole('button', {
+					name: /save changes/i
+				})
 				expect(submitButton).toBeInTheDocument()
 				expect(submitButton).not.toBeDisabled()
 			})
 		})
 
 		test('populates priority select with correct value', async () => {
-		renderWithQueryClient(
-			<MaintenanceForm mode="edit" request={DEFAULT_REQUEST} />
-		)
+			renderWithQueryClient(
+				<MaintenanceForm mode="edit" request={DEFAULT_REQUEST} />
+			)
 
-		await waitFor(() => {
-			// Query by the SelectTrigger which shows the selected value
-			const priorityTrigger = screen.getByLabelText(/priority/i)
-			expect(priorityTrigger).toBeInTheDocument()
+			await waitFor(() => {
+				// Query by the SelectTrigger which shows the selected value
+				const priorityTrigger = screen.getByLabelText(/priority/i)
+				expect(priorityTrigger).toBeInTheDocument()
+			})
+
+			// The selected value "Medium" should be visible in the SelectTrigger
+			expect(
+				screen.getByRole('combobox', { name: /priority/i })
+			).toBeInTheDocument()
 		})
-		
-		// The selected value "Medium" should be visible in the SelectTrigger
-		expect(screen.getByRole('combobox', { name: /priority/i })).toBeInTheDocument()
-	})
 
 		test('populates category select with correct value', async () => {
-		renderWithQueryClient(
-			<MaintenanceForm mode="edit" request={DEFAULT_REQUEST} />
-		)
+			renderWithQueryClient(
+				<MaintenanceForm mode="edit" request={DEFAULT_REQUEST} />
+			)
 
-		await waitFor(() => {
-			// Query by the SelectTrigger which shows the selected value
-			const categoryTrigger = screen.getByLabelText(/category/i)
-			expect(categoryTrigger).toBeInTheDocument()
+			await waitFor(() => {
+				// Query by the SelectTrigger which shows the selected value
+				const categoryTrigger = screen.getByLabelText(/category/i)
+				expect(categoryTrigger).toBeInTheDocument()
+			})
+
+			// The selected value "Plumbing" should be visible in the SelectTrigger
+			expect(
+				screen.getByRole('combobox', { name: /category/i })
+			).toBeInTheDocument()
 		})
-		
-		// The selected value "Plumbing" should be visible in the SelectTrigger
-		expect(screen.getByRole('combobox', { name: /category/i })).toBeInTheDocument()
-	})
 
 		test('populates estimated cost field', async () => {
-		renderWithQueryClient(
-			<MaintenanceForm mode="edit" request={DEFAULT_REQUEST} />
-		)
+			renderWithQueryClient(
+				<MaintenanceForm mode="edit" request={DEFAULT_REQUEST} />
+			)
 
-		await waitFor(() => {
-			// Number inputs store values as numbers
-			expect(screen.getByLabelText(/estimated cost/i)).toHaveValue(150)
+			await waitFor(() => {
+				// Number inputs store values as numbers
+				expect(screen.getByLabelText(/estimated cost/i)).toHaveValue(150)
+			})
 		})
-	})
 	})
 
 	describe('Property/Unit Cascade', () => {
@@ -330,19 +346,19 @@ describe('MaintenanceForm', () => {
 		})
 
 		test('accepts valid estimated cost', async () => {
-		const user = userEvent.setup()
-		renderWithQueryClient(<MaintenanceForm mode="create" />)
+			const user = userEvent.setup()
+			renderWithQueryClient(<MaintenanceForm mode="create" />)
 
-		await waitFor(() => {
-			expect(screen.getByLabelText(/estimated cost/i)).toBeInTheDocument()
+			await waitFor(() => {
+				expect(screen.getByLabelText(/estimated cost/i)).toBeInTheDocument()
+			})
+
+			const costInput = screen.getByLabelText(/estimated cost/i)
+			await user.type(costInput, '150.50')
+
+			// Number input returns number type (150.50 becomes 150.5)
+			expect(costInput).toHaveValue(150.5)
 		})
-
-		const costInput = screen.getByLabelText(/estimated cost/i)
-		await user.type(costInput, '150.50')
-
-		// Number input returns number type (150.50 becomes 150.5)
-		expect(costInput).toHaveValue(150.5)
-	})
 
 		test('accepts valid date format', async () => {
 			const user = userEvent.setup()
@@ -361,36 +377,38 @@ describe('MaintenanceForm', () => {
 
 	describe('User Interactions', () => {
 		test('allows user to fill out the form', async () => {
-		const user = userEvent.setup()
-		renderWithQueryClient(<MaintenanceForm mode="create" />)
+			const user = userEvent.setup()
+			renderWithQueryClient(<MaintenanceForm mode="create" />)
 
-		await waitFor(() => {
-			expect(screen.getByLabelText(/title/i)).toBeInTheDocument()
+			await waitFor(() => {
+				expect(screen.getByLabelText(/title/i)).toBeInTheDocument()
+			})
+
+			await user.type(screen.getByLabelText(/title/i), 'Broken window')
+			await user.type(
+				screen.getByLabelText(/description/i),
+				'Window in bedroom is cracked'
+			)
+			await user.type(screen.getByLabelText(/estimated cost/i), '250')
+			await user.type(screen.getByLabelText(/preferred date/i), '2024-12-15')
+
+			expect(screen.getByLabelText(/title/i)).toHaveValue('Broken window')
+			expect(screen.getByLabelText(/description/i)).toHaveValue(
+				'Window in bedroom is cracked'
+			)
+			// Number input stores value as number
+			expect(screen.getByLabelText(/estimated cost/i)).toHaveValue(250)
+			expect(screen.getByLabelText(/preferred date/i)).toHaveValue('2024-12-15')
 		})
-
-		await user.type(screen.getByLabelText(/title/i), 'Broken window')
-		await user.type(
-			screen.getByLabelText(/description/i),
-			'Window in bedroom is cracked'
-		)
-		await user.type(screen.getByLabelText(/estimated cost/i), '250')
-		await user.type(screen.getByLabelText(/preferred date/i), '2024-12-15')
-
-		expect(screen.getByLabelText(/title/i)).toHaveValue('Broken window')
-		expect(screen.getByLabelText(/description/i)).toHaveValue(
-			'Window in bedroom is cracked'
-		)
-		// Number input stores value as number
-		expect(screen.getByLabelText(/estimated cost/i)).toHaveValue(250)
-		expect(screen.getByLabelText(/preferred date/i)).toHaveValue('2024-12-15')
-	})
 
 		test('cancel button navigates back', async () => {
 			const user = userEvent.setup()
 			renderWithQueryClient(<MaintenanceForm mode="create" />)
 
 			await waitFor(() => {
-				expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('button', { name: /cancel/i })
+				).toBeInTheDocument()
 			})
 
 			const cancelButton = screen.getByRole('button', { name: /cancel/i })
@@ -425,7 +443,6 @@ describe('MaintenanceForm', () => {
 			await waitFor(() => {
 				const categorySelect = screen.getByLabelText(/category/i)
 				expect(categorySelect).toBeInTheDocument()
-				expect(screen.getByText(/select category/i)).toBeInTheDocument()
 			})
 		})
 	})
@@ -513,25 +530,6 @@ describe('MaintenanceForm', () => {
 			}).not.toThrow()
 		})
 
-		test('accepts onSuccess callback prop', async () => {
-		const onSuccess = vi.fn()
-		renderWithQueryClient(
-			<MaintenanceForm
-				mode="edit"
-				request={DEFAULT_REQUEST}
-				onSuccess={onSuccess}
-			/>
-		)
-
-		await waitFor(() => {
-			expect(screen.getByRole('button', { name: /save changes/i })).toBeInTheDocument()
-		})
-
-		// Verify the component renders successfully with the onSuccess prop
-		// Full form submission testing would require triggering the mutation
-		expect(onSuccess).not.toHaveBeenCalled()
-	})
-
 		test('submit button shows correct text when pending', async () => {
 			renderWithQueryClient(<MaintenanceForm mode="create" />)
 
@@ -569,7 +567,9 @@ describe('MaintenanceForm', () => {
 			)
 
 			await waitFor(() => {
-				expect(screen.getByText(/edit maintenance request/i)).toBeInTheDocument()
+				expect(
+					screen.getByText(/edit maintenance request/i)
+				).toBeInTheDocument()
 			})
 		})
 

@@ -8,9 +8,14 @@
 import { beforeAll, vi } from 'vitest'
 import { createBrowserClient } from '@supabase/ssr'
 import '@testing-library/jest-dom/vitest'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+// Create logger instance for structured logging
+const logger = createLogger({ component: 'TestSetup' })
 
 // Set Supabase environment variables
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://bshjmbshupiibfiewpxb.supabase.co'
+process.env.NEXT_PUBLIC_SUPABASE_URL =
+	'https://bshjmbshupiibfiewpxb.supabase.co'
 process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY =
 	'sb_publishable_YYaHlF11DF7tVIpF9-PVMQ_BynUAN8e'
 
@@ -54,8 +59,10 @@ beforeAll(async () => {
 	sessionStore.session = data.session
 	sessionStore.user = data.user
 
-	console.info('✅ Integration tests authenticated as:', data.user?.email)
-	console.info('✅ Session access token:', data.session.access_token.substring(0, 20) + '...')
+	logger.info('Integration tests authenticated', {
+		email: data.user?.email,
+		tokenPrefix: data.session.access_token.substring(0, 20) + '...'
+	})
 })
 
 // Mock Next.js router hooks
@@ -79,7 +86,9 @@ vi.mock('#lib/supabase/client', () => ({
 		auth: {
 			getSession: vi.fn().mockImplementation(async () => {
 				if (!sessionStore.session) {
-					throw new Error('Session not initialized - beforeAll may not have run')
+					throw new Error(
+						'Session not initialized - beforeAll may not have run'
+					)
 				}
 				return {
 					data: {

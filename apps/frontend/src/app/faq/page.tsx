@@ -6,111 +6,53 @@ import { HeroSection } from '#components/sections/hero-section'
 import { Button } from '#components/ui/button'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-
-const faqs = [
-	{
-		category: 'Getting Started',
-		questions: [
-			{
-				question: 'How quickly can TenantFlow increase my NOI?',
-				answer:
-					'Most property managers see a 40% increase in NOI within 90 days. Our portfolio optimization tools, reduced vacancy periods (65% faster filling), and 32% maintenance cost reduction deliver immediate results. We guarantee ROI within the first 90 days or your money back.'
-			},
-			{
-				question:
-					'What makes TenantFlow different from other property management software?',
-				answer:
-					'TenantFlow is the only platform that guarantees a 40% NOI increase. While others focus on basic tasks, we provide enterprise-grade automation that handles 80% of your daily work automatically. Our clients save 20+ hours per week and reduce operational costs by 32% on average.'
-			},
-			{
-				question: 'How much money will I save with TenantFlow?',
-				answer:
-					'The average property manager saves $2,400+ per property per year with TenantFlow. This comes from reduced vacancy time (65% faster), lower maintenance costs (32% reduction), streamlined operations, and eliminated manual tasks. Most clients see full ROI within 2.3 months.'
-			}
-		]
-	},
-	{
-		category: 'Features & Benefits',
-		questions: [
-			{
-				question: 'How does TenantFlow automate 80% of daily tasks?',
-				answer:
-					'Our smart workflows handle maintenance tracking, lease renewals, maintenance requests, tenant communications, and financial reporting automatically. AI-powered tenant screening, automated notifications, and smart vendor dispatch save you 20+ hours per week.'
-			},
-			{
-				question: 'What specific results can I expect?',
-				answer:
-					'Based on 10,000+ properties managed: 40% average NOI increase, 65% faster vacancy filling, 32% maintenance cost reduction, 80% task automation, and 90% reduction in bad tenants through advanced screening. All results are tracked and guaranteed.'
-			},
-			{
-				question: 'Is TenantFlow suitable for my portfolio size?',
-				answer:
-					'Yes! TenantFlow scales from 1 property to unlimited portfolios. Starter plan handles 1-5 properties, Growth plan manages up to 100 units, and TenantFlow Max supports unlimited properties with white-label options and dedicated account management.'
-			}
-		]
-	},
-	{
-		category: 'Implementation & Support',
-		questions: [
-			{
-				question: 'How long does setup take?',
-				answer:
-					'Most property managers are fully operational within 24-48 hours. Our onboarding specialists handle data migration, system configuration, and team training. You can start seeing results immediately with our automated workflows going live on day one.'
-			},
-			{
-				question: 'What kind of support do you provide?',
-				answer:
-					'All plans include priority email support with 4-hour response times. Growth and Max plans get phone support and dedicated account managers. Our team includes property management experts who understand your challenges and provide strategic guidance.'
-			},
-			{
-				question: 'Do you integrate with my existing systems?',
-				answer:
-					'TenantFlow integrates with all major accounting software, payment processors, and maintenance platforms. Our API connects with 500+ business tools. Custom integrations are available for TenantFlow Max customers with dedicated development support.'
-			}
-		]
-	},
-	{
-		category: 'Security & Compliance',
-		questions: [
-			{
-				question: 'How secure is my data?',
-				answer:
-					'TenantFlow uses bank-level security with 256-bit SSL encryption, SOC 2 Type II compliance, and regular security audits. Your data is backed up across multiple secure data centers with 99.9% uptime SLA and enterprise-grade protection.'
-			},
-			{
-				question: 'Do you comply with rental regulations?',
-				answer:
-					'Yes, TenantFlow automatically handles compliance for all 50 states including fair housing laws, rent control regulations, eviction procedures, and tenant rights. Our legal team updates the system continuously as regulations change.'
-			}
-		]
-	},
-	{
-		category: 'Pricing & ROI',
-		questions: [
-			{
-				question: "What if TenantFlow doesn't deliver the promised results?",
-				answer:
-					"We guarantee 40% NOI increase within 90 days or your money back. If you don't see measurable improvements in operational efficiency, cost reduction, and revenue optimization, we'll refund your subscription completely."
-			},
-			{
-				question: 'Are there any hidden fees?',
-				answer:
-					'No hidden fees ever. Our transparent pricing includes all features, unlimited support, regular updates, and data migration. The only additional cost is if you choose premium add-ons like custom integrations or dedicated training sessions.'
-			},
-			{
-				question: 'Can I try TenantFlow risk-free?',
-				answer:
-					"Yes! Start with our 14-day transformation trial - no credit card required. Experience the full platform, see real results, and if you're not completely satisfied, there's no obligation to continue."
-			}
-		]
-	}
-]
+import { useFAQs } from '#hooks/api/use-faq'
+import type { FAQQuestion } from '@repo/shared/types/faq'
 
 export default function FAQPage() {
 	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
+	const { data: faqs, isLoading, error } = useFAQs()
+
+	// Show loading state
+	if (isLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<div className="text-center">
+					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+					<p className="text-muted-foreground">Loading FAQs...</p>
+				</div>
+			</div>
+		)
+	}
+
+	// Show error state
+	if (error) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<div className="text-center">
+					<h1 className="text-2xl font-bold text-destructive mb-4">
+						Failed to load FAQs
+					</h1>
+					<p className="text-muted-foreground">Please try again later.</p>
+				</div>
+			</div>
+		)
+	}
+
+	// Transform API data to match the expected format for the accordion
+	const faqCategories =
+		faqs?.map(category => ({
+			category: category.name,
+			questions: category.questions.map((q: FAQQuestion) => ({
+				question: q.question,
+				answer: q.answer
+			}))
+		})) || []
 
 	// FAQ Schema for Google rich snippets - flatten all questions
-	const allQuestions = faqs.flatMap(category => category.questions)
+	const allQuestions = faqCategories.flatMap(category =>
+		category.questions
+	)
 	const faqSchema = {
 		'@context': 'https://schema.org',
 		'@type': 'FAQPage',
@@ -266,14 +208,22 @@ export default function FAQPage() {
 			{/* FAQ Section */}
 			<section className="section-hero">
 				<div className="max-w-4xl mx-auto px-6 lg:px-8">
-					{faqs.map((category, categoryIndex) => (
-						<FaqsAccordion
-							key={categoryIndex}
-							category={category.category}
-							faqs={category.questions}
-							defaultOpenIndex={null}
-						/>
-					))}
+					{!isLoading && !error && faqCategories.length === 0 && (
+						<div className="py-8 text-center text-muted-foreground">
+							No FAQs available at the moment. Please check back later.
+						</div>
+					)}
+					{!isLoading &&
+						!error &&
+						faqCategories.length > 0 &&
+						faqCategories.map((category, categoryIndex) => (
+							<FaqsAccordion
+								key={categoryIndex}
+								category={category.category}
+								faqs={category.questions}
+								defaultOpenIndex={null}
+							/>
+						))}
 				</div>
 			</section>
 

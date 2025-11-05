@@ -162,7 +162,7 @@ describe('SubscriptionsService', () => {
 					currency: 'usd',
 					dueDay: 1,
 					status: 'active',
-					platformFeePercent: 2.9,
+					platformFeePercent: 0,
 					createdAt: new Date().toISOString(),
 					updatedAt: new Date().toISOString()
 				},
@@ -184,7 +184,6 @@ describe('SubscriptionsService', () => {
 				expect.objectContaining({
 					customer: 'cus_test123',
 					default_payment_method: 'pm_test123',
-					application_fee_percent: 2.9,
 					transfer_data: {
 						destination: 'acct_test123'
 					}
@@ -206,7 +205,7 @@ describe('SubscriptionsService', () => {
 					currency: 'usd',
 					amount: 100000, // Stored in cents
 					dueDay: 1,
-					platformFeePercent: 2.9
+					platformFeePercent: 0
 				})
 			)
 		})
@@ -280,7 +279,7 @@ describe('SubscriptionsService', () => {
 					amount: 100000,
 					currency: 'usd',
 					dueDay: 1,
-					platformFeePercent: 2.9
+					platformFeePercent: 0
 				},
 				error: null
 			})
@@ -337,7 +336,7 @@ describe('SubscriptionsService', () => {
 					amount: 100000,
 					currency: 'usd',
 					dueDay: 1,
-					platformFeePercent: 2.9
+					platformFeePercent: 0
 				},
 				error: null
 			})
@@ -392,7 +391,7 @@ describe('SubscriptionsService', () => {
 					amount: 100000,
 					currency: 'usd',
 					dueDay: 1,
-					platformFeePercent: 2.9
+					platformFeePercent: 0
 				},
 				error: null
 			})
