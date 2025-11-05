@@ -14,7 +14,8 @@ if ! pnpm install --frozen-lockfile --prefer-offline > /dev/null 2>&1; then
 fi
 
 # Step 2: Turbo runs lint, typecheck, and tests on all changed files with caching
-npx turbo run lint typecheck test:unit \
+# CI=true prevents vitest from running in watch mode
+CI=true npx turbo run lint typecheck test:unit \
   --cache-dir=.turbo \
   --filter='[HEAD^1]' \
   --concurrency=10 || {

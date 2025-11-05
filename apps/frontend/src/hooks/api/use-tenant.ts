@@ -14,7 +14,10 @@
 import { clientFetch } from '#lib/api/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { toast } from 'sonner' // Still needed for some success handlers
-import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
+import {
+	handleMutationError,
+	handleMutationSuccess
+} from '#lib/mutation-error-handler'
 import type {
 	Tenant,
 	TenantInput,
@@ -28,7 +31,6 @@ import {
 	useQueryClient,
 	useSuspenseQuery
 } from '@tanstack/react-query'
-
 
 /**
  * Query keys for tenant endpoints
@@ -63,7 +65,9 @@ export function useTenantWithLease(id: string) {
 	return useQuery({
 		queryKey: tenantKeys.withLease(id),
 		queryFn: async (): Promise<TenantWithLeaseInfo> => {
-			return clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${id}/with-lease`)
+			return clientFetch<TenantWithLeaseInfo>(
+				`/api/v1/tenants/${id}/with-lease`
+			)
 		},
 		enabled: !!id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
@@ -83,16 +87,22 @@ export function useTenantList(page: number = 1, limit: number = 50) {
 	const offset = (page - 1) * limit
 
 	return useQuery({
-		queryKey: [...tenantKeys.list(), { page, limit }],
+		queryKey: [...tenantKeys.list(), { page, limit, offset }],
 		queryFn: async () => {
-			const response = await clientFetch<TenantWithLeaseInfo[]>(`/api/v1/tenants?limit=${limit}&offset=${offset}`)
+			const response = await clientFetch<TenantWithLeaseInfo[]>(
+				`/api/v1/tenants?limit=${limit}&offset=${offset}`
+			)
 
 			// Prefetch individual tenant details only if not already cached
 			// This prevents overwriting fresher detail data with potentially stale list data
 			response?.forEach?.(tenant => {
-				const existingDetail = queryClient.getQueryData(tenantKeys.detail(tenant.id))
-				const existingWithLease = queryClient.getQueryData(tenantKeys.withLease(tenant.id))
-				
+				const existingDetail = queryClient.getQueryData(
+					tenantKeys.detail(tenant.id)
+				)
+				const existingWithLease = queryClient.getQueryData(
+					tenantKeys.withLease(tenant.id)
+				)
+
 				// Only set if no existing data (avoids race condition where detail is fresher)
 				if (!existingDetail) {
 					queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
@@ -129,14 +139,19 @@ export function useAllTenants() {
 		queryKey: tenantKeys.list(),
 		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
 			try {
-				const response = await clientFetch<TenantWithLeaseInfo[]>('/api/v1/tenants')
+				const response =
+					await clientFetch<TenantWithLeaseInfo[]>('/api/v1/tenants')
 
 				// Prefetch individual tenant details only if not already cached
 				// This prevents overwriting fresher detail data with potentially stale list data
 				response.forEach(tenant => {
-					const existingDetail = queryClient.getQueryData(tenantKeys.detail(tenant.id))
-					const existingWithLease = queryClient.getQueryData(tenantKeys.withLease(tenant.id))
-					
+					const existingDetail = queryClient.getQueryData(
+						tenantKeys.detail(tenant.id)
+					)
+					const existingWithLease = queryClient.getQueryData(
+						tenantKeys.withLease(tenant.id)
+					)
+
 					// Only set if no existing data (avoids race condition where detail is fresher)
 					if (!existingDetail) {
 						queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
@@ -178,8 +193,8 @@ export function useCreateTenant() {
 				method: 'POST',
 				body: JSON.stringify(tenantData)
 			}),
-		onError: (err) => handleMutationError(err, 'Create tenant'),
-		onSuccess: (data) => {
+		onError: err => handleMutationError(err, 'Create tenant'),
+		onSuccess: data => {
 			// Cache individual tenant details
 			queryClient.setQueryData(tenantKeys.detail(data.id), data)
 			queryClient.setQueryData(tenantKeys.withLease(data.id), data)
@@ -353,7 +368,9 @@ export function useTenantWithLeaseSuspense(id: string) {
 	return useSuspenseQuery({
 		queryKey: tenantKeys.withLease(id),
 		queryFn: async (): Promise<TenantWithLeaseInfo> => {
-			return clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${id}/with-lease`)
+			return clientFetch<TenantWithLeaseInfo>(
+				`/api/v1/tenants/${id}/with-lease`
+			)
 		},
 		staleTime: 5 * 60 * 1000,
 		gcTime: 10 * 60 * 1000
@@ -370,14 +387,19 @@ export function useAllTenantsSuspense() {
 	return useSuspenseQuery({
 		queryKey: tenantKeys.list(),
 		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
-			const response = await clientFetch<TenantWithLeaseInfo[]>('/api/v1/tenants')
+			const response =
+				await clientFetch<TenantWithLeaseInfo[]>('/api/v1/tenants')
 
 			// Prefetch individual tenant details only if not already cached
 			// This prevents overwriting fresher detail data with potentially stale list data
 			response.forEach(tenant => {
-				const existingDetail = queryClient.getQueryData(tenantKeys.detail(tenant.id))
-				const existingWithLease = queryClient.getQueryData(tenantKeys.withLease(tenant.id))
-				
+				const existingDetail = queryClient.getQueryData(
+					tenantKeys.detail(tenant.id)
+				)
+				const existingWithLease = queryClient.getQueryData(
+					tenantKeys.withLease(tenant.id)
+				)
+
 				// Only set if no existing data (avoids race condition where detail is fresher)
 				if (!existingDetail) {
 					queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
@@ -428,7 +450,9 @@ export function usePrefetchTenant() {
 			return queryClient.prefetchQuery({
 				queryKey: tenantKeys.withLease(id),
 				queryFn: async (): Promise<TenantWithLeaseInfo> => {
-					return clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${id}/with-lease`)
+					return clientFetch<TenantWithLeaseInfo>(
+						`/api/v1/tenants/${id}/with-lease`
+					)
 				},
 				staleTime: 5 * 60 * 1000
 			})
@@ -486,11 +510,20 @@ export function useMarkTenantAsMovedOut() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({ id, data }: { id: string; data: { moveOutDate: string; moveOutReason: string } }): Promise<TenantWithLeaseInfo> => {
-			return clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${id}/mark-moved-out`, {
-				method: 'PUT',
-				body: JSON.stringify(data)
-			})
+		mutationFn: async ({
+			id,
+			data
+		}: {
+			id: string
+			data: { moveOutDate: string; moveOutReason: string }
+		}): Promise<TenantWithLeaseInfo> => {
+			return clientFetch<TenantWithLeaseInfo>(
+				`/api/v1/tenants/${id}/mark-moved-out`,
+				{
+					method: 'PUT',
+					body: JSON.stringify(data)
+				}
+			)
 		},
 		onMutate: async ({ id, data }) => {
 			// Cancel in-flight queries
@@ -571,8 +604,11 @@ export function useMarkTenantAsMovedOut() {
 
 			handleMutationError(err, 'Mark tenant as moved out')
 		},
-		onSuccess: (data) => {
-			handleMutationSuccess('Mark tenant as moved out', `${data.name} has been marked as moved out`)
+		onSuccess: data => {
+			handleMutationSuccess(
+				'Mark tenant as moved out',
+				`${data.name} has been marked as moved out`
+			)
 		},
 		onSettled: (_data, _error, variables) => {
 			// Refetch to ensure consistency
@@ -599,9 +635,9 @@ export function useBatchTenantOperations() {
 			const results = await Promise.allSettled(
 				updates.map(async ({ id, data }) => {
 					return clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${id}`, {
-							method: 'PUT',
-							body: JSON.stringify(data)
-						})
+						method: 'PUT',
+						body: JSON.stringify(data)
+					})
 				})
 			)
 
@@ -615,10 +651,10 @@ export function useBatchTenantOperations() {
 		},
 		batchDelete: async (ids: string[]) => {
 			const results = await Promise.allSettled(
-				ids.map(async (id) => {
+				ids.map(async id => {
 					return clientFetch(`/api/v1/tenants/${id}`, {
-							method: 'DELETE'
-						})
+						method: 'DELETE'
+					})
 				})
 			)
 
@@ -667,7 +703,7 @@ export function useInviteTenant() {
 
 			return response
 		},
-		onSuccess: (data) => {
+		onSuccess: data => {
 			toast.success('Invitation sent', {
 				description: `${data.name} will receive an email to accept the invitation`
 			})
@@ -680,7 +716,7 @@ export function useInviteTenant() {
 				metadata: { tenantId: data.id, email: data.email }
 			})
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Send tenant invitation')
 		}
 	})
@@ -694,9 +730,12 @@ export function useResendInvitation() {
 
 	return useMutation({
 		mutationFn: (tenantId: string) =>
-			clientFetch<{ message: string }>(`/api/v1/tenants/${tenantId}/resend-invitation`, {
-				method: 'POST'
-			}),
+			clientFetch<{ message: string }>(
+				`/api/v1/tenants/${tenantId}/resend-invitation`,
+				{
+					method: 'POST'
+				}
+			),
 		onSuccess: (_, tenantId) => {
 			toast.success('Invitation resent', {
 				description: 'A new invitation email has been sent'
@@ -711,7 +750,7 @@ export function useResendInvitation() {
 				metadata: { tenantId }
 			})
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Resend invitation')
 		}
 	})

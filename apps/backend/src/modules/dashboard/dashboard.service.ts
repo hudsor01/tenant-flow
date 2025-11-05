@@ -10,6 +10,10 @@ import {
 } from '@repo/shared/constants/empty-states'
 import { SupabaseService } from '../../database/supabase.service'
 import { DashboardAnalyticsService } from '../analytics/dashboard-analytics.service'
+import {
+	billingInsightsSchema,
+	dashboardActivityResponseSchema
+} from '@repo/shared/validation/dashboard'
 
 @Injectable()
 export class DashboardService {
@@ -33,14 +37,17 @@ export class DashboardService {
 		try {
 			// Delegate to DashboardAnalyticsService which uses optimized RPC functions
 			// This reduces this method from 586 lines to 14 lines (CLAUDE.md compliant)
-			const stats = await this.dashboardAnalyticsService.getDashboardStats(userId, token)
-			
+			const stats = await this.dashboardAnalyticsService.getDashboardStats(
+				userId,
+				token
+			)
+
 			this.logger.log('Dashboard stats retrieved successfully', {
 				userId,
 				propertiesTotal: stats.properties.total,
 				tenantsTotal: stats.tenants.total
 			})
-			
+
 			return stats
 		} catch (error) {
 			this.logger.error('Failed to get dashboard stats', {
@@ -55,28 +62,45 @@ export class DashboardService {
 	 * Get recent activity feed from Activity table
 	 * Uses repository pattern for clean data access
 	 */
-	async getActivity(userId: string, token: string): Promise<{ activities: unknown[] }> {
+	async getActivity(
+		userId: string,
+		token: string
+	): Promise<{ activities: unknown[] }> {
 		if (!userId) {
 			this.logger.warn('Activity requested without userId')
 			return { activities: [] }
 		}
-
 		if (!token) {
 			this.logger.warn('Activity requested without token')
 			return { activities: [] }
 		}
-
 		try {
 			const propertyIds = await this.getPropertyIds(token)
-			
 			if (propertyIds.length === 0) {
 				return { activities: [] }
 			}
-
 			const activities = await this.fetchAllActivities(token, propertyIds)
 			const sortedActivities = this.sortAndLimitActivities(activities)
-			
-			return { activities: sortedActivities }
+			// Validate response with dashboardActivityResponseSchema
+			const validation = dashboardActivityResponseSchema.safeParse({
+				activities: sortedActivities
+			})
+			if (validation.success) {
+				return validation.data
+			} else {
+				this.logger.warn('Some activities failed validation', {
+					userId,
+					issues: validation.error.issues
+				})
+				// Optionally filter valid activities only
+				const validActivities = sortedActivities.filter(
+					activity =>
+						dashboardActivityResponseSchema.shape.activities.element.safeParse(
+							activity
+						).success
+				)
+				return { activities: validActivities }
+			}
 		} catch (error) {
 			this.logger.error('Failed to get activity', {
 				error: error instanceof Error ? error.message : String(error),
@@ -95,7 +119,9 @@ export class DashboardService {
 			.limit(10)
 
 		if (error) {
-			this.logger.error('Failed to fetch property IDs', { error: error.message })
+			this.logger.error('Failed to fetch property IDs', {
+				error: error.message
+			})
 			return []
 		}
 
@@ -107,7 +133,7 @@ export class DashboardService {
 		propertyIds: string[]
 	): Promise<unknown[]> {
 		const unitIds = await this.getUnitIds(token, propertyIds)
-		
+
 		const [leases, payments, maintenance, units] = await Promise.all([
 			this.fetchLeaseActivities(token, propertyIds),
 			this.fetchPaymentActivities(token),
@@ -118,17 +144,23 @@ export class DashboardService {
 		return [...leases, ...payments, ...maintenance, ...units]
 	}
 
-	private async getUnitIds(token: string, propertyIds: string[]): Promise<string[]> {
+	private async getUnitIds(
+		token: string,
+		propertyIds: string[]
+	): Promise<string[]> {
 		const client = this.supabase.getUserClient(token)
 		const { data } = await client
 			.from('unit')
 			.select('id')
 			.in('propertyId', propertyIds)
-		
+
 		return data?.map(u => u.id) || []
 	}
 
-	private async fetchLeaseActivities(token: string, propertyIds: string[]): Promise<unknown[]> {
+	private async fetchLeaseActivities(
+		token: string,
+		propertyIds: string[]
+	): Promise<unknown[]> {
 		const client = this.supabase.getUserClient(token)
 		const { data, error } = await client
 			.from('lease')
@@ -173,9 +205,12 @@ export class DashboardService {
 		}))
 	}
 
-	private async fetchMaintenanceActivities(token: string, unitIds: string[]): Promise<unknown[]> {
+	private async fetchMaintenanceActivities(
+		token: string,
+		unitIds: string[]
+	): Promise<unknown[]> {
 		if (unitIds.length === 0) return []
-		
+
 		const client = this.supabase.getUserClient(token)
 		const { data, error } = await client
 			.from('maintenance_request')
@@ -198,7 +233,10 @@ export class DashboardService {
 		}))
 	}
 
-	private async fetchUnitActivities(token: string, propertyIds: string[]): Promise<unknown[]> {
+	private async fetchUnitActivities(
+		token: string,
+		propertyIds: string[]
+	): Promise<unknown[]> {
 		const client = this.supabase.getUserClient(token)
 		const { data, error } = await client
 			.from('unit')
@@ -223,8 +261,14 @@ export class DashboardService {
 	private sortAndLimitActivities(activities: unknown[]): unknown[] {
 		return activities
 			.sort((a: unknown, b: unknown) => {
-				const timeA = a && typeof a === 'object' && 'timestamp' in a && a.timestamp ? new Date(String(a.timestamp)).getTime() : 0
-				const timeB = b && typeof b === 'object' && 'timestamp' in b && b.timestamp ? new Date(String(b.timestamp)).getTime() : 0
+				const timeA =
+					a && typeof a === 'object' && 'timestamp' in a && a.timestamp
+						? new Date(String(a.timestamp)).getTime()
+						: 0
+				const timeB =
+					b && typeof b === 'object' && 'timestamp' in b && b.timestamp
+						? new Date(String(b.timestamp)).getTime()
+						: 0
 				return timeB - timeA
 			})
 			.slice(0, 20)
@@ -234,14 +278,17 @@ export class DashboardService {
 	 * Get comprehensive billing insights from rent payments
 	 * Production implementation using rent_payment table
 	 */
-	async getBillingInsights(userId?: string, token?: string, startDate?: Date, endDate?: Date) {
+	async getBillingInsights(
+		userId?: string,
+		token?: string,
+		startDate?: Date,
+		endDate?: Date
+	) {
 		if (!userId) {
 			return null
 		}
-
 		try {
-			// Delegate to DashboardAnalyticsService (reduces 70 lines to 12)
-			return await this.dashboardAnalyticsService.getBillingInsights(
+			const result = await this.dashboardAnalyticsService.getBillingInsights(
 				userId,
 				token,
 				startDate || endDate
@@ -251,6 +298,13 @@ export class DashboardService {
 						}
 					: undefined
 			)
+			// Validate result with billingInsightsSchema
+			if (billingInsightsSchema.safeParse(result).success) {
+				return result
+			} else {
+				this.logger.error('Billing insights validation failed', { userId })
+				return null
+			}
 		} catch (error) {
 			this.logger.error('Failed to get billing insights', {
 				error: error instanceof Error ? error.message : String(error),
@@ -264,9 +318,14 @@ export class DashboardService {
 	 * Check if billing insights service is available
 	 * Delegates to repository layer for service health check
 	 */
-	async isBillingInsightsAvailable(userId: string, token: string): Promise<boolean> {
+	async isBillingInsightsAvailable(
+		userId: string,
+		token: string
+	): Promise<boolean> {
 		if (!token) {
-			this.logger.warn('Billing insights availability check requested without token')
+			this.logger.warn(
+				'Billing insights availability check requested without token'
+			)
 			return false
 		}
 
@@ -305,7 +364,10 @@ export class DashboardService {
 	 * Get property performance metrics
 	 * Delegates to repository layer for clean data access
 	 */
-	async getPropertyPerformance(userId?: string, token?: string): Promise<PropertyPerformance[]> {
+	async getPropertyPerformance(
+		userId?: string,
+		token?: string
+	): Promise<PropertyPerformance[]> {
 		if (!userId) {
 			this.logger.warn('Property performance requested without userId')
 			return []
@@ -314,7 +376,10 @@ export class DashboardService {
 		try {
 			// Delegate to DashboardAnalyticsService which uses optimized RPC
 			// Reduces method from 165 lines to 15 lines (CLAUDE.md compliant)
-			return await this.dashboardAnalyticsService.getPropertyPerformance(userId, token)
+			return await this.dashboardAnalyticsService.getPropertyPerformance(
+				userId,
+				token
+			)
 		} catch (error) {
 			this.logger.error('Failed to get property performance', {
 				error: error instanceof Error ? error.message : String(error),
@@ -356,7 +421,7 @@ export class DashboardService {
 	): SystemUptime {
 		const uptimePercentage = isDatabaseUp ? 99.95 : 95.0
 		const slaTarget = 99.5
-		
+
 		const slaStatus = this.determineSlaStatus(uptimePercentage)
 
 		return {
@@ -371,7 +436,9 @@ export class DashboardService {
 		}
 	}
 
-	private determineSlaStatus(uptimePercentage: number): SystemUptime['slaStatus'] {
+	private determineSlaStatus(
+		uptimePercentage: number
+	): SystemUptime['slaStatus'] {
 		if (uptimePercentage >= 99.9) return 'excellent'
 		if (uptimePercentage >= 99.5) return 'good'
 		if (uptimePercentage >= 98.0) return 'acceptable'
@@ -395,7 +462,10 @@ export class DashboardService {
 	 * Get dashboard metrics - replaces get_dashboard_metrics function
 	 * Uses repository pattern instead of database function
 	 */
-	async getMetrics(userId: string, token?: string): Promise<Record<string, unknown>> {
+	async getMetrics(
+		userId: string,
+		token?: string
+	): Promise<Record<string, unknown>> {
 		try {
 			this.logger.log('Fetching dashboard metrics via repository', { userId })
 
@@ -426,14 +496,19 @@ export class DashboardService {
 	 * Get dashboard summary - replaces get_dashboard_summary function
 	 * Uses repository pattern instead of database function
 	 */
-	async getSummary(userId: string, token?: string): Promise<Record<string, unknown>> {
+	async getSummary(
+		userId: string,
+		token?: string
+	): Promise<Record<string, unknown>> {
 		try {
 			this.logger.log('Fetching dashboard summary via repository', { userId })
 
 			// Combine multiple repository calls for comprehensive summary
 			const [stats, activity, propertyPerformance] = await Promise.all([
 				this.getStats(userId, token),
-				token ? this.getActivity(userId, token) : Promise.resolve({ activities: [] }),
+				token
+					? this.getActivity(userId, token)
+					: Promise.resolve({ activities: [] }),
 				this.getPropertyPerformance(userId, token)
 			])
 
@@ -477,7 +552,11 @@ export class DashboardService {
 
 		try {
 			// Delegate to DashboardAnalyticsService
-			return await this.dashboardAnalyticsService.getOccupancyTrends(userId, token, months)
+			return await this.dashboardAnalyticsService.getOccupancyTrends(
+				userId,
+				token,
+				months
+			)
 		} catch (error) {
 			this.logger.error('Failed to get occupancy trends', {
 				error: error instanceof Error ? error.message : String(error),
@@ -497,7 +576,11 @@ export class DashboardService {
 
 		try {
 			// Delegate to DashboardAnalyticsService
-			return await this.dashboardAnalyticsService.getRevenueTrends(userId, token, months)
+			return await this.dashboardAnalyticsService.getRevenueTrends(
+				userId,
+				token,
+				months
+			)
 		} catch (error) {
 			this.logger.error('Failed to get revenue trends', {
 				error: error instanceof Error ? error.message : String(error),
@@ -517,7 +600,10 @@ export class DashboardService {
 
 		try {
 			// Delegate to DashboardAnalyticsService
-			return await this.dashboardAnalyticsService.getMaintenanceAnalytics(userId, token)
+			return await this.dashboardAnalyticsService.getMaintenanceAnalytics(
+				userId,
+				token
+			)
 		} catch (error) {
 			this.logger.error('Failed to get maintenance analytics', {
 				error: error instanceof Error ? error.message : String(error),
@@ -530,14 +616,24 @@ export class DashboardService {
 	/**
 	 * Get time-series data for dashboard charts
 	 */
-	async getTimeSeries(userId: string, metric: string, days: number, token?: string) {
+	async getTimeSeries(
+		userId: string,
+		metric: string,
+		days: number,
+		token?: string
+	) {
 		if (!userId) {
 			return []
 		}
 
 		try {
 			// Delegate to DashboardAnalyticsService
-			return await this.dashboardAnalyticsService.getTimeSeries(userId, metric, days, token)
+			return await this.dashboardAnalyticsService.getTimeSeries(
+				userId,
+				metric,
+				days,
+				token
+			)
 		} catch (error) {
 			this.logger.error('Failed to get time-series data', {
 				error: error instanceof Error ? error.message : String(error),
@@ -552,14 +648,24 @@ export class DashboardService {
 	/**
 	 * Get metric trend comparing current vs previous period
 	 */
-	async getMetricTrend(userId: string, metric: string, period: string, token?: string) {
+	async getMetricTrend(
+		userId: string,
+		metric: string,
+		period: string,
+		token?: string
+	) {
 		if (!userId) {
 			return null
 		}
 
 		try {
 			// Delegate to DashboardAnalyticsService
-			return await this.dashboardAnalyticsService.getMetricTrend(userId, metric, period, token)
+			return await this.dashboardAnalyticsService.getMetricTrend(
+				userId,
+				metric,
+				period,
+				token
+			)
 		} catch (error) {
 			this.logger.error('Failed to get metric trend', {
 				error: error instanceof Error ? error.message : String(error),

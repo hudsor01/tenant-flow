@@ -42,50 +42,6 @@ export class RentPaymentsService {
 	}
 
 	/**
-	 * Calculate platform fee based on landlord subscription tier.
-	 * STARTER: 3%, GROWTH: 2.5%, TENANTFLOW_MAX: 2%
-	 */
-	calculatePlatformFee(amount: number, landlordTier: string): number {
-		const tierPercentages: Record<string, number> = {
-			STARTER: 3,
-			GROWTH: 2.5,
-			TENANTFLOW_MAX: 2
-		}
-
-		const feePercent = tierPercentages[landlordTier] ?? 3
-		return Math.round(amount * (feePercent / 100))
-	}
-
-	/**
-	 * Calculate Stripe processing fee (card: 2.9% + $0.30, ACH: 0.8% capped at $5)
-	 */
-	calculateStripeFee(amount: number, type: PaymentMethodType): number {
-		if (type === 'card') {
-			return Math.round(amount * 0.029 + 30)
-		}
-		return Math.min(Math.round(amount * 0.008), 500)
-	}
-
-	/**
-	 * Aggregate all fees for reporting.
-	 */
-	calculateFees(
-		amount: number,
-		paymentType: PaymentMethodType,
-		landlordTier: string
-	) {
-		const platformFee = this.calculatePlatformFee(amount, landlordTier)
-		const stripeFee = this.calculateStripeFee(amount, paymentType)
-
-		return {
-			platformFee,
-			stripeFee,
-			landlordReceives: Math.max(amount - platformFee - stripeFee, 0),
-			total: amount
-		}
-	}
-
-	/**
 	 * Accept both dollar and cent inputs and return an integer amount in cents.
 	 */
 	private normalizeAmount(amount: number): number {
@@ -110,7 +66,7 @@ export class RentPaymentsService {
 
 		const { data: tenant, error: tenantError } = await adminClient
 			.from('tenant')
-			.select('id, userId, email, firstName, lastName')
+			.select('id, userId, auth_user_id, email, firstName, lastName, status')
 			.eq('id', tenantId)
 			.single<Tenant>()
 
@@ -235,19 +191,19 @@ export class RentPaymentsService {
 		// Authorization check: verify requesting user has access to this lease context
 		if (requestingUserId) {
 			// Get tenant user to check authorization
-			const { data: tenantUserData, error: tenantUserError } = await adminClient
+			const { data: tenantRecord, error: tenantRecordError } = await adminClient
 				.from('tenant')
-				.select('userId')
+				.select('userId, auth_user_id')
 				.eq('id', tenantId)
 				.single()
 
-			if (tenantUserError || !tenantUserData) {
+			if (tenantRecordError || !tenantRecord) {
 				throw new NotFoundException('Tenant user not found')
 			}
 
-			const tenantUserId = tenantUserData.userId
+			const tenantAuthId = tenantRecord.auth_user_id
 			const isAuthorized =
-				requestingUserId === tenantUserId || // User is the tenant
+				requestingUserId === tenantAuthId || // User is the tenant
 				requestingUserId === landlord.id // User is the landlord
 
 			if (!isAuthorized) {
@@ -291,13 +247,21 @@ export class RentPaymentsService {
 
 		const { data: paymentMethod, error: paymentMethodError } = await adminClient
 			.from('tenant_payment_method')
-			.select('stripePaymentMethodId, type, stripeCustomerId')
+			.select('tenantId, stripePaymentMethodId, type, stripeCustomerId')
 			.eq('id', paymentMethodId)
-			.eq('tenantId', tenantUser.id)
 			.single<TenantPaymentMethod>()
 
 		if (paymentMethodError || !paymentMethod) {
 			throw new NotFoundException('Payment method not found')
+		}
+
+		if (paymentMethod.tenantId !== tenant.userId) {
+			this.logger.warn('Payment method does not belong to tenant', {
+				requestingUserId,
+				tenantId,
+				paymentMethodId
+			})
+			throw new ForbiddenException('Payment method not accessible')
 		}
 
 		const paymentType: PaymentMethodType =
@@ -330,12 +294,6 @@ export class RentPaymentsService {
 
 		const stripeCustomerId = stripeCustomer.id
 
-		const fees = this.calculateFees(
-			amountInCents,
-			paymentType,
-			landlord.subscriptionTier || 'STARTER'
-		)
-
 		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate charges
 		const idempotencyKey = `payment-${tenantId}-${leaseId}-${paymentType}-${Date.now()}`
 		const paymentIntent = await this.stripe.paymentIntents.create(
@@ -346,7 +304,6 @@ export class RentPaymentsService {
 				payment_method: paymentMethod.stripePaymentMethodId,
 				confirm: true,
 				off_session: true,
-				application_fee_amount: fees.platformFee,
 				transfer_data: {
 					destination: landlord.stripeAccountId as string
 				},
@@ -375,9 +332,10 @@ export class RentPaymentsService {
 				landlordId: landlord.id,
 				leaseId: lease.id,
 				amount: amountInCents,
-				platformFee: fees.platformFee,
-				stripeFee: fees.stripeFee,
-				landlordReceives: fees.landlordReceives,
+				// Platform fees removed - landlord receives full amount minus Stripe fees
+				platformFee: 0,
+				stripeFee: 0,
+				landlordReceives: amountInCents,
 				status,
 				paymentType,
 				stripePaymentIntentId: paymentIntent.id,
@@ -639,16 +597,7 @@ export class RentPaymentsService {
 				})
 			}
 
-			// Calculate platform fee percentage
-			const tierPercentages: Record<string, number> = {
-				STARTER: 3,
-				GROWTH: 2.5,
-				TENANTFLOW_MAX: 2
-			}
-			const feePercent =
-				tierPercentages[landlord.subscriptionTier || 'STARTER'] ?? 3
-
-			// Create Stripe Subscription for recurring rent
+			// Create Stripe Subscription for recurring rent (no platform fee)
 			const amountInCents = this.normalizeAmount(lease.rentAmount)
 
 			// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate subscriptions
@@ -675,7 +624,6 @@ export class RentPaymentsService {
 							} as unknown as Stripe.SubscriptionCreateParams.Item.PriceData
 						}
 					],
-					application_fee_percent: feePercent,
 					transfer_data: {
 						destination: landlord.stripeAccountId as string
 					},

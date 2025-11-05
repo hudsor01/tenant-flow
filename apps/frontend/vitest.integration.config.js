@@ -12,6 +12,8 @@ export default defineConfig({
 	test: {
 		name: 'frontend-integration',
 		environment: 'jsdom',
+		// Prevent watch mode in CI/pre-commit hooks
+		watch: process.env.CI ? false : undefined,
 		globals: true,
 		setupFiles: ['./src/test/setup.ts'],
 		include: [
