@@ -70,11 +70,11 @@ export class BalanceSheetService {
 		}
 
 		// Get net operating income for property values
-		// RLS-protected RPC function automatically filters by authenticated user
+		// RLS-protected RPC function with explicit user ID for defense-in-depth
 		const { data: noiData, error: noiError } = await client.rpc(
 			'calculate_net_operating_income',
 			{
-				p_user_id: ''
+				p_user_id: user.id
 			}
 		)
 
@@ -84,11 +84,11 @@ export class BalanceSheetService {
 		}
 
 		// Get lease financial summary for receivables
-		// RLS-protected RPC function automatically filters by authenticated user
+		// RLS-protected RPC function with explicit user ID for defense-in-depth
 		const { data: leaseSummary, error: leaseError } = await client.rpc(
 			'get_lease_financial_summary',
 			{
-				p_user_id: ''
+				p_user_id: user.id
 			}
 		)
 
