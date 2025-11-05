@@ -115,6 +115,27 @@ export type Lease = Tables<'lease'>
 export type MaintenanceRequest = Tables<'maintenance_request'>
 export type RentPayment = Tables<'rent_payment'>
 
+// Lease with enriched unit and property details (tenant portal API response)
+export type LeaseWithDetails = Lease & {
+	unit: {
+		id: string
+		unitNumber: string | null
+		bedrooms: number | null
+		bathrooms: number | null
+		property?: {
+			id: string
+			name: string | null
+			address: string | null
+			city: string | null
+			state: string | null
+			zipCode: string | null
+		} | null
+	} | null
+	metadata: {
+		documentUrl: string | null
+	}
+}
+
 // Maintenance API response with relations
 export interface MaintenanceRequestResponse {
 	data: (MaintenanceRequest & {

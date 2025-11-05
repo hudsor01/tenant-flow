@@ -44,14 +44,15 @@ COMMENT ON POLICY "rent_payment_owner_or_tenant_select" ON rent_payment IS
 -- ============================================================================
 -- 3. INSERT Policy: System-only via service role (Stripe webhooks)
 -- ============================================================================
--- Note: authenticated users CAN insert, but backend validates authorization
--- via service layer before allowing insertion. This allows backend to create
--- payments on behalf of users during Stripe webhook processing.
+-- SECURITY: Only service role can insert payment records
+-- Backend uses service role credentials to create payments via Stripe webhooks
+-- This enforces defense-in-depth: even if application has bugs, database
+-- will reject unauthorized payment creation attempts
 
 CREATE POLICY "rent_payment_system_insert"
 ON rent_payment
 FOR INSERT
-TO authenticated
+TO service_role
 WITH CHECK (true);
 
 COMMENT ON POLICY "rent_payment_system_insert" ON rent_payment IS
@@ -60,13 +61,16 @@ COMMENT ON POLICY "rent_payment_system_insert" ON rent_payment IS
 -- ============================================================================
 -- 4. UPDATE Policy: System-only for status changes (Stripe webhooks)
 -- ============================================================================
+-- SECURITY: Only service role can update payment records
 -- Payments are generally immutable after creation (accounting best practice)
--- Only system can update payment status via Stripe webhook events
+-- Backend uses service role credentials to update payment status via Stripe webhooks
+-- This enforces defense-in-depth: even if application has bugs, database
+-- will reject unauthorized payment modification attempts
 
 CREATE POLICY "rent_payment_system_update"
 ON rent_payment
 FOR UPDATE
-TO authenticated
+TO service_role
 USING (true)
 WITH CHECK (true);
 

@@ -15,7 +15,11 @@ import type {
 	CreateLeaseInput,
 	UpdateLeaseInput
 } from '@repo/shared/types/api-inputs'
-import type { Lease, MaintenanceRequest } from '@repo/shared/types/core'
+import type {
+	Lease,
+	LeaseWithDetails,
+	MaintenanceRequest
+} from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
 	handleConflictError,
@@ -24,28 +28,6 @@ import {
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
 import { handleMutationError } from '#lib/mutation-error-handler'
-
-type TenantPortalLeaseUnit = {
-	id: string
-	unitNumber: string | null
-	bedrooms: number | null
-	bathrooms: number | null
-	property?: {
-		id: string
-		name: string | null
-		address: string | null
-		city: string | null
-		state: string | null
-		zipCode: string | null
-	} | null
-} | null
-
-export type TenantPortalLease = Lease & {
-	metadata: {
-		documentUrl: string | null
-	}
-	unit: TenantPortalLeaseUnit
-}
 
 /**
  * Query keys for lease endpoints (hierarchical, typed)
@@ -90,8 +72,8 @@ export function useLease(id: string) {
 export function useCurrentLease() {
 	return useQuery({
 		queryKey: [...leaseKeys.all, 'tenant-portal', 'active'],
-		queryFn: async (): Promise<TenantPortalLease | null> => {
-			return clientFetch<TenantPortalLease | null>('/api/v1/tenant-portal/lease')
+		queryFn: async (): Promise<LeaseWithDetails | null> => {
+			return clientFetch<LeaseWithDetails | null>('/api/v1/tenant-portal/lease')
 		},
 		staleTime: 60 * 1000,
 		retry: 2

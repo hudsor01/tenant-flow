@@ -5,6 +5,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { API_BASE_URL } from '#lib/api-config'
 
 const logger = createLogger({ component: 'TenantOnboarding' })
 
@@ -47,7 +48,7 @@ export default function TenantOnboardingPage() {
 
         // 3. Call backend activation endpoint
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/tenants/activate`,
+          `${API_BASE_URL}/api/v1/tenants/activate`,
           {
             method: 'POST',
             headers: {
